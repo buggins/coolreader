@@ -1,0 +1,12 @@
+empty-line { height: 1em }
+sub { vertical-align: sub; font-size: 70% }
+sup { vertical-align: super; font-size: 70% }
+a { vertical-align: super; font-size: 80% }
+text-author { text-align: right; margin-right: 1em }
+empty-line { height: 1em }
+epigraph { margin-left: 25%; margin-right: 1em; text-align: left; text-indent: 0px; font-style: italic; margin-top: 3px; margin-bottom: 3px }
+strong { font-weight: bold }
+emphasis { font-style: italic }
+title, subtitle { text-align: center; text-indent: 0px; font-size: 130%; font-weight: bold; margin-top: 5px; margin-bottom: 5px }
+subtitle { font-style: italic }
+body { margin: 5px; text-align: justify; text-indent: 3em; line-height: 140% }
