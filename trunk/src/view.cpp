@@ -1,0 +1,357 @@
+#include <wx/wx.h>
+#include <wx/mstream.h>
+#include <crengine.h>
+#include "cr3.h"
+#include "rescont.h"
+#include "view.h"
+
+#define RENDER_TIMER_ID 123
+
+BEGIN_EVENT_TABLE( cr3view, wxPanel )
+    EVT_PAINT( cr3view::OnPaint )
+    EVT_SIZE    ( cr3view::OnSize )
+    EVT_MOUSEWHEEL( cr3view::OnMouseWheel )
+    EVT_LEFT_DOWN( cr3view::OnMouseLDown )
+    EVT_MENU_RANGE( 0, 0xFFFF, cr3view::OnCommand )
+    EVT_SET_FOCUS( cr3view::OnSetFocus )
+    EVT_TIMER(RENDER_TIMER_ID, cr3view::OnTimer)
+    EVT_INIT_DIALOG(cr3view::OnInitDialog)
+END_EVENT_TABLE()
+
+wxColour cr3view::getBackgroundColour()
+{
+#if (COLOR_BACKBUFFER==1)
+    lUInt32 cl = _docview->getBackgroundColor();
+#else
+    lUInt32 cl = 0xFFFFFF;
+#endif
+    wxColour wxcl( (cl>>16)&255, (cl>>8)&255, (cl>>0)&255 );
+    return wxcl;
+}
+
+void cr3view::OnInitDialog(wxInitDialogEvent& event)
+{
+    //SetBackgroundColour( getBackgroundColour() );
+}
+
+cr3view::cr3view()
+: _scrollbar(NULL)
+{
+    _docview = new LVDocView();
+
+    _renderTimer = new wxTimer( this, RENDER_TIMER_ID );
+
+    //SetBackgroundColour( getBackgroundColour() );
+    InitDialog();
+    //int width, height;
+    //GetClientSize( &width, &height );
+	//Resize( 300, 300 );	
+}
+
+cr3view::~cr3view()
+{
+    delete _renderTimer;
+    delete _docview;
+}
+
+void cr3view::OnTimer(wxTimerEvent& event)
+{
+    //
+    _docview->Resize(_newWidth, _newHeight);
+    UpdateScrollBar();
+    Paint();
+}
+
+void cr3view::Paint()
+{
+    _docview->Draw();
+    Refresh( FALSE );
+}
+
+void cr3view::CloseDocument()
+{
+    _docview->Clear();
+}
+
+void cr3view::UpdateScrollBar()
+{
+	if ( !_scrollbar )
+		return;
+    const LVScrollInfo * lvsi = _docview->getScrollInfo();
+    _scrollbar->SetScrollbar(
+        lvsi->pos,      //int position, 
+        lvsi->pagesize, //int thumbSize, 
+        lvsi->maxpos + lvsi->pagesize,   //int range, 
+        lvsi->pagesize, //int pageSize, 
+        true//const bool refresh = true
+    );
+    wxStatusBar * sb = ((wxFrame*)GetParent())->GetStatusBar();
+    if ( sb )
+        sb->SetStatusText( wxString( lvsi->posText.c_str() ), 1 );
+
+}
+
+void cr3view::OnMouseLDown( wxMouseEvent & event )
+{
+    int x = event.GetX();
+    int y = event.GetY();
+    ldomXPointer ptr = _docview->getNodeByPoint( lvPoint( x, y ) );
+    if ( ptr.isNull() ) {
+        printf("node not found!\n");
+
+        return;
+    }
+    if ( ptr.getNode()->isText() ) {
+        printf("text : %s     \t", UnicodeToUtf8( ptr.toString() ).c_str() );
+    } else {
+        printf("element : %s  \t", UnicodeToUtf8( ptr.toString() ).c_str() );
+    }
+    lvPoint pt2 = ptr.toPoint();
+    printf("  (%d, %d)  ->  (%d, %d)\n", x, y+_docview->GetPos(), pt2.x, pt2.y);
+}
+
+void cr3view::OnCommand(wxCommandEvent& event)
+{
+	switch ( event.GetId() ) {
+	case Menu_View_ZoomIn:
+        {
+	        wxCursor hg( wxCURSOR_WAIT );
+	        this->SetCursor( hg );
+	        wxSetCursor( hg );
+            //===========================================
+            doCommand( DCMD_ZOOM_IN, 0 );
+            //===========================================
+	        wxSetCursor( wxNullCursor );
+	        this->SetCursor( wxNullCursor );
+        }
+		break;
+	case Menu_View_ZoomOut:
+        {
+	        wxCursor hg( wxCURSOR_WAIT );
+	        this->SetCursor( hg );
+	        wxSetCursor( hg );
+            //===========================================
+    	    doCommand( DCMD_ZOOM_OUT, 0 );
+            //===========================================
+	        wxSetCursor( wxNullCursor );
+	        this->SetCursor( wxNullCursor );
+        }
+		break;
+	case Menu_View_NextPage:
+	    doCommand( DCMD_PAGEDOWN, 0 );
+		break;
+	case Menu_View_PrevPage:
+		doCommand( DCMD_PAGEUP, 0 );
+		break;
+	case Menu_View_NextLine:
+	    doCommand( DCMD_LINEDOWN, 0 );
+		break;
+	case Menu_View_PrevLine:
+		doCommand( DCMD_LINEUP, 0 );
+		break;
+	case Menu_View_Begin:
+	    doCommand( DCMD_BEGIN, 0 );
+		break;
+	case Menu_View_End:
+		doCommand( DCMD_END, 0 );
+		break;
+	}
+}
+
+void cr3view::OnScroll(wxScrollEvent& event)
+{
+    int id = event.GetEventType();
+    //printf("Scroll event: %d\n", id);
+    if (id == wxEVT_SCROLL_TOP)
+        doCommand( DCMD_BEGIN, 0 );
+    else if (id == wxEVT_SCROLL_BOTTOM )
+        doCommand( DCMD_BEGIN, 0 );
+    else if (id == wxEVT_SCROLL_LINEUP )
+        doCommand( DCMD_LINEUP, 0 );
+    else if (id == wxEVT_SCROLL_LINEDOWN )
+        doCommand( DCMD_LINEDOWN, 0 );
+    else if (id == wxEVT_SCROLL_PAGEUP )
+        doCommand( DCMD_PAGEUP, 0 );
+    else if (id == wxEVT_SCROLL_PAGEDOWN )
+        doCommand( DCMD_PAGEDOWN, 0 );
+    else if (id == wxEVT_SCROLL_THUMBRELEASE || id == wxEVT_SCROLL_THUMBTRACK)
+    {
+        doCommand( DCMD_GO_POS,
+              _docview->scrollPosToDocPos( event.GetPosition() ) );
+    }
+}
+
+void cr3view::OnMouseWheel(wxMouseEvent& event)
+{
+    int rotation = event.GetWheelRotation();
+    if ( rotation>0 )
+        doCommand( DCMD_LINEUP, 3 );
+    else if ( rotation<0 )
+        doCommand( DCMD_LINEDOWN, 3 );
+}
+
+void cr3view::OnKeyDown(wxKeyEvent& event)
+{
+    int code = event.GetKeyCode() ;
+    
+        switch( code )
+        {
+        case WXK_NUMPAD_ADD:
+            {
+        doCommand( DCMD_ZOOM_IN, 0 );
+            }
+            break;
+        case WXK_NUMPAD_SUBTRACT:
+            {
+        doCommand( DCMD_ZOOM_OUT, 0 );
+            }
+            break;
+/*        case WXK_UP:
+            {
+		doCommand( DCMD_LINEUP, 1 );
+            }
+            break;
+        case WXK_DOWN:
+            {
+		doCommand( DCMD_LINEDOWN, 1 );
+            }
+            break;
+        case WXK_PAGEUP:
+            {
+		doCommand( DCMD_PAGEUP, 1 );
+            }
+            break;
+        case WXK_PAGEDOWN:
+            {
+		doCommand( DCMD_PAGEDOWN, 1 );
+            }
+            break;
+        case WXK_HOME:
+            {
+		doCommand( DCMD_BEGIN, 0 );
+            }
+            break;
+        case WXK_END:
+            {
+		doCommand( DCMD_END, 0 );
+            }
+            break;
+*/
+
+        }
+}
+
+bool cr3view::LoadDocument( const wxString & fname )
+{
+	wxCursor hg( wxCURSOR_WAIT );
+	this->SetCursor( hg );
+	wxSetCursor( hg );
+    //===========================================
+    GetParent()->Update();
+	bool res = _docview->LoadDocument( fname.c_str() );
+	//DEBUG
+	//_docview->exportWolFile( "test.wol", true );
+	//_docview->SetPos(0);
+    lString16 title = (_docview->getAuthors() + L". " + _docview->getTitle());
+    GetParent()->SetLabel( wxString( title.c_str() ) );
+    _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
+	//_docview->Render();
+	//UpdateScrollBar();
+	//Paint();
+    GetParent()->SetFocus();
+    //===========================================
+	wxSetCursor( wxNullCursor );
+	this->SetCursor( wxNullCursor );
+    return res;
+}
+
+void cr3view::doCommand( LVDocCmd cmd, int param )
+{
+    _docview->doCommand( cmd, param );
+    UpdateScrollBar();
+    Paint();
+}
+
+void cr3view::Resize(int dx, int dy)
+{
+    if ( _docview->GetWidth() == dx && _docview->GetHeight() == dy )
+        return; // no resize
+    if (dx<5 || dy<5 || dx>3000 || dy>3000)
+    {
+        return;
+    }
+    _newWidth = dx;
+    _newHeight = dy;
+    _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
+}
+
+void cr3view::OnPaint(wxPaintEvent& event)
+{
+    wxPaintDC dc(this);
+
+    int dx = _docview->GetWidth();
+    int dy = _docview->GetHeight();
+    wxImage img;
+    img.Create(dx, dy, true);
+
+    unsigned char * bits = img.GetData();
+    for ( int y=0; y<dy; y++ ) {
+		int bpp = _docview->GetDrawBuf()->GetBitsPerPixel();
+		if ( bpp==32 ) {
+            const lUInt32* src = (const lUInt32*) _docview->GetDrawBuf()->GetScanLine( y );
+            unsigned char * dst = bits + y*dx*3;
+            for ( int x=0; x<dx; x++ )
+            {
+                lUInt32 c = *src++;
+                *dst++ = (c>>16) & 255;
+                *dst++ = (c>>8) & 255;
+                *dst++ = (c>>0) & 255;
+            }
+		} else if ( bpp==2 ) {
+			//
+			static const unsigned char palette[4][3] = {
+				{ 0xff, 0xff, 0xff },
+				{ 0xaa, 0xaa, 0xaa },
+				{ 0x55, 0x55, 0x55 },
+				{ 0x00, 0x00, 0x00 },
+			};
+			const lUInt8* src = (const lUInt8*) _docview->GetDrawBuf()->GetScanLine( y );
+			unsigned char * dst = bits + y*dx*3;
+			for ( int x=0; x<dx; x++ )
+			{
+				lUInt32 c = (( src[x>>2] >> ((3-(x&3))<<1) ))&3;
+				*dst++ = palette[c][0];
+				*dst++ = palette[c][1];
+				*dst++ = palette[c][2];
+			}
+		} else if ( bpp==1 ) {
+			//
+			static const unsigned char palette[2][3] = {
+				{ 0xff, 0xff, 0xff },
+				{ 0x00, 0x00, 0x00 },
+			};
+			const lUInt8* src = (const lUInt8*) _docview->GetDrawBuf()->GetScanLine( y );
+			unsigned char * dst = bits + y*dx*3;
+			for ( int x=0; x<dx; x++ )
+			{
+				lUInt32 c = (( src[x>>3] >> ((7-(x&7))) ))&1;
+				*dst++ = palette[c][0];
+				*dst++ = palette[c][1];
+				*dst++ = palette[c][2];
+			}
+		}
+    }
+
+    // fill
+    wxBitmap bmp( img );
+    dc.DrawBitmap( bmp, 0, 0, false );
+}
+
+void cr3view::OnSize(wxSizeEvent& event)
+{
+    int width, height;
+    GetClientSize( &width, &height );
+    Resize( width, height );
+    printf("resize: %d x %d \n", width, height);
+}
+
