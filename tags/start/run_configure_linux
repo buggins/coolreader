@@ -1,0 +1,10 @@
+#    MACOSX_DEPLOYMENT_TARGET=cr3.app \
+MACOSX_DEPLOYMENT_TARGET="cr3.app"
+
+CREHOME=`pwd`/../crengine/
+WXHOME=`pwd`/../wxWidgets/
+
+./configure --enable-static=yes --enable-unicode --enable-debug=full \
+    --with-wx-config=${WXHOME}/build/linux/Debug/wx-config \
+    LDFLAGS="-L${CREHOME}lib -lcrengined " \
+    CPPFLAGS=-I${CREHOME}include 
