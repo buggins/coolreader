@@ -48,11 +48,11 @@ typedef struct
             lvfont_handle   font;     /**< \brief handle of font to draw string */
             const lChar16 * text;     /**< \brief pointer to unicode text string */
             lUInt16         len;      /**< \brief number of chars in text */
-        };
+        } t;
         struct {
             lUInt16         width;    /**< \brief handle of font to draw string */
             lUInt16         height;   /**< \brief pointer to unicode text string */
-        };
+        } o;
     };
     lUInt16         margin;   /**< \brief first line margin */
     lUInt16         flags;    /**< \brief flags */
@@ -71,11 +71,11 @@ typedef struct
        struct {
            lUInt16  start;           /**< \brief 02 position of word in source text */
            lUInt16  len;             /**< \brief 04 number of chars in word */
-       };
+       } t;
        /// for object
        struct {
            lUInt16  height;           /**< \brief 02 height of image */
-       };
+       } o;
    };
    lUInt16  width;           /**< \brief 06 word width, pixels */
    lUInt16  x;               /**< \brief 08 word x position in line */

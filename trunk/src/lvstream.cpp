@@ -387,7 +387,7 @@ public:
             break;
         case LVOM_CLOSED:
         case LVOM_ERROR:
-            throw;
+            crFatalError();
             break;
         }
         m_hFile = CreateFileW( fname.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);

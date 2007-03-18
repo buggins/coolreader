@@ -14,13 +14,25 @@
 #ifndef __LV_MEM_MAN_H_INCLUDED__
 #define __LV_MEM_MAN_H_INCLUDED__
 
+
 #include "crsetup.h"
 #include "lvtypes.h"
+
+/// fatal error function type
+typedef void (lv_FatalErrorHandler_t)(int errorCode, const char * errorText );
+
+/// fatal error function calls fatal error handler
+void crFatalError( int code, const char * errorText );
+inline void crFatalError() { crFatalError( -1, "Unknown fatal error" ); }
+
+/// set fatal error handler
+void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
+
 
 #if (LDOM_USE_OWN_MEM_MAN==1)
 #include <stdlib.h>
 
-#define THROW_MEM_MAN_EXCEPTION(s) throw;
+#define THROW_MEM_MAN_EXCEPTION crFatalError(-1, "Memory manager fatal error" );
 
 #define BLOCK_SIZE_GRANULARITY 3
 #define LOCAL_STORAGE_COUNT    16
@@ -30,12 +42,12 @@
 
 /// memory block
 union ldomMemBlock {
-    struct {
+//    struct {
         char buf[4];
-    };
-    struct {
+//    };
+//    struct {
         ldomMemBlock * nextfree;
-    };
+//    };
 };
 
 /// memory allocation slice
@@ -125,7 +137,7 @@ struct ldomMemManStorage
         }
         // alloc new slice
         if (slice_count >= MAX_SLICE_COUNT)
-            throw;
+            THROW_MEM_MAN_EXCEPTION;
         slices[slice_count++] = 
             new ldomMemSlice(block_size, FIRST_SLICE_SIZE << (slice_count+1));
         return slices[slice_count-1]->alloc_block();

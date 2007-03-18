@@ -126,7 +126,7 @@ void initRendMethod( ldomNode * node )
     {
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (!fmt)
-            throw;
+            crFatalError();
         if (fmt->getStyle()->display == css_d_none)
         {
             fmt->setRendMethod( erm_invisible );
@@ -414,7 +414,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
     }
     else
     {
-        throw;
+        crFatalError();
     }
 }
 
@@ -441,7 +441,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
     {
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (!fmt)
-            throw;
+            crFatalError();
         if (node->getNodeId() == el_empty_line)
             x = x;
         int em = fmt->getFont()->getHeight();
@@ -523,12 +523,12 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
             // don't render invisible blocks
             return 0;
         default:
-            throw; // error
+            crFatalError(); // error
         }
     }
     else
     {
-        throw;
+        crFatalError();
     }
     return 0;
 }
@@ -539,7 +539,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
     {
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (!fmt)
-            throw;
+            crFatalError();
         doc_x += fmt->getX();
         doc_y += fmt->getY();
         if ( doc_y + fmt->getHeight() <= y0 || doc_y > y0 + dy )
@@ -593,7 +593,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
             // don't draw invisible blocks
             break;
         default:
-            throw; // error
+            crFatalError(); // error
         }
     }
 }

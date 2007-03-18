@@ -30,15 +30,17 @@
 //#include "../../wxWidgets/src/jpeg/jinclude.h"
 extern "C" {
 //#include <jpeglib.h>
-#include <jpeglib.h>
+#include "jpeglib.h"
 }
 
 #include <jerror.h>
 
-#ifndef wxjpeg_boolean
+#ifdef LBOOK
 #define wxjpeg_boolean boolean
 #endif
+
 #endif
+
 
 
 LVImageSource::~LVImageSource() {}
@@ -68,6 +70,10 @@ public:
 };
 
 #if (USE_LIBJPEG==1)
+
+METHODDEF(void)
+cr_jpeg_error (j_common_ptr cinfo);
+
 
 typedef struct {
     struct jpeg_source_mgr pub;   /* public fields */
@@ -134,7 +140,7 @@ cr_fill_input_buffer (j_decompress_ptr cinfo)
     cr_jpeg_source_mgr * src = (cr_jpeg_source_mgr *) cinfo->src;
     lvsize_t bytesRead = 0;
     if ( src->stream->Read( src->buffer, INPUT_BUF_SIZE, &bytesRead ) != LVERR_OK )
-        throw;
+        cr_jpeg_error((jpeg_common_struct*)cinfo);
 
     if (bytesRead <= 0) {
         if (src->start_of_file) /* Treat empty input file as fatal error */
@@ -294,9 +300,9 @@ typedef struct my_error_mgr * my_error_ptr;
  */
 
 METHODDEF(void)
-cr_error_throw (j_common_ptr cinfo)
+cr_jpeg_error (j_common_ptr cinfo)
 {
-    //fprintf(stderr, "cr_error_throw() : fatal error while decoding JPEG image\n");
+    //fprintf(stderr, "cr_jpeg_error() : fatal error while decoding JPEG image\n");
 
     //char buffer[JMSG_LENGTH_MAX];
 
@@ -305,13 +311,12 @@ cr_error_throw (j_common_ptr cinfo)
   
     //fprintf( stderr, "message: %s\n", buffer );
     
-    //throw;
     /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
     my_error_ptr myerr = (my_error_ptr) cinfo->err;
 
     /* Always display the message. */
     /* We could postpone this until after returning, if we chose. */
-    (*cinfo->err->output_message) (cinfo);
+    //(*cinfo->err->output_message) (cinfo);
 
     /* Return control to the setjmp point */
     longjmp(myerr->setjmp_buffer, 1);
@@ -321,14 +326,28 @@ cr_error_throw (j_common_ptr cinfo)
 
 #if (USE_LIBPNG==1)
 
+class LVPngImageSource : public LVNodeImageSource
+{
+protected:
+public:
+    LVPngImageSource( ldomNode * node, LVStreamRef stream );
+    virtual ~LVPngImageSource();
+    virtual void   Compact();
+    virtual bool   Decode( LVImageDecoderCallback * callback );
+    static bool CheckPattern( const lUInt8 * buf, int len );
+};
+
+
 static void lvpng_error_func (png_structp png, png_const_charp msg)
 {
-    throw;
+    //fprintf(stderr, "png error: %s\n", msg)
+    longjmp(png_jmpbuf(png), 1);
 }
 
 static void lvpng_warning_func (png_structp png, png_const_charp msg)
 {
-    throw;
+    //fprintf(stderr, "png warning: %s\n", msg)
+    longjmp(png_jmpbuf(png), 1);
 }
 
 static void lvpng_read_func(png_structp png, png_bytep buf, png_size_t len)
@@ -337,7 +356,7 @@ static void lvpng_read_func(png_structp png, png_bytep buf, png_size_t len)
     LVStream * stream = obj->GetSourceStream();
     lvsize_t bytesRead = 0;
     if ( stream->Read( buf, len, &bytesRead )!=LVERR_OK || bytesRead!=(lvsize_t)len )
-        throw;
+        longjmp(png_jmpbuf(png), 1);
 }
 
 #endif
@@ -419,7 +438,7 @@ public:
         /* We set up the normal JPEG error routines, then override error_exit. */
         jpeg_error_mgr errmgr;
         cinfo.err = jpeg_std_error(&errmgr);
-        errmgr.error_exit = cr_error_throw;
+        errmgr.error_exit = cr_jpeg_error;
 
         lUInt8 * buffer = NULL;
         lUInt32 * row = NULL;
@@ -495,7 +514,7 @@ public:
                     }
                     callback->OnLineDecoded( this, y, row );
                 }
-            }        
+            }
 
         if ( buffer )
             delete[] buffer;
@@ -517,126 +536,122 @@ public:
 
 #if (USE_LIBPNG==1)
 
-class LVPngImageSource : public LVNodeImageSource
-{
-protected:
-public:
-    LVPngImageSource( ldomNode * node, LVStreamRef stream )
+LVPngImageSource::LVPngImageSource( ldomNode * node, LVStreamRef stream )
         : LVNodeImageSource(node, stream)
-    {
-        
-    }
-    virtual ~LVPngImageSource() {}
-    virtual void   Compact() { }
-    virtual bool   Decode( LVImageDecoderCallback * callback )
-    {
-        png_structp png_ptr = NULL;
-        png_infop info_ptr = NULL;
-        lUInt32 * row = NULL;
-        try {
-            _stream->SetPos( 0 );
-            png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 
-                (png_voidp)this, lvpng_error_func, lvpng_warning_func);
-            if (!png_ptr)
-                throw;
-            //
-            info_ptr = png_create_info_struct(png_ptr);
-            if (!info_ptr)
-                throw;
-            png_set_read_fn(png_ptr,
-                (voidp)this, lvpng_read_func);
-            png_read_info( png_ptr, info_ptr );
+{
+}
+LVPngImageSource::~LVPngImageSource() {}
+void LVPngImageSource::Compact() { }
+bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
+{
+    png_structp png_ptr = NULL;
+    png_infop info_ptr = NULL;
+    lUInt32 * row = NULL;
+    _stream->SetPos( 0 );
+    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+        (png_voidp)this, lvpng_error_func, lvpng_warning_func);
+    if ( !png_ptr )
+        return false;
 
-
-            png_uint_32 width, height;
-            int bit_depth, color_type, interlace_type;
-            png_get_IHDR(png_ptr, info_ptr, &width, &height,
-               &bit_depth, &color_type, &interlace_type,
-               NULL, NULL);
-            _width = width;
-            _height = height;
-
-            row = new lUInt32[ width ];
-
-            if ( callback )
-            {
-                callback->OnStartDecode(this);
-
-                //int png_transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_INVERT_ALPHA;
-                    //PNG_TRANSFORM_PACKING|
-                    //PNG_TRANSFORM_STRIP_16|
-                    //PNG_TRANSFORM_INVERT_ALPHA;
-
-                // SET TRANSFORMS
-                if (color_type & PNG_COLOR_MASK_PALETTE)
-                    png_set_palette_to_rgb(png_ptr);
-
-                if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) 
-                    png_set_gray_1_2_4_to_8(png_ptr);
-
-                if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) 
-                    png_set_tRNS_to_alpha(png_ptr);
-
-                if (bit_depth == 16)
-                    png_set_strip_16(png_ptr);
-
-                png_set_invert_alpha(png_ptr);
-
-                if (bit_depth < 8)
-                    png_set_packing(png_ptr);
-
-                //if (color_type == PNG_COLOR_TYPE_RGB)
-                    png_set_filler(png_ptr, 0, PNG_FILLER_AFTER);
-    
-                //if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-                //    png_set_swap_alpha(png_ptr);
-
-                if (color_type == PNG_COLOR_TYPE_GRAY ||
-                    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-                      png_set_gray_to_rgb(png_ptr);
-
-                int number_passes = png_set_interlace_handling(png_ptr);
-                //if (color_type == PNG_COLOR_TYPE_RGB_ALPHA ||
-                //    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-
-                //if (color_type == PNG_COLOR_TYPE_RGB ||
-                //    color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-                png_set_bgr(png_ptr);
-
-                 for (int pass = 0; pass < number_passes; pass++)
-                {
-                      for (lUInt32 y = 0; y < height; y++)
-                    {
-                        png_read_rows(png_ptr, (unsigned char **)&row, png_bytepp_NULL, 1);
-                        callback->OnLineDecoded( this, y, row );
-                    }
-                }
-
-                png_read_end(png_ptr, info_ptr);
-
-                callback->OnEndDecode(this, false);
-            }
+    if (setjmp( png_ptr->jmpbuf )) {
+        _width = 0;
+        _height = 0;
+        if (png_ptr)
+        {
             png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-        } catch (...) {
-            _width = 0;
-            _height = 0;
-            if (png_ptr)
-            {
-                png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-            }
-            if ( row )
-                delete row;
-            if (callback)
-                callback->OnEndDecode(this, true); // error!
-            return false;
         }
-        return true;
+        if ( row )
+            delete row;
+        if (callback)
+            callback->OnEndDecode(this, true); // error!
+        return false;
     }
-    static bool CheckPattern( const lUInt8 * buf, int len )
+
+    //
+    info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr)
+        lvpng_error_func(png_ptr, "cannot create png info struct");
+    png_set_read_fn(png_ptr,
+        (voidp)this, lvpng_read_func);
+    png_read_info( png_ptr, info_ptr );
+
+
+    png_uint_32 width, height;
+    int bit_depth, color_type, interlace_type;
+    png_get_IHDR(png_ptr, info_ptr, &width, &height,
+        &bit_depth, &color_type, &interlace_type,
+        NULL, NULL);
+    _width = width;
+    _height = height;
+
+    row = new lUInt32[ width ];
+
+    if ( callback )
     {
-        return( !png_sig_cmp((unsigned char *)buf, (png_size_t)0, 4) );
+        callback->OnStartDecode(this);
+
+        //int png_transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_INVERT_ALPHA;
+            //PNG_TRANSFORM_PACKING|
+            //PNG_TRANSFORM_STRIP_16|
+            //PNG_TRANSFORM_INVERT_ALPHA;
+
+        // SET TRANSFORMS
+        if (color_type & PNG_COLOR_MASK_PALETTE)
+            png_set_palette_to_rgb(png_ptr);
+
+        if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+            png_set_gray_1_2_4_to_8(png_ptr);
+
+        if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+            png_set_tRNS_to_alpha(png_ptr);
+
+        if (bit_depth == 16)
+            png_set_strip_16(png_ptr);
+
+        png_set_invert_alpha(png_ptr);
+
+        if (bit_depth < 8)
+            png_set_packing(png_ptr);
+
+        //if (color_type == PNG_COLOR_TYPE_RGB)
+            png_set_filler(png_ptr, 0, PNG_FILLER_AFTER);
+
+        //if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+        //    png_set_swap_alpha(png_ptr);
+
+        if (color_type == PNG_COLOR_TYPE_GRAY ||
+            color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+                png_set_gray_to_rgb(png_ptr);
+
+        int number_passes = png_set_interlace_handling(png_ptr);
+        //if (color_type == PNG_COLOR_TYPE_RGB_ALPHA ||
+        //    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+
+        //if (color_type == PNG_COLOR_TYPE_RGB ||
+        //    color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+        png_set_bgr(png_ptr);
+
+            for (int pass = 0; pass < number_passes; pass++)
+        {
+                for (lUInt32 y = 0; y < height; y++)
+            {
+                png_read_rows(png_ptr, (unsigned char **)&row, png_bytepp_NULL, 1);
+                callback->OnLineDecoded( this, y, row );
+            }
+        }
+
+        png_read_end(png_ptr, info_ptr);
+
+        callback->OnEndDecode(this, false);
     }
-};
+    png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
+    return true;
+}
+
+static bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int len )
+{
+    return( !png_sig_cmp((unsigned char *)buf, (png_size_t)0, 4) );
+}
 
 #endif
 

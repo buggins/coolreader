@@ -60,7 +60,7 @@ struct lstring_chunk_slice_t {
 #ifdef LS_DEBUG_CHECK
         if (!pChunk->size)
         {
-            throw; // already freed!!!
+            crFatalError(); // already freed!!!
         }
         pChunk->size = 0;
 #endif
@@ -71,8 +71,8 @@ struct lstring_chunk_slice_t {
     }
 };
 
-#define FIRST_SLICE_SIZE 256
-#define MAX_SLICE_COUNT  20
+//#define FIRST_SLICE_SIZE 256
+//#define MAX_SLICE_COUNT  20
 
 static lstring_chunk_slice_t * slices[MAX_SLICE_COUNT];
 static int slices_count = 0;
@@ -117,7 +117,7 @@ lstring_chunk_t * lstring_chunk_t::alloc()
     }
     // alloc new slice
     if (slices_count >= MAX_SLICE_COUNT)
-        throw;
+        crFatalError();
     slices[slices_count++] = new lstring_chunk_slice_t( FIRST_SLICE_SIZE << (slices_count+1) );
     return slices[slices_count-1]->alloc_chunk();
 }
@@ -129,7 +129,7 @@ void lstring_chunk_t::free( lstring_chunk_t * pChunk )
         if (slices[i]->free_chunk(pChunk))
             return;
     }
-    throw; // wrong pointer!!!
+    crFatalError(); // wrong pointer!!!
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -390,7 +390,7 @@ void lString16::free()
         if (slices[i]->free_chunk(pchunk))
             return;
     }
-    throw; // wrong pointer!!!
+    crFatalError(); // wrong pointer!!!
 }
 
 void lString16::alloc(size_t sz)
@@ -971,7 +971,7 @@ void lString8::free()
         if (slices[i]->free_chunk(pchunk))
             return;
     }
-    throw; // wrong pointer!!!
+    crFatalError(); // wrong pointer!!!
 }
 
 void lString8::alloc(size_t sz)

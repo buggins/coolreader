@@ -443,7 +443,8 @@ bool InitFontManager( lString8 path )
     else
     {
         // already initialized
-        throw;
+        crFatalError();
+        return 0;
     }
 }
 

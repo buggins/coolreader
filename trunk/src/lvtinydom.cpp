@@ -1376,19 +1376,19 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
                     return ldomXPointer( node->getParentNode(),
                         node->getNodeIndex() + (( x < word->x + word->width/2 ) ? 0 : 1) );
                 }
-                LVFont * font = (LVFont *) src->font;
+                LVFont * font = (LVFont *) src->t.font;
                 lUInt16 w[512];
                 lUInt8 flg[512];
 
                 lString16 str = node->getText();
-                font->measureText( str.c_str()+word->start, word->len, w, flg, word->width+50, '?');
-                for ( int i=0; i<word->len; i++ ) {
+                font->measureText( str.c_str()+word->t.start, word->t.len, w, flg, word->width+50, '?');
+                for ( int i=0; i<word->t.len; i++ ) {
                     int xx = ( i>0 ) ? (w[i-1] + w[i])/2 : w[i]/2;
                     if ( x < word->x + xx ) {
-                        return ldomXPointer( node, word->start + i );
+                        return ldomXPointer( node, word->t.start + i );
                     }
                 }
-                return ldomXPointer( node, word->start + word->len );
+                return ldomXPointer( node, word->t.start + word->t.len );
             }
         }
     }
@@ -1464,19 +1464,19 @@ lvPoint ldomXPointer::toPoint() const
                 const formatted_word_t * word = &frmline->words[w];
                 if ( word->src_text_index==srcIndex ) {
                     // found word from same src line
-                    if ( _offset<=word->start ) {
+                    if ( _offset<=word->t.start ) {
                         // before this word
                         pt.x = word->x + rc.left + frmline->x;
                         pt.y = word->y + rc.top + frmline->y + frmline->baseline;
                         return pt;
-                    } else if ( offset<=word->start+word->len ) {
+                    } else if ( offset<=word->t.start+word->t.len ) {
                         // pointer inside this word
-                        LVFont * font = (LVFont *) txtform.GetSrcInfo(srcIndex)->font;
+                        LVFont * font = (LVFont *) txtform.GetSrcInfo(srcIndex)->t.font;
                         lUInt16 w[512];
                         lUInt8 flg[512];
                         lString16 str = node->getText();
-                        font->measureText( str.c_str()+word->start, offset - word->start, w, flg, word->width+50, '?');
-                        int chx = w[ _offset - word->start - 1 ];
+                        font->measureText( str.c_str()+word->t.start, offset - word->t.start, w, flg, word->width+50, '?');
+                        int chx = w[ _offset - word->t.start - 1 ];
                         pt.x = word->x + chx + rc.left + frmline->x;
                         pt.y = word->y + rc.top + frmline->y + frmline->baseline;
                         return pt;

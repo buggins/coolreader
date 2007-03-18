@@ -16,6 +16,26 @@
 #include "../include/lvref.h"
 #include "../include/lvtinydom.h"
 
+/// default fatal error handler: uses exit()
+void lvDefFatalErrorHandler (int errorCode, const char * errorText )
+{
+    fprintf( stderr, "FATAL ERROR #%d: %s\n", errorCode, errorText );
+    exit( errorCode );
+}
+
+lv_FatalErrorHandler_t * lvFatalErrorHandler = &lvDefFatalErrorHandler;
+
+void crFatalError( int code, const char * errorText )
+{
+    lvFatalErrorHandler( code, errorText );
+}
+
+/// set fatal error handler
+void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler )
+{
+    lvFatalErrorHandler = handler;
+}
+
 
 ref_count_rec_t ref_count_rec_t::null_ref(NULL);
 
@@ -59,7 +79,7 @@ void   ldomFree( void * p, size_t n )
     {
         if ( block_storages[n] == NULL )
         {
-            throw;
+            crFatalError();
         }
         block_storages[n]->free( (ldomMemBlock *)p );
     }

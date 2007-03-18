@@ -81,7 +81,7 @@ public:
     void erase( int pos, int count )
     {
         if ( pos<0 || count<=0 || pos+count > _count )
-            throw;
+            crFatalError();
         int i;
         for (i=0; i<count; i++)
         {
@@ -102,7 +102,7 @@ public:
     T * remove( int pos )
     {
         if ( pos < 0 || pos > _count )
-            throw;
+            crFatalError();
         int i;
         T * item = _list[pos];
         for ( i=pos; i<_count; i++ )

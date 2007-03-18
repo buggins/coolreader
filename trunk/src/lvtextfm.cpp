@@ -74,7 +74,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
         for (lUInt32 i=0; i<pbuffer->srctextlen; i++)
         {
             if (pbuffer->srctext[i].flags & LTEXT_FLAG_OWNTEXT)
-                free( (void*)pbuffer->srctext[i].text );
+                free( (void*)pbuffer->srctext[i].t.text );
         }
         free( pbuffer->srctext );
     }
@@ -128,20 +128,20 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
         pbuffer->srctext = (src_text_fragment_t*)realloc( pbuffer->srctext, sizeof(src_text_fragment_t)*(srctextsize) );
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
-    pline->font = font;
+    pline->t.font = font;
     if (!len) for (len=0; text[len]; len++) ;
     if (flags & LTEXT_FLAG_OWNTEXT)
     {
         /* make own copy of text */
-        pline->text = (lChar16*)malloc( len * sizeof(lChar16) );
-        memcpy((void*)pline->text, text, len * sizeof(lChar16));
+        pline->t.text = (lChar16*)malloc( len * sizeof(lChar16) );
+        memcpy((void*)pline->t.text, text, len * sizeof(lChar16));
     }
     else
     {
-        pline->text = text;
+        pline->t.text = text;
     }
     pline->object = object;
-    pline->len = (lUInt16)len;
+    pline->t.len = (lUInt16)len;
     pline->margin = margin;
     pline->flags = flags;
     pline->interval = interval;
@@ -164,8 +164,8 @@ void lvtextAddSourceObject(
         pbuffer->srctext = (src_text_fragment_t*)realloc( pbuffer->srctext, sizeof(src_text_fragment_t)*(srctextsize) );
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
-    pline->width = width;
-    pline->height = height;
+    pline->o.width = width;
+    pline->o.height = height;
     pline->object = object;
     pline->margin = margin;
     pline->flags = flags | LTEXT_SRC_IS_OBJECT;
@@ -197,7 +197,7 @@ int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
         {
             /* rollback */
             *pSrcIndex = frmline->words[i+1].src_text_index;
-            *pSrcOffset = frmline->words[i+1].start;
+            *pSrcOffset = frmline->words[i+1].t.start;
             frmline->word_count = i+1;
             flgRollback = 1;
         }
@@ -293,21 +293,21 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
         flgObject = (line_flags & LTEXT_SRC_IS_OBJECT) ? 1 : 0;
         if (!flgObject)
         {
-            font = (LVFont*)srcline->font;
+            font = (LVFont*)srcline->t.font;
         }
         text_offset = 0;
         if ( i==0 && !(line_flags & LTEXT_FLAG_NEWLINE) )
             line_flags |= LTEXT_ALIGN_LEFT; /* first paragraph -- left by default */
         if (line_flags & LTEXT_FLAG_NEWLINE)
             first_para_line = srcline;
-        if (!flgObject && (int)widths_buf_size < (int)srcline->len + 64) //
+        if (!flgObject && (int)widths_buf_size < (int)srcline->t.len + 64) //
         {
-            widths_buf_size = srcline->len + 64;
+            widths_buf_size = srcline->t.len + 64;
             widths_buf = (lUInt16 *) realloc( widths_buf, widths_buf_size * sizeof(lUInt16) );
             flags_buf  = (lUInt8 *) realloc( flags_buf, widths_buf_size * sizeof(lUInt8) );
         }
 
-        while (flgObject || srcline->len > text_offset)
+        while (flgObject || srcline->t.len > text_offset)
         {
             do {
                 flgRollback = 0;
@@ -319,11 +319,11 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 }
                 else
                 {
-                    chars_left = srcline->len - text_offset;
+                    chars_left = srcline->t.len - text_offset;
                     isParaStart = (line_flags & LTEXT_FLAG_NEWLINE) && text_offset==0;
                     /* measure line */
                     chars_measured = font->measureText( 
-                        text_offset + srcline->text, 
+                        text_offset + srcline->t.text, 
                         chars_left, 
                         widths_buf, flags_buf,
                         pbuffer->width,
@@ -350,7 +350,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                             srcline = &pbuffer->srctext[i];
                             line_flags = srcline->flags;
                             flgObject = (line_flags & LTEXT_SRC_IS_OBJECT) ? 1 : 0;
-                            font = (LVFont*)srcline->font;
+                            font = (LVFont*)srcline->t.font;
                             for (j=i; j>0; j--)
                             {
                                 if (pbuffer->srctext[j].flags & LTEXT_FLAG_NEWLINE)
@@ -367,7 +367,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                     last_fit = 0xFFFF;
                     if (flgObject)
                     {
-                        if ( srcline->width <= space_left)
+                        if ( srcline->o.width <= space_left)
                         {
                             last_fit = 0;
                             break;
@@ -441,13 +441,13 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 word->src_text_index = i;
                 int scale_div = 1;
                 int scale_mul = 1;
-                int div_x = (srcline->width / pbuffer->width) + 1;
-                int div_y = (srcline->height / pbuffer->page_height) + 1;
-                if ( srcline->height*3 < pbuffer->page_height-20 
-                        && srcline->width*3 < pbuffer->width - 20 )
+                int div_x = (srcline->o.width / pbuffer->width) + 1;
+                int div_y = (srcline->o.height / pbuffer->page_height) + 1;
+                if ( srcline->o.height*3 < pbuffer->page_height-20 
+                        && srcline->o.width*3 < pbuffer->width - 20 )
                     scale_mul = 3;
-                else if ( srcline->height*2 < pbuffer->page_height-20 
-                        && srcline->width*2 < pbuffer->width - 20 )
+                else if ( srcline->o.height*2 < pbuffer->page_height-20 
+                        && srcline->o.width*2 < pbuffer->width - 20 )
                     scale_mul = 2;
                 else if (div_x>1 || div_y>1) {
                     if (div_x>div_y)
@@ -455,8 +455,8 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                     else
                         scale_div = div_y;
                 }
-                word->height = srcline->height * scale_mul / scale_div;
-                word->width = srcline->width * scale_mul / scale_div;
+                word->o.height = srcline->o.height * scale_mul / scale_div;
+                word->width = srcline->o.width * scale_mul / scale_div;
                 word->flags = LTEXT_WORD_IS_OBJECT;
                 word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                 word->y = 0;
@@ -473,9 +473,9 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                     {
                         word = lvtextAddFormattedWord( frmline );
                         word->src_text_index = i;
-                        word->len = j - wstart + 1;
+                        word->t.len = j - wstart + 1;
                         word->width = widths_buf[j] - wpos;
-                        word->start = text_offset + wstart;
+                        word->t.start = text_offset + wstart;
                         word->flags = 0;
                         word->y = wy;
                         word->x = widths_buf[j] - wpos;
@@ -485,7 +485,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                             word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                         if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER)
                             word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
-                        if ( text_offset+j == srcline->len-1 )
+                        if ( text_offset+j == srcline->t.len-1 )
                         {
                             /* last char of src fragment */
                             if (i==pbuffer->srctextlen-1 || pbuffer->srctext[i+1].flags & LTEXT_FLAG_NEWLINE)
@@ -502,7 +502,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
             /* update Y positions of line */
             if (flgObject)
             {
-                b = word->height;
+                b = word->o.height;
                 h = 0;
             }
             else
@@ -577,14 +577,14 @@ void lvtextDraw( formatted_text_fragment_t * text, draw_buf_t * buf, int x, int 
             word = &frmline->words[j];
             //int flg = 0;
             srcline = &text->srctext[word->src_text_index];
-            font = (lvfont_header_t *) ( ((LVFont*)srcline->font)->GetHandle() );
-            str = srcline->text + word->start;
+            font = (lvfont_header_t *) ( ((LVFont*)srcline->t.font)->GetHandle() );
+            str = srcline->t.text + word->t.start;
             lvdrawbufDrawText( buf, 
                 x + frmline->x + word->x,
                 line_y + (frmline->baseline - font->fontBaseline) + word->y, 
                 (lvfont_handle)font,
                 str, 
-                word->len,
+                word->t.len,
                 '?' );
         }
         line_y += frmline->height;
@@ -638,10 +638,10 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y )
                     ldomElement * node = (ldomElement *) srcline->object;
                     LVImageSourceRef img = node->getObjectImageSource();
                     if ( img.isNull() )
-                        img = LVCreateDummyImageSource( node, word->width, word->height );
+                        img = LVCreateDummyImageSource( node, word->width, word->o.height );
                     int xx = x + frmline->x + word->x;
-                    int yy = line_y + frmline->baseline - word->height + word->y;
-                    buf->Draw( img, xx, yy, word->width, word->height );
+                    int yy = line_y + frmline->baseline - word->o.height + word->y;
+                    buf->Draw( img, xx, yy, word->width, word->o.height );
                     //buf->FillRect( xx, yy, xx+word->width, yy+word->height, 1 );
                 }
                 else
@@ -651,14 +651,14 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y )
                         (word->flags&LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER))
                         flgHyphen = true;
                     srcline = &m_pbuffer->srctext[word->src_text_index];
-                    font = (LVFont *) srcline->font;
-                    str = srcline->text + word->start;
+                    font = (LVFont *) srcline->t.font;
+                    str = srcline->t.text + word->t.start;
                     font->DrawTextString(
                         buf,
                         x + frmline->x + word->x,
                         line_y + (frmline->baseline - font->getBaseline()) + word->y, 
                         str, 
-                        word->len,
+                        word->t.len,
                         '?',
                         NULL,
                         flgHyphen);
