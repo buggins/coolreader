@@ -89,7 +89,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "crengine___Win32_Unicode_Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "/projects/wxWidgets/src/jpeg" /I "./../../wxWidgets/src/jpeg" /I "./../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x419 /d "_DEBUG"
 # ADD RSC /l 0x419 /d "_DEBUG"
@@ -113,7 +113,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "crengine___Win32_Unicode_Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /Ob2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Ob2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Ob2 /I "/projects/wxWidgets/src/jpeg" /I "./../../wxWidgets/src/jpeg" /I "./../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x419 /d "NDEBUG"
 # ADD RSC /l 0x419 /d "NDEBUG"
 BSC32=bscmake.exe
