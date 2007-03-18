@@ -29,8 +29,7 @@
 
 //#include "../../wxWidgets/src/jpeg/jinclude.h"
 extern "C" {
-//#include <jpeglib.h>
-#include "jpeglib.h"
+#include <jpeglib.h>
 }
 
 #include <jerror.h>
@@ -648,7 +647,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
     return true;
 }
 
-static bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int len )
+bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int len )
 {
     return( !png_sig_cmp((unsigned char *)buf, (png_size_t)0, 4) );
 }
