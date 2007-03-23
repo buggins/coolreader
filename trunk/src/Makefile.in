@@ -170,7 +170,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
 # these are the headers for your project
-noinst_HEADERS = cr3.h rescont.h view.h wolopt.h resources/cr3res.h
+noinst_HEADERS = cr3.h rescont.h view.h
 
 # the application source, library search path, and link libraries
 cr3_SOURCES = cr3.cpp view.cpp wolopt.cpp
