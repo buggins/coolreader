@@ -133,8 +133,9 @@ incpath =	-I.  -D$(HOSTTYPE) \
 
 else
 incpath =	-I./include/common \
-			-I/usr/include \
-			-I/sw/include \
+			-I./../wxWidgets/src/jpeg \
+			-I./../wxWidgets/lib/wx/include/gtk2-unicode-release-static-2.8 \
+			-I./../wxWidgets/include \
 			$(inc)
 endif
 #			-I/usr/include/freetype2 \

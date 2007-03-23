@@ -1,2 +1,2 @@
-#run to build static linux/bsd libraries
+#run to build static linux libraries
 make all
