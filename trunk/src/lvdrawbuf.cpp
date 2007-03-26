@@ -441,7 +441,11 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
         if ( _bpp==2 ) {
             for (xx = width; xx>0; --xx)
             {
+#if (GRAY_INVERSE==1)
                 *dst |= (( (*src++) & 0xC0 ) >> ( shift << 1 ));
+#else
+                *dst &= ~(( ((*src++) & 0xC0) ) >> ( shift << 1 ));
+#endif
                 /* next pixel */
                 if (!(++shift & 3))
                 {
@@ -452,7 +456,11 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
         } else if ( _bpp==1 ) {
             for (xx = width; xx>0; --xx)
             {
+#if (GRAY_INVERSE==1)
                 *dst |= (( (*src++) & 0x80 ) >> ( shift ));
+#else
+                *dst &= ~(( ((*src++) & 0x80) ) >> ( shift ));
+#endif
                 /* next pixel */
                 if (!(++shift & 7))
                 {

@@ -43,7 +43,7 @@ const char * def_stylesheet =
 "cite { margin-left: 30%; margin-right: 4%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px; font-family: Times New Roman, serif }\n"
 ;
 
-static const char * DEFAULT_FONT_NAME = "Tahoma"; //Times New Roman";
+static const char * DEFAULT_FONT_NAME = "Times New Roman"; //Times New Roman";
 static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_serif,
 //    css_ff_sans_serif,
@@ -54,8 +54,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
     
 LVDocView::LVDocView() 
 : m_dx(100), m_dy(100), m_pos(50)
-#if COLOR_BACKBUFFER==0
-, m_font_size(26)
+#if (LBOOK==1)
+, m_font_size(30)
 #else
 , m_font_size(22)
 #endif
