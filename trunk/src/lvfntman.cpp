@@ -472,8 +472,8 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
     int typeface_match = (_typeface == def._typeface) ? 256 : 0;
     return
         + (size_match     * 32)
-        + (weight_match   * 2)
-        + (italic_match   * 2)
+        + (weight_match   * 4)
+        + (italic_match   * 4)
         + (family_match   * 8)
         + (typeface_match * 16);
 }
@@ -602,7 +602,7 @@ LVFontCacheItem * LVFontCache::find( const LVFontDef * fntdef )
         for (i=0; i<_instance_list.length(); i++)
         {
             int match = _instance_list[i]->_def.CalcMatch( def );
-            if (match > best_match)
+            if (match > best_instance_match)
             {
                 best_instance_match = match;
                 best_instance_index = i;

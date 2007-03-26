@@ -55,7 +55,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 LVDocView::LVDocView() 
 : m_dx(100), m_dy(100), m_pos(50)
 #if (LBOOK==1)
-, m_font_size(30)
+, m_font_size(34)
 #else
 , m_font_size(22)
 #endif
