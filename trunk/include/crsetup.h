@@ -23,6 +23,7 @@
 #define USE_ZLIB         1
 #define COLOR_BACKBUFFER 0
 #define USE_ANSI_FILES   1
+#define GRAY_INVERSE     0
 #endif
 
 // disable some features for SYMBIAN
@@ -51,6 +52,11 @@
 ///allow PNG support via libpng
 #define USE_ZLIB 1
 #endif
+
+#ifndef GRAY_INVERSE
+#define GRAY_INVERSE     1
+#endif
+
 
 /** \def LVLONG_FILE_SUPPORT
     \brief define to 1 to use 64 bits for file position types

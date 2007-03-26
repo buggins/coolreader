@@ -182,7 +182,11 @@ public:
                     lUInt32 alpha = (cl >> 24)&0xFF;
                     if ( xx<clip.left || xx>=clip.right || alpha&0x80 )
                         continue;
+#if (GRAY_INVERSE==1)
                     lUInt32 dcl = Dither2BitColor( cl, x, yy ) ^ 3;
+#else
+                    lUInt32 dcl = Dither2BitColor( cl, x, yy );
+#endif
                     int byteindex = (xx >> 2);
                     int bitindex = (3-(xx & 3))<<1;
                     lUInt8 mask = 0xC0 >> (6 - bitindex);
@@ -202,7 +206,11 @@ public:
                     lUInt32 alpha = (cl >> 24)&0xFF;
                     if ( xx<clip.left || xx>=clip.right || alpha&0x80 )
                         continue;
+#if (GRAY_INVERSE==1)
                     lUInt32 dcl = Dither1BitColor( cl, x, yy ) ^ 1;
+#else
+                    lUInt32 dcl = Dither1BitColor( cl, x, yy ) ^ 0;
+#endif
                     int byteindex = (xx >> 3);
                     int bitindex = ((xx & 7));
                     lUInt8 mask = 0x80 >> (bitindex);
@@ -770,8 +778,13 @@ void LVGrayDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette
         return;
     LVColorDrawBuf buf( _dx, 1 );
     lUInt32 * dst = (lUInt32 *)buf.GetScanLine(0);
+#if (GRAY_INVERSE==1)
     static lUInt32 def_pal_1bpp[2] = {0xFFFFFF, 0x000000};
     static lUInt32 def_pal_2bpp[4] = {0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};
+#else
+    static lUInt32 def_pal_1bpp[2] = {0x000000, 0xFFFFFF};
+    static lUInt32 def_pal_2bpp[4] = {0x000000, 0x555555, 0xAAAAAA, 0xFFFFFF};
+#endif
     if (!palette)
         palette = (_bpp==1) ? def_pal_1bpp : def_pal_2bpp;
     for (int yy=0; yy<_dy; yy++)
@@ -813,8 +826,13 @@ void LVGrayDrawBuf::DrawTo(CWindowGc &dc, int x, int y, int options, lUInt32 * p
     //    return;
     LVColorDrawBuf buf( _dx, 1 );
     lUInt32 * dst = (lUInt32 *)buf.GetScanLine(0);
+#if (GRAY_INVERSE==1)
     static lUInt32 def_pal_1bpp[2] = {0xFFFFFF, 0x000000};
     static lUInt32 def_pal_2bpp[4] = {0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};
+#else
+    static lUInt32 def_pal_1bpp[2] = {0x000000, 0xFFFFFF};
+    static lUInt32 def_pal_2bpp[4] = {0x000000, 0x555555, 0xAAAAAA, 0xFFFFFF};
+#endif
     if (!palette)
         palette = (_bpp==1) ? def_pal_1bpp : def_pal_2bpp;
     for (int yy=0; yy<_dy; yy++)
@@ -870,7 +888,11 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
                     if ( x+xx >= clip.left && x+xx < clip.right )
                     {
                         //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+#if (GRAY_INVERSE==1)
                         lUInt8 cl = (((lUInt8)(*src)&0x80)^0x80) >> (shift);
+#else
+                        lUInt8 cl = (((lUInt8)(*src)&0x80)) >> (shift);
+#endif
                         *dst |= cl;
                     }    
                     if ( !(shift = (shift+1)&7) )
@@ -887,7 +909,11 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
                     if ( x+xx >= clip.left && x+xx < clip.right )
                     {
                         //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+#if (GRAY_INVERSE==1)
                         lUInt8 cl = (((lUInt8)(*src)&0xC0)^0xC0) >> (shift<<1);
+#else
+                        lUInt8 cl = (((lUInt8)(*src)&0xC0)) >> (shift<<1);
+#endif
                         *dst |= cl;
                     }    
                     if ( !(shift = (shift+1)&3) )

@@ -71,7 +71,11 @@ LVDocView::LVDocView()
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFE0C0;
 #else
+#if (GRAY_INVERSE==1)
     m_backgroundColor = 0;
+#else
+    m_backgroundColor = 3;
+#endif
 #endif
     m_drawbuf.Clear(m_backgroundColor);
 }
@@ -831,7 +835,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         break;
     case DCMD_GO_PAGE:
         {
-            goToPage( m_pages.FindNearestPage(param, 0) );
+            goToPage( param );
         }
         break;
     case DCMD_ZOOM_IN:
