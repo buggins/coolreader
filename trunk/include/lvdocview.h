@@ -48,6 +48,14 @@ public:
     lString16 posText;
 };
 
+enum {
+    PGHDR_NONE=0,
+    PGHDR_PAGE_NUMBER=1,
+    PGHDR_PAGE_COUNT=2,
+    PGHDR_AUTHOR=4,
+    PGHDR_TITLE=8
+};
+
 //typedef lUInt64 LVPosBookmark;
 
 /**
@@ -72,7 +80,9 @@ private:
     LVGrayDrawBuf  m_drawbuf;
 #endif
     lUInt32 m_backgroundColor;
+    lUInt32 m_textColor;
     font_ref_t     m_font;
+    font_ref_t     m_infoFont;
     LVStreamRef    m_stream;
     LVContainerRef m_arc;
     ldomDocument * m_doc;
@@ -84,10 +94,26 @@ private:
     lString16 m_authors;
     
     ldomXPointer _posBookmark;
+
+    lvRect m_pageMargins;
+    int m_pageHeaderInfo;
+    bool m_showCover;
+
+
+    // private functions
     void updateScroll();
-    void goToPage( int page );
     
 public:
+    /// set view mode (pages/scroll)
+    void setViewMode( LVDocViewMode view_mode );
+    /// get view mode (pages/scroll)
+    LVDocViewMode getViewMode();
+
+    /// get page header info mask
+    int getPageHeaderInfo() { return m_pageHeaderInfo; }
+    /// set page header info mask
+    void setPageHeaderInfo( int hdrFlags );
+
     /// returns background color
     lUInt32 getBackgroundColor()
     {
@@ -99,54 +125,88 @@ public:
         m_backgroundColor = cl;
         Draw();
     }
+    /// returns text color
+    lUInt32 getTextColor()
+    {
+        return m_textColor;
+    }
+    /// sets text color
+    void setTextColor( lUInt32 cl )
+    {
+        m_textColor = cl;
+        Draw();
+    }
     /// returns xpointer for specified window point
     ldomXPointer getNodeByPoint( lvPoint pt );
+
     /// returns document
     ldomDocument * getDocument() { return m_doc; }
+
     /// returns book title
     lString16 getTitle() { return m_title; }
     /// returns book author(s)
     lString16 getAuthors() { return m_authors; }
+
     /// export to WOL format
     bool exportWolFile( const char * fname, bool flgGray, int levels );
     /// export to WOL format
     bool exportWolFile( const wchar_t * fname, bool flgGray, int levels );
     /// export to WOL format
     bool exportWolFile( LVStream * stream, bool flgGray, int levels );
-    /// returns page count
-    int getPageCount() { return m_pages.length(); }
-    /// draws page to image
-    void drawPageTo(LVDrawBuf * drawBuf, LVRendPageInfo & page);
+
+    /// draws page to image buffer
+    void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page);
+    /// draws coverpage to image buffer
+    void drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc );
+    /// returns cover page image source, if any
+    LVImageSourceRef getCoverPageImage();
+
     /// returns bookmark
     ldomXPointer getBookmark();
     /// moves position to bookmark
     void goToBookmark(ldomXPointer bm);
+
     /// returns scrollbar control info
     const LVScrollInfo * getScrollInfo() { return &m_scrollinfo; }
     /// converts scrollbar pos to doc pos
     int scrollPosToDocPos( int scrollpos );
+
     /// execute command
     void doCommand( LVDocCmd cmd, int param=0 );
+
     /// set document stylesheet text
     void setStyleSheet( lString8 css_text );
+
     /// change font size
     void ZoomFont( int delta );
+
     /// get drawing buffer
     LVDrawBuf * GetDrawBuf() { return &m_drawbuf; }
     /// draw document into buffer
     void Draw();
+
     /// resize view
     void Resize( int dx, int dy );
     /// get view height
     int GetHeight() { return m_dy; }
     /// get view width
     int GetWidth() { return m_dx; }
+
     /// get full document height
     int GetFullHeight();
+
     /// get vertical position of view inside document
     int GetPos() { return m_pos; }
     /// set vertical position of view inside document
     void SetPos( int pos, bool savePos=true );
+
+    /// get number of current page
+    int getCurPage();
+    /// move to specified page
+    void goToPage( int page );
+    /// returns page count
+    int getPageCount() { return m_pages.length(); }
+
     /// clear view
     void Clear();
     /// load document from file
@@ -155,8 +215,10 @@ public:
     bool LoadDocument( const lChar16 * fname );
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
+
     /// render (format) document
     void Render( int dx=0, int dy=0, LVRendPageList * pages=NULL );
+
     /// Constructor
     LVDocView();
     /// Destructor

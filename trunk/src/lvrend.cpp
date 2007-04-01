@@ -585,7 +585,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 int h = ((ldomElement*)node)->renderFinalBlock( txform, fmt->getWidth() );
 
                 {
-                    txform.Draw( &drawbuf, doc_x, doc_y );
+                    txform.Draw( &drawbuf, doc_x+x0, doc_y+y0 );
                 }
             }
             break;

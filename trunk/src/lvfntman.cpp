@@ -474,8 +474,8 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
         + (size_match     * 32)
         + (weight_match   * 4)
         + (italic_match   * 4)
-        + (family_match   * 8)
-        + (typeface_match * 16);
+        + (family_match   * 16)
+        + (typeface_match * 32);
 }
 
 
@@ -538,6 +538,7 @@ bool LBitmapFont::getGlyphInfo( lUInt16 code, LVFont::glyph_info_t * glyph )
     glyph->width = ptr->width;
     return true;
 }
+
 lUInt16 LBitmapFont::measureText( 
                     const lChar16 * text, int len, 
                     lUInt16 * widths,
@@ -548,6 +549,29 @@ lUInt16 LBitmapFont::measureText(
 {
     return lvfontMeasureText( m_font, text, len, widths, flags, max_width, def_char );
 }
+
+lUInt32 LBitmapFont::getTextWidth( const lChar16 * text, int len )
+{
+    //
+#define MAX_LINE_CHARS 2048
+    static lUInt16 widths[MAX_LINE_CHARS+1];
+    static lUInt8 flags[MAX_LINE_CHARS+1];
+    if ( len>MAX_LINE_CHARS )
+        len = MAX_LINE_CHARS;
+    if ( len<=0 )
+        return 0;
+    lUInt16 res = measureText( 
+                    text, len, 
+                    widths,
+                    flags,
+                    2048, // max_width,
+                    L' '  // def_char
+                 );
+    if ( res>0 && res<MAX_LINE_CHARS )
+        return widths[res-1];
+    return 0;
+}
+
 /// returns font baseline offset
 int LBitmapFont::getBaseline()
 {
@@ -824,6 +848,28 @@ int LVWin32DrawFont::getCharWidth( lChar16 ch )
     return dx[0];
 }
 
+lUInt32 LVWin32DrawFont::getTextWidth( const lChar16 * text, int len )
+{
+    //
+#define MAX_LINE_CHARS 2048
+    static lUInt16 widths[MAX_LINE_CHARS+1];
+    static lUInt8 flags[MAX_LINE_CHARS+1];
+    if ( len>MAX_LINE_CHARS )
+        len = MAX_LINE_CHARS;
+    if ( len<=0 )
+        return 0;
+    lUInt16 res = measureText( 
+                    text, len, 
+                    widths,
+                    flags,
+                    2048, // max_width,
+                    L' '  // def_char
+                 );
+    if ( res>0 && res<MAX_LINE_CHARS )
+        return widths[res-1];
+    return 0;
+}
+
 /** \brief measure text
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyph was found 
@@ -987,7 +1033,7 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
         //TODO
         HDC dc = ((LVColorDrawBuf*)buf)->GetDC();
         HFONT oldfont = (HFONT)SelectObject( dc, _hfont );
-        SetTextColor( dc, 0x000000);
+        SetTextColor( dc, RevRGB(buf->GetTextColor()) );
         SetBkMode(dc, TRANSPARENT);
         ExtTextOutW( dc, x, y, 
             0, //ETO_OPAQUE
@@ -1160,6 +1206,28 @@ bool LVWin32Font::getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
         return false;
     *glyph = p->gi;
     return true;
+}
+
+lUInt32 LVWin32Font::getTextWidth( const lChar16 * text, int len )
+{
+    //
+#define MAX_LINE_CHARS 2048
+    static lUInt16 widths[MAX_LINE_CHARS+1];
+    static lUInt8 flags[MAX_LINE_CHARS+1];
+    if ( len>MAX_LINE_CHARS )
+        len = MAX_LINE_CHARS;
+    if ( len<=0 )
+        return 0;
+    lUInt16 res = measureText( 
+                    text, len, 
+                    widths,
+                    flags,
+                    2048, // max_width,
+                    L' '  // def_char
+                 );
+    if ( res>0 && res<MAX_LINE_CHARS )
+        return widths[res-1];
+    return 0;
 }
 
 /** \brief measure text

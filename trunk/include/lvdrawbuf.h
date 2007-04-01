@@ -32,6 +32,18 @@ class LVFont;
 class LVDrawBuf
 {
 public:
+    /// returns white pixel value
+    virtual lUInt32 GetWhiteColor() = 0;
+    /// returns black pixel value
+    virtual lUInt32 GetBlackColor() = 0;
+    /// returns current background color
+    virtual lUInt32 GetBackgroundColor() = 0;
+    /// sets current background color
+    virtual void SetBackgroundColor( lUInt32 cl ) = 0;
+    /// returns current text color
+    virtual lUInt32 GetTextColor() = 0;
+    /// sets current text color
+    virtual void SetTextColor( lUInt32 cl ) = 0;
     /// gets clip rect
     virtual void GetClipRect( lvRect * clipRect ) = 0;
     /// sets clip rect
@@ -52,6 +64,8 @@ public:
     virtual lUInt32 GetPixel( int x, int y ) = 0;
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color ) = 0;
+    /// fills rectangle with pattern
+    virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern ) = 0;
     /// sets new size
     virtual void Resize( int dx, int dy ) = 0;
     /// draws bitmap (1 byte per pixel) using specified palette
@@ -92,7 +106,17 @@ protected:
     int _rowsize;
     lvRect _clip;
     unsigned char * _data;
+    lUInt32 _backgroundColor;
+    lUInt32 _textColor;
 public:
+    /// returns current background color
+    virtual lUInt32 GetBackgroundColor() { return _backgroundColor; }
+    /// sets current background color
+    virtual void SetBackgroundColor( lUInt32 cl ) { _backgroundColor=cl; }
+    /// returns current text color
+    virtual lUInt32 GetTextColor() { return _textColor; }
+    /// sets current text color
+    virtual void SetTextColor( lUInt32 cl ) { _textColor = cl; }
     /// gets clip rect
     virtual void GetClipRect( lvRect * clipRect ) { *clipRect = _clip; }
     /// sets clip rect
@@ -123,6 +147,10 @@ class LVGrayDrawBuf : public LVBaseDrawBuf
 private:
     int _bpp;
 public:
+    /// returns white pixel value
+    virtual lUInt32 GetWhiteColor();
+    /// returns black pixel value
+    virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette ) { }
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
@@ -143,6 +171,8 @@ public:
     virtual lUInt32 GetPixel( int x, int y );
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color );
+    /// fills rectangle with pattern
+    virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern );
     /// sets new size
     virtual void Resize( int dx, int dy );
     /// draws image
@@ -156,6 +186,11 @@ public:
     /// convert to 1-bit bitmap
     void ConvertToBitmap(bool flgDither);
 };
+
+inline lUInt32 RevRGB( lUInt32 cl )
+{
+    return ((cl>>16)&255) | ((cl<<16)&0xFF0000) | (cl&0x00FF00);
+}
 
 /// 32-bit RGB buffer
 class LVColorDrawBuf : public LVBaseDrawBuf
@@ -171,6 +206,10 @@ private:
 #endif
 
 public:
+    /// returns white pixel value
+    virtual lUInt32 GetWhiteColor();
+    /// returns black pixel value
+    virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
@@ -189,6 +228,8 @@ public:
     virtual lUInt32 GetPixel( int x, int y );
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color );
+    /// fills rectangle with pattern
+    virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern );
     /// sets new size
     virtual void Resize( int dx, int dy );
     /// draws image

@@ -340,6 +340,58 @@ void LVGrayDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
     }
 }
 
+void LVGrayDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern )
+{
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+    if (_bpp==1)
+    {
+        color0 = (color0&1) ? 0xFF : 0x00;
+        color1 = (color1&1) ? 0xFF : 0x00;
+    }
+    else
+    {
+        color0 &= 3;
+        color0 |= (color0 << 2) | (color0 << 4) | (color0 << 6);
+        color1 &= 3;
+        color1 |= (color1 << 2) | (color1 << 4) | (color1 << 6);
+    }
+    lUInt8 * line = GetScanLine(y0);
+    for (int y=y0; y<y1; y++)
+    {
+        lUInt8 patternMask = pattern[y & 3];
+        if (_bpp==1)
+        {
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 patternBit = (patternMask << (x&7)) & 0x80;
+                lUInt8 mask = 0x80 >> (x&7);
+                int index = x >> 3;
+                line[index] = (lUInt8)((line[index] & ~mask) | ((patternBit?color1:color0) & mask));
+            }
+        }
+        else
+        {
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 patternBit = (patternMask << (x&7)) & 0x80;
+                lUInt8 mask = 0xC0 >> ((x&3)<<1);
+                int index = x >> 2;
+                line[index] = (lUInt8)((line[index] & ~mask) | ((patternBit?color1:color0) & mask));
+            }
+        }
+        line += _rowsize;
+    }
+}
+
 void LVGrayDrawBuf::Resize( int dx, int dy )
 {
     _dx = dx;
@@ -358,6 +410,25 @@ void LVGrayDrawBuf::Resize( int dx, int dy )
     SetClipRect( NULL );
 }
 
+/// returns white pixel value
+lUInt32 LVGrayDrawBuf::GetWhiteColor()
+{
+#if (GRAY_INVERSE==1)
+    return 0;
+#else
+    return (1<<_bpp) - 1;
+#endif
+}
+/// returns black pixel value
+lUInt32 LVGrayDrawBuf::GetBlackColor()
+{
+#if (GRAY_INVERSE==1)
+    return (1<<_bpp) - 1;
+#else
+    return 0;
+#endif
+}
+
 LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp)
     : LVBaseDrawBuf(), _bpp(bpp)
 {
@@ -365,6 +436,10 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp)
     _dy = dy;
     _bpp = bpp;
     _rowsize = (_dx * _bpp + 7) / 8;
+
+    _backgroundColor = GetWhiteColor();
+    _textColor = GetBlackColor();
+
     if (_dx && _dy)
     {
         _data = (lUInt8 *) malloc(_rowsize * _dy);
@@ -620,6 +695,31 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
         for (int x=x0; x<x1; x++)
         {
             line[x] = color;
+        }
+    }
+}
+
+/// fills rectangle with specified color
+void LVColorDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern )
+{
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+    for (int y=y0; y<y1; y++)
+    {
+        lUInt8 patternMask = pattern[y & 3];
+        lUInt32 * line = (lUInt32 *)GetScanLine(y);
+        for (int x=x0; x<x1; x++)
+        {
+            lUInt8 patternBit = (patternMask << (x&7)) & 0x80;
+            line[x] = patternBit ? color1 : color0;
         }
     }
 }
@@ -959,6 +1059,18 @@ lUInt8 * LVColorDrawBuf::GetScanLine( int y )
     return _data + _rowsize * y;
 #endif
 }
+
+/// returns white pixel value
+lUInt32 LVColorDrawBuf::GetWhiteColor()
+{
+    return 0xFFFFFF;
+}
+/// returns black pixel value
+lUInt32 LVColorDrawBuf::GetBlackColor()
+{
+    return 0x000000;
+}
+
 
 /// constructor
 LVColorDrawBuf::LVColorDrawBuf(int dx, int dy)

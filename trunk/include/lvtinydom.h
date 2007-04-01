@@ -570,7 +570,7 @@ public:
     /// returns main element (i.e. FictionBook for FB2)
     ldomElement * getMainNode();
     /// renders (formats) document in memory
-    virtual int render( LVRendPageContext & context, int width, font_ref_t def_font );
+    virtual int render( LVRendPageContext & context, int width, int y0, font_ref_t def_font );
     /// create xpointer from pointer string
     ldomXPointer createXPointer( const lString16 & xPointerStr );
     /// create xpointer from pointer string

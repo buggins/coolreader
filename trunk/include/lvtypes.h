@@ -59,6 +59,7 @@ public:
     int right;
     int bottom;
     lvRect() : left(0), top(0), right(0), bottom(0) { }
+    lvRect( int x0, int y0, int x1, int y1) : left(x0), top(y0), right(x1), bottom(y1) { }
     lvPoint topLeft() { return lvPoint( left, top ); }
     lvPoint bottomRight() { return lvPoint( right, bottom ); }
     int width() { return right - left; }

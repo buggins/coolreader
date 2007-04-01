@@ -54,8 +54,9 @@ public:
     virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph ) = 0;
 
     /** \brief measure text
-        \param glyph is pointer to glyph_info_t struct to place retrieved info
-        \return true if glyph was found 
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return number of characters before max_width reached 
     */
     virtual lUInt16 measureText( 
                         const lChar16 * text, int len, 
@@ -64,6 +65,14 @@ public:
                         int max_width,
                         lChar16 def_char
                      ) = 0;
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return width of specified string 
+    */
+    virtual lUInt32 getTextWidth(
+                        const lChar16 * text, int len
+        ) = 0;
 
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
@@ -147,6 +156,14 @@ public:
                         int max_width,
                         lChar16 def_char
                      );
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return width of specified string 
+    */
+    virtual lUInt32 getTextWidth(
+                        const lChar16 * text, int len
+        );
     /// returns font baseline offset
     virtual int getBaseline();
     /// returns font height
@@ -262,6 +279,14 @@ public:
                         int max_width,
                         lChar16 def_char
                      );
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return width of specified string 
+    */
+    virtual lUInt32 getTextWidth(
+                        const lChar16 * text, int len
+        );
 
     /// returns char width
     virtual int getCharWidth( lChar16 ch );
@@ -427,6 +452,14 @@ public:
                         int max_width,
                         lChar16 def_char
                      );
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return width of specified string 
+    */
+    virtual lUInt32 getTextWidth(
+                        const lChar16 * text, int len
+        );
 
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character

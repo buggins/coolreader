@@ -32,15 +32,23 @@
 #define RN_SPLIT_AFTER_AVOID   (RN_SPLIT_AVOID<<RN_SPLIT_AFTER)
 #define RN_SPLIT_AFTER_ALWAYS  (RN_SPLIT_ALWAYS<<RN_SPLIT_AFTER)
 
+enum page_type_t {
+    PAGE_TYPE_NORMAL = 0,
+    PAGE_TYPE_COVER = 1,
+};
+
 class LVRendPageInfo {
 public:
     int start;
     int height;
     int index;
+    int type;
     LVRendPageInfo( int pageStart, int pageHeight, int pageIndex )
-    : start(pageStart), height(pageHeight), index(pageIndex) {}
+    : start(pageStart), height(pageHeight), index(pageIndex), type(PAGE_TYPE_NORMAL) {}
+    LVRendPageInfo( int coverHeight )
+    : start(0), height(coverHeight), index(0), type(PAGE_TYPE_COVER) {}
     LVRendPageInfo() 
-    : start(0), height(0), index(0) { }
+    : start(0), height(0), index(0), type(PAGE_TYPE_NORMAL) { }
 };
 
 class LVRendPageList : public LVPtrVector<LVRendPageInfo>

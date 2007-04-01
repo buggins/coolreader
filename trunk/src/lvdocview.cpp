@@ -50,16 +50,18 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_cursive,
 //    css_ff_fantasy,
 //    css_ff_monospace
-    
+
+#define INFO_FONT_SIZE      20    
+#define DEFAULT_PAGE_MARGIN 10
     
 LVDocView::LVDocView() 
 : m_dx(100), m_dy(100), m_pos(50)
 #if (LBOOK==1)
-, m_font_size(34)
+, m_font_size(36)
 #else
-, m_font_size(22)
+, m_font_size(24)
 #endif
-, m_view_mode(DVM_PAGES)
+, m_view_mode( 1 ? DVM_PAGES : DVM_SCROLL ) // choose 0/1
 , m_drawbuf(100, 100
 #if COLOR_BACKBUFFER==0
             , GRAY_BACKBUFFER_BITS
@@ -67,14 +69,25 @@ LVDocView::LVDocView()
             ), m_stream(NULL), m_doc(NULL)
 , m_stylesheet( def_stylesheet )
 , m_is_rendered(false)
+, m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
+, m_pageHeaderInfo ( 
+      PGHDR_PAGE_NUMBER
+    | PGHDR_PAGE_COUNT
+    | PGHDR_AUTHOR
+    | PGHDR_TITLE)
+, m_showCover(true)
+
 { 
 #if (COLOR_BACKBUFFER==1)
-    m_backgroundColor = 0xFFE0C0;
+    m_backgroundColor = 0xFFFFE0;
+    m_textColor = 0x000060;
 #else
 #if (GRAY_INVERSE==1)
     m_backgroundColor = 0;
+    m_textColor = 3;
 #else
     m_backgroundColor = 3;
+    m_textColor = 0;
 #endif
 #endif
     m_drawbuf.Clear(m_backgroundColor);
@@ -83,6 +96,16 @@ LVDocView::LVDocView()
 LVDocView::~LVDocView()
 {
     Clear();
+}
+
+void LVDocView::setPageHeaderInfo( int hdrFlags )
+{ 
+    m_pageHeaderInfo = hdrFlags;
+    int oldMargin = m_pageMargins.top;
+    m_pageMargins.top = m_pageMargins.bottom + (hdrFlags ? 16 : 0);
+    if ( m_pageMargins.top != oldMargin ) {
+        Render();
+    }
 }
 
 /// set document stylesheet text
@@ -162,6 +185,61 @@ int getSectionPage( ldomElement * section, LVRendPageList & pages )
     return page;
 }
 
+/// returns cover page image source, if any
+LVImageSourceRef LVDocView::getCoverPageImage()
+{
+    ldomElement * cover_img_el = ((ldomElement*)m_doc->getMainNode())
+        ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 )
+        ->findChildElement( LXML_NS_ANY, el_description, -1 )
+        ->findChildElement( LXML_NS_ANY, el_title_info, -1 )
+        ->findChildElement( LXML_NS_ANY, el_coverpage, -1 )
+        ->findChildElement( LXML_NS_ANY, el_image, -1 );
+
+    if ( cover_img_el )
+    {
+        LVImageSourceRef imgsrc = cover_img_el->getObjectImageSource();
+        return imgsrc;
+    }
+    return LVImageSourceRef(); // not found: return NULL ref
+}
+
+
+/// draws coverpage to image buffer
+void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
+{
+    LVImageSourceRef imgsrc = getCoverPageImage();
+    if ( !imgsrc.isNull() )
+    {
+        //fprintf( stderr, "Writing coverpage image...\n" );
+        int src_dx = imgsrc->GetWidth();
+        int src_dy = imgsrc->GetHeight();
+        int scale_x = rc.width() * 0x10000 / src_dx;
+        int scale_y = rc.height() * 0x10000 / src_dy;
+        if ( scale_x < scale_y )
+            scale_y = scale_x;
+        else
+            scale_x = scale_y;
+        int dst_dx = (src_dx * scale_x) >> 16;
+        int dst_dy = (src_dy * scale_y) >> 16;
+        if (dst_dx>rc.width())
+            dst_dx = rc.width();
+        if (dst_dy>rc.height())
+            dst_dy = rc.height();
+        drawBuf->Draw( imgsrc, rc.left + (rc.width()-dst_dx)/2, rc.top + (rc.height()-dst_dy)/2, dst_dx, dst_dy );
+        //fprintf( stderr, "Done.\n" );
+    }
+    else
+    {
+
+        m_font->DrawTextString(drawBuf, 10, 10, L"Testing WOL export", 18, '?', NULL, false);
+        m_font->DrawTextString(drawBuf, 30, 50, L"NO COVERPAGE", 9, '?', NULL, false);
+        drawBuf->FillRect(20, 80, 580, 90, 1);
+        drawBuf->FillRect(20, 90, 580, 100, 2);
+        drawBuf->FillRect(20, 100, 580, 110, 3);
+
+    }
+}
+
 /// export to WOL format
 bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 {
@@ -186,54 +264,10 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
                 lString8("-"), //This is introduction.
                 lString8("")   //ISBN
         );
+
         LVGrayDrawBuf cover(600, 800);
-
-        ldomElement * cover_img_el = ((ldomElement*)m_doc->getMainNode())
-            ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 )
-            ->findChildElement( LXML_NS_ANY, el_description, -1 )
-            ->findChildElement( LXML_NS_ANY, el_title_info, -1 )
-            ->findChildElement( LXML_NS_ANY, el_coverpage, -1 )
-            ->findChildElement( LXML_NS_ANY, el_image, -1 );
-
-        if ( cover_img_el )
-        {
-            LVImageSourceRef imgsrc = cover_img_el->getObjectImageSource();
-            if ( !imgsrc.isNull() )
-            {
-                //fprintf( stderr, "Writing coverpage image...\n" );
-                int src_dx = imgsrc->GetWidth();
-                int src_dy = imgsrc->GetHeight();
-                int scale_x = 600 * 0x10000 / src_dx;
-                int scale_y = 800 * 0x10000 / src_dy;
-                if ( scale_x < scale_y )
-                    scale_y = scale_x;
-                else
-                    scale_x = scale_y;
-                int dst_dx = (src_dx * scale_x) >> 16;
-                int dst_dy = (src_dy * scale_y) >> 16;
-                if (dst_dx>580)
-                    dst_dx = 600;
-                if (dst_dy>780)
-                    dst_dy = 800;
-                cover.Draw( imgsrc, (600-dst_dx)/2, (800-dst_dy)/2, dst_dx, dst_dy );
-                //fprintf( stderr, "Done.\n" );
-            }
-            else
-            {
-                m_font->DrawTextString(&cover, 10, 10, L"Testing WOL export", 18, '?', NULL, false);
-            }
-        }
-        else
-        {
-
-            m_font->DrawTextString(&cover, 10, 10, L"Testing WOL export", 18, '?', NULL, false);
-            m_font->DrawTextString(&cover, 30, 50, L"NO COVERPAGE", 9, '?', NULL, false);
-            cover.FillRect(20, 80, 580, 90, 1);
-            cover.FillRect(20, 90, 580, 100, 2);
-            cover.FillRect(20, 100, 580, 110, 3);
-
-        }
-
+        lvRect coverRc( 0, 0, 600, 800 );
+        drawCoverTo( &cover, coverRc );
         wol.addCoverImage(cover);
         
         for (int i=0; i<pages.length(); i++)
@@ -321,26 +355,103 @@ void LVDocView::SetPos( int pos, bool savePos )
 
 int LVDocView::GetFullHeight()
 { 
-    return (m_doc && m_doc->getMainNode()->getRenderData()) ? 
-        m_doc->getMainNode()->getRenderData()->getHeight() : m_dy; 
+    lvdomElementFormatRec * rd = m_doc ? m_doc->getMainNode()->getRenderData() : NULL;
+    return ( rd ? rd->getHeight()+rd->getY() : m_dy ); 
 }
 
 void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page)
 {
     int start = page.start;
     int height = page.height;
-    int offset = (drawbuf->GetHeight() - height) / 3;
+    int offset = (drawbuf->GetHeight() - m_pageMargins.top - m_pageMargins.bottom - height) / 3;
     if (offset>16)
         offset = 16;
     if (offset<0)
         offset = 0;
+    offset = 0;
     lvRect clip;
-    clip.top = offset;
-    clip.bottom = height + offset;
-    clip.right = drawbuf->GetWidth();
+    clip.left = m_pageMargins.left;
+    clip.top = offset + m_pageMargins.top;
+    clip.bottom = m_pageMargins.top + height + offset;
+    clip.right = drawbuf->GetWidth() - m_pageMargins.right;
+    if ( page.type==PAGE_TYPE_COVER )
+        clip.top = m_pageMargins.bottom;
+    if ( m_pageHeaderInfo && page.type!=PAGE_TYPE_COVER) {
+        lvRect info( 4, 4, drawbuf->GetWidth()-4, clip.top-7 );
+        lUInt32 cl1 = 0xA0A0A0;
+        lUInt32 cl2 = getBackgroundColor();
+        lUInt32 pal[4];
+        if ( drawbuf->GetBitsPerPixel()<=2 ) {
+            // gray
+            cl1 = 1;
+            pal[0] = 3;
+        } else {
+            // color
+            pal[0] = cl1;
+        }
+        drawbuf->SetTextColor(cl1);
+        static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
+        drawbuf->FillRectPattern(4, info.bottom, drawbuf->GetWidth()-4, info.bottom+1, cl1, cl2, pattern );
+        info.bottom -= 1;
+        lString16 pageinfo;
+        if ( m_pageHeaderInfo & PGHDR_PAGE_NUMBER )
+            pageinfo += lString16::itoa( getCurPage()+1 );
+        if ( m_pageHeaderInfo & PGHDR_PAGE_COUNT )
+            pageinfo += L" / " + lString16::itoa( getPageCount() );
+        int piw = 0;
+        int iy = info.bottom - m_infoFont->getHeight();
+        if ( !pageinfo.empty() ) {
+            piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
+            m_infoFont->DrawTextString( drawbuf, info.right-piw, iy, 
+                pageinfo.c_str(), pageinfo.length(), L' ', pal, false);
+        }
+        int titlew = 0;
+        lString16 title;
+        if ( m_pageHeaderInfo & PGHDR_TITLE ) {
+            title = getTitle();
+            if ( !title.empty() )
+                 titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
+        }
+        int authorsw = 0;
+        lString16 authors;
+        if ( m_pageHeaderInfo & PGHDR_AUTHOR ) {
+            authors = getAuthors();
+            if ( !authors.empty() ) {
+                authors += L'.';
+                authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
+            }
+        }
+        int w = info.width() - piw - 10;
+        lString16 text;
+        if ( authorsw + titlew + 10 > w ) {
+            if ( (page.index & 1) )
+                text = title;
+            else
+                text = authors;
+        } else {
+            text = authors + L"  " + title;
+        }
+        lvRect oldcr;
+        drawbuf->GetClipRect( &oldcr );
+        lvRect newcr = oldcr;
+        newcr.right = info.right - piw - 10;
+        drawbuf->SetClipRect(&newcr);
+        m_infoFont->DrawTextString( drawbuf, info.left, iy, 
+            text.c_str(), text.length(), L' ', pal, false);
+        drawbuf->SetClipRect(&oldcr);
+        //==============
+        drawbuf->SetTextColor(getTextColor());
+    }
     drawbuf->SetClipRect(&clip);
-    if ( m_doc )
-        DrawDocument( *drawbuf, m_doc->getMainNode(), 0, offset, drawbuf->GetWidth(), height, 0, -start+offset, m_dy );
+    if ( m_doc ) {
+        if ( page.type == PAGE_TYPE_COVER ) {
+            lvRect rc = clip;
+            rc.top = m_pageMargins.bottom;
+            drawCoverTo( drawbuf, rc );
+        } else {
+            DrawDocument( *drawbuf, m_doc->getMainNode(), m_pageMargins.left, m_pageMargins.top + offset, drawbuf->GetWidth() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy );
+        }
+    }
     drawbuf->SetClipRect(NULL);
 #if 0
     lString16 pagenum = lString16::itoa( page.index+1 );
@@ -348,9 +459,15 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page)
 #endif
 }
 
+int LVDocView::getCurPage()
+{
+    return m_pages.FindNearestPage(m_pos, 0);
+}
 
 void LVDocView::Draw()
 {
+    m_drawbuf.SetBackgroundColor( m_backgroundColor );
+    m_drawbuf.SetTextColor( m_textColor );
     m_drawbuf.Clear(m_backgroundColor);
 
     if ( !m_is_rendered )
@@ -362,7 +479,21 @@ void LVDocView::Draw()
     if (m_view_mode==DVM_SCROLL)
     {
         m_drawbuf.SetClipRect(NULL);
-        DrawDocument( m_drawbuf, m_doc->getMainNode(), 0, 0, m_dx, m_dy, 0, -m_pos, m_dy );
+        int cover_height = 0;
+        if ( m_pages.length()>0 && m_pages[0]->type == PAGE_TYPE_COVER )
+            cover_height = m_pages[0]->height;
+        if ( m_pos < cover_height ) {
+            lvRect rc;
+            m_drawbuf.GetClipRect( &rc );
+            rc.top -= m_pos;
+            rc.bottom -= m_pos;
+            rc.top += m_pageMargins.bottom;
+            rc.bottom -= m_pageMargins.bottom;
+            rc.left += m_pageMargins.left;
+            rc.right -= m_pageMargins.right;
+            drawCoverTo( &m_drawbuf, rc );
+        }
+        DrawDocument( m_drawbuf, m_doc->getMainNode(), m_pageMargins.left, 0, m_dx - m_pageMargins.left - m_pageMargins.right, m_dy, 0, -m_pos, m_dy );
     }
     else
     {
@@ -390,17 +521,20 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 	if ( pages==NULL )
 		pages = &m_pages;
 	if ( dx==0 )
-		dx = m_drawbuf.GetWidth();
+		dx = m_drawbuf.GetWidth() - m_pageMargins.left - m_pageMargins.right;
 	if ( dy==0 )
-		dy = m_drawbuf.GetHeight();
+		dy = m_drawbuf.GetHeight() - m_pageMargins.top - m_pageMargins.bottom;
     lString8 fontName = lString8(DEFAULT_FONT_NAME);
     m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, fontName );
+    m_infoFont = fontMan->GetFont( INFO_FONT_SIZE, 300, false, DEFAULT_FONT_FAMILY, fontName );
     if ( !m_font )
         return;
 
     pages->clear();
+    if ( m_showCover )
+        pages->add( new LVRendPageInfo( dy ) );
     LVRendPageContext context( pages, dy );
-    m_doc->render( context, dx, m_font );
+    m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font );
 
 #if 0        
     FILE * f = fopen("pagelist.log", "wt");
@@ -414,6 +548,22 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 #endif
     fontMan->gc();
     m_is_rendered = true;
+}
+
+/// set view mode (pages/scroll)
+void LVDocView::setViewMode( LVDocViewMode view_mode )
+{
+    if ( m_view_mode==view_mode )
+        return;
+    m_view_mode = view_mode;
+    Render();
+    goToBookmark(_posBookmark);
+}
+
+/// get view mode (pages/scroll)
+LVDocViewMode LVDocView::getViewMode()
+{
+    return m_view_mode;
 }
 
 void LVDocView::ZoomFont( int delta )
@@ -701,7 +851,7 @@ void LVDocView::updateScroll()
         if (npage<1)
             npage = 1;
         m_scrollinfo.pos = npos;
-        m_scrollinfo.maxpos = fh;
+        m_scrollinfo.maxpos = fh - npage;
         m_scrollinfo.pagesize = npage;
         m_scrollinfo.scale = shift;
         char str[32];

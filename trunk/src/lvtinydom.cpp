@@ -207,7 +207,7 @@ void ldomTextRef::setText( lString16 value )
 }
 #endif
 
-int ldomDocument::render( LVRendPageContext & context, int width, font_ref_t def_font )
+int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font )
 {
     _page_height = context.getPageHeight();
     _def_font = def_font;
@@ -232,7 +232,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, font_ref_t def
     initRendMethod( getMainNode() );
     //updateStyles();
     int height = renderBlockElement( context, getMainNode(), 
-        0, 0, width );
+        0, y0, width ) + y0;
     gc();
     context.Finalize();
     return height;
