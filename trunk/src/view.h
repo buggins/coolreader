@@ -32,6 +32,8 @@ cr3view : public wxPanel
         void OnMouseLDown( wxMouseEvent & event );
         void OnTimer(wxTimerEvent& event);
         void OnInitDialog(wxInitDialogEvent& event);
+        void ToggleViewMode();
+        void TogglePageHeader();
     protected:
 
         void Paint();

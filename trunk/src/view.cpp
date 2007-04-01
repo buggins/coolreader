@@ -110,6 +110,27 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
     printf("  (%d, %d)  ->  (%d, %d)\n", x, y+_docview->GetPos(), pt2.x, pt2.y);
 }
 
+void cr3view::TogglePageHeader()
+{
+    _docview->setPageHeaderInfo(
+        _docview->getPageHeaderInfo() ?
+        0 :
+              PGHDR_PAGE_NUMBER
+            | PGHDR_PAGE_COUNT
+            | PGHDR_AUTHOR
+            | PGHDR_TITLE
+        );
+    UpdateScrollBar();
+    Paint();
+}
+
+void cr3view::ToggleViewMode()
+{
+    _docview->setViewMode( _docview->getViewMode()==DVM_SCROLL ? DVM_PAGES : DVM_SCROLL );
+    UpdateScrollBar();
+    Paint();
+}
+
 void cr3view::OnCommand(wxCommandEvent& event)
 {
 	switch ( event.GetId() ) {
@@ -138,16 +159,16 @@ void cr3view::OnCommand(wxCommandEvent& event)
         }
 		break;
 	case Menu_View_NextPage:
-	    doCommand( DCMD_PAGEDOWN, 0 );
+	    doCommand( DCMD_PAGEDOWN, 1 );
 		break;
 	case Menu_View_PrevPage:
-		doCommand( DCMD_PAGEUP, 0 );
+		doCommand( DCMD_PAGEUP, 1 );
 		break;
 	case Menu_View_NextLine:
-	    doCommand( DCMD_LINEDOWN, 0 );
+	    doCommand( DCMD_LINEDOWN, 1 );
 		break;
 	case Menu_View_PrevLine:
-		doCommand( DCMD_LINEUP, 0 );
+		doCommand( DCMD_LINEUP, 1 );
 		break;
 	case Menu_View_Begin:
 	    doCommand( DCMD_BEGIN, 0 );
@@ -155,6 +176,12 @@ void cr3view::OnCommand(wxCommandEvent& event)
 	case Menu_View_End:
 		doCommand( DCMD_END, 0 );
 		break;
+    case Menu_View_TogglePages:
+        ToggleViewMode();
+        break;
+    case Menu_View_TogglePageHeader:
+        TogglePageHeader();
+        break;
 	}
 }
 

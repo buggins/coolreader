@@ -75,6 +75,7 @@ enum
     Menu_View_End,
     Menu_View_ToggleFullScreen,
     Menu_View_TogglePages,
+    Menu_View_TogglePageHeader,
 };
 
 enum

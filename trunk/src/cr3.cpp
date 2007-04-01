@@ -125,7 +125,7 @@ int cr3app::OnExit()
 
 wxBitmap getIcon16x16( const lChar16 * name )
 {
-    wxBitmap icon = resources->GetBitmap( (lString16(L"icons/16x16/") + name + L".png").c_str() );
+    wxBitmap icon = resources->GetBitmap( (lString16(L"icons/22x22/") + name + L".png").c_str() );
     if ( icon.IsOk() )
         return icon;
     return wxNullBitmap;
@@ -208,7 +208,7 @@ cr3app::OnInit()
 	int scale = scale_x < scale_y ? scale_x : scale_y;
 	cx = 610 * scale / 256;
 	cy = 830 * scale / 256;
-	cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.2" ), wxPoint(20,40), wxSize(cx,cy), appPath );
+	cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.3" ), wxPoint(20,40), wxSize(cx,cy), appPath );
 
 	frame->Show(TRUE);
 	SetTopWindow(frame);
@@ -243,6 +243,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     menuView->AppendSeparator();
     menuView->Append( Menu_View_ToggleFullScreen, wxT( "Toggle Fullscreen\tAlt+Enter" ) );
     menuView->Append( Menu_View_TogglePages, wxT( "Toggle Pages/Scroll\tCtrl+P" ) );
+    menuView->Append( Menu_View_TogglePageHeader, wxT( "Toggle page heading\tCtrl+H" ) );
     
 	wxMenuBar *menuBar = new wxMenuBar;
 	menuBar->Append( menuFile, wxT( "&File" ) );
@@ -362,6 +363,10 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Zoom out"), _T("Decrease font size"));
     toolBar->AddSeparator();
+    toolBar->AddTool(Menu_View_TogglePages, _T("Toggle pages (Ctrl+P)"),
+                     getIcon16x16(L"view_left_right"),//toolBarBitmaps[Tool_zoomout], 
+                     wxNullBitmap, wxITEM_NORMAL,
+                     _T("Toggle pages (Ctrl+P)"), _T("Switch pages/scroll mode"));
     toolBar->AddTool(Menu_View_ToggleFullScreen, _T("Fullscreen (Alt+Enter)"),
                      getIcon16x16(L"window_fullscreen"),//toolBarBitmaps[Tool_zoomout], 
                      wxNullBitmap, wxITEM_NORMAL,
@@ -420,6 +425,8 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     int a=0;
     entries[a++].Set(wxACCEL_CTRL,  (int) 'O',     wxID_OPEN);
     entries[a++].Set(wxACCEL_CTRL,  (int) 'S',     wxID_SAVE);
+    entries[a++].Set(wxACCEL_CTRL,  (int) 'P',     Menu_View_TogglePages);
+    entries[a++].Set(wxACCEL_CTRL,  (int) 'H',     Menu_View_TogglePageHeader);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F3,      wxID_OPEN);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F2,      wxID_SAVE);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_UP,      Menu_View_PrevLine);
@@ -524,7 +531,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-	wxMessageBox( wxT( "Cool Reader 3.0.2\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version" ),
+	wxMessageBox( wxT( "Cool Reader 3.0.3\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version" ),
 			wxT( "About Cool Reader" ), wxOK | wxICON_INFORMATION, this );
 }
 
