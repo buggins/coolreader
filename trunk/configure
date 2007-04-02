@@ -1803,7 +1803,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=cr3
- VERSION=3.0.2
+ VERSION=3.0.1
 
 
 cat >>confdefs.h <<_ACEOF
