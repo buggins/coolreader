@@ -15,6 +15,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
+#if (USE_FREETYPE==1)
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+#endif
+
+
 #include "../include/lvfntman.h"
 #include "../include/lvstream.h"
 #include "../include/lvdrawbuf.h"
@@ -116,7 +125,267 @@ public:
 };
 
 
+#if (USE_FREETYPE==1)
 
+
+class LVFreeTypeFace : LVFont
+{
+private:
+    lString8      _fileName;
+    FT_Library    _library;
+    FT_Face       _face;
+    FT_GlyphSlot  _slot;
+    FT_Matrix     _matrix;                 /* transformation matrix */
+public:
+    LVFreeTypeFace( FT_Library  _library )
+    : _library(library), _face(NULL)
+    {
+    }
+
+    LVFreeTypeFace( FT_Library  _library, FT_Face face )
+    : _library(library), _face(face)
+    {
+    }
+
+    virtual ~LVFreeTypeFace()
+    {
+        Clear();
+    }
+
+    bool loadFromFile( const char * fname, int index )
+    {
+        if ( fname )
+            _fileName = fname;
+        if ( _fileName.empty() )
+            return false;
+        int error = FT_New_Face( _library, _fileName.c_str(), index, &_face ); /* create face object */
+        return (error==0);
+    }
+
+    /** \brief get glyph info
+        \param glyph is pointer to glyph_info_t struct to place retrieved info
+        \return true if glyh was found 
+    */
+    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
+    {
+        return false;
+    }
+
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return number of characters before max_width reached 
+    */
+    virtual lUInt16 measureText( 
+                        const lChar16 * text, int len, 
+                        lUInt16 * widths,
+                        lUInt8 * flags,
+                        int max_width,
+                        lChar16 def_char
+                     )
+    {
+        return 0;
+    }
+
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return width of specified string 
+    */
+    virtual lUInt32 getTextWidth(
+                        const lChar16 * text, int len
+        )
+    {
+        return 0;
+    }
+
+    /** \brief get glyph image in 1 byte per pixel format
+        \param code is unicode character
+        \param buf is buffer [width*height] to place glyph data
+        \return true if glyph was found 
+    */
+    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf)
+    {
+        return false;
+    }
+
+    /// returns font baseline offset
+    virtual int getBaseline()
+    {
+        return 0;
+    }
+
+    /// returns font height
+    virtual int getHeight()
+    {
+        return 16;
+    }
+
+    /// returns char width
+    virtual int getCharWidth( lChar16 ch )
+    {
+        return 16;
+    }
+
+    /// retrieves font handle
+    virtual void * GetHandle()
+    {
+        return NULL;
+    }
+
+    /// returns font typeface name
+    virtual lString8 getTypeFace()
+    {
+        return lString8("Arial");
+    }
+
+    /// returns font family id
+    virtual css_font_family_t getFontFamily()
+    {
+        return css_ff_sans_serif;
+    }
+
+    /// draws text string
+    virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
+                       const lChar16 * text, int len, 
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen )
+    {
+    }
+
+    /// returns true if font is empty
+    virtual bool IsNull() const
+    {
+        return _face == NULL;
+    }
+
+    virtual bool operator ! () const
+    {
+        return _face == NULL;
+    }
+
+    virtual void Clear()
+    {
+        if ( _face )
+            FT_Done_Face( _face );
+        _face = NULL;
+    }
+
+};
+
+class LVFreeTypeFontManager : public LVFontManager
+{
+private:
+    lString8    _path;
+    LVFontCache _cache;
+    FT_Library  _library;
+public:
+
+    virtual int GetFontCount()
+    {
+        return _cache.length();
+    }
+
+    virtual ~LVFreeTypeFontManager() 
+    {
+        if ( _library )
+            FT_Done_FreeType( _library );
+    }
+
+    LVFreeTypeFontManager()
+    : _library(NULL)
+    {
+        error = FT_Init_FreeType( &_library );
+        if ( error ) {
+            // error
+        }
+    }
+
+    virtual void gc() // garbage collector
+    {
+        _cache.gc();
+    }
+
+    lString8 makeFontFileName( lString8 name )
+    {
+        lString8 filename = _path;
+        if (!filename.empty() && _path[filename.length()-1]!=PATH_SEPARATOR_CHAR)
+            filename << PATH_SEPARATOR_CHAR;
+        filename << name;
+        return filename;
+    }
+
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
+    {
+        LVFontDef * def = new LVFontDef( 
+            lString8(),
+            size,
+            weight,
+            italic,
+            family,
+            typeface
+        );
+        //fprintf( _log, "GetFont: %s %d %s %s\n",
+        //    typeface.c_str(),
+        //    size,
+        //    weight>400?"bold":"",
+        //    italic?"italic":"" );
+        LVFontCacheItem * item = _cache.find( def );
+	delete def;
+        if (!item->getFont().isNull())
+        {
+            //fprintf(_log, "    : fount existing\n");
+            return item->getFont();
+        }
+        //LBitmapFont * font = new LBitmapFont;
+        lString8 fname = makeFontFileName( item->getDef()->getName() );
+        //printf("going to load font file %s\n", fname.c_str());
+        //if (font->LoadFromFile( fname.c_str() ) )
+        {
+            //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
+            //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
+            //LVFontRef ref(font);
+            //item->setFont( ref );
+            //return ref;
+        }
+        //else
+        {
+            //printf("    not found!\n");
+        }
+        //delete font;
+        return LVFontRef(NULL);
+    }
+    virtual bool RegisterFont( lString8 name )
+    {
+        lString8 fname = makeFontFileName( name );
+        bool res = false;
+
+        FT_Face face = NULL;
+        int error = FT_New_Face( _library, fname, 0, &face ); /* create face object */
+        //face->num_faces
+
+        css_font_family_t fontFamily = css_ff_sans_serif;
+        if ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH )
+            fontFamily = css_ff_monospace;
+        
+            LVFontDef def( 
+                name,
+                0, // height==0 for saclable fonts
+                ( face->style_flags & FT_STYLE_FLAG_BOLD ) ? 700 : 300,
+                ( face->style_flags & FT_STYLE_FLAG_ITALIC ) ? true : false,
+                (css_font_family_t)hdr.fontFamily,
+                lString8(face->family_name)
+            );
+
+        return res;
+    }
+    virtual bool Init( lString8 path )
+    {
+        _path = path;
+        return true;
+    }
+};
+
+#endif
 
 class LVBitmapFontManager : public LVFontManager
 {
