@@ -24,6 +24,7 @@
 #define COLOR_BACKBUFFER 0
 #define USE_ANSI_FILES   1
 #define GRAY_INVERSE     0
+#define USE_FREETYPE     1
 #endif
 
 // disable some features for SYMBIAN
@@ -99,7 +100,7 @@
 
 
 
-#ifndef USE_WIN32_FONTS
+#if !defined(USE_WIN32_FONTS) && !defined(USE_FREETYPE)
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 /** \def USE_WIN32_FONTS
@@ -109,6 +110,26 @@
 #else
 #define USE_WIN32_FONTS 0
 #endif
+
+#endif
+
+#endif
+
+#ifndef USE_FREETYPE
+#define USE_FREETYPE 0
+#endif
+
+#ifndef USE_WIN32_FONTS
+#define USE_WIN32_FONTS 0
+#endif
+
+#ifndef USE_BITMAP_FONTS
+
+#if (USE_WIN32_FONTS==1) || (USE_FREETYPE==1)
+#define USE_BITMAP_FONTS 0
+#else
+#define USE_BITMAP_FONTS 1
+#enif
 
 #endif
 

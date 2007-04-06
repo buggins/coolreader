@@ -120,9 +120,13 @@ libs =		-static-libgcc \
 #			-lpthread \
 #			-ldl \
 
+#		-I ../freetype2/include \
+
 #include paths
 ifdef LBOOK
 incpath =	-I.  -D$(HOSTTYPE) \
+		-I$(V2HOME)/include \
+		-I$(V2HOME)/include/freetype2 \
 		-I $(V2HOME)/include/nanox \
 		-I $(V2HOME)/include/flnx \
 		-I $(V2HOME)/include/ -I include \
@@ -132,7 +136,8 @@ incpath =	-I.  -D$(HOSTTYPE) \
 		$(inc)
 
 else
-incpath =	-I./include/common \
+incpath =	-DUSE_FREETYPE=1 -I./include/common \
+		-I /usr/include/freetype2 \
 			-I./../wxWidgets/src/jpeg \
 			-I./../wxWidgets/lib/wx/include/gtk2-unicode-release-static-2.8 \
 			-I./../wxWidgets/include \
