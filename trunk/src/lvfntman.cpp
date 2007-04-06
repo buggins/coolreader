@@ -912,8 +912,6 @@ int CALLBACK LVWin32FontEnumFontFamExProc(
 }
 
 
-#endif
-
 LVFontRef LoadFontFromFile( const char * fname )
 {
     LVFontRef ref;
@@ -928,6 +926,8 @@ LVFontRef LoadFontFromFile( const char * fname )
     }
     return ref;
 }
+
+#endif
 
 bool InitFontManager( lString8 path )
 {

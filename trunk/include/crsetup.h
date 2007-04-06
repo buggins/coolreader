@@ -27,6 +27,10 @@
 #define USE_FREETYPE     1
 #endif
 
+#ifdef _LINUX
+#define USE_FREETYPE=1
+#endif
+
 // disable some features for SYMBIAN
 #if defined(__SYMBIAN32__)
 #define USE_LIBJPEG 0
@@ -113,8 +117,6 @@
 
 #endif
 
-#endif
-
 #ifndef USE_FREETYPE
 #define USE_FREETYPE 0
 #endif
@@ -129,7 +131,7 @@
 #define USE_BITMAP_FONTS 0
 #else
 #define USE_BITMAP_FONTS 1
-#enif
+#endif
 
 #endif
 
