@@ -1,10 +1,14 @@
 #include <wx/wx.h>
 #include <wx/mstream.h>
+
+#define USE_FREETYPE 1
+
 #include <crengine.h>
 #include "cr3.h"
 #include "wolopt.h"
 #include "rescont.h"
 #include "cr3.xpm"
+
 
 BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
 	EVT_MENU( Menu_File_Quit, cr3Frame::OnQuit )
@@ -176,14 +180,18 @@ cr3app::OnInit()
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
 	if (!fontMan->GetFontCount()) {
-    #define MAX_FONT_FILE 128
-    for (int i=0; i<MAX_FONT_FILE; i++)
-    {
-        char fn[1024];
-        sprintf( fn, "font%d.lbf", i );
-        printf("try load font: %s\n", fn);
-        fontMan->RegisterFont( lString8(fn) );
-    }
+#if (USE_FREETYPE==1)
+        fontMan->RegisterFont(lString8("arial.ttf"));
+#else
+        #define MAX_FONT_FILE 128
+        for (int i=0; i<MAX_FONT_FILE; i++)
+        {
+            char fn[1024];
+            sprintf( fn, "font%d.lbf", i );
+            printf("try load font: %s\n", fn);
+            fontMan->RegisterFont( lString8(fn) );
+        }
+#endif
 	}
 
     // init hyphenation manager
@@ -194,7 +202,11 @@ cr3app::OnInit()
     if (!fontMan->GetFontCount())
     {
         //error
+#if (USE_FREETYPE==1)
+        printf("Fatal Error: Cannot open font file(s) .ttf \nCannot work without font\n" );
+#else
         printf("Fatal Error: Cannot open font file(s) font#.lbf \nCannot work without font\nUse FontConv utility to generate .lbf fonts from TTF\n" );
+#endif
         return FALSE;
     }
 
