@@ -576,7 +576,7 @@ void LVDocView::ZoomFont( int delta )
     {
         sz += delta;
         nfnt = fontMan->GetFont( sz, 400, false, DEFAULT_FONT_FAMILY, lString8(DEFAULT_FONT_NAME) );
-        if ( nfnt->getHeight() != m_font->getHeight() )
+        if ( !nfnt.isNull() && nfnt->getHeight() != m_font->getHeight() )
         {
             // found!
             //ldomXPointer bm = getBookmark();
@@ -585,7 +585,7 @@ void LVDocView::ZoomFont( int delta )
             goToBookmark(_posBookmark);
             return;
         }
-        if (sz<8)
+        if (sz<12)
             break;
     }
 }

@@ -28,7 +28,11 @@
 #endif
 
 #ifdef _LINUX
-#define USE_FREETYPE=1
+#define USE_FREETYPE 1
+#endif
+
+#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#define USE_FREETYPE 1
 #endif
 
 // disable some features for SYMBIAN
@@ -104,7 +108,7 @@
 
 
 
-#if !defined(USE_WIN32_FONTS) && !defined(USE_FREETYPE)
+#if !defined(USE_WIN32_FONTS) && (USE_FREETYPE!=1)
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 /** \def USE_WIN32_FONTS
@@ -116,6 +120,7 @@
 #endif
 
 #endif
+
 
 #ifndef USE_FREETYPE
 #define USE_FREETYPE 0
