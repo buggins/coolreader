@@ -28,6 +28,11 @@
 #include <string.h>
 #endif
 
+//#ifdef _LINUX
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+//#endif
 
 #ifndef USE_ANSI_FILES
 
@@ -682,6 +687,36 @@ public:
         FindClose( hFind );
 #else
         // POSIX
+        lString16 p( path );
+        lString8 p8 = UnicodeToLocal( p );
+        DIR * d = opendir(p8.c_str());
+        if ( d ) {
+            struct dirent * pde;
+            while ( (pde = readdir(d))!=NULL ) {
+                lString8 fpath = p8 + "/" + pde->d_name;
+                struct stat st;
+                stat( fpath.c_str(), &st );
+                if ( S_ISDIR(st.st_mode) ) {
+                    // dir
+                    if ( strcmp(pde->d_name, ".") && strcmp(pde->d_name, "..") ) {
+                        // normal directory
+                        LVDirectoryContainerItemInfo * item = new LVDirectoryContainerItemInfo;
+                        item->m_name = LocalToUnicode(lString8(pde->d_name));
+                        item->m_is_container = true;
+                        dir->Add(item);
+                    }
+                } else if ( S_ISREG(st.st_mode) ) {
+                    // file
+                    LVDirectoryContainerItemInfo * item = new LVDirectoryContainerItemInfo;
+                    item->m_name = LocalToUnicode(lString8(pde->d_name));
+                    item->m_size = st.st_size;
+                    item->m_flags = st.st_mode;
+                    dir->Add(item);
+                }
+            }
+            closedir(d);
+        }
+
         
 #endif
         return dir;

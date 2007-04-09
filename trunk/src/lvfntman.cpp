@@ -258,6 +258,7 @@ struct LVFontGlyphCacheItem
         LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( sizeof(LVFontGlyphCacheItem) 
             + (w*h - 1)*sizeof(lUInt8) );
         memcpy( item->bmp, bitmap->buffer, w*h );
+        item->ch = ch;
         item->bmp_width = w;
         item->bmp_height = h;
         item->origin_x =   (lInt8)slot->bitmap_left;
@@ -304,9 +305,9 @@ void LVFontLocalGlyphCache::put( LVFontGlyphCacheItem * item )
     item->next_local = head;
     if ( head )
         head->prev_local = item;
-    head = item;
     if ( !tail )
         tail = item;
+    head = item;
 }
 
 /// remove from list, but don't delete
@@ -350,7 +351,7 @@ void LVFontGlobalGlyphCache::put( LVFontGlyphCacheItem * item )
     // add new item to head
     item->next_global = head;
     if ( head )
-        head->prev_local = item;
+        head->prev_global = item;
     head = item;
     if ( !tail )
         tail = item;
@@ -666,6 +667,11 @@ public:
     {
         if ( len <= 0 || _face==NULL )
             return;
+        lvRect clip;
+        buf->GetClipRect( &clip );
+        if ( y + _size < clip.top || y >= clip.bottom )
+            return;
+
         int error;
 
         int use_kerning = FT_HAS_KERNING( _face );
@@ -721,7 +727,7 @@ public:
                 buf->Draw( x + (kerning>>6) + item->origin_x,
                     y + _baseline - item->origin_y, 
                     item->bmp,
-                    item->bmp_width, 
+                    item->bmp_width,
                     item->bmp_height,
                     palette);
 
@@ -822,9 +828,9 @@ public:
         LVFreeTypeFace * font = new LVFreeTypeFace(_library, &_globalCache);
         lString8 fname = item->getDef()->getName();
         lString8 pathname = makeFontFileName( fname );
-        if ( fname.empty() || pathname.empty() ) {
-            pathname = lString8("arial.ttf");
-        }
+        //if ( fname.empty() || pathname.empty() ) {
+        //    pathname = lString8("arial.ttf");
+        //}
 
         //printf("going to load font file %s\n", fname.c_str());
         if (font->loadFromFile( pathname.c_str(), item->getDef()->getIndex(), size ) )
@@ -1439,6 +1445,8 @@ LVFontCacheItem * LVFontCache::find( const LVFontDef * fntdef )
 
 void LVFontCache::addInstance( const LVFontDef * def, LVFontRef ref )
 {
+    if ( ref.isNull() )
+        printf("Adding null font instance!");
     LVFontCacheItem * item = new LVFontCacheItem(*def);
     item->_fnt = ref;
     _instance_list.add( item );
@@ -1447,39 +1455,42 @@ void LVFontCache::addInstance( const LVFontDef * def, LVFontRef ref )
 void LVFontCache::update( const LVFontDef * def, LVFontRef ref )
 {
     int i;
-    for (i=0; i<_instance_list.length(); i++)
-    {
-        if ( _instance_list[i]->_def == *def )
+    if ( !ref.isNull() ) {
+        for (i=0; i<_instance_list.length(); i++)
         {
-            if (ref.isNull())
+            if ( _instance_list[i]->_def == *def )
             {
-                _instance_list.erase(i, 1);
+                if (ref.isNull())
+                {
+                    _instance_list.erase(i, 1);
+                }
+                else
+                {
+                    _instance_list[i]->_fnt = ref;
+                }
+                return;
             }
-            else
-            {
-                _instance_list[i]->_fnt = ref;
-            }
-            return;
         }
-    }
-    for (i=0; i<_registered_list.length(); i++)
-    {
-        if ( _registered_list[i]->_def == *def )
+        // add new
+        LVFontCacheItem * item;
+        item = new LVFontCacheItem(*def);
+        addInstance( def, ref );
+    } else {
+        for (i=0; i<_registered_list.length(); i++)
         {
-            if (!ref.isNull())
+            if ( _registered_list[i]->_def == *def )
             {
-                addInstance( def, ref );
+                if (!ref.isNull())
+                {
+                    addInstance( def, ref );
+                }
+                return;
             }
-            return;
         }
-    }
-    // add new
-    LVFontCacheItem * item;
-    item = new LVFontCacheItem(*def);
-    _registered_list.add( item );
-    if (!ref.isNull())
-    {
-          addInstance( def, ref );
+        // add new
+        LVFontCacheItem * item;
+        item = new LVFontCacheItem(*def);
+        _registered_list.add( item );
     }
 }
 

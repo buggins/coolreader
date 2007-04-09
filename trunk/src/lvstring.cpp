@@ -909,7 +909,7 @@ void lString8Collection::clear()
         ((lString8 *)chunks)[i].release();
     }
     if (chunks)
-        delete chunks;
+        free(chunks);
     chunks = NULL;
     count = 0;
     size = 0;
