@@ -105,7 +105,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 wxmsw28ud_core.lib wxbase28ud.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengined.lib wxjpegd.lib wxpngd.lib wxzlibd.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"./../wxWidgets/lib/vc_lib" /libpath:".\..\crengine\lib"
+# ADD LINK32 wxmsw28ud_core.lib wxbase28ud.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengined.lib wxjpegd.lib wxpngd.lib wxzlibd.lib freetype232MT_D.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"./../wxWidgets/lib/vc_lib" /libpath:".\..\crengine\lib" /libpath:"./../../freetype2/objs"
 
 !ELSEIF  "$(CFG)" == "cr3 - Win32 Unicode Release"
 
@@ -121,7 +121,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I "./../wxWidgets/include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Zd /O2 /I "./../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /I "./../../wxWidgets/src/jpeg" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "__WXMSW__" /FR /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zd /O2 /I "./../../../../wxWidgets/src/jpeg" /I "./../../../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "__WXMSW__" /FR /FD /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -132,7 +132,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengine.lib /nologo /subsystem:windows /debug /machine:I386 /libpath:".\..\..\wxWidgets\lib\vc_lib" /libpath:".\..\..\crengine\lib"
+# ADD LINK32 wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengine.lib freetype232MT.lib /nologo /subsystem:windows /debug /machine:I386 /libpath:".\..\..\wxWidgets\lib\vc_lib" /libpath:".\..\..\crengine\lib" /libpath:"./../../freetype2/objs"
 
 !ENDIF 
 

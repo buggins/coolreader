@@ -142,8 +142,8 @@ void cr3view::OnCommand(wxCommandEvent& event)
             //===========================================
             doCommand( DCMD_ZOOM_IN, 0 );
             //===========================================
-	        wxSetCursor( wxNullCursor );
 	        this->SetCursor( wxNullCursor );
+	        wxSetCursor( wxNullCursor );
         }
 		break;
 	case Menu_View_ZoomOut:
@@ -154,8 +154,8 @@ void cr3view::OnCommand(wxCommandEvent& event)
             //===========================================
     	    doCommand( DCMD_ZOOM_OUT, 0 );
             //===========================================
-	        wxSetCursor( wxNullCursor );
 	        this->SetCursor( wxNullCursor );
+	        wxSetCursor( wxNullCursor );
         }
 		break;
 	case Menu_View_NextPage:
