@@ -53,6 +53,7 @@ void cr3Frame::OnClose( wxCloseEvent& event )
     Destroy();
 }
 
+
 void cr3Frame::OnCommand( wxCommandEvent& event )
 {
     _view->OnCommand( event );
@@ -180,8 +181,22 @@ cr3app::OnInit()
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
 	if (!fontMan->GetFontCount()) {
+
+
 #if (USE_FREETYPE==1)
-        fontMan->RegisterFont(lString8("arial.ttf"));
+        LVContainerRef dir = LVOpenDirectory(fontDir.c_str());
+        for ( int i=0; i<dir->GetObjectCount(); i++ ) {
+            const LVContainerItemInfo * item = dir->GetObjectInfo(i);
+            lString16 fileName = item->GetName();
+            if ( !item->IsContainer() && fileName.length()>4 && lString16(fileName, fileName.length()-4, 4)==L".ttf" ) {
+                lString8 fn = UnicodeToLocal(fileName);
+                printf("loading font: %s\n", fn.c_str());
+                if ( !fontMan->RegisterFont(fn) ) {
+                    printf("    failed\n");
+                }
+            }
+        }
+        //fontMan->RegisterFont(lString8("arial.ttf"));
 #else
         #define MAX_FONT_FILE 128
         for (int i=0; i<MAX_FONT_FILE; i++)
@@ -452,7 +467,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_CTRL,    WXK_NUMPAD_SUBTRACT, Menu_View_ZoomOut);
     entries[a++].Set(wxACCEL_NORMAL,  (int) '+',     Menu_View_ZoomIn);
     entries[a++].Set(wxACCEL_NORMAL,  (int) '-',     Menu_View_ZoomOut);
-    entries[a++].Set(wxACCEL_NORMAL,  (int) '=',     Menu_View_ZoomOut);
+    entries[a++].Set(wxACCEL_NORMAL,  (int) '=',     Menu_View_ZoomIn);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_PAGEUP,    Menu_View_PrevPage);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_PAGEDOWN,  Menu_View_NextPage);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_HOME,      Menu_View_Begin);
