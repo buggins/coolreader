@@ -28,11 +28,11 @@
 #include <string.h>
 #endif
 
-//#ifdef _LINUX
+#ifdef _LINUX
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-//#endif
+#endif
 
 #ifndef USE_ANSI_FILES
 

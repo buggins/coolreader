@@ -775,6 +775,7 @@ public:
 
     virtual ~LVFreeTypeFontManager() 
     {
+        _globalCache.clear();
         _cache.clear();
         if ( _library )
             FT_Done_FreeType( _library );
