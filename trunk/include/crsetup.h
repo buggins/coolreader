@@ -16,20 +16,37 @@
 //#define LBOOK 1
 #define LDOM_USE_OWN_MEM_MAN 1
 
-// disable some features for LBOOK
+// features set for LBOOK
 #if (LBOOK==1)
-#define USE_LIBJPEG      1
-#define USE_LIBPNG       1
-#define USE_ZLIB         1
-#define COLOR_BACKBUFFER 0
-#define USE_ANSI_FILES   1
-#define GRAY_INVERSE     0
-#define USE_FREETYPE     1
+#define USE_LIBJPEG                          1
+#define USE_LIBPNG                           1
+#define USE_ZLIB                             1
+#define COLOR_BACKBUFFER                     0
+#define USE_ANSI_FILES                       1
+#define GRAY_INVERSE                         0
+#define USE_FREETYPE                         1
+#define ALLOW_KERNING                        0
+#define GLYPH_CACHE_SIZE                     0x20000
+#define COMPACT_DOM                          1
+#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      16
+#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  64
+#define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
 #endif
 
-#ifdef _LINUX
+#if defined(_LINUX) || defined (LINUX)
 #define USE_FREETYPE 1
 #endif
+
+#ifndef ALLOW_KERNING
+/// set to 1 to allow kerning
+#define ALLOW_KERNING 0
+#endif
+
+#ifndef GLYPH_CACHE_SIZE
+/// freetype font glyph buffer size, in bytes
+#define GLYPH_CACHE_SIZE 0x40000
+#endif
+
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 #define USE_FREETYPE 1
@@ -97,6 +114,7 @@
 /// zlib stream decode cache size, used to avoid restart of decoding from beginning to move back
 #define FILE_STREAM_BUFFER_SIZE 0x20000
 
+#ifndef COMPACT_DOM
 /// set to 1 to use cached readonly text read-on-fly from stream, 0 to store whole text in memory
 #define COMPACT_DOM 0
 /// set to minimal text length to use file references instead of text copy
@@ -105,7 +123,7 @@
 #define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT 32
 /// max buffer size for text cache
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE    16384
-
+#endif
 
 
 #if !defined(USE_WIN32_FONTS) && (USE_FREETYPE!=1)

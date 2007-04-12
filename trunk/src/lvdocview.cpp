@@ -39,11 +39,11 @@ const char * def_stylesheet =
 "title { text-align: center; text-indent: 0px; font-size: 130%; font-weight: bold; margin-top: 10px; margin-bottom: 10px; font-family: Times New Roman, serif }\n"
 "subtitle { text-align: center; text-indent: 0px; font-size: 150%; margin-top: 10px; margin-bottom: 10px }\n"
 "title { page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }\n"
-"body { margin: 0.5em; text-align: justify; text-indent: 2em; line-height: 140% }\n"
+"body { text-align: justify; text-indent: 2em; line-height: 140% }\n"
 "cite { margin-left: 30%; margin-right: 4%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px; font-family: Times New Roman, serif }\n"
 ;
 
-static const char * DEFAULT_FONT_NAME = "Times New Roman"; //Times New Roman";
+static const char * DEFAULT_FONT_NAME = "Arial"; //Times New Roman";
 static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_serif,
 //    css_ff_sans_serif,

@@ -156,6 +156,10 @@ int splitPropertyValueList( const char * str, lString8Collection & list )
             break;
         }
     }
+    if (!name.empty())
+    {
+        list.add( name );
+    }
     return i;
 }
 
