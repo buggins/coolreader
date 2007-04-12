@@ -34,7 +34,7 @@
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <cxxflags>-O2 -g0 -DUSE_FREETYPE=1</cxxflags>
+        <cxxflags>-O2 -g0 -DUSE_FREETYPE=1 -DLINUX -D_LINUX</cxxflags>
         <envvars>
           <envvar value="/home/lve/src/crengine/" name="CREHOME" />
           <envvar value="/home/lve/src/wxWidgets/" name="WXHOME" />
@@ -46,7 +46,7 @@
         <ccompilerbinary></ccompilerbinary>
         <cxxcompilerbinary></cxxcompilerbinary>
         <f77compilerbinary></f77compilerbinary>
-        <cflags>-DUSE_FREETYPE=1</cflags>
+        <cflags>-DUSE_FREETYPE=1 -DLINUX -D_LINUX</cflags>
         <f77flags></f77flags>
       </optimized>
       <debug>
@@ -55,18 +55,18 @@
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <cxxflags>-O0 -g3</cxxflags>
+        <cxxflags>-O0 -g3 -DLINUX -D_LINUX -DUSE_FREETYPE=1 </cxxflags>
         <envvars>
           <envvar value="/home/lve/src/crengine/" name="CREHOME" />
         </envvars>
-        <topsourcedir/>
+        <topsourcedir></topsourcedir>
         <cppflags>-I${CREHOME}include</cppflags>
         <ldflags>-L${CREHOME}lib -lcrengined</ldflags>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <f77flags/>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags> -DLINUX -D_LINUX</cflags>
+        <f77flags></f77flags>
       </debug>
     </configurations>
     <make>
@@ -78,7 +78,7 @@
       <runmultiplejobs>false</runmultiplejobs>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin></makebin>
+      <makebin/>
       <prio>0</prio>
     </make>
   </kdevautoproject>

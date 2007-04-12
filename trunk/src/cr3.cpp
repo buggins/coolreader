@@ -38,6 +38,7 @@ IMPLEMENT_APP(cr3app)
 #include "resources/cr3res.h"
 
 
+
 ResourceContainer * resources = NULL;
 
 
