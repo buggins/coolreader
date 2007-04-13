@@ -230,13 +230,25 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     }
     else
     {
-
-        m_font->DrawTextString(drawBuf, 10, 10, L"Testing WOL export", 18, '?', NULL, false);
-        m_font->DrawTextString(drawBuf, 30, 50, L"NO COVERPAGE", 9, '?', NULL, false);
-        drawBuf->FillRect(20, 80, 580, 90, 1);
-        drawBuf->FillRect(20, 90, 580, 100, 2);
-        drawBuf->FillRect(20, 100, 580, 110, 3);
-
+        LVFontRef author_fnt( fontMan->GetFont( 30, 600, true, css_ff_serif, lString8("Times New Roman")) );
+        LVFontRef title_fnt( fontMan->GetFont( 36, 600, false, css_ff_serif, lString8("Times New Roman")) );
+        lString16 authors = getAuthors();
+        lString16 title = getTitle();
+        if ( title.empty() )
+            title = L"no title";
+        LFormattedText txform;
+        if ( !authors.empty() )
+            txform.AddSourceLine( authors.c_str(), title.length(), author_fnt.get(), LTEXT_ALIGN_CENTER );
+        txform.AddSourceLine( title.c_str(), title.length(), title_fnt.get(), LTEXT_ALIGN_CENTER );
+        int title_w = rc.width() - rc.width()/3;
+        int h = txform.Format( title_w, rc.height() );
+        txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2 );
+        lUInt32 gray_color = 0xD0D0D0;
+        if ( drawBuf->GetBitsPerPixel()==2 )
+            gray_color = 2;
+        int border_w = 20;
+        drawBuf->FillRect(rc.left, rc.top, rc.right, rc.top + border_w, gray_color);
+        drawBuf->FillRect(rc.left, rc.bottom - border_w, rc.right, rc.bottom, gray_color);
     }
 }
 

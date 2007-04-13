@@ -542,7 +542,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
             crFatalError();
         doc_x += fmt->getX();
         doc_y += fmt->getY();
-        if ( doc_y + fmt->getHeight() <= y0 || doc_y > y0 + dy )
+        if ( doc_y + fmt->getHeight() <= 0 || doc_y > 0 + dy ) //0~=y0
         {
             return; // out of range
         }
