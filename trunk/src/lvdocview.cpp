@@ -164,7 +164,6 @@ void dumpSection( ldomElement * elem )
     //fprintf( log.f, "rect(%d, %d, %d, %d)  ", rc.left, rc.top, rc.right, rc.bottom );
 }
 
-
 int getSectionPage( ldomElement * section, LVRendPageList & pages )
 {
     if ( !section )
@@ -183,6 +182,49 @@ int getSectionPage( ldomElement * section, LVRendPageList & pages )
         //fprintf(log.f, "page %d: %d->%d..%d\n", page+1, y, pages[page].start, pages[page].start+pages[page].height );
     }
     return page;
+}
+
+static void addTocItems( ldomElement * basesection, LVTocItem * parent )
+{
+    if ( !basesection || !parent )
+        return false;
+    lString16 name = getSectionHeader( basesection );
+    ldomXPointer ptr( basesection, 0 );
+    LVTocItem * item = parent->addChild( name, ptr );
+    for ( int i=0; ;i++ ) {
+        ldomElement * section = basesection->findChildElement( LXML_NS_ANY, el_section, i );
+        if ( !section )
+            break;
+        addTocItems( section, item );
+    }
+}
+
+/// returns Y position
+int LVTocItem::getY()
+{
+    return _position.toPoint().y;
+}
+
+/// returns page number
+int LVTocItem::getPageNum( LVRendPageList & pages )
+{
+    return getSectionPage( (ldomElement*)_position.getNode(), pages );
+}
+
+void LVDocView::makeToc()
+{
+    m_toc.clear();
+    ldomElement * body = ((ldomElement*)m_doc->getMainNode())
+        ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 )
+        ->findChildElement( LXML_NS_ANY, el_body, 0 );
+    if ( !body )
+        return;
+    for ( int i=0; ;i++ ) {
+        ldomElement * section = body->findChildElement( LXML_NS_ANY, el_section, i );
+        if ( !section )
+            break;
+        addTocItems( section, &m_toc );
+    }
 }
 
 /// returns cover page image source, if any
@@ -767,6 +809,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     m_doc->setNameSpaceTypes( fb2_ns_table );
     LVXMLParser parser(m_stream.get(), &writer);
 
+
     // set stylesheet
     m_doc->getStyleSheet()->clear();
     m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
@@ -774,6 +817,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     // parse
     parser.Parse();
     m_pos = 0;
+
 
 #if 0
     {
@@ -805,6 +849,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     }
     m_authors = authors;
     m_title = m_doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText();
+
+    makeToc();
+
     return true;
 }
 

@@ -56,6 +56,53 @@ enum {
     PGHDR_TITLE=8
 };
 
+class LVTocItem;
+
+class LVTocItem
+{
+private:
+    LVTocItem *     _parent;
+    int             _level;
+    int             _index;
+	lString16       _name;
+    ldomXPointer    _position;
+    LVPtrVector<LVTocItem> _children;
+    //====================================================
+    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _name(name), _position(pos) { }
+    void addChild( LVTocItem * item ) { item->_level=_level+1; item->_parent=this; item->_index=_children.length(), _children.add(item); }
+    //====================================================
+public:
+    /// returns parent node pointer
+    LVTocItem * getParent() const { return _parent; }
+    /// returns node level (0==root node, 1==top level)
+    int getLevel() const { return _level; }
+    /// returns node index
+    int getIndex() const { return _index; }
+    /// returns section title
+    lString16 getName() const { return _name; }
+    /// returns position
+    ldomXPointer getXPointer() const { return _position; }
+    /// returns Y position
+    int getY();
+    /// returns page number
+    int getPageNum( LVRendPageList & pages );
+    /// returns child node count
+    int getChildCount() const { return _children.length(); }
+    /// returns child node by index
+    LVTocItem * getChild( int index ) const { return _children[index]; }
+    /// add child TOC node
+    LVTocItem * addChild( const lString16 & name, ldomXPointer ptr )
+    {
+        LVTocItem * item = new LVTocItem( ptr, name );
+        addChild( item );
+        return item;
+    }
+    void clear() { _children.clear(); }    
+    // root node constructor
+    LVTocItem() : _parent(NULL), _level(0), _index(0) { }
+    ~LVTocItem() { clear(); }
+};
+
 //typedef lUInt64 LVPosBookmark;
 
 /**
@@ -74,6 +121,7 @@ private:
     int m_font_size;
     bool m_is_rendered;
     LVDocViewMode m_view_mode;
+    LVTocItem m_toc;
 #if (COLOR_BACKBUFFER==1)
     LVColorDrawBuf m_drawbuf;
 #else
@@ -102,8 +150,13 @@ private:
 
     // private functions
     void updateScroll();
+    /// makes table of contents for current document
+    void makeToc();
     
 public:
+    LVRendPageList * getPageList() { return &m_pages; }
+    /// returns pointer to TOC root node
+    LVTocItem * getToc() { return &m_toc; }
     /// set view mode (pages/scroll)
     void setViewMode( LVDocViewMode view_mode );
     /// get view mode (pages/scroll)

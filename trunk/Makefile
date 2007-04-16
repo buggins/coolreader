@@ -85,7 +85,7 @@ endif
 
 #LBOOK
 ifdef LBOOK
-	defs += -DLBOOK=1
+	defs += -DLBOOK=1 -D_LINUX
 endif
 
 ifeq ($(BUILD),Debug)

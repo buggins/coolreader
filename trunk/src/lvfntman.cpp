@@ -839,7 +839,7 @@ public:
                 size, weight, italic?1:0, (int)family, typeface.c_str());
         }
     #endif
-        LVFontDef def ( 
+        LVFontDef * def = new LVFontDef ( 
             lString8(),
             size,
             weight,
@@ -853,7 +853,7 @@ public:
         //    size,
         //    weight>400?"bold":"",
         //    italic?"italic":"" );
-        LVFontCacheItem * item = _cache.find( &def );
+        LVFontCacheItem * item = _cache.find( def );
     #if (DEBUG_FONT_MAN==1)
         if ( _log && item ) {
             fprintf(_log, "   found item: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s) FontRef=%d\n",
@@ -891,17 +891,20 @@ public:
             LVFontDef newDef(*item->getDef());
             newDef.setSize( size );
             //item->setFont( ref );
+            //_cache.update( def, ref );
             _cache.update( &newDef, ref );
             int rsz = ref->getHeight();
             if ( rsz!=size ) {
                 size++;
             }
+            delete def;
             return ref;
         }
         else
         {
             //printf("    not found!\n");
         }
+        delete def;
         delete font;
         return LVFontRef(NULL);
     }
