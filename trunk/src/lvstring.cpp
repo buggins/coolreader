@@ -1727,3 +1727,46 @@ lString16 LocalToUnicode( const lString8 & str )
 
 #endif
 
+//0x410
+static const char * russian_capital[32] =
+{
+"A", "B", "V", "G", "D", "E", "ZH", "Z", "I", "j", "K", "L", "M", "N", "O", "P", "R", 
+"S", "T", "U", "F", "H", "TS", "CH", "SH", "SH", "\'", "Y", "\'", "E", "YU", "YA"
+};
+static const char * russian_small[32] =
+{
+"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", 
+"s", "t", "u", "f", "h", "ts", "ch", "sh", "sh", "\'", "y", "\'", "e", "yu", "ya"
+};
+static const char * getCharTranscript( lChar16 ch )
+{
+    if ( ch>=0x410 && ch<0x430 )
+        return russian_capital[ch-0x410];
+    else if (ch>=0x430 && ch<0x450)
+        return russian_small[ch-0x430];
+    else if (ch==0x450)
+        return "E";
+    else if ( ch==0x451 )
+        return "e";
+    return "?";
+}
+
+lString8  UnicodeToTranslit( const lString16 & str )
+{
+    lString8 buf;
+	if ( str.empty() )
+		return buf;
+    buf.reserve( str.length()*5/4 );
+    for ( int i=0; i<str.length(); i++ ) {
+		lChar16 ch = str[i];
+        if ( ch>=32 && ch<=127 ) {
+            buf.append( 1, (lChar8)ch );
+        } else {
+            const char * trans = getCharTranscript(ch);
+            buf.append( trans );
+        }
+	}
+    buf.pack();
+    return buf;
+}
+

@@ -51,8 +51,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_fantasy,
 //    css_ff_monospace
 
-#define INFO_FONT_SIZE      20    
-#define DEFAULT_PAGE_MARGIN 10
+#define INFO_FONT_SIZE      24
+#define DEFAULT_PAGE_MARGIN 12
     
 LVDocView::LVDocView() 
 : m_dx(100), m_dy(100), m_pos(50)

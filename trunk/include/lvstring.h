@@ -495,6 +495,7 @@ inline lString8 operator + (const lString8 &s1, const lChar8 * s2)
     { lString8 s(s1); s.append(s2); return s; }
 
 
+lString8  UnicodeToTranslit( const lString16 & str );
 lString8  UnicodeToLocal( const lString16 & str );
 lString8  UnicodeToUtf8( const lString16 & str );
 lString8  UnicodeTo8Bit( const lString16 & str, const lChar8 * * table );
