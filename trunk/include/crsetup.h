@@ -16,6 +16,9 @@
 //#define LBOOK 1
 #define LDOM_USE_OWN_MEM_MAN 1
 
+#define USE_DOM_UTF8_STORAGE 0
+
+
 // features set for LBOOK
 #if (LBOOK==1)
 #define USE_LIBJPEG                          1
@@ -27,9 +30,11 @@
 #define USE_FREETYPE                         1
 #define ALLOW_KERNING                        0
 #define GLYPH_CACHE_SIZE                     0x20000
+#define ZIP_STREAM_BUFFER_SIZE               0x40000
+#define FILE_STREAM_BUFFER_SIZE              0x80000
 #define COMPACT_DOM                          1
-#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      16
-#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  64
+#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      24
+#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  32
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
 #endif
 
@@ -109,10 +114,14 @@
 #endif
 
 /// zlib stream decode cache size, used to avoid restart of decoding from beginning to move back
+#ifndef ZIP_STREAM_BUFFER_SIZE
 #define ZIP_STREAM_BUFFER_SIZE 0x40000
+#endif
 
-/// zlib stream decode cache size, used to avoid restart of decoding from beginning to move back
-#define FILE_STREAM_BUFFER_SIZE 0x20000
+/// document stream buffer size
+#ifndef FILE_STREAM_BUFFER_SIZE
+#define FILE_STREAM_BUFFER_SIZE 0x40000
+#endif
 
 #ifndef COMPACT_DOM
 /// set to 1 to use cached readonly text read-on-fly from stream, 0 to store whole text in memory

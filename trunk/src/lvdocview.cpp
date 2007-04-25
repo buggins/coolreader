@@ -249,14 +249,33 @@ LVImageSourceRef LVDocView::getCoverPageImage()
 /// draws coverpage to image buffer
 void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 {
+    LVFontRef author_fnt( fontMan->GetFont( 30, 600, true, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef title_fnt( fontMan->GetFont( 36, 600, false, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef series_fnt( fontMan->GetFont( 36, 300, true, css_ff_serif, lString8("Times New Roman")) );
+    lString16 authors = getAuthors();
+    lString16 title = getTitle();
+    lString16 series = getSeries();
+    if ( title.empty() )
+        title = L"no title";
+    LFormattedText txform;
+    if ( !authors.empty() )
+        txform.AddSourceLine( authors.c_str(), authors.length(), author_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
+    txform.AddSourceLine( title.c_str(), title.length(), title_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
+    txform.AddSourceLine( series.c_str(), series.length(), series_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
+    int title_w = rc.width() - rc.width()/3;
+    int h = txform.Format( title_w, rc.height() ) + 16;
+
+    lvRect imgrc = rc;
+    imgrc.bottom -= h + 16;
+
     LVImageSourceRef imgsrc = getCoverPageImage();
     if ( !imgsrc.isNull() )
     {
         //fprintf( stderr, "Writing coverpage image...\n" );
         int src_dx = imgsrc->GetWidth();
         int src_dy = imgsrc->GetHeight();
-        int scale_x = rc.width() * 0x10000 / src_dx;
-        int scale_y = rc.height() * 0x10000 / src_dy;
+        int scale_x = imgrc.width() * 0x10000 / src_dx;
+        int scale_y = imgrc.height() * 0x10000 / src_dy;
         if ( scale_x < scale_y )
             scale_y = scale_x;
         else
@@ -264,34 +283,18 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
         int dst_dx = (src_dx * scale_x) >> 16;
         int dst_dy = (src_dy * scale_y) >> 16;
         if (dst_dx>rc.width())
-            dst_dx = rc.width();
+            dst_dx = imgrc.width();
         if (dst_dy>rc.height())
-            dst_dy = rc.height();
-        drawBuf->Draw( imgsrc, rc.left + (rc.width()-dst_dx)/2, rc.top + (rc.height()-dst_dy)/2, dst_dx, dst_dy );
+            dst_dy = imgrc.height();
+        drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
         //fprintf( stderr, "Done.\n" );
     }
     else
     {
-        LVFontRef author_fnt( fontMan->GetFont( 30, 600, true, css_ff_serif, lString8("Times New Roman")) );
-        LVFontRef title_fnt( fontMan->GetFont( 36, 600, false, css_ff_serif, lString8("Times New Roman")) );
-        lString16 authors = getAuthors();
-        lString16 title = getTitle();
-        if ( title.empty() )
-            title = L"no title";
-        LFormattedText txform;
-        if ( !authors.empty() )
-            txform.AddSourceLine( authors.c_str(), title.length(), author_fnt.get(), LTEXT_ALIGN_CENTER );
-        txform.AddSourceLine( title.c_str(), title.length(), title_fnt.get(), LTEXT_ALIGN_CENTER );
-        int title_w = rc.width() - rc.width()/3;
-        int h = txform.Format( title_w, rc.height() );
-        txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2 );
-        lUInt32 gray_color = 0xD0D0D0;
-        if ( drawBuf->GetBitsPerPixel()==2 )
-            gray_color = 2;
-        int border_w = 20;
-        drawBuf->FillRect(rc.left, rc.top, rc.right, rc.top + border_w, gray_color);
-        drawBuf->FillRect(rc.left, rc.bottom - border_w, rc.right, rc.bottom, gray_color);
+        imgrc.bottom = imgrc.top;
     }
+    rc.top = imgrc.bottom;
+    txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2 );
 }
 
 /// export to WOL format
@@ -324,7 +327,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         drawCoverTo( &cover, coverRc );
         wol.addCoverImage(cover);
         
-        for (int i=0; i<pages.length(); i++)
+        for (int i=1; i<pages.length(); i++)
         {
 			LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
 			drawPageTo( &drawbuf, *pages[i] );
@@ -849,6 +852,18 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     }
     m_authors = authors;
     m_title = m_doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText();
+    ldomElement * series = (ldomElement*)m_doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
+    m_series.clear();
+    if ( series ) {
+        lString16 sname = series->getAttributeValue( attr_name );
+        lString16 snumber = series->getAttributeValue( attr_number );
+        if ( !sname.empty() ) {
+            m_series << L"(" << sname;
+            if ( !snumber.empty() )
+                m_series << L" #" << snumber << L")";
+            
+        }
+    }
 
     makeToc();
 

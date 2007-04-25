@@ -140,6 +140,7 @@ private:
 
     lString16 m_title;
     lString16 m_authors;
+    lString16 m_series;
     
     ldomXPointer _posBookmark;
 
@@ -199,6 +200,8 @@ public:
     lString16 getTitle() { return m_title; }
     /// returns book author(s)
     lString16 getAuthors() { return m_authors; }
+    /// returns book series name and number (series name #1)
+    lString16 getSeries() { return m_series; }
 
     /// export to WOL format
     bool exportWolFile( const char * fname, bool flgGray, int levels );

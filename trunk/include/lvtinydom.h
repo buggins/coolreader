@@ -388,10 +388,16 @@ public:
 
 class ldomDocument;
 
+
 class ldomText : public ldomNode
 {
 private:
+#if (USE_DOM_UTF8_STORAGE==1)
+    lString8 _value;
+#else
     lString16 _value;
+#endif
+
 public:
 #if (LDOM_USE_OWN_MEM_MAN==1)
     static ldomMemManStorage * pmsHeap;
@@ -409,8 +415,14 @@ public:
     }
 #endif
     ldomText( ldomDocument * document, ldomElement * parent, lUInt8 level, lUInt32 index, lString16 value)
-    : ldomNode( document, parent, LXML_TEXT_NODE, level, index ), _value(value)
-    { }
+    : ldomNode( document, parent, LXML_TEXT_NODE, level, index )
+    {
+#if (USE_DOM_UTF8_STORAGE==1)
+        _value = UnicodeToUtf8(value);
+#else
+        _value = value;
+#endif
+    }
     virtual ~ldomText() { }
     /// returns element child count
     virtual lUInt32 getChildCount() const { return 0; }
@@ -436,9 +448,23 @@ public:
     /// returns element namespace name
     virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
     /// returns text node text
-    virtual lString16 getText() const { return _value; }
+    virtual lString16 getText() const
+    {
+#if (USE_DOM_UTF8_STORAGE==1)
+        return Utf8ToUnicode(_value);
+#else
+        return _value;
+#endif
+    }
     /// sets text node text
-    virtual void setText( lString16 value ) { _value = value; }
+    virtual void setText( lString16 value )
+    {
+#if (USE_DOM_UTF8_STORAGE==1)
+        _value = UnicodeToUtf8(value);
+#else
+        _value = value;
+#endif
+    }
     /// returns child node by index
     virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
 };
@@ -687,6 +713,11 @@ public:
             return _document->getAttrValue( val_id );
         else
             return lString16::empty_str;
+    }
+    /// returns attribute value by attribute name id
+    const lString16 & getAttributeValue( lUInt16 id ) const
+    {
+        return getAttributeValue( LXML_NS_ANY, id );
     }
     /// sets attribute value
     virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
