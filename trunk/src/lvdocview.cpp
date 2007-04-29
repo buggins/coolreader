@@ -53,6 +53,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 
 #define INFO_FONT_SIZE      24
 #define DEFAULT_PAGE_MARGIN 12
+
+static int def_font_sizes[] = { 12, 16, 20, 24, 30, 36, 42 };
     
 LVDocView::LVDocView() 
 : m_dx(100), m_dy(100), m_pos(50)
@@ -61,6 +63,7 @@ LVDocView::LVDocView()
 #else
 , m_font_size(24)
 #endif
+, m_font_sizes( def_font_sizes, sizeof(def_font_sizes) / sizeof(int) )
 , m_view_mode( 1 ? DVM_PAGES : DVM_SCROLL ) // choose 0/1
 , m_drawbuf(100, 100
 #if COLOR_BACKBUFFER==0
@@ -90,6 +93,7 @@ LVDocView::LVDocView()
     m_textColor = 0;
 #endif
 #endif
+
     m_drawbuf.Clear(m_backgroundColor);
 }
 
@@ -496,7 +500,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page)
         m_infoFont->DrawTextString( drawbuf, info.left, iy, 
             text.c_str(), text.length(), L' ', pal, false);
         drawbuf->SetClipRect(&oldcr);
-        //==============
+        //--------------
         drawbuf->SetTextColor(getTextColor());
     }
     drawbuf->SetClipRect(&clip);
@@ -623,10 +627,56 @@ LVDocViewMode LVDocView::getViewMode()
     return m_view_mode;
 }
 
+static int findBestFit( LVArray<int> & v, int n )
+{
+    int bestsz = -1;
+    int bestfit = -1;
+    for ( int i=0; i<v.length(); i++ ) {
+        int delta = v[i] - n;
+        if ( n<0 )
+            n = -n;
+        if ( bestfit<n ) {
+            bestfit = n;
+            bestsz = v[i];
+        }
+    }
+    if ( bestsz<0 )
+        bestsz = n;
+    return bestsz;
+}
+
+void LVDocView::setFontSize( int newSize )
+{
+    m_font_size = findBestFit( m_font_sizes, newSize );
+    Render();
+    goToBookmark(_posBookmark);
+}
+
+/// sets posible base font sizes (for ZoomFont)
+void LVDocView::setFontSizes( LVArray<int> & sizes )
+{
+    m_font_sizes = sizes;
+    
+}
+
 void LVDocView::ZoomFont( int delta )
 {
     if ( m_font.isNull() )
         return;
+#if 1
+    int sz = m_font_size;
+    for (int i=0; i<15; i++)
+    {
+        sz += delta;
+        int nsz = findBestFit( m_font_sizes, sz );
+        if ( nsz != m_font_size ) {
+            setFontSize( nsz );
+            return;
+        }
+        if (sz<12)
+            break;
+    }
+#else
     LVFontRef nfnt;
     int sz = m_font->getHeight();
     for (int i=0; i<15; i++)
@@ -645,6 +695,7 @@ void LVDocView::ZoomFont( int delta )
         if (sz<12)
             break;
     }
+#endif
 }
 
 void LVDocView::Resize( int dx, int dy )

@@ -40,6 +40,40 @@ public:
         for (int i=0; i<_count; i++)
             _array[i] = value;
     }
+    LVArray( const LVArray & v )
+    {
+        _size = _count = v._count;
+        if ( _size ) {
+            _array = (T*) malloc( sizeof(T)*_size );
+            for (int i=0; i<_count; i++)
+                _array[i] = v._array[i];
+        } else {
+            _array = NULL;
+        }
+    }
+    LVArray( const T * ptr, int len )
+    {
+        _size = _count = len;
+        if ( _size ) {
+            _array = (T*) malloc( sizeof(T)*_size );
+            for (int i=0; i<_count; i++)
+                _array[i] = ptr[i];
+        } else {
+            _array = NULL;
+        }
+    }
+    LVArray & operator = ( const LVArray & v )
+    {
+        clear();
+        _size = _count = v._count;
+        if ( _size ) {
+            _array = (T*) malloc( sizeof(T)*_size );
+            for (int i=0; i<_count; i++)
+                _array[i] = v._array[i];
+        } else {
+            _array = NULL;
+        }
+    }
     /// retrieves item from specified position
     T operator [] ( int pos ) const { return _array[pos]; }
     /// retrieves item reference from specified position

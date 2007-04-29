@@ -119,6 +119,7 @@ private:
     int m_dy;
     int m_pos;
     int m_font_size;
+    LVArray<int> m_font_sizes;
     bool m_is_rendered;
     LVDocViewMode m_view_mode;
     LVTocItem m_toc;
@@ -235,6 +236,12 @@ public:
 
     /// change font size
     void ZoomFont( int delta );
+    /// retrieves current base font size
+    int  getFontSize() { return m_font_size; }
+    /// sets new base font size
+    void setFontSize( int newSize );
+    /// sets posible base font sizes (for ZoomFont)
+    void setFontSizes( LVArray<int> & sizes );
 
     /// get drawing buffer
     LVDrawBuf * GetDrawBuf() { return &m_drawbuf; }
