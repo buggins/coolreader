@@ -914,7 +914,7 @@ public:
         // TODO: check existance of required characters (e.g. cyrillic)
         if (face==NULL)
             return false; // invalid face
-        for ( int i=0; i<_requiredChars.length(); i++ ) {
+        for ( unsigned i=0; i<_requiredChars.length(); i++ ) {
             lChar16 ch = _requiredChars[i];
             FT_UInt ch_glyph_index = FT_Get_Char_Index( face, ch );
             if ( ch_glyph_index==0 )

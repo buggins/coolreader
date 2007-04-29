@@ -187,7 +187,7 @@ int getSectionPage( ldomElement * section, LVRendPageList & pages )
 static void addTocItems( ldomElement * basesection, LVTocItem * parent )
 {
     if ( !basesection || !parent )
-        return false;
+        return;
     lString16 name = getSectionHeader( basesection );
     ldomXPointer ptr( basesection, 0 );
     LVTocItem * item = parent->addChild( name, ptr );
