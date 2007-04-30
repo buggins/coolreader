@@ -60,7 +60,7 @@
           <envvar value="/home/lve/src/crengine/" name="CREHOME" />
         </envvars>
         <topsourcedir></topsourcedir>
-        <cppflags>-I${CREHOME}include</cppflags>
+        <cppflags>-I${CREHOME}include -DLINUX=1 -D_LINUX=1</cppflags>
         <ldflags>-L${CREHOME}lib -lcrengined</ldflags>
         <ccompilerbinary></ccompilerbinary>
         <cxxcompilerbinary></cxxcompilerbinary>
@@ -78,7 +78,7 @@
       <runmultiplejobs>false</runmultiplejobs>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
     </make>
   </kdevautoproject>

@@ -20,6 +20,7 @@ cr3view : public wxPanel
         void UpdateScrollBar();
         LVDocView * getDocView() { return _docview; }
         void doCommand( LVDocCmd cmd, int param );
+        void goToBookmark(ldomXPointer bm);
         wxColour getBackgroundColour();
         // event handlers
         void OnPaint(wxPaintEvent& event);

@@ -46,6 +46,7 @@ cr3Frame : public wxFrame
         void OnFileOpen( wxCommandEvent& event );
         void OnFileSave( wxCommandEvent& event );
         void OnCommand( wxCommandEvent& event );
+        void OnShowTOC( wxCommandEvent& event );
         void OnUpdateUI( wxUpdateUIEvent& event );
         void OnClose( wxCloseEvent& event );
         void OnMouseWheel(wxMouseEvent& event);
@@ -76,6 +77,7 @@ enum
     Menu_View_ToggleFullScreen,
     Menu_View_TogglePages,
     Menu_View_TogglePageHeader,
+    Menu_View_TOC,
 };
 
 enum

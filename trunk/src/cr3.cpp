@@ -1,22 +1,25 @@
 #include <wx/wx.h>
 #include <wx/mstream.h>
 
-#define USE_FREETYPE 1
+//#define USE_FREETYPE 1
 
 #include <crengine.h>
 #include "cr3.h"
 #include "wolopt.h"
+#include "toc.h"
 #include "rescont.h"
 #include "cr3.xpm"
 
 
 BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
-	EVT_MENU( Menu_File_Quit, cr3Frame::OnQuit )
-	EVT_MENU( Menu_File_About, cr3Frame::OnAbout )
+    EVT_MENU( Menu_File_Quit, cr3Frame::OnQuit )
+    EVT_MENU( Menu_File_About, cr3Frame::OnAbout )
     EVT_MENU( wxID_OPEN, cr3Frame::OnFileOpen )
     EVT_MENU( wxID_SAVE, cr3Frame::OnFileSave )
+    EVT_MENU( Menu_View_TOC, cr3Frame::OnShowTOC )
+    
     EVT_MENU_RANGE( 0, 0xFFFF, cr3Frame::OnCommand )
-//	EVT_UPDATE_UI_RANGE( 0, 0xFFFF, cr3Frame::OnUpdateUI )
+//    EVT_UPDATE_UI_RANGE( 0, 0xFFFF, cr3Frame::OnUpdateUI )
     EVT_COMMAND_SCROLL( Window_Id_Scrollbar, cr3Frame::OnScroll )
     EVT_CLOSE( cr3Frame::OnClose )
     EVT_MOUSEWHEEL( cr3Frame::OnMouseWheel )
@@ -30,7 +33,7 @@ BEGIN_EVENT_TABLE( cr3scroll, wxScrollBar )
 END_EVENT_TABLE()
 
 IMPLEMENT_APP(cr3app)
-	
+    
 
 #define USE_XPM_BITMAPS 1
 
@@ -38,9 +41,7 @@ IMPLEMENT_APP(cr3app)
 #include "resources/cr3res.h"
 
 
-
 ResourceContainer * resources = NULL;
-
 
 
 void cr3Frame::OnUpdateUI( wxUpdateUIEvent& event )
@@ -58,17 +59,17 @@ void cr3Frame::OnClose( wxCloseEvent& event )
 void cr3Frame::OnCommand( wxCommandEvent& event )
 {
     _view->OnCommand( event );
-	switch ( event.GetId() ) {
+    switch ( event.GetId() ) {
     case Menu_View_ToggleFullScreen:
         _isFullscreen = !_isFullscreen;
         ShowFullScreen( _isFullscreen );
         break;
-	case Menu_View_ZoomIn:
-	case Menu_View_ZoomOut:
-	case Menu_View_NextPage:
-	case Menu_View_PrevPage:
-		break;
-	}
+    case Menu_View_ZoomIn:
+    case Menu_View_ZoomOut:
+    case Menu_View_NextPage:
+    case Menu_View_PrevPage:
+        break;
+    }
 }
 
 void cr3Frame::OnMouseWheel(wxMouseEvent& event)
@@ -120,13 +121,13 @@ lString8 readFileToString( const char * fname )
 
 int cr3app::OnExit()
 {
-	ShutdownFontManager();
+    ShutdownFontManager();
     delete resources;
     HyphMan::Close();
 #if LDOM_USE_OWN_MEM_MAN == 1
-	ldomFreeStorage();
+    ldomFreeStorage();
 #endif
-	return 0;
+    return 0;
 }
 
 wxBitmap getIcon16x16( const lChar16 * name )
@@ -181,7 +182,7 @@ cr3app::OnInit()
 
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
-	if (!fontMan->GetFontCount()) {
+    if (!fontMan->GetFontCount()) {
 
 
 #if (USE_FREETYPE==1)
@@ -208,7 +209,7 @@ cr3app::OnInit()
             fontMan->RegisterFont( lString8(fn) );
         }
 #endif
-	}
+    }
 
     // init hyphenation manager
     char hyphfn[1024];
@@ -229,41 +230,41 @@ cr3app::OnInit()
     printf("%d fonts loaded.\n", fontMan->GetFontCount());
 
 
-	int cx = wxSystemSettings::GetMetric( wxSYS_SCREEN_X );
-	int cy = wxSystemSettings::GetMetric( wxSYS_SCREEN_Y )-40;
-	int scale_x = cx * 256 / 620;
-	int scale_y = cy * 256 / 830;
-	int scale = scale_x < scale_y ? scale_x : scale_y;
-	cx = 610 * scale / 256;
-	cy = 830 * scale / 256;
-	cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.3" ), wxPoint(20,40), wxSize(cx,cy), appPath );
+    int cx = wxSystemSettings::GetMetric( wxSYS_SCREEN_X );
+    int cy = wxSystemSettings::GetMetric( wxSYS_SCREEN_Y )-40;
+    int scale_x = cx * 256 / 620;
+    int scale_y = cy * 256 / 830;
+    int scale = scale_x < scale_y ? scale_x : scale_y;
+    cx = 610 * scale / 256;
+    cy = 830 * scale / 256;
+    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.3" ), wxPoint(20,40), wxSize(cx,cy), appPath );
 
-	frame->Show(TRUE);
-	SetTopWindow(frame);
-	return TRUE;
+    frame->Show(TRUE);
+    SetTopWindow(frame);
+    return TRUE;
 } 
 
 void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 {
-	_scrollBar = new cr3scroll(_view);
+    _scrollBar = new cr3scroll(_view);
 
-	_view->SetScrollBar( _scrollBar );
-	_view->Create(this, Window_Id_View, 
-		wxDefaultPosition, wxDefaultSize, 0, wxT("cr3view"));
+    _view->SetScrollBar( _scrollBar );
+    _view->Create(this, Window_Id_View,
+        wxDefaultPosition, wxDefaultSize, 0, wxT("cr3view"));
 
-	_scrollBar->Create(this, Window_Id_Scrollbar, 
-		wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL);
-    
+    _scrollBar->Create(this, Window_Id_Scrollbar,
+        wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL);
 
-	wxMenu *menuFile = new wxMenu;
+
+    wxMenu *menuFile = new wxMenu;
 
     menuFile->Append( wxID_OPEN, wxT( "&Open...\tCtrl+O" ) );
     menuFile->Append( wxID_SAVE, wxT( "&Save...\tCtrl+S" ) );
     menuFile->AppendSeparator();
-	menuFile->Append( Menu_File_About, wxT( "&About...\tF1" ) );
-	menuFile->AppendSeparator();
-	menuFile->Append( Menu_File_Quit, wxT( "E&xit\tAlt+X" ) );
-	
+    menuFile->Append( Menu_File_About, wxT( "&About...\tF1" ) );
+    menuFile->AppendSeparator();
+    menuFile->Append( Menu_File_Quit, wxT( "E&xit\tAlt+X" ) );
+    
     wxMenu *menuView = new wxMenu;
 
     menuView->Append( Menu_View_ZoomIn, wxT( "Zoom In" ) );
@@ -273,13 +274,13 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     menuView->Append( Menu_View_TogglePages, wxT( "Toggle Pages/Scroll\tCtrl+P" ) );
     menuView->Append( Menu_View_TogglePageHeader, wxT( "Toggle page heading\tCtrl+H" ) );
     
-	wxMenuBar *menuBar = new wxMenuBar;
-	menuBar->Append( menuFile, wxT( "&File" ) );
+    wxMenuBar *menuBar = new wxMenuBar;
+    menuBar->Append( menuFile, wxT( "&File" ) );
     menuBar->Append( menuView, wxT( "&View" ) );
-	
-	SetMenuBar( menuBar );
-	
-	CreateStatusBar();
+    
+    SetMenuBar( menuBar );
+    
+    CreateStatusBar();
     wxStatusBar * status = GetStatusBar();
     int sw[3] = { -1, 100, 100 };
     //int ss[3] = {wxSB_NORMAL, wxSB_FLAT, wxSB_FLAT};
@@ -287,7 +288,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     //status->SetStatusStyles(3, ss);
 
 
-	SetStatusText( wxT( "Welcome to CoolReader 3.0!" ) );
+    SetStatusText( wxT( "Welcome to CoolReader 3.0!" ) );
 
     wxToolBar* toolBar = CreateToolBar();
 
@@ -474,6 +475,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_NORMAL,  WXK_HOME,      Menu_View_Begin);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_END,       Menu_View_End);
     entries[a++].Set(wxACCEL_ALT,     WXK_RETURN,     Menu_View_ToggleFullScreen);
+    entries[a++].Set(wxACCEL_NORMAL,  WXK_F5,      Menu_View_TOC);
     wxAcceleratorTable accel(a, entries);
     SetAcceleratorTable(accel);
     //_view->SetAcceleratorTable(accel);
@@ -492,14 +494,14 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 }
 
 cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& size, lString16 appDir )
-	: wxFrame((wxFrame *)NULL, -1, title, pos, size)
+    : wxFrame((wxFrame *)NULL, -1, title, pos, size)
 {
 
     _appDir = appDir;
 
     _isFullscreen = false;
 
-	_view = new cr3view();
+    _view = new cr3view();
 
     InitDialog();
 }
@@ -507,7 +509,25 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
 void 
 cr3Frame::OnQuit( wxCommandEvent& WXUNUSED( event ) )
 {
-	Close(TRUE);
+    Close(TRUE);
+}
+
+void
+cr3Frame::OnShowTOC( wxCommandEvent& event )
+{
+    LVTocItem * toc = _view->getDocView()->getToc();
+    if ( !toc || !toc->getChildCount() )
+        return;
+    TocDialog dlg( this, toc );
+    if ( dlg.ShowModal() == wxID_OK ) {
+        // go to
+        LVTocItem * sel = dlg.getSelection();
+        if ( sel ) {
+            ldomXPointer ptr = sel->getXPointer();
+            _view->goToBookmark( ptr );
+            Update();
+        }
+    }
 }
 
 void 
@@ -525,7 +545,7 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
     if ( dlg.ShowModal() == wxID_OK ) {
         //
         Update();
-		_view->LoadDocument( dlg.GetPath() );
+        _view->LoadDocument( dlg.GetPath() );
     }
         
 }
@@ -545,22 +565,22 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
     WolOptions opts( this );
     if ( dlg.ShowModal() == wxID_OK && opts.ShowModal() == wxID_OK ) {
         //
-		//_view->LoadDocument( dlg.GetPath() );
+        //_view->LoadDocument( dlg.GetPath() );
         Update();
-		wxCursor hg( wxCURSOR_WAIT );
-		this->SetCursor( hg );
-		wxSetCursor( hg );
-		_view->getDocView()->exportWolFile( dlg.GetPath(), opts.getMode()==0, opts.getLevels() );
-		wxSetCursor( wxNullCursor );
-		this->SetCursor( wxNullCursor );
+        wxCursor hg( wxCURSOR_WAIT );
+        this->SetCursor( hg );
+        wxSetCursor( hg );
+        _view->getDocView()->exportWolFile( dlg.GetPath(), opts.getMode()==0, opts.getLevels() );
+        wxSetCursor( wxNullCursor );
+        this->SetCursor( wxNullCursor );
     }
 }
 
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-	wxMessageBox( wxT( "Cool Reader 3.0.3\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version" ),
-			wxT( "About Cool Reader" ), wxOK | wxICON_INFORMATION, this );
+    wxMessageBox( wxT( "Cool Reader 3.0.3\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version" ),
+            wxT( "About Cool Reader" ), wxOK | wxICON_INFORMATION, this );
 }
 
 void
@@ -571,7 +591,7 @@ cr3Frame::OnScroll(wxScrollEvent& event)
 
 void cr3scroll::OnSetFocus( wxFocusEvent& event )
 {
-	_view->SetFocus();
+    _view->SetFocus();
 }
 
 void cr3view::OnSetFocus( wxFocusEvent& event )

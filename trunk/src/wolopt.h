@@ -28,25 +28,6 @@ WolOptions : public wxDialog
         {
             return cbLevels->GetCurrentSelection()+1;
         }
-/*
-        bool LoadDocument( const wxString & fname );
-        void CloseDocument();
-        void SetScrollBar( wxScrollBar * sb ) { _scrollbar = sb; }
-        void UpdateScrollBar();
-        LVDocView * getDocView() { return _docview; }
-        void doCommand( LVDocCmd cmd, int param );
-        wxColour getBackgroundColour();
-        // event handlers
-        void OnPaint(wxPaintEvent& event);
-        void OnSize(wxSizeEvent& event);
-        void OnKeyDown(wxKeyEvent& event);
-        void OnMouseWheel(wxMouseEvent& event);
-        void OnScroll(wxScrollEvent& event);
-        void OnCommand( wxCommandEvent& event );
-        void OnSetFocus( wxFocusEvent& event );
-        void OnMouseLDown( wxMouseEvent & event );
-        void OnTimer(wxTimerEvent& event);
-*/
         void OnInitDialog(wxInitDialogEvent& event);
     private:
         DECLARE_EVENT_TABLE()

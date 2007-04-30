@@ -292,6 +292,13 @@ bool cr3view::LoadDocument( const wxString & fname )
     return res;
 }
 
+void cr3view::goToBookmark(ldomXPointer bm)
+{
+    _docview->goToBookmark(bm);
+    UpdateScrollBar();
+    Paint();
+}
+
 void cr3view::doCommand( LVDocCmd cmd, int param )
 {
     _docview->doCommand( cmd, param );

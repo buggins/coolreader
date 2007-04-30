@@ -1,5 +1,5 @@
 # these are the headers for your project
-noinst_HEADERS = cr3.h rescont.h view.h
+noinst_HEADERS = cr3.h rescont.h view.h toc.h
 
 #########################################################################
 # APPLICATION SECTION
@@ -9,6 +9,6 @@ noinst_HEADERS = cr3.h rescont.h view.h
 bin_PROGRAMS = cr3
 
 # the application source, library search path, and link libraries
-cr3_SOURCES = cr3.cpp view.cpp wolopt.cpp
+cr3_SOURCES = cr3.cpp view.cpp wolopt.cpp toc.cpp
 cr3_LDFLAGS = $(WX_LIBS)
 
