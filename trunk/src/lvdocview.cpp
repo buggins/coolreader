@@ -51,19 +51,22 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_fantasy,
 //    css_ff_monospace
 
-#define INFO_FONT_SIZE      24
-#define DEFAULT_PAGE_MARGIN 12
+#define INFO_FONT_SIZE      18
+#define DEFAULT_PAGE_MARGIN 14
+/// minimum EM width of page (prevents show two pages for windows that not enougn wide)
+#define MIN_EM_PER_PAGE     20
 
-static int def_font_sizes[] = { 12, 16, 20, 24, 30, 36, 42 };
+static int def_font_sizes[] = { 16, 18, 22, 26, 30, 36, 42 };
     
 LVDocView::LVDocView() 
 : m_dx(100), m_dy(100), m_pos(50)
 #if (LBOOK==1)
 , m_font_size(36)
 #else
-, m_font_size(24)
+, m_font_size(26)
 #endif
 , m_font_sizes( def_font_sizes, sizeof(def_font_sizes) / sizeof(int) )
+, m_font_sizes_cyclic(false)
 , m_view_mode( 1 ? DVM_PAGES : DVM_SCROLL ) // choose 0/1
 , m_drawbuf(100, 100
 #if COLOR_BACKBUFFER==0
@@ -73,6 +76,7 @@ LVDocView::LVDocView()
 , m_stylesheet( def_stylesheet )
 , m_is_rendered(false)
 , m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
+, m_pagesVisible(2)
 , m_pageHeaderInfo ( 
       PGHDR_PAGE_NUMBER
     | PGHDR_PAGE_COUNT
@@ -253,9 +257,9 @@ LVImageSourceRef LVDocView::getCoverPageImage()
 /// draws coverpage to image buffer
 void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 {
-    LVFontRef author_fnt( fontMan->GetFont( 30, 600, true, css_ff_serif, lString8("Times New Roman")) );
-    LVFontRef title_fnt( fontMan->GetFont( 36, 600, false, css_ff_serif, lString8("Times New Roman")) );
-    LVFontRef series_fnt( fontMan->GetFont( 36, 300, true, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef author_fnt( fontMan->GetFont( 26, 600, true, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef title_fnt( fontMan->GetFont( 30, 600, false, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef series_fnt( fontMan->GetFont( 22, 300, true, css_ff_serif, lString8("Times New Roman")) );
     lString16 authors = getAuthors();
     lString16 title = getTitle();
     lString16 series = getSeries();
@@ -402,7 +406,10 @@ void LVDocView::SetPos( int pos, bool savePos )
     }
     else
     {
+        int pc = getVisiblePageCount();
         int page = m_pages.FindNearestPage( pos, 0 );
+        if ( pc==2 )
+            page &= ~1;
         if (page<m_pages.length())
             m_pos = m_pages[page]->start;
         else
@@ -420,25 +427,28 @@ int LVDocView::GetFullHeight()
     return ( rd ? rd->getHeight()+rd->getY() : m_dy ); 
 }
 
-void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page)
+void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * pageRect )
 {
     int start = page.start;
     int height = page.height;
-    int offset = (drawbuf->GetHeight() - m_pageMargins.top - m_pageMargins.bottom - height) / 3;
+    lvRect fullRect( 0, 0, drawbuf->GetWidth(), drawbuf->GetHeight() );
+    if ( !pageRect )
+        pageRect = &fullRect;
+    int offset = (pageRect->height() - m_pageMargins.top - m_pageMargins.bottom - height) / 3;
     if (offset>16)
         offset = 16;
     if (offset<0)
         offset = 0;
     offset = 0;
     lvRect clip;
-    clip.left = m_pageMargins.left;
-    clip.top = offset + m_pageMargins.top;
-    clip.bottom = m_pageMargins.top + height + offset;
-    clip.right = drawbuf->GetWidth() - m_pageMargins.right;
+    clip.left = pageRect->left + m_pageMargins.left;
+    clip.top = pageRect->top + offset + m_pageMargins.top;
+    clip.bottom = pageRect->top + m_pageMargins.top + height + offset;
+    clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
     if ( page.type==PAGE_TYPE_COVER )
-        clip.top = m_pageMargins.bottom;
+        clip.top = pageRect->top + m_pageMargins.bottom;
     if ( m_pageHeaderInfo && page.type!=PAGE_TYPE_COVER) {
-        lvRect info( 4, 4, drawbuf->GetWidth()-4, clip.top-7 );
+        lvRect info( pageRect->left+4, pageRect->top+4, pageRect->right-4, pageRect->top + m_pageMargins.top - 7 );
         lUInt32 cl1 = 0xA0A0A0;
         lUInt32 cl2 = getBackgroundColor();
         lUInt32 pal[4];
@@ -452,11 +462,11 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page)
         }
         drawbuf->SetTextColor(cl1);
         static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
-        drawbuf->FillRectPattern(4, info.bottom, drawbuf->GetWidth()-4, info.bottom+1, cl1, cl2, pattern );
+        drawbuf->FillRectPattern(info.left, info.bottom, info.right, info.bottom+1, cl1, cl2, pattern );
         info.bottom -= 1;
         lString16 pageinfo;
         if ( m_pageHeaderInfo & PGHDR_PAGE_NUMBER )
-            pageinfo += lString16::itoa( getCurPage()+1 );
+            pageinfo += lString16::itoa( page.index+1 );
         if ( m_pageHeaderInfo & PGHDR_PAGE_COUNT )
             pageinfo += L" / " + lString16::itoa( getPageCount() );
         int piw = 0;
@@ -506,11 +516,14 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page)
     drawbuf->SetClipRect(&clip);
     if ( m_doc ) {
         if ( page.type == PAGE_TYPE_COVER ) {
-            lvRect rc = clip;
-            rc.top = m_pageMargins.bottom;
+            lvRect rc = *pageRect;
+            rc.left += m_pageMargins.left;
+            rc.top += m_pageMargins.bottom;
+            rc.right -= m_pageMargins.right;
+            rc.bottom -= m_pageMargins.bottom;
             drawCoverTo( drawbuf, rc );
         } else {
-            DrawDocument( *drawbuf, m_doc->getMainNode(), m_pageMargins.left, m_pageMargins.top + offset, drawbuf->GetWidth() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy );
+            DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, pageRect->top + m_pageMargins.top + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy );
         }
     }
     drawbuf->SetClipRect(NULL);
@@ -530,6 +543,12 @@ void LVDocView::Draw()
     m_drawbuf.SetBackgroundColor( m_backgroundColor );
     m_drawbuf.SetTextColor( m_textColor );
     m_drawbuf.Clear(m_backgroundColor);
+    if ( m_drawbuf.GetBitsPerPixel()==32 && getVisiblePageCount()==2 ) {
+        int x = m_drawbuf.GetWidth() / 2;
+        lUInt32 cl = m_backgroundColor;
+        cl = ((cl & 0xFCFCFC) + 0x404040) >> 1;
+        m_drawbuf.FillRect( x, 0, x+1, m_drawbuf.GetHeight(), cl);
+    }
 
     if ( !m_is_rendered )
         return;
@@ -558,9 +577,12 @@ void LVDocView::Draw()
     }
     else
     {
+        int pc = getVisiblePageCount();
         int page = m_pages.FindNearestPage(m_pos, 0);
 		if ( page>=0 && page<m_pages.length() )
-			drawPageTo( &m_drawbuf, *m_pages[page] );
+			drawPageTo( &m_drawbuf, *m_pages[page], &m_pageRects[0] );
+        if ( pc==2 && page>=0 && page+1<m_pages.length() )
+            drawPageTo( &m_drawbuf, *m_pages[page + 1], &m_pageRects[1] );
     }
 }
 
@@ -575,16 +597,29 @@ ldomXPointer LVDocView::getNodeByPoint( lvPoint pt )
     return ldomXPointer();
 }
 
+void LVDocView::updateLayout()
+{
+    lvRect rc( 0, 0, m_dx, m_dy );
+    m_pageRects[0] = rc;
+    m_pageRects[1] = rc;
+    if ( getVisiblePageCount()==2 ) {
+        int middle = (rc.left + rc.right) >> 1;
+        m_pageRects[0].right = middle - m_pageMargins.right/2;
+        m_pageRects[1].left = middle + m_pageMargins.left/2;
+    }
+}
+
 void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
     if ( !m_doc )
 		return;
 	if ( pages==NULL )
 		pages = &m_pages;
+    updateLayout();
 	if ( dx==0 )
-		dx = m_drawbuf.GetWidth() - m_pageMargins.left - m_pageMargins.right;
+		dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
 	if ( dy==0 )
-		dy = m_drawbuf.GetHeight() - m_pageMargins.top - m_pageMargins.bottom;
+		dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom;
     lString8 fontName = lString8(DEFAULT_FONT_NAME);
     m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, fontName );
     m_infoFont = fontMan->GetFont( INFO_FONT_SIZE, 300, false, DEFAULT_FONT_FAMILY, fontName );
@@ -627,16 +662,40 @@ LVDocViewMode LVDocView::getViewMode()
     return m_view_mode;
 }
 
-static int findBestFit( LVArray<int> & v, int n )
+int LVDocView::getVisiblePageCount()
+{
+    return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE)
+        ? 1
+        : m_pagesVisible;
+}
+
+/// set window visible page count (1 or 2)
+void LVDocView::setVisiblePageCount( int n )
+{
+    if ( n == 2 )
+        m_pagesVisible = 2;
+    else
+        m_pagesVisible = 1;
+    updateLayout();
+    Render();
+}
+
+static int findBestFit( LVArray<int> & v, int n, bool rollCyclic=false )
 {
     int bestsz = -1;
     int bestfit = -1;
+    if ( rollCyclic ) {
+        if ( n<v[0] )
+            return v[v.length()-1];
+        if ( n>v[v.length()-1] )
+            return v[0];
+    }
     for ( int i=0; i<v.length(); i++ ) {
         int delta = v[i] - n;
-        if ( n<0 )
-            n = -n;
-        if ( bestfit<n ) {
-            bestfit = n;
+        if ( delta<0 )
+            delta = -delta;
+        if ( bestfit==-1 || bestfit>delta ) {
+            bestfit = delta;
             bestsz = v[i];
         }
     }
@@ -652,11 +711,11 @@ void LVDocView::setFontSize( int newSize )
     goToBookmark(_posBookmark);
 }
 
-/// sets posible base font sizes (for ZoomFont)
-void LVDocView::setFontSizes( LVArray<int> & sizes )
+/// sets posible base font sizes (for ZoomFont feature)
+void LVDocView::setFontSizes( LVArray<int> & sizes, bool cyclic )
 {
     m_font_sizes = sizes;
-    
+    m_font_sizes_cyclic = cyclic;
 }
 
 void LVDocView::ZoomFont( int delta )
@@ -668,7 +727,7 @@ void LVDocView::ZoomFont( int delta )
     for (int i=0; i<15; i++)
     {
         sz += delta;
-        int nsz = findBestFit( m_font_sizes, sz );
+        int nsz = findBestFit( m_font_sizes, sz, m_font_sizes_cyclic );
         if ( nsz != m_font_size ) {
             setFontSize( nsz );
             return;
@@ -713,6 +772,7 @@ void LVDocView::Resize( int dx, int dy )
         {
             m_dx = dx;
             m_dy = dy;
+            updateLayout();
             Render();
         }
         goToBookmark(_posBookmark);
@@ -1051,7 +1111,9 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             }
             else
             {
-                goToPage( m_pages.FindNearestPage(m_pos, -1));
+                int p = m_pages.FindNearestPage(m_pos, 0);
+                goToPage( p - getVisiblePageCount() );
+                //goToPage( m_pages.FindNearestPage(m_pos, -1));
             }
         }
         break;
@@ -1063,7 +1125,9 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             }
             else
             {
-                goToPage( m_pages.FindNearestPage(m_pos, -1));
+                int p = m_pages.FindNearestPage(m_pos, 0);
+                goToPage( p - getVisiblePageCount() );
+                //goToPage( m_pages.FindNearestPage(m_pos, -1));
             }
         }
         break;
@@ -1075,7 +1139,8 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             }
             else
             {
-                goToPage( m_pages.FindNearestPage(m_pos, +1));
+                int p = m_pages.FindNearestPage(m_pos, 0);
+                goToPage( p + getVisiblePageCount() );
             }
         }
         break;
@@ -1087,7 +1152,9 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             }
             else
             {
-                goToPage( m_pages.FindNearestPage(m_pos, +1));
+                int p = m_pages.FindNearestPage(m_pos, 0);
+                goToPage( p + getVisiblePageCount() );
+                //goToPage( m_pages.FindNearestPage(m_pos, +1));
             }
         }
         break;

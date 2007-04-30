@@ -120,6 +120,7 @@ private:
     int m_pos;
     int m_font_size;
     LVArray<int> m_font_sizes;
+    bool m_font_sizes_cyclic;
     bool m_is_rendered;
     LVDocViewMode m_view_mode;
     LVTocItem m_toc;
@@ -146,6 +147,8 @@ private:
     ldomXPointer _posBookmark;
 
     lvRect m_pageMargins;
+    lvRect m_pageRects[2];
+    int    m_pagesVisible;
     int m_pageHeaderInfo;
     bool m_showCover;
 
@@ -154,6 +157,8 @@ private:
     void updateScroll();
     /// makes table of contents for current document
     void makeToc();
+    /// updates page layout
+    void updateLayout();
     
 public:
     LVRendPageList * getPageList() { return &m_pages; }
@@ -163,6 +168,10 @@ public:
     void setViewMode( LVDocViewMode view_mode );
     /// get view mode (pages/scroll)
     LVDocViewMode getViewMode();
+    /// get window visible page count (1 or 2)
+    int getVisiblePageCount();
+    /// set window visible page count (1 or 2)
+    void setVisiblePageCount( int n );
 
     /// get page header info mask
     int getPageHeaderInfo() { return m_pageHeaderInfo; }
@@ -212,7 +221,7 @@ public:
     bool exportWolFile( LVStream * stream, bool flgGray, int levels );
 
     /// draws page to image buffer
-    void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page);
+    void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page, lvRect * pageRect=NULL);
     /// draws coverpage to image buffer
     void drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc );
     /// returns cover page image source, if any
@@ -234,14 +243,14 @@ public:
     /// set document stylesheet text
     void setStyleSheet( lString8 css_text );
 
-    /// change font size
+    /// change font size, if rollCyclic is true, largest font is followed by smallest and vice versa
     void ZoomFont( int delta );
     /// retrieves current base font size
     int  getFontSize() { return m_font_size; }
     /// sets new base font size
     void setFontSize( int newSize );
     /// sets posible base font sizes (for ZoomFont)
-    void setFontSizes( LVArray<int> & sizes );
+    void setFontSizes( LVArray<int> & sizes, bool cyclic );
 
     /// get drawing buffer
     LVDrawBuf * GetDrawBuf() { return &m_drawbuf; }
