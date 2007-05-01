@@ -19,7 +19,7 @@
   <kdevautoproject>
     <general>
       <activetarget>src/cr3</activetarget>
-      <useconfiguration>debug</useconfiguration>
+      <useconfiguration>optimized</useconfiguration>
     </general>
     <run>
       <mainprogram>src/cr3</mainprogram>
@@ -41,7 +41,7 @@
         </envvars>
         <configargs>--with-wx-config=/home/lve/src/wxWidgets/build/linux/Release/wx-config</configargs>
         <topsourcedir></topsourcedir>
-        <cppflags>-I${CREHOME}include</cppflags>
+        <cppflags>-I${CREHOME}include -DLINUX=1 -D_LINUX=1</cppflags>
         <ldflags>-L${CREHOME}lib -lcrengine</ldflags>
         <ccompilerbinary></ccompilerbinary>
         <cxxcompilerbinary></cxxcompilerbinary>
@@ -59,14 +59,14 @@
         <envvars>
           <envvar value="/home/lve/src/crengine/" name="CREHOME" />
         </envvars>
-        <topsourcedir></topsourcedir>
+        <topsourcedir/>
         <cppflags>-I${CREHOME}include -DLINUX=1 -D_LINUX=1</cppflags>
         <ldflags>-L${CREHOME}lib -lcrengined</ldflags>
-        <ccompilerbinary></ccompilerbinary>
-        <cxxcompilerbinary></cxxcompilerbinary>
-        <f77compilerbinary></f77compilerbinary>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
         <cflags> -DLINUX -D_LINUX</cflags>
-        <f77flags></f77flags>
+        <f77flags/>
       </debug>
     </configurations>
     <make>
@@ -78,7 +78,7 @@
       <runmultiplejobs>false</runmultiplejobs>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin></makebin>
+      <makebin/>
       <prio>0</prio>
     </make>
   </kdevautoproject>
