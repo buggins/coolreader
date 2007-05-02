@@ -1227,14 +1227,23 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
 }
 
 /// returns text node text
-lString16 ldomElement::getText() const
+lString16 ldomElement::getText( lChar16 blockDelimiter ) const
 {
     lString16 txt;
     for ( unsigned i=0; i<getChildCount(); i++ ) {
-        txt += getChildNode(i)->getText();
+        txt += getChildNode(i)->getText(blockDelimiter);
+        ldomNode * child = getChildNode(i);
+        if ( i>=getChildCount()-1 )
+            break;
+        if ( blockDelimiter && child->getNodeType()==LXML_ELEMENT_NODE ) {
+            lvdomElementFormatRec * fmt = ((ldomElement*)child)->getRenderData();
+            if ( fmt->getStyle()->display == css_d_block )
+                txt << blockDelimiter;
+        }
     }
     return txt;
 }
+
 /// get pointer for relative path
 ldomXPointer ldomXPointer::relative( lString16 relativePath )
 {

@@ -337,7 +337,7 @@ public:
     /// returns element namespace name
     virtual const lString16 & getNodeNsName() const = 0;
     /// returns text node text
-    virtual lString16 getText() const = 0;
+    virtual lString16 getText( lChar16 blockDelimiter = 0 ) const = 0;
     /// sets text node text
     virtual void setText( lString16 value ) { }
     /// returns child node by index
@@ -448,7 +448,7 @@ public:
     /// returns element namespace name
     virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
     /// returns text node text
-    virtual lString16 getText() const
+    virtual lString16 getText( lChar16 blockDelimiter=0 ) const
     {
 #if (USE_DOM_UTF8_STORAGE==1)
         return Utf8ToUnicode(_value);
@@ -548,7 +548,7 @@ public:
     /// converts to string
 	lString16 toString();
     /// returns XPath node text
-    lString16 getText()
+    lString16 getText(  lChar16 blockDelimiter=0 )
     {
         if ( !_node )
             return lString16();
@@ -664,7 +664,7 @@ public:
     /// returns element namespace name
     virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
     /// returns text node text
-    virtual lString16 getText() const { return _document->getTextNodeValue(this); }
+    virtual lString16 getText( lChar16 blockDelimiter=0 ) const { return _document->getTextNodeValue(this); }
     /// sets text node text
     virtual void setText( lString16 value );
     /// returns child node by index
@@ -744,7 +744,7 @@ public:
     /// returns element namespace name
     virtual const lString16 & getNodeNsName() const { return _document->getNsName(_nsid); }
     /// returns concatenation of all child node text
-    virtual lString16 getText() const;
+    virtual lString16 getText( lChar16 blockDelimiter=0 ) const;
     /// returns child node by index
     virtual ldomNode * getChildNode( lUInt32 index ) const
     {

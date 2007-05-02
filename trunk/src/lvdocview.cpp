@@ -160,7 +160,7 @@ lString16 getSectionHeader( ldomElement * section )
     ldomElement * child = (ldomElement *)section->getChildNode(0);
     if ( !child->isElement() || child->getNodeName()!=L"title" )
         return header;
-    header = child->getText();
+    header = child->getText(L' ');
     return header;
 }
 
@@ -197,6 +197,8 @@ static void addTocItems( ldomElement * basesection, LVTocItem * parent )
     if ( !basesection || !parent )
         return;
     lString16 name = getSectionHeader( basesection );
+    if ( name.empty() )
+        return; // section without header
     ldomXPointer ptr( basesection, 0 );
     LVTocItem * item = parent->addChild( name, ptr );
     for ( int i=0; ;i++ ) {
@@ -644,6 +646,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 #endif
     fontMan->gc();
     m_is_rendered = true;
+    makeToc();
 }
 
 /// set view mode (pages/scroll)
@@ -976,7 +979,6 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         }
     }
 
-    makeToc();
 
     return true;
 }
