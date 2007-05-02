@@ -516,9 +516,10 @@ void
 cr3Frame::OnShowTOC( wxCommandEvent& event )
 {
     LVTocItem * toc = _view->getDocView()->getToc();
+    ldomXPointer pos = _view->getDocView()->getBookmark();
     if ( !toc || !toc->getChildCount() )
         return;
-    TocDialog dlg( this, toc );
+    TocDialog dlg( this, toc, pos );
     if ( dlg.ShowModal() == wxID_OK ) {
         // go to
         LVTocItem * sel = dlg.getSelection();
@@ -530,9 +531,13 @@ cr3Frame::OnShowTOC( wxCommandEvent& event )
     }
 }
 
+
 void 
 cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
 {
+
+
+void 
     wxFileDialog dlg( this, wxT( "Choose a file to open" ), 
         wxT( "" ),
         wxT( "" ),//const wxString& defaultFile = "", 

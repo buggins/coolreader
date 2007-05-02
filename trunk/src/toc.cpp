@@ -35,8 +35,8 @@ public:
 void TocDialog::OnSelChanged(wxTreeEvent& event)
 {
     wxTreeItemId id = _tree->GetSelection();
-    MyItemData * data = (MyItemData*) _tree->GetItemData(id);
-    if ( _selection )
+    MyItemData * data = id.IsOk() ? (MyItemData*) _tree->GetItemData(id) : NULL;
+    if ( data )
         _selection = data->item;
 }
 
@@ -46,24 +46,46 @@ void TocDialog::OnItemActivated(wxTreeEvent& event)
     EndModal(wxID_OK);
 }
 
-void TocDialog::addTocItems( LVTocItem * tocitem, wxTreeItemId treeitem )
+static int calcStringMatch( const lChar16 * str1, const lChar16 * str2 )
 {
+    int i;
+    for ( i=0; str1[i] && str2[i] && str1[i]==str2[i]; i++ )
+        ;
+    return i;
+}
+
+void TocDialog::addTocItems( LVTocItem * tocitem, const wxTreeItemId & treeitem, ldomXPointer pos, wxTreeItemId & bestPosMatchNode )
+{
+    lString16 pos_str = pos.toString();
     for ( int i=0; i<tocitem->getChildCount(); i++ ) {
         LVTocItem * item = tocitem->getChild(i);
         wxTreeItemId id = _tree->AppendItem( treeitem, wxString(item->getName().c_str()), -1, -1, new MyItemData(item) );
-        addTocItems( item, id );
+        MyItemData * data = bestPosMatchNode.IsOk() ? (MyItemData*) _tree->GetItemData(bestPosMatchNode) : NULL;
+        lString16 best_str;
+        if ( data )
+            best_str = data->item->getXPointer().toString();
+        int best_match = calcStringMatch( pos_str.c_str(), best_str.c_str() );
+        lString16 curr_str = item->getXPointer().toString();
+        int curr_match = calcStringMatch( pos_str.c_str(), curr_str.c_str() );
+        if ( best_str.empty() || best_match < curr_match )
+            bestPosMatchNode = id;
+        addTocItems( item, id, pos, bestPosMatchNode );
     }
 }
 
-TocDialog::TocDialog( wxWindow * parent, LVTocItem * toc )
+TocDialog::TocDialog( wxWindow * parent, LVTocItem * toc, ldomXPointer currentPos )
 : _selection(NULL)
 {
     Create( parent, 1234, wxString(L"Table of Contents"),
-        wxDefaultPosition, wxSize( 400, 400), wxRESIZE_BORDER );
+        wxDefaultPosition, wxSize( 400, 450), wxRESIZE_BORDER );
     _toc = toc;
-    _tree = new wxTreeCtrl( this, TREE_ID, wxDefaultPosition, wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_SINGLE | wxTR_HIDE_ROOT );
+    _tree = new wxTreeCtrl( this, TREE_ID, wxDefaultPosition, wxDefaultSize,
+        wxTR_HAS_BUTTONS
+        | wxTR_SINGLE
+        | wxTR_HIDE_ROOT );
     wxTreeItemId root = _tree->AddRoot( wxString(L"Contents") );
-    addTocItems( toc, root );
+    wxTreeItemId bestItem;
+    addTocItems( toc, root, currentPos, bestItem );
 
     wxSizer * btnSizer = CreateButtonSizer( wxOK | wxCANCEL );
     wxBoxSizer * sizer = new wxBoxSizer( wxVERTICAL );
@@ -84,6 +106,9 @@ TocDialog::TocDialog( wxWindow * parent, LVTocItem * toc )
     //sizer->SetSizeHints( this );
     SetSizer( sizer );
     InitDialog();
+
+    _tree->SelectItem( bestItem );
+    _tree->EnsureVisible( bestItem );
 }
 
 TocDialog::~TocDialog()

@@ -25,14 +25,12 @@ class
 TocDialog : public wxDialog
 {
     private:
-        //wxComboBox * cbMode;
-        //wxComboBox * cbLevels;
         wxTreeCtrl * _tree;
         LVTocItem *  _toc;
         LVTocItem *  _selection;
-        void addTocItems( LVTocItem * tocitem, wxTreeItemId treeitem );
+        void addTocItems( LVTocItem * tocitem, const wxTreeItemId & treeitem, ldomXPointer pos, wxTreeItemId & bestPosMatchNode );
     public:
-        TocDialog( wxWindow * parent, LVTocItem * toc );
+        TocDialog( wxWindow * parent, LVTocItem * toc, ldomXPointer currentPos );
         virtual ~TocDialog();
         LVTocItem * getSelection() { return _selection; }
         void OnInitDialog(wxInitDialogEvent& event);
