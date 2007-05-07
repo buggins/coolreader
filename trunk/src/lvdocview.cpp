@@ -450,6 +450,18 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
     if ( page.type==PAGE_TYPE_COVER )
         clip.top = pageRect->top + m_pageMargins.bottom;
     if ( m_pageHeaderInfo && page.type!=PAGE_TYPE_COVER) {
+        int phi = m_pageHeaderInfo;
+        if ( getVisiblePageCount()==2 ) {
+            if ( page.index & 1 ) {
+                // right
+                phi &= ~PGHDR_AUTHOR;
+            } else {
+                // left
+                phi &= ~PGHDR_TITLE;
+                phi &= ~PGHDR_PAGE_NUMBER;
+                phi &= ~PGHDR_PAGE_COUNT;
+            }
+        }
         lvRect info( pageRect->left+4, pageRect->top+4, pageRect->right-4, pageRect->top + m_pageMargins.top - 7 );
         lUInt32 cl1 = 0xA0A0A0;
         lUInt32 cl2 = getBackgroundColor();
@@ -467,9 +479,9 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         drawbuf->FillRectPattern(info.left, info.bottom, info.right, info.bottom+1, cl1, cl2, pattern );
         info.bottom -= 1;
         lString16 pageinfo;
-        if ( m_pageHeaderInfo & PGHDR_PAGE_NUMBER )
+        if ( phi & PGHDR_PAGE_NUMBER )
             pageinfo += lString16::itoa( page.index+1 );
-        if ( m_pageHeaderInfo & PGHDR_PAGE_COUNT )
+        if ( phi & PGHDR_PAGE_COUNT )
             pageinfo += L" / " + lString16::itoa( getPageCount() );
         int piw = 0;
         int iy = info.bottom - m_infoFont->getHeight();
@@ -480,14 +492,14 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         }
         int titlew = 0;
         lString16 title;
-        if ( m_pageHeaderInfo & PGHDR_TITLE ) {
+        if ( phi & PGHDR_TITLE ) {
             title = getTitle();
             if ( !title.empty() )
                  titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
         }
         int authorsw = 0;
         lString16 authors;
-        if ( m_pageHeaderInfo & PGHDR_AUTHOR ) {
+        if ( phi & PGHDR_AUTHOR ) {
             authors = getAuthors();
             if ( !authors.empty() ) {
                 authors += L'.';

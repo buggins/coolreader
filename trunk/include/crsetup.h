@@ -54,7 +54,7 @@
 
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
-#define USE_FREETYPE 1
+#define USE_FREETYPE 0
 #endif
 
 // disable some features for SYMBIAN

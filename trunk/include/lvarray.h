@@ -73,6 +73,7 @@ public:
         } else {
             _array = NULL;
         }
+        return *this;
     }
     /// retrieves item from specified position
     T operator [] ( int pos ) const { return _array[pos]; }

@@ -1652,3 +1652,24 @@ lString16 ldomXPointer::toString()
     }
     return path;
 }
+
+int ldomDocument::getFullHeight()
+{ 
+    lvdomElementFormatRec * rd = this ? this->getMainNode()->getRenderData() : NULL;
+    return ( rd ? rd->getHeight() + rd->getY() : 0 ); 
+}
+
+/// returns text between two XPointer positions
+lString16 ldomXPointer::getRangeText( ldomXPointer endpos, lChar16 blockDelimiter, int maxTextLen )
+{
+    ldomXPointer pos = *this;
+    lString16 res;
+    if ( pos.getNode() == endpos.getNode() ) {
+        if ( pos.getOffset() >= endpos.getOffset() )
+            return res;
+        if ( pos.getNode()->getNodeType()==LXML_TEXT_NODE ) {
+            return pos.getNode()->getText().substr( pos.getOffset(), endpos.getOffset()-pos.getOffset() );
+        }
+    }
+    return res;
+}

@@ -200,6 +200,7 @@ public:
         m_textColor = cl;
         Draw();
     }
+
     /// returns xpointer for specified window point
     ldomXPointer getNodeByPoint( lvPoint pt );
 

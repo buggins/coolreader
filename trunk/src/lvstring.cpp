@@ -1751,13 +1751,14 @@ static const char * getCharTranscript( lChar16 ch )
     return "?";
 }
 
+
 lString8  UnicodeToTranslit( const lString16 & str )
 {
     lString8 buf;
 	if ( str.empty() )
 		return buf;
     buf.reserve( str.length()*5/4 );
-    for ( int i=0; i<str.length(); i++ ) {
+    for ( unsigned i=0; i<str.length(); i++ ) {
 		lChar16 ch = str[i];
         if ( ch>=32 && ch<=127 ) {
             buf.append( 1, (lChar8)ch );

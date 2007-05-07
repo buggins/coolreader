@@ -554,6 +554,8 @@ public:
             return lString16();
         return _node->getText();
     }
+    /// returns text between two XPointer positions
+    lString16 getRangeText( ldomXPointer endpos, lChar16 blockDelimiter=0, int maxTextLen=0 );
 };
 
 class ldomElement;
@@ -582,6 +584,9 @@ public:
 #else
     ldomDocument();
 #endif
+
+    /// get full document height
+    int getFullHeight();
 
     int getPageHeight() { return _page_height; }
     bool saveToStream( LVStreamRef stream, const char * codepage );
