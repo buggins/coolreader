@@ -38,12 +38,15 @@ void TocDialog::OnSelChanged(wxTreeEvent& event)
     MyItemData * data = id.IsOk() ? (MyItemData*) _tree->GetItemData(id) : NULL;
     if ( data )
         _selection = data->item;
+    else
+        _selection = NULL;
 }
 
 void TocDialog::OnItemActivated(wxTreeEvent& event)
 {
     OnSelChanged(event);
-    EndModal(wxID_OK);
+    if ( _selection!=NULL )
+        EndModal(wxID_OK);
 }
 
 static int calcStringMatch( const lChar16 * str1, const lChar16 * str2 )
@@ -73,7 +76,7 @@ void TocDialog::addTocItems( LVTocItem * tocitem, const wxTreeItemId & treeitem,
     }
 }
 
-TocDialog::TocDialog( wxWindow * parent, LVTocItem * toc, ldomXPointer currentPos )
+TocDialog::TocDialog( wxWindow * parent, LVTocItem * toc, lString16 title, ldomXPointer currentPos )
 : _selection(NULL)
 {
     Create( parent, 1234, wxString(L"Table of Contents"),
@@ -82,8 +85,9 @@ TocDialog::TocDialog( wxWindow * parent, LVTocItem * toc, ldomXPointer currentPo
     _tree = new wxTreeCtrl( this, TREE_ID, wxDefaultPosition, wxDefaultSize,
         wxTR_HAS_BUTTONS
         | wxTR_SINGLE
-        | wxTR_HIDE_ROOT );
-    wxTreeItemId root = _tree->AddRoot( wxString(L"Contents") );
+//        | wxTR_HIDE_ROOT
+        );
+    wxTreeItemId root = _tree->AddRoot( wxString(title.c_str()) );
     wxTreeItemId bestItem;
     addTocItems( toc, root, currentPos, bestItem );
 

@@ -3,6 +3,7 @@
 #define _CR3_H_
 
 #include "view.h"
+//#include "hist.h"
 
 /**
  * @short Application Main Window

@@ -496,6 +496,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& size, lString16 appDir )
     : wxFrame((wxFrame *)NULL, -1, title, pos, size)
 {
+    //wxStandardPaths::GetUserDataDir();
 
     _appDir = appDir;
 
@@ -519,7 +520,7 @@ cr3Frame::OnShowTOC( wxCommandEvent& event )
     ldomXPointer pos = _view->getDocView()->getBookmark();
     if ( !toc || !toc->getChildCount() )
         return;
-    TocDialog dlg( this, toc, pos );
+    TocDialog dlg( this, toc, _view->getDocView()->getTitle(), pos );
     if ( dlg.ShowModal() == wxID_OK ) {
         // go to
         LVTocItem * sel = dlg.getSelection();
@@ -535,9 +536,6 @@ cr3Frame::OnShowTOC( wxCommandEvent& event )
 void 
 cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
 {
-
-
-void 
     wxFileDialog dlg( this, wxT( "Choose a file to open" ), 
         wxT( "" ),
         wxT( "" ),//const wxString& defaultFile = "", 

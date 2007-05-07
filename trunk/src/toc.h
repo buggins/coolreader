@@ -30,7 +30,7 @@ TocDialog : public wxDialog
         LVTocItem *  _selection;
         void addTocItems( LVTocItem * tocitem, const wxTreeItemId & treeitem, ldomXPointer pos, wxTreeItemId & bestPosMatchNode );
     public:
-        TocDialog( wxWindow * parent, LVTocItem * toc, ldomXPointer currentPos );
+        TocDialog( wxWindow * parent, LVTocItem * toc, lString16 title, ldomXPointer currentPos );
         virtual ~TocDialog();
         LVTocItem * getSelection() { return _selection; }
         void OnInitDialog(wxInitDialogEvent& event);
