@@ -73,7 +73,7 @@ VPATH = % \
 	$(builddir):\
 	./src:
 
-ccflags = -fPIC -w -fno-inline -fexceptions -fpermissive
+ccflags = -fPIC -w -Wall -fno-inline -fexceptions -fpermissive
 defs = -DLGI_RES -DLINUX -D_LINUX -D_REENTRANT -D_FILE64_MAPPING
 
 ifeq ($(USE_JPEG),0)
@@ -168,6 +168,7 @@ srcs	 =	\
 		lvtextfm \
 		lvtinydom \
 		lvxml \
+		hist \
 		wolutil \
 
 ifndef LBOOK

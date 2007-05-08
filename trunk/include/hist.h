@@ -1,11 +1,26 @@
-///////////////////////////////////////////////////////////////////////////
-//  hist.h
-///////////////////////////////////////////////////////////////////////////
+/** \file hist.h
+    \brief file history and bookmarks container
+
+    CoolReader Engine
+
+    (c) Vadim Lopatin, 2000-2007
+    This source code is distributed under the terms of
+    GNU General Public License
+    See LICENSE file for details
+*/
+
 #ifndef HIST_H_INCLUDED
 #define HIST_H_INCLUDED
 
 #include "lvptrvec.h"
 #include <time.h>
+
+enum bmk_type {
+    bmkt_lastpos,
+    bmkt_pos,
+    bmkt_comment,
+    bmkt_correction,
+};
 
 class CRBookmark {
 private:
@@ -15,6 +30,7 @@ private:
     int       _type;
     lString16 _postext;
     lString16 _titletext;
+    time_t    _timestamp;
 public:
     CRBookmark(const CRBookmark & v )
     : _startpos(v._startpos)
@@ -23,6 +39,7 @@ public:
     , _type(v._type)
     , _postext(v._postext)
     , _titletext(v._titletext)
+    , _timestamp(v._timestamp)
     {
     }
     CRBookmark & operator = (const CRBookmark & v )
@@ -33,8 +50,9 @@ public:
         _type = v._type;
         _postext = v._postext;
         _titletext = v._titletext;
+        _timestamp = v._timestamp;
     }
-    CRBookmark() : _type(0), _percent(0) { }
+    CRBookmark() : _type(0), _percent(0), _timestamp(0) { }
     CRBookmark ( ldomXPointer ptr );
     lString16 getStartPos() { return _startpos; }
     lString16 getEndPos() { return _endpos; }
@@ -42,12 +60,14 @@ public:
     lString16 getTitleText() { return _titletext; }
     int getType() { return _type; }
     int getPercent() { return _percent; }
+    time_t getTimestamp() { return _timestamp; }
     void setStartPos(const lString16 & s ) { _startpos = s; }
     void setEndPos(const lString16 & s ) { _endpos = s; }
     void setPosText(const lString16 & s ) { _postext= s; }
     void setTitleText(const lString16 & s ) { _titletext = s; }
     void setType( int n ) { _type = n; }
     void setPercent( int n ) { _percent = n; }
+    void setTimestamp( time_t t ) { _timestamp = t; }
 };
 
 class CRFileHistRecord {
@@ -86,6 +106,8 @@ public:
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
     bool loadFromStream( LVStream * stream );
     bool saveToStream( LVStream * stream );
+    void savePosition( lString16 fpathname, size_t sz, ldomXPointer ptr );
+    ldomXPointer restorePosition( lString16 fpathname, size_t sz );
     CRFileHist()
     {
     }

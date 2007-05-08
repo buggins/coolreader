@@ -16,6 +16,7 @@
 #include "lvtinydom.h"
 #include "lvpagesplitter.h"
 #include "lvdrawbuf.h"
+#include "hist.h"
 
 
 enum LVDocCmd
@@ -143,6 +144,8 @@ private:
     lString16 m_title;
     lString16 m_authors;
     lString16 m_series;
+
+    lString16 m_filename;
     
     ldomXPointer _posBookmark;
 
@@ -152,6 +155,8 @@ private:
     int m_pageHeaderInfo;
     bool m_showCover;
 
+    CRFileHist m_hist;
+
 
     // private functions
     void updateScroll();
@@ -159,8 +164,12 @@ private:
     void makeToc();
     /// updates page layout
     void updateLayout();
-    
+    /// load document from stream
+    bool LoadDocument( LVStreamRef stream );
 public:
+    /// returns file list with positions/bookmarks
+    CRFileHist * getHistory() { return &m_hist; }
+    /// returns formatted page list
     LVRendPageList * getPageList() { return &m_pages; }
     /// returns pointer to TOC root node
     LVTocItem * getToc() { return &m_toc; }
@@ -286,8 +295,11 @@ public:
     bool LoadDocument( const char * fname );
     /// load document from file
     bool LoadDocument( const lChar16 * fname );
-    /// load document from stream
-    bool LoadDocument( LVStreamRef stream );
+
+    /// save last file position
+    void savePosition();
+    /// restore last file position
+    void restorePosition();
 
     /// render (format) document
     void Render( int dx=0, int dy=0, LVRendPageList * pages=NULL );

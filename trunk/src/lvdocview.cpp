@@ -134,6 +134,7 @@ void LVDocView::Clear()
     _posBookmark = ldomXPointer();
     m_is_rendered = false;
     m_pos = 0;
+    m_filename.clear();
 }
 
 bool LVDocView::exportWolFile( const char * fname, bool flgGray, int levels )
@@ -836,6 +837,20 @@ void SaveBase64Objects( ldomNode * node )
 }
 #endif
 
+/// save last file position
+void LVDocView::savePosition()
+{
+    if ( m_filename.empty() )
+        return;
+}
+
+/// restore last file position
+void LVDocView::restorePosition()
+{
+    if ( m_filename.empty() )
+        return;
+}
+
 /// load document from file
 bool LVDocView::LoadDocument( const lChar16 * fname )
 {
@@ -843,7 +858,11 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
     LVStreamRef stream = LVOpenFileStream(fname, LVOM_READ);
     if (!stream)
         return false;
-    return LoadDocument( stream );
+    if ( LoadDocument( stream ) ) {
+        m_filename = lString16(fname);
+        return true;
+    }
+    return false;
 }
 
 /// load document from stream
@@ -997,11 +1016,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
 bool LVDocView::LoadDocument( const char * fname )
 {
-    Clear();
-    LVStreamRef stream = LVOpenFileStream(fname, LVOM_READ);
-    if (!stream)
-        return false;
-    return LoadDocument( stream );
+    return LoadDocument( LocalToUnicode(lString8(fname)).c_str() );
 }
 
 /// returns bookmark
