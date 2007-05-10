@@ -30,7 +30,7 @@ static void putTagValue( LVStream * stream, int level, const char * tag, lString
     if ( value.empty() ) {
         *stream << "/>\r\n";
     } else {
-        *stream << "/>" << UnicodeToUtf8( value ).c_str() << "</" << tag << ">\r\n>";
+        *stream << ">" << UnicodeToUtf8( value ).c_str() << "</" << tag << ">\r\n";
     }
 }
 
@@ -88,7 +88,7 @@ static void splitFName( lString16 pathname, lString16 & path, lString16 & name )
 {
     //
     int spos = -1;
-    for ( int spos=pathname.length()-1; spos>=0; spos-- ) {
+    for ( spos=pathname.length()-1; spos>=0; spos-- ) {
         lChar16 ch = pathname[spos];
         if ( ch=='\\' || ch=='/' ) {
             break;
@@ -96,11 +96,39 @@ static void splitFName( lString16 pathname, lString16 & path, lString16 & name )
     }
     if ( spos>=0 ) {
         path = pathname.substr( 0, spos+1 );
-        name = pathname.substr( spos+1, length(pathname)-spos-1 );
+        name = pathname.substr( spos+1, pathname.length()-spos-1 );
     } else {
         path.clear();
         name = pathname;
     }
+}
+
+int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz )
+{
+    for ( int i=0; i<_records.length(); i++ ) {
+        CRFileHistRecord * rec = _records[i];
+        if ( rec->getFileName().compare(fname) )
+            continue;
+        if ( rec->getFileSize()!=sz )
+            continue;
+        return i;
+    }
+    return -1;
+}
+
+void CRFileHist::makeTop( int index )
+{
+    if ( index<=0 || index>=_records.length() )
+        return;
+    CRFileHistRecord * rec = _records[index];
+    for ( int i=index; i>0; i-- )
+        _records[i] = _records[i-1];
+    _records[0] = rec;
+}
+
+void CRFileHistRecord::setLastPos( CRBookmark * bmk )
+{
+    _lastpos = *bmk;
 }
 
 void CRFileHist::savePosition( lString16 fpathname, size_t sz, ldomXPointer ptr )
@@ -108,10 +136,32 @@ void CRFileHist::savePosition( lString16 fpathname, size_t sz, ldomXPointer ptr 
     lString16 name;
     lString16 path;
     splitFName( fpathname, path, name );
+    CRBookmark bmk( ptr );
+    int index = findEntry( name, path, sz );
+    if ( index>=0 ) {
+        makeTop( index );
+        _records[0]->setLastPos( &bmk );
+        return;
+    }
+    CRFileHistRecord * rec = new CRFileHistRecord();
+    rec->setFileName( name );
+    rec->setFilePath( path );
+    rec->setFileSize( sz );
+    rec->setLastPos( &bmk );
+    _records.insert( 0, rec );
 }
 
-ldomXPointer CRFileHist::restorePosition( lString16 fpathname, size_t sz )
+ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathname, size_t sz )
 {
+    lString16 name;
+    lString16 path;
+    splitFName( fpathname, path, name );
+    int index = findEntry( name, path, sz );
+    if ( index>=0 ) {
+        makeTop( index );
+        return doc->createXPointer( _records[0]->getLastPos()->getStartPos() );
+    }
+    return ldomXPointer();
 }
 
 CRBookmark::CRBookmark (ldomXPointer ptr )

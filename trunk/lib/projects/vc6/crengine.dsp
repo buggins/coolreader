@@ -141,6 +141,10 @@ SOURCE=..\..\..\src\crtxtenc.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\hist.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\hyphman.cpp
 # SUBTRACT CPP /YX
 # End Source File
@@ -252,6 +256,10 @@ SOURCE=..\..\..\include\dtddef.h
 # Begin Source File
 
 SOURCE=..\..\..\include\fb2def.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\hist.h
 # End Source File
 # Begin Source File
 

@@ -842,6 +842,7 @@ void LVDocView::savePosition()
 {
     if ( m_filename.empty() )
         return;
+    m_hist.savePosition( m_filename, m_filesize, getBookmark() );
 }
 
 /// restore last file position
@@ -849,6 +850,10 @@ void LVDocView::restorePosition()
 {
     if ( m_filename.empty() )
         return;
+    ldomXPointer pos = m_hist.restorePosition( m_doc, m_filename, m_filesize );
+    if ( !pos.isNull() ) {
+        goToBookmark( pos );
+    }
 }
 
 /// load document from file
@@ -868,6 +873,7 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
 /// load document from stream
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
+    m_filesize = stream->GetSize();
     m_stream = stream;
 
 #if (USE_ZLIB==1)

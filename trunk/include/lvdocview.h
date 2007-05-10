@@ -146,6 +146,7 @@ private:
     lString16 m_series;
 
     lString16 m_filename;
+    lvsize_t  m_filesize;
     
     ldomXPointer _posBookmark;
 
