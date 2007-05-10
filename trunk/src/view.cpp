@@ -1,5 +1,6 @@
 #include <wx/wx.h>
 #include <wx/mstream.h>
+#include <wx/stdpaths.h>
 #include <crengine.h>
 #include "cr3.h"
 #include "rescont.h"
@@ -70,7 +71,15 @@ void cr3view::Paint()
 
 void cr3view::CloseDocument()
 {
+    _docview->savePosition();
     _docview->Clear();
+    lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
+    if ( !wxDirExists( cfgdir.c_str() ) )
+        ::wxMkdir( wxString( cfgdir.c_str() ) );
+    lString16 cfgfile = cfgdir + L"\\cr3hist.bmk";
+    LVStreamRef stream = LVOpenFileStream( cfgfile.c_str(), LVOM_WRITE );
+    if ( !stream.isNull() )
+        _docview->getHistory()->saveToStream( stream.get() );
 }
 
 void cr3view::UpdateScrollBar()
@@ -270,6 +279,8 @@ void cr3view::OnKeyDown(wxKeyEvent& event)
 
 bool cr3view::LoadDocument( const wxString & fname )
 {
+    CloseDocument();
+
 	wxCursor hg( wxCURSOR_WAIT );
 	this->SetCursor( hg );
 	wxSetCursor( hg );
@@ -282,6 +293,7 @@ bool cr3view::LoadDocument( const wxString & fname )
     lString16 title = (_docview->getAuthors() + L". " + _docview->getTitle());
     GetParent()->SetLabel( wxString( title.c_str() ) );
     _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
+    _docview->restorePosition();
 	//_docview->Render();
 	//UpdateScrollBar();
 	//Paint();
