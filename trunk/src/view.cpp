@@ -37,8 +37,17 @@ void cr3view::OnInitDialog(wxInitDialogEvent& event)
 
 cr3view::cr3view()
 : _scrollbar(NULL)
+, _firstRender(false)
 {
     _docview = new LVDocView();
+
+    {
+        LVStreamRef stream = LVOpenFileStream( GetHistoryFileName().c_str(), LVOM_READ );
+        if ( !stream.isNull() ) {
+            _docview->getHistory()->loadFromStream( stream.get() );
+        }
+    }
+
 
     _renderTimer = new wxTimer( this, RENDER_TIMER_ID );
 
@@ -59,6 +68,10 @@ void cr3view::OnTimer(wxTimerEvent& event)
 {
     //
     _docview->Resize(_newWidth, _newHeight);
+    if ( _firstRender ) {
+        _docview->restorePosition();
+        _firstRender = false;
+    }
     UpdateScrollBar();
     Paint();
 }
@@ -69,15 +82,33 @@ void cr3view::Paint()
     Refresh( FALSE );
 }
 
+static lChar16 detectSlash( lString16 path )
+{
+    for ( unsigned i=0; i<path.length(); i++ )
+        if ( path[i]=='\\' || path[i]=='/' )
+            return path[i];
+#ifdef _WIN32
+    return '\\';
+#else
+    return '/';
+#endif
+}
+
+lString16 cr3view::GetHistoryFileName()
+{
+    lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
+    if ( !wxDirExists( cfgdir.c_str() ) )
+        ::wxMkdir( wxString( cfgdir.c_str() ) );
+    lChar16 slash = detectSlash( cfgdir );
+    cfgdir << slash;
+    return cfgdir + L"cr3hist.bmk";
+}
+
 void cr3view::CloseDocument()
 {
     _docview->savePosition();
     _docview->Clear();
-    lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
-    if ( !wxDirExists( cfgdir.c_str() ) )
-        ::wxMkdir( wxString( cfgdir.c_str() ) );
-    lString16 cfgfile = cfgdir + L"\\cr3hist.bmk";
-    LVStreamRef stream = LVOpenFileStream( cfgfile.c_str(), LVOM_WRITE );
+    LVStreamRef stream = LVOpenFileStream( GetHistoryFileName().c_str(), LVOM_WRITE );
     if ( !stream.isNull() )
         _docview->getHistory()->saveToStream( stream.get() );
 }
@@ -293,7 +324,8 @@ bool cr3view::LoadDocument( const wxString & fname )
     lString16 title = (_docview->getAuthors() + L". " + _docview->getTitle());
     GetParent()->SetLabel( wxString( title.c_str() ) );
     _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
-    _docview->restorePosition();
+    _firstRender = true;
+    //_docview->restorePosition();
 	//_docview->Render();
 	//UpdateScrollBar();
 	//Paint();

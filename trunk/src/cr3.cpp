@@ -229,15 +229,26 @@ cr3app::OnInit()
 
     printf("%d fonts loaded.\n", fontMan->GetFontCount());
 
-
+#ifdef _WIN32
+    //::GetSystemMetrics()
+    RECT wrc;
+    SystemParametersInfo( SPI_GETWORKAREA, 0, &wrc, 0 );
+    int x = wrc.left;
+    int y = wrc.top;
+    int cx = wrc.right - wrc.left;
+    int cy = wrc.bottom - wrc.top;
+#else
+    int x = 20;
+    int y = 40;
     int cx = wxSystemSettings::GetMetric( wxSYS_SCREEN_X );
     int cy = wxSystemSettings::GetMetric( wxSYS_SCREEN_Y )-40;
+#endif
     int scale_x = cx * 256 / 620;
     int scale_y = cy * 256 / 830;
     int scale = scale_x < scale_y ? scale_x : scale_y;
     cx = 610 * scale / 256;
     cy = 830 * scale / 256;
-    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.3" ), wxPoint(20,40), wxSize(cx,cy), appPath );
+    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.4" ), wxPoint(x,y), wxSize(cx,cy), appPath );
 
     frame->Show(TRUE);
     SetTopWindow(frame);

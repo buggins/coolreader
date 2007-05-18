@@ -35,6 +35,7 @@ cr3view : public wxPanel
         void OnInitDialog(wxInitDialogEvent& event);
         void ToggleViewMode();
         void TogglePageHeader();
+        lString16 GetHistoryFileName();
     protected:
 
         void Paint();
@@ -46,6 +47,7 @@ cr3view : public wxPanel
         wxTimer * _renderTimer;
         int _newWidth;
         int _newHeight;
+        bool _firstRender;
         
         DECLARE_EVENT_TABLE()
 };
