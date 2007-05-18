@@ -680,7 +680,7 @@ LVDocViewMode LVDocView::getViewMode()
 
 int LVDocView::getVisiblePageCount()
 {
-    return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE)
+    return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE || m_dx < m_dy )
         ? 1
         : m_pagesVisible;
 }
@@ -984,7 +984,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
     lString16 authors;
     for ( int i=0; i<16; i++) {
-        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i) + L"]";
+        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
         ldomXPointer pauthor = m_doc->createXPointer(path);
         if ( !pauthor )
             break;
@@ -1044,8 +1044,13 @@ ldomXPointer LVDocView::getBookmark()
 /// moves position to bookmark
 void LVDocView::goToBookmark(ldomXPointer bm)
 {
-    lvPoint pt = bm.toPoint();
-    SetPos( pt.y, false );
+    if ( bm.isNull() ) {
+        SetPos( 0, false );
+    } else {
+        lvPoint pt = bm.toPoint();
+        SetPos( pt.y, false );
+    }
+
     /*
     lUInt64 h = GetFullHeight();
     int pos = (int) (bm*h/1000000);

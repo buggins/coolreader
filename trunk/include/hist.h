@@ -30,6 +30,7 @@ private:
     int       _type;
     lString16 _postext;
     lString16 _titletext;
+    lString16 _commenttext;
     time_t    _timestamp;
 public:
     CRBookmark(const CRBookmark & v )
@@ -39,6 +40,7 @@ public:
     , _type(v._type)
     , _postext(v._postext)
     , _titletext(v._titletext)
+    , _commenttext(v._commenttext)
     , _timestamp(v._timestamp)
     {
     }
@@ -50,6 +52,7 @@ public:
         _type = v._type;
         _postext = v._postext;
         _titletext = v._titletext;
+        _commenttext = v._commenttext;
         _timestamp = v._timestamp;
         return *this;
     }
@@ -59,6 +62,7 @@ public:
     lString16 getEndPos() { return _endpos; }
     lString16 getPosText() { return _postext; }
     lString16 getTitleText() { return _titletext; }
+    lString16 getCommentText() { return _commenttext; }
     int getType() { return _type; }
     int getPercent() { return _percent; }
     time_t getTimestamp() { return _timestamp; }
@@ -66,6 +70,7 @@ public:
     void setEndPos(const lString16 & s ) { _endpos = s; }
     void setPosText(const lString16 & s ) { _postext= s; }
     void setTitleText(const lString16 & s ) { _titletext = s; }
+    void setCommentText(const lString16 & s ) { _commenttext = s; }
     void setType( int n ) { _type = n; }
     void setPercent( int n ) { _percent = n; }
     void setTimestamp( time_t t ) { _timestamp = t; }

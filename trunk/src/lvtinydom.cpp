@@ -1458,10 +1458,12 @@ lvPoint ldomXPointer::toPoint() const
 
         // text node
         int srcIndex = -1;
+        int srcLen = -1;
         for ( int i=0; i<txtform.GetSrcCount(); i++ ) {
             const src_text_fragment_t * src = txtform.GetSrcInfo(i);
             if ( src->object == node ) {
                 srcIndex = i;
+                srcLen = src->t.len;
                 break;
             }
         }
@@ -1478,7 +1480,7 @@ lvPoint ldomXPointer::toPoint() const
                         pt.x = word->x + rc.left + frmline->x;
                         pt.y = word->y + rc.top + frmline->y + frmline->baseline;
                         return pt;
-                    } else if ( offset<=word->t.start+word->t.len ) {
+                    } else if ( (offset<word->t.start+word->t.len) || (offset==srcLen && offset==word->t.start+word->t.len) ) {
                         // pointer inside this word
                         LVFont * font = (LVFont *) txtform.GetSrcInfo(srcIndex)->t.font;
                         lUInt16 w[512];
@@ -1521,6 +1523,8 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 	int index = -1;
 	ldomNode * currNode = baseNode;
 	lString16 name;
+    lString8 ptr8 = UnicodeToUtf8(xPointerStr);
+    const char * ptr = ptr8.c_str();
 	xpath_step_t step_type;
 
 	while ( *str ) {
@@ -1538,10 +1542,10 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 				for (unsigned i=0; i<currNode->getChildCount(); i++) {
 					ldomNode * p = currNode->getChildNode(i);
 					if ( p->isElement() && p->getNodeId()==id ) {
+						foundCount++;
 						if ( foundCount==index || index==-1 ) {
 							foundItem = p;
 						}
-						foundCount++;
 					}
 				}
 				if ( foundItem==NULL || (index==-1 && foundCount>1) )
@@ -1558,10 +1562,10 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 				for (unsigned i=0; i<currNode->getChildCount(); i++) {
 					ldomNode * p = currNode->getChildNode(i);
 					if ( p->isText() ) {
+						foundCount++;
 						if ( foundCount==index || index==-1 ) {
 							foundItem = p;
 						}
-						foundCount++;
 					}
 				}
 				if ( foundItem==NULL || (index==-1 && foundCount>1) )

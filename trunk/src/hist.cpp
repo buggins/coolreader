@@ -17,9 +17,196 @@ void CRFileHist::clear()
     _records.clear();
 }
 
+/// XML parser callback interface
+class CRHistoryFileParserCallback : public LVXMLParserCallback
+{
+protected:
+    LVXMLParser * _parser;
+    CRFileHist *  _hist;
+    CRBookmark * _curr_bookmark;
+    CRFileHistRecord * _curr_file;
+    enum state_t {
+        in_xml,
+        in_fbm,
+        in_file,
+        in_file_info,
+        in_bm_list,
+        in_bm,
+        in_start_point,
+        in_end_point,
+        in_header_txt,
+        in_selection_txt,
+        in_comment_txt,
+        in_filename,
+        in_filepath,
+        in_filesize,
+    };
+    state_t state;
+public:
+    ///
+    CRHistoryFileParserCallback( CRFileHist *  hist )
+        : _hist(hist), _curr_bookmark(NULL), _curr_file(NULL)
+    {
+        state = in_xml;
+    }
+    /// called on parsing start
+    virtual void OnStart(LVXMLParser * parser) { _parser = parser; }
+    /// called on parsing end
+    virtual void OnStop()
+    {
+    }
+    /// called on opening tag
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    {
+        if ( lStr_cmp(tagname, L"FictionBookMarks")==0 && state==in_xml ) {
+            state = in_fbm;
+        } else if ( lStr_cmp(tagname, L"file")==0 && state==in_fbm ) {
+            state = in_file;
+            _curr_file = new CRFileHistRecord();
+        } else if ( lStr_cmp(tagname, L"file-info")==0 && state==in_file ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, L"bookmark-list")==0 && state==in_file ) {
+            state = in_bm_list;
+        } else if ( lStr_cmp(tagname, L"doc-filename")==0 && state==in_file_info ) {
+            state = in_filename;
+        } else if ( lStr_cmp(tagname, L"doc-filepath")==0 && state==in_file_info ) {
+            state = in_filepath;
+        } else if ( lStr_cmp(tagname, L"doc-filesize")==0 && state==in_file_info ) {
+            state = in_filesize;
+        } else if ( lStr_cmp(tagname, L"bookmark")==0 && state==in_bm_list ) {
+            state = in_bm;
+            _curr_bookmark = new CRBookmark();
+        } else if ( lStr_cmp(tagname, L"start-point")==0 && state==in_bm ) {
+            state = in_start_point;
+        } else if ( lStr_cmp(tagname, L"end-point")==0 && state==in_bm ) {
+            state = in_end_point;
+        } else if ( lStr_cmp(tagname, L"header-text")==0 && state==in_bm ) {
+            state = in_header_txt;
+        } else if ( lStr_cmp(tagname, L"selection-text")==0 && state==in_bm ) {
+            state = in_selection_txt;
+        } else if ( lStr_cmp(tagname, L"comment-text")==0 && state==in_bm ) {
+            state = in_comment_txt;
+        }
+    }
+    /// called on closing
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+    {
+        if ( lStr_cmp(nsname, L"FictionBookMarks")==0 && state==in_fbm ) {
+            state = in_xml;
+        } else if ( lStr_cmp(tagname, L"file")==0 && state==in_file ) {
+            state = in_fbm;
+            if ( _curr_file )
+                _hist->getRecords().add( _curr_file );
+            _curr_file = NULL;
+        } else if ( lStr_cmp(tagname, L"file-info")==0 && state==in_file_info ) {
+            state = in_file;
+        } else if ( lStr_cmp(tagname, L"bookmark-list")==0 && state==in_bm_list ) {
+            state = in_file;
+        } else if ( lStr_cmp(tagname, L"doc-filename")==0 && state==in_filename ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, L"doc-filepath")==0 && state==in_filepath ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, L"doc-filesize")==0 && state==in_filesize ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, L"bookmark")==0 && state==in_bm ) {
+            state = in_bm_list;
+            if ( _curr_bookmark ) {
+                if ( _curr_bookmark->getType() == bmkt_lastpos ) {
+                    _curr_file->setLastPos(_curr_bookmark);
+                    delete _curr_bookmark;
+                } else {
+                    _curr_file->getBookmarks().add(_curr_bookmark);
+                }
+                _curr_bookmark = NULL;
+            }
+        } else if ( lStr_cmp(tagname, L"start-point")==0 && state==in_start_point ) {
+            state = in_bm;
+        } else if ( lStr_cmp(tagname, L"end-point")==0 && state==in_end_point ) {
+            state = in_bm;
+        } else if ( lStr_cmp(tagname, L"header-text")==0 && state==in_header_txt ) {
+            state = in_bm;
+        } else if ( lStr_cmp(tagname, L"selection-text")==0 && state==in_selection_txt ) {
+            state = in_bm;
+        } else if ( lStr_cmp(tagname, L"comment-text")==0 && state==in_comment_txt ) {
+            state = in_bm;
+        }
+    }
+    /// called on element attribute
+    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+    {
+        if ( lStr_cmp(attrname, L"type")==0 && state==in_bm ) {
+            static const char * tnames[] = {"lastpos", "position", "comment", "correction"};
+            for ( int i=0; i<4; i++) {
+                if ( lStr_cmp(attrname, tnames[i])==0 ) {
+                    _curr_bookmark->setType( (bmk_type)i );
+                    return;
+                }
+            }
+        } else if ( lStr_cmp(attrname, L"percent")==0 && state==in_bm ) {
+            int n1=0, n2=0;
+            int i=0;
+            for ( ; attrvalue[i]>='0' && attrvalue[i]<='9'; i++)
+                n1 = n1*10 + (attrvalue[i]-'0');
+            if ( attrvalue[i]=='.' ) {
+                i++;
+                if (attrvalue[i]>='0' && attrvalue[i]<='9')
+                    n2 = (attrvalue[i++]-'0')*10;
+                if (attrvalue[i]>='0' && attrvalue[i]<='9')
+                    n2 = (attrvalue[i++]-'0');
+            }
+            _curr_bookmark->setPercent( n1*100 + n2 );
+        } else if ( lStr_cmp(attrname, L"timestamp")==0 && state==in_bm ) {
+            time_t n1=0;
+            int i=0;
+            for ( ; attrvalue[i]>='0' && attrvalue[i]<='9'; i++)
+                n1 = n1*10 + (attrvalue[i]-'0');
+            _curr_bookmark->setTimestamp( n1 );
+        }
+    }
+    /// called on text
+    virtual void OnText( const lChar16 * text, int len, 
+        lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+    {
+        lString16 txt( text, len );
+        switch (state) {
+        case in_start_point:
+            _curr_bookmark->setStartPos( txt );
+            break;
+        case in_end_point:
+            _curr_bookmark->setEndPos( txt );
+            break;
+        case in_header_txt:
+            _curr_bookmark->setTitleText( txt );
+            break;
+        case in_selection_txt:
+            _curr_bookmark->setPosText( txt );
+            break;
+        case in_comment_txt:
+            _curr_bookmark->setCommentText( txt );
+            break;
+        case in_filename:
+            _curr_file->setFileName( txt );
+            break;
+        case in_filepath:
+            _curr_file->setFilePath( txt );
+            break;
+        case in_filesize:
+            _curr_file->setFileSize( txt.atoi() );
+            break;
+        }
+    }
+    /// destructor
+    virtual ~CRHistoryFileParserCallback()
+    {
+    }
+};
+
 bool CRFileHist::loadFromStream( LVStream * stream )
 {
-    return false;
+    CRHistoryFileParserCallback cb(this);
+    LVXMLParser parser( stream, &cb );
+    parser.Parse();
+    return true;
 }
 
 static void putTagValue( LVStream * stream, int level, const char * tag, lString16 value )
@@ -54,6 +241,7 @@ static void putBookmark( LVStream * stream, CRBookmark * bmk )
     putTagValue( stream, 4, "end-point", bmk->getEndPos() );
     putTagValue( stream, 4, "header-text", bmk->getTitleText() );
     putTagValue( stream, 4, "selection-text", bmk->getPosText() );
+    putTagValue( stream, 4, "comment-text", bmk->getCommentText() );
     putTag(stream, 3, "/bookmark");
 }
 
@@ -187,3 +375,4 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
     endpt.y += 100;
     ldomXPointer endptr = doc->createXPointer( endpt );
 }
+

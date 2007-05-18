@@ -16,7 +16,7 @@
 //#define LBOOK 1
 #define LDOM_USE_OWN_MEM_MAN 1
 
-#define USE_DOM_UTF8_STORAGE 0
+#define USE_DOM_UTF8_STORAGE 1
 
 
 // features set for LBOOK
@@ -55,6 +55,12 @@
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 #define USE_FREETYPE 0
+#define ZIP_STREAM_BUFFER_SIZE               0x100000
+#define FILE_STREAM_BUFFER_SIZE              0x100000
+#define COMPACT_DOM                          0
+#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      32
+#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  32
+#define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
 #endif
 
 // disable some features for SYMBIAN
