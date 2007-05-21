@@ -56,7 +56,7 @@ public:
         _timestamp = v._timestamp;
         return *this;
     }
-    CRBookmark() : _type(0), _percent(0), _timestamp(0) { }
+    CRBookmark() : _percent(0), _type(0), _timestamp(0) { }
     CRBookmark ( ldomXPointer ptr );
     lString16 getStartPos() { return _startpos; }
     lString16 getEndPos() { return _endpos; }

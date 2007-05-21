@@ -54,7 +54,7 @@ lxmlDocBase::lxmlDocBase()
 , _nextUnknownAttrId(UNKNOWN_ATTRIBUTE_TYPE_ID)
 , _nextUnknownNsId(UNKNOWN_NAMESPACE_TYPE_ID)
 , _attrValueTable( DOC_STRING_HASH_SIZE )
-,_idNodeMap(16)
+,_idNodeMap(1024)
 ,_idAttrId(0)
 {
     _stylesheet.setDocument( this );
@@ -315,6 +315,7 @@ void ldomElement::getAbsRect( lvRect & rect )
 
 LVImageSourceRef ldomElement::getObjectImageSource()
 {
+    printf("ldomElement::getObjectImageSource() ... ");
     LVImageSourceRef ref;
     const elem_def_t * et = _document->getElementTypePtr(_id);
     if (!et || !et->props.is_object)
@@ -331,9 +332,13 @@ LVImageSourceRef ldomElement::getObjectImageSource()
     if ( refName[0]!='#' )
         return ref;
     lUInt16 refValueId = _document->getAttrValueIndex( refName.c_str() + 1 );
+    printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
     ldomNode * objnode = _document->getNodeById( refValueId );
-    if ( !objnode )
+    if ( !objnode ) {
+        printf("no OBJ node found!!!\n" );
         return ref;
+    }
+    printf(" (found) ");
     ref = LVCreateNodeImageSource( objnode );
     return ref;
 }
@@ -1047,7 +1052,7 @@ public:
         for (;;) {
             int bytesRead = readNextBytes();
             if ( !bytesRead )
-                break; 
+                break;
             m_bytes_count = 0;
             m_bytes_pos = 0;
             m_size += bytesRead;
@@ -1155,13 +1160,30 @@ public:
 /// creates stream to read base64 encoded data from element
 LVStreamRef ldomElement::createBase64Stream()
 {
+#define DEBUG_BASE64_IMAGE 1
+#if DEBUG_BASE64_IMAGE==1
+    lString16 fname = getAttributeValue( attr_id );
+    lString8 fname8 = UnicodeToUtf8( fname );
+    LVStreamRef ostream = LVOpenFileStream( fname.empty()?L"image.png":fname.c_str(), LVOM_WRITE );
+    printf("createBase64Stream(%s)\n", fname8.c_str());
+#endif
     LVStream * stream = new LVBase64NodeStream( this );
     if ( stream->GetSize()==0 )
     {
+#if DEBUG_BASE64_IMAGE==1
+        printf("    cannot create base64 decoder stream!!!\n");
+#endif
         delete stream;
         return LVStreamRef();
     }
-    return LVStreamRef( stream );
+    LVStreamRef istream( stream );
+
+#if DEBUG_BASE64_IMAGE==1
+    LVPumpStream( ostream, istream );
+    istream->SetPos(0);
+#endif
+
+    return istream;
 }
 
 

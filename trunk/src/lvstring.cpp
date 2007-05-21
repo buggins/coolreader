@@ -917,10 +917,10 @@ void lString8Collection::clear()
 
 lUInt32 calcStringHash( const lChar16 * s )
 {
-    lUInt32 a = 0;
+    lUInt32 a = 2166136261;
     while (*s)
     {
-        a = a * STRING_HASH_MULT + *s++;
+        a = a * 16777619 ^ (*s++);
     }
     return a;
 }
@@ -930,13 +930,23 @@ lString16HashedCollection::lString16HashedCollection( lUInt32 hash_size )
 {
 
     hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
-    memset( hash, -1, sizeof(HashPair) * hashSize );
+    for ( int i=0; i<hashSize; i++ )
+        hash[i].clear();
 }
 
 lString16HashedCollection::~lString16HashedCollection()
 {
-    if ( hash )
+    if ( hash ) {
+        for ( int i=0; i<hashSize; i++) {
+            HashPair * p = hash[i].next;
+            while ( p ) {
+                HashPair * tmp = p->next;
+                free( p );
+                p = tmp;
+            }
+        }
         free( hash );
+    }
 }
 
 
@@ -944,7 +954,7 @@ size_t lString16HashedCollection::add( const lChar16 * s )
 {
     lUInt32 h = calcStringHash( s );
     lUInt32 n = h % hashSize;
-    if ( hash[n].index!=(lUInt32)-1 && hash[n].hash==h )
+    if ( hash[n].index!=-1 )
     {
         const lString16 & str = at( hash[n].index );
         if ( str == s )

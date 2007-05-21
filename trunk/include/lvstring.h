@@ -453,8 +453,10 @@ class lString16HashedCollection : public lString16Collection
 private:
     size_t hashSize;
     struct HashPair {
-        lUInt32 hash;
-        lUInt32 index;
+        int index;
+        HashPair * next;
+        void clear() { index=-1; next=NULL; }
+        void HashPair() { clear(); }
     };
     HashPair * hash;
 public:
