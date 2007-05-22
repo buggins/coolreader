@@ -459,6 +459,8 @@ private:
         void HashPair() { clear(); }
     };
     HashPair * hash;
+    void addHashItem( int hashIndex, int storageIndex );
+    void clearHash();
 public:
     lString16HashedCollection( lUInt32 hashSize );
     ~lString16HashedCollection();
