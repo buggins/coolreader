@@ -121,6 +121,12 @@ public:
         return (lUInt16)_attrValueTable.add( value );
     }
 
+    /// helper: returns attribute value index, 0xffff if not found
+    lUInt16 findAttrValueIndex( const lChar16 * value )
+    {
+        return (lUInt16)_attrValueTable.find( value );
+    }
+
     /// Get element name by id
     /**
         \param id is numeric value of element name

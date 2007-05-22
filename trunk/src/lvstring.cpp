@@ -927,6 +927,14 @@ lUInt32 calcStringHash( const lChar16 * s )
 
 void lString16HashedCollection::addHashItem( int hashIndex, int storageIndex )
 {
+    if ( hash[ hashIndex ].index == -1 ) {
+        hash[hashIndex].index = storageIndex; 
+    } else {
+        HashPair * np = (HashPair *)malloc(sizeof(HashPair));
+        np->index = storageIndex;
+        np->next = hash[hashIndex].next;
+        hash[hashIndex].next = np;
+    }
 }
 
 void lString16HashedCollection::clearHash()
@@ -959,13 +967,53 @@ lString16HashedCollection::~lString16HashedCollection()
     clearHash();
 }
 
-
-size_t lString16HashedCollection::add( const lChar16 * s )
+size_t lString16HashedCollection::find( const lChar16 * s )
 {
-    if ( !hash ) {
+    if ( !hash || !length() )
+        return (size_t)-1;
+    lUInt32 h = calcStringHash( s );
+    lUInt32 n = h % hashSize;
+    if ( hash[n].index!=-1 )
+    {
+        const lString16 & str = at( hash[n].index );
+        if ( str == s )
+            return hash[n].index;
+        HashPair * p = hash[n].next;
+        for ( ;p ;p = p->next ) {
+            const lString16 & str = at( p->index );
+            if ( str==s )
+                return p->index;
+        }
+    }
+    return (size_t)-1;
+}
+
+void lString16HashedCollection::reHash( int newSize )
+{
+    if ( hashSize == newSize )
+        return;
+    clearHash();
+    hashSize = newSize;
+    if ( hashSize>0 ) {
         hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
         for ( int i=0; i<hashSize; i++ )
             hash[i].clear();
+    }
+    for ( int i=0; i<length(); i++ ) {
+        lUInt32 h = calcStringHash( at(i).c_str() );
+        lUInt32 n = h % hashSize;
+        addHashItem( n, i );
+    }
+}
+
+size_t lString16HashedCollection::add( const lChar16 * s )
+{
+    if ( !hash || hashSize < length()*2 ) {
+        int sz = 16;
+        while ( sz<length() )
+            sz <<= 1;
+        sz <<= 1;
+        reHash( sz );
     }
     lUInt32 h = calcStringHash( s );
     lUInt32 n = h % hashSize;
@@ -979,14 +1027,10 @@ size_t lString16HashedCollection::add( const lChar16 * s )
             const lString16 & str = at( p->index );
             if ( str==s )
                 return p->index;
-            free( p );
-            p = tmp;
         }
     }
     lUInt32 i = lString16Collection::add( lString16(s) );
-    if ( hash[n].index!=-1 ) {
-    hash[n].index = i;
-    hash[n].hash = h;
+    addHashItem( n, i );
     return i;
 }
 

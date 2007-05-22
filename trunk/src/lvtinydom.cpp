@@ -315,7 +315,7 @@ void ldomElement::getAbsRect( lvRect & rect )
 
 LVImageSourceRef ldomElement::getObjectImageSource()
 {
-    printf("ldomElement::getObjectImageSource() ... ");
+    //printf("ldomElement::getObjectImageSource() ... ");
     LVImageSourceRef ref;
     const elem_def_t * et = _document->getElementTypePtr(_id);
     if (!et || !et->props.is_object)
@@ -331,14 +331,16 @@ LVImageSourceRef ldomElement::getObjectImageSource()
         return ref;
     if ( refName[0]!='#' )
         return ref;
-    lUInt16 refValueId = _document->getAttrValueIndex( refName.c_str() + 1 );
-    printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
+    lUInt16 refValueId = _document->findAttrValueIndex( refName.c_str() + 1 );
+    if ( refValueId == (lUInt16)-1 )
+        return ref; 
+    //printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
     ldomNode * objnode = _document->getNodeById( refValueId );
     if ( !objnode ) {
-        printf("no OBJ node found!!!\n" );
+        //printf("no OBJ node found!!!\n" );
         return ref;
     }
-    printf(" (found) ");
+    //printf(" (found) ");
     ref = LVCreateNodeImageSource( objnode );
     return ref;
 }
@@ -1160,7 +1162,7 @@ public:
 /// creates stream to read base64 encoded data from element
 LVStreamRef ldomElement::createBase64Stream()
 {
-#define DEBUG_BASE64_IMAGE 1
+#define DEBUG_BASE64_IMAGE 0
 #if DEBUG_BASE64_IMAGE==1
     lString16 fname = getAttributeValue( attr_id );
     lString8 fname8 = UnicodeToUtf8( fname );

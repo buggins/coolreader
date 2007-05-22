@@ -312,7 +312,9 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 {
     LVRendPageList pages;
-    Render(600, 800, &pages);
+    int dx = 600 - m_pageMargins.left - m_pageMargins.right;
+    int dy = 800 - m_pageMargins.top - m_pageMargins.bottom;
+    Render(dx, dy, &pages);
 
     const lChar8 * * table = GetCharsetUnicode2ByteTable( L"windows-1251" );
 

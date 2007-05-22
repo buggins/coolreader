@@ -456,15 +456,16 @@ private:
         int index;
         HashPair * next;
         void clear() { index=-1; next=NULL; }
-        void HashPair() { clear(); }
     };
     HashPair * hash;
     void addHashItem( int hashIndex, int storageIndex );
     void clearHash();
+    void reHash( int newSize );
 public:
     lString16HashedCollection( lUInt32 hashSize );
     ~lString16HashedCollection();
     size_t add( const lChar16 * s );
+    size_t find( const lChar16 * s );
 };
 
 inline bool operator == (const lString16& s1, const lString16& s2 )
