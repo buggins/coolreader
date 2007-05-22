@@ -161,6 +161,13 @@ cr3app::OnInit()
     if ( lastSlash>=0 )
         appPath = appname.substr( 0, lastSlash+1 );
 
+#if 1
+    {
+        LVStreamRef stream = LVOpenFileStream( "cr3res.zip", LVOM_WRITE );
+        stream->Write( cr3_icons, sizeof(cr3_icons), NULL );
+    }
+#endif
+
     if (resources->OpenFromMemory( cr3_icons, sizeof(cr3_icons) )) {
 /*
         LVStreamRef testStream = resources.GetStream(L"icons/16x16/signature.png");
@@ -388,11 +395,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
                      getIcon16x16(L"filesaveas"),//toolBarBitmaps[Tool_save], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Save as..."), _T("Export document"));
-/*
-    toolBar->AddTool(wxID_COPY, _T("Copy"), toolBarBitmaps[Tool_copy], _T("Toggle button 2"), wxITEM_CHECK);
-    toolBar->AddTool(wxID_CUT, _T("Cut"), toolBarBitmaps[Tool_cut], _T("Toggle/Untoggle help button"));
-    toolBar->AddTool(wxID_PASTE, _T("Paste"), toolBarBitmaps[Tool_paste], _T("Paste"));
-*/
+
     toolBar->AddSeparator();
     toolBar->AddTool(Menu_View_ZoomIn, _T("Zoom In"),
                      getIcon16x16(L"viewmag+"),//toolBarBitmaps[Tool_zoomin], 
@@ -403,6 +406,10 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Zoom out"), _T("Decrease font size"));
     toolBar->AddSeparator();
+    toolBar->AddTool(Menu_View_TOC, _T("Table of Contents (F5)"),
+                     getIcon16x16(L"player_playlist"),//toolBarBitmaps[Tool_zoomout],
+                     wxNullBitmap, wxITEM_NORMAL,
+                     _T("Table of Contents (F5)"), _T("Show Table of Contents window"));
     toolBar->AddTool(Menu_View_TogglePages, _T("Toggle pages (Ctrl+P)"),
                      getIcon16x16(L"view_left_right"),//toolBarBitmaps[Tool_zoomout], 
                      wxNullBitmap, wxITEM_NORMAL,
@@ -561,7 +568,7 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
         Update();
         _view->LoadDocument( dlg.GetPath() );
     }
-        
+
 }
 
 void 
@@ -593,7 +600,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-    wxMessageBox( wxT( "Cool Reader 3.0.3\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version" ),
+    wxMessageBox( wxT( "Cool Reader 3.0.4\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version" ),
             wxT( "About Cool Reader" ), wxOK | wxICON_INFORMATION, this );
 }
 
