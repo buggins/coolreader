@@ -161,7 +161,7 @@ cr3app::OnInit()
     if ( lastSlash>=0 )
         appPath = appname.substr( 0, lastSlash+1 );
 
-#if 1
+#if 0
     {
         LVStreamRef stream = LVOpenFileStream( "cr3res.zip", LVOM_WRITE );
         stream->Write( cr3_icons, sizeof(cr3_icons), NULL );
