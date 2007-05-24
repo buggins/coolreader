@@ -940,7 +940,7 @@ void lString16HashedCollection::addHashItem( int hashIndex, int storageIndex )
 void lString16HashedCollection::clearHash()
 {
     if ( hash ) {
-        for ( int i=0; i<hashSize; i++) {
+        for ( unsigned i=0; i<hashSize; i++) {
             HashPair * p = hash[i].next;
             while ( p ) {
                 HashPair * tmp = p->next;
@@ -958,7 +958,7 @@ lString16HashedCollection::lString16HashedCollection( lUInt32 hash_size )
 {
 
     hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
-    for ( int i=0; i<hashSize; i++ )
+    for ( unsigned i=0; i<hashSize; i++ )
         hash[i].clear();
 }
 
@@ -990,16 +990,16 @@ size_t lString16HashedCollection::find( const lChar16 * s )
 
 void lString16HashedCollection::reHash( int newSize )
 {
-    if ( hashSize == newSize )
+    if ( hashSize == (lUInt32)newSize )
         return;
     clearHash();
     hashSize = newSize;
     if ( hashSize>0 ) {
         hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
-        for ( int i=0; i<hashSize; i++ )
+        for ( unsigned i=0; i<hashSize; i++ )
             hash[i].clear();
     }
-    for ( int i=0; i<length(); i++ ) {
+    for ( unsigned i=0; i<length(); i++ ) {
         lUInt32 h = calcStringHash( at(i).c_str() );
         lUInt32 n = h % hashSize;
         addHashItem( n, i );
@@ -1009,7 +1009,7 @@ void lString16HashedCollection::reHash( int newSize )
 size_t lString16HashedCollection::add( const lChar16 * s )
 {
     if ( !hash || hashSize < length()*2 ) {
-        int sz = 16;
+        unsigned sz = 16;
         while ( sz<length() )
             sz <<= 1;
         sz <<= 1;

@@ -92,8 +92,9 @@ public:
     inline static lUInt16 rev( lUInt16 w )
     {
         return 
+            (lUInt16)(
             ((w&0xFF00)>>8)|
-            ((w&0x00FF)<<8);
+            ((w&0x00FF)<<8) );
     }
     /// make 32 bit word least-significant-first byte order (Intel)
     lUInt32 lsf( lUInt32 w )

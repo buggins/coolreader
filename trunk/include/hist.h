@@ -91,6 +91,7 @@ public:
     void setLastPos( CRBookmark * bmk );
     lString16 getFileName() { return _fname; }
     lString16 getFilePath() { return _fpath; }
+    lString16 getFilePathName() { return _fpath + _fname; }
     lvpos_t   getFileSize() { return _size; }
     void setFileName( const lString16 & s ) { _fname = s; }
     void setFilePath( const lString16 & s ) { _fpath = s; }

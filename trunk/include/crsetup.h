@@ -21,6 +21,7 @@
 
 // features set for LBOOK
 #if (LBOOK==1)
+#define MAX_IMAGE_SCALE_MUL                  2
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_ZLIB                             1
@@ -66,9 +67,13 @@
 #define GLYPH_CACHE_SIZE 0x40000
 #endif
 
-
+//==================================================
+// WIN32
+//==================================================
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
-#define USE_FREETYPE 0
+/// maximum picture zoom (1, 2, 3)
+#define MAX_IMAGE_SCALE_MUL                  1
+#define USE_FREETYPE                         0
 #define ZIP_STREAM_BUFFER_SIZE               0x100000
 #define FILE_STREAM_BUFFER_SIZE              0x100000
 #define COMPACT_DOM                          0
@@ -185,6 +190,11 @@
 #define USE_BITMAP_FONTS 1
 #endif
 
+#endif
+
+/// maximum picture zoom (1, 2, 3)
+#ifndef MAX_IMAGE_SCALE_MUL
+#define MAX_IMAGE_SCALE_MUL 1
 #endif
 
 #endif//CRSETUP_H_INCLUDED

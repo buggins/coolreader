@@ -864,6 +864,7 @@ void LVDocView::restorePosition()
     ldomXPointer pos = m_hist.restorePosition( m_doc, m_filename, m_filesize );
     if ( !pos.isNull() ) {
         goToBookmark( pos );
+        _posBookmark = getBookmark();
     }
 }
 

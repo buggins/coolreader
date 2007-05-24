@@ -1256,10 +1256,12 @@ ldomDocument * ldomText::getDocument() const
     return _parent->getDocument();
 }
 
+#if COMPACT_DOM == 1
 ldomDocument * ldomTextRef::getDocument() const
 {
     return _parent->getDocument();
 }
+#endif
 
 #if (LDOM_ALLOW_NODE_INDEX!=1)
 lUInt32 ldomNode::getNodeIndex() const
@@ -1671,7 +1673,7 @@ lString16 ldomXPointer::toString()
                 if ( node->isElement() && node->getNodeId()==id ) {
                     count++;
                     if ( node==p )
-                        index = i;
+                        index = count;
                 }
             }
             if ( count>1 )
@@ -1689,7 +1691,7 @@ lString16 ldomXPointer::toString()
                 if ( node->isText() ) {
                     count++;
                     if ( node==p )
-                        index = i;
+                        index = count;
                 }
             }
             if ( count>1 )

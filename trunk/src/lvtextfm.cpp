@@ -443,13 +443,19 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 int scale_mul = 1;
                 int div_x = (srcline->o.width / pbuffer->width) + 1;
                 int div_y = (srcline->o.height / pbuffer->page_height) + 1;
+#if (MAX_IMAGE_SCALE_MUL==3)
                 if ( srcline->o.height*3 < pbuffer->page_height-20 
                         && srcline->o.width*3 < pbuffer->width - 20 )
                     scale_mul = 3;
-                else if ( srcline->o.height*2 < pbuffer->page_height-20 
+                else 
+#endif
+#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
+                    if ( srcline->o.height*2 < pbuffer->page_height-20 
                         && srcline->o.width*2 < pbuffer->width - 20 )
                     scale_mul = 2;
-                else if (div_x>1 || div_y>1) {
+                else 
+#endif
+                if (div_x>1 || div_y>1) {
                     if (div_x>div_y)
                         scale_div = div_x;
                     else
