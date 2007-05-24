@@ -31,11 +31,13 @@ cr3view : public wxPanel
         void OnCommand( wxCommandEvent& event );
         void OnSetFocus( wxFocusEvent& event );
         void OnMouseLDown( wxMouseEvent & event );
+        void OnMouseRDown( wxMouseEvent & event );
         void OnTimer(wxTimerEvent& event);
         void OnInitDialog(wxInitDialogEvent& event);
         void ToggleViewMode();
         void TogglePageHeader();
         lString16 GetHistoryFileName();
+        lString16 GetLastRecentFileName();
     protected:
 
         void Paint();

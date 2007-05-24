@@ -13,6 +13,7 @@ BEGIN_EVENT_TABLE( cr3view, wxPanel )
     EVT_SIZE    ( cr3view::OnSize )
     EVT_MOUSEWHEEL( cr3view::OnMouseWheel )
     EVT_LEFT_DOWN( cr3view::OnMouseLDown )
+    EVT_RIGHT_DOWN( cr3view::OnMouseRDown )
     EVT_MENU_RANGE( 0, 0xFFFF, cr3view::OnCommand )
     EVT_SET_FOCUS( cr3view::OnSetFocus )
     EVT_TIMER(RENDER_TIMER_ID, cr3view::OnTimer)
@@ -33,6 +34,13 @@ wxColour cr3view::getBackgroundColour()
 void cr3view::OnInitDialog(wxInitDialogEvent& event)
 {
     //SetBackgroundColour( getBackgroundColour() );
+}
+
+lString16 cr3view::GetLastRecentFileName()
+{
+    if ( _docview && _docview->getHistory()->getRecords().length()>0 )
+        return _docview->getHistory()->getRecords()[0]->getFilePathName();
+    return lString16();
 }
 
 cr3view::cr3view()
@@ -148,6 +156,27 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
     }
     lvPoint pt2 = ptr.toPoint();
     printf("  (%d, %d)  ->  (%d, %d)\n", x, y+_docview->GetPos(), pt2.x, pt2.y);
+}
+
+void cr3view::OnMouseRDown( wxMouseEvent & event )
+{
+    wxMenu pm;
+    pm.Append( wxID_OPEN, wxT( "&Open...\tCtrl+O" ) );
+    pm.Append( wxID_SAVE, wxT( "&Save...\tCtrl+S" ) );
+    pm.AppendSeparator();
+    pm.Append( Menu_View_TOC, wxT( "Table of Contents\tF5" ) );
+    pm.Append( Menu_File_About, wxT( "&About...\tF1" ) );
+    pm.AppendSeparator();
+    pm.Append( Menu_View_ZoomIn, wxT( "Zoom In" ) );
+    pm.Append( Menu_View_ZoomOut, wxT( "Zoom Out" ) );
+    pm.AppendSeparator();
+    pm.Append( Menu_View_ToggleFullScreen, wxT( "Toggle Fullscreen\tAlt+Enter" ) );
+    pm.Append( Menu_View_TogglePages, wxT( "Toggle Pages/Scroll\tCtrl+P" ) );
+    pm.Append( Menu_View_TogglePageHeader, wxT( "Toggle page heading\tCtrl+H" ) );
+    pm.AppendSeparator();
+    pm.Append( Menu_File_Quit, wxT( "E&xit\tAlt+X" ) );
+
+    ((wxFrame*)GetParent())->PopupMenu(&pm);
 }
 
 void cr3view::TogglePageHeader()

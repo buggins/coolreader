@@ -285,6 +285,8 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     
     wxMenu *menuView = new wxMenu;
 
+    menuView->Append( Menu_View_TOC, wxT( "Table of Contents\tF5" ) );
+    menuView->AppendSeparator();
     menuView->Append( Menu_View_ZoomIn, wxT( "Zoom In" ) );
     menuView->Append( Menu_View_ZoomOut, wxT( "Zoom Out" ) );
     menuView->AppendSeparator();
@@ -504,7 +506,12 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     int argc = wxGetApp().argc;
     lString16 fnameToOpen;
     if ( argc>1 ) {
-        if ( !_view->LoadDocument( wxString(wxGetApp().argv[1])) )
+        fnameToOpen = lString16( wxGetApp().argv[1] );
+    } else {
+        fnameToOpen = _view->GetLastRecentFileName();
+    }
+    if ( !fnameToOpen.empty() ) {
+        if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
         {
             printf("cannot open document\n");
         }
