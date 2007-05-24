@@ -201,8 +201,9 @@ lString16 ldomDocument::getTextNodeValue( const ldomTextRef * txt )
 void ldomTextRef::setText( lString16 value )
 {
     // CAUTION! this node will be deleted and replaced by ldomText!!!
-    ldomNode * self = _parent->removeChild( _index );
-    _parent->insertChildText( _index, value );
+    int index = ldomNode::getNodeIndex();
+    ldomNode * self = _parent->removeChild( index );
+    _parent->insertChildText( index, value );
     delete self; // == this !!!
 }
 #endif
@@ -1249,6 +1250,16 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
     }
     return xpath_step_error;
 }
+
+#if (LDOM_ALLOW_NODE_INDEX!=1)
+lUInt32 ldomNode::getNodeIndex() const
+{
+    for (int i=_parent->getChildCount()-1; i>=0; i--)
+        if (_parent->getChildNode(i)==this)
+            return i;
+    return -1;
+}
+#endif
 
 /// returns text node text
 lString16 ldomElement::getText( lChar16 blockDelimiter ) const

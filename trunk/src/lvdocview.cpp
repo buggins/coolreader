@@ -52,7 +52,14 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_monospace
 
 #define INFO_FONT_SIZE      18
+
+#if defined(__SYMBIAN32__)
+#include <e32std.h>
+#define DEFAULT_PAGE_MARGIN 2
+#else
 #define DEFAULT_PAGE_MARGIN 14
+#endif
+
 /// minimum EM width of page (prevents show two pages for windows that not enougn wide)
 #define MIN_EM_PER_PAGE     20
 
@@ -62,6 +69,8 @@ LVDocView::LVDocView()
 : m_dx(100), m_dy(100), m_pos(50)
 #if (LBOOK==1)
 , m_font_size(36)
+#elif defined(__SYMBIAN32__)
+, m_font_size(16)
 #else
 , m_font_size(26)
 #endif

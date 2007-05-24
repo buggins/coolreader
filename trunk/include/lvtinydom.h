@@ -286,18 +286,26 @@ public:
     }
 };
 
+#define LDOM_ALLOW_NODE_INDEX 0
+
 /// fastDOM NODE interface
 class ldomNode
 {
 protected:
     ldomDocument * _document;
     ldomElement * _parent;
+#if (LDOM_ALLOW_NODE_INDEX==1)
     lUInt32 _index;
+#endif
     lUInt8 _type;
     lUInt8 _level;
 public:
     ldomNode( ldomDocument * document, ldomElement * parent, lUInt8 type, lUInt8 level, lUInt32 index )
-    : _document(document), _parent(parent), _index(index), _type(type), _level(level) { }
+    : _document(document), _parent(parent)
+#if (LDOM_ALLOW_NODE_INDEX==1)
+    , _index(index)
+#endif
+    , _type(type), _level(level) { }
     virtual ~ldomNode();
     // inline functions
     inline ldomDocument * getDocument() const { return _document; }
@@ -305,7 +313,11 @@ public:
     inline lUInt8 getNodeType() const { return _type; }
     inline lUInt8 getNodeLevel() const { return _level; }
     /// returns node index
+#if (LDOM_ALLOW_NODE_INDEX==1)
     inline lUInt32 getNodeIndex() const { return _index; }
+#else
+    lUInt32 getNodeIndex() const;
+#endif
     inline bool isNull() const { return this == NULL; }
     inline bool isRoot() const { return _parent == NULL; }
     inline bool isText() const { return _type == LXML_TEXT_NODE; }
@@ -314,10 +326,12 @@ public:
     inline bool hasChildren() { return getChildCount()!=0; }
     /// returns true if node is element has attributes
     inline bool hasAttributes() { return getAttrCount()!=0; }
+#if (LDOM_ALLOW_NODE_INDEX==1)
     inline void setIndex( lUInt32 index ) { _index = index; }
-    
+#endif
+
     // virtual functions
-    
+
     /// returns element child count
     virtual lUInt32 getChildCount() const = 0;
     /// returns element attribute count
@@ -806,9 +820,11 @@ public:
             index = _children.length();
         ldomElement * elem = new ldomElement( _document, this, _level+1, index, nsid, id );
         _children.insert( index, elem );
+#if (LDOM_ALLOW_NODE_INDEX==1)
         // reindex tail
         for (int i=index; i<_children.length(); i++)
             _children[i]->setIndex( i );
+#endif
         return elem;
     }
     /// inserts child element
@@ -826,9 +842,11 @@ public:
             index = _children.length();
         ldomTextRef * text = new ldomTextRef( _document, this, _level+1, index, (lUInt32)fpos, (lUInt32)fsize, flags );
         _children.insert( index, text );
+#if (LDOM_ALLOW_NODE_INDEX==1)
         // reindex tail
         for (int i=index; i<_children.length(); i++)
             _children[i]->setIndex( i );
+#endif
         return text;
     }
     /// inserts text as reference to document file
@@ -846,9 +864,11 @@ public:
             index = _children.length();
         ldomText * text = new ldomText( _document, this, _level+1, index, value );
         _children.insert( index, text );
+#if (LDOM_ALLOW_NODE_INDEX==1)
         // reindex tail
         for (int i=index; i<_children.length(); i++)
             _children[i]->setIndex( i );
+#endif
         return text;
     }
     /// inserts child text
@@ -863,8 +883,10 @@ public:
         if ( index>(lUInt32)_children.length() )
             return NULL;
         ldomNode * node = _children.remove(index);
+#if (LDOM_ALLOW_NODE_INDEX==1)
         for (int i=index; i<_children.length(); i++)
             _children[i]->setIndex( i );
+#endif
         return node;
     }
     /// calls specified function recursively for all elements of DOM tree

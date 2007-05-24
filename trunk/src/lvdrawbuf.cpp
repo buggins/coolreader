@@ -737,19 +737,6 @@ void LVColorDrawBuf::Resize( int dx, int dy )
             DeleteObject( _drawdc );
         _drawbmp = NULL;
         _drawdc = NULL;
-#elif __SYMBIAN32__
-        if (_drawbmp)
-            //CleanupStack::PopAndDestroy( _drawbmp );
-            delete _drawbmp;
-        if (_drawdc)
-            //CleanupStack::PopAndDestroy( _drawdc );
-            delete _drawdc;
-        if (bitmapDevice)
-            delete(bitmapDevice);
-    	   
-        _drawbmp = NULL;
-        _drawdc = NULL;	
-        bitmapDevice = NULL;	    
 #else
         free(_data);
 #endif
@@ -783,22 +770,6 @@ void LVColorDrawBuf::Resize( int dx, int dy )
         _drawbmp = CreateDIBSection( NULL, &bmi, DIB_RGB_COLORS, (void**)(&_data), NULL, 0 );
         _drawdc = CreateCompatibleDC(NULL);
         SelectObject(_drawdc, _drawbmp);
-#elif __SYMBIAN32__
-        _drawbmp = new (ELeave) CFbsBitmap();
-        //User::LeaveIfError(
-        _drawbmp->Create(TSize(_dx, _dy), EColor16MU);//EColor64K);
-        //CleanupStack::PushL(_drawbmp);
-			
-        // create an off-screen device and context
-        bitmapDevice = CFbsBitmapDevice::NewL(_drawbmp);
-        //CleanupStack::PushL(bitmapDevice);
-        //User::LeaveIfError(
-        bitmapDevice->CreateContext(_drawdc);
-        //CleanupStack::PushL(_drawdc);
-	
-        _drawbmp->LockHeap();
-        _data = (unsigned char *)_drawbmp->DataAddress();
-        _drawbmp->UnlockHeap();
 #else
         _data = (lUInt8 *)malloc( sizeof(lUInt32) * _dx * _dy);
 #endif
@@ -925,54 +896,6 @@ void LVColorDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palett
     if (dc!=NULL && _drawdc!=NULL)
         BitBlt( dc, x, y, _dx, _dy, _drawdc, 0, 0, SRCCOPY );
 }
-
-#elif __SYMBIAN32__
-
-void LVGrayDrawBuf::DrawTo(CWindowGc &dc, int x, int y, int options, lUInt32 * palette )
-{
-    //if (!dc || !_data)
-    //    return;
-    LVColorDrawBuf buf( _dx, 1 );
-    lUInt32 * dst = (lUInt32 *)buf.GetScanLine(0);
-#if (GRAY_INVERSE==1)
-    static lUInt32 def_pal_1bpp[2] = {0xFFFFFF, 0x000000};
-    static lUInt32 def_pal_2bpp[4] = {0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};
-#else
-    static lUInt32 def_pal_1bpp[2] = {0x000000, 0xFFFFFF};
-    static lUInt32 def_pal_2bpp[4] = {0x000000, 0x555555, 0xAAAAAA, 0xFFFFFF};
-#endif
-    if (!palette)
-        palette = (_bpp==1) ? def_pal_1bpp : def_pal_2bpp;
-    for (int yy=0; yy<_dy; yy++)
-    {
-        lUInt8 * src = GetScanLine(yy);
-        for (int xx=0; xx<_dx; xx++)
-        {
-            //
-            if (_bpp==1)
-            {
-                int shift = 7-(xx&7);
-                int x0 = xx >> 3;
-                dst[xx] = palette[ (src[x0]>>shift) & 1];
-            }
-            else if (_bpp==2)
-            {
-                int shift = 6-((xx&3)<<1);
-                int x0 = xx >> 2;
-                dst[xx] = palette[ (src[x0]>>shift) & 3];
-            }
-        }
-       	dc.BitBlt(TPoint(x, y+yy), buf.GetBitmap());
-    }
-}
-
-/// draws buffer content to DC doing color conversion if necessary
-void LVColorDrawBuf::DrawTo(CWindowGc &dc, int x, int y, int options, lUInt32 * palette )
-{
-	if (_drawbmp)
-		dc.BitBlt(TPoint(0, 0), _drawbmp);
-}
-
 #endif
 
 /// draws buffer content to another buffer doing color conversion if necessary
@@ -1053,8 +976,6 @@ lUInt8 * LVColorDrawBuf::GetScanLine( int y )
         return NULL;
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     return _data + _rowsize * (_dy-1-y);
-#elif __SYMBIAN32__
-    return _data + _rowsize * y;
 #else
     return _data + _rowsize * y;
 #endif
@@ -1078,10 +999,6 @@ LVColorDrawBuf::LVColorDrawBuf(int dx, int dy)
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     ,_drawdc(NULL)
     ,_drawbmp(NULL)
-#elif defined(__SYMBIAN32__)
-    ,_drawdc(NULL)
-    ,_drawbmp(NULL)
-    ,bitmapDevice(NULL)
 #endif
 {
     Resize( dx, dy );
@@ -1095,15 +1012,6 @@ LVColorDrawBuf::~LVColorDrawBuf()
         DeleteDC(_drawdc);
     if (_drawbmp)
         DeleteObject(_drawbmp);
-#elif defined(__SYMBIAN32__)
-    if (_drawdc)
-        //CleanupStack::PopAndDestroy(_drawdc);
-        delete(_drawdc);
-    if (_drawbmp)
-       //CleanupStack::PopAndDestroy(_drawbmp);
-       delete(_drawbmp);
-    if (bitmapDevice)
-    	delete(bitmapDevice);   
 #else
     if (_data)
         free( _data );

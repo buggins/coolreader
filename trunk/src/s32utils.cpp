@@ -27,22 +27,22 @@
 void DrawBuf2DC(CWindowGc &dc, int x, int y, LVDrawBuf * buf, unsigned long * palette, int scale )
 {
 
-    unsigned long * drawpixels;
+    TUint16 *drawpixels;
+		int dwidth = buf->GetWidth()*scale;
+		int width = buf->GetWidth();
     
-    int buf_width = buf->GetWidth();
-    int bytesPerRow = (buf_width * buf->GetBitsPerPixel() + 7) / 8;
+    int bytesPerRow = (width * buf->GetBitsPerPixel() + 7) / 8;
     CFbsBitmap* offScreenBitmap = new (ELeave) CFbsBitmap();
-		User::LeaveIfError(offScreenBitmap->Create(TSize(buf_width * scale, 1),EGray2));
-		CleanupStack::PushL(offScreenBitmap);
+		User::LeaveIfError(offScreenBitmap->Create(TSize(buf->GetWidth()*scale, buf->GetHeight()*scale), EColor64K));
 		
 		// create an off-screen device and context
 		CGraphicsContext* bitmapContext=NULL;
 		CFbsBitmapDevice* bitmapDevice = CFbsBitmapDevice::NewL(offScreenBitmap);
-		CleanupStack::PushL(bitmapDevice);
 		User::LeaveIfError(bitmapDevice->CreateContext(bitmapContext));
-		CleanupStack::PushL(bitmapContext);
 
-    drawpixels = offScreenBitmap->DataAddress();
+		offScreenBitmap->LockHeap();
+		drawpixels = (TUint16 *)offScreenBitmap->DataAddress();
+		offScreenBitmap->UnlockHeap();
     
     int pixelsPerByte = (8 / buf->GetBitsPerPixel());
     int mask = (1<<buf->GetBitsPerPixel()) - 1;
@@ -50,29 +50,24 @@ void DrawBuf2DC(CWindowGc &dc, int x, int y, LVDrawBuf * buf, unsigned long * pa
     for (int yy=0; yy<buf->GetHeight(); yy++)
     {
        unsigned char * src = buf->GetScanLine(yy);
+
        for (int yyi = 0; yyi<scale; yyi++)
        {
-          for (int xx=0; xx<bytesPerRow; xx++)
+				if ( buf->GetBitsPerPixel()==32 )
           {
-             unsigned int b = src[xx];
-             int x0 = 0;
-             for (int shift = 8-buf->GetBitsPerPixel(); x0<pixelsPerByte; shift -= buf->GetBitsPerPixel(), x0++ )
+					for (int xx=0; xx<width; xx++)
              {
-                 int dindex = (xx*pixelsPerByte + x0)*scale;
-                 if ( dindex>=buf_width )
-                      break;
-                 unsigned long * px = drawpixels + dindex;
+						TUint32 p32 = ((TUint32*)src)[xx];
+						TUint16 p16 = ((p32&0xF80000)>>8) | ((p32&0x00FC00)>>5) | ((p32&0x0000F8)>>3);
                  for (int xxi=0; xxi<scale; xxi++)
                  {
-                     px[xxi] = palette[(b >> shift)&mask];
+							*drawpixels++ = p16;
                  }
              }
           }
-          dc.BitBlt(TPoint(x,y+yy*scale+yyi),offScreenBitmap);
        }
     }
-    // cleanup
-		CleanupStack::PopAndDestroy(3);
+		dc.BitBlt(TPoint(0, 0), offScreenBitmap);//, TRect(x, y, buf->GetWidth()*scale, buf->GetHeight()*scale));
 }
 
 #endif

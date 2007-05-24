@@ -17,6 +17,7 @@
 #define __LVPTRVEC_H_INCLUDED__
 
 #include <stdlib.h>
+#include "lvmemman.h"
 
 /** \brief template which implements vector of pointer
 

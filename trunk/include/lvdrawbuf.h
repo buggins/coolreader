@@ -77,8 +77,6 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette ) = 0;
-#elif __SYMBIAN32__
-    virtual void DrawTo(CWindowGc &dc, int x, int y, int options, lUInt32 * palette ) = 0;
 #endif
     /// draws text string
     /*
@@ -156,8 +154,6 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette );
-#elif __SYMBIAN32__
-    virtual void DrawTo(CWindowGc &dc, int x, int y, int options, lUInt32 * palette );    
 #endif
     /// invert image
     virtual void  Invert();
@@ -199,10 +195,6 @@ private:
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     HDC _drawdc;
     HBITMAP _drawbmp;
-#elif __SYMBIAN32__
-    CGraphicsContext *_drawdc;
-    CFbsBitmap *_drawbmp;
-    CFbsBitmapDevice* bitmapDevice;
 #endif
 
 public:
@@ -215,8 +207,6 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette );
-#elif defined(__SYMBIAN32__)
-    virtual void DrawTo(CWindowGc &dc, int x, int y, int options, lUInt32 * palette );    
 #endif
     /// invert image
     virtual void  Invert();
@@ -247,9 +237,6 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// returns device context for bitmap buffer
     HDC GetDC() { return _drawdc; }
-#elif defined(__SYMBIAN32__)
-    CGraphicsContext* GetDC() { return _drawdc; }
-    CFbsBitmap* GetBitmap() {return _drawbmp;}
 #endif
 };
 
