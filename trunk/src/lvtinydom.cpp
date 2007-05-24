@@ -1251,6 +1251,16 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
     return xpath_step_error;
 }
 
+ldomDocument * ldomText::getDocument() const
+{
+    return _parent->getDocument();
+}
+
+ldomDocument * ldomTextRef::getDocument() const
+{
+    return _parent->getDocument();
+}
+
 #if (LDOM_ALLOW_NODE_INDEX!=1)
 lUInt32 ldomNode::getNodeIndex() const
 {

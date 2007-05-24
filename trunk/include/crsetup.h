@@ -44,7 +44,7 @@
 #define USE_ZLIB                             1
 #define COLOR_BACKBUFFER                     1
 #define USE_ANSI_FILES                       1
-#define GRAY_INVERSE                         0
+#define GRAY_INVERSE                         1
 #define USE_FREETYPE                         1
 #define ALLOW_KERNING                        0
 #define GLYPH_CACHE_SIZE                     0x40000
