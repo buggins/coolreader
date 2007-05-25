@@ -607,7 +607,16 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-    wxMessageBox( wxT( "Cool Reader 3.0.4\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version" ),
+    wxMessageBox( wxT( "Cool Reader 3.0.4\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n"
+    "\nBased on CREngine library"
+    "\nThird party libraries used:"
+    "\nzlib, libpng, libjpeg, freetype2,"
+    "\nhyphenation library by Alan"
+    "\n"
+    "\nThe program is being distributed under the terms of GNU General Public License"
+    "\nproject homepage is http://www.coolreader.org/crengine.htm"
+    "\nsource codes are available at http://sourceforge.net/projects/crengine"
+    ),
             wxT( "About Cool Reader" ), wxOK | wxICON_INFORMATION, this );
 }
 

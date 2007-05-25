@@ -1,96 +1,120 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="24" >
-  <Doc0 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/cr3.cpp" >
-   <View0 line="55" Type="Source" />
+ <DocsAndViews NumberOfDocuments="28" >
+  <Doc0 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvdocview.h" >
+   <View0 line="143" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/xutils.cpp" >
-   <View0 line="0" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvdocview.cpp" >
+   <View0 line="311" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/crsetup.h" >
-   <View0 line="129" Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/cr3.cpp" >
+   <View0 line="159" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvimg.cpp" >
-   <View0 Type="Source" />
-  </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvtinydom.h" >
-   <View0 Type="Source" />
-  </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvmemman.h" >
-   <View0 Type="Source" />
-  </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvmemman.cpp" >
-   <View0 Type="Source" />
-  </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvref.h" >
-   <View0 Type="Source" />
-  </Doc7>
-  <Doc8 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvtinydom.cpp" >
+  <Doc3 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvpagesplitter.h" >
    <View0 line="0" Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvdrawbuf.h" >
+   <View0 line="65" Type="Source" />
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/wolopt.h" >
+   <View0 line="0" Type="Source" />
+  </Doc5>
+  <Doc6 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/toc.h" >
+   <View0 line="29" Type="Source" />
+  </Doc6>
+  <Doc7 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/toc.cpp" >
+   <View0 line="33" Type="Source" />
+  </Doc7>
+  <Doc8 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/wolopt.cpp" >
+   <View0 line="71" Type="Source" />
   </Doc8>
-  <Doc9 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvstream.cpp" >
-   <View0 line="704" Type="Source" />
+  <Doc9 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/cr3.h" >
+   <View0 line="80" Type="Source" />
   </Doc9>
-  <Doc10 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvstring.h" >
-   <View0 line="501" Type="Source" />
+  <Doc10 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/view.h" >
+   <View0 line="23" Type="Source" />
   </Doc10>
-  <Doc11 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvdocview.h" >
-   <View0 line="150" Type="Source" />
+  <Doc11 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/view.cpp" >
+   <View0 line="296" Type="Source" />
   </Doc11>
-  <Doc12 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvstring.cpp" >
-   <View0 line="911" Type="Source" />
+  <Doc12 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvstring.h" >
+   <View0 line="465" Type="Source" />
   </Doc12>
-  <Doc13 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/crtxtenc.h" >
-   <View0 Type="Source" />
+  <Doc13 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvdrawbuf.cpp" >
+   <View0 line="0" Type="Source" />
   </Doc13>
-  <Doc14 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/crengine.h" >
-   <View0 Type="Source" />
+  <Doc14 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvtinydom.cpp" >
+   <View0 line="1258" Type="Source" />
   </Doc14>
-  <Doc15 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvptrvec.h" >
-   <View0 Type="Source" />
+  <Doc15 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvtinydom.h" >
+   <View0 line="667" Type="Source" />
   </Doc15>
-  <Doc16 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvfnt.cpp" >
-   <View0 Type="Source" />
+  <Doc16 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvrend.cpp" >
+   <View0 line="300" Type="Source" />
   </Doc16>
-  <Doc17 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvrend.cpp" >
-   <View0 line="587" Type="Source" />
+  <Doc17 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/cssdef.h" >
+   <View0 line="26" Type="Source" />
   </Doc17>
-  <Doc18 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvfntman.cpp" >
-   <View0 line="1474" Type="Source" />
+  <Doc18 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvstyles.h" >
+   <View0 line="93" Type="Source" />
   </Doc18>
-  <Doc19 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvstream.h" >
-   <View0 line="360" Type="Source" />
+  <Doc19 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvref.h" >
+   <View0 line="68" Type="Source" />
   </Doc19>
-  <Doc20 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvdrawbuf.cpp" >
-   <View0 line="832" Type="Source" />
+  <Doc20 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/hist.h" >
+   <View0 line="91" Type="Source" />
   </Doc20>
-  <Doc21 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/view.cpp" >
-   <View0 line="281" Type="Source" />
+  <Doc21 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/hist.cpp" >
+   <View0 line="108" Type="Source" />
   </Doc21>
-  <Doc22 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvdocview.cpp" >
-   <View0 line="372" Type="Source" />
+  <Doc22 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvstream.h" >
+   <View0 line="581" Type="Source" />
   </Doc22>
-  <Doc23 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvtextfm.cpp" >
-   <View0 line="638" Type="Source" />
+  <Doc23 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvimg.cpp" >
+   <View0 line="680" Type="Source" />
   </Doc23>
+  <Doc24 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvstring.cpp" >
+   <View0 line="995" Type="Source" />
+  </Doc24>
+  <Doc25 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/crsetup.h" >
+   <View0 line="46" Type="Source" />
+  </Doc25>
+  <Doc26 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvptrvec.h" >
+   <View0 line="0" Type="Source" />
+  </Doc26>
+  <Doc27 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvstsheet.cpp" >
+   <View0 line="581" Type="Source" />
+  </Doc27>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
    <breakpointList>
-    <breakpoint0 location="/home/lve/src/crengine/include/lvdocview.h:131" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="0" >
+    <breakpoint0 location="/home/lve/src/crengine/include/lvdocview.h:133" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint0>
-    <breakpoint1 location="/home/lve/src/crengine/src/lvfntman.cpp:673" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
-     <tracedExpressions/>
-    </breakpoint1>
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
-   <bookmarks/>
+   <bookmarks>
+    <bookmark url="/home/lve/src/crengine/src/lvfntman.cpp" >
+     <mark line="1551" />
+     <mark line="858" />
+     <mark line="100" />
+    </bookmark>
+    <bookmark url="/home/lve/src/crengine/src/lvtinydom.cpp" >
+     <mark line="1283" />
+    </bookmark>
+    <bookmark url="/home/lve/src/cr3/src/cr3.cpp" >
+     <mark line="42" />
+    </bookmark>
+    <bookmark url="/home/lve/src/crengine/src/lvdocview.cpp" >
+     <mark line="239" />
+    </bookmark>
+   </bookmarks>
   </kdevbookmarks>
   <kdevvalgrind>
-   <executable path="/home/lve/src/cr3/debug/src/cr3" params="" />
+   <executable path="" params="" />
    <valgrind path="/usr/bin/valgrind" params="--tool=memcheck  --leak-check=yes" />
    <calltree path="" params="" />
    <kcachegrind path="" />
