@@ -93,6 +93,7 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 #if (LDOM_USE_OWN_MEM_MAN==1)
 ldomMemManStorage * ldomElement::pmsHeap = NULL;
 ldomMemManStorage * ldomText::pmsHeap = NULL;
+ldomMemManStorage * lvdomElementFormatRec::pmsHeap = NULL;
 #if COMPACT_DOM == 1
 ldomMemManStorage * ldomTextRef::pmsHeap = NULL;
 #endif
@@ -1283,8 +1284,7 @@ lString16 ldomElement::getText( lChar16 blockDelimiter ) const
         if ( i>=getChildCount()-1 )
             break;
         if ( blockDelimiter && child->getNodeType()==LXML_ELEMENT_NODE ) {
-            lvdomElementFormatRec * fmt = ((ldomElement*)child)->getRenderData();
-            if ( fmt->getStyle()->display == css_d_block )
+            if ( ((ldomElement*)child)->getStyle()->display == css_d_block )
                 txt << blockDelimiter;
         }
     }
@@ -1306,10 +1306,10 @@ ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
 int ldomElement::renderFinalBlock( LFormattedText & txtform, int width )
 {
     lvdomElementFormatRec * fmt = getRenderData();
-    if ( !fmt || fmt->getRendMethod() != erm_final )
+    if ( !fmt || getRendMethod() != erm_final )
         return 0;
     // render whole node content as single formatted object
-    int flags = styleToTextFmtFlags( fmt->getStyle(), 0 );
+    int flags = styleToTextFmtFlags( getStyle(), 0 );
     ::renderFinalBlock( this, &txtform, fmt, flags, 0, 16 );
     int page_h = getDocument()->getPageHeight();
     int h = txtform.Format( width, page_h );
@@ -1350,17 +1350,18 @@ ldomElement * ldomNode::elementFromPoint( lvPoint pt )
 {
     if ( !isElement() )
         return NULL;
+    ldomElement * enode = (ldomElement*) this;
     lvdomElementFormatRec * fmt = getRenderData();
     if ( !fmt )
         return NULL;
-    if ( fmt->getRendMethod() == erm_invisible ) {
+    if ( enode->getRendMethod() == erm_invisible ) {
         return NULL;
     }
     if ( pt.y < fmt->getY() )
         return NULL;
     if ( pt.y >= fmt->getY() + fmt->getHeight() )
         return NULL;
-    if ( fmt->getRendMethod() == erm_final ) {
+    if ( enode->getRendMethod() == erm_final ) {
         return (ldomElement*)this;
     }
     int count = getChildCount();
@@ -1377,14 +1378,8 @@ ldomElement * ldomNode::elementFromPoint( lvPoint pt )
 ldomElement * ldomNode::finalBlockFromPoint( lvPoint pt )
 {
     ldomElement * elem = elementFromPoint( pt );
-    if ( !elem )
-        return NULL;
-    lvdomElementFormatRec * fmt = getRenderData();
-    if ( !fmt )
-        return NULL;
-    if ( fmt->getRendMethod() == erm_final ) {
+    if ( elem && elem->getRendMethod() == erm_final )
         return elem;
-    }
     return NULL;
 }
 
@@ -1403,7 +1398,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     lvdomElementFormatRec * r = finalNode->getRenderData();
     if ( !r )
         return ptr;
-    if ( r->getRendMethod() != erm_final ) {
+    if ( finalNode->getRendMethod() != erm_final ) {
         // not final, use as is
         if ( pt.y < (rc.bottom + rc.top) / 2 )
             return ldomXPointer( finalNode, 0 );
@@ -1460,10 +1455,9 @@ lvPoint ldomXPointer::toPoint() const
     ldomElement * p = _node->isElement() ? (ldomElement *)_node : _node->getParentNode();
     ldomElement * finalNode = NULL;
     for ( ; p; p = p->getParentNode() ) {
-        lvdomElementFormatRec * r = p->getRenderData();
-        if ( r && r->getRendMethod() == erm_final ) {
+        if ( p->getRendMethod() == erm_final ) {
             finalNode = p; // found final block
-        } else if ( r && r->getRendMethod() == erm_invisible ) {
+        } else if ( p->getRendMethod() == erm_invisible ) {
             return pt; // invisible !!!
         }
     }

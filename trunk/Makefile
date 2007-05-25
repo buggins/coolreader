@@ -138,13 +138,13 @@ incpath =	-I.  -D$(HOSTTYPE) \
 else
 incpath =	-DUSE_FREETYPE=1 -I./include/common \
 		-I /usr/include/freetype2 \
-			-I./../wxWidgets/src/jpeg \
-			-I./../wxWidgets/lib/wx/include/gtk2-unicode-release-static-2.8 \
-			-I./../wxWidgets/include \
 			$(inc)
 endif
 #			-I/usr/include/freetype2 \
 #			-I/usr/lib/glib-2.0/include \
+#			-I./../wxWidgets/src/jpeg \
+#			-I./../wxWidgets/lib/wx/include/gtk2-unicode-release-static-2.8 \
+#			-I./../wxWidgets/include \
 
 
 # all the objects required

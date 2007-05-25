@@ -101,8 +101,8 @@ LVFontRef getFont( css_style_rec_t * style )
 
 void initFormatData( ldomNode * node )
 {
-    lvdomElementFormatRec * fmt = new lvdomElementFormatRec;
-    node->setRenderData( fmt );
+    //lvdomElementFormatRec * fmt = new lvdomElementFormatRec;
+    //node->setRenderData( fmt );
     if ( node->isRoot() || node->getParentNode()->isRoot() )
     {
         setNodeStyle( node,
@@ -112,10 +112,11 @@ void initFormatData( ldomNode * node )
     }
     else
     {
-        lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
-        setNodeStyle( node, 
-            parent_fmt->getStyle(),
-            parent_fmt->getFont()
+        ldomElement * parent = node->getParentNode();
+        //lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
+        setNodeStyle( node,
+            parent->getStyle(),
+            parent->getFont()
             );
     }
 }
@@ -124,38 +125,36 @@ void initRendMethod( ldomNode * node )
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
-        lvdomElementFormatRec * fmt = node->getRenderData();
-        if (!fmt)
-            crFatalError();
-        if (fmt->getStyle()->display == css_d_none)
+        ldomElement * enode = (ldomElement *)node;
+        if (enode->getStyle()->display == css_d_none)
         {
-            fmt->setRendMethod( erm_invisible );
+            enode->setRendMethod( erm_invisible );
             return;
         }
         int cnt = node->getChildCount();
         int textCount = 0;
         int inlineCount = 0;
         int blockCount = 0;
-        if (node->getNodeId() == el_empty_line)
+        if (enode->getNodeId() == el_empty_line)
             cnt = cnt;
         int i;
         for (i=0; i<cnt; i++)
         {
-            ldomNode * child = node->getChildNode( i );
+            ldomElement * child = enode->getChildNode( i );
             if ( child->getNodeType()==LXML_ELEMENT_NODE )
             {
                 initRendMethod( child );
                 lvdomElementFormatRec * childfmt = child->getRenderData();
-                switch( childfmt->getStyle()->display )
+                switch( child->getStyle()->display )
                 {
                 case css_d_inline:
-                    if ( childfmt->getRendMethod() != erm_invisible )
+                    if ( child->getRendMethod() != erm_invisible )
                         inlineCount++; // count visible inline elements only
                     break;
                 case css_d_none:
                     break;
                 default:
-                    if ( childfmt->getRendMethod() != erm_invisible )
+                    if ( child->getRendMethod() != erm_invisible )
                     {
                         blockCount++; // count visible blocks only
                     }
@@ -183,7 +182,7 @@ void initRendMethod( ldomNode * node )
         if ( textCount || inlineCount )
         {
             // if there are inline or text in block, make it final
-            fmt->setRendMethod( erm_final );
+            enode->setRendMethod( erm_final );
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "final";
 #endif
@@ -191,31 +190,31 @@ void initRendMethod( ldomNode * node )
         else if ( blockCount )
         {
             // if there are blocks only inside element, treat it as block too
-            fmt->setRendMethod( erm_block );
+            enode->setRendMethod( erm_block );
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "block";
 #endif
         }
         else if (ntype && ntype->props.is_object)
         {
-            switch ( fmt->getStyle()->display )
+            switch ( enode->getStyle()->display )
             {
             case css_d_block:
             case css_d_inline:
-                fmt->setRendMethod( erm_final );
+                enode->setRendMethod( erm_final );
 #ifdef DEBUG_DUMP_ENABLED
                 logfile << "object final";
 #endif
                 break;
             default:
-                fmt->setRendMethod( erm_invisible );
+                enode->setRendMethod( erm_invisible );
                 break;
             }
         }
-        else if (fmt->getStyle()->display != css_d_none )
+        else if (enode->getStyle()->display != css_d_none )
         {
             // empty element: may be visible (i.e. <empty-line>)
-            fmt->setRendMethod( erm_block );
+            enode->setRendMethod( erm_block );
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "block";
 #endif
@@ -223,7 +222,7 @@ void initRendMethod( ldomNode * node )
         else
         {
             // empty element: make it invisible
-            fmt->setRendMethod( erm_invisible );
+            enode->setRendMethod( erm_invisible );
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "invisible";
 #endif
@@ -294,16 +293,16 @@ int lengthToPx( css_length_t val, int base_px, int base_em )
 //=======================================================================
 void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & baseflags, int ident, int line_h )
 {
-      
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
+        ldomElement * enode = (ldomElement *) node; 
         fmt = node->getRenderData();
-        if ( fmt->getRendMethod() == erm_invisible )
+        if ( enode->getRendMethod() == erm_invisible )
             return; // don't draw invisible
-        int flags = styleToTextFmtFlags( fmt->getStyle(), baseflags );
+        int flags = styleToTextFmtFlags( enode->getStyle(), baseflags );
         if (flags & LTEXT_FLAG_NEWLINE)
         {
-            css_length_t len = fmt->getStyle()->text_indent;
+            css_length_t len = enode->getStyle()->text_indent;
             switch( len.type )
             {
             case css_val_percent:
@@ -313,20 +312,20 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
                 ident = len.value;
                 break;
             case css_val_em:
-                ident = len.value * fmt->getFont()->getHeight() / 256;
+                ident = len.value * enode->getFont()->getHeight() / 256;
                 break;
             default:
                 ident = 0;
                 break;
             }
-            len = fmt->getStyle()->line_height;
+            len = enode->getStyle()->line_height;
             switch( len.type )
             {
             case css_val_percent:
                 line_h = len.value * 16 / 100;
                 break;
             case css_val_px:
-                line_h = len.value * 16 / fmt->getFont()->getHeight();
+                line_h = len.value * 16 / enode->getFont()->getHeight();
                 break;
             case css_val_em:
                 line_h = len.value * 16;
@@ -338,7 +337,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
         // save flags
         int f = flags;
         // vertical alignment flags
-        switch (fmt->getStyle()->vertical_align)
+        switch (enode->getStyle()->vertical_align)
         {
         case css_va_sub:
             flags |= LTEXT_VALIGN_SUB;
@@ -408,7 +407,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             logfile << "#text" << " flags( " 
                 << baseflags << ")\n";
 #endif
-            txform->AddSourceLine( txt.c_str(), txt.length(), fmt->getFont().get(), baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
+            txform->AddSourceLine( txt.c_str(), txt.length(), ((ldomElement*)node->getParentNode())->getFont().get(), baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }
@@ -439,16 +438,17 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
+        ldomElement * enode = (ldomElement *) node; 
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (!fmt)
             crFatalError();
         if (node->getNodeId() == el_empty_line)
             x = x;
-        int em = fmt->getFont()->getHeight();
-        int margin_left = lengthToPx( fmt->getStyle()->margin[0], width, em ) + DEBUG_TREE_DRAW;
-        int margin_right = lengthToPx( fmt->getStyle()->margin[1], width, em ) + DEBUG_TREE_DRAW;
-        int margin_top = lengthToPx( fmt->getStyle()->margin[2], width, em ) + DEBUG_TREE_DRAW;
-        int margin_bottom = lengthToPx( fmt->getStyle()->margin[3], width, em ) + DEBUG_TREE_DRAW;
+        int em = enode->getFont()->getHeight();
+        int margin_left = lengthToPx( enode->getStyle()->margin[0], width, em ) + DEBUG_TREE_DRAW;
+        int margin_right = lengthToPx( enode->getStyle()->margin[1], width, em ) + DEBUG_TREE_DRAW;
+        int margin_top = lengthToPx( enode->getStyle()->margin[2], width, em ) + DEBUG_TREE_DRAW;
+        int margin_bottom = lengthToPx( enode->getStyle()->margin[3], width, em ) + DEBUG_TREE_DRAW;
         
         //margin_left += 50;
         //margin_right += 50;
@@ -462,7 +462,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
         fmt->setY( y );
         fmt->setWidth( width );
         fmt->setHeight( 0 );
-        switch( fmt->getRendMethod() )
+        switch( enode->getRendMethod() )
         {
         case erm_block:
             {
@@ -475,7 +475,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                     int h = renderBlockElement( context, child, 0, y, width );
                     y += h;
                 }
-                int st_y = lengthToPx( fmt->getStyle()->height, em, em );
+                int st_y = lengthToPx( enode->getStyle()->height, em, em );
                 if ( y < st_y )
                     y = st_y;
                 fmt->setHeight( y );
@@ -486,7 +486,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
             {
                 // render whole node content as single formatted object
                 LFormattedText txform;
-                int h = ((ldomElement*)node)->renderFinalBlock( txform, width );
+                int h = enode->renderFinalBlock( txform, width );
 #ifdef DEBUG_DUMP_ENABLED
                 logfile << "\n";
 #endif
@@ -497,9 +497,9 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                 lvRect rect;
                 node->getAbsRect(rect);
                 // split pages
-                int break_before = CssPageBreak2Flags( fmt->getStyle()->page_break_before );
-                int break_after = CssPageBreak2Flags( fmt->getStyle()->page_break_after );
-                int break_inside = CssPageBreak2Flags( fmt->getStyle()->page_break_inside );
+                int break_before = CssPageBreak2Flags( enode->getStyle()->page_break_before );
+                int break_after = CssPageBreak2Flags( enode->getStyle()->page_break_after );
+                int break_inside = CssPageBreak2Flags( enode->getStyle()->page_break_inside );
                 int count = txform.GetLineCount();
                 for (int i=0; i<count; i++)
                 {
@@ -537,6 +537,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
+        ldomElement * enode = (ldomElement *)node; 
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (!fmt)
             crFatalError();
@@ -553,7 +554,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         else
             color = (node->getNodeLevel() & 1) ? 1 : 2;
 #endif
-        switch( fmt->getRendMethod() )
+        switch( enode->getRendMethod() )
         {
         case erm_block:
             {
@@ -582,7 +583,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 #endif
                 // draw whole node content as single formatted object
                 LFormattedText txform;
-                int h = ((ldomElement*)node)->renderFinalBlock( txform, fmt->getWidth() );
+                int h = enode->renderFinalBlock( txform, fmt->getWidth() );
 
                 {
                     txform.Draw( &drawbuf, doc_x+x0, doc_y+y0 );
@@ -636,6 +637,7 @@ inline void spreadParent( css_length_t & val, css_length_t & parent_val )
 
 void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font )
 {
+    ldomElement * enode = (ldomElement *) node;
     lvdomElementFormatRec * fmt = node->getRenderData();
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
@@ -843,16 +845,16 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
 
     // set calculated style
     //node->getDocument()->cacheStyle( style );
-    fmt->setStyle( style );
+    enode->setStyle( style );
 
     // set font
     if ( isSameFontStyle( parent_style.get(), style.get() ) )
     {
-        fmt->setFont( parent_font );
+        enode->setFont( parent_font );
     }
     else
     {
-        fmt->setFont( getFont(style.get()) );
+        enode->setFont( getFont(style.get()) );
     }
 }
 

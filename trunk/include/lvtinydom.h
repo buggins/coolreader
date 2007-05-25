@@ -365,12 +365,12 @@ public:
     virtual void getAbsRect( lvRect & rect ) { }
     /// returns render data structure
     virtual lvdomElementFormatRec * getRenderData()
-    {   
+    {
         return NULL;
     }
     /// sets node rendering structure pointer
     virtual void setRenderData( lvdomElementFormatRec * pRenderData )
-    {   
+    {
     }
     /// calls specified function recursively for all elements of DOM tree
     virtual void recurseElements( void (*pFun)( ldomNode * node ) )
@@ -707,6 +707,9 @@ private:
     lvdomElementFormatRec * _renderData;   // used by rendering engine
     LVPtrVector < ldomNode > _children;
     ldomDocument * _document;
+    css_style_ref_t _style;
+    font_ref_t      _font;
+    lvdom_element_render_method _rendMethod;
 public:
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     static ldomMemManStorage * pmsHeap;
@@ -724,9 +727,21 @@ public:
     }
 #endif
     ldomElement( ldomDocument * document, ldomElement * parent, lUInt8 level, lUInt32 index, lUInt16 nsid, lUInt16 id )
-    : ldomNode( parent, LXML_ELEMENT_NODE, level, index ), _id(id), _nsid(nsid), _renderData(NULL), _document(document)
+    : ldomNode( parent, LXML_ELEMENT_NODE, level, index ), _id(id), _nsid(nsid), _renderData(NULL), _document(document), _rendMethod(erm_invisible)
     { }
     virtual ~ldomElement() { if (_renderData) delete _renderData; }
+    /// returns rendering method
+    lvdom_element_render_method  getRendMethod() { return _rendMethod; }
+    /// sets rendering method
+    void setRendMethod( lvdom_element_render_method  method ) { _rendMethod=method; }
+    /// returns element style record
+    css_style_ref_t getStyle() { return _style; }
+    /// returns element font
+    font_ref_t getFont() { return _font; }
+    /// sets element font
+    void setFont( font_ref_t font ) { _font = font; }
+    /// sets element style record
+    void setStyle( css_style_ref_t & style ) { _style = style; }
     /// returns document
     virtual ldomDocument * getDocument() const { return _document; }
     /// returns element child count
@@ -780,7 +795,9 @@ public:
     }
     /// returns render data structure
     virtual lvdomElementFormatRec * getRenderData()
-    {   
+    {
+        if ( !_renderData )
+            _renderData = new lvdomElementFormatRec;
         return _renderData;
     }
     /// sets node rendering structure pointer

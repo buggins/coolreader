@@ -73,10 +73,11 @@ struct lstring_chunk_slice_t {
 
 //#define FIRST_SLICE_SIZE 256
 //#define MAX_SLICE_COUNT  20
-
+#if (LDOM_USE_OWN_MEM_MAN == 1)
 static lstring_chunk_slice_t * slices[MAX_SLICE_COUNT];
 static int slices_count = 0;
 static bool slices_initialized = false;
+#endif
 
 static lChar8 empty_str_8[] = {0};
 static lstring_chunk_t empty_chunk_8(empty_str_8);
@@ -86,6 +87,7 @@ static lChar16 empty_str_16[] = {0};
 static lstring_chunk_t empty_chunk_16(empty_str_16);
 lstring_chunk_t * lString16::EMPTY_STR_16 = &empty_chunk_16;
 
+#if (LDOM_USE_OWN_MEM_MAN == 1)
 static void init_ls_storage()
 {
     slices[0] = new lstring_chunk_slice_t( FIRST_SLICE_SIZE );
@@ -131,6 +133,7 @@ void lstring_chunk_t::free( lstring_chunk_t * pChunk )
     }
     crFatalError(); // wrong pointer!!!
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////
 // Utility functions
@@ -383,19 +386,27 @@ int lStr_cmp(const lChar8 * dst, const lChar16 * src)
 
 void lString16::free()
 {
-    assert(pchunk->buf16[pchunk->len]==0);
+    //assert(pchunk->buf16[pchunk->len]==0);
     ::free(pchunk->buf16);
+#if (LDOM_USE_OWN_MEM_MAN == 1)
     for (int i=slices_count-1; i>=0; --i)
     {
         if (slices[i]->free_chunk(pchunk))
             return;
     }
     crFatalError(); // wrong pointer!!!
+#else
+    ::free(pchunk);
+#endif
 }
 
 void lString16::alloc(size_t sz)
 {
+#if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
+#else
+    pchunk = ::malloc(sizeof(lstring_chunk_t));
+#endif
     pchunk->buf16 = (lChar16*) ::malloc( sizeof(lChar16) * (sz+1) );
     assert( pchunk->buf16!=NULL );
     pchunk->size = sz;
@@ -1044,17 +1055,25 @@ const lString16 lString16::empty_str;
 void lString8::free()
 {
     ::free(pchunk->buf8);
+#if (LDOM_USE_OWN_MEM_MAN == 1)
     for (int i=slices_count-1; i>=0; --i)
     {
         if (slices[i]->free_chunk(pchunk))
             return;
     }
     crFatalError(); // wrong pointer!!!
+#else
+    ::free(pchunk);
+#endif
 }
 
 void lString8::alloc(size_t sz)
 {
+#if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
+#else
+    pchunk = ::malloc(sizeof(lstring_chunk_t));
+#endif
     pchunk->buf8 = (lChar8*) ::malloc( sizeof(lChar8) * (sz+1) );
     assert( pchunk->buf8!=NULL );
     pchunk->size = sz;

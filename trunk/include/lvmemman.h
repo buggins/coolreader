@@ -34,7 +34,7 @@ void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
 
 #define THROW_MEM_MAN_EXCEPTION crFatalError(-1, "Memory manager fatal error" );
 
-#define BLOCK_SIZE_GRANULARITY 3
+#define BLOCK_SIZE_GRANULARITY 2
 #define LOCAL_STORAGE_COUNT    16
 #define FIRST_SLICE_SIZE       16
 #define MAX_SLICE_COUNT        24

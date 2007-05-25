@@ -15,6 +15,7 @@
 #define __LV_STYLES_H_INCLUDED__
 
 #include "cssdef.h"
+#include "lvmemman.h"
 #include "lvrefcache.h"
 #include "lvtextfm.h"
 #include "lvfntman.h"
@@ -91,17 +92,28 @@ enum lvdom_element_render_method
 /// node format record
 class lvdomElementFormatRec {
 private:
-    css_style_ref_t _style;
-    font_ref_t      _font;
     int  _x;
     int  _width;
     int  _y;
     int  _height;
-    lvdom_element_render_method _rendMethod;
-    //LFormattedText * _formatter;
 public:
+#if (LDOM_USE_OWN_MEM_MAN == 1)
+    static ldomMemManStorage * pmsHeap;
+    void * operator new( size_t size )
+    {
+        if (pmsHeap == NULL)
+        {
+            pmsHeap = new ldomMemManStorage(sizeof(lvdomElementFormatRec));
+        }
+        return pmsHeap->alloc();
+    }
+    void operator delete( void * p )
+    {
+        pmsHeap->free((ldomMemBlock *)p);
+    }
+#endif
     lvdomElementFormatRec()
-    : _x(0), _width(0), _y(0), _height(0), _rendMethod(erm_invisible)//, _formatter(NULL)
+    : _x(0), _width(0), _y(0), _height(0)//, _formatter(NULL)
     {
     }
     ~lvdomElementFormatRec()
@@ -116,12 +128,6 @@ public:
     void setY( int y ) { _y = y; }
     void setWidth( int w ) { _width = w; }
     void setHeight( int h ) { _height = h; }
-    lvdom_element_render_method  getRendMethod() { return _rendMethod; }
-    void setRendMethod( lvdom_element_render_method  method ) { _rendMethod=method; }
-    css_style_ref_t getStyle() { return _style; }
-    font_ref_t getFont() { return _font; }
-    void setFont( font_ref_t font ) { _font = font; }
-    void setStyle( css_style_ref_t & style ) { _style = style; }
 };
 
 /// calculate cache record hash

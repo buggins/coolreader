@@ -34,7 +34,7 @@ extern "C" {
 
 #include <jerror.h>
 
-#ifdef LBOOK
+#if defined(LINUX)
 #define wxjpeg_boolean bool
 #endif
 
