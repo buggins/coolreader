@@ -168,6 +168,7 @@ private:
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
 public:
+    bool IsRendered() { return m_is_rendered; }
     /// returns file list with positions/bookmarks
     CRFileHist * getHistory() { return &m_hist; }
     /// returns formatted page list
