@@ -74,8 +74,20 @@ cr3view::~cr3view()
 
 void cr3view::OnTimer(wxTimerEvent& event)
 {
-    //
-    _docview->Resize(_newWidth, _newHeight);
+    //printf("cr3view::OnTimer() \n");
+    int dx;
+    int dy;
+    GetClientSize( &dx, &dy );
+    if ( _docview->IsRendered() && dx == _docview->GetWidth()
+            && dy == _docview->GetHeight() )
+        return; // no resize
+    if (dx<5 || dy<5 || dx>3000 || dy>3000)
+    {
+        return;
+    }
+
+    _docview->Resize( dx, dy );
+
     if ( _firstRender ) {
         _docview->restorePosition();
         _firstRender = false;
@@ -86,6 +98,7 @@ void cr3view::OnTimer(wxTimerEvent& event)
 
 void cr3view::Paint()
 {
+    //printf("cr3view::Paint() \n");
     _docview->Draw();
     Refresh( FALSE );
 }
@@ -114,6 +127,7 @@ lString16 cr3view::GetHistoryFileName()
 
 void cr3view::CloseDocument()
 {
+    //printf("cr3view::CloseDocument()  \n");
     _docview->savePosition();
     _docview->Clear();
     LVStreamRef stream = LVOpenFileStream( GetHistoryFileName().c_str(), LVOM_WRITE );
@@ -339,6 +353,8 @@ void cr3view::OnKeyDown(wxKeyEvent& event)
 
 bool cr3view::LoadDocument( const wxString & fname )
 {
+    printf("cr3view::LoadDocument()\n");
+    _renderTimer->Stop();
     CloseDocument();
 
 	wxCursor hg( wxCURSOR_WAIT );
@@ -346,14 +362,16 @@ bool cr3view::LoadDocument( const wxString & fname )
 	wxSetCursor( hg );
     //===========================================
     GetParent()->Update();
+    //printf("   loading...  ");
 	bool res = _docview->LoadDocument( fname.c_str() );
+    //printf("   done. \n");
 	//DEBUG
 	//_docview->exportWolFile( "test.wol", true );
 	//_docview->SetPos(0);
     lString16 title = (_docview->getAuthors() + L". " + _docview->getTitle());
     GetParent()->SetLabel( wxString( title.c_str() ) );
-    _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
     _firstRender = true;
+    ScheduleRender();
     //_docview->restorePosition();
 	//_docview->Render();
 	//UpdateScrollBar();
@@ -381,19 +399,23 @@ void cr3view::doCommand( LVDocCmd cmd, int param )
 
 void cr3view::Resize(int dx, int dy)
 {
-    if ( _docview->GetWidth() == dx && _docview->GetHeight() == dy )
+    //printf("   Resize(%d,%d) \n", dx, dy );
+    if ( dx==0 && dy==0 ) {
+        GetClientSize( &dx, &dy );
+    }
+    if ( _docview->IsRendered() && _docview->GetWidth() == dx && _docview->GetHeight() == dy )
         return; // no resize
     if (dx<5 || dy<5 || dx>3000 || dy>3000)
     {
         return;
     }
-    _newWidth = dx;
-    _newHeight = dy;
+    _renderTimer->Stop();
     _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
 }
 
 void cr3view::OnPaint(wxPaintEvent& event)
 {
+    //printf("   OnPaint()  \n" );
     wxPaintDC dc(this);
 
     int dx = _docview->GetWidth();
@@ -458,7 +480,7 @@ void cr3view::OnSize(wxSizeEvent& event)
 {
     int width, height;
     GetClientSize( &width, &height );
+    //printf("   OnSize(%d, %d)  \n", width, height );
     Resize( width, height );
-    printf("resize: %d x %d \n", width, height);
 }
 

@@ -14,6 +14,7 @@ cr3view : public wxPanel
     public:
         cr3view();
         virtual ~cr3view();
+        void ScheduleRender() { Resize(0, 0); }
         bool LoadDocument( const wxString & fname );
         void CloseDocument();
         void SetScrollBar( wxScrollBar * sb ) { _scrollbar = sb; }
@@ -47,10 +48,8 @@ cr3view : public wxPanel
         wxScrollBar * _scrollbar;
 
         wxTimer * _renderTimer;
-        int _newWidth;
-        int _newHeight;
         bool _firstRender;
-        
+
         DECLARE_EVENT_TABLE()
 };
 
