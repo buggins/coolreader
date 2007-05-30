@@ -1454,12 +1454,15 @@ lvPoint ldomXPointer::toPoint() const
         return pt;
     ldomElement * p = _node->isElement() ? (ldomElement *)_node : _node->getParentNode();
     ldomElement * finalNode = NULL;
+    ldomElement * mainNode = p->getDocument()->getMainNode();
     for ( ; p; p = p->getParentNode() ) {
         if ( p->getRendMethod() == erm_final ) {
             finalNode = p; // found final block
         } else if ( p->getRendMethod() == erm_invisible ) {
             return pt; // invisible !!!
         }
+        if ( p==mainNode )
+            break;
     }
     if ( finalNode!=NULL ) {
         lvRect rc;

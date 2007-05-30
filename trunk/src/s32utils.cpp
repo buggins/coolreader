@@ -68,6 +68,10 @@ void DrawBuf2DC(CWindowGc &dc, int x, int y, LVDrawBuf * buf, unsigned long * pa
        }
     }
 		dc.BitBlt(TPoint(0, 0), offScreenBitmap);//, TRect(x, y, buf->GetWidth()*scale, buf->GetHeight()*scale));
+		
+		delete bitmapContext;
+		delete bitmapDevice;
+		delete offScreenBitmap;
 }
 
 #endif

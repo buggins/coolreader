@@ -70,7 +70,7 @@ LVDocView::LVDocView()
 #if (LBOOK==1)
 , m_font_size(36)
 #elif defined(__SYMBIAN32__)
-, m_font_size(16)
+, m_font_size(30)
 #else
 , m_font_size(26)
 #endif
