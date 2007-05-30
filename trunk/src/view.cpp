@@ -353,7 +353,7 @@ void cr3view::OnKeyDown(wxKeyEvent& event)
 
 bool cr3view::LoadDocument( const wxString & fname )
 {
-    printf("cr3view::LoadDocument()\n");
+    //printf("cr3view::LoadDocument()\n");
     _renderTimer->Stop();
     CloseDocument();
 
