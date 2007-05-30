@@ -140,7 +140,7 @@ void initRendMethod( ldomNode * node )
         int i;
         for (i=0; i<cnt; i++)
         {
-            ldomElement * child = enode->getChildNode( i );
+            ldomElement * child = (ldomElement *)enode->getChildNode( i );
             if ( child->getNodeType()==LXML_ELEMENT_NODE )
             {
                 initRendMethod( child );
