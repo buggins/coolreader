@@ -784,6 +784,12 @@ void LVDocView::ZoomFont( int delta )
 #endif
 }
 
+/// sets current bookmark
+void LVDocView::setBookmark( ldomXPointer bm )
+{
+    _posBookmark = bm;
+}
+
 void LVDocView::Resize( int dx, int dy )
 {
     //LVCHECKPOINT("Resize");
@@ -795,7 +801,7 @@ void LVDocView::Resize( int dx, int dy )
     if (m_doc)
     {
         //ldomXPointer bm = getBookmark();
-        if (dx!=m_dx || m_view_mode!=DVM_SCROLL)
+        if (dx!=m_dx || m_view_mode!=DVM_SCROLL || !m_is_rendered)
         {
             m_dx = dx;
             m_dy = dy;
@@ -863,8 +869,8 @@ void LVDocView::restorePosition()
         return;
     ldomXPointer pos = m_hist.restorePosition( m_doc, m_filename, m_filesize );
     if ( !pos.isNull() ) {
-        goToBookmark( pos );
-        _posBookmark = getBookmark();
+        //goToBookmark( pos );
+        _posBookmark = pos; //getBookmark();
     }
 }
 
