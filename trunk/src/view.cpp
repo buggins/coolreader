@@ -86,12 +86,13 @@ void cr3view::OnTimer(wxTimerEvent& event)
         return;
     }
 
-    _docview->Resize( dx, dy );
-
     if ( _firstRender ) {
         _docview->restorePosition();
         _firstRender = false;
     }
+
+    _docview->Resize( dx, dy );
+
     UpdateScrollBar();
     Paint();
 }

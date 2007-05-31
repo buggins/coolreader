@@ -95,7 +95,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "./../wxWidgets/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W4 /Gm /GX /ZI /Od /I "./../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /I "./../../wxWidgets/src/jpeg" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "__WXMSW__" /FR /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "./../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /I "./../../wxWidgets/src/jpeg" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "__WXMSW__" /FR /FD /GZ /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -123,7 +123,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I "./../wxWidgets/include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
 # ADD CPP /nologo /MD /W3 /WX /GX /Zd /I "./../../../../wxWidgets/src/jpeg" /I "./../../../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "__WXMSW__" /FR /FD /c
-# SUBTRACT CPP /O<none> /YX /Yc /Yu
+# SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x419 /d "NDEBUG"
@@ -133,7 +133,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengine.lib freetype232MT.lib  /nologo /subsystem:windows /machine:I386 /libpath:".\..\..\wxWidgets\lib\vc_lib" /libpath:".\..\..\crengine\lib" /libpath:"./../../freetype2/objs"
+# ADD LINK32 wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengine.lib freetype232MT.lib /nologo /subsystem:windows /machine:I386 /libpath:".\..\..\wxWidgets\lib\vc_lib" /libpath:".\..\..\crengine\lib" /libpath:"./../../freetype2/objs"
 # SUBTRACT LINK32 /debug
 
 !ENDIF 
