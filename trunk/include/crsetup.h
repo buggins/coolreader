@@ -57,11 +57,6 @@
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
 #endif
 
-#ifndef ALLOW_KERNING
-/// set to 1 to allow kerning
-#define ALLOW_KERNING 0
-#endif
-
 #ifndef GLYPH_CACHE_SIZE
 /// freetype font glyph buffer size, in bytes
 #define GLYPH_CACHE_SIZE 0x40000
@@ -74,6 +69,7 @@
 /// maximum picture zoom (1, 2, 3)
 #define MAX_IMAGE_SCALE_MUL                  1
 #define USE_FREETYPE                         1
+#define ALLOW_KERNING                        1
 #define ZIP_STREAM_BUFFER_SIZE               0x200000
 #define FILE_STREAM_BUFFER_SIZE              0x100000
 #define COMPACT_DOM                          0
@@ -170,6 +166,12 @@
 #else
 #define USE_WIN32_FONTS 0
 #endif
+
+#ifndef ALLOW_KERNING
+/// set to 1 to allow kerning
+#define ALLOW_KERNING 0
+#endif
+
 
 #endif
 

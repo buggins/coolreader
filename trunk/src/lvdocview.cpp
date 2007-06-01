@@ -527,6 +527,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         drawbuf->SetTextColor(cl1);
         static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
         drawbuf->FillRectPattern(info.left, info.bottom+1, info.right, info.bottom+2, cl1, cl2, pattern );
+        int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
         if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
             lvRect brc = info;
             brc.right -= 3;
@@ -534,16 +535,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
             brc.bottom -= 1;
             brc.left = brc.right - brc.height()/2;
             drawBatteryState( drawbuf, brc );
-            info.right = brc.left;
-        }
-        int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
-        if ( phi & PGHDR_CLOCK ) {
-            lString16 clock = getTimeString();
-            m_last_clock = clock;
-            int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + ((phi & PGHDR_BATTERY) ? info.height()/4 : 0 );
-            m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
-                clock.c_str(), clock.length(), L' ', pal, false);
-            info.right -= w + info.height()/2;
+            info.right = brc.left - info.height()/2;
         }
         lString16 pageinfo;
         if ( phi & PGHDR_PAGE_NUMBER )
@@ -555,6 +547,15 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
             piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
             m_infoFont->DrawTextString( drawbuf, info.right-piw, iy, 
                 pageinfo.c_str(), pageinfo.length(), L' ', pal, false);
+            info.right -= piw + info.height()/2;
+        }
+        if ( phi & PGHDR_CLOCK ) {
+            lString16 clock = getTimeString();
+            m_last_clock = clock;
+            int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + 2;
+            m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
+                clock.c_str(), clock.length(), L' ', pal, false);
+            info.right -= w + info.height()/2;
         }
         int titlew = 0;
         lString16 title;
