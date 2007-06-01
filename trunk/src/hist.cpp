@@ -37,6 +37,9 @@ protected:
         in_header_txt,
         in_selection_txt,
         in_comment_txt,
+        in_title,
+        in_author,
+        in_series,
         in_filename,
         in_filepath,
         in_filesize,
@@ -67,6 +70,12 @@ public:
             state = in_file_info;
         } else if ( lStr_cmp(tagname, L"bookmark-list")==0 && state==in_file ) {
             state = in_bm_list;
+        } else if ( lStr_cmp(tagname, L"doc-title")==0 && state==in_file_info ) {
+            state = in_title;
+        } else if ( lStr_cmp(tagname, L"doc-author")==0 && state==in_file_info ) {
+            state = in_author;
+        } else if ( lStr_cmp(tagname, L"doc-series")==0 && state==in_file_info ) {
+            state = in_series;
         } else if ( lStr_cmp(tagname, L"doc-filename")==0 && state==in_file_info ) {
             state = in_filename;
         } else if ( lStr_cmp(tagname, L"doc-filepath")==0 && state==in_file_info ) {
@@ -102,6 +111,12 @@ public:
             state = in_file;
         } else if ( lStr_cmp(tagname, L"bookmark-list")==0 && state==in_bm_list ) {
             state = in_file;
+        } else if ( lStr_cmp(tagname, L"doc-title")==0 && state==in_title ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, L"doc-author")==0 && state==in_author ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, L"doc-series")==0 && state==in_series ) {
+            state = in_file_info;
         } else if ( lStr_cmp(tagname, L"doc-filename")==0 && state==in_filename ) {
             state = in_file_info;
         } else if ( lStr_cmp(tagname, L"doc-filepath")==0 && state==in_filepath ) {
@@ -184,6 +199,15 @@ public:
         case in_comment_txt:
             _curr_bookmark->setCommentText( txt );
             break;
+        case in_author:
+            _curr_file->setAuthor( txt );
+            break;
+        case in_title:
+            _curr_file->setTitle( txt );
+            break;
+        case in_series:
+            _curr_file->setSeries( txt );
+            break;
         case in_filename:
             _curr_file->setFileName( txt );
             break;
@@ -255,6 +279,9 @@ bool CRFileHist::saveToStream( LVStream * stream )
         CRFileHistRecord * rec = _records[i];
         putTag( stream, 1, "file" );
         putTag( stream, 2, "file-info" );
+        putTagValue( stream, 3, "doc-title", rec->getTitle() );
+        putTagValue( stream, 3, "doc-author", rec->getAuthor() );
+        putTagValue( stream, 3, "doc-series", rec->getSeries() );
         putTagValue( stream, 3, "doc-filename", rec->getFileName() );
         putTagValue( stream, 3, "doc-filepath", rec->getFilePath() );
         putTagValue( stream, 3, "doc-filesize", lString16::itoa( (unsigned int)rec->getFileSize() ) );
@@ -319,7 +346,11 @@ void CRFileHistRecord::setLastPos( CRBookmark * bmk )
     _lastpos = *bmk;
 }
 
-void CRFileHist::savePosition( lString16 fpathname, size_t sz, ldomXPointer ptr )
+void CRFileHist::savePosition( lString16 fpathname, size_t sz, 
+                            const lString16 & title,
+                            const lString16 & author,
+                            const lString16 & series,
+                            ldomXPointer ptr )
 {
     lString16 name;
     lString16 path;
@@ -332,6 +363,9 @@ void CRFileHist::savePosition( lString16 fpathname, size_t sz, ldomXPointer ptr 
         return;
     }
     CRFileHistRecord * rec = new CRFileHistRecord();
+    rec->setTitle( title );
+    rec->setAuthor( author );
+    rec->setSeries( series );
     rec->setFileName( name );
     rec->setFilePath( path );
     rec->setFileSize( sz );

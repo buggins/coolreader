@@ -197,7 +197,7 @@ int getSectionPage( ldomElement * section, LVRendPageList & pages )
 #endif
     int page = -1;
     if ( y>=0 ) {
-        page = pages.FindNearestPage( y, 0 );
+        page = pages.FindNearestPage( y, -1 );
         //dumpSection( section );
         //fprintf(log.f, "page %d: %d->%d..%d\n", page+1, y, pages[page].start, pages[page].start+pages[page].height );
     }
@@ -322,6 +322,8 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 /// export to WOL format
 bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 {
+    int old_flags = m_pageHeaderInfo;
+    m_pageHeaderInfo &= ~(PGHDR_CLOCK | PGHDR_BATTERY);
     LVRendPageList pages;
     int dx = 600 - m_pageMargins.left - m_pageMargins.right;
     int dy = 800 - m_pageMargins.top - m_pageMargins.bottom;
@@ -406,7 +408,9 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
             }
         }
     }
+    m_pageHeaderInfo = old_flags;
     Render();
+
     return true;
 }
 
@@ -478,8 +482,8 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & rc )
         cl = 1;
     //lUInt32 cl = getTextColor();
     int h = rc.height() / 6;
-    if ( h<4 )
-        h = 6;
+    if ( h<5 )
+        h = 5;
     int n = rc.height() / h;
     int dy = rc.height() % h / 2;
     if ( n<1 )
@@ -489,7 +493,7 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & rc )
         lvRect rrc = rc;
         rrc.bottom -= h * i + dy;
         rrc.top = rrc.bottom - h + 1;
-        int dx = (i<n-1) ? 0 : rc.width()/3;
+        int dx = (i<n-1) ? 0 : rc.width()/5;
         rrc.left += dx;
         rrc.right -= dx;
         if ( i<k ) {
@@ -523,20 +527,23 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         drawbuf->SetTextColor(cl1);
         static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
         drawbuf->FillRectPattern(info.left, info.bottom+1, info.right, info.bottom+2, cl1, cl2, pattern );
-        if ( phi && PGHDR_BATTERY ) {
+        if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
             lvRect brc = info;
+            brc.right -= 3;
+            brc.top += 1;
+            brc.bottom -= 1;
             brc.left = brc.right - brc.height()/2;
-            brc.bottom -= 2;
             drawBatteryState( drawbuf, brc );
             info.right = brc.left;
         }
-        int iy = info.bottom - m_infoFont->getHeight();
-        if ( phi && PGHDR_CLOCK ) {
+        int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
+        if ( phi & PGHDR_CLOCK ) {
             lString16 clock = getTimeString();
-            int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + info.height()/4;
+            m_last_clock = clock;
+            int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + ((phi & PGHDR_BATTERY) ? info.height()/4 : 0 );
             m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
                 clock.c_str(), clock.length(), L' ', pal, false);
-            info.right -= w + info.height()/4;
+            info.right -= w + info.height()/2;
         }
         lString16 pageinfo;
         if ( phi & PGHDR_PAGE_NUMBER )
@@ -649,6 +656,15 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
 int LVDocView::getCurPage()
 {
     return m_pages.FindNearestPage(m_pos, 0);
+}
+
+/// returns true if time changed since clock has been last drawed
+bool LVDocView::isTimeChanged()
+{
+    if ( m_pageHeaderInfo & PGHDR_CLOCK ) {
+        return (m_last_clock != getTimeString());
+    }
+    return false;
 }
 
 void LVDocView::Draw()
@@ -946,7 +962,8 @@ void LVDocView::savePosition()
 {
     if ( m_filename.empty() )
         return;
-    m_hist.savePosition( m_filename, m_filesize, getBookmark() );
+    m_hist.savePosition( m_filename, m_filesize, 
+        getTitle(), getAuthors(), getSeries(), getBookmark() );
 }
 
 /// restore last file position

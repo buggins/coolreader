@@ -789,7 +789,7 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
     lUInt32 * dst;
     lUInt32 * dstline;
     const lUInt8 * src;
-    lUInt32 bmpcl = palette?palette[0]:0x000000;
+    lUInt32 bmpcl = palette?palette[0]:GetTextColor();
 
     if (x<_clip.left)
     {
@@ -833,9 +833,9 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
         for (xx = width; xx>0; --xx)
         {
             lUInt32 opaque = ((*(src++))>>4)&15;
-            if ( opaque>=12 )
+            if ( opaque>=15 )
                 *dst = bmpcl;
-            else if ( opaque>3 ) {
+            else if ( opaque>0 ) {
                 lUInt32 alpha = 15-opaque;
                 lUInt32 cl1 = ((alpha*((*dst)&0xFF00FF) + opaque*(bmpcl&0xFF00FF))>>4) & 0xFF00FF;
                 lUInt32 cl2 = ((alpha*((*dst)&0x00FF00) + opaque*(bmpcl&0x00FF00))>>4) & 0x00FF00;

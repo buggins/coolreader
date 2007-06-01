@@ -80,6 +80,9 @@ class CRFileHistRecord {
 private:
     lString16 _fname;
     lString16 _fpath;
+    lString16 _title;
+    lString16 _author;
+    lString16 _series;
     lvpos_t   _size;
     LVPtrVector<CRBookmark> _bookmarks;
     CRBookmark _lastpos;
@@ -89,10 +92,16 @@ public:
     LVPtrVector<CRBookmark>  & getBookmarks() { return _bookmarks; }
     CRBookmark * getLastPos() { return &_lastpos; }
     void setLastPos( CRBookmark * bmk );
+    lString16 getTitle() { return _title; }
+    lString16 getAuthor() { return _author; }
+    lString16 getSeries() { return _series; }
     lString16 getFileName() { return _fname; }
     lString16 getFilePath() { return _fpath; }
     lString16 getFilePathName() { return _fpath + _fname; }
     lvpos_t   getFileSize() { return _size; }
+    void setTitle( const lString16 & s ) { _title = s; }
+    void setAuthor( const lString16 & s ) { _author = s; }
+    void setSeries( const lString16 & s ) { _series = s; }
     void setFileName( const lString16 & s ) { _fname = s; }
     void setFilePath( const lString16 & s ) { _fpath = s; }
     void setFileSize( lvsize_t sz ) { _size = sz; }
@@ -115,7 +124,11 @@ public:
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
     bool loadFromStream( LVStream * stream );
     bool saveToStream( LVStream * stream );
-    void savePosition( lString16 fpathname, size_t sz, ldomXPointer ptr );
+    void savePosition( lString16 fpathname, size_t sz, 
+        const lString16 & title,
+        const lString16 & author,
+        const lString16 & series,
+        ldomXPointer ptr );
     ldomXPointer restorePosition(  ldomDocument * doc, lString16 fpathname, size_t sz );
     CRFileHist()
     {

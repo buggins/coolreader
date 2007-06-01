@@ -147,6 +147,7 @@ private:
     lString16 m_title;
     lString16 m_authors;
     lString16 m_series;
+    lString16 m_last_clock;
 
     lString16 m_filename;
     lvsize_t  m_filesize;
@@ -177,6 +178,8 @@ public:
     int getBatteryState( ) { return m_battery_state; }
     /// returns current time representation string
     virtual lString16 getTimeString();
+    /// returns true if time changed since clock has been last drawed
+    bool isTimeChanged();
     /// returns if Render has been called
     bool IsRendered() { return m_is_rendered; }
     /// returns file list with positions/bookmarks
