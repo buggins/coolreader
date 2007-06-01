@@ -17,7 +17,7 @@ BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
     EVT_MENU( wxID_OPEN, cr3Frame::OnFileOpen )
     EVT_MENU( wxID_SAVE, cr3Frame::OnFileSave )
     EVT_MENU( Menu_View_TOC, cr3Frame::OnShowTOC )
-    
+
     EVT_MENU_RANGE( 0, 0xFFFF, cr3Frame::OnCommand )
 //    EVT_UPDATE_UI_RANGE( 0, 0xFFFF, cr3Frame::OnUpdateUI )
     EVT_COMMAND_SCROLL( Window_Id_Scrollbar, cr3Frame::OnScroll )
