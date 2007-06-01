@@ -54,7 +54,9 @@ enum {
     PGHDR_PAGE_NUMBER=1,
     PGHDR_PAGE_COUNT=2,
     PGHDR_AUTHOR=4,
-    PGHDR_TITLE=8
+    PGHDR_TITLE=8,
+    PGHDR_CLOCK=16,
+    PGHDR_BATTERY=32,
 };
 
 class LVTocItem;
@@ -119,6 +121,7 @@ private:
     int m_dx;
     int m_dy;
     int m_pos;
+    int m_battery_state;
     int m_font_size;
     LVArray<int> m_font_sizes;
     bool m_font_sizes_cyclic;
@@ -168,6 +171,13 @@ private:
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
 public:
+    /// sets battery state
+    void setBatteryState( int newState ) { m_battery_state = newState; }
+    /// returns battery state
+    int getBatteryState( ) { return m_battery_state; }
+    /// returns current time representation string
+    virtual lString16 getTimeString();
+    /// returns if Render has been called
     bool IsRendered() { return m_is_rendered; }
     /// returns file list with positions/bookmarks
     CRFileHist * getHistory() { return &m_hist; }
@@ -188,6 +198,12 @@ public:
     int getPageHeaderInfo() { return m_pageHeaderInfo; }
     /// set page header info mask
     void setPageHeaderInfo( int hdrFlags );
+    /// calculate page header rectangle
+    virtual void getPageHeaderRectangle( int pageIndex, const lvRect & pageRc, lvRect & headerRc );
+    /// draw page header to buffer
+    virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags );
+    /// draw battery state to buffer
+    virtual void drawBatteryState( LVDrawBuf * drawBuf, const lvRect & rc );
 
     /// returns background color
     lUInt32 getBackgroundColor()
