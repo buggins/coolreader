@@ -48,6 +48,7 @@ cr3view : public wxPanel
         wxScrollBar * _scrollbar;
 
         wxTimer * _renderTimer;
+        wxTimer * _clockTimer;
         bool _firstRender;
 
         DECLARE_EVENT_TABLE()

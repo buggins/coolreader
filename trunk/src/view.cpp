@@ -1,4 +1,5 @@
 #include <wx/wx.h>
+#include <wx/power.h>
 #include <wx/mstream.h>
 #include <wx/stdpaths.h>
 #include <crengine.h>
@@ -6,7 +7,8 @@
 #include "rescont.h"
 #include "view.h"
 
-#define RENDER_TIMER_ID 123
+#define RENDER_TIMER_ID   123
+#define CLOCK_TIMER_ID    124
 
 BEGIN_EVENT_TABLE( cr3view, wxPanel )
     EVT_PAINT( cr3view::OnPaint )
@@ -17,6 +19,7 @@ BEGIN_EVENT_TABLE( cr3view, wxPanel )
     EVT_MENU_RANGE( 0, 0xFFFF, cr3view::OnCommand )
     EVT_SET_FOCUS( cr3view::OnSetFocus )
     EVT_TIMER(RENDER_TIMER_ID, cr3view::OnTimer)
+    EVT_TIMER(CLOCK_TIMER_ID, cr3view::OnTimer)
     EVT_INIT_DIALOG(cr3view::OnInitDialog)
 END_EVENT_TABLE()
 
@@ -58,6 +61,7 @@ cr3view::cr3view()
 
 
     _renderTimer = new wxTimer( this, RENDER_TIMER_ID );
+    _clockTimer = new wxTimer( this, CLOCK_TIMER_ID );
 
     //SetBackgroundColour( getBackgroundColour() );
     InitDialog();
@@ -69,37 +73,69 @@ cr3view::cr3view()
 cr3view::~cr3view()
 {
     delete _renderTimer;
+    delete _clockTimer;
     delete _docview;
 }
 
 void cr3view::OnTimer(wxTimerEvent& event)
 {
     //printf("cr3view::OnTimer() \n");
-    int dx;
-    int dy;
-    GetClientSize( &dx, &dy );
-    if ( _docview->IsRendered() && dx == _docview->GetWidth()
-            && dy == _docview->GetHeight() )
-        return; // no resize
-    if (dx<5 || dy<5 || dx>3000 || dy>3000)
-    {
-        return;
+    if ( event.GetId() == RENDER_TIMER_ID ) {
+        int dx;
+        int dy;
+        GetClientSize( &dx, &dy );
+        if ( _docview->IsRendered() && dx == _docview->GetWidth()
+                && dy == _docview->GetHeight() )
+            return; // no resize
+        if (dx<5 || dy<5 || dx>3000 || dy>3000)
+        {
+            return;
+        }
+
+        if ( _firstRender ) {
+            _docview->restorePosition();
+            _firstRender = false;
+        }
+
+        _docview->Resize( dx, dy );
+
+        UpdateScrollBar();
+        Paint();
+    } else if ( event.GetId() == CLOCK_TIMER_ID ) {
+        if ( IsShownOnScreen() ) {
+            if ( _docview->IsRendered() && _docview->isTimeChanged() )
+                Paint();
+        }
     }
-
-    if ( _firstRender ) {
-        _docview->restorePosition();
-        _firstRender = false;
-    }
-
-    _docview->Resize( dx, dy );
-
-    UpdateScrollBar();
-    Paint();
 }
 
 void cr3view::Paint()
 {
     //printf("cr3view::Paint() \n");
+    int battery_state = -1;
+#ifdef _WIN32
+    SYSTEM_POWER_STATUS bstatus;
+    BOOL pow = GetSystemPowerStatus(&bstatus);
+    if (bstatus.BatteryFlag & 128)
+        pow = FALSE;
+    if (bstatus.ACLineStatus!=0 || bstatus.BatteryLifePercent==255)
+        pow = FALSE;
+    if ( pow )
+        battery_state = bstatus.BatteryLifePercent;
+#else
+    if ( ::wxGetPowerType() == wxPOWER_BATTERY ) {
+        int n = ::wxGetBatteryState();
+        if ( n == wxBATTERY_NORMAL_STATE )
+            battery_state = 100;
+        else if ( n == wxBATTERY_LOW_STATE )
+            battery_state = 50;
+        else if ( n == wxBATTERY_CRITICAL_STATE )
+            battery_state = 0;
+        else if ( n == wxBATTERY_SHUTDOWN_STATE )
+            battery_state = 0;
+    };
+#endif
+    _docview->setBatteryState( battery_state );
     _docview->Draw();
     Refresh( FALSE );
 }
@@ -356,6 +392,7 @@ bool cr3view::LoadDocument( const wxString & fname )
 {
     //printf("cr3view::LoadDocument()\n");
     _renderTimer->Stop();
+    _clockTimer->Stop();
     CloseDocument();
 
 	wxCursor hg( wxCURSOR_WAIT );
@@ -412,6 +449,8 @@ void cr3view::Resize(int dx, int dy)
     }
     _renderTimer->Stop();
     _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
+    _clockTimer->Stop();
+    _clockTimer->Start( 10 * 1000, wxTIMER_CONTINUOUS );
 }
 
 void cr3view::OnPaint(wxPaintEvent& event)
