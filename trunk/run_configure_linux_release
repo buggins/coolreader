@@ -7,7 +7,8 @@ WXHOME=`pwd`/../wxWidgets/
 ls optimized > /dev/null 2> /dev/null || mkdir optimized
 cd optimized
 
-../configure --enable-static=yes --enable-unicode --enable-debug=no \
+# --enable-static=yes 
+../configure --enable-unicode --enable-debug=no \
     --with-wx-config=${WXHOME}/build/linux/Release/wx-config \
     LDFLAGS="-L${CREHOME}lib -lcrengined " \
-    CPPFLAGS=-I${CREHOME}include 
+    CPPFLAGS="-I${CREHOME}include -DLINUX -D_LINUX "

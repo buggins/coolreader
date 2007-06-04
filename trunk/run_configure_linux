@@ -10,4 +10,4 @@ cd debug
 ../configure --enable-static=yes --enable-unicode --enable-debug=full \
     --with-wx-config=${WXHOME}/build/linux/Debug/wx-config \
     LDFLAGS="-L${CREHOME}lib -lcrengined " \
-    CPPFLAGS=-I${CREHOME}include 
+    CPPFLAGS="-I${CREHOME}include -DLINUX -D_LINUX"
