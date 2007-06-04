@@ -29,4 +29,5 @@ make
 
 echo "Done"
 
-cd $(LASTDIR)
+
+cd ${LASTDIR}
