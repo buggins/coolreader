@@ -20,7 +20,7 @@ directory structure:
 2) build CREngine
 
     cd crengine
-    ./run_make_linux
+    ./run_make_linux.sh
    
 3) configure and build wxWidgets Release (if necessary)
 
