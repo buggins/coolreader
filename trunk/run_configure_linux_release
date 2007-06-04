@@ -12,3 +12,5 @@ cd optimized
     --with-wx-config=${WXHOME}/build/linux/Release/wx-config \
     LDFLAGS="-L${CREHOME}lib -lcrengined " \
     CPPFLAGS="-I${CREHOME}include -DLINUX -D_LINUX "
+
+echo "to make use: cd optimized; make; cd src; strip cr3"

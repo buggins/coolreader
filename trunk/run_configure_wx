@@ -5,7 +5,6 @@ LASTDIR=`pwd`
 
 WXHOME=`pwd`/../wxWidgets/
 DEBUGDIR=${WXHOME}/build/linux/Debug
-RELEASEDIR=${WXHOME}/build/linux/Release
 
 echo "WXHOME is ${WXHOME}"
 
@@ -17,14 +16,6 @@ cd ${DEBUGDIR}
 ../../../configure --enable-shared=no --enable-debug=yes --enable-unicode=yes
 
 echo "making Debug configuration"
-make
-
-echo "preparing Release configuration"
-ls ${RELEASEDIR} > /dev/null 2> /dev/null || mkdir -p ${RELEASEDIR}
-cd ${RELEASEDIR}
-../../../configure --enable-shared=no --enable-debug=yes --enable-unicode=yes
-
-echo "making Release configuration"
 make
 
 echo "Done"
