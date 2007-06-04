@@ -1,0 +1,32 @@
+echo "configure wxWidgets library to use with CR3"
+# wxGTK should be placed to ../wxWidgets
+
+LASTDIR=`pwd`
+
+WXHOME=`pwd`/../wxWidgets/
+DEBUGDIR=${WXHOME}/build/linux/Debug
+RELEASEDIR=${WXHOME}/build/linux/Release
+
+echo "WXHOME is ${WXHOME}"
+
+ls ${WXHOME} > /dev/null 2> /dev/null || (echo "wxGTK not found at ${WXHOME}!" && exit 1)
+
+echo "preparing Debug configuration"
+ls ${DEBUGDIR} > /dev/null 2> /dev/null || mkdir -p ${DEBUGDIR}
+cd ${DEBUGDIR}
+../../../configure --enable-shared=no --enable-debug=yes --enable-unicode=yes
+
+echo "making Debug configuration"
+make
+
+echo "preparing Release configuration"
+ls ${RELEASEDIR} > /dev/null 2> /dev/null || mkdir -p ${RELEASEDIR}
+cd ${RELEASEDIR}
+../../../configure --enable-shared=no --enable-debug=yes --enable-unicode=yes
+
+echo "making Release configuration"
+make
+
+echo "Done"
+
+cd $(LASTDIR)
