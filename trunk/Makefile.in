@@ -168,8 +168,8 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 SUBDIRS = src
-AM_CFLAGS = -DLBOOK=1
-AM_CXXFLAGS = -DLBOOK=1
+AM_CFLAGS = -DLINUX -D_LINUX
+AM_CXXFLAGS = -DLINUX -D_LINUX
 all: all-recursive
 
 .SUFFIXES:
