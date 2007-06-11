@@ -172,6 +172,8 @@ private:
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
 public:
+    /// returns section bounds, in 1/100 of percent
+    void getSectionBounds( LVArray<int> & bounds );
     /// sets battery state
     void setBatteryState( int newState ) { m_battery_state = newState; }
     /// returns battery state
@@ -273,6 +275,8 @@ public:
     const LVScrollInfo * getScrollInfo() { return &m_scrollinfo; }
     /// converts scrollbar pos to doc pos
     int scrollPosToDocPos( int scrollpos );
+    /// returns position in 1/100 of percents
+    int getPosPercent();
 
     /// execute command
     void doCommand( LVDocCmd cmd, int param=0 );

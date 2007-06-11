@@ -103,7 +103,7 @@ bool LVTextFileBase::AutodetectEncoding()
     char enc_name[32];
     char lang_name[32];
     lvpos_t oldpos = m_stream->GetPos();
-    int sz = CP_AUTODETECT_BUF_SIZE;
+    unsigned sz = CP_AUTODETECT_BUF_SIZE;
     m_stream->SetPos( 0 );
     if ( sz>m_stream->GetSize() )
         sz = m_stream->GetSize();
@@ -133,12 +133,12 @@ bool LVTextFileBase::Seek( lvpos_t pos, int bytesToPrefetch )
     }
     if ( pos<0 || pos>=m_stream_size )
         return false;
-    int bytesToRead = (bytesToPrefetch > m_buf_size) ? bytesToPrefetch : m_buf_size;
+    unsigned bytesToRead = (bytesToPrefetch > m_buf_size) ? bytesToPrefetch : m_buf_size;
     if ( bytesToRead < BUF_SIZE_INCREMENT )
         bytesToRead = BUF_SIZE_INCREMENT;
     if ( bytesToRead > (m_stream_size - pos) )
         bytesToRead = (m_stream_size - pos);
-    if ( m_buf_size < bytesToRead ) {
+    if ( (unsigned)m_buf_size < bytesToRead ) {
         m_buf_size = bytesToRead;
         m_buf = (lUInt8 *)realloc( m_buf, m_buf_size + 16 );
     }

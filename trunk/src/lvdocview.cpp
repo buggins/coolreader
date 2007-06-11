@@ -51,7 +51,11 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_fantasy,
 //    css_ff_monospace
 
+#ifdef LBOOK
 #define INFO_FONT_SIZE      24
+#else
+#define INFO_FONT_SIZE      20
+#endif
 
 #if defined(__SYMBIAN32__)
 #include <e32std.h>
@@ -473,13 +477,53 @@ lString16 LVDocView::getTimeString()
 }
 
 /// draw battery state to buffer
-void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & rc )
+void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc )
 {
+    lvRect rc =  batteryRc;
     if ( m_battery_state<0 )
         return;
     lUInt32 cl = 0xA0A0A0;
-    if ( drawbuf->GetBitsPerPixel()<=2 )
+    lUInt32 cl2 = 0xD0D0D0;
+    if ( drawbuf->GetBitsPerPixel()<=2 ) {
         cl = 1;
+        cl2 = 2;
+    }
+#if 1
+    int h = rc.height();
+    h = ( (h - 4) / 4 * 4 ) + 3;
+    int dh = (rc.height() - h) / 2;
+    rc.bottom -= dh;
+    rc.top = rc.bottom - h;
+    int w = rc.width();
+    int h0 = 4; //h / 6;
+    int w0 = w / 3;
+    // contour
+    drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom, cl );
+    drawbuf->FillRect( rc.right-1, rc.top+h0, rc.right, rc.bottom, cl );
+
+    drawbuf->FillRect( rc.left, rc.top+h0, rc.left+w0, rc.top+h0+1, cl );
+    drawbuf->FillRect( rc.right-w0, rc.top+h0, rc.right, rc.top+h0+1, cl );
+
+    drawbuf->FillRect( rc.left+w0-1, rc.top, rc.left+w0, rc.top+h0, cl );
+    drawbuf->FillRect( rc.right-w0, rc.top, rc.right-w0+1, rc.top+h0, cl );
+
+    drawbuf->FillRect( rc.left+w0, rc.top, rc.right-w0, rc.top+1, cl );
+    drawbuf->FillRect( rc.left, rc.bottom-1, rc.right, rc.bottom, cl );
+    // fill
+    int miny = rc.bottom - 2 - (h - 4) * m_battery_state / 100;
+    for ( int i=0; i<h-4 ; i++ ) {
+        if ( (i&3) != 3 ) {
+            int y = rc.bottom - 2 - i;
+            int w = 2;
+            if ( y < rc.top + h0 + 2 )
+                w = w0 + 1;
+            lUInt32 c = cl2;
+            if ( y >= miny )
+                c = cl;
+            drawbuf->FillRect( rc.left+w, y-1, rc.right-w, y, c );
+        }
+    }
+#else
     //lUInt32 cl = getTextColor();
     int h = rc.height() / 6;
     if ( h<5 )
@@ -507,94 +551,155 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & rc )
             drawbuf->FillRect( rrc.right-1, rrc.top, rrc.right, rrc.bottom, cl );
         }
     }
+#endif
+}
+
+/// returns section bounds, in 1/100 of percent
+void LVDocView::getSectionBounds( LVArray<int> & bounds )
+{
+    bounds.clear();
+    bounds.add(0);
+    ldomElement * body = (ldomElement *)m_doc->nodeFromXPath( lString16(L"/FictionBook/body[1]") );
+    lUInt16 section_id = m_doc->getElementNameIndex( L"section" );
+    int fh = GetFullHeight();
+    if ( body && fh>0 ) {
+        for ( int l1=0; l1<1000; l1++) {
+            ldomElement * l1section = body->findChildElement(LXML_NS_ANY, section_id, l1);
+            if ( !l1section )
+                break;
+            lvRect rc;
+            l1section->getAbsRect( rc );
+            int p = (int)(((lInt64)rc.top * 10000) / fh);
+            bounds.add( p );
+        }
+    }
+    bounds.add(10000);
+}
+
+int LVDocView::getPosPercent()
+{
+    int fh = GetFullHeight();
+    int p = GetPos();
+    if ( fh>0 )
+        return (int)(((lInt64)p * 10000) / fh);
+    else
+        return 0;
 }
 
 /// draw page header to buffer
 void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, int pageIndex, int phi )
 {
+    bool drawGauge = true;
     lvRect info = headerRc;
-        lUInt32 cl1 = 0xA0A0A0;
-        lUInt32 cl2 = getBackgroundColor();
-        lUInt32 pal[4];
-        if ( drawbuf->GetBitsPerPixel()<=2 ) {
-            // gray
-            cl1 = getTextColor();
-            pal[0] = cl1;
-            drawbuf->SetTextColor(cl1);
-            drawbuf->FillRect(info.left, info.bottom+1, info.right, info.bottom+2, cl1 );
-        } else {
-            // color
-            pal[0] = cl1;
-            drawbuf->SetTextColor(cl1);
-            static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
-            drawbuf->FillRectPattern(info.left, info.bottom+1, info.right, info.bottom+2, cl1, cl2, pattern );
+    lUInt32 cl1 = 0xA0A0A0;
+    lUInt32 cl2 = getBackgroundColor();
+    lUInt32 cl3 = 0xD0D0D0;
+    lUInt32 cl4 = 0xC0C0C0;
+    lUInt32 pal[4];
+    int percent = getPosPercent();
+    bool leftPage = (getVisiblePageCount()==2 && !(pageIndex&1) );
+    if ( leftPage || !drawGauge )
+        percent=10000;
+    int percent_pos = percent * info.width() / 10000;
+    int gh = 1; //drawGauge ? 2 : 1;
+    LVArray<int> sbounds;
+    getSectionBounds( sbounds );
+    if ( drawbuf->GetBitsPerPixel() <= 2 ) {
+        // gray
+        cl1 = getTextColor();
+        cl3 = 1;
+        cl4 = 1;
+        pal[0] = cl1;
+        drawbuf->SetTextColor(cl1);
+        drawbuf->FillRect(info.left, info.bottom+2-gh, info.left+percent_pos, info.bottom+2, cl1 );
+        drawbuf->FillRect(info.left+percent_pos, info.bottom+2-gh, info.right, info.bottom+2, cl3 );
+    } else {
+        // color
+        pal[0] = cl1;
+        drawbuf->SetTextColor(cl1);
+        //static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
+        static lUInt8 pattern[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0};
+        drawbuf->FillRectPattern(info.left, info.bottom+2-gh, info.left+percent_pos, info.bottom+2, cl1, cl2, pattern );
+        drawbuf->FillRectPattern(info.left+percent_pos, info.bottom+2-gh, info.right, info.bottom+2, cl3, cl2, pattern );
+    }
+    if ( !leftPage ) {
+        for ( int i=0; i<sbounds.length(); i++) {
+            int x = info.left + sbounds[i]*(info.width()-1) / 10000;
+            lUInt32 c = cl2; //x<info.left+percent_pos ? cl2 : cl1;
+            drawbuf->FillRect(x, info.bottom+2-gh, x+1, info.bottom+2, c );
+            //drawbuf->FillRect(x, info.bottom+2-1, x+2, info.bottom+2, c );
         }
-        int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
-        if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
-            lvRect brc = info;
-            brc.right -= 3;
-            brc.top += 1;
-            brc.bottom -= 1;
-            brc.left = brc.right - brc.height()/2;
-            drawBatteryState( drawbuf, brc );
-            info.right = brc.left - info.height()/2;
-        }
-        lString16 pageinfo;
-        if ( phi & PGHDR_PAGE_NUMBER )
-            pageinfo += lString16::itoa( pageIndex+1 );
-        if ( phi & PGHDR_PAGE_COUNT )
-            pageinfo += L" / " + lString16::itoa( getPageCount() );
-        int piw = 0;
-        if ( !pageinfo.empty() ) {
-            piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
-            m_infoFont->DrawTextString( drawbuf, info.right-piw, iy, 
-                pageinfo.c_str(), pageinfo.length(), L' ', pal, false);
-            info.right -= piw + info.height()/2;
-        }
-        if ( phi & PGHDR_CLOCK ) {
-            lString16 clock = getTimeString();
-            m_last_clock = clock;
-            int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + 2;
-            m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
-                clock.c_str(), clock.length(), L' ', pal, false);
-            info.right -= w + info.height()/2;
-        }
-        int titlew = 0;
-        lString16 title;
-        if ( phi & PGHDR_TITLE ) {
-            title = getTitle();
+    }
+    int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
+    if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
+        lvRect brc = info;
+        brc.right -= 3;
+        brc.top += 1;
+        brc.bottom -= 2;
+        brc.left = brc.right - brc.height()/2;
+        drawBatteryState( drawbuf, brc );
+        info.right = brc.left - info.height()/2;
+    }
+    lString16 pageinfo;
+    if ( phi & PGHDR_PAGE_NUMBER )
+        pageinfo += lString16::itoa( pageIndex+1 );
+    if ( phi & PGHDR_PAGE_COUNT )
+        pageinfo += L" / " + lString16::itoa( getPageCount() );
+    int piw = 0;
+    if ( !pageinfo.empty() ) {
+        piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
+        m_infoFont->DrawTextString( drawbuf, info.right-piw, iy, 
+            pageinfo.c_str(), pageinfo.length(), L' ', pal, false);
+        info.right -= piw + info.height()/2;
+    }
+    if ( phi & PGHDR_CLOCK ) {
+        lString16 clock = getTimeString();
+        m_last_clock = clock;
+        int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + 2;
+        m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
+            clock.c_str(), clock.length(), L' ', pal, false);
+        info.right -= w + info.height()/2;
+    }
+    int titlew = 0;
+    lString16 title;
+    if ( phi & PGHDR_TITLE ) {
+        title = getTitle();
+        if ( !title.empty() )
+             titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
+    }
+    int authorsw = 0;
+    lString16 authors;
+    if ( phi & PGHDR_AUTHOR ) {
+        authors = getAuthors();
+        if ( !authors.empty() ) {
             if ( !title.empty() )
-                 titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
-        }
-        int authorsw = 0;
-        lString16 authors;
-        if ( phi & PGHDR_AUTHOR ) {
-            authors = getAuthors();
-            if ( !authors.empty() ) {
                 authors += L'.';
-                authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
-            }
+            authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
         }
-        int w = info.width() - piw - 10;
-        lString16 text;
-        if ( authorsw + titlew + 10 > w ) {
-            if ( (pageIndex & 1) )
-                text = title;
-            else
-                text = authors;
-        } else {
-            text = authors + L"  " + title;
+    }
+    int w = info.width() - 10;
+    lString16 text;
+    if ( authorsw + titlew + 10 > w ) {
+        if ( (pageIndex & 1) )
+            text = title;
+        else {
+            text = authors;
+            if ( !text.empty() && text[text.length()-1]=='.')
+                text = text.substr(0, text.length() - 1 );
         }
-        lvRect oldcr;
-        drawbuf->GetClipRect( &oldcr );
-        lvRect newcr = oldcr;
-        newcr.right = info.right - piw - 10;
-        drawbuf->SetClipRect(&newcr);
-        m_infoFont->DrawTextString( drawbuf, info.left, iy, 
-            text.c_str(), text.length(), L' ', pal, false);
-        drawbuf->SetClipRect(&oldcr);
-        //--------------
-        drawbuf->SetTextColor(getTextColor());
+    } else {
+        text = authors + L"  " + title;
+    }
+    lvRect oldcr;
+    drawbuf->GetClipRect( &oldcr );
+    lvRect newcr = oldcr;
+    newcr.right = info.right - 10;
+    drawbuf->SetClipRect(&newcr);
+    m_infoFont->DrawTextString( drawbuf, info.left, iy, 
+        text.c_str(), text.length(), L' ', pal, false);
+    drawbuf->SetClipRect(&oldcr);
+    //--------------
+    drawbuf->SetTextColor(getTextColor());
 }
 
 void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * pageRect )

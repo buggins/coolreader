@@ -1418,7 +1418,7 @@ public:
     static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString16 name )
     {
         ZipLocalFileHdr hdr;
-        int hdr_size = 0x1E; //sizeof(hdr);
+        unsigned hdr_size = 0x1E; //sizeof(hdr);
         if ( stream->Seek( pos, LVSEEK_SET, NULL )!=LVERR_OK )
             return NULL;
         lvsize_t sz = 0;
@@ -1557,8 +1557,8 @@ public:
 
         ZipLocalFileHdr ZipHd1;
         ZipHd2 ZipHeader;
-        int ZipHeader_size = 0x2E; //sizeof(ZipHd2); //0x34; //
-        int ZipHd1_size = 0x1E; //sizeof(ZipHd1); //sizeof(ZipHd1)
+        unsigned ZipHeader_size = 0x2E; //sizeof(ZipHd2); //0x34; //
+        unsigned ZipHd1_size = 0x1E; //sizeof(ZipHd1); //sizeof(ZipHd1)
           //lUInt32 ReadSize;
 
         while (1) {
