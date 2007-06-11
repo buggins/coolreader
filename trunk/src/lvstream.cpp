@@ -1088,8 +1088,8 @@ struct ZipHd2
     lUInt16     DiskNum;// 22
     //lUInt16     ZIPAttr;// 24
     //lUInt32     Attr;   // 26
-    //lUInt32     Offset; // 30
-    lUInt16     _Attr_and_Offset[5];   // 26
+    //lUInt32     Offset; // 2A
+    lUInt16     _Attr_and_Offset[5];   // 24
     lUInt16     getZIPAttr() { return _Attr_and_Offset[0]; }
     lUInt32     getAttr() { return _Attr_and_Offset[1] | ((lUInt32)_Attr_and_Offset[2]<<16); }
     lUInt32     getOffset() { return _Attr_and_Offset[3] | ((lUInt32)_Attr_and_Offset[4]<<16); }
@@ -1544,7 +1544,8 @@ public:
 
         ZipLocalFileHdr ZipHd1;
         ZipHd2 ZipHeader;
-        int ZipHeader_size = 0x34; //sizeof(ZipHd2)
+        int ZipHeader_size = 0x2E; //sizeof(ZipHd2); //0x34; //
+        int ZipHd1_size = 0x1E; //sizeof(ZipHd1); //sizeof(ZipHd1)
           //lUInt32 ReadSize;
 
         while (1) {
@@ -1554,11 +1555,11 @@ public:
 
             if (truncated)
             {
-                m_stream->Read( &ZipHd1, sizeof(ZipHd1), &ReadSize);
+                m_stream->Read( &ZipHd1, ZipHd1_size, &ReadSize);
                 ZipHd1.byteOrderConv();
 
                 //ReadSize = fread(&ZipHd1, 1, sizeof(ZipHd1), f);
-                if (ReadSize!=sizeof(ZipHd1)) {
+                if (ReadSize != ZipHd1_size) {
                         //fclose(f);
                     if (ReadSize==0 && NextPosition==m_FileSize)
                         return m_list.length();
@@ -1566,6 +1567,7 @@ public:
                 }
 
                 memset(&ZipHeader,0,ZipHeader_size);
+
                 ZipHeader.UnpVer=ZipHd1.UnpVer;
                 ZipHeader.UnpOS=ZipHd1.UnpOS;
                 ZipHeader.Flags=ZipHd1.Flags;
@@ -1576,7 +1578,9 @@ public:
                 ZipHeader.AddLen=ZipHd1.AddLen;
                 ZipHeader.Method=ZipHd1.Method;
             } else {
+
                 m_stream->Read( &ZipHeader, ZipHeader_size, &ReadSize);
+
                 ZipHeader.byteOrderConv();
                     //ReadSize = fread(&ZipHeader, 1, sizeof(ZipHeader), f);
                 if (ReadSize!=ZipHeader_size) {
