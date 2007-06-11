@@ -1544,6 +1544,7 @@ public:
 
         ZipLocalFileHdr ZipHd1;
         ZipHd2 ZipHeader;
+        int ZipHeader_size = 34; //sizeof(ZipHd1)
           //lUInt32 ReadSize;
 
         while (1) {
@@ -1553,18 +1554,18 @@ public:
 
             if (truncated)
             {
-                m_stream->Read( &ZipHd1, sizeof(ZipHd1), &ReadSize);
+                m_stream->Read( &ZipHd1, ZipHeader_size, &ReadSize);
                 ZipHd1.byteOrderConv();
                 
                 //ReadSize = fread(&ZipHd1, 1, sizeof(ZipHd1), f);
-                if (ReadSize!=sizeof(ZipHd1)) {
+                if (ReadSize!=ZipHeader_size) {
                         //fclose(f);
                     if (ReadSize==0 && NextPosition==m_FileSize)
                         return m_list.length();
                     return 0;
                 }
 
-                memset(&ZipHeader,0,sizeof(ZipHeader));
+                memset(&ZipHeader,0,ZipHeader_size);
                 ZipHeader.UnpVer=ZipHd1.UnpVer;
                 ZipHeader.UnpOS=ZipHd1.UnpOS;
                 ZipHeader.Flags=ZipHd1.Flags;
@@ -1575,10 +1576,10 @@ public:
                 ZipHeader.AddLen=ZipHd1.AddLen;
                 ZipHeader.Method=ZipHd1.Method;
             } else {
-                m_stream->Read( &ZipHeader, sizeof(ZipHeader), &ReadSize);
+                m_stream->Read( &ZipHeader, ZipHeader_size, &ReadSize);
                 ZipHeader.byteOrderConv();
                     //ReadSize = fread(&ZipHeader, 1, sizeof(ZipHeader), f);
-                if (ReadSize!=sizeof(ZipHeader)) {
+                if (ReadSize!=ZipHeader_size) {
                             if (ReadSize>16 && ZipHeader.Mark==0x06054B50 ) {
                                     break;
                             }
