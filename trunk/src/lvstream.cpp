@@ -1037,17 +1037,17 @@ public:
 
 #pragma pack(push, 1)
 typedef struct {
-    lUInt32  Mark;
-    lUInt8   UnpVer;
-    lUInt8   UnpOS;
-    lUInt16  Flags;
-    lUInt16  Method;
-    lUInt32  ftime;
-    lUInt32  CRC;
-    lUInt32  PackSize;
-    lUInt32  UnpSize;
-    lUInt16  NameLen;
-    lUInt16  AddLen;
+    lUInt32  Mark;      // 0
+    lUInt8   UnpVer;    // 4
+    lUInt8   UnpOS;     // 5
+    lUInt16  Flags;     // 6
+    lUInt16  Method;    // 8
+    lUInt32  ftime;     // A
+    lUInt32  CRC;       // E
+    lUInt32  PackSize;  //12
+    lUInt32  UnpSize;   //16
+    lUInt16  NameLen;   //1A
+    lUInt16  AddLen;    //1C
     void byteOrderConv()
     {
         //
@@ -1544,7 +1544,7 @@ public:
 
         ZipLocalFileHdr ZipHd1;
         ZipHd2 ZipHeader;
-        int ZipHeader_size = 34; //sizeof(ZipHd1)
+        int ZipHeader_size = 0x34; //sizeof(ZipHd2)
           //lUInt32 ReadSize;
 
         while (1) {
@@ -1554,11 +1554,11 @@ public:
 
             if (truncated)
             {
-                m_stream->Read( &ZipHd1, ZipHeader_size, &ReadSize);
+                m_stream->Read( &ZipHd1, sizeof(ZipHd1), &ReadSize);
                 ZipHd1.byteOrderConv();
-                
+
                 //ReadSize = fread(&ZipHd1, 1, sizeof(ZipHd1), f);
-                if (ReadSize!=ZipHeader_size) {
+                if (ReadSize!=sizeof(ZipHd1)) {
                         //fclose(f);
                     if (ReadSize==0 && NextPosition==m_FileSize)
                         return m_list.length();
