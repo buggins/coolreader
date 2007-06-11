@@ -14,45 +14,193 @@
 #include "../include/lvxml.h"
 #include "../include/crtxtenc.h"
 
+#define BUF_SIZE_INCREMENT 4096
+#define MIN_BUF_DATA_SIZE 2048
+#define CP_AUTODETECT_BUF_SIZE 0x10000
 
-LVXMLParser::LVXMLParser( LVStream * stream, LVXMLParserCallback * callback )
+
+LVTextFileBase::LVTextFileBase( LVStream * stream )
     : m_stream(stream)
-    , m_callback(callback)
     , m_buf(NULL)
     , m_buf_size(0)
     , m_stream_size(0)
     , m_buf_len(0)
     , m_buf_pos(0)
     , m_buf_fpos(0)
-    , m_trimspaces(true)
-    , m_state(0)
+    , m_enc_type( ce_8bit_cp )
     , m_conv_table(NULL)
-{ 
+{
 }
-LVXMLParser::~LVXMLParser()
-{ 
+
+/// destructor
+LVTextFileBase::~LVTextFileBase()
+{
     if (m_buf)
         free( m_buf );
 }
 
-#define MIN_BUF_DATA_SIZE 2048
-
-enum parser_state_t {
-    ps_bof,
-    ps_lt,
-    ps_attr,     // waiting for attributes or end of tag
-    ps_text,
-};
-
-void LVXMLParser::SetCharset( const lChar16 * name )
+lChar16 LVTextFileBase::ReadChar()
 {
-    const lChar16 * table = GetCharsetByte2UnicodeTable( name );
-    if ( table )
-        SetCharsetTable( table );
-    m_callback->OnEncoding( name, table );
+    lChar16 ch = m_buf[m_buf_pos++];
+    switch ( m_enc_type ) {
+    case ce_8bit_cp:
+    case ce_utf8:
+        if ( (ch & 0x80) == 0 )
+            return ch;
+        if (m_conv_table)
+        {
+            return m_conv_table[ch&0x7F];
+        }
+        else
+        {
+            // support only 11 and 16 bit UTF8 chars
+            if ( (ch & 0xE0) == 0xC0 )
+            {
+                // 11 bits
+                return ((lUInt16)(ch&0x1F)<<6)
+                    | ((lUInt16)m_buf[m_buf_pos++]&0x3F);
+            } else {
+                // 16 bits
+                ch = (ch&0x0F);
+                lUInt16 ch2 = (m_buf[m_buf_pos++]&0x3F);
+                lUInt16 ch3 = (m_buf[m_buf_pos++]&0x3F);
+                return (ch<<12) | (ch2<<6) | ch3;
+            }
+        }
+    case ce_utf16_be:
+        {
+            lChar16 ch2 = m_buf[m_buf_pos++];
+            return (ch << 8) || ch2;
+        }
+    case ce_utf16_le:
+        {
+            lChar16 ch2 = m_buf[m_buf_pos++];
+            return (ch2 << 8) || ch;
+        }
+    case ce_utf32_be:
+        // support 16 bits only
+        m_buf_pos++;
+        {
+            lChar16 ch3 = m_buf[m_buf_pos++];
+            lChar16 ch4 = m_buf[m_buf_pos++];
+            return (ch3 << 8) || ch4;
+        }
+    case ce_utf32_le:
+        // support 16 bits only
+        {
+            lChar16 ch2 = m_buf[m_buf_pos++];
+            m_buf_pos+=2;
+            return (ch << 8) || ch2;
+        }
+    default:
+        return 0;
+    }
 }
 
-void LVXMLParser::SetCharsetTable( const lChar16 * table )
+/// tries to autodetect text encoding
+bool LVTextFileBase::AutodetectEncoding()
+{
+    char enc_name[32];
+    char lang_name[32];
+    lvpos_t oldpos = m_stream->GetPos();
+    int sz = CP_AUTODETECT_BUF_SIZE;
+    m_stream->SetPos( 0 );
+    if ( sz>m_stream->GetSize() )
+        sz = m_stream->GetSize();
+    if ( sz < 40 )
+        return false;
+    unsigned char * buf = new unsigned char[ sz ];
+    lvsize_t bytesRead = 0;
+    m_stream->Read( buf, sz, &bytesRead );
+
+    int res = AutodetectCodePage( buf, sz, enc_name, lang_name );
+    m_lang_name = lString16( lang_name );
+    m_encoding_name = lString16( enc_name );
+    SetCharset( m_encoding_name.c_str() );
+
+    // restore state
+    delete buf;
+    m_stream->SetPos( oldpos );
+    return true;
+}
+
+bool LVTextFileBase::FillBuffer( int bytesToRead )
+{
+    lvoffset_t bytesleft = (lvoffset_t) (m_stream_size - (m_buf_fpos+m_buf_len));
+    if (bytesleft<=0)
+        return false;
+    if (bytesToRead > bytesleft)
+        bytesToRead = (int)bytesleft;
+    int space = m_buf_size - m_buf_len;
+    if (space < bytesToRead)
+    {
+        if (m_buf_pos>bytesToRead || m_buf_pos>((m_buf_len*3)>>2))
+        {
+            // just move
+            int sz = (int)(m_buf_len -  m_buf_pos);
+            for (int i=0; i<sz; i++)
+            {
+                m_buf[i] = m_buf[i+m_buf_pos];
+            }
+            m_buf_len = sz;
+            m_buf_fpos += m_buf_pos;
+            m_buf_pos = 0;
+            space = m_buf_size - m_buf_len;
+        }
+        if (space < bytesToRead)
+        {
+            m_buf_size = m_buf_size + (bytesToRead - space + BUF_SIZE_INCREMENT);
+            m_buf = (lUInt8 *)realloc( m_buf, m_buf_size + 16 );
+        }
+    }
+    lvsize_t n = 0;
+    m_stream->Read(m_buf+m_buf_len, bytesToRead, &n);
+    m_buf_len += (int)n;
+    return (n>0);
+}
+
+void LVTextFileBase::Reset()
+{
+    m_stream->SetPos(0);
+    m_buf_fpos = 0;
+    m_buf_pos = 0;
+    m_buf_len = 0;
+    m_stream_size = m_stream->GetSize();
+}
+
+void LVTextFileBase::SetCharset( const lChar16 * name )
+{
+    m_encoding_name = lString16( name );
+    if ( name == L"utf-8" ) {
+        m_enc_type = ce_utf8;
+        SetCharsetTable( NULL );
+    } else if ( name == L"utf-16" ) {
+        m_enc_type = ce_utf16_le;
+        SetCharsetTable( NULL );
+    } else if ( name == L"utf-16le" ) {
+        m_enc_type = ce_utf16_le;
+        SetCharsetTable( NULL );
+    } else if ( name == L"utf-16be" ) {
+        m_enc_type = ce_utf16_be;
+        SetCharsetTable( NULL );
+    } else if ( name == L"utf-32" ) {
+        m_enc_type = ce_utf32_le;
+        SetCharsetTable( NULL );
+    } else if ( name == L"utf-32le" ) {
+        m_enc_type = ce_utf32_le;
+        SetCharsetTable( NULL );
+    } else if ( name == L"utf-32be" ) {
+        m_enc_type = ce_utf32_be;
+        SetCharsetTable( NULL );
+    } else {
+        m_enc_type = ce_8bit_cp;
+        const lChar16 * table = GetCharsetByte2UnicodeTable( name );
+        if ( table )
+            SetCharsetTable( table );
+    }
+}
+
+void LVTextFileBase::SetCharsetTable( const lChar16 * table )
 {
     if (!table)
     {
@@ -63,9 +211,49 @@ void LVXMLParser::SetCharsetTable( const lChar16 * table )
         }
         return;
     }
+    m_enc_type = ce_8bit_cp;
     if (!m_conv_table)
         m_conv_table = new lChar16[128];
     lStr_memcpy( m_conv_table, table, 128 );
+}
+
+
+/*******************************************************************************/
+// XML parser
+/*******************************************************************************/
+
+
+/// states of XML parser
+enum parser_state_t {
+    ps_bof,
+    ps_lt,
+    ps_attr,     // waiting for attributes or end of tag
+    ps_text,
+};
+
+
+void LVXMLParser::SetCharset( const lChar16 * name )
+{
+    LVTextFileBase::SetCharset( name );
+    m_callback->OnEncoding( name, m_conv_table );
+}
+
+void LVXMLParser::Reset()
+{
+    LVTextFileBase::Reset();
+    m_state = ps_bof;
+}
+
+LVXMLParser::LVXMLParser( LVStream * stream, LVXMLParserCallback * callback )
+    : LVTextFileBase(stream)
+    , m_callback(callback)
+    , m_trimspaces(true)
+    , m_state(0)
+{
+}
+
+LVXMLParser::~LVXMLParser()
+{
 }
 
 inline bool IsSpaceChar( lChar16 ch )
@@ -369,8 +557,6 @@ bool LVXMLParser::ReadText()
     return (!Eof());
 }
 
-#define BUF_SIZE_INCREMENT 4096
-
 bool LVXMLParser::SkipSpaces()
 {
     while (!Eof())
@@ -455,54 +641,6 @@ bool LVXMLParser::ReadIdent( lString16 & ns, lString16 & name )
         }
     }
     return true; // EOF
-}
-
-bool LVXMLParser::FillBuffer( int bytesToRead )
-{
-    lvoffset_t bytesleft = (lvoffset_t) (m_stream_size - (m_buf_fpos+m_buf_len));
-    if (bytesleft<=0)
-        return false;
-    if (bytesToRead > bytesleft)
-        bytesToRead = (int)bytesleft;
-    int space = m_buf_size - m_buf_len;
-    if (space < bytesToRead)
-    {
-        if (m_buf_pos>bytesToRead || m_buf_pos>((m_buf_len*3)>>2))
-        {
-            // just move
-            int sz = (int)(m_buf_len -  m_buf_pos);
-            for (int i=0; i<sz; i++)
-            {
-                m_buf[i] = m_buf[i+m_buf_pos];
-            }
-            m_buf_len = sz;
-            m_buf_fpos += m_buf_pos;
-            m_buf_pos = 0;
-            space = m_buf_size - m_buf_len;
-        }
-        if (space < bytesToRead)
-        {
-            m_buf_size = m_buf_size + (bytesToRead - space + BUF_SIZE_INCREMENT);
-            m_buf = (lUInt8 *)realloc( m_buf, m_buf_size + 16 );
-        }
-    }
-    lvsize_t n = 0;
-    m_stream->Read(m_buf+m_buf_len, bytesToRead, &n);
-    m_buf_len += (int)n;
-    return (n>0);
-}
-
-
-void LVXMLParser::Reset()
-{
-    m_stream->SetPos(0);
-    m_buf_fpos = 0;
-    m_buf_pos = 0;
-    m_buf_len = 0;
-    m_state = ps_bof;
-    m_stream_size = m_stream->GetSize();
-
-
 }
 
 void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )

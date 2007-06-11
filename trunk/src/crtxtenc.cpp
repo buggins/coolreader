@@ -13,6 +13,8 @@
 
 #include "../include/crtxtenc.h"
 #include "../include/lvstring.h"
+#include "../include/cp_stats.h"
+#include <string.h>
 
 static lChar16 __cp1251[128] = {
     /* 0x80*/
@@ -278,10 +280,15 @@ static struct {
     lChar16 * table;
 } _enc_table[] = {
     {"windows-1251", __cp1251},
+    {"cp1251", __cp1251},
     {"windows-1252", __cp1252},
+    {"cp1252", __cp1252},
     {"windows-1250", __cp1250},
+    {"cp1250", __cp1250},
     {"windows-866", __cp866},
+    {"cp866", __cp866},
     {"windows-850", __cp850},
+    {"cp850", __cp850},
     {"koi-8r", __koi8r},
     {NULL, NULL}
 };
@@ -432,7 +439,9 @@ static struct {
     unsigned char ** table;
 } _uni2byte_enc_table[] = {
     {"windows-1251", cp1251_page_uni2charset},
+    {"cp1251", cp1251_page_uni2charset},
     {"windows-1252", cp1252_page_uni2charset},
+    {"cp1252", cp1252_page_uni2charset},
     {NULL, NULL}
 };
 
@@ -447,3 +456,330 @@ const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * encoding_name )
     }
     return NULL; // not found
 }
+
+
+// AUTODETECT ENCODINGS feature
+
+class CDoubleCharStat
+{
+   struct CDblCharNode
+   {
+      unsigned char ch1;
+      unsigned char ch2;
+      unsigned int  count;
+      unsigned int  index;
+      CDblCharNode * left;
+      CDblCharNode * right;
+      CDblCharNode * sleft;
+      CDblCharNode * sright;
+      CDblCharNode( unsigned char c1, unsigned char c2 ) :
+         ch1(c1), ch2(c2), count(1), index(0), left(NULL), right(NULL),
+         sleft(NULL), sright(NULL)
+      {
+      }
+      ~CDblCharNode()
+      {
+         if (left)
+            delete left;
+         if (right)
+            delete right;
+      }
+      bool operator < (const CDblCharNode & node )
+      {
+         return (ch1<node.ch2) || (ch1==node.ch1 && ch2<node.ch2);
+      }
+      bool operator == (const CDblCharNode & node )
+      {
+         return (ch1==node.ch1) && (ch2=node.ch2);
+      }
+      static inline void Add( CDblCharNode * & pnode, unsigned char c1, unsigned char c2 )
+      {
+         if (pnode)
+            pnode->Add( c1, c2 );
+         else
+            pnode = new CDblCharNode( c1, c2 );
+      }
+      void Add( unsigned char c1, unsigned char c2 )
+      {
+         if (c1==ch1 && c2==ch2) {
+            count++; // found
+         } else if (c1<ch1 || (c1==ch1 && c2<ch2) ) {
+            Add(left, c1, c2 );
+         } else {
+            Add(right, c1, c2 );
+         }
+      }
+      void AddSorted( CDblCharNode * & sroot )
+      {
+         if (!sroot)
+            sroot = this;
+         else if (count>sroot->count)
+            AddSorted( sroot->sleft );
+         else
+            AddSorted( sroot->sright );
+      }
+      void Sort( CDblCharNode * & sroot )
+      {
+         if (this != sroot)
+            AddSorted( sroot );
+         if (left)
+            left->Sort( sroot );
+         if (right)
+            right->Sort( sroot );
+      }
+      void Renumber( int & curr_index )
+      {
+         if (sleft)
+            sleft->Renumber( curr_index );
+         index = curr_index++;
+         if (sright)
+            sright->Renumber( curr_index );
+      }
+      void GetData( dbl_char_stat_t * & pData, int & len, unsigned int maxindex )
+      {
+         if (len<=0)
+            return;
+         if (left)
+            left->GetData( pData, len, maxindex );
+         if (len<=0)
+            return;
+         if (index<maxindex)
+         {
+            pData->ch1 = ch1;
+            pData->ch2 = ch2;
+            pData->count = count;
+            pData++;
+            len--;
+         }
+         if (len<=0)
+            return;
+         if (right)
+            right->GetData( pData, len, maxindex );
+      }
+   };
+
+   CDblCharNode * nodes;
+   int total;
+public:
+   CDoubleCharStat() : nodes(NULL), total(0)
+   {
+   }
+   void Add( unsigned char c1, unsigned char c2 )
+   {
+/*   	if ( !(c1>127 || c1>='a' && c1<='z' || c1>='A' && c1<='Z' || c1=='\'') 
+           && !(c2>127 || c2>='a' && c2<='z' || c2>='A' && c2<='Z' || c2=='\'') )
+      {
+         return;
+      }
+      */
+      if (c1==' ' && c2==' ')
+         return;
+      total++;
+      CDblCharNode::Add( nodes, c1, c2 );
+   }
+   void GetData( dbl_char_stat_t * pData, int len )
+   {
+      dbl_char_stat_t * pData2 = pData;
+      int len2 = len;
+      int idx = 0;
+      if (nodes && total)
+      {
+         nodes->Sort( nodes );
+         nodes->Renumber( idx );
+         nodes->GetData( pData2, len2, len2 );
+      }
+      // fill rest of array
+      for ( ; len2>0; len2--, pData2++ ) {
+         pData2->ch1 = 0;
+         pData2->ch2 = 0;
+         pData2->count = 0;
+      }
+      // scale by total
+      if (total) {
+         for (int i=0; i<len; i++)
+            pData[i].count = (int)(pData[i].count * (lInt64)0x7000 / total);
+      }
+      Close();
+   }
+   void Close()
+   {
+      if (nodes)
+         delete nodes;
+      nodes = NULL;
+      total = 0;
+   }
+   virtual ~CDoubleCharStat()
+   {
+      Close();
+   }
+};
+
+void MakeDblCharStat( const unsigned char * buf, int buf_size, dbl_char_stat_t * stat, int stat_len )
+{
+   CDoubleCharStat maker;
+   unsigned char ch1=' ';
+   unsigned char ch2=' ';
+   for ( int i=1; i<buf_size; i++) {
+      ch1 = ch2;
+      ch2 = buf[i];
+      if ( ch2<128 && ch2!='\'' && !(ch2>='a' && ch2<='z' || ch2>='A' && ch2<='Z') )
+         ch2 = ' ';
+      //if (i>0)
+      maker.Add( ch1, ch2 );
+   }
+   maker.GetData( stat, stat_len );
+}
+
+void MakeCharStat( const unsigned char * buf, int buf_size, short stat_table[256] )
+{
+   int stat[256];
+   memset( stat, 0, sizeof(int)*256 );
+   int total=0;
+   unsigned char ch;
+   for (int i=0; i<buf_size; i++) {
+      ch = buf[i];
+      if ( ch>127 || ch>='a' && ch<='z' || ch>='A' && ch<='Z' || ch=='\'') {
+         stat[ch]++;
+         total++;
+      }
+   }
+   if (total) {
+      for (int i=0; i<256; i++) {
+         stat_table[i] = (short)(stat[i] * (lInt64)0x7000 / total);
+      }
+   }
+}
+
+double CompareCharStats( const short * stat1, const short * stat2, double &k1, double &k2 )
+{
+   double sum = 0;
+   double psum = 0;
+   double psum2 = 0;
+   for (int i=0; i<256; i++) {
+	  psum += ( (double)stat1[i] * stat2[i] / 0x7000 / 0x7000);
+	  if (i>=128)
+		psum2 += ( (double)stat1[i] * stat2[i] / 0x7000 / 0x7000);
+      int delta = stat1[i] - stat2[i];
+      if (delta<0)
+         delta = -delta;
+      sum += delta;
+   }
+   sum /= 0x7000;
+   k1 = psum;
+   k2 = psum2;
+   return sum / 256;
+}
+
+double CompareDblCharStats( const dbl_char_stat_t * stat1, const dbl_char_stat_t * stat2, int stat_len, double &k1, double &k2 )
+{
+   double sum = 0;
+   int len1 = stat_len;
+   int len2 = stat_len;
+   double psum = 0;
+   double psum2 = 0;
+   while (len1 && len2) {
+      //
+      if (stat1->ch1==stat2->ch1 && stat1->ch2==stat2->ch2) {
+         // add stat
+         int delta = (stat1->count - stat2->count);
+         if (delta<0)
+            delta = -delta;
+         sum += delta;
+         psum += ( (double)stat1->count * stat2->count / 0x7000 / 0x7000);
+	     if (stat1->ch1>=128 || stat1->ch2>=128)
+		    psum2 += ( (double)stat1->count * stat2->count / 0x7000 / 0x7000);
+         // move both
+         stat1++;
+         len1--;
+         stat2++;
+         len2--;
+      } else if ( stat1->ch1<stat2->ch1 || (stat1->ch1==stat2->ch1 && stat1->ch2<stat2->ch2) ) {
+         // add stat
+         int delta = (stat1->count);
+         sum += stat1->count;
+         // move 1st
+         stat1++;
+         len1--;
+      } else {
+         // add stat
+         int delta = (stat2->count);
+         sum += stat2->count;
+         stat2++;
+         len2--;
+      }
+   }
+   sum /= 0x7000;
+   k1 = psum;
+   k2 = psum2;
+   return sum / stat_len;
+}
+
+#define DBL_CHAR_STAT_SIZE 256
+
+//==========================================
+// Stats
+typedef struct {
+	const short * ch_stat;       // int[256] statistics table table
+    const dbl_char_stat_t * dbl_ch_stat;
+	char * cp_name;   // codepage name
+	char * lang_name; // lang name
+} cp_stat_t;
+
+// EXTERNAL DEFINE
+extern cp_stat_t cp_stat_table[];
+
+
+int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name )
+{
+    // checking byte order signatures
+    if ( buf[0]==0xEF && buf[1]==0xBB && buf[2]==0xBF ) {
+        strcpy( cp_name, "utf-8" );
+        strcpy( lang_name, "en" );
+        return 1;
+    } else if ( buf[0]==0 && buf[1]==0 && buf[2]==0xFE && buf[3]==0xFF ) {
+        strcpy( cp_name, "utf-32be" );
+        strcpy( lang_name, "en" );
+        return 1;
+    } else if ( buf[0]==0xFE && buf[1]==0xFF ) {
+        strcpy( cp_name, "utf-16be" );
+        strcpy( lang_name, "en" );
+        return 1;
+    } else if ( buf[0]==0xFF && buf[1]==0xFE && buf[2]==0 && buf[3]==0 ) {
+        strcpy( cp_name, "utf-32le" );
+        strcpy( lang_name, "en" );
+        return 1;
+    } else if ( buf[0]==0xFF && buf[1]==0xFE ) {
+        strcpy( cp_name, "utf-16le" );
+        strcpy( lang_name, "en" );
+        return 1;
+    }
+
+    // use character statistics
+   short char_stat[256];
+   dbl_char_stat_t dbl_char_stat[DBL_CHAR_STAT_SIZE];
+   MakeCharStat( buf, buf_size, char_stat );
+   MakeDblCharStat( buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE );
+
+   int bestn = 0;
+   double bestq = 1000000;
+   for (int i=0; cp_stat_table[i].ch_stat; i++) {
+	   double q12, q11;
+	   double q22, q21;
+	   double q1 = CompareCharStats( cp_stat_table[i].ch_stat, char_stat, q11, q12 );
+	   double q2 = CompareDblCharStats( cp_stat_table[i].dbl_ch_stat, dbl_char_stat, DBL_CHAR_STAT_SIZE, q21, q22 );
+	   double q_1 = q11 + 3*q12;
+	   double q_2 = q21 + 5*q22;
+	   double q_ = q_1 * q_2;
+	   double q = (q_>0) ? (q1*2+q2*7) / (q_) : 1000000;
+	   if (q<bestq) {
+		   bestn = i;
+		   bestq = q;
+	   }
+   }
+
+   strcpy(cp_name, cp_stat_table[bestn].cp_name);
+   strcpy(lang_name, cp_stat_table[bestn].lang_name);
+
+   return 1;
+}
+

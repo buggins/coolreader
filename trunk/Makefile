@@ -150,6 +150,7 @@ endif
 # all the objects required
 srcs	 =	\
 		crtxtenc \
+		cp_stats \
 		hyphman \
 		lstridmap \
 		lvbmpbuf \

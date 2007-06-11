@@ -1071,24 +1071,28 @@ typedef struct {
 #pragma pack(push, 1)
 struct ZipHd2
 {
-    lUInt32  Mark;
-    lUInt8   PackVer;
+    lUInt32  Mark;      // 0
+    lUInt8   PackVer;   // 4
     lUInt8   PackOS;
     lUInt8   UnpVer;
     lUInt8   UnpOS;
-    lUInt16     Flags;
-    lUInt16     Method;
-    lUInt32    ftime;
-    lUInt32    CRC;
-    lUInt32    PackSize;
-    lUInt32    UnpSize;
-    lUInt16     NameLen;
-    lUInt16     AddLen;
-    lUInt16     CommLen;
-    lUInt16     DiskNum;
-    lUInt16     ZIPAttr;
-    lUInt32    Attr;
-    lUInt32    Offset;
+    lUInt16     Flags;  // 8
+    lUInt16     Method; // A
+    lUInt32    ftime;   // C
+    lUInt32    CRC;     // 10
+    lUInt32    PackSize;// 14
+    lUInt32    UnpSize; // 18
+    lUInt16     NameLen;// 1C
+    lUInt16     AddLen; // 1E
+    lUInt16     CommLen;// 20
+    lUInt16     DiskNum;// 22
+    lUInt16     ZIPAttr;// 24
+    //lUInt32     Attr;   // 26
+    lUInt16     _Attr[2];   // 26
+    //lUInt32     Offset; // 30
+    lUInt16     _Offset[2]; // 30
+    lUInt32     getAttr() { return _Attr[0] | ((lUInt32)_Attr[1]<<16); }
+    lUInt32     getOffset() { return _Offset[0] | ((lUInt32)_Offset[1]<<16); }
     void byteOrderConv()
     {
         //
@@ -1107,8 +1111,10 @@ struct ZipHd2
             cnv.rev( &CommLen );
             cnv.rev( &DiskNum );
             cnv.rev( &ZIPAttr );
-            cnv.rev( &Attr );
-            cnv.rev( &Offset );
+            cnv.rev( &_Attr[0] );
+            cnv.rev( &_Attr[1] );
+            cnv.rev( &_Offset[0] );
+            cnv.rev( &_Offset[1] );
         }
     }
 };
@@ -1568,7 +1574,6 @@ public:
                 ZipHeader.NameLen=ZipHd1.NameLen;
                 ZipHeader.AddLen=ZipHd1.AddLen;
                 ZipHeader.Method=ZipHd1.Method;
-                ZipHeader.Offset = 0;
             } else {
                 m_stream->Read( &ZipHeader, sizeof(ZipHeader), &ReadSize);
                 ZipHeader.byteOrderConv();
@@ -1614,14 +1619,14 @@ public:
   
             lString16 fName = LocalToUnicode( lString8(fnbuf) );
 
-            item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.Attr & 0x3f));
-            item->SetSrc( ZipHeader.Offset, ZipHeader.PackSize, ZipHeader.Method );
+            item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
+            item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
             m_list.add(item);
         }
 
         return m_list.length();
     }
-        
+
     static LVArcContainerBase * OpenArchieve( LVStreamRef stream )
     {
         // read beginning of file
