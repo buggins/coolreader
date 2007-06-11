@@ -51,7 +51,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_fantasy,
 //    css_ff_monospace
 
-#define INFO_FONT_SIZE      18
+#define INFO_FONT_SIZE      24
 
 #if defined(__SYMBIAN32__)
 #include <e32std.h>
@@ -518,15 +518,17 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         lUInt32 pal[4];
         if ( drawbuf->GetBitsPerPixel()<=2 ) {
             // gray
-            cl1 = 1;
-            pal[0] = 3;
+            cl1 = getTextColor();
+            pal[0] = cl1;
+            drawbuf->SetTextColor(cl1);
+            drawbuf->FillRect(info.left, info.bottom+1, info.right, info.bottom+2, cl1 );
         } else {
             // color
             pal[0] = cl1;
+            drawbuf->SetTextColor(cl1);
+            static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
+            drawbuf->FillRectPattern(info.left, info.bottom+1, info.right, info.bottom+2, cl1, cl2, pattern );
         }
-        drawbuf->SetTextColor(cl1);
-        static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
-        drawbuf->FillRectPattern(info.left, info.bottom+1, info.right, info.bottom+2, cl1, cl2, pattern );
         int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
         if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
             lvRect brc = info;

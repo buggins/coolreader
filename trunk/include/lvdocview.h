@@ -201,6 +201,10 @@ public:
     int getPageHeaderInfo() { return m_pageHeaderInfo; }
     /// set page header info mask
     void setPageHeaderInfo( int hdrFlags );
+    /// get info line font 
+    font_ref_t getInfoFont() { return m_infoFont; }
+    /// set info line font
+    void setInfoFont( font_ref_t font ) { m_infoFont = font; }
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, const lvRect & pageRc, lvRect & headerRc );
     /// draw page header to buffer
