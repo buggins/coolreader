@@ -288,6 +288,10 @@ protected:
     bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
     /// seek to specified stream position
     bool Seek( lvpos_t pos, int bytesToPrefetch=0 );
+    /// reads specified number of bytes, converts to characters and saves to buffer, returns number of chars read
+    int ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size );
+    /// reads specified number of characters and saves to buffer, returns number of chars read
+    int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size );
 public:
     /// returns name of character encoding
     lString16 GetEncodingName() { return m_encoding_name; }

@@ -133,8 +133,54 @@ bool LVTextFileBase::Seek( lvpos_t pos, int bytesToPrefetch )
     }
     if ( pos<0 || pos>=m_stream_size )
         return false;
-    //lvsize_t bytesToRead =
+    int bytesToRead = (bytesToPrefetch > m_buf_size) ? bytesToPrefetch : m_buf_size;
+    if ( bytesToRead < BUF_SIZE_INCREMENT )
+        bytesToRead = BUF_SIZE_INCREMENT;
+    if ( bytesToRead > (m_stream_size - pos) )
+        bytesToRead = (m_stream_size - pos);
+    if ( m_buf_size < bytesToRead ) {
+        m_buf_size = bytesToRead;
+        m_buf = (lUInt8 *)realloc( m_buf, m_buf_size + 16 );
+    }
+    m_buf_fpos = pos;
+    m_buf_pos = 0;
+    m_buf_len = m_buf_size;
+    // TODO: add error handing
+    m_stream->SetPos( m_buf_fpos );
+    lvsize_t bytesRead = 0;
+    m_stream->Read( m_buf, bytesToRead, &bytesRead );
     return true;
+}
+
+/// reads specified number of bytes, converts to characters and saves to buffer
+int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size)
+{
+    if ( !Seek( pos, bytesToRead ) )
+        return 0;
+    int chcount = 0;
+    int max_pos = m_buf_pos + bytesToRead;
+    if ( max_pos > m_buf_len )
+        max_pos = m_buf_len;
+    while ( m_buf_pos<max_pos && chcount < buf_size ) {
+        *buf++ = ReadChar();
+        chcount++;
+    }
+    return chcount;
+}
+
+/// reads specified number of characters and saves to buffer
+int LVTextFileBase::ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size)
+{
+    if ( !Seek( pos, charsToRead*4 ) )
+        return 0;
+    int chcount = 0;
+    if ( buf_size > charsToRead )
+        buf_size = charsToRead;
+    while ( m_buf_pos<m_buf_len && chcount < buf_size ) {
+        *buf++ = ReadChar();
+        chcount++;
+    }
+    return chcount;
 }
 
 bool LVTextFileBase::FillBuffer( int bytesToRead )
