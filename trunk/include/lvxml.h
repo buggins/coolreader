@@ -286,6 +286,8 @@ protected:
     bool FillBuffer( int bytesToRead );
     /// returns true if end of fle is reached, and there is no data left in buffer
     bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
+    /// seek to specified stream position
+    bool Seek( lvpos_t pos, int bytesToPrefetch=0 );
 public:
     /// returns name of character encoding
     lString16 GetEncodingName() { return m_encoding_name; }

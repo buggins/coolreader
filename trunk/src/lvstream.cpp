@@ -1088,11 +1088,10 @@ struct ZipHd2
     lUInt16     DiskNum;// 22
     lUInt16     ZIPAttr;// 24
     //lUInt32     Attr;   // 26
-    lUInt16     _Attr[2];   // 26
     //lUInt32     Offset; // 30
-    lUInt16     _Offset[2]; // 30
-    lUInt32     getAttr() { return _Attr[0] | ((lUInt32)_Attr[1]<<16); }
-    lUInt32     getOffset() { return _Offset[0] | ((lUInt32)_Offset[1]<<16); }
+    lUInt16     _Attr_and_Offset[4];   // 26
+    lUInt32     getAttr() { return _Attr_and_Offset[0] | ((lUInt32)_Attr_and_Offset[1]<<16); }
+    lUInt32     getOffset() { return _Attr_and_Offset[2] | ((lUInt32)_Attr_and_Offset[3]<<16); }
     void byteOrderConv()
     {
         //
@@ -1111,10 +1110,10 @@ struct ZipHd2
             cnv.rev( &CommLen );
             cnv.rev( &DiskNum );
             cnv.rev( &ZIPAttr );
-            cnv.rev( &_Attr[0] );
-            cnv.rev( &_Attr[1] );
-            cnv.rev( &_Offset[0] );
-            cnv.rev( &_Offset[1] );
+            cnv.rev( &_Attr_and_Offset[0] );
+            cnv.rev( &_Attr_and_Offset[1] );
+            cnv.rev( &_Attr_and_Offset[2] );
+            cnv.rev( &_Attr_and_Offset[3] );
         }
     }
 };

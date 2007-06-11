@@ -124,6 +124,19 @@ bool LVTextFileBase::AutodetectEncoding()
     return true;
 }
 
+/// seek to specified stream position
+bool LVTextFileBase::Seek( lvpos_t pos, int bytesToPrefetch )
+{
+    if ( pos >= m_buf_fpos && pos+bytesToPrefetch <= (m_buf_fpos+m_buf_len) ) {
+        m_buf_pos = (pos - m_buf_fpos);
+        return true;
+    }
+    if ( pos<0 || pos>=m_stream_size )
+        return false;
+    //lvsize_t bytesToRead =
+    return true;
+}
+
 bool LVTextFileBase::FillBuffer( int bytesToRead )
 {
     lvoffset_t bytesleft = (lvoffset_t) (m_stream_size - (m_buf_fpos+m_buf_len));
@@ -134,7 +147,7 @@ bool LVTextFileBase::FillBuffer( int bytesToRead )
     int space = m_buf_size - m_buf_len;
     if (space < bytesToRead)
     {
-        if (m_buf_pos>bytesToRead || m_buf_pos>((m_buf_len*3)>>2))
+        if ( m_buf_pos>bytesToRead || m_buf_pos>((m_buf_len*3)>>2) )
         {
             // just move
             int sz = (int)(m_buf_len -  m_buf_pos);
