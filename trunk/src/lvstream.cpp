@@ -1041,13 +1041,22 @@ typedef struct {
     lUInt8   UnpVer;    // 4
     lUInt8   UnpOS;     // 5
     lUInt16  Flags;     // 6
-    lUInt16  Method;    // 8
-    lUInt32  ftime;     // A
-    lUInt32  CRC;       // E
-    lUInt32  PackSize;  //12
-    lUInt32  UnpSize;   //16
-    lUInt16  NameLen;   //1A
-    lUInt16  AddLen;    //1C
+    lUInt16  others[11]; //
+    //lUInt16  Method;    // 8
+    //lUInt32  ftime;     // A
+    //lUInt32  CRC;       // E
+    //lUInt32  PackSize;  //12
+    //lUInt32  UnpSize;   //16
+    //lUInt16  NameLen;   //1A
+    //lUInt16  AddLen;    //1C
+
+    lUInt16  getMethod() { return others[0]; }    // 8
+    lUInt32  getftime() { return others[1] | ( (lUInt32)others[2] << 16); }     // A
+    lUInt32  getCRC() { return others[3] | ( (lUInt32)others[4] << 16); }       // E
+    lUInt32  getPackSize() { return others[5] | ( (lUInt32)others[6] << 16); }  //12
+    lUInt32  getUnpSize() { return others[7] | ( (lUInt32)others[8] << 16); }   //16
+    lUInt16  getNameLen() { return others[9]; }   //1A
+    lUInt16  getAddLen() { return others[10]; }    //1C
     void byteOrderConv()
     {
         //
@@ -1056,13 +1065,16 @@ typedef struct {
         {
             cnv.rev( &Mark );
             cnv.rev( &Flags );
-            cnv.rev( &Method );
-            cnv.rev( &ftime );
-            cnv.rev( &CRC );
-            cnv.rev( &PackSize );
-            cnv.rev( &UnpSize );
-            cnv.rev( &NameLen );
-            cnv.rev( &AddLen );
+            for ( int i=0; i<11; i++) {
+                cnv.rev( &others[i] );
+            }
+            //cnv.rev( &Method );
+            //cnv.rev( &ftime );
+            //cnv.rev( &CRC );
+            //cnv.rev( &PackSize );
+            //cnv.rev( &UnpSize );
+            //cnv.rev( &NameLen );
+            //cnv.rev( &AddLen );
         }
     }
 } ZipLocalFileHdr;
@@ -1406,32 +1418,33 @@ public:
     static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString16 name )
     {
         ZipLocalFileHdr hdr;
+        int hdr_size = 0x1E; //sizeof(hdr);
         if ( stream->Seek( pos, LVSEEK_SET, NULL )!=LVERR_OK )
             return NULL;
         lvsize_t sz = 0;
-        if ( stream->Read( &hdr, sizeof(hdr), &sz)!=LVERR_OK || sz!=sizeof(hdr) )
+        if ( stream->Read( &hdr, hdr_size, &sz)!=LVERR_OK || sz!=hdr_size )
             return NULL;
         hdr.byteOrderConv();
-        pos += 0x1e + hdr.NameLen + hdr.AddLen;
+        pos += 0x1e + hdr.getNameLen() + hdr.getAddLen();
         if ( stream->Seek( pos, LVSEEK_SET, NULL )!=LVERR_OK )
             return NULL;
-        if ((lvpos_t)(pos + hdr.PackSize) > (lvpos_t)stream->GetSize())
+        if ((lvpos_t)(pos + hdr.getPackSize()) > (lvpos_t)stream->GetSize())
             return NULL;
-        if (hdr.Method == 0)
+        if (hdr.getMethod() == 0)
         {
             // store method, copy as is
-            if ( hdr.PackSize != hdr.UnpSize )
+            if ( hdr.getPackSize() != hdr.getUnpSize() )
                 return NULL;
-            LVStreamFragment * fragment = new LVStreamFragment( stream, pos, hdr.PackSize);
+            LVStreamFragment * fragment = new LVStreamFragment( stream, pos, hdr.getPackSize());
             fragment->SetName( name.c_str() );
             return fragment;
         }
-        else if (hdr.Method == 8)
+        else if (hdr.getMethod() == 8)
         {
             // deflate
-            LVStreamRef srcStream( new LVStreamFragment( stream, pos, hdr.PackSize) );
+            LVStreamRef srcStream( new LVStreamFragment( stream, pos, hdr.getPackSize()) );
             LVZipDecodeStream * res = new LVZipDecodeStream( srcStream, pos, 
-                hdr.PackSize, hdr.UnpSize, hdr.CRC );
+                hdr.getPackSize(), hdr.getUnpSize(), hdr.getCRC() );
             res->SetName( name.c_str() );
             return res;
         }
@@ -1571,12 +1584,12 @@ public:
                 ZipHeader.UnpVer=ZipHd1.UnpVer;
                 ZipHeader.UnpOS=ZipHd1.UnpOS;
                 ZipHeader.Flags=ZipHd1.Flags;
-                ZipHeader.ftime=ZipHd1.ftime;
-                ZipHeader.PackSize=ZipHd1.PackSize;
-                ZipHeader.UnpSize=ZipHd1.UnpSize;
-                ZipHeader.NameLen=ZipHd1.NameLen;
-                ZipHeader.AddLen=ZipHd1.AddLen;
-                ZipHeader.Method=ZipHd1.Method;
+                ZipHeader.ftime=ZipHd1.getftime();
+                ZipHeader.PackSize=ZipHd1.getPackSize();
+                ZipHeader.UnpSize=ZipHd1.getUnpSize();
+                ZipHeader.NameLen=ZipHd1.getNameLen();
+                ZipHeader.AddLen=ZipHd1.getAddLen();
+                ZipHeader.Method=ZipHd1.getMethod();
             } else {
 
                 m_stream->Read( &ZipHeader, ZipHeader_size, &ReadSize);
