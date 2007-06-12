@@ -360,6 +360,7 @@ void CRFileHist::savePosition( lString16 fpathname, size_t sz,
     if ( index>=0 ) {
         makeTop( index );
         _records[0]->setLastPos( &bmk );
+        _records[0]->setLastTime( (time_t)time(0) );
         return;
     }
     CRFileHistRecord * rec = new CRFileHistRecord();
@@ -370,6 +371,8 @@ void CRFileHist::savePosition( lString16 fpathname, size_t sz,
     rec->setFilePath( path );
     rec->setFileSize( sz );
     rec->setLastPos( &bmk );
+    rec->setLastTime( (time_t)time(0) );
+
     _records.insert( 0, rec );
 }
 

@@ -172,6 +172,8 @@ private:
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
 public:
+    /// returns true if document is opened
+    bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
     void getSectionBounds( LVArray<int> & bounds );
     /// sets battery state

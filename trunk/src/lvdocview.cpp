@@ -72,7 +72,7 @@ static int def_font_sizes[] = { 16, 18, 22, 26, 30, 36, 42 };
 LVDocView::LVDocView() 
 : m_dx(100), m_dy(100), m_pos(50), m_battery_state(66)
 #if (LBOOK==1)
-, m_font_size(36)
+, m_font_size(32)
 #elif defined(__SYMBIAN32__)
 , m_font_size(30)
 #else
@@ -119,6 +119,12 @@ LVDocView::LVDocView()
 LVDocView::~LVDocView()
 {
     Clear();
+}
+
+/// returns true if document is opened
+bool LVDocView::isDocumentOpened()
+{
+    return m_doc && m_doc->getRootNode();
 }
 
 void LVDocView::setPageHeaderInfo( int hdrFlags )
@@ -275,9 +281,19 @@ LVImageSourceRef LVDocView::getCoverPageImage()
 /// draws coverpage to image buffer
 void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 {
-    LVFontRef author_fnt( fontMan->GetFont( 26, 600, true, css_ff_serif, lString8("Times New Roman")) );
-    LVFontRef title_fnt( fontMan->GetFont( 30, 600, false, css_ff_serif, lString8("Times New Roman")) );
-    LVFontRef series_fnt( fontMan->GetFont( 22, 300, true, css_ff_serif, lString8("Times New Roman")) );
+    int base_font_size = 26;
+    int w = rc.width();
+    if ( w<300 )
+        base_font_size = 24;
+    else if ( w<500 )
+        base_font_size = 28;
+    else if ( w<700 )
+        base_font_size = 32;
+    else
+        base_font_size = 36;
+    LVFontRef author_fnt( fontMan->GetFont( base_font_size, 600, true, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef title_fnt( fontMan->GetFont( base_font_size+4, 600, false, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef series_fnt( fontMan->GetFont( base_font_size-3, 300, true, css_ff_serif, lString8("Times New Roman")) );
     lString16 authors = getAuthors();
     lString16 title = getTitle();
     lString16 series = getSeries();
@@ -601,7 +617,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     if ( leftPage || !drawGauge )
         percent=10000;
     int percent_pos = percent * info.width() / 10000;
-    int gh = 1; //drawGauge ? 2 : 1;
+    int gh = drawGauge ? 2 : 1;
     LVArray<int> sbounds;
     getSectionBounds( sbounds );
     if ( drawbuf->GetBitsPerPixel() <= 2 ) {
@@ -902,7 +918,7 @@ LVDocViewMode LVDocView::getViewMode()
 
 int LVDocView::getVisiblePageCount()
 {
-    return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE || m_dx < m_dy )
+    return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE || m_dx*5 < m_dy*6 )
         ? 1
         : m_pagesVisible;
 }
