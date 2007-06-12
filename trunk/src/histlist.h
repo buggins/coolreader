@@ -21,6 +21,7 @@ HistList : public wxListView
         virtual bool Create(wxWindow* parent, wxWindowID id );
         virtual wxString OnGetItemText(long item, long column) const;
         void SetRecords(LVPtrVector<CRFileHistRecord> & records );
+        void UpdateColumns();
 /*
         void ScheduleRender() { Resize(0, 0); }
         bool LoadDocument( const wxString & fname );

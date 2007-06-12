@@ -213,6 +213,7 @@ void cr3view::OnMouseRDown( wxMouseEvent & event )
 {
     wxMenu pm;
     pm.Append( wxID_OPEN, wxT( "&Open...\tCtrl+O" ) );
+    pm.Append( Menu_View_History, wxT( "Recent books list\tF4" ) );
     pm.Append( wxID_SAVE, wxT( "&Save...\tCtrl+S" ) );
     pm.AppendSeparator();
     pm.Append( Menu_View_TOC, wxT( "Table of Contents\tF5" ) );

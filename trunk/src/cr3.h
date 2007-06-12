@@ -48,6 +48,7 @@ cr3Frame : public wxFrame
 		cr3Frame( const wxString& title, const wxPoint& p, const wxSize& sz, lString16 appDir );
 
         void SetActiveMode( active_mode_t mode );
+        void UpdateToolbar();
 
 		void OnQuit( wxCommandEvent& event );
 		void OnAbout( wxCommandEvent& event );

@@ -61,7 +61,7 @@ void cr3Frame::OnClose( wxCloseEvent& event )
 void cr3Frame::OnHistItemActivated( wxListEvent& event )
 {
     long index = event.GetIndex();
-    if ( index == 0 && _view->getDocView()->IsRendered()) {
+    if ( index == 0 && _view->getDocView()->isDocumentOpened()) {
         SetActiveMode( am_book );
         return;
     }
@@ -72,6 +72,7 @@ void cr3Frame::OnHistItemActivated( wxListEvent& event )
             Update();
             SetActiveMode( am_book );
             _view->LoadDocument( wxString( pathname.c_str()) );
+            UpdateToolbar();
         }
     }
 }
@@ -275,12 +276,25 @@ cr3app::OnInit()
     int scale = scale_x < scale_y ? scale_x : scale_y;
     cx = 610 * scale / 256;
     cy = 830 * scale / 256;
-    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.4" ), wxPoint(x,y), wxSize(cx,cy), appPath );
+    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.5" ), wxPoint(x,y), wxSize(cx,cy), appPath );
 
     frame->Show(TRUE);
     SetTopWindow(frame);
     return TRUE;
 } 
+
+void cr3Frame::UpdateToolbar()
+{
+    bool enabled_book = _activeMode==am_book && _view->getDocView()->isDocumentOpened();
+    wxToolBar* toolBar = GetToolBar();
+    toolBar->EnableTool(wxID_SAVE, enabled_book);
+    toolBar->EnableTool(Menu_View_ZoomIn, enabled_book);
+    toolBar->EnableTool(Menu_View_ZoomOut, enabled_book);
+    toolBar->EnableTool(Menu_View_TOC, enabled_book);
+    toolBar->EnableTool(Menu_View_TogglePages, enabled_book);
+    toolBar->EnableTool(Menu_View_PrevPage, enabled_book);
+    toolBar->EnableTool(Menu_View_NextPage, enabled_book);
+}
 
 void cr3Frame::SetActiveMode( active_mode_t mode )
 {
@@ -316,11 +330,14 @@ void cr3Frame::SetActiveMode( active_mode_t mode )
             //_histsizer->Layout();
             _view->getDocView()->savePosition();
             _hist->SetRecords(_view->getDocView()->getHistory()->getRecords());
+            _sizer->Layout();
+            _hist->UpdateColumns();
             _hist->SetFocus();
         }
         break;
     }
     _activeMode = mode;
+    UpdateToolbar();
 }
 
 void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
@@ -339,6 +356,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     wxMenu *menuFile = new wxMenu;
 
     menuFile->Append( wxID_OPEN, wxT( "&Open...\tCtrl+O" ) );
+    menuFile->Append( Menu_View_History, wxT( "Recent books list\tF4" ) );
     menuFile->Append( wxID_SAVE, wxT( "&Save...\tCtrl+S" ) );
     menuFile->AppendSeparator();
     menuFile->Append( Menu_File_About, wxT( "&About...\tF1" ) );
@@ -375,29 +393,6 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 
     wxToolBar* toolBar = CreateToolBar();
 
-    // Set up toolbar
-/*
-    enum
-    {
-        Tool_new,
-        Tool_open,
-        Tool_save,
-        Tool_copy,
-        Tool_cut,
-        Tool_paste,
-        Tool_print,
-        Tool_help,
-        Tool_zoomin,
-        Tool_zoomout,
-        Tool_north,
-        Tool_south,
-        Tool_west,
-        Tool_east,
-        Tool_Max
-    };
-*/
-    //wxBitmap toolBarBitmaps[Tool_Max];
-/*
 #if USE_XPM_BITMAPS
     #define INIT_TOOL_BMP(bmp) \
         toolBarBitmaps[Tool_##bmp] = wxBitmap(bmp##_xpm)
@@ -406,43 +401,13 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         toolBarBitmaps[Tool_##bmp] = wxBITMAP(bmp)
 #endif // USE_XPM_BITMAPS/!USE_XPM_BITMAPS
 
-*/
     wxIcon icon = wxICON(cr3);
     SetIcon( icon );
-/*
-    INIT_TOOL_BMP(new);
-    INIT_TOOL_BMP(open);
-    INIT_TOOL_BMP(save);
-    INIT_TOOL_BMP(copy);
-    INIT_TOOL_BMP(cut);
-    INIT_TOOL_BMP(paste);
-    INIT_TOOL_BMP(print);
-    INIT_TOOL_BMP(help);
-    INIT_TOOL_BMP(zoomin);
-    INIT_TOOL_BMP(zoomout);
-    INIT_TOOL_BMP(north);
-    INIT_TOOL_BMP(south);
-    INIT_TOOL_BMP(west);
-    INIT_TOOL_BMP(east);
-*/
     wxBitmap fileopenBitmap = getIcon16x16(L"fileopen");
 
     int w = fileopenBitmap.GetWidth(),
         h = fileopenBitmap.GetHeight();
 
-/*
-    if ( !m_smallToolbar )
-    {
-        w *= 2;
-        h *= 2;
-
-        for ( size_t n = Tool_new; n < WXSIZEOF(toolBarBitmaps); n++ )
-        {
-            toolBarBitmaps[n] =
-                wxBitmap(toolBarBitmaps[n].ConvertToImage().Scale(w, h));
-        }
-    }
-*/
 
 
     toolBar->SetToolBitmapSize(wxSize(w, h));
@@ -455,6 +420,10 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
                      fileopenBitmap,//toolBarBitmaps[Tool_open], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Open file"), _T("This is help for open file tool"));
+    toolBar->AddTool(Menu_View_History, _T("History (F5)"),
+                     getIcon16x16(L"project_open"),//toolBarBitmaps[Tool_open], 
+                     wxNullBitmap, wxITEM_NORMAL,
+                     _T("Toggle recent books list"), _T("Toggle recent opened books list"));
 
     toolBar->AddTool(wxID_SAVE, _T("Save"), 
                      getIcon16x16(L"filesaveas"),//toolBarBitmaps[Tool_save], 
@@ -587,6 +556,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
             printf("cannot open document\n");
         }
         SetActiveMode( am_book );
+        UpdateToolbar();
     } else {
         SetActiveMode( am_history );
     }
@@ -664,6 +634,7 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
         Update();
         SetActiveMode( am_book );
         _view->LoadDocument( dlg.GetPath() );
+        UpdateToolbar();
     }
 
 }
@@ -697,7 +668,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-    wxMessageBox( wxT( "Cool Reader 3.0.4\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n")
+    wxMessageBox( wxT( "Cool Reader 3.0.5\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n")
     wxT("\nBased on CREngine library")
     wxT("\nThird party libraries used:")
     wxT("\nzlib, libpng, libjpeg, freetype2,")
@@ -732,5 +703,5 @@ cr3Frame::OnKeyDown(wxKeyEvent& event)
     if ( _activeMode==am_book )
         _view->OnKeyDown( event );
     else
-        _hist->ProcessEvent( event );
+        event.Skip();
 }

@@ -38,12 +38,17 @@ void HistList::SetRecords(LVPtrVector<CRFileHistRecord> & records )
         delete _records;
     _records = new LVPtrVector<CRFileHistRecord>( records );
     SetItemCount(_records->length());
-    SetColumnWidth(0, wxLIST_AUTOSIZE);
-    SetColumnWidth(1, wxLIST_AUTOSIZE);
-    SetColumnWidth(2, wxLIST_AUTOSIZE);
+    UpdateColumns();
     if ( GetItemCount()>0 ) {
         Select(0);
     }
+}
+
+void HistList::UpdateColumns()
+{
+    SetColumnWidth(0, wxLIST_AUTOSIZE);
+    SetColumnWidth(1, wxLIST_AUTOSIZE);
+    SetColumnWidth(2, wxLIST_AUTOSIZE);
 }
 
 bool HistList::Create(wxWindow* parent, wxWindowID id )
@@ -65,10 +70,7 @@ bool HistList::Create(wxWindow* parent, wxWindowID id )
     InsertColumn( 2, col1 );
     SetItemCount(20);
 
-    SetColumnWidth(0, wxLIST_AUTOSIZE);
-    SetColumnWidth(1, wxLIST_AUTOSIZE);
-    SetColumnWidth(2, wxLIST_AUTOSIZE);
-    SetColumnWidth(3, wxLIST_AUTOSIZE);
+    UpdateColumns();
 
     Update();
 
