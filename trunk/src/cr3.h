@@ -3,7 +3,7 @@
 #define _CR3_H_
 
 #include "view.h"
-//#include "hist.h"
+#include "histlist.h"
 
 /**
  * @short Application Main Window
@@ -23,7 +23,7 @@ class
 cr3scroll : public wxScrollBar
 {
 private:
-	cr3view * _view;
+	cr3view *  _view;
 public:
 	cr3scroll( cr3view * view )
 		: _view( view ) { }
@@ -32,13 +32,23 @@ private:
 	DECLARE_EVENT_TABLE()
 };
 
+enum active_mode_t {
+    am_none,
+    am_book,
+    am_history
+};
+
 class 
 cr3Frame : public wxFrame
 {
     private:
         bool _isFullscreen;
+        active_mode_t _activeMode;
 	public:
 		cr3Frame( const wxString& title, const wxPoint& p, const wxSize& sz, lString16 appDir );
+
+        void SetActiveMode( active_mode_t mode );
+
 		void OnQuit( wxCommandEvent& event );
 		void OnAbout( wxCommandEvent& event );
         void OnScroll( wxScrollEvent& event );
@@ -48,15 +58,18 @@ cr3Frame : public wxFrame
         void OnFileSave( wxCommandEvent& event );
         void OnCommand( wxCommandEvent& event );
         void OnShowTOC( wxCommandEvent& event );
+        void OnShowHistory( wxCommandEvent& event );
         void OnUpdateUI( wxUpdateUIEvent& event );
         void OnClose( wxCloseEvent& event );
-        void OnMouseWheel(wxMouseEvent& event);
-        void OnSize(wxSizeEvent& event);
-        void OnInitDialog(wxInitDialogEvent& event);
+        void OnMouseWheel( wxMouseEvent& event);
+        void OnSize( wxSizeEvent& event);
+        void OnInitDialog( wxInitDialogEvent& event);
+        void OnHistItemActivated( wxListEvent& event );
 
 	protected:
     	cr3scroll * _scrollBar;
 		cr3view * _view;
+    	HistList * _hist;
         wxBoxSizer * _sizer;
         lString16 _appDir;
 	private:
@@ -79,12 +92,14 @@ enum
     Menu_View_TogglePages,
     Menu_View_TogglePageHeader,
     Menu_View_TOC,
+    Menu_View_History,
 };
 
 enum
 {
 	Window_Id_Scrollbar = 1000,
-	Window_Id_View
+	Window_Id_View,
+    Window_Id_HistList
 };
 
 #endif // _CR3_H_

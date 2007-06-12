@@ -408,6 +408,7 @@ bool cr3view::LoadDocument( const wxString & fname )
 	//_docview->SetPos(0);
     lString16 title = (_docview->getAuthors() + L". " + _docview->getTitle());
     GetParent()->SetLabel( wxString( title.c_str() ) );
+    UpdateScrollBar();
     _firstRender = true;
     ScheduleRender();
     //_docview->restorePosition();

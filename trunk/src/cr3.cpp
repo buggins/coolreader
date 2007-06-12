@@ -17,6 +17,8 @@ BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
     EVT_MENU( wxID_OPEN, cr3Frame::OnFileOpen )
     EVT_MENU( wxID_SAVE, cr3Frame::OnFileSave )
     EVT_MENU( Menu_View_TOC, cr3Frame::OnShowTOC )
+    EVT_MENU( Menu_View_History, cr3Frame::OnShowHistory )
+    
 
     EVT_MENU_RANGE( 0, 0xFFFF, cr3Frame::OnCommand )
 //    EVT_UPDATE_UI_RANGE( 0, 0xFFFF, cr3Frame::OnUpdateUI )
@@ -24,6 +26,7 @@ BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
     EVT_CLOSE( cr3Frame::OnClose )
     EVT_MOUSEWHEEL( cr3Frame::OnMouseWheel )
     EVT_INIT_DIALOG( cr3Frame::OnInitDialog )
+    EVT_LIST_ITEM_ACTIVATED(Window_Id_HistList, OnHistItemActivated)
     //EVT_SIZE    ( cr3Frame::OnSize )
 END_EVENT_TABLE()
 
@@ -46,7 +49,6 @@ ResourceContainer * resources = NULL;
 
 void cr3Frame::OnUpdateUI( wxUpdateUIEvent& event )
 {
-
 }
 
 void cr3Frame::OnClose( wxCloseEvent& event )
@@ -55,6 +57,24 @@ void cr3Frame::OnClose( wxCloseEvent& event )
     Destroy();
 }
 
+
+void cr3Frame::OnHistItemActivated( wxListEvent& event )
+{
+    long index = event.GetIndex();
+    if ( index == 0 && _view->getDocView()->IsRendered()) {
+        SetActiveMode( am_book );
+        return;
+    }
+    if ( index>=0 && index<_view->getDocView()->getHistory()->getRecords().length() ) {
+        lString16 pathname = _view->getDocView()->getHistory()->getRecords()[index]->getFilePath() + 
+            _view->getDocView()->getHistory()->getRecords()[index]->getFileName();
+        if ( !pathname.empty() ) {
+            Update();
+            SetActiveMode( am_book );
+            _view->LoadDocument( wxString( pathname.c_str()) );
+        }
+    }
+}
 
 void cr3Frame::OnCommand( wxCommandEvent& event )
 {
@@ -262,6 +282,47 @@ cr3app::OnInit()
     return TRUE;
 } 
 
+void cr3Frame::SetActiveMode( active_mode_t mode )
+{
+    if ( mode==_activeMode )
+        return;
+    switch (mode) {
+    case am_book:
+        {
+            _sizer->Show(_view, true);
+            _sizer->Show(_scrollBar, true);
+            _sizer->Show(_hist, false);
+            _sizer->Layout();
+            //_hist->Show(false);
+            //SetSizer( _sizer, false );
+            //_view->Show(true);
+            //_scrollBar->Show(true);
+            _view->SetFocus();
+        }
+        break;
+    case am_history:
+        {
+            _sizer->Show(_view, false);
+            _sizer->Show(_scrollBar, false);
+            _sizer->Show(_hist, true);
+            _sizer->Layout();
+
+            //_histsizer->Show();
+            //_sizer->Hide();
+            //_view->Show(false);
+            //_scrollBar->Show(false);
+            //SetSizer( _histsizer, false );
+            //_hist->Show(true);
+            //_histsizer->Layout();
+            _view->getDocView()->savePosition();
+            _hist->SetRecords(_view->getDocView()->getHistory()->getRecords());
+            _hist->SetFocus();
+        }
+        break;
+    }
+    _activeMode = mode;
+}
+
 void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 {
     _scrollBar = new cr3scroll(_view);
@@ -269,6 +330,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     _view->SetScrollBar( _scrollBar );
     _view->Create(this, Window_Id_View,
         wxDefaultPosition, wxDefaultSize, 0, wxT("cr3view"));
+    _hist->Create(this, Window_Id_HistList);
 
     _scrollBar->Create(this, Window_Id_Scrollbar,
         wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL);
@@ -286,6 +348,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     wxMenu *menuView = new wxMenu;
 
     menuView->Append( Menu_View_TOC, wxT( "Table of Contents\tF5" ) );
+    menuView->Append( Menu_View_History, wxT( "Recent Books\tF4" ) );
     menuView->AppendSeparator();
     menuView->Append( Menu_View_ZoomIn, wxT( "Zoom In" ) );
     menuView->Append( Menu_View_ZoomOut, wxT( "Zoom Out" ) );
@@ -441,6 +504,8 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     // the changes
     toolBar->Realize();
 
+    //_histsizer = new wxBoxSizer( wxHORIZONTAL );
+
     _sizer = new wxBoxSizer( wxHORIZONTAL );
     _sizer->Add( _view,
         1,
@@ -450,10 +515,15 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         0,
         wxALIGN_RIGHT | wxEXPAND,
         0);
+    _sizer->Add( _hist,
+        1,
+        wxALL | wxEXPAND,
+        0);
+
     SetSizer( _sizer );
 
     _view->SetBackgroundColour( _view->getBackgroundColour() );
-    _scrollBar->Show( true );
+    //_scrollBar->Show( true );
     SetBackgroundColour( _view->getBackgroundColour() );
 
     // stylesheet can be placed to file fb2.css
@@ -496,11 +566,12 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_NORMAL,  WXK_END,       Menu_View_End);
     entries[a++].Set(wxACCEL_ALT,     WXK_RETURN,     Menu_View_ToggleFullScreen);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F5,      Menu_View_TOC);
+    entries[a++].Set(wxACCEL_NORMAL,  WXK_F4,      Menu_View_History);
     wxAcceleratorTable accel(a, entries);
     SetAcceleratorTable(accel);
     //_view->SetAcceleratorTable(accel);
 
-    _view->SetFocus();
+
 
     //toolBar->SetRows(!(toolBar->IsVertical()) ? m_rows : 10 / m_rows);
     int argc = wxGetApp().argc;
@@ -508,18 +579,21 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     if ( argc>1 ) {
         fnameToOpen = lString16( wxGetApp().argv[1] );
     } else {
-        fnameToOpen = _view->GetLastRecentFileName();
+        //fnameToOpen = _view->GetLastRecentFileName();
     }
     if ( !fnameToOpen.empty() ) {
         if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
         {
             printf("cannot open document\n");
         }
+        SetActiveMode( am_book );
+    } else {
+        SetActiveMode( am_history );
     }
 }
 
 cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& size, lString16 appDir )
-    : wxFrame((wxFrame *)NULL, -1, title, pos, size)
+    : wxFrame((wxFrame *)NULL, -1, title, pos, size), _activeMode(am_none)
 {
     //wxStandardPaths::GetUserDataDir();
 
@@ -528,6 +602,8 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
     _isFullscreen = false;
 
     _view = new cr3view();
+    _hist = new HistList();
+
 
     InitDialog();
 }
@@ -536,6 +612,19 @@ void
 cr3Frame::OnQuit( wxCommandEvent& WXUNUSED( event ) )
 {
     Close(TRUE);
+}
+
+void
+cr3Frame::OnShowHistory( wxCommandEvent& event )
+{
+    switch ( _activeMode ) {
+    case am_book:
+        SetActiveMode( am_history );
+        break;
+    case am_history:
+        SetActiveMode( am_book );
+        break;
+    }
 }
 
 void
@@ -573,6 +662,7 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
     if ( dlg.ShowModal() == wxID_OK ) {
         //
         Update();
+        SetActiveMode( am_book );
         _view->LoadDocument( dlg.GetPath() );
     }
 
@@ -639,5 +729,8 @@ void cr3view::OnSetFocus( wxFocusEvent& event )
 void
 cr3Frame::OnKeyDown(wxKeyEvent& event)
 {
-    _view->OnKeyDown( event );
+    if ( _activeMode==am_book )
+        _view->OnKeyDown( event );
+    else
+        _hist->ProcessEvent( event );
 }
