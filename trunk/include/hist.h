@@ -88,6 +88,7 @@ private:
     CRBookmark _lastpos;
 public:
     time_t getLastTime() { return _lastpos.getTimestamp(); }
+    lString16 getLastTimeString( bool longFormat=false );
     void setLastTime( time_t t ) { _lastpos.setTimestamp(t); }
     LVPtrVector<CRBookmark>  & getBookmarks() { return _bookmarks; }
     CRBookmark * getLastPos() { return &_lastpos; }
@@ -107,6 +108,17 @@ public:
     void setFileSize( lvsize_t sz ) { _size = sz; }
     CRFileHistRecord()
         : _size(0)
+    {
+    }
+    CRFileHistRecord( const CRFileHistRecord & v)
+        : _fname(v._fname)
+        , _fpath(v._fpath)
+        , _title(v._title)
+        , _author(v._author)
+        , _series(v._series)
+        , _size(v._size)
+        , _bookmarks(v._bookmarks)
+        , _lastpos(v._lastpos)
     {
     }
     ~CRFileHistRecord()

@@ -128,6 +128,16 @@ public:
         _list[pos] = item;
         _count++;
     }
+    /// copy constructor
+    LVPtrVector( const LVPtrVector & v )
+        : _list(NULL), _size(0), _count(0)
+    {
+        if ( v._count>0 ) {
+            reserve( v._count );
+            for ( int i=0; i<v._count; i++ )
+                add( new T(*v[i]) );
+        }
+    }
     /// destructor
     ~LVPtrVector() { clear(); }
 };
