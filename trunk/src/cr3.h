@@ -58,6 +58,7 @@ cr3Frame : public wxFrame
         void OnFileOpen( wxCommandEvent& event );
         void OnFileSave( wxCommandEvent& event );
         void OnCommand( wxCommandEvent& event );
+        void OnShowOptions( wxCommandEvent& event );
         void OnShowTOC( wxCommandEvent& event );
         void OnShowHistory( wxCommandEvent& event );
         void OnUpdateUI( wxUpdateUIEvent& event );
@@ -81,6 +82,7 @@ enum
 {
 	Menu_File_Quit = 100,
 	Menu_File_About,
+	Menu_File_Options,
     Menu_View_ZoomIn,
     Menu_View_ZoomOut,
     Menu_View_NextPage,
@@ -100,7 +102,8 @@ enum
 {
 	Window_Id_Scrollbar = 1000,
 	Window_Id_View,
-    Window_Id_HistList
+    Window_Id_HistList,
+	Window_Id_Options,
 };
 
 #endif // _CR3_H_

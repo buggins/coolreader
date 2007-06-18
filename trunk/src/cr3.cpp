@@ -7,6 +7,7 @@
 #include "cr3.h"
 #include "wolopt.h"
 #include "toc.h"
+#include "optdlg.h"
 #include "rescont.h"
 #include "cr3.xpm"
 
@@ -17,6 +18,7 @@ BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
     EVT_MENU( wxID_OPEN, cr3Frame::OnFileOpen )
     EVT_MENU( wxID_SAVE, cr3Frame::OnFileSave )
     EVT_MENU( Menu_View_TOC, cr3Frame::OnShowTOC )
+    EVT_MENU( Menu_File_Options, cr3Frame::OnShowOptions )
     EVT_MENU( Menu_View_History, cr3Frame::OnShowHistory )
     
 
@@ -359,6 +361,8 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     menuFile->Append( Menu_View_History, wxT( "Recent books list\tF4" ) );
     menuFile->Append( wxID_SAVE, wxT( "&Save...\tCtrl+S" ) );
     menuFile->AppendSeparator();
+    menuFile->Append( Menu_File_Options, wxT( "&Options...\tF9" ) );
+    menuFile->AppendSeparator();
     menuFile->Append( Menu_File_About, wxT( "&About...\tF1" ) );
     menuFile->AppendSeparator();
     menuFile->Append( Menu_File_Quit, wxT( "E&xit\tAlt+X" ) );
@@ -464,6 +468,12 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
                      _T("Next page"), _T("Go to next page"));
 
     toolBar->AddSeparator();
+    menuFile->Append( Menu_File_Options, wxT( "&Options...\tF9" ) );
+    toolBar->AddTool(Menu_File_Options, _T("Options"), //wxID_HELP
+                     getIcon16x16(L"configure"),//toolBarBitmaps[Tool_help], 
+                     wxNullBitmap, wxITEM_NORMAL,
+                     _T("Options (F9)"), _T("Options (F9)"));
+    toolBar->AddSeparator();
     toolBar->AddTool(Menu_File_About, _T("Help"), //wxID_HELP
                      getIcon16x16(L"help"),//toolBarBitmaps[Tool_help], 
                      wxNullBitmap, wxITEM_NORMAL,
@@ -509,7 +519,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     _view->UpdateScrollBar();
     _view->Show( true );
 
-    wxAcceleratorEntry entries[30];
+    wxAcceleratorEntry entries[40];
     int a=0;
     entries[a++].Set(wxACCEL_CTRL,  (int) 'O',     wxID_OPEN);
     entries[a++].Set(wxACCEL_CTRL,  (int) 'S',     wxID_SAVE);
@@ -536,6 +546,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_ALT,     WXK_RETURN,     Menu_View_ToggleFullScreen);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F5,      Menu_View_TOC);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F4,      Menu_View_History);
+    entries[a++].Set(wxACCEL_NORMAL,  WXK_F9,      Menu_File_Options);
     wxAcceleratorTable accel(a, entries);
     SetAcceleratorTable(accel);
     //_view->SetAcceleratorTable(accel);
@@ -594,6 +605,16 @@ cr3Frame::OnShowHistory( wxCommandEvent& event )
     case am_history:
         SetActiveMode( am_book );
         break;
+    }
+}
+
+void
+cr3Frame::OnShowOptions( wxCommandEvent& event )
+{
+    CR3OptionsDialog dlg;
+    dlg.Create( this, Window_Id_Options );
+    if ( dlg.ShowModal() == wxID_OK ) {
+        // set options
     }
 }
 

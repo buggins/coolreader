@@ -161,6 +161,10 @@ SOURCE=.\histlist.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\optdlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
@@ -187,6 +191,10 @@ SOURCE=.\cr3.h
 # Begin Source File
 
 SOURCE=.\histlist.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\optdlg.h
 # End Source File
 # Begin Source File
 
