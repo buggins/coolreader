@@ -50,7 +50,7 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_cr3_OBJECTS = cr3.$(OBJEXT) view.$(OBJEXT) wolopt.$(OBJEXT) \
+am_cr3_OBJECTS = cr3.$(OBJEXT) view.$(OBJEXT) wolopt.$(OBJEXT) optdlg.$(OBJEXT) histlist.$(OBJEXT) \
 	toc.$(OBJEXT)
 cr3_OBJECTS = $(am_cr3_OBJECTS)
 cr3_LDADD = $(LDADD)

@@ -1,6 +1,14 @@
 #include <wx/wx.h>
 #include <wx/mstream.h>
 
+
+#pragma pack( push, 1 )
+extern "C" {
+    #include <jpeglib.h>
+    #include <jerror.h>
+}
+#pragma pack( pop )
+
 //#define USE_FREETYPE 1
 
 #include <crengine.h>
@@ -10,6 +18,7 @@
 #include "optdlg.h"
 #include "rescont.h"
 #include "cr3.xpm"
+
 
 
 BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
@@ -28,7 +37,7 @@ BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
     EVT_CLOSE( cr3Frame::OnClose )
     EVT_MOUSEWHEEL( cr3Frame::OnMouseWheel )
     EVT_INIT_DIALOG( cr3Frame::OnInitDialog )
-    EVT_LIST_ITEM_ACTIVATED(Window_Id_HistList, OnHistItemActivated)
+    EVT_LIST_ITEM_ACTIVATED(Window_Id_HistList, cr3Frame::OnHistItemActivated)
     //EVT_SIZE    ( cr3Frame::OnSize )
 END_EVENT_TABLE()
 
@@ -337,6 +346,8 @@ void cr3Frame::SetActiveMode( active_mode_t mode )
             _hist->SetFocus();
         }
         break;
+    default:
+        break;
     }
     _activeMode = mode;
     UpdateToolbar();
@@ -605,6 +616,8 @@ cr3Frame::OnShowHistory( wxCommandEvent& event )
     case am_history:
         SetActiveMode( am_book );
         break;
+    default:
+	break;
     }
 }
 
