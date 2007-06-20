@@ -369,6 +369,8 @@ public:
 
     lString16 & trim();
     int atoi() const;
+    bool atoi( int &n ) const;
+    bool atoi( lInt64 &n ) const;
 
     const value_type * c_str() const { return pchunk->buf16; }
     const value_type * data() const { return pchunk->buf16; }
@@ -381,6 +383,10 @@ public:
     static lString16 itoa( int i );
     /// constructs string representation of unsigned integer
     static lString16 itoa( unsigned int i );
+    /// constructs string representation of 64 bit integer
+    static lString16 itoa( lInt64 i );
+    /// constructs string representation of unsigned 64 bit integer
+    static lString16 itoa( lUInt64 i );
 
     static const lString16 empty_str;
 

@@ -147,6 +147,7 @@
 #include "lvdocview.h"
 #include "lvstsheet.h"
 #include "lvdrawbuf.h"
+#include "props.h"
 #include "w32utils.h"
 
 

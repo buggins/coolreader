@@ -170,6 +170,7 @@ srcs	 =	\
 		lvtinydom \
 		lvxml \
 		hist \
+		props \
 		wolutil \
 
 ifndef LBOOK

@@ -798,8 +798,14 @@ lString16 & lString16::trim()
 
 int lString16::atoi() const
 {
-    int sgn = 1;
     int n = 0;
+    atoi(n);
+    return n;
+}
+
+bool lString16::atoi( int &n ) const
+{
+    int sgn = 1;
     const lChar16 * s = c_str();
     while (*s == ' ' || *s == '\t')
         s++;
@@ -812,11 +818,41 @@ int lString16::atoi() const
     {
         s++;
     }
+    if ( !(*s>='0' && *s<='9') )
+        return false;
     while (*s>='0' && *s<='9')
     {
         n = n * 10 + ( (*s++)-'0' );
     }
-    return (sgn>0)?n:-n;
+    if ( sgn<0 )
+        n = -n;
+    return *s=='\0' || *s==' ' || *s=='\t';
+}
+
+bool lString16::atoi( lInt64 &n ) const
+{
+    int sgn = 1;
+    const lChar16 * s = c_str();
+    while (*s == ' ' || *s == '\t')
+        s++;
+    if (*s == '-')
+    {
+        sgn = -1;
+        s++;
+    }
+    else if (*s == '+')
+    {
+        s++;
+    }
+    if ( !(*s>='0' && *s<='9') )
+        return false;
+    while (*s>='0' && *s<='9')
+    {
+        n = n * 10 + ( (*s++)-'0' );
+    }
+    if ( sgn<0 )
+        n = -n;
+    return *s=='\0' || *s==' ' || *s=='\t';
 }
 
 #define STRING_HASH_MULT 75317
@@ -1580,6 +1616,12 @@ lString8 lString8::itoa( unsigned int n )
 // constructs string representation of integer
 lString16 lString16::itoa( int n )
 {
+    return itoa( (lInt64)n );
+}
+
+// constructs string representation of integer
+lString16 lString16::itoa( lInt64 n )
+{
     lChar16 buf[16];
     int i=0;
     int negative = 0;
@@ -1605,6 +1647,12 @@ lString16 lString16::itoa( int n )
 
 // constructs string representation of integer
 lString16 lString16::itoa( unsigned int n )
+{
+    return itoa( (lUInt64) n );
+}
+
+// constructs string representation of integer
+lString16 lString16::itoa( lUInt64 n )
 {
     lChar16 buf[16];
     int i=0;
