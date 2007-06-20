@@ -173,6 +173,31 @@ wxBitmap getIcon16x16( const lChar16 * name )
 bool 
 cr3app::OnInit()
 {
+    // test property container unit test
+    {
+        CRPropRef props = LVCreatePropsContainer();
+        props->setString("test.string.values.1", lString16("string value 1"));
+        props->setString("test.string.values.2", lString16("string value 2 with extra chars(\\\r\n)"));
+        props->setBool("test.string.boolean1", true);
+        props->setBool("test.string.boolean2", false);
+        props->setString("test.string.more_values.2", lString16("string more values (2)"));
+        props->setString("test.string.values.22", lString16("string value 22"));
+        props->setInt("test.int.value1", 1 );
+        props->setInt("test.int.value2", -2 );
+        props->setInt("test.int.value3", 3 );
+        props->setInt("test.int.value4", 4 );
+        props->setInt64("test.int.big-value1", -42387267 );
+        CRPropRef sub = props->getSubProps("test.string.");
+        props->setString("test.results.values.1", sub->getStringDef("values.2"));
+        props->setInt("test.results.str-items", sub->getCount());
+        props->setString("test.results.item1-value", sub->getValue(1));
+        props->setString("test.results.item2-name", Utf8ToUnicode(lString8(sub->getName(2))));
+        props->setBool("test.results.compare-chars-eq", sub->getStringDef("values.2")==lString16("string value 2 with extra chars(\\\r\n)") );
+        LVStreamRef stream = LVOpenFileStream( "props1.ini", LVOM_WRITE );
+        props->saveToStream( stream.get() );
+    }
+
+
     wxImage::AddHandler(new wxPNGHandler);
     resources = new ResourceContainer();
 

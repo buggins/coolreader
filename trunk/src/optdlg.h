@@ -15,8 +15,16 @@ enum {
     ID_OPTIONS_PAGE_TITLE,
 };
 
+class OptPanel : public wxPanel {
+protected:
+    wxStaticBoxSizer * _sizer;
+public:
+    OptPanel();
+    void Create( wxWindow * parent, wxWindowID id, wxString title );
+    virtual void CreateControls() = 0;
+};
 
-class OptWindow : public wxPanel {
+class OptWindow : public OptPanel {
 private:
     wxPanel * _panel;
     wxCheckBox * _cb_menu;
@@ -25,45 +33,9 @@ private:
 public:
     OptWindow( wxWindow * parent )
     {
-        wxPanel::Create( parent, ID_OPTIONS_WINDOW  );
-        _panel = new wxPanel(this, wxID_ANY, 
-            wxDefaultPosition, 
-            wxDefaultSize,
-            wxTAB_TRAVERSAL | wxSUNKEN_BORDER);
-        wxBoxSizer * border_sizer = new wxBoxSizer( wxVERTICAL );
-        border_sizer->Add(
-            _panel,
-            1,
-            wxALIGN_LEFT | wxALL,
-            16); // no border and centre horizontally
-        wxBoxSizer * sizer = new wxBoxSizer( wxVERTICAL );
-        _cb_menu = new wxCheckBox( _panel, ID_OPTIONS_WINDOW_MENU, wxT("Show menu") );
-        _cb_toolbar = new wxCheckBox( _panel, ID_OPTIONS_WINDOW_TOOLBAR, wxT("Show toolbar") );
-        _cb_statusbar = new wxCheckBox( _panel, ID_OPTIONS_WINDOW_STATUSBAR, wxT("Show statusbar") );
-        sizer->Add(
-            new wxStaticText( _panel, ID_OPTIONS_PAGE_TITLE, wxT("Window options")),
-            0,                // make vertically unstretchable
-            wxALIGN_LEFT | wxALL,
-            8); // no border and centre horizontally
-        sizer->Add(
-            _cb_menu,
-            0,                // make vertically unstretchable
-            wxALIGN_LEFT | wxALL,
-            8); // no border and centre horizontally
-        sizer->Add(
-            _cb_toolbar,
-            0,                // make vertically unstretchable
-            wxALIGN_LEFT | wxALL,
-            8); // no border and centre horizontally
-        sizer->Add(
-            _cb_statusbar,
-            0,                // make vertically unstretchable
-            wxALIGN_LEFT | wxALL,
-            8); // no border and centre horizontally
-        _panel->SetSizer( sizer );
-        SetSizer( border_sizer );
-        InitDialog();
+         OptPanel::Create( parent, ID_OPTIONS_WINDOW, wxT("Window options") ); 
     }
+    virtual void CreateControls();
     ~OptWindow() { }
 };
 
