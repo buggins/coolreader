@@ -494,8 +494,6 @@ void cr3Frame::SetToolbarSize( int size )
         }
     }
 
-    wxIcon icon = wxICON(cr3);
-    SetIcon( icon );
     wxBitmap fileopenBitmap = getIcon16x16(L"fileopen");
 
     int w = fileopenBitmap.GetWidth(),
@@ -584,6 +582,9 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     _scrollBar->Create(this, Window_Id_Scrollbar,
         wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL);
 
+
+    //wxIcon icon = wxICON(cr3);
+    //SetIcon( icon );
 
     //SetMenu( true );
 
@@ -848,12 +849,13 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
     wxFileDialog dlg( this, wxT( "Choose a file to open" ), 
         wxT( "" ),
         wxT( "" ),//const wxString& defaultFile = "", 
-        wxT("All supported files|*.fb2;*.zip|FictionBook files (*.fb2)|*.fb2|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
+        wxT("All supported files|*.fb2;*.txt;*.zip|FictionBook files (*.fb2)|*.fb2|Text files (*.txt)|*.txt|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
         wxFD_OPEN | wxFD_FILE_MUST_EXIST //long style = wxFD_DEFAULT_STYLE, 
         //const wxPoint& pos = wxDefaultPosition, 
         //const wxSize& sz = wxDefaultSize, 
         //const wxString& name = "filedlg"
     );
+
     if ( dlg.ShowModal() == wxID_OK ) {
         //
         Update();
