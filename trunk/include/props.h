@@ -36,31 +36,58 @@ public:
     virtual const lString16 & getValue( int index ) const = 0;
     /// sets property value by index
     virtual void setValue( int index, const lString16 &value ) = 0;
+
     /// get string property by name, returns false if not found
     virtual bool getString( const char * propName, lString16 &result ) const = 0;
     /// get string property by name, returns default value if not found
     virtual lString16 getStringDef( const char * propName, const char * defValue = NULL ) const;
     /// set string property by name
     virtual void setString( const char * propName, const lString16 &value ) = 0;
+    
     /// get int property by name, returns false if not found
     virtual bool getInt( const char * propName, int &result ) const;
     /// get int property by name, returns default value if not found
     virtual int getIntDef( const char * propName, int defValue=0 ) const;
     /// set int property by name
     virtual void setInt( const char * propName, int value );
+    
     /// get bool property by name, returns false if not found
     virtual bool getBool( const char * propName, bool &result ) const;
     /// get bool property by name, returns default value if not found
     virtual bool getBoolDef( const char * propName, bool defValue=false ) const;
     /// set bool property by name
     virtual void setBool( const char * propName, bool value );
+    
     /// get lInt64 property by name, returns false if not found
     virtual bool getInt64( const char * propName, lInt64 &result ) const;
     /// get lInt64 property by name, returns default value if not found
     virtual lInt64 getInt64Def( const char * propName, lInt64 defValue=0 ) const;
-    /// set int property by name
+    /// set lInt64 property by name
     virtual void setInt64( const char * propName, lInt64 value );
-    /// get subpath container
+
+    /// get argb color (#xxxxxx) property by name, returns false if not found
+    virtual bool getColor( const char * propName, lUInt32 &result ) const;
+    /// get argb color (#xxxxxx) property by name, returns default value if not found
+    virtual lUInt32 getColorDef( const char * propName, lUInt32 defValue=0 ) const;
+    /// set argb color (#xxxxxx) property by name
+    virtual void setColor( const char * propName, lUInt32 value );
+
+    /// get rect property by name, returns false if not found
+    virtual bool getRect( const char * propName, lvRect &result ) const;
+    /// get rect property by name, returns default value if not found
+    virtual lvRect getRectDef( const char * propName, const lvRect & defValue ) const;
+    /// set rect property by name
+    virtual void setRect( const char * propName, const lvRect & value );
+
+    /// get point property by name, returns false if not found
+    virtual bool getPoint( const char * propName, lvPoint &result ) const;
+    /// get point property by name, returns default value if not found
+    virtual lvPoint getPointDef( const char * propName, const lvPoint & defValue ) const;
+    /// set point property by name
+    virtual void setPoint( const char * propName, const lvPoint & value );
+
+
+    /// get subpath container (only items with names started with path)
     virtual CRPropRef getSubProps( const char * path ) = 0;
     /// read from stream
     virtual bool loadFromStream( LVStream * stream );

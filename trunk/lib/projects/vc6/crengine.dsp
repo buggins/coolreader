@@ -223,6 +223,10 @@ SOURCE=..\..\..\src\lvxml.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\props.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\w32utils.cpp
 # End Source File
 # Begin Source File
@@ -364,6 +368,10 @@ SOURCE=..\..\..\include\lvtypes.h
 # Begin Source File
 
 SOURCE=..\..\..\include\lvxml.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\props.h
 # End Source File
 # Begin Source File
 

@@ -376,7 +376,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         for (int i=1; i<pages.length(); i++)
         {
 			LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
-			drawPageTo( &drawbuf, *pages[i] );
+			drawPageTo( &drawbuf, *pages[i], NULL, pages.length() );
             if (!flgGray)
                 drawbuf.ConvertToBitmap(false);
             else
@@ -603,7 +603,7 @@ int LVDocView::getPosPercent()
 }
 
 /// draw page header to buffer
-void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, int pageIndex, int phi )
+void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, int pageIndex, int phi, int pageCount )
 {
     bool drawGauge = true;
     lvRect info = headerRc;
@@ -657,10 +657,12 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         info.right = brc.left - info.height()/2;
     }
     lString16 pageinfo;
-    if ( phi & PGHDR_PAGE_NUMBER )
-        pageinfo += lString16::itoa( pageIndex+1 );
-    if ( phi & PGHDR_PAGE_COUNT )
-        pageinfo += L" / " + lString16::itoa( getPageCount() );
+    if ( pageCount>0 ) {
+        if ( phi & PGHDR_PAGE_NUMBER )
+            pageinfo += lString16::itoa( pageIndex+1 );
+        if ( phi & PGHDR_PAGE_COUNT )
+            pageinfo += L" / " + lString16::itoa( pageCount );
+    }
     int piw = 0;
     if ( !pageinfo.empty() ) {
         piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
@@ -718,7 +720,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     drawbuf->SetTextColor(getTextColor());
 }
 
-void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * pageRect )
+void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount )
 {
     int start = page.start;
     int height = page.height;
@@ -755,7 +757,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         }
         lvRect info;
         getPageHeaderRectangle( page.index, *pageRect, info );
-        drawPageHeader( drawbuf, info, page.index, phi );
+        drawPageHeader( drawbuf, info, page.index-1, phi, pageCount-1 );
     }
     drawbuf->SetClipRect(&clip);
     if ( m_doc ) {
@@ -833,9 +835,9 @@ void LVDocView::Draw()
         int pc = getVisiblePageCount();
         int page = m_pages.FindNearestPage(m_pos, 0);
 		if ( page>=0 && page<m_pages.length() )
-			drawPageTo( &m_drawbuf, *m_pages[page], &m_pageRects[0] );
+			drawPageTo( &m_drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length() );
         if ( pc==2 && page>=0 && page+1<m_pages.length() )
-            drawPageTo( &m_drawbuf, *m_pages[page + 1], &m_pageRects[1] );
+            drawPageTo( &m_drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length() );
     }
 }
 
@@ -1336,8 +1338,10 @@ void LVDocView::updateScroll()
         m_scrollinfo.maxpos = m_pages.length()-1;
         m_scrollinfo.pagesize = 1;
         m_scrollinfo.scale = 0;
-        char str[32];
-        sprintf(str, "%d / %d", page+1, m_pages.length() );
+        char str[32] = {0};
+        if ( m_pages.length()>1 ) {
+            sprintf(str, "%d / %d", page, m_pages.length()-1 );
+        }
         m_scrollinfo.posText = lString16( str );
     }
 }

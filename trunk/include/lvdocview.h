@@ -212,7 +212,7 @@ public:
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, const lvRect & pageRc, lvRect & headerRc );
     /// draw page header to buffer
-    virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags );
+    virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags, int pageCount );
     /// draw battery state to buffer
     virtual void drawBatteryState( LVDrawBuf * drawBuf, const lvRect & rc );
 
@@ -260,7 +260,7 @@ public:
     bool exportWolFile( LVStream * stream, bool flgGray, int levels );
 
     /// draws page to image buffer
-    void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page, lvRect * pageRect=NULL);
+    void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount);
     /// draws coverpage to image buffer
     void drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc );
     /// returns cover page image source, if any

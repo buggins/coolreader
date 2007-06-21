@@ -1634,7 +1634,7 @@ lString16 lString16::itoa( lInt64 n )
     }
     for ( ; n; n/=10 )
     {
-        buf[i++] = '0' + (n%10);
+        buf[i++] = (lChar16)('0' + (n%10));
     }
     lString16 res;
     res.reserve(i+negative);
@@ -1660,7 +1660,7 @@ lString16 lString16::itoa( lUInt64 n )
         return lString16("0");
     for ( ; n; n/=10 )
     {
-        buf[i++] = '0' + (n%10);
+        buf[i++] = (lChar16)('0' + (n%10));
     }
     lString16 res;
     res.reserve(i);
