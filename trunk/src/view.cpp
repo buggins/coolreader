@@ -216,6 +216,8 @@ void cr3view::OnMouseRDown( wxMouseEvent & event )
     pm.Append( Menu_View_History, wxT( "Recent books list\tF4" ) );
     pm.Append( wxID_SAVE, wxT( "&Save...\tCtrl+S" ) );
     pm.AppendSeparator();
+    pm.Append( Menu_File_Options, wxT( "Options...\tF9" ) );
+    pm.AppendSeparator();
     pm.Append( Menu_View_TOC, wxT( "Table of Contents\tF5" ) );
     pm.Append( Menu_File_About, wxT( "&About...\tF1" ) );
     pm.AppendSeparator();

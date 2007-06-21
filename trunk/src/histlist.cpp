@@ -49,6 +49,7 @@ void HistList::UpdateColumns()
     SetColumnWidth(0, wxLIST_AUTOSIZE);
     SetColumnWidth(1, wxLIST_AUTOSIZE);
     SetColumnWidth(2, wxLIST_AUTOSIZE);
+    Layout();
 }
 
 bool HistList::Create(wxWindow* parent, wxWindowID id )
