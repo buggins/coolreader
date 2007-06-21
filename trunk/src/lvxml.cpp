@@ -120,8 +120,7 @@ bool LVTextFileBase::AutodetectEncoding()
 
     int res = AutodetectCodePage( buf, sz, enc_name, lang_name );
     m_lang_name = lString16( lang_name );
-    m_encoding_name = lString16( enc_name );
-    SetCharset( m_encoding_name.c_str() );
+    SetCharset( lString16( enc_name ).c_str() );
 
     // restore state
     delete buf;
@@ -300,12 +299,12 @@ public:
                 if ( *s == '\t' ) {
                     p = (p + 8)%8;
                 } else {
-                    p++;
                     if ( *s != ' ' ) {
-                        if ( lpos==0 )
+                        if ( rpos==0 )
                             lpos = p;
                         rpos = p + 1;
                     }
+                    p++;
                 }
             }
         }
@@ -391,21 +390,26 @@ public:
                 callback->OnAttribute( NULL, L"number", seriesNumber.c_str() );
             callback->OnTagClose( NULL, L"sequence" );
         }
+        return true;
     }
     bool DoTextImport(LVXMLParserCallback * callback)
     {
-        for ( int i=0; i<length(); i++ ) {
-            LVTextFileLine * item = get(i);
-            lString16 txt = item->text;
-            if ( !txt.empty() ) {
-                callback->OnTagOpen( NULL, L"p" );
-                   callback->OnText( txt.c_str(), txt.length(), item->fpos, item->fsize, item->flags );
-                callback->OnTagClose( NULL, L"p" );
-            } else {
-                callback->OnTagOpen( NULL, L"empty-line" );
-                callback->OnTagClose( NULL, L"empty-line" );
+        do {
+            for ( int i=0; i<length(); i++ ) {
+                LVTextFileLine * item = get(i);
+                lString16 txt = item->text;
+                if ( !txt.empty() ) {
+                    callback->OnTagOpen( NULL, L"p" );
+                       callback->OnText( txt.c_str(), txt.length(), item->fpos, item->fsize, item->flags );
+                    callback->OnTagClose( NULL, L"p" );
+                } else {
+                    callback->OnTagOpen( NULL, L"empty-line" );
+                    callback->OnTagClose( NULL, L"empty-line" );
+                }
             }
-        }
+            RemoveLines( length() );
+        } while ( ReadLines( 100 ) );
+        return true;
     }
 };
 
@@ -423,7 +427,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
     lvpos_t last_space_fpos = 0;
     int last_space_chpos = -1; 
     lChar16 ch = 0;
-    while ( res.length()<maxLineSize ) {
+    while ( res.length()<(unsigned)maxLineSize ) {
         if ( Eof() ) {
             // EOF: treat as EOLN
             last_space_fpos = m_buf_fpos + m_buf_pos;
@@ -464,7 +468,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
 
     m_buf_pos = (last_space_fpos - m_buf_fpos); // rollback to end of line
     fsize = last_space_fpos - fpos; // length in bytes
-    if ( last_space_chpos>res.length() ) {
+    if ( (unsigned)last_space_chpos>res.length() ) {
         res.erase( last_space_chpos, res.length()-last_space_chpos );
     }
 
@@ -498,7 +502,7 @@ bool LVTextParser::CheckFormat()
     Reset();
     lChar16 * chbuf = new lChar16[TEXT_PARSER_DETECT_SIZE];
     FillBuffer( TEXT_PARSER_DETECT_SIZE );
-    int charsDecoded = ReadTextBytes( 0, TEXT_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_pos-m_buf_len );
+    int charsDecoded = ReadTextBytes( 0, TEXT_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_len-m_buf_pos );
     bool res = false;
     if ( charsDecoded > 100 ) {
         int illegal_char_count = 0;
@@ -518,6 +522,7 @@ bool LVTextParser::CheckFormat()
                 case 12:
                 //case 9:
                 case 8:
+                case 7:
                     break;
                 default:
                     illegal_char_count++;
@@ -553,6 +558,7 @@ bool LVTextParser::Parse()
       m_callback->OnTagOpen( NULL, L"body" );
         m_callback->OnTagOpen( NULL, L"section" );
           // process text
+          queue.DoTextImport( m_callback );
         m_callback->OnTagClose( NULL, L"section" );
       m_callback->OnTagClose( NULL, L"body" );
     m_callback->OnTagClose( NULL, L"FictionBook" );

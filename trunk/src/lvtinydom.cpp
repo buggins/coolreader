@@ -1388,6 +1388,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
 {
     //
     ldomXPointer ptr;
+    if ( !getMainNode() )
+        return ptr;
     ldomElement * finalNode = getMainNode()->elementFromPoint( pt );
     if ( !finalNode )
         return ptr;

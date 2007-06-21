@@ -290,6 +290,7 @@ static struct {
     {"windows-850", __cp850},
     {"cp850", __cp850},
     {"koi-8r", __koi8r},
+    {"koi8r", __koi8r},
     {NULL, NULL}
 };
  
