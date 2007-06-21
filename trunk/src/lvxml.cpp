@@ -19,6 +19,11 @@
 #define CP_AUTODETECT_BUF_SIZE 0x10000
 
 
+/// virtual destructor
+LVFileFormatParser::~LVFileFormatParser()
+{
+}
+
 LVTextFileBase::LVTextFileBase( LVStream * stream )
     : m_stream(stream)
     , m_buf(NULL)
@@ -276,6 +281,284 @@ void LVTextFileBase::SetCharsetTable( const lChar16 * table )
     lStr_memcpy( m_conv_table, table, 128 );
 }
 
+class LVTextFileLine
+{
+public:
+    lvpos_t fpos;   // position of line in file
+    lvsize_t fsize;  // size of data in file
+    lUInt32 flags;  // flags. 1=eoln
+    lString16 text; // line text
+    lUInt16 lpos;   // left non-space char position
+    lUInt16 rpos;   // right non-space char posision + 1
+    LVTextFileLine( LVTextFileBase * file, int maxsize )
+    : lpos(0), rpos(0)
+    {
+        text = file->ReadLine( maxsize, fpos, fsize, flags );
+        if ( !text.empty() ) {
+            const lChar16 * s = text.c_str();
+            for ( int p=0; *s; s++ ) {
+                if ( *s == '\t' ) {
+                    p = (p + 8)%8;
+                } else {
+                    p++;
+                    if ( *s != ' ' ) {
+                        if ( lpos==0 )
+                            lpos = p;
+                        rpos = p + 1;
+                    }
+                }
+            }
+        }
+    }
+};
+
+class LVTextLineQueue : public LVPtrVector<LVTextFileLine>
+{
+private:
+    LVTextFileBase * file;
+    int first_line_index;
+    int maxLineSize;
+    lString16 authorFirstName;
+    lString16 authorLastName;
+    lString16 bookTitle;
+    lString16 seriesName;
+    lString16 seriesNumber;
+public:
+    LVTextLineQueue( LVTextFileBase * f, int maxLineLen )
+    : file(f), first_line_index(0), maxLineSize(maxLineLen)
+    {
+    }
+    // get index of first line of queue
+    int  GetFirstLineIndex() { return first_line_index; }
+    // get line count read from file. Use length() instead to get count of lines queued.
+    int  GetLineCount() { return first_line_index + length(); }
+    // get line by line file index
+    LVTextFileLine * GetLine( int index )
+    {
+        return get(index - first_line_index);
+    }
+    // remove lines from head of queue
+    void RemoveLines( int lineCount )
+    {
+        if ( lineCount>length() )
+            lineCount = length();
+        erase( 0, lineCount );
+        first_line_index += lineCount;
+    }
+    // read lines and place to tail of queue
+    bool ReadLines( int lineCount )
+    {
+        for ( int i=0; i<lineCount; i++ ) {
+            if ( file->Eof() ) {
+                if ( i==0 )
+                    return false;
+            }
+            add( new LVTextFileLine( file, maxLineSize ) );
+        }
+        return true;
+    }
+    /// check beginning of file for book title, author and series
+    bool DetectBookDescription(LVXMLParserCallback * callback)
+    {
+        //TODO: Detect book title here
+        //update book description
+        if ( authorFirstName.empty() && authorLastName.empty() ) {
+            authorFirstName = L"unknown";
+            authorLastName = L"author";
+        }
+        if ( bookTitle.empty() ) {
+            bookTitle = L"no name";
+        }
+        callback->OnTagOpen( NULL, L"author" );
+          callback->OnTagOpen( NULL, L"first-name" );
+            if ( !authorFirstName.empty() ) 
+                callback->OnText( authorFirstName.c_str(), authorFirstName.length(), 0, 0, 0 );
+          callback->OnTagClose( NULL, L"first-name" );
+          callback->OnTagOpen( NULL, L"last-name" );
+            if ( !authorLastName.empty() )
+                callback->OnText( authorLastName.c_str(), authorLastName.length(), 0, 0, 0 );
+          callback->OnTagClose( NULL, L"last-name" );
+        callback->OnTagClose( NULL, L"author" );
+        callback->OnTagOpen( NULL, L"book-title" );
+            if ( !bookTitle.empty() )
+                callback->OnText( bookTitle.c_str(), bookTitle.length(), 0, 0, 0 );
+        callback->OnTagClose( NULL, L"book-title" );
+        if ( !seriesName.empty() || !seriesNumber.empty() ) {
+            callback->OnTagOpen( NULL, L"sequence" );
+            if ( !seriesName.empty() )
+                callback->OnAttribute( NULL, L"name", seriesName.c_str() );
+            if ( !seriesNumber.empty() )
+                callback->OnAttribute( NULL, L"number", seriesNumber.c_str() );
+            callback->OnTagClose( NULL, L"sequence" );
+        }
+    }
+    bool DoTextImport(LVXMLParserCallback * callback)
+    {
+        for ( int i=0; i<length(); i++ ) {
+            LVTextFileLine * item = get(i);
+            lString16 txt = item->text;
+            if ( !txt.empty() ) {
+                callback->OnTagOpen( NULL, L"p" );
+                   callback->OnText( txt.c_str(), txt.length(), item->fpos, item->fsize, item->flags );
+                callback->OnTagClose( NULL, L"p" );
+            } else {
+                callback->OnTagOpen( NULL, L"empty-line" );
+                callback->OnTagClose( NULL, L"empty-line" );
+            }
+        }
+    }
+};
+
+/// reads next text line, tells file position and size of line, sets EOL flag
+lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags )
+{
+    fpos = m_buf_fpos + m_buf_pos;
+    fsize = 0;
+    flags = 0;
+
+    lString16 res;
+    res.reserve( 80 );
+    FillBuffer( maxLineSize*3 );
+
+    lvpos_t last_space_fpos = 0;
+    int last_space_chpos = -1; 
+    lChar16 ch = 0;
+    while ( res.length()<maxLineSize ) {
+        if ( Eof() ) {
+            // EOF: treat as EOLN
+            last_space_fpos = m_buf_fpos + m_buf_pos;
+            last_space_chpos = res.length();
+            flags |= 1; // EOLN flag
+            break;
+        }
+        ch = ReadChar();
+        if ( ch!='\r' && ch!='\n' ) {
+            res.append( 1, ch );
+            if ( ch==' ' || ch=='\t' ) {
+                last_space_fpos = m_buf_fpos + m_buf_pos;
+                last_space_chpos = res.length();
+            }
+        } else {
+            // eoln
+            lvpos_t prev_pos = m_buf_pos;
+            last_space_fpos = m_buf_fpos + m_buf_pos;
+            last_space_chpos = res.length();
+            if ( !Eof() ) {
+                lChar16 ch2 = ReadChar();
+                if ( ch2!=ch && (ch2=='\r' || ch2=='\n') ) {
+                    last_space_fpos = m_buf_fpos + m_buf_pos;
+                } else {
+                    m_buf_pos = prev_pos;
+                }
+            }
+            flags |= 1; // EOLN flag
+            break;
+        }
+    }
+    // now if flags==0, maximum line len reached
+    if ( !flags && last_space_chpos == -1 ) {
+        // long line w/o spaces
+        last_space_fpos = m_buf_fpos + m_buf_pos;
+        last_space_chpos = res.length();
+    }
+
+    m_buf_pos = (last_space_fpos - m_buf_fpos); // rollback to end of line
+    fsize = last_space_fpos - fpos; // length in bytes
+    if ( last_space_chpos>res.length() ) {
+        res.erase( last_space_chpos, res.length()-last_space_chpos );
+    }
+
+    res.pack();
+    return res;
+}
+
+//==================================================
+// Text file parser
+
+/// constructor
+LVTextParser::LVTextParser( LVStream * stream, LVXMLParserCallback * callback )
+    : LVTextFileBase(stream)
+    , m_callback(callback)
+{
+}
+
+/// descructor
+LVTextParser::~LVTextParser()
+{
+}
+
+/// returns true if format is recognized by parser
+bool LVTextParser::CheckFormat()
+{
+    Reset();
+    // encoding test
+    if ( !AutodetectEncoding() )
+        return false;
+    #define TEXT_PARSER_DETECT_SIZE 16384
+    Reset();
+    lChar16 * chbuf = new lChar16[TEXT_PARSER_DETECT_SIZE];
+    FillBuffer( TEXT_PARSER_DETECT_SIZE );
+    int charsDecoded = ReadTextBytes( 0, TEXT_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_pos-m_buf_len );
+    bool res = false;
+    if ( charsDecoded > 100 ) {
+        int illegal_char_count = 0;
+        int crlf_count = 0;
+        int space_count = 0;
+        for ( int i=0; i<charsDecoded; i++ ) {
+            if ( chbuf[i]<=32 ) {
+                switch( chbuf[i] ) {
+                case ' ':
+                case '\t':
+                    space_count++;
+                    break;
+                case 10:
+                case 13:
+                    crlf_count++;
+                    break;
+                case 12:
+                //case 9:
+                case 8:
+                    break;
+                default:
+                    illegal_char_count++;
+                }
+            }
+        }
+        if ( illegal_char_count==0 && space_count>=charsDecoded/16 )
+            res = true;
+    }
+    delete chbuf;
+    Reset();
+    return res;
+}
+
+/// parses input stream
+bool LVTextParser::Parse()
+{
+    LVTextLineQueue queue( this, 1000 );
+    queue.ReadLines( 100 );
+    // make fb2 document structure
+    m_callback->OnTagOpen( NULL, L"?xml" );
+    m_callback->OnAttribute( NULL, L"version", L"1.0" );
+    //m_callback->OnAttribute( NULL, L"encoding", L"UTF-8" );
+    m_callback->OnTagClose( NULL, L"?xml" );
+    m_callback->OnTagOpen( NULL, L"FictionBook" );
+      // DESCRIPTION
+      m_callback->OnTagOpen( NULL, L"description" );
+        m_callback->OnTagOpen( NULL, L"title-info" );
+          queue.DetectBookDescription( m_callback );
+        m_callback->OnTagOpen( NULL, L"title-info" );
+      m_callback->OnTagClose( NULL, L"description" );
+      // BODY
+      m_callback->OnTagOpen( NULL, L"body" );
+        m_callback->OnTagOpen( NULL, L"section" );
+          // process text
+        m_callback->OnTagClose( NULL, L"section" );
+      m_callback->OnTagClose( NULL, L"body" );
+    m_callback->OnTagClose( NULL, L"FictionBook" );
+    return false;
+}
+
 
 /*******************************************************************************/
 // XML parser
@@ -321,6 +604,25 @@ inline bool IsSpaceChar( lChar16 ch )
         || (ch == '\t')
         || (ch == '\r')
         || (ch == '\n');
+}
+
+/// returns true if format is recognized by parser
+bool LVXMLParser::CheckFormat()
+{
+    #define XML_PARSER_DETECT_SIZE 8192
+    Reset();
+    lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
+    FillBuffer( XML_PARSER_DETECT_SIZE );
+    int charsDecoded = ReadTextBytes( 0, XML_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_len-m_buf_pos );
+    bool res = false;
+    if ( charsDecoded > 100 ) {
+        lString16 s( chbuf, charsDecoded );
+        if ( s.pos(L"<?xml") >=0 && s.pos(L"<FictionBook") >= 0 )
+            res = true;
+    }
+    delete chbuf;
+    Reset();
+    return res;
 }
 
 bool LVXMLParser::Parse()

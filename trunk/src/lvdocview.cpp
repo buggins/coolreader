@@ -281,6 +281,8 @@ LVImageSourceRef LVDocView::getCoverPageImage()
 /// draws coverpage to image buffer
 void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 {
+    if ( rc.width()<130 || rc.height()<130)
+        return;
     int base_font_size = 26;
     int w = rc.width();
     if ( w<300 )
@@ -311,7 +313,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     imgrc.bottom -= h + 16;
 
     LVImageSourceRef imgsrc = getCoverPageImage();
-    if ( !imgsrc.isNull() )
+    if ( !imgsrc.isNull() && imgrc.height()>30 )
     {
         //fprintf( stderr, "Writing coverpage image...\n" );
         int src_dx = imgsrc->GetWidth();
@@ -866,7 +868,7 @@ void LVDocView::updateLayout()
 
 void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
-    if ( !m_doc )
+    if ( !m_doc || !isDocumentOpened() || m_doc->getMainNode()==NULL)
 		return;
 	if ( pages==NULL )
 		pages = &m_pages;
@@ -1209,15 +1211,37 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     m_doc->setNodeTypes( fb2_elem_table );
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
-    LVXMLParser parser(m_stream.get(), &writer);
 
+    /// FB2 format
+    LVFileFormatParser * parser = new LVXMLParser(m_stream.get(), &writer);
+    if ( !parser->CheckFormat() ) {
+        delete parser;
+        parser = NULL;
+    }
+
+    /// plain text format
+    if ( parser==NULL ) {
+        parser = new LVTextParser(m_stream.get(), &writer);
+        if ( !parser->CheckFormat() ) {
+            delete parser;
+            parser = NULL;
+        }
+    }
+
+    // unknown format
+    if ( !parser )
+        return false;
 
     // set stylesheet
     m_doc->getStyleSheet()->clear();
     m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
     
     // parse
-    parser.Parse();
+    if ( !parser->Parse() ) {
+        delete parser;
+        return false;
+    }
+    delete parser;
     m_pos = 0;
 
 

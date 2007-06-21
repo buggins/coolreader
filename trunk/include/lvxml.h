@@ -20,13 +20,14 @@
 
 #define XML_FLAG_NO_SPACE_TEXT 1
 
-class LVXMLParser;
+//class LVXMLParser;
+class LVFileFormatParser;
 
 /// XML parser callback interface
 class LVXMLParserCallback
 {
 protected:
-    LVXMLParser * _parser;
+    LVFileFormatParser * _parser;
 public:
     /// returns flags
     virtual lUInt32 GetFlags() { return 0; }
@@ -35,7 +36,7 @@ public:
     /// called on document encoding definition
     virtual void OnEncoding( const lChar16 * name, const lChar16 * table ) { }
     /// called on parsing start
-    virtual void OnStart(LVXMLParser * parser) { _parser = parser; }
+    virtual void OnStart(LVFileFormatParser * parser) { _parser = parser; }
     /// called on parsing end
     virtual void OnStop() = 0;
     /// called on opening tag
@@ -262,7 +263,31 @@ enum char_encoding_type {
     ce_utf32_le,
 };
 
-class LVTextFileBase
+/// base class for all document format parsers
+class LVFileFormatParser
+{
+public:
+    /// returns true if format is recognized by parser
+    virtual bool CheckFormat() = 0;
+    /// parses input stream
+    virtual bool Parse() = 0;
+    /// resets parsing, moves to beginning of stream
+    virtual void Reset() = 0;
+    /// sets charset by name
+    virtual void SetCharset( const lChar16 * name ) = 0;
+    /// sets 8-bit charset conversion table (128 items, for codes 128..255)
+    virtual void SetCharsetTable( const lChar16 * table ) = 0;
+    /// returns 8-bit charset conversion table (128 items, for codes 128..255)
+    virtual lChar16 * GetCharsetTable( ) = 0;
+    /// changes space mode
+    virtual void SetSpaceMode( bool flgTrimSpaces ) { }
+    /// returns space mode
+    virtual bool GetSpaceMode() { return false; }
+    /// virtual destructor
+    virtual ~LVFileFormatParser();
+};
+
+class LVTextFileBase : public LVFileFormatParser
 {
 protected:
     LVStream * m_stream;
@@ -284,8 +309,6 @@ protected:
     lChar16 ReadChar();
     /// fills buffer, to provide specified number of bytes for read
     bool FillBuffer( int bytesToRead );
-    /// returns true if end of fle is reached, and there is no data left in buffer
-    bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
     /// seek to specified stream position
     bool Seek( lvpos_t pos, int bytesToPrefetch=0 );
     /// reads specified number of bytes, converts to characters and saves to buffer, returns number of chars read
@@ -293,22 +316,44 @@ protected:
     /// reads specified number of characters and saves to buffer, returns number of chars read
     int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size );
 public:
+    /// returns true if end of fle is reached, and there is no data left in buffer
+    bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
+    /// reads next text line, tells file position and size of line, sets EOL flag
+    lString16 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );
     /// returns name of character encoding
     lString16 GetEncodingName() { return m_encoding_name; }
     /// returns name of language
     lString16 GetLangName() { return m_lang_name; }
+
+    // overrides
     /// sets charset by name
     virtual void SetCharset( const lChar16 * name );
     /// sets 8-bit charset conversion table (128 items, for codes 128..255)
     virtual void SetCharsetTable( const lChar16 * table );
     /// returns 8-bit charset conversion table (128 items, for codes 128..255)
-    lChar16 * GetCharsetTable( ) { return m_conv_table; }
+    virtual lChar16 * GetCharsetTable( ) { return m_conv_table; }
     /// resets parsing, moves to beginning of stream
     virtual void Reset();
+
     /// constructor
     LVTextFileBase( LVStream * stream );
     /// destructor
     virtual ~LVTextFileBase();
+};
+
+class LVTextParser : public LVTextFileBase
+{
+private:
+    LVXMLParserCallback * m_callback;
+public:
+    /// constructor
+    LVTextParser( LVStream * stream, LVXMLParserCallback * callback );
+    /// descructor
+    virtual ~LVTextParser();
+    /// returns true if format is recognized by parser
+    virtual bool CheckFormat();
+    /// parses input stream
+    virtual bool Parse();
 };
 
 /// XML parser
@@ -323,14 +368,16 @@ private:
     bool ReadIdent( lString16 & ns, lString16 & str );
     bool ReadText();
 public:
+    /// returns true if format is recognized by parser
+    virtual bool CheckFormat();
+    /// parses input stream
+    virtual bool Parse();
     /// sets charset by name
     virtual void SetCharset( const lChar16 * name );
     /// resets parsing, moves to beginning of stream
     virtual void Reset();
     /// constructor
     LVXMLParser( LVStream * stream, LVXMLParserCallback * callback );
-    /// parses input stream
-    virtual bool Parse();
     /// changes space mode
     virtual void SetSpaceMode( bool flgTrimSpaces );
     /// returns space mode
