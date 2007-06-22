@@ -862,7 +862,7 @@ void ldomDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table
 { 
 #if COMPACT_DOM == 1
     if (table)
-        _document->_textcache.SetCharsetTable( table );
+        _document->_textcache.SetCharset( name );
 #endif
 }
 
@@ -1149,7 +1149,7 @@ public:
             bytesRead += sz;
             m_pos += sz;
         }
-        
+
         if (pBytesRead)
             *pBytesRead = bytesRead;
         //fprintf( stderr, "    %d bytes read...\n", (int)bytesRead );

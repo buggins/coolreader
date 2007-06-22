@@ -225,7 +225,7 @@ public:
     }
 };
 
-bool CRFileHist::loadFromStream( LVStream * stream )
+bool CRFileHist::loadFromStream( LVStreamRef stream )
 {
     CRHistoryFileParserCallback cb(this);
     LVXMLParser parser( stream, &cb );

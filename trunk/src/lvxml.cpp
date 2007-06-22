@@ -24,7 +24,7 @@ LVFileFormatParser::~LVFileFormatParser()
 {
 }
 
-LVTextFileBase::LVTextFileBase( LVStream * stream )
+LVTextFileBase::LVTextFileBase( LVStreamRef stream )
     : m_stream(stream)
     , m_buf(NULL)
     , m_buf_size(0)
@@ -35,6 +35,7 @@ LVTextFileBase::LVTextFileBase( LVStream * stream )
     , m_enc_type( ce_8bit_cp )
     , m_conv_table(NULL)
 {
+    m_stream_size = stream->GetSize();
 }
 
 /// destructor
@@ -400,9 +401,6 @@ public:
                 lString16 txt = item->text;
                 txt.trimDoubleSpaces(false, false);
                 if ( !txt.empty() ) {
-                    if (txt[0]==' ' || txt[i]=='\r' || txt[0]=='\n' ) {
-                        printf("tdw ");
-                    }
                     callback->OnTagOpen( NULL, L"p" );
                        callback->OnText( txt.c_str(), txt.length(), item->fpos, item->fsize, item->flags | TXTFLG_TRIM );
                     callback->OnTagClose( NULL, L"p" );
@@ -486,7 +484,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
 // Text file parser
 
 /// constructor
-LVTextParser::LVTextParser( LVStream * stream, LVXMLParserCallback * callback )
+LVTextParser::LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback )
     : LVTextFileBase(stream)
     , m_callback(callback)
 {
@@ -574,6 +572,104 @@ bool LVTextParser::Parse()
 
 
 /*******************************************************************************/
+// LVXMLTextCache
+/*******************************************************************************/
+
+/// parses input stream
+bool LVXMLTextCache::Parse()
+{
+    return true;
+}
+
+/// returns true if format is recognized by parser
+bool LVXMLTextCache::CheckFormat()
+{
+    return true;
+}
+
+LVXMLTextCache::~LVXMLTextCache()
+{
+    while (m_head)
+    {
+        cache_item * ptr = m_head;
+        m_head = m_head->next;
+        delete ptr;
+    }
+}
+
+void LVXMLTextCache::addItem( lString16 & str )
+{
+    cleanOldItems( str.length() );
+    cache_item * ptr = new cache_item( str );
+    ptr->next = m_head;
+    m_head = ptr;
+}
+
+void LVXMLTextCache::cleanOldItems( lUInt32 newItemChars )
+{
+    lUInt32 sum_chars = newItemChars;
+    cache_item * ptr = m_head, * prevptr = NULL;
+    for ( lUInt32 n = 1; ptr; ptr = ptr->next, n++ )
+    {
+        sum_chars += ptr->text.length();
+        if (sum_chars > m_max_charcount || n>=m_max_itemcount )
+        {
+            // remove tail
+            for (cache_item * p = ptr; p; )
+            {
+                cache_item * tmp = p;
+                p = p->next;
+                delete tmp;
+            }
+            if (prevptr)
+                prevptr->next = NULL;
+            else
+                m_head = NULL;
+            return;
+        }
+        prevptr = ptr;
+    }
+}
+
+lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
+{
+    // TRY TO SEARCH IN CACHE
+    cache_item * ptr = m_head, * prevptr = NULL;
+    for ( ;ptr ;ptr = ptr->next )
+    {
+        if (ptr->pos == pos)
+        {
+            // move to top
+            if (prevptr)
+            {
+                prevptr->next = ptr->next;
+                ptr->next = m_head;
+                m_head = ptr;
+            }
+            return ptr->text;
+        }
+    }
+    // NO CACHE RECORD FOUND
+    // read new pme
+    lString16 text;
+    text.reserve(size);
+    text.append(size, ' ');
+    lChar16 * buf = text.modify();
+    int chcount = ReadTextBytes( pos, size, buf, size );
+    if ( chcount<size )
+        text.erase( chcount, text.length()-chcount );
+    if ( flags & TXTFLG_TRIM ) {
+        text.trimDoubleSpaces( flags & TXTFLG_TRIM_ALLOW_START_SPACE, flags & TXTFLG_TRIM_ALLOW_END_SPACE );
+    }
+    // ADD TEXT TO CACHE
+    addItem( text );
+    m_head->pos = pos;
+    m_head->size = size;
+    m_head->flags = flags;
+    return m_head->text;
+}
+
+/*******************************************************************************/
 // XML parser
 /*******************************************************************************/
 
@@ -599,7 +695,7 @@ void LVXMLParser::Reset()
     m_state = ps_bof;
 }
 
-LVXMLParser::LVXMLParser( LVStream * stream, LVXMLParserCallback * callback )
+LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback )
     : LVTextFileBase(stream)
     , m_callback(callback)
     , m_trimspaces(true)

@@ -1213,7 +1213,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     m_doc->setNameSpaceTypes( fb2_ns_table );
 
     /// FB2 format
-    LVFileFormatParser * parser = new LVXMLParser(m_stream.get(), &writer);
+    LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
     if ( !parser->CheckFormat() ) {
         delete parser;
         parser = NULL;
@@ -1221,7 +1221,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
     /// plain text format
     if ( parser==NULL ) {
-        parser = new LVTextParser(m_stream.get(), &writer);
+        parser = new LVTextParser(m_stream, &writer);
         if ( !parser->CheckFormat() ) {
             delete parser;
             parser = NULL;
