@@ -371,11 +371,11 @@ public:
         callback->OnTagOpen( NULL, L"author" );
           callback->OnTagOpen( NULL, L"first-name" );
             if ( !authorFirstName.empty() ) 
-                callback->OnText( authorFirstName.c_str(), authorFirstName.length(), 0, 0, 0 );
+                callback->OnText( authorFirstName.c_str(), authorFirstName.length(), 0, 0, TXTFLG_TRIM );
           callback->OnTagClose( NULL, L"first-name" );
           callback->OnTagOpen( NULL, L"last-name" );
             if ( !authorLastName.empty() )
-                callback->OnText( authorLastName.c_str(), authorLastName.length(), 0, 0, 0 );
+                callback->OnText( authorLastName.c_str(), authorLastName.length(), 0, 0, TXTFLG_TRIM );
           callback->OnTagClose( NULL, L"last-name" );
         callback->OnTagClose( NULL, L"author" );
         callback->OnTagOpen( NULL, L"book-title" );
@@ -398,9 +398,13 @@ public:
             for ( int i=0; i<length(); i++ ) {
                 LVTextFileLine * item = get(i);
                 lString16 txt = item->text;
+                txt.trimDoubleSpaces(false, false);
                 if ( !txt.empty() ) {
+                    if (txt[0]==' ' || txt[i]=='\r' || txt[0]=='\n' ) {
+                        printf("tdw ");
+                    }
                     callback->OnTagOpen( NULL, L"p" );
-                       callback->OnText( txt.c_str(), txt.length(), item->fpos, item->fsize, item->flags );
+                       callback->OnText( txt.c_str(), txt.length(), item->fpos, item->fsize, item->flags | TXTFLG_TRIM );
                     callback->OnTagClose( NULL, L"p" );
                 } else {
                     callback->OnTagOpen( NULL, L"empty-line" );
@@ -436,7 +440,9 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
             break;
         }
         ch = ReadChar();
-        if ( ch!='\r' && ch!='\n' ) {
+        if ( ch==0xFEFF && fpos==0 && res.empty() ) {
+            fpos = m_buf_fpos + m_buf_pos;
+        } else if ( ch!='\r' && ch!='\n' ) {
             res.append( 1, ch );
             if ( ch==' ' || ch=='\t' ) {
                 last_space_fpos = m_buf_fpos + m_buf_pos;
@@ -523,6 +529,7 @@ bool LVTextParser::CheckFormat()
                 //case 9:
                 case 8:
                 case 7:
+                case 30:
                     break;
                 default:
                     illegal_char_count++;

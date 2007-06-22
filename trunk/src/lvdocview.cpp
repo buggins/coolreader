@@ -246,7 +246,7 @@ int LVTocItem::getPageNum( LVRendPageList & pages )
 void LVDocView::makeToc()
 {
     m_toc.clear();
-    ldomElement * body = ((ldomElement*)m_doc->getMainNode())
+    ldomElement * body = ((ldomElement*)m_doc->getRootNode())
         ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 )
         ->findChildElement( LXML_NS_ANY, el_body, 0 );
     if ( !body )
@@ -262,7 +262,7 @@ void LVDocView::makeToc()
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
-    ldomElement * cover_img_el = ((ldomElement*)m_doc->getMainNode())
+    ldomElement * cover_img_el = ((ldomElement*)m_doc->getRootNode())
         ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 )
         ->findChildElement( LXML_NS_ANY, el_description, -1 )
         ->findChildElement( LXML_NS_ANY, el_title_info, -1 )

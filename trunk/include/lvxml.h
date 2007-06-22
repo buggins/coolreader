@@ -57,6 +57,10 @@ public:
 /// last character of previous text was space
 #define TXTFLG_LASTSPACE  2
 
+#define TXTFLG_TRIM                         4
+#define TXTFLG_TRIM_ALLOW_START_SPACE       8
+#define TXTFLG_TRIM_ALLOW_END_SPACE         16
+
 /// converts XML text: decode character entities, convert space chars
 int PreProcessXmlString( lChar16 * str, int len, lUInt32 flags );
 
@@ -125,7 +129,7 @@ private:
         ptr->next = m_head;
         m_head = ptr;
     }
-    
+
     lString16 decodeText(lUInt32 size)
     {
         lString16 text;
@@ -238,6 +242,9 @@ public:
         }
         // DECODE TEXT
         lString16 text = decodeText(size);
+        if ( flags & TXTFLG_TRIM ) {
+            text.trimDoubleSpaces( flags & TXTFLG_TRIM_ALLOW_START_SPACE?true:false, flags & TXTFLG_TRIM_ALLOW_END_SPACE?true:false );
+        }
         // ADD TEXT TO CACHE
         addItem( text );
         m_head->pos = pos;

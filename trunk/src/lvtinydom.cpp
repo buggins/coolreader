@@ -1299,7 +1299,7 @@ ldomXPointer ldomXPointer::relative( lString16 relativePath )
 /// create xpointer from pointer string
 ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
 {
-    return createXPointer( getMainNode(), xPointerStr );
+    return createXPointer( getRootNode(), xPointerStr );
 }
 
 /// formats final block

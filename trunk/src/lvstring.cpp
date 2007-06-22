@@ -1645,6 +1645,42 @@ lString16 lString16::itoa( lInt64 n )
     return res;
 }
 
+lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace )
+{
+    if ( empty() )
+        return;
+    lChar16 * buf = modify();
+    lChar16 * psrc = buf;
+    lChar16 * pdst = buf;
+    int state = 0; // 0=beginning, 1=after space, 2=after non-space
+    while (*psrc ) {
+        lChar16 ch = *psrc++;
+        if ( ch==' ' || ch=='\t' || ch=='\r' || ch=='\n' ) {
+            if ( state==2 ) {
+                if ( *psrc || allowEndSpace ) // if not last
+                    *pdst++ = ' ';
+            } else if ( state==0 && allowStartSpace ) {
+                *pdst++ = ' ';
+            }
+            state = 1;
+        } else {
+            *pdst++ = ch;
+            state = 2;
+        }
+    }
+    if ( pdst==buf ) {
+        clear();
+        return;
+    }
+    if ( pdst==psrc ) {
+        // was not changed
+        return;
+    }
+    // truncated: erase extra characters
+    int chars_to_delete = psrc-pdst;
+    erase( length()-chars_to_delete, chars_to_delete );
+}
+
 // constructs string representation of integer
 lString16 lString16::itoa( unsigned int n )
 {

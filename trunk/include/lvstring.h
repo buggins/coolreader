@@ -368,6 +368,7 @@ public:
 
 
     lString16 & trim();
+    lString16 & trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace );
     int atoi() const;
     bool atoi( int &n ) const;
     bool atoi( lInt64 &n ) const;
