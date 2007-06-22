@@ -55,7 +55,8 @@ cr3view::cr3view()
     {
         LVStreamRef stream = LVOpenFileStream( GetHistoryFileName().c_str(), LVOM_READ );
         if ( !stream.isNull() ) {
-            _docview->getHistory()->loadFromStream( stream.get() );
+            _docview->getHistory()->loadFromStream( stream );
+            stream = NULL;
         }
     }
 
