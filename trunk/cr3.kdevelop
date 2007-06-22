@@ -14,7 +14,7 @@
     <ignoreparts/>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
+    <description></description>
   </general>
   <kdevautoproject>
     <general>
@@ -28,7 +28,7 @@
         <cr3/>
       </runarguments>
       <customdirectory>/</customdirectory>
-      <programargs>/home/lve/src/cr3/debug/src/example.fb2</programargs>
+      <programargs>/home/lve/src/cr3/debug/src/kaganov_leonid_maior_bogdamir_spasaet_dengi.txt</programargs>
       <terminal>false</terminal>
       <autocompile>true</autocompile>
       <envvars/>
@@ -150,11 +150,11 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
-      <programargs>/home/lve/src/cr3/debug/src/axelrod.fb2</programargs>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <programargs>/home/lve/src/cr3/debug/src/kaganov_leonid_maior_bogdamir_spasaet_dengi2.txt</programargs>
+      <gdbpath></gdbpath>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
@@ -217,7 +217,7 @@
       <headerCompletionDelay>250</headerCompletionDelay>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>

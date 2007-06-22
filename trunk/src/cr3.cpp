@@ -583,8 +583,8 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL);
 
 
-    //wxIcon icon = wxICON(cr3);
-    //SetIcon( icon );
+    wxIcon icon = wxICON(cr3);
+    SetIcon( icon );
 
     //SetMenu( true );
 
