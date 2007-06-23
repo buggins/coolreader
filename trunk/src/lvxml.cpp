@@ -567,7 +567,7 @@ bool LVTextParser::Parse()
         m_callback->OnTagClose( NULL, L"section" );
       m_callback->OnTagClose( NULL, L"body" );
     m_callback->OnTagClose( NULL, L"FictionBook" );
-    return false;
+    return true;
 }
 
 
@@ -655,11 +655,12 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     text.reserve(size);
     text.append(size, ' ');
     lChar16 * buf = text.modify();
-    int chcount = ReadTextBytes( pos, size, buf, size );
+    unsigned chcount = (unsigned)ReadTextBytes( pos, size, buf, size );
     if ( chcount<size )
         text.erase( chcount, text.length()-chcount );
     if ( flags & TXTFLG_TRIM ) {
-        text.trimDoubleSpaces( flags & TXTFLG_TRIM_ALLOW_START_SPACE, flags & TXTFLG_TRIM_ALLOW_END_SPACE );
+        text.trimDoubleSpaces( (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false, 
+            (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false );
     }
     // ADD TEXT TO CACHE
     addItem( text );

@@ -1648,7 +1648,7 @@ lString16 lString16::itoa( lInt64 n )
 lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace )
 {
     if ( empty() )
-        return;
+        return *this;
     lChar16 * buf = modify();
     lChar16 * psrc = buf;
     lChar16 * pdst = buf;
@@ -1670,15 +1670,16 @@ lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpac
     }
     if ( pdst==buf ) {
         clear();
-        return;
+        return *this;
     }
     if ( pdst==psrc ) {
         // was not changed
-        return;
+        return *this;
     }
     // truncated: erase extra characters
     int chars_to_delete = psrc-pdst;
     erase( length()-chars_to_delete, chars_to_delete );
+    return *this;
 }
 
 // constructs string representation of integer

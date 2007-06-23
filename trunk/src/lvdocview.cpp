@@ -1254,6 +1254,11 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 #endif
 
 
+    m_series.clear();
+    m_authors.clear();
+    m_title.clear();
+
+
     lString16 authors;
     for ( int i=0; i<16; i++) {
         lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
@@ -1276,7 +1281,6 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     m_authors = authors;
     m_title = m_doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText();
     ldomElement * series = (ldomElement*)m_doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
-    m_series.clear();
     if ( series ) {
         lString16 sname = series->getAttributeValue( attr_name );
         lString16 snumber = series->getAttributeValue( attr_number );
