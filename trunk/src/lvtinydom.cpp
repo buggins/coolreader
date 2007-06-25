@@ -1656,7 +1656,7 @@ lString16 ldomXPointer::toString()
         path << L"." << lString16::itoa(_offset);
     }
     ldomNode * p = _node;
-    ldomNode * mainNode = _node->getDocument()->getMainNode();
+    ldomNode * mainNode = _node->getDocument()->getRootNode();
     while (p && p!=mainNode) {
         ldomNode * parent = p->getParentNode();
         if ( p->isElement() ) {

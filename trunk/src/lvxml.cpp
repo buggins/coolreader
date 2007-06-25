@@ -323,10 +323,29 @@ private:
     lString16 bookTitle;
     lString16 seriesName;
     lString16 seriesNumber;
+    int formatFlags;
+    int min_left;
+    int max_right;
+    int avg_left;
+    int avg_right;
+    int paraCount;
+
+    enum {
+        tftParaPerLine = 1,
+        tftParaIdents  = 2,
+        tftEmptyLineDelimPara = 4,
+        tftCenteredHeaders = 8,
+        tftEmptyLineDelimHeaders = 16,
+    } formatFlags_t;
 public:
     LVTextLineQueue( LVTextFileBase * f, int maxLineLen )
     : file(f), first_line_index(0), maxLineSize(maxLineLen)
     {
+        min_left = -1;
+        max_right = -1;
+        avg_left = 0;
+        avg_right = 0;
+        paraCount = 0;
     }
     // get index of first line of queue
     int  GetFirstLineIndex() { return first_line_index; }
@@ -357,28 +376,114 @@ public:
         }
         return true;
     }
+    /// checks text format options
+    void detectFormatFlags()
+    {
+        formatFlags = tftParaPerLine | tftEmptyLineDelimHeaders; // default format
+        if ( length()<10 )
+            return;
+        formatFlags = 0;
+        int avg_center = 0;
+        int empty_lines = 0;
+        int ident_lines = 0;
+        min_left = -1;
+        max_right = -1;
+        avg_left = 0;
+        avg_right = 0;
+        int i;
+        for ( i=0; i<length(); i++ ) {
+            LVTextFileLine * line = get(i);
+            if ( line->lpos == line->rpos ) {
+                empty_lines++;
+            } else {
+                if ( i==0 || line->lpos<min_left )
+                    min_left = line->lpos;
+                if ( i==0 || line->rpos>max_right )
+                    max_right = line->rpos;
+                avg_left += line->lpos;
+                avg_right += line->rpos;
+            }
+        }
+        for ( i=0; i<length(); i++ ) {
+            LVTextFileLine * line = get(i);
+            if ( line->lpos > min_left )
+                ident_lines++;
+        }
+        int non_empty_lines = length() - empty_lines;
+        if ( non_empty_lines < 10 )
+            return;
+        avg_left /= length();
+        avg_right /= length();
+        avg_center = (avg_left + avg_right) / 2;
+        if ( avg_right >= 80 )
+            return;
+        formatFlags = 0;
+        int ident_lines_percent = ident_lines * 100 / length();
+        int empty_lines_precent = empty_lines * 100 / length();
+        if ( empty_lines_precent > 5 )
+            formatFlags |= tftEmptyLineDelimPara;
+        if ( ident_lines_percent > 5 )
+            formatFlags |= tftParaIdents;
+        if ( !formatFlags ) {
+            formatFlags = tftParaPerLine | tftEmptyLineDelimHeaders; // default format
+            return;
+        }
+
+    }
     /// check beginning of file for book title, author and series
     bool DetectBookDescription(LVXMLParserCallback * callback)
     {
-        //TODO: Detect book title here
+        int necount = 0;
+        lString16 s[3];
+        unsigned i;
+        for ( i=0; i<(unsigned)length() && necount<2; i++ ) {
+            LVTextFileLine * item = get(i);
+            if ( item->rpos>item->lpos ) {
+                lString16 str = item->text;
+                str.trimDoubleSpaces(false, false, true);
+                if ( !str.empty() ) {
+                    s[necount] = str;
+                    necount++;
+                }
+            }
+        }
         //update book description
-        if ( authorFirstName.empty() && authorLastName.empty() ) {
-            authorFirstName = L"unknown";
-            authorLastName = L"author";
-        }
-        if ( bookTitle.empty() ) {
+        if ( i==0 ) {
             bookTitle = L"no name";
+        } else {
+            bookTitle = s[1];
         }
-        callback->OnTagOpen( NULL, L"author" );
-          callback->OnTagOpen( NULL, L"first-name" );
-            if ( !authorFirstName.empty() ) 
-                callback->OnText( authorFirstName.c_str(), authorFirstName.length(), 0, 0, TXTFLG_TRIM );
-          callback->OnTagClose( NULL, L"first-name" );
-          callback->OnTagOpen( NULL, L"last-name" );
-            if ( !authorLastName.empty() )
-                callback->OnText( authorLastName.c_str(), authorLastName.length(), 0, 0, TXTFLG_TRIM );
-          callback->OnTagClose( NULL, L"last-name" );
-        callback->OnTagClose( NULL, L"author" );
+        lString16Collection author_list;
+        author_list.parse( s[0], ',', true );
+        for ( i=0; i<author_list.length(); i++ ) {
+            lString16Collection name_list;
+            name_list.parse( author_list[i], ' ', true );
+            if ( name_list.length()>0 ) {
+                lString16 firstName = name_list[0];
+                lString16 lastName;
+                lString16 middleName;
+                if ( name_list.length() == 2 ) {
+                    lastName = name_list[1];
+                } else if ( name_list.length()>2 ) {
+                    middleName = name_list[1];
+                    lastName = name_list[2];
+                }
+                callback->OnTagOpen( NULL, L"author" );
+                  callback->OnTagOpen( NULL, L"first-name" );
+                    if ( !firstName.empty() ) 
+                        callback->OnText( firstName.c_str(), firstName.length(), 0, 0, TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+                  callback->OnTagClose( NULL, L"first-name" );
+                  callback->OnTagOpen( NULL, L"middle-name" );
+                    if ( !middleName.empty() )
+                        callback->OnText( middleName.c_str(), middleName.length(), 0, 0, TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+                  callback->OnTagClose( NULL, L"middle-name" );
+                  callback->OnTagOpen( NULL, L"last-name" );
+                    if ( !lastName.empty() )
+                        callback->OnText( lastName.c_str(), lastName.length(), 0, 0, TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+                  callback->OnTagClose( NULL, L"last-name" );
+                callback->OnTagClose( NULL, L"author" );
+            }
+        }
         callback->OnTagOpen( NULL, L"book-title" );
             if ( !bookTitle.empty() )
                 callback->OnText( bookTitle.c_str(), bookTitle.length(), 0, 0, 0 );
@@ -393,25 +498,112 @@ public:
         }
         return true;
     }
-    bool DoTextImport(LVXMLParserCallback * callback)
+    /// add one paragraph
+    void AddPara( int startline, int endline, LVXMLParserCallback * callback )
+    {
+        lString16 str;
+        lvpos_t pos = 0;
+        lvsize_t sz = 0;
+        for ( int i=startline; i<=endline; i++ ) {
+            LVTextFileLine * item = get(i);
+            if ( i==startline )
+                pos = item->fpos;
+            sz = (item->fpos + item->fsize) - pos;
+            str += item->text + L"\n";
+        }
+        str.trimDoubleSpaces(false, false, true);
+        bool isHeader = str.length()<4 || (paraCount<2 && str.length()<50);
+        if ( !str.empty() ) {
+            if ( isHeader )
+                callback->OnTagOpen( NULL, L"title" );
+            callback->OnTagOpen( NULL, L"p" );
+               callback->OnText( str.c_str(), str.length(), pos, sz, 
+                   TXTFLG_TRIM | TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+            callback->OnTagClose( NULL, L"p" );
+            if ( isHeader )
+                callback->OnTagClose( NULL, L"title" );
+            paraCount++;
+        } else {
+            if ( !(formatFlags & tftEmptyLineDelimPara) ) {
+                callback->OnTagOpen( NULL, L"empty-line" );
+                callback->OnTagClose( NULL, L"empty-line" );
+            }
+        }
+    }
+    /// one line per paragraph
+    bool DoParaPerLineImport(LVXMLParserCallback * callback)
     {
         do {
             for ( int i=0; i<length(); i++ ) {
-                LVTextFileLine * item = get(i);
-                lString16 txt = item->text;
-                txt.trimDoubleSpaces(false, false);
-                if ( !txt.empty() ) {
-                    callback->OnTagOpen( NULL, L"p" );
-                       callback->OnText( txt.c_str(), txt.length(), item->fpos, item->fsize, item->flags | TXTFLG_TRIM );
-                    callback->OnTagClose( NULL, L"p" );
-                } else {
-                    callback->OnTagOpen( NULL, L"empty-line" );
-                    callback->OnTagClose( NULL, L"empty-line" );
-                }
+                AddPara( i, i, callback );
             }
             RemoveLines( length() );
         } while ( ReadLines( 100 ) );
         return true;
+    }
+#define MAX_PARA_LINES 30
+#define MAX_BUF_LINES  200
+    /// delimited by first line ident
+    bool DoIdentParaImport(LVXMLParserCallback * callback)
+    {
+        int pos = 0;
+        for ( ;; ) {
+            if ( length()-pos <= MAX_PARA_LINES ) {
+                if ( pos )
+                    RemoveLines( pos );
+                ReadLines( MAX_BUF_LINES );
+                pos = 0;
+            }
+            if ( pos>=length() )
+                break;
+            int i=pos+1;
+            for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
+                LVTextFileLine * item = get(i);
+                if ( item->lpos>min_left ) {
+                    // ident
+                    break;
+                }
+            }
+            AddPara( pos, i-1, callback );
+            pos = i;
+        }
+        return true;
+    }
+    /// delimited by empty lines
+    bool DoEmptyLineParaImport(LVXMLParserCallback * callback)
+    {
+        int pos = 0;
+        for ( ;; ) {
+            if ( length()-pos <= MAX_PARA_LINES ) {
+                if ( pos )
+                    RemoveLines( pos );
+                ReadLines( MAX_BUF_LINES );
+                pos = 0;
+            }
+            if ( pos>=length() )
+                break;
+            int i=pos;
+            for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
+                LVTextFileLine * item = get(i);
+                if ( item->lpos==item->lpos ) {
+                    // empty line
+                    break;
+                }
+            }
+            AddPara( pos, i, callback );
+            pos = i+1;
+        }
+        return true;
+    }
+    /// import document body
+    bool DoTextImport(LVXMLParserCallback * callback)
+    {
+        if ( formatFlags & tftParaIdents )
+            return DoIdentParaImport( callback );
+        else if ( formatFlags & tftEmptyLineDelimPara )
+            return DoEmptyLineParaImport( callback );
+        else
+            return DoParaPerLineImport( callback );
     }
 };
 
@@ -546,7 +738,8 @@ bool LVTextParser::CheckFormat()
 bool LVTextParser::Parse()
 {
     LVTextLineQueue queue( this, 1000 );
-    queue.ReadLines( 100 );
+    queue.ReadLines( 200 );
+    queue.detectFormatFlags();
     // make fb2 document structure
     m_callback->OnTagOpen( NULL, L"?xml" );
     m_callback->OnAttribute( NULL, L"version", L"1.0" );
@@ -659,8 +852,10 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     if ( chcount<size )
         text.erase( chcount, text.length()-chcount );
     if ( flags & TXTFLG_TRIM ) {
-        text.trimDoubleSpaces( (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false, 
-            (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false );
+        text.trimDoubleSpaces( 
+            (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false, 
+            (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false, 
+            (flags & TXTFLG_TRIM_REMOVE_EOL_HYPHENS)?true:false );
     }
     // ADD TEXT TO CACHE
     addItem( text );

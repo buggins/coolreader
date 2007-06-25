@@ -368,7 +368,7 @@ public:
 
 
     lString16 & trim();
-    lString16 & trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace );
+    lString16 & trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens=false );
     int atoi() const;
     bool atoi( int &n ) const;
     bool atoi( lInt64 &n ) const;
@@ -404,6 +404,8 @@ public:
     lString16Collection()
         : chunks(NULL), count(0), size(0)
     { }
+    /// parse delimiter-separated string
+    void parse( lString16 string, lChar16 delimiter, bool flgTrim );
     void reserve( size_t space );
     size_t add( const lString16 & str );
     void erase(int offset, int count);

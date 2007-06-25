@@ -1645,7 +1645,33 @@ lString16 lString16::itoa( lInt64 n )
     return res;
 }
 
-lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace )
+bool UnicodeIsAlpha( lChar16 ch )
+{
+    if ( ch<128 ) {
+        if ( (ch>='a' && ch<='z') || (ch>='A' && ch<='Z') )
+            return true;
+    } else if ( ch>=0xC0 && ch<=0x1ef9) {
+        return true;
+    }
+    return false;
+}
+
+void lString16Collection::parse( lString16 string, lChar16 delimiter, bool flgTrim )
+{
+    int wstart=0;
+    for ( unsigned i=0; i<=string.length(); i++ ) {
+        if ( i==string.length() || string[i]==delimiter ) {
+            lString16 s( string.substr( wstart, i-wstart) );
+            if ( flgTrim )
+                s.trimDoubleSpaces(false, false, false);
+            if ( !flgTrim || !s.empty() )
+                add( s );
+            wstart = i+1;
+        }
+    }
+}
+
+lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
 {
     if ( empty() )
         return *this;
@@ -1655,8 +1681,18 @@ lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpac
     int state = 0; // 0=beginning, 1=after space, 2=after non-space
     while (*psrc ) {
         lChar16 ch = *psrc++;
-        if ( ch==' ' || ch=='\t' || ch=='\r' || ch=='\n' ) {
+        if ( ch==' ' || ch=='\t' ) {
             if ( state==2 ) {
+                if ( *psrc || allowEndSpace ) // if not last
+                    *pdst++ = ' ';
+            } else if ( state==0 && allowStartSpace ) {
+                *pdst++ = ' ';
+            }
+            state = 1;
+        } else if ( ch=='\r' || ch=='\n' ) {
+            if ( state==2 ) {
+                if ( removeEolHyphens && pdst>(buf+1) && *(pdst-1)=='-' && UnicodeIsAlpha(*(pdst-2)) )
+                    pdst--; // remove hyphen at end of line
                 if ( *psrc || allowEndSpace ) // if not last
                     *pdst++ = ' ';
             } else if ( state==0 && allowStartSpace ) {

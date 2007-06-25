@@ -60,6 +60,7 @@ public:
 #define TXTFLG_TRIM                         4
 #define TXTFLG_TRIM_ALLOW_START_SPACE       8
 #define TXTFLG_TRIM_ALLOW_END_SPACE         16
+#define TXTFLG_TRIM_REMOVE_EOL_HYPHENS      32
 
 /// converts XML text: decode character entities, convert space chars
 int PreProcessXmlString( lChar16 * str, int len, lUInt32 flags );
