@@ -1645,7 +1645,7 @@ lString16 lString16::itoa( lInt64 n )
     return res;
 }
 
-bool UnicodeIsAlpha( lChar16 ch )
+bool lvUnicodeIsAlpha( lChar16 ch )
 {
     if ( ch<128 ) {
         if ( (ch>='a' && ch<='z') || (ch>='A' && ch<='Z') )
@@ -1654,6 +1654,47 @@ bool UnicodeIsAlpha( lChar16 ch )
         return true;
     }
     return false;
+}
+
+
+lString16 & lString16::uppercase()
+{
+    lStr_uppercase( modify(), length() );
+    return *this;
+}
+
+lString16 & lString16::lowercase()
+{
+    lStr_lowercase( modify(), length() );
+    return *this;
+}
+
+void lStr_uppercase( lChar16 * str, int len )
+{
+    for ( int i=0; i<len; i++ ) {
+        lChar16 ch = str[i];
+        if ( ch>='a' && ch<='z' ) {
+            str[i] = ch - 0x20;
+        } else if ( ch>=0xE0 && ch<=0xFF ) {
+            str[i] = ch - 0x20;
+        } else if ( ch>=0x430 && ch<=0x44F ) {
+            str[i] = ch - 0x20;
+        }
+    }
+}
+
+void lStr_lowercase( lChar16 * str, int len )
+{
+    for ( int i=0; i<len; i++ ) {
+        lChar16 ch = str[i];
+        if ( ch>='A' && ch<='Z' ) {
+            str[i] = ch + 0x20;
+        } else if ( ch>=0xC0 && ch<=0xDF ) {
+            str[i] = ch + 0x20;
+        } else if ( ch>=0x410 && ch<=0x42F ) {
+            str[i] = ch + 0x20;
+        }
+    }
 }
 
 void lString16Collection::parse( lString16 string, lChar16 delimiter, bool flgTrim )
@@ -1691,7 +1732,7 @@ lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpac
             state = 1;
         } else if ( ch=='\r' || ch=='\n' ) {
             if ( state==2 ) {
-                if ( removeEolHyphens && pdst>(buf+1) && *(pdst-1)=='-' && UnicodeIsAlpha(*(pdst-2)) )
+                if ( removeEolHyphens && pdst>(buf+1) && *(pdst-1)=='-' && lvUnicodeIsAlpha(*(pdst-2)) )
                     pdst--; // remove hyphen at end of line
                 if ( *psrc || allowEndSpace ) // if not last
                     *pdst++ = ' ';

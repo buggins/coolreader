@@ -281,6 +281,73 @@ void LVTextFileBase::SetCharsetTable( const lChar16 * table )
     lStr_memcpy( m_conv_table, table, 128 );
 }
 
+
+static const lChar16 * heading_volume[] = {
+    L"volume",
+    L"vol",
+    L"\x0442\x043e\x043c", // tom
+    NULL
+};
+
+static const lChar16 * heading_part[] = {
+    L"part",
+    L"\x0447\x0430\x0441\x0442\x044c", // chast'
+    NULL
+};
+
+static const lChar16 * heading_chapter[] = {
+    L"chapter",
+    L"\x0433\x043B\x0430\x0432\x0430", // glava
+    NULL
+};
+
+static bool startsWithOneOf( lString16 str, const lChar16 * list[] )
+{
+    str.lowercase();
+    const lChar16 * p = str.c_str();
+    for ( int i=0; list[i]; i++ ) {
+        const lChar16 * q = list[i];
+        int j=0;
+        for ( ; q[j]; j++ ) {
+            if ( !p[j] ) {
+                return (!q[j] || q[j]==' ');
+            }
+            if ( p[j] != q[j] )
+                break;
+        }
+        if ( !q[j] )
+            return true;
+    }
+    return false;
+}
+
+int DetectHeadingLevelByText( const lString16 & str )
+{
+    if ( str.empty() )
+        return 0;
+    if ( startsWithOneOf( str, heading_volume ) )
+        return 1;
+    if ( startsWithOneOf( str, heading_part ) )
+        return 2;
+    if ( startsWithOneOf( str, heading_chapter ) )
+        return 3;
+    lChar16 ch = str[0];
+    if ( ch>='0' && ch<='9' ) {
+        unsigned i;
+        int point_count = 0;
+        for ( i=1; i<str.length(); i++ ) {
+            ch = str[i];
+            if ( ch>='0' && ch<='9' )
+                continue;
+            if ( ch!='.' )
+                return 0;
+            point_count++;
+        }
+        return (str.length()<80) ? 4+point_count : 0;
+    }
+    return 0;
+}
+
 class LVTextFileLine
 {
 public:
@@ -513,6 +580,9 @@ public:
         }
         str.trimDoubleSpaces(false, false, true);
         bool isHeader = str.length()<4 || (paraCount<2 && str.length()<50);
+        int hlevel = DetectHeadingLevelByText( str );
+        if ( hlevel>0 )
+            isHeader = true;
         if ( !str.empty() ) {
             if ( isHeader )
                 callback->OnTagOpen( NULL, L"title" );
@@ -557,11 +627,13 @@ public:
             if ( pos>=length() )
                 break;
             int i=pos+1;
-            for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
-                LVTextFileLine * item = get(i);
-                if ( item->lpos>min_left ) {
-                    // ident
-                    break;
+            if ( pos>=length() || DetectHeadingLevelByText( get(pos)->text )==0 ) {
+                for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
+                    LVTextFileLine * item = get(i);
+                    if ( item->lpos>min_left ) {
+                        // ident
+                        break;
+                    }
                 }
             }
             AddPara( pos, i-1, callback );
@@ -583,11 +655,13 @@ public:
             if ( pos>=length() )
                 break;
             int i=pos;
-            for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
-                LVTextFileLine * item = get(i);
-                if ( item->lpos==item->lpos ) {
-                    // empty line
-                    break;
+            if ( pos>=length() || DetectHeadingLevelByText( get(pos)->text )==0 ) {
+                for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
+                    LVTextFileLine * item = get(i);
+                    if ( item->lpos==item->lpos ) {
+                        // empty line
+                        break;
+                    }
                 }
             }
             AddPara( pos, i, callback );

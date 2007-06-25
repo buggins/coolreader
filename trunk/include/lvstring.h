@@ -53,6 +53,9 @@ int    lStr_cmp(const lChar8 * str1, const lChar16 * str2);
 /// strcmp for lChar8
 int    lStr_cmp(const lChar8 * str1, const lChar8 * str2);
 
+void lStr_uppercase( lChar16 * str, int len );
+
+void lStr_lowercase( lChar16 * str, int len );
 
 struct lstring_chunk_t {
     friend class lString8;
@@ -330,6 +333,8 @@ public:
     lString16 & replace(size_type p0, size_type n0, const lString16 & str);
     lString16 & replace(size_type p0, size_type n0, const lString16 & str, size_type offset, size_type count);
     lString16 & replace(size_type p0, size_type n0, size_type count, value_type ch);
+    lString16 & uppercase();
+    lString16 & lowercase();
     int compare(const lString16& str) const { return lStr_cmp(pchunk->buf16, str.pchunk->buf16); }
     int compare(size_type p0, size_type n0, const lString16& str) const;
     int compare(size_type p0, size_type n0, const lString16& str, size_type pos, size_type n) const;
