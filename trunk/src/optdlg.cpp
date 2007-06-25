@@ -19,11 +19,73 @@ void OptPanel::Create( wxWindow * parent, wxWindowID id, wxString title )
     //InitDialog();
 }
 
+wxWindow * OptPanel::AddControl(wxWindow * control)
+{
+    _sizer->Add(
+        control,
+        0,                // make vertically unstretchable
+        wxALIGN_LEFT | wxALL,
+        8); // no border and centre horizontally
+    return control;
+}
+
+wxComboBox * OptPanel::AddCombobox(wxString caption, wxString options[], int size, int selection ) {
+    wxSizer * sizer = new wxBoxSizer( wxHORIZONTAL );
+    sizer->Add( new wxStaticText( this, wxID_ANY, caption ),
+        0,                // make vertically unstretchable
+        wxALIGN_LEFT | wxALL,
+        4); // no border and centre horizontally
+    wxComboBox * control = new wxComboBox( this, wxID_ANY,
+        options[selection],
+        wxDefaultPosition, wxDefaultSize, size,
+        options,
+        wxCB_READONLY | wxCB_DROPDOWN );
+    sizer->Add(
+        control,
+        0,                // make vertically unstretchable
+        wxALIGN_LEFT | wxALL,
+        4); // no border and centre horizontally
+    _sizer->Add(
+        sizer,
+        0,                // make vertically unstretchable
+        wxALIGN_LEFT | wxALL,
+        4); // no border and centre horizontally
+    return control;
+}
+wxCheckBox * OptPanel::AddCheckbox(wxString caption)
+{
+    wxCheckBox * control = new wxCheckBox( this, wxID_ANY, caption );
+    _sizer->Add(
+        control,
+        0,                // make vertically unstretchable
+        wxALIGN_LEFT | wxALL,
+        8); // no border and centre horizontally
+    return control;
+}
+
+class OptWindow : public OptPanel {
+private:
+    wxPanel * _panel;
+    wxCheckBox * _cb_menu;
+    wxComboBox * _cb_toolbar;
+    wxCheckBox * _cb_statusbar;
+public:
+    OptWindow( wxWindow * parent )
+    {
+         OptPanel::Create( parent, ID_OPTIONS_WINDOW, wxT("Window options (restart to apply)") ); 
+    }
+    virtual void CreateControls();
+    virtual void PropsToControls( CRPropRef props );
+    virtual void ControlsToProps( CRPropRef props );
+    ~OptWindow() { }
+};
+
+
 static wxString tbchoices[] = {
     wxT("Hide Toolbar"),
-    wxT("Show Toolbar: small buttons"),
-    wxT("Show Toolbar: medium buttons"),
-    wxT("Show Toolbar: large buttons"),
+    wxT("Small buttons"),
+    wxT("Medium buttons"),
+    wxT("Large buttons"),
 };
 
 void OptWindow::PropsToControls( CRPropRef props )
@@ -56,31 +118,50 @@ void OptWindow::ControlsToProps( CRPropRef props )
 
 void OptWindow::CreateControls()
 {
-    _cb_menu = new wxCheckBox( this, ID_OPTIONS_WINDOW_MENU, wxT("Show menu") );
-    _cb_toolbar = new wxComboBox( this, ID_OPTIONS_WINDOW_TOOLBAR, 
-        wxT("Show Toolbar: medium size"), 
-        wxDefaultPosition, wxDefaultSize, 4, 
-        tbchoices, 
-        wxCB_READONLY | wxCB_DROPDOWN );
-
-        //wxT("Show toolbar") );
-    _cb_statusbar = new wxCheckBox( this, ID_OPTIONS_WINDOW_STATUSBAR, wxT("Show statusbar") );
-    _sizer->Add(
-        _cb_menu,
-        0,                // make vertically unstretchable
-        wxALIGN_LEFT | wxALL,
-        8); // no border and centre horizontally
-    _sizer->Add(
-        _cb_statusbar,
-        0,                // make vertically unstretchable
-        wxALIGN_LEFT | wxALL,
-        8); // no border and centre horizontally
-    _sizer->Add(
-        _cb_toolbar,
-        0,                // make vertically unstretchable
-        wxALIGN_LEFT | wxALL,
-        8); // no border and centre horizontally
+    _cb_menu = AddCheckbox( wxT("Show menu") );
+    _cb_toolbar = AddCombobox( wxT("Toolbar"), tbchoices, 4, 2 );
+    _cb_statusbar = AddCheckbox( wxT("Show statusbar") );
 }
+
+static wxString tbchoices_page[] = {
+    wxT("1 Book page"),
+    wxT("2 Book pages"),
+    wxT("Scroll view"),
+};
+
+
+class OptPanelPage : public OptPanel {
+private:
+    wxPanel * _panel;
+    wxComboBox * _cb_view_mode;
+    wxCheckBox * _cb_title;
+    wxCheckBox * _cb_author;
+    wxCheckBox * _cb_page_count;
+    wxCheckBox * _cb_page_number;
+    wxCheckBox * _cb_clock;
+    wxCheckBox * _cb_battery;
+public:
+    OptPanelPage( wxWindow * parent ) {
+         OptPanel::Create( parent, wxID_ANY, wxT("Page options") );
+    }
+    virtual void CreateControls()
+    {
+        _cb_view_mode = AddCombobox( wxT("View mode"), tbchoices_page, 3, 1 );
+        _cb_title = AddCheckbox( wxT("Show title in page header") );
+        _cb_author = AddCheckbox( wxT("Show author in page header") );
+        _cb_page_count = AddCheckbox( wxT("Show page count in page header") );
+        _cb_page_number = AddCheckbox( wxT("Show page number in page header") );
+        _cb_clock = AddCheckbox( wxT("Show clock in page header") );
+        _cb_battery = AddCheckbox( wxT("Show battery indicator in page header") );
+    }
+    virtual void PropsToControls( CRPropRef props )
+    {
+    }
+    virtual void ControlsToProps( CRPropRef props )
+    {
+    }
+    ~OptPanelPage() { }
+};
 
 
 CR3OptionsDialog::CR3OptionsDialog(CRPropRef props)
@@ -139,10 +220,8 @@ bool CR3OptionsDialog::Create( wxWindow* parent, wxWindowID id )
 
         _opt_window = new OptWindow( _notebook );
         _notebook->InsertPage(0, _opt_window, wxT("Window") );
-        //_notebook->InsertPage(1, NULL, wxT("Book") );
-        //_notebook->InsertPage(2, NULL, wxT("Styles") );
-        //_notebook->InsertSubPage(2, NULL, wxT("Body") );
-        //_notebook->InsertSubPage(2, NULL, wxT("Paragraph") );
+        _opt_page = new OptPanelPage( _notebook );
+        _notebook->InsertPage(0, _opt_page, wxT("Page") );
 
         //sizer->SetSizeHints( this );
         SetSizer( sizer );
