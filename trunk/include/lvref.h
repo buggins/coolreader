@@ -86,7 +86,7 @@ public:
     /** Initializes pointer to given value 
         \param ptr is a pointer to object
     */
-    LVRef( T * ptr ) { 
+    explicit LVRef( T * ptr ) {
         if (ptr)
         {
             _ptr = new ref_count_rec_t(ptr);

@@ -520,7 +520,7 @@ public:
             if ( !lStr_cmp( fname, m_list[i]->GetName() ) ) {
                 if ( m_list[i]->IsContainer() ) {
                     // found directory with same name!!!
-                    return NULL;
+                    return LVStreamRef();
                 }
                 found_index = i;
                 break;
@@ -1912,7 +1912,7 @@ lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in )
 
 LVContainerRef LVOpenDirectory( const wchar_t * path )
 {
-    LVRef<LVContainer> dir = LVDirectoryContainer::OpenDirectory( path );
+    LVContainerRef dir( LVDirectoryContainer::OpenDirectory( path ) );
     return dir;
 }
 
