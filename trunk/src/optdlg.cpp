@@ -4,6 +4,58 @@
 #include "cr3.h"
 #include "optdlg.h"
 
+class CheckBoxOption : public PropOption {
+private:
+    bool _defvalue;
+public:
+    CheckBoxOption( wxCheckBox * control, const char * option, bool defvalue )
+    : PropOption( control, option ), _defvalue(defvalue)
+    {
+    }
+    virtual void ControlToOption( CRPropRef props )
+    {
+        props->setBool( _option, ((wxCheckBox*)_control)->IsChecked() );
+    }
+    virtual void OptionToControl( CRPropRef props )
+    {
+        ((wxCheckBox*)_control)->SetValue( props->getBoolDef(_option, _defvalue) );
+    }
+};
+
+class ComboBoxOption : public PropOption {
+private:
+    int _defvalue;
+    const wxString * _choices;
+    int _size;
+public:
+    ComboBoxOption( wxComboBox * control, const char * option, int defvalue, const wxString * choices )
+    : PropOption( control, option ), _defvalue(defvalue), _choices(choices)
+    {
+        for ( _size=0; _choices[_size].length(); _size++ )
+            ;
+    }
+    virtual void ControlToOption( CRPropRef props )
+    {
+        wxString v = ((wxComboBox*)_control)->GetValue();
+        int tb = _defvalue;
+        for ( int i=0; i<_size; i++ )
+            if ( v==_choices[i] )
+                tb = i;
+        props->setInt( _option, tb );
+    }
+    virtual void OptionToControl( CRPropRef props )
+    {
+        int tb = props->getIntDef( PROP_WINDOW_TOOLBAR_SIZE, 2 );
+        if ( tb<0 )
+            tb = _defvalue;
+        if ( tb>=_size )
+            tb = _defvalue;
+        ((wxComboBox*)_control)->SetValue( _choices[tb] );
+    }
+};
+
+
+
 OptPanel::OptPanel()
 : _sizer(NULL)
 {
@@ -19,24 +71,18 @@ void OptPanel::Create( wxWindow * parent, wxWindowID id, wxString title )
     //InitDialog();
 }
 
-wxWindow * OptPanel::AddControl(wxWindow * control)
+wxComboBox * OptPanel::AddCombobox( const char * option, wxString caption, wxString options[], int defValue )
 {
-    _sizer->Add(
-        control,
-        0,                // make vertically unstretchable
-        wxALIGN_LEFT | wxALL,
-        8); // no border and centre horizontally
-    return control;
-}
-
-wxComboBox * OptPanel::AddCombobox(wxString caption, wxString options[], int size, int selection ) {
+    int size = 0;
+    for ( ; options[size].length(); size++ )
+        ;
     wxSizer * sizer = new wxBoxSizer( wxHORIZONTAL );
     sizer->Add( new wxStaticText( this, wxID_ANY, caption ),
         0,                // make vertically unstretchable
         wxALIGN_LEFT | wxALL,
         4); // no border and centre horizontally
     wxComboBox * control = new wxComboBox( this, wxID_ANY,
-        options[selection],
+        options[defValue],
         wxDefaultPosition, wxDefaultSize, size,
         options,
         wxCB_READONLY | wxCB_DROPDOWN );
@@ -50,9 +96,10 @@ wxComboBox * OptPanel::AddCombobox(wxString caption, wxString options[], int siz
         0,                // make vertically unstretchable
         wxALIGN_LEFT | wxALL,
         4); // no border and centre horizontally
+    _opts.add( new ComboBoxOption( control, option, defValue, options ) );
     return control;
 }
-wxCheckBox * OptPanel::AddCheckbox(wxString caption)
+wxCheckBox * OptPanel::AddCheckbox( const char * option, wxString caption, bool defValue )
 {
     wxCheckBox * control = new wxCheckBox( this, wxID_ANY, caption );
     _sizer->Add(
@@ -60,8 +107,10 @@ wxCheckBox * OptPanel::AddCheckbox(wxString caption)
         0,                // make vertically unstretchable
         wxALIGN_LEFT | wxALL,
         8); // no border and centre horizontally
+    _opts.add( new CheckBoxOption( control, option, defValue ) );
     return control;
 }
+
 
 class OptWindow : public OptPanel {
 private:
@@ -75,60 +124,30 @@ public:
          OptPanel::Create( parent, ID_OPTIONS_WINDOW, wxT("Window options (restart to apply)") ); 
     }
     virtual void CreateControls();
-    virtual void PropsToControls( CRPropRef props );
-    virtual void ControlsToProps( CRPropRef props );
     ~OptWindow() { }
 };
-
 
 static wxString tbchoices[] = {
     wxT("Hide Toolbar"),
     wxT("Small buttons"),
     wxT("Medium buttons"),
     wxT("Large buttons"),
+    wxString()
 };
-
-void OptWindow::PropsToControls( CRPropRef props )
-{
-    _cb_menu->SetValue( props->getBoolDef(PROP_WINDOW_SHOW_MENU, true) );
-    int tb = props->getIntDef(PROP_WINDOW_TOOLBAR_SIZE, 2);
-    if ( tb<0 )
-        tb = 0;
-    if ( tb>3 )
-        tb = 3;
-    _cb_toolbar->SetValue( tbchoices[tb] );
-    _cb_statusbar->SetValue( props->getBoolDef(PROP_WINDOW_SHOW_STATUSBAR, true) );
-}
-
-void OptWindow::ControlsToProps( CRPropRef props )
-{
-    props->setBool( PROP_WINDOW_SHOW_MENU, _cb_menu->IsChecked() );
-    wxString v = _cb_toolbar->GetValue();
-    int tb = 2;
-    for ( int i=0; i<4; i++ )
-        if ( v==tbchoices[i] )
-            tb = i;
-    if ( tb<0 )
-        tb = 0;
-    if ( tb>3 )
-        tb = 3;
-    props->setInt( PROP_WINDOW_TOOLBAR_SIZE, tb );
-    props->setBool( PROP_WINDOW_SHOW_STATUSBAR, _cb_statusbar->IsChecked() );
-}
 
 void OptWindow::CreateControls()
 {
-    _cb_menu = AddCheckbox( wxT("Show menu") );
-    _cb_toolbar = AddCombobox( wxT("Toolbar"), tbchoices, 4, 2 );
-    _cb_statusbar = AddCheckbox( wxT("Show statusbar") );
+    _cb_menu = AddCheckbox( PROP_WINDOW_SHOW_MENU, wxT("Show menu"), true );
+    _cb_toolbar = AddCombobox( PROP_WINDOW_TOOLBAR_SIZE, wxT("Toolbar"), tbchoices, 2 );
+    _cb_statusbar = AddCheckbox( PROP_WINDOW_SHOW_STATUSBAR, wxT("Show statusbar"), true );
 }
 
 static wxString tbchoices_page[] = {
     wxT("1 Book page"),
     wxT("2 Book pages"),
     wxT("Scroll view"),
+    wxString()
 };
-
 
 class OptPanelPage : public OptPanel {
 private:
@@ -146,13 +165,13 @@ public:
     }
     virtual void CreateControls()
     {
-        _cb_view_mode = AddCombobox( wxT("View mode"), tbchoices_page, 3, 1 );
-        _cb_title = AddCheckbox( wxT("Show title in page header") );
-        _cb_author = AddCheckbox( wxT("Show author in page header") );
-        _cb_page_count = AddCheckbox( wxT("Show page count in page header") );
-        _cb_page_number = AddCheckbox( wxT("Show page number in page header") );
-        _cb_clock = AddCheckbox( wxT("Show clock in page header") );
-        _cb_battery = AddCheckbox( wxT("Show battery indicator in page header") );
+        _cb_view_mode = AddCombobox( PROP_PAGE_VIEW_MODE, wxT("View mode"), tbchoices_page, 1 );
+        _cb_title = AddCheckbox( PROP_PAGE_HEADER_TITLE, wxT("Show title in page header"), true );
+        _cb_author = AddCheckbox( PROP_PAGE_HEADER_AUTHOR, wxT("Show author in page header"), true );
+        _cb_page_count = AddCheckbox( PROP_PAGE_HEADER_PAGE_COUNT, wxT("Show page count in page header"), true );
+        _cb_page_number = AddCheckbox( PROP_PAGE_HEADER_PAGE_NUMBER, wxT("Show page number in page header"), true );
+        _cb_clock = AddCheckbox( PROP_PAGE_HEADER_CLOCK, wxT("Show clock in page header"), true );
+        _cb_battery = AddCheckbox( PROP_PAGE_HEADER_BATTERY, wxT("Show battery indicator in page header"), true );
     }
     virtual void PropsToControls( CRPropRef props )
     {
