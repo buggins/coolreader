@@ -6,6 +6,7 @@
 #include "cr3.h"
 #include "rescont.h"
 #include "view.h"
+#include "optdlg.h"
 
 #define RENDER_TIMER_ID   123
 #define CLOCK_TIMER_ID    124
@@ -34,6 +35,27 @@ wxColour cr3view::getBackgroundColour()
     return wxcl;
 }
 
+int propsToPageHeaderFlags( CRPropRef props )
+{
+    int flags = 0;
+    if ( props->getBoolDef( PROP_PAGE_HEADER_ENABLED, true ) ) {
+        if ( props->getBoolDef( PROP_PAGE_HEADER_PAGE_NUMBER, true ) )
+            flags |= PGHDR_PAGE_NUMBER;
+        if ( props->getBoolDef( PROP_PAGE_HEADER_PAGE_COUNT, true ) )
+            flags |= PGHDR_PAGE_COUNT;
+        if ( props->getBoolDef( PROP_PAGE_HEADER_CLOCK, true ) )
+            flags |= PGHDR_CLOCK;
+        if ( props->getBoolDef( PROP_PAGE_HEADER_BATTERY, true ) )
+            flags |= PGHDR_BATTERY;
+        if ( props->getBoolDef( PROP_PAGE_HEADER_AUTHOR, true ) )
+            flags |= PGHDR_AUTHOR;
+        if ( props->getBoolDef( PROP_PAGE_HEADER_TITLE, true ) )
+            flags |= PGHDR_TITLE;
+    }
+    return flags;
+}
+
+
 void cr3view::OnInitDialog(wxInitDialogEvent& event)
 {
     //SetBackgroundColour( getBackgroundColour() );
@@ -46,9 +68,10 @@ lString16 cr3view::GetLastRecentFileName()
     return lString16();
 }
 
-cr3view::cr3view()
+cr3view::cr3view(CRPropRef props)
 : _scrollbar(NULL)
 , _firstRender(false)
+, _props(props)
 {
     _docview = new LVDocView();
 
@@ -234,16 +257,12 @@ void cr3view::OnMouseRDown( wxMouseEvent & event )
     ((wxFrame*)GetParent())->PopupMenu(&pm);
 }
 
-void cr3view::TogglePageHeader()
+void cr3view::SetPageHeaderFlags( int flags )
 {
-    _docview->setPageHeaderInfo(
-        _docview->getPageHeaderInfo() ?
-        0 :
-              PGHDR_PAGE_NUMBER
-            | PGHDR_PAGE_COUNT
-            | PGHDR_AUTHOR
-            | PGHDR_TITLE
-        );
+    int oldflags = _docview->getPageHeaderInfo();
+    if ( oldflags==flags )
+        return;
+    _docview->setPageHeaderInfo( flags );
     UpdateScrollBar();
     Paint();
 }
@@ -304,7 +323,8 @@ void cr3view::OnCommand(wxCommandEvent& event)
         ToggleViewMode();
         break;
     case Menu_View_TogglePageHeader:
-        TogglePageHeader();
+        _props->setBool( PROP_PAGE_HEADER_ENABLED, _props->getBoolDef(PROP_PAGE_HEADER_ENABLED, true) );
+        SetPageHeaderFlags( propsToPageHeaderFlags( _props ) );
         break;
 	}
 }

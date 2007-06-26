@@ -50,6 +50,7 @@ cr3Frame : public wxFrame
 
         void SetActiveMode( active_mode_t mode );
         void UpdateToolbar();
+        void OnOptionsChange( CRPropRef oldprops, CRPropRef newprops, CRPropRef changed );
 
 		void OnQuit( wxCommandEvent& event );
 		void OnAbout( wxCommandEvent& event );

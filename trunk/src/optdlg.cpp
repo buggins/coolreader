@@ -111,23 +111,7 @@ wxCheckBox * OptPanel::AddCheckbox( const char * option, wxString caption, bool 
     return control;
 }
 
-
-class OptWindow : public OptPanel {
-private:
-    wxPanel * _panel;
-    wxCheckBox * _cb_menu;
-    wxComboBox * _cb_toolbar;
-    wxCheckBox * _cb_statusbar;
-public:
-    OptWindow( wxWindow * parent )
-    {
-         OptPanel::Create( parent, ID_OPTIONS_WINDOW, wxT("Window options (restart to apply)") ); 
-    }
-    virtual void CreateControls();
-    ~OptWindow() { }
-};
-
-static wxString tbchoices[] = {
+static wxString choices_toolbar_size[] = {
     wxT("Hide Toolbar"),
     wxT("Small buttons"),
     wxT("Medium buttons"),
@@ -135,57 +119,58 @@ static wxString tbchoices[] = {
     wxString()
 };
 
-void OptWindow::CreateControls()
-{
-    _cb_menu = AddCheckbox( PROP_WINDOW_SHOW_MENU, wxT("Show menu"), true );
-    _cb_toolbar = AddCombobox( PROP_WINDOW_TOOLBAR_SIZE, wxT("Toolbar"), tbchoices, 2 );
-    _cb_statusbar = AddCheckbox( PROP_WINDOW_SHOW_STATUSBAR, wxT("Show statusbar"), true );
-}
+static wxString choices_toolbar_position[] = {
+    wxT("Top"),
+    wxT("Left"),
+    wxT("Right"),
+    wxT("Bottom"),
+    wxString()
+};
 
-static wxString tbchoices_page[] = {
+class OptPanelWindow : public OptPanel {
+public:
+    OptPanelWindow( wxWindow * parent )
+    {
+         OptPanel::Create( parent, ID_OPTIONS_WINDOW, wxT("Window options (restart to apply)") ); 
+    }
+    virtual void CreateControls()
+    {
+        AddCheckbox( PROP_WINDOW_SHOW_MENU, wxT("Show menu"), true );
+        AddCombobox( PROP_WINDOW_TOOLBAR_SIZE, wxT("Toolbar size"), choices_toolbar_size, 2 );
+        AddCombobox( PROP_WINDOW_TOOLBAR_POSITION, wxT("Toolbar position"), choices_toolbar_position, 0 );
+        AddCheckbox( PROP_WINDOW_SHOW_STATUSBAR, wxT("Show statusbar"), true );
+    }
+};
+
+static wxString choices_page[] = {
     wxT("1 Book page"),
     wxT("2 Book pages"),
     wxT("Scroll view"),
     wxString()
 };
 
-class OptPanelPage : public OptPanel {
-private:
-    wxPanel * _panel;
-    wxComboBox * _cb_view_mode;
-    wxCheckBox * _cb_title;
-    wxCheckBox * _cb_author;
-    wxCheckBox * _cb_page_count;
-    wxCheckBox * _cb_page_number;
-    wxCheckBox * _cb_clock;
-    wxCheckBox * _cb_battery;
+class OptPanelPageHeader : public OptPanel {
 public:
-    OptPanelPage( wxWindow * parent ) {
-         OptPanel::Create( parent, wxID_ANY, wxT("Page options") );
+    OptPanelPageHeader( wxWindow * parent ) {
+         OptPanel::Create( parent, wxID_ANY, wxT("Page header options") );
     }
     virtual void CreateControls()
     {
-        _cb_view_mode = AddCombobox( PROP_PAGE_VIEW_MODE, wxT("View mode"), tbchoices_page, 1 );
-        _cb_title = AddCheckbox( PROP_PAGE_HEADER_TITLE, wxT("Show title in page header"), true );
-        _cb_author = AddCheckbox( PROP_PAGE_HEADER_AUTHOR, wxT("Show author in page header"), true );
-        _cb_page_count = AddCheckbox( PROP_PAGE_HEADER_PAGE_COUNT, wxT("Show page count in page header"), true );
-        _cb_page_number = AddCheckbox( PROP_PAGE_HEADER_PAGE_NUMBER, wxT("Show page number in page header"), true );
-        _cb_clock = AddCheckbox( PROP_PAGE_HEADER_CLOCK, wxT("Show clock in page header"), true );
-        _cb_battery = AddCheckbox( PROP_PAGE_HEADER_BATTERY, wxT("Show battery indicator in page header"), true );
+        AddCheckbox( PROP_PAGE_HEADER_ENABLED, wxT("Enable page header"), true );
+        AddCombobox( PROP_PAGE_VIEW_MODE, wxT("View mode"), choices_page, 1 );
+        AddCheckbox( PROP_PAGE_HEADER_TITLE, wxT("Show title"), true );
+        AddCheckbox( PROP_PAGE_HEADER_AUTHOR, wxT("Show author"), true );
+        AddCheckbox( PROP_PAGE_HEADER_PAGE_COUNT, wxT("Show page count"), true );
+        AddCheckbox( PROP_PAGE_HEADER_PAGE_NUMBER, wxT("Show page number"), true );
+        AddCheckbox( PROP_PAGE_HEADER_CLOCK, wxT("Show clock"), true );
+        AddCheckbox( PROP_PAGE_HEADER_BATTERY, wxT("Show battery indicator"), true );
     }
-    virtual void PropsToControls( CRPropRef props )
-    {
-    }
-    virtual void ControlsToProps( CRPropRef props )
-    {
-    }
-    ~OptPanelPage() { }
 };
 
-
 CR3OptionsDialog::CR3OptionsDialog(CRPropRef props)
-: _notebook(NULL), _opt_window(NULL), _props(props)
+: _notebook(NULL), _opt_window(NULL), _oldprops(props)
 {
+    _props = _oldprops->clone();
 }
 
 CR3OptionsDialog::~CR3OptionsDialog()
@@ -219,7 +204,6 @@ bool CR3OptionsDialog::Create( wxWindow* parent, wxWindowID id )
         wxRESIZE_BORDER|wxCLOSE_BOX|wxCAPTION, wxString(wxT("dialogBox")));
     if ( res ) {
 
-        //_notebook = new wxNotebook( this, ID_OPTIONS_TREEBOOK );
         _notebook = new wxTreebook( this, ID_OPTIONS_TREEBOOK );
         _notebook->Hide();
         wxSizer * btnSizer = CreateButtonSizer( wxOK | wxCANCEL );
@@ -237,17 +221,16 @@ bool CR3OptionsDialog::Create( wxWindow* parent, wxWindowID id )
             wxALIGN_CENTER | wxALL,
             4); // no border and centre horizontally
 
-        _opt_window = new OptWindow( _notebook );
+        _opt_window = new OptPanelWindow( _notebook );
         _notebook->InsertPage(0, _opt_window, wxT("Window") );
-        _opt_page = new OptPanelPage( _notebook );
-        _notebook->InsertPage(0, _opt_page, wxT("Page") );
 
-        //sizer->SetSizeHints( this );
+        _opt_page = new OptPanelPageHeader( _notebook );
+        _notebook->InsertPage(1, _opt_page, wxT("Page header") );
+
         SetSizer( sizer );
         PropsToControls();
         _notebook->Show();
         InitDialog();
-        
     }
     return res;
 }

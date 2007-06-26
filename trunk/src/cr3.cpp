@@ -49,7 +49,6 @@ IMPLEMENT_APP(cr3app)
 
 ResourceContainer * resources = NULL;
 
-
 void cr3Frame::OnUpdateUI( wxUpdateUIEvent& event )
 {
 }
@@ -725,7 +724,7 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
 
     _isFullscreen = false;
 
-    _view = new cr3view();
+    _view = new cr3view( _props );
     _hist = new HistList();
 
 
@@ -811,6 +810,15 @@ cr3Frame::OnShowHistory( wxCommandEvent& event )
     }
 }
 
+void cr3Frame::OnOptionsChange( CRPropRef oldprops, CRPropRef newprops, CRPropRef changed )
+{
+    if ( changed->getCount()>0 ) {
+        _props->set( newprops );
+    }
+    ///
+    SaveOptions();
+}
+
 void
 cr3Frame::OnShowOptions( wxCommandEvent& event )
 {
@@ -819,7 +827,7 @@ cr3Frame::OnShowOptions( wxCommandEvent& event )
     if ( dlg.ShowModal() == wxID_OK ) {
         // set options
         dlg.ControlsToProps();
-        SaveOptions();
+        OnOptionsChange( dlg.getOldProps(), dlg.getNewProps(), dlg.getChangedProps() );
     }
 }
 

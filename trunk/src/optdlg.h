@@ -22,8 +22,10 @@ enum {
 #define PROP_WINDOW_MAXIMIZED       "window.maximized"
 #define PROP_WINDOW_SHOW_MENU       "window.menu.show"
 #define PROP_WINDOW_TOOLBAR_SIZE    "window.toolbar.size"
+#define PROP_WINDOW_TOOLBAR_POSITION "window.toolbar.position"
 #define PROP_WINDOW_SHOW_STATUSBAR  "window.statusbar.show"
 
+#define PROP_PAGE_HEADER_ENABLED     "page.header.enabled"
 #define PROP_PAGE_HEADER_PAGE_NUMBER "page.header.pagenumber"
 #define PROP_PAGE_HEADER_PAGE_COUNT  "page.header.pagecount"
 #define PROP_PAGE_HEADER_CLOCK       "page.header.clock"
@@ -78,7 +80,11 @@ private:
     OptPanel * _opt_window;
     OptPanel * _opt_page;
     CRPropRef _props;
+    CRPropRef _oldprops;
 public:
+    CRPropRef getNewProps() { return _props; }
+    CRPropRef getOldProps() { return _oldprops; }
+    CRPropRef getChangedProps() { return _props ^ _oldprops; }
     virtual void PropsToControls();
     virtual void ControlsToProps();
     CR3OptionsDialog( CRPropRef props );

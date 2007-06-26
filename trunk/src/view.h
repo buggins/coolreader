@@ -12,7 +12,7 @@ class
 cr3view : public wxPanel
 {
     public:
-        cr3view();
+        cr3view(CRPropRef props);
         virtual ~cr3view();
         void ScheduleRender() { Resize(0, 0); }
         bool LoadDocument( const wxString & fname );
@@ -23,6 +23,7 @@ cr3view : public wxPanel
         void doCommand( LVDocCmd cmd, int param );
         void goToBookmark(ldomXPointer bm);
         wxColour getBackgroundColour();
+        void SetPageHeaderFlags( int flags );
         // event handlers
         void OnPaint(wxPaintEvent& event);
         void OnSize(wxSizeEvent& event);
@@ -36,7 +37,6 @@ cr3view : public wxPanel
         void OnTimer(wxTimerEvent& event);
         void OnInitDialog(wxInitDialogEvent& event);
         void ToggleViewMode();
-        void TogglePageHeader();
         lString16 GetHistoryFileName();
         lString16 GetLastRecentFileName();
     protected:
@@ -50,8 +50,11 @@ cr3view : public wxPanel
         wxTimer * _renderTimer;
         wxTimer * _clockTimer;
         bool _firstRender;
+        CRPropRef _props;
 
         DECLARE_EVENT_TABLE()
 };
+
+int propsToPageHeaderFlags( CRPropRef props );
 
 #endif // _CR3VIEW_H_
