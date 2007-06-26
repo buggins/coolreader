@@ -301,8 +301,9 @@ static const lChar16 * heading_chapter[] = {
     NULL
 };
 
-static bool startsWithOneOf( lString16 str, const lChar16 * list[] )
+static bool startsWithOneOf( const lString16 s, const lChar16 * list[] )
 {
+    lString16 str = s;
     str.lowercase();
     const lChar16 * p = str.c_str();
     for ( int i=0; list[i]; i++ ) {
@@ -817,7 +818,8 @@ bool LVTextParser::Parse()
     // make fb2 document structure
     m_callback->OnTagOpen( NULL, L"?xml" );
     m_callback->OnAttribute( NULL, L"version", L"1.0" );
-    //m_callback->OnAttribute( NULL, L"encoding", L"UTF-8" );
+    m_callback->OnAttribute( NULL, L"encoding", GetEncodingName().c_str() );
+    m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
     m_callback->OnTagClose( NULL, L"?xml" );
     m_callback->OnTagOpen( NULL, L"FictionBook" );
       // DESCRIPTION
