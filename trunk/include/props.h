@@ -37,27 +37,29 @@ public:
     /// sets property value by index
     virtual void setValue( int index, const lString16 &value ) = 0;
 
+    /// returns true if specified property exists
+    virtual bool hasProperty( const char * propName ) const = 0;
     /// get string property by name, returns false if not found
     virtual bool getString( const char * propName, lString16 &result ) const = 0;
     /// get string property by name, returns default value if not found
     virtual lString16 getStringDef( const char * propName, const char * defValue = NULL ) const;
     /// set string property by name
     virtual void setString( const char * propName, const lString16 &value ) = 0;
-    
+
     /// get int property by name, returns false if not found
     virtual bool getInt( const char * propName, int &result ) const;
     /// get int property by name, returns default value if not found
     virtual int getIntDef( const char * propName, int defValue=0 ) const;
     /// set int property by name
     virtual void setInt( const char * propName, int value );
-    
+
     /// get bool property by name, returns false if not found
     virtual bool getBool( const char * propName, bool &result ) const;
     /// get bool property by name, returns default value if not found
     virtual bool getBoolDef( const char * propName, bool defValue=false ) const;
     /// set bool property by name
     virtual void setBool( const char * propName, bool value );
-    
+
     /// get lInt64 property by name, returns false if not found
     virtual bool getInt64( const char * propName, lInt64 &result ) const;
     /// get lInt64 property by name, returns default value if not found
@@ -89,6 +91,10 @@ public:
 
     /// get subpath container (only items with names started with path)
     virtual CRPropRef getSubProps( const char * path ) = 0;
+    /// get copy of property list
+    virtual CRPropRef clone() const = 0;
+    /// set contents from specified properties
+    virtual void set( const CRPropRef & v );
     /// read from stream
     virtual bool loadFromStream( LVStream * stream );
     /// save to stream
@@ -97,6 +103,15 @@ public:
     virtual ~CRPropAccessor();
 };
 
+
+/// returns common items from props1 not containing in props2
+CRPropRef operator - ( CRPropRef props1, CRPropRef props2 );
+/// returns common items containing in props1 or props2
+CRPropRef operator | ( CRPropRef props1, CRPropRef props2 );
+/// returns common items of props1 and props2
+CRPropRef operator & ( CRPropRef props1, CRPropRef props2 );
+/// returns added or changed items of props2 compared to props1
+CRPropRef operator ^ ( CRPropRef props1, CRPropRef props2 );
 
 /// factory function creates empty property container
 CRPropRef LVCreatePropsContainer();

@@ -39,6 +39,138 @@ public:
     void setValue(const lString16 &v) { _value = v; }
 };
 
+/// set contents from specified properties
+void CRPropAccessor::set( const CRPropRef & v )
+{
+    clear();
+    int sz = v->getCount();
+    for ( int i=0; i<sz; i++ )
+        setString( v->getName(i), v->getValue(i) );
+}
+
+/// calc props1 - props2
+CRPropRef operator - ( CRPropRef props1, CRPropRef props2 )
+{
+    CRPropRef v = LVCreatePropsContainer();
+    int cnt1 = props1->getCount();
+    int cnt2 = props2->getCount();
+    int p1 = 0;
+    int p2 = 0;
+    while ( p1<cnt1 && p2<cnt2 ) {
+        if ( p1==cnt1 ) {
+            break;
+        } else if ( p2==cnt2 ) {
+            v->setString( props1->getName( p1 ), props1->getValue( p1 ) );
+            p1++;
+        } else {
+            int res = lStr_cmp( props1->getName( p1 ), props2->getName( p2 ) );
+            if ( res<0 ) {
+                v->setString( props1->getName( p1 ), props1->getValue( p1 ) );
+                p1++;
+            } else if ( res==0 ) {
+                p1++;
+                p2++;
+            } else { // ( res>0 )
+                p2++;
+            }
+        }
+    }
+    return v;
+}
+/// calc props1 | props2
+CRPropRef operator | ( CRPropRef props1, CRPropRef props2 )
+{
+    CRPropRef v = LVCreatePropsContainer();
+    int cnt1 = props1->getCount();
+    int cnt2 = props2->getCount();
+    int p1 = 0;
+    int p2 = 0;
+    while ( p1<cnt1 && p2<cnt2 ) {
+        if ( p1==cnt1 ) {
+            v->setString( props2->getName( p2 ), props2->getValue( p2 ) );
+            p2++;
+        } else if ( p2==cnt2 ) {
+            v->setString( props1->getName( p1 ), props1->getValue( p1 ) );
+            p1++;
+        } else {
+            int res = lStr_cmp( props1->getName( p1 ), props2->getName( p2 ) );
+            if ( res<0 ) {
+                v->setString( props1->getName( p1 ), props1->getValue( p1 ) );
+                p1++;
+            } else if ( res==0 ) {
+                v->setString( props1->getName( p1 ), props1->getValue( p1 ) );
+                p1++;
+                p2++;
+            } else { // ( res>0 )
+                v->setString( props2->getName( p2 ), props2->getValue( p2 ) );
+                p2++;
+            }
+        }
+    }
+    return v;
+}
+/// calc props1 & props2
+CRPropRef operator & ( CRPropRef props1, CRPropRef props2 )
+{
+    CRPropRef v = LVCreatePropsContainer();
+    int cnt1 = props1->getCount();
+    int cnt2 = props2->getCount();
+    int p1 = 0;
+    int p2 = 0;
+    while ( p1<cnt1 && p2<cnt2 ) {
+        if ( p1==cnt1 ) {
+            break;
+        } else if ( p2==cnt2 ) {
+            break;
+        } else {
+            int res = lStr_cmp( props1->getName( p1 ), props2->getName( p2 ) );
+            if ( res<0 ) {
+                p1++;
+            } else if ( res==0 ) {
+                v->setString( props1->getName( p1 ), props1->getValue( p1 ) );
+                p1++;
+                p2++;
+            } else { // ( res>0 )
+                p2++;
+            }
+        }
+    }
+    return v;
+}
+
+/// returns added or changed items of props2 compared to props1
+CRPropRef operator ^ ( CRPropRef props1, CRPropRef props2 )
+{
+    CRPropRef v = LVCreatePropsContainer();
+    int cnt1 = props1->getCount();
+    int cnt2 = props2->getCount();
+    int p1 = 0;
+    int p2 = 0;
+    while ( p1<cnt1 && p2<cnt2 ) {
+        if ( p1==cnt1 ) {
+            v->setString( props2->getName( p2 ), props2->getValue( p2 ) );
+            p2++;
+        } else if ( p2==cnt2 ) {
+            break;
+        } else {
+            int res = lStr_cmp( props1->getName( p1 ), props2->getName( p2 ) );
+            if ( res<0 ) {
+                p1++;
+            } else if ( res==0 ) {
+                lString16 v1 = props1->getValue( p1 );
+                lString16 v2 = props2->getValue( p2 );
+                if ( v1!=v2 )
+                    v->setString( props2->getName( p2 ), v2 );
+                p1++;
+                p2++;
+            } else { // ( res>0 )
+                p2++;
+            }
+        }
+    }
+    return v;
+}
+
 class CRPropContainer : public CRPropAccessor
 {
     friend class CRPropSubContainer;
@@ -49,7 +181,22 @@ protected:
     bool findItem( const char * name, int nameoffset, int start, int end, int & pos ) const;
     bool findItem( const char * name, int & pos ) const;
     void clear( int start, int end );
+    CRPropContainer( const CRPropContainer & v )
+    : _list( v._list )
+    {
+    }
 public:
+    /// get copy of property list
+    virtual CRPropRef clone() const
+    {
+        return CRPropRef( new CRPropContainer(*this) );
+    }
+    /// returns true if specified property exists
+    virtual bool hasProperty( const char * propName ) const
+    {
+        int pos;
+        return findItem( propName, pos );
+    }
     /// clear all items
     virtual void clear();
     /// returns property path in root container
@@ -529,6 +676,23 @@ protected:
         }
     }
 public:
+    /// get copy of property list
+    virtual CRPropRef clone() const
+    {
+        CRPropContainer * v = new CRPropContainer();
+        int cnt = getCount();
+        v->_list.reserve(cnt);
+        for ( int i=0; i<cnt; i++ ) {
+            v->_list.add( new CRPropItem( getName(i), getValue(i) ) );
+        }
+        return CRPropRef( v );
+    }
+    /// returns true if specified property exists
+    virtual bool hasProperty( const char * propName ) const
+    {
+        lString16 str;
+        return getString( propName, str );
+    }
     CRPropSubContainer(CRPropContainer * root, lString8 path)
     : _root(root), _path(path), _start(0), _end(0), _revision(0)
     {
