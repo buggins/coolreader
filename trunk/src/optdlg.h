@@ -32,7 +32,10 @@ enum {
 #define PROP_PAGE_HEADER_BATTERY     "page.header.battery"
 #define PROP_PAGE_HEADER_AUTHOR      "page.header.author"
 #define PROP_PAGE_HEADER_TITLE       "page.header.title"
+
 #define PROP_PAGE_VIEW_MODE          "page.view.mode"
+
+#define PROP_APP_OPEN_LAST_BOOK      "app.init.open-recent"
 
 class PropOption {
 protected:
@@ -72,19 +75,20 @@ public:
     }
 };
 
-
 class CR3OptionsDialog : public wxDialog
 {
 private:
     wxTreebook * _notebook;
     OptPanel * _opt_window;
     OptPanel * _opt_page;
+    OptPanel * _opt_view;
+    OptPanel * _opt_app;
     CRPropRef _props;
     CRPropRef _oldprops;
 public:
     CRPropRef getNewProps() { return _props; }
     CRPropRef getOldProps() { return _oldprops; }
-    CRPropRef getChangedProps() { return _props ^ _oldprops; }
+    CRPropRef getChangedProps() { return _oldprops ^ _props; }
     virtual void PropsToControls();
     virtual void ControlsToProps();
     CR3OptionsDialog( CRPropRef props );

@@ -49,6 +49,28 @@ IMPLEMENT_APP(cr3app)
 
 ResourceContainer * resources = NULL;
 
+static lChar16 detectSlash( lString16 path )
+{
+    for ( unsigned i=0; i<path.length(); i++ )
+        if ( path[i]=='\\' || path[i]=='/' )
+            return path[i];
+#ifdef _WIN32
+    return '\\';
+#else
+    return '/';
+#endif
+}
+
+lString16 GetConfigFileName()
+{
+    lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
+    if ( !wxDirExists( cfgdir.c_str() ) )
+        ::wxMkdir( wxString( cfgdir.c_str() ) );
+    lChar16 slash = detectSlash( cfgdir );
+    cfgdir << slash;
+    return cfgdir + L"cr3.ini";
+}
+
 void cr3Frame::OnUpdateUI( wxUpdateUIEvent& event )
 {
 }
@@ -332,7 +354,9 @@ cr3app::OnInit()
     int scale = scale_x < scale_y ? scale_x : scale_y;
     cx = 610 * scale / 256;
     cy = 830 * scale / 256;
-    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.6" ), wxPoint(x,y), wxSize(cx,cy), appPath );
+    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.7" ), wxPoint(x,y), wxSize(cx,cy), appPath );
+
+    
 
     frame->Show(TRUE);
     SetTopWindow(frame);
@@ -459,10 +483,13 @@ void cr3Frame::SetStatus( bool visible )
     SetStatusText( wxT( "Welcome to CoolReader 3.0!" ) );
 }
 
+
+static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE; // | wxTB_TEXT // | wxTB_DOCKABLE
+
 void cr3Frame::SetToolbarSize( int size )
 {
-    if ( size == _toolbarSize )
-        return;
+    //if ( size == _toolbarSize )
+    //    return;
     _toolbarSize = size;
     if ( !_toolbarSize ) {
         SetToolBar(NULL);
@@ -470,6 +497,29 @@ void cr3Frame::SetToolbarSize( int size )
     }
 
     wxToolBar* toolBar = GetToolBar();
+
+    long style = toolBar ? toolBar->GetWindowStyle() : TOOLBAR_STYLE;
+    delete toolBar;
+    SetToolBar(NULL);
+    style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT);
+    int mode = _props->getIntDef( PROP_WINDOW_TOOLBAR_POSITION, 0 );
+    switch ( mode ) {
+    case 1:
+        style |= wxTB_LEFT;
+        break;
+    default:
+        style |= wxTB_TOP;
+        break;
+    case 2:
+        style |= wxTB_RIGHT;
+        break;
+    case 3:
+        style |= wxTB_BOTTOM;
+        break;
+    }
+    //style |= wxTB_NO_TOOLTIPS;
+    toolBar = CreateToolBar(style, wxID_ANY);
+    /*
     if ( toolBar == NULL ) {
         toolBar = CreateToolBar();
     } else {
@@ -492,6 +542,7 @@ void cr3Frame::SetToolbarSize( int size )
             toolBar->DeleteTool(ids[i]);
         }
     }
+    */
 
     wxBitmap fileopenBitmap = getIcon16x16(L"fileopen");
 
@@ -571,6 +622,12 @@ void cr3Frame::SetToolbarSize( int size )
 
 void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 {
+    {
+        // load options from file
+        LVStreamRef stream = LVOpenFileStream( GetConfigFileName().c_str(), LVOM_READ );
+        if ( !stream.isNull() )
+            _props->loadFromStream(stream.get());
+    }
     _scrollBar = new cr3scroll(_view);
 
     _view->SetScrollBar( _scrollBar );
@@ -667,8 +724,8 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     lString16 fnameToOpen;
     if ( argc>1 ) {
         fnameToOpen = lString16( wxGetApp().argv[1] );
-    } else {
-        //fnameToOpen = _view->GetLastRecentFileName();
+    } else if ( _props->getBoolDef(PROP_APP_OPEN_LAST_BOOK, true) ) {
+        fnameToOpen = _view->GetLastRecentFileName();
     }
 
     if ( !fnameToOpen.empty() && fnameToOpen[0]=='\"' )
@@ -690,27 +747,6 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     RestoreOptions();
 }
 
-static lChar16 detectSlash( lString16 path )
-{
-    for ( unsigned i=0; i<path.length(); i++ )
-        if ( path[i]=='\\' || path[i]=='/' )
-            return path[i];
-#ifdef _WIN32
-    return '\\';
-#else
-    return '/';
-#endif
-}
-
-lString16 GetConfigFileName()
-{
-    lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
-    if ( !wxDirExists( cfgdir.c_str() ) )
-        ::wxMkdir( wxString( cfgdir.c_str() ) );
-    lChar16 slash = detectSlash( cfgdir );
-    cfgdir << slash;
-    return cfgdir + L"cr3.ini";
-}
 
 cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& size, lString16 appDir )
     : wxFrame((wxFrame *)NULL, -1, title, pos, size), _activeMode(am_none), _toolbarSize(false)
@@ -754,12 +790,6 @@ void cr3Frame::SaveOptions()
 
 void cr3Frame::RestoreOptions()
 {
-    {
-        // load options from file
-        LVStreamRef stream = LVOpenFileStream( GetConfigFileName().c_str(), LVOM_READ );
-        if ( !stream.isNull() )
-            _props->loadFromStream(stream.get());
-    }
     if ( !_isFullscreen ) {
         SetMenu( _props->getBoolDef(PROP_WINDOW_SHOW_MENU, true) );
         SetStatus( _props->getBoolDef(PROP_WINDOW_SHOW_STATUSBAR, true) );
@@ -780,6 +810,13 @@ void cr3Frame::RestoreOptions()
             Iconize();
     }
     _view->getDocView()->setFontSize( _props->getIntDef( PROP_CRENGINE_FONT_SIZE, 28 ) );
+    _view->SetPageHeaderFlags();
+
+    _view->SetPageHeaderFlags();
+
+    int mode = _props->getIntDef( PROP_PAGE_VIEW_MODE, 2 );
+    _view->getDocView()->setViewMode( mode>0 ? DVM_PAGES : DVM_SCROLL, mode>0 ? mode : -1 );
+
     if ( _props->getBoolDef(PROP_WINDOW_FULLSCREEN) != _isFullscreen ) {
         _isFullscreen = !_isFullscreen;
         if ( _isFullscreen )
@@ -814,6 +851,7 @@ void cr3Frame::OnOptionsChange( CRPropRef oldprops, CRPropRef newprops, CRPropRe
 {
     if ( changed->getCount()>0 ) {
         _props->set( newprops );
+        RestoreOptions();
     }
     ///
     SaveOptions();
@@ -903,7 +941,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-    wxMessageBox( wxT( "Cool Reader 3.0.6\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n")
+    wxMessageBox( wxT( "Cool Reader 3.0.7\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n")
     wxT("\nBased on CREngine library")
     wxT("\nThird party libraries used:")
     wxT("\nzlib, libpng, libjpeg, freetype2,")

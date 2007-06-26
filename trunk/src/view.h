@@ -23,7 +23,7 @@ cr3view : public wxPanel
         void doCommand( LVDocCmd cmd, int param );
         void goToBookmark(ldomXPointer bm);
         wxColour getBackgroundColour();
-        void SetPageHeaderFlags( int flags );
+        void SetPageHeaderFlags();
         // event handlers
         void OnPaint(wxPaintEvent& event);
         void OnSize(wxSizeEvent& event);

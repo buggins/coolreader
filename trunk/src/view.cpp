@@ -257,19 +257,22 @@ void cr3view::OnMouseRDown( wxMouseEvent & event )
     ((wxFrame*)GetParent())->PopupMenu(&pm);
 }
 
-void cr3view::SetPageHeaderFlags( int flags )
+void cr3view::SetPageHeaderFlags()
 {
+    int newflags = propsToPageHeaderFlags( _props );
     int oldflags = _docview->getPageHeaderInfo();
-    if ( oldflags==flags )
+    if ( oldflags==newflags )
         return;
-    _docview->setPageHeaderInfo( flags );
+    _docview->setPageHeaderInfo( newflags );
     UpdateScrollBar();
     Paint();
 }
 
 void cr3view::ToggleViewMode()
 {
-    _docview->setViewMode( _docview->getViewMode()==DVM_SCROLL ? DVM_PAGES : DVM_SCROLL );
+    int mode = _props->getIntDef( PROP_PAGE_VIEW_MODE, 2 ) ? 0 : 2;
+    _props->setInt( PROP_PAGE_VIEW_MODE, mode );
+    _docview->setViewMode( mode>0 ? DVM_PAGES : DVM_SCROLL, mode>0 ? mode : -1 );
     UpdateScrollBar();
     Paint();
 }
@@ -323,8 +326,8 @@ void cr3view::OnCommand(wxCommandEvent& event)
         ToggleViewMode();
         break;
     case Menu_View_TogglePageHeader:
-        _props->setBool( PROP_PAGE_HEADER_ENABLED, _props->getBoolDef(PROP_PAGE_HEADER_ENABLED, true) );
-        SetPageHeaderFlags( propsToPageHeaderFlags( _props ) );
+        _props->setBool( PROP_PAGE_HEADER_ENABLED, !_props->getBoolDef(PROP_PAGE_HEADER_ENABLED, true) );
+        SetPageHeaderFlags();
         break;
 	}
 }

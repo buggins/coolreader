@@ -45,7 +45,7 @@ public:
     }
     virtual void OptionToControl( CRPropRef props )
     {
-        int tb = props->getIntDef( PROP_WINDOW_TOOLBAR_SIZE, 2 );
+        int tb = props->getIntDef( _option, _defvalue );
         if ( tb<0 )
             tb = _defvalue;
         if ( tb>=_size )
@@ -131,21 +131,33 @@ class OptPanelWindow : public OptPanel {
 public:
     OptPanelWindow( wxWindow * parent )
     {
-         OptPanel::Create( parent, ID_OPTIONS_WINDOW, wxT("Window options (restart to apply)") ); 
+         OptPanel::Create( parent, ID_OPTIONS_WINDOW, wxT("Window options") ); 
     }
     virtual void CreateControls()
     {
-        AddCheckbox( PROP_WINDOW_SHOW_MENU, wxT("Show menu"), true );
         AddCombobox( PROP_WINDOW_TOOLBAR_SIZE, wxT("Toolbar size"), choices_toolbar_size, 2 );
         AddCombobox( PROP_WINDOW_TOOLBAR_POSITION, wxT("Toolbar position"), choices_toolbar_position, 0 );
+        AddCheckbox( PROP_WINDOW_SHOW_MENU, wxT("Show menu"), true );
         AddCheckbox( PROP_WINDOW_SHOW_STATUSBAR, wxT("Show statusbar"), true );
     }
 };
 
+class OptPanelApp : public OptPanel {
+public:
+    OptPanelApp( wxWindow * parent )
+    {
+         OptPanel::Create( parent, wxID_ANY, wxT("Application options") ); 
+    }
+    virtual void CreateControls()
+    {
+        AddCheckbox( PROP_APP_OPEN_LAST_BOOK, wxT("Open last book on start"), true );
+    }
+};
+
 static wxString choices_page[] = {
+    wxT("Scroll view"),
     wxT("1 Book page"),
     wxT("2 Book pages"),
-    wxT("Scroll view"),
     wxString()
 };
 
@@ -157,13 +169,23 @@ public:
     virtual void CreateControls()
     {
         AddCheckbox( PROP_PAGE_HEADER_ENABLED, wxT("Enable page header"), true );
-        AddCombobox( PROP_PAGE_VIEW_MODE, wxT("View mode"), choices_page, 1 );
         AddCheckbox( PROP_PAGE_HEADER_TITLE, wxT("Show title"), true );
         AddCheckbox( PROP_PAGE_HEADER_AUTHOR, wxT("Show author"), true );
         AddCheckbox( PROP_PAGE_HEADER_PAGE_COUNT, wxT("Show page count"), true );
         AddCheckbox( PROP_PAGE_HEADER_PAGE_NUMBER, wxT("Show page number"), true );
         AddCheckbox( PROP_PAGE_HEADER_CLOCK, wxT("Show clock"), true );
         AddCheckbox( PROP_PAGE_HEADER_BATTERY, wxT("Show battery indicator"), true );
+    }
+};
+
+class OptPanelView : public OptPanel {
+public:
+    OptPanelView( wxWindow * parent ) {
+         OptPanel::Create( parent, wxID_ANY, wxT("View options") );
+    }
+    virtual void CreateControls()
+    {
+        AddCombobox( PROP_PAGE_VIEW_MODE, wxT("View mode"), choices_page, 1 );
     }
 };
 
@@ -224,8 +246,14 @@ bool CR3OptionsDialog::Create( wxWindow* parent, wxWindowID id )
         _opt_window = new OptPanelWindow( _notebook );
         _notebook->InsertPage(0, _opt_window, wxT("Window") );
 
+        _opt_view = new OptPanelView( _notebook );
+        _notebook->InsertPage(1, _opt_view, wxT("View") );
+
         _opt_page = new OptPanelPageHeader( _notebook );
-        _notebook->InsertPage(1, _opt_page, wxT("Page header") );
+        _notebook->InsertPage(2, _opt_page, wxT("Page header") );
+
+        _opt_app = new OptPanelApp( _notebook );
+        _notebook->InsertPage(3, _opt_app, wxT("Application") );
 
         SetSizer( sizer );
         PropsToControls();
