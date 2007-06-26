@@ -164,6 +164,7 @@ CRPropRef operator ^ ( CRPropRef props1, CRPropRef props2 )
                 p1++;
                 p2++;
             } else { // ( res>0 )
+                v->setString( props2->getName( p2 ), props2->getValue( p2 ) );
                 p2++;
             }
         }

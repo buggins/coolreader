@@ -52,9 +52,9 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_monospace
 
 #ifdef LBOOK
-#define INFO_FONT_SIZE      24
+#define INFO_FONT_SIZE      22
 #else
-#define INFO_FONT_SIZE      20
+#define INFO_FONT_SIZE      18
 #endif
 
 #if defined(__SYMBIAN32__)
@@ -905,11 +905,13 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 }
 
 /// set view mode (pages/scroll)
-void LVDocView::setViewMode( LVDocViewMode view_mode )
+void LVDocView::setViewMode( LVDocViewMode view_mode, int visiblePageCount )
 {
-    if ( m_view_mode==view_mode )
+    if ( m_view_mode==view_mode && (visiblePageCount==m_pagesVisible || visiblePageCount<1) )
         return;
     m_view_mode = view_mode;
+    if ( visiblePageCount==1 || visiblePageCount==2 )
+        m_pagesVisible = visiblePageCount;
     Render();
     goToBookmark(_posBookmark);
 }

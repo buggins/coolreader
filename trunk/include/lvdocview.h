@@ -193,7 +193,7 @@ public:
     /// returns pointer to TOC root node
     LVTocItem * getToc() { return &m_toc; }
     /// set view mode (pages/scroll)
-    void setViewMode( LVDocViewMode view_mode );
+    void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)
     LVDocViewMode getViewMode();
     /// get window visible page count (1 or 2)
