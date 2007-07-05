@@ -114,13 +114,13 @@ void LVGrayDrawBuf::Rotate( cr_rotate_angle_t angle )
     if ( angle==CR_ROTATE_ANGLE_180 ) {
         if ( _bpp==1 ) {
             for ( int i=sz/2-1; i>=0; i-- ) {
-                lUInt32 tmp = revByteBits1( _data[i] );
+                lUInt8 tmp = revByteBits1( _data[i] );
                 _data[i] = revByteBits1( _data[sz-i-1] );
                 _data[sz-i-1] = tmp;
             }
         } else if ( _bpp==2 ) {
             for ( int i=sz/2-1; i>=0; i-- ) {
-                lUInt32 tmp = revByteBits2( _data[i] );
+                lUInt8 tmp = revByteBits2( _data[i] );
                 _data[i] = revByteBits2( _data[sz-i-1] );
                 _data[sz-i-1] = tmp;
             }
