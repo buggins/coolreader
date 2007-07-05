@@ -1186,8 +1186,11 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     bool nameIsOk = false;
                     if ( name.length() > 5 )
                     {
+                        name.lowercase();
                         const lChar16 * pext = name.c_str() + name.length() - 4;
                         if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='2')
+                            nameIsOk = true;
+                        if ( pext[0]=='.' && pext[1]=='t' && pext[2]=='x' && pext[3]=='t')
                             nameIsOk = true;
                     }
                     if ( !nameIsOk )
