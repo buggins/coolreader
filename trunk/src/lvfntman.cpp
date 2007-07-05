@@ -394,6 +394,8 @@ class LVFreeTypeFace : public LVFont
 {
 private:
     lString8      _fileName;
+    lString8      _faceName;
+    css_font_family_t _fontFamily;
     FT_Library    _library;
     FT_Face       _face;
     FT_GlyphSlot  _slot;
@@ -405,7 +407,7 @@ private:
     LVFontLocalGlyphCache _glyph_cache;
 public:
     LVFreeTypeFace( FT_Library  library, LVFontGlobalGlyphCache * globalCache )
-    : _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
+    : _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _glyph_cache(globalCache)
     {
     }
@@ -415,8 +417,9 @@ public:
         Clear();
     }
 
-    bool loadFromFile( const char * fname, int index, int size )
+    bool loadFromFile( const char * fname, int index, int size, css_font_family_t fontFamily )
     {
+        _fontFamily = fontFamily;
         if ( fname )
             _fileName = fname;
         if ( _fileName.empty() )
@@ -425,6 +428,7 @@ public:
         if (error)
             return false;
         _slot = _face->glyph;
+        _faceName = _face->family_name;
         //if ( !FT_IS_SCALABLE( _face ) ) {
         //    Clear();
         //    return false;
@@ -665,7 +669,7 @@ public:
     /// returns font family id
     virtual css_font_family_t getFontFamily()
     {
-        return css_ff_sans_serif;
+        return _fontFamily;
     }
 
     /// draws text string
@@ -883,7 +887,7 @@ public:
         //}
 
         //printf("going to load font file %s\n", fname.c_str());
-        if (font->loadFromFile( pathname.c_str(), item->getDef()->getIndex(), size ) )
+        if (font->loadFromFile( pathname.c_str(), item->getDef()->getIndex(), size, family ) )
         {
             //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
             //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
@@ -964,14 +968,17 @@ public:
             css_font_family_t fontFamily = css_ff_sans_serif;
             if ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH )
                 fontFamily = css_ff_monospace;
-        
+            lString8 familyName( face->family_name );
+            if ( familyName=="Times" || familyName=="Times New Roman" )
+                fontFamily = css_ff_serif;
+
             LVFontDef def(
                 name,
                 -1, // height==-1 for scalable fonts
                 ( face->style_flags & FT_STYLE_FLAG_BOLD ) ? 700 : 300,
                 ( face->style_flags & FT_STYLE_FLAG_ITALIC ) ? true : false,
                 fontFamily,
-                lString8(face->family_name),
+                familyName,
                 index
             );
     #if (DEBUG_FONT_MAN==1)

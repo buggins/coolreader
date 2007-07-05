@@ -160,6 +160,8 @@ private:
     int m_pageHeaderInfo;
     bool m_showCover;
 
+    cr_rotate_angle_t m_rotateAngle;
+
     CRFileHist m_hist;
 
 
@@ -171,7 +173,13 @@ private:
     void updateLayout();
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
+    /// draw to specified buffer
+    void Draw( LVDrawBuf & drawbuf );
 public:
+    /// sets rotate angle
+    void SetRotateAngle( cr_rotate_angle_t angle );
+    /// returns rotate angle
+    cr_rotate_angle_t GetRotateAngle() { return m_rotateAngle; }
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
@@ -303,9 +311,9 @@ public:
     /// resize view
     void Resize( int dx, int dy );
     /// get view height
-    int GetHeight() { return m_dy; }
+    int GetHeight();
     /// get view width
-    int GetWidth() { return m_dx; }
+    int GetWidth();
 
     /// get full document height
     int GetFullHeight();

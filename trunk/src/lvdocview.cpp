@@ -98,8 +98,8 @@ LVDocView::LVDocView()
     | PGHDR_AUTHOR
     | PGHDR_TITLE)
 , m_showCover(true)
-
-{ 
+, m_rotateAngle(CR_ROTATE_ANGLE_0)
+{
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFFFE0;
     m_textColor = 0x000060;
@@ -795,16 +795,18 @@ bool LVDocView::isTimeChanged()
     return false;
 }
 
-void LVDocView::Draw()
+/// draw to specified buffer
+void LVDocView::Draw( LVDrawBuf & drawbuf )
 {
-    m_drawbuf.SetBackgroundColor( m_backgroundColor );
-    m_drawbuf.SetTextColor( m_textColor );
-    m_drawbuf.Clear(m_backgroundColor);
-    if ( m_drawbuf.GetBitsPerPixel()==32 && getVisiblePageCount()==2 ) {
-        int x = m_drawbuf.GetWidth() / 2;
+    drawbuf.Resize( m_dx, m_dy );
+    drawbuf.SetBackgroundColor( m_backgroundColor );
+    drawbuf.SetTextColor( m_textColor );
+    drawbuf.Clear(m_backgroundColor);
+    if ( drawbuf.GetBitsPerPixel()==32 && getVisiblePageCount()==2 ) {
+        int x = drawbuf.GetWidth() / 2;
         lUInt32 cl = m_backgroundColor;
         cl = ((cl & 0xFCFCFC) + 0x404040) >> 1;
-        m_drawbuf.FillRect( x, 0, x+1, m_drawbuf.GetHeight(), cl);
+        drawbuf.FillRect( x, 0, x+1, drawbuf.GetHeight(), cl);
     }
 
     if ( !m_is_rendered )
@@ -815,32 +817,39 @@ void LVDocView::Draw()
         return;
     if (m_view_mode==DVM_SCROLL)
     {
-        m_drawbuf.SetClipRect(NULL);
+        drawbuf.SetClipRect(NULL);
         int cover_height = 0;
         if ( m_pages.length()>0 && m_pages[0]->type == PAGE_TYPE_COVER )
             cover_height = m_pages[0]->height;
         if ( m_pos < cover_height ) {
             lvRect rc;
-            m_drawbuf.GetClipRect( &rc );
+            drawbuf.GetClipRect( &rc );
             rc.top -= m_pos;
             rc.bottom -= m_pos;
             rc.top += m_pageMargins.bottom;
             rc.bottom -= m_pageMargins.bottom;
             rc.left += m_pageMargins.left;
             rc.right -= m_pageMargins.right;
-            drawCoverTo( &m_drawbuf, rc );
+            drawCoverTo( &drawbuf, rc );
         }
-        DrawDocument( m_drawbuf, m_doc->getMainNode(), m_pageMargins.left, 0, m_dx - m_pageMargins.left - m_pageMargins.right, m_dy, 0, -m_pos, m_dy );
+        DrawDocument( drawbuf, m_doc->getMainNode(), m_pageMargins.left, 0, m_dx - m_pageMargins.left - m_pageMargins.right, m_dy, 0, -m_pos, m_dy );
     }
     else
     {
         int pc = getVisiblePageCount();
         int page = m_pages.FindNearestPage(m_pos, 0);
-		if ( page>=0 && page<m_pages.length() )
-			drawPageTo( &m_drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length() );
+        if ( page>=0 && page<m_pages.length() )
+            drawPageTo( &drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length() );
         if ( pc==2 && page>=0 && page+1<m_pages.length() )
-            drawPageTo( &m_drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length() );
+            drawPageTo( &drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length() );
     }
+}
+
+void LVDocView::Draw()
+{
+    m_drawbuf.Resize( m_dx, m_dy );
+    Draw( m_drawbuf );
+    m_drawbuf.Rotate( m_rotateAngle );
 }
 
 /// returns xpointer for specified window point
@@ -1023,6 +1032,33 @@ void LVDocView::setBookmark( ldomXPointer bm )
     _posBookmark = bm;
 }
 
+/// get view height
+int LVDocView::GetHeight()
+{
+    return (m_rotateAngle & 1) ? m_dx : m_dy;
+}
+
+/// get view width
+int LVDocView::GetWidth()
+{
+    return (m_rotateAngle & 1) ? m_dy : m_dx;
+}
+
+/// sets rotate angle
+void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
+{
+    if ( m_rotateAngle==angle )
+        return;
+    if ( (m_rotateAngle & 1) == (angle & 1) ) {
+        m_rotateAngle = angle;
+        return;
+    }
+    m_rotateAngle = angle;
+    int ndx = (angle&1) ? m_dx : m_dy;
+    int ndy = (angle&1) ? m_dy : m_dx;
+    Resize( ndx, ndy );
+}
+
 void LVDocView::Resize( int dx, int dy )
 {
     //LVCHECKPOINT("Resize");
@@ -1030,11 +1066,16 @@ void LVDocView::Resize( int dx, int dy )
         dx = 80;
     if (dy<80 || dy>3000)
         dy = 80;
+    if ( m_rotateAngle==CR_ROTATE_ANGLE_90 || m_rotateAngle==CR_ROTATE_ANGLE_270 ) {
+        int tmp = dx;
+        dx = dy;
+        dy = tmp;
+    }
     m_drawbuf.Resize(dx, dy);
     if (m_doc)
     {
         //ldomXPointer bm = getBookmark();
-        if (dx!=m_dx || m_view_mode!=DVM_SCROLL || !m_is_rendered)
+        if (dx!=m_dx || dy!=m_dy || m_view_mode!=DVM_SCROLL || !m_is_rendered)
         {
             m_dx = dx;
             m_dy = dy;

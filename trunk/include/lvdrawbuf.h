@@ -26,12 +26,21 @@
 #include "lvtypes.h"
 #include "lvimg.h"
 
+enum cr_rotate_angle_t {
+    CR_ROTATE_ANGLE_0 = 0,
+    CR_ROTATE_ANGLE_90,
+    CR_ROTATE_ANGLE_180,
+    CR_ROTATE_ANGLE_270,
+};
+
 class LVFont;
 
 /// Abstract drawing buffer
 class LVDrawBuf
 {
 public:
+    /// rotates buffer contents by specified angle
+    virtual void Rotate( cr_rotate_angle_t angle ) = 0;
     /// returns white pixel value
     virtual lUInt32 GetWhiteColor() = 0;
     /// returns black pixel value
@@ -145,6 +154,8 @@ class LVGrayDrawBuf : public LVBaseDrawBuf
 private:
     int _bpp;
 public:
+    /// rotates buffer contents by specified angle
+    virtual void Rotate( cr_rotate_angle_t angle );
     /// returns white pixel value
     virtual lUInt32 GetWhiteColor();
     /// returns black pixel value
@@ -198,6 +209,8 @@ private:
 #endif
 
 public:
+    /// rotates buffer contents by specified angle
+    virtual void Rotate( cr_rotate_angle_t angle );
     /// returns white pixel value
     virtual lUInt32 GetWhiteColor();
     /// returns black pixel value

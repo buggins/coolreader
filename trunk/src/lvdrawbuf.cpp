@@ -85,6 +85,120 @@ lUInt32 Dither1BitColor( lUInt32 color, lUInt32 x, lUInt32 y )
     return (cl >> 7) & 1;
 }
 
+static lUInt8 revByteBits1( lUInt8 b )
+{
+    return ( (b&1)<<7 )
+        |  ( (b&2)<<5 )
+        |  ( (b&4)<<3 )
+        |  ( (b&8)<<1 )
+        |  ( (b&16)>>1 )
+        |  ( (b&32)>>3 )
+        |  ( (b&64)>>4 )
+        |  ( (b&128)>>5 );
+}
+
+lUInt8 revByteBits2( lUInt8 b )
+{
+    return ( (b&0x03)<<6 )
+        |  ( (b&0x0C)<<2 )
+        |  ( (b&0x30)>>2 )
+        |  ( (b&0xC0)>>6 );
+}
+
+/// rotates buffer contents by specified angle
+void LVGrayDrawBuf::Rotate( cr_rotate_angle_t angle )
+{
+    if ( angle==CR_ROTATE_ANGLE_0 )
+        return;
+    int sz = (_rowsize * _dy);
+    if ( angle==CR_ROTATE_ANGLE_180 ) {
+        if ( _bpp==1 ) {
+            for ( int i=sz/2-1; i>=0; i-- ) {
+                lUInt32 tmp = revByteBits1( _data[i] );
+                _data[i] = revByteBits1( _data[sz-i-1] );
+                _data[sz-i-1] = tmp;
+            }
+        } else if ( _bpp==2 ) {
+            for ( int i=sz/2-1; i>=0; i-- ) {
+                lUInt32 tmp = revByteBits2( _data[i] );
+                _data[i] = revByteBits2( _data[sz-i-1] );
+                _data[sz-i-1] = tmp;
+            }
+        }
+        return;
+    }
+    lUInt8 * dst = new lUInt8[sz];
+    memset( dst, 0, sz );
+    for ( int y=0; y<_dy; y++ ) {
+        lUInt8 * src = _data + _dx*y;
+        int dstx, dsty;
+        for ( int x=0; x<_dx; x++ ) {
+            if ( angle==CR_ROTATE_ANGLE_90 ) {
+                dstx = _dy-1-y;
+                dsty = x;
+            } else {
+                dstx = y;
+                dsty = _dx-1-x;
+            }
+            if ( _bpp==1 ) {
+                lUInt8 px = (src[ x >> 3 ] >> (x&7)) & 0x80;
+                lUInt8 * dstrow = dst + _dy * dsty;
+                dstrow[ dstx >> 3 ] |= (px >> (dstx&7));
+            } else if (_bpp==2) {
+                lUInt8 px = (src[ x >> 2 ] >> ((x&3)<<1)) & 0xC0;
+                lUInt8 * dstrow = dst + _dy * dsty;
+                dstrow[ dstx >> 2 ] |= (px >> ((dstx&3)<<1));
+            }
+        }
+    }
+    delete _data;
+    _data = dst;
+    int tmp = _dx;
+    _dx = _dy;
+    _dy = tmp;
+    _rowsize = _dx * _bpp / 8;
+}
+
+/// rotates buffer contents by specified angle
+void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
+{
+    if ( angle==CR_ROTATE_ANGLE_0 )
+        return;
+    int sz = (_dx * _dy);
+    if ( angle==CR_ROTATE_ANGLE_180 ) {
+        lUInt32 * buf = (lUInt32 *) _data;
+        for ( int i=sz/2-1; i>=0; i-- ) {
+            lUInt32 tmp = buf[i];
+            buf[i] = buf[sz-i-1];
+            buf[sz-i-1] = tmp;
+        }
+        return;
+    }
+    lUInt32 * dst = new lUInt32[sz];
+    for ( int y=0; y<_dy; y++ ) {
+        lUInt32 * src = (lUInt32*)_data + _dx*y;
+        int nx, ny;
+        if ( angle==CR_ROTATE_ANGLE_90 ) {
+            nx = _dy - 1 - y;
+        } else {
+            nx = y;
+        }
+        for ( int x=0; x<_dx; x++ ) {
+            if ( angle==CR_ROTATE_ANGLE_90 ) {
+                ny = x;
+            } else {
+                ny = _dx - 1 - x;
+            }
+            dst[ _dy*ny + nx ] = src[ x ];
+        }
+    }
+    delete _data;
+    _data = (lUInt8*)dst;
+    int tmp = _dx;
+    _dx = _dy;
+    _dy = tmp;
+    _rowsize = _dx * 4;
+}
 
 class LVImageScaledDrawCallback : public LVImageDecoderCallback
 {
