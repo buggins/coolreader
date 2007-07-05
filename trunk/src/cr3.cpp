@@ -717,6 +717,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F4,      Menu_View_History);
 
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F9,      Menu_File_Options);
+    entries[a++].Set(wxACCEL_NORMAL,  WXK_F12,      Menu_File_Quit);
     wxAcceleratorTable accel(a, entries);
     SetAcceleratorTable(accel);
     //_view->SetAcceleratorTable(accel);
@@ -735,6 +736,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         fnameToOpen.erase(0, 1);
     if ( !fnameToOpen.empty() && fnameToOpen[fnameToOpen.length()-1]=='\"' )
         fnameToOpen.erase(fnameToOpen.length()-1, 1);
+    RestoreOptions();
     if ( !fnameToOpen.empty() ) {
         if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
         {
@@ -747,7 +749,6 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     }
 
     //Show();
-    RestoreOptions();
 }
 
 
@@ -861,10 +862,10 @@ void cr3Frame::OnOptionsChange( CRPropRef oldprops, CRPropRef newprops, CRPropRe
 {
     if ( changed->getCount()>0 ) {
         _props->set( newprops );
+        SaveOptions();
         RestoreOptions();
     }
     ///
-    SaveOptions();
 }
 
 void
