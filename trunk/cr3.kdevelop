@@ -150,7 +150,7 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
-      <programargs>/home/lve/src/cr3/debug/src/kaganov_leonid_maior_bogdamir_spasaet_dengi2.txt</programargs>
+      <programargs>/home/lve/src/cr3/debug/src/axelrod.fb2</programargs>
       <gdbpath></gdbpath>
       <configGdbScript></configGdbScript>
       <runShellScript></runShellScript>

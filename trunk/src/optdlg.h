@@ -21,6 +21,7 @@ enum {
 #define PROP_WINDOW_MINIMIZED       "window.minimized"
 #define PROP_WINDOW_MAXIMIZED       "window.maximized"
 #define PROP_WINDOW_SHOW_MENU       "window.menu.show"
+#define PROP_WINDOW_ROTATE_ANGLE    "window.rotate.angle"
 #define PROP_WINDOW_TOOLBAR_SIZE    "window.toolbar.size"
 #define PROP_WINDOW_TOOLBAR_POSITION "window.toolbar.position"
 #define PROP_WINDOW_SHOW_STATUSBAR  "window.statusbar.show"

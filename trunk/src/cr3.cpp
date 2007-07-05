@@ -21,6 +21,7 @@ BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
     EVT_MENU( Menu_View_TOC, cr3Frame::OnShowTOC )
     EVT_MENU( Menu_File_Options, cr3Frame::OnShowOptions )
     EVT_MENU( Menu_View_History, cr3Frame::OnShowHistory )
+    EVT_MENU( Menu_View_Rotate, cr3Frame::OnRotate )
     
 
     EVT_MENU_RANGE( 0, 0xFFFF, cr3Frame::OnCommand )
@@ -373,6 +374,7 @@ void cr3Frame::UpdateToolbar()
     toolBar->EnableTool(Menu_View_ZoomIn, enabled_book);
     toolBar->EnableTool(Menu_View_ZoomOut, enabled_book);
     toolBar->EnableTool(Menu_View_TOC, enabled_book);
+    toolBar->EnableTool(Menu_View_Rotate, enabled_book);
     toolBar->EnableTool(Menu_View_TogglePages, enabled_book);
     toolBar->EnableTool(Menu_View_PrevPage, enabled_book);
     toolBar->EnableTool(Menu_View_NextPage, enabled_book);
@@ -449,6 +451,8 @@ void cr3Frame::SetMenu( bool visible )
 
     menuView->Append( Menu_View_TOC, wxT( "Table of Contents\tF5" ) );
     menuView->Append( Menu_View_History, wxT( "Recent Books\tF4" ) );
+    menuView->Append( Menu_View_Rotate, wxT( "Rotate\tCtrl+R" ) );
+
     menuView->AppendSeparator();
     menuView->Append( Menu_View_ZoomIn, wxT( "Zoom In" ) );
     menuView->Append( Menu_View_ZoomOut, wxT( "Zoom Out" ) );
@@ -580,6 +584,10 @@ void cr3Frame::SetToolbarSize( int size )
                      getIcon16x16(L"viewmag-"),//toolBarBitmaps[Tool_zoomout], 
                      wxNullBitmap, wxITEM_NORMAL,
                      _T("Zoom out"), _T("Decrease font size"));
+    toolBar->AddTool(Menu_View_Rotate, _T("Rotate (Ctrl+R)"),
+                     getIcon16x16(L"rotate_cw"),//toolBarBitmaps[Tool_zoomout],
+                     wxNullBitmap, wxITEM_NORMAL,
+                     _T("Rotate (Ctrl+R)"), _T("Rotate text clockwise"));
     toolBar->AddSeparator();
     toolBar->AddTool(Menu_View_TOC, _T("Table of Contents (F5)"),
                      getIcon16x16(L"player_playlist"),//toolBarBitmaps[Tool_zoomout],
@@ -622,12 +630,6 @@ void cr3Frame::SetToolbarSize( int size )
 
 void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 {
-    {
-        // load options from file
-        LVStreamRef stream = LVOpenFileStream( GetConfigFileName().c_str(), LVOM_READ );
-        if ( !stream.isNull() )
-            _props->loadFromStream(stream.get());
-    }
     _scrollBar = new cr3scroll(_view);
 
     _view->SetScrollBar( _scrollBar );
@@ -691,6 +693,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_CTRL,  (int) 'S',     wxID_SAVE);
     entries[a++].Set(wxACCEL_CTRL,  (int) 'P',     Menu_View_TogglePages);
     entries[a++].Set(wxACCEL_CTRL,  (int) 'H',     Menu_View_TogglePageHeader);
+    entries[a++].Set(wxACCEL_CTRL,  (int) 'R',     Menu_View_Rotate);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F3,      wxID_OPEN);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F2,      wxID_SAVE);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_UP,      Menu_View_PrevLine);
@@ -712,11 +715,11 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_ALT,     WXK_RETURN,     Menu_View_ToggleFullScreen);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F5,      Menu_View_TOC);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F4,      Menu_View_History);
+
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F9,      Menu_File_Options);
     wxAcceleratorTable accel(a, entries);
     SetAcceleratorTable(accel);
     //_view->SetAcceleratorTable(accel);
-
 
 
     //toolBar->SetRows(!(toolBar->IsVertical()) ? m_rows : 10 / m_rows);
@@ -759,6 +762,13 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
     _appDir = appDir;
 
     _isFullscreen = false;
+
+    {
+        // load options from file
+        LVStreamRef stream = LVOpenFileStream( GetConfigFileName().c_str(), LVOM_READ );
+        if ( !stream.isNull() )
+            _props->loadFromStream(stream.get());
+    }
 
     _view = new cr3view( _props );
     _hist = new HistList();
@@ -867,6 +877,13 @@ cr3Frame::OnShowOptions( wxCommandEvent& event )
         dlg.ControlsToProps();
         OnOptionsChange( dlg.getOldProps(), dlg.getNewProps(), dlg.getChangedProps() );
     }
+}
+
+void
+cr3Frame::OnRotate( wxCommandEvent& event )
+{
+    _view->Rotate();
+    SaveOptions();
 }
 
 void

@@ -75,6 +75,9 @@ cr3view::cr3view(CRPropRef props)
 {
     _docview = new LVDocView();
 
+    cr_rotate_angle_t angle = (cr_rotate_angle_t)(_props->getIntDef( PROP_WINDOW_ROTATE_ANGLE, 0 ) & 3);
+    _docview->SetRotateAngle( angle );
+
     {
         LVStreamRef stream = LVOpenFileStream( GetHistoryFileName().c_str(), LVOM_READ );
         if ( !stream.isNull() ) {
@@ -456,6 +459,20 @@ void cr3view::goToBookmark(ldomXPointer bm)
     Paint();
 }
 
+void cr3view::SetRotate( cr_rotate_angle_t angle )
+{
+    _docview->SetRotateAngle( angle );
+    _props->setInt( PROP_WINDOW_ROTATE_ANGLE, angle );
+    UpdateScrollBar();
+    Paint();
+}
+
+void cr3view::Rotate( bool ccw )
+{
+    int angle = (_docview->GetRotateAngle() + 4 + (ccw?-1:1)) & 3;
+    SetRotate( (cr_rotate_angle_t) angle );
+}
+
 void cr3view::doCommand( LVDocCmd cmd, int param )
 {
     _docview->doCommand( cmd, param );
@@ -486,8 +503,8 @@ void cr3view::OnPaint(wxPaintEvent& event)
     //printf("   OnPaint()  \n" );
     wxPaintDC dc(this);
 
-    int dx = _docview->GetWidth();
-    int dy = _docview->GetHeight();
+    int dx = _docview->GetDrawBuf()->GetWidth();
+    int dy = _docview->GetDrawBuf()->GetHeight();
     wxImage img;
     img.Create(dx, dy, true);
 

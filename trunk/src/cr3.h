@@ -60,6 +60,7 @@ cr3Frame : public wxFrame
         void OnFileOpen( wxCommandEvent& event );
         void OnFileSave( wxCommandEvent& event );
         void OnCommand( wxCommandEvent& event );
+        void OnRotate( wxCommandEvent& event );
         void OnShowOptions( wxCommandEvent& event );
         void OnShowTOC( wxCommandEvent& event );
         void OnShowHistory( wxCommandEvent& event );
@@ -107,6 +108,7 @@ enum
     Menu_View_TogglePageHeader,
     Menu_View_TOC,
     Menu_View_History,
+    Menu_View_Rotate,
 };
 
 enum

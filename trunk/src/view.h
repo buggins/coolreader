@@ -24,6 +24,8 @@ cr3view : public wxPanel
         void goToBookmark(ldomXPointer bm);
         wxColour getBackgroundColour();
         void SetPageHeaderFlags();
+        void SetRotate( cr_rotate_angle_t angle );
+        void Rotate( bool ccw = false );
         // event handlers
         void OnPaint(wxPaintEvent& event);
         void OnSize(wxSizeEvent& event);
