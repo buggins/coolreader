@@ -127,10 +127,12 @@ void LVGrayDrawBuf::Rotate( cr_rotate_angle_t angle )
         }
         return;
     }
-    lUInt8 * dst = new lUInt8[sz];
+    int newrowsize = _dy * _bpp / 8;
+    sz = (newrowsize * _dx);
+    lUInt8 * dst = (lUInt8 *)malloc(sz);
     memset( dst, 0, sz );
     for ( int y=0; y<_dy; y++ ) {
-        lUInt8 * src = _data + _dx*y;
+        lUInt8 * src = _data + _rowsize*y;
         int dstx, dsty;
         for ( int x=0; x<_dx; x++ ) {
             if ( angle==CR_ROTATE_ANGLE_90 ) {
@@ -141,22 +143,22 @@ void LVGrayDrawBuf::Rotate( cr_rotate_angle_t angle )
                 dsty = _dx-1-x;
             }
             if ( _bpp==1 ) {
-                lUInt8 px = (src[ x >> 3 ] >> (x&7)) & 0x80;
-                lUInt8 * dstrow = dst + _dy * dsty;
+                lUInt8 px = (src[ x >> 3 ] << (x&7)) & 0x80;
+                lUInt8 * dstrow = dst + newrowsize * dsty;
                 dstrow[ dstx >> 3 ] |= (px >> (dstx&7));
             } else if (_bpp==2) {
-                lUInt8 px = (src[ x >> 2 ] >> ((x&3)<<1)) & 0xC0;
-                lUInt8 * dstrow = dst + _dy * dsty;
+                lUInt8 px = (src[ x >> 2 ] << ((x&3)<<1)) & 0xC0;
+                lUInt8 * dstrow = dst + newrowsize * dsty;
                 dstrow[ dstx >> 2 ] |= (px >> ((dstx&3)<<1));
             }
         }
     }
-    delete _data;
+    free( _data );
     _data = dst;
     int tmp = _dx;
     _dx = _dy;
     _dy = tmp;
-    _rowsize = _dx * _bpp / 8;
+    _rowsize = newrowsize;
 }
 
 /// rotates buffer contents by specified angle
@@ -174,17 +176,24 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
         }
         return;
     }
-    lUInt32 * dst = new lUInt32[sz];
+    int newrowsize = _dy * 4;
+    sz = (_dx * newrowsize);
+    lUInt32 * dst = (lUInt32*) malloc( sz );
+#if !defined(__SYMBIAN32__) && defined(_WIN32)
+    bool cw = angle!=CR_ROTATE_ANGLE_90;
+#else
+    bool cw = angle==CR_ROTATE_ANGLE_90;
+#endif
     for ( int y=0; y<_dy; y++ ) {
         lUInt32 * src = (lUInt32*)_data + _dx*y;
         int nx, ny;
-        if ( angle==CR_ROTATE_ANGLE_90 ) {
+        if ( cw ) {
             nx = _dy - 1 - y;
         } else {
             nx = y;
         }
         for ( int x=0; x<_dx; x++ ) {
-            if ( angle==CR_ROTATE_ANGLE_90 ) {
+            if ( cw ) {
                 ny = x;
             } else {
                 ny = _dx - 1 - x;
@@ -192,12 +201,17 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
             dst[ _dy*ny + nx ] = src[ x ];
         }
     }
-    delete _data;
+#if !defined(__SYMBIAN32__) && defined(_WIN32)
+    memcpy( _data, dst, sz );
+    free( dst );
+#else
+    free( _data );
     _data = (lUInt8*)dst;
+#endif
     int tmp = _dx;
     _dx = _dy;
     _dy = tmp;
-    _rowsize = _dx * 4;
+    _rowsize = newrowsize;
 }
 
 class LVImageScaledDrawCallback : public LVImageDecoderCallback
