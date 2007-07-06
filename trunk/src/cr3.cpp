@@ -355,7 +355,7 @@ cr3app::OnInit()
     int scale = scale_x < scale_y ? scale_x : scale_y;
     cx = 610 * scale / 256;
     cy = 830 * scale / 256;
-    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.7" ), wxPoint(x,y), wxSize(cx,cy), appPath );
+    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.8" ), wxPoint(x,y), wxSize(cx,cy), appPath );
 
     
 
@@ -959,7 +959,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-    wxMessageBox( wxT( "Cool Reader 3.0.7\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n")
+    wxMessageBox( wxT( "Cool Reader 3.0.8\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n")
     wxT("\nBased on CREngine library")
     wxT("\nThird party libraries used:")
     wxT("\nzlib, libpng, libjpeg, freetype2,")
