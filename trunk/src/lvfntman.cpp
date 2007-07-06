@@ -1327,23 +1327,17 @@ LVFontRef LoadFontFromFile( const char * fname )
 
 bool InitFontManager( lString8 path )
 {
-    if ( !fontMan )
-    {
+    if ( fontMan ) {
+        delete fontMan;
+    }
 #if (USE_WIN32_FONTS==1)
-        fontMan = new LVWin32FontManager;
+    fontMan = new LVWin32FontManager;
 #elif (USE_FREETYPE==1)
-        fontMan = new LVFreeTypeFontManager;
+    fontMan = new LVFreeTypeFontManager;
 #else
-        fontMan = new LVBitmapFontManager;
+    fontMan = new LVBitmapFontManager;
 #endif
-        return fontMan->Init( path );
-    }
-    else
-    {
-        // already initialized
-        crFatalError();
-        return 0;
-    }
+    return fontMan->Init( path );
 }
 
 bool ShutdownFontManager()
