@@ -147,8 +147,10 @@ private:
     lString16 m_title;
     lString16 m_authors;
     lString16 m_series;
+protected:
     lString16 m_last_clock;
 
+private:
     lString16 m_filename;
     lvsize_t  m_filesize;
     
@@ -176,6 +178,10 @@ private:
     /// draw to specified buffer
     void Draw( LVDrawBuf & drawbuf );
 public:
+    /// sets page margins
+    void setPageMargins( const lvRect & rc ) { m_pageMargins = rc; }
+    /// returns page margins
+    lvRect getPageMargins() const { return m_pageMargins; }
     /// sets rotate angle
     void SetRotateAngle( cr_rotate_angle_t angle );
     /// returns rotate angle
