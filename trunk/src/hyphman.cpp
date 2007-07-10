@@ -1,7 +1,8 @@
 /** \file hyphman.cpp
     \brief AlReader hyphenation manager
 
-    (c) Alan, http://alreader.kms.ru/
+    (c) Alan, adapted TeX hyphenation dictionaries code: http://alreader.kms.ru/
+    (c) Mark Lipsman -- hyphenation algorithm, modified my Mike & SeNS
 
     Adapted for CREngine by Vadim Lopatin
 
@@ -72,10 +73,71 @@ bool HyphMan::hyphenate( const lChar16 * str,
 
 bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth )
 {
-    if (!_instance)
-        return false;
     if (len<=3 || len>WORD_LENGTH)
-        return false; // too short word
+        return false; // too short or too long word
+
+    if ( !_instance ) {
+        //=====================================================================
+        // hyphenation algorithm by Mark Lipsman, modified my Mike & SeNS & Buggins
+/*
+        if ( (lGetCharProps(0x42a) != (CH_PROP_UPPER | CH_PROP_ALPHA_SIGN) )
+            || (lGetCharProps(0x44c) != (CH_PROP_LOWER | CH_PROP_ALPHA_SIGN) )  
+        ) {
+            printf( "props unit test failed! %d %d %d %d %d %d\n"
+               , (lGetCharProps(0x0BF) == (CH_PROP_PUNCT) )  
+               , (lGetCharProps(0x0DF) == (CH_PROP_LOWER | CH_PROP_CONSONANT) )  
+               , (lGetCharProps(0x0F7) == (CH_PROP_SIGN) )  
+               , (lGetCharProps(0x111) == (CH_PROP_LOWER | CH_PROP_CONSONANT) )  
+               , (lGetCharProps(0x130) == (CH_PROP_UPPER | CH_PROP_VOWEL) )  
+               , (lGetCharProps(0x14d) == (CH_PROP_LOWER | CH_PROP_VOWEL) )  
+             );
+        }
+*/
+        lUInt16 chprops[WORD_LENGTH];
+        lStr_getCharProps( str, len, chprops );
+        int start, end, i, j;
+        #define MIN_WORD_LEN_TO_HYPHEN 2
+        for ( start = 0; start<len; ) {
+            // find start of word
+            while (start<len && !(chprops[start] & CH_PROP_ALPHA) )
+                ++start;
+            // find end of word
+            for ( end=start+1; end<len && (chprops[start] & CH_PROP_ALPHA); ++end )
+                ;
+            // now look over word, placing hyphens
+            if ( end-start > MIN_WORD_LEN_TO_HYPHEN ) { // word must be long enough
+                for (i=start;i<end-MIN_WORD_LEN_TO_HYPHEN;++i) {
+                    if ( widths[i] > maxWidth )
+                        break;
+                    if ( chprops[i] & CH_PROP_VOWEL ) {
+                        for ( j=i+1; j<end; ++j ) {
+                            if ( chprops[j] & CH_PROP_VOWEL ) {
+                                if ( (chprops[i+1] & CH_PROP_CONSONANT) && (chprops[i+2] & CH_PROP_CONSONANT) )
+                                    ++i;
+                                else if ( (chprops[i+1] & CH_PROP_CONSONANT) && ( chprops[i+2] & CH_PROP_ALPHA_SIGN ) )
+                                    i += 2;
+                                if ( i-start>=1 && end-i>2 ) {
+                                    // insert hyphenation mark
+                                    lUInt16 nw = widths[i] += hyphCharWidth;
+                                    if ( nw<maxWidth )
+                                    {
+                                        flags[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+                                        widths[i] = nw;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            start=end;
+        }
+        return true;
+        // end of hyphenation algorithm
+        //=====================================================================
+    }
+
     lChar16 buf[WORD_LENGTH];
     int i;
     for (i=0; i<len; i++)

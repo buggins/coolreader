@@ -58,16 +58,17 @@ void lStr_uppercase( lChar16 * str, int len );
 void lStr_lowercase( lChar16 * str, int len );
 
 
-#define CH_PROP_UPPER     0x0001
-#define CH_PROP_LOWER     0x0002
-#define CH_PROP_ALPHA     0x0003
-#define CH_PROP_DIGIT     0x0004
-#define CH_PROP_PUNCT     0x0008
-#define CH_PROP_SPACE     0x0010
-#define CH_PROP_HYPHEN    0x0020
-#define CH_PROP_VOWEL     0x0040
-#define CH_PROP_CONSONANT 0x0080
-#define CH_PROP_SIGN      0x0100
+#define CH_PROP_UPPER       0x0001
+#define CH_PROP_LOWER       0x0002
+#define CH_PROP_ALPHA       0x0003
+#define CH_PROP_DIGIT       0x0004
+#define CH_PROP_PUNCT       0x0008
+#define CH_PROP_SPACE       0x0010
+#define CH_PROP_HYPHEN      0x0020
+#define CH_PROP_VOWEL       0x0040
+#define CH_PROP_CONSONANT   0x0080
+#define CH_PROP_SIGN        0x0100
+#define CH_PROP_ALPHA_SIGN  0x0200
 
 /// retrieve character properties mask array for string
 void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props );

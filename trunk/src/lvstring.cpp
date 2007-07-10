@@ -2035,6 +2035,7 @@ lString8  UnicodeToTranslit( const lString16 & str )
 static lUInt16 char_props[] = {
 // 0x0000:
 0,0,0,0, 0,0,0,0, CH_PROP_SPACE,CH_PROP_SPACE,CH_PROP_SPACE,0, CH_PROP_SPACE,CH_PROP_SPACE,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0020:
 CH_PROP_SPACE, // ' '
 CH_PROP_PUNCT, // '!'
@@ -2052,7 +2053,6 @@ CH_PROP_PUNCT, // ','
 CH_PROP_SIGN, // '-'
 CH_PROP_PUNCT, // '.'
 CH_PROP_SIGN, // '/'
-CH_PROP_PUNCT, // '!'
 // 0x0030:
 CH_PROP_DIGIT, // '0'
 CH_PROP_DIGIT, // '1'
@@ -2472,9 +2472,9 @@ CH_PROP_UPPER | CH_PROP_CONSONANT,      // 0426 cyrillic C
 CH_PROP_UPPER | CH_PROP_CONSONANT,      // 0427 cyrillic Ch
 CH_PROP_UPPER | CH_PROP_CONSONANT,      // 0428 cyrillic Sh
 CH_PROP_UPPER | CH_PROP_CONSONANT,      // 0429 cyrillic Sch
-CH_PROP_UPPER | CH_PROP_CONSONANT,      // 042A cyrillic Hard sign
+CH_PROP_UPPER | CH_PROP_ALPHA_SIGN,      // 042A cyrillic Hard sign
 CH_PROP_UPPER | CH_PROP_VOWEL,      // 042B cyrillic Y
-CH_PROP_UPPER | CH_PROP_CONSONANT,      // 042C cyrillic Soft sign
+CH_PROP_UPPER | CH_PROP_ALPHA_SIGN,      // 042C cyrillic Soft sign
 CH_PROP_UPPER | CH_PROP_VOWEL,      // 042D cyrillic EE
 CH_PROP_UPPER | CH_PROP_VOWEL,      // 042E cyrillic Yu
 CH_PROP_UPPER | CH_PROP_VOWEL,      // 042F cyrillic Ya
@@ -2505,9 +2505,9 @@ CH_PROP_LOWER | CH_PROP_CONSONANT,      // 0446 cyrillic C
 CH_PROP_LOWER | CH_PROP_CONSONANT,      // 0447 cyrillic Ch
 CH_PROP_LOWER | CH_PROP_CONSONANT,      // 0448 cyrillic Sh
 CH_PROP_LOWER | CH_PROP_CONSONANT,      // 0449 cyrillic Sch
-CH_PROP_LOWER | CH_PROP_CONSONANT,      // 044A cyrillic Hard sign
+CH_PROP_LOWER | CH_PROP_ALPHA_SIGN,     // 044A cyrillic Hard sign
 CH_PROP_LOWER | CH_PROP_VOWEL,      // 044B cyrillic Y
-CH_PROP_LOWER | CH_PROP_CONSONANT,      // 044C cyrillic Soft sign
+CH_PROP_LOWER | CH_PROP_ALPHA_SIGN,     // 044C cyrillic Soft sign
 CH_PROP_LOWER | CH_PROP_VOWEL,      // 044D cyrillic EE
 CH_PROP_LOWER | CH_PROP_VOWEL,      // 044E cyrillic Yu
 CH_PROP_LOWER | CH_PROP_VOWEL,      // 044F cyrillic Ya
