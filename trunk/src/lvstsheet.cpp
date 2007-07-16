@@ -548,7 +548,7 @@ static bool parse_ident( const char * &str, char * ident )
     return true;
 }
 
-bool LVCssSelectorRule::check( const ldomNode * node )
+bool LVCssSelectorRule::check( const ldomNode * & node )
 {
     if (node->isNull() || node->isRoot())
         return false;
@@ -594,7 +594,10 @@ bool LVCssSelectorRule::check( const ldomNode * node )
     case cssrt_attreq:        // E[foo="value"]
         {
             lString16 val = node->getAttributeValue(_attrid);
-            return val == _value;
+            bool res = (val == _value);
+            //if ( res )
+            //    return true;
+            return res;
         }
         break;
     case cssrt_attrhas:       // E[foo~="value"]
@@ -665,7 +668,7 @@ bool parse_attr_value( const char * &str, char * buf )
         for (int i=0; i<pos; i++)
             buf[i] = str[i];
         buf[pos] = 0;
-        str++;
+        str += pos+1;
         skip_spaces( str );
         if (*str != ']')
             return false;
@@ -695,6 +698,7 @@ LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
     LVCssSelectorRuleType st = cssrt_universal;
     if (*str != '[')
         return NULL;
+    str++;
     skip_spaces( str );
     char attrname[64];
     if (!parse_ident( str, attrname ))
@@ -734,7 +738,7 @@ LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
     }
     LVCssSelectorRule * rule = new LVCssSelectorRule(st);
     lString16 s( attrvalue );
-    lUInt16 id = doc->getElementNameIndex( lString16(attrname).c_str() );
+    lUInt16 id = doc->getAttrNameIndex( lString16(attrname).c_str() );
     rule->setAttr(id, s);
     return rule;
 }
@@ -774,13 +778,26 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
         if ( *str == ',' || *str == '{' )
             return true;
         // one or more attribute rules
+        bool attr_rule = false;
         while ( *str == '[' )
         {
             LVCssSelectorRule * rule = parse_attr( str, doc );
             if (!rule)
                 return false;
-            insertRuleStart( rule );
+            insertRuleStart( rule ); //insertRuleAfterStart
+
+            /*
+            if ( _id!=0 ) {
+                LVCssSelectorRule * rule = new LVCssSelectorRule(cssrt_parent);
+                rule->setId(_id);
+                insertRuleStart( rule );
+                _id=0;
+            }
+            */
+
             skip_spaces( str );
+            attr_rule = true;
+            //continue;
         }
         // element relation
         if (*str == '>')
@@ -809,7 +826,10 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
             _id=0;
             continue;
         }
-        return false;
+        if ( !attr_rule )
+            return false;
+        else if ( *str == ',' || *str == '{' )
+            return true;
     }
     return false; // error: end of selector expected
 }
@@ -930,7 +950,7 @@ bool LVStyleSheet::parse( const char * str )
                     _selectors.set(id, NULL);
                 // insert with specificity sorting
                 if ( _selectors[id] == NULL 
-                    || _selectors[id]->getSpecificity() >= item->getSpecificity() )
+                    || _selectors[id]->getSpecificity() > item->getSpecificity() )
                 {
                     // insert as first item
                     item->setNext( _selectors[id] );
@@ -942,7 +962,7 @@ bool LVStyleSheet::parse( const char * str )
                     for (LVCssSelector * p = _selectors[id]; p; p = p->getNext() )
                     {
                         if ( p->getNext() == NULL
-                            || p->getNext()->getSpecificity() >= item->getSpecificity() )
+                            || p->getNext()->getSpecificity() > item->getSpecificity() )
                         {
                             item->setNext( p->getNext() );
                             p->setNext( item );

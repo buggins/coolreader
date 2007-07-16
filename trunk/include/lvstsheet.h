@@ -113,12 +113,12 @@ public:
     : _type(type), _id(0), _attrid(0), _next(NULL)
     { }
     void setId( lUInt16 id ) { _id = id; }
-    void setAttr( lUInt16 id, lString16 value ) { _id = id; _value = value; }
+    void setAttr( lUInt16 id, lString16 value ) { _attrid = id; _value = value; }
     LVCssSelectorRule * getNext() { return _next; }
     void setNext(LVCssSelectorRule * next) { _next = next; }
     ~LVCssSelectorRule() { if (_next) delete _next; }
     /// check condition for node
-    bool check( const ldomNode * node );
+    bool check( const ldomNode * & node );
 };
 
 /** \brief simple CSS selector

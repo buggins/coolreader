@@ -57,11 +57,6 @@
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
 #endif
 
-#ifndef GLYPH_CACHE_SIZE
-/// freetype font glyph buffer size, in bytes
-#define GLYPH_CACHE_SIZE 0x40000
-#endif
-
 //==================================================
 // WIN32
 //==================================================
@@ -71,6 +66,7 @@
 #define MAX_IMAGE_SCALE_MUL                  1
 #define USE_FREETYPE                         1
 #define ALLOW_KERNING                        0
+#define GLYPH_CACHE_SIZE                     0x80000
 #define ZIP_STREAM_BUFFER_SIZE               0x200000
 #define FILE_STREAM_BUFFER_SIZE              0x100000
 #define COMPACT_DOM                          0
@@ -78,6 +74,12 @@
 #define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  32
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
 #endif
+
+#ifndef GLYPH_CACHE_SIZE
+/// freetype font glyph buffer size, in bytes
+#define GLYPH_CACHE_SIZE 0x40000
+#endif
+
 
 // disable some features for SYMBIAN
 #if defined(__SYMBIAN32__)
