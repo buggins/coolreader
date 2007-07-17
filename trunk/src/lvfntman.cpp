@@ -829,7 +829,7 @@ public:
     lString8 makeFontFileName( lString8 name )
     {
         lString8 filename = _path;
-        if (!filename.empty() && _path[filename.length()-1]!=PATH_SEPARATOR_CHAR)
+        if (!filename.empty() && _path[_path.length()-1]!=PATH_SEPARATOR_CHAR)
             filename << PATH_SEPARATOR_CHAR;
         filename << name;
         return filename;
