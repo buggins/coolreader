@@ -268,9 +268,29 @@ int main( int argc, const char * argv[] )
 
     printf("home dir: %s\n", exedir);
 
-    // init bitmap font manager
-    InitFontManager( lString8(exedir) );
+    lString8 fontDir(exedir);
+    fontDir << "/fonts";
 
+
+    // init bitmap font manager
+    InitFontManager( fontDir );
+
+#if (USE_FREETYPE==1)
+        LVContainerRef dir = LVOpenDirectory( LocalToUnicode(fontDir).c_str() );
+        if ( !dir.isNull() )
+        for ( int i=0; i<dir->GetObjectCount(); i++ ) {
+            const LVContainerItemInfo * item = dir->GetObjectInfo(i);
+            lString16 fileName = item->GetName();
+            if ( !item->IsContainer() && fileName.length()>4 && lString16(fileName, fileName.length()-4, 4)==L".ttf" ) {
+                lString8 fn = UnicodeToLocal(fileName);
+                printf("loading font: %s\n", fn.c_str());
+                if ( !fontMan->RegisterFont(fn) ) {
+                    printf("    failed\n");
+                }
+            }
+        }
+        //fontMan->RegisterFont(lString8("arial.ttf"));
+#else
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     #define MAX_FONT_FILE 32
@@ -281,7 +301,7 @@ int main( int argc, const char * argv[] )
         printf("try load font: %s\n", fn);
         fontMan->RegisterFont( lString8(fn) );
     }
-    
+#endif    
 
     // init hyphenation manager
     char hyphfn[1024];

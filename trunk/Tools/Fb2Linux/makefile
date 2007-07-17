@@ -33,9 +33,10 @@ libs =		-static-libgcc \
 			-L/usr/lib \
 			-lstdc++ \
 			-lX11 \
-			-lwxjpegd-2.8 \
-			-lwxpngd-2.8 \
-			-lwxzlibd-2.8 \
+			-ljpeg \
+			-lpng \
+			-lfreetype \
+			-lz \
 			$(lib)
 
 #			-lpng \

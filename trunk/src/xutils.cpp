@@ -170,7 +170,7 @@ void DrawBuf2Drawable(Display *display, Drawable d, GC gc, int x, int y, LVDrawB
                for (int xx=0; xx<width; xx++)
                {
                   unsigned int b = ((unsigned int *)src)[xx];
-                  b = ((b>>16)&255) | (b&0xFF00) | ((b&255)<<16);
+                  //b = ((b>>16)&255) | (b&0xFF00) | ((b&255)<<16);
                   for (int xxi=0; xxi<scale; xxi++)
                   {
                       *px++ = b;
