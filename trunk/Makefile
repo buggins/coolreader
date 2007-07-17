@@ -242,8 +242,8 @@ appclean :
 
 distrib : 
 	rm -f $(releasefile) 2> /dev/null
-	cd ..; zip -9 -r crengine/$(releasefile) crengine/src	-i '*'	$(ZipFlags) > /dev/null
-	cd ..; zip -9 -r crengine/$(releasefile) crengine/include	-i '*'	$(ZipFlags) > /dev/null
+	cd ..; zip -9 -r crengine/$(releasefile) crengine/src	-i '*.cpp'	$(ZipFlags) > /dev/null
+	cd ..; zip -9 -r crengine/$(releasefile) crengine/include	-i '*.h'	$(ZipFlags) > /dev/null
 #	cd ..; zip -9 -r crengine/$(releasefile) crengine/lib/libcrengined.a	$(ZipFlags) > /dev/null
 #	cd ..; zip -9 -r crengine/$(releasefile) crengine/lib/libcrengine.a	$(ZipFlags) > /dev/null
 	cd ..; zip -9 -r crengine/$(releasefile) crengine/lib/projects/vc6	-i '*.dsp' '*.dsw'	$(ZipFlags) > /dev/null
