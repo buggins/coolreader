@@ -54,14 +54,17 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #ifdef LBOOK
 #define INFO_FONT_SIZE      22
 #else
-#define INFO_FONT_SIZE      18
 #endif
 
 #if defined(__SYMBIAN32__)
 #include <e32std.h>
 #define DEFAULT_PAGE_MARGIN 2
 #else
-#define DEFAULT_PAGE_MARGIN 14
+#ifdef LBOOK
+#define DEFAULT_PAGE_MARGIN      8
+#else
+#define DEFAULT_PAGE_MARGIN      18
+#endif
 #endif
 
 /// minimum EM width of page (prevents show two pages for windows that not enougn wide)
