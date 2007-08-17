@@ -228,7 +228,7 @@ public:
     /// draw page header to buffer
     virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags, int pageCount );
     /// draw battery state to buffer
-    virtual void drawBatteryState( LVDrawBuf * drawBuf, const lvRect & rc );
+    virtual void drawBatteryState( LVDrawBuf * drawBuf, const lvRect & rc, bool isVertical );
 
     /// returns background color
     lUInt32 getBackgroundColor()
@@ -274,7 +274,7 @@ public:
     bool exportWolFile( LVStream * stream, bool flgGray, int levels );
 
     /// draws page to image buffer
-    void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount);
+    void drawPageTo( LVDrawBuf * drawBuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount, int basePage);
     /// draws coverpage to image buffer
     void drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc );
     /// returns cover page image source, if any

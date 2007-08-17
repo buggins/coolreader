@@ -378,7 +378,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         for (int i=1; i<pages.length(); i++)
         {
 			LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
-			drawPageTo( &drawbuf, *pages[i], NULL, pages.length() );
+			drawPageTo( &drawbuf, *pages[i], NULL, pages.length(), 0 );
             if (!flgGray)
                 drawbuf.ConvertToBitmap(false);
             else
@@ -495,7 +495,7 @@ lString16 LVDocView::getTimeString()
 }
 
 /// draw battery state to buffer
-void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc )
+void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc, bool isVertical )
 {
     lvRect rc =  batteryRc;
     if ( m_battery_state<0 )
@@ -507,38 +507,84 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc 
         cl2 = 2;
     }
 #if 1
-    int h = rc.height();
-    h = ( (h - 4) / 4 * 4 ) + 3;
-    int dh = (rc.height() - h) / 2;
-    rc.bottom -= dh;
-    rc.top = rc.bottom - h;
-    int w = rc.width();
-    int h0 = 4; //h / 6;
-    int w0 = w / 3;
-    // contour
-    drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom, cl );
-    drawbuf->FillRect( rc.right-1, rc.top+h0, rc.right, rc.bottom, cl );
 
-    drawbuf->FillRect( rc.left, rc.top+h0, rc.left+w0, rc.top+h0+1, cl );
-    drawbuf->FillRect( rc.right-w0, rc.top+h0, rc.right, rc.top+h0+1, cl );
+    if ( isVertical ) {    
+        int h = rc.height();
+        h = ( (h - 4) / 4 * 4 ) + 3;
+        int dh = (rc.height() - h) / 2;
+        rc.bottom -= dh;
+        rc.top = rc.bottom - h;
+        int w = rc.width();
+        int h0 = 4; //h / 6;
+        int w0 = w / 3;
+        // contour
+        drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom, cl );
+        drawbuf->FillRect( rc.right-1, rc.top+h0, rc.right, rc.bottom, cl );
 
-    drawbuf->FillRect( rc.left+w0-1, rc.top, rc.left+w0, rc.top+h0, cl );
-    drawbuf->FillRect( rc.right-w0, rc.top, rc.right-w0+1, rc.top+h0, cl );
+        drawbuf->FillRect( rc.left, rc.top+h0, rc.left+w0, rc.top+h0+1, cl );
+        drawbuf->FillRect( rc.right-w0, rc.top+h0, rc.right, rc.top+h0+1, cl );
 
-    drawbuf->FillRect( rc.left+w0, rc.top, rc.right-w0, rc.top+1, cl );
-    drawbuf->FillRect( rc.left, rc.bottom-1, rc.right, rc.bottom, cl );
-    // fill
-    int miny = rc.bottom - 2 - (h - 4) * m_battery_state / 100;
-    for ( int i=0; i<h-4 ; i++ ) {
-        if ( (i&3) != 3 ) {
-            int y = rc.bottom - 2 - i;
-            int w = 2;
-            if ( y < rc.top + h0 + 2 )
-                w = w0 + 1;
-            lUInt32 c = cl2;
-            if ( y >= miny )
-                c = cl;
-            drawbuf->FillRect( rc.left+w, y-1, rc.right-w, y, c );
+        drawbuf->FillRect( rc.left+w0-1, rc.top, rc.left+w0, rc.top+h0, cl );
+        drawbuf->FillRect( rc.right-w0, rc.top, rc.right-w0+1, rc.top+h0, cl );
+
+        drawbuf->FillRect( rc.left+w0, rc.top, rc.right-w0, rc.top+1, cl );
+        drawbuf->FillRect( rc.left, rc.bottom-1, rc.right, rc.bottom, cl );
+        // fill
+        int miny = rc.bottom - 2 - (h - 4) * m_battery_state / 100;
+        for ( int i=0; i<h-4 ; i++ ) {
+            if ( (i&3) != 3 ) {
+                int y = rc.bottom - 2 - i;
+                int w = 2;
+                if ( y < rc.top + h0 + 2 )
+                    w = w0 + 1;
+                lUInt32 c = cl2;
+                if ( y >= miny )
+                    c = cl;
+                drawbuf->FillRect( rc.left+w, y-1, rc.right-w, y, c );
+            }
+        }
+    } else {
+        // horizontal
+        int h = rc.width();
+        h = ( (h - 4) / 4 * 4 ) + 3;
+        int dh = (rc.height() - h) / 2;
+        rc.right -= dh;
+        rc.left = rc.right - h;
+        h = rc.height();
+        dh = h - (rc.width() * 4/8 + 1);
+        if ( dh>0 ) {
+            rc.bottom -= dh/2;
+            rc.top += (dh/2);
+            h = rc.height();
+        }
+        int w = rc.width();
+        int h0 = h / 3; //h / 6;
+        int w0 = 4;
+        // contour
+        drawbuf->FillRect( rc.left+w0, rc.top, rc.right, rc.top+1, cl );
+        drawbuf->FillRect( rc.left+w0, rc.bottom-1, rc.right, rc.bottom, cl );
+
+        drawbuf->FillRect( rc.left+w0, rc.top, rc.left+w0+1, rc.top+h0, cl );
+        drawbuf->FillRect( rc.left+w0, rc.bottom-h0, rc.left+w0+1, rc.bottom, cl );
+
+        drawbuf->FillRect( rc.left, rc.top+h0-1, rc.left+w0, rc.top+h0, cl );
+        drawbuf->FillRect( rc.left, rc.bottom-h0, rc.left+w0, rc.bottom-h0+1, cl );
+
+        drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom-h0, cl );
+        drawbuf->FillRect( rc.right-1, rc.top, rc.right, rc.bottom, cl );
+        // fill
+        int minx = rc.right - 2 - (w - 4) * m_battery_state / 100;
+        for ( int i=0; i<w-4 ; i++ ) {
+            if ( (i&3) != 3 ) {
+                int x = rc.right - 2 - i;
+                int h = 2;
+                if ( x < rc.left + w0 + 2 )
+                    h = h0 + 1;
+                lUInt32 c = cl2;
+                if ( x >= minx )
+                    c = cl;
+                drawbuf->FillRect( x-1, rc.top+h, x, rc.bottom-h, c );
+            }
         }
     }
 #else
@@ -676,8 +722,13 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         brc.right -= 3;
         brc.top += 1;
         brc.bottom -= 2;
-        brc.left = brc.right - brc.height()/2;
-        drawBatteryState( drawbuf, brc );
+        int h = brc.height();
+        bool isVertical = (h>30);
+        if ( isVertical )
+            brc.left = brc.right - brc.height()/2;
+        else
+            brc.left = brc.right - 30;
+        drawBatteryState( drawbuf, brc, isVertical );
         info.right = brc.left - info.height()/2;
     }
     lString16 pageinfo;
@@ -744,7 +795,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     drawbuf->SetTextColor(getTextColor());
 }
 
-void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount )
+void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * pageRect, int pageCount, int basePage )
 {
     int start = page.start;
     int height = page.height;
@@ -781,7 +832,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         }
         lvRect info;
         getPageHeaderRectangle( page.index, *pageRect, info );
-        drawPageHeader( drawbuf, info, page.index-1, phi, pageCount-1 );
+        drawPageHeader( drawbuf, info, page.index-1+basePage, phi, pageCount-1+basePage );
     }
     drawbuf->SetClipRect(&clip);
     if ( m_doc ) {
@@ -861,9 +912,9 @@ void LVDocView::Draw( LVDrawBuf & drawbuf )
         int pc = getVisiblePageCount();
         int page = m_pages.FindNearestPage(m_pos, 0);
         if ( page>=0 && page<m_pages.length() )
-            drawPageTo( &drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length() );
+            drawPageTo( &drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length(), 1 );
         if ( pc==2 && page>=0 && page+1<m_pages.length() )
-            drawPageTo( &drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length() );
+            drawPageTo( &drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length(), 1 );
     }
 }
 
