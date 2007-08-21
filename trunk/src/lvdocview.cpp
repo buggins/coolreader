@@ -95,7 +95,9 @@ LVDocView::LVDocView()
 , m_pagesVisible(2)
 , m_pageHeaderInfo ( 
       PGHDR_PAGE_NUMBER
+#ifndef LBOOK
     | PGHDR_CLOCK
+#endif
     | PGHDR_BATTERY
     | PGHDR_PAGE_COUNT
     | PGHDR_AUTHOR
@@ -705,9 +707,17 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl3 );
         drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl3 );
         if ( !leftPage ) {
+            drawbuf->FillRect(info.left+percent_pos-1, gpos+0, info.left+percent_pos+0, gpos+3, cl1 );
+            drawbuf->FillRect(info.left+percent_pos-1, gpos+2, info.left+percent_pos+2, gpos+3, cl1 );
+            drawbuf->FillRect(info.left+percent_pos+1, gpos+0, info.left+percent_pos+2, gpos+3, cl1 );
+            drawbuf->FillRect(info.left+percent_pos-1, gpos-4, info.left+percent_pos+0, gpos-2, cl1 );
+            drawbuf->FillRect(info.left+percent_pos-1, gpos-4, info.left+percent_pos+2, gpos-3, cl1 );
+            drawbuf->FillRect(info.left+percent_pos+1, gpos-4, info.left+percent_pos+2, gpos-2, cl1 );
+/*
             drawbuf->FillRect(info.left+percent_pos, gpos+1, info.left+percent_pos+1, gpos+2, cl1 );
             drawbuf->FillRect(info.left+percent_pos-1, gpos+2, info.left+percent_pos+0, gpos+3, cl1 );
             drawbuf->FillRect(info.left+percent_pos+1, gpos+2, info.left+percent_pos+2, gpos+3, cl1 );
+*/
         }
 #endif
     }
