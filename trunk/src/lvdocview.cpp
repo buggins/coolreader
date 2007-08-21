@@ -54,6 +54,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #ifdef LBOOK
 #define INFO_FONT_SIZE      22
 #else
+#define INFO_FONT_SIZE      24
 #endif
 
 #if defined(__SYMBIAN32__)
@@ -678,7 +679,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         // gray
         cl1 = getTextColor();
         cl3 = 1;
-        cl4 = 1;
+        cl4 = 2;
         pal[0] = cl1;
         drawbuf->SetTextColor(cl1);
         drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
@@ -687,9 +688,17 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl3 );
 
         if ( !leftPage ) {
+            drawbuf->FillRect(info.left+percent_pos-2, gpos+0-1, info.left+percent_pos-1, gpos+3-1, cl4 );
+            drawbuf->FillRect(info.left+percent_pos-2, gpos+2-1, info.left+percent_pos+2, gpos+3-1, cl4 );
+            drawbuf->FillRect(info.left+percent_pos+1, gpos+0-1, info.left+percent_pos+2, gpos+3-1, cl4 );
+            drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos-1, gpos-2-1, cl4 );
+            drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos+2, gpos-3-1, cl4 );
+            drawbuf->FillRect(info.left+percent_pos+1, gpos-4-1, info.left+percent_pos+2, gpos-2-1, cl4 );
+/*
             drawbuf->FillRect(info.left+percent_pos, gpos+1, info.left+percent_pos+1, gpos+2, cl1 );
             drawbuf->FillRect(info.left+percent_pos-1, gpos+2, info.left+percent_pos+0, gpos+3, cl1 );
             drawbuf->FillRect(info.left+percent_pos+1, gpos+2, info.left+percent_pos+2, gpos+3, cl1 );
+*/
         }
     } else {
         // color

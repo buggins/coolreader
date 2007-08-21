@@ -54,7 +54,7 @@ endif
 #V2 path
 ifdef LBOOK
 ifndef V2HOME
-	V2HOME=../v2sdk-1.0/
+	V2HOME=../v3sdk-1.0/
 endif
 endif
 
