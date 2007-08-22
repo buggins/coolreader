@@ -82,6 +82,7 @@ LVDocView::LVDocView()
 #else
 , m_font_size(26)
 #endif
+, m_def_interline_space(130)
 , m_font_sizes( def_font_sizes, sizeof(def_font_sizes) / sizeof(int) )
 , m_font_sizes_cyclic(false)
 , m_view_mode( 1 ? DVM_PAGES : DVM_SCROLL ) // choose 0/1
@@ -991,7 +992,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
     if ( m_showCover )
         pages->add( new LVRendPageInfo( dy ) );
     LVRendPageContext context( pages, dy );
-    m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font );
+    m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
 
 #if 0        
     FILE * f = fopen("pagelist.log", "wt");
@@ -1066,6 +1067,13 @@ static int findBestFit( LVArray<int> & v, int n, bool rollCyclic=false )
     if ( bestsz<0 )
         bestsz = n;
     return bestsz;
+}
+
+void LVDocView::setDefaultInterlineSpace( int percent )
+{
+    m_def_interline_space = percent;
+    Render();
+    goToBookmark(_posBookmark);
 }
 
 void LVDocView::setFontSize( int newSize )

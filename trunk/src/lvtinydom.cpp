@@ -209,7 +209,7 @@ void ldomTextRef::setText( lString16 value )
 }
 #endif
 
-int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font )
+int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
 {
     _page_height = context.getPageHeight();
     _def_font = def_font;
@@ -228,7 +228,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     _def_style->text_indent.type = css_val_px;
     _def_style->text_indent.value = 0;
     _def_style->line_height.type = css_val_percent;
-    _def_style->line_height.value = 130;
+    _def_style->line_height.value = def_interline_space;
     // update styles
     getMainNode()->recurseElements( initFormatData );
     initRendMethod( getMainNode() );

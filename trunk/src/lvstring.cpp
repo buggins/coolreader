@@ -405,7 +405,7 @@ void lString16::alloc(size_t sz)
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
 #else
-    pchunk = ::malloc(sizeof(lstring_chunk_t));
+    pchunk = (lstring_chunk_t*)::malloc(sizeof(lstring_chunk_t));
 #endif
     pchunk->buf16 = (lChar16*) ::malloc( sizeof(lChar16) * (sz+1) );
     assert( pchunk->buf16!=NULL );
@@ -1108,7 +1108,7 @@ void lString8::alloc(size_t sz)
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
 #else
-    pchunk = ::malloc(sizeof(lstring_chunk_t));
+    pchunk = (lstring_chunk_t*)::malloc(sizeof(lstring_chunk_t));
 #endif
     pchunk->buf8 = (lChar8*) ::malloc( sizeof(lChar8) * (sz+1) );
     assert( pchunk->buf8!=NULL );

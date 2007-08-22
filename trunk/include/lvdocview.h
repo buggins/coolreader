@@ -123,6 +123,7 @@ private:
     int m_pos;
     int m_battery_state;
     int m_font_size;
+    int m_def_interline_space;
     LVArray<int> m_font_sizes;
     bool m_font_sizes_cyclic;
     bool m_is_rendered;
@@ -299,6 +300,9 @@ public:
 
     /// set document stylesheet text
     void setStyleSheet( lString8 css_text );
+
+    /// set default interline space, percent (100..200)
+    void setDefaultInterlineSpace( int percent );
 
     /// change font size, if rollCyclic is true, largest font is followed by smallest and vice versa
     void ZoomFont( int delta );

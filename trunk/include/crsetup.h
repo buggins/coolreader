@@ -14,9 +14,13 @@
 #define CRSETUP_H_INCLUDED
 
 //#define LBOOK 1
+#ifndef LDOM_USE_OWN_MEM_MAN
 #define LDOM_USE_OWN_MEM_MAN 1
+#endif
 
+#ifndef USE_DOM_UTF8_STORAGE
 #define USE_DOM_UTF8_STORAGE 1
+#endif
 
 
 // features set for LBOOK
