@@ -209,6 +209,7 @@ void ldomTextRef::setText( lString16 value )
 }
 #endif
 
+#ifndef BUILD_LITE
 int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
 {
     _page_height = context.getPageHeight();
@@ -239,6 +240,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     context.Finalize();
     return height;
 }
+#endif
 
 void lxmlDocBase::setNodeTypes( const elem_def_t * node_scheme )
 {
@@ -315,6 +317,7 @@ void ldomElement::getAbsRect( lvRect & rect )
     rect.right += rect.left;
 }
 
+#ifndef BUILD_LITE
 LVImageSourceRef ldomElement::getObjectImageSource()
 {
     //printf("ldomElement::getObjectImageSource() ... ");
@@ -346,6 +349,7 @@ LVImageSourceRef ldomElement::getObjectImageSource()
     ref = LVCreateNodeImageSource( objnode );
     return ref;
 }
+#endif
 
 /////////////////////////////////////////////////////////////////
 /// lxmlNodeRef
@@ -1302,6 +1306,7 @@ ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
     return createXPointer( getRootNode(), xPointerStr );
 }
 
+#ifndef BUILD_LITE
 /// formats final block
 int ldomElement::renderFinalBlock( LFormattedText & txtform, int width )
 {
@@ -1315,6 +1320,7 @@ int ldomElement::renderFinalBlock( LFormattedText & txtform, int width )
     int h = txtform.Format( width, page_h );
     return h;
 }
+#endif
 
 /// returns first text child element
 ldomText * ldomNode::getFirstTextChild()
@@ -1346,6 +1352,7 @@ ldomText * ldomNode::getLastTextChild()
     return NULL;
 }
 
+#ifndef BUILD_LITE
 ldomElement * ldomNode::elementFromPoint( lvPoint pt )
 {
     if ( !isElement() )
@@ -1559,6 +1566,7 @@ lvPoint ldomXPointer::toPoint() const
         return rc.bottomRight();
     }
 }
+#endif
 
 /// create xpointer from relative pointer string
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
@@ -1723,3 +1731,54 @@ lString16 ldomXPointer::getRangeText( ldomXPointer endpos, lChar16 blockDelimite
     }
     return res;
 }
+
+
+
+
+
+lString16 extractDocAuthors( ldomDocument * doc )
+{
+    lString16 authors;
+    for ( int i=0; i<16; i++) {
+        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
+        ldomXPointer pauthor = doc->createXPointer(path);
+        if ( !pauthor )
+            break;
+        lString16 firstName = pauthor.relative( L"/first-name" ).getText();
+        lString16 lastName = pauthor.relative( L"/last-name" ).getText();
+        lString16 middleName = pauthor.relative( L"/middle-name" ).getText();
+        lString16 author = firstName;
+        if ( !author.empty() )
+            author += L" ";
+        if ( !middleName.empty() )
+            author += lString16(middleName, 0, 1) + L". ";
+        author += lastName;
+        if ( !authors.empty() )
+            authors += L", ";
+        authors += author;
+    }
+    return authors;
+}
+
+lString16 extractDocTitle( ldomDocument * doc )
+{
+    return doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText();
+}
+
+lString16 extractDocSeries( ldomDocument * doc )
+{
+    lString16 res;
+    ldomElement * series = (ldomElement*)doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
+    if ( series ) {
+        lString16 sname = series->getAttributeValue( attr_name );
+        lString16 snumber = series->getAttributeValue( attr_number );
+        if ( !sname.empty() ) {
+            res << L"(" << sname;
+            if ( !snumber.empty() )
+                res << L" #" << snumber << L")";
+            
+        }
+    }
+    return res;
+}
+

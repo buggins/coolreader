@@ -170,7 +170,13 @@ public:
         _styleCache.cacheIt( styleref );
     }
     /// garbage collector
-    virtual void gc() { _styleCache.gc(); fontMan->gc(); }
+    virtual void gc()
+    { 
+        _styleCache.gc(); 
+#ifndef BUILD_LITE
+        fontMan->gc(); 
+#endif
+    }
 
     LVStyleSheet * getStyleSheet() { return &_stylesheet; }
 
@@ -399,10 +405,12 @@ public:
     ldomText * getFirstTextChild();
     /// returns last text child element
     ldomText * getLastTextChild();
+#ifndef BUILD_LITE
     /// find node by coordinates of point in formatted document
     ldomElement * elementFromPoint( lvPoint pt );
     /// find final node by coordinates of point in formatted document
     ldomElement * finalBlockFromPoint( lvPoint pt );
+#endif
 };
 
 class ldomDocument;
@@ -620,8 +628,10 @@ public:
     ldomElement * getRootNode() { return _root; }
     /// returns main element (i.e. FictionBook for FB2)
     ldomElement * getMainNode();
+#ifndef BUILD_LITE
     /// renders (formats) document in memory
     virtual int render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space );
+#endif
     /// create xpointer from pointer string
     ldomXPointer createXPointer( const lString16 & xPointerStr );
     /// create xpointer from pointer string
@@ -631,8 +641,10 @@ public:
     }
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
+#ifndef BUILD_LITE
     /// create xpointer from doc point
     ldomXPointer createXPointer( lvPoint pt );
+#endif
 };
 
 #if COMPACT_DOM == 1
@@ -939,10 +951,12 @@ public:
     }
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
+#ifndef BUILD_LITE
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
     /// formats final block
     int renderFinalBlock( LFormattedText & txtform, int width );
+#endif
 };
 
 class ldomElementWriter
@@ -1009,6 +1023,11 @@ public:
     /// constructor
     ldomDocumentWriter(ldomDocument * document);
 };
+
+//utils
+lString16 extractDocAuthors( ldomDocument * doc );
+lString16 extractDocTitle( ldomDocument * doc );
+lString16 extractDocSeries( ldomDocument * doc );
 
 
 

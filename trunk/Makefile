@@ -16,6 +16,7 @@
 #   LBOOK=arm    - to build for ARM
 #   LBOOK=i386   - to build for Simulator
 #   V2HOME=path  - path to V2SDK directory
+#   BUILD_LITE=1 - to build lite library
 #
 # Library names:
 #   lib/libcrengine.a - linux static release
@@ -66,7 +67,11 @@ else
 endif
 
 # the name of the target file
-target = crengine
+ifeq ($(BUILD_LITE),1)
+    target = crengine-min
+else
+    target = crengine
+endif
 
 # path to input files
 VPATH = % \
@@ -86,6 +91,10 @@ endif
 #LBOOK
 ifdef LBOOK
 	defs += -DLBOOK=1 -D_LINUX
+endif
+
+ifeq ($(BUILD_LITE),1)
+	defs += -DBUILD_LITE=1
 endif
 
 ifeq ($(BUILD),Debug)
@@ -151,27 +160,33 @@ endif
 srcs	 =	\
 		crtxtenc \
 		cp_stats \
-		hyphman \
 		lstridmap \
-		lvbmpbuf \
-		lvdocview \
-		lvdrawbuf \
-		lvpagesplitter \
-		lvfnt \
-		lvfntman \
-		lvimg \
 		lvmemman \
-		lvrend \
 		lvstream \
 		lvstring \
 		lvstsheet \
 		lvstyles \
-		lvtextfm \
 		lvtinydom \
 		lvxml \
+
+ifneq ($(BUILD_LITE),1)
+    srcs += \
+		lvdocview \
+		lvpagesplitter \
+		lvrend \
+		lvtextfm \
+		hyphman \
+		lvimg \
+		lvfnt \
+		lvfntman \
+		lvdrawbuf \
+		lvbmpbuf \
 		hist \
 		props \
 		wolutil \
+
+endif
+
 
 ifndef LBOOK
 srcs	 +=	\
@@ -270,6 +285,27 @@ all :
 	make BUILD=Debug appclean
 	make BUILD=Release app
 	make BUILD=Debug app
+
+lbook :
+	make lbook-i386
+	make lbook-arm
+
+lbook-arm :
+	make clean LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
+	make LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
+	make clean LBOOK=arm BUILD=Release SHARED=0
+	make LBOOK=arm BUILD=Release SHARED=0
+	make clean LBOOK=arm BUILD=Debug SHARED=0
+	make LBOOK=arm BUILD=Debug SHARED=0
+
+lbook-i386 :
+	make clean LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
+	make LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
+	make clean LBOOK=i386 BUILD=Release SHARED=0
+	make LBOOK=i386 BUILD=Release SHARED=0
+	make clean LBOOK=i386 BUILD=Debug SHARED=0
+	make LBOOK=i386 BUILD=Debug SHARED=0
+
 #	make doc
 #	make distrib
 #	make BUILD=Release SHARED=1

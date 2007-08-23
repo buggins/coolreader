@@ -1408,38 +1408,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     m_title.clear();
 
 
-    lString16 authors;
-    for ( int i=0; i<16; i++) {
-        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
-        ldomXPointer pauthor = m_doc->createXPointer(path);
-        if ( !pauthor )
-            break;
-        lString16 firstName = pauthor.relative( L"/first-name" ).getText();
-        lString16 lastName = pauthor.relative( L"/last-name" ).getText();
-        lString16 middleName = pauthor.relative( L"/middle-name" ).getText();
-        lString16 author = firstName;
-        if ( !author.empty() )
-            author += L" ";
-        if ( !middleName.empty() )
-            author += lString16(middleName, 0, 1) + L". ";
-        author += lastName;
-        if ( !authors.empty() )
-            authors += L", ";
-        authors += author;
-    }
-    m_authors = authors;
-    m_title = m_doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText();
-    ldomElement * series = (ldomElement*)m_doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
-    if ( series ) {
-        lString16 sname = series->getAttributeValue( attr_name );
-        lString16 snumber = series->getAttributeValue( attr_number );
-        if ( !sname.empty() ) {
-            m_series << L"(" << sname;
-            if ( !snumber.empty() )
-                m_series << L" #" << snumber << L")";
-            
-        }
-    }
+    m_authors = extractDocAuthors( m_doc );
+    m_title = extractDocTitle( m_doc );
+    m_series = extractDocSeries( m_doc );
 
 
     return true;
