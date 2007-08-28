@@ -997,6 +997,7 @@ private:
     //ldomElement * _currNode;
     ldomElementWriter * _currNode;
     bool _errFlag;
+    lUInt16 _stopTagId;
     //============================
     lUInt32 _flags;
 public:
@@ -1021,7 +1022,7 @@ public:
     virtual void OnText( const lChar16 * text, int len, 
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
     /// constructor
-    ldomDocumentWriter(ldomDocument * document);
+    ldomDocumentWriter(ldomDocument * document, bool headerOnly=false );
 };
 
 //utils

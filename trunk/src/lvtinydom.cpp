@@ -817,6 +817,9 @@ void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagn
     //logfile << "ldomDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+
+    if ( id==_stopTagId )
+        _parser->Stop();
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     //logfile << " !o!\n";
 }
@@ -870,9 +873,13 @@ void ldomDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table
 #endif
 }
 
-ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document)
+ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
     : _document(document), _currNode(NULL), _errFlag(false), _flags(0)
 {
+    if ( !headerOnly )
+        _stopTagId = 0xFFFE;
+    else
+        _stopTagId = _document->getElementNameIndex(L"body");
 }
 
 

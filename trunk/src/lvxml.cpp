@@ -34,8 +34,16 @@ LVTextFileBase::LVTextFileBase( LVStreamRef stream )
     , m_buf_fpos(0)
     , m_enc_type( ce_8bit_cp )
     , m_conv_table(NULL)
+    , m_stopped(false)
 {
     m_stream_size = stream->GetSize();
+}
+
+
+/// stops parsing in the middle of file, to read header only
+void LVTextFileBase::Stop()
+{
+    m_stopped = true;
 }
 
 /// destructor
@@ -1021,6 +1029,8 @@ bool LVXMLParser::Parse()
     lString16 attrvalue;
     for (;!Eof();)
     {
+        if ( m_stopped )
+             break;
         // load next portion of data if necessary
         if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
             FillBuffer( MIN_BUF_DATA_SIZE*2 );

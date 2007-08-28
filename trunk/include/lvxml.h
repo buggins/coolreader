@@ -86,6 +86,8 @@ public:
     virtual bool Parse() = 0;
     /// resets parsing, moves to beginning of stream
     virtual void Reset() = 0;
+    /// stops parsing in the middle of file, to read header only
+    virtual void Stop() = 0;
     /// sets charset by name
     virtual void SetCharset( const lChar16 * name ) = 0;
     /// sets 8-bit charset conversion table (128 items, for codes 128..255)
@@ -115,6 +117,7 @@ protected:
     lString16 m_encoding_name;
     lString16 m_lang_name;
     lChar16 * m_conv_table; // charset conversion table for 8-bit encodings
+    bool     m_stopped; // true if Stop() is called
 
     /// tries to autodetect text encoding
     bool AutodetectEncoding();
@@ -129,6 +132,8 @@ protected:
     /// reads specified number of characters and saves to buffer, returns number of chars read
     int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size );
 public:
+    /// stops parsing in the middle of file, to read header only
+    virtual void Stop();
     /// returns true if end of fle is reached, and there is no data left in buffer
     bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
     /// reads next text line, tells file position and size of line, sets EOL flag
