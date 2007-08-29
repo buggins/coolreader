@@ -26,17 +26,26 @@
 // features set for LBOOK
 #if (LBOOK==1)
 #define MAX_IMAGE_SCALE_MUL                  2
-#define USE_LIBJPEG                          1
-#define USE_LIBPNG                           1
 #define USE_ZLIB                             1
 #define COLOR_BACKBUFFER                     0
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
-#define USE_FREETYPE                         1
 #define ALLOW_KERNING                        0
+#if (BUILD_LITE==1)
+#define USE_LIBJPEG                          0
+#define USE_LIBPNG                           0
+#define USE_FREETYPE                         0
+#define GLYPH_CACHE_SIZE                     0x1000
+#define ZIP_STREAM_BUFFER_SIZE               0x1000
+#define FILE_STREAM_BUFFER_SIZE              0x1000
+#else
+#define USE_LIBJPEG                          1
+#define USE_LIBPNG                           1
+#define USE_FREETYPE                         1
 #define GLYPH_CACHE_SIZE                     0x60000
 #define ZIP_STREAM_BUFFER_SIZE               0x40000
 #define FILE_STREAM_BUFFER_SIZE              0x80000
+#endif
 #define COMPACT_DOM                          0
 #define COMPACT_DOM_MIN_REF_TEXT_LENGTH      24
 #define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  32

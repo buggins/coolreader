@@ -151,7 +151,7 @@ public:
         lvsize_t sz = fread( buf, 1, count, m_file );
         if (nBytesRead)
             *nBytesRead = sz;
-        if (sz < count)
+        if ( sz==0 )
         {
             return LVERR_FAIL;
         }

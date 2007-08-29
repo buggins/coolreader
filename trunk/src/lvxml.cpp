@@ -125,7 +125,11 @@ bool LVTextFileBase::AutodetectEncoding()
         return false;
     unsigned char * buf = new unsigned char[ sz ];
     lvsize_t bytesRead = 0;
-    m_stream->Read( buf, sz, &bytesRead );
+    if ( m_stream->Read( buf, sz, &bytesRead )!=LVERR_OK ) {
+        delete buf;
+        m_stream->SetPos( oldpos );
+        return false;
+    }
 
     int res = AutodetectCodePage( buf, sz, enc_name, lang_name );
     m_lang_name = lString16( lang_name );
@@ -159,9 +163,11 @@ bool LVTextFileBase::Seek( lvpos_t pos, int bytesToPrefetch )
     m_buf_pos = 0;
     m_buf_len = m_buf_size;
     // TODO: add error handing
-    m_stream->SetPos( m_buf_fpos );
+    if ( m_stream->SetPos( m_buf_fpos ) != LVERR_OK )
+        return false;
     lvsize_t bytesRead = 0;
-    m_stream->Read( m_buf, bytesToRead, &bytesRead );
+    if ( m_stream->Read( m_buf, bytesToRead, &bytesRead ) != LVERR_OK )
+        return false;
     return true;
 }
 
@@ -200,7 +206,7 @@ bool LVTextFileBase::FillBuffer( int bytesToRead )
 {
     lvoffset_t bytesleft = (lvoffset_t) (m_stream_size - (m_buf_fpos+m_buf_len));
     if (bytesleft<=0)
-        return false;
+        return true; //FIX
     if (bytesToRead > bytesleft)
         bytesToRead = (int)bytesleft;
     int space = m_buf_size - m_buf_len;
@@ -226,7 +232,8 @@ bool LVTextFileBase::FillBuffer( int bytesToRead )
         }
     }
     lvsize_t n = 0;
-    m_stream->Read(m_buf+m_buf_len, bytesToRead, &n);
+    if ( m_stream->Read(m_buf+m_buf_len, bytesToRead, &n) != LVERR_OK )
+        return false;
     m_buf_len += (int)n;
     return (n>0);
 }
@@ -1027,13 +1034,18 @@ bool LVXMLParser::Parse()
     lString16 attrname;
     lString16 attrns;
     lString16 attrvalue;
-    for (;!Eof();)
+    bool errorFlag = false;
+    for (;!Eof() && !errorFlag;)
     {
         if ( m_stopped )
              break;
         // load next portion of data if necessary
-        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
-            FillBuffer( MIN_BUF_DATA_SIZE*2 );
+        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE ) {
+            if ( !FillBuffer( MIN_BUF_DATA_SIZE*2 ) ) {
+                errorFlag = true;
+                break;
+            }
+        }
         if ( m_buf_len - m_buf_pos <=0 )
             break;
         switch (m_state)
@@ -1144,8 +1156,13 @@ bool LVXMLParser::Parse()
                     }
                     for ( ;!Eof(); )
                     {
-                        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
-                            FillBuffer( MIN_BUF_DATA_SIZE*2 );
+                        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE ) {
+                            if ( !FillBuffer( MIN_BUF_DATA_SIZE*2 ) ) {
+                                errorFlag = true;
+                                break;
+                            }
+        
+                        }
                         ch = m_buf[m_buf_pos];
                         if (ch=='>')
                             break;
@@ -1182,7 +1199,7 @@ bool LVXMLParser::Parse()
         }
     }
     m_callback->OnStop();
-    return true;
+    return !errorFlag;
 }
 
 //#define TEXT_SPLIT_SIZE 8192

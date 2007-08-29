@@ -288,6 +288,8 @@ public:
     void setBookmark( ldomXPointer bm );
     /// moves position to bookmark
     void goToBookmark( ldomXPointer bm );
+    /// get page number by bookmark
+    int getBookmarkPage(ldomXPointer bm);
 
     /// returns scrollbar control info
     const LVScrollInfo * getScrollInfo() { return &m_scrollinfo; }

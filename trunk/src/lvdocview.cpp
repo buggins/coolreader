@@ -1446,12 +1446,20 @@ void LVDocView::goToBookmark(ldomXPointer bm)
         lvPoint pt = bm.toPoint();
         SetPos( pt.y, false );
     }
+    _posBookmark = bm;
+}
 
-    /*
-    lUInt64 h = GetFullHeight();
-    int pos = (int) (bm*h/1000000);
-    SetPos( pos );
-    */
+/// get page number by bookmark
+int LVDocView::getBookmarkPage(ldomXPointer bm)
+{
+    if ( bm.isNull() ) {
+        return 0;
+    } else {
+        lvPoint pt = bm.toPoint();
+        if ( pt.y<0 )
+            return 0;
+        return m_pages.FindNearestPage(pt.y, 0);
+    }
 }
 
 void LVDocView::updateScroll()
