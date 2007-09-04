@@ -15,7 +15,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-
+#include <stdio.h>
+#include <stdarg.h>
+#include <time.h>
+#ifdef LINUX
+#include <sys/time.h>
+#endif
 
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
@@ -2583,5 +2588,165 @@ lUInt16 lGetCharProps( lChar16 ch )
 {
     const lChar16 maxchar = sizeof(char_props) / sizeof( lUInt16 );
     return (ch<maxchar) ? char_props[ch] : 0;
+}
+
+
+
+CRLog * CRLog::CRLOG = NULL;
+void CRLog::setLogger( CRLog * logger )
+{
+    if ( CRLOG!=NULL ) {
+        delete CRLOG;
+    }
+    CRLOG = logger;
+}
+
+void CRLog::setLogLevel( CRLog::log_level level )
+{
+    if ( !CRLOG )
+        return;
+    warn( "Changing log level from %d to %d", CRLOG->curr_level, level );
+    CRLOG->curr_level = level;
+}
+
+CRLog::log_level CRLog::getLogLevel( CRLog::log_level level )
+{
+    if ( !CRLOG )
+        return LL_INFO;
+    return CRLOG->curr_level;
+}
+
+bool CRLog::isLogLevelEnabled( CRLog::log_level level )
+{
+    if ( !CRLOG )
+        return false;
+    return (CRLOG->curr_level >= level);
+}
+
+void CRLog::fatal( const char * msg, ... )
+{
+    if ( !CRLOG )
+        return;
+    va_list args;
+    va_start( args, msg );
+    CRLOG->log( "FATAL", msg, args );
+    va_end(args);
+}
+
+void CRLog::error( const char * msg, ... )
+{
+    if ( !CRLOG || CRLOG->curr_level<LL_ERROR )
+        return;
+    va_list args;
+    va_start( args, msg );
+    CRLOG->log( "ERROR", msg, args );
+    va_end(args);
+}
+
+void CRLog::warn( const char * msg, ... )
+{
+    if ( !CRLOG || CRLOG->curr_level<LL_WARN )
+        return;
+    va_list args;
+    va_start( args, msg );
+    CRLOG->log( "WARN", msg, args );
+    va_end(args);
+}
+
+void CRLog::info( const char * msg, ... )
+{
+    if ( !CRLOG || CRLOG->curr_level<LL_INFO )
+        return;
+    va_list args;
+    va_start( args, msg );
+    CRLOG->log( "WARN", msg, args );
+    va_end(args);
+}
+
+void CRLog::debug( const char * msg, ... )
+{
+    if ( !CRLOG || CRLOG->curr_level<LL_DEBUG )
+        return;
+    va_list args;
+    va_start( args, msg );
+    CRLOG->log( "DEBUG", msg, args );
+    va_end(args);
+}
+
+void CRLog::trace( const char * msg, ... )
+{
+    if ( !CRLOG || CRLOG->curr_level<LL_TRACE )
+        return;
+    va_list args;
+    va_start( args, msg );
+    CRLOG->log( "TRACE", msg, args );
+    va_end(args);
+}
+
+CRLog::~CRLog()
+{
+}
+
+class CRFileLogger : public CRLog
+{
+protected:
+    FILE * f;
+    bool autoClose;
+    bool autoFlush;
+    virtual void log( const char * level, const char * msg, va_list args )
+    {
+        if ( !f )
+            return;
+#ifdef LINUX
+        struct timeval tval;
+        gettimeofday( &tval, NULL );
+        int ms = tval.tv_usec;
+        time_t t = tval.tv_sec;
+#else
+        time_t t = (time_t)time(0);
+        int ms = 0;
+#endif
+        tm * bt = localtime(&t);
+        fprintf(f, "%04d/%02d/%02d %02d:%02d:%02d.%04d %s ", bt->tm_year+1900, bt->tm_mon+1, bt->tm_mday, bt->tm_hour, bt->tm_min, bt->tm_sec, ms/100, level);
+        vfprintf( f, msg, args );
+        fprintf(f, "\n" );
+        if ( autoFlush )
+            fflush( f );
+    }
+public:
+    CRFileLogger( FILE * file, bool _autoClose, bool _autoFlush )
+    : f(file), autoClose(_autoClose), autoFlush( _autoFlush )
+    {
+        info( "Started logging" );
+    }
+
+    CRFileLogger( const char * fname, bool _autoFlush )
+    : f(fopen( fname, "at" )), autoClose(true), autoFlush( _autoFlush )
+    {
+        info( "Started logging" );
+    }
+
+    virtual ~CRFileLogger() {
+        if ( f && autoClose ) {
+            info( "Stopped logging" );
+            fclose( f );
+        }
+        f = NULL;
+    }
+};
+
+void CRLog::setFileLogger( const char * fname, bool autoFlush )
+{
+    setLogger( new CRFileLogger( fname, autoFlush ) );
+}
+
+void CRLog::setStdoutLogger()
+{
+    setLogger( new CRFileLogger( (FILE*)stdout, false, true ) );
+}
+
+void CRLog::setStderrLogger()
+{
+    setLogger( new CRFileLogger( (FILE*)stderr, false, true ) );
 }
 

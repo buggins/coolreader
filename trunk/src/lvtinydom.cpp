@@ -180,10 +180,11 @@ static void writeNode( LVStream * stream, ldomNode * node )
 
 bool ldomDocument::saveToStream( LVStreamRef stream, const char * codepage )
 {
+    //CRLog::trace("ldomDocument::saveToStream()");
     if (!stream || !getRootNode()->getChildCount())
         return false;
 
-    *stream.get() << L"\xFEFF"; 
+    *stream.get() << L"\xFEFF";
     writeNode( stream.get(), getRootNode() );
     return true;
 }
@@ -797,10 +798,17 @@ ldomElementWriter::~ldomElementWriter()
 /// ldomDocumentWriter
 
 // overrides
-void ldomDocumentWriter::OnStart(LVXMLParser * parser)
+void ldomDocumentWriter::OnStart(LVFileFormatParser * parser)
 { 
     //logfile << "ldomDocumentWriter::OnStart()\n";
     // add document root node
+    //CRLog::trace("ldomDocumentWriter::OnStart()");
+    if ( !_headerOnly )
+        _stopTagId = 0xFFFE;
+    else {
+        _stopTagId = _document->getElementNameIndex(L"body");
+        //CRLog::trace( "ldomDocumentWriter() : header only, tag id=%d", _stopTagId );
+    }
     LVXMLParserCallback::OnStart( parser );
     _currNode = new ldomElementWriter(_document, 0, 0, NULL);
 }
@@ -815,11 +823,14 @@ void ldomDocumentWriter::OnStop()
 void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
+    //CRLog::trace("OnTagOpen(%s)", UnicodeToUtf8(lString16(tagname)).c_str());
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
 
-    if ( id==_stopTagId )
+    if ( id==_stopTagId ) {
+        //CRLog::trace("stop tag found, stopping...");
         _parser->Stop();
+    }
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     //logfile << " !o!\n";
 }
@@ -874,12 +885,10 @@ void ldomDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table
 }
 
 ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
-    : _document(document), _currNode(NULL), _errFlag(false), _flags(0)
+    : _document(document), _currNode(NULL), _errFlag(false), _headerOnly(headerOnly), _flags(0)
 {
-    if ( !headerOnly )
-        _stopTagId = 0xFFFE;
-    else
-        _stopTagId = _document->getElementNameIndex(L"body");
+    _stopTagId = 0xFFFE;
+    //CRLog::trace("ldomDocumentWriter() headerOnly=%s", _headerOnly?"true":"false");
 }
 
 
@@ -1310,7 +1319,7 @@ ldomXPointer ldomXPointer::relative( lString16 relativePath )
 /// create xpointer from pointer string
 ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
 {
-    return createXPointer( getRootNode(), xPointerStr );
+    return createXPointer( getMainNode(), xPointerStr );
 }
 
 #ifndef BUILD_LITE
@@ -1578,6 +1587,7 @@ lvPoint ldomXPointer::toPoint() const
 /// create xpointer from relative pointer string
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
 {
+    //CRLog::trace( "ldomDocument::createXPointer(%s)", UnicodeToUtf8(xPointerStr).c_str() );
 	if ( xPointerStr.empty() )
 		return ldomXPointer();
 	const lChar16 * str = xPointerStr.c_str();
@@ -1589,10 +1599,13 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 	xpath_step_t step_type;
 
 	while ( *str ) {
+        //CRLog::trace( "    %s", UnicodeToUtf8(lString16(str)).c_str() );
 		step_type = ParseXPathStep( str, name, index );
+        //CRLog::trace( "        name=%s index=%d", UnicodeToUtf8(lString16(name)).c_str(), index );
 		switch (step_type ) {
 		case xpath_step_error:
 			// error
+            //CRLog::trace("    xpath_step_error");
 			return ldomXPointer();
 		case xpath_step_element:
 			// element of type 'name' with 'index'        /elemname[N]/
@@ -1602,6 +1615,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 				int foundCount = 0;
 				for (unsigned i=0; i<currNode->getChildCount(); i++) {
 					ldomNode * p = currNode->getChildNode(i);
+                    //CRLog::trace( "        node[%d] = %d", i, p->getNodeId() );
 					if ( p->isElement() && p->getNodeId()==id ) {
 						foundCount++;
 						if ( foundCount==index || index==-1 ) {
@@ -1609,8 +1623,10 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 						}
 					}
 				}
-				if ( foundItem==NULL || (index==-1 && foundCount>1) )
+				if ( foundItem==NULL || (index==-1 && foundCount>1) ) {
+                    //CRLog::trace("    Element %d is not found. foundCount=%d", id, foundCount);
 					return ldomXPointer(); // node not found
+                }
 				// found element node
 				currNode = foundItem;
 			}
@@ -1749,8 +1765,10 @@ lString16 extractDocAuthors( ldomDocument * doc )
     for ( int i=0; i<16; i++) {
         lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
         ldomXPointer pauthor = doc->createXPointer(path);
-        if ( !pauthor )
+        if ( !pauthor ) {
+            //CRLog::trace( "xpath not found: %s", UnicodeToUtf8(path).c_str() );
             break;
+        }
         lString16 firstName = pauthor.relative( L"/first-name" ).getText();
         lString16 lastName = pauthor.relative( L"/last-name" ).getText();
         lString16 middleName = pauthor.relative( L"/middle-name" ).getText();

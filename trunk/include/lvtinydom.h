@@ -997,6 +997,7 @@ private:
     //ldomElement * _currNode;
     ldomElementWriter * _currNode;
     bool _errFlag;
+    bool _headerOnly;
     lUInt16 _stopTagId;
     //============================
     lUInt32 _flags;
@@ -1009,7 +1010,7 @@ public:
     /// called when encoding directive found in document
     virtual void OnEncoding( const lChar16 * name, const lChar16 * table );
     /// called on parsing start
-    virtual void OnStart(LVXMLParser * parser);
+    virtual void OnStart(LVFileFormatParser * parser);
     /// called on parsing end
     virtual void OnStop();
     /// called on opening tag 

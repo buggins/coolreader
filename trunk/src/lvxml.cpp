@@ -43,6 +43,7 @@ LVTextFileBase::LVTextFileBase( LVStreamRef stream )
 /// stops parsing in the middle of file, to read header only
 void LVTextFileBase::Stop()
 {
+    //CRLog::trace("LVTextFileBase::Stop() is called!");
     m_stopped = true;
 }
 
@@ -978,6 +979,7 @@ void LVXMLParser::SetCharset( const lChar16 * name )
 
 void LVXMLParser::Reset()
 {
+    //CRLog::trace("LVXMLParser::Reset()");
     LVTextFileBase::Reset();
     m_state = ps_bof;
 }
@@ -1005,6 +1007,7 @@ inline bool IsSpaceChar( lChar16 ch )
 /// returns true if format is recognized by parser
 bool LVXMLParser::CheckFormat()
 {
+    //CRLog::trace("LVXMLParser::CheckFormat()");
     #define XML_PARSER_DETECT_SIZE 8192
     Reset();
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
@@ -1018,12 +1021,14 @@ bool LVXMLParser::CheckFormat()
     }
     delete chbuf;
     Reset();
+    //CRLog::trace("LVXMLParser::CheckFormat() finished");
     return res;
 }
 
 bool LVXMLParser::Parse()
 {
     //
+    //CRLog::trace("LVXMLParser::Parse()");
     Reset();
     bool inXmlTag = false;
     m_callback->OnStart(this);
@@ -1198,6 +1203,7 @@ bool LVXMLParser::Parse()
             }
         }
     }
+    //CRLog::trace("LVXMLParser::Parse() is finished, m_stopped=%s", m_stopped?"true":"false");
     m_callback->OnStop();
     return !errorFlag;
 }

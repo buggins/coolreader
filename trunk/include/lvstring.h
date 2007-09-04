@@ -14,6 +14,7 @@
 #define __LV_STRING_H_INCLUDED__
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include "lvtypes.h"
 #include "lvmemman.h"
 
@@ -542,6 +543,38 @@ lString8  UnicodeToUtf8( const lString16 & str );
 lString8  UnicodeTo8Bit( const lString16 & str, const lChar8 * * table );
 lString16 LocalToUnicode( const lString8 & str );
 lString16 Utf8ToUnicode( const lString8 & str );
+
+class CRLog
+{
+public: 
+    enum log_level {
+        LL_FATAL,
+        LL_ERROR,
+        LL_WARN,
+        LL_INFO,
+        LL_DEBUG,
+        LL_TRACE,
+    };
+    static void setLogLevel( log_level level );
+    static log_level getLogLevel( log_level level );
+    static bool isLogLevelEnabled( log_level level );
+    static void fatal( const char * msg, ... );
+    static void error( const char * msg, ... );
+    static void warn( const char * msg, ... );
+    static void info( const char * msg, ... );
+    static void debug( const char * msg, ... );
+    static void trace( const char * msg, ... );
+    static void setLogger( CRLog * logger );
+    virtual ~CRLog();
+
+    static void setFileLogger( const char * fname, bool autoFlush=true );
+    static void setStdoutLogger();
+    static void setStderrLogger();
+protected:
+    virtual void log( const char * level, const char * msg, va_list args ) = 0;
+    log_level curr_level;
+    static CRLog * CRLOG;
+};
 
 
 void free_ls_storage();
