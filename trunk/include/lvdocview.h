@@ -296,12 +296,16 @@ public:
 
     /// returns bookmark
     ldomXPointer getBookmark();
+    /// returns bookmark for specified page
+    ldomXPointer getPageBookmark( int page );
     /// sets current bookmark
     void setBookmark( ldomXPointer bm );
     /// moves position to bookmark
     void goToBookmark( ldomXPointer bm );
     /// get page number by bookmark
     int getBookmarkPage(ldomXPointer bm);
+    /// get bookmark position text
+    bool getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lString16 & posText );
 
     /// returns scrollbar control info
     const LVScrollInfo * getScrollInfo() { return &m_scrollinfo; }

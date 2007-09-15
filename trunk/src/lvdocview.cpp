@@ -1278,6 +1278,9 @@ void LVDocView::savePosition()
 {
     if ( m_filename.empty() )
         return;
+    //lString16 titleText;
+    //lString16 posText;
+    //getBookmarkPosText( getBookmark(), titleText, posText );
     m_hist.savePosition( m_filename, m_filesize, 
         getTitle(), getAuthors(), getSeries(), getBookmark() );
 }
@@ -1478,6 +1481,89 @@ ldomXPointer LVDocView::getBookmark()
     return pos*1000000/h;
 */
 }
+
+/// returns bookmark for specified page
+ldomXPointer LVDocView::getPageBookmark( int page )
+{
+    if ( page<0 || page>=m_pages.length() )
+        return ldomXPointer();
+    ldomXPointer ptr = m_doc->createXPointer( lvPoint( 0, m_pages[page]->start ) );
+    return ptr;
+}
+
+void limitStringSize( lString16 & str, int maxSize )
+{
+    if ( (int)str.length()<maxSize )
+        return;
+    int lastSpace = -1;
+    for ( int i=str.length()-1; i>0; i-- )
+        if ( str[i]==' ') {
+            while ( i>0 && str[i-1]==' ' )
+                i--;
+            lastSpace = i;
+            break;
+        }
+    int split = lastSpace>0 ? lastSpace : maxSize;
+    str = str.substr( 0, split );
+    str += L"...";
+}
+
+/// get bookmark position text
+bool LVDocView::getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lString16 & posText )
+{
+    titleText = posText = lString16();
+    if ( bm.isNull() )
+        return false;
+    ldomElement * el = (ldomElement *) bm.getNode();
+    if ( el->getNodeType()==LXML_TEXT_NODE ) {
+        lString16 txt = bm.getNode()->getText();
+        int startPos = bm.getOffset();
+        int len = txt.length() - startPos;
+        if ( len>0 )
+            txt = txt.substr( startPos, len );
+        if ( startPos>0 )
+            posText = L"...";
+        posText = txt;
+        el = el->getParentNode();
+    } else {
+        posText = el->getText();
+    }
+    bool inTitle = false;
+    do {
+        while ( el && el->getNodeId()!=el_section && el->getNodeId()!=el_body )
+        {
+            if ( el->getNodeId()==el_title || el->getNodeId()==el_subtitle )
+                inTitle = true;
+            el = el->getParentNode();
+        }
+        if ( el ) {
+            if ( inTitle ) {
+                posText.clear();
+                if ( el->getChildCount()>1 ) {
+                    ldomNode * node = el->getChildNode(1);
+                    posText = node->getText(' ');
+                }
+                inTitle = false;
+            }
+            if ( el->getNodeId()==el_body && !titleText.empty() )
+                break;
+            lString16 txt = getSectionHeader( el ) + L" ";
+            lChar16 lastch = !txt.empty() ? txt[txt.length()-1] : 0;
+            if ( !titleText.empty() ) {
+                if ( lastch!='.' && lastch!='?' && lastch!='!' )
+                    txt += L".";
+                txt += L" ";
+            }
+            titleText = txt + titleText;
+        }
+        if ( titleText.length()>50 )
+            break;
+    } while ( el );
+    limitStringSize( titleText, 70 );
+    limitStringSize( posText, 120 );
+    return true;
+}
+
 
 /// moves position to bookmark
 void LVDocView::goToBookmark(ldomXPointer bm)
