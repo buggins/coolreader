@@ -1111,10 +1111,13 @@ bool LVXMLParser::Parse()
                     break;
                 }
 
-                if (qFlag)
+                if (qFlag) {
                     tagname.insert(0, 1, '?');
+                    inXmlTag = (tagname==L"?xml");
+                } else {
+                    inXmlTag = false;
+                }
                 m_callback->OnTagOpen(tagns.c_str(), tagname.c_str());
-                inXmlTag = (tagname==L"?xml");
 
                 m_state = ps_attr;
             }

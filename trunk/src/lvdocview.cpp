@@ -106,6 +106,7 @@ LVDocView::LVDocView()
     | PGHDR_TITLE)
 , m_showCover(true)
 , m_rotateAngle(CR_ROTATE_ANGLE_0)
+, m_section_bounds_valid(false)
 {
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFFFE0;
@@ -477,8 +478,10 @@ int LVDocView::GetFullHeight()
 }
 
 /// calculate page header rectangle
-void LVDocView::getPageHeaderRectangle( int pageIndex, const lvRect & pageRc, lvRect & headerRc )
+void LVDocView::getPageHeaderRectangle( int pageIndex, lvRect & headerRc )
 {
+    lvRect pageRc;
+    getPageRectangle( pageIndex, pageRc );
     headerRc = pageRc;
     if ( pageIndex==0 ) {
         headerRc.bottom = 0;
@@ -626,10 +629,12 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc,
 }
 
 /// returns section bounds, in 1/100 of percent
-void LVDocView::getSectionBounds( LVArray<int> & bounds )
+LVArray<int> & LVDocView::getSectionBounds( )
 {
-    bounds.clear();
-    bounds.add(0);
+    if ( m_section_bounds_valid )
+        return m_section_bounds;
+    m_section_bounds.clear();
+    m_section_bounds.add(0);
     ldomElement * body = (ldomElement *)m_doc->nodeFromXPath( lString16(L"/FictionBook/body[1]") );
     lUInt16 section_id = m_doc->getElementNameIndex( L"section" );
     int fh = GetFullHeight();
@@ -641,10 +646,12 @@ void LVDocView::getSectionBounds( LVArray<int> & bounds )
             lvRect rc;
             l1section->getAbsRect( rc );
             int p = (int)(((lInt64)rc.top * 10000) / fh);
-            bounds.add( p );
+            m_section_bounds.add( p );
         }
     }
-    bounds.add(10000);
+    m_section_bounds.add(10000);
+    m_section_bounds_valid = true;
+    return m_section_bounds;
 }
 
 int LVDocView::getPosPercent()
@@ -655,6 +662,40 @@ int LVDocView::getPosPercent()
         return (int)(((lInt64)p * 10000) / fh);
     else
         return 0;
+}
+
+void LVDocView::getPageRectangle( int pageIndex, lvRect & pageRect )
+{
+    if ( (pageIndex & 1)==0 || (getVisiblePageCount()<2) )
+        pageRect = m_pageRects[0];
+    else
+        pageRect = m_pageRects[1];
+}
+
+void LVDocView::getNavigationBarRectangle( lvRect & navRect )
+{
+    getNavigationBarRectangle( getVisiblePageCount()==2 ? 1 : 2, navRect );
+}
+
+void LVDocView::getNavigationBarRectangle( int pageIndex, lvRect & navRect )
+{
+    lvRect headerRect;
+    getPageHeaderRectangle( pageIndex, headerRect );
+    navRect = headerRect;
+    if ( headerRect.bottom <= headerRect.top )
+        return;
+    navRect.top = navRect.bottom - 6;
+}
+
+void LVDocView::drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent )
+{
+    LVArray<int> & sbounds = getSectionBounds();
+    lvRect navBar;
+    getNavigationBarRectangle( pageIndex, navBar );
+    bool leftPage = (getVisiblePageCount()==2 && !(pageIndex&1) );
+
+    lUInt32 cl1 = 0xA0A0A0;
+    lUInt32 cl2 = getBackgroundColor();
 }
 
 /// draw page header to buffer
@@ -673,8 +714,9 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         percent=10000;
     int percent_pos = percent * info.width() / 10000;
     int gh = drawGauge ? 3 : 1;
-    LVArray<int> sbounds;
-    getSectionBounds( sbounds );
+    LVArray<int> & sbounds = getSectionBounds();
+    lvRect navBar;
+    getNavigationBarRectangle( pageIndex, navBar );
     int gpos = info.bottom+2;
     if ( drawbuf->GetBitsPerPixel() <= 2 ) {
         // gray
@@ -854,7 +896,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
             }
         }
         lvRect info;
-        getPageHeaderRectangle( page.index, *pageRect, info );
+        getPageHeaderRectangle( page.index, info );
         drawPageHeader( drawbuf, info, page.index-1+basePage, phi, pageCount-1+basePage );
     }
     drawbuf->SetClipRect(&clip);

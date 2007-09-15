@@ -168,6 +168,9 @@ private:
 
     CRFileHist m_hist;
 
+    LVArray<int> m_section_bounds;
+    bool m_section_bounds_valid;
+
 
     // private functions
     void updateScroll();
@@ -179,6 +182,17 @@ private:
     bool LoadDocument( LVStreamRef stream );
     /// draw to specified buffer
     void Draw( LVDrawBuf & drawbuf );
+protected:
+
+    virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
+
+    virtual void getNavigationBarRectangle( lvRect & rc );
+
+    virtual void getNavigationBarRectangle( int pageIndex, lvRect & rc );
+
+    virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
+    /// calculate page header rectangle
+    virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
 public:
     /// sets page margins
     void setPageMargins( const lvRect & rc ) { m_pageMargins = rc; }
@@ -191,7 +205,7 @@ public:
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent
-    void getSectionBounds( LVArray<int> & bounds );
+    LVArray<int> & getSectionBounds( );
     /// sets battery state
     void setBatteryState( int newState ) { m_battery_state = newState; }
     /// returns battery state
@@ -225,8 +239,6 @@ public:
     font_ref_t getInfoFont() { return m_infoFont; }
     /// set info line font
     void setInfoFont( font_ref_t font ) { m_infoFont = font; }
-    /// calculate page header rectangle
-    virtual void getPageHeaderRectangle( int pageIndex, const lvRect & pageRc, lvRect & headerRc );
     /// draw page header to buffer
     virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags, int pageCount );
     /// draw battery state to buffer

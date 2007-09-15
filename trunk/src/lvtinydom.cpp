@@ -106,10 +106,14 @@ ldomElement * ldomDocument::getMainNode()
 { 
     if (!_root || !_root->getChildCount())
         return NULL;
-    ldomElement * elem = ((ldomElement *)_root->getChildNode(_root->getChildCount()-1));
-    if ( elem->getNodeType() != LXML_ELEMENT_NODE )
-        return NULL;
-    return elem;
+    int elemCount = 0;
+    ldomElement * lastElem = NULL;
+    for ( unsigned i=0; i<_root->getChildCount(); i++) {
+        ldomElement * el = ((ldomElement *)_root->getChildNode(i));
+        if ( el->getNodeType() == LXML_ELEMENT_NODE )
+            lastElem = el;
+    }
+    return lastElem;
 }
 
 #if COMPACT_DOM == 1
@@ -687,7 +691,7 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
     if (_parent)
         _element = _parent->getElement()->insertChildElement( (lUInt32)-1, nsid, id );
     else
-        _element = _document->getRootNode()->insertChildElement( (lUInt32)-1, nsid, id );
+        _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
     //logfile << "}";
 }
 
@@ -1319,7 +1323,7 @@ ldomXPointer ldomXPointer::relative( lString16 relativePath )
 /// create xpointer from pointer string
 ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
 {
-    return createXPointer( getMainNode(), xPointerStr );
+    return createXPointer( getRootNode(), xPointerStr );
 }
 
 #ifndef BUILD_LITE
