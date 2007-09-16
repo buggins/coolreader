@@ -722,21 +722,36 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         // gray
         cl1 = getTextColor();
         cl3 = 1;
-        cl4 = 2;
+        cl4 = cl1;
         pal[0] = cl1;
         drawbuf->SetTextColor(cl1);
         drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
         drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos, cl1 );
-        drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl3 );
-        drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl3 );
+        drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
+        drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl1 ); // cl3
 
         if ( !leftPage ) {
+            for ( int i=0; i<sbounds.length(); i++) {
+                int x = info.left + sbounds[i]*(info.width()-1) / 10000;
+                lUInt32 c = cl2; //x<info.left+percent_pos ? cl2 : cl1;
+                drawbuf->FillRect(x, gpos-gh, x+2, gpos, c );
+                drawbuf->FillRect(x, gpos-2, x+2, gpos-1, cl3 );
+                //drawbuf->FillRect(x, info.bottom+2-1, x+2, info.bottom+2, c );
+            }
+        }
+
+        if ( !leftPage ) {
+/*
             drawbuf->FillRect(info.left+percent_pos-2, gpos+0-1, info.left+percent_pos-1, gpos+3-1, cl4 );
             drawbuf->FillRect(info.left+percent_pos-2, gpos+2-1, info.left+percent_pos+2, gpos+3-1, cl4 );
             drawbuf->FillRect(info.left+percent_pos+1, gpos+0-1, info.left+percent_pos+2, gpos+3-1, cl4 );
             drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos-1, gpos-2-1, cl4 );
             drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos+2, gpos-3-1, cl4 );
+
             drawbuf->FillRect(info.left+percent_pos+1, gpos-4-1, info.left+percent_pos+2, gpos-2-1, cl4 );
+*/
+            drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos+2, gpos+2, cl4 );
+            drawbuf->FillRect(info.left+percent_pos-2+1, gpos-4, info.left+percent_pos+1, gpos+1, cl3 );
 /*
             drawbuf->FillRect(info.left+percent_pos, gpos+1, info.left+percent_pos+1, gpos+2, cl1 );
             drawbuf->FillRect(info.left+percent_pos-1, gpos+2, info.left+percent_pos+0, gpos+3, cl1 );
@@ -772,13 +787,13 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
 */
         }
 #endif
-    }
-    if ( !leftPage ) {
-        for ( int i=0; i<sbounds.length(); i++) {
-            int x = info.left + sbounds[i]*(info.width()-1) / 10000;
-            lUInt32 c = cl2; //x<info.left+percent_pos ? cl2 : cl1;
-            drawbuf->FillRect(x, gpos-gh, x+2, gpos, c );
-            //drawbuf->FillRect(x, info.bottom+2-1, x+2, info.bottom+2, c );
+        if ( !leftPage ) {
+            for ( int i=0; i<sbounds.length(); i++) {
+                int x = info.left + sbounds[i]*(info.width()-1) / 10000;
+                lUInt32 c = cl2; //x<info.left+percent_pos ? cl2 : cl1;
+                drawbuf->FillRect(x, gpos-gh, x+2, gpos, c );
+                //drawbuf->FillRect(x, info.bottom+2-1, x+2, info.bottom+2, c );
+            }
         }
     }
     int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
@@ -1547,7 +1562,7 @@ bool LVDocView::getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lStr
             }
             if ( el->getNodeId()==el_body && !titleText.empty() )
                 break;
-            lString16 txt = getSectionHeader( el ) + L" ";
+            lString16 txt = getSectionHeader( el );
             lChar16 lastch = !txt.empty() ? txt[txt.length()-1] : 0;
             if ( !titleText.empty() ) {
                 if ( lastch!='.' && lastch!='?' && lastch!='!' )
@@ -1555,6 +1570,7 @@ bool LVDocView::getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lStr
                 txt += L" ";
             }
             titleText = txt + titleText;
+            el = el->getParentNode();
         }
         if ( titleText.length()>50 )
             break;
