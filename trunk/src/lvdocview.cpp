@@ -135,6 +135,110 @@ bool LVDocView::isDocumentOpened()
     return m_doc && m_doc->getRootNode();
 }
 
+/// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
+lvRect LVDocView::rotateRect( lvRect & rc, bool winToDoc )
+{
+    lvRect rc2;
+    cr_rotate_angle_t angle = m_rotateAngle;
+    if ( winToDoc )
+        angle = (cr_rotate_angle_t)((4 - (int)angle) & 3);
+    switch ( angle ) {
+    case CR_ROTATE_ANGLE_0:
+        rc2 = rc;
+        break;
+    case CR_ROTATE_ANGLE_90:
+        /*
+          . . . . . .      . . . . . . . .
+          . . . . . .      . . . . . 1 . .
+          . 1 . . . .      . . . . . . . .
+          . . . . . .  ==> . . . . . . . .
+          . . . . . .      . 2 . . . . . .
+          . . . . . .      . . . . . . . .
+          . . . . 2 .                     
+          . . . . . .                     
+
+        */
+        rc2.left = m_dy - rc.bottom - 1;
+        rc2.right = m_dy - rc.top - 1;
+        rc2.top = rc.left;
+        rc2.bottom = rc.right;
+        break;
+    case CR_ROTATE_ANGLE_180:
+        rc2.left = m_dx - rc.left - 1;
+        rc2.right = m_dx - rc.right - 1;
+        rc2.top = m_dy - rc.top - 1;
+        rc2.bottom = m_dy - rc.bottom - 1;
+        break;
+    case CR_ROTATE_ANGLE_270:
+        /*
+          . . . . . .      . . . . . . . .
+          . . . . . .      . 1 . . . . . .
+          . . . . 2 .      . . . . . . . .
+          . . . . . .  <== . . . . . . . .
+          . . . . . .      . . . . . 2 . .
+          . . . . . .      . . . . . . . .
+          . 1 . . . .                     
+          . . . . . .                     
+
+        */
+        rc2.left = rc.top;
+        rc2.right = rc.bottom;
+        rc2.top = m_dx - rc.right - 1;
+        rc2.bottom = m_dx - rc.left - 1;
+        break;
+    }
+    return rc2;
+}
+
+/// rotate point by current angle, winToDoc==false for doc->window translation, true==ccw
+lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
+{
+    lvPoint pt2;
+    cr_rotate_angle_t angle = m_rotateAngle;
+    if ( winToDoc )
+        angle = (cr_rotate_angle_t)((4 - (int)angle) & 3);
+    switch ( angle ) {
+    case CR_ROTATE_ANGLE_0:
+        pt2 = pt;
+        break;
+    case CR_ROTATE_ANGLE_90:
+        /*
+          . . . . . .      . . . . . . . .
+          . . . . . .      . . . . . 1 . .
+          . 1 . . . .      . . . . . . . .
+          . . . . . .  ==> . . . . . . . .
+          . . . . . .      . 2 . . . . . .
+          . . . . . .      . . . . . . . .
+          . . . . 2 .                     
+          . . . . . .                     
+
+        */
+        pt2.y = pt.x;
+        pt2.x = m_dy - pt.y - 1;
+        break;
+    case CR_ROTATE_ANGLE_180:
+        pt2.y = m_dy - pt.y - 1;
+        pt2.x = m_dx - pt.x - 1;
+        break;
+    case CR_ROTATE_ANGLE_270:
+        /*
+          . . . . . .      . . . . . . . .
+          . . . . . .      . 1 . . . . . .
+          . . . . 2 .      . . . . . . . .
+          . . . . . .  <== . . . . . . . .
+          . . . . . .      . . . . . 2 . .
+          . . . . . .      . . . . . . . .
+          . 1 . . . .                     
+          . . . . . .                     
+
+        */
+        pt2.y = m_dx - pt.x - 1;
+        pt2.x = pt.y;
+        break;
+    }
+    return pt2;
+}
+
 void LVDocView::setPageHeaderInfo( int hdrFlags )
 { 
     m_pageHeaderInfo = hdrFlags;

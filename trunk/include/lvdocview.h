@@ -193,9 +193,9 @@ protected:
     virtual void getNavigationBarRectangle( int pageIndex, lvRect & rc );
 
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
+public:
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
-public:
     /// set list of icons to display at left side of header
     void setHeaderIcons( LVRefVec<LVImageSource> icons );
     /// set list of battery icons to display battery state
@@ -206,6 +206,10 @@ public:
     lvRect getPageMargins() const { return m_pageMargins; }
     /// sets rotate angle
     void SetRotateAngle( cr_rotate_angle_t angle );
+    /// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
+    lvRect rotateRect( lvRect & rc, bool winToDoc );
+    /// rotate point by current angle, winToDoc==false for doc->window translation, true==ccw
+    lvPoint rotatePoint( lvPoint & pt, bool winToDoc );
     /// returns rotate angle
     cr_rotate_angle_t GetRotateAngle() { return m_rotateAngle; }
     /// returns true if document is opened
