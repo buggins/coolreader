@@ -507,125 +507,138 @@ lString16 LVDocView::getTimeString()
 /// draw battery state to buffer
 void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc, bool isVertical )
 {
-    lvRect rc =  batteryRc;
-    if ( m_battery_state<0 )
-        return;
-    lUInt32 cl = 0xA0A0A0;
-    lUInt32 cl2 = 0xD0D0D0;
-    if ( drawbuf->GetBitsPerPixel()<=2 ) {
-        cl = 1;
-        cl2 = 2;
-    }
-#if 1
-
-    if ( isVertical ) {    
-        int h = rc.height();
-        h = ( (h - 4) / 4 * 4 ) + 3;
-        int dh = (rc.height() - h) / 2;
-        rc.bottom -= dh;
-        rc.top = rc.bottom - h;
-        int w = rc.width();
-        int h0 = 4; //h / 6;
-        int w0 = w / 3;
-        // contour
-        drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom, cl );
-        drawbuf->FillRect( rc.right-1, rc.top+h0, rc.right, rc.bottom, cl );
-
-        drawbuf->FillRect( rc.left, rc.top+h0, rc.left+w0, rc.top+h0+1, cl );
-        drawbuf->FillRect( rc.right-w0, rc.top+h0, rc.right, rc.top+h0+1, cl );
-
-        drawbuf->FillRect( rc.left+w0-1, rc.top, rc.left+w0, rc.top+h0, cl );
-        drawbuf->FillRect( rc.right-w0, rc.top, rc.right-w0+1, rc.top+h0, cl );
-
-        drawbuf->FillRect( rc.left+w0, rc.top, rc.right-w0, rc.top+1, cl );
-        drawbuf->FillRect( rc.left, rc.bottom-1, rc.right, rc.bottom, cl );
-        // fill
-        int miny = rc.bottom - 2 - (h - 4) * m_battery_state / 100;
-        for ( int i=0; i<h-4 ; i++ ) {
-            if ( (i&3) != 3 ) {
-                int y = rc.bottom - 2 - i;
-                int w = 2;
-                if ( y < rc.top + h0 + 2 )
-                    w = w0 + 1;
-                lUInt32 c = cl2;
-                if ( y >= miny )
-                    c = cl;
-                drawbuf->FillRect( rc.left+w, y-1, rc.right-w, y, c );
-            }
-        }
+    if ( m_batteryIcons.length()>1 ) {
+        int iconIndex = ((m_batteryIcons.length() - 1 ) * m_battery_state + (100/m_batteryIcons.length()/2) )/ 100;
+        if ( iconIndex<0 )
+            iconIndex = 0;
+        if ( iconIndex>m_batteryIcons.length()-1 )
+            iconIndex = m_batteryIcons.length()-1;
+        LVImageSourceRef icon = m_batteryIcons[iconIndex];
+        drawbuf->Draw( icon, (batteryRc.left + batteryRc.right - icon->GetWidth() ) / 2,
+            (batteryRc.top + batteryRc.bottom - icon->GetHeight())/2,
+            icon->GetWidth(),
+            icon->GetHeight() );
     } else {
-        // horizontal
-        int h = rc.width();
-        h = ( (h - 4) / 4 * 4 ) + 3;
-        int dh = (rc.height() - h) / 2;
-        rc.right -= dh;
-        rc.left = rc.right - h;
-        h = rc.height();
-        dh = h - (rc.width() * 4/8 + 1);
-        if ( dh>0 ) {
-            rc.bottom -= dh/2;
-            rc.top += (dh/2);
-            h = rc.height();
+        lvRect rc =  batteryRc;
+        if ( m_battery_state<0 )
+            return;
+        lUInt32 cl = 0xA0A0A0;
+        lUInt32 cl2 = 0xD0D0D0;
+        if ( drawbuf->GetBitsPerPixel()<=2 ) {
+            cl = 1;
+            cl2 = 2;
         }
-        int w = rc.width();
-        int h0 = h / 3; //h / 6;
-        int w0 = 4;
-        // contour
-        drawbuf->FillRect( rc.left+w0, rc.top, rc.right, rc.top+1, cl );
-        drawbuf->FillRect( rc.left+w0, rc.bottom-1, rc.right, rc.bottom, cl );
+    #if 1
 
-        drawbuf->FillRect( rc.left+w0, rc.top, rc.left+w0+1, rc.top+h0, cl );
-        drawbuf->FillRect( rc.left+w0, rc.bottom-h0, rc.left+w0+1, rc.bottom, cl );
+        if ( isVertical ) {    
+            int h = rc.height();
+            h = ( (h - 4) / 4 * 4 ) + 3;
+            int dh = (rc.height() - h) / 2;
+            rc.bottom -= dh;
+            rc.top = rc.bottom - h;
+            int w = rc.width();
+            int h0 = 4; //h / 6;
+            int w0 = w / 3;
+            // contour
+            drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom, cl );
+            drawbuf->FillRect( rc.right-1, rc.top+h0, rc.right, rc.bottom, cl );
 
-        drawbuf->FillRect( rc.left, rc.top+h0-1, rc.left+w0, rc.top+h0, cl );
-        drawbuf->FillRect( rc.left, rc.bottom-h0, rc.left+w0, rc.bottom-h0+1, cl );
+            drawbuf->FillRect( rc.left, rc.top+h0, rc.left+w0, rc.top+h0+1, cl );
+            drawbuf->FillRect( rc.right-w0, rc.top+h0, rc.right, rc.top+h0+1, cl );
 
-        drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom-h0, cl );
-        drawbuf->FillRect( rc.right-1, rc.top, rc.right, rc.bottom, cl );
-        // fill
-        int minx = rc.right - 2 - (w - 4) * m_battery_state / 100;
-        for ( int i=0; i<w-4 ; i++ ) {
-            if ( (i&3) != 3 ) {
-                int x = rc.right - 2 - i;
-                int h = 2;
-                if ( x < rc.left + w0 + 2 )
-                    h = h0 + 1;
-                lUInt32 c = cl2;
-                if ( x >= minx )
-                    c = cl;
-                drawbuf->FillRect( x-1, rc.top+h, x, rc.bottom-h, c );
+            drawbuf->FillRect( rc.left+w0-1, rc.top, rc.left+w0, rc.top+h0, cl );
+            drawbuf->FillRect( rc.right-w0, rc.top, rc.right-w0+1, rc.top+h0, cl );
+
+            drawbuf->FillRect( rc.left+w0, rc.top, rc.right-w0, rc.top+1, cl );
+            drawbuf->FillRect( rc.left, rc.bottom-1, rc.right, rc.bottom, cl );
+            // fill
+            int miny = rc.bottom - 2 - (h - 4) * m_battery_state / 100;
+            for ( int i=0; i<h-4 ; i++ ) {
+                if ( (i&3) != 3 ) {
+                    int y = rc.bottom - 2 - i;
+                    int w = 2;
+                    if ( y < rc.top + h0 + 2 )
+                        w = w0 + 1;
+                    lUInt32 c = cl2;
+                    if ( y >= miny )
+                        c = cl;
+                    drawbuf->FillRect( rc.left+w, y-1, rc.right-w, y, c );
+                }
+            }
+        } else {
+            // horizontal
+            int h = rc.width();
+            h = ( (h - 4) / 4 * 4 ) + 3;
+            int dh = (rc.height() - h) / 2;
+            rc.right -= dh;
+            rc.left = rc.right - h;
+            h = rc.height();
+            dh = h - (rc.width() * 4/8 + 1);
+            if ( dh>0 ) {
+                rc.bottom -= dh/2;
+                rc.top += (dh/2);
+                h = rc.height();
+            }
+            int w = rc.width();
+            int h0 = h / 3; //h / 6;
+            int w0 = 4;
+            // contour
+            drawbuf->FillRect( rc.left+w0, rc.top, rc.right, rc.top+1, cl );
+            drawbuf->FillRect( rc.left+w0, rc.bottom-1, rc.right, rc.bottom, cl );
+
+            drawbuf->FillRect( rc.left+w0, rc.top, rc.left+w0+1, rc.top+h0, cl );
+            drawbuf->FillRect( rc.left+w0, rc.bottom-h0, rc.left+w0+1, rc.bottom, cl );
+
+            drawbuf->FillRect( rc.left, rc.top+h0-1, rc.left+w0, rc.top+h0, cl );
+            drawbuf->FillRect( rc.left, rc.bottom-h0, rc.left+w0, rc.bottom-h0+1, cl );
+
+            drawbuf->FillRect( rc.left, rc.top+h0, rc.left+1, rc.bottom-h0, cl );
+            drawbuf->FillRect( rc.right-1, rc.top, rc.right, rc.bottom, cl );
+            // fill
+            int minx = rc.right - 2 - (w - 4) * m_battery_state / 100;
+            for ( int i=0; i<w-4 ; i++ ) {
+                if ( (i&3) != 3 ) {
+                    int x = rc.right - 2 - i;
+                    int h = 2;
+                    if ( x < rc.left + w0 + 2 )
+                        h = h0 + 1;
+                    lUInt32 c = cl2;
+                    if ( x >= minx )
+                        c = cl;
+                    drawbuf->FillRect( x-1, rc.top+h, x, rc.bottom-h, c );
+                }
             }
         }
-    }
-#else
-    //lUInt32 cl = getTextColor();
-    int h = rc.height() / 6;
-    if ( h<5 )
-        h = 5;
-    int n = rc.height() / h;
-    int dy = rc.height() % h / 2;
-    if ( n<1 )
-        n = 1;
-    int k = m_battery_state * n / 100;
-    for ( int i=0; i<n; i++ ) {
-        lvRect rrc = rc;
-        rrc.bottom -= h * i + dy;
-        rrc.top = rrc.bottom - h + 1;
-        int dx = (i<n-1) ? 0 : rc.width()/5;
-        rrc.left += dx;
-        rrc.right -= dx;
-        if ( i<k ) {
-            // full
-            drawbuf->FillRect( rrc.left, rrc.top, rrc.right, rrc.bottom, cl );
-        } else {
-            // empty
-            drawbuf->FillRect( rrc.left, rrc.top, rrc.right, rrc.top+1, cl );
-            drawbuf->FillRect( rrc.left, rrc.bottom-1, rrc.right, rrc.bottom, cl );
-            drawbuf->FillRect( rrc.left, rrc.top, rrc.left+1, rrc.bottom, cl );
-            drawbuf->FillRect( rrc.right-1, rrc.top, rrc.right, rrc.bottom, cl );
+    #else
+        //lUInt32 cl = getTextColor();
+        int h = rc.height() / 6;
+        if ( h<5 )
+            h = 5;
+        int n = rc.height() / h;
+        int dy = rc.height() % h / 2;
+        if ( n<1 )
+            n = 1;
+        int k = m_battery_state * n / 100;
+        for ( int i=0; i<n; i++ ) {
+            lvRect rrc = rc;
+            rrc.bottom -= h * i + dy;
+            rrc.top = rrc.bottom - h + 1;
+            int dx = (i<n-1) ? 0 : rc.width()/5;
+            rrc.left += dx;
+            rrc.right -= dx;
+            if ( i<k ) {
+                // full
+                drawbuf->FillRect( rrc.left, rrc.top, rrc.right, rrc.bottom, cl );
+            } else {
+                // empty
+                drawbuf->FillRect( rrc.left, rrc.top, rrc.right, rrc.top+1, cl );
+                drawbuf->FillRect( rrc.left, rrc.bottom-1, rrc.right, rrc.bottom, cl );
+                drawbuf->FillRect( rrc.left, rrc.top, rrc.left+1, rrc.bottom, cl );
+                drawbuf->FillRect( rrc.right-1, rrc.top, rrc.right, rrc.bottom, cl );
+            }
         }
+    #endif
     }
-#endif
 }
 
 /// returns section bounds, in 1/100 of percent
@@ -696,6 +709,12 @@ void LVDocView::drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int perce
 
     lUInt32 cl1 = 0xA0A0A0;
     lUInt32 cl2 = getBackgroundColor();
+}
+
+/// set list of battery icons to display battery state
+void LVDocView::setBatteryIcons( LVRefVec<LVImageSource> icons )
+{
+    m_batteryIcons = icons;
 }
 
 /// draw page header to buffer
@@ -796,7 +815,21 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
             }
         }
     }
+
     int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
+    if ( getVisiblePageCount()==1 || !(pageIndex&1) ) {
+        int dwIcons = 0;
+        int icony = iy + m_infoFont->getHeight() / 2;
+        for ( int ni=0; ni<m_headerIcons.length(); ni++ ) {
+            LVImageSourceRef icon = m_headerIcons[ni];
+            int h = icon->GetHeight();
+            int w = icon->GetWidth();
+            drawbuf->Draw( icon, info.left + dwIcons, icony - h / 2, w, h );
+            dwIcons += w + 4;
+        }
+        info.left += dwIcons;
+    }
+
     if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
         lvRect brc = info;
         brc.right -= 3;
@@ -1026,6 +1059,12 @@ void LVDocView::updateLayout()
         m_pageRects[0].right = middle - m_pageMargins.right/2;
         m_pageRects[1].left = middle + m_pageMargins.left/2;
     }
+}
+
+/// set list of icons to display at left side of header
+void LVDocView::setHeaderIcons( LVRefVec<LVImageSource> icons )
+{
+    m_headerIcons = icons;
 }
 
 void LVDocView::Render( int dx, int dy, LVRendPageList * pages )

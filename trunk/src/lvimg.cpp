@@ -409,6 +409,110 @@ public:
     virtual ~LVDummyImageSource() {}
 };
 
+/// dummy image source to show invalid image
+class LVXPMImageSource : public LVImageSource
+{
+protected:
+    char ** _rows;
+    lUInt32 * _palette;
+    lUInt8 _pchars[128];
+    int _width;
+    int _height;
+    int _ncolors;
+public:
+    LVXPMImageSource( const char ** data )
+        : _rows(NULL), _palette(NULL), _width(0), _height(0), _ncolors(0)
+    {
+        bool err = false;
+        int charsperpixel;
+        if ( sscanf( data[0], "%d %d %d %d", &_width, &_height, &_ncolors, &charsperpixel )!=4 ) {
+            err = true;
+        } else if ( _width>0 && _width<255 && _height>0 && _height<255 && _ncolors>=2 && _ncolors<255 && charsperpixel == 1 ) {
+            _rows = new char * [_height];
+            for ( int i=0; i<_height; i++ ) {
+                _rows[i] = new char[_width];
+                memcpy( _rows[i], data[i+1+_ncolors], _width );
+            }
+            
+            _palette = new lUInt32[_ncolors];
+            memset( _pchars, 0, 128 );
+            for ( int cl=0; cl<_ncolors; cl++ ) {
+                const char * src = data[1+cl];
+                _pchars[((unsigned)(*src++)) & 127] = cl;
+                if ( (*src++)!=' ' || (*src++)!='c' || (*src++)!=' ' ) {
+                    err = true;
+                    break;
+                }
+                if ( *src == '#' ) {
+                    src++;
+                    int c;
+                    if ( sscanf( src, "%x", &c )!=1 ) {
+                        err = true;
+                        break;
+                    }
+                    _palette[cl] = (lUInt32)c;
+                } else if ( !strcmp( src, "None" ) )
+                    _palette[cl] = 0xFF000000;
+                else if ( !strcmp( src, "Black" ) )
+                    _palette[cl] = 0x000000;
+                else if ( !strcmp( src, "White" ) )
+                    _palette[cl] = 0xFFFFFF;
+                else
+                    _palette[cl] = 0x000000;
+            }
+        } else {
+            err = true;
+        }
+        if ( err ) {
+            _width = _height = 0;
+        }
+    }
+    virtual ~LVXPMImageSource()
+    {
+        if ( _rows ) {
+            for ( int i=0; i<_height; i++ ) {
+                delete( _rows[i] );
+            }
+            delete _rows;
+        }
+        if ( _palette )
+            delete _palette;
+    }
+    
+    ldomNode * GetSourceNode() { return NULL; }
+    virtual LVStream * GetSourceStream() { return NULL; }
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _width; }
+    virtual int    GetHeight() { return _height; }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        if ( callback )
+        {
+            callback->OnStartDecode(this);
+            lUInt32 * row = new lUInt32[ _width ];
+            for (int i=0; i<_height; i++)
+            {
+                const char * src = _rows[i];
+                for ( int x=0; x<_width; x++ ) {
+                    row[x] = _palette[_pchars[(unsigned)src[x]]];
+                }
+                callback->OnLineDecoded(this, i, row);
+            }
+            delete row;
+            callback->OnEndDecode(this, false);
+        }
+        return true;
+    }
+};
+
+LVImageSourceRef LVCreateXPMImageSource( const char * data[] )
+{
+    LVImageSourceRef ref( new LVXPMImageSource( data ) );
+    if ( ref->GetWidth()<1 )
+        return LVImageSourceRef();
+    return ref;
+}
+
 
 #if (USE_LIBJPEG==1)
 

@@ -163,6 +163,8 @@ private:
     int    m_pagesVisible;
     int m_pageHeaderInfo;
     bool m_showCover;
+    LVRefVec<LVImageSource> m_headerIcons;
+    LVRefVec<LVImageSource> m_batteryIcons;
 
     cr_rotate_angle_t m_rotateAngle;
 
@@ -194,6 +196,10 @@ protected:
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
 public:
+    /// set list of icons to display at left side of header
+    void setHeaderIcons( LVRefVec<LVImageSource> icons );
+    /// set list of battery icons to display battery state
+    void setBatteryIcons( LVRefVec<LVImageSource> icons );
     /// sets page margins
     void setPageMargins( const lvRect & rc ) { m_pageMargins = rc; }
     /// returns page margins
