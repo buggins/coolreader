@@ -85,12 +85,12 @@ lChar16 LVTextFileBase::ReadChar()
     case ce_utf16_be:
         {
             lChar16 ch2 = m_buf[m_buf_pos++];
-            return (ch << 8) || ch2;
+            return (ch << 8) | ch2;
         }
     case ce_utf16_le:
         {
             lChar16 ch2 = m_buf[m_buf_pos++];
-            return (ch2 << 8) || ch;
+            return (ch2 << 8) | ch;
         }
     case ce_utf32_be:
         // support 16 bits only
@@ -98,14 +98,14 @@ lChar16 LVTextFileBase::ReadChar()
         {
             lChar16 ch3 = m_buf[m_buf_pos++];
             lChar16 ch4 = m_buf[m_buf_pos++];
-            return (ch3 << 8) || ch4;
+            return (ch3 << 8) | ch4;
         }
     case ce_utf32_le:
         // support 16 bits only
         {
             lChar16 ch2 = m_buf[m_buf_pos++];
             m_buf_pos+=2;
-            return (ch << 8) || ch2;
+            return (ch << 8) | ch2;
         }
     default:
         return 0;
@@ -251,25 +251,25 @@ void LVTextFileBase::Reset()
 void LVTextFileBase::SetCharset( const lChar16 * name )
 {
     m_encoding_name = lString16( name );
-    if ( name == L"utf-8" ) {
+    if ( m_encoding_name == L"utf-8" ) {
         m_enc_type = ce_utf8;
         SetCharsetTable( NULL );
-    } else if ( name == L"utf-16" ) {
+    } else if ( m_encoding_name == L"utf-16" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
-    } else if ( name == L"utf-16le" ) {
+    } else if ( m_encoding_name == L"utf-16le" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
-    } else if ( name == L"utf-16be" ) {
+    } else if ( m_encoding_name == L"utf-16be" ) {
         m_enc_type = ce_utf16_be;
         SetCharsetTable( NULL );
-    } else if ( name == L"utf-32" ) {
+    } else if ( m_encoding_name == L"utf-32" ) {
         m_enc_type = ce_utf32_le;
         SetCharsetTable( NULL );
-    } else if ( name == L"utf-32le" ) {
+    } else if ( m_encoding_name == L"utf-32le" ) {
         m_enc_type = ce_utf32_le;
         SetCharsetTable( NULL );
-    } else if ( name == L"utf-32be" ) {
+    } else if ( m_encoding_name == L"utf-32be" ) {
         m_enc_type = ce_utf32_be;
         SetCharsetTable( NULL );
     } else {
