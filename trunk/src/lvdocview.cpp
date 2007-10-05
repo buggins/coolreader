@@ -52,7 +52,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_monospace
 
 #ifdef LBOOK
-#define INFO_FONT_SIZE      22
+#define INFO_FONT_SIZE      20
 #else
 #define INFO_FONT_SIZE      20
 #endif
