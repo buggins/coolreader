@@ -38,7 +38,7 @@ lString8 OpenFileDialog( HWND hWndOwner )
     memset( &ofn, 0, sizeof(ofn) );
     ofn.lStructSize = sizeof( ofn );
     ofn.hwndOwner = hWndOwner;
-    ofn.lpstrFilter = "FictionBook2 and ZIP files (*.fb2;*.zip)\0*.fb2;*.zip\0FictionBook2 files (*.fb2)\0*.fb2\0ZIP files (*.zip)\0*.zip\0All Files (*.*)\0*.*\0\0";
+    ofn.lpstrFilter = "All supported files (*.fb2;*.txt;*.rtf;*.zip)\0*.fb2;*.txt;*.rtf;*.zip\0FictionBook2 files (*.fb2)\0*.fb2\0ZIP files (*.zip)\0*.zip\0All Files (*.*)\0*.*\0\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFile = str;
     ofn.nMaxFile = MAX_PATH;
@@ -141,7 +141,7 @@ void TestWol()
 		SaveBitmapToFile("page2.bmp", &page2);
 		SaveBitmapToFile("page3.bmp", &page3);
 	}
-	
+
 	{
 		//LVStream * stream = LVOpenFileStream("Biblia.wol", LVOM_READ);
 		LVStreamRef stream = LVOpenFileStream("woltest.wol", LVOM_READ);
@@ -190,7 +190,7 @@ void initHyph(const char * fname)
 	HyphMan::Open( stream.get() );
 }
 
-/*                  0  1              
+/*                  0  1
 	1 4         0  00 10   00 01
 	3 2         1  11 01   10 11
 
@@ -272,7 +272,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                     //
                     *log << UnicodeToLocal( item->GetName() );
                     *log << lString8::itoa( (int)item->GetSize() );
-                    
+
                     LVStreamRef unpstream = zip->OpenStream( item->GetName(), LVOM_READ );
                     if (!unpstream.isNull())
                     {
@@ -313,7 +313,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     // init bitmap font manager
     InitFontManager( fontDir );
 
-    
+
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
 #if (USE_FREETYPE==1)
@@ -391,7 +391,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	MyRegisterClass(hInstance);
 
 	// Perform application initialization:
-	if (!InitInstance (hInstance, nCmdShow)) 
+	if (!InitInstance (hInstance, nCmdShow))
 	{
 		return FALSE;
 	}
@@ -400,16 +400,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, (LPCTSTR)IDC_FONTTEST);
 
 	// Main message loop:
-	while (GetMessage(&msg, NULL, 0, 0)) 
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 	}
 
-    delete text_view; 
+    delete text_view;
 
     ShutdownFontManager();
 
@@ -433,7 +433,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 {
 	WNDCLASSEX wcex;
 
-	wcex.cbSize = sizeof(WNDCLASSEX); 
+	wcex.cbSize = sizeof(WNDCLASSEX);
 
 	wcex.style			= 0; //CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc	= (WNDPROC)WndProc;
@@ -490,13 +490,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 #ifdef FIXED_JINKE_SIZE
       flags = WS_DLGFRAME | WS_MINIMIZEBOX | WS_SYSMENU | WS_VSCROLL; //WS_OVERLAPPEDWINDOW
       dx = 600 + GetSystemMetrics(SM_CXDLGFRAME)*2
-      	 + GetSystemMetrics(SM_CXVSCROLL); 
+      	 + GetSystemMetrics(SM_CXVSCROLL);
       dy = 800 + GetSystemMetrics(SM_CYDLGFRAME)*2
-      	 + GetSystemMetrics(SM_CYCAPTION); 
+      	 + GetSystemMetrics(SM_CYCAPTION);
 #else
       flags = WS_OVERLAPPEDWINDOW | WS_VSCROLL; //
       dx = 500;
-      dy = 600; 
+      dy = 600;
 #endif
 #if (COLOR_BACKBUFFER==0)
 	const char * title =   "CoolReader FictionBook2 to WOL converter";
@@ -505,10 +505,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 #endif
 
    hWnd = CreateWindow(
-	   "CoolReader", 
-		title,	
+	   "CoolReader",
+		title,
       flags, //WS_OVERLAPPEDWINDOW
-      x, y, dx, dy, 
+      x, y, dx, dy,
       NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
@@ -517,11 +517,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    g_hWnd = hWnd;
-   
+
    ShowWindow(hWnd, nCmdShow);
-   
+
    text_view->Render();
-   
+
    //UpdateScrollBar( hWnd );
    UpdateWindow(hWnd);
 
@@ -555,7 +555,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	TCHAR szHello[MAX_LOADSTRING];
 	LoadString(hInst, IDS_HELLO, szHello, MAX_LOADSTRING);
 
-	switch (message) 
+	switch (message)
 	{
 		case WM_CREATE:
 		    text_view->Draw();
@@ -675,8 +675,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
 		case WM_COMMAND:
-			wmId    = LOWORD(wParam); 
-			wmEvent = HIWORD(wParam); 
+			wmId    = LOWORD(wParam);
+			wmEvent = HIWORD(wParam);
 			// Parse the menu selections:
 			switch (wmId)
 			{
@@ -739,7 +739,7 @@ LRESULT CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				return TRUE;
 
 		case WM_COMMAND:
-			if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) 
+			if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 			{
 				EndDialog(hDlg, LOWORD(wParam));
 				return TRUE;

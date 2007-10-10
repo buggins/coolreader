@@ -19,7 +19,7 @@ protected:
     LVXMLParserCallback * m_callback;
     void OnBraceOpen();
     void OnBraceClose();
-    void OnControlWord();
+    void OnControlWord( const char * control, int param );
     void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
 public:

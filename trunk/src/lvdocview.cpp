@@ -13,6 +13,7 @@
 
 
 #include "../include/lvdocview.h"
+#include "../include/rtfimp.h"
 
 #include "../include/lvstyles.h"
 #include "../include/lvrend.h"
