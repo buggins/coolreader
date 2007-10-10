@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE CodeBlocks_project_file>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="1"/>
+	<Project>
+		<Option title="CoolReader 3 Viewer"/>
+		<Option makefile="Makefile"/>
+		<Option makefile_is_custom="0"/>
+		<Option compiler="0"/>
+		<Build>
+			<Target title="release">
+				<Option output="C:\LVE\Programming\crengine\lib\projects\codeblocks\cr3view.exe"/>
+				<Option working_dir="."/>
+				<Option object_output="release\.objs"/>
+				<Option deps_output="release\.deps"/>
+				<Option type="0"/>
+				<Option compiler="0"/>
+				<Option projectResourceIncludeDirsRelation="0"/>
+			</Target>
+			<Target title="debug">
+				<Option output="C:\LVE\Programming\crengine\lib\projects\codeblocks\cr3view.exe"/>
+				<Option working_dir="."/>
+				<Option object_output="debug\.objs"/>
+				<Option deps_output="debug\.deps"/>
+				<Option type="0"/>
+				<Option compiler="0"/>
+				<Option projectResourceIncludeDirsRelation="0"/>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-D_WIN32"/>
+			<Add option="-DWIN32"/>
+			<Add option="-DUNICODE"/>
+			<Add option="-D_UNICODE"/>
+			<Add option="-DCYGWIN"/>
+			<Add directory="..\..\..\include"/>
+		</Compiler>
+		<Linker>
+			<Add library="gdi32"/>
+			<Add library="user32"/>
+			<Add library="kernel32"/>
+			<Add library="..\..\libcrengine.a"/>
+			<Add library="..\..\..\..\wxWidgets\lib\release\lib\libwxjpeg-2.8.a"/>
+			<Add library="..\..\..\..\wxWidgets\lib\release\lib\libwxpng-2.8.a"/>
+			<Add library="..\..\..\..\wxWidgets\lib\release\lib\libwxzlib-2.8.a"/>
+			<Add directory="..\..\..\..\freetype\objs\.libs"/>
+			<Add directory="..\..\..\..\wxWidgets\lib\release\lib"/>
+		</Linker>
+		<Unit filename="..\..\..\Tools\Fb2Test\Fb2Test.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\Tools\Fb2Test\StdAfx.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

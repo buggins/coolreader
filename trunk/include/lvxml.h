@@ -46,7 +46,7 @@ public:
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) = 0;
     /// called on text
-    virtual void OnText( const lChar16 * text, int len, 
+    virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags ) = 0;
     /// destructor
     virtual ~LVXMLParserCallback() {}
@@ -102,7 +102,7 @@ public:
     virtual ~LVFileFormatParser();
 };
 
-class LVTextFileBase : public LVFileFormatParser
+class LVFileParserBase : public LVFileFormatParser
 {
 protected:
     LVStreamRef m_stream;
@@ -112,28 +112,38 @@ protected:
     int      m_buf_len;
     int      m_buf_pos;
     lvpos_t  m_buf_fpos;
-    char_encoding_type m_enc_type;
-    lString16 m_txt_buf;
-    lString16 m_encoding_name;
-    lString16 m_lang_name;
-    lChar16 * m_conv_table; // charset conversion table for 8-bit encodings
     bool     m_stopped; // true if Stop() is called
-
-    /// tries to autodetect text encoding
-    bool AutodetectEncoding();
-    /// reads one character from buffer
-    lChar16 ReadChar();
     /// fills buffer, to provide specified number of bytes for read
     bool FillBuffer( int bytesToRead );
     /// seek to specified stream position
     bool Seek( lvpos_t pos, int bytesToPrefetch=0 );
     /// reads specified number of bytes, converts to characters and saves to buffer, returns number of chars read
+public:
+    LVFileParserBase( LVStreamRef stream );
+    virtual ~LVFileParserBase();
+    /// resets parsing, moves to beginning of stream
+    virtual void Reset();
+    /// stops parsing in the middle of file, to read header only
+    virtual void Stop();
+};
+
+class LVTextFileBase : public LVFileParserBase
+{
+protected:
+    char_encoding_type m_enc_type;
+    lString16 m_txt_buf;
+    lString16 m_encoding_name;
+    lString16 m_lang_name;
+    lChar16 * m_conv_table; // charset conversion table for 8-bit encodings
+
+    /// tries to autodetect text encoding
+    bool AutodetectEncoding();
+    /// reads one character from buffer
+    lChar16 ReadChar();
     int ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size );
     /// reads specified number of characters and saves to buffer, returns number of chars read
     int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size );
 public:
-    /// stops parsing in the middle of file, to read header only
-    virtual void Stop();
     /// returns true if end of fle is reached, and there is no data left in buffer
     bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
     /// reads next text line, tells file position and size of line, sets EOL flag
@@ -150,8 +160,6 @@ public:
     virtual void SetCharsetTable( const lChar16 * table );
     /// returns 8-bit charset conversion table (128 items, for codes 128..255)
     virtual lChar16 * GetCharsetTable( ) { return m_conv_table; }
-    /// resets parsing, moves to beginning of stream
-    virtual void Reset();
 
     /// constructor
     LVTextFileBase( LVStreamRef stream );
@@ -167,7 +175,7 @@ public:
 class LVXMLTextCache : public LVTextFileBase
 {
 private:
-    struct cache_item 
+    struct cache_item
     {
         cache_item * next;
         lUInt32      pos;

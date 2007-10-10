@@ -72,8 +72,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #define MIN_EM_PER_PAGE     20
 
 static int def_font_sizes[] = { 16, 18, 22, 26, 30, 36, 42 };
-    
-LVDocView::LVDocView() 
+
+LVDocView::LVDocView()
 : m_dx(100), m_dy(100), m_pos(50), m_battery_state(66)
 #if (LBOOK==1)
 , m_font_size(32)
@@ -95,7 +95,7 @@ LVDocView::LVDocView()
 , m_is_rendered(false)
 , m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
 , m_pagesVisible(2)
-, m_pageHeaderInfo ( 
+, m_pageHeaderInfo (
       PGHDR_PAGE_NUMBER
 #ifndef LBOOK
     | PGHDR_CLOCK
@@ -154,8 +154,8 @@ lvRect LVDocView::rotateRect( lvRect & rc, bool winToDoc )
           . . . . . .  ==> . . . . . . . .
           . . . . . .      . 2 . . . . . .
           . . . . . .      . . . . . . . .
-          . . . . 2 .                     
-          . . . . . .                     
+          . . . . 2 .
+          . . . . . .
 
         */
         rc2.left = m_dy - rc.bottom - 1;
@@ -177,8 +177,8 @@ lvRect LVDocView::rotateRect( lvRect & rc, bool winToDoc )
           . . . . . .  <== . . . . . . . .
           . . . . . .      . . . . . 2 . .
           . . . . . .      . . . . . . . .
-          . 1 . . . .                     
-          . . . . . .                     
+          . 1 . . . .
+          . . . . . .
 
         */
         rc2.left = rc.top;
@@ -209,8 +209,8 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
           . . . . . .  ==> . . . . . . . .
           . . . . . .      . 2 . . . . . .
           . . . . . .      . . . . . . . .
-          . . . . 2 .                     
-          . . . . . .                     
+          . . . . 2 .
+          . . . . . .
 
         */
         pt2.y = pt.x;
@@ -228,8 +228,8 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
           . . . . . .  <== . . . . . . . .
           . . . . . .      . . . . . 2 . .
           . . . . . .      . . . . . . . .
-          . 1 . . . .                     
-          . . . . . .                     
+          . 1 . . . .
+          . . . . . .
 
         */
         pt2.y = m_dx - pt.x - 1;
@@ -240,7 +240,7 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
 }
 
 void LVDocView::setPageHeaderInfo( int hdrFlags )
-{ 
+{
     m_pageHeaderInfo = hdrFlags;
     int oldMargin = m_pageMargins.top;
     m_pageMargins.top = m_pageMargins.bottom + (hdrFlags ? 16 : 0);
@@ -486,7 +486,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         lvRect coverRc( 0, 0, 600, 800 );
         drawCoverTo( &cover, coverRc );
         wol.addCoverImage(cover);
-        
+
         for (int i=1; i<pages.length(); i++)
         {
 			LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
@@ -576,9 +576,9 @@ void LVDocView::SetPos( int pos, bool savePos )
 }
 
 int LVDocView::GetFullHeight()
-{ 
+{
     lvdomElementFormatRec * rd = m_doc ? m_doc->getMainNode()->getRenderData() : NULL;
-    return ( rd ? rd->getHeight()+rd->getY() : m_dy ); 
+    return ( rd ? rd->getHeight()+rd->getY() : m_dy );
 }
 
 /// calculate page header rectangle
@@ -634,7 +634,7 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc,
         }
     #if 1
 
-        if ( isVertical ) {    
+        if ( isVertical ) {
             int h = rc.height();
             h = ( (h - 4) / 4 * 4 ) + 3;
             int dh = (rc.height() - h) / 2;
@@ -958,7 +958,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     int piw = 0;
     if ( !pageinfo.empty() ) {
         piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
-        m_infoFont->DrawTextString( drawbuf, info.right-piw, iy, 
+        m_infoFont->DrawTextString( drawbuf, info.right-piw, iy,
             pageinfo.c_str(), pageinfo.length(), L' ', pal, false);
         info.right -= piw + info.height()/2;
     }
@@ -1005,7 +1005,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     lvRect newcr = oldcr;
     newcr.right = info.right - 10;
     drawbuf->SetClipRect(&newcr);
-    m_infoFont->DrawTextString( drawbuf, info.left, iy, 
+    m_infoFont->DrawTextString( drawbuf, info.left, iy,
         text.c_str(), text.length(), L' ', pal, false);
     drawbuf->SetClipRect(&oldcr);
     //--------------
@@ -1194,7 +1194,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
     LVRendPageContext context( pages, dy );
     m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
 
-#if 0        
+#if 0
     FILE * f = fopen("pagelist.log", "wt");
     if (f) {
         for (int i=0; i<m_pages.length(); i++)
@@ -1413,7 +1413,7 @@ void SaveBase64Objects( ldomNode * node )
         return;
     //outstream->Write( "test", 4, NULL );
     fprintf( stderr, "streams opened, copying...\n" );
-/*    
+/*
     lUInt8 dbuf[128000];
     lvsize_t bytesRead = 0;
     if ( in->Read( dbuf, 128000, &bytesRead )==LVERR_OK )
@@ -1425,7 +1425,7 @@ void SaveBase64Objects( ldomNode * node )
         outstream->Write( dbuf, bytesRead, NULL );
         //outstream->Write( "test4", 5, NULL );
     }
-*/        
+*/
     LVPumpStream( outstream, in );
     fprintf(stderr, "...\n");
 }
@@ -1439,7 +1439,7 @@ void LVDocView::savePosition()
     //lString16 titleText;
     //lString16 posText;
     //getBookmarkPosText( getBookmark(), titleText, posText );
-    m_hist.savePosition( m_filename, m_filesize, 
+    m_hist.savePosition( m_filename, m_filesize,
         getTitle(), getAuthors(), getSeries(), getBookmark() );
 }
 
@@ -1516,7 +1516,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
 #endif //USE_ZLIB
 
-    {   
+    {
 #if 1
         m_stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
 #else
@@ -1571,6 +1571,15 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         parser = NULL;
     }
 
+    /// RTF format
+    if ( parser==NULL ) {
+        parser = new LVRtfParser(m_stream, &writer);
+        if ( !parser->CheckFormat() ) {
+            delete parser;
+            parser = NULL;
+        }
+    }
+
     /// plain text format
     if ( parser==NULL ) {
         parser = new LVTextParser(m_stream, &writer);
@@ -1587,7 +1596,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     // set stylesheet
     m_doc->getStyleSheet()->clear();
     m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
-    
+
     // parse
     if ( !parser->Parse() ) {
         delete parser;
@@ -1800,7 +1809,7 @@ int LVDocView::scrollPosToDocPos( int scrollpos )
         int fh = GetFullHeight();
         if (n>fh)
             n = fh;
-        return n;        
+        return n;
     }
     else
     {

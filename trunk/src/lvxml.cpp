@@ -24,7 +24,7 @@ LVFileFormatParser::~LVFileFormatParser()
 {
 }
 
-LVTextFileBase::LVTextFileBase( LVStreamRef stream )
+LVFileParserBase::LVFileParserBase( LVStreamRef stream )
     : m_stream(stream)
     , m_buf(NULL)
     , m_buf_size(0)
@@ -32,26 +32,36 @@ LVTextFileBase::LVTextFileBase( LVStreamRef stream )
     , m_buf_len(0)
     , m_buf_pos(0)
     , m_buf_fpos(0)
-    , m_enc_type( ce_8bit_cp )
-    , m_conv_table(NULL)
     , m_stopped(false)
 {
     m_stream_size = stream->GetSize();
 }
 
+LVTextFileBase::LVTextFileBase( LVStreamRef stream )
+    : LVFileParserBase(stream)
+    , m_enc_type( ce_8bit_cp )
+    , m_conv_table(NULL)
+{
+}
+
 
 /// stops parsing in the middle of file, to read header only
-void LVTextFileBase::Stop()
+void LVFileParserBase::Stop()
 {
     //CRLog::trace("LVTextFileBase::Stop() is called!");
     m_stopped = true;
 }
 
 /// destructor
-LVTextFileBase::~LVTextFileBase()
+LVFileParserBase::~LVFileParserBase()
 {
     if (m_buf)
         free( m_buf );
+}
+
+/// destructor
+LVTextFileBase::~LVTextFileBase()
+{
 }
 
 lChar16 LVTextFileBase::ReadChar()
@@ -143,7 +153,7 @@ bool LVTextFileBase::AutodetectEncoding()
 }
 
 /// seek to specified stream position
-bool LVTextFileBase::Seek( lvpos_t pos, int bytesToPrefetch )
+bool LVFileParserBase::Seek( lvpos_t pos, int bytesToPrefetch )
 {
     if ( pos >= m_buf_fpos && pos+bytesToPrefetch <= (m_buf_fpos+m_buf_len) ) {
         m_buf_pos = (pos - m_buf_fpos);
@@ -203,7 +213,7 @@ int LVTextFileBase::ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, 
     return chcount;
 }
 
-bool LVTextFileBase::FillBuffer( int bytesToRead )
+bool LVFileParserBase::FillBuffer( int bytesToRead )
 {
     lvoffset_t bytesleft = (lvoffset_t) (m_stream_size - (m_buf_fpos+m_buf_len));
     if (bytesleft<=0)
@@ -239,7 +249,7 @@ bool LVTextFileBase::FillBuffer( int bytesToRead )
     return (n>0);
 }
 
-void LVTextFileBase::Reset()
+void LVFileParserBase::Reset()
 {
     m_stream->SetPos(0);
     m_buf_fpos = 0;
@@ -554,7 +564,7 @@ public:
                 }
                 callback->OnTagOpen( NULL, L"author" );
                   callback->OnTagOpen( NULL, L"first-name" );
-                    if ( !firstName.empty() ) 
+                    if ( !firstName.empty() )
                         callback->OnText( firstName.c_str(), firstName.length(), 0, 0, TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
                   callback->OnTagClose( NULL, L"first-name" );
                   callback->OnTagOpen( NULL, L"middle-name" );
@@ -604,7 +614,7 @@ public:
             if ( isHeader )
                 callback->OnTagOpen( NULL, L"title" );
             callback->OnTagOpen( NULL, L"p" );
-               callback->OnText( str.c_str(), str.length(), pos, sz, 
+               callback->OnText( str.c_str(), str.length(), pos, sz,
                    TXTFLG_TRIM | TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
             callback->OnTagClose( NULL, L"p" );
             if ( isHeader )
@@ -710,7 +720,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
     FillBuffer( maxLineSize*3 );
 
     lvpos_t last_space_fpos = 0;
-    int last_space_chpos = -1; 
+    int last_space_chpos = -1;
     lChar16 ch = 0;
     while ( res.length()<(unsigned)maxLineSize ) {
         if ( Eof() ) {
@@ -944,9 +954,9 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     if ( chcount<size )
         text.erase( chcount, text.length()-chcount );
     if ( flags & TXTFLG_TRIM ) {
-        text.trimDoubleSpaces( 
-            (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false, 
-            (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false, 
+        text.trimDoubleSpaces(
+            (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false,
+            (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false,
             (flags & TXTFLG_TRIM_REMOVE_EOL_HYPHENS)?true:false );
     }
     // ADD TEXT TO CACHE
@@ -1169,7 +1179,7 @@ bool LVXMLParser::Parse()
                                 errorFlag = true;
                                 break;
                             }
-        
+
                         }
                         ch = m_buf[m_buf_pos];
                         if (ch=='>')
@@ -1323,7 +1333,7 @@ bool LVXMLParser::ReadText()
             last_split_fpos = 0;
             last_split_txtlen = 0;
         }
-        else if (ch==' ' || (ch=='\r' && m_buf[m_buf_pos]!='\n') 
+        else if (ch==' ' || (ch=='\r' && m_buf[m_buf_pos]!='\n')
             || (ch=='\n' && m_buf[m_buf_pos]!='\r') )
         {
             last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
