@@ -13,15 +13,23 @@
 
 #include "lvxml.h"
 
+#define PARAM_VALUE_NONE 0x7FFFFFFF
+
 class LVRtfParser : public LVFileParserBase
 {
 protected:
     LVXMLParserCallback * m_callback;
+    lChar16 * txtbuf; /// text buffer
+    int txtpos; /// text chars
+    int txtfstart; /// text start file offset
     void OnBraceOpen();
     void OnBraceClose();
     void OnControlWord( const char * control, int param );
     void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
+    void CommitText();
+    void AddChar( lChar16 ch );
+    void AddChar8( lUInt8 ch );
 public:
     /// constructor
     LVRtfParser( LVStreamRef stream, LVXMLParserCallback * callback );
