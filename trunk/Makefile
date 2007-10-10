@@ -168,6 +168,7 @@ srcs	 =	\
 		lvstyles \
 		lvtinydom \
 		lvxml \
+		rtfimp \
 
 ifneq ($(BUILD_LITE),1)
     srcs += \
