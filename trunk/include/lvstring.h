@@ -150,7 +150,7 @@ public:
 
     /// copy assignment
     lString8 & assign(const lString8 & str)
-    { 
+    {
         if (pchunk!=str.pchunk)
         {
             release();
@@ -218,7 +218,7 @@ public:
 
     /// substring
     lString8 substr(size_type pos, size_type n) const;
-    
+
     /// append single character
     lString8 & operator << (value_type ch) { return append(1, ch); }
     /// append C-string
@@ -257,7 +257,7 @@ public:
     /// returns true if string is empty
     bool  empty() const { return pchunk->len==0; }
     /// swaps content of two strings
-    void  swap( lString8 & str ) { lstring_chunk_t * tmp = pchunk; 
+    void  swap( lString8 & str ) { lstring_chunk_t * tmp = pchunk;
                 pchunk=str.pchunk; str.pchunk=tmp; }
     /// pack string (free unused buffer space)
     lString8 & pack();
@@ -326,7 +326,7 @@ public:
 
     // assignment
     lString16 & assign(const lString16 & str)
-    { 
+    {
         if (pchunk!=str.pchunk)
         {
             release();
@@ -369,7 +369,7 @@ public:
     lString16 substr(size_type pos, size_type n) const;
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;
-    
+
     lString16 & operator << (value_type ch) { return append(1, ch); }
     lString16 & operator << (const value_type * str) { return append(str); }
     lString16 & operator << (const lString16 & str) { return append(str); }
@@ -390,7 +390,7 @@ public:
     size_type   capacity() const { return pchunk->size-1; }
     void  reserve(size_type count = 0);
     bool  empty() const { return pchunk->len==0; }
-    void  swap( lString16 & str ) { lstring_chunk_t * tmp = pchunk; 
+    void  swap( lString16 & str ) { lstring_chunk_t * tmp = pchunk;
                 pchunk=str.pchunk; str.pchunk=tmp; }
     lString16 & pack();
 
@@ -533,7 +533,7 @@ inline bool operator != (const lChar8 * s1, const lString8& s2 )
     { return s2.compare(s1)!=0; }
 inline lString8 operator + (const lString8 &s1, const lString8 &s2)
     { lString8 s(s1); s.append(s2); return s; }
-inline lString8 operator + (const lString8 &s1, const lChar8 * s2) 
+inline lString8 operator + (const lString8 &s1, const lChar8 * s2)
     { lString8 s(s1); s.append(s2); return s; }
 
 
@@ -546,7 +546,7 @@ lString16 Utf8ToUnicode( const lString8 & str );
 
 class CRLog
 {
-public: 
+public:
     enum log_level {
         LL_FATAL,
         LL_ERROR,
@@ -571,6 +571,7 @@ public:
     static void setStdoutLogger();
     static void setStderrLogger();
 protected:
+    CRLog();
     virtual void log( const char * level, const char * msg, va_list args ) = 0;
     log_level curr_level;
     static CRLog * CRLOG;
@@ -595,7 +596,7 @@ public:
         fprintf(f, "DumpFile log started\n");
     }
     ~DumpFile()
-    { 
+    {
         if ( f!=stdout )
             fclose(f);
     }

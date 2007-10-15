@@ -249,6 +249,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      LPSTR     lpCmdLine,
                      int       nCmdShow)
 {
+
+    CRLog::setFileLogger( "crengine.log" );
+    CRLog::setLogLevel( CRLog::LL_TRACE );
+
  	// TODO: Place code here.
 	MSG msg;
 	HACCEL hAccelTable;

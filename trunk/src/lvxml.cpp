@@ -395,8 +395,10 @@ public:
                     p = (p + 8)%8;
                 } else {
                     if ( *s != ' ' ) {
-                        if ( rpos==0 )
+                        if ( rpos==0 && p>0 ) {
+                            //CRLog::debug("   lpos = %d", p);
                             lpos = p;
+                        }
                         rpos = p + 1;
                     }
                     p++;
@@ -473,6 +475,7 @@ public:
     /// checks text format options
     void detectFormatFlags()
     {
+        //CRLog::debug("detectFormatFlags() enter");
         formatFlags = tftParaPerLine | tftEmptyLineDelimHeaders; // default format
         if ( length()<10 )
             return;
@@ -490,9 +493,9 @@ public:
             if ( line->lpos == line->rpos ) {
                 empty_lines++;
             } else {
-                if ( i==0 || line->lpos<min_left )
+                if ( min_left==-1 || line->lpos<min_left )
                     min_left = line->lpos;
-                if ( i==0 || line->rpos>max_right )
+                if ( max_right==-1 || line->rpos>max_right )
                     max_right = line->rpos;
                 avg_left += line->lpos;
                 avg_right += line->rpos;
@@ -500,6 +503,7 @@ public:
         }
         for ( i=0; i<length(); i++ ) {
             LVTextFileLine * line = get(i);
+            //CRLog::debug("    line(%d, %d)", line->lpos, line->rpos);
             if ( line->lpos > min_left )
                 ident_lines++;
         }
@@ -518,6 +522,10 @@ public:
             formatFlags |= tftEmptyLineDelimPara;
         if ( ident_lines_percent > 5 )
             formatFlags |= tftParaIdents;
+
+        CRLog::debug("detectFormatFlags() min_left=%d, max_right=%d, ident=%d, empty=%d, flags=%d",
+            min_left, max_right, ident_lines_percent, empty_lines_precent, formatFlags );
+
         if ( !formatFlags ) {
             formatFlags = tftParaPerLine | tftEmptyLineDelimHeaders; // default format
             return;
@@ -605,10 +613,18 @@ public:
             sz = (item->fpos + item->fsize) - pos;
             str += item->text + L"\n";
         }
+        bool singleLineFollowedByEmpty = false;
+        if ( startline==endline && endline<length()-1 ) {
+            if ( !(formatFlags & tftParaIdents) || get(startline)->lpos>0 )
+                if ( get(endline+1)->rpos==0 && (startline==0 || get(startline-1)->rpos==0) )
+                    singleLineFollowedByEmpty = true;
+        }
         str.trimDoubleSpaces(false, false, true);
-        bool isHeader = str.length()<4 || (paraCount<2 && str.length()<50);
+        bool isHeader = (startline==endline && str.length()<4) || (paraCount<2 && str.length()<50);
         int hlevel = DetectHeadingLevelByText( str );
         if ( hlevel>0 )
+            isHeader = true;
+        if ( singleLineFollowedByEmpty )
             isHeader = true;
         if ( !str.empty() ) {
             if ( isHeader )
@@ -630,6 +646,7 @@ public:
     /// one line per paragraph
     bool DoParaPerLineImport(LVXMLParserCallback * callback)
     {
+        CRLog::debug("DoParaPerLineImport()");
         do {
             for ( int i=0; i<length(); i++ ) {
                 AddPara( i, i, callback );
@@ -643,6 +660,7 @@ public:
     /// delimited by first line ident
     bool DoIdentParaImport(LVXMLParserCallback * callback)
     {
+        CRLog::debug("DoIdentParaImport()");
         int pos = 0;
         for ( ;; ) {
             if ( length()-pos <= MAX_PARA_LINES ) {
@@ -654,6 +672,7 @@ public:
             if ( pos>=length() )
                 break;
             int i=pos+1;
+            bool emptyLineFlag = false;
             if ( pos>=length() || DetectHeadingLevelByText( get(pos)->text )==0 ) {
                 for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
                     LVTextFileLine * item = get(i);
@@ -661,9 +680,15 @@ public:
                         // ident
                         break;
                     }
+                    if ( item->lpos==item->rpos ) {
+                        // empty line
+                        i++;
+                        emptyLineFlag = true;
+                        break;
+                    }
                 }
             }
-            AddPara( pos, i-1, callback );
+            AddPara( pos, i-1 - (emptyLineFlag?1:0), callback );
             pos = i;
         }
         return true;
@@ -671,6 +696,7 @@ public:
     /// delimited by empty lines
     bool DoEmptyLineParaImport(LVXMLParserCallback * callback)
     {
+        CRLog::debug("DoEmptyLineParaImport()");
         int pos = 0;
         for ( ;; ) {
             if ( length()-pos <= MAX_PARA_LINES ) {
@@ -685,7 +711,7 @@ public:
             if ( pos>=length() || DetectHeadingLevelByText( get(pos)->text )==0 ) {
                 for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
                     LVTextFileLine * item = get(i);
-                    if ( item->lpos==item->lpos ) {
+                    if ( item->lpos==item->rpos ) {
                         // empty line
                         break;
                     }
@@ -838,8 +864,8 @@ bool LVTextParser::CheckFormat()
 /// parses input stream
 bool LVTextParser::Parse()
 {
-    LVTextLineQueue queue( this, 1000 );
-    queue.ReadLines( 200 );
+    LVTextLineQueue queue( this, 2000 );
+    queue.ReadLines( 2000 );
     queue.detectFormatFlags();
     // make fb2 document structure
     m_callback->OnTagOpen( NULL, L"?xml" );

@@ -11,9 +11,44 @@
 
 *******************************************************/
 #include "../include/rtfimp.h"
+#include <strings.h>
 
 //==================================================
-// Text file parser
+// RTF file parser
+
+
+#undef RTF_CMD
+#undef RTF_CHR
+#undef RTF_CHC
+#define RTF_CMD( name, type, index ) \
+    { RTF_##name, #name, type, index },
+#define RTF_CHC( name, index ) \
+    { RTF_##name, #name, CWT_CHAR, index },
+#define RTF_CHR( character, name, index ) \
+    { RTF_##name, character, CWT_CHAR, index },
+static const rtf_control_word rtf_words[] = {
+#include "../include/rtfcmd.h"
+};
+static const int rtf_words_count = sizeof(rtf_words) / sizeof(rtf_control_word);
+
+static const rtf_control_word * findControlWord( const char * name )
+{
+    int a = 0;
+    int b = rtf_words_count;
+    int c;
+    for ( ;; ) {
+        c = ( a + b ) / 2;
+        int res = strcmp( name, rtf_words[c].name );
+        if ( !res )
+            return &rtf_words[c];
+        if ( a + 1 >=b )
+            return NULL;
+        if ( res>0 )
+            a = c + 1;
+        else
+            b = c;
+    }
+}
 
 /// constructor
 LVRtfParser::LVRtfParser( LVStreamRef stream, LVXMLParserCallback * callback )

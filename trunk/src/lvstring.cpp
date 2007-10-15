@@ -422,7 +422,7 @@ lString16::lString16(const lChar16 * str)
 {
     if (!str || !(*str))
     {
-        pchunk = EMPTY_STR_16; 
+        pchunk = EMPTY_STR_16;
         addref();
         return;
     }
@@ -436,7 +436,7 @@ lString16::lString16(const lChar8 * str)
 {
     if (!str || !(*str))
     {
-        pchunk = EMPTY_STR_16; 
+        pchunk = EMPTY_STR_16;
         addref();
         return;
     }
@@ -488,7 +488,7 @@ lString16 & lString16::assign(const lChar16 * str)
     {
         size_type len = _lStr_len(str);
         if (pchunk->nref==1)
-        { 
+        {
             if (pchunk->size<=len)
             {
                 // resize is necessary
@@ -517,7 +517,7 @@ lString16 & lString16::assign(const lChar16 * str, size_type count)
     {
         size_type len = _lStr_nlen(str, count);
         if (pchunk->nref==1)
-        { 
+        {
             if (pchunk->size<=len)
             {
                 // resize is necessary
@@ -562,7 +562,7 @@ lString16 & lString16::assign(const lString16 & str, size_type offset, size_type
         else
         {
             if (pchunk->nref==1)
-            { 
+            {
                 if (pchunk->size<=count)
                 {
                     // resize is necessary
@@ -767,7 +767,7 @@ lString16 & lString16::trim()
 {
     //
     size_t firstns;
-    for (firstns = 0; firstns<pchunk->len && 
+    for (firstns = 0; firstns<pchunk->len &&
         (pchunk->buf16[firstns]==' ' || pchunk->buf16[firstns]=='\t'); ++firstns)
         ;
     if (firstns >= pchunk->len)
@@ -776,7 +776,7 @@ lString16 & lString16::trim()
         return *this;
     }
     size_t lastns;
-    for (lastns = pchunk->len-1; lastns>0 && 
+    for (lastns = pchunk->len-1; lastns>0 &&
         (pchunk->buf16[lastns]==' ' || pchunk->buf16[lastns]=='\t'); --lastns)
         ;
     size_t newlen = lastns-firstns+1;
@@ -916,7 +916,7 @@ void lString16Collection::erase(int offset, int cnt)
     }
     count -= cnt;
     if (!count)
-        clear();    
+        clear();
 }
 
 void lString8Collection::erase(int offset, int cnt)
@@ -936,7 +936,7 @@ void lString8Collection::erase(int offset, int cnt)
     }
     count -= cnt;
     if (!count)
-        clear();    
+        clear();
 }
 
 void lString8Collection::reserve( size_t space )
@@ -980,7 +980,7 @@ lUInt32 calcStringHash( const lChar16 * s )
 void lString16HashedCollection::addHashItem( int hashIndex, int storageIndex )
 {
     if ( hash[ hashIndex ].index == -1 ) {
-        hash[hashIndex].index = storageIndex; 
+        hash[hashIndex].index = storageIndex;
     } else {
         HashPair * np = (HashPair *)malloc(sizeof(HashPair));
         np->index = storageIndex;
@@ -1125,7 +1125,7 @@ lString8::lString8(const lChar8 * str)
 {
     if (!str || !(*str))
     {
-        pchunk = EMPTY_STR_8; 
+        pchunk = EMPTY_STR_8;
         addref();
         return;
     }
@@ -1139,7 +1139,7 @@ lString8::lString8(const lChar16 * str)
 {
     if (!str || !(*str))
     {
-        pchunk = EMPTY_STR_8; 
+        pchunk = EMPTY_STR_8;
         addref();
         return;
     }
@@ -1191,7 +1191,7 @@ lString8 & lString8::assign(const lChar8 * str)
     {
         size_type len = _lStr_len(str);
         if (pchunk->nref==1)
-        { 
+        {
             if (pchunk->size<=len)
             {
                 // resize is necessary
@@ -1220,7 +1220,7 @@ lString8 & lString8::assign(const lChar8 * str, size_type count)
     {
         size_type len = _lStr_nlen(str, count);
         if (pchunk->nref==1)
-        { 
+        {
             if (pchunk->size<=len)
             {
                 // resize is necessary
@@ -1265,7 +1265,7 @@ lString8 & lString8::assign(const lString8 & str, size_type offset, size_type co
         else
         {
             if (pchunk->nref==1)
-            { 
+            {
                 if (pchunk->size<=count)
                 {
                     // resize is necessary
@@ -1512,10 +1512,10 @@ lString8 & lString8::trim()
 {
     //
     size_t firstns;
-    for (firstns = 0; 
-            firstns<pchunk->len && 
-            (pchunk->buf8[firstns]==' ' || 
-            pchunk->buf8[firstns]=='\t'); 
+    for (firstns = 0;
+            firstns<pchunk->len &&
+            (pchunk->buf8[firstns]==' ' ||
+            pchunk->buf8[firstns]=='\t');
             ++firstns)
         ;
     if (firstns >= pchunk->len)
@@ -1524,9 +1524,9 @@ lString8 & lString8::trim()
         return *this;
     }
     size_t lastns;
-    for (lastns = pchunk->len-1; 
-            lastns>0 && 
-            (pchunk->buf8[lastns]==' ' || pchunk->buf8[lastns]=='\t'); 
+    for (lastns = pchunk->len-1;
+            lastns>0 &&
+            (pchunk->buf8[lastns]==' ' || pchunk->buf8[lastns]=='\t');
             --lastns)
         ;
     size_t newlen = lastns-firstns+1;
@@ -1922,7 +1922,7 @@ lString8 UnicodeToLocal( const lString16 & str )
    int usedDefChar = false;
    int len = WideCharToMultiByte(
       CP_ACP,
-      WC_COMPOSITECHECK | WC_DISCARDNS 
+      WC_COMPOSITECHECK | WC_DISCARDNS
        | WC_SEPCHARS | WC_DEFAULTCHAR,
       str.c_str(),
       str.length(),
@@ -1936,7 +1936,7 @@ lString8 UnicodeToLocal( const lString16 & str )
       dst.insert(0, len, ' ');
       WideCharToMultiByte(
          CP_ACP,
-         WC_COMPOSITECHECK | WC_DISCARDNS 
+         WC_COMPOSITECHECK | WC_DISCARDNS
           | WC_SEPCHARS | WC_DEFAULTCHAR,
          str.c_str(),
          str.length(),
@@ -1994,12 +1994,12 @@ lString16 LocalToUnicode( const lString8 & str )
 //0x410
 static const char * russian_capital[32] =
 {
-"A", "B", "V", "G", "D", "E", "ZH", "Z", "I", "j", "K", "L", "M", "N", "O", "P", "R", 
+"A", "B", "V", "G", "D", "E", "ZH", "Z", "I", "j", "K", "L", "M", "N", "O", "P", "R",
 "S", "T", "U", "F", "H", "TS", "CH", "SH", "SH", "\'", "Y", "\'", "E", "YU", "YA"
 };
 static const char * russian_small[32] =
 {
-"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", 
+"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r",
 "s", "t", "u", "f", "h", "ts", "ch", "sh", "sh", "\'", "y", "\'", "e", "yu", "ya"
 };
 static const char * getCharTranscript( lChar16 ch )
@@ -2142,42 +2142,42 @@ CH_PROP_SIGN, // '}'
 CH_PROP_SIGN, // '~'
 CH_PROP_SIGN, // ' '
 // 0x0080:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0090:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x00A0:
 CH_PROP_SPACE, // 00A0 nbsp
 CH_PROP_PUNCT, // 00A1 inverted !
-CH_PROP_SIGN,  // 00A2 
-CH_PROP_SIGN,  // 00A3 
-CH_PROP_SIGN,  // 00A4 
-CH_PROP_SIGN,  // 00A5 
-CH_PROP_SIGN,  // 00A6 
-CH_PROP_SIGN,  // 00A7 
-CH_PROP_SIGN,  // 00A8 
+CH_PROP_SIGN,  // 00A2
+CH_PROP_SIGN,  // 00A3
+CH_PROP_SIGN,  // 00A4
+CH_PROP_SIGN,  // 00A5
+CH_PROP_SIGN,  // 00A6
+CH_PROP_SIGN,  // 00A7
+CH_PROP_SIGN,  // 00A8
 CH_PROP_SIGN,  // 00A9
-CH_PROP_SIGN,  // 00AA 
-CH_PROP_SIGN,  // 00AB 
-CH_PROP_SIGN,  // 00AC 
-CH_PROP_SIGN,  // 00AD 
-CH_PROP_SIGN,  // 00AE 
+CH_PROP_SIGN,  // 00AA
+CH_PROP_SIGN,  // 00AB
+CH_PROP_SIGN,  // 00AC
+CH_PROP_SIGN,  // 00AD
+CH_PROP_SIGN,  // 00AE
 CH_PROP_SIGN,  // 00AF
 // 0x00A0:
 CH_PROP_SIGN,  // 00B0 degree
 CH_PROP_SIGN,  // 00B1
-CH_PROP_SIGN,  // 00B2 
-CH_PROP_SIGN,  // 00B3 
-CH_PROP_SIGN,  // 00B4 
-CH_PROP_SIGN,  // 00B5 
-CH_PROP_SIGN,  // 00B6 
-CH_PROP_SIGN,  // 00B7 
-CH_PROP_SIGN,  // 00B8 
+CH_PROP_SIGN,  // 00B2
+CH_PROP_SIGN,  // 00B3
+CH_PROP_SIGN,  // 00B4
+CH_PROP_SIGN,  // 00B5
+CH_PROP_SIGN,  // 00B6
+CH_PROP_SIGN,  // 00B7
+CH_PROP_SIGN,  // 00B8
 CH_PROP_SIGN,  // 00B9
-CH_PROP_SIGN,  // 00BA 
-CH_PROP_SIGN,  // 00BB 
-CH_PROP_SIGN,  // 00BC 
-CH_PROP_SIGN,  // 00BD 
-CH_PROP_SIGN,  // 00BE 
+CH_PROP_SIGN,  // 00BA
+CH_PROP_SIGN,  // 00BB
+CH_PROP_SIGN,  // 00BC
+CH_PROP_SIGN,  // 00BD
+CH_PROP_SIGN,  // 00BE
 CH_PROP_PUNCT, // 00BF
 // 0x00C0:
 CH_PROP_UPPER | CH_PROP_VOWEL,  // 00C0 A`
@@ -2384,55 +2384,55 @@ CH_PROP_UPPER | CH_PROP_CONSONANT,  // 017D Zv
 CH_PROP_LOWER | CH_PROP_CONSONANT,  // 017E zv
 CH_PROP_LOWER | CH_PROP_CONSONANT,  // 017F s long
 // 0x0180:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0190:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x01A0:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x01B0:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x01C0:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x01D0:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x01E0:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x01F0:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0200:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0300:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0400:
 0,  // 0400
 CH_PROP_UPPER | CH_PROP_VOWEL,      // 0401 cyrillic E:
@@ -2533,8 +2533,8 @@ CH_PROP_LOWER | CH_PROP_CONSONANT,      // 045C cyrillic K'
 CH_PROP_LOWER | CH_PROP_VOWEL,      // 045E cyrillic Yu
 CH_PROP_LOWER | CH_PROP_CONSONANT,      // 045F cyrillic Dzhe
 // 0x0460:
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
-0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0490:
 CH_PROP_UPPER | CH_PROP_CONSONANT,      // 0490 cyrillic G'
 CH_PROP_LOWER | CH_PROP_CONSONANT,      // 0491 cyrillic g'
@@ -2681,6 +2681,11 @@ void CRLog::trace( const char * msg, ... )
     va_start( args, msg );
     CRLOG->log( "TRACE", msg, args );
     va_end(args);
+}
+
+CRLog::CRLog()
+    : curr_level(LL_INFO)
+{
 }
 
 CRLog::~CRLog()

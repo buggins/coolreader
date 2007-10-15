@@ -15,6 +15,28 @@
 
 #define PARAM_VALUE_NONE 0x7FFFFFFF
 
+enum rtf_control_word_type {
+    CWT_CHAR,
+    CWT_STYLE,
+};
+
+typedef struct  {
+    int id;
+    const char * name;
+    rtf_control_word_type type;
+    int index;
+} rtf_control_word;
+
+enum rtf_cmd_id {
+#define RTF_CMD( name, type, index ) \
+    RTF_##name,
+#define RTF_CHC( name, index ) \
+    RTF_##name,
+#define RTF_CHR( character, name, index ) \
+    RTF_##name,
+#include "../include/rtfcmd.h"
+};
+
 class LVRtfParser : public LVFileParserBase
 {
 protected:
