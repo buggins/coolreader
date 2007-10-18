@@ -61,8 +61,8 @@ void LVStorageObject::SetName(const lChar16 * name)
 }
 
 bool LVStorageObject::IsContainer()
-{ 
-    return false; 
+{
+    return false;
 }
 
 lvsize_t LVStorageObject::GetSize( )
@@ -110,7 +110,7 @@ class LVFileStream : public LVNamedStream
 private:
     FILE * m_file;
 public:
-    
+
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
     {
        //
@@ -186,6 +186,7 @@ public:
     {
         m_mode = mode;
         m_file = NULL;
+        SetFileName(fname);
         const char * modestr = "r";
         switch (mode) {
         case LVOM_READ:
@@ -215,12 +216,12 @@ public:
         SetName( fname.c_str() );
         return LVERR_OK;
     }
-    LVFileStream() : m_file(NULL) 
-    { 
-        m_mode=LVOM_ERROR; 
+    LVFileStream() : m_file(NULL)
+    {
+        m_mode=LVOM_ERROR;
     }
     virtual ~LVFileStream()
-    { 
+    {
         if (m_file)
             fclose(m_file);
     }
@@ -241,14 +242,14 @@ public:
     {
         return m_size<=m_pos;
     }
-    virtual LVContainer * GetParentContainer() 
-    {  
-        return (LVContainer*)m_parent; 
+    virtual LVContainer * GetParentContainer()
+    {
+        return (LVContainer*)m_parent;
     }
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
     {
         //fprintf(stderr, "Read(%08x, %d)\n", buf, count);
-        
+
         if (m_hFile == INVALID_HANDLE_VALUE || m_mode==LVOM_WRITE || m_mode==LVOM_APPEND )
             return LVERR_FAIL;
         //
@@ -328,7 +329,7 @@ public:
             m = FILE_END;
             break;
         }
-        
+
         pos_low = SetFilePointer(m_hFile, pos_low, &pos_high, m );
         if (pos_low == 0xFFFFFFFF) {
             lUInt32 err = GetLastError();
@@ -370,6 +371,7 @@ public:
         lUInt32 m = 0;
         lUInt32 s = 0;
         lUInt32 c = 0;
+        SetName(fname.c_str());
         switch (mode) {
         case LVOM_READWRITE:
             m |= GENERIC_WRITE|GENERIC_READ;
@@ -427,7 +429,7 @@ public:
 
         return LVERR_OK;
     }
-    LVFileStream() : m_hFile(INVALID_HANDLE_VALUE), m_parent(NULL), m_size(0), m_pos(0) 
+    LVFileStream() : m_hFile(INVALID_HANDLE_VALUE), m_parent(NULL), m_size(0), m_pos(0)
     {
     }
     virtual ~LVFileStream()
@@ -458,12 +460,12 @@ LVStreamRef LVOpenFileStream( const lChar8 * pathname, lvopen_mode_t mode )
 
 
 lvopen_mode_t LVTextStream::GetMode()
-{ 
+{
     return m_base_stream->GetMode();
 }
 
-lverror_t LVTextStream::Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos ) 
-{ 
+lverror_t LVTextStream::Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
+{
     return m_base_stream->Seek(offset, origin, pNewPos);
 }
 
@@ -473,32 +475,32 @@ lverror_t LVTextStream::Tell( lvpos_t * pPos )
 }
 
 lvpos_t   LVTextStream::SetPos(lvpos_t p)
-{ 
+{
     return m_base_stream->SetPos(p);
 }
 
 lvpos_t   LVTextStream::GetPos()
-{ 
+{
     return m_base_stream->GetPos();
 }
 
 lverror_t LVTextStream::SetSize( lvsize_t size )
-{ 
+{
     return m_base_stream->SetSize(size);
 }
 
 lverror_t LVTextStream::Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
-{ 
+{
     return m_base_stream->Read(buf, count, nBytesRead);
 }
 
 lverror_t LVTextStream::Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
-{ 
+{
     return m_base_stream->Write(buf, count, nBytesWritten);
 }
 
 bool LVTextStream::Eof()
-{ 
+{
     return m_base_stream->Eof();
 }
 
@@ -542,10 +544,10 @@ public:
             Add(item);
         }
         return stream;
-    }    
-    virtual LVContainer * GetParentContainer() 
-    {  
-        return (LVContainer*)m_parent; 
+    }
+    virtual LVContainer * GetParentContainer()
+    {
+        return (LVContainer*)m_parent;
     }
     virtual const LVContainerItemInfo * GetObjectInfo(int index)
     {
@@ -553,7 +555,7 @@ public:
             return m_list[index];
         return NULL;
     }
-    virtual int GetObjectCount() const 
+    virtual int GetObjectCount() const
     {
         return m_list.length();
     }
@@ -581,7 +583,7 @@ public:
         LVDirectoryContainer * dir = new LVDirectoryContainer;
 
         dir->SetName(path);
-        
+
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
         // WIN32 API
         lString16 fn(path);
@@ -684,7 +686,7 @@ public:
 
             }
         }
-        
+
         FindClose( hFind );
 #else
         // POSIX
@@ -718,7 +720,7 @@ public:
             closedir(d);
         }
 
-        
+
 #endif
         return dir;
     }
@@ -738,7 +740,7 @@ private:
         BufItem * prev;
         BufItem * next;
         lUInt8    buf[CACHE_BUF_BLOCK_SIZE];
-        
+
         int getIndex() { return start >> CACHE_BUF_BLOCK_SHIFT; }
         BufItem() : prev(NULL), next(NULL) { }
     };
@@ -826,7 +828,7 @@ private:
     {
         if ( m_stream->SetPos( item->start )==(lvpos_t)(~0) )
             return false;
-            
+
         lvsize_t bytesRead;
         if ( m_stream->Read( item->buf, item->size, &bytesRead )!=LVERR_OK || bytesRead!=item->size )
             return false;
@@ -882,7 +884,7 @@ private:
     }
 public:
 
-    LVCachedStream( LVStreamRef stream, int bufSize ) : m_stream(stream), m_pos(0), 
+    LVCachedStream( LVStreamRef stream, int bufSize ) : m_stream(stream), m_pos(0),
             m_head(NULL), m_tail(NULL), m_bufLen(0)
     {
         m_size = m_stream->GetSize();
@@ -894,6 +896,7 @@ public:
             m_bufSize = 3;
         m_buf = new BufItem* [m_bufItems];
         memset( m_buf, 0, sizeof( BufItem*) * m_bufItems );
+        SetName( stream->GetName() );
     }
     virtual ~LVCachedStream()
     {
@@ -905,13 +908,13 @@ public:
             delete[] m_buf;
         }
     }
-    
+
     virtual bool Eof()
     {
         return m_pos >= m_size;
     }
     virtual lvsize_t  GetSize()
-    { 
+    {
         return m_size;
     }
 
@@ -939,12 +942,12 @@ public:
         }
         return LVERR_OK;
     }
-    
+
     virtual lverror_t Write(const void*, lvsize_t, lvsize_t*)
     {
         return LVERR_NOTIMPL;
     }
-    
+
     virtual lverror_t Read(void* buf, lvsize_t size, lvsize_t* pBytesRead)
     {
         int startIndex = (int)(m_pos >> CACHE_BUF_BLOCK_SHIFT);
@@ -955,7 +958,7 @@ public:
             extraItems = 0;
         char * flags = new char[ count ];
         memset( flags, 0, count );
-        
+
         //if ( m_stream
         int start = (int)m_pos;
         lUInt8 * dst = (lUInt8 *) buf;
@@ -977,9 +980,9 @@ public:
             dst += CACHE_BUF_BLOCK_SIZE - istart;
             istart = 0;
         }
-        
+
         dst = (lUInt8 *) buf;
-        
+
         bool flgFirstNE = true;
         istart = start & (CACHE_BUF_BLOCK_SIZE - 1);
         dstsz = (int)size;
@@ -1003,7 +1006,7 @@ public:
                     if ( !res )
                     {
                         fprintf( stderr, "cannot fill fragment %d .. %d\n", fillStart, fillEnd );
-                        exit(-1); 
+                        exit(-1);
                     }
                     flgFirstNE = false;
                 }
@@ -1018,7 +1021,7 @@ public:
             istart = 0;
         }
         delete[] flags;
-       
+
         lvsize_t bytesRead = size;
         if ( m_pos + size > m_size )
             bytesRead = m_size - m_pos;
@@ -1027,7 +1030,7 @@ public:
             *pBytesRead = bytesRead;
         return LVERR_OK;
     }
-    
+
     virtual lverror_t SetSize(lvsize_t)
     {
         return LVERR_NOTIMPL;
@@ -1154,17 +1157,17 @@ private:
     lUInt32     m_CRC;
     lUInt32     m_originalCRC;
 
-    
+
     LVZipDecodeStream( LVStreamRef stream, lvsize_t start, lvsize_t packsize, lvsize_t unpacksize, lUInt32 crc )
-        : m_stream(stream), m_start(start), m_packsize(packsize), m_unpacksize(unpacksize), 
-        m_inbytesleft(0), m_outbytesleft(0), m_zInitialized(false), m_decodedpos(0), 
+        : m_stream(stream), m_start(start), m_packsize(packsize), m_unpacksize(unpacksize),
+        m_inbytesleft(0), m_outbytesleft(0), m_zInitialized(false), m_decodedpos(0),
         m_inbuf(NULL), m_outbuf(NULL), m_CRC(0), m_originalCRC(crc)
     {
         m_inbuf = new lUInt8[ARC_INBUF_SIZE];
         m_outbuf = new lUInt8[ARC_OUTBUF_SIZE];
         rewind();
     }
-    
+
     ~LVZipDecodeStream()
     {
         zUninit();
@@ -1173,7 +1176,7 @@ private:
         if (m_outbuf)
             delete m_outbuf;
     }
-    
+
     void zUninit()
     {
         if (!m_zInitialized)
@@ -1181,7 +1184,7 @@ private:
         inflateEnd(&m_zstream);
         m_zInitialized = false;
     }
-    
+
     /// Fill input buffer: returns -1 if fails.
     int fillInBuf()
     {
@@ -1228,7 +1231,7 @@ private:
         zUninit();
         // stream
         m_stream->SetPos( 0 );
-        
+
         m_CRC = 0;
         memset( &m_zstream, 0, sizeof(m_zstream) );
         // inbuf
@@ -1265,7 +1268,7 @@ private:
         // reserve space for output
         if (m_zstream.avail_out < ARC_OUTBUF_SIZE / 4 && m_outbytesleft > 0)
         {
-            
+
             int outpos = m_zstream.next_out - m_outbuf;
             if ( outpos > ARC_OUTBUF_SIZE*3/4 )
             {
@@ -1292,7 +1295,7 @@ private:
         while (bytesToSkip > 0)
         {
             int avail = decodeNext();
-            
+
             if (avail < 0)
             {
                 return false; // error
@@ -1321,7 +1324,7 @@ private:
         while (bytesToRead > 0)
         {
             int avail = decodeNext();
-            
+
             if (avail < 0)
             {
                 return -1; // error
@@ -1338,7 +1341,7 @@ private:
             lUInt8 * src = m_outbuf + m_decodedpos;
             for (int i=avail; i>0; --i)
                 *buf++ = *src++;
-                
+
             m_decodedpos += avail;
             m_outbytesleft -= avail;
             bytesRead += avail;
@@ -1352,7 +1355,7 @@ public:
         return m_outbytesleft==0; //m_pos >= m_size;
     }
     virtual lvsize_t  GetSize()
-    { 
+    {
         return m_unpacksize;
     }
     virtual lvpos_t GetPos()
@@ -1395,7 +1398,7 @@ public:
             }
         }
         if (newPos)
-            *newPos = npos;                
+            *newPos = npos;
         return LVERR_OK;
     }
     virtual lverror_t Write(const void*, lvsize_t, lvsize_t*)
@@ -1443,7 +1446,7 @@ public:
         {
             // deflate
             LVStreamRef srcStream( new LVStreamFragment( stream, pos, hdr.getPackSize()) );
-            LVZipDecodeStream * res = new LVZipDecodeStream( srcStream, pos, 
+            LVZipDecodeStream * res = new LVZipDecodeStream( srcStream, pos,
                 hdr.getPackSize(), hdr.getUnpSize(), hdr.getCRC() );
             res->SetName( name.c_str() );
             return res;
@@ -1474,22 +1477,23 @@ public:
         // make filename
         lString16 fn = fname;
         LVStreamRef strm = m_stream; // fix strange arm-linux-g++ bug
-        LVStreamRef stream( 
-		LVZipDecodeStream::Create( 
-			strm, 
+        LVStreamRef stream(
+		LVZipDecodeStream::Create(
+			strm,
 			m_list[found_index]->GetSrcPos(), fn ) );
         if (!stream.isNull()) {
             return LVCreateBufferedStream( stream, ZIP_STREAM_BUFFER_SIZE );
         }
+        stream->SetName(m_list[found_index]->GetName());
         return stream;
-    }    
+    }
     LVZipArc( LVStreamRef stream ) : LVArcContainerBase(stream)
     {
     }
     virtual ~LVZipArc()
     {
     }
-    
+
     virtual int ReadContents()
     {
         lvByteOrderConv cnv;
@@ -1503,7 +1507,7 @@ public:
 
         SetName( m_stream->GetName() );
 
-                
+
         lvsize_t sz = 0;
         if (m_stream->GetSize( &sz )!=LVERR_OK)
                 return 0;
@@ -1550,7 +1554,7 @@ public:
         truncated = !found;
         if (truncated)
             NextPosition=0;
-        
+
         //================================================================
         // get files
 
@@ -1612,7 +1616,7 @@ public:
                     arcComment=true;
                 break; //(GETARC_EOF);
             }
-          
+
             const int NM = 513;
             lUInt32 SizeToRead=(ZipHeader.NameLen<NM) ? ZipHeader.NameLen : NM;
             char fnbuf[1025];
@@ -1621,20 +1625,20 @@ public:
             if (ReadSize!=SizeToRead) {
                 return 0;
             }
-            
+
             fnbuf[ZipHeader.NameLen]=0;
 
             long SeekLen=ZipHeader.AddLen+ZipHeader.CommLen;
 
             LVCommonContainerItemInfo * item = new LVCommonContainerItemInfo();
-  
+
             if (truncated)
                 SeekLen+=ZipHeader.PackSize;
 
             NextPosition = (lUInt32)m_stream->GetPos();
             NextPosition += SeekLen;
             m_stream->Seek(NextPosition, LVSEEK_SET, NULL);
-  
+
             lString16 fName = LocalToUnicode( lString8(fnbuf) );
 
             item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
@@ -1690,13 +1694,13 @@ public:
     {
         return m_pos>=m_size;
     }
-    virtual lvopen_mode_t GetMode() 
-    { 
-        return m_mode; 
+    virtual lvopen_mode_t GetMode()
+    {
+        return m_mode;
     }
 	virtual LVContainer * GetParentContainer()
-	{  
-		return (LVContainer*)m_parent; 
+	{
+		return (LVContainer*)m_parent;
 	}
 	virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
 	{
@@ -1847,7 +1851,7 @@ public:
 
 		return LVERR_OK;
 	}
-	LVMemoryStream() : m_parent(NULL), m_size(0), m_pos(0), m_own_buffer(false), m_pBuffer(NULL) 
+	LVMemoryStream() : m_parent(NULL), m_size(0), m_pos(0), m_own_buffer(false), m_pBuffer(NULL)
 	{
 	}
 	virtual ~LVMemoryStream()
@@ -1863,14 +1867,14 @@ LVContainerRef LVOpenArchieve( LVStreamRef stream )
     LVContainerRef ref;
     if (stream.isNull())
         return ref;
-    
+
     // try ZIP
     ref = LVZipArc::OpenArchieve( stream );
     if (!ref.isNull())
             return ref;
-            
+
     // try RAR: todo
-    
+
     // not found: return null ref
     return ref;
 }

@@ -822,6 +822,21 @@ void LVDocView::setBatteryIcons( LVRefVec<LVImageSource> icons )
     m_batteryIcons = icons;
 }
 
+lString16 fitTextWidthWithEllipsis( lString16 text, LVFontRef font, int maxwidth )
+{
+    int w = font->getTextWidth( text.c_str(), text.length() );
+    if ( w <= maxwidth )
+        return text;
+    int len;
+    for ( len = text.length()-1; len>1; len-- ) {
+        lString16 s = text.substr(0, len) + L"...";
+        w = font->getTextWidth( s.c_str(), s.length() );
+        if ( w <= maxwidth )
+            return s;
+    }
+    return lString16();
+}
+
 /// draw page header to buffer
 void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, int pageIndex, int phi, int pageCount )
 {
@@ -1006,8 +1021,11 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     lvRect newcr = oldcr;
     newcr.right = info.right - 10;
     drawbuf->SetClipRect(&newcr);
-    m_infoFont->DrawTextString( drawbuf, info.left, iy,
-        text.c_str(), text.length(), L' ', pal, false);
+    text = fitTextWidthWithEllipsis( text, m_infoFont, newcr.width() );
+    if ( !text.empty() ) {
+        m_infoFont->DrawTextString( drawbuf, info.left, iy,
+            text.c_str(), text.length(), L' ', pal, false);
+    }
     drawbuf->SetClipRect(&oldcr);
     //--------------
     drawbuf->SetTextColor(getTextColor());

@@ -378,6 +378,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         cmdline = OpenFileDialog( NULL );
         //cmdline = "example2.fb2";
     }
+
     if ( cmdline.empty() )
         return 2;
     if ( !text_view->LoadDocument( cmdline.c_str() ))

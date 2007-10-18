@@ -117,13 +117,13 @@ public:
     /**
         \return lvpos_t file position
     */
-    virtual lvpos_t   GetPos() 
-    { 
-        lvpos_t pos; 
+    virtual lvpos_t   GetPos()
+    {
+        lvpos_t pos;
         if (Seek(0, LVSEEK_CUR, &pos)==LVERR_OK)
             return pos;
         else
-            return (lvpos_t)(~0); 
+            return (lvpos_t)(~0);
     }
 
     /// Get file size
@@ -131,9 +131,9 @@ public:
         \return lvsize_t file size
     */
     virtual lvsize_t  GetSize()
-    { 
-        lvpos_t pos = GetPos(); 
-        lvsize_t sz = 0; 
+    {
+        lvpos_t pos = GetPos();
+        lvsize_t sz = 0;
         Seek(0, LVSEEK_END, &sz);
         SetPos(pos);
         return sz;
@@ -261,8 +261,8 @@ public:
     virtual void SetName(const lChar16 * name);
     /// returns open mode
     virtual lvopen_mode_t GetMode()
-    { 
-        return m_mode; 
+    {
+        return m_mode;
     }
 };
 
@@ -272,9 +272,11 @@ class LVStreamProxy : public LVStream
 protected:
     LVStream * m_base_stream;
 public:
-    virtual lvopen_mode_t GetMode() 
+    virtual const lChar16 * GetName()
+            { return m_base_stream->GetName(); }
+    virtual lvopen_mode_t GetMode()
             { return m_base_stream->GetMode(); }
-    virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos ) 
+    virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
             { return m_base_stream->Seek(offset, origin, pNewPos); }
     virtual lverror_t Tell( lvpos_t * pPos )
             { return m_base_stream->Tell(pPos); }
@@ -307,7 +309,7 @@ public:
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead );
     virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten );
     virtual bool Eof();
-    LVTextStream( LVStream * stream ) : LVStreamProxy(stream) 
+    LVTextStream( LVStream * stream ) : LVStreamProxy(stream)
     { }
 };
 
@@ -359,7 +361,7 @@ public:
     lUInt32 GetSrcSize() { return m_srcsize; }
     lUInt32 GetSrcFlags() { return m_srcflags; }
     void SetSrc( lUInt32 pos, lUInt32 size, lUInt32 flags )
-    { 
+    {
         m_srcpos = pos;
         m_srcsize = size;
         m_srcflags = flags;
@@ -375,7 +377,7 @@ public:
         m_flags = flags;
         m_is_container = isContainer;
     }
-    LVCommonContainerItemInfo() : m_size(0), m_flags(0), m_is_container(false), 
+    LVCommonContainerItemInfo() : m_size(0), m_flags(0), m_is_container(false),
         m_srcpos(0), m_srcsize(0), m_srcflags(0)
     {
     }
@@ -394,8 +396,8 @@ protected:
     LVPtrVector<LVCommonContainerItemInfo> m_list;
 public:
     virtual bool IsContainer()
-    { 
-        return true; 
+    {
+        return true;
     }
     /// returns stream/container name, may be NULL if unknown
     virtual const lChar16 * GetName()
@@ -437,7 +439,7 @@ public:
     {
         m_list.add( item );
     }
-    void Clear() 
+    void Clear()
     {
         m_list.clear();
     }
@@ -452,10 +454,10 @@ public:
     virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t mode )
     {
         return LVStreamRef();
-    }    
-    virtual LVContainer * GetParentContainer() 
-    {  
-        return (LVContainer*)m_parent; 
+    }
+    virtual LVContainer * GetParentContainer()
+    {
+        return (LVContainer*)m_parent;
     }
     virtual const LVContainerItemInfo * GetObjectInfo(int index)
     {
@@ -463,7 +465,7 @@ public:
             return m_list[index];
         return NULL;
     }
-    virtual int GetObjectCount() const 
+    virtual int GetObjectCount() const
     {
         return m_list.length();
     }
@@ -483,7 +485,7 @@ public:
         Clear();
     }
     virtual int ReadContents() = 0;
-    
+
 };
 
 class LVStreamFragment : public LVNamedStream
@@ -503,7 +505,7 @@ public:
         return m_pos >= m_size;
     }
     virtual lvsize_t  GetSize()
-    { 
+    {
         return m_size;
     }
 

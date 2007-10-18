@@ -118,8 +118,14 @@ protected:
     /// seek to specified stream position
     bool Seek( lvpos_t pos, int bytesToPrefetch=0 );
 public:
+    /// constructor
     LVFileParserBase( LVStreamRef stream );
+    /// virtual destructor
     virtual ~LVFileParserBase();
+    /// returns source stream
+    LVStreamRef getStream() { return m_stream; }
+    /// return stream file name
+    lString16 getFileName();
     /// returns true if end of fle is reached, and there is no data left in buffer
     bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
     /// resets parsing, moves to beginning of stream

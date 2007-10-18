@@ -37,6 +37,19 @@ LVFileParserBase::LVFileParserBase( LVStreamRef stream )
     m_stream_size = stream->GetSize();
 }
 
+lString16 LVFileParserBase::getFileName()
+{
+    lString16 name( m_stream->GetName() );
+    int lastPathDelim = -1;
+    for ( int i=0; i<name.length(); i++ ) {
+        if ( name[i]=='\\' || name[i]=='/' ) {
+            lastPathDelim = i;
+        }
+    }
+    name = name.substr( lastPathDelim+1, name.length()-lastPathDelim-1 );
+    return name;
+}
+
 LVTextFileBase::LVTextFileBase( LVStreamRef stream )
     : LVFileParserBase(stream)
     , m_enc_type( ce_8bit_cp )
@@ -375,6 +388,8 @@ int DetectHeadingLevelByText( const lString16 & str )
     return 0;
 }
 
+#define LINE_IS_HEADER 0x2000
+#define LINE_HAS_EOLN 1
 class LVTextFileLine
 {
 public:
@@ -384,8 +399,10 @@ public:
     lString16 text; // line text
     lUInt16 lpos;   // left non-space char position
     lUInt16 rpos;   // right non-space char posision + 1
+    bool empty() { return rpos==0; }
+    bool isHeading() { return (flags & LINE_IS_HEADER); }
     LVTextFileLine( LVTextFileBase * file, int maxsize )
-    : lpos(0), rpos(0)
+    : flags(0), lpos(0), rpos(0)
     {
         text = file->ReadLine( maxsize, fpos, fsize, flags );
         if ( !text.empty() ) {
@@ -414,9 +431,8 @@ private:
     LVTextFileBase * file;
     int first_line_index;
     int maxLineSize;
-    lString16 authorFirstName;
-    lString16 authorLastName;
     lString16 bookTitle;
+    lString16 bookAuthors;
     lString16 seriesName;
     lString16 seriesNumber;
     int formatFlags;
@@ -425,6 +441,9 @@ private:
     int avg_left;
     int avg_right;
     int paraCount;
+    int linesToSkip;
+    bool lastParaWasTitle;
+    bool inSubSection;
 
     enum {
         tftParaPerLine = 1,
@@ -435,13 +454,14 @@ private:
     } formatFlags_t;
 public:
     LVTextLineQueue( LVTextFileBase * f, int maxLineLen )
-    : file(f), first_line_index(0), maxLineSize(maxLineLen)
+    : file(f), first_line_index(0), maxLineSize(maxLineLen), lastParaWasTitle(false), inSubSection(false)
     {
         min_left = -1;
         max_right = -1;
         avg_left = 0;
         avg_right = 0;
         paraCount = 0;
+        linesToSkip = 0;
     }
     // get index of first line of queue
     int  GetFirstLineIndex() { return first_line_index; }
@@ -532,31 +552,98 @@ public:
         }
 
     }
+
+    bool testProjectGutenbergHeader()
+    {
+        int i = 0;
+        for ( ; i<length() && get(i)->rpos==0; i++ )
+            ;
+        if ( i>=length() )
+            return false;
+        bookTitle.clear();
+        bookAuthors.clear();
+        lString16 firstLine = get(i)->text;
+        lString16 pgPrefix = L"The Project Gutenberg Etext of ";
+        if ( firstLine.length() < pgPrefix.length() )
+            return false;
+        if ( firstLine.substr(0, pgPrefix.length()) != pgPrefix )
+            return false;
+        firstLine = firstLine.substr( pgPrefix.length(), firstLine.length() - pgPrefix.length());
+        int byPos = firstLine.pos(L", by ");
+        if ( byPos<=0 )
+            return false;
+        bookTitle = firstLine.substr( 0, byPos );
+        bookAuthors = firstLine.substr( byPos + 5, firstLine.length()-byPos-5 );
+        for ( ; i<length() && i<500 && get(i)->text.pos(L"*END*") != 0; i++ )
+            ;
+        if ( i<length() && i<500 ) {
+            for ( i++; i<length() && i<500 && get(i)->text.empty(); i++ )
+                ;
+            linesToSkip = i;
+        }
+        return true;
+    }
+
+    // Leo Tolstoy. War and Peace
+    bool testAuthorDotTitleFormat()
+    {
+        int i = 0;
+        for ( ; i<length() && get(i)->rpos==0; i++ )
+            ;
+        if ( i>=length() )
+            return false;
+        bookTitle.clear();
+        bookAuthors.clear();
+        lString16 firstLine = get(i)->text;
+        firstLine.trim();
+        int dotPos = firstLine.pos(L". ");
+        if ( dotPos<=0 )
+            return false;
+        bookAuthors = firstLine.substr( 0, dotPos );
+        bookTitle = firstLine.substr( dotPos + 2, firstLine.length() - dotPos - 2);
+        if ( bookTitle.empty() || (lGetCharProps(bookTitle[bookTitle.length()]) & CH_PROP_PUNCT) )
+            return false;
+        return true;
+    }
+
     /// check beginning of file for book title, author and series
     bool DetectBookDescription(LVXMLParserCallback * callback)
     {
-        int necount = 0;
-        lString16 s[3];
-        unsigned i;
-        for ( i=0; i<(unsigned)length() && necount<2; i++ ) {
-            LVTextFileLine * item = get(i);
-            if ( item->rpos>item->lpos ) {
-                lString16 str = item->text;
-                str.trimDoubleSpaces(false, false, true);
-                if ( !str.empty() ) {
-                    s[necount] = str;
-                    necount++;
+
+        if ( !testProjectGutenbergHeader() && !testAuthorDotTitleFormat() ) {
+            bookTitle = file->getFileName();
+            bookAuthors.clear();
+/*
+
+            int necount = 0;
+            lString16 s[3];
+            unsigned i;
+            for ( i=0; i<(unsigned)length() && necount<2; i++ ) {
+                LVTextFileLine * item = get(i);
+                if ( item->rpos>item->lpos ) {
+                    lString16 str = item->text;
+                    str.trimDoubleSpaces(false, false, true);
+                    if ( !str.empty() ) {
+                        s[necount] = str;
+                        necount++;
+                    }
                 }
             }
+            //update book description
+            if ( i==0 ) {
+                bookTitle = L"no name";
+            } else {
+                bookTitle = s[1];
+            }
+            bookAuthors = s[0];
+*/
         }
-        //update book description
-        if ( i==0 ) {
-            bookTitle = L"no name";
-        } else {
-            bookTitle = s[1];
-        }
+
         lString16Collection author_list;
-        author_list.parse( s[0], ',', true );
+        if ( !bookAuthors.empty() )
+            author_list.parse( bookAuthors, ',', true );
+
+        unsigned i;
         for ( i=0; i<author_list.length(); i++ ) {
             lString16Collection name_list;
             name_list.parse( author_list[i], ' ', true );
@@ -598,6 +685,10 @@ public:
                 callback->OnAttribute( NULL, L"number", seriesNumber.c_str() );
             callback->OnTagClose( NULL, L"sequence" );
         }
+
+        // remove description lines
+        if ( linesToSkip>0 )
+            RemoveLines( linesToSkip );
         return true;
     }
     /// add one paragraph
@@ -617,27 +708,46 @@ public:
         if ( startline==endline && endline<length()-1 ) {
             if ( !(formatFlags & tftParaIdents) || get(startline)->lpos>0 )
                 if ( get(endline+1)->rpos==0 && (startline==0 || get(startline-1)->rpos==0) )
-                    singleLineFollowedByEmpty = true;
+                    singleLineFollowedByEmpty = get(startline)->text.length()<70;
         }
         str.trimDoubleSpaces(false, false, true);
         bool isHeader = (startline==endline && str.length()<4) || (paraCount<2 && str.length()<50);
+        if ( startline==endline && get(startline)->isHeading() )
+            isHeader = true;
         int hlevel = DetectHeadingLevelByText( str );
         if ( hlevel>0 )
             isHeader = true;
         if ( singleLineFollowedByEmpty )
             isHeader = true;
         if ( !str.empty() ) {
-            if ( isHeader )
-                callback->OnTagOpen( NULL, L"title" );
+            lChar16 * title_tag = L"title";
+            if ( isHeader ) {
+                if ( str.compare(L"* * *")==0 ) {
+                    title_tag = L"subtitle";
+                    lastParaWasTitle = false;
+                } else {
+                    if ( !lastParaWasTitle ) {
+                        if ( inSubSection )
+                            callback->OnTagClose( NULL, L"section" );
+                        callback->OnTagOpen( NULL, L"section" );
+                        inSubSection = true;
+                    }
+                    lastParaWasTitle = true;
+                }
+                callback->OnTagOpen( NULL, title_tag );
+            } else
+                    lastParaWasTitle = false;
             callback->OnTagOpen( NULL, L"p" );
                callback->OnText( str.c_str(), str.length(), pos, sz,
                    TXTFLG_TRIM | TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
             callback->OnTagClose( NULL, L"p" );
-            if ( isHeader )
-                callback->OnTagClose( NULL, L"title" );
+            if ( isHeader ) {
+                callback->OnTagClose( NULL, title_tag );
+            } else {
+            }
             paraCount++;
         } else {
-            if ( !(formatFlags & tftEmptyLineDelimPara) ) {
+            if ( !(formatFlags & tftEmptyLineDelimPara) || !isHeader ) {
                 callback->OnTagOpen( NULL, L"empty-line" );
                 callback->OnTagClose( NULL, L"empty-line" );
             }
@@ -653,6 +763,8 @@ public:
             }
             RemoveLines( length() );
         } while ( ReadLines( 100 ) );
+        if ( inSubSection )
+            callback->OnTagClose( NULL, L"section" );
         return true;
     }
 #define MAX_PARA_LINES 30
@@ -691,6 +803,8 @@ public:
             AddPara( pos, i-1 - (emptyLineFlag?1:0), callback );
             pos = i;
         }
+        if ( inSubSection )
+            callback->OnTagClose( NULL, L"section" );
         return true;
     }
     /// delimited by empty lines
@@ -720,6 +834,8 @@ public:
             AddPara( pos, i, callback );
             pos = i+1;
         }
+        if ( inSubSection )
+            callback->OnTagClose( NULL, L"section" );
         return true;
     }
     /// import document body
@@ -753,7 +869,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
             // EOF: treat as EOLN
             last_space_fpos = m_buf_fpos + m_buf_pos;
             last_space_chpos = res.length();
-            flags |= 1; // EOLN flag
+            flags |= LINE_HAS_EOLN; // EOLN flag
             break;
         }
         ch = ReadChar();
@@ -794,6 +910,40 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
     if ( (unsigned)last_space_chpos>res.length() ) {
         res.erase( last_space_chpos, res.length()-last_space_chpos );
     }
+
+    if ( !res.empty() ) {
+        int firstNs = 0;
+        lChar16 ch = 0;
+        for ( ;; firstNs++ ) {
+            ch = res[firstNs];
+            if ( !ch )
+                break;
+            if ( ch!=' ' && ch!='\t' )
+                break;
+        }
+        if ( ch==0x14 ) {
+            if ( res[res.length()-1] == 0x15 ) {
+                // LIB.RU header flags
+                res.erase( res.length()-1, 1 );
+                res.erase( 0, firstNs+1 );
+                flags |= LINE_IS_HEADER;
+            }
+        } else if ( ch=='-' || ch=='*' || ch=='*' ) {
+            bool sameChars = true;
+            for ( int i=firstNs; i<res.length(); i++ ) {
+                lChar16 ch2 = res[ch2];
+                if ( ch2!=' ' && ch2!='\t' && ch2!=ch ) {
+                    sameChars = false;
+                    break;
+                }
+            }
+            if ( sameChars ) {
+                res = L"* * *"; // hline
+                flags |= LINE_IS_HEADER;
+            }
+        }
+    }
+
 
     res.pack();
     return res;
@@ -847,6 +997,8 @@ bool LVTextParser::CheckFormat()
                 case 8:
                 case 7:
                 case 30:
+                case 0x14:
+                case 0x15:
                     break;
                 default:
                     illegal_char_count++;
@@ -882,10 +1034,10 @@ bool LVTextParser::Parse()
       m_callback->OnTagClose( NULL, L"description" );
       // BODY
       m_callback->OnTagOpen( NULL, L"body" );
-        m_callback->OnTagOpen( NULL, L"section" );
+        //m_callback->OnTagOpen( NULL, L"section" );
           // process text
           queue.DoTextImport( m_callback );
-        m_callback->OnTagClose( NULL, L"section" );
+        //m_callback->OnTagClose( NULL, L"section" );
       m_callback->OnTagClose( NULL, L"body" );
     m_callback->OnTagClose( NULL, L"FictionBook" );
     return true;
