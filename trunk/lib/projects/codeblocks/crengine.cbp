@@ -6,10 +6,11 @@
 		<Option title="CREngine Library"/>
 		<Option makefile="Makefile"/>
 		<Option makefile_is_custom="0"/>
+		<Option active_target="0"/>
 		<Option compiler="0"/>
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\libcrengined.a"/>
+				<Option output="debug\libcrengine.a"/>
 				<Option working_dir=""/>
 				<Option object_output="debug\.objs"/>
 				<Option deps_output="debug\.deps"/>
@@ -17,9 +18,16 @@
 				<Option compiler="0"/>
 				<Option createDefFile="1"/>
 				<Option projectResourceIncludeDirsRelation="2"/>
+				<Compiler>
+					<Add option="-march=i386"/>
+					<Add option="-Wall"/>
+					<Add option="-g"/>
+					<Add option="-D_DEBUG"/>
+					<Add option="-DDEBUG"/>
+				</Compiler>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\libcrengine.a"/>
+				<Option output="release\libcrengine.a"/>
 				<Option working_dir=""/>
 				<Option object_output="release\.objs"/>
 				<Option deps_output="release\.deps"/>
@@ -27,14 +35,21 @@
 				<Option compiler="0"/>
 				<Option createDefFile="1"/>
 				<Option projectResourceIncludeDirsRelation="2"/>
+				<Compiler>
+					<Add option="-O2"/>
+					<Add option="-Wall"/>
+				</Compiler>
 			</Target>
 		</Build>
 		<Compiler>
-			<Add directory="..\..\..\..\wxWidgets\include"/>
-			<Add directory="..\..\..\..\wxWidgets\src\jpeg"/>
-			<Add directory="..\..\..\..\wxWidgets\src\png"/>
-			<Add directory="..\..\..\..\wxWidgets\src\zlib"/>
-			<Add directory="..\..\..\..\wxWidgets\lib\debug\lib\wx\include\msw-unicode-release-static-2.8"/>
+			<Add option="-Dboolean=&quot;unsigned char&quot;"/>
+			<Add option="-Dwxjpeg_boolean=&quot;unsigned char&quot;"/>
+			<Add option="-DWIN32"/>
+			<Add option="-D_WIN32"/>
+			<Add option="-DCYGWIN"/>
+			<Add directory="..\..\..\..\cximage\jpeg"/>
+			<Add directory="..\..\..\..\cximage\zlib"/>
+			<Add directory="..\..\..\..\cximage\png"/>
 		</Compiler>
 		<Unit filename="..\..\..\include\cp_stats.h">
 			<Option compilerVar=""/>
@@ -267,6 +282,20 @@
 			<Option target="debug"/>
 			<Option target="release"/>
 		</Unit>
+		<Unit filename="..\..\..\include\rtfcmd.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="debug"/>
+			<Option target="release"/>
+		</Unit>
+		<Unit filename="..\..\..\include\rtfimp.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="debug"/>
+			<Option target="release"/>
+		</Unit>
 		<Unit filename="..\..\..\include\s32utils.h">
 			<Option compilerVar=""/>
 			<Option compile="0"/>
@@ -349,6 +378,9 @@
 			<Option compilerVar="CPP"/>
 			<Option target="debug"/>
 			<Option target="release"/>
+			<Breakpoint line="320" enabled="1" pass="0" />
+			<Breakpoint line="313" enabled="1" pass="0" />
+			<Breakpoint line="531" enabled="1" pass="0" />
 		</Unit>
 		<Unit filename="..\..\..\src\lvmemman.cpp">
 			<Option compilerVar="CPP"/>
@@ -399,8 +431,15 @@
 			<Option compilerVar="CPP"/>
 			<Option target="debug"/>
 			<Option target="release"/>
+			<Breakpoint line="516" enabled="1" pass="0" />
+			<Breakpoint line="475" enabled="1" pass="0" />
 		</Unit>
 		<Unit filename="..\..\..\src\props.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="debug"/>
+			<Option target="release"/>
+		</Unit>
+		<Unit filename="..\..\..\src\rtfimp.cpp">
 			<Option compilerVar="CPP"/>
 			<Option target="debug"/>
 			<Option target="release"/>
