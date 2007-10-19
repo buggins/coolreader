@@ -11,9 +11,12 @@
 
 *******************************************************/
 
+
 RTF_CHR( "\n", par_n, 13 )
 RTF_CHR( "\r", par_r, 13 )
 RTF_CHR( "~", nbsp, 160 )
+RTF_IPR( b, pi_ch_bold, 1 )
+RTF_IPR( i, pi_ch_italic, 1 )
 RTF_CHC( bullet, 'o' )
 RTF_CHC( emdash, 8212 )
 RTF_CHC( emspace, 160 )

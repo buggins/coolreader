@@ -20,12 +20,15 @@
 #undef RTF_CMD
 #undef RTF_CHR
 #undef RTF_CHC
+#undef RTF_IPR
+#define RTF_IPR( name, index, defvalue ) \
+    { RTF_##name, #name, CWT_IPROP, index, defvalue },
 #define RTF_CMD( name, type, index ) \
-    { RTF_##name, #name, type, index },
+    { RTF_##name, #name, type, index, 0 },
 #define RTF_CHC( name, index ) \
-    { RTF_##name, #name, CWT_CHAR, index },
+    { RTF_##name, #name, CWT_CHAR, index, 0 },
 #define RTF_CHR( character, name, index ) \
-    { RTF_##name, character, CWT_CHAR, index },
+    { RTF_##name, character, CWT_CHAR, index, 0 },
 static const rtf_control_word rtf_words[] = {
 #include "../include/rtfcmd.h"
 };
@@ -57,6 +60,29 @@ LVRtfParser::LVRtfParser( LVStreamRef stream, LVXMLParserCallback * callback )
     , txtbuf(NULL)
 {
 }
+
+LVRtfDestination::LVRtfDestination( LVRtfParser & parser )
+: m_parser(parser), m_stack( parser.getStack() ), m_callback( parser.getCallback() )
+{
+}
+
+class LVRtfDefDestination : public LVRtfDestination
+{
+    LVRtfDefDestination(  LVRtfParser & parser )
+    : LVRtfDestination( parser )
+    {
+    }
+    virtual void OnControlWord( const char * control, int param )
+    {
+    }
+    virtual void OnText( const lChar16 * text, int len,
+        lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+    {
+    }
+    virtual ~LVRtfDefDestination()
+    {
+    }
+};
 
 /// descructor
 LVRtfParser::~LVRtfParser()
@@ -242,16 +268,41 @@ lChar16 * LVRtfParser::GetCharsetTable( )
 void LVRtfParser::OnBraceOpen()
 {
     CommitText();
+    m_stack.save();
 }
 
 void LVRtfParser::OnBraceClose()
 {
     CommitText();
+    m_stack.restore();
 }
 
 void LVRtfParser::OnControlWord( const char * control, int param )
 {
-    CommitText();
+    const rtf_control_word * cw = findControlWord( control );
+    if ( cw ) {
+        switch ( cw->type ) {
+        case CWT_CHAR:
+            lChar16 ch = (lChar16)cw->index;
+            if ( ch==13 ) {
+                // end of paragraph
+                CommitText();
+            } else {
+                AddChar(ch);
+            }
+            break;
+        case CWT_STYLE:
+            break;
+        case CWT_DEST:
+            break;
+        case CWT_IPROP:
+            CommitText();
+            if ( param == PARAM_VALUE_NONE )
+                param = cw->defvalue;
+            m_stack.set( cw->index, param );
+            break;
+        }
+    }
 }
 
 void LVRtfParser::OnText( const lChar16 * text, int len,
