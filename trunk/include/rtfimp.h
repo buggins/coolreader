@@ -10,6 +10,8 @@
    See LICENSE file for details
 
 *******************************************************/
+#ifndef RTFIMP_H_INCLUDED
+#define RTFIMP_H_INCLUDED
 
 #include "lvxml.h"
 #include <strings.h>
@@ -31,20 +33,39 @@ typedef struct  {
     int defvalue;
 } rtf_control_word;
 
-enum {
+enum propIndex {
     pi_destination=-2,
     pi_bracket=-1,
     pi_ch_bold=0,
     pi_ch_italic,
     pi_ch_underline,
+    pi_skip_ch_count,
+    pi_skip_ansi,
     pc_max
-} propIndex;
+};
+
+enum rtfDestination {
+    dest_default=0,
+    dest_footnote,
+    dest_header,
+    dest_footer,
+    dest_pict,
+    dest_info,
+    dest_fonttbl,
+    dest_stylesheet,
+    dest_colortbl,
+    dest_upr,
+    dest_ud,
+    dest_max
+};
 
 
 enum rtf_cmd_id {
 #define RTF_IPR( name, index, defvalue ) \
     RTF_##name,
 #define RTF_CMD( name, type, index ) \
+    RTF_##name,
+#define RTF_DST( name, index ) \
     RTF_##name,
 #define RTF_CHC( name, index ) \
     RTF_##name,
@@ -94,11 +115,16 @@ protected:
     bool error;
 public:
     /// constructor
-    LVRtfValueStack()
-    : sp(0), error(false)
+    LVRtfValueStack( LVRtfDestination * initialDest )
+    : dest(initialDest), sp(0), error(false)
     {
         sp = 0;
         memset(props, 0, sizeof(props) );
+    }
+    ~LVRtfValueStack()
+    {
+        if ( dest )
+            delete dest;
     }
     /// returns current destination
     inline LVRtfDestination * getDestination() { return dest; }
@@ -151,9 +177,18 @@ public:
         }
     }
     /// get int property
-    int getInt( int index )
+    inline int getInt( int index )
     {
         return props[index].i;
+    }
+    /// if int property > 0, decrement its value and return 0, otherwise do nothing and return false
+    inline bool decInt( int index )
+    {
+        if ( props[index].i > 0 ) {
+            props[index].i--;
+            return true;
+        }
+        return false;
     }
     /// get pointer property
     void * getPtr( int index )
@@ -186,8 +221,9 @@ class LVRtfParser : public LVFileParserBase
 {
     friend class LVRtfDestination;
 protected:
-    LVRtfValueStack m_stack;
     LVXMLParserCallback * m_callback;
+    LVRtfValueStack m_stack;
+    const lChar16 * m_conv_table; // charset conversion table for 8-bit encodings
     lChar16 * txtbuf; /// text buffer
     int txtpos; /// text chars
     int txtfstart; /// text start file offset
@@ -195,9 +231,7 @@ protected:
     LVXMLParserCallback * getCallback() { return m_callback; }
     void OnBraceOpen();
     void OnBraceClose();
-    void OnControlWord( const char * control, int param );
-    void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
+    void OnControlWord( const char * control, int param, bool asterisk );
     void CommitText();
     void AddChar( lChar16 ch );
     void AddChar8( lUInt8 ch );
@@ -221,3 +255,4 @@ public:
 };
 
 
+#endif // RTFIMP_H_INCLUDED

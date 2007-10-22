@@ -11,6 +11,7 @@
 
 *******************************************************/
 #include "../include/rtfimp.h"
+#include "../include/crtxtenc.h"
 #include <strings.h>
 
 //==================================================
@@ -21,6 +22,7 @@
 #undef RTF_CHR
 #undef RTF_CHC
 #undef RTF_IPR
+#undef RTF_DST
 #define RTF_IPR( name, index, defvalue ) \
     { RTF_##name, #name, CWT_IPROP, index, defvalue },
 #define RTF_CMD( name, type, index ) \
@@ -29,6 +31,8 @@
     { RTF_##name, #name, CWT_CHAR, index, 0 },
 #define RTF_CHR( character, name, index ) \
     { RTF_##name, character, CWT_CHAR, index, 0 },
+#define RTF_DST( name, index ) \
+    { RTF_##name, #name, CWT_DEST, index, 0 },
 static const rtf_control_word rtf_words[] = {
 #include "../include/rtfcmd.h"
 };
@@ -40,12 +44,16 @@ static const rtf_control_word * findControlWord( const char * name )
     int b = rtf_words_count;
     int c;
     for ( ;; ) {
+        if ( a >=b )
+            return NULL;
         c = ( a + b ) / 2;
+        //if ( c>=rtf_words_count ) {
+        //    CRLog::error("findControlWord invalid index: %d of %d", c, rtf_words_count);
+        //    return NULL;
+        //}
         int res = strcmp( name, rtf_words[c].name );
         if ( !res )
             return &rtf_words[c];
-        if ( a + 1 >=b )
-            return NULL;
         if ( res>0 )
             a = c + 1;
         else
@@ -53,21 +61,9 @@ static const rtf_control_word * findControlWord( const char * name )
     }
 }
 
-/// constructor
-LVRtfParser::LVRtfParser( LVStreamRef stream, LVXMLParserCallback * callback )
-    : LVFileParserBase(stream)
-    , m_callback(callback)
-    , txtbuf(NULL)
-{
-}
-
-LVRtfDestination::LVRtfDestination( LVRtfParser & parser )
-: m_parser(parser), m_stack( parser.getStack() ), m_callback( parser.getCallback() )
-{
-}
-
 class LVRtfDefDestination : public LVRtfDestination
 {
+public:
     LVRtfDefDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
     {
@@ -78,11 +74,48 @@ class LVRtfDefDestination : public LVRtfDestination
     virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
     {
+        m_callback->OnTagOpen(NULL, L"p");
+        m_callback->OnText( text, len, fpos, fsize, flags );
+        m_callback->OnTagClose(NULL, L"p");
     }
     virtual ~LVRtfDefDestination()
     {
     }
 };
+
+class LVRtfNullDestination : public LVRtfDestination
+{
+public:
+    LVRtfNullDestination(  LVRtfParser & parser )
+    : LVRtfDestination( parser )
+    {
+    }
+    virtual void OnControlWord( const char * control, int param )
+    {
+    }
+    virtual void OnText( const lChar16 * text, int len,
+        lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+    {
+    }
+    virtual ~LVRtfNullDestination()
+    {
+    }
+};
+
+
+/// constructor
+LVRtfParser::LVRtfParser( LVStreamRef stream, LVXMLParserCallback * callback )
+    : LVFileParserBase(stream)
+    , m_callback(callback)
+    , m_stack( new LVRtfDefDestination(*this) )
+    , txtbuf(NULL)
+{
+}
+
+LVRtfDestination::LVRtfDestination( LVRtfParser & parser )
+: m_parser(parser), m_stack( parser.getStack() ), m_callback( parser.getCallback() )
+{
+}
 
 /// descructor
 LVRtfParser::~LVRtfParser()
@@ -107,7 +140,12 @@ void LVRtfParser::CommitText()
     if ( txtpos==0 )
         return;
     txtbuf[txtpos] = 0;
-    OnText( txtbuf, txtpos, txtfstart, (m_buf_fpos + m_buf_pos) - txtfstart, 0 );
+    if ( CRLog::isLogLevelEnabled(CRLog::LL_TRACE ) ) {
+        lString16 s = txtbuf;
+        lString8 s8 = UnicodeToUtf8( s );
+        CRLog::trace( "Text(%s)", s8.c_str() );
+    }
+    m_stack.getDestination()->OnText( txtbuf, txtpos, txtfstart, (m_buf_fpos + m_buf_pos) - txtfstart, 0 );
     txtpos = 0;
 }
 
@@ -115,14 +153,24 @@ void LVRtfParser::CommitText()
 
 void LVRtfParser::AddChar8( lUInt8 ch )
 {
+    // skip ANSI character counter support
+    if ( m_stack.decInt(pi_skip_ch_count) )
+        return;
+    // skip sequence of ansi characters (\upr{} until \ud{} )
+    if ( m_stack.getInt( pi_skip_ansi )!=0 )
+        return;
     // TODO: add codepage support
-    AddChar( ch );
+    if ( ch & 0x80 ) {
+        AddChar( m_conv_table[ch-0x80] );
+    } else {
+        AddChar( ch );
+    }
 }
 
 // m_buf_pos points to first byte of char
 void LVRtfParser::AddChar( lChar16 ch )
 {
-    if ( txtpos >= MAX_TXT_SIZE )
+    if ( txtpos >= MAX_TXT_SIZE || ch==13 )
         CommitText();
     if ( txtpos==0 )
         txtfstart = m_buf_fpos + m_buf_pos;
@@ -145,8 +193,36 @@ static int charToHex( lUInt8 ch )
 /// parses input stream
 bool LVRtfParser::Parse()
 {
+    m_conv_table = GetCharsetByte2UnicodeTable( L"cp1251" );
+
     bool errorFlag = false;
     m_callback->OnStart(this);
+
+    // make fb2 document structure
+    m_callback->OnTagOpen( NULL, L"?xml" );
+    m_callback->OnAttribute( NULL, L"version", L"1.0" );
+    m_callback->OnAttribute( NULL, L"encoding", L"utf-8" );
+    //m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
+    m_callback->OnTagClose( NULL, L"?xml" );
+    m_callback->OnTagOpen( NULL, L"FictionBook" );
+      // DESCRIPTION
+      m_callback->OnTagOpen( NULL, L"description" );
+        m_callback->OnTagOpen( NULL, L"title-info" );
+          //
+            lString16 bookTitle = m_stream->GetName();
+            m_callback->OnTagOpen( NULL, L"book-title" );
+                if ( !bookTitle.empty() )
+                    m_callback->OnText( bookTitle.c_str(), bookTitle.length(), 0, 0, 0 );
+          //queue.DetectBookDescription( m_callback );
+        m_callback->OnTagOpen( NULL, L"title-info" );
+      m_callback->OnTagClose( NULL, L"description" );
+      // BODY
+      m_callback->OnTagOpen( NULL, L"body" );
+        //m_callback->OnTagOpen( NULL, L"section" );
+          // process text
+          //queue.DoTextImport( m_callback );
+        //m_callback->OnTagClose( NULL, L"section" );
+
     txtbuf = new lChar16[ MAX_TXT_SIZE+1 ];
     txtpos = 0;
     txtfstart = 0;
@@ -164,7 +240,7 @@ bool LVRtfParser::Parse()
         if ( len <=0 )
             break; //EOF
         const lUInt8 * p = m_buf + m_buf_pos;
-        char ch = *p++;
+        lUInt8 ch = *p++;
         if ( ch=='{' ) {
             OnBraceOpen();
             m_buf_pos++;
@@ -173,9 +249,16 @@ bool LVRtfParser::Parse()
             OnBraceClose();
             m_buf_pos++;
             continue;
-        } else if ( ch=='\\' && *p!='\'' ) {
+        }
+        lUInt8 ch2 = *p;
+        if ( ch=='\\' && *p!='\'' ) {
             // control
-            char ch2 = *p;
+            bool asteriskFlag = false;
+            if ( ch2=='*' ) {
+                ch = *(++p);
+                ch2 = *(++p);
+                asteriskFlag = true;
+            }
             if ( (ch2>='A' && ch2<='Z') || (ch2>='a' && ch2<='z') ) {
                 // control word
                 int cwi = 0;
@@ -191,9 +274,11 @@ bool LVRtfParser::Parse()
                     if ( ch2 == '-' ) {
                         p++;
                         param = 0;
-                        while ( ch2>='0' && ch2<='9' ) {
-                            param = param * 10 + (ch2-'0');
+                        for ( ;; ) {
                             ch2 = *++p;
+                            if ( ch2<'0' || ch2>'9' )
+                                break;
+                            param = param * 10 + (ch2-'0');
                         }
                         param = -param;
                     } else if ( ch2>='0' && ch2<='9' ) {
@@ -204,12 +289,19 @@ bool LVRtfParser::Parse()
                         }
                     }
                 }
-                OnControlWord( cwname, param );
+                // \uN -- unicode character
+                if ( cwi==1 && cwname[0]=='u' ) {
+                    AddChar( (lChar16) (param & 0xFFFF) );
+                    m_stack.set( pi_skip_ansi, 1 );
+                } else {
+                    // usual control word
+                    OnControlWord( cwname, param, asteriskFlag );
+                }
             } else {
                 // control char
                 cwname[0] = ch2;
                 p++;
-                OnControlWord( cwname, PARAM_VALUE_NONE );
+                OnControlWord( cwname, PARAM_VALUE_NONE, asteriskFlag );
             }
             m_buf_pos += p - (m_buf + m_buf_pos);
         } else {
@@ -218,17 +310,23 @@ bool LVRtfParser::Parse()
                 p++;
                 int digit1 = charToHex( p[0] );
                 int digit2 = charToHex( p[1] );
+                p+=2;
                 if ( digit1>=0 && digit2>=0 ) {
                     AddChar8( (lChar8)((digit1 << 4) | digit2) );
                 } else {
                     AddChar('\\');
                     AddChar('\'');
-                    AddChar8(p[0]);
-                    AddChar8(p[1]);
+                    AddChar8(digit1);
+                    AddChar8(digit2);
                     p+=2;
                 }
             } else {
-                AddChar8( *p++ );
+                if ( ch>=' ' ) {
+
+                    AddChar8( ch );
+                } else {
+                    // wrong char
+                }
             }
             //=======================================================
             //=======================================================
@@ -238,6 +336,10 @@ bool LVRtfParser::Parse()
     m_callback->OnStop();
     delete txtbuf;
     txtbuf = NULL;
+
+      m_callback->OnTagClose( NULL, L"body" );
+    m_callback->OnTagClose( NULL, L"FictionBook" );
+
     return !errorFlag;
 }
 
@@ -277,7 +379,7 @@ void LVRtfParser::OnBraceClose()
     m_stack.restore();
 }
 
-void LVRtfParser::OnControlWord( const char * control, int param )
+void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk )
 {
     const rtf_control_word * cw = findControlWord( control );
     if ( cw ) {
@@ -285,7 +387,7 @@ void LVRtfParser::OnControlWord( const char * control, int param )
         case CWT_CHAR:
             lChar16 ch = (lChar16)cw->index;
             if ( ch==13 ) {
-                // end of paragraph
+                // TODO: end of paragraph
                 CommitText();
             } else {
                 AddChar(ch);
@@ -294,19 +396,44 @@ void LVRtfParser::OnControlWord( const char * control, int param )
         case CWT_STYLE:
             break;
         case CWT_DEST:
+            CRLog::trace("DEST: \\%s", cw->name);
+            switch ( cw->index ) {
+            case dest_upr:
+                m_stack.set( pi_skip_ansi, 1 );
+                break;
+            case dest_ud:
+                m_stack.set( pi_skip_ansi, 0 );
+                break;
+            case dest_fonttbl:
+                m_stack.set( new LVRtfNullDestination(*this) );
+                break;
+            case dest_stylesheet:
+                m_stack.set( new LVRtfNullDestination(*this) );
+                break;
+            case dest_footnote:
+                m_stack.set( new LVRtfNullDestination(*this) );
+                break;
+            case dest_info:
+            case dest_header:
+            case dest_footer:
+            case dest_pict:
+            case dest_colortbl:
+                m_stack.set( new LVRtfNullDestination(*this) );
+                break;
+            }
             break;
         case CWT_IPROP:
             CommitText();
             if ( param == PARAM_VALUE_NONE )
                 param = cw->defvalue;
+            CRLog::trace("PROP: \\%s %d", cw->name, param);
             m_stack.set( cw->index, param );
             break;
         }
+    } else if ( asterisk ) {
+        // ignore text after unknown keyword
+        //m_stack.set( new LVRtfNullDestination(*this) );
+        CRLog::trace("CW: \\%s %d", control, param);
     }
 }
 
-void LVRtfParser::OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
-{
-    m_callback->OnText( text, len, fpos, fsize, flags );
-}
