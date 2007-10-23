@@ -23,8 +23,11 @@
 #undef RTF_CHC
 #undef RTF_IPR
 #undef RTF_DST
+#undef RTF_ACT
 #define RTF_IPR( name, index, defvalue ) \
     { RTF_##name, #name, CWT_IPROP, index, defvalue },
+#define RTF_ACT( name, index ) \
+    { RTF_##name, #name, CWT_ACT, index, 0 },
 #define RTF_CMD( name, type, index ) \
     { RTF_##name, #name, type, index, 0 },
 #define RTF_CHC( name, index ) \
@@ -128,10 +131,21 @@ public:
         if ( m_stack.getInt(pi_ch_italic) ) {
             m_callback->OnTagOpen(NULL, L"emphasis");
         }
+        if ( m_stack.getInt(pi_ch_sub) ) {
+            m_callback->OnTagOpen(NULL, L"sub");
+        } else if ( m_stack.getInt(pi_ch_super) ) {
+            m_callback->OnTagOpen(NULL, L"sup");
+        }
 
         m_callback->OnText( text, len, fpos, fsize, flags );
         last_space = text[len-1]==' ';
 
+        
+        if ( m_stack.getInt(pi_ch_super) && !m_stack.getInt(pi_ch_sub) ) {
+            m_callback->OnTagClose(NULL, L"sup");
+        } else if ( m_stack.getInt(pi_ch_sub) ) {
+            m_callback->OnTagClose(NULL, L"sub");
+        }
         if ( m_stack.getInt(pi_ch_italic) ) {
             m_callback->OnTagClose(NULL, L"emphasis");
         }
@@ -159,6 +173,9 @@ public:
                 m_callback->OnTagClose(NULL, L"section");
                 in_section = false;
             }
+        }
+        if ( action==RA_PARD ) {
+            m_stack.setDefProps();
         }
     }
     virtual ~LVRtfDefDestination()
@@ -225,11 +242,13 @@ void LVRtfParser::CommitText()
     if ( txtpos==0 )
         return;
     txtbuf[txtpos] = 0;
+    /*
     if ( CRLog::isLogLevelEnabled(CRLog::LL_TRACE ) ) {
         lString16 s = txtbuf;
         lString8 s8 = UnicodeToUtf8( s );
         CRLog::trace( "Text(%s)", s8.c_str() );
     }
+    */
     m_stack.getDestination()->OnText( txtbuf, txtpos, txtfstart, (m_buf_fpos + m_buf_pos) - txtfstart, 0 );
     txtpos = 0;
 }
@@ -269,7 +288,7 @@ static int charToHex( lUInt8 ch )
 /// parses input stream
 bool LVRtfParser::Parse()
 {
-    m_conv_table = GetCharsetByte2UnicodeTable( L"cp1251" );
+    //m_conv_table = GetCharsetByte2UnicodeTable( L"cp1251" );
 
     bool errorFlag = false;
     m_callback->OnStart(this);
@@ -479,8 +498,12 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
             break;
         case CWT_STYLE:
             break;
+        case CWT_ACT:
+            CommitText();
+            m_stack.getDestination()->OnAction(cw->index);
+            break;
         case CWT_DEST:
-            CRLog::trace("DEST: \\%s", cw->name);
+            //CRLog::trace("DEST: \\%s", cw->name);
             switch ( cw->index ) {
             case dest_upr:
                 m_stack.set( pi_skip_ansi, 1 );
@@ -510,16 +533,16 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
             CommitText();
             if ( param == PARAM_VALUE_NONE )
                 param = cw->defvalue;
-            CRLog::trace("PROP: \\%s %d", cw->name, param);
+            //CRLog::trace("PROP: \\%s %d", cw->name, param);
             m_stack.set( cw->index, param );
             break;
         }
     } else {
-        CRLog::trace("CW: %s\\%s %d", asterisk?"\\*":"", control, param==PARAM_VALUE_NONE ? 0 : param);
+        //CRLog::trace("CW: %s\\%s %d", asterisk?"\\*":"", control, param==PARAM_VALUE_NONE ? 0 : param);
         if ( asterisk ) {
             // ignore text after unknown keyword
             m_stack.set( new LVRtfNullDestination(*this) );
-            CRLog::trace("Ignoring unknown destination %s !!!", control );
+            //CRLog::trace("Ignoring unknown destination %s !!!", control );
         }
     }
 }

@@ -24,6 +24,7 @@ enum rtf_control_word_type {
     CWT_STYLE, ///
     CWT_IPROP, /// integer property
     CWT_DEST,  /// destination
+    CWT_ACT,  /// destination
 };
 
 typedef struct  {
@@ -38,6 +39,8 @@ enum propIndex {
     pi_destination=-2,
     pi_bracket=-1,
     pi_ch_bold=0,
+    pi_ch_sub,
+    pi_ch_super,
     pi_ch_italic,
     pi_ch_underline,
     pi_skip_ch_count,
@@ -77,6 +80,8 @@ enum rtfDestination {
 enum rtf_cmd_id {
 #define RTF_IPR( name, index, defvalue ) \
     RTF_##name,
+#define RTF_ACT( name, index ) \
+    RTF_##name,
 #define RTF_CMD( name, type, index ) \
     RTF_##name,
 #define RTF_DST( name, index ) \
@@ -113,6 +118,7 @@ protected:
 public:
     enum rtf_actions {
         RA_PARA,
+        RA_PARD,
         RA_PAGE,
         RA_SECTION,
     };
@@ -124,7 +130,7 @@ public:
     virtual ~LVRtfDestination() { }
 };
 
-#define MAX_PROP_STACK_SIZE 4096
+#define MAX_PROP_STACK_SIZE 16384
 class LVRtfValueStack
 {
 protected:
@@ -140,12 +146,22 @@ public:
     {
         sp = 0;
         memset(props, 0, sizeof(props) );
-        props[pi_ansicpg].p = (void*)GetCharsetByte2UnicodeTable( 1251 );
+        props[pi_ansicpg].p = (void*)GetCharsetByte2UnicodeTable( 1251 ); //
     }
     ~LVRtfValueStack()
     {
         if ( dest )
             delete dest;
+    }
+    void setDefProps()
+    {
+            props[pi_ch_bold].i = 0;
+            props[pi_ch_italic].i = 0;
+            props[pi_ch_sub].i = 0;
+            props[pi_ch_super].i = 0;
+            props[pi_ch_underline].i = 0;
+            props[pi_align].i = ha_left;
+            set( pi_lang, props[pi_deflang].i );
     }
     void setDestination( LVRtfDestination * newDest )
     {
@@ -190,7 +206,7 @@ public:
         if ( sp>=MAX_PROP_STACK_SIZE ) {
             error = true;
         } else {
-            CRLog::trace("Changing destination. Level=%d old=%08X new=%08X", sp, (unsigned)dest, (unsigned)newdest);
+            //CRLog::trace("Changing destination. Level=%d old=%08X new=%08X", sp, (unsigned)dest, (unsigned)newdest);
             stack[sp].index = pi_destination;
             stack[sp++].value.dest = dest;
             dest = newdest;
@@ -261,7 +277,7 @@ public:
             if ( i==pi_destination ) {
                 delete dest;
                 dest = stack[sp].value.dest;
-                CRLog::trace("Restoring destination. Level=%d Value=%08X", sp, (unsigned)dest);
+                //CRLog::trace("Restoring destination. Level=%d Value=%08X", sp, (unsigned)dest);
             } else {
                 props[i] = stack[sp].value;
             }

@@ -591,8 +591,12 @@ const lChar16 * GetCharsetByte2UnicodeTable( int codepage )
 {
     switch ( codepage )
     {
-    case 1251: return __cp1251;
-    case 1252: return __cp1252;
+    case 1251: 
+        return __cp1251;
+    case 204: 
+        return __cp1251;
+    case 1252: 
+        return __cp1252;
     case 1250: return __cp1250;
     case 866:  return __cp866;
     case 850:  return __cp850;

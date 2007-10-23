@@ -2728,7 +2728,7 @@ public:
     CRFileLogger( const char * fname, bool _autoFlush )
     : f(fopen( fname, "wt" )), autoClose(true), autoFlush( _autoFlush )
     {
-        static char utf8sign[] = {0xEF, 0xBB, 0xBF};
+        static unsigned char utf8sign[] = {0xEF, 0xBB, 0xBF};
         static char * log_level_names[] = {
         "FATAL",
         "ERROR",

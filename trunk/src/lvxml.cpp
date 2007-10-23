@@ -41,7 +41,7 @@ lString16 LVFileParserBase::getFileName()
 {
     lString16 name( m_stream->GetName() );
     int lastPathDelim = -1;
-    for ( int i=0; i<name.length(); i++ ) {
+    for ( unsigned i=0; i<name.length(); i++ ) {
         if ( name[i]=='\\' || name[i]=='/' ) {
             lastPathDelim = i;
         }
@@ -400,7 +400,7 @@ public:
     lUInt16 lpos;   // left non-space char position
     lUInt16 rpos;   // right non-space char posision + 1
     bool empty() { return rpos==0; }
-    bool isHeading() { return (flags & LINE_IS_HEADER); }
+    bool isHeading() { return (flags & LINE_IS_HEADER)!=0; }
     LVTextFileLine( LVTextFileBase * file, int maxsize )
     : flags(0), lpos(0), rpos(0)
     {
@@ -930,7 +930,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
             }
         } else if ( ch=='-' || ch=='*' || ch=='*' ) {
             bool sameChars = true;
-            for ( int i=firstNs; i<res.length(); i++ ) {
+            for ( unsigned i=firstNs; i<res.length(); i++ ) {
                 lChar16 ch2 = res[ch2];
                 if ( ch2!=' ' && ch2!='\t' && ch2!=ch ) {
                     sameChars = false;
