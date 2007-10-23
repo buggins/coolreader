@@ -774,6 +774,10 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
     _view = new cr3view( _props );
     _hist = new HistList();
 
+#ifdef _DEBUG
+    CRLog::setFileLogger( "crengine.log" );
+    CRLog::setLogLevel( CRLog::LL_TRACE );
+#endif
 
     InitDialog();
 }
@@ -913,7 +917,7 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
     wxFileDialog dlg( this, wxT( "Choose a file to open" ), 
         wxT( "" ),
         wxT( "" ),//const wxString& defaultFile = "", 
-        wxT("All supported files|*.fb2;*.txt;*.zip|FictionBook files (*.fb2)|*.fb2|Text files (*.txt)|*.txt|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
+        wxT("All supported files|*.fb2;*.txt;*.zip;*.rtf|FictionBook files (*.fb2)|*.fb2|RTF files (*.rtf)|*.rtf|Text files (*.txt)|*.txt|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
         wxFD_OPEN | wxFD_FILE_MUST_EXIST //long style = wxFD_DEFAULT_STYLE, 
         //const wxPoint& pos = wxDefaultPosition, 
         //const wxSize& sz = wxDefaultSize, 
