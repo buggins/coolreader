@@ -12,7 +12,7 @@
 *******************************************************/
 #include "../include/rtfimp.h"
 #include "../include/crtxtenc.h"
-#include <strings.h>
+#include <string.h>
 
 //==================================================
 // RTF file parser
@@ -71,6 +71,7 @@ protected:
     bool in_para;
     bool last_space;
     bool last_notitle;
+    bool in_subtitle;
 public:
     LVRtfDefDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
@@ -79,6 +80,7 @@ public:
     , in_para(false)
     , last_space(false)
     , last_notitle(true)
+    , in_subtitle(false)
     {
     }
     virtual void OnControlWord( const char * control, int param )
@@ -87,8 +89,15 @@ public:
     virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
     {
+        lString16 s = text;
+        s.trimDoubleSpaces(!last_space, true, false);
+        text = s.c_str();
+        len = s.length();
+        if ( !len )
+            return;
+        bool asteriskFlag = ( s.compare( L"* * *" )==0 );
         bool titleFlag = m_stack.getInt( pi_align )==ha_center;
-        if ( last_notitle && titleFlag ) {
+        if ( last_notitle && titleFlag && !asteriskFlag ) {
             OnAction(RA_SECTION);
         }
         if ( !in_section ) {
@@ -96,7 +105,13 @@ public:
             in_section = true;
         }
         if ( !in_title && titleFlag ) {
-            m_callback->OnTagOpen(NULL, L"title");
+            if ( asteriskFlag ) {
+                m_callback->OnTagOpen(NULL, L"subtitle");
+                in_subtitle = true;
+            } else {
+                m_callback->OnTagOpen(NULL, L"title");
+                in_subtitle = false;
+            }
             in_title = true;
             last_notitle = false;
         }
@@ -114,14 +129,8 @@ public:
             m_callback->OnTagOpen(NULL, L"emphasis");
         }
 
-        lString16 s = text;
-        s.trimDoubleSpaces(!last_space, true, false);
-        text = s.c_str();
-        len = s.length();
-        if ( len ) {
-            m_callback->OnText( text, len, fpos, fsize, flags );
-            last_space = text[len-1]==' ';
-        }
+        m_callback->OnText( text, len, fpos, fsize, flags );
+        last_space = text[len-1]==' ';
 
         if ( m_stack.getInt(pi_ch_italic) ) {
             m_callback->OnTagClose(NULL, L"emphasis");
@@ -138,7 +147,10 @@ public:
                 in_para = false;
             }
             if ( in_title ) {
-                m_callback->OnTagClose(NULL, L"title");
+                if ( in_subtitle )
+                    m_callback->OnTagClose(NULL, L"subtitle");
+                else
+                    m_callback->OnTagClose(NULL, L"title");
                 in_title = false;
             }
         }
@@ -180,9 +192,9 @@ public:
 LVRtfParser::LVRtfParser( LVStreamRef stream, LVXMLParserCallback * callback )
     : LVFileParserBase(stream)
     , m_callback(callback)
-    , m_stack( new LVRtfDefDestination(*this) )
     , txtbuf(NULL)
 {
+    m_stack.setDestination(  new LVRtfDefDestination(*this) );
 }
 
 LVRtfDestination::LVRtfDestination( LVRtfParser & parser )
@@ -356,7 +368,8 @@ bool LVRtfParser::Parse()
                 // \uN -- unicode character
                 if ( cwi==1 && cwname[0]=='u' ) {
                     AddChar( (lChar16) (param & 0xFFFF) );
-                    m_stack.set( pi_skip_ansi, 1 );
+                    if ( m_stack.getInt( pi_skip_ch_count )==0 )
+                        m_stack.set( pi_skip_ch_count, 1 );
                 } else {
                     // usual control word
                     OnControlWord( cwname, param, asteriskFlag );
@@ -453,13 +466,15 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
     if ( cw ) {
         switch ( cw->type ) {
         case CWT_CHAR:
-            lChar16 ch = (lChar16)cw->index;
-            if ( ch==13 ) {
-                // TODO: end of paragraph
-                CommitText();
-                m_stack.getDestination()->OnAction(LVRtfDestination::RA_PARA);
-            } else {
-                AddChar(ch);
+            {
+                lChar16 ch = (lChar16)cw->index;
+                if ( ch==13 ) {
+                    // TODO: end of paragraph
+                    CommitText();
+                    m_stack.getDestination()->OnAction(LVRtfDestination::RA_PARA);
+                } else {
+                    AddChar(ch);
+                }
             }
             break;
         case CWT_STYLE:

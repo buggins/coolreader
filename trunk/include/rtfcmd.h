@@ -14,7 +14,7 @@
 
 RTF_CHR( "\n", par_n, 13 )
 RTF_CHR( "\r", par_r, 13 )
-RTF_CHR( "~", nbsp, 160 )
+RTF_CHR( "_", nb_hyphen, '-' )
 RTF_IPR( ansicpg, pi_ansicpg, 1252 )
 RTF_IPR( b, pi_ch_bold, 1 )
 RTF_CHC( bullet, 'o' )
@@ -49,4 +49,5 @@ RTF_CHC( tab, ' ' )
 RTF_IPR( uc, pi_skip_ch_count, 1 )
 RTF_DST( ud, dest_ud )
 RTF_DST( upr, dest_upr )
+RTF_CHR( "~", nbsp, 160 )
 

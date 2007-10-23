@@ -77,7 +77,11 @@
 /// maximum picture zoom (1, 2, 3)
 #define COLOR_BACKBUFFER                     1
 #define MAX_IMAGE_SCALE_MUL                  1
+#if defined(CYGWIN)
 #define USE_FREETYPE                         0
+#else
+#define USE_FREETYPE                         1
+#endif
 #define ALLOW_KERNING                        0
 #define GLYPH_CACHE_SIZE                     0x80000
 #define ZIP_STREAM_BUFFER_SIZE               0x200000

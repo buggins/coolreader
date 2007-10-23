@@ -15,7 +15,7 @@
 
 #include "lvxml.h"
 #include "crtxtenc.h"
-#include <strings.h>
+#include <string.h>
 
 #define PARAM_VALUE_NONE 0x7FFFFFFF
 
@@ -135,17 +135,21 @@ protected:
     bool error;
 public:
     /// constructor
-    LVRtfValueStack( LVRtfDestination * initialDest )
-    : dest(initialDest), sp(0), error(false)
+    LVRtfValueStack()
+    : dest(NULL), sp(0), error(false)
     {
         sp = 0;
         memset(props, 0, sizeof(props) );
-        set( pi_ansicpg, 1252 );
+        props[pi_ansicpg].p = (void*)GetCharsetByte2UnicodeTable( 1251 );
     }
     ~LVRtfValueStack()
     {
         if ( dest )
             delete dest;
+    }
+    void setDestination( LVRtfDestination * newDest )
+    {
+        dest = newDest;
     }
     /// returns current destination
     inline LVRtfDestination * getDestination() { return dest; }

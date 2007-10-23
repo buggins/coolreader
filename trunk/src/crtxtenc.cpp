@@ -483,7 +483,7 @@ int langToCodepage( int lang )
     case	0x0448	: //	Oriya
         return 1252;
     case	0x0415	: //	Polish
-        return 1252;
+        return 1250;
     case	0x0416	: //	Portuguese Brazil
     case	0x0816	: //	Portuguese Iberian
         return 1252;
