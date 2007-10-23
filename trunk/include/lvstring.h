@@ -556,7 +556,7 @@ public:
         LL_TRACE,
     };
     static void setLogLevel( log_level level );
-    static log_level getLogLevel( log_level level );
+    static log_level getLogLevel();
     static bool isLogLevelEnabled( log_level level );
     static void fatal( const char * msg, ... );
     static void error( const char * msg, ... );

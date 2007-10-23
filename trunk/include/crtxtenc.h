@@ -28,6 +28,10 @@
 */
 const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * encoding_name );
 const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * encoding_name );
+/// get conversion table for upper 128 characters of codepage, by codepage number
+const lChar16 * GetCharsetByte2UnicodeTable( int codepage );
+/// convert language id to codepage number (MS)
+int langToCodepage( int lang );
 
 /**
     \brief Autodetects encoding of text data in buffer.

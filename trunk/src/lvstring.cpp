@@ -2609,7 +2609,7 @@ void CRLog::setLogLevel( CRLog::log_level level )
     CRLOG->curr_level = level;
 }
 
-CRLog::log_level CRLog::getLogLevel( CRLog::log_level level )
+CRLog::log_level CRLog::getLogLevel()
 {
     if ( !CRLOG )
         return LL_INFO;
@@ -2726,9 +2726,19 @@ public:
     }
 
     CRFileLogger( const char * fname, bool _autoFlush )
-    : f(fopen( fname, "at" )), autoClose(true), autoFlush( _autoFlush )
+    : f(fopen( fname, "wt" )), autoClose(true), autoFlush( _autoFlush )
     {
-        info( "Started logging" );
+        static char utf8sign[] = {0xEF, 0xBB, 0xBF};
+        static char * log_level_names[] = {
+        "FATAL",
+        "ERROR",
+        "WARN",
+        "INFO",
+        "DEBUG",
+        "TRACE",
+        };
+        fwrite( utf8sign, 3, 1, f);
+        info( "Started logging. Level=%s", log_level_names[getLogLevel()] );
     }
 
     virtual ~CRFileLogger() {

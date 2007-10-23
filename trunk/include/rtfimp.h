@@ -14,6 +14,7 @@
 #define RTFIMP_H_INCLUDED
 
 #include "lvxml.h"
+#include "crtxtenc.h"
 #include <strings.h>
 
 #define PARAM_VALUE_NONE 0x7FFFFFFF
@@ -41,7 +42,20 @@ enum propIndex {
     pi_ch_underline,
     pi_skip_ch_count,
     pi_skip_ansi,
+    pi_ansicpg,
+    pi_lang,
+    pi_deflang,
+    pi_align,
     pc_max
+};
+
+enum hAlign {
+    ha_left = 0,
+    ha_center,
+    ha_justified,
+    ha_right,
+    ha_distributed,
+    ha_thai,
 };
 
 enum rtfDestination {
@@ -97,10 +111,16 @@ protected:
     LVRtfValueStack & m_stack;
     LVXMLParserCallback * m_callback;
 public:
+    enum rtf_actions {
+        RA_PARA,
+        RA_PAGE,
+        RA_SECTION,
+    };
     LVRtfDestination( LVRtfParser & parser );
-    virtual void OnControlWord( const char * control, int param ) = 0;
+    virtual void OnAction( int action ) { }
+    virtual void OnControlWord( const char * control, int param ) { }
     virtual void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags ) = 0;
+        lvpos_t fpos, lvsize_t fsize, lUInt32 flags ) { }
     virtual ~LVRtfDestination() { }
 };
 
@@ -120,6 +140,7 @@ public:
     {
         sp = 0;
         memset(props, 0, sizeof(props) );
+        set( pi_ansicpg, 1252 );
     }
     ~LVRtfValueStack()
     {
@@ -128,6 +149,23 @@ public:
     }
     /// returns current destination
     inline LVRtfDestination * getDestination() { return dest; }
+    /// converts byte to unicode using current code page
+    inline lChar16 byteToUnicode( lUInt8 ch )
+    {
+        // skip ANSI character counter support
+        if ( decInt(pi_skip_ch_count) )
+            return 0;
+        // skip sequence of ansi characters (\upr{} until \ud{} )
+        if ( getInt( pi_skip_ansi )!=0 )
+            return 0;
+        // TODO: add codepage support
+        if ( ch & 0x80 ) {
+            const lChar16 * conv_table = (const lChar16 *)props[pi_ansicpg].p;
+            return ( conv_table[ch & 0x7F] );
+        } else {
+            return ( ch );
+        }
+    }
     /// returns true if any error occured when accessing stack
     inline bool isError()
     {
@@ -145,24 +183,34 @@ public:
     /// set new destination
     inline void set( LVRtfDestination * newdest )
     {
-        save();
         if ( sp>=MAX_PROP_STACK_SIZE ) {
             error = true;
         } else {
+            CRLog::trace("Changing destination. Level=%d old=%08X new=%08X", sp, (unsigned)dest, (unsigned)newdest);
             stack[sp].index = pi_destination;
             stack[sp++].value.dest = dest;
             dest = newdest;
         }
     }
     /// change integer property
-    inline void set( int index, int value )
+    void set( int index, int value )
     {
         if ( sp>=MAX_PROP_STACK_SIZE ) {
             error = true;
         } else {
             stack[sp].index = index;
-            stack[sp++].value.i = props[index].i;
-            props[index].i = value;
+            if ( index==pi_ansicpg ) {
+                stack[sp++].value.p = props[index].p;
+                props[index].p = (void*)GetCharsetByte2UnicodeTable( value );
+            } else {
+                stack[sp++].value.i = props[index].i;
+                props[index].i = value;
+                if ( index==pi_lang ) {
+                    set( pi_ansicpg, langToCodepage( value ) );
+                } else if ( index==pi_deflang ) {
+                    set( pi_ansicpg, langToCodepage( value ) );
+                }
+            }
         }
     }
     /// change pointer property
@@ -209,6 +257,7 @@ public:
             if ( i==pi_destination ) {
                 delete dest;
                 dest = stack[sp].value.dest;
+                CRLog::trace("Restoring destination. Level=%d Value=%08X", sp, (unsigned)dest);
             } else {
                 props[i] = stack[sp].value;
             }

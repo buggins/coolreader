@@ -44,7 +44,7 @@ static const rtf_control_word * findControlWord( const char * name )
     int b = rtf_words_count;
     int c;
     for ( ;; ) {
-        if ( a >=b )
+        if ( a >= b )
             return NULL;
         c = ( a + b ) / 2;
         //if ( c>=rtf_words_count ) {
@@ -54,6 +54,8 @@ static const rtf_control_word * findControlWord( const char * name )
         int res = strcmp( name, rtf_words[c].name );
         if ( !res )
             return &rtf_words[c];
+        //if ( a + 1 >= b )
+        //    return NULL;
         if ( res>0 )
             a = c + 1;
         else
@@ -63,9 +65,20 @@ static const rtf_control_word * findControlWord( const char * name )
 
 class LVRtfDefDestination : public LVRtfDestination
 {
+protected:
+    bool in_section;
+    bool in_title;
+    bool in_para;
+    bool last_space;
+    bool last_notitle;
 public:
     LVRtfDefDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
+    , in_section(false)
+    , in_title(false)
+    , in_para(false)
+    , last_space(false)
+    , last_notitle(true)
     {
     }
     virtual void OnControlWord( const char * control, int param )
@@ -74,12 +87,72 @@ public:
     virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
     {
-        m_callback->OnTagOpen(NULL, L"p");
-        m_callback->OnText( text, len, fpos, fsize, flags );
-        m_callback->OnTagClose(NULL, L"p");
+        bool titleFlag = m_stack.getInt( pi_align )==ha_center;
+        if ( last_notitle && titleFlag ) {
+            OnAction(RA_SECTION);
+        }
+        if ( !in_section ) {
+            m_callback->OnTagOpen(NULL, L"section");
+            in_section = true;
+        }
+        if ( !in_title && titleFlag ) {
+            m_callback->OnTagOpen(NULL, L"title");
+            in_title = true;
+            last_notitle = false;
+        }
+        if ( !in_para ) {
+            if ( !in_title )
+                last_notitle = true;
+            m_callback->OnTagOpen(NULL, L"p");
+            last_space = false;
+            in_para = true;
+        }
+        if ( m_stack.getInt(pi_ch_bold) ) {
+            m_callback->OnTagOpen(NULL, L"strong");
+        }
+        if ( m_stack.getInt(pi_ch_italic) ) {
+            m_callback->OnTagOpen(NULL, L"emphasis");
+        }
+
+        lString16 s = text;
+        s.trimDoubleSpaces(!last_space, true, false);
+        text = s.c_str();
+        len = s.length();
+        if ( len ) {
+            m_callback->OnText( text, len, fpos, fsize, flags );
+            last_space = text[len-1]==' ';
+        }
+
+        if ( m_stack.getInt(pi_ch_italic) ) {
+            m_callback->OnTagClose(NULL, L"emphasis");
+        }
+        if ( m_stack.getInt(pi_ch_bold) ) {
+            m_callback->OnTagClose(NULL, L"strong");
+        }
+    }
+    virtual void OnAction( int action )
+    {
+        if ( action==RA_PARA || action==RA_SECTION ) {
+            if ( in_para ) {
+                m_callback->OnTagClose(NULL, L"p");
+                in_para = false;
+            }
+            if ( in_title ) {
+                m_callback->OnTagClose(NULL, L"title");
+                in_title = false;
+            }
+        }
+        if ( action==RA_SECTION ) {
+            if ( in_section ) {
+                m_callback->OnTagClose(NULL, L"section");
+                in_section = false;
+            }
+        }
     }
     virtual ~LVRtfDefDestination()
     {
+        OnAction( RA_PARA );
+        OnAction( RA_SECTION );
     }
 };
 
@@ -153,25 +226,16 @@ void LVRtfParser::CommitText()
 
 void LVRtfParser::AddChar8( lUInt8 ch )
 {
-    // skip ANSI character counter support
-    if ( m_stack.decInt(pi_skip_ch_count) )
-        return;
-    // skip sequence of ansi characters (\upr{} until \ud{} )
-    if ( m_stack.getInt( pi_skip_ansi )!=0 )
-        return;
-    // TODO: add codepage support
-    if ( ch & 0x80 ) {
-        AddChar( m_conv_table[ch-0x80] );
-    } else {
-        AddChar( ch );
-    }
+    AddChar( m_stack.byteToUnicode(ch) );
 }
 
 // m_buf_pos points to first byte of char
 void LVRtfParser::AddChar( lChar16 ch )
 {
-    if ( txtpos >= MAX_TXT_SIZE || ch==13 )
+    if ( txtpos >= MAX_TXT_SIZE || ch==13 ) {
         CommitText();
+        m_stack.getDestination()->OnAction(LVRtfDestination::RA_PARA);
+    }
     if ( txtpos==0 )
         txtfstart = m_buf_fpos + m_buf_pos;
     txtbuf[txtpos++] = ch;
@@ -209,7 +273,7 @@ bool LVRtfParser::Parse()
       m_callback->OnTagOpen( NULL, L"description" );
         m_callback->OnTagOpen( NULL, L"title-info" );
           //
-            lString16 bookTitle = m_stream->GetName();
+            lString16 bookTitle = getFileName(); //m_stream->GetName();
             m_callback->OnTagOpen( NULL, L"book-title" );
                 if ( !bookTitle.empty() )
                     m_callback->OnText( bookTitle.c_str(), bookTitle.length(), 0, 0, 0 );
@@ -300,6 +364,7 @@ bool LVRtfParser::Parse()
             } else {
                 // control char
                 cwname[0] = ch2;
+                cwname[1] = 0;
                 p++;
                 OnControlWord( cwname, PARAM_VALUE_NONE, asteriskFlag );
             }
@@ -336,6 +401,9 @@ bool LVRtfParser::Parse()
     m_callback->OnStop();
     delete txtbuf;
     txtbuf = NULL;
+
+    CommitText();
+    m_stack.getDestination()->OnAction(LVRtfDestination::RA_SECTION);
 
       m_callback->OnTagClose( NULL, L"body" );
     m_callback->OnTagClose( NULL, L"FictionBook" );
@@ -389,6 +457,7 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
             if ( ch==13 ) {
                 // TODO: end of paragraph
                 CommitText();
+                m_stack.getDestination()->OnAction(LVRtfDestination::RA_PARA);
             } else {
                 AddChar(ch);
             }
@@ -430,10 +499,13 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
             m_stack.set( cw->index, param );
             break;
         }
-    } else if ( asterisk ) {
-        // ignore text after unknown keyword
-        //m_stack.set( new LVRtfNullDestination(*this) );
-        CRLog::trace("CW: \\%s %d", control, param);
+    } else {
+        CRLog::trace("CW: %s\\%s %d", asterisk?"\\*":"", control, param==PARAM_VALUE_NONE ? 0 : param);
+        if ( asterisk ) {
+            // ignore text after unknown keyword
+            m_stack.set( new LVRtfNullDestination(*this) );
+            CRLog::trace("Ignoring unknown destination %s !!!", control );
+        }
     }
 }
 

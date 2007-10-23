@@ -18,45 +18,45 @@
 
 static lChar16 __cp1251[128] = {
     /* 0x80*/
-    0x0402, 0x0403, 0x201a, 0x0453, 
-    0x201e, 0x2026, 0x2020, 0x2021, 
-    0x20ac, 0x2030, 0x0409, 0x2039, 
-    0x040a, 0x040c, 0x040b, 0x040f, 
+    0x0402, 0x0403, 0x201a, 0x0453,
+    0x201e, 0x2026, 0x2020, 0x2021,
+    0x20ac, 0x2030, 0x0409, 0x2039,
+    0x040a, 0x040c, 0x040b, 0x040f,
     /* 0x90*/
-    0x0452, 0x2018, 0x2019, 0x201c, 
-    0x201d, 0x2022, 0x2013, 0x2014, 
-    0x0000, 0x2122, 0x0459, 0x203a, 
-    0x045a, 0x045c, 0x045b, 0x045f, 
+    0x0452, 0x2018, 0x2019, 0x201c,
+    0x201d, 0x2022, 0x2013, 0x2014,
+    0x0000, 0x2122, 0x0459, 0x203a,
+    0x045a, 0x045c, 0x045b, 0x045f,
     /* 0xa0*/
-    0x00a0, 0x040e, 0x045e, 0x0408, 
-    0x00a4, 0x0490, 0x00a6, 0x00a7, 
-    0x0401, 0x00a9, 0x0404, 0x00ab, 
-    0x00ac, 0x00ad, 0x00ae, 0x0407, 
+    0x00a0, 0x040e, 0x045e, 0x0408,
+    0x00a4, 0x0490, 0x00a6, 0x00a7,
+    0x0401, 0x00a9, 0x0404, 0x00ab,
+    0x00ac, 0x00ad, 0x00ae, 0x0407,
     /* 0xb0*/
-    0x00b0, 0x00b1, 0x0406, 0x0456, 
-    0x0491, 0x00b5, 0x00b6, 0x00b7, 
-    0x0451, 0x2116, 0x0454, 0x00bb, 
-    0x0458, 0x0405, 0x0455, 0x0457, 
+    0x00b0, 0x00b1, 0x0406, 0x0456,
+    0x0491, 0x00b5, 0x00b6, 0x00b7,
+    0x0451, 0x2116, 0x0454, 0x00bb,
+    0x0458, 0x0405, 0x0455, 0x0457,
     /* 0xc0*/
-    0x0410, 0x0411, 0x0412, 0x0413, 
-    0x0414, 0x0415, 0x0416, 0x0417, 
-    0x0418, 0x0419, 0x041a, 0x041b, 
-    0x041c, 0x041d, 0x041e, 0x041f, 
+    0x0410, 0x0411, 0x0412, 0x0413,
+    0x0414, 0x0415, 0x0416, 0x0417,
+    0x0418, 0x0419, 0x041a, 0x041b,
+    0x041c, 0x041d, 0x041e, 0x041f,
     /* 0xd0*/
-    0x0420, 0x0421, 0x0422, 0x0423, 
-    0x0424, 0x0425, 0x0426, 0x0427, 
-    0x0428, 0x0429, 0x042a, 0x042b, 
-    0x042c, 0x042d, 0x042e, 0x042f, 
+    0x0420, 0x0421, 0x0422, 0x0423,
+    0x0424, 0x0425, 0x0426, 0x0427,
+    0x0428, 0x0429, 0x042a, 0x042b,
+    0x042c, 0x042d, 0x042e, 0x042f,
     /* 0xe0*/
-    0x0430, 0x0431, 0x0432, 0x0433, 
-    0x0434, 0x0435, 0x0436, 0x0437, 
-    0x0438, 0x0439, 0x043a, 0x043b, 
-    0x043c, 0x043d, 0x043e, 0x043f, 
+    0x0430, 0x0431, 0x0432, 0x0433,
+    0x0434, 0x0435, 0x0436, 0x0437,
+    0x0438, 0x0439, 0x043a, 0x043b,
+    0x043c, 0x043d, 0x043e, 0x043f,
     /* 0xf0*/
-    0x0440, 0x0441, 0x0442, 0x0443, 
-    0x0444, 0x0445, 0x0446, 0x0447, 
-    0x0448, 0x0449, 0x044a, 0x044b, 
-    0x044c, 0x044d, 0x044e, 0x044f, 
+    0x0440, 0x0441, 0x0442, 0x0443,
+    0x0444, 0x0445, 0x0446, 0x0447,
+    0x0448, 0x0449, 0x044a, 0x044b,
+    0x044c, 0x044d, 0x044e, 0x044f,
 };
 
 static lChar16 __cp1252[128] = {
@@ -190,45 +190,45 @@ static lChar16 __koi8r[128] = {
 
 static lChar16 __cp1250[128] = {
     /* 0x80*/
-    0x20ac, 0x0000, 0x201a, 0x0000, 
-    0x201e, 0x2026, 0x2020, 0x2021, 
-    0x0000, 0x2030, 0x0160, 0x2039, 
-    0x015a, 0x0164, 0x017d, 0x0179, 
+    0x20ac, 0x0000, 0x201a, 0x0000,
+    0x201e, 0x2026, 0x2020, 0x2021,
+    0x0000, 0x2030, 0x0160, 0x2039,
+    0x015a, 0x0164, 0x017d, 0x0179,
     /* 0x90*/
-    0x0000, 0x2018, 0x2019, 0x201c, 
-    0x201d, 0x2022, 0x2013, 0x2014, 
-    0x0000, 0x2122, 0x0161, 0x203a, 
-    0x015b, 0x0165, 0x017e, 0x017a, 
+    0x0000, 0x2018, 0x2019, 0x201c,
+    0x201d, 0x2022, 0x2013, 0x2014,
+    0x0000, 0x2122, 0x0161, 0x203a,
+    0x015b, 0x0165, 0x017e, 0x017a,
     /* 0xa0*/
-    0x00a0, 0x02c7, 0x02d8, 0x0141, 
-    0x00a4, 0x0104, 0x00a6, 0x00a7, 
-    0x00a8, 0x00a9, 0x015e, 0x00ab, 
-    0x00ac, 0x00ad, 0x00ae, 0x017b, 
+    0x00a0, 0x02c7, 0x02d8, 0x0141,
+    0x00a4, 0x0104, 0x00a6, 0x00a7,
+    0x00a8, 0x00a9, 0x015e, 0x00ab,
+    0x00ac, 0x00ad, 0x00ae, 0x017b,
     /* 0xb0*/
-    0x00b0, 0x00b1, 0x02db, 0x0142, 
-    0x00b4, 0x00b5, 0x00b6, 0x00b7, 
-    0x00b8, 0x0105, 0x015f, 0x00bb, 
-    0x013d, 0x02dd, 0x013e, 0x017c, 
+    0x00b0, 0x00b1, 0x02db, 0x0142,
+    0x00b4, 0x00b5, 0x00b6, 0x00b7,
+    0x00b8, 0x0105, 0x015f, 0x00bb,
+    0x013d, 0x02dd, 0x013e, 0x017c,
     /* 0xc0*/
-    0x0154, 0x00c1, 0x00c2, 0x0102, 
-    0x00c4, 0x0139, 0x0106, 0x00c7, 
-    0x010c, 0x00c9, 0x0118, 0x00cb, 
-    0x011a, 0x00cd, 0x00ce, 0x010e, 
+    0x0154, 0x00c1, 0x00c2, 0x0102,
+    0x00c4, 0x0139, 0x0106, 0x00c7,
+    0x010c, 0x00c9, 0x0118, 0x00cb,
+    0x011a, 0x00cd, 0x00ce, 0x010e,
     /* 0xd0*/
-    0x0110, 0x0143, 0x0147, 0x00d3, 
-    0x00d4, 0x0150, 0x00d6, 0x00d7, 
-    0x0158, 0x016e, 0x00da, 0x0170, 
-    0x00dc, 0x00dd, 0x0162, 0x00df, 
+    0x0110, 0x0143, 0x0147, 0x00d3,
+    0x00d4, 0x0150, 0x00d6, 0x00d7,
+    0x0158, 0x016e, 0x00da, 0x0170,
+    0x00dc, 0x00dd, 0x0162, 0x00df,
     /* 0xe0*/
-    0x0155, 0x00e1, 0x00e2, 0x0103, 
-    0x00e4, 0x013a, 0x0107, 0x00e7, 
-    0x010d, 0x00e9, 0x0119, 0x00eb, 
-    0x011b, 0x00ed, 0x00ee, 0x010f, 
+    0x0155, 0x00e1, 0x00e2, 0x0103,
+    0x00e4, 0x013a, 0x0107, 0x00e7,
+    0x010d, 0x00e9, 0x0119, 0x00eb,
+    0x011b, 0x00ed, 0x00ee, 0x010f,
     /* 0xf0*/
-    0x0111, 0x0144, 0x0148, 0x00f3, 
-    0x00f4, 0x0151, 0x00f6, 0x00f7, 
-    0x0159, 0x016f, 0x00fa, 0x0171, 
-    0x00fc, 0x00fd, 0x0163, 0x02d9, 
+    0x0111, 0x0144, 0x0148, 0x00f3,
+    0x00f4, 0x0151, 0x00f6, 0x00f7,
+    0x0159, 0x016f, 0x00fa, 0x0171,
+    0x00fc, 0x00fd, 0x0163, 0x02d9,
 };
 
 static lChar16 __cp850[128] = {
@@ -293,7 +293,7 @@ static struct {
     {"koi8r", __koi8r},
     {NULL, NULL}
 };
- 
+
 
 const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * encoding_name )
 {
@@ -307,6 +307,298 @@ const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * encoding_name )
     return NULL; // not found
 }
 
+int langToCodepage( int lang )
+{
+    switch ( lang )
+    {
+    case	0x0436	: //	Afrikaans
+        return 1252;
+    case	0x041c	: //	Albanian
+        return 1252;
+    case	0x0401	: //	Arabic
+    case	0x1401	: //	Arabic Algeria
+    case	0x3c01	: //	Arabic Bahrain
+    case	0x0c01	: //	Arabic Egypt
+    case	0x0001	: //	Arabic General
+    case	0x0801	: //	Arabic Iraq
+    case	0x2c01	: //	Arabic Jordan
+    case	0x3401	: //	Arabic Kuwait
+    case	0x3001	: //	Arabic Lebanon
+    case	0x1001	: //	Arabic Libya
+    case	0x1801	: //	Arabic Morocco
+    case	0x2001	: //	Arabic Oman
+    case	0x4001	: //	Arabic Qatar
+    case	0x2801	: //	Arabic Syria
+    case	0x1c01	: //	Arabic Tunisia
+    case	0x3801	: //	Arabic U.A.E.
+    case	0x2401	: //	Arabic Yemen
+        return 1256;
+    case	0x042b	: //	Armenian
+        return 1252;
+    case	0x044d	: //	Assamese
+        return 1252;
+    case	0x082c	: //	Azeri Cyrillic
+        return 1251;
+    case	0x042c	: //	Azeri Latin
+        return 1252;
+    case	0x042d	: //	Basque
+        return 1252;
+    case	0x0445	: //	Bengali
+    case	0x101a	: //	Bosnia Herzegovina
+        return 1252;
+    case	0x0402	: //	Bulgarian
+        return 1251;
+    case	0x0455	: //	Burmese
+        return 1252;
+    case	0x0423	: //	Byelorussian
+        return 1251;
+    case	0x0403	: //	Catalan
+        return 1252;
+    case	0x0804	: //	Chinese China
+    case	0x0004	: //	Chinese General
+    case	0x0c04	: //	Chinese Hong Kong
+    //case	0x0c04	: //	Chinese Macao
+    case	0x1004	: //	Chinese Singapore
+    case	0x0404	: //	Chinese Taiwan
+        return 950;
+    case	0x041a	: //	Croatian
+        return 1250;
+    case	0x0405	: //	Czech
+        return 1250;
+    case	0x0406	: //	Danish
+        return 1252;
+    case	0x0813	: //	Dutch Belgium
+    case	0x0413	: //	Dutch Standard
+        return 1252;
+    case	0x0c09	: //	English Australia
+    case	0x2809	: //	English Belize
+    case	0x0809	: //	English British
+    case	0x1009	: //	English Canada
+    case	0x2409	: //	English Caribbean
+    case	0x0009	: //	English General
+    case	0x1809	: //	English Ireland
+    case	0x2009	: //	English Jamaica
+    case	0x1409	: //	English New Zealand
+    case	0x3409	: //	English Philippines
+    case	0x1c09	: //	English South Africa
+    case	0x2c09	: //	English Trinidad
+    case	0x0409	: //	English United States
+    //case	0x0409	: //	English Zimbabwe
+        return 1252;
+    case	0x0425	: //	Estonian
+        return 1257;
+    case	0x0438	: //	Faeroese
+    case	0x0429	: //	Farsi
+        return 1252;
+    case	0x040b	: //	Finnish
+        return 1252;
+    case	0x040c	: //	French
+    case	0x080c	: //	French Belgium
+    case	0x2c0c	: //	French Cameroon
+    case	0x0c0c	: //	French Canada
+    case	0x300c	: //	French Cote d'Ivoire
+    case	0x140c	: //	French Luxemburg
+    case	0x340c	: //	French Mali
+    case	0x180c	: //	French Monaco
+    case	0x200c	: //	French Reunion
+    case	0x280c	: //	French Senegal
+    case	0x100c	: //	French Swiss
+    case	0x1c0c	: //	French West Indies
+    case	0x240c	: //	French Zaire
+        return 1252;
+    case	0x0462	: //	Frisian
+    case	0x043c	: //	Gaelic
+    case	0x083c	: //	Gaelic Ireland
+    case	0x0456	: //	Galician
+    case	0x0437	: //	Georgian
+        return 1252;
+    case	0x0407	: //	German
+    case	0x0c07	: //	German Austrian
+    case	0x1407	: //	German Liechtenstein
+    case	0x1007	: //	German Luxemburg
+    case	0x0807	: //	German Switzerland
+        return 1252;
+    case	0x0408	: //	Greek
+        return 1253;
+    case	0x0447	: //	Gujarati
+        return 1252;
+    case	0x040d	: //	Hebrew
+        return 1255;
+    case	0x0439	: //	Hindi
+        return 1252;
+    case	0x040e	: //	Hungarian
+        return 1252;
+    case	0x040f	: //	Icelandic
+        return 1252;
+    case	0x0421	: //	Indonesian
+        return 1252;
+    case	0x0410	: //	Italian
+    case	0x0810	: //	Italian Switzerland
+        return 1252;
+    case	0x0411	: //	Japanese
+        return 932;
+    case	0x044b	: //	Kannada
+        return 1252;
+    case	0x0460	: //	Kashmiri
+    case	0x0860	: //	Kashmiri India
+        return 1252;
+    case	0x043f	: //	Kazakh
+        return 1251;
+    case	0x0453	: //	Khmer
+        return 1252;
+    case	0x0440	: //	Kirghiz
+        return 1252;
+    case	0x0457	: //	Konkani
+        return 1252;
+    case	0x0412	: //	Korean
+    case	0x0812	: //	Korean Johab
+        return 1252;
+    case	0x0454	: //	Lao
+        return 1252;
+    case	0x0426	: //	Latvian
+        return 1257;
+    case	0x0427	: //	Lithuanian
+    case	0x0827	: //	Lithuanian Classic
+        return 1257;
+    case	0x043e	: //	Macedonian
+        return 1252;
+    //case	0x043e	: //	Malay
+    case	0x083e	: //	Malay Brunei Darussalam
+    case	0x044c	: //	Malayalam
+        return 1252;
+    case	0x043a	: //	Maltese
+        return 1252;
+    case	0x0458  : //	Manipuri
+        return 1252;
+    case	0x044e	: //	Marathi
+        return 1252;
+    case	0x0450	: //	Mongolian
+        return 1252;
+    case	0x0461	: //	Nepali
+    case	0x0861	: //	Nepali India
+        return 1252;
+    case	0x0414	: //	Norwegian Bokmal
+    case	0x0814	: //	Norwegian Nynorsk
+        return 1252;
+    case	0x0448	: //	Oriya
+        return 1252;
+    case	0x0415	: //	Polish
+        return 1252;
+    case	0x0416	: //	Portuguese Brazil
+    case	0x0816	: //	Portuguese Iberian
+        return 1252;
+    case	0x0446	: //	Punjabi
+    case	0x0417	: //	Rhaeto-Romanic
+        return 1252;
+    case	0x0418	: //	Romanian
+    case	0x0818	: //	Romanian Moldova
+        return 1252;
+    case	0x0419	: //	Russian
+    case	0x0819	: //	Russian Moldova
+        return 1251;
+    case	0x043b	: //	Sami Lappish
+        return 1252;
+    case	0x044f	: //	Sanskrit
+        return 1252;
+    case	0x0c1a	: //	Serbian Cyrillic
+        return 1251;
+    case	0x081a	: //	Serbian Latin
+        return 1252;
+    case	0x0459	: //	Sindhi
+        return 1252;
+    case	0x041b	: //	Slovak
+        return 1252;
+    case	0x0424	: //	Slovenian
+        return 1252;
+    case	0x042e	: //	Sorbian
+        return 1252;
+    case	0x2c0a	: //	Spanish Argentina
+    case	0x400a	: //	Spanish Bolivia
+    case	0x340a	: //	Spanish Chile
+    case	0x240a	: //	Spanish Colombia
+    case	0x140a	: //	Spanish Costa Rica
+    case	0x1c0a	: //	Spanish Dominican Republic
+    case	0x300a	: //	Spanish Ecuador
+    case	0x440a	: //	Spanish El Salvador
+    case	0x100a	: //	Spanish Guatemala
+    case	0x480a	: //	Spanish Honduras
+    case	0x080a	: //	Spanish Mexico
+    case	0x0c0a	: //	Spanish Modern
+    case	0x4c0a	: //	Spanish Nicaragua
+    case	0x180a	: //	Spanish Panama
+    case	0x3c0a	: //	Spanish Paraguay
+    case	0x280a	: //	Spanish Peru
+    case	0x500a	: //	Spanish Puerto Rico
+    case	0x040a	: //	Spanish Traditional
+    case	0x380a	: //	Spanish Uruguay
+    case	0x200a	: //	Spanish Venezuela
+        return 1252;
+    case	0x0430	: //	Sutu
+        return 1252;
+    case	0x0441	: //	Swahili
+        return 1252;
+    case	0x041d	: //	Swedish
+    case	0x081d	: //	Swedish Finland
+        return 1252;
+    case	0x0428	: //	Tajik
+        return 1252;
+    case	0x0449	: //	Tamil
+        return 1252;
+    case	0x0444	: //	Tatar
+        return 1251;
+    case	0x044a	: //	Telugu
+        return 1252;
+    case	0x041e	: //	Thai
+        return 1252;
+    case	0x0451	: //	Tibetan
+        return 1252;
+    case	0x0431	: //	Tsonga
+        return 1252;
+    case	0x0432	: //	Tswana
+        return 1252;
+    case	0x041f	: //	Turkish
+        return 1254;
+    case	0x0442	: //	Turkmen
+        return 1251;
+    case	0x0422	: //	Ukrainian
+        return 1251;
+    case	0x0420	: //	Urdu
+        return 1252;
+    case	0x0820	: //	Urdu India
+        return 1252;
+    case	0x0843	: //	Uzbek Cyrillic
+        return 1251;
+    case	0x0443	: //	Uzbek Latin
+        return 1252;
+    case	0x0433	: //	Venda
+        return 1252;
+    case	0x042a	: //	Vietnamese
+        return 1252;
+    case	0x0452	: //	Welsh
+        return 1252;
+    case	0x0434	: //	Xhosa
+        return 1252;
+    case	0x043d	: //	Yiddish
+        return 1252;
+    case	0x0435	: //	Zulu
+        return 1252;
+    default:
+        return 1251;
+    }
+}
+
+const lChar16 * GetCharsetByte2UnicodeTable( int codepage )
+{
+    switch ( codepage )
+    {
+    case 1251: return __cp1251;
+    case 1252: return __cp1252;
+    case 1250: return __cp1250;
+    case 866:  return __cp866;
+    case 850:  return __cp850;
+    default:   return __cp1252;
+    }
+}
 
 static unsigned char cp1252_page00[256] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, /* 0x00-0x07 */
@@ -345,7 +637,7 @@ static unsigned char cp1252_page00[256] = {
 };
 
 static unsigned char *cp1252_page_uni2charset[256] = {
-	cp1252_page00, NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   
+	cp1252_page00, NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
 };
 
 static unsigned char cp1251_page00[256] = {
@@ -427,11 +719,11 @@ static unsigned char cp1251_page21[256] = {
 };
 
 static unsigned char *cp1251_page_uni2charset[256] = {
-	cp1251_page00, NULL,   NULL,   NULL,   cp1251_page04, NULL,   NULL,   NULL,   
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   
-	cp1251_page20, cp1251_page21, NULL,	NULL,   NULL,   NULL,   NULL,   NULL,   
+	cp1251_page00, NULL,   NULL,   NULL,   cp1251_page04, NULL,   NULL,   NULL,
+	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
+	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
+	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
+	cp1251_page20, cp1251_page21, NULL,	NULL,   NULL,   NULL,   NULL,   NULL,
 };
 
 /// add other encodings here
@@ -457,6 +749,7 @@ const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * encoding_name )
     }
     return NULL; // not found
 }
+
 
 
 // AUTODETECT ENCODINGS feature
@@ -567,7 +860,7 @@ public:
    }
    void Add( unsigned char c1, unsigned char c2 )
    {
-/*   	if ( !(c1>127 || c1>='a' && c1<='z' || c1>='A' && c1<='Z' || c1=='\'') 
+/*   	if ( !(c1>127 || c1>='a' && c1<='z' || c1>='A' && c1<='Z' || c1=='\'')
            && !(c2>127 || c2>='a' && c2<='z' || c2>='A' && c2<='Z' || c2=='\'') )
       {
          return;
