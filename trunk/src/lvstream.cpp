@@ -186,7 +186,7 @@ public:
     {
         m_mode = mode;
         m_file = NULL;
-        SetFileName(fname);
+        SetName(fname.c_str());
         const char * modestr = "r";
         switch (mode) {
         case LVOM_READ:
