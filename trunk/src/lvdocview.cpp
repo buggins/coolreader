@@ -1515,7 +1515,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         const lChar16 * pext = name.c_str() + name.length() - 4;
                         if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='2')
                             nameIsOk = true;
-                        if ( pext[0]=='.' && pext[1]=='t' && pext[2]=='x' && pext[3]=='t')
+                        else if ( pext[0]=='.' && pext[1]=='t' && pext[2]=='x' && pext[3]=='t')
+                            nameIsOk = true;
+                        else if ( pext[0]=='.' && pext[1]=='r' && pext[2]=='t' && pext[3]=='f')
                             nameIsOk = true;
                     }
                     if ( !nameIsOk )
