@@ -140,7 +140,7 @@ public:
         m_callback->OnText( text, len, fpos, fsize, flags );
         last_space = text[len-1]==' ';
 
-        
+
         if ( m_stack.getInt(pi_ch_super) && !m_stack.getInt(pi_ch_sub) ) {
             m_callback->OnTagClose(NULL, L"sup");
         } else if ( m_stack.getInt(pi_ch_sub) ) {
@@ -384,6 +384,8 @@ bool LVRtfParser::Parse()
                         }
                     }
                 }
+                if ( *p == ' ' )
+                    p++;
                 // \uN -- unicode character
                 if ( cwi==1 && cwname[0]=='u' ) {
                     AddChar( (lChar16) (param & 0xFFFF) );
