@@ -928,10 +928,10 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
                 res.erase( 0, firstNs+1 );
                 flags |= LINE_IS_HEADER;
             }
-        } else if ( ch=='-' || ch=='*' || ch=='*' ) {
+        } else if ( ch=='-' || ch=='*' || ch=='=' ) {
             bool sameChars = true;
             for ( unsigned i=firstNs; i<res.length(); i++ ) {
-                lChar16 ch2 = res[ch2];
+                lChar16 ch2 = res[i];
                 if ( ch2!=' ' && ch2!='\t' && ch2!=ch ) {
                     sameChars = false;
                     break;

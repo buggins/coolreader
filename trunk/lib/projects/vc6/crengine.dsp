@@ -227,6 +227,10 @@ SOURCE=..\..\..\src\props.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\rtfimp.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\w32utils.cpp
 # End Source File
 # Begin Source File
@@ -372,6 +376,14 @@ SOURCE=..\..\..\include\lvxml.h
 # Begin Source File
 
 SOURCE=..\..\..\include\props.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\rtfcmd.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\rtfimp.h
 # End Source File
 # Begin Source File
 
