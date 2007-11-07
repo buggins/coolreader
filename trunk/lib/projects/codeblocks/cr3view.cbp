@@ -34,7 +34,7 @@
 				<Option deps_output="debug\.deps"/>
 				<Option type="0"/>
 				<Option compiler="0"/>
-				<Option parameters="icona1.txt"/>
+				<Option parameters="lxss.rtf"/>
 				<Option projectCompilerOptionsRelation="2"/>
 				<Option projectResourceIncludeDirsRelation="0"/>
 				<Compiler>
@@ -442,7 +442,6 @@
 			<Option compilerVar="CPP"/>
 			<Option target="release"/>
 			<Option target="debug"/>
-			<Breakpoint line="581" enabled="1" pass="0" />
 		</Unit>
 		<Unit filename="..\..\..\src\props.cpp">
 			<Option compilerVar="CPP"/>

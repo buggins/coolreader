@@ -242,13 +242,13 @@ void LVRtfParser::CommitText()
     if ( txtpos==0 )
         return;
     txtbuf[txtpos] = 0;
-    /*
+#ifdef LOG_RTF_PARSING
     if ( CRLog::isLogLevelEnabled(CRLog::LL_TRACE ) ) {
         lString16 s = txtbuf;
         lString8 s8 = UnicodeToUtf8( s );
         CRLog::trace( "Text(%s)", s8.c_str() );
     }
-    */
+#endif
     m_stack.getDestination()->OnText( txtbuf, txtpos, txtfstart, (m_buf_fpos + m_buf_pos) - txtfstart, 0 );
     txtpos = 0;
 }
@@ -257,7 +257,9 @@ void LVRtfParser::CommitText()
 
 void LVRtfParser::AddChar8( lUInt8 ch )
 {
-    AddChar( m_stack.byteToUnicode(ch) );
+    lChar16 ch16 = m_stack.byteToUnicode(ch);
+    if ( ch16 )
+        AddChar( ch16 );
 }
 
 // m_buf_pos points to first byte of char
@@ -383,9 +385,9 @@ bool LVRtfParser::Parse()
                             ch2 = *++p;
                         }
                     }
+                    if ( *p == ' ' )
+                        p++;
                 }
-                if ( *p == ' ' )
-                    p++;
                 // \uN -- unicode character
                 if ( cwi==1 && cwname[0]=='u' ) {
                     AddChar( (lChar16) (param & 0xFFFF) );
@@ -505,7 +507,9 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
             m_stack.getDestination()->OnAction(cw->index);
             break;
         case CWT_DEST:
-            //CRLog::trace("DEST: \\%s", cw->name);
+#ifdef LOG_RTF_PARSING
+            CRLog::trace("DEST: \\%s", cw->name);
+#endif
             switch ( cw->index ) {
             case dest_upr:
                 m_stack.set( pi_skip_ansi, 1 );
@@ -535,16 +539,22 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
             CommitText();
             if ( param == PARAM_VALUE_NONE )
                 param = cw->defvalue;
-            //CRLog::trace("PROP: \\%s %d", cw->name, param);
+#ifdef LOG_RTF_PARSING
+            CRLog::trace("PROP: \\%s %d", cw->name, param);
+#endif
             m_stack.set( cw->index, param );
             break;
         }
     } else {
-        //CRLog::trace("CW: %s\\%s %d", asterisk?"\\*":"", control, param==PARAM_VALUE_NONE ? 0 : param);
+#ifdef LOG_RTF_PARSING
+        CRLog::trace("CW: %s\\%s %d", asterisk?"\\*":"", control, param==PARAM_VALUE_NONE ? 0 : param);
+#endif
         if ( asterisk ) {
             // ignore text after unknown keyword
             m_stack.set( new LVRtfNullDestination(*this) );
-            //CRLog::trace("Ignoring unknown destination %s !!!", control );
+#ifdef LOG_RTF_PARSING
+            CRLog::trace("Ignoring unknown destination %s !!!", control );
+#endif
         }
     }
 }

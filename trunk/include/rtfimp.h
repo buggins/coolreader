@@ -19,6 +19,9 @@
 
 #define PARAM_VALUE_NONE 0x7FFFFFFF
 
+/// uncomment following LOG_RTF_PARSING definition to allow debug log of rtf parsing
+//#define LOG_RTF_PARSING
+
 enum rtf_control_word_type {
     CWT_CHAR,  /// character entity
     CWT_STYLE, ///
@@ -206,7 +209,9 @@ public:
         if ( sp>=MAX_PROP_STACK_SIZE ) {
             error = true;
         } else {
-            //CRLog::trace("Changing destination. Level=%d old=%08X new=%08X", sp, (unsigned)dest, (unsigned)newdest);
+#ifdef LOG_RTF_PARSING
+            CRLog::trace("Changing destination. Level=%d old=%08X new=%08X", sp, (unsigned)dest, (unsigned)newdest);
+#endif
             stack[sp].index = pi_destination;
             stack[sp++].value.dest = dest;
             dest = newdest;
@@ -277,7 +282,9 @@ public:
             if ( i==pi_destination ) {
                 delete dest;
                 dest = stack[sp].value.dest;
-                //CRLog::trace("Restoring destination. Level=%d Value=%08X", sp, (unsigned)dest);
+#ifdef LOG_RTF_PARSING
+                CRLog::trace("Restoring destination. Level=%d Value=%08X", sp, (unsigned)dest);
+#endif
             } else {
                 props[i] = stack[sp].value;
             }
