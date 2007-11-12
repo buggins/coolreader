@@ -295,8 +295,11 @@ static struct {
 };
 
 
-const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * encoding_name )
+const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * enc_name )
 {
+    lString16 s( enc_name );
+    s.lowercase();
+    const lChar16 * encoding_name = s.c_str();
     for (int i=0; _enc_table[i].name!=NULL; i++)
     {
         if ( !lStr_cmp(encoding_name, _enc_table[i].name) )
@@ -591,11 +594,11 @@ const lChar16 * GetCharsetByte2UnicodeTable( int codepage )
 {
     switch ( codepage )
     {
-    case 1251: 
+    case 1251:
         return __cp1251;
-    case 204: 
+    case 204:
         return __cp1251;
-    case 1252: 
+    case 1252:
         return __cp1252;
     case 1250: return __cp1250;
     case 866:  return __cp866;
@@ -742,8 +745,11 @@ static struct {
     {NULL, NULL}
 };
 
-const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * encoding_name )
+const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * enc_name )
 {
+    lString16 s( enc_name );
+    s.lowercase();
+    const lChar16 * encoding_name = s.c_str();
     for (int i=0; _uni2byte_enc_table[i].name!=NULL; i++)
     {
         if ( !lStr_cmp(encoding_name, _uni2byte_enc_table[i].name) )
