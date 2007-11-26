@@ -1,3 +1,1 @@
-SUBDIRS = src
-AM_CFLAGS = -DLBOOK=1
-AM_CXXFLAGS = -DLBOOK=1
+SUBDIRS = crengine src

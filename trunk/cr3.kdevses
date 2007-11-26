@@ -1,73 +1,42 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="12" >
-  <Doc0 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/hist.cpp" >
-   <View0 line="55" Type="Source" />
+ <DocsAndViews NumberOfDocuments="4" >
+  <Doc0 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/cr3.cpp" >
+   <View0 Encoding="" line="13" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvdocview.cpp" >
-   <View0 Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvimg.cpp" >
+   <View0 Encoding="" line="632" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvdocview.h" >
-   <View0 Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/crtxtenc.cpp" >
+   <View0 Encoding="" line="1228" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/cr3.cpp" >
-   <View0 line="205" Type="Source" />
+  <Doc3 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvfntman.cpp" >
+   <View0 Encoding="" line="28" Type="Source" />
   </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvxml.cpp" >
-   <View0 line="169" Type="Source" />
-  </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvxml.h" >
-   <View0 line="292" Type="Source" />
-  </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/crtxtenc.h" >
-   <View0 line="41" Type="Source" />
-  </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/crtxtenc.cpp" >
-   <View0 line="752" Type="Source" />
-  </Doc7>
-  <Doc8 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/cp_stats.cpp" >
-   <View0 line="1004" Type="Source" />
-  </Doc8>
-  <Doc9 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/cp_stats.h" >
-   <View0 line="6" Type="Source" />
-  </Doc9>
-  <Doc10 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/view.cpp" >
-   <View0 line="57" Type="Source" />
-  </Doc10>
-  <Doc11 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvstream.cpp" >
-   <View0 line="1424" Type="Source" />
-  </Doc11>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
    <breakpointList>
-    <breakpoint0 location="/home/lve/src/crengine/src/lvstream.cpp:1566" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+    <breakpoint0 location="/home/lve/src/crengine/src/lvimg.cpp:532" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint0>
+    <breakpoint1 location="/home/lve/src/crengine/src/lvimg.cpp:633" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint1>
    </breakpointList>
+   <showInternalCommands value="0" />
   </kdevdebugger>
+  <kdevastyle>
+   <Extensions ext="*.cpp *.h,*.c *.h,*.cxx *.hxx,*.c++ *.h++,*.cc *.hh,*.C *.H,*.diff,*.inl,*.java,*.moc,*.patch,*.tlh,*.xpm" />
+   <AStyle IndentPreprocessors="0" FillCount="4" PadParenthesesOut="1" IndentNamespaces="1" IndentLabels="1" Fill="Tabs" MaxStatement="40" Brackets="Break" MinConditional="-1" IndentBrackets="0" PadParenthesesUn="1" BlockBreak="0" KeepStatements="1" KeepBlocks="1" BlockIfElse="0" IndentSwitches="1" PadOperators="0" FStyle="UserDefined" IndentCases="0" FillEmptyLines="0" BracketsCloseHeaders="0" BlockBreakAll="0" PadParenthesesIn="1" IndentClasses="1" IndentBlocks="0" FillForce="0" />
+  </kdevastyle>
   <kdevbookmarks>
-   <bookmarks>
-    <bookmark url="/home/lve/src/crengine/src/lvfntman.cpp" >
-     <mark line="1551" />
-     <mark line="858" />
-     <mark line="100" />
-    </bookmark>
-    <bookmark url="/home/lve/src/crengine/src/lvtinydom.cpp" >
-     <mark line="1285" />
-    </bookmark>
-    <bookmark url="/home/lve/src/cr3/src/cr3.cpp" >
-     <mark line="42" />
-    </bookmark>
-    <bookmark url="/home/lve/src/crengine/src/lvdocview.cpp" >
-     <mark line="241" />
-    </bookmark>
-   </bookmarks>
+   <bookmarks/>
   </kdevbookmarks>
   <kdevvalgrind>
    <executable path="" params="" />
-   <valgrind path="/usr/bin/valgrind" params="--tool=memcheck  --leak-check=yes" />
+   <valgrind path="" params="" />
    <calltree path="" params="" />
    <kcachegrind path="" />
   </kdevvalgrind>

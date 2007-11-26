@@ -16,6 +16,9 @@ directory structure:
               /crengine  == crengine dir
               /cr3       == cr3 dir
               /wxWidgets == wxGTK dir
+	      
+Create symlink from cr3/crengine to crengine in order to use Kdevelop project and autoconf makefile
+
 
 2) build CREngine
 

@@ -1,5 +1,5 @@
 # these are the headers for your project
-noinst_HEADERS = cr3.h rescont.h view.h toc.h
+noinst_HEADERS = cr3.h
 
 #########################################################################
 # APPLICATION SECTION
@@ -9,6 +9,7 @@ noinst_HEADERS = cr3.h rescont.h view.h toc.h
 bin_PROGRAMS = cr3
 
 # the application source, library search path, and link libraries
-cr3_SOURCES = cr3.cpp view.cpp wolopt.cpp toc.cpp histlist.cpp optdlg.cpp
-cr3_LDFLAGS = $(WX_LIBS)
+cr3_SOURCES = cr3.cpp histlist.cpp optdlg.cpp toc.cpp view.cpp wolopt.cpp
+cr3_LDFLAGS = $(WX_LIBS) 
 
+cr3_LDADD = $(top_builddir)/crengine/src/libcrengine.a

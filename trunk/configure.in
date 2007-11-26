@@ -1,5 +1,5 @@
 AC_INIT(src/cr3.cpp)
-AM_INIT_AUTOMAKE(cr3, 3.0.1)
+AM_INIT_AUTOMAKE(cr3, 0.3)
 
 AC_PROG_CXX
 AC_PROG_INSTALL
@@ -7,7 +7,7 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
 CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions"
-CXXFLAGS="$CPPFLAGS -Wall -g -fexceptions"
+CXXFLAGS="$CXXFLAGS -Wall -g -fexceptions"
 
 WXCONFIG=wx-config
 AC_ARG_WITH(wx-config,
@@ -52,4 +52,4 @@ CXXFLAGS="$CXXFLAGS $WX_CPPFLAGS"
 
 AC_SUBST(WX_LIBS)
 
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT(Makefile crengine/Makefile crengine/src/Makefile src/Makefile)

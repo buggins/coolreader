@@ -2,9 +2,9 @@
 <kdevelop>
   <general>
     <author>Vadim Lopatin</author>
-    <email>Vadim.Lopatin@coolreader.org</email>
-    <version>3.0.1</version>
-    <projectmanagement>KDevKDEAutoProject</projectmanagement>
+    <email>vadim.lopatin@coolreader.org</email>
+    <version>0.3</version>
+    <projectmanagement>KDevAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
       <keyword>C++</keyword>
@@ -12,25 +12,28 @@
       <keyword>wxWidgets</keyword>
     </keywords>
     <ignoreparts/>
+    <projectname>cr3</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
     <description></description>
+    <defaultencoding></defaultencoding>
+    <versioncontrol></versioncontrol>
   </general>
   <kdevautoproject>
     <general>
       <activetarget>src/cr3</activetarget>
-      <useconfiguration>debug</useconfiguration>
+      <useconfiguration>optimized</useconfiguration>
     </general>
     <run>
-      <mainprogram>src/cr3</mainprogram>
-      <directoryradio>executable</directoryradio>
-      <runarguments>
-        <cr3/>
-      </runarguments>
-      <customdirectory>/</customdirectory>
-      <programargs>/home/lve/src/cr3/debug/src/kaganov_leonid_maior_bogdamir_spasaet_dengi.txt</programargs>
+      <mainprogram>/home/lve/src/cr3/debug/src/cr3</mainprogram>
+      <programargs></programargs>
+      <globaldebugarguments></globaldebugarguments>
+      <globalcwd>/home/lve/src/cr3/debug</globalcwd>
+      <useglobalprogram>false</useglobalprogram>
       <terminal>false</terminal>
-      <autocompile>true</autocompile>
+      <autocompile>false</autocompile>
+      <autoinstall>false</autoinstall>
+      <autokdesu>false</autokdesu>
       <envvars/>
     </run>
     <configurations>
@@ -39,38 +42,33 @@
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <cxxflags>-O2 -g0 -DUSE_FREETYPE=1 -DLINUX -D_LINUX</cxxflags>
-        <envvars>
-          <envvar value="/home/lve/src/crengine/" name="CREHOME" />
-          <envvar value="/home/lve/src/wxWidgets/" name="WXHOME" />
-        </envvars>
-        <configargs>--with-wx-config=/home/lve/src/wxWidgets/build/linux/Release/wx-config</configargs>
-        <topsourcedir/>
-        <cppflags>-I${CREHOME}include -DLINUX=1 -D_LINUX=1</cppflags>
-        <ldflags>-L${CREHOME}lib -lcrengine</ldflags>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags>-DUSE_FREETYPE=1 -DLINUX -D_LINUX</cflags>
-        <f77flags/>
+        <cxxflags>-O2 -g0</cxxflags>
+        <envvars/>
+        <configargs></configargs>
+        <topsourcedir></topsourcedir>
+        <cppflags>-I/home/lve/src/crengine/include -I/usr/include/freetype2 -DLINUX -D_LINUX</cppflags>
+        <ldflags></ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <f77flags></f77flags>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --with-wx-config=/home/lve/src/wxWidgets/build/linux/Debug/wx-config</configargs>
+        <configargs>--enable-debug=full</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
-        <cxxflags>-O0 -g3 -DLINUX -D_LINUX -DUSE_FREETYPE=1 </cxxflags>
-        <envvars>
-          <envvar value="/home/lve/src/crengine/" name="CREHOME" />
-        </envvars>
+        <cxxflags>-O0 -g3</cxxflags>
+        <envvars/>
         <topsourcedir/>
-        <cppflags>-I${CREHOME}include -DLINUX=1 -D_LINUX=1</cppflags>
-        <ldflags>-L${CREHOME}lib -lcrengined</ldflags>
+        <cppflags>-I/home/lve/src/crengine/include -I/usr/include/freetype2 -DLINUX -D_LINUX</cppflags>
+        <ldflags/>
         <ccompilerbinary/>
         <cxxcompilerbinary/>
         <f77compilerbinary/>
-        <cflags> -DLINUX -D_LINUX</cflags>
+        <cflags/>
         <f77flags/>
       </debug>
     </configurations>
@@ -83,7 +81,7 @@
       <runmultiplejobs>false</runmultiplejobs>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
     </make>
   </kdevautoproject>
@@ -150,7 +148,6 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
-      <programargs>/home/lve/src/cr3/debug/src/axelrod.fb2</programargs>
       <gdbpath></gdbpath>
       <configGdbScript></configGdbScript>
       <runShellScript></runShellScript>
@@ -158,6 +155,7 @@
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
+      <raiseGDBOnStart>false</raiseGDBOnStart>
     </general>
     <display>
       <staticmembers>false</staticmembers>
@@ -168,7 +166,6 @@
   <kdevfilecreate>
     <filetypes/>
     <useglobaltypes>
-      <type ext="rc" />
       <type ext="cpp" />
       <type ext="h" />
     </useglobaltypes>
@@ -177,6 +174,7 @@
     <projectdoc>
       <docsystem>Doxygen Documentation Collection</docsystem>
       <docurl>cr3.tag</docurl>
+      <usermanualurl></usermanualurl>
     </projectdoc>
   </kdevdocumentation>
   <substmap>
@@ -185,36 +183,47 @@
     <APPNAMESC>Cr3</APPNAMESC>
     <APPNAMEUC>CR3</APPNAMEUC>
     <AUTHOR>Vadim Lopatin</AUTHOR>
-    <EMAIL>Vadim.Lopatin@coolreader.org</EMAIL>
+    <EMAIL>vadim.lopatin@coolreader.org</EMAIL>
     <LICENSE>GPL</LICENSE>
     <LICENSEFILE>COPYING</LICENSEFILE>
-    <VERSION>3.0.1</VERSION>
+    <VERSION>0.3</VERSION>
     <YEAR>2007</YEAR>
-    <dest>/home/five9inf/src/cr3</dest>
+    <dest>/home/lve/src/cr3</dest>
   </substmap>
-  <cppsupportpart>
-    <filetemplates>
-      <interfacesuffix>.h</interfacesuffix>
-      <implementationsuffix>.cpp</implementationsuffix>
-    </filetemplates>
-  </cppsupportpart>
   <kdevcppsupport>
     <qt>
       <used>false</used>
       <version>3</version>
-      <root>/usr/lib/qt-3.3</root>
+      <includestyle>3</includestyle>
+      <root></root>
+      <designerintegration>EmbeddedKDevDesigner</designerintegration>
+      <qmake></qmake>
+      <designer></designer>
+      <designerpluginpaths/>
     </qt>
+    <references/>
     <codecompletion>
-      <includeGlobalFunctions>true</includeGlobalFunctions>
-      <includeTypes>true</includeTypes>
-      <includeEnums>true</includeEnums>
-      <includeTypedefs>false</includeTypedefs>
-      <automaticCodeCompletion>true</automaticCodeCompletion>
+      <automaticCodeCompletion>false</automaticCodeCompletion>
       <automaticArgumentsHint>true</automaticArgumentsHint>
       <automaticHeaderCompletion>true</automaticHeaderCompletion>
       <codeCompletionDelay>250</codeCompletionDelay>
       <argumentsHintDelay>400</argumentsHintDelay>
       <headerCompletionDelay>250</headerCompletionDelay>
+      <showOnlyAccessibleItems>false</showOnlyAccessibleItems>
+      <completionBoxItemOrder>0</completionBoxItemOrder>
+      <howEvaluationContextMenu>true</howEvaluationContextMenu>
+      <showCommentWithArgumentHint>true</showCommentWithArgumentHint>
+      <statusBarTypeEvaluation>false</statusBarTypeEvaluation>
+      <namespaceAliases>std=_GLIBCXX_STD;__gnu_cxx=std</namespaceAliases>
+      <processPrimaryTypes>true</processPrimaryTypes>
+      <processFunctionArguments>false</processFunctionArguments>
+      <preProcessAllHeaders>false</preProcessAllHeaders>
+      <parseMissingHeadersExperimental>false</parseMissingHeadersExperimental>
+      <resolveIncludePathsUsingMakeExperimental>false</resolveIncludePathsUsingMakeExperimental>
+      <alwaysParseInBackground>true</alwaysParseInBackground>
+      <usePermanentCaching>true</usePermanentCaching>
+      <alwaysIncludeNamespaces>false</alwaysIncludeNamespaces>
+      <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
       <prefixGet></prefixGet>
@@ -224,6 +233,16 @@
       <inlineGet>true</inlineGet>
       <inlineSet>true</inlineSet>
     </creategettersetter>
-    <references/>
+    <splitheadersource>
+      <enabled>false</enabled>
+      <synchronize>true</synchronize>
+      <orientation>Vertical</orientation>
+    </splitheadersource>
   </kdevcppsupport>
+  <cppsupportpart>
+    <filetemplates>
+      <interfacesuffix>.h</interfacesuffix>
+      <implementationsuffix>.cpp</implementationsuffix>
+    </filetemplates>
+  </cppsupportpart>
 </kdevelop>
