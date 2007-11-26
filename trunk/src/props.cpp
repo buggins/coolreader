@@ -533,7 +533,7 @@ bool CRPropAccessor::loadFromStream( LVStream * stream )
         p = *elp ? elp + 2 : elp;
     }
     // cleanup
-    delete buf;
+    delete[] buf;
     return true;
 }
 
