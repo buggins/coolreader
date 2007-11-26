@@ -284,6 +284,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
     int isParaStart;
     int flgObject;
 
+    last_fit = 0xFFFF;
     pbuffer->height = 0;
     /* For each source line: */
     for (i = 0; i<pbuffer->srctextlen; i++)

@@ -562,8 +562,8 @@ public:
         if ( !_hyphen_width )
             _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
 
-        lUInt16 wsum = 0;
-        lUInt16 gwidth = 0;
+        //lUInt16 wsum = 0;
+        //lUInt16 gwidth = 0;
         //lUInt8 bflags;
         //int isSpace;
         //lChar16 ch;
@@ -692,7 +692,7 @@ public:
         int i;
 
         FT_UInt previous = 0;
-        lUInt16 prev_width = 0;
+        //lUInt16 prev_width = 0;
         lChar16 ch;
         // measure character widths
         bool isHyphen = false;
@@ -871,7 +871,7 @@ public:
             return item->getFont();
         }
         lString8 fname = item->getDef()->getName();
-        int index = item->getDef()->getIndex();
+        //int index = item->getDef()->getIndex();
     #if (DEBUG_FONT_MAN==1)
         if ( _log ) {
             fprintf(_log, "   no instance: adding new one for filename=%s, index = %d\n", fname.c_str() );

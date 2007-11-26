@@ -35,7 +35,7 @@ extern "C" {
 #include <jerror.h>
 
 #if defined(LINUX)
-#define wxjpeg_boolean bool
+#define wxjpeg_boolean int
 #endif
 
 #endif

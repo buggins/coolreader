@@ -92,8 +92,8 @@ LVDocView::LVDocView()
             , GRAY_BACKBUFFER_BITS
 #endif
             ), m_stream(NULL), m_doc(NULL)
-, m_stylesheet( def_stylesheet )
 , m_is_rendered(false)
+, m_stylesheet( def_stylesheet )
 , m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
 , m_pagesVisible(2)
 , m_pageHeaderInfo (
@@ -807,13 +807,13 @@ void LVDocView::getNavigationBarRectangle( int pageIndex, lvRect & navRect )
 
 void LVDocView::drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent )
 {
-    LVArray<int> & sbounds = getSectionBounds();
+    //LVArray<int> & sbounds = getSectionBounds();
     lvRect navBar;
     getNavigationBarRectangle( pageIndex, navBar );
-    bool leftPage = (getVisiblePageCount()==2 && !(pageIndex&1) );
+    //bool leftPage = (getVisiblePageCount()==2 && !(pageIndex&1) );
 
-    lUInt32 cl1 = 0xA0A0A0;
-    lUInt32 cl2 = getBackgroundColor();
+    //lUInt32 cl1 = 0xA0A0A0;
+    //lUInt32 cl2 = getBackgroundColor();
 }
 
 /// set list of battery icons to display battery state

@@ -406,7 +406,7 @@ bool LVRtfParser::Parse()
             }
             m_buf_pos += p - (m_buf + m_buf_pos);
         } else {
-            lChar16 txtch = 0;
+            //lChar16 txtch = 0;
             if ( ch=='\\' ) {
                 p++;
                 int digit1 = charToHex( p[0] );

@@ -106,7 +106,7 @@ ldomElement * ldomDocument::getMainNode()
 { 
     if (!_root || !_root->getChildCount())
         return NULL;
-    int elemCount = 0;
+    //int elemCount = 0;
     ldomElement * lastElem = NULL;
     for ( unsigned i=0; i<_root->getChildCount(); i++) {
         ldomElement * el = ((ldomElement *)_root->getChildNode(i));
@@ -1599,7 +1599,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 	ldomNode * currNode = baseNode;
 	lString16 name;
     lString8 ptr8 = UnicodeToUtf8(xPointerStr);
-    const char * ptr = ptr8.c_str();
+    //const char * ptr = ptr8.c_str();
 	xpath_step_t step_type;
 
 	while ( *str ) {

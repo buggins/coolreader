@@ -155,7 +155,7 @@ bool LVTextFileBase::AutodetectEncoding()
         return false;
     }
 
-    int res = AutodetectCodePage( buf, sz, enc_name, lang_name );
+    AutodetectCodePage( buf, sz, enc_name, lang_name );
     m_lang_name = lString16( lang_name );
     SetCharset( lString16( enc_name ).c_str() );
 
@@ -1207,7 +1207,7 @@ bool LVXMLParser::CheckFormat()
         if ( s.pos(L"<?xml") >=0 && s.pos(L"<FictionBook") >= 0 )
             res = true;
     }
-    delete chbuf;
+    delete[] chbuf;
     Reset();
     //CRLog::trace("LVXMLParser::CheckFormat() finished");
     return res;

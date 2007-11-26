@@ -33,6 +33,7 @@ public:
     {
       _name = v._name;
       _value = v._value;
+      return *this;
     }
     const char * getName() const { return _name.c_str(); }
     const lString16 & getValue() const { return _value; }
@@ -293,7 +294,7 @@ lUInt32 CRPropAccessor::getColorDef( const char * propName, lUInt32 defValue ) c
 void CRPropAccessor::setColor( const char * propName, lUInt32 value )
 {
     char s[12];
-    sprintf( s, "#%06x", value );
+    sprintf( s, "#%06x", (int)value );
     setString( propName, lString16( s ) );
 }
 

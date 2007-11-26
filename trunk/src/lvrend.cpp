@@ -144,7 +144,7 @@ void initRendMethod( ldomNode * node )
             if ( child->getNodeType()==LXML_ELEMENT_NODE )
             {
                 initRendMethod( child );
-                lvdomElementFormatRec * childfmt = child->getRenderData();
+                //lvdomElementFormatRec * childfmt = child->getRenderData();
                 switch( child->getStyle()->display )
                 {
                 case css_d_inline:
@@ -583,7 +583,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 #endif
                 // draw whole node content as single formatted object
                 LFormattedText txform;
-                int h = enode->renderFinalBlock( txform, fmt->getWidth() );
+                enode->renderFinalBlock( txform, fmt->getWidth() );
 
                 {
                     txform.Draw( &drawbuf, doc_x+x0, doc_y+y0 );
@@ -638,7 +638,7 @@ inline void spreadParent( css_length_t & val, css_length_t & parent_val )
 void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font )
 {
     ldomElement * enode = (ldomElement *) node;
-    lvdomElementFormatRec * fmt = node->getRenderData();
+    //lvdomElementFormatRec * fmt = node->getRenderData();
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
 

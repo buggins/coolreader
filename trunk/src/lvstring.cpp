@@ -969,7 +969,7 @@ void lString8Collection::clear()
 
 lUInt32 calcStringHash( const lChar16 * s )
 {
-    lUInt32 a = 2166136261;
+    lUInt32 a = 2166136261u;
     while (*s)
     {
         a = a * 16777619 ^ (*s++);

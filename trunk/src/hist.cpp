@@ -217,6 +217,8 @@ public:
         case in_filesize:
             _curr_file->setFileSize( txt.atoi() );
             break;
+        default:
+            break;
         }
     }
     /// destructor
@@ -259,7 +261,7 @@ static void putBookmark( LVStream * stream, CRBookmark * bmk )
     char percent[32];
     sprintf( percent, "%d.%02d%%", bmk->getPercent()/100, bmk->getPercent()%100 );
     char bmktag[64];
-    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\"", tname, percent, bmk->getTimestamp() ); 
+    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\"", tname, percent, (int)bmk->getTimestamp() ); 
     putTag(stream, 3, bmktag);
     putTagValue( stream, 4, "start-point", bmk->getStartPos() );
     putTagValue( stream, 4, "end-point", bmk->getEndPos() );
@@ -273,7 +275,7 @@ bool CRFileHist::saveToStream( LVStream * stream )
 {
     const char * xml_hdr = "\xef\xbb\xbf<?xml version=\"1.0\" enconding=\"utf-8\"?>\r\n<FictionBookMarks>\r\n";
     const char * xml_ftr = "</FictionBookMarks>\r\n";
-    const char * crlf = "\r\n";
+    //const char * crlf = "\r\n";
     *stream << xml_hdr;
     for ( int i=0; i<_records.length(); i++ ) {
         CRFileHistRecord * rec = _records[i];
@@ -390,7 +392,7 @@ ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathnam
 }
 
 CRBookmark::CRBookmark (ldomXPointer ptr )
-: _type(0), _percent(0)
+: _percent(0), _type(0)
 {
     //
     if ( ptr.isNull() )

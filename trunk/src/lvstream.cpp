@@ -1851,7 +1851,7 @@ public:
 
 		return LVERR_OK;
 	}
-	LVMemoryStream() : m_parent(NULL), m_size(0), m_pos(0), m_own_buffer(false), m_pBuffer(NULL)
+	LVMemoryStream() : m_pBuffer(NULL), m_own_buffer(false), m_parent(NULL), m_size(0), m_pos(0)
 	{
 	}
 	virtual ~LVMemoryStream()
