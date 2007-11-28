@@ -884,6 +884,7 @@ const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * enc_name )
 
 
 // AUTODETECT ENCODINGS feature
+#define DBL_CHAR_STAT_SIZE 256
 
 class CDoubleCharStat
 {
@@ -960,7 +961,7 @@ class CDoubleCharStat
          if (sright)
             sright->Renumber( curr_index );
       }
-      void GetData( dbl_char_stat_t * & pData, int & len, unsigned int maxindex )
+      void GetData( dbl_char_stat_long_t * & pData, int & len, unsigned int maxindex )
       {
          if (len<=0)
             return;
@@ -1004,7 +1005,8 @@ public:
    }
    void GetData( dbl_char_stat_t * pData, int len )
    {
-      dbl_char_stat_t * pData2 = pData;
+       dbl_char_stat_long_t data[DBL_CHAR_STAT_SIZE];
+      dbl_char_stat_long_t * pData2 = data;
       int len2 = len;
       int idx = 0;
       if (nodes && total)
@@ -1021,8 +1023,17 @@ public:
       }
       // scale by total
       if (total) {
-         for (int i=0; i<len; i++)
-            pData[i].count = (int)(pData[i].count * (lInt64)0x7000 / total);
+          for (int i=0; i<len; i++) {
+              if ( data[i].count<0 ) {
+                    data[i].count = -data[i].count;
+              }
+              data[i].count = (int)(data[i].count * (lInt64)0x7000 / total);
+          }
+      }
+      for ( int i=0; i<len; i++ ) {
+           pData[i].ch1 = data[i].ch1;
+           pData[i].ch2 = data[i].ch2;
+           pData[i].count = data[i].count;
       }
       Close();
    }
@@ -1120,14 +1131,14 @@ double CompareDblCharStats( const dbl_char_stat_t * stat1, const dbl_char_stat_t
          len2--;
       } else if ( stat1->ch1<stat2->ch1 || (stat1->ch1==stat2->ch1 && stat1->ch2<stat2->ch2) ) {
          // add stat
-         //int delta = (stat1->count);
+         int delta = (stat1->count);
          sum += stat1->count;
          // move 1st
          stat1++;
          len1--;
       } else {
          // add stat
-         //int delta = (stat2->count);
+         int delta = (stat2->count);
          sum += stat2->count;
          stat2++;
          len2--;
@@ -1139,7 +1150,6 @@ double CompareDblCharStats( const dbl_char_stat_t * stat1, const dbl_char_stat_t
    return sum / stat_len;
 }
 
-#define DBL_CHAR_STAT_SIZE 256
 
 //==========================================
 // Stats
@@ -1226,12 +1236,11 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    MakeDblCharStat( buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE );
 
    fprintf(f, "\n\nstatic const short ch_stat_%s_%s%d[256]={\n", cp_name, lang_name, index);
-    int i;
-   for (i=0; i<16; i++)
+   for (int i=0; i<16; i++)
    {
       for (int j=0; j<16; j++) 
       {
-         fprintf(f, "0x%04x,", char_stat[i*16+j] );
+         fprintf(f, "0x%04x,", (unsigned int)char_stat[i*16+j] );
       }
       fprintf(f, "// %d..%d\n", i*16, i*16+15 );
    }
@@ -1242,7 +1251,7 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    {
       for (int j=0; j<16; j++) 
       {
-         fprintf(f, "{0x%02x,0x%02x,0x%04x}, ", dbl_char_stat[i*16+j].ch1, dbl_char_stat[i*16+j].ch2, dbl_char_stat[i*16+j].count );
+         fprintf(f, "{0x%02x,0x%02x,0x%04x}, ", (unsigned int)dbl_char_stat[i*16+j].ch1, (unsigned int)dbl_char_stat[i*16+j].ch2, (unsigned int)((lUInt16)dbl_char_stat[i*16+j].count) );
       }
       fprintf(f, "// %d..%d\n", i*16, i*16+15 );
    }
