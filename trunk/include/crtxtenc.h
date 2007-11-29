@@ -45,4 +45,14 @@ int langToCodepage( int lang );
 */
 int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name );
 
+/**
+    \brief checks whether data buffer is valid utf-8 stream
+
+    \param buf is buffer with text data to autodetect
+    \param buf_size is size of data in buffer, bytes
+
+    \return true if buffer has valid utf-8 data
+*/
+bool isValidUtf8Data( const unsigned char * buf, int buf_size )
+
 #endif

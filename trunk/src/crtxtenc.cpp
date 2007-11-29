@@ -1050,6 +1050,42 @@ public:
    }
 };
 
+bool isValidUtf8Data( const unsigned char * buf, int buf_size )
+{
+    const unsigned char * end_buf = buf + buf_size - 5;
+    while ( buf < end_buf ) {
+        lUInt8 ch = *buf++;
+        if ( (ch & 0x80) == 0 ) {
+        } else if ( (ch & 0xC0) == 0x80 ) {
+            return false;
+        } else if ( (ch & 0xE0) == 0xC0 ) {
+            ch = *buf++;
+            if ( (ch & 0xC0) != 0x80 )
+                return false;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
+            ch = *buf++;
+            if ( (ch & 0xC0) != 0x80 )
+                return false;
+            ch = *buf++;
+            if ( (ch & 0xC0) != 0x80 )
+                return false;
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            ch = *buf++;
+            if ( (ch & 0xC0) != 0x80 )
+                return false;
+            ch = *buf++;
+            if ( (ch & 0xC0) != 0x80 )
+                return false;
+            ch = *buf++;
+            if ( (ch & 0xC0) != 0x80 )
+                return false;
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
 void MakeDblCharStat( const unsigned char * buf, int buf_size, dbl_char_stat_t * stat, int stat_len )
 {
    CDoubleCharStat maker;
@@ -1185,6 +1221,12 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
         return 1;
     } else if ( buf[0]==0xFF && buf[1]==0xFE ) {
         strcpy( cp_name, "utf-16le" );
+        strcpy( lang_name, "en" );
+        return 1;
+    }
+
+    if ( isValidUtf8Data( buf, buf_size ) ) {
+        strcpy( cp_name, "utf-8" );
         strcpy( lang_name, "en" );
         return 1;
     }
