@@ -86,13 +86,13 @@ LVDocView::LVDocView()
 , m_def_interline_space(130)
 , m_font_sizes( def_font_sizes, sizeof(def_font_sizes) / sizeof(int) )
 , m_font_sizes_cyclic(false)
+, m_is_rendered(false)
 , m_view_mode( 1 ? DVM_PAGES : DVM_SCROLL ) // choose 0/1
 , m_drawbuf(100, 100
 #if COLOR_BACKBUFFER==0
             , GRAY_BACKBUFFER_BITS
 #endif
             ), m_stream(NULL), m_doc(NULL)
-, m_is_rendered(false)
 , m_stylesheet( def_stylesheet )
 , m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
 , m_pagesVisible(2)

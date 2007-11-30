@@ -53,6 +53,6 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
 
     \return true if buffer has valid utf-8 data
 */
-bool isValidUtf8Data( const unsigned char * buf, int buf_size )
+bool isValidUtf8Data( const unsigned char * buf, int buf_size );
 
 #endif

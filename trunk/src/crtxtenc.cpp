@@ -11,11 +11,11 @@
 
 *******************************************************/
 
+#include <string.h>
+#include <stdio.h>
 #include "../include/crtxtenc.h"
 #include "../include/lvstring.h"
 #include "../include/cp_stats.h"
-#include <string.h>
-#include <stdio.h>
 
 static const lChar16 __cp737[128] = {
   /* 0x80 */
@@ -1167,14 +1167,14 @@ double CompareDblCharStats( const dbl_char_stat_t * stat1, const dbl_char_stat_t
          len2--;
       } else if ( stat1->ch1<stat2->ch1 || (stat1->ch1==stat2->ch1 && stat1->ch2<stat2->ch2) ) {
          // add stat
-         int delta = (stat1->count);
+         //int delta = (stat1->count);
          sum += stat1->count;
          // move 1st
          stat1++;
          len1--;
       } else {
          // add stat
-         int delta = (stat2->count);
+         //int delta = (stat2->count);
          sum += stat2->count;
          stat2++;
          len2--;
@@ -1289,7 +1289,8 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    fprintf(f, "};\n\n" );
    fprintf(f, "static const dbl_char_stat_t dbl_ch_stat_%s_%s%d[%d] = {\n", cp_name, lang_name, index, DBL_CHAR_STAT_SIZE  );
 
-   for (i=0; i<DBL_CHAR_STAT_SIZE/16; i++)
+   int i;
+   for (0; i<DBL_CHAR_STAT_SIZE/16; i++)
    {
       for (int j=0; j<16; j++) 
       {
