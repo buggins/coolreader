@@ -11,11 +11,11 @@
 
 *******************************************************/
 
-#include <string.h>
-#include <stdio.h>
 #include "../include/crtxtenc.h"
 #include "../include/lvstring.h"
 #include "../include/cp_stats.h"
+#include <string.h>
+#include <stdio.h>
 
 static const lChar16 __cp737[128] = {
   /* 0x80 */
@@ -1050,6 +1050,7 @@ public:
    }
 };
 
+
 bool isValidUtf8Data( const unsigned char * buf, int buf_size )
 {
     const unsigned char * end_buf = buf + buf_size - 5;
@@ -1085,7 +1086,6 @@ bool isValidUtf8Data( const unsigned char * buf, int buf_size )
     }
     return true;
 }
-
 void MakeDblCharStat( const unsigned char * buf, int buf_size, dbl_char_stat_t * stat, int stat_len )
 {
    CDoubleCharStat maker;
@@ -1167,14 +1167,14 @@ double CompareDblCharStats( const dbl_char_stat_t * stat1, const dbl_char_stat_t
          len2--;
       } else if ( stat1->ch1<stat2->ch1 || (stat1->ch1==stat2->ch1 && stat1->ch2<stat2->ch2) ) {
          // add stat
-         //int delta = (stat1->count);
+         int delta = (stat1->count);
          sum += stat1->count;
          // move 1st
          stat1++;
          len1--;
       } else {
          // add stat
-         //int delta = (stat2->count);
+         int delta = (stat2->count);
          sum += stat2->count;
          stat2++;
          len2--;
@@ -1195,10 +1195,8 @@ typedef struct {
 	char * cp_name;   // codepage name
 	char * lang_name; // lang name
 } cp_stat_t;
-
 // EXTERNAL DEFINE
 extern cp_stat_t cp_stat_table[];
-
 
 int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name )
 {
@@ -1224,19 +1222,16 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
         strcpy( lang_name, "en" );
         return 1;
     }
-
     if ( isValidUtf8Data( buf, buf_size ) ) {
         strcpy( cp_name, "utf-8" );
         strcpy( lang_name, "en" );
         return 1;
     }
-
     // use character statistics
    short char_stat[256];
    dbl_char_stat_t dbl_char_stat[DBL_CHAR_STAT_SIZE];
    MakeCharStat( buf, buf_size, char_stat );
    MakeDblCharStat( buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE );
-
    int bestn = 0;
    double bestq = 1000000;
    for (int i=0; cp_stat_table[i].ch_stat; i++) {
@@ -1253,32 +1248,27 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
 		   bestq = q;
 	   }
    }
-
    strcpy(cp_name, cp_stat_table[bestn].cp_name);
    strcpy(lang_name, cp_stat_table[bestn].lang_name);
-
    return 1;
 }
-
 void MakeStatsForFile( const char * fname, const char * cp_name, const char * lang_name, int index, FILE * f, lString8 & list )
 {
    FILE * in = fopen( fname, "rb" );
    if (!in)
       return;
-
    fseek( in, 0, SEEK_END );
    int buf_size = ftell(in);
    fseek( in, 0, SEEK_SET );
    unsigned char * buf = new unsigned char[buf_size];
    fread(buf, 1, buf_size, in);
-
    short char_stat[256];
    dbl_char_stat_t dbl_char_stat[DBL_CHAR_STAT_SIZE];
    MakeCharStat( buf, buf_size, char_stat );
    MakeDblCharStat( buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE );
-
    fprintf(f, "\n\nstatic const short ch_stat_%s_%s%d[256]={\n", cp_name, lang_name, index);
-   for (int i=0; i<16; i++)
+   int i;
+   for (i=0; i<16; i++)
    {
       for (int j=0; j<16; j++) 
       {
@@ -1288,9 +1278,7 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    }
    fprintf(f, "};\n\n" );
    fprintf(f, "static const dbl_char_stat_t dbl_ch_stat_%s_%s%d[%d] = {\n", cp_name, lang_name, index, DBL_CHAR_STAT_SIZE  );
-
-   int i;
-   for (0; i<DBL_CHAR_STAT_SIZE/16; i++)
+   for (i=0; i<DBL_CHAR_STAT_SIZE/16; i++)
    {
       for (int j=0; j<16; j++) 
       {
@@ -1298,14 +1286,10 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
       }
       fprintf(f, "// %d..%d\n", i*16, i*16+15 );
    }
-
    char str[100];
    sprintf(str, "{ch_stat_%s_%s%d,dbl_ch_stat_%s_%s%d,\"%s\",\"%s\"}, \n", cp_name, lang_name, index, cp_name, lang_name, index, cp_name, lang_name );
    list += str;
-
    fprintf(f, "};\n\n" );
    delete buf;
-
    fclose(in);
 }
-
