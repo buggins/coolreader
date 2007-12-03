@@ -1,0 +1,69 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<!DOCTYPE KDevPrjSession>
+<KDevPrjSession>
+ <DocsAndViews NumberOfDocuments="15" >
+  <Doc0 NumberOfViews="1" URL="file:///usr/lib/gcc/i386-redhat-linux/4.1.0/include/stdarg.h" >
+   <View0 line="104" Type="Source" />
+  </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvstring.h" >
+   <View0 line="574" Type="Source" />
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/crtxtenc.cpp" >
+   <View0 line="1292" Type="Source" />
+  </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/rtfimp.h" >
+   <View0 line="16" Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvmemman.h" >
+   <View0 line="18" Type="Source" />
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/crtxtenc.h" >
+   <View0 line="55" Type="Source" />
+  </Doc5>
+  <Doc6 NumberOfViews="1" URL="file:///home/lve/src/wxWidgets/include/wx/string.h" >
+   <View0 line="350" Type="Source" />
+  </Doc6>
+  <Doc7 NumberOfViews="1" URL="file:///home/lve/src/wxWidgets/include/wx/checkbox.h" >
+   <View0 line="40" Type="Source" />
+  </Doc7>
+  <Doc8 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvfntman.cpp" >
+   <View0 line="1336" Type="Source" />
+  </Doc8>
+  <Doc9 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvdocview.cpp" >
+   <View0 line="88" Type="Source" />
+  </Doc9>
+  <Doc10 NumberOfViews="1" URL="file:///home/lve/src/crengine/src/lvimg.cpp" >
+   <View0 line="742" Type="Source" />
+  </Doc10>
+  <Doc11 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/cr3.cpp" >
+   <View0 line="4" Type="Source" />
+  </Doc11>
+  <Doc12 NumberOfViews="1" URL="file:///home/lve/src/cr3/src/view.h" >
+   <View0 line="14" Type="Source" />
+  </Doc12>
+  <Doc13 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/crsetup.h" >
+   <View0 line="55" Type="Source" />
+  </Doc13>
+  <Doc14 NumberOfViews="1" URL="file:///home/lve/src/crengine/include/lvdocview.h" >
+   <View0 line="129" Type="Source" />
+  </Doc14>
+ </DocsAndViews>
+ <pluginList>
+  <kdevdebugger>
+   <breakpointList>
+    <breakpoint0 location="/home/lve/src/crengine/src/lvfntman.cpp:1331" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint0>
+   </breakpointList>
+  </kdevdebugger>
+  <kdevbookmarks>
+   <bookmarks/>
+  </kdevbookmarks>
+  <kdevvalgrind>
+   <executable path="" params="" />
+   <valgrind path="" params="" />
+   <calltree path="" params="" />
+   <kcachegrind path="" />
+  </kdevvalgrind>
+ </pluginList>
+</KDevPrjSession>
