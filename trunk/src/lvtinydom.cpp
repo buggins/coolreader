@@ -1291,6 +1291,8 @@ ldomDocument * ldomTextRef::getDocument() const
 #if (LDOM_ALLOW_NODE_INDEX!=1)
 lUInt32 ldomNode::getNodeIndex() const
 {
+    if ( !_parent )
+        return 0;
     for (int i=_parent->getChildCount()-1; i>=0; i--)
         if (_parent->getChildNode(i)==this)
             return i;
@@ -1333,9 +1335,12 @@ int ldomElement::renderFinalBlock( LFormattedText & txtform, int width )
     lvdomElementFormatRec * fmt = getRenderData();
     if ( !fmt || getRendMethod() != erm_final )
         return 0;
-    // render whole node content as single formatted object
+    /// calculate selections
+    ldomXRange thisRange( this );
+    ldomXRangeList selections( getDocument()->getSelections(), thisRange );
+    /// render whole node content as single formatted object
     int flags = styleToTextFmtFlags( getStyle(), 0 );
-    ::renderFinalBlock( this, &txtform, fmt, flags, 0, 16 );
+    ::renderFinalBlock( this, &txtform, fmt, flags, 0, 16, selections );
     int page_h = getDocument()->getPageHeight();
     int h = txtform.Format( width, page_h );
     return h;
@@ -1744,22 +1749,6 @@ int ldomDocument::getFullHeight()
     return ( rd ? rd->getHeight() + rd->getY() : 0 ); 
 }
 
-/// returns text between two XPointer positions
-lString16 ldomXPointer::getRangeText( ldomXPointer endpos, lChar16 blockDelimiter, int maxTextLen )
-{
-    ldomXPointer pos = *this;
-    lString16 res;
-    if ( pos.getNode() == endpos.getNode() ) {
-        if ( pos.getOffset() >= endpos.getOffset() )
-            return res;
-        if ( pos.getNode()->getNodeType()==LXML_TEXT_NODE ) {
-            return pos.getNode()->getText().substr( pos.getOffset(), endpos.getOffset()-pos.getOffset() );
-        }
-    }
-    return res;
-}
-
-
 
 
 
@@ -1805,9 +1794,233 @@ lString16 extractDocSeries( ldomDocument * doc )
             res << L"(" << sname;
             if ( !snumber.empty() )
                 res << L" #" << snumber << L")";
-            
         }
     }
     return res;
 }
 
+void ldomXPointerEx::initIndex()
+{
+    int m[MAX_DOM_LEVEL];
+    ldomNode * p = _node;
+    _level = 0;
+    while ( p ) {
+        m[_level] = p->getNodeIndex();
+        _level++;
+        p = p->getParentNode();
+    }
+    for ( int i=0; i<_level; i++ ) {
+        _indexes[ i ] = m[ _level - i - 1 ];
+    }
+}
+
+/// move to sibling #
+bool ldomXPointerEx::sibling( int index )
+{
+    if ( _level < 1 )
+        return false;
+    ldomElement * p = _node->getParentNode();
+    int count = p->getChildCount();
+    if ( index < 0 || index >= count )
+        return false;
+    _node = p->getChildNode( index );
+    _indexes[ _level-1 ] = index;
+    return true;
+}
+
+/// move to next sibling
+bool ldomXPointerEx::nextSibling()
+{
+    return sibling( _indexes[_level-1] + 1 );
+}
+
+/// move to previous sibling
+bool ldomXPointerEx::prevSibling()
+{
+    return sibling( _indexes[_level-1] - 1 );
+}
+
+/// move to parent
+bool ldomXPointerEx::parent()
+{
+    if ( _level<1 )
+        return false;
+    _node = _node->getParentNode();
+    _level--;
+    return true;
+}
+
+/// move to child #
+bool ldomXPointerEx::child( int index )
+{
+    if ( _level >= MAX_DOM_LEVEL )
+        return false;
+    int count = _node->getChildCount();
+    if ( index<0 || index>=count )
+        return false;
+    _indexes[ _level++ ] = index;
+    _node = _node->getChildNode( index );
+    return true;
+}
+
+/// compare two pointers, returns -1, 0, +1
+int ldomXPointerEx::compare( const ldomXPointerEx& v ) const
+{
+    int i;
+    for ( i=0; i<_level && i<v._level; i++ ) {
+        if ( _indexes[i] < v._indexes[i] )
+            return -1;
+        if ( _indexes[i] > v._indexes[i] )
+            return 1;
+    }
+    if ( _level < v._level ) {
+        if ( getOffset() < v._indexes[i] )
+            return -1;
+        if ( getOffset() > v._indexes[i] )
+            return 1;
+        return -1;
+    }
+    if ( _level > v._level ) {
+        if ( _indexes[i] < v.getOffset() )
+            return -1;
+        if ( _indexes[i] > v.getOffset() )
+            return 1;
+        return 1;
+    }
+    if ( getOffset() < v.getOffset() )
+        return -1;
+    if ( getOffset() > v.getOffset() )
+        return 1;
+    return 0;
+}
+
+/// calls specified function recursively for all elements of DOM tree
+void ldomXPointerEx::recurseElements( void (*pFun)( ldomXPointerEx & node ) )
+{
+    if ( _node->getNodeType() != LXML_ELEMENT_NODE )
+        return;
+    pFun( *this );
+    if ( child( 0 ) ) {
+        do { 
+            recurseElements( pFun );
+        } while ( nextSibling() );
+        parent();
+    }
+}
+
+/// calls specified function recursively for all nodes of DOM tree
+void ldomXPointerEx::recurseNodes( void (*pFun)( ldomXPointerEx & node ) )
+{
+    if ( _node->getNodeType() != LXML_ELEMENT_NODE )
+        return;
+    pFun( *this );
+    if ( child( 0 ) ) {
+        do { 
+            recurseElements( pFun );
+        } while ( nextSibling() );
+        parent();
+    }
+}
+
+/// returns true if this interval intersects specified interval
+bool ldomXRange::checkIntersection( ldomXRange & v )
+{
+    if ( !isNull() || v.isNull() )
+        return false;
+    if ( _end.compare( v._start ) < 0 )
+        return false;
+    if ( _start.compare( v._end ) < 0 )
+        return false;
+    return true;
+}
+
+/// create list by filtering existing list, to get only values which intersect filter range
+ldomXRangeList::ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter )
+{
+    for ( int i=0; i<srcList.length(); i++ ) {
+        if ( srcList[i]->checkIntersection( filter ) )
+            add( new ldomXRange( *srcList[i] ) );
+    }
+}
+
+/// copy constructor of full node range
+ldomXRange::ldomXRange( ldomNode * p )
+    : _start( p, 0 ), _end( p, p->getChildCount() ), _flags(0)
+{
+}
+
+static const ldomXPointerEx & max( const ldomXPointerEx & v1,  const ldomXPointerEx & v2 )
+{
+    int c = v1.compare( v2 );
+    if ( c>=0 )
+        return v1;
+    else
+        return v2;
+}
+
+static const ldomXPointerEx & min( const ldomXPointerEx & v1,  const ldomXPointerEx & v2 )
+{
+    int c = v1.compare( v2 );
+    if ( c<=0 )
+        return v1;
+    else
+        return v2;
+}
+
+/// create intersection of two ranges
+ldomXRange::ldomXRange( const ldomXRange & v1,  const ldomXRange & v2 )
+    : _start( max( v1._start, v2._start ) ), _end( min( v1._end, v2._end ) ) 
+{
+}
+
+/// split into subranges using intersection
+void ldomXRangeList::split( ldomXRange * r )
+{
+    int i;
+    for ( i=0; i<length(); i++ ) {
+        if ( r->checkIntersection( *get(i) ) ) {
+            ldomXRange * src = remove( i );
+            int cmp1 = src->getStart().compare( r->getStart() );
+            int cmp2 = src->getEnd().compare( r->getEnd() );
+            //TODO: add intersections
+        }
+    }
+}
+
+/// fill text selection list by splitting text into monotonic flags ranges
+void ldomXRangeList::splitText( LVPtrVector<ldomMarkedText> &dst, ldomNode * textNodeToSplit )
+{
+    lString16 text = textNodeToSplit->getText();
+    if ( length()==0 ) {
+        dst.add( new ldomMarkedText( text, 0 ) );
+        return;
+    }
+    ldomXRange textRange( textNodeToSplit );
+    ldomXRangeList ranges;
+    ranges.add( new ldomXRange(textRange) );
+    for ( int i=0; i<length(); i++ ) {
+        ldomXRange * r = new ldomXRange( *get(i), textRange );
+        if ( r->isNull() )
+            delete r;
+        else {
+            // add to range list
+            ranges.split(r);
+        }
+    }
+}
+
+/// returns text between two XPointer positions
+lString16 ldomXRange::getRangeText( lChar16 blockDelimiter, int maxTextLen )
+{
+    ldomXPointerEx pos( _start );
+    ldomXPointerEx endpos( _end );
+    lString16 res;
+    if ( pos.getNode() == endpos.getNode() ) {
+        if ( pos.getOffset() >= endpos.getOffset() )
+            return res;
+        if ( pos.getNode()->getNodeType()==LXML_TEXT_NODE ) {
+            return pos.getNode()->getText().substr( pos.getOffset(), endpos.getOffset()-pos.getOffset() );
+        }
+    }
+    return res;
+}

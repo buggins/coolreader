@@ -502,6 +502,7 @@ public:
  */
 class ldomXPointer
 {
+protected:
 	/// node pointer
 	ldomNode * _node;
 	/// offset within node for pointer, -1 for xpath
@@ -582,8 +583,162 @@ public:
             return lString16();
         return _node->getText();
     }
+};
+
+#define MAX_DOM_LEVEL 64
+class ldomXPointerEx : public ldomXPointer
+{
+protected:
+    int _indexes[MAX_DOM_LEVEL];
+    int _level;
+    void initIndex();
+public:
+    /// default constructor
+    ldomXPointerEx()
+    : ldomXPointer()
+    {
+        initIndex();
+    }
+    /// constructor by node pointer and offset
+    ldomXPointerEx(  ldomNode * node, int offset )
+    : ldomXPointer( node, offset )
+    {
+        initIndex();
+    }
+    /// copy constructor
+    ldomXPointerEx( const ldomXPointer& v )
+    : ldomXPointer( v )
+    {
+        initIndex();
+    }
+    /// copy constructor
+    ldomXPointerEx( const ldomXPointerEx& v )
+    : ldomXPointer( v )
+    {
+        _level = v._level;
+        for ( int i=0; i<_level; i++ )
+            _indexes[ i ] = v._indexes[i];
+    }
+    /// assignment operator
+    ldomXPointerEx & operator =( const ldomXPointer& v )
+    {
+        _node = v.getNode();
+        _offset = v.getOffset();
+        initIndex();
+        return *this;
+    }
+    /// assignment operator
+    ldomXPointerEx & operator =( const ldomXPointerEx& v )
+    {
+        _node = v._node;
+        _offset = v._offset;
+        _level = v._level;
+        for ( int i=0; i<_level; i++ )
+            _indexes[ i ] = v._indexes[i];
+        return *this;
+    }
+    /// compare two pointers, returns -1, 0, +1
+    int compare( const ldomXPointerEx& v ) const;
+    /// move to next sibling
+    bool nextSibling();
+    /// move to previous sibling
+    bool prevSibling();
+    /// move to parent
+    bool parent();
+    /// move to child #
+    bool child( int index );
+    /// move to sibling #
+    bool sibling( int index );
+    /// calls specified function recursively for all elements of DOM tree
+    void recurseElements( void (*pFun)( ldomXPointerEx & node ) );
+    /// calls specified function recursively for all nodes of DOM tree
+    void recurseNodes( void (*pFun)( ldomXPointerEx & node ) );
+};
+
+/// DOM range
+class ldomXRange {
+    ldomXPointerEx _start;
+    ldomXPointerEx _end;
+    lUInt32 _flags;
+public:
+    ldomXRange( const ldomXPointerEx & start, const ldomXPointerEx & end )
+    : _start( start ), _end( end ), _flags(0)
+    {
+    }
+    ldomXRange( const ldomXPointer & start, const ldomXPointer & end )
+    : _start( start ), _end( end ), _flags(0)
+    {
+    }
+    /// copy constructor
+    ldomXRange( const ldomXRange & v )
+    : _start( v._start ), _end( v._end ), _flags(v._flags)
+    {
+    }
+    /// create intersection of two ranges
+    ldomXRange( const ldomXRange & v1,  const ldomXRange & v2 );
+    /// copy constructor of full node range
+    ldomXRange( ldomNode * p );
+    /// copy assignment
+    ldomXRange & operator = ( const ldomXRange & v )
+    {
+        _start = v._start;
+        _end = v._end;
+        return *this;
+    }
+    /// returns true if interval is invalid or empty
+    bool isNull()
+    {
+        if ( _start.isNull() || _end.isNull() )
+            return true;
+        if ( _start.compare( _end ) > 0 )
+            return true;
+        return false;
+    }
+    /// returns true if pointer position is inside range
+    bool isInside( const ldomXPointerEx & p ) const
+    {
+        return ( _start.compare( p ) <= 0 && _end.compare( p ) >= 0 );
+    }
+    /// returns interval start point
+    ldomXPointerEx & getStart() { return _start; }
+    /// returns interval end point
+    ldomXPointerEx & getEnd() { return _end; }
+    /// returns flags value
+    lUInt32 getFlags() { return _flags; }
+    /// sets new flags value
+    void setFlags( lUInt32 flags ) { _flags = flags; }
+    /// returns true if this interval intersects specified interval
+    bool checkIntersection( ldomXRange & v );
     /// returns text between two XPointer positions
-    lString16 getRangeText( ldomXPointer endpos, lChar16 blockDelimiter=0, int maxTextLen=0 );
+    lString16 getRangeText( lChar16 blockDelimiter=0, int maxTextLen=0 );
+};
+
+class ldomMarkedText
+{
+public:
+    lString16 text;
+    lUInt32   flags;
+    ldomMarkedText( lString16 & s, lUInt32 flg )
+    : text(s), flags(flg) 
+    {
+    }
+    ldomMarkedText( const ldomMarkedText & v )
+    : text(v.text), flags(v.flags) 
+    {
+    }
+};
+
+class ldomXRangeList : public LVPtrVector<ldomXRange>
+{
+public:
+    /// create list by filtering existing list, to get only values which intersect filter range
+    ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter );
+    /// fill text selection list by splitting text into monotonic flags ranges
+    void splitText( LVPtrVector<ldomMarkedText> &dst, ldomNode * textNodeToSplit );
+    /// split into subranges using intersection
+    void split( ldomXRange * r );
+    /// default constructor for empty list
+    ldomXRangeList() {};
 };
 
 class ldomElement;
@@ -599,6 +754,7 @@ private:
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
     int _page_height;
+    ldomXRangeList _selections;
     
 #if COMPACT_DOM == 1
     LVXMLTextCache _textcache;
@@ -613,6 +769,8 @@ public:
     ldomDocument();
 #endif
 
+    /// return selections collection
+    ldomXRangeList & getSelections() { return _selections; }
     /// get full document height
     int getFullHeight();
 

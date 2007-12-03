@@ -291,7 +291,7 @@ int lengthToPx( css_length_t val, int base_px, int base_em )
 //=======================================================================
 // Render final block
 //=======================================================================
-void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & baseflags, int ident, int line_h )
+void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & baseflags, int ident, int line_h, ldomXRangeList & selections )
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
@@ -369,7 +369,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             for (int i=0; i<cnt; i++)
             {
                 ldomNode * child = node->getChildNode( i );
-                renderFinalBlock( child, txform, fmt, flags, ident, line_h );
+                renderFinalBlock( child, txform, fmt, flags, ident, line_h, selections );
                 //flags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
             }
         }

@@ -101,12 +101,37 @@ public:
         }
         _count -= count;
     }
-    /// removes several items from vector
+    /// removes item from vector by index
     T * remove( int pos )
     {
         if ( pos < 0 || pos > _count )
             crFatalError();
         int i;
+        T * item = _list[pos];
+        for ( i=pos; i<_count; i++ )
+        {
+            _list[i] = _list[i];
+            _list[i] = NULL;
+        }
+        _count--;
+        return item;
+    }
+    /// returns vector index of specified pointer, -1 if not found
+    int indexOf( T * p )
+    {
+        for ( int i=0; i<_count; i++ ) {
+            if ( _list[i] == p )
+                return i;
+        }
+        return -1;
+    }
+    /// removes item from vector by index
+    T * remove( T * p )
+    {
+        int i;
+        int pos = indexOf( p );
+        if ( pos<0 )
+            return NULL;
         T * item = _list[pos];
         for ( i=pos; i<_count; i++ )
         {

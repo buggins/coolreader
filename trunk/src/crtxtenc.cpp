@@ -1167,14 +1167,14 @@ double CompareDblCharStats( const dbl_char_stat_t * stat1, const dbl_char_stat_t
          len2--;
       } else if ( stat1->ch1<stat2->ch1 || (stat1->ch1==stat2->ch1 && stat1->ch2<stat2->ch2) ) {
          // add stat
-         int delta = (stat1->count);
+         //int delta = (stat1->count);
          sum += stat1->count;
          // move 1st
          stat1++;
          len1--;
       } else {
          // add stat
-         int delta = (stat2->count);
+         //int delta = (stat2->count);
          sum += stat2->count;
          stat2++;
          len2--;
