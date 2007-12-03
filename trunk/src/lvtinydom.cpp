@@ -1949,7 +1949,7 @@ ldomXRange::ldomXRange( ldomNode * p )
 {
 }
 
-static const ldomXPointerEx & max( const ldomXPointerEx & v1,  const ldomXPointerEx & v2 )
+static const ldomXPointerEx & _max( const ldomXPointerEx & v1,  const ldomXPointerEx & v2 )
 {
     int c = v1.compare( v2 );
     if ( c>=0 )
@@ -1958,7 +1958,7 @@ static const ldomXPointerEx & max( const ldomXPointerEx & v1,  const ldomXPointe
         return v2;
 }
 
-static const ldomXPointerEx & min( const ldomXPointerEx & v1,  const ldomXPointerEx & v2 )
+static const ldomXPointerEx & _min( const ldomXPointerEx & v1,  const ldomXPointerEx & v2 )
 {
     int c = v1.compare( v2 );
     if ( c<=0 )
@@ -1969,7 +1969,7 @@ static const ldomXPointerEx & min( const ldomXPointerEx & v1,  const ldomXPointe
 
 /// create intersection of two ranges
 ldomXRange::ldomXRange( const ldomXRange & v1,  const ldomXRange & v2 )
-    : _start( max( v1._start, v2._start ) ), _end( min( v1._end, v2._end ) ) 
+    : _start( _max( v1._start, v2._start ) ), _end( _min( v1._end, v2._end ) ) 
 {
 }
 
