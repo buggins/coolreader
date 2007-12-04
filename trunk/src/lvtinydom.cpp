@@ -1945,7 +1945,7 @@ ldomXRangeList::ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter )
 
 /// copy constructor of full node range
 ldomXRange::ldomXRange( ldomNode * p )
-    : _start( p, 0 ), _end( p, p->getChildCount() ), _flags(0)
+: _start( p, 0 ), _end( p, p->getNodeType()==LXML_TEXT_NODE ? p->getText().length() : p->getChildCount() ), _flags(0)
 {
 }
 
@@ -1983,29 +1983,92 @@ void ldomXRangeList::split( ldomXRange * r )
             int cmp1 = src->getStart().compare( r->getStart() );
             int cmp2 = src->getEnd().compare( r->getEnd() );
             //TODO: add intersections
+            if ( cmp1 < 0 && cmp2 < 0 ) {
+                //   0====== src ======0
+                //        X======= r=========X
+                //   1111122222222222222
+                ldomXRange * r1 = new ldomXRange( src->getStart(), r->getStart(), src->getFlags() );
+                ldomXRange * r2 = new ldomXRange( r->getStart(), src->getEnd(), src->getFlags() | r->getFlags() );
+                insert( i++, r1 );
+                insert( i, r2 );
+                delete src;
+            } else if ( cmp1 > 0 && cmp2 > 0 ) {
+                //           0====== src ======0
+                //     X======= r=========X
+                //           2222222222222233333
+                ldomXRange * r2 = new ldomXRange( src->getStart(), r->getEnd(), src->getFlags() | r->getFlags() );
+                ldomXRange * r3 = new ldomXRange( r->getEnd(), src->getEnd(), src->getFlags() );
+                insert( i++, r2 );
+                insert( i, r3 );
+                delete src;
+            } else if ( cmp1 < 0 && cmp2 > 0 ) {
+                // 0====== src ================0
+                //     X======= r=========X
+                ldomXRange * r1 = new ldomXRange( src->getStart(), r->getStart(), src->getFlags() );
+                ldomXRange * r2 = new ldomXRange( r->getStart(), r->getEnd(), src->getFlags() | r->getFlags() );
+                ldomXRange * r3 = new ldomXRange( r->getEnd(), src->getEnd(), src->getFlags() );
+                insert( i++, r1 );
+                insert( i++, r2 );
+                insert( i, r3 );
+                delete src;
+            } else if ( cmp1 == 0 && cmp2 > 0 ) {
+                //   0====== src ========0
+                //   X====== r=====X
+                ldomXRange * r1 = new ldomXRange( src->getStart(), r->getEnd(), src->getFlags() | r->getFlags() );
+                ldomXRange * r2 = new ldomXRange( r->getEnd(), src->getEnd(), r->getFlags() );
+                insert( i++, r1 );
+                insert( i, r2 );
+                delete src;
+            } else if ( cmp1 < 0 && cmp2 == 0 ) {
+                //   0====== src =====0
+                //      X====== r=====X
+                ldomXRange * r1 = new ldomXRange( src->getStart(), r->getStart(), src->getFlags() );
+                ldomXRange * r2 = new ldomXRange( r->getStart(), r->getEnd(), src->getFlags() | r->getFlags() );
+                insert( i++, r1 );
+                insert( i, r2 );
+                delete src;
+            } else {
+                //        0====== src =====0
+                //   X============== r===========X
+                //
+                //        0====== src =====0
+                //   X============== r=====X
+                //
+                //   0====== src =====0
+                //   X============== r=====X
+                //
+                //   0====== src ========0
+                //   X========== r=======X
+                src->setFlags( src->getFlags() | r->getFlags() );
+                insert( i, src );
+                src->setFlags( src->getFlags() | r->getFlags() );
+                insert( i, src );
+            }
         }
     }
 }
 
 /// fill text selection list by splitting text into monotonic flags ranges
-void ldomXRangeList::splitText( LVPtrVector<ldomMarkedText> &dst, ldomNode * textNodeToSplit )
+void ldomXRangeList::splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSplit )
 {
     lString16 text = textNodeToSplit->getText();
     if ( length()==0 ) {
-        dst.add( new ldomMarkedText( text, 0 ) );
+        dst.add( new ldomMarkedText( text, 0, 0 ) );
         return;
     }
     ldomXRange textRange( textNodeToSplit );
     ldomXRangeList ranges;
     ranges.add( new ldomXRange(textRange) );
-    for ( int i=0; i<length(); i++ ) {
-        ldomXRange * r = new ldomXRange( *get(i), textRange );
-        if ( r->isNull() )
-            delete r;
-        else {
-            // add to range list
-            ranges.split(r);
-        }
+    int i;
+    for ( i=0; i<length(); i++ ) {
+        ranges.split( get(i) );
+    }
+    for ( i=0; i<ranges.length(); i++ ) {
+        ldomXRange * r = ranges[i];
+        int start = r->getStart().getOffset();
+        int end = r->getEnd().getOffset();
+        if ( end>start )
+            dst.add( new ldomMarkedText( text.substr(start, end-start), r->getFlags(), start ) );
     }
 }
 

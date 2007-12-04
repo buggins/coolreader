@@ -407,7 +407,20 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             logfile << "#text" << " flags( " 
                 << baseflags << ")\n";
 #endif
-            txform->AddSourceLine( txt.c_str(), txt.length(), ((ldomElement*)node->getParentNode())->getFont().get(), baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
+
+            LVFont * font = ((ldomElement*)node->getParentNode())->getFont().get();
+            if ( !selections.empty() ) {
+                ldomMarkedTextList markedText;
+                selections.splitText( markedText, node );
+                for ( int k=0; k<markedText.length(); k++ ) {
+                    lString16 t = markedText[k]->text;
+                    lUInt32 flg = markedText[k]->flags;
+                    int offset = markedText[k]->offset;
+                    txform->AddSourceLine( t.c_str(), t.length(), font, flg | baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node, offset );
+                }
+            } else {
+                txform->AddSourceLine( txt.c_str(), txt.length(), font, baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
+            }
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }

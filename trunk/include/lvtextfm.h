@@ -48,6 +48,7 @@ typedef struct
             lvfont_handle   font;     /**< \brief handle of font to draw string */
             const lChar16 * text;     /**< \brief pointer to unicode text string */
             lUInt16         len;      /**< \brief number of chars in text */
+            lUInt16         offset;   /**< \brief offset from node start to beginning of line */
         } t;
         struct {
             lUInt16         width;    /**< \brief handle of font to draw string */
@@ -55,9 +56,9 @@ typedef struct
         } o;
     };
     lUInt16         margin;   /**< \brief first line margin */
-    lUInt16         flags;    /**< \brief flags */
     lUInt8          interval; /**< \brief line interval, *16 (16=normal, 32=double) */
     lUInt8          reserved; /**< \brief reserved */
+    lUInt32         flags;    /**< \brief flags */
 } src_text_fragment_t;
 
 
@@ -143,10 +144,11 @@ void lvtextAddSourceLine(
    lvfont_handle   font,     /* handle of font to draw string */
    const lChar16 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
-   lUInt16         flags,    /* flags */
+   lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
-   void *          object    /* pointer to custom object */
+   void *          object,   /* pointer to custom object */
+   lUInt16         offset    /* offset from node/object start to start of line */
                          );
 
 /** Add source object
@@ -157,7 +159,7 @@ void lvtextAddSourceObject(
    formatted_text_fragment_t * pbuffer,
    lUInt16         width,
    lUInt16         height,
-   lUInt16         flags,    /* flags */
+   lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
    void *          object    /* pointer to custom object */
@@ -207,16 +209,17 @@ public:
            const lChar16 * text,        /* pointer to unicode text string */
            lUInt32         len,         /* number of chars in text, 0 for auto(strlen) */
            LVFont          * font,        /* font to draw string */
-           lUInt16         flags=LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT,
+           lUInt32         flags=LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT,
            lUInt8          interval=16, /* interline space, *16 (16=single, 32=double) */
            lUInt16         margin=0,    /* first line margin */
-           void *          object=NULL
+           void *          object=NULL,
+           lUInt32         offset=0
         )
     {
         lvtextAddSourceLine(m_pbuffer, 
             font,  //font->GetHandle()
             text, len, 
-            flags, interval, margin, object );
+            flags, interval, margin, object, (lUInt16)offset );
     }
     lUInt32 Format(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }
     int GetSrcCount()

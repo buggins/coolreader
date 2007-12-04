@@ -661,8 +661,8 @@ class ldomXRange {
     ldomXPointerEx _end;
     lUInt32 _flags;
 public:
-    ldomXRange( const ldomXPointerEx & start, const ldomXPointerEx & end )
-    : _start( start ), _end( end ), _flags(0)
+    ldomXRange( const ldomXPointerEx & start, const ldomXPointerEx & end, lUInt32 flags=0 )
+    : _start( start ), _end( end ), _flags(flags)
     {
     }
     ldomXRange( const ldomXPointer & start, const ldomXPointer & end )
@@ -718,8 +718,9 @@ class ldomMarkedText
 public:
     lString16 text;
     lUInt32   flags;
-    ldomMarkedText( lString16 & s, lUInt32 flg )
-    : text(s), flags(flg) 
+    int offset;
+    ldomMarkedText( lString16 & s, lUInt32 flg, int offs )
+    : text(s), flags(flg), offset(offs)
     {
     }
     ldomMarkedText( const ldomMarkedText & v )
@@ -728,13 +729,15 @@ public:
     }
 };
 
+typedef LVPtrVector<ldomMarkedText> ldomMarkedTextList;
+
 class ldomXRangeList : public LVPtrVector<ldomXRange>
 {
 public:
     /// create list by filtering existing list, to get only values which intersect filter range
     ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter );
     /// fill text selection list by splitting text into monotonic flags ranges
-    void splitText( LVPtrVector<ldomMarkedText> &dst, ldomNode * textNodeToSplit );
+    void splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSplit );
     /// split into subranges using intersection
     void split( ldomXRange * r );
     /// default constructor for empty list

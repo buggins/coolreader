@@ -115,10 +115,11 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lvfont_handle   font,     /* handle of font to draw string */
    const lChar16 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
-   lUInt16         flags,    /* flags */
+   lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
-   void *          object    /* pointer to custom object */
+   void *          object,    /* pointer to custom object */
+   lUInt16         offset
                          )
 {
     lUInt32 srctextsize = (pbuffer->srctextlen + 3) / 4 * 4;
@@ -145,13 +146,14 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     pline->margin = margin;
     pline->flags = flags;
     pline->interval = interval;
+    pline->t.offset = offset;
 }
 
 void lvtextAddSourceObject( 
    formatted_text_fragment_t * pbuffer,
    lUInt16         width,
    lUInt16         height,
-   lUInt16         flags,    /* flags */
+   lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
    void *          object    /* pointer to custom object */
@@ -261,7 +263,7 @@ int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
 
 lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
 {
-    lUInt16   line_flags;
+    lUInt32   line_flags;
     lUInt16 * widths_buf = NULL;
     lUInt8  * flags_buf = NULL;
     lUInt32   widths_buf_size = 0;
@@ -359,7 +361,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                             }
                             first_para_line = &pbuffer->srctext[j];
                         }
-                        align = first_para_line->flags & LTEXT_FLAG_NEWLINE;
+                        align = (lUInt8)(first_para_line->flags & LTEXT_FLAG_NEWLINE);
                         if (!align)
                             align = LTEXT_ALIGN_LEFT;
                         if (flgRollback)
