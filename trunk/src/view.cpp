@@ -371,7 +371,19 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
         return;
     }
     if ( ptr.getNode()->isText() ) {
-        printf("text : %s     \t", UnicodeToUtf8( ptr.toString() ).c_str() );
+        lString8 s = UnicodeToUtf8( ptr.toString() );
+        CRLog::debug("Text node clicked (%d, %d): %s", x, y, s.c_str() );
+        ldomXRange * wordRange = new ldomXRange();
+        if ( ldomXRange::getWordRange( *wordRange, ptr ) ) {
+            wordRange->setFlags( 0x10000 );
+            _docview->getDocument()->getSelections().clear();
+            _docview->getDocument()->getSelections().add( wordRange );
+            _docview->updateSelections();
+        } else {
+            delete wordRange;
+        }
+        Paint();
+        printf("text : %s     \t", s.c_str() );
     } else {
         printf("element : %s  \t", UnicodeToUtf8( ptr.toString() ).c_str() );
     }
