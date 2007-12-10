@@ -21,6 +21,9 @@ enum css_decl_code {
     cssd_display,
     cssd_white_space,
     cssd_text_align,
+    cssd_text_decoration,
+    cssd_color,
+    cssd_background_color,
     cssd_vertical_align,
     cssd_font_family, // id families like serif, sans-serif
     cssd_font_names,   // string font name like Arial, Courier
@@ -47,6 +50,9 @@ static const char * css_decl_name[] = {
     "display:",
     "white-space:",
     "text-align:",
+    "text-decoration:",
+    "color:",
+    "background-color:",
     "vertical-align:",
     "font-family:",
     "$dummy-for-font-names$:",
@@ -82,6 +88,31 @@ static int substr_compare( const char * sub, const char * & str )
 {
     int j;
     for ( j=0; sub[j] == str[j] && sub[j] && str[j]; j++)
+        ;
+    if (!sub[j])
+    {
+        //bool last_alpha = css_is_alpha( sub[j-1] );
+        //bool next_alnum = css_is_alnum( str[j] );
+        if ( !css_is_alpha( sub[j-1] ) || !css_is_alnum( str[j] ) )
+        {
+            str+=j;
+            return j;
+        }
+    }
+    return 0;
+}
+
+inline char toLower( char c )
+{
+    if ( c>='A' && c<='Z' )
+        return c - 'A' + 'a';
+    return c;
+}
+
+static int substr_icompare( const char * sub, const char * & str )
+{
+    int j;
+    for ( j=0; toLower(sub[j]) == toLower(str[j]) && sub[j] && str[j]; j++)
         ;
     if (!sub[j])
     {
@@ -148,8 +179,9 @@ static bool parse_number_value( const char * & str, css_length_t & value )
         value.value = 0;
         return true;
     }
-    if (*str<'0' || *str>'9')
+    if (*str<'0' || *str>'9') {
         return false; // not a number
+    }
     int n = 0;
     while (*str>='0' && *str<='9')
     {
@@ -185,6 +217,92 @@ static bool parse_number_value( const char * & str, css_length_t & value )
     else
         value.value = n * 256 + 256 * frac / frac_div; // *256
     return true;
+}
+
+struct standard_color_t
+{
+    const char * name;
+    lUInt32 color;
+};
+
+standard_color_t standard_color_table[] = {
+    {"black", 0x000000},
+    {"green", 0x008000},
+    {"silver", 0xC0C0C0},
+    {"lime", 0x00FF00},
+    {"gray", 0x808080},
+    {"olive", 0x808000},
+    {"white", 0xFFFFFF},
+    {"yellow", 0xFFFF00},
+    {"maroon", 0x800000},
+    {"navy", 0x000080},
+    {"red", 0xFF0000},
+    {"blue", 0x0000FF},
+    {"purple", 0x800080},
+    {"teal", 0x008080},
+    {"fuchsia", 0xFF00FF},
+    {"aqua", 0x00FFFF},
+    {NULL, 0}
+};
+
+static int hexDigit( char c )
+{
+    if ( c >= '0' && c <= '9' )
+        return c-'0';
+    if ( c >= 'A' && c <= 'F' )
+        return c - 'A' + 10;
+    if ( c >= 'a' && c <= 'f' )
+        return c - 'a' + 10;
+    return -1;
+}
+
+static bool parse_color_value( const char * & str, css_length_t & value )
+{
+    value.type = css_val_unspecified;
+    skip_spaces( str );
+    if ( substr_compare( "inherited", str ) )
+    {
+        value.type = css_val_inherited;
+        value.value = 0;
+        return true;
+    }
+    if ( substr_compare( "none", str ) )
+    {
+        value.type = css_val_unspecified;
+        value.value = 0;
+        return true;
+    }
+    if (*str=='#') {
+        // #rgb or #rrggbb colors
+        str++;
+        int nDigits = 0;
+        for ( ; hexDigit(str[nDigits]); nDigits++ )
+            ;
+        if ( nDigits==3 ) {
+            int r = hexDigit( *str++ );
+            int g = hexDigit( *str++ );
+            int b = hexDigit( *str++ );
+            value.type = css_val_color;
+            value.value = (((r + r*16) * 256) | (g + g*16)) * 256 | (b + b*16);
+            return true;
+        } else if ( nDigits==6 ) {
+            int r = hexDigit( *str++ ) * 16 + hexDigit( *str++ );
+            int g = hexDigit( *str++ ) * 16 + hexDigit( *str++ );
+            int b = hexDigit( *str++ ) * 16 + hexDigit( *str++ );
+            value.type = css_val_color;
+            value.value = ((r * 256) | g) * 256 | b;
+            return true;
+        } else
+            return false;
+    }
+    for ( int i=0; standard_color_table[i].name != NULL; i++ ) {
+        if ( substr_icompare( standard_color_table[i].name, str ) ) {
+            value.type = css_val_color;
+            value.value = standard_color_table[i].color;
+            return true;
+        }
+    }
+    return false;
 }
 
 static const char * css_d_names[] = 
@@ -226,6 +344,17 @@ static const char * css_ta_names[] =
     "right",
     "center",
     "justify",
+    NULL
+};
+
+static const char * css_td_names[] = 
+{
+    "inherit",
+    "none",
+    "underline",
+    "overline",
+    "line-through",
+    "blink",
     NULL
 };
 
@@ -325,6 +454,9 @@ bool LVCssDeclaration::parse( const char * &decl )
             case cssd_text_align:
                 n = parse_name( decl, css_ta_names, -1 );
                 break;
+            case cssd_text_decoration:
+                n = parse_name( decl, css_td_names, -1 );
+                break;
             case cssd_page_break_before:
                 n = parse_name( decl, css_pb_names, -1 );
                 break;
@@ -389,6 +521,18 @@ bool LVCssDeclaration::parse( const char * &decl )
                     }
                 }
                 break;
+            case cssd_color:
+            case cssd_background_color:
+            {
+                css_length_t len;
+                if ( parse_color_value( decl, len ) )
+                {
+                    buf[ buf_pos++ ] = prop_code;
+                    buf[ buf_pos++ ] = len.type;
+                    buf[ buf_pos++ ] = len.value;
+                }
+            }
+            break;
             case cssd_stop:
             case cssd_unknown:
             default:
@@ -465,6 +609,9 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
         case cssd_text_align:
             style->text_align = (css_text_align_t) *p++;
             break;
+        case cssd_text_decoration:
+            style->text_decoration = (css_text_decoration_t) *p++;
+            break;
         case cssd_page_break_before:
             style->page_break_before = (css_page_break_t) *p++;
             break;
@@ -505,6 +652,12 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_line_height:
             style->line_height = read_length( p );
+            break;
+        case cssd_color:
+            style->color = read_length( p );
+            break;
+        case cssd_background_color:
+            style->background_color = read_length( p );
             break;
         case cssd_width:
             style->width = read_length( p );

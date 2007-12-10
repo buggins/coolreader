@@ -17,15 +17,18 @@
 
 lUInt32 calcHash(css_style_rec_t & rec)
 {
-    return (((((((((((((((((lUInt32)rec.display * 11
+    return ((((((((((((((((((((lUInt32)rec.display * 11
          + (lUInt32)rec.white_space) * 19
          + (lUInt32)rec.text_align) * 37
+         + (lUInt32)rec.text_decoration) * 37
          + (lUInt32)rec.vertical_align) * 79
          + (lUInt32)rec.font_size.type) * 13
          + (lUInt32)rec.font_size.value) * 17
          + (lUInt32)rec.font_style) * 29
          + (lUInt32)rec.font_weight) * 31
          + (lUInt32)rec.line_height.pack()) * 31
+         + (lUInt32)rec.color.pack()) * 37
+         + (lUInt32)rec.background_color.pack()) * 37
          + (lUInt32)rec.width.pack()) * 37
          + (lUInt32)rec.height.pack()) * 79
          + (lUInt32)rec.margin[0].pack()) * 13
@@ -42,10 +45,13 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.display == r2.display &&
            r1.white_space == r2.white_space &&
            r1.text_align == r2.text_align &&
+           r1.text_decoration == r2.text_decoration &&
            r1.vertical_align == r2.vertical_align &&
            r1.line_height == r2.line_height &&
            r1.width == r2.width &&
            r1.height == r2.height &&
+           r1.color == r2.color &&
+           r1.background_color == r2.background_color &&
            r1.margin[0] == r2.margin[0] &&
            r1.margin[1] == r2.margin[1] &&
            r1.margin[2] == r2.margin[2] &&

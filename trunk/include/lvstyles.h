@@ -29,6 +29,7 @@ typedef struct css_style_rec_tag {
     css_display_t        display;
     css_white_space_t    white_space;
     css_text_align_t     text_align;
+    css_text_decoration_t text_decoration;
     css_vertical_align_t vertical_align;
     css_font_family_t    font_family;
     lString8             font_name;
@@ -40,6 +41,8 @@ typedef struct css_style_rec_tag {
     css_length_t         width;
     css_length_t         height;
     css_length_t         margin[4]; ///< margin-left, -right, -top, -bottom
+    css_length_t         color;
+    css_length_t         background_color;
     css_page_break_t     page_break_before;
     css_page_break_t     page_break_after;
     css_page_break_t     page_break_inside;
@@ -47,6 +50,7 @@ typedef struct css_style_rec_tag {
     : display( css_d_inherit )
     , white_space(css_ws_inherit)
     , text_align(css_ta_inherit)
+    , text_decoration (css_td_inherit)
     , vertical_align(css_va_inherit)
     , font_family(css_ff_inherit)
     , font_size(css_val_inherited, 0)
@@ -56,6 +60,8 @@ typedef struct css_style_rec_tag {
     , line_height(css_val_inherited, 0)
     , width(css_val_unspecified, 0)
     , height(css_val_unspecified, 0)
+    , color(css_val_inherited, 0)
+    , background_color(css_val_inherited, 0)
     , page_break_before(css_pb_inherit)
     , page_break_after(css_pb_inherit)
     , page_break_inside(css_pb_inherit)

@@ -778,7 +778,8 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
     UPDATE_STYLE_FIELD( display, css_d_inherit );
     UPDATE_STYLE_FIELD( white_space, css_ws_inherit );
     UPDATE_STYLE_FIELD( text_align, css_ta_inherit );
-    
+    UPDATE_STYLE_FIELD( text_decoration, css_td_inherit );
+
     UPDATE_STYLE_FIELD( page_break_before, css_pb_inherit );
     UPDATE_STYLE_FIELD( page_break_after, css_pb_inherit );
     UPDATE_STYLE_FIELD( page_break_inside, css_pb_inherit );
@@ -856,6 +857,8 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
     }
     // line_height
     spreadParent( pstyle->line_height, parent_style->line_height );
+    spreadParent( pstyle->color, parent_style->color );
+    spreadParent( pstyle->background_color, parent_style->background_color );
 
     // set calculated style
     //node->getDocument()->cacheStyle( style );
