@@ -215,7 +215,7 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
 
         */
         pt2.y = pt.x;
-        pt2.x = m_dy - pt.y - 1;
+        pt2.x = m_dx - pt.y - 1;
         break;
     case CR_ROTATE_ANGLE_180:
         pt2.y = m_dy - pt.y - 1;
@@ -233,7 +233,7 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
           . . . . . .
 
         */
-        pt2.y = m_dx - pt.x - 1;
+        pt2.y = m_dy - pt.x - 1;
         pt2.x = pt.y;
         break;
     }
@@ -451,7 +451,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
         imgrc.bottom = imgrc.top;
     }
     rc.top = imgrc.bottom;
-    txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2 );
+    txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2, NULL );
 }
 
 /// export to WOL format
@@ -1080,7 +1080,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
             rc.bottom -= m_pageMargins.bottom;
             drawCoverTo( drawbuf, rc );
         } else {
-            DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, pageRect->top + m_pageMargins.top + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy );
+            DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, pageRect->top + m_pageMargins.top + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
         }
     }
     drawbuf->SetClipRect(NULL);
@@ -1141,7 +1141,7 @@ void LVDocView::Draw( LVDrawBuf & drawbuf )
             rc.right -= m_pageMargins.right;
             drawCoverTo( &drawbuf, rc );
         }
-        DrawDocument( drawbuf, m_doc->getMainNode(), m_pageMargins.left, 0, m_dx - m_pageMargins.left - m_pageMargins.right, m_dy, 0, -m_pos, m_dy );
+        DrawDocument( drawbuf, m_doc->getMainNode(), m_pageMargins.left, 0, m_dx - m_pageMargins.left - m_pageMargins.right, m_dy, 0, -m_pos, m_dy, &m_markRanges );
     }
     else
     {
@@ -1161,13 +1161,55 @@ void LVDocView::Draw()
     m_drawbuf.Rotate( m_rotateAngle );
 }
 
+/// converts point from window to document coordinates, returns true if success
+bool LVDocView::windowToDocPoint( lvPoint & pt )
+{
+    pt = rotatePoint( pt, true );
+    int page = m_pages.FindNearestPage(m_pos, 0);
+    lvRect * rc = NULL;
+    lvRect page1( m_pageRects[0] );
+    page1.left += m_pageMargins.left;
+    page1.top += m_pageMargins.top;
+    page1.right -= m_pageMargins.right;
+    page1.bottom -= m_pageMargins.bottom;
+    if ( page1.isPointInside( pt ) ) {
+        rc = &page1;
+    } else if ( getVisiblePageCount()==2 ) {
+        lvRect page2( m_pageRects[1] );
+        page2.left += m_pageMargins.left;
+        page2.top += m_pageMargins.top;
+        page2.right -= m_pageMargins.right;
+        page2.bottom -= m_pageMargins.bottom;
+        if ( page2.isPointInside( pt ) ) {
+            rc = &page2;
+            page++;
+        }
+    }
+    if ( rc && page>=0 && page<m_pages.length() ) {
+        int page_y = m_pages[page]->start;
+        pt.x -= rc->left;
+        pt.y -= rc->top;
+        CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
+        pt.y += page_y;
+        return true;
+    }
+    return false;
+}
+
+/// converts point from documsnt to window coordinates, returns true if success
+bool LVDocView::docToWindowPoint( lvPoint & pt )
+{
+    pt = rotatePoint( pt, false );
+    return false;
+}
+
 /// returns xpointer for specified window point
 ldomXPointer LVDocView::getNodeByPoint( lvPoint pt )
 {
-    int page = m_pages.FindNearestPage(m_pos, 0);
-    if ( page>=0 && page<m_pages.length() ) {
-        int page_y = m_pages[page]->start;
-        return m_doc->createXPointer( lvPoint( pt.x, pt.y + page_y ) );
+    if ( windowToDocPoint( pt ) ) {
+        ldomXPointer ptr = m_doc->createXPointer( pt );
+        CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
+        return ptr;
     }
     return ldomXPointer();
 }
@@ -1225,7 +1267,16 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 #endif
     fontMan->gc();
     m_is_rendered = true;
+
     makeToc();
+    updateSelections();
+}
+
+/// update selection ranges
+void LVDocView::updateSelections()
+{
+    ldomXRangeList ranges( m_doc->getSelections(), true );
+    ranges.getRanges( m_markRanges );
 }
 
 /// set view mode (pages/scroll)

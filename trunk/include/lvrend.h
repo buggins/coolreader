@@ -29,13 +29,13 @@ void initRendMethod( ldomNode * node );
 /// converts style to text formatting API flags
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags );
 /// renders block as single text formatter object
-void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & flags, int ident, int line_h, ldomXRangeList & selections );
+void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & flags, int ident, int line_h );
 /// renders block which contains
 int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int y, int width );
 /// sets node style
 void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font );
 
 /// draws formatted document to drawing buffer
-void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height );
+void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks );
 
 #endif

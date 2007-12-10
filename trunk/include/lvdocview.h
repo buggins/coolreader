@@ -152,6 +152,8 @@ private:
 protected:
     lString16 m_last_clock;
 
+    ldomMarkedRangeList m_markRanges;
+
 private:
     lString16 m_filename;
     lvsize_t  m_filesize;
@@ -194,6 +196,8 @@ protected:
 
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
 public:
+    /// update selection ranges
+    void updateSelections();
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
     /// set list of icons to display at left side of header
@@ -279,6 +283,10 @@ public:
 
     /// returns xpointer for specified window point
     ldomXPointer getNodeByPoint( lvPoint pt );
+    /// converts point from window to document coordinates, returns true if success
+    bool windowToDocPoint( lvPoint & pt );
+    /// converts point from documsnt to window coordinates, returns true if success
+    bool docToWindowPoint( lvPoint & pt );
 
     /// returns document
     ldomDocument * getDocument() { return m_doc; }

@@ -110,8 +110,8 @@ public:
         T * item = _list[pos];
         for ( i=pos; i<_count; i++ )
         {
-            _list[i] = _list[i];
-            _list[i] = NULL;
+            _list[i] = _list[i+1];
+            _list[i+1] = NULL;
         }
         _count--;
         return item;

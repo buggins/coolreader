@@ -661,6 +661,10 @@ class ldomXRange {
     ldomXPointerEx _end;
     lUInt32 _flags;
 public:
+    ldomXRange()
+        : _flags(0)
+    {
+    }
     ldomXRange( const ldomXPointerEx & start, const ldomXPointerEx & end, lUInt32 flags=0 )
     : _start( start ), _end( end ), _flags(flags)
     {
@@ -703,6 +707,10 @@ public:
     ldomXPointerEx & getStart() { return _start; }
     /// returns interval end point
     ldomXPointerEx & getEnd() { return _end; }
+    /// sets interval start point
+    void setStart( ldomXPointerEx & start ) { _start = start; }
+    /// sets interval end point
+    void setEnd( ldomXPointerEx & end ) { _end = end; }
     /// returns flags value
     lUInt32 getFlags() { return _flags; }
     /// sets new flags value
@@ -711,6 +719,8 @@ public:
     bool checkIntersection( ldomXRange & v );
     /// returns text between two XPointer positions
     lString16 getRangeText( lChar16 blockDelimiter=0, int maxTextLen=0 );
+    /// sets range to nearest word bounds, returns true if success
+    static bool getWordRange( ldomXRange & range, ldomXPointer & p );
 };
 
 class ldomMarkedText
@@ -719,7 +729,7 @@ public:
     lString16 text;
     lUInt32   flags;
     int offset;
-    ldomMarkedText( lString16 & s, lUInt32 flg, int offs )
+    ldomMarkedText( lString16 s, lUInt32 flg, int offs )
     : text(s), flags(flg), offset(offs)
     {
     }
@@ -731,13 +741,56 @@ public:
 
 typedef LVPtrVector<ldomMarkedText> ldomMarkedTextList;
 
+/// range in document, marked with specified flags
+class ldomMarkedRange
+{
+public:
+    /// start document point
+    lvPoint   start;
+    /// end document point
+    lvPoint   end;
+    /// flags
+    lUInt32   flags;
+    bool empty()
+    {
+        return ( start.y>end.y || ( start.y == end.y && start.x >= end.x ) );
+    }
+    /// returns true if intersects specified line rectangle
+    bool intersects( lvRect & rc, lvRect & intersection );
+    /// constructor
+    ldomMarkedRange( lvPoint _start, lvPoint _end, lUInt32 _flags )
+    : start(_start), end(_end), flags(_flags)
+    {
+    }
+    /// copy constructor
+    ldomMarkedRange( const ldomMarkedRange & v )
+    : start(v.start), end(v.end), flags(v.flags) 
+    {
+    }
+};
+
+/// list of marked ranges
+class ldomMarkedRangeList : public LVPtrVector<ldomMarkedRange>
+{
+public:
+    ldomMarkedRangeList()
+    {
+    }
+    /// create bounded by RC list, with (0,0) coordinates at left top corner
+    ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRect & rc );
+};
+
 class ldomXRangeList : public LVPtrVector<ldomXRange>
 {
 public:
+    /// create list splittiny existing list into non-overlapping ranges
+    ldomXRangeList( ldomXRangeList & srcList, bool splitIntersections );
     /// create list by filtering existing list, to get only values which intersect filter range
     ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter );
     /// fill text selection list by splitting text into monotonic flags ranges
     void splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSplit );
+    /// fill marked ranges list
+    void getRanges( ldomMarkedRangeList &dst );
     /// split into subranges using intersection
     void split( ldomXRange * r );
     /// default constructor for empty list

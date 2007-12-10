@@ -93,6 +93,8 @@ typedef struct
 /// object flag
 #define LTEXT_WORD_IS_OBJECT     0x80
 
+#define LTEXT_BACKGROUND_MARK_FLAGS 0xFFFF0000l
+
 /** \brief Text formatter formatted line
 */
 typedef struct
@@ -184,6 +186,7 @@ void lvtextDraw( formatted_text_fragment_t * text, draw_buf_t * buf, int x, int 
 }
 
 class LVDrawBuf;
+class ldomMarkedRangeList;
 
 /* C++ wrapper class */
 class LFormattedText
@@ -242,7 +245,7 @@ public:
     {
         return m_pbuffer->frmlines[index];
     }
-    void Draw( LVDrawBuf * buf, int x, int y );
+    void Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks );
     LFormattedText() { m_pbuffer = lvtextAllocFormatter( 0 ); }
     ~LFormattedText() { lvtextFreeFormatter( m_pbuffer ); }
 };

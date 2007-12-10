@@ -64,6 +64,10 @@ public:
     lvPoint bottomRight() const { return lvPoint( right, bottom ); }
     int width() const { return right - left; }
     int height() const { return bottom - top; }
+    bool isPointInside( lvPoint & pt )
+    {
+        return left<=pt.x && top<=pt.y && right>pt.x && bottom > pt.y;
+    }
 };
 
 /// byte order convertor

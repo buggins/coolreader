@@ -1335,12 +1335,9 @@ int ldomElement::renderFinalBlock( LFormattedText & txtform, int width )
     lvdomElementFormatRec * fmt = getRenderData();
     if ( !fmt || getRendMethod() != erm_final )
         return 0;
-    /// calculate selections
-    ldomXRange thisRange( this );
-    ldomXRangeList selections( getDocument()->getSelections(), thisRange );
     /// render whole node content as single formatted object
     int flags = styleToTextFmtFlags( getStyle(), 0 );
-    ::renderFinalBlock( this, &txtform, fmt, flags, 0, 16, selections );
+    ::renderFinalBlock( this, &txtform, fmt, flags, 0, 16 );
     int page_h = getDocument()->getPageHeight();
     int h = txtform.Format( width, page_h );
     return h;
@@ -1427,6 +1424,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
         return ptr;
     lvRect rc;
     finalNode->getAbsRect( rc );
+    CRLog::debug("ldomDocument::createXPointer point = (%d, %d), finalNode %08X rect = (%d,%d,%d,%d)", pt.x, pt.y, (lUInt32)finalNode, rc.left, rc.top, rc.right, rc.bottom );
     pt.x -= rc.left;
     pt.y -= rc.top;
     lvdomElementFormatRec * r = finalNode->getRenderData();
@@ -1447,14 +1445,16 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
         const formatted_line_t * frmline = txtform.GetLineInfo(l);
         if ( pt.y >= (int)(frmline->y + frmline->height) && l<lcount-1 )
             continue;
+        CRLog::debug("  point (%d, %d) line found [%d]: (%d..%d)", pt.x, pt.y, l, frmline->y, frmline->y+frmline->height);
         // found line, searching for word
         int wc = (int)frmline->word_count;
         int x = pt.x - frmline->x;
         for ( int w=0; w<wc; w++ ) {
             const formatted_word_t * word = &frmline->words[w];
             if ( x < word->x + word->width || w==wc-1 ) {
-                // found word, searching for letters
                 const src_text_fragment_t * src = txtform.GetSrcInfo(word->src_text_index);
+                CRLog::debug(" word found [%d]: x=%d..%d, start=%d, len=%d  %08X", w, word->x, word->x + word->width, word->t.start, word->t.len, src->object);
+                // found word, searching for letters
                 ldomNode * node = (ldomNode *)src->object;
                 if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object (image)
@@ -1470,10 +1470,10 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
                 for ( int i=0; i<word->t.len; i++ ) {
                     int xx = ( i>0 ) ? (w[i-1] + w[i])/2 : w[i]/2;
                     if ( x < word->x + xx ) {
-                        return ldomXPointer( node, word->t.start + i );
+                        return ldomXPointer( node, src->t.offset + word->t.start + i );
                     }
                 }
-                return ldomXPointer( node, word->t.start + word->t.len );
+                return ldomXPointer( node, src->t.offset + word->t.start + word->t.len );
             }
         }
     }
@@ -1925,11 +1925,11 @@ void ldomXPointerEx::recurseNodes( void (*pFun)( ldomXPointerEx & node ) )
 /// returns true if this interval intersects specified interval
 bool ldomXRange::checkIntersection( ldomXRange & v )
 {
-    if ( !isNull() || v.isNull() )
+    if ( isNull() || v.isNull() )
         return false;
     if ( _end.compare( v._start ) < 0 )
         return false;
-    if ( _start.compare( v._end ) < 0 )
+    if ( _start.compare( v._end ) > 0 )
         return false;
     return true;
 }
@@ -1971,6 +1971,29 @@ static const ldomXPointerEx & _min( const ldomXPointerEx & v1,  const ldomXPoint
 ldomXRange::ldomXRange( const ldomXRange & v1,  const ldomXRange & v2 )
     : _start( _max( v1._start, v2._start ) ), _end( _min( v1._end, v2._end ) ) 
 {
+}
+
+/// create list splittiny existing list into non-overlapping ranges
+ldomXRangeList::ldomXRangeList( ldomXRangeList & srcList, bool splitIntersections )
+{
+    if ( srcList.empty() )
+        return;
+    int i;
+    if ( splitIntersections ) {
+        ldomXRange * maxRange = new ldomXRange( *srcList[0] );
+        for ( i=1; i<srcList.length(); i++ ) {
+            if ( srcList[i]->getStart().compare( maxRange->getStart() ) < 0 )
+                maxRange->setStart( srcList[i]->getStart() );
+            if ( srcList[i]->getEnd().compare( maxRange->getEnd() ) > 0 )
+                maxRange->setEnd( srcList[i]->getEnd() );
+        }
+        add( maxRange );
+        for ( i=0; i<srcList.length(); i++ )
+            split( srcList[i] );
+    } else {
+        for ( i=0; i<srcList.length(); i++ )
+            add( new ldomXRange( *srcList[i] ) );
+    }
 }
 
 /// split into subranges using intersection
@@ -2041,10 +2064,25 @@ void ldomXRangeList::split( ldomXRange * r )
                 //   X========== r=======X
                 src->setFlags( src->getFlags() | r->getFlags() );
                 insert( i, src );
-                src->setFlags( src->getFlags() | r->getFlags() );
-                insert( i, src );
             }
         }
+    }
+}
+
+/// fill marked ranges list
+void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
+{
+    dst.clear();
+    if ( empty() )
+        return;
+    ldomDocument * doc = get(0)->getStart().getNode()->getDocument();
+    for ( int i=0; i<length(); i++ ) {
+        ldomXRange * range = get(i);
+        ldomMarkedRange * item = new ldomMarkedRange( range->getStart().toPoint(), range->getEnd().toPoint(), range->getFlags() );
+        if ( !item->empty() )
+            dst.add( item );
+        else
+            delete item;
     }
 }
 
@@ -2070,6 +2108,102 @@ void ldomXRangeList::splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSp
         if ( end>start )
             dst.add( new ldomMarkedText( text.substr(start, end-start), r->getFlags(), start ) );
     }
+    /*
+    if ( dst.length() ) {
+        CRLog::debug(" splitted: ");
+        for ( int k=0; k<dst.length(); k++ ) {
+            CRLog::debug("    (%d, %d) %s", dst[k]->offset, dst[k]->flags, UnicodeToUtf8(dst[k]->text).c_str());
+        }
+    }
+    */
+}
+
+/// returns true if intersects specified line rectangle
+bool ldomMarkedRange::intersects( lvRect & rc, lvRect & intersection )
+{
+    if ( start.y>=rc.bottom )
+        return false;
+    if ( end.y<rc.top )
+        return false;
+    intersection = rc;
+    if ( start.y>=rc.top && start.y<rc.bottom ) {
+        if ( start.x > rc.right )
+            return false;
+        intersection.left = rc.left > start.x ? rc.left : start.x;
+    }
+    if ( end.y>=rc.top && end.y<rc.bottom ) {
+        if ( end.x < rc.left )
+            return false;
+        intersection.right = rc.right < end.x ? rc.right : end.x;
+    }
+    return true;
+}
+
+/// create bounded by RC list, with (0,0) coordinates at left top corner
+ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRect & rc )
+{
+    if ( !list || list->empty() )
+        return;
+    if ( list->get(0)->start.y>rc.bottom )
+        return;
+    if ( list->get( list->length()-1 )->end.y < rc.top )
+        return;
+    for ( int i=0; i<list->length(); i++ ) {
+        ldomMarkedRange * src = list->get(i);
+        if ( src->start.y>=rc.bottom || src->end.y<rc.top )
+            continue;
+        add( new ldomMarkedRange( 
+            lvPoint(src->start.x-rc.left, src->start.y-rc.top ),
+            lvPoint(src->end.x-rc.left, src->end.y-rc.top ),
+            src->flags ) );
+    }
+}
+
+/// sets range to nearest word bounds, returns true if success
+bool ldomXRange::getWordRange( ldomXRange & range, ldomXPointer & p )
+{
+    ldomNode * node = p.getNode();
+    if ( node->getNodeType() != LXML_TEXT_NODE )
+        return false;
+    int pos = p.getOffset();
+    lString16 txt = node->getText();
+    if ( pos<0 )
+        pos = 0;
+    if ( pos>(int)txt.length() )
+        pos = txt.length();
+    int endpos = pos;
+    for (;;) {
+        lChar16 ch = txt[endpos];
+        if ( ch==0 || ch==' ' )
+            break;
+        endpos++;
+    }
+    /*
+    // include trailing space
+    for (;;) {
+        lChar16 ch = txt[endpos];
+        if ( ch==0 || ch!=' ' )
+            break;
+        endpos++;
+    }
+    */
+    for ( ;; ) {
+        if ( pos==0 )
+            break;
+        if ( txt[pos]!=' ' )
+            break;
+        pos--;
+    }
+    for ( ;; ) {
+        if ( pos==0 )
+            break;
+        if ( txt[pos-1]==' ' )
+            break;
+        pos--;
+    }
+    ldomXRange r( ldomXPointer( node, pos ), ldomXPointer( node, endpos ) );
+    range = r;
+    return true;
 }
 
 /// returns text between two XPointer positions

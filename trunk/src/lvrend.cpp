@@ -291,7 +291,7 @@ int lengthToPx( css_length_t val, int base_px, int base_em )
 //=======================================================================
 // Render final block
 //=======================================================================
-void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & baseflags, int ident, int line_h, ldomXRangeList & selections )
+void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & baseflags, int ident, int line_h )
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
@@ -369,7 +369,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             for (int i=0; i<cnt; i++)
             {
                 ldomNode * child = node->getChildNode( i );
-                renderFinalBlock( child, txform, fmt, flags, ident, line_h, selections );
+                renderFinalBlock( child, txform, fmt, flags, ident, line_h );
                 //flags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
             }
         }
@@ -409,18 +409,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
 #endif
 
             LVFont * font = ((ldomElement*)node->getParentNode())->getFont().get();
-            if ( !selections.empty() ) {
-                ldomMarkedTextList markedText;
-                selections.splitText( markedText, node );
-                for ( int k=0; k<markedText.length(); k++ ) {
-                    lString16 t = markedText[k]->text;
-                    lUInt32 flg = markedText[k]->flags;
-                    int offset = markedText[k]->offset;
-                    txform->AddSourceLine( t.c_str(), t.length(), font, flg | baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node, offset );
-                }
-            } else {
-                txform->AddSourceLine( txt.c_str(), txt.length(), font, baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
-            }
+            txform->AddSourceLine( txt.c_str(), txt.length(), font, baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }
@@ -546,7 +535,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
     return 0;
 }
 
-void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height )
+void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks )
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
@@ -582,7 +571,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 for (int i=0; i<cnt; i++)
                 {
                     ldomNode * child = node->getChildNode( i );
-                    DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height ); //+fmt->getX() +fmt->getY()
+                    DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height, marks ); //+fmt->getX() +fmt->getY()
                 }
             }
             break;
@@ -599,7 +588,19 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 enode->renderFinalBlock( txform, fmt->getWidth() );
 
                 {
-                    txform.Draw( &drawbuf, doc_x+x0, doc_y+y0 );
+                    if ( marks && marks->length() ) {
+                        lvRect rc;
+                        enode->getAbsRect( rc );
+                        //rc.left -= doc_x;
+                        //rc.right -= doc_x;
+                        //rc.top -= doc_y;
+                        //rc.bottom -= doc_y;
+                        ldomMarkedRangeList nmarks( marks, rc );
+                        txform.Draw( &drawbuf, doc_x+x0, doc_y+y0, &nmarks );
+
+                    } else {
+                        txform.Draw( &drawbuf, doc_x+x0, doc_y+y0, marks );
+                    }
                 }
             }
             break;

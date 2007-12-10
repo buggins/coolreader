@@ -253,6 +253,7 @@ int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
                 }
                 frmline->words[i+1].x += delta;
             }
+            frmline->width += w;
         }
     }
     return flgRollback;
@@ -500,8 +501,11 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                             if (i==pbuffer->srctextlen-1 || pbuffer->srctext[i+1].flags & LTEXT_FLAG_NEWLINE)
                                 word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                         }
+                        //???
+                        ///*
                         for (int jj=j; jj>0 && (flags_buf[jj] & LCHAR_IS_SPACE); jj--)
                             word->x = widths_buf[jj-1] - wpos;
+                        //*/
                         wpos = widths_buf[j];
                         wstart = j+1;
                         frmline->width += word->width;
@@ -620,7 +624,7 @@ void LFormattedText::AddSourceObject(
         flags, interval, margin, object );
 }
 
-void LFormattedText::Draw( LVDrawBuf * buf, int x, int y )
+void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks )
 {
     lUInt32 i, j;
     formatted_line_t * frmline;
@@ -638,6 +642,18 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y )
         frmline = m_pbuffer->frmlines[i];
         if (line_y + frmline->height>=clip.top)
         {
+            // process marks
+            if ( marks!=NULL && marks->length()>0 ) {
+                lvRect lineRect( frmline->x, frmline->y, frmline->x + frmline->width, frmline->y + frmline->height );
+                for ( int i=0; i<marks->length(); i++ ) {
+                    lvRect mark;
+                    ldomMarkedRange * range = marks->get(i);
+                    if ( range->intersects( lineRect, mark ) ) {
+                        //
+                        buf->FillRect( mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, 0xAAAAAA );
+                    }
+                }
+            }
             for (j=0; j<frmline->word_count; j++)
             {
                 word = &frmline->words[j];
@@ -662,6 +678,17 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y )
                     srcline = &m_pbuffer->srctext[word->src_text_index];
                     font = (LVFont *) srcline->t.font;
                     str = srcline->t.text + word->t.start;
+                    /*
+                    lUInt32 srcFlags = srcline->flags;
+                    if ( srcFlags & LTEXT_BACKGROUND_MARK_FLAGS ) {
+                        lvRect rc;
+                        rc.left = x + frmline->x + word->x;
+                        rc.top = line_y + (frmline->baseline - font->getBaseline()) + word->y;
+                        rc.right = rc.left + word->width;
+                        rc.bottom = rc.top + font->getHeight();
+                        buf->FillRect( rc.left, rc.top, rc.right, rc.bottom, 0xAAAAAA );
+                    }
+                    */
                     font->DrawTextString(
                         buf,
                         x + frmline->x + word->x,
