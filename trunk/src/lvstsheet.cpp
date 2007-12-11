@@ -276,7 +276,7 @@ static bool parse_color_value( const char * & str, css_length_t & value )
         // #rgb or #rrggbb colors
         str++;
         int nDigits = 0;
-        for ( ; hexDigit(str[nDigits]); nDigits++ )
+        for ( ; hexDigit(str[nDigits])>=0; nDigits++ )
             ;
         if ( nDigits==3 ) {
             int r = hexDigit( *str++ );

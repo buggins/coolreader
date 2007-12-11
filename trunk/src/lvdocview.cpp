@@ -396,16 +396,16 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 {
     if ( rc.width()<130 || rc.height()<130)
         return;
-    int base_font_size = 26;
+    int base_font_size = 24;
     int w = rc.width();
     if ( w<300 )
-        base_font_size = 24;
+        base_font_size = 22;
     else if ( w<500 )
-        base_font_size = 28;
+        base_font_size = 24;
     else if ( w<700 )
-        base_font_size = 32;
+        base_font_size = 26;
     else
-        base_font_size = 36;
+        base_font_size = 32;
     LVFontRef author_fnt( fontMan->GetFont( base_font_size, 600, true, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef title_fnt( fontMan->GetFont( base_font_size+4, 600, false, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef series_fnt( fontMan->GetFont( base_font_size-3, 300, true, css_ff_serif, lString8("Times New Roman")) );
@@ -416,9 +416,9 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
         title = L"no title";
     LFormattedText txform;
     if ( !authors.empty() )
-        txform.AddSourceLine( authors.c_str(), authors.length(), author_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
-    txform.AddSourceLine( title.c_str(), title.length(), title_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
-    txform.AddSourceLine( series.c_str(), series.length(), series_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
+        txform.AddSourceLine( authors.c_str(), authors.length(), 0xFFFFFFFF, 0xFFFFFFFF, author_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
+    txform.AddSourceLine( title.c_str(), title.length(), 0xFFFFFFFF, 0xFFFFFFFF, title_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
+    txform.AddSourceLine( series.c_str(), series.length(), 0xFFFFFFFF, 0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
     int title_w = rc.width() - rc.width()/3;
     int h = txform.Format( title_w, rc.height() ) + 16;
 
@@ -1189,7 +1189,7 @@ bool LVDocView::windowToDocPoint( lvPoint & pt )
         int page_y = m_pages[page]->start;
         pt.x -= rc->left;
         pt.y -= rc->top;
-        CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
+        //CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
         pt.y += page_y;
         return true;
     }
@@ -1208,7 +1208,7 @@ ldomXPointer LVDocView::getNodeByPoint( lvPoint pt )
 {
     if ( windowToDocPoint( pt ) ) {
         ldomXPointer ptr = m_doc->createXPointer( pt );
-        CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
+        //CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
         return ptr;
     }
     return ldomXPointer();
@@ -1677,6 +1677,11 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     delete parser;
     m_pos = 0;
 
+
+    lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
+    if ( !docstyle.empty() ) {
+        m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+    }
 
 #if 0
     {

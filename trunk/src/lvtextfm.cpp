@@ -115,6 +115,8 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lvfont_handle   font,     /* handle of font to draw string */
    const lChar16 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
+   lUInt32         color,    /* color */
+   lUInt32         bgcolor,  /* bgcolor */
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
@@ -147,6 +149,8 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     pline->flags = flags;
     pline->interval = interval;
     pline->t.offset = offset;
+    pline->color = color;
+    pline->bgcolor = bgcolor;
 }
 
 void lvtextAddSourceObject( 
@@ -642,6 +646,11 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
         frmline = m_pbuffer->frmlines[i];
         if (line_y + frmline->height>=clip.top)
         {
+            // process background
+            
+            lUInt32 bgcl = buf->GetBackgroundColor();
+            buf->FillRect( x+frmline->x, y + frmline->y, x+frmline->x + frmline->width, y + frmline->y + frmline->height, bgcl );
+            
             // process marks
             if ( marks!=NULL && marks->length()>0 ) {
                 lvRect lineRect( frmline->x, frmline->y, frmline->x + frmline->width, frmline->y + frmline->height );
@@ -689,6 +698,14 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         buf->FillRect( rc.left, rc.top, rc.right, rc.bottom, 0xAAAAAA );
                     }
                     */
+                    lUInt32 oldColor = buf->GetTextColor();
+                    lUInt32 oldBgColor = buf->GetBackgroundColor();
+                    lUInt32 cl = srcline->color;
+                    lUInt32 bgcl = srcline->bgcolor;
+                    if ( cl!=0xFFFFFFFF )
+                        buf->SetTextColor( cl );
+                    if ( bgcl!=0xFFFFFFFF )
+                        buf->SetBackgroundColor( bgcl );
                     font->DrawTextString(
                         buf,
                         x + frmline->x + word->x,
@@ -697,7 +714,12 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         word->t.len,
                         '?',
                         NULL,
-                        flgHyphen);
+                        flgHyphen,
+                        srcline->flags & 0x0F00);
+                    if ( cl!=0xFFFFFFFF )
+                        buf->SetTextColor( oldColor );
+                    if ( bgcl!=0xFFFFFFFF )
+                        buf->SetBackgroundColor( oldBgColor );
                 }
             }
         }

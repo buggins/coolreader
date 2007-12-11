@@ -74,12 +74,13 @@ enum css_vertical_align_t {
 
 /// text-decoration property values
 enum css_text_decoration_t {
-    css_td_inherit = -1,
-    css_td_none = 0,
-    css_td_underline = 1,
-    css_td_overline = 2,
+    // TODO: support multiple flags
+    css_td_inherit = 0,
+    css_td_none = 1,
+    css_td_underline = 2,
+    css_td_overline = 3,
     css_td_line_through = 4,
-    css_td_blink = 8,
+    css_td_blink = 5,
 };
 
 /// font-style property values

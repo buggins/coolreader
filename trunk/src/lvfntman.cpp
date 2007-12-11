@@ -256,14 +256,34 @@ struct LVFontGlyphCacheItem
         return sizeof(LVFontGlyphCacheItem) 
             + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
     }
-    static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar16 ch, FT_GlyphSlot slot )
+    static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar16 ch, FT_GlyphSlot slot, bool drawMonochrome )
     {
         FT_Bitmap*  bitmap = &slot->bitmap;
         lUInt8 w = (lUInt8)(bitmap->width);
         lUInt8 h = (lUInt8)(bitmap->rows);
         LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( sizeof(LVFontGlyphCacheItem) 
             + (w*h - 1)*sizeof(lUInt8) );
-        memcpy( item->bmp, bitmap->buffer, w*h );
+        if ( drawMonochrome ) {
+            lUInt8 mask = 0x80;
+            const lUInt8 * ptr = (const lUInt8 *)bitmap->buffer;
+            lUInt8 * dst = item->bmp;
+            int rowsize = ((w + 15) / 16) * 2;
+            for ( int y=0; y<h; y++ ) {
+                const lUInt8 * row = ptr;
+                mask = 0x80;
+                for ( int x=0; x<w; x++ ) {
+                    *dst++ = (*row & mask) ? 0xFF : 00;
+                    mask >>= 1;
+                    if ( !mask && x!=w-1) {
+                        mask = 0x80;
+                        row++;
+                    }
+                }
+                ptr += rowsize;
+            }
+        } else {
+            memcpy( item->bmp, bitmap->buffer, w*h );
+        }
         item->ch = ch;
         item->bmp_width = w;
         item->bmp_height = h;
@@ -406,10 +426,11 @@ private:
     int           _baseline;
     LVFontGlyphWidthCache _wcache;
     LVFontLocalGlyphCache _glyph_cache;
+    bool          _drawMonochrome;
 public:
     LVFreeTypeFace( FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
-    , _glyph_cache(globalCache)
+    , _glyph_cache(globalCache), _drawMonochrome(false)
     {
     }
 
@@ -418,8 +439,9 @@ public:
         Clear();
     }
 
-    bool loadFromFile( const char * fname, int index, int size, css_font_family_t fontFamily )
+    bool loadFromFile( const char * fname, int index, int size, css_font_family_t fontFamily, bool monochrome )
     {
+        _drawMonochrome = monochrome;
         _fontFamily = fontFamily;
         if ( fname )
             _fileName = fname;
@@ -676,7 +698,7 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen )
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags )
     {
         if ( len <= 0 || _face==NULL )
             return;
@@ -697,6 +719,7 @@ public:
         lChar16 ch;
         // measure character widths
         bool isHyphen = false;
+        int x0 = x;
         for ( i=0; i<=len; i++) {
             if ( i==len && (!addHyphen || isHyphen) )
                 break;
@@ -726,15 +749,16 @@ public:
             LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
             if ( !item ) {
 
+                int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
                 /* load glyph image into the slot (erase previous one) */
                 error = FT_Load_Glyph( _face,          /* handle to face object */
                         ch_glyph_index,                /* glyph index           */
-                        FT_LOAD_RENDER );             /* load flags, see below */
+                        rend_flags );             /* load flags, see below */
                 if ( error ) {
                     continue;  /* ignore errors */
                 }
 
-                item = LVFontGlyphCacheItem::newItem( &_glyph_cache, ch, _slot );
+                item = LVFontGlyphCacheItem::newItem( &_glyph_cache, ch, _slot, _drawMonochrome );
                 _glyph_cache.put( item );
             }
             if ( item && !isHyphen || i>=len-1 ) { // avoid soft hyphens inside text string
@@ -748,6 +772,23 @@ public:
 
                 x  += w;
                 previous = ch_glyph_index;
+            }
+        }
+        if ( flags & LTEXT_TD_MASK ) {
+            // text decoration: underline, etc.
+            int h = _size > 30 ? 2 : 1;
+            lUInt32 cl = buf->GetTextColor();
+            if ( flags & LTEXT_TD_UNDERLINE || flags & LTEXT_TD_BLINK ) {
+                int liney = y + _baseline + h;
+                buf->FillRect( x0, liney, x, liney+h, cl );
+            }
+            if ( flags & LTEXT_TD_OVERLINE ) {
+                int liney = y + h;
+                buf->FillRect( x0, liney, x, liney+h, cl );
+            }
+            if ( flags & LTEXT_TD_LINE_THROUGH ) {
+                int liney = y + _size/2 - h/2;
+                buf->FillRect( x0, liney, x, liney+h, cl );
             }
         }
     }
@@ -888,7 +929,7 @@ public:
         //}
 
         //printf("going to load font file %s\n", fname.c_str());
-        if (font->loadFromFile( pathname.c_str(), item->getDef()->getIndex(), size, family ) )
+        if (font->loadFromFile( pathname.c_str(), item->getDef()->getIndex(), size, family, false ) )
         {
             //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
             //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
@@ -1380,7 +1421,7 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
 
 void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
                    const lChar16 * text, int len, 
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen )
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags )
 {
     static lUInt8 glyph_buf[16384];
     LVFont::glyph_info_t info;
@@ -1877,7 +1918,7 @@ lUInt16 LVWin32DrawFont::measureText(
 /// draws text string
 void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
                    const lChar16 * text, int len, 
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen )
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags )
 {
     if (_hfont==NULL)
         return;

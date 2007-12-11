@@ -22,20 +22,28 @@
 extern "C" {
 #endif
 
-#define LTEXT_ALIGN_LEFT   1  /**< \brief new left-aligned paragraph */
-#define LTEXT_ALIGN_RIGHT  2  /**< \brief new right-aligned paragraph */
-#define LTEXT_ALIGN_CENTER 3  /**< \brief new centered paragraph */
-#define LTEXT_ALIGN_WIDTH  4  /**< \brief new justified paragraph */
+// text flags
+#define LTEXT_ALIGN_LEFT       0x0001  /**< \brief new left-aligned paragraph */
+#define LTEXT_ALIGN_RIGHT      0x0002  /**< \brief new right-aligned paragraph */
+#define LTEXT_ALIGN_CENTER     0x0003  /**< \brief new centered paragraph */
+#define LTEXT_ALIGN_WIDTH      0x0004  /**< \brief new justified paragraph */
 
-#define LTEXT_FLAG_NEWLINE 7  /**< \brief new line flags mask */
-#define LTEXT_FLAG_OWNTEXT 8  /**< \brief store local copy of text instead of pointer */
+#define LTEXT_FLAG_NEWLINE     0x0007  /**< \brief new line flags mask */
+#define LTEXT_FLAG_OWNTEXT     0x0008  /**< \brief store local copy of text instead of pointer */
 
-#define LTEXT_VALIGN_MASK       0x70 /**< \brief vertical align flags mask */
-#define LTEXT_VALIGN_BASELINE   0x00 /**< \brief baseline vertical align */
-#define LTEXT_VALIGN_SUB        0x10 /**< \brief subscript */
-#define LTEXT_VALIGN_SUPER      0x20 /**< \brief superscript */
+#define LTEXT_VALIGN_MASK      0x0070  /**< \brief vertical align flags mask */
+#define LTEXT_VALIGN_BASELINE  0x0000  /**< \brief baseline vertical align */
+#define LTEXT_VALIGN_SUB       0x0010  /**< \brief subscript */
+#define LTEXT_VALIGN_SUPER     0x0020  /**< \brief superscript */
 
-#define LTEXT_SRC_IS_OBJECT     0x8000 /**< \brief superscript */
+#define LTEXT_TD_UNDERLINE     0x0100  /**< \brief underlined text */
+#define LTEXT_TD_OVERLINE      0x0200  /**< \brief overlined text */
+#define LTEXT_TD_LINE_THROUGH  0x0400  /**< \brief striked through text */
+#define LTEXT_TD_BLINK         0x0800  /**< \brief blinking text */
+#define LTEXT_TD_MASK          0x0F00  /**< \brief text decoration mask */
+
+#define LTEXT_SRC_IS_OBJECT    0x8000  /**< \brief superscript */
+
 
 
 /** \brief Source text line
@@ -58,6 +66,8 @@ typedef struct
     lUInt16         margin;   /**< \brief first line margin */
     lUInt8          interval; /**< \brief line interval, *16 (16=normal, 32=double) */
     lUInt8          reserved; /**< \brief reserved */
+    lUInt32         color;    /**< \brief color */
+    lUInt32         bgcolor;  /**< \brief background color */
     lUInt32         flags;    /**< \brief flags */
 } src_text_fragment_t;
 
@@ -93,7 +103,7 @@ typedef struct
 /// object flag
 #define LTEXT_WORD_IS_OBJECT     0x80
 
-#define LTEXT_BACKGROUND_MARK_FLAGS 0xFFFF0000l
+//#define LTEXT_BACKGROUND_MARK_FLAGS 0xFFFF0000l
 
 /** \brief Text formatter formatted line
 */
@@ -146,6 +156,8 @@ void lvtextAddSourceLine(
    lvfont_handle   font,     /* handle of font to draw string */
    const lChar16 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
+   lUInt32         color,    /* text color */
+   lUInt32         bgcolor,  /* background color */
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
@@ -211,6 +223,8 @@ public:
     void AddSourceLine(
            const lChar16 * text,        /* pointer to unicode text string */
            lUInt32         len,         /* number of chars in text, 0 for auto(strlen) */
+           lUInt32         color,       /* text color */
+           lUInt32         bgcolor,     /* background color */
            LVFont          * font,        /* font to draw string */
            lUInt32         flags=LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT,
            lUInt8          interval=16, /* interline space, *16 (16=single, 32=double) */
@@ -221,7 +235,7 @@ public:
     {
         lvtextAddSourceLine(m_pbuffer, 
             font,  //font->GetHandle()
-            text, len, 
+            text, len, color, bgcolor, 
             flags, interval, margin, object, (lUInt16)offset );
     }
     lUInt32 Format(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }

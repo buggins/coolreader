@@ -1431,7 +1431,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
         return ptr;
     lvRect rc;
     finalNode->getAbsRect( rc );
-    CRLog::debug("ldomDocument::createXPointer point = (%d, %d), finalNode %08X rect = (%d,%d,%d,%d)", pt.x, pt.y, (lUInt32)finalNode, rc.left, rc.top, rc.right, rc.bottom );
+    //CRLog::debug("ldomDocument::createXPointer point = (%d, %d), finalNode %08X rect = (%d,%d,%d,%d)", pt.x, pt.y, (lUInt32)finalNode, rc.left, rc.top, rc.right, rc.bottom );
     pt.x -= rc.left;
     pt.y -= rc.top;
     lvdomElementFormatRec * r = finalNode->getRenderData();
@@ -1452,7 +1452,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
         const formatted_line_t * frmline = txtform.GetLineInfo(l);
         if ( pt.y >= (int)(frmline->y + frmline->height) && l<lcount-1 )
             continue;
-        CRLog::debug("  point (%d, %d) line found [%d]: (%d..%d)", pt.x, pt.y, l, frmline->y, frmline->y+frmline->height);
+        //CRLog::debug("  point (%d, %d) line found [%d]: (%d..%d)", pt.x, pt.y, l, frmline->y, frmline->y+frmline->height);
         // found line, searching for word
         int wc = (int)frmline->word_count;
         int x = pt.x - frmline->x;
@@ -1460,7 +1460,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
             const formatted_word_t * word = &frmline->words[w];
             if ( x < word->x + word->width || w==wc-1 ) {
                 const src_text_fragment_t * src = txtform.GetSrcInfo(word->src_text_index);
-                CRLog::debug(" word found [%d]: x=%d..%d, start=%d, len=%d  %08X", w, word->x, word->x + word->width, word->t.start, word->t.len, src->object);
+                //CRLog::debug(" word found [%d]: x=%d..%d, start=%d, len=%d  %08X", w, word->x, word->x + word->width, word->t.start, word->t.len, src->object);
                 // found word, searching for letters
                 ldomNode * node = (ldomNode *)src->object;
                 if ( src->flags & LTEXT_SRC_IS_OBJECT ) {

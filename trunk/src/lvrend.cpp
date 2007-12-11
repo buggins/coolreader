@@ -349,6 +349,22 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
         default:
             break;
         }
+        switch ( enode->getStyle()->text_decoration ) {
+        case css_td_underline:
+            flags |= LTEXT_TD_UNDERLINE;
+            break;
+        case css_td_overline:
+            flags |= LTEXT_TD_OVERLINE;
+            break;
+        case css_td_line_through:
+            flags |= LTEXT_TD_LINE_THROUGH;
+            break;
+        case css_td_blink:
+            flags |= LTEXT_TD_BLINK;
+            break;
+        default:
+            break;
+        }
         const elem_def_t * ntype = node->getElementTypePtr();
         if ( ntype && ntype->props.is_object )
         {
@@ -408,8 +424,12 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
                 << baseflags << ")\n";
 #endif
 
-            LVFont * font = ((ldomElement*)node->getParentNode())->getFont().get();
-            txform->AddSourceLine( txt.c_str(), txt.length(), font, baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
+            ldomElement * parent = ((ldomElement*)node->getParentNode());
+            LVFont * font = parent->getFont().get();
+            css_style_ref_t style = parent->getStyle();
+            lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
+            lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+            txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }
@@ -480,7 +500,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                 int st_y = lengthToPx( enode->getStyle()->height, em, em );
                 if ( y < st_y )
                     y = st_y;
-                fmt->setHeight( y );
+                fmt->setHeight( y ); //+ margin_top + margin_bottom ); //???
                 return y + margin_top + margin_bottom; // return block height
             }
             break;
@@ -549,6 +569,13 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         {
             return; // out of range
         }
+        css_length_t bg = enode->getStyle()->background_color;
+        lUInt32 oldColor;
+        if ( bg.type==css_val_color ) {
+            oldColor = drawbuf.GetBackgroundColor();
+            drawbuf.SetBackgroundColor( bg.value );
+            drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt->getWidth(), y0+doc_y+fmt->getHeight(), bg.value );
+        }
 #if (DEBUG_TREE_DRAW!=0)
         lUInt32 color;
         if (drawbuf.GetBitsPerPixel()>=16)
@@ -610,6 +637,9 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         default:
             crFatalError(); // error
         }
+        if ( bg.type==css_val_color ) {
+            drawbuf.SetBackgroundColor( oldColor );
+        }
     }
 }
 
@@ -668,6 +698,19 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
     // apply style sheet
     //////////////////////////////////////////////////////
     node->getDocument()->getStyleSheet()->apply( node, pstyle );
+
+    if ( enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
+        lString16 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
+        if ( !nodeStyle.empty() ) {
+            nodeStyle = lString16(L"{") + nodeStyle + L"}";
+            LVCssDeclaration decl;
+            lString8 s8 = UnicodeToUtf8(nodeStyle);
+            const char * s = s8.c_str();
+            if ( decl.parse( s ) ) {
+                decl.apply( pstyle );
+            }
+        }
+    }
     /*
     switch ( node->getNodeId() )
     {

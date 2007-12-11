@@ -95,7 +95,7 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen ) = 0;
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 ) = 0;
     /// constructor
     LVFont() { }
     /// returns true if font is empty
@@ -138,7 +138,7 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen );
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 );
 };
 
 /* C++ wrapper class */
@@ -294,7 +294,7 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen );
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 );
         
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
