@@ -653,6 +653,24 @@ public:
     void recurseElements( void (*pFun)( ldomXPointerEx & node ) );
     /// calls specified function recursively for all nodes of DOM tree
     void recurseNodes( void (*pFun)( ldomXPointerEx & node ) );
+    /// set new offset value
+    void setOffset( int offset )
+    {
+        _offset = offset;
+    }
+};
+
+class ldomXRange;
+
+/// callback for DOM tree iteration interface
+class ldomNodeCallback {
+public:
+    /// destructor
+    virtual ~ldomNodeCallback() { }
+    /// called for each found text fragment in range
+    virtual void onText( ldomXRange * nodeRange ) = 0;
+    /// called for each found node in range
+    virtual bool onElement( ldomXPointerEx * ptr ) = 0;
 };
 
 /// DOM range
@@ -721,6 +739,8 @@ public:
     lString16 getRangeText( lChar16 blockDelimiter=0, int maxTextLen=0 );
     /// sets range to nearest word bounds, returns true if success
     static bool getWordRange( ldomXRange & range, ldomXPointer & p );
+    /// run callback for each node in range
+    void forEach( ldomNodeCallback * callback );
 };
 
 class ldomMarkedText

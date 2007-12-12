@@ -2212,18 +2212,114 @@ bool ldomXRange::getWordRange( ldomXRange & range, ldomXPointer & p )
     return true;
 }
 
+/// run callback for each node in range
+void ldomXRange::forEach( ldomNodeCallback * callback )
+{
+    if ( isNull() )
+        return;
+    ldomXRange pos( _start, _end, 0 );
+    bool allowGoRecurse = true;
+    while ( pos._start.compare( _end ) < 0 ) {
+        // do something
+        ldomNode * node = pos._start.getNode();
+        if ( node->getNodeType()==LXML_ELEMENT_NODE ) {
+            allowGoRecurse = callback->onElement( &pos.getStart() );
+        } else if ( node->getNodeType()==LXML_TEXT_NODE ) {
+            lString16 txt = node->getText();
+            pos._end = pos._start;
+            pos._start.setOffset( 0 );
+            pos._end.setOffset( txt.length() );
+            if ( _start.getNode() == node ) {
+                pos._start.setOffset( _start.getOffset() );
+            }
+            if ( _end.getNode() == node && pos._end.getOffset() > _end.getOffset()) {
+                pos._end.setOffset( _end.getOffset() );
+            }
+            callback->onText( &pos );
+            allowGoRecurse = false;
+        }
+        // move to next item
+        if ( !allowGoRecurse || !pos._start.child(0) ) {
+            while ( !pos._start.nextSibling() ) {
+                if ( !pos._start.parent() )
+                    break;
+            }
+        }
+    }
+}
+
+class ldomTextCollector : public ldomNodeCallback
+{
+private:
+    bool lastText;
+    bool newBlock;
+    int  delimiter;
+    int  maxLen;
+    lString16 text;
+public:
+    ldomTextCollector( lChar16 blockDelimiter, int maxTextLen )
+        : lastText(false), newBlock(true), delimiter( blockDelimiter), maxLen( maxTextLen )
+    {
+    }
+    /// destructor
+    virtual ~ldomTextCollector() { }
+    /// called for each found text fragment in range
+    virtual void onText( ldomXRange * nodeRange )
+    {
+        if ( newBlock && !text.empty()) {
+            text << delimiter;
+        }
+        lString16 txt = nodeRange->getStart().getNode()->getText();
+        int start = nodeRange->getStart().getOffset();
+        int end = nodeRange->getEnd().getOffset();
+        if ( start < end ) {
+            text << txt.substr( start, end-start );
+        }
+        lastText = true;
+        newBlock = false;
+    }
+    /// called for each found node in range
+    virtual bool onElement( ldomXPointerEx * ptr )
+    {
+        ldomElement * elem = (ldomElement *)ptr->getNode();
+        if ( elem->getRendMethod()==erm_invisible )
+            return false;
+        switch ( elem->getStyle()->display ) {
+        /*
+        case css_d_inherit:
+        case css_d_block:
+        case css_d_list_item: 
+        case css_d_compact:
+        case css_d_marker:
+        case css_d_table:
+        case css_d_inline_table:
+        case css_d_table_row_group:
+        case css_d_table_header_group:
+        case css_d_table_footer_group: 
+        case css_d_table_row:
+        case css_d_table_column_group:
+        case css_d_table_column:
+        case css_d_table_cell:
+        case css_d_table_caption:
+        */
+        default:
+            newBlock = true;
+        case css_d_none:
+            return false;
+        case css_d_inline:
+        case css_d_run_in: 
+            newBlock = false;
+            return true;
+        }
+    }
+    /// get collected text
+    lString16 getText() { return text; }
+};
+
 /// returns text between two XPointer positions
 lString16 ldomXRange::getRangeText( lChar16 blockDelimiter, int maxTextLen )
 {
-    ldomXPointerEx pos( _start );
-    ldomXPointerEx endpos( _end );
-    lString16 res;
-    if ( pos.getNode() == endpos.getNode() ) {
-        if ( pos.getOffset() >= endpos.getOffset() )
-            return res;
-        if ( pos.getNode()->getNodeType()==LXML_TEXT_NODE ) {
-            return pos.getNode()->getText().substr( pos.getOffset(), endpos.getOffset()-pos.getOffset() );
-        }
-    }
-    return res;
+    ldomTextCollector callback( blockDelimiter, maxTextLen );
+    forEach( &callback );
+    return callback.getText();
 }

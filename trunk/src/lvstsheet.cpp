@@ -15,6 +15,7 @@
 
 #include "../include/lvstsheet.h"
 #include "../include/lvtinydom.h"
+#include "../include/fb2def.h"
 
 enum css_decl_code {
     cssd_unknown,
@@ -778,6 +779,21 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_id:            // E#id
         // todo
+        {
+            lString16 val = node->getAttributeValue(attr_id);
+            if (_value.length()>val.length())
+                return false;
+            return val == _value;
+        }
+        break;
+    case cssrt_class:         // E.class
+        // todo
+        {
+            lString16 val = node->getAttributeValue(attr_class);
+            if (_value.length()>val.length())
+                return false;
+            return val == _value;
+        }
         break;
     case cssrt_universal:     // *
         return true;
@@ -848,16 +864,38 @@ bool parse_attr_value( const char * &str, char * buf )
 
 LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
 {
+    char attrname[64];
+    char attrvalue[64];
     LVCssSelectorRuleType st = cssrt_universal;
-    if (*str != '[')
+    if (*str=='.') {
+        // E.class
+        str++;
+        skip_spaces( str );
+        if (!parse_ident( str, attrvalue ))
+            return NULL;
+        skip_spaces( str );
+        LVCssSelectorRule * rule = new LVCssSelectorRule(cssrt_class);
+        lString16 s( attrvalue );
+        rule->setAttr(attr_class, s);
+        return rule;
+    } else if ( *str=='#' ) {
+        // E#id
+        str++;
+        skip_spaces( str );
+        if (!parse_ident( str, attrvalue ))
+            return NULL;
+        skip_spaces( str );
+        LVCssSelectorRule * rule = new LVCssSelectorRule(cssrt_id);
+        lString16 s( attrvalue );
+        rule->setAttr(attr_id, s);
+        return rule;
+    } else if (*str != '[')
         return NULL;
     str++;
     skip_spaces( str );
-    char attrname[64];
     if (!parse_ident( str, attrname ))
         return NULL;
     skip_spaces( str );
-    char attrvalue[64];
     attrvalue[0] = 0;
     if (*str==']')
     {
@@ -932,7 +970,7 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
             return true;
         // one or more attribute rules
         bool attr_rule = false;
-        while ( *str == '[' )
+        while ( *str == '[' || *str=='.' || *str=='#' )
         {
             LVCssSelectorRule * rule = parse_attr( str, doc );
             if (!rule)

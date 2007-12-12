@@ -115,6 +115,7 @@ XS_END_TAGS
 XS_BEGIN_ATTRS
 
 XS_ATTR( id )
+XS_ATTR( class )
 XS_ATTR( value )
 XS_ATTR( name )
 XS_ATTR( number )
