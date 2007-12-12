@@ -355,7 +355,7 @@ cr3app::OnInit()
     int scale = scale_x < scale_y ? scale_x : scale_y;
     cx = 610 * scale / 256;
     cy = 830 * scale / 256;
-    cr3Frame *frame = new cr3Frame( wxT( "CoolReader 3.0.8" ), wxPoint(x,y), wxSize(cx,cy), appPath );
+    cr3Frame *frame = new cr3Frame( wxT( "CoolReader " wxT(CR3_VERSION) ), wxPoint(x,y), wxSize(cx,cy), appPath );
 
     
 
@@ -484,7 +484,7 @@ void cr3Frame::SetStatus( bool visible )
     //int ss[3] = {wxSB_NORMAL, wxSB_FLAT, wxSB_FLAT};
     status->SetFieldsCount(2, sw);
     //status->SetStatusStyles(3, ss);
-    SetStatusText( wxT( "Welcome to CoolReader 3.0!" ) );
+    SetStatusText( wxT( "Welcome to CoolReader " wxT(CR3_VERSION) wxT("!") ) );
 }
 
 
@@ -963,8 +963,8 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-    wxMessageBox( wxT( "Cool Reader 3.0.8\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n")
-    wxT("\nBased on CREngine library")
+    wxMessageBox( wxT( "Cool Reader " wxT(CR3_VERSION) wxT("\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n") )
+    wxT("\nBased on CREngine library " wxT(CR_ENGINE_VERSION) )
     wxT("\nThird party libraries used:")
     wxT("\nzlib, libpng, libjpeg, freetype2,")
     wxT("\nhyphenation library by Alan")
