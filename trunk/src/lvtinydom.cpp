@@ -2076,6 +2076,7 @@ void ldomXRangeList::split( ldomXRange * r )
     }
 }
 
+#ifndef BUILD_LITE
 /// fill marked ranges list
 void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
 {
@@ -2123,6 +2124,7 @@ void ldomXRangeList::splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSp
     }
     */
 }
+#endif
 
 /// returns true if intersects specified line rectangle
 bool ldomMarkedRange::intersects( lvRect & rc, lvRect & intersection )

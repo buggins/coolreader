@@ -807,10 +807,12 @@ public:
     ldomXRangeList( ldomXRangeList & srcList, bool splitIntersections );
     /// create list by filtering existing list, to get only values which intersect filter range
     ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter );
+#ifndef BUILD_LITE
     /// fill text selection list by splitting text into monotonic flags ranges
     void splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSplit );
     /// fill marked ranges list
     void getRanges( ldomMarkedRangeList &dst );
+#endif
     /// split into subranges using intersection
     void split( ldomXRange * r );
     /// default constructor for empty list
