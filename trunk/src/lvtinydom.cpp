@@ -224,7 +224,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     _def_style->white_space = css_ws_normal;
     _def_style->text_align = css_ta_left;
     _def_style->text_decoration = css_td_none;
-    _def_style->color.type = css_val_color;
+    _def_style->color.type = css_val_unspecified;
     _def_style->color.value = 0x000000;
     _def_style->background_color.type = css_val_unspecified;
     _def_style->background_color.value = 0xFFFFFF;

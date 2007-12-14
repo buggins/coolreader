@@ -98,6 +98,13 @@ public:
                        lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 ) = 0;
     /// constructor
     LVFont() { }
+
+    /// get bitmap mode (true=monochrome bitmap, false=antialiased)
+    virtual bool getBitmapMode() { return false; }
+    /// set bitmap mode (true=monochrome bitmap, false=antialiased)
+    virtual void setBitmapMode( bool drawMonochrome ) { }
+
+
     /// returns true if font is empty
     virtual bool IsNull() const = 0;
     virtual bool operator ! () const = 0;
@@ -108,9 +115,18 @@ public:
 typedef LVRef<LVFont> LVFontRef;
 
 
+enum font_antialiasing_t
+{
+    font_aa_none,
+    font_aa_big,
+    font_aa_all
+};
+
 /// font manager interface class
 class LVFontManager
 {
+protected:
+    int _antialiasMode;
 public:
     /// garbage collector frees unused fonts
     virtual void gc() = 0;
@@ -120,8 +136,17 @@ public:
     virtual bool RegisterFont( lString8 name ) = 0;
     /// initializes font manager
     virtual bool Init( lString8 path ) = 0;
+    /// get count of registered fonts
     virtual int GetFontCount() = 0;
-    LVFontManager() { }
+    /// clear glyph cache
+    virtual void clearGlyphCache() { }
+    /// get antialiasing mode
+    virtual int GetAntialiasMode() { return _antialiasMode; }
+    /// set antialiasing mode
+    virtual void SetAntialiasMode( int mode ) { _antialiasMode = mode; gc(); clearGlyphCache(); }
+    /// constructor
+    LVFontManager() : _antialiasMode(font_aa_all) { }
+    /// destructor
     virtual ~LVFontManager() { }
 };
 

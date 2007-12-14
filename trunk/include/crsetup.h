@@ -82,7 +82,7 @@
 #else
 #define USE_FREETYPE                         1
 #endif
-#define ALLOW_KERNING                        0
+#define ALLOW_KERNING                        1
 #define GLYPH_CACHE_SIZE                     0x80000
 #define ZIP_STREAM_BUFFER_SIZE               0x200000
 #define FILE_STREAM_BUFFER_SIZE              0x100000
