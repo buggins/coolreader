@@ -74,6 +74,11 @@ cr3view::cr3view(CRPropRef props)
 , _props(props)
 {
     _docview = new LVDocView();
+    static int fontSizes[] = {14, 16, 18, 20, 24, 28, 32, 36};
+    LVArray<int> sizes( fontSizes, sizeof(fontSizes)/sizeof(int) );
+    _docview->setFontSizes( sizes, false );
+    //_docview->setBackgroundColor(0x000000);
+    //_docview->setTextColor(0xFFFFFF);
 
     cr_rotate_angle_t angle = (cr_rotate_angle_t)(_props->getIntDef( PROP_WINDOW_ROTATE_ANGLE, 0 ) & 3);
     _docview->SetRotateAngle( angle );

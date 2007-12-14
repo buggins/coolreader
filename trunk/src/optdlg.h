@@ -35,6 +35,9 @@ enum {
 #define PROP_PAGE_HEADER_TITLE       "page.header.title"
 
 #define PROP_PAGE_VIEW_MODE          "page.view.mode"
+#define PROP_FONT_ANTIALIASING       "font.antialiasing.mode"
+#define PROP_FONT_COLOR              "font.color.default"
+#define PROP_BACKGROUND_COLOR        "background.color.default"
 
 #define PROP_APP_OPEN_LAST_BOOK      "app.init.open-recent"
 

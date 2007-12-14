@@ -241,6 +241,11 @@ cr3app::OnInit()
     }
 #endif
 
+#ifdef _DEBUG
+    CRLog::setFileLogger( "crengine.log" );
+    CRLog::setLogLevel( CRLog::LL_TRACE );
+#endif
+
     wxImage::AddHandler(new wxPNGHandler);
     resources = new ResourceContainer();
 
@@ -297,7 +302,9 @@ cr3app::OnInit()
         for ( int i=0; i<dir->GetObjectCount(); i++ ) {
             const LVContainerItemInfo * item = dir->GetObjectInfo(i);
             lString16 fileName = item->GetName();
-            if ( !item->IsContainer() && fileName.length()>4 && lString16(fileName, fileName.length()-4, 4)==L".ttf" ) {
+            lString16 fileNameLower = fileName;
+            fileNameLower.lowercase();
+            if ( !item->IsContainer() && fileNameLower.length()>4 && lString16(fileNameLower, fileNameLower.length()-4, 4)==L".ttf" ) {
                 lString8 fn = UnicodeToLocal(fileName);
                 printf("loading font: %s\n", fn.c_str());
                 if ( !fontMan->RegisterFont(fn) ) {
@@ -760,6 +767,7 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
     _props = LVCreatePropsContainer();
 
 
+
     _appDir = appDir;
 
     _isFullscreen = false;
@@ -774,16 +782,13 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
     _view = new cr3view( _props );
     _hist = new HistList();
 
-#ifdef _DEBUG
-    CRLog::setFileLogger( "crengine.log" );
-    CRLog::setLogLevel( CRLog::LL_TRACE );
-#endif
-
     InitDialog();
 }
 
 void cr3Frame::SaveOptions()
 {
+    _props->setInt(PROP_FONT_COLOR, _view->getDocView()->getTextColor() );
+    _props->setInt(PROP_BACKGROUND_COLOR, _view->getDocView()->getBackgroundColor() );
     _props->setInt(PROP_CRENGINE_FONT_SIZE, _view->getDocView()->getFontSize() );
     _props->setBool(PROP_WINDOW_FULLSCREEN, _isFullscreen );
     bool maximized = IsMaximized();
@@ -823,11 +828,14 @@ void cr3Frame::RestoreOptions()
             Maximize();
         else if ( _props->getBoolDef(PROP_WINDOW_MINIMIZED) )
             Iconize();
+        fontMan->SetAntialiasMode( _props->getIntDef( PROP_FONT_ANTIALIASING, 2 ) );
     }
+    _view->getDocView()->setTextColor( _props->getIntDef(PROP_FONT_COLOR, 0x000060 ) );
+    _view->getDocView()->setBackgroundColor( _props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFE0 ) );
     _view->getDocView()->setFontSize( _props->getIntDef( PROP_CRENGINE_FONT_SIZE, 28 ) );
     _view->SetPageHeaderFlags();
 
-    _view->SetPageHeaderFlags();
+    //_view->SetPageHeaderFlags();
 
     int mode = _props->getIntDef( PROP_PAGE_VIEW_MODE, 2 );
     _view->getDocView()->setViewMode( mode>0 ? DVM_PAGES : DVM_SCROLL, mode>0 ? mode : -1 );

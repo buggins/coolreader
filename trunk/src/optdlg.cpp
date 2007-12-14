@@ -154,6 +154,13 @@ public:
     }
 };
 
+static wxString choices_font_antialiasing[] = {
+    wxT("No antialiasing"),
+    wxT("Use for large fonts only"),
+    wxT("Use always"),
+    wxString()
+};
+
 static wxString choices_page[] = {
     wxT("Scroll view"),
     wxT("1 Book page"),
@@ -186,6 +193,7 @@ public:
     virtual void CreateControls()
     {
         AddCombobox( PROP_PAGE_VIEW_MODE, wxT("View mode"), choices_page, 1 );
+        AddCombobox( PROP_FONT_ANTIALIASING, wxT("Font antialiasing"), choices_font_antialiasing, 2 );
     }
 };
 
