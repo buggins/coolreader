@@ -26,6 +26,7 @@
     Contains set of style properties.
 */
 typedef struct css_style_rec_tag {
+    int                  refCount; // for reference counting
     css_display_t        display;
     css_white_space_t    white_space;
     css_text_align_t     text_align;
@@ -47,7 +48,8 @@ typedef struct css_style_rec_tag {
     css_page_break_t     page_break_after;
     css_page_break_t     page_break_inside;
     css_style_rec_tag()
-    : display( css_d_inherit )
+    : refCount(0)
+    , display( css_d_inherit )
     , white_space(css_ws_inherit)
     , text_align(css_ta_inherit)
     , text_decoration (css_td_inherit)
@@ -67,12 +69,15 @@ typedef struct css_style_rec_tag {
     , page_break_inside(css_pb_inherit)
     {
     }
+    void AddRef() { refCount++; }
+    int Release() { return --refCount; }
+    int getRefCount() { return refCount; }
 } css_style_rec_t;
 
 /// style record reference type
-typedef LVRef< css_style_rec_t > css_style_ref_t;
+typedef LVFastRef< css_style_rec_t > css_style_ref_t;
 /// font reference type
-typedef LVRef< LVFont > font_ref_t;
+typedef LVFastRef< LVFont > font_ref_t;
 
 /// to compare two styles
 bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2);
@@ -81,10 +86,10 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2);
 #define LV_STYLE_HASH_SIZE 0x100
 
 /// style cache: allows to avoid duplicate style object allocation
-class lvdomStyleCache : public LVRefCache< css_style_rec_t >
+class lvdomStyleCache : public LVRefCache< css_style_ref_t >
 {
 public:
-    lvdomStyleCache( int size = LV_STYLE_HASH_SIZE ) : LVRefCache< css_style_rec_t >( size ) {}
+    lvdomStyleCache( int size = LV_STYLE_HASH_SIZE ) : LVRefCache< css_style_ref_t >( size ) {}
 };
 
 /// element rendering methods

@@ -1845,25 +1845,28 @@ lString16 Utf8ToUnicode( const lString8 & str )
     if (!len)
       return dst;
     dst.reserve( len );
-    lUInt16 ch;
-    while ( (ch=*s++) ) {
-        if ( (ch & 0x80) == 0 ) {
-            dst << ch;
-        } else if ( (ch & 0xE0) == 0xC0 ) {
-            lChar16 d = (ch & 0x1F) << 6;
-            if ( !(ch=*s++) )
-                break;
-            d |= (ch & 0x3F);
-            dst << d;
-        } else {
-            lChar16 d = (ch & 0x0F) << 12;
-            if ( !(ch=*s++) )
-                break;
-            d |= (ch & 0x3F) << 6;
-            if ( !(ch=*s++) )
-                break;
-            d |= (ch & 0x3F);
-            dst << d;
+    {
+        lStringBuf16<1024> buf( dst );
+        lUInt16 ch;
+        while ( (ch=*s++) ) {
+            if ( (ch & 0x80) == 0 ) {
+                buf.append( ch );
+            } else if ( (ch & 0xE0) == 0xC0 ) {
+                lChar16 d = (ch & 0x1F) << 6;
+                if ( !(ch=*s++) )
+                    break;
+                d |= (ch & 0x3F);
+                buf.append( d );
+            } else {
+                lChar16 d = (ch & 0x0F) << 12;
+                if ( !(ch=*s++) )
+                    break;
+                d |= (ch & 0x3F) << 6;
+                if ( !(ch=*s++) )
+                    break;
+                d |= (ch & 0x3F);
+                buf.append( d );
+            }
         }
     }
     return dst;
@@ -1878,22 +1881,24 @@ lString8 UnicodeToUtf8( const lString16 & str )
     const lChar16 * s = str.c_str();
     int len = Utf8ByteCount( s );
     dst.reserve( len );
-    lUInt16 ch;
-    while ( (ch=*s++) ) {
-        if ( (ch & 0xFF80) == 0 ) {
-            dst << (lUInt8)ch;
-        } else if ( (ch & 0xF800) == 0 ) {
-            dst << (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 );
-            dst << (lUInt8) ( ((ch ) & 0x3F) | 0x80 );
-        } else {
-            dst << (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 );
-            dst << (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 );
-            dst << (lUInt8) ( ((ch ) & 0x3F) | 0x80 );
+    {
+        lUInt16 ch;
+        lStringBuf8<1024> buf( dst );
+        while ( (ch=*s++) ) {
+            if ( (ch & 0xFF80) == 0 ) {
+                buf.append( (lUInt8)ch );
+            } else if ( (ch & 0xF800) == 0 ) {
+                buf.append( (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 ) );
+                buf.append( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+            } else {
+                buf.append( (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 ) );
+                buf.append( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+                buf.append( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+            }
         }
     }
     return dst;
 }
-
 
 lString8 UnicodeTo8Bit( const lString16 & str, const lChar8 * * table )
 {

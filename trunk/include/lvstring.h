@@ -537,6 +537,74 @@ inline lString8 operator + (const lString8 &s1, const lChar8 * s2)
     { lString8 s(s1); s.append(s2); return s; }
 
 
+/// fast 16-bit string character appender
+template <int BUFSIZE> class lStringBuf16 {
+    lString16 & str;
+    lChar16 buf[BUFSIZE];
+    int pos;
+public:
+    lStringBuf16( lString16 & s )
+    : str(s), pos(0)
+    {
+    }
+    inline void append( lChar16 ch )
+    {
+        buf[ pos++ ] = ch;
+        if ( pos==BUFSIZE )
+            flush();
+    }
+    inline lStringBuf16& operator << ( lChar16 ch )
+    {
+        buf[ pos++ ] = ch;
+        if ( pos==BUFSIZE )
+            flush();
+        return *this;
+    }
+    inline void flush()
+    {
+        str.append( buf, pos );
+        pos = 0;
+    }
+    ~lStringBuf16( )
+    {
+        flush();
+    }
+};
+
+/// fast 8-bit string character appender
+template <int BUFSIZE> class lStringBuf8 {
+    lString8 & str;
+    lChar8 buf[BUFSIZE];
+    int pos;
+public:
+    lStringBuf8( lString8 & s )
+    : str(s), pos(0)
+    {
+    }
+    inline void append( lChar8 ch )
+    {
+        buf[ pos++ ] = ch;
+        if ( pos==BUFSIZE )
+            flush();
+    }
+    inline lStringBuf8& operator << ( lChar8 ch )
+    {
+        buf[ pos++ ] = ch;
+        if ( pos==BUFSIZE )
+            flush();
+        return *this;
+    }
+    inline void flush()
+    {
+        str.append( buf, pos );
+        pos = 0;
+    }
+    ~lStringBuf8( )
+    {
+        flush();
+    }
+};
+
 lString8  UnicodeToTranslit( const lString16 & str );
 lString8  UnicodeToLocal( const lString16 & str );
 lString8  UnicodeToUtf8( const lString16 & str );
@@ -558,6 +626,10 @@ public:
     static void setLogLevel( log_level level );
     static log_level getLogLevel();
     static bool isLogLevelEnabled( log_level level );
+    static bool inline isDebugEnabled() { return isLogLevelEnabled( LL_DEBUG ); }
+    static bool inline isTraceEnabled() { return isLogLevelEnabled( LL_TRACE ); }
+    static bool inline isInfoEnabled() { return isLogLevelEnabled( LL_INFO ); }
+    static bool inline isWarnEnabled() { return isLogLevelEnabled( LL_WARN ); }
     static void fatal( const char * msg, ... );
     static void error( const char * msg, ... );
     static void warn( const char * msg, ... );

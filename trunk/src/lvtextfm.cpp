@@ -184,7 +184,7 @@ int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
     int margin = frmline->x;
     int delta = 0;
     unsigned int i;
-    unsigned short w;
+    unsigned short w = 0;
     int expand_count = 0;
     int expand_dx, expand_dd;
     int flgRollback = 0;

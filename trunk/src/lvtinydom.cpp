@@ -119,12 +119,14 @@ ldomElement * ldomDocument::getMainNode()
 #if COMPACT_DOM == 1
 ldomDocument::ldomDocument(LVStreamRef stream)
 : _textcache(stream, COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE)
+, _renderedBlockCache( 32 )
 {
     _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
 }
 
 #else
 ldomDocument::ldomDocument()
+: _renderedBlockCache( 32 )
 {
     _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
 }
@@ -217,6 +219,7 @@ void ldomTextRef::setText( lString16 value )
 #ifndef BUILD_LITE
 int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
 {
+    _renderedBlockCache.clear();
     _page_height = context.getPageHeight();
     _def_font = def_font;
     _def_style = css_style_ref_t( new css_style_rec_t );
@@ -1337,16 +1340,30 @@ ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
 
 #ifndef BUILD_LITE
 /// formats final block
-int ldomElement::renderFinalBlock( LFormattedText & txtform, int width )
+int ldomElement::renderFinalBlock( LFormattedTextRef & txtform, int width )
 {
+    CVRendBlockCache & cache = getDocument()->getRendBlockCache();
+    LFormattedTextRef f;
+    if ( cache.get( this, f ) ) {
+        txtform = f;
+        lvdomElementFormatRec * fmt = getRenderData();
+        if ( !fmt || getRendMethod() != erm_final )
+            return 0;
+        //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
+        return fmt->getHeight();
+    }
+    f = new LFormattedText();
     lvdomElementFormatRec * fmt = getRenderData();
     if ( !fmt || getRendMethod() != erm_final )
         return 0;
     /// render whole node content as single formatted object
     int flags = styleToTextFmtFlags( getStyle(), 0 );
-    ::renderFinalBlock( this, &txtform, fmt, flags, 0, 16 );
+    ::renderFinalBlock( this, f.get(), fmt, flags, 0, 16 );
     int page_h = getDocument()->getPageHeight();
-    int h = txtform.Format( width, page_h );
+    cache.set( this, f );
+    int h = f->Format( width, page_h );
+    txtform = f;
+    //CRLog::trace("Created new formatted object for node #%08X", (lUInt32)this);
     return h;
 }
 #endif
@@ -1445,11 +1462,11 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
             return ldomXPointer( finalNode, finalNode->getChildCount() );
     }
     // final, format and search
-    LFormattedText txtform;
+    LFormattedTextRef txtform;
     finalNode->renderFinalBlock( txtform, r->getWidth() );
-    int lcount = txtform.GetLineCount();
+    int lcount = txtform->GetLineCount();
     for ( int l = 0; l<lcount; l++ ) {
-        const formatted_line_t * frmline = txtform.GetLineInfo(l);
+        const formatted_line_t * frmline = txtform->GetLineInfo(l);
         if ( pt.y >= (int)(frmline->y + frmline->height) && l<lcount-1 )
             continue;
         //CRLog::debug("  point (%d, %d) line found [%d]: (%d..%d)", pt.x, pt.y, l, frmline->y, frmline->y+frmline->height);
@@ -1459,7 +1476,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
         for ( int w=0; w<wc; w++ ) {
             const formatted_word_t * word = &frmline->words[w];
             if ( x < word->x + word->width || w==wc-1 ) {
-                const src_text_fragment_t * src = txtform.GetSrcInfo(word->src_text_index);
+                const src_text_fragment_t * src = txtform->GetSrcInfo(word->src_text_index);
                 //CRLog::debug(" word found [%d]: x=%d..%d, start=%d, len=%d  %08X", w, word->x, word->x + word->width, word->t.start, word->t.len, src->object);
                 // found word, searching for letters
                 ldomNode * node = (ldomNode *)src->object;
@@ -1511,7 +1528,7 @@ lvPoint ldomXPointer::toPoint() const
         lvdomElementFormatRec * r = finalNode->getRenderData();
         if ( !r )
             return pt;
-        LFormattedText txtform;
+        LFormattedTextRef txtform;
         finalNode->renderFinalBlock( txtform, r->getWidth() );
 
         ldomNode * node = _node;
@@ -1544,8 +1561,8 @@ lvPoint ldomXPointer::toPoint() const
         // text node
         int srcIndex = -1;
         int srcLen = -1;
-        for ( int i=0; i<txtform.GetSrcCount(); i++ ) {
-            const src_text_fragment_t * src = txtform.GetSrcInfo(i);
+        for ( int i=0; i<txtform->GetSrcCount(); i++ ) {
+            const src_text_fragment_t * src = txtform->GetSrcInfo(i);
             if ( src->object == node ) {
                 srcIndex = i;
                 srcLen = src->t.len;
@@ -1554,8 +1571,8 @@ lvPoint ldomXPointer::toPoint() const
         }
         if ( srcIndex == -1 )
             return pt;
-        for ( int l = 0; l<txtform.GetLineCount(); l++ ) {
-            const formatted_line_t * frmline = txtform.GetLineInfo(l);
+        for ( int l = 0; l<txtform->GetLineCount(); l++ ) {
+            const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
                 if ( word->src_text_index==srcIndex ) {
@@ -1567,7 +1584,7 @@ lvPoint ldomXPointer::toPoint() const
                         return pt;
                     } else if ( (offset<word->t.start+word->t.len) || (offset==srcLen && offset==word->t.start+word->t.len) ) {
                         // pointer inside this word
-                        LVFont * font = (LVFont *) txtform.GetSrcInfo(srcIndex)->t.font;
+                        LVFont * font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
                         lUInt16 w[512];
                         lUInt8 flg[512];
                         lString16 str = node->getText();
@@ -2306,6 +2323,7 @@ public:
         */
         default:
             newBlock = true;
+            return true;
         case css_d_none:
             return false;
         case css_d_inline:

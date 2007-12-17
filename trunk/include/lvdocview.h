@@ -198,6 +198,10 @@ protected:
 public:
     /// update selection ranges
     void updateSelections();
+    /// get page document range, -1 for current page
+    LVRef<ldomXRange> getPageDocumentRange( int pageIndex=-1 );
+    /// get page text, -1 for current page
+    lString16 getPageText( bool wrapWords, int pageIndex=-1 );
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
     /// set list of icons to display at left side of header

@@ -1232,6 +1232,32 @@ void LVDocView::setHeaderIcons( LVRefVec<LVImageSource> icons )
     m_headerIcons = icons;
 }
 
+/// get page document range, -1 for current page
+LVRef<ldomXRange> LVDocView::getPageDocumentRange( int pageIndex )
+{
+    LVRef<ldomXRange> res(NULL);
+    if ( pageIndex<0 || pageIndex>=m_pages.length() ) 
+        pageIndex = getCurPage();
+    LVRendPageInfo * page = m_pages[ pageIndex ];
+    if ( page->type!=PAGE_TYPE_NORMAL)
+        return res;
+    ldomXPointer start = m_doc->createXPointer( lvPoint( 0, page->start ) );
+    ldomXPointer end = m_doc->createXPointer( lvPoint( m_dx+m_dy, page->start + page->height-1 ) );
+    if ( start.isNull() || end.isNull() )
+        return res;
+    res = LVRef<ldomXRange> ( new ldomXRange(start, end) );
+    return res;
+}
+
+/// get page text, -1 for current page
+lString16 LVDocView::getPageText( bool wrapWords, int pageIndex )
+{
+    lString16 txt;
+    LVRef<ldomXRange> range = getPageDocumentRange( pageIndex );
+    txt = range->getRangeText();
+    return txt;
+}
+
 void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
     if ( !m_doc || !isDocumentOpened() || m_doc->getMainNode()==NULL)

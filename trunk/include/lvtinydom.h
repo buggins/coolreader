@@ -736,7 +736,7 @@ public:
     /// returns true if this interval intersects specified interval
     bool checkIntersection( ldomXRange & v );
     /// returns text between two XPointer positions
-    lString16 getRangeText( lChar16 blockDelimiter=0, int maxTextLen=0 );
+    lString16 getRangeText( lChar16 blockDelimiter='\n', int maxTextLen=0 );
     /// sets range to nearest word bounds, returns true if success
     static bool getWordRange( ldomXRange & range, ldomXPointer & p );
     /// run callback for each node in range
@@ -824,6 +824,12 @@ class ldomElement;
 class ldomTextRef;
 #endif
 
+#ifndef BUILD_LITE
+/// final block cache
+typedef LVRef<LFormattedText> LFormattedTextRef;
+typedef LVCacheMap< ldomElement *, LFormattedTextRef> CVRendBlockCache;
+#endif
+
 class ldomDocument : public lxmlDocBase
 {
     friend class ldomDocumentWriter;
@@ -838,6 +844,10 @@ private:
     LVXMLTextCache _textcache;
 #endif
 
+#ifndef BUILD_LITE
+    /// final block cache
+    CVRendBlockCache _renderedBlockCache;
+#endif
 public:
 
 #if COMPACT_DOM == 1
@@ -880,6 +890,8 @@ public:
 #ifndef BUILD_LITE
     /// create xpointer from doc point
     ldomXPointer createXPointer( lvPoint pt );
+    /// get rendered block cache object
+    CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
 #endif
 };
 
@@ -1191,7 +1203,7 @@ public:
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
     /// formats final block
-    int renderFinalBlock( LFormattedText & txtform, int width );
+    int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
 #endif
 };
 

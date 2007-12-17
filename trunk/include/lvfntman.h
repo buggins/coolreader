@@ -35,7 +35,7 @@ class LVDrawBuf;
 
     implements single interface for font of any engine
 */
-class LVFont
+class LVFont : public LVRefCounter
 {
 public:
     /// glyph properties structure
@@ -112,7 +112,7 @@ public:
     virtual ~LVFont() { }
 };
 
-typedef LVRef<LVFont> LVFontRef;
+typedef LVFastRef<LVFont> LVFontRef;
 
 
 enum font_antialiasing_t

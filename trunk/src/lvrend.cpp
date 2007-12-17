@@ -508,7 +508,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
         case erm_final:
             {
                 // render whole node content as single formatted object
-                LFormattedText txform;
+                LFormattedTextRef txform;
                 int h = enode->renderFinalBlock( txform, width );
 #ifdef DEBUG_DUMP_ENABLED
                 logfile << "\n";
@@ -523,10 +523,10 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                 int break_before = CssPageBreak2Flags( enode->getStyle()->page_break_before );
                 int break_after = CssPageBreak2Flags( enode->getStyle()->page_break_after );
                 int break_inside = CssPageBreak2Flags( enode->getStyle()->page_break_inside );
-                int count = txform.GetLineCount();
+                int count = txform->GetLineCount();
                 for (int i=0; i<count; i++)
                 {
-                    const formatted_line_t * line = txform.GetLineInfo(i);
+                    const formatted_line_t * line = txform->GetLineInfo(i);
                     int line_flags = 0; //TODO
                     if (i==0)
                         line_flags |= break_before << RN_SPLIT_BEFORE;
@@ -571,7 +571,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
             return; // out of range
         }
         css_length_t bg = enode->getStyle()->background_color;
-        lUInt32 oldColor;
+        lUInt32 oldColor = 0;
         if ( bg.type==css_val_color ) {
             oldColor = drawbuf.GetBackgroundColor();
             drawbuf.SetBackgroundColor( bg.value );
@@ -612,7 +612,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 drawbuf.FillRect( doc_x, doc_y+fmt->getHeight()-1, doc_x+fmt->getWidth(), doc_y+fmt->getHeight(), color );
 #endif
                 // draw whole node content as single formatted object
-                LFormattedText txform;
+                LFormattedTextRef txform;
                 enode->renderFinalBlock( txform, fmt->getWidth() );
 
                 {
@@ -624,10 +624,10 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                         //rc.top -= doc_y;
                         //rc.bottom -= doc_y;
                         ldomMarkedRangeList nmarks( marks, rc );
-                        txform.Draw( &drawbuf, doc_x+x0, doc_y+y0, &nmarks );
+                        txform->Draw( &drawbuf, doc_x+x0, doc_y+y0, &nmarks );
 
                     } else {
-                        txform.Draw( &drawbuf, doc_x+x0, doc_y+y0, marks );
+                        txform->Draw( &drawbuf, doc_x+x0, doc_y+y0, marks );
                     }
                 }
             }
