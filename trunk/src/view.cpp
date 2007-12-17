@@ -369,10 +369,11 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
 {
     int x = event.GetX();
     int y = event.GetY();
+    //lString16 txt = _docview->getPageText( true );
+    //CRLog::debug( "getPageText : %s", UnicodeToUtf8(txt).c_str() );
     ldomXPointer ptr = _docview->getNodeByPoint( lvPoint( x, y ) );
     if ( ptr.isNull() ) {
-        printf("node not found!\n");
-
+        CRLog::debug( "cr3view::OnMouseLDown() : node not found!\n");
         return;
     }
     if ( ptr.getNode()->isText() ) {
