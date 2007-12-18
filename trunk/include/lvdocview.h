@@ -13,12 +13,104 @@
 #ifndef __LV_TEXT_VIEW_H_INCLUDED__
 #define __LV_TEXT_VIEW_H_INCLUDED__
 
+#include "crsetup.h"
 #include "lvtinydom.h"
 #include "lvpagesplitter.h"
 #include "lvdrawbuf.h"
 #include "hist.h"
+#include "lvthread.h"
+
+/// Page imege holder which allows to unlock mutex after destruction
+class LVDocImageHolder
+{
+private:
+    LVRef<LVDrawBuf> _drawbuf;
+    LVMutex & _mutex;
+public:
+    LVDrawBuf * getDrawBuf() { return _drawbuf.get(); }
+    LVDocImageHolder( LVRef<LVDrawBuf> drawbuf, LVMutex & mutex )
+    : _drawbuf(drawbuf), _mutex(mutex)
+    {
+    }
+    ~LVDocImageHolder()
+    {
+        _drawbuf = NULL;
+        _mutex.unlock();
+    }
+};
 
 
+class LVDocViewImageCache
+{
+    private:
+        LVMutex _mutex;
+        class Item {
+            public:
+                LVRef<LVDrawBuf> _drawbuf;
+                LVRef<LVThread> _thread;
+                int _offset;
+                bool _ready;
+                bool _valid;
+        };
+        Item _items[2];
+        int _last;
+    public:
+        /// return mutex
+        LVMutex & getMutex() { return _mutex; }
+        /// set page to cache
+        void set( int offset, LVRef<LVDrawBuf> drawbuf, LVRef<LVThread> thread )
+        {
+            LVLock lock( _mutex );
+            _last = (_last + 1) % 2;
+            _items[_last]._ready = false;
+            _items[_last]._thread = thread;
+            _items[_last]._drawbuf = drawbuf;
+            _items[_last]._offset = offset;
+            _items[_last]._valid = true;
+        }
+        /// return page image, wait until ready
+        LVRef<LVDrawBuf> getWithoutLock( int offset )
+        {
+            for ( int i=0; i<2; i++ ) {
+                if ( _items[i]._valid && _items[i]._offset == offset ) {
+                    if ( !_items[i]._ready ) {
+                        _items[i]._thread->join();
+                        _items[i]._thread = NULL;
+                        _items[i]._ready = true;
+                        return _items[i]._drawbuf;
+                    }
+                }
+            }
+            return LVRef<LVDrawBuf>();
+        }
+        /// return page image, wait until ready
+        LVRef<LVDocImageHolder> get( int offset )
+        {
+            _mutex.lock();
+            LVRef<LVDocImageHolder> res( new LVDocImageHolder(getWithoutLock( offset ), _mutex) );
+            return res;
+        }
+        void clear()
+        {
+            LVLock lock( _mutex );
+            for ( int i=0; i<2; i++ ) {
+                if ( _items[i]._valid && !_items[i]._ready ) {
+                    _items[i]._thread->join();
+                }
+                _items[i]._thread = NULL;
+                _items[i]._valid = false;
+                _items[i]._drawbuf = NULL;
+                _items[i]._offset = 0;
+            }
+        }
+        LVDocViewImageCache()
+        {
+        }
+        ~LVDocViewImageCache()
+        {
+            clear();
+        }
+};
 
 enum LVDocCmd
 {
@@ -68,7 +160,7 @@ private:
     LVTocItem *     _parent;
     int             _level;
     int             _index;
-	lString16       _name;
+    lString16       _name;
     ldomXPointer    _position;
     LVPtrVector<LVTocItem> _children;
     //====================================================
@@ -175,6 +267,8 @@ private:
     LVArray<int> m_section_bounds;
     bool m_section_bounds_valid;
 
+    LVMutex _mutex;
+
 
     // private functions
     void updateScroll();
@@ -196,6 +290,8 @@ protected:
 
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
 public:
+    /// return view mutex
+    LVMutex & getMutex() { return _mutex; }
     /// update selection ranges
     void updateSelections();
     /// get page document range, -1 for current page

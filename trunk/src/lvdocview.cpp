@@ -258,17 +258,20 @@ void LVDocView::setStyleSheet( lString8 css_text )
 
 void LVDocView::Clear()
 {
-    if (m_doc)
-        delete m_doc;
-    m_doc = NULL;
-    if (!m_stream.isNull())
-        m_stream.Clear();
-    if (!m_arc.isNull())
-        m_arc.Clear();
-    _posBookmark = ldomXPointer();
-    m_is_rendered = false;
-    m_pos = 0;
-    m_filename.clear();
+    LVLock lock(getMutex());
+    {
+        if (m_doc)
+            delete m_doc;
+        m_doc = NULL;
+        if (!m_stream.isNull())
+            m_stream.Clear();
+        if (!m_arc.isNull())
+            m_arc.Clear();
+        _posBookmark = ldomXPointer();
+        m_is_rendered = false;
+        m_pos = 0;
+        m_filename.clear();
+    }
 }
 
 bool LVDocView::exportWolFile( const char * fname, bool flgGray, int levels )
@@ -1260,42 +1263,45 @@ lString16 LVDocView::getPageText( bool wrapWords, int pageIndex )
 
 void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
-    if ( !m_doc || !isDocumentOpened() || m_doc->getMainNode()==NULL)
-		return;
-	if ( pages==NULL )
-		pages = &m_pages;
-    updateLayout();
-	if ( dx==0 )
-		dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
-	if ( dy==0 )
-		dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom;
-    lString8 fontName = lString8(DEFAULT_FONT_NAME);
-    m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, fontName );
-    m_infoFont = fontMan->GetFont( INFO_FONT_SIZE, 300, false, DEFAULT_FONT_FAMILY, fontName );
-    if ( !m_font )
-        return;
-
-    pages->clear();
-    if ( m_showCover )
-        pages->add( new LVRendPageInfo( dy ) );
-    LVRendPageContext context( pages, dy );
-    m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
-
-#if 0
-    FILE * f = fopen("pagelist.log", "wt");
-    if (f) {
-        for (int i=0; i<m_pages.length(); i++)
-        {
-            fprintf(f, "%4d:   %7d .. %-7d [%d]\n", i, m_pages[i].start, m_pages[i].start+m_pages[i].height, m_pages[i].height);
+    LVLock lock(getMutex());
+    {
+        if ( !m_doc || !isDocumentOpened() || m_doc->getMainNode()==NULL)
+            return;
+        if ( pages==NULL )
+            pages = &m_pages;
+        updateLayout();
+        if ( dx==0 )
+            dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
+        if ( dy==0 )
+            dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom;
+        lString8 fontName = lString8(DEFAULT_FONT_NAME);
+        m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, fontName );
+        m_infoFont = fontMan->GetFont( INFO_FONT_SIZE, 300, false, DEFAULT_FONT_FAMILY, fontName );
+        if ( !m_font )
+            return;
+    
+        pages->clear();
+        if ( m_showCover )
+            pages->add( new LVRendPageInfo( dy ) );
+        LVRendPageContext context( pages, dy );
+        m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
+    
+    #if 0
+        FILE * f = fopen("pagelist.log", "wt");
+        if (f) {
+            for (int i=0; i<m_pages.length(); i++)
+            {
+                fprintf(f, "%4d:   %7d .. %-7d [%d]\n", i, m_pages[i].start, m_pages[i].start+m_pages[i].height, m_pages[i].height);
+            }
+            fclose(f);
         }
-        fclose(f);
+    #endif
+        fontMan->gc();
+        m_is_rendered = true;
+    
+        makeToc();
+        updateSelections();
     }
-#endif
-    fontMan->gc();
-    m_is_rendered = true;
-
-    makeToc();
-    updateSelections();
 }
 
 /// update selection ranges
@@ -1568,166 +1574,168 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
 /// load document from stream
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
-    m_filesize = stream->GetSize();
-    m_stream = stream;
-
-#if (USE_ZLIB==1)
-
-    m_arc = LVOpenArchieve( m_stream );
-    if (!m_arc.isNull())
+    LVLock lock(getMutex());
     {
-        // archieve
-        for (int i=0; i<m_arc->GetObjectCount(); i++)
+        m_filesize = stream->GetSize();
+        m_stream = stream;
+    
+    #if (USE_ZLIB==1)
+    
+        m_arc = LVOpenArchieve( m_stream );
+        if (!m_arc.isNull())
         {
-            const LVContainerItemInfo * item = m_arc->GetObjectInfo(i);
-            if (item)
+            // archieve
+            for (int i=0; i<m_arc->GetObjectCount(); i++)
             {
-                if ( !item->IsContainer() )
+                const LVContainerItemInfo * item = m_arc->GetObjectInfo(i);
+                if (item)
                 {
-                    lString16 name( item->GetName() );
-                    bool nameIsOk = false;
-                    if ( name.length() > 5 )
+                    if ( !item->IsContainer() )
                     {
-                        name.lowercase();
-                        const lChar16 * pext = name.c_str() + name.length() - 4;
-                        if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='2')
-                            nameIsOk = true;
-                        else if ( pext[0]=='.' && pext[1]=='t' && pext[2]=='x' && pext[3]=='t')
-                            nameIsOk = true;
-                        else if ( pext[0]=='.' && pext[1]=='r' && pext[2]=='t' && pext[3]=='f')
-                            nameIsOk = true;
+                        lString16 name( item->GetName() );
+                        bool nameIsOk = false;
+                        if ( name.length() > 5 )
+                        {
+                            name.lowercase();
+                            const lChar16 * pext = name.c_str() + name.length() - 4;
+                            if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='2')
+                                nameIsOk = true;
+                            else if ( pext[0]=='.' && pext[1]=='t' && pext[2]=='x' && pext[3]=='t')
+                                nameIsOk = true;
+                            else if ( pext[0]=='.' && pext[1]=='r' && pext[2]=='t' && pext[3]=='f')
+                                nameIsOk = true;
+                        }
+                        if ( !nameIsOk )
+                        {
+                            Clear();
+                            return false;
+                        }
+                        m_stream = m_arc->OpenStream( item->GetName(), LVOM_READ );
+                        if ( m_stream.isNull() )
+                            return false;
                     }
-                    if ( !nameIsOk )
-                    {
-                        Clear();
-                        return false;
-                    }
-                    m_stream = m_arc->OpenStream( item->GetName(), LVOM_READ );
-                    if ( m_stream.isNull() )
-                        return false;
                 }
             }
+            // opened archieve stream
         }
-        // opened archieve stream
-    }
-    else
-
-#endif //USE_ZLIB
-
-    {
-#if 1
-        m_stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
-#else
-        LVStreamRef stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
-        lvsize_t sz = stream->GetSize();
-        const lvsize_t bufsz = 0x1000;
-        lUInt8 buf[bufsz];
-        lUInt8 * fullbuf = new lUInt8 [sz];
-        stream->SetPos(0);
-        stream->Read(fullbuf, sz, NULL);
-        lvpos_t maxpos = sz - bufsz;
-        for (int i=0; i<1000; i++)
+        else
+    
+    #endif //USE_ZLIB
+    
         {
-            lvpos_t pos = (lvpos_t)((((lUInt64)i) * 1873456178) % maxpos);
-            stream->SetPos( pos );
-            lvsize_t readsz = 0;
-            stream->Read( buf, bufsz, &readsz );
-            if (readsz != bufsz)
+    #if 1
+            m_stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
+    #else
+            LVStreamRef stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
+            lvsize_t sz = stream->GetSize();
+            const lvsize_t bufsz = 0x1000;
+            lUInt8 buf[bufsz];
+            lUInt8 * fullbuf = new lUInt8 [sz];
+            stream->SetPos(0);
+            stream->Read(fullbuf, sz, NULL);
+            lvpos_t maxpos = sz - bufsz;
+            for (int i=0; i<1000; i++)
             {
-                //
-                fprintf(stderr, "data read error!\n");
-            }
-            for (int j=0; j<bufsz; j++)
-            {
-                if (fullbuf[pos+j] != buf[j])
+                lvpos_t pos = (lvpos_t)((((lUInt64)i) * 1873456178) % maxpos);
+                stream->SetPos( pos );
+                lvsize_t readsz = 0;
+                stream->Read( buf, bufsz, &readsz );
+                if (readsz != bufsz)
                 {
-                    fprintf(stderr, "invalid data!\n");
+                    //
+                    fprintf(stderr, "data read error!\n");
+                }
+                for (int j=0; j<bufsz; j++)
+                {
+                    if (fullbuf[pos+j] != buf[j])
+                    {
+                        fprintf(stderr, "invalid data!\n");
+                    }
                 }
             }
+            delete fullbuf;
+    #endif
         }
-        delete fullbuf;
-#endif
-    }
-
-    if ( m_doc )
-        delete m_doc;
-    m_is_rendered = false;
-#if COMPACT_DOM==1
-    m_doc = new ldomDocument( m_stream );
-#else
-    m_doc = new ldomDocument();
-#endif
-    ldomDocumentWriter writer(m_doc);
-    m_doc->setNodeTypes( fb2_elem_table );
-    m_doc->setAttributeTypes( fb2_attr_table );
-    m_doc->setNameSpaceTypes( fb2_ns_table );
-
-    /// FB2 format
-    LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
-    if ( !parser->CheckFormat() ) {
-        delete parser;
-        parser = NULL;
-    }
-
-    /// RTF format
-    if ( parser==NULL ) {
-        parser = new LVRtfParser(m_stream, &writer);
+    
+        if ( m_doc )
+            delete m_doc;
+        m_is_rendered = false;
+    #if COMPACT_DOM==1
+        m_doc = new ldomDocument( m_stream );
+    #else
+        m_doc = new ldomDocument();
+    #endif
+        ldomDocumentWriter writer(m_doc);
+        m_doc->setNodeTypes( fb2_elem_table );
+        m_doc->setAttributeTypes( fb2_attr_table );
+        m_doc->setNameSpaceTypes( fb2_ns_table );
+    
+        /// FB2 format
+        LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
         if ( !parser->CheckFormat() ) {
             delete parser;
             parser = NULL;
         }
-    }
-
-    /// plain text format
-    if ( parser==NULL ) {
-        parser = new LVTextParser(m_stream, &writer);
-        if ( !parser->CheckFormat() ) {
-            delete parser;
-            parser = NULL;
+    
+        /// RTF format
+        if ( parser==NULL ) {
+            parser = new LVRtfParser(m_stream, &writer);
+            if ( !parser->CheckFormat() ) {
+                delete parser;
+                parser = NULL;
+            }
         }
-    }
-
-    // unknown format
-    if ( !parser )
-        return false;
-
-    // set stylesheet
-    m_doc->getStyleSheet()->clear();
-    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
-
-    // parse
-    if ( !parser->Parse() ) {
+    
+        /// plain text format
+        if ( parser==NULL ) {
+            parser = new LVTextParser(m_stream, &writer);
+            if ( !parser->CheckFormat() ) {
+                delete parser;
+                parser = NULL;
+            }
+        }
+    
+        // unknown format
+        if ( !parser )
+            return false;
+    
+        // set stylesheet
+        m_doc->getStyleSheet()->clear();
+        m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+    
+        // parse
+        if ( !parser->Parse() ) {
+            delete parser;
+            return false;
+        }
         delete parser;
-        return false;
+        m_pos = 0;
+    
+    
+        lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
+        if ( !docstyle.empty() ) {
+            m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+        }
+    
+    #if 0
+        {
+            LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
+            m_doc->saveToStream( ostream, "utf-16" );
+            m_doc->getRootNode()->recurseElements( SaveBase64Objects );
+        }
+    #endif
+    
+    
+        m_series.clear();
+        m_authors.clear();
+        m_title.clear();
+    
+    
+        m_authors = extractDocAuthors( m_doc );
+        m_title = extractDocTitle( m_doc );
+        m_series = extractDocSeries( m_doc );
+
     }
-    delete parser;
-    m_pos = 0;
-
-
-    lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
-    if ( !docstyle.empty() ) {
-        m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
-    }
-
-#if 0
-    {
-        LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
-        m_doc->saveToStream( ostream, "utf-16" );
-        m_doc->getRootNode()->recurseElements( SaveBase64Objects );
-    }
-#endif
-
-
-    m_series.clear();
-    m_authors.clear();
-    m_title.clear();
-
-
-    m_authors = extractDocAuthors( m_doc );
-    m_title = extractDocTitle( m_doc );
-    m_series = extractDocSeries( m_doc );
-
-
     return true;
 }
 

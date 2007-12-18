@@ -53,6 +53,7 @@
 
 #elif defined(_LINUX) || defined (LINUX)
 
+#define CR_USE_THREADS                       1
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_ZLIB                             1
