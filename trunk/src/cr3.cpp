@@ -241,10 +241,10 @@ cr3app::OnInit()
     }
 #endif
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
     CRLog::setFileLogger( "crengine.log" );
     CRLog::setLogLevel( CRLog::LL_TRACE );
-#endif
+//#endif
 
     wxImage::AddHandler(new wxPNGHandler);
     resources = new ResourceContainer();

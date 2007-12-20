@@ -470,10 +470,14 @@ void cr3view::OnCommand(wxCommandEvent& event)
 		break;
 	case Menu_View_NextPage:
 	    doCommand( DCMD_PAGEDOWN, 1 );
+        _docview->cachePageImage( 0 );
+        _docview->cachePageImage( 1 );
 		break;
 	case Menu_View_PrevPage:
 		doCommand( DCMD_PAGEUP, 1 );
-		break;
+        _docview->cachePageImage( 0 );
+        _docview->cachePageImage( -1 );
+        break;
 	case Menu_View_NextLine:
 	    doCommand( DCMD_LINEDOWN, 1 );
 		break;
@@ -669,11 +673,14 @@ void cr3view::OnPaint(wxPaintEvent& event)
     wxImage img;
     img.Create(dx, dy, true);
 
+    LVDocImageRef pageImage = _docview->getPageImage(0);
+    LVDrawBuf * drawbuf = pageImage->getDrawBuf();
+
     unsigned char * bits = img.GetData();
     for ( int y=0; y<dy; y++ ) {
-		int bpp = _docview->GetDrawBuf()->GetBitsPerPixel();
-		if ( bpp==32 ) {
-            const lUInt32* src = (const lUInt32*) _docview->GetDrawBuf()->GetScanLine( y );
+        int bpp = drawbuf->GetBitsPerPixel();
+        if ( bpp==32 ) {
+            const lUInt32* src = (const lUInt32*) drawbuf->GetScanLine( y );
             unsigned char * dst = bits + y*dx*3;
             for ( int x=0; x<dx; x++ )
             {
@@ -690,7 +697,7 @@ void cr3view::OnPaint(wxPaintEvent& event)
 				{ 0x55, 0x55, 0x55 },
 				{ 0x00, 0x00, 0x00 },
 			};
-			const lUInt8* src = (const lUInt8*) _docview->GetDrawBuf()->GetScanLine( y );
+            const lUInt8* src = (const lUInt8*) drawbuf->GetScanLine( y );
 			unsigned char * dst = bits + y*dx*3;
 			for ( int x=0; x<dx; x++ )
 			{
@@ -705,7 +712,7 @@ void cr3view::OnPaint(wxPaintEvent& event)
 				{ 0xff, 0xff, 0xff },
 				{ 0x00, 0x00, 0x00 },
 			};
-			const lUInt8* src = (const lUInt8*) _docview->GetDrawBuf()->GetScanLine( y );
+            const lUInt8* src = (const lUInt8*) drawbuf->GetScanLine( y );
 			unsigned char * dst = bits + y*dx*3;
 			for ( int x=0; x<dx; x++ )
 			{
