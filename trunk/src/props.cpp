@@ -253,6 +253,14 @@ int CRPropAccessor::getIntDef( const char * propName, int defValue ) const
         return v;
 }
 
+/// set int property as hex
+void CRPropAccessor::setHex( const char * propName, int value )
+{
+    char s[16];
+    sprintf(s, "0x%08X", value);
+    setString( propName, Utf8ToUnicode(lString8(s)) );
+}
+
 void CRPropAccessor::setInt( const char * propName, int value )
 {
     setString( propName, lString16::itoa( value ) );

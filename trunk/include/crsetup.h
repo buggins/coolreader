@@ -25,12 +25,13 @@
 
 // features set for LBOOK
 #if (LBOOK==1)
+#define CR_USE_THREADS                       1
 #define MAX_IMAGE_SCALE_MUL                  2
 #define USE_ZLIB                             1
 #define COLOR_BACKBUFFER                     0
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
-#define ALLOW_KERNING                        0
+#define ALLOW_KERNING                        1
 #if (BUILD_LITE==1)
 #define USE_LIBJPEG                          0
 #define USE_LIBPNG                           0

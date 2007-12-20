@@ -930,8 +930,8 @@ public:
     {
     //#if (DEBUG_FONT_MAN==1)
     //    if ( _log ) {
-        CRLog::debug("GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
-                size, weight, italic?1:0, (int)family, typeface.c_str() );
+        //CRLog::debug("GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
+        //        size, weight, italic?1:0, (int)family, typeface.c_str() );
     //    }
     //#endif
         LVFontDef * def = new LVFontDef ( 
@@ -951,9 +951,11 @@ public:
         LVFontCacheItem * item = _cache.find( def );
     //#if (DEBUG_FONT_MAN==1)
     //    if ( _log && item ) {
+        /*
         CRLog::debug("   found item: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s) FontRef=%d\n",
                 item->getDef()->getName().c_str(), item->getDef()->getIndex(), item->getDef()->getSize(), item->getDef()->getWeight(), item->getDef()->getItalic()?1:0, (int)item->getDef()->getFamily(), item->getDef()->getTypeFace().c_str(), item->getFont().isNull()?0:item->getFont()->getHeight()
             );
+        */
     //    }
     //#endif
         if (!item->getFont().isNull())

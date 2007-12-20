@@ -52,6 +52,8 @@ public:
     virtual int getIntDef( const char * propName, int defValue=0 ) const;
     /// set int property by name
     virtual void setInt( const char * propName, int value );
+    /// set int property as hex
+    virtual void setHex( const char * propName, int value );
 
     /// get bool property by name, returns false if not found
     virtual bool getBool( const char * propName, bool &result ) const;

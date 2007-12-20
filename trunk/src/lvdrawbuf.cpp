@@ -17,6 +17,29 @@
 #include <string.h>
 #include "../include/lvdrawbuf.h"
 
+static lUInt32 rgbToGray( lUInt32 color )
+{
+    lUInt32 r = (0xFF0000 & color) >> 16;
+    lUInt32 g = (0x00FF00 & color) >> 8;
+    lUInt32 b = (0x0000FF & color) >> 0;
+    return ((r + g + g + b)>>2) & 0xFF;
+}
+
+static lUInt8 rgbToGrayMask( lUInt32 color, int bpp )
+{
+    if (bpp==1)
+    {
+        color = rgbToGray(color) >> 7;
+        color = (color&1) ? 0xFF : 0x00;
+    }
+    else
+    {
+        color = rgbToGray(color) >> 6;
+        color &= 3;
+        color |= (color << 2) | (color << 4) | (color << 6);
+    }
+    return color;
+}
 
 static void ApplyAlphaRGB( lUInt32 &dst, lUInt32 src, lUInt32 alpha )
 {
@@ -406,15 +429,10 @@ lUInt32 LVGrayDrawBuf::GetPixel( int x, int y )
 
 void LVGrayDrawBuf::Clear( lUInt32 color )
 {
-    if (_bpp==1)
-    {
-        color = (color&1) ? 0xFF : 0x00;
-    }
-    else
-    {
-        color &= 3;
-        color |= (color << 2) | (color << 4) | (color << 6);
-    }
+    color = rgbToGrayMask( color, _bpp );
+#if (GRAY_INVERSE==1)
+    color ^= 0xFF;
+#endif
     for (int i = _rowsize * _dy - 1; i>0; i--)
     {
         _data[i] = (lUInt8)color;
@@ -434,15 +452,10 @@ void LVGrayDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
         y1 = _clip.bottom;
     if (x0>=x1 || y0>=y1)
         return;
-    if (_bpp==1)
-    {
-        color = (color&1) ? 0xFF : 0x00;
-    }
-    else
-    {
-        color &= 3;
-        color |= (color << 2) | (color << 4) | (color << 6);
-    }
+    color = rgbToGrayMask( color, _bpp );
+#if (GRAY_INVERSE==1)
+    color ^= 0xFF;
+#endif
     lUInt8 * line = GetScanLine(y0);
     for (int y=y0; y<y1; y++)
     {
@@ -480,18 +493,8 @@ void LVGrayDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 col
         y1 = _clip.bottom;
     if (x0>=x1 || y0>=y1)
         return;
-    if (_bpp==1)
-    {
-        color0 = (color0&1) ? 0xFF : 0x00;
-        color1 = (color1&1) ? 0xFF : 0x00;
-    }
-    else
-    {
-        color0 &= 3;
-        color0 |= (color0 << 2) | (color0 << 4) | (color0 << 6);
-        color1 &= 3;
-        color1 |= (color1 << 2) | (color1 << 4) | (color1 << 6);
-    }
+    color0 = rgbToGrayMask( color0, _bpp );
+    color1 = rgbToGrayMask( color1, _bpp );
     lUInt8 * line = GetScanLine(y0);
     for (int y=y0; y<y1; y++)
     {
@@ -541,20 +544,26 @@ void LVGrayDrawBuf::Resize( int dx, int dy )
 /// returns white pixel value
 lUInt32 LVGrayDrawBuf::GetWhiteColor()
 {
+    return 0xFFFFFF;
+    /*
 #if (GRAY_INVERSE==1)
     return 0;
 #else
     return (1<<_bpp) - 1;
 #endif
+    */
 }
 /// returns black pixel value
 lUInt32 LVGrayDrawBuf::GetBlackColor()
 {
+    return 0;
+    /*
 #if (GRAY_INVERSE==1)
     return (1<<_bpp) - 1;
 #else
     return 0;
 #endif
+    */
 }
 
 LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp)
@@ -637,6 +646,13 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
     bitmap += bx + by*bmp_width;
     shift = shift0;
 
+
+    bool white = (rgbToGray( _textColor ) & 0x80) ?
+#if (GRAY_INVERSE==1)
+            false : true;
+#else
+            true : false;
+#endif
     for (;height;height--)
     {
         src = bitmap;
@@ -644,11 +660,10 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
         if ( _bpp==2 ) {
             for (xx = width; xx>0; --xx)
             {
-#if (GRAY_INVERSE==1)
-                *dst |= (( (*src++) & 0xC0 ) >> ( shift << 1 ));
-#else
-                *dst &= ~(( ((*src++) & 0xC0) ) >> ( shift << 1 ));
-#endif
+                if ( white )
+                    *dst |= (( (*src++) & 0xC0 ) >> ( shift << 1 ));
+                else
+                    *dst &= ~(( ((*src++) & 0xC0) ) >> ( shift << 1 ));
                 /* next pixel */
                 if (!(++shift & 3))
                 {

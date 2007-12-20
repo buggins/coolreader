@@ -808,12 +808,32 @@ int lString16::atoi() const
     return n;
 }
 
+static int hexDigit( char c )
+{
+    if ( c>='0' && c<='9')
+        return c-'0';
+    if ( c>='a' && c<='f')
+        return c-'a'+10;
+    if ( c>='A' && c<='F')
+        return c-'A'+10;
+    return -1;
+}
+
 bool lString16::atoi( int &n ) const
 {
     int sgn = 1;
     const lChar16 * s = c_str();
     while (*s == ' ' || *s == '\t')
         s++;
+    if ( s[0]=='0' && s[1]=='x') {
+        s+=2;
+        for (;*s;) {
+            int d = hexDigit(*s++);
+            if ( d>=0 )
+                n = (n<<4) | d;
+        }
+        return true;
+    }
     if (*s == '-')
     {
         sgn = -1;

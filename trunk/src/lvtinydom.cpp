@@ -119,14 +119,18 @@ ldomElement * ldomDocument::getMainNode()
 #if COMPACT_DOM == 1
 ldomDocument::ldomDocument(LVStreamRef stream)
 : _textcache(stream, COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE)
-, _renderedBlockCache( 32 )
+#ifndef BUILD_LITE
+        , _renderedBlockCache( 32 )
+#endif
 {
     _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
 }
 
 #else
 ldomDocument::ldomDocument()
-: _renderedBlockCache( 32 )
+#ifndef BUILD_LITE
+    : _renderedBlockCache( 32 )
+#endif
 {
     _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
 }

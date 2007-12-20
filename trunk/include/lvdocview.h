@@ -28,6 +28,7 @@ private:
     LVMutex & _mutex;
 public:
     LVDrawBuf * getDrawBuf() { return _drawbuf.get(); }
+    LVRef<LVDrawBuf> getDrawBufRef() { return _drawbuf; }
     LVDocImageHolder( LVRef<LVDrawBuf> drawbuf, LVMutex & mutex )
     : _drawbuf(drawbuf), _mutex(mutex)
     {
