@@ -39,6 +39,7 @@ public:
     }
 };
 
+typedef LVRef<LVDocImageHolder> LVDocImageRef;
 
 class LVDocViewImageCache
 {
@@ -77,18 +78,31 @@ class LVDocViewImageCache
                         _items[i]._thread->join();
                         _items[i]._thread = NULL;
                         _items[i]._ready = true;
-                        return _items[i]._drawbuf;
                     }
+                    _last = i;
+                    return _items[i]._drawbuf;
                 }
             }
             return LVRef<LVDrawBuf>();
         }
         /// return page image, wait until ready
-        LVRef<LVDocImageHolder> get( int offset )
+        LVDocImageRef get( int offset )
         {
             _mutex.lock();
-            LVRef<LVDocImageHolder> res( new LVDocImageHolder(getWithoutLock( offset ), _mutex) );
-            return res;
+            LVRef<LVDrawBuf> buf = getWithoutLock( offset );
+            if ( !buf.isNull() )
+                return LVDocImageRef( new LVDocImageHolder(getWithoutLock( offset ), _mutex) );
+            return LVDocImageRef( NULL );
+        }
+        bool has( int offset )
+        {
+            _mutex.lock();
+            for ( int i=0; i<2; i++ ) {
+                if ( _items[i]._valid && _items[i]._offset == offset ) {
+                    return true;
+                }
+            }
+            return false;
         }
         void clear()
         {
@@ -105,6 +119,8 @@ class LVDocViewImageCache
         }
         LVDocViewImageCache()
         {
+            for ( int i=0; i<2; i++ )
+                _items[i]._valid = false;
         }
         ~LVDocViewImageCache()
         {
@@ -210,6 +226,7 @@ public:
 */
 class LVDocView
 {
+    friend class LVDrawThread;
 private:
     int m_dx;
     int m_dy;
@@ -268,6 +285,7 @@ private:
     bool m_section_bounds_valid;
 
     LVMutex _mutex;
+    LVDocViewImageCache m_imageCache;
 
 
     // private functions
@@ -278,9 +296,10 @@ private:
     void updateLayout();
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
-    /// draw to specified buffer
-    void Draw( LVDrawBuf & drawbuf );
+
 protected:
+    /// draw to specified buffer
+    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, bool rotate );
 
     virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
 
@@ -289,7 +308,15 @@ protected:
     virtual void getNavigationBarRectangle( int pageIndex, lvRect & rc );
 
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
+    /// returns document offset for next page
+    int getNextPageOffset();
+    /// returns document offset for previous page
+    int getPrevPageOffset();
 public:
+    /// get page image (0=current, -1=prev, 1=next)
+    LVDocImageRef getPageImage( int delta );
+    /// cache page image (render in background if necessary) (0=current, -1=prev, 1=next)
+    void cachePageImage( int delta );
     /// return view mutex
     LVMutex & getMutex() { return _mutex; }
     /// update selection ranges
