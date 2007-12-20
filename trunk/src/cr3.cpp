@@ -787,8 +787,8 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
 
 void cr3Frame::SaveOptions()
 {
-    _props->setInt(PROP_FONT_COLOR, _view->getDocView()->getTextColor() );
-    _props->setInt(PROP_BACKGROUND_COLOR, _view->getDocView()->getBackgroundColor() );
+    _props->setHex(PROP_FONT_COLOR, _view->getDocView()->getTextColor() );
+    _props->setHex(PROP_BACKGROUND_COLOR, _view->getDocView()->getBackgroundColor() );
     _props->setInt(PROP_CRENGINE_FONT_SIZE, _view->getDocView()->getFontSize() );
     _props->setBool(PROP_WINDOW_FULLSCREEN, _isFullscreen );
     bool maximized = IsMaximized();
@@ -828,8 +828,8 @@ void cr3Frame::RestoreOptions()
             Maximize();
         else if ( _props->getBoolDef(PROP_WINDOW_MINIMIZED) )
             Iconize();
-        fontMan->SetAntialiasMode( _props->getIntDef( PROP_FONT_ANTIALIASING, 2 ) );
     }
+    fontMan->SetAntialiasMode( _props->getIntDef( PROP_FONT_ANTIALIASING, 2 ) );
     _view->getDocView()->setTextColor( _props->getIntDef(PROP_FONT_COLOR, 0x000060 ) );
     _view->getDocView()->setBackgroundColor( _props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFE0 ) );
     _view->getDocView()->setFontSize( _props->getIntDef( PROP_CRENGINE_FONT_SIZE, 28 ) );
