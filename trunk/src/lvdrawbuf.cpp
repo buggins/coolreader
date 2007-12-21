@@ -38,7 +38,7 @@ static lUInt8 rgbToGrayMask( lUInt32 color, int bpp )
         color &= 3;
         color |= (color << 2) | (color << 4) | (color << 6);
     }
-    return color;
+    return (lUInt8)color;
 }
 
 static void ApplyAlphaRGB( lUInt32 &dst, lUInt32 src, lUInt32 alpha )

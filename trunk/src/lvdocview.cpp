@@ -1167,8 +1167,10 @@ int LVDocView::getCurPage()
 bool LVDocView::isTimeChanged()
 {
     if ( m_pageHeaderInfo & PGHDR_CLOCK ) {
-        m_imageCache.clear();
-        return (m_last_clock != getTimeString());
+        bool res = (m_last_clock != getTimeString());
+        if ( res )
+            m_imageCache.clear();
+        return res;
     }
     return false;
 }
@@ -1374,6 +1376,8 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 /// update selection ranges
 void LVDocView::updateSelections()
 {
+    m_imageCache.clear();
+    LVLock lock(getMutex());
     ldomXRangeList ranges( m_doc->getSelections(), true );
     ranges.getRanges( m_markRanges );
 }
@@ -1383,6 +1387,8 @@ void LVDocView::setViewMode( LVDocViewMode view_mode, int visiblePageCount )
 {
     if ( m_view_mode==view_mode && (visiblePageCount==m_pagesVisible || visiblePageCount<1) )
         return;
+    m_imageCache.clear();
+    LVLock lock(getMutex());
     m_view_mode = view_mode;
     if ( visiblePageCount==1 || visiblePageCount==2 )
         m_pagesVisible = visiblePageCount;
@@ -1406,6 +1412,8 @@ int LVDocView::getVisiblePageCount()
 /// set window visible page count (1 or 2)
 void LVDocView::setVisiblePageCount( int n )
 {
+    m_imageCache.clear();
+    LVLock lock(getMutex());
     if ( n == 2 )
         m_pagesVisible = 2;
     else
@@ -1521,6 +1529,8 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 {
     if ( m_rotateAngle==angle )
         return;
+    m_imageCache.clear();
+    LVLock lock(getMutex());
     if ( (m_rotateAngle & 1) == (angle & 1) ) {
         m_rotateAngle = angle;
         return;

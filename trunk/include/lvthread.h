@@ -111,7 +111,7 @@ class LVThread {
         DWORD _id;
 
         static DWORD WINAPI start_routine(
-                LPVOID lpParameter
+                LPVOID param
                                       )
         {
             LVThread * thread = (LVThread*)param;
