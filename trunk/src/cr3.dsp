@@ -106,7 +106,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 wxmsw28ud_core.lib wxbase28ud.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengined.lib wxjpegd.lib wxpngd.lib wxzlibd.lib freetype232MT_D.lib freetype232MT_D.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"./../wxWidgets/lib/vc_lib" /libpath:".\..\crengine\lib" /libpath:"./../../freetype2/objs"
+# ADD LINK32 wxmsw28ud_core.lib wxbase28ud.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib crengined.lib wxjpegd.lib wxpngd.lib wxzlibd.lib freetype232MT_D.lib /nologo /subsystem:windows /profile /debug /machine:I386 /libpath:"./../wxWidgets/lib/vc_lib" /libpath:".\..\crengine\lib" /libpath:"./../../freetype2/objs"
 
 !ELSEIF  "$(CFG)" == "cr3 - Win32 Unicode Release"
 

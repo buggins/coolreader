@@ -677,12 +677,14 @@ void cr3view::OnPaint(wxPaintEvent& event)
     LVDrawBuf * drawbuf = pageImage->getDrawBuf();
 
     unsigned char * bits = img.GetData();
-    for ( int y=0; y<dy; y++ ) {
+    int dyy = drawbuf->GetHeight();
+    int dxx = drawbuf->GetWidth();
+    for ( int y=0; y<dy && y<dyy; y++ ) {
         int bpp = drawbuf->GetBitsPerPixel();
         if ( bpp==32 ) {
             const lUInt32* src = (const lUInt32*) drawbuf->GetScanLine( y );
             unsigned char * dst = bits + y*dx*3;
-            for ( int x=0; x<dx; x++ )
+            for ( int x=0; x<dx && x<dxx; x++ )
             {
                 lUInt32 c = *src++;
                 *dst++ = (c>>16) & 255;
@@ -699,7 +701,7 @@ void cr3view::OnPaint(wxPaintEvent& event)
 			};
             const lUInt8* src = (const lUInt8*) drawbuf->GetScanLine( y );
 			unsigned char * dst = bits + y*dx*3;
-			for ( int x=0; x<dx; x++ )
+			for ( int x=0; x<dx && x<dxx; x++ )
 			{
 				lUInt32 c = (( src[x>>2] >> ((3-(x&3))<<1) ))&3;
 				*dst++ = palette[c][0];
@@ -714,7 +716,7 @@ void cr3view::OnPaint(wxPaintEvent& event)
 			};
             const lUInt8* src = (const lUInt8*) drawbuf->GetScanLine( y );
 			unsigned char * dst = bits + y*dx*3;
-			for ( int x=0; x<dx; x++ )
+			for ( int x=0; x<dx && x<dxx; x++ )
 			{
 				lUInt32 c = (( src[x>>3] >> ((7-(x&7))) ))&1;
 				*dst++ = palette[c][0];
