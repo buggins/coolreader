@@ -311,7 +311,7 @@ void cr3view::Paint()
     };
 #endif
     _docview->setBatteryState( battery_state );
-    _docview->Draw();
+    //_docview->Draw();
     Refresh( FALSE );
 }
 
@@ -668,13 +668,13 @@ void cr3view::OnPaint(wxPaintEvent& event)
     //printf("   OnPaint()  \n" );
     wxPaintDC dc(this);
 
-    int dx = _docview->GetDrawBuf()->GetWidth();
-    int dy = _docview->GetDrawBuf()->GetHeight();
-    wxImage img;
-    img.Create(dx, dy, true);
-
     LVDocImageRef pageImage = _docview->getPageImage(0);
     LVDrawBuf * drawbuf = pageImage->getDrawBuf();
+
+    int dx = drawbuf->GetWidth();
+    int dy = drawbuf->GetHeight();
+    wxImage img;
+    img.Create(dx, dy, true);
 
     unsigned char * bits = img.GetData();
     int dyy = drawbuf->GetHeight();

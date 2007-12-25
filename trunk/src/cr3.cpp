@@ -242,7 +242,8 @@ cr3app::OnInit()
 #endif
 
 //#ifdef _DEBUG
-    CRLog::setFileLogger( "crengine.log" );
+    //CRLog::setFileLogger( "crengine.log" );
+    CRLog::setStdoutLogger();
     CRLog::setLogLevel( CRLog::LL_TRACE );
 //#endif
 
