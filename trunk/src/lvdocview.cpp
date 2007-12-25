@@ -88,11 +88,14 @@ LVDocView::LVDocView()
 , m_font_sizes_cyclic(false)
 , m_is_rendered(false)
 , m_view_mode( 1 ? DVM_PAGES : DVM_SCROLL ) // choose 0/1
+/*
 , m_drawbuf(100, 100
 #if COLOR_BACKBUFFER==0
             , GRAY_BACKBUFFER_BITS
 #endif
-            ), m_stream(NULL), m_doc(NULL)
+            )
+*/
+, m_stream(NULL), m_doc(NULL)
 , m_stylesheet( def_stylesheet )
 , m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
 , m_pagesVisible(2)
@@ -122,7 +125,7 @@ LVDocView::LVDocView()
 #endif
 #endif
 
-    m_drawbuf.Clear(m_backgroundColor);
+    //m_drawbuf.Clear(m_backgroundColor);
 }
 
 LVDocView::~LVDocView()
@@ -312,7 +315,7 @@ public:
     virtual void run()
     {
         _view->Draw( *_drawbuf, _offset, true );
-        _drawbuf->Rotate( _view->GetRotateAngle() );
+        //_drawbuf->Rotate( _view->GetRotateAngle() );
     }
 };
 /// cache page image (render in background if necessary)
@@ -332,7 +335,7 @@ void LVDocView::cachePageImage( int delta )
 #if (COLOR_BACKBUFFER==1)
     LVRef<LVDrawBuf> drawbuf( new LVColorDrawBuf( m_dx, m_dy ) );
 #else
-    LVRef<LVDrawBuf> drawbuf( new LVGrayDrawBuf( m_dx, m_dy ) );
+    LVRef<LVDrawBuf> drawbuf( new LVGrayDrawBuf( m_dx, m_dy, GRAY_BACKBUFFER_BITS ) );
 #endif
     LVRef<LVThread> thread( new LVDrawThread( this, offset, drawbuf ) );
     m_imageCache.set( offset, drawbuf, thread );
@@ -641,7 +644,7 @@ void LVDocView::SetPos( int pos, bool savePos )
     if ( savePos )
         _posBookmark = getBookmark();
     updateScroll();
-    Draw();
+    //Draw();
 }
 
 int LVDocView::GetFullHeight()
@@ -1224,14 +1227,17 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
         if ( pc==2 && page>=0 && page+1<m_pages.length() )
             drawPageTo( &drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length(), 1 );
     }
-    if ( rotate )
-        m_drawbuf.Rotate( m_rotateAngle );
+    if ( rotate ) {
+        CRLog::trace("Rotate drawing buffer. Src size=(%d, %d), angle=%d, buf(%d, %d)", m_dx, m_dy, m_rotateAngle, drawbuf.GetWidth(), drawbuf.GetHeight() );
+        drawbuf.Rotate( m_rotateAngle );
+        CRLog::trace("Rotate done. buf(%d, %d)", drawbuf.GetWidth(), drawbuf.GetHeight() );
+    }
 }
 
-void LVDocView::Draw()
-{
-    Draw( m_drawbuf, m_pos, true );
-}
+//void LVDocView::Draw()
+//{
+    //Draw( m_drawbuf, m_pos, true );
+//}
 
 /// converts point from window to document coordinates, returns true if success
 bool LVDocView::windowToDocPoint( lvPoint & pt )
@@ -1353,7 +1359,9 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         if ( m_showCover )
             pages->add( new LVRendPageInfo( dy ) );
         LVRendPageContext context( pages, dy );
+        CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
         m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
+        CRLog::trace("returned from render()");
     
     #if 0
         FILE * f = fopen("pagelist.log", "wt");
@@ -1553,7 +1561,8 @@ void LVDocView::Resize( int dx, int dy )
         dx = dy;
         dy = tmp;
     }
-    m_drawbuf.Resize(dx, dy);
+    m_imageCache.clear();
+    //m_drawbuf.Resize(dx, dy);
     if (m_doc)
     {
         //ldomXPointer bm = getBookmark();

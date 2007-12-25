@@ -528,16 +528,18 @@ bool CRPropAccessor::loadFromStream( LVStream * stream )
     while (*p) {
         char * elp = p;
         char * eqpos = NULL;
-        while ( *elp && !(elp[0]=='\r' && elp[1]=='\n') ) {
+        while ( *elp && !(elp[0]=='\r' && elp[1]=='\n')  && !(elp[0]=='\n') ) {
             if ( *elp == '=' && eqpos==NULL )
                 eqpos = elp;
             elp++;
         }
-        if ( eqpos!=NULL && eqpos>p ) {
+        if ( eqpos!=NULL && eqpos>p && *elp!='#' ) {
             lString8 name( p, eqpos-p );
             lString8 value( eqpos+1, elp - eqpos - 1);
             setString( name.c_str(), Utf8ToUnicode(removeBackslashChars(value)) );
         }
+        for ( p=elp; *elp!='\r' && *elp!='\n'; p++)
+            ;
         p = *elp ? elp + 2 : elp;
     }
     // cleanup

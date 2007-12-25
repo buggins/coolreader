@@ -240,11 +240,13 @@ private:
     bool m_is_rendered;
     LVDocViewMode m_view_mode;
     LVTocItem m_toc;
+    /*
 #if (COLOR_BACKBUFFER==1)
     LVColorDrawBuf m_drawbuf;
 #else
     LVGrayDrawBuf  m_drawbuf;
 #endif
+    */
     lUInt32 m_backgroundColor;
     lUInt32 m_textColor;
     font_ref_t     m_font;
@@ -395,7 +397,7 @@ public:
     void setBackgroundColor( lUInt32 cl )
     {
         m_backgroundColor = cl;
-        Draw();
+        m_imageCache.clear();
     }
     /// returns text color
     lUInt32 getTextColor()
@@ -406,7 +408,7 @@ public:
     void setTextColor( lUInt32 cl )
     {
         m_textColor = cl;
-        Draw();
+        m_imageCache.clear();
     }
 
     /// returns xpointer for specified window point
@@ -479,9 +481,9 @@ public:
     void setFontSizes( LVArray<int> & sizes, bool cyclic );
 
     /// get drawing buffer
-    LVDrawBuf * GetDrawBuf() { return &m_drawbuf; }
+    //LVDrawBuf * GetDrawBuf() { return &m_drawbuf; }
     /// draw document into buffer
-    void Draw();
+    //void Draw();
 
     /// resize view
     void Resize( int dx, int dy );

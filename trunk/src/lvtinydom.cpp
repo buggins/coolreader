@@ -223,6 +223,7 @@ void ldomTextRef::setText( lString16 value )
 #ifndef BUILD_LITE
 int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
 {
+    CRLog::trace("initializing default style...");
     _renderedBlockCache.clear();
     _page_height = context.getPageHeight();
     _def_font = def_font;
@@ -250,12 +251,16 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     _def_style->line_height.type = css_val_percent;
     _def_style->line_height.value = def_interline_space;
     // update styles
+    CRLog::trace("init format data...");
     getMainNode()->recurseElements( initFormatData );
+    CRLog::trace("init render method...");
     initRendMethod( getMainNode() );
     //updateStyles();
-    int height = renderBlockElement( context, getMainNode(), 
+    CRLog::trace("rendering...");
+    int height = renderBlockElement( context, getMainNode(),
         0, y0, width ) + y0;
     gc();
+    CRLog::trace("finalizing...");
     context.Finalize();
     return height;
 }
