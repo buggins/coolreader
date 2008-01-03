@@ -73,6 +73,24 @@ public:
     virtual lUInt32 GetPixel( int x, int y ) = 0;
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color ) = 0;
+    /// fills rectangle with specified color
+    inline void FillRect( lvRect & rc, lUInt32 color )
+    {
+        FillRect( rc.left, rc.top, rc.right, rc.bottom, color );
+    }
+    /// fraws rectangle with specified color
+    inline void Rect( int x0, int y0, int x1, int y1, lUInt32 color )
+    {
+        FillRect( x0, y0, x1-1, y0+1, color );
+        FillRect( x0, y0, x0+1, y1-1, color );
+        FillRect( x1-1, y0, x1, y1, color );
+        FillRect( x0, y1-1, x1, y1, color );
+    }
+    /// fraws rectangle with specified color
+    inline void Rect( lvRect & rc, lUInt32 color )
+    {
+        Rect( rc.left, rc.top, rc.right, rc.bottom, color );
+    }
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern ) = 0;
     /// sets new size

@@ -64,10 +64,27 @@ public:
     lvPoint bottomRight() const { return lvPoint( right, bottom ); }
     int width() const { return right - left; }
     int height() const { return bottom - top; }
+    void shrink( int delta ) { left+=delta; right-=delta; top+=delta; bottom-=delta; }
+    void extend( int delta ) { shrink(-delta); }
     bool isPointInside( lvPoint & pt )
     {
         return left<=pt.x && top<=pt.y && right>pt.x && bottom > pt.y;
     }
+};
+
+class lvColor
+{
+    lUInt32 value;
+public:
+    lvColor( lUInt32 cl ) : value(cl) { }
+    lvColor(  lUInt32 r, lUInt32 g, lUInt32 b ) : value(((r&255)<<16) | ((g&255)<<8) | (b&255)) { }
+    lvColor( lUInt32 r, lUInt32 g, lUInt32 b, lUInt32 a ) : value(((a&255)<<24) | ((r&255)<<16) | ((g&255)<<8) | (b&255)) { }
+    operator lUInt32 () const { return value; }
+    lUInt32 get() const { return value; }
+    lUInt8 r() const { return (value>>16)&255; }
+    lUInt8 g() const { return (value>>8)&255; }
+    lUInt8 b() const { return (value)&255; }
+    lUInt8 a() const { return (value>>24)&255; }
 };
 
 /// byte order convertor
