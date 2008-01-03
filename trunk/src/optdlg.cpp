@@ -1,5 +1,6 @@
 // options dialog, implementation
 #include <wx/wx.h>
+#include <wx/colordlg.h>
 #include <crengine.h>
 #include "cr3.h"
 #include "optdlg.h"
@@ -54,6 +55,42 @@ public:
     }
 };
 
+class ColorOption : public PropOption {
+    private:
+        lvColor _value;
+        wxPanel _panel;
+        int _buttonId;
+    public:
+        ColorOption( wxPanel * control, const char * option, lUInt32 value, int buttonId )
+        : PropOption( control, option ), _value(value), _buttonId(buttonId)
+        {
+        }
+        virtual void ControlToOption( CRPropRef props )
+        {
+            props->setHex( _option, _value.get() );
+        }
+        virtual void OptionToControl( CRPropRef props )
+        {
+            lvColor cl = props->getIntDef( _option, _value );
+            _value = cl;
+            _control->SetBackgroundColour( wxColor(cl.g(), cl.g(), cl.b()) );
+        }
+        virtual int getActionId() { return _buttonId; }
+        virtual void onAction()
+        {
+            wxColourData data;
+            data.SetColour(wxColor(_value.g(), _value.g(), _value.b()));
+            wxColourDialog dlg(_control, &data);
+            if ( dlg.ShowModal()==wxID_OK ) {
+                wxColourData & data = dlg.GetColourData();
+                wxColor cl = data.GetColour();
+                lvColor lvcl( cl.Red(), cl.Green(), cl.Blue() );
+                _value = lvcl;
+                _control->SetBackgroundColour( wxColor(_value.g(), _value.g(), _value.b()) );
+            }
+        }
+};
+
 
 
 OptPanel::OptPanel()
@@ -71,6 +108,34 @@ void OptPanel::Create( wxWindow * parent, wxWindowID id, wxString title )
     //InitDialog();
 }
 
+wxPanel * OptPanel::AddColor( const char * option, wxString caption, lvColor defValue, int buttonId )
+{
+    wxSizer * sizer = new wxBoxSizer( wxHORIZONTAL );
+    sizer->Add( new wxStaticText( this, wxID_ANY, caption ),
+                0,                // make vertically unstretchable
+                wxALIGN_LEFT | wxALL,
+                4); // no border and centre horizontally
+    wxButton * btn = new wxButton( this, buttonId,
+                                   wxString(wxT("Change")));
+    sizer->Add( btn,
+                0,                // make vertically unstretchable
+                wxALIGN_RIGHT | wxALL,
+                4); // no border and centre horizontally
+    wxPanel * control = new wxPanel( this );
+    sizer->Add(
+            control,
+    0,                // make vertically unstretchable
+    wxALIGN_LEFT | wxALL,
+    4); // no border and centre horizontally
+
+    _sizer->Add(
+            sizer,
+    0,                // make vertically unstretchable
+    wxALIGN_LEFT | wxALL,
+    4); // no border and centre horizontally
+    _opts.add( new ColorOption( control, option, defValue, buttonId ) );
+    return control;
+}
 wxComboBox * OptPanel::AddCombobox( const char * option, wxString caption, wxString options[], int defValue )
 {
     int size = 0;
@@ -185,6 +250,24 @@ public:
     }
 };
 
+enum
+{
+    Btn_View_Text_Color = OPTION_DIALOG_BUTTON_START,
+    Btn_View_Background_Color,
+};
+
+BEGIN_EVENT_TABLE(OptPanel, wxPanel)
+        EVT_COMMAND_RANGE(Btn_View_Text_Color, Btn_View_Background_Color, wxEVT_COMMAND_BUTTON_CLICKED, OptPanel::OnButtonClicked)
+END_EVENT_TABLE()
+
+
+void OptPanel::OnButtonClicked( wxCommandEvent & event )
+{
+    for ( int i=0; i<_opts.length(); i++ )
+        if ( _opts[i]->getActionId()==event.GetId() )
+            _opts[i]->onAction();
+}
+
 class OptPanelView : public OptPanel {
 public:
     OptPanelView( wxWindow * parent ) {
@@ -194,6 +277,8 @@ public:
     {
         AddCombobox( PROP_PAGE_VIEW_MODE, wxT("View mode"), choices_page, 1 );
         AddCombobox( PROP_FONT_ANTIALIASING, wxT("Font antialiasing"), choices_font_antialiasing, 2 );
+        AddColor( PROP_FONT_COLOR, wxT("Text color"), 0x000000, Btn_View_Text_Color );
+        AddColor( PROP_BACKGROUND_COLOR, wxT("Background color"), 0xFFFFFF, Btn_View_Background_Color );
     }
 };
 

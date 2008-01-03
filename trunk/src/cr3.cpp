@@ -788,8 +788,8 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
 
 void cr3Frame::SaveOptions()
 {
-    _props->setHex(PROP_FONT_COLOR, _view->getDocView()->getTextColor() );
-    _props->setHex(PROP_BACKGROUND_COLOR, _view->getDocView()->getBackgroundColor() );
+    //_props->setHex(PROP_FONT_COLOR, _view->getDocView()->getTextColor() );
+    //_props->setHex(PROP_BACKGROUND_COLOR, _view->getDocView()->getBackgroundColor() );
     _props->setInt(PROP_CRENGINE_FONT_SIZE, _view->getDocView()->getFontSize() );
     _props->setBool(PROP_WINDOW_FULLSCREEN, _isFullscreen );
     bool maximized = IsMaximized();

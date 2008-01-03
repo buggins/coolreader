@@ -51,6 +51,8 @@ public:
     virtual ~PropOption() { }
     virtual void ControlToOption( CRPropRef props ) = 0;
     virtual void OptionToControl( CRPropRef props ) = 0;
+    virtual int getActionId() { return 0; }
+    virtual void onAction() { }
 };
 
 class OptPanel : public wxPanel {
@@ -60,7 +62,8 @@ protected:
     wxWindow * AddControl(wxWindow * control);
     wxCheckBox * AddCheckbox(const char * option, wxString caption, bool defValue );
     wxComboBox * AddCombobox(const char * option, wxString caption, wxString options[], int defValue );
-    
+    wxPanel * AddColor( const char * option, wxString caption, lvColor defValue, int buttonId );
+    void OnButtonClicked( wxCommandEvent & event );
 public:
     OptPanel();
     void Create( wxWindow * parent, wxWindowID id, wxString title );
@@ -77,6 +80,8 @@ public:
             _opts.get(i)->ControlToOption( props );
         }
     }
+protected:
+    DECLARE_EVENT_TABLE()
 };
 
 class CR3OptionsDialog : public wxDialog
@@ -99,6 +104,9 @@ public:
     virtual ~CR3OptionsDialog();
     bool Create( wxWindow* parent, wxWindowID id );
 };
+
+#define OPTION_DIALOG_BUTTON_START 2000
+#define OPTION_DIALOG_BUTTON_END   2099
 
 
 #endif// OPTIONS_DLG_H_INCLUDED
