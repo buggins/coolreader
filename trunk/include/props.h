@@ -43,8 +43,30 @@ public:
     virtual bool getString( const char * propName, lString16 &result ) const = 0;
     /// get string property by name, returns default value if not found
     virtual lString16 getStringDef( const char * propName, const char * defValue = NULL ) const;
+    /// set string property by name, if it's not set already
+    virtual void setStringDef( const char * propName, const char * defValue );
+    /// set string property by name, if it's not set already
+    virtual void setStringDef( const char * propName, lString16 defValue )
+    {
+        if ( !hasProperty(propName) )
+            setString( propName, defValue );
+    }
     /// set string property by name
     virtual void setString( const char * propName, const lString16 &value ) = 0;
+    /// set string property by name
+    virtual void setString( const char * propName, const lString8 &value )
+    {
+        setString( propName, Utf8ToUnicode( value ) );
+    }
+    /// set string property by name
+    virtual void setString( const char * propName, const char * value )
+    {
+        setString( propName, lString8( value ) );
+    }
+    /// do validation and corrections
+    virtual void limitValueList( const char * propName, const char * values[] );
+    /// do validation and corrections
+    virtual void limitValueList( const char * propName, int values[], int value_count );
 
     /// get int property by name, returns false if not found
     virtual bool getInt( const char * propName, int &result ) const;
@@ -52,8 +74,16 @@ public:
     virtual int getIntDef( const char * propName, int defValue=0 ) const;
     /// set int property by name
     virtual void setInt( const char * propName, int value );
+    /// set int property by name, if it's not set already
+    virtual void setIntDef( const char * propName, int value );
     /// set int property as hex
     virtual void setHex( const char * propName, int value );
+    /// set int property as hex, if not exist
+    virtual void setHexDef( const char * propName, int value )
+    {
+        if ( !hasProperty( propName ) )
+            setHex( propName, value );
+    }
 
     /// get bool property by name, returns false if not found
     virtual bool getBool( const char * propName, bool &result ) const;
