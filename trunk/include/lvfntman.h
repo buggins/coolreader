@@ -148,6 +148,8 @@ public:
     LVFontManager() : _antialiasMode(font_aa_all) { }
     /// destructor
     virtual ~LVFontManager() { }
+    /// returns available typefaces
+    virtual void getFaceList( lString16Collection & list ) { }
 };
 
 class LVBaseFont : public LVFont

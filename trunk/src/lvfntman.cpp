@@ -141,6 +141,15 @@ public:
     void addInstance( const LVFontDef * def, LVFontRef ref );
     LVPtrVector< LVFontCacheItem > * getInstances() { return &_instance_list; }
     LVFontCacheItem * find( const LVFontDef * def );
+    virtual void getFaceList( lString16Collection & list )
+    {
+        list.clear();
+        for ( int i=0; i<_registered_list.length(); i++ ) {
+            lString16 name = Utf8ToUnicode( _registered_list[i]->getDef()->getTypeFace() );
+            if ( !list.contains(name) )
+                list.add( name );
+        }
+    }
     LVFontCache( )
     { }
 };
@@ -924,6 +933,12 @@ public:
             filename << PATH_SEPARATOR_CHAR;
         filename << name;
         return filename;
+    }
+
+    /// returns available typefaces
+    virtual void getFaceList( lString16Collection & list )
+    {
+        _cache.getFaceList( list );
     }
 
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface )

@@ -447,6 +447,13 @@ public:
     }
     size_t length() const { return count; }
     void clear();
+    bool contains( lString16 value )
+    {
+        for ( int i=0; i<count; i++ )
+            if ( value.compare(at(i))==0 )
+                return true;
+        return false;
+    }
     ~lString16Collection()
     {
         clear();
