@@ -152,6 +152,7 @@ public:
     }
     LVFontCache( )
     { }
+    virtual ~LVFontCache() { }
 };
 
 

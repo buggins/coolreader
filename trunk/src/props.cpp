@@ -240,11 +240,13 @@ void CRPropAccessor::setIntDef( const char * propName, int value )
 void CRPropAccessor::limitValueList( const char * propName, const char * values[] )
 {
     lString16 defValue = Utf8ToUnicode( lString8( values[0] ) );
-    lString16 value = getStringDef( propName, values[0] );
-    for ( int i=0; values[i]; i++ ) {
-        lString16 v = Utf8ToUnicode( lString8( values[i] ) );
-        if ( v==value )
-            return;
+    lString16 value;
+    if ( getString( propName, value ) ) {
+        for ( int i=0; values[i]; i++ ) {
+            lString16 v = Utf8ToUnicode( lString8( values[i] ) );
+            if ( v==value )
+                return;
+        }
     }
     setString( propName, defValue );
 }
@@ -252,11 +254,13 @@ void CRPropAccessor::limitValueList( const char * propName, const char * values[
 void CRPropAccessor::limitValueList( const char * propName, int values[], int value_count )
 {
     lString16 defValue = lString16::itoa( values[0] );
-    lString16 value = getStringDef( propName, UnicodeToUtf8(defValue).c_str() );
-    for ( int i=0; i < value_count; i++ ) {
-        lString16 v = lString16::itoa( values[i] );
-        if ( v==value )
-            return;
+    lString16 value;
+    if ( getString( propName, value ) ) {
+        for ( int i=0; i < value_count; i++ ) {
+            lString16 v = lString16::itoa( values[i] );
+            if ( v==value )
+                return;
+        }
     }
     setString( propName, defValue );
 }

@@ -111,6 +111,7 @@ LVDocView::LVDocView()
 , m_showCover(true)
 , m_rotateAngle(CR_ROTATE_ANGLE_0)
 , m_section_bounds_valid(false)
+, m_posIsSet(false)
 {
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFFFE0;
@@ -124,6 +125,7 @@ LVDocView::LVDocView()
     m_textColor = 0;
 #endif
 #endif
+    m_defaultFontFace = lString8(DEFAULT_FONT_NAME);
 
     //m_drawbuf.Clear(m_backgroundColor);
 }
@@ -245,17 +247,22 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
 
 void LVDocView::setPageHeaderInfo( int hdrFlags )
 {
+    LVLock lock(getMutex());
     m_pageHeaderInfo = hdrFlags;
     int oldMargin = m_pageMargins.top;
     m_pageMargins.top = m_pageMargins.bottom + (hdrFlags ? 16 : 0);
     if ( m_pageMargins.top != oldMargin ) {
-        Render();
+        requestRender();
+    } else {
+        clearImageCache();
     }
 }
 
 /// set document stylesheet text
 void LVDocView::setStyleSheet( lString8 css_text )
 {
+    LVLock lock(getMutex());
+    requestRender();
     m_stylesheet = css_text;
 }
 
@@ -278,9 +285,50 @@ void LVDocView::Clear()
     m_imageCache.clear();
 }
 
+/// invalidate image cache, request redraw
+void LVDocView::clearImageCache()
+{
+    m_imageCache.clear();
+}
+
+/// invalidate formatted data, request render
+void LVDocView::requestRender()
+{
+    m_is_rendered = false;
+    m_imageCache.clear();
+}
+
+/// render document, if not rendered
+void LVDocView::checkRender()
+{
+    if ( !m_is_rendered ) {
+        LVLock lock(getMutex());
+        Render();
+        m_imageCache.clear();
+        m_posIsSet = false;
+    }
+}
+
+/// ensure current position is set to current bookmark value
+void LVDocView::checkPos()
+{
+    checkRender();
+    if ( m_posIsSet )
+        return;
+    LVLock lock(getMutex());
+    if ( _posBookmark.isNull() ) {
+        SetPos( 0, false );
+    } else {
+        lvPoint pt = _posBookmark.toPoint();
+        SetPos( pt.y, false );
+    }
+    m_posIsSet = true;
+}
+
 /// get page image
 LVDocImageRef LVDocView::getPageImage( int delta )
 {
+    checkPos();
     // find existing object in cache
     int offset = m_pos;
     if ( delta<0 )
@@ -528,6 +576,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 /// export to WOL format
 bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 {
+    checkRender();
     int old_flags = m_pageHeaderInfo;
     m_pageHeaderInfo &= ~(PGHDR_CLOCK | PGHDR_BATTERY);
     LVRendPageList pages;
@@ -622,6 +671,8 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 
 void LVDocView::SetPos( int pos, bool savePos )
 {
+    LVLock lock(getMutex());
+    checkRender();
     if (m_view_mode==DVM_SCROLL)
     {
         if (pos > GetFullHeight() - m_dy )
@@ -643,12 +694,15 @@ void LVDocView::SetPos( int pos, bool savePos )
     }
     if ( savePos )
         _posBookmark = getBookmark();
+    m_posIsSet = true;
     updateScroll();
     //Draw();
 }
 
 int LVDocView::GetFullHeight()
 {
+    LVLock lock(getMutex());
+    checkRender();
     lvdomElementFormatRec * rd = m_doc ? m_doc->getMainNode()->getRenderData() : NULL;
     return ( rd ? rd->getHeight()+rd->getY() : m_dy );
 }
@@ -845,6 +899,8 @@ LVArray<int> & LVDocView::getSectionBounds( )
 
 int LVDocView::getPosPercent()
 {
+    LVLock lock(getMutex());
+    checkPos();
     int fh = GetFullHeight();
     int p = GetPos();
     if ( fh>0 )
@@ -1163,6 +1219,8 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
 
 int LVDocView::getCurPage()
 {
+    LVLock lock(getMutex());
+    checkPos();
     return m_pages.FindNearestPage(m_pos, 0);
 }
 
@@ -1181,7 +1239,8 @@ bool LVDocView::isTimeChanged()
 /// draw to specified buffer
 void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
 {
-    LVLock lock( _mutex );
+    LVLock lock(getMutex());
+    checkPos();
     drawbuf.Resize( m_dx, m_dy );
     drawbuf.SetBackgroundColor( m_backgroundColor );
     drawbuf.SetTextColor( m_textColor );
@@ -1242,6 +1301,7 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
 /// converts point from window to document coordinates, returns true if success
 bool LVDocView::windowToDocPoint( lvPoint & pt )
 {
+    checkRender();
     pt = rotatePoint( pt, true );
     int page = m_pages.FindNearestPage(m_pos, 0);
     lvRect * rc = NULL;
@@ -1277,6 +1337,8 @@ bool LVDocView::windowToDocPoint( lvPoint & pt )
 /// converts point from documsnt to window coordinates, returns true if success
 bool LVDocView::docToWindowPoint( lvPoint & pt )
 {
+    LVLock lock(getMutex());
+    checkRender();
     pt = rotatePoint( pt, false );
     return false;
 }
@@ -1284,6 +1346,8 @@ bool LVDocView::docToWindowPoint( lvPoint & pt )
 /// returns xpointer for specified window point
 ldomXPointer LVDocView::getNodeByPoint( lvPoint pt )
 {
+    LVLock lock(getMutex());
+    checkRender();
     if ( windowToDocPoint( pt ) ) {
         ldomXPointer ptr = m_doc->createXPointer( pt );
         //CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
@@ -1313,6 +1377,8 @@ void LVDocView::setHeaderIcons( LVRefVec<LVImageSource> icons )
 /// get page document range, -1 for current page
 LVRef<ldomXRange> LVDocView::getPageDocumentRange( int pageIndex )
 {
+    LVLock lock(getMutex());
+    checkRender();
     LVRef<ldomXRange> res(NULL);
     if ( pageIndex<0 || pageIndex>=m_pages.length() ) 
         pageIndex = getCurPage();
@@ -1330,6 +1396,8 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange( int pageIndex )
 /// get page text, -1 for current page
 lString16 LVDocView::getPageText( bool wrapWords, int pageIndex )
 {
+    LVLock lock(getMutex());
+    checkRender();
     lString16 txt;
     LVRef<ldomXRange> range = getPageDocumentRange( pageIndex );
     txt = range->getRangeText();
@@ -1350,7 +1418,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         if ( dy==0 )
             dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom;
         lString8 fontName = lString8(DEFAULT_FONT_NAME);
-        m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, fontName );
+        m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
         m_infoFont = fontMan->GetFont( INFO_FONT_SIZE, 300, false, DEFAULT_FONT_FAMILY, fontName );
         if ( !m_font )
             return;
@@ -1384,6 +1452,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 /// update selection ranges
 void LVDocView::updateSelections()
 {
+    checkRender();
     m_imageCache.clear();
     LVLock lock(getMutex());
     ldomXRangeList ranges( m_doc->getSelections(), true );
@@ -1400,7 +1469,7 @@ void LVDocView::setViewMode( LVDocViewMode view_mode, int visiblePageCount )
     m_view_mode = view_mode;
     if ( visiblePageCount==1 || visiblePageCount==2 )
         m_pagesVisible = visiblePageCount;
-    Render();
+    requestRender();
     goToBookmark(_posBookmark);
 }
 
@@ -1427,7 +1496,7 @@ void LVDocView::setVisiblePageCount( int n )
     else
         m_pagesVisible = 1;
     updateLayout();
-    Render();
+    requestRender();
 }
 
 static int findBestFit( LVArray<int> & v, int n, bool rollCyclic=false )
@@ -1456,16 +1525,24 @@ static int findBestFit( LVArray<int> & v, int n, bool rollCyclic=false )
 
 void LVDocView::setDefaultInterlineSpace( int percent )
 {
+    LVLock lock(getMutex());
+    requestRender();
     m_def_interline_space = percent;
-    Render();
     goToBookmark(_posBookmark);
 }
 
 void LVDocView::setFontSize( int newSize )
 {
+    LVLock lock(getMutex());
+    requestRender();
     m_font_size = findBestFit( m_font_sizes, newSize );
-    Render();
     goToBookmark(_posBookmark);
+}
+
+void LVDocView::setDefaultFontFace( const lString8 & newFace )
+{
+    m_defaultFontFace = newFace;
+    requestRender();
 }
 
 /// sets posible base font sizes (for ZoomFont feature)
@@ -1571,7 +1648,7 @@ void LVDocView::Resize( int dx, int dy )
             m_dx = dx;
             m_dy = dy;
             updateLayout();
-            Render();
+            requestRender();
         }
         goToBookmark(_posBookmark);
     }
@@ -1636,10 +1713,13 @@ void LVDocView::restorePosition()
 {
     if ( m_filename.empty() )
         return;
+    LVLock lock(getMutex());
+    checkRender();
     ldomXPointer pos = m_hist.restorePosition( m_doc, m_filename, m_filesize );
     if ( !pos.isNull() ) {
         //goToBookmark( pos );
         _posBookmark = pos; //getBookmark();
+        m_posIsSet = false;
     }
 }
 
@@ -1822,6 +1902,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         m_series = extractDocSeries( m_doc );
 
     }
+    requestRender();
     return true;
 }
 
@@ -1833,6 +1914,8 @@ bool LVDocView::LoadDocument( const char * fname )
 /// returns bookmark
 ldomXPointer LVDocView::getBookmark()
 {
+    LVLock lock(getMutex());
+    checkPos();
     ldomXPointer ptr = m_doc->createXPointer( lvPoint( 0, m_pos ) );
     return ptr;
 /*
@@ -1849,6 +1932,8 @@ ldomXPointer LVDocView::getBookmark()
 /// returns bookmark for specified page
 ldomXPointer LVDocView::getPageBookmark( int page )
 {
+    LVLock lock(getMutex());
+    checkRender();
     if ( page<0 || page>=m_pages.length() )
         return ldomXPointer();
     ldomXPointer ptr = m_doc->createXPointer( lvPoint( 0, m_pages[page]->start ) );
@@ -1875,6 +1960,8 @@ void limitStringSize( lString16 & str, int maxSize )
 /// get bookmark position text
 bool LVDocView::getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lString16 & posText )
 {
+    LVLock lock(getMutex());
+    checkRender();
     titleText = posText = lString16();
     if ( bm.isNull() )
         return false;
@@ -1933,18 +2020,17 @@ bool LVDocView::getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lStr
 /// moves position to bookmark
 void LVDocView::goToBookmark(ldomXPointer bm)
 {
-    if ( bm.isNull() ) {
-        SetPos( 0, false );
-    } else {
-        lvPoint pt = bm.toPoint();
-        SetPos( pt.y, false );
-    }
+    LVLock lock(getMutex());
+    checkRender();
+    m_posIsSet = false;
     _posBookmark = bm;
 }
 
 /// get page number by bookmark
 int LVDocView::getBookmarkPage(ldomXPointer bm)
 {
+    LVLock lock(getMutex());
+    checkRender();
     if ( bm.isNull() ) {
         return 0;
     } else {
@@ -2023,6 +2109,8 @@ int LVDocView::scrollPosToDocPos( int scrollpos )
 
 void LVDocView::goToPage( int page )
 {
+    LVLock lock(getMutex());
+    checkRender();
     if (!m_pages.length())
         return;
     if (page >= m_pages.length())
@@ -2035,6 +2123,8 @@ void LVDocView::goToPage( int page )
 /// returns document offset for next page
 int LVDocView::getNextPageOffset()
 {
+    LVLock lock(getMutex());
+    checkPos();
     if (m_view_mode==DVM_SCROLL)
     {
         return GetPos() + m_dy;
@@ -2051,6 +2141,8 @@ int LVDocView::getNextPageOffset()
 /// returns document offset for previous page
 int LVDocView::getPrevPageOffset()
 {
+    LVLock lock(getMutex());
+    checkPos();
     if (m_view_mode==DVM_SCROLL)
     {
         return GetPos() - m_dy;

@@ -269,7 +269,7 @@ protected:
 private:
     lString16 m_filename;
     lvsize_t  m_filesize;
-    
+
     ldomXPointer _posBookmark;
 
     lvRect m_pageMargins;
@@ -289,6 +289,10 @@ private:
 
     LVMutex _mutex;
     LVDocViewImageCache m_imageCache;
+
+    bool m_posIsSet;
+
+    lString8 m_defaultFontFace;
 
 
     // private functions
@@ -315,7 +319,19 @@ protected:
     int getNextPageOffset();
     /// returns document offset for previous page
     int getPrevPageOffset();
+    /// render document, if not rendered
+    void checkRender();
+    /// ensure current position is set to current bookmark value
+    void checkPos();
 public:
+    /// returns default font face
+    lString8 getDefaultFontFace() { return m_defaultFontFace; }
+    /// set default font face
+    void setDefaultFontFace( const lString8 & newFace );
+    /// invalidate formatted data, request render
+    void requestRender();
+    /// invalidate image cache, request redraw
+    void clearImageCache();
     /// get page image (0=current, -1=prev, 1=next)
     LVDocImageRef getPageImage( int delta );
     /// cache page image (render in background if necessary) (0=current, -1=prev, 1=next)
