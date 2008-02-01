@@ -250,7 +250,7 @@ void LVDocView::setPageHeaderInfo( int hdrFlags )
     LVLock lock(getMutex());
     m_pageHeaderInfo = hdrFlags;
     int oldMargin = m_pageMargins.top;
-    m_pageMargins.top = m_pageMargins.bottom + (hdrFlags ? 16 : 0);
+    m_pageMargins.top = m_pageMargins.bottom + (hdrFlags ? INFO_FONT_SIZE : 0);
     if ( m_pageMargins.top != oldMargin ) {
         requestRender();
     } else {
