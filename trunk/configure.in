@@ -6,8 +6,8 @@ AC_PROG_INSTALL
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
-CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions"
-CXXFLAGS="$CXXFLAGS -Wall -g -fexceptions"
+CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions -D_LINUX -DLINUX"
+CXXFLAGS="$CXXFLAGS -Wall -g -fexceptions -D_LINUX -DLINUX"
 
 WXCONFIG=wx-config
 AC_ARG_WITH(wx-config,
