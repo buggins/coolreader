@@ -144,7 +144,7 @@ public:
     {
         if ( _ptr ) {
             if ( _ptr==obj )
-                return;
+                return *this;
             Release();
         }
         if ( obj )
