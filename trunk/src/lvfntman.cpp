@@ -22,6 +22,7 @@
 #include "../include/lvstream.h"
 #include "../include/lvdrawbuf.h"
 #include "../include/lvstyles.h"
+#include "../include/lvthread.h"
 
 #if (USE_FREETYPE==1)
 
@@ -425,6 +426,7 @@ void LVFontGlobalGlyphCache::clear()
 class LVFreeTypeFace : public LVFont
 {
 private:
+    LVMutex &      _mutex;
     lString8      _fileName;
     lString8      _faceName;
     css_font_family_t _fontFamily;
@@ -439,8 +441,8 @@ private:
     LVFontLocalGlyphCache _glyph_cache;
     bool          _drawMonochrome;
 public:
-    LVFreeTypeFace( FT_Library  library, LVFontGlobalGlyphCache * globalCache )
-    : _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
+    LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
+    : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _glyph_cache(globalCache), _drawMonochrome(false)
     {
     }
@@ -510,6 +512,7 @@ public:
     */
     virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
     {
+        LVLock lock(_mutex);
         int glyph_index = FT_Get_Char_Index( _face, code );
         if ( glyph_index==0 )
             return false;
@@ -540,6 +543,7 @@ public:
                         lChar16 def_char
                      )
     {
+        LVLock lock(_mutex);
         if ( len <= 0 || _face==NULL )
             return 0;
         int error;
@@ -652,6 +656,7 @@ public:
                         const lChar16 * text, int len
         )
     {
+        LVLock lock(_mutex);
         static lUInt16 widths[MAX_LINE_CHARS+1];
         static lUInt8 flags[MAX_LINE_CHARS+1];
         if ( len>MAX_LINE_CHARS )
@@ -724,6 +729,7 @@ public:
                        const lChar16 * text, int len, 
                        lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags )
     {
+        LVLock lock(_mutex);
         if ( len <= 0 || _face==NULL )
             return;
         lvRect clip;
@@ -830,6 +836,7 @@ public:
 
     virtual void Clear()
     {
+        LVLock lock(_mutex);
         if ( _face )
             FT_Done_Face( _face );
         _face = NULL;
@@ -851,6 +858,7 @@ private:
     #if (DEBUG_FONT_MAN==1)
     FILE * _log;
     #endif
+    LVMutex   _lock;
 public:
 
     bool isBitmapModeForSize( int size )
@@ -986,7 +994,7 @@ public:
             fprintf(_log, "   no instance: adding new one for filename=%s, index = %d\n", fname.c_str() );
         }
     #endif
-        LVFreeTypeFace * font = new LVFreeTypeFace(_library, &_globalCache);
+        LVFreeTypeFace * font = new LVFreeTypeFace(_lock, _library, &_globalCache);
         lString8 pathname = makeFontFileName( fname );
         //def.setName( fname );
         //def.setIndex( index );
