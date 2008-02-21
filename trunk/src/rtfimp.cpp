@@ -96,10 +96,13 @@ public:
         s.trimDoubleSpaces(!last_space, true, false);
         text = s.c_str();
         len = s.length();
-        if ( !len )
+        if ( !len ) {
+            m_callback->OnTagOpen(NULL, L"empty-line");
+            m_callback->OnTagClose(NULL, L"empty-line");
             return;
+        }
         bool asteriskFlag = ( s.compare( L"* * *" )==0 );
-        bool titleFlag = m_stack.getInt( pi_align )==ha_center;
+        bool titleFlag = m_stack.getInt( pi_align )==ha_center && len<200;
         if ( last_notitle && titleFlag && !asteriskFlag ) {
             OnAction(RA_SECTION);
         }
