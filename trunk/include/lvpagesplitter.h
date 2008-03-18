@@ -171,13 +171,13 @@ class LVRendPageContext
     
 
     // page start line
-    LVRendLineInfoBase pagestart;
+    //LVRendLineInfoBase pagestart;
     // page end candidate line
-    LVRendLineInfoBase pageend;
+    //LVRendLineInfoBase pageend;
     // next line after page end candidate
-    LVRendLineInfoBase next;
+    //LVRendLineInfoBase next;
     // last fit line
-    LVRendLineInfoBase last;
+    //LVRendLineInfoBase last;
     // page list to fill
     LVRendPageList * page_list;
     // page height
@@ -196,14 +196,6 @@ class LVRendPageContext
         }
         return ref.get();
     }
-
-    //void AddLine( const LVRendLineInfo & line );
-
-    void AddToList();
-
-    static unsigned CalcSplitFlag( int flg1, int flg2 );
-
-    void StartPage( const LVRendLineInfoBase & line );
 
     void split();
 public:

@@ -63,22 +63,6 @@ void LVRendPageContext::leaveFootNote()
 }
 
 
-void LVRendPageContext::StartPage( const LVRendLineInfoBase & line )
-{
-    last = pagestart = line;
-    pageend.clear();
-    next.clear();
-}
-
-unsigned LVRendPageContext::CalcSplitFlag( int flg1, int flg2 )
-{
-    if (flg1==RN_SPLIT_AVOID || flg2==RN_SPLIT_AVOID)
-        return RN_SPLIT_AVOID;
-    if (flg1==RN_SPLIT_ALWAYS || flg2==RN_SPLIT_ALWAYS)
-        return RN_SPLIT_ALWAYS;
-    return RN_SPLIT_AUTO;
-}
-
 void LVRendPageContext::AddLine( int starty, int endy, int flags )
 {
     if ( curr_note!=NULL )
@@ -122,6 +106,15 @@ void LVRendPageContext::split()
             , footlast(NULL)
         {
         }
+        unsigned CalcSplitFlag( int flg1, int flg2 )
+        {
+            if (flg1==RN_SPLIT_AVOID || flg2==RN_SPLIT_AVOID)
+                return RN_SPLIT_AVOID;
+            if (flg1==RN_SPLIT_ALWAYS || flg2==RN_SPLIT_ALWAYS)
+                return RN_SPLIT_ALWAYS;
+            return RN_SPLIT_AUTO;
+        }
+
         void StartPage( const LVRendLineInfo * line )
         {
             last = pagestart = line;
@@ -247,11 +240,11 @@ void LVRendPageContext::split()
             int h = currentHeight(next);
             if ( h + dh > page_h ) {
                 AddFootnoteFragmentToList();
-                const LVRendLineInfo * save = next?next:last;
+                //const LVRendLineInfo * save = next?next:last;
                 //next = NULL;
                 pageend = last;
                 AddToList();
-                StartPage( save );
+                StartPage( next );
                 footstart = footlast = line;
                 footend = NULL;
                 return;
@@ -292,85 +285,11 @@ void LVRendPageContext::split()
     }
     s.Finalize();
 }
-/*
 
-void LVRendPageContext::AddLine( const LVRendLineInfo & line )
-{
-    if (pagestart.empty())
-    {
-        StartPage( line );
-    }
-    else 
-    {
-        if (line.start<last.end)
-            return; // for table cells
-        unsigned flgSplit = CalcSplitFlag( last.getSplitAfter(), line.getSplitBefore() );
-        bool flgFit = (line.end <= pagestart.start + page_h);
-        if (!flgFit) 
-        {
-                // doesn't fit
-            // split
-            //if (next.empty())
-            {
-                next = line;
-            }
-            //if (pageend.empty())
-            {
-                pageend = last;
-            }
-            AddToList();
-            StartPage(next);
-        }
-        else if (flgSplit==RN_SPLIT_ALWAYS)
-        {
-            //fits, but split is mandatory
-            if (next.empty())
-            {
-                next = line;
-            }
-            pageend = last;
-            AddToList();
-            StartPage(line);
-        }
-        else if (flgSplit==RN_SPLIT_AUTO)
-        {
-            //fits, split is allowed
-            //update split candidate
-            pageend = last;
-            next = line;
-        }
-        last = line;
-    }
-}
-*/
 void LVRendPageContext::Finalize()
 {
-    /*
-    for ( int i=0; i<lines.length(); i++ ) {
-        AddLine( *lines[i] );
-        if ( lines[i]->getLinks() ) {
-            for ( int j=0; j<lines[i]->getLinks()->length(); j++ ) {
-                LVFootNote* note = lines[i]->getLinks()->get(j);
-                for ( int k=0; k<note->getLines().length(); k++ ) {
-                    AddLine( *note->getLines()[k] );
-                }
-            }
-        }
-    }
-    */
     split();
-/*
-    if (last.empty())
-        return;
-    pageend = last;
-*/
-    AddToList();
     lines.clear();
     footNotes.clear();
-}
-void LVRendPageContext::AddToList()
-{
-    LVRendPageInfo * page = new LVRendPageInfo(pagestart.start, pageend.end-pagestart.start, page_list->length());
-    page_list->add(page);
 }
 
