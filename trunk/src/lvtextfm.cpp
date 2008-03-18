@@ -290,6 +290,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
     int phase;
     int isParaStart;
     int flgObject;
+    int isLinkStart;
 
     last_fit = 0xFFFF;
     pbuffer->height = 0;
@@ -298,7 +299,8 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
     {
         srcline = &pbuffer->srctext[i];
         line_flags = srcline->flags;
-        flgObject = (line_flags & LTEXT_SRC_IS_OBJECT) ? 1 : 0;
+        isLinkStart = (line_flags & LTEXT_IS_LINK) ? 1 : 0; // 1 for first word of link
+        flgObject = (line_flags & LTEXT_SRC_IS_OBJECT) ? 1 : 0; // 1 for object (e.g. image)
         if (!flgObject)
         {
             font = (LVFont*)srcline->t.font;
@@ -491,6 +493,10 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                         word->width = widths_buf[j] - wpos;
                         word->t.start = text_offset + wstart;
                         word->flags = 0;
+                        if ( isLinkStart ) {
+                            word->flags = LTEXT_WORD_IS_LINK_START;
+                            isLinkStart = 0;
+                        }
                         word->y = wy;
                         word->x = widths_buf[j] - wpos;
                         if (flags_buf[j] & LCHAR_IS_SPACE)

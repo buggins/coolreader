@@ -77,6 +77,8 @@ public:
     }
     /// retrieves item from specified position
     T operator [] ( int pos ) const { return _array[pos]; }
+    /// retrieves item from specified position
+    T get( int pos ) const { return _array[pos]; }
     /// retrieves item reference from specified position
     T & operator [] ( int pos ) { return _array[pos]; }
     /// ensures that size of vector is not less than specified value

@@ -426,11 +426,14 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
 #endif
 
             ldomElement * parent = ((ldomElement*)node->getParentNode());
+            int tflags = LTEXT_FLAG_OWNTEXT;
+            if ( parent->getNodeId() == el_a )
+                tflags |= LTEXT_IS_LINK;
             LVFont * font = parent->getFont().get();
             css_style_ref_t style = parent->getStyle();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-            txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | LTEXT_FLAG_OWNTEXT, line_h, ident, node );
+            txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, line_h, ident, node );
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }
@@ -461,6 +464,15 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
+        bool isFootNoteBody = false;
+        if ( node->getNodeId()==el_section ) {
+            if ( node->getParentNode()!=NULL && node->getParentNode()->getNodeId()==el_body ) {
+                if ( node->getParentNode()->getAttributeValue(attr_name)==L"notes" 
+                        && !node->getAttributeValue(attr_id).empty() )
+                    isFootNoteBody = true;
+            }
+
+        }
         ldomElement * enode = (ldomElement *) node; 
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (!fmt)
@@ -485,10 +497,14 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
         fmt->setY( y );
         fmt->setWidth( width );
         fmt->setHeight( 0 );
+
+
         switch( enode->getRendMethod() )
         {
         case erm_block:
             {
+                if ( isFootNoteBody )
+                    context.enterFootNote( node->getAttributeValue(attr_id) );
                 // recurse all sub-blocks for blocks
                 int y = 0;
                 int cnt = node->getChildCount();
@@ -502,11 +518,15 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                 if ( y < st_y )
                     y = st_y;
                 fmt->setHeight( y ); //+ margin_top + margin_bottom ); //???
+                if ( isFootNoteBody )
+                    context.leaveFootNote();
                 return y + margin_top + margin_bottom; // return block height
             }
             break;
         case erm_final:
             {
+                if ( isFootNoteBody )
+                    context.enterFootNote( node->getAttributeValue(attr_id) );
                 // render whole node content as single formatted object
                 LFormattedTextRef txform;
                 int h = enode->renderFinalBlock( txform, width );
@@ -538,7 +558,32 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                         line_flags |= break_inside << RN_SPLIT_AFTER;
 
                     context.AddLine(rect.top+line->y, rect.top+line->y+line->height, line_flags);
+
+                    // footnote links analysis
+                    if ( !isFootNoteBody ) { // disable footnotes for footnotes
+                        for ( unsigned w=0; w<line->word_count; w++ ) {
+                            // check link start flag for every word
+                            if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
+                                const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
+                                if ( src && src->object ) {
+                                    ldomNode * node = (ldomNode*)src->object;
+                                    ldomElement * parent = node->getParentNode();
+                                    if ( parent->getNodeId()==el_a && parent->hasAttribute(LXML_NS_ANY, attr_href )
+                                            && parent->getAttributeValue(LXML_NS_ANY, attr_type )==L"note") {
+                                        lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
+                                        if ( href.length()>0 && href.at(0)=='#' ) {
+                                            href.erase(0,1);
+                                            context.addLink( href );
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
+                if ( isFootNoteBody )
+                    context.leaveFootNote();
                 return h + margin_top + margin_bottom;
             }
             break;

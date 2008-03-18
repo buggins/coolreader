@@ -125,6 +125,18 @@ public:
         }
         return -1;
     }
+    T * last()
+    {
+        if ( _count<=0 )
+            return NULL;
+        return _list[_count-1];
+    }
+    T * first()
+    {
+        if ( _count<=0 )
+            return NULL;
+        return _list[0];
+    }
     /// removes item from vector by index
     T * remove( T * p )
     {

@@ -97,7 +97,9 @@
      hdr.minCode = 0;
      hdr.maxCode = 0;
      strncpy( hdr.fontName, fontName, FONT_NAME_LENGTH-1);
+     hdr.fontName[FONT_NAME_LENGTH-1] = 0;
      strncpy( hdr.fontCopyright, fontCopyright, FONT_NAME_LENGTH-1);
+     hdr.fontCopyright[FONT_NAME_LENGTH-1];
  }
 
  void font_gen_buf::setDecodeTable( hrle_decode_info_t * table )

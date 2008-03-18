@@ -42,7 +42,8 @@ extern "C" {
 #define LTEXT_TD_BLINK         0x0800  /**< \brief blinking text */
 #define LTEXT_TD_MASK          0x0F00  /**< \brief text decoration mask */
 
-#define LTEXT_SRC_IS_OBJECT    0x8000  /**< \brief superscript */
+#define LTEXT_SRC_IS_OBJECT    0x8000  /**< \brief object (image) */
+#define LTEXT_IS_LINK          0x4000  /**< \brief link */
 
 
 
@@ -101,7 +102,9 @@ typedef struct
 /// can break with hyphenation after this word
 #define LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER 4
 /// object flag
-#define LTEXT_WORD_IS_OBJECT     0x80
+#define LTEXT_WORD_IS_OBJECT         0x80
+/// first word of link flag
+#define LTEXT_WORD_IS_LINK_START     0x40
 
 //#define LTEXT_BACKGROUND_MARK_FLAGS 0xFFFF0000l
 

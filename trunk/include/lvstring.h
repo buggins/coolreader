@@ -422,6 +422,16 @@ public:
     friend class lString16Collection;
 };
 
+inline lUInt32 getHash( const lString16 & s )
+{
+    return s.getHash();
+}
+
+inline lUInt32 getHash( const lString8 & s )
+{
+    return s.getHash();
+}
+
 class lString16Collection
 {
 private:

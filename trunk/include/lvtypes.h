@@ -81,10 +81,10 @@ public:
     lvColor( lUInt32 r, lUInt32 g, lUInt32 b, lUInt32 a ) : value(((a&255)<<24) | ((r&255)<<16) | ((g&255)<<8) | (b&255)) { }
     operator lUInt32 () const { return value; }
     lUInt32 get() const { return value; }
-    lUInt8 r() const { return (value>>16)&255; }
-    lUInt8 g() const { return (value>>8)&255; }
-    lUInt8 b() const { return (value)&255; }
-    lUInt8 a() const { return (value>>24)&255; }
+    lUInt8 r() const { return (lUInt8)(value>>16)&255; }
+    lUInt8 g() const { return (lUInt8)(value>>8)&255; }
+    lUInt8 b() const { return (lUInt8)(value)&255; }
+    lUInt8 a() const { return (lUInt8)(value>>24)&255; }
 };
 
 /// byte order convertor

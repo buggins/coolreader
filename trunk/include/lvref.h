@@ -485,5 +485,41 @@ public:
     ~LVRefVec() { clear(); }
 };
 
+/// auto pointer
+template <class T >
+class LVAutoPtr {
+    T * p;
+public:
+    LVAutoPtr()
+        : p(NULL)
+    {
+    }
+    explicit LVAutoPtr( T* ptr )
+        : p(ptr)
+    {
+    }
+    ~LVAutoPtr()
+    {
+        if ( p )
+            delete p;
+    }
+    LVAutoPtr * operator -> ()
+    {
+        return p;
+    }
+    LVAutoPtr & operator * ()
+    {
+        return *p;
+    }
+    LVAutoPtr & operator = ( T* ptr )
+    {
+        if ( p==ptr )
+            return;
+        if ( p )
+            delete p;
+        p = ptr;
+    }
+};
+
 
 #endif
