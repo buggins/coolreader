@@ -1207,7 +1207,28 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
             rc.bottom -= m_pageMargins.bottom;
             drawCoverTo( drawbuf, rc );
         } else {
+            // draw main page text
             DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, pageRect->top + m_pageMargins.top + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
+            // draw footnotes
+            int fy = pageRect->bottom - m_pageMargins.bottom;
+            bool footnoteDrawed = false;
+            for ( int fn=page.footnotes.length()-1; fn>=0; fn-- ) {
+                int fstart = page.footnotes[fn].start;
+                int fheight = page.footnotes[fn].height;
+                fy -= fheight;
+                clip.top = fy + offset;
+                clip.left = pageRect->left + m_pageMargins.left;
+                clip.right = pageRect->right - m_pageMargins.right;
+                clip.bottom = fy + offset + fheight;
+                drawbuf->SetClipRect(&clip);
+                DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, fy + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, fheight, 0, -fstart+offset, m_dy, &m_markRanges );
+                footnoteDrawed = true;
+            }
+            if ( footnoteDrawed ) {
+                drawbuf->SetClipRect(NULL);
+                fy -= 8;
+                drawbuf->FillRect( pageRect->left + m_pageMargins.left, fy, pageRect->right - m_pageMargins.right, fy + 1, 0xAAAAAA );
+            }
         }
     }
     drawbuf->SetClipRect(NULL);
@@ -1714,7 +1735,7 @@ void LVDocView::restorePosition()
     if ( m_filename.empty() )
         return;
     LVLock lock(getMutex());
-    checkRender();
+    //checkRender();
     ldomXPointer pos = m_hist.restorePosition( m_doc, m_filename, m_filesize );
     if ( !pos.isNull() ) {
         //goToBookmark( pos );

@@ -37,25 +37,34 @@
 #define RN_SPLIT_AFTER_ALWAYS  (RN_SPLIT_ALWAYS<<RN_SPLIT_AFTER)
 
 #define RN_SPLIT_FOOT_NOTE 0x100
+#define RN_SPLIT_FOOT_LINK 0x200
 
 enum page_type_t {
     PAGE_TYPE_NORMAL = 0,
     PAGE_TYPE_COVER = 1,
 };
 
+/// footnote fragment inside page
 class LVPageFootNoteInfo {
 public:
     int start;
     int height;
+    LVPageFootNoteInfo()
+    : start(0), height(0)
+    { }
+    LVPageFootNoteInfo( int s, int h )
+    : start(s), height(h) 
+    { }
 };
 
+/// rendered page splitting info
 class LVRendPageInfo {
 public:
-    int start;
-    int height;
-    int index;
-    int type;
-    LVArray<LVPageFootNoteInfo> footnotes;
+    int start; /// start of page
+    int height; /// height of page, does not include footnotes
+    int index;  /// index of page
+    int type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
+    LVArray<LVPageFootNoteInfo> footnotes; /// footnote fragment list for page
     LVRendPageInfo( int pageStart, int pageHeight, int pageIndex )
     : start(pageStart), height(pageHeight), index(pageIndex), type(PAGE_TYPE_NORMAL) {}
     LVRendPageInfo( int coverHeight )
@@ -133,6 +142,7 @@ class LVRendPageContext
             if ( links==NULL )
                 links = new LVFootNoteList();
             links->add( note );
+            flags |= RN_SPLIT_FOOT_LINK;
         }
     };
 

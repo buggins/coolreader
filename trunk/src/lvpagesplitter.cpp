@@ -89,24 +89,37 @@ void LVRendPageContext::AddLine( int starty, int endy, int flags )
         curr_note->addLine( line );
 }
 
+#define FOOTNOTE_MARGIN 12
 void LVRendPageContext::split()
 {
     int lineCount = lines.length();
+
+    // helper class
     struct State {
+        int page_h;
         LVRendPageList * page_list;
         const LVRendLineInfo * pagestart;
         const LVRendLineInfo * pageend;
         const LVRendLineInfo * next;
         const LVRendLineInfo * last;
         int   footheight;
+        LVFootNote * footnote;
+        const LVRendLineInfo * footstart;
+        const LVRendLineInfo * footend;
+        const LVRendLineInfo * footlast;
         LVArray<LVPageFootNoteInfo> footnotes;
-        State(LVRendPageList * pl)
-            : page_list(pl)
+        State(LVRendPageList * pl, int pageHeight)
+            : page_h(pageHeight)
+            , page_list(pl)
             , pagestart(NULL)
             , pageend(NULL)
             , next(NULL)
             , last(NULL)
             , footheight(0)
+            , footnote(NULL)
+            , footstart(NULL)
+            , footend(NULL)
+            , footlast(NULL)
         {
         }
         void StartPage( const LVRendLineInfo * line )
@@ -120,66 +133,164 @@ void LVRendPageContext::split()
         }
         void AddToList()
         {
+            if ( !pageend )
+                pageend = pagestart;
+            if ( !pagestart )
+                return;
             LVRendPageInfo * page = new LVRendPageInfo(pagestart->start, pageend->end-pagestart->start, page_list->length());
+            if ( footnotes.length()>0 ) {
+                page->footnotes.add( footnotes );
+                footnotes.clear();
+            }
             page_list->add(page);
         }
-    } s(page_list);
+        int currentFootnoteHeight()
+        {
+            if ( !footstart )
+                return 0;
+            int h = 0;
+            h = (footlast?footlast:footstart)->end - footstart->start;
+            return h;
+        }
+        int currentHeight( const LVRendLineInfo * line = NULL )
+        {
+            if ( line == NULL )
+                line = last;
+            int h = 0;
+            if ( line && pagestart )
+                h += line->end - pagestart->start;
+            int footh = 0 /*currentFootnoteHeight()*/ + footheight;
+            if ( footh )
+                h += FOOTNOTE_MARGIN + footh;
+            return h;
+        }
+        void AddLine( LVRendLineInfo * line )
+        {
+            if (pagestart==NULL)
+            {
+                StartPage( line );
+            }
+            else 
+            {
+                if (line->start<last->end)
+                    return; // for table cells
+                unsigned flgSplit = CalcSplitFlag( last->getSplitAfter(), line->getSplitBefore() );
+                bool flgFit = currentHeight( line ) <= page_h;
+                if (!flgFit)
+                {
+                // doesn't fit
+                // split
+                    next = line;
+                    pageend = last;
+                    AddToList();
+                    StartPage(next);
+                }
+                else if (flgSplit==RN_SPLIT_ALWAYS)
+                {
+                //fits, but split is mandatory
+                    if (next==NULL)
+                    {
+                        next = line;
+                    }
+                    pageend = last;
+                    AddToList();
+                    StartPage(line);
+                }
+                else if (flgSplit==RN_SPLIT_AUTO)
+                {
+                //fits, split is allowed
+                //update split candidate
+                    pageend = last;
+                    next = line;
+                }
+            }
+        }
+        void Finalize()
+        {
+            if (last==NULL)
+                return;
+            pageend = last;
+            AddToList();
+        }
+        void StartFootNote( LVFootNote * note )
+        {
+            if ( !footnote || footnote->getLines().length()==0 )
+                return;
+            footnote = note;
+            footstart = footnote->getLines()[0];
+            footlast = footnote->getLines()[0];
+            footend = NULL;
+        }
+        void AddFootnoteFragmentToList()
+        {
+            if ( footstart==NULL )
+                return; // no data
+            if ( footend==NULL )
+                footend = footstart;
+            int h = currentFootnoteHeight();
+            if ( h>0 && h<page_h ) {
+                footheight += h;
+                footnotes.add( LVPageFootNoteInfo( footstart->start, h ) );
+            }
+        }
+        /// footnote is finished
+        void EndFootNote()
+        {
+            footend = footlast;
+            AddFootnoteFragmentToList();
+            footnote = NULL;
+            footstart = footend = footlast = NULL;
+        }
+        void AddFootnoteLine( LVRendLineInfo * line )
+        {
+            int dh = line->end - (/*footlast?footlast->end:*/((footstart?footstart->end : line->start))) + 16;
+            int h = currentHeight(next);
+            if ( h + dh > page_h ) {
+                AddFootnoteFragmentToList();
+                const LVRendLineInfo * save = next?next:last;
+                //next = NULL;
+                pageend = last;
+                AddToList();
+                StartPage( save );
+                footstart = footlast = line;
+                footend = NULL;
+                return;
+            }
+            if ( footstart==NULL ) {
+                footstart = footlast = line;
+                footend = NULL;
+            } else {
+                footlast = line;
+            }
+        }
+    } s(page_list, page_h);
+
     LVRendLineInfo * line = NULL;
     for ( int lindex=0; lindex<lineCount; lindex++ ) {
         line = lines[lindex];
-        if (s.pagestart==NULL)
-        {
-            s.StartPage( line );
-        }
-        else 
-        {
-            if (line->start<s.last->end)
-                return; // for table cells
-            unsigned flgSplit = CalcSplitFlag( s.last->getSplitAfter(), line->getSplitBefore() );
-            bool flgFit = (line->end <= s.pagestart->start + page_h);
-            if (!flgFit) 
-            {
-                // doesn't fit
-                // split
-                s.next = line;
-                s.pageend = s.last;
-                s.AddToList();
-                s.StartPage(s.next);
-            }
-            else if (flgSplit==RN_SPLIT_ALWAYS)
-            {
-                //fits, but split is mandatory
-                if (s.next==NULL)
-                {
-                    s.next = line;
-                }
-                s.pageend = s.last;
-                s.AddToList();
-                s.StartPage(line);
-            }
-            else if (flgSplit==RN_SPLIT_AUTO)
-            {
-                //fits, split is allowed
-                //update split candidate
-                s.pageend = s.last;
-                s.next = line;
-            }
-            s.last = line;
-        }
+        s.AddLine( line );
+        s.next = line;
         // add footnotes for line, if any...
         if ( line->getLinks() ) {
+            bool foundFootNote = false;
             for ( int j=0; j<line->getLinks()->length(); j++ ) {
                 LVFootNote* note = line->getLinks()->get(j);
-                for ( int k=0; k<note->getLines().length(); k++ ) {
-                    //AddLine( *note->getLines()[k] );
+                if ( note->getLines().length() ) {
+                    foundFootNote = true;
+                    s.StartFootNote( note );
+                    for ( int k=0; k<note->getLines().length(); k++ ) {
+                        //AddLine( *note->getLines()[k] );
+                        s.AddFootnoteLine( note->getLines()[k] );
+                    }
+                    s.EndFootNote();
                 }
             }
+            if ( !foundFootNote )
+                line->flags = line->flags & ~RN_SPLIT_FOOT_LINK;
         }
+        s.last = line;
     }
-    if (s.last==NULL)
-        return;
-    s.pageend = s.last;
-    s.AddToList();
+    s.Finalize();
 }
 /*
 

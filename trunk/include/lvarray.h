@@ -165,6 +165,15 @@ public:
         _count += count;
     }
     
+    /// adds new item to end of vector
+    void add( const LVArray & list )
+    {
+        reserve( _count + list._count );
+        for (int i=0; i<list._count; i++)
+            _array[ _count+i ] = list._array[i];
+        _count += list._count;
+    }
+    
     T * addSpace( int count )
     {
         reserve( _count + count );
