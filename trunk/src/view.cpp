@@ -668,11 +668,22 @@ void cr3view::OnPaint(wxPaintEvent& event)
     //printf("   OnPaint()  \n" );
     wxPaintDC dc(this);
 
+    int dx, dy;
+    GetClientSize( &dx, &dy );
+    if ( !_docview->IsRendered() && (_docview->GetWidth() != dx || _docview->GetHeight() != dy) ) {
+        if ( _firstRender ) {
+            _docview->restorePosition();
+            _firstRender = false;
+        }
+
+        _docview->Resize( dx, dy );
+    }
+
     LVDocImageRef pageImage = _docview->getPageImage(0);
     LVDrawBuf * drawbuf = pageImage->getDrawBuf();
 
-    int dx = drawbuf->GetWidth();
-    int dy = drawbuf->GetHeight();
+    dx = drawbuf->GetWidth();
+    dy = drawbuf->GetHeight();
     wxImage img;
     img.Create(dx, dy, true);
 
