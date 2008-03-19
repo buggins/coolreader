@@ -136,6 +136,7 @@ void initRendMethod( ldomNode * node )
         int textCount = 0;
         int inlineCount = 0;
         int blockCount = 0;
+        int runinCount = 0;
         if (enode->getNodeId() == el_empty_line)
             cnt = cnt;
         int i;
@@ -153,6 +154,10 @@ void initRendMethod( ldomNode * node )
                         inlineCount++; // count visible inline elements only
                     break;
                 case css_d_none:
+                    break;
+                case css_d_run_in:
+                    if ( child->getRendMethod() != erm_invisible )
+                        runinCount++;
                     break;
                 default:
                     if ( child->getRendMethod() != erm_invisible )
@@ -180,7 +185,7 @@ void initRendMethod( ldomNode * node )
 #endif
         
         const elem_def_t * ntype = node->getElementTypePtr();
-        if ( textCount || inlineCount )
+        if ( textCount || inlineCount || runinCount )
         {
             // if there are inline or text in block, make it final
             enode->setRendMethod( erm_final );
@@ -202,6 +207,7 @@ void initRendMethod( ldomNode * node )
             {
             case css_d_block:
             case css_d_inline:
+            case css_d_run_in:
                 enode->setRendMethod( erm_final );
 #ifdef DEBUG_DUMP_ENABLED
                 logfile << "object final";
@@ -237,26 +243,29 @@ void initRendMethod( ldomNode * node )
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags )
 {
     int flg = oldflags;
-    if (style->display != css_d_inline)
-    {
+    if ( style->display == css_d_run_in ) {
+        flg |= LTEXT_RUNIN_FLAG;
+    } else if (style->display != css_d_inline) {
         // text alignment flags
         flg = oldflags & ~LTEXT_FLAG_NEWLINE;
-        switch (style->text_align)
-        {
-        case css_ta_left:
-            flg |= LTEXT_ALIGN_LEFT;
-            break;
-        case css_ta_right:
-            flg |= LTEXT_ALIGN_RIGHT;
-            break;
-        case css_ta_center:
-            flg |= LTEXT_ALIGN_CENTER;
-            break;
-        case css_ta_justify:
-            flg |= LTEXT_ALIGN_WIDTH;
-            break;
-        case css_ta_inherit:
-            break;
+        if ( !(oldflags & LTEXT_RUNIN_FLAG) ) {
+            switch (style->text_align)
+            {
+            case css_ta_left:
+                flg |= LTEXT_ALIGN_LEFT;
+                break;
+            case css_ta_right:
+                flg |= LTEXT_ALIGN_RIGHT;
+                break;
+            case css_ta_center:
+                flg |= LTEXT_ALIGN_CENTER;
+                break;
+            case css_ta_justify:
+                flg |= LTEXT_ALIGN_WIDTH;
+                break;
+            case css_ta_inherit:
+                break;
+            }
         }
     }
     //flg |= oldflags & ~LTEXT_FLAG_NEWLINE;
@@ -383,11 +392,27 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             logfile << "+BLOCK [" << cnt << "]";
 #endif
             // usual elements
+            int runin_count = 0;
             for (int i=0; i<cnt; i++)
             {
                 ldomNode * child = node->getChildNode( i );
                 renderFinalBlock( child, txform, fmt, flags, ident, line_h );
                 //flags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
+                if ( flags & LTEXT_RUNIN_FLAG ) {
+                    runin_count++;
+                    if ( runin_count>1 ) {
+                        runin_count = 0;
+                        flags &= ~LTEXT_RUNIN_FLAG;
+                    } else if ( i<cnt-1 && child->getNodeType()==LXML_ELEMENT_NODE && ((ldomElement*)child)->getStyle()->display==css_d_run_in ) {
+                        // append space to run-in object
+                        LVFont * font = enode->getFont().get();
+                        css_style_ref_t style = enode->getStyle();
+                        lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
+                        lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                        lChar16 delimiter[] = {160, 160}; //160
+                        txform->AddSourceLine( delimiter, sizeof(delimiter)/sizeof(lChar16), cl, bgcl, font, LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
+                    }
+                }
             }
         }
 
@@ -408,6 +433,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
         //***********************************
         baseflags = f; // to allow blocks in one level with inlines
         baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
+        //baseflags &= ~LTEXT_RUNIN_FLAG;
     }
     else if ( node->getNodeType()==LXML_TEXT_NODE )
     {

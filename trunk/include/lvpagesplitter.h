@@ -79,92 +79,86 @@ public:
     int FindNearestPage( int y, int direction );
 };
 
+class LVFootNote;
+
+class LVFootNoteList;
+
+class LVFootNoteList : public LVArray<LVFootNote*> {
+public: 
+    LVFootNoteList() {}
+};
+
+
+class LVRendLineInfo {
+    LVFootNoteList * links;
+public:
+    int start;
+    int end;
+    int flags;
+    int getSplitBefore() const { return (flags>>RN_SPLIT_BEFORE)&7; }
+    int getSplitAfter() const { return (flags>>RN_SPLIT_AFTER)&7; }
+/*
+    LVRendLineInfo & operator = ( const LVRendLineInfoBase & v )
+    {
+        start = v.start;
+        end = v.end;
+        flags = v.flags;
+        return *this;
+    }
+*/
+    bool empty() const { 
+        return start==-1; 
+    }
+
+    void clear() { 
+        start = -1; end = -1; flags = 0; 
+        if ( links!=NULL ) {
+            delete links; 
+            links=NULL;
+        } 
+    }
+
+    LVRendLineInfo() : start(-1), end(-1), flags(0), links(NULL) { }
+    LVRendLineInfo( int line_start, int line_end, int line_flags )
+    : start(line_start), end(line_end), flags(line_flags), links(NULL)
+    {
+    }
+    LVFootNoteList * getLinks() { return links; }
+    ~LVRendLineInfo()
+    {
+        clear();
+    }
+    void addLink( LVFootNote * note )
+    {
+        if ( links==NULL )
+            links = new LVFootNoteList();
+        links->add( note );
+        flags |= RN_SPLIT_FOOT_LINK;
+    }
+};
+
+
+typedef LVFastRef<LVFootNote> LVFootNoteRef;
+
+class LVFootNote : public LVRefCounter {
+    lString16 id;
+    LVArray<LVRendLineInfo*> lines;
+public:
+    LVFootNote( lString16 noteId )
+        : id(noteId)
+    {
+    }
+    void addLine( LVRendLineInfo * line )
+    {
+        lines.add( line );
+    }
+    LVArray<LVRendLineInfo*> & getLines() { return lines; }
+    bool empty() { return lines.empty(); }
+    void clear() { lines.clear(); }
+};
+
 class LVRendPageContext
 {
-    class LVFootNote;
-
-    class LVFootNoteList;
-
-    class LVFootNoteList : public LVArray<LVFootNote*> {
-    public: 
-        LVFootNoteList() {}
-    };
-
-    class LVRendLineInfoBase {
-    public:
-        int start;
-        int end;
-        int flags;
-        int getSplitBefore() const { return (flags>>RN_SPLIT_BEFORE)&7; }
-        int getSplitAfter() const { return (flags>>RN_SPLIT_AFTER)&7; }
-        LVRendLineInfoBase() : start(-1), end(-1), flags(0) { }
-        LVRendLineInfoBase( int line_start, int line_end, int line_flags )
-        : start(line_start), end(line_end), flags(line_flags)
-        {
-        }
-        LVRendLineInfoBase & operator = ( const LVRendLineInfoBase & v )
-        {
-            start = v.start;
-            end = v.end;
-            flags = v.flags;
-            return *this;
-        }
-        bool empty() const { 
-            return start==-1; 
-        }
-        void clear() { 
-            start = -1; end = -1; flags = 0; 
-        }
-    };
-
-    class LVRendLineInfo : public LVRendLineInfoBase {
-        LVFootNoteList * links;
-    public:
-        LVRendLineInfo() : LVRendLineInfoBase(), links(NULL) { }
-        LVRendLineInfo( int line_start, int line_end, int line_flags )
-        : LVRendLineInfoBase(line_start, line_end, line_flags), links(NULL)
-        {
-        }
-        LVFootNoteList * getLinks() { return links; }
-        void clear() { 
-            LVRendLineInfoBase::clear();
-            if ( links!=NULL ) {
-                delete links; 
-                links=NULL;
-            } 
-        }
-        ~LVRendLineInfo()
-        {
-            clear();
-        }
-        void addLink( LVFootNote * note )
-        {
-            if ( links==NULL )
-                links = new LVFootNoteList();
-            links->add( note );
-            flags |= RN_SPLIT_FOOT_LINK;
-        }
-    };
-
-
-    class LVFootNote : public LVRefCounter {
-        lString16 id;
-        LVArray<LVRendLineInfo*> lines;
-    public:
-        LVFootNote( lString16 noteId )
-            : id(noteId)
-        {
-        }
-        void addLine( LVRendLineInfo * line )
-        {
-            lines.add( line );
-        }
-        LVArray<LVRendLineInfo*> & getLines() { return lines; }
-        bool empty() { return lines.empty(); }
-        void clear() { lines.clear(); }
-    };
-
-    typedef LVFastRef<LVFootNote> LVFootNoteRef;
 
 
     LVPtrVector<LVRendLineInfo> lines;
