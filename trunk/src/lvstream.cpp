@@ -950,6 +950,8 @@ public:
 
     virtual lverror_t Read(void* buf, lvsize_t size, lvsize_t* pBytesRead)
     {
+        if ( m_pos + size > m_size )
+            size = m_size - m_pos;
         int startIndex = (int)(m_pos >> CACHE_BUF_BLOCK_SHIFT);
         int endIndex = (int)((m_pos + size - 1) >> CACHE_BUF_BLOCK_SHIFT);
         int count = endIndex - startIndex + 1;

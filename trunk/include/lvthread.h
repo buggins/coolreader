@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 
-#ifdef CR_USE_THREADS
+#if (CR_USE_THREADS==1)
 
 #if defined(_LINUX)
 #include <pthread.h>

@@ -829,7 +829,7 @@ void ldomDocumentWriter::OnStart(LVFileFormatParser * parser)
     if ( !_headerOnly )
         _stopTagId = 0xFFFE;
     else {
-        _stopTagId = _document->getElementNameIndex(L"body");
+        _stopTagId = _document->getElementNameIndex(L"description");
         //CRLog::trace( "ldomDocumentWriter() : header only, tag id=%d", _stopTagId );
     }
     LVXMLParserCallback::OnStart( parser );
@@ -850,10 +850,10 @@ void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagn
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
 
-    if ( id==_stopTagId ) {
+    //if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");
-        _parser->Stop();
-    }
+    //    _parser->Stop();
+    //}
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     //logfile << " !o!\n";
 }
@@ -871,6 +871,12 @@ void ldomDocumentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tag
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     _errFlag |= (id != _currNode->getElement()->getNodeId());
     _currNode = pop( _currNode, id );
+
+    
+    if ( id==_stopTagId ) {
+        //CRLog::trace("stop tag found, stopping...");
+        _parser->Stop();
+    }
     //logfile << " !c!\n";
 }
 

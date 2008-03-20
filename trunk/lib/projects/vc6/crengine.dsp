@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=crengine - Win32 Unicode Debug
+CFG=crengine - Win32 Unicode Debug Lite
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,7 +13,7 @@ CFG=crengine - Win32 Unicode Debug
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "crengine.mak" CFG="crengine - Win32 Unicode Debug"
+!MESSAGE NMAKE /f "crengine.mak" CFG="crengine - Win32 Unicode Debug Lite"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -21,6 +21,8 @@ CFG=crengine - Win32 Unicode Debug
 !MESSAGE "crengine - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "crengine - Win32 Unicode Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "crengine - Win32 Unicode Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "crengine - Win32 Unicode Release Lite" (based on "Win32 (x86) Static Library")
+!MESSAGE "crengine - Win32 Unicode Debug Lite" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -123,6 +125,54 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo /out:"..\..\crengine.lib"
 # ADD LIB32 /nologo /out:"..\..\crengine.lib"
 
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "crengine___Win32_Unicode_Release_Lite"
+# PROP BASE Intermediate_Dir "crengine___Win32_Unicode_Release_Lite"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "crengine___Win32_Unicode_Release_Lite"
+# PROP Intermediate_Dir "crengine___Win32_Unicode_Release_Lite"
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /WX /GX /Zd /Ob2 /I "./../../../../freetype2/include" /I "./../../../../wxWidgets/src/jpeg" /I "./../../../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /FR /YX /FD /I /projects/wxWidgets/src/jpeg" " /c
+# ADD CPP /nologo /MD /W3 /WX /GX /Zd /Ob2 /I "./../../../../freetype2/include" /I "./../../../../wxWidgets/src/jpeg" /I "./../../../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "WIN32" /D "NDEBUG" /D "_UNICODE" /D "_LIB" /D BUILD_LITE=1 /FR /YX /FD /I /projects/wxWidgets/src/jpeg" " /c
+# ADD BASE RSC /l 0x419 /d "NDEBUG"
+# ADD RSC /l 0x419 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo /out:"..\..\crengine.lib"
+# ADD LIB32 /nologo /out:"..\..\crenginelite.lib"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "crengine___Win32_Unicode_Debug_Lite"
+# PROP BASE Intermediate_Dir "crengine___Win32_Unicode_Debug_Lite"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "crengine___Win32_Unicode_Debug_Lite"
+# PROP Intermediate_Dir "crengine___Win32_Unicode_Debug_Lite"
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "./../../../../freetype2/include" /I "./../../../../wxWidgets/src/jpeg" /I "./../../../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /I /projects/wxWidgets/src/jpeg" /GZ " /c
+# SUBTRACT BASE CPP /YX
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "./../../../../freetype2/include" /I "./../../../../wxWidgets/src/jpeg" /I "./../../../../wxWidgets/include" /I "./../../wxWidgets/lib/vc_lib/mswu" /I "./../../wxWidgets/samples" /D "WIN32" /D "_DEBUG" /D "_UNICODE" /D "_LIB" /D BUILD_LITE=1 /FD /I /projects/wxWidgets/src/jpeg" /GZ " /c
+# SUBTRACT CPP /YX
+# ADD BASE RSC /l 0x419 /d "_DEBUG"
+# ADD RSC /l 0x419 /d "_DEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo /out:"..\..\crengined.lib"
+# ADD LIB32 /nologo /out:"..\..\crenginelited.lib"
+
 !ENDIF 
 
 # Begin Target
@@ -131,6 +181,8 @@ LIB32=link.exe -lib
 # Name "crengine - Win32 Debug"
 # Name "crengine - Win32 Unicode Debug"
 # Name "crengine - Win32 Unicode Release"
+# Name "crengine - Win32 Unicode Release Lite"
+# Name "crengine - Win32 Unicode Debug Lite"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -146,11 +198,60 @@ SOURCE=..\..\..\src\crtxtenc.cpp
 # Begin Source File
 
 SOURCE=..\..\..\src\hist.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\src\hyphman.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
 # SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+# SUBTRACT BASE CPP /YX
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+# SUBTRACT BASE CPP /YX
+# SUBTRACT CPP /YX
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -159,15 +260,83 @@ SOURCE=..\..\..\src\lstridmap.cpp
 # Begin Source File
 
 SOURCE=..\..\..\src\lvbmpbuf.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\src\lvdocview.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\src\lvdrawbuf.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
 # SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+# SUBTRACT BASE CPP /YX
+# SUBTRACT CPP /YX
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+# SUBTRACT BASE CPP /YX
+# SUBTRACT CPP /YX
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -188,10 +357,48 @@ SOURCE=..\..\..\src\lvmemman.cpp
 # Begin Source File
 
 SOURCE=..\..\..\src\lvpagesplitter.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\src\lvrend.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -212,6 +419,25 @@ SOURCE=..\..\..\src\lvstyles.cpp
 # Begin Source File
 
 SOURCE=..\..\..\src\lvtextfm.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -224,6 +450,25 @@ SOURCE=..\..\..\src\lvxml.cpp
 # Begin Source File
 
 SOURCE=..\..\..\src\props.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -236,6 +481,25 @@ SOURCE=..\..\..\src\w32utils.cpp
 # Begin Source File
 
 SOURCE=..\..\..\src\wolutil.cpp
+
+!IF  "$(CFG)" == "crengine - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release"
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Release Lite"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "crengine - Win32 Unicode Debug Lite"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 

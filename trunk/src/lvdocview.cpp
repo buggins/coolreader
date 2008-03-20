@@ -1772,6 +1772,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         if (!m_arc.isNull())
         {
             // archieve
+            bool found = false;
             for (int i=0; i<m_arc->GetObjectCount(); i++)
             {
                 const LVContainerItemInfo * item = m_arc->GetObjectInfo(i);
@@ -1793,17 +1794,22 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                                 nameIsOk = true;
                         }
                         if ( !nameIsOk )
-                        {
-                            Clear();
-                            return false;
-                        }
+                            continue;
                         m_stream = m_arc->OpenStream( item->GetName(), LVOM_READ );
                         if ( m_stream.isNull() )
-                            return false;
+                            continue;
+                        found = true;
+                        break;
                     }
                 }
             }
             // opened archieve stream
+            if ( !found )
+            {
+                Clear();
+                return false;
+            }
+
         }
         else
     

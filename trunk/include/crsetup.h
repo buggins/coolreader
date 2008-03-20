@@ -77,7 +77,7 @@
 //==================================================
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 /// maximum picture zoom (1, 2, 3)
-#define CR_USE_THREADS                       1
+#define CR_USE_THREADS                       0
 #define COLOR_BACKBUFFER                     1
 #define MAX_IMAGE_SCALE_MUL                  1
 #if defined(CYGWIN)
