@@ -330,7 +330,7 @@ public:
     /// returns true if node is and element that has children
     inline bool hasChildren() { return getChildCount()!=0; }
     /// returns true if node is element has attributes
-    inline bool hasAttributes() { return getAttrCount()!=0; }
+    inline bool hasAttributes() const { return getAttrCount()!=0; }
 #if (LDOM_ALLOW_NODE_INDEX==1)
     inline void setIndex( lUInt32 index ) { _index = index; }
 #endif
@@ -830,6 +830,13 @@ typedef LVRef<LFormattedText> LFormattedTextRef;
 typedef LVCacheMap< ldomElement *, LFormattedTextRef> CVRendBlockCache;
 #endif
 
+/// docFlag mask, enable internal stylesheet of document and style attribute of elements
+#define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
+/// docFlag mask, enable paperbook-like footnotes
+#define DOC_FLAG_ENABLE_FOOTNOTES       2
+/// default docFlag set
+#define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES)
+
 class ldomDocument : public lxmlDocBase
 {
     friend class ldomDocumentWriter;
@@ -848,7 +855,32 @@ private:
     /// final block cache
     CVRendBlockCache _renderedBlockCache;
 #endif
+    lUInt32 _docFlags;
+
 public:
+
+    inline bool getDocFlag( lUInt32 mask )
+    {
+        return (_docFlags & mask) != 0;
+    }
+
+    inline void setDocFlag( lUInt32 mask, bool value )
+    {
+        if ( value )
+            _docFlags |= mask;
+        else
+            _docFlags &= ~mask;
+    }
+
+    inline lUInt32 getDocFlags()
+    {
+        return _docFlags;
+    }
+
+    inline void setDocFlags( lUInt32 value )
+    {
+        _docFlags = value;
+    }
 
 #if COMPACT_DOM == 1
     ldomDocument(LVStreamRef stream);

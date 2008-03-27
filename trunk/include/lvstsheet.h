@@ -140,6 +140,7 @@ private:
     LVCssSelector * _next;
     LVCssSelectorRule * _rules;
     void insertRuleStart( LVCssSelectorRule * rule );
+    void insertRuleAfterStart( LVCssSelectorRule * rule );
 public:
     LVCssSelector() : _id(0), _specificity(0), _next(NULL), _rules(NULL) { }
     ~LVCssSelector() { if (_next) delete _next; if (_rules) delete _rules; }

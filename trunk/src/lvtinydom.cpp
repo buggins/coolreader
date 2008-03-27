@@ -122,6 +122,7 @@ ldomDocument::ldomDocument(LVStreamRef stream)
 #ifndef BUILD_LITE
         , _renderedBlockCache( 32 )
 #endif
+        , _docFlags(DOC_FLAG_DEFAULTS)
 {
     _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
 }

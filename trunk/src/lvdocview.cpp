@@ -128,6 +128,7 @@ LVDocView::LVDocView()
     m_defaultFontFace = lString8(DEFAULT_FONT_NAME);
 
     //m_drawbuf.Clear(m_backgroundColor);
+    createDefaultDocument( lString16(L"No document"), lString16(L"Welcome to CoolReader! Please select file to open") );
 }
 
 LVDocView::~LVDocView()
@@ -1210,12 +1211,13 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
             // draw main page text
             DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, pageRect->top + m_pageMargins.top + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
             // draw footnotes
-            int fy = pageRect->bottom - m_pageMargins.bottom;
+#define FOOTNOTE_MARGIN 8
+            int fny = pageRect->top + m_pageMargins.top + offset + page.height + FOOTNOTE_MARGIN;
+            int fy = fny;
             bool footnoteDrawed = false;
-            for ( int fn=page.footnotes.length()-1; fn>=0; fn-- ) {
+            for ( int fn=0; fn<page.footnotes.length(); fn++ ) {
                 int fstart = page.footnotes[fn].start;
                 int fheight = page.footnotes[fn].height;
-                fy -= fheight;
                 clip.top = fy + offset;
                 clip.left = pageRect->left + m_pageMargins.left;
                 clip.right = pageRect->right - m_pageMargins.right;
@@ -1223,11 +1225,12 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
                 drawbuf->SetClipRect(&clip);
                 DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, fy + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, fheight, 0, -fstart+offset, m_dy, &m_markRanges );
                 footnoteDrawed = true;
+                fy += fheight;
             }
             if ( footnoteDrawed ) {
+                fny -= FOOTNOTE_MARGIN / 2;
                 drawbuf->SetClipRect(NULL);
-                fy -= 8;
-                drawbuf->FillRect( pageRect->left + m_pageMargins.left, fy, pageRect->right - m_pageMargins.right, fy + 1, 0xAAAAAA );
+                drawbuf->FillRect( pageRect->left + m_pageMargins.left, fny, pageRect->right - m_pageMargins.right, fny + 1, 0xAAAAAA );
             }
         }
     }
@@ -1758,6 +1761,65 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
     return false;
 }
 
+void LVDocView::createDefaultDocument( lString16 title, lString16 message )
+{
+    lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
+    if ( m_doc )
+        delete m_doc;
+    m_is_rendered = false;
+#if COMPACT_DOM==1
+    m_doc = new ldomDocument( LVStreamRef() );
+#else
+    m_doc = new ldomDocument();
+#endif
+    m_doc->setDocFlags( saveFlags );
+
+    ldomDocumentWriter writer(m_doc);
+    m_doc->setNodeTypes( fb2_elem_table );
+    m_doc->setAttributeTypes( fb2_attr_table );
+    m_doc->setNameSpaceTypes( fb2_ns_table );
+
+    m_pos = 0;
+
+    // make fb2 document structure
+    writer.OnTagOpen( NULL, L"?xml" );
+    writer.OnAttribute( NULL, L"version", L"1.0" );
+    writer.OnAttribute( NULL, L"encoding", L"utf-8" );
+    writer.OnEncoding( L"utf-8", NULL );
+    writer.OnTagClose( NULL, L"?xml" );
+    writer.OnTagOpen( NULL, L"FictionBook" );
+      // DESCRIPTION
+      writer.OnTagOpen( NULL, L"description" );
+        writer.OnTagOpen( NULL, L"title-info" );
+          writer.OnTagOpen( NULL, L"book-title" );
+            writer.OnText( title.c_str(), title.length(), 0, 0, 0 );
+          writer.OnTagClose( NULL, L"book-title" );
+        writer.OnTagOpen( NULL, L"title-info" );
+      writer.OnTagClose( NULL, L"description" );
+      // BODY
+      writer.OnTagOpen( NULL, L"body" );
+        //m_callback->OnTagOpen( NULL, L"section" );
+          // process text
+          writer.OnTagOpen( NULL, L"p" );
+            writer.OnText( message.c_str(), message.length(), 0, 0, 0 );
+          writer.OnTagClose( NULL, L"p" );
+        //m_callback->OnTagClose( NULL, L"section" );
+      writer.OnTagClose( NULL, L"body" );
+    writer.OnTagClose( NULL, L"FictionBook" );
+
+    // set stylesheet
+    m_doc->getStyleSheet()->clear();
+    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+
+    m_series.clear();
+    m_authors.clear();
+    m_title.clear();
+
+    m_title = title;
+
+    requestRender();
+}
+
 /// load document from stream
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
@@ -1850,6 +1912,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     #endif
         }
     
+        lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
         if ( m_doc )
             delete m_doc;
         m_is_rendered = false;
@@ -1858,6 +1921,8 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     #else
         m_doc = new ldomDocument();
     #endif
+        m_doc->setDocFlags( saveFlags );
+
         ldomDocumentWriter writer(m_doc);
         m_doc->setNodeTypes( fb2_elem_table );
         m_doc->setAttributeTypes( fb2_attr_table );
@@ -1889,8 +1954,10 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         }
     
         // unknown format
-        if ( !parser )
+        if ( !parser ) {
+            createDefaultDocument( lString16(L"ERROR: Unknown document format"), lString16(L"Cannot open document") );
             return false;
+        }
     
         // set stylesheet
         m_doc->getStyleSheet()->clear();
@@ -1899,6 +1966,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         // parse
         if ( !parser->Parse() ) {
             delete parser;
+            createDefaultDocument( lString16(L"ERROR: Bad document format"), lString16(L"Cannot open document") );
             return false;
         }
         delete parser;
@@ -1906,7 +1974,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     
     
         lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
-        if ( !docstyle.empty() ) {
+        if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
             m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
         }
     

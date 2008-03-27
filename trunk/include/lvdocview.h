@@ -324,6 +324,8 @@ protected:
     /// ensure current position is set to current bookmark value
     void checkPos();
 public:
+    virtual void createDefaultDocument( lString16 title, lString16 message );
+
     /// returns default font face
     lString8 getDefaultFontFace() { return m_defaultFontFace; }
     /// set default font face

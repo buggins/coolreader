@@ -491,13 +491,15 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
     {
         bool isFootNoteBody = false;
-        if ( node->getNodeId()==el_section ) {
-            if ( node->getParentNode()!=NULL && node->getParentNode()->getNodeId()==el_body ) {
-                if ( node->getParentNode()->getAttributeValue(attr_name)==L"notes" 
-                        && !node->getAttributeValue(attr_id).empty() )
-                    isFootNoteBody = true;
+        if ( node->getNodeId()==el_section && node->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) {
+            ldomElement * body = node->getParentNode();
+            while ( body != NULL && body->getNodeId()!=el_body )
+                body = body->getParentNode();
+            if ( body ) {
+                if ( body->getAttributeValue(attr_name)==L"notes" )
+                    if ( !node->getAttributeValue(attr_id).empty() )
+                        isFootNoteBody = true;
             }
-
         }
         ldomElement * enode = (ldomElement *) node; 
         lvdomElementFormatRec * fmt = node->getRenderData();
@@ -586,7 +588,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                     context.AddLine(rect.top+line->y, rect.top+line->y+line->height, line_flags);
 
                     // footnote links analysis
-                    if ( !isFootNoteBody ) { // disable footnotes for footnotes
+                    if ( !isFootNoteBody && node->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
                         for ( unsigned w=0; w<line->word_count; w++ ) {
                             // check link start flag for every word
                             if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
@@ -771,7 +773,7 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
     //////////////////////////////////////////////////////
     node->getDocument()->getStyleSheet()->apply( node, pstyle );
 
-    if ( enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
+    if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
         lString16 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
         if ( !nodeStyle.empty() ) {
             nodeStyle = lString16(L"{") + nodeStyle + L"}";
@@ -783,82 +785,6 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
             }
         }
     }
-    /*
-    switch ( node->getNodeId() )
-    {
-    case el_empty_line:
-        // height: 1em;
-        pstyle->height = css_length_t( css_val_em, 1*256 );
-        break;
-    case el_sub:
-        // vertical-align: sub;
-        pstyle->vertical_align = css_va_sub;
-        // font-size: 70%;
-        pstyle->font_size = css_length_t( css_val_percent, 70 );
-        break;
-    case el_sup:
-        // vertical-align: super;
-        pstyle->vertical_align = css_va_super;
-        // font-size: 70%;
-        pstyle->font_size = css_length_t( css_val_percent, 70 );
-        break;
-    case el_text_author:
-        // text-align: right;
-        pstyle->text_align = css_ta_right;
-        // margin-right: 1em;
-        pstyle->margin[1] = css_length_t( css_val_em, 1*256 );
-        break;
-    case el_epigraph:
-        // margin-left: 25%;
-        pstyle->margin[0] = css_length_t( css_val_percent, 25 );
-        // margin-right: 1em;
-        pstyle->margin[1] = css_length_t( css_val_em, 1*256 );
-        // text-align: left;
-        pstyle->text_align = css_ta_left;
-        // text-indent: 0px;
-        pstyle->text_indent = css_length_t( 0 );
-        // font-style: italic;
-        pstyle->font_style = css_fs_italic;
-        // margin-top: 3px;
-        pstyle->margin[2] = css_length_t( 3 );
-        // margin-bottom: 3px;
-        pstyle->margin[3] = css_length_t( 3 );
-        break;
-    case el_subtitle:
-        pstyle->font_style = css_fs_italic;
-    case el_title:
-        // text-align: center;
-        pstyle->text_align = css_ta_center;
-        // text-indent: 0;
-        pstyle->text_indent = css_length_t( 0 );
-        // font-size: 130%;
-        pstyle->font_size = css_length_t( css_val_percent, 130 );
-        // font-weight: bold;
-        pstyle->font_weight = css_fw_bold;
-        // margin-top: 5px;
-        pstyle->margin[2] = css_length_t( 5 );
-        // margin-bottom: 5px;
-        pstyle->margin[3] = css_length_t( 5 );
-        break;
-    case el_body:
-        // margin-left: 5px;
-        pstyle->margin[0] = css_length_t( 5 );
-        // margin-right: 5px;
-        pstyle->margin[1] = css_length_t( 5 );
-        // margin-top: 5px;
-        pstyle->margin[2] = css_length_t( 5 );
-        // margin-bottom: 5px;
-        pstyle->margin[3] = css_length_t( 5 );
-        // text-align: justify;
-        pstyle->text_align = css_ta_justify;
-        // text-indent: 3em;
-        pstyle->text_indent = css_length_t( css_val_em, 3 );
-        // line-height: 130%;
-        pstyle->line_height = css_length_t( css_val_percent, 130 );
-        break;
-    }
-    */
-    //////////////////////////////////////////////////////
 
     // update inherited style attributes
     #define UPDATE_STYLE_FIELD(fld,inherit_value) \

@@ -742,6 +742,8 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_attrset:       // E[foo]
         {
+            if ( !node->hasAttributes() )
+                return false;
             return node->hasAttribute(_attrid);
         }
         break;
@@ -940,6 +942,16 @@ void LVCssSelector::insertRuleStart( LVCssSelectorRule * rule )
     _rules = rule;
 }
 
+void LVCssSelector::insertRuleAfterStart( LVCssSelectorRule * rule )
+{
+    if ( !_rules ) {
+        _rules = rule;
+        return;
+    }
+    rule->setNext( _rules->getNext() );
+    _rules->setNext( rule );
+}
+
 bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
 {
     if (!str || !*str)
@@ -976,6 +988,7 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
             if (!rule)
                 return false;
             insertRuleStart( rule ); //insertRuleAfterStart
+            //insertRuleAfterStart( rule ); //insertRuleAfterStart
 
             /*
             if ( _id!=0 ) {
