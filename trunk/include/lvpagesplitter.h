@@ -118,9 +118,9 @@ public:
         } 
     }
 
-    LVRendLineInfo() : start(-1), end(-1), flags(0), links(NULL) { }
+    LVRendLineInfo() : links(NULL), start(-1), end(-1), flags(0) { }
     LVRendLineInfo( int line_start, int line_end, int line_flags )
-    : start(line_start), end(line_end), flags(line_flags), links(NULL)
+    : links(NULL), start(line_start), end(line_end), flags(line_flags)
     {
     }
     LVFootNoteList * getLinks() { return links; }
