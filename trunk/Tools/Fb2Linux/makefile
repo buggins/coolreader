@@ -25,7 +25,7 @@ builddir = ${build}
 targetfile = fb2view
 
 ccflags = -fPIC -w -Wall -fno-inline -fexceptions -fpermissive
-defs = -DLINUX -D_REENTRANT -D_FILE64_MAPPING
+defs = -DLINUX -D_LINUX -D_REENTRANT -D_FILE64_MAPPING
 
 # libraries
 libs =		-static-libgcc \
@@ -37,6 +37,7 @@ libs =		-static-libgcc \
 			-lpng \
 			-lfreetype \
 			-lz \
+			-lpthread \
 			$(lib)
 
 #			-lpng \

@@ -158,7 +158,9 @@ public:
     void Paint()
     {
         unsigned pal[4]={0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};
-        DrawBuf2Drawable(dpy, w, gc, 0, 0, textView->GetDrawBuf(), pal, 1);
+        LVDocImageRef pageImage = textView->getPageImage(0);
+        LVDrawBuf * drawbuf = pageImage->getDrawBuf();
+        DrawBuf2Drawable(dpy, w, gc, 0, 0, drawbuf, pal, 1);
 
 /*      
       // Tell the GC we draw using the white color

@@ -63,7 +63,7 @@ class LVDocViewImageCache
         void set( int offset, LVRef<LVDrawBuf> drawbuf, LVRef<LVThread> thread )
         {
             LVLock lock( _mutex );
-            _last = (_last + 1) % 2;
+            _last = (_last + 1) & 1;
             _items[_last]._ready = false;
             _items[_last]._thread = thread;
             _items[_last]._drawbuf = drawbuf;
@@ -119,6 +119,7 @@ class LVDocViewImageCache
             }
         }
         LVDocViewImageCache()
+        : _last(0)
         {
             for ( int i=0; i<2; i++ )
                 _items[i]._valid = false;
