@@ -19,6 +19,10 @@
 #include <zlib.h>
 #endif
 
+#if (USE_UNRAR==1)
+#include <unrar/dll.hpp>
+#endif
+
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 #include <windows.h>
 #else
@@ -33,6 +37,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dlfcn.h>
 #endif
 
 #ifndef USE_ANSI_FILES
@@ -1493,6 +1498,292 @@ public:
     {
     }
     virtual ~LVZipArc()
+    {
+    }
+
+    virtual int ReadContents()
+    {
+        lvByteOrderConv cnv;
+        bool arcComment = false;
+        bool truncated = false;
+
+        m_list.clear();
+
+        if (!m_stream || m_stream->Seek(0, LVSEEK_SET, NULL)!=LVERR_OK)
+            return 0;
+
+        SetName( m_stream->GetName() );
+
+
+        lvsize_t sz = 0;
+        if (m_stream->GetSize( &sz )!=LVERR_OK)
+                return 0;
+        lvsize_t m_FileSize = (unsigned)sz;
+
+        char ReadBuf[1024];
+        lUInt32 NextPosition;
+        lvpos_t CurPos;
+        lvsize_t ReadSize;
+        int Buf;
+        bool found = false;
+        CurPos=NextPosition=(int)m_FileSize;
+        if (CurPos < sizeof(ReadBuf)-18)
+            CurPos = 0;
+        else
+            CurPos -= sizeof(ReadBuf)-18;
+        for ( Buf=0; Buf<64 && !found; Buf++ )
+        {
+            //SetFilePointer(ArcHandle,CurPos,NULL,FILE_BEGIN);
+            m_stream->Seek( CurPos, LVSEEK_SET, NULL );
+            m_stream->Read( ReadBuf, sizeof(ReadBuf), &ReadSize);
+            if (ReadSize==0)
+                break;
+            for (int I=(int)ReadSize-4;I>=0;I--)
+            {
+                if (ReadBuf[I]==0x50 && ReadBuf[I+1]==0x4b && ReadBuf[I+2]==0x05 &&
+                    ReadBuf[I+3]==0x06)
+                {
+                    m_stream->Seek( CurPos+I+16, LVSEEK_SET, NULL );
+                    m_stream->Read( &NextPosition, sizeof(NextPosition), &ReadSize);
+		    		cnv.lsf( &NextPosition );
+                    found=true;
+                    break;
+                }
+            }
+            if (CurPos==0)
+                break;
+            if (CurPos<sizeof(ReadBuf)-4)
+                CurPos=0;
+            else
+                CurPos-=sizeof(ReadBuf)-4;
+        }
+
+        truncated = !found;
+        if (truncated)
+            NextPosition=0;
+
+        //================================================================
+        // get files
+
+
+        ZipLocalFileHdr ZipHd1;
+        ZipHd2 ZipHeader;
+        unsigned ZipHeader_size = 0x2E; //sizeof(ZipHd2); //0x34; //
+        unsigned ZipHd1_size = 0x1E; //sizeof(ZipHd1); //sizeof(ZipHd1)
+          //lUInt32 ReadSize;
+
+        while (1) {
+
+            if (m_stream->Seek( NextPosition, LVSEEK_SET, NULL )!=LVERR_OK)
+                return 0;
+
+            if (truncated)
+            {
+                m_stream->Read( &ZipHd1, ZipHd1_size, &ReadSize);
+                ZipHd1.byteOrderConv();
+
+                //ReadSize = fread(&ZipHd1, 1, sizeof(ZipHd1), f);
+                if (ReadSize != ZipHd1_size) {
+                        //fclose(f);
+                    if (ReadSize==0 && NextPosition==m_FileSize)
+                        return m_list.length();
+                    return 0;
+                }
+
+                memset(&ZipHeader,0,ZipHeader_size);
+
+                ZipHeader.UnpVer=ZipHd1.UnpVer;
+                ZipHeader.UnpOS=ZipHd1.UnpOS;
+                ZipHeader.Flags=ZipHd1.Flags;
+                ZipHeader.ftime=ZipHd1.getftime();
+                ZipHeader.PackSize=ZipHd1.getPackSize();
+                ZipHeader.UnpSize=ZipHd1.getUnpSize();
+                ZipHeader.NameLen=ZipHd1.getNameLen();
+                ZipHeader.AddLen=ZipHd1.getAddLen();
+                ZipHeader.Method=ZipHd1.getMethod();
+            } else {
+
+                m_stream->Read( &ZipHeader, ZipHeader_size, &ReadSize);
+
+                ZipHeader.byteOrderConv();
+                    //ReadSize = fread(&ZipHeader, 1, sizeof(ZipHeader), f);
+                if (ReadSize!=ZipHeader_size) {
+                            if (ReadSize>16 && ZipHeader.Mark==0x06054B50 ) {
+                                    break;
+                            }
+                            //fclose(f);
+                            return 0;
+                }
+            }
+
+            if (ReadSize==0 || ZipHeader.Mark==0x06054b50 ||
+                    truncated && ZipHeader.Mark==0x02014b50)
+            {
+                if (!truncated && *(lUInt16 *)((char *)&ZipHeader+20)!=0)
+                    arcComment=true;
+                break; //(GETARC_EOF);
+            }
+
+            const int NM = 513;
+            lUInt32 SizeToRead=(ZipHeader.NameLen<NM) ? ZipHeader.NameLen : NM;
+            char fnbuf[1025];
+            m_stream->Read( fnbuf, SizeToRead, &ReadSize);
+
+            if (ReadSize!=SizeToRead) {
+                return 0;
+            }
+
+            fnbuf[ZipHeader.NameLen]=0;
+
+            long SeekLen=ZipHeader.AddLen+ZipHeader.CommLen;
+
+            LVCommonContainerItemInfo * item = new LVCommonContainerItemInfo();
+
+            if (truncated)
+                SeekLen+=ZipHeader.PackSize;
+
+            NextPosition = (lUInt32)m_stream->GetPos();
+            NextPosition += SeekLen;
+            m_stream->Seek(NextPosition, LVSEEK_SET, NULL);
+
+            lString16 fName = LocalToUnicode( lString8(fnbuf) );
+
+            item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
+            item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
+            m_list.add(item);
+        }
+
+        return m_list.length();
+    }
+
+    static LVArcContainerBase * OpenArchieve( LVStreamRef stream )
+    {
+        // read beginning of file
+        const lvsize_t hdrSize = 4;
+        char hdr[hdrSize];
+        stream->SetPos(0);
+        lvsize_t bytesRead = 0;
+        if (stream->Read(hdr, hdrSize, &bytesRead)!=LVERR_OK || bytesRead!=hdrSize)
+                return NULL;
+        stream->SetPos(0);
+        // detect arc type
+        if (hdr[0]!='P' || hdr[1]!='K' || hdr[2]!=3 || hdr[3]!=4)
+                return NULL;
+        LVZipArc * arc = new LVZipArc( stream );
+        int itemCount = arc->ReadContents();
+        if ( itemCount <= 0 )
+        {
+            delete arc;
+            return NULL;
+        }
+        return arc;
+    }
+
+};
+#endif
+
+#if (USE_UNRAR==1)
+
+class LVUnRarDll
+{
+    void * _lib;
+    HANDLE PASCAL (*RAROpenArchive)(struct RAROpenArchiveData *ArchiveData);
+    HANDLE PASCAL (*RAROpenArchiveEx)(struct RAROpenArchiveDataEx *ArchiveData);
+    int    PASCAL (*RARCloseArchive)(HANDLE hArcData);
+    int    PASCAL (*RARReadHeader)(HANDLE hArcData,struct RARHeaderData *HeaderData);
+    int    PASCAL (*RARReadHeaderEx)(HANDLE hArcData,struct RARHeaderDataEx *HeaderData);
+    int    PASCAL (*RARProcessFile)(HANDLE hArcData,int Operation,char *DestPath,char  *DestName);
+    int    PASCAL (*RARProcessFileW)(HANDLE hArcData,int Operation,wchar_t *DestPath,wchar_t *DestName);
+    void   PASCAL (*RARSetCallback)(HANDLE hArcData,UNRARCALLBACK Callback,LONG UserData);
+    void   PASCAL (*RARSetChangeVolProc)(HANDLE hArcData,CHANGEVOLPROC ChangeVolProc);
+    void   PASCAL (*RARSetProcessDataProc)(HANDLE hArcData,PROCESSDATAPROC ProcessDataProc);
+    void   PASCAL (*RARSetPassword)(HANDLE hArcData,char *Password);
+    int    PASCAL (*RARGetDllVersion)();
+public:
+    bool load( const char * libName )
+    {
+        if ( !_lib ) {
+            _lib = dlopen( libName, RTLD_NOW | RTLD_LOCAL );
+        }
+        if ( _lib ) {
+            RAROpenArchive = (HANDLE PASCAL (*)(struct RAROpenArchiveData *ArchiveData)) dlsym( _lib, "RAROpenArchive" );
+            RAROpenArchiveEx = (HANDLE PASCAL (*)(struct RAROpenArchiveDataEx *ArchiveData)) dlsym( _lib, "RAROpenArchiveEx" );
+            RARCloseArchive = (int    PASCAL (*)(HANDLE hArcData)) dlsym( _lib, "RARCloseArchive" );
+            RARReadHeader = (int    PASCAL (*)(HANDLE hArcData,struct RARHeaderData *HeaderData)) dlsym( _lib, "RARReadHeader" );
+            RARReadHeaderEx = (int    PASCAL (*)(HANDLE hArcData,struct RARHeaderDataEx *HeaderData)) dlsym( _lib, "RARReadHeaderEx" );
+            RARProcessFile = (int    PASCAL (*)(HANDLE hArcData,int Operation,char *DestPath,char  *DestName)) dlsym( _lib, "RARProcessFile" );
+            RARProcessFileW = (int    PASCAL (*)(HANDLE hArcData,int Operation,wchar_t *DestPath,wchar_t *DestName)) dlsym( _lib, "RARProcessFileW" );
+            RARSetCallback = (void   PASCAL (*)(HANDLE hArcData,UNRARCALLBACK Callback,LONG UserData)) dlsym( _lib, "RARSetCallback" );
+            RARSetChangeVolProc = (void   PASCAL (*)(HANDLE hArcData,CHANGEVOLPROC ChangeVolProc)) dlsym( _lib, "RARSetChangeVolProc" );
+            RARSetProcessDataProc = (void   PASCAL (*)(HANDLE hArcData,PROCESSDATAPROC ProcessDataProc)) dlsym( _lib, "RARSetProcessDataProc" );
+            RARSetPassword = (void   PASCAL (*)(HANDLE hArcData,char *Password)) dlsym( _lib, "RARSetPassword" );
+            RARGetDllVersion = (int    PASCAL (*)()) dlsym( _lib, "RARGetDllVersion" );
+            if ( !RAROpenArchive || !RAROpenArchiveEx || !RARCloseArchive
+                || !RARReadHeader || !RARReadHeaderEx || !RARProcessFile
+                || !RARProcessFileW || !RARSetCallback || !RARSetChangeVolProc
+                || !RARSetProcessDataProc || !RARSetPassword || !RARGetDllVersion )
+                // not all functions found in library, fail
+                unload();
+        }
+        return ( _lib!=NULL );
+    }
+    bool unload()
+    {
+        if ( _lib )
+            dlclose( _lib );
+        _lib = NULL;
+    }
+    LVUnRarDll()
+    : _lib(NULL) {
+    }
+    ~LVUnRarDll() {
+        unload();
+    }
+};
+#endif
+
+
+#if 0 //(USE_UNRAR==1)
+class LVRarArc : public LVArcContainerBase
+{
+public:
+    virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t mode )
+    {
+        int found_index = -1;
+        for (int i=0; i<m_list.length(); i++) {
+            if ( !lStr_cmp( fname, m_list[i]->GetName() ) ) {
+                if ( m_list[i]->IsContainer() ) {
+                    // found directory with same name!!!
+                    return LVStreamRef();
+                }
+                found_index = i;
+                break;
+            }
+        }
+        if (found_index<0)
+            return LVStreamRef(); // not found
+
+        // TODO
+        return LVStreamRef(); // not found
+/*
+        // make filename
+        lString16 fn = fname;
+        LVStreamRef strm = m_stream; // fix strange arm-linux-g++ bug
+        LVStreamRef stream(
+		LVZipDecodeStream::Create(
+			strm,
+			m_list[found_index]->GetSrcPos(), fn ) );
+        if (!stream.isNull()) {
+            return LVCreateBufferedStream( stream, ZIP_STREAM_BUFFER_SIZE );
+        }
+        stream->SetName(m_list[found_index]->GetName());
+        return stream;
+*/
+    }
+    LVRarArc( LVStreamRef stream ) : LVArcContainerBase(stream)
+    {
+    }
+    virtual ~LVRarArc()
     {
     }
 

@@ -79,7 +79,7 @@ VPATH = % \
 	./src:
 
 ccflags = -fPIC -w -Wall -fno-inline -fexceptions -fpermissive
-defs = -DLGI_RES -DLINUX -D_LINUX -D_REENTRANT -D_FILE64_MAPPING
+defs = -DLGI_RES -DLINUX -D_LINUX -D_UNIX -D_REENTRANT -D_FILE64_MAPPING
 
 ifeq ($(USE_JPEG),0)
 	defs += -DUSE_JPEG=0 
@@ -134,6 +134,7 @@ libs =		-static-libgcc \
 #include paths
 ifdef LBOOK
 incpath =	-I.  -D$(HOSTTYPE) \
+		-I.. \
 		-I$(V2HOME)/include \
 		-I$(V2HOME)/include/freetype2 \
 		-I $(V2HOME)/include/nanox \
@@ -146,6 +147,7 @@ incpath =	-I.  -D$(HOSTTYPE) \
 
 else
 incpath =	-DUSE_FREETYPE=1 -I./include/common \
+		-I.. \
 		-I /usr/include/freetype2 \
 			$(inc)
 endif

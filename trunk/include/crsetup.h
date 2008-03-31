@@ -58,6 +58,7 @@
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_ZLIB                             1
+#define USE_UNRAR                            1
 #define COLOR_BACKBUFFER                     1
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         1
