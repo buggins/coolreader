@@ -67,7 +67,7 @@
 #define GLYPH_CACHE_SIZE                     0x40000
 #define ZIP_STREAM_BUFFER_SIZE               0x100000
 #define FILE_STREAM_BUFFER_SIZE              0x100000
-#define COMPACT_DOM                          0
+#define COMPACT_DOM                          1
 #define COMPACT_DOM_MIN_REF_TEXT_LENGTH      24
 #define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  32
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000

@@ -255,6 +255,8 @@ int main( int argc, const char * argv[] )
 {
     LVDocView text_view;
 
+    CRLog::setStdoutLogger();
+    CRLog::setLogLevel(CRLog::LL_DEBUG);
     char exedir[1024];
     strcpy( exedir, argv[0] );
     int lastslash=-1;

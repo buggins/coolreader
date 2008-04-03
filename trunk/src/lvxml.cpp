@@ -34,11 +34,13 @@ LVFileParserBase::LVFileParserBase( LVStreamRef stream )
     , m_buf_fpos(0)
     , m_stopped(false)
 {
-    m_stream_size = stream->GetSize();
+    m_stream_size = stream.isNull()?0:stream->GetSize();
 }
 
 lString16 LVFileParserBase::getFileName()
 {
+    if ( m_stream.isNull() )
+        return lString16();
     lString16 name( m_stream->GetName() );
     int lastPathDelim = -1;
     for ( unsigned i=0; i<name.length(); i++ ) {
@@ -187,19 +189,25 @@ bool LVFileParserBase::Seek( lvpos_t pos, int bytesToPrefetch )
     m_buf_pos = 0;
     m_buf_len = m_buf_size;
     // TODO: add error handing
-    if ( m_stream->SetPos( m_buf_fpos ) != LVERR_OK )
+    if ( m_stream->SetPos( m_buf_fpos ) != m_buf_fpos ) {
+        CRLog::error("cannot set stream position to %d", (int)m_buf_pos );
         return false;
+    }
     lvsize_t bytesRead = 0;
-    if ( m_stream->Read( m_buf, bytesToRead, &bytesRead ) != LVERR_OK )
+    if ( m_stream->Read( m_buf, bytesToRead, &bytesRead ) != LVERR_OK ) {
+        CRLog::error("error while reading %d bytes from stream", (int)bytesToRead);
         return false;
+    }
     return true;
 }
 
 /// reads specified number of bytes, converts to characters and saves to buffer
 int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size)
 {
-    if ( !Seek( pos, bytesToRead ) )
+    if ( !Seek( pos, bytesToRead ) ) {
+        CRLog::error("LVTextFileBase::ReadTextBytes seek error! cannot set pos to %d to read %d bytes", (int)pos, (int)bytesToRead);
         return 0;
+    }
     int chcount = 0;
     int max_pos = m_buf_pos + bytesToRead;
     if ( max_pos > m_buf_len )
@@ -1129,8 +1137,14 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     text.append(size, ' ');
     lChar16 * buf = text.modify();
     unsigned chcount = (unsigned)ReadTextBytes( pos, size, buf, size );
+    //CRLog::debug("ReadTextBytes(%d,%d) done - %d chars read", (int)pos, (int)size, (int)chcount);
     if ( chcount<size )
         text.erase( chcount, text.length()-chcount );
+    int newlen = PreProcessXmlString( text.modify(), chcount, flags );
+    if ( newlen<chcount ) {
+        text.erase( newlen, chcount-newlen );
+        chcount = newlen;
+    }
     if ( flags & TXTFLG_TRIM ) {
         text.trimDoubleSpaces(
             (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false,

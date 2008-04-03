@@ -138,6 +138,7 @@ public:
               * pNewPos = ftell(m_file);
           return LVERR_OK;
        }
+       CRLog::error("error setting file position to %d (%d)", (int)offset, (int)origin );
        return LVERR_FAIL;
     }
     virtual lverror_t SetSize( lvsize_t size )

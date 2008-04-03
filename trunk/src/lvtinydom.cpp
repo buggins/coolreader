@@ -132,6 +132,7 @@ ldomDocument::ldomDocument()
 #ifndef BUILD_LITE
     : _renderedBlockCache( 32 )
 #endif
+        , _docFlags(DOC_FLAG_DEFAULTS)
 {
     _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
 }
@@ -208,6 +209,7 @@ ldomDocument::~ldomDocument()
 #if COMPACT_DOM == 1
 lString16 ldomDocument::getTextNodeValue( const ldomTextRef * txt )
 {
+    //CRLog::debug("getTextNodeValue(%d,%d,%d)", (int)txt->fileOffset, (int)txt->dataSize, (int)txt->dataFormat);
     return _textcache.getText( txt->fileOffset, txt->dataSize, txt->dataFormat );
 }
 
