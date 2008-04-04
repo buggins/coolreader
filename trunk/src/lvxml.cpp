@@ -160,6 +160,7 @@ bool LVTextFileBase::AutodetectEncoding()
     }
 
     AutodetectCodePage( buf, sz, enc_name, lang_name );
+    CRLog::info("Code page decoding results: encoding=%s, lang=%s", enc_name, lang_name);
     m_lang_name = lString16( lang_name );
     SetCharset( lString16( enc_name ).c_str() );
 
@@ -415,6 +416,7 @@ public:
     : flags(0), lpos(0), rpos(0)
     {
         text = file->ReadLine( maxsize, fpos, fsize, flags );
+        //CRLog::debug("  line read: %s", UnicodeToUtf8(text).c_str() );
         if ( !text.empty() ) {
             const lChar16 * s = text.c_str();
             for ( int p=0; *s; s++ ) {
@@ -497,6 +499,7 @@ public:
             if ( file->Eof() ) {
                 if ( i==0 )
                     return false;
+                break;
             }
             add( new LVTextFileLine( file, maxLineSize ) );
         }
@@ -520,6 +523,7 @@ public:
         int i;
         for ( i=0; i<length(); i++ ) {
             LVTextFileLine * line = get(i);
+            //CRLog::debug("   LINE: %d .. %d", line->lpos, line->rpos);
             if ( line->lpos == line->rpos ) {
                 empty_lines++;
             } else {
@@ -1017,6 +1021,8 @@ bool LVTextParser::CheckFormat()
         }
         if ( illegal_char_count==0 && space_count>=charsDecoded/16 )
             res = true;
+        if ( illegal_char_count>0 )
+            CRLog::error("illegal characters detected: count=%d", illegal_char_count );
     }
     delete chbuf;
     Reset();
