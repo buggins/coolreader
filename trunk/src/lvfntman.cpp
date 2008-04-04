@@ -61,7 +61,7 @@ private:
     lString8          _name;
     int               _index;
 public:
-    LVFontDef(lString8 name, int size, int weight, int italic, css_font_family_t family, lString8 typeface, int index=-1)
+    LVFontDef(const lString8 & name, int size, int weight, int italic, css_font_family_t family, const lString8 & typeface, int index=-1)
     : _size(size)
     , _weight(weight)
     , _italic(italic)
@@ -957,8 +957,9 @@ public:
         //        size, weight, italic?1:0, (int)family, typeface.c_str() );
     //    }
     //#endif
+        lString8 fontname;
         LVFontDef def( 
-            lString8(),
+            fontname,
             size,
             weight,
             italic,
