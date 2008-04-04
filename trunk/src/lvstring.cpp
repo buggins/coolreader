@@ -163,7 +163,7 @@ inline size_t _lStr_len(const lChar8 * str)
 inline size_t _lStr_nlen(const lChar16 * str, size_t maxcount)
 {
     size_t len;
-    for (len=0; *str && len<maxcount; str++)
+    for (len=0; len<maxcount && *str; str++)
         len++;
     return len;
 }
@@ -171,7 +171,7 @@ inline size_t _lStr_nlen(const lChar16 * str, size_t maxcount)
 inline size_t _lStr_nlen(const lChar8 * str, size_t maxcount)
 {
     size_t len;
-    for (len=0; *str && len<maxcount; str++)
+    for (len=0; len<maxcount && *str; str++)
         len++;
     return len;
 }

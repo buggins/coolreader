@@ -158,6 +158,10 @@ public:
     int pagesize;
     int scale;
     lString16 posText;
+    LVScrollInfo()
+    : pos(0), maxpos(0), pagesize(0), scale(1)
+    {
+    }
 };
 
 enum {

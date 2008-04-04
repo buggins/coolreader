@@ -631,16 +631,15 @@ public:
                 break;
             }
         }
-        for (hwEnd=nchars; hwEnd<len; hwEnd++)
+        for (hwEnd=nchars; hwEnd<len; hwEnd++) // 20080404
         {
             lChar16 ch = text[hwEnd];
             if (lvfontIsUnicodeSpace(ch))
                 break;
-            if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
-                break;
+            //if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
+            //    break;
             if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?')
                 break;
-        
         }
         HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
 
@@ -958,7 +957,7 @@ public:
         //        size, weight, italic?1:0, (int)family, typeface.c_str() );
     //    }
     //#endif
-        LVFontDef * def = new LVFontDef ( 
+        LVFontDef def( 
             lString8(),
             size,
             weight,
@@ -972,7 +971,7 @@ public:
         //    size,
         //    weight>400?"bold":"",
         //    italic?"italic":"" );
-        LVFontCacheItem * item = _cache.find( def );
+        LVFontCacheItem * item = _cache.find( &def );
     //#if (DEBUG_FONT_MAN==1)
     //    if ( _log && item ) {
         /*
@@ -1018,14 +1017,14 @@ public:
             if ( rsz!=size ) {
                 size++;
             }
-            delete def;
+            //delete def;
             return ref;
         }
         else
         {
             //printf("    not found!\n");
         }
-        delete def;
+        //delete def;
         delete font;
         return LVFontRef(NULL);
     }
@@ -1689,8 +1688,8 @@ void LVFontCache::update( const LVFontDef * def, LVFontRef ref )
             }
         }
         // add new
-        LVFontCacheItem * item;
-        item = new LVFontCacheItem(*def);
+        //LVFontCacheItem * item;
+        //item = new LVFontCacheItem(*def);
         addInstance( def, ref );
     } else {
         for (i=0; i<_registered_list.length(); i++)

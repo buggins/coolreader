@@ -15,7 +15,7 @@
 
 //#define LBOOK 1
 #ifndef LDOM_USE_OWN_MEM_MAN
-#define LDOM_USE_OWN_MEM_MAN 1
+#define LDOM_USE_OWN_MEM_MAN 0
 #endif
 
 #ifndef USE_DOM_UTF8_STORAGE
@@ -58,7 +58,7 @@
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_ZLIB                             1
-#define USE_UNRAR                            1
+#define USE_UNRAR                            0
 #define COLOR_BACKBUFFER                     1
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         1

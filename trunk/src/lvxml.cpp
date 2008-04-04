@@ -77,6 +77,8 @@ LVFileParserBase::~LVFileParserBase()
 /// destructor
 LVTextFileBase::~LVTextFileBase()
 {
+    if (m_conv_table)
+        delete[] m_conv_table;
 }
 
 lChar16 LVTextFileBase::ReadChar()
@@ -1141,7 +1143,7 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     if ( chcount<size )
         text.erase( chcount, text.length()-chcount );
     int newlen = PreProcessXmlString( text.modify(), chcount, flags );
-    if ( newlen<chcount ) {
+    if ( newlen<(int)chcount ) {
         text.erase( newlen, chcount-newlen );
         chcount = newlen;
     }
@@ -1214,7 +1216,7 @@ bool LVXMLParser::CheckFormat()
     Reset();
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
     FillBuffer( XML_PARSER_DETECT_SIZE );
-    int charsDecoded = ReadTextBytes( 0, XML_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_len-m_buf_pos );
+    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, XML_PARSER_DETECT_SIZE-1 );
     bool res = false;
     if ( charsDecoded > 100 ) {
         lString16 s( chbuf, charsDecoded );

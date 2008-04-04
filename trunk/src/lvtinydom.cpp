@@ -861,6 +861,12 @@ void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagn
     //logfile << " !o!\n";
 }
 
+ldomDocumentWriter::~ldomDocumentWriter()
+{
+    while (_currNode)
+        _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
+}
+
 void ldomDocumentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";

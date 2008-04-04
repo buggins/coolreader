@@ -1180,9 +1180,9 @@ private:
     {
         zUninit();
         if (m_inbuf)
-            delete m_inbuf;
+            delete[] m_inbuf;
         if (m_outbuf)
-            delete m_outbuf;
+            delete[] m_outbuf;
     }
 
     void zUninit()
@@ -1256,6 +1256,7 @@ private:
         {
             return false;
         }
+        m_zInitialized = true;
         return true;
     }
     // returns count of available decoded bytes in buffer

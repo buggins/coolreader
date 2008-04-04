@@ -1304,6 +1304,8 @@ public:
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
     /// constructor
     ldomDocumentWriter(ldomDocument * document, bool headerOnly=false );
+    /// destructor
+    virtual ~ldomDocumentWriter();
 };
 
 //utils
