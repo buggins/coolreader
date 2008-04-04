@@ -730,7 +730,7 @@ lString16 LVDocView::getTimeString()
 {
     time_t t = (time_t)time(0);
     tm * bt = localtime(&t);
-    char str[10];
+    char str[12];
     sprintf(str, "%02d:%02d", bt->tm_hour, bt->tm_min);
     return Utf8ToUnicode( lString8( str ) );
 }

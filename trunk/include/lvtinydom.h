@@ -297,13 +297,14 @@ public:
 /// fastDOM NODE interface
 class ldomNode
 {
+    // 0: this   [4]
 protected:
-    ldomElement * _parent;
+    ldomElement * _parent;  // 4: [4]
 #if (LDOM_ALLOW_NODE_INDEX==1)
     lUInt32 _index;
 #endif
-    lUInt8 _type;
-    lUInt8 _level;
+    lUInt8 _type;           // 8: [1]
+    lUInt8 _level;          // 9: [1]
 public:
     ldomNode( ldomElement * parent, lUInt8 type, lUInt8 level, lUInt32 index )
     : _parent(parent)
@@ -933,10 +934,9 @@ class ldomTextRef : public ldomNode
     friend class ldomDocument;
 private:
 
-
+    lUInt16 dataFormat; // format flags
     lUInt32 dataSize;   // bytes
     lUInt32 fileOffset; // offset from beginning of stream
-    lUInt32 dataFormat; // format flags
 public:
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     static ldomMemManStorage * pmsHeap;
@@ -953,8 +953,8 @@ public:
         pmsREF->free((ldomMemBlock *)p);
     }
 #endif
-    ldomTextRef( ldomElement * parent, lUInt8 level, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt32 flags)
-    : ldomNode( parent, LXML_TEXT_NODE, level, index ), dataSize(size), fileOffset(pos), dataFormat(flags)
+    ldomTextRef( ldomElement * parent, lUInt8 level, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
+    : ldomNode( parent, LXML_TEXT_NODE, level, index ), dataFormat(flags), dataSize(size), fileOffset(pos)
     { }
     virtual ~ldomTextRef() { }
     virtual ldomDocument * getDocument() const;
