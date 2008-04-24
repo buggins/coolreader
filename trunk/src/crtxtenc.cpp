@@ -383,32 +383,97 @@ static const lChar16 __cp850[128] = {
     0x00b3, 0x00b2, 0x25a0, 0x00a0,
 };
 
+#define CRENC_ID_CP1250   (CRENC_ID_8BIT_START+1)
+#define CRENC_ID_CP1251   (CRENC_ID_8BIT_START+2)
+#define CRENC_ID_CP1252   (CRENC_ID_8BIT_START+3)
+#define CRENC_ID_CP1253   (CRENC_ID_8BIT_START+4)
+#define CRENC_ID_CP1257   (CRENC_ID_8BIT_START+5)
+#define CRENC_ID_CP775   (CRENC_ID_8BIT_START+6)
+#define CRENC_ID_CP737   (CRENC_ID_8BIT_START+7)
+#define CRENC_ID_CP866   (CRENC_ID_8BIT_START+8)
+#define CRENC_ID_CP850   (CRENC_ID_8BIT_START+9)
+#define CRENC_ID_KOI8R   (CRENC_ID_8BIT_START+10)
+
+
 /// add other encodings here
 static struct {
     const char * name;
     const lChar16 * table;
+    int id;
 } _enc_table[] = {
-    {"windows-1250", __cp1250},
-    {"windows-1251", __cp1251},
-    {"windows-1252", __cp1252},
-    {"windows-1253", __cp1253},
-    {"windows-1257", __cp1257},
-    {"cp775", __cp775},
-    {"cp737", __cp737},
-    {"cp1250", __cp1250},
-    {"cp1251", __cp1251},
-    {"cp1252", __cp1252},
-    {"cp1253", __cp1253},
-    {"cp1257", __cp1257},
-    {"cp866", __cp866},
-    {"cp850", __cp850},
-    {"windows-866", __cp866},
-    {"windows-850", __cp850},
-    {"koi-8r", __koi8r},
-    {"koi8r", __koi8r},
+    {"windows-1250", __cp1250, CRENC_ID_CP1250},
+    {"windows-1251", __cp1251, CRENC_ID_CP1251},
+    {"windows-1252", __cp1252, CRENC_ID_CP1252},
+    {"windows-1253", __cp1253, CRENC_ID_CP1253},
+    {"windows-1257", __cp1257, CRENC_ID_CP1257},
+    {"cp775", __cp775, CRENC_ID_CP775},
+    {"cp737", __cp737, CRENC_ID_CP737},
+    {"cp1250", __cp1250, CRENC_ID_CP1250},
+    {"cp1251", __cp1251, CRENC_ID_CP1251},
+    {"cp1252", __cp1252, CRENC_ID_CP1252},
+    {"cp1253", __cp1253, CRENC_ID_CP1253},
+    {"cp1257", __cp1257, CRENC_ID_CP1257},
+    {"cp866", __cp866, CRENC_ID_CP866},
+    {"cp850", __cp850, CRENC_ID_CP850},
+    {"windows-866", __cp866, CRENC_ID_CP866},
+    {"windows-850", __cp850, CRENC_ID_CP850},
+    {"koi-8r", __koi8r, CRENC_ID_KOI8R},
+    {"koi8r", __koi8r, CRENC_ID_KOI8R},
     {NULL, NULL}
 };
 
+int CREncodingNameToId( const lChar16 * enc_name )
+{
+    lString16 s( enc_name );
+    s.lowercase();
+    const lChar16 * encoding_name = s.c_str();
+    if ( !lStr_cmp(encoding_name, L"utf-8") )
+        return CRENC_ID_UTF8;
+    else if ( !lStr_cmp(encoding_name, L"utf-16") )
+        return CRENC_ID_UTF16_LE;
+    else if ( !lStr_cmp(encoding_name, L"utf-16le") )
+        return CRENC_ID_UTF16_LE;
+    else if ( !lStr_cmp(encoding_name, L"utf-16be") )
+        return CRENC_ID_UTF16_BE;
+    else if ( !lStr_cmp(encoding_name, L"utf-32") )
+        return CRENC_ID_UTF16_LE;
+    else if ( !lStr_cmp(encoding_name, L"utf-32le") )
+        return CRENC_ID_UTF16_LE;
+    else if ( !lStr_cmp(encoding_name, L"utf-32be") )
+        return CRENC_ID_UTF16_BE;
+    for (int i=0; _enc_table[i].name!=NULL; i++)
+    {
+        if ( !lStr_cmp(encoding_name, _enc_table[i].name) )
+        {
+            return _enc_table[i].id;
+        }
+    }
+    return CRENC_ID_UNKNOWN; // not found
+}
+
+const char * CREncodingIdToName( int id )
+{
+    switch ( id ) {
+        case CRENC_ID_UTF8:
+            return "utf-8";
+        case CRENC_ID_UTF16_LE:
+            return "utf-16le";
+        case CRENC_ID_UTF16_BE:
+            return "utf-16be";
+        case CRENC_ID_UTF32_LE:
+            return "utf-32be";
+        case CRENC_ID_UTF32_BE:
+            return "utf-32be";
+    }
+    for (int i=0; _enc_table[i].name!=NULL; i++)
+    {
+        if ( id == _enc_table[i].id )
+        {
+            return _enc_table[i].name;
+        }
+    }
+    return NULL; // not found
+}
 
 const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * enc_name )
 {
@@ -418,6 +483,18 @@ const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * enc_name )
     for (int i=0; _enc_table[i].name!=NULL; i++)
     {
         if ( !lStr_cmp(encoding_name, _enc_table[i].name) )
+        {
+            return _enc_table[i].table;
+        }
+    }
+    return NULL; // not found
+}
+
+const lChar16 * GetCharsetByte2UnicodeTableById( int id )
+{
+    for (int i=0; _enc_table[i].name!=NULL; i++)
+    {
+        if ( id==_enc_table[i].id )
         {
             return _enc_table[i].table;
         }

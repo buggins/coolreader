@@ -17,6 +17,7 @@
 
 #include "lvstring.h"
 #include "lvstream.h"
+#include "crtxtenc.h"
 
 #define XML_FLAG_NO_SPACE_TEXT 1
 
@@ -61,20 +62,14 @@ public:
 #define TXTFLG_TRIM_ALLOW_START_SPACE       8
 #define TXTFLG_TRIM_ALLOW_END_SPACE         16
 #define TXTFLG_TRIM_REMOVE_EOL_HYPHENS      32
+#define TXTFLG_RTF                          64
+#define TXTFLG_ENCODING_MASK                0xFF00
+#define TXTFLG_ENCODING_SHIFT               8
 
 /// converts XML text: decode character entities, convert space chars
 int PreProcessXmlString( lChar16 * str, int len, lUInt32 flags );
 
 #define MAX_PERSISTENT_BUF_SIZE 16384
-
-enum char_encoding_type {
-    ce_8bit_cp,
-    ce_utf8,
-    ce_utf16_be,
-    ce_utf16_le,
-    ce_utf32_be,
-    ce_utf32_le,
-};
 
 /// base class for all document format parsers
 class LVFileFormatParser
@@ -147,10 +142,12 @@ protected:
     bool AutodetectEncoding();
     /// reads one character from buffer
     lChar16 ReadChar();
+    /// reads one character from buffer in RTF format
+    lChar16 ReadRtfChar( int enc_type, const lChar16 * conv_table );
     /// reads specified number of bytes, converts to characters and saves to buffer, returns number of chars read
-    int ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size );
+    int ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size, int flags );
     /// reads specified number of characters and saves to buffer, returns number of chars read
-    int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size );
+    int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size, int flags );
 public:
     /// reads next text line, tells file position and size of line, sets EOL flag
     lString16 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );

@@ -117,8 +117,9 @@ ldomElement * ldomDocument::getMainNode()
 }
 
 #if COMPACT_DOM == 1
-ldomDocument::ldomDocument(LVStreamRef stream)
-: _textcache(stream, COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE)
+ldomDocument::ldomDocument(LVStreamRef stream, int min_ref_text_size)
+: _textcache(stream, COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE),
+             _min_ref_text_size(min_ref_text_size)
 #ifndef BUILD_LITE
         , _renderedBlockCache( 32 )
 #endif
@@ -722,7 +723,7 @@ void ldomElementWriter::onText( const lChar16 * text, int len,
 {
     //logfile << "{t";
 #if (COMPACT_DOM == 1)
-    if ( len >= COMPACT_DOM_MIN_REF_TEXT_LENGTH)
+    if ( _document->allowTextRefForSize( len ) )
     {
         // compact mode: store reference to file
         _element->insertChildText(fpos, fsize, flags);

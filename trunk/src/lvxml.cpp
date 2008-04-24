@@ -81,6 +81,49 @@ LVTextFileBase::~LVTextFileBase()
         delete[] m_conv_table;
 }
 
+static int charToHex( lUInt8 ch )
+{
+    if ( ch>='0' && ch<='9' )
+        return ch-'0';
+    if ( ch>='a' && ch<='f' )
+        return ch-'a'+10;
+    if ( ch>='A' && ch<='F' )
+        return ch-'A'+10;
+    return -1;
+}
+
+
+/// reads one character from buffer in RTF format
+lChar16 LVTextFileBase::ReadRtfChar( int enc_type, const lChar16 * conv_table )
+{
+    lChar16 ch = m_buf[m_buf_pos++];
+    lChar16 ch2 = m_buf[m_buf_pos];
+    if ( ch=='\\' && ch2!='\'' ) {
+    } else if (ch=='\\' ) {
+        m_buf_pos++;
+        int digit1 = charToHex( m_buf[0] );
+        int digit2 = charToHex( m_buf[1] );
+        m_buf_pos+=2;
+        if ( digit1>=0 && digit2>=0 ) {
+            ch = ( (lChar8)((digit1 << 4) | digit2) );
+            if ( ch&0x80 )
+                return conv_table[ch&0x7F];
+            else
+                return ch;
+        } else {
+            return '?';
+        }
+    } else {
+        if ( ch>=' ' ) {
+            if ( ch&0x80 )
+                return conv_table[ch&0x7F];
+            else
+                return ch;
+        }
+    }
+    return ' ';
+}
+
 lChar16 LVTextFileBase::ReadChar()
 {
     lChar16 ch = m_buf[m_buf_pos++];
@@ -165,7 +208,7 @@ bool LVTextFileBase::AutodetectEncoding()
     SetCharset( lString16( enc_name ).c_str() );
 
     // restore state
-    delete buf;
+    delete[] buf;
     m_stream->SetPos( oldpos );
     return true;
 }
@@ -205,7 +248,7 @@ bool LVFileParserBase::Seek( lvpos_t pos, int bytesToPrefetch )
 }
 
 /// reads specified number of bytes, converts to characters and saves to buffer
-int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size)
+int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, int buf_size, int flags)
 {
     if ( !Seek( pos, bytesToRead ) ) {
         CRLog::error("LVTextFileBase::ReadTextBytes seek error! cannot set pos to %d to read %d bytes", (int)pos, (int)bytesToRead);
@@ -215,24 +258,64 @@ int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, 
     int max_pos = m_buf_pos + bytesToRead;
     if ( max_pos > m_buf_len )
         max_pos = m_buf_len;
-    while ( m_buf_pos<max_pos && chcount < buf_size ) {
-        *buf++ = ReadChar();
-        chcount++;
+    if ( (flags & TXTFLG_RTF)!=0 ) {
+        char_encoding_type enc_type = ce_utf8;
+        lChar16 * conv_table = NULL;
+        if ( flags & TXTFLG_ENCODING_MASK ) {
+        // set new encoding
+            int enc_id = (flags & TXTFLG_ENCODING_MASK) >> TXTFLG_ENCODING_SHIFT;
+            if ( enc_id >= ce_8bit_cp ) {
+                conv_table = (lChar16 *)GetCharsetByte2UnicodeTableById( enc_id );
+                enc_type = ce_8bit_cp;
+            } else {
+                conv_table = NULL;
+                enc_type = (char_encoding_type)enc_id;
+            }
+        }
+        while ( m_buf_pos<max_pos && chcount < buf_size ) {
+            *buf++ = ReadRtfChar(enc_type, conv_table);
+            chcount++;
+        }
+    } else {
+        while ( m_buf_pos<max_pos && chcount < buf_size ) {
+            *buf++ = ReadChar();
+            chcount++;
+        }
     }
     return chcount;
 }
 
 /// reads specified number of characters and saves to buffer
-int LVTextFileBase::ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size)
+int LVTextFileBase::ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size, int flags)
 {
     if ( !Seek( pos, charsToRead*4 ) )
         return 0;
     int chcount = 0;
     if ( buf_size > charsToRead )
         buf_size = charsToRead;
-    while ( m_buf_pos<m_buf_len && chcount < buf_size ) {
-        *buf++ = ReadChar();
-        chcount++;
+    if ( (flags & TXTFLG_RTF)!=0 ) {
+        char_encoding_type enc_type = ce_utf8;
+        lChar16 * conv_table = NULL;
+        if ( flags & TXTFLG_ENCODING_MASK ) {
+        // set new encoding
+            int enc_id = (flags & TXTFLG_ENCODING_MASK) >> TXTFLG_ENCODING_SHIFT;
+            if ( enc_id >= ce_8bit_cp ) {
+                conv_table = (lChar16 *)GetCharsetByte2UnicodeTableById( enc_id );
+                enc_type = ce_8bit_cp;
+            } else {
+                conv_table = NULL;
+                enc_type = (char_encoding_type)enc_id;
+            }
+        }
+        while ( m_buf_pos<m_buf_len && chcount < buf_size ) {
+            *buf++ = ReadRtfChar(enc_type, conv_table);
+            chcount++;
+        }
+    } else {
+        while ( m_buf_pos<m_buf_len && chcount < buf_size ) {
+            *buf++ = ReadChar();
+            chcount++;
+        }
     }
     return chcount;
 }
@@ -989,7 +1072,7 @@ bool LVTextParser::CheckFormat()
     Reset();
     lChar16 * chbuf = new lChar16[TEXT_PARSER_DETECT_SIZE];
     FillBuffer( TEXT_PARSER_DETECT_SIZE );
-    int charsDecoded = ReadTextBytes( 0, TEXT_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_len-m_buf_pos );
+    int charsDecoded = ReadTextBytes( 0, TEXT_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
     bool res = false;
     if ( charsDecoded > 100 ) {
         int illegal_char_count = 0;
@@ -1024,7 +1107,7 @@ bool LVTextParser::CheckFormat()
         if ( illegal_char_count>0 )
             CRLog::error("illegal characters detected: count=%d", illegal_char_count );
     }
-    delete chbuf;
+    delete[] chbuf;
     Reset();
     return res;
 }
@@ -1144,7 +1227,7 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     text.reserve(size);
     text.append(size, ' ');
     lChar16 * buf = text.modify();
-    unsigned chcount = (unsigned)ReadTextBytes( pos, size, buf, size );
+    unsigned chcount = (unsigned)ReadTextBytes( pos, size, buf, size, flags );
     //CRLog::debug("ReadTextBytes(%d,%d) done - %d chars read", (int)pos, (int)size, (int)chcount);
     if ( chcount<size )
         text.erase( chcount, text.length()-chcount );
@@ -1222,7 +1305,7 @@ bool LVXMLParser::CheckFormat()
     Reset();
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
     FillBuffer( XML_PARSER_DETECT_SIZE );
-    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, XML_PARSER_DETECT_SIZE-1 );
+    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, XML_PARSER_DETECT_SIZE-1, 0 );
     bool res = false;
     if ( charsDecoded > 100 ) {
         lString16 s( chbuf, charsDecoded );

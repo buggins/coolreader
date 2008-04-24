@@ -850,6 +850,7 @@ private:
     
 #if COMPACT_DOM == 1
     LVXMLTextCache _textcache;
+    int            _min_ref_text_size;
 #endif
 
 #ifndef BUILD_LITE
@@ -884,8 +885,16 @@ public:
     }
 
 #if COMPACT_DOM == 1
-    ldomDocument(LVStreamRef stream);
+    ldomDocument(LVStreamRef stream, int min_ref_text_size);
     lString16 getTextNodeValue( const ldomTextRef * txt );
+    void setMinRefTextSize( int size )
+    {
+        _min_ref_text_size = size;
+    }
+    bool allowTextRefForSize( int size )
+    {
+        return _min_ref_text_size>0 && size>_min_ref_text_size;
+    }
 #else
     ldomDocument();
 #endif

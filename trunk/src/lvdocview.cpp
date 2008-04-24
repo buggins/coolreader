@@ -1768,7 +1768,7 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
         delete m_doc;
     m_is_rendered = false;
 #if COMPACT_DOM==1
-    m_doc = new ldomDocument( LVStreamRef() );
+    m_doc = new ldomDocument( LVStreamRef(), 0 );
 #else
     m_doc = new ldomDocument();
 #endif
@@ -1917,12 +1917,17 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             delete m_doc;
         m_is_rendered = false;
     #if COMPACT_DOM==1
-        m_doc = new ldomDocument( m_stream );
+        int minRefLen = COMPACT_DOM_MIN_REF_TEXT_LENGTH;
+        m_doc = new ldomDocument( m_stream, minRefLen );
     #else
         m_doc = new ldomDocument();
     #endif
         m_doc->setDocFlags( saveFlags );
 
+#if COMPACT_DOM == 1
+        if ( m_stream->GetSize() < COMPACT_DOM_SIZE_THRESHOLD )
+            m_doc->setMinRefTextSize( 0 ); // disable compact mode
+#endif
         ldomDocumentWriter writer(m_doc);
         m_doc->setNodeTypes( fb2_elem_table );
         m_doc->setAttributeTypes( fb2_attr_table );
@@ -1941,6 +1946,10 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             if ( !parser->CheckFormat() ) {
                 delete parser;
                 parser = NULL;
+            } else {
+#if COMPACT_DOM==1
+                m_doc->setMinRefTextSize( 0 );
+#endif
             }
         }
     

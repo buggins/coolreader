@@ -252,7 +252,7 @@ void LVRtfParser::CommitText()
         CRLog::trace( "Text(%s)", s8.c_str() );
     }
 #endif
-    m_stack.getDestination()->OnText( txtbuf, txtpos, txtfstart, (m_buf_fpos + m_buf_pos) - txtfstart, 0 );
+    m_stack.getDestination()->OnText( txtbuf, txtpos, txtfstart, (m_buf_fpos + m_buf_pos) - txtfstart, TXTFLG_RTF );
     txtpos = 0;
 }
 

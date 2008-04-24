@@ -15,6 +15,28 @@
 
 #include "lvtypes.h"
 
+
+enum char_encoding_type {
+    ce_unknown = 0,
+    ce_utf8 = 1,
+    ce_utf16_be = 2,
+    ce_utf16_le = 3,
+    ce_utf32_be = 4,
+    ce_utf32_le = 5,
+    ce_8bit_cp = 6,
+};
+
+#define CRENC_ID_UNKNOWN      ce_unknown
+#define CRENC_ID_UTF8         ce_utf8
+#define CRENC_ID_UTF16_LE     ce_utf16_le
+#define CRENC_ID_UTF16_BE     ce_utf16_be
+#define CRENC_ID_UTF32_LE     ce_utf32_le
+#define CRENC_ID_UTF32_BE     ce_utf32_be
+#define CRENC_ID_8BIT_START   ce_8bit_cp
+
+int CREncodingNameToId( const lChar16 * name );
+const char * CREncodingIdToName( int id );
+
 /**
     \brief Searches for 8-bit encoding to unicode conversion table by encoding name.
 
@@ -27,6 +49,7 @@
     \return pointer to conversion table if found, NULL otherwise
 */
 const lChar16 * GetCharsetByte2UnicodeTable( const lChar16 * encoding_name );
+const lChar16 * GetCharsetByte2UnicodeTableById( int id );
 const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * encoding_name );
 /// get conversion table for upper 128 characters of codepage, by codepage number
 const lChar16 * GetCharsetByte2UnicodeTable( int codepage );
@@ -54,5 +77,7 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
     \return true if buffer has valid utf-8 data
 */
 bool isValidUtf8Data( const unsigned char * buf, int buf_size );
+
+
 
 #endif

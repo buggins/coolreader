@@ -14,14 +14,6 @@
 #define CRSETUP_H_INCLUDED
 
 //#define LBOOK 1
-#ifndef LDOM_USE_OWN_MEM_MAN
-#define LDOM_USE_OWN_MEM_MAN 1
-#endif
-
-#ifndef USE_DOM_UTF8_STORAGE
-#define USE_DOM_UTF8_STORAGE 1
-#endif
-
 
 // features set for LBOOK
 #if (LBOOK==1)
@@ -49,11 +41,13 @@
 #endif
 #define COMPACT_DOM                          1
 #define COMPACT_DOM_MIN_REF_TEXT_LENGTH      24
+#define COMPACT_DOM_SIZE_THRESHOLD           0x300000
 #define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  48
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
 
 #elif defined(_LINUX) || defined (LINUX)
 
+#define LDOM_USE_OWN_MEM_MAN                 1
 #define CR_USE_THREADS                       0
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
@@ -71,6 +65,7 @@
 #define COMPACT_DOM_MIN_REF_TEXT_LENGTH      24
 #define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  64
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x20000
+#define COMPACT_DOM_SIZE_THRESHOLD           0x300000
 #endif
 
 //==================================================
@@ -94,6 +89,7 @@
 #define COMPACT_DOM_MIN_REF_TEXT_LENGTH      64
 #define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  32
 #define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
+#define COMPACT_DOM_SIZE_THRESHOLD           0x300000
 //#define USE_LIBJPEG 0
 #endif
 
@@ -208,6 +204,15 @@
 #ifndef USE_WIN32_FONTS
 #define USE_WIN32_FONTS 0
 #endif
+
+#ifndef LDOM_USE_OWN_MEM_MAN
+#define LDOM_USE_OWN_MEM_MAN 1
+#endif
+
+#ifndef USE_DOM_UTF8_STORAGE
+#define USE_DOM_UTF8_STORAGE 1
+#endif
+
 
 #ifndef USE_BITMAP_FONTS
 
