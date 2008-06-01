@@ -13,6 +13,7 @@
 
 #include "../include/lvstyles.h"
 
+
 //DEFINE_NULL_REF( css_style_rec_t )
 
 lUInt32 calcHash(css_style_rec_t & rec)

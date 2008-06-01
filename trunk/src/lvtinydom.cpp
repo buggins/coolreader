@@ -17,6 +17,7 @@
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
 
+
 /*
 class simpleLogFile
 {

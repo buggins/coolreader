@@ -40,6 +40,7 @@
 #include <dlfcn.h>
 #endif
 
+
 #ifndef USE_ANSI_FILES
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)

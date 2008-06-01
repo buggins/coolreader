@@ -23,6 +23,7 @@
 #include "../include/lvtinydom.h"
 #endif
 
+
 formatted_line_t * lvtextAllocFormattedLine( )
 {
     formatted_line_t * pline = (formatted_line_t *)malloc(sizeof(formatted_line_t));

@@ -17,6 +17,7 @@
 #include <string.h>
 #include "../include/lvdrawbuf.h"
 
+
 static lUInt32 rgbToGray( lUInt32 color )
 {
     lUInt32 r = (0xFF0000 & color) >> 16;

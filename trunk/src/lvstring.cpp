@@ -29,6 +29,7 @@
 
 #define LS_DEBUG_CHECK
 
+
 // memory allocation slice
 struct lstring_chunk_slice_t {
     lstring_chunk_t * pChunks; // first chunk

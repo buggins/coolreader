@@ -41,7 +41,6 @@ extern "C" {
 #endif
 
 
-
 LVImageSource::~LVImageSource() {}
 
 

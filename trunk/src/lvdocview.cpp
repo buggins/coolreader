@@ -23,6 +23,7 @@
 #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"
 
+
 const char * def_stylesheet =
 "image { text-align: center; text-indent: 0px } \n"
 "empty-line { height: 1em; } \n"

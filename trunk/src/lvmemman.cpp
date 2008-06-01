@@ -16,6 +16,8 @@
 #include "../include/lvref.h"
 #include "../include/lvtinydom.h"
 
+
+
 /// default fatal error handler: uses exit()
 void lvDefFatalErrorHandler (int errorCode, const char * errorText )
 {

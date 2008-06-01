@@ -14,6 +14,7 @@
 #include "../include/lvxml.h"
 #include "../include/crtxtenc.h"
 
+
 #define BUF_SIZE_INCREMENT 4096
 #define MIN_BUF_DATA_SIZE 2048
 #define CP_AUTODETECT_BUF_SIZE 0x10000
@@ -928,7 +929,10 @@ public:
                     }
                 }
             }
-            AddPara( pos, i, callback );
+            if ( i==length() )
+                i--;
+            if ( i>=pos )
+                AddPara( pos, i, callback );
             pos = i+1;
         }
         if ( inSubSection )

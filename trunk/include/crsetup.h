@@ -13,8 +13,6 @@
 #ifndef CRSETUP_H_INCLUDED
 #define CRSETUP_H_INCLUDED
 
-//#define LBOOK 1
-
 // features set for LBOOK
 #if (LBOOK==1)
 #define CR_USE_THREADS                       0
@@ -206,11 +204,11 @@
 #endif
 
 #ifndef LDOM_USE_OWN_MEM_MAN
-#define LDOM_USE_OWN_MEM_MAN 1
+#define LDOM_USE_OWN_MEM_MAN 0
 #endif
 
 #ifndef USE_DOM_UTF8_STORAGE
-#define USE_DOM_UTF8_STORAGE 1
+#define USE_DOM_UTF8_STORAGE 0
 #endif
 
 
