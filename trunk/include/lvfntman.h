@@ -104,6 +104,10 @@ public:
     /// set bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual void setBitmapMode( bool drawMonochrome ) { }
 
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() { return false; }
+    /// get kerning mode: true==ON, false=OFF
+    virtual void setKerning( bool kerningEnabled ) { }
 
     /// returns true if font is empty
     virtual bool IsNull() const = 0;
@@ -127,6 +131,7 @@ class LVFontManager
 {
 protected:
     int _antialiasMode;
+    bool _allowKerning;
 public:
     /// garbage collector frees unused fonts
     virtual void gc() = 0;
@@ -140,12 +145,19 @@ public:
     virtual int GetFontCount() = 0;
     /// clear glyph cache
     virtual void clearGlyphCache() { }
+
     /// get antialiasing mode
     virtual int GetAntialiasMode() { return _antialiasMode; }
     /// set antialiasing mode
     virtual void SetAntialiasMode( int mode ) { _antialiasMode = mode; gc(); clearGlyphCache(); }
+
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() { return _allowKerning; }
+    /// get kerning mode: true==ON, false=OFF
+    virtual void setKerning( bool kerningEnabled ) { _allowKerning = kerningEnabled; gc(); clearGlyphCache(); }
+
     /// constructor
-    LVFontManager() : _antialiasMode(font_aa_all) { }
+    LVFontManager() : _antialiasMode(font_aa_all), _allowKerning(false) { }
     /// destructor
     virtual ~LVFontManager() { }
     /// returns available typefaces

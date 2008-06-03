@@ -112,6 +112,7 @@ public:
     ~LVFontDef() {}
     /// calculates difference between two fonts
     int CalcMatch( const LVFontDef & def ) const;
+    int CalcDuplicateMatch( const LVFontDef & def ) const;
 };
 
 /// font cache item
@@ -142,6 +143,7 @@ public:
     void addInstance( const LVFontDef * def, LVFontRef ref );
     LVPtrVector< LVFontCacheItem > * getInstances() { return &_instance_list; }
     LVFontCacheItem * find( const LVFontDef * def );
+    LVFontCacheItem * findDuplicate( const LVFontDef * def );
     virtual void getFaceList( lString16Collection & list )
     {
         list.clear();
@@ -440,10 +442,11 @@ private:
     LVFontGlyphWidthCache _wcache;
     LVFontLocalGlyphCache _glyph_cache;
     bool          _drawMonochrome;
+    bool          _allowKerning;
 public:
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
-    , _glyph_cache(globalCache), _drawMonochrome(false)
+    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false)
     {
     }
 
@@ -451,6 +454,11 @@ public:
     {
         Clear();
     }
+
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() { return _allowKerning; }
+    /// get kerning mode: true==ON, false=OFF
+    virtual void setKerning( bool kerningEnabled ) { _allowKerning = kerningEnabled; }
 
     /// get bitmap mode (true=bitmap, false=antialiased)
     virtual bool getBitmapMode() { return _drawMonochrome; }
@@ -549,7 +557,7 @@ public:
         int error;
 
 #if (ALLOW_KERNING==1)
-        int use_kerning = FT_HAS_KERNING( _face );
+        int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
 
         //int i;
@@ -739,7 +747,7 @@ public:
         int error;
 
 #if (ALLOW_KERNING==1)
-        int use_kerning = FT_HAS_KERNING( _face );
+        int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
         int i;
 
@@ -889,6 +897,19 @@ public:
             fonts->get(i)->getFont()->setBitmapMode( isBitmapModeForSize( fonts->get(i)->getFont()->getHeight() ) );
         }
     }
+
+    /// set antialiasing mode
+    virtual void setKerning( bool kerning )
+    {
+    
+        _allowKerning = kerning; 
+        gc(); 
+        clearGlyphCache();
+        LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
+        for ( int i=0; i<fonts->length(); i++ ) {
+            fonts->get(i)->getFont()->setKerning( kerning );
+        }
+    }
     /// clear glyph cache
     virtual void clearGlyphCache()
     {
@@ -1009,6 +1030,7 @@ public:
             //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
             //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
             LVFontRef ref(font);
+            font->setKerning( getKerning() );
             LVFontDef newDef(*item->getDef());
             newDef.setSize( size );
             //item->setFont( ref );
@@ -1106,6 +1128,8 @@ public:
             );
     //    }
     //#endif
+            if ( _cache.findDuplicate( &def ) )
+                return false;
             _cache.update( &def, LVFontRef(NULL) );
             res = true;
 
@@ -1469,6 +1493,18 @@ bool ShutdownFontManager()
     return false;
 }
 
+int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
+{
+    bool size_match = (_size==-1 || def._size==-1) ? true 
+        : (def._size == _size);
+    bool weight_match = (_weight==-1 || def._weight==-1) ? true 
+        : (def._weight == _weight);
+    bool italic_match = (_italic == def._italic || _italic==-1 || def._italic==-1);
+    bool family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == def._family);
+    bool typeface_match = (_typeface == def._typeface) ? 256 : 0;
+    return size_match && weight_match && italic_match && family_match && typeface_match;
+}
+
 int LVFontDef::CalcMatch( const LVFontDef & def ) const
 {
     int size_match = (_size==-1 || def._size==-1) ? 256 
@@ -1617,6 +1653,16 @@ int LBitmapFont::LoadFromFile( const char * fname )
     return 1;
 }
 #endif
+
+LVFontCacheItem * LVFontCache::findDuplicate( const LVFontDef * def )
+{
+    for (int i=0; i<_registered_list.length(); i++)
+    {
+        if ( _registered_list[i]->_def.CalcDuplicateMatch( *def ) )
+            return _registered_list[i];
+    }
+    return NULL;
+}
 
 LVFontCacheItem * LVFontCache::find( const LVFontDef * fntdef )
 {

@@ -1559,9 +1559,9 @@ void LVDocView::setDefaultInterlineSpace( int percent )
 void LVDocView::setFontSize( int newSize )
 {
     LVLock lock(getMutex());
-    requestRender();
     m_font_size = findBestFit( m_font_sizes, newSize );
-    goToBookmark(_posBookmark);
+    requestRender();
+    //goToBookmark(_posBookmark);
 }
 
 void LVDocView::setDefaultFontFace( const lString8 & newFace )
