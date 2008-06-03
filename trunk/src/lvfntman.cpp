@@ -1501,7 +1501,7 @@ int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
         : (def._weight == _weight);
     bool italic_match = (_italic == def._italic || _italic==-1 || def._italic==-1);
     bool family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == def._family);
-    bool typeface_match = (_typeface == def._typeface) ? 256 : 0;
+    bool typeface_match = (_typeface == def._typeface);
     return size_match && weight_match && italic_match && family_match && typeface_match;
 }
 
