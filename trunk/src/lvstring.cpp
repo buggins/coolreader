@@ -1937,6 +1937,19 @@ lString8 UnicodeTo8Bit( const lString16 & str, const lChar8 * * table )
     return buf;
 }
 
+lString16 ByteToUnicode( const lString8 & str, const lChar16 * table )
+{
+    lString16 buf;
+    buf.reserve( str.length() );
+    for ( int i=0; i<(int)str.length(); i++ ) {
+        int ch = (unsigned char)str[i];
+        lChar16 ch16 = ((ch & 0x80) && table) ? table[ (ch&0x7F) ] : ch;
+        buf += ch16;
+    }
+    return buf;
+}
+
+
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 
 lString8 UnicodeToLocal( const lString16 & str )

@@ -626,6 +626,7 @@ lString8  UnicodeToTranslit( const lString16 & str );
 lString8  UnicodeToLocal( const lString16 & str );
 lString8  UnicodeToUtf8( const lString16 & str );
 lString8  UnicodeTo8Bit( const lString16 & str, const lChar8 * * table );
+lString16 ByteToUnicode( const lString8 & str, const lChar16 * table );
 lString16 LocalToUnicode( const lString8 & str );
 lString16 Utf8ToUnicode( const lString8 & str );
 

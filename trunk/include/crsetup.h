@@ -29,6 +29,7 @@
 #define GLYPH_CACHE_SIZE                     0x1000
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
 #define FILE_STREAM_BUFFER_SIZE              0x1000
+#define USE_UNRAR                            0
 #else
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
@@ -79,6 +80,7 @@
 #else
 #define USE_FREETYPE                         1
 #endif
+#define USE_UNRAR                            1
 #define ALLOW_KERNING                        0
 #define GLYPH_CACHE_SIZE                     0x80000
 #define ZIP_STREAM_BUFFER_SIZE               0x200000
