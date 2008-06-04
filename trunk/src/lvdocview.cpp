@@ -2148,6 +2148,7 @@ int LVDocView::getBookmarkPage(ldomXPointer bm)
 
 void LVDocView::updateScroll()
 {
+    checkPos();
     if (m_view_mode==DVM_SCROLL)
     {
         int npos = m_pos;

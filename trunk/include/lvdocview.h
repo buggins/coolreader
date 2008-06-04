@@ -479,7 +479,7 @@ public:
     bool getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lString16 & posText );
 
     /// returns scrollbar control info
-    const LVScrollInfo * getScrollInfo() { return &m_scrollinfo; }
+    const LVScrollInfo * getScrollInfo() { updateScroll(); return &m_scrollinfo; }
     /// converts scrollbar pos to doc pos
     int scrollPosToDocPos( int scrollpos );
     /// returns position in 1/100 of percents
