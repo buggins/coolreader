@@ -274,8 +274,8 @@ void cr3view::OnTimer(wxTimerEvent& event)
 
         _docview->Resize( dx, dy );
 
-        UpdateScrollBar();
         Paint();
+        UpdateScrollBar();
     } else if ( event.GetId() == CLOCK_TIMER_ID ) {
         if ( IsShownOnScreen() ) {
             if ( _docview->IsRendered() && _docview->isTimeChanged() )

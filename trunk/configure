@@ -19441,8 +19441,8 @@ LIBTOOL='$(SHELL) $(top_builddir)/libtool'
 
 
 
-CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions"
-CXXFLAGS="$CXXFLAGS -Wall -g -fexceptions"
+CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions -D_LINUX -DLINUX"
+CXXFLAGS="$CXXFLAGS -Wall -g -fexceptions -D_LINUX -DLINUX"
 
 WXCONFIG=wx-config
 
