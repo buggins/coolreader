@@ -2213,6 +2213,38 @@ int LVDocView::scrollPosToDocPos( int scrollpos )
     }
 }
 
+/// get list of links
+void LVDocView::getCurrentPageLinks( ldomXRangeList & list )
+{
+    list.clear();
+    /// get page document range, -1 for current page
+    LVRef<ldomXRange> page = getPageDocumentRange();
+    if ( !page.isNull() ) {
+        // search for links
+        class LinkKeeper : public ldomNodeCallback {
+            ldomXRangeList &_list;
+        public:
+            LinkKeeper( ldomXRangeList & list )
+                : _list(list) { }
+            /// called for each found text fragment in range
+            virtual void onText( ldomXRange * nodeRange ) { }
+            /// called for each found node in range
+            virtual bool onElement( ldomXPointerEx * ptr )
+            {
+                //
+                ldomElement * elem = (ldomElement *)ptr->getNode();
+                if ( elem->getNodeId()==el_a ) {
+                    _list.add( new ldomXRange(elem) );
+                }
+                return true;
+            }
+        };
+        LinkKeeper callback( list );
+        page->forEach( &callback );
+    }
+}
+
+
 void LVDocView::goToPage( int page )
 {
     LVLock lock(getMutex());

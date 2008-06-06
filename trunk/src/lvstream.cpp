@@ -1866,13 +1866,17 @@ public:
     }
     bool unload()
     {
-        if ( _lib )
+        bool res = false;
+        if ( _lib ) {
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
             FreeLibrary( _lib );
 #else
             dlclose( _lib );
 #endif
+            res = true;
+        }
         _lib = NULL;
+        return res;
     }
     LVUnRarDll()
     : _lib(NULL) {

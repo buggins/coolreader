@@ -215,7 +215,7 @@ public:
         addChild( item );
         return item;
     }
-    void clear() { _children.clear(); }    
+    void clear() { _children.clear(); }
     // root node constructor
     LVTocItem() : _parent(NULL), _level(0), _index(0) { }
     ~LVTocItem() { clear(); }
@@ -329,6 +329,9 @@ protected:
     /// ensure current position is set to current bookmark value
     void checkPos();
 public:
+    /// get list of links
+    virtual void getCurrentPageLinks( ldomXRangeList & list );
+    /// create empty document with specified message (to show errors)
     virtual void createDefaultDocument( lString16 title, lString16 message );
 
     /// returns default font face
@@ -402,7 +405,7 @@ public:
     int getPageHeaderInfo() { return m_pageHeaderInfo; }
     /// set page header info mask
     void setPageHeaderInfo( int hdrFlags );
-    /// get info line font 
+    /// get info line font
     font_ref_t getInfoFont() { return m_infoFont; }
     /// set info line font
     void setInfoFont( font_ref_t font ) { m_infoFont = font; }

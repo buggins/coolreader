@@ -28,16 +28,16 @@ public:
     simpleLogFile & operator << ( const char * str ) { fprintf( f, "%s", str ); fflush( f ); return *this; }
     simpleLogFile & operator << ( int d ) { fprintf( f, "%d(0x%X) ", d, d ); fflush( f ); return *this; }
     simpleLogFile & operator << ( const wchar_t * str )
-    { 
+    {
         if (str)
         {
-            for (; *str; str++ ) 
+            for (; *str; str++ )
             {
                 fputc( *str >= 32 && *str<127 ? *str : '?', f );
             }
         }
         fflush( f );
-        return *this; 
+        return *this;
     }
 };
 
@@ -104,7 +104,7 @@ ldomNode::~ldomNode() { }
 
 /// returns main element (i.e. FictionBook for FB2)
 ldomElement * ldomDocument::getMainNode()
-{ 
+{
     if (!_root || !_root->getChildCount())
         return NULL;
     //int elemCount = 0;
@@ -170,7 +170,7 @@ static void writeNode( LVStream * stream, ldomNode * node )
                 *stream << attrName << L"=\"" << attrValue << L"\"";
             }
         }
-        
+
         if ( node->getChildCount() == 0 ) {
             if (!elemName.empty())
             {
@@ -180,13 +180,13 @@ static void writeNode( LVStream * stream, ldomNode * node )
                     *stream << L"/>";
             }
         } else {
-            if (!elemName.empty()) 
+            if (!elemName.empty())
                 *stream << L">";
             for (i=0; i<(int)node->getChildCount(); i++)
             {
                 writeNode( stream, node->getChildNode(i) );
             }
-            if (!elemName.empty()) 
+            if (!elemName.empty())
                 *stream << L"</" << elemName << L">";
         }
     }
@@ -275,7 +275,7 @@ void lxmlDocBase::setNodeTypes( const elem_def_t * node_scheme )
 {
     for ( ; node_scheme && node_scheme->id != 0; ++node_scheme )
     {
-        _elementNameTable.AddItem( 
+        _elementNameTable.AddItem(
             node_scheme->id,               // ID
             lString16(node_scheme->name),  // Name
             (const void*)node_scheme );  // ptr
@@ -287,10 +287,10 @@ void lxmlDocBase::setAttributeTypes( const attr_def_t * attr_scheme )
 {
     for ( ; attr_scheme && attr_scheme->id != 0; ++attr_scheme )
     {
-        _attrNameTable.AddItem( 
+        _attrNameTable.AddItem(
             attr_scheme->id,               // ID
             lString16(attr_scheme->name),  // Name
-            NULL);  
+            NULL);
     }
     _idAttrId = _attrNameTable.idByName("id");
 }
@@ -300,10 +300,10 @@ void lxmlDocBase::setNameSpaceTypes( const ns_def_t * ns_scheme )
 {
     for ( ; ns_scheme && ns_scheme->id != 0; ++ns_scheme )
     {
-        _nsNameTable.AddItem( 
+        _nsNameTable.AddItem(
             ns_scheme->id,                 // ID
             lString16(ns_scheme->name),    // Name
-            NULL); 
+            NULL);
     }
 }
 
@@ -333,7 +333,7 @@ void ldomElement::getAbsRect( lvRect & rect )
     rect.top = 0;
     rect.right = fmt->getWidth();
     rect.bottom = fmt->getHeight();
-    for (;!node->isRoot();node = node->getParentNode()) 
+    for (;!node->isRoot();node = node->getParentNode())
     {
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (fmt)
@@ -367,7 +367,7 @@ LVImageSourceRef ldomElement::getObjectImageSource()
         return ref;
     lUInt16 refValueId = _document->findAttrValueIndex( refName.c_str() + 1 );
     if ( refValueId == (lUInt16)-1 )
-        return ref; 
+        return ref;
     //printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
     ldomNode * objnode = _document->getNodeById( refValueId );
     if ( !objnode ) {
@@ -406,7 +406,7 @@ void ldomNode *::getAbsRect( lvRect & rect )
     rect.top = 0;
     rect.right = fmt->getWidth();
     rect.bottom = fmt->getHeight();
-    for (;!node->isRoot();node = node->getParentNode()) 
+    for (;!node->isRoot();node = node->getParentNode())
     {
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (fmt)
@@ -424,7 +424,7 @@ lxmlAttrRef ldomNode *::getAttribute( lUInt32 index ) const
     DEF_ELEM_PTR(elem);
     if (elem->nodeType!=LXML_ELEMENT_NODE || index>=elem->attrCount)
         return lxmlAttrRef();
-    return lxmlAttrRef( _document, _offset + sizeof(lxmlElement) 
+    return lxmlAttrRef( _document, _offset + sizeof(lxmlElement)
         + index*sizeof(lxmlAttribute) );
 }
 
@@ -453,7 +453,7 @@ lUInt32 ldomNode *::getNodeIndex() const
     lxmlElement * elem = (lxmlElement *)_document->getNodePtr(parent._offset);
     if ( elem->nodeType!=LXML_ELEMENT_NODE || elem->childIndex==0 )
         return 0;
-    lUInt32 * children = _document->getOffsetArray( elem->childIndex );    
+    lUInt32 * children = _document->getOffsetArray( elem->childIndex );
     for (lUInt32 i=0; i<elem->childCount; i++)
         if (children[i] == _offset)
             return i;
@@ -499,7 +499,7 @@ lUInt32 lxmlElementWriter::addChild( lUInt32 childOffset )
     return _element->childCount++;
 }
 
-void lxmlElementWriter::onText( const lChar16 * text, int len, 
+void lxmlElementWriter::onText( const lChar16 * text, int len,
     lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
 {
     //logfile << "{t";
@@ -627,7 +627,7 @@ bool IsEmptySpace( const lChar16 * text, int len )
 
 #if 0
 void lxmlDocumentWriter::OnStart(LVXMLParser * parser)
-{ 
+{
     //logfile << "lxmlDocumentWriter::OnStart()\n";
     // add document root node
     LVXMLParserCallback::OnStart( parser );
@@ -635,7 +635,7 @@ void lxmlDocumentWriter::OnStart(LVXMLParser * parser)
 }
 
 void lxmlDocumentWriter::OnStop()
-{ 
+{
     //logfile << "lxmlDocumentWriter::OnStop()\n";
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->nodeId );
@@ -675,13 +675,13 @@ void lxmlDocumentWriter::OnAttribute( const lChar16 * nsname, const lChar16 * at
     //logfile << " !a!\n";
 }
 
-void lxmlDocumentWriter::OnText( const lChar16 * text, int len, 
+void lxmlDocumentWriter::OnText( const lChar16 * text, int len,
     lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
 {
     //logfile << "lxmlDocumentWriter::OnText() fpos=" << fpos;
     if (_currNode)
     {
-        if ( (_flags & XML_FLAG_NO_SPACE_TEXT) 
+        if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len) )
              return;
         if (_currNode->_allowText)
@@ -691,7 +691,7 @@ void lxmlDocumentWriter::OnText( const lChar16 * text, int len,
 }
 
 void lxmlDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table )
-{ 
+{
     if (table)
         _document->_textcache.SetCharsetTable( table );
 }
@@ -719,7 +719,7 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
     //logfile << "}";
 }
 
-void ldomElementWriter::onText( const lChar16 * text, int len, 
+void ldomElementWriter::onText( const lChar16 * text, int len,
     lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
 {
     //logfile << "{t";
@@ -827,7 +827,7 @@ ldomElementWriter::~ldomElementWriter()
 
 // overrides
 void ldomDocumentWriter::OnStart(LVFileFormatParser * parser)
-{ 
+{
     //logfile << "ldomDocumentWriter::OnStart()\n";
     // add document root node
     //CRLog::trace("ldomDocumentWriter::OnStart()");
@@ -842,7 +842,7 @@ void ldomDocumentWriter::OnStart(LVFileFormatParser * parser)
 }
 
 void ldomDocumentWriter::OnStop()
-{ 
+{
     //logfile << "ldomDocumentWriter::OnStop()\n";
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
@@ -883,7 +883,7 @@ void ldomDocumentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tag
     _errFlag |= (id != _currNode->getElement()->getNodeId());
     _currNode = pop( _currNode, id );
 
-    
+
     if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");
         _parser->Stop();
@@ -897,17 +897,17 @@ void ldomDocumentWriter::OnAttribute( const lChar16 * nsname, const lChar16 * at
     lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;
     lUInt16 attr_id = (attrname && attrname[0]) ? _document->getAttrNameIndex( attrname ) : 0;
     _currNode->addAttribute( attr_ns, attr_id, attrvalue );
-    
+
     //logfile << " !a!\n";
 }
 
-void ldomDocumentWriter::OnText( const lChar16 * text, int len, 
+void ldomDocumentWriter::OnText( const lChar16 * text, int len,
     lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
 {
     //logfile << "ldomDocumentWriter::OnText() fpos=" << fpos;
     if (_currNode)
     {
-        if ( (_flags & XML_FLAG_NO_SPACE_TEXT) 
+        if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len) )
              return;
         if (_currNode->_allowText)
@@ -917,7 +917,7 @@ void ldomDocumentWriter::OnText( const lChar16 * text, int len,
 }
 
 void ldomDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table )
-{ 
+{
 #if COMPACT_DOM == 1
     if (table)
         _document->_textcache.SetCharset( name );
@@ -961,7 +961,7 @@ bool FindNextNode( ldomNode * & node, ldomNode * root )
         // up one level
         index = parent->getNodeIndex();
         parent = parent->getParentNode();
-    }    
+    }
     //if ( node->getNodeType() == LXML_TEXT_NODE )
     return false;
 }
@@ -988,10 +988,10 @@ private:
     int         m_text_pos;
     lvsize_t    m_size;
     lvpos_t     m_pos;
-    
+
     int         m_iteration;
     lUInt32     m_value;
-    
+
     lUInt8      m_bytes[BASE64_BUF_SIZE];
     int         m_bytes_count;
     int         m_bytes_pos;
@@ -1058,7 +1058,7 @@ private:
         }
         return bytesRead;
     }
-    
+
     bool findNextTextNode()
     {
         while ( FindNextNode( m_curr_node, m_elem ) ) {
@@ -1070,9 +1070,9 @@ private:
         }
         return false;
     }
-    
+
     int bytesAvailable() { return m_bytes_count - m_bytes_pos; }
-    
+
     bool rewind()
     {
         m_curr_node = m_elem;
@@ -1083,7 +1083,7 @@ private:
         m_value = 0;
         return findNextTextNode();
     }
-    
+
     bool skip( lvsize_t count )
     {
         while ( count )
@@ -1104,7 +1104,7 @@ private:
         }
         return true;
     }
-    
+
 public:
     virtual ~LVBase64NodeStream() { }
     LVBase64NodeStream( ldomElement * element )
@@ -1129,7 +1129,7 @@ public:
         return m_pos >= m_size;
     }
     virtual lvsize_t  GetSize()
-    { 
+    {
         return m_size;
     }
 
@@ -1137,14 +1137,14 @@ public:
     {
         return m_pos;
     }
-    
+
     virtual lverror_t GetPos( lvpos_t * pos )
     {
         if (pos)
             *pos = m_pos;
         return LVERR_OK;
     }
-    
+
     virtual lverror_t Seek(lvoffset_t offset, lvseek_origin_t origin, lvpos_t* newPos)
     {
         lvpos_t npos = 0;
@@ -1175,7 +1175,7 @@ public:
             }
         }
         if (newPos)
-            *newPos = npos;                
+            *newPos = npos;
         return LVERR_OK;
     }
     virtual lverror_t Write(const void*, lvsize_t, lvsize_t*)
@@ -1186,9 +1186,9 @@ public:
     {
         lvsize_t bytesRead = 0;
         //fprintf( stderr, "Read()\n" );
-        
+
         lUInt8 * out = (lUInt8 *)buf;
-        
+
         while (size>0)
         {
             int sz = bytesAvailable();
@@ -1196,7 +1196,7 @@ public:
                 m_bytes_pos = m_bytes_count = 0;
                 sz = readNextBytes();
                 if (!sz) {
-                    if ( !bytesRead || m_pos!=m_size) // 
+                    if ( !bytesRead || m_pos!=m_size) //
                         return LVERR_FAIL;
                     break;
                 }
@@ -1298,7 +1298,7 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
                 pos++;
             if (!s[pos] || pos==istart)
                 return xpath_step_error;
-			
+
             lString16 sindex( path+istart, pos-istart );
 			index = sindex.atoi();
             pos++;
@@ -1332,7 +1332,7 @@ lUInt32 ldomNode::getNodeIndex() const
     for (int i=_parent->getChildCount()-1; i>=0; i--)
         if (_parent->getChildNode(i)==this)
             return i;
-    return -1;
+    return (lUInt32)-1;
 }
 #endif
 
@@ -1446,7 +1446,7 @@ ldomElement * ldomNode::elementFromPoint( lvPoint pt )
     int count = getChildCount();
     for ( int i=0; i<count; i++ ) {
         ldomNode * p = getChildNode( i );
-        ldomElement * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(), 
+        ldomElement * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(),
                 pt.y - fmt->getY() ) );
         if ( e )
             return e;
@@ -1794,9 +1794,9 @@ lString16 ldomXPointer::toString()
 }
 
 int ldomDocument::getFullHeight()
-{ 
+{
     lvdomElementFormatRec * rd = this ? this->getMainNode()->getRenderData() : NULL;
-    return ( rd ? rd->getHeight() + rd->getY() : 0 ); 
+    return ( rd ? rd->getHeight() + rd->getY() : 0 );
 }
 
 
@@ -1951,7 +1951,7 @@ void ldomXPointerEx::recurseElements( void (*pFun)( ldomXPointerEx & node ) )
         return;
     pFun( *this );
     if ( child( 0 ) ) {
-        do { 
+        do {
             recurseElements( pFun );
         } while ( nextSibling() );
         parent();
@@ -1965,7 +1965,7 @@ void ldomXPointerEx::recurseNodes( void (*pFun)( ldomXPointerEx & node ) )
         return;
     pFun( *this );
     if ( child( 0 ) ) {
-        do { 
+        do {
             recurseElements( pFun );
         } while ( nextSibling() );
         parent();
@@ -2019,7 +2019,7 @@ static const ldomXPointerEx & _min( const ldomXPointerEx & v1,  const ldomXPoint
 
 /// create intersection of two ranges
 ldomXRange::ldomXRange( const ldomXRange & v1,  const ldomXRange & v2 )
-    : _start( _max( v1._start, v2._start ) ), _end( _min( v1._end, v2._end ) ) 
+    : _start( _max( v1._start, v2._start ) ), _end( _min( v1._end, v2._end ) )
 {
 }
 
@@ -2203,7 +2203,7 @@ ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRe
         ldomMarkedRange * src = list->get(i);
         if ( src->start.y>=rc.bottom || src->end.y<rc.top )
             continue;
-        add( new ldomMarkedRange( 
+        add( new ldomMarkedRange(
             lvPoint(src->start.x-rc.left, src->start.y-rc.top ),
             lvPoint(src->end.x-rc.left, src->end.y-rc.top ),
             src->flags ) );
@@ -2333,14 +2333,14 @@ public:
         /*
         case css_d_inherit:
         case css_d_block:
-        case css_d_list_item: 
+        case css_d_list_item:
         case css_d_compact:
         case css_d_marker:
         case css_d_table:
         case css_d_inline_table:
         case css_d_table_row_group:
         case css_d_table_header_group:
-        case css_d_table_footer_group: 
+        case css_d_table_footer_group:
         case css_d_table_row:
         case css_d_table_column_group:
         case css_d_table_column:
@@ -2353,7 +2353,7 @@ public:
         case css_d_none:
             return false;
         case css_d_inline:
-        case css_d_run_in: 
+        case css_d_run_in:
             newBlock = false;
             return true;
         }

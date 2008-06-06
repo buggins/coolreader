@@ -58,10 +58,10 @@ xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index 
 
 
 /// Base class for XML DOM documents
-/** 
-    Helps to decrease memory usage and increase performance for DOM implementations. 
+/**
+    Helps to decrease memory usage and increase performance for DOM implementations.
     Maintains Name<->Id maps for element names, namespaces and attributes.
-    It allows to use short IDs instead of strings in DOM internals, 
+    It allows to use short IDs instead of strings in DOM internals,
     and avoid duplication of string values.
 */
 class lxmlDocBase
@@ -171,10 +171,10 @@ public:
     }
     /// garbage collector
     virtual void gc()
-    { 
-        _styleCache.gc(); 
+    {
+        _styleCache.gc();
 #ifndef BUILD_LITE
-        fontMan->gc(); 
+        fontMan->gc();
 #endif
     }
 
@@ -344,7 +344,7 @@ public:
     virtual lUInt32 getAttrCount() const = 0;
     /// returns attribute value by attribute name id and namespace id
     virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const = 0;
-    /// returns attribute by index    
+    /// returns attribute by index
     virtual const lxmlAttribute * getAttribute( lUInt32 index ) const = 0;
     /// returns true if element node has attribute with specified name id and namespace id
     virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const = 0;
@@ -388,10 +388,10 @@ public:
     {
         pFun( this );
     }
-    
-    
+
+
     // inline, dummy namespace
-    
+
     /// returns attribute value by attribute name id
     const lString16 & getAttributeValue( lUInt16 id ) const
     {
@@ -462,7 +462,7 @@ public:
     {
         return lString16::empty_str;
     }
-    /// returns attribute by index    
+    /// returns attribute by index
     virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
     /// returns true if element node has attribute with specified name id and namespace id
     virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
@@ -755,7 +755,7 @@ public:
     {
     }
     ldomMarkedText( const ldomMarkedText & v )
-    : text(v.text), flags(v.flags) 
+    : text(v.text), flags(v.flags)
     {
     }
 };
@@ -785,7 +785,7 @@ public:
     }
     /// copy constructor
     ldomMarkedRange( const ldomMarkedRange & v )
-    : start(v.start), end(v.end), flags(v.flags) 
+    : start(v.start), end(v.end), flags(v.flags)
     {
     }
 };
@@ -820,6 +820,8 @@ public:
     ldomXRangeList() {};
 };
 
+
+
 class ldomElement;
 #if COMPACT_DOM == 1
 class ldomTextRef;
@@ -847,7 +849,7 @@ private:
     css_style_ref_t _def_style;
     int _page_height;
     ldomXRangeList _selections;
-    
+
 #if COMPACT_DOM == 1
     LVXMLTextCache _textcache;
     int            _min_ref_text_size;
@@ -976,7 +978,7 @@ public:
     {
         return lString16::empty_str;
     }
-    /// returns attribute by index    
+    /// returns attribute by index
     virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
     /// returns true if element node has attribute with specified name id and namespace id
     virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
@@ -1071,7 +1073,7 @@ public:
         if (nsid == LXML_NS_NONE)
             _document->onAttributeSet( id, valueId, this );
     }
-    /// returns attribute by index    
+    /// returns attribute by index
     virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return _attrs[index]; }
     /// returns attribute value by attribute name id
     const lString16 & getAttributeName( lUInt32 index ) const { return _document->getAttrName(_attrs[index]->id); }
@@ -1103,7 +1105,7 @@ public:
     }
     /// sets node rendering structure pointer
     virtual void setRenderData( lvdomElementFormatRec * pRenderData )
-    {   
+    {
         if (_renderData)
             delete _renderData;
         _renderData = pRenderData;
@@ -1261,7 +1263,7 @@ class ldomElementWriter
     {
         return _element;
     }
-    void onText( const lChar16 * text, int len, 
+    void onText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
     void addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value );
     //lxmlElementWriter * pop( lUInt16 id );
@@ -1302,14 +1304,14 @@ public:
     virtual void OnStart(LVFileFormatParser * parser);
     /// called on parsing end
     virtual void OnStop();
-    /// called on opening tag 
+    /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
-    /// called on closing tag 
+    /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
-    /// called on attribute 
+    /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
-    /// called on text 
-    virtual void OnText( const lChar16 * text, int len, 
+    /// called on text
+    virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
     /// constructor
     ldomDocumentWriter(ldomDocument * document, bool headerOnly=false );
