@@ -229,7 +229,7 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
     \param code is character
     \return 1 if character is space, 0 otherwise 
 */
-int lvfontIsUnicodeSpace( lChar16 code );
+inline int lvfontIsUnicodeSpace( lChar16 code ) { return code==0x0020; }
 
 /** \brief returns unpacked glyph image 
     \param packed is RLE/Huffman encoded glyph data

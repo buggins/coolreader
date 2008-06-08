@@ -19,11 +19,13 @@
 #define MIN_FONT_SIZE 2048
 #define MAX_FONT_SIZE 0x100000
 
+#ifndef __cplusplus
 int lvfontIsUnicodeSpace( lChar16 code )
 {
     /* TODO: add other space codes here */
     return (code==0x0020);
 }
+#endif
 
 const lvfont_header_t * lvfontGetHeader( const lvfont_handle pfont )
 {

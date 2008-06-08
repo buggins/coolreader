@@ -569,20 +569,25 @@ public:
         for ( nchars=0; nchars<len; nchars++) {
             lChar16 ch = text[nchars];
             bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
-            FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, ch );
-            if ( ch_glyph_index==0 )
-                ch_glyph_index = FT_Get_Char_Index( _face, def_char );
+            FT_UInt ch_glyph_index = -1;
             int kerning = 0;
 #if (ALLOW_KERNING==1)
-            if ( use_kerning && previous && ch_glyph_index ) {
-                FT_Vector delta;
-                error = FT_Get_Kerning( _face,          /* handle to face object */
-                              previous,          /* left glyph index      */
-                              ch_glyph_index,         /* right glyph index     */
-                              FT_KERNING_DEFAULT,  /* kerning mode          */
-                              &delta );    /* target vector         */
-                if ( !error )
-                    kerning = delta.x;
+            if ( use_kerning && previous ) {
+                if ( ch_glyph_index==-1 ){
+                    ch_glyph_index = FT_Get_Char_Index( _face, ch );
+                    if ( ch_glyph_index==0 )
+                        ch_glyph_index = FT_Get_Char_Index( _face, def_char );
+                }
+                if ( ch_glyph_index != 0 ) {
+                    FT_Vector delta;
+                    error = FT_Get_Kerning( _face,          /* handle to face object */
+                                  previous,          /* left glyph index      */
+                                  ch_glyph_index,         /* right glyph index     */
+                                  FT_KERNING_DEFAULT,  /* kerning mode          */
+                                  &delta );    /* target vector         */
+                    if ( !error )
+                        kerning = delta.x;
+                }
             }
 #endif
             int bflags = 0;
@@ -598,6 +603,11 @@ public:
             /* load glyph image into the slot (erase previous one) */
             int w = _wcache.get(ch);
             if ( w==0xFF ) {
+                if ( ch_glyph_index==-1 ){
+                    ch_glyph_index = FT_Get_Char_Index( _face, ch );
+                    if ( ch_glyph_index==0 )
+                        ch_glyph_index = FT_Get_Char_Index( _face, def_char );
+                }
                 error = FT_Load_Glyph( _face,          /* handle to face object */
                         ch_glyph_index,                /* glyph index           */
                         FT_LOAD_DEFAULT );             /* load flags, see below */

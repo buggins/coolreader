@@ -563,13 +563,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 		case WM_CREATE:
-		    //text_view->Draw();
-		    {
-                LVDocImageRef pageImage = text_view->getPageImage(0);
-                //LVDrawBuf * drawbuf =
-                pageImage->getDrawBuf();
-                UpdateScrollBar(hWnd);
-		    }
+            {
+		        LVDocImageRef img = text_view->getPageImage( 0 );
+                img->getDrawBuf();
+		        UpdateScrollBar(hWnd);
+            }
 		    break;
 		case WM_ERASEBKGND:
             break;
@@ -722,10 +720,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
 			    hdc = BeginPaint(hWnd, &ps);
 
-				//text_view->Draw();
-                LVDocImageRef pageImage = text_view->getPageImage(0);
-                LVDrawBuf * drawbuf = pageImage->getDrawBuf();
-                drawbuf->DrawTo( hdc, 0, 0, 0, NULL);
+		        LVDocImageRef img = text_view->getPageImage( 0 );
+                LVDrawBuf * drawBuf = img->getDrawBuf();
+                drawBuf->DrawTo( hdc, 0, 0, 0, NULL);
 
                 //COLORREF pal[4]={0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};
                 //DrawBuf2DC( hdc, 0, 0, text_view->GetDrawBuf(), pal, 1 );
