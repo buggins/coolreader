@@ -719,9 +719,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_PAINT:
             {
 			    hdc = BeginPaint(hWnd, &ps);
-
 		        LVDocImageRef img = text_view->getPageImage( 0 );
                 LVDrawBuf * drawBuf = img->getDrawBuf();
+                ldomXRangeList links;
+                text_view->getCurrentPageLinks( links );
+                int linkCount = links.length();
+                if ( linkCount ) {
+                    for ( int i=0; i<linkCount; i++ ) {
+                        lString16 txt = links[i]->getRangeText();
+                        lString8 txt8 = UnicodeToLocal( txt );
+                        const char * s = txt8.c_str();
+                        txt.clear();
+                    }
+                    linkCount++;
+                }
                 drawBuf->DrawTo( hdc, 0, 0, 0, NULL);
 
                 //COLORREF pal[4]={0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};

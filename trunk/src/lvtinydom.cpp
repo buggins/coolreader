@@ -1870,8 +1870,7 @@ bool ldomXPointerEx::sibling( int index )
     if ( _level < 1 )
         return false;
     ldomElement * p = _node->getParentNode();
-    int count = p->getChildCount();
-    if ( index < 0 || index >= count )
+    if ( !p || index < 0 || index >= (int)p->getChildCount() )
         return false;
     _node = p->getChildNode( index );
     _indexes[ _level-1 ] = index;

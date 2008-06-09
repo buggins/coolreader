@@ -1163,7 +1163,7 @@ public:
     {
         if (index>(lUInt32)_children.length())
             index = _children.length();
-        ldomTextRef * text = new ldomTextRef( this, _level+1, index, (lUInt32)fpos, (lUInt32)fsize, flags );
+        ldomTextRef * text = new ldomTextRef( this, _level+1, index, (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
         _children.insert( index, text );
 #if (LDOM_ALLOW_NODE_INDEX==1)
         // reindex tail
@@ -1175,7 +1175,7 @@ public:
     /// inserts text as reference to document file
     ldomTextRef * insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
     {
-        ldomTextRef * text = new ldomTextRef( this, _level+1, _children.length(), (lUInt32)fpos, (lUInt32)fsize, flags );
+        ldomTextRef * text = new ldomTextRef( this, _level+1, (lUInt16)_children.length(), (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
         _children.add( text );
         return text;
     }
