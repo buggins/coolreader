@@ -684,6 +684,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     UpdateScrollBar( hWnd );
                     //Update(hWnd);
                     break;
+                case VK_RETURN:
+                    text_view->goSelectedLink();
+                    UpdateScrollBar( hWnd );
+                    break;
+                case VK_BACK:
+                    text_view->goBack();
+                    UpdateScrollBar( hWnd );
+                    break;
                 }
             }
             break;

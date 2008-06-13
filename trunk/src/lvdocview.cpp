@@ -285,6 +285,7 @@ void LVDocView::Clear()
         m_filename.clear();
     }
     m_imageCache.clear();
+    _navigationHistory.clear();
 }
 
 /// invalidate image cache, request redraw
@@ -1515,8 +1516,8 @@ ldomXRange * LVDocView::selectFirstPageLink()
     return sel[0];
 }
 
-/// selects next link on page, if any. returns selected link range, null if no links.
-ldomXRange * LVDocView::selectNextPageLink( bool wrapAround )
+/// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
+ldomXRange * LVDocView::selectPageLink( int delta, bool wrapAround)
 {
     ldomXRangeList & sel = getDocument()->getSelections();
     ldomXRangeList list;
@@ -1533,52 +1534,129 @@ ldomXRange * LVDocView::selectNextPageLink( bool wrapAround )
             }
         }
     }
-    int nextIndex = currentLinkIndex + 1;
-    if ( nextIndex>=list.length() ) {
-        if ( !wrapAround ) {
-            clearSelection();
-            return NULL; // last link already
+    bool error = false;
+    if ( delta==1 ) {
+        // next
+        currentLinkIndex++;
+        if ( currentLinkIndex>=list.length() ) {
+            if ( wrapAround )
+                currentLinkIndex = 0;
+            else
+                error = true;
         }
-        nextIndex = 0;
+
+    } else if ( delta==-1 ) {
+        // previous
+        if ( currentLinkIndex==-1 )
+            currentLinkIndex = list.length()-1;
+        else
+            currentLinkIndex--;
+        if ( currentLinkIndex<0 ) {
+            if ( wrapAround )
+                currentLinkIndex = list.length()-1;
+            else
+                error = true;
+        }
+    } else {
+        // current
+        if ( currentLinkIndex < 0 || currentLinkIndex >= list.length() )
+            error = true;
+    }
+    if ( error ) {
+        clearSelection();
+        return NULL;
     }
     //
-    selectRange( *list[nextIndex] );
+    selectRange( *list[currentLinkIndex] );
     //
     updateSelections();
     return sel[0];
 }
 
+/// selects next link on page, if any. returns selected link range, null if no links.
+ldomXRange * LVDocView::selectNextPageLink( bool wrapAround )
+{
+    return selectPageLink( +1, wrapAround );
+}
+
 /// selects previous link on page, if any. returns selected link range, null if no links.
 ldomXRange * LVDocView::selectPrevPageLink( bool wrapAround )
 {
-    ldomXRangeList & sel = getDocument()->getSelections();
-    ldomXRangeList list;
-    getCurrentPageLinks( list );
-    if ( !list.length() )
-        return NULL;
-    int currentLinkIndex = -1;
-    if ( sel.length() > 0 ) {
-        ldomNode * currSel = sel[0]->getStart().getNode();
-        for ( int i=0; i<list.length(); i++ ) {
-            if ( list[i]->getStart().getNode() == currSel ) {
-                currentLinkIndex = i;
-                break;
-            }
-        }
-    }
-    if ( currentLinkIndex==0 && !wrapAround ) {
-        clearSelection();
-        return NULL; // first link already
-    }
-    int nextIndex = currentLinkIndex - 1;
-    if ( nextIndex<0 )
-        nextIndex = list.length()-1;
-    //
-    selectRange( *list[nextIndex] );
-    //
-    updateSelections();
-    return sel[0];
+    return selectPageLink( -1, wrapAround );
 }
+
+/// returns selected link on page, if any. null if no links.
+ldomXRange * LVDocView::getCurrentPageSelectedLink()
+{
+    return selectPageLink( 0, false );
+}
+
+/// follow link, returns true if navigation was successful
+bool LVDocView::goLink( lString16 link )
+{
+    if ( link.empty() ) {
+        ldomXRange * node = LVDocView::getCurrentPageSelectedLink();
+        if ( node )
+            link = node->getHRef();
+        if ( link.empty() )
+            return false;
+    }
+    if ( link[0]!='#' || link.length()<=1 )
+        return false; // only internal links supported (started with #)
+    link = link.substr( 1, link.length()-1 );
+    lUInt16 id = m_doc->getAttrValueIndex(link.c_str());
+    ldomElement * dest = (ldomElement*)m_doc->getNodeById( id );
+    if ( !dest )
+        return false;
+    ldomXPointer bookmark = getBookmark();
+    if ( !bookmark.isNull() ) {
+        lString16 path = bookmark.toString();
+        if ( !path.empty() )
+            _navigationHistory.save( path );
+    }
+    ldomXPointer newPos( dest, 0 );
+    goToBookmark( newPos );
+    return true;
+}
+
+/// follow selected link, returns true if navigation was successful
+bool LVDocView::goSelectedLink()
+{
+    ldomXRange * link = getCurrentPageSelectedLink();
+    if ( !link )
+        return false;
+    lString16 href = link->getHRef();
+    if ( href.empty() )
+        return false;
+    return goLink( href );
+}
+
+/// go back. returns true if navigation was successful
+bool LVDocView::goBack()
+{
+    lString16 path = _navigationHistory.back();
+    if ( path.empty() )
+        return false;
+    ldomXPointer bookmark = m_doc->createXPointer( path );
+    if ( bookmark.isNull() )
+        return false;
+    goToBookmark( bookmark );
+    return true;
+}
+
+/// go forward. returns true if navigation was successful
+bool LVDocView::goForward()
+{
+    lString16 path = _navigationHistory.forward();
+    if ( path.empty() )
+        return false;
+    ldomXPointer bookmark = m_doc->createXPointer( path );
+    if ( bookmark.isNull() )
+        return false;
+    goToBookmark( bookmark );
+    return true;
+}
+
 
 /// update selection ranges
 void LVDocView::updateSelections()
@@ -2340,6 +2418,10 @@ void LVDocView::getCurrentPageLinks( ldomXRangeList & list )
                 //
                 ldomElement * elem = (ldomElement *)ptr->getNode();
                 if ( elem->getNodeId()==el_a ) {
+                    for ( int i=0; i<_list.length(); i++ ) {
+                        if ( _list[i]->getStart().getNode() == elem )
+                            return true; // don't add, duplicate found!
+                    }
                     _list.add( new ldomXRange(elem) );
                 }
                 return true;
@@ -2347,6 +2429,13 @@ void LVDocView::getCurrentPageLinks( ldomXRangeList & list )
         };
         LinkKeeper callback( list );
         page->forEach( &callback );
+        if ( m_view_mode==DVM_PAGES && getVisiblePageCount()>1 ) {
+            // process second page
+            int pageNumber = getCurPage();
+            page = getPageDocumentRange( pageNumber+1 );
+            if ( !page.isNull() )
+                page->forEach( &callback );
+        }
     }
 }
 

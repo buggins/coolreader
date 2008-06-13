@@ -298,6 +298,7 @@ private:
     bool m_posIsSet;
 
     lString8 m_defaultFontFace;
+    ldomNavigationHistory _navigationHistory;
 
 
     // private functions
@@ -308,6 +309,7 @@ private:
     void updateLayout();
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
+
 
 protected:
     /// draw to specified buffer
@@ -328,6 +330,8 @@ protected:
     void checkRender();
     /// ensure current position is set to current bookmark value
     void checkPos();
+    /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
+    virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
 public:
 
     // Links and selections functions
@@ -337,6 +341,8 @@ public:
     virtual void selectRange( const ldomXRange & range );
     /// clears selection
     virtual void clearSelection();
+    /// navigation history
+    ldomNavigationHistory & getNavigationHistory() { return _navigationHistory; }
     /// get list of links
     virtual void getCurrentPageLinks( ldomXRangeList & list );
     /// selects first link on page, if any. returns selected link range, null if no links.
@@ -345,6 +351,16 @@ public:
     virtual ldomXRange * selectNextPageLink( bool wrapAround);
     /// selects previous link on page, if any. returns selected link range, null if no links.
     virtual ldomXRange * selectPrevPageLink( bool wrapAround );
+    /// returns selected link on page, if any. null if no links.
+    virtual ldomXRange * getCurrentPageSelectedLink();
+    /// follow link, returns true if navigation was successful
+    virtual bool goLink( lString16 href );
+    /// follow selected link, returns true if navigation was successful
+    virtual bool goSelectedLink();
+    /// go back. returns true if navigation was successful
+    virtual bool goBack();
+    /// go forward. returns true if navigation was successful
+    virtual bool goForward();
 
 
     /// create empty document with specified message (to show errors)

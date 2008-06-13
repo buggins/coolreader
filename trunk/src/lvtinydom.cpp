@@ -2368,3 +2368,12 @@ lString16 ldomXRange::getRangeText( lChar16 blockDelimiter, int maxTextLen )
     forEach( &callback );
     return callback.getText();
 }
+
+/// returns href attribute of <A> element, null string if not found
+lString16 ldomXRange::getHRef()
+{
+    if ( isNull() || !_start.getNode()->isElement() || _start.getNode()->getNodeId()!=el_a )
+        return lString16();
+    lString16 ref = _start.getNode()->getAttributeValue( LXML_NS_ANY, attr_href );
+    return ref;
+}

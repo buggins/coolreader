@@ -738,6 +738,8 @@ public:
     bool checkIntersection( ldomXRange & v );
     /// returns text between two XPointer positions
     lString16 getRangeText( lChar16 blockDelimiter='\n', int maxTextLen=0 );
+    /// returns href attribute of <A> element, null string if not found
+    lString16 getHRef();
     /// sets range to nearest word bounds, returns true if success
     static bool getWordRange( ldomXRange & range, ldomXPointer & p );
     /// run callback for each node in range
@@ -839,6 +841,50 @@ typedef LVCacheMap< ldomElement *, LFormattedTextRef> CVRendBlockCache;
 #define DOC_FLAG_ENABLE_FOOTNOTES       2
 /// default docFlag set
 #define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES)
+
+class ldomNavigationHistory
+{
+    private:
+        lString16Collection _links;
+        int _pos;
+        void clearTail()
+        {
+            if ( _links.length()-_pos > 0 )
+                _links.erase(_pos, _links.length()-_pos);
+        }
+    public:
+        void clear()
+        {
+            _links.clear();
+            _pos = 0;
+        }
+        void save( lString16 link )
+        {
+            clearTail();
+            _links.add( link );
+            _pos = _links.length();
+        }
+        lString16 back()
+        {
+            if (_pos==0)
+                return lString16();
+            return _links[--_pos];
+        }
+        lString16 forward()
+        {
+            if (_pos>=(int)_links.length())
+                return lString16();
+            return _links[_pos++];
+        }
+        int backCount()
+        {
+            return _pos;
+        }
+        int forwardCount()
+        {
+            return _links.length() - _pos;
+        }
+};
 
 class ldomDocument : public lxmlDocBase
 {
