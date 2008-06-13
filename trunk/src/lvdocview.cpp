@@ -1474,6 +1474,112 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
     }
 }
 
+/// sets selection for whole element, clears previous selection
+void LVDocView::selectElement( ldomElement * elem )
+{
+    ldomXRangeList & sel = getDocument()->getSelections();
+    sel.clear();
+    sel.add( new ldomXRange(elem) );
+    updateSelections();
+}
+
+/// sets selection for range, clears previous selection
+void LVDocView::selectRange( const ldomXRange & range )
+{
+    ldomXRangeList & sel = getDocument()->getSelections();
+    sel.clear();
+    sel.add( new ldomXRange(range) );
+    updateSelections();
+}
+
+/// clears selection
+void LVDocView::clearSelection()
+{
+    ldomXRangeList & sel = getDocument()->getSelections();
+    sel.clear();
+    updateSelections();
+}
+
+/// selects first link on page, if any. returns selected link range, null if no links.
+ldomXRange * LVDocView::selectFirstPageLink()
+{
+    ldomXRangeList list;
+    getCurrentPageLinks( list );
+    if ( !list.length() )
+        return NULL;
+    //
+    selectRange( *list[0] );
+    //
+    ldomXRangeList & sel = getDocument()->getSelections();
+    updateSelections();
+    return sel[0];
+}
+
+/// selects next link on page, if any. returns selected link range, null if no links.
+ldomXRange * LVDocView::selectNextPageLink( bool wrapAround )
+{
+    ldomXRangeList & sel = getDocument()->getSelections();
+    ldomXRangeList list;
+    getCurrentPageLinks( list );
+    if ( !list.length() )
+        return NULL;
+    int currentLinkIndex = -1;
+    if ( sel.length() > 0 ) {
+        ldomNode * currSel = sel[0]->getStart().getNode();
+        for ( int i=0; i<list.length(); i++ ) {
+            if ( list[i]->getStart().getNode() == currSel ) {
+                currentLinkIndex = i;
+                break;
+            }
+        }
+    }
+    int nextIndex = currentLinkIndex + 1;
+    if ( nextIndex>=list.length() ) {
+        if ( !wrapAround ) {
+            clearSelection();
+            return NULL; // last link already
+        }
+        nextIndex = 0;
+    }
+    //
+    selectRange( *list[nextIndex] );
+    //
+    updateSelections();
+    return sel[0];
+}
+
+/// selects previous link on page, if any. returns selected link range, null if no links.
+ldomXRange * LVDocView::selectPrevPageLink( bool wrapAround )
+{
+    ldomXRangeList & sel = getDocument()->getSelections();
+    ldomXRangeList list;
+    getCurrentPageLinks( list );
+    if ( !list.length() )
+        return NULL;
+    int currentLinkIndex = -1;
+    if ( sel.length() > 0 ) {
+        ldomNode * currSel = sel[0]->getStart().getNode();
+        for ( int i=0; i<list.length(); i++ ) {
+            if ( list[i]->getStart().getNode() == currSel ) {
+                currentLinkIndex = i;
+                break;
+            }
+        }
+    }
+    if ( currentLinkIndex==0 && !wrapAround ) {
+        clearSelection();
+        return NULL; // first link already
+    }
+    int nextIndex = currentLinkIndex - 1;
+    if ( nextIndex<0 )
+        nextIndex = list.length()-1;
+    //
+    selectRange( *list[nextIndex] );
+    //
+    updateSelections();
+    return sel[0];
+}
+
 /// update selection ranges
 void LVDocView::updateSelections()
 {

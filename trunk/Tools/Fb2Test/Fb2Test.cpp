@@ -679,6 +679,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         UpdateScrollBar( hWnd );
                     }
                 	break;
+                case VK_TAB:
+                    text_view->selectNextPageLink( true );
+                    UpdateScrollBar( hWnd );
+                    //Update(hWnd);
+                    break;
                 }
             }
             break;
@@ -721,10 +726,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			    hdc = BeginPaint(hWnd, &ps);
 		        LVDocImageRef img = text_view->getPageImage( 0 );
                 LVDrawBuf * drawBuf = img->getDrawBuf();
+                /*
                 ldomXRangeList links;
+                ldomXRangeList & sel = text_view->getDocument()->getSelections();
                 text_view->getCurrentPageLinks( links );
                 int linkCount = links.length();
                 if ( linkCount ) {
+                    sel.clear();
+                    sel.add( new ldomXRange(*links[0]) );
                     for ( int i=0; i<linkCount; i++ ) {
                         lString16 txt = links[i]->getRangeText();
                         lString8 txt8 = UnicodeToLocal( txt );
@@ -732,7 +741,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         txt.clear();
                     }
                     linkCount++;
+                    text_view->updateSelections();
                 }
+                */
                 drawBuf->DrawTo( hdc, 0, 0, 0, NULL);
 
                 //COLORREF pal[4]={0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};

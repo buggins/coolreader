@@ -329,8 +329,24 @@ protected:
     /// ensure current position is set to current bookmark value
     void checkPos();
 public:
+
+    // Links and selections functions
+    /// sets selection for whole element, clears previous selection
+    virtual void selectElement( ldomElement * elem );
+    /// sets selection for range, clears previous selection
+    virtual void selectRange( const ldomXRange & range );
+    /// clears selection
+    virtual void clearSelection();
     /// get list of links
     virtual void getCurrentPageLinks( ldomXRangeList & list );
+    /// selects first link on page, if any. returns selected link range, null if no links.
+    virtual ldomXRange * selectFirstPageLink();
+    /// selects next link on page, if any. returns selected link range, null if no links.
+    virtual ldomXRange * selectNextPageLink( bool wrapAround);
+    /// selects previous link on page, if any. returns selected link range, null if no links.
+    virtual ldomXRange * selectPrevPageLink( bool wrapAround );
+
+
     /// create empty document with specified message (to show errors)
     virtual void createDefaultDocument( lString16 title, lString16 message );
 
