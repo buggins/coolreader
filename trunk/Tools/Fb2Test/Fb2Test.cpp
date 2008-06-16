@@ -680,8 +680,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                 	break;
                 case VK_TAB:
-                    text_view->selectNextPageLink( true );
-                    UpdateScrollBar( hWnd );
+                    {
+                        bool shift = (GetKeyState( VK_SHIFT ) & 0x8000)!=0;
+                        if ( shift )
+                            text_view->selectPrevPageLink( true );
+                        else
+                            text_view->selectNextPageLink( true );
+                        UpdateScrollBar( hWnd );
+                    }
                     //Update(hWnd);
                     break;
                 case VK_RETURN:

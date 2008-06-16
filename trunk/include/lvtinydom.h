@@ -573,6 +573,8 @@ public:
 	{
 		return _node!=v._node || _offset!=v._offset;
 	}
+    /// returns caret rectangle for pointer inside formatted document
+    bool getRect(lvRect & rect) const;
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint() const;
     /// converts to string
@@ -594,6 +596,10 @@ protected:
     int _level;
     void initIndex();
 public:
+    /// returns bottom level index
+    int getIndex() { return _indexes[_level-1]; }
+    /// returns node level
+    int getLevel() { return _level; }
     /// default constructor
     ldomXPointerEx()
     : ldomXPointer()
@@ -744,6 +750,10 @@ public:
     static bool getWordRange( ldomXRange & range, ldomXPointer & p );
     /// run callback for each node in range
     void forEach( ldomNodeCallback * callback );
+    /// returns rectangle (in doc coordinates) for range. Returns true if found.
+    bool getRect( lvRect & rect );
+    /// returns nearest common element for start and end points
+    ldomElement * getNearestCommonParent();
 };
 
 class ldomMarkedText

@@ -1533,9 +1533,17 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
 /// returns coordinates of pointer inside formatted document
 lvPoint ldomXPointer::toPoint() const
 {
-    lvPoint pt(-1, -1);
+    lvRect rc;
+    if ( !getRect( rc ) )
+        return lvPoint(-1, -1);
+    return rc.topLeft();
+}
+
+/// returns caret rectangle for pointer inside formatted document
+bool ldomXPointer::getRect(lvRect & rect) const
+{
     if ( !_node )
-        return pt;
+        return false;
     ldomElement * p = _node->isElement() ? (ldomElement *)_node : _node->getParentNode();
     ldomElement * finalNode = NULL;
     ldomElement * mainNode = p->getDocument()->getMainNode();
@@ -1543,7 +1551,7 @@ lvPoint ldomXPointer::toPoint() const
         if ( p->getRendMethod() == erm_final ) {
             finalNode = p; // found final block
         } else if ( p->getRendMethod() == erm_invisible ) {
-            return pt; // invisible !!!
+            return false; // invisible !!!
         }
         if ( p==mainNode )
             break;
@@ -1553,7 +1561,7 @@ lvPoint ldomXPointer::toPoint() const
         finalNode->getAbsRect( rc );
         lvdomElementFormatRec * r = finalNode->getRenderData();
         if ( !r )
-            return pt;
+            return false;
         LFormattedTextRef txtform;
         finalNode->renderFinalBlock( txtform, r->getWidth() );
 
@@ -1580,7 +1588,7 @@ lvPoint ldomXPointer::toPoint() const
                         offset = node->getText().length();
                 }
                 if ( !node )
-                    return pt;
+                    return false;
             }
         }
 
@@ -1596,7 +1604,7 @@ lvPoint ldomXPointer::toPoint() const
             }
         }
         if ( srcIndex == -1 )
-            return pt;
+            return false;
         for ( int l = 0; l<txtform->GetLineCount(); l++ ) {
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
@@ -1605,9 +1613,12 @@ lvPoint ldomXPointer::toPoint() const
                     // found word from same src line
                     if ( _offset<=word->t.start ) {
                         // before this word
-                        pt.x = word->x + rc.left + frmline->x;
-                        pt.y = word->y + rc.top + frmline->y + frmline->baseline;
-                        return pt;
+                        rect.left = word->x + rc.left + frmline->x;
+                        //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
+                        rect.top = rc.top + frmline->y;
+                        rect.right = rect.left + 1;
+                        rect.bottom = rect.top + frmline->height;
+                        return true;
                     } else if ( (offset<word->t.start+word->t.len) || (offset==srcLen && offset==word->t.start+word->t.len) ) {
                         // pointer inside this word
                         LVFont * font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
@@ -1616,29 +1627,35 @@ lvPoint ldomXPointer::toPoint() const
                         lString16 str = node->getText();
                         font->measureText( str.c_str()+word->t.start, offset - word->t.start, w, flg, word->width+50, '?');
                         int chx = w[ _offset - word->t.start - 1 ];
-                        pt.x = word->x + chx + rc.left + frmline->x;
-                        pt.y = word->y + rc.top + frmline->y + frmline->baseline;
-                        return pt;
+                        rect.left = word->x + chx + rc.left + frmline->x;
+                        //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
+                        rect.top = rc.top + frmline->y;
+                        rect.right = rect.left + 1;
+                        rect.bottom = rect.top + frmline->height;
+                        return true;
                     }
                 } else if ( word->src_text_index>srcIndex ) {
-                    return pt;
+                    return false;
                 }
             }
         }
-        return pt;
+        return false;
     } else {
         // no base final node, using blocks
-        lvRect rc;
+        //lvRect rc;
         if ( _offset<0 || _node->getChildCount()==0 ) {
-            _node->getAbsRect( rc );
-            return rc.topLeft();
+            _node->getAbsRect( rect );
+            return true;
+            //return rc.topLeft();
         }
         if ( _offset < (int)_node->getChildCount() ) {
-            _node->getChildNode(_offset)->getAbsRect( rc );
-            return rc.topLeft();
+            _node->getChildNode(_offset)->getAbsRect( rect );
+            return true;
+            //return rc.topLeft();
         }
-        _node->getChildNode(_node->getChildCount()-1)->getAbsRect( rc );
-        return rc.bottomRight();
+        _node->getChildNode(_node->getChildCount()-1)->getAbsRect( rect );
+        return true;
+        //return rc.bottomRight();
     }
 }
 #endif
@@ -2207,6 +2224,50 @@ ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRe
             lvPoint(src->end.x-rc.left, src->end.y-rc.top ),
             src->flags ) );
     }
+}
+
+/// returns nearest common element for start and end points
+ldomElement * ldomXRange::getNearestCommonParent()
+{
+    ldomXPointerEx start(getStart());
+    ldomXPointerEx end(getEnd());
+    while ( start.getLevel() > end.getLevel() && start.parent() )
+        ;
+    while ( start.getLevel() < end.getLevel() && end.parent() )
+        ;
+    while ( start.getIndex()!=end.getIndex() && start.parent() && end.parent() )
+        ;
+    if ( start.getNode()==end.getNode() )
+        return (ldomElement *)start.getNode();
+    return NULL;
+}
+
+/// returns rectangle (in doc coordinates) for range. Returns true if found.
+bool ldomXRange::getRect( lvRect & rect )
+{
+    if ( isNull() )
+        return false;
+    // get start and end rects
+    lvRect rc1;
+    lvRect rc2;
+    if ( !getStart().getRect(rc1) || !getEnd().getRect(rc2) )
+        return false;
+    if ( rc1.top == rc2.top && rc1.bottom == rc2.bottom ) {
+        // on same line
+        rect.left = rc1.left;
+        rect.top = rc1.top;
+        rect.right = rc2.right;
+        rect.bottom = rc2.bottom;
+        return !rect.isEmpty();
+    }
+    // on different lines
+    ldomElement * parent = getNearestCommonParent();
+    if ( !parent )
+        return false;
+    parent->getAbsRect(rect);
+    rect.top = rc1.top;
+    rect.bottom = rc2.bottom;
+    return !rect.isEmpty();
 }
 
 /// sets range to nearest word bounds, returns true if success

@@ -58,6 +58,7 @@ public:
     int top;
     int right;
     int bottom;
+    bool isEmpty() { return left>=right || bottom<=top; }
     lvRect() : left(0), top(0), right(0), bottom(0) { }
     lvRect( int x0, int y0, int x1, int y1) : left(x0), top(y0), right(x1), bottom(y1) { }
     lvPoint topLeft() const { return lvPoint( left, top ); }
@@ -103,7 +104,7 @@ public:
     /// reverse 32 bit word
     inline static lUInt32 rev( lUInt32 w )
     {
-        return 
+        return
             ((w&0xFF000000)>>24)|
             ((w&0x00FF0000)>>8) |
             ((w&0x0000FF00)<<8) |
@@ -112,7 +113,7 @@ public:
     /// reverse 16bit word
     inline static lUInt16 rev( lUInt16 w )
     {
-        return 
+        return
             (lUInt16)(
             ((w&0xFF00)>>8)|
             ((w&0x00FF)<<8) );
