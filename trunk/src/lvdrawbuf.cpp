@@ -1043,6 +1043,14 @@ void LVColorDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palett
 #endif
 
 /// draws buffer content to another buffer doing color conversion if necessary
+void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette )
+{
+	if ( buf->GetBitsPerPixel()!=GetBitsPerPixel() || GetWidth()!=buf->GetWidth() || GetHeight()!=buf->GetHeight() )
+		return;
+	memcpy( buf->GetScanLine(0), GetScanLine(0), GetWidth() * GetHeight() * GetBitsPerPixel() / 8);
+}
+
+/// draws buffer content to another buffer doing color conversion if necessary
 void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette )
 {
     //

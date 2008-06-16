@@ -179,7 +179,7 @@ public:
     /// returns black pixel value
     virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
-    virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette ) { }
+    virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette );
