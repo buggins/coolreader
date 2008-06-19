@@ -1412,7 +1412,8 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange( int pageIndex )
     if ( page->type!=PAGE_TYPE_NORMAL)
         return res;
     ldomXPointer start = m_doc->createXPointer( lvPoint( 0, page->start ) );
-    ldomXPointer end = m_doc->createXPointer( lvPoint( m_dx+m_dy, page->start + page->height-1 ) );
+    //ldomXPointer end = m_doc->createXPointer( lvPoint( m_dx+m_dy, page->start + page->height - 1 ) );
+    ldomXPointer end = m_doc->createXPointer( lvPoint( 0, page->start + page->height  ) );
     if ( start.isNull() || end.isNull() )
         return res;
     res = LVRef<ldomXRange> ( new ldomXRange(start, end) );

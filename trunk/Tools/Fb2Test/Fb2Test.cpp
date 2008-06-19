@@ -701,6 +701,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
             break;
+        case WM_LBUTTONDOWN:
+            {
+                int xPos = lParam & 0xFFFF;
+                int yPos = (lParam >> 16) & 0xFFFF;
+                ldomXPointer ptr = text_view->getNodeByPoint( lvPoint( xPos, yPos ) );
+                if ( !ptr.isNull() ) {
+                    if ( ptr.getNode()->isText() ) {
+                        ldomXRange * wordRange = new ldomXRange();
+                        if ( ldomXRange::getWordRange( *wordRange, ptr ) ) {
+                            wordRange->setFlags( 0x10000 );
+                            text_view->getDocument()->getSelections().clear();
+                            text_view->getDocument()->getSelections().add( wordRange );
+                            text_view->updateSelections();
+                            UpdateScrollBar( hWnd );
+                        } else {
+                            delete wordRange;
+                        }
+                    }
+                }
+
+            }
+            break;
 		case WM_COMMAND:
 			wmId    = LOWORD(wParam);
 			wmEvent = HIWORD(wParam);

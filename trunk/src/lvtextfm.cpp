@@ -154,7 +154,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     pline->bgcolor = bgcolor;
 }
 
-void lvtextAddSourceObject( 
+void lvtextAddSourceObject(
    formatted_text_fragment_t * pbuffer,
    lUInt16         width,
    lUInt16         height,
@@ -256,9 +256,11 @@ int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
                         expand_dd--;
                     }
                 }
-                frmline->words[i+1].x += delta;
+                if ( i<frmline->word_count-1 ) {
+                    frmline->words[i+1].x += delta;
+                }
             }
-            frmline->width += w;
+            frmline->width = frmline->words[frmline->word_count-1].x + frmline->words[frmline->word_count-1].width;
         }
     }
     return flgRollback;
@@ -333,9 +335,9 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                     chars_left = srcline->t.len - text_offset;
                     isParaStart = (line_flags & LTEXT_FLAG_NEWLINE) && text_offset==0;
                     /* measure line */
-                    chars_measured = font->measureText( 
-                        text_offset + srcline->t.text, 
-                        chars_left, 
+                    chars_measured = font->measureText(
+                        text_offset + srcline->t.text,
+                        chars_left,
                         widths_buf, flags_buf,
                         pbuffer->width,
                         '?');
@@ -348,8 +350,8 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                     {
                         if (frmline)
                         {
-                            flgRollback = lvtextFinalizeLine( frmline, pbuffer->width, 
-                                   (isParaStart && align==LTEXT_ALIGN_WIDTH)?LTEXT_ALIGN_LEFT:align, 
+                            flgRollback = lvtextFinalizeLine( frmline, pbuffer->width,
+                                   (isParaStart && align==LTEXT_ALIGN_WIDTH)?LTEXT_ALIGN_LEFT:align,
                                    &i, &text_offset);
                         }
                         frmline = lvtextAddFormattedLine( pbuffer );
@@ -401,7 +403,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                     if (last_fit!=0xFFFF)
                         break;
                     /* avoid using deprecated line breaks if line is filled enough */
-                    if (phase==0 && space_left<pbuffer->width*DEPRECATED_LINE_BREAK_SPACE_LIMIT/256 
+                    if (phase==0 && space_left<pbuffer->width*DEPRECATED_LINE_BREAK_SPACE_LIMIT/256
                         && frmline->word_count>=DEPRECATED_LINE_BREAK_WORD_COUNT )
                         continue;
                     /* try to find deprecated place for line break if good is not found */
@@ -455,16 +457,16 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 int div_x = (srcline->o.width / pbuffer->width) + 1;
                 int div_y = (srcline->o.height / pbuffer->page_height) + 1;
 #if (MAX_IMAGE_SCALE_MUL==3)
-                if ( srcline->o.height*3 < pbuffer->page_height-20 
+                if ( srcline->o.height*3 < pbuffer->page_height-20
                         && srcline->o.width*3 < pbuffer->width - 20 )
                     scale_mul = 3;
-                else 
+                else
 #endif
 #if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
-                    if ( srcline->o.height*2 < pbuffer->page_height-20 
+                    if ( srcline->o.height*2 < pbuffer->page_height-20
                         && srcline->o.width*2 < pbuffer->width - 20 )
                     scale_mul = 2;
-                else 
+                else
 #endif
                 if (div_x>1 || div_y>1) {
                     if (div_x>div_y)
@@ -477,8 +479,9 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 word->flags = LTEXT_WORD_IS_OBJECT;
                 word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                 word->y = 0;
-                word->x = word->width;
-                frmline->width += word->width;
+                word->x = frmline->width;
+                //frmline->width += word->width;
+                frmline->width = word->x + word->width; //!!!
             }
             else
             {
@@ -519,7 +522,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                         //*/
                         wpos = widths_buf[j];
                         wstart = j+1;
-                        frmline->width += word->width;
+                        frmline->width = word->x + word->width; //!!!
                     }
                 }
             }
@@ -547,7 +550,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 frmline->baseline = (lUInt16) (b - wy);
             if ( frmline->height < frmline->baseline + h )
                 frmline->height = (lUInt16) ( frmline->baseline + h );
-            
+
             if (flgObject)
             {
                 curr_x += word->width;
@@ -560,7 +563,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
     }
     /* finish line formatting */
     if (frmline)
-        lvtextFinalizeLine( frmline, pbuffer->width, 
+        lvtextFinalizeLine( frmline, pbuffer->width,
         (align==LTEXT_ALIGN_WIDTH)?LTEXT_ALIGN_LEFT:align, NULL, NULL );
     /* cleanup */
     if (widths_buf)
@@ -603,11 +606,11 @@ void lvtextDraw( formatted_text_fragment_t * text, draw_buf_t * buf, int x, int 
             srcline = &text->srctext[word->src_text_index];
             font = (lvfont_header_t *) ( ((LVFont*)srcline->t.font)->GetHandle() );
             str = srcline->t.text + word->t.start;
-            lvdrawbufDrawText( buf, 
+            lvdrawbufDrawText( buf,
                 x + frmline->x + word->x,
-                line_y + (frmline->baseline - font->fontBaseline) + word->y, 
+                line_y + (frmline->baseline - font->fontBaseline) + word->y,
                 (lvfont_handle)font,
-                str, 
+                str,
                 word->t.len,
                 '?' );
         }
@@ -630,7 +633,7 @@ void LFormattedText::AddSourceObject(
         img = LVCreateDummyImageSource( node, 50, 50 );
     lUInt16 width = (lUInt16)img->GetWidth();
     lUInt16 height = (lUInt16)img->GetHeight();
-    lvtextAddSourceObject(m_pbuffer, 
+    lvtextAddSourceObject(m_pbuffer,
         width, height,
         flags, interval, margin, object );
 }
@@ -654,10 +657,10 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
         if (line_y + frmline->height>=clip.top)
         {
             // process background
-            
+
             lUInt32 bgcl = buf->GetBackgroundColor();
             buf->FillRect( x+frmline->x, y + frmline->y, x+frmline->x + frmline->width, y + frmline->y + frmline->height, bgcl );
-            
+
             // process marks
             if ( marks!=NULL && marks->length()>0 ) {
                 lvRect lineRect( frmline->x, frmline->y, frmline->x + frmline->width, frmline->y + frmline->height );
@@ -716,8 +719,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     font->DrawTextString(
                         buf,
                         x + frmline->x + word->x,
-                        line_y + (frmline->baseline - font->getBaseline()) + word->y, 
-                        str, 
+                        line_y + (frmline->baseline - font->getBaseline()) + word->y,
+                        str,
                         word->t.len,
                         '?',
                         NULL,
