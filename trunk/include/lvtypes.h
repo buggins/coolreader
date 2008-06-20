@@ -71,6 +71,7 @@ public:
     {
         return left<=pt.x && top<=pt.y && right>pt.x && bottom > pt.y;
     }
+	void clear() { left=right=top=bottom=0; }
 };
 
 class lvColor
