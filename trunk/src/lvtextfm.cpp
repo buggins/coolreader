@@ -340,7 +340,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                         text_offset + srcline->t.text,
                         chars_left,
                         widths_buf, flags_buf,
-                        pbuffer->width,
+                        space_left, //pbuffer->width,
                         '?');
                 }
                 phase = (!frmline || isParaStart) ? 1 : 0; //
