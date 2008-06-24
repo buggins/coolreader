@@ -1568,27 +1568,27 @@ bool ldomXPointer::getRect(lvRect & rect) const
         ldomNode * node = _node;
         int offset = _offset;
         if ( node->isElement() ) {
-            bool flgFirst = true;
             if ( offset>=0 ) {
                 //
                 if ( offset>= (int)node->getChildCount() ) {
-                    node = node->getChildNode( node->getChildCount()-1 );
-                    flgFirst = false;
-                } else {
-                    node = node->getChildNode( offset );
-                }
-            }
-            if ( node->isElement() ) {
-                if ( flgFirst ) {
-                    node = node->getFirstTextChild();
-                    offset = 0;
-                } else {
                     node = node->getLastTextChild();
                     if ( node )
                         offset = node->getText().length();
+                    else
+                        return false;
+                } else {
+                    for ( int ci=offset; ci<(int)node->getChildCount(); ci++ ) {
+                        ldomNode * child = node->getChildNode( offset );
+                        ldomNode * txt = child->getFirstTextChild();
+                        if ( txt ) {
+                            node = txt;
+                            break;
+                        }
+                    }
+                    if ( !node->isText() )
+                        return false;
+                    offset = 0;
                 }
-                if ( !node )
-                    return false;
             }
         }
 
@@ -1611,7 +1611,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
                 const formatted_word_t * word = &frmline->words[w];
                 if ( word->src_text_index==srcIndex ) {
                     // found word from same src line
-                    if ( _offset<=word->t.start ) {
+                    if ( offset<=word->t.start ) {
                         // before this word
                         rect.left = word->x + rc.left + frmline->x;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
@@ -1626,7 +1626,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
                         lUInt8 flg[512];
                         lString16 str = node->getText();
                         font->measureText( str.c_str()+word->t.start, offset - word->t.start, w, flg, word->width+50, '?');
-                        int chx = w[ _offset - word->t.start - 1 ];
+                        int chx = w[ offset - word->t.start - 1 ];
                         rect.left = word->x + chx + rc.left + frmline->x;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
                         rect.top = rc.top + frmline->y;

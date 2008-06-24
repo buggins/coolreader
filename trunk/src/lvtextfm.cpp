@@ -210,13 +210,14 @@ int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
         }
     }
 
+
     frmline->width = 0;
     for (i=0; i<frmline->word_count; i++)
     {
-        if (i == frmline->word_count-1)
-            w = frmline->words[i].x;
-        else
-            w = frmline->words[i].width;
+        //if (i == frmline->word_count-1)
+        //    w = frmline->words[i].x;
+        //else
+        w = frmline->words[i].width;
         frmline->words[i].x = frmline->width;
         frmline->width += w;
     }
