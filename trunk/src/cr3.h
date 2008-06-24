@@ -8,10 +8,10 @@
 /**
  * @short Application Main Window
  * @author Vadim Lopatin <vadim.lopatin@coolreader.org>
- * @version 3.0.9
+ * @version 3.0.11
  */
 
-#define CR3_VERSION "3.0.10a"
+#define CR3_VERSION "3.0.11"
 
 class 
 cr3app : public wxApp
