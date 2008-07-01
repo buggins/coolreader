@@ -2011,6 +2011,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 {
     LVLock lock(getMutex());
     {
+        clearImageCache();
         m_filesize = stream->GetSize();
         m_stream = stream;
 

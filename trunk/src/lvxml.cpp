@@ -478,7 +478,18 @@ int DetectHeadingLevelByText( const lString16 & str )
                 return 0;
             point_count++;
         }
-        return (str.length()<80) ? 4+point_count : 0;
+        return (str.length()<80) ? 5+point_count : 0;
+    }
+    if ( ch=='I' || ch=='V' || ch=='X' ) {
+        // TODO: optimize
+        static const char * romeNumbers[] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", 
+            "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", 
+            "XXX", "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII", "XXXVIII", "XXXIX", NULL };
+        int i=0;
+        for ( i=0; romeNumbers[i]; i++ ) {
+            if ( !lStr_cmp(str.c_str(), romeNumbers[i]) )
+                return 4;
+        }
     }
     return 0;
 }
@@ -520,6 +531,11 @@ public:
         }
     }
 };
+
+#define MAX_HEADING_CHARS 50
+#define MAX_PARA_LINES 30
+#define MAX_BUF_LINES  200
+#define MIN_MULTILINE_PARA_WIDTH 45
 
 class LVTextLineQueue : public LVPtrVector<LVTextFileLine>
 {
@@ -790,6 +806,12 @@ public:
         return true;
     }
     /// add one paragraph
+    void AddEmptyLine( LVXMLParserCallback * callback )
+    {
+        callback->OnTagOpen( NULL, L"empty-line" );
+        callback->OnTagClose( NULL, L"empty-line" );
+    }
+    /// add one paragraph
     void AddPara( int startline, int endline, LVXMLParserCallback * callback )
     {
         lString16 str;
@@ -809,7 +831,9 @@ public:
                     singleLineFollowedByEmpty = get(startline)->text.length()<70;
         }
         str.trimDoubleSpaces(false, false, true);
-        bool isHeader = (startline==endline && str.length()<4) || (paraCount<2 && str.length()<50);
+        bool isHeader = false;
+        if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 ) )
+            isHeader = true;
         if ( startline==endline && get(startline)->isHeading() )
             isHeader = true;
         int hlevel = DetectHeadingLevelByText( str );
@@ -817,6 +841,8 @@ public:
             isHeader = true;
         if ( singleLineFollowedByEmpty )
             isHeader = true;
+        if ( str.length() > MAX_HEADING_CHARS )
+            isHeader = false;
         if ( !str.empty() ) {
             lChar16 * title_tag = L"title";
             if ( isHeader ) {
@@ -865,8 +891,7 @@ public:
             callback->OnTagClose( NULL, L"section" );
         return true;
     }
-#define MAX_PARA_LINES 30
-#define MAX_BUF_LINES  200
+
     /// delimited by first line ident
     bool DoIdentParaImport(LVXMLParserCallback * callback)
     {
@@ -910,12 +935,14 @@ public:
     {
         CRLog::debug("DoEmptyLineParaImport()");
         int pos = 0;
+        int shortLineCount = 0;
+        int emptyLineCount = 0;
         for ( ;; ) {
             if ( length()-pos <= MAX_PARA_LINES ) {
                 if ( pos )
-                    RemoveLines( pos );
+                    RemoveLines( pos - 1 );
                 ReadLines( MAX_BUF_LINES );
-                pos = 0;
+                pos = 1;
             }
             if ( pos>=length() )
                 break;
@@ -925,14 +952,29 @@ public:
                     LVTextFileLine * item = get(i);
                     if ( item->lpos==item->rpos ) {
                         // empty line
+                        emptyLineCount++;
                         break;
                     }
+                    if ( item->rpos - item->lpos < MIN_MULTILINE_PARA_WIDTH ) {
+                        // next line is very short, possible paragraph start
+                        shortLineCount++;
+                        break;
+                    }
+                    shortLineCount = 0;
+                    emptyLineCount = 0;
                 }
             }
             if ( i==length() )
                 i--;
-            if ( i>=pos )
+            if ( i>=pos ) {
                 AddPara( pos, i, callback );
+                if ( emptyLineCount ) {
+                    if ( shortLineCount > 1 )
+                        AddEmptyLine( callback );
+                    shortLineCount = 0;
+                    emptyLineCount = 0;
+                }
+            }
             pos = i+1;
         }
         if ( inSubSection )

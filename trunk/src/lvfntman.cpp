@@ -565,6 +565,7 @@ public:
         FT_UInt previous = 0;
         lUInt16 prev_width = 0;
         int nchars = 0;
+        int lastFitChar = 0;
         // measure character widths
         for ( nchars=0; nchars<len; nchars++) {
             lChar16 ch = text[nchars];
@@ -622,8 +623,12 @@ public:
             previous = ch_glyph_index;
             if ( !isHyphen ) // avoid soft hyphens inside text string
                 prev_width = widths[nchars];
-            if ( prev_width > max_width )
-                break;
+            if ( prev_width > max_width ) {
+                if ( lastFitChar < nchars + 5)
+                    break;
+            } else {
+                lastFitChar = nchars + 1;
+            }
         }
 
         //maxFit = nchars;
@@ -643,25 +648,35 @@ public:
         //try to add hyphen
         for (hwStart=nchars-1; hwStart>0; hwStart--)
         {
-            if (lvfontIsUnicodeSpace(text[hwStart]))
-            {
+            lChar16 ch = text[hwStart];
+            lUInt16 props = lGetCharProps( ch );
+            if ( !(props & CH_PROP_ALPHA) ) {
                 hwStart++;
                 break;
             }
+            //if (lvfontIsUnicodeSpace(text[hwStart]))
+            //{
+            //    hwStart++;
+            //    break;
+            //}
         }
         for (hwEnd=nchars; hwEnd<len; hwEnd++) // 20080404
         {
             lChar16 ch = text[hwEnd];
-            if (lvfontIsUnicodeSpace(ch))
+            lUInt16 props = lGetCharProps( ch );
+            if ( !(props & CH_PROP_ALPHA) )
                 break;
-            //if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
+            //if (lvfontIsUnicodeSpace(ch))
             //    break;
-            if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?')
+            if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
                 break;
+            //if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?')
+            //    break;
         }
-        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+        if ( hwEnd>hwStart )
+            HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
 
-        return nchars;
+        return lastFitChar; //nchars;
     }
 
     /** \brief measure text
