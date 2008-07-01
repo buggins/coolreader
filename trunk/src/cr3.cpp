@@ -937,8 +937,19 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
         //
         Update();
         SetActiveMode( am_book );
+        wxCursor hg( wxCURSOR_WAIT );
+        this->SetCursor( hg );
+        wxSetCursor( hg );
+        _view->getDocView()->savePosition();
         _view->LoadDocument( dlg.GetPath() );
+        _view->getDocView()->restorePosition();
+        _view->UpdateScrollBar();
+        //Invalidate();
+        Refresh();
+        Update();
         UpdateToolbar();
+        wxSetCursor( wxNullCursor );
+        this->SetCursor( wxNullCursor );
     }
 
 }
