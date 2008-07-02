@@ -17,6 +17,7 @@ BEGIN_EVENT_TABLE( cr3view, wxPanel )
     EVT_MOUSEWHEEL( cr3view::OnMouseWheel )
     EVT_LEFT_DOWN( cr3view::OnMouseLDown )
     EVT_RIGHT_DOWN( cr3view::OnMouseRDown )
+    EVT_MOTION( cr3view::OnMouseMotion )
     EVT_MENU_RANGE( 0, 0xFFFF, cr3view::OnCommand )
     EVT_SET_FOCUS( cr3view::OnSetFocus )
     EVT_TIMER(RENDER_TIMER_ID, cr3view::OnTimer)
@@ -69,7 +70,9 @@ lString16 cr3view::GetLastRecentFileName()
 }
 
 cr3view::cr3view(CRPropRef props)
-: _scrollbar(NULL)
+: _normalCursor(wxCURSOR_ARROW)
+, _linkCursor(wxCURSOR_HAND)
+, _scrollbar(NULL)
 , _firstRender(false)
 , _props(props)
 {
@@ -365,6 +368,23 @@ void cr3view::UpdateScrollBar()
 
 }
 
+void cr3view::OnMouseMotion(wxMouseEvent& event)
+{
+    int x = event.GetX();
+    int y = event.GetY();
+    ldomXPointer ptr = _docview->getNodeByPoint( lvPoint( x, y ) );
+    if ( ptr.isNull() ) {
+        CRLog::debug( "cr3view::OnMouseLDown() : node not found!\n");
+        return;
+    }
+    lString16 href = ptr.getHRef();
+    if ( href.empty() ) {
+        SetCursor(_normalCursor);
+    } else {
+        SetCursor(_linkCursor);
+    }
+}
+
 void cr3view::OnMouseLDown( wxMouseEvent & event )
 {
     int x = event.GetX();
@@ -376,6 +396,7 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
         CRLog::debug( "cr3view::OnMouseLDown() : node not found!\n");
         return;
     }
+    lString16 href = ptr.getHRef();
     if ( ptr.getNode()->isText() ) {
         lString8 s = UnicodeToUtf8( ptr.toString() );
         CRLog::debug("Text node clicked (%d, %d): %s", x, y, s.c_str() );
@@ -387,6 +408,9 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
             _docview->updateSelections();
         } else {
             delete wordRange;
+        }
+        if ( !href.empty() ) {
+            _docview->goLink( href );
         }
         Paint();
         printf("text : %s     \t", s.c_str() );
@@ -473,6 +497,21 @@ void cr3view::OnCommand(wxCommandEvent& event)
         _docview->cachePageImage( 0 );
         _docview->cachePageImage( 1 );
 		break;
+    case Menu_Link_Forward:
+		doCommand( DCMD_LINK_FORWARD, 1 );
+        break;
+    case Menu_Link_Back:
+		doCommand( DCMD_LINK_BACK, 1 );
+        break;
+    case Menu_Link_Next:
+		doCommand( DCMD_LINK_NEXT, 1 );
+        break;
+    case Menu_Link_Prev:
+		doCommand( DCMD_LINK_PREV, 1 );
+        break;
+    case Menu_Link_Go:
+		doCommand( DCMD_LINK_GO, 1 );
+        break;
 	case Menu_View_PrevPage:
 		doCommand( DCMD_PAGEUP, 1 );
         _docview->cachePageImage( 0 );

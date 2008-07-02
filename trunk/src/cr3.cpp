@@ -115,6 +115,11 @@ void cr3Frame::OnCommand( wxCommandEvent& event )
     case Menu_View_ZoomOut:
     case Menu_View_NextPage:
     case Menu_View_PrevPage:
+    case Menu_Link_Forward:
+    case Menu_Link_Back:
+    case Menu_Link_Next:
+    case Menu_Link_Prev:
+    case Menu_Link_Go:
         break;
     }
 }
@@ -726,6 +731,12 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F9,      Menu_File_Options);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F12,      Menu_File_Quit);
+    entries[a++].Set(wxACCEL_NORMAL,  WXK_BACK,      Menu_Link_Back);
+    entries[a++].Set(wxACCEL_SHIFT,   WXK_BACK,      Menu_Link_Forward);
+    entries[a++].Set(wxACCEL_NORMAL,  WXK_TAB,      Menu_Link_Next);
+    entries[a++].Set(wxACCEL_NORMAL,  WXK_RETURN,      Menu_Link_Go);
+    entries[a++].Set(wxACCEL_SHIFT,   WXK_TAB,      Menu_Link_Prev);
+    
     wxAcceleratorTable accel(a, entries);
     SetAcceleratorTable(accel);
     //_view->SetAcceleratorTable(accel);

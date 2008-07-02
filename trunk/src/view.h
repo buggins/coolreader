@@ -36,6 +36,7 @@ cr3view : public wxPanel
         void OnSetFocus( wxFocusEvent& event );
         void OnMouseLDown( wxMouseEvent & event );
         void OnMouseRDown( wxMouseEvent & event );
+        void OnMouseMotion(wxMouseEvent& event);
         void OnTimer(wxTimerEvent& event);
         void OnInitDialog(wxInitDialogEvent& event);
         void ToggleViewMode();
@@ -46,6 +47,8 @@ cr3view : public wxPanel
         void Paint();
         void Resize(int dx, int dy);
     private:
+        wxCursor _normalCursor;
+        wxCursor _linkCursor;
         LVDocView * _docview;
         wxScrollBar * _scrollbar;
 
