@@ -326,8 +326,6 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
         while (flgObject || srcline->t.len > text_offset)
         {
             do {
-                if ( textWrapped || !frmline || isParaStart )
-                    wrapNextLine = 1;
 
                 flgRollback = 0;
                 if ( !frmline )
@@ -336,27 +334,30 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 {
                     chars_left = 1;
                     isParaStart = (line_flags & LTEXT_FLAG_NEWLINE);
-                    int line_x;
-                    if ( wrapNextLine ) {
-                        curr_x = 0;
-                        line_x = isParaStart ? srcline->margin : 0;
-                    } else {
-                        line_x = (frmline?frmline->x:0);
-                    }
+                } else {
+                    chars_left = srcline->t.len - text_offset;
+                    isParaStart = (line_flags & LTEXT_FLAG_NEWLINE) && text_offset==0;
+                }
+
+                if ( textWrapped || !frmline || isParaStart )
+                    wrapNextLine = 1;
+
+                int line_x;
+                if ( wrapNextLine ) {
+                    curr_x = 0;
+                    line_x = isParaStart ? srcline->margin : 0;
+                } else {
+                    line_x = (frmline?frmline->x:0);
+                }                
+
+                if (flgObject)
+                {
                     space_left = pbuffer->width - curr_x -  line_x;
                     textWrapped = 0;
+                    chars_measured = 1;
                 }
                 else
                 {
-                    chars_left = srcline->t.len - text_offset;
-                    isParaStart = (line_flags & LTEXT_FLAG_NEWLINE) && text_offset==0;
-                    int line_x;
-                    if ( wrapNextLine ) {
-                        curr_x = 0;
-                        line_x = isParaStart ? srcline->margin : 0;
-                    } else {
-                        line_x = (frmline?frmline->x:0);
-                    }
                     space_left = pbuffer->width - curr_x -  line_x;
                     /* measure line */
                     chars_measured = font->measureText(
@@ -382,6 +383,17 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                         curr_x = 0;
                         frmline->x = isParaStart ? srcline->margin : 0;
                         space_left = pbuffer->width - curr_x - frmline->x;
+                        if ( chars_left && textWrapped )
+                        {
+                            /* measure line */
+                            chars_measured = font->measureText(
+                                text_offset + srcline->t.text,
+                                chars_left,
+                                widths_buf, flags_buf,
+                                space_left, //pbuffer->width,
+                                '?');
+                            textWrapped = (chars_measured && chars_measured<chars_left) ? 1 : 0;
+                        }
                         if (flgRollback)
                         {
                             srcline = &pbuffer->srctext[i];
@@ -409,7 +421,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                             last_fit = 0;
                             break;
                         }
-                        if (phase==0)
+                        //if (phase==0)
                             continue;
                     }
                     /* try to find good place for line break */

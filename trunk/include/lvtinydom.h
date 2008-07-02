@@ -586,6 +586,8 @@ public:
             return lString16();
         return _node->getText();
     }
+    /// returns href attribute of <A> element, null string if not found
+    lString16 getHRef();
 };
 
 #define MAX_DOM_LEVEL 64

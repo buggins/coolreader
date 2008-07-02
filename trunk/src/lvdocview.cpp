@@ -2526,6 +2526,31 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             SetPos( getNextPageOffset() );
         }
         break;
+    case DCMD_LINK_NEXT:
+        {
+            selectNextPageLink(true);
+        }
+        break;
+    case DCMD_LINK_PREV:
+        {
+            selectPrevPageLink(true);
+        }
+        break;
+    case DCMD_LINK_GO:
+        {
+            goSelectedLink();
+        }
+        break;
+    case DCMD_LINK_BACK:
+        {
+            goBack();
+        }
+        break;
+    case DCMD_LINK_FORWARD:
+        {
+            goForward();
+        }
+        break;
     case DCMD_LINEDOWN:
         {
             if (m_view_mode==DVM_SCROLL)
