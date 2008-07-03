@@ -308,6 +308,7 @@ void LVDocView::checkRender()
         LVLock lock(getMutex());
         Render();
         m_imageCache.clear();
+        m_is_rendered = true;
         m_posIsSet = false;
     }
 }
@@ -318,6 +319,7 @@ void LVDocView::checkPos()
     checkRender();
     if ( m_posIsSet )
         return;
+    m_posIsSet = true;
     LVLock lock(getMutex());
     if ( _posBookmark.isNull() ) {
         SetPos( 0, false );
@@ -325,7 +327,6 @@ void LVDocView::checkPos()
         lvPoint pt = _posBookmark.toPoint();
         SetPos( pt.y, false );
     }
-    m_posIsSet = true;
 }
 
 /// get page image
@@ -675,7 +676,10 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 void LVDocView::SetPos( int pos, bool savePos )
 {
     LVLock lock(getMutex());
+    m_posIsSet = true;
     checkRender();
+    //if ( m_posIsSet && m_pos==pos )
+    //    return;
     if (m_view_mode==DVM_SCROLL)
     {
         if (pos > GetFullHeight() - m_dy )
