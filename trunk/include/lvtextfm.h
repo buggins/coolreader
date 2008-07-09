@@ -247,6 +247,7 @@ public:
             flags, interval, margin, object, (lUInt16)offset );
     }
 
+    lUInt32 FormatOld(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }
     lUInt32 Format(lUInt16 width, lUInt16 page_height);
 
     int GetSrcCount()

@@ -494,6 +494,11 @@ public:
         : p(NULL)
     {
     }
+    LVAutoPtr( int size )
+        : p(NULL)
+    {
+        realloc( size );
+    }
     explicit LVAutoPtr( T* ptr )
         : p(ptr)
     {
@@ -503,15 +508,21 @@ public:
         if ( p )
             delete p;
     }
-    LVAutoPtr * operator -> ()
+    inline const T operator [] ( int index ) { return p[index]; }
+    inline LVAutoPtr * operator -> ()
     {
         return p;
     }
-    LVAutoPtr & operator * ()
+    void realloc( int size )
+    {
+        p = (T *) ::realloc( p, size * sizeof(T) );
+    }
+    inline T * get() { return p; }
+    inline LVAutoPtr & operator * ()
     {
         return *p;
     }
-    LVAutoPtr & operator = ( T* ptr )
+    inline LVAutoPtr & operator = ( T* ptr )
     {
         if ( p==ptr )
             return;
