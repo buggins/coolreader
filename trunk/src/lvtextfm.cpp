@@ -674,6 +674,27 @@ void LFormattedText::AddSourceObject(
         flags, interval, margin, object );
 }
 
+lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
+{ 
+    // clear existing formatted data, if any
+    if (m_pbuffer->frmlines)
+    {
+        for (lUInt32 i=0; i<m_pbuffer->frmlinecount; i++)
+        {
+            lvtextFreeFormattedLine( m_pbuffer->frmlines[i] );
+        }
+        free( m_pbuffer->frmlines );
+    }
+    m_pbuffer->frmlines = NULL;
+    m_pbuffer->frmlinecount = 0;
+    // setup new page size
+    m_pbuffer->width = width;
+    m_pbuffer->height = 0;
+    m_pbuffer->page_height = page_height;
+    // format text
+    return lvtextFormat( m_pbuffer );
+}
+
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks )
 {
     lUInt32 i, j;

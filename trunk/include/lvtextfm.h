@@ -213,18 +213,21 @@ private:
     formatted_text_fragment_t * m_pbuffer;
 public:
     formatted_text_fragment_t * GetBuffer() { return m_pbuffer; }
+
     void Clear()
     { 
         lUInt16 width = m_pbuffer->width;
         lvtextFreeFormatter( m_pbuffer );
         m_pbuffer = lvtextAllocFormatter( width );
     }
+
     void AddSourceObject(
                 lUInt16         flags,    /* flags */
                 lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
                 lUInt16         margin,   /* first line margin */
                 void *          object    /* pointer to custom object */
          );
+
     void AddSourceLine(
            const lChar16 * text,        /* pointer to unicode text string */
            lUInt32         len,         /* number of chars in text, 0 for auto(strlen) */
@@ -243,29 +246,38 @@ public:
             text, len, color, bgcolor, 
             flags, interval, margin, object, (lUInt16)offset );
     }
-    lUInt32 Format(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }
+
+    lUInt32 Format(lUInt16 width, lUInt16 page_height);
+
     int GetSrcCount()
     {
         return m_pbuffer->srctextlen;
     }
+
     int GetWidth()
     {
         return m_pbuffer->width;
     }
+
     const src_text_fragment_t * GetSrcInfo(int index)
     {
         return &m_pbuffer->srctext[index];
     }
+
     int GetLineCount()
     {
         return m_pbuffer->frmlinecount;
     }
+
     const formatted_line_t * GetLineInfo(int index)
     {
         return m_pbuffer->frmlines[index];
     }
+
     void Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks );
+
     LFormattedText() { m_pbuffer = lvtextAllocFormatter( 0 ); }
+
     ~LFormattedText() { lvtextFreeFormatter( m_pbuffer ); }
 };
 
