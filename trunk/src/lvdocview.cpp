@@ -366,6 +366,7 @@ public:
     }
     virtual void run()
     {
+        CRLog::trace("LVDrawThread::run() offset==%d", _offset);
         _view->Draw( *_drawbuf, _offset, true );
         //_drawbuf->Rotate( _view->GetRotateAngle() );
     }
@@ -529,6 +530,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
         base_font_size = 26;
     else
         base_font_size = 32;
+    CRLog::trace("drawCoverTo() - loading fonts...");
     LVFontRef author_fnt( fontMan->GetFont( base_font_size, 600, true, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef title_fnt( fontMan->GetFont( base_font_size+4, 600, false, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef series_fnt( fontMan->GetFont( base_font_size-3, 300, true, css_ff_serif, lString8("Times New Roman")) );
@@ -548,6 +550,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     lvRect imgrc = rc;
     imgrc.bottom -= h + 16;
 
+    CRLog::trace("drawCoverTo() - getting cover image");
     LVImageSourceRef imgsrc = getCoverPageImage();
     if ( !imgsrc.isNull() && imgrc.height()>30 )
     {
@@ -566,7 +569,8 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
             dst_dx = imgrc.width();
         if (dst_dy>rc.height())
             dst_dy = imgrc.height();
-        drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
+            CRLog::trace("drawCoverTo() - drawing image");
+            drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
         //fprintf( stderr, "Done.\n" );
     }
     else
@@ -574,7 +578,9 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
         imgrc.bottom = imgrc.top;
     }
     rc.top = imgrc.bottom;
+    CRLog::trace("drawCoverTo() - drawing text");
     txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2, NULL );
+    CRLog::trace("drawCoverTo() - done");
 }
 
 /// export to WOL format
@@ -1169,6 +1175,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
 {
     int start = page.start;
     int height = page.height;
+    CRLog::trace("drawPageTo(%d,%d)", start, height);
     lvRect fullRect( 0, 0, drawbuf->GetWidth(), drawbuf->GetHeight() );
     if ( !pageRect )
         pageRect = &fullRect;
@@ -1212,10 +1219,13 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
             rc.top += m_pageMargins.bottom;
             rc.right -= m_pageMargins.right;
             rc.bottom -= m_pageMargins.bottom;
+            CRLog::trace("Entering drawCoverTo()");
             drawCoverTo( drawbuf, rc );
         } else {
             // draw main page text
+            CRLog::trace("Entering DrawDocument()");
             DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, pageRect->top + m_pageMargins.top + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
+            CRLog::trace("Done DrawDocument() for main text");
             // draw footnotes
 #define FOOTNOTE_MARGIN 8
             int fny = pageRect->top + m_pageMargins.top + offset + page.height + FOOTNOTE_MARGIN;
@@ -1310,7 +1320,9 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
     else
     {
         int pc = getVisiblePageCount();
+        CRLog::trace("searching for page with offset=%d", position);
         int page = m_pages.FindNearestPage(position, 0);
+        CRLog::trace("found page #%d", page);
         if ( page>=0 && page<m_pages.length() )
             drawPageTo( &drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length(), 1 );
         if ( pc==2 && page>=0 && page+1<m_pages.length() )

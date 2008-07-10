@@ -733,6 +733,8 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
         int line_flags;
         int wy;
         int vertical_align;
+        int frmline_wrap_pos;
+        int align;
         void newLine()
         {
             frmline = lvtextAddFormattedLine( m_pbuffer );
@@ -767,12 +769,26 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
             if ( frmline->height < frmline->baseline + h )
                 frmline->height = (lUInt16) ( frmline->baseline + h );
         }
-        /// save specified number of words to final formatted line
-        void commit()
+        int updateWrapPos( int wordsToCommit=-1 )
+        {
+            if ( wordsToCommit<0 )
+                wordsToCommit = frmline->word_count;
+            else if ( wordsToCommit==0 )
+                wordsToCommit = 1;
+            for ( frmline_wrap_pos = wordsToCommit-1; frmline_wrap_pos>0; frmline_wrap_pos-- ) {
+                if ( (frmline->words[frmline_wrap_pos].flags & LTEXT_WORD_CAN_BREAK_LINE_AFTER) )
+                    break;
+                if ( (frmline->words[frmline_wrap_pos].flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) )
+                    break;
+            }
+            return frmline_wrap_pos;
+        }
+        /// save part of words to final formatted line
+        void commit( int wordsToCommit=-1 )
         {
             if ( !frmline->word_count )
                 return; // empty
-            int align = (lUInt8)(first_para_line->flags & LTEXT_FLAG_NEWLINE);
+            align = (lUInt8)(first_para_line->flags & LTEXT_FLAG_NEWLINE);
             if (!align)
                 align = LTEXT_ALIGN_LEFT;
             bool srcFinished = flgObject || text_offset>=(int)(srcline->t.offset+srcline->t.len);
@@ -784,13 +800,7 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
                 }
             }
             // search for line break
-            int wordCount;
-            for ( wordCount = frmline->word_count-1; wordCount>0; wordCount-- ) {
-                if ( (frmline->words[wordCount].flags & LTEXT_WORD_CAN_BREAK_LINE_AFTER) )
-                    break;
-                if ( (frmline->words[wordCount].flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) )
-                    break;
-            }
+            int wordCount = updateWrapPos( wordsToCommit );
             if ( !wordCount )
                 wordCount = frmline->word_count;
             if ( wordCount>0 && (int)frmline->word_count >= wordCount ) {
@@ -854,7 +864,7 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
                         frmline->width += delta;
                     }
                 }
-
+                // search for next uncommitted source object
                 formatted_word_t * lastword = &frmline->words[frmline->word_count-1];
                 int lastSrcIndex = lastword->src_text_index;
                 int nextSrcIndex = lastSrcIndex + 1;
@@ -921,11 +931,12 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
             }
             
         }
-        formatted_word_t * addWord( int firstch, int lastch, int wpos )
+        formatted_word_t * addWord( int firstch, int lastch )
         {
             formatted_word_t * word = lvtextAddFormattedWord( frmline );
             word->src_text_index = srcIndex;
             word->t.len = lastch - firstch + 1;
+            int wpos = firstch>0 ? widths_buf[firstch-1] : 0;
             word->width = widths_buf[lastch] - wpos;
             word->t.start = text_offset + firstch;
             word->flags = 0;
@@ -934,7 +945,7 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
                 isLinkStart = 0;
             }
             word->y = wy;
-            word->x = widths_buf[lastch] - wpos;
+            //word->x = widths_buf[lastch] - wpos;
             if (flags_buf[lastch] & LCHAR_IS_SPACE)
                 word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
             if (flags_buf[lastch] & LCHAR_ALLOW_WRAP_AFTER)
@@ -948,12 +959,11 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
                     word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
             }
             //???
-            ///*
+            /*
             for (int jj=lastch; jj>0 && (flags_buf[jj] & LCHAR_IS_SPACE); jj--)
                 word->x = widths_buf[jj-1] - wpos;
-            //*/
-            wpos = widths_buf[lastch];
-            frmline->width = word->x + word->width; //!!!
+            */
+            frmline->width += word->width; //!!!
             return word;
         }
         formatted_word_t * addObject()
@@ -987,10 +997,99 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
             word->flags |= LTEXT_WORD_IS_OBJECT;
             word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
             word->y = 0;
-            word->x = frmline->width;
+            //word->x = frmline->width;
             //frmline->width += word->width;
-            frmline->width = word->x + word->width; //!!!
+            frmline->width += word->width; //!!!
             return word;
+        }
+        // space left in current line
+        int spaceLeft()
+        {
+            return m_pbuffer->width - (frmline->x + frmline->width);
+        }
+        int format()
+        {
+            setSrcLine( 0, 0 );
+            while ( srcline ) {
+                if ( flgObject ) {
+                    // try to insert object
+                    addObject();
+                    int space_left = spaceLeft();
+                    if ( space_left<=0 )
+                        commit( frmline->word_count-1 );
+                } else {
+                    // try to insert text
+                    int space_left = spaceLeft();
+                    int chars_left = srcline->t.len - text_offset;
+                    int chars_measured = font->measureText(
+                            srcline->t.text + text_offset,
+                            chars_left,
+                            widths_buf.get(), flags_buf.get(),
+                            space_left, //pbuffer->width,
+                            '?');
+                    int j;
+                    int last_fit = -1;
+                    /* try to find good place for line break */
+                    for (j = 0; j<chars_left && j<chars_measured; j++)
+                    {
+                        if (widths_buf[j] > space_left)
+                            break;
+                        if (flags_buf[j] & LCHAR_ALLOW_WRAP_AFTER)
+                            last_fit = j;
+                        if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER)
+                            last_fit = j;
+                    }
+                    if ( last_fit==-1 ) {
+                        int existingWrapPos = updateWrapPos( );
+                        if ( !existingWrapPos ) {
+                            //
+                            /* try to find deprecated place for line break if good is not found */
+                            for (j = 0; j<chars_left && j<chars_measured; j++)
+                            {
+                                if (widths_buf[j] > space_left)
+                                    break;
+                                if (flags_buf[j] & LCHAR_DEPRECATED_WRAP_AFTER)
+                                    last_fit = j;
+                            }
+                            if (last_fit==-1) {
+                                /* try to wrap in the middle of word */
+                                for (j = 0; j<chars_left && j<chars_measured; j++)
+                                {
+                                    if (widths_buf[j] > space_left)
+                                        break;
+                                }
+                                if (j)
+                                    last_fit = j - 1;
+                                else
+                                    last_fit = 0;
+                            }
+                        }
+                    }
+                    if ( last_fit==-1 ) {
+                        // doesn't fit, commit already added words then try again from beginning of line
+                        commit();
+                    } else {
+                        if ( align == LTEXT_ALIGN_WIDTH ) {
+                            //
+                            int wstart, wpos;
+                            for (j=0, wstart=0, wpos=0; j<=last_fit; j++)
+                            {
+                                if (flags_buf[j] & LCHAR_IS_SPACE || j==last_fit) /* LCHAR_ALLOW_WRAP_AFTER */
+                                {
+                                    //formatted_word_t * addWord( int firstch, int lastch, int wpos )
+                                    addWord( wstart, j );
+                                    wstart = j+1;
+                                }
+                            }
+                        } else {
+                            // add as single word
+                            addWord( 0, last_fit );
+                            text_offset += last_fit + 1;
+                        }
+                    }
+                }
+            }
+            return frmline->y + frmline->height;
         }
         LVFormLine( formatted_text_fragment_t * buffer )
         : m_pbuffer(buffer)
@@ -1006,7 +1105,6 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
         }
     };
     LVFormLine frmLine( m_pbuffer );
-    formatted_word_t * word = NULL;
 
     // TODO: finish new implementation
 

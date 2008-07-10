@@ -570,7 +570,7 @@ public:
         for ( nchars=0; nchars<len; nchars++) {
             lChar16 ch = text[nchars];
             bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
-            FT_UInt ch_glyph_index = -1;
+            FT_UInt ch_glyph_index = (FT_UInt)-1;
             int kerning = 0;
 #if (ALLOW_KERNING==1)
             if ( use_kerning && previous ) {
@@ -604,7 +604,7 @@ public:
             /* load glyph image into the slot (erase previous one) */
             int w = _wcache.get(ch);
             if ( w==0xFF ) {
-                if ( ch_glyph_index==-1 ){
+                if ( ch_glyph_index==(FT_UInt)-1 ){
                     ch_glyph_index = FT_Get_Char_Index( _face, ch );
                     if ( ch_glyph_index==0 )
                         ch_glyph_index = FT_Get_Char_Index( _face, def_char );

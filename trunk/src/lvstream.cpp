@@ -448,7 +448,7 @@ public:
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode )
 {
     lString16 fn(pathname);
-    LVFileStream * stream = stream->CreateFileStream( fn, mode );
+    LVFileStream * stream = LVFileStream::CreateFileStream( fn, mode );
     if ( stream!=NULL )
     {
         return LVStreamRef( stream );
