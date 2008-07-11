@@ -248,7 +248,8 @@ public:
     }
 
     lUInt32 FormatOld(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }
-    lUInt32 Format(lUInt16 width, lUInt16 page_height);
+    lUInt32 FormatNew(lUInt16 width, lUInt16 page_height);
+    lUInt32 Format(lUInt16 width, lUInt16 page_height) { return FormatOld( width, page_height ); }
 
     int GetSrcCount()
     {

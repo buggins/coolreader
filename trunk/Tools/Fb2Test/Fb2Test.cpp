@@ -24,6 +24,42 @@ HWND g_hWnd = NULL;
 HINSTANCE hInst;								// current instance
 LVDocView * text_view;
 
+
+void testFormatting()
+{
+    //
+    class Tester {
+    public:
+        LFormattedText txt;
+        void addLine( const lChar16 * str, int flags, LVFontRef font )
+        {
+            lString16 s( str );
+            txt.AddSourceLine(
+               s.c_str(),        /* pointer to unicode text string */
+               s.length(),         /* number of chars in text, 0 for auto(strlen) */
+               0x000000,       /* text color */
+               0xFFFFFF,     /* background color */
+               font.get(),        /* font to draw string */
+               flags,
+               16,    /* interline space, *16 (16=single, 32=double) */
+               30,    /* first line margin */
+               NULL,
+               0
+            );
+        }
+    };
+    LVFontRef font1 = fontMan->GetFont(20, 300, false, css_ff_sans_serif, lString8("Arial") );
+    LVFontRef font2 = fontMan->GetFont(20, 300, false, css_ff_serif, lString8("Times New Roman") );
+    Tester t;
+    t.addLine( L"Testing simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Another fragment of text. ", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"And the last one written with another font", LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( L"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.txt.FormatNew( 200, 300 );
+}
+
+
 // Foward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -373,6 +409,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     lString8 cmdline(lpCmdLine);
     cmdline.trim();
+    if ( cmdline == "test_format" ) {
+        testFormatting();
+        return 1;
+    }
     if (cmdline.empty())
     {
         cmdline = OpenFileDialog( NULL );
