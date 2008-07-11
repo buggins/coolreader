@@ -48,6 +48,51 @@ IMPLEMENT_APP(cr3app)
 #include "resources/cr3res.h"
 
 
+void testFormatting()
+{
+    //
+    class Tester {
+        public:
+            LFormattedText txt;
+            void addLine( const lChar16 * str, int flags, LVFontRef font )
+            {
+                lString16 s( str );
+                txt.AddSourceLine(
+                        s.c_str(),        /* pointer to unicode text string */
+                s.length(),         /* number of chars in text, 0 for auto(strlen) */
+                0x000000,       /* text color */
+                0xFFFFFF,     /* background color */
+                font.get(),        /* font to draw string */
+                flags,
+                16,    /* interline space, *16 (16=single, 32=double) */
+                30,    /* first line margin */
+                NULL,
+                0
+                                 );
+            }
+            void dump()
+            {
+                formatted_text_fragment_t * buf = txt.GetBuffer();
+                //for ( 
+            }
+    };
+    LVFontRef font1 = fontMan->GetFont(20, 300, false, css_ff_sans_serif, lString8("Arial") );
+    LVFontRef font2 = fontMan->GetFont(20, 300, false, css_ff_serif, lString8("Times New Roman") );
+    Tester t;
+    t.addLine( L"Testing thisislonglongwordto", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Testing", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"several", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( L" short", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"words!", LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Another fragment of text. ", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"And the last one written with another font", LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( L"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.txt.FormatNew( 200, 300 );
+}
+
+
 ResourceContainer * resources = NULL;
 
 static lChar16 detectSlash( lString16 path )
@@ -246,10 +291,10 @@ cr3app::OnInit()
     }
 #endif
 
-#if 0
+#if 1
     //CRLog::setFileLogger( "crengine.log" );
     CRLog::setStdoutLogger();
-    CRLog::setLogLevel( CRLog::LL_TRACE );
+    CRLog::setLogLevel( CRLog::LL_DEBUG );
 #endif
 
     wxImage::AddHandler(new wxPNGHandler);
@@ -697,9 +742,6 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         _view->getDocView()->setStyleSheet( css );
     }
 
-    _view->UpdateScrollBar();
-    _view->Show( true );
-
     wxAcceleratorEntry entries[40];
     int a=0;
     entries[a++].Set(wxACCEL_CTRL,  (int) 'O',     wxID_OPEN);
@@ -755,6 +797,14 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         fnameToOpen.erase(0, 1);
     if ( !fnameToOpen.empty() && fnameToOpen[fnameToOpen.length()-1]=='\"' )
         fnameToOpen.erase(fnameToOpen.length()-1, 1);
+    if ( fnameToOpen == L"test_format" ) {
+        testFormatting();
+        Destroy();
+    }
+    
+    _view->UpdateScrollBar();
+    _view->Show( true );
+
     RestoreOptions();
     if ( !fnameToOpen.empty() ) {
         if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
