@@ -18,6 +18,9 @@
 #include "lvfntman.h"
 #include "lvbmpbuf.h"
 
+// comment out following line to use old formatter
+#define USE_NEW_FORMATTER 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -103,6 +106,10 @@ typedef struct
 #define LTEXT_WORD_CAN_BREAK_LINE_AFTER      2
 /// can break with hyphenation after this word
 #define LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER 4
+/// can break line before this word
+#define LTEXT_WORD_CAN_BREAK_LINE_BEFORE     8
+/// can break line before this word
+#define LTEXT_WORD_CAN_ADD_SPACE_BEFORE      16
 /// object flag
 #define LTEXT_WORD_IS_OBJECT         0x80
 /// first word of link flag
@@ -249,7 +256,12 @@ public:
 
     lUInt32 FormatOld(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }
     lUInt32 FormatNew(lUInt16 width, lUInt16 page_height);
+    
+#if (USE_NEW_FORMATTER==1)
+    lUInt32 Format(lUInt16 width, lUInt16 page_height) { return FormatNew( width, page_height ); }
+#else
     lUInt32 Format(lUInt16 width, lUInt16 page_height) { return FormatOld( width, page_height ); }
+#endif
 
     int GetSrcCount()
     {
