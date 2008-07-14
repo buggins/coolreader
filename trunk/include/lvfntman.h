@@ -47,6 +47,7 @@ public:
         lUInt8  width;       ///< 4: full width of glyph
     };
 
+    virtual int getHyphenWidth() { return getCharWidth( UNICODE_SOFT_HYPHEN_CODE ); }
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 

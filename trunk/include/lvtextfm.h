@@ -19,7 +19,7 @@
 #include "lvbmpbuf.h"
 
 // comment out following line to use old formatter
-#define USE_NEW_FORMATTER 0
+#define USE_NEW_FORMATTER 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -94,10 +94,11 @@ typedef struct
            lUInt16  height;           /**< \brief 02 height of image */
        } o;
    };
-   lUInt16  width;           /**< \brief 06 word width, pixels */
+   lUInt16  width;           /**< \brief 06 word width, pixels, when at line end */
    lUInt16  x;               /**< \brief 08 word x position in line */
    lInt8    y;               /**< \brief 10 baseline y position */
    lUInt8   flags;           /**< \brief 11 flags */
+   lUInt16  inline_width;    /**< \brief 12 word width, pixels when inside line */
 } formatted_word_t;
 
 /// can add space after this word
@@ -106,10 +107,6 @@ typedef struct
 #define LTEXT_WORD_CAN_BREAK_LINE_AFTER      2
 /// can break with hyphenation after this word
 #define LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER 4
-/// can break line before this word
-#define LTEXT_WORD_CAN_BREAK_LINE_BEFORE     8
-/// can break line before this word
-#define LTEXT_WORD_CAN_ADD_SPACE_BEFORE      16
 /// object flag
 #define LTEXT_WORD_IS_OBJECT         0x80
 /// first word of link flag

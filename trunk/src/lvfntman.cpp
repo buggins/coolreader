@@ -455,6 +455,14 @@ public:
         Clear();
     }
 
+    virtual int getHyphenWidth()
+    {
+        if ( !_hyphen_width ) {
+            _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
+        }
+        return _hyphen_width;
+    }
+
     /// get kerning mode: true==ON, false=OFF
     virtual bool getKerning() { return _allowKerning; }
     /// get kerning mode: true==ON, false=OFF

@@ -802,7 +802,10 @@ public:
                 formatted_word_t * word = &frmline->words[i];
                 // update X for each word
                 word->x = frmline->width;
-                frmline->width += word->width;
+                if ( i== wordCount-1 )
+                    frmline->width += word->width;
+                else
+                    frmline->width += word->inline_width;
                 // update Y of each word
                 updateY( word );
             }
@@ -885,6 +888,18 @@ public:
         srcIndex = index;
         text_offset = pos;
         srcline = &m_pbuffer->srctext[srcIndex];
+
+#if 1
+        if ( !flgObject ) {
+            lString16 srctext( srcline->t.text, srcline->t.len);
+            lString8 srctext8 = UnicodeToUtf8(srctext);
+            const char * srctxt = srctext8.c_str();
+            if ( srctext8 == "Testing " ) {
+                srctxt += 0;
+            }
+        }
+#endif
+
         line_flags = srcline->flags;
         isLinkStart = (line_flags & LTEXT_IS_LINK) != 0; // first word of link
         flgObject = (line_flags & LTEXT_SRC_IS_OBJECT) != 0; // object (e.g. image)
@@ -933,7 +948,7 @@ public:
                 flgCanBreakBeforeNextLine = true;
             else {
                 lChar16 firstChar = nextline->t.text[0];
-                if ( lGetCharProps(firstChar) & LCHAR_IS_SPACE )
+                if ( lGetCharProps(firstChar) & CH_PROP_SPACE )
                     flgCanBreakBeforeNextLine = true;
             }
         }
@@ -945,6 +960,7 @@ public:
         word->t.len = lastch - firstch + 1;
         int wpos = firstch>0 ? widths_buf[firstch-1] : 0;
         word->width = widths_buf[lastch] - wpos;
+        word->inline_width = word->width;
         word->t.start = text_offset + firstch;
         word->flags = 0;
         if ( isLinkStart ) {
@@ -954,18 +970,14 @@ public:
         word->y = wy;
         //word->x = widths_buf[lastch] - wpos;
         lChar16 lastchar = flags_buf[lastch];
-        lChar16 firstchar = flags_buf[firstch];
         if (lastchar & LCHAR_IS_SPACE)
             word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-        if (firstchar & LCHAR_IS_SPACE)
-            word->flags |= LTEXT_WORD_CAN_ADD_SPACE_BEFORE | LTEXT_WORD_CAN_BREAK_LINE_BEFORE;
         if (lastchar & LCHAR_ALLOW_WRAP_AFTER)
             word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
-        if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER)
+        if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
             word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
-#define LTEXT_WORD_CAN_BREAK_LINE_BEFORE     8
-/// can break line before this word
-#define LTEXT_WORD_CAN_ADD_SPACE_BEFORE      16
+            word->inline_width = word->width - font->getHyphenWidth();
+        }
         if ( text_offset+lastch == srcline->t.len-1 && flgLastParaLine)
         {
             /* last char of src fragment */
@@ -1030,6 +1042,8 @@ public:
                 int space_left = spaceLeft();
                 if ( space_left<=0 )
                     commit( frmline->word_count-1 );
+                else
+                    setSrcLine( srcIndex+1, 0 );
             } else {
                 // try to insert text
                 int space_left = spaceLeft();
@@ -1104,7 +1118,13 @@ public:
                     }
                     text_offset += last_fit + 1;
                     if ( last_fit<chars_left-1 ) {
-                        commit();
+                        if ( chars_measured<chars_left )
+                            commit();
+                        else {
+                            addWord(0, chars_measured - (last_fit+1) - 1 );
+                            //text_offset += chars_measured - (last_fit+1);
+                            setSrcLine( srcIndex+1, 0 );
+                        }
                     } else if ( text_offset >= srcline->t.len ) {
                         if ( flgLastParaLine )
                             commit();
