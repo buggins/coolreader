@@ -47,6 +47,7 @@ typedef struct css_style_rec_tag {
     css_page_break_t     page_break_before;
     css_page_break_t     page_break_after;
     css_page_break_t     page_break_inside;
+    css_hyphenate_t        hyphenate;
     css_style_rec_tag()
     : refCount(0)
     , display( css_d_inherit )
@@ -67,6 +68,7 @@ typedef struct css_style_rec_tag {
     , page_break_before(css_pb_inherit)
     , page_break_after(css_pb_inherit)
     , page_break_inside(css_pb_inherit)
+    , hyphenate(css_hyph_inherit)
     {
     }
     void AddRef() { refCount++; }

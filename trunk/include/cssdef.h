@@ -83,6 +83,13 @@ enum css_text_decoration_t {
     css_td_blink = 5,
 };
 
+/// hyphenate property values
+enum css_hyphenate_t {
+    css_hyph_inherit = 0,
+    css_hyph_none = 1,
+    css_hyph_auto = 2,
+};
+
 /// font-style property values
 enum css_font_style_t {
     css_fs_inherit,

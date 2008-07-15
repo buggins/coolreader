@@ -376,6 +376,13 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
         default:
             break;
         }
+        switch ( enode->getStyle()->hyphenate ) {
+            case css_hyph_auto:
+                flags |= LTEXT_HYPHENATE;
+                break;
+            default:
+                break;
+        }
         const elem_def_t * ntype = node->getElementTypePtr();
         if ( ntype && ntype->props.is_object )
         {
@@ -821,6 +828,7 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
     UPDATE_STYLE_FIELD( white_space, css_ws_inherit );
     UPDATE_STYLE_FIELD( text_align, css_ta_inherit );
     UPDATE_STYLE_FIELD( text_decoration, css_td_inherit );
+    UPDATE_STYLE_FIELD( hyphenate, css_hyph_inherit );
 
     UPDATE_STYLE_FIELD( page_break_before, css_pb_inherit );
     UPDATE_STYLE_FIELD( page_break_after, css_pb_inherit );

@@ -18,10 +18,11 @@
 
 lUInt32 calcHash(css_style_rec_t & rec)
 {
-    return ((((((((((((((((((((lUInt32)rec.display * 11
+    return (((((((((((((((((((((lUInt32)rec.display * 11
          + (lUInt32)rec.white_space) * 19
          + (lUInt32)rec.text_align) * 37
          + (lUInt32)rec.text_decoration) * 37
+         + (lUInt32)rec.hyphenate) * 37
          + (lUInt32)rec.vertical_align) * 79
          + (lUInt32)rec.font_size.type) * 13
          + (lUInt32)rec.font_size.value) * 17
@@ -47,6 +48,7 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.white_space == r2.white_space &&
            r1.text_align == r2.text_align &&
            r1.text_decoration == r2.text_decoration &&
+           r1.hyphenate == r2.hyphenate &&
            r1.vertical_align == r2.vertical_align &&
            r1.line_height == r2.line_height &&
            r1.width == r2.width &&

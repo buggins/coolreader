@@ -24,6 +24,7 @@ enum css_decl_code {
     cssd_white_space,
     cssd_text_align,
     cssd_text_decoration,
+    cssd_hyphenate,
     cssd_color,
     cssd_background_color,
     cssd_vertical_align,
@@ -53,6 +54,7 @@ static const char * css_decl_name[] = {
     "white-space:",
     "text-align:",
     "text-decoration:",
+    "hyphenate:",
     "color:",
     "background-color:",
     "vertical-align:",
@@ -360,6 +362,14 @@ static const char * css_td_names[] =
     NULL
 };
 
+static const char * css_hyph_names[] = 
+{
+    "inherit",
+    "none",
+    "auto",
+    NULL
+};
+
 static const char * css_pb_names[] = 
 {
     "inherit",
@@ -458,6 +468,9 @@ bool LVCssDeclaration::parse( const char * &decl )
                 break;
             case cssd_text_decoration:
                 n = parse_name( decl, css_td_names, -1 );
+                break;
+            case cssd_hyphenate:
+                n = parse_name( decl, css_hyph_names, -1 );
                 break;
             case cssd_page_break_before:
                 n = parse_name( decl, css_pb_names, -1 );
@@ -613,6 +626,9 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_text_decoration:
             style->text_decoration = (css_text_decoration_t) *p++;
+            break;
+        case cssd_hyphenate:
+            style->hyphenate = (css_hyphenate_t) *p++;
             break;
         case cssd_page_break_before:
             style->page_break_before = (css_page_break_t) *p++;

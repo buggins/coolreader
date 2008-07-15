@@ -47,7 +47,7 @@ extern "C" {
 
 #define LTEXT_SRC_IS_OBJECT    0x8000  /**< \brief object (image) */
 #define LTEXT_IS_LINK          0x4000  /**< \brief link */
-
+#define LTEXT_HYPHENATE        0x1000  /**< \brief allow hyphenation */
 #define LTEXT_RUNIN_FLAG       0x2000  /**< \brief element display mode is runin */
 
 
