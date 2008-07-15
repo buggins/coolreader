@@ -56,7 +56,33 @@ void testFormatting()
     t.addLine( L"And the last one written with another font", LTEXT_FLAG_OWNTEXT, font2 );
     t.addLine( L"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
-    t.txt.FormatNew( 200, 300 );
+    t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Testing simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" Word", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" Word", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" Word", LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( L" Word", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" Word", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" Word", LTEXT_FLAG_OWNTEXT, font2 );
+    t.addLine( L" Word", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L" One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    int N = 100000;
+    int i;
+    time_t start1 = time((time_t*)0);
+    for ( i=0; i<N; i++ )
+        t.txt.FormatNew( 400, 300 );
+    time_t end1 = time((time_t*)0);
+    time_t start2 = time((time_t*)0);
+    for ( i=0; i<N; i++ )
+        t.txt.FormatOld( 400, 300 );
+    time_t end2 = time((time_t*)0);
+    int t1 = (int)(end1-start1);
+    int t2 = (int)(end2-start2);
+    int delta = (t2-t1) * 100 / t2;
+    CRLog::debug("new formatter performance gain is %d%%", delta);
 }
 
 

@@ -944,7 +944,7 @@ public:
             font = (LVFont*)srcline->t.font;
         }
 
-#if 1
+#if 0
         if ( !flgObject ) {
             lString16 srctext( srcline->t.text, srcline->t.len);
             lString8 srctext8 = UnicodeToUtf8(srctext);
@@ -1012,6 +1012,8 @@ public:
         word->t.len = lastch - firstch + 1;
         int wpos = firstch>0 ? widths_buf[firstch-1] : 0;
         word->width = widths_buf[lastch] - wpos;
+        if ( firstch>0 && (flags_buf[firstch-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER) )
+            word->width += font->getHyphenWidth();
         word->inline_width = word->width;
         word->t.start = text_offset + firstch;
         lUInt16 flags = 0;
