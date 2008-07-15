@@ -76,7 +76,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 static int def_font_sizes[] = { 16, 18, 22, 26, 30, 36, 42 };
 
 LVDocView::LVDocView()
-: m_dx(100), m_dy(100), m_pos(50), m_battery_state(66)
+: m_dx(400), m_dy(200), m_pos(50), m_battery_state(66)
 #if (LBOOK==1)
 , m_font_size(32)
 #elif defined(__SYMBIAN32__)
