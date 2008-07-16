@@ -1121,6 +1121,7 @@ public:
                         '?');
                 int j;
                 int last_fit = -1;
+                int last_hyph = -1;
                 /* try to find good place for line break */
                 if ( srcIndex>=(int)m_pbuffer->srctextlen || flgLastParaLine || flgCanBreakBeforeNextLine )
                         flags_buf.get()[chars_left-1] |= LCHAR_ALLOW_WRAP_AFTER;
@@ -1131,8 +1132,13 @@ public:
                     if (flags_buf[j] & LCHAR_ALLOW_WRAP_AFTER)
                         last_fit = j;
                     if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER)
-                        last_fit = j;
+                        last_hyph = j;
                 }
+                if ( last_fit==-1 && last_hyph!=-1 ) {
+                    if ( (line_flags & LTEXT_HYPHENATE) || !frmline->word_count )
+                        last_fit = last_hyph;
+                }
+
                 if ( last_fit==-1 ) {
                     int existingWrapPos = updateWrapPos( );
                     if ( existingWrapPos==0 ) {

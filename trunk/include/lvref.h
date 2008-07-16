@@ -506,7 +506,7 @@ public:
     ~LVAutoPtr()
     {
         if ( p )
-            delete p;
+            free( p );
     }
     inline const T operator [] ( int index ) { return p[index]; }
     inline LVAutoPtr * operator -> ()

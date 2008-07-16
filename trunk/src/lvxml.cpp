@@ -552,6 +552,7 @@ private:
     int max_right;
     int avg_left;
     int avg_right;
+    int avg_center;
     int paraCount;
     int linesToSkip;
     bool lastParaWasTitle;
@@ -572,6 +573,7 @@ public:
         max_right = -1;
         avg_left = 0;
         avg_right = 0;
+        avg_center = 0;
         paraCount = 0;
         linesToSkip = 0;
     }
@@ -605,6 +607,29 @@ public:
         }
         return true;
     }
+    inline int absCompare( int v1, int v2 )
+    {
+        if ( v1<0 )
+            v1 = -v1;
+        if ( v2<0 )
+            v2 = -v2;
+        if ( v1>v2 )
+            return 1;
+        else if ( v1==v2 )
+            return 0;
+        else
+            return -1;
+    }
+    bool isCentered( LVTextFileLine * line )
+    {
+        if ( line->lpos > min_left+1 ) {
+            int center_dist = (line->rpos + line->lpos) / 2 - avg_center;
+            int right_dist = line->rpos - avg_right;
+            if ( absCompare( center_dist, right_dist )<0 )
+                return true;
+        }
+        return false;
+    }
     /// checks text format options
     void detectFormatFlags()
     {
@@ -613,9 +638,10 @@ public:
         if ( length()<10 )
             return;
         formatFlags = 0;
-        int avg_center = 0;
+        avg_center = 0;
         int empty_lines = 0;
         int ident_lines = 0;
+        int center_lines = 0;
         min_left = -1;
         max_right = -1;
         avg_left = 0;
@@ -635,27 +661,36 @@ public:
                 avg_right += line->rpos;
             }
         }
-        for ( i=0; i<length(); i++ ) {
-            LVTextFileLine * line = get(i);
-            //CRLog::debug("    line(%d, %d)", line->lpos, line->rpos);
-            if ( line->lpos > min_left )
-                ident_lines++;
-        }
         int non_empty_lines = length() - empty_lines;
         if ( non_empty_lines < 10 )
             return;
         avg_left /= length();
         avg_right /= length();
         avg_center = (avg_left + avg_right) / 2;
+        for ( i=0; i<length(); i++ ) {
+            LVTextFileLine * line = get(i);
+            //CRLog::debug("    line(%d, %d)", line->lpos, line->rpos);
+            if ( line->lpos > min_left+1 ) {
+                int center_dist = (line->rpos + line->lpos) / 2 - avg_center;
+                int right_dist = line->rpos - avg_right;
+                if ( absCompare( center_dist, right_dist )<0 )
+                    center_lines++;
+                else
+                    ident_lines++;
+            }
+        }
         if ( avg_right >= 80 )
             return;
         formatFlags = 0;
         int ident_lines_percent = ident_lines * 100 / length();
+        int center_lines_percent = center_lines * 100 / length();
         int empty_lines_precent = empty_lines * 100 / length();
         if ( empty_lines_precent > 5 )
             formatFlags |= tftEmptyLineDelimPara;
         if ( ident_lines_percent > 5 )
             formatFlags |= tftParaIdents;
+        if ( center_lines_percent > 1 )
+            formatFlags |= tftCenteredHeaders;
 
         CRLog::debug("detectFormatFlags() min_left=%d, max_right=%d, ident=%d, empty=%d, flags=%d",
             min_left, max_right, ident_lines_percent, empty_lines_precent, formatFlags );
@@ -832,9 +867,11 @@ public:
         }
         str.trimDoubleSpaces(false, false, true);
         bool isHeader = false;
-        if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 ) )
+        if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 && get(startline+1)->rpos==0 ) )
             isHeader = true;
         if ( startline==endline && get(startline)->isHeading() )
+            isHeader = true;
+        if ( (formatFlags & tftCenteredHeaders) && startline==endline && isCentered( get(startline) ) )
             isHeader = true;
         int hlevel = DetectHeadingLevelByText( str );
         if ( hlevel>0 )
@@ -1120,7 +1157,7 @@ bool LVTextParser::CheckFormat()
     FillBuffer( TEXT_PARSER_DETECT_SIZE );
     int charsDecoded = ReadTextBytes( 0, TEXT_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
     bool res = false;
-    if ( charsDecoded > 100 ) {
+    if ( charsDecoded > 30 ) {
         int illegal_char_count = 0;
         int crlf_count = 0;
         int space_count = 0;
@@ -1352,8 +1389,9 @@ bool LVXMLParser::CheckFormat()
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
     FillBuffer( XML_PARSER_DETECT_SIZE );
     int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, XML_PARSER_DETECT_SIZE-1, 0 );
+    chbuf[charsDecoded] = 0;
     bool res = false;
-    if ( charsDecoded > 100 ) {
+    if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
         if ( s.pos(L"<?xml") >=0 && s.pos(L"<FictionBook") >= 0 )
             res = true;

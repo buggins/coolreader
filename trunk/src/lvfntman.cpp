@@ -546,6 +546,19 @@ public:
         return true;
     }
 
+    inline int calcCharFlags( lChar16 ch )
+    {
+        int bflags = 0;
+        int isSpace = lvfontIsUnicodeSpace(ch);
+        if (isSpace ||  ch == UNICODE_SOFT_HYPHEN_CODE )
+            bflags |= LCHAR_ALLOW_WRAP_AFTER;
+        if (ch == '-')
+            bflags |= LCHAR_DEPRECATED_WRAP_AFTER;
+        if (isSpace)
+            bflags |= LCHAR_IS_SPACE;
+        return bflags;
+    }
+    
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
@@ -599,15 +612,8 @@ public:
                 }
             }
 #endif
-            int bflags = 0;
-            int isSpace = lvfontIsUnicodeSpace(ch);
-            if (isSpace ||  ch == UNICODE_SOFT_HYPHEN_CODE )
-                bflags |= LCHAR_ALLOW_WRAP_AFTER;
-            if (ch == '-')
-                bflags |= LCHAR_DEPRECATED_WRAP_AFTER;
-            if (isSpace)
-                bflags |= LCHAR_IS_SPACE;
-            flags[nchars] = bflags;
+
+            flags[nchars] = calcCharFlags( ch );
 
             /* load glyph image into the slot (erase previous one) */
             int w = _wcache.get(ch);
@@ -637,6 +643,11 @@ public:
             } else {
                 lastFitChar = nchars + 1;
             }
+        }
+
+        // fill props for rest of chars
+        for ( int ii=nchars; ii<len; ii++ ) {
+            flags[nchars] = calcCharFlags( text[ii] );
         }
 
         //maxFit = nchars;

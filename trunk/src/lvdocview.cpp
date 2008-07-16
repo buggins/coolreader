@@ -520,18 +520,20 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 {
     if ( rc.width()<130 || rc.height()<130)
         return;
-    int base_font_size = 24;
+    int base_font_size = 16;
     int w = rc.width();
-    if ( w<300 )
-        base_font_size = 22;
+    if ( w<200 )
+        base_font_size = 16;
+    else if ( w<300 )
+        base_font_size = 20;
     else if ( w<500 )
-        base_font_size = 24;
+        base_font_size = 22;
     else if ( w<700 )
-        base_font_size = 26;
+        base_font_size = 24;
     else
-        base_font_size = 32;
+        base_font_size = 24;
     CRLog::trace("drawCoverTo() - loading fonts...");
-    LVFontRef author_fnt( fontMan->GetFont( base_font_size, 600, true, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef author_fnt( fontMan->GetFont( base_font_size, 600, false, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef title_fnt( fontMan->GetFont( base_font_size+4, 600, false, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef series_fnt( fontMan->GetFont( base_font_size-3, 300, true, css_ff_serif, lString8("Times New Roman")) );
     lString16 authors = getAuthors();
@@ -541,11 +543,12 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
         title = L"no title";
     LFormattedText txform;
     if ( !authors.empty() )
-        txform.AddSourceLine( authors.c_str(), authors.length(), 0xFFFFFFFF, 0xFFFFFFFF, author_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
-    txform.AddSourceLine( title.c_str(), title.length(), 0xFFFFFFFF, 0xFFFFFFFF, title_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
-    txform.AddSourceLine( series.c_str(), series.length(), 0xFFFFFFFF, 0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER, 20 );
-    int title_w = rc.width() - rc.width()/3;
-    int h = txform.Format( title_w, rc.height() ) + 16;
+        txform.AddSourceLine( authors.c_str(), authors.length(), 0xFFFFFFFF, 0xFFFFFFFF, author_fnt.get(), LTEXT_ALIGN_CENTER, 18 );
+    txform.AddSourceLine( title.c_str(), title.length(), 0xFFFFFFFF, 0xFFFFFFFF, title_fnt.get(), LTEXT_ALIGN_CENTER, 18 );
+    if ( !series.empty() )
+        txform.AddSourceLine( series.c_str(), series.length(), 0xFFFFFFFF, 0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER, 18 );
+    int title_w = rc.width() - rc.width()/8;
+    int h = txform.Format( title_w, rc.height() );
 
     lvRect imgrc = rc;
     imgrc.bottom -= h + 16;
@@ -1232,10 +1235,10 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
     if ( m_doc ) {
         if ( page.type == PAGE_TYPE_COVER ) {
             lvRect rc = *pageRect;
-            rc.left += m_pageMargins.left;
-            rc.top += m_pageMargins.bottom;
-            rc.right -= m_pageMargins.right;
-            rc.bottom -= m_pageMargins.bottom;
+            rc.left += m_pageMargins.left / 2;
+            rc.top += m_pageMargins.bottom / 2;
+            rc.right -= m_pageMargins.right / 2;
+            rc.bottom -= m_pageMargins.bottom / 2;
             CRLog::trace("Entering drawCoverTo()");
             drawCoverTo( drawbuf, rc );
         } else {
@@ -2424,7 +2427,10 @@ void LVDocView::updateScroll()
         m_scrollinfo.scale = 0;
         char str[32] = {0};
         if ( m_pages.length()>1 ) {
-            sprintf(str, "%d / %d", page, m_pages.length()-1 );
+            if ( page<=0 ) {
+                sprintf(str, "cover" );
+            } else
+                sprintf(str, "%d / %d", page, m_pages.length()-1 );
         }
         m_scrollinfo.posText = lString16( str );
     }
