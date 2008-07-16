@@ -85,11 +85,31 @@ void testFormatting()
     t.addLine( L" short", LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"words!", LTEXT_FLAG_OWNTEXT, font2 );
     t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Next paragraph: left-aligned. Blabla bla blabla blablabla hdjska hsdjkasld hsdjka sdjaksdl hasjkdl ahklsd hajklsdh jaksd hajks dhjksdhjshd sjkdajsh hasjdkh ajskd hjkhjksajshd hsjkadh sjk.", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"Another fragment of text. ", LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"And the last one written with another font", LTEXT_FLAG_OWNTEXT, font2 );
     t.addLine( L"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
-    t.txt.FormatNew( 200, 300 );
+    printf("Running performance test\n");
+    time_t start1 = time((time_t)0);
+    for ( int i=0; i<100000; i++ )
+        t.txt.FormatNew( 200, 300 );
+    //for ( int i=0; i<100000; i++ )
+    //    t.txt.FormatNew( 400, 300 );
+    time_t end1 = time((time_t)0);
+    time_t start2 = time((time_t)0);
+    for ( int i=0; i<100000; i++ )
+        t.txt.FormatOld( 200, 300 );
+    //for ( int i=0; i<100000; i++ )
+    //    t.txt.FormatOld( 400, 300 );
+    time_t end2 = time((time_t)0);
+    int time1 = (int)(end1-start1);
+    int time2 = (int)(end2-start2);
+    printf("\nNew time = %d, old time = %d, gain=%d%%\n", time1, time2, (time2-time1)*100/time2);
 }
 
 
@@ -800,10 +820,11 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     if ( fnameToOpen == L"test_format" ) {
         testFormatting();
         Destroy();
+        return;
     }
     
-    _view->UpdateScrollBar();
     _view->Show( true );
+    //_view->UpdateScrollBar();
 
     RestoreOptions();
     if ( !fnameToOpen.empty() ) {
@@ -1031,6 +1052,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
     if ( dlg.ShowModal() == wxID_OK && opts.ShowModal() == wxID_OK ) {
         //
         //_view->LoadDocument( dlg.GetPath() );
+        Refresh();
         Update();
         wxCursor hg( wxCURSOR_WAIT );
         this->SetCursor( hg );
