@@ -587,12 +587,19 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 {
     checkRender();
+    int save_m_dx = m_dx;
+    int save_m_dy = m_dy;
     int old_flags = m_pageHeaderInfo;
+    int save_pos = m_pos;
+
     m_pageHeaderInfo &= ~(PGHDR_CLOCK | PGHDR_BATTERY);
-    LVRendPageList pages;
-    int dx = 600 - m_pageMargins.left - m_pageMargins.right;
-    int dy = 800 - m_pageMargins.top - m_pageMargins.bottom;
-    Render(dx, dy, &pages);
+    int dx = 600; // - m_pageMargins.left - m_pageMargins.right;
+    int dy = 800; // - m_pageMargins.top - m_pageMargins.bottom;
+    Resize( dx, dy );
+
+    LVRendPageList &pages = m_pages;
+
+    //Render(dx, dy, &pages);
 
     const lChar8 * * table = GetCharsetUnicode2ByteTable( L"windows-1251" );
 
@@ -615,13 +622,19 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
 
         LVGrayDrawBuf cover(600, 800);
         lvRect coverRc( 0, 0, 600, 800 );
+        cover.Clear(m_backgroundColor);
         drawCoverTo( &cover, coverRc );
         wol.addCoverImage(cover);
 
-        for (int i=1; i<pages.length(); i++)
+        for ( int i=1; i<pages.length(); i+=getVisiblePageCount() )
         {
-			LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
-			drawPageTo( &drawbuf, *pages[i], NULL, pages.length(), 0 );
+            LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
+            //drawbuf.SetBackgroundColor(0xFFFFFF);
+            //drawbuf.SetTextColor(0x000000);
+            drawbuf.Clear(m_backgroundColor);
+            drawPageTo( &drawbuf, *pages[i], NULL, pages.length(), 0 );
+            m_pos = pages[i]->start;
+            Draw( drawbuf, m_pos, true );
             if (!flgGray)
                 drawbuf.ConvertToBitmap(false);
             else
@@ -674,7 +687,11 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         }
     }
     m_pageHeaderInfo = old_flags;
-    Render();
+    m_pos = save_pos;
+    int ndx = (GetRotateAngle()&1) ? save_m_dy : save_m_dx;
+    int ndy = (GetRotateAngle()&1) ? save_m_dx : save_m_dy;
+    Resize( ndx, ndy );
+    clearImageCache();
 
     return true;
 }
@@ -1345,33 +1362,41 @@ bool LVDocView::windowToDocPoint( lvPoint & pt )
 {
     checkRender();
     pt = rotatePoint( pt, true );
-    int page = m_pages.FindNearestPage(m_pos, 0);
-    lvRect * rc = NULL;
-    lvRect page1( m_pageRects[0] );
-    page1.left += m_pageMargins.left;
-    page1.top += m_pageMargins.top;
-    page1.right -= m_pageMargins.right;
-    page1.bottom -= m_pageMargins.bottom;
-    if ( page1.isPointInside( pt ) ) {
-        rc = &page1;
-    } else if ( getVisiblePageCount()==2 ) {
-        lvRect page2( m_pageRects[1] );
-        page2.left += m_pageMargins.left;
-        page2.top += m_pageMargins.top;
-        page2.right -= m_pageMargins.right;
-        page2.bottom -= m_pageMargins.bottom;
-        if ( page2.isPointInside( pt ) ) {
-            rc = &page2;
-            page++;
-        }
-    }
-    if ( rc && page>=0 && page<m_pages.length() ) {
-        int page_y = m_pages[page]->start;
-        pt.x -= rc->left;
-        pt.y -= rc->top;
-        //CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
-        pt.y += page_y;
+    if ( getViewMode() == DVM_SCROLL ) {
+        // SCROLL mode
+        pt.y += m_pos;
+        pt.x -= m_pageMargins.left;
         return true;
+    } else {
+        // PAGES mode
+        int page = m_pages.FindNearestPage(m_pos, 0);
+        lvRect * rc = NULL;
+        lvRect page1( m_pageRects[0] );
+        page1.left += m_pageMargins.left;
+        page1.top += m_pageMargins.top;
+        page1.right -= m_pageMargins.right;
+        page1.bottom -= m_pageMargins.bottom;
+        if ( page1.isPointInside( pt ) ) {
+            rc = &page1;
+        } else if ( getVisiblePageCount()==2 ) {
+            lvRect page2( m_pageRects[1] );
+            page2.left += m_pageMargins.left;
+            page2.top += m_pageMargins.top;
+            page2.right -= m_pageMargins.right;
+            page2.bottom -= m_pageMargins.bottom;
+            if ( page2.isPointInside( pt ) ) {
+                rc = &page2;
+                page++;
+            }
+        }
+        if ( rc && page>=0 && page<m_pages.length() ) {
+            int page_y = m_pages[page]->start;
+            pt.x -= rc->left;
+            pt.y -= rc->top;
+            //CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
+            pt.y += page_y;
+            return true;
+        }
     }
     return false;
 }
@@ -1422,17 +1447,32 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange( int pageIndex )
     LVLock lock(getMutex());
     checkRender();
     LVRef<ldomXRange> res(NULL);
-    if ( pageIndex<0 || pageIndex>=m_pages.length() )
-        pageIndex = getCurPage();
-    LVRendPageInfo * page = m_pages[ pageIndex ];
-    if ( page->type!=PAGE_TYPE_NORMAL)
-        return res;
-    ldomXPointer start = m_doc->createXPointer( lvPoint( 0, page->start ) );
-    //ldomXPointer end = m_doc->createXPointer( lvPoint( m_dx+m_dy, page->start + page->height - 1 ) );
-    ldomXPointer end = m_doc->createXPointer( lvPoint( 0, page->start + page->height  ) );
-    if ( start.isNull() || end.isNull() )
-        return res;
-    res = LVRef<ldomXRange> ( new ldomXRange(start, end) );
+    if ( getViewMode()==DVM_SCROLL ) {
+        // SCROLL mode
+        int starty = m_pos;
+        int endy = m_pos + m_dy;
+        int fh = GetFullHeight();
+        if ( endy>=fh )
+            endy = fh-1;
+        ldomXPointer start = m_doc->createXPointer( lvPoint( 0, starty ) );
+        ldomXPointer end = m_doc->createXPointer( lvPoint( 0, endy ) );
+        if ( start.isNull() || end.isNull() )
+            return res;
+        res = LVRef<ldomXRange> ( new ldomXRange(start, end) );
+    } else {
+        // PAGES mode
+        if ( pageIndex<0 || pageIndex>=m_pages.length() )
+            pageIndex = getCurPage();
+        LVRendPageInfo * page = m_pages[ pageIndex ];
+        if ( page->type!=PAGE_TYPE_NORMAL)
+            return res;
+        ldomXPointer start = m_doc->createXPointer( lvPoint( 0, page->start ) );
+        //ldomXPointer end = m_doc->createXPointer( lvPoint( m_dx+m_dy, page->start + page->height - 1 ) );
+        ldomXPointer end = m_doc->createXPointer( lvPoint( 0, page->start + page->height  ) );
+        if ( start.isNull() || end.isNull() )
+            return res;
+        res = LVRef<ldomXRange> ( new ldomXRange(start, end) );
+    }
     return res;
 }
 
@@ -1466,13 +1506,13 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         if ( !m_font )
             return;
 
+        CRLog::debug("Render(width=%d, height=%d, font=%s(%d))", dx, dy, fontName.c_str(), m_font_size);
         pages->clear();
         if ( m_showCover )
             pages->add( new LVRendPageInfo( dy ) );
         LVRendPageContext context( pages, dy );
         CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
         m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
-        CRLog::trace("returned from render()");
 
     #if 0
         FILE * f = fopen("pagelist.log", "wt");
@@ -1489,6 +1529,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 
         makeToc();
         updateSelections();
+        CRLog::debug("Render is finished");
     }
 }
 
