@@ -134,7 +134,7 @@
     
 
 */
-#define CR_ENGINE_VERSION "0.6.1"
+#define CR_ENGINE_VERSION "0.6.2"
 
 #include "crsetup.h"
 #include "lvtypes.h"

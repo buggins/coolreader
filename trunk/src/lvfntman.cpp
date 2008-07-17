@@ -655,44 +655,10 @@ public:
         if ( !_hyphen_width )
             _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
 
-        //lUInt16 wsum = 0;
-        //lUInt16 gwidth = 0;
-        //lUInt8 bflags;
-        //int isSpace;
-        //lChar16 ch;
+        // find last word
         int hwStart, hwEnd;
-
-        //hyphwidth = glyph ? glyph->gi.width : 0;
-
-        //try to add hyphen
-        for (hwStart=nchars-1; hwStart>0; hwStart--)
-        {
-            lChar16 ch = text[hwStart];
-            lUInt16 props = lGetCharProps( ch );
-            if ( !(props & CH_PROP_ALPHA) ) {
-                hwStart++;
-                break;
-            }
-            //if (lvfontIsUnicodeSpace(text[hwStart]))
-            //{
-            //    hwStart++;
-            //    break;
-            //}
-        }
-        for (hwEnd=nchars; hwEnd<len; hwEnd++) // 20080404
-        {
-            lChar16 ch = text[hwEnd];
-            lUInt16 props = lGetCharProps( ch );
-            if ( !(props & CH_PROP_ALPHA) )
-                break;
-            //if (lvfontIsUnicodeSpace(ch))
-            //    break;
-            if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
-                break;
-            //if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?')
-            //    break;
-        }
-        if ( hwEnd>hwStart )
+        lStr_findWordBounds( text, len, nchars, hwStart, hwEnd );
+        if ( hwEnd > hwStart+3 )
             HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
 
         return lastFitChar; //nchars;

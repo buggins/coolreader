@@ -1017,7 +1017,7 @@ public:
             word->width += font->getHyphenWidth();
         word->inline_width = word->width;
         word->t.start = text_offset + firstch;
-        lUInt16 flags = 0;
+        lUInt8 flags = 0;
         if ( isLinkStart ) {
             flags |= LTEXT_WORD_IS_LINK_START;
             isLinkStart = 0;

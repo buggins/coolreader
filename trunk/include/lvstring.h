@@ -18,6 +18,12 @@
 #include "lvtypes.h"
 #include "lvmemman.h"
 
+/// soft hyphen code
+#define UNICODE_SOFT_HYPHEN_CODE 0x00AD
+#define UNICODE_ZERO_WIDTH_SPACE 0x200B
+#define UNICODE_NO_BREAK_SPACE   0x00A0
+
+
 
 /// strlen for lChar16
 size_t lStr_len(const lChar16 * str);
@@ -73,6 +79,8 @@ void lStr_lowercase( lChar16 * str, int len );
 
 /// retrieve character properties mask array for string
 void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props );
+/// find alpha sequence bounds
+void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int & end );
 
 /// retrieve character properties mask for single char
 lUInt16 lGetCharProps( lChar16 ch );

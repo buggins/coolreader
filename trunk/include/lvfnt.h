@@ -46,11 +46,6 @@
 /// maximum copyright notice length
 #define FONT_COPYRIGHT_LENGTH  64
 
-/// soft hyphen code
-#define UNICODE_SOFT_HYPHEN_CODE 0x00AD
-#define UNICODE_ZERO_WIDTH_SPACE 0x200B
-#define UNICODE_NO_BREAK_SPACE   0x00A0
-
 #ifdef __cplusplus
 
 #include "hyphman.h"

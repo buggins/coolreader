@@ -64,9 +64,9 @@ bool HyphMan::hyphenate( const lChar16 * str,
         buf[i] = str[i];
     }
     buf[len] = 0;
-    _instance->hyphenate(buf, 1);
-    char * res = _instance->_wresult;
-    memcpy( flags, res, len );
+    _instance->hyphenate(buf);
+
+    memcpy( flags, _instance->_wresult, len );
     flags[len] = 0;
     return true;
 }
@@ -147,8 +147,8 @@ bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
         buf[i] = str[i];
     }
     buf[len] = 0;
-    _instance->hyphenate(buf, 1);
-    char * res = _instance->_wresult;
+    _instance->hyphenate(buf);
+    unsigned char * res = _instance->_wresult;
     for (i=0; i<len; i++)
     {
         if (widths[i]>maxWidth)
@@ -409,13 +409,13 @@ void HyphMan::prepareResult()
     _wresult[cnt - 2]='0';
 }
 
-void HyphMan::hyphenate (wchar_t* word4hyph, int flags)
+void HyphMan::hyphenate (wchar_t* word4hyph)
 {
     int      j,k,m,e, len;  
-    char* tmp_w;
-    char* ptn;
     lUInt16  ad;    
     char* i;
+    unsigned char * tmp_w = NULL;
+    char * ptn = NULL;
 
 
     wcscpy(_wword, word4hyph);
@@ -429,62 +429,58 @@ void HyphMan::hyphenate (wchar_t* word4hyph, int flags)
         return ;
     }
 
-    if (flags) {
-        tmp_w=&_winput[len-1];
+    // *len
+    for ( tmp_w=&_winput[len-1]; len; tmp_w-- ) {
+        len--;
 
-        while (len) {
-            len--;
+        j=_dict[tmp_w[0]];
+        if (j<255) {
 
-            j=_dict[(unsigned char)tmp_w[0]];
-            if (j<255) {
-                if ((len) && ((unsigned char)_wresult[len - 1]<(unsigned char)_main_hyph[j].mask0[0])) {
-                    _wresult[len - 1]=_main_hyph[j].mask0[0];
-                }
-                if (((unsigned char)_wresult[len]<(unsigned char)_main_hyph[j].mask0[1])) {
-                    _wresult[len]=_main_hyph[j].mask0[1];
-                }
+            const thyph & h = _main_hyph[j];
+            if ( (len) && (_wresult[len - 1]<h.mask0[0]) )
+                _wresult[len - 1]=h.mask0[0];
+
+            if ( _wresult[len] < h.mask0[1] )
+                _wresult[len] = h.mask0[1];
 
 
-                ad = _main_hyph[j].aux[(unsigned char)tmp_w[1]];
-                if ((unsigned char)tmp_w[1]<32) 
-                    ad=0xffff;
-                if (ad!=0xffff) {
-                    ptn=&_main_hyph[j].pattern[ad];
-                    i=_main_hyph[j].pattern + _main_hyph[j].len;
+            ad = h.aux[tmp_w[1]];
+            if (tmp_w[1]<32) 
+                ad=0xffff;
+            if (ad!=0xffff) {
+                ptn=&h.pattern[ad];
+                i=h.pattern + h.len;
 
-                    while (ptn<i) {
-                        m=ptn[0];
+                while (ptn<i) {
+                    m=ptn[0];
+                    ptn++;
+
+                    e=memcmp(tmp_w, ptn, m);
+
+                    if (!e) {                            
+                        ptn+=m;
+
+                        if ((len) && (_wresult[len - 1]<ptn[0])) 
+                            _wresult[len - 1]=ptn[0];
+                        
                         ptn++;
-
-                        e=memcmp(tmp_w, ptn, m);
-
-                        if (!e) {                            
-                            ptn+=m;
-
-                            if ((len) && (_wresult[len - 1]<ptn[0])) 
-                                _wresult[len - 1]=ptn[0];
-                            
-                            ptn++;
-                            for (k=0; k<m; k++) {                                
-                                if ((_wresult[len + k]<ptn[k]))
-                                    _wresult[len + k]=ptn[k];                                
-                            }
-                            ptn+=m;                            
-                        } else if (e>0) { 
-                            ptn+=(m + m) + 1;                            
-                        } else {
-                            break;
-                        };
-                    }
+                        for (k=0; k<m; k++) {                                
+                            if ((_wresult[len + k]<ptn[k]))
+                                _wresult[len + k]=ptn[k];                                
+                        }
+                        ptn+=m;                            
+                    } else if (e>0) { 
+                        ptn+=(m + m) + 1;                            
+                    } else {
+                        break;
+                    };
                 }
             }
+        }
 
-            tmp_w--;
-        }            
-    }
+        ;
+    }            
 
-    tmp_w=NULL;
-    ptn=NULL;
     HyphMan::prepareResult();
 }
 

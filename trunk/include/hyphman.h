@@ -28,7 +28,7 @@ typedef struct {
     char            al;
     char            au;
 
-    char            mask0[2];
+    unsigned char   mask0[2];
     lUInt16         aux[256];
 
     lUInt16         len;
@@ -41,12 +41,12 @@ class HyphMan
 {
     int             _hyph_count;
     thyph*          _main_hyph;
-    lUInt32           _w_len;
-    char            _winput[WORD_LENGTH+32+2];
+    lUInt32         _w_len;
+    unsigned char   _winput[WORD_LENGTH+32+2];
     wchar_t         _wword[WORD_LENGTH];
     unsigned char   _dict[256];
     unsigned char   _dict_w[65535];
-    char            _wresult[WORD_LENGTH+32+2];
+    unsigned char   _wresult[WORD_LENGTH+32+2];
 
     void  prepareInput();
     void  prepareResult();
@@ -54,9 +54,7 @@ class HyphMan
     static HyphMan * _instance;
     bool  open(LVStream * stream);
     void  close();
-    void  hyphenate(wchar_t* word4hyph, int flags);
-    void  hyphenate_old1(wchar_t* word4hyph, int flags);
-    void  hyphenate_old(wchar_t* word4hyph, int flags);
+    void  hyphenate(wchar_t* word4hyph);
 public:
     static int isCorrectHyphFile(LVStream * stream);
     static bool hyphenate( 
