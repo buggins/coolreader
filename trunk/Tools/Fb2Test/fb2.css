@@ -12,4 +12,4 @@ title { text-align: center; text-indent: 0px; font-size: 130%; font-weight: bold
 subtitle { text-align: center; text-indent: 0px; font-size: 150%; margin-top: 10px; margin-bottom: 10px }
 title { page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }
 body { margin: 0.5em; text-align: justify; text-indent: 2em; line-height: 140% }
-cite { margin-left: 5%; margin-right: 5%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px }
+cite { margin-left: 5%; margin-right: 5%; text-align: justify; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px }
