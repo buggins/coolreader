@@ -1134,12 +1134,16 @@ public:
                     if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER)
                         last_hyph = j;
                 }
-                if ( last_fit==-1 && last_hyph!=-1 ) {
-                    if ( (line_flags & LTEXT_HYPHENATE) || !frmline->word_count )
-                        last_fit = last_hyph;
+
+                if ( last_hyph!=-1 ) {
+                    if ( line_flags & LTEXT_HYPHENATE )
+                        last_fit = last_hyph; // always hyphenate if enabled
+                    else if ( last_fit==-1 && !frmline->word_count )
+                        last_fit = last_hyph; // try to hyphenate if single word only
                 }
 
                 if ( last_fit==-1 ) {
+
                     int existingWrapPos = updateWrapPos( );
                     if ( existingWrapPos==0 ) {
                         //
