@@ -95,21 +95,29 @@ void testFormatting()
     t.addLine( L"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
     printf("Running performance test\n");
-    time_t start1 = time((time_t)0);
-    for ( int i=0; i<100000; i++ )
+    time_t start1 = time((time_t*)0);
+    int i;
+#if 0
+    for ( i=0; i<2000; i++ )
         t.txt.FormatNew( 200, 300 );
     //for ( int i=0; i<100000; i++ )
     //    t.txt.FormatNew( 400, 300 );
-    time_t end1 = time((time_t)0);
-    time_t start2 = time((time_t)0);
-    for ( int i=0; i<100000; i++ )
+    time_t end1 = time((time_t*)0);
+#endif
+#if 1
+    time_t start2 = time((time_t*)0);
+    for ( i=0; i<2000; i++ )
         t.txt.FormatOld( 200, 300 );
     //for ( int i=0; i<100000; i++ )
     //    t.txt.FormatOld( 400, 300 );
-    time_t end2 = time((time_t)0);
+    time_t end2 = time((time_t*)0);
+#endif
+#if 0
     int time1 = (int)(end1-start1);
     int time2 = (int)(end2-start2);
     printf("\nNew time = %d, old time = %d, gain=%d%%\n", time1, time2, (time2-time1)*100/time2);
+#endif
+    exit(0);
 }
 
 
@@ -311,7 +319,7 @@ cr3app::OnInit()
     }
 #endif
 
-#if 1
+#if 0
     //CRLog::setFileLogger( "crengine.log" );
     CRLog::setStdoutLogger();
     CRLog::setLogLevel( CRLog::LL_DEBUG );
@@ -413,6 +421,16 @@ cr3app::OnInit()
     }
 
     printf("%d fonts loaded.\n", fontMan->GetFontCount());
+
+    int argc = wxGetApp().argc;
+    lString16 fnameToOpen;
+    if ( argc>1 ) {
+        fnameToOpen = lString16( wxGetApp().argv[1] );
+    }
+    if ( fnameToOpen == L"test_format" ) {
+        testFormatting();
+    }
+
 
 #ifdef _WIN32
     //::GetSystemMetrics()
