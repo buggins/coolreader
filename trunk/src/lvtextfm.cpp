@@ -23,6 +23,7 @@
 #include "../include/lvtinydom.h"
 #endif
 
+#define FRM_ALLOC_SIZE 16
 
 formatted_line_t * lvtextAllocFormattedLine( )
 {
@@ -35,7 +36,7 @@ formatted_line_t * lvtextAllocFormattedLineCopy( formatted_word_t * words, int w
 {
     formatted_line_t * pline = (formatted_line_t *)malloc(sizeof(formatted_line_t));
     memset( pline, 0, sizeof(formatted_line_t) );
-    lUInt32 size = (word_count + 7) / 8 * 8;
+    lUInt32 size = (word_count + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     pline->words = (formatted_word_t*)malloc( sizeof(formatted_word_t)*(size) );
     memcpy( pline->words, words, word_count * sizeof(formatted_word_t) );
     return pline;
@@ -50,10 +51,10 @@ void lvtextFreeFormattedLine( formatted_line_t * pline )
 
 formatted_word_t * lvtextAddFormattedWord( formatted_line_t * pline )
 {
-    lUInt32 size = (pline->word_count + 7) / 8 * 8;
+    lUInt32 size = (pline->word_count + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pline->word_count >= size)
     {
-        size += 8;
+        size += FRM_ALLOC_SIZE;
         pline->words = (formatted_word_t*)realloc( pline->words, sizeof(formatted_word_t)*(size) );
     }
     return &pline->words[ pline->word_count++ ];
@@ -61,10 +62,10 @@ formatted_word_t * lvtextAddFormattedWord( formatted_line_t * pline )
 
 formatted_line_t * lvtextAddFormattedLine( formatted_text_fragment_t * pbuffer )
 {
-    lUInt32 size = (pbuffer->frmlinecount + 7) / 8 * 8;
+    lUInt32 size = (pbuffer->frmlinecount + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->frmlinecount >= size)
     {
-        size += 8;
+        size += FRM_ALLOC_SIZE;
         pbuffer->frmlines = (formatted_line_t**)realloc( pbuffer->frmlines, sizeof(formatted_line_t*)*(size) );
     }
     return (pbuffer->frmlines[ pbuffer->frmlinecount++ ] = lvtextAllocFormattedLine());
@@ -72,10 +73,10 @@ formatted_line_t * lvtextAddFormattedLine( formatted_text_fragment_t * pbuffer )
 
 formatted_line_t * lvtextAddFormattedLineCopy( formatted_text_fragment_t * pbuffer, formatted_word_t * words, int words_count )
 {
-    lUInt32 size = (pbuffer->frmlinecount + 7) / 8 * 8;
+    lUInt32 size = (pbuffer->frmlinecount + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->frmlinecount >= size)
     {
-        size += 8;
+        size += FRM_ALLOC_SIZE;
         pbuffer->frmlines = (formatted_line_t**)realloc( pbuffer->frmlines, sizeof(formatted_line_t*)*(size) );
     }
     return (pbuffer->frmlines[ pbuffer->frmlinecount++ ] = lvtextAllocFormattedLineCopy(words, words_count));
@@ -146,10 +147,10 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lUInt16         offset
                          )
 {
-    lUInt32 srctextsize = (pbuffer->srctextlen + 3) / 4 * 4;
+    lUInt32 srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->srctextlen >= srctextsize)
     {
-        srctextsize += 4;
+        srctextsize += FRM_ALLOC_SIZE;
         pbuffer->srctext = (src_text_fragment_t*)realloc( pbuffer->srctext, sizeof(src_text_fragment_t)*(srctextsize) );
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
@@ -185,10 +186,10 @@ void lvtextAddSourceObject(
    void *          object    /* pointer to custom object */
                          )
 {
-    lUInt32 srctextsize = (pbuffer->srctextlen + 3) / 4 * 4;
+    lUInt32 srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->srctextlen >= srctextsize)
     {
-        srctextsize += 4;
+        srctextsize += FRM_ALLOC_SIZE;
         pbuffer->srctext = (src_text_fragment_t*)realloc( pbuffer->srctext, sizeof(src_text_fragment_t)*(srctextsize) );
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
@@ -1025,8 +1026,6 @@ public:
 
         // set word flags
         lChar16 lastchar = flags_buf[lastch];
-        if (lastchar & LCHAR_IS_SPACE)
-            flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
         if (lastchar & LCHAR_ALLOW_WRAP_AFTER)
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
         if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
@@ -1037,6 +1036,11 @@ public:
         {
             /* last char of src fragment */
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
+        }
+        if (lastchar & LCHAR_IS_SPACE) {
+            flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+            if ( firstch<lastch )
+                word->width = widths_buf[lastch-1] - wpos;
         }
 
         word->flags = flags;

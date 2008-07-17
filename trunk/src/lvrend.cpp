@@ -19,6 +19,7 @@
 
 
 //#define DEBUG_TREE_DRAW 3
+// define to non-zero (1..5) to see block bounds
 #define DEBUG_TREE_DRAW 0
 
 #ifdef _DEBUG
@@ -660,21 +661,17 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         }
 #if (DEBUG_TREE_DRAW!=0)
         lUInt32 color;
+        static lUInt32 const colors2[] = { 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA };
+        static lUInt32 const colors4[] = { 0x555555, 0xFF4040, 0x40FF40, 0x4040FF, 0xAAAAAA, 0xFF8000, 0xC0C0C0, 0x808080 };
         if (drawbuf.GetBitsPerPixel()>=16)
-            color = (node->getNodeLevel() & 1) ? 0x808080 : 0xC0C0C0;
+            color = colors4[node->getNodeLevel() & 7];
         else
-            color = (node->getNodeLevel() & 1) ? 1 : 2;
+            color = colors2[node->getNodeLevel() & 7];
 #endif
         switch( enode->getRendMethod() )
         {
         case erm_block:
             {
-#if (DEBUG_TREE_DRAW!=0)
-                drawbuf.FillRect( doc_x, doc_y, doc_x+fmt->getWidth(), doc_y+1, color );
-                drawbuf.FillRect( doc_x, doc_y, doc_x+1, doc_y+fmt->getHeight(), color );
-                drawbuf.FillRect( doc_x+fmt->getWidth()-1, doc_y, doc_x+fmt->getWidth(), doc_y+fmt->getHeight(), color );
-                drawbuf.FillRect( doc_x, doc_y+fmt->getHeight()-1, doc_x+fmt->getWidth(), doc_y+fmt->getHeight(), color );
-#endif
                 // recursive draw all sub-blocks for blocks
                 int cnt = node->getChildCount();
                 for (int i=0; i<cnt; i++)
@@ -682,16 +679,16 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                     ldomNode * child = node->getChildNode( i );
                     DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height, marks ); //+fmt->getX() +fmt->getY()
                 }
+#if (DEBUG_TREE_DRAW!=0)
+                drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+1, color );
+                drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+1, doc_y+y0+fmt->getHeight(), color );
+                drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
+                drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
+#endif
             }
             break;
         case erm_final:
             {
-#if (DEBUG_TREE_DRAW!=0)
-                drawbuf.FillRect( doc_x, doc_y, doc_x+fmt->getWidth(), doc_y+1, color );
-                drawbuf.FillRect( doc_x, doc_y, doc_x+1, doc_y+fmt->getHeight(), color );
-                drawbuf.FillRect( doc_x+fmt->getWidth()-1, doc_y, doc_x+fmt->getWidth(), doc_y+fmt->getHeight(), color );
-                drawbuf.FillRect( doc_x, doc_y+fmt->getHeight()-1, doc_x+fmt->getWidth(), doc_y+fmt->getHeight(), color );
-#endif
                 // draw whole node content as single formatted object
                 LFormattedTextRef txform;
                 enode->renderFinalBlock( txform, fmt->getWidth() );
@@ -711,6 +708,12 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                         txform->Draw( &drawbuf, doc_x+x0, doc_y+y0, marks );
                     }
                 }
+#if (DEBUG_TREE_DRAW!=0)
+                drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+1, color );
+                drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+1, doc_y+y0+fmt->getHeight(), color );
+                drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
+                drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
+#endif
             }
             break;
         case erm_invisible:
