@@ -97,14 +97,14 @@ void testFormatting()
     printf("Running performance test\n");
     time_t start1 = time((time_t*)0);
     int i;
-#if 0
+#if 1
     for ( i=0; i<2000; i++ )
         t.txt.FormatNew( 200, 300 );
     //for ( int i=0; i<100000; i++ )
     //    t.txt.FormatNew( 400, 300 );
     time_t end1 = time((time_t*)0);
 #endif
-#if 1
+#if 0
     time_t start2 = time((time_t*)0);
     for ( i=0; i<2000; i++ )
         t.txt.FormatOld( 200, 300 );
