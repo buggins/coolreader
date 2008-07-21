@@ -737,10 +737,21 @@ public:
     /// returns char width
     virtual int getCharWidth( lChar16 ch )
     {
-        glyph_info_t glyph;
-        if ( getGlyphInfo( ch, &glyph ) )
-            return glyph.width;
-        return 0;
+        int w = _wcache.get(ch);
+        if ( w==0xFF ) {
+            int ch_glyph_index = FT_Get_Char_Index( _face, ch );
+            if ( ch_glyph_index==0 )
+                ch_glyph_index = FT_Get_Char_Index( _face, '?' );
+            int error = FT_Load_Glyph( _face,          /* handle to face object */
+                    ch_glyph_index,                /* glyph index           */
+                    FT_LOAD_DEFAULT );             /* load flags, see below */
+            if ( error )
+                w = 0;
+            else
+                w = (_slot->metrics.horiAdvance >> 6);
+            _wcache.put(ch, w);
+        }
+        return w;
     }
 
     /// retrieves font handle
