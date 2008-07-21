@@ -37,6 +37,8 @@ class LVDrawBuf;
 */
 class LVFont : public LVRefCounter
 {
+protected:
+    int _visual_alignment_width;
 public:
     /// glyph properties structure
     struct glyph_info_t {
@@ -47,7 +49,17 @@ public:
         lUInt8  width;       ///< 4: full width of glyph
     };
 
-    virtual int getHyphenWidth() { return getCharWidth( UNICODE_SOFT_HYPHEN_CODE ); }
+    /// hyphenation character
+    virtual lChar16 getHyphChar() { return UNICODE_SOFT_HYPHEN_CODE; }
+
+    /// hyphen width
+    virtual int getHyphenWidth() { return getCharWidth( getHyphChar() ); }
+
+    /**
+     * Max width of -/./,/!/? to use for visial alignment by width
+     */
+    virtual int getVisualAligmentWidth();
+
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
@@ -98,7 +110,7 @@ public:
                        const lChar16 * text, int len, 
                        lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 ) = 0;
     /// constructor
-    LVFont() { }
+    LVFont() : _visual_alignment_width(-1) { }
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() { return false; }

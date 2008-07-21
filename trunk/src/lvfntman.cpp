@@ -48,6 +48,26 @@
 LVFontManager * fontMan = NULL;
 
 /**
+ * Max width of -/./,/!/? to use for visial alignment by width
+ */
+int LVFont::getVisualAligmentWidth()
+{
+    if ( _visual_alignment_width==-1 ) {
+        lChar16 chars[] = { getHyphChar(), ',', '.', '!', 0 };
+        int maxw = 0;
+        for ( int i=0; chars[i]; i++ ) {
+            int w = getCharWidth( chars[i] );
+            if ( w > maxw )
+                maxw = w;
+        }
+        _visual_alignment_width = maxw;
+    }
+    return _visual_alignment_width;
+}
+
+
+
+/**
     \brief Font properties definition
 */
 class LVFontDef

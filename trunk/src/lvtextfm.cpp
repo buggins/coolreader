@@ -1025,7 +1025,8 @@ public:
         word->y = wy;
 
         // set word flags
-        lChar16 lastchar = flags_buf[lastch];
+        lUInt16 lastchar = flags_buf[lastch];
+        lChar16 lastc = srcline->t.text[text_offset+lastch];
         if (lastchar & LCHAR_ALLOW_WRAP_AFTER)
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
         if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
@@ -1037,14 +1038,25 @@ public:
             /* last char of src fragment */
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
         }
+        bool visualAlignmentEnabled = true;
         if (lastchar & LCHAR_IS_SPACE) {
             flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
             if ( firstch<lastch )
                 word->width = widths_buf[lastch-1] - wpos;
+            if ( lastch>firstch )
+                lastc = srcline->t.text[text_offset+lastch-1];
+        }
+        if ( visualAlignmentEnabled ) {
+        int wAlign = font->getVisualAligmentWidth();
+        word->width += wAlign;
+        if ( flags&LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER )
+            word->width -= font->getHyphenWidth();
+        else if ( lastc=='.' || lastc==',' || lastc=='!' )
+            word->width -= font->getCharWidth(lastc);
         }
 
         word->flags = flags;
-        frmline->width += word->width;
+        frmline->width += word->inline_width; //!!!
         return word;
     }
 
