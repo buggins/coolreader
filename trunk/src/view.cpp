@@ -374,7 +374,6 @@ void cr3view::OnMouseMotion(wxMouseEvent& event)
     int y = event.GetY();
     ldomXPointer ptr = _docview->getNodeByPoint( lvPoint( x, y ) );
     if ( ptr.isNull() ) {
-        CRLog::debug( "cr3view::OnMouseLDown() : node not found!\n");
         return;
     }
     lString16 href = ptr.getHRef();
