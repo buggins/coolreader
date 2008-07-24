@@ -13,6 +13,9 @@
 
 */
 
+// set to 0 for old hyphenation, 1 for new algorithm
+#define NEW_HYPHENATION 1
+
 #include "../include/crsetup.h"
 
 #include <stdlib.h>
@@ -138,6 +141,37 @@ bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
         //=====================================================================
     }
 
+#if NEW_HYPHENATION==1
+    unsigned char res[WORD_LENGTH+32+2];
+    int i;
+    for ( i=0; i<len; i++ )
+    {
+        if (str[i]==UNICODE_SOFT_HYPHEN_CODE)
+            return false; // word already hyphenated
+    }
+    _instance->hyphenateNew(str, len, res);
+    for (i=0; i<len; i++)
+    {
+        if (widths[i]>maxWidth)
+        {
+            i--;
+            break;
+        }
+    }
+    for (; i>1; i--)
+    {
+        if (i<len-2 && res[i]=='-' && !(flags[i]&LCHAR_ALLOW_WRAP_AFTER))
+        {
+            lUInt16 nw = widths[i] += hyphCharWidth;
+            if (nw<maxWidth)
+            {
+                flags[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+                widths[i] = nw;
+                break;
+            }
+        }
+    }
+#else
     lChar16 buf[WORD_LENGTH];
     int i;
     for (i=0; i<len; i++)
@@ -170,13 +204,27 @@ bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
             }
         }
     }
+#endif
     return true;
+}
+
+void HyphMan::mapChar( lUInt16 wc, unsigned char c )
+{
+    int high = (wc >> 8) & 255;
+    int low = (wc) & 255;
+    if ( !_wtoa_index[high] ) {
+        _wtoa_index[high] = new unsigned char[ 256 ];
+        memset( _wtoa_index[high], 0, sizeof(unsigned char) * 256 );
+    }
+    _wtoa_index[high][low] = c;
 }
 
 HyphMan::HyphMan()
 {
-    _main_hyph=NULL;    
-    _hyph_count=0;    
+    _main_hyph=NULL;
+    _hyph_count=0;
+    memset( _wtoa_index, 0, sizeof(unsigned char *) * 256 );
+    memset( _hyph_index, 0, sizeof(HyphIndex*) * 256);
 }
 
 HyphMan::~HyphMan()
@@ -234,6 +282,124 @@ int HyphMan::isCorrectHyphFile(LVStream * stream)
     return w;
 }
 
+//        unsigned char mask0[2];    // mask for first 2 characters
+//        unsigned char * pattern;   // full patterns list for 2 characters
+//        unsigned char ** index;    // pointers to each pattern start
+//        int size;                  // count of patterns in index
+//        hyph_index_item_t pos[256]; // ranges of second char in index
+HyphIndex::HyphIndex ( thyph * hyph )
+{
+    index = NULL;
+    pattern = NULL;
+    mask0[0] = hyph->mask0[0];
+    mask0[1] = hyph->mask0[1];
+    memset( pos, 0, sizeof(pos) );
+    int len = hyph->len;
+    pattern = new unsigned char[ len + 1 ];
+    memcpy( pattern, hyph->pattern, sizeof(unsigned char)*len + 1 );
+    unsigned char * p = pattern;
+    unsigned char * end_p = p + len;
+    size = 0;
+    while ( p < end_p ) {
+        lUInt8 sz = *p++;
+        p += sz + sz + 1;
+        size++;
+    }
+    index = new unsigned char * [size];
+    p=pattern;
+    for ( int k = 0; k<size; k++ ) {
+        index[k] = p;
+        lUInt8 sz = *p++;
+        unsigned char ch2 = p[1];
+        if ( pos[ch2].len++ == 0 )
+            pos[ch2].start = k;
+        p += sz + sz + 1;
+    }
+}
+
+HyphIndex::~HyphIndex()
+{
+    if ( index )
+        delete[] index;
+    if ( pattern )
+        delete[] pattern;
+}
+
+inline int compare_words( unsigned char * p, unsigned char * word, int word_len )
+{
+    int sz = (int)(*p++);
+    int res = 0;
+    for ( int i=2; i<sz; i++ ) {
+        if ( i >= word_len ) {
+                // word is shorter than pattern
+            return -1;
+        }
+        if ( word[i] > p[i] ) {
+            return 1;
+        } else if ( word[i] < p[i] ) {
+            return -1;
+        }
+    }
+    return res;
+}
+
+// binary search
+void HyphIndex::apply( unsigned char * word, int word_len, unsigned char * result )
+{
+    unsigned char ch2 = word[1];
+    if ( pos[ch2].len == 0 )
+        return;
+    int a = pos[ch2].start;
+    int b = a + pos[ch2].len;
+    if ( result[0] < mask0[0] )
+        result[0] = mask0[0];
+    if ( result[1] < mask0[1] )
+        result[1] = mask0[1];
+    while ( a < b ) {
+        int c = (a + b) / 2;
+        int res = compare_words( index[c], word, word_len );
+        if ( res > 0 ) {
+            // go down
+            a  = c + 1;
+        } else if ( res < 0 ) {
+            // go up
+            b = c;
+        } else {
+            // matched
+            // check bounds
+            int first = c;
+            int last = c;
+            int j;
+            for ( j = first-1; j>=a; j-- ) {
+                res = compare_words( index[j], word, word_len );
+                if ( !res )
+                    first = j;
+                else
+                    break;
+            }
+            for ( j = last+1; j<b; j++ ) {
+                res = compare_words( index[j], word, word_len );
+                if ( !res )
+                    last = j;
+                else
+                    break;
+            }
+            // apply all patterns in equal range
+            for ( j=first; j<=last; j++ ) {
+                unsigned char * p = index[j];
+                int sz = (int)(*p++);
+                p += sz;
+                // apply pattern
+                for ( int i=-1; i<sz; i++, p++ ) {
+                    if ( result[i] < *p )
+                        result[i] = *p;
+                }
+            }
+            return;
+        }
+    }
+}
+
 bool HyphMan::open( LVStream * stream )
 {
     int        i,j;  
@@ -277,6 +443,11 @@ bool HyphMan::open( LVStream * stream )
         _main_hyph[i].pattern[_main_hyph[i].len] = 0x00;
         if (dw!=_main_hyph[i].len)
             goto no_valid;
+
+        unsigned char ch = _main_hyph[i].al;
+        mapChar( _main_hyph[i].wl, ch );
+        mapChar( _main_hyph[i].wu, ch );
+        _hyph_index[ ch ] = new HyphIndex( &_main_hyph[i] );
     }
 
     for (j = 0; j < 256; j++) {
@@ -319,13 +490,114 @@ void HyphMan::close()
         }
         delete[] _main_hyph;
         _main_hyph=NULL;
-    }    
+    }
+
+    //==============================================================
+    for ( i=0; i<256; i++ )
+        if ( _wtoa_index[i] )
+            delete[] _wtoa_index[i];
+    memset( _wtoa_index, 0, sizeof(unsigned char *) * 256 );
+    for ( i=0; i<256; i++ )
+        if ( _hyph_index[i] )
+            delete _hyph_index[i];
+    memset( _hyph_index, 0, sizeof(HyphIndex*) * 256);
+    //==============================================================
 
     _hyph_count=0;
     
     _winput[0]=0x00;
     _wresult[0]=0x00;
     _wword[0]=0x00;
+}
+
+void  HyphMan::hyphenateNew( const lChar16 * word4hyph, int word_size, unsigned char * dest_mask )
+{
+    unsigned char aword[ WORD_LENGTH+32+2 ];
+    unsigned char result[ WORD_LENGTH+32+2 ];
+    // convert wide chars to 8 bit
+    if ( word_size > MAX_REAL_WORD )
+        word_size = MAX_REAL_WORD;
+    aword[0] = ' ';
+    int i;
+    bool err = false;
+    for ( i=0; i<word_size; i++ ) {
+        lChar16 ch = word4hyph[i];
+        lUInt8 high = (ch>>8) & 255;
+        lUInt8 low = (ch) & 255;
+        if ( !_wtoa_index[high] ) {
+            err = true;
+            break; // unknown character
+        }
+        unsigned char ach = _wtoa_index[high][low];
+        if ( !ach ) {
+            err = true;
+            break; // unknown character
+        }
+        aword[i+1] = ach;
+    }
+    aword[ word_size+1 ] = ' ';
+    aword[ word_size+2 ] = 0;
+    word_size += 2;
+    // initial result value
+    memset( result, '0', word_size+1 );
+    result[word_size] = 0;
+    if ( !err ) {
+        for ( int len = 2; len <= word_size; len++ ) {
+            unsigned char * w = aword + word_size - len;
+            HyphIndex * index = _hyph_index[w[0]];
+            if ( !index )
+                continue;
+            index->apply( w, len - 1, result + word_size - len + 1); // - 1
+        }
+    }
+    // copy result
+    word_size -= 2;
+    memcpy( dest_mask, result+2, word_size * sizeof(unsigned char) );
+#if 1
+    for (i=0; i<word_size; i++) {
+        switch ( word4hyph[i] ) {
+            case 45:
+        //case L'/':
+            case L'>':
+            case L':':
+            case 160:
+            case 61: //=
+            case 8211: //-
+            case 8212: //-
+            case 173: //-
+                dest_mask[i]='!';
+                break;
+            default:
+                if (dest_mask[i] & 0x01) {
+                    dest_mask[i]='-';
+                    break;
+                } else 
+                    dest_mask[i]='0';
+        }
+    }
+
+    dest_mask[0] = '0';
+#endif
+    for (i=0; i < word_size; i++) {        
+        if (word4hyph[i+1] == 0x20) {
+            if (dest_mask[i] != '!') {
+                dest_mask[i] = '0';
+            }
+            if (dest_mask[i + 1] != '!') {
+                dest_mask[i + 1] = '0';
+            }
+            if (i - 2 >= 0 && dest_mask[i - 2] != '!') {
+                dest_mask[i - 2] = '0';
+            }
+            if (dest_mask[i - 1] != '!') {
+                dest_mask[i - 1] = '0';
+            }
+        }
+    }
+    dest_mask[0]='0';
+    dest_mask[word_size]=0x00;
+    dest_mask[word_size - 1]='0';
+    dest_mask[word_size - 2]='0';
 }
 
 void HyphMan::prepareInput()

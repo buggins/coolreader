@@ -32,9 +32,28 @@ typedef struct {
     lUInt16         aux[256];
 
     lUInt16         len;
-    char*           pattern;    
+    char*           pattern;
 } thyph;
+
+typedef struct {
+    lUInt16 start;
+    lUInt16 len;
+} hyph_index_item_t;
 #pragma pack(pop)
+
+class HyphIndex {
+    private:
+        unsigned char mask0[2];    // mask for first 2 characters
+        unsigned char * pattern;   // full patterns list for 2 characters
+        unsigned char ** index;    // pointers to each pattern start
+        int size;                  // count of patterns in index
+        hyph_index_item_t pos[256]; // ranges of second char in index
+    public:
+        // checks pattern match and applies mask if found
+        void apply( unsigned char * word, int word_len, unsigned char * result  );
+        HyphIndex ( thyph * hyph );
+        ~HyphIndex();
+};
 
 /// AlReader hyphenation manager
 class HyphMan
@@ -48,6 +67,9 @@ class HyphMan
     unsigned char   _dict_w[65535];
     unsigned char   _wresult[WORD_LENGTH+32+2];
 
+    unsigned char * _wtoa_index[256];
+    HyphIndex *     _hyph_index[256];
+
     void  prepareInput();
     void  prepareResult();
     //int             _hyph;
@@ -55,6 +77,10 @@ class HyphMan
     bool  open(LVStream * stream);
     void  close();
     void  hyphenate(wchar_t* word4hyph);
+
+    void  hyphenateNew( const lChar16 * word4hyph, int word_size, unsigned char * dest_mask );
+
+    void  mapChar( lUInt16 wc, unsigned char c );
 public:
     static int isCorrectHyphFile(LVStream * stream);
     static bool hyphenate( 

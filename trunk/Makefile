@@ -265,6 +265,7 @@ distrib :
 #	cd ..; zip -9 -r crengine/$(releasefile) crengine/lib/libcrengined.a	$(ZipFlags) > /dev/null
 #	cd ..; zip -9 -r crengine/$(releasefile) crengine/lib/libcrengine.a	$(ZipFlags) > /dev/null
 	cd ..; zip -9 -r crengine/$(releasefile) crengine/lib/projects/vc6	-i '*.dsp' '*.dsw'	$(ZipFlags) > /dev/null
+	cd ..; zip -9 -r crengine/$(releasefile) crengine/lib/projects/codeblocks	-i '*.workspace' '*.cbp'	$(ZipFlags) > /dev/null
 	cd ..; zip -9 -r crengine/$(releasefile) crengine/Tools/FontConv	-i '*.h' '*.cpp' '*.txt' '*.rc' '*.clw' '*.dsp' '*.dsw'	$(ZipFlags) > /dev/null
 	cd ..; zip -9 -r crengine/$(releasefile) crengine/Tools/FontConv/res	-i '*.*'	$(ZipFlags) > /dev/null
 	cd ..; zip -9 -r crengine/$(releasefile) crengine/Tools/Fb2Test	-i '*.h' '*.res' '*.cpp' '*.txt' '*.rc' '*.clw' '*.dsp' '*.dsw'	'*.css' '*.fb2'  $(ZipFlags) > /dev/null
@@ -274,6 +275,9 @@ distrib :
 	cd ..; zip -9 -r crengine/$(releasefile) crengine -i '*.sh'  $(ZipFlags)
 	cd ..; zip -9 -r crengine/$(releasefile) crengine/LICENSE	$(ZipFlags)
 	cd ..; zip -9 -r crengine/$(releasefile) crengine/Makefile	$(ZipFlags)
+	cd ..; zip -9 -r crengine/$(releasefile) crengine/Makefile.am	$(ZipFlags)
+	cd ..; zip -9 -r crengine/$(releasefile) crengine/Makefile.in	$(ZipFlags)
+	cd ..; zip -9 -r crengine/$(releasefile) crengine/Makefile.lbook	$(ZipFlags)
 	cd ..; zip -9 -r crengine/$(releasefile) crengine	-i '*.txt' '*.bat' $(ZipFlags) > /dev/null
 	ls -l $(releasefile)
 
