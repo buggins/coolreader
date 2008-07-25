@@ -10,6 +10,7 @@
 
 #define RENDER_TIMER_ID   123
 #define CLOCK_TIMER_ID    124
+#define CURSOR_TIMER_ID		125
 
 BEGIN_EVENT_TABLE( cr3view, wxPanel )
     EVT_PAINT( cr3view::OnPaint )
@@ -22,6 +23,7 @@ BEGIN_EVENT_TABLE( cr3view, wxPanel )
     EVT_SET_FOCUS( cr3view::OnSetFocus )
     EVT_TIMER(RENDER_TIMER_ID, cr3view::OnTimer)
     EVT_TIMER(CLOCK_TIMER_ID, cr3view::OnTimer)
+		EVT_TIMER(CURSOR_TIMER_ID, cr3view::OnTimer)
     EVT_INIT_DIALOG(cr3view::OnInitDialog)
 END_EVENT_TABLE()
 
@@ -60,6 +62,7 @@ int propsToPageHeaderFlags( CRPropRef props )
 void cr3view::OnInitDialog(wxInitDialogEvent& event)
 {
     //SetBackgroundColour( getBackgroundColour() );
+	_isFullscreen = _props->getBoolDef(PROP_WINDOW_FULLSCREEN);
 }
 
 lString16 cr3view::GetLastRecentFileName()
@@ -97,6 +100,7 @@ cr3view::cr3view(CRPropRef props)
 
     _renderTimer = new wxTimer( this, RENDER_TIMER_ID );
     _clockTimer = new wxTimer( this, CLOCK_TIMER_ID );
+		_cursorTimer = new wxTimer( this, CURSOR_TIMER_ID );
 
     //SetBackgroundColour( getBackgroundColour() );
     InitDialog();
@@ -252,6 +256,7 @@ cr3view::~cr3view()
 {
     delete _renderTimer;
     delete _clockTimer;
+		delete _cursorTimer;
     delete _docview;
 }
 
@@ -279,11 +284,13 @@ void cr3view::OnTimer(wxTimerEvent& event)
 
         Paint();
         UpdateScrollBar();
-    } else if ( event.GetId() == CLOCK_TIMER_ID ) {
-        if ( IsShownOnScreen() ) {
-            if ( _docview->IsRendered() && _docview->isTimeChanged() )
-                Paint();
-        }
+		} else if ( event.GetId() == CURSOR_TIMER_ID ) {
+				SetCursor( wxCursor( wxCURSOR_BLANK ) );
+			} else if ( event.GetId() == CLOCK_TIMER_ID ) {
+					if ( IsShownOnScreen() ) {
+							if ( _docview->IsRendered() && _docview->isTimeChanged() )
+									Paint();
+				}
     }
 }
 
@@ -382,6 +389,13 @@ void cr3view::OnMouseMotion(wxMouseEvent& event)
     } else {
         SetCursor(_linkCursor);
     }
+
+		if ( _isFullscreen ) {
+			_cursorTimer->Stop();
+			_cursorTimer->Start( 3 * 1000, wxTIMER_ONE_SHOT );
+		}
+
+		SetCursor( wxNullCursor );
 }
 
 void cr3view::OnMouseLDown( wxMouseEvent & event )
@@ -695,10 +709,18 @@ void cr3view::Resize(int dx, int dy)
     {
         return;
     }
-    _renderTimer->Stop();
+
+		_renderTimer->Stop();
     _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
     _clockTimer->Stop();
     _clockTimer->Start( 10 * 1000, wxTIMER_CONTINUOUS );
+
+		if ( _isFullscreen ) {
+			_cursorTimer->Stop();
+			_cursorTimer->Start( 1 * 1000, wxTIMER_ONE_SHOT );			
+		}
+
+		SetCursor( wxNullCursor );
 }
 
 void cr3view::OnPaint(wxPaintEvent& event)

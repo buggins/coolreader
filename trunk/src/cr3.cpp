@@ -182,6 +182,7 @@ void cr3Frame::OnCommand( wxCommandEvent& event )
     switch ( event.GetId() ) {
     case Menu_View_ToggleFullScreen:
         _isFullscreen = !_isFullscreen;
+				_view->SetFullScreenState(_isFullscreen);
         ShowFullScreen( _isFullscreen );
         break;
     case Menu_View_ZoomIn:
