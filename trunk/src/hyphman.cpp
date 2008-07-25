@@ -399,7 +399,7 @@ void HyphIndex::apply( unsigned char * word, int word_len, unsigned char * resul
 
 bool HyphMan::open( LVStream * stream )
 {
-    int        i,j;  
+    int        i;
     lvsize_t   dw;
 
     lvByteOrderConv cnv;

@@ -31,9 +31,9 @@ protected:
     LVFileFormatParser * _parser;
 public:
     /// returns flags
-    virtual lUInt32 GetFlags() { return 0; }
+    virtual lUInt32 getFlags() { return 0; }
     /// sets flags
-    virtual void SetFlags( lUInt32 flags ) { }
+    virtual void setFlags( lUInt32 flags ) { }
     /// called on document encoding definition
     virtual void OnEncoding( const lChar16 * name, const lChar16 * table ) { }
     /// called on parsing start

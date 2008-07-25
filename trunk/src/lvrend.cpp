@@ -270,6 +270,8 @@ int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags )
             }
         }
     }
+    if ( style->white_space == css_ws_pre )
+        flg |= LTEXT_FLAG_PREFORMATTED;
     //flg |= oldflags & ~LTEXT_FLAG_NEWLINE;
     return flg;
 }
@@ -299,6 +301,26 @@ int lengthToPx( css_length_t val, int base_px, int base_em )
     }
 }
 
+void SplitLines( const lString16 & str, lString16Collection & lines )
+{
+    const lChar16 * s = str.c_str();
+    const lChar16 * start = s;
+    for ( ; *s; s++ ) {
+        if ( *s=='\r' || *s=='\n' ) {
+            if ( s > start )
+                lines.add( lString16( start, s-start ) );
+            else
+                lines.add( lString16(L" ") );
+            if ( (s[1] =='\r' || s[1]=='\n') && (s[1]!=s[0]) )
+                s++;
+            start = s+1;
+        }
+    }
+    while ( *start=='\r' || *start=='\n' )
+        start++;
+    if ( s > start )
+        lines.add( lString16( start, s-start ) );
+}
 
 //=======================================================================
 // Render final block
@@ -468,7 +490,19 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             css_style_ref_t style = parent->getStyle();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-            txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, line_h, ident, node );
+            if ( baseflags & LTEXT_FLAG_PREFORMATTED ) {
+                int flags = baseflags | tflags;
+                flags &= ~LTEXT_FLAG_NEWLINE;
+                flags |= LTEXT_ALIGN_LEFT;
+                lString16Collection lines;
+                SplitLines( txt, lines );
+                for ( unsigned k=0; k<lines.length(); k++ ) {
+                    lString16 str = lines[k];
+                    txform->AddSourceLine( str.c_str(), str.length(), cl, bgcl, font, flags, line_h, 0, node );
+                }
+            } else {
+                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, line_h, ident, node );
+            }
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }

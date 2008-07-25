@@ -1976,8 +1976,9 @@ bool LVXMLParser::ReadText()
                 last_split_txtlen = tlen;
             }
             //=====================================================
-            int newlen = PreProcessXmlString( m_txt_buf.modify(), last_split_txtlen, 0 );
-            m_callback->OnText(m_txt_buf.c_str(), newlen, text_start_pos, last_split_fpos-text_start_pos, 0 );
+            lUInt32 flags = m_callback->getFlags();
+            int newlen = PreProcessXmlString( m_txt_buf.modify(), last_split_txtlen, flags );
+            m_callback->OnText(m_txt_buf.c_str(), newlen, text_start_pos, last_split_fpos-text_start_pos, flags );
             //=====================================================
             if (flgBreak)
             {

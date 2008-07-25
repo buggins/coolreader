@@ -720,6 +720,14 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
     //logfile << "}";
 }
 
+lUInt32 ldomElementWriter::getFlags()
+{
+    lUInt32 flags = 0;
+    if ( _typeDef && _typeDef->props.white_space==css_ws_pre )
+        flags |= TXTFLG_PRE;
+    return flags;
+}
+
 void ldomElementWriter::onText( const lChar16 * text, int len,
     lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
 {
@@ -861,6 +869,7 @@ void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagn
     //    _parser->Stop();
     //}
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
+    _flags = _currNode->getFlags();
     //logfile << " !o!\n";
 }
 
@@ -884,6 +893,8 @@ void ldomDocumentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tag
     _errFlag |= (id != _currNode->getElement()->getNodeId());
     _currNode = pop( _currNode, id );
 
+    if ( _currNode )
+        _flags = _currNode->getFlags();
 
     if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");

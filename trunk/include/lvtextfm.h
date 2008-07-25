@@ -50,6 +50,7 @@ extern "C" {
 #define LTEXT_HYPHENATE        0x1000  /**< \brief allow hyphenation */
 #define LTEXT_RUNIN_FLAG       0x2000  /**< \brief element display mode is runin */
 
+#define LTEXT_FLAG_PREFORMATTED 0x0080 /**< \brief element space mode is preformatted */
 
 
 /** \brief Source text line

@@ -1316,6 +1316,7 @@ class ldomElementWriter
     ldomElement * _element;
     const elem_def_t * _typeDef;
     bool _allowText;
+    lUInt32 getFlags();
     ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
     ldomElement * getElement()
     {

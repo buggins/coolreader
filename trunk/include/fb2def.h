@@ -55,7 +55,7 @@ XS_TAG1I( sup )
 XS_TAG1I( style )
 XS_TAG1I( strong )
 XS_TAG1I( emphasis )
-XS_TAG1I( code )
+XS_TAG1D( code, true, css_d_inline, css_ws_pre )
 XS_TAG1I( a )
 
 // table
