@@ -32,7 +32,6 @@ typedef struct {
     lUInt16         aux[256];
 
     lUInt16         len;
-    char*           pattern;
 } thyph;
 
 typedef struct {
@@ -51,32 +50,19 @@ class HyphIndex {
     public:
         // checks pattern match and applies mask if found
         void apply( unsigned char * word, int word_len, unsigned char * result  );
-        HyphIndex ( thyph * hyph );
+        HyphIndex ( thyph * hyph, unsigned char * hyph_pattern );
         ~HyphIndex();
 };
 
 /// AlReader hyphenation manager
 class HyphMan
 {
-    int             _hyph_count;
-    thyph*          _main_hyph;
-    lUInt32         _w_len;
-    unsigned char   _winput[WORD_LENGTH+32+2];
-    wchar_t         _wword[WORD_LENGTH];
-    unsigned char   _dict[256];
-    unsigned char   _dict_w[65535];
-    unsigned char   _wresult[WORD_LENGTH+32+2];
-
-    unsigned char * _wtoa_index[256];
-    HyphIndex *     _hyph_index[256];
-
-    void  prepareInput();
-    void  prepareResult();
     //int             _hyph;
+    unsigned char * _wtoa_index[256];
+    HyphIndex * _hyph_index[256];
     static HyphMan * _instance;
     bool  open(LVStream * stream);
     void  close();
-    void  hyphenate(wchar_t* word4hyph);
 
     void  hyphenateNew( const lChar16 * word4hyph, int word_size, unsigned char * dest_mask );
 

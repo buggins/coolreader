@@ -53,7 +53,7 @@ LVFontManager * fontMan = NULL;
 int LVFont::getVisualAligmentWidth()
 {
     if ( _visual_alignment_width==-1 ) {
-        lChar16 chars[] = { getHyphChar(), ',', '.', '!', 0 };
+        lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', 0 };
         int maxw = 0;
         for ( int i=0; chars[i]; i++ ) {
             int w = getCharWidth( chars[i] );
@@ -658,7 +658,7 @@ public:
             if ( !isHyphen ) // avoid soft hyphens inside text string
                 prev_width = widths[nchars];
             if ( prev_width > max_width ) {
-                if ( lastFitChar < nchars + 5)
+                if ( lastFitChar < nchars + 7)
                     break;
             } else {
                 lastFitChar = nchars + 1;
@@ -677,8 +677,8 @@ public:
 
         // find last word
         int hwStart, hwEnd;
-        lStr_findWordBounds( text, len, nchars, hwStart, hwEnd );
-        if ( hwEnd > hwStart+3 )
+        lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd );
+        if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 )
             HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
 
         return lastFitChar; //nchars;
@@ -2069,7 +2069,7 @@ lUInt16 LVWin32DrawFont::measureText(
             break;
         if (flags[hwEnd-1]&LCHAR_ALLOW_WRAP_AFTER)
             break;
-        if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?')
+        if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?' || ch==':' || ch==';')
             break;
         
     }
