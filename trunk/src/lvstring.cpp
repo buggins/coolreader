@@ -2650,6 +2650,15 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     end = hwEnd;
 }
 
+void  lString16::limit( size_type sz )
+{
+    if ( length() > sz && sz >= 0 ) {
+        modify();
+        pchunk->len = sz;
+        pchunk->buf16[sz] = 0;
+    }
+}
+
 lUInt16 lGetCharProps( lChar16 ch )
 {
     const lChar16 maxchar = sizeof(char_props) / sizeof( lUInt16 );

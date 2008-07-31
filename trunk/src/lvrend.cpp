@@ -308,9 +308,9 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
     for ( ; *s; s++ ) {
         if ( *s=='\r' || *s=='\n' ) {
             if ( s > start )
-                lines.add( lString16( start, s-start ) );
+                lines.add( lString16("*") + lString16( start, s-start ) + lString16("<") );
             else
-                lines.add( lString16(L" ") );
+                lines.add( lString16(L"#") );
             if ( (s[1] =='\r' || s[1]=='\n') && (s[1]!=s[0]) )
                 s++;
             start = s+1;
@@ -492,13 +492,13 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
             if ( baseflags & LTEXT_FLAG_PREFORMATTED ) {
                 int flags = baseflags | tflags;
-                flags &= ~LTEXT_FLAG_NEWLINE;
-                flags |= LTEXT_ALIGN_LEFT;
                 lString16Collection lines;
                 SplitLines( txt, lines );
                 for ( unsigned k=0; k<lines.length(); k++ ) {
                     lString16 str = lines[k];
                     txform->AddSourceLine( str.c_str(), str.length(), cl, bgcl, font, flags, line_h, 0, node );
+                    flags &= ~LTEXT_FLAG_NEWLINE;
+                    flags |= LTEXT_ALIGN_LEFT;
                 }
             } else {
                 txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, line_h, ident, node );

@@ -375,6 +375,7 @@ public:
     int compare(size_type p0, size_type n0, const value_type *s, size_type pos) const;
 
     lString16 substr(size_type pos, size_type n) const;
+    lString16 substr(size_type pos) const { return substr(pos, length()-pos); }
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;
 
@@ -397,6 +398,8 @@ public:
     void  resize(size_type count = 0, value_type e = 0);
     size_type   capacity() const { return pchunk->size-1; }
     void  reserve(size_type count = 0);
+    /// erase all extra characters from end of string after size
+    void  limit( size_type size );
     bool  empty() const { return pchunk->len==0; }
     void  swap( lString16 & str ) { lstring_chunk_t * tmp = pchunk;
                 pchunk=str.pchunk; str.pchunk=tmp; }

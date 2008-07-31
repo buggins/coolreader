@@ -7,11 +7,15 @@ del crengine-src.zip
 7z a -tzip crengine-src.zip .cdtproject
 7z a -tzip crengine-src.zip .cdtbuild
 7z a -tzip crengine-src.zip Makefile
+7z a -tzip crengine-src.zip Makefile.am
+7z a -tzip crengine-src.zip Makefile.in
+7z a -tzip crengine-src.zip Makefile.lbook
 7z a -tzip crengine-src.zip settings\*.*
 7z a -tzip crengine-src.zip include\*.*
 7z a -tzip crengine-src.zip src\*.*
 7z a -tzip crengine-src.zip lib\projects\vc6\*.dsp
 7z a -tzip crengine-src.zip lib\projects\vc6\*.dsw
+7z a -tzip crengine-src.zip lib\projects\codeblocks\*.*
 7z a -tzip crengine-src.zip Tools\FontConv\*.h
 7z a -tzip crengine-src.zip Tools\FontConv\*.cpp
 7z a -tzip crengine-src.zip Tools\FontConv\*.txt

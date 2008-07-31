@@ -1032,6 +1032,9 @@ public:
         if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
             flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
             word->inline_width = word->width - font->getHyphenWidth();
+            if ( word->inline_width > 1000 ) {
+                word->inline_width += 0;
+            }
         }
         if ( text_offset+lastch == srcline->t.len-1 && flgLastParaLine)
         {

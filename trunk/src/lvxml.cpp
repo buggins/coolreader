@@ -1312,14 +1312,9 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     lChar16 * buf = text.modify();
     unsigned chcount = (unsigned)ReadTextBytes( pos, size, buf, size, flags );
     //CRLog::debug("ReadTextBytes(%d,%d) done - %d chars read", (int)pos, (int)size, (int)chcount);
-    if ( chcount<size )
-        text.erase( chcount, text.length()-chcount );
-    int newlen = PreProcessXmlString( text.modify(), chcount, flags );
-    if ( newlen<(int)chcount ) {
-        text.erase( newlen, chcount-newlen );
-        chcount = newlen;
-    }
-    if ( flags & TXTFLG_TRIM ) {
+    text.limit( chcount );
+    PreProcessXmlString( text, flags );
+    if ( (flags & TXTFLG_TRIM) && !(flags & TXTFLG_PRE) ) {
         text.trimDoubleSpaces(
             (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false,
             (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false,
@@ -1853,17 +1848,22 @@ static ent_def_t def_entity_table[] = {
 };
 
 // returns new length
-int PreProcessXmlString( lChar16 * str, int len, lUInt32 flags )
+void PreProcessXmlString( lString16 & s, lUInt32 flags )
 {
+    lChar16 * str = s.modify();
+    int len = s.length();
     int state = 0;
     lChar16 nch = 0;
     lChar16 lch = 0;
     lChar16 nsp = 0;
     bool pre = (flags & TXTFLG_PRE);
+    int tabCount = 0;
     int j = 0;
     for (int i=0; i<len; ++i )
     {
         lChar16 ch = str[i];
+        if ( pre && ch=='\t' )
+            tabCount++;
         if ( !pre && (ch=='\r' || ch=='\n' || ch=='\t') )
             ch = ' ';
         if (ch=='\r')
@@ -1944,7 +1944,33 @@ int PreProcessXmlString( lChar16 * str, int len, lUInt32 flags )
         }
         lch = ch;
     }
-    return j;
+
+
+    // remove extra characters from end of line
+    s.limit( j );
+
+    if ( tabCount > 0 ) {
+        // expand tabs
+        lString16 buf;
+        
+        buf.reserve( j + tabCount * 8 );
+        int x = 0;
+        for ( int i=0; i<j; i++ ) {
+            lChar16 ch = str[i];
+            if ( ch=='\r' || ch=='\n' )
+                x = 0;
+            if ( ch=='\t' ) {
+                int delta = 8 - (x & 7);
+                x += delta;
+                while ( delta-- )
+                    buf << L' ';
+            } else {
+                buf << ch;
+                x++;
+            }
+        }
+        s = buf;
+    }
 }
 
 bool LVXMLParser::ReadText()
@@ -1977,15 +2003,17 @@ bool LVXMLParser::ReadText()
             }
             //=====================================================
             lUInt32 flags = m_callback->getFlags();
-            int newlen = PreProcessXmlString( m_txt_buf.modify(), last_split_txtlen, flags );
-            m_callback->OnText(m_txt_buf.c_str(), newlen, text_start_pos, last_split_fpos-text_start_pos, flags );
+            lString16 nextText = m_txt_buf.substr( last_split_txtlen );
+            m_txt_buf.limit( last_split_txtlen );
+            PreProcessXmlString( m_txt_buf, flags );
+            m_callback->OnText(m_txt_buf.c_str(), m_txt_buf.length(), text_start_pos, last_split_fpos-text_start_pos, flags );
             //=====================================================
             if (flgBreak)
             {
                 //m_buf_pos++;
                 break;
             }
-            m_txt_buf.erase(0, last_split_txtlen);
+            m_txt_buf = nextText;
             tlen = m_txt_buf.length();
             text_start_pos = last_split_fpos; //m_buf_fpos + m_buf_pos;
             last_split_fpos = 0;

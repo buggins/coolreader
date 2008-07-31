@@ -67,7 +67,7 @@ public:
 #define TXTFLG_ENCODING_SHIFT               8
 
 /// converts XML text: decode character entities, convert space chars
-int PreProcessXmlString( lChar16 * str, int len, lUInt32 flags );
+void PreProcessXmlString( lString16 & s, lUInt32 flags );
 
 #define MAX_PERSISTENT_BUF_SIZE 16384
 
