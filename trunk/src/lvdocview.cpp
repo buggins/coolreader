@@ -277,6 +277,8 @@ void LVDocView::Clear()
         m_doc = NULL;
         if (!m_stream.isNull())
             m_stream.Clear();
+        if (!m_container.isNull())
+            m_container.Clear();
         if (!m_arc.isNull())
             m_arc.Clear();
         _posBookmark = ldomXPointer();
@@ -1997,7 +1999,27 @@ void LVDocView::restorePosition()
 bool LVDocView::LoadDocument( const lChar16 * fname )
 {
     Clear();
-    LVStreamRef stream = LVOpenFileStream(fname, LVOM_READ);
+
+    // split file path and name
+    int i;
+    int last_slash = -1;
+    lChar16 slash_char = 0;
+    for ( i=0; fname[i]; i++ ) {
+        if ( fname[i]=='\\' || fname[i]=='/' ) {
+            last_slash = i;
+            slash_char = fname[i];
+        }
+    }
+    lString16 dir;
+    if ( last_slash==-1 )
+        dir = L".";
+    else if ( last_slash == 0 )
+        dir << slash_char;
+    else
+        dir = lString16( fname, last_slash );
+    lString16 fn( fname + last_slash + 1 );
+    m_container = LVOpenDirectory(dir.c_str());
+    LVStreamRef stream = m_container->OpenStream(fn.c_str(), LVOM_READ);
     if (!stream)
         return false;
     if ( LoadDocument( stream ) ) {
@@ -2080,6 +2102,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         m_arc = LVOpenArchieve( m_stream );
         if (!m_arc.isNull())
         {
+            m_container = m_arc;
             // archieve
             bool found = false;
             for (int i=0; i<m_arc->GetObjectCount(); i++)
@@ -2170,6 +2193,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         m_doc = new ldomDocument();
     #endif
         m_doc->setDocFlags( saveFlags );
+        m_doc->setContainer( m_container );
 
 #if COMPACT_DOM == 1
         if ( m_stream->GetSize() < COMPACT_DOM_SIZE_THRESHOLD )

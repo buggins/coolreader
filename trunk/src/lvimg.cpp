@@ -768,15 +768,9 @@ LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int heigh
     return LVImageSourceRef( new LVDummyImageSource( node, width, height ) );
 }
 
-/// create image from node source
-LVImageSourceRef LVCreateNodeImageSource( ldomNode * node )
+LVImageSourceRef LVCreateStreamImageSource( ldomNode * node, LVStreamRef stream )
 {
     LVImageSourceRef ref;
-    if (!node->isElement())
-        return ref;
-    LVStreamRef stream = ((ldomElement*)node)->createBase64Stream();
-    if (stream.isNull())
-        return ref;
     lUInt8 hdr[256];
     lvsize_t bytesRead = 0;
     if ( stream->Read( hdr, 256, &bytesRead )!=LVERR_OK )
@@ -804,4 +798,21 @@ LVImageSourceRef LVCreateNodeImageSource( ldomNode * node )
         return LVImageSourceRef();
     }
     return ref;
+}
+
+LVImageSourceRef LVCreateStreamImageSource( LVStreamRef stream )
+{
+    return LVCreateStreamImageSource( NULL, stream );
+}
+
+/// create image from node source
+LVImageSourceRef LVCreateNodeImageSource( ldomNode * node )
+{
+    LVImageSourceRef ref;
+    if (!node->isElement())
+        return ref;
+    LVStreamRef stream = ((ldomElement*)node)->createBase64Stream();
+    if (stream.isNull())
+        return ref;
+    return LVCreateStreamImageSource( stream );
 }

@@ -48,5 +48,6 @@ typedef LVRef< LVImageSource > LVImageSourceRef;
 LVImageSourceRef LVCreateXPMImageSource( const char * data[] );
 LVImageSourceRef LVCreateNodeImageSource( ldomNode * node );
 LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int height );
+LVImageSourceRef LVCreateStreamImageSource( LVStreamRef stream );
 
 #endif

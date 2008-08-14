@@ -261,6 +261,7 @@ private:
     lUInt32 m_textColor;
     font_ref_t     m_font;
     font_ref_t     m_infoFont;
+    LVContainerRef m_container;
     LVStreamRef    m_stream;
     LVContainerRef m_arc;
     ldomDocument * m_doc;

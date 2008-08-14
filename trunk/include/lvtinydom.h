@@ -918,8 +918,12 @@ private:
     CVRendBlockCache _renderedBlockCache;
 #endif
     lUInt32 _docFlags;
+    LVContainerRef _container;
 
 public:
+
+    LVContainerRef getContainer() { return _container; }
+    void setContainer( LVContainerRef cont ) { _container = cont; }
 
     inline bool getDocFlag( lUInt32 mask )
     {

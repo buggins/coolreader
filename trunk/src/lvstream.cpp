@@ -448,7 +448,7 @@ public:
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode )
 {
     lString16 fn(pathname);
-    LVFileStream * stream = LVFileStream::CreateFileStream( fn, mode );
+    LVFileStream * stream = stream->CreateFileStream( fn, mode );
     if ( stream!=NULL )
     {
         return LVStreamRef( stream );
@@ -534,7 +534,7 @@ public:
         }
         // make filename
         lString16 fn = m_fname;
-        fn << m_path_separator << fname;
+        fn << fname;
         LVStreamRef stream( LVOpenFileStream( fn.c_str(), mode ) );
         if (!stream) {
             return stream;
@@ -583,16 +583,22 @@ public:
         if (!path || !path[0])
             return NULL;
 
+
         // container object
         LVDirectoryContainer * dir = new LVDirectoryContainer;
 
-        dir->SetName(path);
+        // make filename
+        lString16 fn( path );
+        lChar16 lastch = 0;
+        if ( !fn.empty() )
+            lastch = fn[fn.length()-1];
+        if ( lastch!='\\' && lastch!='/' )
+            fn << dir->m_path_separator;
+
+        dir->SetName(fn.c_str());
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
         // WIN32 API
-        lString16 fn(path);
-        if (fn[fn.length()-1]!=dir->m_path_separator)
-            fn << dir->m_path_separator;
         fn << mask;
         WIN32_FIND_DATAW data;
         WIN32_FIND_DATAA dataa;
@@ -694,8 +700,10 @@ public:
         FindClose( hFind );
 #else
         // POSIX
-        lString16 p( path );
+        lString16 p( fn );
+        p.erase( p.length()-1, 1 );
         lString8 p8 = UnicodeToLocal( p );
+        if ( !p8.empty() && 
         DIR * d = opendir(p8.c_str());
         if ( d ) {
             struct dirent * pde;

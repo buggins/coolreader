@@ -364,8 +364,14 @@ LVImageSourceRef ldomElement::getObjectImageSource()
         refName = getAttributeValue( LXML_NS_NONE, hrefId );
     if ( refName.length()<2 )
         return ref;
-    if ( refName[0]!='#' )
+    if ( refName[0]!='#' ) {
+        if ( !getDocument()->getContainer().isNull() ) {
+            LVStreamRef stream = getDocument()->getContainer()->OpenStream(refName.c_str(), LVOM_READ);
+            if ( !stream.isNull() )
+                ref = LVCreateStreamImageSource( stream );
+        }
         return ref;
+    }
     lUInt16 refValueId = _document->findAttrValueIndex( refName.c_str() + 1 );
     if ( refValueId == (lUInt16)-1 )
         return ref;
