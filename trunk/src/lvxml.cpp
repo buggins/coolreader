@@ -881,7 +881,7 @@ public:
         if ( str.length() > MAX_HEADING_CHARS )
             isHeader = false;
         if ( !str.empty() ) {
-            lChar16 * title_tag = L"title";
+            const lChar16 * title_tag = L"title";
             if ( isHeader ) {
                 if ( str.compare(L"* * *")==0 ) {
                     title_tag = L"subtitle";
@@ -1587,8 +1587,8 @@ bool LVXMLParser::Parse()
 #define TEXT_SPLIT_SIZE 8192
 
 typedef struct  {
-	wchar_t * name;
-	wchar_t code;
+    const wchar_t * name;
+    const wchar_t code;
 } ent_def_t;
 
 static ent_def_t def_entity_table[] = {

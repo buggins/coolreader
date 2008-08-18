@@ -429,7 +429,13 @@ public:
             m_path = m_fname.substr(0, pos);
         m_filename = m_fname.substr(pos, m_fname.length() - pos);
     }
-    LVNamedContainer() : m_path_separator('\\')
+    LVNamedContainer() : m_path_separator(
+#ifdef _LINUX
+        '/'
+#else
+        '\\'
+#endif
+    )
     {
     }
     virtual ~LVNamedContainer()

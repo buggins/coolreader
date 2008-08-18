@@ -535,6 +535,8 @@ public:
         // make filename
         lString16 fn = m_fname;
         fn << fname;
+        //const char *  fb8 = UnicodeToUtf8( fn ).c_str();
+        //printf("Opening file %s\n", fb8);
         LVStreamRef stream( LVOpenFileStream( fn.c_str(), mode ) );
         if (!stream) {
             return stream;
@@ -578,7 +580,7 @@ public:
         SetName(NULL);
         Clear();
     }
-    static LVDirectoryContainer * OpenDirectory( const wchar_t * path, wchar_t * mask = L"*.*" )
+    static LVDirectoryContainer * OpenDirectory( const wchar_t * path, const wchar_t * mask = L"*.*" )
     {
         if (!path || !path[0])
             return NULL;
@@ -703,8 +705,10 @@ public:
         lString16 p( fn );
         p.erase( p.length()-1, 1 );
         lString8 p8 = UnicodeToLocal( p );
-        if ( !p8.empty() && 
-        DIR * d = opendir(p8.c_str());
+        if ( p8.empty() )
+            p8 = ".";
+        const char * p8s = p8.c_str();
+        DIR * d = opendir(p8s);
         if ( d ) {
             struct dirent * pde;
             while ( (pde = readdir(d))!=NULL ) {

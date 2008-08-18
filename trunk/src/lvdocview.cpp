@@ -1420,7 +1420,7 @@ ldomXPointer LVDocView::getNodeByPoint( lvPoint pt )
 {
     LVLock lock(getMutex());
     checkRender();
-    if ( windowToDocPoint( pt ) ) {
+    if ( windowToDocPoint( pt ) && m_doc ) {
         ldomXPointer ptr = m_doc->createXPointer( pt );
         //CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
         return ptr;
@@ -2291,7 +2291,9 @@ ldomXPointer LVDocView::getBookmark()
 {
     LVLock lock(getMutex());
     checkPos();
-    ldomXPointer ptr = m_doc->createXPointer( lvPoint( 0, m_pos ) );
+    ldomXPointer ptr;
+    if ( m_doc )
+        ptr = m_doc->createXPointer( lvPoint( 0, m_pos ) );
     return ptr;
 /*
     lUInt64 pos = m_pos;

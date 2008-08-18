@@ -2804,7 +2804,7 @@ public:
     : f(fopen( fname, "wt" )), autoClose(true), autoFlush( _autoFlush )
     {
         static unsigned char utf8sign[] = {0xEF, 0xBB, 0xBF};
-        static char * log_level_names[] = {
+        static const char * log_level_names[] = {
         "FATAL",
         "ERROR",
         "WARN",
