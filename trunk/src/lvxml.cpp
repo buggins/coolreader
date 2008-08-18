@@ -1588,10 +1588,10 @@ bool LVXMLParser::Parse()
 
 typedef struct  {
     const wchar_t * name;
-    const wchar_t code;
+    wchar_t code;
 } ent_def_t;
 
-static ent_def_t def_entity_table[] = {
+static const ent_def_t def_entity_table[] = {
 {L"nbsp", 160},
 {L"iexcl", 161},
 {L"cent", 162},
