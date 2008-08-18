@@ -370,7 +370,9 @@ cr3app::OnInit()
     }
     lString16 fontDir = appPath + L"fonts";
     fontDir << slashChar;
-    InitFontManager( UnicodeToLocal(fontDir)  );
+    lString8 fontDir8 = UnicodeToLocal(fontDir);
+    const char * fontDir8s = fontDir8.c_str();
+    InitFontManager( fontDir8 );
 
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
@@ -384,8 +386,9 @@ cr3app::OnInit()
             lString16 fileName = item->GetName();
             lString16 fileNameLower = fileName;
             fileNameLower.lowercase();
+            lString8 fn = UnicodeToLocal(fileName);
+            const char * pfn = fn.c_str();
             if ( !item->IsContainer() && fileNameLower.length()>4 && lString16(fileNameLower, fileNameLower.length()-4, 4)==L".ttf" ) {
-                lString8 fn = UnicodeToLocal(fileName);
                 printf("loading font: %s\n", fn.c_str());
                 if ( !fontMan->RegisterFont(fn) ) {
                     printf("    failed\n");
