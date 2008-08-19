@@ -964,7 +964,8 @@ const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * enc_name )
 #define DBL_CHAR_STAT_SIZE 256
 
 class CDoubleCharStat
-{
+{ 
+   
    struct CDblCharNode
    {
       unsigned char ch1;
@@ -1023,10 +1024,9 @@ class CDoubleCharStat
       }
       void Sort( CDblCharNode * & sroot )
       {
-         if (this != sroot)
-            AddSorted( sroot );
          if (left)
             left->Sort( sroot );
+         AddSorted( sroot );
          if (right)
             right->Sort( sroot );
       }
@@ -1037,6 +1037,14 @@ class CDoubleCharStat
          index = curr_index++;
          if (sright)
             sright->Renumber( curr_index );
+      }
+      void Renumber1( int & curr_index )
+      {
+         if (left)
+            left->Renumber1( curr_index );
+         index = curr_index++;
+         if (right)
+            right->Renumber1( curr_index );
       }
       void GetData( dbl_char_stat_long_t * & pData, int & len, unsigned int maxindex )
       {
@@ -1088,7 +1096,13 @@ public:
       int idx = 0;
       if (nodes && total)
       {
-         nodes->Sort( nodes );
+         nodes->Renumber1( idx );
+         idx = 0;
+         if (nodes->left)
+            nodes->left->Sort(nodes);
+         if (nodes->right)
+            nodes->right->Sort(nodes);
+         //nodes->Sort( nodes );
          nodes->Renumber( idx );
          nodes->GetData( pData2, len2, len2 );
       }
@@ -1127,6 +1141,117 @@ public:
    }
 };
 
+int sort_dblstats_by_count( const void * p1, const void * p2 )
+{
+    int n1 = static_cast<const dbl_char_stat_long_t*>(p1)->count;
+    int n2 = static_cast<const dbl_char_stat_long_t*>(p2)->count;
+    if ( n1>n2 )
+        return -1;
+    else if ( n2>n1 )
+        return 1;
+    else
+        return 0;
+}
+
+int sort_dblstats_by_ch( const void * p1, const void * p2 )
+{
+    const dbl_char_stat_long_t* n1 = static_cast<const dbl_char_stat_long_t*>(p1);
+    const dbl_char_stat_long_t* n2 = static_cast<const dbl_char_stat_long_t*>(p2);
+    if ( n1->ch1>n2->ch1 )
+        return 1;
+    else if ( n1->ch1<n2->ch1 )
+        return -1;
+    if ( n1->ch2>n2->ch2 )
+        return 1;
+    else if ( n1->ch2<n2->ch2 )
+        return -1;
+    else
+        return 0;
+}
+
+class CDoubleCharStat2
+{ 
+private:
+    lUInt16 * * stats;
+    int total;
+    int items;
+public:
+    CDoubleCharStat2() : stats(NULL), total(0), items(0)
+    {
+    }
+    void Add( unsigned char c1, unsigned char c2 )
+    {
+        if ( !stats ) {
+            stats = new lUInt16* [256];
+            memset( stats, 0, sizeof(lUInt16*)*256);
+        }
+        if (c1==' ' && c2==' ')
+            return;
+        total++;
+        if ( stats[c1]==NULL ) {
+            stats[c1] = new lUInt16[256];
+            memset( stats[c1], 0, sizeof(lUInt16)*256 );
+        }
+        if ( stats[c1][c2]++ == 0)
+            items++;
+    }
+    void GetData( dbl_char_stat_t * pData, int len )
+    {
+        int count = 0;
+        dbl_char_stat_long_t * pdata = new dbl_char_stat_long_t[items];
+        if ( total ) {
+            for ( int i=0; i<256; i++ ) {
+                if ( stats[i] ) {
+                    for ( int j=0; j<256; j++ ) {
+                        if ( stats[i][j]> 0 ) {
+                            pdata[count].ch1 = i;
+                            pdata[count].ch2 = j;
+                            int n = stats[i][j];
+                            n = (int)(n * (lInt64)0x7000 / total);
+                            pdata[count].count = n;
+                            count++;
+                        }
+                    }
+                }
+            }
+            qsort(pdata, count, sizeof(dbl_char_stat_long_t), sort_dblstats_by_count);
+            int nsort = count;
+            if ( nsort>len )
+                nsort = len;
+            qsort(pdata, nsort, sizeof(dbl_char_stat_long_t), sort_dblstats_by_ch);
+        }
+        // copy data to destination
+        for ( int k=0; k<len; k++ ) {
+            if ( k<count ) {
+                pData[k].ch1 = pdata[k].ch1;
+                pData[k].ch2 = pdata[k].ch2;
+                pData[k].count = pdata[k].count;
+            } else {
+                pData[k].ch1 = 0;
+                pData[k].ch2 = 0;
+                pData[k].count = 0;
+            }
+        }
+        Close();
+   }
+
+   void Close()
+   {
+       if ( stats ) {
+           for ( int i=0; i<256; i++ )
+               if ( stats[i] )
+                   delete[] stats[i];
+           delete[] stats;
+           stats = NULL;
+       }
+       total = 0;
+   }
+
+   virtual ~CDoubleCharStat2()
+   {
+       Close();
+   }
+};
 
 bool isValidUtf8Data( const unsigned char * buf, int buf_size )
 {
@@ -1165,7 +1290,7 @@ bool isValidUtf8Data( const unsigned char * buf, int buf_size )
 }
 void MakeDblCharStat( const unsigned char * buf, int buf_size, dbl_char_stat_t * stat, int stat_len )
 {
-   CDoubleCharStat maker;
+   CDoubleCharStat2 maker;
    unsigned char ch1=' ';
    unsigned char ch2=' ';
    for ( int i=1; i<buf_size; i++) {

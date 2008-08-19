@@ -1450,7 +1450,9 @@ public:
         pos += 0x1e + hdr.getNameLen() + hdr.getAddLen();
         if ( stream->Seek( pos, LVSEEK_SET, NULL )!=LVERR_OK )
             return NULL;
-        if ((lvpos_t)(pos + hdr.getPackSize()) > (lvpos_t)stream->GetSize())
+        lUInt32 packSize = hdr.getPackSize();
+        lUInt32 unpSize = hdr.getUnpSize();
+        if ((lvpos_t)(pos + packSize) > (lvpos_t)stream->GetSize())
             return NULL;
         if (hdr.getMethod() == 0)
         {
@@ -1501,9 +1503,9 @@ public:
 			strm,
 			m_list[found_index]->GetSrcPos(), fn ) );
         if (!stream.isNull()) {
+            stream->SetName(m_list[found_index]->GetName());
             return LVCreateBufferedStream( stream, ZIP_STREAM_BUFFER_SIZE );
         }
-        stream->SetName(m_list[found_index]->GetName());
         return stream;
     }
     LVZipArc( LVStreamRef stream ) : LVArcContainerBase(stream)
@@ -1598,6 +1600,8 @@ public:
                 if (ReadSize != ZipHd1_size) {
                         //fclose(f);
                     if (ReadSize==0 && NextPosition==m_FileSize)
+                        return m_list.length();
+                    if ( ReadSize==0 )
                         return m_list.length();
                     return 0;
                 }
