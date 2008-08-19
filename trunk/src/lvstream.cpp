@@ -1437,7 +1437,7 @@ public:
     {
         return LVERR_NOTIMPL;
     }
-    static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString16 name )
+    static LVStream * Create( LVStreamRef stream, lvpos_t pos, lString16 name, lUInt32 srcPackSize, lUInt32 srcUnpSize )
     {
         ZipLocalFileHdr hdr;
         unsigned hdr_size = 0x1E; //sizeof(hdr);
@@ -1452,6 +1452,10 @@ public:
             return NULL;
         lUInt32 packSize = hdr.getPackSize();
         lUInt32 unpSize = hdr.getUnpSize();
+        if ( packSize==0 && unpSize==0 ) {
+            packSize = srcPackSize;
+            unpSize = srcUnpSize;
+        }
         if ((lvpos_t)(pos + packSize) > (lvpos_t)stream->GetSize())
             return NULL;
         if (hdr.getMethod() == 0)
@@ -1468,7 +1472,7 @@ public:
             // deflate
             LVStreamRef srcStream( new LVStreamFragment( stream, pos, hdr.getPackSize()) );
             LVZipDecodeStream * res = new LVZipDecodeStream( srcStream, pos,
-                hdr.getPackSize(), hdr.getUnpSize(), hdr.getCRC() );
+                packSize, unpSize, hdr.getCRC() );
             res->SetName( name.c_str() );
             return res;
         }
@@ -1501,7 +1505,11 @@ public:
         LVStreamRef stream(
 		LVZipDecodeStream::Create(
 			strm,
-			m_list[found_index]->GetSrcPos(), fn ) );
+			m_list[found_index]->GetSrcPos(), 
+            fn, 
+            m_list[found_index]->GetSrcSize(), 
+            m_list[found_index]->GetSize() ) 
+        );
         if (!stream.isNull()) {
             stream->SetName(m_list[found_index]->GetName());
             return LVCreateBufferedStream( stream, ZIP_STREAM_BUFFER_SIZE );

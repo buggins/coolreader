@@ -508,7 +508,8 @@ public:
         if ( p )
             free( p );
     }
-    inline const T operator [] ( int index ) { return p[index]; }
+    inline const T operator [] ( int index ) const { return p[index]; }
+    inline T & operator [] ( int index ) { return p[index]; }
     inline LVAutoPtr * operator -> ()
     {
         return p;

@@ -18,6 +18,7 @@
 #include "lvstring.h"
 #include "lvstream.h"
 #include "crtxtenc.h"
+#include "dtddef.h"
 
 #define XML_FLAG_NO_SPACE_TEXT 1
 
@@ -138,8 +139,6 @@ protected:
     lString16 m_lang_name;
     lChar16 * m_conv_table; // charset conversion table for 8-bit encodings
 
-    /// tries to autodetect text encoding
-    bool AutodetectEncoding();
     /// reads one character from buffer
     lChar16 ReadChar();
     /// reads one character from buffer in RTF format
@@ -149,6 +148,8 @@ protected:
     /// reads specified number of characters and saves to buffer, returns number of chars read
     int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size, int flags );
 public:
+    /// tries to autodetect text encoding
+    bool AutodetectEncoding();
     /// reads next text line, tells file position and size of line, sets EOL flag
     lString16 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );
     /// returns name of character encoding
@@ -264,5 +265,6 @@ public:
     virtual ~LVXMLParser();
 };
 
+lString16 LVReadTextFile( LVStreamRef stream );
 
 #endif // __LVXML_H_INCLUDED__

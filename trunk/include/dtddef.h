@@ -33,6 +33,7 @@
 #if !defined(__DTD_DEF_H_INCLUDED__)
 #define __DTD_DEF_H_INCLUDED__
 
+
 /// default element type definition struct
 typedef struct {
     bool                 allow_text;   ///< is true if element allows text nodes as children
@@ -109,6 +110,7 @@ typedef struct {
 
 #else
 
+
 #undef  XS_BEGIN_TAGS
 #undef  XS_TAG1
 #undef  XS_TAG2
@@ -121,7 +123,7 @@ typedef struct {
 #undef  XS_TAG2D
 #undef  XS_END_TAGS
 #define XS_BEGIN_TAGS \
-        static elem_def_t fb2_elem_table[] =  {
+        static elem_def_t fb2_elem_table [] =  {
 #define XS_TAG1(itm) \
         { el_ ## itm, #itm, {false, false, css_d_block, css_ws_normal} },
 #define XS_TAG2(itm, name) \
@@ -149,7 +151,7 @@ typedef struct {
 #undef  XS_ATTR2
 #undef  XS_END_ATTRS
 #define XS_BEGIN_ATTRS \
-        static attr_def_t fb2_attr_table[] = {
+        static attr_def_t fb2_attr_table [] = {
 #define XS_ATTR(itm) \
         { attr_ ## itm, #itm },
 #define XS_ATTR2(itm, name) \
@@ -162,7 +164,7 @@ typedef struct {
 #undef  XS_NS
 #undef  XS_END_NS
 #define XS_BEGIN_NS \
-        static ns_def_t fb2_ns_table[] = {
+        static ns_def_t fb2_ns_table [] = {
 #define XS_NS(itm) \
         { ns_ ## itm, #itm },
 #define XS_END_NS \

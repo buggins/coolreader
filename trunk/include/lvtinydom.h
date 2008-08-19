@@ -55,7 +55,7 @@ typedef enum {
 } xpath_step_t;
 xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index );
 
-
+class ldomElement;
 
 /// Base class for XML DOM documents
 /**
@@ -188,9 +188,20 @@ public:
         }
     }
 
+    /// get element by id attribute value code
     inline ldomNode * getNodeById( lUInt16 attrValueId )
     {
         return _idNodeMap.get( attrValueId );
+    }
+
+    /// get element by id attribute value
+    inline ldomElement * getElementById( const lChar16 * id )
+    {
+        lUInt16 attrValueId = getAttrValueIndex( id );
+        ldomNode * node = getNodeById( attrValueId );
+        if ( node )
+            return reinterpret_cast<ldomElement*>( node );
+        return NULL;
     }
 private:
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
@@ -344,6 +355,13 @@ public:
     virtual lUInt32 getAttrCount() const = 0;
     /// returns attribute value by attribute name id and namespace id
     virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const = 0;
+    /// returns attribute value by attribute name
+    virtual const lString16 & getAttributeValue( const lChar16 * attrName ) const
+    {
+        return getAttributeValue( NULL, attrName );
+    }
+    /// returns attribute value by attribute name and namespace
+    virtual const lString16 & getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const;
     /// returns attribute by index
     virtual const lxmlAttribute * getAttribute( lUInt32 index ) const = 0;
     /// returns true if element node has attribute with specified name id and namespace id
@@ -919,9 +937,12 @@ private:
 #endif
     lUInt32 _docFlags;
     LVContainerRef _container;
+    lString16 _codeBase;
 
 public:
 
+    lString16 getCodeBase() { return _codeBase; }
+    void setCodeBase(lString16 codeBase) { _codeBase = codeBase; }
     LVContainerRef getContainer() { return _container; }
     void setContainer( LVContainerRef cont ) { _container = cont; }
 
@@ -990,6 +1011,14 @@ public:
     ldomNode * nodeFromXPath( const lString16 & xPointerStr )
     {
         return createXPointer( xPointerStr ).getNode();
+    }
+    /// get element text by pointer string
+    lString16 textFromXPath( const lString16 & xPointerStr )
+    {
+        ldomNode * node = nodeFromXPath( xPointerStr );
+        if ( !node )
+            return lString16();
+        return node->getText();
     }
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
@@ -1382,11 +1411,80 @@ public:
     virtual ~ldomDocumentWriter();
 };
 
+class ldomDocumentFragmentWriter : public LVXMLParserCallback
+{
+private:
+    //============================
+    LVXMLParserCallback * parent;
+    lString16 baseTag;
+    bool insideTag;
+public:
+    /// returns flags
+    virtual lUInt32 getFlags() { return parent->getFlags(); }
+    /// sets flags
+    virtual void setFlags( lUInt32 flags ) { parent->setFlags(flags); }
+    // overrides
+    /// called when encoding directive found in document
+    virtual void OnEncoding( const lChar16 * name, const lChar16 * table )
+    { parent->OnEncoding( name, table ); }
+    /// called on parsing start
+    virtual void OnStart(LVFileFormatParser * parser)
+    {
+        insideTag = false;
+    }
+    /// called on parsing end
+    virtual void OnStop()
+    {
+        insideTag = false;
+    }
+    /// called on opening tag
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+    {
+        if ( insideTag )
+            parent->OnTagOpen(nsname, tagname);
+        if ( !insideTag && baseTag==tagname )
+            insideTag = true;
+    }
+    /// called on closing tag
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+    {
+        if ( insideTag && baseTag==tagname )
+            insideTag = false;
+        if ( insideTag )
+            parent->OnTagClose(nsname, tagname);
+    }
+    /// called on attribute
+    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+    {
+        if ( insideTag )
+            parent->OnAttribute(nsname, attrname, attrvalue);
+    }
+    /// called on text
+    virtual void OnText( const lChar16 * text, int len,
+        lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+    {
+        if ( insideTag )
+            parent->OnText( text, len, 0, 0, flags );
+    }
+    /// constructor
+    ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString16 baseTagName )
+    : parent(parentWriter), baseTag(baseTagName), insideTag(false)
+    {
+    }
+    /// destructor
+    virtual ~ldomDocumentFragmentWriter() { }
+};
+
 //utils
 lString16 extractDocAuthors( ldomDocument * doc );
 lString16 extractDocTitle( ldomDocument * doc );
 lString16 extractDocSeries( ldomDocument * doc );
 
 
+/// parse XML document from stream, returns NULL if failed
+ldomDocument * LVParseXMLStream( LVStreamRef stream, 
+                              const elem_def_t * elem_table=NULL, 
+                              const attr_def_t * attr_table=NULL, 
+                              const ns_def_t * ns_table=NULL );
 
 #endif

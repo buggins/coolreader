@@ -100,6 +100,13 @@ ldomMemManStorage * ldomTextRef::pmsHeap = NULL;
 #endif
 #endif
 
+const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
+{
+    lUInt16 nsId = (nsName&&nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
+    lUInt16 attrId = getDocument()->getAttrNameIndex( attrName );
+    return getAttributeValue( nsId, attrId );
+}
+
 ldomNode::~ldomNode() { }
 
 /// returns main element (i.e. FictionBook for FB2)
@@ -274,6 +281,8 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
 
 void lxmlDocBase::setNodeTypes( const elem_def_t * node_scheme )
 {
+    if ( !node_scheme )
+        return;
     for ( ; node_scheme && node_scheme->id != 0; ++node_scheme )
     {
         _elementNameTable.AddItem(
@@ -286,6 +295,8 @@ void lxmlDocBase::setNodeTypes( const elem_def_t * node_scheme )
 // set attribute types from table
 void lxmlDocBase::setAttributeTypes( const attr_def_t * attr_scheme )
 {
+    if ( !attr_scheme )
+        return;
     for ( ; attr_scheme && attr_scheme->id != 0; ++attr_scheme )
     {
         _attrNameTable.AddItem(
@@ -299,6 +310,8 @@ void lxmlDocBase::setAttributeTypes( const attr_def_t * attr_scheme )
 // set namespace types from table
 void lxmlDocBase::setNameSpaceTypes( const ns_def_t * ns_scheme )
 {
+    if ( !ns_scheme )
+        return;
     for ( ; ns_scheme && ns_scheme->id != 0; ++ns_scheme )
     {
         _nsNameTable.AddItem(
@@ -366,7 +379,10 @@ LVImageSourceRef ldomElement::getObjectImageSource()
         return ref;
     if ( refName[0]!='#' ) {
         if ( !getDocument()->getContainer().isNull() ) {
-            LVStreamRef stream = getDocument()->getContainer()->OpenStream(refName.c_str(), LVOM_READ);
+            lString16 name = refName;
+            if ( !getDocument()->getCodeBase().empty() )
+                name = getDocument()->getCodeBase() + refName;
+            LVStreamRef stream = getDocument()->getContainer()->OpenStream(name.c_str(), LVOM_READ);
             if ( !stream.isNull() )
                 ref = LVCreateStreamImageSource( stream );
         }
@@ -2472,3 +2488,41 @@ lString16 ldomXRange::getHRef()
         return lString16();
     return _start.getHRef();
 }
+
+
+ldomDocument * LVParseXMLStream( LVStreamRef stream, 
+                              const elem_def_t * elem_table, 
+                              const attr_def_t * attr_table, 
+                              const ns_def_t * ns_table )
+{
+    if ( stream.isNull() )
+        return NULL;
+    bool error = true;
+    ldomDocument * doc;
+#if COMPACT_DOM==1
+    doc = new ldomDocument( stream, 0 );
+#else
+    doc = new ldomDocument();
+#endif
+    doc->setDocFlags( 0 );
+
+    ldomDocumentWriter writer(doc);
+    doc->setNodeTypes( elem_table );
+    doc->setAttributeTypes( attr_table );
+    doc->setNameSpaceTypes( ns_table );
+
+    /// FB2 format
+    LVFileFormatParser * parser = new LVXMLParser(stream, &writer);
+    if ( parser->CheckFormat() ) {
+        if ( parser->Parse() ) {
+            error = false;
+        }
+    }
+    delete parser;
+    if ( error ) {
+        delete doc;
+        doc = NULL;
+    }
+    return doc;
+}
+

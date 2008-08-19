@@ -1388,7 +1388,7 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        if ( s.pos(L"<?xml") >=0 && s.pos(L"<FictionBook") >= 0 )
+        if ( s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6 ) //&& s.pos(L"<FictionBook") >= 0
             res = true;
     }
     delete[] chbuf;
@@ -2120,4 +2120,25 @@ bool LVXMLParser::ReadIdent( lString16 & ns, lString16 & name )
 void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )
 {
     m_trimspaces = flgTrimSpaces;
+}
+
+
+lString16 LVReadTextFile( LVStreamRef stream )
+{
+    lString16 buf;
+    LVTextParser reader( stream, NULL );
+    if ( !reader.AutodetectEncoding() )
+        return buf;
+    lvpos_t fpos;
+    lvsize_t fsize;
+    lUInt32 flags;
+    while ( !reader.Eof() ) {
+        lString16 line = reader.ReadLine( 4096, fpos, fsize, flags );
+        if ( !buf.empty() )
+            buf << L'\n';
+        if ( !line.empty() ) {
+            buf << line;
+        }
+    }
+    return buf;
 }
