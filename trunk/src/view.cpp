@@ -267,10 +267,10 @@ void cr3view::OnTimer(wxTimerEvent& event)
         int dx;
         int dy;
         GetClientSize( &dx, &dy );
-        if ( _docview->IsRendered() && dx == _docview->GetWidth()
-                && dy == _docview->GetHeight() )
-            return; // no resize
-        if (dx<5 || dy<5 || dx>3000 || dy>3000)
+        //if ( _docview->IsRendered() && dx == _docview->GetWidth()
+        //        && dy == _docview->GetHeight() )
+        //    return; // no resize
+        if (dx<50 || dy<50 || dx>3000 || dy>3000)
         {
             return;
         }
@@ -322,6 +322,7 @@ void cr3view::Paint()
 #endif
     _docview->setBatteryState( battery_state );
     //_docview->Draw();
+    UpdateScrollBar();
     Refresh( FALSE );
 }
 
@@ -361,6 +362,8 @@ void cr3view::UpdateScrollBar()
 {
 	if ( !_scrollbar )
 		return;
+    if ( !_docview->IsRendered() )
+        return;
     const LVScrollInfo * lvsi = _docview->getScrollInfo();
     _scrollbar->SetScrollbar(
         lvsi->pos,      //int position, 
@@ -710,7 +713,7 @@ void cr3view::Resize(int dx, int dy)
         return;
     }
 
-		_renderTimer->Stop();
+	_renderTimer->Stop();
     _renderTimer->Start( 100, wxTIMER_ONE_SHOT );
     _clockTimer->Stop();
     _clockTimer->Start( 10 * 1000, wxTIMER_CONTINUOUS );
@@ -737,6 +740,7 @@ void cr3view::OnPaint(wxPaintEvent& event)
         }
 
         _docview->Resize( dx, dy );
+        return;
     }
 
     LVDocImageRef pageImage = _docview->getPageImage(0);

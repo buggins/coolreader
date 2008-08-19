@@ -85,9 +85,9 @@ void testFormatting()
     t.addLine( L" short", LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"words!", LTEXT_FLAG_OWNTEXT, font2 );
     t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
-    t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"There is seldom reason to tag a file in isolation. A more common use is to tag all the files that constitute a module with the same tag at strategic points in the development life-cycle, such as when a release is made.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"Next paragraph: left-aligned. Blabla bla blabla blablabla hdjska hsdjkasld hsdjka sdjaksdl hasjkdl ahklsd hajklsdh jaksd hajks dhjksdhjshd sjkdajsh hasjdkh ajskd hjkhjksajshd hsjkadh sjk.", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"Testing thisislonglongwordtohyphenate simple paragraph formatting. Just a test. ", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"Another fragment of text. ", LTEXT_FLAG_OWNTEXT, font1 );
@@ -99,7 +99,7 @@ void testFormatting()
     int i;
 #if 1
     for ( i=0; i<2000; i++ )
-        t.txt.FormatNew( 200, 300 );
+        t.txt.FormatNew( 600, 800 );
     //for ( int i=0; i<100000; i++ )
     //    t.txt.FormatNew( 400, 300 );
     time_t end1 = time((time_t*)0);
@@ -107,7 +107,7 @@ void testFormatting()
 #if 0
     time_t start2 = time((time_t*)0);
     for ( i=0; i<2000; i++ )
-        t.txt.FormatOld( 200, 300 );
+        t.txt.FormatOld( 600, 800 );
     //for ( int i=0; i<100000; i++ )
     //    t.txt.FormatOld( 400, 300 );
     time_t end2 = time((time_t*)0);
@@ -1030,7 +1030,7 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
     wxFileDialog dlg( this, wxT( "Choose a file to open" ), 
         wxT( "" ),
         wxT( "" ),//const wxString& defaultFile = "", 
-        wxT("All supported files|*.fb2;*.txt;*.zip;*.rtf|FictionBook files (*.fb2)|*.fb2|RTF files (*.rtf)|*.rtf|Text files (*.txt)|*.txt|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
+        wxT("All supported files|*.fb2;*.txt;*.zip;*.rtf;*.epub|FictionBook files (*.fb2)|*.fb2|RTF files (*.rtf)|*.rtf|Text files (*.txt)|*.txt|EPUB files (*.epub)|*.epub|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
         wxFD_OPEN | wxFD_FILE_MUST_EXIST //long style = wxFD_DEFAULT_STYLE, 
         //const wxPoint& pos = wxDefaultPosition, 
         //const wxSize& sz = wxDefaultSize, 
