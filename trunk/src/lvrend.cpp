@@ -88,6 +88,12 @@ bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 )
 LVFontRef getFont( css_style_rec_t * style )
 {
     int sz = style->font_size.value;
+    if ( style->font_size.type != css_val_px && style->font_size.type != css_val_percent )
+        sz >>= 8;
+    if ( sz < 8 )
+        sz = 8;
+    if ( sz > 50 )
+        sz = 50;
     int fw;
     if (style->font_weight>=css_fw_100 && style->font_weight<=css_fw_900)
         fw = ((style->font_weight - css_fw_100)+1) * 100;
@@ -847,7 +853,7 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
             break; \
         case css_val_em: \
             pstyle->fld.type = css_val_px; \
-            pstyle->fld.value = parent_style->font_size.value * pstyle->fld.value; \
+            pstyle->fld.value = parent_style->font_size.value * pstyle->fld.value / 256; \
             break; \
         default: \
             pstyle->fld.type = css_val_px; \

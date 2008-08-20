@@ -48,6 +48,27 @@ XS_TAG1( section )
 XS_TAG1D( binary, true, css_d_none, css_ws_normal )
 XS_TAG2T( text_author, "text-author" )
 
+//epub
+XS_TAG1( div )
+XS_TAG1( svg )
+XS_TAG1( dl )
+XS_TAG1( dt )
+XS_TAG1( dd )
+XS_TAG1( ol )
+XS_TAG1( ul )
+XS_TAG1( li )
+XS_TAG1( h1 )
+XS_TAG1( h2 )
+XS_TAG1( h3 )
+XS_TAG1( h4 )
+XS_TAG1( h5 )
+XS_TAG1( h6 )
+XS_TAG1( pre )
+XS_TAG1( blockquote )
+XS_TAG1I( em )
+XS_TAG1I( q )
+
+
 // type="styleType"
 XS_TAG1I( strikethrough )
 XS_TAG1I( sub )

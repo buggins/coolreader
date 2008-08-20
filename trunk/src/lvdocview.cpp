@@ -2290,10 +2290,27 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
                         // set stylesheet
                         m_doc->getStyleSheet()->clear();
-                        m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
-                        if ( !css.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+                        //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+                        if ( !css.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {                            m_doc->getStyleSheet()->parse(UnicodeToUtf8(css).c_str());
+                            m_doc->getStyleSheet()->parse(
+                                "p.p { text-align: justify }\n"
+                                "svg { text-align: center }\n"
+                                "i { display: inline; font-style: italic }\n"
+                                "b { display: inline; font-weight: bold }\n"
+                                "abbr { display: inline }\n"
+                                "acronym { display: inline }\n"
+                                "address { display: inline }\n"
+                                "p.title-p { hyphenate: none }\n"
+//abbr, acronym, address, blockquote, br, cite, code, dfn, div, em, h1, h2, h3, h4, h5, h6, kbd, p, pre, q, samp, span, strong, var
+                            );
                             m_doc->getStyleSheet()->parse(UnicodeToUtf8(css).c_str());
+                        } else {
+                            m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
                         }
+
+                        LVStreamRef out = LVOpenFileStream( L"c:\\doc.xml" , LVOM_WRITE );
+                        if ( !out.isNull() )
+                            m_doc->saveToStream( out, "utf-8" );
 
                         // DONE!
                         requestRender();
