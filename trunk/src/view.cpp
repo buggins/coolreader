@@ -77,6 +77,7 @@ cr3view::cr3view(CRPropRef props)
 , _linkCursor(wxCURSOR_HAND)
 , _scrollbar(NULL)
 , _firstRender(false)
+, _allowRender(true)
 , _props(props)
 {
     _docview = new LVDocView();
@@ -278,6 +279,7 @@ void cr3view::OnTimer(wxTimerEvent& event)
         if ( _firstRender ) {
             _docview->restorePosition();
             _firstRender = false;
+            _allowRender = true;
         }
 
         _docview->Resize( dx, dy );
@@ -660,6 +662,7 @@ bool cr3view::LoadDocument( const wxString & fname )
     GetParent()->SetLabel( wxString( title.c_str() ) );
     //UpdateScrollBar();
     _firstRender = true;
+    _allowRender = false;
     ScheduleRender();
     //_docview->restorePosition();
 	//_docview->Render();
@@ -730,6 +733,10 @@ void cr3view::OnPaint(wxPaintEvent& event)
 {
     //printf("   OnPaint()  \n" );
     wxPaintDC dc(this);
+    if ( !_allowRender ) {
+        dc.Clear();
+        return;
+    }
 
     int dx, dy;
     GetClientSize( &dx, &dy );

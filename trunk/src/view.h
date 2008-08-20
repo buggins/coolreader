@@ -40,7 +40,7 @@ cr3view : public wxPanel
         void OnTimer(wxTimerEvent& event);
         void OnInitDialog(wxInitDialogEvent& event);
         void ToggleViewMode();
-				void SetFullScreenState(bool fullscreenState) { _isFullscreen = fullscreenState; }
+		void SetFullScreenState(bool fullscreenState) { _isFullscreen = fullscreenState; }
         lString16 GetHistoryFileName();
         lString16 GetLastRecentFileName();
     protected:
@@ -57,6 +57,7 @@ cr3view : public wxPanel
         wxTimer * _clockTimer;
 				wxTimer * _cursorTimer;
         bool _firstRender;
+        bool _allowRender;
         CRPropRef _props;
 
 				bool _isFullscreen;
