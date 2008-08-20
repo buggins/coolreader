@@ -2307,10 +2307,11 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         } else {
                             m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
                         }
-
+#if 0
                         LVStreamRef out = LVOpenFileStream( L"c:\\doc.xml" , LVOM_WRITE );
                         if ( !out.isNull() )
                             m_doc->saveToStream( out, "utf-8" );
+#endif
 
                         // DONE!
                         requestRender();
