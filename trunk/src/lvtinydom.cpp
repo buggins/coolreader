@@ -2276,6 +2276,7 @@ ldomElement * ldomXRange::getNearestCommonParent()
     return NULL;
 }
 
+#ifndef BUILD_LITE
 /// returns rectangle (in doc coordinates) for range. Returns true if found.
 bool ldomXRange::getRect( lvRect & rect )
 {
@@ -2350,6 +2351,7 @@ bool ldomXRange::getWordRange( ldomXRange & range, ldomXPointer & p )
     range = r;
     return true;
 }
+#endif
 
 /// run callback for each node in range
 void ldomXRange::forEach( ldomNodeCallback * callback )

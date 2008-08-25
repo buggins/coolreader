@@ -591,10 +591,12 @@ public:
 	{
 		return _node!=v._node || _offset!=v._offset;
 	}
+#ifndef BUILD_LITE
     /// returns caret rectangle for pointer inside formatted document
     bool getRect(lvRect & rect) const;
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint() const;
+#endif
     /// converts to string
 	lString16 toString();
     /// returns XPath node text
@@ -770,8 +772,10 @@ public:
     static bool getWordRange( ldomXRange & range, ldomXPointer & p );
     /// run callback for each node in range
     void forEach( ldomNodeCallback * callback );
+#ifndef BUILD_LITE
     /// returns rectangle (in doc coordinates) for range. Returns true if found.
     bool getRect( lvRect & rect );
+#endif
     /// returns nearest common element for start and end points
     ldomElement * getNearestCommonParent();
 };

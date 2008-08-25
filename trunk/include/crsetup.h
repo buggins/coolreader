@@ -15,6 +15,8 @@
 
 // features set for LBOOK
 #if (LBOOK==1)
+#define LDOM_USE_OWN_MEM_MAN                 0
+#define USE_DOM_UTF8_STORAGE                 1
 #define CR_USE_THREADS                       0
 #define MAX_IMAGE_SCALE_MUL                  2
 #define USE_ZLIB                             1
@@ -35,14 +37,14 @@
 #define USE_LIBPNG                           1
 #define USE_FREETYPE                         1
 #define GLYPH_CACHE_SIZE                     0x20000
-#define ZIP_STREAM_BUFFER_SIZE               0x40000
-#define FILE_STREAM_BUFFER_SIZE              0x20000
+#define ZIP_STREAM_BUFFER_SIZE               0x80000
+#define FILE_STREAM_BUFFER_SIZE              0x40000
 #endif
 #define COMPACT_DOM                          1
-#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      24
+#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      32
 #define COMPACT_DOM_SIZE_THRESHOLD           0x500000
-#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  48
-#define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
+#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  64
+#define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x60000
 
 #elif defined(_LINUX) || defined (LINUX)
 
