@@ -20,6 +20,23 @@
 #include "hist.h"
 #include "lvthread.h"
 
+/// source document formats
+typedef enum {
+    doc_format_none,
+    doc_format_fb2,
+    doc_format_txt,
+    doc_format_rtf,
+    doc_format_epub,
+    doc_format_html,
+} doc_format_t;
+
+/// text format import options
+typedef enum {
+    txt_format_pre,  // no formatting, leave lines as is
+    txt_format_auto  // autodetect format
+} txt_format_t;
+
+
 /// Page imege holder which allows to unlock mutex after destruction
 class LVDocImageHolder
 {
@@ -147,6 +164,7 @@ enum LVDocCmd
     DCMD_GO_PAGE,
     DCMD_ZOOM_IN,
     DCMD_ZOOM_OUT,
+    DCMD_TOGGLE_TEXT_FORMAT,
 };
 
 enum LVDocViewMode
@@ -306,6 +324,12 @@ private:
     lString8 m_defaultFontFace;
     ldomNavigationHistory _navigationHistory;
 
+    doc_format_t m_doc_format;
+    txt_format_t m_text_format;
+
+    /// sets current document format
+    void setDocFormat( doc_format_t fmt ) { m_doc_format = fmt; }
+
 
     // private functions
     void updateScroll();
@@ -315,6 +339,8 @@ private:
     void updateLayout();
     /// load document from stream
     bool LoadDocument( LVStreamRef stream );
+    /// parse document from m_stream
+    bool ParseDocument( );
 
 
 protected:
@@ -339,6 +365,14 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
 public:
+
+    // doc format functions
+    /// set text format options
+    void setTextFormatOptions( txt_format_t fmt );
+    /// get text format options
+    txt_format_t getTextFormatOptions() { return m_text_format; }
+    /// get current document format
+    doc_format_t getDocFormat() { return m_doc_format; }
 
     // Links and selections functions
     /// sets selection for whole element, clears previous selection
@@ -378,6 +412,8 @@ public:
     void setDefaultFontFace( const lString8 & newFace );
     /// invalidate formatted data, request render
     void requestRender();
+    /// invalidate document data, request reload
+    void requestReload();
     /// invalidate image cache, request redraw
     void clearImageCache();
     /// get page image (0=current, -1=prev, 1=next)

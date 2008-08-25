@@ -1107,6 +1107,40 @@ public:
         return true;
     }
 
+    /*
+    bool isMonoSpaced( FT_Face face )
+    {
+        // TODO: check existance of required characters (e.g. cyrillic)
+        if (face==NULL)
+            return false; // invalid face
+        lChar16 ch1 = 'i';
+        FT_UInt ch_glyph_index1 = FT_Get_Char_Index( face, ch1 );
+        if ( ch_glyph_index1==0 )
+            return false; // no required char!!!
+        int w1, w2;
+        int error1 = FT_Load_Glyph( face,  //        /* handle to face object 
+                ch_glyph_index1,           //     /* glyph index           
+                FT_LOAD_DEFAULT );         //    /* load flags, see below 
+        if ( error1 )
+            w1 = 0;
+        else
+            w1 = (face->glyph->metrics.horiAdvance >> 6);
+        int error2 = FT_Load_Glyph( face,  //        /* handle to face object 
+                ch_glyph_index2,           //     /* glyph index           
+                FT_LOAD_DEFAULT );         //    /* load flags, see below 
+        if ( error2 )
+            w2 = 0;
+        else
+            w2 = (face->glyph->metrics.horiAdvance >> 6);
+
+        lChar16 ch2 = 'W';
+        FT_UInt ch_glyph_index2 = FT_Get_Char_Index( face, ch2 );
+        if ( ch_glyph_index2==0 )
+            return false; // no required char!!!
+        return w1==w2;
+    }
+    */
+
     virtual bool RegisterFont( lString8 name )
     {
         lString8 fname = makeFontFileName( name );
@@ -1130,6 +1164,7 @@ public:
                 break;
             bool scal = FT_IS_SCALABLE( face );
             bool charset = checkCharSet( face );
+            //bool monospaced = isMonoSpaced( face );
             if ( !scal || !charset ) {
     //#if (DEBUG_FONT_MAN==1)
      //           if ( _log ) {

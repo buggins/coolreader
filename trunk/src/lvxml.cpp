@@ -564,6 +564,7 @@ private:
         tftEmptyLineDelimPara = 4,
         tftCenteredHeaders = 8,
         tftEmptyLineDelimHeaders = 16,
+        tftPreFormatted = 256
     } formatFlags_t;
 public:
     LVTextLineQueue( LVTextFileBase * f, int maxLineLen )
@@ -576,6 +577,7 @@ public:
         avg_center = 0;
         paraCount = 0;
         linesToSkip = 0;
+        formatFlags = tftPreFormatted;
     }
     // get index of first line of queue
     int  GetFirstLineIndex() { return first_line_index; }
@@ -1018,10 +1020,35 @@ public:
             callback->OnTagClose( NULL, L"section" );
         return true;
     }
+    /// delimited by empty lines
+    bool DoPreFormattedImport(LVXMLParserCallback * callback)
+    {
+        CRLog::debug("DoPreFormattedImport()");
+        do {
+            for ( int i=0; i<length(); i++ ) {
+                LVTextFileLine * item = get(i);
+                if ( item->rpos > item->lpos ) {
+                    callback->OnTagOpen( NULL, L"pre" );
+                       callback->OnText( item->text.c_str(), item->text.length(), item->fpos, item->fsize,
+                           item->flags );
+                    callback->OnTagClose( NULL, L"pre" );
+                } else {
+                    callback->OnTagOpen( NULL, L"empty-line" );
+                    callback->OnTagClose( NULL, L"empty-line" );
+                }
+           }
+            RemoveLines( length() );
+        } while ( ReadLines( 100 ) );
+        if ( inSubSection )
+            callback->OnTagClose( NULL, L"section" );
+        return true;
+    }
     /// import document body
     bool DoTextImport(LVXMLParserCallback * callback)
     {
-        if ( formatFlags & tftParaIdents )
+        if ( formatFlags & tftPreFormatted )
+            return DoPreFormattedImport( callback );
+        else if ( formatFlags & tftParaIdents )
             return DoIdentParaImport( callback );
         else if ( formatFlags & tftEmptyLineDelimPara )
             return DoEmptyLineParaImport( callback );
@@ -1133,9 +1160,10 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
 // Text file parser
 
 /// constructor
-LVTextParser::LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback )
+LVTextParser::LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback, bool isPreFormatted )
     : LVTextFileBase(stream)
     , m_callback(callback)
+    , m_isPreFormatted( isPreFormatted )
 {
 }
 
@@ -1200,7 +1228,8 @@ bool LVTextParser::Parse()
 {
     LVTextLineQueue queue( this, 2000 );
     queue.ReadLines( 2000 );
-    queue.detectFormatFlags();
+    if ( !m_isPreFormatted )
+        queue.detectFormatFlags();
     // make fb2 document structure
     m_callback->OnTagOpen( NULL, L"?xml" );
     m_callback->OnAttribute( NULL, L"version", L"1.0" );
@@ -2126,7 +2155,7 @@ void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )
 lString16 LVReadTextFile( LVStreamRef stream )
 {
     lString16 buf;
-    LVTextParser reader( stream, NULL );
+    LVTextParser reader( stream, NULL, true );
     if ( !reader.AutodetectEncoding() )
         return buf;
     lvpos_t fpos;

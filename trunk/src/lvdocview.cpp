@@ -113,6 +113,8 @@ LVDocView::LVDocView()
 , m_rotateAngle(CR_ROTATE_ANGLE_0)
 , m_section_bounds_valid(false)
 , m_posIsSet(false)
+, m_doc_format(doc_format_none)
+, m_text_format(txt_format_auto)
 {
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFFFE0;
@@ -135,6 +137,27 @@ LVDocView::LVDocView()
 LVDocView::~LVDocView()
 {
     Clear();
+}
+
+/// set text format options
+void LVDocView::setTextFormatOptions( txt_format_t fmt )
+{
+    if ( m_text_format == fmt )
+        return; // no change
+    if ( getDocFormat() != doc_format_txt )
+        return; // supported for text files only
+    m_text_format = fmt;
+    requestReload();
+}
+
+/// invalidate document data, request reload
+void LVDocView::requestReload()
+{
+    if ( getDocFormat() != doc_format_txt )
+        return; // supported for text files only
+    ParseDocument( );
+    // TODO: save position
+    checkRender();
 }
 
 /// returns true if document is opened
@@ -2314,10 +2337,13 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 #endif
 
                         // DONE!
+                        setDocFormat( doc_format_epub );
                         requestRender();
                         return true;
                     }
                 }
+                setDocFormat( doc_format_none );
+                createDefaultDocument( lString16(L"ERROR: Error reading EPUB format"), lString16(L"Cannot open document") );
                 return false;
             }
             // archieve
@@ -2399,101 +2425,117 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     #endif
         }
 
-        lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
-        if ( m_doc )
-            delete m_doc;
-        m_is_rendered = false;
-    #if COMPACT_DOM==1
-        int minRefLen = COMPACT_DOM_MIN_REF_TEXT_LENGTH;
-        m_doc = new ldomDocument( m_stream, minRefLen );
-    #else
-        m_doc = new ldomDocument();
-    #endif
-        m_doc->setDocFlags( saveFlags );
-        m_doc->setContainer( m_container );
+        return ParseDocument();
+
+    }
+}
+
+bool LVDocView::ParseDocument( )
+{
+    m_posIsSet = false;
+    _posBookmark = ldomXPointer();
+    lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
+    if ( m_doc )
+        delete m_doc;
+    m_is_rendered = false;
+#if COMPACT_DOM==1
+    int minRefLen = COMPACT_DOM_MIN_REF_TEXT_LENGTH;
+    m_doc = new ldomDocument( m_stream, minRefLen );
+#else
+    m_doc = new ldomDocument();
+#endif
+    m_doc->setDocFlags( saveFlags );
+    m_doc->setContainer( m_container );
 
 #if COMPACT_DOM == 1
-        if ( m_stream->GetSize() < COMPACT_DOM_SIZE_THRESHOLD )
-            m_doc->setMinRefTextSize( 0 ); // disable compact mode
+    if ( m_stream->GetSize() < COMPACT_DOM_SIZE_THRESHOLD )
+        m_doc->setMinRefTextSize( 0 ); // disable compact mode
 #endif
-        ldomDocumentWriter writer(m_doc);
-        m_doc->setNodeTypes( fb2_elem_table );
-        m_doc->setAttributeTypes( fb2_attr_table );
-        m_doc->setNameSpaceTypes( fb2_ns_table );
+    ldomDocumentWriter writer(m_doc);
+    m_doc->setNodeTypes( fb2_elem_table );
+    m_doc->setAttributeTypes( fb2_attr_table );
+    m_doc->setNameSpaceTypes( fb2_ns_table );
 
-        /// FB2 format
-        LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
+    /// FB2 format
+    setDocFormat( doc_format_fb2 );
+    LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
+    if ( !parser->CheckFormat() ) {
+        delete parser;
+        parser = NULL;
+    } else {
+    }
+
+    /// RTF format
+    if ( parser==NULL ) {
+        setDocFormat( doc_format_rtf );
+        parser = new LVRtfParser(m_stream, &writer);
+        if ( !parser->CheckFormat() ) {
+            delete parser;
+            parser = NULL;
+        } else {
+#if COMPACT_DOM==1
+            m_doc->setMinRefTextSize( 0 );
+#endif
+        }
+    }
+
+    /// plain text format
+    if ( parser==NULL ) {
+        
+        //m_text_format = txt_format_pre; // DEBUG!!!
+        setDocFormat( doc_format_txt );
+        parser = new LVTextParser(m_stream, &writer, getTextFormatOptions()==txt_format_pre );
         if ( !parser->CheckFormat() ) {
             delete parser;
             parser = NULL;
         }
-
-        /// RTF format
-        if ( parser==NULL ) {
-            parser = new LVRtfParser(m_stream, &writer);
-            if ( !parser->CheckFormat() ) {
-                delete parser;
-                parser = NULL;
-            } else {
-#if COMPACT_DOM==1
-                m_doc->setMinRefTextSize( 0 );
-#endif
-            }
-        }
-
-        /// plain text format
-        if ( parser==NULL ) {
-            parser = new LVTextParser(m_stream, &writer);
-            if ( !parser->CheckFormat() ) {
-                delete parser;
-                parser = NULL;
-            }
-        }
-
-        // unknown format
-        if ( !parser ) {
-            createDefaultDocument( lString16(L"ERROR: Unknown document format"), lString16(L"Cannot open document") );
-            return false;
-        }
-
-        // set stylesheet
-        m_doc->getStyleSheet()->clear();
-        m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
-
-        // parse
-        if ( !parser->Parse() ) {
-            delete parser;
-            createDefaultDocument( lString16(L"ERROR: Bad document format"), lString16(L"Cannot open document") );
-            return false;
-        }
-        delete parser;
-        m_pos = 0;
-
-
-        lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
-        if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
-            m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
-        }
-
-    #if 0
-        {
-            LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
-            m_doc->saveToStream( ostream, "utf-16" );
-            m_doc->getRootNode()->recurseElements( SaveBase64Objects );
-        }
-    #endif
-
-
-        m_series.clear();
-        m_authors.clear();
-        m_title.clear();
-
-
-        m_authors = extractDocAuthors( m_doc );
-        m_title = extractDocTitle( m_doc );
-        m_series = extractDocSeries( m_doc );
-
+    } else {
     }
+
+    // unknown format
+    if ( !parser ) {
+        setDocFormat( doc_format_none );
+        createDefaultDocument( lString16(L"ERROR: Unknown document format"), lString16(L"Cannot open document") );
+        return false;
+    }
+
+    // set stylesheet
+    m_doc->getStyleSheet()->clear();
+    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+
+    // parse
+    if ( !parser->Parse() ) {
+        delete parser;
+        createDefaultDocument( lString16(L"ERROR: Bad document format"), lString16(L"Cannot open document") );
+        return false;
+    }
+    delete parser;
+    m_pos = 0;
+
+
+    lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
+    if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+        m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+    }
+
+#if 0
+    {
+        LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
+        m_doc->saveToStream( ostream, "utf-16" );
+        m_doc->getRootNode()->recurseElements( SaveBase64Objects );
+    }
+#endif
+
+
+    m_series.clear();
+    m_authors.clear();
+    m_title.clear();
+
+
+    m_authors = extractDocAuthors( m_doc );
+    m_title = extractDocTitle( m_doc );
+    m_series = extractDocSeries( m_doc );
+
     requestRender();
     return true;
 }
@@ -2901,6 +2943,14 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
     case DCMD_ZOOM_OUT:
         {
             ZoomFont( -1 );
+        }
+        break;
+    case DCMD_TOGGLE_TEXT_FORMAT:
+        {
+            if ( m_text_format==txt_format_auto )
+                setTextFormatOptions( txt_format_pre );
+            else
+                setTextFormatOptions( txt_format_auto );
         }
         break;
     }

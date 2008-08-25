@@ -224,9 +224,10 @@ class LVTextParser : public LVTextFileBase
 {
 private:
     LVXMLParserCallback * m_callback;
+    bool m_isPreFormatted;
 public:
     /// constructor
-    LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback );
+    LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback, bool isPreFormatted );
     /// descructor
     virtual ~LVTextParser();
     /// returns true if format is recognized by parser
