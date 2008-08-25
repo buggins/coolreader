@@ -103,6 +103,7 @@ enum
     Menu_View_PrevPage,
     Menu_View_NextLine,
     Menu_View_PrevLine,
+    Menu_View_Text_Format,
     Menu_Link_Back,
     Menu_Link_Forward,
     Menu_Link_Next,

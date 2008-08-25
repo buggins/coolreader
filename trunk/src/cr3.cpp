@@ -194,6 +194,7 @@ void cr3Frame::OnCommand( wxCommandEvent& event )
     case Menu_Link_Next:
     case Menu_Link_Prev:
     case Menu_Link_Go:
+    case Menu_View_Text_Format:
         break;
     }
 }
@@ -809,6 +810,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     entries[a++].Set(wxACCEL_NORMAL,  WXK_PAGEDOWN,  Menu_View_NextPage);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_HOME,      Menu_View_Begin);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_END,       Menu_View_End);
+    entries[a++].Set(wxACCEL_CTRL,    (int) 'T',     Menu_View_Text_Format);
     entries[a++].Set(wxACCEL_ALT,     WXK_RETURN,     Menu_View_ToggleFullScreen);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F5,      Menu_View_TOC);
     entries[a++].Set(wxACCEL_NORMAL,  WXK_F4,      Menu_View_History);

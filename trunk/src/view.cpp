@@ -554,6 +554,9 @@ void cr3view::OnCommand(wxCommandEvent& event)
         _props->setBool( PROP_PAGE_HEADER_ENABLED, !_props->getBoolDef(PROP_PAGE_HEADER_ENABLED, true) );
         SetPageHeaderFlags();
         break;
+    case Menu_View_Text_Format:
+		doCommand( DCMD_TOGGLE_TEXT_FORMAT, 0 );
+        break;
 	}
 }
 
