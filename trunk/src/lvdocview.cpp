@@ -2239,7 +2239,8 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                                     lString16 name = codeBase + href;
                                     LVStreamRef cssStream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                                     if ( !cssStream.isNull() ) {
-                                        css = LVReadTextFile( cssStream );
+                                        css << L"\n";
+                                        css << LVReadTextFile( cssStream );
                                     }
                                 }
                             }

@@ -369,12 +369,15 @@ LVImageSourceRef ldomElement::getObjectImageSource()
     if (!et || !et->props.is_object)
         return ref;
     lUInt16 hrefId = _document->getAttrNameIndex(L"href");
+    lUInt16 srcId = _document->getAttrNameIndex(L"src");
     lString16 refName = getAttributeValue( _document->getNsNameIndex(L"xlink"),
         hrefId );
     if ( refName.empty() )
         refName = getAttributeValue( _document->getNsNameIndex(L"l"), hrefId );
     if ( refName.empty() )
         refName = getAttributeValue( LXML_NS_NONE, hrefId );
+    if ( refName.empty() )
+        refName = getAttributeValue( LXML_NS_NONE, srcId );
     if ( refName.length()<2 )
         return ref;
     if ( refName[0]!='#' ) {

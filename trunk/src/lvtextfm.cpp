@@ -731,14 +731,15 @@ public:
         /* update Y positions of line */
         int b;
         int h;
-        if (flgObject)
+        src_text_fragment_t * src = &m_pbuffer->srctext[word->src_text_index];
+        if (src->flags & LTEXT_SRC_IS_OBJECT)
         {
             b = word->o.height;
             h = 0;
         }
         else
         {
-            LVFont * font = (LVFont*) m_pbuffer->srctext[word->src_text_index].t.font;
+            LVFont * font = (LVFont*) src->t.font;
             if (word->y!=0)
             {
                 // subscript or superscript

@@ -1419,6 +1419,8 @@ bool LVXMLParser::CheckFormat()
         lString16 s( chbuf, charsDecoded );
         if ( s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6 ) //&& s.pos(L"<FictionBook") >= 0
             res = true;
+        else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
+            res = true;
     }
     delete[] chbuf;
     Reset();
