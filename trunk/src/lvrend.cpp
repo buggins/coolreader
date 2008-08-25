@@ -469,7 +469,11 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
         // restore flags
         //***********************************
         baseflags = f; // to allow blocks in one level with inlines
-        baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
+        if ( node->getNodeId()==el_br ) {
+            baseflags |= LTEXT_ALIGN_LEFT;
+        } else {
+            baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
+        }
         //baseflags &= ~LTEXT_RUNIN_FLAG;
     }
     else if ( node->getNodeType()==LXML_TEXT_NODE )

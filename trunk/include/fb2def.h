@@ -68,6 +68,8 @@ XS_TAG1D( pre, true, css_d_block, css_ws_pre )
 XS_TAG1( blockquote )
 XS_TAG1I( em )
 XS_TAG1I( q )
+XS_TAG1I( span )
+XS_TAG1I( br )
 
 
 // type="styleType"
