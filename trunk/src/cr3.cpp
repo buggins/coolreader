@@ -1032,7 +1032,7 @@ cr3Frame::OnFileOpen( wxCommandEvent& WXUNUSED( event ) )
     wxFileDialog dlg( this, wxT( "Choose a file to open" ), 
         wxT( "" ),
         wxT( "" ),//const wxString& defaultFile = "", 
-        wxT("All supported files|*.fb2;*.txt;*.zip;*.rtf;*.epub|FictionBook files (*.fb2)|*.fb2|RTF files (*.rtf)|*.rtf|Text files (*.txt)|*.txt|EPUB files (*.epub)|*.epub|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
+        wxT("All supported files|*.fb2;*.fbz;*.txt;*.zip;*.rtf;*.epub|FictionBook files (*.fb2)|*.fb2;*.fbz|RTF files (*.rtf)|*.rtf|Text files (*.txt)|*.txt|EPUB files (*.epub)|*.epub|ZIP archieves (*.zip)|*.zip"), //const wxString& wildcard = "*.*", 
         wxFD_OPEN | wxFD_FILE_MUST_EXIST //long style = wxFD_DEFAULT_STYLE, 
         //const wxPoint& pos = wxDefaultPosition, 
         //const wxSize& sz = wxDefaultSize, 
