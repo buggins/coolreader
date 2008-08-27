@@ -2126,6 +2126,7 @@ public:
         href = v.href;
         mediaType = v.mediaType;
         id = v.id;
+        return *this;
     }
 };
 

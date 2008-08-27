@@ -591,5 +591,7 @@ lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in );
 
 /// creates buffered stream object for stream
 LVStreamRef LVCreateBufferedStream( LVStreamRef stream, int bufSize );
+/// creates TCR decoder stream for stream
+LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream );
 
 #endif // __LVSTREAM_H_INCLUDED__

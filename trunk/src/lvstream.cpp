@@ -2629,3 +2629,245 @@ LVContainerRef LVOpenDirectory( const wchar_t * path )
     return dir;
 }
 
+/// Stream base class
+class LVTCRStream : public LVStream
+{
+    class TCRCode {
+    public:
+        int len;
+        char * str;
+        TCRCode()
+            : len(0), str(NULL)
+        {
+        }
+        void set( const char * s, int sz )
+        {
+            if ( sz>0 ) {
+                str = (char *)malloc( sz + 1 );
+                memcpy( str, s, sz );
+                str[sz] = 0;
+                len = sz;
+            }
+        }
+        ~TCRCode()
+        {
+            if ( str )
+                free( str );
+        }
+    };
+    LVStreamRef _stream;
+    TCRCode _codes[256];
+    lvpos_t _packedStart;
+    lvsize_t _packedSize;
+    lvsize_t _unpSize;
+    lUInt32 * _index;
+    lUInt8 * _decoded;
+    int _decodedSize;
+    int _decodedLen;
+    int _decodedStart;
+    int _indexSize;
+    int _indexPos;
+    #define TCR_READ_BUF_SIZE 4096
+    lUInt8 _readbuf[TCR_READ_BUF_SIZE];
+    LVTCRStream( LVStreamRef stream )
+    : _stream(stream), _index(NULL), _decoded(NULL), 
+      _decodedSize(0), _decodedLen(0), _decodedStart(0), _indexSize(0), _indexPos(0) {
+    }
+    bool decodePart( int index )
+    {
+        lvsize_t bytesRead;
+        int bytesToRead = TCR_READ_BUF_SIZE;
+        if ( (index+1)*TCR_READ_BUF_SIZE > _packedSize )
+            bytesToRead = TCR_READ_BUF_SIZE - ((index+1)*TCR_READ_BUF_SIZE - _packedSize);
+        if ( bytesToRead<=0 || bytesToRead>TCR_READ_BUF_SIZE )
+            return false;
+        if ( _stream->Read( _readBuf, bytesToRead, &bytesRead )!=LVERR_OK )
+            return false;
+        if ( bytesToRead!=bytesRead )
+            return false;
+        //TODO
+        return true;
+    }
+public:
+    ~LVTCRStream()
+    {
+        if ( _index ) 
+            free(_index);
+    }
+    bool init()
+    {
+        lUInt8 sz;
+        char buf[256];
+        lvsize_t bytesRead;
+        for ( int i=0; i<256; i++ ) {
+            if ( _stream->Read( &sz, 1, &bytesRead )!=LVERR_OK || bytesRead!=1 )
+                return false;
+            if ( sz==0 && i!=0 )
+                return false; // only first entry may be 0
+            if ( sz && (_stream->Read( buf, sz, &bytesRead )!=LVERR_OK || bytesRead!=sz) )
+                return false;
+            _codes[i].set( buf, sz );
+        }
+        _packedStart = _stream->GetPos();
+        if ( _packedStart==(lvpos_t)(~0) )
+            return false;
+        _packedSize = _stream->GetSize() - _packedStart;
+        if ( _packedSize<10 || _packedSize>0x8000000 )
+            return false;
+        lvpos_t pos = _packedStart;
+        lvsize_t size = 0;
+        for (;;) {
+            bytesRead = 0;
+            int res = _stream->Read( _readbuf, TCR_READ_BUF_SIZE, &bytesRead );
+            if ( res!=LVERR_OK && res!=LVERR_EOF )
+                return false;
+            if ( bytesRead>0 ) {
+                for ( unsigned i=0; i<bytesRead; i++ ) {
+                    int sz = _codes[_readbuf[i]].len;
+                    if ( (pos & TCR_READ_BUF_SIZE) == 0 ) {
+                        // add pos index
+                        int index = pos / TCR_READ_BUF_SIZE;
+                        if ( index >= _indexSize ) {
+                            _indexSize += 256;
+                            _index = (lUInt32*)realloc( _index, sizeof(lUInt32) * _indexSize );
+                        }
+                        _index[index] = size;
+                    }
+                    size += sz;
+                    pos += bytesRead;
+                }
+            }
+            pos += bytesRead;
+            if ( res==LVERR_EOF || bytesRead==0 ) {
+                if ( pos!=_stream->GetSize() )
+                    return false;
+                break;
+            }
+        }
+        _unpSize = size;
+        return true;
+    }
+    static LVStreamRef create( LVStreamRef stream, int mode )
+    {
+        LVStreamRef res;
+        if ( stream.isNull() || mode != LVOM_READ )
+            return res;
+        static const char * signature = "!!8-Bit!!";
+        char buf[9];
+        if ( stream->SetPos(0)!=0 )
+            return res;
+        lvsize_t bytesRead = 0;
+        if ( stream->Read(buf, 9, &bytesRead)!=LVERR_OK
+            || bytesRead!=9 )
+            return res;
+        if ( memcmp(signature, buf, 9) )
+            return res;
+        LVTCRStream * decoder = new LVTCRStream( stream );
+        if ( decoder->init() ) {
+            delete decoder;
+            return res;
+        }
+        return LVStreamRef ( decoder );
+    }
+
+    /// Get stream open mode
+    /** \return lvopen_mode_t open mode */
+    virtual lvopen_mode_t GetMode()
+    { 
+        return LVOM_READ;
+    }
+
+    /// Seek (change file pos)
+    /**
+        \param offset is file offset (bytes) relateve to origin
+        \param origin is offset base
+        \param pNewPos points to place to store new file position
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
+    {
+        // TODO
+        return LVERR_OK;
+    }
+
+
+    /// Get file position
+    /**
+        \return lvpos_t file position
+    */
+    virtual lvpos_t   GetPos()
+    {
+        lvpos_t pos;
+        if (Seek(0, LVSEEK_CUR, &pos)==LVERR_OK)
+            return pos;
+        else
+            return (lvpos_t)(~0);
+    }
+
+    /// Get file size
+    /**
+        \return lvsize_t file size
+    */
+    virtual lvsize_t  GetSize()
+    {
+        return _unpSize;
+    }
+
+    virtual lverror_t GetSize( lvsize_t * pSize )
+    {
+        *pSize = _unpSize;
+        return LVERR_OK;
+    }
+
+    /// Set file size
+    /**
+        \param size is new file size
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t SetSize( lvsize_t size )
+    {
+        return LVERR_FAIL;
+    }
+
+    /// Read
+    /**
+        \param buf is buffer to place bytes read from stream
+        \param count is number of bytes to read from stream
+        \param nBytesRead is place to store real number of bytes read from stream
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
+    {
+        // TODO
+        return LVERR_OK;
+    }
+
+    /// Write
+    /**
+        \param buf is data to write to stream
+        \param count is number of bytes to write
+        \param nBytesWritten is place to store real number of bytes written to stream
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
+    {
+        return LVERR_FAIL;
+    }
+
+    /// Check whether end of file is reached
+    /**
+        \return true if end of file reached
+    */
+    virtual bool Eof()
+    {
+        //TODO
+        return false;
+    }
+};
+
+/// creates TCR decoder stream for stream
+LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream )
+{
+    return LVTCRStream::create( stream, LVOM_READ );
+}
+
