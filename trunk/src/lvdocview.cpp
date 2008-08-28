@@ -2168,7 +2168,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         LVAutoPtr<char> buf( size+1 );
                         if ( mtStream->Read( buf.get(), size, NULL )==LVERR_OK ) {
                             for ( int i=0; i<size; i++ )
-                                if ( buf[i]<32 || buf[i]>127 )
+                                if ( buf[i]<32 || ((unsigned char)buf[i])>127 )
                                     buf[i] = 0;
                             buf[size] = 0;
                             if ( buf[0] )
@@ -2201,7 +2201,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                 }
                 // read content.opf
                 EpubItems epubItems;
-                EpubItem * epubToc = NULL;
+                //EpubItem * epubToc = NULL; //TODO
                 LVArray<EpubItem*> spineItems;
                 lString16 codeBase;
                 lString16 css;
@@ -2251,7 +2251,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                                 if ( spine ) {
 
 
-                                    EpubItem * epubToc = epubItems.findById( spine->getAttributeValue(L"toc") );
+                                    //EpubItem * epubToc = epubItems.findById( spine->getAttributeValue(L"toc") ); //TODO
                                     for ( int i=1; i<50000; i++ ) {
                                         ldomNode * item = doc->nodeFromXPath( lString16(L"package/spine/itemref[") + lString16::itoa(i) + L"]" );
                                         if ( !item )
@@ -2268,7 +2268,6 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                             delete doc;
                         }
                     }
-                
                 }
 
                 if ( spineItems.length()>0 ) {
@@ -2425,6 +2424,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             }
             delete fullbuf;
     #endif
+            LVStreamRef tcrDecoder = LVCreateTCRDecoderStream( m_stream );
+            if ( !tcrDecoder.isNull() )
+                m_stream = tcrDecoder;
         }
 
         return ParseDocument();
