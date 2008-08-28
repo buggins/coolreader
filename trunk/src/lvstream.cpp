@@ -2664,16 +2664,17 @@ class LVTCRStream : public LVStream
     lUInt8 * _decoded;
     int _decodedSize;
     int _decodedLen;
-    int _decodedStart;
+    lvpos_t _decodedStart;
     int _indexSize;
-    int _indexPos;
+    lvpos_t _pos;
+    //int _indexPos;
     #define TCR_READ_BUF_SIZE 4096
     lUInt8 _readbuf[TCR_READ_BUF_SIZE];
     LVTCRStream( LVStreamRef stream )
     : _stream(stream), _index(NULL), _decoded(NULL), 
-      _decodedSize(0), _decodedLen(0), _decodedStart(0), _indexSize(0), _indexPos(0) {
+      _decodedSize(0), _decodedLen(0), _decodedStart(0), _indexSize(0), _pos(0) {
     }
-    bool decodePart( int index )
+    bool decodePart( unsigned index )
     {
         lvsize_t bytesRead;
         int bytesToRead = TCR_READ_BUF_SIZE;
@@ -2681,11 +2682,26 @@ class LVTCRStream : public LVStream
             bytesToRead = TCR_READ_BUF_SIZE - ((index+1)*TCR_READ_BUF_SIZE - _packedSize);
         if ( bytesToRead<=0 || bytesToRead>TCR_READ_BUF_SIZE )
             return false;
-        if ( _stream->Read( _readBuf, bytesToRead, &bytesRead )!=LVERR_OK )
+        if ( _stream->Read( _readbuf, bytesToRead, &bytesRead )!=LVERR_OK )
             return false;
-        if ( bytesToRead!=bytesRead )
+        if ( bytesToRead!=(int)bytesRead )
             return false;
         //TODO
+        if ( !_decoded ) {
+            _decodedSize = TCR_READ_BUF_SIZE * 2;
+            _decoded = (lUInt8 *)malloc( _decodedSize );
+        }
+        _decodedLen = 0;
+        for ( unsigned i=0; i<bytesRead; i++ ) {
+            TCRCode * item = &_codes[_readbuf[i]];
+            for ( int j=0; j<item->len; j++ )
+                _decoded[_decodedLen++] = item->str[j];
+            if ( _decodedLen >= _decodedSize - 256 ) {
+                _decodedSize += TCR_READ_BUF_SIZE / 2;
+                _decoded = (lUInt8*)realloc( _decoded, _decodedSize );
+            }
+        }
+        _decodedStart = _index[index];
         return true;
     }
 public:
@@ -2714,6 +2730,8 @@ public:
         _packedSize = _stream->GetSize() - _packedStart;
         if ( _packedSize<10 || _packedSize>0x8000000 )
             return false;
+        _indexSize = (_packedSize + TCR_READ_BUF_SIZE - 1) / TCR_READ_BUF_SIZE;
+        _index = (lUInt32*)malloc( sizeof(lUInt32) * (_indexSize + 1) );
         lvpos_t pos = _packedStart;
         lvsize_t size = 0;
         for (;;) {
@@ -2724,13 +2742,9 @@ public:
             if ( bytesRead>0 ) {
                 for ( unsigned i=0; i<bytesRead; i++ ) {
                     int sz = _codes[_readbuf[i]].len;
-                    if ( (pos & TCR_READ_BUF_SIZE) == 0 ) {
+                    if ( (pos & (TCR_READ_BUF_SIZE-1)) == 0 ) {
                         // add pos index
                         int index = pos / TCR_READ_BUF_SIZE;
-                        if ( index >= _indexSize ) {
-                            _indexSize += 256;
-                            _index = (lUInt32*)realloc( _index, sizeof(lUInt32) * _indexSize );
-                        }
                         _index[index] = size;
                     }
                     size += sz;
@@ -2744,8 +2758,9 @@ public:
                 break;
             }
         }
+        _index[ _indexSize ] = size;
         _unpSize = size;
-        return true;
+        return decodePart( 0 );
     }
     static LVStreamRef create( LVStreamRef stream, int mode )
     {
@@ -2786,7 +2801,47 @@ public:
     */
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
     {
-        // TODO
+        lvpos_t npos = 0;
+        lvpos_t currpos = _pos;
+        switch (origin) {
+        case LVSEEK_SET:
+            npos = offset;
+            break;
+        case LVSEEK_CUR:
+            npos = currpos + offset;
+            break;
+        case LVSEEK_END:
+            npos = _unpSize + offset;
+            break;
+        }
+        if (npos < 0 || npos >= _unpSize)
+            return LVERR_FAIL;
+        _pos = npos;
+        if ( _pos < _decodedStart || _pos >= _decodedStart + _decodedLen ) {
+            // load another part
+            int a = 0;
+            int b = _indexSize;
+            int c;
+            for (;;) {
+                c = (a + b) / 2;
+                if ( a >= b-1 )
+                    break;
+                if ( _index[c] > _pos )
+                    b = c;
+                else if ( _index[c+1] < _pos )
+                    a = c + 1;
+                else
+                    break;
+            }
+            if ( _index[c]>_pos || _index[c+1]<=_pos )
+                return LVERR_FAIL; // wrong algorithm?
+            if ( !decodePart( c ) )
+                return LVERR_FAIL;
+        }
+        if (pNewPos)
+        {
+            *pNewPos =  _pos;
+        }
         return LVERR_OK;
     }
 
@@ -2797,11 +2852,7 @@ public:
     */
     virtual lvpos_t   GetPos()
     {
-        lvpos_t pos;
-        if (Seek(0, LVSEEK_CUR, &pos)==LVERR_OK)
-            return pos;
-        else
-            return (lvpos_t)(~0);
+        return _pos;
     }
 
     /// Get file size
@@ -2839,6 +2890,33 @@ public:
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
     {
         // TODO
+        if ( nBytesRead )
+            *nBytesRead = 0;
+        lUInt8 * dst = (lUInt8*) buf;
+        while (count) {
+            int bytesLeft = _decodedLen - (int)(_pos - _decodedStart);
+            if ( bytesLeft<=0 || bytesLeft>_decodedLen ) {
+                SetPos(_pos);
+                bytesLeft = _decodedLen - (int)(_pos - _decodedStart);
+                if ( bytesLeft==0 && _pos==_decodedStart+_decodedLen) {
+                    return LVERR_EOF;
+                }
+                if ( bytesLeft<=0 || bytesLeft>_decodedLen )
+                    return LVERR_FAIL;
+            }
+            lUInt8 * src = _decoded + (_pos - _decodedStart);
+            unsigned n = count;
+            if ( n > (unsigned)bytesLeft )
+                n = bytesLeft;
+            for (unsigned i=0; i<n; i++) {
+                *dst++ = *src++;
+            }
+            count -= n;
+            bytesLeft -= n;
+            if ( nBytesRead )
+                *nBytesRead += n;
+            _pos += n;
+        } 
         return LVERR_OK;
     }
 
