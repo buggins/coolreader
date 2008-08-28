@@ -2664,6 +2664,7 @@ class LVTCRStream : public LVStream
     lUInt8 * _decoded;
     int _decodedSize;
     int _decodedLen;
+    unsigned _partIndex;
     lvpos_t _decodedStart;
     int _indexSize;
     lvpos_t _pos;
@@ -2672,15 +2673,19 @@ class LVTCRStream : public LVStream
     lUInt8 _readbuf[TCR_READ_BUF_SIZE];
     LVTCRStream( LVStreamRef stream )
     : _stream(stream), _index(NULL), _decoded(NULL), 
-      _decodedSize(0), _decodedLen(0), _decodedStart(0), _indexSize(0), _pos(0) {
+      _decodedSize(0), _decodedLen(0), _partIndex(-1), _decodedStart(0), _indexSize(0), _pos(0) {
     }
     bool decodePart( unsigned index )
     {
+        if ( _partIndex==index )
+            return true;
         lvsize_t bytesRead;
         int bytesToRead = TCR_READ_BUF_SIZE;
         if ( (index+1)*TCR_READ_BUF_SIZE > _packedSize )
             bytesToRead = TCR_READ_BUF_SIZE - ((index+1)*TCR_READ_BUF_SIZE - _packedSize);
         if ( bytesToRead<=0 || bytesToRead>TCR_READ_BUF_SIZE )
+            return false;
+        if ( _stream->SetPos(_packedStart + index * TCR_READ_BUF_SIZE)==(lvpos_t)(~0) )
             return false;
         if ( _stream->Read( _readbuf, bytesToRead, &bytesRead )!=LVERR_OK )
             return false;
@@ -2702,6 +2707,7 @@ class LVTCRStream : public LVStream
             }
         }
         _decodedStart = _index[index];
+        _partIndex = index;
         return true;
     }
 public:
@@ -2732,7 +2738,7 @@ public:
             return false;
         _indexSize = (_packedSize + TCR_READ_BUF_SIZE - 1) / TCR_READ_BUF_SIZE;
         _index = (lUInt32*)malloc( sizeof(lUInt32) * (_indexSize + 1) );
-        lvpos_t pos = _packedStart;
+        lvpos_t pos = 0;
         lvsize_t size = 0;
         for (;;) {
             bytesRead = 0;
@@ -2748,12 +2754,11 @@ public:
                         _index[index] = size;
                     }
                     size += sz;
-                    pos += bytesRead;
+                    pos ++;
                 }
             }
-            pos += bytesRead;
             if ( res==LVERR_EOF || bytesRead==0 ) {
-                if ( pos!=_stream->GetSize() )
+                if ( _packedStart + pos != _stream->GetSize() )
                     return false;
                 break;
             }
@@ -2778,7 +2783,7 @@ public:
         if ( memcmp(signature, buf, 9) )
             return res;
         LVTCRStream * decoder = new LVTCRStream( stream );
-        if ( decoder->init() ) {
+        if ( !decoder->init() ) {
             delete decoder;
             return res;
         }
@@ -2828,7 +2833,7 @@ public:
                     break;
                 if ( _index[c] > _pos )
                     b = c;
-                else if ( _index[c+1] < _pos )
+                else if ( _index[c+1] <= _pos )
                     a = c + 1;
                 else
                     break;
@@ -2899,7 +2904,7 @@ public:
                 SetPos(_pos);
                 bytesLeft = _decodedLen - (int)(_pos - _decodedStart);
                 if ( bytesLeft==0 && _pos==_decodedStart+_decodedLen) {
-                    return LVERR_EOF;
+                    return *nBytesRead ? LVERR_OK : LVERR_EOF;
                 }
                 if ( bytesLeft<=0 || bytesLeft>_decodedLen )
                     return LVERR_FAIL;

@@ -674,8 +674,10 @@ public:
             //CRLog::debug("    line(%d, %d)", line->lpos, line->rpos);
             if ( line->lpos > min_left+1 ) {
                 int center_dist = (line->rpos + line->lpos) / 2 - avg_center;
-                int right_dist = line->rpos - avg_right;
-                if ( absCompare( center_dist, right_dist )<0 )
+                //int right_dist = line->rpos - avg_right;
+                int left_dist = line->lpos - avg_left;
+                //if ( absCompare( center_dist, right_dist )<0 )
+                if ( absCompare( center_dist, left_dist )<0 )
                     center_lines++;
                 else
                     ident_lines++;

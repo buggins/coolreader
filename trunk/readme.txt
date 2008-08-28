@@ -1,6 +1,6 @@
         CoolReader Engine Library v0.1
         ==============================
-         (c) Vadim Lopatin, 2000-2006
+         (c) Vadim Lopatin, 2000-2008
 
 
 This is opensource lightweight library designed
@@ -18,9 +18,12 @@ Components:
    + Unicode Antialiased Bitmap Font engine.
    + Text formatting engine.
    + 2-bit bitmap buffer for drawing.
-   - Fast and compact XML DOM tree imlpementation.
-   - Universal XML document rendering engine.
-   - FB2 format rendering support.
+   + Fast and compact XML DOM tree imlpementation.
+   + Universal XML document rendering engine.
+   + FB2 format rendering support.
+   + TXT import, automatic format detection
+   + RTF import
+   + EPUB limited support
 Utilities:
    + FontConv: tool to convert any TTF font to CREngine bitmap font format
    + FontTest: sample application which demonstrates text formatter 
