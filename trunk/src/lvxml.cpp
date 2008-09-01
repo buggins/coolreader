@@ -496,6 +496,17 @@ int DetectHeadingLevelByText( const lString16 & str )
 
 #define LINE_IS_HEADER 0x2000
 #define LINE_HAS_EOLN 1
+
+typedef enum {
+    la_unknown,  // not detected
+    la_empty,    // empty line
+    la_left,     // left aligned
+    la_indent,   // right aligned
+    la_centered, // centered
+    la_right,    // right aligned
+    la_width     // justified width
+} lineAlign_t;
+
 class LVTextFileLine
 {
 public:
@@ -505,10 +516,11 @@ public:
     lString16 text; // line text
     lUInt16 lpos;   // left non-space char position
     lUInt16 rpos;   // right non-space char posision + 1
+    lineAlign_t align;
     bool empty() { return rpos==0; }
     bool isHeading() { return (flags & LINE_IS_HEADER)!=0; }
     LVTextFileLine( LVTextFileBase * file, int maxsize )
-    : flags(0), lpos(0), rpos(0)
+    : flags(0), lpos(0), rpos(0), align(la_unknown)
     {
         text = file->ReadLine( maxsize, fpos, fsize, flags );
         //CRLog::debug("  line read: %s", UnicodeToUtf8(text).c_str() );
@@ -557,6 +569,9 @@ private:
     int linesToSkip;
     bool lastParaWasTitle;
     bool inSubSection;
+    int max_left_stats_pos;
+    int max_left_second_stats_pos;
+    int max_right_stats_pos;
 
     enum {
         tftParaPerLine = 1,
@@ -564,6 +579,8 @@ private:
         tftEmptyLineDelimPara = 4,
         tftCenteredHeaders = 8,
         tftEmptyLineDelimHeaders = 16,
+        tftFormatted = 32, // text lines are wrapped and formatted
+        tftJustified = 64, // right bound is justified
         tftPreFormatted = 256
     } formatFlags_t;
 public:
@@ -605,7 +622,10 @@ public:
                     return false;
                 break;
             }
-            add( new LVTextFileLine( file, maxLineSize ) );
+            LVTextFileLine * line = new LVTextFileLine( file, maxLineSize );
+            if ( min_left>=0 )
+                line->align = getFormat( line );
+            add( line );
         }
         return true;
     }
@@ -622,15 +642,41 @@ public:
         else
             return -1;
     }
+    lineAlign_t getFormat( LVTextFileLine * line )
+    {
+        if ( line->lpos>=line->rpos )
+            return la_empty;
+        int center_dist = (line->rpos + line->lpos) / 2 - avg_center;
+        int right_dist = line->rpos - avg_right;
+        int left_dist = line->lpos - avg_left;
+        if ( (formatFlags & tftJustified) || (formatFlags & tftFormatted) ) {
+            if ( line->lpos==min_left && line->rpos==max_right )
+                return la_width;
+            if ( line->lpos==min_left )
+                return la_left;
+            if ( line->rpos==max_right )
+                return la_right;
+            if ( line->lpos==max_left_second_stats_pos )
+                return la_indent;
+            if ( line->lpos > max_left_second_stats_pos && 
+                    absCompare( center_dist, left_dist )<0 
+                    && absCompare( center_dist, right_dist )<0 )
+                return la_centered;
+            if ( absCompare( right_dist, left_dist )<0 )
+                return la_right;
+            if ( line->lpos > min_left )
+                return la_indent;
+            return la_left;
+        } else {
+            if ( line->lpos == min_left )
+                return la_left;
+            else
+                return la_indent;
+        }
+    }
     bool isCentered( LVTextFileLine * line )
     {
-        if ( line->lpos > min_left+1 ) {
-            int center_dist = (line->rpos + line->lpos) / 2 - avg_center;
-            int right_dist = line->rpos - avg_right;
-            if ( absCompare( center_dist, right_dist )<0 )
-                return true;
-        }
-        return false;
+        return line->align == la_centered;
     }
     /// checks text format options
     void detectFormatFlags()
@@ -649,12 +695,21 @@ public:
         avg_left = 0;
         avg_right = 0;
         int i;
+#define MAX_PRE_STATS 256
+        int left_stats[MAX_PRE_STATS];
+        int right_stats[MAX_PRE_STATS];
+        for ( i=0; i<MAX_PRE_STATS; i++ )
+            left_stats[i] = right_stats[i] = 0;
         for ( i=0; i<length(); i++ ) {
             LVTextFileLine * line = get(i);
             //CRLog::debug("   LINE: %d .. %d", line->lpos, line->rpos);
             if ( line->lpos == line->rpos ) {
                 empty_lines++;
             } else {
+                if ( line->lpos < MAX_PRE_STATS )
+                    left_stats[line->lpos]++;
+                if ( line->rpos < MAX_PRE_STATS )
+                    right_stats[line->rpos]++;
                 if ( min_left==-1 || line->lpos<min_left )
                     min_left = line->lpos;
                 if ( max_right==-1 || line->rpos>max_right )
@@ -663,12 +718,43 @@ public:
                 avg_right += line->rpos;
             }
         }
+           
+        // pos stats
+        int max_left_stats = 0;
+        max_left_stats_pos = 0;
+        int max_left_second_stats = 0;
+        max_left_second_stats_pos = 0;
+        int max_right_stats = 0;
+        max_right_stats_pos = 0;
+        for ( i=0; i<MAX_PRE_STATS; i++ ) {
+            if ( left_stats[i] > max_left_stats ) {
+                max_left_stats = left_stats[i];
+                max_left_stats_pos = i;
+            }
+            if ( right_stats[i] > max_right_stats ) {
+                max_right_stats = right_stats[i];
+                max_right_stats_pos = i;
+            }
+        }
+        for ( i=max_left_stats_pos + 1; i<MAX_PRE_STATS; i++ ) {
+            if ( left_stats[i] > max_left_second_stats ) {
+                max_left_second_stats = left_stats[i];
+                max_left_second_stats_pos = i;
+            }
+        }
+
         int non_empty_lines = length() - empty_lines;
         if ( non_empty_lines < 10 )
             return;
         avg_left /= length();
         avg_right /= length();
         avg_center = (avg_left + avg_right) / 2;
+
+        int best_left_align_percent = max_left_stats * 100 / length();
+        int best_right_align_percent = max_right_stats * 100 / length();
+        int best_left_second_align_percent = max_left_second_stats * 100 / length();
+
+
         for ( i=0; i<length(); i++ ) {
             LVTextFileLine * line = get(i);
             //CRLog::debug("    line(%d, %d)", line->lpos, line->rpos);
@@ -683,6 +769,9 @@ public:
                     ident_lines++;
             }
         }
+        for ( i=0; i<length(); i++ ) {
+            get(i)->align = getFormat( get(i) );
+        }
         if ( avg_right >= 80 )
             return;
         formatFlags = 0;
@@ -696,6 +785,11 @@ public:
         if ( center_lines_percent > 1 )
             formatFlags |= tftCenteredHeaders;
 
+        if ( max_right < 80 )
+           formatFlags |= tftFormatted; // text lines are wrapped and formatted
+        if ( max_right_stats_pos == max_right && best_right_align_percent > 30 )
+           formatFlags |= tftJustified; // right bound is justified
+
         CRLog::debug("detectFormatFlags() min_left=%d, max_right=%d, ident=%d, empty=%d, flags=%d",
             min_left, max_right, ident_lines_percent, empty_lines_precent, formatFlags );
 
@@ -703,6 +797,7 @@ public:
             formatFlags = tftParaPerLine | tftEmptyLineDelimHeaders; // default format
             return;
         }
+
 
     }
 
@@ -875,7 +970,7 @@ public:
             isHeader = true;
         if ( startline==endline && get(startline)->isHeading() )
             isHeader = true;
-        if ( (formatFlags & tftCenteredHeaders) && startline==endline && isCentered( get(startline) ) )
+        if ( startline==endline && (formatFlags & tftCenteredHeaders) && startline==endline && isCentered( get(startline) ) )
             isHeader = true;
         int hlevel = DetectHeadingLevelByText( str );
         if ( hlevel>0 )
