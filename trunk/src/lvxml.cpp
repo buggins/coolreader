@@ -2250,6 +2250,48 @@ void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )
     m_trimspaces = flgTrimSpaces;
 }
 
+/// HTML parser
+/// returns true if format is recognized by parser
+bool LVHTMLParser::CheckFormat()
+{
+    Reset();
+    // encoding test
+    if ( !AutodetectEncoding() )
+        return false;
+    lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
+    FillBuffer( XML_PARSER_DETECT_SIZE );
+    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, XML_PARSER_DETECT_SIZE-1, 0 );
+    chbuf[charsDecoded] = 0;
+    bool res = false;
+    if ( charsDecoded > 30 ) {
+        lString16 s( chbuf, charsDecoded );
+        if ( s.pos(L"<html") >=0 && ( s.pos(L"<head") >= 0 || s.pos(L"<body") ) ) //&& s.pos(L"<FictionBook") >= 0
+            res = true;
+        //else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
+        //    res = true;
+    }
+    delete[] chbuf;
+    Reset();
+    //CRLog::trace("LVXMLParser::CheckFormat() finished");
+    return res;
+}
+
+/// constructor
+LVHTMLParser::LVHTMLParser( LVStreamRef stream, LVXMLParserCallback * callback )
+: LVXMLParser( stream, callback )
+{
+}
+
+/// destructor
+LVHTMLParser::~LVHTMLParser()
+{
+}
+
+/// parses input stream
+//bool LVHTMLParser::Parse()
+//{
+//}
+
 
 lString16 LVReadTextFile( LVStreamRef stream )
 {
@@ -2270,3 +2312,4 @@ lString16 LVReadTextFile( LVStreamRef stream )
     }
     return buf;
 }
+

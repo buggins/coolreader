@@ -313,10 +313,10 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
     const lChar16 * start = s;
     for ( ; *s; s++ ) {
         if ( *s=='\r' || *s=='\n' ) {
-            if ( s > start )
-                lines.add( lString16("*") + lString16( start, s-start ) + lString16("<") );
-            else
-                lines.add( lString16(L"#") );
+            //if ( s > start )
+            //    lines.add( lString16("*") + lString16( start, s-start ) + lString16("<") );
+            //else
+            //    lines.add( lString16(L"#") );
             if ( (s[1] =='\r' || s[1]=='\n') && (s[1]!=s[0]) )
                 s++;
             start = s+1;

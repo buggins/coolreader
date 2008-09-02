@@ -2531,3 +2531,83 @@ ldomDocument * LVParseXMLStream( LVStreamRef stream,
     return doc;
 }
 
+
+
+
+/** \brief callback object to fill DOM tree
+
+    To be used with XML parser as callback object.
+
+    Creates document according to incoming events.
+
+    Autoclose HTML tags.
+*/
+void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id )
+{
+    lUInt16 * rule = _rules[tag_id];
+    if ( !rule )
+        return;
+    ldomElementWriter * found = NULL;
+    ldomElementWriter * p = _currNode;
+    while ( p ) {
+        lUInt16 id = p->_element->getNodeId();
+        for ( int i=0; rule[i]; i++ ) {
+            if ( rule[i]==id ) {
+                found = p;
+                break;
+            }
+        }
+        p = p->_parent;
+    }
+    // found auto-close target
+    if ( found != NULL ) {
+        bool done = false;
+        while ( done && _currNode ) {
+            if ( _currNode == found )
+                done = true;
+            _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
+        }
+    }
+}
+
+void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+{
+    //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
+    lUInt16 id = _document->getElementNameIndex(tagname);
+    lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+    AutoClose( id );
+    _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
+    //logfile << " !o!\n";
+}
+
+ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules )
+: ldomDocumentWriter( document, headerOnly )
+{
+    lUInt16 i;
+    for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )
+        _rules[i] = NULL;
+    lUInt16 items[MAX_ELEMENT_TYPE_ID];
+    for ( i=0; rules[i]; i++ ) {
+        const char ** rule = rules[i];
+        lUInt16 j;
+        for ( j=0; rule[j] && j<MAX_ELEMENT_TYPE_ID; j++ ) {
+            items[j] = _document->getElementNameIndex( lString16(rule[j]).c_str() );
+        }
+        if ( j>1 ) {
+            lUInt16 id = items[0];
+            _rules[ id ] = new lUInt16[j];
+            for ( int k=0; k<j; k++ ) {
+                _rules[id][k] = k==j-1 ? 0 : items[k+1];
+            }
+        }
+    }
+}
+
+ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
+{
+    for ( int i=0; i<MAX_ELEMENT_TYPE_ID; i++ ) {
+        if ( _rules[i] )
+            delete[] _rules[i];
+    }
+}
+

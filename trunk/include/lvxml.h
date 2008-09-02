@@ -266,6 +266,21 @@ public:
     virtual ~LVXMLParser();
 };
 
+/// HTML parser
+class LVHTMLParser : public LVXMLParser
+{
+private:
+public:
+    /// returns true if format is recognized by parser
+    virtual bool CheckFormat();
+    /// parses input stream
+    //virtual bool Parse();
+    /// constructor
+    LVHTMLParser( LVStreamRef stream, LVXMLParserCallback * callback );
+    /// destructor
+    virtual ~LVHTMLParser();
+};
+
 lString16 LVReadTextFile( LVStreamRef stream );
 
 #endif // __LVXML_H_INCLUDED__

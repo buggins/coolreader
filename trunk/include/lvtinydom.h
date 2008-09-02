@@ -37,7 +37,7 @@
 
 #define DOC_STRING_HASH_SIZE  256
 #define RESERVED_DOC_SPACE    4096
-#define MAX_ELEMENT_TYPE_ID   256
+#define MAX_ELEMENT_TYPE_ID   1024
 #define MAX_NAMESPACE_TYPE_ID 64
 #define MAX_ATTRIBUTE_TYPE_ID 1024
 #define UNKNOWN_ELEMENT_TYPE_ID   (MAX_ELEMENT_TYPE_ID>>1)
@@ -1367,6 +1367,7 @@ class ldomElementWriter
     ~ldomElementWriter();
 
     friend class ldomDocumentWriter;
+    friend class ldomDocumentWriterFilter;
     friend ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id );
 };
 
@@ -1378,7 +1379,7 @@ class ldomElementWriter
 */
 class ldomDocumentWriter : public LVXMLParserCallback
 {
-private:
+protected:
     //============================
     ldomDocument * _document;
     //ldomElement * _currNode;
@@ -1413,6 +1414,28 @@ public:
     ldomDocumentWriter(ldomDocument * document, bool headerOnly=false );
     /// destructor
     virtual ~ldomDocumentWriter();
+};
+
+/** \brief callback object to fill DOM tree
+
+    To be used with XML parser as callback object.
+
+    Creates document according to incoming events.
+
+    Autoclose HTML tags.
+*/
+class ldomDocumentWriterFilter : public ldomDocumentWriter
+{
+protected:
+    lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
+    virtual void AutoClose( lUInt16 tag_id );
+public:
+    /// called on opening tag
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    /// constructor
+    ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules);
+    /// destructor
+    virtual ~ldomDocumentWriterFilter();
 };
 
 class ldomDocumentFragmentWriter : public LVXMLParserCallback

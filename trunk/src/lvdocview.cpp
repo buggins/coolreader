@@ -2434,6 +2434,21 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     }
 }
 
+static const char * AC_P[] = {"p", "p"}; 
+static const char * AC_LI[] = {"li", "li"}; 
+static const char * AC_UL[] = {"ul", "li"}; 
+static const char * AC_TD[] = {"td", "td"}; 
+static const char * AC_TR[] = {"tr", "tr", "td"}; 
+static const char * *
+HTML_AUTOCLOSE_TABLE[] = {
+    AC_P,
+    AC_LI,
+    AC_UL,
+    AC_TD,
+    AC_TR,
+    NULL
+};
+
 bool LVDocView::ParseDocument( )
 {
     m_posIsSet = false;
@@ -2456,6 +2471,7 @@ bool LVDocView::ParseDocument( )
         m_doc->setMinRefTextSize( 0 ); // disable compact mode
 #endif
     ldomDocumentWriter writer(m_doc);
+    ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
     m_doc->setNodeTypes( fb2_elem_table );
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
@@ -2480,6 +2496,17 @@ bool LVDocView::ParseDocument( )
 #if COMPACT_DOM==1
             m_doc->setMinRefTextSize( 0 );
 #endif
+        }
+    }
+
+    /// RTF format
+    if ( parser==NULL ) {
+        setDocFormat( doc_format_html );
+        parser = new LVHTMLParser(m_stream, &writerFilter);
+        if ( !parser->CheckFormat() ) {
+            delete parser;
+            parser = NULL;
+        } else {
         }
     }
 
