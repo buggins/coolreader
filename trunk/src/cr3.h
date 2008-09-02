@@ -11,7 +11,7 @@
  * @version 3.0.11
  */
 
-#define CR3_VERSION "3.0.12a"
+#define CR3_VERSION "3.0.13"
 
 class 
 cr3app : public wxApp
