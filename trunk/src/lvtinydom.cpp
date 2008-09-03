@@ -2542,31 +2542,36 @@ ldomDocument * LVParseXMLStream( LVStreamRef stream,
 
     Autoclose HTML tags.
 */
-void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id )
+void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 {
     lUInt16 * rule = _rules[tag_id];
     if ( !rule )
         return;
-    ldomElementWriter * found = NULL;
-    ldomElementWriter * p = _currNode;
-    while ( p ) {
-        lUInt16 id = p->_element->getNodeId();
-        for ( int i=0; rule[i]; i++ ) {
-            if ( rule[i]==id ) {
-                found = p;
-                break;
+    if ( open ) {
+        ldomElementWriter * found = NULL;
+        ldomElementWriter * p = _currNode;
+        while ( p ) {
+            lUInt16 id = p->_element->getNodeId();
+            for ( int i=0; rule[i]; i++ ) {
+                if ( rule[i]==id ) {
+                    found = p;
+                    break;
+                }
+            }
+            p = p->_parent;
+        }
+        // found auto-close target
+        if ( found != NULL ) {
+            bool done = false;
+            while ( done && _currNode ) {
+                if ( _currNode == found )
+                    done = true;
+                _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
             }
         }
-        p = p->_parent;
-    }
-    // found auto-close target
-    if ( found != NULL ) {
-        bool done = false;
-        while ( done && _currNode ) {
-            if ( _currNode == found )
-                done = true;
+    } else {
+        if ( !rule[0] )
             _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
-        }
     }
 }
 
@@ -2575,9 +2580,54 @@ void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
-    AutoClose( id );
+    AutoClose( id, true );
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     //logfile << " !o!\n";
+}
+
+/// called on closing tag
+void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+{
+    //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
+    if (!_currNode)
+    {
+        _errFlag = true;
+        //logfile << " !c-err!\n";
+        return;
+    }
+    lUInt16 id = _document->getElementNameIndex(tagname);
+    //======== START FILTER CODE ============
+    AutoClose( _currNode->_element->getNodeId(), false );
+    //======== END FILTER CODE ==============
+    //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
+    _errFlag |= (id != _currNode->getElement()->getNodeId());
+    _currNode = pop( _currNode, id );
+
+    if ( _currNode )
+        _flags = _currNode->getFlags();
+
+    if ( id==_stopTagId ) {
+        //CRLog::trace("stop tag found, stopping...");
+        _parser->Stop();
+    }
+    //logfile << " !c!\n";
+}
+
+/// called on text
+void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
+    lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+{
+    //logfile << "lxmlDocumentWriter::OnText() fpos=" << fpos;
+    if (_currNode)
+    {
+        AutoClose( _currNode->_element->getNodeId(), false );
+        if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
+             && IsEmptySpace(text, len) )
+             return;
+        if (_currNode->_allowText)
+            _currNode->onText( text, len, fpos, fsize, flags );
+    }
+    //logfile << " !t!\n";
 }
 
 ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules )
@@ -2593,7 +2643,7 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
         for ( j=0; rule[j] && j<MAX_ELEMENT_TYPE_ID; j++ ) {
             items[j] = _document->getElementNameIndex( lString16(rule[j]).c_str() );
         }
-        if ( j>1 ) {
+        if ( j>=1 ) {
             lUInt16 id = items[0];
             _rules[ id ] = new lUInt16[j];
             for ( int k=0; k<j; k++ ) {

@@ -1428,10 +1428,15 @@ class ldomDocumentWriterFilter : public ldomDocumentWriter
 {
 protected:
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
-    virtual void AutoClose( lUInt16 tag_id );
+    virtual void AutoClose( lUInt16 tag_id, bool open );
 public:
     /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    /// called on closing tag
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
+    /// called on text
+    virtual void OnText( const lChar16 * text, int len,
+        lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
     /// constructor
     ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules);
     /// destructor
