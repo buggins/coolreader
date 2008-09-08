@@ -12,6 +12,17 @@
 #include "cr3.xpm"
 
 
+/*
+ For LINUX:
+
+   /usr/share/crengine/fonts/*.ttf    -- fonts
+   /usr/share/fonts/truetype/freefont/*.ttf -- alternative font directory
+   /usr/share/fonts/truetype/msttcorefonts/ -- MS arial, times and courier fonts
+   /usr/share/crengine/fb2.css        -- stylesheet
+   /usr/share/crengine/hyph/Russian_EnUS_hyphen_(Alan).pdb   -- hyphenation dictionary
+
+*/
+
 
 BEGIN_EVENT_TABLE( cr3Frame, wxFrame )
     EVT_MENU( Menu_File_Quit, cr3Frame::OnQuit )
@@ -218,7 +229,7 @@ void cr3Frame::OnSize(wxSizeEvent& event)
 }
 
 
-void initHyph(const char * fname)
+bool initHyph(const char * fname)
 {
     //HyphMan hyphman;
     //return;
@@ -227,9 +238,9 @@ void initHyph(const char * fname)
     if (!stream)
     {
         printf("Cannot load hyphenation file %s\n", fname);
-        return;
+        return false;
     }
-    HyphMan::Open( stream.get() );
+    return HyphMan::Open( stream.get() );
 }
 
 lString8 readFileToString( const char * fname )
@@ -273,6 +284,39 @@ wxBitmap cr3Frame::getIcon16x16( const lChar16 * name )
         return icon;
     return wxNullBitmap;
 }
+
+#if (USE_FREETYPE==1)
+bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16Collection & fonts, bool absPath )
+{
+    int foundCount = 0;
+    lString16 path;
+    for ( unsigned di=0; di<pathList.length();di++ ) {
+        path = pathList[di];
+        LVContainerRef dir = LVOpenDirectory(path.c_str());
+        if ( !dir.isNull() ) {
+            CRLog::trace("Checking directory %s", UnicodeToUtf8(path).c_str() );
+            for ( int i=0; i < dir->GetObjectCount(); i++ ) {
+                const LVContainerItemInfo * item = dir->GetObjectInfo(i);
+                lString16 fileName = item->GetName();
+                lString8 fn = UnicodeToLocal(fileName);
+                    //printf(" test(%s) ", fn.c_str() );
+                if ( !item->IsContainer() && fileName.length()>4 && lString16(fileName, fileName.length()-4, 4)==ext ) {
+                    lString16 fn;
+                    if ( absPath ) {
+                        fn = path;
+                        if ( !fn.empty() && fn[fn.length()-1]!=PATH_SEPARATOR_CHAR)
+                            fn << PATH_SEPARATOR_CHAR;
+                    }
+                    fn << fileName;
+                    foundCount++;
+                    fonts.add( fn );
+                }
+            }
+        }
+    }
+    return foundCount > 0;
+}
+#endif
 
 bool 
 cr3app::OnInit()
@@ -373,7 +417,8 @@ cr3app::OnInit()
     fontDir << slashChar;
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     const char * fontDir8s = fontDir8.c_str();
-    InitFontManager( fontDir8 );
+    //InitFontManager( fontDir8 );
+    InitFontManager( lString8() );
 
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
@@ -381,6 +426,41 @@ cr3app::OnInit()
 
 
 #if (USE_FREETYPE==1)
+    lString16 fontExt = L".ttf";
+#else
+    lString16 fontExt = L".lbf";
+#endif
+#if (USE_FREETYPE==1)
+    lString16Collection fonts;
+    lString16Collection fontDirs;
+    fontDirs.add( fontDir );
+#ifdef _LINUX
+    fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
+    fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+    //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
+    const char * msfonts[] = {
+        "arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf",
+        "cour.ttf", "courbd.ttf", "couri.ttf", "courbi.ttf",
+        "times.ttf", "timesbd.ttf", "timesi.ttf", "timesbi.ttf",
+        NULL
+    };
+    for ( int fi=0; msfonts[fi]; fi++ )
+        fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
+#endif
+    getDirectoryFonts( fontDirs, fontExt, fonts, true );
+
+    // load fonts from file
+    CRLog::debug("%d font files found", fonts.length());
+    if (!fontMan->GetFontCount()) {
+        for ( unsigned fi=0; fi<fonts.length(); fi++ ) {
+            lString8 fn = UnicodeToLocal(fonts[fi]);
+            CRLog::trace("loading font: %s", fn.c_str());
+            if ( !fontMan->RegisterFont(fn) ) {
+                CRLog::trace("    failed\n");
+            }
+        }
+    }
+/*
         LVContainerRef dir = LVOpenDirectory(fontDir.c_str());
         for ( int i=0; i<dir->GetObjectCount(); i++ ) {
             const LVContainerItemInfo * item = dir->GetObjectInfo(i);
@@ -396,6 +476,7 @@ cr3app::OnInit()
                 }
             }
         }
+*/
         //fontMan->RegisterFont(lString8("arial.ttf"));
 #else
         #define MAX_FONT_FILE 128
@@ -412,7 +493,11 @@ cr3app::OnInit()
     // init hyphenation manager
     char hyphfn[1024];
     sprintf(hyphfn, "Russian_EnUS_hyphen_(Alan).pdb" );
-    initHyph( (UnicodeToLocal(appPath) + hyphfn).c_str() );
+    if ( !initHyph( (UnicodeToLocal(appPath) + hyphfn).c_str() ) ) {
+#ifdef _LINUX
+        initHyph( "/usr/share/crengine/hyph/Russian_EnUS_hyphen_(Alan).pdb" );
+#endif
+    }
 
     if (!fontMan->GetFontCount())
     {
@@ -779,6 +864,10 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     char cssfn[1024];
     sprintf( cssfn, "fb2.css"); //, exedir
     lString8 css = readFileToString( (UnicodeToLocal(_appDir) + cssfn).c_str() );
+#ifdef _LINUX
+    if ( css.empty() )
+        css = readFileToString( "/usr/share/crengine/fb2.css" );
+#endif
     if (css.length() > 0)
     {
         printf("Style sheet file found.\n");
