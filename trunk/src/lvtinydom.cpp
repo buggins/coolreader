@@ -2641,7 +2641,8 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
         const char ** rule = rules[i];
         lUInt16 j;
         for ( j=0; rule[j] && j<MAX_ELEMENT_TYPE_ID; j++ ) {
-            items[j] = _document->getElementNameIndex( lString16(rule[j]).c_str() );
+            const char * s = rule[j];
+            items[j] = _document->getElementNameIndex( lString16(s).c_str() );
         }
         if ( j>=1 ) {
             lUInt16 id = items[0];

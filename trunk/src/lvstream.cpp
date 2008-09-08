@@ -1522,7 +1522,6 @@ public:
     virtual ~LVZipArc()
     {
     }
-
     virtual int ReadContents()
     {
         lvByteOrderConv cnv;
@@ -1530,7 +1529,6 @@ public:
         bool truncated = false;
 
         m_list.clear();
-
         if (!m_stream || m_stream->Seek(0, LVSEEK_SET, NULL)!=LVERR_OK)
             return 0;
 
@@ -1682,8 +1680,8 @@ public:
             item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
             m_list.add(item);
         }
-
-        return m_list.length();
+        int sz2 = m_list.length();
+        return sz2;
     }
 
     static LVArcContainerBase * OpenArchieve( LVStreamRef stream )

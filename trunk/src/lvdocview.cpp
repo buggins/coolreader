@@ -2434,15 +2434,15 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     }
 }
 
-static const char * AC_P[]  = {"p", "p", "hr"}; 
-static const char * AC_LI[] = {"li", "li"}; 
-static const char * AC_UL[] = {"ul", "li"}; 
-static const char * AC_DD[] = {"dd", "dd"}; 
-static const char * AC_BR[] = {"br"}; 
-static const char * AC_HR[] = {"hr"}; 
-static const char * AC_IMG[]= {"img"}; 
-static const char * AC_TD[] = {"td", "td"}; 
-static const char * AC_TR[] = {"tr", "tr", "td"}; 
+static const char * AC_P[]  = {"p", "p", "hr", NULL}; 
+static const char * AC_LI[] = {"li", "li", NULL}; 
+static const char * AC_UL[] = {"ul", "li", NULL}; 
+static const char * AC_DD[] = {"dd", "dd", NULL}; 
+static const char * AC_BR[] = {"br", NULL}; 
+static const char * AC_HR[] = {"hr", NULL}; 
+static const char * AC_IMG[]= {"img", NULL}; 
+static const char * AC_TD[] = {"td", "td", NULL}; 
+static const char * AC_TR[] = {"tr", "tr", "td", NULL}; 
 static const char * *
 HTML_AUTOCLOSE_TABLE[] = {
     AC_P,
