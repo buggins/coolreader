@@ -28,6 +28,7 @@ Utilities:
    + FontConv: tool to convert any TTF font to CREngine bitmap font format
    + FontTest: sample application which demonstrates text formatter 
               and font engine capabilities
+   + Fb2Linux: simple CREngine based viewer for X Window system (xlib)	      
 (+) -- included into distribution package
 (-) -- not distributed because there is no stable version
 
