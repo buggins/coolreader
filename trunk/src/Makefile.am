@@ -13,3 +13,6 @@ cr3_SOURCES = cr3.cpp histlist.cpp optdlg.cpp toc.cpp view.cpp wolopt.cpp
 cr3_LDFLAGS = $(WX_LIBS) 
 
 cr3_LDADD = $(top_builddir)/crengine/src/libcrengine.a
+
+crenginedir = $(datadir)/crengine
+crengine_DATA = fb2.css
