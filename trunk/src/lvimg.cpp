@@ -757,6 +757,601 @@ bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int len )
 
 #endif
 
+// GIF support
+#if (USE_GIF==1)
+
+class LVGifImageSource;
+class LVGifFrame;
+
+class LVGifImageSource : public LVNodeImageSource
+{
+    friend class LVGifFrame;
+protected:
+    LVGifFrame ** m_frames;
+    int m_frame_count;
+    unsigned char m_version;
+    unsigned char m_bpp;     //
+    unsigned char m_flg_gtc; // GTC (gobal table of colors) flag
+    unsigned char m_transparent_color; // index 
+
+    lUInt32 * m_global_color_table;
+public:
+    LVGifImageSource( ldomNode * node, LVStreamRef stream )
+        : LVNodeImageSource(node, stream)
+    {
+        m_global_color_table = NULL;
+        m_frames = NULL;
+        m_frame_count = 0;
+        Clear();
+    }
+public:
+    static bool CheckPattern( const lUInt8 * buf, int len )
+    {
+        if (buf[0]!='G' || buf[1]!='I' || buf[2]!='F')
+            return false;
+        // version: '87a' or '89a'
+        if (buf[3]!='8' || buf[5]!='a')
+            return false;
+        if (buf[4]!='7' && buf[4]!='9')
+            return false; // bad version
+        return true;
+    }
+    virtual void   Compact()
+    {
+        // TODO: implement compacting
+    }
+    virtual bool Decode( LVImageDecoderCallback * callback );
+
+    int DecodeFromBuffer(unsigned char *buf, int buf_size, LVImageDecoderCallback * callback);
+    //int LoadFromFile( const char * fname );
+    LVGifImageSource();
+    virtual ~LVGifImageSource();
+    void Clear();
+    lUInt32 * GetColorTable() { 
+        if (m_flg_gtc) 
+            return m_global_color_table; 
+        else
+            return NULL;
+    };
+};
+
+class LVGifFrame
+{
+protected:
+    int        m_cx;
+    int        m_cy;
+    int m_left;
+    int m_top;
+    unsigned char m_bpp;     // bits per pixel
+    unsigned char m_flg_ltc; // GTC (gobal table of colors) flag
+    unsigned char m_flg_interlaced; // interlace flag
+
+    LVGifImageSource * m_pImage;
+    lUInt32 *    m_local_color_table;
+
+    unsigned char * m_buffer;
+public:
+    int DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_read );
+    LVGifFrame(LVGifImageSource * pImage);
+    ~LVGifFrame();
+    void Clear();
+    lUInt32 * GetColorTable() { 
+        if (m_flg_ltc) 
+            return m_local_color_table; 
+        else
+            return m_pImage->GetColorTable();
+    };
+    void Draw( LVImageDecoderCallback * callback )
+    {
+        int w = m_pImage->GetWidth();
+        int h = m_pImage->GetHeight();
+        if ( w<=0 || w>4096 || h<=0 || h>4096 )
+            return; // wrong image width
+        callback->OnStartDecode( m_pImage );
+        lUInt32 * line = new lUInt32[w];
+        int transp_color = m_pImage->m_transparent_color;
+        lUInt32 * pColorTable = GetColorTable();
+        for ( int i=0; i<h; i++ ) {
+            for ( int j=0; j<w; j++ ) {
+                line[j] = 0xFFFFFFFF; // transparent
+            }
+            if ( i >= m_top  && i < m_top+m_cy ) {
+                unsigned char * p_line = m_buffer + (i-m_top)*m_cx;
+                for ( int x=0; x<m_cx; x++ ) {
+                    unsigned char b = p_line[x];
+                    if (b!=transp_color) {
+                        line[x + m_left] = pColorTable[b];
+                    }
+                }
+            }
+            callback->OnLineDecoded( m_pImage, i, line );
+        }
+        delete line;
+        callback->OnEndDecode( m_pImage, false );
+    }
+};
+
+LVGifImageSource::~LVGifImageSource()
+{
+    Clear();
+}
+
+inline lUInt32 lRGB(lUInt32 r, lUInt32 g, lUInt32 b )
+{
+    return (r<<16)|(g<<8)|b;
+}
+
+
+int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImageDecoderCallback * callback)
+{
+    // check GIF header (6 bytes)
+    // 'GIF'
+    if ( !CheckPattern( buf, buf_size ) )
+        return 0;
+    if (buf[0]!='G' || buf[1]!='I' || buf[2]!='F')
+        return 0;
+    // version: '87a' or '89a'
+    if (buf[3]!='8' || buf[5]!='a')
+        return 0;
+    if (buf[4]=='7')
+        m_version = 7;
+    else if (buf[4]=='9')
+        m_version = 9;
+    else
+        return 0; // bad version
+
+    // read screen descriptor
+    unsigned char * p = buf+6;    
+
+    _width = p[0] + (p[1]<<8);
+    _height = p[2] + (p[3]<<8);
+    m_bpp = (p[4]&7)+1;
+    m_flg_gtc = (p[4]&0x80)?1:0;
+    m_transparent_color = p[5];
+
+    if ( !(_width>=1 && _height>=1 && _width<4096 && _height<4096 ) )
+        return false;
+    if ( !callback )
+        return true;
+    // next
+    p+=7;
+
+    
+    // read global color table
+    if (m_flg_gtc) {
+        int m_color_count = 1<<m_bpp;
+
+        if (m_color_count*3 + (p-buf) >= buf_size)
+            return 0; // error
+
+        m_global_color_table = new lUInt32[m_color_count];
+        for (int i=0; i<m_color_count; i++) {
+            //m_global_color_table[i] = RGB(p[i*3],p[i*3+1],p[i*3+2]);
+            m_global_color_table[i] = lRGB(p[i*3+2],p[i*3+1],p[i*3+0]);
+        }
+
+        // next
+        p+=(m_color_count * 3);
+    }
+
+    bool res = false;
+    if (p - buf < buf_size ) {
+        // search for delimiter char ','
+        while (*p != ',' && p-buf<buf_size)
+            p++;
+        if (*p==',') {
+            // found image descriptor!
+            LVGifFrame * pFrame = new LVGifFrame(this);
+            int cbRead = 0;
+            if (pFrame->DecodeFromBuffer(p, buf_size-(p-buf), cbRead) ) {
+                res = true;
+                pFrame->Draw( callback );
+            }
+            delete pFrame;
+        }
+    }
+
+    return res;
+}
+
+void LVGifImageSource::Clear()
+{
+    _width = 0;
+    _height = 0;
+    m_version = 0;
+    m_bpp = 0;
+    if (m_global_color_table) {
+        delete m_global_color_table;
+        m_global_color_table = NULL;
+    }
+    if (m_frame_count) {
+        for (int i=0; i<m_frame_count; i++) {
+            delete m_frames[i];
+        }
+        delete m_frames;
+        m_frames = NULL;
+        m_frame_count = 0;
+    }
+}
+
+#define LSWDECODER_MAX_TABLE_SIZE 4096
+class CLZWDecoder
+{
+protected:
+
+    // in_stream
+    const unsigned char * p_in_stream;
+    int          in_stream_size;
+    int          in_bit_pos;
+
+    // out_stream
+    unsigned char * p_out_stream;
+    int          out_stream_size;
+
+    int  clearcode;
+    int  eoicode;
+    int  bits;
+    int  lastadd;
+    /* // old implementation
+    unsigned char * * str_table;
+    int             * str_size;
+    */
+    unsigned char str_table[LSWDECODER_MAX_TABLE_SIZE];
+    unsigned char last_table[LSWDECODER_MAX_TABLE_SIZE];
+    unsigned char rev_buf[LSWDECODER_MAX_TABLE_SIZE/2];
+    short         str_nextchar[LSWDECODER_MAX_TABLE_SIZE];
+    //int           str_size;
+public:
+
+    void SetInputStream (const unsigned char * p, int sz ) {
+        p_in_stream = p;
+        in_stream_size = sz;
+        in_bit_pos = 0;
+    };
+
+    void SetOutputStream (unsigned char * p, int sz ) {
+        p_out_stream = p;
+        out_stream_size = sz;
+    };
+
+    int WriteOutChar( unsigned char b ) {
+        if (--out_stream_size>=0) {
+            *p_out_stream++ = b;
+            return 1;
+        } else {
+            return 0;
+        }
+        
+    };
+
+    int WriteOutString( int code ) {
+        int pos = 0;
+        do {
+            rev_buf[pos++] = str_table[code];
+            code = str_nextchar[code];
+        } while (code>=0);
+        while (--pos>=0) {
+            if (!WriteOutChar(rev_buf[pos]))
+                return 0;
+        }
+        return 1;
+    };
+
+    void FillRestOfOutStream( unsigned char b ) {
+        for (; out_stream_size>0; out_stream_size--) {
+            *p_out_stream++ = b;
+        }
+    }
+
+    int ReadInCode() {
+        int code = (p_in_stream[0])+
+            (p_in_stream[1]<<8)+
+            (p_in_stream[2]<<16);
+        code >>= in_bit_pos;
+        code &= (1<<bits)-1;
+        in_bit_pos += bits;
+        if (in_bit_pos>8) {
+            p_in_stream++;
+            in_stream_size--;
+            in_bit_pos -= 8;
+            if (in_bit_pos>8) {
+                p_in_stream++;
+                in_stream_size--;
+                in_bit_pos -= 8;
+            }
+        }
+        if (in_stream_size<0)
+            return -1;
+        else
+            return code;
+    };
+
+    int AddString( int OldCode, unsigned char NewChar ) {
+        if (lastadd == LSWDECODER_MAX_TABLE_SIZE)
+            return -1;
+        if (lastadd == (1<<bits)-1) {
+            // increase table size
+            bits++;
+            //ResizeTable(1<<bits);
+        }
+
+        str_table[lastadd] = NewChar;
+        str_nextchar[lastadd] = OldCode;
+        last_table[lastadd] = last_table[OldCode];
+
+
+        lastadd++;
+        return lastadd-1;
+    };
+
+    CLZWDecoder() {
+        /* // ld implementation
+        str_table = NULL;
+        str_size = NULL;
+        */
+        lastadd=0;
+    };
+
+    void Clear() {
+        /* // old implementation
+        for (int i=0; i<lastadd; i++) {
+            if (str_table[i])
+                delete str_table[i];
+        }
+        */
+        lastadd=0;
+    };
+
+
+    ~CLZWDecoder() {
+        Clear();
+    };
+
+    void Init(int sizecode) {
+        bits = sizecode + 1;
+        // init table
+        Clear();
+        //ResizeTable(1<<bits);
+        for (int i=(1<<sizecode)-1; i>=0; i--) {
+            str_table[i] = i;
+            last_table[i] = i;
+            str_nextchar[i] = -1;
+        }
+        // init codes
+        clearcode = (1<<sizecode);
+        str_table[clearcode] = 0;
+        str_nextchar[clearcode] = -1;
+        eoicode = clearcode + 1;
+        str_table[eoicode] = 0;
+        str_nextchar[eoicode] = -1;
+        //str_table[eoicode] = NULL;
+        lastadd = eoicode + 1;
+    };
+    int  CodeExists(int code) {
+        return (code<lastadd);
+    };
+
+    int  Decode( int init_code_size ) {
+
+        int code, oldcode;
+
+        Init( init_code_size );
+
+        code = ReadInCode(); // == 256, ignore
+        if (code<0 || code>lastadd)
+            return 0;
+
+        while (1) { // 3
+
+            code = ReadInCode();
+            if (code<0 || code>lastadd)
+                return 0;
+
+            if (!WriteOutString(code))
+                return 0;
+
+            while (1) { // 5
+
+                oldcode = code;
+
+                code = ReadInCode();
+                if (code<0 || code>lastadd)
+                    return 0;
+
+                if (CodeExists(code)) {
+                    if (code==eoicode)
+                        return 1;
+                    else if (code==clearcode)
+                        break; // clear & goto 3
+
+                    // write  code
+                    if (!WriteOutString(code))
+                        return 0;
+
+                    // add  old + code[0]
+                    if (AddString(oldcode, last_table[code])<0)
+                        return 0; // table overflow
+
+
+                } else {
+                    // write  old + old[0]
+                    if (!WriteOutString(oldcode))
+                        return 0;
+                    if (!WriteOutChar(last_table[oldcode]))
+                        return 0;
+
+                    // add  old + old[0]
+                    if (AddString(oldcode, last_table[oldcode])<0)
+                        return 0; // table overflow
+                }
+            }
+
+            Init( init_code_size );
+        }
+    };
+};
+
+bool LVGifImageSource::Decode( LVImageDecoderCallback * callback )
+{
+    if ( _stream.isNull() )
+        return false;
+    lvsize_t sz = _stream->GetSize();
+    if ( sz<32 || sz>0x80000 )
+        return false; // wrong size
+    lUInt8 * buf = new lUInt8[ sz ];
+    lvsize_t bytesRead = 0;
+    bool res = true;
+    _stream->SetPos(0);
+    if ( _stream->Read( buf, sz, &bytesRead )!=LVERR_OK || bytesRead!=sz )
+        res = false;
+    res = res && DecodeFromBuffer( buf, sz, callback );
+    delete buf;
+    return res;
+}
+
+int LVGifFrame::DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_read )
+{
+    bytes_read = 0;
+    unsigned char * p = buf;
+    if (*p!=',' || buf_size<=10)
+        return 0; // error: no delimiter
+    p++;
+
+    // read info
+    m_left = p[0] + (p[1]<<8);
+    m_top = p[2] + (p[3]<<8);
+    m_cx = p[4] + (p[5]<<8);
+    m_cy = p[6] + (p[7]<<8);
+
+    if (m_cx<1 || m_cx>4096 ||
+        m_cy<1 || m_cy>4096 ||
+        m_left+m_cx>m_pImage->GetWidth() ||
+        m_top+m_cy>m_pImage->GetHeight())
+        return 0; // error: wrong size
+
+    m_flg_ltc = (p[8]&0x80)?1:0;
+    m_flg_interlaced = (p[8]&0x40)?1:0;
+    m_bpp = (p[8]&0x7) + 1;
+
+    if (m_bpp==1)
+        m_bpp = m_pImage->m_bpp;
+    else if (m_bpp!=m_pImage->m_bpp && !m_flg_ltc)
+        return 0; // wrong color table
+
+    // next
+    p+=9;
+
+    if (m_flg_ltc) {
+        // read color table
+        int m_color_count = 1<<m_bpp;
+
+        if (m_color_count*3 + (p-buf) >= buf_size)
+            return 0; // error
+
+        m_local_color_table = new lUInt32[m_color_count];
+        for (int i=0; i<m_color_count; i++) {
+            m_local_color_table[i] = lRGB(p[i*3],p[i*3+1],p[i*3+2]);
+        }
+        // next
+        p+=(m_color_count * 3);
+    }
+
+    // unpack image
+    unsigned char * stream_buffer = NULL;
+    int stream_buffer_size = 0;
+
+    int size_code = *p++;
+
+    // test raster stream size
+    int i;
+    int rest_buf_size = buf_size - (p-buf);
+    for (i=0; i<rest_buf_size && p[i]; ) {
+        // next block
+        int block_size = p[i];
+        stream_buffer_size += block_size;
+        i+=block_size+1;
+    }
+
+    if (!stream_buffer_size || i>rest_buf_size)
+        return 0; // error
+
+    // set read bytes count
+    bytes_read = (p-buf) + i;
+
+    // create stream buffer
+    stream_buffer = new unsigned char[stream_buffer_size+3];
+    // copy data to stream buffer
+    int sb_index = 0;
+    for (i=0; p[i]; ) {
+        // next block
+        int block_size = p[i];
+        for (int j=1; j<=block_size; j++) {
+            stream_buffer[sb_index++] = p[i+j];
+        }
+        i+=block_size+1;
+    }
+    
+
+    // create image buffer
+    m_buffer = new unsigned char [m_cx*m_cy];
+
+    // decode image to buffer
+    CLZWDecoder decoder;
+    decoder.SetInputStream( stream_buffer, stream_buffer_size );
+    decoder.SetOutputStream( m_buffer, m_cx*m_cy );
+
+    int res=0;
+
+    if (decoder.Decode(size_code)) {
+        // decoded Ok
+        // fill rest with transparent color
+        decoder.FillRestOfOutStream( m_pImage->m_transparent_color );
+        res = 1;
+    } else {
+        // error
+        delete m_buffer;
+        m_buffer = NULL;
+    }
+
+    // cleanup
+    delete stream_buffer;
+
+    return res; // OK
+}
+
+LVGifFrame::LVGifFrame(LVGifImageSource * pImage)
+{
+    m_pImage = pImage;
+    m_left = 0;
+    m_top = 0;
+    m_cx = 0;
+    m_cy = 0;
+    m_flg_ltc = 0; // GTC (gobal table of colors) flag
+    m_local_color_table = NULL;
+}
+
+LVGifFrame::~LVGifFrame()
+{
+    Clear();
+}
+
+void LVGifFrame::Clear()
+{
+    if (m_buffer) {
+        delete m_buffer;
+        m_buffer = NULL;
+    }
+    if (m_local_color_table) {
+        delete m_local_color_table;
+        m_local_color_table = NULL;
+    }
+}
+
+#endif
+// ======= end of GIF support
+
+
+
 LVImageDecoderCallback::~LVImageDecoderCallback()
 {
 }
@@ -787,6 +1382,11 @@ LVImageSourceRef LVCreateStreamImageSource( ldomNode * node, LVStreamRef stream 
 #if (USE_LIBJPEG==1)
     if ( LVJpegImageSource::CheckPattern( hdr, (lUInt32)bytesRead ) )
         img = new LVJpegImageSource( node, stream );
+    else
+#endif
+#if (USE_GIF==1)
+    if ( LVGifImageSource::CheckPattern( hdr, (lUInt32)bytesRead ) )
+        img = new LVGifImageSource( node, stream );
     else
 #endif
         img = new LVDummyImageSource( node, 50, 50 );

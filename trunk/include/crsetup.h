@@ -27,6 +27,7 @@
 #if (BUILD_LITE==1)
 #define USE_LIBJPEG                          0
 #define USE_LIBPNG                           0
+#define USE_GIF                              0
 #define USE_FREETYPE                         0
 #define GLYPH_CACHE_SIZE                     0x1000
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
@@ -35,6 +36,7 @@
 #else
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
+#define USE_GIF                              1
 #define USE_FREETYPE                         1
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
@@ -52,6 +54,7 @@
 #define CR_USE_THREADS                       0
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
+#define USE_GIF                              1
 #define USE_ZLIB                             1
 #define USE_UNRAR                            0
 #define COLOR_BACKBUFFER                     1
@@ -105,7 +108,13 @@
 #if defined(__SYMBIAN32__)
 #define USE_LIBJPEG 0
 #define USE_LIBPNG  0
+#define USE_GIF     1
 #define USE_ZLIB    0
+#endif
+
+#ifndef USE_GIF
+///allow GIF support via embedded decoder
+#define USE_GIF 1
 #endif
 
 #ifndef USE_LIBJPEG
