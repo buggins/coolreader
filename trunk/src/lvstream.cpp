@@ -535,8 +535,8 @@ public:
         // make filename
         lString16 fn = m_fname;
         fn << fname;
-        const char * fb8 = UnicodeToUtf8( fn ).c_str();
-        printf("Opening directory container file %s : %s fname=%s path=%s\n", UnicodeToUtf8( lString16(fname) ).c_str(), UnicodeToUtf8( fn ).c_str(), UnicodeToUtf8( m_fname ).c_str(), UnicodeToUtf8( m_path ).c_str());
+        //const char * fb8 = UnicodeToUtf8( fn ).c_str();
+        //printf("Opening directory container file %s : %s fname=%s path=%s\n", UnicodeToUtf8( lString16(fname) ).c_str(), UnicodeToUtf8( fn ).c_str(), UnicodeToUtf8( m_fname ).c_str(), UnicodeToUtf8( m_path ).c_str());
         LVStreamRef stream( LVOpenFileStream( fn.c_str(), mode ) );
         if (!stream) {
             return stream;
