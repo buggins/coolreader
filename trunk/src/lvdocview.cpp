@@ -2723,7 +2723,7 @@ void LVDocView::updateScroll()
     {
         int npos = m_pos;
         int fh = GetFullHeight();
-        int shift = 1;
+        int shift = 0;
         int npage = m_dy;
         while (fh > 16384)
         {
