@@ -435,6 +435,8 @@ cr3app::OnInit()
     lString16Collection fontDirs;
     fontDirs.add( fontDir );
 #ifdef _LINUX
+    fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
+    fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
     fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
     fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
@@ -867,6 +869,8 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 #ifdef _LINUX
     if ( css.empty() )
         css = readFileToString( "/usr/share/crengine/fb2.css" );
+    if ( css.empty() )
+        css = readFileToString( "/usr/local/share/crengine/fb2.css" );
 #endif
     if (css.length() > 0)
     {

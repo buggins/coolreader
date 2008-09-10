@@ -6,7 +6,8 @@ sup { vertical-align: super; font-size: 70% }
 stanza + stanza { margin-top: 1em; }
 stanza { margin-left: 30%; text-align: left; font-family: "Times New Roman", "Times", serif; font-style: italic  }
 poem { margin-top: 1em; margin-bottom: 1em; text-indent: 0px }
-a { vertical-align: super; font-size: 70%; text-decoration: underline }
+a { text-decoration: underline }
+a[type="note"] { vertical-align: super; font-size: 70% }
 title { hyphenate: none }
 p { margin-top:0em; margin-bottom: 0em }
 text-author { font-weight: bold; font-style: italic; margin-left: 5%}
