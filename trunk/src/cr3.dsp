@@ -231,6 +231,10 @@ SOURCE=.\cr3.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\cr3.res
+# End Source File
+# Begin Source File
+
 SOURCE=.\small.ico
 # End Source File
 # End Group

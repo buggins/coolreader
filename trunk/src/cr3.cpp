@@ -446,8 +446,8 @@ cr3app::OnInit()
     ::GetSystemDirectoryW(sd_buf, MAX_PATH-1);
     lString16 sysFontDir = lString16(sd_buf) + L"\\..\\fonts\\";
     lString8 sfd = UnicodeToLocal( sysFontDir );
-    const char * s = sfd.c_str();
-    CRLog::debug(s);
+    //const char * s = sfd.c_str();
+    //CRLog::debug(s);
     for ( int fi=0; msfonts[fi]; fi++ )
         fonts.add( sysFontDir + lString16(msfonts[fi]) );
 #endif
