@@ -6,7 +6,7 @@ sup { vertical-align: super; font-size: 70% }
 stanza + stanza { margin-top: 1em; }
 stanza { margin-left: 30%; text-align: left; font-family: "Times New Roman", "Times", serif; font-style: italic  }
 poem { margin-top: 1em; margin-bottom: 1em; text-indent: 0px }
-a { text-decoration: underline }
+a { text-decoration: underline; color: blue }
 a[type="note"] { vertical-align: super; font-size: 70% }
 title { hyphenate: none }
 p { margin-top:0em; margin-bottom: 0em }
@@ -25,6 +25,13 @@ empty-line { height: 1em; }
 body[name="notes"] { font-size: 70%; }
 body[name="notes"] > section > title { display: run-in; text-align: left; font-size: 110%; font-weight: bold; page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
 body[name="notes"] > section > title > p { display: inline }
+
+h1 { text-align: center; text-indent: 0px; hyphenate: none; font-size: 150%; font-family: "Times New Roman", serif }
+h2 { text-align: center; text-indent: 0px; hyphenate: none; font-size: 140%; font-family: "Times New Roman", serif }
+h3 { text-align: center; text-indent: 0px; hyphenate: none; font-size: 130%; font-family: "Times New Roman", serif }
+h4 { text-align: center; text-indent: 0px; hyphenate: none; font-size: 120%; font-family: "Times New Roman", serif }
+h5 { text-align: center; text-indent: 0px; hyphenate: none; font-size: 110%; font-family: "Times New Roman", serif }
+
 
 description { display: block; }
 title-info { display: block; }
