@@ -434,18 +434,29 @@ cr3app::OnInit()
     lString16Collection fonts;
     lString16Collection fontDirs;
     fontDirs.add( fontDir );
+    static const char * msfonts[] = {
+        "arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf",
+        "cour.ttf", "courbd.ttf", "couri.ttf", "courbi.ttf",
+        "times.ttf", "timesbd.ttf", "timesi.ttf", "timesbi.ttf",
+        NULL
+    };
+#ifdef _WIN32
+    wchar_t sd_buf[MAX_PATH];
+    sd_buf[0] = 0;
+    ::GetSystemDirectoryW(sd_buf, MAX_PATH-1);
+    lString16 sysFontDir = lString16(sd_buf) + L"\\..\\fonts\\";
+    lString8 sfd = UnicodeToLocal( sysFontDir );
+    const char * s = sfd.c_str();
+    CRLog::debug(s);
+    for ( int fi=0; msfonts[fi]; fi++ )
+        fonts.add( sysFontDir + lString16(msfonts[fi]) );
+#endif
 #ifdef _LINUX
     fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
     fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
     fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
     fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
-    const char * msfonts[] = {
-        "arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf",
-        "cour.ttf", "courbd.ttf", "couri.ttf", "courbi.ttf",
-        "times.ttf", "timesbd.ttf", "timesi.ttf", "timesbi.ttf",
-        NULL
-    };
     for ( int fi=0; msfonts[fi]; fi++ )
         fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
 #endif
