@@ -2478,11 +2478,11 @@ bool LVDocView::ParseDocument( )
     if ( m_stream->GetSize() < COMPACT_DOM_SIZE_THRESHOLD )
         m_doc->setMinRefTextSize( 0 ); // disable compact mode
 #endif
-    ldomDocumentWriter writer(m_doc);
-    ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
     m_doc->setNodeTypes( fb2_elem_table );
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
+    ldomDocumentWriter writer(m_doc);
+    ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
 
     /// FB2 format
     setDocFormat( doc_format_fb2 );

@@ -46,6 +46,7 @@ XS_TAG1OBJ( img )
 XS_TAG1T( lang )
 XS_TAG1( title )
 XS_TAG1( section )
+XS_TAG1D( form, true, css_d_none, css_ws_normal )
 XS_TAG1D( binary, true, css_d_none, css_ws_normal )
 XS_TAG2T( text_author, "text-author" )
 

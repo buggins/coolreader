@@ -2550,7 +2550,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
     if ( open ) {
         ldomElementWriter * found = NULL;
         ldomElementWriter * p = _currNode;
-        while ( p ) {
+        while ( p && !found ) {
             lUInt16 id = p->_element->getNodeId();
             for ( int i=0; rule[i]; i++ ) {
                 if ( rule[i]==id ) {
@@ -2563,7 +2563,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
         // found auto-close target
         if ( found != NULL ) {
             bool done = false;
-            while ( done && _currNode ) {
+            while ( !done && _currNode ) {
                 if ( _currNode == found )
                     done = true;
                 _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
@@ -2578,6 +2578,9 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
+    if ( nsname && nsname[0] )
+        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
+    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     AutoClose( id, true );
@@ -2589,6 +2592,9 @@ void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 
 void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
+    if ( nsname && nsname[0] )
+        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
+    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
     if (!_currNode)
     {
         _errFlag = true;
