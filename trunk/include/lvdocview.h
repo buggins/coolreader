@@ -246,6 +246,14 @@ public:
 
 //typedef lUInt64 LVPosBookmark;
 
+/// Callback interface 
+class LVDocViewCallback {
+public:
+    /// Override to handle external links
+    virtual void OnExternalLink( lString16 url, ldomElement * node ) { }
+    virtual ~LVDocViewCallback() { }
+};
+
 /**
     \brief XML document view
 
@@ -327,6 +335,8 @@ private:
     doc_format_t m_doc_format;
     txt_format_t m_text_format;
 
+    LVDocViewCallback * m_callback;
+
     /// sets current document format
     void setDocFormat( doc_format_t fmt ) { m_doc_format = fmt; }
 
@@ -365,6 +375,11 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
 public:
+    // callback functions
+    /// set callback
+    void setCallback( LVDocViewCallback * callback ) { m_callback = callback; }
+    /// get callback
+    LVDocViewCallback * getCallback( ) { return m_callback; }
 
     // doc format functions
     /// set text format options

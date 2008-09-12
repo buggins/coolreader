@@ -115,6 +115,7 @@ LVDocView::LVDocView()
 , m_posIsSet(false)
 , m_doc_format(doc_format_none)
 , m_text_format(txt_format_auto)
+, m_callback(NULL)
 {
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFFFE0;
@@ -1680,15 +1681,26 @@ ldomXRange * LVDocView::getCurrentPageSelectedLink()
 /// follow link, returns true if navigation was successful
 bool LVDocView::goLink( lString16 link )
 {
+    ldomElement * element = NULL;
     if ( link.empty() ) {
         ldomXRange * node = LVDocView::getCurrentPageSelectedLink();
-        if ( node )
+        if ( node ) {
             link = node->getHRef();
+            ldomNode * p = node->getStart().getNode();
+            if ( p->getNodeType()==LXML_TEXT_NODE )
+                p = p->getParentNode();
+            element = (ldomElement*)p;
+        }
         if ( link.empty() )
             return false;
     }
-    if ( link[0]!='#' || link.length()<=1 )
+    if ( link[0]!='#' || link.length()<=1 ) {
+        if ( m_callback ) {
+            m_callback->OnExternalLink( link, element );
+            return true;
+        }
         return false; // only internal links supported (started with #)
+    }
     link = link.substr( 1, link.length()-1 );
     lUInt16 id = m_doc->getAttrValueIndex(link.c_str());
     ldomElement * dest = (ldomElement*)m_doc->getNodeById( id );
