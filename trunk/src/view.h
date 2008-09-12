@@ -9,7 +9,7 @@
  */
 
 class
-cr3view : public wxPanel
+cr3view : public wxPanel, public LVDocViewCallback
 {
     public:
         cr3view(CRPropRef props);
@@ -43,6 +43,8 @@ cr3view : public wxPanel
 		void SetFullScreenState(bool fullscreenState) { _isFullscreen = fullscreenState; }
         lString16 GetHistoryFileName();
         lString16 GetLastRecentFileName();
+        // LVDocViewCallback override
+        virtual void OnExternalLink( lString16 url, ldomElement * node );
     protected:
 
         void Paint();
