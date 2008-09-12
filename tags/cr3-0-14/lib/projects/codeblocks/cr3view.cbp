@@ -1,0 +1,467 @@
+<?xml version="1.0"?>
+<!DOCTYPE CodeBlocks_project_file>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="1"/>
+	<Project>
+		<Option title="CoolReader 3 Viewer"/>
+		<Option makefile="Makefile"/>
+		<Option makefile_is_custom="0"/>
+		<Option default_target="1"/>
+		<Option compiler="0"/>
+		<Build>
+			<Target title="release">
+				<Option output="release\cr3view.exe"/>
+				<Option working_dir="release"/>
+				<Option object_output="release\.objs"/>
+				<Option deps_output="release\.deps"/>
+				<Option external_deps="release\libcrengine.a;debug\libcrengine.a;"/>
+				<Option type="0"/>
+				<Option compiler="0"/>
+				<Option projectCompilerOptionsRelation="2"/>
+				<Option projectResourceIncludeDirsRelation="0"/>
+				<Compiler>
+					<Add option="-O2"/>
+					<Add option="-Wall"/>
+				</Compiler>
+				<Linker>
+					<Add directory="release"/>
+				</Linker>
+			</Target>
+			<Target title="debug">
+				<Option output="debug\cr3view.exe"/>
+				<Option working_dir="debug"/>
+				<Option object_output="debug\.objs"/>
+				<Option deps_output="debug\.deps"/>
+				<Option type="0"/>
+				<Option compiler="0"/>
+				<Option parameters="lxss.rtf"/>
+				<Option projectCompilerOptionsRelation="2"/>
+				<Option projectResourceIncludeDirsRelation="0"/>
+				<Compiler>
+					<Add option="-march=i386"/>
+					<Add option="-Wall"/>
+					<Add option="-g"/>
+					<Add option="-D_DEBUG"/>
+					<Add option="-DDEBUG"/>
+				</Compiler>
+				<Linker>
+					<Add directory="debug"/>
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-D_WIN32"/>
+			<Add option="-DWIN32"/>
+			<Add option="-DCYGWIN"/>
+			<Add option="-Dboolean=&quot;unsigned char&quot;"/>
+			<Add option="-Dwxjpeg_boolean=&quot;unsigned char&quot;"/>
+			<Add directory="..\..\..\include"/>
+			<Add directory="..\..\..\..\cximage\jpeg"/>
+			<Add directory="..\..\..\..\cximage\zlib"/>
+			<Add directory="..\..\..\..\cximage\png"/>
+		</Compiler>
+		<Linker>
+			<Add library="gdi32"/>
+			<Add library="user32"/>
+			<Add library="kernel32"/>
+			<Add library="jpeg"/>
+			<Add library="png"/>
+			<Add library="zlib"/>
+			<Add directory="..\codeblocks"/>
+		</Linker>
+		<Unit filename="..\..\..\Tools\Fb2Test\Fb2Test.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\Tools\Fb2Test\StdAfx.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\cp_stats.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\crengine.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\crsetup.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\crtxtenc.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\cssdef.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\dtddef.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\fb2def.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\hist.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\hyphman.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lstridmap.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvarray.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvbmpbuf.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvdocview.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvdrawbuf.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvfnt.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvfntman.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvhashtable.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvimg.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvmemman.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvpagesplitter.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvptrvec.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvref.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvrefcache.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvrend.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvstream.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvstring.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvstsheet.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvstyles.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvtextfm.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvtinydom.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvtypes.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\lvxml.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\props.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\rtfcmd.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\rtfimp.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\w32utils.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\include\wolutil.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\cp_stats.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\crtxtenc.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\hist.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\hyphman.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lstridmap.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvbmpbuf.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvdocview.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvdrawbuf.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvfnt.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvfntman.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvimg.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvmemman.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvpagesplitter.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvrend.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvstream.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvstring.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvstsheet.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvstyles.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvtextfm.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvtinydom.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\lvxml.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\props.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\rtfimp.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\w32utils.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+		<Unit filename="..\..\..\src\wolutil.cpp">
+			<Option compilerVar="CPP"/>
+			<Option target="release"/>
+			<Option target="debug"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
