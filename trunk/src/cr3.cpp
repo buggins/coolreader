@@ -874,14 +874,18 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
 
     // stylesheet can be placed to file fb2.css
     // if not found, default stylesheet will be used
-    char cssfn[1024];
-    sprintf( cssfn, "fb2.css"); //, exedir
-    lString8 css = readFileToString( (UnicodeToLocal(_appDir) + cssfn).c_str() );
+    //char cssfn[1024];
+    //sprintf( cssfn, "fb2.css"); //, exedir
+    //lString8 css = readFileToString( (UnicodeToLocal(_appDir) + cssfn).c_str() );
+    lString8 css;
+    LVLoadStylesheetFile( _appDir + L"fb2.css", css );
 #ifdef _LINUX
     if ( css.empty() )
-        css = readFileToString( "/usr/share/crengine/fb2.css" );
+        LVLoadStylesheetFile( L"/usr/share/crengine/fb2.css", css );
+        //css = readFileToString( "/usr/share/crengine/fb2.css" );
     if ( css.empty() )
-        css = readFileToString( "/usr/local/share/crengine/fb2.css" );
+        LVLoadStylesheetFile( L"/usr/local/share/crengine/fb2.css", css );
+        //css = readFileToString( "/usr/local/share/crengine/fb2.css" );
 #endif
     if (css.length() > 0)
     {
