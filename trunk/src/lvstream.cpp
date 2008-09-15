@@ -2952,3 +2952,137 @@ LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream )
     return LVTCRStream::create( stream, LVOM_READ );
 }
 
+/// returns path part of pathname (appended with / or \ delimiter)
+lString16 LVExtractPath( lString16 pathName )
+{
+    int last_delim_pos = -1;
+    for ( unsigned i=0; i<pathName.length(); i++ )
+        if ( pathName[i]=='/' || pathName[i]=='\\' )
+            last_delim_pos = i;
+    if ( last_delim_pos==-1 )
+#ifdef _LINUX
+        return lString16(L"./");
+#else
+        return lString16(L".\\");
+#endif
+    return pathName.substr( 0, last_delim_pos+1 );
+}
+
+/// returns filename part of pathname
+lString16 LVExtractFilename( lString16 pathName )
+{
+    int last_delim_pos = -1;
+    for ( unsigned i=0; i<pathName.length(); i++ )
+        if ( pathName[i]=='/' || pathName[i]=='\\' )
+            last_delim_pos = i;
+    if ( last_delim_pos==-1 )
+        return pathName;
+    return pathName.substr( last_delim_pos+1 );
+}
+
+/// returns true if absolute path is specified
+bool LVIsAbsolutePath( lString16 pathName )
+{
+    if ( pathName.empty() )
+        return false;
+    lChar16 c = pathName[0];
+    if ( c=='\\' || c=='/' )
+        return true;
+#ifdef _WIN32
+    if ( (c>='a' && c<='z') || (c>='A' && c<='Z') ) {
+        return (pathName[1]==':');
+    }
+#endif
+    return false;
+}
+
+/// removes first path part from pathname and returns it
+lString16 LVExtractFirstPathElement( lString16 & pathName )
+{
+    if ( pathName.empty() )
+        return lString16();
+    if ( pathName[0]=='/' || pathName[0]=='\\' )
+        pathName.erase(0, 1);
+    int first_delim_pos = -1;
+    for ( unsigned i=0; i<pathName.length(); i++ )
+        if ( pathName[i]=='/' || pathName[i]=='\\' ) {
+            first_delim_pos = i;
+            break;
+        }
+    if ( first_delim_pos==-1 ) {
+        lString16 res = pathName;
+        pathName.clear();
+        return res;
+    }
+    lString16 res = pathName.substr(0, first_delim_pos );
+    pathName.erase(0, first_delim_pos+1 );
+    return res;
+}
+
+/// appends path delimiter character to end of path, if absent
+void LVAppendPathDelimiter( lString16 & pathName )
+{
+    if ( pathName.empty() )
+        return;
+    lChar16 delim = LVDetectPathDelimiter( pathName );
+    if ( pathName[pathName.length()-1]!=delim )
+        pathName << delim;
+}
+
+/// removes last path part from pathname and returns it
+lString16 LVExtractLastPathElement( lString16 & pathName )
+{
+    int l = pathName.length();
+    if ( l==0 )
+        return lString16();
+    if ( pathName[l-1]=='/' || pathName[l-1]=='\\' )
+        pathName.erase(l-1, 1);
+    int last_delim_pos = -1;
+    for ( unsigned i=0; i<pathName.length(); i++ )
+        if ( pathName[i]=='/' || pathName[i]=='\\' )
+            last_delim_pos = i;
+    if ( last_delim_pos==-1 ) {
+        lString16 res = pathName;
+        pathName.clear();
+        return res;
+    }
+    lString16 res = pathName.substr( last_delim_pos + 1, pathName.length()-last_delim_pos-1 );
+    pathName.erase( last_delim_pos, pathName.length()-last_delim_pos );
+    return res;
+}
+
+/// returns path delimiter character
+lChar16 LVDetectPathDelimiter( lString16 pathName )
+{
+    for ( unsigned i=0; i<pathName.length(); i++ )
+        if ( pathName[i]=='/' || pathName[i]=='\\' )
+            return pathName[i];
+#ifdef _LINUX
+        return '/';
+#else
+        return '\\';
+#endif
+}
+
+/// returns full path to file identified by pathName, with base directory == basePath
+lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
+{
+    if ( LVIsAbsolutePath( pathName ) )
+        return pathName;
+    lChar16 delim = LVDetectPathDelimiter( basePath );
+    lString16 path = LVExtractPath( basePath );
+    lString16 name = LVExtractFilename( pathName );
+    lString16 dstpath = LVExtractPath( pathName );
+    while ( !dstpath.empty() ) {
+        lString16 element = LVExtractFirstPathElement( dstpath );
+        if ( element==L"." )
+            ;
+        else if ( element==L".." )
+            LVExtractLastPathElement( path );
+        else
+            path << element << delim;
+    }
+    LVAppendPathDelimiter( path );
+    path << name;
+    return path;
+}

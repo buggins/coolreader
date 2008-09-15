@@ -69,6 +69,9 @@ public:
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
+        \param max_width is maximum width to measure line 
+        \param def_char is character to replace absent glyphs in font
+        \param letter_spacing is number of pixels to add between letters
         \return number of characters before max_width reached 
     */
     virtual lUInt16 measureText( 
@@ -76,7 +79,8 @@ public:
                         lUInt16 * widths,
                         lUInt8 * flags,
                         int max_width,
-                        lChar16 def_char
+                        lChar16 def_char,
+                        int letter_spacing=0
                      ) = 0;
     /** \brief measure text
         \param text is text string pointer
@@ -108,7 +112,8 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 ) = 0;
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, 
+                       lUInt32 flags=0, int letter_spacing=0 ) = 0;
     /// constructor
     LVFont() : _visual_alignment_width(-1) { }
 
@@ -190,7 +195,7 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 );
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0 );
 };
 
 /* C++ wrapper class */
@@ -206,7 +211,8 @@ public:
                         lUInt16 * widths,
                         lUInt8 * flags,
                         int max_width,
-                        lChar16 def_char
+                        lChar16 def_char,
+                        int letter_spacing=0
                      );
     /** \brief measure text
         \param text is text string pointer
@@ -329,7 +335,8 @@ public:
                         lUInt16 * widths,
                         lUInt8 * flags,
                         int max_width,
-                        lChar16 def_char
+                        lChar16 def_char,
+                        int letter_spacing=0
                      );
     /** \brief measure text
         \param text is text string pointer
@@ -346,7 +353,7 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0 );
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0 );
         
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
@@ -502,7 +509,8 @@ public:
                         lUInt16 * widths,
                         lUInt8 * flags,
                         int max_width,
-                        lChar16 def_char
+                        lChar16 def_char,
+                        int letter_spacing=0
                      );
     /** \brief measure text
         \param text is text string pointer

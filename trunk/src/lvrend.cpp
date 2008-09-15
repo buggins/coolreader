@@ -500,18 +500,37 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
             css_style_ref_t style = parent->getStyle();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+            lInt8 letter_spacing;
+            css_length_t len = style->letter_spacing;
+            switch( len.type )
+            {
+            case css_val_percent:
+                letter_spacing = (lInt8)(font->getHeight() * len.value / 100);
+                break;
+            case css_val_px:
+                letter_spacing = (lInt8)(len.value);
+                break;
+            case css_val_em:
+                letter_spacing = (lInt8)(len.value * font->getHeight() / 256);
+                break;
+            default:
+                letter_spacing = 0;
+                break;
+            }
             if ( baseflags & LTEXT_FLAG_PREFORMATTED ) {
                 int flags = baseflags | tflags;
                 lString16Collection lines;
                 SplitLines( txt, lines );
                 for ( unsigned k=0; k<lines.length(); k++ ) {
                     lString16 str = lines[k];
-                    txform->AddSourceLine( str.c_str(), str.length(), cl, bgcl, font, flags, line_h, 0, node );
+                    txform->AddSourceLine( str.c_str(), str.length(), cl, bgcl, 
+                        font, flags, line_h, 0, node, 0, letter_spacing );
                     flags &= ~LTEXT_FLAG_NEWLINE;
                     flags |= LTEXT_ALIGN_LEFT;
                 }
             } else {
-                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, line_h, ident, node );
+                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, 
+                    line_h, ident, node, 0, letter_spacing );
             }
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
@@ -953,6 +972,7 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
         break;
     }
     // line_height
+    spreadParent( pstyle->letter_spacing, parent_style->letter_spacing );
     spreadParent( pstyle->line_height, parent_style->line_height );
     spreadParent( pstyle->color, parent_style->color );
     spreadParent( pstyle->background_color, parent_style->background_color );

@@ -594,4 +594,22 @@ LVStreamRef LVCreateBufferedStream( LVStreamRef stream, int bufSize );
 /// creates TCR decoder stream for stream
 LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream );
 
+/// returns path part of pathname (appended with / or \ delimiter)
+lString16 LVExtractPath( lString16 pathName );
+/// removes first path part from pathname and returns it
+lString16 LVExtractFirstPathElement( lString16 & pathName );
+/// removes last path part from pathname and returns it
+lString16 LVExtractLastPathElement( lString16 & pathName );
+/// returns filename part of pathname
+lString16 LVExtractFilename( lString16 pathName );
+/// appends path delimiter character to end of path, if absent
+void LVAppendPathDelimiter( lString16 & pathName );
+/// returns path delimiter character
+lChar16 LVDetectPathDelimiter( lString16 pathName );
+/// returns true if absolute path is specified
+bool LVIsAbsolutePath( lString16 pathName );
+/// returns full path to file identified by pathName, with base directory == basePath
+lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName );
+
+
 #endif // __LVSTREAM_H_INCLUDED__

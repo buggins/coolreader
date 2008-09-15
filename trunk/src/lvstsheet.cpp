@@ -16,6 +16,7 @@
 #include "../include/lvstsheet.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
+#include "../include/lvstream.h"
 
 
 enum css_decl_code {
@@ -35,6 +36,7 @@ enum css_decl_code {
     cssd_font_weight,
     cssd_text_indent,
     cssd_line_height,
+    cssd_letter_spacing,
     cssd_width,
     cssd_height,
     cssd_margin_left,
@@ -65,6 +67,7 @@ static const char * css_decl_name[] = {
     "font-weight:",
     "text-indent:",
     "line-height:",
+    "letter-spacing:",
     "width:",
     "height:",
     "margin-left:",
@@ -523,6 +526,7 @@ bool LVCssDeclaration::parse( const char * &decl )
                 break;
             case cssd_text_indent:
             case cssd_line_height:
+            case cssd_letter_spacing:
             case cssd_font_size:
             case cssd_width:
             case cssd_height:
@@ -675,6 +679,9 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_line_height:
             style->line_height = read_length( p );
+            break;
+        case cssd_letter_spacing:
+            style->letter_spacing = read_length( p );
             break;
         case cssd_color:
             style->color = read_length( p );
@@ -1202,3 +1209,80 @@ bool LVStyleSheet::parse( const char * str )
     return _selectors.length() > 0;
 }
 
+/// extract @import filename from beginning of CSS
+bool LVProcessStyleSheetImport( const char * &str, lString8 & import_file )
+{
+    const char * p = str;
+    import_file.clear();
+    skip_spaces( p );
+    if ( *p !='@' )
+        return false;
+    p++;
+    if ( strncmp(p, "import", 6) )
+        return false;
+    p+=6;
+    skip_spaces( p );
+    bool in_url = false;
+    char quote_ch = 0;
+    if ( !strncmp(p, "url", 3) ) {
+        p+=3;
+        skip_spaces( p );
+        if ( *p != '(' )
+            return false;
+        p++;
+        skip_spaces( p );
+        in_url = true;
+    }
+    if ( *p == '\'' || *p=='\"' )
+        quote_ch = *p++;
+    while (*p) {
+        if ( quote_ch && *p==quote_ch ) {
+            p++;
+            break;
+        }
+        if ( !quote_ch ) {
+            if ( in_url && *p==')' ) {
+                break;
+            }
+            if ( *p==' ' || *p=='\t' || *p=='\r' || *p=='\n' )
+                break;
+        }
+        import_file << *p++;
+    }
+    skip_spaces( p );
+    if ( in_url ) {
+        if ( *p!=')' )
+            return false;
+        p++;
+    }
+    if ( import_file.empty() )
+        return false;
+    str = p;
+    return true;
+}
+
+/// load stylesheet from file, with processing of import
+bool LVLoadStylesheetFile( lString16 pathName, lString8 & css )
+{
+    LVStreamRef file = LVOpenFileStream( pathName.c_str(), LVOM_READ );
+    if ( file.isNull() )
+        return false;
+    lString8 txt = UnicodeToUtf8( LVReadTextFile( file ) );
+    lString8 txt2;
+    const char * s = txt.c_str();
+    lString8 import_file;
+    if ( LVProcessStyleSheetImport( s, import_file ) ) {
+        lString16 importFilename = LVMakeRelativeFilename( pathName, Utf8ToUnicode(import_file) );
+        lString8 ifn = UnicodeToLocal(importFilename);
+        const char * ifns = ifn.c_str();
+        if ( !importFilename.empty() ) {
+            LVStreamRef file2 = LVOpenFileStream( importFilename.c_str(), LVOM_READ );
+            if ( !file2.isNull() )
+                txt2 = UnicodeToUtf8( LVReadTextFile( file2 ) );
+        }
+    }
+    if ( !txt2.empty() )
+        txt2 << "\r\n";
+    css = txt2 + s;
+    return !css.empty();
+}

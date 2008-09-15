@@ -144,7 +144,8 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
    void *          object,    /* pointer to custom object */
-   lUInt16         offset
+   lUInt16         offset,
+   lInt8           letter_spacing
                          )
 {
     lUInt32 srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
@@ -174,6 +175,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     pline->t.offset = offset;
     pline->color = color;
     pline->bgcolor = bgcolor;
+    pline->letter_spacing = letter_spacing;
 }
 
 void lvtextAddSourceObject(
@@ -183,7 +185,8 @@ void lvtextAddSourceObject(
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
-   void *          object    /* pointer to custom object */
+   void *          object,    /* pointer to custom object */
+   lInt8           letter_spacing
                          )
 {
     lUInt32 srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
@@ -199,6 +202,7 @@ void lvtextAddSourceObject(
     pline->margin = margin;
     pline->flags = flags | LTEXT_SRC_IS_OBJECT;
     pline->interval = interval;
+    pline->letter_spacing = letter_spacing;
 }
 
 int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
@@ -682,7 +686,8 @@ void LFormattedText::AddSourceObject(
             lUInt16         flags,    /* flags */
             lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
             lUInt16         margin,   /* first line margin */
-            void *          object    /* pointer to custom object */
+            void *          object,    /* pointer to custom object */
+            lInt8           letter_spacing
      )
 {
     ldomElement * node = (ldomElement*)object;
@@ -693,7 +698,7 @@ void LFormattedText::AddSourceObject(
     lUInt16 height = (lUInt16)img->GetHeight();
     lvtextAddSourceObject(m_pbuffer,
         width, height,
-        flags, interval, margin, object );
+        flags, interval, margin, object, letter_spacing );
 }
 
 class LVFormLine {
@@ -716,6 +721,7 @@ public:
     int vertical_align;
     int frmline_wrap_pos;
     int align;
+    lInt8 letter_spacing;
     bool flgLastParaLine;
     bool flgCanBreakBeforeNextLine;
     void newLine()
@@ -938,6 +944,8 @@ public:
         srcIndex = index;
         text_offset = pos;
         srcline = &m_pbuffer->srctext[srcIndex];
+        letter_spacing = srcline->letter_spacing;
+
         line_flags = srcline->flags;
         isLinkStart = ((line_flags & LTEXT_IS_LINK) != 0) && (pos==0); // first word of link
         flgObject = (line_flags & LTEXT_SRC_IS_OBJECT) != 0; // object (e.g. image)
@@ -1138,7 +1146,8 @@ public:
                         chars_left,
                         widths_buf.get(), flags_buf.get(),
                         space_left, //pbuffer->width,
-                        '?');
+                        '?',
+                        letter_spacing);
                 int j;
                 int last_fit = -1;
                 int last_hyph = -1;
@@ -1379,7 +1388,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         '?',
                         NULL,
                         flgHyphen,
-                        srcline->flags & 0x0F00);
+                        srcline->flags & 0x0F00,
+                        srcline->letter_spacing);
                     if ( cl!=0xFFFFFFFF )
                         buf->SetTextColor( oldColor );
                     if ( bgcl!=0xFFFFFFFF )

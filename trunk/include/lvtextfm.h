@@ -72,7 +72,7 @@ typedef struct
     };
     lUInt16         margin;   /**< \brief first line margin */
     lUInt8          interval; /**< \brief line interval, *16 (16=normal, 32=double) */
-    lUInt8          reserved; /**< \brief reserved */
+    lInt8           letter_spacing; /**< \brief additional letter spacing, pixels */
     lUInt32         color;    /**< \brief color */
     lUInt32         bgcolor;  /**< \brief background color */
     lUInt32         flags;    /**< \brief flags */
@@ -172,7 +172,8 @@ void lvtextAddSourceLine(
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
    void *          object,   /* pointer to custom object */
-   lUInt16         offset    /* offset from node/object start to start of line */
+   lUInt16         offset,    /* offset from node/object start to start of line */
+   lInt8           letter_spacing
                          );
 
 /** Add source object
@@ -186,7 +187,8 @@ void lvtextAddSourceObject(
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
-   void *          object    /* pointer to custom object */
+   void *          object,    /* pointer to custom object */
+   lInt8           letter_spacing
                          );
 
 /** Formats source lines stored in buffer into formatted lines
@@ -230,7 +232,8 @@ public:
                 lUInt16         flags,    /* flags */
                 lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
                 lUInt16         margin,   /* first line margin */
-                void *          object    /* pointer to custom object */
+                void *          object,    /* pointer to custom object */
+                lInt8           letter_spacing=0
          );
 
     void AddSourceLine(
@@ -243,13 +246,14 @@ public:
            lUInt8          interval=16, /* interline space, *16 (16=single, 32=double) */
            lUInt16         margin=0,    /* first line margin */
            void *          object=NULL,
-           lUInt32         offset=0
+           lUInt32         offset=0,
+           lInt8           letter_spacing=0
         )
     {
         lvtextAddSourceLine(m_pbuffer, 
             font,  //font->GetHandle()
             text, len, color, bgcolor, 
-            flags, interval, margin, object, (lUInt16)offset );
+            flags, interval, margin, object, (lUInt16)offset, letter_spacing );
     }
 
     lUInt32 FormatOld(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }

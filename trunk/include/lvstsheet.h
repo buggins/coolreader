@@ -184,4 +184,9 @@ public:
     void apply( const ldomNode * node, css_style_rec_t * style );
 };
 
+/// extract @import filename from beginning of CSS
+bool LVProcessStyleSheetImport( const char * &str, lString8 & import_file );
+/// load stylesheet from file, with processing of import
+bool LVLoadStylesheetFile( lString16 pathName, lString8 & css );
+
 #endif // __LVSTSHEET_H_INCLUDED__

@@ -589,7 +589,8 @@ public:
                         lUInt16 * widths,
                         lUInt8 * flags,
                         int max_width,
-                        lChar16 def_char
+                        lChar16 def_char,
+                        int letter_spacing
                      )
     {
         LVLock lock(_mutex);
@@ -600,6 +601,8 @@ public:
 #if (ALLOW_KERNING==1)
         int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
+        if ( letter_spacing<0 || letter_spacing>50 )
+            letter_spacing = 0;
 
         //int i;
 
@@ -653,7 +656,7 @@ public:
                 w = (_slot->metrics.horiAdvance >> 6);
                 _wcache.put(ch, w);
             }
-            widths[nchars] = prev_width + w + (kerning >> 6);
+            widths[nchars] = prev_width + w + (kerning >> 6) + letter_spacing;
             previous = ch_glyph_index;
             if ( !isHyphen ) // avoid soft hyphens inside text string
                 prev_width = widths[nchars];
@@ -705,7 +708,8 @@ public:
                         widths,
                         flags,
                         2048, // max_width,
-                        L' '  // def_char
+                        L' ',  // def_char
+                        0
                      );
         if ( res>0 && res<MAX_LINE_CHARS )
             return widths[res-1];
@@ -775,11 +779,13 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags )
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
     {
         LVLock lock(_mutex);
         if ( len <= 0 || _face==NULL )
             return;
+        if ( letter_spacing<0 || letter_spacing>50 )
+            letter_spacing = 0;
         lvRect clip;
         buf->GetClipRect( &clip );
         if ( y + _size < clip.top || y >= clip.bottom )
@@ -848,7 +854,7 @@ public:
                     item->bmp_height,
                     palette);
 
-                x  += w;
+                x  += w + letter_spacing;
                 previous = ch_glyph_index;
             }
         }
@@ -1609,7 +1615,7 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
 
 void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
                    const lChar16 * text, int len, 
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags )
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
 {
     static lUInt8 glyph_buf[16384];
     LVFont::glyph_info_t info;
@@ -1667,7 +1673,8 @@ lUInt16 LBitmapFont::measureText(
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
-                    lChar16 def_char
+                    lChar16 def_char,
+                    int letter_spacing
                  )
 {
     return lvfontMeasureText( m_font, text, len, widths, flags, max_width, def_char );
@@ -2012,7 +2019,8 @@ lUInt16 LVWin32DrawFont::measureText(
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
-                    lChar16 def_char
+                    lChar16 def_char,
+                    int letter_spacing
                  )
 {
     if (_hfont==NULL)
@@ -2116,7 +2124,7 @@ lUInt16 LVWin32DrawFont::measureText(
 /// draws text string
 void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
                    const lChar16 * text, int len, 
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags )
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
 {
     if (_hfont==NULL)
         return;
@@ -2371,7 +2379,8 @@ lUInt16 LVWin32Font::measureText(
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
-                    lChar16 def_char
+                    lChar16 def_char,
+                    int letter_spacing
                  )
 {
     if (_hfont==NULL)

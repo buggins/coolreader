@@ -1553,7 +1553,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
                 lUInt8 flg[512];
 
                 lString16 str = node->getText();
-                font->measureText( str.c_str()+word->t.start, word->t.len, w, flg, word->width+50, '?');
+                font->measureText( str.c_str()+word->t.start, word->t.len, w, flg, word->width+50, '?', src->letter_spacing);
                 for ( int i=0; i<word->t.len; i++ ) {
                     int xx = ( i>0 ) ? (w[i-1] + w[i])/2 : w[i]/2;
                     if ( x < word->x + xx ) {
@@ -1662,7 +1662,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
                         lUInt16 w[512];
                         lUInt8 flg[512];
                         lString16 str = node->getText();
-                        font->measureText( str.c_str()+word->t.start, offset - word->t.start, w, flg, word->width+50, '?');
+                        font->measureText( str.c_str()+word->t.start, offset - word->t.start, w, flg, word->width+50, '?', txtform->GetSrcInfo(srcIndex)->letter_spacing);
                         int chx = w[ offset - word->t.start - 1 ];
                         rect.left = word->x + chx + rc.left + frmline->x;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
