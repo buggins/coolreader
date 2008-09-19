@@ -23,7 +23,7 @@
 
     Automatically deletes objects when vector items are destroyed.
 */
-template < class T >
+template < class T, bool ownItems=true >
 class LVPtrVector
 {
     T * * _list;
@@ -55,7 +55,7 @@ public:
         reserve( index+1 );
         while (length()<index)
             add(NULL);
-        if ( _list[index] )
+        if ( ownItems && _list[index] )
             delete _list[index];
         _list[index] = item;
         if (_count<=index)
@@ -72,8 +72,10 @@ public:
     {
         if (_list)
         {
-            for (int i=0; i<_count; ++i)
-                delete _list[i];
+            if ( ownItems ) {
+                for (int i=0; i<_count; ++i)
+                    delete _list[i];
+            }
             free( _list );
         }
         _list = NULL;
@@ -90,7 +92,8 @@ public:
         {
             if (_list[pos+i])
             {
-                delete _list[pos+i];
+                if ( ownItems )
+                    delete _list[pos+i];
                 _list[pos+i] = NULL;
             }
         }
@@ -181,6 +184,58 @@ public:
     ~LVPtrVector() { clear(); }
 };
 
+template<class _Ty > class LVMatrix {
+protected:
+    int numcols;
+    int numrows;
+    _Ty ** rows;
+public:
+    LVMatrix<_Ty> () : numcols(0), numrows(0), rows(NULL) {}
+    void Clear() {
+        if (numrows && numcols) {
+            for (int i=0; i<numrows; i++)
+                delete rows[i];
+        }
+        if (rows)
+            delete rows;
+        rows = NULL;
+        numrows = 0;
+        numcols = 0;
+    }
+    ~LVMatrix<_Ty> () {
+        Clear();
+    }   
+
+    _Ty * operator [] (int rowindex) { return rows[rowindex]; }
+
+    void SetSize( int nrows, int ncols, _Ty fill_elem ) {
+        if (!nrows || !ncols) {
+            Clear();
+            return;
+        }
+        if (nrows<numrows) {
+            for (int i=nrows; i<numrows; i++)
+                delete rows[i];
+            numrows = nrows;
+        } else if (nrows>numrows) {
+            rows = (_Ty**) realloc( rows, sizeof(_Ty)*nrows );
+            for (int i=numrows; i<nrows; i++) {
+                rows[i] = new _Ty [ncols];
+                for (int j=0; j<numcols; j++)
+                    rows[i][j]=fill_elem;
+            }
+            numrows = nrows;
+        }
+        if (ncols>numcols) {
+            for (int i=0; i<numrows; i++) {
+                rows[i] = (_Ty*)realloc( rows[i], sizeof(_Ty)*ncols );
+                for (int j=numcols; j<ncols; j++)
+                    rows[i][j]=fill_elem;
+            }
+            numcols = ncols;
+        }
+    }
+};
 
 
 #endif

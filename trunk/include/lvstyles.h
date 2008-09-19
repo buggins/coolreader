@@ -102,6 +102,16 @@ enum lvdom_element_render_method
     erm_invisible = 0, ///< invisible: don't render
     erm_block,         ///< render as block element (render as containing other elements)
     erm_final,         ///< final element: render the whole it's content as single render block
+    erm_mixed,         ///< block and inline elements are mixed: autobox inline portions of nodes; TODO
+    erm_table,         ///< table element: render as table
+    erm_table_row_group, ///< table row group
+    erm_table_header_group, ///< table header group
+    erm_table_footer_group, ///< table footer group
+    erm_table_row,  ///< table row
+    erm_table_column_group, ///< table column group
+    erm_table_column, ///< table column
+    erm_table_cell, ///< table cell
+    erm_table_caption, ///< table caption
 };
 
 /// node format record

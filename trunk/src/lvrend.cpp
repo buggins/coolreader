@@ -70,6 +70,425 @@ simpleLogFile logfile;
 
 #endif
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// TABLE RENDERING CLASSES
+//
+///////////////////////////////////////////////////////////////////////////////
+
+class CCRTableCol;
+class CCRTableRow;
+
+class CCRTableCell {
+public:
+    CCRTableCol * col;
+    CCRTableRow * row;
+    int width;
+    int height;
+    int percent;
+    int txtlen;
+    short colspan;
+    short rowspan;
+    char halign;
+    char valign;
+    ldomElement * elem;
+    CCRTableCell() : col(NULL), row(NULL)
+    , width(0)
+    , height(0)
+    , percent(0)
+    , txtlen(0)
+    , colspan(1)
+    , rowspan(1)
+    , halign(0)
+    , valign(0)
+    , elem(NULL)
+    { }
+};
+
+class CCRTableRow {
+public:
+    int index;
+    int height;
+    int y;
+    int numcols; // sum of colspan
+    int linkindex;
+    ldomElement * elem;
+    LVPtrVector<CCRTableCell> cells;
+    CCRTableRow() : index(0)
+    , height(0)
+    , y(0)
+    , numcols(0) // sum of colspan
+    , linkindex(-1)
+    , elem(NULL)
+    { }
+};
+
+class CCRTableCol {
+public:
+    int index;
+    int width;
+    int percent;
+    int txtlen;
+    int nrows;
+    int x;      // sum of previous col widths
+    LVPtrVector<CCRTableCell, false> cells;
+    ldomElement * elem;
+    CCRTableCol() : 
+    index(0)
+    , width(0)
+    , percent(0)
+    , txtlen(0)
+    , nrows(0)
+    , x(0) // sum of previous col widths
+    , elem( NULL )
+    { }
+    ~CCRTableCol() { }
+};
+
+/*
+    in: string      25   35%
+    out:            25   -35
+*/
+int StrToIntPercent( const wchar_t * s, int digitwidth=0 );
+int StrToIntPercent( const wchar_t * s, int digitwidth )
+{
+    int n=0;
+    if (!s || !s[0]) return 0;
+    for (int i=0; s[i]; i++) {
+        if (s[i]>='0' && s[i]<='9') {
+            //=================
+            n=n*10+(s[i]-'0');
+        } else if (s[i]=='d') {
+            //=================
+            n=n*digitwidth;
+            break;
+        } else if (s[i]=='%') {
+            //=================
+            n=-n;
+            break;
+        }
+    }
+    return n;
+}
+
+class CCRTable {
+public:
+    int width;
+    int digitwidth;
+    ldomElement * elem;
+    LVPtrVector<CCRTableRow> rows;
+    LVPtrVector<CCRTableCol> cols;
+    LVMatrix<CCRTableCell*> cells;
+
+    void ExtendCols( int ncols ) {
+        while (cols.length()<ncols) {
+            CCRTableCol * col = new CCRTableCol;
+            col->index = cols.length();
+            cols.add(col);
+        }
+    }
+
+    int LookupElem( ldomElement * el, int state ) {
+        if (!el->getChildCount())
+            return 0;
+        int colindex = 0;
+        int tdindex = 0;
+        for (unsigned i=0; i<el->getChildCount(); i++) {
+            if (el->getChildNode(i)->getNodeType()==LXML_ELEMENT_NODE) {
+                // for each child element
+                ldomElement * item = (ldomElement *)el->getChildNode(i);
+                lUInt16 tid = item->getNodeId();
+                if (tid==el_tr && state==0) {
+                    // rows of table
+                    CCRTableRow * row = new CCRTableRow;
+                    rows.add( row );
+                    row->elem = item;
+                    if (row->elem->hasAttribute(LXML_NS_ANY, attr_link)) {
+                        lString16 lnk=row->elem->getAttributeValue(attr_link);
+                        row->linkindex = lnk.atoi();
+                    }
+                    // recursion: search for inner elements
+                    int res = LookupElem( item, 1 ); // lookup row
+                } else if (tid==el_col && state==0) {
+                    // cols width definitions
+                    ExtendCols(colindex+1);
+                    CCRTableCol * col = cols[colindex];
+                    col->elem = item;
+                    lString16 w = item->getAttributeValue(attr_width);
+                    if (w!=L"") {
+                        int wn = StrToIntPercent(w.c_str(), digitwidth);
+                        if (wn<0)
+                            col->percent = -wn;
+                        else if (wn>0)
+                            col->width = wn;
+                    }
+                    colindex++;
+                } else if ( (tid==el_th || tid==el_td) && (state==1) ) {
+                    // <th> or <td> inside <tr>
+                    CCRTableCell * cell = new CCRTableCell;
+                    cell->elem = item;
+                    lString16 w = item->getAttributeValue(attr_width);
+                    if (w!=L"") {
+                        int wn = StrToIntPercent(w.c_str(), digitwidth);
+                        if (wn<0)
+                            cell->percent = -wn;
+                        else if (wn>0)
+                            cell->width = wn;
+                    }
+                    int cs=StrToIntPercent(item->getAttributeValue(attr_colspan).c_str());
+                    if (cs>0 && cs<100) {
+                        cell->colspan=cs;
+                    } else {
+                        cs=1;
+                    }
+                    int rs=StrToIntPercent(item->getAttributeValue(attr_rowspan).c_str());
+                    if (rs>0 && rs<100) {
+                        cell->rowspan=rs;
+                    } else {
+                        rs=1;
+                    }
+                    // "align"
+                    lString16 halign = item->getAttributeValue(attr_align);
+                    if (halign==L"center")
+                        cell->halign=1; // center
+                    else if (halign==L"right")
+                        cell->halign=2; // right
+                    // "valign"
+                    lString16 valign = item->getAttributeValue(attr_valign);
+                    if (valign==L"center")
+                        cell->valign=1; // center
+                    else if (valign==L"bottom")
+                        cell->valign=2; // bottom
+
+                    cell->row = rows[rows.length()-1];
+                    cell->row->cells.add( cell );
+                    cell->row->numcols += cell->colspan;
+                    tdindex++;
+                }
+            }
+        }
+        return 0;
+    }
+
+    void PlaceCells() {
+        int i, j;
+        // search for max column number
+        int maxcols = 0;
+        for (i=0; i<rows.length(); i++) {
+            if (maxcols<rows[i]->numcols)
+                maxcols=rows[i]->numcols;
+        }
+        // add column objects
+        ExtendCols(maxcols);
+        // place row cells horizontally
+        for (i=0; i<rows.length(); i++) {
+            int x=0;
+            int miny=-1;
+            CCRTableRow * row = rows[i];
+            row->index = i;
+            for (j=0; j<rows[i]->cells.length(); j++) {
+                CCRTableCell * cell = rows[i]->cells[j];
+                int cs = cell->colspan;
+                int rs = cell->rowspan;
+                while (cols[x]->nrows>i) { // find free cell position
+                    x++;
+                    ExtendCols(x); // update col count
+                }
+                rows[i]->cells[j]->col = cols[x];
+                for (int xx=0; xx<cs; xx++) {
+                    // place cell
+                    ExtendCols(x+xx); // update col count
+                    cols[x+xx]->nrows = i+cell->rowspan;
+                    if (cell->rowspan>1) {
+                        int flg =1;
+                    }
+                }
+                // update col width
+                if (cell->colspan==1) {
+                    if (cell->width>0 && cell->col->width<cell->width && cell->col->percent==0) {
+                        cell->col->width = cell->width;
+                    } else if (cell->percent>0 && cell->col->width==0 && cell->col->percent<cell->percent) {
+                        cell->col->percent = cell->percent;
+                    }
+                }
+                x += cs;
+            }
+            // update min row count
+            for (j=0; j<x; j++) {
+                if (miny==-1 || miny>cols[j]->nrows)
+                    miny=cols[j]->nrows;
+            }
+            // skip fully filled rows!
+            while (miny>i+1) {
+                i++;
+                // add new row (already filled)
+                CCRTableRow * nrow = new CCRTableRow;
+                nrow->index = i;
+                rows.insert(i, nrow);
+            }
+        }
+        int maxy = 0; // check highest column
+        for (int j=0; j<cols.length(); j++)
+            if (maxy<cols[j]->nrows)
+                maxy=cols[j]->nrows;
+        // padding table with empty lines up to max col height
+        while (maxy>i) {
+            i++;
+            // add new row (already filled)
+            CCRTableRow * nrow = new CCRTableRow;
+            nrow->index = i;
+            rows.insert(i, nrow);
+        }
+        // init CELLS matrix
+        cells.SetSize( rows.length(), cols.length(), NULL );
+        for (i=0; i<rows.length(); i++) {
+            for (j=0; j<rows[i]->cells.length(); j++) {
+                // init cell range in matrix  (x0,y0)[colspanXrowspan]
+                CCRTableCell * cell = (rows[i]->cells[j]);
+                int x0 = cell->col->index;
+                int y0 = cell->row->index;
+                for (int y=0; y<cell->rowspan; y++) {
+                    for (int x=0; x<cell->colspan; x++) {
+                        cells[y0+y][x0+x] = cell;
+                    }
+                }
+                // calc cell text size
+                lString16 txt = ((ldomElement*)cell->elem)->getText();
+                int txtlen = txt.length();
+                txtlen = (txtlen+(cell->colspan-1))/cell->colspan + 1;
+                for (int x=0; x<cell->colspan; x++) {
+                    cols[x0+x]->txtlen += txtlen;
+                }
+            }
+        }
+        int npercent=0;
+        int sumpercent=0;
+        int nwidth = 0;
+        int sumwidth = 0;
+        for (int x=0; x<cols.length(); x++) {
+            if (cols[x]->percent>0) {
+                sumpercent += cols[x]->percent;
+                cols[x]->width = 0;
+                npercent++;
+            } else if (cols[x]->width>0) {
+                sumwidth += cols[x]->width;
+                nwidth++;
+            }
+        }
+        int nrest = cols.length()-nwidth-npercent; // not specified
+        int sumwidthpercent = 0; // percent of sum-width
+        if (sumwidth) {
+            sumwidthpercent = 100*sumwidth/width;
+            if (sumpercent+sumwidthpercent+5*nrest>100) {
+                // too wide: convert widths to percents
+                for (int i=0; i<cols.length(); i++) {
+                    if (cols[i]->width>0) {
+                        cols[i]->percent = cols[i]->width*100/width;
+                        cols[i]->width = 0;
+                        sumpercent += cols[i]->percent;
+                        npercent++;
+                    }
+                }
+                nwidth = 0;
+                sumwidth = 0;
+            }
+        }
+        // scale percents
+        int maxpercent = 100-3*nrest;
+        if (sumpercent>maxpercent) {
+            // scale percents
+            int newsumpercent = 0;
+            for (int i=0; i<cols.length(); i++) {
+                if (cols[i]->percent>0) {
+                    cols[i]->percent = cols[i]->percent*maxpercent/sumpercent;
+                    newsumpercent += cols[i]->percent;
+                    cols[i]->width = 0;
+                }
+            }
+            sumpercent = newsumpercent;
+        }
+        // calc width by percents
+        sumwidth = 0;
+        int sumtext = 1;
+        nwidth = 0;
+        for (i=0; i<cols.length(); i++) {
+            if (cols[i]->percent>0) {
+                cols[i]->width = width * cols[i]->percent / 100;
+                cols[i]->percent = 0;
+            }
+            if (cols[i]->width>0) {
+                // calc width stats
+                sumwidth += cols[i]->width;
+                nwidth++;
+            } else if (cols[i]->txtlen>0) {
+                // calc text len sum of rest cols
+                sumtext += cols[i]->txtlen;
+            }
+        }
+        nrest = cols.length() - nwidth;
+        int restwidth = width - sumwidth;
+        // new pass: convert text len percent into width
+        for (i=0; i<cols.length(); i++) {
+            if (cols[i]->width==0) {
+                cols[i]->width = cols[i]->txtlen * restwidth / sumtext;
+                sumwidth += cols[i]->width;
+                nwidth++;
+            }
+            if (cols[i]->width<8) { // extend too small cols!
+                int delta = 8 - cols[i]->width;
+                cols[i]->width+=delta;
+                sumwidth += delta;
+            }
+        }
+        if (sumwidth>width) {
+            // too wide! rescale down
+            int newsumwidth = 0;
+            for (i=0; i<cols.length(); i++) {
+                cols[i]->width = cols[i]->width * width / sumwidth;
+                newsumwidth += cols[i]->width;
+            }
+            sumwidth = newsumwidth;
+        }
+        // distribute rest of width between all cols
+        int restw = width - sumwidth;
+        if (restw>0) {
+            int a = restw / cols.length();
+            int b = restw % cols.length();
+            for (i=0; i<cols.length(); i++) {
+                cols[i]->width += a;
+                if (b>0) {
+                    cols[i]->width ++;
+                    b--;
+                }
+            }           
+        }
+        // widths calculated ok!
+        // update width of each cell
+        for (i=0; i<rows.length(); i++) {
+            for (j=0; j<rows[i]->cells.length(); j++) {
+                // calculate width of cell
+                CCRTableCell * cell = (rows[i]->cells[j]);
+                cell->width = 0;
+                int x0 = cell->col->index;
+                for (int x=0; x<cell->colspan; x++) {
+                    cell->width += cols[x0+x]->width;
+                }
+            }
+        }
+        // update col x
+        for (i=1; i<cols.length(); i++) {
+            cols[i]->x = cols[i-1]->x + cols[i-1]->width;
+        }
+    }
+    CCRTable(ldomElement * tbl_elem, int tbl_width, int dwidth) : digitwidth(dwidth) {
+        elem = tbl_elem;
+        width = tbl_width;
+        LookupElem( tbl_elem, 0 );
+        PlaceCells();
+    }
+};
+
+
 
 void freeFormatData( ldomNode * node )
 {
@@ -130,6 +549,38 @@ void initFormatData( ldomNode * node )
     }
 }
 
+// init table element render methods
+void initTableRendMethods( ldomNode * node )
+{
+    //TODO
+    int cnt = node->getChildCount();
+    int i;
+    for (i=0; i<cnt; i++)
+    {
+        ldomElement * child = (ldomElement *)node->getChildNode( i );
+        if ( child->getNodeType()==LXML_ELEMENT_NODE )
+        {
+            switch( child->getStyle()->display )
+            {
+            case css_d_inline:
+                {
+                }
+                break;
+            case css_d_table_row_group:
+            case css_d_table_header_group:
+            case css_d_table_footer_group:
+            case css_d_table_row:
+            case css_d_table_column_group:
+            case css_d_table_column:
+            case css_d_table_cell:
+            case css_d_table_caption:
+                break;
+            }
+        }
+    }
+}
+
+// init element render method
 void initRendMethod( ldomNode * node )
 {
     if ( node->getNodeType()==LXML_ELEMENT_NODE )
@@ -138,6 +589,12 @@ void initRendMethod( ldomNode * node )
         if (enode->getStyle()->display == css_d_none)
         {
             enode->setRendMethod( erm_invisible );
+            return;
+        }
+        if (enode->getStyle()->display == css_d_table)
+        {
+            enode->setRendMethod( erm_table );
+            initTableRendMethods( enode );
             return;
         }
         int cnt = node->getChildCount();
@@ -601,6 +1058,30 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
 
         switch( enode->getRendMethod() )
         {
+        case erm_mixed:
+            {
+                // TODO: autoboxing not supported yet
+            }
+            break;
+        case erm_table:
+            {
+                // ??? not sure
+                if ( isFootNoteBody )
+                    context.enterFootNote( node->getAttributeValue(attr_id) );
+                // recurse all sub-blocks for blocks
+                int y = 0;
+                int h = renderTable( context, enode, 0, y, width );
+                y += h;
+                int st_y = lengthToPx( enode->getStyle()->height, em, em );
+                if ( y < st_y )
+                    y = st_y;
+                fmt->setHeight( y ); //+ margin_top + margin_bottom ); //???
+                // ??? not sure
+                if ( isFootNoteBody )
+                    context.leaveFootNote();
+                return y + margin_top + margin_bottom; // return block height
+            }
+            break;
         case erm_block:
             {
                 if ( isFootNoteBody )
@@ -992,3 +1473,7 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
     }
 }
 
+int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width )
+{
+    return 0;
+}
