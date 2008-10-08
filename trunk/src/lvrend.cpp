@@ -328,7 +328,7 @@ public:
             }
         }
         int maxy = 0; // check highest column
-        for (int j=0; j<cols.length(); j++)
+        for (j=0; j<cols.length(); j++)
             if (maxy<cols[j]->nrows)
                 maxy=cols[j]->nrows;
         // padding table with empty lines up to max col height
