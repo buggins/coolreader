@@ -142,7 +142,7 @@ class CRFileProperties {
     bool readArchieve( LVContainerRef arc )
     {
         // epub support
-        LVStreamRef mtStream = m_arc->OpenStream(L"mimetype", LVOM_READ );
+        LVStreamRef mtStream = arc->OpenStream(L"mimetype", LVOM_READ );
         if ( !mtStream.isNull() ) {
             int size = mtStream->GetSize();
             if ( size>4 && size<100 ) {

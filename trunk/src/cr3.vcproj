@@ -48,7 +48,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\wxWidgets\include\msvc;..\..\wxWidgets\include;..\..\crengine\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;__WXMSW__"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WIN32;_WINDOWS;__WXMSW__"
 				RuntimeLibrary="2"
 				PrecompiledHeaderFile=".\Unicode Release/cr3.pch"
 				AssemblerListingLocation=".\Unicode Release/"
@@ -239,7 +239,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\wxWidgets\include\msvc;..\..\wxWidgets\include;..\..\crengine\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;__WXMSW__"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WIN32;_WINDOWS;__WXMSW__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
