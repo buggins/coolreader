@@ -65,25 +65,25 @@ void lStr_uppercase( lChar16 * str, int len );
 void lStr_lowercase( lChar16 * str, int len );
 
 
-#define CH_PROP_UPPER       0x0001
-#define CH_PROP_LOWER       0x0002
-#define CH_PROP_ALPHA       0x0003
-#define CH_PROP_DIGIT       0x0004
-#define CH_PROP_PUNCT       0x0008
-#define CH_PROP_SPACE       0x0010
-#define CH_PROP_HYPHEN      0x0020
-#define CH_PROP_VOWEL       0x0040
-#define CH_PROP_CONSONANT   0x0080
-#define CH_PROP_SIGN        0x0100
-#define CH_PROP_ALPHA_SIGN  0x0200
+#define CH_PROP_UPPER       0x0001 ///< uppercase alpha character flag
+#define CH_PROP_LOWER       0x0002 ///< lowercase alpha character flag
+#define CH_PROP_ALPHA       0x0003 ///< alpha flag is combination of uppercase and lowercase flags
+#define CH_PROP_DIGIT       0x0004 ///< digit character flag
+#define CH_PROP_PUNCT       0x0008 ///< pubctuation character flag
+#define CH_PROP_SPACE       0x0010 ///< space character flag
+#define CH_PROP_HYPHEN      0x0020 ///< hyphenation character flag
+#define CH_PROP_VOWEL       0x0040 ///< vowel character flag
+#define CH_PROP_CONSONANT   0x0080 ///< consonant character flag
+#define CH_PROP_SIGN        0x0100 ///< sign character flag
+#define CH_PROP_ALPHA_SIGN  0x0200 ///< alpha sign character flag
 
-/// retrieve character properties mask array for string
+/// retrieve character properties mask array for wide c-string
 void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props );
+/// retrieve character properties mask for single wide character
+lUInt16 lGetCharProps( lChar16 ch );
 /// find alpha sequence bounds
 void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int & end );
 
-/// retrieve character properties mask for single char
-lUInt16 lGetCharProps( lChar16 ch );
 
 
 
@@ -116,7 +116,8 @@ private:
 /**
     \brief lChar8 string
 
-  Interface is similar to STL strings
+    Reference counting, copy-on-write implementation of 8-bit string.
+    Interface is similar to STL strings
 
 */
 class lString8
@@ -298,9 +299,10 @@ public:
 };
 
 /**
-    \brief lChar16 string
+    \brief Wide character (lChar16) string. 
 
-  Interface is similar to STL strings
+   Reference counting, copy-on-write implementation.
+   Interface is similar to STL strings.
 
 */
 class lString16
@@ -322,17 +324,24 @@ private:
     void free();
     inline void addref() const { ++pchunk->nref; }
     inline void release() { if (--pchunk->nref==0) free(); }
-public:
-    explicit lString16() : pchunk(EMPTY_STR_16) { addref(); }
-    lString16(const lString16 & str) : pchunk(str.pchunk) { addref(); }
     explicit lString16(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
+public:
+    /// empty string constructor
+    explicit lString16() : pchunk(EMPTY_STR_16) { addref(); }
+    /// copy constructor
+    lString16(const lString16 & str) : pchunk(str.pchunk) { addref(); }
+    /// constructor from wide c-string
     lString16(const value_type * str);
+    /// constructor from c-string
     explicit lString16(const lChar8 * str);
+    /// constructor from wide character array fragment
     explicit lString16(const value_type * str, size_type count);
+    /// constructor from another string substring
     explicit lString16(const lString16 & str, size_type offset, size_type count);
+    /// desctructor
     ~lString16() { release(); }
 
-    // assignment
+    /// assignment from string
     lString16 & assign(const lString16 & str)
     {
         if (pchunk!=str.pchunk)
@@ -343,10 +352,15 @@ public:
         }
         return *this;
     }
+    /// assignment from c-string
     lString16 & assign(const value_type * str);
+    /// assignment from character array fragment
     lString16 & assign(const value_type * str, size_type count);
+    /// assignment from string fragment
     lString16 & assign(const lString16 & str, size_type offset, size_type count);
+    /// assignment from c-string
     lString16 & operator = (const value_type * str) { return assign(str); }
+    /// assignment from string
     lString16 & operator = (const lString16 & str) { return assign(str); }
     lString16 & erase(size_type offset, size_type count);
     lString16 & append(const value_type * str);
@@ -363,11 +377,17 @@ public:
     lString16 & replace(size_type p0, size_type n0, const value_type * str, size_type count);
     lString16 & replace(size_type p0, size_type n0, const lString16 & str);
     lString16 & replace(size_type p0, size_type n0, const lString16 & str, size_type offset, size_type count);
+    /// replace range of string with character ch repeated count times
     lString16 & replace(size_type p0, size_type n0, size_type count, value_type ch);
+    /// make string uppercase
     lString16 & uppercase();
+    /// make string lowercase
     lString16 & lowercase();
+    /// compare with another string
     int compare(const lString16& str) const { return lStr_cmp(pchunk->buf16, str.pchunk->buf16); }
+    /// compare subrange with another string
     int compare(size_type p0, size_type n0, const lString16& str) const;
+    /// compare subrange with substring of another string
     int compare(size_type p0, size_type n0, const lString16& str, size_type pos, size_type n) const;
     int compare(const value_type *s) const  { return lStr_cmp(pchunk->buf16, s); }
     int compare(const lChar8 *s) const  { return lStr_cmp(pchunk->buf16, s); }
@@ -379,44 +399,70 @@ public:
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;
 
+    /// append single character
     lString16 & operator << (value_type ch) { return append(1, ch); }
+    /// append c-string
     lString16 & operator << (const value_type * str) { return append(str); }
+    /// append string
     lString16 & operator << (const lString16 & str) { return append(str); }
 
+    /// returns true if string starts with specified substring
+    bool startsWith( const lString16 & substring );
+    /// calculates hash for string
     lUInt32 getHash() const;
-
+    /// returns character at specified position, with index bounds checking, fatal error if fails
     value_type & at( size_type pos ) { if (pos<0||pos>pchunk->len) crFatalError(); return modify()[pos]; }
+    /// returns character at specified position, without index bounds checking
     const value_type operator [] ( size_type pos ) const { return pchunk->buf16[pos]; }
+    /// returns reference to specified character position (lvalue)
     value_type & operator [] ( size_type pos ) { return modify()[pos]; }
-
+    /// resizes string, copies if several references exist
     void  lock( size_type newsize );
+    /// returns writable pointer to string buffer
     value_type * modify() { if (pchunk->nref>1) lock(pchunk->len); return pchunk->buf16; }
+    /// clears string contents
     void  clear() { release(); pchunk = EMPTY_STR_16; addref(); }
+    /// resets string, allocates space for specified amount of characters
     void  reset( size_type size );
+    /// returns string length, in characters
     size_type   length() const { return pchunk->len; }
+    /// returns string length, in characters
     size_type   size() const { return pchunk->len; }
+    /// resizes string buffer, appends with specified character if buffer is being extended
     void  resize(size_type count = 0, value_type e = 0);
+    /// returns string buffer size
     size_type   capacity() const { return pchunk->size-1; }
+    /// ensures string buffer can hold at least count characters
     void  reserve(size_type count = 0);
     /// erase all extra characters from end of string after size
     void  limit( size_type size );
+    /// returns true if string is empty
     bool  empty() const { return pchunk->len==0; }
+    /// swaps two string variables contents
     void  swap( lString16 & str ) { lstring_chunk_t * tmp = pchunk;
                 pchunk=str.pchunk; str.pchunk=tmp; }
+    /// trims all unused space at end of string (sets size to length)
     lString16 & pack();
 
-
+    /// trims spaces at beginning and end of string
     lString16 & trim();
+    /// trims duplicate space characters inside string and (optionally) at end and beginning of string
     lString16 & trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens=false );
+    /// converts to integer
     int atoi() const;
+    /// converts to integer, returns true if success
     bool atoi( int &n ) const;
+    /// converts to 64 bit integer, returns true if success
     bool atoi( lInt64 &n ) const;
-
+    /// returns constant c-string pointer
     const value_type * c_str() const { return pchunk->buf16; }
+    /// returns constant c-string pointer, same as c_str()
     const value_type * data() const { return pchunk->buf16; }
-
+    /// appends string
     lString16 & operator += ( lString16 s ) { return append(s); }
+    /// appends c-string
     lString16 & operator += ( const value_type * s ) { return append(s); }
+    /// appends single character
     lString16 & operator += ( value_type ch ) { return append(1, ch); }
 
     /// constructs string representation of integer
@@ -428,21 +474,25 @@ public:
     /// constructs string representation of unsigned 64 bit integer
     static lString16 itoa( lUInt64 i );
 
+    /// empty string global instance
     static const lString16 empty_str;
 
     friend class lString16Collection;
 };
 
+/// calculates hash for wide string
 inline lUInt32 getHash( const lString16 & s )
 {
     return s.getHash();
 }
 
+/// calculates hash for string
 inline lUInt32 getHash( const lString8 & s )
 {
     return s.getHash();
 }
 
+/// collection of wide strings
 class lString16Collection
 {
 private:
@@ -481,6 +531,7 @@ public:
     }
 };
 
+/// collection of strings
 class lString8Collection
 {
 private:
@@ -510,9 +561,10 @@ public:
     }
 };
 
-
+/// calculates hash for wide c-string
 lUInt32 calcStringHash( const lChar16 * s );
 
+/// hashed wide string collection
 class lString16HashedCollection : public lString16Collection
 {
 private:
@@ -533,10 +585,13 @@ public:
     size_t find( const lChar16 * s );
 };
 
+/// returns true if two wide strings are equal
 inline bool operator == (const lString16& s1, const lString16& s2 )
     { return s1.compare(s2)==0; }
+/// returns true if wide strings is equal to wide c-string
 inline bool operator == (const lString16& s1, const lChar16 * s2 )
     { return s1.compare(s2)==0; }
+/// returns true if wide strings is equal to wide c-string
 inline bool operator == (const lChar16 * s1, const lString16& s2 )
     { return s2.compare(s1)==0; }
 inline bool operator != (const lString16& s1, const lString16& s2 )
@@ -634,16 +689,24 @@ public:
 };
 
 lString8  UnicodeToTranslit( const lString16 & str );
+/// converts wide unicode string to local 8-bit encoding
 lString8  UnicodeToLocal( const lString16 & str );
+/// converts wide unicode string to utf-8 string
 lString8  UnicodeToUtf8( const lString16 & str );
+/// converts unicode string to 8-bit string using specified conversion table
 lString8  UnicodeTo8Bit( const lString16 & str, const lChar8 * * table );
+/// converts 8-bit string to unicode string using specified conversion table for upper 128 characters
 lString16 ByteToUnicode( const lString8 & str, const lChar16 * table );
+/// converts 8-bit string in local encoding to wide unicode string
 lString16 LocalToUnicode( const lString8 & str );
+/// converts utf-8 string to wide unicode string
 lString16 Utf8ToUnicode( const lString8 & str );
 
+/// Logger
 class CRLog
 {
 public:
+    /// log levels
     enum log_level {
         LL_FATAL,
         LL_ERROR,
@@ -652,12 +715,19 @@ public:
         LL_DEBUG,
         LL_TRACE,
     };
+    /// set current log level
     static void setLogLevel( log_level level );
+    /// returns current log level
     static log_level getLogLevel();
+    /// returns true if specified log level is enabled
     static bool isLogLevelEnabled( log_level level );
+    /// returns true if log level is DEBUG or lower
     static bool inline isDebugEnabled() { return isLogLevelEnabled( LL_DEBUG ); }
+    /// returns true if log level is TRACE
     static bool inline isTraceEnabled() { return isLogLevelEnabled( LL_TRACE ); }
+    /// returns true if log level is INFO or lower
     static bool inline isInfoEnabled() { return isLogLevelEnabled( LL_INFO ); }
+    /// returns true if log level is WARN or lower
     static bool inline isWarnEnabled() { return isLogLevelEnabled( LL_WARN ); }
     static void fatal( const char * msg, ... );
     static void error( const char * msg, ... );
@@ -665,11 +735,15 @@ public:
     static void info( const char * msg, ... );
     static void debug( const char * msg, ... );
     static void trace( const char * msg, ... );
+    /// sets logger instance
     static void setLogger( CRLog * logger );
     virtual ~CRLog();
 
+    /// write log to specified file, flush after every message if autoFlush parameter is true
     static void setFileLogger( const char * fname, bool autoFlush=true );
+    /// use stdout for output
     static void setStdoutLogger();
+    /// use stderr for output
     static void setStderrLogger();
 protected:
     CRLog();
