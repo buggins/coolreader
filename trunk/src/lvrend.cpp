@@ -1070,7 +1070,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                     context.enterFootNote( node->getAttributeValue(attr_id) );
                 // recurse all sub-blocks for blocks
                 int y = 0;
-                int h = renderTable( context, enode, 0, y, width );
+                int h = 0;//renderTable( context, enode, 0, y, width );
                 y += h;
                 int st_y = lengthToPx( enode->getStyle()->height, em, em );
                 if ( y < st_y )
