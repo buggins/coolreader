@@ -11,6 +11,200 @@
 #include "rescont.h"
 #include "cr3.xpm"
 
+//scan directory
+//scan file
+
+/// author properties
+class CRDocAuthor {
+    lString16 _firstName;
+    lString16 _lastName;
+    lString16 _middleName;
+    lString16 _nickName;
+public:
+    CRDocAuthor() { }
+    ~CRDocAuthor() { }
+    CRDocAuthor( const CRDocAuthor & v ) {
+        _firstName = v._firstName;
+        _lastName = v._lastName;
+        _middleName = v._middleName;
+        _nickName = v._nickName;
+    }
+    CRDocAuthor & operator = ( const CRDocAuthor & v ) {
+        _firstName = v._firstName;
+        _lastName = v._lastName;
+        _middleName = v._middleName;
+        _nickName = v._nickName;
+    }
+    lString16 getFirstName() { return _firstName; }
+    lString16 getLastName() { return _lastName; }
+    lString16 getMiddleName() { return _middleName; }
+    lString16 getNickName() { return _nickName; }
+    void setFirstName( lString16 fn ) { _firstName = fn; }
+    void setLastName( lString16 ln ) { _lastName = ln; }
+    void getMiddleName( lString16 mn ) { _middleName = mn; }
+    void getNickName( lString16 nn ) { _nickName = nn; }
+};
+
+/// document properties container
+class CRDocProperties {
+    lString16 _fileName;
+    lvsize_t  _fileSize;
+    doc_format_t _format;
+    lString16  _title;
+    lString16  _seriesName;
+    int        _seriesNumber;
+    LVPtrVector<CRDocAuthor> _authors;
+public:
+    /// returns array of document authors
+    LVPtrVector<CRDocAuthor> & getAuthors() { return _authors; }
+    /// returns document file name
+    lString16 getFileName() { return _fileName; }
+    /// returns document file size
+    lvsize_t getFileSize() { return _fileSize; }
+    /// returns document format
+    doc_format_t getFormat() { return _format; }
+    /// returns document title
+    lString16 getTitle() { return _title; }
+    /// returns document series name
+    lString16 getSeriesName() { return _seriesName; }
+    /// returns document series number
+    int getSeriesNumber() { _seriesNumber; }
+    void setFileName( lString16 fn ) { _fileName = fn; }
+    void setFileSize( lvsize_t sz ) { _fileSize = sz; }
+    void setFormat( doc_format_t fmt ) { _format = fmt; }
+    void setTitle( lString16 title ) { _title = title; }
+    void setSeriesName( lString16 sn ) {  _seriesName = sn; }
+    void setSeriesNumber( int sn ) { _seriesNumber = sn; }
+    CRDocProperties() : _seriesNumber(0)
+    {
+    }
+    ~CRDocProperties()
+    {
+    }
+};
+
+/// file properties container
+class CRFileProperties {
+    lString16 _storageBasePath;
+    lString16 _relativePath;
+    lString16 _fileName;
+    lvsize_t  _fileSize;
+    bool      _isArchieve;
+    LVPtrVector<CRDocProperties> _docList;
+    lString16  _mimeType;
+    //===============================================
+    bool readDocument( lString16 fileName, LVStreamRef stream )
+    {
+        return true;
+    }
+    bool readEpub( LVContainerRef arc )
+    {
+        lString16 rootfilePath;
+        lString16 rootfileMediaType;
+        // read container.xml
+        {
+            LVStreamRef container_stream = arc->OpenStream(L"META-INF/container.xml", LVOM_READ);
+            if ( !container_stream.isNull() ) {
+                ldomDocument * doc = LVParseXMLStream( container_stream );
+                if ( doc ) {
+                    ldomNode * rootfile = doc->nodeFromXPath( lString16(L"container/rootfiles/rootfile") );
+                    if ( rootfile && rootfile->isElement() ) {
+                        rootfilePath = rootfile->getAttributeValue(L"full-path");
+                        rootfileMediaType = rootfile->getAttributeValue(L"media-type");
+                    }
+                    delete doc;
+                }
+            }
+        }
+        lString16 codeBase;
+        if ( !rootfilePath.empty() && rootfileMediaType==L"application/oebps-package+xml" ) {
+            //
+            {
+                int lastSlash = -1;
+                for ( int i=0; i<(int)rootfilePath.length(); i++ )
+                    if ( rootfilePath[i]=='/' )
+                        lastSlash = i;
+                if ( lastSlash>0 )
+                    codeBase = lString16( rootfilePath.c_str(), lastSlash + 1);
+            }
+            LVStreamRef content_stream = arc->OpenStream(rootfilePath.c_str(), LVOM_READ);
+            if ( !content_stream.isNull() ) {
+                ldomDocument * doc = LVParseXMLStream( content_stream );
+                if ( doc ) {
+                    lString16 title = doc->textFromXPath( lString16(L"package/metadata/title") );
+                    lString16 authors = doc->textFromXPath( lString16(L"package/metadata/creator") );
+                    delete doc;
+                }
+            }
+        }
+        return false;
+    }
+    bool readArchieve( LVContainerRef arc )
+    {
+        // epub support
+        LVStreamRef mtStream = m_arc->OpenStream(L"mimetype", LVOM_READ );
+        if ( !mtStream.isNull() ) {
+            int size = mtStream->GetSize();
+            if ( size>4 && size<100 ) {
+                LVAutoPtr<char> buf( size+1 );
+                if ( mtStream->Read( buf.get(), size, NULL )==LVERR_OK ) {
+                    for ( int i=0; i<size; i++ )
+                        if ( buf[i]<32 || ((unsigned char)buf[i])>127 )
+                            buf[i] = 0;
+                    buf[size] = 0;
+                    if ( buf[0] )
+                        _mimeType = Utf8ToUnicode( lString8( buf.get() ) );
+                }
+            }
+        }
+        if ( _mimeType==L"application/epub+zip" )
+            return readEpub( arc );
+        // todo: add more mime types support here
+        for ( int i=0; i<arc->GetObjectCount(); i++ ) {
+            const LVContainerItemInfo * item = arc->GetObjectInfo( i );
+            if ( !item->IsContainer() ) {
+                LVStreamRef stream = arc->OpenStream( item->GetName(), LVOM_READ );
+                if ( !stream.isNull() ) {
+                    readDocument( lString16(item->GetName() ), stream );
+                }
+            }
+        }
+        return _docList.length() > 0;
+    }
+public:
+    bool readFileProps( lString16 storageBasePath, lString16 filePathName )
+    {
+        LVAppendPathDelimiter( storageBasePath );
+        if ( filePathName.startsWith( storageBasePath ) ) {
+            _storageBasePath = storageBasePath;
+            _relativePath = filePathName.substr( _storageBasePath.length() );
+            _fileName = LVExtractFilename( _relativePath );
+            _relativePath = LVExtractPath( _relativePath );
+        } else {
+            _storageBasePath.clear();
+            _fileName = LVExtractFilename( filePathName );
+            _relativePath = LVExtractPath( filePathName );
+        }
+        _mimeType.clear();
+        LVStreamRef stream = LVOpenFileStream( filePathName.c_str(), LVOM_READ );
+        if ( stream.isNull() )
+            return false;
+        _fileSize = stream->GetSize();
+        LVContainerRef arc = LVOpenArchieve( stream );
+        _isArchieve = !arc.isNull();
+        if ( _isArchieve )
+            return readArchieve( arc );
+        else
+            return readDocument( _fileName, stream );
+    }
+    CRFileProperties() : _fileSize(0), _isArchieve(false)
+    {
+    }
+    virtual ~CRFileProperties()
+    {
+    }
+};
+
 
 /*
  For LINUX:

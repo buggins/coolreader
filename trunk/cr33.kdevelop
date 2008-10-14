@@ -20,7 +20,7 @@
   <kdevautoproject>
     <general>
       <activetarget>src/cr3</activetarget>
-      <useconfiguration>optimized</useconfiguration>
+      <useconfiguration>debug</useconfiguration>
     </general>
     <run>
       <mainprogram>src/cr3</mainprogram>
