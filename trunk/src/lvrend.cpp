@@ -550,9 +550,13 @@ void initFormatData( ldomNode * node )
 }
 
 // init table element render methods
-void initTableRendMethods( ldomNode * node )
+// states: 0=table, 1=row, 2=cell
+void initTableRendMethods( ldomNode * node, int state )
 {
-    //TODO
+    //main node: table
+    ldomElement * enode = (ldomElement *)node;
+    if ( state==0 )
+        enode->setRendMethod( erm_table ); // for table
     int cnt = node->getChildCount();
     int i;
     for (i=0; i<cnt; i++)
@@ -562,18 +566,36 @@ void initTableRendMethods( ldomNode * node )
         {
             switch( child->getStyle()->display )
             {
+            case css_d_table_caption:
+                if ( state==0 ) {
+                    enode->setRendMethod( erm_table_caption );
+                } else {
+                    enode->setRendMethod( erm_invisible );
+                }
+                break;
             case css_d_inline:
                 {
                 }
                 break;
             case css_d_table_row_group:
+                if ( state==0 ) {
+                    enode->setRendMethod( erm_table_row );
+                } else {
+                    enode->setRendMethod( erm_invisible );
+                }
+                break;
             case css_d_table_header_group:
             case css_d_table_footer_group:
             case css_d_table_row:
+                if ( state==0 ) {
+                    enode->setRendMethod( erm_table_caption );
+                } else {
+                    enode->setRendMethod( erm_invisible );
+                }
+                break;
             case css_d_table_column_group:
             case css_d_table_column:
             case css_d_table_cell:
-            case css_d_table_caption:
                 break;
             }
         }
@@ -593,8 +615,7 @@ void initRendMethod( ldomNode * node )
         }
         if (enode->getStyle()->display == css_d_table)
         {
-            enode->setRendMethod( erm_table );
-            initTableRendMethods( enode );
+            initTableRendMethods( enode, 1 );
             return;
         }
         int cnt = node->getChildCount();
@@ -1260,11 +1281,15 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 #endif
             }
             break;
+        case erm_table:
+            //TODO: draw table
+            break;
         case erm_invisible:
             // don't draw invisible blocks
             break;
         default:
-            crFatalError(); // error
+            break;
+            //crFatalError(); // error
         }
         if ( bg.type==css_val_color ) {
             drawbuf.SetBackgroundColor( oldColor );
