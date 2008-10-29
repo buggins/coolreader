@@ -49,11 +49,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="..\..\..\freetype2\include;..\..\..\libpng;..\..\..\zlib;..\..\..\libjpeg"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_WIN32;UNICODE;_UNICODE"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile=".\Unicode_Release/Fb2Test.pch"
 				AssemblerListingLocation=".\Unicode_Release/"
@@ -75,11 +76,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib ..\..\lib\crengine.lib wxzlib.lib wxpng.lib wxjpeg.lib freetype232mt.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zlib.lib libjpeg.lib libpng.lib freetype235mt.lib"
 				OutputFile=".\Unicode_Release/Fb2Test.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../freetype2/objs"
+				AdditionalLibraryDirectories="..\..\..\zlib\lib;..\..\..\libjpeg\lib;..\..\..\libpng\lib;../../../freetype2/objs"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -267,7 +268,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zlibd.lib libjpegd.lib libpngd.lib freetype232mt_d.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zlibd.lib libjpegd.lib libpngd.lib freetype235mt_d.lib"
 				OutputFile=".\Unicode_Debug/Fb2Test.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

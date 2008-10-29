@@ -502,9 +502,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-	WNDCLASSEXA wcex;
+	WNDCLASSEXW wcex;
 
-	wcex.cbSize = sizeof(WNDCLASSEXA);
+	wcex.cbSize = sizeof(WNDCLASSEXW);
 
 	wcex.style			= 0; //CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc	= (WNDPROC)WndProc;
@@ -515,10 +515,10 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
 	wcex.lpszMenuName	= NULL;
-	wcex.lpszClassName	= "CoolReader";
+	wcex.lpszClassName	= L"CoolReader";
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, (LPCTSTR)IDI_SMALL);
 
-	return RegisterClassExA(&wcex);
+	return RegisterClassExW(&wcex);
 }
 
 static void UpdateScrollBar(HWND hWnd )
@@ -569,15 +569,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       dx = 500;
       dy = 600;
 #endif
-#if (COLOR_BACKBUFFER==0)
-	const char * title =   "CoolReader FictionBook2 to WOL converter";
-#else
-	const char * title =   "CREngine " CR_ENGINE_VERSION ": FictionBook2 XML/CSS Engine test";
-#endif
 
-   hWnd = CreateWindowA(
-	   "CoolReader",
-		title,
+   hWnd = CreateWindowW(
+	   L"CoolReader",
+	   L"CREngine - Simple FB2 viewer",
       flags, //WS_OVERLAPPEDWINDOW
       x, y, dx, dy,
       NULL, NULL, hInstance, NULL);
