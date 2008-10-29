@@ -1846,7 +1846,7 @@ public:
     void * getProc( const char * procName )
     {
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
-        return LoadLibrary( procName );
+        return LoadLibraryA( procName );
 #else
         return dlsym( _lib, procName );
 #endif
@@ -1859,7 +1859,7 @@ public:
     {
         if ( !_lib ) {
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
-            _lib = LoadLibrary( libName );
+            _lib = LoadLibraryA( libName );
 #else
             _lib = dlopen( libName, RTLD_NOW | RTLD_LOCAL );
 #endif

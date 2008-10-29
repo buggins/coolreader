@@ -254,7 +254,7 @@ class LVBaseWin32Font : public LVBaseFont
 {
 protected:
     HFONT   _hfont;
-    LOGFONT _logfont;
+    LOGFONTA _logfont;
     int     _height;
     int     _baseline;
     LVColorDrawBuf _drawbuf;
@@ -305,7 +305,7 @@ public:
     
     virtual void Clear();
 
-    virtual bool Create( const LOGFONT & lf );
+    virtual bool Create( const LOGFONTA & lf );
 
     virtual bool Create(int size, int weight, bool italic, css_font_family_t family, lString8 typeface );
     
@@ -530,7 +530,7 @@ public:
     
     virtual void Clear();
 
-    virtual bool Create( const LOGFONT & lf );
+    virtual bool Create( const LOGFONTA & lf );
 
     virtual bool Create(int size, int weight, bool italic, css_font_family_t family, lString8 typeface );
 

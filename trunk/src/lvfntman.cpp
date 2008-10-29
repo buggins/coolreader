@@ -1437,7 +1437,7 @@ public:
         return LVFontRef(NULL);
     }
     
-    virtual bool RegisterFont( const LOGFONT * lf )
+    virtual bool RegisterFont( const LOGFONTA * lf )
     {
         lString8 face(lf->lfFaceName);
         css_font_family_t ff;
@@ -1480,11 +1480,11 @@ public:
     virtual bool Init( lString8 path )
     {
         LVColorDrawBuf drawbuf(1,1);
-        LOGFONT lf;
+        LOGFONTA lf;
         memset(&lf, 0, sizeof(lf));
         lf.lfCharSet = ANSI_CHARSET;
         int res = 
-        EnumFontFamiliesEx(
+        EnumFontFamiliesExA(
           drawbuf.GetDC(),                  // handle to DC
           &lf,                              // font information
           LVWin32FontEnumFontFamExProc, // callback function (FONTENUMPROC)
@@ -1860,12 +1860,12 @@ void LVBaseWin32Font::Clear()
     }
 }
 
-bool LVBaseWin32Font::Create( const LOGFONT & lf )
+bool LVBaseWin32Font::Create( const LOGFONTA & lf )
 {
     if (!IsNull())
         Clear();
-    memcpy( &_logfont, &lf, sizeof(LOGFONT));
-    _hfont = CreateFontIndirect( &lf );
+    memcpy( &_logfont, &lf, sizeof(LOGFONTA));
+    _hfont = CreateFontIndirectA( &lf );
     if (!_hfont)
         return false;
     //memcpy( &_logfont, &lf, sizeof(LOGFONT) );
@@ -1877,7 +1877,7 @@ bool LVBaseWin32Font::Create( const LOGFONT & lf )
     _logfont.lfWeight = tm.tmWeight;
     _logfont.lfItalic = tm.tmItalic;
     _logfont.lfCharSet = tm.tmCharSet;
-    GetTextFace( _drawbuf.GetDC(), sizeof(_logfont.lfFaceName)-1, _logfont.lfFaceName );
+    GetTextFaceA( _drawbuf.GetDC(), sizeof(_logfont.lfFaceName)-1, _logfont.lfFaceName );
     _height = tm.tmHeight;
     _baseline = _height - tm.tmDescent;
     return true;
@@ -1888,8 +1888,8 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     if (!IsNull())
         Clear();
     //
-    LOGFONT lf;
-    memset(&lf, 0, sizeof(LOGFONT));
+    LOGFONTA lf;
+    memset(&lf, 0, sizeof(LOGFONTA));
     lf.lfHeight = size;
     lf.lfWeight = weight;
     lf.lfItalic = italic?1:0;
@@ -1926,7 +1926,7 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
         lf.lfPitchAndFamily = VARIABLE_PITCH | FF_DONTCARE;
         break;
     }
-    _hfont = CreateFontIndirect( &lf );
+    _hfont = CreateFontIndirectA( &lf );
     if (!_hfont)
         return false;
     //memcpy( &_logfont, &lf, sizeof(LOGFONT) );
@@ -1939,7 +1939,7 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     _logfont.lfWeight = tm.tmWeight;
     _logfont.lfItalic = tm.tmItalic;
     _logfont.lfCharSet = tm.tmCharSet;
-    GetTextFace( _drawbuf.GetDC(), sizeof(_logfont.lfFaceName)-1, _logfont.lfFaceName );
+    GetTextFaceA( _drawbuf.GetDC(), sizeof(_logfont.lfFaceName)-1, _logfont.lfFaceName );
     _height = tm.tmHeight;
     _baseline = _height - tm.tmDescent;
     return true;
@@ -2469,7 +2469,7 @@ void LVWin32Font::Clear()
     _cache.clear();
 }
 
-bool LVWin32Font::Create( const LOGFONT & lf )
+bool LVWin32Font::Create( const LOGFONTA & lf )
 {
     if (!LVBaseWin32Font::Create(lf))
         return false;

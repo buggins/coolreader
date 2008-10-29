@@ -95,7 +95,7 @@ LRESULT CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 lString8 OpenFileDialog( HWND hWndOwner )
 {
     lString8 fn;
-    OPENFILENAME ofn;
+    OPENFILENAMEA ofn;
     char str[MAX_PATH] = "";
     memset( &ofn, 0, sizeof(ofn) );
     ofn.lStructSize = sizeof( ofn );
@@ -108,7 +108,7 @@ lString8 OpenFileDialog( HWND hWndOwner )
     ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
     ofn.lpstrDefExt = "fb2";
 //    ofn.FlagsEx = OFN_EX_NOPLACESBAR;
-    if ( GetOpenFileName( &ofn ) )
+    if ( GetOpenFileNameA( &ofn ) )
     {
         fn = str;
     }
@@ -118,7 +118,7 @@ lString8 OpenFileDialog( HWND hWndOwner )
 lString8 SaveFileDialog( HWND hWndOwner )
 {
     lString8 fn;
-    OPENFILENAME ofn;
+    OPENFILENAMEA ofn;
     char str[MAX_PATH] = "";
     memset( &ofn, 0, sizeof(ofn) );
     ofn.lStructSize = sizeof( ofn );
@@ -131,7 +131,7 @@ lString8 SaveFileDialog( HWND hWndOwner )
     ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
     ofn.lpstrDefExt = "wol";
 //    ofn.FlagsEx = OFN_EX_NOPLACESBAR;
-    if ( GetSaveFileName( &ofn ) )
+    if ( GetSaveFileNameA( &ofn ) )
     {
         fn = str;
     }
@@ -361,7 +361,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 */
 	lString8 exe_dir;
 	char exe_fn[MAX_PATH+1];
-	GetModuleFileName( NULL, exe_fn, MAX_PATH );
+	GetModuleFileNameA( NULL, exe_fn, MAX_PATH );
 	int last_slash = -1;
 	int i;
 	for (i=0; exe_fn[i]; i++)
@@ -429,7 +429,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #else
         sprintf(str, "Cannot open font file(s) font#.lbf \nCannot work without font\nUse FontConv utility to generate .lbf fonts from TTF" );
 #endif
-        MessageBox( NULL, str, "CR Engine :: Fb2Test -- fatal error!", MB_OK);
+        MessageBoxA( NULL, str, "CR Engine :: Fb2Test -- fatal error!", MB_OK);
         return 1;
     }
 
@@ -452,7 +452,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         //error
         char str[100];
         sprintf(str, "Cannot open document file %s", cmdline.c_str());
-        MessageBox( NULL, str, "CR Engine :: Fb2Test -- fatal error!", MB_OK);
+        MessageBoxA( NULL, str, "CR Engine :: Fb2Test -- fatal error!", MB_OK);
         return 1;
     }
 
@@ -502,9 +502,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-	WNDCLASSEX wcex;
+	WNDCLASSEXA wcex;
 
-	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.cbSize = sizeof(WNDCLASSEXA);
 
 	wcex.style			= 0; //CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc	= (WNDPROC)WndProc;
@@ -518,7 +518,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.lpszClassName	= "CoolReader";
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, (LPCTSTR)IDI_SMALL);
 
-	return RegisterClassEx(&wcex);
+	return RegisterClassExA(&wcex);
 }
 
 static void UpdateScrollBar(HWND hWnd )
@@ -575,7 +575,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	const char * title =   "CREngine " CR_ENGINE_VERSION ": FictionBook2 XML/CSS Engine test";
 #endif
 
-   hWnd = CreateWindow(
+   hWnd = CreateWindowA(
 	   "CoolReader",
 		title,
       flags, //WS_OVERLAPPEDWINDOW

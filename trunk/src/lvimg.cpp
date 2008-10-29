@@ -34,8 +34,8 @@ extern "C" {
 
 #include <jerror.h>
 
-#if defined(LINUX)
-#define wxjpeg_boolean int
+#ifndef HAVE_WXJPEG_BOOLEAN
+typedef boolean wxjpeg_boolean;
 #endif
 
 #endif
