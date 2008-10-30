@@ -45,6 +45,8 @@ LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight)
 /// append footnote link to last added line
 void LVRendPageContext::addLink( lString16 id )
 {
+    if ( !page_list )
+        return;
     if ( lines.empty() )
         return;
     LVFootNote * note = getOrCreateFootNote( id );
@@ -54,12 +56,16 @@ void LVRendPageContext::addLink( lString16 id )
 /// mark start of foot note
 void LVRendPageContext::enterFootNote( lString16 id )
 {
+    if ( !page_list )
+        return;
     curr_note = getOrCreateFootNote( id );
 }
 
 /// mark end of foot note
 void LVRendPageContext::leaveFootNote()
 {
+    if ( !page_list )
+        return;
     curr_note = NULL;
 }
 
@@ -272,6 +278,8 @@ public:
 
 void LVRendPageContext::split()
 {
+    if ( !page_list )
+        return;
     PageSplitState s(page_list, page_h);
 
     int lineCount = lines.length();

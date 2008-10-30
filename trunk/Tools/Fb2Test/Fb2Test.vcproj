@@ -173,7 +173,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zlibd.lib libjpegd.lib libpngd.lib freetype235mt_d.lib"
+				AdditionalDependencies="zlibd.lib libjpegd.lib libpngd.lib freetype235mt_d.lib"
 				OutputFile=".\Unicode_Debug/Fb2Test.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

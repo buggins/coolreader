@@ -328,11 +328,13 @@ public:
                     x++;
                     ExtendCols(x); // update col count
                 }
-                rows[i]->cells[j]->col = cols[x];
+                ExtendCols( x + cs ); // update col count
+                cell->col = cols[x];
                 for (int xx=0; xx<cs; xx++) {
                     // place cell
-                    ExtendCols(x+xx); // update col count
-                    cols[x+xx]->nrows = i+cell->rowspan;
+                    ExtendCols(x+xx+1); // update col count
+                    if ( cols[x+xx]->nrows < i+cell->rowspan )
+                        cols[x+xx]->nrows = i+cell->rowspan;
                     if (cell->rowspan>1) {
                         int flg =1;
                     }
@@ -514,6 +516,107 @@ public:
             cols[i]->x = cols[i-1]->x + cols[i-1]->width;
         }
     }
+
+    int renderCells( LVRendPageContext & context )
+    {
+        int i, j;
+        // calc individual cells dimensions
+        for (i=0; i<rows.length(); i++) {
+            CCRTableRow * row = rows[i];
+            for (j=0; j<rows[i]->cells.length(); j++) {
+                CCRTableCell * cell = rows[i]->cells[j];
+                int x = cell->col->index;
+                int y = cell->row->index;
+                if ( i==y ) {
+                    //upper left corner of cell
+                    
+                    if ( cell->elem->getRendMethod()==erm_final ) {
+                        LFormattedTextRef txform;
+                        int h = cell->elem->renderFinalBlock( txform, cell->width );
+                        cell->height = h;
+                    } else if ( cell->elem->getRendMethod()!=erm_invisible ) {
+                        LVRendPageContext emptycontext( NULL, context.getPageHeight() );
+                        int h = renderBlockElement( context, cell->elem, 0, 0, cell->width );
+                        cell->height = h;
+                    }
+                    lvdomElementFormatRec * fmt = cell->elem->getRenderData();
+                    fmt->setHeight( cell->height );
+                    fmt->setWidth( cell->width );
+                    fmt->setX( cell->col->x );
+                    if ( cell->rowspan==1 ) {
+                        if ( row->height < cell->height )
+                            row->height = cell->height;
+                    }
+                }
+            }
+        }
+        // update rows by multyrow cell height
+        for (i=0; i<rows.length(); i++) {
+            CCRTableRow * row = rows[i];
+            for (j=0; j<rows[i]->cells.length(); j++) {
+                CCRTableCell * cell = rows[i]->cells[j];
+                int x = cell->col->index;
+                int y = cell->row->index;
+                if ( i==y && cell->rowspan>1 ) {
+                    int k;
+                    int total_h = 0;
+                    for ( k=i; k<=i+cell->rowspan-1; k++ ) {
+                        CCRTableRow * row2 = rows[k];
+                        total_h += row2->height;
+                    }
+                    int extra_h = cell->height - total_h;
+                    if ( extra_h>0 ) {
+                        int delta = extra_h / cell->rowspan;
+                        int delta_h = extra_h - delta * cell->rowspan;
+                        for ( k=i; k<=i+cell->rowspan-1; k++ ) {
+                            CCRTableRow * row2 = rows[k];
+                            row2->height += delta;
+                            if ( delta_h > 0 ) {
+                                row2->height++;
+                                delta_h--;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // update rows y and total height
+        int h = 0;
+        for (i=0; i<rows.length(); i++) {
+            CCRTableRow * row = rows[i];
+            row->y = h;
+            h += row->height;
+            lvdomElementFormatRec * fmt = row->elem->getRenderData();
+            fmt->setX(0);
+            fmt->setY(row->y);
+            fmt->setWidth( width );
+            fmt->setHeight( row->height );
+        }
+        // update cell Y relative to row element
+        // calc individual cells dimensions
+        for (i=0; i<rows.length(); i++) {
+            CCRTableRow * row = rows[i];
+            for (j=0; j<rows[i]->cells.length(); j++) {
+                CCRTableCell * cell = rows[i]->cells[j];
+                int x = cell->col->index;
+                int y = cell->row->index;
+                if ( i==y ) {
+                    lvdomElementFormatRec * fmt = cell->elem->getRenderData();
+                    fmt->setX( cell->col->x );
+                    CCRTableCol * lastcol = cols[ cell->col->index + cell->colspan - 1 ];
+                    fmt->setWidth( lastcol->width + lastcol->x - cell->col->x );
+                    CCRTableRow * lastrow = rows[ cell->row->index + cell->rowspan - 1 ];
+                    fmt->setHeight( lastrow->height + lastrow->y - cell->row->y );
+                    // Y relative to row top bound
+                    fmt->setY( 0 ); //cell->row->y - cell->row->y );
+                }
+            }
+        }
+        // update row groups
+        // TODO... WARNING!!! row groups not supported yet!!!
+        return h;
+    }
+
     CCRTable(ldomElement * tbl_elem, int tbl_width, int dwidth) : digitwidth(dwidth) {
         caption = NULL;
         elem = tbl_elem;
@@ -1213,48 +1316,50 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                 lvRect rect;
                 node->getAbsRect(rect);
                 // split pages
-                int break_before = CssPageBreak2Flags( enode->getStyle()->page_break_before );
-                int break_after = CssPageBreak2Flags( enode->getStyle()->page_break_after );
-                int break_inside = CssPageBreak2Flags( enode->getStyle()->page_break_inside );
-                int count = txform->GetLineCount();
-                for (int i=0; i<count; i++)
-                {
-                    const formatted_line_t * line = txform->GetLineInfo(i);
-                    int line_flags = 0; //TODO
-                    if (i==0)
-                        line_flags |= break_before << RN_SPLIT_BEFORE;
-                    else
-                        line_flags |= break_inside << RN_SPLIT_BEFORE;
-                    if (i==count-1)
-                        line_flags |= break_after << RN_SPLIT_AFTER;
-                    else
-                        line_flags |= break_inside << RN_SPLIT_AFTER;
+                if ( context.getPageList() != NULL ) {
+                    int break_before = CssPageBreak2Flags( enode->getStyle()->page_break_before );
+                    int break_after = CssPageBreak2Flags( enode->getStyle()->page_break_after );
+                    int break_inside = CssPageBreak2Flags( enode->getStyle()->page_break_inside );
+                    int count = txform->GetLineCount();
+                    for (int i=0; i<count; i++)
+                    {
+                        const formatted_line_t * line = txform->GetLineInfo(i);
+                        int line_flags = 0; //TODO
+                        if (i==0)
+                            line_flags |= break_before << RN_SPLIT_BEFORE;
+                        else
+                            line_flags |= break_inside << RN_SPLIT_BEFORE;
+                        if (i==count-1)
+                            line_flags |= break_after << RN_SPLIT_AFTER;
+                        else
+                            line_flags |= break_inside << RN_SPLIT_AFTER;
 
-                    context.AddLine(rect.top+line->y, rect.top+line->y+line->height, line_flags);
+                        context.AddLine(rect.top+line->y, rect.top+line->y+line->height, line_flags);
 
-                    // footnote links analysis
-                    if ( !isFootNoteBody && node->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
-                        for ( unsigned w=0; w<line->word_count; w++ ) {
-                            // check link start flag for every word
-                            if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
-                                const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
-                                if ( src && src->object ) {
-                                    ldomNode * node = (ldomNode*)src->object;
-                                    ldomElement * parent = node->getParentNode();
-                                    if ( parent->getNodeId()==el_a && parent->hasAttribute(LXML_NS_ANY, attr_href )
-                                            && parent->getAttributeValue(LXML_NS_ANY, attr_type )==L"note") {
-                                        lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
-                                        if ( href.length()>0 && href.at(0)=='#' ) {
-                                            href.erase(0,1);
-                                            context.addLink( href );
+                        // footnote links analysis
+                        if ( !isFootNoteBody && node->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
+                            for ( unsigned w=0; w<line->word_count; w++ ) {
+                                // check link start flag for every word
+                                if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
+                                    const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
+                                    if ( src && src->object ) {
+                                        ldomNode * node = (ldomNode*)src->object;
+                                        ldomElement * parent = node->getParentNode();
+                                        if ( parent->getNodeId()==el_a && parent->hasAttribute(LXML_NS_ANY, attr_href )
+                                                && parent->getAttributeValue(LXML_NS_ANY, attr_type )==L"note") {
+                                            lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
+                                            if ( href.length()>0 && href.at(0)=='#' ) {
+                                                href.erase(0,1);
+                                                context.addLink( href );
+                                            }
+
                                         }
-
                                     }
                                 }
                             }
                         }
                     }
-                }
+                } // has page list
                 if ( isFootNoteBody )
                     context.leaveFootNote();
                 return h + margin_top + margin_bottom;
@@ -1284,7 +1389,11 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
             crFatalError();
         doc_x += fmt->getX();
         doc_y += fmt->getY();
-        if ( doc_y + fmt->getHeight() <= 0 || doc_y > 0 + dy ) //0~=y0
+        if ( (doc_y + fmt->getHeight() <= 0 || doc_y > 0 + dy) 
+            && (
+               enode->getRendMethod()!=erm_table_row
+               && enode->getRendMethod()!=erm_table_row_group
+            ) ) //0~=y0
         {
             return; // out of range
         }
@@ -1306,6 +1415,9 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 #endif
         switch( enode->getRendMethod() )
         {
+        case erm_table:
+        case erm_table_row:
+        case erm_table_row_group:
         case erm_block:
             {
                 // recursive draw all sub-blocks for blocks
@@ -1321,6 +1433,14 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
                 drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
 #endif
+                lUInt32 tableBorderColor = 0x808080;
+                bool needBorder = enode->getRendMethod()==erm_table || enode->getStyle()->display==css_d_table_cell;
+                if ( needBorder ) {
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
+                }
             }
             break;
         case erm_final:
@@ -1350,10 +1470,16 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
                 drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
 #endif
+                lUInt32 tableBorderColor = 0xC0C0C0;
+                lUInt32 tableBorderColorDark = 0x808080;
+                bool needBorder = enode->getStyle()->display==css_d_table_cell;
+                if ( needBorder ) {
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
+                }
             }
-            break;
-        case erm_table:
-            //TODO: draw table
             break;
         case erm_invisible:
             // don't draw invisible blocks
@@ -1572,5 +1698,6 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
 int renderTable( LVRendPageContext & context, ldomElement * node, int x, int y, int width )
 {
     CCRTable table( node, width, 10 );
-    return 0;
+    int h = table.renderCells( context );
+    return h;
 }

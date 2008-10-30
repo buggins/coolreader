@@ -203,7 +203,11 @@ public:
     /// mark end of foot note
     void leaveFootNote();
 
+    /// returns page height
     int getPageHeight() { return page_h; }
+
+    /// returns page list pointer
+    LVRendPageList * getPageList() { return page_list; }
 
     LVRendPageContext(LVRendPageList * pageList, int pageHeight);
 
