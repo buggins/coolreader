@@ -176,6 +176,7 @@ public:
     int width;
     int digitwidth;
     ldomElement * elem;
+    ldomElement * caption;
     LVPtrVector<CCRTableRow> rows;
     LVPtrVector<CCRTableCol> cols;
     LVMatrix<CCRTableCell*> cells;
@@ -197,73 +198,106 @@ public:
             if (el->getChildNode(i)->getNodeType()==LXML_ELEMENT_NODE) {
                 // for each child element
                 ldomElement * item = (ldomElement *)el->getChildNode(i);
-                lUInt16 tid = item->getNodeId();
-                if (tid==el_tr && state==0) {
-                    // rows of table
-                    CCRTableRow * row = new CCRTableRow;
-                    rows.add( row );
-                    row->elem = item;
-                    if (row->elem->hasAttribute(LXML_NS_ANY, attr_link)) {
-                        lString16 lnk=row->elem->getAttributeValue(attr_link);
-                        row->linkindex = lnk.atoi();
+                lvdom_element_render_method rendMethod = item->getRendMethod();
+                switch ( rendMethod ) {
+                case erm_invisible:  // invisible: don't render
+                    // do nothing: invisible
+                    break;
+                case erm_table:      // table element: render as table
+                    // do nothing: impossible
+                    break;
+                case erm_table_row_group: // table row group
+                case erm_table_header_group: // table header group
+                case erm_table_footer_group: // table footer group
+                case erm_table_column_group: // table column group
+                    // just fall into groups
+                    LookupElem( item, 0 );
+                    break;
+                case erm_table_row: // table row
+                    {
+                        // rows of table
+                        CCRTableRow * row = new CCRTableRow;
+                        row->elem = item;
+                        rows.add( row );
+                        if (row->elem->hasAttribute(LXML_NS_ANY, attr_link)) {
+                            lString16 lnk=row->elem->getAttributeValue(attr_link);
+                            row->linkindex = lnk.atoi();
+                        }
+                        // recursion: search for inner elements
+                        int res = LookupElem( item, 1 ); // lookup row
                     }
-                    // recursion: search for inner elements
-                    int res = LookupElem( item, 1 ); // lookup row
-                } else if (tid==el_col && state==0) {
-                    // cols width definitions
-                    ExtendCols(colindex+1);
-                    CCRTableCol * col = cols[colindex];
-                    col->elem = item;
-                    lString16 w = item->getAttributeValue(attr_width);
-                    if (w!=L"") {
-                        int wn = StrToIntPercent(w.c_str(), digitwidth);
-                        if (wn<0)
-                            col->percent = -wn;
-                        else if (wn>0)
-                            col->width = wn;
+                    break;
+                case erm_table_column: // table column
+                    {
+                        // cols width definitions
+                        ExtendCols(colindex+1);
+                        CCRTableCol * col = cols[colindex];
+                        col->elem = item;
+                        lString16 w = item->getAttributeValue(attr_width);
+                        if (w!=L"") {
+                            // TODO: px, em, and other length types support
+                            int wn = StrToIntPercent(w.c_str(), digitwidth);
+                            if (wn<0)
+                                col->percent = -wn;
+                            else if (wn>0)
+                                col->width = wn;
+                        }
+                        colindex++;
                     }
-                    colindex++;
-                } else if ( (tid==el_th || tid==el_td) && (state==1) ) {
-                    // <th> or <td> inside <tr>
-                    CCRTableCell * cell = new CCRTableCell;
-                    cell->elem = item;
-                    lString16 w = item->getAttributeValue(attr_width);
-                    if (w!=L"") {
-                        int wn = StrToIntPercent(w.c_str(), digitwidth);
-                        if (wn<0)
-                            cell->percent = -wn;
-                        else if (wn>0)
-                            cell->width = wn;
-                    }
-                    int cs=StrToIntPercent(item->getAttributeValue(attr_colspan).c_str());
-                    if (cs>0 && cs<100) {
-                        cell->colspan=cs;
-                    } else {
-                        cs=1;
-                    }
-                    int rs=StrToIntPercent(item->getAttributeValue(attr_rowspan).c_str());
-                    if (rs>0 && rs<100) {
-                        cell->rowspan=rs;
-                    } else {
-                        rs=1;
-                    }
-                    // "align"
-                    lString16 halign = item->getAttributeValue(attr_align);
-                    if (halign==L"center")
-                        cell->halign=1; // center
-                    else if (halign==L"right")
-                        cell->halign=2; // right
-                    // "valign"
-                    lString16 valign = item->getAttributeValue(attr_valign);
-                    if (valign==L"center")
-                        cell->valign=1; // center
-                    else if (valign==L"bottom")
-                        cell->valign=2; // bottom
+                    break;
+                case erm_block:         // render as block element (render as containing other elements)
+                case erm_final:         // final element: render the whole it's content as single render block
+                case erm_mixed:         // block and inline elements are mixed: autobox inline portions of nodes; TODO
+                case erm_table_cell:    // table cell
+                    {
+                        // <th> or <td> inside <tr>
+                        CCRTableCell * cell = new CCRTableCell;
+                        cell->elem = item;
+                        lString16 w = item->getAttributeValue(attr_width);
+                        if (w!=L"") {
+                            int wn = StrToIntPercent(w.c_str(), digitwidth);
+                            if (wn<0)
+                                cell->percent = -wn;
+                            else if (wn>0)
+                                cell->width = wn;
+                        }
+                        int cs=StrToIntPercent(item->getAttributeValue(attr_colspan).c_str());
+                        if (cs>0 && cs<100) {
+                            cell->colspan=cs;
+                        } else {
+                            cs=1;
+                        }
+                        int rs=StrToIntPercent(item->getAttributeValue(attr_rowspan).c_str());
+                        if (rs>0 && rs<100) {
+                            cell->rowspan=rs;
+                        } else {
+                            rs=1;
+                        }
+                        // "align"
+                        lString16 halign = item->getAttributeValue(attr_align);
+                        if (halign==L"center")
+                            cell->halign=1; // center
+                        else if (halign==L"right")
+                            cell->halign=2; // right
+                        // "valign"
+                        lString16 valign = item->getAttributeValue(attr_valign);
+                        if (valign==L"center")
+                            cell->valign=1; // center
+                        else if (valign==L"bottom")
+                            cell->valign=2; // bottom
 
-                    cell->row = rows[rows.length()-1];
-                    cell->row->cells.add( cell );
-                    cell->row->numcols += cell->colspan;
-                    tdindex++;
+                        cell->row = rows[rows.length()-1];
+                        cell->row->cells.add( cell );
+                        cell->row->numcols += cell->colspan;
+                        tdindex++;
+                    }
+                    break;
+                case erm_table_caption: // table caption
+                    {
+                        //TODO
+                        caption = item;
+                    }
+                    break;
                 }
             }
         }
@@ -481,6 +515,7 @@ public:
         }
     }
     CCRTable(ldomElement * tbl_elem, int tbl_width, int dwidth) : digitwidth(dwidth) {
+        caption = NULL;
         elem = tbl_elem;
         width = tbl_width;
         LookupElem( tbl_elem, 0 );
@@ -550,7 +585,7 @@ void initFormatData( ldomNode * node )
 }
 
 // init table element render methods
-// states: 0=table, 1=row, 2=cell
+// states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
 void initTableRendMethods( ldomNode * node, int state )
 {
     //main node: table
@@ -568,9 +603,9 @@ void initTableRendMethods( ldomNode * node, int state )
             {
             case css_d_table_caption:
                 if ( state==0 ) {
-                    enode->setRendMethod( erm_table_caption );
+                    child->setRendMethod( erm_table_caption );
                 } else {
-                    enode->setRendMethod( erm_invisible );
+                    child->setRendMethod( erm_invisible );
                 }
                 break;
             case css_d_inline:
@@ -578,24 +613,60 @@ void initTableRendMethods( ldomNode * node, int state )
                 }
                 break;
             case css_d_table_row_group:
-                if ( state==0 ) {
-                    enode->setRendMethod( erm_table_row );
+                if ( state==0 || state==2 ) {
+                    child->setRendMethod( erm_table_row_group );
+                    initTableRendMethods( child, 2 );
                 } else {
-                    enode->setRendMethod( erm_invisible );
+                    child->setRendMethod( erm_invisible );
                 }
                 break;
             case css_d_table_header_group:
-            case css_d_table_footer_group:
-            case css_d_table_row:
-                if ( state==0 ) {
-                    enode->setRendMethod( erm_table_caption );
+                if ( state==0 || state==2 ) {
+                    child->setRendMethod( erm_table_header_group );
+                    initTableRendMethods( child, 2);
                 } else {
-                    enode->setRendMethod( erm_invisible );
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_footer_group:
+                if ( state==0 || state==2 ) {
+                    child->setRendMethod( erm_table_footer_group );
+                    initTableRendMethods( child, 2 );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_row:
+                if ( state==0 || state==2 ) {
+                    child->setRendMethod( erm_table_row );
+                    initTableRendMethods( child, 3 );
+                } else {
+                    child->setRendMethod( erm_invisible );
                 }
                 break;
             case css_d_table_column_group:
+                if ( state==0 ) {
+                    child->setRendMethod( erm_table_column_group );
+                    initTableRendMethods( child, 1 );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
             case css_d_table_column:
+                if ( state==0 || state==1 ) {
+                    child->setRendMethod( erm_table_column );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
             case css_d_table_cell:
+                if ( state==3 ) {
+                    child->setRendMethod( erm_table_cell );
+                    // will be translated to block or final below
+                    initRendMethod( child );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
                 break;
             }
         }
@@ -615,7 +686,7 @@ void initRendMethod( ldomNode * node )
         }
         if (enode->getStyle()->display == css_d_table)
         {
-            initTableRendMethods( enode, 1 );
+            initTableRendMethods( enode, 0 );
             return;
         }
         int cnt = node->getChildCount();
@@ -1091,7 +1162,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                     context.enterFootNote( node->getAttributeValue(attr_id) );
                 // recurse all sub-blocks for blocks
                 int y = 0;
-                int h = 0;//renderTable( context, enode, 0, y, width );
+                int h = renderTable( context, enode, 0, y, width );
                 y += h;
                 int st_y = lengthToPx( enode->getStyle()->height, em, em );
                 if ( y < st_y )
@@ -1498,7 +1569,8 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
     }
 }
 
-int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width )
+int renderTable( LVRendPageContext & context, ldomElement * node, int x, int y, int width )
 {
+    CCRTable table( node, width, 10 );
     return 0;
 }
