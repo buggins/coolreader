@@ -44,6 +44,11 @@ enum css_decl_code {
     cssd_margin_top,
     cssd_margin_bottom,
     cssd_margin,
+    cssd_padding_left,
+    cssd_padding_right,
+    cssd_padding_top,
+    cssd_padding_bottom,
+    cssd_padding,
     cssd_page_break_before,
     cssd_page_break_after,
     cssd_page_break_inside,
@@ -75,6 +80,11 @@ static const char * css_decl_name[] = {
     "margin-top:",
     "margin-bottom:",
     "margin:",
+    "padding-left:",
+    "padding-right:",
+    "padding-top:",
+    "padding-bottom:",
+    "padding:",
     "page-break-before:",
     "page-break-after:",
     "page-break-inside:",
@@ -535,6 +545,11 @@ bool LVCssDeclaration::parse( const char * &decl )
             case cssd_margin_top:
             case cssd_margin_bottom:
             case cssd_margin:
+            case cssd_padding_left:
+            case cssd_padding_right:
+            case cssd_padding_top:
+            case cssd_padding_bottom:
+            case cssd_padding:
                 {
                     css_length_t len;
                     if ( parse_number_value( decl, len ) )
@@ -710,6 +725,22 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
         case cssd_margin:
             style->margin[3] = style->margin[2] = 
                 style->margin[1] = style->margin[0] = read_length( p );
+            break;
+        case cssd_padding_left:
+            style->padding[0] = read_length( p );
+            break;
+        case cssd_padding_right:
+            style->padding[1] = read_length( p );
+            break;
+        case cssd_padding_top:
+            style->padding[2] = read_length( p );
+            break;
+        case cssd_padding_bottom:
+            style->padding[3] = read_length( p );
+            break;
+        case cssd_padding:
+            style->padding[3] = style->padding[2] = 
+                style->padding[1] = style->padding[0] = read_length( p );
             break;
         case cssd_stop:
             return;

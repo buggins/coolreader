@@ -18,7 +18,7 @@
 
 lUInt32 calcHash(css_style_rec_t & rec)
 {
-    return (((((((((((((((((((((lUInt32)rec.display * 11
+    return (((((((((((((((((((((((((lUInt32)rec.display * 11
          + (lUInt32)rec.white_space) * 19
          + (lUInt32)rec.text_align) * 37
          + (lUInt32)rec.text_decoration) * 37
@@ -37,6 +37,10 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.margin[1].pack()) * 17
          + (lUInt32)rec.margin[2].pack()) * 23
          + (lUInt32)rec.margin[3].pack()) * 11
+         + (lUInt32)rec.padding[0].pack()) * 13
+         + (lUInt32)rec.padding[1].pack()) * 17
+         + (lUInt32)rec.padding[2].pack()) * 23
+         + (lUInt32)rec.padding[3].pack()) * 11
          + (lUInt32)rec.font_family) * 75
          + (lUInt32)rec.font_name.getHash());
 }
@@ -59,6 +63,10 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.margin[1] == r2.margin[1] &&
            r1.margin[2] == r2.margin[2] &&
            r1.margin[3] == r2.margin[3] &&
+           r1.padding[0] == r2.padding[0] &&
+           r1.padding[1] == r2.padding[1] &&
+           r1.padding[2] == r2.padding[2] &&
+           r1.padding[3] == r2.padding[3] &&
            r1.font_size.type == r2.font_size.type &&
            r1.font_size.value == r2.font_size.value &&
            r1.font_style == r2.font_style &&

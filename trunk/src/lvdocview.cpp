@@ -41,9 +41,9 @@ const char * def_stylesheet =
 "title { text-align: center; text-indent: 0px; font-size: 130%; font-weight: bold; margin-top: 10px; margin-bottom: 10px; font-family: Times New Roman, serif }\n"
 "subtitle { text-align: center; text-indent: 0px; font-size: 150%; margin-top: 10px; margin-bottom: 10px }\n"
 "title { page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }\n"
-"body { text-align: justify; text-indent: 2em; line-height: 140% }\n"
+"body { text-align: justify; text-indent: 2em; line-height: 110% }\n"
 "cite { margin-left: 30%; margin-right: 4%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px; font-family: Times New Roman, serif }\n"
-"td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left }\n"
+"td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 5px }\n"
 "th { font-weight: bold }\n"
 ;
 
