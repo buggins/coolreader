@@ -100,7 +100,7 @@ lString8 OpenFileDialog( HWND hWndOwner )
     memset( &ofn, 0, sizeof(ofn) );
     ofn.lStructSize = sizeof( ofn );
     ofn.hwndOwner = hWndOwner;
-    ofn.lpstrFilter = "All supported files (*.fb2;*.txt;*.rtf;*.zip)\0*.fb2;*.txt;*.rtf;*.zip\0FictionBook2 files (*.fb2)\0*.fb2\0ZIP files (*.zip)\0*.zip\0All Files (*.*)\0*.*\0\0";
+    ofn.lpstrFilter = "All supported files (*.fb2;*.txt;*.rtf;*.zip;*.tcr;*.html;*.epub)\0*.fb2;*.txt;*.rtf;*.zip;*.htm;*.html;*.tcr;*.epub\0FictionBook2 files (*.fb2)\0*.fb2\0ZIP files (*.zip)\0*.zip\0All Files (*.*)\0*.*\0\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFile = str;
     ofn.nMaxFile = MAX_PATH;

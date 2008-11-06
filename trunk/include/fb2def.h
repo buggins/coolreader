@@ -84,6 +84,8 @@ XS_TAG1I( emphasis )
 XS_TAG1D( code, true, css_d_inline, css_ws_pre )
 XS_TAG1I( a )
 
+XS_TAG1( html )
+
 // table
 XS_TAG1D( table, false, css_d_table, css_ws_normal )
 XS_TAG1D( caption, true, css_d_table_caption, css_ws_normal )

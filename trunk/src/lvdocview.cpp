@@ -45,6 +45,7 @@ const char * def_stylesheet =
 "cite { margin-left: 30%; margin-right: 4%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px; font-family: Times New Roman, serif }\n"
 "td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 5px }\n"
 "th { font-weight: bold }\n"
+"table > caption { padding: 5px; text-indent: 0px; font-size: 80%; font-weight: bold; text-align: left; background-color: #AAAAAA }\n"
 ;
 
 static const char * DEFAULT_FONT_NAME = "Arial"; //Times New Roman";
@@ -2449,25 +2450,39 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 }
 
 static const char * AC_P[]  = {"p", "p", "hr", NULL}; 
-static const char * AC_LI[] = {"li", "li", NULL}; 
-static const char * AC_UL[] = {"ul", "li", NULL}; 
-static const char * AC_DD[] = {"dd", "dd", NULL}; 
+static const char * AC_COL[] = {"col", NULL}; 
+static const char * AC_LI[] = {"li", "li", "p", NULL}; 
+static const char * AC_UL[] = {"ul", "ul", "p", NULL}; 
+static const char * AC_DD[] = {"dd", "dd", "p", NULL}; 
 static const char * AC_BR[] = {"br", NULL}; 
 static const char * AC_HR[] = {"hr", NULL}; 
 static const char * AC_IMG[]= {"img", NULL}; 
-static const char * AC_TD[] = {"td", "td", NULL}; 
-static const char * AC_TR[] = {"tr", "tr", "td", NULL}; 
+static const char * AC_TD[] = {"td", "td", "th", NULL}; 
+static const char * AC_TH[] = {"th", "th", "td", NULL}; 
+static const char * AC_TR[] = {"tr", "tr", "thead", "tfoot", "tbody", NULL}; 
+static const char * AC_DIV[] = {"div", "p", NULL}; 
+static const char * AC_TABLE[] = {"table", "p", NULL}; 
+static const char * AC_THEAD[] = {"thead", "tr", "thead", "tfoot", "tbody", NULL}; 
+static const char * AC_TFOOT[] = {"tfoot", "tr", "thead", "tfoot", "tbody", NULL}; 
+static const char * AC_TBODY[] = {"tbody", "tr", "thead", "tfoot", "tbody", NULL}; 
 static const char * *
 HTML_AUTOCLOSE_TABLE[] = {
     AC_P,
     AC_LI,
     AC_UL,
     AC_TD,
+    AC_TH,
     AC_DD,
     AC_TR,
+    AC_COL,
     AC_BR,
     AC_HR,
     AC_IMG,
+    AC_DIV,
+    AC_THEAD,
+    AC_TFOOT,
+    AC_TBODY,
+    AC_TABLE,
     NULL
 };
 
@@ -2571,6 +2586,10 @@ bool LVDocView::ParseDocument( )
         m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
     }
 
+#ifdef _DEBUG
+        LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
+        m_doc->saveToStream( ostream, "utf-16" );
+#endif
 #if 0
     {
         LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );

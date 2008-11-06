@@ -80,6 +80,8 @@ int lengthToPx( css_length_t val, int base_px, int base_em );
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#define TABLE_BORDER_WIDTH 1
+
 class CCRTableCol;
 class CCRTableRow;
 
@@ -189,6 +191,7 @@ public:
     int digitwidth;
     ldomElement * elem;
     ldomElement * caption;
+    int caption_h;
     LVPtrVector<CCRTableRow> rows;
     LVPtrVector<CCRTableCol> cols;
     LVMatrix<CCRTableCell*> cells;
@@ -301,6 +304,7 @@ public:
                         cell->row = rows[rows.length()-1];
                         cell->row->cells.add( cell );
                         cell->row->numcols += cell->colspan;
+                        ExtendCols( cell->row->numcols ); // update col count
                         tdindex++;
                     }
                     break;
@@ -317,6 +321,8 @@ public:
     }
 
     void PlaceCells() {
+
+
         int i, j;
         // search for max column number
         int maxcols = 0;
@@ -425,13 +431,14 @@ public:
         }
         int nrest = cols.length()-nwidth-npercent; // not specified
         int sumwidthpercent = 0; // percent of sum-width
+        int fullWidth = width - TABLE_BORDER_WIDTH * 2;
         if (sumwidth) {
-            sumwidthpercent = 100*sumwidth/width;
+            sumwidthpercent = 100*sumwidth/fullWidth;
             if (sumpercent+sumwidthpercent+5*nrest>100) {
                 // too wide: convert widths to percents
                 for (int i=0; i<cols.length(); i++) {
                     if (cols[i]->width>0) {
-                        cols[i]->percent = cols[i]->width*100/width;
+                        cols[i]->percent = cols[i]->width*100/fullWidth;
                         cols[i]->width = 0;
                         sumpercent += cols[i]->percent;
                         npercent++;
@@ -488,17 +495,17 @@ public:
                 sumwidth += delta;
             }
         }
-        if (sumwidth>width) {
+        if (sumwidth>fullWidth) {
             // too wide! rescale down
             int newsumwidth = 0;
             for (i=0; i<cols.length(); i++) {
-                cols[i]->width = cols[i]->width * width / sumwidth;
+                cols[i]->width = cols[i]->width * fullWidth / sumwidth;
                 newsumwidth += cols[i]->width;
             }
             sumwidth = newsumwidth;
         }
         // distribute rest of width between all cols
-        int restw = width - sumwidth;
+        int restw = fullWidth - sumwidth;
         if (restw>0) {
             int a = restw / cols.length();
             int b = restw % cols.length();
@@ -539,6 +546,22 @@ public:
 
     int renderCells( LVRendPageContext & context )
     {
+        // render caption
+        if ( caption ) {
+            lvdomElementFormatRec * fmt = caption->getRenderData();
+            int em = caption->getFont()->getHeight();
+            int w = width - TABLE_BORDER_WIDTH*2;
+            int padding_left = lengthToPx( caption->getStyle()->padding[0], width, em );
+            int padding_right = lengthToPx( caption->getStyle()->padding[1], width, em );
+            int padding_top = lengthToPx( caption->getStyle()->padding[2], width, em );
+            int padding_bottom = lengthToPx( caption->getStyle()->padding[3], width, em );
+            LFormattedTextRef txform;
+            caption_h = caption->renderFinalBlock( txform, w - padding_left - padding_right ) + padding_top + padding_bottom;
+            fmt->setY( TABLE_BORDER_WIDTH ); //cell->padding_top ); //cell->row->y - cell->row->y );
+            fmt->setX( TABLE_BORDER_WIDTH ); // + cell->padding_left
+            fmt->setWidth( w ); //  - cell->padding_left - cell->padding_right
+            fmt->setHeight( caption_h ); // - cell->padding_top - cell->padding_bottom
+        }
         int i, j;
         // calc individual cells dimensions
         for (i=0; i<rows.length(); i++) {
@@ -606,15 +629,15 @@ public:
             }
         }
         // update rows y and total height
-        int h = 0;
+        int h = caption_h;
         for (i=0; i<rows.length(); i++) {
             CCRTableRow * row = rows[i];
             row->y = h;
             h += row->height;
             lvdomElementFormatRec * fmt = row->elem->getRenderData();
-            fmt->setX(0);
-            fmt->setY(row->y);
-            fmt->setWidth( width );
+            fmt->setX(TABLE_BORDER_WIDTH);
+            fmt->setY(row->y + TABLE_BORDER_WIDTH);
+            fmt->setWidth( width - TABLE_BORDER_WIDTH * 2);
             fmt->setHeight( row->height );
         }
         // update cell Y relative to row element
@@ -635,13 +658,62 @@ public:
                 }
             }
         }
+
+        lvRect rect;
+        elem->getAbsRect(rect);
+        // split pages
+        if ( context.getPageList() != NULL ) {
+            //int break_before = CssPageBreak2Flags( node->getStyle()->page_break_before );
+            //int break_after = CssPageBreak2Flags( node->getStyle()->page_break_after );
+            //int break_inside = CssPageBreak2Flags( node->getStyle()->page_break_inside );
+            if ( caption && caption_h ) {
+                int line_flags = 0;  //TODO
+                int y0 = rect.top; // start of row
+                int y1 = rect.top + caption_h + TABLE_BORDER_WIDTH; // end of row
+                line_flags |= RN_SPLIT_AUTO << RN_SPLIT_BEFORE;
+                line_flags |= RN_SPLIT_AVOID << RN_SPLIT_AFTER;
+                context.AddLine(y0, 
+                    y1, line_flags);
+            }
+            int count = rows.length();
+            for (int i=0; i<count; i++)
+            {
+                CCRTableRow * row = rows[ i ];
+                int line_flags = 0;  //TODO
+                int y0 = rect.top + row->y + TABLE_BORDER_WIDTH; // start of row
+                int y1 = rect.top + row->y + row->height + TABLE_BORDER_WIDTH; // end of row
+                if ( i==count-1) {
+                    line_flags |= RN_SPLIT_AVOID << RN_SPLIT_BEFORE;
+                    y1 += TABLE_BORDER_WIDTH;
+                } else
+                    line_flags |= RN_SPLIT_AUTO << RN_SPLIT_BEFORE;
+                if ( i==0 ) {
+                    line_flags |= RN_SPLIT_AVOID << RN_SPLIT_AFTER;
+                    y0 -= TABLE_BORDER_WIDTH;
+                } else
+                    line_flags |= RN_SPLIT_AUTO << RN_SPLIT_AFTER;
+                //if (i==0)
+                //    line_flags |= break_before << RN_SPLIT_BEFORE;
+                //else
+                //    line_flags |= break_inside << RN_SPLIT_BEFORE;
+                //if (i==count-1)
+                //    line_flags |= break_after << RN_SPLIT_AFTER;
+                //else
+                //    line_flags |= break_inside << RN_SPLIT_AFTER;
+
+                context.AddLine(y0, 
+                    y1, line_flags);
+            }
+        }
+
         // update row groups
         // TODO... WARNING!!! row groups not supported yet!!!
-        return h;
+        return h + TABLE_BORDER_WIDTH * 2;
     }
 
     CCRTable(ldomElement * tbl_elem, int tbl_width, int dwidth) : digitwidth(dwidth) {
         caption = NULL;
+        caption_h = 0;
         elem = tbl_elem;
         width = tbl_width;
         LookupElem( tbl_elem, 0 );
@@ -1366,7 +1438,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                         else
                             line_flags |= break_inside << RN_SPLIT_AFTER;
 
-                        context.AddLine(rect.top+line->y, rect.top+line->y+line->height, line_flags);
+                        context.AddLine(rect.top+line->y+padding_top, rect.top+line->y+line->height+padding_top, line_flags);
 
                         // footnote links analysis
                         if ( !isFootNoteBody && node->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
@@ -1473,8 +1545,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
                 drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
 #endif
-                lUInt32 tableBorderColor = 0xC0C0C0;
-                lUInt32 tableBorderColorDark = 0x808080;
+                lUInt32 tableBorderColor = 0xAAAAAA;
+                lUInt32 tableBorderColorDark = 0x555555;
                 bool needBorder = enode->getRendMethod()==erm_table || enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
                     drawbuf.FillRect( doc_x+x0, doc_y+y0, 
@@ -1489,6 +1561,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
             }
             break;
         case erm_final:
+        case erm_table_caption:
             {
                 // draw whole node content as single formatted object
                 LFormattedTextRef txform;
@@ -1515,8 +1588,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
                 drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), color );
 #endif
-                lUInt32 tableBorderColor = 0x606060;
-                lUInt32 tableBorderColorDark = 0xC0C0C0;
+                lUInt32 tableBorderColor = 0x555555;
+                lUInt32 tableBorderColorDark = 0xAAAAAA;
                 bool needBorder = enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
                     drawbuf.FillRect( doc_x+x0, doc_y+y0, 
@@ -1752,5 +1825,6 @@ int renderTable( LVRendPageContext & context, ldomElement * node, int x, int y, 
 {
     CCRTable table( node, width, 10 );
     int h = table.renderCells( context );
+
     return h;
 }

@@ -1417,7 +1417,7 @@ int ldomElement::renderFinalBlock( LFormattedTextRef & txtform, int width )
     }
     f = new LFormattedText();
     lvdomElementFormatRec * fmt = getRenderData();
-    if ( !fmt || getRendMethod() != erm_final )
+    if ( !fmt || (getRendMethod() != erm_final && getRendMethod() != erm_table_caption) )
         return 0;
     /// render whole node content as single formatted object
     int flags = styleToTextFmtFlags( getStyle(), 0 );
