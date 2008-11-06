@@ -555,10 +555,10 @@ public:
                         LFormattedTextRef txform;
                         int h = cell->elem->renderFinalBlock( txform, cell->width - cell->padding_left - cell->padding_right );
                         cell->height = h + cell->padding_top + cell->padding_bottom;
-                        fmt->setY( cell->padding_top ); //cell->row->y - cell->row->y );
-                        fmt->setX( cell->col->x + cell->padding_left );
-                        fmt->setWidth( cell->width - cell->padding_left - cell->padding_right );
-                        fmt->setHeight( cell->height - cell->padding_top - cell->padding_bottom );
+                        fmt->setY( 0 ); //cell->padding_top ); //cell->row->y - cell->row->y );
+                        fmt->setX( cell->col->x ); // + cell->padding_left
+                        fmt->setWidth( cell->width ); //  - cell->padding_left - cell->padding_right
+                        fmt->setHeight( cell->height ); // - cell->padding_top - cell->padding_bottom
                     } else if ( cell->elem->getRendMethod()!=erm_invisible ) {
                         LVRendPageContext emptycontext( NULL, context.getPageHeight() );
                         int h = renderBlockElement( context, cell->elem, 0, 0, cell->width );
@@ -630,7 +630,7 @@ public:
                     CCRTableCol * lastcol = cols[ cell->col->index + cell->colspan - 1 ];
                     //fmt->setWidth( lastcol->width + lastcol->x - cell->col->x - cell->padding_left - cell->padding_right );
                     CCRTableRow * lastrow = rows[ cell->row->index + cell->rowspan - 1 ];
-                    fmt->setHeight( lastrow->height + lastrow->y - cell->row->y - cell->padding_top - cell->padding_bottom );
+                    fmt->setHeight( lastrow->height + lastrow->y - cell->row->y ); // - cell->padding_top - cell->padding_bottom
 
                 }
             }
@@ -1322,10 +1322,10 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                 int st_y = lengthToPx( enode->getStyle()->height, em, em );
                 if ( y < st_y )
                     y = st_y;
-                fmt->setHeight( y ); //+ margin_top + margin_bottom ); //???
+                fmt->setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
                 if ( isFootNoteBody )
                     context.leaveFootNote();
-                return y + margin_top + margin_bottom; // return block height
+                return y + margin_top + margin_bottom + padding_bottom; // return block height
             }
             break;
         case erm_final:
@@ -1334,18 +1334,17 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int
                     context.enterFootNote( node->getAttributeValue(attr_id) );
                 // render whole node content as single formatted object
                 LFormattedTextRef txform;
-                width -= padding_left + padding_right;
                 fmt->setWidth( width );
-                fmt->setX( fmt->getX() + padding_left );
-                fmt->setY( fmt->getY() + padding_top );
-                int h = enode->renderFinalBlock( txform, width );
+                fmt->setX( fmt->getX() );
+                fmt->setY( fmt->getY() );
+                int h = enode->renderFinalBlock( txform, width - padding_left - padding_right );
 #ifdef DEBUG_DUMP_ENABLED
                 logfile << "\n";
 #endif
                 //int flags = styleToTextFmtFlags( fmt->getStyle(), 0 );
                 //renderFinalBlock( node, &txform, fmt, flags, 0, 16 );
                 //int h = txform.Format( width, context.getPageHeight() );
-                fmt->setHeight( h );
+                fmt->setHeight( h + padding_top + padding_bottom );
                 lvRect rect;
                 node->getAbsRect(rect);
                 // split pages
@@ -1425,7 +1424,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         int em = enode->getFont()->getHeight();
         int width = fmt->getWidth();
         int height = fmt->getHeight();
-        bool draw_padding_bg = ( enode->getRendMethod()==erm_final );
+        bool draw_padding_bg = true; //( enode->getRendMethod()==erm_final );
         int padding_left = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[0], width, em ) + DEBUG_TREE_DRAW;
         int padding_right = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[1], width, em ) + DEBUG_TREE_DRAW;
         int padding_top = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW;
@@ -1443,7 +1442,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         if ( bg.type==css_val_color ) {
             oldColor = drawbuf.GetBackgroundColor();
             drawbuf.SetBackgroundColor( bg.value );
-            drawbuf.FillRect( x0 + doc_x - padding_left, y0 + doc_y - padding_top, x0 + doc_x+fmt->getWidth() + padding_right, y0+doc_y+fmt->getHeight() + padding_bottom, bg.value );
+            drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt->getWidth(), y0+doc_y+fmt->getHeight(), bg.value );
         }
 #if (DEBUG_TREE_DRAW!=0)
         lUInt32 color;
@@ -1478,14 +1477,14 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 lUInt32 tableBorderColorDark = 0x808080;
                 bool needBorder = enode->getRendMethod()==erm_table || enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
-                    drawbuf.FillRect( doc_x+x0-padding_left, doc_y+y0-padding_top, 
-                                      doc_x+x0+fmt->getWidth()+padding_right, doc_y+y0-padding_top+1, tableBorderColor );
-                    drawbuf.FillRect( doc_x+x0-padding_left, doc_y+y0-padding_top, 
-                                      doc_x+x0-padding_left+1, doc_y+y0+fmt->getHeight()+padding_bottom, tableBorderColor );
-                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()+padding_right-1, doc_y+y0-padding_top, 
-                                      doc_x+x0+fmt->getWidth()+padding_right,   doc_y+y0+fmt->getHeight()+padding_bottom, tableBorderColorDark );
-                    drawbuf.FillRect( doc_x+x0-padding_left, doc_y+y0+fmt->getHeight()+padding_bottom-1, 
-                                      doc_x+x0+fmt->getWidth()+padding_right, doc_y+y0+fmt->getHeight()+padding_bottom, tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, 
+                                      doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, 
+                                      doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, 
+                                      doc_x+x0+fmt->getWidth(),   doc_y+y0+fmt->getHeight(), tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, 
+                                      doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColorDark );
                 }
             }
             break;
@@ -1493,7 +1492,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
             {
                 // draw whole node content as single formatted object
                 LFormattedTextRef txform;
-                enode->renderFinalBlock( txform, fmt->getWidth() );
+                enode->renderFinalBlock( txform, fmt->getWidth() - padding_left - padding_right );
 
                 {
                     if ( marks && marks->length() ) {
@@ -1504,10 +1503,10 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                         //rc.top -= doc_y;
                         //rc.bottom -= doc_y;
                         ldomMarkedRangeList nmarks( marks, rc );
-                        txform->Draw( &drawbuf, doc_x+x0, doc_y+y0, &nmarks );
+                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, &nmarks );
 
                     } else {
-                        txform->Draw( &drawbuf, doc_x+x0, doc_y+y0, marks );
+                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, marks );
                     }
                 }
 #if (DEBUG_TREE_DRAW!=0)
@@ -1520,14 +1519,14 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
                 lUInt32 tableBorderColorDark = 0xC0C0C0;
                 bool needBorder = enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
-                    drawbuf.FillRect( doc_x+x0-padding_left, doc_y+y0-padding_top, 
-                                      doc_x+x0+fmt->getWidth()+padding_right, doc_y+y0-padding_top+1, tableBorderColor );
-                    drawbuf.FillRect( doc_x+x0-padding_left, doc_y+y0-padding_top, 
-                                      doc_x+x0-padding_left+1, doc_y+y0+fmt->getHeight()+padding_bottom, tableBorderColor );
-                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()+padding_right-1, doc_y+y0-padding_top, 
-                                      doc_x+x0+fmt->getWidth()+padding_right,   doc_y+y0+fmt->getHeight()+padding_bottom, tableBorderColorDark );
-                    drawbuf.FillRect( doc_x+x0-padding_left, doc_y+y0+fmt->getHeight()+padding_bottom-1, 
-                                      doc_x+x0+fmt->getWidth()+padding_right, doc_y+y0+fmt->getHeight()+padding_bottom, tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, 
+                                      doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0, 
+                                      doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, 
+                                      doc_x+x0+fmt->getWidth(),   doc_y+y0+fmt->getHeight(), tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, 
+                                      doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColorDark );
                     //drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColorDark );
                     //drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColorDark );
                     //drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
