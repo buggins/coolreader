@@ -22,10 +22,13 @@
 #undef RTF_CHR
 #undef RTF_CHC
 #undef RTF_IPR
+#undef RTF_TPR
 #undef RTF_DST
 #undef RTF_ACT
 #define RTF_IPR( name, index, defvalue ) \
     { RTF_##name, #name, CWT_IPROP, index, defvalue },
+#define RTF_TPR( name, index, defvalue ) \
+    { RTF_##name, #name, CWT_TPROP, index, defvalue },
 #define RTF_ACT( name, index ) \
     { RTF_##name, #name, CWT_ACT, index, 0 },
 #define RTF_CMD( name, type, index ) \
@@ -69,6 +72,7 @@ static const rtf_control_word * findControlWord( const char * name )
 class LVRtfDefDestination : public LVRtfDestination
 {
 protected:
+    rtfTblState tblState;
     bool in_section;
     bool in_title;
     bool in_para;
@@ -78,6 +82,7 @@ protected:
 public:
     LVRtfDefDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
+    , tblState(tbls_none)
     , in_section(false)
     , in_title(false)
     , in_para(false)
@@ -86,8 +91,63 @@ public:
     , in_subtitle(false)
     {
     }
+    // set table state, open/close tags if necessary
+    void SetTableState( rtfTblState state )
+    {
+        static const lChar16 * tags[] = {
+            NULL,// tbls_none=0,
+            L"table", // tbls_intable,
+            L"tr", // tbls_inrow,
+            L"td", // tbls_incell,
+        };
+        if ( tblState < state ) {
+            for ( int i=tblState+1; i<=state; i++ ) {
+                if ( tags[i] )
+                    m_callback->OnTagOpen(NULL, tags[i]);
+            }
+        } else if ( tblState > state ) {
+            for ( int i=tblState; i>state; i-- ) {
+                if ( tags[i] )
+                    m_callback->OnTagClose(NULL, tags[i]);
+            }
+        }
+        tblState = state;
+    }
     virtual void OnControlWord( const char * control, int param )
     {
+    }
+    virtual void OnTblProp( int id, int param )
+    {
+        switch ( id ) {
+        case tpi_trowd: // Sets table row defaults.
+            break;
+        case tpi_irowN:   // N is the row index of this row.
+            break;
+        case tpi_irowbandN: // N is the row index of the row, adjusted to account for header rows. A header row has a value of –1.
+            break;
+        case tpi_row:    // Denotes the end of a row.
+            if ( tblState > tbls_intable )
+                SetTableState( tbls_intable );
+            break;
+        case tpi_lastrow:// Output if this is the last row in the table.
+            if ( tblState >= tbls_intable )
+                SetTableState( tbls_none );
+            break;
+        case tpi_cell:   // Denotes the end of a table cell.
+            if ( tblState >= tbls_incell )
+                SetTableState( tbls_inrow );
+            break;
+        case tpi_tcelld: // Sets table cell defaults.
+            break;
+        case tpi_clmgf:  // The first cell in a range of table cells to be merged.
+            break;
+        case tpi_clmrg:  // Contents of the table cell are merged with those of the preceding cell.
+            break;
+        case tpi_clvmgf: // The first cell in a range of table cells to be vertically merged.
+            break;
+        case tpi_clvmrg: // Contents of the table cell are vertically merged with those of the preceding cell.
+            break;
+        }
     }
     virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
@@ -101,6 +161,7 @@ public:
             m_callback->OnTagClose(NULL, L"empty-line");
             return;
         }
+        bool intbl = m_stack.getInt( pi_intbl )>0;
         bool asteriskFlag = ( s.compare( L"* * *" )==0 );
         bool titleFlag = m_stack.getInt( pi_align )==ha_center && len<200;
         if ( last_notitle && titleFlag && !asteriskFlag ) {
@@ -110,17 +171,21 @@ public:
             m_callback->OnTagOpen(NULL, L"section");
             in_section = true;
         }
-        if ( !in_title && titleFlag ) {
-            if ( asteriskFlag ) {
-                m_callback->OnTagOpen(NULL, L"subtitle");
-                in_subtitle = true;
-            } else {
-                m_callback->OnTagOpen(NULL, L"title");
-                in_subtitle = false;
+        if ( !intbl ) {
+            if ( !in_title && titleFlag ) {
+                if ( asteriskFlag ) {
+                    m_callback->OnTagOpen(NULL, L"subtitle");
+                    in_subtitle = true;
+                } else {
+                    m_callback->OnTagOpen(NULL, L"title");
+                    in_subtitle = false;
+                }
+                in_title = true;
+                last_notitle = false;
             }
-            in_title = true;
-            last_notitle = false;
         }
+        if ( intbl )
+            SetTableState( tbls_incell );
         if ( !in_para ) {
             if ( !in_title )
                 last_notitle = true;
@@ -172,6 +237,7 @@ public:
             }
         }
         if ( action==RA_SECTION ) {
+            SetTableState( tbls_none );
             if ( in_section ) {
                 m_callback->OnTagClose(NULL, L"section");
                 in_section = false;
@@ -508,6 +574,12 @@ void LVRtfParser::OnControlWord( const char * control, int param, bool asterisk 
         case CWT_ACT:
             CommitText();
             m_stack.getDestination()->OnAction(cw->index);
+            break;
+        case CWT_TPROP:
+            CommitText();
+            if ( param == PARAM_VALUE_NONE )
+                param = cw->defvalue;
+            m_stack.getDestination()->OnTblProp( cw->index, param );
             break;
         case CWT_DEST:
 #ifdef LOG_RTF_PARSING

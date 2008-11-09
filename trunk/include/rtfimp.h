@@ -27,7 +27,8 @@ enum rtf_control_word_type {
     CWT_STYLE, ///
     CWT_IPROP, /// integer property
     CWT_DEST,  /// destination
-    CWT_ACT,  /// destination
+    CWT_ACT,   /// destination
+    CWT_TPROP, /// table property
 };
 
 typedef struct  {
@@ -52,7 +53,23 @@ enum propIndex {
     pi_lang,
     pi_deflang,
     pi_align,
-    pc_max
+    pi_intbl,
+    pi_max
+};
+
+enum tpropIndex {
+    tpi_trowd=0, // Sets table row defaults.
+    tpi_irowN,   // N is the row index of this row.
+    tpi_irowbandN, // N is the row index of the row, adjusted to account for header rows. A header row has a value of –1.
+    tpi_row,    // Denotes the end of a row.
+    tpi_lastrow,// Output if this is the last row in the table.
+    tpi_cell,   // Denotes the end of a table cell.
+    tpi_tcelld, // Sets table cell defaults.
+    tpi_clmgf,  // The first cell in a range of table cells to be merged.
+    tpi_clmrg,  // Contents of the table cell are merged with those of the preceding cell.
+    tpi_clvmgf, // The first cell in a range of table cells to be vertically merged.
+    tpi_clvmrg,	// Contents of the table cell are vertically merged with those of the preceding cell.
+    tpi_max
 };
 
 enum hAlign {
@@ -79,9 +96,17 @@ enum rtfDestination {
     dest_max
 };
 
+enum rtfTblState {
+    tbls_none=0,
+    tbls_intable,
+    tbls_inrow,
+    tbls_incell,
+};
 
 enum rtf_cmd_id {
 #define RTF_IPR( name, index, defvalue ) \
+    RTF_##name,
+#define RTF_TPR( name, index, defvalue ) \
     RTF_##name,
 #define RTF_ACT( name, index ) \
     RTF_##name,
@@ -126,6 +151,7 @@ public:
         RA_SECTION,
     };
     LVRtfDestination( LVRtfParser & parser );
+    virtual void OnTblProp( int id, int param ) { }
     virtual void OnAction( int action ) { }
     virtual void OnControlWord( const char * control, int param ) { }
     virtual void OnText( const lChar16 * text, int len,
@@ -137,7 +163,7 @@ public:
 class LVRtfValueStack
 {
 protected:
-    propValue props[pc_max];
+    propValue props[pi_max];
     stackedValue stack[MAX_PROP_STACK_SIZE];
     LVRtfDestination * dest;
     int sp;
@@ -162,6 +188,7 @@ public:
             props[pi_ch_italic].i = 0;
             props[pi_ch_sub].i = 0;
             props[pi_ch_super].i = 0;
+            props[pi_intbl].i = 0;
             props[pi_ch_underline].i = 0;
             props[pi_align].i = ha_left;
             set( pi_lang, props[pi_deflang].i );

@@ -119,6 +119,20 @@ public:
     { }
 };
 
+class CCRTableRowGroup {
+public:
+    int index;
+    int height;
+    int y;
+    ldomElement * elem;
+    LVPtrVector<CCRTableRow, false> rows;
+    CCRTableRowGroup() : index(0)
+    , height(0)
+    , y(0)
+    , elem(NULL)
+    { }
+};
+
 class CCRTableRow {
 public:
     int index;
@@ -128,12 +142,14 @@ public:
     int linkindex;
     ldomElement * elem;
     LVPtrVector<CCRTableCell> cells;
+    CCRTableRowGroup * rowgroup;
     CCRTableRow() : index(0)
     , height(0)
     , y(0)
     , numcols(0) // sum of colspan
     , linkindex(-1)
     , elem(NULL)
+    , rowgroup(NULL)
     { }
 };
 
@@ -194,7 +210,9 @@ public:
     int caption_h;
     LVPtrVector<CCRTableRow> rows;
     LVPtrVector<CCRTableCol> cols;
+    LVPtrVector<CCRTableRowGroup> rowgroups;
     LVMatrix<CCRTableCell*> cells;
+    CCRTableRowGroup * currentRowGroup;
 
     void ExtendCols( int ncols ) {
         while (cols.length()<ncols) {
@@ -224,6 +242,16 @@ public:
                 case erm_table_row_group: // table row group
                 case erm_table_header_group: // table header group
                 case erm_table_footer_group: // table footer group
+                    if ( state==0 && currentRowGroup==NULL ) {
+                        currentRowGroup = new CCRTableRowGroup();
+                        currentRowGroup->elem = item;
+                        currentRowGroup->index = rowgroups.length();
+                        rowgroups.add( currentRowGroup );
+                        LookupElem( item, 0 );
+                        currentRowGroup = NULL;
+                    } else {
+                    }
+                    break;
                 case erm_table_column_group: // table column group
                     // just fall into groups
                     LookupElem( item, 0 );
@@ -233,6 +261,11 @@ public:
                         // rows of table
                         CCRTableRow * row = new CCRTableRow;
                         row->elem = item;
+                        if ( currentRowGroup ) {
+                            // add row to group
+                            row->rowgroup = currentRowGroup;
+                            currentRowGroup->rows.add( row );
+                        }
                         rows.add( row );
                         if (row->elem->hasAttribute(LXML_NS_ANY, attr_link)) {
                             lString16 lnk=row->elem->getAttributeValue(attr_link);
@@ -706,12 +739,31 @@ public:
             }
         }
 
-        // update row groups
-        // TODO... WARNING!!! row groups not supported yet!!!
+        // update row groups placement
+        for ( int i=0; i<rowgroups.length(); i++ ) {
+            CCRTableRowGroup * grp = rowgroups[i];
+            lvdomElementFormatRec * fmt = grp->elem->getRenderData();
+            if ( grp->rows.length() > 0 ) {
+                int y0 = grp->rows.first()->y;
+                int y1 = grp->rows.last()->y + grp->rows.first()->height;
+                fmt->setY( y0 );
+                fmt->setHeight( y1 - y0 );
+                fmt->setX( 0 );
+                fmt->setWidth( width );
+                for ( int j=0; j<grp->rows.length(); j++ ) {
+                    // make row Y position relative to group
+                    lvdomElementFormatRec * rowfmt = grp->rows[j]->elem->getRenderData();
+                    rowfmt->setY( rowfmt->getY() - y0 );
+                }
+            }
+        }
+
+
         return h + TABLE_BORDER_WIDTH * 2;
     }
 
     CCRTable(ldomElement * tbl_elem, int tbl_width, int dwidth) : digitwidth(dwidth) {
+        currentRowGroup = NULL;
         caption = NULL;
         caption_h = 0;
         elem = tbl_elem;
@@ -784,12 +836,14 @@ void initFormatData( ldomNode * node )
 
 // init table element render methods
 // states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
-void initTableRendMethods( ldomNode * node, int state )
+// returns table cell count
+int initTableRendMethods( ldomNode * node, int state )
 {
     //main node: table
     ldomElement * enode = (ldomElement *)node;
-    if ( state==0 )
+    if ( state==0 && enode->getStyle()->display==css_d_table )
         enode->setRendMethod( erm_table ); // for table
+    int cellCount = 0;
     int cnt = node->getChildCount();
     int i;
     for (i=0; i<cnt; i++)
@@ -811,25 +865,25 @@ void initTableRendMethods( ldomNode * node, int state )
                 }
                 break;
             case css_d_table_row_group:
-                if ( state==0 || state==2 ) {
+                if ( state==0 ) {
                     child->setRendMethod( erm_table_row_group );
-                    initTableRendMethods( child, 2 );
+                    cellCount += initTableRendMethods( child, 2 );
                 } else {
                     child->setRendMethod( erm_invisible );
                 }
                 break;
             case css_d_table_header_group:
-                if ( state==0 || state==2 ) {
+                if ( state==0 ) {
                     child->setRendMethod( erm_table_header_group );
-                    initTableRendMethods( child, 2);
+                    cellCount += initTableRendMethods( child, 2);
                 } else {
                     child->setRendMethod( erm_invisible );
                 }
                 break;
             case css_d_table_footer_group:
-                if ( state==0 || state==2 ) {
+                if ( state==0 ) {
                     child->setRendMethod( erm_table_footer_group );
-                    initTableRendMethods( child, 2 );
+                    cellCount += initTableRendMethods( child, 2 );
                 } else {
                     child->setRendMethod( erm_invisible );
                 }
@@ -837,7 +891,7 @@ void initTableRendMethods( ldomNode * node, int state )
             case css_d_table_row:
                 if ( state==0 || state==2 ) {
                     child->setRendMethod( erm_table_row );
-                    initTableRendMethods( child, 3 );
+                    cellCount += initTableRendMethods( child, 3 );
                 } else {
                     child->setRendMethod( erm_invisible );
                 }
@@ -845,7 +899,7 @@ void initTableRendMethods( ldomNode * node, int state )
             case css_d_table_column_group:
                 if ( state==0 ) {
                     child->setRendMethod( erm_table_column_group );
-                    initTableRendMethods( child, 1 );
+                    cellCount += initTableRendMethods( child, 1 );
                 } else {
                     child->setRendMethod( erm_invisible );
                 }
@@ -860,6 +914,7 @@ void initTableRendMethods( ldomNode * node, int state )
             case css_d_table_cell:
                 if ( state==3 ) {
                     child->setRendMethod( erm_table_cell );
+                    cellCount++;
                     // will be translated to block or final below
                     initRendMethod( child );
                 } else {
@@ -869,6 +924,7 @@ void initTableRendMethods( ldomNode * node, int state )
             }
         }
     }
+    return cellCount;
 }
 
 // init element render method
@@ -1530,6 +1586,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         case erm_table:
         case erm_table_row:
         case erm_table_row_group:
+        case erm_table_header_group:
+        case erm_table_footer_group:
         case erm_block:
             {
                 // recursive draw all sub-blocks for blocks

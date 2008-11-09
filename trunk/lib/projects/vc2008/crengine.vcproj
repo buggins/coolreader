@@ -345,7 +345,7 @@
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="..\..\..\..\wxWidgets\src\jpeg;..\..\..\..\wxWidgets\src;..\..\..\..\wxWidgets\src\png;..\..\..\..\freetype2\include;..\..\..\..\wxWidgets\include\msvc;..\..\..\..\wxWidgets\src\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				PrecompiledHeaderFile=".\crengine___Win32_Unicode_Release/crengine.pch"
 				AssemblerListingLocation=".\crengine___Win32_Unicode_Release/"
 				ObjectFile=".\crengine___Win32_Unicode_Release/"

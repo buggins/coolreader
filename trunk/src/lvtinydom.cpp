@@ -882,7 +882,7 @@ void ldomDocumentWriter::OnStop()
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
 }
 
-void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+ldomElement * ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     //CRLog::trace("OnTagOpen(%s)", UnicodeToUtf8(lString16(tagname)).c_str());
@@ -896,6 +896,7 @@ void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagn
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     _flags = _currNode->getFlags();
     //logfile << " !o!\n";
+    return _currNode->getElement();
 }
 
 ldomDocumentWriter::~ldomDocumentWriter()
@@ -2575,7 +2576,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
     }
 }
 
-void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     if ( nsname && nsname[0] )
@@ -2586,6 +2587,7 @@ void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 
     AutoClose( id, true );
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     //logfile << " !o!\n";
+    return _currNode->getElement();
 }
 
 /// called on closing tag

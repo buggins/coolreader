@@ -25,6 +25,8 @@
 //class LVXMLParser;
 class LVFileFormatParser;
 
+class ldomElement;
+
 /// XML parser callback interface
 class LVXMLParserCallback
 {
@@ -42,7 +44,7 @@ public:
     /// called on parsing end
     virtual void OnStop() = 0;
     /// called on opening tag
-    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) = 0;
+    virtual ldomElement * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) = 0;
     /// called on closing
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) = 0;
     /// called on element attribute

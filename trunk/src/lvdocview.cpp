@@ -46,6 +46,11 @@ const char * def_stylesheet =
 "td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 5px }\n"
 "th { font-weight: bold }\n"
 "table > caption { padding: 5px; text-indent: 0px; font-size: 80%; font-weight: bold; text-align: left; background-color: #AAAAAA }\n"
+"body[name=\"notes\"] { font-size: 70%; }\n"
+"body[name=\"notes\"]  section[id] { text-align: left; }\n"
+"body[name=\"notes\"]  section[id] title { display: block; text-align: left; font-size: 110%; font-weight: bold; page-break-before: auto; page-break-inside: auto; page-break-after: auto; }\n"
+"body[name=\"notes\"]  section[id] title p { text-align: left; display: inline }\n"
+"body[name=\"notes\"]  section[id] empty-line { display: inline }\n"
 ;
 
 static const char * DEFAULT_FONT_NAME = "Arial"; //Times New Roman";
@@ -59,7 +64,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #ifdef LBOOK
 #define INFO_FONT_SIZE      20
 #else
-#define INFO_FONT_SIZE      20
+#define INFO_FONT_SIZE      18
 #endif
 
 #if defined(__SYMBIAN32__)
@@ -69,7 +74,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #ifdef LBOOK
 #define DEFAULT_PAGE_MARGIN      8
 #else
-#define DEFAULT_PAGE_MARGIN      18
+#define DEFAULT_PAGE_MARGIN      12
 #endif
 #endif
 
@@ -101,7 +106,7 @@ LVDocView::LVDocView()
 */
 , m_stream(NULL), m_doc(NULL)
 , m_stylesheet( def_stylesheet )
-, m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
+, m_pageMargins(DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN/2 + INFO_FONT_SIZE + 4, DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN / 2)
 , m_pagesVisible(2)
 , m_pageHeaderInfo (
       PGHDR_PAGE_NUMBER
@@ -2586,7 +2591,7 @@ bool LVDocView::ParseDocument( )
         m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
     }
 
-#ifdef _DEBUG
+#if 0 //def _DEBUG
         LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
         m_doc->saveToStream( ostream, "utf-16" );
 #endif
