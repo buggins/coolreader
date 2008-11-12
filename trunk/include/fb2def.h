@@ -44,7 +44,6 @@ XS_TAG1( coverpage )
 XS_TAG1OBJ( image )
 XS_TAG1OBJ( img )
 XS_TAG1T( lang )
-XS_TAG1( title )
 XS_TAG1( section )
 XS_TAG1D( form, true, css_d_none, css_ws_normal )
 XS_TAG1D( binary, true, css_d_none, css_ws_normal )
@@ -72,6 +71,7 @@ XS_TAG1I( q )
 XS_TAG1I( span )
 XS_TAG1I( br )
 
+XS_TAG1D( title, true, css_d_none, css_ws_normal )
 
 
 // type="styleType"

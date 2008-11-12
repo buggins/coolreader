@@ -51,6 +51,7 @@ const char * def_stylesheet =
 "body[name=\"notes\"]  section[id] title { display: block; text-align: left; font-size: 110%; font-weight: bold; page-break-before: auto; page-break-inside: auto; page-break-after: auto; }\n"
 "body[name=\"notes\"]  section[id] title p { text-align: left; display: inline }\n"
 "body[name=\"notes\"]  section[id] empty-line { display: inline }\n"
+"code, pre { display: block; white-space: pre; font-family: \"Courier New\", monospace }\n"
 ;
 
 static const char * DEFAULT_FONT_NAME = "Arial"; //Times New Roman";
@@ -2470,8 +2471,14 @@ static const char * AC_TABLE[] = {"table", "p", NULL};
 static const char * AC_THEAD[] = {"thead", "tr", "thead", "tfoot", "tbody", NULL}; 
 static const char * AC_TFOOT[] = {"tfoot", "tr", "thead", "tfoot", "tbody", NULL}; 
 static const char * AC_TBODY[] = {"tbody", "tr", "thead", "tfoot", "tbody", NULL}; 
+static const char * AC_OPTION[] = {"option", "option", NULL}; 
+static const char * AC_PRE[] = {"pre", "pre", NULL}; 
+static const char * AC_INPUT[] = {"input", NULL}; 
 static const char * *
 HTML_AUTOCLOSE_TABLE[] = {
+    AC_INPUT,
+    AC_OPTION,
+    AC_PRE,
     AC_P,
     AC_LI,
     AC_UL,
@@ -2591,7 +2598,7 @@ bool LVDocView::ParseDocument( )
         m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
     }
 
-#if 0 //def _DEBUG
+#ifdef _DEBUG
         LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
         m_doc->saveToStream( ostream, "utf-16" );
 #endif
