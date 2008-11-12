@@ -2670,3 +2670,13 @@ ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
     }
 }
 
+/// move range of children startChildIndex to endChildIndex inclusively to specified element
+void ldomElement::moveItemsTo( ldomElement * destination, int startChildIndex, int endChildIndex )
+{
+    int len = endChildIndex - startChildIndex + 1;
+    for ( int i=0; i<len; i++ ) {
+        ldomNode * item = _children.remove( startChildIndex + i );
+        destination->_children.add( item );
+    }
+    // TODO: renumber rest of children in necessary
+}

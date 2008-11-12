@@ -1168,6 +1168,8 @@ public:
         if (nsid == LXML_NS_NONE)
             _document->onAttributeSet( id, valueId, this );
     }
+    /// move range of children startChildIndex to endChildIndex inclusively to specified element
+    virtual void moveItemsTo( ldomElement * destination, int startChildIndex, int endChildIndex );
     /// returns attribute by index
     virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return _attrs[index]; }
     /// returns attribute value by attribute name id

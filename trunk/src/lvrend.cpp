@@ -927,6 +927,43 @@ int initTableRendMethods( ldomNode * node, int state )
     return cellCount;
 }
 
+bool isInvisibleItem( ldomNode * node )
+{
+    if ( node->getNodeType()==LXML_ELEMENT_NODE ) {
+        if ( ((ldomElement*)node)->getRendMethod() == erm_invisible )
+            return true;
+        if ( ((ldomElement*)node)->getStyle()->display == css_d_none )
+            return true;
+    }
+    return false;
+}
+
+bool isInlineItem( ldomNode * node )
+{
+    if ( node->getNodeType()==LXML_ELEMENT_NODE )
+    {
+        //lvdomElementFormatRec * childfmt = child->getRenderData();
+        switch( ((ldomElement*)node)->getStyle()->display )
+        {
+        case css_d_inline:
+            if ( ((ldomElement*)node)->getRendMethod() != erm_invisible )
+                return true;
+            break;
+        case css_d_run_in:
+            if ( ((ldomElement*)node)->getRendMethod() != erm_invisible )
+                return true;
+            break;
+        default:
+            return false;
+        }
+    }
+    else if ( node->getNodeType()==LXML_TEXT_NODE )
+    {
+        return true;
+    }
+    return false;
+}
+
 // init element render method
 void initRendMethod( ldomNode * node )
 {
@@ -983,6 +1020,34 @@ void initRendMethod( ldomNode * node )
                 textCount++;
             }
         }
+        //======= AUTOBOXING =================================================
+        if ( (textCount || inlineCount || runinCount) && blockCount ) {
+            // Mixed inline and block items! Autoboxing is necessary!
+            int firstInline = -1;
+            bool lastInline = false;
+            for (i=cnt-1; i>=0; i--)
+            {
+                ldomNode * child = enode->getChildNode( i );
+                bool isInvisible = isInvisibleItem( child );
+                bool isInline = isInvisible ? lastInline : isInlineItem( child );
+                if ( isInline ) {
+                    if ( firstInline==-1 )
+                        firstInline = i;
+                }
+                if ( !isInline || i==0 ) {
+                    if ( firstInline>=0 ) {
+                        int lastInline = isInline ? i : i+1;
+                        // TODO: move listInline..firstInline inside autobox
+                        ldomElement * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing );
+                        enode->moveItemsTo( abox, lastInline, firstInline );
+                        abox->setRendMethod( erm_block );
+                        firstInline = -1;
+                    }
+                }
+                lastInline = isInline;
+            }
+        }
+
 #ifdef DEBUG_DUMP_ENABLED
       for (i=0; i<node->getNodeLevel(); i++)
         logfile << " . ";

@@ -29,6 +29,8 @@
 //=====================================================
 XS_BEGIN_TAGS
 
+XS_TAG1T( autoBoxing )
+
 XS_TAG2( xml, "?xml" )
 XS_TAG2( xml_stylesheet, "?xml-stylesheet" )
 XS_TAG1( FictionBook )
