@@ -886,6 +886,10 @@ public:
                     // check whether last src line is finished
                     nextSrcPos = lastword->t.start + lastword->t.len;
                     nextSrcIndex = lastSrcIndex;
+                    lChar16 nextCh = lastline->t.text[nextSrcPos];
+                    if ( nextCh=='\r' || nextCh=='\n' ) {
+                        nextSrcPos++;
+                    }
                 }
             }
             setSrcLine( nextSrcIndex, nextSrcPos );
@@ -1151,6 +1155,8 @@ public:
                 int j;
                 int last_fit = -1;
                 int last_hyph = -1;
+                lChar16 nextCh = srcline->t.text[chars_measured];
+                //bool eol = (nextCh=='\r' || nextCh=='\n');
                 /* try to find good place for line break */
                 if ( srcIndex>=(int)m_pbuffer->srctextlen || flgLastParaLine || flgCanBreakBeforeNextLine )
                         flags_buf.get()[chars_left-1] |= LCHAR_ALLOW_WRAP_AFTER;
