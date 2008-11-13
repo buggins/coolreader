@@ -1037,15 +1037,18 @@ void initRendMethod( ldomNode * node )
                 if ( !isInline || i==0 ) {
                     if ( firstInline>=0 ) {
                         int lastInline = isInline ? i : i+1;
-                        // TODO: move listInline..firstInline inside autobox
                         ldomElement * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing );
                         enode->moveItemsTo( abox, lastInline, firstInline );
-                        abox->setRendMethod( erm_block );
+                        //abox->setRendMethod( erm_block );
                         firstInline = -1;
+                        blockCount++;
                     }
                 }
                 lastInline = isInline;
             }
+            textCount = 0;
+            inlineCount = 0;
+            runinCount = 0;
         }
 
 #ifdef DEBUG_DUMP_ENABLED
