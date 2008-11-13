@@ -1039,7 +1039,12 @@ void initRendMethod( ldomNode * node )
                         int lastInline = isInline ? i : i+1;
                         ldomElement * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing );
                         enode->moveItemsTo( abox, lastInline, firstInline );
-                        //abox->setRendMethod( erm_block );
+                        setNodeStyle( abox,
+                            enode->getStyle(),
+                            enode->getFont()
+                            );
+                        abox->setRendMethod( erm_final );
+                        //initRendMethod( abox );
                         firstInline = -1;
                         blockCount++;
                     }

@@ -308,6 +308,7 @@ public:
 /// fastDOM NODE interface
 class ldomNode
 {
+    friend class ldomElement;
     // 0: this   [4]
 protected:
     ldomElement * _parent;  // 4: [4]

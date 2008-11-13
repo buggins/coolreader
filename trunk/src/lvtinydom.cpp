@@ -2675,7 +2675,8 @@ void ldomElement::moveItemsTo( ldomElement * destination, int startChildIndex, i
 {
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
-        ldomNode * item = _children.remove( startChildIndex + i );
+        ldomNode * item = _children.remove( startChildIndex ); // + i
+        item->_parent = destination;
         destination->_children.add( item );
     }
     // TODO: renumber rest of children in necessary
