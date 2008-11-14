@@ -108,6 +108,8 @@ typedef struct
 #define LTEXT_WORD_CAN_BREAK_LINE_AFTER      2
 /// can break with hyphenation after this word
 #define LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER 4
+/// must break line after this word
+#define LTEXT_WORD_MUST_BREAK_LINE_AFTER     8
 /// object flag
 #define LTEXT_WORD_IS_OBJECT         0x80
 /// first word of link flag

@@ -576,6 +576,8 @@ public:
             bflags |= LCHAR_DEPRECATED_WRAP_AFTER;
         if (isSpace)
             bflags |= LCHAR_IS_SPACE;
+        if ( ch=='\r' || ch=='\n' )
+            bflags |= LCHAR_IS_SPACE | LCHAR_IS_EOL;
         return bflags;
     }
     

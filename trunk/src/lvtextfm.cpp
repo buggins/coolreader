@@ -829,9 +829,30 @@ public:
                 updateY( word );
             }
 
+            // search for next uncommitted source object
+            // last committed word
+            formatted_word_t * lastword = &frmline->words[frmline->word_count-1];
+            int lastSrcIndex = lastword->src_text_index; // last word index
+            int nextSrcIndex = lastSrcIndex + 1;
+            int nextSrcPos = 0;
+            bool eol = false;;
+            if ( !(lastword->flags & LTEXT_WORD_IS_OBJECT) ) {
+                src_text_fragment_t * lastline = &m_pbuffer->srctext[lastSrcIndex];
+                if ( lastword->t.start + lastword->t.len < lastline->t.offset + lastline->t.len ) {
+                    // check whether last src line is finished
+                    nextSrcPos = lastword->t.start + lastword->t.len;
+                    nextSrcIndex = lastSrcIndex;
+                    lChar16 nextCh = lastline->t.text[nextSrcPos];
+                    if ( nextCh=='\r' || nextCh=='\n' ) {
+                        nextSrcPos++;
+                        eol = true;
+                    }
+                }
+            }
+
             // don't spread last line of paragraph
             int nalign = align;
-            if ( nalign==LTEXT_ALIGN_WIDTH && !extraWords && srcFinished )
+            if ( nalign==LTEXT_ALIGN_WIDTH && ((!extraWords && srcFinished) || eol) )
                 nalign = LTEXT_ALIGN_LEFT;
 
             int width = m_pbuffer->width;
@@ -874,24 +895,6 @@ public:
                 }
             }
 
-            // search for next uncommitted source object
-            // last committed word
-            formatted_word_t * lastword = &frmline->words[frmline->word_count-1];
-            int lastSrcIndex = lastword->src_text_index; // last word index
-            int nextSrcIndex = lastSrcIndex + 1;
-            int nextSrcPos = 0;
-            if ( !(lastword->flags & LTEXT_WORD_IS_OBJECT) ) {
-                src_text_fragment_t * lastline = &m_pbuffer->srctext[lastSrcIndex];
-                if ( lastword->t.start + lastword->t.len < lastline->t.offset + lastline->t.len ) {
-                    // check whether last src line is finished
-                    nextSrcPos = lastword->t.start + lastword->t.len;
-                    nextSrcIndex = lastSrcIndex;
-                    lChar16 nextCh = lastline->t.text[nextSrcPos];
-                    if ( nextCh=='\r' || nextCh=='\n' ) {
-                        nextSrcPos++;
-                    }
-                }
-            }
             setSrcLine( nextSrcIndex, nextSrcPos );
 
             if ( createNewLine ) {
@@ -1042,6 +1045,8 @@ public:
         lChar16 lastc = srcline->t.text[text_offset+lastch];
         if (lastchar & LCHAR_ALLOW_WRAP_AFTER)
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
+        if (lastchar & LCHAR_IS_EOL)
+            flags |= LTEXT_WORD_MUST_BREAK_LINE_AFTER;
         if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
             flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
             word->inline_width = word->width - font->getHyphenWidth();

@@ -215,10 +215,11 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
                     lChar16 def_char
                  );
 
-#define LCHAR_IS_SPACE              1 ///< flag: this char is one of unicode space shars
+#define LCHAR_IS_SPACE              1 ///< flag: this char is one of unicode space chars
 #define LCHAR_ALLOW_WRAP_AFTER      2 ///< flag: line break after this char is allowed
 #define LCHAR_DEPRECATED_WRAP_AFTER 4 ///< flag: line break after this char is possible but deprecated
 #define LCHAR_ALLOW_HYPH_WRAP_AFTER 8 ///< flag: line break after this char is allowed with addition of hyphen
+#define LCHAR_IS_EOL               16 ///< flag: this char is CR or LF
 
 /** \brief returns true if character is unicode space 
     \param code is character
