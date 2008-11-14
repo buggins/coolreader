@@ -2598,8 +2598,8 @@ bool LVDocView::ParseDocument( )
         m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
     }
 
-#if 0 //def _DEBUG
-        LVStreamRef ostream = LVOpenFileStream( "/home/lve/src/test/test_save.fb2", LVOM_WRITE );
+#ifdef _DEBUG
+        LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
         m_doc->saveToStream( ostream, "utf-16" );
 #endif
 #if 0

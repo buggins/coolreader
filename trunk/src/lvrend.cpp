@@ -1394,6 +1394,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
                 letter_spacing = 0;
                 break;
             }
+            /*
             if ( baseflags & LTEXT_FLAG_PREFORMATTED ) {
                 int flags = baseflags | tflags;
                 lString16Collection lines;
@@ -1406,9 +1407,10 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
                     flags |= LTEXT_ALIGN_LEFT;
                 }
             } else {
-                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, 
-                    line_h, ident, node, 0, letter_spacing );
             }
+            */
+            txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags, 
+                line_h, ident, node, 0, letter_spacing );
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }

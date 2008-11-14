@@ -268,6 +268,10 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     getMainNode()->recurseElements( initFormatData );
     CRLog::trace("init render method...");
     initRendMethod( getMainNode() );
+#ifdef _DEBUG
+    LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
+    saveToStream( ostream, "utf-16" );
+#endif
     //updateStyles();
     CRLog::trace("rendering...");
     int height = renderBlockElement( context, getMainNode(),
@@ -2586,6 +2590,7 @@ ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     AutoClose( id, true );
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
+    _flags = _currNode->getFlags();
     //logfile << " !o!\n";
     return _currNode->getElement();
 }

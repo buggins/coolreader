@@ -1169,8 +1169,11 @@ public:
                 {
                     if (widths_buf[j] > space_left)
                         break;
-                    if (flags_buf[j] & LCHAR_ALLOW_WRAP_AFTER)
+                    if (flags_buf[j] & LCHAR_ALLOW_WRAP_AFTER) {
                         last_fit = j;
+                        if ( flags_buf[j] & LCHAR_IS_EOL )
+                            break;
+                    }
                     if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER)
                         last_hyph = j;
                 }
@@ -1192,7 +1195,7 @@ public:
                         {
                             if (widths_buf[j] > space_left)
                                 break;
-                            if (flags_buf[j] & LCHAR_DEPRECATED_WRAP_AFTER)
+                            if ( flags_buf[j] & LCHAR_DEPRECATED_WRAP_AFTER )
                                 last_fit = j;
                         }
                         if (last_fit==-1) {
@@ -1214,26 +1217,33 @@ public:
                     if ( chars_measured < chars_left )
                         commit();
                     else {
-                        addWord(0, chars_measured-1);
+                        formatted_word_t * w = addWord(0, chars_measured-1);
                             //text_offset += chars_measured - (last_fit+1);
-                        setSrcLine( srcIndex+1, 0 );
+                        if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
+                            commit();
+                        else
+                            setSrcLine( srcIndex+1, 0 );
                     }
                 } else {
                     // add words
                     if ( align == LTEXT_ALIGN_WIDTH ) {
                         //
                         int wstart, wpos;
-                        for (j=0, wstart=0, wpos=0; j<=last_fit; j++)
+                        for (j=0, wstart=0, wpos=0; j<=last_fit && srcline; j++)
                         {
                             if (flags_buf[j] & LCHAR_IS_SPACE || j==last_fit) /* LCHAR_ALLOW_WRAP_AFTER */
                             {
-                                addWord( wstart, j );
+                                formatted_word_t * w = addWord( wstart, j );
+                                if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
+                                    commit();
                                 wstart = j+1;
                             }
                         }
                     } else {
                         // add as single word
-                        addWord( 0, last_fit );
+                        formatted_word_t * w = addWord( 0, last_fit );
+                        if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
+                            commit();
                     }
 
                     // check rest of line
