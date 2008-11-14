@@ -18,6 +18,9 @@
 #include "crsetup.h"
 #include "lvtypes.h"
 
+#define CR_FATAL_ERROR_UNKNOWN             -1
+#define CR_FATAL_ERROR_INDEX_OUT_OF_BOUND   1
+
 /// fatal error function type
 typedef void (lv_FatalErrorHandler_t)(int errorCode, const char * errorText );
 

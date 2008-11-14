@@ -1160,11 +1160,11 @@ public:
                 int j;
                 int last_fit = -1;
                 int last_hyph = -1;
-                lChar16 nextCh = srcline->t.text[chars_measured];
+                //lChar16 nextCh = srcline->t.text[chars_measured + text_offset];
                 //bool eol = (nextCh=='\r' || nextCh=='\n');
                 /* try to find good place for line break */
                 if ( srcIndex>=(int)m_pbuffer->srctextlen || flgLastParaLine || flgCanBreakBeforeNextLine )
-                        flags_buf.get()[chars_left-1] |= LCHAR_ALLOW_WRAP_AFTER;
+                        flags_buf[chars_left-1] |= LCHAR_ALLOW_WRAP_AFTER;
                 for (j = 0; j<chars_left && j<chars_measured; j++)
                 {
                     if (widths_buf[j] > space_left)
@@ -1281,6 +1281,9 @@ public:
 
     ~LVFormLine()
     {
+        // explicit clear to test memory corruption
+        flags_buf.clear();
+        widths_buf.clear();
     }
 };
 

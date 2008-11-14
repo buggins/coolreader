@@ -576,6 +576,7 @@ public:
             bflags |= LCHAR_DEPRECATED_WRAP_AFTER;
         if (isSpace)
             bflags |= LCHAR_IS_SPACE;
+        // TODO: add EOL support to other font engines
         if ( ch=='\r' || ch=='\n' )
             bflags |= LCHAR_IS_SPACE | LCHAR_IS_EOL;
         return bflags;
@@ -616,12 +617,6 @@ public:
         for ( nchars=0; nchars<len; nchars++) {
             lChar16 ch = text[nchars];
             bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
-            // TODO: add EOL support to other font engines
-            if ( ch=='\r' || ch=='\n' ) {
-                if ( nchars>0 )
-                    flags[ nchars-1 ] |= LCHAR_ALLOW_WRAP_AFTER;
-                break;
-            }
             FT_UInt ch_glyph_index = (FT_UInt)-1;
             int kerning = 0;
 #if (ALLOW_KERNING==1)
