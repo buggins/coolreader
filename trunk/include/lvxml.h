@@ -276,7 +276,7 @@ public:
     /// returns true if format is recognized by parser
     virtual bool CheckFormat();
     /// parses input stream
-    //virtual bool Parse();
+    virtual bool Parse();
     /// constructor
     LVHTMLParser( LVStreamRef stream, LVXMLParserCallback * callback );
     /// destructor

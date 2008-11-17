@@ -579,6 +579,7 @@ private:
     void clearHash();
     void reHash( int newSize );
 public:
+    lString16HashedCollection( lString16HashedCollection & v );
     lString16HashedCollection( lUInt32 hashSize );
     ~lString16HashedCollection();
     size_t add( const lChar16 * s );

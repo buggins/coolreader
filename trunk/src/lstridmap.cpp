@@ -25,6 +25,29 @@ LDOMNameIdMap::LDOMNameIdMap(lUInt16 maxId)
     m_sorted = true;
 }
 
+/// Copy constructor
+LDOMNameIdMap::LDOMNameIdMap( LDOMNameIdMap & map )
+{
+    m_size = map.m_size;
+    m_count = map.m_count;
+    m_by_id   = new LDOMNameIdMapItem * [m_size];
+    int i;
+    for ( i=0; i<m_size; i++ ) {
+        if ( map.m_by_id[i] )
+            m_by_id[i] = new LDOMNameIdMapItem( *map.m_by_id[i] );
+        else
+            m_by_id[i] = NULL;
+    }
+    m_by_name = new LDOMNameIdMapItem * [m_size];
+    for ( i=0; i<m_size; i++ ) {
+        if ( map.m_by_name[i] )
+            m_by_name[i] = new LDOMNameIdMapItem( *map.m_by_name[i] );
+        else
+            m_by_name[i] = NULL;
+    }
+    m_sorted = map.m_sorted;
+}
+
 LDOMNameIdMap::~LDOMNameIdMap()
 {
     Clear();

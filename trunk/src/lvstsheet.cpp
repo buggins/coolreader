@@ -1107,6 +1107,35 @@ static bool skip_until_end_of_rule( const char * &str )
     return *str != 0;
 }
 
+LVCssSelectorRule::LVCssSelectorRule( LVCssSelectorRule & v )
+: _type(v._type), _id(v._id), _attrid(v._attrid)
+, _next(NULL)
+, _value( v._value )
+{
+    if ( v._next )
+        _next = new LVCssSelectorRule( *_next );
+}
+
+LVCssSelector::LVCssSelector( LVCssSelector & v )
+: _id(v._id), _decl(v._decl), _specificity(v._specificity), _next(NULL), _rules(NULL)
+{
+    if ( v._next )
+        _next = new LVCssSelector( *v._next );
+    if ( v._rules )
+        _rules = new LVCssSelectorRule( *v._rules );
+}
+
+LVStyleSheet::LVStyleSheet( LVStyleSheet & sheet )
+:   _doc( sheet._doc )
+{
+    _selectors.reserve( sheet._selectors.size() );
+    for ( int i=0; i<sheet._selectors.size(); i++ ) {
+        LVCssSelector * selector = sheet._selectors[i];
+        if ( selector )
+            _selectors[i] = new LVCssSelector( *selector );
+    }
+}
+
 void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )
 {
     if (!_selectors.length())

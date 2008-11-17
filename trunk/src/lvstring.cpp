@@ -998,6 +998,23 @@ lUInt32 calcStringHash( const lChar16 * s )
     return a;
 }
 
+lString16HashedCollection::lString16HashedCollection( lString16HashedCollection & v )
+: lString16Collection( v )
+, hashSize( v.hashSize )
+, hash( NULL )
+{
+    hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
+    for ( unsigned i=0; i<hashSize; i++ ) {
+        hash[i].clear();
+        hash[i].index = v.hash[i].index;
+        HashPair * next = v.hash[i].next;
+        while ( next ) {
+            addHashItem( i, next->index );
+            next = next->next;
+        }
+    }
+}
+
 void lString16HashedCollection::addHashItem( int hashIndex, int storageIndex )
 {
     if ( hash[ hashIndex ].index == -1 ) {

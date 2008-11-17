@@ -70,6 +70,9 @@ public:
 
     /// Default constructor
     lxmlDocBase();
+    /// Copy constructor - copies ID tables contents
+    lxmlDocBase( lxmlDocBase & doc );
+    /// Destructor
     virtual ~lxmlDocBase() { }
 
     //======================================================================
@@ -988,13 +991,16 @@ public:
 #else
     ldomDocument();
 #endif
+    /// creates empty document which is ready to be copy target of doc partial contents
+    ldomDocument( ldomDocument & doc );
 
     /// return selections collection
     ldomXRangeList & getSelections() { return _selections; }
     /// get full document height
     int getFullHeight();
-
+    /// returns page height setting
     int getPageHeight() { return _page_height; }
+    /// saves document contents as XML to stream with specified encoding
     bool saveToStream( LVStreamRef stream, const char * codepage );
     /// get default font reference
     font_ref_t getDefaultFont() { return _def_font; }
@@ -1430,6 +1436,7 @@ public:
 class ldomDocumentWriterFilter : public ldomDocumentWriter
 {
 protected:
+    bool _libRuParagraphStart;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
     virtual void AutoClose( lUInt16 tag_id, bool open );
 public:

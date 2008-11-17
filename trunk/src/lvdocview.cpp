@@ -2548,7 +2548,7 @@ bool LVDocView::ParseDocument( )
         }
     }
 
-    /// RTF format
+    /// HTML format
     if ( parser==NULL ) {
         setDocFormat( doc_format_html );
         parser = new LVHTMLParser(m_stream, &writerFilter);

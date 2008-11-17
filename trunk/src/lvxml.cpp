@@ -2288,9 +2288,12 @@ LVHTMLParser::~LVHTMLParser()
 }
 
 /// parses input stream
-//bool LVHTMLParser::Parse()
-//{
-//}
+bool LVHTMLParser::Parse()
+{
+    bool res = LVXMLParser::Parse();
+    
+    return res;
+}
 
 
 lString16 LVReadTextFile( LVStreamRef stream )

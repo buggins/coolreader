@@ -113,6 +113,7 @@ public:
     LVCssSelectorRule(LVCssSelectorRuleType type)
     : _type(type), _id(0), _attrid(0), _next(NULL)
     { }
+    LVCssSelectorRule( LVCssSelectorRule & v );
     void setId( lUInt16 id ) { _id = id; }
     void setAttr( lUInt16 id, lString16 value ) { _attrid = id; _value = value; }
     LVCssSelectorRule * getNext() { return _next; }
@@ -142,6 +143,7 @@ private:
     void insertRuleStart( LVCssSelectorRule * rule );
     void insertRuleAfterStart( LVCssSelectorRule * rule );
 public:
+    LVCssSelector( LVCssSelector & v );
     LVCssSelector() : _id(0), _specificity(0), _next(NULL), _rules(NULL) { }
     ~LVCssSelector() { if (_next) delete _next; if (_rules) delete _rules; }
     bool parse( const char * &str, lxmlDocBase * doc );
@@ -178,6 +180,8 @@ public:
     void setDocument( lxmlDocBase * doc ) { _doc = doc; }
     /// constructor
     LVStyleSheet( lxmlDocBase * doc = NULL ) : _doc(doc) { }
+    /// copy constructor
+    LVStyleSheet( LVStyleSheet & sheet );
     /// parse stylesheet, compile and add found rules to sheet
     bool parse( const char * str );
     /// apply stylesheet to node style

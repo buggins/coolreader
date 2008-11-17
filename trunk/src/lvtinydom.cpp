@@ -147,6 +147,47 @@ ldomDocument::ldomDocument()
 }
 #endif
 
+/// Copy constructor - copies ID tables contents
+lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
+:    _elementNameTable(doc._elementNameTable)    // Element Name<->Id map
+,    _attrNameTable(doc._attrNameTable)       // Attribute Name<->Id map
+,   _nsNameTable(doc._nsNameTable)           // Namespace Name<->Id map
+,   _nextUnknownElementId(doc._nextUnknownElementId) // Next Id for unknown element
+,   _nextUnknownAttrId(doc._nextUnknownAttrId)    // Next Id for unknown attribute
+,   _nextUnknownNsId(doc._nextUnknownNsId)      // Next Id for unknown namespace
+    //lvdomStyleCache _styleCache;         // Style cache
+,   _stylesheet(doc._stylesheet)
+,   _attrValueTable(doc._attrValueTable)
+,   _idNodeMap(doc._idNodeMap)
+,   _idAttrId(doc._idAttrId) // Id for "id" attribute name
+{
+}
+
+/// creates empty document which is ready to be copy target of doc partial contents
+ldomDocument::ldomDocument( ldomDocument & doc )
+: lxmlDocBase(doc)
+, _def_font(doc._def_font) // default font
+, _def_style(doc._def_style)
+, _page_height(doc._page_height)
+
+#if COMPACT_DOM == 1
+,_textcache(doc._textcache.getStream(), COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE)
+    ,_min_ref_text_size(doc._min_ref_text_size)
+#ifndef BUILD_LITE
+        , _renderedBlockCache( 32 )
+#endif
+#else
+    // COMPACT_DOM != 1
+#ifndef BUILD_LITE
+        , _renderedBlockCache( 32 )
+#endif
+#endif
+, _docFlags(doc._docFlags)
+, _container(doc._container)
+, _codeBase(doc._codeBase)
+{
+}
+
 static void writeNode( LVStream * stream, ldomNode * node )
 {
     if ( node->getNodeType() == LXML_TEXT_NODE )
@@ -2582,6 +2623,14 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 
 ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
+    // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
+    if ( tagname[0]=='b' && tagname[1]=='r' && tagname[2]==0 ) {
+        // substitute to P
+        tagname = L"p";
+        _libRuParagraphStart = true; // to trim leading &nbsp;
+    } else {
+        _libRuParagraphStart = false;
+    }
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     if ( nsname && nsname[0] )
         lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
@@ -2619,6 +2668,21 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
     if ( _currNode )
         _flags = _currNode->getFlags();
 
+    // LIB.RU patch: remove table of contents
+    if ( _currNode && !lStr_cmp(tagname, L"table") ) {
+        ldomElement * parent = _currNode->getElement();
+        ldomElement * node = NULL;
+        int index = parent->getChildCount() - 1;
+        if ( index >= 0 )
+            node = (ldomElement *)parent->getChildNode( index );
+        if ( node && node->getNodeId()==el_table ) {
+            if ( node->getAttributeValue(attr_align)==L"right" && node->getAttributeValue(attr_width)==L"30%" ) {
+                // LIB.RU TOC detected: remove it
+                delete parent->removeChild( index );
+            }
+        }
+    }
+
     if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");
         _parser->Stop();
@@ -2637,14 +2701,26 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len) )
              return;
-        if (_currNode->_allowText)
-            _currNode->onText( text, len, fpos, fsize, flags );
+        if (_currNode->_allowText) {
+            if ( _libRuParagraphStart ) {
+                while ( *text==160 && len > 0 ) {
+                    text++;
+                    len--;
+                    while ( *text==' ' && len > 0 ) {
+                        text++;
+                        len--;
+                    }
+                }
+            }
+            if ( len > 0 )
+                _currNode->onText( text, len, fpos, fsize, flags );
+        }
     }
     //logfile << " !t!\n";
 }
 
 ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules )
-: ldomDocumentWriter( document, headerOnly )
+: ldomDocumentWriter( document, headerOnly ), _libRuParagraphStart(false)
 {
     lUInt16 i;
     for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )

@@ -24,12 +24,20 @@
 class LDOMNameIdMapItem 
 {
 public:
+    /// id
     lUInt16    id;
+    /// value
     lString16 value;
+    /// custom data pointer
     const void * data;
 
     LDOMNameIdMapItem(lUInt16 _id, const lString16 & _value, const void * _data)
         : id(_id), value(_value), data(_data)
+    {
+    }
+    /// copy constructor
+    LDOMNameIdMapItem(LDOMNameIdMapItem & item)
+        : id(item.id), value(item.value), data(item.data)
     {
     }
 };
@@ -47,8 +55,10 @@ private:
 
     void    Sort();
 public:
-
+    /// Main constructor
     LDOMNameIdMap( lUInt16 maxId );
+    /// Copy constructor
+    LDOMNameIdMap( LDOMNameIdMap & map );
     ~LDOMNameIdMap();
     
     void Clear();
