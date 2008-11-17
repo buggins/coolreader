@@ -47,9 +47,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="..\..\wxWidgets\include\msvc;..\..\wxWidgets\include;..\..\crengine\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WIN32;_WINDOWS;__WXMSW__"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				PrecompiledHeaderFile=".\Unicode Release/cr3.pch"
 				AssemblerListingLocation=".\Unicode Release/"
 				ObjectFile=".\Unicode Release/"
@@ -74,7 +79,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib odbc32.lib crengine.lib freetype232MT.lib"
+				AdditionalDependencies="wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib odbc32.lib crengine.lib freetype235MT.lib"
 				OutputFile=".\Unicode Release/cr3.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
