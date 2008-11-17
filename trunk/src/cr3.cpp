@@ -34,6 +34,7 @@ public:
         _lastName = v._lastName;
         _middleName = v._middleName;
         _nickName = v._nickName;
+        return *this;
     }
     lString16 getFirstName() { return _firstName; }
     lString16 getLastName() { return _lastName; }
@@ -68,7 +69,7 @@ public:
     /// returns document series name
     lString16 getSeriesName() { return _seriesName; }
     /// returns document series number
-    int getSeriesNumber() { _seriesNumber; }
+    int getSeriesNumber() { return _seriesNumber; }
     void setFileName( lString16 fn ) { _fileName = fn; }
     void setFileSize( lvsize_t sz ) { _fileSize = sz; }
     void setFormat( doc_format_t fmt ) { _format = fmt; }
@@ -253,9 +254,36 @@ IMPLEMENT_APP(cr3app)
 #include "resources/cr3res.h"
 
 
+void testHyphen( const char * str )
+{
+    lString16 s16 = Utf8ToUnicode( lString8(str) );
+    lUInt16 widths[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    lUInt8 flags[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    HyphMan::hyphenate( s16.c_str(), s16.length(), widths, flags, 1, 15 );
+    lString8 buf( str );
+    buf << " = ";
+    for ( unsigned i=0; i<s16.length(); i++ ) {
+        buf << str[i];
+        if ( flags[i] & LCHAR_ALLOW_HYPH_WRAP_AFTER )
+            buf << '-';
+    }
+    printf("%s\n", buf.c_str());
+}
+
 void testFormatting()
 {
     //
+    static char * words[] = {
+        "audition",
+        "helper",
+        "automation",
+        "constant",
+        "culture",
+        "hyphenation",
+        NULL,
+    };
+    for ( int w=0; words[w]; w++ )
+        testHyphen(words[w]);
     class Tester {
         public:
             LFormattedText txt;
@@ -278,12 +306,33 @@ void testFormatting()
             void dump()
             {
                 formatted_text_fragment_t * buf = txt.GetBuffer();
-                //for ( 
+                for ( int i=0; i<buf->frmlinecount; i++ ) {
+                    formatted_line_t   * frmline = buf->frmlines[i];
+                    printf("line[%d]\t ", i);
+                    for ( int j=0; j<frmline->word_count; j++ ) {
+                        formatted_word_t * word = &frmline->words[j];
+                        if ( word->flags & LTEXT_WORD_IS_OBJECT ) {
+                            // object
+                            printf("{%d..%d} object\t", (int)word->x, (int)(word->x + word->width) );
+                        } else {
+                            // dump text
+                            src_text_fragment_t * src = &buf->srctext[word->src_text_index];
+                            lString16 txt = lString16( src->t.text, word->t.start, word->t.len );
+                            lString8 txt8 = UnicodeToUtf8( txt );
+                            printf("{%d..%d} \"%s\"\t", (int)word->x, (int)(word->x + word->width), (const char *)txt8.c_str() );
+                        }
+                    }
+                    printf("\n");
+                }
             }
     };
     LVFontRef font1 = fontMan->GetFont(20, 300, false, css_ff_sans_serif, lString8("Arial") );
     LVFontRef font2 = fontMan->GetFont(20, 300, false, css_ff_serif, lString8("Times New Roman") );
     Tester t;
+    t.addLine( L"   Testing preformatted\ntext wrapping.", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"\nNewline.", LTEXT_FLAG_OWNTEXT, font1 );
+    t.addLine( L"\n\n2 Newlines.", LTEXT_FLAG_OWNTEXT, font1 );
+#if 0
     t.addLine( L"Testing thisislonglongwordto", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"Testing", LTEXT_ALIGN_WIDTH|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"several", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font2 );
@@ -299,10 +348,13 @@ void testFormatting()
     t.addLine( L"And the last one written with another font", LTEXT_FLAG_OWNTEXT, font2 );
     t.addLine( L"Next paragraph: left-aligned. ", LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT, font1 );
     t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
+    int i;
+#endif
+    t.txt.FormatNew( 300, 400 );
+    t.dump();
+#if 0
     printf("Running performance test\n");
     time_t start1 = time((time_t*)0);
-    int i;
-#if 1
     for ( i=0; i<2000; i++ )
         t.txt.FormatNew( 600, 800 );
     //for ( int i=0; i<100000; i++ )
