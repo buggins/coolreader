@@ -836,19 +836,23 @@ public:
             int nextSrcIndex = lastSrcIndex + 1;
             int nextSrcPos = 0;
             bool eol = false;;
+            if ( lastword->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
+                eol = true;
             if ( !(lastword->flags & LTEXT_WORD_IS_OBJECT) ) {
                 src_text_fragment_t * lastline = &m_pbuffer->srctext[lastSrcIndex];
                 if ( lastword->t.start + lastword->t.len < lastline->t.offset + lastline->t.len ) {
                     // check whether last src line is finished
                     nextSrcPos = lastword->t.start + lastword->t.len;
                     nextSrcIndex = lastSrcIndex;
-                    lChar16 nextCh = lastline->t.text[nextSrcPos];
-                    if ( nextCh=='\r' || nextCh=='\n' ) {
-                        nextSrcPos++;
-                        eol = true;
-                    }
+                    //lChar16 nextCh = lastline->t.text[nextSrcPos];
+                    //if ( nextCh=='\r' || nextCh=='\n' ) {
+                    //    nextSrcPos++;
+                    //    eol = true;
+                    //}
                 }
             }
+            if (lastword->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
+                lastword->t.len--; // remove CR or LF character
 
             // don't spread last line of paragraph
             int nalign = align;
@@ -1045,8 +1049,9 @@ public:
         lChar16 lastc = srcline->t.text[text_offset+lastch];
         if (lastchar & LCHAR_ALLOW_WRAP_AFTER)
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
-        if (lastchar & LCHAR_IS_EOL)
+        if (lastchar & LCHAR_IS_EOL) {
             flags |= LTEXT_WORD_MUST_BREAK_LINE_AFTER;
+        }
         if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
             flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
             word->inline_width = word->width - font->getHyphenWidth();
@@ -1150,6 +1155,9 @@ public:
                 // try to insert text
                 int space_left = spaceLeft();
                 int chars_left = srcline->t.len - text_offset;
+                if ( chars_left < 0 ) {
+                    chars_left = 0;
+                }
                 int chars_measured = font->measureText(
                         srcline->t.text + text_offset,
                         chars_left,
@@ -1229,21 +1237,29 @@ public:
                     if ( align == LTEXT_ALIGN_WIDTH ) {
                         //
                         int wstart, wpos;
+                        bool eol = false;
                         for (j=0, wstart=0, wpos=0; j<=last_fit && srcline; j++)
                         {
                             if (flags_buf[j] & LCHAR_IS_SPACE || j==last_fit) /* LCHAR_ALLOW_WRAP_AFTER */
                             {
                                 formatted_word_t * w = addWord( wstart, j );
-                                if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
+                                if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER ) {
                                     commit();
+                                    eol = true;
+                                    break;
+                                }
                                 wstart = j+1;
                             }
                         }
+                        if ( eol )
+                            continue;
                     } else {
                         // add as single word
                         formatted_word_t * w = addWord( 0, last_fit );
-                        if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
+                        if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER ) {
                             commit();
+                            continue;
+                        }
                     }
 
                     // check rest of line
@@ -1276,6 +1292,14 @@ public:
             }
         }
         commit();
+        // remove empty trailing line
+        if ( m_pbuffer->frmlinecount ) {
+            formatted_line_t   * frmline = m_pbuffer->frmlines[m_pbuffer->frmlinecount-1];
+            if ( frmline->word_count == 0 ) {
+                m_pbuffer->frmlinecount--;
+            }
+        }
+        //===========================
         return frmline->y + frmline->height;
     }
 

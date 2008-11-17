@@ -578,7 +578,7 @@ public:
             bflags |= LCHAR_IS_SPACE;
         // TODO: add EOL support to other font engines
         if ( ch=='\r' || ch=='\n' )
-            bflags |= LCHAR_IS_SPACE | LCHAR_IS_EOL;
+            bflags |= LCHAR_IS_SPACE | LCHAR_IS_EOL | LCHAR_ALLOW_WRAP_AFTER;
         return bflags;
     }
     

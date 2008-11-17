@@ -58,6 +58,13 @@ extern "C" {
 typedef struct
 {
     void *          object;   /**< \brief pointer to object which represents source */
+    lUInt16         margin;   /**< \brief first line margin */
+    lUInt8          interval; /**< \brief line interval, *16 (16=normal, 32=double) */
+    lInt8           letter_spacing; /**< \brief additional letter spacing, pixels */
+    lUInt32         color;    /**< \brief color */
+    lUInt32         bgcolor;  /**< \brief background color */
+    lUInt32         flags;    /**< \brief flags */
+    // move unions bottom to simplify debugging
     union {
         struct {
             lvfont_handle   font;     /**< \brief handle of font to draw string */
@@ -70,12 +77,6 @@ typedef struct
             lUInt16         height;   /**< \brief pointer to unicode text string */
         } o;
     };
-    lUInt16         margin;   /**< \brief first line margin */
-    lUInt8          interval; /**< \brief line interval, *16 (16=normal, 32=double) */
-    lInt8           letter_spacing; /**< \brief additional letter spacing, pixels */
-    lUInt32         color;    /**< \brief color */
-    lUInt32         bgcolor;  /**< \brief background color */
-    lUInt32         flags;    /**< \brief flags */
 } src_text_fragment_t;
 
 
@@ -84,6 +85,12 @@ typedef struct
 typedef struct
 {
    lUInt16  src_text_index;  /**< \brief 00 index of source text line */
+   lUInt16  width;           /**< \brief 06 word width, pixels, when at line end */
+   lUInt16  x;               /**< \brief 08 word x position in line */
+   lInt8    y;               /**< \brief 10 baseline y position */
+   lUInt8   flags;           /**< \brief 11 flags */
+   lUInt16  inline_width;    /**< \brief 12 word width, pixels when inside line */
+    // move unions bottom to simplify debugging
    union {
           /// for text word
        struct {
@@ -95,11 +102,6 @@ typedef struct
            lUInt16  height;           /**< \brief 02 height of image */
        } o;
    };
-   lUInt16  width;           /**< \brief 06 word width, pixels, when at line end */
-   lUInt16  x;               /**< \brief 08 word x position in line */
-   lInt8    y;               /**< \brief 10 baseline y position */
-   lUInt8   flags;           /**< \brief 11 flags */
-   lUInt16  inline_width;    /**< \brief 12 word width, pixels when inside line */
 } formatted_word_t;
 
 /// can add space after this word
