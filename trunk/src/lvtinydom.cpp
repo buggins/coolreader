@@ -2640,6 +2640,8 @@ ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const
     AutoClose( id, true );
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     _flags = _currNode->getFlags();
+    if ( _libRuDocumentDetected && (_flags & TXTFLG_PRE) )
+        _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
     //logfile << " !o!\n";
     return _currNode->getElement();
 }
@@ -2665,23 +2667,44 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
     _errFlag |= (id != _currNode->getElement()->getNodeId());
     _currNode = pop( _currNode, id );
 
-    if ( _currNode )
+    if ( _currNode ) {
         _flags = _currNode->getFlags();
+        if ( _libRuDocumentDetected && (_flags & TXTFLG_PRE) )
+            _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
+    }
 
+    //=============================================================
     // LIB.RU patch: remove table of contents
-    if ( _currNode && !lStr_cmp(tagname, L"table") ) {
-        ldomElement * parent = _currNode->getElement();
-        ldomElement * node = NULL;
-        int index = parent->getChildCount() - 1;
-        if ( index >= 0 )
-            node = (ldomElement *)parent->getChildNode( index );
-        if ( node && node->getNodeId()==el_table ) {
-            if ( node->getAttributeValue(attr_align)==L"right" && node->getAttributeValue(attr_width)==L"30%" ) {
-                // LIB.RU TOC detected: remove it
-                delete parent->removeChild( index );
+    if ( _currNode) {
+        if ( id==el_table ) {
+            ldomElement * node = (ldomElement *)_currNode->getElement()->getLastChild();
+            if ( node && node->getNodeId()==el_table ) {
+                if ( node->getAttributeValue(attr_align)==L"right" && node->getAttributeValue(attr_width)==L"30%" ) {
+                    // LIB.RU TOC detected: remove it
+                    _currNode->getElement()->removeLastChild();
+                }
+            }
+        } else if ( id==el_div ) {
+            ldomElement * node = (ldomElement *)_currNode->getElement()->getLastChild();
+            if ( node && node->getNodeId()==el_div ) {
+                if ( node->getAttributeValue(attr_align)==L"right" ) {
+                    ldomElement * child = (ldomElement *)node->getLastChild();
+                    if ( child && child->getNodeId()==el_form )  {
+                        // LIB.RU form detected: remove it
+                        _currNode->getElement()->removeLastChild();
+                        _libRuDocumentDetected = true;
+                    }
+                }
+            }
+        } else if ( id==el_pre && _libRuDocumentDetected ) {
+            // for LIB.ru - replace PRE element with DIV (section?)
+            ldomElement * node = (ldomElement *)_currNode->getElement()->getLastChild();
+            if ( node && node->getNodeId()==el_pre ) {
+                node->setNodeId( el_div );
             }
         }
     }
+    //=============================================================
 
     if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");
@@ -2701,6 +2724,7 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
              && IsEmptySpace(text, len) )
              return;
+        bool autoPara = _libRuDocumentDetected && (flags & TXTFLG_PRE);
         if (_currNode->_allowText) {
             if ( _libRuParagraphStart ) {
                 while ( *text==160 && len > 0 ) {
@@ -2712,15 +2736,22 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
                     }
                 }
             }
-            if ( len > 0 )
+            if ( len > 0 ) {
+                if ( autoPara )
+                    OnTagOpen( NULL, L"p" );
                 _currNode->onText( text, len, fpos, fsize, flags );
+                if ( autoPara )
+                    OnTagClose( NULL, L"p" );
+            }
         }
     }
     //logfile << " !t!\n";
 }
 
 ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules )
-: ldomDocumentWriter( document, headerOnly ), _libRuParagraphStart(false)
+: ldomDocumentWriter( document, headerOnly )
+, _libRuParagraphStart(false)
+, _libRuDocumentDetected(false)
 {
     lUInt16 i;
     for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )

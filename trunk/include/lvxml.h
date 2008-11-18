@@ -66,6 +66,7 @@ public:
 #define TXTFLG_TRIM_ALLOW_END_SPACE         16
 #define TXTFLG_TRIM_REMOVE_EOL_HYPHENS      32
 #define TXTFLG_RTF                          64
+#define TXTFLG_PRE_PARA_SPLITTING           128
 #define TXTFLG_ENCODING_MASK                0xFF00
 #define TXTFLG_ENCODING_SHIFT               8
 

@@ -1151,6 +1151,16 @@ public:
     virtual ldomDocument * getDocument() const { return _document; }
     /// returns element child count
     virtual lUInt32 getChildCount() const { return _children.length(); }
+    /// returns first child node
+    virtual ldomNode * getFirstChild() const { return _children.length()>0?_children[0]:NULL; }
+    /// returns last child node
+    virtual ldomNode * getLastChild() const { return _children.length()>0?_children[_children.length()-1]:NULL; }
+    /// removes and deletes last child element
+    virtual void removeLastChild()
+    {
+        if ( _children.length()>0 )
+            delete _children.remove( _children.length() - 1 );
+    }
     /// returns element attribute count
     virtual lUInt32 getAttrCount() const { return _attrs.length(); }
     /// returns attribute value by attribute name id and namespace id
@@ -1187,6 +1197,8 @@ public:
     virtual const elem_def_t * getElementTypePtr() { return _document->getElementTypePtr(_id); }
     /// returns element name id
     virtual lUInt16 getNodeId() const { return _id; }
+    /// replace element name id with another value
+    virtual void setNodeId( lUInt16 id ) { _id = id; }
     /// returns element namespace id
     virtual lUInt16 getNodeNsId() const { return _nsid; }
     /// returns element name
@@ -1436,6 +1448,7 @@ public:
 class ldomDocumentWriterFilter : public ldomDocumentWriter
 {
 protected:
+    bool _libRuDocumentDetected;
     bool _libRuParagraphStart;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
     virtual void AutoClose( lUInt16 tag_id, bool open );

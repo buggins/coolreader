@@ -1440,7 +1440,7 @@ lString16 LVXMLTextCache::getText( lUInt32 pos, lUInt32 size, lUInt32 flags )
     //CRLog::debug("ReadTextBytes(%d,%d) done - %d chars read", (int)pos, (int)size, (int)chcount);
     text.limit( chcount );
     PreProcessXmlString( text, flags );
-    if ( (flags & TXTFLG_TRIM) && !(flags & TXTFLG_PRE) ) {
+    if ( (flags & TXTFLG_TRIM) && (!(flags & TXTFLG_PRE) || (flags & TXTFLG_PRE_PARA_SPLITTING)) ) {
         text.trimDoubleSpaces(
             (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false,
             (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false,
@@ -1985,6 +1985,9 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags )
     lChar16 lch = 0;
     lChar16 nsp = 0;
     bool pre = (flags & TXTFLG_PRE);
+    bool pre_para_splitting = (flags & TXTFLG_PRE_PARA_SPLITTING)!=0;
+    if ( pre_para_splitting )
+        pre = false;
     int tabCount = 0;
     int j = 0;
     for (int i=0; i<len; ++i )
@@ -2110,6 +2113,9 @@ bool LVXMLParser::ReadText()
     int tlen = 0;
     text_start_pos = (int)(m_buf_fpos + m_buf_pos);
     m_txt_buf.reset(TEXT_SPLIT_SIZE+1);
+    lUInt32 flags = m_callback->getFlags();
+    bool pre_para_splitting = ( flags & TXTFLG_PRE_PARA_SPLITTING )!=0;
+    bool last_eol = false;
     for (;!Eof();)
     {
         if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
@@ -2117,23 +2123,32 @@ bool LVXMLParser::ReadText()
         ch_start_pos = (int)(m_buf_fpos + m_buf_pos);
         lChar16 ch = ReadChar();
         bool flgBreak = ch=='<' || Eof();
-        if (!flgBreak)
+        bool splitParas = false;
+        if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) )
+            splitParas = true;
+
+        if (!flgBreak && !splitParas)
         {
             m_txt_buf += ch;
             tlen++;
         }
-        if ( tlen > TEXT_SPLIT_SIZE || flgBreak )
+        if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
         {
-            if (last_split_fpos==0 || flgBreak )
+            if (last_split_fpos==0 || flgBreak || splitParas)
             {
                 last_split_fpos = (int)((ch=='<')?ch_start_pos : m_buf_fpos + m_buf_pos);
                 last_split_txtlen = tlen;
             }
             //=====================================================
-            lUInt32 flags = m_callback->getFlags();
             lString16 nextText = m_txt_buf.substr( last_split_txtlen );
             m_txt_buf.limit( last_split_txtlen );
             PreProcessXmlString( m_txt_buf, flags );
+            if ( (flags & TXTFLG_TRIM) && (!(flags & TXTFLG_PRE) || (flags & TXTFLG_PRE_PARA_SPLITTING)) ) {
+                m_txt_buf.trimDoubleSpaces(
+                    (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false,
+                    (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false,
+                    (flags & TXTFLG_TRIM_REMOVE_EOL_HYPHENS)?true:false );
+            }
             m_callback->OnText(m_txt_buf.c_str(), m_txt_buf.length(), text_start_pos, last_split_fpos-text_start_pos, flags );
             //=====================================================
             if (flgBreak)
@@ -2153,6 +2168,7 @@ bool LVXMLParser::ReadText()
             last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
             last_split_txtlen = tlen;
         }
+        last_eol = (ch=='\r' || ch=='\n');
     }
     //if (!Eof())
     //    m_buf_pos++;
