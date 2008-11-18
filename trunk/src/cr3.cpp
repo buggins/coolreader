@@ -306,10 +306,10 @@ void testFormatting()
             void dump()
             {
                 formatted_text_fragment_t * buf = txt.GetBuffer();
-                for ( int i=0; i<buf->frmlinecount; i++ ) {
+                for ( unsigned i=0; i<buf->frmlinecount; i++ ) {
                     formatted_line_t   * frmline = buf->frmlines[i];
                     printf("line[%d]\t ", i);
-                    for ( int j=0; j<frmline->word_count; j++ ) {
+                    for ( unsigned j=0; j<frmline->word_count; j++ ) {
                         formatted_word_t * word = &frmline->words[j];
                         if ( word->flags & LTEXT_WORD_IS_OBJECT ) {
                             // object
