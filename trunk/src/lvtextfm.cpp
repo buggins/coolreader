@@ -1339,12 +1339,9 @@ lUInt32 LFormattedText::FormatNew(lUInt16 width, lUInt16 page_height)
     m_pbuffer->height = 0;
     m_pbuffer->page_height = page_height;
     // format text
+
     // text measurement buffer
-
     LVFormLine frmLine( m_pbuffer );
-
-    // TODO: finish new implementation
-
 
     return frmLine.format();
 }
