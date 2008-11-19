@@ -37,13 +37,13 @@ class CRGUIScreen
         /// returns screen dimension
         virtual lvRect getRect() { return lvRect(0, 0, getWidth(), getHeight() ); }
         /// return pointer to screen canvas
-        virtual LVDrawBuf * getCanvas() = 0;
+        virtual LVRef<LVDrawBuf> getCanvas() = 0;
         /// draw image on screen canvas
         virtual void draw( LVDrawBuf * img, int x = 0, int y = 0) = 0;
         /// transfers contents of buffer to device, if full==true, redraws whole screen, otherwise only changed area
         virtual void update( bool full ) { }
         /// invalidates rectangle: add it to bounding box of next partial update
-        virtual void invalidateRect( lvRect rc ) { }
+        virtual void invalidateRect( const lvRect & rc ) { }
         virtual ~CRGUIScreen() { }
 };
 
@@ -57,8 +57,6 @@ class CRGUIWindow
         virtual bool isVisible() = 0;
         /// returns true if window is changed but now drawn
         virtual bool isDirty() = 0;
-        /// sets dirty flag (true means window is changed but now drawn)
-        virtual void setDirty( bool dirty ) = 0;
         /// shows or hides window
         virtual void setVisible( bool visible ) = 0;
         /// returns window rectangle
@@ -66,7 +64,7 @@ class CRGUIWindow
         /// sets window rectangle
         virtual void setRect( lvRect rc ) = 0;
         /// draws content of window to screen
-        virtual void draw() = 0;
+        virtual void flush() = 0;
         /// called if window gets focus
         virtual void activated() = 0;
         /// called if window loss focus
@@ -145,9 +143,8 @@ class CRGUIWindowManager
             while ( !drawList.empty()  ) {
                 CRGUIWindow * w = drawList.pop();
                 if ( w->isDirty() ) {
-                    w->draw();
+                    w->flush();
                     _screen->invalidateRect( w->getRect() );
-                    w->setDirty( false );
                 }
             }
         /// invalidates rectangle: add it to bounding box of next partial update
@@ -174,9 +171,8 @@ class CRGUIWindowManager
             while ( !drawList.empty()  ) {
                 CRGUIWindow * w = drawList.pop();
                 if ( w->isDirty() || fullScreenUpdate ) {
-                    w->draw();
+                    w->flush();
                     _screen->invalidateRect( w->getRect() );
-                    w->setDirty( false );
                 }
             }
             _screen->update( fullScreenUpdate );
@@ -210,23 +206,16 @@ class CRGUIWindowBase : public CRGUIWindow
         lvRect _rect;
         bool _visible;
         bool _dirty;
+        virtual void draw() = 0;
     public:
         /// returns true if window is changed but now drawn
-        virtual bool isDirty()
-        {
-            return _dirty;
-        }
-        /// sets dirty flag (true means window is changed but now drawn)
-        virtual void setDirty( bool dirty )
-        {
-            _dirty = dirty;
-        }
+        virtual bool isDirty() { return _dirty; }
         /// shows or hides window
         virtual void setVisible( bool visible ) = 0;
         virtual bool isVisible() const { return true; }
         virtual const lvRect & getRect() const { return _rect; }
         virtual void setRect( lvRect rc ) { _rect = rc; }
-        virtual void draw() { _dirty = false; }
+        virtual void flush() { draw(); _dirty = false; }
         virtual CRGUIWindowManager * getWindowManager() { return _wm; }
         CRGUIWindowBase( CRGUIWindowManager * wm )
         : _wm(wm), _visible(true), _dirty(true)
@@ -244,10 +233,10 @@ class CRGUIScreenBase : public CRGUIScreen
         int _width;
         int _height;
         lvRect _updateRect;
-        LVDrawBuf * _canvas;
-        LVDrawBuf * _front;
+        LVRef<LVDrawBuf> _canvas;
+        LVRef<LVDrawBuf> _front;
         /// override in ancessor to transfer image to device
-        virtual void update( lvRect rc, bool full ) = 0;
+        virtual void update( const lvRect & rc, bool full ) = 0;
     public:
         /// creates compatible canvas of specified size
         virtual LVDrawBuf * createCanvas( int dx, int dy )
@@ -265,18 +254,18 @@ class CRGUIScreenBase : public CRGUIScreen
         /// returns screen height
         virtual int getHeight() { return _height; }
         /// return pointer to screen canvas
-        virtual LVDrawBuf * getCanvas() { return _canvas; }
+        virtual LVRef<LVDrawBuf> getCanvas() { return _canvas; }
         /// draw image on screen canvas
         virtual void draw( LVDrawBuf * img, int x = 0, int y = 0)
         {
-            img->DrawTo( _canvas, x, y, 0, NULL );
+            img->DrawTo( _canvas.get(), x, y, 0, NULL );
         }
         /// transfers contents of buffer to device, if full==true, redraws whole screen, otherwise only changed area
         virtual void update( bool full )
         {
             if ( _updateRect.isEmpty() && !full )
                 return;
-            if ( _front && !_updateRect.isEmpty() && !full ) {
+            if ( !_front.isNull() && !_updateRect.isEmpty() && !full ) {
                 // calculate really changed area
                 lvRect rc;
                 lvRect lineRect(_updateRect);
@@ -303,9 +292,9 @@ class CRGUIScreenBase : public CRGUIScreen
                 _updateRect.top = rc.top;
                 _updateRect.bottom = rc.bottom;
             }
-            if ( full && _front ) {
+            if ( full && !_front.isNull() ) {
                 // copy full screen to front buffer
-                _canvas->DrawTo( _front, 0, 0, 0, NULL );
+                _canvas->DrawTo( _front.get(), 0, 0, 0, NULL );
             }
             if ( full )
                 _updateRect = getRect();
@@ -313,22 +302,19 @@ class CRGUIScreenBase : public CRGUIScreen
             _updateRect.clear();
         }
         /// invalidates rectangle: add it to bounding box of next partial update
-        virtual void invalidateRect( lvRect rc )
+        virtual void invalidateRect( const lvRect & rc )
         {
             _updateRect.extend( rc );
         }
         CRGUIScreenBase( int width, int height, bool doublebuffer  )
         : _width( width ), _height( height ), _canvas(NULL), _front(NULL)
         {
-            _canvas = createCanvas( width, height );
+            _canvas = LVRef<LVDrawBuf>( createCanvas( width, height ) );
             if ( doublebuffer )
-                _front = createCanvas( width, height );
+                _front = LVRef<LVDrawBuf>( createCanvas( width, height ) );
         }
         virtual ~CRGUIScreenBase()
         {
-            delete _canvas;
-            if ( _front )
-                delete _front;
         }
 };
 

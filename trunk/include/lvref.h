@@ -492,6 +492,7 @@ class LVAutoPtr {
 #ifdef _DEBUG
     int size;
 #endif
+    LVAutoPtr( const LVAutoPtr & v ) { } // no copy allowed
 public:
     LVAutoPtr()
         : p(NULL)
