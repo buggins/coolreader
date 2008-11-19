@@ -58,15 +58,49 @@ public:
     int top;
     int right;
     int bottom;
+    /// returns true if rectangle is empty
     bool isEmpty() { return left>=right || bottom<=top; }
     lvRect() : left(0), top(0), right(0), bottom(0) { }
     lvRect( int x0, int y0, int x1, int y1) : left(x0), top(y0), right(x1), bottom(y1) { }
     lvPoint topLeft() const { return lvPoint( left, top ); }
     lvPoint bottomRight() const { return lvPoint( right, bottom ); }
+    /// returns rectangle width
     int width() const { return right - left; }
+    /// returns rectangle height
     int height() const { return bottom - top; }
     void shrink( int delta ) { left+=delta; right-=delta; top+=delta; bottom-=delta; }
     void extend( int delta ) { shrink(-delta); }
+    /// makes this rect to cover both this and specified rect (bounding box for two rectangles)
+    void extend( lvRect rc )
+    {
+        if ( rc.isEmpty() )
+            return;
+        if ( isEmpty() ) {
+            left = rc.left;
+            top = rc.top;
+            right = rc.right;
+            bottom = rc.bottom;
+            return;
+        }
+        if ( left > rc.left )
+            left = rc.left;
+        if ( top > rc.top )
+            top = rc.top;
+        if ( right < rc.right )
+            right = rc.right;
+        if ( bottom < rc.bottom )
+            bottom = rc.bottom;
+    }
+    /// returns true if specified rectangle is fully covered by this rectangle
+    bool isRectInside( lvRect rc )
+    {
+        if ( rc.isEmpty() || isEmpty() )
+            return false;
+        if ( rc.left < left || rc.right > right || rc.top < top || rc.bottom > bottom )
+            return false;
+        return true;
+    }
+    /// returns true if point is inside this rectangle
     bool isPointInside( lvPoint & pt )
     {
         return left<=pt.x && top<=pt.y && right>pt.x && bottom > pt.y;

@@ -180,6 +180,25 @@ public:
                 add( new T(*v[i]) );
         }
     }
+    /// stack-like interface: pop top item from stack
+    T * pop()
+    {
+        if ( empty() )
+            return NULL;
+        return remove( length() - 1 );
+    }
+    /// stack-like interface: push item to stack
+    void push( T * item )
+    {
+        add( item );
+    }
+    /// stack-like interface: get top item w/o removing from stack
+    T * peek()
+    {
+        if ( empty() )
+            return NULL;
+        return get( length() - 1 );
+    }
     /// destructor
     ~LVPtrVector() { clear(); }
 };
