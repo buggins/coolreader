@@ -921,6 +921,9 @@ int initTableRendMethods( ldomNode * node, int state )
                     child->setRendMethod( erm_invisible );
                 }
                 break;
+            default:
+                // ignore
+                break;
             }
         }
     }

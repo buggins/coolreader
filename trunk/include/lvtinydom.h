@@ -1366,6 +1366,8 @@ public:
 #endif
 };
 
+class ldomDocumentWriter;
+
 class ldomElementWriter
 {
     ldomElementWriter * _parent;
@@ -1389,7 +1391,7 @@ class ldomElementWriter
 
     friend class ldomDocumentWriter;
     friend class ldomDocumentWriterFilter;
-    friend ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id );
+    //friend ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id );
 };
 
 /** \brief callback object to fill DOM tree
@@ -1410,6 +1412,7 @@ protected:
     lUInt16 _stopTagId;
     //============================
     lUInt32 _flags;
+    virtual void ElementCloseHandler( ldomElement * elem ) { }
 public:
     /// returns flags
     virtual lUInt32 getFlags() { return _flags; }
@@ -1428,6 +1431,8 @@ public:
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
+    /// close tags
+    ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id );
     /// called on text
     virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
@@ -1452,6 +1457,7 @@ protected:
     bool _libRuParagraphStart;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
     virtual void AutoClose( lUInt16 tag_id, bool open );
+    virtual void ElementCloseHandler( ldomElement * elem );
 public:
     /// called on opening tag
     virtual ldomElement * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );

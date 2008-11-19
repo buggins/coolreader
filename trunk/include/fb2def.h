@@ -88,6 +88,8 @@ XS_TAG1I( a )
 
 XS_TAG1( html )
 
+XS_TAG1( hr )
+
 // table
 XS_TAG1D( table, false, css_d_table, css_ws_normal )
 XS_TAG1D( caption, true, css_d_table_caption, css_ws_normal )

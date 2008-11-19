@@ -2598,7 +2598,7 @@ bool LVDocView::ParseDocument( )
         m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
     }
 
-#ifdef _DEBUG
+#if 1 //def _DEBUG
         LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
         m_doc->saveToStream( ostream, "utf-16" );
 #endif

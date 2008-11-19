@@ -309,7 +309,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     getMainNode()->recurseElements( initFormatData );
     CRLog::trace("init render method...");
     initRendMethod( getMainNode() );
-#ifdef _DEBUG
+#if 1 //def _DEBUG
     LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
     saveToStream( ostream, "utf-16" );
 #endif
@@ -857,7 +857,7 @@ lxmlElementWriter * lxmlElementWriter::pop( lUInt16 id )
 
   */
 
-ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id )
+ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id )
 {
     //logfile << "{p";
     ldomElementWriter * tmp = obj;
@@ -881,6 +881,7 @@ ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id )
         tmp2 = tmp->_parent;
         if (tmp->getElement()->getNodeId() == id)
             break;
+        ElementCloseHandler( tmp->getElement() );
         delete tmp;
     }
     /*
@@ -889,6 +890,7 @@ ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id )
     logfile << (int)tmp->getElement()->childCount << " - "
             << (int)tmp2->getElement()->childCount;
     */
+    ElementCloseHandler( tmp->getElement() );
     delete tmp;
     //logfile << "}";
     return tmp2;
@@ -2612,7 +2614,9 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
             while ( !done && _currNode ) {
                 if ( _currNode == found )
                     done = true;
-                _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
+                ldomElement * closedElement = _currNode->getElement();
+                _currNode = pop( _currNode, closedElement->getNodeId() );
+                //ElementCloseHandler( closedElement );
             }
         }
     } else {
@@ -2646,6 +2650,40 @@ ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const
     return _currNode->getElement();
 }
 
+void ldomDocumentWriterFilter::ElementCloseHandler( ldomElement * node )
+{
+    ldomElement * parent = node->getParentNode();
+    lUInt16 id = node->getNodeId();
+    if ( parent ) {
+        if ( parent->getLastChild() != node )
+            return;
+        if ( id==el_table ) {
+            if ( node->getAttributeValue(attr_align)==L"right" && node->getAttributeValue(attr_width)==L"30%" ) {
+                // LIB.RU TOC detected: remove it
+                parent->removeLastChild();
+            }
+        } else if ( id==el_pre && _libRuDocumentDetected ) {
+            // for LIB.ru - replace PRE element with DIV (section?)
+            if ( node->getChildCount()==0 )
+                parent->removeLastChild(); // remove empty PRE element
+            //else if ( node->getLastChild()->getNodeId()==el_div && node->getLastChild()->getChildCount() && 
+            //          ((ldomElement*)node->getLastChild())->getLastChild()->getNodeId()==el_form )
+            //    parent->removeLastChild(); // remove lib.ru final section
+            else
+                node->setNodeId( el_div );
+        } else if ( id==el_div ) {
+            if ( node->getAttributeValue(attr_align)==L"right" ) {
+                ldomElement * child = (ldomElement *)node->getLastChild();
+                if ( child && child->getNodeId()==el_form )  {
+                    // LIB.RU form detected: remove it
+                    parent->removeLastChild();
+                    _libRuDocumentDetected = true;
+                }
+            }
+        }
+    }
+}
+
 /// called on closing tag
 void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
 {
@@ -2664,8 +2702,11 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
     AutoClose( _currNode->_element->getNodeId(), false );
     //======== END FILTER CODE ==============
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
-    _errFlag |= (id != _currNode->getElement()->getNodeId());
+    // save closed element
+    ldomElement * closedElement = _currNode->getElement();
+    _errFlag |= (id != closedElement->getNodeId());
     _currNode = pop( _currNode, id );
+
 
     if ( _currNode ) {
         _flags = _currNode->getFlags();
@@ -2675,35 +2716,7 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
 
     //=============================================================
     // LIB.RU patch: remove table of contents
-    if ( _currNode) {
-        if ( id==el_table ) {
-            ldomElement * node = (ldomElement *)_currNode->getElement()->getLastChild();
-            if ( node && node->getNodeId()==el_table ) {
-                if ( node->getAttributeValue(attr_align)==L"right" && node->getAttributeValue(attr_width)==L"30%" ) {
-                    // LIB.RU TOC detected: remove it
-                    _currNode->getElement()->removeLastChild();
-                }
-            }
-        } else if ( id==el_div ) {
-            ldomElement * node = (ldomElement *)_currNode->getElement()->getLastChild();
-            if ( node && node->getNodeId()==el_div ) {
-                if ( node->getAttributeValue(attr_align)==L"right" ) {
-                    ldomElement * child = (ldomElement *)node->getLastChild();
-                    if ( child && child->getNodeId()==el_form )  {
-                        // LIB.RU form detected: remove it
-                        _currNode->getElement()->removeLastChild();
-                        _libRuDocumentDetected = true;
-                    }
-                }
-            }
-        } else if ( id==el_pre && _libRuDocumentDetected ) {
-            // for LIB.ru - replace PRE element with DIV (section?)
-            ldomElement * node = (ldomElement *)_currNode->getElement()->getLastChild();
-            if ( node && node->getNodeId()==el_pre ) {
-                node->setNodeId( el_div );
-            }
-        }
-    }
+    //ElementCloseHandler( closedElement );
     //=============================================================
 
     if ( id==_stopTagId ) {
@@ -2736,12 +2749,40 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
                     }
                 }
             }
-            if ( len > 0 ) {
+            int leftSpace = 0;
+            const lChar16 * paraTag = NULL;
+            bool isHr = false;
+            if ( autoPara ) {
+                while ( (*text==' ' || *text=='\t' || *text==160) && len > 0 ) {
+                    text++;
+                    len--;
+                    leftSpace += (*text == '\t') ? 8 : 1;
+                }
+                paraTag = leftSpace > 8 ? L"h2" : L"p";
+                lChar16 ch = 0;
+                bool sameCh = true;
+                for ( int i=0; i<len; i++ ) {
+                    if ( !ch )
+                        ch = text[i];
+                    else if ( ch != text[i] ) {
+                        sameCh = false;
+                        break;
+                    }
+                }
+                if ( !ch )
+                    sameCh = false;
+                if ( ch=='-' || ch=='=' || ch=='_' || ch=='*' || ch=='#' )
+                    isHr = true;
+            }
+            if ( isHr ) {
+                OnTagOpen( NULL, L"hr" );
+                OnTagClose( NULL, L"hr" );
+            } else if ( len > 0 ) {
                 if ( autoPara )
-                    OnTagOpen( NULL, L"p" );
+                    OnTagOpen( NULL, paraTag );
                 _currNode->onText( text, len, fpos, fsize, flags );
                 if ( autoPara )
-                    OnTagClose( NULL, L"p" );
+                    OnTagClose( NULL, paraTag );
             }
         }
     }
@@ -2750,8 +2791,8 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
 
 ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules )
 : ldomDocumentWriter( document, headerOnly )
-, _libRuParagraphStart(false)
 , _libRuDocumentDetected(false)
+, _libRuParagraphStart(false)
 {
     lUInt16 i;
     for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )

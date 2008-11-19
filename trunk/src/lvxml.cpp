@@ -2145,7 +2145,7 @@ bool LVXMLParser::ReadText()
             PreProcessXmlString( m_txt_buf, flags );
             if ( (flags & TXTFLG_TRIM) && (!(flags & TXTFLG_PRE) || (flags & TXTFLG_PRE_PARA_SPLITTING)) ) {
                 m_txt_buf.trimDoubleSpaces(
-                    (flags & TXTFLG_TRIM_ALLOW_START_SPACE)?true:false,
+                    ((flags & TXTFLG_TRIM_ALLOW_START_SPACE) || pre_para_splitting)?true:false,
                     (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false,
                     (flags & TXTFLG_TRIM_REMOVE_EOL_HYPHENS)?true:false );
             }
