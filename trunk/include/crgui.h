@@ -42,6 +42,8 @@ class CRGUIScreen
         virtual void draw( LVDrawBuf * img, int x = 0, int y = 0) = 0;
         /// transfers contents of buffer to device, if full==true, redraws whole screen, otherwise only changed area
         virtual void update( bool full ) { }
+        /// invalidates rectangle: add it to bounding box of next partial update
+        virtual void invalidateRect( lvRect rc ) { }
         virtual ~CRGUIScreen() { }
 };
 
@@ -144,9 +146,11 @@ class CRGUIWindowManager
                 CRGUIWindow * w = drawList.pop();
                 if ( w->isDirty() ) {
                     w->draw();
+                    _screen->invalidateRect( w->getRect() );
                     w->setDirty( false );
                 }
             }
+        /// invalidates rectangle: add it to bounding box of next partial update
             _screen->update( false );
         }
         /// full redraw of all windows
@@ -171,6 +175,7 @@ class CRGUIWindowManager
                 CRGUIWindow * w = drawList.pop();
                 if ( w->isDirty() || fullScreenUpdate ) {
                     w->draw();
+                    _screen->invalidateRect( w->getRect() );
                     w->setDirty( false );
                 }
             }
