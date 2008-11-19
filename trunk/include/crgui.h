@@ -237,3 +237,98 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual ~CRGUIWindowBase() { }
 };
 
+/// Base Screen class implementation
+class CRGUIScreenBase : public CRGUIScreen
+{
+    protected:
+        int _width;
+        int _height;
+        lvRect _updateRect;
+        LVDrawBuf * _canvas;
+        LVDrawBuf * _front;
+        /// override in ancessor to transfer image to device
+        virtual void update( lvRect rc, bool full ) = 0;
+    public:
+        /// creates compatible canvas of specified size
+        virtual LVDrawBuf * createCanvas( int dx, int dy )
+        {
+#if (COLOR_BACKBUFFER==1)
+            LVDrawBuf * buf = new LVColorDrawBuf( dx, dy );
+#else
+            LVDrawBuf * buf = new LVGrayDrawBuf( dx, dy, GRAY_BACKBUFFER_BITS );
+#endif
+            return buf;
+        }
+
+        /// returns screen width
+        virtual int getWidth() { return _width; }
+        /// returns screen height
+        virtual int getHeight() { return _height; }
+        /// return pointer to screen canvas
+        virtual LVDrawBuf * getCanvas() { return _canvas; }
+        /// draw image on screen canvas
+        virtual void draw( LVDrawBuf * img, int x = 0, int y = 0)
+        {
+            img->DrawTo( _canvas, x, y, 0, NULL );
+        }
+        /// transfers contents of buffer to device, if full==true, redraws whole screen, otherwise only changed area
+        virtual void update( bool full )
+        {
+            if ( _updateRect.isEmpty() && !full )
+                return;
+            if ( _front && !_updateRect.isEmpty() && !full ) {
+                // calculate really changed area
+                lvRect rc;
+                lvRect lineRect(_updateRect);
+                int sz = _width * _canvas->GetBitsPerPixel() / 8;
+                for ( int y = _updateRect.top; y < _updateRect.bottom; y++ ) {
+                    if ( y>=0 && y<_height ) {
+                        void * line1 = _canvas->GetScanLine( y );
+                        void * line2 = _front->GetScanLine( y );
+                        if ( memcmp( line1, line2, sz ) ) {
+                            // line content is different
+                            lineRect.top = y;
+                            lineRect.bottom = y+1;
+                            rc.extend( lineRect );
+                            // copy line to front buffer
+                            memcpy( line2, line1, sz );
+                        }
+                    }
+                }
+                if ( rc.isEmpty() ) {
+                    // no actual changes
+                    _updateRect.clear();
+                    return;
+                }
+                _updateRect.top = rc.top;
+                _updateRect.bottom = rc.bottom;
+            }
+            if ( full && _front ) {
+                // copy full screen to front buffer
+                _canvas->DrawTo( _front, 0, 0, 0, NULL );
+            }
+            if ( full )
+                _updateRect = getRect();
+            update( _updateRect, full );
+            _updateRect.clear();
+        }
+        /// invalidates rectangle: add it to bounding box of next partial update
+        virtual void invalidateRect( lvRect rc )
+        {
+            _updateRect.extend( rc );
+        }
+        CRGUIScreenBase( int width, int height, bool doublebuffer  )
+        : _width( width ), _height( height ), _canvas(NULL), _front(NULL)
+        {
+            _canvas = createCanvas( width, height );
+            if ( doublebuffer )
+                _front = createCanvas( width, height );
+        }
+        virtual ~CRGUIScreenBase()
+        {
+            delete _canvas;
+            if ( _front )
+                delete _front;
+        }
+};
+
