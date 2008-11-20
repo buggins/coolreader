@@ -28,9 +28,10 @@ private:
     int _defvalue;
     const wxString * _choices;
     int _size;
+    bool _storeStringValues;
 public:
-    ComboBoxOption( wxComboBox * control, const char * option, int defvalue, const wxString * choices )
-    : PropOption( control, option ), _defvalue(defvalue), _choices(choices)
+    ComboBoxOption( wxComboBox * control, const char * option, int defvalue, const wxString * choices, bool storeStringValues )
+    : PropOption( control, option ), _defvalue(defvalue), _choices(choices), _storeStringValues(storeStringValues)
     {
         for ( _size=0; _choices[_size].length(); _size++ )
             ;
@@ -42,15 +43,24 @@ public:
         for ( int i=0; i<_size; i++ )
             if ( v==_choices[i] )
                 tb = i;
-        props->setInt( _option, tb );
+        if ( _storeStringValues ) {
+            props->setString( _option, lString16(_choices[tb]) );
+        } else {
+            props->setInt( _option, tb );
+        }
     }
     virtual void OptionToControl( CRPropRef props )
     {
-        int tb = props->getIntDef( _option, _defvalue );
-        if ( tb<0 )
-            tb = _defvalue;
-        if ( tb>=_size )
-            tb = _defvalue;
+        int tb = _defvalue;
+        if ( _storeStringValues ) {
+            wxString s = props->getStringDef( _option, UnicodeToUtf8(lString16(_choices[_defvalue])).c_str() ).c_str();
+        } else {
+            tb = props->getIntDef( _option, _defvalue );
+            if ( tb<0 )
+                tb = _defvalue;
+            if ( tb>=_size )
+                tb = _defvalue;
+        }
         ((wxComboBox*)_control)->SetValue( _choices[tb] );
     }
 };
@@ -136,7 +146,25 @@ wxPanel * OptPanel::AddColor( const char * option, wxString caption, lvColor def
     _opts.add( new ColorOption( control, option, defValue, buttonId ) );
     return control;
 }
-wxComboBox * OptPanel::AddCombobox( const char * option, wxString caption, wxString options[], int defValue )
+
+wxComboBox * OptPanel::AddFontFaceCombobox( const char * option, wxString caption )
+{
+    lString16Collection list;
+    fontMan->getFaceList( list );
+    LVAutoPtr<wxString> wxlist( new wxString[ list.length() + 1 ] );
+    int arialIndex = -1;
+    wxlist[list.length()] = wxString();
+    for ( unsigned i=0; i<list.length(); i++ ) {
+        if ( list[i]==L"Arial" )
+            arialIndex = i;
+        wxlist[i] = wxString(list[i].c_str());
+    }
+    if ( arialIndex<0 )
+        arialIndex = 0;
+    return AddCombobox( option, caption, wxlist.get(), arialIndex, true );
+}
+
+wxComboBox * OptPanel::AddCombobox( const char * option, wxString caption, wxString options[], int defValue, bool storeValues )
 {
     int size = 0;
     for ( ; options[size].length(); size++ )
@@ -161,7 +189,7 @@ wxComboBox * OptPanel::AddCombobox( const char * option, wxString caption, wxStr
         0,                // make vertically unstretchable
         wxALIGN_LEFT | wxALL,
         4); // no border and centre horizontally
-    _opts.add( new ComboBoxOption( control, option, defValue, options ) );
+    _opts.add( new ComboBoxOption( control, option, defValue, options, storeValues ) );
     return control;
 }
 wxCheckBox * OptPanel::AddCheckbox( const char * option, wxString caption, bool defValue )
@@ -279,6 +307,7 @@ public:
         AddCombobox( PROP_FONT_ANTIALIASING, wxT("Font antialiasing"), choices_font_antialiasing, 2 );
         AddColor( PROP_FONT_COLOR, wxT("Text color"), 0x000000, Btn_View_Text_Color );
         AddColor( PROP_BACKGROUND_COLOR, wxT("Background color"), 0xFFFFFF, Btn_View_Background_Color );
+        AddFontFaceCombobox( PROP_FONT_FACE, wxT("Font face") );
     }
 };
 

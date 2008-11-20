@@ -271,7 +271,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxmsw28ud_core.lib wxbase28ud.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib odbc32.lib crengined.lib wxjpegd.lib wxpngd.lib wxzlibd.lib freetype232MT_D.lib"
+				AdditionalDependencies="wxmsw28ud_core.lib wxbase28ud.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib odbc32.lib crengined.lib wxjpegd.lib wxpngd.lib wxzlibd.lib freetype235MT_D.lib"
 				OutputFile=".\Unicode Debug/cr3.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"

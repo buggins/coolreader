@@ -38,6 +38,7 @@ enum {
 #define PROP_FONT_ANTIALIASING       "font.antialiasing.mode"
 #define PROP_FONT_COLOR              "font.color.default"
 #define PROP_BACKGROUND_COLOR        "background.color.default"
+#define PROP_FONT_FACE               "font.face.default"
 
 #define PROP_APP_OPEN_LAST_BOOK      "app.init.open-recent"
 
@@ -61,7 +62,8 @@ protected:
     LVPtrVector<PropOption> _opts;
     wxWindow * AddControl(wxWindow * control);
     wxCheckBox * AddCheckbox(const char * option, wxString caption, bool defValue );
-    wxComboBox * AddCombobox(const char * option, wxString caption, wxString options[], int defValue );
+    wxComboBox * AddCombobox(const char * option, wxString caption, wxString options[], int defValue, bool storeValues = false );
+    wxComboBox * AddFontFaceCombobox( const char * option, wxString caption );
     wxPanel * AddColor( const char * option, wxString caption, lvColor defValue, int buttonId );
     void OnButtonClicked( wxCommandEvent & event );
 public:
