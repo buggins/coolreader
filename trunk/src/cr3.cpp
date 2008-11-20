@@ -773,13 +773,14 @@ cr3app::OnInit()
 
     int argc = wxGetApp().argc;
     lString16 fnameToOpen;
-    if ( argc>1 ) {
-        fnameToOpen = lString16( wxGetApp().argv[1] );
+    for ( int i=1; i<argc; i++ ) {
+        lString16 param = lString16( wxGetApp().argv[1] );
+        if ( param[0]!='-' )
+            fnameToOpen = param;
     }
     if ( fnameToOpen == L"test_format" ) {
         testFormatting();
     }
-
 
 #ifdef _WIN32
     //::GetSystemMetrics()
@@ -1185,9 +1186,36 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     //toolBar->SetRows(!(toolBar->IsVertical()) ? m_rows : 10 / m_rows);
     int argc = wxGetApp().argc;
     lString16 fnameToOpen;
-    if ( argc>1 ) {
-        fnameToOpen = lString16( wxGetApp().argv[1] );
-    } else if ( _props->getBoolDef(PROP_APP_OPEN_LAST_BOOK, true) ) {
+    lString16 formatName;
+    lString16 outFile;
+    bool convert = false;
+    for ( int i=1; i<argc; i++ ) {
+        lString16 param = lString16( wxGetApp().argv[1] );
+        if ( param[0]!='-' )
+            fnameToOpen = param;
+        else if ( param.startsWith(lString16(L"--convert") ) )
+            convert = true;
+        else if ( param.startsWith(lString16(L"--format=") ) ) {
+            formatName = param.substr(9);
+        } else if ( param.startsWith(lString16(L"--out=") ) ) {
+            outFile = param.substr(6);
+        }
+    }
+    if ( fnameToOpen == L"test_format" ) {
+        testFormatting();
+    }
+    if ( !fnameToOpen.empty() && convert && formatName==L"wol"  ) {
+        if ( outFile.empty() )
+            outFile = fnameToOpen + L".wol";
+        // convertor
+        if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
+            exit(1);
+        if ( !_view->getDocView()->exportWolFile( outFile.c_str(), true, 3 ) )
+            exit(2);
+        // no errors
+        exit(0);
+    }
+    if ( fnameToOpen.empty() ) {
         fnameToOpen = _view->GetLastRecentFileName();
     }
 
