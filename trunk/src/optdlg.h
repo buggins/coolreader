@@ -62,7 +62,7 @@ protected:
     LVPtrVector<PropOption> _opts;
     wxWindow * AddControl(wxWindow * control);
     wxCheckBox * AddCheckbox(const char * option, wxString caption, bool defValue );
-    wxComboBox * AddCombobox(const char * option, wxString caption, wxString options[], int defValue, bool storeValues = false );
+    wxComboBox * AddCombobox(const char * option, wxString caption, const wxArrayString & options, int defValue, bool storeValues = false );
     wxComboBox * AddFontFaceCombobox( const char * option, wxString caption );
     wxPanel * AddColor( const char * option, wxString caption, lvColor defValue, int buttonId );
     void OnButtonClicked( wxCommandEvent & event );
