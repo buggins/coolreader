@@ -1190,7 +1190,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     lString16 outFile;
     bool convert = false;
     for ( int i=1; i<argc; i++ ) {
-        lString16 param = lString16( wxGetApp().argv[1] );
+        lString16 param = lString16( wxGetApp().argv[i] );
         if ( param[0]!='-' )
             fnameToOpen = param;
         else if ( param.startsWith(lString16(L"--convert") ) )
@@ -1204,7 +1204,10 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     if ( fnameToOpen == L"test_format" ) {
         testFormatting();
     }
-    if ( !fnameToOpen.empty() && convert && formatName==L"wol"  ) {
+    if ( !fnameToOpen.empty() && convert  ) {
+        if ( formatName.empty() )
+            formatName = L"wol";
+        //==L"wol"
         if ( outFile.empty() )
             outFile = fnameToOpen + L".wol";
         // convertor
