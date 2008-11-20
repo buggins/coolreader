@@ -394,7 +394,9 @@ public:
     int compare(size_type p0, size_type n0, const value_type *s) const;
     int compare(size_type p0, size_type n0, const value_type *s, size_type pos) const;
 
+    /// returns n characters beginning with pos
     lString16 substr(size_type pos, size_type n) const;
+    /// returns part of string from specified position to end of string
     lString16 substr(size_type pos) const { return substr(pos, length()-pos); }
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;

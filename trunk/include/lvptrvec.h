@@ -256,5 +256,27 @@ public:
     }
 };
 
+template <typename T1, typename T2> class LVPair
+{
+    T1 _first;
+    T2 _second;
+public:
+    LVPair( const T1 & first, const T2 & second )
+    : _first(first), _second(second) {
+    }
+    LVPair( const LVPair & v ) 
+    : _first(v._first), _second(v._second) {
+    }
+    LVPair & operator = ( const LVPair & v ) 
+    {
+        _first = v._first;
+        _second = v._second;
+    }
+    T1 & first() { return _first; }
+    const T1 & first() const { return _first; }
+    T2 & second() { return _second; }
+    const T2 & second() const { return _second; }
+    ~LVPair() { }
+};
 
 #endif
