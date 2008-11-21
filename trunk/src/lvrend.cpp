@@ -1028,35 +1028,49 @@ void initRendMethod( ldomNode * node )
             // Mixed inline and block items! Autoboxing is necessary!
             int firstInline = -1;
             bool lastInline = false;
-            for (i=cnt-1; i>=0; i--)
-            {
+            for (i=cnt-1; i>=0; i--) {
                 ldomNode * child = enode->getChildNode( i );
-                bool isInvisible = isInvisibleItem( child );
-                bool isInline = isInvisible ? lastInline : isInlineItem( child );
-                if ( isInline ) {
-                    if ( firstInline==-1 )
-                        firstInline = i;
-                }
-                if ( !isInline || i==0 ) {
-                    if ( firstInline>=0 ) {
-                        int lastInline = isInline ? i : i+1;
-                        ldomElement * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing );
-                        enode->moveItemsTo( abox, lastInline+1, firstInline+1 );
-                        setNodeStyle( abox,
-                            enode->getStyle(),
-                            enode->getFont()
-                            );
-                        abox->setRendMethod( erm_final );
-                        //initRendMethod( abox );
-                        firstInline = -1;
-                        blockCount++;
+                if ( child->getNodeType()==LXML_TEXT_NODE ) {
+                    lString16 s = child->getText();
+                    if ( IsEmptySpace( s.c_str(), s.length() ) ) {
+                        delete enode->removeChild( i );
+                        cnt--;
+                        textCount--;
                     }
                 }
-                lastInline = isInline;
+            }
+            cnt = enode->getChildCount();
+            if ( textCount || inlineCount ) {
+                for (i=cnt-1; i>=0; i--)
+                {
+                    ldomNode * child = enode->getChildNode( i );
+                    bool isInvisible = isInvisibleItem( child );
+                    bool isInline = isInvisible ? lastInline : isInlineItem( child );
+                    if ( isInline ) {
+                        if ( firstInline==-1 )
+                            firstInline = i;
+                    }
+                    if ( !isInline || i==0 ) {
+                        if ( firstInline>=0 ) {
+                            int lastInline = isInline ? i : i+1;
+                            ldomElement * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing );
+                            enode->moveItemsTo( abox, lastInline+1, firstInline+1 );
+                            setNodeStyle( abox,
+                                enode->getStyle(),
+                                enode->getFont()
+                                );
+                            abox->setRendMethod( erm_final );
+                            //initRendMethod( abox );
+                            firstInline = -1;
+                            blockCount++;
+                        }
+                    }
+                    lastInline = isInline;
+                }
+                runinCount = 0;
+                inlineCount = 0;
             }
             textCount = 0;
-            inlineCount = 0;
-            runinCount = 0;
         }
 
 #ifdef DEBUG_DUMP_ENABLED

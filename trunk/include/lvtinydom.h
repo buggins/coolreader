@@ -1544,6 +1544,7 @@ lString16 extractDocAuthors( ldomDocument * doc );
 lString16 extractDocTitle( ldomDocument * doc );
 lString16 extractDocSeries( ldomDocument * doc );
 
+bool IsEmptySpace( const lChar16 * text, int len );
 
 /// parse XML document from stream, returns NULL if failed
 ldomDocument * LVParseXMLStream( LVStreamRef stream, 
