@@ -127,7 +127,7 @@ lChar16 LVTextFileBase::ReadRtfChar( int enc_type, const lChar16 * conv_table )
 
 lChar16 LVTextFileBase::ReadChar()
 {
-    lChar16 ch = m_buf[m_buf_pos++];
+    lUInt16 ch = m_buf[m_buf_pos++];
     switch ( m_enc_type ) {
     case ce_8bit_cp:
     case ce_utf8:
@@ -155,26 +155,26 @@ lChar16 LVTextFileBase::ReadChar()
         }
     case ce_utf16_be:
         {
-            lChar16 ch2 = m_buf[m_buf_pos++];
+            lUInt16 ch2 = m_buf[m_buf_pos++];
             return (ch << 8) | ch2;
         }
     case ce_utf16_le:
         {
-            lChar16 ch2 = m_buf[m_buf_pos++];
+            lUInt16 ch2 = m_buf[m_buf_pos++];
             return (ch2 << 8) | ch;
         }
     case ce_utf32_be:
         // support 16 bits only
         m_buf_pos++;
         {
-            lChar16 ch3 = m_buf[m_buf_pos++];
-            lChar16 ch4 = m_buf[m_buf_pos++];
+            lUInt16 ch3 = m_buf[m_buf_pos++];
+            lUInt16 ch4 = m_buf[m_buf_pos++];
             return (ch3 << 8) | ch4;
         }
     case ce_utf32_le:
         // support 16 bits only
         {
-            lChar16 ch2 = m_buf[m_buf_pos++];
+            lUInt16 ch2 = m_buf[m_buf_pos++];
             m_buf_pos+=2;
             return (ch << 8) | ch2;
         }
@@ -1280,7 +1280,7 @@ bool LVTextParser::CheckFormat()
     Reset();
     lChar16 * chbuf = new lChar16[TEXT_PARSER_DETECT_SIZE];
     FillBuffer( TEXT_PARSER_DETECT_SIZE );
-    int charsDecoded = ReadTextBytes( 0, TEXT_PARSER_DETECT_SIZE, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
+    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
     bool res = false;
     if ( charsDecoded > 30 ) {
         int illegal_char_count = 0;
@@ -1516,8 +1516,8 @@ bool LVXMLParser::CheckFormat()
         lString16 s( chbuf, charsDecoded );
         if ( s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6 ) //&& s.pos(L"<FictionBook") >= 0
             res = true;
-        else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
-            res = true;
+        //else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
+        //    res = true;
     }
     delete[] chbuf;
     Reset();
