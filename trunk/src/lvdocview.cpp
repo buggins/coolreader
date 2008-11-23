@@ -2063,6 +2063,8 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
         dir = lString16( fname, last_slash );
     lString16 fn( fname + last_slash + 1 );
     m_container = LVOpenDirectory(dir.c_str());
+    if ( m_container.isNull() )
+        return false;
     LVStreamRef stream = m_container->OpenStream(fn.c_str(), LVOM_READ);
     if (!stream)
         return false;
