@@ -309,7 +309,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     getMainNode()->recurseElements( initFormatData );
     CRLog::trace("init render method...");
     initRendMethod( getMainNode() );
-#if 1 //def _DEBUG
+#if 0 //def _DEBUG
     LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
     saveToStream( ostream, "utf-16" );
 #endif
