@@ -1,0 +1,63 @@
+CR3: CoolReader3 (c) Vadim Lopatin
+==================================
+based on CREngine library
+uses wxWidgets as GUI library
+==================================
+
+HOWTO BUILD UNDER LINUX:
+
+1) SOURCES
+download sources of crengine, cr3 using CVS
+download wxGTK, unpack and rename as wxWidgets
+
+directory structure:
+
+/home/user/src/
+              /crengine  == crengine dir
+              /cr3       == cr3 dir
+              /wxWidgets == wxGTK dir
+	      
+Create symlink from cr3/crengine to crengine in order to use Kdevelop project and autoconf makefile
+
+
+2) build CREngine
+
+    cd crengine
+    ./run_make_linux.sh
+   
+3) configure and build wxWidgets Release (if necessary)
+
+    cd cr3
+    ./run_configure_wx_release
+
+4) configure and build wxWidgets Debug (if necessary)
+
+    cd cr3
+    ./run_configure_wx
+    
+5) configure and make CR3 Release
+
+    cd cr3
+    ./run_configure_linux_release
+    cd optimized
+    make
+    cd src
+    strip cr3
+    mkdir fonts
+    #copy some .ttf fonts to optimized/src/fonts
+    #run cr3:
+    ./cr3
+    
+6) configure and make CR3 Debug
+
+    cd cr3
+    ./run_configure_linux
+    cd debug
+    make
+    cd src
+    mkdir fonts
+    #copy some .ttf fonts to debug/src/fonts
+    #run cr3:
+    ./cr3
+    
+
