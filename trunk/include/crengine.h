@@ -34,9 +34,9 @@
     \b Features:
 
     - Different font engines support
-        - grayscale bitmap font engine (implemented)
-        - Win32 font support (partially implemented)
-        - X font support (planned)
+        - grayscale bitmap font engine
+        - Win32 font support
+        - TTF fonts support via Freetype library
     - Text formatter with support of different paragraph and font styles, 
         which allows to prepare text to be drawed
     - XML parser with support of unicode (UTF-8 and UTF-16) and 8-bit encodings
@@ -81,6 +81,8 @@
     - Tools
         - TrueType to grayscale bitmap font convertor
 
+
+
     \section main_authors Authors
 
     - Vadim Lopatin (http://www.coolreader.org/) - most source code
@@ -124,6 +126,7 @@
     - LVDocView::GetPos() and LVDocView::SetPos() can be used to scroll throuh document.
 
 
+
     \section main_license License
 
 
@@ -134,7 +137,7 @@
     
 
 */
-#define CR_ENGINE_VERSION "0.7.2"
+#define CR_ENGINE_VERSION "0.7.3"
 
 #include "crsetup.h"
 #include "lvtypes.h"
