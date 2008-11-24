@@ -19,7 +19,7 @@ cr3view : public wxPanel, public LVDocViewCallback
         void CloseDocument();
         void SetScrollBar( wxScrollBar * sb ) { _scrollbar = sb; }
         void UpdateScrollBar();
-        LVDocView * getDocView() { return _docview; }
+        LVDocView * getDocView() { return _docwin->getDocView(); }
         void doCommand( LVDocCmd cmd, int param );
         void goToBookmark(ldomXPointer bm);
         wxColour getBackgroundColour();
@@ -52,17 +52,21 @@ cr3view : public wxPanel, public LVDocViewCallback
     private:
         wxCursor _normalCursor;
         wxCursor _linkCursor;
-        LVDocView * _docview;
+        //LVDocView * _docview;
         wxScrollBar * _scrollbar;
 
         wxTimer * _renderTimer;
         wxTimer * _clockTimer;
-				wxTimer * _cursorTimer;
+        wxTimer * _cursorTimer;
         bool _firstRender;
         bool _allowRender;
         CRPropRef _props;
 
-				bool _isFullscreen;
+        bool _isFullscreen;
+
+        CRWxScreen _screen;
+        CRGUIWindowManager _wm;
+        CRDocViewWindow * _docwin;
 
         DECLARE_EVENT_TABLE()
 };

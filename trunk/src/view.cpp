@@ -30,7 +30,7 @@ END_EVENT_TABLE()
 wxColour cr3view::getBackgroundColour()
 {
 #if (COLOR_BACKBUFFER==1)
-    lUInt32 cl = _docview->getBackgroundColor();
+    lUInt32 cl = getDocView()->getBackgroundColor();
 #else
     lUInt32 cl = 0xFFFFFF;
 #endif
@@ -67,8 +67,8 @@ void cr3view::OnInitDialog(wxInitDialogEvent& event)
 
 lString16 cr3view::GetLastRecentFileName()
 {
-    if ( _docview && _docview->getHistory()->getRecords().length()>0 )
-        return _docview->getHistory()->getRecords()[0]->getFilePathName();
+    if ( getDocView() && getDocView()->getHistory()->getRecords().length()>0 )
+        return getDocView()->getHistory()->getRecords()[0]->getFilePathName();
     return lString16();
 }
 
@@ -79,22 +79,26 @@ cr3view::cr3view(CRPropRef props)
 , _firstRender(false)
 , _allowRender(true)
 , _props(props)
+, _screen(300,400)
+, _wm(&_screen)
 {
-    _docview = new LVDocView();
-    _docview->setCallback( this );
+    _wm.activateWindow( (_docwin = new CRDocViewWindow(&_wm)) );
+    getDocView()->setCallback( this );
+
+
     static int fontSizes[] = {14, 16, 18, 20, 24, 28, 32, 36};
     LVArray<int> sizes( fontSizes, sizeof(fontSizes)/sizeof(int) );
-    _docview->setFontSizes( sizes, false );
+    getDocView()->setFontSizes( sizes, false );
     //_docview->setBackgroundColor(0x000000);
     //_docview->setTextColor(0xFFFFFF);
 
     cr_rotate_angle_t angle = (cr_rotate_angle_t)(_props->getIntDef( PROP_WINDOW_ROTATE_ANGLE, 0 ) & 3);
-    _docview->SetRotateAngle( angle );
+    getDocView()->SetRotateAngle( angle );
 
     {
         LVStreamRef stream = LVOpenFileStream( GetHistoryFileName().c_str(), LVOM_READ );
         if ( !stream.isNull() ) {
-            _docview->getHistory()->loadFromStream( stream );
+            getDocView()->getHistory()->loadFromStream( stream );
             stream = NULL;
         }
     }
@@ -259,7 +263,6 @@ cr3view::~cr3view()
     delete _renderTimer;
     delete _clockTimer;
     delete _cursorTimer;
-    delete _docview;
 }
 
 void cr3view::OnTimer(wxTimerEvent& event)
@@ -278,12 +281,12 @@ void cr3view::OnTimer(wxTimerEvent& event)
         }
 
         if ( _firstRender ) {
-            _docview->restorePosition();
+            getDocView()->restorePosition();
             _firstRender = false;
             _allowRender = true;
         }
 
-        _docview->Resize( dx, dy );
+        _wm.setSize( dx, dy );
 
         Paint();
         UpdateScrollBar();
@@ -291,7 +294,7 @@ void cr3view::OnTimer(wxTimerEvent& event)
         SetCursor( wxCursor( wxCURSOR_BLANK ) );
     } else if ( event.GetId() == CLOCK_TIMER_ID ) {
         if ( IsShownOnScreen() ) {
-            if ( _docview->IsRendered() && _docview->isTimeChanged() )
+            if ( getDocView()->IsRendered() && getDocView()->isTimeChanged() )
                 Paint();
         }
     }
@@ -323,7 +326,7 @@ void cr3view::Paint()
             battery_state = 0;
     };
 #endif
-    _docview->setBatteryState( battery_state );
+    getDocView()->setBatteryState( battery_state );
     //_docview->Draw();
     UpdateScrollBar();
     Refresh( FALSE );
@@ -354,20 +357,20 @@ lString16 cr3view::GetHistoryFileName()
 void cr3view::CloseDocument()
 {
     //printf("cr3view::CloseDocument()  \n");
-    _docview->savePosition();
-    _docview->Clear();
+    getDocView()->savePosition();
+    getDocView()->Clear();
     LVStreamRef stream = LVOpenFileStream( GetHistoryFileName().c_str(), LVOM_WRITE );
     if ( !stream.isNull() )
-        _docview->getHistory()->saveToStream( stream.get() );
+        getDocView()->getHistory()->saveToStream( stream.get() );
 }
 
 void cr3view::UpdateScrollBar()
 {
 	if ( !_scrollbar )
 		return;
-    if ( !_docview->IsRendered() )
+    if ( !getDocView()->IsRendered() )
         return;
-    const LVScrollInfo * lvsi = _docview->getScrollInfo();
+    const LVScrollInfo * lvsi = getDocView()->getScrollInfo();
     _scrollbar->SetScrollbar(
         lvsi->pos,      //int position, 
         lvsi->pagesize, //int thumbSize, 
@@ -385,7 +388,7 @@ void cr3view::OnMouseMotion(wxMouseEvent& event)
 {
     int x = event.GetX();
     int y = event.GetY();
-    ldomXPointer ptr = _docview->getNodeByPoint( lvPoint( x, y ) );
+    ldomXPointer ptr = getDocView()->getNodeByPoint( lvPoint( x, y ) );
     if ( ptr.isNull() ) {
         return;
     }
@@ -410,7 +413,7 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
     int y = event.GetY();
     //lString16 txt = _docview->getPageText( true );
     //CRLog::debug( "getPageText : %s", UnicodeToUtf8(txt).c_str() );
-    ldomXPointer ptr = _docview->getNodeByPoint( lvPoint( x, y ) );
+    ldomXPointer ptr = getDocView()->getNodeByPoint( lvPoint( x, y ) );
     if ( ptr.isNull() ) {
         CRLog::debug( "cr3view::OnMouseLDown() : node not found!\n");
         return;
@@ -422,14 +425,14 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
         ldomXRange * wordRange = new ldomXRange();
         if ( ldomXRange::getWordRange( *wordRange, ptr ) ) {
             wordRange->setFlags( 0x10000 );
-            _docview->getDocument()->getSelections().clear();
-            _docview->getDocument()->getSelections().add( wordRange );
-            _docview->updateSelections();
+            getDocView()->getDocument()->getSelections().clear();
+            getDocView()->getDocument()->getSelections().add( wordRange );
+            getDocView()->updateSelections();
         } else {
             delete wordRange;
         }
         if ( !href.empty() ) {
-            _docview->goLink( href );
+            getDocView()->goLink( href );
         }
         Paint();
         printf("text : %s     \t", s.c_str() );
@@ -437,7 +440,7 @@ void cr3view::OnMouseLDown( wxMouseEvent & event )
         printf("element : %s  \t", UnicodeToUtf8( ptr.toString() ).c_str() );
     }
     lvPoint pt2 = ptr.toPoint();
-    printf("  (%d, %d)  ->  (%d, %d)\n", x, y+_docview->GetPos(), pt2.x, pt2.y);
+    printf("  (%d, %d)  ->  (%d, %d)\n", x, y+getDocView()->GetPos(), pt2.x, pt2.y);
 }
 
 void cr3view::OnMouseRDown( wxMouseEvent & event )
@@ -467,10 +470,10 @@ void cr3view::OnMouseRDown( wxMouseEvent & event )
 void cr3view::SetPageHeaderFlags()
 {
     int newflags = propsToPageHeaderFlags( _props );
-    int oldflags = _docview->getPageHeaderInfo();
+    int oldflags = getDocView()->getPageHeaderInfo();
     if ( oldflags==newflags )
         return;
-    _docview->setPageHeaderInfo( newflags );
+    getDocView()->setPageHeaderInfo( newflags );
     UpdateScrollBar();
     Paint();
 }
@@ -479,7 +482,7 @@ void cr3view::ToggleViewMode()
 {
     int mode = _props->getIntDef( PROP_PAGE_VIEW_MODE, 2 ) ? 0 : 2;
     _props->setInt( PROP_PAGE_VIEW_MODE, mode );
-    _docview->setViewMode( mode>0 ? DVM_PAGES : DVM_SCROLL, mode>0 ? mode : -1 );
+    getDocView()->setViewMode( mode>0 ? DVM_PAGES : DVM_SCROLL, mode>0 ? mode : -1 );
     UpdateScrollBar();
     Paint();
 }
@@ -513,8 +516,8 @@ void cr3view::OnCommand(wxCommandEvent& event)
 		break;
 	case Menu_View_NextPage:
 	    doCommand( DCMD_PAGEDOWN, 1 );
-        _docview->cachePageImage( 0 );
-        _docview->cachePageImage( 1 );
+        getDocView()->cachePageImage( 0 );
+        getDocView()->cachePageImage( 1 );
 		break;
     case Menu_Link_Forward:
 		doCommand( DCMD_LINK_FORWARD, 1 );
@@ -533,8 +536,8 @@ void cr3view::OnCommand(wxCommandEvent& event)
         break;
 	case Menu_View_PrevPage:
 		doCommand( DCMD_PAGEUP, 1 );
-        _docview->cachePageImage( 0 );
-        _docview->cachePageImage( -1 );
+        getDocView()->cachePageImage( 0 );
+        getDocView()->cachePageImage( -1 );
         break;
 	case Menu_View_NextLine:
 	    doCommand( DCMD_LINEDOWN, 1 );
@@ -580,7 +583,7 @@ void cr3view::OnScroll(wxScrollEvent& event)
     else if (id == wxEVT_SCROLL_THUMBRELEASE || id == wxEVT_SCROLL_THUMBTRACK)
     {
         doCommand( DCMD_GO_POS,
-              _docview->scrollPosToDocPos( event.GetPosition() ) );
+                   getDocView()->scrollPosToDocPos( event.GetPosition() ) );
     }
 }
 
@@ -657,12 +660,12 @@ bool cr3view::LoadDocument( const wxString & fname )
     //===========================================
     GetParent()->Update();
     //printf("   loading...  ");
-	bool res = _docview->LoadDocument( fname.c_str() );
+    bool res = getDocView()->LoadDocument( fname.c_str() );
     //printf("   done. \n");
 	//DEBUG
 	//_docview->exportWolFile( "test.wol", true );
 	//_docview->SetPos(0);
-    lString16 title = (_docview->getAuthors() + L". " + _docview->getTitle());
+    lString16 title = (getDocView()->getAuthors() + L". " + getDocView()->getTitle());
     GetParent()->SetLabel( wxString( title.c_str() ) );
     //UpdateScrollBar();
     _firstRender = true;
@@ -681,14 +684,14 @@ bool cr3view::LoadDocument( const wxString & fname )
 
 void cr3view::goToBookmark(ldomXPointer bm)
 {
-    _docview->goToBookmark(bm);
+    getDocView()->goToBookmark(bm);
     UpdateScrollBar();
     Paint();
 }
 
 void cr3view::SetRotate( cr_rotate_angle_t angle )
 {
-    _docview->SetRotateAngle( angle );
+    getDocView()->SetRotateAngle( angle );
     _props->setInt( PROP_WINDOW_ROTATE_ANGLE, angle );
     UpdateScrollBar();
     Paint();
@@ -696,13 +699,13 @@ void cr3view::SetRotate( cr_rotate_angle_t angle )
 
 void cr3view::Rotate( bool ccw )
 {
-    int angle = (_docview->GetRotateAngle() + 4 + (ccw?-1:1)) & 3;
+    int angle = (getDocView()->GetRotateAngle() + 4 + (ccw?-1:1)) & 3;
     SetRotate( (cr_rotate_angle_t) angle );
 }
 
 void cr3view::doCommand( LVDocCmd cmd, int param )
 {
-    _docview->doCommand( cmd, param );
+    _docwin->onCommand( cmd, param );
     UpdateScrollBar();
     Paint();
 }
@@ -713,7 +716,7 @@ void cr3view::Resize(int dx, int dy)
     if ( dx==0 && dy==0 ) {
         GetClientSize( &dx, &dy );
     }
-    if ( _docview->IsRendered() && _docview->GetWidth() == dx && _docview->GetHeight() == dy )
+    if ( getDocView()->IsRendered() && getDocView()->GetWidth() == dx && getDocView()->GetHeight() == dy )
         return; // no resize
     if (dx<5 || dy<5 || dx>3000 || dy>3000)
     {
@@ -744,76 +747,19 @@ void cr3view::OnPaint(wxPaintEvent& event)
 
     int dx, dy;
     GetClientSize( &dx, &dy );
-    if ( !_docview->IsRendered() && (_docview->GetWidth() != dx || _docview->GetHeight() != dy) ) {
+    if ( !getDocView()->IsRendered() && (getDocView()->GetWidth() != dx || getDocView()->GetHeight() != dy) ) {
         if ( _firstRender ) {
-            _docview->restorePosition();
+            getDocView()->restorePosition();
             _firstRender = false;
         }
 
-        _docview->Resize( dx, dy );
+        getDocView()->Resize( dx, dy );
         return;
     }
 
-    LVDocImageRef pageImage = _docview->getPageImage(0);
-    LVDrawBuf * drawbuf = pageImage->getDrawBuf();
-
-    dx = drawbuf->GetWidth();
-    dy = drawbuf->GetHeight();
-    wxImage img;
-    img.Create(dx, dy, true);
-
-    unsigned char * bits = img.GetData();
-    int dyy = drawbuf->GetHeight();
-    int dxx = drawbuf->GetWidth();
-    for ( int y=0; y<dy && y<dyy; y++ ) {
-        int bpp = drawbuf->GetBitsPerPixel();
-        if ( bpp==32 ) {
-            const lUInt32* src = (const lUInt32*) drawbuf->GetScanLine( y );
-            unsigned char * dst = bits + y*dx*3;
-            for ( int x=0; x<dx && x<dxx; x++ )
-            {
-                lUInt32 c = *src++;
-                *dst++ = (c>>16) & 255;
-                *dst++ = (c>>8) & 255;
-                *dst++ = (c>>0) & 255;
-            }
-		} else if ( bpp==2 ) {
-			//
-			static const unsigned char palette[4][3] = {
-				{ 0xff, 0xff, 0xff },
-				{ 0xaa, 0xaa, 0xaa },
-				{ 0x55, 0x55, 0x55 },
-				{ 0x00, 0x00, 0x00 },
-			};
-            const lUInt8* src = (const lUInt8*) drawbuf->GetScanLine( y );
-			unsigned char * dst = bits + y*dx*3;
-			for ( int x=0; x<dx && x<dxx; x++ )
-			{
-				lUInt32 c = (( src[x>>2] >> ((3-(x&3))<<1) ))&3;
-				*dst++ = palette[c][0];
-				*dst++ = palette[c][1];
-				*dst++ = palette[c][2];
-			}
-		} else if ( bpp==1 ) {
-			//
-			static const unsigned char palette[2][3] = {
-				{ 0xff, 0xff, 0xff },
-				{ 0x00, 0x00, 0x00 },
-			};
-            const lUInt8* src = (const lUInt8*) drawbuf->GetScanLine( y );
-			unsigned char * dst = bits + y*dx*3;
-			for ( int x=0; x<dx && x<dxx; x++ )
-			{
-				lUInt32 c = (( src[x>>3] >> ((7-(x&7))) ))&1;
-				*dst++ = palette[c][0];
-				*dst++ = palette[c][1];
-				*dst++ = palette[c][2];
-			}
-		}
-    }
-
-    // fill
-    wxBitmap bmp( img );
+    // draw
+    _wm.update( true );
+    wxBitmap bmp = _screen.getWxBitmap();
     dc.DrawBitmap( bmp, 0, 0, false );
 }
 

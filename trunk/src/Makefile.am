@@ -16,3 +16,5 @@ cr3_LDADD = $(top_builddir)/crengine/src/libcrengine.a
 
 crenginedir = $(datadir)/crengine
 crengine_DATA = fb2.css
+AM_CFLAGS = -DCR_WX_SUPPORT
+AM_CXXFLAGS = -DCR_WX_SUPPORT
