@@ -153,9 +153,10 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-INCLUDES = 
 METASOURCES = AUTO
 SUBDIRS = src
+AM_CFLAGS = -DCR_WX_SUPPORT
+AM_CXXFLAGS = -DCR_WX_SUPPORT
 all: all-recursive
 
 .SUFFIXES:

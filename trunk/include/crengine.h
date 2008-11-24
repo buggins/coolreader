@@ -3,7 +3,7 @@
 
     Include this file to use CR engine.
 
-    (c) Vadim Lopatin, 2000-2006
+    (c) Vadim Lopatin, 2000-2008
 
     This source code is distributed under the terms of
     GNU General Public License.

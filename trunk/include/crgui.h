@@ -22,6 +22,10 @@
 #include "lvptrvec.h"
 #include "lvdrawbuf.h"
 
+#ifdef CR_WX_SUPPORT
+#include <wx/wx.h>
+#endif
+
 class CRGUIWindowManager;
 
 /// Screen object - provides canvas and interface to device screen
@@ -30,6 +34,8 @@ class CRGUIScreen
     public:
         /// creates compatible canvas of specified size
         virtual LVDrawBuf * createCanvas( int dx, int dy ) = 0;
+        /// sets new screen size, returns true if size is changed
+        virtual bool setSize( int dx, int dy ) { return false; }
         /// returns screen width
         virtual int getWidth() = 0;
         /// returns screen height
@@ -52,9 +58,13 @@ class CRGUIWindow
 {
     public:
         /// returns true if key is processed
-        virtual bool onKeyPressed( int key ) = 0;
+        virtual bool onKeyPressed( int key, int flags = 0 ) { return false; }
+        /// returns true if command is processed
+        virtual bool onCommand( int command, int params = 0 ) { return false; }
         /// returns true if window is visible
-        virtual bool isVisible() = 0;
+        virtual bool isVisible() const = 0;
+        /// returns true if window is fullscreen
+        virtual bool isFullscreen() = 0;
         /// returns true if window is changed but now drawn
         virtual bool isDirty() = 0;
         /// shows or hides window
@@ -62,13 +72,13 @@ class CRGUIWindow
         /// returns window rectangle
         virtual const lvRect & getRect() const = 0;
         /// sets window rectangle
-        virtual void setRect( lvRect rc ) = 0;
+        virtual void setRect( const lvRect & rc ) = 0;
         /// draws content of window to screen
         virtual void flush() = 0;
         /// called if window gets focus
-        virtual void activated() = 0;
+        virtual void activated() { }
         /// called if window loss focus
-        virtual void covered() = 0;
+        virtual void covered() { }
         /// returns window manager
         virtual CRGUIWindowManager * getWindowManager() = 0;
         /// destroys window
@@ -82,11 +92,48 @@ class CRGUIWindowManager
         LVPtrVector<CRGUIWindow, true> _windows;
         CRGUIScreen * _screen;
     public:
-        /// returns true if key is processed
-        virtual bool onKeyPressed( int key )
+        /// sets new screen size
+        virtual void setSize( int dx, int dy )
+        {
+            if ( _screen->setSize( dx, dy ) ) {
+                lvRect fullRect = _screen->getRect();
+                for ( int i=_windows.length()-1; i>=0; i-- ) {
+                    lvRect rc = _windows[i]->getRect();
+                    if ( _windows[i]->isFullscreen() )
+                        _windows[i]->setRect( fullRect );
+                    else {
+                        if ( rc.right > dx ) {
+                            rc.left -= rc.right - dx;
+                            rc.right = dx;
+                            if ( rc.left < 0 )
+                                rc.left = 0;
+                        }
+                        if ( rc.right > dx ) {
+                            rc.left -= rc.right - dx;
+                            rc.right = dx;
+                            if ( rc.left < 0 )
+                                rc.left = 0;
+                        }
+                        _windows[i]->setRect( rc );
+                    }
+                }
+                update( true );
+            }
+        }
+        /// returns true if command is processed
+        virtual bool onCommand( int command, int params = 0 )
         {
             for ( int i=_windows.length()-1; i>=0; i-- ) {
-                if ( _windows[i]->onKeyPressed( key ) )
+                if ( _windows[i]->onCommand( command, params ) )
+                    return true;
+            }
+            return false;
+        }
+        /// returns true if key is processed
+        virtual bool onKeyPressed( int key, int flags = 0 )
+        {
+            for ( int i=_windows.length()-1; i>=0; i-- ) {
+                if ( _windows[i]->onKeyPressed( key, flags ) )
                     return true;
             }
             return false;
@@ -182,7 +229,8 @@ class CRGUIWindowManager
         {
             return _screen;
         }
-        CRGUIWindowManager()
+        CRGUIWindowManager(CRGUIScreen * screen)
+        : _screen( screen )
         {
         }
         virtual void closeAllWindows()
@@ -205,20 +253,31 @@ class CRGUIWindowBase : public CRGUIWindow
         CRGUIWindowManager * _wm;
         lvRect _rect;
         bool _visible;
+        bool _fullscreen;
         bool _dirty;
         virtual void draw() = 0;
     public:
+        /// returns window width
+        inline int getWidth() { return _rect.width(); }
+        /// returns window height
+        inline int getHeight() { return _rect.height(); }
+        /// sets dirty flag
+        virtual void setDirty() { _dirty = true; }
         /// returns true if window is changed but now drawn
         virtual bool isDirty() { return _dirty; }
         /// shows or hides window
-        virtual void setVisible( bool visible ) = 0;
+        virtual void setVisible( bool visible ) { _visible = visible; setDirty(); }
         virtual bool isVisible() const { return true; }
         virtual const lvRect & getRect() const { return _rect; }
-        virtual void setRect( lvRect rc ) { _rect = rc; }
+        virtual void setRect( const lvRect & rc ) { _rect = rc; setDirty(); }
         virtual void flush() { draw(); _dirty = false; }
+        /// returns true if window is fullscreen
+        virtual bool isFullscreen() { return _fullscreen; }
+        /// set fullscreen state for window
+        virtual void setFullscreen( bool fullscreen ) { _fullscreen = fullscreen; }
         virtual CRGUIWindowManager * getWindowManager() { return _wm; }
         CRGUIWindowBase( CRGUIWindowManager * wm )
-        : _wm(wm), _visible(true), _dirty(true)
+        : _wm(wm), _visible(true), _fullscreen(true), _dirty(true)
         {
             // fullscreen visible by default
             _rect = _wm->getScreen()->getRect();
@@ -247,6 +306,19 @@ class CRGUIScreenBase : public CRGUIScreen
             LVDrawBuf * buf = new LVGrayDrawBuf( dx, dy, GRAY_BACKBUFFER_BITS );
 #endif
             return buf;
+        }
+        /// sets new screen size
+        virtual bool setSize( int dx, int dy )
+        {
+            if ( _width!=dx || _height != dy ) {
+                _width = dx;
+                _height = dy;
+                _canvas = LVRef<LVDrawBuf>( createCanvas( dx, dy ) );
+                if ( !_front.isNull() )
+                    _front = LVRef<LVDrawBuf>( createCanvas( dx, dy ) );
+                return true;
+            }
+            return false;
         }
 
         /// returns screen width
@@ -318,3 +390,125 @@ class CRGUIScreenBase : public CRGUIScreen
         }
 };
 
+#ifdef CR_WX_SUPPORT
+/// WXWidget support: draw to wxImage
+class CRWxScreen : public CRGUIScreenBase
+{
+    protected:
+        wxBitmap _wxbitmap;
+        virtual void update( const lvRect & rc, bool full )
+        {
+            wxImage img;
+            int dyy = _canvas->GetHeight();
+            int dxx = _canvas->GetWidth();
+            int dx = dxx;
+            int dy = dyy;
+            img.Create(dx, dy, true);
+            unsigned char * bits = img.GetData();
+            for ( int y=0; y<dy && y<dyy; y++ ) {
+                int bpp = _canvas->GetBitsPerPixel();
+                if ( bpp==32 ) {
+                    const lUInt32* src = (const lUInt32*) _canvas->GetScanLine( y );
+                    unsigned char * dst = bits + y*dx*3;
+                    for ( int x=0; x<dx && x<dxx; x++ )
+                    {
+                        lUInt32 c = *src++;
+                        *dst++ = (c>>16) & 255;
+                        *dst++ = (c>>8) & 255;
+                        *dst++ = (c>>0) & 255;
+                    }
+                } else if ( bpp==2 ) {
+                    //
+                    static const unsigned char palette[4][3] = {
+                        { 0xff, 0xff, 0xff },
+                        { 0xaa, 0xaa, 0xaa },
+                        { 0x55, 0x55, 0x55 },
+                        { 0x00, 0x00, 0x00 },
+                    };
+                    const lUInt8* src = (const lUInt8*) _canvas->GetScanLine( y );
+                    unsigned char * dst = bits + y*dx*3;
+                    for ( int x=0; x<dx && x<dxx; x++ )
+                    {
+                        lUInt32 c = (( src[x>>2] >> ((3-(x&3))<<1) ))&3;
+                        *dst++ = palette[c][0];
+                        *dst++ = palette[c][1];
+                        *dst++ = palette[c][2];
+                    }
+                } else if ( bpp==1 ) {
+                    //
+                    static const unsigned char palette[2][3] = {
+                        { 0xff, 0xff, 0xff },
+                        { 0x00, 0x00, 0x00 },
+                    };
+                    const lUInt8* src = (const lUInt8*) _canvas->GetScanLine( y );
+                    unsigned char * dst = bits + y*dx*3;
+                    for ( int x=0; x<dx && x<dxx; x++ )
+                    {
+                        lUInt32 c = (( src[x>>3] >> ((7-(x&7))) ))&1;
+                        *dst++ = palette[c][0];
+                        *dst++ = palette[c][1];
+                        *dst++ = palette[c][2];
+                    }
+                }
+            }
+
+            // copy to bitmap
+            wxBitmap bmp( img );
+            _wxbitmap = bmp;
+        }
+    public:
+        CRWxScreen( int width, int height )
+        :  CRGUIScreenBase( width, height, true ) { }
+        wxBitmap getWxBitmap() { return _wxbitmap; }
+};
+#endif
+
+class CRDocViewWindow : public CRGUIWindowBase
+{
+    protected:
+        LVDocView * _docview;
+        virtual void draw()
+        {
+            LVDocImageRef pageImage = _docview->getPageImage(0);
+            LVDrawBuf * drawbuf = pageImage->getDrawBuf();
+            _wm->getScreen()->draw( drawbuf, _rect.left, _rect.top );
+        }
+    public:
+        LVDocView * getDocView()
+        {
+            return _docview;
+        }
+        CRDocViewWindow( CRGUIWindowManager * wm )
+        : CRGUIWindowBase( wm )
+        {
+            _docview = new LVDocView();
+            _docview->Resize( getWidth(), getHeight() );
+        }
+        virtual ~CRDocViewWindow()
+        {
+            delete _docview;
+        }
+        virtual void setRect( const lvRect & rc )
+        {
+            if ( rc == _rect )
+                return;
+            _rect = rc;
+            _docview->Resize( getWidth(), getHeight() );
+            setDirty();
+        }
+        /// returns true if command is processed
+        virtual bool onCommand( int command, int params )
+        {
+            if ( command >= LVDOCVIEW_COMMANDS_START && command <= LVDOCVIEW_COMMANDS_END ) {
+                _docview->doCommand( (LVDocCmd)command, params );
+                _dirty = true;
+                return true;
+            }
+            return false;
+        }
+        /// returns true if window is changed but now drawn
+        virtual bool isDirty()
+        {
+            return _dirty || !_docview->IsRendered() || !_docview->IsDrawed();
+        }
+};

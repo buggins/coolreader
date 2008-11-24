@@ -64,6 +64,12 @@ public:
     lvRect( int x0, int y0, int x1, int y1) : left(x0), top(y0), right(x1), bottom(y1) { }
     lvPoint topLeft() const { return lvPoint( left, top ); }
     lvPoint bottomRight() const { return lvPoint( right, bottom ); }
+    /// returns true if rectangles are equal
+    bool operator ==( const lvRect & rc ) const
+    {
+        return rc.left == left && rc.right == right && rc.top == top && rc.bottom == bottom;
+    }
+    
     /// returns rectangle width
     int width() const { return right - left; }
     /// returns rectangle height

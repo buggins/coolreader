@@ -147,9 +147,10 @@ class LVDocViewImageCache
         }
 };
 
+#define LVDOCVIEW_COMMANDS_START 100
 enum LVDocCmd
 {
-    DCMD_BEGIN,
+    DCMD_BEGIN = LVDOCVIEW_COMMANDS_START,
     DCMD_LINEUP,
     DCMD_PAGEUP,
     DCMD_PAGEDOWN,
@@ -166,6 +167,7 @@ enum LVDocCmd
     DCMD_ZOOM_OUT,
     DCMD_TOGGLE_TEXT_FORMAT,
 };
+#define LVDOCVIEW_COMMANDS_END DCMD_TOGGLE_TEXT_FORMAT
 
 enum LVDocViewMode
 {
@@ -433,6 +435,8 @@ public:
     void clearImageCache();
     /// get page image (0=current, -1=prev, 1=next)
     LVDocImageRef getPageImage( int delta );
+    /// returns true if current page image is ready
+    bool IsDrawed();
     /// cache page image (render in background if necessary) (0=current, -1=prev, 1=next)
     void cachePageImage( int delta );
     /// return view mutex

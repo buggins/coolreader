@@ -364,6 +364,13 @@ void LVDocView::checkPos()
     }
 }
 
+/// returns true if current page image is ready
+bool LVDocView::IsDrawed()
+{
+    LVDocImageRef ref = m_imageCache.get( m_pos );
+    return !ref.isNull();
+}
+
 /// get page image
 LVDocImageRef LVDocView::getPageImage( int delta )
 {
