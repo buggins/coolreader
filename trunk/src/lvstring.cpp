@@ -2862,12 +2862,12 @@ bool lString16::startsWith( const lString16 & substring )
 {
     if ( substring.empty() )
         return true;
-    int len = substring.length();
+    unsigned len = substring.length();
     if ( length() < len )
         return false;
     const lChar16 * s1 = c_str();
     const lChar16 * s2 = substring.c_str();
-    for ( int i=0; i<len; i++ )
+    for ( unsigned i=0; i<len; i++ )
         if ( s1[i]!=s2[i] )
             return false;
     return true;

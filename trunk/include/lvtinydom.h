@@ -25,6 +25,7 @@
 #include "lvptrvec.h"
 #include "lvhashtable.h"
 #include "lvimg.h"
+#include "props.h"
 
 #define LXML_DOCUMENT_NODE 1 ///< document node
 #define LXML_ELEMENT_NODE  2 ///< element node
@@ -43,6 +44,12 @@
 #define UNKNOWN_ELEMENT_TYPE_ID   (MAX_ELEMENT_TYPE_ID>>1)
 #define UNKNOWN_ATTRIBUTE_TYPE_ID (MAX_ATTRIBUTE_TYPE_ID>>1)
 #define UNKNOWN_NAMESPACE_TYPE_ID (MAX_NAMESPACE_TYPE_ID>>1)
+
+// document property names
+#define DOC_PROP_AUTHORS         "doc.authors"
+#define DOC_PROP_TITLE           "doc.title"
+#define DOC_PROP_SERIES_NAME     "doc.series.name"
+#define DOC_PROP_SERIES_NUMBER   "doc.series.number"
 
 //#define LDOM_USE_OWN_MEM_MAN 0
 
@@ -206,6 +213,8 @@ public:
             return reinterpret_cast<ldomElement*>( node );
         return NULL;
     }
+    /// returns doc properties collection
+    CRPropRef getProps() { return _docProps; }
 private:
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map
@@ -218,6 +227,7 @@ private:
     lString16HashedCollection _attrValueTable;
     LVHashTable<lUInt16,ldomNode*> _idNodeMap;
     lUInt16 _idAttrId; // Id for "id" attribute name
+    CRPropRef _docProps;
 };
 
 /*

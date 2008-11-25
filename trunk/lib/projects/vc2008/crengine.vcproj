@@ -343,8 +343,8 @@
 				AdditionalOptions="/I /projects/wxWidgets/src/jpeg&quot; &quot;"
 				Optimization="3"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..\..\..\wxWidgets\src\jpeg;..\..\..\..\wxWidgets\src;..\..\..\..\wxWidgets\src\png;..\..\..\..\freetype2\include;..\..\..\..\wxWidgets\include\msvc;..\..\..\..\wxWidgets\src\zlib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="..\..\..\..\wxWidgets\include;..\..\..\..\wxWidgets\src\jpeg;..\..\..\..\wxWidgets\src;..\..\..\..\wxWidgets\src\png;..\..\..\..\freetype2\include;..\..\..\..\wxWidgets\include\msvc;..\..\..\..\wxWidgets\src\zlib"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CR_WX_SUPPORT;_UNICODE;UNICODE;__WXMSW__"
 				RuntimeLibrary="0"
 				PrecompiledHeaderFile=".\crengine___Win32_Unicode_Release/crengine.pch"
 				AssemblerListingLocation=".\crengine___Win32_Unicode_Release/"
@@ -419,8 +419,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/I /projects/wxWidgets/src/jpeg&quot; &quot;"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\wxWidgets\src\jpeg;..\..\..\..\wxWidgets\src;..\..\..\..\wxWidgets\src\png;..\..\..\..\freetype2\include;..\..\..\..\wxWidgets\include\msvc;..\..\..\..\wxWidgets\src\zlib"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32"
+				AdditionalIncludeDirectories="..\..\..\..\wxWidgets\include;..\..\..\..\wxWidgets\src\jpeg;..\..\..\..\wxWidgets\src;..\..\..\..\wxWidgets\src\png;..\..\..\..\freetype2\include;..\..\..\..\wxWidgets\include\msvc;..\..\..\..\wxWidgets\src\zlib"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32;CR_WX_SUPPORT;_UNICODE;UNICODE;__WXMSW__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -1962,6 +1962,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\crengine.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\crgui.h"
 				>
 			</File>
 			<File

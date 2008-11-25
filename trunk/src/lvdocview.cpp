@@ -2132,11 +2132,9 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
     m_doc->getStyleSheet()->clear();
     m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
-    m_series.clear();
-    m_authors.clear();
-    m_title.clear();
+    m_doc->getProps()->clear();
 
-    m_title = title;
+    m_doc->getProps()->setString(DOC_PROP_TITLE, title);
 
     requestRender();
 }
@@ -2209,9 +2207,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             }
             // EPUB support
             if ( mimeType == L"application/epub+zip" ) {
-                m_series.clear();
-                m_authors.clear();
-                m_title.clear();
+                m_doc->getProps()->clear();
+
+
                 lString16 rootfilePath;
                 lString16 rootfileMediaType;
                 // read container.xml
@@ -2249,8 +2247,8 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     if ( !content_stream.isNull() ) {
                         ldomDocument * doc = LVParseXMLStream( content_stream );
                         if ( doc ) {
-                            m_title = doc->textFromXPath( lString16(L"package/metadata/title") );
-                            m_authors = doc->textFromXPath( lString16(L"package/metadata/creator") );
+                            m_doc->getProps()->setString(DOC_PROP_TITLE, doc->textFromXPath( lString16(L"package/metadata/title") ));
+                            m_doc->getProps()->setString(DOC_PROP_AUTHORS, doc->textFromXPath( lString16(L"package/metadata/creator") ));
                             // items
                             for ( int i=1; i<50000; i++ ) {
                                 ldomNode * item = doc->nodeFromXPath( lString16(L"package/manifest/item[") + lString16::itoa(i) + L"]" );
@@ -2620,14 +2618,10 @@ bool LVDocView::ParseDocument( )
 #endif
 
 
-    m_series.clear();
-    m_authors.clear();
-    m_title.clear();
-
-
-    m_authors = extractDocAuthors( m_doc );
-    m_title = extractDocTitle( m_doc );
-    m_series = extractDocSeries( m_doc );
+    //m_doc->getProps()->clear();
+    m_doc->getProps()->setString(DOC_PROP_AUTHORS, extractDocAuthors( m_doc ));
+    m_doc->getProps()->setString(DOC_PROP_TITLE, extractDocTitle( m_doc ));
+    m_doc->getProps()->setString(DOC_PROP_SERIES_NAME, extractDocSeries( m_doc ));
 
     requestRender();
     return true;

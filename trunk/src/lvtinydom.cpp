@@ -57,6 +57,7 @@ lxmlDocBase::lxmlDocBase()
 , _attrValueTable( DOC_STRING_HASH_SIZE )
 ,_idNodeMap(1024)
 ,_idAttrId(0)
+,_docProps(LVCreatePropsContainer())
 {
     _stylesheet.setDocument( this );
 }

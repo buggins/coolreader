@@ -297,9 +297,6 @@ private:
     LVRendPageList m_pages;
     LVScrollInfo m_scrollinfo;
 
-    lString16 m_title;
-    lString16 m_authors;
-    lString16 m_series;
 protected:
     lString16 m_last_clock;
 
@@ -541,11 +538,18 @@ public:
     ldomDocument * getDocument() { return m_doc; }
 
     /// returns book title
-    lString16 getTitle() { return m_title; }
+    lString16 getTitle() { return m_doc->getProps()->getStringDef(DOC_PROP_TITLE); }
     /// returns book author(s)
-    lString16 getAuthors() { return m_authors; }
+    lString16 getAuthors() { return m_doc->getProps()->getStringDef(DOC_PROP_AUTHORS); }
     /// returns book series name and number (series name #1)
-    lString16 getSeries() { return m_series; }
+    lString16 getSeries()
+    { 
+        lString16 name = m_doc->getProps()->getStringDef(DOC_PROP_SERIES_NAME);
+        lString16 number = m_doc->getProps()->getStringDef(DOC_PROP_SERIES_NUMBER);
+        if ( !name.empty() && !number.empty() )
+            name << L" #" << number;
+        return name;
+    }
 
     /// export to WOL format
     bool exportWolFile( const char * fname, bool flgGray, int levels );

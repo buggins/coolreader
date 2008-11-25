@@ -17,6 +17,8 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#ifndef CR_GUI_INCLUDED
+#define CR_GUI_INCLUDED
 
 #include "lvtypes.h"
 #include "lvptrvec.h"
@@ -512,3 +514,5 @@ class CRDocViewWindow : public CRGUIWindowBase
             return _dirty || !_docview->IsRendered() || !_docview->IsDrawed();
         }
 };
+
+#endif// CR_GUI_INCLUDED
