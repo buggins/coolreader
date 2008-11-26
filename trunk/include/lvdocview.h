@@ -346,8 +346,6 @@ private:
     void makeToc();
     /// updates page layout
     void updateLayout();
-    /// load document from stream
-    bool LoadDocument( LVStreamRef stream );
     /// parse document from m_stream
     bool ParseDocument( );
 
@@ -636,6 +634,8 @@ public:
     bool LoadDocument( const char * fname );
     /// load document from file
     bool LoadDocument( const lChar16 * fname );
+    /// load document from stream
+    bool LoadDocument( LVStreamRef stream );
 
     /// save last file position
     void savePosition();

@@ -1556,8 +1556,14 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     if ( !getMainNode() )
         return ptr;
     ldomElement * finalNode = getMainNode()->elementFromPoint( pt );
-    if ( !finalNode )
+    if ( !finalNode ) {
+        if ( pt.y >= getFullHeight()) {
+            ldomText * node = getMainNode()->getLastTextChild();
+            return ldomXPointer(node,node->getText().length());
+        }
+        CRLog::trace("not final node");
         return ptr;
+    }
     lvRect rc;
     finalNode->getAbsRect( rc );
     //CRLog::debug("ldomDocument::createXPointer point = (%d, %d), finalNode %08X rect = (%d,%d,%d,%d)", pt.x, pt.y, (lUInt32)finalNode, rc.left, rc.top, rc.right, rc.bottom );
