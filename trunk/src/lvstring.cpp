@@ -2858,7 +2858,7 @@ void CRLog::setStderrLogger()
 }
 
 /// returns true if string starts with specified substring
-bool lString16::startsWith( const lString16 & substring )
+bool lString16::startsWith( const lString16 & substring ) const
 {
     if ( substring.empty() )
         return true;

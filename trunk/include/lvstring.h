@@ -409,7 +409,7 @@ public:
     lString16 & operator << (const lString16 & str) { return append(str); }
 
     /// returns true if string starts with specified substring
-    bool startsWith( const lString16 & substring );
+    bool startsWith ( const lString16 & substring ) const;
     /// calculates hash for string
     lUInt32 getHash() const;
     /// returns character at specified position, with index bounds checking, fatal error if fails
