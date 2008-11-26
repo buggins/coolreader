@@ -1,7 +1,7 @@
 INCLUDES = @EWL_CFLAGS@
 AM_CFLAGS=-Wall
 
-bin_PROGRAMS = etimetool
+bin_PROGRAMS = cr3
 
-etimetool_SOURCES = etimetool.c
+etimetool_SOURCES = cr3main.cpp
 etimetool_LDADD = @EWL_LIBS@

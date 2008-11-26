@@ -1,3 +1,6 @@
+/*
+    First version of CR3 for EWL, based on etimetool example by Lunohod
+*/
 #include <stdio.h>
 #include <Ewl.h>
 
