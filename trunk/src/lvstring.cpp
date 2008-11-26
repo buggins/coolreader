@@ -2857,6 +2857,16 @@ void CRLog::setStderrLogger()
     setLogger( new CRFileLogger( (FILE*)stderr, false, true ) );
 }
 
+/// returns true if string starts with specified substring, case insensitive
+bool lString16::startsWithNoCase ( const lString16 & substring ) const
+{
+    lString16 a = *this;
+    lString16 b = substring;
+    a.uppercase();
+    b.uppercase();
+    return a.startsWith( b );
+}
+
 /// returns true if string starts with specified substring
 bool lString16::startsWith( const lString16 & substring ) const
 {
