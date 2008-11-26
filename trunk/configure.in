@@ -2,11 +2,12 @@ AC_INIT(configure.in)
 
 AM_INIT_AUTOMAKE(cr3, 0.1)
 
-AC_PROG_CC
+AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 PKG_PROG_PKG_CONFIG
 
 PKG_CHECK_MODULES(EWL, [ewl >= 0.5.2.042])
+PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
 
-AC_OUTPUT(Makefile src/Makefile crengine/Makefile)
+AC_OUTPUT(Makefile src/Makefile crengine/Makefile crengine/src/Makefile)

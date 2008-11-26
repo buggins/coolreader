@@ -2,7 +2,12 @@
     First version of CR3 for EWL, based on etimetool example by Lunohod
 */
 #include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 #include <Ewl.h>
+#include <crengine.h>
+
+
 
 typedef enum {
 	H1,
@@ -12,7 +17,7 @@ typedef enum {
 	M2,
 } t_state;
 
-t_state state;
+int state;
 int h, m;
 
 Ewl_Widget *clock_entry;
@@ -26,7 +31,7 @@ void keypress_cb(Ewl_Widget *w, void *event, void *data)
 	Ewl_Event_Key_Up *e = (Ewl_Event_Key_Up*)event;
 
 	const char *k = e->base.keyname;
-
+/*
 	if(isdigit(k[0]) && !k[1]) {
 		text = ewl_text_text_get(&EWL_ENTRY(clock_entry)->text);
 		text[state] = k[0];
@@ -49,19 +54,15 @@ void keypress_cb(Ewl_Widget *w, void *event, void *data)
 		if(state == S)
 			state++;
 		state %= 5;
-//		printf("state: %d\n", state);
-/*		if(state == M1)
-			ewl_entry_cursor_move_right(EWL_ENTRY(clock_entry));
-		else if(state == H1)
-			ewl_entry_cursor_position_set(EWL_ENTRY(clock_entry)->cursor, 0);
-*/			
 	} else if(!strcmp(k, "Return")) {
 	 	asprintf(&s, "date 0101%02d%02d2008", h, m);
 		system(s);
 		if(s)
 			free(s);
 		exit(0);
-	} else if(!strcmp(k, "Escape")) {
+	} else 
+	*/
+	if(!strcmp(k, "Escape")) {
 		exit(0);
 	}
 }
@@ -73,12 +74,13 @@ static void reveal_cb(Ewl_Widget *w, void *ev, void *data) {
 
 int main(int argc, char **argv)
 {
+	InitFontManager( lString8() );
 	Ewl_Widget *win, *vbox, *tmpw, *tmpw2, *label;
 
 	if(!ewl_init(&argc, argv))
 		return 1;
 
-	ewl_theme_theme_set("/usr/share/FBReader/themes/oitheme.edj");
+	//ewl_theme_theme_set("/usr/share/FBReader/themes/oitheme.edj");
 
 	win = ewl_window_new();
 	ewl_window_title_set(EWL_WINDOW(win), "EWL_WINDOW");
@@ -87,7 +89,7 @@ int main(int argc, char **argv)
 	ewl_callback_append(win, EWL_CALLBACK_KEY_UP, keypress_cb, NULL);
 	ewl_callback_append(win, EWL_CALLBACK_REVEAL, reveal_cb, NULL);
 	ewl_widget_show(win);
-
+/*
 	vbox = ewl_vbox_new();
 	ewl_container_child_append(EWL_CONTAINER(win), vbox);
 	ewl_object_fill_policy_set(EWL_OBJECT(vbox), EWL_FLAG_FILL_FILL);
@@ -109,7 +111,6 @@ int main(int argc, char **argv)
 	ewl_container_child_append(EWL_CONTAINER(vbox), tmpw);
 	ewl_object_fill_policy_set(EWL_OBJECT(tmpw), EWL_FLAG_FILL_FILL);
 	ewl_widget_show(tmpw);
-
 	clock_entry = ewl_entry_new();
 	ewl_container_child_append(EWL_CONTAINER(tmpw), clock_entry);
 	ewl_widget_name_set(clock_entry, "clock_entry");
@@ -120,6 +121,7 @@ int main(int argc, char **argv)
 	ewl_entry_editable_set(EWL_ENTRY(clock_entry), 0);
 	ewl_widget_show(clock_entry);
 	ewl_widget_focus_send(clock_entry);
+*/
 
 	state = H1;
 	h = 0;
