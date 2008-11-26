@@ -36,7 +36,7 @@ public:
     LVArray( int len, T value )
     {
         _size = _count = len;
-        _array = (T*) malloc( sizeof(T)*_size );
+        _array = new T[ _size ];
         for (int i=0; i<_count; i++)
             _array[i] = value;
     }
@@ -44,7 +44,7 @@ public:
     {
         _size = _count = v._count;
         if ( _size ) {
-            _array = (T*) malloc( sizeof(T)*_size );
+            _array = new T[_size];
             for (int i=0; i<_count; i++)
                 _array[i] = v._array[i];
         } else {
@@ -55,7 +55,7 @@ public:
     {
         _size = _count = len;
         if ( _size ) {
-            _array = (T*) malloc( sizeof(T)*_size );
+            _array = new T[ _size ];
             for (int i=0; i<_count; i++)
                 _array[i] = ptr[i];
         } else {
@@ -67,7 +67,7 @@ public:
         clear();
         _size = _count = v._count;
         if ( _size ) {
-            _array = (T*) malloc( sizeof(T)*_size );
+            _array = new T[ _size ];
             for (int i=0; i<_count; i++)
                 _array[i] = v._array[i];
         } else {
@@ -109,7 +109,7 @@ public:
     {
         if (_array)
         {
-            free( _array );
+            delete [] _array;
             _array = NULL;
         }
         _size = 0;
@@ -124,14 +124,14 @@ public:
         int new_sz = count;
         if (new_sz < reserved)
             new_sz = reserved;
-        T* new_array = (T*)malloc( new_sz * sizeof( T ) );
+        T* new_array = new T[ new_sz ];
         if (_array)
         {
             for ( i=0; i<count; i++ )
             {
                 new_array[i] = _array[ pos + i ];
             }
-            free( _array );
+            delete [] _array;
         }
         _array = new_array;
         _count = count;
