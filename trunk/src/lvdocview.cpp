@@ -1587,6 +1587,15 @@ void LVDocView::selectElement( ldomElement * elem )
     updateSelections();
 }
 
+/// sets selection for list of words, clears previous selection
+void LVDocView::selectWords( const LVArray<ldomWord> & words )
+{
+    ldomXRangeList & sel = getDocument()->getSelections();
+    sel.clear();
+    sel.addWords( words );
+    updateSelections();
+}
+
 /// sets selection for range, clears previous selection
 void LVDocView::selectRange( const ldomXRange & range )
 {

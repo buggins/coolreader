@@ -2097,7 +2097,7 @@ ldomXRangeList::ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter )
 {
     for ( int i=0; i<srcList.length(); i++ ) {
         if ( srcList[i]->checkIntersection( filter ) )
-            add( new ldomXRange( *srcList[i] ) );
+            LVPtrVector<ldomXRange>::add( new ldomXRange( *srcList[i] ) );
     }
 }
 
@@ -2445,6 +2445,48 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
             }
         }
     }
+}
+
+/// get all words from specified range
+void ldomXRange::getRangeWords( LVArray<ldomWord> & list )
+{
+    class ldomWordsCollector : public ldomNodeCallback {
+        LVArray<ldomWord> & _list;
+    public:
+        ldomWordsCollector( LVArray<ldomWord> & list )
+            : _list( list )
+        {
+        }
+        /// called for each found text fragment in range
+        virtual void onText( ldomXRange * nodeRange )
+        {
+            ldomText * node = (ldomText*) nodeRange->getStart().getNode();
+            lString16 text = node->getText();
+            int len = text.length();
+            int beginOfWord = -1;
+            int endOfWord = 0;
+            for ( int i=0; i <= len; i++ ) {
+                bool alpha = i<len && (lGetCharProps(text[i]) &&  CH_PROP_ALPHA);
+                if (alpha && beginOfWord<0 ) {
+                    beginOfWord = i;
+                }
+                if ( !alpha && beginOfWord>=0) {
+                    _list.add( ldomWord( node, beginOfWord, i ) );
+                    beginOfWord = -1;
+                }
+            }
+        }
+        /// called for each found node in range
+        virtual bool onElement( ldomXPointerEx * ptr )
+        {
+            ldomElement * elem = (ldomElement *)ptr->getNode();
+            if ( elem->getRendMethod()==erm_invisible )
+                return false;
+            return true;
+        }
+    };
+    ldomWordsCollector collector( list );
+    forEach( &collector );
 }
 
 class ldomTextCollector : public ldomNodeCallback

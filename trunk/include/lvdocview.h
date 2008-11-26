@@ -391,6 +391,8 @@ public:
     virtual void selectElement( ldomElement * elem );
     /// sets selection for range, clears previous selection
     virtual void selectRange( const ldomXRange & range );
+    /// sets selection for list of words, clears previous selection
+    virtual void selectWords( const LVArray<ldomWord> & words );
     /// clears selection
     virtual void clearSelection();
     /// navigation history

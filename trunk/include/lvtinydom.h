@@ -711,9 +711,54 @@ public:
     /// destructor
     virtual ~ldomNodeCallback() { }
     /// called for each found text fragment in range
-    virtual void onText( ldomXRange * nodeRange ) = 0;
+    virtual void onText( ldomXRange * nodeRange ) { }
     /// called for each found node in range
-    virtual bool onElement( ldomXPointerEx * ptr ) = 0;
+    virtual bool onElement( ldomXPointerEx * ptr ) { return true; }
+};
+
+/// range for word inside text node
+class ldomWord
+{
+    ldomText * _node;
+    int _start;
+    int _end;
+public:
+    ldomWord( )
+    : _node(NULL), _start(0), _end(0)
+    { }
+    ldomWord( ldomText * node, int start, int end )
+    : _node(node), _start(start), _end(end)
+    { }
+    ldomWord( const ldomWord & v )
+    : _node(v._node), _start(v._start), _end(v._end)
+    { }
+    ldomWord & operator = ( const ldomWord & v )
+    {
+        _node = v._node;
+        _start = v._start;
+        _end = v._end;
+        return *this;
+    }
+    /// returns true if object doesn't point valid word
+    bool isNull() { return _node==NULL || _start<0 || _end<=_start; }
+    /// get word text node pointer
+    ldomText * getNode() const { return _node; }
+    /// get word start offset
+    int getStart() const { return _start; }
+    /// get word end offset
+    int getEnd() const { return _end; }
+    /// get word start XPointer
+    ldomXPointer getStartXPointer() const { return ldomXPointer( _node, _start ); }
+    /// get word start XPointer
+    ldomXPointer getEndXPointer() const { return ldomXPointer( _node, _end ); }
+    /// get word text
+    lString16 getText()
+    {
+        if ( isNull() )
+            return lString16();
+        lString16 txt = _node->getText();
+        return txt.substr( _start, _end-_start );
+    }
 };
 
 /// DOM range
@@ -737,6 +782,10 @@ public:
     /// copy constructor
     ldomXRange( const ldomXRange & v )
     : _start( v._start ), _end( v._end ), _flags(v._flags)
+    {
+    }
+    ldomXRange( const ldomWord & word )
+        : _start( word.getStartXPointer() ), _end( word.getEndXPointer() ), _flags(0)
     {
     }
     /// create intersection of two ranges
@@ -780,6 +829,8 @@ public:
     bool checkIntersection( ldomXRange & v );
     /// returns text between two XPointer positions
     lString16 getRangeText( lChar16 blockDelimiter='\n', int maxTextLen=0 );
+    /// get all words from specified range
+    void getRangeWords( LVArray<ldomWord> & list );
     /// returns href attribute of <A> element, null string if not found
     lString16 getHRef();
     /// sets range to nearest word bounds, returns true if success
@@ -854,6 +905,16 @@ public:
 class ldomXRangeList : public LVPtrVector<ldomXRange>
 {
 public:
+    /// add ranges for words
+    void addWords( const LVArray<ldomWord> & words )
+    {
+        for ( int i=0; i<words.length(); i++ )
+            LVPtrVector<ldomXRange>::add( new ldomXRange( words[i] ) );
+    }
+    ldomXRangeList( const LVArray<ldomWord> & words )
+    {
+        addWords( words );
+    }
     /// create list splittiny existing list into non-overlapping ranges
     ldomXRangeList( ldomXRangeList & srcList, bool splitIntersections );
     /// create list by filtering existing list, to get only values which intersect filter range
