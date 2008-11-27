@@ -97,11 +97,11 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
-EWL_CFLAGS = @EWL_CFLAGS@
-EWL_LIBS = @EWL_LIBS@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+FREETYPE_CFLAGS = @FREETYPE_CFLAGS@
+FREETYPE_LIBS = @FREETYPE_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -132,6 +132,14 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
+XCB_AUX_CFLAGS = @XCB_AUX_CFLAGS@
+XCB_AUX_LIBS = @XCB_AUX_LIBS@
+XCB_CFLAGS = @XCB_CFLAGS@
+XCB_IMAGE_CFLAGS = @XCB_IMAGE_CFLAGS@
+XCB_IMAGE_LIBS = @XCB_IMAGE_LIBS@
+XCB_KEYSYMS_CFLAGS = @XCB_KEYSYMS_CFLAGS@
+XCB_KEYSYMS_LIBS = @XCB_KEYSYMS_LIBS@
+XCB_LIBS = @XCB_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -191,7 +199,7 @@ libcrengine_la_SOURCES = cp_stats.cpp crtxtenc.cpp hist.cpp hyphman.cpp \
 	lvstsheet.cpp lvstyles.cpp lvtextfm.cpp lvtinydom.cpp lvxml.cpp props.cpp rtfimp.cpp \
 	wolutil.cpp
 
-AM_CXXFLAGS = -D_DEBUG
+AM_CXXFLAGS = @FREETYPE_CFLAGS@ -DLINUX -D_LINUX -DCOLOR_BACKBUFFER=0
 AM_CFLAGS = 
 all: all-am
 

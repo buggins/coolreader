@@ -171,6 +171,7 @@ class LVGrayDrawBuf : public LVBaseDrawBuf
 {
 private:
     int _bpp;
+    bool _ownData;
 public:
     /// rotates buffer contents by specified angle
     virtual void Rotate( cr_rotate_angle_t angle );
@@ -205,7 +206,7 @@ public:
     /// draws bitmap (1 byte per pixel) using specified palette
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette );
     /// constructor
-    LVGrayDrawBuf(int dx, int dy, int bpp=2);
+    LVGrayDrawBuf(int dx, int dy, int bpp=2, void * auxdata = NULL );
     /// destructor
     virtual ~LVGrayDrawBuf();
     /// convert to 1-bit bitmap

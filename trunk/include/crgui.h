@@ -335,7 +335,7 @@ class CRGUIScreenBase : public CRGUIScreen
             img->DrawTo( _canvas.get(), x, y, 0, NULL );
         }
         /// transfers contents of buffer to device, if full==true, redraws whole screen, otherwise only changed area
-        virtual void update( bool full )
+        virtual void flush( bool full )
         {
             if ( _updateRect.isEmpty() && !full )
                 return;
@@ -383,9 +383,11 @@ class CRGUIScreenBase : public CRGUIScreen
         CRGUIScreenBase( int width, int height, bool doublebuffer  )
         : _width( width ), _height( height ), _canvas(NULL), _front(NULL)
         {
-            _canvas = LVRef<LVDrawBuf>( createCanvas( width, height ) );
-            if ( doublebuffer )
-                _front = LVRef<LVDrawBuf>( createCanvas( width, height ) );
+            if ( width && height ) {
+                _canvas = LVRef<LVDrawBuf>( createCanvas( width, height ) );
+                if ( doublebuffer )
+                    _front = LVRef<LVDrawBuf>( createCanvas( width, height ) );
+            }
         }
         virtual ~CRGUIScreenBase()
         {

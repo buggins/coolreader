@@ -529,11 +529,15 @@ void LVGrayDrawBuf::Resize( int dx, int dy )
     _dx = dx;
     _dy = dy;
     _rowsize = (_dx * _bpp + 7) / 8;
+    if ( !_ownData ) {
+        _data = NULL;
+        _ownData = false;
+    }
     if ( dx && dy )
     {
         _data = (lUInt8 *) realloc(_data, _rowsize * _dy);
     }
-    else if (_data) 
+    else if (_data)
     {
         free(_data);
         _data = NULL;
@@ -567,8 +571,8 @@ lUInt32 LVGrayDrawBuf::GetBlackColor()
     */
 }
 
-LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp)
-    : LVBaseDrawBuf(), _bpp(bpp)
+LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp, void * auxdata )
+    : LVBaseDrawBuf(), _bpp(bpp), _ownData(true)
 {
     _dx = dx;
     _dy = dy;
@@ -578,8 +582,10 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp)
     _backgroundColor = GetWhiteColor();
     _textColor = GetBlackColor();
 
-    if (_dx && _dy)
-    {
+    if ( auxdata ) {
+        _data = (lUInt8 *) auxdata;
+        _ownData = false;
+    } else if (_dx && _dy) {
         _data = (lUInt8 *) malloc(_rowsize * _dy);
         Clear(0);
     }
@@ -588,7 +594,7 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp)
 
 LVGrayDrawBuf::~LVGrayDrawBuf()
 {
-    if (_data)
+    if (_data && _ownData )
         free( _data );
 }
 
