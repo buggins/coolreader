@@ -859,7 +859,7 @@ public:
     {
 
         if ( !testProjectGutenbergHeader() && !testAuthorDotTitleFormat() ) {
-            bookTitle = file->getFileName();
+            bookTitle = LVExtractFilenameWithoutExtension( file->getFileName() );
             bookAuthors.clear();
 /*
 

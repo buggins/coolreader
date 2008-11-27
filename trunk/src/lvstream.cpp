@@ -2988,7 +2988,7 @@ lString16 LVExtractFilenameWithoutExtension( lString16 pathName )
     for ( unsigned i=0; i<s.length(); i++ )
         if ( s[i]=='.' )
             lastDot = i;
-    if ( lastDot<=0 || lastDot<s.length()-7 )
+    if ( lastDot<=0 || lastDot<(int)s.length()-7 )
         return s;
     return s.substr( 0, lastDot );
 }

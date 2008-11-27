@@ -375,7 +375,7 @@ bool LVRtfParser::Parse()
       m_callback->OnTagOpen( NULL, L"description" );
         m_callback->OnTagOpen( NULL, L"title-info" );
           //
-            lString16 bookTitle = getFileName(); //m_stream->GetName();
+            lString16 bookTitle = LVExtractFilenameWithoutExtension( getFileName() ); //m_stream->GetName();
             m_callback->OnTagOpen( NULL, L"book-title" );
                 if ( !bookTitle.empty() )
                     m_callback->OnText( bookTitle.c_str(), bookTitle.length(), 0, 0, 0 );

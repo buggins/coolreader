@@ -2747,6 +2747,16 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
         return;
     }
     lUInt16 id = _document->getElementNameIndex(tagname);
+
+    // HTML title detection
+    if ( id==el_title && _currNode->_element->getParentNode()!= NULL && _currNode->_element->getParentNode()->getNodeId()==el_head ) {
+        lString16 s = _currNode->_element->getText();
+        s.trim();
+        if ( !s.empty() ) {
+            // TODO: split authors, title & series
+            _document->getProps()->setString( DOC_PROP_TITLE, s );
+        }
+    }
     //======== START FILTER CODE ============
     AutoClose( _currNode->_element->getNodeId(), false );
     //======== END FILTER CODE ==============
