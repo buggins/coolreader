@@ -218,13 +218,16 @@ class CRXCBScreen : public CRGUIScreenBase
         unsigned int *pal;
         virtual void update( const lvRect & rc, bool full )
         {
+            printf("update screen, bpp=%d\n", (int)im->bpp);
             int i;
             i = xcb_image_shm_get (connection, window,
                     im, shminfo,
                     0, 0,
                     XCB_ALL_PLANES);
-            if(!i)
+            if (!i) {
+                printf("cannot get shm image\n");
                 return;
+            }
             printf("update screen, bpp=%d\n", (int)im->bpp);
 
             // pal
@@ -422,9 +425,12 @@ int main(int argc, char **argv)
 
     int res = 0;
     do { // just to enable break
-        CRXCBScreen crscreen( 400, 600 );
+        CRXCBScreen crscreen( 600, 800 );
         CRGUIWindowManager winman( &crscreen );
         CRDocViewWindow * main_win = new CRDocViewWindow( &winman );
+        main_win->getDocView()->setBackgroundColor(0xFFFFFF);
+        main_win->getDocView()->setTextColor(0x000000);
+        main_win->getDocView()->setFontSize( 20 );
         winman.activateWindow( main_win );
         if ( !main_win->getDocView()->LoadDocument(fname) ) {
             printf("Cannot open book file %s\n", fname);
@@ -441,16 +447,6 @@ int main(int argc, char **argv)
             case XCB_EXPOSE:
                 // draw buffer
                 {
-                    /*
-                    lvRect rc;
-                    int _width = crscreen.getWidth();
-                    int _height = crscreen.getHeight();
-                    crscreen.getCanvas()->Clear(0xFFFFFF);
-                    crscreen.getCanvas()->FillRect( _width/4, _height/4, _width * 3 / 4, _height * 3 / 4, 0xAAAAAA );
-                    crscreen.getCanvas()->FillRect( _width/3, _height/3, _width * 2 / 3, _height * 2 / 3, 0x555555 );
-                    crscreen.getCanvas()->FillRect( 10, 10, 100, 30, 0x000000 );
-                    crscreen.flush( true );
-                    */
                     winman.update(true);
                 }
                 break;
