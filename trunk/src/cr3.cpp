@@ -644,6 +644,7 @@ cr3app::OnInit()
     }
 #endif
 
+
     if (resources->OpenFromMemory( cr3_icons, sizeof(cr3_icons) )) {
 /*
         LVStreamRef testStream = resources.GetStream(L"icons/16x16/signature.png");

@@ -53,7 +53,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="..\..\wxWidgets\include\msvc;..\..\wxWidgets\include;..\..\crengine\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_WIN32;_WINDOWS;__WXMSW__;CR_WX_SUPPORT;UNICODE;_UNICODE"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WIN32;_WINDOWS;__WXMSW__;CR_WX_SUPPORT;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				PrecompiledHeaderFile=".\Unicode Release/cr3.pch"
 				AssemblerListingLocation=".\Unicode Release/"
@@ -244,10 +244,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\wxWidgets\include\msvc;..\..\wxWidgets\include;..\..\crengine\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_WIN32;_WINDOWS;__WXMSW__;CR_WX_SUPPORT;UNICODE;_UNICODE"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WIN32;_WINDOWS;__WXMSW__;__WXDEBUG__;CR_WX_SUPPORT;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\Unicode Debug/cr3.pch"
 				AssemblerListingLocation=".\Unicode Debug/"
 				ObjectFile=".\Unicode Debug/"
@@ -487,6 +487,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\resources\cr3_def_cover.cpp"
+				>
 			</File>
 			<File
 				RelativePath="histlist.cpp"

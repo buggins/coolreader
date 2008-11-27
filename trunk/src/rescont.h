@@ -3,6 +3,7 @@
 #include <crengine.h>
 
 
+
 typedef LVArray<lUInt8> LVByteArray;
 typedef LVRef<LVByteArray> LVByteArrayRef;
 
@@ -12,10 +13,12 @@ private:
     LVContainerRef _container;
 public:
     ResourceContainer()
+
     {
     }
     bool OpenFromStream( LVStreamRef stream )
     {
+
         if ( !stream )
             return false;
         LVContainerRef container = LVOpenArchieve( stream );
@@ -79,3 +82,4 @@ public:
 };
 
 extern ResourceContainer * resources;
+
