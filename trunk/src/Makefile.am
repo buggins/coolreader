@@ -1,8 +1,9 @@
-INCLUDES = @EWL_CFLAGS@ @PNG_CFLAGS@
+INCLUDES = @FREETYPE_CFLAGS@ @PNG_CFLAGS@
 AM_CFLAGS=-Wall _LINUX LINUX
 
 bin_PROGRAMS = cr3
 
 cr3_SOURCES = cr3main.cpp
-cr3_LDADD = @EWL_LIBS@ @PNG_LIBS@ -L../crengine/src -lcrengine -lfreetype -ljpeg -lz
-cr3_CPPFLAGS = -I../crengine/include -DLINUX -D_LINUX
+cr3_LDADD =  @FREETYPE_LIBS@ @XCB_KEYSYMS_LIBS@ @XCB_LIBS@ @XCB_AUX_LIBS@ @XCB_IMAGE_LIBS@ @PNG_LIBS@ -L../crengine/src -lcrengine -lfreetype -ljpeg -lz
+cr3_CPPFLAGS = -I../crengine/include $(CR_DEFINES) -DLINUX -D_LINUX -DCOLOR_BACKBUFFER=0
+
