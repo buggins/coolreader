@@ -87,6 +87,7 @@ XS_TAG1D( code, true, css_d_inline, css_ws_pre )
 XS_TAG1I( a )
 
 XS_TAG1( html )
+XS_TAG1( head )
 
 XS_TAG1( hr )
 

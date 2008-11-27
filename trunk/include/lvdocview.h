@@ -296,6 +296,7 @@ private:
     lString8 m_stylesheet;
     LVRendPageList m_pages;
     LVScrollInfo m_scrollinfo;
+    LVImageSourceRef m_defaultCover;
 
 protected:
     lString16 m_last_clock;
@@ -372,6 +373,12 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
 public:
+
+    /// get current default cover image
+    LVImageSourceRef getDefaultCover() const { return m_defaultCover; }
+    /// set default cover image (for books w/o cover)
+    void setDefaultCover(LVImageSourceRef cover) { m_defaultCover = cover; clearImageCache(); }
+
     // callback functions
     /// set callback
     void setCallback( LVDocViewCallback * callback ) { m_callback = callback; }

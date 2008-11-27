@@ -597,6 +597,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
 
     CRLog::trace("drawCoverTo() - getting cover image");
     LVImageSourceRef imgsrc = getCoverPageImage();
+    LVImageSourceRef defcover = getDefaultCover();
     if ( !imgsrc.isNull() && imgrc.height()>30 )
     {
         //fprintf( stderr, "Writing coverpage image...\n" );
@@ -617,9 +618,31 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
             CRLog::trace("drawCoverTo() - drawing image");
             drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
         //fprintf( stderr, "Done.\n" );
-    }
-    else
-    {
+    } else if ( !defcover.isNull() ) {
+        // draw default cover with title at center
+        imgrc = rc;
+        int src_dx = defcover->GetWidth();
+        int src_dy = defcover->GetHeight();
+        int scale_x = imgrc.width() * 0x10000 / src_dx;
+        int scale_y = imgrc.height() * 0x10000 / src_dy;
+        if ( scale_x < scale_y )
+            scale_y = scale_x;
+        else
+            scale_x = scale_y;
+        int dst_dx = (src_dx * scale_x) >> 16;
+        int dst_dy = (src_dy * scale_y) >> 16;
+        if (dst_dx>rc.width())
+            dst_dx = imgrc.width();
+        if (dst_dy>rc.height())
+            dst_dy = imgrc.height();
+        CRLog::trace("drawCoverTo() - drawing image");
+        drawBuf->Draw( defcover, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
+        CRLog::trace("drawCoverTo() - drawing text");
+        txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, 
+            (rc.bottom + rc.top - h) / 2, NULL );
+        CRLog::trace("drawCoverTo() - done");
+        return;
+    } else {
         imgrc.bottom = imgrc.top;
     }
     rc.top = imgrc.bottom;
@@ -2628,9 +2651,11 @@ bool LVDocView::ParseDocument( )
 
 
     //m_doc->getProps()->clear();
-    m_doc->getProps()->setString(DOC_PROP_AUTHORS, extractDocAuthors( m_doc ));
-    m_doc->getProps()->setString(DOC_PROP_TITLE, extractDocTitle( m_doc ));
-    m_doc->getProps()->setString(DOC_PROP_SERIES_NAME, extractDocSeries( m_doc ));
+    if ( m_doc->getProps()->getStringDef(DOC_PROP_TITLE, "").empty() ) {
+        m_doc->getProps()->setString(DOC_PROP_AUTHORS, extractDocAuthors( m_doc ));
+        m_doc->getProps()->setString(DOC_PROP_TITLE, extractDocTitle( m_doc ));
+        m_doc->getProps()->setString(DOC_PROP_SERIES_NAME, extractDocSeries( m_doc ));
+    }
 
     requestRender();
     return true;

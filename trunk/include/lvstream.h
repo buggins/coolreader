@@ -602,6 +602,8 @@ lString16 LVExtractFirstPathElement( lString16 & pathName );
 lString16 LVExtractLastPathElement( lString16 & pathName );
 /// returns filename part of pathname
 lString16 LVExtractFilename( lString16 pathName );
+/// returns filename part of pathname without extension
+lString16 LVExtractFilenameWithoutExtension( lString16 pathName );
 /// appends path delimiter character to end of path, if absent
 void LVAppendPathDelimiter( lString16 & pathName );
 /// returns path delimiter character

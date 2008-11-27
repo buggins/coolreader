@@ -50,4 +50,10 @@ LVImageSourceRef LVCreateNodeImageSource( ldomNode * node );
 LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int height );
 LVImageSourceRef LVCreateStreamImageSource( LVStreamRef stream );
 
+#define IMAGE_SOURCE_FROM_BYTES( imgvar , bufvar ) \
+    extern unsigned char bufvar []; \
+    extern int bufvar ## _size ; \
+    LVImageSourceRef imgvar = LVCreateStreamImageSource( \
+        LVCreateMemoryStream( bufvar , bufvar ## _size ) )
+
 #endif

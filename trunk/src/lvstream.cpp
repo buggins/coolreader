@@ -2980,6 +2980,19 @@ lString16 LVExtractFilename( lString16 pathName )
     return pathName.substr( last_delim_pos+1 );
 }
 
+/// returns filename part of pathname without extension
+lString16 LVExtractFilenameWithoutExtension( lString16 pathName )
+{
+    lString16 s = LVExtractFilename( pathName );
+    int lastDot = -1;
+    for ( unsigned i=0; i<s.length(); i++ )
+        if ( s[i]=='.' )
+            lastDot = i;
+    if ( lastDot<=0 || lastDot<s.length()-7 )
+        return s;
+    return s.substr( 0, lastDot );
+}
+
 /// returns true if absolute path is specified
 bool LVIsAbsolutePath( lString16 pathName )
 {
