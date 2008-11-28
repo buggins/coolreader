@@ -567,11 +567,11 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     if ( w<200 )
         base_font_size = 16;
     else if ( w<300 )
-        base_font_size = 20;
+        base_font_size = 18;
     else if ( w<500 )
-        base_font_size = 22;
+        base_font_size = 20;
     else if ( w<700 )
-        base_font_size = 24;
+        base_font_size = 22;
     else
         base_font_size = 24;
     CRLog::trace("drawCoverTo() - loading fonts...");
@@ -589,7 +589,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     txform.AddSourceLine( title.c_str(), title.length(), 0xFFFFFFFF, 0xFFFFFFFF, title_fnt.get(), LTEXT_ALIGN_CENTER, 18 );
     if ( !series.empty() )
         txform.AddSourceLine( series.c_str(), series.length(), 0xFFFFFFFF, 0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER, 18 );
-    int title_w = rc.width() - rc.width()/8;
+    int title_w = rc.width() - rc.width()/4;
     int h = txform.Format( title_w, rc.height() );
 
     lvRect imgrc = rc;
@@ -631,9 +631,9 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
             scale_x = scale_y;
         int dst_dx = (src_dx * scale_x) >> 16;
         int dst_dy = (src_dy * scale_y) >> 16;
-        if (dst_dx>rc.width())
+        if (dst_dx>rc.width() - 10)
             dst_dx = imgrc.width();
-        if (dst_dy>rc.height())
+        if (dst_dy>rc.height() - 10)
             dst_dy = imgrc.height();
         CRLog::trace("drawCoverTo() - drawing image");
         drawBuf->Draw( defcover, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
@@ -1084,6 +1084,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     int gpos = info.bottom+2;
     if ( drawbuf->GetBitsPerPixel() <= 2 ) {
         // gray
+        gh += 2;
         cl1 = getTextColor();
         cl3 = 1;
         cl4 = cl1;
@@ -1300,10 +1301,13 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
     if ( m_doc ) {
         if ( page.type == PAGE_TYPE_COVER ) {
             lvRect rc = *pageRect;
+            drawbuf->SetClipRect(&rc);
+            /*
             rc.left += m_pageMargins.left / 2;
             rc.top += m_pageMargins.bottom / 2;
             rc.right -= m_pageMargins.right / 2;
             rc.bottom -= m_pageMargins.bottom / 2;
+            */
             CRLog::trace("Entering drawCoverTo()");
             drawCoverTo( drawbuf, rc );
         } else {

@@ -1530,6 +1530,8 @@ protected:
     virtual void AutoClose( lUInt16 tag_id, bool open );
     virtual void ElementCloseHandler( ldomElement * elem );
 public:
+    /// called on attribute
+    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on opening tag
     virtual ldomElement * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
     /// called on closing tag

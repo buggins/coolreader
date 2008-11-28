@@ -2676,6 +2676,11 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 
 ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
+    //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
+    if ( nsname && nsname[0] )
+        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
+    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
+
     // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
     if ( tagname[0]=='b' && tagname[1]=='r' && tagname[2]==0 ) {
         // substitute to P
@@ -2684,10 +2689,7 @@ ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const
     } else {
         _libRuParagraphStart = false;
     }
-    //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
-    if ( nsname && nsname[0] )
-        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
-    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
+
     lUInt16 id = _document->getElementNameIndex(tagname);
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     AutoClose( id, true );
@@ -2731,6 +2733,20 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomElement * node )
             }
         }
     }
+}
+
+void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+{
+    //logfile << "ldomDocumentWriter::OnAttribute() [" << nsname << ":" << attrname << "]";
+    if ( nsname && nsname[0] )
+        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
+    lStr_lowercase( const_cast<lChar16 *>(attrname), lStr_len(attrname) );
+
+    lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;
+    lUInt16 attr_id = (attrname && attrname[0]) ? _document->getAttrNameIndex( attrname ) : 0;
+    _currNode->addAttribute( attr_ns, attr_id, attrvalue );
+
+    //logfile << " !a!\n";
 }
 
 /// called on closing tag
