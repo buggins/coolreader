@@ -208,6 +208,10 @@ static xcb_screen_t *screen;
 /// WXWidget support: draw to wxImage
 class CRXCBScreen : public CRGUIScreenBase
 {
+    public:
+        xcb_connection_t * getXcbConnection() { return connection; }
+        xcb_window_t getXcbWindow() { return window; }
+        xcb_screen_t * getXcbScreen() { return screen; }
     protected:
         xcb_gcontext_t      gc;
         xcb_gcontext_t      bgcolor;
@@ -408,36 +412,22 @@ class CRXCBScreen : public CRGUIScreenBase
 };
 
 
-
-int main(int argc, char **argv)
+class CRXCBWindowManager : public CRGUIWindowManager
 {
-    if ( !InitCREngine( argv[0] ) ) {
-        printf("Cannot init CREngine - exiting\n");
-        return 2;
+protected:
+    xcb_connection_t * _connection;
+public:
+    CRXCBWindowManager( int dx, int dy )
+    : CRGUIWindowManager(NULL)
+    {
+        CRXCBScreen * s = new CRXCBScreen( dx, dy );
+        _screen = s;
+        _connection = s->getXcbConnection();
+        _ownScreen = true;
     }
-
-    if ( argc!=2 ) {
-        printf("Usage: cr3 <filename_to_open>\n");
-        return 3;
-    }
-
-    const char * fname = argv[1];
-
-    int res = 0;
-    do { // just to enable break
-        CRXCBScreen crscreen( 600, 800 );
-        CRGUIWindowManager winman( &crscreen );
-        CRDocViewWindow * main_win = new CRDocViewWindow( &winman );
-        main_win->getDocView()->setBackgroundColor(0xFFFFFF);
-        main_win->getDocView()->setTextColor(0x000000);
-        main_win->getDocView()->setFontSize( 20 );
-        winman.activateWindow( main_win );
-        if ( !main_win->getDocView()->LoadDocument(fname) ) {
-            printf("Cannot open book file %s\n", fname);
-            res = 4;
-            break;
-        }
-
+    // runs event loop
+    virtual int runEventLoop()
+    {
         xcb_key_symbols_t * keysyms = xcb_key_symbols_alloc( connection );
 
         xcb_generic_event_t *event;
@@ -447,15 +437,11 @@ int main(int argc, char **argv)
             case XCB_EXPOSE:
                 // draw buffer
                 {
-                    winman.update(true);
+                    update(true);
                 }
                 break;
             case XCB_KEY_RELEASE:
                 {
-                    //XK_Return
-                    //XK_Escape
-                    //XK_KP_Add
-                    //XK_KP_Subtract
                     xcb_key_press_event_t *release = (xcb_key_press_event_t *)event;
                     xcb_keycode_t key = release->detail;
                     int state = release->state;
@@ -477,15 +463,20 @@ int main(int argc, char **argv)
                     case XK_Up:
                         cmd = DCMD_PAGEUP;
                         break;
+                    case '+':
+                        cmd = DCMD_ZOOM_IN;
+                        break;
+                    case '-':
+                        cmd = DCMD_ZOOM_OUT;
+                        break;
                     }
                     if ( cmd ) {
-                        winman.onCommand( cmd, 0 );
+                        onCommand( cmd, 0 );
                     } else {
-                        winman.onKeyPressed( sym, state );
+                        onKeyPressed( sym, state );
                     }
-                    printf("page number = %d\n", main_win->getDocView()->getCurPage());
-                    main_win->setDirty();
-                    winman.update(true);
+                    //printf("page number = %d\n", main_win->getDocView()->getCurPage());
+                    update(true);
                 }
                 break;
             case XCB_BUTTON_PRESS:
@@ -499,10 +490,86 @@ int main(int argc, char **argv)
             }
 
             free (event);
+
+            // stop loop if all windows are closed
+            if ( !getWindowCount() )
+                stop = true;
+
         }
 
         xcb_key_symbols_free( keysyms );
-    } while ( 0 );
+    }
+};
+
+class V3DocViewWin : public CRDocViewWindow
+{
+public:
+    /// returns true if key is processed
+    virtual bool onKeyPressed( int key, int flags = 0 )
+    {
+        int cmd = 0;
+        switch ( key ) {
+        case XK_Escape:
+            // exit application
+            getWindowManager()->closeAllWindows();
+            return true;
+        case '0':
+        case XK_Down:
+            cmd = DCMD_PAGEDOWN;
+            break;
+        case '9':
+        case XK_Up:
+            cmd = DCMD_PAGEUP;
+            break;
+        case '+':
+            cmd = DCMD_ZOOM_IN;
+            break;
+        case '-':
+            cmd = DCMD_ZOOM_OUT;
+            break;
+        }
+        if ( cmd ) {
+            CRDocViewWindow::onCommand( cmd, 0 );
+            return true;
+        }
+        return CRDocViewWindow::onKeyPressed( key, flags );
+    }
+    /// returns true if command is processed
+    virtual bool onCommand( int command, int params = 0 )
+    {
+        return CRDocViewWindow::onCommand( command, params );
+    }
+};
+
+int main(int argc, char **argv)
+{
+    if ( !InitCREngine( argv[0] ) ) {
+        printf("Cannot init CREngine - exiting\n");
+        return 2;
+    }
+
+    if ( argc!=2 ) {
+        printf("Usage: cr3 <filename_to_open>\n");
+        return 3;
+    }
+
+    const char * fname = argv[1];
+
+    int res = 0;
+
+    CRXCBWindowManager winman( 600, 800 );
+    CRDocViewWindow * main_win = new CRDocViewWindow( &winman );
+    main_win->getDocView()->setBackgroundColor(0xFFFFFF);
+    main_win->getDocView()->setTextColor(0x000000);
+    main_win->getDocView()->setFontSize( 20 );
+    winman.activateWindow( main_win );
+    if ( !main_win->getDocView()->LoadDocument(fname) ) {
+        printf("Cannot open book file %s\n", fname);
+        res = 4;
+    } else {
+        winman.runEventLoop();
+    }
+
     ShutdownCREngine();
 
     return res;
