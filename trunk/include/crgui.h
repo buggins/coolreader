@@ -93,7 +93,11 @@ class CRGUIWindowManager
     protected:
         LVPtrVector<CRGUIWindow, true> _windows;
         CRGUIScreen * _screen;
+        /// if true, we should delete screen in destructor
+        bool _ownScreen;
     public:
+        /// returns count of windows
+        virtual int getWindowCount() { return _windows.length(); }
         /// sets new screen size
         virtual void setSize( int dx, int dy )
         {
@@ -231,8 +235,11 @@ class CRGUIWindowManager
         {
             return _screen;
         }
+        /// runs event loop
+        virtual int runEventLoop() { return 0; }
+        /// constructor
         CRGUIWindowManager(CRGUIScreen * screen)
-        : _screen( screen )
+        : _screen( screen ), _ownScreen(false)
         {
         }
         virtual void closeAllWindows()
@@ -245,6 +252,8 @@ class CRGUIWindowManager
         virtual ~CRGUIWindowManager()
         {
             closeAllWindows();
+            if ( _ownScreen )
+                delete _screen;
         }
 };
 
