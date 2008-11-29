@@ -189,6 +189,8 @@ bool InitCREngine( const char * exename )
 
 #include <unistd.h>      /* pause() */
 
+#undef __cplusplus
+extern "C" {
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_image.h>
@@ -197,6 +199,8 @@ bool InitCREngine( const char * exename )
 #include <X11/keysymdef.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+};
+#define __cplusplus
 
 #define XCB_ALL_PLANES ~0
 
