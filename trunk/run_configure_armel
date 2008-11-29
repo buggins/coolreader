@@ -1,0 +1,2 @@
+#!/bin/sh
+./configure -host=arm-linux-gnueabi --build=i486-linux-gnu
