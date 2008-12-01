@@ -999,12 +999,21 @@ int LVDocView::getPosPercent()
 {
     LVLock lock(getMutex());
     checkPos();
-    int fh = GetFullHeight();
-    int p = GetPos();
-    if ( fh>0 )
-        return (int)(((lInt64)p * 10000) / fh);
-    else
-        return 0;
+    if ( getViewMode() == DVM_SCROLL ) {
+        int fh = GetFullHeight();
+        int p = GetPos();
+        if ( fh>0 )
+            return (int)(((lInt64)p * 10000) / fh);
+        else
+            return 0;
+    } else {
+        int fh = getPageCount();
+        int p = getCurPage() + 1;
+        if ( fh>0 )
+            return (int)(((lInt64)p * 10000) / fh);
+        else
+            return 0;
+    }
 }
 
 void LVDocView::getPageRectangle( int pageIndex, lvRect & pageRect )
@@ -1077,7 +1086,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     if ( leftPage || !drawGauge )
         percent=10000;
     int percent_pos = percent * info.width() / 10000;
-    int gh = drawGauge ? 3 : 1;
+    int gh = 3; //drawGauge ? 3 : 1;
     LVArray<int> & sbounds = getSectionBounds();
     lvRect navBar;
     getNavigationBarRectangle( pageIndex, navBar );
@@ -1090,77 +1099,25 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         cl4 = cl1;
         pal[0] = cl1;
         drawbuf->SetTextColor(cl1);
-        drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
-        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos, cl1 );
-        drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
-        drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl1 ); // cl3
+    }
+    drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
+    drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos, cl1 );
+    drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
+    drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl1 ); // cl3
 
-        if ( !leftPage ) {
-            for ( int i=0; i<sbounds.length(); i++) {
-                int x = info.left + sbounds[i]*(info.width()-1) / 10000;
-                lUInt32 c = cl2; //x<info.left+percent_pos ? cl2 : cl1;
-                drawbuf->FillRect(x, gpos-gh, x+2, gpos, c );
-                drawbuf->FillRect(x, gpos-2, x+2, gpos-1, cl3 );
-                //drawbuf->FillRect(x, info.bottom+2-1, x+2, info.bottom+2, c );
-            }
-        }
+    if ( !leftPage ) {
+        drawbuf->FillRect(info.left, gpos-2, info.left+percent_pos, gpos-1, cl1 );
+    }
 
-        if ( !leftPage ) {
-/*
-            drawbuf->FillRect(info.left+percent_pos-2, gpos+0-1, info.left+percent_pos-1, gpos+3-1, cl4 );
-            drawbuf->FillRect(info.left+percent_pos-2, gpos+2-1, info.left+percent_pos+2, gpos+3-1, cl4 );
-            drawbuf->FillRect(info.left+percent_pos+1, gpos+0-1, info.left+percent_pos+2, gpos+3-1, cl4 );
-            drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos-1, gpos-2-1, cl4 );
-            drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos+2, gpos-3-1, cl4 );
-
-            drawbuf->FillRect(info.left+percent_pos+1, gpos-4-1, info.left+percent_pos+2, gpos-2-1, cl4 );
-*/
-            drawbuf->FillRect(info.left+percent_pos-2, gpos-4-1, info.left+percent_pos+2, gpos+2, cl4 );
-            drawbuf->FillRect(info.left+percent_pos-2+1, gpos-4, info.left+percent_pos+1, gpos+1, cl3 );
-/*
-            drawbuf->FillRect(info.left+percent_pos, gpos+1, info.left+percent_pos+1, gpos+2, cl1 );
-            drawbuf->FillRect(info.left+percent_pos-1, gpos+2, info.left+percent_pos+0, gpos+3, cl1 );
-            drawbuf->FillRect(info.left+percent_pos+1, gpos+2, info.left+percent_pos+2, gpos+3, cl1 );
-*/
-        }
-    } else {
-        // color
-        pal[0] = cl1;
-        drawbuf->SetTextColor(cl1);
-#if 0
-        static lUInt8 pattern[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0};
-        drawbuf->FillRectPattern(info.left, gpos-gh, info.left+percent_pos, gpos, cl1, cl2, pattern );
-        drawbuf->FillRectPattern(info.left+percent_pos, gpos-gh, info.right, gpos, cl3, cl2, pattern );
-#else
-        static lUInt8 pattern[] = {0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55};
-        drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
-        drawbuf->FillRectPattern(info.left, gpos-2, info.left+percent_pos, gpos-1, cl3, cl2, pattern );
-        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos, cl1 );
-        drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl3 );
-        drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl3 );
-        if ( !leftPage ) {
-            drawbuf->FillRect(info.left+percent_pos-1, gpos+0-1, info.left+percent_pos+0, gpos+3-1, cl1 );
-            drawbuf->FillRect(info.left+percent_pos-1, gpos+2-1, info.left+percent_pos+3, gpos+3-1, cl1 );
-            drawbuf->FillRect(info.left+percent_pos+2, gpos+0-1, info.left+percent_pos+3, gpos+3-1, cl1 );
-            drawbuf->FillRect(info.left+percent_pos-1, gpos-4-1, info.left+percent_pos+0, gpos-2-1, cl1 );
-            drawbuf->FillRect(info.left+percent_pos-1, gpos-4-1, info.left+percent_pos+3, gpos-3-1, cl1 );
-            drawbuf->FillRect(info.left+percent_pos+2, gpos-4-1, info.left+percent_pos+3, gpos-2-1, cl1 );
-/*
-            drawbuf->FillRect(info.left+percent_pos, gpos+1, info.left+percent_pos+1, gpos+2, cl1 );
-            drawbuf->FillRect(info.left+percent_pos-1, gpos+2, info.left+percent_pos+0, gpos+3, cl1 );
-            drawbuf->FillRect(info.left+percent_pos+1, gpos+2, info.left+percent_pos+2, gpos+3, cl1 );
-*/
-        }
-#endif
-        if ( !leftPage ) {
-            for ( int i=0; i<sbounds.length(); i++) {
-                int x = info.left + sbounds[i]*(info.width()-1) / 10000;
-                lUInt32 c = cl2; //x<info.left+percent_pos ? cl2 : cl1;
-                drawbuf->FillRect(x, gpos-gh, x+2, gpos, c );
-                //drawbuf->FillRect(x, info.bottom+2-1, x+2, info.bottom+2, c );
-            }
+    // disable section marks
+    if ( !leftPage && 0 ) {
+        for ( int i=0; i<sbounds.length(); i++) {
+            int x = info.left + sbounds[i]*(info.width()-1) / 10000;
+            lUInt32 c = x<info.left+percent_pos ? cl2 : cl1;
+            drawbuf->FillRect(x, gpos-2, x+1, gpos-1, c );
         }
     }
+
 
     int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
     if ( getVisiblePageCount()==1 || !(pageIndex&1) ) {

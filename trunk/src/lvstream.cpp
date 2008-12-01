@@ -2528,6 +2528,38 @@ public:
 		m_mode = LVOM_READWRITE;
 		return LVERR_OK;
 	}
+    /// Creates memory stream as copy of another stream.
+	lverror_t CreateCopy( LVStreamRef srcStream, lvopen_mode_t mode )
+	{
+		Close();
+        if ( mode!=LVOM_READ || srcStream.isNull() )
+            return LVERR_FAIL;
+        lvsize_t sz = srcStream->GetSize();
+        if ( (int)sz <= 0 || sz > 0x200000 )
+            return LVERR_FAIL;
+		m_bufsize = sz;
+		m_size = 0;
+		m_pos = 0;
+		m_pBuffer = new lUInt8[(int)m_bufsize];
+		if (m_pBuffer) {
+            lvsize_t bytesRead = 0;
+            srcStream->Read( m_pBuffer, m_bufsize, &bytesRead );
+            if ( bytesRead!=m_bufsize ) {
+                delete m_pBuffer;
+                m_pBuffer = 0;
+                m_size = 0;
+                m_pos = 0;
+                m_bufsize = 0;
+                return LVERR_FAIL;
+            }
+		}
+        m_size = sz;
+		m_own_buffer = true;
+		m_mode = mode;
+		return LVERR_OK;
+	}
+    
+
 	lverror_t CreateCopy( lUInt8 * pBuf, lvsize_t size, lvopen_mode_t mode )
 	{
 		Close();
@@ -2597,6 +2629,25 @@ LVStreamRef LVCreateMemoryStream( void * buf, int bufSize, bool createCopy, lvop
     else
         stream->Open( (lUInt8*)buf, bufSize );
     return LVStreamRef( stream );
+}
+
+LVStreamRef LVCreateMemoryStream( LVStreamRef srcStream )
+{
+    LVMemoryStream * stream = new LVMemoryStream();
+    if ( stream->CreateCopy(srcStream, LVOM_READ)==LVERR_OK )
+        return LVStreamRef( stream );
+    else
+        delete stream;
+    return LVStreamRef();
+}
+
+/// Creates memory stream as copy of file contents.
+LVStreamRef LVCreateMemoryStream( lString16 filename )
+{
+    LVStreamRef fs = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    if ( fs.isNull() )
+        return fs;
+    return LVCreateMemoryStream( fs );
 }
 
 LVStreamRef LVCreateBufferedStream( LVStreamRef stream, int bufSize )

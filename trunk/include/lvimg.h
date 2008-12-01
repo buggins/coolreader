@@ -48,7 +48,10 @@ typedef LVRef< LVImageSource > LVImageSourceRef;
 LVImageSourceRef LVCreateXPMImageSource( const char * data[] );
 LVImageSourceRef LVCreateNodeImageSource( ldomNode * node );
 LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int height );
+/// creates image source from stream
 LVImageSourceRef LVCreateStreamImageSource( LVStreamRef stream );
+/// creates image source as memory copy of file contents
+LVImageSourceRef LVCreateFileCopyImageSource( lString16 fname );
 
 #define IMAGE_SOURCE_FROM_BYTES( imgvar , bufvar ) \
     extern unsigned char bufvar []; \

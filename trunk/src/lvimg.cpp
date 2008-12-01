@@ -1366,6 +1366,8 @@ LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int heigh
 LVImageSourceRef LVCreateStreamImageSource( ldomNode * node, LVStreamRef stream )
 {
     LVImageSourceRef ref;
+    if ( stream.isNull() )
+        return ref;
     lUInt8 hdr[256];
     lvsize_t bytesRead = 0;
     if ( stream->Read( hdr, 256, &bytesRead )!=LVERR_OK )
@@ -1417,4 +1419,9 @@ LVImageSourceRef LVCreateNodeImageSource( ldomNode * node )
     return LVCreateStreamImageSource( stream );
 }
 
+/// creates image source as memory copy of file contents
+LVImageSourceRef LVCreateFileCopyImageSource( lString16 fname )
+{
+    return LVCreateStreamImageSource( LVCreateMemoryStream(fname) );
+}
 
