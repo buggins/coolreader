@@ -1272,7 +1272,7 @@ cr3Frame::cr3Frame( const wxString& title, const wxPoint& pos, const wxSize& siz
             _props->loadFromStream(stream.get());
     }
 
-    _view = new cr3view( _props );
+    _view = new cr3view( _props, appDir );
     _hist = new HistList();
 
     InitDialog();

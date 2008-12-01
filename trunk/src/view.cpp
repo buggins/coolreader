@@ -72,7 +72,7 @@ lString16 cr3view::GetLastRecentFileName()
     return lString16();
 }
 
-cr3view::cr3view(CRPropRef props)
+cr3view::cr3view(CRPropRef props, lString16 exeDirPath )
 : _normalCursor(wxCURSOR_ARROW)
 , _linkCursor(wxCURSOR_HAND)
 , _scrollbar(NULL)
@@ -85,7 +85,11 @@ cr3view::cr3view(CRPropRef props)
     _wm.activateWindow( (_docwin = new CRDocViewWindow(&_wm)) );
     getDocView()->setCallback( this );
     IMAGE_SOURCE_FROM_BYTES(defCover, cr3_def_cover_gif);
-    getDocView()->setDefaultCover( defCover );
+    LVImageSourceRef cover = LVCreateFileCopyImageSource( exeDirPath + L"cr3_def_cover.png" );
+    if ( !cover.isNull() )
+        getDocView()->setDefaultCover( cover );
+    else
+        getDocView()->setDefaultCover( defCover );
 
 
     static int fontSizes[] = {14, 16, 18, 20, 24, 28, 32, 36};

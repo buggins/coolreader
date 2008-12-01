@@ -12,7 +12,7 @@ class
 cr3view : public wxPanel, public LVDocViewCallback
 {
     public:
-        cr3view(CRPropRef props);
+        cr3view(CRPropRef props, lString16 exeDirPath );
         virtual ~cr3view();
         void ScheduleRender() { Resize(0, 0); }
         bool LoadDocument( const wxString & fname );
