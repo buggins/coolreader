@@ -165,6 +165,7 @@ srcs	 =	\
 		lvstream \
 		lvstring \
 		lvstsheet \
+		props \
 		lvstyles \
 		lvtinydom \
 		lvxml \
@@ -183,7 +184,6 @@ ifneq ($(BUILD_LITE),1)
 		lvdrawbuf \
 		lvbmpbuf \
 		hist \
-		props \
 		wolutil \
 
 endif
