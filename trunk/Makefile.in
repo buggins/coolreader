@@ -82,10 +82,15 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+<<<<<<< Makefile.in
+GREP = @GREP@
+INSTALL = @INSTALL@
+=======
 FREETYPE_CFLAGS = @FREETYPE_CFLAGS@
 FREETYPE_LIBS = @FREETYPE_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
+>>>>>>> 1.13
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -115,6 +120,13 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
+<<<<<<< Makefile.in
+WX_LIBS = @WX_LIBS@
+abs_builddir = @abs_builddir@
+abs_srcdir = @abs_srcdir@
+abs_top_builddir = @abs_top_builddir@
+abs_top_srcdir = @abs_top_srcdir@
+=======
 XCB_AUX_CFLAGS = @XCB_AUX_CFLAGS@
 XCB_AUX_LIBS = @XCB_AUX_LIBS@
 XCB_CFLAGS = @XCB_CFLAGS@
@@ -127,6 +139,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+>>>>>>> 1.13
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
@@ -172,8 +185,14 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+<<<<<<< Makefile.in
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+INCLUDES = 
+=======
+top_builddir = @top_builddir@
+top_srcdir = @top_srcdir@
+>>>>>>> 1.13
 METASOURCES = AUTO
 SUBDIRS = src
 AM_CFLAGS = 

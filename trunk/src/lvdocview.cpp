@@ -1090,7 +1090,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     LVArray<int> & sbounds = getSectionBounds();
     lvRect navBar;
     getNavigationBarRectangle( pageIndex, navBar );
-    int gpos = info.bottom+2;
+    int gpos = info.bottom+4;
     if ( drawbuf->GetBitsPerPixel() <= 2 ) {
         // gray
         gh += 2;

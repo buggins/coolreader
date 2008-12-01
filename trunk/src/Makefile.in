@@ -40,6 +40,23 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
+<<<<<<< Makefile.in
+LIBRARIES = $(noinst_LIBRARIES)
+ARFLAGS = cru
+libcrengine_a_AR = $(AR) $(ARFLAGS)
+libcrengine_a_LIBADD =
+am_libcrengine_a_OBJECTS = cp_stats.$(OBJEXT) crtxtenc.$(OBJEXT) \
+	hist.$(OBJEXT) hyphman.$(OBJEXT) lstridmap.$(OBJEXT) \
+	lvbmpbuf.$(OBJEXT) lvdocview.$(OBJEXT) lvdrawbuf.$(OBJEXT) \
+	lvfnt.$(OBJEXT) lvfntman.$(OBJEXT) lvimg.$(OBJEXT) \
+	lvmemman.$(OBJEXT) lvpagesplitter.$(OBJEXT) lvrend.$(OBJEXT) \
+	lvstream.$(OBJEXT) lvstring.$(OBJEXT) lvstsheet.$(OBJEXT) \
+	lvstyles.$(OBJEXT) lvtextfm.$(OBJEXT) lvtinydom.$(OBJEXT) \
+	lvxml.$(OBJEXT) props.$(OBJEXT) rtfimp.$(OBJEXT) \
+	wolutil.$(OBJEXT)
+libcrengine_a_OBJECTS = $(am_libcrengine_a_OBJECTS)
+DEFAULT_INCLUDES = -I.@am__isrc@
+=======
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -57,6 +74,7 @@ am_libcrengine_la_OBJECTS = cp_stats.lo crtxtenc.lo hist.lo hyphman.lo \
 	lvtinydom.lo lvxml.lo props.lo rtfimp.lo wolutil.lo
 libcrengine_la_OBJECTS = $(am_libcrengine_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
+>>>>>>> 1.13
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -65,11 +83,19 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
+<<<<<<< Makefile.in
+CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+SOURCES = $(libcrengine_a_SOURCES)
+DIST_SOURCES = $(libcrengine_a_SOURCES)
+=======
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libcrengine_la_SOURCES)
 DIST_SOURCES = $(libcrengine_la_SOURCES)
+>>>>>>> 1.13
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -100,10 +126,15 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+<<<<<<< Makefile.in
+GREP = @GREP@
+INSTALL = @INSTALL@
+=======
 FREETYPE_CFLAGS = @FREETYPE_CFLAGS@
 FREETYPE_LIBS = @FREETYPE_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
+>>>>>>> 1.13
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -133,6 +164,13 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
+<<<<<<< Makefile.in
+WX_LIBS = @WX_LIBS@
+abs_builddir = @abs_builddir@
+abs_srcdir = @abs_srcdir@
+abs_top_builddir = @abs_top_builddir@
+abs_top_srcdir = @abs_top_srcdir@
+=======
 XCB_AUX_CFLAGS = @XCB_AUX_CFLAGS@
 XCB_AUX_LIBS = @XCB_AUX_LIBS@
 XCB_CFLAGS = @XCB_CFLAGS@
@@ -145,6 +183,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+>>>>>>> 1.13
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
@@ -450,9 +489,17 @@ info-am:
 
 install-data-am:
 
+<<<<<<< Makefile.in
+install-dvi: install-dvi-am
+
+install-exec-am:
+=======
 install-dvi: install-dvi-am
 
 install-exec-am: install-libLTLIBRARIES
+
+install-html: install-html-am
+>>>>>>> 1.13
 
 install-html: install-html-am
 
@@ -484,14 +531,30 @@ ps: ps-am
 
 ps-am:
 
+<<<<<<< Makefile.in
+uninstall-am:
+
+.MAKE: install-am install-strip
+=======
 uninstall-am: uninstall-libLTLIBRARIES
 
 .MAKE: install-am install-strip
+>>>>>>> 1.13
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
 	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
+<<<<<<< Makefile.in
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am
+=======
 	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am \
@@ -501,6 +564,7 @@ uninstall-am: uninstall-libLTLIBRARIES
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-libLTLIBRARIES
+>>>>>>> 1.13
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
