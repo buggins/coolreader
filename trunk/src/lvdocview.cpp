@@ -23,6 +23,8 @@
 #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"
 
+/// to show page bounds rectangles
+//#define SHOW_PAGE_RECT
 
 const char * def_stylesheet =
 "image { text-align: center; text-indent: 0px } \n"
@@ -36,8 +38,8 @@ const char * def_stylesheet =
 "text-author { font-weight: bold; font-style: italic; margin-left: 5%}\n"
 "empty-line { height: 1em }\n"
 "epigraph { margin-left: 30%; margin-right: 4%; text-align: left; text-indent: 1px; font-style: italic; margin-top: 15px; margin-bottom: 25px; font-family: Times New Roman, serif }\n"
-"strong { font-weight: bold }\n"
-"emphasis { font-style: italic }\n"
+"strong, b { font-weight: bold }\n"
+"emphasis, i { font-style: italic }\n"
 "title { text-align: center; text-indent: 0px; font-size: 130%; font-weight: bold; margin-top: 10px; margin-bottom: 10px; font-family: Times New Roman, serif }\n"
 "subtitle { text-align: center; text-indent: 0px; font-size: 150%; margin-top: 10px; margin-bottom: 10px }\n"
 "title { page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }\n"
@@ -280,13 +282,24 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
     return pt2;
 }
 
+/// sets page margins
+void LVDocView::setPageMargins( const lvRect & rc )
+{
+    if ( m_pageMargins.left + m_pageMargins.right != rc.left + rc.right 
+            || m_pageMargins.top + m_pageMargins.bottom != rc.top + rc.bottom )
+        requestRender();
+    else
+        clearImageCache();
+    m_pageMargins = rc;
+}
+
 void LVDocView::setPageHeaderInfo( int hdrFlags )
 {
     LVLock lock(getMutex());
+    int oldH = getPageHeaderHeight();
     m_pageHeaderInfo = hdrFlags;
-    int oldMargin = m_pageMargins.top;
-    m_pageMargins.top = m_pageMargins.bottom + (hdrFlags ? INFO_FONT_SIZE : 0);
-    if ( m_pageMargins.top != oldMargin ) {
+    int h = getPageHeaderHeight();
+    if ( h != oldH ) {
         requestRender();
     } else {
         clearImageCache();
@@ -805,6 +818,15 @@ int LVDocView::GetFullHeight()
     return ( rd ? rd->getHeight()+rd->getY() : m_dy );
 }
 
+#define HEADER_MARGIN 4
+/// calculate page header height
+int LVDocView::getPageHeaderHeight( )
+{
+    if ( !getPageHeaderInfo() )
+        return 0;
+    return getInfoFont()->getHeight() + HEADER_MARGIN + 3;
+}
+
 /// calculate page header rectangle
 void LVDocView::getPageHeaderRectangle( int pageIndex, lvRect & headerRc )
 {
@@ -814,11 +836,11 @@ void LVDocView::getPageHeaderRectangle( int pageIndex, lvRect & headerRc )
     if ( pageIndex==0 ) {
         headerRc.bottom = 0;
     } else {
-        headerRc.bottom = headerRc.top + m_pageMargins.top;
-        headerRc.top += 4;
-        headerRc.left += 4;
-        headerRc.right -= 4;
-        headerRc.bottom -= 4;
+        int h = getPageHeaderHeight();
+        headerRc.bottom = headerRc.top + h;
+        headerRc.top += HEADER_MARGIN;
+        headerRc.left += HEADER_MARGIN;
+        headerRc.right -= HEADER_MARGIN;
     }
 }
 
@@ -1074,6 +1096,10 @@ lString16 fitTextWidthWithEllipsis( lString16 text, LVFontRef font, int maxwidth
 /// draw page header to buffer
 void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, int pageIndex, int phi, int pageCount )
 {
+    lvRect oldcr;
+    drawbuf->GetClipRect( &oldcr );
+    lvRect hrc = headerRc;
+    drawbuf->SetClipRect(&hrc);
     bool drawGauge = true;
     lvRect info = headerRc;
     lUInt32 cl1 = 0xA0A0A0;
@@ -1090,15 +1116,14 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     LVArray<int> & sbounds = getSectionBounds();
     lvRect navBar;
     getNavigationBarRectangle( pageIndex, navBar );
-    int gpos = info.bottom+4;
+    int gpos = info.bottom;
+    cl1 = getTextColor();
+    drawbuf->SetTextColor(cl1);
     if ( drawbuf->GetBitsPerPixel() <= 2 ) {
         // gray
-        gh += 2;
-        cl1 = getTextColor();
         cl3 = 1;
         cl4 = cl1;
         pal[0] = cl1;
-        drawbuf->SetTextColor(cl1);
     }
     drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
     drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos, cl1 );
@@ -1119,7 +1144,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     }
 
 
-    int iy = info.top + (info.height() - m_infoFont->getHeight()) * 2 / 3;
+    int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
     if ( getVisiblePageCount()==1 || !(pageIndex&1) ) {
         int dwIcons = 0;
         int icony = iy + m_infoFont->getHeight() / 2;
@@ -1199,9 +1224,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     } else {
         text = authors + L"  " + title;
     }
-    lvRect oldcr;
-    drawbuf->GetClipRect( &oldcr );
-    lvRect newcr = oldcr;
+    lvRect newcr = headerRc;
     newcr.right = info.right - 10;
     drawbuf->SetClipRect(&newcr);
     text = fitTextWidthWithEllipsis( text, m_infoFont, newcr.width() );
@@ -1218,6 +1241,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
 {
     int start = page.start;
     int height = page.height;
+    int headerHeight = getPageHeaderHeight();
     CRLog::trace("drawPageTo(%d,%d)", start, height);
     lvRect fullRect( 0, 0, drawbuf->GetWidth(), drawbuf->GetHeight() );
     if ( !pageRect )
@@ -1230,8 +1254,8 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
     offset = 0;
     lvRect clip;
     clip.left = pageRect->left + m_pageMargins.left;
-    clip.top = pageRect->top + offset + m_pageMargins.top;
-    clip.bottom = pageRect->top + m_pageMargins.top + height + offset;
+    clip.top = pageRect->top + m_pageMargins.top + headerHeight + offset;
+    clip.bottom = pageRect->top + m_pageMargins.top + height + headerHeight + offset;
     clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
     if ( page.type==PAGE_TYPE_COVER )
         clip.top = pageRect->top + m_pageMargins.bottom;
@@ -1253,6 +1277,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         lvRect info;
         getPageHeaderRectangle( page.index, info );
         drawPageHeader( drawbuf, info, page.index-1+basePage, phi, pageCount-1+basePage );
+        //clip.top = info.bottom;
     }
     drawbuf->SetClipRect(&clip);
     if ( m_doc ) {
@@ -1270,11 +1295,11 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         } else {
             // draw main page text
             CRLog::trace("Entering DrawDocument()");
-            DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, pageRect->top + m_pageMargins.top + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
+            DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, clip.top, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
             CRLog::trace("Done DrawDocument() for main text");
             // draw footnotes
 #define FOOTNOTE_MARGIN 8
-            int fny = pageRect->top + m_pageMargins.top + offset + page.height + FOOTNOTE_MARGIN;
+            int fny = clip.top + page.height + FOOTNOTE_MARGIN;
             int fy = fny;
             bool footnoteDrawed = false;
             for ( int fn=0; fn<page.footnotes.length(); fn++ ) {
@@ -1297,6 +1322,17 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         }
     }
     drawbuf->SetClipRect(NULL);
+#ifdef SHOW_PAGE_RECT
+    drawbuf->FillRect(pageRect->left, pageRect->top, pageRect->left+1, pageRect->bottom, 0xAAAAAA);
+    drawbuf->FillRect(pageRect->left, pageRect->top, pageRect->right, pageRect->top+1, 0xAAAAAA);
+    drawbuf->FillRect(pageRect->right-1, pageRect->top, pageRect->right, pageRect->bottom, 0xAAAAAA);
+    drawbuf->FillRect(pageRect->left, pageRect->bottom-1, pageRect->right, pageRect->bottom, 0xAAAAAA);
+    drawbuf->FillRect(pageRect->left+m_pageMargins.left, pageRect->top+m_pageMargins.top+headerHeight, pageRect->left+1+m_pageMargins.left, pageRect->bottom-m_pageMargins.bottom, 0x555555);
+    drawbuf->FillRect(pageRect->left+m_pageMargins.left, pageRect->top+m_pageMargins.top+headerHeight, pageRect->right-m_pageMargins.right, pageRect->top+1+m_pageMargins.top+headerHeight, 0x555555);
+    drawbuf->FillRect(pageRect->right-1-m_pageMargins.right, pageRect->top+m_pageMargins.top+headerHeight, pageRect->right-m_pageMargins.right, pageRect->bottom-m_pageMargins.bottom, 0x555555);
+    drawbuf->FillRect(pageRect->left+m_pageMargins.left, pageRect->bottom-1-m_pageMargins.bottom, pageRect->right-m_pageMargins.right, pageRect->bottom-m_pageMargins.bottom, 0x555555);
+#endif
+
 #if 0
     lString16 pagenum = lString16::itoa( page.index+1 );
     m_font->DrawTextString(drawbuf, 5, 0 , pagenum.c_str(), pagenum.length(), '?', NULL, false); //drawbuf->GetHeight()-m_font->getHeight()
@@ -1525,15 +1561,15 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         if ( pages==NULL )
             pages = &m_pages;
         updateLayout();
-        if ( dx==0 )
-            dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
-        if ( dy==0 )
-            dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom;
         lString8 fontName = lString8(DEFAULT_FONT_NAME);
         m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
         m_infoFont = fontMan->GetFont( INFO_FONT_SIZE, 300, false, DEFAULT_FONT_FAMILY, fontName );
-        if ( !m_font )
+        if ( !m_font || !m_infoFont )
             return;
+        if ( dx==0 )
+            dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
+        if ( dy==0 )
+            dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom - getPageHeaderHeight();
 
         CRLog::debug("Render(width=%d, height=%d, font=%s(%d))", dx, dy, fontName.c_str(), m_font_size);
         pages->clear();

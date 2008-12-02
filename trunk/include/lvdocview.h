@@ -453,12 +453,14 @@ public:
     lString16 getPageText( bool wrapWords, int pageIndex=-1 );
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
+    /// calculate page header height
+    virtual int getPageHeaderHeight( );
     /// set list of icons to display at left side of header
     void setHeaderIcons( LVRefVec<LVImageSource> icons );
     /// set list of battery icons to display battery state
     void setBatteryIcons( LVRefVec<LVImageSource> icons );
     /// sets page margins
-    void setPageMargins( const lvRect & rc ) { m_pageMargins = rc; }
+    void setPageMargins( const lvRect & rc );
     /// returns page margins
     lvRect getPageMargins() const { return m_pageMargins; }
     /// sets rotate angle

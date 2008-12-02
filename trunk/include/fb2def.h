@@ -75,6 +75,8 @@ XS_TAG1I( br )
 
 XS_TAG1D( title, true, css_d_block, css_ws_normal )
 
+XS_TAG1I( b )
+XS_TAG1I( i )
 
 // type="styleType"
 XS_TAG1I( strikethrough )

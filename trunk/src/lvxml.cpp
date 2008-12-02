@@ -1588,6 +1588,25 @@ bool LVXMLParser::Parse()
                 else if (m_buf[m_buf_pos]=='!')
                 {
                     // comments etc...
+                    if ( m_buf[m_buf_pos+1]=='-' && m_buf[m_buf_pos+2]=='-' ) {
+                        // skip comments
+                        m_buf_pos += 3;
+                        while ( m_buf[m_buf_pos]!='-' || m_buf[m_buf_pos+1]!='-'
+                                || m_buf[m_buf_pos+2]!='>' ) {
+                            //
+                            if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE ) {
+                                if ( !FillBuffer( MIN_BUF_DATA_SIZE*2 ) ) {
+                                    errorFlag = true;
+                                    break;
+                                }
+                            }
+                            m_buf_pos++;
+                        }
+                        if ( m_buf[m_buf_pos]=='-' && m_buf[m_buf_pos+1]=='-'
+                                && m_buf[m_buf_pos+2]=='>' )
+                                m_buf_pos += 3;
+                        break;
+                    }
                 }
                 if (!ReadIdent(tagns, tagname) || m_buf[m_buf_pos]=='=')
                 {
