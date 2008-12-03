@@ -81,9 +81,11 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib odbc32.lib crengine.lib freetype235MT.lib"
 				OutputFile=".\Unicode Release/cr3.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\wxWidgets\lib\vc_lib;..\..\crengine\lib;..\..\freetype2\objs"
+				GenerateManifest="false"
+				GenerateDebugInformation="false"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -94,6 +96,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"

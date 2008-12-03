@@ -90,7 +90,7 @@ cr3view::cr3view(CRPropRef props, lString16 exeDirPath )
         getDocView()->setDefaultCover( cover );
     else
         getDocView()->setDefaultCover( defCover );
-
+    getDocView()->setPageMargins( lvRect(14, 5, 14, 5) );
 
     static int fontSizes[] = {14, 16, 18, 20, 24, 28, 32, 36};
     LVArray<int> sizes( fontSizes, sizeof(fontSizes)/sizeof(int) );
@@ -108,6 +108,7 @@ cr3view::cr3view(CRPropRef props, lString16 exeDirPath )
             stream = NULL;
         }
     }
+
 
 
     _renderTimer = new wxTimer( this, RENDER_TIMER_ID );
@@ -671,8 +672,14 @@ bool cr3view::LoadDocument( const wxString & fname )
 	//DEBUG
 	//_docview->exportWolFile( "test.wol", true );
 	//_docview->SetPos(0);
-    lString16 title = (getDocView()->getAuthors() + L". " + getDocView()->getTitle());
+    if ( !res )
+        getDocView()->createDefaultDocument(lString16(L"File open error"), lString16(L"Cannot open file ") + fname.c_str() );
+    lString16 title = getDocView()->getAuthors();
+    if ( !title.empty() && !getDocView()->getTitle().empty() )
+        title << L". ";
+    title << getDocView()->getTitle();
     GetParent()->SetLabel( wxString( title.c_str() ) );
+
     //UpdateScrollBar();
     _firstRender = true;
     _allowRender = false;
