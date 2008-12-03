@@ -129,6 +129,7 @@ bool InitCREngine( const char * exename )
         fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
         fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
         fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+        fontDirs.add( lString16(L"/root/fonts/truetype") );
         //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
         for ( int fi=0; msfonts[fi]; fi++ )
             fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
@@ -189,9 +190,10 @@ bool InitCREngine( const char * exename )
 
 #include <unistd.h>      /* pause() */
 
-#undef __cplusplus
-extern "C" {
 #include <xcb/xcb.h>
+extern "C" {
+#include <xcb/shm.h>
+};
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_image.h>
 #include <xcb/xcb_keysyms.h>
@@ -199,8 +201,6 @@ extern "C" {
 #include <X11/keysymdef.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-};
-#define __cplusplus
 
 #define XCB_ALL_PLANES ~0
 
@@ -226,7 +226,7 @@ class CRXCBScreen : public CRGUIScreenBase
         unsigned int *pal;
         virtual void update( const lvRect & rc, bool full )
         {
-            printf("update screen, bpp=%d\n", (int)im->bpp);
+            printf("update screen, bpp=%d width=%d, height=%d\n", (int)im->bpp,im->width,im->height);
             int i;
             i = xcb_image_shm_get (connection, window,
                     im, shminfo,
@@ -326,27 +326,34 @@ class CRXCBScreen : public CRGUIScreenBase
 
             /* creating the window */
             window = xcb_generate_id(connection);
-            mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-            values[0] = screen->white_pixel;
-            values[1] =
+            mask =  XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+            xcb_params_cw_t params_cw;
+            params_cw.back_pixel = screen->white_pixel;
+            params_cw.event_mask =
                 XCB_EVENT_MASK_KEY_RELEASE |
                 XCB_EVENT_MASK_BUTTON_PRESS |
                 XCB_EVENT_MASK_EXPOSURE |
                 XCB_EVENT_MASK_POINTER_MOTION;
 
             uint8_t depth = xcb_aux_get_depth (connection, screen);
-            xcb_create_window(connection,
+            printf("depth = %d, root depth = %d\n",depth, screen->root_depth);
+            xcb_aux_create_window(connection,
                     depth,
                     window, screen->root,
                     0, 0, width, height,
                     0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
                     screen->root_visual,
-                    mask, values);
+                    mask, &params_cw);
 
             rect = xcb_generate_id (connection);
-            xcb_create_pixmap (connection, depth,
+            
+            xcb_void_cookie_t cookie;
+            cookie = xcb_create_pixmap_checked (connection, depth,
                     rect, window,
                     width, height);
+            if (xcb_request_check(connection,cookie)){
+                printf("sucks, can't creae pixmap\n");
+            }
 
             xcb_map_window(connection, window);
 
@@ -404,6 +411,8 @@ class CRXCBScreen : public CRGUIScreenBase
                 assert(shmctl_status != -1);
                 free (rep_shm);
 
+            } else {
+                printf("Can't get shm\n");
             }
             _width = width;
             _height = height;
@@ -561,7 +570,7 @@ int main(int argc, char **argv)
 
     int res = 0;
 
-    CRXCBWindowManager winman( 600, 800 );
+    CRXCBWindowManager winman( 600, 700 );
     CRDocViewWindow * main_win = new CRDocViewWindow( &winman );
     main_win->getDocView()->setBackgroundColor(0xFFFFFF);
     main_win->getDocView()->setTextColor(0x000000);
