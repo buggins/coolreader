@@ -1106,7 +1106,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     lUInt32 cl2 = getBackgroundColor();
     lUInt32 cl3 = 0xD0D0D0;
     lUInt32 cl4 = 0xC0C0C0;
-    lUInt32 pal[4];
+    //lUInt32 pal[4];
     int percent = getPosPercent();
     bool leftPage = (getVisiblePageCount()==2 && !(pageIndex&1) );
     if ( leftPage || !drawGauge )
@@ -1123,7 +1123,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         // gray
         cl3 = 1;
         cl4 = cl1;
-        pal[0] = cl1;
+        //pal[0] = cl1;
     }
     drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
     drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos, cl1 );
@@ -1183,7 +1183,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     if ( !pageinfo.empty() ) {
         piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
         m_infoFont->DrawTextString( drawbuf, info.right-piw, iy,
-            pageinfo.c_str(), pageinfo.length(), L' ', pal, false);
+            pageinfo.c_str(), pageinfo.length(), L' ', NULL, false);
         info.right -= piw + info.height()/2;
     }
     if ( phi & PGHDR_CLOCK ) {
@@ -1191,7 +1191,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         m_last_clock = clock;
         int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + 2;
         m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
-            clock.c_str(), clock.length(), L' ', pal, false);
+            clock.c_str(), clock.length(), L' ', NULL, false);
         info.right -= w + info.height()/2;
     }
     int titlew = 0;
@@ -1230,7 +1230,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     text = fitTextWidthWithEllipsis( text, m_infoFont, newcr.width() );
     if ( !text.empty() ) {
         m_infoFont->DrawTextString( drawbuf, info.left, iy,
-            text.c_str(), text.length(), L' ', pal, false);
+            text.c_str(), text.length(), L' ', NULL, false);
     }
     drawbuf->SetClipRect(&oldcr);
     //--------------
@@ -1284,6 +1284,8 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         if ( page.type == PAGE_TYPE_COVER ) {
             lvRect rc = *pageRect;
             drawbuf->SetClipRect(&rc);
+            if ( m_pageMargins.bottom > m_pageMargins.top )
+                rc.bottom -= m_pageMargins.bottom - m_pageMargins.top;
             /*
             rc.left += m_pageMargins.left / 2;
             rc.top += m_pageMargins.bottom / 2;

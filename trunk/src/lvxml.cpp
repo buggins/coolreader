@@ -1605,6 +1605,7 @@ bool LVXMLParser::Parse()
                         if ( m_buf[m_buf_pos]=='-' && m_buf[m_buf_pos+1]=='-'
                                 && m_buf[m_buf_pos+2]=='>' )
                                 m_buf_pos += 3;
+                        m_state = ps_text;
                         break;
                     }
                 }

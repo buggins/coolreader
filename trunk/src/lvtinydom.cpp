@@ -139,10 +139,11 @@ ldomDocument::ldomDocument(LVStreamRef stream, int min_ref_text_size)
 
 #else
 ldomDocument::ldomDocument()
+:
 #ifndef BUILD_LITE
-    : _renderedBlockCache( 32 )
+     _renderedBlockCache( 32 ),
 #endif
-        , _docFlags(DOC_FLAG_DEFAULTS)
+        _docFlags(DOC_FLAG_DEFAULTS)
 {
     _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
 }
