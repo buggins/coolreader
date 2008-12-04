@@ -2238,6 +2238,13 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             }
             // EPUB support
             if ( mimeType == L"application/epub+zip" ) {
+                if ( m_doc )
+                    delete m_doc;
+    #if COMPACT_DOM==1
+                m_doc = new ldomDocument( m_stream, 0 );
+    #else
+                m_doc = new ldomDocument();
+    #endif
                 m_doc->getProps()->clear();
 
 
@@ -2331,14 +2338,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
                 if ( spineItems.length()>0 ) {
                     lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
-                    if ( m_doc )
-                        delete m_doc;
                     m_is_rendered = false;
-    #if COMPACT_DOM==1
-                    m_doc = new ldomDocument( m_stream, 0 );
-    #else
-                    m_doc = new ldomDocument();
-    #endif
                     m_doc->setDocFlags( saveFlags );
                     m_doc->setContainer( m_container );
 
