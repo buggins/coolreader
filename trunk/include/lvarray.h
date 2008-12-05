@@ -86,9 +86,13 @@ public:
     {
         if ( size > _size )
         {
-            _array = (T*)realloc( _array, size * sizeof( T ));
-            for (int i=_size; i<size; i++)
-                _array[i] = T();
+            T* new_array = new T[ size ];
+            if ( _array ) {
+        	for ( int i=0; i<_count; i++ )
+        	    new_array[i] = _array[i];
+        	delete [] _array;
+            }
+            _array = new_array;
             _size = size;
         }
     }
