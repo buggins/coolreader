@@ -276,37 +276,40 @@ distrib :
 	ls -l $(releasefile)
 
 all :
-	make clean BUILD=Release SHARED=1
-	make clean BUILD=Debug SHARED=1
-	make clean BUILD=Release SHARED=0
-	make clean BUILD=Debug SHARED=0
-	make BUILD=Release SHARED=0
-	make BUILD=Debug SHARED=0
-	make BUILD=Release appclean
-	make BUILD=Debug appclean
-	make BUILD=Release app
-	make BUILD=Debug app
+	make -f Makefile.lbook clean BUILD=Release SHARED=1
+	make -f Makefile.lbook clean clean BUILD=Debug SHARED=1
+	make -f Makefile.lbook clean clean BUILD=Release SHARED=0
+	make -f Makefile.lbook clean clean BUILD=Debug SHARED=0
+	make -f Makefile.lbook clean BUILD=Release SHARED=0
+	make -f Makefile.lbook clean BUILD=Debug SHARED=0
+	make -f Makefile.lbook clean BUILD=Release appclean
+	make -f Makefile.lbook clean BUILD=Debug appclean
+	make -f Makefile.lbook clean BUILD=Release app
+	make -f Makefile.lbook clean BUILD=Debug app
 
 lbook :
-	make lbook-i386
-	make lbook-arm
+	make -f Makefile.lbook clean lbook-i386
+	make -f Makefile.lbook clean lbook-arm
 
 lbook-arm :
-	make clean LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
-	make LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
-	make clean LBOOK=arm BUILD=Release SHARED=0
-	make LBOOK=arm BUILD=Release SHARED=0
-	make clean LBOOK=arm BUILD=Debug SHARED=0
-	make LBOOK=arm BUILD=Debug SHARED=0
+	make -f Makefile.lbook clean clean LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
+	make -f Makefile.lbook clean LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
+	make -f Makefile.lbook clean clean LBOOK=arm BUILD=Release SHARED=0
+	make -f Makefile.lbook clean LBOOK=arm BUILD=Release SHARED=0
+	make -f Makefile.lbook clean clean LBOOK=arm BUILD=Debug SHARED=0
+	make -f Makefile.lbook clean LBOOK=arm BUILD=Debug SHARED=0
 
 lbook-i386 :
-	make clean LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
-	make LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
-	make clean LBOOK=i386 BUILD=Release SHARED=0
-	make LBOOK=i386 BUILD=Release SHARED=0
-	make clean LBOOK=i386 BUILD=Debug SHARED=0
-	make LBOOK=i386 BUILD=Debug SHARED=0
+	make -f Makefile.lbook clean clean LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
+	make -f Makefile.lbook clean LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
+	make -f Makefile.lbook clean clean LBOOK=i386 BUILD=Release SHARED=0
+	make -f Makefile.lbook clean LBOOK=i386 BUILD=Release SHARED=0
+	make -f Makefile.lbook clean clean LBOOK=i386 BUILD=Debug SHARED=0
+	make -f Makefile.lbook clean LBOOK=i386 BUILD=Debug SHARED=0
 
+#clean :
+#	rm -f libs/*.a
+	
 #	make doc
 #	make distrib
 #	make BUILD=Release SHARED=1
