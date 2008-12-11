@@ -3,7 +3,7 @@ rm -f config.cache
 
 AC_INIT(cr3, 3.0.16, vadim.lopatin@coolreader.org)
 AC_PREREQ(2.52)
-AC_CONFIG_SRCDIR(configure.ac)
+AC_CONFIG_SRCDIR(src/cr3main.cpp)
 #AC_CONFIG_SRCDIR(crengine/configure.ac)
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -33,7 +33,7 @@ PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
 #PKG_CHECK_MODULES(CRENGINE, [crengine >= 3.0.16])
 #CRENGINE_CFLAGS="-I${top_srcdir}/crengine/include -DLINUX -D_LINUX -DCOLOR_BACKBUFFER=0 "
 #CRENGINE_LIBS="-L${top_srcdir}/crengine/src -lcrengine "
-CRENGINE_CFLAGS="-I../crengine/include -DLINUX -D_LINUX "
+CRENGINE_CFLAGS="-I../crengine/include -I/home/lve/src/cr3ewl/crengine/include -DLINUX -D_LINUX "
 CRENGINE_LIBS="-L../crengine/src -lcrengine "
 
 dnl color backbuffer option

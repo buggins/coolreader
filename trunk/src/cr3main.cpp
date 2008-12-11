@@ -6,6 +6,7 @@
 #include <string.h>
 //#include <Ewl.h>
 #include <crengine.h>
+#include <crgui.h>
 
 
 bool initHyph(const char * fname)
@@ -467,6 +468,7 @@ public:
                         break;
                     }
                     int cmd = 0;
+#if 0
                     switch ( sym ) {
                     case '0':
                     case XK_Down:
@@ -477,12 +479,14 @@ public:
                         cmd = DCMD_PAGEUP;
                         break;
                     case '+':
+                    case '-':
                         cmd = DCMD_ZOOM_IN;
                         break;
                     case '-':
                         cmd = DCMD_ZOOM_OUT;
                         break;
                     }
+#endif
                     if ( cmd ) {
                         onCommand( cmd, 0 );
                     } else {
@@ -517,6 +521,10 @@ public:
 class V3DocViewWin : public CRDocViewWindow
 {
 public:
+    V3DocViewWin( CRGUIWindowManager * wm )
+    : CRDocViewWindow ( wm )
+    {
+    }
     /// returns true if key is processed
     virtual bool onKeyPressed( int key, int flags = 0 )
     {
@@ -535,9 +543,11 @@ public:
             cmd = DCMD_PAGEUP;
             break;
         case '+':
+        case '=':
             cmd = DCMD_ZOOM_IN;
             break;
         case '-':
+        case '_':
             cmd = DCMD_ZOOM_OUT;
             break;
         }
@@ -556,6 +566,7 @@ public:
 
 int main(int argc, char **argv)
 {
+
     if ( !InitCREngine( argv[0] ) ) {
         printf("Cannot init CREngine - exiting\n");
         return 2;
@@ -570,19 +581,20 @@ int main(int argc, char **argv)
 
     int res = 0;
 
-    CRXCBWindowManager winman( 600, 700 );
-    CRDocViewWindow * main_win = new CRDocViewWindow( &winman );
-    main_win->getDocView()->setBackgroundColor(0xFFFFFF);
-    main_win->getDocView()->setTextColor(0x000000);
-    main_win->getDocView()->setFontSize( 20 );
-    winman.activateWindow( main_win );
-    if ( !main_win->getDocView()->LoadDocument(fname) ) {
-        printf("Cannot open book file %s\n", fname);
-        res = 4;
-    } else {
-        winman.runEventLoop();
+    {
+        CRXCBWindowManager winman( 600, 700 );
+        V3DocViewWin * main_win = new V3DocViewWin( &winman );
+        main_win->getDocView()->setBackgroundColor(0xFFFFFF);
+        main_win->getDocView()->setTextColor(0x000000);
+        main_win->getDocView()->setFontSize( 20 );
+        winman.activateWindow( main_win );
+        if ( !main_win->getDocView()->LoadDocument(fname) ) {
+            printf("Cannot open book file %s\n", fname);
+            res = 4;
+        } else {
+            winman.runEventLoop();
+        }
     }
-
     ShutdownCREngine();
 
     return res;
