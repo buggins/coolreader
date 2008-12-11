@@ -15,7 +15,9 @@
 
 // features set for LBOOK
 #if (LBOOK==1)
+#ifndef LDOM_USE_OWN_MEM_MAN
 #define LDOM_USE_OWN_MEM_MAN                 0
+#endif
 #define USE_DOM_UTF8_STORAGE                 1
 #define CR_USE_THREADS                       0
 #define MAX_IMAGE_SCALE_MUL                  2
@@ -50,7 +52,9 @@
 
 #elif defined(_LINUX) || defined (LINUX)
 
+#ifndef LDOM_USE_OWN_MEM_MAN
 #define LDOM_USE_OWN_MEM_MAN                 1
+#endif
 #define CR_USE_THREADS                       0
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1

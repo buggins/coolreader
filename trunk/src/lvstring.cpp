@@ -617,7 +617,7 @@ void lString16::reserve(size_type n)
 {
     if (pchunk->nref==1)
     {
-        if (pchunk->size<=n)
+        if (pchunk->size < n)
         {
             pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(n+1) );
             pchunk->size = n;
@@ -1357,7 +1357,7 @@ void lString8::reserve(size_type n)
 {
     if (pchunk->nref==1)
     {
-        if (pchunk->size<=n)
+        if (pchunk->size < n)
         {
             pchunk->buf8 = (lChar8*) ::realloc( pchunk->buf8, sizeof(lChar8)*(n+1) );
             pchunk->size = n;

@@ -1294,9 +1294,11 @@ public:
         commit();
         // remove empty trailing line
         if ( m_pbuffer->frmlinecount ) {
-            formatted_line_t   * frmline = m_pbuffer->frmlines[m_pbuffer->frmlinecount-1];
-            if ( frmline->word_count == 0 ) {
+            formatted_line_t   * frmline2 = m_pbuffer->frmlines[m_pbuffer->frmlinecount-1];
+            if ( frmline2->word_count == 0 ) {
+                lvtextFreeFormattedLine( m_pbuffer->frmlines[m_pbuffer->frmlinecount-1] );
                 m_pbuffer->frmlinecount--;
+                frmline = m_pbuffer->frmlines[m_pbuffer->frmlinecount-1];
             }
         }
         //===========================

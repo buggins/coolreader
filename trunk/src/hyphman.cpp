@@ -121,7 +121,7 @@ bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
                                     i += 2;
                                 if ( i-start>=1 && end-i>2 ) {
                                     // insert hyphenation mark
-                                    lUInt16 nw = widths[i] += hyphCharWidth;
+                                    lUInt16 nw = widths[i] + hyphCharWidth;
                                     if ( nw<maxWidth )
                                     {
                                         flags[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
