@@ -317,10 +317,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\crengine\include\diff.txt"
-				>
-			</File>
-			<File
 				RelativePath="..\..\crengine\include\dtddef.h"
 				>
 			</File>
