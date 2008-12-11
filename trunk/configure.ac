@@ -47,6 +47,7 @@ AC_ARG_ENABLE(color-backbuffer,
 AC_SUBST([CRENGINE_CFLAGS])
 AC_SUBST([CRENGINE_LIBS])
 
-AC_CONFIG_SUBDIRS(crengine)
+#AC_CONFIG_FILES([Makefile])
+AC_CONFIG_SUBDIRS([crengine])
 
-AC_OUTPUT(Makefile src/Makefile crengine/Makefile crengine/src/Makefile)
+AC_OUTPUT(Makefile src/Makefile)
