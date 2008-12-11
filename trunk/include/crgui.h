@@ -526,4 +526,87 @@ class CRDocViewWindow : public CRGUIWindowBase
         }
 };
 
+class CRMenu;
+/// CRGUI menu item base class
+class CRMenuItem
+{
+    protected:
+        CRMenu * _menu;
+        int _id;
+        lString16 _label;
+        LVImageSourceRef _image;
+        LVFontRef _defFont;
+        lString16 _propValue;
+    public:
+        /// id of item
+        int getId() { return _id; }
+        /// item label
+        lString16 getLabel() { return _label; }
+        /// item icon
+        LVImageSourceRef getImage() { return _image; }
+        /// item label font
+        LVFontRef getFont() { return _defFont; }
+        /// constructor
+        CRMenuItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, const lChar16 * propValue=NULL  )
+    : _menu(menu), _id(id), _label(label), _image(image), _defFont(defFont), _propValue(propValue) { }
+        /// measures item size
+        virtual lvPoint getItemSize();
+        /// draws item
+        virtual void Draw( LVDrawBuf & buf, lvRect & rc, bool selected );
+        /// returns true if submenu
+        virtual bool isSubmenu() { return false; }
+        /// called on item selection
+        virtual int onSelect() { return 0; }
+        virtual ~CRMenuItem() { }
+        /// submenu for options dialog support
+        virtual lString16 getSubmenuValue() { return lString16(); }
+        /// property value, for options editor support
+        virtual lString16 getPropValue() { return _propValue; }
+};
+
+/// CRGUI menu base class
+class CRMenu : public CRMenuItem {
+    protected:
+        LVPtrVector<CRMenuItem> _items;
+        CRPropRef _props;
+        lString16 _propName;
+        LVFontRef _valueFont;
+        int _topItem;
+        int _pageItems;
+    public:
+        CRMenu( CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL )
+    : CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(8) { }
+        virtual bool isSubmenu() { return true; }
+        LVPtrVector<CRMenuItem> & getItems() { return _items; }
+        CRPropRef getProps() { return _props; }
+        lString16 getPropName() { return _propName; }
+        void addItem( CRMenuItem * item ) { _items.add( item ); }
+        CRMenuItem * findItem( int id ) {
+            for ( int i=0; i<_items.length(); i++ )
+                if ( _items[i]->getId()==id )
+                    return _items[i];
+            return NULL;
+        }
+        CRMenu * findSubmenu( int id ) {
+            for ( int i=0; i<_items.length(); i++ )
+                if ( _items[i]->getId()==id && _items[i]->isSubmenu() )
+                    return (CRMenu*)_items[i];
+            return NULL;
+        }
+        virtual int getPageCount();
+        virtual void setCurPage( int nPage );
+        virtual int getCurPage( );
+        virtual int getTopItem();
+        virtual lString16 getSubmenuValue();
+        virtual void toggleSubmenuValue();
+        virtual int getItemHeight();
+        virtual lvPoint getMaxItemSize();
+        virtual lvPoint getItemSize();
+        virtual lvPoint getSize();
+        virtual void Draw( LVDrawBuf & buf, lvRect & rc, bool selected );
+        virtual void Draw( LVDrawBuf & buf, int x, int y );
+        virtual ~CRMenu() { }
+};
+
+
 #endif// CR_GUI_INCLUDED
