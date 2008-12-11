@@ -525,6 +525,7 @@ public:
 enum CRMainMenuCmd
 {
     MCMD_BEGIN = MAIN_MENU_COMMANDS_START,
+    MCMD_QUIT,
     MCMD_MAIN_MENU,
     MCMD_GO_PAGE,
 };
@@ -535,41 +536,6 @@ public:
     V3DocViewWin( CRGUIWindowManager * wm )
     : CRDocViewWindow ( wm )
     {
-    }
-    /// returns true if key is processed
-    virtual bool onKeyPressed( int key, int flags = 0 )
-    {
-        int cmd = 0;
-        switch ( key ) {
-        case XK_Escape:
-            // exit application
-            getWindowManager()->closeAllWindows();
-            return true;
-        case XK_Return:
-            cmd = MCMD_MAIN_MENU;
-            break;
-        case '0':
-        case XK_Down:
-            cmd = DCMD_PAGEDOWN;
-            break;
-        case '9':
-        case XK_Up:
-            cmd = DCMD_PAGEUP;
-            break;
-        case '+':
-        case '=':
-            cmd = DCMD_ZOOM_IN;
-            break;
-        case '-':
-        case '_':
-            cmd = DCMD_ZOOM_OUT;
-            break;
-        }
-        if ( cmd ) {
-            onCommand( cmd, 0 );
-            return true;
-        }
-        return CRDocViewWindow::onKeyPressed( key, flags );
     }
 
     void showMainMenu()
@@ -602,6 +568,9 @@ public:
     virtual bool onCommand( int command, int params )
     {
         switch ( command ) {
+        case MCMD_QUIT:
+            getWindowManager()->closeAllWindows();
+            return true;
         case MCMD_MAIN_MENU:
             showMainMenu();
             return true;
@@ -667,6 +636,20 @@ int main(int argc, char **argv)
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
+        static const int acc_table[] = {
+            XK_Escape, 0, MCMD_QUIT, 0,
+            XK_Return, 0, MCMD_MAIN_MENU, 0, 
+            '0', 0, DCMD_PAGEDOWN, 0,
+            XK_Down, 0, DCMD_PAGEDOWN, 0,
+            '9', 0, DCMD_PAGEUP, 0,
+            XK_Up, 0, DCMD_PAGEUP, 0,
+            '+', 0, DCMD_ZOOM_IN, 0,
+            '=', 0, DCMD_ZOOM_IN, 0,
+            '-', 0, DCMD_ZOOM_OUT, 0,
+            '_', 0, DCMD_ZOOM_OUT, 0,
+            0
+        };
+        main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
         winman.activateWindow( main_win );
         if ( !main_win->getDocView()->LoadDocument(fname) ) {
             printf("Cannot open book file %s\n", fname);
