@@ -31,6 +31,89 @@
 
 class CRGUIWindowManager;
 
+
+/// Accelerator table entry: to convert keypress to command
+class CRGUIAccelerator
+{
+    public:
+        int keyCode;
+        int keyFlags;
+        int commandId;
+        int commandParam;
+};
+
+/// accelerator table
+class CRGUIAcceleratorTable
+{
+protected:
+    LVPtrVector<CRGUIAccelerator> _items;
+    int indexOf( int keyCode, int keyFlags )
+    {
+        for ( int i=0; i<_items.length(); i++ )
+            if ( _items[i]->keyCode==keyCode && _items[i]->keyFlags==keyFlags )
+                return i;
+        return -1;
+    }
+public:
+    /// remove accelerator from table
+    bool remove( int keyCode, int keyFlags )
+    {
+        int index = indexOf( keyCode, keyFlags );
+        if ( index >= 0 ) {
+            _items.erase( index, 1 );
+            return true;
+        }
+        return false;
+    }
+    /// add accelerator to table or change existing
+    bool add( int keyCode, int keyFlags, int commandId, int commandParam )
+    {
+        int index = indexOf( keyCode, keyFlags );
+        if ( index >= 0 ) {
+            // just update
+            CRGUIAccelerator * item = _items[index];
+            item->commandId = commandId;
+            item->commandParam = commandParam;
+            return false;
+        }
+        CRGUIAccelerator * item = new CRGUIAccelerator();
+        item->keyCode = keyCode;
+        item->keyFlags = keyFlags;
+        item->commandId = commandId;
+        item->commandParam = commandParam;
+        _items.add(item);
+        return true;
+    }
+    /// translate keycode to command, returns true if translated
+    bool translate( int keyCode, int keyFlags, int & commandId, int & commandParam )
+    {
+        int index = indexOf( keyCode, keyFlags );
+        if ( index<0 )
+            return false;
+        commandId = _items[index]->commandId;
+        commandParam = _items[index]->commandParam;
+        return true;
+    }
+    /// empty table constructor
+    CRGUIAcceleratorTable() { }
+    /// constructor from int array: 4 ints per entry (keyCode, keyFlags, commandId, commandParam), keyCode==0 indicates end of list 
+    CRGUIAcceleratorTable( const int * tableQuadsArray )
+    {
+        while( *tableQuadsArray ) {
+            CRGUIAccelerator * item = new CRGUIAccelerator();
+            item->keyCode = *tableQuadsArray++;
+            item->keyFlags = *tableQuadsArray++;
+            item->commandId = *tableQuadsArray++;
+            item->commandParam = *tableQuadsArray++;
+            _items.add(item);
+        }
+    }
+};
+
+/// accelerator table reference
+typedef LVRef<CRGUIAcceleratorTable> CRGUIAcceleratorTableRef;
+
+
 /// Screen object - provides canvas and interface to device screen
 class CRGUIScreen
 {
@@ -60,6 +143,10 @@ class CRGUIScreen
 class CRGUIWindow
 {
     public:
+        /// set accelerator table for window
+        virtual void setAccelerators( CRGUIAcceleratorTableRef table ) { }
+        /// get window accelerator table
+        virtual CRGUIAcceleratorTableRef getAccelerators() { return CRGUIAcceleratorTableRef(); }
         /// returns true if key is processed
         virtual bool onKeyPressed( int key, int flags = 0 ) { return false; }
         /// returns true if command is processed
@@ -267,8 +354,15 @@ class CRGUIWindowBase : public CRGUIWindow
         bool _visible;
         bool _fullscreen;
         bool _dirty;
+        CRGUIAcceleratorTableRef _acceleratorTable;
         virtual void draw() = 0;
     public:
+        /// returns true if key is processed (by default, let's translate key to command using accelerator table)
+        virtual bool onKeyPressed( int key, int flags = 0 );
+        /// set accelerator table for window
+        virtual void setAccelerators( CRGUIAcceleratorTableRef table ) { _acceleratorTable = table; }
+        /// get window accelerator table
+        virtual CRGUIAcceleratorTableRef getAccelerators() { return _acceleratorTable; }
         /// returns window width
         inline int getWidth() { return getRect().width(); }
         /// returns window height

@@ -65,6 +65,19 @@ void CRGUIScreenBase::flush( bool full )
 }
 
 
+/// returns true if key is processed (by default, let's translate key to command using accelerator table)
+bool CRGUIWindowBase::onKeyPressed( int key, int flags )
+{
+    if ( _acceleratorTable.isNull() )
+        return false;
+    int cmd, param;
+    if ( _acceleratorTable->translate( key, flags, cmd, param ) ) {
+        return onCommand( cmd, param );
+    }
+    return false;
+}
+
+
 
 void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, bool selected )
 {
