@@ -11,12 +11,12 @@
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
     <description></description>
-    <defaultencoding></defaultencoding>
+    <defaultencoding/>
   </general>
   <kdevautoproject>
     <general>
       <useconfiguration>debug</useconfiguration>
-      <activetarget>src/cr3</activetarget>
+      <activetarget>crengine/src/libcrengine.la</activetarget>
     </general>
     <configurations>
       <optimized>
@@ -45,11 +45,11 @@
       <runmultiplejobs>true</runmultiplejobs>
       <numberofjobs>2</numberofjobs>
       <dontact>false</dontact>
-      <makebin></makebin>
+      <makebin/>
       <prio>0</prio>
     </make>
     <run>
-      <mainprogram>/home/lve/src/cr3ewl/debug/src/.libs/lt-cr3</mainprogram>
+      <mainprogram>src/.libs/lt-cr3</mainprogram>
       <programargs>/home/lve/src/cr3ewl/example.fb2</programargs>
       <globaldebugarguments>/home/lve/src/cr3ewl/aladdin.epub</globaldebugarguments>
       <globalcwd>/home/lve/src/cr3ewl/debug</globalcwd>
@@ -59,6 +59,11 @@
       <autoinstall>false</autoinstall>
       <autokdesu>false</autokdesu>
       <envvars/>
+      <directoryradio>executable</directoryradio>
+      <runarguments>
+        <cr3></cr3>
+      </runarguments>
+      <customdirectory>/</customdirectory>
     </run>
   </kdevautoproject>
   <kdevdebugger>
@@ -72,6 +77,7 @@
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
       <raiseGDBOnStart>false</raiseGDBOnStart>
+      <programargs>/home/lve/src/cr3ewl/example.fb2</programargs>
     </general>
     <display>
       <staticmembers>false</staticmembers>
@@ -140,8 +146,8 @@
       <includestyle>3</includestyle>
       <root></root>
       <designerintegration>EmbeddedKDevDesigner</designerintegration>
-      <qmake></qmake>
-      <designer></designer>
+      <qmake/>
+      <designer/>
       <designerpluginpaths/>
     </qt>
     <codecompletion>
@@ -166,6 +172,10 @@
       <usePermanentCaching>true</usePermanentCaching>
       <alwaysIncludeNamespaces>false</alwaysIncludeNamespaces>
       <includePaths>.;</includePaths>
+      <includeGlobalFunctions>true</includeGlobalFunctions>
+      <includeTypes>true</includeTypes>
+      <includeEnums>true</includeEnums>
+      <includeTypedefs>false</includeTypedefs>
     </codecompletion>
     <creategettersetter>
       <prefixGet></prefixGet>

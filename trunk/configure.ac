@@ -44,6 +44,14 @@ AC_ARG_ENABLE(color-backbuffer,
    [AC_DEFINE(COLOR_BACKBUFFER, 0, [Build with gray backbuffer])]
 )
 
+dnl crengine memory manager option
+AC_ARG_ENABLE(crengine-memory-manager,
+   AC_HELP_STRING(
+      [enable crengine internal memory manager]),
+   [AC_DEFINE(LDOM_USE_OWN_MEM_MAN, 1, [Build with internal memory manager support])],
+   [AC_DEFINE(LDOM_USE_OWN_MEM_MAN, 0, [Build without internal memory manager support])]
+)
+
 AC_SUBST([CRENGINE_CFLAGS])
 AC_SUBST([CRENGINE_LIBS])
 
