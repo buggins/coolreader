@@ -23,6 +23,7 @@
 #include "lvtypes.h"
 #include "lvptrvec.h"
 #include "lvdrawbuf.h"
+#include "lvdocview.h"
 
 #ifdef CR_WX_SUPPORT
 #include <wx/wx.h>
@@ -72,7 +73,7 @@ class CRGUIWindow
         /// shows or hides window
         virtual void setVisible( bool visible ) = 0;
         /// returns window rectangle
-        virtual const lvRect & getRect() const = 0;
+        virtual const lvRect & getRect() = 0;
         /// sets window rectangle
         virtual void setRect( const lvRect & rc ) = 0;
         /// draws content of window to screen
@@ -269,9 +270,9 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual void draw() = 0;
     public:
         /// returns window width
-        inline int getWidth() { return _rect.width(); }
+        inline int getWidth() { return getRect().width(); }
         /// returns window height
-        inline int getHeight() { return _rect.height(); }
+        inline int getHeight() { return getRect().height(); }
         /// sets dirty flag
         virtual void setDirty() { _dirty = true; }
         /// returns true if window is changed but now drawn
@@ -279,7 +280,7 @@ class CRGUIWindowBase : public CRGUIWindow
         /// shows or hides window
         virtual void setVisible( bool visible ) { _visible = visible; setDirty(); }
         virtual bool isVisible() const { return true; }
-        virtual const lvRect & getRect() const { return _rect; }
+        virtual const lvRect & getRect() { return _rect; }
         virtual void setRect( const lvRect & rc ) { _rect = rc; setDirty(); }
         virtual void flush() { draw(); _dirty = false; }
         /// returns true if window is fullscreen
@@ -344,46 +345,7 @@ class CRGUIScreenBase : public CRGUIScreen
             img->DrawTo( _canvas.get(), x, y, 0, NULL );
         }
         /// transfers contents of buffer to device, if full==true, redraws whole screen, otherwise only changed area
-        virtual void flush( bool full )
-        {
-            if ( _updateRect.isEmpty() && !full )
-                return;
-            if ( !_front.isNull() && !_updateRect.isEmpty() && !full ) {
-                // calculate really changed area
-                lvRect rc;
-                lvRect lineRect(_updateRect);
-                int sz = _width * _canvas->GetBitsPerPixel() / 8;
-                for ( int y = _updateRect.top; y < _updateRect.bottom; y++ ) {
-                    if ( y>=0 && y<_height ) {
-                        void * line1 = _canvas->GetScanLine( y );
-                        void * line2 = _front->GetScanLine( y );
-                        if ( memcmp( line1, line2, sz ) ) {
-                            // line content is different
-                            lineRect.top = y;
-                            lineRect.bottom = y+1;
-                            rc.extend( lineRect );
-                            // copy line to front buffer
-                            memcpy( line2, line1, sz );
-                        }
-                    }
-                }
-                if ( rc.isEmpty() ) {
-                    // no actual changes
-                    _updateRect.clear();
-                    return;
-                }
-                _updateRect.top = rc.top;
-                _updateRect.bottom = rc.bottom;
-            }
-            if ( full && !_front.isNull() ) {
-                // copy full screen to front buffer
-                _canvas->DrawTo( _front.get(), 0, 0, 0, NULL );
-            }
-            if ( full )
-                _updateRect = getRect();
-            update( _updateRect, full );
-            _updateRect.clear();
-        }
+        virtual void flush( bool full );
         /// invalidates rectangle: add it to bounding box of next partial update
         virtual void invalidateRect( const lvRect & rc )
         {
@@ -565,7 +527,7 @@ class CRMenuItem
 };
 
 /// CRGUI menu base class
-class CRMenu : public CRMenuItem {
+class CRMenu : public CRMenuItem, public CRGUIWindowBase {
     protected:
         LVPtrVector<CRMenuItem> _items;
         CRPropRef _props;
@@ -573,9 +535,13 @@ class CRMenu : public CRMenuItem {
         LVFontRef _valueFont;
         int _topItem;
         int _pageItems;
+        // override for CRGUIWindow method
+        virtual void draw();
+        virtual void Draw( LVDrawBuf & buf, lvRect & rc, bool selected );
+        virtual void Draw( LVDrawBuf & buf, int x, int y );
     public:
-        CRMenu( CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL )
-    : CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(8) { }
+        CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL )
+        : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(8) { }
         virtual bool isSubmenu() { return true; }
         LVPtrVector<CRMenuItem> & getItems() { return _items; }
         CRPropRef getProps() { return _props; }
@@ -603,9 +569,14 @@ class CRMenu : public CRMenuItem {
         virtual lvPoint getMaxItemSize();
         virtual lvPoint getItemSize();
         virtual lvPoint getSize();
-        virtual void Draw( LVDrawBuf & buf, lvRect & rc, bool selected );
-        virtual void Draw( LVDrawBuf & buf, int x, int y );
         virtual ~CRMenu() { }
+        // CRGUIWindow
+        virtual const lvRect & getRect();
+        /// returns true if key is processed
+        virtual bool onKeyPressed( int key, int flags = 0 );
+        /// returns true if command is processed
+        virtual bool onCommand( int command, int params = 0 );
+
 };
 
 

@@ -2327,7 +2327,7 @@ LVHTMLParser::~LVHTMLParser()
 bool LVHTMLParser::Parse()
 {
     bool res = LVXMLParser::Parse();
-    
+
     return res;
 }
 
