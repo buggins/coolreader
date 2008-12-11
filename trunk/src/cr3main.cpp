@@ -240,7 +240,7 @@ class CRXCBScreen : public CRGUIScreenBase
             printf("update screen, bpp=%d\n", (int)im->bpp);
 
             // pal
-            lUInt32 pal[4] = {0x000000, 0x555555, 0xaaaaaa, 0xffffff };
+            static lUInt32 pal[4] = {0x000000, 0x555555, 0xaaaaaa, 0xffffff };
             switch ( im->bpp ) {
             case 32:
                 {
@@ -250,8 +250,10 @@ class CRXCBScreen : public CRGUIScreenBase
                         //printf("line %d : %08X -> %08X   ", y, src, dst);
                         int shift = 6;
                         for ( int x = 0; x< _width; x++ ) {
-                            int pixel = (src[x>>2]>>shift) & 3;
-                            dst[x] = pal[ pixel ];
+                            lUInt8 data = src[x>>2];
+                            int pixel = (data>>shift) & 3;
+                            lUInt32 color = pal[ pixel ]; // to check valgrind finding
+                            dst[x] = color;
                             shift -= 2;
                             if ( shift < 0 )
                                 shift = 6;
@@ -566,6 +568,37 @@ public:
 
 int main(int argc, char **argv)
 {
+    #if 0
+    // memory leak test
+    {
+        {
+            lString8 s;
+            s << "bla bla bla";
+            lString8 s2("xxxxx");
+            s << s2;
+            lString8 * array = new lString8[25];
+            array[2] = lString8("text1");
+            array[6] = lString8("text2");
+            array[24] = lString8("text3");
+            for ( int k=0; k<10000; k++ )
+                array[7] << "123";
+            typedef LVRef<int> IntRef;
+            delete [] array;
+            {
+                LVCacheMap <int, IntRef> map( 20 );
+                map.set(1, IntRef( new int(3) ));
+                map.set(2, IntRef( new int(4) ));
+            }
+            lString8 buf;
+            lStringBuf8<100> proxy( buf );
+            for ( int i=0; i<5000; i++ )
+                buf << 'A';
+        }
+        ShutdownCREngine();
+        return 0;
+    }
+    #endif
+
 
     if ( !InitCREngine( argv[0] ) ) {
         printf("Cannot init CREngine - exiting\n");
