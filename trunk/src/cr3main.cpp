@@ -7,6 +7,7 @@
 //#include <Ewl.h>
 #include <crengine.h>
 #include <crgui.h>
+#include <crtrace.h>
 
 
 bool initHyph(const char * fname)
@@ -520,6 +521,14 @@ public:
     }
 };
 
+#define MAIN_MENU_COMMANDS_START 200
+enum CRMainMenuCmd
+{
+    MCMD_BEGIN = MAIN_MENU_COMMANDS_START,
+    MCMD_MAIN_MENU,
+    MCMD_GO_PAGE,
+};
+
 class V3DocViewWin : public CRDocViewWindow
 {
 public:
@@ -536,6 +545,9 @@ public:
             // exit application
             getWindowManager()->closeAllWindows();
             return true;
+        case XK_Return:
+            cmd = MCMD_MAIN_MENU;
+            break;
         case '0':
         case XK_Down:
             cmd = DCMD_PAGEDOWN;
@@ -554,20 +566,66 @@ public:
             break;
         }
         if ( cmd ) {
-            CRDocViewWindow::onCommand( cmd, 0 );
+            onCommand( cmd, 0 );
             return true;
         }
         return CRDocViewWindow::onKeyPressed( key, flags );
     }
-    /// returns true if command is processed
-    virtual bool onCommand( int command, int params = 0 )
+
+    void showMainMenu()
     {
+        #define MENU_FONT_SIZE 20
+        LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
+        CRMenu * menu_win = new CRMenu( _wm, 
+            NULL, //CRMenu * parentMenu, 
+            1, 
+            lString16(L"Main Menu"), 
+            LVImageSourceRef(), 
+            menuFont, 
+            menuFont );
+        menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
+                       lString16(L"Go to first page"),
+                       LVImageSourceRef(), 
+                       menuFont ) );
+        menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
+                       lString16(L"Go to page ..."),
+                       LVImageSourceRef(), 
+                       menuFont ) );
+        menu_win->addItem( new CRMenuItem( menu_win, DCMD_END,
+                       lString16(L"Go to last page"),
+                       LVImageSourceRef(), 
+                       menuFont ) );
+        _wm->activateWindow( menu_win );
+    }
+
+    /// returns true if command is processed
+    virtual bool onCommand( int command, int params )
+    {
+        switch ( command ) {
+        case MCMD_MAIN_MENU:
+            showMainMenu();
+            return true;
+        default:
+            // do nothing
+            ;
+        }
         return CRDocViewWindow::onCommand( command, params );
     }
 };
 
 int main(int argc, char **argv)
 {
+    // valgrind crtrace check
+    #if 1
+    CRLog::setStdoutLogger();
+    {
+        crtrace t("start: ");
+        t << "bla bla";
+        t << " more text";
+        t << lString8("[ls8()]");
+    }
+    return 0;
+    #endif
     #if 0
     // memory leak test
     {
