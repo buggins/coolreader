@@ -615,17 +615,6 @@ public:
 
 int main(int argc, char **argv)
 {
-    // valgrind crtrace check
-    #if 1
-    CRLog::setStdoutLogger();
-    {
-        crtrace t("start: ");
-        t << "bla bla";
-        t << " more text";
-        t << lString8("[ls8()]");
-    }
-    return 0;
-    #endif
     #if 0
     // memory leak test
     {
