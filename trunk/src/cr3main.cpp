@@ -10,6 +10,22 @@
 #include <crtrace.h>
 
 
+#define CR_USE_XCB
+
+#ifdef _WIN32
+#define XK_Return   0xFF01
+#define XK_Up       0xFF02
+#define XK_Down     0xFF03
+#define XK_Escape   0xFF04
+#else
+
+#ifdef CR_USE_XCB
+#define XK_MISCELLANY
+#include <X11/keysymdef.h>
+#endif
+#endif
+
+
 bool initHyph(const char * fname)
 {
     //HyphMan hyphman;
@@ -321,6 +337,7 @@ class V3DocViewWin : public CRDocViewWindow
 protected:
     CRPropRef _props;
     CRPropRef _newProps;
+    CRGUIAcceleratorTableRef _menuAccelerators;
 public:
     /// returns current properties
     CRPropRef getProps() { return _props; }
@@ -337,6 +354,25 @@ public:
     {
         _props = LVCreatePropsContainer();
         _newProps = _props;
+        // TODO: move accelerator table outside
+        static const int acc_table[] = {
+            XK_Escape, 0, MCMD_CANCEL, 0,
+            XK_Return, 0, MCMD_OK, 0, 
+            '0', 0, MCMD_SCROLL_FORWARD, 0,
+            XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
+            '9', 0, MCMD_SCROLL_BACK, 0,
+            XK_Up, 0, MCMD_SCROLL_BACK, 0,
+            '1', 0, MCMD_SELECT_1, 0,
+            '2', 0, MCMD_SELECT_2, 0,
+            '3', 0, MCMD_SELECT_3, 0,
+            '4', 0, MCMD_SELECT_4, 0,
+            '5', 0, MCMD_SELECT_5, 0,
+            '6', 0, MCMD_SELECT_6, 0,
+            '7', 0, MCMD_SELECT_7, 0,
+            '8', 0, MCMD_SELECT_8, 0,
+            0
+        };
+        _menuAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) );
     }
 
     void addMenuItems( CRMenu * menu, item_def_t values[], LVFontRef menuFont )
@@ -346,22 +382,34 @@ public:
                _wm->translateString(values[i].translate_label, values[i].translate_default),
                LVImageSourceRef(), 
                menuFont, Utf8ToUnicode(lString8(values[i].value)).c_str() ) );
+        menu->setAccelerators( _menuAccelerators );
+    }
+
+    void applySettings()
+    {
+        CRPropRef delta = _props ^ _newProps;
+        CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
+        _docview->propsApply( delta );
     }
 
     void showSettingsMenu()
     {
+        _props->set( _docview->propsGetCurrent() );
         _newProps = LVClonePropsContainer( _props );
         CRPropRef props = _newProps;
+        CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
         LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
         LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * mainMenu = new CRMenu( _wm,
             NULL, //CRMenu * parentMenu,
-            1,
+            mm_Settings, // command to generate on OK
             lString16(L"Main Menu"),
             LVImageSourceRef(),
             menuFont,
             menuFont );
+        mainMenu->setAccelerators( _menuAccelerators );
+
         CRMenu * fontAntialiasingMenu = new CRMenu(_wm, mainMenu, mm_FontAntiAliasing,
                 _wm->translateString("VIEWER_MENU_FONT_ANTIALIASING", "Font antialiasing"),
                                 LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_ANTIALIASING );
@@ -436,6 +484,7 @@ public:
                                 LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_KERNING_ENABLED );
         addMenuItems( kerningMenu, kerning_options, menuFont );
         mainMenu->addItem( kerningMenu );
+
         // TODO: process submenus
         _wm->activateWindow( mainMenu );
     }
@@ -443,12 +492,12 @@ public:
     void showMainMenu()
     {
         LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
-        CRMenu * menu_win = new CRMenu( _wm, 
-            NULL, //CRMenu * parentMenu, 
-            1, 
-            lString16(L"Main Menu"), 
-            LVImageSourceRef(), 
-            menuFont, 
+        CRMenu * menu_win = new CRMenu( _wm,
+            NULL, //CRMenu * parentMenu,
+            1,
+            lString16(L"Main Menu"),
+            LVImageSourceRef(),
+            menuFont,
             menuFont );
         menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
                        lString16(L"Go to first page"),
@@ -466,6 +515,7 @@ public:
                        lString16(L"Settings..."),
                        LVImageSourceRef(),
                        menuFont ) );
+        menu_win->setAccelerators( _menuAccelerators );
         _wm->activateWindow( menu_win );
     }
 
@@ -481,6 +531,9 @@ public:
             return true;
         case MCMD_SETTINGS:
             showSettingsMenu();
+            return true;
+        case mm_Settings:
+            applySettings();
             return true;
         default:
             // do nothing
@@ -504,10 +557,6 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 
-#define XK_Return 0xFF01
-#define XK_Up     0xFF02
-#define XK_Down   0xFF03
-#define XK_Escape 0xFF04
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -622,8 +671,10 @@ public:
         bool stop = false;
         while (!stop && GetMessage(&msg, NULL, 0, 0))
         {
+            processPostedEvents();
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+            processPostedEvents();
             if ( !getWindowCount() )
                 stop = true;
         }
@@ -843,8 +894,6 @@ extern "C" {
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_image.h>
 #include <xcb/xcb_keysyms.h>
-#define XK_MISCELLANY
-#include <X11/keysymdef.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
@@ -1094,6 +1143,8 @@ public:
         xcb_generic_event_t *event;
         bool stop = false;
         while (!stop && (event = xcb_wait_for_event (connection)) ) {
+            bool needUpdate = false;
+            //processPostedEvents();
             switch (event->response_type & ~0x80) {
             case XCB_EXPOSE:
                 // draw buffer
@@ -1140,7 +1191,7 @@ public:
                         onKeyPressed( sym, state );
                     }
                     //printf("page number = %d\n", main_win->getDocView()->getCurPage());
-                    update(true);
+                    needUpdate = true;
                 }
                 break;
             case XCB_BUTTON_PRESS:
@@ -1155,6 +1206,8 @@ public:
 
             free (event);
 
+            if ( processPostedEvents() || needUpdate )
+                update(true);
             // stop loop if all windows are closed
             if ( !getWindowCount() )
                 stop = true;
@@ -1168,6 +1221,8 @@ public:
 
 int main(int argc, char **argv)
 {
+    CRLog::setStdoutLogger();
+    CRLog::setLogLevel( CRLog::LL_TRACE );
     #if 0
     // memory leak test
     {
