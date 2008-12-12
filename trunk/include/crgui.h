@@ -290,7 +290,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         void showWindow( CRGUIWindow * window, bool visible )
         {
             int index = _windows.indexOf( window );
-            if ( index >= 0 && window->isVisible()!=visible ) {
+            if ( index >= 0  ) { //&& window->isVisible()!=visible
                 window->setVisible( visible );
                 if ( !visible ) {
                     window->covered();

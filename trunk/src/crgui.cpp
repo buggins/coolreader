@@ -402,10 +402,10 @@ bool CRMenu::onCommand( int command, int params )
     if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 )
         option = command - MCMD_SELECT_1;
     if ( option < 0 )
-        return false;
+        return true;
     option += getTopItem();
     if ( option >= getItems().length() )
-        return false;
+        return true;
     CRMenuItem * item = getItems()[option];
     if ( item->onSelect()>0 )
         return true;
