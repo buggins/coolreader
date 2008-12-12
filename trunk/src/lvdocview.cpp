@@ -43,7 +43,7 @@ const char * def_stylesheet =
 "title { text-align: center; text-indent: 0px; font-size: 130%; font-weight: bold; margin-top: 10px; margin-bottom: 10px; font-family: Times New Roman, serif }\n"
 "subtitle { text-align: center; text-indent: 0px; font-size: 150%; margin-top: 10px; margin-bottom: 10px }\n"
 "title { page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }\n"
-"body { text-align: justify; text-indent: 2em; line-height: 110% }\n"
+"body { text-align: justify; text-indent: 2em }\n"
 "cite { margin-left: 30%; margin-right: 4%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px; font-family: Times New Roman, serif }\n"
 "td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 5px }\n"
 "th { font-weight: bold }\n"
@@ -3123,7 +3123,7 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
 {
     CRPropRef unknown = LVCreatePropsContainer();
     for ( int i=0; i<props->getCount(); i++ ) {
-        const char * name = props->getName( i );
+        lString8 name( props->getName( i ) );
         lString16 value = props->getValue( i );
         bool isUnknown = false;
         if ( name==PROP_FONT_ANTIALIASING ) {
@@ -3190,12 +3190,12 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             }
         } else {
             // unknown property, adding to list of unknown properties
-            unknown->setString( name, value );
+            unknown->setString( name.c_str(), value );
             isUnknown = true;
         }
         if ( !isUnknown ) {
             // update current value in properties
-            m_props->setString( name, value );
+            m_props->setString( name.c_str(), value );
         }
     }
     return unknown;

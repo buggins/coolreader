@@ -195,6 +195,8 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         /// if true, we should delete screen in destructor
         bool _ownScreen;
         LVRef<CRGUIStringTranslator> _i18n;
+        int _postedCommand;
+        int _postedCommandParam;
     public:
         /// sets another i18n translator
         virtual void setTranslator( LVRef<CRGUIStringTranslator> i18n )
@@ -238,11 +240,29 @@ class CRGUIWindowManager : public CRGUIStringTranslator
                 update( true );
             }
         }
+        /// adds command to message queue
+        virtual void postCommand( int command, int params = 0 )
+        {
+            _postedCommand = command;
+            _postedCommandParam = params;
+        }
+        /// runs posted events (commands)
+        virtual bool processPostedEvents()
+        {
+            // TODO: support posted event queue
+            bool res = false;
+            if ( !_postedCommand )
+                return res;
+            res = onCommand( _postedCommand, _postedCommandParam );
+            _postedCommand = 0;
+            _postedCommandParam = 0;
+            return res;
+        }
         /// returns true if command is processed
         virtual bool onCommand( int command, int params = 0 )
         {
             for ( int i=_windows.length()-1; i>=0; i-- ) {
-                if ( _windows[i]->onCommand( command, params ) )
+                if ( _windows[i]->isVisible() && _windows[i]->onCommand( command, params ) )
                     return true;
             }
             return false;
@@ -251,16 +271,42 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         virtual bool onKeyPressed( int key, int flags = 0 )
         {
             for ( int i=_windows.length()-1; i>=0; i-- ) {
-                if ( _windows[i]->onKeyPressed( key, flags ) )
+                if ( _windows[i]->isVisible() && _windows[i]->onKeyPressed( key, flags ) )
                     return true;
             }
             return false;
+        }
+        /// returns top visible window
+        CRGUIWindow * getTopVisibleWindow()
+        {
+            for ( int i=_windows.length()-1; i>=0; i-- ) {
+                if ( !_windows[i]->isVisible() )
+                    continue;
+                return _windows[i];
+            }
+            return NULL;
+        }
+        /// shows or hides window
+        void showWindow( CRGUIWindow * window, bool visible )
+        {
+            int index = _windows.indexOf( window );
+            if ( index >= 0 && window->isVisible()!=visible ) {
+                window->setVisible( visible );
+                if ( !visible ) {
+                    window->covered();
+                    CRGUIWindow * wnd = getTopVisibleWindow();
+                    if ( wnd )
+                        activateWindow( wnd );
+                } else
+                    activateWindow( window );
+            }
         }
         /// activates window, brings it on top; add to stack if not added
         void activateWindow( CRGUIWindow * window )
         {
             int index = _windows.indexOf( window );
-            CRGUIWindow * lostFocus = _windows.peek();
+            CRGUIWindow * lostFocus = getTopVisibleWindow();
+            window->setVisible( true );
             if ( index < 0 ) {
                 _windows.push( window );
             } else if ( index < _windows.length() - 1 ) {
@@ -308,7 +354,8 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             while ( !drawList.empty()  ) {
                 CRGUIWindow * w = drawList.pop();
                 if ( w->isDirty() ) {
-                    w->flush();
+                    if ( w->isVisible() )
+                        w->flush();
                     _screen->invalidateRect( w->getRect() );
                 }
             }
@@ -336,7 +383,8 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             while ( !drawList.empty()  ) {
                 CRGUIWindow * w = drawList.pop();
                 if ( w->isDirty() || fullScreenUpdate ) {
-                    w->flush();
+                    if ( w->isVisible() )
+                        w->flush();
                     _screen->invalidateRect( w->getRect() );
                 }
             }
@@ -352,6 +400,8 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         /// constructor
         CRGUIWindowManager(CRGUIScreen * screen)
         : _screen( screen ), _ownScreen(false)
+        , _postedCommand(0)
+        , _postedCommandParam(0)
         {
         }
         virtual void closeAllWindows()
@@ -397,7 +447,7 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual bool isDirty() { return _dirty; }
         /// shows or hides window
         virtual void setVisible( bool visible ) { _visible = visible; setDirty(); }
-        virtual bool isVisible() const { return true; }
+        virtual bool isVisible() const { return _visible; }
         virtual const lvRect & getRect() { return _rect; }
         virtual void setRect( const lvRect & rc ) { _rect = rc; setDirty(); }
         virtual void flush() { draw(); _dirty = false; }
@@ -556,6 +606,7 @@ class CRWxScreen : public CRGUIScreenBase
 };
 #endif
 
+/// Window to show LVDocView contents
 class CRDocViewWindow : public CRGUIWindowBase
 {
     protected:
@@ -606,7 +657,31 @@ class CRDocViewWindow : public CRGUIWindowBase
         }
 };
 
+
+
+
+
+//===========================================================================================
+// MENU SUPPORT
+
+enum CRMenuControlCmd {
+    MCMD_CANCEL=500,
+    MCMD_OK,
+    MCMD_SCROLL_FORWARD,
+    MCMD_SCROLL_BACK,
+    MCMD_SELECT_1,
+    MCMD_SELECT_2,
+    MCMD_SELECT_3,
+    MCMD_SELECT_4,
+    MCMD_SELECT_5,
+    MCMD_SELECT_6,
+    MCMD_SELECT_7,
+    MCMD_SELECT_8,
+    MCMD_SELECT_9,
+};
+
 class CRMenu;
+
 /// CRGUI menu item base class
 class CRMenuItem
 {
@@ -690,11 +765,14 @@ class CRMenu : public CRMenuItem, public CRGUIWindowBase {
         virtual ~CRMenu() { }
         // CRGUIWindow
         virtual const lvRect & getRect();
-        /// returns true if key is processed
-        virtual bool onKeyPressed( int key, int flags = 0 );
         /// returns true if command is processed
         virtual bool onCommand( int command, int params = 0 );
-
+        /// closes menu and its submenus, posts command
+        virtual void closeMenu( int command, int params = 0 );
+        /// closes top level menu and its submenus, posts command
+        virtual void closeAllMenu( int command, int params = 0 );
+        /// closes menu and its submenus
+        virtual void destroyMenu();
 };
 
 

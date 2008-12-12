@@ -338,12 +338,69 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     }
 }
 
-/// returns true if key is processed
-bool CRMenu::onKeyPressed( int key, int flags )
+/// closes menu and its submenus
+void CRMenu::destroyMenu()
 {
+    for ( int i=_items.length()-1; i>=0; i-- )
+        if ( _items[i]->isSubmenu() ) {
+            ((CRMenu*)_items[i])->destroyMenu();
+            _items.remove( i );
+        }
+    _wm->closeWindow( this ); // close, for root menu
+}
+
+/// closes menu and its submenus
+void CRMenu::closeMenu( int command, int params )
+{
+    for ( int i=0; i<_items.length(); i++ )
+        if ( _items[i]->isSubmenu() )
+            ((CRMenu*)_items[i])->closeMenu( 0, 0 );
+    if ( _menu != NULL )
+        _wm->showWindow( this, false ); // just hide, for submenus
+    else {
+        if ( command )
+            _wm->postCommand( command, params );
+        destroyMenu();
+    }
+}
+
+/// closes top level menu and its submenus, posts command
+void CRMenu::closeAllMenu( int command, int params )
+{
+    CRMenu* p = this;
+    while ( p->_menu )
+        p = p->_menu;
+    if ( command )
+        _wm->postCommand( command, params );
+    p->destroyMenu();
+}
+
+/// returns true if command is processed
+bool CRMenu::onCommand( int command, int params )
+{
+    if ( command==MCMD_CANCEL ) {
+        closeMenu( 0 );
+        return true;
+    }
+    if ( command==MCMD_OK ) {
+        int command = getId();
+        if ( _menu != NULL )
+            closeMenu( 0 );
+        else
+            closeMenu( command ); // close, for root menu
+        return true;
+    }
+    if ( command==MCMD_SCROLL_FORWARD ) {
+        setCurPage( getCurPage()+1 );
+        return true;
+    }
+    if ( command==MCMD_SCROLL_BACK ) {
+        setCurPage( getCurPage()-1 );
+        return true;
+    }
     int option = -1;
-    if ( key>='1' && key<='9' )
-        option = key - '1';
+    if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 )
+        option = command - MCMD_SELECT_1;
     if ( option < 0 )
         return false;
     option += getTopItem();
@@ -352,16 +409,31 @@ bool CRMenu::onKeyPressed( int key, int flags )
     CRMenuItem * item = getItems()[option];
     if ( item->onSelect()>0 )
         return true;
-    // TODO: submenu
-    CRGUIWindowManager * wm = _wm;
-    int command = item->getId();
-    wm->closeWindow( this );
-    return wm->onCommand( command, 0 );
-}
-
-/// returns true if command is processed
-bool CRMenu::onCommand( int command, int params )
-{
+    if ( item->isSubmenu() ) {
+        // TODO: two-values submenu - toggle
+        _wm->activateWindow( (CRMenu*) item );
+        return true;
+    } else {
+        CRGUIWindowManager * wm = _wm;
+        // command menu item
+        if ( !item->getPropValue().empty() ) {
+                // set property
+            CRLog::trace("Setting property value");
+            _props->setString( UnicodeToUtf8(getPropName()).c_str(), item->getPropValue() );
+            int command = getId();
+            if ( _menu != NULL )
+                closeMenu( 0 );
+            else
+                closeMenu( command ); // close, for root menu
+            return true;
+        }
+        int command = item->getId();
+        if ( _menu != NULL )
+            closeMenu( 0 );
+        else
+            closeMenu( command ); // close, for root menu
+        return true;
+    }
     return false;
 }
 
