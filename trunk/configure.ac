@@ -30,11 +30,14 @@ PKG_CHECK_MODULES(XCB_KEYSYMS, [xcb-keysyms >= 0.2])
 PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
 PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
 
-#PKG_CHECK_MODULES(CRENGINE, [crengine >= 3.0.16])
-#CRENGINE_CFLAGS="-I${top_srcdir}/crengine/include -DLINUX -D_LINUX -DCOLOR_BACKBUFFER=0 "
-#CRENGINE_LIBS="-L${top_srcdir}/crengine/src -lcrengine "
-CRENGINE_CFLAGS="-I../crengine/include -I/home/lve/src/cr3ewl/crengine/include -DLINUX -D_LINUX "
-CRENGINE_LIBS="-L../crengine/src -lcrengine "
+echo "${srcdir}/crengine/configure"
+if test -r "${srcdir}/crengine/configure"; then
+    AC_CONFIG_SUBDIRS([crengine])
+    CRENGINE_CFLAGS="-I\$(srcdir)/crengine/include -DLINUX -D_LINUX -DCOLOR_BACKBUFFER=0"
+    CRENGINE_LIBS="\$(top_builddir)/crengine/src/libcrengine.la"
+else
+    PKG_CHECK_MODULES(CRENGINE, [crengine >= 3.0.16])
+fi
 
 dnl color backbuffer option
 AC_ARG_ENABLE(color-backbuffer,
@@ -55,7 +58,15 @@ AC_ARG_ENABLE(crengine-memory-manager,
 AC_SUBST([CRENGINE_CFLAGS])
 AC_SUBST([CRENGINE_LIBS])
 
+if test -r "${srcdir}/dict-plugin/configure"; then
+    AC_DEFINE(WITH_DICT,1)
+    AC_CONFIG_SUBDIRS(dict-plugin)
+    with_dict=true
+else
+    with_dict=false
+fi
+AM_CONDITIONAL(WITH_DICT,$with_dict)
+
 #AC_CONFIG_FILES([Makefile])
-AC_CONFIG_SUBDIRS([crengine])
 
 AC_OUTPUT(Makefile src/Makefile)
