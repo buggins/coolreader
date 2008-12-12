@@ -329,6 +329,8 @@ static item_def_t page_margins[] = {
     {NULL, NULL, NULL},
 };
 
+static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };
+
 // TODO: get from skin
 #define MENU_FONT_SIZE 20
 #define VALUE_FONT_SIZE 17
@@ -352,6 +354,8 @@ public:
     V3DocViewWin( CRGUIWindowManager * wm )
     : CRDocViewWindow ( wm )
     {
+         LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
+        _docview->setFontSizes( sizes, true );
         _props = LVCreatePropsContainer();
         _newProps = _props;
         // TODO: move accelerator table outside
@@ -392,6 +396,36 @@ public:
         _docview->propsApply( delta );
     }
 
+    CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props )
+    {
+        lString16Collection list;
+        fontMan->getFaceList( list );
+        lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
+        LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, false, css_ff_sans_serif, lString8("Arial")) );
+        LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
+        CRMenu * fontSizeMenu;
+        fontSizeMenu = new CRMenu(_wm, mainMenu, mm_FontSize,
+                                    _wm->translateString("VIEWER_MENU_FONT_SIZE", "Default font size"),
+                                            LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_SIZE );
+        fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
+                                _wm->translateString("VIEWER_DLG_FONT_SIZE_1", "Smallest"),
+                                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[0], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[0]).c_str()  ) );
+        fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 1,
+                                _wm->translateString("VIEWER_DLG_FONT_SIZE_2", "Small"),
+                                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[1], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[1]).c_str()  ) );
+        fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 2,
+                                _wm->translateString("VIEWER_DLG_FONT_SIZE_3", "Medium"),
+                                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[2], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[2]).c_str()  ) );
+        fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 3,
+                                _wm->translateString("VIEWER_DLG_FONT_SIZE_4", "Big"),
+                                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[3], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[3]).c_str()  ) );
+        fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 4,
+                                _wm->translateString("VIEWER_DLG_FONT_SIZE_5", "Biggest"),
+                                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[4], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[4]).c_str()  ) );
+        fontSizeMenu->setAccelerators( _menuAccelerators );
+        return fontSizeMenu;
+    }
+
     void showSettingsMenu()
     {
         _props->set( _docview->propsGetCurrent() );
@@ -409,6 +443,25 @@ public:
             menuFont,
             menuFont );
         mainMenu->setAccelerators( _menuAccelerators );
+
+        CRMenu * fontFaceMenu = new CRMenu(_wm, mainMenu, mm_FontFace,
+                                            _wm->translateString("VIEWER_MENU_FONT_FACE", "Default font face"),
+                                                    LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_FACE );
+        CRLog::trace("getting font face list");
+        lString16Collection list;
+        fontMan->getFaceList( list );
+        CRLog::trace("faces found: %d", list.length());
+        int i;
+        for ( i=0; i<list.length(); i++ ) {
+            fontFaceMenu->addItem( new CRMenuItem( fontFaceMenu, i,
+                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_SIZE, 300, false, css_ff_sans_serif, UnicodeToUtf8(list[i])), list[i].c_str() ) );
+        }
+        fontFaceMenu->setAccelerators( _menuAccelerators );
+        //lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
+        mainMenu->addItem( fontFaceMenu );
+
+        CRMenu * fontSizeMenu = createFontSizeMenu( mainMenu, props );
+        mainMenu->addItem( fontSizeMenu );
 
         CRMenu * fontAntialiasingMenu = new CRMenu(_wm, mainMenu, mm_FontAntiAliasing,
                 _wm->translateString("VIEWER_MENU_FONT_ANTIALIASING", "Font antialiasing"),
