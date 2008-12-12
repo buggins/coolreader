@@ -147,6 +147,13 @@ CRPropRef operator ^ ( CRPropRef props1, CRPropRef props2 );
 
 /// factory function creates empty property container
 CRPropRef LVCreatePropsContainer();
+/// deep copy properties
+inline CRPropRef LVClonePropsContainer( CRPropRef props )
+{
+    CRPropRef result = LVCreatePropsContainer();
+    result->set( props );
+    return result;
+}
 
 
 #endif //PROPS_H_INCLUDED

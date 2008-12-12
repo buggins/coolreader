@@ -20,6 +20,30 @@
 #include "hist.h"
 #include "lvthread.h"
 
+// standard properties supported by LVDocView
+#define PROP_FONT_ANTIALIASING       "font.antialiasing.mode"
+#define PROP_FONT_COLOR              "font.color.default"
+#define PROP_FONT_FACE               "font.face.default"
+#define PROP_BACKGROUND_COLOR        "background.color.default"
+#define PROP_TXT_OPTION_PREFORMATTED "crengine.file.txt.preformatted"
+#define PROP_LOG_FILENAME            "crengine.log.filename"
+#define PROP_LOG_LEVEL               "crengine.log.level"
+#define PROP_FONT_SIZE               "crengine.font.size"
+#define PROP_PAGE_MARGIN_TOP         "crengine.page.margin.top"
+#define PROP_PAGE_MARGIN_BOTTOM      "crengine.page.margin.bottom"
+#define PROP_PAGE_MARGIN_LEFT        "crengine.page.margin.left"
+#define PROP_PAGE_MARGIN_RIGHT       "crengine.page.margin.right"
+#define PROP_INTERLINE_SPACE         "crengine.interline.space"
+#define PROP_ROTATE_ANGLE            "window.rotate.angle"
+#define PROP_EMBEDDED_STYLES         "crengine.doc.embedded.styles.enabled"
+#define PROP_DISPLAY_INVERSE         "crengine.display.inverse"
+#define PROP_STATUS_LINE             "window.status.line"
+#define PROP_BOOKMARK_ICONS          "crengine.bookmarks.icons"
+#define PROP_FOOTNOTES               "crengine.footnotes"
+#define PROP_SHOW_TIME               "window.status.clock"
+#define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
+#define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
+
 /// source document formats
 typedef enum {
     doc_format_none,
@@ -147,6 +171,7 @@ class LVDocViewImageCache
         }
 };
 
+/// LVDocView commands
 #define LVDOCVIEW_COMMANDS_START 100
 enum LVDocCmd
 {
@@ -191,6 +216,7 @@ public:
     }
 };
 
+/// page header flags
 enum {
     PGHDR_NONE=0,
     PGHDR_PAGE_NUMBER=1,
@@ -339,6 +365,8 @@ private:
 
     LVDocViewCallback * m_callback;
 
+    CRPropRef m_props;
+
     /// sets current document format
     void setDocFormat( doc_format_t fmt ) { m_doc_format = fmt; }
 
@@ -375,6 +403,14 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
 public:
+
+    // property support methods
+    /// sets default property values if properties not found, checks ranges
+    void propsUpdateDefaults( CRPropRef props );
+    /// applies properties, returns list of not recognized properties
+    CRPropRef propsApply( CRPropRef props );
+    /// returns current values of supported properties
+    CRPropRef propsGetCurrent();
 
     /// get current default cover image
     LVImageSourceRef getDefaultCover() const { return m_defaultCover; }

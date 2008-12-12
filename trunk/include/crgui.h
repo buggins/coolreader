@@ -110,6 +110,17 @@ public:
     }
 };
 
+/// i18n support interface
+class CRGUIStringTranslator
+{
+public:
+    /// translate string by key, return default value if not found
+    virtual lString16 translateString( const char * key, const char * defValue )
+    {
+        return Utf8ToUnicode( lString8(defValue) );
+    }
+};
+
 /// accelerator table reference
 typedef LVRef<CRGUIAcceleratorTable> CRGUIAcceleratorTableRef;
 
@@ -176,14 +187,27 @@ class CRGUIWindow
 };
 
 /// Window manager
-class CRGUIWindowManager
+class CRGUIWindowManager : public CRGUIStringTranslator
 {
     protected:
         LVPtrVector<CRGUIWindow, true> _windows;
         CRGUIScreen * _screen;
         /// if true, we should delete screen in destructor
         bool _ownScreen;
+        LVRef<CRGUIStringTranslator> _i18n;
     public:
+        /// sets another i18n translator
+        virtual void setTranslator( LVRef<CRGUIStringTranslator> i18n )
+        {
+            _i18n = i18n;
+        }
+        /// translate string by key, return default value if not found
+        virtual lString16 translateString( const char * key, const char * defValue )
+        {
+            if ( _i18n.isNull() )
+                return Utf8ToUnicode( lString8(defValue) );
+            return _i18n->translateString( key, defValue );
+        }
         /// returns count of windows
         virtual int getWindowCount() { return _windows.length(); }
         /// sets new screen size

@@ -141,6 +141,8 @@ LVDocView::LVDocView()
 #endif
 #endif
     m_defaultFontFace = lString8(DEFAULT_FONT_NAME);
+    m_props = LVCreatePropsContainer();
+    propsUpdateDefaults(m_props);
 
     //m_drawbuf.Clear(m_backgroundColor);
     createDefaultDocument( lString16(L"No document"), lString16(L"Welcome to CoolReader! Please select file to open") );
@@ -3076,4 +3078,131 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
     }
 }
 
+//static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };
+static int cr_interline_spaces[] = {100, 90, 110, 120, 140};
 
+/// sets default property values if properties not found, checks ranges
+void LVDocView::propsUpdateDefaults( CRPropRef props )
+{
+    lString16Collection list;
+    fontMan->getFaceList( list );
+    static int def_aa_props[] = { 2, 1, 0 };
+    props->limitValueList( PROP_FONT_ANTIALIASING, def_aa_props, sizeof(def_aa_props)/sizeof(int) );
+    props->setHexDef( PROP_FONT_COLOR, 0x000000 );
+    props->setHexDef( PROP_BACKGROUND_COLOR, 0xFFFFFF );
+    lString8 defFontFace("Arial");
+    props->setStringDef( PROP_FONT_FACE, defFontFace.c_str() );
+    if ( list.length()>0 && !list.contains( props->getStringDef( PROP_FONT_FACE, defFontFace.c_str()) ) )
+        props->setString( PROP_FONT_FACE, list[0] );
+    props->limitValueList( PROP_FONT_SIZE, m_font_sizes.ptr(), m_font_sizes.length() );
+    props->limitValueList( PROP_INTERLINE_SPACE, cr_interline_spaces, sizeof(cr_interline_spaces)/sizeof(int) );
+    static int def_rot_angle[] = { 0, 1, 2, 3 };
+    props->limitValueList( PROP_ROTATE_ANGLE, def_rot_angle, 4 );
+    static int bool_options_def_true[] = { 1, 0 };
+    static int bool_options_def_false[] = { 0, 1 };
+    static int int_options_1_2[] = { 1, 2 };
+    props->limitValueList( PROP_LANDSCAPE_PAGES, int_options_1_2, 2 );
+    props->limitValueList( PROP_EMBEDDED_STYLES, bool_options_def_true, 2 );
+    props->limitValueList( PROP_FOOTNOTES, bool_options_def_true, 2 );
+    props->limitValueList( PROP_SHOW_TIME, bool_options_def_false, 2 );
+    props->limitValueList( PROP_DISPLAY_INVERSE, bool_options_def_false, 2 );
+    props->limitValueList( PROP_BOOKMARK_ICONS, bool_options_def_false, 2 );
+    props->limitValueList( PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2 );
+    static int def_status_line[] = { 0, 1, 2 };
+    props->limitValueList( PROP_STATUS_LINE, def_status_line, 3 );
+    props->limitValueList( PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false, 2 );
+    static int def_margin[] = { 3, 0, 1, 2, 4 };
+    props->limitValueList( PROP_PAGE_MARGIN_TOP, def_margin, 5 );
+    props->limitValueList( PROP_PAGE_MARGIN_BOTTOM, def_margin, 5 );
+    props->limitValueList( PROP_PAGE_MARGIN_LEFT, def_margin, 5 );
+    props->limitValueList( PROP_PAGE_MARGIN_RIGHT, def_margin, 5 );
+}
+
+/// applies properties, returns list of not recognized properties
+CRPropRef LVDocView::propsApply( CRPropRef props )
+{
+    CRPropRef unknown = LVCreatePropsContainer();
+    for ( int i=0; i<props->getCount(); i++ ) {
+        const char * name = props->getName( i );
+        lString16 value = props->getValue( i );
+        bool isUnknown = false;
+        if ( name==PROP_FONT_ANTIALIASING ) {
+            int antialiasingMode = props->getIntDef( PROP_FONT_ANTIALIASING, 2 );
+            fontMan->SetAntialiasMode( antialiasingMode );
+            requestRender();
+        } else if ( name==PROP_LANDSCAPE_PAGES ) {
+            int pages = props->getIntDef( PROP_LANDSCAPE_PAGES, 0 );
+            setVisiblePageCount( pages );
+            requestRender();
+        } else if ( name==PROP_FONT_KERNING_ENABLED ) {
+            bool kerning = props->getBoolDef( PROP_FONT_KERNING_ENABLED, false );
+            fontMan->setKerning( kerning );
+            requestRender();
+        } else if ( name==PROP_TXT_OPTION_PREFORMATTED ) {
+            bool preformatted = props->getBoolDef( PROP_TXT_OPTION_PREFORMATTED, false );
+            setTextFormatOptions( preformatted ? txt_format_pre : txt_format_auto );
+        } else if ( name==PROP_FONT_COLOR ) {
+            lUInt32 textColor = props->getIntDef(PROP_FONT_COLOR, 0x000000 );
+            setTextColor( textColor );
+        } else if ( name==PROP_FONT_FACE ) {
+            setDefaultFontFace( UnicodeToUtf8(value) );
+        //} else if ( name==PROP_STATUS_LINE ) {
+        //    setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
+        //} else if ( name==PROP_BOOKMARK_ICONS ) {
+        //    enableBookmarkIcons( value==L"1" );
+        } else if ( name==PROP_BACKGROUND_COLOR ) {
+            lUInt32 backColor = props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFFF );
+            setBackgroundColor( backColor );
+        } else if ( name==PROP_FONT_SIZE ) {
+            int fontSize = props->getIntDef( PROP_FONT_SIZE, m_font_sizes[0] );
+            setFontSize( fontSize );//cr_font_sizes
+            value = lString16::itoa( m_font_size );
+        } else if ( name==PROP_INTERLINE_SPACE ) {
+            int interlineSpace = props->getIntDef( PROP_INTERLINE_SPACE,  cr_interline_spaces[0] );
+            setDefaultInterlineSpace( interlineSpace );//cr_font_sizes
+            value = lString16::itoa( m_def_interline_space );
+        } else if ( name==PROP_ROTATE_ANGLE ) {
+            cr_rotate_angle_t angle = (cr_rotate_angle_t) (props->getIntDef( PROP_ROTATE_ANGLE, 0 )&3);
+            SetRotateAngle( angle );
+            value = lString16::itoa( m_rotateAngle );
+        } else if ( name==PROP_EMBEDDED_STYLES ) {
+            bool value = props->getBoolDef( PROP_EMBEDDED_STYLES, true );
+            getDocument()->setDocFlag( DOC_FLAG_ENABLE_INTERNAL_STYLES, value );
+            requestRender();
+        } else if ( name==PROP_FOOTNOTES ) {
+            bool value = props->getBoolDef( PROP_FOOTNOTES, true );
+            getDocument()->setDocFlag( DOC_FLAG_ENABLE_FOOTNOTES, value );
+            requestRender();
+        //} else if ( name==PROP_SHOW_TIME ) {
+        //    setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
+        } else if ( name==PROP_DISPLAY_INVERSE ) {
+            if ( value==L"1" ) {
+                CRLog::trace("Setting inverse colors");
+                setBackgroundColor( 0x000000 );
+                setTextColor( 0xFFFFFF );
+                requestRender(); // TODO: only colors to be changed
+            } else {
+                CRLog::trace("Setting normal colors");
+                setBackgroundColor( 0xFFFFFF );
+                setTextColor( 0x000000 );
+                requestRender(); // TODO: only colors to be changed
+                value = L"0";
+            }
+        } else {
+            // unknown property, adding to list of unknown properties
+            unknown->setString( name, value );
+            isUnknown = true;
+        }
+        if ( !isUnknown ) {
+            // update current value in properties
+            m_props->setString( name, value );
+        }
+    }
+    return unknown;
+}
+
+/// returns current values of supported properties
+CRPropRef LVDocView::propsGetCurrent()
+{
+    return m_props;
+}

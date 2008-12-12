@@ -1093,6 +1093,7 @@ public:
     formatted_word_t * addObject()
     {
         formatted_word_t * word = lvtextAddFormattedWord( frmline );
+        word->flags = 0;
         word->src_text_index = srcIndex;
         int scale_div = 1;
         int scale_mul = 1;
