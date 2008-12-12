@@ -194,20 +194,254 @@ enum CRMainMenuCmd
     MCMD_QUIT,
     MCMD_MAIN_MENU,
     MCMD_GO_PAGE,
+    MCMD_SETTINGS,
+};
+
+#define SETTINGS_MENU_COMMANDS_START 300
+enum MainMenuItems_t {
+    mm_Settings = SETTINGS_MENU_COMMANDS_START,
+    mm_FontFace,
+    mm_FontSize,
+    mm_FontAntiAliasing,
+    mm_InterlineSpace,
+    mm_Orientation,
+    mm_EmbeddedStyles,
+    mm_Inverse,
+    mm_StatusLine,
+    mm_BookmarkIcons,
+    mm_Footnotes,
+    mm_SetTime,
+    mm_ShowTime,
+    mm_Kerning,
+    mm_LandscapePages,
+    mm_PreformattedText,
 };
 
 
+typedef struct {
+    const char * translate_label;
+    const char * translate_default;
+    const char * value;
+} item_def_t;
+
+static item_def_t antialiasing_modes[] = {
+    {"VIEWER_DLG_ANTIALIASING_ALWAYS", "On for all fonts", "2"},
+    {"VIEWER_DLG_ANTIALIASING_BIGFONTS", "On for big fonts only", "1"},
+    {"VIEWER_DLG_ANTIALIASING_OFF", "Off", "0"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t embedded_styles[] = {
+    {"VIEWER_DLG_EMBEDDED_STYLES_ON", "On", "1"},
+    {"VIEWER_DLG_EMBEDDED_STYLES_OFF", "Off", "0"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t bookmark_icons[] = {
+    {"VIEWER_DLG_BOOKMARK_ICONS_ON", "On", "1"},
+    {"VIEWER_DLG_BOOKMARK_ICONS_OFF", "Off", "0"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t kerning_options[] = {
+    {"VIEWER_DLG_KERNING_ON", "On", "1"},
+    {"VIEWER_DLG_KERNING_OFF", "Off", "0"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t footnotes[] = {
+    {"VIEWER_DLG_FOOTNOTES_ON", "On", "1"},
+    {"VIEWER_DLG_FOOTNOTES_OFF", "Off", "0"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t showtime[] = {
+    {"VIEWER_DLG_TIME_ON", "On", "1"},
+    {"VIEWER_DLG_TIME_OFF", "Off", "0"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t preformatted_text[] = {
+    {"VIEWER_DLG_PREFORMATTED_TEXT_ON", "On", "1"},
+    {"VIEWER_DLG_PREFORMATTED_TEXT_OFF", "Off", "0"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t inverse_mode[] = {
+    {"VIEWER_DLG_INVERSE_OFF", "Normal", "0"},
+    {"VIEWER_DLG_INVERSE_ON", "Inverse", "1"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t landscape_pages[] = {
+    {"VIEWER_DLG_LANDSCAPE_PAGES_1", "One", "1"},
+    {"VIEWER_DLG_LANDSCAPE_PAGES_2", "Two", "2"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t status_line[] = {
+    {"VIEWER_DLG_STATUS_LINE_TOP", "Top", "0"},
+    {"VIEWER_DLG_STATUS_LINE_BOTTOM", "Bottom", "1"},
+    {"VIEWER_DLG_STATUS_LINE_OFF", "Off", "2"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t interline_spaces[] = {
+    {"VIEWER_DLG_INTERLINE_SPACE_0", "90%", "90"},
+    {"VIEWER_DLG_INTERLINE_SPACE_1", "100%", "100"},
+    {"VIEWER_DLG_INTERLINE_SPACE_2", "110%", "110"},
+    {"VIEWER_DLG_INTERLINE_SPACE_3", "120%", "120"},
+    {"VIEWER_DLG_INTERLINE_SPACE_4", "140%", "140"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t page_orientations[] = {
+    {"VIEWER_DLG_ORIENTATION_1", "Normal", "0"},
+    {"VIEWER_DLG_ORIENTATION_2", "90 `", "1"},
+    {"VIEWER_DLG_ORIENTATION_3", "180 `", "2"},
+    {"VIEWER_DLG_ORIENTATION_4", "270 `", "3"},
+    {NULL, NULL, NULL},
+};
+
+static item_def_t page_margins[] = {
+    {"VIEWER_DLG_PAGE_MARGIN_0", "0", "0"},
+    {"VIEWER_DLG_PAGE_MARGIN_1", "5", "5"},
+    {"VIEWER_DLG_PAGE_MARGIN_2", "10", "10"},
+    {"VIEWER_DLG_PAGE_MARGIN_3", "15", "15"},
+    {"VIEWER_DLG_PAGE_MARGIN_4", "20", "20"},
+    {"VIEWER_DLG_PAGE_MARGIN_5", "25", "25"},
+    {NULL, NULL, NULL},
+};
+
+// TODO: get from skin
+#define MENU_FONT_SIZE 20
+#define VALUE_FONT_SIZE 17
 class V3DocViewWin : public CRDocViewWindow
 {
+protected:
+    CRPropRef _props;
+    CRPropRef _newProps;
 public:
+    /// returns current properties
+    CRPropRef getProps() { return _props; }
+
+    /// sets new properties
+    void setProps( CRPropRef props )
+    {
+        _props = props;
+        _docview->propsUpdateDefaults( _props );
+    }
+
     V3DocViewWin( CRGUIWindowManager * wm )
     : CRDocViewWindow ( wm )
     {
+        _props = LVCreatePropsContainer();
+        _newProps = _props;
+    }
+
+    void addMenuItems( CRMenu * menu, item_def_t values[], LVFontRef menuFont )
+    {
+        for ( int i=0; values[i].translate_label; i++)
+            menu->addItem( new CRMenuItem( menu, i,
+               _wm->translateString(values[i].translate_label, values[i].translate_default),
+               LVImageSourceRef(), 
+               menuFont, Utf8ToUnicode(lString8(values[i].value)).c_str() ) );
+    }
+
+    void showSettingsMenu()
+    {
+        _newProps = LVClonePropsContainer( _props );
+        CRPropRef props = _newProps;
+
+        LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
+        LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
+        CRMenu * mainMenu = new CRMenu( _wm,
+            NULL, //CRMenu * parentMenu,
+            1,
+            lString16(L"Main Menu"),
+            LVImageSourceRef(),
+            menuFont,
+            menuFont );
+        CRMenu * fontAntialiasingMenu = new CRMenu(_wm, mainMenu, mm_FontAntiAliasing,
+                _wm->translateString("VIEWER_MENU_FONT_ANTIALIASING", "Font antialiasing"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_ANTIALIASING );
+        addMenuItems( fontAntialiasingMenu, antialiasing_modes, menuFont );
+        mainMenu->addItem( fontAntialiasingMenu );
+        CRMenu * interlineSpaceMenu = new CRMenu(_wm, mainMenu, mm_InterlineSpace,
+                _wm->translateString("VIEWER_MENU_INTERLINE_SPACE", "Interline space"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_INTERLINE_SPACE );
+        addMenuItems( interlineSpaceMenu, interline_spaces, menuFont );
+        mainMenu->addItem( interlineSpaceMenu );
+/*
+        CRMenu * orientationMenu = createOrientationMenu(props);
+        mainMenu->addItem( orientationMenu );
+*/
+        CRMenu * footnotesMenu = new CRMenu(_wm, mainMenu, mm_Footnotes,
+                _wm->translateString("VIEWER_MENU_FOOTNOTES", "Footnotes at page bottom"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_FOOTNOTES );
+        addMenuItems( footnotesMenu, footnotes, menuFont );
+        mainMenu->addItem( footnotesMenu );
+
+/*
+        SetTimeMenuItem * setTime = new SetTimeMenuItem( mainMenu, mm_SetTime, _wm->translateString("VIEWER_MENU_SET_TIME", "Set time"),
+                LVImageSourceRef(), menuFont, L"bla" );
+        mainMenu->addItem( setTime );
+*/
+        CRMenu * showTimeMenu = new CRMenu(_wm, mainMenu, mm_ShowTime,
+                _wm->translateString("VIEWER_MENU_SHOW_TIME", "Show time"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_SHOW_TIME );
+        addMenuItems( showTimeMenu, showtime, menuFont );
+        mainMenu->addItem( showTimeMenu );
+
+        CRMenu * landscapePagesMenu = new CRMenu(_wm, mainMenu, mm_LandscapePages,
+                _wm->translateString("VIEWER_MENU_LANDSCAPE_PAGES", "Landscape pages"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_LANDSCAPE_PAGES );
+        addMenuItems( landscapePagesMenu, landscape_pages, menuFont );
+        mainMenu->addItem( landscapePagesMenu );
+
+        CRMenu * preformattedTextMenu = new CRMenu(_wm, mainMenu, mm_PreformattedText,
+                _wm->translateString("VIEWER_MENU_TXT_OPTION_PREFORMATTED", "Preformatted text"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_TXT_OPTION_PREFORMATTED );
+        addMenuItems( preformattedTextMenu, preformatted_text, menuFont );
+        mainMenu->addItem( preformattedTextMenu );
+
+        //
+
+        CRMenu * embeddedStylesMenu = new CRMenu(_wm, mainMenu, mm_EmbeddedStyles,
+                _wm->translateString("VIEWER_MENU_EMBEDDED_STYLES", "Document embedded styles"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_EMBEDDED_STYLES );
+        addMenuItems( embeddedStylesMenu, embedded_styles, menuFont );
+        mainMenu->addItem( embeddedStylesMenu );
+
+        CRMenu * inverseModeMenu = new CRMenu(_wm, mainMenu, mm_Inverse,
+                _wm->translateString("VIEWER_MENU_INVERSE", "Inverse display"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_DISPLAY_INVERSE );
+        addMenuItems( inverseModeMenu, inverse_mode, menuFont );
+        mainMenu->addItem( inverseModeMenu );
+
+        CRMenu * bookmarkIconsMenu = new CRMenu(_wm, mainMenu, mm_BookmarkIcons,
+                _wm->translateString("VIEWER_MENU_BOOKMARK_ICONS", "Show bookmark icons"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_BOOKMARK_ICONS );
+        addMenuItems( bookmarkIconsMenu, bookmark_icons, menuFont );
+        mainMenu->addItem( bookmarkIconsMenu );
+
+        CRMenu * statusLineMenu = new CRMenu(_wm, mainMenu, mm_StatusLine,
+                _wm->translateString("VIEWER_MENU_STATUS_LINE", "Status line"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_STATUS_LINE );
+        addMenuItems( statusLineMenu, status_line, menuFont );
+        mainMenu->addItem( statusLineMenu );
+
+        CRMenu * kerningMenu = new CRMenu(_wm, mainMenu, mm_Kerning,
+                _wm->translateString("VIEWER_MENU_FONT_KERNING", "Font kerning"),
+                                LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_KERNING_ENABLED );
+        addMenuItems( kerningMenu, kerning_options, menuFont );
+        mainMenu->addItem( kerningMenu );
+        // TODO: process submenus
+        _wm->activateWindow( mainMenu );
     }
 
     void showMainMenu()
     {
-        #define MENU_FONT_SIZE 20
         LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * menu_win = new CRMenu( _wm, 
             NULL, //CRMenu * parentMenu, 
@@ -218,15 +452,19 @@ public:
             menuFont );
         menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
                        lString16(L"Go to first page"),
-                       LVImageSourceRef(), 
+                       LVImageSourceRef(),
                        menuFont ) );
         menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
                        lString16(L"Go to page ..."),
-                       LVImageSourceRef(), 
+                       LVImageSourceRef(),
                        menuFont ) );
         menu_win->addItem( new CRMenuItem( menu_win, DCMD_END,
                        lString16(L"Go to last page"),
-                       LVImageSourceRef(), 
+                       LVImageSourceRef(),
+                       menuFont ) );
+        menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
+                       lString16(L"Settings..."),
+                       LVImageSourceRef(),
                        menuFont ) );
         _wm->activateWindow( menu_win );
     }
@@ -240,6 +478,9 @@ public:
             return true;
         case MCMD_MAIN_MENU:
             showMainMenu();
+            return true;
+        case MCMD_SETTINGS:
+            showSettingsMenu();
             return true;
         default:
             // do nothing
@@ -257,74 +498,61 @@ public:
 HWND g_hWnd = NULL;
 
 // Global Variables:
-HINSTANCE hInst;								// current instance
+HINSTANCE hInst;                                // current instance
 
-ATOM				MyRegisterClass(HINSTANCE hInstance);
-BOOL				InitInstance(HINSTANCE, int);
-LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
+ATOM                MyRegisterClass(HINSTANCE hInstance);
+BOOL                InitInstance(HINSTANCE, int);
+LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 
 #define XK_Return 0xFF01
 #define XK_Up     0xFF02
 #define XK_Down   0xFF03
 #define XK_Escape 0xFF04
 
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-//  COMMENTS:
-//
-//    This function and its usage is only necessary if you want this code
-//    to be compatible with Win32 systems prior to the 'RegisterClassEx'
-//    function that was added to Windows 95. It is important to call this function
-//    so that the application will get 'well formed' small icons associated
-//    with it.
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-	WNDCLASSEXW wcex;
+    WNDCLASSEXW wcex;
 
-	wcex.cbSize = sizeof(WNDCLASSEXW);
+    wcex.cbSize = sizeof(WNDCLASSEXW);
 
-	wcex.style			= 0; //CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= (WNDPROC)WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= hInstance;
-	wcex.hIcon			= NULL; //LoadIcon(hInstance, (LPCTSTR)IDI_FONTTEST);
-	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= NULL;
-	wcex.lpszClassName	= L"CoolReader";
-	wcex.hIconSm		= NULL; //LoadIcon(wcex.hInstance, (LPCTSTR)IDI_SMALL);
+    wcex.style            = 0; //CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc    = (WNDPROC)WndProc;
+    wcex.cbClsExtra        = 0;
+    wcex.cbWndExtra        = 0;
+    wcex.hInstance        = hInstance;
+    wcex.hIcon            = NULL; //LoadIcon(hInstance, (LPCTSTR)IDI_FONTTEST);
+    wcex.hCursor        = LoadCursor(NULL, IDC_ARROW);
+    wcex.hbrBackground    = (HBRUSH)(COLOR_WINDOW+1);
+    wcex.lpszMenuName    = NULL;
+    wcex.lpszClassName    = L"CoolReader";
+    wcex.hIconSm        = NULL; //LoadIcon(wcex.hInstance, (LPCTSTR)IDI_SMALL);
 
-	return RegisterClassExW(&wcex);
+    return RegisterClassExW(&wcex);
 }
 
 /// WXWidget support: draw to wxImage
 class CRWin32Screen : public CRGUIScreenBase
 {
     public:
-		HWND _hWnd;
-		virtual void draw( HDC hdc )
-		{
-			LVDrawBuf * drawBuf = getCanvas().get();
+        HWND _hWnd;
+        virtual void draw( HDC hdc )
+        {
+            LVDrawBuf * drawBuf = getCanvas().get();
             drawBuf->DrawTo( hdc, 0, 0, 0, NULL);
-		}
-		virtual void paint()
-		{
-			PAINTSTRUCT ps;
-			HDC hdc;
-		    hdc = BeginPaint(_hWnd, &ps);
-			draw( hdc );
+        }
+        virtual void paint()
+        {
+            PAINTSTRUCT ps;
+            HDC hdc;
+            hdc = BeginPaint(_hWnd, &ps);
+            draw( hdc );
             EndPaint(_hWnd, &ps);
-		}
+        }
     protected:
         virtual void update( const lvRect & rc, bool full )
         {
-		    InvalidateRect(_hWnd, NULL, FALSE);
-			UpdateWindow(_hWnd);
+            InvalidateRect(_hWnd, NULL, FALSE);
+            UpdateWindow(_hWnd);
         }
     public:
         virtual ~CRWin32Screen()
@@ -333,7 +561,7 @@ class CRWin32Screen : public CRGUIScreenBase
         CRWin32Screen( HWND hwnd, int width, int height )
         :  CRGUIScreenBase( 0, 0, true )
         {
-			_hWnd = hwnd;
+            _hWnd = hwnd;
             _width = width;
             _height = height;
             _canvas = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
@@ -346,60 +574,60 @@ class CRWin32WindowManager : public CRGUIWindowManager
 protected:
     HWND _hWnd;
 public:
-	static CRWin32WindowManager * instance;
+    static CRWin32WindowManager * instance;
 
     CRWin32WindowManager( int dx, int dy )
     : CRGUIWindowManager(NULL)
     {
-	   int x=0;
-	   int y=0;
-	   lUInt32 flags = 0;
-	#ifdef FIXED_JINKE_SIZE
-		  flags = WS_DLGFRAME | WS_MINIMIZEBOX | WS_SYSMENU | WS_VSCROLL; //WS_OVERLAPPEDWINDOW
-		  dx = 600 + GetSystemMetrics(SM_CXDLGFRAME)*2
-  			 + GetSystemMetrics(SM_CXVSCROLL);
-		  dy = 800 + GetSystemMetrics(SM_CYDLGFRAME)*2
-  			 + GetSystemMetrics(SM_CYCAPTION);
-	#else
-		  flags = WS_OVERLAPPEDWINDOW;// | WS_VSCROLL; //
-		  dx = 500;
-		  dy = 600;
-	#endif
+       int x=0;
+       int y=0;
+       lUInt32 flags = 0;
+    #ifdef FIXED_JINKE_SIZE
+          flags = WS_DLGFRAME | WS_MINIMIZEBOX | WS_SYSMENU | WS_VSCROLL; //WS_OVERLAPPEDWINDOW
+          dx = 600 + GetSystemMetrics(SM_CXDLGFRAME)*2
+               + GetSystemMetrics(SM_CXVSCROLL);
+          dy = 800 + GetSystemMetrics(SM_CYDLGFRAME)*2
+               + GetSystemMetrics(SM_CYCAPTION);
+    #else
+          flags = WS_OVERLAPPEDWINDOW;// | WS_VSCROLL; //
+          dx = 500;
+          dy = 600;
+    #endif
 
-	   _hWnd = CreateWindowW(
-		   L"CoolReader",
-		   L"CREngine - Simple FB2 viewer",
-		  flags, //WS_OVERLAPPEDWINDOW
-		  x, y, dx, dy,
-		  NULL, NULL, hInst, NULL);
+       _hWnd = CreateWindowW(
+           L"CoolReader",
+           L"CREngine - Simple FB2 viewer",
+          flags, //WS_OVERLAPPEDWINDOW
+          x, y, dx, dy,
+          NULL, NULL, hInst, NULL);
 
-	   if (!_hWnd)
-	   {
-		  return;
-	   }
+       if (!_hWnd)
+       {
+          return;
+       }
 
-	   g_hWnd = _hWnd;
+       g_hWnd = _hWnd;
 
         CRWin32Screen * s = new CRWin32Screen( _hWnd, dx, dy );
         _screen = s;
         _ownScreen = true;
-		instance = this;
+        instance = this;
     }
     // runs event loop
     virtual int runEventLoop()
     {
-		ShowWindow( _hWnd, SW_SHOW );
-		// Main message loop:
-		MSG msg;
+        ShowWindow( _hWnd, SW_SHOW );
+        // Main message loop:
+        MSG msg;
         bool stop = false;
-		while (!stop && GetMessage(&msg, NULL, 0, 0))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			if ( !getWindowCount() )
-				stop = true;
-		}
-		return 0;
+        while (!stop && GetMessage(&msg, NULL, 0, 0))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+            if ( !getWindowCount() )
+                stop = true;
+        }
+        return 0;
     }
 };
 
@@ -409,89 +637,89 @@ CRWin32WindowManager * CRWin32WindowManager::instance = NULL;
 //
 //  PURPOSE:  Processes messages for the main window.
 //
-//  WM_COMMAND	- process the application menu
-//  WM_PAINT	- Paint the main window
-//  WM_DESTROY	- post a quit message and return
+//  WM_COMMAND    - process the application menu
+//  WM_PAINT    - Paint the main window
+//  WM_DESTROY    - post a quit message and return
 //
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	//int wmId, wmEvent;
-	switch (message)
-	{
-		case WM_CREATE:
+    //int wmId, wmEvent;
+    switch (message)
+    {
+        case WM_CREATE:
             {
             }
-		    break;
-		case WM_ERASEBKGND:
             break;
-		case WM_VSCROLL:
+        case WM_ERASEBKGND:
             break;
-		case WM_SIZE:
+        case WM_VSCROLL:
+            break;
+        case WM_SIZE:
             {
-				if (wParam!=SIZE_MINIMIZED)
-				{
-					CRWin32WindowManager::instance->setSize( LOWORD(lParam), HIWORD(lParam) );
+                if (wParam!=SIZE_MINIMIZED)
+                {
+                    CRWin32WindowManager::instance->setSize( LOWORD(lParam), HIWORD(lParam) );
                     CRWin32WindowManager::instance->update(true);
-				}
+                }
             }
             break;
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL                   0x020A
 #define WHEEL_DELTA                     120     /* Value for rolling one detent */
 #endif
-		case WM_MOUSEWHEEL:
-			{
-				/*
-  			int delta = ((lInt16)HIWORD(wParam))/WHEEL_DELTA;
-  			if (delta<0)
-  				DoCommand( hWnd, DCMD_LINEDOWN, 3 );
-  			else if (delta>0)
-  				DoCommand( hWnd, DCMD_LINEUP, 3 );
-				*/
-			}
-            break;
-		case WM_CHAR:
-			{
-				if ( wParam>=' ' && wParam<=127 ) {
-					CRWin32WindowManager::instance->onKeyPressed( wParam, 0 );
-                    CRWin32WindowManager::instance->update(true);
-				}
-			}
-			break;
-		case WM_KEYDOWN:
+        case WM_MOUSEWHEEL:
             {
-				int code = 0;
+                /*
+              int delta = ((lInt16)HIWORD(wParam))/WHEEL_DELTA;
+              if (delta<0)
+                  DoCommand( hWnd, DCMD_LINEDOWN, 3 );
+              else if (delta>0)
+                  DoCommand( hWnd, DCMD_LINEUP, 3 );
+                */
+            }
+            break;
+        case WM_CHAR:
+            {
+                if ( wParam>=' ' && wParam<=127 ) {
+                    CRWin32WindowManager::instance->onKeyPressed( wParam, 0 );
+                    CRWin32WindowManager::instance->update(true);
+                }
+            }
+            break;
+        case WM_KEYDOWN:
+            {
+                int code = 0;
                 switch( wParam )
                 {
                 case VK_RETURN:
-					code = XK_Return;
-					break;
+                    code = XK_Return;
+                    break;
                 case VK_ESCAPE:
-					code = XK_Escape;
-					break;
+                    code = XK_Escape;
+                    break;
                 case VK_UP:
-					code = XK_Up;
-					break;
+                    code = XK_Up;
+                    break;
                 case VK_DOWN:
-					code = XK_Down;
-					break;
+                    code = XK_Down;
+                    break;
                 case VK_ADD:
-					code = '+';
-					break;
+                    code = '+';
+                    break;
                 case VK_SUBTRACT:
-					code = '-';
-					break;
-				}
-				if ( code ) {
-					CRWin32WindowManager::instance->onKeyPressed( code, 0 );
+                    code = '-';
+                    break;
+                }
+                if ( code ) {
+                    CRWin32WindowManager::instance->onKeyPressed( code, 0 );
                     CRWin32WindowManager::instance->update(true);
-				}
+                }
             }
             break;
         case WM_LBUTTONDOWN:
             {
-				/*
+                /*
                 int xPos = lParam & 0xFFFF;
                 int yPos = (lParam >> 16) & 0xFFFF;
                 ldomXPointer ptr = text_view->getNodeByPoint( lvPoint( xPos, yPos ) );
@@ -509,21 +737,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                     }
                 }
-			*/
+            */
             }
             break;
-		case WM_COMMAND:
-			break;
-		case WM_PAINT:
+        case WM_COMMAND:
+            break;
+        case WM_PAINT:
             {
-				((CRWin32Screen*)CRWin32WindowManager::instance->getScreen())->paint();
+                ((CRWin32Screen*)CRWin32WindowManager::instance->getScreen())->paint();
             }
-			break;
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
-		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+            break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
    }
    return 0;
 }
@@ -538,10 +766,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     CRLog::setFileLogger( "crengine.log" );
     CRLog::setLogLevel( CRLog::LL_TRACE );
 
-	lString8 exe_dir;
-	char exe_fn[MAX_PATH+1];
-	GetModuleFileNameA( NULL, exe_fn, MAX_PATH );
-	InitCREngine( exe_fn );
+    lString8 exe_dir;
+    char exe_fn[MAX_PATH+1];
+    GetModuleFileNameA( NULL, exe_fn, MAX_PATH );
+    InitCREngine( exe_fn );
     //LVCHECKPOINT("WinMain start");
 
     if (!fontMan->GetFontCount())
@@ -561,11 +789,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     if ( cmdline.empty() )
         return 2; // need filename
 
-	hInst = hInstance;
-	MyRegisterClass(hInstance);
+    hInst = hInstance;
+    MyRegisterClass(hInstance);
 
-	{
-		CRWin32WindowManager winman(500, 700);
+    {
+        CRWin32WindowManager winman(500, 700);
 
         V3DocViewWin * main_win = new V3DocViewWin( &winman );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
@@ -587,17 +815,17 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
         winman.activateWindow( main_win );
         if ( !main_win->getDocView()->LoadDocument(cmdline.c_str()) ) {
-			char str[100];
-			sprintf(str, "Cannot open document file %s", cmdline.c_str());
-			MessageBoxA( NULL, str, "CR Engine :: Fb2Test -- fatal error!", MB_OK);
-			return 1;
+            char str[100];
+            sprintf(str, "Cannot open document file %s", cmdline.c_str());
+            MessageBoxA( NULL, str, "CR Engine :: Fb2Test -- fatal error!", MB_OK);
+            return 1;
         } else {
             winman.runEventLoop();
         }
-	}
+    }
     //ShutdownFontManager();
 
-	return 0;
+    return 0;
 }
 
 
