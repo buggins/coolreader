@@ -6,7 +6,7 @@ AM_CFLAGS=-Wall
 AM_CPPFLAGS = -I$(top_srcdir)/crengine/include
 
 if WITH_DICT
-INCLUDES += -I ../dict-plugin
+INCLUDES += -I $(top_srcdir)/dict-plugin
 endif
 
 bin_PROGRAMS = cr3

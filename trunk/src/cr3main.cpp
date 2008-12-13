@@ -9,6 +9,9 @@
 #include <crgui.h>
 #include <crtrace.h>
 
+#ifdef WITH_DICT
+#include "mod-dict.h"
+#endif
 
 #define CR_USE_XCB
 
@@ -211,6 +214,9 @@ enum CRMainMenuCmd
     MCMD_MAIN_MENU,
     MCMD_GO_PAGE,
     MCMD_SETTINGS,
+#ifdef WITH_DICT
+    MCMD_DICT,
+#endif
 };
 
 #define SETTINGS_MENU_COMMANDS_START 300
@@ -568,6 +574,12 @@ public:
                        lString16(L"Settings..."),
                        LVImageSourceRef(),
                        menuFont ) );
+#ifdef WITH_DICT
+        menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
+                       lString16(L"Dictionary..."),
+                       LVImageSourceRef(),
+                       menuFont ) );
+#endif
         menu_win->setAccelerators( _menuAccelerators );
         _wm->activateWindow( menu_win );
     }
@@ -585,6 +597,11 @@ public:
         case MCMD_SETTINGS:
             showSettingsMenu();
             return true;
+#ifdef WITH_DICT
+        case MCMD_DICT:
+            CRLog::info("MCMD_DICT activated\n");
+            activate_dict(_wm,*_docview);
+#endif
         case mm_Settings:
             applySettings();
             return true;
@@ -1334,6 +1351,9 @@ int main(int argc, char **argv)
             '0', 0, DCMD_PAGEDOWN, 0,
             XK_Down, 0, DCMD_PAGEDOWN, 0,
             '9', 0, DCMD_PAGEUP, 0,
+#ifdef WITH_DICT
+            '2', 0, MCMD_DICT, 0,
+#endif
             XK_Up, 0, DCMD_PAGEUP, 0,
             '+', 0, DCMD_ZOOM_IN, 0,
             '=', 0, DCMD_ZOOM_IN, 0,
