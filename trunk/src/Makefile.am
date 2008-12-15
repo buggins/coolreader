@@ -11,7 +11,7 @@ endif
 
 bin_PROGRAMS = cr3
 
-cr3_SOURCES = cr3main.cpp
+cr3_SOURCES = cr3main.cpp settings.cpp
 cr3_LDADD = @FREETYPE_LIBS@ \
 	@XCB_KEYSYMS_LIBS@ \
 	@XCB_LIBS@ @XCB_AUX_LIBS@ @XCB_IMAGE_LIBS@ @PNG_LIBS@ @CRENGINE_LIBS@ \
