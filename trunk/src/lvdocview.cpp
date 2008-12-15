@@ -382,8 +382,22 @@ void LVDocView::checkPos()
 /// returns true if current page image is ready
 bool LVDocView::IsDrawed()
 {
-    LVDocImageRef ref = m_imageCache.get( m_pos );
-    return !ref.isNull();
+    return isPageImageReady( 0 );
+}
+
+/// returns true if page image is available (0=current, -1=prev, 1=next)
+bool LVDocView::isPageImageReady( int delta )
+{
+    if ( !m_is_rendered || !m_posIsSet )
+        return false;
+    int offset = m_pos;
+    if ( delta<0 )
+        offset = getPrevPageOffset();
+    else if ( delta>0 )
+        offset = getNextPageOffset();
+    CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
+    LVDocImageRef ref = m_imageCache.get( offset );
+    return ( !ref.isNull() );
 }
 
 /// get page image

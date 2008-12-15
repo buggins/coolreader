@@ -404,6 +404,9 @@ protected:
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
 public:
 
+    /// returns true if page image is available (0=current, -1=prev, 1=next)
+    bool isPageImageReady( int delta );
+
     // property support methods
     /// sets default property values if properties not found, checks ranges
     void propsUpdateDefaults( CRPropRef props );

@@ -653,7 +653,7 @@ class CRDocViewWindow : public CRGUIWindowBase
         /// returns true if window is changed but now drawn
         virtual bool isDirty()
         {
-            return _dirty || !_docview->IsRendered() || !_docview->IsDrawed();
+            return _dirty || !_docview->isPageImageReady( 0 );
         }
 };
 
