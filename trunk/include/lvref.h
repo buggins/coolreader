@@ -542,7 +542,7 @@ public:
 #endif
         return p[index];
     }
-    inline LVAutoPtr * operator -> ()
+    inline T * operator -> ()
     {
         return p;
     }
@@ -554,17 +554,18 @@ public:
 #endif
     }
     inline T * get() { return p; }
-    inline LVAutoPtr & operator * ()
+    inline T & operator * ()
     {
         return *p;
     }
     inline LVAutoPtr & operator = ( T* ptr )
     {
         if ( p==ptr )
-            return;
+            return *this;
         if ( p )
             delete p;
         p = ptr;
+        return *this;
     }
 };
 

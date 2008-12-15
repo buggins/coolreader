@@ -278,7 +278,7 @@ static int hexDigit( char c )
     return -1;
 }
 
-static bool parse_color_value( const char * & str, css_length_t & value )
+bool parse_color_value( const char * & str, css_length_t & value )
 {
     value.type = css_val_unspecified;
     skip_spaces( str );

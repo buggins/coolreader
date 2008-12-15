@@ -188,6 +188,9 @@ public:
     void apply( const ldomNode * node, css_style_rec_t * style );
 };
 
+/// parse color value like #334455, #345 or red
+bool parse_color_value( const char * & str, css_length_t & value );
+
 /// extract @import filename from beginning of CSS
 bool LVProcessStyleSheetImport( const char * &str, lString8 & import_file );
 /// load stylesheet from file, with processing of import
