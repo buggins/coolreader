@@ -2560,7 +2560,7 @@ public:
 	}
     
 
-	lverror_t CreateCopy( lUInt8 * pBuf, lvsize_t size, lvopen_mode_t mode )
+	lverror_t CreateCopy( const lUInt8 * pBuf, lvsize_t size, lvopen_mode_t mode )
 	{
 		Close();
 		m_bufsize = size;
@@ -2619,7 +2619,7 @@ LVContainerRef LVOpenArchieve( LVStreamRef stream )
 }
 #endif
 
-LVStreamRef LVCreateMemoryStream( void * buf, int bufSize, bool createCopy, lvopen_mode_t mode )
+LVStreamRef LVCreateMemoryStream( const void * buf, int bufSize, bool createCopy, lvopen_mode_t mode )
 {
     LVMemoryStream * stream = new LVMemoryStream();
     if ( !buf )
