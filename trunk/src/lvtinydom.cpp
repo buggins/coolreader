@@ -2465,9 +2465,8 @@ void ldomXRange::getRangeWords( LVArray<ldomWord> & list )
             lString16 text = node->getText();
             int len = text.length();
             int beginOfWord = -1;
-            int endOfWord = 0;
             for ( int i=0; i <= len; i++ ) {
-                bool alpha = i<len && (lGetCharProps(text[i]) &&  CH_PROP_ALPHA);
+                bool alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
                 if (alpha && beginOfWord<0 ) {
                     beginOfWord = i;
                 }
