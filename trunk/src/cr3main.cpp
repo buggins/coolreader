@@ -601,6 +601,7 @@ public:
         case MCMD_DICT:
             CRLog::info("MCMD_DICT activated\n");
             activate_dict(_wm,*_docview);
+            return true;
 #endif
         case mm_Settings:
             applySettings();
