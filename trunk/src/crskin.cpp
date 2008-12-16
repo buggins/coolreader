@@ -45,6 +45,18 @@ bool CRSkin::open( LVContainerRef container )
     return true;
 }
 
+bool CRSkin::open( lString8 simpleXml )
+{
+    LVStreamRef stream = LVCreateStringStream( simpleXml );
+    ldomDocument * doc = LVParseXMLStream( stream );
+    if ( !doc ) {
+        CRLog::error("cannot open skin: error while parsing skin xml");
+        return false;
+    }
+    _doc = doc;
+    return true;
+}
+
 /// reads color value from attrname attribute of element specified by path, returns defValue if not found
 lUInt32 CRSkinBase::getColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue )
 {
@@ -62,6 +74,17 @@ lUInt32 CRSkinBase::getColor( const lChar16 * path, const lChar16 * attrname, lU
     if ( !parse_color_value( bufptr, cv ) )
         return defValue;
     return cv.value;
+}
+
+/// open simple skin, without image files, from string
+CRSkinRef LVOpenSimpleSkin( const lString8 & xml )
+{
+    CRSkin * skin = new CRSkin();
+    CRSkinRef res( skin );
+    if ( !skin->open( xml ) )
+        return CRSkinRef();
+    CRLog::trace("skin xml opened ok");
+    return res;
 }
 
 /// opens skin from directory or .zip file
@@ -88,3 +111,108 @@ CRSkinRef LVOpenSkin( const lString16 & pathname )
     return res;
 }
 
+lvRect CRRectSkin::getClientRect( const lvRect &windowRect )
+{
+    lvRect rc = windowRect;
+    lvRect border = getBorderWidths();
+    rc.left += border.left;
+    rc.top += border.top;
+    rc.right -= border.right;
+    rc.bottom -= border.bottom;
+    return rc;
+}
+
+lvRect CRWindowSkin::getTitleRect( const lvRect &windowRect )
+{
+    lvRect rc = CRRectSkin::getClientRect( windowRect );
+    lvPoint tsz = getTitleSize();
+    rc.bottom = rc.top + tsz.y;
+    rc.left = rc.left + tsz.x;
+    return rc;
+}
+
+/// returns necessary window size for specified client size
+lvPoint CRWindowSkin::getWindowSize( const lvPoint & clientSize )
+{
+    lvRect borders = getBorderWidths();
+    lvPoint tsz = getTitleSize();
+    return lvPoint( clientSize.x + borders.left + borders.right + tsz.x, clientSize.y + borders.top + borders.bottom + tsz.y );
+}
+
+// WINDOW skin stub
+class CRSimpleWindowSkin : public CRWindowSkin
+{
+public:
+    virtual void draw( LVDrawBuf & buf, const lvRect & rc )
+    {
+        buf.Rect( rc, 8, 0xAAAAAA );
+        buf.FillRect( getTitleRect( rc ), 0xAAAAAA );
+        buf.FillRect( getClientRect( rc ), 0xAAAAAA );
+    }
+    virtual lvRect getBorderWidths()
+    {
+        return lvRect(8,8,8,8);
+    }
+    virtual lvRect getClientRect( const lvRect &windowRect )
+    {
+        lvRect rc = CRRectSkin::getClientRect( windowRect );
+        rc.top += 25;
+        return rc;
+    }
+    virtual lvPoint getTitleSize() { return lvPoint(0, 25); }
+};
+
+class CRSimpleMenuItemSkin : public CRRectSkin
+{
+public:
+    virtual lvRect getBorderWidths()
+    {
+        return lvRect(4,4,4,4);
+    }
+    virtual void draw( LVDrawBuf & buf, const lvRect & rc )
+    {
+        lvRect r = rc;
+        buf.Rect( r, 2, 0x555555 );
+        r.shrink( 2 );
+        buf.FillRect( r, 0xFFFFFF );
+    }
+};
+
+class CRSimpleMenuSkin : public CRMenuSkin
+{
+public:
+    virtual void draw( LVDrawBuf & buf, const lvRect & rc )
+    {
+        buf.Rect( rc, 8, 0xAAAAAA );
+        buf.FillRect( getTitleRect( rc ), 0xAAAAAA );
+        buf.FillRect( getClientRect( rc ), 0xAAAAAA );
+        buf.Rect( rc, 1, 0x000000 );
+    }
+    virtual lvRect getBorderWidths()
+    {
+        return lvRect(8,8,8,8);
+    }
+    virtual lvRect getClientRect( const lvRect &windowRect )
+    {
+        lvRect rc = CRRectSkin::getClientRect( windowRect );
+        rc.top += 25;
+        return rc;
+    }
+    virtual lvPoint getTitleSize() { return lvPoint(0, 25); }
+    virtual CRRectSkinRef getItemSkin()
+    {
+        return CRRectSkinRef( new CRSimpleMenuItemSkin() );
+    }
+};
+
+/// returns window skin
+CRWindowSkinRef CRSkin::getWindowSkin( const lChar16 * path )
+{
+    return CRWindowSkinRef( new CRSimpleWindowSkin() );
+}
+
+/// returns menu skin
+CRMenuSkinRef CRSkin::getMenuSkin( const lChar16 * path )
+{
+    return CRMenuSkinRef( new CRSimpleMenuSkin() );
+}

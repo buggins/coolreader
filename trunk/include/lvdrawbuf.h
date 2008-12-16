@@ -74,11 +74,11 @@ public:
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color ) = 0;
     /// fills rectangle with specified color
-    inline void FillRect( lvRect & rc, lUInt32 color )
+    inline void FillRect( const lvRect & rc, lUInt32 color )
     {
         FillRect( rc.left, rc.top, rc.right, rc.bottom, color );
     }
-    /// fraws rectangle with specified color
+    /// draws rectangle with specified color
     inline void Rect( int x0, int y0, int x1, int y1, lUInt32 color )
     {
         FillRect( x0, y0, x1-1, y0+1, color );
@@ -86,10 +86,25 @@ public:
         FillRect( x1-1, y0, x1, y1, color );
         FillRect( x0, y1-1, x1, y1, color );
     }
-    /// fraws rectangle with specified color
-    inline void Rect( lvRect & rc, lUInt32 color )
+    /// draws rectangle with specified width and color
+    inline void Rect( int x0, int y0, int x1, int y1, int borderWidth, lUInt32 color )
+    {
+        FillRect( x0, y0, x1-1, y0+borderWidth, color );
+        FillRect( x0, y0, x0+borderWidth, y1-1, color );
+        FillRect( x1-borderWidth, y0, x1, y1, color );
+        FillRect( x0, y1-borderWidth, x1, y1, color );
+    }
+    /// draws rounded rectangle with specified line width, rounding radius, and color
+    void RoundRect( int x0, int y0, int x1, int y1, int borderWidth, int radius, lUInt32 color, int cornerFlags=0x0F  );
+    /// draws rectangle with specified color
+    inline void Rect( const lvRect & rc, lUInt32 color )
     {
         Rect( rc.left, rc.top, rc.right, rc.bottom, color );
+    }
+    /// draws rectangle with specified color
+    inline void Rect( const lvRect & rc, int borderWidth, lUInt32 color )
+    {
+        Rect( rc.left, rc.top, rc.right, rc.bottom, borderWidth, color );
     }
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern ) = 0;

@@ -24,6 +24,7 @@
 #include "lvptrvec.h"
 #include "lvdrawbuf.h"
 #include "lvdocview.h"
+#include "crskin.h"
 
 #ifdef CR_WX_SUPPORT
 #include <wx/wx.h>
@@ -197,7 +198,12 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         LVRef<CRGUIStringTranslator> _i18n;
         int _postedCommand;
         int _postedCommandParam;
+        CRSkinRef _skin;
     public:
+        /// set skin
+        virtual void setSkin( CRSkinRef skin ) { _skin = skin; }
+        /// returns currently selected skin
+        virtual CRSkinRef getSkin() { return _skin; }
         /// sets another i18n translator
         virtual void setTranslator( LVRef<CRGUIStringTranslator> i18n )
         {
@@ -707,7 +713,7 @@ class CRMenuItem
         /// measures item size
         virtual lvPoint getItemSize();
         /// draws item
-        virtual void Draw( LVDrawBuf & buf, lvRect & rc, bool selected );
+        virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
         /// returns true if submenu
         virtual bool isSubmenu() { return false; }
         /// called on item selection
@@ -730,7 +736,7 @@ class CRMenu : public CRMenuItem, public CRGUIWindowBase {
         int _pageItems;
         // override for CRGUIWindow method
         virtual void draw();
-        virtual void Draw( LVDrawBuf & buf, lvRect & rc, bool selected );
+        virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
         virtual void Draw( LVDrawBuf & buf, int x, int y );
     public:
         CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL )

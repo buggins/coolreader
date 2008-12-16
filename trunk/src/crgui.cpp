@@ -79,8 +79,9 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
 
 
 
-void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, bool selected )
+void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
 {
+    skin->draw( buf, rc );
     buf.SetTextColor( 0x000000 );
     buf.SetBackgroundColor( 0xFFFFFF );
     int imgWidth = 0;
@@ -118,9 +119,9 @@ int CRMenu::getTopItem()
     return _topItem;
 }
 
-void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, bool selected )
+void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
 {
-    CRMenuItem::Draw( buf, rc, selected );
+    CRMenuItem::Draw( buf, rc, skin, selected );
     lString16 s = getSubmenuValue();
     if ( s.empty() )
         return;
@@ -144,6 +145,9 @@ lvPoint CRMenuItem::getItemSize()
 
 lvPoint CRMenu::getItemSize()
 {
+    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin(L"/CR3Skin/SettingsMenu");
+    CRRectSkinRef itemSkin = skin->getItemSkin();
+    lvRect itemBorders = itemSkin->getBorderWidths();
     lvPoint sz = CRMenuItem::getItemSize();
     if ( !isSubmenu() || _propName.empty() || _props.isNull() )
         return sz;
@@ -155,7 +159,7 @@ lvPoint CRMenu::getItemSize()
             maxw = w;
     }
     if ( maxw>0 )
-        sz.x = sz.x + ITEM_MARGIN*2 + maxw;
+        sz.x = sz.x + itemBorders.left + itemBorders.right + maxw;
     return sz;
 }
 
@@ -193,11 +197,12 @@ lvPoint CRMenu::getSize()
         nItems = _pageItems;
         scrollHeight = SCROLL_HEIGHT;
     }
-    int h = ITEM_MARGIN + nItems * (itemSize.y + ITEM_MARGIN) + itemSize.y + ITEM_MARGIN + ITEM_MARGIN + scrollHeight;
+    int h = ITEM_MARGIN + nItems * (itemSize.y + ITEM_MARGIN) + scrollHeight;
     int w = itemSize.x + 3 * ITEM_MARGIN + HOTKEY_SIZE;
     if ( w>600 )
         w = 600;
-    return lvPoint( w, h );
+    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin(L"/CR3Skin/SettingsMenu");
+    return skin->getWindowSize( lvPoint( w, h ) );
 }
 
 lString16 CRMenu::getSubmenuValue()
@@ -248,8 +253,15 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
 
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
+    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin(L"/CR3Skin/SettingsMenu");
+    CRRectSkinRef itemSkin = skin->getItemSkin();
+    lvRect itemBorders = itemSkin->getBorderWidths();
+
     buf.SetTextColor( 0x000000 );
     buf.SetBackgroundColor( 0xFFFFFF );
+
+    skin->draw( buf, _rect );
+
     lvPoint itemSize = getMaxItemSize();
     int hdrHeight = itemSize.y + ITEM_MARGIN + ITEM_MARGIN;
     lvPoint sz = getSize();
@@ -264,9 +276,9 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     lvRect itemsRc( x, y + hdrHeight, x + sz.x, y + sz.y - scrollHeight + 1 );
     lvRect headerRc( x, y, x + sz.x, itemsRc.top+1 );
     lvRect scrollRc( x, y + sz.y - scrollHeight, x + sz.x, y + sz.y );
-    buf.FillRect( x, y, x+sz.x, y+sz.y, buf.GetBackgroundColor() );
-    buf.Rect( headerRc, buf.GetTextColor() );
-    buf.Rect( itemsRc, buf.GetTextColor() );
+    //buf.FillRect( x, y, x+sz.x, y+sz.y, buf.GetBackgroundColor() );
+    //buf.Rect( headerRc, buf.GetTextColor() );
+    //buf.Rect( itemsRc, buf.GetTextColor() );
     // draw scrollbar
     if ( scrollHeight ) {
         int totalCount = _items.length();
@@ -291,7 +303,7 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     headerRc.shrink( 2 );
     buf.FillRect( headerRc, 0xA0A0A0 );
     headerRc.shrink( ITEM_MARGIN );
-    CRMenuItem::Draw( buf, headerRc, false );
+    CRMenuItem::Draw( buf, headerRc, itemSkin, false );
     lvRect rc( itemsRc );
     rc.top += ITEM_MARGIN;
     rc.left += ITEM_MARGIN;
@@ -333,7 +345,7 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         // item
         lvRect itemRc( rc );
         itemRc.left = numberRc.right + ITEM_MARGIN;
-        _items[i]->Draw( buf, itemRc, selected );
+        _items[i]->Draw( buf, itemRc, itemSkin, selected );
         rc.top += ITEM_MARGIN + itemSize.y;
     }
 }
