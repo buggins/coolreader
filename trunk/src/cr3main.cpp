@@ -224,6 +224,19 @@ enum CRMainMenuCmd
 
 DECL_DEF_CR_FONT_SIZES;
 
+const char * cr_default_skin =
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+"<CR3Skin>\n"
+"  <MainMenu>\n"
+"     <title fontFace=\"Arial\" fontSize=\"20\" fontColor=\"#000000\" height=\"25\" />\n"
+"     <frame borderWidths=\"8,8,8,8\" />\n"
+"  </MainMenu>\n"
+"  <SettingsMenu>\n"
+"     <title fontFace=\"Arial\" fontSize=\"20\" fontColor=\"#000000\" height=\"25\" />\n"
+"     <frame borderWidths=\"8,8,8,8\" />\n"
+"  </SettingsMenu>\n"
+"</CR3Skin>\n";
+
 // TODO: get from skin
 class V3DocViewWin : public CRDocViewWindow
 {
@@ -249,6 +262,9 @@ public:
         _docview->setFontSizes( sizes, true );
         _props = LVCreatePropsContainer();
         _newProps = _props;
+        // TODO: move skin outside
+        CRSkinRef skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );
+        wm->setSkin( skin );
         // TODO: move accelerator table outside
         static const int acc_table[] = {
             XK_Escape, 0, MCMD_CANCEL, 0,
