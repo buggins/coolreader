@@ -2619,7 +2619,21 @@ LVContainerRef LVOpenArchieve( LVStreamRef stream )
 }
 #endif
 
-LVStreamRef LVCreateMemoryStream( const void * buf, int bufSize, bool createCopy, lvopen_mode_t mode )
+/// Creates memory stream as copy of string contents
+LVStreamRef LVCreateStringStream( lString8 data )
+{
+    LVMemoryStream * stream = new LVMemoryStream();
+    stream->CreateCopy( (const lUInt8*)data.c_str(), data.length(), LVOM_READ );
+    return LVStreamRef( stream );
+}
+
+/// Creates memory stream as copy of string contents
+LVStreamRef LVCreateStringStream( lString16 data )
+{
+    return LVCreateStringStream( UnicodeToUtf8( data ) );
+}
+
+LVStreamRef LVCreateMemoryStream( void * buf, int bufSize, bool createCopy, lvopen_mode_t mode )
 {
     LVMemoryStream * stream = new LVMemoryStream();
     if ( !buf )

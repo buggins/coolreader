@@ -582,11 +582,15 @@ LVContainerRef LVOpenArchieve( LVStreamRef stream );
     \param mode is open mode
     \return reference to opened stream if success, NULL reference if error
 */
-LVStreamRef LVCreateMemoryStream( const void * buf = NULL, int bufSize = 0, bool createCopy = false, lvopen_mode_t mode = LVOM_READ );
+LVStreamRef LVCreateMemoryStream( void * buf = NULL, int bufSize = 0, bool createCopy = false, lvopen_mode_t mode = LVOM_READ );
 /// Creates memory stream as copy of another stream.
 LVStreamRef LVCreateMemoryStream( LVStreamRef srcStream );
 /// Creates memory stream as copy of file contents.
 LVStreamRef LVCreateMemoryStream( lString16 filename );
+/// Creates memory stream as copy of string contents
+LVStreamRef LVCreateStringStream( lString8 data );
+/// Creates memory stream as copy of string contents
+LVStreamRef LVCreateStringStream( lString16 data );
 
 LVContainerRef LVOpenDirectory( const lChar16 * path );
 
