@@ -2579,6 +2579,11 @@ bool LVDocView::ParseDocument( )
     ldomDocumentWriter writer(m_doc);
     ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
 
+    if ( m_stream->GetSize()<5 ) {
+        createDefaultDocument( lString16(L"ERROR: Wrong document size"), lString16(L"Cannot open document") );
+        return false;
+    }
+
     /// FB2 format
     setDocFormat( doc_format_fb2 );
     LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);

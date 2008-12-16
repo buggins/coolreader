@@ -123,7 +123,7 @@ public:
             break;
         case tpi_irowN:   // N is the row index of this row.
             break;
-        case tpi_irowbandN: // N is the row index of the row, adjusted to account for header rows. A header row has a value of –1.
+        case tpi_irowbandN: // N is the row index of the row, adjusted to account for header rows. A header row has a value of ï¿½1.
             break;
         case tpi_row:    // Denotes the end of a row.
             if ( tblState > tbls_intable )
@@ -298,7 +298,8 @@ bool LVRtfParser::CheckFormat()
 {
     bool res = false;
     Reset();
-    FillBuffer( 50 );
+    if ( !FillBuffer( 50 ) )
+        return false;
     res = (m_buf[0]=='{' && m_buf[1]=='\\' && m_buf[2]=='r'
          && m_buf[3]=='t' && m_buf[4]=='f' );
     Reset();
