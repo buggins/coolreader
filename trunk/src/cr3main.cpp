@@ -520,6 +520,7 @@ CRWin32WindowManager * CRWin32WindowManager::instance = NULL;
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	bool needUpdate = false;
     //int wmId, wmEvent;
     switch (message)
     {
@@ -536,7 +537,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (wParam!=SIZE_MINIMIZED)
                 {
                     CRWin32WindowManager::instance->setSize( LOWORD(lParam), HIWORD(lParam) );
-                    CRWin32WindowManager::instance->update(true);
+                    needUpdate = true;
                 }
             }
             break;
@@ -558,8 +559,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_CHAR:
             {
                 if ( wParam>=' ' && wParam<=127 ) {
-                    CRWin32WindowManager::instance->onKeyPressed( wParam, 0 );
-                    CRWin32WindowManager::instance->update(true);
+                    needUpdate = CRWin32WindowManager::instance->onKeyPressed( wParam, 0 );
                 }
             }
             break;
@@ -588,8 +588,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 if ( code ) {
-                    CRWin32WindowManager::instance->onKeyPressed( code, 0 );
-                    CRWin32WindowManager::instance->update(true);
+                    if ( CRWin32WindowManager::instance->onKeyPressed( code, 0 ) )
+						needUpdate = true;
                 }
             }
             break;
@@ -629,6 +629,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
    }
+    if ( CRWin32WindowManager::instance && (CRWin32WindowManager::instance->processPostedEvents() || needUpdate) )
+        CRWin32WindowManager::instance->update(true);
    return 0;
 }
 

@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\crengine\src\crskin.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\crtxtenc.cpp"
 				>
 			</File>
@@ -275,6 +279,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\settings.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\w32utils.cpp"
 				>
 			</File>
@@ -302,6 +310,10 @@
 			</File>
 			<File
 				RelativePath="..\..\crengine\include\crsetup.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\crengine\include\crskin.h"
 				>
 			</File>
 			<File
@@ -438,6 +450,10 @@
 			</File>
 			<File
 				RelativePath="..\..\crengine\include\rtfimp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\settings.h"
 				>
 			</File>
 			<File
