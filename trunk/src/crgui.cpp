@@ -16,7 +16,7 @@
 
 //TODO: place to skin file
 #define ITEM_MARGIN 8
-#define HOTKEY_SIZE 24
+#define HOTKEY_SIZE 36
 #define MENU_NUMBER_FONT_SIZE 24
 #define SCROLL_HEIGHT 24
 #define DEF_FONT_SIZE 22
@@ -81,18 +81,19 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
 
 void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
 {
+    lvRect itemBorders = skin->getBorderWidths();
     skin->draw( buf, rc );
     buf.SetTextColor( 0x000000 );
     buf.SetBackgroundColor( 0xFFFFFF );
     int imgWidth = 0;
-    int hh = rc.bottom - rc.top;
+	int hh = rc.bottom - rc.top - itemBorders.top - itemBorders.bottom;
     if ( !_image.isNull() ) {
         int w = _image->GetWidth();
         int h = _image->GetHeight();
-        buf.Draw( _image, rc.left + hh/2-w/2, rc.top + hh/2 - h/2, w, h );
+		buf.Draw( _image, rc.left + hh/2-w/2 + itemBorders.left, rc.top + hh/2 - h/2 + itemBorders.top, w, h );
         imgWidth = w + ITEM_MARGIN;
     }
-    _defFont->DrawTextString( &buf, rc.left + imgWidth, rc.top + hh/2 - _defFont->getHeight()/2, _label.c_str(), _label.length(), L'?', NULL, false, 0 );
+	_defFont->DrawTextString( &buf, rc.left + imgWidth + itemBorders.left, rc.top + hh/2 + itemBorders.top - _defFont->getHeight()/2, _label.c_str(), _label.length(), L'?', NULL, false, 0 );
 }
 
 int CRMenu::getPageCount()
@@ -140,6 +141,8 @@ lvPoint CRMenuItem::getItemSize()
             h = _image->GetHeight() * 8 / 7;
         w += h;
     }
+	if ( h < 48 )
+		h = 48;
     return lvPoint( w, h );
 }
 
@@ -165,7 +168,10 @@ lvPoint CRMenu::getItemSize()
 
 int CRMenu::getItemHeight()
 {
-    return _defFont->getHeight() * 5/4;
+    int h = _defFont->getHeight() * 5/4;
+	if ( h < 48 )
+		h = 48;
+	return h;
 }
 
 lvPoint CRMenu::getMaxItemSize()
@@ -197,7 +203,7 @@ lvPoint CRMenu::getSize()
         nItems = _pageItems;
         scrollHeight = SCROLL_HEIGHT;
     }
-    int h = ITEM_MARGIN + nItems * (itemSize.y + ITEM_MARGIN) + scrollHeight;
+    int h = nItems * (itemSize.y) + scrollHeight;
     int w = itemSize.x + 3 * ITEM_MARGIN + HOTKEY_SIZE;
     if ( w>600 )
         w = 600;
@@ -251,11 +257,136 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
     }
 }
 
+/* XPM */
+static const char *menu_shortcut_background[] = {
+/* width height num_colors chars_per_pixel */
+"36 48 5 1",
+/* colors */
+"  c None",
+". c #000000",
+"o c #555555",
+"0 c #AAAAAA",
+"# c #ffffff",
+/* pixels               ..                       */
+"                                    ",
+"                                    ",
+"                                    ",
+"                                    ",
+"                oooooooooooooooooooo",
+"             ooooooooooooooooooooooo",
+"          oooooooooooooooooooooooooo",
+"        oooooooo####################",
+"      oooooo########################",
+"     oooo###########################",
+"    oooo############################",
+"   ooo##############################",
+"   ooo##############################",
+"  ooo###############################",
+"  ooo###############################",
+"  ooo###############################",
+" ooo################################",
+" ooo################################",
+" ooo################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",//==
+"ooo#################################",//==
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+" ooo################################",
+" ooo################################",
+" ooo################################",
+"  ooo###############################",
+"  ooo###############################",
+"  ooo###############################",
+"   ooo##############################",
+"   ooo##############################",
+"    ooo#############################",
+"     oooo###########################",
+"      oooooo########################",
+"       oooooooo#####################",
+"         ooooooooooooooooooooooooooo",
+"            oooooooooooooooooooooooo",
+"               ooooooooooooooooooooo",
+"                                    ",
+"                                    ",
+"                                    ",
+"                                    ",
+};
+
+#if 0
+/* XPM */
+static const char *menu_shortcut_background[] = {
+/* width height num_colors chars_per_pixel */
+"48 48 5 1",
+/* colors */
+"  c None",
+". c #000000",
+"o c #555555",
+"0 c #AAAAAA",
+"# c #ffffff",
+/* pixels               ..                       */
+"                                                ",
+"                                                ",
+"                                                ",
+"                                                ",
+"                    oooooooooooooooooooooooooooo",
+"                 ooooooooooooooooooooooooooooooo",
+"              oooooooooooooooooooooooooooooooooo",
+"            oooooooo############################",
+"          oooooo################################",
+"         oooo###################################",
+"        oooo####################################",
+"       ooo######################################",
+"       ooo######################################",
+"      ooo#######################################",
+"      ooo#######################################",
+"      ooo#######################################",
+"     ooo########################################",
+"     ooo########################################",
+"     ooo########################################",
+"    ooo#########################################",
+"    ooo#########################################",
+"    ooo#########################################",
+"    ooo#########################################",
+"    ooo#########################################",//==
+"    ooo#########################################",//==
+"    ooo#########################################",
+"    ooo#########################################",
+"    ooo#########################################",
+"    ooo#########################################",
+"     ooo########################################",
+"     ooo########################################",
+"     ooo########################################",
+"      ooo#######################################",
+"      ooo#######################################",
+"      ooo#######################################",
+"       ooo######################################",
+"       ooo######################################",
+"        ooo#####################################",
+"         oooo###################################",
+"          oooooo################################",
+"           oooooooo#############################",
+"             ooooooooooooooooooooooooooooooooooo",
+"                oooooooooooooooooooooooooooooooo",
+"                   ooooooooooooooooooooooooooooo",
+"                                                ",
+"                                                ",
+"                                                ",
+"                                                ",
+};
+#endif
+
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
     CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin(L"/CR3Skin/SettingsMenu");
     CRRectSkinRef itemSkin = skin->getItemSkin();
     lvRect itemBorders = itemSkin->getBorderWidths();
+	lvRect headerRc = skin->getTitleRect(_rect);
 
     buf.SetTextColor( 0x000000 );
     buf.SetBackgroundColor( 0xFFFFFF );
@@ -263,7 +394,7 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     skin->draw( buf, _rect );
 
     lvPoint itemSize = getMaxItemSize();
-    int hdrHeight = itemSize.y + ITEM_MARGIN + ITEM_MARGIN;
+    int hdrHeight = itemSize.y; // + ITEM_MARGIN + ITEM_MARGIN;
     lvPoint sz = getSize();
 
     int nItems = _items.length();
@@ -273,9 +404,11 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         scrollHeight = SCROLL_HEIGHT;
     }
 
-    lvRect itemsRc( x, y + hdrHeight, x + sz.x, y + sz.y - scrollHeight + 1 );
-    lvRect headerRc( x, y, x + sz.x, itemsRc.top+1 );
-    lvRect scrollRc( x, y + sz.y - scrollHeight, x + sz.x, y + sz.y );
+	lvRect itemsRc( skin->getClientRect(_rect) );
+	itemsRc.bottom -= scrollHeight;
+	//lvRect headerRc( x + itemBorders.left, y + itemBorders.top, x + sz.x - itemBorders.right, itemsRc.top+1 );
+    lvRect scrollRc( skin->getClientRect(_rect) );
+	scrollRc.top = scrollRc.bottom - scrollHeight;
     //buf.FillRect( x, y, x+sz.x, y+sz.y, buf.GetBackgroundColor() );
     //buf.Rect( headerRc, buf.GetTextColor() );
     //buf.Rect( itemsRc, buf.GetTextColor() );
@@ -300,14 +433,14 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         scrollRc.shrink( 2 );
         buf.FillRect( scrollRc, 0xAAAAAA );
     }
-    headerRc.shrink( 2 );
-    buf.FillRect( headerRc, 0xA0A0A0 );
-    headerRc.shrink( ITEM_MARGIN );
+    //headerRc.shrink( 2 );
+    //buf.FillRect( headerRc, 0xA0A0A0 );
+    //headerRc.shrink( ITEM_MARGIN );
     CRMenuItem::Draw( buf, headerRc, itemSkin, false );
     lvRect rc( itemsRc );
-    rc.top += ITEM_MARGIN;
-    rc.left += ITEM_MARGIN;
-    rc.right -= ITEM_MARGIN;
+    rc.top += 0; //ITEM_MARGIN;
+    //rc.left += ITEM_MARGIN;
+    //rc.right -= ITEM_MARGIN;
     LVFontRef numberFont( fontMan->GetFont( MENU_NUMBER_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
     for ( int index=0; index<_pageItems; index++ ) {
         int i = _topItem + index;
@@ -330,13 +463,18 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         }
         // number
         lvRect numberRc( rc );
-        numberRc.extend(ITEM_MARGIN/4); //ITEM_MARGIN/8-2);
+        //numberRc.extend(ITEM_MARGIN/4); //ITEM_MARGIN/8-2);
         numberRc.right = numberRc.left + HOTKEY_SIZE;
-        buf.FillRect( numberRc, selected ? 0x555555: 0xAAAAAA );
+
+
+		LVImageSourceRef img = LVCreateStretchFilledTransform( LVCreateXPMImageSource( menu_shortcut_background ),
+			numberRc.width(), numberRc.height(), 30, 24 );
+		buf.Draw( img, numberRc.left, numberRc.top, numberRc.width(), numberRc.height() );
+
         lvColor oldBgColor = buf.GetBackgroundColor();
         lvColor oldTextColor = buf.GetTextColor();
-        buf.SetBackgroundColor( selected ? 0x555555 : 0xAAAAAA );
-        buf.SetTextColor( 0xFFFFFF );
+        buf.SetBackgroundColor( 0xFFFFFF );
+        buf.SetTextColor( 0x555555 );
         lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
         int w = numberFont->getTextWidth( number.c_str(), number.length() );
         numberFont->DrawTextString( &buf, (numberRc.left + numberRc.right - w)/2, (numberRc.top + numberRc.bottom - numberFont->getHeight())/2, number.c_str(), number.length(), L'?', NULL, false, 0 );
@@ -344,9 +482,9 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         buf.SetTextColor( oldTextColor );
         // item
         lvRect itemRc( rc );
-        itemRc.left = numberRc.right + ITEM_MARGIN;
+        itemRc.left = numberRc.right;
         _items[i]->Draw( buf, itemRc, itemSkin, selected );
-        rc.top += ITEM_MARGIN + itemSize.y;
+        rc.top += itemSize.y;
     }
 }
 

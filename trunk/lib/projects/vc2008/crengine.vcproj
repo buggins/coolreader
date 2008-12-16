@@ -532,6 +532,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\crgui.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\crtxtenc.cpp"
 				>
 				<FileConfiguration

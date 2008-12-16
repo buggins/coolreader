@@ -45,6 +45,9 @@ public:
 
 typedef LVRef< LVImageSource > LVImageSourceRef;
 
+/// creates image which stretches source image by filling center with pixels at splitX, splitY
+LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, int splitX=-1, int splitY=-1 );
+/// creates XPM image
 LVImageSourceRef LVCreateXPMImageSource( const char * data[] );
 LVImageSourceRef LVCreateNodeImageSource( ldomNode * node );
 LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int height );

@@ -111,6 +111,69 @@ CRSkinRef LVOpenSkin( const lString16 & pathname )
     return res;
 }
 
+
+
+/* XPM */
+static const char *menu_item_background[] = {
+/* width height num_colors chars_per_pixel */
+"44 48 5 1",
+/* colors */
+"  c None",
+". c #000000",
+"o c #555555",
+"0 c #AAAAAA",
+"# c #ffffff",
+/* pixels               ..                       */
+"                                            ",
+"                                            ",
+"                                            ",
+"                                            ",
+"oooooooooooooooooooooooooooooooooooooooooooo",
+"oooooooooooooooooooooooooooooooooooooooooooo",
+"oooooooooooooooooooooooooooooooooooooooooooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"ooo######################################ooo",
+"oooooooooooooooooooooooooooooooooooooooooooo",
+"oooooooooooooooooooooooooooooooooooooooooooo",
+"oooooooooooooooooooooooooooooooooooooooooooo",
+"                                            ",
+"                                            ",
+"                                            ",
+"                                            ",
+};
+
 lvRect CRRectSkin::getClientRect( const lvRect &windowRect )
 {
     lvRect rc = windowRect;
@@ -165,16 +228,18 @@ public:
 class CRSimpleMenuItemSkin : public CRRectSkin
 {
 public:
+	CRSimpleMenuItemSkin()
+	{
+	}
     virtual lvRect getBorderWidths()
     {
-        return lvRect(4,4,4,4);
+        return lvRect(12,6,12,6);
     }
     virtual void draw( LVDrawBuf & buf, const lvRect & rc )
     {
-        lvRect r = rc;
-        buf.Rect( r, 2, 0x555555 );
-        r.shrink( 2 );
-        buf.FillRect( r, 0xFFFFFF );
+		LVImageSourceRef img = LVCreateStretchFilledTransform( LVCreateXPMImageSource( menu_item_background ),
+			rc.width(), rc.height() );
+		buf.Draw( img, rc.left, rc.top, rc.width(), rc.height() );
     }
 };
 
@@ -186,7 +251,6 @@ public:
         buf.Rect( rc, 8, 0xAAAAAA );
         buf.FillRect( getTitleRect( rc ), 0xAAAAAA );
         buf.FillRect( getClientRect( rc ), 0xAAAAAA );
-        buf.Rect( rc, 1, 0x000000 );
     }
     virtual lvRect getBorderWidths()
     {
@@ -194,11 +258,12 @@ public:
     }
     virtual lvRect getClientRect( const lvRect &windowRect )
     {
+		lvPoint tsz = getTitleSize();
         lvRect rc = CRRectSkin::getClientRect( windowRect );
-        rc.top += 25;
+		rc.top += tsz.y;
         return rc;
     }
-    virtual lvPoint getTitleSize() { return lvPoint(0, 25); }
+    virtual lvPoint getTitleSize() { return lvPoint(0, 48); }
     virtual CRRectSkinRef getItemSkin()
     {
         return CRRectSkinRef( new CRSimpleMenuItemSkin() );

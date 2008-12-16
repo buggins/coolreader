@@ -1425,3 +1425,88 @@ LVImageSourceRef LVCreateFileCopyImageSource( lString16 fname )
     return LVCreateStreamImageSource( LVCreateMemoryStream(fname) );
 }
 
+class LVStretchImgSource : public LVImageSource, public LVImageDecoderCallback
+{
+protected:
+	LVImageSourceRef _src;
+	int _src_dx;
+	int _src_dy;
+	int _dst_dx;
+	int _dst_dy;
+	int _split_x;
+	int _split_y;
+	LVAutoPtr<lUInt32> _line;
+	LVImageDecoderCallback * _callback;
+public:
+	LVStretchImgSource( LVImageSourceRef src, int newWidth, int newHeight, int splitX, int splitY )
+		: _src( src )
+		, _src_dx( src->GetWidth() )
+		, _src_dy( src->GetHeight() )
+		, _dst_dx( newWidth )
+		, _dst_dy( newHeight )
+		, _split_x( splitX )
+		, _split_y( splitY )
+	{
+		if ( _split_x<0 || _split_x>=_src_dx )
+			_split_x = _src_dx / 2;
+		if ( _split_y<0 || _split_y>=_src_dy )
+			_split_y = _src_dy / 2;
+	}
+    virtual void OnStartDecode( LVImageSource * obj )
+	{
+		_line.realloc( _dst_dx );
+	}
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data )
+	{
+		bool res = false;
+		int right_pixels = (_src_dx-_split_x-1);
+		int first_right_pixel = _dst_dx - right_pixels;
+		int right_offset = _src_dx - _dst_dx;
+		int middle_pixels = _dst_dy - _src_dy + 1;
+		int bottom_pixels = (_src_dy-_split_y-1);
+		int first_bottom_pixel = _dst_dy - bottom_pixels;
+		for ( int x=0; x<_dst_dx; x++ ) {
+			if ( x<_split_x )
+				_line[x] = data[x];
+			else if ( x < first_right_pixel )
+				_line[x] = data[_split_x];
+			else
+				_line[x] = data[x + right_offset];
+		}
+		if ( y < _split_y ) {
+			res = _callback->OnLineDecoded( obj, y, _line.get() );
+		} else if ( y==_split_y ) {
+			for ( int i=0; i < middle_pixels; i++ ) {
+				res = _callback->OnLineDecoded( obj, y+i, _line.get() );
+			}
+		} else {
+			res = _callback->OnLineDecoded( obj, y + (_dst_dy - _src_dy), _line.get() );
+		}
+		return res;
+	}
+    virtual void OnEndDecode( LVImageSource * obj, bool errors )
+	{
+		_line.clear();
+	}
+	virtual ldomNode * GetSourceNode() { return NULL; }
+	virtual LVStream * GetSourceStream() { return NULL; }
+	virtual void   Compact() { }
+	virtual int    GetWidth() { return _dst_dx; }
+	virtual int    GetHeight() { return _dst_dy; }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+	{
+		_callback = callback;
+		return _src->Decode( this );
+	}
+    virtual ~LVStretchImgSource()
+	{
+	}
+};
+
+/// creates image which stretches source image by filling center with pixels at splitX, splitY
+LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, int splitX, int splitY )
+{
+	if ( src.isNull() )
+		return LVImageSourceRef();
+	return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, splitX, splitY ) );
+}

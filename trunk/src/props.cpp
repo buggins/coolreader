@@ -581,9 +581,11 @@ bool CRPropAccessor::loadFromStream( LVStream * stream )
             lString8 value( eqpos+1, elp - eqpos - 1);
             setString( name.c_str(), Utf8ToUnicode(removeBackslashChars(value)) );
         }
-        for ( p=elp; *elp!='\r' && *elp!='\n'; p++)
+        for ( p=elp; *elp && *elp!='\r' && *elp!='\n'; elp++)
             ;
-        p = *elp ? elp + 2 : elp;
+        p = elp;
+		while ( *p=='\r' || *p=='\n' )
+			p++;
     }
     // cleanup
     delete[] buf;
