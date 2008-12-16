@@ -970,10 +970,6 @@ public:
                                             key,
                                             xcb_lookup_chars_t); //xcb_lookup_key_sym_t xcb_lookup_chars_t
                     printf("Key released keycode=%d char=%04x\n", (int)key, (int)sym );
-                    if ( sym==XK_Escape ) {
-                        stop = true;
-                        break;
-                    }
                     int cmd = 0;
 #if 0
                     switch ( sym ) {
