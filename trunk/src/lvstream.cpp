@@ -968,6 +968,11 @@ public:
     {
         if ( m_pos + size > m_size )
             size = m_size - m_pos;
+        if ( size <= 0 ) {
+            if ( pBytesRead )
+                *pBytesRead = 0;
+            return LVERR_FAIL;
+        }
         int startIndex = (int)(m_pos >> CACHE_BUF_BLOCK_SHIFT);
         int endIndex = (int)((m_pos + size - 1) >> CACHE_BUF_BLOCK_SHIFT);
         int count = endIndex - startIndex + 1;
@@ -2564,7 +2569,6 @@ public:
 	{
 		Close();
 		m_bufsize = size;
-		m_size = 0;
 		m_pos = 0;
 		m_pBuffer = new lUInt8[(int)m_bufsize];
 		if (m_pBuffer) {
@@ -2572,6 +2576,7 @@ public:
 		}
 		m_own_buffer = true;
 		m_mode = mode;
+        m_size = size;
 		if (mode==LVOM_APPEND)
 			m_pos = m_size;
 		return LVERR_OK;
