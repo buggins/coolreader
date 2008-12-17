@@ -148,7 +148,8 @@ lvPoint CRMenuItem::getItemSize()
 
 lvPoint CRMenu::getItemSize()
 {
-    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin(L"/CR3Skin/SettingsMenu");
+    lString16 path = lString16(L"/CR3Skin/") + getSkinName();
+    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( path.c_str() );
     CRRectSkinRef itemSkin = skin->getItemSkin();
     lvRect itemBorders = itemSkin->getBorderWidths();
     lvPoint sz = CRMenuItem::getItemSize();
@@ -207,7 +208,8 @@ lvPoint CRMenu::getSize()
     int w = itemSize.x + 3 * ITEM_MARGIN + HOTKEY_SIZE;
     if ( w>600 )
         w = 600;
-    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin(L"/CR3Skin/SettingsMenu");
+    lString16 path = lString16(L"/CR3Skin/") + getSkinName();
+    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( path.c_str() );
     return skin->getWindowSize( lvPoint( w, h ) );
 }
 
@@ -259,7 +261,8 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
 
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
-    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin(L"/CR3Skin/SettingsMenu");
+    lString16 path = lString16(L"/CR3Skin/") + getSkinName();
+    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( path.c_str() );
     CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef titleSkin = skin->getTitleSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();

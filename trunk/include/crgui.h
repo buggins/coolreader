@@ -155,6 +155,10 @@ class CRGUIScreen
 class CRGUIWindow
 {
     public:
+        /// sets skin name for window
+        virtual void setSkinName( const lString16  & skin ) = 0;
+        /// returns skin name for window
+        virtual lString16 getSkinName() = 0;
         /// set accelerator table for window
         virtual void setAccelerators( CRGUIAcceleratorTableRef table ) { }
         /// get window accelerator table
@@ -435,8 +439,13 @@ class CRGUIWindowBase : public CRGUIWindow
         bool _fullscreen;
         bool _dirty;
         CRGUIAcceleratorTableRef _acceleratorTable;
+        lString16 _skinName;
         virtual void draw() = 0;
     public:
+        /// sets skin name for window
+        virtual void setSkinName( const lString16  & skin ) { _skinName = skin; }
+        /// returns skin name for window
+        virtual lString16 getSkinName() { return _skinName; }
         /// returns true if key is processed (by default, let's translate key to command using accelerator table)
         virtual bool onKeyPressed( int key, int flags = 0 );
         /// set accelerator table for window
