@@ -44,33 +44,69 @@ public:
 
 class CRSkinnedItem : public LVRefCounter
 {
+protected:
+	lUInt32 _textcolor;
+	lUInt32 _bgcolor;
+	LVImageSourceRef _bgimage;
+	lvPoint _bgimagesplit;
+	LVFontRef _font;
 public:
-    virtual void draw( LVDrawBuf & buf, const lvRect & rc ) = 0;
+	CRSkinnedItem();
+	virtual lUInt32 getTextColor() { return _textcolor; }
+	virtual lUInt32 getBackgroundColor() { return _bgcolor; }
+	virtual LVImageSourceRef getBackgroundImage() { return _bgimage; }
+	virtual lvPoint getBackgroundImageSplit() { return _bgimagesplit; }
+	virtual LVFontRef getFont() { return _font; }
+	virtual void setTextColor( lUInt32 color ) { _textcolor = color; }
+	virtual void setBackgroundColor( lUInt32 color ) { _bgcolor = color; }
+	virtual void setBackgroundImage( LVImageSourceRef img ) { _bgimage = img; }
+	virtual void setBackgroundImageSplit( lvPoint pt ) { _bgimagesplit = pt; }
+	virtual void setFont( LVFontRef fnt ) { _font = fnt; }
+    virtual void draw( LVDrawBuf & buf, const lvRect & rc );
     virtual ~CRSkinnedItem() { }
 };
 
 class CRRectSkin : public CRSkinnedItem
 {
+protected:
+	lvRect _margins;
 public:
-    virtual lvRect getBorderWidths() = 0;
+	CRRectSkin();
+	virtual void setBorderWidths( const lvRect & rc) { _margins = rc; }
+	virtual lvRect getBorderWidths() { return _margins; }
     virtual lvRect getClientRect( const lvRect &windowRect );
 };
 typedef LVFastRef<CRRectSkin> CRRectSkinRef;
 
 class CRWindowSkin : public CRRectSkin
 {
+protected:
+	lvPoint _titleSize;
+	CRRectSkinRef _titleSkin;
 public:
+	CRWindowSkin();
     /// returns necessary window size for specified client size
     virtual lvPoint getWindowSize( const lvPoint & clientSize );
-    virtual lvPoint getTitleSize() = 0;
+	virtual lvPoint getTitleSize() { return _titleSize; }
+	virtual void setTitleSize( lvPoint sz ) { _titleSize = sz; }
     virtual lvRect getTitleRect( const lvRect &windowRect );
+    virtual lvRect getClientRect( const lvRect &windowRect );
+	virtual CRRectSkinRef getTitleSkin() { return _titleSkin; }
+	virtual void setTitleSkin( CRRectSkinRef skin ) { _titleSkin = skin; }
 };
 typedef LVFastRef<CRWindowSkin> CRWindowSkinRef;
 
 class CRMenuSkin : public CRWindowSkin
 {
+protected:
+	CRRectSkinRef _itemSkin;
+	CRRectSkinRef _itemShortcutSkin;
 public:
-    virtual CRRectSkinRef getItemSkin() = 0;
+	CRMenuSkin();
+	virtual CRRectSkinRef getItemSkin() { return _itemSkin; }
+	virtual void setItemSkin( CRRectSkinRef skin ) { _itemSkin = skin; }
+	virtual CRRectSkinRef getItemShortcutSkin() { return _itemShortcutSkin; }
+	virtual void setItemShortcutSkin( CRRectSkinRef skin ) { _itemShortcutSkin = skin; }
 };
 typedef LVFastRef<CRMenuSkin> CRMenuSkinRef;
 

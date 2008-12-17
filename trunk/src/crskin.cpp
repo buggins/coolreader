@@ -111,7 +111,23 @@ CRSkinRef LVOpenSkin( const lString16 & pathname )
     return res;
 }
 
+// default parameters
+//LVFontRef CRSkinnedItem::getFont() { return fontMan->GetFont( 24, 300, false, css_ff_sans_serif, lString8("Arial")) }
 
+void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
+{
+	buf.SetBackgroundColor( getBackgroundColor() );
+	buf.SetTextColor( getTextColor() );
+	LVImageSourceRef bgimg = getBackgroundImage();
+	if ( bgimg.isNull() ) {
+		buf.FillRect( rc, getBackgroundColor() );
+	} else {
+		lvPoint split = getBackgroundImageSplit();
+		LVImageSourceRef img = LVCreateStretchFilledTransform( bgimg,
+			rc.width(), rc.height() );
+		buf.Draw( img, rc.left, rc.top, rc.width(), rc.height() );
+	}
+}
 
 /* XPM */
 static const char *menu_item_background[] = {
@@ -194,6 +210,15 @@ lvRect CRWindowSkin::getTitleRect( const lvRect &windowRect )
     return rc;
 }
 
+lvRect CRWindowSkin::getClientRect( const lvRect &windowRect )
+{
+	lvRect rc = CRRectSkin::getClientRect( windowRect );
+    lvPoint tsz = getTitleSize();
+	rc.top += tsz.y;
+	rc.left += tsz.x;
+	return rc;
+}
+
 /// returns necessary window size for specified client size
 lvPoint CRWindowSkin::getWindowSize( const lvPoint & clientSize )
 {
@@ -202,72 +227,57 @@ lvPoint CRWindowSkin::getWindowSize( const lvPoint & clientSize )
     return lvPoint( clientSize.x + borders.left + borders.right + tsz.x, clientSize.y + borders.top + borders.bottom + tsz.y );
 }
 
+CRSkinnedItem::CRSkinnedItem()
+:	_textcolor( 0x000000 )
+,	_bgcolor( 0xFFFFFF )
+,	_bgimagesplit(-1,-1)
+{
+}
+
+CRRectSkin::CRRectSkin()
+: _margins( 4, 4, 4, 4 )
+{
+}
+
+CRWindowSkin::CRWindowSkin()
+: _titleSize( 0, 28 )
+{
+}
+
+CRMenuSkin::CRMenuSkin()
+{
+}
+
+
 // WINDOW skin stub
 class CRSimpleWindowSkin : public CRWindowSkin
 {
 public:
-    virtual void draw( LVDrawBuf & buf, const lvRect & rc )
-    {
-        buf.Rect( rc, 8, 0xAAAAAA );
-        buf.FillRect( getTitleRect( rc ), 0xAAAAAA );
-        buf.FillRect( getClientRect( rc ), 0xAAAAAA );
-    }
-    virtual lvRect getBorderWidths()
-    {
-        return lvRect(8,8,8,8);
-    }
-    virtual lvRect getClientRect( const lvRect &windowRect )
-    {
-        lvRect rc = CRRectSkin::getClientRect( windowRect );
-        rc.top += 25;
-        return rc;
-    }
-    virtual lvPoint getTitleSize() { return lvPoint(0, 25); }
+	CRSimpleWindowSkin()
+	{
+		setBackgroundColor( 0xAAAAAA );
+	}
 };
 
-class CRSimpleMenuItemSkin : public CRRectSkin
+class CRSimpleFrameSkin : public CRRectSkin
 {
 public:
-	CRSimpleMenuItemSkin()
+	CRSimpleFrameSkin()
 	{
+		setBackgroundColor( 0xAAAAAA );
 	}
-    virtual lvRect getBorderWidths()
-    {
-        return lvRect(12,6,12,6);
-    }
-    virtual void draw( LVDrawBuf & buf, const lvRect & rc )
-    {
-		LVImageSourceRef img = LVCreateStretchFilledTransform( LVCreateXPMImageSource( menu_item_background ),
-			rc.width(), rc.height() );
-		buf.Draw( img, rc.left, rc.top, rc.width(), rc.height() );
-    }
 };
 
 class CRSimpleMenuSkin : public CRMenuSkin
 {
 public:
-    virtual void draw( LVDrawBuf & buf, const lvRect & rc )
-    {
-        buf.Rect( rc, 8, 0xAAAAAA );
-        buf.FillRect( getTitleRect( rc ), 0xAAAAAA );
-        buf.FillRect( getClientRect( rc ), 0xAAAAAA );
-    }
-    virtual lvRect getBorderWidths()
-    {
-        return lvRect(8,8,8,8);
-    }
-    virtual lvRect getClientRect( const lvRect &windowRect )
-    {
-		lvPoint tsz = getTitleSize();
-        lvRect rc = CRRectSkin::getClientRect( windowRect );
-		rc.top += tsz.y;
-        return rc;
-    }
-    virtual lvPoint getTitleSize() { return lvPoint(0, 48); }
-    virtual CRRectSkinRef getItemSkin()
-    {
-        return CRRectSkinRef( new CRSimpleMenuItemSkin() );
-    }
+	CRSimpleMenuSkin()
+	{
+		setBackgroundColor( 0xAAAAAA );
+		setTitleSize( lvPoint( 0, 48 ) );
+		_itemSkin = CRRectSkinRef( new CRRectSkin() );
+		_itemSkin->setBackgroundImage( LVCreateXPMImageSource( menu_item_background ) );
+	}
 };
 
 /// returns window skin
