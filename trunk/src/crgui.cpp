@@ -93,7 +93,9 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool se
 		buf.Draw( _image, rc.left + hh/2-w/2 + itemBorders.left, rc.top + hh/2 - h/2 + itemBorders.top, w, h );
         imgWidth = w + ITEM_MARGIN;
     }
-	_defFont->DrawTextString( &buf, rc.left + imgWidth + itemBorders.left, rc.top + hh/2 + itemBorders.top - _defFont->getHeight()/2, _label.c_str(), _label.length(), L'?', NULL, false, 0 );
+    lvRect textRect = rc;
+    textRect.left += imgWidth;
+    skin->drawText( buf, textRect, _label );
 }
 
 int CRMenu::getPageCount()
