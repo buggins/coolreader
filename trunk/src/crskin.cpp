@@ -116,6 +116,7 @@ CRSkinRef LVOpenSkin( const lString16 & pathname )
 
 void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
 {
+    SAVE_DRAW_STATE( buf );
 	buf.SetBackgroundColor( getBackgroundColor() );
 	buf.SetTextColor( getTextColor() );
 	LVImageSourceRef bgimg = getBackgroundImage();
@@ -190,6 +191,68 @@ static const char *menu_item_background[] = {
 "                                            ",
 };
 
+/* XPM */
+static const char *menu_shortcut_background[] = {
+/* width height num_colors chars_per_pixel */
+"36 48 5 1",
+/* colors */
+"  c None",
+". c #000000",
+"o c #555555",
+"0 c #AAAAAA",
+"# c #ffffff",
+/* pixels               ..                       */
+"                                    ",
+"                                    ",
+"                                    ",
+"                                    ",
+"                oooooooooooooooooooo",
+"             ooooooooooooooooooooooo",
+"          oooooooooooooooooooooooooo",
+"        oooooooo####################",
+"      oooooo########################",
+"     oooo###########################",
+"    oooo############################",
+"   ooo##############################",
+"   ooo##############################",
+"  ooo###############################",
+"  ooo###############################",
+"  ooo###############################",
+" ooo################################",
+" ooo################################",
+" ooo################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",//==
+"ooo#################################",//==
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+"ooo#################################",
+" ooo################################",
+" ooo################################",
+" ooo################################",
+"  ooo###############################",
+"  ooo###############################",
+"  ooo###############################",
+"   ooo##############################",
+"   ooo##############################",
+"    ooo#############################",
+"     oooo###########################",
+"      oooooo########################",
+"       oooooooo#####################",
+"         ooooooooooooooooooooooooooo",
+"            oooooooooooooooooooooooo",
+"               ooooooooooooooooooooo",
+"                                    ",
+"                                    ",
+"                                    ",
+"                                    ",
+};
+
+
 lvRect CRRectSkin::getClientRect( const lvRect &windowRect )
 {
     lvRect rc = windowRect;
@@ -228,10 +291,92 @@ lvPoint CRWindowSkin::getWindowSize( const lvPoint & clientSize )
 }
 
 CRSkinnedItem::CRSkinnedItem()
-:	_textcolor( 0x000000 )
-,	_bgcolor( 0xFFFFFF )
-,	_bgimagesplit(-1,-1)
+:   _textcolor( 0x000000 )
+,   _bgcolor( 0xFFFFFF )
+,   _bgimagesplit(-1,-1)
+,   _fontFace(L"Arial")
+,   _fontSize( 24 )
+,   _fontBold( false )
+,   _fontItalic( false )
+,   _textAlign( 0 )
 {
+}
+
+void CRSkinnedItem::setFontFace( lString16 face )
+{
+    if ( _fontFace != face ) {
+        _fontFace = face;
+        _font.Clear();
+    }
+}
+
+void CRSkinnedItem::setFontSize( int size )
+{
+    if ( _fontSize != size ) {
+        _fontSize = size;
+        _font.Clear();
+    }
+}
+
+void CRSkinnedItem::setFontBold( bool bold )
+{
+    if ( _fontBold != bold ) {
+        _fontBold = bold;
+        _font.Clear();
+    }
+}
+
+void CRSkinnedItem::setFontItalic( bool italic )
+{
+    if ( _fontItalic != italic ) {
+        _fontItalic = italic;
+        _font.Clear();
+    }
+}
+
+LVFontRef CRSkinnedItem::getFont()
+{
+    if ( _font.isNull() ) {
+        _font = fontMan->GetFont( _fontSize, _fontBold ? 600 : 300, _fontItalic, css_ff_sans_serif, UnicodeToUtf8(_fontFace) );
+    }
+    return _font;
+}
+
+void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, lUInt32 textColor, lUInt32 bgColor, int flags )
+{
+    SAVE_DRAW_STATE( buf );
+    LVFontRef font = getFont();
+    if ( font.isNull() )
+        return;
+    buf.SetTextColor( textColor );
+    buf.SetBackgroundColor( bgColor );
+    lvRect oldRc;
+    buf.GetClipRect( &oldRc );
+    buf.SetClipRect( &rc );
+    int th = font->getHeight();
+    int tw = font->getTextWidth( text.c_str(), text.length() );
+    lvRect txtrc = rc;
+    int x = txtrc.left;
+    int dx = txtrc.width() - tw;
+    int y = txtrc.top;
+    int dy = txtrc.height() - th;
+    if ( getTextVAlign() == SKIN_VALIGN_CENTER )
+        y += dy / 2;
+    else if ( getTextVAlign() == SKIN_VALIGN_BOTTOM )
+        y += dy;
+    if ( getTextHAlign() == SKIN_HALIGN_CENTER )
+        x += dx / 2;
+    else if ( getTextHAlign() == SKIN_HALIGN_RIGHT )
+        x += dx;
+    font->DrawTextString( &buf, x, y, text.c_str(), text.length(), L'?', NULL, false, 0 );
+    buf.SetClipRect( &oldRc );
+}
+
+void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
+{
+    SAVE_DRAW_STATE( buf );
+    lvRect rect = getClientRect( rc );
+    CRSkinnedItem::drawText( buf, rect, text );
 }
 
 CRRectSkin::CRRectSkin()
@@ -271,12 +416,25 @@ public:
 class CRSimpleMenuSkin : public CRMenuSkin
 {
 public:
-	CRSimpleMenuSkin()
-	{
-		setBackgroundColor( 0xAAAAAA );
-		setTitleSize( lvPoint( 0, 48 ) );
-		_itemSkin = CRRectSkinRef( new CRRectSkin() );
-		_itemSkin->setBackgroundImage( LVCreateXPMImageSource( menu_item_background ) );
+    CRSimpleMenuSkin()
+    {
+        setBackgroundColor( 0xAAAAAA );
+        setTitleSize( lvPoint( 0, 48 ) );
+        setBorderWidths( lvRect( 8, 8, 8, 8 ) );
+        _titleSkin = CRRectSkinRef( new CRRectSkin() );
+        _titleSkin->setBackgroundColor(0xAAAAAA);
+        _titleSkin->setTextColor(0x000000);
+        _titleSkin->setFontBold( true );
+        _titleSkin->setFontSize( 28 );
+        _itemSkin = CRRectSkinRef( new CRRectSkin() );
+        _itemSkin->setBackgroundImage( LVCreateXPMImageSource( menu_item_background ) );
+        _itemSkin->setBorderWidths( lvRect( 8, 8, 8, 8 ) );
+        _itemShortcutSkin = CRRectSkinRef( new CRRectSkin() );
+        _itemShortcutSkin->setBackgroundImage( LVCreateXPMImageSource( menu_shortcut_background ) );
+        _itemShortcutSkin->setBorderWidths( lvRect( 12, 8, 8, 8 ) );
+        _itemShortcutSkin->setTextColor( 0x555555 );
+        _itemShortcutSkin->setTextHAlign( SKIN_VALIGN_CENTER );
+        _itemShortcutSkin->setTextVAlign( SKIN_VALIGN_CENTER );
 	}
 };
 

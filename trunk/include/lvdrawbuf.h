@@ -56,7 +56,7 @@ public:
     /// gets clip rect
     virtual void GetClipRect( lvRect * clipRect ) = 0;
     /// sets clip rect
-    virtual void SetClipRect( lvRect * clipRect ) = 0;
+    virtual void SetClipRect( const lvRect * clipRect ) = 0;
     /// invert image
     virtual void  Invert() = 0;
     /// get buffer width, pixels
@@ -160,7 +160,7 @@ public:
     /// gets clip rect
     virtual void GetClipRect( lvRect * clipRect ) { *clipRect = _clip; }
     /// sets clip rect
-    virtual void SetClipRect( lvRect * clipRect );
+    virtual void SetClipRect( const lvRect * clipRect );
     /// get buffer width, pixels
     virtual int  GetWidth();
     /// get buffer height, pixels
@@ -180,6 +180,37 @@ public:
     LVBaseDrawBuf() : _dx(0), _dy(0), _rowsize(0), _data(NULL) { }
     virtual ~LVBaseDrawBuf() { }
 };
+
+/// use to simplify saving draw buffer state
+class LVDrawStateSaver
+{
+    LVDrawBuf & _buf;
+    lUInt32 _textColor;
+    lUInt32 _backgroundColor;
+    lvRect _clipRect;
+public:
+    /// save settings
+    LVDrawStateSaver( LVDrawBuf & buf )
+    : _buf( buf )
+    , _textColor( buf.GetTextColor() )
+    , _backgroundColor( buf.GetBackgroundColor() )
+    {
+        _buf.GetClipRect( &_clipRect );
+    }
+    void restore()
+    {
+        _buf.SetTextColor( _textColor );
+        _buf.SetBackgroundColor( _backgroundColor );
+        _buf.SetClipRect( &_clipRect );
+    }
+    /// restore settings on destroy
+    ~LVDrawStateSaver()
+    {
+        restore();
+    }
+};
+
+#define SAVE_DRAW_STATE( buf ) LVDrawStateSaver drawBufSaver( buf )
 
 /// 2-bit gray bitmap buffer, partial support for 1-bit buffer
 class LVGrayDrawBuf : public LVBaseDrawBuf

@@ -710,7 +710,7 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
     }
 }
 
-void LVBaseDrawBuf::SetClipRect( lvRect * clipRect )
+void LVBaseDrawBuf::SetClipRect( const lvRect * clipRect )
 {
     if (clipRect)
     {

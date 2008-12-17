@@ -42,6 +42,15 @@ public:
     virtual ~CRSkinBase() { }
 };
 
+#define SKIN_VALIGN_MASK    0x0003
+#define SKIN_VALIGN_TOP     0x0001
+#define SKIN_VALIGN_CENTER  0x0000
+#define SKIN_VALIGN_BOTTOM  0x0002
+#define SKIN_HALIGN_MASK    0x0030
+#define SKIN_HALIGN_LEFT    0x0000
+#define SKIN_HALIGN_CENTER  0x0010
+#define SKIN_HALIGN_RIGHT   0x0020
+
 class CRSkinnedItem : public LVRefCounter
 {
 protected:
@@ -49,20 +58,44 @@ protected:
 	lUInt32 _bgcolor;
 	LVImageSourceRef _bgimage;
 	lvPoint _bgimagesplit;
+    lString16 _fontFace;
+    int _fontSize;
+    bool _fontBold;
+    bool _fontItalic;
 	LVFontRef _font;
+    int _textAlign;
 public:
 	CRSkinnedItem();
-	virtual lUInt32 getTextColor() { return _textcolor; }
-	virtual lUInt32 getBackgroundColor() { return _bgcolor; }
-	virtual LVImageSourceRef getBackgroundImage() { return _bgimage; }
-	virtual lvPoint getBackgroundImageSplit() { return _bgimagesplit; }
-	virtual LVFontRef getFont() { return _font; }
-	virtual void setTextColor( lUInt32 color ) { _textcolor = color; }
-	virtual void setBackgroundColor( lUInt32 color ) { _bgcolor = color; }
-	virtual void setBackgroundImage( LVImageSourceRef img ) { _bgimage = img; }
-	virtual void setBackgroundImageSplit( lvPoint pt ) { _bgimagesplit = pt; }
-	virtual void setFont( LVFontRef fnt ) { _font = fnt; }
+    virtual int getTextAlign() { return _textAlign; }
+    virtual int getTextVAlign() { return _textAlign & SKIN_VALIGN_MASK; }
+    virtual int getTextHAlign() { return _textAlign & SKIN_HALIGN_MASK; }
+    virtual void setTextAlign( int align ) { _textAlign = align; }
+    virtual void setTextVAlign( int align ) { _textAlign = (_textAlign & SKIN_VALIGN_MASK ) | (align & SKIN_VALIGN_MASK); }
+    virtual void setTextHAlign( int align ) { _textAlign = (_textAlign & SKIN_HALIGN_MASK ) | (align & SKIN_HALIGN_MASK); }
+    virtual lUInt32 getTextColor() { return _textcolor; }
+    virtual lUInt32 getBackgroundColor() { return _bgcolor; }
+    virtual LVImageSourceRef getBackgroundImage() { return _bgimage; }
+    virtual lvPoint getBackgroundImageSplit() { return _bgimagesplit; }
+    virtual lString16 getFontFace() { return _fontFace; }
+    virtual int getFontSize() { return _fontSize; }
+    virtual bool getFontBold() { return _fontBold; }
+    virtual bool getFontItalic() { return _fontItalic; }
+    virtual void setFontFace( lString16 face );
+    virtual void setFontSize( int size );
+    virtual void setFontBold( bool bold );
+    virtual void setFontItalic( bool italic );
+    virtual LVFontRef getFont();
+    virtual void setTextColor( lUInt32 color ) { _textcolor = color; }
+    virtual void setBackgroundColor( lUInt32 color ) { _bgcolor = color; }
+    virtual void setBackgroundImage( LVImageSourceRef img ) { _bgimage = img; }
+    virtual void setBackgroundImageSplit( lvPoint pt ) { _bgimagesplit = pt; }
+    virtual void setFont( LVFontRef fnt ) { _font = fnt; }
     virtual void draw( LVDrawBuf & buf, const lvRect & rc );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, lUInt32 textColor, lUInt32 bgColor, int flags );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
+    {
+        drawText(  buf, rc, text, getTextColor(), getBackgroundColor(), getTextAlign() );
+    }
     virtual ~CRSkinnedItem() { }
 };
 
@@ -75,6 +108,7 @@ public:
 	virtual void setBorderWidths( const lvRect & rc) { _margins = rc; }
 	virtual lvRect getBorderWidths() { return _margins; }
     virtual lvRect getClientRect( const lvRect &windowRect );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text );
 };
 typedef LVFastRef<CRRectSkin> CRRectSkinRef;
 
