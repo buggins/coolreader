@@ -688,7 +688,7 @@ lString16 CRSkinImpl::pathById( const lChar16 * id )
     ldomElement * elem = _doc->getElementById( id );
     if ( !elem )
         return lString16();
-    return ldomXPointer(elem, 0).toString();
+    return ldomXPointer(elem, -1).toString();
 }
 
 /// returns rect skin

@@ -192,6 +192,8 @@ public:
 
     inline void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node )
     {
+        if ( _idAttrId==0 )
+            _idAttrId = _attrNameTable.idByName("id");
         if (attrId == _idAttrId)
         {
             _idNodeMap.set( valueId, node );
