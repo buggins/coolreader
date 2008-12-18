@@ -15,12 +15,6 @@
 #include "../include/crskin.h"
 #include "../include/lvstsheet.h"
 
-
-
-
-
-
-
 /// skin file support
 class CRSkinImpl : public CRSkinContainer
 {
@@ -51,8 +45,6 @@ public:
     virtual bool open( LVContainerRef container );
     virtual bool open( lString8 simpleXml );
 };
-
-
 
 
 /* XPM */
@@ -423,7 +415,7 @@ void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
 		lvPoint split = getBackgroundImageSplit();
 		LVImageSourceRef img = LVCreateStretchFilledTransform( bgimg,
 			rc.width(), rc.height() );
-		buf.Draw( img, rc.left, rc.top, rc.width(), rc.height() );
+		buf.Draw( img, rc.left, rc.top, rc.width(), rc.height(), false );
 	}
 }
 
@@ -517,10 +509,11 @@ LVFontRef CRSkinnedItem::getFont()
     return _font;
 }
 
-void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, lUInt32 textColor, lUInt32 bgColor, int flags )
+void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags )
 {
     SAVE_DRAW_STATE( buf );
-    LVFontRef font = getFont();
+    if ( font.isNull() )
+        font = getFont();
     if ( font.isNull() )
         return;
     buf.SetTextColor( textColor );
@@ -547,9 +540,13 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     buf.SetClipRect( &oldRc );
 }
 
+void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font )
+{
+    lvRect rect = getClientRect( rc );
+    CRSkinnedItem::drawText( buf, rect, text, font );
+}
 void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
 {
-    SAVE_DRAW_STATE( buf );
     lvRect rect = getClientRect( rc );
     CRSkinnedItem::drawText( buf, rect, text );
 }

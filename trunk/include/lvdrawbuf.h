@@ -113,7 +113,7 @@ public:
     /// draws bitmap (1 byte per pixel) using specified palette
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette ) = 0;
     /// draws image
-    virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height ) = 0;
+    virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither=true ) = 0;
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette ) = 0;
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
@@ -248,7 +248,7 @@ public:
     /// sets new size
     virtual void Resize( int dx, int dy );
     /// draws image
-    virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height );
+    virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither );
     /// draws bitmap (1 byte per pixel) using specified palette
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette );
     /// constructor
@@ -301,7 +301,7 @@ public:
     /// sets new size
     virtual void Resize( int dx, int dy );
     /// draws image
-    virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height );
+    virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither );
     /// draws bitmap (1 byte per pixel) using specified palette
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette );
     /// returns scanline pointer

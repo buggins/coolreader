@@ -259,6 +259,7 @@ private:
     int src_dy;
     int * xmap;
     int * ymap;
+    bool dither;
 public:
     static int * GenMap( int src_len, int dst_len )
     {
@@ -269,8 +270,8 @@ public:
         }
         return map;
     }
-    LVImageScaledDrawCallback(LVBaseDrawBuf * dstbuf, LVImageSourceRef img, int x, int y, int width, int height )
-    : src(img), dst(dstbuf), dst_x(x), dst_y(y), dst_dx(width), dst_dy(height), xmap(0), ymap(0)
+    LVImageScaledDrawCallback(LVBaseDrawBuf * dstbuf, LVImageSourceRef img, int x, int y, int width, int height, bool dith )
+    : src(img), dst(dstbuf), dst_x(x), dst_y(y), dst_dx(width), dst_dy(height), xmap(0), ymap(0), dither(dith)
     {
         src_dx = img->GetWidth();
         src_dy = img->GetHeight();
@@ -342,11 +343,16 @@ public:
                     lUInt32 alpha = (cl >> 24)&0xFF;
                     if ( xx<clip.left || xx>=clip.right || alpha&0x80 )
                         continue;
+                    lUInt32 dcl = 0;
+                    if ( dither ) {
 #if (GRAY_INVERSE==1)
-                    lUInt32 dcl = Dither2BitColor( cl, x, yy ) ^ 3;
+                        dcl = Dither2BitColor( cl, x, yy ) ^ 3;
 #else
-                    lUInt32 dcl = Dither2BitColor( cl, x, yy );
+                        dcl = Dither2BitColor( cl, x, yy );
 #endif
+                    } else {
+                        dcl = rgbToGrayMask( cl, 2 ) & 3;
+                    }
                     int byteindex = (xx >> 2);
                     int bitindex = (3-(xx & 3))<<1;
                     lUInt8 mask = 0xC0 >> (6 - bitindex);
@@ -366,11 +372,16 @@ public:
                     lUInt32 alpha = (cl >> 24)&0xFF;
                     if ( xx<clip.left || xx>=clip.right || alpha&0x80 )
                         continue;
+                    lUInt32 dcl = 0;
+                    if ( dither ) {
 #if (GRAY_INVERSE==1)
-                    lUInt32 dcl = Dither1BitColor( cl, x, yy ) ^ 1;
+                        dcl = Dither1BitColor( cl, x, yy ) ^ 1;
 #else
-                    lUInt32 dcl = Dither1BitColor( cl, x, yy ) ^ 0;
+                        dcl = Dither1BitColor( cl, x, yy ) ^ 0;
 #endif
+                    } else {
+                        dcl = rgbToGrayMask( cl, 1 ) & 1;
+                    }
                     int byteindex = (xx >> 3);
                     int bitindex = ((xx & 7));
                     lUInt8 mask = 0x80 >> (bitindex);
@@ -406,10 +417,10 @@ int  LVGrayDrawBuf::GetBitsPerPixel()
     return _bpp;
 }
 
-void LVGrayDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int height )
+void LVGrayDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither )
 {
     //fprintf( stderr, "LVGrayDrawBuf::Draw( img(%d, %d), %d, %d, %d, %d\n", img->GetWidth(), img->GetHeight(), x, y, width, height );
-    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height );
+    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height, dither );
     img->Decode( &drawcb );
 }
 
@@ -806,10 +817,10 @@ int  LVColorDrawBuf::GetBitsPerPixel()
     return 32;
 }
 
-void LVColorDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int height )
+void LVColorDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither )
 {
     //fprintf( stderr, "LVColorDrawBuf::Draw( img(%d, %d), %d, %d, %d, %d\n", img->GetWidth(), img->GetHeight(), x, y, width, height );
-    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height );
+    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height, dither );
     img->Decode( &drawcb );
 }
 

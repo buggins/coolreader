@@ -90,12 +90,12 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool se
     if ( !_image.isNull() ) {
         int w = _image->GetWidth();
         int h = _image->GetHeight();
-		buf.Draw( _image, rc.left + hh/2-w/2 + itemBorders.left, rc.top + hh/2 - h/2 + itemBorders.top, w, h );
+        buf.Draw( _image, rc.left + hh/2-w/2 + itemBorders.left, rc.top + hh/2 - h/2 + itemBorders.top, w, h );
         imgWidth = w + ITEM_MARGIN;
     }
     lvRect textRect = rc;
     textRect.left += imgWidth;
-    skin->drawText( buf, textRect, _label );
+    skin->drawText( buf, textRect, _label, getFont() );
 }
 
 int CRMenu::getPageCount()
@@ -133,28 +133,44 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool select
     _valueFont->DrawTextString( &buf, rc.right - w - ITEM_MARGIN, rc.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
 }
 
-lvPoint CRMenuItem::getItemSize()
+lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )
 {
-    int h = _defFont->getHeight() * 5/4;
-    int w = _defFont->getTextWidth( _label.c_str(), _label.length() );
+    LVFontRef font = _defFont;
+    if ( font.isNull() )
+        font = skin->getFont();
+    int h = font->getHeight() * 5/4;
+    int w = font->getTextWidth( _label.c_str(), _label.length() );
     w += ITEM_MARGIN * 2;
     if ( !_image.isNull() ) {
         if ( _image->GetHeight()>h )
             h = _image->GetHeight() * 8 / 7;
         w += h;
     }
-	if ( h < 48 )
-		h = 48;
+    lvPoint minsize = skin->getMinSize();
+	if ( minsize.y>0 && h < minsize.y )
+		h = minsize.y;
+    if ( minsize.x>0 && w < minsize.x )
+        w = minsize.x;
     return lvPoint( w, h );
+}
+
+CRMenuSkinRef CRMenu::getSkin()
+{
+    if ( !_skin.isNull() )
+        return _skin;
+    lString16 path = getSkinName();
+    if ( !path.startsWith( L"#" ) )
+        path = lString16(L"/CR3Skin/") + path;
+    _skin = _wm->getSkin()->getMenuSkin( path.c_str() );
+    return _skin;
 }
 
 lvPoint CRMenu::getItemSize()
 {
-    lString16 path = lString16(L"/CR3Skin/") + getSkinName();
-    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( path.c_str() );
+    CRMenuSkinRef skin = getSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     lvRect itemBorders = itemSkin->getBorderWidths();
-    lvPoint sz = CRMenuItem::getItemSize();
+    lvPoint sz = CRMenuItem::getItemSize( itemSkin );
     if ( !isSubmenu() || _propName.empty() || _props.isNull() )
         return sz;
     int maxw = 0;
@@ -171,20 +187,25 @@ lvPoint CRMenu::getItemSize()
 
 int CRMenu::getItemHeight()
 {
-    int h = _defFont->getHeight() * 5/4;
-	if ( h < 48 )
-		h = 48;
-	return h;
+    CRMenuSkinRef skin = getSkin();
+    CRRectSkinRef itemSkin = skin->getItemSkin();
+    int h = itemSkin->getFont()->getHeight() * 5/4;
+    lvPoint minsize = skin->getMinSize();
+    if ( minsize.y>0 && h < minsize.y )
+        h = minsize.y;
+    return h;
 }
 
 lvPoint CRMenu::getMaxItemSize()
 {
+    CRMenuSkinRef skin = getSkin();
+    CRRectSkinRef itemSkin = skin->getItemSkin();
     lvPoint mySize = getItemSize();
     int itemHeight = getItemHeight();
     int maxx = 0;
     int maxy = 0;
     for ( int i=0; i<_items.length(); i++ ) {
-        lvPoint sz = _items[i]->getItemSize();
+        lvPoint sz = _items[i]->getItemSize( itemSkin );
         if ( maxx < sz.x )
             maxx = sz.x;
         if ( maxy < sz.y )
@@ -210,8 +231,7 @@ lvPoint CRMenu::getSize()
     int w = itemSize.x + 3 * ITEM_MARGIN + HOTKEY_SIZE;
     if ( w>600 )
         w = 600;
-    lString16 path = lString16(L"/CR3Skin/") + getSkinName();
-    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( path.c_str() );
+    CRMenuSkinRef skin = getSkin();
     return skin->getWindowSize( lvPoint( w, h ) );
 }
 
@@ -263,8 +283,7 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
 
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
-    lString16 path = lString16(L"/CR3Skin/") + getSkinName();
-    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( path.c_str() );
+    CRMenuSkinRef skin = getSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef titleSkin = skin->getTitleSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();

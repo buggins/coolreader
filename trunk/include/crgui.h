@@ -720,7 +720,7 @@ class CRMenuItem
         CRMenuItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, const lChar16 * propValue=NULL  )
     : _menu(menu), _id(id), _label(label), _image(image), _defFont(defFont), _propValue(propValue) { }
         /// measures item size
-        virtual lvPoint getItemSize();
+        virtual lvPoint getItemSize( CRRectSkinRef skin );
         /// draws item
         virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
         /// returns true if submenu
@@ -743,11 +743,13 @@ class CRMenu : public CRMenuItem, public CRGUIWindowBase {
         LVFontRef _valueFont;
         int _topItem;
         int _pageItems;
+        CRMenuSkinRef _skin;// = _wm->getSkin()->getMenuSkin( path.c_str() );
         // override for CRGUIWindow method
         virtual void draw();
         virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
         virtual void Draw( LVDrawBuf & buf, int x, int y );
     public:
+        CRMenuSkinRef getSkin();
         CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL )
         : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(8) { }
         virtual bool isSubmenu() { return true; }

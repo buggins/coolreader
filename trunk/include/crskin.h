@@ -80,12 +80,16 @@ public:
     virtual void setBackgroundImageSplit( lvPoint pt ) { _bgimagesplit = pt; }
     virtual void setFont( LVFontRef fnt ) { _font = fnt; }
     virtual void draw( LVDrawBuf & buf, const lvRect & rc );
-    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, lUInt32 textColor, lUInt32 bgColor, int flags );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font )
+    {
+        drawText(  buf, rc, text, font, getTextColor(), getBackgroundColor(), getTextAlign() );
+    }
     virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
     {
-        drawText(  buf, rc, text, getTextColor(), getBackgroundColor(), getTextAlign() );
+        drawText(  buf, rc, text, LVFontRef(), getTextColor(), getBackgroundColor(), getTextAlign() );
     }
-    virtual ~CRSkinnedItem() { }
+   virtual ~CRSkinnedItem() { }
 };
 
 class CRRectSkin : public CRSkinnedItem
@@ -104,6 +108,7 @@ public:
     virtual lvRect getBorderWidths() { return _margins; }
     virtual lvRect getClientRect( const lvRect &windowRect );
     virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font );
 };
 typedef LVFastRef<CRRectSkin> CRRectSkinRef;
 
@@ -190,10 +195,6 @@ public:
     /// destructor
     virtual ~CRSkinContainer() { }
 };
-
-/// skin reference
-//typedef LVFastRef<CRSkinContainer> CRSkinBaseRef;
-
 
 /// skin reference
 typedef LVFastRef<CRSkinContainer> CRSkinRef;
