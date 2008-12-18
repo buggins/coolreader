@@ -84,7 +84,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 /// minimum EM width of page (prevents show two pages for windows that not enougn wide)
 #define MIN_EM_PER_PAGE     20
 
-static int def_font_sizes[] = { 16, 18, 22, 26, 30, 36, 42 };
+static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
 LVDocView::LVDocView()
 : m_dx(400), m_dy(200), m_pos(50), m_battery_state(66)
@@ -93,7 +93,7 @@ LVDocView::LVDocView()
 #elif defined(__SYMBIAN32__)
 , m_font_size(30)
 #else
-, m_font_size(26)
+, m_font_size(24)
 #endif
 , m_def_interline_space(130)
 , m_font_sizes( def_font_sizes, sizeof(def_font_sizes) / sizeof(int) )
