@@ -626,12 +626,9 @@ class CRDocViewWindow : public CRGUIWindowBase
 {
     protected:
         LVDocView * _docview;
-        virtual void draw()
-        {
-            LVDocImageRef pageImage = _docview->getPageImage(0);
-            LVDrawBuf * drawbuf = pageImage->getDrawBuf();
-            _wm->getScreen()->draw( drawbuf, _rect.left, _rect.top );
-        }
+	    CRWindowSkinRef _skin;
+		lString16 _title;
+        virtual void draw();
     public:
         LVDocView * getDocView()
         {
@@ -647,14 +644,9 @@ class CRDocViewWindow : public CRGUIWindowBase
         {
             delete _docview;
         }
-        virtual void setRect( const lvRect & rc )
-        {
-            if ( rc == _rect )
-                return;
-            _rect = rc;
-            _docview->Resize( getWidth(), getHeight() );
-            setDirty();
-        }
+
+        virtual void setRect( const lvRect & rc );
+
         /// returns true if command is processed
         virtual bool onCommand( int command, int params )
         {

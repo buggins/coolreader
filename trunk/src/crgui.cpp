@@ -77,6 +77,37 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
     return false;
 }
 
+void CRDocViewWindow::draw()
+{
+	lvRect clientRect = _rect;
+	if ( !_skin.isNull() ) {
+		clientRect = _skin->getClientRect( _rect );
+		_skin->draw( *_wm->getScreen()->getCanvas(), _rect );
+		if ( !_title.empty() ) {
+			lvRect titleRect = _skin->getTitleRect( _rect );
+			if ( !titleRect.isEmpty() ) {
+				_skin->getTitleSkin()->draw( *_wm->getScreen()->getCanvas(), titleRect );
+				_skin->getTitleSkin()->drawText( *_wm->getScreen()->getCanvas(), titleRect, _title );
+			}
+		}
+
+	}
+    LVDocImageRef pageImage = _docview->getPageImage(0);
+    LVDrawBuf * drawbuf = pageImage->getDrawBuf();
+    _wm->getScreen()->draw( drawbuf, clientRect.left, clientRect.top );
+}
+
+void CRDocViewWindow::setRect( const lvRect & rc )
+{
+    if ( rc == _rect )
+        return;
+    _rect = rc;
+	lvRect clientRect = _rect;
+	if ( !_skin.isNull() )
+		clientRect = _skin->getClientRect( rc );
+    _docview->Resize( clientRect.width(), clientRect.height() );
+    setDirty();
+}
 
 
 void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
@@ -453,8 +484,14 @@ bool CRMenu::onCommand( int command, int params )
     if ( item->onSelect()>0 )
         return true;
     if ( item->isSubmenu() ) {
-        // TODO: two-values submenu - toggle
-        _wm->activateWindow( (CRMenu*) item );
+        CRMenu * menu = (CRMenu *)item;
+        if ( menu->getItems().length() <= 3 ) {
+			// toggle 2 and 3 choices w/o menu
+            menu->toggleSubmenuValue();
+		} else {
+			// show menu
+			_wm->activateWindow( menu );
+		}
         return true;
     } else {
         CRGUIWindowManager * wm = _wm;
