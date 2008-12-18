@@ -290,6 +290,7 @@ protected:
     CRPropRef _props;
     CRPropRef _newProps;
     CRGUIAcceleratorTableRef _menuAccelerators;
+	lString16 _dataDir;
 public:
     /// returns current properties
     CRPropRef getProps() { return _props; }
@@ -301,15 +302,20 @@ public:
         _docview->propsUpdateDefaults( _props );
     }
 
-    V3DocViewWin( CRGUIWindowManager * wm )
-    : CRDocViewWindow ( wm )
+    V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
+    : CRDocViewWindow ( wm ), _dataDir(dataDir)
     {
          LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
         _docview->setFontSizes( sizes, true );
         _props = LVCreatePropsContainer();
         _newProps = _props;
         // TODO: move skin outside
-        CRSkinRef skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );
+		lString16 skinfile = _dataDir;
+		LVAppendPathDelimiter( skinfile );
+		skinfile << L"skin";
+		CRSkinRef skin = LVOpenSkin( skinfile );
+		if ( skin.isNull() )
+			skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );
         wm->setSkin( skin );
         // TODO: move accelerator table outside
         static const int acc_table[] = {
@@ -543,7 +549,6 @@ public:
         bool stop = false;
         while (!stop && GetMessage(&msg, NULL, 0, 0))
         {
-            processPostedEvents();
             TranslateMessage(&msg);
             DispatchMessage(&msg);
             processPostedEvents();
@@ -720,7 +725,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     {
         CRWin32WindowManager winman(500, 700);
 
-        V3DocViewWin * main_win = new V3DocViewWin( &winman );
+        V3DocViewWin * main_win = new V3DocViewWin( &winman, LVExtractPath(LocalToUnicode(lString8(exe_fn))) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
@@ -1141,7 +1146,7 @@ int main(int argc, char **argv)
 
     {
         CRXCBWindowManager winman( 600, 700 );
-        V3DocViewWin * main_win = new V3DocViewWin( &winman );
+        V3DocViewWin * main_win = new V3DocViewWin( &winman, LVExtractPath(LocalToUnicode(lString8(fname))) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
