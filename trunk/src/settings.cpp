@@ -130,12 +130,12 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     lString16Collection list;
     fontMan->getFaceList( list );
     lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
-    LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, false, css_ff_sans_serif, lString8("Arial")) );
+    //LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, false, css_ff_sans_serif, lString8("Arial")) );
     LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
     CRMenu * fontSizeMenu;
     fontSizeMenu = new CRMenu(_wm, mainMenu, mm_FontSize,
                                 _wm->translateString("VIEWER_MENU_FONT_SIZE", "Default font size"),
-                                        LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_SIZE );
+                                        LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE );
     fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
                             _wm->translateString("VIEWER_DLG_FONT_SIZE_1", "Smallest"),
                                     LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[0], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[0]).c_str()  ) );
@@ -156,13 +156,13 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     return fontSizeMenu;
 }
 
-void CRSettingsMenu::addMenuItems( CRMenu * menu, item_def_t values[], LVFontRef menuFont )
+void CRSettingsMenu::addMenuItems( CRMenu * menu, item_def_t values[] )
 {
     for ( int i=0; values[i].translate_label; i++)
         menu->addItem( new CRMenuItem( menu, i,
             _wm->translateString(values[i].translate_label, values[i].translate_default),
             LVImageSourceRef(), 
-            menuFont, Utf8ToUnicode(lString8(values[i].value)).c_str() ) );
+            LVFontRef(), Utf8ToUnicode(lString8(values[i].value)).c_str() ) );
     menu->setAccelerators( _menuAccelerators );
     menu->setSkinName(lString16(L"SettingsMenu"));
 }
@@ -180,14 +180,14 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 
         setSkinName(lString16(L"SettingsMenu"));
 
-        LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
         LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * mainMenu = this;
         mainMenu->setAccelerators( _menuAccelerators );
 
         CRMenu * fontFaceMenu = new CRMenu(_wm, mainMenu, mm_FontFace,
                                             _wm->translateString("VIEWER_MENU_FONT_FACE", "Default font face"),
-                                                    LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_FACE );
+                                                    LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_FACE );
+        fontFaceMenu->setSkinName(lString16(L"SettingsMenu"));
         CRLog::trace("getting font face list");
         lString16Collection list;
         fontMan->getFaceList( list );
@@ -206,13 +206,13 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 
         CRMenu * fontAntialiasingMenu = new CRMenu(_wm, mainMenu, mm_FontAntiAliasing,
                 _wm->translateString("VIEWER_MENU_FONT_ANTIALIASING", "Font antialiasing"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_ANTIALIASING );
-        addMenuItems( fontAntialiasingMenu, antialiasing_modes, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_ANTIALIASING );
+        addMenuItems( fontAntialiasingMenu, antialiasing_modes );
         mainMenu->addItem( fontAntialiasingMenu );
         CRMenu * interlineSpaceMenu = new CRMenu(_wm, mainMenu, mm_InterlineSpace,
                 _wm->translateString("VIEWER_MENU_INTERLINE_SPACE", "Interline space"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_INTERLINE_SPACE );
-        addMenuItems( interlineSpaceMenu, interline_spaces, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_INTERLINE_SPACE );
+        addMenuItems( interlineSpaceMenu, interline_spaces );
         mainMenu->addItem( interlineSpaceMenu );
 /*
         CRMenu * orientationMenu = createOrientationMenu(props);
@@ -220,8 +220,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 */
         CRMenu * footnotesMenu = new CRMenu(_wm, mainMenu, mm_Footnotes,
                 _wm->translateString("VIEWER_MENU_FOOTNOTES", "Footnotes at page bottom"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_FOOTNOTES );
-        addMenuItems( footnotesMenu, footnotes, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FOOTNOTES );
+        addMenuItems( footnotesMenu, footnotes );
         mainMenu->addItem( footnotesMenu );
 
 /*
@@ -231,52 +231,52 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 */
         CRMenu * showTimeMenu = new CRMenu(_wm, mainMenu, mm_ShowTime,
                 _wm->translateString("VIEWER_MENU_SHOW_TIME", "Show time"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_SHOW_TIME );
-        addMenuItems( showTimeMenu, showtime, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_SHOW_TIME );
+        addMenuItems( showTimeMenu, showtime );
         mainMenu->addItem( showTimeMenu );
 
         CRMenu * landscapePagesMenu = new CRMenu(_wm, mainMenu, mm_LandscapePages,
                 _wm->translateString("VIEWER_MENU_LANDSCAPE_PAGES", "Landscape pages"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_LANDSCAPE_PAGES );
-        addMenuItems( landscapePagesMenu, landscape_pages, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_LANDSCAPE_PAGES );
+        addMenuItems( landscapePagesMenu, landscape_pages );
         mainMenu->addItem( landscapePagesMenu );
 
         CRMenu * preformattedTextMenu = new CRMenu(_wm, mainMenu, mm_PreformattedText,
                 _wm->translateString("VIEWER_MENU_TXT_OPTION_PREFORMATTED", "Preformatted text"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_TXT_OPTION_PREFORMATTED );
-        addMenuItems( preformattedTextMenu, preformatted_text, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_TXT_OPTION_PREFORMATTED );
+        addMenuItems( preformattedTextMenu, preformatted_text );
         mainMenu->addItem( preformattedTextMenu );
 
         //
 
         CRMenu * embeddedStylesMenu = new CRMenu(_wm, mainMenu, mm_EmbeddedStyles,
                 _wm->translateString("VIEWER_MENU_EMBEDDED_STYLES", "Document embedded styles"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_EMBEDDED_STYLES );
-        addMenuItems( embeddedStylesMenu, embedded_styles, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_EMBEDDED_STYLES );
+        addMenuItems( embeddedStylesMenu, embedded_styles );
         mainMenu->addItem( embeddedStylesMenu );
 
         CRMenu * inverseModeMenu = new CRMenu(_wm, mainMenu, mm_Inverse,
                 _wm->translateString("VIEWER_MENU_INVERSE", "Inverse display"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_DISPLAY_INVERSE );
-        addMenuItems( inverseModeMenu, inverse_mode, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_DISPLAY_INVERSE );
+        addMenuItems( inverseModeMenu, inverse_mode );
         mainMenu->addItem( inverseModeMenu );
 
         CRMenu * bookmarkIconsMenu = new CRMenu(_wm, mainMenu, mm_BookmarkIcons,
                 _wm->translateString("VIEWER_MENU_BOOKMARK_ICONS", "Show bookmark icons"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_BOOKMARK_ICONS );
-        addMenuItems( bookmarkIconsMenu, bookmark_icons, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_BOOKMARK_ICONS );
+        addMenuItems( bookmarkIconsMenu, bookmark_icons );
         mainMenu->addItem( bookmarkIconsMenu );
 
         CRMenu * statusLineMenu = new CRMenu(_wm, mainMenu, mm_StatusLine,
                 _wm->translateString("VIEWER_MENU_STATUS_LINE", "Status line"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_STATUS_LINE );
-        addMenuItems( statusLineMenu, status_line, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_STATUS_LINE );
+        addMenuItems( statusLineMenu, status_line );
         mainMenu->addItem( statusLineMenu );
 
         CRMenu * kerningMenu = new CRMenu(_wm, mainMenu, mm_Kerning,
                 _wm->translateString("VIEWER_MENU_FONT_KERNING", "Font kerning"),
-                                LVImageSourceRef(), menuFont, valueFont, props, PROP_FONT_KERNING_ENABLED );
-        addMenuItems( kerningMenu, kerning_options, menuFont );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_KERNING_ENABLED );
+        addMenuItems( kerningMenu, kerning_options );
         mainMenu->addItem( kerningMenu );
 
 }

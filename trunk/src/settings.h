@@ -32,7 +32,7 @@ class CRSettingsMenu : public CRMenu
         CRPropRef props;
         CRGUIAcceleratorTableRef _menuAccelerators;
         CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
-        void addMenuItems( CRMenu * menu, item_def_t values[], LVFontRef menuFont );
+        void addMenuItems( CRMenu * menu, item_def_t values[] );
     public:
         CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators );
 };

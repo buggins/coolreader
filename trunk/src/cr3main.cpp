@@ -356,36 +356,35 @@ public:
 
     void showMainMenu()
     {
-        LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * menu_win = new CRMenu( _wm,
             NULL, //CRMenu * parentMenu,
             1,
             lString16(L"Main Menu"),
             LVImageSourceRef(),
-            menuFont,
-            menuFont );
+            LVFontRef(),
+            LVFontRef() );
         menu_win->setSkinName(lString16(L"MainMenu"));
         menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
                        lString16(L"Go to first page"),
                        LVImageSourceRef(),
-                       menuFont ) );
+                       LVFontRef() ) );
         menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
                        lString16(L"Go to page ..."),
                        LVImageSourceRef(),
-                       menuFont ) );
+                       LVFontRef() ) );
         menu_win->addItem( new CRMenuItem( menu_win, DCMD_END,
                        lString16(L"Go to last page"),
                        LVImageSourceRef(),
-                       menuFont ) );
+                       LVFontRef() ) );
         menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
                        lString16(L"Settings..."),
                        LVImageSourceRef(),
-                       menuFont ) );
+                       LVFontRef() ) );
 #ifdef WITH_DICT
         menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
                        lString16(L"Dictionary..."),
                        LVImageSourceRef(),
-                       menuFont ) );
+                       LVFontRef() ) );
 #endif
         menu_win->setAccelerators( _menuAccelerators );
         _wm->activateWindow( menu_win );
