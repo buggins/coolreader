@@ -193,7 +193,7 @@ bool LVTextFileBase::AutodetectEncoding()
     m_stream->SetPos( 0 );
     if ( sz>m_stream->GetSize() )
         sz = m_stream->GetSize();
-    if ( sz < 40 )
+    if ( sz < 16 )
         return false;
     unsigned char * buf = new unsigned char[ sz ];
     lvsize_t bytesRead = 0;
@@ -966,7 +966,7 @@ public:
         }
         str.trimDoubleSpaces(false, false, true);
         bool isHeader = false;
-        if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 && get(startline+1)->rpos==0 ) )
+        if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 && startline<length()-1 && get(startline+1)->rpos==0 ) )
             isHeader = true;
         if ( startline==endline && get(startline)->isHeading() )
             isHeader = true;
@@ -1282,7 +1282,7 @@ bool LVTextParser::CheckFormat()
     FillBuffer( TEXT_PARSER_DETECT_SIZE );
     int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
     bool res = false;
-    if ( charsDecoded > 30 ) {
+    if ( charsDecoded > 16 ) {
         int illegal_char_count = 0;
         int crlf_count = 0;
         int space_count = 0;

@@ -403,7 +403,10 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
 public:
-
+    /// returns true if page image is available (0=current, -1=prev, 1=next)
+    bool getShowCover() { return  m_showCover; }
+    /// returns true if page image is available (0=current, -1=prev, 1=next)
+    void setShowCover( bool show ) { m_showCover = show; }
     /// returns true if page image is available (0=current, -1=prev, 1=next)
     bool isPageImageReady( int delta );
 
