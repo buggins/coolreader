@@ -142,13 +142,14 @@ typedef LVFastRef<CRMenuSkin> CRMenuSkinRef;
 
 
 /// Base skin class
-class CRSkinBase : public LVRefCounter
+class CRSkinContainer : public LVRefCounter
 {
 protected:
     virtual void readRectSkin(  const lChar16 * path, CRRectSkin * res );
     virtual void readWindowSkin(  const lChar16 * path, CRWindowSkin * res );
     virtual void readMenuSkin(  const lChar16 * path, CRMenuSkin * res );
 public:
+    virtual lString16 pathById( const lChar16 * id ) = 0;
     /// gets image from container
     virtual LVImageSourceRef getImage( const lChar16 * filename ) = 0;
     /// gets image from container
@@ -179,48 +180,27 @@ public:
     virtual LVImageSourceRef readImage( const lChar16 * path, const lChar16 * attrname );
 
 
-    /// returns rect skin
-    CRRectSkinRef getRectSkin( const lChar16 * path );
-    /// returns window skin
-    CRWindowSkinRef getWindowSkin( const lChar16 * path );
-    /// returns menu skin
-    CRMenuSkinRef getMenuSkin( const lChar16 * path );
+    /// returns rect skin by path or #id
+    virtual CRRectSkinRef getRectSkin( const lChar16 * path ) = 0;
+    /// returns window skin by path or #id
+    virtual CRWindowSkinRef getWindowSkin( const lChar16 * path ) = 0;
+    /// returns menu skin by path or #id
+    virtual CRMenuSkinRef getMenuSkin( const lChar16 * path ) = 0;
 
     /// destructor
-    virtual ~CRSkinBase() { }
+    virtual ~CRSkinContainer() { }
 };
 
 /// skin reference
-typedef LVFastRef<CRSkinBase> CRSkinBaseRef;
+//typedef LVFastRef<CRSkinContainer> CRSkinBaseRef;
 
-
-/// skin file support
-class CRSkin : public CRSkinBase
-{
-protected:
-    LVContainerRef _container;
-    LVAutoPtr<ldomDocument> _doc;
-public:
-    /// gets image from container
-    virtual LVImageSourceRef getImage( const lChar16 * filename );
-    /// gets doc pointer by asolute path
-    virtual ldomXPointer getXPointer( const lString16 & xPointerStr ) { return _doc->createXPointer( xPointerStr ); }
-    /// constructor does nothing
-    CRSkin() { }
-    virtual ~CRSkin() { }
-    // open from container
-    virtual bool open( LVContainerRef container );
-    virtual bool open( lString8 simpleXml );
-};
 
 /// skin reference
-typedef LVFastRef<CRSkin> CRSkinRef;
+typedef LVFastRef<CRSkinContainer> CRSkinRef;
 
 /// opens skin from directory or .zip file
 CRSkinRef LVOpenSkin( const lString16 & pathname );
 /// open simple skin, without image files, from string
 CRSkinRef LVOpenSimpleSkin( const lString8 & xml );
-/// open part of skin
-CRSkinBaseRef LVOpenSubSkin( CRSkinBaseRef baseSkin, const lChar16 * path );
 
 #endif// CR_SKIN_INCLUDED

@@ -15,6 +15,46 @@
 #include "../include/crskin.h"
 #include "../include/lvstsheet.h"
 
+
+
+
+
+
+
+/// skin file support
+class CRSkinImpl : public CRSkinContainer
+{
+protected:
+    LVContainerRef _container;
+    LVAutoPtr<ldomDocument> _doc;
+    LVCacheMap<lString16,LVImageSourceRef> _imageCache;
+    LVCacheMap<lString16,CRRectSkinRef> _rectCache;
+    LVCacheMap<lString16,CRWindowSkinRef> _windowCache;
+    LVCacheMap<lString16,CRMenuSkinRef> _menuCache;
+public:
+    /// returns rect skin by path or #id
+    virtual CRRectSkinRef getRectSkin( const lChar16 * path );
+    /// returns window skin by path or #id
+    virtual CRWindowSkinRef getWindowSkin( const lChar16 * path );
+    /// returns menu skin by path or #id
+    virtual CRMenuSkinRef getMenuSkin( const lChar16 * path );
+    /// get DOM path by id
+    virtual lString16 pathById( const lChar16 * id );
+    /// gets image from container
+    virtual LVImageSourceRef getImage( const lChar16 * filename );
+    /// gets doc pointer by asolute path
+    virtual ldomXPointer getXPointer( const lString16 & xPointerStr ) { return _doc->createXPointer( xPointerStr ); }
+    /// constructor does nothing
+    CRSkinImpl()  : _imageCache(8), _rectCache(8), _windowCache(8), _menuCache(8) { }
+    virtual ~CRSkinImpl(){ }
+    // open from container
+    virtual bool open( LVContainerRef container );
+    virtual bool open( lString8 simpleXml );
+};
+
+
+
+
 /* XPM */
 static const char *menu_item_background[] = {
 /* width height num_colors chars_per_pixel */
@@ -150,22 +190,31 @@ static standard_image_item_t standard_images [] = {
 };
 
 /// gets image from container
-LVImageSourceRef CRSkin::getImage(  const lChar16 * filename  )
+LVImageSourceRef CRSkinImpl::getImage(  const lChar16 * filename  )
 {
+    LVImageSourceRef res;
+    lString16 fn( filename );
+    if ( _imageCache.get( fn, res ) )
+        return res; // found in cache
+
+    bool standard = false;
     for ( int i=0; standard_images[i].filename; i++ )
-        if ( !lStr_cmp( filename, standard_images[i].filename ) )
-            return LVCreateXPMImageSource( standard_images[i].xpm );
-    if ( !_container )
-        return LVImageSourceRef();
-    LVStreamRef stream = _container->OpenStream( filename, LVOM_READ );
-    if ( !stream )
-        return LVImageSourceRef();
-    LVImageSourceRef img = LVCreateStreamImageSource( stream );
-    return img;
+        if ( !lStr_cmp( filename, standard_images[i].filename ) ) {
+            res = LVCreateXPMImageSource( standard_images[i].xpm );
+            standard = true;
+        }
+    if ( !standard && !!_container ) {
+        LVStreamRef stream = _container->OpenStream( filename, LVOM_READ );
+        if ( !!stream )
+            res = LVCreateStreamImageSource( stream );
+    }
+    // add found image to cache
+    _imageCache.set( fn, res );
+    return res;
 }
 
 // open from container
-bool CRSkin::open( LVContainerRef container )
+bool CRSkinImpl::open( LVContainerRef container )
 {
     if ( container.isNull() )
         return false;
@@ -184,7 +233,7 @@ bool CRSkin::open( LVContainerRef container )
     return true;
 }
 
-bool CRSkin::open( lString8 simpleXml )
+bool CRSkinImpl::open( lString8 simpleXml )
 {
     LVStreamRef stream = LVCreateStringStream( simpleXml );
     ldomDocument * doc = LVParseXMLStream( stream );
@@ -197,7 +246,7 @@ bool CRSkin::open( lString8 simpleXml )
 }
 
 /// reads string value from attrname attribute of element specified by path, returns empty string if not found
-lString16 CRSkinBase::readString( const lChar16 * path, const lChar16 * attrname )
+lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname )
 {
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr )
@@ -209,7 +258,7 @@ lString16 CRSkinBase::readString( const lChar16 * path, const lChar16 * attrname
 }
 
 /// reads string value from attrname attribute of element specified by path, returns defValue if not found
-lString16 CRSkinBase::readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue )
+lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -218,7 +267,7 @@ lString16 CRSkinBase::readString( const lChar16 * path, const lChar16 * attrname
 }
 
 /// reads color value from attrname attribute of element specified by path, returns defValue if not found
-lUInt32 CRSkinBase::readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue )
+lUInt32 CRSkinContainer::readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -232,7 +281,7 @@ lUInt32 CRSkinBase::readColor( const lChar16 * path, const lChar16 * attrname, l
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns defValue if not found
-lvRect CRSkinBase::readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue )
+lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -245,7 +294,7 @@ lvRect CRSkinBase::readRect( const lChar16 * path, const lChar16 * attrname, lvR
 }
 
 /// reads boolean value from attrname attribute of element specified by path, returns defValue if not found
-bool CRSkinBase::readBool( const lChar16 * path, const lChar16 * attrname, bool defValue )
+bool CRSkinContainer::readBool( const lChar16 * path, const lChar16 * attrname, bool defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -258,7 +307,7 @@ bool CRSkinBase::readBool( const lChar16 * path, const lChar16 * attrname, bool 
 }
 
 /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinBase::readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue )
+int CRSkinContainer::readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -274,7 +323,7 @@ int CRSkinBase::readHAlign( const lChar16 * path, const lChar16 * attrname, int 
 }
 
 /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinBase::readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue )
+int CRSkinContainer::readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -290,7 +339,7 @@ int CRSkinBase::readVAlign( const lChar16 * path, const lChar16 * attrname, int 
 }
 
 /// reads int value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinBase::readInt( const lChar16 * path, const lChar16 * attrname, int defValue )
+int CRSkinContainer::readInt( const lChar16 * path, const lChar16 * attrname, int defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -303,7 +352,7 @@ int CRSkinBase::readInt( const lChar16 * path, const lChar16 * attrname, int def
 }
 
 /// reads point(size) value from attrname attribute of element specified by path, returns defValue if not found
-lvPoint CRSkinBase::readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue )
+lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -316,7 +365,7 @@ lvPoint CRSkinBase::readSize( const lChar16 * path, const lChar16 * attrname, lv
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
-LVImageSourceRef CRSkinBase::readImage( const lChar16 * path, const lChar16 * attrname )
+LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16 * attrname )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -327,7 +376,7 @@ LVImageSourceRef CRSkinBase::readImage( const lChar16 * path, const lChar16 * at
 /// open simple skin, without image files, from string
 CRSkinRef LVOpenSimpleSkin( const lString8 & xml )
 {
-    CRSkin * skin = new CRSkin();
+    CRSkinImpl * skin = new CRSkinImpl();
     CRSkinRef res( skin );
     if ( !skin->open( xml ) )
         return CRSkinRef();
@@ -351,7 +400,7 @@ CRSkinRef LVOpenSkin( const lString16 & pathname )
             return CRSkinRef();
         }
     }
-    CRSkin * skin = new CRSkin();
+    CRSkinImpl * skin = new CRSkinImpl();
     CRSkinRef res( skin );
     if ( !skin->open( container ) )
         return CRSkinRef();
@@ -524,7 +573,7 @@ CRMenuSkin::CRMenuSkin()
 class CRSimpleWindowSkin : public CRWindowSkin
 {
 public:
-	CRSimpleWindowSkin( CRSkin * skin )
+	CRSimpleWindowSkin( CRSkinImpl * skin )
 	{
 		setBackgroundColor( 0xAAAAAA );
 	}
@@ -533,7 +582,7 @@ public:
 class CRSimpleFrameSkin : public CRRectSkin
 {
 public:
-	CRSimpleFrameSkin( CRSkin * skin )
+	CRSimpleFrameSkin( CRSkinImpl * skin )
 	{
 		setBackgroundColor( 0xAAAAAA );
 	}
@@ -571,7 +620,7 @@ public:
 class CRSimpleMenuSkin : public CRMenuSkin
 {
 public:
-    CRSimpleMenuSkin( CRSkin * skin )
+    CRSimpleMenuSkin( CRSkinImpl * skin )
     {
         setBackgroundColor( 0xAAAAAA );
         setTitleSize( lvPoint( 0, 48 ) );
@@ -593,33 +642,7 @@ public:
 	}
 };
 
-/// subskin class
-class CRSkinItem : public CRSkinBase
-{
-protected:
-    CRSkinBaseRef _skin;
-    ldomXPointer _ptr;
-public:
-    /// returns base xpointer
-    ldomXPointer getXPointer() { return _ptr; }
-    /// constructor
-    CRSkinItem( CRSkinBaseRef skin, const lChar16 * path ) : _skin(skin), _ptr( _skin->getXPointer( path )) { }
-    /// gets image from container
-    virtual LVImageSourceRef getImage( const lChar16 * filename ) { return _skin->getImage( filename ); }
-    /// gets doc pointer by relative path
-    virtual ldomXPointer getXPointer( const lString16 & xPointerStr ) { return !_ptr.isNull() ? _ptr.relative( xPointerStr ) : ldomXPointer(); }
-};
-
-/// open part of skin
-CRSkinBaseRef LVOpenSubSkin( CRSkinBaseRef baseSkin, const lChar16 * path )
-{
-    CRSkinBaseRef res( new CRSkinItem( baseSkin, path ) );
-    if ( res->getXPointer(L"/").isNull() )
-        res.Clear();
-    return res;
-}
-
-void CRSkinBase::readRectSkin(  const lChar16 * path, CRRectSkin * res )
+void CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
 {
     lString16 p( path );
     lString16 bgpath = p + L"/background";
@@ -640,7 +663,7 @@ void CRSkinBase::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", SKIN_VALIGN_CENTER) );
 }
 
-void CRSkinBase::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
+void CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
 {
     lString16 p( path );
     readRectSkin(  path, res );
@@ -651,7 +674,7 @@ void CRSkinBase::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
     res->setTitleSize( minsize );
 }
 
-void CRSkinBase::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
+void CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
 {
     lString16 p( path );
     readWindowSkin( path, res );
@@ -663,26 +686,64 @@ void CRSkinBase::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     res->setItemShortcutSkin( shortcutSkin );
 }
 
-/// returns rect skin
-CRRectSkinRef CRSkinBase::getRectSkin( const lChar16 * path )
+lString16 CRSkinImpl::pathById( const lChar16 * id )
 {
-    CRRectSkinRef res( new CRRectSkin() );
-    readRectSkin( path, res.get() );
+    ldomElement * elem = _doc->getElementById( id );
+    if ( !elem )
+        return lString16();
+    return ldomXPointer(elem, 0).toString();
+}
+
+/// returns rect skin
+CRRectSkinRef CRSkinImpl::getRectSkin( const lChar16 * path )
+{
+    lString16 p(path);
+    CRRectSkinRef res;
+    if ( _rectCache.get( p, res ) )
+        return res; // found in cache
+    if ( *path == '#' ) {
+        // find by id
+        p = pathById( path+1 );
+    }
+    // create new one
+    res = CRRectSkinRef( new CRRectSkin() );
+    readRectSkin( p.c_str(), res.get() );
+    _rectCache.set( lString16(path), res );
     return res;
 }
 
 /// returns window skin
-CRWindowSkinRef CRSkinBase::getWindowSkin( const lChar16 * path )
+CRWindowSkinRef CRSkinImpl::getWindowSkin( const lChar16 * path )
 {
-    CRWindowSkinRef res( new CRWindowSkin() );
-    readWindowSkin( path, res.get() );
+    lString16 p(path);
+    CRWindowSkinRef res;
+    if ( _windowCache.get( p, res ) )
+        return res; // found in cache
+    if ( *path == '#' ) {
+        // find by id
+        p = pathById( path+1 );
+    }
+    // create new one
+    res = CRWindowSkinRef( new CRWindowSkin() );
+    readWindowSkin( p.c_str(), res.get() );
+    _windowCache.set( lString16(path), res );
     return res;
 }
 
 /// returns menu skin
-CRMenuSkinRef CRSkinBase::getMenuSkin( const lChar16 * path )
+CRMenuSkinRef CRSkinImpl::getMenuSkin( const lChar16 * path )
 {
-    CRMenuSkinRef res( new CRMenuSkin() );
-    readMenuSkin( path, res.get() );
+    lString16 p(path);
+    CRMenuSkinRef res;
+    if ( _menuCache.get( p, res ) )
+        return res; // found in cache
+    if ( *path == '#' ) {
+        // find by id
+        p = pathById( path+1 );
+    }
+    // create new one
+    res = CRMenuSkinRef( new CRMenuSkin() );
+    readMenuSkin( p.c_str(), res.get() );
+    _menuCache.set( lString16(path), res );
     return res;
 }
