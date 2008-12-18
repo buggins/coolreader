@@ -227,7 +227,7 @@ DECL_DEF_CR_FONT_SIZES;
 const char * cr_default_skin =
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 "<CR3Skin>\n"
-"  <MainMenu>\n"
+"  <menu id=\"main\">\n"
 "        <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
 "        <background color=\"#AAAAAA\"/>\n"
 "        <border widths=\"0,8,8,8\"/>\n"
@@ -253,8 +253,8 @@ const char * cr_default_skin =
 "            <border widths=\"6,6,6,6\"/>\n"
 "            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
 "        </shortcut>\n"
-"  </MainMenu>\n"
-"  <SettingsMenu>\n"
+"  </menu>\n"
+"  <menu id=\"settings\">\n"
 "        <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
 "        <background color=\"#AAAAAA\"/>\n"
 "        <border widths=\"8,8,8,8\"/>\n"
@@ -280,7 +280,7 @@ const char * cr_default_skin =
 "            <border widths=\"6,6,6,6\"/>\n"
 "            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
 "        </shortcut>\n"
-"  </SettingsMenu>\n"
+"  </menu>\n"
 "</CR3Skin>\n";
 
 // TODO: get from skin
@@ -363,7 +363,7 @@ public:
             LVImageSourceRef(),
             LVFontRef(),
             LVFontRef() );
-        menu_win->setSkinName(lString16(L"MainMenu"));
+        menu_win->setSkinName(lString16(L"#main"));
         menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
                        lString16(L"Go to first page"),
                        LVImageSourceRef(),

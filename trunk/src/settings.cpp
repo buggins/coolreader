@@ -152,7 +152,7 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
                             _wm->translateString("VIEWER_DLG_FONT_SIZE_5", "Biggest"),
                                     LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[4], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[4]).c_str()  ) );
     fontSizeMenu->setAccelerators( _menuAccelerators );
-    fontSizeMenu->setSkinName(lString16(L"SettingsMenu"));
+    fontSizeMenu->setSkinName(lString16(L"#settings"));
     return fontSizeMenu;
 }
 
@@ -164,7 +164,7 @@ void CRSettingsMenu::addMenuItems( CRMenu * menu, item_def_t values[] )
             LVImageSourceRef(), 
             LVFontRef(), Utf8ToUnicode(lString8(values[i].value)).c_str() ) );
     menu->setAccelerators( _menuAccelerators );
-    menu->setSkinName(lString16(L"SettingsMenu"));
+    menu->setSkinName(lString16(L"#settings"));
 }
 
 
@@ -178,7 +178,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 {
         CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
-        setSkinName(lString16(L"SettingsMenu"));
+        setSkinName(lString16(L"#settings"));
 
         LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * mainMenu = this;
@@ -187,7 +187,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         CRMenu * fontFaceMenu = new CRMenu(_wm, mainMenu, mm_FontFace,
                                             _wm->translateString("VIEWER_MENU_FONT_FACE", "Default font face"),
                                                     LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_FACE );
-        fontFaceMenu->setSkinName(lString16(L"SettingsMenu"));
+        fontFaceMenu->setSkinName(lString16(L"#settings"));
         CRLog::trace("getting font face list");
         lString16Collection list;
         fontMan->getFaceList( list );
