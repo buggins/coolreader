@@ -15,8 +15,10 @@
 #include <string.h>
 #include "mainwnd.h"
 
+
+
 #ifdef WITH_DICT
-#include "mod-dict.h"
+#include "dictdlg.h"
 #endif
 
 
@@ -314,7 +316,7 @@ bool V3DocViewWin::onCommand( int command, int params )
 #ifdef WITH_DICT
     case MCMD_DICT:
         CRLog::info("MCMD_DICT activated\n");
-        activate_dict(_wm,*_docview);
+        activate_dict(_wm, this);
         return true;
 #endif
     case MCMD_GO_PAGE_APPLY:

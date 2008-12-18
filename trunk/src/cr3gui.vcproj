@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dictdlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\hist.cpp"
 				>
 			</File>
@@ -338,6 +342,10 @@
 			</File>
 			<File
 				RelativePath="..\..\crengine\include\cssdef.h"
+				>
+			</File>
+			<File
+				RelativePath=".\dictdlg.h"
 				>
 			</File>
 			<File

@@ -18,6 +18,7 @@
 #include "settings.h"
 
 #define CR_USE_XCB
+#define WITH_DICT
 
 #ifdef _WIN32
 #define XK_Return   0xFF01
@@ -56,6 +57,9 @@ protected:
     CRGUIAcceleratorTableRef _dialogAccelerators;
 	lString16 _dataDir;
 public:
+	CRGUIAcceleratorTableRef getMenuAccelerators() { return _menuAccelerators; }
+	CRGUIAcceleratorTableRef getDialogAccelerators() { return _dialogAccelerators; }
+
     /// returns current properties
     CRPropRef getProps() { return _props; }
 

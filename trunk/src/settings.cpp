@@ -193,9 +193,10 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         fontMan->getFaceList( list );
         CRLog::trace("faces found: %d", list.length());
         int i;
-        for ( i=0; i<list.length(); i++ ) {
+        for ( i=0; i<(int)list.length(); i++ ) {
             fontFaceMenu->addItem( new CRMenuItem( fontFaceMenu, i,
-                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_SIZE, 300, false, css_ff_sans_serif, UnicodeToUtf8(list[i])), list[i].c_str() ) );
+                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_SIZE, 300, 
+									false, css_ff_sans_serif, UnicodeToUtf8(list[i])), list[i].c_str() ) );
         }
         fontFaceMenu->setAccelerators( _menuAccelerators );
         //lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
