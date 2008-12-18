@@ -117,6 +117,7 @@ class CRWindowSkin : public CRRectSkin
 protected:
     lvPoint _titleSize;
     CRRectSkinRef _titleSkin;
+    CRRectSkinRef _clientSkin;
 public:
     CRWindowSkin();
     /// returns necessary window size for specified client size
@@ -127,6 +128,8 @@ public:
     virtual lvRect getClientRect( const lvRect &windowRect );
     virtual CRRectSkinRef getTitleSkin() { return _titleSkin; }
     virtual void setTitleSkin( CRRectSkinRef skin ) { _titleSkin = skin; }
+    virtual CRRectSkinRef getClientSkin() { return _clientSkin; }
+    virtual void setClientSkin( CRRectSkinRef skin ) { _clientSkin = skin; }
 };
 typedef LVFastRef<CRWindowSkin> CRWindowSkinRef;
 

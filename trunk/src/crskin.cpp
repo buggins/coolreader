@@ -669,6 +669,10 @@ void CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
     res->setTitleSkin( titleSkin );
     lvPoint minsize = titleSkin->getMinSize();
     res->setTitleSize( minsize );
+
+    CRRectSkinRef clientSkin( new CRRectSkin() );
+    readRectSkin(  (p + L"/client").c_str(), clientSkin.get() );
+    res->setClientSkin( clientSkin );
 }
 
 void CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )

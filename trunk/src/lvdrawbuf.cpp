@@ -1070,9 +1070,71 @@ void LVColorDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palett
 /// draws buffer content to another buffer doing color conversion if necessary
 void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette )
 {
-	if ( buf->GetBitsPerPixel()!=GetBitsPerPixel() || GetWidth()!=buf->GetWidth() || GetHeight()!=buf->GetHeight() )
+	if ( !(buf->GetBitsPerPixel()!=GetBitsPerPixel() || GetWidth()!=buf->GetWidth() || GetHeight()!=buf->GetHeight()) ) {
+		// simple copy
+		memcpy( buf->GetScanLine(0), GetScanLine(0), GetWidth() * GetHeight() * GetBitsPerPixel() / 8);
 		return;
-	memcpy( buf->GetScanLine(0), GetScanLine(0), GetWidth() * GetHeight() * GetBitsPerPixel() / 8);
+	}
+	if ( buf->GetBitsPerPixel()!=GetBitsPerPixel() )
+		return; // not supported yet
+    lvRect clip;
+    buf->GetClipRect(&clip);
+    int bpp = buf->GetBitsPerPixel();
+    for (int yy=0; yy<_dy; yy++)
+    {
+        if (y+yy >= clip.top && y+yy < clip.bottom)
+        {
+            lUInt8 * src = (lUInt8 *)GetScanLine(yy);
+            if (bpp==1)
+            {
+                int shift = x & 7;
+                lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>3);
+                for (int xx=0; xx<_dx; xx+=8)
+                {
+                    if ( x+xx >= clip.left && x+xx < clip.right )
+                    {
+                        //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+                        lUInt16 cl = (*src << 8)>>shift;
+                        lUInt16 mask = (0xFF00)>>shift;
+						lUInt8 c = *dst;
+						c &= ~(mask>>8);
+						c |= (cl>>8);
+                        *dst = c;
+						c = *(dst+1);
+						c &= ~(mask&0xFF);
+						c |= (cl&0xFF);
+                        *(dst+1) = c;
+                    }    
+                    dst++;
+                    src++;
+                }
+            }
+            else if (bpp==2)
+            {
+                int shift = (x & 3) * 2;
+                lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>2);
+                for (int xx=0; xx<_dx; xx+=4)
+                {
+                    if ( x+xx >= clip.left && x+xx < clip.right )
+                    {
+                        //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+                        lUInt16 cl = (*src << 8)>>shift;
+                        lUInt16 mask = (0xFF00)>>shift;
+						lUInt8 c = *dst;
+						c &= ~(mask>>8);
+						c |= (cl>>8);
+                        *dst = c;
+						c = *(dst+1);
+						c &= ~(mask&0xFF);
+						c |= (cl&0xFF);
+                        *(dst+1) = c;
+                    }    
+                    dst++;
+                    src++;
+                }
+            }
+        }
+    }
 }
 
 /// draws buffer content to another buffer doing color conversion if necessary
