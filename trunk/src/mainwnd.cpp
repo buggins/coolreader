@@ -34,13 +34,15 @@ class CRNumberEditDialog : public CRGUIWindowBase
         virtual void draw()
         {
             CRRectSkinRef titleSkin = _skin->getTitleSkin();
+            CRRectSkinRef clientSkin = _skin->getClientSkin();
             LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
             _skin->draw( *drawbuf, _rect );
             lvRect titleRect = _skin->getTitleRect( _rect );
             titleSkin->draw( *drawbuf, titleRect );
             titleSkin->drawText( *drawbuf, titleRect, _title );
             lvRect clientRect = _skin->getClientRect( _rect );
-            titleSkin->drawText( *drawbuf, clientRect, _value );
+            clientSkin->draw( *drawbuf, clientRect );
+            _skin->drawText( *drawbuf, _rect, _value+L"_" );
         }
     public:
         CRNumberEditDialog( CRGUIWindowManager * wm, lString16 title, lString16 initialValue, int resultCmd, int minvalue, int maxvalue )
@@ -48,7 +50,7 @@ class CRNumberEditDialog : public CRGUIWindowBase
         {
             _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
             _fullscreen = false;
-            lvPoint clientSize( 250, 70 );
+			lvPoint clientSize( 250, _skin->getFont()->getHeight() + 24 );
             lvPoint sz = _skin->getWindowSize( clientSize );
             lvRect rc = _wm->getScreen()->getRect();
             int x = (rc.width() - sz.x) / 2;
