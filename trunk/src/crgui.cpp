@@ -315,9 +315,11 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
     CRMenuSkinRef skin = getSkin();
-    CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef titleSkin = skin->getTitleSkin();
+    CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();
+    CRRectSkinRef itemSelSkin = skin->getSelItemSkin();
+    CRRectSkinRef itemSelShortcutSkin = skin->getSelItemShortcutSkin();
     lvRect itemBorders = itemSkin->getBorderWidths();
     lvRect headerRc = skin->getTitleRect(_rect);
 
@@ -389,25 +391,25 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
             selected = true;
 
         rc.bottom = rc.top + itemSize.y;
+		CRRectSkinRef is = selected ? itemSelSkin : itemSkin;
+		CRRectSkinRef ss = selected ? itemSelShortcutSkin : itemShortcutSkin;
         if ( selected ) {
             lvRect sel = rc;
-            sel.extend( ITEM_MARGIN/3 );
-            buf.Rect(sel, 0xAAAAAA );
-            sel.extend( 1 );
-            buf.Rect(sel, 0x555555 );
+            sel.extend( 4 );
+			//buf.FillRect(sel, itemSelSkin->getBackgroundColor() );
         }
         // number
         lvRect numberRc( rc );
         //numberRc.extend(ITEM_MARGIN/4); //ITEM_MARGIN/8-2);
         numberRc.right = numberRc.left + HOTKEY_SIZE;
 
-        itemShortcutSkin->draw( buf, numberRc );
+        ss->draw( buf, numberRc );
         lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
-        itemShortcutSkin->drawText( buf, numberRc, number );
+        ss->drawText( buf, numberRc, number );
         // item
         lvRect itemRc( rc );
         itemRc.left = numberRc.right;
-        _items[i]->Draw( buf, itemRc, itemSkin, selected );
+        _items[i]->Draw( buf, itemRc, is, selected );
         rc.top += itemSize.y;
     }
 }

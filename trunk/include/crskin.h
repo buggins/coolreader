@@ -135,12 +135,18 @@ class CRMenuSkin : public CRWindowSkin
 protected:
     CRRectSkinRef _itemSkin;
     CRRectSkinRef _itemShortcutSkin;
+    CRRectSkinRef _selItemSkin;
+    CRRectSkinRef _selItemShortcutSkin;
 public:
     CRMenuSkin();
     virtual CRRectSkinRef getItemSkin() { return _itemSkin; }
     virtual void setItemSkin( CRRectSkinRef skin ) { _itemSkin = skin; }
     virtual CRRectSkinRef getItemShortcutSkin() { return _itemShortcutSkin; }
     virtual void setItemShortcutSkin( CRRectSkinRef skin ) { _itemShortcutSkin = skin; }
+    virtual CRRectSkinRef getSelItemSkin() { return _selItemSkin; }
+    virtual void setSelItemSkin( CRRectSkinRef skin ) { _selItemSkin = skin; }
+    virtual CRRectSkinRef getSelItemShortcutSkin() { return _selItemShortcutSkin; }
+    virtual void setSelItemShortcutSkin( CRRectSkinRef skin ) { _selItemShortcutSkin = skin; }
 };
 typedef LVFastRef<CRMenuSkin> CRMenuSkinRef;
 

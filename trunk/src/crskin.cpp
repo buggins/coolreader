@@ -681,6 +681,13 @@ void CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     CRRectSkinRef shortcutSkin( new CRRectSkin() );
     readRectSkin(  (p + L"/shortcut").c_str(), shortcutSkin.get() );
     res->setItemShortcutSkin( shortcutSkin );
+
+    CRRectSkinRef itemSelSkin( new CRRectSkin() );
+    readRectSkin(  (p + L"/selitem").c_str(), itemSelSkin.get() );
+    res->setSelItemSkin( itemSelSkin );
+    CRRectSkinRef shortcutSelSkin( new CRRectSkin() );
+    readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
+    res->setSelItemShortcutSkin( shortcutSelSkin );
 }
 
 lString16 CRSkinImpl::pathById( const lChar16 * id )
