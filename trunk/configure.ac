@@ -60,7 +60,7 @@ AC_SUBST([CRENGINE_LIBS])
 
 if test -r "${srcdir}/dict-plugin/configure"; then
     AC_DEFINE(WITH_DICT,1)
-    AC_CONFIG_SUBDIRS(dict-plugin)
+    AC_CONFIG_SUBDIRS(libdictd)
     with_dict=true
 else
     with_dict=false

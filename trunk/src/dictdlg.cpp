@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include "dictdlg.h"
-//#include "libdictd.h"
 #include "lvstring.h"
 #include "lvref.h"
 //#include "selector.h"
@@ -17,8 +16,8 @@
 #include <stdexcept>
 #include "mainwnd.h"
 
+#ifdef _WIN32
 //#define USE_LIBDICTD
-
 template <typename T>
 class Dictionary {
     typedef T string_type;
@@ -52,6 +51,9 @@ public:
     }
 };
 
+#else
+#include "libdictd.h"
+#endif
 
 class wordlist {
     LVDocView& docview_;

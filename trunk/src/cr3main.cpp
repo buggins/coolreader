@@ -9,10 +9,6 @@
 #include <crgui.h>
 #include <crtrace.h>
 
-#ifdef WITH_DICT
-#include "mod-dict.h"
-#endif
-
 #include "cr3main.h"
 
 bool initHyph(const char * fname)

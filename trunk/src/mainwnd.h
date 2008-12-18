@@ -18,7 +18,9 @@
 #include "settings.h"
 
 #define CR_USE_XCB
+#ifndef WITH_DICT
 #define WITH_DICT
+#endif
 
 #ifdef _WIN32
 #define XK_Return   0xFF01
