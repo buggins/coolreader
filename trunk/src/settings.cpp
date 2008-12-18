@@ -136,21 +136,15 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     fontSizeMenu = new CRMenu(_wm, mainMenu, mm_FontSize,
                                 _wm->translateString("VIEWER_MENU_FONT_SIZE", "Default font size"),
                                         LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE );
-    fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
-                            _wm->translateString("VIEWER_DLG_FONT_SIZE_1", "Smallest"),
-                                    LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[0], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[0]).c_str()  ) );
-    fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 1,
-                            _wm->translateString("VIEWER_DLG_FONT_SIZE_2", "Small"),
-                                    LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[1], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[1]).c_str()  ) );
-    fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 2,
-                            _wm->translateString("VIEWER_DLG_FONT_SIZE_3", "Medium"),
-                                    LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[2], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[2]).c_str()  ) );
-    fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 3,
-                            _wm->translateString("VIEWER_DLG_FONT_SIZE_4", "Big"),
-                                    LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[3], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[3]).c_str()  ) );
-    fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 4,
-                            _wm->translateString("VIEWER_DLG_FONT_SIZE_5", "Biggest"),
-                                    LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[4], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[4]).c_str()  ) );
+	for ( int i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
+		char name[32];
+		char defvalue[32];
+		sprintf( name, "VIEWER_DLG_FONT_SIZE_%d", cr_font_sizes[i] );
+		sprintf( defvalue, "%d", cr_font_sizes[i] );
+		fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
+								_wm->translateString(name, defvalue),
+										LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[i], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[i]).c_str()  ) );
+	}
     fontSizeMenu->setAccelerators( _menuAccelerators );
     fontSizeMenu->setSkinName(lString16(L"#settings"));
     return fontSizeMenu;
