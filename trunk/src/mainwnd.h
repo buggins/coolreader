@@ -39,6 +39,7 @@ enum CRMainMenuCmd
     MCMD_QUIT,
     MCMD_MAIN_MENU,
     MCMD_GO_PAGE,
+    MCMD_GO_PAGE_APPLY,
     MCMD_SETTINGS,
     MCMD_SETTINGS_APPLY,
 #ifdef WITH_DICT
@@ -52,6 +53,7 @@ protected:
     CRPropRef _props;
     CRPropRef _newProps;
     CRGUIAcceleratorTableRef _menuAccelerators;
+    CRGUIAcceleratorTableRef _dialogAccelerators;
 	lString16 _dataDir;
 public:
     /// returns current properties
@@ -71,6 +73,8 @@ public:
     void showSettingsMenu();
 
     void showMainMenu();
+
+    void showGoToPageDialog();
 
     virtual bool onCommand( int command, int params );
 };
