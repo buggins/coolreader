@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cr3win.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\crgui.cpp"
 				>
 			</File>
@@ -271,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mainwnd.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\props.cpp"
 				>
 			</File>
@@ -298,6 +306,10 @@
 			>
 			<File
 				RelativePath="..\..\crengine\include\cp_stats.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cr3main.h"
 				>
 			</File>
 			<File
@@ -438,6 +450,10 @@
 			</File>
 			<File
 				RelativePath="..\..\crengine\include\lvxml.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mainwnd.h"
 				>
 			</File>
 			<File
