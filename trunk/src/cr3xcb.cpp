@@ -404,7 +404,7 @@ int main(int argc, char **argv)
     {
         CRXCBWindowManager winman( 600, 700 );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
-        V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16("/usr/share/crengine") );
+        V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );

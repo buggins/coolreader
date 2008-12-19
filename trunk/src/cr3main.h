@@ -13,6 +13,10 @@
 #define CR3MAIN_H_INCLUDED
 
 
+#ifndef CRSKIN
+#define CRSKIN "/usr/share/crengine"
+#endif
+
 bool initHyph(const char * fname);
 
 void ShutdownCREngine();

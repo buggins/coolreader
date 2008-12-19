@@ -9,6 +9,8 @@ if WITH_DICT
 INCLUDES += -I $(top_srcdir)/libdictd
 endif
 
+CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
+
 bin_PROGRAMS = cr3
 
 cr3_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3xcb.cpp

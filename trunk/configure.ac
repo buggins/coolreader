@@ -58,7 +58,7 @@ AC_ARG_ENABLE(crengine-memory-manager,
 AC_SUBST([CRENGINE_CFLAGS])
 AC_SUBST([CRENGINE_LIBS])
 
-if test -r "${srcdir}/dict-plugin/configure"; then
+if test -r "${srcdir}/libdictd/configure"; then
     AC_DEFINE(WITH_DICT,1)
     AC_CONFIG_SUBDIRS(libdictd)
     with_dict=true
@@ -66,7 +66,6 @@ else
     with_dict=false
 fi
 AM_CONDITIONAL(WITH_DICT,$with_dict)
-
 #AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT(Makefile src/Makefile)
