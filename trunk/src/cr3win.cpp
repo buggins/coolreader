@@ -113,8 +113,8 @@ public:
                + GetSystemMetrics(SM_CYCAPTION);
     #else
           flags = WS_OVERLAPPEDWINDOW;// | WS_VSCROLL; //
-          dx = 500;
-          dy = 600;
+          dx = 600;
+          dy = 750;
     #endif
 
        _hWnd = CreateWindowW(
@@ -295,7 +295,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     lString8 exe_dir;
     char exe_fn[MAX_PATH+1];
     GetModuleFileNameA( NULL, exe_fn, MAX_PATH );
-    InitCREngine( exe_fn );
+	lString16Collection fontDirs;
+	InitCREngine( exe_fn, fontDirs );
     //LVCHECKPOINT("WinMain start");
 
     if (!fontMan->GetFontCount())

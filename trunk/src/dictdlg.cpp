@@ -125,8 +125,7 @@ public:
         return result;
     }
 
-    LVArray<int> match(const lString8& prefix) {
-        LVArray<int> result;
+    void match(const lString8& prefix, LVArray<int> & result) {
         crtrace dumpstr;
         dumpstr << "match with " << prefix;
         for(int i=0;i<encoded_words_.length();i++) {
@@ -192,6 +191,7 @@ class selector {
     int repeat_;
     int last_;
 public:
+	lString8 getPrefix() { return prefix_; }
     selector(LVDocView& docview) : 
         words_(docview, T9ClassicEncoding()), 
         current_(0), 
@@ -223,7 +223,8 @@ public:
 
     bool update_candidates() {
         CRLog::info("update_candidates() enter\n");
-        LVArray<int> new_candidates = words_.match(prefix_);
+        LVArray<int> new_candidates;
+		words_.match(prefix_, new_candidates);
         CRLog::info("update_candidates() mid\n");
         current_=0;
         CRLog::info("update_candidates() mid2\n");
@@ -312,7 +313,15 @@ class DictWindow : public CRGUIWindowBase
     lString8 progname_;
     lString8 dict_conf_;
 protected:
-	virtual void draw() { }
+	virtual void draw()
+	{
+		CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
+		skin->draw( *_wm->getScreen()->getCanvas(), _rect );
+		lString16 prompt( L"1:abc 2:def 3:ghi 4:jkl 5:mno 6:pqrs 7:tuv 8:wxyz > ");
+		prompt << Utf8ToUnicode(selector_.getPrefix());
+		skin->draw( *_wm->getScreen()->getCanvas(), _rect );
+		skin->drawText( *_wm->getScreen()->getCanvas(), _rect, prompt );
+	}
 public:
 
 	DictWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin ) :
@@ -328,7 +337,9 @@ public:
 		if (dict_.isNull()){
 			dict_ = LVRef<dict_type>(new dict_type(dict_conf_,progname_));
 		};
-		_rect.bottom = _rect.top;
+		_rect = _wm->getScreen()->getRect();
+		//_rect.bottom = _rect.top;
+		_rect.top = _rect.bottom - 40;
 	}
 
 	bool onCommand( int command, int params )

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CR3Skin>
   <window id="dialog">
-        <text color="#000000" face="Arial" size="28" bold="true" italic="false" valign="center" halign="center"/>
+        <text color="#000000" face="Arial" size="26" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
         <border widths="26,8,8,8"/>
         <!--icon image="filename" valign="" halign=""/-->

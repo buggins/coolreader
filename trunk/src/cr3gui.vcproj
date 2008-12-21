@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cr3_def_cover.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\cr3main.cpp"
 				>
 			</File>
