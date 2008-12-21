@@ -401,7 +401,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             _screen->flush( fullScreenUpdate );
         }
         /// returns screen associated with window manager
-        CRGUIScreen * getScreen()
+        virtual CRGUIScreen * getScreen()
         {
             return _screen;
         }

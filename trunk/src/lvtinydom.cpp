@@ -129,7 +129,7 @@ ldomElement * ldomDocument::getMainNode()
 ldomDocument::ldomDocument(LVStreamRef stream, int min_ref_text_size)
 : _textcache(stream, COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE),
              _min_ref_text_size(min_ref_text_size)
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
         , _renderedBlockCache( 32 )
 #endif
         , _docFlags(DOC_FLAG_DEFAULTS)
@@ -140,7 +140,7 @@ ldomDocument::ldomDocument(LVStreamRef stream, int min_ref_text_size)
 #else
 ldomDocument::ldomDocument()
 :
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
      _renderedBlockCache( 32 ),
 #endif
         _docFlags(DOC_FLAG_DEFAULTS)
@@ -175,12 +175,12 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 #if COMPACT_DOM == 1
 ,_textcache(doc._textcache.getStream(), COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE)
     ,_min_ref_text_size(doc._min_ref_text_size)
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
         , _renderedBlockCache( 32 )
 #endif
 #else
     // COMPACT_DOM != 1
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
         , _renderedBlockCache( 32 )
 #endif
 #endif
@@ -275,7 +275,7 @@ void ldomTextRef::setText( lString16 value )
 }
 #endif
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
 int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
 {
     CRLog::trace("initializing default style...");
@@ -407,7 +407,7 @@ void ldomElement::getAbsRect( lvRect & rect )
     rect.right += rect.left;
 }
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
 LVImageSourceRef ldomElement::getObjectImageSource()
 {
     //printf("ldomElement::getObjectImageSource() ... ");
@@ -1451,7 +1451,7 @@ ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
     return createXPointer( getRootNode(), xPointerStr );
 }
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
 /// formats final block
 int ldomElement::renderFinalBlock( LFormattedTextRef & txtform, int width )
 {
@@ -1511,7 +1511,7 @@ ldomText * ldomNode::getLastTextChild()
     return NULL;
 }
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
 ldomElement * ldomNode::elementFromPoint( lvPoint pt )
 {
     if ( !isElement() )
@@ -2228,7 +2228,7 @@ void ldomXRangeList::split( ldomXRange * r )
     }
 }
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
 /// fill marked ranges list
 void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
 {
@@ -2335,7 +2335,7 @@ ldomElement * ldomXRange::getNearestCommonParent()
     return NULL;
 }
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
 /// returns rectangle (in doc coordinates) for range. Returns true if found.
 bool ldomXRange::getRect( lvRect & rect )
 {

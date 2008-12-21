@@ -183,7 +183,7 @@ public:
     virtual void gc()
     {
         _styleCache.gc();
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
         fontMan->gc();
 #endif
     }
@@ -440,7 +440,7 @@ public:
     ldomText * getFirstTextChild();
     /// returns last text child element
     ldomText * getLastTextChild();
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// find node by coordinates of point in formatted document
     ldomElement * elementFromPoint( lvPoint pt );
     /// find final node by coordinates of point in formatted document
@@ -607,7 +607,7 @@ public:
 	{
 		return _node!=v._node || _offset!=v._offset;
 	}
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// returns caret rectangle for pointer inside formatted document
     bool getRect(lvRect & rect) const;
     /// returns coordinates of pointer inside formatted document
@@ -839,7 +839,7 @@ public:
     static bool getWordRange( ldomXRange & range, ldomXPointer & p );
     /// run callback for each node in range
     void forEach( ldomNodeCallback * callback );
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// returns rectangle (in doc coordinates) for range. Returns true if found.
     bool getRect( lvRect & rect );
 #endif
@@ -921,7 +921,7 @@ public:
     ldomXRangeList( ldomXRangeList & srcList, bool splitIntersections );
     /// create list by filtering existing list, to get only values which intersect filter range
     ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter );
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// fill text selection list by splitting text into monotonic flags ranges
     void splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSplit );
     /// fill marked ranges list
@@ -940,7 +940,7 @@ class ldomElement;
 class ldomTextRef;
 #endif
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
 /// final block cache
 typedef LVRef<LFormattedText> LFormattedTextRef;
 typedef LVCacheMap< ldomElement *, LFormattedTextRef> CVRendBlockCache;
@@ -1012,7 +1012,7 @@ private:
     int            _min_ref_text_size;
 #endif
 
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// final block cache
     CVRendBlockCache _renderedBlockCache;
 #endif
@@ -1085,7 +1085,7 @@ public:
     ldomElement * getRootNode() { return _root; }
     /// returns main element (i.e. FictionBook for FB2)
     ldomElement * getMainNode();
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// renders (formats) document in memory
     virtual int render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space );
 #endif
@@ -1106,7 +1106,7 @@ public:
     }
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// create xpointer from doc point
     ldomXPointer createXPointer( lvPoint pt );
     /// get rendered block cache object
@@ -1431,7 +1431,7 @@ public:
     }
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
-#ifndef BUILD_LITE
+#if BUILD_LITE!=1
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
     /// formats final block
