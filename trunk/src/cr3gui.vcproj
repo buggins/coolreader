@@ -485,6 +485,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\t9encoding.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\include\w32utils.h"
 				>
 			</File>

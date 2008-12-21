@@ -15,7 +15,7 @@ public:
         assert(keytable_.length() <= 10);
         for (int i = 0; i < keytable_.length(); i++) {
             const lString16& ref = keytable_[i];
-            for( int j = 0; j < ref.length(); j ++ ) {
+            for( unsigned j = 0; j < ref.length(); j ++ ) {
                 if (ref[j] == ch) {
                     return i;
                 };
@@ -28,7 +28,7 @@ public:
     encode_string(lString16 s) const { // s not const, because we lower it here
         s.lowercase();
         lString8 result;
-        for(int i = 0; i < s.length(); i ++) {
+        for (unsigned i = 0; i < s.length(); i ++) {
             result.append(1,static_cast<lChar8>('0'+encode(s[i])));
         };
         return result;

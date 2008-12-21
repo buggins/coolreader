@@ -59,7 +59,7 @@ public:
 
 bool
 startsWith(const lString8& str, const lString8& prefix) {
-    int len_prefix = str.length();
+    int len_prefix = prefix.length();
     if (len_prefix == 0) 
         return false;
 
@@ -90,6 +90,7 @@ public:
             range->getRangeWords(words_);
             for(int i = 0; i < words_.length(); i++){
                 lString8 encoded = encoding.encode_string(words_[i].getText());
+				encoded_words_.add( encoded );
                 trace << "string " << words_[i].getText() <<
                     " encoded as " <<encoded << "\n";
             };
@@ -193,7 +194,7 @@ class selector {
 public:
 	lString8 getPrefix() { return prefix_; }
     selector(LVDocView& docview) : 
-        words_(docview, T9ClassicEncoding()), 
+        words_(docview, T9Encoding()), 
         current_(0), 
         level_(0),
         candidates_(),
