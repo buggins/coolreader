@@ -62,11 +62,10 @@ class CRJinkeScreen : public CRGUIScreenBase
     protected:
         virtual void update( const lvRect & rc, bool full )
         {
-/*
-            CRLog::debug("crV3Screen::updateFull()");
-            v3_callbacks->BlitBitmap( 0, 0, 600, getWindowHeight(), 0, 0, 600, getWindowHeight(), (unsigned char *)_buf.GetScanLine(0) );
+            CRLog::debug("CRJinkeScreen::update()");
+            
+            v3_callbacks->BlitBitmap( 0, 0, 600, 800, 0, 0, 600, 800, (unsigned char *)_front->GetScanLine(0) );
             v3_callbacks->PartialPrint();
-*/
         }
     public:
         virtual ~CRJinkeScreen()
@@ -184,6 +183,7 @@ int OnKeyPressed(int keyId, int state)
     if ( !code )
         return 0;
     CRJinkeWindowManager::instance->onKeyPressed( code, flags );
+    CRJinkeWindowManager::instance->update( true );
     return 2;
 
 }

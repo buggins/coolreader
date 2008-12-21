@@ -387,7 +387,13 @@ int main(int argc, char **argv)
     #endif
 
 
-    if ( !InitCREngine( argv[0] ) ) {
+    lString16Collection fontDirs;
+    fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
+    fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
+    fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
+    fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+    fontDirs.add( lString16(L"/root/fonts/truetype") );
+    if ( !InitCREngine( argv[0], fontDirs ) ) {
         printf("Cannot init CREngine - exiting\n");
         return 2;
     }

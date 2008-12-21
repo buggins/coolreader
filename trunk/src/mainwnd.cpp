@@ -236,6 +236,167 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     };
     _menuAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) );
     _dialogAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table_dialog ) );
+
+    LVRefVec<LVImageSource> icons;
+    static const char * battery4[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0000.000.000.000.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery3[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0000.ooo.000.000.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery2[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0000.ooo.ooo.000.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery1[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0000.ooo.ooo.ooo.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery0[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0000.ooo.ooo.ooo.ooo.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    icons.add( LVCreateXPMImageSource( battery0 ) );
+    icons.add( LVCreateXPMImageSource( battery1 ) );
+    icons.add( LVCreateXPMImageSource( battery2 ) );
+    icons.add( LVCreateXPMImageSource( battery3 ) );
+    icons.add( LVCreateXPMImageSource( battery4 ) );
+    _docview->setBatteryIcons( icons );
+
+}
+
+bool V3DocViewWin::loadDefaultCover( lString16 filename )
+{
+    LVImageSourceRef cover = LVCreateFileCopyImageSource( filename.c_str() );
+    if ( !cover.isNull() ) {
+        _docview->setDefaultCover( cover );
+        return true;
+    } else {
+        IMAGE_SOURCE_FROM_BYTES(defCover, cr3_def_cover_gif);
+        _docview->setDefaultCover( defCover );
+        return false;
+    }
+}
+
+bool V3DocViewWin::loadCSS( lString16 filename )
+{
+    lString8 css;
+    if ( LVLoadStylesheetFile( lString16("/root/abook/crengine/fb2.css"), css ) ) {
+        if ( !css.empty() ) {
+            _docview->setStyleSheet( css );
+            _css = css;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool V3DocViewWin::loadSettings( lString16 filename )
+{
+    _settingsFileName = filename;
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    if ( stream.isNull() )
+        return false;
+    if ( _props->loadFromStream( stream.get() ) ) {
+        _docview->propsApply( _props );
+        return true;
+    }
+    return false;
+}
+
+bool V3DocViewWin::saveSettings( lString16 filename )
+{
+    if ( filename.empty() )
+        filename = _settingsFileName;
+    if ( filename.empty() )
+        return false;
+    _settingsFileName = filename;
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+    if ( stream.isNull() )
+        return false;
+    return _props->saveToStream( stream.get() );
 }
 
 void V3DocViewWin::applySettings()

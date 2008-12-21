@@ -81,7 +81,7 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
 }
 #endif
 
-bool InitCREngine( const char * exename )
+bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 {
     lString16 appname( exename );
     int lastSlash=-1;
@@ -119,7 +119,6 @@ bool InitCREngine( const char * exename )
     #endif
     #if (USE_FREETYPE==1)
         lString16Collection fonts;
-        lString16Collection fontDirs;
         fontDirs.add( fontDir );
         static const char * msfonts[] = {
             "arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf",
@@ -187,3 +186,51 @@ bool InitCREngine( const char * exename )
     return true;
 
 }
+
+void InitCREngineLog( const char * cfgfile )
+{
+    if ( !cfgfile ) {
+        CRLog::setStdoutLogger();
+        CRLog::setLogLevel( CRLog::LL_TRACE );
+        return;
+    }
+    lString16 logfname;
+    lString16 loglevelstr = L"INFO";
+    CRPropRef logprops = LVCreatePropsContainer();
+    {
+        LVStreamRef cfg = LVOpenFileStream( cfgfile, LVOM_READ );
+        if ( !cfg.isNull() ) {
+            logprops->loadFromStream( cfg.get() );
+            logfname = logprops->getStringDef( PROP_LOG_FILENAME, "stdout" );
+            loglevelstr = logprops->getStringDef( PROP_LOG_LEVEL, "TRACE" );
+        }
+    }
+    CRLog::log_level level = CRLog::LL_INFO;
+    if ( loglevelstr==L"OFF" ) {
+        level = CRLog::LL_FATAL;
+        logfname.clear();
+    } else if ( loglevelstr==L"FATAL" ) {
+        level = CRLog::LL_FATAL;
+    } else if ( loglevelstr==L"ERROR" ) {
+        level = CRLog::LL_ERROR;
+    } else if ( loglevelstr==L"WARN" ) {
+        level = CRLog::LL_WARN;
+    } else if ( loglevelstr==L"INFO" ) {
+        level = CRLog::LL_INFO;
+    } else if ( loglevelstr==L"DEBUG" ) {
+        level = CRLog::LL_DEBUG;
+    } else if ( loglevelstr==L"TRACE" ) {
+        level = CRLog::LL_TRACE;
+    }
+    if ( !logfname.empty() ) {
+        if ( logfname==L"stdout" )
+            CRLog::setStdoutLogger();
+        else if ( logfname==L"stderr" )
+            CRLog::setStderrLogger();
+        else
+            CRLog::setFileLogger( UnicodeToUtf8( logfname ).c_str(), true );
+    }
+    CRLog::setLogLevel( level );
+    CRLog::trace("Log initialization done.");
+}
+

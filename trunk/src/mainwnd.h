@@ -32,6 +32,13 @@
 #ifdef CR_USE_XCB
 #define XK_MISCELLANY
 #include <X11/keysymdef.h>
+#else
+
+#define XK_Return   0xFF01
+#define XK_Up       0xFF02
+#define XK_Down     0xFF03
+#define XK_Escape   0xFF04
+
 #endif
 #endif
 
@@ -58,7 +65,13 @@ protected:
     CRGUIAcceleratorTableRef _menuAccelerators;
     CRGUIAcceleratorTableRef _dialogAccelerators;
 	lString16 _dataDir;
+    lString16 _settingsFileName;
+    lString8  _css;
 public:
+    bool loadDefaultCover( lString16 filename );
+    bool loadCSS( lString16 filename );
+    bool loadSettings( lString16 filename );
+    bool saveSettings( lString16 filename );
 	CRGUIAcceleratorTableRef getMenuAccelerators() { return _menuAccelerators; }
 	CRGUIAcceleratorTableRef getDialogAccelerators() { return _dialogAccelerators; }
 

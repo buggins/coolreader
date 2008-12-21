@@ -25,6 +25,8 @@ void ShutdownCREngine();
 bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16Collection & fonts, bool absPath );
 #endif
 
-bool InitCREngine( const char * exename );
+bool InitCREngine( const char * exename, lString16Collection & fontPathList );
+
+void InitCREngineLog( const char * cfgfile );
 
 #endif
