@@ -13,7 +13,12 @@ CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
 
 bin_PROGRAMS = cr3
 
-cr3_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3xcb.cpp
+cr3_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp 
+#todo: put under condition
+cr3_SOURCES += cr3xcb.cpp 
+#todo: put under condition
+cr3_SOURCES += cr3jinke.cpp
+
 if WITH_DICT
 cr3_SOURCES += dictdlg.cpp
 endif
