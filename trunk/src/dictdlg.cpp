@@ -15,6 +15,7 @@
 #include "crtrace.h"
 #include <stdexcept>
 #include "mainwnd.h"
+#include "t9encoding.h"
 
 #ifdef _WIN32
 //#define USE_LIBDICTD
@@ -55,16 +56,43 @@ public:
 #include "libdictd.h"
 #endif
 
+
+bool
+startsWith(const lString8& str, const lString8& prefix) {
+    int len_prefix = str.length();
+    if (len_prefix == 0) 
+        return false;
+
+    int len_orig  = str.length();
+    if (len_prefix > len_orig)
+        return false;
+
+    for(int i = 0; i < len_prefix; i++) {
+        if(str[i] != prefix[i])
+            return false;
+    };
+    return true;
+};
+
 class wordlist {
     LVDocView& docview_;
     LVArray<ldomWord> words_;
+    LVArray<lString8> encoded_words_;
 public:
-    wordlist(LVDocView& docview) : docview_(docview) {
+    wordlist(LVDocView& docview, const TEncoding& encoding) :
+        docview_(docview) 
+    {
         ldomDocument * doc = docview.getDocument();
         int pageIndex = -1; //docview.getCurPage();
         LVRef<ldomXRange> range = docview.getPageDocumentRange( pageIndex );
+        crtrace trace;
         if(!range.isNull()) {
             range->getRangeWords(words_);
+            for(int i = 0; i < words_.length(); i++){
+                lString8 encoded = encoding.encode_string(words_[i].getText());
+                trace << "string " << words_[i].getText() <<
+                    " encoded as " <<encoded << "\n";
+            };
         };
     }
     
@@ -97,6 +125,18 @@ public:
         return result;
     }
 
+    LVArray<int> match(const lString8& prefix) {
+        LVArray<int> result;
+        crtrace dumpstr;
+        dumpstr << "match with " << prefix;
+        for(int i=0;i<encoded_words_.length();i++) {
+            if(startsWith(encoded_words_[i],prefix)){
+                result.add(i);
+                dumpstr << " " << i << " " << encoded_words_[i];
+            };
+        };
+    }
+
     void highlight(int i) {
         LVArray<ldomWord> selected;
 
@@ -111,6 +151,7 @@ public:
         selected.add(words_[i]);
         docview_.selectWords(selected);
     }
+
     void highlight(LVArray<int> list) {
         LVArray<ldomWord> selected;
         for (int i=0; i < list.length(); i++) {
@@ -145,21 +186,21 @@ class selector {
     int current_;
     int level_;
     LVArray<int> candidates_;
-    lString16 prefix_;
-    LVArray<lString16> keytable_;
+    LVArray<lString16> encoded_;
+    lString8 prefix_;
+//    LVArray<lString16> keytable_;
     int repeat_;
     int last_;
 public:
     selector(LVDocView& docview) : 
-        words_(docview), 
+        words_(docview, T9ClassicEncoding()), 
         current_(0), 
         level_(0),
         candidates_(),
         repeat_(0),
-        prefix_(),
-        keytable_()
+        prefix_()
         {
-            init_keytable(keytable_);
+//            init_keytable(keytable_);
             update_candidates();
         };
 
@@ -180,43 +221,34 @@ public:
 
     void down() { moveBy( 1 ); }
 
-    void update_candidates() {
+    bool update_candidates() {
         CRLog::info("update_candidates() enter\n");
-        candidates_ = words_.match(prefix_);
+        LVArray<int> new_candidates = words_.match(prefix_);
         CRLog::info("update_candidates() mid\n");
         current_=0;
         CRLog::info("update_candidates() mid2\n");
-        if(candidates_.length() == 0) {
+        if(new_candidates.length() == 0) {
             CRLog::info("nothig to highlight");
-            return;
+            return false;
         };
+        candidates_ = new_candidates;
         words_.highlight(candidates_[current_]);
         CRLog::info("update_candidates() leave\n");
-    }
-
-    bool push(lChar16 key) {
-        LVArray<lChar16> keys = words_.nth_chars(level_);
-        for(int i=0; i<keys.length();i++){
-            if (keys[i==key]) {
-                prefix_ << key;
-                level_++;
-                update_candidates();
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 
     bool push_button(int key) {
-        key = key - '0';
-        const lString16& keylist(keytable_[key]);
-        for (unsigned i=0; i <keylist.length(); i++) {
-            if(push(keylist[0])){
-                return true;
-            }
+        crtrace trace("selector::push(): ");
+        lString8 old_prefix = prefix_;
+        prefix_.append(1,static_cast<char>(key));
+        if(update_candidates()){
+            level_++;
+            return true;
         }
+        prefix_ = old_prefix;
         return false;
     }
+
 
     bool pop() {
         if (level_==0) {
