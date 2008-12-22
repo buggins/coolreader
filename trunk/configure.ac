@@ -65,7 +65,9 @@ if test -r "${srcdir}/libdictd/configure"; then
 else
     with_dict=false
 fi
+with_jinke=false
 AM_CONDITIONAL(WITH_DICT,$with_dict)
+AM_CONDITIONAL(WITH_JINKE,$with_jinke)
 #AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT(Makefile src/Makefile)

@@ -3,33 +3,43 @@
 
 INCLUDES = @FREETYPE_CFLAGS@ @PNG_CFLAGS@ @CRENGINE_CFLAGS@ -I$(top_srcdir)/crengine/include
 AM_CFLAGS=-Wall
+AM_CXXFLAGS=-Wall
 AM_CPPFLAGS = -I$(top_srcdir)/crengine/include
 
+COMMON_LDADD = @FREETYPE_LIBS@ \
+	@XCB_KEYSYMS_LIBS@ \
+	@XCB_LIBS@ @XCB_AUX_LIBS@ @XCB_IMAGE_LIBS@ @PNG_LIBS@ @CRENGINE_LIBS@ \
+	-lfreetype -ljpeg -lz
+AM_CPPFLAGS += @CRENGINE_CFLAGS@
+
+if WITH_DICT
+COMMON_LDADD += $(top_builddir)/libdictd/libdictd.la
+COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
+endif
 if WITH_DICT
 INCLUDES += -I $(top_srcdir)/libdictd
 endif
 
 CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
+CPPFLAGS += -DWITH_XCB
 
-bin_PROGRAMS = cr3
-
-cr3_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp 
-#todo: put under condition
-cr3_SOURCES += cr3xcb.cpp 
-#todo: put under condition
-cr3_SOURCES += cr3jinke.cpp
+COMMON_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp 
 
 if WITH_DICT
-cr3_SOURCES += dictdlg.cpp
+COMMON_SOURCES += dictdlg.cpp
 endif
-cr3_LDADD = @FREETYPE_LIBS@ \
-	@XCB_KEYSYMS_LIBS@ \
-	@XCB_LIBS@ @XCB_AUX_LIBS@ @XCB_IMAGE_LIBS@ @PNG_LIBS@ @CRENGINE_LIBS@ \
-	-lfreetype -ljpeg -lz
-cr3_CPPFLAGS = @CRENGINE_CFLAGS@
-if WITH_DICT
-cr3_LDADD += $(top_builddir)/libdictd/libdictd.la
-cr3_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
+
+noinst_LTLIBRARIES = libcommon.la
+libcommon_la_SOURCES = ${COMMON_SOURCES}
+
+if WITH_JINKE
+lib_LTLIBRARIES = libfb2.la
+libfb2_la_SOURCES = cr3jinke.cpp
+libfb2_la_LIBADD = libcommon.la ${COMMON_LDADD}
+else
+bin_PROGRAMS = cr3
+cr3_SOURCES = cr3xcb.cpp
+cr3_LDADD = libcommon.la ${COMMON_LDADD}
 endif
 
 
