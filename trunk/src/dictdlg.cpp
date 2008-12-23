@@ -57,111 +57,101 @@ public:
 #endif
 
 
-bool
-startsWith(const lString8& str, const lString8& prefix) {
-    int len_prefix = prefix.length();
-    if (len_prefix == 0) 
-        return false;
-
-    int len_orig  = str.length();
-    if (len_prefix > len_orig)
-        return false;
-
-    for(int i = 0; i < len_prefix; i++) {
-        if(str[i] != prefix[i])
+class WordWithRanges
+{
+    lString16 word;
+    lString16 wordLower;
+    lString8  encoded;
+    LVArray<ldomWord> ranges;
+public:
+    const lString16 & getWord() { return word; }
+    const lString8 & getEncoded() { return encoded; }
+    LVArray<ldomWord> & getRanges() { return ranges; }
+    bool matchEncoded( const lString8 & prefix )
+    {
+        if ( prefix.empty() )
             return false;
-    };
-    return true;
+        return encoded.startsWith( prefix );
+    }
+    bool matchWord( const lString16 & prefix )
+    {
+        if ( prefix.empty() )
+            return false;
+        return word.startsWithNoCase( prefix );
+    }
+    bool equals( const lString16 & w )
+    {
+        lString16 w1( w );
+        w1.lowercase();
+        return w1 == wordLower;
+    }
+    void add( const ldomWord & range )
+    {
+        ranges.add( range );
+    }
+    WordWithRanges( const lString16 & w, const lString8 & enc, const ldomWord & range )
+    : word( w ), encoded( enc )
+    {
+        wordLower = w;
+        wordLower.lowercase();
+        ranges.add( range );
+    }
 };
 
 class wordlist {
     LVDocView& docview_;
-    LVArray<ldomWord> words_;
-    LVArray<lString8> encoded_words_;
+    LVPtrVector<WordWithRanges> _words;
 public:
+
     wordlist(LVDocView& docview, const TEncoding& encoding) :
         docview_(docview) 
     {
-        ldomDocument * doc = docview.getDocument();
+        //ldomDocument * doc = docview.getDocument();
         int pageIndex = -1; //docview.getCurPage();
         LVRef<ldomXRange> range = docview.getPageDocumentRange( pageIndex );
         crtrace trace;
-        if(!range.isNull()) {
-            range->getRangeWords(words_);
-            for(int i = 0; i < words_.length(); i++){
-                lString8 encoded = encoding.encode_string(words_[i].getText());
-				encoded_words_.add( encoded );
-                trace << "string " << words_[i].getText() <<
-                    " encoded as " <<encoded << "\n";
-            };
-        };
-    }
-    
-    LVArray<int> match(const lString16& prefix) {
-        LVArray<int> result;
-        crtrace dumpstr;
-        dumpstr << "match with " << prefix;
-        for(int i=0;i<words_.length();i++) {
-            lString16 wordtext(words_[i].getText());
-            // FIXME: startsWirh must be const
-            if (wordtext.startsWithNoCase(prefix)) {
-                result.add(i);
-                dumpstr << " " << i << " " << wordtext;
+        if( !range.isNull() ) {
+            LVArray<ldomWord> words;
+            range->getRangeWords(words);
+            for ( int i=0; i<words.length(); i++ ) {
+                lString16 w = words[i].getText();
+                lString8 encoded = encoding.encode_string( w );
+                trace << "string " << w <<
+                    " encoded as " << encoded << "\n";
+                int index = -1;
+                for ( int j=0; j<_words.length(); j++ )
+                    if ( _words[j]->equals(w) ) {
+                        index = j;
+                        break;
+                    }
+                if ( index>=0 )
+                    _words[index]->add( words[i] );  // add range to existing word
+                else
+                    _words.add( new WordWithRanges( w, encoded, words[i] ) ); // add new word
             }
         }
-        return result;
     }
 
-    // for "foo" "bar" "baz" in words_ nth_chars(2) return
-    //    "o" "a" "a"
-    LVArray<lChar16> nth_chars(int pos) {
-        LVArray<lChar16> result;
-        for (int i=0; i < words_.length(); i++) {
-            lString16 wordtext(words_[i].getText()); 
-            // FIXME: startsWirh must be const
-            if ((int)wordtext.length() >= pos) {
-                result.add(wordtext[pos]);
-            }
-        }
-        return result;
-    }
-
-    void match(const lString8& prefix, LVArray<int> & result) {
+    void match( const lString8& prefix, LVArray<WordWithRanges *> & result )
+    {
         crtrace dumpstr;
         dumpstr << "match with " << prefix;
-        for(int i=0;i<encoded_words_.length();i++) {
-            if(startsWith(encoded_words_[i],prefix)){
-                result.add(i);
-                dumpstr << " " << i << " " << encoded_words_[i];
+        for( int i=0; i<_words.length(); i++ ) {
+            if( _words[i]->matchEncoded( prefix ) ) {
+                result.add( _words[i] );
+                //dumpstr << " " << i << " " << encoded_words_[i];
             };
         };
     }
 
-    void highlight(int i) {
-        LVArray<ldomWord> selected;
-
-
-
-
+    void highlight( WordWithRanges * p )
+    {
         crtrace trace;
-        trace << "Select word #" << i << " ";
-        assert(i < words_.length());
-        trace << words_[i].getText();
-
-        selected.add(words_[i]);
-        docview_.selectWords(selected);
-    }
-
-    void highlight(LVArray<int> list) {
-        LVArray<ldomWord> selected;
-        for (int i=0; i < list.length(); i++) {
-            selected.add(words_[list[i]]);
-        };
-        docview_.selectWords(selected);
-    }
-
-    lString16 get(int pos) {
-        return words_[pos].getText();
+        trace << "Select word " << p->getWord() << " (" << p->getRanges().length() << " occurences) : ";
+        for ( int i=0; i<p->getRanges().length(); i++ ) {
+            trace << "[" << p->getRanges()[i].getStart() << "," << p->getRanges()[i].getEnd() << "] ";
+        }
+        docview_.selectWords( p->getRanges() );
     }
 };
 
@@ -185,7 +175,7 @@ class selector {
     wordlist words_;
     int current_;
     int level_;
-    LVArray<int> candidates_;
+    LVArray<WordWithRanges *> candidates_;
     LVArray<lString16> encoded_;
     lString8 prefix_;
 //    LVArray<lString16> keytable_;
@@ -198,8 +188,7 @@ public:
         current_(0), 
         level_(0),
         candidates_(),
-        repeat_(0),
-        prefix_()
+        repeat_(0)
         {
 //            init_keytable(keytable_);
             update_candidates();
@@ -224,17 +213,17 @@ public:
 
     bool update_candidates() {
         CRLog::info("update_candidates() enter\n");
-        LVArray<int> new_candidates;
-		words_.match(prefix_, new_candidates);
+        LVArray<WordWithRanges *> new_candidates;
+        words_.match( prefix_, new_candidates );
         CRLog::info("update_candidates() mid\n");
         current_=0;
         CRLog::info("update_candidates() mid2\n");
-        if(new_candidates.length() == 0) {
+        if( new_candidates.length() == 0 ) {
             CRLog::info("nothig to highlight");
             return false;
         };
         candidates_ = new_candidates;
-        words_.highlight(candidates_[current_]);
+        words_.highlight( candidates_[current_] );
         CRLog::info("update_candidates() leave\n");
         return true;
     }
@@ -262,8 +251,9 @@ public:
         return false;
     }
 
-    lString16 get() {
-        return words_.get(candidates_[current_]);
+    const lString16 & get()
+    {
+        return candidates_[current_]->getWord();
     }
 };
 
@@ -306,16 +296,47 @@ public:
 typedef Dictionary<lString8> dict_type;
 LVRef<dict_type> dict_;
 
-class DictWindow : public CRGUIWindowBase
+/// window to show on top of DocView window, shifting/stretching DOCView content to fit
+class BackgroundFitWindow : public CRGUIWindowBase
 {
-	V3DocViewWin * mainwin_;
+protected:
+    V3DocViewWin * mainwin_;
     LVDocView& docview_;
+    virtual void draw()
+    {
+        mainwin_->flush();
+        lvRect fullRect = _wm->getScreen()->getRect();
+        LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
+        int src_y0 = fullRect.top;
+        int src_y1 = fullRect.bottom;
+        // TODO: support top position of window too
+        int dst_y0 = fullRect.top;
+        int dst_y1 = _rect.top;
+        int linesz = buf->GetBitsPerPixel() * buf->GetWidth() / 8;
+        for ( int y = dst_y0; y<dst_y1; y++ ) {
+            int srcy = (src_y1 - src_y0) * y / (dst_y1 - dst_y0);
+            memcpy( buf->GetScanLine( y ), buf->GetScanLine( srcy ), linesz );
+        }
+    }
+public:
+    BackgroundFitWindow(  CRGUIWindowManager * wm, V3DocViewWin * mainwin )
+    : CRGUIWindowBase(wm),
+        mainwin_(mainwin),
+        docview_(*mainwin->getDocView())
+    {
+        _fullscreen = true;
+    }
+};
+
+class DictWindow : public BackgroundFitWindow
+{
     selector selector_;
     lString8 progname_;
     lString8 dict_conf_;
 protected:
 	virtual void draw()
 	{
+        BackgroundFitWindow::draw();
 		CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
 		skin->draw( *_wm->getScreen()->getCanvas(), _rect );
 		lString16 prompt( L"1:abc 2:def 3:ghi 4:jkl 5:mno 6:pqrs 7:tuv 8:wxyz > ");
@@ -326,9 +347,7 @@ protected:
 public:
 
 	DictWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin ) :
-		CRGUIWindowBase(wm),
-		mainwin_(mainwin),
-		docview_(*mainwin->getDocView()),
+		BackgroundFitWindow(wm, mainwin),
 		selector_(*mainwin->getDocView()),
 		progname_("lbook-fb2-plugin"),
 		dict_conf_("/etc/dictd/dictd.conf") {
