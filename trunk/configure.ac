@@ -11,6 +11,24 @@ AC_ISC_POSIX
 
 AM_INIT_AUTOMAKE(1.6 dist-bzip2)
 
+AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
+    [
+    ac_cv_use_jinke=$withval
+    with_jinke=true
+    case ${host_cpu} in
+        i?86) cpu_libdir=i386 ;;
+        *) cpu_libdir="${host_cpu}";;
+    esac
+    JINKEPATH="$withval"
+    CPPFLAGS="${CPPFLAGS} -I${JINKEPATH}/include"
+    LDFLAGS="${LDFLAGS} -L${JINKEPATH}/lib/${cpu_libdir}"
+    export CPPFLAGS
+    export LDFLAGS
+    export JINKEPATH
+],[
+with_jinke=false
+ac_cv_use_jinke=none])
+
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CC_STDC
@@ -19,16 +37,16 @@ AC_C_BIGENDIAN
 AC_C_CONST
 AM_PROG_LIBTOOL
 
-PKG_PROG_PKG_CONFIG
-
-
-#PKG_CHECK_MODULES(EWL, [ewl >= 0.5.2.042])
-PKG_CHECK_MODULES(XCB, [xcb >= 1.1])
-PKG_CHECK_MODULES(XCB_AUX, [xcb-aux >= 0.2])
-PKG_CHECK_MODULES(XCB_IMAGE, [xcb-image >= 0.2])
-PKG_CHECK_MODULES(XCB_KEYSYMS, [xcb-keysyms >= 0.2])
-PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
-PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
+if test "${with_jinke}" == "false"; then
+    PKG_PROG_PKG_CONFIG
+    #PKG_CHECK_MODULES(EWL, [ewl >= 0.5.2.042])
+    PKG_CHECK_MODULES(XCB, [xcb >= 1.1])
+    PKG_CHECK_MODULES(XCB_AUX, [xcb-aux >= 0.2])
+    PKG_CHECK_MODULES(XCB_IMAGE, [xcb-image >= 0.2])
+    PKG_CHECK_MODULES(XCB_KEYSYMS, [xcb-keysyms >= 0.2])
+    PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
+    PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
+fi
 
 echo "${srcdir}/crengine/configure"
 if test -r "${srcdir}/crengine/configure"; then
@@ -65,7 +83,7 @@ if test -r "${srcdir}/libdictd/configure"; then
 else
     with_dict=false
 fi
-with_jinke=false
+
 AM_CONDITIONAL(WITH_DICT,$with_dict)
 AM_CONDITIONAL(WITH_JINKE,$with_jinke)
 #AC_CONFIG_FILES([Makefile])

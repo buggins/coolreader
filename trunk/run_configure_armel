@@ -1,2 +1,13 @@
 #!/bin/sh
-./configure -host=arm-linux-gnueabi --build=i486-linux-gnu
+SDK=${SDK:-/mnt/data/avn/lbook/sdk}
+TARGET="arm-9tdmi-linux-gnu"
+GCC_PATH=${SDK}/${TARGET}/gcc-3.3.4-glibc-2.2.5/bin
+if test ! -x "${GCC_PATH}/${TARGET}-gcc"; then
+    echo "Can't find cross toolchain"
+    exit 1
+fi
+INCLUDES="-I ${SDK}/include/arm/zlib"
+LIBS="-L${SDK}/arm/lib"
+CONF=`dirname $0`
+PATH=${GCC_PATH}:${PATH} ${CONF}/configure --host=${TARGET} \
+    --with-jinke=${SDK}/thirdparty

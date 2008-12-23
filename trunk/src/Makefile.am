@@ -35,7 +35,8 @@ libcommon_la_SOURCES = ${COMMON_SOURCES}
 if WITH_JINKE
 lib_LTLIBRARIES = libfb2.la
 libfb2_la_SOURCES = cr3jinke.cpp
-libfb2_la_LIBADD = libcommon.la ${COMMON_LDADD}
+libfb2_la_LIBADD =  libcommon.la ${COMMON_LDADD}
+libfb2_la_LDFLAGS = -module  -rpath ${libdir} 
 else
 bin_PROGRAMS = cr3
 cr3_SOURCES = cr3xcb.cpp
