@@ -46,7 +46,7 @@ class CRNumberEditDialog : public CRGUIWindowBase
         }
     public:
         CRNumberEditDialog( CRGUIWindowManager * wm, lString16 title, lString16 initialValue, int resultCmd, int minvalue, int maxvalue )
-        : CRGUIWindowBase( wm ), _title(title), _value(initialValue), _resultCmd(resultCmd), _minvalue(minvalue), _maxvalue(maxvalue)
+        : CRGUIWindowBase( wm ), _title(title), _value(initialValue), _minvalue(minvalue), _maxvalue(maxvalue), _resultCmd(resultCmd)
         {
             _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
             _fullscreen = false;
@@ -195,6 +195,8 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     lString16 skinfile = _dataDir;
     LVAppendPathDelimiter( skinfile );
     skinfile << L"skin";
+    lString8 s8 = UnicodeToLocal( skinfile );
+    CRLog::debug("Skin file is %s", s8.c_str() );
     CRSkinRef skin = LVOpenSkin( skinfile );
     if ( skin.isNull() )
         skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );

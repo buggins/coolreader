@@ -120,16 +120,16 @@ class CRXCBScreen : public CRGUIScreenBase
         CRXCBScreen( int width, int height )
         :  CRGUIScreenBase( 0, 0, true )
         {
-            xcb_screen_iterator_t screen_iter;
-            const xcb_setup_t    *setup;
-            xcb_generic_event_t  *e;
-            xcb_generic_error_t  *error;
-            xcb_void_cookie_t     cookie_window;
-            xcb_void_cookie_t     cookie_map;
+            //xcb_screen_iterator_t screen_iter;
+            //const xcb_setup_t    *setup;
+            //xcb_generic_event_t  *e;
+            //xcb_generic_error_t  *error;
+            //xcb_void_cookie_t     cookie_window;
+            //xcb_void_cookie_t     cookie_map;
             uint32_t              mask;
             uint32_t              values[2];
             int                   screen_number;
-            uint8_t               is_hand = 0;
+            //uint8_t               is_hand = 0;
 
             /* getting the connection */
             connection = xcb_connect (NULL, &screen_number);
@@ -143,7 +143,7 @@ class CRXCBScreen : public CRGUIScreenBase
                 width = screen->width_in_pixels;
             if ( height <= 0 || height > screen->height_in_pixels )
                 height = screen->height_in_pixels;
-            xcb_rectangle_t rect_coord = { 0, 0, width, height};
+            //xcb_rectangle_t rect_coord = { 0, 0, width, height};
 
             gc = xcb_generate_id (connection);
             mask = XCB_GC_FOREGROUND | XCB_GC_GRAPHICS_EXPOSURES;
@@ -231,7 +231,7 @@ class CRXCBScreen : public CRGUIScreenBase
                 shminfo.shmid = shmget (IPC_PRIVATE,
                         im->stride*im->height,
                         IPC_CREAT | 0777);
-                assert(shminfo.shmid != -1);
+                assert(shminfo.shmid != (unsigned)-1);
                 shminfo.shmaddr = (uint8_t*)shmat (shminfo.shmid, 0, 0);
                 assert(shminfo.shmaddr);
                 im->data = shminfo.shmaddr;
@@ -328,7 +328,7 @@ public:
                 break;
             case XCB_BUTTON_PRESS:
                 {
-                    xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
+                    //xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
                 }
                 break;
             default:
@@ -347,6 +347,7 @@ public:
         }
 
         xcb_key_symbols_free( keysyms );
+        return 0;
     }
 };
 

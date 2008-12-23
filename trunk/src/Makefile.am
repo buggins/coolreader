@@ -20,8 +20,8 @@ if WITH_DICT
 INCLUDES += -I $(top_srcdir)/libdictd
 endif
 
-CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
-CPPFLAGS += -DWITH_XCB
+AM_CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
+AM_CPPFLAGS += -DWITH_XCB
 
 COMMON_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp 
 
