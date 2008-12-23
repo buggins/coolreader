@@ -2868,6 +2868,22 @@ bool lString16::startsWithNoCase ( const lString16 & substring ) const
 }
 
 /// returns true if string starts with specified substring
+bool lString8::startsWith( const lString8 & substring ) const
+{
+    if ( substring.empty() )
+        return true;
+    unsigned len = substring.length();
+    if ( length() < len )
+        return false;
+    const lChar8 * s1 = c_str();
+    const lChar8 * s2 = substring.c_str();
+    for ( unsigned i=0; i<len; i++ )
+        if ( s1[i] != s2[i] )
+            return false;
+    return true;
+}
+
+/// returns true if string starts with specified substring
 bool lString16::startsWith( const lString16 & substring ) const
 {
     if ( substring.empty() )

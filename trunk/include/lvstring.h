@@ -235,6 +235,9 @@ public:
     /// append string
     lString8 & operator << (const lString8 & str) { return append(str); }
 
+    /// returns true if string starts with specified substring
+    bool startsWith ( const lString8 & substring ) const;
+
     /// calculate hash
     lUInt32 getHash() const;
 
