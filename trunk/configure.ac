@@ -5,10 +5,27 @@ AM_INIT_AUTOMAKE(crengine, 3.0.16)
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
-PKG_PROG_PKG_CONFIG
-
-PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
-PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
+AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
+    [
+        ac_cv_use_jinke=$withval
+        with_jinke=true
+        case ${host_cpu} in
+            i?86) cpu_libdir=i386 ;;
+            *) cpu_libdir="${host_cpu}";;
+        esac
+        JINKEPATH="$withval"
+        CPPFLAGS="${CPPFLAGS} -I${JINKEPATH}/include"
+        LDFLAGS="${LDFLAGS} -L${JINKEPATH}/lib/${cpu_libdir}"
+        export CPPFLAGS
+        export LDFLAGS
+        export JINKEPATH
+    ],[
+        with_jinke=false
+        ac_cv_use_jinke=none
+    PKG_PROG_PKG_CONFIG
+    PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
+    PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
+])
 
 want_xcb=yes
 
