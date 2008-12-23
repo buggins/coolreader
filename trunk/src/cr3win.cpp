@@ -295,7 +295,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     lString8 exe_dir;
     char exe_fn[MAX_PATH+1];
     GetModuleFileNameA( NULL, exe_fn, MAX_PATH );
+    lChar16 exe_fn16[MAX_PATH+1];
+    GetModuleFileNameW( NULL, exe_fn16, MAX_PATH );
+	lString16 exedir = LVExtractPath(lString16(exe_fn16));	
+	lChar16 sysdir[MAX_PATH+1];
+	GetWindowsDirectoryW(sysdir, MAX_PATH);
+	lString16 fontdir( sysdir );
+	fontdir << L"\\Fonts\\";
+	lString8 fd = UnicodeToLocal(exedir);
 	lString16Collection fontDirs;
+	fontDirs.add( fontdir );
 	InitCREngine( exe_fn, fontDirs );
     //LVCHECKPOINT("WinMain start");
 
@@ -340,6 +349,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
             0
         };
         main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
+		main_win->loadCSS( exedir + L"fb2.css" );
+		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
+
         winman.activateWindow( main_win );
         if ( !main_win->getDocView()->LoadDocument(cmdline.c_str()) ) {
             char str[100];

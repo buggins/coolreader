@@ -365,7 +365,7 @@ bool V3DocViewWin::loadDefaultCover( lString16 filename )
 bool V3DocViewWin::loadCSS( lString16 filename )
 {
     lString8 css;
-    if ( LVLoadStylesheetFile( lString16("/root/abook/crengine/fb2.css"), css ) ) {
+    if ( LVLoadStylesheetFile( filename, css ) ) {
         if ( !css.empty() ) {
             _docview->setStyleSheet( css );
             _css = css;
