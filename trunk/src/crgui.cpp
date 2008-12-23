@@ -232,7 +232,7 @@ lvPoint CRMenu::getMaxItemSize()
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     lvPoint mySize = getItemSize();
-    int itemHeight = getItemHeight();
+    //int itemHeight = getItemHeight();
     int maxx = 0;
     int maxy = 0;
     for ( int i=0; i<_items.length(); i++ ) {
@@ -331,7 +331,7 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     titleSkin->drawText( buf, headerRc, _label );
 
     lvPoint itemSize = getMaxItemSize();
-    int hdrHeight = itemSize.y; // + ITEM_MARGIN + ITEM_MARGIN;
+    //int hdrHeight = itemSize.y; // + ITEM_MARGIN + ITEM_MARGIN;
     lvPoint sz = getSize();
 
     int nItems = _items.length();
@@ -496,7 +496,6 @@ bool CRMenu::onCommand( int command, int params )
 		}
         return true;
     } else {
-        CRGUIWindowManager * wm = _wm;
         // command menu item
         if ( !item->getPropValue().empty() ) {
                 // set property

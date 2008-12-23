@@ -6,5 +6,5 @@ libcrengine_la_SOURCES = cp_stats.cpp crtxtenc.cpp hist.cpp hyphman.cpp \
 		lvimg.cpp lvmemman.cpp lvpagesplitter.cpp lvrend.cpp lvstream.cpp lvstring.cpp \
 		lvstsheet.cpp lvstyles.cpp lvtextfm.cpp lvtinydom.cpp lvxml.cpp props.cpp rtfimp.cpp \
 		wolutil.cpp crgui.cpp crskin.cpp
-AM_CXXFLAGS = @FREETYPE_CFLAGS@ @PNG_CFLAGS@
+AM_CXXFLAGS = @FREETYPE_CFLAGS@ @PNG_CFLAGS@ -Wall
 AM_CFLAGS = @FREETYPE_CFLAGS@ @PNG_CFLAGS@

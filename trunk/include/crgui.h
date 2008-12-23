@@ -120,6 +120,7 @@ public:
     {
         return Utf8ToUnicode( lString8(defValue) );
     }
+    virtual ~CRGUIStringTranslator() { }
 };
 
 /// accelerator table reference
@@ -728,7 +729,7 @@ class CRMenuItem
 };
 
 /// CRGUI menu base class
-class CRMenu : public CRMenuItem, public CRGUIWindowBase {
+class CRMenu : public CRGUIWindowBase, public CRMenuItem {
     protected:
         LVPtrVector<CRMenuItem> _items;
         CRPropRef _props;

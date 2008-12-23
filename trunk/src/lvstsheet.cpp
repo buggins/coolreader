@@ -1333,8 +1333,8 @@ bool LVLoadStylesheetFile( lString16 pathName, lString8 & css )
     lString8 import_file;
     if ( LVProcessStyleSheetImport( s, import_file ) ) {
         lString16 importFilename = LVMakeRelativeFilename( pathName, Utf8ToUnicode(import_file) );
-        lString8 ifn = UnicodeToLocal(importFilename);
-        const char * ifns = ifn.c_str();
+        //lString8 ifn = UnicodeToLocal(importFilename);
+        //const char * ifns = ifn.c_str();
         if ( !importFilename.empty() ) {
             LVStreamRef file2 = LVOpenFileStream( importFilename.c_str(), LVOM_READ );
             if ( !file2.isNull() )

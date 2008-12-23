@@ -3094,6 +3094,9 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
                 setTextFormatOptions( txt_format_auto );
         }
         break;
+    default:
+        // DO NOTHING
+        break;
     }
 }
 

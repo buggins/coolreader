@@ -272,7 +272,8 @@ public:
                             row->linkindex = lnk.atoi();
                         }
                         // recursion: search for inner elements
-                        int res = LookupElem( item, 1 ); // lookup row
+                        //int res = 
+                        LookupElem( item, 1 ); // lookup row
                     }
                     break;
                 case erm_table_column: // table column
@@ -374,7 +375,7 @@ public:
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
                 int cs = cell->colspan;
-                int rs = cell->rowspan;
+                //int rs = cell->rowspan;
                 while (cols[x]->nrows>i) { // find free cell position
                     x++;
                     ExtendCols(x); // update col count
@@ -387,7 +388,7 @@ public:
                     if ( cols[x+xx]->nrows < i+cell->rowspan )
                         cols[x+xx]->nrows = i+cell->rowspan;
                     if (cell->rowspan>1) {
-                        int flg =1;
+                        //int flg =1;
                     }
                 }
                 // update col width
@@ -601,7 +602,7 @@ public:
             CCRTableRow * row = rows[i];
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
-                int x = cell->col->index;
+                //int x = cell->col->index;
                 int y = cell->row->index;
                 if ( i==y ) {
                     //upper left corner of cell
@@ -633,10 +634,10 @@ public:
         }
         // update rows by multyrow cell height
         for (i=0; i<rows.length(); i++) {
-            CCRTableRow * row = rows[i];
+            //CCRTableRow * row = rows[i];
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
-                int x = cell->col->index;
+                //int x = cell->col->index;
                 int y = cell->row->index;
                 if ( i==y && cell->rowspan>1 ) {
                     int k;
@@ -676,14 +677,14 @@ public:
         // update cell Y relative to row element
         // calc individual cells dimensions
         for (i=0; i<rows.length(); i++) {
-            CCRTableRow * row = rows[i];
+            //CCRTableRow * row = rows[i];
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
-                int x = cell->col->index;
+                //int x = cell->col->index;
                 int y = cell->row->index;
                 if ( i==y ) {
                     lvdomElementFormatRec * fmt = cell->elem->getRenderData();
-                    CCRTableCol * lastcol = cols[ cell->col->index + cell->colspan - 1 ];
+                    //CCRTableCol * lastcol = cols[ cell->col->index + cell->colspan - 1 ];
                     //fmt->setWidth( lastcol->width + lastcol->x - cell->col->x - cell->padding_left - cell->padding_right );
                     CCRTableRow * lastrow = rows[ cell->row->index + cell->rowspan - 1 ];
                     fmt->setHeight( lastrow->height + lastrow->y - cell->row->y ); // - cell->padding_top - cell->padding_bottom
@@ -1648,7 +1649,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
         int padding_left = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[0], width, em ) + DEBUG_TREE_DRAW;
         int padding_right = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[1], width, em ) + DEBUG_TREE_DRAW;
         int padding_top = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW;
-        int padding_bottom = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[3], width, em ) + DEBUG_TREE_DRAW;
+        //int padding_bottom = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[3], width, em ) + DEBUG_TREE_DRAW;
         if ( (doc_y + height <= 0 || doc_y > 0 + dy) 
             && (
                enode->getRendMethod()!=erm_table_row

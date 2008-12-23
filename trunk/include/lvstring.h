@@ -93,8 +93,8 @@ struct lstring_chunk_t {
     friend class lString16;
     friend struct lstring_chunk_slice_t;
 public:
-    lstring_chunk_t(lChar16 * _buf16) : buf16(_buf16), size(1), len(0), nref(1) {}
-    lstring_chunk_t(lChar8 * _buf8) : buf8(_buf8), size(1), len(0), nref(1) {}
+    lstring_chunk_t(lChar16 * _buf16) : size(1), len(0), nref(1), buf16(_buf16) {}
+    lstring_chunk_t(lChar8 * _buf8) : size(1), len(0), nref(1), buf8(_buf8) {}
 private:
     lUInt32 size;   // 0 for free chunk
     lUInt32 len;    // count of chars in string
