@@ -14,14 +14,13 @@ AM_CPPFLAGS += @CRENGINE_CFLAGS@
 
 if WITH_DICT
 COMMON_LDADD += $(top_builddir)/libdictd/libdictd.la
-COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
+#COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
 endif
 if WITH_DICT
 INCLUDES += -I $(top_srcdir)/libdictd
 endif
 
 AM_CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
-AM_CPPFLAGS += -DWITH_XCB
 
 COMMON_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp 
 
@@ -36,8 +35,9 @@ if WITH_JINKE
 lib_LTLIBRARIES = libfb2.la
 libfb2_la_SOURCES = cr3jinke.cpp
 libfb2_la_LIBADD =  libcommon.la ${COMMON_LDADD}
-libfb2_la_LDFLAGS = -module  -rpath ${libdir} 
+libfb2_la_LDFLAGS = --static-libtool-libs -rpath ${libdir} 
 else
+AM_CPPFLAGS += -DWITH_XCB
 bin_PROGRAMS = cr3
 cr3_SOURCES = cr3xcb.cpp
 cr3_LDADD = libcommon.la ${COMMON_LDADD}

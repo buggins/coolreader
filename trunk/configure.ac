@@ -25,9 +25,12 @@ AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
     export CPPFLAGS
     export LDFLAGS
     export JINKEPATH
+    AC_DEFINE(CR_USE_JINKE)
 ],[
 with_jinke=false
-ac_cv_use_jinke=none])
+ac_cv_use_jinke=none
+AC_DEFINE(CR_USE_XCB)
+])
 
 AC_PROG_CXX
 AC_PROG_CC
