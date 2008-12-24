@@ -22,6 +22,7 @@
 
 #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"
+#include "../include/crtrace.h"
 
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
@@ -1827,6 +1828,14 @@ void LVDocView::updateSelections()
     LVLock lock(getMutex());
     ldomXRangeList ranges( m_doc->getSelections(), true );
     ranges.getRanges( m_markRanges );
+    if ( m_markRanges.length()>0 ) {
+        crtrace trace;
+        trace << "LVDocView::updateSelections() - " << m_markRanges.length() << " ranges selected";
+        for ( int i=0; i<m_markRanges.length(); i++ ) {
+            ldomMarkedRange * item = m_markRanges[i];
+            trace << "(" << item->start.x << "," << item->start.y << "--" << item->end.x << "," << item->end.y << " #" << item->flags << ") ";
+        }
+    }
 }
 
 /// set view mode (pages/scroll)
