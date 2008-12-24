@@ -19,6 +19,7 @@ AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
         export CPPFLAGS
         export LDFLAGS
         export JINKEPATH
+        with_jinke=true
     ],[
         with_jinke=false
         ac_cv_use_jinke=none
@@ -26,6 +27,8 @@ AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
     PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
     PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
 ])
+
+AM_CONDITIONAL(WITH_JINKE,$with_jinke)
 
 want_xcb=yes
 
