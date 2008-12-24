@@ -2276,66 +2276,7 @@ void ldomXRangeList::splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSp
     }
     */
 }
-#endif
 
-/// returns true if intersects specified line rectangle
-bool ldomMarkedRange::intersects( lvRect & rc, lvRect & intersection )
-{
-    if ( start.y>=rc.bottom )
-        return false;
-    if ( end.y<rc.top )
-        return false;
-    intersection = rc;
-    if ( start.y>=rc.top && start.y<rc.bottom ) {
-        if ( start.x > rc.right )
-            return false;
-        intersection.left = rc.left > start.x ? rc.left : start.x;
-    }
-    if ( end.y>=rc.top && end.y<rc.bottom ) {
-        if ( end.x < rc.left )
-            return false;
-        intersection.right = rc.right < end.x ? rc.right : end.x;
-    }
-    return true;
-}
-
-/// create bounded by RC list, with (0,0) coordinates at left top corner
-ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRect & rc )
-{
-    if ( !list || list->empty() )
-        return;
-    if ( list->get(0)->start.y>rc.bottom )
-        return;
-    if ( list->get( list->length()-1 )->end.y < rc.top )
-        return;
-    for ( int i=0; i<list->length(); i++ ) {
-        ldomMarkedRange * src = list->get(i);
-        if ( src->start.y>=rc.bottom || src->end.y<rc.top )
-            continue;
-        add( new ldomMarkedRange(
-            lvPoint(src->start.x-rc.left, src->start.y-rc.top ),
-            lvPoint(src->end.x-rc.left, src->end.y-rc.top ),
-            src->flags ) );
-    }
-}
-
-/// returns nearest common element for start and end points
-ldomElement * ldomXRange::getNearestCommonParent()
-{
-    ldomXPointerEx start(getStart());
-    ldomXPointerEx end(getEnd());
-    while ( start.getLevel() > end.getLevel() && start.parent() )
-        ;
-    while ( start.getLevel() < end.getLevel() && end.parent() )
-        ;
-    while ( start.getIndex()!=end.getIndex() && start.parent() && end.parent() )
-        ;
-    if ( start.getNode()==end.getNode() )
-        return (ldomElement *)start.getNode();
-    return NULL;
-}
-
-#if BUILD_LITE!=1
 /// returns rectangle (in doc coordinates) for range. Returns true if found.
 bool ldomXRange::getRect( lvRect & rect )
 {
@@ -2411,6 +2352,64 @@ bool ldomXRange::getWordRange( ldomXRange & range, ldomXPointer & p )
     return true;
 }
 #endif
+
+/// returns true if intersects specified line rectangle
+bool ldomMarkedRange::intersects( lvRect & rc, lvRect & intersection )
+{
+    if ( start.y>=rc.bottom )
+        return false;
+    if ( end.y<rc.top )
+        return false;
+    intersection = rc;
+    if ( start.y>=rc.top && start.y<rc.bottom ) {
+        if ( start.x > rc.right )
+            return false;
+        intersection.left = rc.left > start.x ? rc.left : start.x;
+    }
+    if ( end.y>=rc.top && end.y<rc.bottom ) {
+        if ( end.x < rc.left )
+            return false;
+        intersection.right = rc.right < end.x ? rc.right : end.x;
+    }
+    return true;
+}
+
+/// create bounded by RC list, with (0,0) coordinates at left top corner
+ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRect & rc )
+{
+    if ( !list || list->empty() )
+        return;
+    if ( list->get(0)->start.y>rc.bottom )
+        return;
+    if ( list->get( list->length()-1 )->end.y < rc.top )
+        return;
+    for ( int i=0; i<list->length(); i++ ) {
+        ldomMarkedRange * src = list->get(i);
+        if ( src->start.y>=rc.bottom || src->end.y<rc.top )
+            continue;
+        add( new ldomMarkedRange(
+            lvPoint(src->start.x-rc.left, src->start.y-rc.top ),
+            lvPoint(src->end.x-rc.left, src->end.y-rc.top ),
+            src->flags ) );
+    }
+}
+
+/// returns nearest common element for start and end points
+ldomElement * ldomXRange::getNearestCommonParent()
+{
+    ldomXPointerEx start(getStart());
+    ldomXPointerEx end(getEnd());
+    while ( start.getLevel() > end.getLevel() && start.parent() )
+        ;
+    while ( start.getLevel() < end.getLevel() && end.parent() )
+        ;
+    while ( start.getIndex()!=end.getIndex() && start.parent() && end.parent() )
+        ;
+    if ( start.getNode()==end.getNode() )
+        return (ldomElement *)start.getNode();
+    return NULL;
+}
+
 
 /// run callback for each node in range
 void ldomXRange::forEach( ldomNodeCallback * callback )
