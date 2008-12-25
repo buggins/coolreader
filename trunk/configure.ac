@@ -20,7 +20,7 @@ AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
         *) cpu_libdir="${host_cpu}";;
     esac
     JINKEPATH="$withval"
-    CPPFLAGS="${CPPFLAGS} -I${JINKEPATH}/include"
+    CPPFLAGS="-DLBOOK=1 ${CPPFLAGS} -I${JINKEPATH}/include"
     LDFLAGS="${LDFLAGS} -L${JINKEPATH}/lib/${cpu_libdir}"
     export CPPFLAGS
     export LDFLAGS

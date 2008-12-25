@@ -1,5 +1,5 @@
 #!/bin/sh
-SDK=${SDK:-/mnt/data/avn/lbook/sdk}
+SDK=${SDK:-/home/lve/src/v3sdk-1.0}
 TARGET="arm-9tdmi-linux-gnu"
 GCC_PATH=${SDK}/${TARGET}/gcc-3.3.4-glibc-2.2.5/bin
 if test ! -x "${GCC_PATH}/${TARGET}-gcc"; then

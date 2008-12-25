@@ -7,7 +7,7 @@ rm -f aclocal.m4 ltmain.sh
 
 echo "Running autotools for crengine"
 cd crengine && NOCONFIGURE=1 sh autogen.sh && cd ..
-cd dict-plugin && NOCONFIGURE=1 sh autogen.sh && cd ..
+cd libdictd && make -f Makefile.conf && cd ..
 
 echo "Running autotools for cr3ewl"
 echo "Running aclocal..." ; aclocal $ACLOCAL_FLAGS || exit 1
