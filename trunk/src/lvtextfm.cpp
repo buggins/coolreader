@@ -1299,11 +1299,11 @@ public:
             if ( frmline2->word_count == 0 ) {
                 lvtextFreeFormattedLine( m_pbuffer->frmlines[m_pbuffer->frmlinecount-1] );
                 m_pbuffer->frmlinecount--;
-                frmline = m_pbuffer->frmlines[m_pbuffer->frmlinecount-1];
+                frmline = m_pbuffer->frmlinecount > 0 ? m_pbuffer->frmlines[m_pbuffer->frmlinecount-1] : NULL;
             }
         }
         //===========================
-        return frmline->y + frmline->height;
+        return frmline ? frmline->y + frmline->height : 0;
     }
 
     LVFormLine( formatted_text_fragment_t * buffer )

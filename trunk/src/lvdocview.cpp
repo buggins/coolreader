@@ -375,6 +375,7 @@ void LVDocView::checkPos()
     if ( _posBookmark.isNull() ) {
         SetPos( 0, false );
     } else {
+        //CRLog::trace("checkPos() _posBookmark node=%08X offset=%d", (unsigned)_posBookmark.getNode(), (int)_posBookmark.getOffset());
         lvPoint pt = _posBookmark.toPoint();
         SetPos( pt.y, false );
     }
@@ -2141,8 +2142,7 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
 void LVDocView::createDefaultDocument( lString16 title, lString16 message )
 {
     lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
-    if ( m_doc )
-        delete m_doc;
+    Clear();
     m_is_rendered = false;
 #if COMPACT_DOM==1
     m_doc = new ldomDocument( LVStreamRef(), 0 );
@@ -2177,6 +2177,11 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
       writer.OnTagOpen( NULL, L"body" );
         //m_callback->OnTagOpen( NULL, L"section" );
           // process text
+          writer.OnTagOpen( NULL, L"title" );
+          writer.OnTagOpen( NULL, L"p" );
+            writer.OnText( title.c_str(), title.length(), 0, 0, 0 );
+          writer.OnTagClose( NULL, L"p" );
+          writer.OnTagClose( NULL, L"title" );
           writer.OnTagOpen( NULL, L"p" );
             writer.OnText( message.c_str(), message.length(), 0, 0, 0 );
           writer.OnTagClose( NULL, L"p" );

@@ -17,7 +17,7 @@
 /**
     \mainpage CoolReader Engine Library
     \author Vadim Lopatin
-    \date 2000-2006
+    \date 2000-2008
 
     \section main_intro Introduction
 
@@ -137,7 +137,7 @@
     
 
 */
-#define CR_ENGINE_VERSION "0.7.3"
+#define CR_ENGINE_VERSION "3.0.17"
 
 #include "crsetup.h"
 #include "lvtypes.h"

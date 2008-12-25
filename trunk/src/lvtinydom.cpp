@@ -1635,10 +1635,18 @@ lvPoint ldomXPointer::toPoint() const
 /// returns caret rectangle for pointer inside formatted document
 bool ldomXPointer::getRect(lvRect & rect) const
 {
+    //CRLog::trace("ldomXPointer::getRect()");
     if ( !_node )
         return false;
     ldomElement * p = _node->isElement() ? (ldomElement *)_node : _node->getParentNode();
     ldomElement * finalNode = NULL;
+    if ( !p ) {
+        //CRLog::trace("ldomXPointer::getRect() - p==NULL");
+    }
+    //printf("getRect( p=%08X type=%d )\n", (unsigned)p, (int)p->getNodeType() );
+    if ( !p->getDocument() ) {
+        //CRLog::trace("ldomXPointer::getRect() - p->getDocument()==NULL");
+    }
     ldomElement * mainNode = p->getDocument()->getMainNode();
     for ( ; p; p = p->getParentNode() ) {
         if ( p->getRendMethod() == erm_final ) {
