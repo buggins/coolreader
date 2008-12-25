@@ -118,6 +118,26 @@ public:
 };
 
 CRJinkeWindowManager * CRJinkeWindowManager::instance = NULL;
+V3DocViewWin * main_win = NULL;
+
+/**
+* Call this function on final (non submenu) menu item selection.
+*
+* actionId - id of menu action. Set of standard actions should be defined in SDK header file. 
+*            Some range should be reserved for plugin items.
+*            E.g. 1..999 for standard, Viewer-defined actions
+*                 1000-1999 reserved for plugins
+*
+* If return value is 1, this means that action has been processed in plugin and viewer should flush the screen.
+* If return value is 2, this means that action has been processed in plugin and no more processing is required.
+* If return value is 0, or no such function defined in plugin, default processing should be done by Viewer.
+*/
+int OnMenuAction( int actionId )
+{
+    CRLog::trace("OnMenuAction(%d)", actionId);
+    return 0; // STUB
+}
+
 
 /**
 * Call this function on key press.
@@ -154,39 +174,117 @@ int OnKeyPressed(int keyId, int state)
     KEY_7, '7', 0,
     KEY_8, '8', 0,
     KEY_9, '9', 0,
-    LONG_KEY_0, '0', 0,
-    LONG_KEY_1, '1', 0,
-    LONG_KEY_2, '2', 0,
-    LONG_KEY_3, '3', 0,
-    LONG_KEY_4, '4', 0,
-    LONG_KEY_5, '5', 0,
-    LONG_KEY_6, '6', 0,
-    LONG_KEY_7, '7', 0,
-    LONG_KEY_8, '8', 0,
-    LONG_KEY_9, '9', 0,
+    LONG_KEY_0, '0', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_1, '1', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_2, '2', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_3, '3', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_4, '4', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_5, '5', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_6, '6', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_7, '7', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_8, '8', KEY_FLAG_LONG_PRESS,
+    LONG_KEY_9, '9', KEY_FLAG_LONG_PRESS,
     KEY_CANCEL, XK_Escape, 0,
     KEY_OK, XK_Return, 0,
-    KEY_DOWN, XK_Up, 0, 
-    KEY_UP, XK_Down, 0, 
-    LONG_KEY_CANCEL, XK_Escape, 0,
-    LONG_KEY_OK, XK_Return, 0,
-    LONG_KEY_DOWN, XK_Up, 0, 
-    LONG_KEY_UP, XK_Down, 0, 
+    KEY_DOWN, XK_Up, 0,
+    KEY_UP, XK_Down, 0,
+    LONG_KEY_CANCEL, XK_Escape, KEY_FLAG_LONG_PRESS,
+    LONG_KEY_OK, XK_Return, KEY_FLAG_LONG_PRESS,
+    LONG_KEY_DOWN, XK_Up, KEY_FLAG_LONG_PRESS,
+    LONG_KEY_UP, XK_Down, KEY_FLAG_LONG_PRESS,
+    KEY_SHORTCUT_VOLUME_UP, '+', 0,
+    KEY_SHORTCUT_VOLUME_DOWN, '-', 0,
+    LONG_SHORTCUT_KEY_VOLUMN_UP, '+', KEY_FLAG_LONG_PRESS,
+    LONG_SHORTCUT_KEY_VOLUMN_DOWN, '-', KEY_FLAG_LONG_PRESS,
     0, 0, 0 // end marker
     };
     int code = 0;
     int flags = 0;
     for ( int i=0; convert_table[i]; i+=3 ) {
-        code = convert_table[i+1];
-        flags = convert_table[i+2];
+        if ( keyId==convert_table[i] ) {
+            code = convert_table[i+1];
+            flags = convert_table[i+2];
+        }
     }
-    if ( !code )
+    if ( !code ) {
+        CRLog::debug( "Unknown key code in OnKeyPressed() : %d (%04x)", keyId, keyId );
         return 0;
+    }
     CRJinkeWindowManager::instance->onKeyPressed( code, flags );
     CRJinkeWindowManager::instance->update( true );
     return 2;
 
 }
+
+const char * GetCurrentPositionBookmark()
+{
+    CRLog::trace("GetCurrentPositionBookmark()");
+    ldomXPointer ptr = main_win->getDocView()->getBookmark();
+    lString16 bmtext( !ptr ? L"" : ptr.toString() );
+    static char buf[1024];
+    strcpy( buf, UnicodeToUtf8( bmtext ).c_str() );
+    CRLog::trace("   return bookmark=%s", buf);
+    return buf;
+}
+
+/**
+* Get page number by bookmark.
+*/
+int GetBookmarkPage( const char * bookmark )
+{
+    return 0; // STUB
+}
+
+/**
+* Get page bookmark description.
+*/
+unsigned short * szGetVoiceDataBlock( int iPage, int * numBytes, int * encodingType )
+{
+    LVDocView * _docview = main_win->getDocView();
+    CRLog::trace("szGetVoiceDataBlock(%d)", iPage);
+    lString16 text;
+    ldomXPointer bm = _docview->getPageBookmark( iPage );
+    if ( !bm.isNull() ) {
+        lString16 titleText;
+        lString16 posText;
+        _docview->getBookmarkPosText( bm, titleText, posText );
+        text = titleText;
+        if ( !posText.empty() && !titleText.empty() )
+            text += L" \n";
+        text += posText;
+    }
+    if ( text.empty() ) {
+        text = L"";
+        LVRendPageList * pages = _docview->getPageList();
+        int percent = 0;
+        if ( iPage>=0 && iPage<pages->length() ) {
+            percent = ( iPage * 100 ) / pages->length()-1;
+        }
+        text = lString16::itoa(percent);
+        text += L"%";    
+    }
+    *encodingType = 2;
+    *numBytes = text.length(); // * 2;
+    unsigned short * buf = ( unsigned short *) malloc( ( text.length() + 1 ) * sizeof(unsigned short ) );
+    int i=0;
+    for ( const lChar16 * str = text.c_str(); (buf[i++] = *str++) != 0; ) {
+    }
+    CRLog::trace(" return : \"%s\"\n", UnicodeToUtf8(text).c_str() );
+    return buf; // caller should free this buffer
+}
+
+
+/**
+* Call this function to return to stored bookmark's position.
+*/
+void GoToBookmark( const char * bookmark )
+{
+    CRLog::trace("GoToBookmark(%s)", bookmark);
+    ldomXPointer bm = main_win->getDocView()->getDocument()->createXPointer(Utf8ToUnicode(lString8(bookmark)));
+    if ( !bm.isNull() )
+        main_win->getDocView()->goToBookmark(bm);
+}
+
 
 int OnStatusInfoChange( status_info_t * statusInfo, myRECT * rectToUpdate )
 {
@@ -201,6 +299,33 @@ int OnStatusInfoChange( status_info_t * statusInfo, myRECT * rectToUpdate )
     return 0;
 }
 
+
+const char * GetAboutInfoText()
+{
+    LVDocView * _docview = main_win->getDocView();
+    CRLog::trace("GetAboutInfoText()");
+    lString16 authors = _docview->getAuthors();
+    lString16 title = _docview->getTitle();
+    lString16 series = _docview->getSeries();
+    lString16 text;
+    static char about_text[10000];
+    if ( !authors.empty() ) {
+        text << L"Author(s):     " << authors << L"\n";
+    }
+    if ( !title.empty() ) {
+        text << L"Title:     " << title << L"\n";
+    }
+    if ( !series.empty() ) {
+        text << L"Series:     " << series << L"\n";
+    }
+    lString16 crengineVersion = Utf8ToUnicode(lString8(CR_ENGINE_VERSION));
+    text << L"CoolReader:    " << crengineVersion << L"\n";
+
+    lStr_cpy( about_text, UnicodeToUtf8( text ).c_str() );
+    return about_text;
+}
+
+
 int InitDoc(char *fileName)
 {
     CRLog::trace("InitDoc()");
@@ -208,6 +333,10 @@ int InitDoc(char *fileName)
     //CRLog::setLogLevel(CRLog::LL_TRACE);
     //InitCREngineLog(NULL);
     InitCREngineLog("/root/abook/crengine/crlog.ini");
+
+    CRLog::setStdoutLogger();
+    CRLog::setLogLevel( CRLog::LL_TRACE );
+
     lString16Collection fontDirs;
     fontDirs.add( lString16(L"/root/abook/fonts") );
     fontDirs.add( lString16(L"/root/crengine/fonts") );
@@ -235,7 +364,7 @@ int InitDoc(char *fileName)
 #endif
     {
         CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
-        V3DocViewWin * main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
+        main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );

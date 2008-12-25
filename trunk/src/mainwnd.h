@@ -17,10 +17,15 @@
 #include <crtrace.h>
 #include "settings.h"
 
+#if (LBOOK!=1)
 #define CR_USE_XCB
+#endif
+
 #ifndef WITH_DICT
 #define WITH_DICT
 #endif
+
+#define KEY_FLAG_LONG_PRESS 1
 
 #ifdef _WIN32
 #define XK_Return   0xFF01

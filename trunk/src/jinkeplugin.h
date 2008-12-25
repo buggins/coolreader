@@ -40,6 +40,22 @@ void vSetUserData(void *vUserData, int iUserDataLength);
 int iGetDocPageWidth();
 int iGetDocPageHeight();
 
+int iGetCurDirPage(int idx, int level);
+/// initializes the directory
+int iCreateDirList();
+/// returns number of entries for current directory entry
+int iGetDirNumber();
+unsigned short* usGetCurDirNameAndLen(int pos, int * len);
+unsigned short* usGetCurDirName(int level, int index);
+int iGetCurDirLen(int level, int index);
+void   vClearAllDirList();
+int OpenLeaf( int pos );
+/// returns 1 for shortcut, 0 for subdir
+int  bCurItemIsLeaf(int pos);
+void vEnterChildDir(int pos);
+void vReturnParentDir();
+void vFreeDir();
+
 /*initDoc.cpp*/
 unsigned short usGetLeftBarFlag();
 void   vEndInit(int iEndStyle);
@@ -59,15 +75,9 @@ int   bCurItemIsLeaf(int pos);
 void   vEnterChildDir(int pos);
 void   vReturnParentDir();
 void   vFreeDir();
-#ifdef __cplusplus
-};
-#endif 
 
 
 // proposed new Viewer/Parser interface functions
-#ifdef __cplusplus
-extern "C"{
-#endif
 
 /**************************************incluce/keyvalue.h***********************************/
 #ifdef ARM

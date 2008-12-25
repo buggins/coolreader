@@ -9,7 +9,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/crengine/include
 COMMON_LDADD = @FREETYPE_LIBS@ \
 	@XCB_KEYSYMS_LIBS@ \
 	@XCB_LIBS@ @XCB_AUX_LIBS@ @XCB_IMAGE_LIBS@ @PNG_LIBS@ @CRENGINE_LIBS@ \
-	-lfreetype -ljpeg -lz
+	-lfreetype -ljpeg -lpng -lz
 AM_CPPFLAGS += @CRENGINE_CFLAGS@
 
 if WITH_DICT
