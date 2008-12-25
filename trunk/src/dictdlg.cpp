@@ -57,6 +57,13 @@ public:
 #endif
 
 
+#ifdef CR_USE_JINKE
+#define DICTD_CONF "/root/crengine/dict/dictd.conf"
+#else
+#define DICTD_CONF "/etc/dictd/dictd.conf"
+#endif
+
+
 class WordWithRanges
 {
     lString16 word;
@@ -188,6 +195,7 @@ public:
         current_(0), 
         level_(0),
         candidates_(),
+        prefix_(),
         repeat_(0)
         {
 //            init_keytable(keytable_);
@@ -410,7 +418,7 @@ public:
 		BackgroundFitWindow(wm, mainwin),
 		selector_(*mainwin->getDocView()),
 		progname_("lbook-fb2-plugin"),
-		dict_conf_("/etc/dictd/dictd.conf") {
+		dict_conf_(DICTD_CONF) {
 
 		this->setAccelerators( mainwin->getDialogAccelerators() );
 
