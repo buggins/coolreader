@@ -63,7 +63,7 @@ class CRJinkeScreen : public CRGUIScreenBase
         virtual void update( const lvRect & rc, bool full )
         {
             CRLog::debug("CRJinkeScreen::update()");
-            
+
             v3_callbacks->BlitBitmap( 0, 0, 600, 800, 0, 0, 600, 800, (unsigned char *)_front->GetScanLine(0) );
             v3_callbacks->PartialPrint();
         }
@@ -186,12 +186,12 @@ int OnKeyPressed(int keyId, int state)
     LONG_KEY_9, '9', KEY_FLAG_LONG_PRESS,
     KEY_CANCEL, XK_Escape, 0,
     KEY_OK, XK_Return, 0,
-    KEY_DOWN, XK_Up, 0,
-    KEY_UP, XK_Down, 0,
+    KEY_DOWN, XK_Down, 0,
+    KEY_UP, XK_Up, 0,
     LONG_KEY_CANCEL, XK_Escape, KEY_FLAG_LONG_PRESS,
     LONG_KEY_OK, XK_Return, KEY_FLAG_LONG_PRESS,
-    LONG_KEY_DOWN, XK_Up, KEY_FLAG_LONG_PRESS,
-    LONG_KEY_UP, XK_Down, KEY_FLAG_LONG_PRESS,
+    LONG_KEY_DOWN, XK_Down, KEY_FLAG_LONG_PRESS,
+    LONG_KEY_UP, XK_Up, KEY_FLAG_LONG_PRESS,
     KEY_SHORTCUT_VOLUME_UP, '+', 0,
     KEY_SHORTCUT_VOLUME_DOWN, '-', 0,
     LONG_SHORTCUT_KEY_VOLUMN_UP, '+', KEY_FLAG_LONG_PRESS,
@@ -204,6 +204,7 @@ int OnKeyPressed(int keyId, int state)
         if ( keyId==convert_table[i] ) {
             code = convert_table[i+1];
             flags = convert_table[i+2];
+            CRLog::debug( "OnKeyPressed( %d (%04x) ) - converted to %04x, %d", keyId, keyId, code, flags );
         }
     }
     if ( !code ) {
@@ -212,6 +213,13 @@ int OnKeyPressed(int keyId, int state)
     }
     CRJinkeWindowManager::instance->onKeyPressed( code, flags );
     CRJinkeWindowManager::instance->update( true );
+
+    if ( CRJinkeWindowManager::instance->getWindowCount()==0 ) {
+        // QUIT
+        CRLog::trace("windowCount==0, quitting");
+        v3_callbacks->EndDialog();
+        return 0;
+    }
     return 2;
 
 }
@@ -232,8 +240,21 @@ const char * GetCurrentPositionBookmark()
 */
 int GetBookmarkPage( const char * bookmark )
 {
+    CRLog::trace("GetBookmarkPage(%s)", bookmark);
     return 0; // STUB
 }
+
+/**
+* Call this function to return to stored bookmark's position.
+*/
+void GoToBookmark( const char * bookmark )
+{
+    CRLog::trace("GoToBookmark(%s)", bookmark);
+    ldomXPointer bm = main_win->getDocView()->getDocument()->createXPointer(Utf8ToUnicode(lString8(bookmark)));
+    if ( !bm.isNull() )
+        main_win->getDocView()->goToBookmark(bm);
+}
+
 
 /**
 * Get page bookmark description.
@@ -273,17 +294,6 @@ unsigned short * szGetVoiceDataBlock( int iPage, int * numBytes, int * encodingT
     return buf; // caller should free this buffer
 }
 
-
-/**
-* Call this function to return to stored bookmark's position.
-*/
-void GoToBookmark( const char * bookmark )
-{
-    CRLog::trace("GoToBookmark(%s)", bookmark);
-    ldomXPointer bm = main_win->getDocView()->getDocument()->createXPointer(Utf8ToUnicode(lString8(bookmark)));
-    if ( !bm.isNull() )
-        main_win->getDocView()->goToBookmark(bm);
-}
 
 
 int OnStatusInfoChange( status_info_t * statusInfo, myRECT * rectToUpdate )
@@ -364,7 +374,8 @@ int InitDoc(char *fileName)
 #endif
     {
         CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
-        main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
+        //main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
+        main_win = new V3DocViewWin( wm, lString16(L"/root/crengine") );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
@@ -402,11 +413,13 @@ int InitDoc(char *fileName)
             XK_Return, 0, MCMD_MAIN_MENU, 0, 
             '0', 0, DCMD_PAGEDOWN, 0,
             XK_Down, 0, DCMD_PAGEDOWN, 0,
+            XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+            XK_Up, 0, DCMD_PAGEUP, 0,
+            XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
             '9', 0, DCMD_PAGEUP, 0,
 #ifdef WITH_DICT
             '2', 0, MCMD_DICT, 0,
 #endif
-            XK_Up, 0, DCMD_PAGEUP, 0,
             '+', 0, DCMD_ZOOM_IN, 0,
             '=', 0, DCMD_ZOOM_IN, 0,
             '-', 0, DCMD_ZOOM_OUT, 0,
@@ -471,6 +484,7 @@ void GetPageData(void **data)
     //_docview->setBatteryState( ::getBatteryState() );
     //_docview->Draw();
     //LVDocImageRef pageImage = _docview->getPageImage(0);
+    CRJinkeWindowManager::instance->update( true );
     LVRef<LVDrawBuf> pageImage = CRJinkeWindowManager::instance->getScreen()->getCanvas();
     LVDrawBuf * drawbuf = pageImage.get();
     *data = drawbuf->GetScanLine(0);
