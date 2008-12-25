@@ -540,7 +540,7 @@ public:
         }
         // distribute rest of width between all cols
         int restw = fullWidth - sumwidth;
-        if (restw>0) {
+        if (restw>0 && cols.length()>0) {
             int a = restw / cols.length();
             int b = restw % cols.length();
             for (i=0; i<cols.length(); i++) {

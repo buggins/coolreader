@@ -682,11 +682,12 @@ public:
             _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
 
         // find last word
-        int hwStart, hwEnd;
-        lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd );
-        if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 )
-            HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
-
+        if ( lastFitChar > 3 ) {
+            int hwStart, hwEnd;
+            lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd );
+            if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 )
+                HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+        }
         return lastFitChar; //nchars;
     }
 
