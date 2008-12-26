@@ -1831,7 +1831,7 @@ void LVDocView::updateSelections()
     ranges.getRanges( m_markRanges );
     if ( m_markRanges.length()>0 ) {
         crtrace trace;
-        trace << "LVDocView::updateSelections() - " << m_markRanges.length() << " ranges selected";
+        trace << "LVDocView::updateSelections() - " << "selections: " << m_doc->getSelections().length() << ", ranges: " << ranges.length() << ", marked ranges: " << m_markRanges.length() << " ";
         for ( int i=0; i<m_markRanges.length(); i++ ) {
             ldomMarkedRange * item = m_markRanges[i];
             trace << "(" << item->start.x << "," << item->start.y << "--" << item->end.x << "," << item->end.y << " #" << item->flags << ") ";

@@ -787,7 +787,7 @@ public:
     {
     }
     ldomXRange( const ldomWord & word )
-        : _start( word.getStartXPointer() ), _end( word.getEndXPointer() ), _flags(0)
+        : _start( word.getStartXPointer() ), _end( word.getEndXPointer() ), _flags(1)
     {
     }
     /// create intersection of two ranges

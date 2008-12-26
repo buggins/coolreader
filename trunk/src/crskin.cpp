@@ -528,13 +528,15 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     int dx = txtrc.width() - tw;
     int y = txtrc.top;
     int dy = txtrc.height() - th;
-    if ( getTextVAlign() == SKIN_VALIGN_CENTER )
+    int halign = flags & SKIN_HALIGN_MASK;
+    int valign = flags & SKIN_VALIGN_MASK;
+    if ( valign == SKIN_VALIGN_CENTER )
         y += dy / 2;
-    else if ( getTextVAlign() == SKIN_VALIGN_BOTTOM )
+    else if ( valign == SKIN_VALIGN_BOTTOM )
         y += dy;
-    if ( getTextHAlign() == SKIN_HALIGN_CENTER )
+    if ( halign == SKIN_HALIGN_CENTER )
         x += dx / 2;
-    else if ( getTextHAlign() == SKIN_HALIGN_RIGHT )
+    else if ( halign == SKIN_HALIGN_RIGHT )
         x += dx;
     font->DrawTextString( &buf, x, y, text.c_str(), text.length(), L'?', NULL, false, 0 );
     buf.SetClipRect( &oldRc );

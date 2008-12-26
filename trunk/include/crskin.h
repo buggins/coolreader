@@ -89,7 +89,11 @@ public:
     {
         drawText(  buf, rc, text, LVFontRef(), getTextColor(), getBackgroundColor(), getTextAlign() );
     }
-   virtual ~CRSkinnedItem() { }
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, lUInt32 color )
+    {
+        drawText(  buf, rc, text, LVFontRef(), color, getBackgroundColor(), getTextAlign() );
+    }
+    virtual ~CRSkinnedItem() { }
 };
 
 class CRRectSkin : public CRSkinnedItem

@@ -2154,9 +2154,14 @@ ldomXRangeList::ldomXRangeList( ldomXRangeList & srcList, bool splitIntersection
             if ( srcList[i]->getEnd().compare( maxRange->getEnd() ) > 0 )
                 maxRange->setEnd( srcList[i]->getEnd() );
         }
+        maxRange->setFlags(0);
         add( maxRange );
         for ( i=0; i<srcList.length(); i++ )
             split( srcList[i] );
+        for ( int i=length()-1; i>=0; i-- ) {
+            if ( get(i)->getFlags()==0 )
+                erase( i, 1 );
+        }
     } else {
         for ( i=0; i<srcList.length(); i++ )
             add( new ldomXRange( *srcList[i] ) );
@@ -2205,7 +2210,7 @@ void ldomXRangeList::split( ldomXRange * r )
                 //   0====== src ========0
                 //   X====== r=====X
                 ldomXRange * r1 = new ldomXRange( src->getStart(), r->getEnd(), src->getFlags() | r->getFlags() );
-                ldomXRange * r2 = new ldomXRange( r->getEnd(), src->getEnd(), r->getFlags() );
+                ldomXRange * r2 = new ldomXRange( r->getEnd(), src->getEnd(), src->getFlags() );
                 insert( i++, r1 );
                 insert( i, r2 );
                 delete src;
