@@ -293,8 +293,8 @@ public:
             _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
 			_title = title;
 			lvRect rc = _wm->getScreen()->getRect();
-			int dx = rc.width() / 6;
-			int dy = rc.height() / 6;
+			int dx = rc.width() / 10;
+			int dy = rc.height() / 10;
 			rc.left += dx;
 			rc.top += dy;
 			rc.right -= dx;
@@ -305,6 +305,8 @@ public:
             getDocView()->setTextColor(0x000000);
             getDocView()->setFontSize( 20 );
             getDocView()->setShowCover( false );
+            getDocView()->setPageHeaderInfo( 0 ); // hide title bar
+            getDocView()->setPageMargins( lvRect(8,8,8,8) );
             getDocView()->LoadDocument(stream_);
 
         }
@@ -502,9 +504,9 @@ public:
 						output = lString8("No article for this word");
 					} else {
 						output = lString8("<?xml version=\"1.0\" encoding=\"UTF-8\">");
-						output << "<FictionBook><body><p>";
+						output << "<FictionBook><body><code style=\"text-align: left; text-indent: 0; font-size: 20\">";
 						output << translated;
-						output << "</p></body></FictionBook>";
+						output << "</code></body></FictionBook>";
 					};
 					crtrace crt("article: ");
 					crt << output;
@@ -545,9 +547,11 @@ bool Article::onCommand( int command, int params )
                 _wm->closeWindow(this);
                 return true;
 			case MCMD_SCROLL_FORWARD:
+                return CRDocViewWindow::onCommand( DCMD_PAGEDOWN, 1 );
 			case MCMD_SCROLL_BACK:
-                _wm->postCommand(command, 0);
-                _wm->closeWindow(this);
+                return CRDocViewWindow::onCommand( DCMD_PAGEUP, 1 );
+                //_wm->postCommand(command, 0);
+                //_wm->closeWindow(this);
                 return true;
             default:
                 return true; //CRDocViewWindow::onKeyPressed(key,flags);

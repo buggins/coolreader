@@ -136,7 +136,7 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     fontSizeMenu = new CRMenu(_wm, mainMenu, mm_FontSize,
                                 _wm->translateString("VIEWER_MENU_FONT_SIZE", "Default font size"),
                                         LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE );
-	for ( int i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
+	for ( unsigned i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
 		char name[32];
 		char defvalue[32];
 		sprintf( name, "VIEWER_DLG_FONT_SIZE_%d", cr_font_sizes[i] );

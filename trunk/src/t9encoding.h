@@ -37,7 +37,7 @@ public:
     int encode(lChar16 ch) const
     {
         assert(keytable_.length() <= 10);
-        for (int i = 0; i < keytable_.length(); i++) {
+        for (unsigned i = 0; i < keytable_.length(); i++) {
             const lString16& ref = keytable_[i];
             for( unsigned j = 0; j < ref.length(); j ++ ) {
                 if (ref[j] == ch) {
