@@ -640,6 +640,7 @@ class CRDocViewWindow : public CRGUIWindowBase
         {
             _docview = new LVDocView();
             _docview->Resize( getWidth(), getHeight() );
+            _docview->setPageMargins( lvRect(10, 10, 10, 10) );
         }
         virtual ~CRDocViewWindow()
         {
