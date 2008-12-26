@@ -4,35 +4,60 @@
 #include "lvstring.h"
 #include "lvarray.h"
 
+// T9-like encoding table
 class TEncoding {
-    LVArray<lString16> keytable_;
+    lString16Collection keytable_;
 public:
-    TEncoding() : keytable_()  { }
+
+    int length() const { return keytable_.length(); }
+
+    const lString16 & operator [] ( int index ) const { return keytable_[index]; }
+
+    TEncoding() { }
+
+    TEncoding( const lChar16 ** defs )
+    {
+        init( defs );
+    }
+
     TEncoding(const TEncoding& other) : keytable_(other.keytable_) {}
+
     virtual ~TEncoding() {}
-   
-    int encode(lChar16 ch) const {
+
+    void init(  const lChar16 ** defs )
+    {
+        keytable_.clear();
+        for (; *defs; defs++ ) {
+            lString16 s( *defs );
+            assert(keytable_.length() <= 10);
+            keytable_.add( s );
+        }
+    }
+
+    int encode(lChar16 ch) const
+    {
         assert(keytable_.length() <= 10);
         for (int i = 0; i < keytable_.length(); i++) {
             const lString16& ref = keytable_[i];
             for( unsigned j = 0; j < ref.length(); j ++ ) {
                 if (ref[j] == ch) {
                     return i;
-                };
-            };
-        };
+                }
+            }
+        }
         return 0;
-    };
-   
+    }
+
     lString8
-    encode_string(lString16 s) const { // s not const, because we lower it here
+    encode_string( lString16 s ) const
+    { // s not const, because we lower it here
         s.lowercase();
         lString8 result;
         for (unsigned i = 0; i < s.length(); i ++) {
             result.append(1,static_cast<lChar8>('0'+encode(s[i])));
-        };
+        }
         return result;
-    };
+    }
 
 protected:
    void defkey(const wchar_t *chars) {

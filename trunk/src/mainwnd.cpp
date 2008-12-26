@@ -184,8 +184,23 @@ const char * cr_default_skin =
 "  </menu>\n"
 "</CR3Skin>\n";
 
+
+const lChar16 * defT9encoding[] = {
+    L"",     // 0 STUB
+    L"abc",  // 1
+    L"def",  // 2
+    L"ghi",  // 3
+    L"jkl",  // 4
+    L"mno",  // 5
+    L"pqrs", // 6
+    L"tuv",  // 7
+    L"wxyz", // 8
+    L""      // 9 STUB
+};
+
+
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
-: CRDocViewWindow ( wm ), _dataDir(dataDir)
+: CRDocViewWindow ( wm ), _dataDir(dataDir), _t9encoding(defT9encoding)
 {
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setFontSizes( sizes, true );
@@ -481,7 +496,7 @@ bool V3DocViewWin::onCommand( int command, int params )
 #ifdef WITH_DICT
     case MCMD_DICT:
         CRLog::info("MCMD_DICT activated\n");
-        activate_dict(_wm, this);
+        activate_dict( _wm, this, _t9encoding );
         return true;
 #endif
     case MCMD_GO_PAGE_APPLY:

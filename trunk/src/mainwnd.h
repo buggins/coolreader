@@ -16,10 +16,7 @@
 #include <crgui.h>
 #include <crtrace.h>
 #include "settings.h"
-
-#if (LBOOK!=1)
-#define CR_USE_XCB
-#endif
+#include "t9encoding.h"
 
 #ifndef WITH_DICT
 #define WITH_DICT
@@ -69,9 +66,10 @@ protected:
     CRPropRef _newProps;
     CRGUIAcceleratorTableRef _menuAccelerators;
     CRGUIAcceleratorTableRef _dialogAccelerators;
-	lString16 _dataDir;
+    lString16 _dataDir;
     lString16 _settingsFileName;
     lString8  _css;
+    TEncoding _t9encoding;
 public:
     bool loadDefaultCover( lString16 filename );
     bool loadCSS( lString16 filename );

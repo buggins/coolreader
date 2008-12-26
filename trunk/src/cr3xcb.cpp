@@ -18,7 +18,6 @@
 
 #ifndef _WIN32
 
-#define CR_USE_XCB
 #ifdef CR_USE_XCB
 
 #include <unistd.h>      /* pause() */

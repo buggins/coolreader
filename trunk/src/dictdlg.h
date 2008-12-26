@@ -4,11 +4,12 @@
 #include <cstdlib>
 #include "lvdocview.h"
 #include "crgui.h"
+#include "t9encoding.h"
 
 class V3DocViewWin;
 
 extern void
-activate_dict(CRGUIWindowManager *wm, V3DocViewWin * mainwin );
+activate_dict(CRGUIWindowManager *wm, V3DocViewWin * mainwin, const TEncoding& encoding );
 
 
 

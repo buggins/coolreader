@@ -17,6 +17,11 @@
 #include "mainwnd.h"
 #include "t9encoding.h"
 
+
+// to exclude short words from search (requested by LVD)
+#define DICT_MIN_WORD_LENGTH 3
+
+
 #ifdef _WIN32
 //#define USE_LIBDICTD
 template <typename T>
@@ -123,8 +128,12 @@ public:
             for ( int i=0; i<words.length(); i++ ) {
                 lString16 w = words[i].getText();
                 lString8 encoded = encoding.encode_string( w );
+                if ( w.length() < DICT_MIN_WORD_LENGTH )
+                    continue;
+                /*
                 trace << "string " << w <<
                     " encoded as " << encoded << "\n";
+                */
                 int index = -1;
                 for ( int j=0; j<_words.length(); j++ )
                     if ( _words[j]->equals(w) ) {
@@ -190,8 +199,8 @@ class selector {
     int last_;
 public:
 	lString8 getPrefix() { return prefix_; }
-    selector(LVDocView& docview) : 
-        words_(docview, T9Encoding()), 
+    selector(LVDocView& docview, const TEncoding& encoding) : 
+        words_(docview, encoding), 
         current_(0), 
         level_(0),
         candidates_(),
@@ -219,7 +228,8 @@ public:
 
     void down() { moveBy( 1 ); }
 
-    bool update_candidates() {
+    bool update_candidates()
+    {
         CRLog::info("update_candidates() enter\n");
         LVArray<WordWithRanges *> new_candidates;
         words_.match( prefix_, new_candidates );
@@ -249,7 +259,8 @@ public:
     }
 
 
-    bool pop() {
+    bool pop()
+    {
         if (level_==0) {
             return true;
         }
@@ -401,24 +412,54 @@ class DictWindow : public BackgroundFitWindow
     selector selector_;
     lString8 progname_;
     lString8 dict_conf_;
+    const TEncoding& encoding_;
 protected:
-	virtual void draw()
-	{
+    virtual void draw()
+    {
         BackgroundFitWindow::draw();
-		CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
-		skin->draw( *_wm->getScreen()->getCanvas(), _rect );
-		lString16 prompt( L"1:abc 2:def 3:ghi 4:jkl 5:mno 6:pqrs 7:tuv 8:wxyz > ");
-		prompt << Utf8ToUnicode(selector_.getPrefix());
-		skin->draw( *_wm->getScreen()->getCanvas(), _rect );
-		skin->drawText( *_wm->getScreen()->getCanvas(), _rect, prompt );
-	}
+        CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
+        LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
+        skin->draw( *buf, _rect );
+        lString16 prompt = Utf8ToUnicode(selector_.getPrefix());
+        prompt << L"_";
+        buf->FillRect( _rect, 0xAAAAAA );
+        lvRect keyRect = _rect;
+        lvRect borders = skin->getBorderWidths();
+        LVFontRef font = fontMan->GetFont( 20, 600, false, css_ff_sans_serif, lString8("Arial")); //skin->getFont();
+        int margin = 4;
+        for ( int i=0; i<encoding_.length(); i++ ) {
+            lString16 txtN = lString16::itoa(i);
+            lString16 txt = encoding_[i];
+            if ( txt.empty() )
+                continue;
+            // label 0..9
+            int wN = font->getTextWidth( txtN.c_str(), txtN.length() );
+            keyRect.right = keyRect.left + wN + margin + margin; //borders.left + borders.right;
+            ((CRSkinnedItem*)skin.get())->drawText( *_wm->getScreen()->getCanvas(), keyRect, txtN, font, 0x000000, 0xAAAAAA, SKIN_HALIGN_CENTER|SKIN_VALIGN_CENTER  );
+            keyRect.left = keyRect.right;
+            // chars (abc)
+            int w = font->getTextWidth( txt.c_str(), txt.length() );
+            keyRect.right = keyRect.left + w + margin + margin; //borders.left + borders.right;
+            skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
+            //skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, txt );
+            ((CRSkinnedItem*)skin.get())->drawText( *_wm->getScreen()->getCanvas(), keyRect, txt, font, 0x000000, 0xFFFFFF, SKIN_HALIGN_CENTER|SKIN_VALIGN_CENTER  );
+            keyRect.left = keyRect.right + margin; //borders.left;
+        }
+        keyRect.right = _rect.right;
+        if ( !keyRect.isEmpty() ) {
+            skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
+            skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
+        }
+    }
+
 public:
 
-	DictWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin ) :
+	DictWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin, const TEncoding& encoding ) :
 		BackgroundFitWindow(wm, mainwin),
-		selector_(*mainwin->getDocView()),
+		selector_(*mainwin->getDocView(), encoding),
 		progname_("lbook-fb2-plugin"),
-		dict_conf_(DICTD_CONF) {
+		dict_conf_(DICTD_CONF),
+        encoding_(encoding) {
 
 		this->setAccelerators( mainwin->getDialogAccelerators() );
 
@@ -505,16 +546,16 @@ bool Article::onCommand( int command, int params )
                 return true;
 			case MCMD_SCROLL_FORWARD:
 			case MCMD_SCROLL_BACK:
-				_wm->postCommand(command, 0);
+                _wm->postCommand(command, 0);
                 _wm->closeWindow(this);
-				return true;
+                return true;
             default:
                 return true; //CRDocViewWindow::onKeyPressed(key,flags);
         }
 }
 
-void
-activate_dict(CRGUIWindowManager *wm, V3DocViewWin * mainwin) {
+void activate_dict( CRGUIWindowManager *wm, V3DocViewWin * mainwin, const TEncoding& encoding )
+{
     CRLog::info("Entering dict mode\n");
-    wm->activateWindow(new DictWindow(wm,mainwin));
-};
+    wm->activateWindow(new DictWindow(wm, mainwin, encoding));
+}
