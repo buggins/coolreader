@@ -212,6 +212,7 @@ int OnKeyPressed(int keyId, int state)
         return 0;
     }
     CRJinkeWindowManager::instance->onKeyPressed( code, flags );
+    CRJinkeWindowManager::instance->processPostedEvents();
     CRJinkeWindowManager::instance->update( true );
 
     if ( CRJinkeWindowManager::instance->getWindowCount()==0 ) {
