@@ -21,6 +21,7 @@
 #define CR_GUI_INCLUDED
 
 #include "lvtypes.h"
+#include "lvstring.h"
 #include "lvptrvec.h"
 #include "lvdrawbuf.h"
 #include "lvdocview.h"
@@ -281,9 +282,18 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         /// returns true if key is processed
         virtual bool onKeyPressed( int key, int flags = 0 )
         {
+            CRLog::trace("CRGUIWindowManager::onKeyPressed( %d, %d)", key, flags );
             for ( int i=_windows.length()-1; i>=0; i-- ) {
-                if ( _windows[i]->isVisible() && _windows[i]->onKeyPressed( key, flags ) )
-                    return true;
+                if ( _windows[i]->isVisible() ) {
+                    if ( _windows[i]->onKeyPressed( key, flags ) ) {
+                        CRLog::trace("CRGUIWindowManager::onKeyPressed() -- window %d has processed key, exiting", i );
+                        return true;
+                    } else {
+                        CRLog::trace("CRGUIWindowManager::onKeyPressed() -- window %d cannot process key, continue", i );
+                    }
+                } else {
+                    CRLog::trace("CRGUIWindowManager::onKeyPressed() -- window %d is invisible, continue", i );
+                }
             }
             return false;
         }

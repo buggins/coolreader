@@ -68,11 +68,16 @@ void CRGUIScreenBase::flush( bool full )
 /// returns true if key is processed (by default, let's translate key to command using accelerator table)
 bool CRGUIWindowBase::onKeyPressed( int key, int flags )
 {
-    if ( _acceleratorTable.isNull() )
+    if ( _acceleratorTable.isNull() ) {
+        CRLog::trace("CRGUIWindowBase::onKeyPressed( %d, %d) - no accelerator table specified!", key, flags );
         return false;
+    }
     int cmd, param;
     if ( _acceleratorTable->translate( key, flags, cmd, param ) ) {
+        CRLog::trace("Accelerator applied: key %d(%d) -> command(%d,%d)", key, flags, cmd, param );
         return onCommand( cmd, param );
+    } else {
+        CRLog::trace("Accelerator not found for key %d(%d)", key, flags );
     }
     return false;
 }
@@ -454,6 +459,7 @@ void CRMenu::closeAllMenu( int command, int params )
 /// returns true if command is processed
 bool CRMenu::onCommand( int command, int params )
 {
+    CRLog::trace( "CRMenu::onCommand(%d, %d)", command, params );
     if ( command==MCMD_CANCEL ) {
         closeMenu( 0 );
         return true;
@@ -477,11 +483,14 @@ bool CRMenu::onCommand( int command, int params )
     int option = -1;
     if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 )
         option = command - MCMD_SELECT_1;
-    if ( option < 0 )
+    if ( option < 0 ) {
+        CRLog::error( "CRMenu::onCommand() - unsupported command %d, %d", command, params );
         return true;
+    }
     option += getTopItem();
     if ( option >= getItems().length() )
         return true;
+    CRLog::trace( "CRMenu::onCommand() - option %d selected", option );
     CRMenuItem * item = getItems()[option];
     if ( item->onSelect()>0 )
         return true;
