@@ -157,12 +157,16 @@ LVDocView::~LVDocView()
 /// set text format options
 void LVDocView::setTextFormatOptions( txt_format_t fmt )
 {
+    CRLog::trace( "setTextFormatOptions( %d ), current state = %d", (int)fmt, (int)m_text_format );
     if ( m_text_format == fmt )
         return; // no change
-    if ( getDocFormat() != doc_format_txt )
+    if ( getDocFormat() != doc_format_txt ) {
+        CRLog::trace( "setTextFormatOptions() -- available for TXT only" );
         return; // supported for text files only
+    }
     m_text_format = fmt;
     requestReload();
+    CRLog::trace( "setTextFormatOptions() -- new value set, reload requested" );
 }
 
 /// invalidate document data, request reload
