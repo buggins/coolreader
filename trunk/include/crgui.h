@@ -187,6 +187,8 @@ class CRGUIWindow
         virtual void activated() { }
         /// called if window loss focus
         virtual void covered() { }
+        /// called if window loss focus
+        virtual void closing() { }
         /// returns window manager
         virtual CRGUIWindowManager * getWindowManager() = 0;
         /// destroys window
@@ -648,9 +650,12 @@ class CRDocViewWindow : public CRGUIWindowBase
         CRDocViewWindow( CRGUIWindowManager * wm )
         : CRGUIWindowBase( wm )
         {
+            CRLog::trace("CRDocViewWindow()");
             _docview = new LVDocView();
+            CRLog::trace("resizing...");
             _docview->Resize( getWidth(), getHeight() );
             _docview->setPageMargins( lvRect(10, 10, 10, 10) );
+            CRLog::trace("CRDocViewWindow() finished");
         }
         virtual ~CRDocViewWindow()
         {
