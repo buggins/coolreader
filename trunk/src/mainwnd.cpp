@@ -195,13 +195,28 @@ const lChar16 * defT9encoding[] = {
     L"pqrs", // 6
     L"tuv",  // 7
     L"wxyz", // 8
-    L""      // 9 STUB
+    L"",      // 9 STUB
+    NULL
 };
 
+bool V3DocViewWin::loadSkin( lString16 pathname )
+{
+    CRSkinRef skin;
+    if ( !pathname.empty() )
+        skin = LVOpenSkin( pathname );
+    if ( skin.isNull() ) {
+        skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );
+        _wm->setSkin( skin );
+        return false;
+    }
+    _wm->setSkin( skin );
+    return true;
+}
 
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
 : CRDocViewWindow ( wm ), _dataDir(dataDir), _t9encoding(defT9encoding)
 {
+    CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setFontSizes( sizes, true );
     _props = LVCreatePropsContainer();
@@ -212,14 +227,12 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     skinfile << L"skin";
     lString8 s8 = UnicodeToLocal( skinfile );
     CRLog::debug("Skin file is %s", s8.c_str() );
-    CRSkinRef skin = LVOpenSkin( skinfile );
-    if ( skin.isNull() )
-        skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );
-    wm->setSkin( skin );
+    loadSkin( skinfile );
     // TODO: move accelerator table outside
     static const int acc_table[] = {
         XK_Escape, 0, MCMD_CANCEL, 0,
         XK_Return, 0, MCMD_OK, 0, 
+        XK_Return, 1, MCMD_SETTINGS, 0, 
         '0', 0, MCMD_SCROLL_FORWARD, 0,
         XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
         '9', 0, MCMD_SCROLL_BACK, 0,
@@ -421,12 +434,14 @@ void V3DocViewWin::applySettings()
     CRPropRef delta = _props ^ _newProps;
     CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
     _docview->propsApply( delta );
+    _props = _newProps | _props;
 }
 
 void V3DocViewWin::showSettingsMenu()
 {
     LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
-    _props->set( _docview->propsGetCurrent() );
+    //_props->set( _docview->propsGetCurrent() );
+    _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
     CRMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, _menuAccelerators );
     _wm->activateWindow( mainMenu );
@@ -441,26 +456,34 @@ void V3DocViewWin::showMainMenu()
         LVImageSourceRef(),
         LVFontRef(),
         LVFontRef() );
+/*
+VIEWER_MENU_GOTOFIRSTPAGE=Go to first page
+VIEWER_MENU_GOTOENDPAGE=Go to last page
+VIEWER_MENU_GOTOPAGE=Go to page...
+VIEWER_MENU_GOTOINDEX=Go to index
+VIEWER_MENU_5ABOUT=About...
+VIEWER_MENU_4ABOUT=About...
+*/
     menu_win->setSkinName(lString16(L"#main"));
     menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
-                lString16(L"Go to first page"),
+                _wm->translateString("VIEWER_MENU_GOTOFIRSTPAGE", "Go to first page"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
-                lString16(L"Go to page ..."),
+                _wm->translateString("VIEWER_MENU_GOTOPAGE", "Go to page ..."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, DCMD_END,
-                lString16(L"Go to last page"),
+                _wm->translateString("VIEWER_MENU_GOTOENDPAGE", "Go to last page"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
-                lString16(L"Settings..."),
+                _wm->translateString("VIEWER_MENU_SETTINGS", "Settings..."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #ifdef WITH_DICT
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
-                lString16(L"Dictionary..."),
+                _wm->translateString("VIEWER_MENU_DICTIONARY", "Dictionary..."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
@@ -471,7 +494,8 @@ void V3DocViewWin::showMainMenu()
 void V3DocViewWin::showGoToPageDialog()
 {
     CRNumberEditDialog * dlg = new CRNumberEditDialog( _wm, 
-        lString16(L"Enter page number"), lString16(), 
+        _wm->translateString("VIEWER_HINT_INPUTSKIPPAGENUM", "Enter page number"),
+        lString16(), 
         MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
     dlg->setAccelerators( _dialogAccelerators );
     _wm->activateWindow( dlg );
@@ -504,6 +528,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
     case MCMD_SETTINGS_APPLY:
         applySettings();
+        saveSettings( lString16() );
         return true;
     default:
         // do nothing

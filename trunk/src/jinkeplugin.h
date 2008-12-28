@@ -80,7 +80,7 @@ void   vFreeDir();
 // proposed new Viewer/Parser interface functions
 
 /**************************************incluce/keyvalue.h***********************************/
-#ifdef ARM
+#ifdef __arm__
 #define KEY_BASE 30
 #define KEY_0 (KEY_BASE)
 #define KEY_1 (1+KEY_BASE)

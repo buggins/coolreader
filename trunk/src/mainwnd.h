@@ -73,10 +73,11 @@ protected:
 public:
     bool loadDefaultCover( lString16 filename );
     bool loadCSS( lString16 filename );
+    bool loadSkin( lString16 pathname );
     bool loadSettings( lString16 filename );
     bool saveSettings( lString16 filename );
-	CRGUIAcceleratorTableRef getMenuAccelerators() { return _menuAccelerators; }
-	CRGUIAcceleratorTableRef getDialogAccelerators() { return _dialogAccelerators; }
+    CRGUIAcceleratorTableRef getMenuAccelerators() { return _menuAccelerators; }
+    CRGUIAcceleratorTableRef getDialogAccelerators() { return _dialogAccelerators; }
 
     /// returns current properties
     CRPropRef getProps() { return _props; }

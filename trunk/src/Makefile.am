@@ -36,8 +36,11 @@ lib_LTLIBRARIES = libfb2.la
 libfb2_la_SOURCES = cr3jinke.cpp
 libfb2_la_LIBADD =  libcommon.la ${COMMON_LDADD}
 libfb2_la_LDFLAGS = --static-libtool-libs -rpath ${libdir} 
-AM_CPPFLAGS += -DARM
 else
+if WITH_DICT
+#COMMON_LDADD += $(top_builddir)/libdictd/libdictd.la
+COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
+endif
 AM_CPPFLAGS += -DWITH_XCB
 bin_PROGRAMS = cr3
 cr3_SOURCES = cr3xcb.cpp

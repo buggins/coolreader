@@ -83,6 +83,7 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
 
 bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 {
+    CRLog::trace("InitCREngine(%s)", exename);
     lString16 appname( exename );
     int lastSlash=-1;
     lChar16 slashChar = '/';
@@ -127,6 +128,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
             NULL
         };
     #ifdef _LINUX
+    #ifndef LBOOK
         fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
         fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
         fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
@@ -135,6 +137,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
         //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
         for ( int fi=0; msfonts[fi]; fi++ )
             fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
+    #endif
     #endif
         getDirectoryFonts( fontDirs, fontExt, fonts, true );
 
