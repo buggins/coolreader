@@ -232,7 +232,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     static const int acc_table[] = {
         XK_Escape, 0, MCMD_CANCEL, 0,
         XK_Return, 0, MCMD_OK, 0, 
-        XK_Return, 1, MCMD_SETTINGS, 0, 
         '0', 0, MCMD_SCROLL_FORWARD, 0,
         XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
         '9', 0, MCMD_SCROLL_BACK, 0,
@@ -407,12 +406,16 @@ bool V3DocViewWin::loadSettings( lString16 filename )
 {
     _settingsFileName = filename;
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
-    if ( stream.isNull() )
+    if ( stream.isNull() ) {
+        _docview->propsUpdateDefaults( _props );
         return false;
+    }
     if ( _props->loadFromStream( stream.get() ) ) {
+        _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
         return true;
     }
+    _docview->propsUpdateDefaults( _props );
     return false;
 }
 
@@ -434,7 +437,7 @@ void V3DocViewWin::applySettings()
     CRPropRef delta = _props ^ _newProps;
     CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
     _docview->propsApply( delta );
-    _props = _newProps | _props;
+    _props = _newProps; // | _props;
 }
 
 void V3DocViewWin::showSettingsMenu()
@@ -445,6 +448,28 @@ void V3DocViewWin::showSettingsMenu()
     _newProps = LVClonePropsContainer( _props );
     CRMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, _menuAccelerators );
     _wm->activateWindow( mainMenu );
+}
+
+void V3DocViewWin::showFontSizeMenu()
+{
+    LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
+    //_props->set( _docview->propsGetCurrent() );
+    _props = _docview->propsGetCurrent() | _props;
+    _newProps = LVClonePropsContainer( _props );
+    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, _menuAccelerators );
+    CRMenu * menu = mainMenu->createFontSizeMenu( NULL, _newProps );
+    _wm->activateWindow( menu );
+}
+
+void V3DocViewWin::showOrientationMenu()
+{
+    LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
+    //_props->set( _docview->propsGetCurrent() );
+    _props = _docview->propsGetCurrent() | _props;
+    _newProps = LVClonePropsContainer( _props );
+    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, _menuAccelerators );
+    CRMenu * menu = mainMenu->createOrientationMenu( NULL, _newProps );
+    _wm->activateWindow( menu );
 }
 
 void V3DocViewWin::showMainMenu()
@@ -511,6 +536,12 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_MAIN_MENU:
         showMainMenu();
         return true;
+    case MCMD_SETTINGS_FONTSIZE:
+        showFontSizeMenu();
+        return true;
+    case MCMD_SETTINGS_ORIENTATION:
+        showOrientationMenu();
+        return true;
     case MCMD_GO_PAGE:
         showGoToPageDialog();
         return true;
@@ -527,6 +558,8 @@ bool V3DocViewWin::onCommand( int command, int params )
         _docview->doCommand( DCMD_GO_PAGE, params-1 );
         return true;
     case MCMD_SETTINGS_APPLY:
+    case mm_Orientation:
+    case mm_FontSize:
         applySettings();
         saveSettings( lString16() );
         return true;

@@ -24,6 +24,27 @@ typedef struct {
     const char * value;
 } item_def_t;
 
+#define SETTINGS_MENU_COMMANDS_START 300
+enum MainMenuItems_t {
+    mm_Settings = SETTINGS_MENU_COMMANDS_START,
+    mm_FontFace,
+    mm_FontSize,
+    mm_FontAntiAliasing,
+    mm_InterlineSpace,
+    mm_Orientation,
+    mm_EmbeddedStyles,
+    mm_Inverse,
+    mm_StatusLine,
+    mm_BookmarkIcons,
+    mm_Footnotes,
+    mm_SetTime,
+    mm_ShowTime,
+    mm_Kerning,
+    mm_LandscapePages,
+    mm_PreformattedText,
+};
+
+
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 }
 
 class CRSettingsMenu : public CRMenu
@@ -31,9 +52,10 @@ class CRSettingsMenu : public CRMenu
     protected:
         CRPropRef props;
         CRGUIAcceleratorTableRef _menuAccelerators;
-        CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
         void addMenuItems( CRMenu * menu, item_def_t values[] );
     public:
+        CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
+        CRMenu * createOrientationMenu( CRMenu * mainMenu, CRPropRef props );
         CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators );
 };
 

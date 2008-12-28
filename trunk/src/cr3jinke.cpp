@@ -376,13 +376,14 @@ const char * GetAboutInfoText()
 int InitDoc(char *fileName)
 {
     CRLog::trace("InitDoc()");
+//#ifdef __i386__
     //CRLog::setFileLogger("/root/abook/crengine.log");
-    //CRLog::setLogLevel(CRLog::LL_TRACE);
+//    CRLog::setStdoutLogger();
+//    CRLog::setLogLevel(CRLog::LL_TRACE);
+//#else
     //InitCREngineLog(NULL);
     InitCREngineLog("/root/abook/crengine/crlog.ini");
-
-    //CRLog::setStdoutLogger();
-    //CRLog::setLogLevel( CRLog::LL_TRACE );
+//#endif
 
     lString16Collection fontDirs;
     fontDirs.add( lString16(L"/root/abook/fonts") ); 
@@ -460,8 +461,11 @@ int InitDoc(char *fileName)
 //        if ( !main_win->loadSkin(lString16(L"/root/abook/crengine/skins/default.c3s") )
   //          main_win->loadSkin(lString16(L"/root/crengine/skins/default.c3s");
         static const int acc_table[] = {
+            '8', 0, MCMD_SETTINGS_FONTSIZE, 0,
+            '8', 1, MCMD_SETTINGS_ORIENTATION, 0,
             XK_Escape, 0, MCMD_QUIT, 0,
-            XK_Return, 0, MCMD_MAIN_MENU, 0, 
+            XK_Return, 0, MCMD_MAIN_MENU, 0,
+            XK_Return, 1, MCMD_SETTINGS, 0,
             '0', 0, DCMD_PAGEDOWN, 0,
             XK_Down, 0, DCMD_PAGEDOWN, 0,
             XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,

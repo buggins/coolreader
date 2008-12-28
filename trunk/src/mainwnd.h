@@ -54,6 +54,8 @@ enum CRMainMenuCmd
     MCMD_GO_PAGE_APPLY,
     MCMD_SETTINGS,
     MCMD_SETTINGS_APPLY,
+    MCMD_SETTINGS_FONTSIZE,
+    MCMD_SETTINGS_ORIENTATION,
 #ifdef WITH_DICT
     MCMD_DICT,
 #endif
@@ -94,6 +96,10 @@ public:
     void applySettings();
 
     void showSettingsMenu();
+
+    void showOrientationMenu();
+
+    void showFontSizeMenu();
 
     void showMainMenu();
 

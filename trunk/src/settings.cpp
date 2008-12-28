@@ -13,26 +13,6 @@
 #include "settings.h"
 
 
-#define SETTINGS_MENU_COMMANDS_START 300
-enum MainMenuItems_t {
-    mm_Settings = SETTINGS_MENU_COMMANDS_START,
-    mm_FontFace,
-    mm_FontSize,
-    mm_FontAntiAliasing,
-    mm_InterlineSpace,
-    mm_Orientation,
-    mm_EmbeddedStyles,
-    mm_Inverse,
-    mm_StatusLine,
-    mm_BookmarkIcons,
-    mm_Footnotes,
-    mm_SetTime,
-    mm_ShowTime,
-    mm_Kerning,
-    mm_LandscapePages,
-    mm_PreformattedText,
-};
-
 
 static item_def_t antialiasing_modes[] = {
     {"VIEWER_DLG_ANTIALIASING_ALWAYS", "On for all fonts", "2"},
@@ -125,6 +105,16 @@ static item_def_t page_margins[] = {
 
 DECL_DEF_CR_FONT_SIZES;
 
+CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef props )
+{
+    LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
+    CRMenu * orientationMenu = new CRMenu(_wm, mainMenu, mm_Orientation,
+            _wm->translateString("VIEWER_MENU_ORIENTATION", "Page orientation"),
+                            LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_ROTATE_ANGLE );
+    addMenuItems( orientationMenu, page_orientations );
+    return orientationMenu;
+}
+
 CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props )
 {
     lString16Collection list;
@@ -204,15 +194,16 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_ANTIALIASING );
         addMenuItems( fontAntialiasingMenu, antialiasing_modes );
         mainMenu->addItem( fontAntialiasingMenu );
+
         CRMenu * interlineSpaceMenu = new CRMenu(_wm, mainMenu, mm_InterlineSpace,
                 _wm->translateString("VIEWER_MENU_INTERLINE_SPACE", "Interline space"),
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_INTERLINE_SPACE );
         addMenuItems( interlineSpaceMenu, interline_spaces );
         mainMenu->addItem( interlineSpaceMenu );
-/*
-        CRMenu * orientationMenu = createOrientationMenu(props);
+
+        CRMenu * orientationMenu = createOrientationMenu(mainMenu, props);
         mainMenu->addItem( orientationMenu );
-*/
+
         CRMenu * footnotesMenu = new CRMenu(_wm, mainMenu, mm_Footnotes,
                 _wm->translateString("VIEWER_MENU_FOOTNOTES", "Footnotes at page bottom"),
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FOOTNOTES );
