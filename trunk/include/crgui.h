@@ -51,11 +51,11 @@ protected:
     LVPtrVector<CRGUIAccelerator> _items;
     int indexOf( int keyCode, int keyFlags )
     {
-        CRLog::trace( "indexOf( %d, %d )", (int)keyCode, (int)keyFlags );
+        //CRLog::trace( "indexOf( %d, %d )", (int)keyCode, (int)keyFlags );
         for ( int i=0; i<_items.length(); i++ ) {
-            CRLog::trace( " compare( %d, %d )", (int)_items[i]->keyCode, (int)_items[i]->keyFlags );
+            //CRLog::trace( " compare( %d, %d )", (int)_items[i]->keyCode, (int)_items[i]->keyFlags );
             if ( _items[i]->keyCode==keyCode && _items[i]->keyFlags==keyFlags ) {
-                CRLog::trace(" found index = %d", i);
+                //CRLog::trace(" found index = %d", i);
                 return i;
             }
         }

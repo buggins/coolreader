@@ -265,9 +265,20 @@ lvPoint CRMenu::getSize()
     }
     int h = nItems * (itemSize.y) + scrollHeight;
     int w = itemSize.x + 3 * ITEM_MARGIN + HOTKEY_SIZE;
+    CRMenuSkinRef skin = getSkin();
+    CRRectSkinRef sskin = skin->getItemShortcutSkin();
+    CRRectSkinRef iskin = skin->getItemSkin();
+    if ( !sskin.isNull() ) {
+        lvPoint ssz = sskin->getMinSize();
+        lvRect borders = sskin->getBorderWidths();
+        w += ssz.x + borders.left + borders.right;
+    }
+    if ( !iskin.isNull() ) {
+        lvRect borders = iskin->getBorderWidths();
+        w += borders.left + borders.right;
+    }
     if ( w>600 )
         w = 600;
-    CRMenuSkinRef skin = getSkin();
     return skin->getWindowSize( lvPoint( w, h ) );
 }
 

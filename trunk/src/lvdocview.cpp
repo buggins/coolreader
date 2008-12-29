@@ -160,13 +160,13 @@ void LVDocView::setTextFormatOptions( txt_format_t fmt )
     CRLog::trace( "setTextFormatOptions( %d ), current state = %d", (int)fmt, (int)m_text_format );
     if ( m_text_format == fmt )
         return; // no change
-    if ( getDocFormat() != doc_format_txt ) {
-        CRLog::trace( "setTextFormatOptions() -- available for TXT only" );
-        return; // supported for text files only
-    }
     m_text_format = fmt;
-    requestReload();
-    CRLog::trace( "setTextFormatOptions() -- new value set, reload requested" );
+    if ( getDocFormat() == doc_format_txt ) {
+        requestReload();
+        CRLog::trace( "setTextFormatOptions() -- new value set, reload requested" );
+    } else {
+        CRLog::trace( "setTextFormatOptions() -- doc format is %d, reload is necessary for %d only", (int)getDocFormat(), (int)doc_format_txt );
+    }
 }
 
 /// invalidate document data, request reload
@@ -3161,6 +3161,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
 /// applies properties, returns list of not recognized properties
 CRPropRef LVDocView::propsApply( CRPropRef props )
 {
+    CRLog::trace( "LVDocView::propsApply( %d items )", props->getCount() );
     CRPropRef unknown = LVCreatePropsContainer();
     for ( int i=0; i<props->getCount(); i++ ) {
         lString8 name( props->getName( i ) );
