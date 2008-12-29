@@ -376,14 +376,14 @@ const char * GetAboutInfoText()
 int InitDoc(char *fileName)
 {
     CRLog::trace("InitDoc()");
-//#ifdef __i386__
+#ifdef __i386__
     //CRLog::setFileLogger("/root/abook/crengine.log");
-//    CRLog::setStdoutLogger();
-//    CRLog::setLogLevel(CRLog::LL_TRACE);
-//#else
+    CRLog::setStdoutLogger();
+    CRLog::setLogLevel(CRLog::LL_TRACE);
+#else
     //InitCREngineLog(NULL);
     InitCREngineLog("/root/abook/crengine/crlog.ini");
-//#endif
+#endif
 
     lString16Collection fontDirs;
     fontDirs.add( lString16(L"/root/abook/fonts") ); 

@@ -232,6 +232,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     static const int acc_table[] = {
         XK_Escape, 0, MCMD_CANCEL, 0,
         XK_Return, 0, MCMD_OK, 0, 
+        XK_Return, 1, MCMD_OK, 0, 
         '0', 0, MCMD_SCROLL_FORWARD, 0,
         XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
         '9', 0, MCMD_SCROLL_BACK, 0,
@@ -248,6 +249,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     };
     static const int acc_table_dialog[] = {
         XK_Escape, 0, MCMD_CANCEL, 0,
+        XK_Return, 1, MCMD_OK, 0, 
         XK_Return, 0, MCMD_OK, 0, 
         XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
         XK_Up, 0, MCMD_SCROLL_BACK, 0,
@@ -408,6 +410,7 @@ bool V3DocViewWin::loadSettings( lString16 filename )
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
     if ( stream.isNull() ) {
         _docview->propsUpdateDefaults( _props );
+        _docview->propsApply( _props );
         return false;
     }
     if ( _props->loadFromStream( stream.get() ) ) {
@@ -416,6 +419,7 @@ bool V3DocViewWin::loadSettings( lString16 filename )
         return true;
     }
     _docview->propsUpdateDefaults( _props );
+    _docview->propsApply( _props );
     return false;
 }
 

@@ -293,8 +293,8 @@ public:
             _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
 			_title = title;
 			lvRect rc = _wm->getScreen()->getRect();
-			int dx = rc.width() / 10;
-			int dy = rc.height() / 10;
+			int dx = rc.width() / 16;
+			int dy = rc.height() / 16;
 			rc.left += dx;
 			rc.top += dy;
 			rc.right -= dx;
@@ -504,7 +504,7 @@ public:
 						output = lString8("No article for this word");
 					} else {
 						output = lString8("<?xml version=\"1.0\" encoding=\"UTF-8\">");
-						output << "<FictionBook><body><code style=\"text-align: left; text-indent: 0; font-size: 20\">";
+						output << "<FictionBook><body><code style=\"text-align: left; text-indent: 0; font-size: 22\">";
 						output << translated;
 						output << "</code></body></FictionBook>";
 					};
