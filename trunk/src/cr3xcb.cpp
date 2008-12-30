@@ -1,6 +1,7 @@
 /*
     First version of CR3 for EWL, based on etimetool example by Lunohod
 */
+#include <stdint.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 #include "cr3main.h"
 #include "mainwnd.h"
 
+uint16_t sample2 = 2;
 
 // XCB code ===================================================================
 
@@ -21,12 +23,16 @@
 #ifdef CR_USE_XCB
 
 #include <unistd.h>      /* pause() */
+#include <sys/types.h>
+#include <sys/stat.h>
+//#include <sys/types.h>
 
 #include <xcb/xcb.h>
+int8_t i8sample = 0;
+#include <xcb/xcb_aux.h>
 extern "C" {
 #include <xcb/shm.h>
 };
-#include <xcb/xcb_aux.h>
 #include <xcb/xcb_image.h>
 #include <xcb/xcb_keysyms.h>
 #include <sys/ipc.h>
@@ -69,7 +75,8 @@ class CRXCBScreen : public CRGUIScreenBase
             printf("update screen, bpp=%d\n", (int)im->bpp);
 
             // pal
-            static lUInt32 pal[4] = {0x000000, 0x555555, 0xaaaaaa, 0xffffff };
+            //static lUInt32 pal[4] = {0x000000, 0x555555, 0xaaaaaa, 0xffffff };
+            //static lUInt8 pal8[4] = {0x00, 0x55, 0xaa, 0xff };
             switch ( im->bpp ) {
             case 32:
                 {
@@ -81,7 +88,26 @@ class CRXCBScreen : public CRGUIScreenBase
                         for ( int x = 0; x< _width; x++ ) {
                             lUInt8 data = src[x>>2];
                             int pixel = (data>>shift) & 3;
-                            lUInt32 color = pal[ pixel ]; // to check valgrind finding
+                            lUInt32 color = pal_[ pixel ]; // to check valgrind finding
+                            dst[x] = color;
+                            shift -= 2;
+                            if ( shift < 0 )
+                                shift = 6;
+                        }
+                    }
+                }
+                break;
+            case 8:
+                {
+                    for ( int y = rc.top; y<rc.bottom; y++ ) {
+                        lUInt8 * src = _front->GetScanLine( y );
+                        lUInt8 * dst = (lUInt8 *)(im->data + im->stride * y);
+                        //printf("line %d : %08X -> %08X   ", y, src, dst);
+                        int shift = 6;
+                        for ( int x = 0; x< _width; x++ ) {
+                            lUInt8 data = src[x>>2];
+                            int pixel = (data>>shift) & 3;
+                            lUInt8 color = (lUInt8)pal_[ pixel ]; // to check valgrind finding
                             dst[x] = color;
                             shift -= 2;
                             if ( shift < 0 )
@@ -99,6 +125,9 @@ class CRXCBScreen : public CRGUIScreenBase
                     }
                 }
                 break;
+	    default:
+		printf("unsupported bpp %d\n", im->bpp);
+		break;
             }
             //pContext.image = im;
             printf("updated\n");
@@ -388,11 +417,11 @@ int main(int argc, char **argv)
 
 
     lString16Collection fontDirs;
-    fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
-    fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
+    //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
+    //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
     fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
-    fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
-    fontDirs.add( lString16(L"/root/fonts/truetype") );
+    //fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+    //fontDirs.add( lString16(L"/root/fonts/truetype") );
     if ( !InitCREngine( argv[0], fontDirs ) ) {
         printf("Cannot init CREngine - exiting\n");
         return 2;
@@ -408,12 +437,54 @@ int main(int argc, char **argv)
     int res = 0;
 
     {
-        CRXCBWindowManager winman( 600, 700 );
+        CRXCBWindowManager winman( 600, 800 );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
+        if ( !main_win->loadDefaultCover( lString16( L"/mnt/crengine/cr3_def_cover.png" ) ) )
+            main_win->loadDefaultCover( lString16( L"/usr/share/crengine/cr3_def_cover.png" ) );
+        if ( !main_win->loadCSS(  lString16( L"/mnt/crengine/fb2.css" ) ) )
+            main_win->loadCSS( lString16( L"/usr/share/crengine/fb2.css" ) );
+        if ( !main_win->loadSkin(  lString16( L"/mnt/crengine/skin" ) ) )
+            main_win->loadSkin( lString16( L"/usr/share/crengine/skin" ) );
+
+    #define SEPARATE_INI_FILES
+
+        CRLog::trace("choosing init file...");
+        const lChar16 * ini_fname = L"cr3.ini";
+    #ifdef SEPARATE_INI_FILES
+        if ( strstr(fname, ".txt")!=NULL || strstr(fname, ".tcr")!=NULL) {
+            ini_fname = L"cr3-txt.ini";
+        } else if ( strstr(fname, ".rtf")!=NULL ) {
+            ini_fname = L"cr3-rtf.ini";
+        } else if ( strstr(fname, ".htm")!=NULL ) {
+            ini_fname = L"cr3-htm.ini";
+        } else if ( strstr(fname, ".epub")!=NULL ) {
+            ini_fname = L"cr3-epub.ini";
+        } else {
+            ini_fname = L"cr3-fb2.ini";
+        }
+    #endif
+        mkdir("~/.crengine", 0x1FF);
+        static const lChar16 * dirs[] = {
+            L"/mnt/crengine/",
+            L"~/.crengine/",
+            NULL
+        };
+        int i;
+        CRLog::debug("Loading settings...");
+        lString16 ini;
+        for ( i=0; dirs[i]; i++ ) {
+            ini = lString16(dirs[i]) + ini_fname;
+            if ( main_win->loadSettings( ini ) ) {
+                break;
+            }
+        }
+        CRLog::debug("settings at %s", UnicodeToUtf8(ini).c_str() );
+
+
         static const int acc_table[] = {
             XK_Escape, 0, MCMD_QUIT, 0,
             XK_Return, 0, MCMD_MAIN_MENU, 0, 
