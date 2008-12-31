@@ -72,12 +72,14 @@ protected:
     lString16 _settingsFileName;
     lString8  _css;
     TEncoding _t9encoding;
+    lString16 _dictConfig;
 public:
     bool loadDefaultCover( lString16 filename );
     bool loadCSS( lString16 filename );
     bool loadSkin( lString16 pathname );
     bool loadSettings( lString16 filename );
     bool saveSettings( lString16 filename );
+    bool loadDictConfig( lString16 filename );
     CRGUIAcceleratorTableRef getMenuAccelerators() { return _menuAccelerators; }
     CRGUIAcceleratorTableRef getDialogAccelerators() { return _dialogAccelerators; }
 

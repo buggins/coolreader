@@ -404,6 +404,16 @@ bool V3DocViewWin::loadCSS( lString16 filename )
     return false;
 }
 
+bool V3DocViewWin::loadDictConfig( lString16 filename )
+{
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    if ( !stream.isNull() ) {
+        _dictConfig = filename;
+        return true;
+    }
+    return false;
+}
+
 bool V3DocViewWin::loadSettings( lString16 filename )
 {
     _settingsFileName = filename;

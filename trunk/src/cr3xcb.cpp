@@ -14,8 +14,6 @@
 #include "cr3main.h"
 #include "mainwnd.h"
 
-uint16_t sample2 = 2;
-
 // XCB code ===================================================================
 
 #ifndef _WIN32
@@ -25,7 +23,6 @@ uint16_t sample2 = 2;
 #include <unistd.h>      /* pause() */
 #include <sys/types.h>
 #include <sys/stat.h>
-//#include <sys/types.h>
 
 #include <xcb/xcb.h>
 int8_t i8sample = 0;
@@ -125,9 +122,9 @@ class CRXCBScreen : public CRGUIScreenBase
                     }
                 }
                 break;
-	    default:
-		printf("unsupported bpp %d\n", im->bpp);
-		break;
+            default:
+                printf("unsupported bpp %d\n", im->bpp);
+                break;
             }
             //pContext.image = im;
             printf("updated\n");
@@ -449,6 +446,8 @@ int main(int argc, char **argv)
             main_win->loadCSS( lString16( L"/usr/share/crengine/fb2.css" ) );
         if ( !main_win->loadSkin(  lString16( L"/mnt/crengine/skin" ) ) )
             main_win->loadSkin( lString16( L"/usr/share/crengine/skin" ) );
+        if ( !main_win->loadDictConfig(  lString16( L"/mnt/crengine/dict/dictd.conf" ) ) )
+            main_win->loadDictConfig( lString16( L"/usr/share/crengine/dict/dictd.conf" ) );
 
     #define SEPARATE_INI_FILES
 
