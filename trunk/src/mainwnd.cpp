@@ -122,6 +122,387 @@ class CRNumberEditDialog : public CRGUIWindowBase
         }
 };
 
+static const char * link_back_active[] = {
+	"30 27 5 1",
+	"0 c #000000",
+	"o c #A1A1A1",
+	". c #FFFFFF",
+	"x c #A1A1A1",
+	"  c None",
+	"..............................",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x.........00...............x.",
+	".x........0o0...............x.",
+	".x.......0oo0...............x.",
+	".x......0ooo0...............x.",
+	".x.....0oooo0...............x.",
+	".x....0ooooo00000000000000..x.",
+	".x...0ooooooooooooooooooo0..x.",
+	".x..0oooooooooooooooooooo0..x.",
+	".x.0ooooooooooooooooooooo0..x.",
+	".x..0oooooooooooooooooooo0..x.",
+	".x...0ooooooooooooooooooo0..x.",
+	".x....0ooooo00000000000000..x.",
+	".x.....0oooo0...............x.",
+	".x......0ooo0...............x.",
+	".x.......0oo0...............x.",
+	".x........0o0...............x.",
+	".x.........00...............x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	"..............................",
+};
+static const char * link_forward_active[] = {
+	"30 27 5 1",
+	"0 c #000000",
+	"o c #A1A1A1",
+	". c #FFFFFF",
+	"x c #A1A1A1",
+	"  c None",
+	"..............................",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..............00..........x.",
+	".x..............0o0.........x.",
+	".x..............0oo0........x.",
+	".x..............0ooo0.......x.",
+	".x..............0oooo0......x.",
+	".x.00000000000000ooooo0.....x.",
+	".x.0ooooooooooooooooooo0....x.",
+	".x.0oooooooooooooooooooo0...x.",
+	".x.0ooooooooooooooooooooo0..x.",
+	".x.0oooooooooooooooooooo0...x.",
+	".x.0ooooooooooooooooooo0....x.",
+	".x.00000000000000ooooo0.....x.",
+	".x..............0oooo0......x.",
+	".x..............0ooo0.......x.",
+	".x..............0oo0........x.",
+	".x..............0o0.........x.",
+	".x..............00..........x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	"..............................",
+};
+static const char * link_back_normal[] = {
+	"30 27 5 1",
+	"0 c #515151",
+	"o c #FFFFFF",
+	". c #FFFFFF",
+	"x c #A1A1A1",
+	"  c None",
+	"..............................",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x.........00...............x.",
+	".x........0o0...............x.",
+	".x.......0oo0...............x.",
+	".x......0ooo0...............x.",
+	".x.....0oooo0...............x.",
+	".x....0ooooo00000000000000..x.",
+	".x...0ooooooooooooooooooo0..x.",
+	".x..0oooooooooooooooooooo0..x.",
+	".x.0ooooooooooooooooooooo0..x.",
+	".x..0oooooooooooooooooooo0..x.",
+	".x...0ooooooooooooooooooo0..x.",
+	".x....0ooooo00000000000000..x.",
+	".x.....0oooo0...............x.",
+	".x......0ooo0...............x.",
+	".x.......0oo0...............x.",
+	".x........0o0...............x.",
+	".x.........00...............x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	"..............................",
+};
+static const char * link_forward_normal[] = {
+	"30 27 5 1",
+	"0 c #515151",
+	"o c #FFFFFF",
+	". c #FFFFFF",
+	"x c #A1A1A1",
+	"  c None",
+	"..............................",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..............00..........x.",
+	".x..............0o0.........x.",
+	".x..............0oo0........x.",
+	".x..............0ooo0.......x.",
+	".x..............0oooo0......x.",
+	".x.00000000000000ooooo0.....x.",
+	".x.0ooooooooooooooooooo0....x.",
+	".x.0oooooooooooooooooooo0...x.",
+	".x.0ooooooooooooooooooooo0..x.",
+	".x.0oooooooooooooooooooo0...x.",
+	".x.0ooooooooooooooooooo0....x.",
+	".x.00000000000000ooooo0.....x.",
+	".x..............0oooo0......x.",
+	".x..............0ooo0.......x.",
+	".x..............0oo0........x.",
+	".x..............0o0.........x.",
+	".x..............00..........x.",
+	".x..........................x.",
+	".x..........................x.",
+	".x..........................x.",
+	".xxxxxxxxxxxxxxxxxxxxxxxxxxxx.",
+	"..............................",
+};
+
+
+class CRLinksDialog : public CRGUIWindowBase
+{
+	enum {
+		BACK = 0,
+		FORWARD = 1,
+		LINK = 2
+	};
+    protected:
+        int _cursorPos;
+		V3DocViewWin * _docwin;
+		LVDocView * _docview;
+		lvRect _invalidateRect;
+		int _additionalButtons[2];
+		int _addButtonCount;
+		int _linkCount;
+		int _backSize;
+		int _fwdSize;
+		int _currentButton;
+		int _nextButton[3];
+		int _prevButton[3];
+		LVImageSourceRef _activeIcons[2];
+		LVImageSourceRef _normalIcons[2];
+		lvRect _iconRects[2];
+	protected:
+        virtual void Update()
+		{
+			setDirty();
+			_wm->update( false );
+		}
+        virtual void draw()
+		{
+			if ( _invalidateRect.isEmpty() ) {
+				CRLog::debug("crLinksDialog::Draw() - invalidated rect is empty!");
+				return;
+			}
+			CRLog::debug("crLinksDialog::Draw()");
+			LVDocImageRef page = _docview->getPageImage(0);
+			LVDrawBuf * buf = page->getDrawBuf();
+			_wm->getScreen()->draw( buf );
+            CRLog::trace("draw buttons, current=%d", _currentButton);
+			for ( int i=0; i<_addButtonCount; i++ ) {
+                int btn = _additionalButtons[i];
+				_wm->getScreen()->getCanvas()->Draw( btn==_currentButton?_activeIcons[btn]:_normalIcons[btn], _iconRects[i].left, _iconRects[i].top, _iconRects[i].width(), _iconRects[i].height() );
+			}
+		}
+    public:
+		static CRLinksDialog * create( CRGUIWindowManager * wm, V3DocViewWin * docwin )
+		{
+			ldomXRangeList list;
+			docwin->getDocView()->getCurrentPageLinks( list );
+			int backSize = docwin->getDocView()->getNavigationHistory().backCount();
+			int fwdSize = docwin->getDocView()->getNavigationHistory().forwardCount();
+			if ( list.length()==0 && backSize==0 && fwdSize==0)
+				return NULL;
+			docwin->getDocView()->clearImageCache();
+			docwin->getDocView()->selectFirstPageLink();
+			return new CRLinksDialog( wm, docwin );
+		}
+        CRLinksDialog( CRGUIWindowManager * wm, V3DocViewWin * docwin )
+		: CRGUIWindowBase( wm ), _docwin(docwin), _docview(docwin->getDocView())
+        {
+			_invalidateRect.left = 0;
+			_invalidateRect.top = 0;
+			_invalidateRect.right = 600;
+			_invalidateRect.bottom = 800;
+			ldomXRangeList list;
+			_docview->getCurrentPageLinks( list );
+			_linkCount = list.length();
+			_backSize = _docview->getNavigationHistory().backCount();
+			_fwdSize = _docview->getNavigationHistory().forwardCount();
+			CRLog::debug("LinksDialog: links=%d, back=%d, fwd=%d", _linkCount, _backSize, _fwdSize);
+			_addButtonCount = 0;
+			if ( _backSize )
+				_additionalButtons[_addButtonCount++] = BACK;
+			if ( _fwdSize )
+				_additionalButtons[_addButtonCount++] = FORWARD;
+			
+			CRLog::debug("LinksDialog: creating icons");
+			_activeIcons[FORWARD] = LVCreateXPMImageSource( link_forward_active );
+			_activeIcons[BACK] = LVCreateXPMImageSource( link_back_active );
+			_normalIcons[FORWARD] = LVCreateXPMImageSource( link_forward_normal );
+			_normalIcons[BACK] = LVCreateXPMImageSource( link_back_normal );
+			CRLog::debug("LinksDialog: icons created");
+			int dx = _activeIcons[0]->GetWidth();
+			int dy = _activeIcons[0]->GetHeight();
+			int w = 3;
+			lvRect rc1(w,w,w+dx,w+dy);
+			lvRect rc2(w+dx+w,w,w+dx+dx+w,w+dy);
+			_iconRects[0] = rc1;
+			_iconRects[1] = rc2;
+            // FORWARD->BACK->LINK->FORWARD->BACK
+			_currentButton =    (_linkCount>0) ? LINK :  ( (_backSize>0) ? BACK :  FORWARD);
+			_nextButton[BACK] = (_linkCount>0) ? LINK :  ( (_fwdSize>0)  ? FORWARD : BACK );
+			_nextButton[FORWARD] = (_backSize>0) ? BACK :( (_linkCount>0)? LINK :  FORWARD);
+			_nextButton[LINK] = (_fwdSize>0) ? FORWARD : ( (_backSize>0) ? BACK :  LINK);
+			_prevButton[FORWARD] =(_linkCount>0) ? LINK :( (_backSize>0) ? BACK :  FORWARD );
+			_prevButton[BACK] = (_fwdSize>0) ? FORWARD : ( (_linkCount>0)? LINK :  BACK);
+			_prevButton[LINK] = (_backSize>0) ? BACK :   ( (_fwdSize>0)  ? FORWARD : LINK);
+		    CRLog::debug("dialog is created");
+            _fullscreen = true;
+        }
+        virtual ~CRLinksDialog() { }
+        /// returns true if command is processed
+        virtual bool onCommand( int command, int params )
+        {
+            switch ( command ) {
+            case MCMD_CANCEL:
+				_docview->clearSelection();
+				_wm->closeWindow( this );
+				return true;
+            case MCMD_OK:
+                if ( _currentButton==LINK )
+    				_docview->goSelectedLink();
+                else if ( _currentButton==BACK )
+                    _docview->goBack();
+                else
+                    _docview->goForward();
+				_docview->clearSelection();
+				_wm->closeWindow( this );
+				return true;
+			case MCMD_LONG_BACK:
+				_docview->clearSelection();
+                _docview->goBack();
+				_wm->closeWindow( this );
+				return true;
+			case MCMD_LONG_FORWARD:
+				_docview->clearSelection();
+                _docview->goForward();
+				_wm->closeWindow( this );
+				return true;
+            case MCMD_SCROLL_FORWARD:
+            case MCMD_SELECT_0:
+				invalidateCurrentSelection();
+				if ( _currentButton==LINK ) {
+					if ( !_docview->selectNextPageLink( _addButtonCount==0 )) {
+						_currentButton = _nextButton[_currentButton];
+					}
+				} else {
+					_currentButton = _nextButton[_currentButton];
+                    if ( _currentButton==LINK )
+                        _docview->selectNextPageLink( false );
+				}
+				Update();
+				invalidateCurrentSelection();
+				return true;
+            case MCMD_SCROLL_BACK:
+            case MCMD_SELECT_9:
+				invalidateCurrentSelection();
+				if ( _currentButton==LINK ) {
+					if ( !_docview->selectPrevPageLink( _addButtonCount==0 )) {
+						_currentButton = _prevButton[_currentButton];
+					}
+				} else {
+					_currentButton = _prevButton[_currentButton];
+                    if ( _currentButton==LINK )
+                        _docview->selectPrevPageLink( false );
+				}
+				Update();
+				invalidateCurrentSelection();
+				return true;
+            case MCMD_SELECT_1:
+            case MCMD_SELECT_2:
+            case MCMD_SELECT_3:
+            case MCMD_SELECT_4:
+            case MCMD_SELECT_5:
+            case MCMD_SELECT_6:
+            case MCMD_SELECT_7:
+            case MCMD_SELECT_8:
+                {
+                    int index = command - MCMD_SELECT_1;
+                    if ( index < _linkCount ) {
+			            ldomXRangeList list;
+			            _docview->getCurrentPageLinks( list );
+                        ldomXRange * link = list[index];
+        				invalidateCurrentSelection();
+                        _docview->selectRange( *link );
+				        draw();
+				        invalidateCurrentSelection();
+				        draw();
+        				_docview->goSelectedLink();
+   				        _docview->clearSelection();
+						_wm->closeWindow( this );
+   				        return true;
+                    }
+                }
+                break;
+            default:
+                return true;
+            }
+            return true;
+        }
+		void invalidateCurrentSelection()
+		{
+            if ( _currentButton != LINK ) {
+			    _invalidateRect.left = _iconRects[0].left;
+			    _invalidateRect.top = _iconRects[0].top;
+			    _invalidateRect.right = _iconRects[1].right;
+			    _invalidateRect.bottom = _iconRects[1].bottom;
+				CRLog::debug("invalidateCurrentSelection() : invalidating buttons rect");
+				return;
+            }
+			ldomXRange * link = _docview->getCurrentPageSelectedLink();
+			_invalidateRect.clear();
+			if ( !link ) {
+				CRLog::debug("invalidateCurrentSelection() : no current page selection found!");
+				return;
+			}
+			lvRect rc;
+			if ( link->getRect( rc ) ) {
+				CRLog::debug("link docRect { %d, %d, %d, %d }", rc.left, rc.top, rc.right, rc.bottom);
+#if 1
+				_invalidateRect.left = 0;
+				_invalidateRect.top = 0;
+				_invalidateRect.right = 600;
+				_invalidateRect.bottom = 800;
+#else
+				lvPoint topLeft = rc.topLeft();
+				lvPoint bottomRight = rc.bottomRight();
+				if ( _docview->docToWindowPoint(topLeft) && _docview->docToWindowPoint(bottomRight) ) {
+					rc.left = topLeft.x;
+					rc.top = topLeft.y;
+					rc.right = bottomRight.x;
+					rc.bottom = bottomRight.y;
+					CRLog::debug("invalidating link screenRect { %d, %d, %d, %d }", rc.left, rc.top, rc.right, rc.bottom);
+					_invalidateRect = rc;
+				} else {
+					CRLog::debug("link rect conversion error: invalidating full screen");
+					_invalidateRect.left = 0;
+					_invalidateRect.top = 0;
+					_invalidateRect.right = 600;
+					_invalidateRect.bottom = 800;
+				}
+#endif
+			} else {
+				CRLog::debug("invalidateCurrentSelection() : getRect failed for link!");
+			}
+		}
+};
+
 
 DECL_DEF_CR_FONT_SIZES;
 
@@ -229,7 +610,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     CRLog::debug("Skin file is %s", s8.c_str() );
     loadSkin( skinfile );
     // TODO: move accelerator table outside
-    static const int acc_table[] = {
+    static const int menu_acc_table[] = {
         XK_Escape, 0, MCMD_CANCEL, 0,
         XK_Return, 0, MCMD_OK, 0, 
         XK_Return, 1, MCMD_OK, 0, 
@@ -237,6 +618,10 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
         '9', 0, MCMD_SCROLL_BACK, 0,
         XK_Up, 0, MCMD_SCROLL_BACK, 0,
+        '0', 1, MCMD_LONG_FORWARD, 0,
+        XK_Down, 1, MCMD_LONG_FORWARD, 0,
+        '9', 1, MCMD_LONG_BACK, 0,
+        XK_Up, 1, MCMD_LONG_BACK, 0,
         '1', 0, MCMD_SELECT_1, 0,
         '2', 0, MCMD_SELECT_2, 0,
         '3', 0, MCMD_SELECT_3, 0,
@@ -265,7 +650,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         '9', 0, MCMD_SELECT_9, 0,
         0
     };
-    _menuAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) );
+    _menuAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( menu_acc_table ) );
     _dialogAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table_dialog ) );
 
     LVRefVec<LVImageSource> icons;
@@ -376,6 +761,31 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
 
+    static const int default_acc_table[] = {
+        '6', 0, MCMD_GO_LINK, 0,
+        '8', 0, MCMD_SETTINGS_FONTSIZE, 0,
+        '8', 1, MCMD_SETTINGS_ORIENTATION, 0,
+        XK_Escape, 0, MCMD_QUIT, 0,
+        XK_Return, 0, MCMD_MAIN_MENU, 0,
+        XK_Return, 1, MCMD_SETTINGS, 0,
+        '0', 0, DCMD_PAGEDOWN, 0,
+        XK_Down, 0, DCMD_PAGEDOWN, 0,
+        '0', KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+        XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+        XK_Up, 0, DCMD_PAGEUP, 0,
+        XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
+        '9', 0, DCMD_PAGEUP, 0,
+        '9', KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
+#ifdef WITH_DICT
+        '2', 0, MCMD_DICT, 0,
+#endif
+        '+', 0, DCMD_ZOOM_IN, 0,
+        '=', 0, DCMD_ZOOM_IN, 0,
+        '-', 0, DCMD_ZOOM_OUT, 0,
+        '_', 0, DCMD_ZOOM_OUT, 0,
+        0
+    };
+    setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( default_acc_table ) ) );
 }
 
 bool V3DocViewWin::loadDefaultCover( lString16 filename )
@@ -540,6 +950,16 @@ void V3DocViewWin::showGoToPageDialog()
     _wm->activateWindow( dlg );
 }
 
+bool V3DocViewWin::showLinksDialog()
+{
+	CRLinksDialog * dlg = CRLinksDialog::create( _wm, this );
+	if ( !dlg )
+		return false;
+    dlg->setAccelerators( _menuAccelerators );
+    _wm->activateWindow( dlg );
+	return true;
+}
+
 /// returns true if command is processed
 bool V3DocViewWin::onCommand( int command, int params )
 {
@@ -559,6 +979,9 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_GO_PAGE:
         showGoToPageDialog();
         return true;
+	case MCMD_GO_LINK:
+		showLinksDialog();
+		return true;
     case MCMD_SETTINGS:
         showSettingsMenu();
         return true;

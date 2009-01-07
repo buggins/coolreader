@@ -56,6 +56,10 @@ enum CRMainMenuCmd
     MCMD_SETTINGS_APPLY,
     MCMD_SETTINGS_FONTSIZE,
     MCMD_SETTINGS_ORIENTATION,
+	MCMD_GO_LINK,
+	MCMD_GO_LINK_APPLY,
+	MCMD_LONG_FORWARD,
+	MCMD_LONG_BACK,
 #ifdef WITH_DICT
     MCMD_DICT,
 #endif
@@ -106,6 +110,8 @@ public:
     void showMainMenu();
 
     void showGoToPageDialog();
+
+	bool showLinksDialog();
 
     virtual bool onCommand( int command, int params );
 };

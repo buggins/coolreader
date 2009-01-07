@@ -377,7 +377,7 @@ protected:
 						lUInt16 n2 = dst[i];
 						if ( n1 != n2 )
 							n1 = n1+ 0;
-						if ( true ) {
+						if ( false ) {
 							// min
 #if GRAY_INVERSE==1
 							n1 = maxBits(n1,n2,0x03) | maxBits(n1,n2,0x0C) | maxBits(n1,n2,0x30) | maxBits(n1,n2,0xC0);

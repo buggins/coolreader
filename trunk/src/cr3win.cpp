@@ -214,6 +214,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:
             {
                 int code = 0;
+				int shift = 0;
+				if ( ::GetKeyState(VK_SHIFT) & 0x8000 )
+					shift |= 1;
                 switch( wParam )
                 {
                 case VK_RETURN:
@@ -236,7 +239,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 if ( code ) {
-                    if ( CRWin32WindowManager::instance->onKeyPressed( code, 0 ) )
+                    if ( CRWin32WindowManager::instance->onKeyPressed( code, shift ) )
 						needUpdate = true;
                 }
             }
@@ -335,20 +338,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
-        static const int acc_table[] = {
-            XK_Escape, 0, MCMD_QUIT, 0,
-            XK_Return, 0, MCMD_MAIN_MENU, 0, 
-            '0', 0, DCMD_PAGEDOWN, 0,
-            XK_Down, 0, DCMD_PAGEDOWN, 0,
-            '9', 0, DCMD_PAGEUP, 0,
-            XK_Up, 0, DCMD_PAGEUP, 0,
-            '+', 0, DCMD_ZOOM_IN, 0,
-            '=', 0, DCMD_ZOOM_IN, 0,
-            '-', 0, DCMD_ZOOM_OUT, 0,
-            '_', 0, DCMD_ZOOM_OUT, 0,
-            0
-        };
-        main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
 		main_win->loadCSS( exedir + L"fb2.css" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
 
