@@ -67,7 +67,7 @@
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
 #define USE_FREETYPE                         1
-#define ALLOW_KERNING                        0
+#define ALLOW_KERNING                        1
 #define GLYPH_CACHE_SIZE                     0x40000
 #define ZIP_STREAM_BUFFER_SIZE               0x40000
 #define FILE_STREAM_BUFFER_SIZE              0x20000
@@ -94,16 +94,16 @@
 #else
 #define USE_FREETYPE                         1
 #endif
-#define USE_UNRAR                            1
-#define ALLOW_KERNING                        0
-#define GLYPH_CACHE_SIZE                     0x80000
-#define ZIP_STREAM_BUFFER_SIZE               0x200000
-#define FILE_STREAM_BUFFER_SIZE              0x100000
-#define COMPACT_DOM                          0
-#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      64
-#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  32
-#define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x40000
-#define COMPACT_DOM_SIZE_THRESHOLD           0x300000
+#define USE_UNRAR                            0
+#define ALLOW_KERNING                        1
+#define GLYPH_CACHE_SIZE                     0x20000
+#define ZIP_STREAM_BUFFER_SIZE               0x80000
+#define FILE_STREAM_BUFFER_SIZE              0x40000
+#define COMPACT_DOM                          1
+#define COMPACT_DOM_MIN_REF_TEXT_LENGTH      32
+#define COMPACT_DOM_SIZE_THRESHOLD           0x500000
+#define COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT  64
+#define COMPACT_DOM_MAX_TEXT_BUFFER_SIZE     0x60000
 //#define USE_LIBJPEG 0
 #endif
 

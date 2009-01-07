@@ -215,6 +215,14 @@ private:
     //========================================
 public:
 
+	/// creates reference to copy
+	LVRef & clone()
+	{
+		if ( isNull() )
+			return LVRef();
+		return LVRef( new T( *_ptr ) );
+	}
+
     /// Default constructor.
     /** Initializes pointer to NULL */
     LVRef() : _ptr(&ref_count_rec_t::null_ref) { ref_count_rec_t::null_ref._refcount++; }

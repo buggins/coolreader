@@ -103,6 +103,13 @@ public:
     }
     /// empty table constructor
     CRGUIAcceleratorTable() { }
+    /// copy constructor
+    CRGUIAcceleratorTable( const CRGUIAcceleratorTable& v) 
+	{
+		for ( int i=0; i<v._items.length(); i++ ) {
+			_items.add( new CRGUIAccelerator(*v._items[i]) );
+		}
+	}
     /// constructor from int array: 4 ints per entry (keyCode, keyFlags, commandId, commandParam), keyCode==0 indicates end of list 
     CRGUIAcceleratorTable( const int * tableQuadsArray )
     {

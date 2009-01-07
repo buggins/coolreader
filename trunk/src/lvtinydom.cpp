@@ -2112,7 +2112,7 @@ ldomXRangeList::ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter )
 
 /// copy constructor of full node range
 ldomXRange::ldomXRange( ldomNode * p )
-: _start( p, 0 ), _end( p, p->getNodeType()==LXML_TEXT_NODE ? p->getText().length() : p->getChildCount() ), _flags(0)
+: _start( p, 0 ), _end( p, p->getNodeType()==LXML_TEXT_NODE ? p->getText().length() : p->getChildCount() ), _flags(1)
 {
 }
 
@@ -2431,7 +2431,7 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
         return;
     ldomXRange pos( _start, _end, 0 );
     bool allowGoRecurse = true;
-    while ( pos._start.compare( _end ) < 0 ) {
+	while ( !pos._start.isNull() && pos._start.compare( _end ) < 0 ) {
         // do something
         ldomNode * node = pos._start.getNode();
         if ( node->getNodeType()==LXML_ELEMENT_NODE ) {
@@ -2478,7 +2478,7 @@ void ldomXRange::getRangeWords( LVArray<ldomWord> & list )
             int len = text.length();
             int beginOfWord = -1;
             for ( int i=0; i <= len; i++ ) {
-                bool alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
+                int alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
                 if (alpha && beginOfWord<0 ) {
                     beginOfWord = i;
                 }
