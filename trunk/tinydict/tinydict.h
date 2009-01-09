@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 
+/// Word entry of index file
 class TinyDictWord
 {
     unsigned index;
@@ -39,16 +40,21 @@ class TinyDictWord
 public:
     /// factory - reading from index file
     static TinyDictWord * read( FILE * f, unsigned index );
-    unsigned getIndexPos() { return indexpos; }
-    unsigned getIndex() { return index; }
-    unsigned getStart() { return start; }
-    unsigned getSize() { return size; }
-    const char * getWord() { return word; }
-    int compare( const char * str );
-    bool match( const char * str, bool exact );
+
+    // getters
+    unsigned getIndexPos() const { return indexpos; }
+    unsigned getIndex() const { return index; }
+    unsigned getStart() const { return start; }
+    unsigned getSize() const { return size; }
+    const char * getWord() const { return word; }
+
+    int compare( const char * str ) const;
+    bool match( const char * str, bool exact ) const;
+
     ~TinyDictWord() { if ( word ) free( word ); }
 };
 
+/// word entry list
 class TinyDictWordList
 {
     TinyDictWord ** list;
@@ -88,16 +94,13 @@ public:
     ~TinyDictWordList() { clear(); }
 };
 
-class TinyDictIndexFile
+///
+class TinyDictFileBase
 {
-private:
+protected:
     char * fname;
     FILE * f;
     size_t size;
-    int    factor;
-    int    count;
-    TinyDictWordList list;
-
     void setFilename( const char * filename )
     {
         if ( fname )
@@ -107,29 +110,121 @@ private:
         else
             fname = NULL;
     }
-
 public:
-
-    bool find( const char * prefix, bool exactMatch, TinyDictWordList & words );
-
-    TinyDictIndexFile() : fname(NULL), f(NULL), size(0), factor( 16 ), count(0)
+    TinyDictFileBase() : fname(NULL), f(NULL), size(0)
     {
     }
-
-    ~TinyDictIndexFile()
+    virtual ~TinyDictFileBase()
     {
         close();
         setFilename( NULL );
     }
-
-    bool open( const char * filename );
-
-    void close()
+    virtual void close()
     {
         if (f)
             fclose(f);
         f = NULL;
         size = 0;
+    }
+};
+
+class TinyDictIndexFile : public TinyDictFileBase
+{
+    int    factor;
+    int    count;
+    TinyDictWordList list;
+public:
+
+    bool find( const char * prefix, bool exactMatch, TinyDictWordList & words );
+
+    TinyDictIndexFile() : factor( 16 ), count(0)
+    {
+    }
+
+    virtual ~TinyDictIndexFile()
+    {
+    }
+
+    bool open( const char * filename );
+
+};
+
+class TinyDictDataFile : public TinyDictFileBase
+{
+    bool compressed;
+    char * buf;
+    int    buf_size;
+
+    unsigned headerLength;
+    bool error;
+    unsigned short * chunks;
+    unsigned int * offsets;
+    unsigned extraLength;
+    unsigned char subfieldID1;
+    unsigned char subfieldID2;
+    unsigned subfieldLength;
+    unsigned subfieldVersion;
+    unsigned chunkLength;
+    unsigned chunkCount;
+
+    void reserve( int sz )
+    {
+        if ( buf_size < sz ) {
+            buf = (char*) realloc( buf, sizeof(char) * sz );
+            buf_size = sz;
+        }
+    }
+
+    unsigned int readU32()
+    {
+        unsigned char buf[4];
+        if ( !error && f && fread( buf, 1, 4, f )==4 ) {
+            return (((((((unsigned int)buf[3]) << 8) + buf[2]) << 8) + buf[1]) << 8 ) + buf[0];
+        }
+        error = true;
+        return 0;
+    }
+
+    unsigned short readU16()
+    {
+        unsigned char buf[2];
+        if ( !error && f && fread( buf, 1, 2, f )==2 ) {
+            return (((unsigned short)buf[1]) << 8) + buf[0];
+        }
+        error = true;
+        return 0;
+    }
+
+    unsigned short readU8()
+    {
+        unsigned char buf[1];
+        if ( !error && f && fread( buf, 1, 1, f )==1 ) {
+            return buf[0];
+        }
+        error = true;
+        return 0;
+    }
+
+public:
+
+    const char * read( const TinyDictWord * w );
+
+    bool open( const char * filename );
+
+    TinyDictDataFile() 
+    : compressed(false), buf(0), buf_size(0), headerLength(0), error( false )
+    , chunks(NULL), offsets(NULL), chunkLength(0), chunkCount(0)
+    {
+    }
+
+    virtual ~TinyDictDataFile()
+    {
+        if ( buf )
+            free( buf );
+        if ( chunks )
+            delete chunks;
+        if ( offsets )
+            delete offsets;
     }
 };
 

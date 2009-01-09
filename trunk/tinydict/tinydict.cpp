@@ -35,7 +35,7 @@ unsigned TinyDictWord::parseBase64( const char * str )
     return n;
 }
 
-int TinyDictWord::compare( const char * str )
+int TinyDictWord::compare( const char * str ) const
 {
     return strcmp( word, str );
 }
@@ -94,7 +94,7 @@ int TinyDictWordList::find( const char * prefix )
     return a - 1;
 }
 
-bool TinyDictWord::match( const char * str, bool exact )
+bool TinyDictWord::match( const char * str, bool exact ) const
 {
     if ( exact )
         return !strcmp( word, str );
@@ -167,12 +167,133 @@ bool TinyDictIndexFile::open( const char * filename )
     return true;
 }
 
+const char * TinyDictDataFile::read( const TinyDictWord * w )
+{
+    if ( !f || !w || w->getStart() + w->getSize() > size )
+        return NULL;
+
+    if ( !compressed ) {
+        // uncompressed
+        reserve( w->getSize() + 1 );
+        if ( fseek( f, w->getStart(), SEEK_SET ) )
+            return NULL;
+        if ( fread( buf, 1, w->getSize(), f ) != w->getSize() )
+            return NULL;
+    } else {
+        // compressed
+        // TODO
+        return NULL;
+    }
+    buf[ w->getSize() ] = 0;
+    return buf;
+}
+
+bool TinyDictDataFile::open( const char * filename )
+{
+    close();
+    if ( filename )
+        setFilename( filename );
+    if ( !fname )
+        return false;
+    f = fopen( fname, "rt" );
+    if ( !f )
+        return false;
+    if ( fseek( f, 0, SEEK_END ) ) {
+        close();
+        return false;
+    }
+    size = ftell( f );
+    if ( fseek( f, 0, SEEK_SET ) ) {
+        close();
+        return false;
+    }
+    unsigned char header[10];
+    if ( fread( header, 1, sizeof(header), f )!=sizeof(header) ) {
+        close();
+        return false;
+    }
+    if ( header[0]!=0x1f || header[1]!=0x8b ) { // 0x1F 0x8B -- GZIP magic
+        compressed = false;
+        return true;
+    }
+    if ( header[2]!=8 ) {
+        // unknown compression method
+        close();
+        return false;
+    }
+    unsigned char flg = header[3];
+    headerLength = 10;
+
+    const char FTEXT   = 1;    // Extra text
+    const char FHCRC   = 2;    // Header CRC
+    const char FEXTRA  = 4;    // Extra field
+    const char FNAME   = 8;    // File name
+    const char FCOMMENT = 16;   // File comment
+
+    // Optional extra field
+    if ( flg & FEXTRA ) {
+        extraLength = readU16();
+        headerLength += extraLength + 2;
+        subfieldID1 = readU8();
+        subfieldID2 = readU8();
+        subfieldLength = readU16(); // 2 bytes subfield length
+        subfieldVersion = readU16(); // 2 bytes subfield version
+        chunkLength = readU16(); // 2 bytes chunk length
+        chunkCount = readU16(); // 2 bytes chunk count
+        if ( error ) {
+            return false;
+        }
+        chunks = new unsigned short[ chunkCount ];
+        for (int i=0; i<chunkCount; i++) {
+            chunks[i] = readU16();
+        }
+    }
+    // Skip optional file name
+    if ( flg & FNAME ) {
+        while (readU8() != 0 )
+            headerLength++;
+        headerLength++;
+    }
+    // Skip optional file comment
+    if ( flg & FCOMMENT ) {
+        while (readU8() != 0)
+            headerLength++;
+        headerLength++;
+    }
+    // Check optional header CRC
+    if ( flg & FHCRC ) {
+        int v = 0; //(int)crc.getValue() & 0xffff;
+        if (readU16() != v) {
+            error = true;
+        }
+        headerLength += 2;
+    }
+
+    if ( chunkCount ) {
+        offsets = new unsigned int[ chunkCount ];
+        offsets[0] = headerLength;
+        for ( int i=1; i<chunkCount; i++ )
+            offsets[i] = offsets[i-1] + chunks[i-1];
+    }
+
+    if ( error || fseek( f, 0, SEEK_SET ) ) {
+        close();
+        return false;
+    }
+    return true;
+}
+
 #if 1
 int main( int argc, const char * * argv )
 {
     TinyDictIndexFile index;
+    TinyDictDataFile data;
     if ( !index.open("mueller7.index") ) {
         printf("cannot open index file");
+        return -1;
+    }
+    if ( !data.open("mueller7.dict") ) {
+        printf("cannot open data file");
         return -1;
     }
     TinyDictWordList words;
@@ -182,6 +303,11 @@ int main( int argc, const char * * argv )
     for ( int i=0; i<words.length(); i++ ) {
         TinyDictWord * p = words.get(i);
         printf("%s %d %d\n", p->getWord(), p->getStart(), p->getSize() );
+        const char * text = data.read( p );
+        if ( text )
+            printf( "article:\n%s\n", text );
+        else
+            printf( "cannot read article\n" );
     }
     return 0;
 }
