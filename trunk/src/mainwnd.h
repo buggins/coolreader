@@ -19,7 +19,7 @@
 #include "t9encoding.h"
 
 #ifndef WITH_DICT
-#define WITH_DICT
+//#define WITH_DICT
 #endif
 
 #define KEY_FLAG_LONG_PRESS 1
