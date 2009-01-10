@@ -195,7 +195,7 @@ class TinyDictDataFile : public TinyDictFileBase
         return 0;
     }
 
-    unsigned short readU8()
+    unsigned char readU8()
     {
         unsigned char buf[1];
         if ( !error && f && fread( buf, 1, 1, f )==1 ) {

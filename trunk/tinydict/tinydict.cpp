@@ -40,6 +40,22 @@ int TinyDictWord::compare( const char * str ) const
     return strcmp( word, str );
 }
 
+static int my_fgets( char * buf, int size, FILE * f )
+{
+	int i=0;
+	for ( ; i<size; i++ ) {
+		int ch = fgetc( f );
+		if ( ch == '\n' )
+			break;
+		if ( ch > 0 )
+			buf[i] = (char) ch;
+		else 
+			break;
+	}
+	buf[i] = 0;
+	return i;
+}
+
 /// factory - reading from index file
 TinyDictWord * TinyDictWord::read( FILE * f, unsigned index )
 {
@@ -47,17 +63,15 @@ TinyDictWord * TinyDictWord::read( FILE * f, unsigned index )
         return NULL;
     char buf[1024];
     unsigned indexpos = ftell( f );
-    if ( !fgets( buf, 1023, f ) )
+    int sz = my_fgets( buf, 1023, f );
+	if ( !sz )
         return NULL;
-    int sz = 0;
     int tabc = 0;
     int tabs[2];
-    while ( buf[sz] && buf[sz]!='\n' && buf[sz]!='\r' ) {
-        if ( buf[sz] == '\t' && tabc<2 )
-            tabs[tabc++] = sz;
-        sz++;
+    for ( int i=0; buf[i]; i++ ) {
+        if ( buf[i] == '\t' && tabc<2 )
+            tabs[tabc++] = i;
     }
-    buf[sz] = 0;
     if ( tabc!=2 )
         return NULL;
     const char * word = buf;
@@ -123,9 +137,10 @@ bool TinyDictIndexFile::find( const char * prefix, bool exactMatch, TinyDictWord
         int res = p->compare( prefix );
         if ( p->match( prefix, exactMatch ) )
             words.add( p );
-        else if ( res > 0 ) {
+		else {
             delete p;
-            break;
+			if ( res > 0 )
+	            break;
         }
     }
     return true;
@@ -138,7 +153,7 @@ bool TinyDictIndexFile::open( const char * filename )
         setFilename( filename );
     if ( !fname )
         return false;
-    f = fopen( fname, "rt" );
+    f = fopen( fname, "rb" );
     if ( !f )
         return false;
     if ( fseek( f, 0, SEEK_END ) ) {
@@ -195,7 +210,7 @@ bool TinyDictDataFile::open( const char * filename )
         setFilename( filename );
     if ( !fname )
         return false;
-    f = fopen( fname, "rt" );
+    f = fopen( fname, "rb" );
     if ( !f )
         return false;
     if ( fseek( f, 0, SEEK_END ) ) {
@@ -244,7 +259,7 @@ bool TinyDictDataFile::open( const char * filename )
             return false;
         }
         chunks = new unsigned short[ chunkCount ];
-        for (int i=0; i<chunkCount; i++) {
+        for (unsigned i=0; i<chunkCount; i++) {
             chunks[i] = readU16();
         }
     }
@@ -261,6 +276,7 @@ bool TinyDictDataFile::open( const char * filename )
         headerLength++;
     }
     // Check optional header CRC
+	// TODO: implement CRC
     if ( flg & FHCRC ) {
         int v = 0; //(int)crc.getValue() & 0xffff;
         if (readU16() != v) {
@@ -272,7 +288,7 @@ bool TinyDictDataFile::open( const char * filename )
     if ( chunkCount ) {
         offsets = new unsigned int[ chunkCount ];
         offsets[0] = headerLength;
-        for ( int i=1; i<chunkCount; i++ )
+        for ( unsigned i=1; i<chunkCount; i++ )
             offsets[i] = offsets[i-1] + chunks[i-1];
     }
 
@@ -288,12 +304,17 @@ int main( int argc, const char * * argv )
 {
     TinyDictIndexFile index;
     TinyDictDataFile data;
+    TinyDictDataFile zdata;
     if ( !index.open("mueller7.index") ) {
-        printf("cannot open index file");
+        printf("cannot open index file mueller7.index");
         return -1;
     }
     if ( !data.open("mueller7.dict") ) {
-        printf("cannot open data file");
+        printf("cannot open data file mueller7.dict");
+        return -1;
+    }
+    if ( !data.open("mueller7.dict.dz") ) {
+        printf("cannot open data file mueller7.dict.dz");
         return -1;
     }
     TinyDictWordList words;
@@ -309,6 +330,10 @@ int main( int argc, const char * * argv )
         else
             printf( "cannot read article\n" );
     }
+#ifdef _WIN32
+	printf("Press any key...");
+	getchar();
+#endif
     return 0;
 }
 #endif
