@@ -299,6 +299,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\tinydict\tinydict.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\w32utils.cpp"
 				>
 			</File>
@@ -486,6 +490,10 @@
 			</File>
 			<File
 				RelativePath=".\t9encoding.h"
+				>
+			</File>
+			<File
+				RelativePath="..\tinydict\tinydict.h"
 				>
 			</File>
 			<File
