@@ -2,6 +2,7 @@
 #ifndef _CR3VIEW_H_
 #define _CR3VIEW_H_
 
+#include <crgui.h>
 /**
  * @short XML Document View window
  * @author Vadim Lopatin <vadim.lopatin@coolreader.org>
