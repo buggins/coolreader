@@ -115,6 +115,8 @@ ldomElement * ldomDocument::getMainNode()
 {
     if (!_root || !_root->getChildCount())
         return NULL;
+	return _root;
+	/*
     //int elemCount = 0;
     ldomElement * lastElem = NULL;
     for ( unsigned i=0; i<_root->getChildCount(); i++) {
@@ -123,6 +125,7 @@ ldomElement * ldomDocument::getMainNode()
             lastElem = el;
     }
     return lastElem;
+	*/
 }
 
 #if COMPACT_DOM == 1
@@ -221,6 +224,31 @@ static void writeNode( LVStream * stream, ldomNode * node )
             }
         }
 
+#if 1
+            if (!elemName.empty())
+            {
+				ldomElement * elem = ((ldomElement*)node);
+				lvdomElementFormatRec * fmt = elem->getRenderData();
+				css_style_ref_t style = elem->getStyle();
+				if ( fmt ) {
+					lvRect rect;
+					elem->getAbsRect( rect );
+					*stream << L" fmt=\"";
+					*stream << L"rm:" << lString16::itoa( (int)elem->getRendMethod() ) << L" ";
+					if ( style.isNull() )
+						*stream << L"style: NULL ";
+					else {
+						*stream << L"disp:" << lString16::itoa( (int)style->display ) << L" ";
+					}
+					*stream << L"y:" << lString16::itoa( (int)fmt->getY() ) << L" ";
+					*stream << L"h:" << lString16::itoa( (int)fmt->getHeight() ) << L" ";
+					*stream << L"ay:" << lString16::itoa( (int)rect.top ) << L" ";
+					*stream << L"ah:" << lString16::itoa( (int)rect.height() ) << L" ";
+					*stream << L"\"";
+				}
+			}
+#endif
+
         if ( node->getChildCount() == 0 ) {
             if (!elemName.empty())
             {
@@ -311,14 +339,14 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     getMainNode()->recurseElements( initFormatData );
     CRLog::trace("init render method...");
     initRendMethod( getMainNode() );
-#if 0 //def _DEBUG
-    LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
-    saveToStream( ostream, "utf-16" );
-#endif
     //updateStyles();
     CRLog::trace("rendering...");
     int height = renderBlockElement( context, getMainNode(),
         0, y0, width ) + y0;
+#if 0 //def _DEBUG
+    LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
+    saveToStream( ostream, "utf-16" );
+#endif
     gc();
     CRLog::trace("finalizing...");
     context.Finalize();
@@ -394,7 +422,7 @@ void ldomElement::getAbsRect( lvRect & rect )
     rect.top = 0;
     rect.right = fmt->getWidth();
     rect.bottom = fmt->getHeight();
-    for (;!node->isRoot();node = node->getParentNode())
+    for (; node; node = node->getParentNode())
     {
         lvdomElementFormatRec * fmt = node->getRenderData();
         if (fmt)
@@ -1560,7 +1588,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     if ( !finalNode ) {
         if ( pt.y >= getFullHeight()) {
             ldomText * node = getMainNode()->getLastTextChild();
-            return ldomXPointer(node,node->getText().length());
+			return ldomXPointer(node,node ? node->getText().length() : 0);
         }
         CRLog::trace("not final node");
         return ptr;

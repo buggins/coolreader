@@ -261,6 +261,8 @@ public:
                         // rows of table
                         CCRTableRow * row = new CCRTableRow;
                         row->elem = item;
+						if ( item==NULL )
+							item = item;
                         if ( currentRowGroup ) {
                             // add row to group
                             row->rowgroup = currentRowGroup;
@@ -668,11 +670,13 @@ public:
             CCRTableRow * row = rows[i];
             row->y = h;
             h += row->height;
-            lvdomElementFormatRec * fmt = row->elem->getRenderData();
-            fmt->setX(TABLE_BORDER_WIDTH);
-            fmt->setY(row->y + TABLE_BORDER_WIDTH);
-            fmt->setWidth( width - TABLE_BORDER_WIDTH * 2);
-            fmt->setHeight( row->height );
+			if ( row->elem ) {
+				lvdomElementFormatRec * fmt = row->elem->getRenderData();
+				fmt->setX(TABLE_BORDER_WIDTH);
+				fmt->setY(row->y + TABLE_BORDER_WIDTH);
+				fmt->setWidth( width - TABLE_BORDER_WIDTH * 2);
+				fmt->setHeight( row->height );
+			}
         }
         // update cell Y relative to row element
         // calc individual cells dimensions
