@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <zlib.h>
 
 /// Word entry of index file
 class TinyDictWord
@@ -149,11 +150,49 @@ public:
 
 };
 
-class TinyDictDataFile : public TinyDictFileBase
+class TinyDictCRC
 {
-    bool compressed;
-    char * buf;
-    int    buf_size;
+    unsigned crc;
+public:
+    void reset()
+    {
+        crc = crc32( 0L, Z_NULL, 0 );
+    }
+    unsigned get()
+    {
+        return crc;
+    }
+    unsigned update( const void * data, unsigned size )
+    {
+        crc = crc32( crc, (const unsigned char *)data, size );
+        return crc;
+    }
+    unsigned update( unsigned char b )
+    {
+        return update( &b, sizeof(b) );
+    }
+    unsigned update( unsigned short b )
+    {
+        return update( &b, sizeof(b) );
+    }
+    unsigned update( unsigned int b )
+    {
+        return update( &b, sizeof(b) );
+    }
+    TinyDictCRC()
+    {
+        reset();
+    }
+};
+
+class TinyDictZStream
+{
+    FILE * f;
+    TinyDictCRC crc;
+
+    int type;
+    unsigned size;
+    unsigned txtpos;
 
     unsigned headerLength;
     bool error;
@@ -167,18 +206,19 @@ class TinyDictDataFile : public TinyDictFileBase
     unsigned chunkLength;
     unsigned chunkCount;
 
-    void reserve( int sz )
-    {
-        if ( buf_size < sz ) {
-            buf = (char*) realloc( buf, sizeof(char) * sz );
-            buf_size = sz;
-        }
-    }
+    bool     zInitialized;
+    z_stream zStream;
+    unsigned packed_size;
+    unsigned char * unp_buffer;
+    unsigned unp_buffer_start;
+    unsigned unp_buffer_len;
+    unsigned unp_buffer_size;
 
     unsigned int readU32()
     {
         unsigned char buf[4];
         if ( !error && f && fread( buf, 1, 4, f )==4 ) {
+            crc.update( buf, 4 );
             return (((((((unsigned int)buf[3]) << 8) + buf[2]) << 8) + buf[1]) << 8 ) + buf[0];
         }
         error = true;
@@ -189,6 +229,7 @@ class TinyDictDataFile : public TinyDictFileBase
     {
         unsigned char buf[2];
         if ( !error && f && fread( buf, 1, 2, f )==2 ) {
+            crc.update( buf, 2 );
             return (((unsigned short)buf[1]) << 8) + buf[0];
         }
         error = true;
@@ -199,11 +240,46 @@ class TinyDictDataFile : public TinyDictFileBase
     {
         unsigned char buf[1];
         if ( !error && f && fread( buf, 1, 1, f )==1 ) {
+            crc.update( buf, 1 );
             return buf[0];
         }
         error = true;
         return 0;
     }
+
+    bool unpack( unsigned start, unsigned len );
+
+    bool zinit();
+
+    bool zclose();
+
+    bool seek( unsigned pos );
+
+    bool skip( unsigned sz );
+
+public:
+    unsigned getSize() { return size; }
+    TinyDictZStream();
+    bool open( FILE * file );
+    ~TinyDictZStream();
+};
+
+class TinyDictDataFile : public TinyDictFileBase
+{
+    bool compressed;
+    char * buf;
+    int    buf_size;
+
+    TinyDictZStream zstream;
+
+    void reserve( int sz )
+    {
+        if ( buf_size < sz ) {
+            buf = (char*) realloc( buf, sizeof(char) * sz );
+            buf_size = sz;
+        }
+    }
+
 
 public:
 
@@ -211,9 +287,7 @@ public:
 
     bool open( const char * filename );
 
-    TinyDictDataFile() 
-    : compressed(false), buf(0), buf_size(0), headerLength(0), error( false )
-    , chunks(NULL), offsets(NULL), chunkLength(0), chunkCount(0)
+    TinyDictDataFile() : compressed(false), buf(0), buf_size(0)
     {
     }
 
@@ -221,10 +295,6 @@ public:
     {
         if ( buf )
             free( buf );
-        if ( chunks )
-            delete chunks;
-        if ( offsets )
-            delete offsets;
     }
 };
 
