@@ -440,7 +440,7 @@ int main(int argc, char **argv)
 
     const char * fname = argv[1];
 
-        CRXCBWindowManager winman( 600, 700 );
+        CRXCBWindowManager winman( 600, 800 );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
@@ -472,7 +472,6 @@ int main(int argc, char **argv)
             ini_fname = L"cr3-fb2.ini";
         }
     #endif
-        //mkdir("~/.crengine", 0x1FF);
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
         lString16 homecrengine = home + L"/.crengine/";
         const lChar16 * dirs[] = {
