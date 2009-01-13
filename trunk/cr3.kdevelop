@@ -50,7 +50,7 @@
     </make>
     <run>
       <mainprogram>src/.libs/lt-cr3</mainprogram>
-      <programargs>/home/lve/src/cr3ewl/example.fb2</programargs>
+      <programargs>/home/lve/src/cr3ewl/COPYING</programargs>
       <globaldebugarguments>/home/lve/src/cr3ewl/aladdin.epub</globaldebugarguments>
       <globalcwd>/home/lve/src/cr3ewl/debug</globalcwd>
       <useglobalprogram>true</useglobalprogram>

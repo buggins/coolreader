@@ -13,6 +13,13 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdio.h>
+
+#ifndef _WIN32
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+
 #include "mainwnd.h"
 
 
@@ -845,14 +852,29 @@ bool V3DocViewWin::loadSettings( lString16 filename )
 
 bool V3DocViewWin::saveSettings( lString16 filename )
 {
+    crtrace log;
     if ( filename.empty() )
         filename = _settingsFileName;
     if ( filename.empty() )
         return false;
     _settingsFileName = filename;
+    log << "V3DocViewWin::saveSettings(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
-    if ( stream.isNull() )
+    if ( !stream ) {
+        lString8 path = UnicodeToLocal( LVExtractPath( filename ) );
+        path.erase( path.length()-1, 1 );
+        CRLog::warn("Cannot create settings file, trying to create directory %s", path.c_str());
+        if ( mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        }
+    }
+    if ( stream.isNull() ) {
+        lString8 fn = UnicodeToUtf8( filename );
+        CRLog::error("Cannot open settings file %s for write", fn.c_str() );
         return false;
+    }
     return _props->saveToStream( stream.get() );
 }
 

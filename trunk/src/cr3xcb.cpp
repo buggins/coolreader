@@ -472,10 +472,12 @@ int main(int argc, char **argv)
             ini_fname = L"cr3-fb2.ini";
         }
     #endif
-        mkdir("~/.crengine", 0x1FF);
-        static const lChar16 * dirs[] = {
+        //mkdir("~/.crengine", 0x1FF);
+        lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
+        lString16 homecrengine = home + L"/.crengine/";
+        const lChar16 * dirs[] = {
             L"/mnt/crengine/",
-            L"~/.crengine/",
+            homecrengine.c_str(),
             NULL
         };
         int i;
