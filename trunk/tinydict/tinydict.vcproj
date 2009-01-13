@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="../../zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -60,7 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="zlibd.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="../../zlib/lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"

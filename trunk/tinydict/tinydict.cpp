@@ -205,6 +205,7 @@ bool TinyDictZStream::zinit()
         }
         zInitialized = true;
     }
+	return true;
 }
 
 bool TinyDictZStream::zclose()
@@ -263,7 +264,7 @@ bool TinyDictZStream::seek( unsigned pos )
     if ( !zInitialized && !zinit() )
         return false; // cannot init deflate
 
-    skip( pos - unp_buffer_start );
+    return skip( pos - unp_buffer_start );
 }
 
 bool TinyDictZStream::skip( unsigned sz )
@@ -306,7 +307,7 @@ bool TinyDictZStream::unpack( unsigned start, unsigned len )
     int pos = offsets[idx];
     if ( fseek( f, pos, SEEK_SET ) )
         return false;
-    int sz = off + len;
+    unsigned sz = off + len;
     if ( !unp_buffer || unp_buffer_size < sz ) {
         unp_buffer_len = 0;
         unp_buffer_start = idx * chunkLength;
@@ -427,7 +428,6 @@ bool TinyDictZStream::open( FILE * file )
         }
         headerLength += 2;
     }
-
 
     if ( fseek( f, headerLength, SEEK_SET ) ) {
         return false;
