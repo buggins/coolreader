@@ -861,7 +861,15 @@ bool V3DocViewWin::saveSettings( lString16 filename )
     log << "V3DocViewWin::saveSettings(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
     if ( !stream ) {
-        lString8 path = UnicodeToLocal( LVExtractPath( filename ) );
+		lString16 path16 = LVExtractPath( filename );
+        lString8 path = UnicodeToLocal( path16 );
+#ifdef _WIN32
+		if ( !CreateDirectoryW( path16.c_str(), NULL ) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+		}
+#else
         path.erase( path.length()-1, 1 );
         CRLog::warn("Cannot create settings file, trying to create directory %s", path.c_str());
         if ( mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) ) {
@@ -869,6 +877,7 @@ bool V3DocViewWin::saveSettings( lString16 filename )
         } else {
             stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
         }
+#endif
     }
     if ( stream.isNull() ) {
         lString8 fn = UnicodeToUtf8( filename );

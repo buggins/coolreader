@@ -13,10 +13,272 @@
 #include <stdlib.h>
 #include "tinydict.h"
 
-int TinyDictWord::base64table[128] = { 0 };
+
+/// add word to list
+void TinyDictWordList::add( TinyDictWord * word )
+{
+    if ( count>=size ) {
+        size = size ? size * 2 : 32;
+        list = (TinyDictWord **)realloc( list, sizeof(TinyDictWord *) * size );
+    }
+    list[ count++ ] = word;
+}
+
+/// clear list
+void TinyDictWordList::clear()
+{
+    if ( list ) {
+        for ( int i=0; i<count; i++ )
+            delete list[i];
+        free( list );
+        list = NULL;
+        count = size = 0;
+    }
+}
+
+/// empty list constructor
+TinyDictWordList::TinyDictWordList() : dict(NULL), list(NULL), size(0), count(0) { }
+
+/// destructor
+TinyDictWordList::~TinyDictWordList() { clear(); }
+
+
+///
+class TinyDictFileBase
+{
+protected:
+    char * fname;
+    FILE * f;
+    size_t size;
+    void setFilename( const char * filename )
+    {
+        if ( fname )
+            free( fname );
+        if ( filename && *filename )
+            fname = strdup( filename );
+        else
+            fname = NULL;
+    }
+public:
+    TinyDictFileBase() : fname(NULL), f(NULL), size(0)
+    {
+    }
+    virtual ~TinyDictFileBase()
+    {
+        close();
+        setFilename( NULL );
+    }
+    virtual void close()
+    {
+        if (f)
+            fclose(f);
+        f = NULL;
+        size = 0;
+    }
+};
+
+class TinyDictIndexFile : public TinyDictFileBase
+{
+    int    factor;
+    int    count;
+    TinyDictWordList list;
+public:
+
+	void compact()
+	{
+		// do nothing
+	}
+
+    bool find( const char * prefix, bool exactMatch, TinyDictWordList & words );
+
+    TinyDictIndexFile() : factor( 16 ), count(0)
+    {
+    }
+
+    virtual ~TinyDictIndexFile()
+    {
+    }
+
+    bool open( const char * filename );
+
+};
+
+class TinyDictCRC
+{
+    unsigned crc;
+public:
+    void reset()
+    {
+        crc = crc32( 0L, Z_NULL, 0 );
+    }
+    unsigned get()
+    {
+        return crc;
+    }
+    unsigned update( const void * data, unsigned size )
+    {
+        crc = crc32( crc, (const unsigned char *)data, size );
+        return crc;
+    }
+    unsigned update( unsigned char b )
+    {
+        return update( &b, sizeof(b) );
+    }
+    unsigned update( unsigned short b )
+    {
+        return update( &b, sizeof(b) );
+    }
+    unsigned update( unsigned int b )
+    {
+        return update( &b, sizeof(b) );
+    }
+    TinyDictCRC()
+    {
+        reset();
+    }
+};
+
+class TinyDictZStream
+{
+    FILE * f;
+    TinyDictCRC crc;
+
+    int type;
+    unsigned size;
+    unsigned txtpos;
+
+    unsigned headerLength;
+    bool error;
+    unsigned short * chunks;
+    unsigned int * offsets;
+    unsigned extraLength;
+    unsigned char subfieldID1;
+    unsigned char subfieldID2;
+    unsigned subfieldLength;
+    unsigned subfieldVersion;
+    unsigned chunkLength;
+    unsigned chunkCount;
+
+    bool     zInitialized;
+    z_stream zStream;
+    unsigned packed_size;
+    unsigned char * unp_buffer;
+    unsigned unp_buffer_start;
+    unsigned unp_buffer_len;
+    unsigned unp_buffer_size;
+
+    unsigned int readBytes( unsigned char * buf, unsigned size )
+    {
+        if ( error || !f )
+            return 0;
+        unsigned int bytesRead = fread( buf, 1, size, f );
+        crc.update( buf, bytesRead );
+        return bytesRead;
+    }
+
+    unsigned int readU32()
+    {
+        unsigned char buf[4];
+        if ( !error && f && fread( buf, 1, 4, f )==4 ) {
+            crc.update( buf, 4 );
+            return (((((((unsigned int)buf[3]) << 8) + buf[2]) << 8) + buf[1]) << 8 ) + buf[0];
+        }
+        error = true;
+        return 0;
+    }
+
+    unsigned short readU16()
+    {
+        unsigned char buf[2];
+        if ( !error && f && fread( buf, 1, 2, f )==2 ) {
+            crc.update( buf, 2 );
+            return (((unsigned short)buf[1]) << 8) + buf[0];
+        }
+        error = true;
+        return 0;
+    }
+
+    unsigned char readU8()
+    {
+        unsigned char buf[1];
+        if ( !error && f && fread( buf, 1, 1, f )==1 ) {
+            crc.update( buf, 1 );
+            return buf[0];
+        }
+        error = true;
+        return 0;
+    }
+
+    bool zinit(unsigned char * next_in, unsigned avail_in, unsigned char * next_out, unsigned avail_out);
+
+    bool zclose();
+
+    bool readChunk( unsigned n );
+
+public:
+	/// minimize memory consumption
+	void compact();
+	/// get unpacked data size
+    unsigned getSize() { return size; }
+	/// create uninitialized stream
+    TinyDictZStream();
+	/// open from file
+    bool open( FILE * file );
+	/// read block of data
+    bool read( unsigned char * buf, unsigned start, unsigned len );
+	/// close stream
+    ~TinyDictZStream();
+};
+
+class TinyDictDataFile : public TinyDictFileBase
+{
+    bool compressed;
+    char * buf;
+    int    buf_size;
+
+    TinyDictZStream zstream;
+
+    void reserve( int sz )
+    {
+        if ( buf_size < sz ) {
+            buf = (char*) realloc( buf, sizeof(char) * sz );
+            buf_size = sz;
+        }
+    }
+
+
+public:
+
+	void compact()
+	{
+		zstream.compact();
+		if ( buf ) {
+			free( buf );
+			buf = NULL;
+			buf_size = 0;
+		}
+	}
+	
+	const char * read( const TinyDictWord * w );
+
+    bool open( const char * filename );
+
+    TinyDictDataFile() : compressed(false), buf(0), buf_size(0)
+    {
+    }
+
+    virtual ~TinyDictDataFile()
+    {
+        if ( buf )
+            free( buf );
+    }
+};
+
+
+static int base64table[128] = { 0 };
 static const char * base64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-unsigned TinyDictWord::parseBase64( const char * str )
+static unsigned parseBase64( const char * str )
 {
     int i;
     if ( !*base64table ) {
@@ -217,81 +479,14 @@ bool TinyDictZStream::zclose()
     return true;
 }
 
-#if 0
-bool TinyDictZStream::seek( unsigned pos )
+void TinyDictZStream::compact()
 {
-    if ( txtpos == pos )
-        return true;
-
-    if ( type == DICT_TEXT ) {
-        if ( fseek( f, pos, SEEK_SET ) )
-            return false;
-        txtpos = pos;
-        return true;
-    }
-
-    if ( pos >= unp_buffer_start && pos <= unp_buffer_start + unp_buffer_len )
-        return skip( pos - unp_buffer_start );
-
-    unsigned jumpPos = headerLength;
-    bool jumpRequired = false;
-    if ( type == DICT_DZIP ) {
-        // DZIP: restart from chunk beginning
-        int curr_chunk = unp_buffer_start / chunkLength;
-        int dest_chunk = pos / chunkLength;
-        if ( unp_buffer_start > pos || dest_chunk > curr_chunk ) {
-            jumpPos = offsets[ dest_chunk ];
-            unp_buffer_start = dest_chunk * chunkLength;
-            unp_buffer_len = 0;
-            jumpRequired = true;
-        }
-    } else {
-        // GZIP: restart from file beginning
-        if ( unp_buffer_start > pos ) {
-            jumpPos = headerLength;
-            unp_buffer_start = 0;
-            unp_buffer_len = 0;
-            jumpRequired = true;
-        }
-    }
-    if ( jumpRequired ) {
-        zclose();
-        unp_buffer_start = jumpPos - headerLength;
-        unp_buffer_len = 0;
-        if ( fseek( f, jumpPos, SEEK_SET ) )
-            return false;
-    }
-    // unp_buffer_len 
-    if ( !zInitialized && !zinit() )
-        return false; // cannot init deflate
-
-    return skip( pos - unp_buffer_start );
+	if ( unp_buffer ) {
+		free( unp_buffer );
+		unp_buffer_start = unp_buffer_len = unp_buffer_size = 0;
+		unp_buffer = NULL;
+	}
 }
-
-bool TinyDictZStream::skip( unsigned sz )
-{
-    if ( !sz )
-        return true;
-    if ( sz < unp_buffer_len ) {
-        int rest = unp_buffer_len - sz;
-        for ( int i=0; i<rest; i++ )
-            unp_buffer[ i ] = unp_buffer[ i + sz ];
-        unp_buffer_len = rest;
-        unp_buffer_start += sz;
-        return true;
-    }
-    sz -= unp_buffer_len;
-    unp_buffer_start += unp_buffer_len;
-    unp_buffer_len = 0;
-
-    if ( sz > 0 ) {
-        if ( !zInitialized && !zinit() )
-            return false; // cannot init deflate
-    }
-    return true;
-}
-
-#endif
 
 bool TinyDictZStream::readChunk( unsigned n )
 {
@@ -326,21 +521,10 @@ bool TinyDictZStream::readChunk( unsigned n )
     }
     zclose();
     if ( !zinit(tmp, packsz, unp_buffer, unp_buffer_size) ) {
-    //if ( !zinit(unp_buffer, unp_buffer_size, tmp, packsz) ) {
         printf("cannot init deflater\n");
         return false;
     }
     printf("unpacking %d bytes\n", packsz);
-/*
-    zStream.next_in   = tmp;
-    zStream.avail_in  = packsz;
-    zStream.next_out  = unp_buffer;
-    zStream.avail_out = unp_buffer_size;
-    zStream.next_in   = unp_buffer;
-    zStream.avail_in  = unp_buffer_size;
-    zStream.next_out  = tmp;
-    zStream.avail_out = packsz;
-*/
     int err = inflate( &zStream,  Z_PARTIAL_FLUSH );
     printf("inflate result: %d\n", err);
     if ( err != Z_OK ) {
@@ -398,43 +582,6 @@ bool TinyDictZStream::read( unsigned char * buf, unsigned start, unsigned len )
         return true;
     return false;
 }
-
-#if 0
-bool TinyDictZStream::unpack( unsigned start, unsigned len )
-{
-    if ( !f )
-        return false;
-    if ( start >= unp_buffer_start && start + len <= unp_buffer_start + unp_buffer_len )
-        return true;
-    if ( start + len > size )
-        return false; // out of file range
-
-    if ( !zInitialized && !zinit() )
-        return false; // cannot init deflate
-
-    unsigned end = start + len;
-    unsigned firstChunk  = start / chunkLength;
-    unsigned firstOffset = start - firstChunk * chunkLength;
-    unsigned lastChunk   = end / chunkLength;
-    unsigned lastOffset  = end - lastChunk * chunkLength;
-
-    int idx = start / chunkLength;
-    int off = start % chunkLength;
-    int pos = offsets[idx];
-    if ( fseek( f, pos, SEEK_SET ) )
-        return false;
-    unsigned sz = off + len;
-    if ( !unp_buffer || unp_buffer_size < sz ) {
-        unp_buffer_len = 0;
-        unp_buffer_start = idx * chunkLength;
-        unp_buffer = (unsigned char *)realloc( unp_buffer, unp_buffer_size );
-        if ( !unp_buffer )
-            return false;
-        unp_buffer_size = sz;
-    }
-    return true;
-}
-#endif
 
 TinyDictZStream::TinyDictZStream()
 : f ( NULL ), size( 0 ), txtpos(0)
@@ -560,6 +707,7 @@ bool TinyDictZStream::open( FILE * file )
     }
     size = unp_buffer_start + unp_buffer_len;
 
+	compact();
     return true;
 }
 
@@ -632,6 +780,159 @@ bool TinyDictDataFile::open( const char * filename )
     return true;
 }
 
+TinyDictionary::TinyDictionary()
+{
+	name = NULL;
+	data = new TinyDictDataFile();
+	index = new TinyDictIndexFile();
+}
+
+TinyDictionary::~TinyDictionary()
+{
+	delete data;
+	delete index;
+	if ( name )
+		free( name );
+}
+
+void TinyDictionary::compact()
+{
+	index->compact();
+	data->compact();
+}
+
+const char * TinyDictionary::getDictionaryName()
+{
+	return name;
+}
+
+bool TinyDictionary::open( const char * indexfile, const char * datafile )
+{
+	// use index file name w/o path and extension as dictionary name
+	int lastSlash = -1;
+	int lastPoint = -1;
+	for ( int i=0; indexfile[i]; i++ ) {
+		if ( indexfile[i]=='/' || indexfile[i]=='\\' )
+			lastSlash = i;
+		else if ( indexfile[i]=='.' )
+			lastPoint = i;
+	}
+	if ( lastPoint>=0 && lastPoint>lastSlash ) {
+		name = strdup( indexfile + lastSlash + 1 );
+		name[ lastPoint - lastSlash - 1 ] = 0;
+	}
+	return index->open( indexfile ) && data->open( datafile );
+}
+
+/// returns word list's dictionary name
+const char * TinyDictWordList::getDictionaryName()
+{
+	if ( !dict )
+		return NULL;
+	return dict->getDictionaryName();
+}
+
+/// returns article for word by index
+const char * TinyDictWordList::getArticle( int index )
+{
+	if ( !dict )
+		return NULL;
+	if ( index<0 || index>=count )
+		return NULL;
+	return dict->getData()->read( list[index] );
+}
+
+/// searches dictionary for specified word, caller is responsible for deleting of returned object
+TinyDictWordList * TinyDictionary::find( const char * prefix, int options )
+{
+	TinyDictWordList * list = new TinyDictWordList();
+	list->setDict( this );
+	if ( index->find( prefix, (TINY_DICT_OPTION_STARTS_WITH & options) == 0, *list ) )
+		return list;
+	delete list;
+	return NULL;
+}
+
+bool TinyDictionaryList::add( const char * indexfile, const char * datafile )
+{
+	TinyDictionary * p = new TinyDictionary();
+	if ( !p->open( indexfile, datafile ) ) {
+		delete p;
+		return false;
+	}
+    if ( count>=size ) {
+        size = size ? size * 2 : 32;
+        list = (TinyDictionary**)realloc( list, sizeof(TinyDictionary *) * size );
+    }
+    list[ count++ ] = p;
+}
+
+/// create empty list
+TinyDictionaryList::TinyDictionaryList() : list(NULL), size(0), count(0) { }
+
+/// remove all dictionaries from list
+void TinyDictionaryList::clear()
+{
+	if ( list ) {
+		for ( int i=0; i<count; i++ )
+			delete list[i];
+		free( list );
+		list = NULL;
+		size = 0;
+		count = 0;
+	}
+}
+
+TinyDictionaryList::~TinyDictionaryList()
+{
+	clear();
+}
+
+/// search all dictionaries in list for specified pattern
+bool TinyDictionaryList::find( TinyDictResultList & result, const char * prefix, int options )
+{
+	result.clear();
+	for ( int i=0; i<count; i++ ) {
+		TinyDictWordList * p = list[i]->find( prefix, options );
+		if ( p )
+			result.add( p );
+	}
+	return result.length() > 0;
+}
+
+
+/// remove all dictionaries from list
+void TinyDictResultList::clear()
+{
+	if ( list ) {
+		for ( int i=0; i<count; i++ )
+			delete list[i];
+		free( list );
+		list = NULL;
+		size = 0;
+		count = 0;
+	}
+}
+
+/// create empty list
+TinyDictResultList::TinyDictResultList() : list(NULL), size(0), count(0) { }
+
+/// destructor
+TinyDictResultList::~TinyDictResultList()
+{
+	clear();
+}
+
+/// add item to list
+void TinyDictResultList::add( TinyDictWordList * p )
+{
+    if ( count>=size ) {
+        size = size ? size * 2 : 32;
+        list = (TinyDictWordList**)realloc( list, sizeof(TinyDictWordList *) * size );
+    }
+    list[ count++ ] = p;
+}
+
 #if 1
 int main( int argc, const char * * argv )
 {
@@ -663,6 +964,29 @@ int main( int argc, const char * * argv )
         else
             printf( "cannot read article\n" );
     }
+
+	{
+		// create TinyDictionaryList object
+		TinyDictionaryList dicts;
+		// register dictionaries using 
+		dicts.add( "mueller7.index", "mueller7.dict.dz" );
+
+		// container for results
+		TinyDictResultList results;
+	    dicts.find(results, "empty", 0 ); // find exact match
+
+		// for each source dictionary that matches pattern
+		for ( int d = 0; d<results.length(); d++ ) {
+			TinyDictWordList * words = results.get(d);
+			printf("dict: %s\n", words->getDictionaryName() );
+			// for each found word
+			for ( int i=0; i<words->length(); i++ ) {
+				TinyDictWord * word = words->get(i);
+				printf("word: %s\n", word->getWord() );
+				printf("article: %s\n", words->getArticle( i ) );
+			}
+		}
+	}
 #ifdef _WIN32
 	printf("Press any key...");
 	getchar();

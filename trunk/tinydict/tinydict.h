@@ -10,6 +10,34 @@
 
     See LICENSE file for details.
 
+
+
+	usage: 
+
+		init:
+			// create TinyDictionaryList object
+			TinyDictionaryList dicts;
+			// register dictionaries using 
+			dicts.add( "/dir1/dict1.index", "/dir1/dict1.dict.dz" );
+			dicts.add( "/dir1/dict2.index", "/dir1/dict2.dict.dz" );
+
+	    search:
+			// container for results
+			TinyDictResultList results;
+		    dicts.find(results, "word", 0 ); // find exact match
+
+		process results:
+			// for each source dictionary that matches pattern
+			for ( int d = 0; d<results.length(); d++ ) {
+				TinyDictWordList * words = results.get(d);
+				printf("dict: %s\n", words->getDictionaryName() );
+				// for each found word
+				for ( int i=0; i<words->length(); i++ ) {
+					TinyDictWord * word = words->get(i);
+					printf("word: %s\n", word->getWord() );
+					printf("article: %s\n", words->getArticle( i ) );
+				}
+			}
 */
 
 #ifndef TINYDICT_H_INCLUDED
@@ -20,6 +48,13 @@
 #include <string.h>
 #include <zlib.h>
 
+/// dictinary data file forward declaration
+class TinyDictDataFile;
+/// dictionary index file forward declaration
+class TinyDictIndexFile;
+/// dictonary forward declaration
+class TinyDictionary;
+
 /// Word entry of index file
 class TinyDictWord
 {
@@ -28,8 +63,6 @@ class TinyDictWord
     unsigned start;
     unsigned size;
     char * word;
-    static int base64table[128];
-    static unsigned parseBase64( const char * str );
     TinyDictWord( unsigned _index, unsigned _indexpos, unsigned _start, unsigned _size, const char * _word )
     : index(_index)
     , indexpos(_indexpos)
@@ -58,260 +91,116 @@ public:
 /// word entry list
 class TinyDictWordList
 {
+	TinyDictionary * dict;
     TinyDictWord ** list;
     int size;
     int count;
 public:
 
-    int length() { return count; }
+	// article access functions
+	/// set dictonary pointer list belongs to
+	void setDict( TinyDictionary * p ) { dict = p; }
+	/// returns word list's dictionary name
+	const char * getDictionaryName();
+	/// returns article for word by index
+	const char * getArticle( int index );
 
+	// search functions
+	/// searches list position by prefix
     int find( const char * prefix );
 
-    TinyDictWord * get( int index )
-    {
-        return list[index];
-    }
+	// word list functions
+	/// returns number of words in list
+    int length() { return count; }
+	/// get item by index
+    TinyDictWord * get( int index ) { return list[index]; }
+	/// add word to list
+    void add( TinyDictWord * word );
+	/// clear list
+    void clear();
 
-    void add( TinyDictWord * word )
-    {
-        if ( count>=size ) {
-            size = size ? size * 2 : 32;
-            list = (TinyDictWord **)realloc( list, sizeof(TinyDictWord *) * size );
-        }
-        list[ count++ ] = word;
-    }
-
-    void clear()
-    {
-        if ( list ) {
-            for ( int i=0; i<count; i++ )
-                delete list[i];
-            free( list );
-            list = NULL;
-            count = size = 0;
-        }
-    }
-    TinyDictWordList() : list(NULL), size(0), count(0) { }
-    ~TinyDictWordList() { clear(); }
+	/// empty list constructor
+    TinyDictWordList();
+	/// destructor
+    ~TinyDictWordList();
 };
 
-///
-class TinyDictFileBase
+/// default mode: exact match
+#define TINY_DICT_OPTION_EXACT_MATCH 0
+/// search for words starting with specified pattern
+#define TINY_DICT_OPTION_STARTS_WITH 1
+
+class TinyDictionary
 {
-protected:
-    char * fname;
-    FILE * f;
-    size_t size;
-    void setFilename( const char * filename )
-    {
-        if ( fname )
-            free( fname );
-        if ( filename && *filename )
-            fname = strdup( filename );
-        else
-            fname = NULL;
-    }
+	char * name;
+	TinyDictDataFile * data;
+	TinyDictIndexFile * index;
 public:
-    TinyDictFileBase() : fname(NULL), f(NULL), size(0)
-    {
-    }
-    virtual ~TinyDictFileBase()
-    {
-        close();
-        setFilename( NULL );
-    }
-    virtual void close()
-    {
-        if (f)
-            fclose(f);
-        f = NULL;
-        size = 0;
-    }
+	/// searches dictionary for specified word, caller is responsible for deleting of returned object
+    TinyDictWordList * find( const char * prefix, int options = 0 );
+	/// returns short dictionary name
+	const char * getDictionaryName();
+	/// get dictionary data pointer
+	TinyDictDataFile * getData() { return data; }
+	/// get dictionary index pointer
+	//TinyDictIndexFile * getIndex() { return index; }
+	/// minimize memory usage
+	void compact();
+	/// open dictonary from files
+	bool open( const char * indexfile, const char * datafile );
+	/// empty dictinary constructor
+	TinyDictionary();
+	/// destructor
+	~TinyDictionary();
 };
 
-class TinyDictIndexFile : public TinyDictFileBase
+/// dictionary search result list
+class TinyDictResultList
 {
-    int    factor;
-    int    count;
-    TinyDictWordList list;
+    TinyDictWordList ** list;
+    int size;
+    int count;
 public:
 
-    bool find( const char * prefix, bool exactMatch, TinyDictWordList & words );
-
-    TinyDictIndexFile() : factor( 16 ), count(0)
-    {
-    }
-
-    virtual ~TinyDictIndexFile()
-    {
-    }
-
-    bool open( const char * filename );
-
+	// word list functions
+	/// returns number of words in list
+    int length() { return count; }
+	/// get item by index
+    TinyDictWordList * get( int index ) { return list[index]; }
+	/// remove all dictionaries from list
+	void clear();
+	/// create empty list
+	TinyDictResultList();
+	/// destructor
+	~TinyDictResultList();
+	/// add item to list
+	void add( TinyDictWordList * p );
 };
 
-class TinyDictCRC
+
+/// dictionary list
+class TinyDictionaryList
 {
-    unsigned crc;
+    TinyDictionary ** list;
+    int size;
+    int count;
 public:
-    void reset()
-    {
-        crc = crc32( 0L, Z_NULL, 0 );
-    }
-    unsigned get()
-    {
-        return crc;
-    }
-    unsigned update( const void * data, unsigned size )
-    {
-        crc = crc32( crc, (const unsigned char *)data, size );
-        return crc;
-    }
-    unsigned update( unsigned char b )
-    {
-        return update( &b, sizeof(b) );
-    }
-    unsigned update( unsigned short b )
-    {
-        return update( &b, sizeof(b) );
-    }
-    unsigned update( unsigned int b )
-    {
-        return update( &b, sizeof(b) );
-    }
-    TinyDictCRC()
-    {
-        reset();
-    }
-};
+	/// search all dictionaries in list for specified pattern
+	bool find( TinyDictResultList & result, const char * prefix, int options = 0 );
 
-class TinyDictZStream
-{
-    FILE * f;
-    TinyDictCRC crc;
-
-    int type;
-    unsigned size;
-    unsigned txtpos;
-
-    unsigned headerLength;
-    bool error;
-    unsigned short * chunks;
-    unsigned int * offsets;
-    unsigned extraLength;
-    unsigned char subfieldID1;
-    unsigned char subfieldID2;
-    unsigned subfieldLength;
-    unsigned subfieldVersion;
-    unsigned chunkLength;
-    unsigned chunkCount;
-
-    bool     zInitialized;
-    z_stream zStream;
-    unsigned packed_size;
-    unsigned char * unp_buffer;
-    unsigned unp_buffer_start;
-    unsigned unp_buffer_len;
-    unsigned unp_buffer_size;
-
-    unsigned char * srcbuf;
-    unsigned char * srcbuf_size;
-
-    unsigned int readBytes( unsigned char * buf, unsigned size )
-    {
-        if ( error || !f )
-            return 0;
-        unsigned int bytesRead = fread( buf, 1, size, f );
-        crc.update( buf, bytesRead );
-        return bytesRead;
-    }
-
-    unsigned int readU32()
-    {
-        unsigned char buf[4];
-        if ( !error && f && fread( buf, 1, 4, f )==4 ) {
-            crc.update( buf, 4 );
-            return (((((((unsigned int)buf[3]) << 8) + buf[2]) << 8) + buf[1]) << 8 ) + buf[0];
-        }
-        error = true;
-        return 0;
-    }
-
-    unsigned short readU16()
-    {
-        unsigned char buf[2];
-        if ( !error && f && fread( buf, 1, 2, f )==2 ) {
-            crc.update( buf, 2 );
-            return (((unsigned short)buf[1]) << 8) + buf[0];
-        }
-        error = true;
-        return 0;
-    }
-
-    unsigned char readU8()
-    {
-        unsigned char buf[1];
-        if ( !error && f && fread( buf, 1, 1, f )==1 ) {
-            crc.update( buf, 1 );
-            return buf[0];
-        }
-        error = true;
-        return 0;
-    }
-
-    bool zinit(unsigned char * next_in, unsigned avail_in, unsigned char * next_out, unsigned avail_out);
-
-    bool zclose();
-
-
-#if 0
-    bool seek( unsigned pos );
-
-    bool skip( unsigned sz );
-#endif
-
-    bool readChunk( unsigned n );
-
-public:
-    unsigned getSize() { return size; }
-    TinyDictZStream();
-    bool open( FILE * file );
-    bool read( unsigned char * buf, unsigned start, unsigned len );
-    ~TinyDictZStream();
-};
-
-class TinyDictDataFile : public TinyDictFileBase
-{
-    bool compressed;
-    char * buf;
-    int    buf_size;
-
-    TinyDictZStream zstream;
-
-    void reserve( int sz )
-    {
-        if ( buf_size < sz ) {
-            buf = (char*) realloc( buf, sizeof(char) * sz );
-            buf_size = sz;
-        }
-    }
-
-
-public:
-
-    const char * read( const TinyDictWord * w );
-
-    bool open( const char * filename );
-
-    TinyDictDataFile() : compressed(false), buf(0), buf_size(0)
-    {
-    }
-
-    virtual ~TinyDictDataFile()
-    {
-        if ( buf )
-            free( buf );
-    }
+	// word list functions
+	/// returns number of words in list
+    int length() { return count; }
+	/// get item by index
+    TinyDictionary * get( int index ) { return list[index]; }
+	/// remove all dictionaries from list
+	void clear();
+	/// create empty list
+	TinyDictionaryList();
+	/// destructor
+	~TinyDictionaryList();
+	/// try to open dictionary and add it to list
+	bool add( const char * indexfile, const char * datafile );
 };
 
 #endif //TINYDICT_H_INCLUDED

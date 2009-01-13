@@ -301,6 +301,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     lChar16 exe_fn16[MAX_PATH+1];
     GetModuleFileNameW( NULL, exe_fn16, MAX_PATH );
 	lString16 exedir = LVExtractPath(lString16(exe_fn16));	
+
 	lChar16 sysdir[MAX_PATH+1];
 	GetWindowsDirectoryW(sysdir, MAX_PATH);
 	lString16 fontdir( sysdir );
@@ -339,6 +340,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
 		main_win->loadCSS( exedir + L"fb2.css" );
+		main_win->loadSettings( exedir + L"cr3.ini" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
 
         winman.activateWindow( main_win );
