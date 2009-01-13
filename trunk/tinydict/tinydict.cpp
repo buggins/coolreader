@@ -933,7 +933,7 @@ void TinyDictResultList::add( TinyDictWordList * p )
     list[ count++ ] = p;
 }
 
-#if 1
+#ifdef TEST_APP
 int main( int argc, const char * * argv )
 {
     TinyDictIndexFile index;

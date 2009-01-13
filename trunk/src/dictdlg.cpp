@@ -6,7 +6,7 @@
 #include "crgui.h"
 #include "crtrace.h"
 
-
+#include <tinydict.h>
 
 #include "lvarray.h"
 #include "lvstring.h"
@@ -22,51 +22,103 @@
 #define DICT_MIN_WORD_LENGTH 3
 
 
-#ifdef _WIN32
-//#define USE_LIBDICTD
-template <typename T>
-class Dictionary {
-    typedef T string_type;
-    T config_;
-//    static Dictionary<T> * self_;
+class Dictionary
+{
+	TinyDictionaryList dicts;
 public:
-    Dictionary(const T& config,const T& progname) : config_(config) {
-#ifdef USE_LIBDICTD
-        libdict_init(progname.c_str(), config_.c_str());
-#endif
-    }
-    virtual ~Dictionary() { 
-#ifdef USE_LIBDICTD
-        libdict_uninit();
-#endif
-    }
+	Dictionary( const lString16& config, const lString16& progname )
+	{
+		lString16 path = config;
+		LVAppendPathDelimiter( path );
+		LVContainerRef dir = LVOpenDirectory( config.c_str() );
+		if ( !dir )
+			dir = LVOpenDirectory( LVExtractPath(config).c_str() );
+		if ( !dir.isNull() ) {
+			int count = dir->GetSize();
+			lString16 indexExt(L".index");
+			for ( int i=0; i<count; i++ ) {
+				const LVContainerItemInfo * item = dir->GetObjectInfo( i );
+				if ( !item->IsContainer() ) {
+					lString16 name = item->GetName();
+					if ( name.endsWith( indexExt ) ) {
+						lString16 nameBase = name.substr( 0, name.length() - indexExt.length() );
+						lString16 name1 = nameBase + L".dict";
+						lString16 name2 = nameBase + L".dict.dz";
+						lString16 dataName;
+						int index = -1;
+						for ( int n=0; n<count; n++ ) {
+							const LVContainerItemInfo * item2 = dir->GetObjectInfo( n );
+							if ( !item2->IsContainer() ) {
+								if ( item2->GetName() == name1 || item2->GetName() == name2 ) {
+									index = n;
+									dataName = item2->GetName();
+									break;
+								}
+							}
+						}
+						if ( index>=0 ) {
+							// found pair
+							dicts.add(UnicodeToUtf8(path + name).c_str(), UnicodeToUtf8(path + dataName).c_str());
+						}
+					}
+				}
+			}
+		}
+		CRLog::info( "%d dictionaries opened", dicts.length() );
+	}
+	~Dictionary()
+	{
+	}
+    lString8 translate(const lString8 & word)
+	{
+		lString8 body;
+		TinyDictResultList results;
+		if ( dicts.find(results, word.c_str(), TINY_DICT_OPTION_STARTS_WITH ) ) {
+			for ( int d = 0; d<results.length(); d++ ) {
+				TinyDictWordList * words = results.get(d);
+				if ( dicts.length()>1 )
+					body << "<title><p>From dictionary " << words->getDictionaryName() << ":</p></title>";
+				// for each found word
+				for ( int i=0; i<words->length(); i++ ) {
+					TinyDictWord * word = words->get(i);
+					const char * article = words->getArticle( i );
+					body << "<code style=\"text-align: left; text-indent: 0; font-size: 22\">";
+					if ( article ) {
+						body << article;
+					} else {
+						body << "[cannot read article]";
+					}
+					body << "</code>";
+					if ( i<words->length()-1 )
+						body << "<hr/>";
+				}
+			}
+		} else {
+			body << "<title><p>Article for word " << word << " not found</p></title>";
+		}
+		
 
-    T translate(const T& word) {
-#ifdef USE_LIBDICTD
-        char * ptr;
-        ptr = libdict_define(word.c_str(),"*");
-        if(!ptr)
-            return T();
-        T tmp(ptr);
-        libdict_free(ptr);
-        return tmp;
-#else
-		return T("Temporary stub for dictionary.\nFake article for ") + word;
-
-#endif
-    }
+		lString8 res;
+		res << "\0ef\0bb\0bf";
+		res << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+		res << "<FictionBook><body>";
+		res << body;
+		res << "</body></FictionBook>";
+		return res;
+	}
 };
 
+
+#ifdef _WIN32
+#define DICTD_CONF "C:\\dict\\"
 #else
-#include "libdictd.h"
-#endif
-
-
 #ifdef CR_USE_JINKE
 #define DICTD_CONF "/root/crengine/dict/dictd.conf"
 #else
 #define DICTD_CONF "/etc/dictd/dictd.conf"
 #endif
+#endif
+
 
 
 class WordWithRanges
@@ -314,7 +366,7 @@ public:
     virtual bool onCommand( int command, int params = 0 );
 };
 
-typedef Dictionary<lString8> dict_type;
+typedef Dictionary dict_type;
 LVRef<dict_type> dict_;
 
 inline lUInt16 minBits( lUInt16 n1, lUInt16 n2, lUInt16 mask )
@@ -466,7 +518,7 @@ public:
 		this->setAccelerators( mainwin->getDialogAccelerators() );
 
 		if (dict_.isNull()){
-			dict_ = LVRef<dict_type>(new dict_type(dict_conf_,progname_));
+			dict_ = LVRef<dict_type>(new dict_type(Utf8ToUnicode(dict_conf_),Utf8ToUnicode(progname_)));
 		};
 		_rect = _wm->getScreen()->getRect();
 		//_rect.bottom = _rect.top;
@@ -499,7 +551,8 @@ public:
 					lString8 translated;
 					lString8 output;
 					lString16 src = selector_.get();
-					translated = dict_->translate( UnicodeToUtf8(src) );
+					output = dict_->translate( UnicodeToUtf8(src) );
+					/*
 					if(translated.length() == 0) {
 						output = lString8("No article for this word");
 					} else {
@@ -510,6 +563,7 @@ public:
 					};
 					crtrace crt("article: ");
 					crt << output;
+					*/
 					Article * article = new Article(_wm, src, output, this);
 					article->setAccelerators( mainwin_->getDialogAccelerators() );
 					_wm->activateWindow( article );
