@@ -413,6 +413,8 @@ public:
 
     /// returns true if string starts with specified substring
     bool startsWith ( const lString16 & substring ) const;
+    /// returns true if string ends with specified substring
+    bool endsWith ( const lString16 & substring ) const;
     /// returns true if string starts with specified substring, case insensitive
     bool startsWithNoCase ( const lString16 & substring ) const;
     /// calculates hash for string

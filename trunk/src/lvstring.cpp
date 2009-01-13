@@ -2883,6 +2883,19 @@ bool lString8::startsWith( const lString8 & substring ) const
     return true;
 }
 
+/// returns true if string ends with specified substring
+bool lString16::endsWith ( const lString16 & substring ) const
+{
+    if ( substring.empty() )
+        return true;
+    unsigned len = substring.length();
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str() + (length()-len);
+    const lChar16 * s2 = substring.c_str();
+	return lStr_cmp( s1, s2 )==0;
+}
+
 /// returns true if string starts with specified substring
 bool lString16::startsWith( const lString16 & substring ) const
 {
