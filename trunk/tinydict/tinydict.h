@@ -214,6 +214,9 @@ class TinyDictZStream
     unsigned unp_buffer_len;
     unsigned unp_buffer_size;
 
+    unsigned char * srcbuf;
+    unsigned char * srcbuf_size;
+
     unsigned int readU32()
     {
         unsigned char buf[4];

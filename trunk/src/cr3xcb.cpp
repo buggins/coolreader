@@ -139,12 +139,18 @@ class CRXCBScreen : public CRGUIScreenBase
     public:
         virtual ~CRXCBScreen()
         {
+            if ( im )
+                xcb_image_destroy( im );
             if ( connection )
                 xcb_disconnect( connection );
         }
         CRXCBScreen( int width, int height )
         :  CRGUIScreenBase( 0, 0, true )
         {
+            pal_[0] = 0x000000;
+            pal_[1] = 0x555555;
+            pal_[2] = 0xaaaaaa;
+            pal_[3] = 0xffffff;
             //xcb_screen_iterator_t screen_iter;
             //const xcb_setup_t    *setup;
             //xcb_generic_event_t  *e;
@@ -204,7 +210,7 @@ class CRXCBScreen : public CRGUIScreenBase
                     mask, &params_cw);
 
             rect = xcb_generate_id (connection);
-            
+
             xcb_void_cookie_t cookie;
             cookie = xcb_create_pixmap_checked (connection, depth,
                     rect, window,
@@ -379,6 +385,9 @@ public:
 
 int main(int argc, char **argv)
 {
+    int res = 0;
+
+    {
     CRLog::setStdoutLogger();
     CRLog::setLogLevel( CRLog::LL_TRACE );
     #if 0
@@ -431,10 +440,7 @@ int main(int argc, char **argv)
 
     const char * fname = argv[1];
 
-    int res = 0;
-
-    {
-        CRXCBWindowManager winman( 600, 800 );
+        CRXCBWindowManager winman( 600, 700 );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);

@@ -43,6 +43,8 @@ lString8 readFileToString( const char * fname )
 void ShutdownCREngine()
 {
     HyphMan::Close();
+    ShutdownFontManager();
+    CRLog::setLogger( NULL );
 #if LDOM_USE_OWN_MEM_MAN == 1
     ldomFreeStorage();
 #endif

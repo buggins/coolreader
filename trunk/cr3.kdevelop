@@ -61,7 +61,7 @@
       <envvars/>
       <directoryradio>executable</directoryradio>
       <runarguments>
-        <cr3></cr3>
+        <cr3/>
       </runarguments>
       <customdirectory>/</customdirectory>
     </run>
@@ -77,7 +77,7 @@
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
       <raiseGDBOnStart>false</raiseGDBOnStart>
-      <programargs>/home/lve/src/cr3ewl/example.fb2</programargs>
+      <programargs>/home/lve/src/cr3ewl/chinese.txt</programargs>
     </general>
     <display>
       <staticmembers>false</staticmembers>
