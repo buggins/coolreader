@@ -188,17 +188,17 @@ enum {
     DICT_DZIP,
 };
 
-bool TinyDictZStream::zinit()
+bool TinyDictZStream::zinit( unsigned char * next_in, unsigned avail_in, unsigned char * next_out, unsigned avail_out )
 {
     zclose();
     if ( !zInitialized ) {
         zStream.zalloc    = NULL;
         zStream.zfree     = NULL;
         zStream.opaque    = NULL;
-        zStream.next_in   = 0;
-        zStream.avail_in  = 0;
-        zStream.next_out  = NULL;
-        zStream.avail_out = 0;
+        zStream.next_in   = next_in;
+        zStream.avail_in  = avail_in;
+        zStream.next_out  = next_out;
+        zStream.avail_out = avail_out;
         if (inflateInit2( &zStream, -15 ) != Z_OK ) {
             // zlib initialization failed
             return false;
@@ -217,6 +217,7 @@ bool TinyDictZStream::zclose()
     return true;
 }
 
+#if 0
 bool TinyDictZStream::seek( unsigned pos )
 {
     if ( txtpos == pos )
@@ -290,6 +291,115 @@ bool TinyDictZStream::skip( unsigned sz )
     return true;
 }
 
+#endif
+
+bool TinyDictZStream::readChunk( unsigned n )
+{
+    if ( n >= chunkCount )
+        return false;
+    if ( !unp_buffer ) {
+        unp_buffer = (unsigned char *)malloc( sizeof(unsigned char)*chunkLength );
+        unp_buffer_size = chunkLength;
+    }
+    unp_buffer_start = n * chunkLength;
+
+    if ( fseek( f, offsets[ n ], SEEK_SET ) ) {
+        printf( "cannot seek to %d position\n", offsets[n] );
+        return false;
+    }
+    int packsz = chunks[n];
+    unsigned char * tmp = (unsigned char *)malloc( sizeof(unsigned char) * packsz );
+
+    crc.reset();
+    unsigned int bytesRead = readBytes( tmp, packsz );
+    unsigned crc1 = crc.get();
+    unsigned crc2 = readU32();
+    if ( bytesRead != packsz || error ) {
+        printf( "error reading packed data\n" );
+        free( tmp );
+        return false;
+    }
+    if ( crc1!=crc2  ) {
+        printf( "CRC error: real: %08x expected: %08x\n", crc1, crc2 );
+        //free( tmp );
+        //return false;
+    }
+    zclose();
+    if ( !zinit(tmp, packsz, unp_buffer, unp_buffer_size) ) {
+    //if ( !zinit(unp_buffer, unp_buffer_size, tmp, packsz) ) {
+        printf("cannot init deflater\n");
+        return false;
+    }
+    printf("unpacking %d bytes\n", packsz);
+/*
+    zStream.next_in   = tmp;
+    zStream.avail_in  = packsz;
+    zStream.next_out  = unp_buffer;
+    zStream.avail_out = unp_buffer_size;
+    zStream.next_in   = unp_buffer;
+    zStream.avail_in  = unp_buffer_size;
+    zStream.next_out  = tmp;
+    zStream.avail_out = packsz;
+*/
+    int err = inflate( &zStream,  Z_PARTIAL_FLUSH );
+    printf("inflate result: %d\n", err);
+    if ( err != Z_OK ) {
+        printf("Inflate error %s (%d). avail_in=%d, avail_out=%d \n", zStream.msg, err, (int)zStream.avail_in, (int)zStream.avail_out);
+        free( tmp );
+        return false;
+    }
+    if ( zStream.avail_in ) {
+        printf("Inflate: not all data read, still %d bytes available\n", (int)zStream.avail_in );
+        free( tmp );
+        return false;
+    }
+    unp_buffer_len = unp_buffer_size - zStream.avail_out;
+
+    printf("freeing tmp\n");
+    free( tmp );
+    printf("done\n");
+
+
+
+    if ( n < chunkCount-1 && unp_buffer_len!=chunkLength ) {
+        printf("wrong chunk length\n");
+        return false; // too short chunk data
+    }
+
+
+    zclose();
+    return true;
+}
+
+bool TinyDictZStream::read( unsigned char * buf, unsigned start, unsigned len )
+{
+    if ( start >= unp_buffer_start && start < unp_buffer_start + unp_buffer_len ) {
+        unsigned readyBytes = unp_buffer_len - (start-unp_buffer_start);
+        if ( readyBytes > len )
+            readyBytes = len;
+        memcpy( buf, unp_buffer + (start-unp_buffer_start), readyBytes );
+        buf += readyBytes;
+        start += readyBytes;
+        len -= readyBytes;
+        if ( !len )
+            return true;
+    }
+    unsigned n = start / chunkLength;
+    if ( !readChunk( n ) )
+        return false;
+    unsigned readyBytes = unp_buffer_len - (start-unp_buffer_start);
+    if ( readyBytes > len )
+        readyBytes = len;
+    memcpy( buf, unp_buffer + (start-unp_buffer_start), readyBytes );
+    buf += readyBytes;
+    start += readyBytes;
+    len -= readyBytes;
+    if ( !len )
+        return true;
+    return false;
+}
+
+#if 0
 bool TinyDictZStream::unpack( unsigned start, unsigned len )
 {
     if ( !f )
@@ -301,6 +411,12 @@ bool TinyDictZStream::unpack( unsigned start, unsigned len )
 
     if ( !zInitialized && !zinit() )
         return false; // cannot init deflate
+
+    unsigned end = start + len;
+    unsigned firstChunk  = start / chunkLength;
+    unsigned firstOffset = start - firstChunk * chunkLength;
+    unsigned lastChunk   = end / chunkLength;
+    unsigned lastOffset  = end - lastChunk * chunkLength;
 
     int idx = start / chunkLength;
     int off = start % chunkLength;
@@ -318,6 +434,7 @@ bool TinyDictZStream::unpack( unsigned start, unsigned len )
     }
     return true;
 }
+#endif
 
 TinyDictZStream::TinyDictZStream()
 : f ( NULL ), size( 0 ), txtpos(0)
@@ -397,15 +514,9 @@ bool TinyDictZStream::open( FILE * file )
             chunks[i] = readU16();
         }
         size = 0;
-        if ( chunkCount ) {
-            offsets = new unsigned int[ chunkCount ];
-            offsets[0] = headerLength;
-            size = chunks[0];
-            for ( unsigned i=1; i<chunkCount; i++ ) {
-                offsets[i] = offsets[i-1] + chunks[i-1];
-                size += chunks[i];
-            }
-        }
+    } else {
+        // GZIP is not supported, use DZIP
+        return false;
     }
     // Skip optional file name
     if ( flg & FNAME ) {
@@ -429,9 +540,26 @@ bool TinyDictZStream::open( FILE * file )
         headerLength += 2;
     }
 
+    if ( chunkCount ) {
+        offsets = new unsigned int[ chunkCount ];
+        offsets[0] = headerLength;
+        size = chunks[0];
+        for ( unsigned i=1; i<chunkCount; i++ ) {
+            offsets[i] = offsets[i-1] + chunks[i-1];
+            size += chunks[i];
+        }
+    }
+
     if ( fseek( f, headerLength, SEEK_SET ) ) {
         return false;
     }
+
+    if ( !readChunk( chunkCount-1 ) ) {
+        printf("Error reading chunk %d\n", chunkCount-1 );
+        return false;
+    }
+    size = unp_buffer_start + unp_buffer_len;
+
     return true;
 }
 
@@ -442,18 +570,19 @@ const char * TinyDictDataFile::read( const TinyDictWord * w )
         return NULL;
     }
 
+    reserve( w->getSize() + 1 );
     if ( !compressed ) {
         // uncompressed
         printf("reading uncompressed article\n");
-        reserve( w->getSize() + 1 );
         if ( fseek( f, w->getStart(), SEEK_SET ) )
             return NULL;
         if ( fread( buf, 1, w->getSize(), f ) != w->getSize() )
             return NULL;
     } else {
         // compressed
-        // TODO
-        return NULL;
+        printf("reading compressed article\n");
+        if ( !zstream.read( (unsigned char*)buf, w->getStart(), w->getSize() ) )
+            return NULL;
     }
     buf[ w->getSize() ] = 0;
     return buf;
@@ -492,10 +621,14 @@ bool TinyDictDataFile::open( const char * filename )
         return true;
     }
 
+    printf("data file %s is compressed\n", filename);
+    compressed = true;
     if ( !zstream.open( f ) ) {
+        printf("data file %s opening error\n", filename);
         close();
         return false;
     }
+    size = zstream.getSize();
     return true;
 }
 
@@ -506,15 +639,15 @@ int main( int argc, const char * * argv )
     TinyDictDataFile data;
     TinyDictDataFile zdata;
     if ( !index.open("mueller7.index") ) {
-        printf("cannot open index file mueller7.index");
+        printf("cannot open index file mueller7.index\n");
         return -1;
     }
     if ( !data.open("mueller7.dict") ) {
-        printf("cannot open data file mueller7.dict");
+        printf("cannot open data file mueller7.dict\n");
         return -1;
     }
     if ( !zdata.open("mueller7.dict.dz") ) {
-        printf("cannot open data file mueller7.dict.dz");
+        printf("cannot open data file mueller7.dict.dz\n");
         return -1;
     }
     TinyDictWordList words;
@@ -524,7 +657,7 @@ int main( int argc, const char * * argv )
     for ( int i=0; i<words.length(); i++ ) {
         TinyDictWord * p = words.get(i);
         printf("%s %d %d\n", p->getWord(), p->getStart(), p->getSize() );
-        const char * text = data.read( p );
+        const char * text = zdata.read( p );
         if ( text )
             printf( "article:\n%s\n", text );
         else

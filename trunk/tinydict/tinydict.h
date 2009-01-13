@@ -217,6 +217,15 @@ class TinyDictZStream
     unsigned char * srcbuf;
     unsigned char * srcbuf_size;
 
+    unsigned int readBytes( unsigned char * buf, unsigned size )
+    {
+        if ( error || !f )
+            return 0;
+        unsigned int bytesRead = fread( buf, 1, size, f );
+        crc.update( buf, bytesRead );
+        return bytesRead;
+    }
+
     unsigned int readU32()
     {
         unsigned char buf[4];
@@ -250,20 +259,24 @@ class TinyDictZStream
         return 0;
     }
 
-    bool unpack( unsigned start, unsigned len );
-
-    bool zinit();
+    bool zinit(unsigned char * next_in, unsigned avail_in, unsigned char * next_out, unsigned avail_out);
 
     bool zclose();
 
+
+#if 0
     bool seek( unsigned pos );
 
     bool skip( unsigned sz );
+#endif
+
+    bool readChunk( unsigned n );
 
 public:
     unsigned getSize() { return size; }
     TinyDictZStream();
     bool open( FILE * file );
+    bool read( unsigned char * buf, unsigned start, unsigned len );
     ~TinyDictZStream();
 };
 
