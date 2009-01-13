@@ -1310,7 +1310,7 @@ bool LVTextParser::CheckFormat()
                 }
             }
         }
-        if ( illegal_char_count==0 && space_count>=charsDecoded/16 )
+        if ( illegal_char_count==0 && (space_count>=charsDecoded/16 || crlf_count>0) )
             res = true;
         if ( illegal_char_count>0 )
             CRLog::error("illegal characters detected: count=%d", illegal_char_count );

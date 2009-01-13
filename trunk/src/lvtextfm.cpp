@@ -706,8 +706,8 @@ public:
     formatted_text_fragment_t * m_pbuffer;
     formatted_line_t * frmline;
     lUInt32             widths_buf_size;
-    LVAutoPtr<lUInt16>  widths_buf;
-    LVAutoPtr<lUInt8>   flags_buf;
+    LVArray<lUInt16>  widths_buf;
+    LVArray<lUInt8>   flags_buf;
     int srcIndex;
     src_text_fragment_t * srcline;
     src_text_fragment_t * first_para_line;
@@ -986,8 +986,8 @@ public:
         if (!flgObject && (int)widths_buf_size < (int)srcline->t.len + 64) //
         {
             widths_buf_size = srcline->t.len + 256;
-            widths_buf.realloc( widths_buf_size );
-            flags_buf.realloc( widths_buf_size );
+            widths_buf.reserve( widths_buf_size );
+            flags_buf.reserve( widths_buf_size );
         }
 
         vertical_align = srcline->flags & LTEXT_VALIGN_MASK;
@@ -1309,8 +1309,8 @@ public:
     LVFormLine( formatted_text_fragment_t * buffer )
     : m_pbuffer(buffer)
     , widths_buf_size(1024)
-    , widths_buf( widths_buf_size )
-    , flags_buf( widths_buf_size )
+    , widths_buf( widths_buf_size, 0 )
+    , flags_buf( widths_buf_size, 0 )
     , srcIndex(-1)
     {
         newLine();

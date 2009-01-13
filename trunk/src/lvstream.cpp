@@ -2515,7 +2515,7 @@ public:
 		if (!m_pBuffer)
 			return LVERR_FAIL;
 		if (m_pBuffer && m_own_buffer)
-			delete m_pBuffer;
+			delete[] m_pBuffer;
 		m_pBuffer = NULL;
 		m_size = 0;
 		m_bufsize = 0;

@@ -470,12 +470,12 @@ public:
     {
         if ( _rows ) {
             for ( int i=0; i<_height; i++ ) {
-                delete( _rows[i] );
+                delete[]( _rows[i] );
             }
-            delete _rows;
+            delete[] _rows;
         }
         if ( _palette )
-            delete _palette;
+            delete[] _palette;
     }
     
     ldomNode * GetSourceNode() { return NULL; }
@@ -497,7 +497,7 @@ public:
                 }
                 callback->OnLineDecoded(this, i, row);
             }
-            delete row;
+            delete[] row;
             callback->OnEndDecode(this, false);
         }
         return true;
@@ -747,6 +747,8 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         callback->OnEndDecode(this, false);
     }
     png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
+
+    delete [] row;
     return true;
 }
 
@@ -1435,7 +1437,7 @@ protected:
 	int _dst_dy;
 	int _split_x;
 	int _split_y;
-	LVAutoPtr<lUInt32> _line;
+	LVArray<lUInt32> _line;
 	LVImageDecoderCallback * _callback;
 public:
 	LVStretchImgSource( LVImageSourceRef src, int newWidth, int newHeight, int splitX, int splitY )
@@ -1454,7 +1456,7 @@ public:
 	}
     virtual void OnStartDecode( LVImageSource * obj )
 	{
-		_line.realloc( _dst_dx );
+		_line.reserve( _dst_dx );
 	}
     virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data )
 	{

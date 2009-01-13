@@ -2258,7 +2258,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                 if ( !mtStream.isNull() ) {
                     int size = mtStream->GetSize();
                     if ( size>4 && size<100 ) {
-                        LVAutoPtr<char> buf( size+1 );
+                        LVArray<char> buf( size+1, '\0' );
                         if ( mtStream->Read( buf.get(), size, NULL )==LVERR_OK ) {
                             for ( int i=0; i<size; i++ )
                                 if ( buf[i]<32 || ((unsigned char)buf[i])>127 )

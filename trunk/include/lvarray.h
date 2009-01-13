@@ -75,6 +75,8 @@ public:
         }
         return *this;
     }
+    /// retrieves pointer to C array
+    T * get() { return _array; }
     /// retrieves item from specified position
     T operator [] ( int pos ) const { return _array[pos]; }
     /// retrieves item from specified position

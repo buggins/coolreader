@@ -497,25 +497,11 @@ public:
 template <class T >
 class LVAutoPtr {
     T * p;
-#ifdef _DEBUG
-    int size;
-#endif
     LVAutoPtr( const LVAutoPtr & v ) { } // no copy allowed
 public:
     LVAutoPtr()
         : p(NULL)
-#ifdef _DEBUG
-        ,size(0)
-#endif
 {
-    }
-    LVAutoPtr( int sz )
-        : p(NULL)
-#ifdef _DEBUG
-            ,size(sz)
-#endif
-    {
-        realloc( sz );
     }
     explicit LVAutoPtr( T* ptr )
         : p(ptr)
@@ -524,42 +510,16 @@ public:
     inline void clear()
     {
         if ( p )
-            free( p );
+            delete( p );
         p = NULL;
-#ifdef _DEBUG
-        size = 0;
-#endif
     }
     ~LVAutoPtr()
     {
         clear();
     }
-    inline const T operator [] ( int index ) const
-    {
-#ifdef _DEBUG
-        if ( index<0 || index>=size )
-            crFatalError( CR_FATAL_ERROR_INDEX_OUT_OF_BOUND, "LVAutoPtr index out of bound" );
-#endif
-        return p[index];
-    }
-    inline T & operator [] ( int index )
-    {
-#ifdef _DEBUG
-        if ( index<0 || index>=size )
-            crFatalError( CR_FATAL_ERROR_INDEX_OUT_OF_BOUND, "LVAutoPtr index out of bound" );
-#endif
-        return p[index];
-    }
     inline T * operator -> ()
     {
         return p;
-    }
-    void realloc( int sz )
-    {
-        p = (T *) ::realloc( p, sz * sizeof(T) );
-#ifdef _DEBUG
-        size = sz;
-#endif
     }
     inline T * get() { return p; }
     inline T & operator * ()
