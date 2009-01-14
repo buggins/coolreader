@@ -621,7 +621,7 @@ public:
             int kerning = 0;
 #if (ALLOW_KERNING==1)
             if ( use_kerning && previous ) {
-                if ( ch_glyph_index==-1 ){
+                if ( ch_glyph_index==(FT_UInt)-1 ){
                     ch_glyph_index = FT_Get_Char_Index( _face, ch );
                     if ( ch_glyph_index==0 )
                         ch_glyph_index = FT_Get_Char_Index( _face, def_char );

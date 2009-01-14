@@ -1466,7 +1466,7 @@ public:
 		int right_offset = _src_dx - _dst_dx;
 		int middle_pixels = _dst_dy - _src_dy + 1;
 		int bottom_pixels = (_src_dy-_split_y-1);
-		int first_bottom_pixel = _dst_dy - bottom_pixels;
+		//int first_bottom_pixel = _dst_dy - bottom_pixels;
 		for ( int x=0; x<_dst_dx; x++ ) {
 			if ( x<_split_x )
 				_line[x] = data[x];
