@@ -1,0 +1,31 @@
+Source: cr3
+Section: media
+Priority: optional
+Maintainer: Vadim Lopatin <vadim.lopatin@coolreader.org>
+Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 5.0.22), libxcb1-dev, libxcb-image0-dev, libxcb-aux0-dev, libexpat1-dev, libz-dev, libjpeg62-dev, libpng12-dev
+XCS-Cross-Host-Build-Depends: debhelper (>= 5.0.22)
+XCS-Cross-Build-Depends: libz-dev, libjpeg62-dev, libpng12-dev, libgif-dev
+XS-Vcs-Git: http://git.openinkpot.org/cr3.git
+XS-Vcs-Browser: http://git.openinkpot.org/cr3.git
+
+Package: cr3
+Priority: optional
+Architecture: any
+Replaces: 
+Depends: ${shlibs:Depends}
+Description: e-book reader
+ CoolReader3 is an e-book reader.
+ .
+ Main features:
+  * supports several open e-book formats: fb2, html, epub, rtf,
+    tcr (psion text), plain text
+  * reads directly from zip archives
+  * automatically determines encodings
+  * automatically generates a table of contents
+  * keeps the last open book and the last read positions for all open books
+    between runs
+  * automatic hyphenation (patterns for several languages are included)
+ .
+  Homepage: http://www.coolreader.org/
+

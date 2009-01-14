@@ -1,0 +1,53 @@
+#!/usr/bin/make -f
+
+clean:
+		dh_testdir
+		dh_testroot
+		[ ! -f Makefile ] || $(MAKE) distclean
+		dh_clean build-stamp install-stamp
+
+build: build-stamp
+build-stamp:
+		dh_testdir
+		pwd
+		echo $(CURDIR)
+		cd $(CURDIR)
+		pwd
+		$(MAKE) -C crengine/src TARGET_ARCH=desktop
+		$(MAKE) -C tinydict TARGET_ARCH=desktop
+		$(MAKE) -C src TARGET_ARCH=desktop
+		touch build-stamp 
+
+install: install-stamp
+install-stamp: DEB_DIR = $(CURDIR)/debian
+install-stamp: build
+		dh_testdir
+		dh_testroot
+		dh_clean -k
+		dh_installdirs
+		$(MAKE) -C crengine/src TARGET_ARCH=desktop DESTDIR=$(DEB_DIR)/cr3 do_install
+		$(MAKE) -C tinydict TARGET_ARCH=desktop DESTDIR=$(DEB_DIR)/cr3 do_install
+		$(MAKE) -C src TARGET_ARCH=desktop DESTDIR=$(DEB_DIR)/cr3 do_install
+		mkdir $(DEB_DIR)/cr3/usr/share/crengine
+		install -m 644 src/fb2.css $(DEB_DIR)/cr3/usr/share/crengine
+		touch install-stamp
+
+binary-arch: VERSION=$(shell expr "`dpkg-parsechangelog |grep Version:`" : '.*Version: \(.*\)')
+binary-arch: build install
+		dh_testdir
+		dh_testroot
+#		dh_installchangelogs
+		dh_strip
+		dh_compress
+		dh_fixperms
+		dh_installdeb
+		dh_shlibdeps
+		dh_gencontrol
+		dh_md5sums
+		dh_builddeb
+
+binary-indep:
+
+binary:	binary-indep binary-arch
+
+.PHONY: clean build install binary-indep binary-arch binary
