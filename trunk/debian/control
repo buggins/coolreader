@@ -1,18 +1,16 @@
 Source: cr3
 Section: media
-Priority: optional
 Maintainer: Vadim Lopatin <vadim.lopatin@coolreader.org>
-Standards-Version: 3.7.2
 Build-Depends: debhelper (>= 5.0.22), libxcb1-dev, libxcb-image0-dev, libxcb-aux0-dev, libexpat1-dev, libz-dev, libjpeg62-dev, libpng12-dev
-XCS-Cross-Host-Build-Depends: debhelper (>= 5.0.22)
-XCS-Cross-Build-Depends: libz-dev, libjpeg62-dev, libpng12-dev, libgif-dev
-XS-Vcs-Git: http://git.openinkpot.org/cr3.git
-XS-Vcs-Browser: http://git.openinkpot.org/cr3.git
-
-Package: cr3
+XCS-Cross-Host-Build-Depends: debhelper (>> 2.0.0), cdbs-slind
+XCS-Cross-Build-Depends: libz-dev, libjpeg62-dev, libpng12-dev, libfreetype-dev
 Priority: optional
+Standards-Version: 3.6.2
+
+XCS-Cross-Host-Build-Depends: debhelper (>= 5.0.22)
+
+Package: locopdf
 Architecture: any
-Replaces: 
 Depends: ${shlibs:Depends}
 Description: e-book reader
  CoolReader3 is an e-book reader.
