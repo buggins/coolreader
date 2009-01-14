@@ -1,15 +1,13 @@
 Source: cr3
 Section: media
 Maintainer: Vadim Lopatin <vadim.lopatin@coolreader.org>
-Build-Depends: debhelper (>= 5.0.22), libxcb1-dev, libxcb-image0-dev, libxcb-aux0-dev, libexpat1-dev, libz-dev, libjpeg62-dev, libpng12-dev
-XCS-Cross-Host-Build-Depends: debhelper (>> 2.0.0), cdbs-slind
-XCS-Cross-Build-Depends: libz-dev, libjpeg62-dev, libpng12-dev, libfreetype-dev
+Build-Depends: debhelper (>= 5.0.22), libxcb1-dev, libxcb-image0-dev, libxcb-aux0-dev, libz-dev, libjpeg62-dev, libpng12-dev
+XCS-Cross-Host-Build-Depends: debhelper (>> 2.0.0)
+XCS-Cross-Build-Depends: libz-dev, libjpeg62-dev, libpng12-dev, libfreetype2-dev
 Priority: optional
 Standards-Version: 3.6.2
 
-XCS-Cross-Host-Build-Depends: debhelper (>= 5.0.22)
-
-Package: locopdf
+Package: cr3
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: e-book reader
