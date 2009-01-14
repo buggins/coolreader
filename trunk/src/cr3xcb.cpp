@@ -439,8 +439,12 @@ int main(int argc, char **argv)
     }
 
     const char * fname = argv[1];
-
+    //TODO: remove hardcoded
+#ifdef __i386__
+        CRXCBWindowManager winman( 600, 700 );
+#else
         CRXCBWindowManager winman( 600, 800 );
+#endif
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);

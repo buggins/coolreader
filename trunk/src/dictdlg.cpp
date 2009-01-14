@@ -113,9 +113,9 @@ public:
 #define DICTD_CONF "C:\\dict\\"
 #else
 #ifdef CR_USE_JINKE
-#define DICTD_CONF "/root/crengine/dict/dictd.conf"
+#define DICTD_CONF "/root/crengine/dict/"
 #else
-#define DICTD_CONF "/etc/dictd/dictd.conf"
+#define DICTD_CONF "/mnt/dict"
 #endif
 #endif
 

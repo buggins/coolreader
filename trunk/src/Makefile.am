@@ -13,11 +13,11 @@ COMMON_LDADD = @FREETYPE_LIBS@ \
 AM_CPPFLAGS += @CRENGINE_CFLAGS@
 
 if WITH_DICT
-COMMON_LDADD += $(top_builddir)/libdictd/libdictd.la
+COMMON_LDADD += $(top_builddir)/tinydict/libtinydict.la
 #COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
 endif
 if WITH_DICT
-INCLUDES += -I $(top_srcdir)/libdictd
+INCLUDES += -I $(top_srcdir)/tinydict
 endif
 
 AM_CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
@@ -39,7 +39,7 @@ libfb2_la_LDFLAGS = --static-libtool-libs -rpath ${libdir}
 else
 if WITH_DICT
 #COMMON_LDADD += $(top_builddir)/libdictd/libdictd.la
-COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
+#COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
 endif
 AM_CPPFLAGS += -DWITH_XCB
 bin_PROGRAMS = cr3

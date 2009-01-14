@@ -5,11 +5,6 @@ rm -f aclocal.m4 ltmain.sh
 
 #touch README
 
-echo "Running autotools for crengine"
-cd crengine && NOCONFIGURE=1 sh autogen.sh && cd ..
-cd tinydict && NOCONFIGURE=1 sh autogen.sh && cd ..
-
-echo "Running autotools for cr3ewl"
 echo "Running aclocal..." ; aclocal $ACLOCAL_FLAGS || exit 1
 #echo "Running autoheader..." ; autoheader || exit 1
 echo "Running autoconf..." ; autoconf || exit 1

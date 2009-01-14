@@ -285,11 +285,11 @@ static unsigned parseBase64( const char * str )
         for ( i=0; i<128; i++ )
             base64table[i] = -1;
         for ( i=0; base64chars[i]; i++ )
-            base64table[base64chars[i]] = i;
+            base64table[(unsigned)base64chars[i]] = i;
     }
     unsigned n = 0;
     for ( ; *str; str++ ) {
-        int code = base64table[ *str ];
+        int code = base64table[ (unsigned)*str ];
         if ( code<0 )
             return (unsigned)-1;
         n = ( n << 6 ) + code;
@@ -502,7 +502,7 @@ bool TinyDictZStream::readChunk( unsigned n )
         printf( "cannot seek to %d position\n", offsets[n] );
         return false;
     }
-    int packsz = chunks[n];
+    unsigned packsz = chunks[n];
     unsigned char * tmp = (unsigned char *)malloc( sizeof(unsigned char) * packsz );
 
     crc.reset();
@@ -632,7 +632,7 @@ bool TinyDictZStream::open( FILE * file )
     unsigned char flg = header[3];
     headerLength = 10;
 
-    const char FTEXT   = 1;    // Extra text
+    //const char FTEXT   = 1;    // Extra text
     const char FHCRC   = 2;    // Header CRC
     const char FEXTRA  = 4;    // Extra field
     const char FNAME   = 8;    // File name
@@ -865,6 +865,7 @@ bool TinyDictionaryList::add( const char * indexfile, const char * datafile )
         list = (TinyDictionary**)realloc( list, sizeof(TinyDictionary *) * size );
     }
     list[ count++ ] = p;
+    return true;
 }
 
 /// create empty list

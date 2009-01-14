@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = crengine
 if WITH_DICT
-#SUBDIRS += libdictd
+SUBDIRS += tinydict
 endif
 
 # src/ must be last, because src/cr3 must be linked with plugins

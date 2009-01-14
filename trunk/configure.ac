@@ -79,9 +79,9 @@ AC_ARG_ENABLE(crengine-memory-manager,
 AC_SUBST([CRENGINE_CFLAGS])
 AC_SUBST([CRENGINE_LIBS])
 
-if test -r "${srcdir}/libdictd/configure"; then
+if test -r "${srcdir}/tinydict/tinydict.cpp"; then
     AC_DEFINE(WITH_DICT,1)
-    AC_CONFIG_SUBDIRS(libdictd)
+    AC_CONFIG_SUBDIRS(tinydict)
     with_dict=true
 else
     with_dict=false
