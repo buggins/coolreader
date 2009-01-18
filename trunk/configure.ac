@@ -49,6 +49,7 @@ if test "${with_jinke}" == "false"; then
     PKG_CHECK_MODULES(XCB_KEYSYMS, [xcb-keysyms >= 0.2])
     PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
     PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
+    PKG_CHECK_MODULES(TINYDICT, [libtinydict >= 0.1])
 fi
 
 echo "${srcdir}/crengine/configure"
@@ -79,15 +80,6 @@ AC_ARG_ENABLE(crengine-memory-manager,
 AC_SUBST([CRENGINE_CFLAGS])
 AC_SUBST([CRENGINE_LIBS])
 
-if test -r "${srcdir}/tinydict/tinydict.cpp"; then
-    AC_DEFINE(WITH_DICT,1)
-    AC_CONFIG_SUBDIRS(tinydict)
-    with_dict=true
-else
-    with_dict=false
-fi
-
-AM_CONDITIONAL(WITH_DICT,$with_dict)
 AM_CONDITIONAL(WITH_JINKE,$with_jinke)
 #AC_CONFIG_FILES([Makefile])
 

@@ -8,25 +8,17 @@ AM_CPPFLAGS = -I$(top_srcdir)/crengine/include
 
 COMMON_LDADD = @FREETYPE_LIBS@ \
 	@XCB_KEYSYMS_LIBS@ \
-	@XCB_LIBS@ @XCB_AUX_LIBS@ @XCB_IMAGE_LIBS@ @PNG_LIBS@ @CRENGINE_LIBS@ \
+	@XCB_LIBS@ @XCB_AUX_LIBS@ @XCB_IMAGE_LIBS@ @PNG_LIBS@ @CRENGINE_LIBS@ @TINYDICT_LIBS@ \
 	-lfreetype -ljpeg -lpng -lz
-AM_CPPFLAGS += @CRENGINE_CFLAGS@
-
-if WITH_DICT
-COMMON_LDADD += $(top_builddir)/tinydict/libtinydict.la
-#COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
-endif
-if WITH_DICT
-INCLUDES += -I $(top_srcdir)/tinydict
-endif
+AM_CPPFLAGS += @CRENGINE_CFLAGS@ @TINYDICT_CFLAGS@
 
 AM_CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
 
 COMMON_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp 
 
-if WITH_DICT
+#if WITH_DICT
 COMMON_SOURCES += dictdlg.cpp
-endif
+#endif
 
 noinst_LTLIBRARIES = libcommon.la
 libcommon_la_SOURCES = ${COMMON_SOURCES}
@@ -37,10 +29,10 @@ libfb2_la_SOURCES = cr3jinke.cpp
 libfb2_la_LIBADD =  libcommon.la ${COMMON_LDADD}
 libfb2_la_LDFLAGS = --static-libtool-libs -rpath ${libdir} 
 else
-if WITH_DICT
+#if WITH_DICT
 #COMMON_LDADD += $(top_builddir)/libdictd/libdictd.la
 #COMMON_LDADD += $(top_builddir)/libdictd/libmaa/libmaa.la
-endif
+#endif
 AM_CPPFLAGS += -DWITH_XCB
 bin_PROGRAMS = cr3
 cr3_SOURCES = cr3xcb.cpp

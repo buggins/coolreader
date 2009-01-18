@@ -425,7 +425,8 @@ int main(int argc, char **argv)
     lString16Collection fontDirs;
     //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
     //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-    fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
+    fontDirs.add( lString16(L"/mnt/fonts") );
+    fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
     //fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/root/fonts/truetype") );
     if ( !InitCREngine( argv[0], fontDirs ) ) {
