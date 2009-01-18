@@ -1,10 +1,10 @@
 
 METASOURCES = AUTO
-if WITH_JINKE
+#if WITH_JINKE
 noinst_LTLIBRARIES = libcrengine.la
-else
-lib_LTLIBRARIES = libcrengine.la
-endif
+#else
+#lib_LTLIBRARIES = libcrengine.la
+#endif
 
 libcrengine_la_SOURCES = cp_stats.cpp crtxtenc.cpp hist.cpp hyphman.cpp \
 		lstridmap.cpp lvbmpbuf.cpp lvdocview.cpp lvdrawbuf.cpp lvfnt.cpp lvfntman.cpp \
