@@ -69,13 +69,15 @@ public:
     {
         return rc.left == left && rc.right == right && rc.top == top && rc.bottom == bottom;
     }
-    
+
     /// returns rectangle width
     int width() const { return right - left; }
     /// returns rectangle height
     int height() const { return bottom - top; }
     void shrink( int delta ) { left+=delta; right-=delta; top+=delta; bottom-=delta; }
+    void shrinkBy( const lvRect & rc ) { left+=rc.left; right-=rc.right; top+=rc.top; bottom-=rc.bottom; }
     void extend( int delta ) { shrink(-delta); }
+    void extendBy( const lvRect & rc ) { left-=rc.left; right+=rc.right; top-=rc.top; bottom+=rc.bottom; }
     /// makes this rect to cover both this and specified rect (bounding box for two rectangles)
     void extend( lvRect rc )
     {

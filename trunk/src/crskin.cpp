@@ -15,6 +15,32 @@
 #include "../include/crskin.h"
 #include "../include/lvstsheet.h"
 
+class RecursionLimit
+{
+static int counter;
+public:
+    bool test( int limit = 10 ) { return counter < limit; }
+    RecursionLimit() { counter++; }
+    ~RecursionLimit() { counter--; }
+};
+int RecursionLimit::counter = 0;
+
+
+/// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
+lString16 CRSkinContainer::getBasePath( const lChar16 * path )
+{
+    lString16 res;
+    ldomXPointer p = getXPointer( lString16( path ) );
+    if ( !p )
+        return res;
+    if ( p.getNode()->getNodeType() != LXML_ELEMENT_NODE )
+        return res;
+    lString16 value = p.getNode()->getAttributeValue( L"base" );
+    if ( value.empty() || value[0]!=L'#' )
+        return res;
+    return pathById( value.c_str() + 1 );
+}
+
 /// skin file support
 class CRSkinImpl : public CRSkinContainer
 {
@@ -553,8 +579,87 @@ void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
     CRSkinnedItem::drawText( buf, rect, text );
 }
 
+void CRButtonSkin::drawButton( LVDrawBuf & buf, const lvRect & rect, int flags )
+{
+    lvRect rc = rect;
+    rc.shrinkBy( _margins );
+    LVImageSourceRef btnImage;
+    if ( flags & ENABLED ) {
+        if ( flags & PRESSED )
+            btnImage = _pressedimage;
+        else if ( flags & SELECTED )
+            btnImage = _selectedimage;
+        else
+            btnImage = _normalimage;
+    } else
+        btnImage = _disabledimage;
+    if ( btnImage.isNull() )
+        btnImage = _normalimage;
+    if ( !btnImage.isNull() ) {
+        buf.Draw( btnImage, rc.left, rc.top, rc.width(), rc.height(), false );
+    }
+}
+
+void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertical, int pos, int maxpos, int pagesize )
+{
+    lvRect rc = rect;
+    rc.shrinkBy( _margins );
+
+    int btn1State = CRButtonSkin::ENABLED;
+    int btn2State = CRButtonSkin::ENABLED;
+    if ( pos <= 0 )
+        btn1State = 0;
+    if ( pos >= maxpos-pagesize )
+        btn2State = 0;
+    CRButtonSkinRef btn1Skin;
+    CRButtonSkinRef btn2Skin;
+    lvRect btn1Rect = rc;
+    lvRect btn2Rect = rc;
+    lvRect bodyRect = rc;
+    lvRect sliderRect = rc;
+    LVImageSourceRef bodyImg;
+    LVImageSourceRef sliderImg;
+    if ( vertical ) {
+        // draw vertical
+        btn1Skin = _upButton;
+        btn2Skin = _downButton;
+        btn1Rect.bottom = btn1Rect.top + btn1Skin->getMinSize().y;
+        btn2Rect.top = btn2Rect.bottom - btn2Skin->getMinSize().y;
+        bodyRect.top = btn1Rect.bottom;
+        bodyRect.bottom = btn2Rect.top;
+        int sz = bodyRect.height();
+        if ( pagesize < maxpos ) {
+            sliderRect.top = bodyRect.top + sz * pos / maxpos;
+            sliderRect.bottom = bodyRect.top + sz * (pos + pagesize) / maxpos;
+        } else
+            sliderRect = bodyRect;
+        bodyImg = _vBody;
+        sliderImg = _vSlider;
+    } else {
+        // draw horz
+        btn1Skin = _leftButton;
+        btn2Skin = _rightButton;
+        btn1Rect.right = btn1Rect.left + btn1Skin->getMinSize().x;
+        btn2Rect.left = btn2Rect.right - btn2Skin->getMinSize().x;
+        bodyRect.left = btn1Rect.right;
+        bodyRect.right = btn2Rect.left;
+        int sz = bodyRect.width();
+        if ( pagesize < maxpos ) {
+            sliderRect.left = bodyRect.left + sz * pos / maxpos;
+            sliderRect.right = bodyRect.left + sz * (pos + pagesize) / maxpos;
+        } else
+            sliderRect = bodyRect;
+        bodyImg = _hBody;
+        sliderImg = _hSlider;
+    }
+    btn1Skin->drawButton( buf, btn1Rect, btn1State );
+    btn2Skin->drawButton( buf, btn2Rect, btn2State );
+    buf.Draw( bodyImg, bodyRect.left, bodyRect.top, bodyRect.width(), bodyRect.height(), false );
+    buf.Draw( sliderImg, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
+}
+
 CRRectSkin::CRRectSkin()
-: _margins( 4, 4, 4, 4 )
+: _margins( 0, 0, 0, 0 )
 {
 }
 
@@ -641,8 +746,76 @@ public:
 	}
 };
 
+CRButtonSkin::CRButtonSkin() { }
+
+void CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res )
+{
+    lString16 base = getBasePath( path );
+    RecursionLimit limit;
+    if ( !base.empty() && limit.test() ) {
+        // read base skin first
+        readButtonSkin( base.c_str(), res );
+    }
+
+    readRectSkin( path, res );
+    res->setNormalImage( readImage( path, L"normal" ) );
+    res->setDisabledImage( readImage( path, L"disabled" ) );
+    res->setPressedImage( readImage( path, L"pressed" ) );
+    res->setSelectedImage( readImage( path, L"selected" ) );
+
+    LVImageSourceRef img = res->getNormalImage();
+    lvRect margins = res->getBorderWidths();
+    if ( !img.isNull() ) {
+        res->setMinSize( lvPoint( margins.left + margins.right + img->GetWidth(), margins.top + margins.bottom + img->GetHeight() ) );
+    }
+};
+
+CRScrollSkin::CRScrollSkin() { }
+
+void CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res )
+{
+    lString16 base = getBasePath( path );
+    RecursionLimit limit;
+    if ( !base.empty() && limit.test() ) {
+        // read base skin first
+        readScrollSkin( base.c_str(), res );
+    }
+
+    lString16 p( path );
+
+    readRectSkin( path, res );
+
+    CRButtonSkinRef upButton( new CRButtonSkin() );
+    readButtonSkin(  (p + L"/upbutton").c_str(), upButton.get() );
+    res->setUpButton( upButton );
+
+    CRButtonSkinRef downButton( new CRButtonSkin() );
+    readButtonSkin(  (p + L"/downbutton").c_str(), downButton.get() );
+    res->setDownButton( downButton );
+
+    CRButtonSkinRef leftButton( new CRButtonSkin() );
+    readButtonSkin(  (p + L"/leftbutton").c_str(), leftButton.get() );
+    res->setLeftButton( leftButton );
+
+    CRButtonSkinRef rightButton( new CRButtonSkin() );
+    readButtonSkin(  (p + L"/rightbutton").c_str(), rightButton.get() );
+    res->setRightButton( rightButton );
+
+    res->setHBody( readImage( (p + L"/hbody").c_str(), L"body" ) );
+    res->setHSlider( readImage( (p + L"/hbody").c_str(), L"slider" ) );
+    res->setVBody( readImage( (p + L"/vbody").c_str(), L"body" ) );
+    res->setVSlider( readImage( (p + L"/vbody").c_str(), L"slider" ) );
+};
+
 void CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
 {
+    lString16 base = getBasePath( path );
+    RecursionLimit limit;
+    if ( !base.empty() && limit.test() ) {
+        // read base skin first
+        readRectSkin( base.c_str(), res );
+    }
+
     lString16 p( path );
     lString16 bgpath = p + L"/background";
     lString16 borderpath = p + L"/border";
@@ -664,6 +837,13 @@ void CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
 
 void CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
 {
+    lString16 base = getBasePath( path );
+    RecursionLimit limit;
+    if ( !base.empty() && limit.test() ) {
+        // read base skin first
+        readWindowSkin( base.c_str(), res );
+    }
+
     lString16 p( path );
     readRectSkin(  path, res );
     CRRectSkinRef titleSkin( new CRRectSkin() );
@@ -675,10 +855,21 @@ void CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
     CRRectSkinRef clientSkin( new CRRectSkin() );
     readRectSkin(  (p + L"/client").c_str(), clientSkin.get() );
     res->setClientSkin( clientSkin );
+
+    CRScrollSkinRef scrollSkin( new CRScrollSkin() );
+    readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() );
+    res->setScrollSkin( scrollSkin );
 }
 
 void CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
 {
+    lString16 base = getBasePath( path );
+    RecursionLimit limit;
+    if ( !base.empty() && limit.test() ) {
+        // read base skin first
+        readMenuSkin( base.c_str(), res );
+    }
+
     lString16 p( path );
     readWindowSkin( path, res );
     CRRectSkinRef itemSkin( new CRRectSkin() );

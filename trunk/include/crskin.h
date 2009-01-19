@@ -104,6 +104,7 @@ protected:
     lvPoint _maxsize;
 public:
     CRRectSkin();
+    virtual ~CRRectSkin() { }
     virtual lvPoint getMinSize() { return _minsize; }
     virtual lvPoint getMaxSize() { return _maxsize; }
     virtual void setMinSize( lvPoint sz ) { _minsize = sz; }
@@ -116,15 +117,83 @@ public:
 };
 typedef LVFastRef<CRRectSkin> CRRectSkinRef;
 
+
+class CRButtonSkin : public CRRectSkin
+{
+protected:
+    LVImageSourceRef _normalimage;
+    LVImageSourceRef _disabledimage;
+    LVImageSourceRef _pressedimage;
+    LVImageSourceRef _selectedimage;
+public:
+    enum {
+        ENABLED = 1,
+        PRESSED = 2,
+        SELECTED = 4
+    };
+    LVImageSourceRef getNormalImage() { return _normalimage; }
+    LVImageSourceRef getDisabledImage() { return _disabledimage; }
+    LVImageSourceRef getPressedImage() { return _pressedimage; }
+    LVImageSourceRef getSelectedImage() { return _selectedimage; }
+    void setNormalImage( LVImageSourceRef img ) { _normalimage = img; }
+    void setDisabledImage( LVImageSourceRef img ) { _disabledimage = img; }
+    void setPressedImage( LVImageSourceRef img ) { _pressedimage = img; }
+    void setSelectedImage( LVImageSourceRef img ) { _selectedimage = img; }
+    virtual void drawButton( LVDrawBuf & buf, const lvRect & rc, int flags = ENABLED );
+    CRButtonSkin();
+    virtual ~CRButtonSkin() { }
+};
+typedef LVFastRef<CRButtonSkin> CRButtonSkinRef;
+
+
+class CRScrollSkin : public CRRectSkin
+{
+protected:
+    CRButtonSkinRef _upButton;
+    CRButtonSkinRef _downButton;
+    CRButtonSkinRef _leftButton;
+    CRButtonSkinRef _rightButton;
+    LVImageSourceRef _hBody;
+    LVImageSourceRef _hSlider;
+    LVImageSourceRef _vBody;
+    LVImageSourceRef _vSlider;
+public:
+    CRButtonSkinRef getUpButton() { return _upButton; }
+    CRButtonSkinRef getDownButton() { return _downButton; }
+    CRButtonSkinRef getLeftButton() { return _leftButton; }
+    CRButtonSkinRef getRightButton() { return _rightButton; }
+    void setUpButton( CRButtonSkinRef btn ) { _upButton = btn; }
+    void setDownButton( CRButtonSkinRef btn ) { _downButton = btn; }
+    void setLeftButton( CRButtonSkinRef btn ) { _leftButton = btn; }
+    void setRightButton( CRButtonSkinRef btn ) { _rightButton = btn; }
+    LVImageSourceRef getHBody() { return _hBody; }
+    LVImageSourceRef getHSlider() { return _hSlider; }
+    LVImageSourceRef getVBody() { return _vBody; }
+    LVImageSourceRef getVSlider() { return _vSlider; }
+    void setHBody( LVImageSourceRef img ) { _hBody = img; }
+    void setHSlider( LVImageSourceRef img ) { _hSlider = img; }
+    void setVBody( LVImageSourceRef img ) { _vBody = img; }
+    void setVSlider( LVImageSourceRef img ) { _vSlider = img; }
+    virtual void drawScroll( LVDrawBuf & buf, const lvRect & rc, bool vertical, int pos, int maxpos, int pagesize );
+    CRScrollSkin();
+    virtual ~CRScrollSkin() { }
+};
+typedef LVFastRef<CRScrollSkin> CRScrollSkinRef;
+
+
 class CRWindowSkin : public CRRectSkin
 {
 protected:
     lvPoint _titleSize;
     CRRectSkinRef _titleSkin;
     CRRectSkinRef _clientSkin;
+    CRScrollSkinRef _scrollSkin;
 public:
     CRWindowSkin();
+    virtual ~CRWindowSkin() { }
     /// returns necessary window size for specified client size
+    CRScrollSkinRef getScrollSkin() { return _scrollSkin; }
+    void setScrollSkin( CRScrollSkinRef v ) { _scrollSkin = v; }
     virtual lvPoint getWindowSize( const lvPoint & clientSize );
     virtual lvPoint getTitleSize() { return _titleSize; }
     virtual void setTitleSize( lvPoint sz ) { _titleSize = sz; }
@@ -146,6 +215,7 @@ protected:
     CRRectSkinRef _selItemShortcutSkin;
 public:
     CRMenuSkin();
+    virtual ~CRMenuSkin() { }
     virtual CRRectSkinRef getItemSkin() { return _itemSkin; }
     virtual void setItemSkin( CRRectSkinRef skin ) { _itemSkin = skin; }
     virtual CRRectSkinRef getItemShortcutSkin() { return _itemShortcutSkin; }
@@ -164,9 +234,14 @@ class CRSkinContainer : public LVRefCounter
 {
 protected:
     virtual void readRectSkin(  const lChar16 * path, CRRectSkin * res );
+    virtual void readButtonSkin(  const lChar16 * path, CRButtonSkin * res );
+    virtual void readScrollSkin(  const lChar16 * path, CRScrollSkin * res );
     virtual void readWindowSkin(  const lChar16 * path, CRWindowSkin * res );
     virtual void readMenuSkin(  const lChar16 * path, CRMenuSkin * res );
 public:
+    /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
+    virtual lString16 getBasePath( const lChar16 * path );
+    /// find path by id
     virtual lString16 pathById( const lChar16 * id ) = 0;
     /// gets image from container
     virtual LVImageSourceRef getImage( const lChar16 * filename ) = 0;

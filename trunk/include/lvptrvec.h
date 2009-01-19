@@ -111,10 +111,10 @@ public:
             crFatalError();
         int i;
         T * item = _list[pos];
-        for ( i=pos; i<_count; i++ )
+        for ( i=pos; i<_count-1; i++ )
         {
             _list[i] = _list[i+1];
-            _list[i+1] = NULL;
+            //_list[i+1] = NULL;
         }
         _count--;
         return item;
@@ -213,10 +213,10 @@ public:
     void Clear() {
         if (numrows && numcols) {
             for (int i=0; i<numrows; i++)
-                delete rows[i];
+                free( rows[i] );
         }
         if (rows)
-            delete rows;
+            free( rows );
         rows = NULL;
         numrows = 0;
         numcols = 0;
@@ -232,14 +232,14 @@ public:
             Clear();
             return;
         }
-        if (nrows<numrows) {
+        if ( nrows<numrows ) {
             for (int i=nrows; i<numrows; i++)
-                delete rows[i];
+                free( rows[i] );
             numrows = nrows;
         } else if (nrows>numrows) {
             rows = (_Ty**) realloc( rows, sizeof(_Ty)*nrows );
             for (int i=numrows; i<nrows; i++) {
-                rows[i] = new _Ty [ncols];
+                rows[i] = (_Ty*)malloc( sizeof(_Ty*) * ncols );
                 for (int j=0; j<numcols; j++)
                     rows[i][j]=fill_elem;
             }
@@ -247,7 +247,7 @@ public:
         }
         if (ncols>numcols) {
             for (int i=0; i<numrows; i++) {
-                rows[i] = (_Ty*)realloc( rows[i], sizeof(_Ty)*ncols );
+                rows[i] = (_Ty*)realloc( rows[i], sizeof(_Ty) * ncols );
                 for (int j=numcols; j<ncols; j++)
                     rows[i][j]=fill_elem;
             }
