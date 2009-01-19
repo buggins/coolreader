@@ -27,13 +27,21 @@
         <cxxflags>-O2 -g0</cxxflags>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full</configargs>
+        <configargs>--enable-debug=full --prefix=/usr</configargs>
         <builddir>debug</builddir>
-        <ccompiler>GccOptions</ccompiler>
-        <cxxcompiler>GppOptions</cxxcompiler>
-        <f77compiler>G77Options</f77compiler>
+        <ccompiler>kdevgccoptions</ccompiler>
+        <cxxcompiler>kdevgppoptions</cxxcompiler>
+        <f77compiler>kdevpgf77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
         <envvars/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <f77flags></f77flags>
       </debug>
     </configurations>
     <make>
@@ -49,8 +57,8 @@
       <prio>0</prio>
     </make>
     <run>
-      <mainprogram>src/.libs/lt-cr3</mainprogram>
-      <programargs>/home/lve/src/cr3ewl/COPYING</programargs>
+      <mainprogram>src/cr3</mainprogram>
+      <programargs>/home/lve/src/cr3ewl/test/automake.htm</programargs>
       <globaldebugarguments>/home/lve/src/cr3ewl/aladdin.epub</globaldebugarguments>
       <globalcwd>/home/lve/src/cr3ewl/debug</globalcwd>
       <useglobalprogram>true</useglobalprogram>
@@ -77,7 +85,7 @@
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
       <raiseGDBOnStart>false</raiseGDBOnStart>
-      <programargs>/home/lve/src/cr3ewl/chinese.txt</programargs>
+      <programargs>/home/lve/src/cr3ewl/test/automake.htm</programargs>
     </general>
     <display>
       <staticmembers>false</staticmembers>
