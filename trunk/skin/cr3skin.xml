@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CR3Skin>
+  <scroll id="menuscroll">
+      <horizontal>
+          <leftbutton enabled="scroll_arrow_left_enabled.png" disabled="scroll_arrow_left_disabled.png"/>
+          <rightbutton enabled="scroll_arrow_right_enabled.png" disabled="scroll_arrow_right_disabled.png"/>
+          <body frame="scroll_body_horizontal.png" slider="scroll_slider_horizontal.png"/>
+      </horizontal>
+      <vertical>
+          <upbutton enabled="scroll_arrow_up_enabled.png" disabled="scroll_arrow_up_disabled.png"/>
+          <downbutton enabled="scroll_arrow_down_enabled.png" disabled="scroll_arrow_down_disabled.png"/>
+          <body frame="scroll_body_vertical.png" slider="scroll_slider_vertical.png"/>
+      </vertical>
+  </scroll>
   <window id="dialog">
         <text color="#000000" face="Arial" size="26" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
