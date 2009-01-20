@@ -302,6 +302,42 @@ public:
         _connection = s->getXcbConnection();
         _ownScreen = true;
     }
+
+    virtual bool getBatteryStatus( int & percent, bool & charging )
+    {
+        charging = false;
+        percent = 0;
+//TODO: implement battery state conditional compilation for different devices
+#ifdef __arm__
+
+        int x, charge;
+        FILE *f_cf, *f_cn;
+
+        f_cn = fopen("/sys/class/power_supply/lbookv3_battery/charge_now", "r");
+        f_cf = fopen("/sys/class/power_supply/lbookv3_battery/charge_full_design", "r");
+
+        char b[11];
+        if((f_cn != NULL) && (f_cf != NULL)) {
+            fgets(b, 10, f_cn);
+            charge = atoi(b);
+            fgets(b, 10, f_cf);
+            x = atoi(b);
+            if(x > 0)
+                charge = charge * 100 / x;
+        } else
+            charge = 0;
+
+        if (f_cn != NULL)
+            fclose(f_cn);
+        if (f_cf != NULL)
+            fclose(f_cf);
+        percent = charge;
+        return true;
+#else
+        return false;
+#endif
+
+    }
     // runs event loop
     virtual int runEventLoop()
     {

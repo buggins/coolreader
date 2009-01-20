@@ -79,6 +79,7 @@ protected:
     TEncoding _t9encoding;
     lString16 _dictConfig;
 public:
+    virtual void flush(); // override
     bool loadDocument( lString16 filename );
     bool loadDefaultCover( lString16 filename );
     bool loadCSS( lString16 filename );

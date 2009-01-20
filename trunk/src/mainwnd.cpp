@@ -894,6 +894,18 @@ bool V3DocViewWin::saveHistory( lString16 filename )
     return _docview->getHistory()->saveToStream( stream.get() );
 }
 
+void V3DocViewWin::flush()
+{
+    // override to update battery
+    int charge = 0;
+    bool charging = false;
+    if ( _wm->getBatteryStatus( charge, charging ) ) {
+        if ( _docview->getBatteryState() != charge )
+            _docview->setBatteryState( charge );
+    }
+    CRDocViewWindow::flush();
+}
+
 bool V3DocViewWin::loadSettings( lString16 filename )
 {
     _settingsFileName = filename;
