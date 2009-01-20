@@ -462,10 +462,10 @@ int InitDoc(char *fileName)
   //          main_win->loadSkin(lString16(L"/root/crengine/skins/default.c3s");
         static const int acc_table[] = {
             '8', 0, MCMD_SETTINGS_FONTSIZE, 0,
-            '8', 1, MCMD_SETTINGS_ORIENTATION, 0,
+            '8', KEY_FLAG_LONG_PRESS, MCMD_SETTINGS_ORIENTATION, 0,
             XK_Escape, 0, MCMD_QUIT, 0,
             XK_Return, 0, MCMD_MAIN_MENU, 0,
-            XK_Return, 1, MCMD_SETTINGS, 0,
+            XK_Return, KEY_FLAG_LONG_PRESS, MCMD_SETTINGS, 0,
             '0', 0, DCMD_PAGEDOWN, 0,
             XK_Down, 0, DCMD_PAGEDOWN, 0,
             XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,

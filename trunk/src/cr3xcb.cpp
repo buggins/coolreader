@@ -322,11 +322,12 @@ public:
             case XCB_KEY_RELEASE:
                 {
                     xcb_key_press_event_t *release = (xcb_key_press_event_t *)event;
+#define XCB_LOOKUP_CHARS_T 2
                     xcb_keycode_t key = release->detail;
-                    int state = release->state;
+                    int state = (release->state & XCB_MOD_MASK_1) ? KEY_FLAG_LONG_PRESS : 0;
                     xcb_keysym_t sym = xcb_key_symbols_get_keysym( keysyms,
                                             key,
-                                            xcb_lookup_chars_t); //xcb_lookup_key_sym_t xcb_lookup_chars_t
+                                            XCB_LOOKUP_CHARS_T); //xcb_lookup_key_sym_t xcb_lookup_chars_t
                     printf("Key released keycode=%d char=%04x\n", (int)key, (int)sym );
                     int cmd = 0;
 #if 0
@@ -495,8 +496,15 @@ int main(int argc, char **argv)
             }
         }
         CRLog::debug("settings at %s", UnicodeToUtf8(ini).c_str() );
+        lString16 hist;
+        for ( i=0; dirs[i]; i++ ) {
+            hist = lString16(dirs[i]) + L"cr3hist.bmk";
+            if ( main_win->loadHistory( hist ) ) {
+                break;
+            }
+        }
 
-
+#if 0
         static const int acc_table[] = {
             XK_Escape, 0, MCMD_QUIT, 0,
             XK_Return, 0, MCMD_MAIN_MENU, 0, 
@@ -514,8 +522,9 @@ int main(int argc, char **argv)
             0
         };
         main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
+#endif
         winman.activateWindow( main_win );
-        if ( !main_win->getDocView()->LoadDocument(fname) ) {
+        if ( !main_win->loadDocument( LocalToUnicode((lString8(fname))) ) ) {
             printf("Cannot open book file %s\n", fname);
             res = 4;
         } else {

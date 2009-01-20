@@ -74,15 +74,19 @@ protected:
     CRGUIAcceleratorTableRef _dialogAccelerators;
     lString16 _dataDir;
     lString16 _settingsFileName;
+    lString16 _historyFileName;
     lString8  _css;
     TEncoding _t9encoding;
     lString16 _dictConfig;
 public:
+    bool loadDocument( lString16 filename );
     bool loadDefaultCover( lString16 filename );
     bool loadCSS( lString16 filename );
     bool loadSkin( lString16 pathname );
     bool loadSettings( lString16 filename );
     bool saveSettings( lString16 filename );
+    bool loadHistory( lString16 filename );
+    bool saveHistory( lString16 filename );
     bool loadDictConfig( lString16 filename );
     CRGUIAcceleratorTableRef getMenuAccelerators() { return _menuAccelerators; }
     CRGUIAcceleratorTableRef getDialogAccelerators() { return _dialogAccelerators; }
@@ -114,6 +118,8 @@ public:
 	bool showLinksDialog();
 
     virtual bool onCommand( int command, int params );
+
+    virtual void closing();
 };
 
 

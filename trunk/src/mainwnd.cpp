@@ -776,11 +776,11 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         XK_Return, 0, MCMD_MAIN_MENU, 0,
         XK_Return, 1, MCMD_SETTINGS, 0,
         '0', 0, DCMD_PAGEDOWN, 0,
-        XK_Down, 0, DCMD_PAGEDOWN, 0,
+        XK_Up, 0, DCMD_PAGEDOWN, 0,
         '0', KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
-        XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
-        XK_Up, 0, DCMD_PAGEUP, 0,
-        XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
+        XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+        XK_Down, 0, DCMD_PAGEUP, 0,
+        XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
         '9', 0, DCMD_PAGEUP, 0,
         '9', KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
 #ifdef WITH_DICT
@@ -829,6 +829,69 @@ bool V3DocViewWin::loadDictConfig( lString16 filename )
         return true;
     }
     return false;
+}
+
+bool V3DocViewWin::loadHistory( lString16 filename )
+{
+    _historyFileName = filename;
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    if ( stream.isNull() ) {
+        return false;
+    }
+    if ( !_docview->getHistory()->loadFromStream( stream ) )
+        return false;
+    return true;
+}
+
+void V3DocViewWin::closing()
+{
+    _docview->savePosition();
+    saveHistory( lString16() );
+}
+
+bool V3DocViewWin::loadDocument( lString16 filename )
+{
+    if ( !_docview->LoadDocument( filename.c_str() ) )
+        return false;
+    _docview->restorePosition();
+    return true;
+}
+
+bool V3DocViewWin::saveHistory( lString16 filename )
+{
+    crtrace log;
+    if ( filename.empty() )
+        filename = _historyFileName;
+    if ( filename.empty() )
+        return false;
+    _historyFileName = filename;
+    log << "V3DocViewWin::saveHistory(" << filename << ")";
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+    if ( !stream ) {
+        lString16 path16 = LVExtractPath( filename );
+        lString8 path = UnicodeToLocal( path16 );
+#ifdef _WIN32
+        if ( !CreateDirectoryW( path16.c_str(), NULL ) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        }
+#else
+        path.erase( path.length()-1, 1 );
+        CRLog::warn("Cannot create settings file, trying to create directory %s", path.c_str());
+        if ( mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        }
+#endif
+    }
+    if ( stream.isNull() ) {
+        lString8 fn = UnicodeToUtf8( filename );
+        CRLog::error("Cannot open history file %s for write", fn.c_str() );
+        return false;
+    }
+    return _docview->getHistory()->saveToStream( stream.get() );
 }
 
 bool V3DocViewWin::loadSettings( lString16 filename )
