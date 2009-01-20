@@ -1147,21 +1147,22 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         cl4 = cl1;
         //pal[0] = cl1;
     }
-    drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
-    drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos, cl1 );
-    drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
-    drawbuf->FillRect(info.left+percent_pos, gpos-1, info.right, gpos, cl1 ); // cl3
+    //drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
+    drawbuf->FillRect(info.left, gpos-2, info.left+percent_pos, gpos-2+1, cl1 );
+    //drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
+    drawbuf->FillRect(info.left+percent_pos, gpos-2, info.right, gpos-2+1, cl1 ); // cl3
 
     if ( !leftPage ) {
-        drawbuf->FillRect(info.left, gpos-2, info.left+percent_pos, gpos-1, cl1 );
+        drawbuf->FillRect(info.left, gpos-3, info.left+percent_pos, gpos-3+1, cl1 );
+        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos-1+1, cl1 );
     }
 
     // disable section marks
-    if ( !leftPage && 0 ) {
+    if ( !leftPage ) {
         for ( int i=0; i<sbounds.length(); i++) {
             int x = info.left + sbounds[i]*(info.width()-1) / 10000;
             lUInt32 c = x<info.left+percent_pos ? cl2 : cl1;
-            drawbuf->FillRect(x, gpos-2, x+1, gpos-1, c );
+            drawbuf->FillRect(x, gpos-3, x+1, gpos-1+1, c );
         }
     }
 
@@ -2675,7 +2676,7 @@ bool LVDocView::ParseDocument( )
         m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
     }
 
-#if 1 //def _DEBUG
+#if 0 //def _DEBUG
         LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
         m_doc->saveToStream( ostream, "utf-16" );
 #endif

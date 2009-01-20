@@ -199,7 +199,7 @@ class CRGUIWindow
         virtual void activated() { }
         /// called if window loss focus
         virtual void covered() { }
-        /// called if window loss focus
+        /// called if window is being closed
         virtual void closing() { }
         /// returns window manager
         virtual CRGUIWindowManager * getWindowManager() = 0;
@@ -363,6 +363,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
                     window->covered(); // send cover before close
                 _windows.remove( index );
             }
+            window->closing();
             delete window;
         }
         /// redraw one window
