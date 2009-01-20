@@ -220,6 +220,12 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         int _postedCommandParam;
         CRSkinRef _skin;
     public:
+        /// return battery status
+        virtual bool getBatteryStatus( int & percent, bool & charging )
+        {
+            // stub
+            percent = 0; charging = false; return false;
+        }
         /// set skin
         virtual void setSkin( CRSkinRef skin ) { _skin = skin; }
         /// returns currently selected skin
