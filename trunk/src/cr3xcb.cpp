@@ -364,32 +364,8 @@ public:
                     xcb_keysym_t sym = xcb_key_symbols_get_keysym( keysyms,
                                             key,
                                             XCB_LOOKUP_CHARS_T); //xcb_lookup_key_sym_t xcb_lookup_chars_t
-                    printf("Key released keycode=%d char=%04x\n", (int)key, (int)sym );
-                    int cmd = 0;
-#if 0
-                    switch ( sym ) {
-                    case '0':
-                    case XK_Down:
-                        cmd = DCMD_PAGEDOWN;
-                        break;
-                    case '9':
-                    case XK_Up:
-                        cmd = DCMD_PAGEUP;
-                        break;
-                    case '+':
-                    case '-':
-                        cmd = DCMD_ZOOM_IN;
-                        break;
-                    case '-':
-                        cmd = DCMD_ZOOM_OUT;
-                        break;
-                    }
-#endif
-                    if ( cmd ) {
-                        onCommand( cmd, 0 );
-                    } else {
-                        onKeyPressed( sym, state );
-                    }
+                    printf("Key released keycode=%d char=%04x state=%d\n", (int)key, (int)sym, state );
+                    onKeyPressed( sym, state );
                     //printf("page number = %d\n", main_win->getDocView()->getCurPage());
                     needUpdate = true;
                 }
@@ -464,6 +440,7 @@ int main(int argc, char **argv)
     //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
     fontDirs.add( lString16(L"/mnt/fonts") );
     fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
+    fontDirs.add( lString16(L"/usr/share/fonts/truetype/liberation") );
     //fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/root/fonts/truetype") );
     if ( !InitCREngine( argv[0], fontDirs ) ) {

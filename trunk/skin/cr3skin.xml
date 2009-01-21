@@ -84,6 +84,7 @@
         <client>
             <background color="#AAAAAA"/>
         </client>
+        <scroll base="#menuscroll"/>
         <item>
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#000000" face="Arial" size="24" bold="false" italic="false" valign="center" halign="left"/>

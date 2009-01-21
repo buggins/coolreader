@@ -1,18 +1,17 @@
-#include <cstdlib>
-#include "dictdlg.h"
-#include "lvstring.h"
-#include "lvref.h"
+//#include <cstdlib>
+#include <dictdlg.h>
+#include <lvstring.h>
+#include <lvref.h>
 //#include "selector.h"
-#include "crgui.h"
-#include "crtrace.h"
+#include <crgui.h>
+#include <crtrace.h>
 
 #include <tinydict.h>
 
-#include "lvarray.h"
-#include "lvstring.h"
-#include "lvtinydom.h"
-#include "lvdocview.h"
-#include "crtrace.h"
+#include <lvarray.h>
+#include <lvstring.h>
+#include <lvtinydom.h>
+#include <lvdocview.h>
 #include <stdexcept>
 #include "mainwnd.h"
 #include "t9encoding.h"
@@ -69,18 +68,26 @@ public:
 	~Dictionary()
 	{
 	}
-    lString8 translate(const lString8 & word)
+    lString8 translate(const lString8 & w)
 	{
+        lString16 s16 = Utf8ToUnicode( w );
+        s16.lowercase();
+        lString8 word = UnicodeToUtf8( s16 );
 		lString8 body;
 		TinyDictResultList results;
-		if ( dicts.find(results, word.c_str(), TINY_DICT_OPTION_STARTS_WITH ) ) {
+        if ( dicts.length() == 0 ) {
+            body << "<title><p>No dictionaries found</p></title>";
+            body << "<p>Place dictionaries to directory 'dict' of SD card.</p>";
+            body << "<p>Dictionaries in standard unix .dict format are supported.</p>";
+            body << "<p>For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension</p>";
+		} else if ( dicts.find(results, word.c_str(), TINY_DICT_OPTION_STARTS_WITH ) ) {
 			for ( int d = 0; d<results.length(); d++ ) {
 				TinyDictWordList * words = results.get(d);
-				if ( dicts.length()>1 )
+				if ( words->length()>0 )
 					body << "<title><p>From dictionary " << words->getDictionaryName() << ":</p></title>";
 				// for each found word
 				for ( int i=0; i<words->length(); i++ ) {
-					TinyDictWord * word = words->get(i);
+					//TinyDictWord * word = words->get(i);
 					const char * article = words->getArticle( i );
 					body << "<code style=\"text-align: left; text-indent: 0; font-size: 22\">";
 					if ( article ) {
@@ -96,10 +103,9 @@ public:
 		} else {
 			body << "<title><p>Article for word " << word << " not found</p></title>";
 		}
-		
 
 		lString8 res;
-		res << "\0ef\0bb\0bf";
+		res << "\0xef\0xbb\0xbf";
 		res << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 		res << "<FictionBook><body>";
 		res << body;
