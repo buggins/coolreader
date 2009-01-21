@@ -367,24 +367,29 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     //buf.Rect( itemsRc, buf.GetTextColor() );
     // draw scrollbar
     if ( scrollHeight ) {
-        int totalCount = _items.length();
-        int visibleCount = _pageItems;
-        buf.Rect( scrollRc, buf.GetTextColor() );
-        scrollRc.shrink( 2 );
-        buf.Rect( scrollRc.left, scrollRc.top, scrollRc.left+SCROLL_HEIGHT - 4, scrollRc.bottom, buf.GetTextColor() );
-        buf.Rect( scrollRc.right - SCROLL_HEIGHT + 4, scrollRc.top, scrollRc.right, scrollRc.bottom, buf.GetTextColor() );
-        DrawArrow( buf, scrollRc.left, scrollRc.top, SCROLL_HEIGHT-4, SCROLL_HEIGHT-4, _topItem>0?buf.GetTextColor() : 0xAAAAAA, 0 );
-        DrawArrow( buf, scrollRc.right-SCROLL_HEIGHT+4, scrollRc.top, SCROLL_HEIGHT-4, SCROLL_HEIGHT-4, _topItem < totalCount - visibleCount ? buf.GetTextColor() : 0xAAAAAA, 1 );
-        scrollRc.left += SCROLL_HEIGHT - 3;
-        scrollRc.right -= SCROLL_HEIGHT - 3;
-        int x = scrollRc.width() * _topItem / totalCount;
-        int endx = scrollRc.width() * (_topItem + visibleCount) / totalCount;
-        CRLog::trace("scrollBar: x=%d, dx=%d, _topItem=%d, visibleCount=%d, totalCount=%d", x, endx, _topItem, visibleCount, totalCount );
-        scrollRc.right = scrollRc.left + endx;
-        scrollRc.left += x;
-        buf.Rect( scrollRc, buf.GetTextColor() );
-        scrollRc.shrink( 2 );
-        buf.FillRect( scrollRc, 0xAAAAAA );
+        CRScrollSkinRef sskin = skin->getScrollSkin();
+        if ( !sskin.isNull() ) {
+            sskin->drawScroll(  buf, scrollRc, false, _topItem, _items.length(), _pageItems );
+        } else {
+            int totalCount = _items.length();
+            int visibleCount = _pageItems;
+            buf.Rect( scrollRc, buf.GetTextColor() );
+            scrollRc.shrink( 2 );
+            buf.Rect( scrollRc.left, scrollRc.top, scrollRc.left+SCROLL_HEIGHT - 4, scrollRc.bottom, buf.GetTextColor() );
+            buf.Rect( scrollRc.right - SCROLL_HEIGHT + 4, scrollRc.top, scrollRc.right, scrollRc.bottom, buf.GetTextColor() );
+            DrawArrow( buf, scrollRc.left, scrollRc.top, SCROLL_HEIGHT-4, SCROLL_HEIGHT-4, _topItem>0?buf.GetTextColor() : 0xAAAAAA, 0 );
+            DrawArrow( buf, scrollRc.right-SCROLL_HEIGHT+4, scrollRc.top, SCROLL_HEIGHT-4, SCROLL_HEIGHT-4, _topItem < totalCount - visibleCount ? buf.GetTextColor() : 0xAAAAAA, 1 );
+            scrollRc.left += SCROLL_HEIGHT - 3;
+            scrollRc.right -= SCROLL_HEIGHT - 3;
+            int x = scrollRc.width() * _topItem / totalCount;
+            int endx = scrollRc.width() * (_topItem + visibleCount) / totalCount;
+            CRLog::trace("scrollBar: x=%d, dx=%d, _topItem=%d, visibleCount=%d, totalCount=%d", x, endx, _topItem, visibleCount, totalCount );
+            scrollRc.right = scrollRc.left + endx;
+            scrollRc.left += x;
+            buf.Rect( scrollRc, buf.GetTextColor() );
+            scrollRc.shrink( 2 );
+            buf.FillRect( scrollRc, 0xAAAAAA );
+        }
     }
     //headerRc.shrink( 2 );
     //buf.FillRect( headerRc, 0xA0A0A0 );

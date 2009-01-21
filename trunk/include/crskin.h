@@ -233,11 +233,11 @@ typedef LVFastRef<CRMenuSkin> CRMenuSkinRef;
 class CRSkinContainer : public LVRefCounter
 {
 protected:
-    virtual void readRectSkin(  const lChar16 * path, CRRectSkin * res );
-    virtual void readButtonSkin(  const lChar16 * path, CRButtonSkin * res );
-    virtual void readScrollSkin(  const lChar16 * path, CRScrollSkin * res );
-    virtual void readWindowSkin(  const lChar16 * path, CRWindowSkin * res );
-    virtual void readMenuSkin(  const lChar16 * path, CRMenuSkin * res );
+    virtual bool readRectSkin(  const lChar16 * path, CRRectSkin * res );
+    virtual bool readButtonSkin(  const lChar16 * path, CRButtonSkin * res );
+    virtual bool readScrollSkin(  const lChar16 * path, CRScrollSkin * res );
+    virtual bool readWindowSkin(  const lChar16 * path, CRWindowSkin * res );
+    virtual bool readMenuSkin(  const lChar16 * path, CRMenuSkin * res );
 public:
     /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
     virtual lString16 getBasePath( const lChar16 * path );

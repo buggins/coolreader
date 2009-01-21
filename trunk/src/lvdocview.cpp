@@ -1124,7 +1124,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     drawbuf->SetClipRect(&hrc);
     bool drawGauge = true;
     lvRect info = headerRc;
-    lUInt32 cl1 = 0xA0A0A0;
+    lUInt32 cl1 = getTextColor();
     lUInt32 cl2 = getBackgroundColor();
     lUInt32 cl3 = 0xD0D0D0;
     lUInt32 cl4 = 0xC0C0C0;
@@ -1134,7 +1134,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     if ( leftPage || !drawGauge )
         percent=10000;
     int percent_pos = percent * info.width() / 10000;
-    int gh = 3; //drawGauge ? 3 : 1;
+//    int gh = 3; //drawGauge ? 3 : 1;
     LVArray<int> & sbounds = getSectionBounds();
     lvRect navBar;
     getNavigationBarRectangle( pageIndex, navBar );
@@ -1153,8 +1153,8 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     drawbuf->FillRect(info.left+percent_pos, gpos-2, info.right, gpos-2+1, cl1 ); // cl3
 
     if ( !leftPage ) {
-        drawbuf->FillRect(info.left, gpos-3, info.left+percent_pos, gpos-3+1, cl1 );
-        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos-1+1, cl1 );
+        drawbuf->FillRect(info.left, gpos-3, info.left+percent_pos, gpos-3+1, 0xAAAAAA );
+        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos-1+1, 0xAAAAAA );
     }
 
     // disable section marks
@@ -1162,7 +1162,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         for ( int i=0; i<sbounds.length(); i++) {
             int x = info.left + sbounds[i]*(info.width()-1) / 10000;
             lUInt32 c = x<info.left+percent_pos ? cl2 : cl1;
-            drawbuf->FillRect(x, gpos-3, x+1, gpos-1+1, c );
+            drawbuf->FillRect(x, gpos-4, x+1, gpos-0+1, c );
         }
     }
 
@@ -2977,6 +2977,8 @@ int LVDocView::getNextPageOffset()
         int p = m_pages.FindNearestPage(m_pos, 0)  + getVisiblePageCount();
         if ( p<m_pages.length() )
             return m_pages[p]->start;
+        if ( !p )
+            return 0;
         return m_pages[m_pages.length()-1]->start;
     }
 }

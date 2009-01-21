@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include "../include/crskin.h"
 #include "../include/lvstsheet.h"
+#include "../include/crtrace.h"
 
 class RecursionLimit
 {
@@ -38,7 +39,10 @@ lString16 CRSkinContainer::getBasePath( const lChar16 * path )
     lString16 value = p.getNode()->getAttributeValue( L"base" );
     if ( value.empty() || value[0]!=L'#' )
         return res;
-    return pathById( value.c_str() + 1 );
+    res = pathById( value.c_str() + 1 );
+    crtrace log;
+    log << "CRSkinContainer::getBasePath( " << lString16( path ) << " ) = " << res;
+    return res;
 }
 
 /// skin file support
@@ -654,8 +658,10 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
     }
     btn1Skin->drawButton( buf, btn1Rect, btn1State );
     btn2Skin->drawButton( buf, btn2Rect, btn2State );
-    buf.Draw( bodyImg, bodyRect.left, bodyRect.top, bodyRect.width(), bodyRect.height(), false );
-    buf.Draw( sliderImg, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
+    if ( !bodyImg.isNull() )
+        buf.Draw( bodyImg, bodyRect.left, bodyRect.top, bodyRect.width(), bodyRect.height(), false );
+    if ( !sliderImg.isNull() )
+        buf.Draw( sliderImg, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
 }
 
 CRRectSkin::CRRectSkin()
@@ -748,16 +754,25 @@ public:
 
 CRButtonSkin::CRButtonSkin() { }
 
-void CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res )
+bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res )
 {
+    bool flg = false;
     lString16 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
-        readButtonSkin( base.c_str(), res );
+        flg = readButtonSkin( base.c_str(), res ) || flg;
     }
 
-    readRectSkin( path, res );
+    lString16 p( path );
+    ldomXPointer ptr = getXPointer( path );
+    if ( !ptr ) {
+        crtrace log;
+        log << "Button skin by path " << p << " was not found";
+        return false;
+    }
+
+    flg = readRectSkin( path, res ) || flg;
     res->setNormalImage( readImage( path, L"normal" ) );
     res->setDisabledImage( readImage( path, L"disabled" ) );
     res->setPressedImage( readImage( path, L"pressed" ) );
@@ -766,57 +781,97 @@ void CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     LVImageSourceRef img = res->getNormalImage();
     lvRect margins = res->getBorderWidths();
     if ( !img.isNull() ) {
+        flg = true;
         res->setMinSize( lvPoint( margins.left + margins.right + img->GetWidth(), margins.top + margins.bottom + img->GetHeight() ) );
     }
+
+    if ( !flg ) {
+        crtrace log;
+        log << "Button skin reading failed: " << path;
+    }
+
+    return flg;
 };
 
 CRScrollSkin::CRScrollSkin() { }
 
-void CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res )
+bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res )
 {
+    bool flg = false;
     lString16 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
-        readScrollSkin( base.c_str(), res );
+        flg = readScrollSkin( base.c_str(), res ) || flg;
     }
 
     lString16 p( path );
+    ldomXPointer ptr = getXPointer( path );
+    if ( !ptr ) {
+        crtrace log;
+        log << "ScrollBar skin by path " << p << " was not found";
+        return false;
+    }
 
-    readRectSkin( path, res );
+
+    flg = readRectSkin( path, res ) || flg;
 
     CRButtonSkinRef upButton( new CRButtonSkin() );
-    readButtonSkin(  (p + L"/upbutton").c_str(), upButton.get() );
-    res->setUpButton( upButton );
+    if ( readButtonSkin(  (p + L"/upbutton").c_str(), upButton.get() ) ) {
+        res->setUpButton( upButton );
+        flg = true;
+    }
 
     CRButtonSkinRef downButton( new CRButtonSkin() );
-    readButtonSkin(  (p + L"/downbutton").c_str(), downButton.get() );
-    res->setDownButton( downButton );
+    if ( readButtonSkin(  (p + L"/downbutton").c_str(), downButton.get() ) ) {
+        res->setDownButton( downButton );
+        flg = true;
+    }
 
     CRButtonSkinRef leftButton( new CRButtonSkin() );
-    readButtonSkin(  (p + L"/leftbutton").c_str(), leftButton.get() );
-    res->setLeftButton( leftButton );
+    if ( readButtonSkin(  (p + L"/leftbutton").c_str(), leftButton.get() ) ) {
+        res->setLeftButton( leftButton );
+        flg = true;
+    }
 
     CRButtonSkinRef rightButton( new CRButtonSkin() );
-    readButtonSkin(  (p + L"/rightbutton").c_str(), rightButton.get() );
-    res->setRightButton( rightButton );
+    if ( readButtonSkin(  (p + L"/rightbutton").c_str(), rightButton.get() ) ) {
+        res->setRightButton( rightButton );
+        flg = true;
+    }
 
-    res->setHBody( readImage( (p + L"/hbody").c_str(), L"body" ) );
+    res->setHBody( readImage( (p + L"/hbody").c_str(), L"frame" ) );
     res->setHSlider( readImage( (p + L"/hbody").c_str(), L"slider" ) );
-    res->setVBody( readImage( (p + L"/vbody").c_str(), L"body" ) );
+    res->setVBody( readImage( (p + L"/vbody").c_str(), L"frame" ) );
     res->setVSlider( readImage( (p + L"/vbody").c_str(), L"slider" ) );
+
+    if ( !flg ) {
+        crtrace log;
+        log << "Scroll skin reading failed: " << path;
+    }
+
+    return flg;
 };
 
-void CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
+bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
 {
+    bool flg = false;
+
     lString16 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
-        readRectSkin( base.c_str(), res );
+        flg = readRectSkin( base.c_str(), res ) || flg;
     }
 
     lString16 p( path );
+    ldomXPointer ptr = getXPointer( path );
+    if ( !ptr ) {
+        crtrace log;
+        log << "Rect skin by path " << p << " was not found";
+        return false;
+    }
+
     lString16 bgpath = p + L"/background";
     lString16 borderpath = p + L"/border";
     lString16 textpath = p + L"/text";
@@ -833,47 +888,88 @@ void CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     res->setFontSize( readInt( textpath.c_str(), L"size", 24 ) );
     res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", SKIN_HALIGN_LEFT) );
     res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", SKIN_VALIGN_CENTER) );
+
+    if ( res->getMinSize().x > 0 || res->getMinSize().y > 0 || !res->getBackgroundImage().isNull() > 0 || res->getBackgroundColor()!=0xFFFFFF )
+        flg = true;
+
+    if ( !flg ) {
+        crtrace log;
+        log << "Rect skin reading failed: " << path;
+    }
+
+    return flg;
 }
 
-void CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
+bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
 {
+    bool flg = false;
+
     lString16 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
-        readWindowSkin( base.c_str(), res );
+        flg = readWindowSkin( base.c_str(), res ) || flg;
     }
 
     lString16 p( path );
-    readRectSkin(  path, res );
+    ldomXPointer ptr = getXPointer( path );
+    if ( !ptr ) {
+        crtrace log;
+        log << "Window skin by path " << p << " was not found";
+        return false;
+    }
+
+    flg = readRectSkin(  path, res ) || flg;
     CRRectSkinRef titleSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/title").c_str(), titleSkin.get() );
-    res->setTitleSkin( titleSkin );
+    if ( readRectSkin(  (p + L"/title").c_str(), titleSkin.get() ) ) {
+        res->setTitleSkin( titleSkin );
+        flg = true;
+    }
     lvPoint minsize = titleSkin->getMinSize();
     res->setTitleSize( minsize );
 
     CRRectSkinRef clientSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/client").c_str(), clientSkin.get() );
-    res->setClientSkin( clientSkin );
+    if ( readRectSkin(  (p + L"/client").c_str(), clientSkin.get() ) ) {
+        res->setClientSkin( clientSkin );
+        flg = true;
+    }
 
     CRScrollSkinRef scrollSkin( new CRScrollSkin() );
-    readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() );
-    res->setScrollSkin( scrollSkin );
+    if ( readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() ) ) {
+        res->setScrollSkin( scrollSkin );
+        flg = true;
+    }
+
+    if ( !flg ) {
+        crtrace log;
+        log << "Window skin reading failed: " << path;
+    }
+
+    return flg;
 }
 
-void CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
+bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
 {
+    bool flg = false;
+
     lString16 base = getBasePath( path );
     RecursionLimit limit;
     if ( !base.empty() && limit.test() ) {
         // read base skin first
-        readMenuSkin( base.c_str(), res );
+        flg = readMenuSkin( base.c_str(), res ) || flg;
     }
 
     lString16 p( path );
-    readWindowSkin( path, res );
+    ldomXPointer ptr = getXPointer( path );
+    if ( !ptr ) {
+        crtrace log;
+        log << "Menu skin by path " << p << " was not found";
+        return false;
+    }
+
+    flg = readWindowSkin( path, res ) || flg;
     CRRectSkinRef itemSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/item").c_str(), itemSkin.get() );
+    flg = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() ) || flg;
     res->setItemSkin( itemSkin );
     CRRectSkinRef shortcutSkin( new CRRectSkin() );
     readRectSkin(  (p + L"/shortcut").c_str(), shortcutSkin.get() );
@@ -885,6 +981,8 @@ void CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     CRRectSkinRef shortcutSelSkin( new CRRectSkin() );
     readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
     res->setSelItemShortcutSkin( shortcutSelSkin );
+
+    return flg;
 }
 
 lString16 CRSkinImpl::pathById( const lChar16 * id )

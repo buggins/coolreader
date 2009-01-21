@@ -420,6 +420,8 @@ int  LVGrayDrawBuf::GetBitsPerPixel()
 void LVGrayDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither )
 {
     //fprintf( stderr, "LVGrayDrawBuf::Draw( img(%d, %d), %d, %d, %d, %d\n", img->GetWidth(), img->GetHeight(), x, y, width, height );
+    if ( width<=0 || height<=0 )
+        return;
     LVImageScaledDrawCallback drawcb( this, img, x, y, width, height, dither );
     img->Decode( &drawcb );
 }
