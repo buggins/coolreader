@@ -390,9 +390,17 @@ lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrnam
 LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16 * attrname )
 {
     lString16 value = readString( path, attrname );
-    if ( value.empty() )
+    if ( value.empty() ) {
+        crtrace log;
+        log << "CRSkinContainer::readImage( " << path << ", " << attrname << ") - attribute or element not found";
         return LVImageSourceRef();
-    return getImage( value );
+    }
+    LVImageSourceRef res = getImage( value );
+    if ( res.isNull() ) {
+        crtrace log;
+        log << "Image " << value << " cannot be read";
+    }
+    return res;
 }
 
 /// open simple skin, without image files, from string
@@ -600,6 +608,8 @@ void CRButtonSkin::drawButton( LVDrawBuf & buf, const lvRect & rect, int flags )
     if ( btnImage.isNull() )
         btnImage = _normalimage;
     if ( !btnImage.isNull() ) {
+        LVImageSourceRef img = LVCreateStretchFilledTransform( btnImage,
+            rc.width(), rc.height() );
         buf.Draw( btnImage, rc.left, rc.top, rc.width(), rc.height(), false );
     }
 }
@@ -658,10 +668,16 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
     }
     btn1Skin->drawButton( buf, btn1Rect, btn1State );
     btn2Skin->drawButton( buf, btn2Rect, btn2State );
-    if ( !bodyImg.isNull() )
-        buf.Draw( bodyImg, bodyRect.left, bodyRect.top, bodyRect.width(), bodyRect.height(), false );
-    if ( !sliderImg.isNull() )
-        buf.Draw( sliderImg, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
+    if ( !bodyImg.isNull() ) {
+        LVImageSourceRef img = LVCreateStretchFilledTransform( bodyImg,
+            bodyRect.width(), bodyRect.height() );
+        buf.Draw( img, bodyRect.left, bodyRect.top, bodyRect.width(), bodyRect.height(), false );
+    }
+    if ( !sliderImg.isNull() ) {
+        LVImageSourceRef img = LVCreateStretchFilledTransform( sliderImg,
+            sliderRect.width(), sliderRect.height() );
+        buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
+    }
 }
 
 CRRectSkin::CRRectSkin()
@@ -840,10 +856,18 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
         flg = true;
     }
 
-    res->setHBody( readImage( (p + L"/hbody").c_str(), L"frame" ) );
-    res->setHSlider( readImage( (p + L"/hbody").c_str(), L"slider" ) );
-    res->setVBody( readImage( (p + L"/vbody").c_str(), L"frame" ) );
-    res->setVSlider( readImage( (p + L"/vbody").c_str(), L"slider" ) );
+    LVImageSourceRef hf = readImage( (p + L"/hbody").c_str(), L"frame" );
+    if ( !hf.isNull() )
+        res->setHBody( hf );
+    LVImageSourceRef hs = readImage( (p + L"/hbody").c_str(), L"slider" );
+    if ( !hs.isNull() )
+        res->setHSlider( hs );
+    LVImageSourceRef vf = readImage( (p + L"/vbody").c_str(), L"frame" );
+    if ( !vf.isNull() )
+        res->setVBody( vf );
+    LVImageSourceRef vs = readImage( (p + L"/vbody").c_str(), L"slider" );
+    if ( !vs.isNull() )
+        res->setVSlider(vs );
 
     if ( !flg ) {
         crtrace log;
@@ -878,7 +902,7 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     lString16 sizepath = p + L"/size";
     res->setBackgroundImage( readImage( bgpath.c_str(), L"image" ) );
     res->setBackgroundColor( readColor( bgpath.c_str(), L"color", 0xFFFFFF ) );
-    res->setBorderWidths( readRect( borderpath.c_str(), L"widths", lvRect( 12, 8, 8, 8 ) ) );
+    res->setBorderWidths( readRect( borderpath.c_str(), L"widths", lvRect( 0, 0, 0, 0 ) ) );
     res->setMinSize( readSize( sizepath.c_str(), L"minvalue", lvPoint( 0, 0 ) ) );
     res->setMaxSize( readSize( sizepath.c_str(), L"maxvalue", lvPoint( 0, 0 ) ) );
     res->setFontFace( readString( textpath.c_str(), L"face", L"Arial" ) );
