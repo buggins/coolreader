@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CR3Skin>
   <scroll id="menuscroll">
+      <border widths="2,2,2,2"/>
       <leftbutton normal="scroll_arrow_left_enabled.png" disabled="scroll_arrow_left_disabled.png"/>
       <rightbutton normal="scroll_arrow_right_enabled.png" disabled="scroll_arrow_right_disabled.png"/>
-      <vbody frame="scroll_body_horizontal.png" slider="scroll_slider_horizontal.png"/>
+      <hbody frame="scroll_body_horizontal.png" slider="scroll_slider_horizontal.png"/>
       <upbutton normal="scroll_arrow_up_enabled.png" disabled="scroll_arrow_up_disabled.png"/>
       <downbutton normal="scroll_arrow_down_enabled.png" disabled="scroll_arrow_down_disabled.png"/>
-      <hbody frame="scroll_body_vertical.png" slider="scroll_slider_vertical.png"/>
+      <vbody frame="scroll_body_vertical.png" slider="scroll_slider_vertical.png"/>
   </scroll>
   <window id="dialog">
         <text color="#000000" face="Arial" size="26" bold="true" italic="false" valign="center" halign="center"/>
