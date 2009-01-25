@@ -11,6 +11,10 @@
 
 #include "cr3main.h"
 
+#if (USE_FONTCONFIG==1)
+#include <fontconfig/fontconfig.h>
+#endif
+
 bool initHyph(const char * fname)
 {
     //HyphMan hyphman;
@@ -114,6 +118,41 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     if (!fontMan->GetFontCount()) {
 
+	#if (USE_FONTCONFIG==1)
+		lString16Collection fonts;
+
+		FcFontSet *fontset;
+
+		FcObjectSet *os = FcObjectSetBuild(FC_FILE, NULL);
+		FcPattern *pat = FcPatternCreate();
+
+		fontset = FcFontList(NULL, pat, os);
+
+		FcPatternDestroy(pat);
+		FcObjectSetDestroy(os);
+
+		// load fonts from file
+		CRLog::debug("%d font files found", fonts.length());
+		if (!fontMan->GetFontCount()) {
+			for(int i = 0; i < fontset->nfont; i++) {
+				FcChar8 *s;
+				FcResult res;
+
+				res = FcPatternGetString(fontset->fonts[i], FC_FILE, 0, (FcChar8 **)&s);
+				if(res != FcResultMatch)
+					continue;
+
+				lString8 fn = UnicodeToLocal(lString16((lChar8 *)s));
+				CRLog::trace("loading font: %s", fn.c_str());
+				if ( !fontMan->RegisterFont(fn) ) {
+					CRLog::trace("    failed\n");
+				}
+			}
+		}
+
+		FcFontSetDestroy(fontset);
+
+	#else
 
     #if (USE_FREETYPE==1)
         lString16 fontExt = L".ttf";
@@ -164,6 +203,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
                 fontMan->RegisterFont( lString8(fn) );
             }
     #endif
+	#endif
     }
 
     // init hyphenation manager

@@ -121,7 +121,7 @@ public:
 #ifdef CR_USE_JINKE
 #define DICTD_CONF "/root/crengine/dict/"
 #else
-#define DICTD_CONF "/mnt/dict"
+#define DICTD_CONF "/media/sd/dict"
 #endif
 #endif
 
