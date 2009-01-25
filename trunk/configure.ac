@@ -48,6 +48,7 @@ if test "${with_jinke}" == "false"; then
     PKG_CHECK_MODULES(XCB_IMAGE, [xcb-image >= 0.2])
     PKG_CHECK_MODULES(XCB_KEYSYMS, [xcb-keysyms >= 0.2])
     PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
+    PKG_CHECK_MODULES(FONTCONFIG, [fontconfig >= 0.22])
     PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
     PKG_CHECK_MODULES(TINYDICT, [libtinydict >= 0.1])
 fi
