@@ -15,7 +15,11 @@ pkgdatadir = $(prefix)/share/crengine
 skindir = $(pkgdatadir)/skin
 hyphdir = $(pkgdatadir)/hyph
 dist_skin_DATA = skin/cr3skin.xml \
-    skin/cr3_main_menu_logo.png  skin/cr3_main_menu.png  skin/cr3_menu_item.png skin/cr3_menu_shortcut.png  skin/cr3_menu_title.png  skin/cr3_settings_menu.png
+    skin/cr3_main_menu_logo.png  skin/cr3_menu_shortcut.png skin/scroll_arrow_down_disabled.png skin/scroll_arrow_right_disabled.png skin/scroll_body_horizontal.png \
+    skin/cr3_main_menu.png skin/cr3_menu_shortcut_selected.png skin/scroll_arrow_down_enabled.png skin/scroll_arrow_right_enabled.png skin/scroll_body_vertical.png \
+    skin/cr3_menu_item.png skin/cr3_menu_title.png skin/scroll_arrow_left_disabled.png skin/scroll_arrow_up_disabled.png skin/scroll_slider_horizontal.png \
+    skin/cr3_menu_item_selected.png skin/cr3_settings_menu.png skin/scroll_arrow_left_enabled.png skin/scroll_arrow_up_enabled.png skin/scroll_slider_vertical.png
+
 dist_pkgdata_DATA = src/fb2.css src/cr3_def_cover.png
 dist_hyph_DATA = hyph/Russian_EnUS_hyphen_(Alan).pdb
 
