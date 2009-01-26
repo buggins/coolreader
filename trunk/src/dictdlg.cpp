@@ -1,5 +1,5 @@
 //#include <cstdlib>
-#include <dictdlg.h>
+#include "dictdlg.h"
 #include <lvstring.h>
 #include <lvref.h>
 //#include "selector.h"
