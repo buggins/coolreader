@@ -275,6 +275,8 @@ lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * att
         return lString16();
     if ( ptr.getNode()->getNodeType() != LXML_ELEMENT_NODE )
         return lString16();
+	//lString16 pnname = ptr.getNode()->getParentNode()->getNodeName();
+	//lString16 nname = ptr.getNode()->getNodeName();
     lString16 value = ptr.getNode()->getAttributeValue( attrname );
     return value;
 }

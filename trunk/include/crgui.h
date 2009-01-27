@@ -124,6 +124,19 @@ public:
     }
 };
 
+/// accelerator table reference
+typedef LVRef<CRGUIAcceleratorTable> CRGUIAcceleratorTableRef;
+
+class CRGUIAcceleratorTableList : public LVHashTable<lString16, CRGUIAcceleratorTableRef>
+{
+public:
+	CRGUIAcceleratorTableList() : LVHashTable<lString16, CRGUIAcceleratorTableRef>( 32 )
+	{
+	}
+	~CRGUIAcceleratorTableList() { }
+	bool openFromFile( const char  * defFile, const char * mapFile );
+};
+
 /// i18n support interface
 class CRGUIStringTranslator
 {
@@ -136,8 +149,6 @@ public:
     virtual ~CRGUIStringTranslator() { }
 };
 
-/// accelerator table reference
-typedef LVRef<CRGUIAcceleratorTable> CRGUIAcceleratorTableRef;
 
 
 /// Screen object - provides canvas and interface to device screen

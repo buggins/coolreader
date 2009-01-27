@@ -161,6 +161,15 @@ public:
     */
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead ) = 0;
 
+	virtual int ReadByte()
+	{
+		unsigned char buf[1];
+		lvsize_t sz = 0;
+		if ( Read( buf, 1, &sz ) == LVERR_OK && sz == 1 )
+			return buf[0];
+		return -1;
+	}
+
     /// Write
     /**
         \param buf is data to write to stream

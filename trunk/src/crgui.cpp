@@ -558,3 +558,71 @@ void CRMenu::draw()
     Draw( *_wm->getScreen()->getCanvas(), _rect.left, _rect.top );
     //_wm->getScreen()->getCanvas()->Rect( _rect, 0xAAAAAA );
 }
+
+bool readNextLine( const LVStreamRef & stream, lString16 & dst )
+{
+	lString16 line;
+	bool flgComment = false;
+	for ( ; ; ) {
+		int ch = stream->ReadByte();
+		if ( ch<0 )
+			break;
+		if ( ch=='#' && line.empty() )
+			flgComment = true;
+		if ( ch=='\r' || ch=='\n' ) {
+			if ( flgComment ) {
+				flgComment = false;
+				line.clear();
+			} else {
+				if ( !line.empty() ) {
+					dst = line;
+					return true;
+				}
+			}
+		} else {
+			line << (lChar16) ch;
+		}
+	}
+	return false;
+}
+
+bool splitLine( lString16 line, lString16 & key, lString16 & value )
+{
+	if ( !line.empty() ) {
+		unsigned n = line.pos(lString16(L"="));
+		if ( n>0 && n <line.length()-1 ) {
+			key = line.substr( 0, n-1 );
+			value = line.substr( n+1, line.length() - n - 1 );
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char * mapFile )
+{
+	LVHashTable<lString16, int> defs( 256 );
+	LVStreamRef defStream = LVOpenFileStream( defFile, LVOM_READ );
+	if ( defStream.isNull() ) {
+		CRLog::error( "cannot open keymap def file %s", defFile );
+		return false;
+	}
+	LVStreamRef mapStream = LVOpenFileStream( mapFile, LVOM_READ );
+	if ( mapStream.isNull() ) {
+		CRLog::error( "cannot open keymap file %s", defFile );
+		return false;
+	}
+	/*
+	lString16 key, value;
+	while ( readNextDef( defStream, key, value ) ) {
+		int n = value.atoi();
+		defs.set( key, n );
+	}
+	while ( readNextDef( defStream, key, value ) ) {
+		int n = value.atoi();
+		defs.set( key, n );
+	}
+	*/
+	return false;
+}
+
