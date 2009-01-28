@@ -10,7 +10,7 @@
     <projectname>cr3</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
+    <description></description>
     <defaultencoding/>
   </general>
   <kdevautoproject>
@@ -27,21 +27,21 @@
         <cxxflags>-O2 -g0</cxxflags>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full --prefix=/usr</configargs>
+        <configargs>--enable-debug=full --prefix=/usr --sysconfdir=/etc</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevpgf77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
         <envvars/>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <f77flags/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <f77flags></f77flags>
       </debug>
     </configurations>
     <make>
@@ -57,8 +57,8 @@
       <prio>0</prio>
     </make>
     <run>
-      <mainprogram>/home/lve/src/cr3ewl/debug/src/cr3</mainprogram>
-      <programargs>/home/lve/src/cr3ewl/test/automake.htm</programargs>
+      <mainprogram>src/cr3</mainprogram>
+      <programargs>/home/lve/src/test/example.fb2</programargs>
       <globaldebugarguments>/home/lve/src/cr3ewl/test/automake.htm</globaldebugarguments>
       <globalcwd>/home/lve/src/cr3ewl/debug</globalcwd>
       <useglobalprogram>true</useglobalprogram>
@@ -76,16 +76,16 @@
   </kdevautoproject>
   <kdevdebugger>
     <general>
-      <dbgshell/>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <dbgshell></dbgshell>
+      <gdbpath></gdbpath>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
       <raiseGDBOnStart>false</raiseGDBOnStart>
-      <programargs>/home/lve/src/cr3ewl/test/automake.htm</programargs>
+      <programargs>/home/lve/src/test/example.fb2</programargs>
     </general>
     <display>
       <staticmembers>false</staticmembers>
@@ -154,8 +154,8 @@
       <includestyle>3</includestyle>
       <root></root>
       <designerintegration>EmbeddedKDevDesigner</designerintegration>
-      <qmake></qmake>
-      <designer></designer>
+      <qmake/>
+      <designer/>
       <designerpluginpaths/>
     </qt>
     <codecompletion>
@@ -186,7 +186,7 @@
       <includeTypedefs>false</includeTypedefs>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
