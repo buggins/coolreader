@@ -14,6 +14,8 @@ pkgdatadir = $(prefix)/share/crengine
 
 skindir = $(pkgdatadir)/skin
 hyphdir = $(pkgdatadir)/hyph
+keymapdir = $(sysconfdir)/cr3
+
 dist_skin_DATA = skin/cr3skin.xml \
     skin/cr3_main_menu_logo.png  skin/cr3_menu_shortcut.png skin/scroll_arrow_down_disabled.png skin/scroll_arrow_right_disabled.png skin/scroll_body_horizontal.png \
     skin/cr3_main_menu.png skin/cr3_menu_shortcut_selected.png skin/scroll_arrow_down_enabled.png skin/scroll_arrow_right_enabled.png skin/scroll_body_vertical.png \
@@ -22,6 +24,7 @@ dist_skin_DATA = skin/cr3skin.xml \
 
 dist_pkgdata_DATA = src/fb2.css src/cr3_def_cover.png
 dist_hyph_DATA = hyph/Russian_EnUS_hyphen_(Alan).pdb
+dist_keymap_DATA = keymaps/keydefs.ini keymaps/keymaps.ini
 
 MAINTAINERCLEANFILES = \
 Makefile.in \
