@@ -22,7 +22,6 @@
 #define WITH_DICT
 #endif
 
-#define KEY_FLAG_LONG_PRESS 1
 
 #ifdef _WIN32
 #define XK_Return   0xFF01
