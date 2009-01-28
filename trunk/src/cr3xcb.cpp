@@ -461,6 +461,9 @@ int main(int argc, char **argv)
         CRXCBWindowManager winman( 600, 800 );
 
 #endif
+        lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
+        lString16 homecrengine = home + L"/.crengine/";
+
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
@@ -474,6 +477,12 @@ int main(int argc, char **argv)
             main_win->loadSkin( lString16( L"/usr/share/crengine/skin" ) );
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
             main_win->loadDictConfig( lString16( L"/usr/share/crengine/dict/dictd.conf" ) );
+        if ( !winman.getAccTables().openFromFile(  UnicodeToUtf8(homecrengine + L"/keydefs.ini").c_str(), 
+                    UnicodeToUtf8(homecrengine + L"/keymaps.ini").c_str() ) )
+            winman.getAccTables().openFromFile(  "/etc/cr3/keydefs.ini", "/etc/cr3/keymaps.ini" );
+        if ( winman.getAccTables().empty() ) {
+            CRLog::error("keymap files keydefs.ini and keymaps.ini were not found! please place them to ~/.crengine or /etc/cr3");
+        }
 
     #define SEPARATE_INI_FILES
 
@@ -492,8 +501,6 @@ int main(int argc, char **argv)
             ini_fname = L"cr3-fb2.ini";
         }
     #endif
-        lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
-        lString16 homecrengine = home + L"/.crengine/";
         const lChar16 * dirs[] = {
             L"/media/sd/crengine/",
             homecrengine.c_str(),

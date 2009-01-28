@@ -639,6 +639,8 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         '8', 0, MCMD_SELECT_8, 0,
         0
     };
+    if ( _wm->getAccTables().get("menu").isNull() )
+         _wm->getAccTables().add("menu", menu_acc_table );
     static const int acc_table_dialog[] = {
         XK_Escape, 0, MCMD_CANCEL, 0,
         XK_Return, 1, MCMD_OK, 0, 
@@ -657,8 +659,11 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         '9', 0, MCMD_SELECT_9, 0,
         0
     };
-    _menuAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( menu_acc_table ) );
-    _dialogAccelerators = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table_dialog ) );
+    if ( _wm->getAccTables().get("dialog").isNull() )
+         _wm->getAccTables().add("dialog", acc_table_dialog );
+
+    _menuAccelerators = _wm->getAccTables().get("menu");
+    _dialogAccelerators = _wm->getAccTables().get("dialog");
 
     LVRefVec<LVImageSource> icons;
     static const char * battery4[] = {
@@ -792,7 +797,9 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         '_', 0, DCMD_ZOOM_OUT, 0,
         0
     };
-    setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( default_acc_table ) ) );
+    if ( _wm->getAccTables().get("main").isNull() )
+         _wm->getAccTables().add("main", default_acc_table );
+    setAccelerators( _wm->getAccTables().get("main") );
 }
 
 bool V3DocViewWin::loadDefaultCover( lString16 filename )

@@ -59,9 +59,7 @@ enum CRMainMenuCmd
 	MCMD_GO_LINK_APPLY,
 	MCMD_LONG_FORWARD,
 	MCMD_LONG_BACK,
-#ifdef WITH_DICT
     MCMD_DICT,
-#endif
 };
 
 class V3DocViewWin : public CRDocViewWindow
