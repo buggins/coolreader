@@ -559,7 +559,7 @@ void CRMenu::draw()
     //_wm->getScreen()->getCanvas()->Rect( _rect, 0xAAAAAA );
 }
 
-bool readNextLine( const LVStreamRef & stream, lString16 & dst )
+static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
 {
 	lString16 line;
 	bool flgComment = false;
@@ -586,17 +586,48 @@ bool readNextLine( const LVStreamRef & stream, lString16 & dst )
 	return false;
 }
 
-bool splitLine( lString16 line, lString16 & key, lString16 & value )
+static bool splitLine( lString16 line, lString16 & key, lString16 & value )
 {
 	if ( !line.empty() ) {
 		unsigned n = line.pos(lString16(L"="));
 		if ( n>0 && n <line.length()-1 ) {
 			key = line.substr( 0, n-1 );
 			value = line.substr( n+1, line.length() - n - 1 );
-			return true;
+			key.trim();
+			value.trim();
+			return key.length()!=0 && value.length()!=0;
 		}
 	}
 	return false;
+}
+
+static int decodeKey( lString16 name )
+{
+	if ( name.empty() )
+		return 0;
+	int key = 0;
+	lChar16 ch0 = name[0];
+	if ( ch0 >= '0' && ch0 <= '9' )
+		return name.atoi();
+	if ( name.length()==3 && name[0]=='\'' && name[2]=='\'' )
+		key = name[1];
+	if ( name.length() == 1 )
+		key = name[0];
+	if ( key == 0 && name.length()>=4 && name[0]=='0' && name[1]=='x' ) {
+		for ( int i=2; i<name.length(); i++ ) {
+			int digit = 0;
+			lChar16 ch = name[i];
+			if ( ch>='0' && ch<='9' )
+				key = key*16 + (ch-'0');
+			else if ( ch>='a' && ch<='f' )
+				key = key*16 + (ch-'a') + 10;
+			else if ( ch>='A' && ch<='F' )
+				key = key*16 + (ch-'A') + 10;
+			else
+				break;
+		}
+	}
+	return key;
 }
 
 bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char * mapFile )
@@ -612,6 +643,67 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
 		CRLog::error( "cannot open keymap file %s", defFile );
 		return false;
 	}
+	lString16 line;
+	CRPropRef props = LVCreatePropsContainer();
+	while ( readNextLine(defStream, line) ) {
+		lString16 name;
+		lString16 value;
+		if ( splitLine( line, name, value ) )  {
+			int key = decodeKey( value );
+			if ( key!=0 )
+				defs.set( name, key );
+		}
+	}
+	if ( !defs.length() ) {
+		CRLog::error("No definitions read from %s", defFile);
+		return false;
+
+	}
+	lString16 section;
+	CRGUIAcceleratorTableRef table( new CRGUIAcceleratorTable() );
+	bool eof = false;
+	do {
+		eof = !readNextLine(defStream, line);
+		if ( eof || (!line.empty() && line[0]=='[') ) {
+			// save old section
+			if ( !section.empty() ) {
+				if ( table->length() ) {
+					set( section, table );
+				}
+				section.clear();
+			}
+			// begin new section
+			if ( !eof ) {
+				table = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable() );
+				int endbracket = line.pos( lString16(L"]") );
+				if ( endbracket<=0 )
+					endbracket = line.length();
+				if ( endbracket >= 2 )
+					section = line.substr( 1, endbracket - 1 );
+				else
+					section.clear(); // wrong sectino
+			}
+		} else if ( !section.empty() ) {
+			lString16 name;
+			lString16 value;
+			if ( splitLine( line, name, value ) ) {
+				int flag = 0;
+				int key = 0;
+				int flagpos = name.pos( lString16(L",LONG") );
+				if ( flagpos<0 )
+					flagpos = name.pos( lString16(L", LONG") );
+				if ( flagpos>=0 ) {
+					flag = KEY_FLAG_LONG_PRESS;
+					name = name.substr( 0, flagpos );
+				}
+				key = decodeKey( name );
+				if ( key==0 ) {
+
+				}
+			}
+		}
+		
+	} while ( !eof );
 	/*
 	lString16 key, value;
 	while ( readNextDef( defStream, key, value ) ) {

@@ -33,6 +33,7 @@
 
 class CRGUIWindowManager;
 
+#define KEY_FLAG_LONG_PRESS 1
 
 /// Accelerator table entry: to convert keypress to command
 class CRGUIAccelerator
@@ -62,6 +63,8 @@ protected:
         return -1;
     }
 public:
+	/// returns number of entries
+	unsigned length() { return _items.length(); }
     /// remove accelerator from table
     bool remove( int keyCode, int keyFlags )
     {
