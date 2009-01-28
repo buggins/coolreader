@@ -84,19 +84,19 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
 
 void CRDocViewWindow::draw()
 {
-	lvRect clientRect = _rect;
-	if ( !_skin.isNull() ) {
-		clientRect = _skin->getClientRect( _rect );
-		_skin->draw( *_wm->getScreen()->getCanvas(), _rect );
-		if ( !_title.empty() ) {
-			lvRect titleRect = _skin->getTitleRect( _rect );
-			if ( !titleRect.isEmpty() ) {
-				_skin->getTitleSkin()->draw( *_wm->getScreen()->getCanvas(), titleRect );
-				_skin->getTitleSkin()->drawText( *_wm->getScreen()->getCanvas(), titleRect, _title );
-			}
-		}
+    lvRect clientRect = _rect;
+    if ( !_skin.isNull() ) {
+        clientRect = _skin->getClientRect( _rect );
+        _skin->draw( *_wm->getScreen()->getCanvas(), _rect );
+        if ( !_title.empty() ) {
+            lvRect titleRect = _skin->getTitleRect( _rect );
+            if ( !titleRect.isEmpty() ) {
+                _skin->getTitleSkin()->draw( *_wm->getScreen()->getCanvas(), titleRect );
+                _skin->getTitleSkin()->drawText( *_wm->getScreen()->getCanvas(), titleRect, _title );
+            }
+        }
 
-	}
+    }
     LVDocImageRef pageImage = _docview->getPageImage(0);
     LVDrawBuf * drawbuf = pageImage->getDrawBuf();
     _wm->getScreen()->draw( drawbuf, clientRect.left, clientRect.top );
@@ -107,9 +107,9 @@ void CRDocViewWindow::setRect( const lvRect & rc )
     if ( rc == _rect )
         return;
     _rect = rc;
-	lvRect clientRect = _rect;
-	if ( !_skin.isNull() )
-		clientRect = _skin->getClientRect( rc );
+    lvRect clientRect = _rect;
+    if ( !_skin.isNull() )
+        clientRect = _skin->getClientRect( rc );
     _docview->Resize( clientRect.width(), clientRect.height() );
     setDirty();
 }
@@ -122,7 +122,7 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool se
     buf.SetTextColor( 0x000000 );
     buf.SetBackgroundColor( 0xFFFFFF );
     int imgWidth = 0;
-	int hh = rc.bottom - rc.top - itemBorders.top - itemBorders.bottom;
+    int hh = rc.bottom - rc.top - itemBorders.top - itemBorders.bottom;
     if ( !_image.isNull() ) {
         int w = _image->GetWidth();
         int h = _image->GetHeight();
@@ -183,8 +183,8 @@ lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )
         w += h;
     }
     lvPoint minsize = skin->getMinSize();
-	if ( minsize.y>0 && h < minsize.y )
-		h = minsize.y;
+    if ( minsize.y>0 && h < minsize.y )
+        h = minsize.y;
     if ( minsize.x>0 && w < minsize.x )
         w = minsize.x;
     return lvPoint( w, h );
@@ -357,11 +357,11 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         scrollHeight = SCROLL_HEIGHT;
     }
 
-	lvRect itemsRc( skin->getClientRect(_rect) );
-	itemsRc.bottom -= scrollHeight;
-	//lvRect headerRc( x + itemBorders.left, y + itemBorders.top, x + sz.x - itemBorders.right, itemsRc.top+1 );
+    lvRect itemsRc( skin->getClientRect(_rect) );
+    itemsRc.bottom -= scrollHeight;
+    //lvRect headerRc( x + itemBorders.left, y + itemBorders.top, x + sz.x - itemBorders.right, itemsRc.top+1 );
     lvRect scrollRc( skin->getClientRect(_rect) );
-	scrollRc.top = scrollRc.bottom - scrollHeight;
+    scrollRc.top = scrollRc.bottom - scrollHeight;
     //buf.FillRect( x, y, x+sz.x, y+sz.y, buf.GetBackgroundColor() );
     //buf.Rect( headerRc, buf.GetTextColor() );
     //buf.Rect( itemsRc, buf.GetTextColor() );
@@ -412,12 +412,12 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
             selected = true;
 
         rc.bottom = rc.top + itemSize.y;
-		CRRectSkinRef is = selected ? itemSelSkin : itemSkin;
-		CRRectSkinRef ss = selected ? itemSelShortcutSkin : itemShortcutSkin;
+        CRRectSkinRef is = selected ? itemSelSkin : itemSkin;
+        CRRectSkinRef ss = selected ? itemSelShortcutSkin : itemShortcutSkin;
         if ( selected ) {
             lvRect sel = rc;
             sel.extend( 4 );
-			//buf.FillRect(sel, itemSelSkin->getBackgroundColor() );
+            //buf.FillRect(sel, itemSelSkin->getBackgroundColor() );
         }
         // number
         lvRect numberRc( rc );
@@ -513,12 +513,12 @@ bool CRMenu::onCommand( int command, int params )
     if ( item->isSubmenu() ) {
         CRMenu * menu = (CRMenu *)item;
         if ( menu->getItems().length() <= 3 ) {
-			// toggle 2 and 3 choices w/o menu
+            // toggle 2 and 3 choices w/o menu
             menu->toggleSubmenuValue();
-		} else {
-			// show menu
-			_wm->activateWindow( menu );
-		}
+        } else {
+            // show menu
+            _wm->activateWindow( menu );
+        }
         return true;
     } else {
         // command menu item
@@ -561,160 +561,177 @@ void CRMenu::draw()
 
 static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
 {
-	lString16 line;
-	bool flgComment = false;
-	for ( ; ; ) {
-		int ch = stream->ReadByte();
-		if ( ch<0 )
-			break;
-		if ( ch=='#' && line.empty() )
-			flgComment = true;
-		if ( ch=='\r' || ch=='\n' ) {
-			if ( flgComment ) {
-				flgComment = false;
-				line.clear();
-			} else {
-				if ( !line.empty() ) {
-					dst = line;
-					return true;
-				}
-			}
-		} else {
-			line << (lChar16) ch;
-		}
-	}
-	return false;
+    lString16 line;
+    bool flgComment = false;
+    for ( ; ; ) {
+        int ch = stream->ReadByte();
+        if ( ch<0 )
+            break;
+        if ( ch=='#' && line.empty() )
+            flgComment = true;
+        if ( ch=='\r' || ch=='\n' ) {
+            if ( flgComment ) {
+                flgComment = false;
+                line.clear();
+            } else {
+                if ( !line.empty() ) {
+                    dst = line;
+                    return true;
+                }
+            }
+        } else {
+            line << (lChar16) ch;
+        }
+    }
+    return false;
 }
 
-static bool splitLine( lString16 line, lString16 & key, lString16 & value )
+static bool splitLine( lString16 line, const lString16 & delimiter, lString16 & key, lString16 & value )
 {
-	if ( !line.empty() ) {
-		unsigned n = line.pos(lString16(L"="));
-		if ( n>0 && n <line.length()-1 ) {
-			key = line.substr( 0, n-1 );
-			value = line.substr( n+1, line.length() - n - 1 );
-			key.trim();
-			value.trim();
-			return key.length()!=0 && value.length()!=0;
-		}
-	}
-	return false;
+    if ( !line.empty() ) {
+        unsigned n = line.pos(delimiter);
+        value.clear();
+        key = line;
+        if ( n>0 && n <line.length()-1 ) {
+            value = line.substr( n+1, line.length() - n - 1 );
+            key = line.substr( 0, n-1 );
+            key.trim();
+            value.trim();
+            return key.length()!=0 && value.length()!=0;
+        }
+    }
+    return false;
 }
 
 static int decodeKey( lString16 name )
 {
-	if ( name.empty() )
-		return 0;
-	int key = 0;
-	lChar16 ch0 = name[0];
-	if ( ch0 >= '0' && ch0 <= '9' )
-		return name.atoi();
-	if ( name.length()==3 && name[0]=='\'' && name[2]=='\'' )
-		key = name[1];
-	if ( name.length() == 1 )
-		key = name[0];
-	if ( key == 0 && name.length()>=4 && name[0]=='0' && name[1]=='x' ) {
-		for ( int i=2; i<name.length(); i++ ) {
-			int digit = 0;
-			lChar16 ch = name[i];
-			if ( ch>='0' && ch<='9' )
-				key = key*16 + (ch-'0');
-			else if ( ch>='a' && ch<='f' )
-				key = key*16 + (ch-'a') + 10;
-			else if ( ch>='A' && ch<='F' )
-				key = key*16 + (ch-'A') + 10;
-			else
-				break;
-		}
-	}
-	return key;
+    if ( name.empty() )
+        return 0;
+    int key = 0;
+    lChar16 ch0 = name[0];
+    if ( ch0 >= '0' && ch0 <= '9' )
+        return name.atoi();
+    if ( name.length()==3 && name[0]=='\'' && name[2]=='\'' )
+        key = name[1];
+    if ( name.length() == 1 )
+        key = name[0];
+    if ( key == 0 && name.length()>=4 && name[0]=='0' && name[1]=='x' ) {
+        for ( unsigned i=2; i<name.length(); i++ ) {
+            lChar16 ch = name[i];
+            if ( ch>='0' && ch<='9' )
+                key = key*16 + (ch-'0');
+            else if ( ch>='a' && ch<='f' )
+                key = key*16 + (ch-'a') + 10;
+            else if ( ch>='A' && ch<='F' )
+                key = key*16 + (ch-'A') + 10;
+            else
+                break;
+        }
+    }
+    return key;
 }
 
 bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char * mapFile )
 {
-	LVHashTable<lString16, int> defs( 256 );
-	LVStreamRef defStream = LVOpenFileStream( defFile, LVOM_READ );
-	if ( defStream.isNull() ) {
-		CRLog::error( "cannot open keymap def file %s", defFile );
-		return false;
-	}
-	LVStreamRef mapStream = LVOpenFileStream( mapFile, LVOM_READ );
-	if ( mapStream.isNull() ) {
-		CRLog::error( "cannot open keymap file %s", defFile );
-		return false;
-	}
-	lString16 line;
-	CRPropRef props = LVCreatePropsContainer();
-	while ( readNextLine(defStream, line) ) {
-		lString16 name;
-		lString16 value;
-		if ( splitLine( line, name, value ) )  {
-			int key = decodeKey( value );
-			if ( key!=0 )
-				defs.set( name, key );
-		}
-	}
-	if ( !defs.length() ) {
-		CRLog::error("No definitions read from %s", defFile);
-		return false;
+    _table.clear();
+    LVHashTable<lString16, int> defs( 256 );
+    LVStreamRef defStream = LVOpenFileStream( defFile, LVOM_READ );
+    if ( defStream.isNull() ) {
+        CRLog::error( "cannot open keymap def file %s", defFile );
+        return false;
+    }
+    LVStreamRef mapStream = LVOpenFileStream( mapFile, LVOM_READ );
+    if ( mapStream.isNull() ) {
+        CRLog::error( "cannot open keymap file %s", defFile );
+        return false;
+    }
+    lString16 line;
+    CRPropRef props = LVCreatePropsContainer();
+    while ( readNextLine(defStream, line) ) {
+        lString16 name;
+        lString16 value;
+        if ( splitLine( line, lString16(L"="), name, value ) )  {
+            int key = decodeKey( value );
+            if ( key!=0 )
+                defs.set( name, key );
+            else
+                CRLog::error("Unknown key definition in line %s", UnicodeToUtf8(line).c_str() );
+        } else if ( !line.empty() )
+            CRLog::error("Invalid definition in line %s", UnicodeToUtf8(line).c_str() );
+    }
+    if ( !defs.length() ) {
+        CRLog::error("No definitions read from %s", defFile);
+        return false;
 
-	}
-	lString16 section;
-	CRGUIAcceleratorTableRef table( new CRGUIAcceleratorTable() );
-	bool eof = false;
-	do {
-		eof = !readNextLine(defStream, line);
-		if ( eof || (!line.empty() && line[0]=='[') ) {
-			// save old section
-			if ( !section.empty() ) {
-				if ( table->length() ) {
-					set( section, table );
-				}
-				section.clear();
-			}
-			// begin new section
-			if ( !eof ) {
-				table = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable() );
-				int endbracket = line.pos( lString16(L"]") );
-				if ( endbracket<=0 )
-					endbracket = line.length();
-				if ( endbracket >= 2 )
-					section = line.substr( 1, endbracket - 1 );
-				else
-					section.clear(); // wrong sectino
-			}
-		} else if ( !section.empty() ) {
-			lString16 name;
-			lString16 value;
-			if ( splitLine( line, name, value ) ) {
-				int flag = 0;
-				int key = 0;
-				int flagpos = name.pos( lString16(L",LONG") );
-				if ( flagpos<0 )
-					flagpos = name.pos( lString16(L", LONG") );
-				if ( flagpos>=0 ) {
-					flag = KEY_FLAG_LONG_PRESS;
-					name = name.substr( 0, flagpos );
-				}
-				key = decodeKey( name );
-				if ( key==0 ) {
-
-				}
-			}
-		}
-		
-	} while ( !eof );
-	/*
-	lString16 key, value;
-	while ( readNextDef( defStream, key, value ) ) {
-		int n = value.atoi();
-		defs.set( key, n );
-	}
-	while ( readNextDef( defStream, key, value ) ) {
-		int n = value.atoi();
-		defs.set( key, n );
-	}
-	*/
-	return false;
+    }
+    lString16 section;
+    CRGUIAcceleratorTableRef table( new CRGUIAcceleratorTable() );
+    bool eof = false;
+    do {
+        eof = !readNextLine(mapStream, line);
+        if ( eof || (!line.empty() && line[0]=='[') ) {
+            // eof or [section] found
+            // save old section
+            if ( !section.empty() ) {
+                if ( table->length() ) {
+                    _table.set( section, table );
+                }
+                section.clear();
+            }
+            // begin new section
+            if ( !eof ) {
+                table = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable() );
+                int endbracket = line.pos( lString16(L"]") );
+                if ( endbracket<=0 )
+                    endbracket = line.length();
+                if ( endbracket >= 2 )
+                    section = line.substr( 1, endbracket - 1 );
+                else
+                    section.clear(); // wrong sectino
+            }
+        } else if ( !section.empty() ) {
+            // read definition
+            lString16 name;
+            lString16 value;
+            if ( splitLine( line, lString16(L"="), name, value ) ) {
+                int flag = 0;
+                int key = 0;
+                lString16 keyName;
+                lString16 flagName;
+                splitLine( name, lString16(L","), keyName, flagName );
+                if ( !flagName.empty() ) {
+                    flag = decodeKey( flagName );
+                    if ( !flag )
+                        flag = defs.get( flagName );
+                }
+                // decoding key name
+                key = decodeKey( keyName );
+                if ( !key )
+                    key = defs.get( keyName );
+                if ( !key ) {
+                    CRLog::error( "unknown key definition in line %s", UnicodeToUtf8(line).c_str() );
+                    continue;
+                }
+                int cmd = 0;
+                int cmdParam = 0;
+                lString16 cmdName;
+                lString16 paramName;
+                splitLine( value, lString16(L","), cmdName, paramName );
+                if ( !paramName.empty() ) {
+                    flag = decodeKey( paramName );
+                    if ( !cmdParam )
+                        cmdParam = defs.get( paramName );
+                }
+                cmd = decodeKey( cmdName );
+                if ( !cmd )
+                    cmd = defs.get( cmdName );
+                if ( key != 0 && cmd != 0 ) {
+                    // found valid key cmd definition
+                    table->add( key, flag, cmd, cmdParam );
+                }
+            }
+        }
+    } while ( !eof );
+    return !empty();
 }
 

@@ -130,14 +130,80 @@ public:
 /// accelerator table reference
 typedef LVRef<CRGUIAcceleratorTable> CRGUIAcceleratorTableRef;
 
-class CRGUIAcceleratorTableList : public LVHashTable<lString16, CRGUIAcceleratorTableRef>
+/**
+ * \brief Container for list of named accelerator tables read from files
+ *
+ * File format:
+ * there are two files: 
+ *   1) definition file which has key code and command id definitions
+ *   2) keymap file which has several key->command tables
+ *
+ * definition file format:
+ *   # there may be comment lines started with # character
+ *   other lines should be in format
+ *   identifier=value
+ *   where identifier is alphanumeric identifier to name value
+ *   value is either decimal number, hex number with 0x prefix, or character in ''
+ * example: 
+ *
+ * # this is sample definition file
+ * XK_Return=0xFF01
+ * KEY_1='1'
+ * KEY_SPACE=32
+ * CMD_CLOSE=100
+ *
+ * keymap file format:
+ *   # there may be comment lines started with # character
+ *   file should be divided into sections using lines like
+ *   [sectionname]
+ *   other lines should be in format
+ *   key[,keyflags]=cmd[,cmdparam]
+ *   (keyflags and cmdparam are optional)
+ *   key, keyflags, cmd, and cmdparam should be either
+ *   identifier defined in definition file, decimal number, hex number with 0x prefix, or character in ''
+ *   it's better to avoid constants in this file, instead just place them to definition file and use by identifiers
+ *
+ * example:
+ *
+ * # this is sample keymap file
+ * [mainwindow]
+ * #this is keymap table for main window, accessible by name "mainwindow"
+ * XK_Return=CMD_SHOW_MENU, 0
+ * XK_Return,LONG=CMD_SHOW_MENU_SETTINGS
+ * XK_Down,LONG=CMD_MOVE_FORWARD, 10
+ * '1'=CMD_GO_TO_PAGE
+ *
+ */
+class CRGUIAcceleratorTableList
 {
+private:
+    LVHashTable<lString16, CRGUIAcceleratorTableRef> _table;
 public:
-	CRGUIAcceleratorTableList() : LVHashTable<lString16, CRGUIAcceleratorTableRef>( 32 )
-	{
-	}
-	~CRGUIAcceleratorTableList() { }
-	bool openFromFile( const char  * defFile, const char * mapFile );
+    /// remove all tables
+    void clear() { _table.clear(); }
+    /// add accelerator table definition from array
+    void add( const char * name, const int * defs )
+    {
+        add( lString16( name ), defs );
+    }
+    /// add accelerator table definition from array
+    void add( const lString16 & name, const int * defs )
+    {
+        _table.set( name, CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( defs ) ) );
+    }
+    /// find accelerator table by name
+    CRGUIAcceleratorTableRef get( const lString16 & name ) { return _table.get( name ); }
+    /// find accelerator table by name
+    CRGUIAcceleratorTableRef get( const char * name ) { return _table.get( lString16( name ) ); }
+    /// returns true if there are no no tables in list
+    bool empty() { return _table.length()==0; }
+    /// constructs empty list, then it should be filled from file using openFromFile()
+    CRGUIAcceleratorTableList() : _table( 32 )
+    {
+    }
+    ~CRGUIAcceleratorTableList() { }
+    /// reads definitions from files
+    bool openFromFile( const char  * defFile, const char * mapFile );
 };
 
 /// i18n support interface
@@ -233,7 +299,10 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         int _postedCommand;
         int _postedCommandParam;
         CRSkinRef _skin;
+        CRGUIAcceleratorTableList _accTables;
     public:
+        /// returns accelerator table list
+        virtual CRGUIAcceleratorTableList & getAccTables() { return _accTables; }
         /// return battery status
         virtual bool getBatteryStatus( int & percent, bool & charging )
         {

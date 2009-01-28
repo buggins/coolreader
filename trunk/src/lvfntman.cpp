@@ -1187,7 +1187,7 @@ public:
                     FT_Done_Face( face );
                     face = NULL;
                 }
-                continue;
+                break;
             }
             int num_faces = face->num_faces;
 
