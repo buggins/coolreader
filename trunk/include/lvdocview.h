@@ -226,6 +226,7 @@ enum {
 };
 
 class LVTocItem;
+class LVDocView;
 
 class LVTocItem
 {
@@ -233,14 +234,24 @@ private:
     LVTocItem *     _parent;
     int             _level;
     int             _index;
+    int             _page;
+    int             _percent;
     lString16       _name;
     ldomXPointer    _position;
     LVPtrVector<LVTocItem> _children;
     //====================================================
-    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _name(name), _position(pos) { }
+    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _position(pos) { }
     void addChild( LVTocItem * item ) { item->_level=_level+1; item->_parent=this; item->_index=_children.length(), _children.add(item); }
     //====================================================
+    void setPage( int n ) { _page = n; }
+    void setPercent( int n ) { _percent = n; }
 public:
+    /// update page numbers for items
+    void updatePageNumbers( LVDocView * docview );
+    /// get page number
+    int getPage() { return _page; }
+    /// get position percent * 100
+    int getPercent() { return _percent; }
     /// returns parent node pointer
     LVTocItem * getParent() const { return _parent; }
     /// returns node level (0==root node, 1==top level)
@@ -532,7 +543,7 @@ public:
     /// returns formatted page list
     LVRendPageList * getPageList() { return &m_pages; }
     /// returns pointer to TOC root node
-    LVTocItem * getToc() { return &m_toc; }
+    LVTocItem * getToc();
     /// set view mode (pages/scroll)
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)

@@ -328,6 +328,7 @@ void LVDocView::Clear()
         if (m_doc)
             delete m_doc;
         m_doc = NULL;
+        m_toc.clear();
         if (!m_stream.isNull())
             m_stream.Clear();
         if (!m_container.isNull())
@@ -555,6 +556,38 @@ int LVTocItem::getY()
 int LVTocItem::getPageNum( LVRendPageList & pages )
 {
     return getSectionPage( (ldomElement*)_position.getNode(), pages );
+}
+
+/// update page numbers for items
+void LVTocItem::updatePageNumbers( LVDocView * docview )
+{
+    if ( !_position.isNull() ) {
+        lvPoint p = _position.toPoint();
+        int y = p.y;
+        int h = docview->GetFullHeight();
+        int page = docview->getBookmarkPage( _position );
+        if ( page>=0 && page < docview->getPageCount() )
+            _page = page;
+        else
+            _page = -1;
+        if ( y >=0 && y < h && h > 0 )
+            _percent = (int) ( (lInt64)y * 10000 / h ); // % * 100
+        else
+            _percent = -1;
+    } else {
+        // unknown position
+        _page = -1;
+        _percent = -1;
+    }
+    for ( int i = 0; i<getChildCount(); i++ ) {
+        getChild(i)->updatePageNumbers( docview );
+    }
+}
+
+LVTocItem * LVDocView::getToc()
+{
+    m_toc.updatePageNumbers( this );
+    return &m_toc;
 }
 
 void LVDocView::makeToc()
