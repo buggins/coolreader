@@ -135,6 +135,12 @@ class CRTOCDialog : public CRNumberEditDialog
         LVPtrVector<LVTocItem, false> _items;
         LVTocItem * _toc;
         LVFontRef _font;
+		lvRect _inputRect;
+		lvRect _tocRect;
+		lvRect _scrollRect;
+		int _itemHeight;
+		int _topItem;
+		int _pageItems;
         //CRWindowSkinRef _inputSkin;
         virtual void draw()
         {
@@ -145,14 +151,16 @@ class CRTOCDialog : public CRNumberEditDialog
             lvRect titleRect = _skin->getTitleRect( _rect );
             titleSkin->draw( *drawbuf, titleRect );
             titleSkin->drawText( *drawbuf, titleRect, _title );
-            lvRect clientRect = _skin->getClientRect( _rect );
-            lvRect inputRect = clientRect;
-            inputRect.top = inputRect.bottom - 40;
-            lvRect tocRect = clientRect;
-            tocRect.bottom = inputRect.top;
-            clientSkin->draw( *drawbuf, inputRect );
-            _skin->drawText( *drawbuf, inputRect, lString16("Enter page number to go: ") + _value+L"_" );
-            clientSkin->draw( *drawbuf, tocRect );
+			// draw toc
+            clientSkin->draw( *drawbuf, _tocRect );
+			// draw input area
+            clientSkin->draw( *drawbuf, _inputRect );
+            clientSkin->drawText( *drawbuf, _inputRect, lString16("Enter page number to go: ") + _value+L"_" );
+			if ( !_scrollRect.isEmpty() ) {
+				// draw scrollbar
+				CRScrollSkinRef sskin = _skin->getScrollSkin();
+				sskin->drawScroll( *drawbuf, _scrollRect, false, _topItem, _items.length(), _pageItems );
+			}
         }
         void addItem( LVTocItem * item )
         {
@@ -169,18 +177,29 @@ class CRTOCDialog : public CRNumberEditDialog
             addItem( toc );
             _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
             CRRectSkinRef clientSkin = _skin->getClientSkin();
+			CRScrollSkinRef sskin = _skin->getScrollSkin();
             _font = clientSkin->getFont();
             _fullscreen = true;
             _rect = _wm->getScreen()->getRect();
-            lvPoint clientSize( 250, _skin->getFont()->getHeight() + 24 );
-            lvPoint sz = _skin->getWindowSize( clientSize );
-            lvRect rc = _wm->getScreen()->getRect();
-            int x = (rc.width() - sz.x) / 2;
-            int y = (rc.height() - sz.y) / 2;
-            _rect.left = x;
-            _rect.top = y;
-            _rect.right = x + sz.x;
-            _rect.bottom = y + sz.y;
+            lvRect clientRect = _skin->getClientRect( _rect );
+            _inputRect = clientRect;
+			_inputRect.top = _inputRect.bottom - sskin->getMinSize().y;
+            _tocRect = clientRect;
+            _tocRect.bottom = _inputRect.top;
+			_itemHeight = _font->getHeight();
+			_scrollRect = _tocRect;
+			_topItem = 0;
+			_pageItems = _tocRect.height() / _itemHeight;
+			if ( _items.length() > _pageItems ) {
+				// show scroll
+				_scrollRect.top = _scrollRect.bottom - 40;
+				_tocRect.bottom = _scrollRect.top;
+				_pageItems = _tocRect.height() / _itemHeight;
+			} else {
+				// no scroll
+				_scrollRect.top = _scrollRect.bottom;
+			}
+
         }
         virtual ~CRTOCDialog()
         {
