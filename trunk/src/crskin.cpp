@@ -915,7 +915,7 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", SKIN_HALIGN_LEFT) );
     res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", SKIN_VALIGN_CENTER) );
 
-    if ( res->getMinSize().x > 0 || res->getMinSize().y > 0 || !res->getBackgroundImage().isNull() > 0 || res->getBackgroundColor()!=0xFFFFFF )
+    if ( res->getMinSize().x > 0 || res->getMinSize().y > 0 || !res->getBackgroundImage().isNull() || res->getBackgroundColor()!=0xFFFFFF )
         flg = true;
 
     if ( !flg ) {
