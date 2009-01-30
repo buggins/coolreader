@@ -55,7 +55,7 @@ class CRNumberEditDialog : public CRGUIWindowBase
         CRNumberEditDialog( CRGUIWindowManager * wm, lString16 title, lString16 initialValue, int resultCmd, int minvalue, int maxvalue )
         : CRGUIWindowBase( wm ), _title(title), _value(initialValue), _minvalue(minvalue), _maxvalue(maxvalue), _resultCmd(resultCmd)
         {
-            _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
+            _skin = _wm->getSkin()->getWindowSkin(L"#toc");
             _fullscreen = false;
             lvPoint clientSize( 250, _skin->getFont()->getHeight() + 24 );
             lvPoint sz = _skin->getWindowSize( clientSize );
@@ -219,7 +219,7 @@ class CRTOCDialog : public CRNumberEditDialog
         , _toc(toc)
         {
             addItem( toc );
-            _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
+            _skin = _wm->getSkin()->getWindowSkin(L"#toc");
             CRRectSkinRef clientSkin = _skin->getClientSkin();
             lvRect borders = clientSkin->getBorderWidths();
             CRScrollSkinRef sskin = _skin->getScrollSkin();
