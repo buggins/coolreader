@@ -24,6 +24,9 @@
 #include "../include/lvstyles.h"
 #include "../include/lvthread.h"
 
+// define to filter out all fonts except .ttf
+#define LOAD_TTF_FONTS_ONLY
+
 #if (USE_FREETYPE==1)
 
 //#include <ft2build.h>
@@ -1153,6 +1156,10 @@ public:
 
     virtual bool RegisterFont( lString8 name )
     {
+#ifdef LOAD_TTF_FONTS_ONLY
+        if ( name.pos( lString8(".ttf") ) < 0 && name.pos( lString8(".TTF") ) < 0 )
+            return false; // load ttf fonts only
+#endif
         lString8 fname = makeFontFileName( name );
     #if (DEBUG_FONT_MAN==1)
         if ( _log ) {
