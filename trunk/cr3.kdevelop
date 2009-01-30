@@ -58,7 +58,7 @@
     </make>
     <run>
       <mainprogram>src/cr3</mainprogram>
-      <programargs>/home/lve/src/test/example.fb2</programargs>
+      <programargs>/home/lve/src/test/kiz.fb2.zip</programargs>
       <globaldebugarguments>/home/lve/src/cr3ewl/test/automake.htm</globaldebugarguments>
       <globalcwd>/home/lve/src/cr3ewl/debug</globalcwd>
       <useglobalprogram>true</useglobalprogram>
