@@ -735,3 +735,33 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
     return !empty();
 }
 
+static int inv_control_table[] = {
+	// old cmd, new cmd, param multiplier
+	DCMD_LINEUP, DCMD_LINEDOWN, 1,
+	DCMD_LINEDOWN, DCMD_LINEUP, 1,
+    DCMD_PAGEUP, DCMD_PAGEDOWN, 1,
+    DCMD_PAGEDOWN, DCMD_PAGEUP, 1,
+	0, 0, 0, 0,
+};
+
+/// returns true if command is processed
+bool onCommand( int command, int params )
+{
+    if ( command >= LVDOCVIEW_COMMANDS_START && command <= LVDOCVIEW_COMMANDS_END ) {
+		cr_rotate_angle_t a = _docview->GetRotateAngle();
+		if ( a==CR_ROTATE_ANGLE_90 || a==CR_ROTATE_ANGLE_180 ) {
+			// inverse controls
+			for ( int i=0; inv_control_table[i]; i+=3 ) {
+				if ( command == inv_control_table[i] ) {
+					command = inv_control_table[i+1];
+					params *= inv_control_table[i+2];
+					break;
+				}
+			}
+		}
+        _docview->doCommand( (LVDocCmd)command, params );
+        _dirty = true;
+        return true;
+    }
+    return false;
+}

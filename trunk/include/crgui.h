@@ -767,16 +767,9 @@ class CRDocViewWindow : public CRGUIWindowBase
         virtual void setRect( const lvRect & rc );
 
         /// returns true if command is processed
-        virtual bool onCommand( int command, int params )
-        {
-            if ( command >= LVDOCVIEW_COMMANDS_START && command <= LVDOCVIEW_COMMANDS_END ) {
-                _docview->doCommand( (LVDocCmd)command, params );
-                _dirty = true;
-                return true;
-            }
-            return false;
-        }
-        /// returns true if window is changed but now drawn
+        virtual bool onCommand( int command, int params );
+
+		/// returns true if window is changed but now drawn
         virtual bool isDirty()
         {
             return _dirty || !_docview->isPageImageReady( 0 );

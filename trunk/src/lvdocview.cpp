@@ -3035,6 +3035,26 @@ int LVDocView::getPrevPageOffset()
     }
 }
 
+/// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
+bool LVDocView::moveByChapter( int delta )
+{
+	//TODO:
+	return false;
+}
+
+/// saves current page bookmark under numbered shortcut
+void LVDocView::saveCurrentPageBookmark( int number )
+{
+	// TODO:
+}
+
+/// restores page using bookmark by numbered shortcut
+bool LVDocView::goToPageBookmark( int number )
+{
+	// TODO:
+	return false;
+}
+
 // execute command
 void LVDocView::doCommand( LVDocCmd cmd, int param )
 {
@@ -3148,6 +3168,23 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
                 setTextFormatOptions( txt_format_auto );
         }
         break;
+	case DCMD_BOOKMARK_SAVE_N:
+		{
+			// save current page bookmark under spicified number
+			goToPageShortcutBookmark( param );
+		}
+		break;
+	case DCMD_BOOKMARK_GO_N:
+		{
+			// go to bookmark with specified number
+			saveCurrentPageShortcutBookmark( param );
+		}
+		break;
+	case DCMD_MOVE_BY_CHAPTER:
+		{
+			moveByChapter( param );
+		}
+		break;
     default:
         // DO NOTHING
         break;
