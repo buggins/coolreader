@@ -2114,16 +2114,19 @@ void SaveBase64Objects( ldomNode * node )
 }
 #endif
 
+/// returns pointer to bookmark/last position containter of currently opened file
+CRFileHistRecord * LVDocView::getCurrentFileHistRecord()
+{
+    if ( m_filename.empty() )
+        return NULL;
+    return m_hist.savePosition( m_filename, m_filesize,
+        getTitle(), getAuthors(), getSeries(), getBookmark() );
+}
+
 /// save last file position
 void LVDocView::savePosition()
 {
-    if ( m_filename.empty() )
-        return;
-    //lString16 titleText;
-    //lString16 posText;
-    //getBookmarkPosText( getBookmark(), titleText, posText );
-    m_hist.savePosition( m_filename, m_filesize,
-        getTitle(), getAuthors(), getSeries(), getBookmark() );
+	getCurrentFileHistRecord();
 }
 
 /// restore last file position
@@ -3043,16 +3046,26 @@ bool LVDocView::moveByChapter( int delta )
 }
 
 /// saves current page bookmark under numbered shortcut
-void LVDocView::saveCurrentPageBookmark( int number )
+void LVDocView::saveCurrentPageShortcutBookmark( int number )
 {
-	// TODO:
+	CRFileHistRecord * rec = getCurrentFileHistRecord();
+	if ( !rec )
+		return;
+	rec->setShortcutBookmark( number, getBookmark() );
 }
 
 /// restores page using bookmark by numbered shortcut
-bool LVDocView::goToPageBookmark( int number )
+bool LVDocView::goToPageShortcutBookmark( int number )
 {
-	// TODO:
-	return false;
+	CRFileHistRecord * rec = getCurrentFileHistRecord();
+	if ( !rec )
+		return false;
+	lString16 pos = rec->getShortcutBookmark( number );
+	ldomXPointer p = m_doc->createXPointer( pos );
+	if ( p.isNull() )
+		return false;
+	goToBookmark( p );
+	return true;
 }
 
 // execute command

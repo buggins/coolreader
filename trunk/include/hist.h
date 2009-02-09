@@ -28,6 +28,7 @@ private:
     lString16 _endpos;
     int       _percent;
     int       _type;
+	int       _shortcut;
     lString16 _postext;
     lString16 _titletext;
     lString16 _commenttext;
@@ -38,6 +39,7 @@ public:
     , _endpos(v._endpos)
     , _percent(v._percent)
     , _type(v._type)
+	, _shortcut(v._shortcut)
     , _postext(v._postext)
     , _titletext(v._titletext)
     , _commenttext(v._commenttext)
@@ -50,19 +52,21 @@ public:
         _endpos = v._endpos;
         _percent = v._percent;
         _type = v._type;
+		_shortcut = v._shortcut;
         _postext = v._postext;
         _titletext = v._titletext;
         _commenttext = v._commenttext;
         _timestamp = v._timestamp;
         return *this;
     }
-    CRBookmark() : _percent(0), _type(0), _timestamp(0) { }
+    CRBookmark() : _percent(0), _type(0), _shortcut(0), _timestamp(0) { }
     CRBookmark ( ldomXPointer ptr );
     lString16 getStartPos() { return _startpos; }
     lString16 getEndPos() { return _endpos; }
     lString16 getPosText() { return _postext; }
     lString16 getTitleText() { return _titletext; }
     lString16 getCommentText() { return _commenttext; }
+	int getShortcut() { return _shortcut; }
     int getType() { return _type; }
     int getPercent() { return _percent; }
     time_t getTimestamp() { return _timestamp; }
@@ -72,6 +76,7 @@ public:
     void setTitleText(const lString16 & s ) { _titletext = s; }
     void setCommentText(const lString16 & s ) { _commenttext = s; }
     void setType( int n ) { _type = n; }
+	void setShortcut( int n ) { _shortcut = n; }
     void setPercent( int n ) { _percent = n; }
     void setTimestamp( time_t t ) { _timestamp = t; }
 };
@@ -87,6 +92,8 @@ private:
     LVPtrVector<CRBookmark> _bookmarks;
     CRBookmark _lastpos;
 public:
+	void setShortcutBookmark( int shortcut, ldomXPointer ptr );
+	lString16 getShortcutBookmark( int shortcut );
     time_t getLastTime() { return _lastpos.getTimestamp(); }
     lString16 getLastTimeString( bool longFormat=false );
     void setLastTime( time_t t ) { _lastpos.setTimestamp(t); }
@@ -136,7 +143,7 @@ public:
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
     bool loadFromStream( LVStreamRef stream );
     bool saveToStream( LVStream * stream );
-    void savePosition( lString16 fpathname, size_t sz, 
+    CRFileHistRecord * savePosition( lString16 fpathname, size_t sz, 
         const lString16 & title,
         const lString16 & author,
         const lString16 & series,

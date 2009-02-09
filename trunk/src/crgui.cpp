@@ -745,7 +745,7 @@ static int inv_control_table[] = {
 };
 
 /// returns true if command is processed
-bool onCommand( int command, int params )
+bool CRDocViewWindow::onCommand( int command, int params )
 {
     if ( command >= LVDOCVIEW_COMMANDS_START && command <= LVDOCVIEW_COMMANDS_END ) {
 		cr_rotate_angle_t a = _docview->GetRotateAngle();

@@ -414,6 +414,8 @@ protected:
     void checkPos();
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
+	/// returns pointer to bookmark/last position containter of currently opened file
+	CRFileHistRecord * getCurrentFileHistRecord();
 public:
 	/// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
 	bool moveByChapter( int delta );
