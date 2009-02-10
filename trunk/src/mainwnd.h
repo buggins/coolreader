@@ -23,6 +23,11 @@
 #endif
 
 
+#ifdef WITH_DICT
+#include "dictdlg.h"
+#endif
+
+
 #ifdef _WIN32
 #define XK_Return   0xFF01
 #define XK_Up       0xFF02
@@ -75,6 +80,7 @@ protected:
     lString8  _css;
     TEncoding _t9encoding;
     lString16 _dictConfig;
+	LVRef<CRDictionary> _dict;
 public:
     virtual void flush(); // override
     bool loadDocument( lString16 filename );

@@ -147,12 +147,18 @@ public:
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+			if ( !instance )
+				break;
             processPostedEvents();
             if ( !getWindowCount() )
                 stop = true;
         }
         return 0;
     }
+	virtual ~CRWin32WindowManager()
+	{
+		instance = NULL;
+	}
 };
 
 CRWin32WindowManager * CRWin32WindowManager::instance = NULL;
@@ -181,6 +187,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_VSCROLL:
             break;
         case WM_SIZE:
+			if ( CRWin32WindowManager::instance )
             {
                 if (wParam!=SIZE_MINIMIZED)
                 {
@@ -205,6 +212,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_CHAR:
+			if ( CRWin32WindowManager::instance )
             {
                 if ( wParam>=' ' && wParam<=127 ) {
                     needUpdate = CRWin32WindowManager::instance->onKeyPressed( wParam, 0 );
@@ -212,6 +220,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_KEYDOWN:
+			if ( CRWin32WindowManager::instance )
             {
                 int code = 0;
 				int shift = 0;
@@ -271,7 +280,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_PAINT:
             {
-                ((CRWin32Screen*)CRWin32WindowManager::instance->getScreen())->paint();
+				if ( CRWin32WindowManager::instance )
+					((CRWin32Screen*)CRWin32WindowManager::instance->getScreen())->paint();
             }
             break;
         case WM_DESTROY:

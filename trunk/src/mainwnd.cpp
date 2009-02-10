@@ -1299,9 +1299,22 @@ bool V3DocViewWin::onCommand( int command, int params )
         showSettingsMenu();
         return true;
 #ifdef WITH_DICT
-    case MCMD_DICT:
+
+#ifdef _WIN32
+#define DICTD_CONF "C:\\dict\\"
+#else
+#ifdef CR_USE_JINKE
+#define DICTD_CONF "/root/crengine/dict/"
+#else
+#define DICTD_CONF "/media/sd/dict"
+#endif
+#endif
+
+	case MCMD_DICT:
         CRLog::info("MCMD_DICT activated\n");
-        activate_dict( _wm, this, _t9encoding );
+		if ( _dict.isNull() )
+			_dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
+        activate_dict( _wm, this, _t9encoding, *_dict );
         return true;
 #endif
     case MCMD_GO_PAGE_APPLY:
