@@ -329,6 +329,7 @@ void CRFileHistRecord::setShortcutBookmark( int shortcut, ldomXPointer ptr )
 	if ( ptr.isNull() )
 		return;
 	CRBookmark * bmk = new CRBookmark( ptr );
+    bmk->setType( bmkt_pos );
     bmk->setShortcut( shortcut );
 	for ( int i=0; i<_bookmarks.length(); i++ ) {
 		if ( _bookmarks[i]->getShortcut() == shortcut ) {
@@ -342,7 +343,7 @@ void CRFileHistRecord::setShortcutBookmark( int shortcut, ldomXPointer ptr )
 lString16 CRFileHistRecord::getShortcutBookmark( int shortcut )
 {
 	for ( int i=0; i<_bookmarks.length(); i++ ) {
-		if ( _bookmarks[i]->getShortcut() == shortcut )
+		if ( _bookmarks[i]->getShortcut() == shortcut && _bookmarks[i]->getType() == bmkt_pos )
 			return _bookmarks[i]->getStartPos();
 	}
 	return lString16();

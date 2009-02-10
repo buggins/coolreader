@@ -612,6 +612,8 @@ static int decodeKey( lString16 name )
     lChar16 ch0 = name[0];
     if ( ch0 >= '0' && ch0 <= '9' )
         return name.atoi();
+    if ( ch0=='-' && name.length()>=2 && name[1] >= '0' && name[1] <= '9' )
+        return name.atoi();
     if ( name.length()==3 && name[0]=='\'' && name[2]=='\'' )
         key = name[1];
     if ( name.length() == 1 )

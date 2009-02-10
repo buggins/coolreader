@@ -3058,8 +3058,28 @@ bool LVDocView::getFlatToc( LVPtrVector<LVTocItem, false> & items )
 /// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
 bool LVDocView::moveByChapter( int delta )
 {
-	//TODO:
-	return false;
+    /// returns pointer to TOC root node
+    LVPtrVector<LVTocItem, false> items;
+    if ( !getFlatToc( items ) )
+        return false;
+    int cp = getCurPage();
+    int prevPage = -1;
+    int nextPage = -1;
+    for ( int i=0; i<items.length(); i++ ) {
+        LVTocItem * item = items[i];
+        int p = item->getPage();
+        if ( p < cp && (prevPage == -1 || prevPage < p) )
+            prevPage = p;
+        if ( p > cp && (nextPage == -1 || nextPage > p) )
+            nextPage = p;
+    }
+    if ( prevPage<0 )
+        prevPage = 0;
+    if ( nextPage<0 )
+        nextPage = getPageCount()-1;
+    int page = delta<0 ? prevPage : nextPage;
+    goToPage( page );
+    return true;
 }
 
 /// saves current page bookmark under numbered shortcut
