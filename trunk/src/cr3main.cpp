@@ -10,10 +10,104 @@
 #include <crtrace.h>
 
 #include "cr3main.h"
+#include "mainwnd.h"
 
 #if (USE_FONTCONFIG==1)
 #include <fontconfig/fontconfig.h>
 #endif
+
+bool loadKeymaps( CRGUIWindowManager & winman, const char * locations[] )
+{
+	bool res = false;
+	for ( int i=0; locations[i]; i++ ) {
+		lString8 location( locations[i] );
+#ifdef _WIN32
+		location << "\\";
+#else
+		location << "/";
+#endif
+		lString8 def = location + "keydefs.ini";
+		lString8 map = location + "keymaps.ini";
+		if ( winman.getAccTables().openFromFile(  def.c_str(), map.c_str() ) ) {
+			res = true;
+			break;
+		}
+	}
+    if ( winman.getAccTables().empty() ) {
+        CRLog::error("keymap files keydefs.ini and keymaps.ini were not found! please place them to ~/.crengine or /etc/cr3");
+    }
+    static const int menu_acc_table[] = {
+        XK_Escape, 0, MCMD_CANCEL, 0,
+        XK_Return, 0, MCMD_OK, 0, 
+        XK_Return, 1, MCMD_OK, 0, 
+        '0', 0, MCMD_SCROLL_FORWARD, 0,
+        XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
+        '9', 0, MCMD_SCROLL_BACK, 0,
+        XK_Up, 0, MCMD_SCROLL_BACK, 0,
+        '0', 1, MCMD_LONG_FORWARD, 0,
+        XK_Down, 1, MCMD_LONG_FORWARD, 0,
+        '9', 1, MCMD_LONG_BACK, 0,
+        XK_Up, 1, MCMD_LONG_BACK, 0,
+        '1', 0, MCMD_SELECT_1, 0,
+        '2', 0, MCMD_SELECT_2, 0,
+        '3', 0, MCMD_SELECT_3, 0,
+        '4', 0, MCMD_SELECT_4, 0,
+        '5', 0, MCMD_SELECT_5, 0,
+        '6', 0, MCMD_SELECT_6, 0,
+        '7', 0, MCMD_SELECT_7, 0,
+        '8', 0, MCMD_SELECT_8, 0,
+        0
+    };
+    if ( winman.getAccTables().get("menu").isNull() )
+        winman.getAccTables().add("menu", menu_acc_table );
+    static const int acc_table_dialog[] = {
+        XK_Escape, 0, MCMD_CANCEL, 0,
+        XK_Return, 1, MCMD_OK, 0, 
+        XK_Return, 0, MCMD_OK, 0, 
+        XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
+        XK_Up, 0, MCMD_SCROLL_BACK, 0,
+        '0', 0, MCMD_SELECT_0, 0,
+        '1', 0, MCMD_SELECT_1, 0,
+        '2', 0, MCMD_SELECT_2, 0,
+        '3', 0, MCMD_SELECT_3, 0,
+        '4', 0, MCMD_SELECT_4, 0,
+        '5', 0, MCMD_SELECT_5, 0,
+        '6', 0, MCMD_SELECT_6, 0,
+        '7', 0, MCMD_SELECT_7, 0,
+        '8', 0, MCMD_SELECT_8, 0,
+        '9', 0, MCMD_SELECT_9, 0,
+        0
+    };
+    if ( winman.getAccTables().get("dialog").isNull() )
+        winman.getAccTables().add("dialog", acc_table_dialog );
+    static const int default_acc_table[] = {
+        '6', 0, MCMD_GO_LINK, 0,
+        '8', 0, MCMD_SETTINGS_FONTSIZE, 0,
+        '8', 1, MCMD_SETTINGS_ORIENTATION, 0,
+        XK_Escape, 0, MCMD_QUIT, 0,
+        XK_Return, 0, MCMD_MAIN_MENU, 0,
+        XK_Return, 1, MCMD_SETTINGS, 0,
+        '0', 0, DCMD_PAGEDOWN, 0,
+        XK_Up, 0, DCMD_PAGEDOWN, 0,
+        '0', KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+        XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+        XK_Down, 0, DCMD_PAGEUP, 0,
+        XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
+        '9', 0, DCMD_PAGEUP, 0,
+        '9', KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
+#ifdef WITH_DICT
+        '2', 0, MCMD_DICT, 0,
+#endif
+        '+', 0, DCMD_ZOOM_IN, 0,
+        '=', 0, DCMD_ZOOM_IN, 0,
+        '-', 0, DCMD_ZOOM_OUT, 0,
+        '_', 0, DCMD_ZOOM_OUT, 0,
+        0
+    };
+    if ( winman.getAccTables().get("main").isNull() )
+        winman.getAccTables().add("main", default_acc_table );
+	return res;
+}
 
 bool initHyph(const char * fname)
 {

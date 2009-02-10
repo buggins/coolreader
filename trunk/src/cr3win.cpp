@@ -311,6 +311,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     lChar16 exe_fn16[MAX_PATH+1];
     GetModuleFileNameW( NULL, exe_fn16, MAX_PATH );
 	lString16 exedir = LVExtractPath(lString16(exe_fn16));	
+	lString8 exedir8 = UnicodeToUtf8( exedir );
 
 	lChar16 sysdir[MAX_PATH+1];
 	GetWindowsDirectoryW(sysdir, MAX_PATH);
@@ -343,7 +344,15 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     MyRegisterClass(hInstance);
 
     {
-        CRWin32WindowManager winman(500, 700);
+
+		CRWin32WindowManager winman(500, 700);
+
+		const char * keymap_locations [] = {
+			exedir8.c_str(),
+			NULL,
+		};
+		loadKeymaps( winman, keymap_locations );
+		
 
         V3DocViewWin * main_win = new V3DocViewWin( &winman, LVExtractPath(LocalToUnicode(lString8(exe_fn))) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
