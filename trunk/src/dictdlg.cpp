@@ -313,9 +313,11 @@ public:
         return false;
     }
 
-    const lString16 & get()
+    const lString16 get()
     {
-        return candidates_[current_]->getWord();
+        if ( current_ >= 0 && current_ < candidates_.length() )
+            return candidates_[current_]->getWord();
+        return lString16();
     }
 };
 
@@ -446,6 +448,10 @@ public:
 					lString8 translated;
 					lString8 output;
 					lString16 src = selector_.get();
+                    if ( src.empty() ) {
+                        close();
+                        return true;
+                    }
 					output = dict_.translate( UnicodeToUtf8(src) );
 					/*
 					if(translated.length() == 0) {

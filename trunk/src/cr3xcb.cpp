@@ -59,7 +59,9 @@ class CRXCBScreen : public CRGUIScreenBase
         unsigned int *pal;
         virtual void update( const lvRect & rc, bool full )
         {
-            printf("update screen, bpp=%d width=%d, height=%d\n", (int)im->bpp,im->width,im->height);
+            printf("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d\n", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
+            if ( rc.isEmpty() )
+                return;
             int i;
             i = xcb_image_shm_get (connection, window,
                     im, shminfo,
@@ -133,7 +135,7 @@ class CRXCBScreen : public CRGUIScreenBase
 
             xcb_image_shm_put (connection, window, gc,
                     im, shminfo,
-                    0, 0, 0, 0, _width, _height, 0);
+                    rc.left, rc.top, rc.left, rc.top, rc.width(), rc.height(), 0);
             xcb_flush(connection);
         }
     public:
@@ -352,6 +354,7 @@ public:
             case XCB_EXPOSE:
                 // draw buffer
                 {
+                    printf("EXPOSE\n");
                     update(true);
                 }
                 break;
@@ -383,7 +386,7 @@ public:
             free (event);
 
             if ( processPostedEvents() || needUpdate )
-                update(true);
+                update(false);
             // stop loop if all windows are closed
             if ( !getWindowCount() )
                 stop = true;
@@ -464,6 +467,83 @@ int main(int argc, char **argv)
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
         lString16 homecrengine = home + L"/.crengine/";
 
+        if ( !winman.getAccTables().openFromFile(  UnicodeToUtf8(homecrengine + L"/keydefs.ini").c_str(), 
+                    UnicodeToUtf8(homecrengine + L"/keymaps.ini").c_str() ) )
+            winman.getAccTables().openFromFile(  "/etc/cr3/keydefs.ini", "/etc/cr3/keymaps.ini" );
+        if ( winman.getAccTables().empty() ) {
+            CRLog::error("keymap files keydefs.ini and keymaps.ini were not found! please place them to ~/.crengine or /etc/cr3");
+        }
+        static const int menu_acc_table[] = {
+            XK_Escape, 0, MCMD_CANCEL, 0,
+            XK_Return, 0, MCMD_OK, 0, 
+            XK_Return, 1, MCMD_OK, 0, 
+            '0', 0, MCMD_SCROLL_FORWARD, 0,
+            XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
+            '9', 0, MCMD_SCROLL_BACK, 0,
+            XK_Up, 0, MCMD_SCROLL_BACK, 0,
+            '0', 1, MCMD_LONG_FORWARD, 0,
+            XK_Down, 1, MCMD_LONG_FORWARD, 0,
+            '9', 1, MCMD_LONG_BACK, 0,
+            XK_Up, 1, MCMD_LONG_BACK, 0,
+            '1', 0, MCMD_SELECT_1, 0,
+            '2', 0, MCMD_SELECT_2, 0,
+            '3', 0, MCMD_SELECT_3, 0,
+            '4', 0, MCMD_SELECT_4, 0,
+            '5', 0, MCMD_SELECT_5, 0,
+            '6', 0, MCMD_SELECT_6, 0,
+            '7', 0, MCMD_SELECT_7, 0,
+            '8', 0, MCMD_SELECT_8, 0,
+            0
+        };
+        if ( winman.getAccTables().get("menu").isNull() )
+            winman.getAccTables().add("menu", menu_acc_table );
+        static const int acc_table_dialog[] = {
+            XK_Escape, 0, MCMD_CANCEL, 0,
+            XK_Return, 1, MCMD_OK, 0, 
+            XK_Return, 0, MCMD_OK, 0, 
+            XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
+            XK_Up, 0, MCMD_SCROLL_BACK, 0,
+            '0', 0, MCMD_SELECT_0, 0,
+            '1', 0, MCMD_SELECT_1, 0,
+            '2', 0, MCMD_SELECT_2, 0,
+            '3', 0, MCMD_SELECT_3, 0,
+            '4', 0, MCMD_SELECT_4, 0,
+            '5', 0, MCMD_SELECT_5, 0,
+            '6', 0, MCMD_SELECT_6, 0,
+            '7', 0, MCMD_SELECT_7, 0,
+            '8', 0, MCMD_SELECT_8, 0,
+            '9', 0, MCMD_SELECT_9, 0,
+            0
+        };
+        if ( winman.getAccTables().get("dialog").isNull() )
+            winman.getAccTables().add("dialog", acc_table_dialog );
+        static const int default_acc_table[] = {
+            '6', 0, MCMD_GO_LINK, 0,
+            '8', 0, MCMD_SETTINGS_FONTSIZE, 0,
+            '8', 1, MCMD_SETTINGS_ORIENTATION, 0,
+            XK_Escape, 0, MCMD_QUIT, 0,
+            XK_Return, 0, MCMD_MAIN_MENU, 0,
+            XK_Return, 1, MCMD_SETTINGS, 0,
+            '0', 0, DCMD_PAGEDOWN, 0,
+            XK_Up, 0, DCMD_PAGEDOWN, 0,
+            '0', KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+            XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
+            XK_Down, 0, DCMD_PAGEUP, 0,
+            XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
+            '9', 0, DCMD_PAGEUP, 0,
+            '9', KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
+    #ifdef WITH_DICT
+            '2', 0, MCMD_DICT, 0,
+    #endif
+            '+', 0, DCMD_ZOOM_IN, 0,
+            '=', 0, DCMD_ZOOM_IN, 0,
+            '-', 0, DCMD_ZOOM_OUT, 0,
+            '_', 0, DCMD_ZOOM_OUT, 0,
+            0
+        };
+        if ( winman.getAccTables().get("main").isNull() )
+            winman.getAccTables().add("main", default_acc_table );
+
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
@@ -477,12 +557,6 @@ int main(int argc, char **argv)
             main_win->loadSkin( lString16( L"/usr/share/crengine/skin" ) );
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
             main_win->loadDictConfig( lString16( L"/usr/share/crengine/dict/dictd.conf" ) );
-        if ( !winman.getAccTables().openFromFile(  UnicodeToUtf8(homecrengine + L"/keydefs.ini").c_str(), 
-                    UnicodeToUtf8(homecrengine + L"/keymaps.ini").c_str() ) )
-            winman.getAccTables().openFromFile(  "/etc/cr3/keydefs.ini", "/etc/cr3/keymaps.ini" );
-        if ( winman.getAccTables().empty() ) {
-            CRLog::error("keymap files keydefs.ini and keymaps.ini were not found! please place them to ~/.crengine or /etc/cr3");
-        }
 
     #define SEPARATE_INI_FILES
 

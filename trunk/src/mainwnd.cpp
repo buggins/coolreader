@@ -133,7 +133,6 @@ class CRTOCDialog : public CRNumberEditDialog
 {
     protected:
         LVPtrVector<LVTocItem, false> _items;
-        LVTocItem * _toc;
         LVFontRef _font;
         lvRect _inputRect;
         lvRect _tocRect;
@@ -205,20 +204,11 @@ class CRTOCDialog : public CRNumberEditDialog
                 sskin->drawScroll( *drawbuf, _scrollRect, false, _topItem, _items.length(), _pageItems );
             }
         }
-        void addItem( LVTocItem * item )
-        {
-            if ( item->getLevel()>0 )
-                _items.add( item );
-            for ( int i=0; i<item->getChildCount(); i++ ) {
-                addItem( item->getChild( i ) );
-            }
-        }
     public:
-        CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCmd, int pageCount, LVTocItem * toc )
+        CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCmd, int pageCount, LVDocView * docview )
         : CRNumberEditDialog( wm, title, lString16(), resultCmd, 1, pageCount )
-        , _toc(toc)
         {
-            addItem( toc );
+            docview->getFlatToc( _items );
             _skin = _wm->getSkin()->getWindowSkin(L"#toc");
             CRRectSkinRef clientSkin = _skin->getClientSkin();
             lvRect borders = clientSkin->getBorderWidths();
@@ -808,54 +798,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     lString8 s8 = UnicodeToLocal( skinfile );
     CRLog::debug("Skin file is %s", s8.c_str() );
     loadSkin( skinfile );
-    // TODO: move accelerator table outside
-    static const int menu_acc_table[] = {
-        XK_Escape, 0, MCMD_CANCEL, 0,
-        XK_Return, 0, MCMD_OK, 0, 
-        XK_Return, 1, MCMD_OK, 0, 
-        '0', 0, MCMD_SCROLL_FORWARD, 0,
-        XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
-        '9', 0, MCMD_SCROLL_BACK, 0,
-        XK_Up, 0, MCMD_SCROLL_BACK, 0,
-        '0', 1, MCMD_LONG_FORWARD, 0,
-        XK_Down, 1, MCMD_LONG_FORWARD, 0,
-        '9', 1, MCMD_LONG_BACK, 0,
-        XK_Up, 1, MCMD_LONG_BACK, 0,
-        '1', 0, MCMD_SELECT_1, 0,
-        '2', 0, MCMD_SELECT_2, 0,
-        '3', 0, MCMD_SELECT_3, 0,
-        '4', 0, MCMD_SELECT_4, 0,
-        '5', 0, MCMD_SELECT_5, 0,
-        '6', 0, MCMD_SELECT_6, 0,
-        '7', 0, MCMD_SELECT_7, 0,
-        '8', 0, MCMD_SELECT_8, 0,
-        0
-    };
-    if ( _wm->getAccTables().get("menu").isNull() )
-         _wm->getAccTables().add("menu", menu_acc_table );
-    static const int acc_table_dialog[] = {
-        XK_Escape, 0, MCMD_CANCEL, 0,
-        XK_Return, 1, MCMD_OK, 0, 
-        XK_Return, 0, MCMD_OK, 0, 
-        XK_Down, 0, MCMD_SCROLL_FORWARD, 0,
-        XK_Up, 0, MCMD_SCROLL_BACK, 0,
-        '0', 0, MCMD_SELECT_0, 0,
-        '1', 0, MCMD_SELECT_1, 0,
-        '2', 0, MCMD_SELECT_2, 0,
-        '3', 0, MCMD_SELECT_3, 0,
-        '4', 0, MCMD_SELECT_4, 0,
-        '5', 0, MCMD_SELECT_5, 0,
-        '6', 0, MCMD_SELECT_6, 0,
-        '7', 0, MCMD_SELECT_7, 0,
-        '8', 0, MCMD_SELECT_8, 0,
-        '9', 0, MCMD_SELECT_9, 0,
-        0
-    };
-    if ( _wm->getAccTables().get("dialog").isNull() )
-         _wm->getAccTables().add("dialog", acc_table_dialog );
 
-    _menuAccelerators = _wm->getAccTables().get("menu");
-    _dialogAccelerators = _wm->getAccTables().get("dialog");
 
     LVRefVec<LVImageSource> icons;
     static const char * battery4[] = {
@@ -965,32 +908,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
 
-    static const int default_acc_table[] = {
-        '6', 0, MCMD_GO_LINK, 0,
-        '8', 0, MCMD_SETTINGS_FONTSIZE, 0,
-        '8', 1, MCMD_SETTINGS_ORIENTATION, 0,
-        XK_Escape, 0, MCMD_QUIT, 0,
-        XK_Return, 0, MCMD_MAIN_MENU, 0,
-        XK_Return, 1, MCMD_SETTINGS, 0,
-        '0', 0, DCMD_PAGEDOWN, 0,
-        XK_Up, 0, DCMD_PAGEDOWN, 0,
-        '0', KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
-        XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
-        XK_Down, 0, DCMD_PAGEUP, 0,
-        XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
-        '9', 0, DCMD_PAGEUP, 0,
-        '9', KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
-#ifdef WITH_DICT
-        '2', 0, MCMD_DICT, 0,
-#endif
-        '+', 0, DCMD_ZOOM_IN, 0,
-        '=', 0, DCMD_ZOOM_IN, 0,
-        '-', 0, DCMD_ZOOM_OUT, 0,
-        '_', 0, DCMD_ZOOM_OUT, 0,
-        0
-    };
-    if ( _wm->getAccTables().get("main").isNull() )
-         _wm->getAccTables().add("main", default_acc_table );
     setAccelerators( _wm->getAccTables().get("main") );
 }
 
@@ -1175,7 +1092,7 @@ void V3DocViewWin::showSettingsMenu()
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    CRMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, _menuAccelerators );
+    CRMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators() );
     _wm->activateWindow( mainMenu );
 }
 
@@ -1185,7 +1102,7 @@ void V3DocViewWin::showFontSizeMenu()
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, _menuAccelerators );
+    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators() );
     CRMenu * menu = mainMenu->createFontSizeMenu( NULL, _newProps );
     _wm->activateWindow( menu );
 }
@@ -1196,7 +1113,7 @@ void V3DocViewWin::showOrientationMenu()
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, _menuAccelerators );
+    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators() );
     CRMenu * menu = mainMenu->createOrientationMenu( NULL, _newProps );
     _wm->activateWindow( menu );
 }
@@ -1241,7 +1158,7 @@ VIEWER_MENU_4ABOUT=About...
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
-    menu_win->setAccelerators( _menuAccelerators );
+    menu_win->setAccelerators( getMenuAccelerators() );
     _wm->activateWindow( menu_win );
 }
 
@@ -1252,14 +1169,14 @@ void V3DocViewWin::showGoToPageDialog()
     if ( toc && toc->getChildCount()>0 ) {
         dlg = new CRTOCDialog( _wm, 
             _wm->translateString("VIEWER_HINT_INPUTSKIPPAGENUM", "Table of contents"),
-            MCMD_GO_PAGE_APPLY,  _docview->getPageCount(), toc );
+            MCMD_GO_PAGE_APPLY,  _docview->getPageCount(), _docview );
     } else {
         dlg = new CRNumberEditDialog( _wm, 
             _wm->translateString("VIEWER_HINT_INPUTSKIPPAGENUM", "Enter page number"),
             lString16(), 
             MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
     }
-    dlg->setAccelerators( _dialogAccelerators );
+    dlg->setAccelerators( getDialogAccelerators() );
     _wm->activateWindow( dlg );
 }
 
@@ -1268,7 +1185,7 @@ bool V3DocViewWin::showLinksDialog()
     CRLinksDialog * dlg = CRLinksDialog::create( _wm, this );
     if ( !dlg )
         return false;
-    dlg->setAccelerators( _menuAccelerators );
+    dlg->setAccelerators( getMenuAccelerators() );
     _wm->activateWindow( dlg );
     return true;
 }

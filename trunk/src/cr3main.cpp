@@ -125,6 +125,8 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 
 		FcObjectSet *os = FcObjectSetBuild(FC_FILE, NULL);
 		FcPattern *pat = FcPatternCreate();
+        //FcBool b = 1;
+        FcPatternAddBool(pat, FC_SCALABLE, 1);
 
 		fontset = FcFontList(NULL, pat, os);
 
@@ -136,16 +138,22 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 		if (!fontMan->GetFontCount()) {
 			for(int i = 0; i < fontset->nfont; i++) {
 				FcChar8 *s;
+                //FcBool b;
 				FcResult res;
-
+                //FC_SCALABLE
+                //res = FcPatternGetBool( fontset->fonts[i], FC_OUTLINE, 0, (FcBool*)&b);
+                //if(res != FcResultMatch)
+                //    continue;
+                //if ( !b )
+                //    continue; // skip non-scalable fonts
 				res = FcPatternGetString(fontset->fonts[i], FC_FILE, 0, (FcChar8 **)&s);
 				if(res != FcResultMatch)
 					continue;
 
 				lString8 fn = UnicodeToLocal(lString16((lChar8 *)s));
-				CRLog::trace("loading font: %s", fn.c_str());
+				//CRLog::trace("loading font: %s", fn.c_str());
 				if ( !fontMan->RegisterFont(fn) ) {
-					CRLog::trace("    failed\n");
+                    CRLog::trace("loading of font %s failed", fn.c_str());
 				}
 			}
 		}
