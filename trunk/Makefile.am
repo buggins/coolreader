@@ -4,6 +4,10 @@ AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = crengine
 
+if LOCAL_TINYDICT
+SUBDIRS += tinydict
+endif
+
 # src/ must be last, because src/cr3 must be linked with plugins
 SUBDIRS += src
 

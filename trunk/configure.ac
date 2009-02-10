@@ -50,6 +50,16 @@ if test "${with_jinke}" == "false"; then
     PKG_CHECK_MODULES(FREETYPE, [freetype2 >= 9.10])
     PKG_CHECK_MODULES(FONTCONFIG, [fontconfig >= 0.22])
     PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
+fi
+
+if test -r "${srcdir}/tinydict/configure"; then
+    AC_CONFIG_SUBDIRS([tinydict])
+    AM_CONDITIONAL(LOCAL_TINYDICT, true)
+    TINYDICT_CFLAGS="-I\$(top_srcdir)/tinydict"
+    TINYDICT_LIBS="\$(top_builddir)/tinydict/libtinydict.la"
+    AC_SUBST([TINYDICT_CFLAGS])
+    AC_SUBST([TINYDICT_LIBS])
+else
     PKG_CHECK_MODULES(TINYDICT, [libtinydict >= 0.1])
 fi
 
