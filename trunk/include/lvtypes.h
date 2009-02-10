@@ -59,7 +59,7 @@ public:
     int right;
     int bottom;
     /// returns true if rectangle is empty
-    bool isEmpty() { return left>=right || bottom<=top; }
+    bool isEmpty() const { return left>=right || bottom<=top; }
     lvRect() : left(0), top(0), right(0), bottom(0) { }
     lvRect( int x0, int y0, int x1, int y1) : left(x0), top(y0), right(x1), bottom(y1) { }
     lvPoint topLeft() const { return lvPoint( left, top ); }
@@ -100,7 +100,7 @@ public:
             bottom = rc.bottom;
     }
     /// returns true if specified rectangle is fully covered by this rectangle
-    bool isRectInside( lvRect rc )
+    bool isRectInside( lvRect rc ) const
     {
         if ( rc.isEmpty() || isEmpty() )
             return false;
@@ -109,7 +109,7 @@ public:
         return true;
     }
     /// returns true if point is inside this rectangle
-    bool isPointInside( lvPoint & pt )
+    bool isPointInside ( lvPoint & pt ) const 
     {
         return left<=pt.x && top<=pt.y && right>pt.x && bottom > pt.y;
     }

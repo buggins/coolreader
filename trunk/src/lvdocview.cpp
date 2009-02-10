@@ -1195,7 +1195,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
         for ( int i=0; i<sbounds.length(); i++) {
             int x = info.left + sbounds[i]*(info.width()-1) / 10000;
             lUInt32 c = x<info.left+percent_pos ? cl2 : cl1;
-            drawbuf->FillRect(x, gpos-4, x+1, gpos-0+1, c );
+            drawbuf->FillRect(x, gpos-4, x+1, gpos-0+2, c );
         }
     }
 
@@ -3013,7 +3013,7 @@ int LVDocView::getNextPageOffset()
         int p = m_pages.FindNearestPage(m_pos, 0)  + getVisiblePageCount();
         if ( p<m_pages.length() )
             return m_pages[p]->start;
-        if ( !p )
+        if ( !p || m_pages.length()==0 )
             return 0;
         return m_pages[m_pages.length()-1]->start;
     }
@@ -3036,6 +3036,23 @@ int LVDocView::getPrevPageOffset()
             p = 0;
         return m_pages[p]->start;
     }
+}
+
+static void addItem( LVPtrVector<LVTocItem, false> & items, LVTocItem * item )
+{
+    if ( item->getLevel()>0 )
+        items.add( item );
+    for ( int i=0; i<item->getChildCount(); i++ ) {
+        addItem( items, item->getChild( i ) );
+    }
+}
+
+/// returns pointer to TOC root node
+bool LVDocView::getFlatToc( LVPtrVector<LVTocItem, false> & items )
+{
+    items.clear();
+    addItem( items, getToc() );
+    return items.length() > 0;
 }
 
 /// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
@@ -3184,13 +3201,16 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
 	case DCMD_BOOKMARK_SAVE_N:
 		{
 			// save current page bookmark under spicified number
-			goToPageShortcutBookmark( param );
+            saveCurrentPageShortcutBookmark( param );
 		}
 		break;
 	case DCMD_BOOKMARK_GO_N:
 		{
 			// go to bookmark with specified number
-			saveCurrentPageShortcutBookmark( param );
+            if ( !goToPageShortcutBookmark( param ) ) {
+                // if no bookmark exists with specified shortcut, save new bookmark instead
+                saveCurrentPageShortcutBookmark( param );
+            }
 		}
 		break;
 	case DCMD_MOVE_BY_CHAPTER:

@@ -329,9 +329,11 @@ void CRFileHistRecord::setShortcutBookmark( int shortcut, ldomXPointer ptr )
 	if ( ptr.isNull() )
 		return;
 	CRBookmark * bmk = new CRBookmark( ptr );
+    bmk->setShortcut( shortcut );
 	for ( int i=0; i<_bookmarks.length(); i++ ) {
 		if ( _bookmarks[i]->getShortcut() == shortcut ) {
 			_bookmarks[i] = bmk;
+            return;
 		}
 	}
 	_bookmarks.insert( 0, bmk );

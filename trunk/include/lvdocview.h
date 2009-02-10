@@ -195,7 +195,7 @@ enum LVDocCmd
     DCMD_BOOKMARK_GO_N,  // go to bookmark with specified number
 	DCMD_MOVE_BY_CHAPTER, // param=-1 - previous chapter, 1 = next chapter
 };
-#define LVDOCVIEW_COMMANDS_END DCMD_TOGGLE_TEXT_FORMAT
+#define LVDOCVIEW_COMMANDS_END DCMD_MOVE_BY_CHAPTER
 
 enum LVDocViewMode
 {
@@ -555,6 +555,8 @@ public:
     LVRendPageList * getPageList() { return &m_pages; }
     /// returns pointer to TOC root node
     LVTocItem * getToc();
+    /// returns pointer to TOC root node
+    bool getFlatToc( LVPtrVector<LVTocItem, false> & items );
     /// set view mode (pages/scroll)
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)

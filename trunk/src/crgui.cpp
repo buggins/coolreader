@@ -78,6 +78,7 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
         return onCommand( cmd, param );
     } else {
         CRLog::trace("Accelerator not found for key %d(%d)", key, flags );
+        _acceleratorTable->dump();
     }
     return false;
 }
@@ -594,7 +595,7 @@ static bool splitLine( lString16 line, const lString16 & delimiter, lString16 & 
         key = line;
         if ( n>0 && n <line.length()-1 ) {
             value = line.substr( n+1, line.length() - n - 1 );
-            key = line.substr( 0, n-1 );
+            key = line.substr( 0, n );
             key.trim();
             value.trim();
             return key.length()!=0 && value.length()!=0;
@@ -709,7 +710,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
                 if ( !key )
                     key = defs.get( keyName );
                 if ( !key ) {
-                    CRLog::error( "unknown key definition in line %s", UnicodeToUtf8(line).c_str() );
+                    CRLog::error( "unknown key definition %s in line %s", UnicodeToUtf8(keyName).c_str(), UnicodeToUtf8(line).c_str() );
                     continue;
                 }
                 int cmd = 0;
@@ -718,7 +719,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
                 lString16 paramName;
                 splitLine( value, lString16(L","), cmdName, paramName );
                 if ( !paramName.empty() ) {
-                    flag = decodeKey( paramName );
+                    cmdParam = decodeKey( paramName );
                     if ( !cmdParam )
                         cmdParam = defs.get( paramName );
                 }
@@ -728,6 +729,10 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
                 if ( key != 0 && cmd != 0 ) {
                     // found valid key cmd definition
                     table->add( key, flag, cmd, cmdParam );
+                    CRLog::trace("Acc: %d, %d => %d, %d", key, flag, cmd, cmdParam);
+                } else {
+                    CRLog::error( "unknown command definition %s in line %s", UnicodeToUtf8(cmdName).c_str(), UnicodeToUtf8(line).c_str() );
+                    continue;
                 }
             }
         }

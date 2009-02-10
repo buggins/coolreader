@@ -63,6 +63,18 @@ protected:
         return -1;
     }
 public:
+    void dump()
+    {
+        if ( CRLog::isTraceEnabled() ) {
+#if 0
+            CRLog::trace("Accelerator table:");
+            for ( int i=0; i<_items.length(); i++ ) {
+                CRGUIAccelerator * p = _items[i];
+                CRLog::trace("%d, %d => %d, %d\n", p->keyCode, p->keyFlags, p->commandId, p->commandParam);
+            }
+#endif
+        }
+    }
 	/// returns number of entries
 	unsigned length() { return _items.length(); }
     /// remove accelerator from table
