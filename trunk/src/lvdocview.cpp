@@ -3097,7 +3097,10 @@ bool LVDocView::goToPageShortcutBookmark( int number )
 	CRFileHistRecord * rec = getCurrentFileHistRecord();
 	if ( !rec )
 		return false;
-	lString16 pos = rec->getShortcutBookmark( number );
+	CRBookmark * bmk = rec->getShortcutBookmark( number );
+	if ( !bmk )
+		return false;
+	lString16 pos = bmk->getStartPos();
 	ldomXPointer p = m_doc->createXPointer( pos );
 	if ( p.isNull() )
 		return false;

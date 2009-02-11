@@ -93,7 +93,7 @@ private:
     CRBookmark _lastpos;
 public:
 	void setShortcutBookmark( int shortcut, ldomXPointer ptr );
-	lString16 getShortcutBookmark( int shortcut );
+	CRBookmark * getShortcutBookmark( int shortcut );
     time_t getLastTime() { return _lastpos.getTimestamp(); }
     lString16 getLastTimeString( bool longFormat=false );
     void setLastTime( time_t t ) { _lastpos.setTimestamp(t); }

@@ -340,13 +340,13 @@ void CRFileHistRecord::setShortcutBookmark( int shortcut, ldomXPointer ptr )
 	_bookmarks.insert( 0, bmk );
 }
 
-lString16 CRFileHistRecord::getShortcutBookmark( int shortcut )
+CRBookmark * CRFileHistRecord::getShortcutBookmark( int shortcut )
 {
 	for ( int i=0; i<_bookmarks.length(); i++ ) {
 		if ( _bookmarks[i]->getShortcut() == shortcut && _bookmarks[i]->getType() == bmkt_pos )
-			return _bookmarks[i]->getStartPos();
+			return _bookmarks[i];
 	}
-	return lString16();
+	return NULL;
 }
 
 int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz )
