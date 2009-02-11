@@ -49,6 +49,8 @@ public:
     int y;
     lvPoint() : x(0), y(0) { }
     lvPoint(int nx, int ny) : x(nx), y(ny) { }
+    lvPoint( const lvPoint & v ) : x(v.x), y(v.y) { }
+    lvPoint & operator = ( const lvPoint & v ) { x = v.x; y = v.y; return *this; }
 };
 
 /// rectangle

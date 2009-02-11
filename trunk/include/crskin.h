@@ -93,6 +93,8 @@ public:
     {
         drawText(  buf, rc, text, LVFontRef(), color, getBackgroundColor(), getTextAlign() );
     }
+    /// measures text string using current font
+    virtual lvPoint measureText( lString16 text );
     virtual ~CRSkinnedItem() { }
 };
 
@@ -103,6 +105,8 @@ protected:
     lvPoint _minsize;
     lvPoint _maxsize;
 public:
+    /// same as measureText, but with added margins and minSize applied
+    virtual lvPoint measureTextItem( lString16 text );
     CRRectSkin();
     virtual ~CRRectSkin() { }
     virtual lvPoint getMinSize() { return _minsize; }

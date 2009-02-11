@@ -549,6 +549,25 @@ LVFontRef CRSkinnedItem::getFont()
     return _font;
 }
 
+lvPoint CRSkinnedItem::measureText( lString16 text )
+{
+    int th = getFont()->getHeight();
+    int tw = getFont()->getTextWidth( text.c_str(), text.length() );
+    return lvPoint( tw, th );
+}
+
+lvPoint CRRectSkin::measureTextItem( lString16 text )
+{
+    lvPoint sz = CRSkinnedItem::measureText( text );
+    sz.x += _margins.left + _margins.right;
+    sz.y += _margins.top + _margins.bottom;
+    if ( _minsize.x > 0 && sz.x < _minsize.x )
+        sz.x = _minsize.x;
+    if ( _minsize.y > 0 && sz.y < _minsize.y )
+        sz.y = _minsize.y;
+    return sz;
+}
+
 void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags )
 {
     SAVE_DRAW_STATE( buf );
