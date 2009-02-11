@@ -89,6 +89,48 @@
         </selshortcut>
 	<scroll base="#menuscroll"/>
   </menu>
+  <menu id="t9input">
+    <text color="#000000" face="DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
+    <background image="cr3_t9_frame.png"/>
+    <border widths="12,8,8,5"/>
+    <title>
+      <size minvalue="0,0" maxvalue="0,0"/>
+    </title>
+    <client>
+      <border widths="8,2,5,2"/>
+      <background image="cr3_t9_input.png"/>
+      <text color="#000000" face="DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="left"/>
+    </client>
+    <item>
+      <size minvalue="32,32" maxvalue="0,0"/>
+      <text color="#555555" face="DejaVu Sans" size="20" bold="false" italic="false" valign="center" halign="left"/>
+      <background color="#FFFFFF"/>
+      <border widths="1,2,4,2"/>
+      <!--icon image="filename" valign="" halign=""-->
+    </item>
+    <shortcut>
+      <size minvalue="20,36" maxvalue="0,0"/>
+      <text color="#FFFFFF" face="DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="center"/>
+      <background image="cr3_t9_shortcut.png" color="#FFFFFF"/>
+      <border widths="3,3,3,3"/>
+      <!--icon image="filename" valign="" halign=""-->
+    </shortcut>
+    <selitem>
+      <size minvalue="32,32" maxvalue="0,0"/>
+      <text color="#000000" face="DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
+      <background color="#FFFFFF"/>
+      <border widths="6,6,6,6"/>
+      <!--icon image="filename" valign="" halign=""-->
+    </selitem>
+    <selshortcut>
+      <size minvalue="20,32" maxvalue="0,0"/>
+      <text color="#000000" face="DejaVu Sans" size="40" bold="true" italic="false" valign="center" halign="center"/>
+      <background image="cr3_t9_shortcut.png" color="#FFFFFF"/>
+      <border widths="12,6,6,6"/>
+      <!--icon image="filename" valign="" halign=""-->
+    </selshortcut>
+    <scroll base="#menuscroll"/>
+  </menu>
   <menu id="bookmarks">
         <text color="#000000" face="DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_main_menu.png" color="#AAAAAA"/>

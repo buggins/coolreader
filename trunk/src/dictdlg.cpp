@@ -372,38 +372,43 @@ protected:
     virtual void draw()
     {
         BackgroundFitWindow::draw();
-        CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
+        CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( L"#t9input" );
+        CRRectSkinRef shortcutSkin = skin->getItemShortcutSkin();
+        CRRectSkinRef itemSkin = skin->getItemSkin();
+        CRRectSkinRef clientSkin = skin->getClientSkin();
         LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
         skin->draw( *buf, _rect );
         lString16 prompt = Utf8ToUnicode(selector_.getPrefix());
         prompt << L"_";
-        buf->FillRect( _rect, 0xAAAAAA );
-        lvRect keyRect = _rect;
+        skin->draw( *buf, _rect );
+        //buf->FillRect( _rect, 0xAAAAAA );
+        lvRect rect = _rect;
         lvRect borders = skin->getBorderWidths();
-        LVFontRef font = fontMan->GetFont( 20, 600, false, css_ff_sans_serif, lString8("Arial")); //skin->getFont();
-        int margin = 4;
+        rect.shrinkBy( borders );
+        lvRect keyRect = rect;
+        lvPoint minSizeN = shortcutSkin->getMinSize();
         for ( int i=0; i<encoding_.length(); i++ ) {
             lString16 txtN = lString16::itoa(i);
             lString16 txt = encoding_[i];
             if ( txt.empty() )
                 continue;
             // label 0..9
-            int wN = font->getTextWidth( txtN.c_str(), txtN.length() );
-            keyRect.right = keyRect.left + wN + margin + margin; //borders.left + borders.right;
-            ((CRSkinnedItem*)skin.get())->drawText( *_wm->getScreen()->getCanvas(), keyRect, txtN, font, 0x000000, 0xAAAAAA, SKIN_HALIGN_CENTER|SKIN_VALIGN_CENTER  );
+            lvPoint sz = shortcutSkin->measureTextItem( txtN );
+            keyRect.right = keyRect.left + sz.x; //borders.left + borders.right;
+            shortcutSkin->draw( *buf, keyRect );
+            shortcutSkin->drawText( *buf, keyRect, txtN );
             keyRect.left = keyRect.right;
             // chars (abc)
-            int w = font->getTextWidth( txt.c_str(), txt.length() );
-            keyRect.right = keyRect.left + w + margin + margin; //borders.left + borders.right;
-            skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
-            //skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, txt );
-            ((CRSkinnedItem*)skin.get())->drawText( *_wm->getScreen()->getCanvas(), keyRect, txt, font, 0x000000, 0xFFFFFF, SKIN_HALIGN_CENTER|SKIN_VALIGN_CENTER  );
-            keyRect.left = keyRect.right + margin; //borders.left;
+            sz = itemSkin->measureTextItem( txt );
+            keyRect.right = keyRect.left + sz.x; //borders.left + borders.right;
+            itemSkin->draw( *buf, keyRect );
+            itemSkin->drawText( *buf, keyRect, txt );
+            keyRect.left = keyRect.right; //borders.left;
         }
-        keyRect.right = _rect.right;
+        keyRect.right = rect.right;
         if ( !keyRect.isEmpty() ) {
-            skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
-            skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
+            clientSkin->draw( *buf, keyRect );
+            clientSkin->drawText( *buf, keyRect, prompt );
         }
     }
 

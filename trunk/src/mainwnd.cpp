@@ -907,6 +907,16 @@ const lChar16 * defT9encoding[] = {
     NULL
 };
 
+const lChar16 * defT5encoding[] = {
+    L"",     // 0 STUB
+    L"abcde",  // 1
+    L"fghij",  // 2
+    L"klmno",  // 3
+    L"pqrst",  // 4
+    L"uvwxyz", // 5
+    NULL
+};
+
 bool V3DocViewWin::loadSkin( lString16 pathname )
 {
     CRSkinRef skin;
@@ -922,7 +932,7 @@ bool V3DocViewWin::loadSkin( lString16 pathname )
 }
 
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
-: CRDocViewWindow ( wm ), _dataDir(dataDir), _t9encoding(defT9encoding)
+: CRDocViewWindow ( wm ), _dataDir(dataDir), _t9encoding(defT5encoding) //defT9encoding)
 {
     CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
