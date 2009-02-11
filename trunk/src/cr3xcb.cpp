@@ -467,7 +467,7 @@ int main(int argc, char **argv)
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
         lString16 homecrengine = home + L"/.crengine/";
 
-		lString8 home8 = UnicodeToUtf8( home );
+		lString8 home8 = UnicodeToUtf8( homecrengine );
 		const char * keymap_locations [] = {
 			home8.c_str(),
 			"/etc/cr3",
@@ -484,8 +484,10 @@ int main(int argc, char **argv)
             main_win->loadDefaultCover( lString16( L"/usr/share/crengine/cr3_def_cover.png" ) );
         if ( !main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) ) )
             main_win->loadCSS( lString16( L"/usr/share/crengine/fb2.css" ) );
-        if ( !main_win->loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
-            main_win->loadSkin( lString16( L"/usr/share/crengine/skin" ) );
+
+        if ( !main_win->loadSkin(  homecrengine + L"skin" ) )
+            if ( !main_win->loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
+                main_win->loadSkin( lString16( L"/usr/share/crengine/skin" ) );
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
             main_win->loadDictConfig( lString16( L"/usr/share/crengine/dict/dictd.conf" ) );
 

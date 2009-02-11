@@ -315,56 +315,138 @@ class CRBookmarkMenu;
 class CRBookmarkMenuItem : public CRMenuItem
 {
 private:
-	CRBookmark * _bookmark;
+    CRBookmark * _bookmark;
+    int _page;
 public:
-    CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark )
-    : CRMenuItem(menu, shortcut, lString16(L"Empty slot"), LVImageSourceRef(), LVFontRef() ), _bookmark( bookmark )
-	{
+    CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark, int page )
+    : CRMenuItem(menu, shortcut, lString16(L"Empty slot"), LVImageSourceRef(), LVFontRef() ), _bookmark( bookmark ), _page(page)
+    {
 
-	}
+    }
     /// called on item selection
     virtual int onSelect()
-	{ 
-		return 0;
-	}
+    { 
+        return 0;
+    }
     virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
-	{
-		//TODO
-	}
+    {
+        if ( !_bookmark ) {
+            CRMenuItem::Draw( buf, rc, skin, selected );
+            return;
+        }
+        lvRect itemBorders = skin->getBorderWidths();
+        skin->draw( buf, rc );
+        buf.SetTextColor( 0x000000 );
+        buf.SetBackgroundColor( 0xFFFFFF );
+        int imgWidth = 0;
+        int hh = rc.bottom - rc.top - itemBorders.top - itemBorders.bottom;
+        if ( !_image.isNull() ) {
+            int w = _image->GetWidth();
+            int h = _image->GetHeight();
+            buf.Draw( _image, rc.left + hh/2-w/2 + itemBorders.left, rc.top + hh/2 - h/2 + itemBorders.top, w, h );
+            imgWidth = w + 8;
+        }
+        lvRect textRect = rc;
+        textRect.left += imgWidth;
+        lString16 postext(L"Page ");
+        lvRect posRect = textRect;
+        lString16 text = _bookmark->getPosText();
+        if ( !text.empty() ) {
+            posRect.bottom = posRect.top + skin->getFont()->getHeight() + 8 + 8;
+            textRect.top = posRect.bottom - 8;
+        }
+        postext << lString16::itoa( _page ) << L" (";
+        postext << lString16::itoa( _bookmark->getPercent()/100 ) << L"." << lString16::itoa( _bookmark->getPercent()%100 ) << L"%)";
+        postext << L"  " << _bookmark->getTitleText();
+        skin->drawText( buf, posRect, postext, skin->getFont() );
+        if ( !text.empty() )
+            skin->drawText( buf, textRect, text, skin->getFont() );
+    }
 };
 
 class CRBookmarkMenu : public CRMenu
 {
+private:
+    lString16 _helpText;
+    int _helpHeight;
 public:
-	CRBookmarkMenu(CRGUIWindowManager * wm, CRFileHistRecord * bookmarks, int numItems, lvRect & rc)
-		: CRMenu( wm, NULL, MCMD_BOOKMARK_LIST, lString16(L"Bookmarks"), LVImageSourceRef(), LVFontRef(), LVFontRef() )
-	{
-		_rect = rc;
-		_pageItems = numItems;
-		for ( int i=1; i<=numItems; i++ ) {
-			CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bookmarks->getShortcutBookmark(i) );
-			addItem( item );
-		}
-	}
+    CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
+        : CRMenu( wm, NULL, MCMD_BOOKMARK_LIST, lString16(L"Bookmarks"), LVImageSourceRef(), LVFontRef(), LVFontRef() )
+    {
+        _rect = rc;
+        _pageItems = numItems;
+        CRFileHistRecord * bookmarks = docview->getCurrentFileHistRecord();
+        for ( int i=1; i<=numItems; i++ ) {
+            CRBookmark * bm = bookmarks->getShortcutBookmark(i);
+            int page = 0;
+            if ( bm ) {
+                ldomXPointer p = docview->getDocument()->createXPointer( bm->getStartPos() );
+                if ( !p.isNull() ) {
+                    /// get page number by bookmark
+                    page = docview->getBookmarkPage( p );
+                    /// get bookmark position text
+                    if ( page<0 )
+                        bm = NULL;
+                }
+            }
+            CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bm, page );
+            addItem( item );
+        }
+        _helpText = L"Long press 1..8 = set, short press = go to";
+        _helpHeight = 36;
+    }
+
+    virtual const lvRect & getRect()
+    {
+        return _rect;
+    }
+
+    virtual int getItemHeight()
+    {
+        CRMenuSkinRef skin = getSkin();
+        lvRect rc = skin->getClientRect( _rect );
+        return (rc.height() - _helpHeight - 4) / _pageItems;
+    }
+
+    virtual lvPoint getMaxItemSize()
+    {
+        return lvPoint( _rect.width(), getItemHeight() );
+    }
+
+    virtual lvPoint getSize()
+    {
+        return lvPoint( _rect.width(), _rect.height() );
+    }
+
+    virtual void Draw( LVDrawBuf & buf, int x, int y )
+    {
+        CRMenu::Draw( buf, x, y );
+        CRMenuSkinRef skin = getSkin();
+        lvRect rc = skin->getClientRect( _rect );
+        int ih = getItemHeight();
+        rc.top += _pageItems * ih + 4;
+        //skin->getItemSkin()->draw( buf, rc );
+        skin->getItemSkin()->drawText( buf, rc, _helpText );
+    }
     /// returns true if command is processed
     virtual bool onCommand( int command, int params )
-	{
-		if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 ) {
-			int index = command - MCMD_SELECT_1 + 1;
-			if ( index >=1 && index <= _pageItems ) {
-				closeMenu( DCMD_BOOKMARK_GO_N, index );
-				return true;
-			}
-		} else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {
-			int index = command - MCMD_SELECT_1_LONG + 1;
-			if ( index >=1 && index <= _pageItems ) {
-				closeMenu( DCMD_BOOKMARK_SAVE_N, index );
-				return true;
-			}
-		}
+    {
+        if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 ) {
+            int index = command - MCMD_SELECT_1 + 1;
+            if ( index >=1 && index <= _pageItems ) {
+                closeMenu( DCMD_BOOKMARK_GO_N, index );
+                return true;
+            }
+        } else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {
+            int index = command - MCMD_SELECT_1_LONG + 1;
+            if ( index >=1 && index <= _pageItems ) {
+                closeMenu( DCMD_BOOKMARK_SAVE_N, index );
+                return true;
+            }
+        }
         closeMenu( 0 );
-	    return true;
-	}
+        return true;
+    }
 };
 
 static const char * link_back_active[] = {
@@ -1174,6 +1256,15 @@ void V3DocViewWin::showOrientationMenu()
     _wm->activateWindow( menu );
 }
 
+void V3DocViewWin::showBookmarksMenu()
+{
+    lvRect rc = _wm->getScreen()->getRect();
+    CRBookmarkMenu * menu_win = new CRBookmarkMenu(_wm, _docview, 8, rc);
+    menu_win->setAccelerators( getMenuAccelerators() );
+    menu_win->setSkinName(lString16(L"#bookmarks"));
+    _wm->activateWindow( menu_win );
+}
+
 void V3DocViewWin::showMainMenu()
 {
     CRMenu * menu_win = new CRMenu( _wm,
@@ -1283,10 +1374,10 @@ bool V3DocViewWin::onCommand( int command, int params )
 #endif
 #endif
 
-	case MCMD_DICT:
+    case MCMD_DICT:
         CRLog::info("MCMD_DICT activated\n");
-		if ( _dict.isNull() )
-			_dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
+        if ( _dict.isNull() )
+            _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
         activate_dict( _wm, this, _t9encoding, *_dict );
         return true;
 #endif
@@ -1298,6 +1389,9 @@ bool V3DocViewWin::onCommand( int command, int params )
     case mm_FontSize:
         applySettings();
         saveSettings( lString16() );
+        return true;
+    case MCMD_BOOKMARK_LIST:
+        showBookmarksMenu();
         return true;
     default:
         // do nothing
