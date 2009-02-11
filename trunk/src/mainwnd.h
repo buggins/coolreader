@@ -124,7 +124,9 @@ public:
 
     void showGoToPageDialog();
 
-	bool showLinksDialog();
+    bool showLinksDialog();
+
+    void showBookmarksMenu();
 
     virtual bool onCommand( int command, int params );
 

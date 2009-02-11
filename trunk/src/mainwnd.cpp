@@ -1295,16 +1295,20 @@ VIEWER_MENU_4ABOUT=About...
                 _wm->translateString("VIEWER_MENU_GOTOENDPAGE", "Go to last page"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
-                _wm->translateString("VIEWER_MENU_SETTINGS", "Settings..."),
-                LVImageSourceRef(),
-                LVFontRef() ) );
 #ifdef WITH_DICT
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
                 _wm->translateString("VIEWER_MENU_DICTIONARY", "Dictionary..."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_BOOKMARK_LIST,
+                _wm->translateString("VIEWER_MENU_BOOKMARK_LIST", "Bookmarks..."),
+                LVImageSourceRef(),
+                LVFontRef() ) );
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
+                _wm->translateString("VIEWER_MENU_SETTINGS", "Settings..."),
+                LVImageSourceRef(),
+                LVFontRef() ) );
     menu_win->setAccelerators( getMenuAccelerators() );
     _wm->activateWindow( menu_win );
 }
