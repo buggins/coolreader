@@ -60,6 +60,7 @@ if test -r "${srcdir}/tinydict/configure"; then
     AC_SUBST([TINYDICT_CFLAGS])
     AC_SUBST([TINYDICT_LIBS])
 else
+    AM_CONDITIONAL(LOCAL_TINYDICT, false)
     PKG_CHECK_MODULES(TINYDICT, [libtinydict >= 0.1])
 fi
 
