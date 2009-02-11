@@ -470,7 +470,7 @@ int main(int argc, char **argv)
 		lString8 home8 = UnicodeToUtf8( home );
 		const char * keymap_locations [] = {
 			home8.c_str(),
-			"/etc/cr3"
+			"/etc/cr3",
 			NULL,
 		};
 		loadKeymaps( winman, keymap_locations );
