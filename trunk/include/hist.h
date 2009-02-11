@@ -92,8 +92,8 @@ private:
     LVPtrVector<CRBookmark> _bookmarks;
     CRBookmark _lastpos;
 public:
-	void setShortcutBookmark( int shortcut, ldomXPointer ptr );
-	CRBookmark * getShortcutBookmark( int shortcut );
+    CRBookmark * setShortcutBookmark( int shortcut, ldomXPointer ptr );
+    CRBookmark * getShortcutBookmark( int shortcut );
     time_t getLastTime() { return _lastpos.getTimestamp(); }
     lString16 getLastTimeString( bool longFormat=false );
     void setLastTime( time_t t ) { _lastpos.setTimestamp(t); }

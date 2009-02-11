@@ -158,8 +158,8 @@ public:
                     return;
                 }
             }
-		} else if ( lStr_cmp(attrname, L"shortcut")==0 && state==in_bm ) {
-			int n = lString16( attrvalue ).atoi();
+        } else if ( lStr_cmp(attrname, L"shortcut")==0 && state==in_bm ) {
+            int n = lString16( attrvalue ).atoi();
             _curr_bookmark->setShortcut( n );
         } else if ( lStr_cmp(attrname, L"percent")==0 && state==in_bm ) {
             int n1=0, n2=0;
@@ -265,7 +265,7 @@ static void putBookmark( LVStream * stream, CRBookmark * bmk )
     char percent[32];
     sprintf( percent, "%d.%02d%%", bmk->getPercent()/100, bmk->getPercent()%100 );
     char bmktag[64];
-	sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\" shortcut=\"%d\"", tname, percent, (int)bmk->getTimestamp(), bmk->getShortcut() ); 
+    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\" shortcut=\"%d\"", tname, percent, (int)bmk->getTimestamp(), bmk->getShortcut() ); 
     putTag(stream, 3, bmktag);
     putTagValue( stream, 4, "start-point", bmk->getStartPos() );
     putTagValue( stream, 4, "end-point", bmk->getEndPos() );
@@ -324,29 +324,30 @@ static void splitFName( lString16 pathname, lString16 & path, lString16 & name )
     }
 }
 
-void CRFileHistRecord::setShortcutBookmark( int shortcut, ldomXPointer ptr )
+CRBookmark * CRFileHistRecord::setShortcutBookmark( int shortcut, ldomXPointer ptr )
 {
-	if ( ptr.isNull() )
-		return;
-	CRBookmark * bmk = new CRBookmark( ptr );
+    if ( ptr.isNull() )
+        return NULL;
+    CRBookmark * bmk = new CRBookmark( ptr );
     bmk->setType( bmkt_pos );
     bmk->setShortcut( shortcut );
-	for ( int i=0; i<_bookmarks.length(); i++ ) {
-		if ( _bookmarks[i]->getShortcut() == shortcut ) {
-			_bookmarks[i] = bmk;
-            return;
-		}
-	}
-	_bookmarks.insert( 0, bmk );
+    for ( int i=0; i<_bookmarks.length(); i++ ) {
+        if ( _bookmarks[i]->getShortcut() == shortcut ) {
+            _bookmarks[i] = bmk;
+            return bmk;
+        }
+    }
+    _bookmarks.insert( 0, bmk );
+    return bmk;
 }
 
 CRBookmark * CRFileHistRecord::getShortcutBookmark( int shortcut )
 {
-	for ( int i=0; i<_bookmarks.length(); i++ ) {
-		if ( _bookmarks[i]->getShortcut() == shortcut && _bookmarks[i]->getType() == bmkt_pos )
-			return _bookmarks[i];
-	}
-	return NULL;
+    for ( int i=0; i<_bookmarks.length(); i++ ) {
+        if ( _bookmarks[i]->getShortcut() == shortcut && _bookmarks[i]->getType() == bmkt_pos )
+            return _bookmarks[i];
+    }
+    return NULL;
 }
 
 int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz )
@@ -405,7 +406,7 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
     rec->setLastTime( (time_t)time(0) );
 
     _records.insert( 0, rec );
-	return rec;
+    return rec;
 }
 
 ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathname, size_t sz )

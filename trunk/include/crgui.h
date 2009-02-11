@@ -279,6 +279,8 @@ class CRGUIWindow
         virtual bool isFullscreen() = 0;
         /// returns true if window is changed but now drawn
         virtual bool isDirty() = 0;
+        /// sets dirty flag
+        virtual void setDirty() = 0;
         /// shows or hides window
         virtual void setVisible( bool visible ) = 0;
         /// returns window rectangle
@@ -466,6 +468,8 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             }
             window->closing();
             delete window;
+            for ( int i=0; i<_windows.length() && (index<0 || i<index); i++ )
+                _windows[i]->setDirty();
         }
         /// redraw one window
         void updateWindow( CRGUIWindow * window )
@@ -820,6 +824,8 @@ enum CRMenuControlCmd {
     MCMD_SELECT_7_LONG,
     MCMD_SELECT_8_LONG,
     MCMD_SELECT_9_LONG,
+    MCMD_SCROLL_FORWARD_LONG,
+    MCMD_SCROLL_BACK_LONG,
 };
 
 class CRMenu;
