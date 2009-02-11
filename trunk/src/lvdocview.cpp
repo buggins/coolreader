@@ -1809,15 +1809,20 @@ bool LVDocView::goLink( lString16 link )
     ldomElement * dest = (ldomElement*)m_doc->getNodeById( id );
     if ( !dest )
         return false;
+    savePosToNavigationHistory();
+    ldomXPointer newPos( dest, 0 );
+    goToBookmark( newPos );
+    return true;
+}
+
+void LVDocView::savePosToNavigationHistory()
+{
     ldomXPointer bookmark = getBookmark();
     if ( !bookmark.isNull() ) {
         lString16 path = bookmark.toString();
         if ( !path.empty() )
             _navigationHistory.save( path );
     }
-    ldomXPointer newPos( dest, 0 );
-    goToBookmark( newPos );
-    return true;
 }
 
 /// follow selected link, returns true if navigation was successful
@@ -3078,7 +3083,10 @@ bool LVDocView::moveByChapter( int delta )
     if ( nextPage<0 )
         nextPage = getPageCount()-1;
     int page = delta<0 ? prevPage : nextPage;
-    goToPage( page );
+    if ( getCurPage() != page ) {
+        savePosToNavigationHistory();
+        goToPage( page );
+    }
     return true;
 }
 
@@ -3111,6 +3119,8 @@ bool LVDocView::goToPageShortcutBookmark( int number )
 	ldomXPointer p = m_doc->createXPointer( pos );
 	if ( p.isNull() )
 		return false;
+    if ( getCurPage() != getBookmarkPage( p ) )
+        savePosToNavigationHistory();
 	goToBookmark( p );
 	return true;
 }
@@ -3122,7 +3132,10 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
     {
     case DCMD_BEGIN:
         {
-            SetPos(0);
+            if ( getCurPage() > 0 ) {
+                savePosToNavigationHistory();
+                SetPos(0);
+            }
         }
         break;
     case DCMD_LINEUP:
@@ -3190,7 +3203,10 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         break;
     case DCMD_END:
         {
-            SetPos(GetFullHeight());
+            if ( getCurPage() < getPageCount() - getVisiblePageCount() ) {
+                savePosToNavigationHistory();
+                SetPos(GetFullHeight());
+            }
         }
         break;
     case DCMD_GO_POS:
@@ -3207,7 +3223,10 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         break;
     case DCMD_GO_PAGE:
         {
-            goToPage( param );
+            if ( getCurPage() != param ) {
+                savePosToNavigationHistory();
+                goToPage( param );
+            }
         }
         break;
     case DCMD_ZOOM_IN:
