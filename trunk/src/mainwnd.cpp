@@ -311,6 +311,62 @@ class CRTOCDialog : public CRNumberEditDialog
         }
 };
 
+class CRBookmarkMenu;
+class CRBookmarkMenuItem : public CRMenuItem
+{
+private:
+	CRBookmark * _bookmark;
+public:
+    CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark )
+    : CRMenuItem(menu, shortcut, lString16(L"Empty slot"), LVImageSourceRef(), LVFontRef() ), _bookmark( bookmark )
+	{
+
+	}
+    /// called on item selection
+    virtual int onSelect()
+	{ 
+		return 0;
+	}
+    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
+	{
+		//TODO
+	}
+};
+
+class CRBookmarkMenu : public CRMenu
+{
+public:
+	CRBookmarkMenu(CRGUIWindowManager * wm, CRFileHistRecord * bookmarks, int numItems, lvRect & rc)
+		: CRMenu( wm, NULL, MCMD_BOOKMARK_LIST, lString16(L"Bookmarks"), LVImageSourceRef(), LVFontRef(), LVFontRef() )
+	{
+		_rect = rc;
+		_pageItems = numItems;
+		for ( int i=1; i<=numItems; i++ ) {
+			CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bookmarks->getShortcutBookmark(i) );
+			addItem( item );
+		}
+	}
+    /// returns true if command is processed
+    virtual bool onCommand( int command, int params )
+	{
+		if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 ) {
+			int index = command - MCMD_SELECT_1 + 1;
+			if ( index >=1 && index <= _pageItems ) {
+				closeMenu( DCMD_BOOKMARK_GO_N, index );
+				return true;
+			}
+		} else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {
+			int index = command - MCMD_SELECT_1_LONG + 1;
+			if ( index >=1 && index <= _pageItems ) {
+				closeMenu( DCMD_BOOKMARK_SAVE_N, index );
+				return true;
+			}
+		}
+        closeMenu( 0 );
+	    return true;
+	}
+};
+
 static const char * link_back_active[] = {
     "30 27 5 1",
     "0 c #000000",

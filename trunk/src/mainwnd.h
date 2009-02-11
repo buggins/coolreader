@@ -65,6 +65,7 @@ enum CRMainMenuCmd
 	MCMD_LONG_FORWARD,
 	MCMD_LONG_BACK,
     MCMD_DICT,
+    MCMD_BOOKMARK_LIST,
 };
 
 class V3DocViewWin : public CRDocViewWindow
