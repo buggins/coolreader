@@ -27,7 +27,7 @@
 #ifdef WITH_DICT
 #include "dictdlg.h"
 #endif
-
+#include "citedlg.h"
 
 class CRNumberEditDialog : public CRGUIWindowBase
 {
@@ -1301,6 +1301,10 @@ VIEWER_MENU_4ABOUT=About...
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_CITE,
+                _wm->translateString("VIEVER_MENU_CITE", "Cite.."),
+                LVImageSourceRef(),
+                LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_BOOKMARK_LIST,
                 _wm->translateString("VIEWER_MENU_BOOKMARK_LIST", "Bookmarks..."),
                 LVImageSourceRef(),
@@ -1385,6 +1389,9 @@ bool V3DocViewWin::onCommand( int command, int params )
         activate_dict( _wm, this, _t9encoding, *_dict );
         return true;
 #endif
+    case MCMD_CITE:
+        activate_cite( _wm, this);
+        return true;
     case MCMD_GO_PAGE_APPLY:
         _docview->doCommand( DCMD_GO_PAGE, params-1 );
         return true;

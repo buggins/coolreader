@@ -16,6 +16,7 @@ AM_CPPFLAGS += @CRENGINE_CFLAGS@ @TINYDICT_CFLAGS@ @FONTCONFIG_CFLAGS@
 AM_CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
 
 COMMON_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp bgfit.cpp
+COMMON_SOURCES += citedlg.cpp
 
 #if WITH_DICT
 COMMON_SOURCES += dictdlg.cpp
