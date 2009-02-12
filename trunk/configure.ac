@@ -52,18 +52,20 @@ if test "${with_jinke}" == "false"; then
     PKG_CHECK_MODULES(PNG, [libpng >= 1.2])
 fi
 
+SUBDIRS=""
+
 if test -r "${srcdir}/tinydict/configure"; then
     AC_CONFIG_SUBDIRS([tinydict])
-    AM_CONDITIONAL(LOCAL_TINYDICT, true)
+    SUBDIRS="${SUBDIRS} tinydict"
     TINYDICT_CFLAGS="-I\$(top_srcdir)/tinydict"
     TINYDICT_LIBS="\$(top_builddir)/tinydict/libtinydict.la"
     AC_SUBST([TINYDICT_CFLAGS])
     AC_SUBST([TINYDICT_LIBS])
 else
-    AM_CONDITIONAL(LOCAL_TINYDICT, false)
     PKG_CHECK_MODULES(TINYDICT, [libtinydict >= 0.1])
 fi
 
+SUBDIRS="${SUBDIRS} crengine"
 echo "${srcdir}/crengine/configure"
 if test -r "${srcdir}/crengine/configure"; then
     AC_CONFIG_SUBDIRS([crengine])
@@ -72,6 +74,8 @@ if test -r "${srcdir}/crengine/configure"; then
 else
     PKG_CHECK_MODULES(CRENGINE, [crengine >= 3.0.16])
 fi
+
+SUBDIRS="${SUBDIRS} src"
 
 dnl color backbuffer option
 AC_ARG_ENABLE(color-backbuffer,
@@ -91,6 +95,8 @@ AC_ARG_ENABLE(crengine-memory-manager,
 
 AC_SUBST([CRENGINE_CFLAGS])
 AC_SUBST([CRENGINE_LIBS])
+
+AC_SUBST([SUBDIRS])
 
 AM_CONDITIONAL(WITH_JINKE,$with_jinke)
 #AC_CONFIG_FILES([Makefile])

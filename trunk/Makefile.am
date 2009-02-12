@@ -2,14 +2,9 @@
 # have all needed files, that a GNU package needs
 AUTOMAKE_OPTIONS = foreign 1.4
 
-SUBDIRS = crengine
-
-if LOCAL_TINYDICT
-SUBDIRS += tinydict
-endif
+SUBDIRS = @SUBDIRS@
 
 # src/ must be last, because src/cr3 must be linked with plugins
-SUBDIRS += src
 
 #CRENGINE_CFLAGS="-I$(abs_top_srcdir)/crengine/include -DLINUX -D_LINUX -DCOLOR_BACKBUFFER=0 "
 #CRENGINE_LIBS="-L$(abs_top_srcdir)/crengine/src -lcrengine "
