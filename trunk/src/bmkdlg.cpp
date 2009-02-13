@@ -54,12 +54,10 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
 }
 
 CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
-    : CRMenu( wm, NULL, MCMD_BOOKMARK_LIST, lString16(L"Bookmarks"), LVImageSourceRef(), LVFontRef(), LVFontRef() )
+    : CRFullScreenMenu( wm, MCMD_BOOKMARK_LIST, lString16(L"Bookmarks"), numItems, rc )
 {
-    _rect = rc;
-    _pageItems = numItems;
     CRFileHistRecord * bookmarks = docview->getCurrentFileHistRecord();
-    for ( int i=1; i<=numItems; i++ ) {
+    for ( int i=1; i<=_pageItems; i++ ) {
         CRBookmark * bm = bookmarks->getShortcutBookmark(i);
         int page = 0;
         if ( bm ) {
@@ -79,38 +77,6 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
     _helpHeight = 36;
 }
 
-const lvRect & CRBookmarkMenu::getRect()
-{
-    return _rect;
-}
-
-int CRBookmarkMenu::getItemHeight()
-{
-    CRMenuSkinRef skin = getSkin();
-    lvRect rc = skin->getClientRect( _rect );
-    return (rc.height() - _helpHeight - 4) / _pageItems;
-}
-
-lvPoint CRBookmarkMenu::getMaxItemSize()
-{
-    return lvPoint( _rect.width(), getItemHeight() );
-}
-
-lvPoint CRBookmarkMenu::getSize()
-{
-    return lvPoint( _rect.width(), _rect.height() );
-}
-
-void CRBookmarkMenu::Draw( LVDrawBuf & buf, int x, int y )
-{
-    CRMenu::Draw( buf, x, y );
-    CRMenuSkinRef skin = getSkin();
-    lvRect rc = skin->getClientRect( _rect );
-    int ih = getItemHeight();
-    rc.top += _pageItems * ih + 4;
-    //skin->getItemSkin()->draw( buf, rc );
-    skin->getItemSkin()->drawText( buf, rc, _helpText );
-}
 /// returns true if command is processed
 bool CRBookmarkMenu::onCommand( int command, int params )
 {

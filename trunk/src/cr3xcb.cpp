@@ -467,14 +467,14 @@ int main(int argc, char **argv)
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
         lString16 homecrengine = home + L"/.crengine/";
 
-		lString8 home8 = UnicodeToUtf8( homecrengine );
-		const char * keymap_locations [] = {
+        lString8 home8 = UnicodeToUtf8( homecrengine );
+        const char * keymap_locations [] = {
             "/media/sd/crengine/",
-			home8.c_str(),
-			"/etc/cr3",
-			NULL,
-		};
-		loadKeymaps( winman, keymap_locations );
+            home8.c_str(),
+            "/etc/cr3",
+            NULL,
+        };
+        loadKeymaps( winman, keymap_locations );
 
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );

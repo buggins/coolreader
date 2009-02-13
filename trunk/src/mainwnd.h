@@ -49,6 +49,7 @@
 #endif
 
 #define MAIN_MENU_COMMANDS_START 200
+// don't forget to update keydefs.ini after editing of CRMainMenuCmd
 enum CRMainMenuCmd
 {
     MCMD_BEGIN = MAIN_MENU_COMMANDS_START,
@@ -60,12 +61,15 @@ enum CRMainMenuCmd
     MCMD_SETTINGS_APPLY,
     MCMD_SETTINGS_FONTSIZE,
     MCMD_SETTINGS_ORIENTATION,
-	MCMD_GO_LINK,
-	MCMD_GO_LINK_APPLY,
-	MCMD_LONG_FORWARD,
-	MCMD_LONG_BACK,
+    MCMD_GO_LINK,
+    MCMD_GO_LINK_APPLY,
+    MCMD_LONG_FORWARD,
+    MCMD_LONG_BACK,
     MCMD_DICT,
     MCMD_BOOKMARK_LIST,
+    MCMD_RECENT_BOOK_LIST,
+    MCMD_OPEN_RECENT_BOOK,
+    MCMD_ABOUT,
     MCMD_CITE,
 };
 
@@ -128,6 +132,10 @@ public:
     bool showLinksDialog();
 
     void showBookmarksMenu();
+
+    void showRecentBooksMenu();
+
+    void openRecentBook( int index );
 
     virtual bool onCommand( int command, int params );
 

@@ -31,6 +31,7 @@
 #include "linksdlg.h"
 #include "tocdlg.h"
 #include "bmkdlg.h"
+#include "recentdlg.h"
 
 #include "citedlg.h"
 
@@ -473,6 +474,26 @@ void V3DocViewWin::showOrientationMenu()
     _wm->activateWindow( menu );
 }
 
+void V3DocViewWin::showRecentBooksMenu()
+{
+    lvRect rc = _wm->getScreen()->getRect();
+    CRRecentBooksMenu * menu_win = new CRRecentBooksMenu(_wm, _docview, 8, rc);
+    menu_win->setAccelerators( getMenuAccelerators() );
+    menu_win->setSkinName(lString16(L"#bookmarks"));
+    _wm->activateWindow( menu_win );
+}
+
+void V3DocViewWin::openRecentBook( int index )
+{
+    LVPtrVector<CRFileHistRecord> & files = _docview->getHistory()->getRecords();
+    if ( index >= 1 && index < files.length() ) {
+        CRFileHistRecord * file = files.get( index );
+        lString16 fn = file->getFilePathName();
+        // TODO: check error
+        loadDocument( fn );
+    }
+}
+
 void V3DocViewWin::showBookmarksMenu()
 {
     lvRect rc = _wm->getScreen()->getRect();
@@ -500,18 +521,27 @@ VIEWER_MENU_5ABOUT=About...
 VIEWER_MENU_4ABOUT=About...
 */
     menu_win->setSkinName(lString16(L"#main"));
+#if 0
     menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
                 _wm->translateString("VIEWER_MENU_GOTOFIRSTPAGE", "Go to first page"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
+#endif
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
                 _wm->translateString("VIEWER_MENU_GOTOPAGE", "Go to page ..."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
+#if 0
     menu_win->addItem( new CRMenuItem( menu_win, DCMD_END,
                 _wm->translateString("VIEWER_MENU_GOTOENDPAGE", "Go to last page"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
+#endif
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_RECENT_BOOK_LIST,
+                _wm->translateString("VIEWER_MENU_RECENT_BOOKS_LIST", "Open recent book..."),
+                LVImageSourceRef(),
+                LVFontRef() ) );
+
 #ifdef WITH_DICT
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
                 _wm->translateString("VIEWER_MENU_DICTIONARY", "Dictionary..."),
@@ -587,6 +617,13 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_SETTINGS:
         showSettingsMenu();
         return true;
+    case MCMD_RECENT_BOOK_LIST:
+        showRecentBooksMenu();
+        return true;
+    case MCMD_OPEN_RECENT_BOOK:
+        openRecentBook( params );
+        return true;
+
 #ifdef WITH_DICT
 
 #ifdef _WIN32
