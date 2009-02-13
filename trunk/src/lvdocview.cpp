@@ -3037,8 +3037,10 @@ int LVDocView::getPrevPageOffset()
     {
         int p = m_pages.FindNearestPage(m_pos, 0);
         p -= getVisiblePageCount();
-        if ( p<0 )
+        if ( p < 0 )
             p = 0;
+        if ( p >= m_pages.length() )
+            return 0;
         return m_pages[p]->start;
     }
 }

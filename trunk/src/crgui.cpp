@@ -743,12 +743,13 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
 }
 
 static int inv_control_table[] = {
-	// old cmd, new cmd, param multiplier
-	DCMD_LINEUP, DCMD_LINEDOWN, 1,
-	DCMD_LINEDOWN, DCMD_LINEUP, 1,
+    // old cmd, new cmd, param multiplier
+    DCMD_LINEUP, DCMD_LINEDOWN, 1,
+    DCMD_LINEDOWN, DCMD_LINEUP, 1,
     DCMD_PAGEUP, DCMD_PAGEDOWN, 1,
     DCMD_PAGEDOWN, DCMD_PAGEUP, 1,
-	0, 0, 0, 0,
+    DCMD_MOVE_BY_CHAPTER, DCMD_MOVE_BY_CHAPTER, -1,
+    0, 0, 0, 0,
 };
 
 /// returns true if command is processed
