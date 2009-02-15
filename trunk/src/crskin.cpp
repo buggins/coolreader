@@ -268,7 +268,7 @@ bool CRSkinImpl::open( lString8 simpleXml )
 }
 
 /// reads string value from attrname attribute of element specified by path, returns empty string if not found
-lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname )
+lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname, bool * res )
 {
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr )
@@ -278,20 +278,24 @@ lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * att
 	//lString16 pnname = ptr.getNode()->getParentNode()->getNodeName();
 	//lString16 nname = ptr.getNode()->getNodeName();
     lString16 value = ptr.getNode()->getAttributeValue( attrname );
+	if ( res )
+		*res = true;
     return value;
 }
 
 /// reads string value from attrname attribute of element specified by path, returns defValue if not found
-lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue )
+lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue, bool * res )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
+	if ( res )
+		*res = true;
     return value;
 }
 
 /// reads color value from attrname attribute of element specified by path, returns defValue if not found
-lUInt32 CRSkinContainer::readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue )
+lUInt32 CRSkinContainer::readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue, bool * res  )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -301,11 +305,13 @@ lUInt32 CRSkinContainer::readColor( const lChar16 * path, const lChar16 * attrna
     const char * bufptr = buf.modify();
     if ( !parse_color_value( bufptr, cv ) )
         return defValue;
+	if ( res )
+		*res = true;
     return cv.value;
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns defValue if not found
-lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue )
+lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue, bool * res )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -314,11 +320,13 @@ lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname
     int n1, n2, n3, n4;
     if ( sscanf( s8.c_str(), "%d,%d,%d,%d", &n1, &n2, &n3, &n4 )!=4 )
         return defValue;
+	if ( res )
+		*res = true;
     return lvRect( n1, n2, n3, n4 );
 }
 
 /// reads boolean value from attrname attribute of element specified by path, returns defValue if not found
-bool CRSkinContainer::readBool( const lChar16 * path, const lChar16 * attrname, bool defValue )
+bool CRSkinContainer::readBool( const lChar16 * path, const lChar16 * attrname, bool defValue, bool * res )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -327,43 +335,63 @@ bool CRSkinContainer::readBool( const lChar16 * path, const lChar16 * attrname, 
         return true;
     if ( value == L"false" || value == L"no" )
         return false;
+	if ( res )
+		*res = true;
     return defValue;
 }
 
 /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinContainer::readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue )
+int CRSkinContainer::readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
-    if ( value == L"left" )
+	if ( value == L"left" ) {
+		if ( res )
+			*res = true;
         return SKIN_HALIGN_LEFT;
-    if ( value == L"center" )
+	}
+	if ( value == L"center" ) {
+		if ( res )
+			*res = true;
         return SKIN_HALIGN_CENTER;
-    if ( value == L"right" )
+	}
+	if ( value == L"right" ) {
+		if ( res )
+			*res = true;
         return SKIN_HALIGN_RIGHT;
+	}
     // invalid value
     return defValue;
 }
 
 /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinContainer::readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue )
+int CRSkinContainer::readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
-    if ( value == L"left" )
+	if ( value == L"left" ) {
+		if ( res )
+			*res = true;
         return SKIN_VALIGN_TOP;
-    if ( value == L"center" )
+	}
+	if ( value == L"center" ) {
+		if ( res )
+			*res = true;
         return SKIN_VALIGN_CENTER;
-    if ( value == L"bottom" )
+	}
+	if ( value == L"bottom" ) {
+		if ( res )
+			*res = true;
         return SKIN_VALIGN_BOTTOM;
+	}
     // invalid value
     return defValue;
 }
 
 /// reads int value from attrname attribute of element specified by path, returns defValue if not found
-int CRSkinContainer::readInt( const lChar16 * path, const lChar16 * attrname, int defValue )
+int CRSkinContainer::readInt( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -372,11 +400,13 @@ int CRSkinContainer::readInt( const lChar16 * path, const lChar16 * attrname, in
     int n1;
     if ( sscanf( s8.c_str(), "%d", &n1 )!=1 )
         return defValue;
+	if ( res )
+		*res = true;
     return n1;
 }
 
 /// reads point(size) value from attrname attribute of element specified by path, returns defValue if not found
-lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue )
+lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue, bool * res )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() )
@@ -385,11 +415,13 @@ lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrnam
     int n1, n2;
     if ( sscanf( s8.c_str(), "%d,%d", &n1, &n2 )!=2 )
         return defValue;
+	if ( res )
+		*res = true;
     return lvPoint( n1, n2 );
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
-LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16 * attrname )
+LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16 * attrname, bool * r )
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() ) {
@@ -401,7 +433,10 @@ LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16
     if ( res.isNull() ) {
         crtrace log;
         log << "Image " << value << " cannot be read";
-    }
+	} else {
+		if ( r )
+			*r = true;
+	}
     return res;
 }
 
@@ -810,10 +845,10 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     }
 
     flg = readRectSkin( path, res ) || flg;
-    res->setNormalImage( readImage( path, L"normal" ) );
-    res->setDisabledImage( readImage( path, L"disabled" ) );
-    res->setPressedImage( readImage( path, L"pressed" ) );
-    res->setSelectedImage( readImage( path, L"selected" ) );
+    res->setNormalImage( readImage( path, L"normal", &flg ) );
+    res->setDisabledImage( readImage( path, L"disabled", &flg ) );
+    res->setPressedImage( readImage( path, L"pressed", &flg ) );
+    res->setSelectedImage( readImage( path, L"selected", &flg ) );
 
     LVImageSourceRef img = res->getNormalImage();
     lvRect margins = res->getBorderWidths();
@@ -877,16 +912,16 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
         flg = true;
     }
 
-    LVImageSourceRef hf = readImage( (p + L"/hbody").c_str(), L"frame" );
+    LVImageSourceRef hf = readImage( (p + L"/hbody").c_str(), L"frame", &flg );
     if ( !hf.isNull() )
         res->setHBody( hf );
-    LVImageSourceRef hs = readImage( (p + L"/hbody").c_str(), L"slider" );
+    LVImageSourceRef hs = readImage( (p + L"/hbody").c_str(), L"slider", &flg );
     if ( !hs.isNull() )
         res->setHSlider( hs );
-    LVImageSourceRef vf = readImage( (p + L"/vbody").c_str(), L"frame" );
+    LVImageSourceRef vf = readImage( (p + L"/vbody").c_str(), L"frame", &flg );
     if ( !vf.isNull() )
         res->setVBody( vf );
-    LVImageSourceRef vs = readImage( (p + L"/vbody").c_str(), L"slider" );
+    LVImageSourceRef vs = readImage( (p + L"/vbody").c_str(), L"slider", &flg );
     if ( !vs.isNull() )
         res->setVSlider(vs );
 
@@ -921,21 +956,18 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     lString16 borderpath = p + L"/border";
     lString16 textpath = p + L"/text";
     lString16 sizepath = p + L"/size";
-    res->setBackgroundImage( readImage( bgpath.c_str(), L"image" ) );
-    res->setBackgroundColor( readColor( bgpath.c_str(), L"color", 0xFFFFFF ) );
-    res->setBorderWidths( readRect( borderpath.c_str(), L"widths", lvRect( 0, 0, 0, 0 ) ) );
-    res->setMinSize( readSize( sizepath.c_str(), L"minvalue", lvPoint( 0, 0 ) ) );
-    res->setMaxSize( readSize( sizepath.c_str(), L"maxvalue", lvPoint( 0, 0 ) ) );
-    res->setFontFace( readString( textpath.c_str(), L"face", L"Arial" ) );
-    res->setTextColor( readColor( textpath.c_str(), L"color", 0x000000 ) );
-    res->setFontBold( readBool( textpath.c_str(), L"bold", false ) );
-    res->setFontItalic( readBool( textpath.c_str(), L"italic", false ) );
-    res->setFontSize( readInt( textpath.c_str(), L"size", 24 ) );
-    res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", SKIN_HALIGN_LEFT) );
-    res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", SKIN_VALIGN_CENTER) );
-
-    if ( res->getMinSize().x > 0 || res->getMinSize().y > 0 || !res->getBackgroundImage().isNull() || res->getBackgroundColor()!=0xFFFFFF )
-        flg = true;
+    res->setBackgroundImage( readImage( bgpath.c_str(), L"image", &flg ) );
+    res->setBackgroundColor( readColor( bgpath.c_str(), L"color", 0xFFFFFF, &flg ) );
+    res->setBorderWidths( readRect( borderpath.c_str(), L"widths", lvRect( 0, 0, 0, 0 ), &flg ) );
+    res->setMinSize( readSize( sizepath.c_str(), L"minvalue", lvPoint( 0, 0 ), &flg ) );
+    res->setMaxSize( readSize( sizepath.c_str(), L"maxvalue", lvPoint( 0, 0 ), &flg ) );
+    res->setFontFace( readString( textpath.c_str(), L"face", L"Arial", &flg ) );
+    res->setTextColor( readColor( textpath.c_str(), L"color", 0x000000, &flg ) );
+    res->setFontBold( readBool( textpath.c_str(), L"bold", false, &flg ) );
+    res->setFontItalic( readBool( textpath.c_str(), L"italic", false, &flg ) );
+    res->setFontSize( readInt( textpath.c_str(), L"size", 24, &flg ) );
+    res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", SKIN_HALIGN_LEFT, &flg) );
+    res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", SKIN_VALIGN_CENTER, &flg) );
 
     if ( !flg ) {
         crtrace log;

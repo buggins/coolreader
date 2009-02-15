@@ -256,25 +256,25 @@ public:
     /// gets doc pointer by path
     virtual ldomXPointer getXPointer( const lChar16 * xPointerStr ) { return getXPointer( lString16(xPointerStr) ); }
     /// reads int value from attrname attribute of element specified by path, returns defValue if not found
-    virtual int readInt( const lChar16 * path, const lChar16 * attrname, int defValue );
+    virtual int readInt( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
     /// reads boolean value from attrname attribute of element specified by path, returns defValue if not found
-    virtual bool readBool( const lChar16 * path, const lChar16 * attrname, bool defValue );
+    virtual bool readBool( const lChar16 * path, const lChar16 * attrname, bool defValue, bool * res=NULL );
     /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-    virtual int readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue );
+    virtual int readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
     /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
-    virtual int readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue );
+    virtual int readVAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
     /// reads string value from attrname attribute of element specified by path, returns empty string if not found
-    virtual lString16 readString( const lChar16 * path, const lChar16 * attrname );
+    virtual lString16 readString( const lChar16 * path, const lChar16 * attrname, bool * res=NULL );
     /// reads string value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lString16 readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue );
+    virtual lString16 readString( const lChar16 * path, const lChar16 * attrname, const lString16 & defValue, bool * res=NULL );
     /// reads color value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lUInt32 readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue );
+    virtual lUInt32 readColor( const lChar16 * path, const lChar16 * attrname, lUInt32 defValue, bool * res=NULL );
     /// reads rect value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lvRect readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue );
+    virtual lvRect readRect( const lChar16 * path, const lChar16 * attrname, lvRect defValue, bool * res=NULL );
     /// reads point(size) value from attrname attribute of element specified by path, returns defValue if not found
-    virtual lvPoint readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue );
+    virtual lvPoint readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue, bool * res=NULL );
     /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
-    virtual LVImageSourceRef readImage( const lChar16 * path, const lChar16 * attrname );
+    virtual LVImageSourceRef readImage( const lChar16 * path, const lChar16 * attrname, bool * res=NULL );
 
 
     /// returns rect skin by path or #id
