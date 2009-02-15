@@ -362,6 +362,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		main_win->loadSettings( exedir + L"cr3.ini" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
 
+        main_win->loadHistory( exedir + L"cr3hist.bmk" );
+
         winman.activateWindow( main_win );
         if ( !main_win->getDocView()->LoadDocument(cmdline.c_str()) ) {
             char str[100];

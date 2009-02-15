@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\bmkdlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\citedlg.cpp"
 				>
 			</File>
@@ -215,11 +219,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fsmenu.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\hist.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\..\crengine\src\hyphman.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\linksdlg.cpp"
 				>
 			</File>
 			<File
@@ -295,7 +307,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\numedit.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\props.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\recentdlg.cpp"
 				>
 			</File>
 			<File
@@ -308,6 +328,10 @@
 			</File>
 			<File
 				RelativePath="..\tinydict\tinydict.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tocdlg.cpp"
 				>
 			</File>
 			<File
@@ -326,6 +350,14 @@
 			>
 			<File
 				RelativePath=".\bgfit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\bmkdlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\citecore.h"
 				>
 			</File>
 			<File
@@ -381,11 +413,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fsmenu.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\include\hist.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\crengine\include\hyphman.h"
+				>
+			</File>
+			<File
+				RelativePath=".\linksdlg.h"
 				>
 			</File>
 			<File
@@ -489,7 +529,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\numedit.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\include\props.h"
+				>
+			</File>
+			<File
+				RelativePath=".\recentdlg.h"
 				>
 			</File>
 			<File
@@ -510,6 +558,10 @@
 			</File>
 			<File
 				RelativePath="..\tinydict\tinydict.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tocdlg.h"
 				>
 			</File>
 			<File
