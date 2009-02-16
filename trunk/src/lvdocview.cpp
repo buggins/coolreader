@@ -3156,12 +3156,18 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         break;
     case DCMD_PAGEUP:
         {
-            SetPos( getPrevPageOffset() );
+            if ( param < 1 )
+                param = 1;
+            for ( int i=1; i<=param; i++ )
+                SetPos( getPrevPageOffset() );
         }
         break;
     case DCMD_PAGEDOWN:
         {
-            SetPos( getNextPageOffset() );
+            if ( param < 1 )
+                param = 1;
+            for ( int i=1; i<=param; i++ )
+                SetPos( getNextPageOffset() );
         }
         break;
     case DCMD_LINK_NEXT:
@@ -3315,6 +3321,34 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->limitValueList( PROP_PAGE_MARGIN_RIGHT, def_margin, 5 );
 }
 
+#define H_MARGIN 8
+#define V_MARGIN 8
+#define ALLOW_BOTTOM_STATUSBAR 0
+void LVDocView::setStatusMode( int newMode, bool showClock )
+{
+#if ALLOW_BOTTOM_STATUSBAR==1
+    lvRect margins( H_MARGIN, V_MARGIN, H_MARGIN, V_MARGIN/2 );
+    lvRect oldMargins = _docview->getPageMargins( );
+    if (newMode==1) 
+        margins.bottom = STANDARD_STATUSBAR_HEIGHT + V_MARGIN/4;
+#endif
+    if ( newMode==0 )
+        setPageHeaderInfo(
+                PGHDR_PAGE_NUMBER
+                | (showClock ? PGHDR_CLOCK : 0)
+                | PGHDR_BATTERY
+                | PGHDR_PAGE_COUNT
+                | PGHDR_AUTHOR
+                | PGHDR_TITLE
+                //| PGHDR_CLOCK
+                         );
+    else
+        setPageHeaderInfo(0);
+#if ALLOW_BOTTOM_STATUSBAR==1
+    setPageMargins( margins );
+#endif
+}
+
 /// applies properties, returns list of not recognized properties
 CRPropRef LVDocView::propsApply( CRPropRef props )
 {
@@ -3344,8 +3378,8 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             setTextColor( textColor );
         } else if ( name==PROP_FONT_FACE ) {
             setDefaultFontFace( UnicodeToUtf8(value) );
-        //} else if ( name==PROP_STATUS_LINE ) {
-        //    setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
+        } else if ( name==PROP_STATUS_LINE ) {
+            setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
         //} else if ( name==PROP_BOOKMARK_ICONS ) {
         //    enableBookmarkIcons( value==L"1" );
         } else if ( name==PROP_BACKGROUND_COLOR ) {
@@ -3371,8 +3405,8 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             bool value = props->getBoolDef( PROP_FOOTNOTES, true );
             getDocument()->setDocFlag( DOC_FLAG_ENABLE_FOOTNOTES, value );
             requestRender();
-        //} else if ( name==PROP_SHOW_TIME ) {
-        //    setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
+        } else if ( name==PROP_SHOW_TIME ) {
+            setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
         } else if ( name==PROP_DISPLAY_INVERSE ) {
             if ( value==L"1" ) {
                 CRLog::trace("Setting inverse colors");

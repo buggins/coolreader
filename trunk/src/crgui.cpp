@@ -142,11 +142,14 @@ int CRMenu::getPageCount()
 
 void CRMenu::setCurPage( int nPage )
 {
+    int oldTop = _topItem;
     _topItem = _pageItems * nPage;
     if ( _topItem + _pageItems > (int)_items.length() )
         _topItem = (int)_items.length() - _pageItems;
     if ( _topItem < 0 )
         _topItem = 0;
+    if ( _topItem != oldTop )
+        setDirty();
 }
 
 int CRMenu::getCurPage( )
@@ -473,6 +476,12 @@ void CRMenu::closeAllMenu( int command, int params )
     p->destroyMenu();
 }
 
+bool CRMenu::onKeyPressed( int key, int flags )
+{
+    CRGUIWindowBase::onKeyPressed( key, flags );
+    return true; // don't allow key processing by parent window
+}
+
 /// returns true if command is processed
 bool CRMenu::onCommand( int command, int params )
 {
@@ -516,6 +525,7 @@ bool CRMenu::onCommand( int command, int params )
         if ( menu->getItems().length() <= 3 ) {
             // toggle 2 and 3 choices w/o menu
             menu->toggleSubmenuValue();
+            setDirty();
         } else {
             // show menu
             _wm->activateWindow( menu );
@@ -606,6 +616,7 @@ static bool splitLine( lString16 line, const lString16 & delimiter, lString16 & 
 
 static int decodeKey( lString16 name )
 {
+    name.trim();
     if ( name.empty() )
         return 0;
     int key = 0;

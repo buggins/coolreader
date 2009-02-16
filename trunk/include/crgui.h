@@ -290,7 +290,7 @@ class CRGUIWindow
         /// draws content of window to screen
         virtual void flush() = 0;
         /// called if window gets focus
-        virtual void activated() { }
+        virtual void activated() { setDirty(); }
         /// called if window loss focus
         virtual void covered() { }
         /// called if window is being closed
@@ -915,6 +915,8 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         virtual ~CRMenu() { }
         // CRGUIWindow
         virtual const lvRect & getRect();
+        /// overriden to disable passing key to parent windows
+        virtual bool onKeyPressed( int key, int flags );
         /// returns true if command is processed
         virtual bool onCommand( int command, int params = 0 );
         /// closes menu and its submenus, posts command

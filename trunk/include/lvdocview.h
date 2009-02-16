@@ -414,6 +414,8 @@ protected:
     void checkPos();
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
+    /// set status bar and clock mode
+    void setStatusMode( int newMode, bool showClock );
 public:
     /// saves current position to navigation history, to be able return back
     void savePosToNavigationHistory();
