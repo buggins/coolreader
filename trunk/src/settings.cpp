@@ -71,7 +71,7 @@ static item_def_t landscape_pages[] = {
 
 static item_def_t status_line[] = {
     {"VIEWER_DLG_STATUS_LINE_TOP", "Top", "0"},
-    {"VIEWER_DLG_STATUS_LINE_BOTTOM", "Bottom", "1"},
+//    {"VIEWER_DLG_STATUS_LINE_BOTTOM", "Bottom", "1"},
     {"VIEWER_DLG_STATUS_LINE_OFF", "Off", "2"},
     {NULL, NULL, NULL},
 };

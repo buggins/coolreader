@@ -405,7 +405,11 @@ int main(int argc, char **argv)
 
     {
     CRLog::setStdoutLogger();
+#ifdef __i386__
     CRLog::setLogLevel( CRLog::LL_TRACE );
+#else
+    CRLog::setLogLevel( CRLog::LL_ERROR );
+#endif
     #if 0
     // memory leak test
     {

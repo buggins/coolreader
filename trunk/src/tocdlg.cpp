@@ -150,6 +150,7 @@ bool CRTOCDialog::onCommand( int command, int params )
                 _topItem = _items.length() - _pageItems;
             if ( _topItem < 0 )
                 _topItem = 0;
+            setDirty();
         }
         break;
     case MCMD_SCROLL_BACK:
@@ -159,6 +160,7 @@ bool CRTOCDialog::onCommand( int command, int params )
                 _topItem = _items.length() - _pageItems;
             if ( _topItem < 0 )
                 _topItem = 0;
+            setDirty();
         }
         break;
     case MCMD_SELECT_0:
@@ -174,7 +176,7 @@ bool CRTOCDialog::onCommand( int command, int params )
         digitEntered( '0' + (command - MCMD_SELECT_0) );
         break;
     default:
-        return false;
+        return true;
     }
     return true;
 }
