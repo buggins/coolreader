@@ -688,12 +688,40 @@ public:
     bool nextSibling();
     /// move to previous sibling
     bool prevSibling();
+    /// move to next sibling element
+    bool nextSiblingElement();
+    /// move to previous sibling element
+    bool prevSiblingElement();
     /// move to parent
     bool parent();
+    /// move to first child of current node
+    bool firstChild();
+    /// move to last child of current node
+    bool lastChild();
+    /// move to first element child of current node
+    bool firstElementChild();
+    /// move to last element child of current node
+    bool lastElementChild();
     /// move to child #
     bool child( int index );
     /// move to sibling #
     bool sibling( int index );
+    /// ensure that current node is element (move to parent, if not - from text node to element)
+    bool ensureElement();
+    /// moves pointer to parent element with FINAL render method, returns true if success
+    bool ensureFinal();
+    /// returns true if current node is visible element with render method == erm_final
+    bool isVisibleFinal();
+    /// returns true if current node is element
+    bool isElement() { return _node!=NULL && _node->isElement(); }
+    /// move to next final visible node (~paragraph)
+    bool nextVisibleFinal();
+    /// move to previous final visible node (~paragraph)
+    bool prevVisibleFinal();
+    /// forward iteration by elements of DOM three
+    bool nextElement();
+    /// backward iteration by elements of DOM three
+    bool prevElement();
     /// calls specified function recursively for all elements of DOM tree
     void recurseElements( void (*pFun)( ldomXPointerEx & node ) );
     /// calls specified function recursively for all nodes of DOM tree

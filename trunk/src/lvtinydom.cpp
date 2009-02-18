@@ -2035,6 +2035,32 @@ bool ldomXPointerEx::prevSibling()
     return sibling( _indexes[_level-1] - 1 );
 }
 
+/// move to next sibling element
+bool ldomXPointerEx::nextSiblingElement()
+{
+    if ( _level < 1 )
+        return false;
+    ldomElement * p = _node->getParentNode();
+    for ( int i=_indexes[_level-1] + 1; i<_node->getChildCount(); i++ ) {
+        if ( p->getChildNode( i )->getNodeType()==LXML_ELEMENT_NODE )
+            return sibling( i );
+    }
+    return false;
+}
+
+/// move to previous sibling element
+bool ldomXPointerEx::prevSiblingElement()
+{
+    if ( _level < 1 )
+        return false;
+    ldomElement * p = _node->getParentNode();
+    for ( int i=_indexes[_level-1] - 1; i>=0; i-- ) {
+        if ( p->getChildNode( i )->getNodeType()==LXML_ELEMENT_NODE )
+            return sibling( i );
+    }
+    return false;
+}
+
 /// move to parent
 bool ldomXPointerEx::parent()
 {
@@ -2451,6 +2477,155 @@ ldomElement * ldomXRange::getNearestCommonParent()
     return NULL;
 }
 
+bool ldomXPointerEx::ensureFinal()
+{
+    if ( ensureElement() )
+        return false;
+    int cnt = 0;
+    int foundCnt = -1;
+    ldomElement * e = (ldomElement*)_node;
+    for ( ; e!=NULL; e = e->getParentNode() ) {
+        if ( e->getRendMethod() == erm_final ) {
+            foundCnt = cnt;
+        }
+        cnt++;
+    }
+    if ( foundCnt<0 )
+        return false;
+    for ( int i=0; i<foundCnt; i++ )
+        parent();
+    // curent node is final formatted element (e.g. paragraph)
+    return true;
+}
+
+/// ensure that current node is element (move to parent, if not - from text node to element)
+bool ldomXPointerEx::ensureElement()
+{
+    if ( !_node )
+        return false;
+    if ( _node->getNodeType() == LXML_TEXT_NODE && !parent() )
+        return false;
+    if ( !_node || _node->getNodeType() != LXML_ELEMENT_NODE )
+        return false;
+    return true;
+}
+
+/// move to first child of current node
+bool ldomXPointerEx::firstChild()
+{
+    return child(0);
+}
+
+/// move to last child of current node
+bool ldomXPointerEx::lastChild()
+{
+    int count = _node->getChildCount();
+    if ( count <=0 )
+        return false;
+    return child( count - 1 );
+}
+
+/// move to first element child of current node
+bool ldomXPointerEx::firstElementChild()
+{
+    int count = _node->getChildCount();
+    for ( int i=0; i<count; i++ ) {
+        if ( _node->getChildNode( i )->getNodeType() == LXML_ELEMENT_NODE )
+            return child( i );
+    }
+    return false;
+}
+
+/// move to last element child of current node
+bool ldomXPointerEx::lastElementChild()
+{
+    int count = _node->getChildCount();
+    for ( int i=count-1; i>=0; i-- ) {
+        if ( _node->getChildNode( i )->getNodeType() == LXML_ELEMENT_NODE )
+            return child( i );
+    }
+    return false;
+}
+
+/// forward iteration by elements of DOM three
+bool ldomXPointerEx::nextElement()
+{
+    if ( !ensureElement() )
+        return false;
+    if ( firstElementChild() )
+        return true;
+    for (;;) {
+        if ( nextSiblingElement() )
+            return true;
+        if ( !parent() )
+            return false;
+    }
+}
+
+/// returns true if current node is visible element with render method == erm_final
+bool ldomXPointerEx::isVisibleFinal()
+{
+    if ( !isElement() )
+        return false;
+    int cnt = 0;
+    int foundCnt = -1;
+    ldomElement * e = (ldomElement*)_node;
+    for ( ; e!=NULL; e = e->getParentNode() ) {
+        switch ( e->getRendMethod() ) {
+        case erm_final:
+            foundCnt = cnt;
+            break;
+        case erm_invisible:
+            foundCnt = -1;
+            break;
+        default:
+            break;
+        }
+        cnt++;
+    }
+    if ( foundCnt != 0 )
+        return false;
+    // curent node is visible final formatted element (e.g. paragraph)
+    return true;
+}
+
+/// backward iteration by elements of DOM three
+bool ldomXPointerEx::prevElement()
+{
+    if ( !ensureElement() )
+        return false;
+    for (;;) {
+        if ( prevSiblingElement() ) {
+            while ( lastElementChild() )
+                ;
+            return true;
+        }
+        if ( !parent() )
+            return false;
+    }
+}
+
+/// move to next final visible node (~paragraph)
+bool ldomXPointerEx::nextVisibleFinal()
+{
+    for ( ;; ) {
+        if ( !nextElement() )
+            return false;
+        if ( isVisibleFinal() )
+            return true;
+    }
+}
+
+/// move to previous final visible node (~paragraph)
+bool ldomXPointerEx::prevVisibleFinal()
+{
+    for ( ;; ) {
+        if ( !prevElement() )
+            return false;
+        if ( isVisibleFinal() )
+            return true;
+    }
+}
 
 /// run callback for each node in range
 void ldomXRange::forEach( ldomNodeCallback * callback )

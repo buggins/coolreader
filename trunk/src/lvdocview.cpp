@@ -2746,6 +2746,42 @@ bool LVDocView::LoadDocument( const char * fname )
     return LoadDocument( LocalToUnicode(lString8(fname)).c_str() );
 }
 
+/// returns XPointer to middle paragraph of current page
+ldomXPointer LVDocView::getCurrentPageMiddleParagraph()
+{
+    LVLock lock(getMutex());
+    checkPos();
+    ldomXPointer ptr;
+    if ( !m_doc )
+        return ptr;
+
+    if ( getViewMode()==DVM_SCROLL ) {
+        // SCROLL mode
+        int starty = m_pos;
+        int endy = m_pos + m_dy;
+        int fh = GetFullHeight();
+        if ( endy>=fh )
+            endy = fh-1;
+        ptr = m_doc->createXPointer( lvPoint( 0, (starty + endy)/ 2 ) );
+    } else {
+        // PAGES mode
+        int pageIndex = getCurPage();
+        if ( pageIndex<0 || pageIndex>=m_pages.length() )
+            pageIndex = getCurPage();
+        LVRendPageInfo * page = m_pages[ pageIndex ];
+        if ( page->type==PAGE_TYPE_NORMAL)
+            ptr = m_doc->createXPointer( lvPoint( 0, (page->start + page->height)/2 ) );
+    }
+    if ( ptr.isNull() )
+        return ptr;
+    ldomXPointerEx p( ptr );
+    if ( !p.isVisibleFinal() )
+        if ( !p.prevVisibleFinal() )
+            if ( !p.nextVisibleFinal() )
+                return ptr;
+    return ldomXPointer( p );
+}
+
 /// returns bookmark
 ldomXPointer LVDocView::getBookmark()
 {

@@ -408,8 +408,6 @@ protected:
     int getNextPageOffset();
     /// returns document offset for previous page
     int getPrevPageOffset();
-    /// render document, if not rendered
-    void checkRender();
     /// ensure current position is set to current bookmark value
     void checkPos();
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
@@ -417,6 +415,10 @@ protected:
     /// set status bar and clock mode
     void setStatusMode( int newMode, bool showClock );
 public:
+    /// returns XPointer to middle paragraph of current page
+    ldomXPointer getCurrentPageMiddleParagraph();
+    /// render document, if not rendered
+    void checkRender();
     /// saves current position to navigation history, to be able return back
     void savePosToNavigationHistory();
     /// returns pointer to bookmark/last position containter of currently opened file

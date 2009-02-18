@@ -569,6 +569,8 @@ class CRGUIWindowBase : public CRGUIWindow
         bool _visible;
         bool _fullscreen;
         bool _dirty;
+        bool _passKeysToParent;
+        bool _passCommandsToParent;
         CRGUIAcceleratorTableRef _acceleratorTable;
         lString16 _skinName;
         virtual void draw() = 0;
@@ -577,6 +579,8 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual void setSkinName( const lString16  & skin ) { _skinName = skin; }
         /// returns skin name for window
         virtual lString16 getSkinName() { return _skinName; }
+        /// returns true if command is processed
+        virtual bool onCommand( int command, int params = 0 ) { return !_passCommandsToParent; }
         /// returns true if key is processed (by default, let's translate key to command using accelerator table)
         virtual bool onKeyPressed( int key, int flags = 0 );
         /// set accelerator table for window
@@ -603,7 +607,8 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual void setFullscreen( bool fullscreen ) { _fullscreen = fullscreen; }
         virtual CRGUIWindowManager * getWindowManager() { return _wm; }
         CRGUIWindowBase( CRGUIWindowManager * wm )
-        : _wm(wm), _visible(true), _fullscreen(true), _dirty(true)
+        : _wm(wm), _visible(true), _fullscreen(true), _dirty(true), _passKeysToParent(true), _passCommandsToParent(true)
+
         {
             // fullscreen visible by default
             _rect = _wm->getScreen()->getRect();

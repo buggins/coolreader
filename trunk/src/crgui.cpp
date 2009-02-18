@@ -70,7 +70,7 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
 {
     if ( _acceleratorTable.isNull() ) {
         CRLog::trace("CRGUIWindowBase::onKeyPressed( %d, %d) - no accelerator table specified!", key, flags );
-        return false;
+        return !_passKeysToParent;
     }
     int cmd, param;
     if ( _acceleratorTable->translate( key, flags, cmd, param ) ) {
@@ -80,7 +80,7 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
         CRLog::trace("Accelerator not found for key %d(%d)", key, flags );
         _acceleratorTable->dump();
     }
-    return false;
+    return !_passKeysToParent;
 }
 
 void CRDocViewWindow::draw()
@@ -782,5 +782,5 @@ bool CRDocViewWindow::onCommand( int command, int params )
         _dirty = true;
         return true;
     }
-    return false;
+    return !_passCommandsToParent;
 }
