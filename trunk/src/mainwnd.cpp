@@ -32,6 +32,7 @@
 #include "tocdlg.h"
 #include "bmkdlg.h"
 #include "recentdlg.h"
+#include "viewdlg.h"
 
 #include "citedlg.h"
 
@@ -521,6 +522,10 @@ VIEWER_MENU_5ABOUT=About...
 VIEWER_MENU_4ABOUT=About...
 */
     menu_win->setSkinName(lString16(L"#main"));
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_ABOUT,
+                _wm->translateString("VIEWER_MENU_ABOUT", "About..."),
+                LVImageSourceRef(),
+                LVFontRef() ) );
 #if 0
     menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
                 _wm->translateString("VIEWER_MENU_GOTOFIRSTPAGE", "Go to first page"),
@@ -594,6 +599,14 @@ bool V3DocViewWin::showLinksDialog()
     return true;
 }
 
+void V3DocViewWin::showAboutDialog()
+{
+    lString16 title = L"Cool Reader ";
+    lString8 txt;
+    CRViewDialog * dlg = new CRViewDialog( _wm, title, txt, lvRect(), true, true );
+    _wm->activateWindow( dlg );
+}
+
 /// returns true if command is processed
 bool V3DocViewWin::onCommand( int command, int params )
 {
@@ -645,6 +658,9 @@ bool V3DocViewWin::onCommand( int command, int params )
         activate_dict( _wm, this, _t9encoding, *_dict );
         return true;
 #endif
+    case MCMD_ABOUT:
+        showAboutDialog();
+        return true;
     case MCMD_CITE:
         activate_cite( _wm, this);
         return true;

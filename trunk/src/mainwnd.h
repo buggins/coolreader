@@ -137,6 +137,8 @@ public:
 
     void openRecentBook( int index );
 
+    void showAboutDialog();
+
     virtual bool onCommand( int command, int params );
 
     virtual void closing();
