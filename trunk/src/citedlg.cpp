@@ -10,18 +10,18 @@
 #include "mainwnd.h"
 #include "bgfit.h"
 #include "citedlg.h"
+#include "citecore.h"
 
 class CiteWindow : public BackgroundFitWindow
 {
-//    selector selector_;
+    CiteSelection selector_;
 protected:
     virtual void draw()
     {
+        CRLog::info("CiteWindow::draw()\n");
         BackgroundFitWindow::draw();
         CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
         LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
-        assert(!skin.isNull());
-        assert(buf);
         skin->draw( *buf, _rect );
         lString16 prompt(L"Select text");
         buf->FillRect( _rect, 0xAAAAAA );
@@ -39,14 +39,16 @@ protected:
 public:
 
 	CiteWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin) :
-		BackgroundFitWindow(wm, mainwin)
-//		selector_(*mainwin->getDocView(), encoding),
-        {
+		BackgroundFitWindow(wm, mainwin),
+		selector_(*mainwin->getDocView())
+    {
 
 		this->setAccelerators( mainwin->getDialogAccelerators() );
 		_rect = _wm->getScreen()->getRect();
 		//_rect.bottom = _rect.top;
 		_rect.top = _rect.bottom - 40;
+        selector_.highlight();
+        setDirty();
 	}
 
 	bool onCommand( int command, int params )
@@ -64,8 +66,12 @@ public:
 			case MCMD_SELECT_9:
 				break;
 			case MCMD_SCROLL_FORWARD:
+                selector_.stepDown();
+                setDirty();
 				break;
 			case MCMD_SCROLL_BACK:
+                selector_.stepUp();
+                setDirty();
 				break;
 			case MCMD_OK:
 				{

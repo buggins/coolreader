@@ -77,6 +77,10 @@ fi
 
 SUBDIRS="${SUBDIRS} src"
 
+AC_ARG_ENABLE(cite,
+    AC_HELP_STRING([enable cite module]),
+    AC_DEFINE(WITH_CITE, 1))
+
 dnl color backbuffer option
 AC_ARG_ENABLE(color-backbuffer,
    AC_HELP_STRING(
