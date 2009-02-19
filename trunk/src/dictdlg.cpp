@@ -13,6 +13,7 @@
 #include <lvdocview.h>
 #include <stdexcept>
 #include "mainwnd.h"
+#include "viewdlg.h"
 #include "bgfit.h"
 #include "t9encoding.h"
 
@@ -23,43 +24,43 @@
 //TODO: place TinyDictionary to separate file
 CRTinyDict::CRTinyDict( const lString16& config )
 {
-	lString16 path = config;
-	LVAppendPathDelimiter( path );
-	LVContainerRef dir = LVOpenDirectory( config.c_str() );
-	if ( !dir )
-		dir = LVOpenDirectory( LVExtractPath(config).c_str() );
-	if ( !dir.isNull() ) {
-		int count = dir->GetSize();
-		lString16 indexExt(L".index");
-		for ( int i=0; i<count; i++ ) {
-			const LVContainerItemInfo * item = dir->GetObjectInfo( i );
-			if ( !item->IsContainer() ) {
-				lString16 name = item->GetName();
-				if ( name.endsWith( indexExt ) ) {
-					lString16 nameBase = name.substr( 0, name.length() - indexExt.length() );
-					lString16 name1 = nameBase + L".dict";
-					lString16 name2 = nameBase + L".dict.dz";
-					lString16 dataName;
-					int index = -1;
-					for ( int n=0; n<count; n++ ) {
-						const LVContainerItemInfo * item2 = dir->GetObjectInfo( n );
-						if ( !item2->IsContainer() ) {
-							if ( item2->GetName() == name1 || item2->GetName() == name2 ) {
-								index = n;
-								dataName = item2->GetName();
-								break;
-							}
-						}
-					}
-					if ( index>=0 ) {
-						// found pair
-						dicts.add(UnicodeToUtf8(path + name).c_str(), UnicodeToUtf8(path + dataName).c_str());
-					}
-				}
-			}
-		}
-	}
-	CRLog::info( "%d dictionaries opened", dicts.length() );
+    lString16 path = config;
+    LVAppendPathDelimiter( path );
+    LVContainerRef dir = LVOpenDirectory( config.c_str() );
+    if ( !dir )
+        dir = LVOpenDirectory( LVExtractPath(config).c_str() );
+    if ( !dir.isNull() ) {
+        int count = dir->GetSize();
+        lString16 indexExt(L".index");
+        for ( int i=0; i<count; i++ ) {
+            const LVContainerItemInfo * item = dir->GetObjectInfo( i );
+            if ( !item->IsContainer() ) {
+                lString16 name = item->GetName();
+                if ( name.endsWith( indexExt ) ) {
+                    lString16 nameBase = name.substr( 0, name.length() - indexExt.length() );
+                    lString16 name1 = nameBase + L".dict";
+                    lString16 name2 = nameBase + L".dict.dz";
+                    lString16 dataName;
+                    int index = -1;
+                    for ( int n=0; n<count; n++ ) {
+                        const LVContainerItemInfo * item2 = dir->GetObjectInfo( n );
+                        if ( !item2->IsContainer() ) {
+                            if ( item2->GetName() == name1 || item2->GetName() == name2 ) {
+                                index = n;
+                                dataName = item2->GetName();
+                                break;
+                            }
+                        }
+                    }
+                    if ( index>=0 ) {
+                        // found pair
+                        dicts.add(UnicodeToUtf8(path + name).c_str(), UnicodeToUtf8(path + dataName).c_str());
+                    }
+                }
+            }
+        }
+    }
+    CRLog::info( "%d dictionaries opened", dicts.length() );
 }
 
 
@@ -68,44 +69,38 @@ lString8 CRTinyDict::translate(const lString8 & w)
     lString16 s16 = Utf8ToUnicode( w );
     s16.lowercase();
     lString8 word = UnicodeToUtf8( s16 );
-	lString8 body;
-	TinyDictResultList results;
+    lString8 body;
+    TinyDictResultList results;
     if ( dicts.length() == 0 ) {
         body << "<title><p>No dictionaries found</p></title>";
         body << "<p>Place dictionaries to directory 'dict' of SD card.</p>";
         body << "<p>Dictionaries in standard unix .dict format are supported.</p>";
         body << "<p>For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension</p>";
-	} else if ( dicts.find(results, word.c_str(), TINY_DICT_OPTION_STARTS_WITH ) ) {
-		for ( int d = 0; d<results.length(); d++ ) {
-			TinyDictWordList * words = results.get(d);
-			if ( words->length()>0 )
-				body << "<title><p>From dictionary " << words->getDictionaryName() << ":</p></title>";
-			// for each found word
-			for ( int i=0; i<words->length(); i++ ) {
-				//TinyDictWord * word = words->get(i);
-				const char * article = words->getArticle( i );
-				body << "<code style=\"text-align: left; text-indent: 0; font-size: 22\">";
-				if ( article ) {
-					body << article;
-				} else {
-					body << "[cannot read article]";
-				}
-				body << "</code>";
-				if ( i<words->length()-1 )
-					body << "<hr/>";
-			}
-		}
-	} else {
-		body << "<title><p>Article for word " << word << " not found</p></title>";
-	}
+    } else if ( dicts.find(results, word.c_str(), TINY_DICT_OPTION_STARTS_WITH ) ) {
+        for ( int d = 0; d<results.length(); d++ ) {
+            TinyDictWordList * words = results.get(d);
+            if ( words->length()>0 )
+                body << "<title><p>From dictionary " << words->getDictionaryName() << ":</p></title>";
+            // for each found word
+            for ( int i=0; i<words->length(); i++ ) {
+                //TinyDictWord * word = words->get(i);
+                const char * article = words->getArticle( i );
+                body << "<code style=\"text-align: left; text-indent: 0; font-size: 22\">";
+                if ( article ) {
+                    body << article;
+                } else {
+                    body << "[cannot read article]";
+                }
+                body << "</code>";
+                if ( i<words->length()-1 )
+                    body << "<hr/>";
+            }
+        }
+    } else {
+        body << "<title><p>Article for word " << word << " not found</p></title>";
+    }
 
-	lString8 res;
-	res << "\0xef\0xbb\0xbf";
-	res << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-	res << "<FictionBook><body>";
-	res << body;
-	res << "</body></FictionBook>";
-	return res;
+    return CRViewDialog::makeFb2Xml( body );
 }
 
 
@@ -241,7 +236,7 @@ class selector {
     int repeat_;
     int last_;
 public:
-	lString8 getPrefix() { return prefix_; }
+    lString8 getPrefix() { return prefix_; }
     selector(LVDocView& docview, const TEncoding& encoding) : 
         words_(docview, encoding), 
         current_(0), 
@@ -325,36 +320,14 @@ public:
 
 class DictWindow;
 
-class Article : public  CRDocViewWindow {
-    LVStreamRef stream_;
+class Article : public  CRViewDialog {
     DictWindow * parent_;
 public:
-    Article(CRGUIWindowManager * wm, lString16 title, lString8 text, DictWindow * parent) :
-        CRDocViewWindow(wm),
-        parent_(parent) {
-            if ( text.empty() )
-                text = lString8(L"Test article.\nA little text only.\n");
-            stream_ = LVCreateStringStream( text );
-            _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
-			_title = title;
-			lvRect rc = _wm->getScreen()->getRect();
-			int dx = rc.width() / 16;
-			int dy = rc.height() / 16;
-			rc.left += dx;
-			rc.top += dy;
-			rc.right -= dx;
-			rc.bottom -= dy;
-			_fullscreen = false;
-			setRect( rc );
-            getDocView()->setBackgroundColor(0xFFFFFF);
-            getDocView()->setTextColor(0x000000);
-            getDocView()->setFontSize( 20 );
-            getDocView()->setShowCover( false );
-            getDocView()->setPageHeaderInfo( 0 ); // hide title bar
-            getDocView()->setPageMargins( lvRect(8,8,8,8) );
-            getDocView()->LoadDocument(stream_);
-
-        }
+    Article(CRGUIWindowManager * wm, lString16 title, lString8 text, lvRect rect, DictWindow * parent) 
+    : CRViewDialog(wm, title, text, rect, true, true )
+    , parent_( parent )
+    {
+    }
 
     virtual bool onCommand( int command, int params = 0 );
 };
@@ -367,7 +340,7 @@ class DictWindow : public BackgroundFitWindow
 {
     selector selector_;
     const TEncoding& encoding_;
-	CRDictionary & dict_;
+    CRDictionary & dict_;
 protected:
     virtual void draw()
     {
@@ -406,7 +379,7 @@ protected:
             keyRect.left = keyRect.right; //borders.left;
         }
         keyRect.right = rect.right;
-		if ( !clientSkin.isNull() && !keyRect.isEmpty() ) {
+        if ( !clientSkin.isNull() && !keyRect.isEmpty() ) {
             clientSkin->draw( *buf, keyRect );
             clientSkin->drawText( *buf, keyRect, prompt );
         }
@@ -414,78 +387,79 @@ protected:
 
 public:
 
-	DictWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin, const TEncoding& encoding, CRDictionary & dict ) :
-		BackgroundFitWindow(wm, mainwin),
-		selector_(*mainwin->getDocView(), encoding),
+    DictWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin, const TEncoding& encoding, CRDictionary & dict ) :
+        BackgroundFitWindow(wm, mainwin),
+        selector_(*mainwin->getDocView(), encoding),
         encoding_(encoding),
-		dict_(dict) {
+        dict_(dict) {
 
-		this->setAccelerators( mainwin->getDialogAccelerators() );
+        this->setAccelerators( mainwin->getDialogAccelerators() );
 
-		_rect = _wm->getScreen()->getRect();
-		//_rect.bottom = _rect.top;
-		_rect.top = _rect.bottom - 40;
-	}
+        _rect = _wm->getScreen()->getRect();
+        //_rect.bottom = _rect.top;
+        _rect.top = _rect.bottom - 40;
+    }
 
-	bool onCommand( int command, int params )
-	{
-		switch ( command ) {
-			case MCMD_SELECT_0:
-			case MCMD_SELECT_1:
-			case MCMD_SELECT_2:
-			case MCMD_SELECT_3:
-			case MCMD_SELECT_4:
-			case MCMD_SELECT_5:
-			case MCMD_SELECT_6:
-			case MCMD_SELECT_7:
-			case MCMD_SELECT_8:
-			case MCMD_SELECT_9:
-				selector_.push_button( command - MCMD_SELECT_0 + '0' );
+    bool onCommand( int command, int params )
+    {
+        switch ( command ) {
+            case MCMD_SELECT_0:
+            case MCMD_SELECT_1:
+            case MCMD_SELECT_2:
+            case MCMD_SELECT_3:
+            case MCMD_SELECT_4:
+            case MCMD_SELECT_5:
+            case MCMD_SELECT_6:
+            case MCMD_SELECT_7:
+            case MCMD_SELECT_8:
+            case MCMD_SELECT_9:
+                selector_.push_button( command - MCMD_SELECT_0 + '0' );
                 setDirty();
-				break;
-			case MCMD_SCROLL_FORWARD:
-				selector_.down();
-				break;
-			case MCMD_SCROLL_BACK:
-				selector_.up();
-				break;
-			case MCMD_OK:
-				{
-					lString8 translated;
-					lString8 output;
-					lString16 src = selector_.get();
+                break;
+            case MCMD_SCROLL_FORWARD:
+                selector_.down();
+                break;
+            case MCMD_SCROLL_BACK:
+                selector_.up();
+                break;
+            case MCMD_OK:
+                {
+                    lString8 translated;
+                    lString8 output;
+                    lString16 src = selector_.get();
                     if ( src.empty() ) {
                         close();
                         return true;
                     }
-					output = dict_.translate( UnicodeToUtf8(src) );
-					/*
-					if(translated.length() == 0) {
-						output = lString8("No article for this word");
-					} else {
-						output = lString8("<?xml version=\"1.0\" encoding=\"UTF-8\">");
-						output << "<FictionBook><body><code style=\"text-align: left; text-indent: 0; font-size: 22\">";
-						output << translated;
-						output << "</code></body></FictionBook>";
-					};
-					crtrace crt("article: ");
-					crt << output;
-					*/
-					Article * article = new Article(_wm, src, output, this);
-					article->setAccelerators( mainwin_->getDialogAccelerators() );
-					_wm->activateWindow( article );
-				};
-				break;
-			case MCMD_CANCEL:
-				if ( selector_.pop() ) {
-					close();
-					return true ;
-				}
+                    output = dict_.translate( UnicodeToUtf8(src) );
+                    /*
+                    if(translated.length() == 0) {
+                        output = lString8("No article for this word");
+                    } else {
+                        output = lString8("<?xml version=\"1.0\" encoding=\"UTF-8\">");
+                        output << "<FictionBook><body><code style=\"text-align: left; text-indent: 0; font-size: 22\">";
+                        output << translated;
+                        output << "</code></body></FictionBook>";
+                    };
+                    crtrace crt("article: ");
+                    crt << output;
+                    */
+                    lvRect rc = _wm->getScreen()->getRect();
+                    // TODO: not full screen?
+                    Article * article = new Article(_wm, src, output, rc, this);
+                    _wm->activateWindow( article );
+                };
+                break;
+            case MCMD_CANCEL:
+                if ( selector_.pop() ) {
+                    close();
+                    return true ;
+                }
                 setDirty();
-				break;
-		}
-		return true;
-	}
+                break;
+        }
+        return true;
+    }
 
     void close() {
         CRLog::info("Closing dict");
@@ -502,22 +476,15 @@ protected:
 
 bool Article::onCommand( int command, int params )
 {
-        switch ( command ) {
-			case MCMD_CANCEL:
-			case MCMD_OK:
-                parent_->close();
-                _wm->closeWindow(this);
-                return true;
-			case MCMD_SCROLL_FORWARD:
-                return CRDocViewWindow::onCommand( DCMD_PAGEDOWN, 1 );
-			case MCMD_SCROLL_BACK:
-                return CRDocViewWindow::onCommand( DCMD_PAGEUP, 1 );
-                //_wm->postCommand(command, 0);
-                //_wm->closeWindow(this);
-                return true;
-            default:
-                return true; //CRDocViewWindow::onKeyPressed(key,flags);
-        }
+    switch ( command ) {
+        case MCMD_CANCEL:
+        case MCMD_OK:
+            parent_->close();
+            _wm->closeWindow(this);
+            return true;
+        default:
+            return CRViewDialog::onCommand( command, params ); //CRDocViewWindow::onKeyPressed(key,flags);
+    }
 }
 
 void activate_dict( CRGUIWindowManager *wm, V3DocViewWin * mainwin, const TEncoding& encoding, CRDictionary & dict )

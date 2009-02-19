@@ -599,10 +599,131 @@ bool V3DocViewWin::showLinksDialog()
     return true;
 }
 
+void addPropLine( lString8 & buf, const char * description, const lString16 & value )
+{
+    if ( !value.empty() ) {
+        buf << "<tr><td>" << description << "</td><td>" << UnicodeToUtf8(value).c_str() << "</td></tr>\n";
+    }
+}
+
+lString16 getDocText( ldomDocument * doc, const char * path, const char * delim )
+{
+    lString16 res;
+    for ( int i=0; i<100; i++ ) {
+        lString8 p = lString8(path) + "[" + lString8::itoa(i+1) + "]";
+        //CRLog::trace("checking doc path %s", p.c_str() );
+        lString16 p16 = Utf8ToUnicode(p);
+        ldomXPointer ptr = doc->createXPointer( p16 );
+        if ( ptr.isNull() )
+            break;
+        lString16 s = ptr.getText( L' ' );
+        if ( s.empty() )
+            continue;
+        if ( !res.empty() && delim!=NULL )
+            res << Utf8ToUnicode( lString8( delim ) );
+        res << s;
+    }
+    return res;
+}
+
+lString16 getDocAuthors( ldomDocument * doc, const char * path, const char * delim )
+{
+    lString16 res;
+    for ( int i=0; i<100; i++ ) {
+        lString8 p = lString8(path) + "[" + lString8::itoa(i+1) + "]";
+        //CRLog::trace("checking doc path %s", p.c_str() );
+        lString16 firstName = getDocText( doc, (p + "/first-name").c_str(), " " );
+        lString16 lastName = getDocText( doc, (p + "/last-name").c_str(), " " );
+        lString16 middleName = getDocText( doc, (p + "/middle-name").c_str(), " " );
+        lString16 nickName = getDocText( doc, (p + "/nickname").c_str(), " " );
+        lString16 homePage = getDocText( doc, (p + "/homepage").c_str(), " " );
+        lString16 email = getDocText( doc, (p + "/email").c_str(), " " );
+        lString16 s = firstName;
+        if ( !middleName.empty() )
+            s << L" " << middleName;
+        if ( !lastName.empty() ) {
+            if ( !s.empty() )
+                s << L" ";
+            s << lastName;
+        }
+        if ( !nickName.empty() ) {
+            if ( !s.empty() )
+                s << L" ";
+            s << nickName;
+        }
+        if ( !homePage.empty() ) {
+            if ( !s.empty() )
+                s << L" ";
+            s << homePage;
+        }
+        if ( !email.empty() ) {
+            if ( !s.empty() )
+                s << L" ";
+            s << email;
+        }
+        if ( s.empty() )
+            continue;
+        if ( !res.empty() && delim!=NULL )
+            res << Utf8ToUnicode( lString8( delim ) );
+        res << s;
+    }
+    return res;
+}
+
 void V3DocViewWin::showAboutDialog()
 {
     lString16 title = L"Cool Reader ";
+    title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
+
     lString8 txt;
+    //=========================================================
+    txt << "<table><col width=\"25%\"/><col width=\"75%\"/>\n";
+    CRPropRef props = _docview->getDocProps();
+    txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">File info</td></tr>";
+    addPropLine( txt, "Archive name", props->getStringDef(DOC_PROP_ARC_NAME) );
+    addPropLine( txt, "Archive path", props->getStringDef(DOC_PROP_ARC_PATH) );
+    addPropLine( txt, "Archive size", props->getStringDef(DOC_PROP_ARC_SIZE) );
+    addPropLine( txt, "File name", props->getStringDef(DOC_PROP_FILE_NAME) );
+    addPropLine( txt, "File path", props->getStringDef(DOC_PROP_FILE_PATH) );
+    addPropLine( txt, "File size", props->getStringDef(DOC_PROP_FILE_SIZE) );
+    addPropLine( txt, "File format", props->getStringDef(DOC_PROP_FILE_FORMAT) );
+
+    lString8 bookInfo;
+    addPropLine( bookInfo, "Title", props->getStringDef(DOC_PROP_TITLE) );
+    addPropLine( bookInfo, "Author(s)", props->getStringDef(DOC_PROP_AUTHORS) );
+    addPropLine( bookInfo, "Series name", props->getStringDef(DOC_PROP_SERIES_NAME) );
+    addPropLine( bookInfo, "Series number", props->getStringDef(DOC_PROP_SERIES_NUMBER) );
+    addPropLine( bookInfo, "Date", getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/date", ", " ) );
+    addPropLine( bookInfo, "Genres", getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/genre", ", " ) );
+    addPropLine( bookInfo, "Translator", getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/translator", ", " ) );
+    if ( !bookInfo.empty() )
+        txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">Book info</td></tr>" << bookInfo;
+
+    lString8 docInfo;
+    addPropLine( docInfo, "Document author", getDocAuthors( getDocView()->getDocument(), "/FictionBook/description/document-info/author", " " ) );
+    addPropLine( docInfo, "Document date", getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/date", " " ) );
+    addPropLine( docInfo, "Document source URL", getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-url", " " ) );
+    addPropLine( docInfo, "OCR by", getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-ocr", " " ) );
+    addPropLine( docInfo, "Document version", getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/version", " " ) );
+    if ( !docInfo.empty() )
+        txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">Document info</td></tr>" << docInfo;
+
+    lString8 pubInfo;
+    addPropLine( pubInfo, "Publication name", getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/book-name", " " ) );
+    addPropLine( pubInfo, "Publisher", getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/publisher", " " ) );
+    addPropLine( pubInfo, "Publisher city", getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/city", " " ) );
+    addPropLine( pubInfo, "Publication year", getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/year", " " ) );
+    addPropLine( pubInfo, "ISBN", getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/isbn", " " ) );
+    if ( !pubInfo.empty() )
+        txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">Publication info</td></tr>" << pubInfo;
+
+    addPropLine( txt, "Custom info", getDocText( getDocView()->getDocument(), "/FictionBook/description/custom-info", " " ) );
+
+    txt << "</table>\n";
+
+    //CRLog::trace(txt.c_str());
+    //=========================================================
+    txt = CRViewDialog::makeFb2Xml(txt);
     CRViewDialog * dlg = new CRViewDialog( _wm, title, txt, lvRect(), true, true );
     _wm->activateWindow( dlg );
 }

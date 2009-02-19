@@ -25,6 +25,8 @@ protected:
     lvRect _clientRect;
     virtual void draw();
 public:
+    /// adds XML and FictionBook tags for utf8 fb2 document
+    static lString8 makeFb2Xml( const lString8 & body );
     virtual void setRect( const lvRect & rc );
     CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 text, lvRect rect, bool showScroll, bool showFrame );
 
