@@ -50,6 +50,13 @@
 #define DOC_PROP_TITLE           "doc.title"
 #define DOC_PROP_SERIES_NAME     "doc.series.name"
 #define DOC_PROP_SERIES_NUMBER   "doc.series.number"
+#define DOC_PROP_ARC_NAME        "doc.archive.name"
+#define DOC_PROP_ARC_PATH        "doc.archive.path"
+#define DOC_PROP_ARC_SIZE        "doc.archive.size"
+#define DOC_PROP_FILE_NAME       "doc.file.name"
+#define DOC_PROP_FILE_PATH       "doc.file.path"
+#define DOC_PROP_FILE_SIZE       "doc.file.size"
+#define DOC_PROP_FILE_FORMAT     "doc.file.format"
 
 //#define LDOM_USE_OWN_MEM_MAN 0
 
@@ -217,6 +224,8 @@ public:
     }
     /// returns doc properties collection
     CRPropRef getProps() { return _docProps; }
+    /// returns doc properties collection
+    void setProps( CRPropRef props ) { _docProps = props; }
 private:
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map

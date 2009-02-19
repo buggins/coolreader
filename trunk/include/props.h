@@ -18,11 +18,10 @@
 #include "lvstream.h"
 
 class CRPropAccessor;
-typedef LVRef<CRPropAccessor> CRPropRef;
-
+typedef LVFastRef<CRPropAccessor> CRPropRef;
 
 /// interface to get/set properties
-class CRPropAccessor {
+class CRPropAccessor : public LVRefCounter {
 public:
     /// returns property path in root container
     virtual const lString8 & getPath() const = 0;

@@ -1844,7 +1844,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 				for (unsigned i=0; i<currNode->getChildCount(); i++) {
 					ldomNode * p = currNode->getChildNode(i);
 					if ( p->isText() ) {
-						foundCount++;
+                        foundCount++;
 						if ( foundCount==index || index==-1 ) {
 							foundItem = p;
 						}
@@ -1858,9 +1858,9 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
 			break;
 		case xpath_step_nodeindex:
 			// node index                                 /N/
-			if ( index<0 || index>=(int)currNode->getChildCount() )
+			if ( index<=0 || index>(int)currNode->getChildCount() )
 				return ldomXPointer(); // node not found: invalid index
-			currNode = currNode->getChildNode( index );
+			currNode = currNode->getChildNode( index-1 );
 			break;
 		case xpath_step_point:
 			// point index                                .N
@@ -2041,7 +2041,7 @@ bool ldomXPointerEx::nextSiblingElement()
     if ( _level < 1 )
         return false;
     ldomElement * p = _node->getParentNode();
-    for ( int i=_indexes[_level-1] + 1; i<_node->getChildCount(); i++ ) {
+    for ( int i=_indexes[_level-1] + 1; i<(int)_node->getChildCount(); i++ ) {
         if ( p->getChildNode( i )->getNodeType()==LXML_ELEMENT_NODE )
             return sibling( i );
     }
