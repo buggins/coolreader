@@ -6,6 +6,13 @@
 #include "lvdocview.h"
 #include "crtrace.h"
 
+
+enum granularity {
+    grn_char,
+    grn_word,
+    grn_block,
+};
+
 // Set offset to last character
 void
 point_to_end(ldomXPointerEx& p) {
@@ -18,15 +25,17 @@ class CiteCursor {
 public:
     CiteCursor(const ldomXPointerEx& xp) :
         pointer_(xp) {
-            if(!is_final()){
-                nextSibling();
-            };
-            CRLog::info("CiteCursor::CiteCursor()\n");
             crtrace trace("CiteCursor::CiteCursor() ");
+            if(!pointer_.isVisibleFinal()){
+                trace << pointer_.toString() << " NOT visible ";
+                pointer_.nextVisibleFinal();
+            };
             trace << pointer_.toString();
         };
 
     CiteCursor() : pointer_()  {};
+    CiteCursor(const CiteCursor& other) :
+        pointer_(other.pointer_) {};
 
     void
     assign(const ldomXPointerEx& xp) { 
@@ -50,49 +59,23 @@ public:
         pointer_.setOffset(0);
     }
 
-    ldomElement *
-    node() const {
-        ldomNode * n = pointer_.getNode();
-        assert (n->getNodeType() == LXML_ELEMENT_NODE);
-        ldomElement * e = static_cast<ldomElement*>(n);
-        return e;
-    }
 
-    bool
-    is_final() {
-        ldomNode * n = pointer_.getNode();
-        if(n->getNodeType() == LXML_ELEMENT_NODE) {
-            ldomElement * e = static_cast<ldomElement*>(n);
-            if(e->getRendMethod() == erm_final) {
-                return true;
-            };
-        };
-        return false;
-    }
+    void nextSiblingBlock () {
+        pointer_.nextVisibleFinal();
+    };
 
     void nextSibling() {
-        // FIXME: I'm unsure here!
-        while(pointer_.nextSibling()) {
-            if(is_final()){
-                crtrace trace("CiteCursor::nextSibling() ");
-                trace << pointer_.toString();
-                return;
-            }
-        }
-        pointer_.parent();
-        nextSibling();
+        // switch on granularity
+        nextSiblingBlock();
+    }
+
+    void prevSiblingBlock() {
+        pointer_.prevVisibleFinal();
     };
 
     void prevSibling() {
-        // Move bound up
-        // FIXME: I'm unsure here!
-        while(pointer_.prevSibling()) {
-            if(is_final()){
-                crtrace trace("CiteCursor::prevSibling");
-                trace << pointer_.toString();
-                break;
-            }
-        }
+        // switch on granularity
+        prevSiblingBlock();
     };
 };
 
@@ -106,11 +89,8 @@ public:
     CiteSelection(LVDocView& view) : 
         direction_(false),
         view_(view) {
-            LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
-            CiteCursor first(range->getStart());
-            if (!range->isInside(first.get())) {
-                first.nextSibling();
-            };
+//            LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
+            CiteCursor first(view.getCurrentPageMiddleParagraph());
             start_.assign(first);
             start_.to_begin();
             end_.assign(start_);
@@ -127,11 +107,11 @@ public:
     void
     highlight() {
         // show what we try to highlight
-        crtrace trace("highlight: ");
+        crtrace trace("highlight: \n");
         LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
-        trace << "[ " << range->getStart().toString() <<
-            " : " << range->getEnd().toString() << " ] / [ " <<
-            ldomXPointer(start_.get()).toString() << " : " << 
+        trace << "\tscreen: \n\t\t [ " << range->getStart().toString() <<
+            " :\n\t\t" << range->getEnd().toString() << " ] / \n\tselection: [ " <<
+            ldomXPointer(start_.get()).toString() << " :\n\t\t" << 
             ldomXPointer(end_.get()).toString() << " ]";
         view_.clearSelection();
         view_.selectRange(select()); 
@@ -154,7 +134,7 @@ public:
     };
 
     void stepDown() {
-        if (!direction_) {
+        if (direction_) {
             CRLog::info("shrink down\n");
             start_.nextSibling();
             start_.to_begin();
