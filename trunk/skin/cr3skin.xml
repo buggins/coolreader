@@ -44,6 +44,42 @@
         </title>
 	<scroll base="#menuscroll"/>
   </window>
+  <window id="search" base="#toc">
+        <text color="#000000" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
+        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
+        <border widths="26,8,8,8"/>
+        <!--icon image="filename" valign="" halign=""/-->
+        <client>
+            <text color="#000000" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
+            <background image="cr3_menu_item.png" color="#FFFFFF"/>
+        </client>
+        <title>
+            <size minvalue="0,48" maxvalue="0,0"/>
+            <text color="#000000" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
+            <background image="cr3_menu_title.png" color="#FFFFFF"/>
+            <border widths="4,4,4,4"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </title>
+	<scroll base="#menuscroll"/>
+  </window>
+  <window id="about" base="#dialog">
+        <text color="#000000" face="DejaVu Sans" size="26" bold="true" italic="false" valign="center" halign="center"/>
+        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
+        <border widths="26,8,8,8"/>
+        <!--icon image="filename" valign="" halign=""/-->
+        <client>
+            <text color="#000000" face="DejaVu Sans" size="20" bold="false" italic="false" valign="center" halign="left"/>
+            <background image="cr3_menu_item.png" color="#FFFFFF"/>
+        </client>
+        <title>
+            <size minvalue="0,48" maxvalue="0,0"/>
+            <text color="#000000" face="DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
+            <background image="cr3_menu_title.png" color="#FFFFFF"/>
+            <border widths="4,4,4,4"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </title>
+	<scroll base="#menuscroll"/>
+  </window>
   <menu id="main">
         <text color="#000000" face="DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_main_menu.png" color="#AAAAAA"/>

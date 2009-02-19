@@ -33,6 +33,7 @@
 #include "bmkdlg.h"
 #include "recentdlg.h"
 #include "viewdlg.h"
+#include "scrkbd.h"
 
 #include "citedlg.h"
 
@@ -563,6 +564,10 @@ VIEWER_MENU_4ABOUT=About...
                 _wm->translateString("VIEWER_MENU_BOOKMARK_LIST", "Bookmarks..."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_SEARCH,
+                _wm->translateString("VIEWER_MENU_SEARCH", "Search..."),
+                LVImageSourceRef(),
+                LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
                 _wm->translateString("VIEWER_MENU_SETTINGS", "Settings..."),
                 LVImageSourceRef(),
@@ -586,6 +591,20 @@ void V3DocViewWin::showGoToPageDialog()
             MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
     }
     dlg->setAccelerators( getDialogAccelerators() );
+    _wm->activateWindow( dlg );
+}
+
+void V3DocViewWin::showSearchDialog()
+{
+    lvRect rc = _wm->getScreen()->getRect();
+    int h_margin = rc.width() / 12;
+    int v_margin = rc.height() / 12;
+    rc.left += h_margin;
+    rc.right -= h_margin;
+    rc.bottom -= v_margin;
+    rc.top += rc.height() / 2;
+    _searchPattern.clear();
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDNEXT, lString16(L"Search"), _searchPattern, rc );
     _wm->activateWindow( dlg );
 }
 
@@ -779,6 +798,9 @@ bool V3DocViewWin::onCommand( int command, int params )
         activate_dict( _wm, this, _t9encoding, *_dict );
         return true;
 #endif
+    case MCMD_SEARCH:
+        showSearchDialog();
+        return true;
     case MCMD_ABOUT:
         showAboutDialog();
         return true;

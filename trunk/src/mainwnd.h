@@ -71,6 +71,8 @@ enum CRMainMenuCmd
     MCMD_OPEN_RECENT_BOOK,
     MCMD_ABOUT,
     MCMD_CITE,
+    MCMD_SEARCH,
+    MCMD_SEARCH_FINDNEXT,
 };
 
 class V3DocViewWin : public CRDocViewWindow
@@ -84,6 +86,7 @@ protected:
     lString8  _css;
     TEncoding _t9encoding;
     lString16 _dictConfig;
+    lString16 _searchPattern;
 	LVRef<CRDictionary> _dict;
 public:
     virtual void flush(); // override
@@ -138,6 +141,8 @@ public:
     void openRecentBook( int index );
 
     void showAboutDialog();
+
+    void showSearchDialog();
 
     virtual bool onCommand( int command, int params );
 

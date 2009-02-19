@@ -18,7 +18,8 @@ AM_CPPFLAGS += @CRENGINE_CFLAGS@ @TINYDICT_CFLAGS@ @FONTCONFIG_CFLAGS@
 AM_CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
 
 COMMON_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp bgfit.cpp \
-                 bmkdlg.cpp linksdlg.cpp tocdlg.cpp numedit.cpp fsmenu.cpp recentdlg.cpp viewdlg.cpp
+                 bmkdlg.cpp linksdlg.cpp tocdlg.cpp numedit.cpp fsmenu.cpp recentdlg.cpp \
+		 viewdlg.cpp scrkbd.cpp
 COMMON_SOURCES += citedlg.cpp
 
 #if WITH_DICT
