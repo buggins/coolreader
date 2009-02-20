@@ -3151,6 +3151,24 @@ bool LVDocView::getFlatToc( LVPtrVector<LVTocItem, false> & items )
     return items.length() > 0;
 }
 
+/// -1 moveto previous page, 1 to next page
+bool LVDocView::moveByPage( int delta )
+{
+    if (m_view_mode==DVM_SCROLL)
+    {
+		int p = GetPos();
+        SetPos( p + m_dy * delta );
+		return GetPos()!=p;
+	}
+    else
+    {
+		int cp = getCurPage();
+		int p = cp + delta * getVisiblePageCount();
+		goToPage( p );		
+        return getCurPage() != cp;
+    }
+}
+
 /// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
 bool LVDocView::moveByChapter( int delta )
 {
@@ -3247,16 +3265,14 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if ( param < 1 )
                 param = 1;
-            for ( int i=1; i<=param; i++ )
-                SetPos( getPrevPageOffset() );
+			moveByPage( -param );
         }
         break;
     case DCMD_PAGEDOWN:
         {
             if ( param < 1 )
                 param = 1;
-            for ( int i=1; i<=param; i++ )
-                SetPos( getNextPageOffset() );
+			moveByPage( param );
         }
         break;
     case DCMD_LINK_NEXT:
