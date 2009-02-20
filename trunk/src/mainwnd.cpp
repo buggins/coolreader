@@ -692,6 +692,9 @@ lString16 getDocAuthors( ldomDocument * doc, const char * path, const char * del
 void V3DocViewWin::showAboutDialog()
 {
     lString16 title = L"Cool Reader ";
+#ifndef PACKAGE_VERSION
+#define PACKAGE_VERSION "3.0"
+#endif
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
 
     lString8 txt;

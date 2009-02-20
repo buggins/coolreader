@@ -323,6 +323,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\scrkbd.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\settings.cpp"
 				>
 			</File>
@@ -332,6 +336,10 @@
 			</File>
 			<File
 				RelativePath=".\tocdlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\viewdlg.cpp"
 				>
 			</File>
 			<File
@@ -549,6 +557,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\scrkbd.h"
+				>
+			</File>
+			<File
 				RelativePath=".\settings.h"
 				>
 			</File>
@@ -562,6 +574,10 @@
 			</File>
 			<File
 				RelativePath=".\tocdlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\viewdlg.h"
 				>
 			</File>
 			<File
