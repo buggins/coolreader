@@ -130,6 +130,7 @@ bool CRScreenKeyboard::onCommand( int command, int params )
     case MCMD_OK:
         {
             if ( !_value.empty() ) {
+                _buffer = _value;
                 _wm->postCommand( _resultCmd, 1 );
                 _wm->closeWindow( this );
                 return true;

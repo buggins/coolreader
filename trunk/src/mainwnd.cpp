@@ -750,6 +750,18 @@ void V3DocViewWin::showAboutDialog()
     _wm->activateWindow( dlg );
 }
 
+bool V3DocViewWin::findText( lString16 pattern )
+{
+    if ( pattern.empty() )
+        return false;
+    LVArray<ldomWord> words;
+    if ( _docview->getDocument()->findText( pattern, true, -1, -1, words, 1000 ) ) {
+        _docview->selectWords( words );
+        return true;
+    }
+    return false;
+}
+
 /// returns true if command is processed
 bool V3DocViewWin::onCommand( int command, int params )
 {
@@ -803,6 +815,11 @@ bool V3DocViewWin::onCommand( int command, int params )
 #endif
     case MCMD_SEARCH:
         showSearchDialog();
+        return true;
+    case MCMD_SEARCH_FINDNEXT:
+        if ( !_searchPattern.empty() && params ) {
+            findText( _searchPattern );
+        }
         return true;
     case MCMD_ABOUT:
         showAboutDialog();

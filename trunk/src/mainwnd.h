@@ -72,7 +72,9 @@ enum CRMainMenuCmd
     MCMD_ABOUT,
     MCMD_CITE,
     MCMD_SEARCH,
+    MCMD_SEARCH_FINDFIRST,
     MCMD_SEARCH_FINDNEXT,
+    MCMD_SEARCH_FINDPREV,
 };
 
 class V3DocViewWin : public CRDocViewWindow
@@ -143,6 +145,8 @@ public:
     void showAboutDialog();
 
     void showSearchDialog();
+
+    bool findText( lString16 pattern );
 
     virtual bool onCommand( int command, int params );
 
