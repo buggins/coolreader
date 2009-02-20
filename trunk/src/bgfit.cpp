@@ -1,3 +1,14 @@
+//
+// C++ Implementation: dialog which rescales underlying window to fit screen
+//
+// Description: 
+//
+// Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2009
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+// bgfit.cpp
+
 #include "bgfit.h"
 
 
@@ -24,8 +35,8 @@ inline lUInt16 maxBits( lUInt16 n1, lUInt16 n2, lUInt16 mask )
 void 
 BackgroundFitWindow::draw()
 {
-    mainwin_->setDirty();
-    mainwin_->flush();
+    _mainwin->setDirty();
+    _mainwin->flush();
     lvRect fullRect = _wm->getScreen()->getRect();
     LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
 #if 0

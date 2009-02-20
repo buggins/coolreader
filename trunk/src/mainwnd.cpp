@@ -34,6 +34,7 @@
 #include "recentdlg.h"
 #include "viewdlg.h"
 #include "scrkbd.h"
+#include "selnavig.h"
 
 #include "citedlg.h"
 
@@ -755,8 +756,10 @@ bool V3DocViewWin::findText( lString16 pattern )
     if ( pattern.empty() )
         return false;
     LVArray<ldomWord> words;
-    if ( _docview->getDocument()->findText( pattern, true, -1, -1, words, 1000 ) ) {
+    if ( _docview->getDocument()->findText( pattern, true, -1, -1, words, 2000 ) ) {
         _docview->selectWords( words );
+        CRSelNavigationDialog * dlg = new CRSelNavigationDialog( _wm, this );
+        _wm->activateWindow( dlg );
         return true;
     }
     return false;

@@ -86,7 +86,7 @@ public:
 
     void close() {
         CRLog::info("Closing cite");
-        docview_.clearSelection();
+        _mainwin->getDocView()->clearSelection();
         _wm->closeWindow(this);
     };
 

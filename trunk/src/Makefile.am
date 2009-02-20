@@ -19,7 +19,7 @@ AM_CPPFLAGS += -DCRSKIN=\"$(pkgdatadir)\"
 
 COMMON_SOURCES = cr3main.cpp settings.cpp mainwnd.cpp cr3_def_cover.cpp bgfit.cpp \
                  bmkdlg.cpp linksdlg.cpp tocdlg.cpp numedit.cpp fsmenu.cpp recentdlg.cpp \
-		 viewdlg.cpp scrkbd.cpp
+		 viewdlg.cpp scrkbd.cpp selnavig.cpp
 COMMON_SOURCES += citedlg.cpp
 
 #if WITH_DICT

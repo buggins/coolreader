@@ -15,7 +15,7 @@
 lChar16 CRScreenKeyboard::digitsToChar( lChar16 digit1, lChar16 digit2 )
 {
     int row = digit1 - '1';
-    int col = digit2 - '0';
+    int col = digit2=='0' ? 9: digit2 - '1';
     if ( row < 0 || row >= _rows )
         return 0;
     if ( col < 0 || col >= _cols )
@@ -52,11 +52,11 @@ CRScreenKeyboard::CRScreenKeyboard(CRGUIWindowManager * wm, int id, const lStrin
     //_skin = _wm->getSkin()->getWindowSkin( getSkinName().c_str() );
     setAccelerators( _wm->getAccTables().get("search") );
     _cols = 10;
+    _keymap.add(lString16(L"1234567890"));
     _keymap.add(lString16(L"abcdefghij"));
     _keymap.add(lString16(L"klmnopqrst"));
     _keymap.add(lString16(L"uvwxyz.,!?"));
     _keymap.add(lString16(L"+-'\":;   "));
-    _keymap.add(lString16(L"0123456789"));
     _rows = _keymap.length();
 }
 
@@ -85,7 +85,7 @@ void CRScreenKeyboard::draw()
             lString16 txt;
             bool header = true;
             if ( y==0 && x>0 ) {
-                txt = lString16::itoa( x - 1 );
+                txt = lString16::itoa( x<10 ? x : 0 );
             } else if ( x==0 && y>0 ) {
                 txt = lString16::itoa( y );
             } else if ( x>0 && y>0 ) {

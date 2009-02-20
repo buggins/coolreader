@@ -463,7 +463,7 @@ public:
 
     void close() {
         CRLog::info("Closing dict");
-        docview_.clearSelection();
+        _mainwin->getDocView()->clearSelection();
         _wm->closeWindow(this);
     };
 
