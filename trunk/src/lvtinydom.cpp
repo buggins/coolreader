@@ -1589,6 +1589,9 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
         if ( pt.y >= getFullHeight()) {
             ldomText * node = getMainNode()->getLastTextChild();
 			return ldomXPointer(node,node ? node->getText().length() : 0);
+        } else if ( pt.y <= 0 ) {
+            ldomText * node = getMainNode()->getFirstTextChild();
+            return ldomXPointer(node, 0);
         }
         CRLog::trace("not final node");
         return ptr;
@@ -2296,6 +2299,74 @@ void ldomXRangeList::split( ldomXRange * r )
 }
 
 #if BUILD_LITE!=1
+
+bool ldomDocument::findText( lString16 pattern, bool caseInsensitive, int minY, int maxY, LVArray<ldomWord> & words, int maxCount )
+{
+    if ( minY<0 )
+        minY = 0;
+    int fh = getFullHeight();
+    if ( maxY<=0 || maxY>fh )
+        maxY = fh;
+    ldomXPointer start = createXPointer( lvPoint(minY, 0) );
+    ldomXPointer end = createXPointer( lvPoint(maxY, 10000) );
+    if ( start.isNull() || end.isNull() )
+        return false;
+    ldomXRange range( start, end );
+    return range.findText( pattern, caseInsensitive, words, maxCount );
+}
+
+static bool findText( const lString16 & str, int & pos, const lString16 & pattern )
+{
+    int len = pattern.length();
+    if ( pos < 0 || pos + len > (int)str.length() )
+        return false;
+    const lChar16 * s1 = str.c_str() + pos;
+    const lChar16 * s2 = pattern.c_str();
+    int nlen = str.length() - pos - len;
+    for ( int j=0; j<nlen; j++ ) {
+        bool matched = true;
+        for ( int i=0; i<len; i++ ) {
+            if ( s1[i] != s2[i] ) {
+                matched = false;
+                break;
+            }
+        }
+        if ( matched )
+            return true;
+        s1++;
+        pos++;
+    }
+    return false;
+}
+
+/// searches for specified text inside range
+bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, LVArray<ldomWord> & words, int maxCount )
+{
+    if ( caseInsensitive )
+        pattern.lowercase();
+    words.clear();
+    if ( pattern.empty() )
+        return false;
+    if ( !_start.isText() )
+        _start.nextVisibleText();
+    while ( !isNull() ) {
+        int offs = _start.getOffset();
+        lString16 txt = _start.getNode()->getText();
+        if ( caseInsensitive )
+            txt.lowercase();
+
+        while ( ::findText( txt, offs, pattern ) ) {
+            words.add( ldomWord((ldomText*) _start.getNode(), offs, offs + pattern.length() ) );
+            offs++;
+        }
+        if ( !_start.nextVisibleText() )
+            break;
+        if ( words.length() >= maxCount )
+            break;
+    }
+    return words.length() > 0;
+}
+
 /// fill marked ranges list
 void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
 {
@@ -2587,6 +2658,81 @@ bool ldomXPointerEx::isVisibleFinal()
         return false;
     // curent node is visible final formatted element (e.g. paragraph)
     return true;
+}
+
+/// move to next visible text node
+bool ldomXPointerEx::nextVisibleText()
+{
+    while ( nextText() ) {
+        if ( isVisible() )
+            return true;
+    }
+    return false;
+}
+
+/// returns true if current node is visible element or text
+bool ldomXPointerEx::isVisible()
+{
+    ldomElement * p;
+    if ( _node && _node->isText() )
+        p = _node->getParentNode();
+    else
+        p = (ldomElement*) _node;
+    while ( p ) {
+        if ( p->getRendMethod() == erm_invisible )
+            return false;
+        p = p->getParentNode();
+    }
+    return true;
+}
+
+/// move to next text node
+bool ldomXPointerEx::nextText()
+{
+    _offset = 0;
+    while ( firstChild() ) {
+        if ( _node->isText() )
+            return true;
+    }
+    for (;;) {
+        while ( nextSibling() ) {
+            if ( _node->isText() )
+                return true;
+            while ( firstChild() ) {
+                if ( _node->isText() )
+                    return true;
+            }
+        }
+        if ( !parent() )
+            return false;
+    }
+}
+
+/// move to previous text node
+bool ldomXPointerEx::prevText()
+{
+    _offset = 0;
+    for (;;) {
+        while ( prevSibling() ) {
+            if ( _node->isText() )
+                return true;
+            while ( lastChild() ) {
+                if ( _node->isText() )
+                    return true;
+            }
+        }
+        if ( !parent() )
+            return false;
+    }
+}
+
+/// move to previous visible text node
+bool ldomXPointerEx::prevVisibleText()
+{
+    while ( prevText() )
+        if ( isVisible() )
+            return true;
+    return false;
 }
 
 /// backward iteration by elements of DOM three

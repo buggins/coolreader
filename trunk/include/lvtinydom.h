@@ -723,10 +723,22 @@ public:
     bool isVisibleFinal();
     /// returns true if current node is element
     bool isElement() { return _node!=NULL && _node->isElement(); }
+    /// returns true if current node is element
+    bool isText() { return _node!=NULL && _node->isText(); }
     /// move to next final visible node (~paragraph)
     bool nextVisibleFinal();
     /// move to previous final visible node (~paragraph)
     bool prevVisibleFinal();
+    /// returns true if current node is visible element or text
+    bool isVisible();
+    /// move to next text node
+    bool nextText();
+    /// move to previous text node
+    bool prevText();
+    /// move to next visible text node
+    bool nextVisibleText();
+    /// move to previous visible text node
+    bool prevVisibleText();
     /// forward iteration by elements of DOM three
     bool nextElement();
     /// backward iteration by elements of DOM three
@@ -882,6 +894,9 @@ public:
 #endif
     /// returns nearest common element for start and end points
     ldomElement * getNearestCommonParent();
+
+    /// searches for specified text inside range
+    bool findText( lString16 pattern, bool caseInsensitive, LVArray<ldomWord> & words, int maxCount );
 };
 
 class ldomMarkedText
@@ -1148,6 +1163,8 @@ public:
     ldomXPointer createXPointer( lvPoint pt );
     /// get rendered block cache object
     CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
+
+    bool findText( lString16 pattern, bool caseInsensitive, int minY, int maxY, LVArray<ldomWord> & words, int maxCount );
 #endif
 };
 
