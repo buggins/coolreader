@@ -420,6 +420,9 @@ protected:
     /// set status bar and clock mode
     void setStatusMode( int newMode, bool showClock );
 public:
+    /// returns selected (marked) ranges
+    ldomMarkedRangeList * getMarkedRanges() { return &m_markRanges; }
+
     /// returns XPointer to middle paragraph of current page
     ldomXPointer getCurrentPageMiddleParagraph();
     /// render document, if not rendered
