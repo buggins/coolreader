@@ -2823,15 +2823,16 @@ ldomXPointer LVDocView::getCurrentPageMiddleParagraph()
             pageIndex = getCurPage();
         LVRendPageInfo * page = m_pages[ pageIndex ];
         if ( page->type==PAGE_TYPE_NORMAL)
-            ptr = m_doc->createXPointer( lvPoint( 0, (page->start + page->height)/2 ) );
+            ptr = m_doc->createXPointer( lvPoint( 0, page->start + page->height/2 ) );
     }
     if ( ptr.isNull() )
         return ptr;
     ldomXPointerEx p( ptr );
     if ( !p.isVisibleFinal() )
-        if ( !p.prevVisibleFinal() )
-            if ( !p.nextVisibleFinal() )
-                return ptr;
+        if ( !p.ensureFinal() )
+	        if ( !p.prevVisibleFinal() )
+		        if ( !p.nextVisibleFinal() )
+			        return ptr;
     return ldomXPointer( p );
 }
 

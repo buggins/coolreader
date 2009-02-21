@@ -2550,7 +2550,7 @@ ldomElement * ldomXRange::getNearestCommonParent()
 
 bool ldomXPointerEx::ensureFinal()
 {
-    if ( ensureElement() )
+    if ( !ensureElement() )
         return false;
     int cnt = 0;
     int foundCnt = -1;
