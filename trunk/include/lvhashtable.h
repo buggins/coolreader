@@ -28,18 +28,53 @@ inline lUInt32 getHash( lUInt32 n )
 */
 template <typename keyT, typename valueT> class LVHashTable
 {
-private:
-    int _size;
-    int _count;
+	friend class iterator;
+public:
     class pair {
+		friend class LVHashTable;
+        pair *  next; // extend
     public:
         keyT    key;
         valueT  value;
-        pair *  next; // extend
         pair( keyT nkey, valueT nvalue, pair * pnext ) : key(nkey), value(nvalue), next(pnext) { }
     };
-    pair ** _table;
-public:
+
+	class iterator {
+		friend class LVHashTable;
+		const LVHashTable & _tbl;
+		int index;
+		pair * ptr;
+	public:
+		iterator( const LVHashTable & table )
+			: _tbl( table ), index(0), ptr(NULL)
+		{
+		}
+		iterator( const iterator & v )
+			: _tbl( v._tbl ), index(v.index), ptr(v.ptr)
+		{
+		}
+		pair * next()
+		{
+			if ( index>=_tbl._size )
+				return NULL;
+			if ( ptr )
+				ptr = ptr->next;
+			if ( !ptr ) {
+				for ( ; index < _tbl._size; ) {
+					ptr = _tbl._table[ index++ ];
+					if ( ptr )
+						return ptr;
+				}
+			}
+			return ptr;
+		}
+	};
+
+	iterator forwardIterator() const
+	{
+		return iterator(this);
+	}
+
     LVHashTable( int size )
     {
         if (size < 16 )
@@ -139,6 +174,10 @@ public:
         }
         return valueT();
     }
+private:
+    int _size;
+    int _count;
+    pair ** _table;
 };
 
 

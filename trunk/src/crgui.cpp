@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include "../include/crgui.h"
+#include "../include/crtrace.h"
 
 //TODO: place to skin file
 #define ITEM_MARGIN 8
@@ -22,6 +23,53 @@
 #define DEF_FONT_SIZE 22
 #define DEF_TITLE_FONT_SIZE 28
 
+/// add all items from another table
+void CRGUIAcceleratorTable::addAll( const CRGUIAcceleratorTable & v )
+{
+	for ( int i=0; i<v._items.length(); i++ ) {
+		CRGUIAccelerator * item = v._items.get( i );
+		add( item->keyCode, item->keyFlags, item->commandId, item->commandParam );
+	}
+}
+
+/// add accelerator to table or change existing
+bool CRGUIAcceleratorTable::add( int keyCode, int keyFlags, int commandId, int commandParam )
+{
+    int index = indexOf( keyCode, keyFlags );
+    if ( index >= 0 ) {
+        // just update
+        CRGUIAccelerator * item = _items[index];
+        item->commandId = commandId;
+        item->commandParam = commandParam;
+        return false;
+    }
+    CRGUIAccelerator * item = new CRGUIAccelerator();
+    item->keyCode = keyCode;
+    item->keyFlags = keyFlags;
+    item->commandId = commandId;
+    item->commandParam = commandParam;
+    _items.add(item);
+    return true;
+}
+
+/// add all tables
+void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
+{
+	LVHashTable<lString16, CRGUIAcceleratorTableRef>::iterator i( v._table );
+	for ( ;; ) {
+		LVHashTable<lString16, CRGUIAcceleratorTableRef>::pair * p = i.next();
+		if ( !p )
+			break;
+		CRGUIAcceleratorTableRef t = _table.get( p->key );
+		if ( t.isNull() ) {
+			t = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable() );
+			_table.set( p->key, t );
+		}
+		crtrace trace;
+		trace << "Merging accelerators for '"  << p->key << "'";
+		t->addAll( *p->value );
+	}
+}
 
 void CRGUIScreenBase::flush( bool full )
 {

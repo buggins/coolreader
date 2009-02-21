@@ -63,6 +63,7 @@ protected:
         return -1;
     }
 public:
+	/// debug dump of table
     void dump()
     {
         if ( CRLog::isTraceEnabled() ) {
@@ -87,25 +88,13 @@ public:
         }
         return false;
     }
+
     /// add accelerator to table or change existing
-    bool add( int keyCode, int keyFlags, int commandId, int commandParam )
-    {
-        int index = indexOf( keyCode, keyFlags );
-        if ( index >= 0 ) {
-            // just update
-            CRGUIAccelerator * item = _items[index];
-            item->commandId = commandId;
-            item->commandParam = commandParam;
-            return false;
-        }
-        CRGUIAccelerator * item = new CRGUIAccelerator();
-        item->keyCode = keyCode;
-        item->keyFlags = keyFlags;
-        item->commandId = commandId;
-        item->commandParam = commandParam;
-        _items.add(item);
-        return true;
-    }
+    bool add( int keyCode, int keyFlags, int commandId, int commandParam );
+
+	/// add all items from another table
+	void addAll( const CRGUIAcceleratorTable & v );
+
     /// translate keycode to command, returns true if translated
     bool translate( int keyCode, int keyFlags, int & commandId, int & commandParam )
     {
@@ -191,6 +180,8 @@ class CRGUIAcceleratorTableList
 private:
     LVHashTable<lString16, CRGUIAcceleratorTableRef> _table;
 public:
+	/// add all tables
+	void addAll( const CRGUIAcceleratorTableList & v );
     /// remove all tables
     void clear() { _table.clear(); }
     /// add accelerator table definition from array
