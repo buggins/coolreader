@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../crengine/include;../../freetype2/include;../../libjpeg;../../libpng;../../zlib;../tinydict"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_WIN32;UNICODE;_UNICODE_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;COLOR_BACKBUFFER=0"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_WIN32;UNICODE;_UNICODE_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;COLOR_BACKBUFFER=0;WITH_CITE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -327,6 +327,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\selnavig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\settings.cpp"
 				>
 			</File>
@@ -558,6 +562,10 @@
 			</File>
 			<File
 				RelativePath=".\scrkbd.h"
+				>
+			</File>
+			<File
+				RelativePath=".\selnavig.h"
 				>
 			</File>
 			<File

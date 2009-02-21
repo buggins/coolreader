@@ -22,6 +22,15 @@
 
 #include "mainwnd.h"
 
+#ifdef _WIN32
+#define DICTD_CONF "C:\\dict\\"
+#else
+#ifdef CR_USE_JINKE
+#define DICTD_CONF "/root/crengine/dict/"
+#else
+#define DICTD_CONF "/media/sd/dict"
+#endif
+#endif
 
 
 #ifdef WITH_DICT
@@ -605,7 +614,21 @@ void V3DocViewWin::showSearchDialog()
     rc.bottom -= v_margin;
     rc.top += rc.height() / 2;
     _searchPattern.clear();
-    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDNEXT, lString16(L"Search"), _searchPattern, rc );
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDFIRST, lString16(L"Search"), _searchPattern, rc );
+    _wm->activateWindow( dlg );
+}
+
+void V3DocViewWin::showDictWithVKeyboard()
+{
+    lvRect rc = _wm->getScreen()->getRect();
+    int h_margin = rc.width() / 12;
+    int v_margin = rc.height() / 12;
+    rc.left += h_margin;
+    rc.right -= h_margin;
+    rc.bottom -= v_margin;
+    rc.top += rc.height() / 2;
+    _searchPattern.clear();
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_DICT_FIND, lString16(L"Find in dictionary"), _searchPattern, rc );
     _wm->activateWindow( dlg );
 }
 
@@ -690,6 +713,7 @@ lString16 getDocAuthors( ldomDocument * doc, const char * path, const char * del
     return res;
 }
 
+
 void V3DocViewWin::showAboutDialog()
 {
     lString16 title = L"Cool Reader ";
@@ -751,6 +775,17 @@ void V3DocViewWin::showAboutDialog()
     _wm->activateWindow( dlg );
 }
 
+bool V3DocViewWin::findInDictionary( lString16 pattern )
+{
+    if ( _dict.isNull() )
+        _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
+	lString8 body = _dict->translate( UnicodeToUtf8( pattern ) );
+    lString8 txt = CRViewDialog::makeFb2Xml( body );
+    CRViewDialog * dlg = new CRViewDialog( _wm, pattern, txt, lvRect(), true, true );
+    _wm->activateWindow( dlg );
+	return true;
+}
+
 bool V3DocViewWin::findText( lString16 pattern )
 {
     if ( pattern.empty() )
@@ -799,27 +834,23 @@ bool V3DocViewWin::onCommand( int command, int params )
 
 #ifdef WITH_DICT
 
-#ifdef _WIN32
-#define DICTD_CONF "C:\\dict\\"
-#else
-#ifdef CR_USE_JINKE
-#define DICTD_CONF "/root/crengine/dict/"
-#else
-#define DICTD_CONF "/media/sd/dict"
-#endif
-#endif
 
     case MCMD_DICT:
-        CRLog::info("MCMD_DICT activated\n");
-        if ( _dict.isNull() )
-            _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
-        activate_dict( _wm, this, _t9encoding, *_dict );
+		showT9Keyboard( _wm, this, _t9encoding, MCMD_DICT_FIND, _searchPattern );
+        return true;
+	case MCMD_DICT_VKEYBOARD: 
+		showDictWithVKeyboard();
+		return true;
+	case MCMD_DICT_FIND:
+        if ( !_searchPattern.empty() && params ) {
+            findInDictionary( _searchPattern );
+        }
         return true;
 #endif
     case MCMD_SEARCH:
         showSearchDialog();
         return true;
-    case MCMD_SEARCH_FINDNEXT:
+    case MCMD_SEARCH_FINDFIRST:
         if ( !_searchPattern.empty() && params ) {
             findText( _searchPattern );
         }

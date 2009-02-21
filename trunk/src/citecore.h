@@ -52,7 +52,7 @@ public:
     }
 
     void to_end() {
-        point_to_end(pointer_);
+		pointer_.setOffset( pointer_.getNode()->getChildCount() );
     }
 
     void to_begin() {
@@ -77,6 +77,8 @@ public:
         // switch on granularity
         prevSiblingBlock();
     };
+
+	lString16 toString() { return pointer_.toString(); }
 };
 
 
@@ -94,7 +96,7 @@ public:
             start_.assign(first);
             start_.to_begin();
             end_.assign(first);
-            end_.nextSibling();
+            //end_.nextSibling();
             end_.to_end();
             highlight();
         };
@@ -111,8 +113,8 @@ public:
         LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
         trace << "\tscreen: \n\t\t [ " << range->getStart().toString() <<
             " :\n\t\t" << range->getEnd().toString() << " ] / \n\tselection: [ " <<
-            ldomXPointer(start_.get()).toString() << " :\n\t\t" << 
-            ldomXPointer(end_.get()).toString() << " ]";
+            start_.toString() << " :\n\t\t" << 
+            end_.toString() << " ]";
         view_.clearSelection();
         ldomXRange selected(select());
         selected.setFlags(1);

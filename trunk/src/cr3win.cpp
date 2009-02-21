@@ -214,8 +214,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_CHAR:
 			if ( CRWin32WindowManager::instance )
             {
-                if ( wParam>=' ' && wParam<=127 ) {
-                    needUpdate = CRWin32WindowManager::instance->onKeyPressed( wParam, 0 );
+				int shift = 0;
+				if ( ::GetKeyState(VK_SHIFT) & 0x8000 )
+					shift |= 1;
+				if ( ::GetKeyState(VK_CONTROL) & 0x8000 )
+					shift |= 1;
+				char shiftChars[] = ")!@#$%^&*(";
+				int ch = wParam;
+				for ( int i=0; shiftChars[i]; i++ )
+					if ( ch==shiftChars[i] ) {
+						ch = '0' + i;
+						break;
+					}
+                if ( ch>=' ' && ch<=127 ) {
+                    needUpdate = CRWin32WindowManager::instance->onKeyPressed( ch, shift );
                 }
             }
             break;
@@ -226,6 +238,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				int shift = 0;
 				if ( ::GetKeyState(VK_SHIFT) & 0x8000 )
 					shift |= 1;
+				if ( ::GetKeyState(VK_CONTROL) & 0x8000 )
+					shift |= 1;
+				
                 switch( wParam )
                 {
                 case VK_RETURN:
@@ -361,6 +376,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		main_win->loadCSS( exedir + L"fb2.css" );
 		main_win->loadSettings( exedir + L"cr3.ini" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
+		lString8 exedir8 = UnicodeToUtf8( exedir );
+		const char * dirs[] = {
+			exedir8.c_str(),
+			NULL
+		};
+
+		loadKeymaps( winman, dirs );
 
         main_win->loadHistory( exedir + L"cr3hist.bmk" );
 

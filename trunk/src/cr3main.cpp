@@ -21,10 +21,12 @@ bool loadKeymaps( CRGUIWindowManager & winman, const char * locations[] )
 	bool res = false;
 	for ( int i=0; locations[i]; i++ ) {
 		lString8 location( locations[i] );
+		char lastChar = location[ location.length() - 1 ];
+		if ( lastChar!='/' && lastChar!='\\' )
 #ifdef _WIN32
-		location << "\\";
+			location << "\\";
 #else
-		location << "/";
+			location << "/";
 #endif
 		lString8 def = location + "keydefs.ini";
 		lString8 map = location + "keymaps.ini";

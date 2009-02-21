@@ -80,7 +80,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
 : CRNumberEditDialog( wm, title, lString16(), resultCmd, 1, pageCount )
 {
     docview->getFlatToc( _items );
-    _skin = _wm->getSkin()->getWindowSkin(L"#search");
+    _skin = _wm->getSkin()->getWindowSkin(L"#toc");
     CRRectSkinRef clientSkin = _skin->getClientSkin();
     lvRect borders = clientSkin->getBorderWidths();
     CRScrollSkinRef sskin = _skin->getScrollSkin();

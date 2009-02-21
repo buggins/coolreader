@@ -18,8 +18,6 @@
 #include "t9encoding.h"
 
 
-// to exclude short words from search (requested by LVD)
-#define DICT_MIN_WORD_LENGTH 3
 
 //TODO: place TinyDictionary to separate file
 CRTinyDict::CRTinyDict( const lString16& config )
@@ -105,7 +103,7 @@ lString8 CRTinyDict::translate(const lString8 & w)
 
 
 
-
+#define DICT_MIN_WORD_LENGTH 3
 
 class WordWithRanges
 {
@@ -209,22 +207,6 @@ public:
     }
 };
 
-void
-init_keytable(LVArray<lString16>& keytable){
-#define DEFKEY(x)  keytable.add(lString16(x))
-DEFKEY(L" "); // 0 and 9 are STUBs
-DEFKEY(L"abc");
-DEFKEY(L"def");
-DEFKEY(L"ghi");
-DEFKEY(L"jkl");
-DEFKEY(L"mno");
-DEFKEY(L"pqrs");
-DEFKEY(L"tuv");
-DEFKEY(L"wxyz");
-DEFKEY(L".,"); // 9 STUB
-#undef DEFKEY
-};
-
 class selector {
     wordlist words_;
     int current_;
@@ -317,178 +299,136 @@ public:
 };
 
 
-
-class DictWindow;
-
-class Article : public  CRViewDialog {
-    DictWindow * parent_;
-public:
-    Article(CRGUIWindowManager * wm, lString16 title, lString8 text, lvRect rect, DictWindow * parent) 
-    : CRViewDialog(wm, title, text, rect, true, true )
-    , parent_( parent )
-    {
-    }
-
-    virtual bool onCommand( int command, int params = 0 );
-};
-
-//typedef Dictionary dict_type;
-//LVRef<dict_type> dict_;
-
-
-class DictWindow : public BackgroundFitWindow
+class CRT9Keyboard : public BackgroundFitWindow
 {
+	int _command;
+	lString16 & _buf;
     selector selector_;
     const TEncoding& encoding_;
-    CRDictionary & dict_;
 protected:
-    virtual void draw()
-    {
-        BackgroundFitWindow::draw();
-        CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( L"#t9input" );
-        CRRectSkinRef shortcutSkin = skin->getItemShortcutSkin();
-        CRRectSkinRef itemSkin = skin->getItemSkin();
-        CRRectSkinRef clientSkin = skin->getClientSkin();
-        LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
-        skin->draw( *buf, _rect );
-        lString16 prompt = Utf8ToUnicode(selector_.getPrefix());
-        prompt << L"_";
-        skin->draw( *buf, _rect );
-        //buf->FillRect( _rect, 0xAAAAAA );
-        lvRect rect = _rect;
-        lvRect borders = skin->getBorderWidths();
-        rect.shrinkBy( borders );
-        lvRect keyRect = rect;
-        lvPoint minSizeN = shortcutSkin->getMinSize();
-        for ( int i=0; i<encoding_.length(); i++ ) {
-            lString16 txtN = lString16::itoa(i);
-            lString16 txt = encoding_[i];
-            if ( txt.empty() )
-                continue;
-            // label 0..9
-            lvPoint sz = shortcutSkin->measureTextItem( txtN );
-            keyRect.right = keyRect.left + sz.x; //borders.left + borders.right;
-            shortcutSkin->draw( *buf, keyRect );
-            shortcutSkin->drawText( *buf, keyRect, txtN );
-            keyRect.left = keyRect.right;
-            // chars (abc)
-            sz = itemSkin->measureTextItem( txt );
-            keyRect.right = keyRect.left + sz.x; //borders.left + borders.right;
-            itemSkin->draw( *buf, keyRect );
-            itemSkin->drawText( *buf, keyRect, txt );
-            keyRect.left = keyRect.right; //borders.left;
-        }
-        keyRect.right = rect.right;
-        if ( !clientSkin.isNull() && !keyRect.isEmpty() ) {
-            clientSkin->draw( *buf, keyRect );
-            clientSkin->drawText( *buf, keyRect, prompt );
-        }
-    }
+    virtual void draw();
 
 public:
 
-    DictWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin, const TEncoding& encoding, CRDictionary & dict ) :
-        BackgroundFitWindow(wm, mainwin),
-        selector_(*mainwin->getDocView(), encoding),
-        encoding_(encoding),
-        dict_(dict) {
+	CRT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer );
 
-        this->setAccelerators( mainwin->getDialogAccelerators() );
+    virtual bool onCommand( int command, int params );
 
-        _rect = _wm->getScreen()->getRect();
-        //_rect.bottom = _rect.top;
-        _rect.top = _rect.bottom - 40;
-    }
-
-    bool onCommand( int command, int params )
-    {
-        switch ( command ) {
-            case MCMD_SELECT_0:
-            case MCMD_SELECT_1:
-            case MCMD_SELECT_2:
-            case MCMD_SELECT_3:
-            case MCMD_SELECT_4:
-            case MCMD_SELECT_5:
-            case MCMD_SELECT_6:
-            case MCMD_SELECT_7:
-            case MCMD_SELECT_8:
-            case MCMD_SELECT_9:
-                selector_.push_button( command - MCMD_SELECT_0 + '0' );
-                setDirty();
-                break;
-            case MCMD_SCROLL_FORWARD:
-                selector_.down();
-                break;
-            case MCMD_SCROLL_BACK:
-                selector_.up();
-                break;
-            case MCMD_OK:
-                {
-                    lString8 translated;
-                    lString8 output;
-                    lString16 src = selector_.get();
-                    if ( src.empty() ) {
-                        close();
-                        return true;
-                    }
-                    output = dict_.translate( UnicodeToUtf8(src) );
-                    /*
-                    if(translated.length() == 0) {
-                        output = lString8("No article for this word");
-                    } else {
-                        output = lString8("<?xml version=\"1.0\" encoding=\"UTF-8\">");
-                        output << "<FictionBook><body><code style=\"text-align: left; text-indent: 0; font-size: 22\">";
-                        output << translated;
-                        output << "</code></body></FictionBook>";
-                    };
-                    crtrace crt("article: ");
-                    crt << output;
-                    */
-                    lvRect rc = _wm->getScreen()->getRect();
-                    // TODO: not full screen?
-                    Article * article = new Article(_wm, src, output, rc, this);
-                    _wm->activateWindow( article );
-                };
-                break;
-            case MCMD_CANCEL:
-                if ( selector_.pop() ) {
-                    close();
-                    return true ;
-                }
-                setDirty();
-                break;
-        }
-        return true;
-    }
-
-    void close() {
-        CRLog::info("Closing dict");
-        _mainwin->getDocView()->clearSelection();
-        _wm->closeWindow(this);
-    };
-
-
-protected:
-    DictWindow(const DictWindow&); //non-copyable
 };
 
-
-
-bool Article::onCommand( int command, int params )
+CRT9Keyboard::CRT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer )
+	: BackgroundFitWindow(wm, mainwin)
+	, _command( id )
+	, _buf( buffer )
+	, selector_(*mainwin->getDocView(), encoding)
+	, encoding_(encoding)
 {
-    switch ( command ) {
-        case MCMD_CANCEL:
-        case MCMD_OK:
-            parent_->close();
-            _wm->closeWindow(this);
-            return true;
-        default:
-            return CRViewDialog::onCommand( command, params ); //CRDocViewWindow::onKeyPressed(key,flags);
+
+    //this->setAccelerators( mainwin->getDialogAccelerators() );
+    setAccelerators( _wm->getAccTables().get("search") );
+
+    _rect = _wm->getScreen()->getRect();
+    //_rect.bottom = _rect.top;
+    _rect.top = _rect.bottom - 40;
+}
+
+void CRT9Keyboard::draw()
+{
+    BackgroundFitWindow::draw();
+    CRMenuSkinRef skin = _wm->getSkin()->getMenuSkin( L"#t9input" );
+    CRRectSkinRef shortcutSkin = skin->getItemShortcutSkin();
+    CRRectSkinRef itemSkin = skin->getItemSkin();
+    CRRectSkinRef clientSkin = skin->getClientSkin();
+    LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
+    skin->draw( *buf, _rect );
+    lString16 prompt = Utf8ToUnicode(selector_.getPrefix());
+    prompt << L"_";
+    skin->draw( *buf, _rect );
+    //buf->FillRect( _rect, 0xAAAAAA );
+    lvRect rect = _rect;
+    lvRect borders = skin->getBorderWidths();
+    rect.shrinkBy( borders );
+    lvRect keyRect = rect;
+    lvPoint minSizeN = shortcutSkin->getMinSize();
+    for ( int i=0; i<encoding_.length(); i++ ) {
+        lString16 txtN = lString16::itoa(i);
+        lString16 txt = encoding_[i];
+        if ( txt.empty() )
+            continue;
+        // label 0..9
+        lvPoint sz = shortcutSkin->measureTextItem( txtN );
+        keyRect.right = keyRect.left + sz.x; //borders.left + borders.right;
+        shortcutSkin->draw( *buf, keyRect );
+        shortcutSkin->drawText( *buf, keyRect, txtN );
+        keyRect.left = keyRect.right;
+        // chars (abc)
+        sz = itemSkin->measureTextItem( txt );
+        keyRect.right = keyRect.left + sz.x; //borders.left + borders.right;
+        itemSkin->draw( *buf, keyRect );
+        itemSkin->drawText( *buf, keyRect, txt );
+        keyRect.left = keyRect.right; //borders.left;
+    }
+    keyRect.right = rect.right;
+    if ( !clientSkin.isNull() && !keyRect.isEmpty() ) {
+        clientSkin->draw( *buf, keyRect );
+        clientSkin->drawText( *buf, keyRect, prompt );
     }
 }
 
-void activate_dict( CRGUIWindowManager *wm, V3DocViewWin * mainwin, const TEncoding& encoding, CRDictionary & dict )
+bool CRT9Keyboard::onCommand( int command, int params )
 {
-    CRLog::info("Entering dict mode\n");
-    wm->activateWindow(new DictWindow(wm, mainwin, encoding, dict));
+    switch ( command ) {
+        case MCMD_SELECT_0:
+        case MCMD_SELECT_1:
+        case MCMD_SELECT_2:
+        case MCMD_SELECT_3:
+        case MCMD_SELECT_4:
+        case MCMD_SELECT_5:
+        case MCMD_SELECT_6:
+        case MCMD_SELECT_7:
+        case MCMD_SELECT_8:
+        case MCMD_SELECT_9:
+            selector_.push_button( command - MCMD_SELECT_0 + '0' );
+            setDirty();
+            break;
+        case MCMD_SCROLL_FORWARD:
+            selector_.down();
+            break;
+        case MCMD_SCROLL_BACK:
+            selector_.up();
+            break;
+        case MCMD_OK:
+            {
+                lString8 translated;
+                lString8 output;
+                lString16 src = selector_.get();
+                if ( src.empty() ) {
+					_mainwin->getDocView()->clearSelection();
+					_wm->closeWindow(this);
+                    return true;
+                }
+				CRLog::info("Closing dict");
+				_buf = src;
+				_mainwin->getDocView()->clearSelection();
+				_wm->postCommand( _command, 1 );
+				_wm->closeWindow(this);
+            };
+            break;
+        case MCMD_CANCEL:
+            if ( selector_.pop() ) {
+				_mainwin->getDocView()->clearSelection();
+				_wm->closeWindow(this);
+                return true;
+            }
+            setDirty();
+            break;
+    }
+    return true;
 }
+
+void showT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer)
+{
+	CRT9Keyboard * dlg = new CRT9Keyboard( wm, mainwin, encoding, id, buffer );
+    wm->activateWindow( dlg );
+}
+

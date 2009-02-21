@@ -3,8 +3,8 @@
 
 #include <cstdlib>
 #include <tinydict.h>
-#include "lvdocview.h"
 #include "crgui.h"
+#include "crtrace.h"
 #include "t9encoding.h"
 
 /// dictionary interface
@@ -27,11 +27,10 @@ public:
 };
 
 
-class V3DocViewWin;
+class CRDocViewWindow;
 
 extern void
-activate_dict(CRGUIWindowManager *wm, V3DocViewWin * mainwin, const TEncoding& encoding, CRDictionary & dict );
-
+showT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer);
 
 
 #endif
