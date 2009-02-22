@@ -822,6 +822,7 @@ static int hexDigit( int c )
 
 bool lString16::atoi( int &n ) const
 {
+	n = 0;
     int sgn = 1;
     const lChar16 * s = c_str();
     while (*s == ' ' || *s == '\t')

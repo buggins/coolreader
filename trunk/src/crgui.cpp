@@ -620,7 +620,7 @@ void CRMenu::draw()
 
 static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
 {
-    lString16 line;
+    lString8 line;
     bool flgComment = false;
     for ( ; ; ) {
         int ch = stream->ReadByte();
@@ -633,13 +633,15 @@ static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
                 flgComment = false;
                 line.clear();
             } else {
+				if ( line[0]==0xEf && line[1]==0xBB && line[2] ==0xBF )
+					line.erase( 0, 3 );
                 if ( !line.empty() ) {
-                    dst = line;
+                    dst = Utf8ToUnicode( line );
                     return true;
                 }
             }
         } else {
-            line << (lChar16) ch;
+            line << ch;
         }
     }
     return false;
@@ -800,6 +802,153 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
     } while ( !eof );
     return !empty();
 }
+
+// get currently set layout
+CRKeyboardLayoutRef CRKeyboardLayoutList::getCurrentLayout()
+{
+	if ( !_current.isNull() )
+		return _current;
+	_current = get( lString16( L"english" ) );
+	if ( !_current )
+		nextLayout();
+	return _current;
+}
+
+// get next layout
+CRKeyboardLayoutRef CRKeyboardLayoutList::prevLayout()
+{
+	bool found = false;
+	CRKeyboardLayoutRef prev;
+	CRKeyboardLayoutRef next;
+	CRKeyboardLayoutRef first;
+	CRKeyboardLayoutRef last;
+	LVHashTable<lString16, CRKeyboardLayoutRef>::iterator i( _table );
+	for ( ;; ) {
+		LVHashTable<lString16, CRKeyboardLayoutRef>::pair * item = i.next();
+		if ( !item )
+			break;
+		if ( first.isNull() )
+			first = item->value;
+		last = item->value;
+		if ( item->value.get() == _current.get() ) {
+			found = true;
+		} else {
+			if ( !found )
+				prev = item->value;
+			if ( !found && !next.isNull() )
+				next = item->value;
+
+		}
+	}
+	if ( prev.isNull() )
+		_current = last;
+	else
+		_current = prev;
+	return _current;
+}
+
+// get next layout
+CRKeyboardLayoutRef CRKeyboardLayoutList::nextLayout()
+{
+	bool found = false;
+	CRKeyboardLayoutRef prev;
+	CRKeyboardLayoutRef next;
+	CRKeyboardLayoutRef first;
+	CRKeyboardLayoutRef last;
+	LVHashTable<lString16, CRKeyboardLayoutRef>::iterator i( _table );
+	for ( ;; ) {
+		LVHashTable<lString16, CRKeyboardLayoutRef>::pair * item = i.next();
+		if ( !item )
+			break;
+		if ( first.isNull() )
+			first = item->value;
+		last = item->value;
+		if ( item->value.get() == _current.get() ) {
+			found = true;
+		} else {
+			if ( !found )
+				prev = item->value;
+			else if ( next.isNull() )
+				next = item->value;
+
+		}
+	}
+	if ( next.isNull() )
+		_current = first;
+	else
+		_current = next;
+	return _current;
+}
+
+bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
+{
+    //_table.clear();
+    LVStreamRef stream = LVOpenFileStream( layoutFile, LVOM_READ );
+    if ( stream.isNull() ) {
+        CRLog::error( "cannot open keyboard layout file %s", layoutFile );
+        return false;
+    }
+    lString16 line;
+    lString16 section;
+	CRKeyboardLayoutRef table;
+	LVRef<CRKeyboardLayout> layout;
+    bool eof = false;
+    do {
+        eof = !readNextLine(stream, line);
+        if ( eof || (!line.empty() && line[0]=='[') ) {
+            // eof or [section] found
+            // save old section
+            if ( !section.empty() ) {
+                if ( layout->getItems().length() ) {
+                    _table.set( section, table );
+                }
+                section.clear();
+            }
+            // begin new section
+            if ( !eof ) {
+                int endbracket = line.pos( lString16(L"]") );
+                if ( endbracket<=0 )
+                    endbracket = line.length();
+                if ( endbracket >= 2 )
+                    section = line.substr( 1, endbracket - 1 );
+                else
+                    section.clear(); // wrong sectino
+				lString16 langname;
+				lString16 layouttype;
+				if ( !section.empty() && splitLine( section, lString16(L"."), langname, layouttype ) ) {
+					table = _table.get( langname );
+					if ( table.isNull() ) {
+						table = CRKeyboardLayoutRef( new CRKeyboardLayoutSet() );
+						_table.set( langname, table );
+					}
+					if ( layouttype == L"tx" )
+						layout = table->tXKeyboard;
+					else
+						layout = table->vKeyboard;
+				} else
+					section.clear();
+            }
+        } else if ( !section.empty() ) {
+            // read definition
+            lString16 name;
+            lString16 value;
+            if ( splitLine( line, lString16(L"="), name, value ) ) {
+				if ( name == L"enabled" ) {
+					//if ( value == L"0" )
+					//	; //TODO:set disabled flag
+					continue;
+				}
+                int item;
+				if ( !name.atoi(item) )
+					continue;
+				layout->set( item, value );
+            }
+        }
+    } while ( !eof );
+	return _table.length()>0;
+}
+
+
 
 static int inv_control_table[] = {
     // old cmd, new cmd, param multiplier

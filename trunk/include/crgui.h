@@ -209,6 +209,71 @@ public:
     bool openFromFile( const char  * defFile, const char * mapFile );
 };
 
+class CRKeyboardLayout
+{
+	lString16Collection _items;
+public:
+	CRKeyboardLayout() { }
+	const lString16Collection & getItems() { return _items; }
+	lString16 get( int i )
+	{
+		if ( i<0 || i>= (int)_items.length() )
+			return lString16();
+		return _items[i];
+	}
+	void set( int index, lString16 chars )
+	{
+		if ( index<0 || index>20 )
+			return;
+		while ( (int)_items.length() <= index )
+			_items.add(lString16());
+		_items[ index ] = chars;
+	}
+};
+
+class CRKeyboardLayoutSet
+{
+public:
+	lString16 name;
+	LVRef<CRKeyboardLayout> vKeyboard;
+	LVRef<CRKeyboardLayout> tXKeyboard;
+	CRKeyboardLayoutSet()
+		: vKeyboard( new CRKeyboardLayout() ), tXKeyboard( new CRKeyboardLayout() )
+	{
+	}
+	CRKeyboardLayoutSet( const CRKeyboardLayoutSet & v )
+		: name( v.name), vKeyboard( v.vKeyboard ), tXKeyboard( v.tXKeyboard )
+	{
+	}
+	CRKeyboardLayoutSet & operator = ( const CRKeyboardLayoutSet & v )
+	{
+		name = v.name;
+		vKeyboard = v.vKeyboard;
+		tXKeyboard = v.tXKeyboard;
+	}
+};
+
+typedef LVRef<CRKeyboardLayoutSet> CRKeyboardLayoutRef;
+
+class CRKeyboardLayoutList
+{
+    LVHashTable<lString16, CRKeyboardLayoutRef> _table;
+	CRKeyboardLayoutRef _current;
+public:
+	// get currently set layout
+	CRKeyboardLayoutRef getCurrentLayout();
+	// get next layout
+	CRKeyboardLayoutRef nextLayout();
+	// get previous layout
+	CRKeyboardLayoutRef prevLayout();
+
+	CRKeyboardLayoutRef get( lString16 name ) { return _table.get( name ); }
+	void set( lString16 name, CRKeyboardLayoutRef v ) { _table.set( name, v ); }
+	CRKeyboardLayoutList() : _table(16) { }
+    /// reads definitions from files
+    bool openFromFile( const char  * layoutFile );
+};
+
 /// i18n support interface
 class CRGUIStringTranslator
 {
@@ -305,7 +370,10 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         int _postedCommandParam;
         CRSkinRef _skin;
         CRGUIAcceleratorTableList _accTables;
+		CRKeyboardLayoutList _kbLayouts;
     public:
+		/// returns keyboard layouts
+		virtual CRKeyboardLayoutList & getKeyboardLayouts() { return _kbLayouts; }
         /// returns accelerator table list
         virtual CRGUIAcceleratorTableList & getAccTables() { return _accTables; }
         /// return battery status

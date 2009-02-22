@@ -516,12 +516,21 @@ public:
     void parse( lString16 string, lChar16 delimiter, bool flgTrim );
     void reserve( size_t space );
     size_t add( const lString16 & str );
+    void addAll( const lString16Collection & v )
+	{
+		for ( unsigned i=0; i<v.length(); i++ )
+			add( v[i] );
+	}
     void erase(int offset, int count);
     const lString16 & at( size_t index )
     {
         return ((lString16 *)chunks)[index];
     }
     const lString16 & operator [] ( size_t index ) const
+    {
+        return ((lString16 *)chunks)[index];
+    }
+    lString16 & operator [] ( size_t index )
     {
         return ((lString16 *)chunks)[index];
     }
