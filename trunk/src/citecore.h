@@ -49,8 +49,8 @@ public:
         last_move_(not_moved),
         view_(view) {
             ldomXPointerEx middle = view_.getCurrentPageMiddleParagraph();
+            middle.prevVisibleText();
             start_ = middle;
-            start_.prevVisibleText();
             point_to_begin(start_);
             end_ = middle;
             point_to_end(end_);
