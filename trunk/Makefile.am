@@ -24,7 +24,7 @@ dist_skin_DATA = skin/cr3skin.xml \
 
 dist_pkgdata_DATA = src/fb2.css src/cr3_def_cover.png
 dist_hyph_DATA = hyph/Russian_EnUS_hyphen_(Alan).pdb
-dist_keymap_DATA = keymaps/keydefs.ini keymaps/keymaps.ini
+dist_keymap_DATA = keymaps/keydefs.ini keymaps/keymaps.ini keymaps/kblayout.ini
 
 MAINTAINERCLEANFILES = \
 Makefile.in \
