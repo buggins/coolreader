@@ -250,6 +250,7 @@ public:
 		name = v.name;
 		vKeyboard = v.vKeyboard;
 		tXKeyboard = v.tXKeyboard;
+        return *this;
 	}
 };
 

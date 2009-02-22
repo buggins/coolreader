@@ -36,7 +36,7 @@ public:
     public:
         keyT    key;
         valueT  value;
-        pair( keyT nkey, valueT nvalue, pair * pnext ) : key(nkey), value(nvalue), next(pnext) { }
+        pair( keyT nkey, valueT nvalue, pair * pnext ) : next(pnext), key(nkey), value(nvalue) { }
     };
 
 	class iterator {
