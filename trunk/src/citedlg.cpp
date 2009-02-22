@@ -54,24 +54,32 @@ public:
 	bool onCommand( int command, int params )
 	{
 		switch ( command ) {
-			case MCMD_SELECT_0:
 			case MCMD_SELECT_1:
+                selector_.growUp();
+                setDirty();
+                break;
 			case MCMD_SELECT_2:
+                selector_.shrinkDown();
+                setDirty();
+                break;
 			case MCMD_SELECT_3:
 			case MCMD_SELECT_4:
 			case MCMD_SELECT_5:
 			case MCMD_SELECT_6:
 			case MCMD_SELECT_7:
 			case MCMD_SELECT_8:
+                break;
 			case MCMD_SELECT_9:
+                selector_.shrinkUp();
+                setDirty();
+                break;
+			case MCMD_SELECT_0:
+                selector_.growDown();
+                setDirty();
 				break;
 			case MCMD_SCROLL_FORWARD:
-                selector_.stepDown();
-                setDirty();
 				break;
 			case MCMD_SCROLL_BACK:
-                selector_.stepUp();
-                setDirty();
 				break;
 			case MCMD_OK:
 				{
