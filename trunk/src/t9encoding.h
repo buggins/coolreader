@@ -9,6 +9,12 @@ class TEncoding {
     lString16Collection keytable_;
 public:
 
+	void set( const lString16Collection & items )
+	{
+		keytable_.clear();
+		keytable_.addAll( items );
+	}
+
     int length() const { return keytable_.length(); }
 
     const lString16 & operator [] ( int index ) const { return keytable_[index]; }

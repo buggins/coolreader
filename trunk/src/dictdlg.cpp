@@ -148,22 +148,22 @@ public:
 
 class wordlist {
     LVDocView& docview_;
+	const TEncoding& encoding_;
     LVPtrVector<WordWithRanges> _words;
 public:
-
-    wordlist(LVDocView& docview, const TEncoding& encoding) :
-        docview_(docview) 
-    {
+    void init()
+	{
+		_words.clear();
         //ldomDocument * doc = docview.getDocument();
         int pageIndex = -1; //docview.getCurPage();
-        LVRef<ldomXRange> range = docview.getPageDocumentRange( pageIndex );
+        LVRef<ldomXRange> range = docview_.getPageDocumentRange( pageIndex );
         crtrace trace;
         if( !range.isNull() ) {
             LVArray<ldomWord> words;
             range->getRangeWords(words);
             for ( int i=0; i<words.length(); i++ ) {
                 lString16 w = words[i].getText();
-                lString8 encoded = encoding.encode_string( w );
+                lString8 encoded = encoding_.encode_string( w );
                 if ( w.length() < DICT_MIN_WORD_LENGTH )
                     continue;
                 /*
@@ -182,6 +182,12 @@ public:
                     _words.add( new WordWithRanges( w, encoded, words[i] ) ); // add new word
             }
         }
+	}
+
+    wordlist(LVDocView& docview, const TEncoding& encoding) :
+        docview_(docview), encoding_( encoding )
+    {
+		init();
     }
 
     void match( const lString8& prefix, LVArray<WordWithRanges *> & result )
@@ -218,6 +224,7 @@ class selector {
     int repeat_;
     int last_;
 public:
+	void reinit() { words_.init(); candidates_.clear(); }
     lString8 getPrefix() { return prefix_; }
     selector(LVDocView& docview, const TEncoding& encoding) : 
         words_(docview, encoding), 
@@ -303,29 +310,64 @@ class CRT9Keyboard : public BackgroundFitWindow
 {
 	int _command;
 	lString16 & _buf;
+    TEncoding encoding_;
     selector selector_;
-    const TEncoding& encoding_;
 protected:
+
     virtual void draw();
 
 public:
+	void setDefaultLayout();
+	void setLayout( CRKeyboardLayoutRef layout );
 
-	CRT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer );
+	CRT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, int id, lString16 & buffer );
 
     virtual bool onCommand( int command, int params );
 
 };
 
-CRT9Keyboard::CRT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer )
+const lChar16 * defT5encoding[] = {
+    L"",     // 0 STUB
+    L"abcde",  // 1
+    L"fghij",  // 2
+    L"klmno",  // 3
+    L"pqrst",  // 4
+    L"uvwxyz", // 5
+    NULL
+};
+
+void CRT9Keyboard::setDefaultLayout()
+{
+	encoding_.init(defT5encoding);
+}
+
+void CRT9Keyboard::setLayout( CRKeyboardLayoutRef layout )
+{
+    while ( !selector_.pop() )
+		;
+	_mainwin->getDocView()->clearSelection();
+
+	if ( !layout.isNull() ) {
+		encoding_.set( layout->tXKeyboard->getItems() );
+	}
+	if ( encoding_.length()==0 )
+		setDefaultLayout();
+	selector_.reinit();
+	setDirty();
+}
+
+CRT9Keyboard::CRT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, int id, lString16 & buffer )
 	: BackgroundFitWindow(wm, mainwin)
 	, _command( id )
 	, _buf( buffer )
-	, selector_(*mainwin->getDocView(), encoding)
-	, encoding_(encoding)
+	, encoding_(defT5encoding)
+	, selector_(*mainwin->getDocView(), encoding_)
 {
+    _passKeysToParent = false;
+    _passCommandsToParent = false;
 
     //this->setAccelerators( mainwin->getDialogAccelerators() );
-    setAccelerators( _wm->getAccTables().get("search") );
+    setAccelerators( _wm->getAccTables().get("txkeyboard") );
 
     _rect = _wm->getScreen()->getRect();
     //_rect.bottom = _rect.top;
@@ -394,6 +436,12 @@ bool CRT9Keyboard::onCommand( int command, int params )
         case MCMD_SCROLL_FORWARD:
             selector_.down();
             break;
+		case MCMD_KBD_NEXTLAYOUT:
+			setLayout( _wm->getKeyboardLayouts().nextLayout() );
+			break;
+		case MCMD_KBD_PREVLAYOUT:
+			setLayout( _wm->getKeyboardLayouts().prevLayout() );
+			break;
         case MCMD_SCROLL_BACK:
             selector_.up();
             break;
@@ -426,9 +474,9 @@ bool CRT9Keyboard::onCommand( int command, int params )
     return true;
 }
 
-void showT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer)
+void showT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, int id, lString16 & buffer)
 {
-	CRT9Keyboard * dlg = new CRT9Keyboard( wm, mainwin, encoding, id, buffer );
+	CRT9Keyboard * dlg = new CRT9Keyboard( wm, mainwin, id, buffer );
     wm->activateWindow( dlg );
 }
 

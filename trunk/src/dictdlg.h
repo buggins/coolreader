@@ -30,7 +30,7 @@ public:
 class CRDocViewWindow;
 
 extern void
-showT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, const TEncoding& encoding, int id, lString16 & buffer);
+showT9Keyboard(CRGUIWindowManager * wm, CRDocViewWindow * mainwin, int id, lString16 & buffer);
 
 
 #endif

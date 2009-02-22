@@ -30,7 +30,10 @@ bool loadKeymaps( CRGUIWindowManager & winman, const char * locations[] )
 #endif
 		lString8 def = location + "keydefs.ini";
 		lString8 map = location + "keymaps.ini";
+		lString8 layout = location + "kblayout.ini";
+		winman.getKeyboardLayouts().openFromFile( layout.c_str() );
 		CRGUIAcceleratorTableList tables;
+
 		if ( tables.openFromFile(  def.c_str(), map.c_str() ) ) {
 			res = true;
 			winman.getAccTables().addAll( tables );

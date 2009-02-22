@@ -24,7 +24,7 @@
             <border widths="4,4,4,4"/>
             <!--icon image="filename" valign="" halign=""-->
         </title>
-	<scroll base="#menuscroll"/>
+    <scroll base="#menuscroll"/>
   </window>
   <window id="toc">
         <text color="#000000" face="DejaVu Sans" size="26" bold="true" italic="false" valign="center" halign="center"/>
@@ -42,9 +42,9 @@
             <border widths="4,4,4,4"/>
             <!--icon image="filename" valign="" halign=""-->
         </title>
-	<scroll base="#menuscroll"/>
+    <scroll base="#menuscroll"/>
   </window>
-  <window id="search" base="#toc">
+  <menu id="vkeyboard" base="#toc">
         <text color="#000000" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
         <border widths="26,8,8,8"/>
@@ -60,8 +60,36 @@
             <border widths="4,4,4,4"/>
             <!--icon image="filename" valign="" halign=""-->
         </title>
-	<scroll base="#menuscroll"/>
-  </window>
+        <item>
+          <size minvalue="32,32" maxvalue="0,0"/>
+          <text color="#555555" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
+          <background color="#FFFFFF"/>
+          <border widths="1,2,4,2"/>
+          <!--icon image="filename" valign="" halign=""-->
+        </item>
+        <shortcut>
+          <size minvalue="20,36" maxvalue="0,0"/>
+          <text color="#FFFFFF" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
+          <background image="cr3_t9_shortcut.png" color="#FFFFFF"/>
+          <border widths="3,3,3,3"/>
+          <!--icon image="filename" valign="" halign=""-->
+        </shortcut>
+        <selitem>
+          <size minvalue="32,32" maxvalue="0,0"/>
+          <text color="#000000" face="DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
+          <background color="#FFFFFF"/>
+          <border widths="6,6,6,6"/>
+          <!--icon image="filename" valign="" halign=""-->
+        </selitem>
+        <selshortcut>
+          <size minvalue="20,32" maxvalue="0,0"/>
+          <text color="#000000" face="DejaVu Sans" size="40" bold="true" italic="false" valign="center" halign="center"/>
+          <background image="cr3_t9_shortcut.png" color="#FFFFFF"/>
+          <border widths="12,6,6,6"/>
+          <!--icon image="filename" valign="" halign=""-->
+        </selshortcut>
+    <scroll base="#menuscroll"/>
+  </menu>
   <window id="about" base="#dialog">
         <text color="#000000" face="DejaVu Sans" size="26" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
@@ -78,7 +106,7 @@
             <border widths="4,4,4,4"/>
             <!--icon image="filename" valign="" halign=""-->
         </title>
-	<scroll base="#menuscroll"/>
+    <scroll base="#menuscroll"/>
   </window>
   <menu id="main">
         <text color="#000000" face="DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
@@ -123,7 +151,7 @@
             <border widths="12,6,6,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </selshortcut>
-	<scroll base="#menuscroll"/>
+    <scroll base="#menuscroll"/>
   </menu>
   <menu id="t9input">
     <text color="#000000" face="DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
@@ -210,7 +238,7 @@
             <border widths="12,6,6,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </selshortcut>
-	<scroll base="#menuscroll"/>
+    <scroll base="#menuscroll"/>
   </menu>
   <menu id="settings">
         <text color="#000000" face="DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>

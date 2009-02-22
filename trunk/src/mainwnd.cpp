@@ -113,30 +113,6 @@ const char * cr_default_skin =
 "</CR3Skin>\n";
 
 
-const lChar16 * defT9encoding[] = {
-    L"",     // 0 STUB
-    L"abc",  // 1
-    L"def",  // 2
-    L"ghi",  // 3
-    L"jkl",  // 4
-    L"mno",  // 5
-    L"pqrs", // 6
-    L"tuv",  // 7
-    L"wxyz", // 8
-    L"",      // 9 STUB
-    NULL
-};
-
-const lChar16 * defT5encoding[] = {
-    L"",     // 0 STUB
-    L"abcde",  // 1
-    L"fghij",  // 2
-    L"klmno",  // 3
-    L"pqrst",  // 4
-    L"uvwxyz", // 5
-    NULL
-};
-
 bool V3DocViewWin::loadSkin( lString16 pathname )
 {
     CRSkinRef skin;
@@ -152,7 +128,7 @@ bool V3DocViewWin::loadSkin( lString16 pathname )
 }
 
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
-: CRDocViewWindow ( wm ), _dataDir(dataDir), _t9encoding(defT5encoding) //defT9encoding)
+: CRDocViewWindow ( wm ), _dataDir(dataDir) //defT9encoding)
 {
     CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
@@ -836,7 +812,7 @@ bool V3DocViewWin::onCommand( int command, int params )
 
 
     case MCMD_DICT:
-		showT9Keyboard( _wm, this, _t9encoding, MCMD_DICT_FIND, _searchPattern );
+		showT9Keyboard( _wm, this, MCMD_DICT_FIND, _searchPattern );
         return true;
 	case MCMD_DICT_VKEYBOARD: 
 		showDictWithVKeyboard();

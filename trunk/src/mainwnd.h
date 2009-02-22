@@ -75,6 +75,8 @@ enum CRMainMenuCmd
     MCMD_SEARCH_FINDFIRST,
     MCMD_DICT_VKEYBOARD,
     MCMD_DICT_FIND,
+    MCMD_KBD_NEXTLAYOUT,
+    MCMD_KBD_PREVLAYOUT,
 };
 
 class V3DocViewWin : public CRDocViewWindow
@@ -86,7 +88,6 @@ protected:
     lString16 _settingsFileName;
     lString16 _historyFileName;
     lString8  _css;
-    TEncoding _t9encoding;
     lString16 _dictConfig;
     lString16 _searchPattern;
 	LVRef<CRDictionary> _dict;

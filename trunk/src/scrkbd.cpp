@@ -41,17 +41,28 @@ bool CRScreenKeyboard::digitEntered( lChar16 c )
     return true;
 }
 
-CRScreenKeyboard::CRScreenKeyboard(CRGUIWindowManager * wm, int id, const lString16 & caption, lString16 & buffer, lvRect & rc)
-: CRGUIWindowBase( wm ), _buffer( buffer ), _value( buffer ), _title( caption ), _resultCmd(id), _lastDigit(0)
+void CRScreenKeyboard::setLayout( CRKeyboardLayoutRef layout )
 {
-    _passKeysToParent = false;
-    _passCommandsToParent = false;
-    _rect = rc;
-    _fullscreen = false;
-    _skin = _wm->getSkin()->getWindowSkin( L"#search" );
-    //_skin = _wm->getSkin()->getWindowSkin( getSkinName().c_str() );
-    setAccelerators( _wm->getAccTables().get("search") );
-    _cols = 10;
+	_keymap.clear();
+	unsigned maxcols = 0;
+	if ( !layout.isNull() ) {
+		for ( unsigned i=1; i<layout->vKeyboard->getItems().length(); i++ ) {
+			lString16 s = layout->vKeyboard->get( i );
+			if ( !s.empty() )
+				_keymap.add( s );
+			if ( s.length() > maxcols )
+				maxcols = s.length();
+		}
+	}
+    _rows = _keymap.length();
+	_cols = maxcols<10 ? maxcols : 10;
+	if ( _cols<=0 || _rows<=0 )
+		setDefaultLayout();
+	setDirty();
+}
+
+void CRScreenKeyboard::setDefaultLayout()
+{
     _keymap.add(lString16(L"1234567890"));
     _keymap.add(lString16(L"abcdefghij"));
     _keymap.add(lString16(L"klmnopqrst"));
@@ -60,10 +71,26 @@ CRScreenKeyboard::CRScreenKeyboard(CRGUIWindowManager * wm, int id, const lStrin
     _rows = _keymap.length();
 }
 
+CRScreenKeyboard::CRScreenKeyboard(CRGUIWindowManager * wm, int id, const lString16 & caption, lString16 & buffer, lvRect & rc)
+: CRGUIWindowBase( wm ), _buffer( buffer ), _value( buffer ), _title( caption ), _resultCmd(id), _lastDigit(0)
+{
+    _passKeysToParent = false;
+    _passCommandsToParent = false;
+    _rect = rc;
+    _fullscreen = false;
+    _skin = _wm->getSkin()->getMenuSkin( L"#vkeyboard" );
+    //_skin = _wm->getSkin()->getWindowSkin( getSkinName().c_str() );
+    setAccelerators( _wm->getAccTables().get("vkeyboard") );
+    _cols = 10;
+	setLayout( wm->getKeyboardLayouts().getCurrentLayout() );
+}
+
 void CRScreenKeyboard::draw()
 {
     CRRectSkinRef titleSkin = _skin->getTitleSkin();
     CRRectSkinRef clientSkin = _skin->getClientSkin();
+    CRRectSkinRef itemSkin = _skin->getItemSkin();
+    CRRectSkinRef shortcutSkin = _skin->getItemShortcutSkin();
     lvRect borders = clientSkin->getBorderWidths();
     LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
     _skin->draw( *drawbuf, _rect );
@@ -101,10 +128,17 @@ void CRScreenKeyboard::draw()
             rc.left += dx * x;
             rc.bottom = rc.top + dy;
             rc.right = rc.left + dx;
-            drawbuf->FillRect( rc, header ? 0xAAAAAA : 0xFFFFFF );
-            drawbuf->Rect( rc, header ? 0x000000 : 0x555555 );
+			if ( header )
+				shortcutSkin->draw( *drawbuf, rc );
+			else
+				itemSkin->draw( *drawbuf, rc );
+            //drawbuf->FillRect( rc, header ? 0xAAAAAA : 0xFFFFFF );
+            //drawbuf->Rect( rc, header ? 0x000000 : 0x555555 );
             if ( !txt.empty() ) {
-                clientSkin->drawText( *drawbuf, rc, txt );
+				if ( header )
+					shortcutSkin->drawText( *drawbuf, rc, txt );
+				else
+					itemSkin->drawText( *drawbuf, rc, txt );
             }
         }
     }
@@ -138,14 +172,16 @@ bool CRScreenKeyboard::onCommand( int command, int params )
             _wm->closeWindow( this );
             return true;
         }
+    case MCMD_KBD_NEXTLAYOUT:
     case MCMD_SCROLL_FORWARD:
         {
-            setDirty();
+			setLayout( _wm->getKeyboardLayouts().nextLayout() );
         }
         break;
+	case MCMD_KBD_PREVLAYOUT:
     case MCMD_SCROLL_BACK:
         {
-            setDirty();
+			setLayout( _wm->getKeyboardLayouts().prevLayout() );
         }
         break;
     case MCMD_SELECT_0:
