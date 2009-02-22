@@ -473,8 +473,8 @@ int main(int argc, char **argv)
 
         lString8 home8 = UnicodeToUtf8( homecrengine );
         const char * keymap_locations [] = {
-            "/etc/cr3",
-            home8.c_str(),
+            "/etc/cr3",
+            home8.c_str(),
             "/media/sd/crengine/",
             NULL,
         };

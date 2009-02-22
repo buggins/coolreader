@@ -91,12 +91,11 @@ public:
     CiteSelection(LVDocView& view) : 
         direction_(false),
         view_(view) {
-            LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
+//            LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
             CiteCursor first(view.getCurrentPageMiddleParagraph());
             start_.assign(first);
             start_.to_begin();
-            end_.assign(first);
-            //end_.nextSibling();
+            end_.assign(start_);
             end_.to_end();
             highlight();
         };
@@ -116,9 +115,7 @@ public:
             start_.toString() << " :\n\t\t" << 
             end_.toString() << " ]";
         view_.clearSelection();
-        ldomXRange selected(select());
-        selected.setFlags(1);
-        view_.selectRange(selected); 
+        view_.selectRange(select()); 
     }
 
     // true -- upper bound, false -- lower
