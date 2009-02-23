@@ -15,6 +15,7 @@
 class CiteWindow : public BackgroundFitWindow
 {
     CiteSelection selector_;
+	V3DocViewWin * mainwin_;
 protected:
     virtual void draw()
     {
@@ -40,7 +41,8 @@ public:
 
 	CiteWindow( CRGUIWindowManager * wm, V3DocViewWin * mainwin) :
 		BackgroundFitWindow(wm, mainwin),
-		selector_(*mainwin->getDocView())
+		selector_(*mainwin->getDocView()),
+		mainwin_(mainwin)
     {
 
 		this->setAccelerators( mainwin->getDialogAccelerators() );
@@ -89,6 +91,12 @@ public:
 				break;
 			case MCMD_OK:
 				{
+					ldomXRange range;
+					selector_.getRange(range);
+					if ( !range.isNull() ) {
+						mainwin_->getDocView()->saveRangeBookmark( range, bmkt_comment, lString16() );
+					}
+					close();
 				};
 				break;
 			case MCMD_CANCEL:

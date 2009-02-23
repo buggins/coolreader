@@ -324,6 +324,7 @@ bool V3DocViewWin::saveHistory( lString16 filename )
         filename = _historyFileName;
     if ( filename.empty() )
         return false;
+	_docview->exportBookmarks(lString16());//use default filename
     _historyFileName = filename;
     log << "V3DocViewWin::saveHistory(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
@@ -540,12 +541,10 @@ VIEWER_MENU_4ABOUT=About...
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
-#ifdef WITH_CITE
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_CITE,
                 _wm->translateString("VIEVER_MENU_CITE", "Cite.."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
-#endif
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_BOOKMARK_LIST,
                 _wm->translateString("VIEWER_MENU_BOOKMARK_LIST", "Bookmarks..."),
                 LVImageSourceRef(),

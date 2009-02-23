@@ -130,6 +130,11 @@ public:
         move_to_lower_bound();
     }
 
+	void getRange( ldomXRange & range )
+	{
+		range.setStart( start_ );
+		range.setEnd( end_ );
+	}
 
     void moveUp() {
         if(start_.prevVisibleText()){
