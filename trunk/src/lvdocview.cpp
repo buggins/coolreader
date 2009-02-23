@@ -3200,6 +3200,111 @@ bool LVDocView::moveByChapter( int delta )
     return true;
 }
 
+/// saves new bookmark
+bool LVDocView::saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 comment )
+{
+	if ( range.isNull() )
+		return false;
+	if ( range.getStart().isNull() )
+		return false;
+	CRFileHistRecord * rec = getCurrentFileHistRecord();
+	if ( !rec )
+		return false;
+	CRBookmark * bmk = new CRBookmark();
+	bmk->setType( type );
+	bmk->setStartPos( range.getStart().toString() );
+	if ( !range.getEnd().isNull() )
+		bmk->setEndPos( range.getEnd().toString() );
+	int p = range.getStart().toPoint().y;
+	int fh = m_doc->getFullHeight();
+	int percent = fh > 0 ? (int)(p * (lInt64)10000 / fh) : 0;
+	if ( percent<0 )
+		percent = 0;
+	if ( percent>10000 )
+		percent = 10000;
+	bmk->setPercent( percent );
+	lString16 postext = range.getRangeText();
+	bmk->setPosText( postext );
+	bmk->setCommentText( comment );
+	rec->getBookmarks().add( bmk );
+	return true;
+}
+
+#define MAX_EXPORT_BOOKMARKS_SIZE 200000
+/// export bookmarks to text file
+bool LVDocView::exportBookmarks( lString16 filename )
+{
+	if ( m_filename.empty() )
+		return true; // no document opened
+	if ( filename.empty() ) {
+	    CRPropRef props = getDocProps();
+	    lString16 arcname = props->getStringDef(DOC_PROP_ARC_NAME);
+		lString16 arcpath = props->getStringDef(DOC_PROP_ARC_PATH);
+		if ( !arcpath.empty() )
+			LVAppendPathDelimiter( arcpath );
+		lString16 fname = props->getStringDef(DOC_PROP_FILE_NAME);
+		lString16 fpath = props->getStringDef(DOC_PROP_FILE_PATH);
+		if ( !fpath.empty() )
+			LVAppendPathDelimiter( fpath );
+		if ( !arcname.empty() ) {
+			filename = arcpath + arcname + L"." + fname + L".bmk.txt";
+		} else {
+			filename = fpath + fname + L".bmk.txt";
+		}
+	}
+	CRFileHistRecord * rec = getCurrentFileHistRecord();
+	if ( !rec )
+		return false;
+	// check old content
+	lString8 oldContent;
+	{
+		LVStreamRef is = LVOpenFileStream( filename.c_str(), LVOM_READ );
+		if ( !is.isNull() ) {
+			int sz = (int) is->GetSize();
+			if ( sz>0 && sz<MAX_EXPORT_BOOKMARKS_SIZE ) {
+				oldContent.append( sz, ' ' );
+				lvsize_t bytesRead = 0;
+				if ( is->Read( oldContent.modify(), sz, &bytesRead )!=LVERR_OK || bytesRead!=sz )
+					oldContent.clear();
+			}
+		}
+	}
+	lString8 newContent;
+	LVPtrVector<CRBookmark> & bookmarks = rec->getBookmarks();
+	for ( int i=0; i<bookmarks.length(); i++ ) {
+		CRBookmark * bmk = bookmarks[ i ];
+		if ( bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction )
+			continue;
+		if ( newContent.empty() ) {
+			newContent.append(1, 0xef);
+			newContent.append(1, 0xbb);
+			newContent.append(1, 0xbf);
+			newContent << "# Cool Reader 3 - exported bookmarks\r\n";
+			newContent << "# for file " << UnicodeToUtf8(rec->getFileName()) << "\r\n\r\n";
+		}
+		char pos[16];
+		int percent = bmk->getPercent();
+		sprintf( pos, "%d.%02d%%", percent/100, percent % 100 );
+		newContent << "## " << pos << " - " << (bmk->getType()==bmkt_comment ? "comment" : "correction") << "\r\n";
+		newContent << "<< " << UnicodeToUtf8(bmk->getPosText()) << "\r\n";
+		if ( !bmk->getCommentText().empty() )
+			newContent << ">> " << UnicodeToUtf8(bmk->getCommentText()) << "\r\n";
+		newContent << "\r\n";
+	}
+	if ( newContent == oldContent )
+		return true;
+	{
+		LVStreamRef os = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+		if ( os.isNull() )
+			return false;
+		lvsize_t bytesWritten = 0;
+		if ( newContent.length() > 0 )
+			if ( os->Write( newContent.c_str(), newContent.length(), &bytesWritten) != LVERR_OK || bytesWritten!=newContent.length() )
+				return false;
+	}
+	return true;
+}
+
 /// saves current page bookmark under numbered shortcut
 void LVDocView::saveCurrentPageShortcutBookmark( int number )
 {

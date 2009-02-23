@@ -435,6 +435,10 @@ public:
 	bool moveByChapter( int delta );
 	/// -1 moveto previous page, 1 to next page
 	bool moveByPage( int delta );
+	/// saves new bookmark
+	bool saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 comment );
+	/// export bookmarks to text file
+	bool exportBookmarks( lString16 filename );
 	/// saves current page bookmark under numbered shortcut
 	void saveCurrentPageShortcutBookmark( int number );
 	/// restores page using bookmark by numbered shortcut
