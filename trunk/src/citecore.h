@@ -130,6 +130,25 @@ public:
         move_to_lower_bound();
     }
 
+
+    void moveUp() {
+        if(start_.prevVisibleText()){
+            end_.prevVisibleText();
+            point_to_begin(start_);
+            point_to_end(end_);
+            move_to_upper_bound();
+        };
+    };
+
+    void moveDown() {
+        if(end_.nextVisibleText()){
+            start_.nextVisibleText();
+            point_to_begin(start_);
+            point_to_end(end_);
+            move_to_lower_bound();
+        }
+    }
+
 };
 
 

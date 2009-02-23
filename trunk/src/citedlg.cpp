@@ -62,10 +62,16 @@ public:
                 selector_.shrinkDown();
                 setDirty();
                 break;
+			case MCMD_SELECT_5:
+                selector_.moveUp();
+                setDirty();
+                break;
+			case MCMD_SELECT_6:
+                selector_.moveDown();
+                setDirty();
+                break;
 			case MCMD_SELECT_3:
 			case MCMD_SELECT_4:
-			case MCMD_SELECT_5:
-			case MCMD_SELECT_6:
 			case MCMD_SELECT_7:
 			case MCMD_SELECT_8:
                 break;
