@@ -13,6 +13,7 @@ enum granularity {
     grn_block,
 };
 
+const lString16 phrase_bounds(L".?!");
 
 enum last_move_type {
     not_moved,
@@ -39,6 +40,65 @@ point_to_begin(ldomXPointerEx& xp) {
         xp.setOffset(0);
 }
 
+bool
+contains(const lString16& s, const lString16::value_type c) {
+    for(unsigned int i = 0; i < s.length(); ++i) {
+        if(s[i]==c) {
+            return true;
+        }
+    }
+    return false;
+}
+
+ldomXPointerEx
+upper_phrase_bound(ldomXPointer& p, const lString16 bounds) {
+    ldomXPointerEx xp(p);
+    ldomNode * n = xp.getNode();
+    if(!n->isText())
+        return p;
+    int offset = p.getOffset();
+    lString16 text(n->getText());
+    while(1) {
+        while(offset > 0) {
+            --offset;
+            if(contains(bounds, text[offset])){
+                xp.setOffset(offset);
+                return xp;
+            }
+        }
+        if(!xp.prevVisibleText())
+            return p;
+        n = xp.getNode();
+        text = n -> getText();
+        offset = text.length();
+    };
+}
+
+ldomXPointerEx
+lower_phrase_bound(ldomXPointer& p, const lString16 bounds) {
+    ldomXPointerEx xp(p);
+    ldomNode * n = xp.getNode();
+    if(!n->isText())
+        return p;
+    unsigned int offset = p.getOffset();
+    lString16 text(n->getText());
+    while(1) {
+        while(offset < text.length()) {
+            ++offset;  
+            if(contains(bounds, text[offset])){
+                xp.setOffset(offset);
+                return xp;
+            }
+        };
+        if(!xp.nextVisibleText()) 
+            return p;
+        n = xp.getNode();
+        text = n->getText();
+        offset = 0;
+    };
+}
+
+
 class CiteSelection {
     last_move_type last_move_;
     LVDocView& view_;
@@ -62,6 +122,12 @@ public:
         return ldomXRange(start_, end_);
     }
 
+	void getRange( ldomXRange & range )
+	{
+		range.setStart( start_ );
+		range.setEnd( end_ );
+	}
+
     void
     highlight() {
         // show what we try to highlight
@@ -79,7 +145,6 @@ public:
     void
     move_to_upper_bound() {
         LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
-        point_to_begin(start_);
         if(!range->isInside(start_)) {
                 CRLog::info("move_to_upper_bound(): Scroll Up\n");
                 view_.goToBookmark(start_);
@@ -90,7 +155,6 @@ public:
     void
     move_to_lower_bound() {
         LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
-        point_to_end(end_);
         if(!range->isInside(end_)) {
                 CRLog::info("move_to_lower_bound(): Scroll Down\n");
                 view_.goToBookmark(end_);
@@ -101,6 +165,7 @@ public:
     void growUp() {
         CRLog::info("grow up\n");
         start_.prevVisibleText();
+        point_to_begin(start_);
         move_to_upper_bound();
     }
 
@@ -111,6 +176,7 @@ public:
         if (end_.compare(tmpptr) >= 0) {
             start_ = tmpptr;
         };
+        point_to_begin(start_);
         move_to_upper_bound();
     }
 
@@ -121,20 +187,43 @@ public:
         if(start_.compare(tmpptr) <= 0) {
             end_ = tmpptr;
         };
+        point_to_end(end_);
         move_to_lower_bound();
     }
 
     void growDown() {
         CRLog::info("grow down\n");
         end_.nextVisibleText();
+        point_to_end(end_);
         move_to_lower_bound();
     }
 
-	void getRange( ldomXRange & range )
-	{
-		range.setStart( start_ );
-		range.setEnd( end_ );
-	}
+    void growUpPhrase() {
+        start_ = upper_phrase_bound(start_, phrase_bounds);
+        move_to_upper_bound();
+    }
+
+    void shrinkDownPhrase() {
+        ldomXPointerEx xp = lower_phrase_bound(start_, phrase_bounds);
+        if (end_.compare(xp) >= 0) {
+            start_ = xp;
+        };
+        move_to_upper_bound();
+    }
+
+    void shrinkUpPhrase() {
+        ldomXPointerEx xp = upper_phrase_bound(end_, phrase_bounds);
+        if(start_.compare(xp) <= 0) {
+            end_ = xp;
+        };
+        move_to_lower_bound();
+    }
+
+    void growDownPhrase() {
+        end_ = lower_phrase_bound(end_, phrase_bounds);
+        move_to_lower_bound();
+    }
+
 
     void moveUp() {
         if(start_.prevVisibleText()){

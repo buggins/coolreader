@@ -73,9 +73,20 @@ public:
                 setDirty();
                 break;
 			case MCMD_SELECT_3:
+                selector_.growUpPhrase();
+                setDirty();
+                break;
 			case MCMD_SELECT_4:
+                selector_.shrinkDownPhrase();
+                setDirty();
+                break;
 			case MCMD_SELECT_7:
+                selector_.shrinkUpPhrase();
+                setDirty();
+                break;
 			case MCMD_SELECT_8:
+                selector_.growDownPhrase();
+                setDirty();
                 break;
 			case MCMD_SELECT_9:
                 selector_.shrinkUp();
