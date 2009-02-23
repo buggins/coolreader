@@ -79,6 +79,7 @@ public:
     void
     move_to_upper_bound() {
         LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
+        point_to_begin(start_);
         if(!range->isInside(start_)) {
                 CRLog::info("move_to_upper_bound(): Scroll Up\n");
                 view_.goToBookmark(start_);
@@ -89,6 +90,7 @@ public:
     void
     move_to_lower_bound() {
         LVRef<ldomXRange> range = view_.getPageDocumentRange(-1);
+        point_to_end(end_);
         if(!range->isInside(end_)) {
                 CRLog::info("move_to_lower_bound(): Scroll Down\n");
                 view_.goToBookmark(end_);
@@ -106,7 +108,7 @@ public:
         CRLog::info("shrink down\n");
         ldomXPointerEx tmpptr(start_);
         tmpptr.nextVisibleText();
-        if (start_.compare(tmpptr) < 0) {
+        if (end_.compare(tmpptr) >= 0) {
             start_ = tmpptr;
         };
         move_to_upper_bound();
@@ -116,7 +118,7 @@ public:
         CRLog::info("shrink up\n");
         ldomXPointerEx tmpptr(end_);
         tmpptr.prevVisibleText();
-        if(end_.compare(tmpptr) > 0) {
+        if(start_.compare(tmpptr) <= 0) {
             end_ = tmpptr;
         };
         move_to_lower_bound();
