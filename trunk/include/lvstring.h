@@ -571,6 +571,10 @@ public:
     {
         return ((lString8 *)chunks)[index];
     }
+    lString8 & operator [] ( size_t index )
+    {
+        return ((lString8 *)chunks)[index];
+    }
     size_t length() const { return count; }
     void clear();
     ~lString8Collection()

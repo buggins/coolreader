@@ -3276,9 +3276,9 @@ bool LVDocView::exportBookmarks( lString16 filename )
 		if ( bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction )
 			continue;
 		if ( newContent.empty() ) {
-			newContent.append(1, 0xef);
-			newContent.append(1, 0xbb);
-			newContent.append(1, 0xbf);
+			newContent.append(1, (char)0xef);
+			newContent.append(1, (char)0xbb);
+			newContent.append(1, (char)0xbf);
 			newContent << "# Cool Reader 3 - exported bookmarks\r\n";
 			newContent << "# for file " << UnicodeToUtf8(rec->getFileName()) << "\r\n\r\n";
 		}

@@ -161,6 +161,30 @@ public:
     */
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead ) = 0;
 
+    virtual bool Read( lUInt8 * buf )
+	{
+		lvsize_t nBytesRead;
+		if ( Read( buf, sizeof(lUInt8), &nBytesRead )==LVERR_OK && nBytesRead==sizeof(lUInt8) )
+			return true;
+		return false;
+	}
+
+    virtual bool Read( lUInt16 * buf )
+	{
+		lvsize_t nBytesRead;
+		if ( Read( buf, sizeof(lUInt16), &nBytesRead )==LVERR_OK && nBytesRead==sizeof(lUInt16) )
+			return true;
+		return false;
+	}
+
+    virtual bool Read( lUInt32 * buf )
+	{
+		lvsize_t nBytesRead;
+		if ( Read( buf, sizeof(lUInt32), &nBytesRead )==LVERR_OK && nBytesRead==sizeof(lUInt32) )
+			return true;
+		return false;
+	}
+
 	virtual int ReadByte()
 	{
 		unsigned char buf[1];
