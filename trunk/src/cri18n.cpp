@@ -47,40 +47,25 @@ const lString16 CRI18NTranslator::translate16( const char * src )
 
 void CRMoFileTranslator::add( lString8 src, lString8 dst )
 {
-	_src.add( src );
-	_dst.add( dst );
+	_list.add( new Item( src, dst ) );
 }
 
-static int compareStrings( const void * p1, const void * p2 )
+static int compareItems( const void * p1, const void * p2 )
 {
-	const lString8 * s1 = (const lString8*)p1;
-	const lString8 * s2 = (const lString8*)p2;
-	return (*s1).compare( *s2 );
+	CRMoFileTranslator::Item * s1 = (CRMoFileTranslator::Item*)p1;
+	CRMoFileTranslator::Item * s2 = (CRMoFileTranslator::Item*)p2;
+	return s1->src.compare( s2->src );
 }
 
 void CRMoFileTranslator::sort()
 {
-	lString8Collection list;
-	unsigned len = _src.length();
-	if ( len>_dst.length() )
-		len = _dst.length();
-	unsigned i;
-	for ( i=0; i<len; i++ ) {
-		list.add( _src[i] );
-		list.add( _dst[i] );
-	}
-	qsort( (void*)(&list[0]), list.length()/2, sizeof(lString8) * 2, compareStrings );
-	for ( i=0; i<len; i++ ) {
-		_src[i] = list[i*2];
-		_dst[i] = list[i*2+1];
-	}
+	if ( _list.length()>0 )
+		qsort( (void*)(_list.get()), _list.length(), sizeof(Item*), compareItems );
 }
 
 const char * CRMoFileTranslator::getText( const char * src )
 {
-	unsigned len = _src.length();
-	if ( len > _dst.length() )
-		len = _dst.length();
+	unsigned len = _list.length();
 	if ( len == 0 )
 		return src;
 	int a = 0;
@@ -88,14 +73,14 @@ const char * CRMoFileTranslator::getText( const char * src )
 	// binary search
 	for ( ; ; ) {
 		if ( b <= a+1 ) {
-			if ( _src[a] == src )
-				return _dst[a].c_str();
+			if ( _list[a]->src == src )
+				return _list[a]->dst.c_str();
 			return src;
 		}
 		int c = (a + b) / 2;
-		int res = _src[c].compare( src );
+		int res = _list[c]->src.compare( src );
 		if ( res==0 )
-			return _dst[c].c_str();
+			return _list[c]->dst.c_str();
 		if ( res<0 )
 			a = c+1;
 		else
@@ -142,6 +127,7 @@ bool CRMoFileTranslator::openMoFile( lString16 fileName )
 	lvsize_t bytesRead;
 	LVArray<lUInt32> srcTable( count*2, 0 );
 	LVArray<lUInt32> dstTable( count*2, 0 );
+	lString8Collection src;
 	if ( stream->SetPos( srcOffset )!=srcOffset )
 		return false;
 	if ( stream->Read( srcTable.get(), count*2 * sizeof(lUInt32), &bytesRead )!=LVERR_OK || bytesRead!=count*2 * sizeof(lUInt32) )
@@ -160,28 +146,32 @@ bool CRMoFileTranslator::openMoFile( lString16 fileName )
 	for ( i=0; i<count; i++ ) {
 		lUInt32 len = srcTable[ i*2 ];
 		lUInt32 offset = srcTable[ i*2 + 1 ];
-		if ( len<=0 || len>=16384 || offset<=0 || offset>sz - len -1 )
-			return false;
-		if ( stream->SetPos( offset )!=offset )
+		if ( len>=16384 || offset<=0 || offset>sz - len -1 )
 			return false;
 		lString8 s;
-		s.append( len, ' ' );
-		if ( stream->Read( s.modify(), len, &bytesRead )!=LVOM_READ || bytesRead!=len )
-			return false;
-		_src.add( s );
+		if ( len ) {
+			if ( stream->SetPos( offset )!=offset )
+				return false;
+			s.append( len, ' ' );
+			if ( stream->Read( s.modify(), len, &bytesRead )!=LVOM_READ || bytesRead!=len )
+				return false;
+		}
+		src.add( s );
 	}
 	for ( i=0; i<count; i++ ) {
 		lUInt32 len = dstTable[ i*2 ];
 		lUInt32 offset = dstTable[ i*2 + 1 ];
-		if ( len<=0 || len>=16384 || offset<=0 || offset>sz - len -1 )
-			return false;
-		if ( stream->SetPos( offset )!=offset )
+		if ( len>=16384 || offset<=0 || offset>sz - len -1 )
 			return false;
 		lString8 s;
-		s.append( len, ' ' );
-		if ( stream->Read( s.modify(), len, &bytesRead )!=LVOM_READ || bytesRead!=len )
-			return false;
-		_dst.add( s );
+		if ( len ) {
+			if ( stream->SetPos( offset )!=offset )
+				return false;
+			s.append( len, ' ' );
+			if ( stream->Read( s.modify(), len, &bytesRead )!=LVOM_READ || bytesRead!=len )
+				return false;
+		}
+		add( src[i], s );
 	}
 	sort();
 	return true;

@@ -14,6 +14,7 @@
 #define __CRI18N_H_INCLUDED__
 
 #include "lvstring.h"
+#include "lvptrvec.h"
 
 /// i18n interface
 class CRI18NTranslator
@@ -31,9 +32,22 @@ public:
 
 class CRMoFileTranslator : public CRI18NTranslator
 {
+public:
+	class Item {
+	public:
+		lString8 src;
+		lString8 dst;
+		Item( lString8 srcText, lString8 dstText )
+			: src(srcText), dst(dstText)
+		{
+		}
+	protected:
+		// no copy
+		Item( const Item & v ) { }
+		Item & operator = ( const Item & v ) { }
+	};
 protected:
-	lString8Collection _src;
-	lString8Collection _dst;
+	LVPtrVector<Item> _list;
 	// call in src sort order only!
 	virtual void add( lString8 src, lString8 dst );
 	virtual const char * getText( const char * src );

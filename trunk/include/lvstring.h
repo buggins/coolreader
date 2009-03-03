@@ -335,7 +335,7 @@ public:
     lString16(const lString16 & str) : pchunk(str.pchunk) { addref(); }
     /// constructor from wide c-string
     lString16(const value_type * str);
-    /// constructor from c-string
+    /// constructor from utf8 c-string
     explicit lString16(const lChar8 * str);
     /// constructor from wide character array fragment
     explicit lString16(const value_type * str, size_type count);
@@ -724,6 +724,8 @@ lString16 ByteToUnicode( const lString8 & str, const lChar16 * table );
 lString16 LocalToUnicode( const lString8 & str );
 /// converts utf-8 string to wide unicode string
 lString16 Utf8ToUnicode( const lString8 & str );
+/// converts utf-8 string to wide unicode string
+lString16 Utf8ToUnicode( const char * s );
 
 /// Logger
 class CRLog

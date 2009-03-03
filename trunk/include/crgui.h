@@ -917,6 +917,9 @@ class CRMenuItem
         /// constructor
         CRMenuItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, const lChar16 * propValue=NULL  )
     : _menu(menu), _id(id), _label(label), _image(image), _defFont(defFont), _propValue(propValue) { }
+        /// constructor
+        CRMenuItem( CRMenu * menu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, const lChar16 * propValue=NULL  )
+    : _menu(menu), _id(id), _label(label), _image(image), _defFont(defFont), _propValue(propValue) { }
         /// measures item size
         virtual lvPoint getItemSize( CRRectSkinRef skin );
         /// draws item
@@ -949,6 +952,8 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
     public:
         CRMenuSkinRef getSkin();
         CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL )
+        : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(8) { }
+        CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL )
         : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(8) { }
         virtual bool isSubmenu() { return true; }
         LVPtrVector<CRMenuItem> & getItems() { return _items; }

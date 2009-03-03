@@ -441,10 +441,9 @@ lString16::lString16(const lChar8 * str)
         addref();
         return;
     }
-    size_type len = _lStr_len(str);
-    alloc( len );
-    pchunk->len = len;
-    _lStr_cpy( pchunk->buf16, str );
+    pchunk = EMPTY_STR_16;
+    addref();
+	*this = Utf8ToUnicode( str );
 }
 
 lString16::lString16(const value_type * str, size_type count)
@@ -1876,10 +1875,14 @@ int Utf8ByteCount( const lChar16 * str )
 
 lString16 Utf8ToUnicode( const lString8 & str )
 {
+	return Utf8ToUnicode( str.c_str() );
+}
+
+lString16 Utf8ToUnicode( const char * s )
+{
     lString16 dst;
-    if (str.empty())
+    if ( !s || !s[0] )
       return dst;
-    const char * s = str.c_str();
     int len = Utf8CharCount( s );
     if (!len)
       return dst;

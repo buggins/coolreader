@@ -34,6 +34,8 @@ public:
     LVPtrVector() : _list(NULL), _size(0), _count(0) {}
     /// retrieves item from specified position
     T * operator [] ( int pos ) const { return _list[pos]; }
+	/// returns pointer array
+	T ** get() { return _list; }
     /// retrieves item from specified position
     T * get( int pos ) const { return _list[pos]; }
     /// retrieves item reference from specified position
