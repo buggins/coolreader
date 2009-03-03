@@ -19,7 +19,6 @@
 #define VALUE_FONT_SIZE 17
 
 typedef struct {
-    const char * translate_label;
     const char * translate_default;
     const char * value;
 } item_def_t;

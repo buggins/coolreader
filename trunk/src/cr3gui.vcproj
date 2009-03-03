@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\crengine\src\cri18n.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\crengine\src\crskin.cpp"
 				>
 			</File>
@@ -390,6 +394,10 @@
 			</File>
 			<File
 				RelativePath="..\..\crengine\include\crgui.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\crengine\include\cri18n.h"
 				>
 			</File>
 			<File
