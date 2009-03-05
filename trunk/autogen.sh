@@ -10,7 +10,7 @@ cd crengine && NOCONFIGURE=1 sh autogen.sh && cd ..
 #cd tinydict && NOCONFIGURE=1 sh autogen.sh && cd ..
 
 echo "Running autotools for cr3ewl"
-echo "Running aclocal..." ; aclocal $ACLOCAL_FLAGS || exit 1
+echo "Running aclocal..." ; aclocal $ACLOCAL_FLAGS -I m4 || exit 1
 #echo "Running autoheader..." ; autoheader || exit 1
 echo "Running autoconf..." ; autoconf || exit 1
 echo "Running libtoolize..." ; (libtoolize --copy --automake || glibtoolize --automake) || exit 1

@@ -17,6 +17,7 @@
 #include "bgfit.h"
 #include "t9encoding.h"
 
+#include <cri18n.h>
 
 
 //TODO: place TinyDictionary to separate file
@@ -87,7 +88,7 @@ lString8 CRTinyDict::translate(const lString8 & w)
                 if ( article ) {
                     body << article;
                 } else {
-                    body << "[cannot read article]";
+                    body << _("[cannot read article]");
                 }
                 body << "</code>";
                 if ( i<words->length()-1 )

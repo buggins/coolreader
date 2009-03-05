@@ -14,6 +14,10 @@
 #include "cr3main.h"
 #include "mainwnd.h"
 
+#include <locale.h>
+#include <libintl.h>
+#include <cri18n.h>
+
 // XCB code ===================================================================
 
 #ifndef _WIN32
@@ -401,6 +405,12 @@ public:
 
 int main(int argc, char **argv)
 {
+
+    // gettext initialization
+    setlocale (LC_ALL, "");
+    bindtextdomain (PACKAGE, LOCALEDIR);
+    textdomain (PACKAGE);
+		     
     int res = 0;
 
     {

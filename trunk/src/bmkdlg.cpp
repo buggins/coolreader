@@ -11,9 +11,10 @@
 // bmkdlg.cpp
 
 #include "bmkdlg.h"
+#include <cri18n.h>
 
 CRBookmarkMenuItem::CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark, int page )
-: CRMenuItem(menu, shortcut, lString16(L"Empty slot"), LVImageSourceRef(), LVFontRef() ), _bookmark( bookmark ), _page(page)
+: CRMenuItem(menu, shortcut, _16("Empty slot"), LVImageSourceRef(), LVFontRef() ), _bookmark( bookmark ), _page(page)
 {
 
 }
@@ -54,7 +55,7 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
 }
 
 CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
-    : CRFullScreenMenu( wm, MCMD_BOOKMARK_LIST, lString16(L"Bookmarks"), numItems, rc )
+    : CRFullScreenMenu( wm, MCMD_BOOKMARK_LIST, _16("Bookmarks"), numItems, rc )
 {
     CRFileHistRecord * bookmarks = docview->getCurrentFileHistRecord();
     for ( int i=1; i<=_pageItems; i++ ) {
@@ -73,7 +74,7 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
         CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bm, page );
         addItem( item );
     }
-    _helpText = L"Long press 1..8 = set, short press = go to";
+    _helpText = _16("Long press 1..8 = set, short press = go to");
     _helpHeight = 36;
 }
 

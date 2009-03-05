@@ -11,6 +11,7 @@
 // tocdlg.cpp
 
 #include "tocdlg.h"
+#include <cri18n.h>
 
 void CRTOCDialog::draw()
 {
@@ -68,7 +69,7 @@ void CRTOCDialog::draw()
     }
     // draw input area
     clientSkin->draw( *drawbuf, _inputRect );
-    clientSkin->drawText( *drawbuf, _inputRect, lString16("Enter page number to go: ") + _value+L"_" );
+    clientSkin->drawText( *drawbuf, _inputRect, _16("Enter page number to go: ") + _value+L"_" );
     if ( !_scrollRect.isEmpty() ) {
         // draw scrollbar
         CRScrollSkinRef sskin = _skin->getScrollSkin();

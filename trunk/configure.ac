@@ -32,13 +32,17 @@ ac_cv_use_jinke=none
 AC_DEFINE(CR_USE_XCB)
 ])
 
+AC_DEFINE(LOCALEDIR,"${localedir}")
+
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CC_STDC
+AC_GNU_SOURCE
 AC_HEADER_STDC
 AC_C_BIGENDIAN
 AC_C_CONST
 AM_PROG_LIBTOOL
+AM_GNU_GETTEXT([external])
 
 if test "${with_jinke}" == "false"; then
     PKG_PROG_PKG_CONFIG
@@ -105,4 +109,4 @@ AC_SUBST([SUBDIRS])
 AM_CONDITIONAL(WITH_JINKE,$with_jinke)
 #AC_CONFIG_FILES([Makefile])
 
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT(Makefile src/Makefile po/Makefile.in)

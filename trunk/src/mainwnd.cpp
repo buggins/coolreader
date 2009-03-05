@@ -498,7 +498,7 @@ void V3DocViewWin::showMainMenu()
     CRMenu * menu_win = new CRMenu( _wm,
         NULL, //CRMenu * parentMenu,
         1,
-        lString16(_("Main Menu")),
+        _16("Main Menu"),
         LVImageSourceRef(),
         LVFontRef(),
         LVFontRef() );
@@ -590,7 +590,7 @@ void V3DocViewWin::showSearchDialog()
     rc.bottom -= v_margin;
     rc.top += rc.height() / 2;
     _searchPattern.clear();
-    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDFIRST, lString16(_("Search")), _searchPattern, rc );
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDFIRST, _16("Search"), _searchPattern, rc );
     _wm->activateWindow( dlg );
 }
 
@@ -604,7 +604,7 @@ void V3DocViewWin::showDictWithVKeyboard()
     rc.bottom -= v_margin;
     rc.top += rc.height() / 2;
     _searchPattern.clear();
-    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_DICT_FIND, lString16(_("Find in dictionary")), _searchPattern, rc );
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_DICT_FIND, _16("Find in dictionary"), _searchPattern, rc );
     _wm->activateWindow( dlg );
 }
 
