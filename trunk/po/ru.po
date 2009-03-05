@@ -18,123 +18,123 @@ msgstr ""
 
 #: src/bmkdlg.cpp:17
 msgid "Empty slot"
-msgstr ""
+msgstr "НЕТ ЗАКЛАДКИ"
 
 #: src/bmkdlg.cpp:58
 msgid "Bookmarks"
-msgstr ""
+msgstr "Закладки"
 
 #: src/bmkdlg.cpp:77
 msgid "Long press 1..8 = set, short press = go to"
-msgstr ""
+msgstr "1..8 долгое нажатие=установить, короткое=перейти"
 
 #: src/dictdlg.cpp:91
 msgid "[cannot read article]"
-msgstr ""
+msgstr "[не удалось прочитать статью]"
 
 #: src/mainwnd.cpp:501
 msgid "Main Menu"
-msgstr ""
+msgstr "Основное меню"
 
 #: src/mainwnd.cpp:515
 msgid "About..."
-msgstr ""
+msgstr "Свойства документа..."
 
 #: src/mainwnd.cpp:525
 msgid "Go to page ..."
-msgstr ""
+msgstr "Перейти на страницу..."
 
 #: src/mainwnd.cpp:535
 msgid "Open recent book..."
-msgstr ""
+msgstr "Последние книги..."
 
 #: src/mainwnd.cpp:541
 msgid "Dictionary..."
-msgstr ""
+msgstr "Словарь..."
 
 #: src/mainwnd.cpp:546
 msgid "Cite.."
-msgstr ""
+msgstr "Сохранить цитату..."
 
 #: src/mainwnd.cpp:550
 msgid "Bookmarks..."
-msgstr ""
+msgstr "Закладки..."
 
 #: src/mainwnd.cpp:554
 msgid "Search..."
-msgstr ""
+msgstr "Поиск..."
 
 #: src/mainwnd.cpp:558
 msgid "Settings..."
-msgstr ""
+msgstr "Настройки..."
 
 #: src/mainwnd.cpp:571
 msgid "Table of contents"
-msgstr ""
+msgstr "Содержание"
 
 #: src/mainwnd.cpp:575
 msgid "Enter page number"
-msgstr ""
+msgstr "Введите номер страницы"
 
 #: src/mainwnd.cpp:593
 msgid "Search"
-msgstr ""
+msgstr "Поиск"
 
 #: src/mainwnd.cpp:607
 msgid "Find in dictionary"
-msgstr ""
+msgstr "Найти в словаре"
 
 #: src/mainwnd.cpp:706
 msgid "Archive name"
-msgstr ""
+msgstr "Имя файла архива"
 
 #: src/mainwnd.cpp:707
 msgid "Archive path"
-msgstr ""
+msgstr "Путь к архиву"
 
 #: src/mainwnd.cpp:708
 msgid "Archive size"
-msgstr ""
+msgstr "Размер архива"
 
 #: src/mainwnd.cpp:709
 msgid "File name"
-msgstr ""
+msgstr "Имя файла"
 
 #: src/mainwnd.cpp:710
 msgid "File path"
-msgstr ""
+msgstr "Путь к файлу"
 
 #: src/mainwnd.cpp:711
 msgid "File size"
-msgstr ""
+msgstr "Размер файла"
 
 #: src/mainwnd.cpp:712
 msgid "File format"
-msgstr ""
+msgstr "Формат"
 
 #: src/mainwnd.cpp:715
 msgid "Title"
-msgstr ""
+msgstr "Название"
 
 #: src/mainwnd.cpp:716
 msgid "Author(s)"
-msgstr ""
+msgstr "Автор(ы)"
 
 #: src/mainwnd.cpp:717
 msgid "Series name"
-msgstr ""
+msgstr "Серия"
 
 #: src/mainwnd.cpp:718
 msgid "Series number"
-msgstr ""
+msgstr "Номер в серии"
 
 #: src/mainwnd.cpp:719
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 #: src/mainwnd.cpp:720
 msgid "Genres"
-msgstr ""
+msgstr "Жанры"
 
 #: src/mainwnd.cpp:721
 msgid "Translator"
@@ -142,146 +142,146 @@ msgstr ""
 
 #: src/mainwnd.cpp:726
 msgid "Document author"
-msgstr ""
+msgstr "Переводчик"
 
 #: src/mainwnd.cpp:727
 msgid "Document date"
-msgstr ""
+msgstr "Дата документа"
 
 #: src/mainwnd.cpp:728
 msgid "Document source URL"
-msgstr ""
+msgstr "URL исходного документа"
 
 #: src/mainwnd.cpp:729
 msgid "OCR by"
-msgstr ""
+msgstr "OCR"
 
 #: src/mainwnd.cpp:730
 msgid "Document version"
-msgstr ""
+msgstr "Версия документа"
 
 #: src/mainwnd.cpp:735
 msgid "Publication name"
-msgstr ""
+msgstr "Название издания"
 
 #: src/mainwnd.cpp:736
 msgid "Publisher"
-msgstr ""
+msgstr "Издательство"
 
 #: src/mainwnd.cpp:737
 msgid "Publisher city"
-msgstr ""
+msgstr "Город"
 
 #: src/mainwnd.cpp:738
 msgid "Publication year"
-msgstr ""
+msgstr "Год издания"
 
 #: src/mainwnd.cpp:739
 msgid "ISBN"
-msgstr ""
+msgstr "ISBN"
 
 #: src/mainwnd.cpp:743
 msgid "Custom info"
-msgstr ""
+msgstr "Прочая информация"
 
 #: src/recentdlg.cpp:70
 msgid "Open recent book"
-msgstr ""
+msgstr "Повторное открытие книги"
 
 #: src/settings.cpp:24 src/settings.cpp:128
 msgid "Normal"
-msgstr ""
+msgstr "Нормально"
 
 #: src/settings.cpp:25
 msgid "90 `"
-msgstr ""
+msgstr "90 `"
 
 #: src/settings.cpp:26
 msgid "180 `"
-msgstr ""
+msgstr "180 `"
 
 #: src/settings.cpp:27
 msgid "270 `"
-msgstr ""
+msgstr "270 `"
 
 #: src/settings.cpp:77
 msgid "Settings"
-msgstr ""
+msgstr "Настройки"
 
 #: src/settings.cpp:85
 msgid "On for all fonts"
-msgstr ""
+msgstr "Вкл. для всех"
 
 #: src/settings.cpp:86
 msgid "On for big fonts only"
-msgstr ""
+msgstr "Вкл. только для больших"
 
 #: src/settings.cpp:87 src/settings.cpp:93 src/settings.cpp:99
 #: src/settings.cpp:105 src/settings.cpp:111 src/settings.cpp:117
 #: src/settings.cpp:123 src/settings.cpp:142
 msgid "Off"
-msgstr ""
+msgstr "Выкл."
 
 #: src/settings.cpp:92 src/settings.cpp:98 src/settings.cpp:104
 #: src/settings.cpp:110 src/settings.cpp:116 src/settings.cpp:122
 msgid "On"
-msgstr ""
+msgstr "Вкл."
 
 #: src/settings.cpp:129
 msgid "Inverse"
-msgstr ""
+msgstr "Инверсия"
 
 #: src/settings.cpp:134
 msgid "One"
-msgstr ""
+msgstr "Одна"
 
 #: src/settings.cpp:135
 msgid "Two"
-msgstr ""
+msgstr "Две"
 
 #: src/settings.cpp:140
 msgid "Top"
-msgstr ""
+msgstr "Сверху"
 
 #: src/settings.cpp:147
 msgid "90%"
-msgstr ""
+msgstr "90%"
 
 #: src/settings.cpp:148
 msgid "100%"
-msgstr ""
+msgstr "100%"
 
 #: src/settings.cpp:149
 msgid "110%"
-msgstr ""
+msgstr "110%"
 
 #: src/settings.cpp:150
 msgid "120%"
-msgstr ""
+msgstr "120%"
 
 #: src/settings.cpp:151
 msgid "140%"
-msgstr ""
+msgstr "140%"
 
 #: src/settings.cpp:176
 msgid "Default font face"
-msgstr ""
+msgstr "Шрифт по умолчанию"
 
 #: src/settings.cpp:197
 msgid "Font antialiasing"
-msgstr ""
+msgstr "Сглаживание шрифтов"
 
 #: src/settings.cpp:203
 msgid "Interline space"
-msgstr ""
+msgstr "Межстрочный интервал"
 
 #: src/settings.cpp:212
 msgid "Footnotes at page bottom"
-msgstr ""
+msgstr "Сноски внизу страницы"
 
 #: src/settings.cpp:223
 msgid "Show time"
-msgstr ""
+msgstr "Показывать часы в колонтитуле"
 
 #: src/settings.cpp:229
 msgid "Landscape pages"
@@ -289,28 +289,28 @@ msgstr ""
 
 #: src/settings.cpp:235
 msgid "Preformatted text"
-msgstr ""
+msgstr "Преформатированный текст"
 
 #: src/settings.cpp:243
 msgid "Document embedded styles"
-msgstr ""
+msgstr "Использовать стили документа"
 
 #: src/settings.cpp:249
 msgid "Inverse display"
-msgstr ""
+msgstr "Инверсное отображение"
 
 #: src/settings.cpp:255
 msgid "Show bookmark icons"
-msgstr ""
+msgstr "Показывать закладки"
 
 #: src/settings.cpp:261
 msgid "Status line"
-msgstr ""
+msgstr "Колонтитул"
 
 #: src/settings.cpp:267
 msgid "Font kerning"
-msgstr ""
+msgstr "Кернинг текста"
 
 #: src/tocdlg.cpp:72
 msgid "Enter page number to go: "
-msgstr ""
+msgstr "Номер страницы для перехода: "

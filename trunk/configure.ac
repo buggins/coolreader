@@ -1,7 +1,7 @@
 # get rid of that stupid cache mechanism
 rm -f config.cache
 
-AC_INIT(cr3, 3.0.17, vadim.lopatin@coolreader.org)
+AC_INIT(cr3, 3.0.18, vadim.lopatin@coolreader.org)
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/cr3main.cpp)
 #AC_CONFIG_SRCDIR(crengine/configure.ac)
@@ -32,10 +32,15 @@ ac_cv_use_jinke=none
 AC_DEFINE(CR_USE_XCB)
 ])
 
-AC_DEFINE(LOCALEDIR,"${localedir}")
+localedir='${prefix}/share/locale'
+AC_SUBST(localedir)
+#AC_DEFINE(LOCALEDIR,${localedir})
+AC_DEFINE_UNQUOTED(LOCALEDIR, ["$localedir"],
+          [Define to the location of locale files.])
 
 AC_PROG_CXX
 AC_PROG_CC
+AC_GNU_SOURCE
 AC_PROG_CC_STDC
 AC_GNU_SOURCE
 AC_HEADER_STDC
