@@ -1,0 +1,291 @@
+# Translation for CoolReader3
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
+"POT-Creation-Date: 2009-03-05 11:25+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/mainwnd.cpp:501
+msgid "Main Menu"
+msgstr ""
+
+#: src/mainwnd.cpp:515
+msgid "About..."
+msgstr ""
+
+#: src/mainwnd.cpp:525
+msgid "Go to page ..."
+msgstr ""
+
+#: src/mainwnd.cpp:535
+msgid "Open recent book..."
+msgstr ""
+
+#: src/mainwnd.cpp:541
+msgid "Dictionary..."
+msgstr ""
+
+#: src/mainwnd.cpp:546
+msgid "Cite.."
+msgstr ""
+
+#: src/mainwnd.cpp:550
+msgid "Bookmarks..."
+msgstr ""
+
+#: src/mainwnd.cpp:554
+msgid "Search..."
+msgstr ""
+
+#: src/mainwnd.cpp:558
+msgid "Settings..."
+msgstr ""
+
+#: src/mainwnd.cpp:571
+msgid "Table of contents"
+msgstr ""
+
+#: src/mainwnd.cpp:575
+msgid "Enter page number"
+msgstr ""
+
+#: src/mainwnd.cpp:593
+msgid "Search"
+msgstr ""
+
+#: src/mainwnd.cpp:607
+msgid "Find in dictionary"
+msgstr ""
+
+#: src/mainwnd.cpp:706
+msgid "Archive name"
+msgstr ""
+
+#: src/mainwnd.cpp:707
+msgid "Archive path"
+msgstr ""
+
+#: src/mainwnd.cpp:708
+msgid "Archive size"
+msgstr ""
+
+#: src/mainwnd.cpp:709
+msgid "File name"
+msgstr ""
+
+#: src/mainwnd.cpp:710
+msgid "File path"
+msgstr ""
+
+#: src/mainwnd.cpp:711
+msgid "File size"
+msgstr ""
+
+#: src/mainwnd.cpp:712
+msgid "File format"
+msgstr ""
+
+#: src/mainwnd.cpp:715
+msgid "Title"
+msgstr ""
+
+#: src/mainwnd.cpp:716
+msgid "Author(s)"
+msgstr ""
+
+#: src/mainwnd.cpp:717
+msgid "Series name"
+msgstr ""
+
+#: src/mainwnd.cpp:718
+msgid "Series number"
+msgstr ""
+
+#: src/mainwnd.cpp:719
+msgid "Date"
+msgstr ""
+
+#: src/mainwnd.cpp:720
+msgid "Genres"
+msgstr ""
+
+#: src/mainwnd.cpp:721
+msgid "Translator"
+msgstr ""
+
+#: src/mainwnd.cpp:726
+msgid "Document author"
+msgstr ""
+
+#: src/mainwnd.cpp:727
+msgid "Document date"
+msgstr ""
+
+#: src/mainwnd.cpp:728
+msgid "Document source URL"
+msgstr ""
+
+#: src/mainwnd.cpp:729
+msgid "OCR by"
+msgstr ""
+
+#: src/mainwnd.cpp:730
+msgid "Document version"
+msgstr ""
+
+#: src/mainwnd.cpp:735
+msgid "Publication name"
+msgstr ""
+
+#: src/mainwnd.cpp:736
+msgid "Publisher"
+msgstr ""
+
+#: src/mainwnd.cpp:737
+msgid "Publisher city"
+msgstr ""
+
+#: src/mainwnd.cpp:738
+msgid "Publication year"
+msgstr ""
+
+#: src/mainwnd.cpp:739
+msgid "ISBN"
+msgstr ""
+
+#: src/mainwnd.cpp:743
+msgid "Custom info"
+msgstr ""
+
+#: src/settings.cpp:24 src/settings.cpp:128
+msgid "Normal"
+msgstr ""
+
+#: src/settings.cpp:25
+msgid "90 `"
+msgstr ""
+
+#: src/settings.cpp:26
+msgid "180 `"
+msgstr ""
+
+#: src/settings.cpp:27
+msgid "270 `"
+msgstr ""
+
+#: src/settings.cpp:77
+msgid "Settings"
+msgstr ""
+
+#: src/settings.cpp:85
+msgid "On for all fonts"
+msgstr ""
+
+#: src/settings.cpp:86
+msgid "On for big fonts only"
+msgstr ""
+
+#: src/settings.cpp:87 src/settings.cpp:93 src/settings.cpp:99
+#: src/settings.cpp:105 src/settings.cpp:111 src/settings.cpp:117
+#: src/settings.cpp:123 src/settings.cpp:142
+msgid "Off"
+msgstr ""
+
+#: src/settings.cpp:92 src/settings.cpp:98 src/settings.cpp:104
+#: src/settings.cpp:110 src/settings.cpp:116 src/settings.cpp:122
+msgid "On"
+msgstr ""
+
+#: src/settings.cpp:129
+msgid "Inverse"
+msgstr ""
+
+#: src/settings.cpp:134
+msgid "One"
+msgstr ""
+
+#: src/settings.cpp:135
+msgid "Two"
+msgstr ""
+
+#: src/settings.cpp:140
+msgid "Top"
+msgstr ""
+
+#: src/settings.cpp:147
+msgid "90%"
+msgstr ""
+
+#: src/settings.cpp:148
+msgid "100%"
+msgstr ""
+
+#: src/settings.cpp:149
+msgid "110%"
+msgstr ""
+
+#: src/settings.cpp:150
+msgid "120%"
+msgstr ""
+
+#: src/settings.cpp:151
+msgid "140%"
+msgstr ""
+
+#: src/settings.cpp:176
+msgid "Default font face"
+msgstr ""
+
+#: src/settings.cpp:197
+msgid "Font antialiasing"
+msgstr ""
+
+#: src/settings.cpp:203
+msgid "Interline space"
+msgstr ""
+
+#: src/settings.cpp:212
+msgid "Footnotes at page bottom"
+msgstr ""
+
+#: src/settings.cpp:223
+msgid "Show time"
+msgstr ""
+
+#: src/settings.cpp:229
+msgid "Landscape pages"
+msgstr ""
+
+#: src/settings.cpp:235
+msgid "Preformatted text"
+msgstr ""
+
+#: src/settings.cpp:243
+msgid "Document embedded styles"
+msgstr ""
+
+#: src/settings.cpp:249
+msgid "Inverse display"
+msgstr ""
+
+#: src/settings.cpp:255
+msgid "Show bookmark icons"
+msgstr ""
+
+#: src/settings.cpp:261
+msgid "Status line"
+msgstr ""
+
+#: src/settings.cpp:267
+msgid "Font kerning"
+msgstr ""
