@@ -11,9 +11,12 @@
 
 *******************************************************/
 
+#if CR_EMULATE_GETTEXT!=1
+    #include <libintl.h>
+#endif
+
 #include "../include/cri18n.h"
 #include "../include/lvstream.h"
-
 
 CRI18NTranslator * CRI18NTranslator::_translator = NULL;
 
@@ -28,10 +31,15 @@ const char * CRI18NTranslator::translate( const char * src )
 {
 	if ( _translator != NULL )
 		return _translator->getText( src );
+	const char * res = src;
 #if CR_EMULATE_GETTEXT==1
+	res = src;
+	CRLog::trace("translation is not supported. returning source string: %s", src);
 	return src;
 #else
-	return src;
+	res = gettext(src);
+	CRLog::trace("gettext(%s) is %s", src, res);
+	return res;
 #endif
 }
 
