@@ -1,9 +1,10 @@
 AC_INIT(configure.ac)
 
-AM_INIT_AUTOMAKE(crengine, 3.0.16)
+AM_INIT_AUTOMAKE(crengine, 3.0.18)
 
 AC_PROG_CXX
 AM_PROG_LIBTOOL
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
     [
