@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-05 16:33+0300\n"
+"POT-Creation-Date: 2009-03-06 06:07+0300\n"
 "PO-Revision-Date: 2009-03-05 11:43+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Russian\n"
@@ -28,6 +28,16 @@ msgstr "Закладки"
 msgid "Long press 1..8 = set, short press = go to"
 msgstr "1..8 долгое нажатие=установить, короткое=перейти"
 
+#: src/cr3xcb.cpp:426 src/settings.cpp:92 src/settings.cpp:98
+#: src/settings.cpp:104 src/settings.cpp:110 src/settings.cpp:116
+#: src/settings.cpp:122
+msgid "On"
+msgstr "Вкл."
+
+#: src/cr3xcb.cpp:427 src/mainwnd.cpp:515
+msgid "About..."
+msgstr "Свойства документа..."
+
 #: src/dictdlg.cpp:91
 msgid "[cannot read article]"
 msgstr "[не удалось прочитать статью]"
@@ -35,10 +45,6 @@ msgstr "[не удалось прочитать статью]"
 #: src/mainwnd.cpp:501
 msgid "Main Menu"
 msgstr "Основное меню"
-
-#: src/mainwnd.cpp:515
-msgid "About..."
-msgstr "Свойства документа..."
 
 #: src/mainwnd.cpp:525
 msgid "Go to page ..."
@@ -138,11 +144,11 @@ msgstr "Жанры"
 
 #: src/mainwnd.cpp:721
 msgid "Translator"
-msgstr ""
+msgstr "Переводчик"
 
 #: src/mainwnd.cpp:726
 msgid "Document author"
-msgstr "Переводчик"
+msgstr "Автор документа"
 
 #: src/mainwnd.cpp:727
 msgid "Document date"
@@ -204,6 +210,15 @@ msgstr "180 `"
 msgid "270 `"
 msgstr "270 `"
 
+#: src/settings.cpp:33
+msgid "Page orientation"
+msgstr "Ориентация страницы"
+
+#: src/settings.cpp:48
+#, fuzzy
+msgid "Default font size"
+msgstr "Шрифт по умолчанию"
+
 #: src/settings.cpp:77
 msgid "Settings"
 msgstr "Настройки"
@@ -221,11 +236,6 @@ msgstr "Вкл. только для больших"
 #: src/settings.cpp:123 src/settings.cpp:142
 msgid "Off"
 msgstr "Выкл."
-
-#: src/settings.cpp:92 src/settings.cpp:98 src/settings.cpp:104
-#: src/settings.cpp:110 src/settings.cpp:116 src/settings.cpp:122
-msgid "On"
-msgstr "Вкл."
 
 #: src/settings.cpp:129
 msgid "Inverse"
@@ -285,7 +295,7 @@ msgstr "Показывать часы в колонтитуле"
 
 #: src/settings.cpp:229
 msgid "Landscape pages"
-msgstr ""
+msgstr "Колонки в альбомной ориентации"
 
 #: src/settings.cpp:235
 msgid "Preformatted text"

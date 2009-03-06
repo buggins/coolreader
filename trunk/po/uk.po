@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-05 16:33+0300\n"
+"POT-Creation-Date: 2009-03-06 06:07+0300\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Ukrainian\n"
@@ -28,16 +28,22 @@ msgstr ""
 msgid "Long press 1..8 = set, short press = go to"
 msgstr ""
 
+#: src/cr3xcb.cpp:426 src/settings.cpp:92 src/settings.cpp:98
+#: src/settings.cpp:104 src/settings.cpp:110 src/settings.cpp:116
+#: src/settings.cpp:122
+msgid "On"
+msgstr ""
+
+#: src/cr3xcb.cpp:427 src/mainwnd.cpp:515
+msgid "About..."
+msgstr ""
+
 #: src/dictdlg.cpp:91
 msgid "[cannot read article]"
 msgstr ""
 
 #: src/mainwnd.cpp:501
 msgid "Main Menu"
-msgstr ""
-
-#: src/mainwnd.cpp:515
-msgid "About..."
 msgstr ""
 
 #: src/mainwnd.cpp:525
@@ -204,6 +210,14 @@ msgstr ""
 msgid "270 `"
 msgstr ""
 
+#: src/settings.cpp:33
+msgid "Page orientation"
+msgstr ""
+
+#: src/settings.cpp:48
+msgid "Default font size"
+msgstr ""
+
 #: src/settings.cpp:77
 msgid "Settings"
 msgstr ""
@@ -220,11 +234,6 @@ msgstr ""
 #: src/settings.cpp:105 src/settings.cpp:111 src/settings.cpp:117
 #: src/settings.cpp:123 src/settings.cpp:142
 msgid "Off"
-msgstr ""
-
-#: src/settings.cpp:92 src/settings.cpp:98 src/settings.cpp:104
-#: src/settings.cpp:110 src/settings.cpp:116 src/settings.cpp:122
-msgid "On"
 msgstr ""
 
 #: src/settings.cpp:129
