@@ -15,6 +15,7 @@
 
 #include "cr3main.h"
 #include "mainwnd.h"
+#include <cri18n.h>
 
 #define CR_USE_XCB
 
@@ -320,6 +321,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     CRLog::setFileLogger( "crengine.log" );
     CRLog::setLogLevel( CRLog::LL_TRACE );
 
+
     lString8 exe_dir;
     char exe_fn[MAX_PATH+1];
     GetModuleFileNameA( NULL, exe_fn, MAX_PATH );
@@ -327,6 +329,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     GetModuleFileNameW( NULL, exe_fn16, MAX_PATH );
 	lString16 exedir = LVExtractPath(lString16(exe_fn16));	
 	lString8 exedir8 = UnicodeToUtf8( exedir );
+
+	CRMoFileTranslator * translator = new CRMoFileTranslator();
+	translator->openMoFile(exedir + L"/po/ru.mo");
+	CRI18NTranslator::setTranslator( translator );
+
 
 	lChar16 sysdir[MAX_PATH+1];
 	GetWindowsDirectoryW(sysdir, MAX_PATH);
