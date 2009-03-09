@@ -1,7 +1,7 @@
 //
 // C++ Implementation: settings
 //
-// Description: 
+// Description:
 //
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
@@ -26,7 +26,7 @@
 #define DICTD_CONF "C:\\dict\\"
 #else
 #ifdef CR_USE_JINKE
-#define DICTD_CONF "/root/crengine/dict/"
+#define DICTD_CONF "/root/abook/dict/"
 #else
 #define DICTD_CONF "/media/sd/dict"
 #endif
@@ -292,16 +292,30 @@ bool V3DocViewWin::loadDictConfig( lString16 filename )
     return false;
 }
 
-bool V3DocViewWin::loadHistory( lString16 filename )
+bool V3DocViewWin::loadHistory( LVStreamRef stream )
 {
-    _historyFileName = filename;
-    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
     if ( stream.isNull() ) {
         return false;
     }
     if ( !_docview->getHistory()->loadFromStream( stream ) )
         return false;
     return true;
+}
+
+bool V3DocViewWin::saveHistory( LVStreamRef stream )
+{
+    if ( stream.isNull() ) {
+        CRLog::error("Cannot open history file for write" );
+        return false;
+    }
+    return _docview->getHistory()->saveToStream( stream.get() );
+}
+
+bool V3DocViewWin::loadHistory( lString16 filename )
+{
+    _historyFileName = filename;
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    return loadHistory( stream );
 }
 
 void V3DocViewWin::closing()
@@ -348,12 +362,7 @@ bool V3DocViewWin::saveHistory( lString16 filename )
         }
 #endif
     }
-    if ( stream.isNull() ) {
-        lString8 fn = UnicodeToUtf8( filename );
-        CRLog::error("Cannot open history file %s for write", fn.c_str() );
-        return false;
-    }
-    return _docview->getHistory()->saveToStream( stream.get() );
+    return saveHistory( stream );
 }
 
 void V3DocViewWin::flush()
@@ -567,13 +576,13 @@ void V3DocViewWin::showGoToPageDialog()
     LVTocItem * toc = _docview->getToc();
     CRNumberEditDialog * dlg;
     if ( toc && toc->getChildCount()>0 ) {
-        dlg = new CRTOCDialog( _wm, 
+        dlg = new CRTOCDialog( _wm,
             lString16( _("Table of contents") ),
             MCMD_GO_PAGE_APPLY,  _docview->getPageCount(), _docview );
     } else {
-        dlg = new CRNumberEditDialog( _wm, 
+        dlg = new CRNumberEditDialog( _wm,
             lString16( _("Enter page number") ),
-            lString16(), 
+            lString16(),
             MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
     }
     dlg->setAccelerators( getDialogAccelerators() );
@@ -814,7 +823,7 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_DICT:
 		showT9Keyboard( _wm, this, MCMD_DICT_FIND, _searchPattern );
         return true;
-	case MCMD_DICT_VKEYBOARD: 
+	case MCMD_DICT_VKEYBOARD:
 		showDictWithVKeyboard();
 		return true;
 	case MCMD_DICT_FIND:

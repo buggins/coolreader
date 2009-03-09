@@ -1,7 +1,7 @@
 //
 // C++ Interface: settings
 //
-// Description: 
+// Description:
 //
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
@@ -101,6 +101,8 @@ public:
     bool saveSettings( lString16 filename );
     bool loadHistory( lString16 filename );
     bool saveHistory( lString16 filename );
+    bool loadHistory( LVStreamRef stream );
+    bool saveHistory( LVStreamRef stream );
     bool loadDictConfig( lString16 filename );
     CRGUIAcceleratorTableRef getMenuAccelerators()
     {
