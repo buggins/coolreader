@@ -32,8 +32,8 @@ template <typename keyT, typename valueT> class LVHashTable
 public:
     class pair {
 		friend class LVHashTable;
-        pair *  next; // extend
     public:
+        pair *  next; // extend
         keyT    key;
         valueT  value;
         pair( keyT nkey, valueT nvalue, pair * pnext ) : next(pnext), key(nkey), value(nvalue) { }

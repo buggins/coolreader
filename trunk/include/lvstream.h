@@ -89,6 +89,10 @@ public:
     /** \return lvopen_mode_t open mode */
     virtual lvopen_mode_t GetMode() { return LVOM_READ; }
 
+    /// Set stream mode, supported not by all streams
+    /** \return LVERR_OK if change is ok */
+    virtual lverror_t SetMode( lvopen_mode_t mode ) { return LVERR_NOTIMPL; }
+
     /// Seek (change file pos)
     /**
         \param offset is file offset (bytes) relateve to origin

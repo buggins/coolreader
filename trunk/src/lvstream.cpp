@@ -1510,10 +1510,10 @@ public:
         LVStreamRef stream(
 		LVZipDecodeStream::Create(
 			strm,
-			m_list[found_index]->GetSrcPos(), 
-            fn, 
-            m_list[found_index]->GetSrcSize(), 
-            m_list[found_index]->GetSize() ) 
+			m_list[found_index]->GetSrcPos(),
+            fn,
+            m_list[found_index]->GetSrcSize(),
+            m_list[found_index]->GetSize() )
         );
         if (!stream.isNull()) {
             stream->SetName(m_list[found_index]->GetName());
@@ -2410,6 +2410,19 @@ public:
     {
         return m_mode;
     }
+    /** \return LVERR_OK if change is ok */
+    virtual lverror_t SetMode( lvopen_mode_t mode )
+    {
+    	if ( m_mode==mode )
+    		return LVERR_OK;
+    	if ( m_mode==LVOM_WRITE && mode==LVOM_READ ) {
+    		m_mode = LVOM_READ;
+    		m_pos = 0;
+    		return LVERR_OK;
+    	}
+    	// TODO: READ -> WRITE/APPEND
+    	return LVERR_FAIL;
+    }
 	virtual LVContainer * GetParentContainer()
 	{
 		return (LVContainer*)m_parent;
@@ -2563,7 +2576,7 @@ public:
 		m_mode = mode;
 		return LVERR_OK;
 	}
-    
+
 
 	lverror_t CreateCopy( const lUInt8 * pBuf, lvsize_t size, lvopen_mode_t mode )
 	{
@@ -2740,7 +2753,7 @@ class LVTCRStream : public LVStream
     #define TCR_READ_BUF_SIZE 4096
     lUInt8 _readbuf[TCR_READ_BUF_SIZE];
     LVTCRStream( LVStreamRef stream )
-    : _stream(stream), _index(NULL), _decoded(NULL), 
+    : _stream(stream), _index(NULL), _decoded(NULL),
       _decodedSize(0), _decodedLen(0), _partIndex(-1), _decodedStart(0), _indexSize(0), _pos(0) {
     }
     bool decodePart( unsigned index )
@@ -2781,7 +2794,7 @@ class LVTCRStream : public LVStream
 public:
     ~LVTCRStream()
     {
-        if ( _index ) 
+        if ( _index )
             free(_index);
     }
     bool init()
@@ -2861,7 +2874,7 @@ public:
     /// Get stream open mode
     /** \return lvopen_mode_t open mode */
     virtual lvopen_mode_t GetMode()
-    { 
+    {
         return LVOM_READ;
     }
 
@@ -2989,7 +3002,7 @@ public:
             if ( nBytesRead )
                 *nBytesRead += n;
             _pos += n;
-        } 
+        }
         return LVERR_OK;
     }
 
