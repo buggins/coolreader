@@ -103,8 +103,10 @@ static void reverse( lUInt32 & n )
 bool CRMoFileTranslator::openMoFile( lString16 fileName )
 {
 	LVStreamRef stream = LVOpenFileStream( fileName.c_str(), LVOM_READ );
-	if ( stream.isNull() )
+	if ( stream.isNull() ) {
+		CRLog::error("CRMoFileTranslator::openMoFile() - Cannot open .mo file");
 		return false;
+	}
 	bool rev = false;
 	lUInt32 magic, revision, count, srcOffset, dstOffset;
 	if ( !stream->Read( &magic ) )
@@ -116,7 +118,7 @@ bool CRMoFileTranslator::openMoFile( lString16 fileName )
 		CRLog::error( "Magic number doesn't match for MO file" );
 		return false;
 	}
-	if ( !stream->Read( &revision ) || !stream->Read( &count ) 
+	if ( !stream->Read( &revision ) || !stream->Read( &count )
 		|| !stream->Read( &srcOffset ) || !stream->Read( &dstOffset ) ) {
 		CRLog::error( "Error reading MO file" );
 		return false;
