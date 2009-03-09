@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-06 06:07+0300\n"
+"POT-Creation-Date: 2009-03-07 02:35+0300\n"
 "PO-Revision-Date: 2009-03-05 11:43+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Russian\n"
@@ -34,7 +34,7 @@ msgstr "1..8 долгое нажатие=установить, короткое=
 msgid "On"
 msgstr "Вкл."
 
-#: src/cr3xcb.cpp:427 src/mainwnd.cpp:515
+#: src/cr3xcb.cpp:427 src/mainwnd.cpp:524
 msgid "About..."
 msgstr "Свойства документа..."
 
@@ -42,151 +42,151 @@ msgstr "Свойства документа..."
 msgid "[cannot read article]"
 msgstr "[не удалось прочитать статью]"
 
-#: src/mainwnd.cpp:501
+#: src/mainwnd.cpp:510
 msgid "Main Menu"
 msgstr "Основное меню"
 
-#: src/mainwnd.cpp:525
+#: src/mainwnd.cpp:534
 msgid "Go to page ..."
 msgstr "Перейти на страницу..."
 
-#: src/mainwnd.cpp:535
+#: src/mainwnd.cpp:546
 msgid "Open recent book..."
 msgstr "Последние книги..."
 
-#: src/mainwnd.cpp:541
+#: src/mainwnd.cpp:553
 msgid "Dictionary..."
 msgstr "Словарь..."
 
-#: src/mainwnd.cpp:546
+#: src/mainwnd.cpp:558
 msgid "Cite.."
 msgstr "Сохранить цитату..."
 
-#: src/mainwnd.cpp:550
+#: src/mainwnd.cpp:562
 msgid "Bookmarks..."
 msgstr "Закладки..."
 
-#: src/mainwnd.cpp:554
+#: src/mainwnd.cpp:566
 msgid "Search..."
 msgstr "Поиск..."
 
-#: src/mainwnd.cpp:558
+#: src/mainwnd.cpp:570
 msgid "Settings..."
 msgstr "Настройки..."
 
-#: src/mainwnd.cpp:571
+#: src/mainwnd.cpp:583
 msgid "Table of contents"
 msgstr "Содержание"
 
-#: src/mainwnd.cpp:575
+#: src/mainwnd.cpp:587
 msgid "Enter page number"
 msgstr "Введите номер страницы"
 
-#: src/mainwnd.cpp:593
+#: src/mainwnd.cpp:605
 msgid "Search"
 msgstr "Поиск"
 
-#: src/mainwnd.cpp:607
+#: src/mainwnd.cpp:619
 msgid "Find in dictionary"
 msgstr "Найти в словаре"
 
-#: src/mainwnd.cpp:706
+#: src/mainwnd.cpp:718
 msgid "Archive name"
 msgstr "Имя файла архива"
 
-#: src/mainwnd.cpp:707
+#: src/mainwnd.cpp:719
 msgid "Archive path"
 msgstr "Путь к архиву"
 
-#: src/mainwnd.cpp:708
+#: src/mainwnd.cpp:720
 msgid "Archive size"
 msgstr "Размер архива"
 
-#: src/mainwnd.cpp:709
+#: src/mainwnd.cpp:721
 msgid "File name"
 msgstr "Имя файла"
 
-#: src/mainwnd.cpp:710
+#: src/mainwnd.cpp:722
 msgid "File path"
 msgstr "Путь к файлу"
 
-#: src/mainwnd.cpp:711
+#: src/mainwnd.cpp:723
 msgid "File size"
 msgstr "Размер файла"
 
-#: src/mainwnd.cpp:712
+#: src/mainwnd.cpp:724
 msgid "File format"
 msgstr "Формат"
 
-#: src/mainwnd.cpp:715
+#: src/mainwnd.cpp:727
 msgid "Title"
 msgstr "Название"
 
-#: src/mainwnd.cpp:716
+#: src/mainwnd.cpp:728
 msgid "Author(s)"
 msgstr "Автор(ы)"
 
-#: src/mainwnd.cpp:717
+#: src/mainwnd.cpp:729
 msgid "Series name"
 msgstr "Серия"
 
-#: src/mainwnd.cpp:718
+#: src/mainwnd.cpp:730
 msgid "Series number"
 msgstr "Номер в серии"
 
-#: src/mainwnd.cpp:719
+#: src/mainwnd.cpp:731
 msgid "Date"
 msgstr "Дата"
 
-#: src/mainwnd.cpp:720
+#: src/mainwnd.cpp:732
 msgid "Genres"
 msgstr "Жанры"
 
-#: src/mainwnd.cpp:721
+#: src/mainwnd.cpp:733
 msgid "Translator"
 msgstr "Переводчик"
 
-#: src/mainwnd.cpp:726
+#: src/mainwnd.cpp:738
 msgid "Document author"
 msgstr "Автор документа"
 
-#: src/mainwnd.cpp:727
+#: src/mainwnd.cpp:739
 msgid "Document date"
 msgstr "Дата документа"
 
-#: src/mainwnd.cpp:728
+#: src/mainwnd.cpp:740
 msgid "Document source URL"
 msgstr "URL исходного документа"
 
-#: src/mainwnd.cpp:729
+#: src/mainwnd.cpp:741
 msgid "OCR by"
 msgstr "OCR"
 
-#: src/mainwnd.cpp:730
+#: src/mainwnd.cpp:742
 msgid "Document version"
 msgstr "Версия документа"
 
-#: src/mainwnd.cpp:735
+#: src/mainwnd.cpp:747
 msgid "Publication name"
 msgstr "Название издания"
 
-#: src/mainwnd.cpp:736
+#: src/mainwnd.cpp:748
 msgid "Publisher"
 msgstr "Издательство"
 
-#: src/mainwnd.cpp:737
+#: src/mainwnd.cpp:749
 msgid "Publisher city"
 msgstr "Город"
 
-#: src/mainwnd.cpp:738
+#: src/mainwnd.cpp:750
 msgid "Publication year"
 msgstr "Год издания"
 
-#: src/mainwnd.cpp:739
+#: src/mainwnd.cpp:751
 msgid "ISBN"
 msgstr "ISBN"
 
-#: src/mainwnd.cpp:743
+#: src/mainwnd.cpp:755
 msgid "Custom info"
 msgstr "Прочая информация"
 

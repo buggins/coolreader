@@ -26,7 +26,7 @@
 #define DICTD_CONF "C:\\dict\\"
 #else
 #ifdef CR_USE_JINKE
-#define DICTD_CONF "/root/abook/dict/"
+#define DICTD_CONF "/root/abook/dict"
 #else
 #define DICTD_CONF "/media/sd/dict"
 #endif
@@ -540,10 +540,13 @@ VIEWER_MENU_4ABOUT=About...
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
+
+#ifndef CR_USE_JINKE
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_RECENT_BOOK_LIST,
                 _("Open recent book..."),
                 LVImageSourceRef(),
                 LVFontRef() ) );
+#endif
 
 #ifdef WITH_DICT
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
@@ -813,9 +816,11 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_RECENT_BOOK_LIST:
         showRecentBooksMenu();
         return true;
+#ifndef CR_USE_JINKE
     case MCMD_OPEN_RECENT_BOOK:
         openRecentBook( params );
         return true;
+#endif
 
 #ifdef WITH_DICT
 

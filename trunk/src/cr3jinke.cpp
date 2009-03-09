@@ -29,6 +29,9 @@ static CallbackFunction * v3_callbacks = NULL;
 static char last_bookmark[2048]= {0};
 static int last_bookmark_page = 0;
 
+#define USE_JINKE_USER_DATA 0
+
+
 int getBatteryState()
 {
 #if USE_OWN_BATTERY_TEST==0
@@ -57,16 +60,6 @@ void SetCallbackFunction(struct CallbackFunction *cb)
     CRLog::trace("SetCallbackFunction()");
     v3_callbacks = cb;
     lastState.batteryState = v3_callbacks->GetBatteryState();
-    const char * lang = v3_callbacks->GetString( "CR3_LANG" );
-    if ( lang && lang[0] ) {
-    	// set translator
-    	lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
-    	CRMoFileTranslator * t = new CRMoFileTranslator();
-    	if ( t->openMoFile( mofilename ) )
-    		CRI18NTranslator::setTranslator( t );
-    	else
-    		delete t;
-    }
 }
 
 /// WXWidget support: draw to wxImage
@@ -232,8 +225,8 @@ int OnKeyPressed(int keyId, int state)
     LONG_KEY_9, '9', KEY_FLAG_LONG_PRESS,
     KEY_CANCEL, XK_Escape, 0,
     KEY_OK, XK_Return, 0,
-    KEY_DOWN, XK_Down, 0,
-    KEY_UP, XK_Up, 0,
+    KEY_DOWN, XK_Up, 0,
+    KEY_UP, XK_Down, 0,
     LONG_KEY_CANCEL, XK_Escape, KEY_FLAG_LONG_PRESS,
     LONG_KEY_OK, XK_Return, KEY_FLAG_LONG_PRESS,
     LONG_KEY_DOWN, XK_Down, KEY_FLAG_LONG_PRESS,
@@ -387,6 +380,7 @@ const char * GetAboutInfoText()
     return about_text;
 }
 
+static char history_file_name[1024] = "/root/abook/.cr3hist";
 
 int InitDoc(char *fileName)
 {
@@ -401,6 +395,29 @@ int InitDoc(char *fileName)
     //InitCREngineLog(NULL);
     InitCREngineLog("/root/abook/crengine/crlog.ini");
 #endif
+
+    {
+    	lString8 fn(fileName);
+    	if ( fn.startsWith(lString8("/home")) )
+    		strcpy( history_file_name, "/home/.cr3hist" );
+    }
+
+    {
+        const char * lang = v3_callbacks->GetString( "CR3_LANG" );
+        if ( lang && lang[0] ) {
+        	// set translator
+        	CRLog::info("Current language is %s, looking for translation file", lang);
+        	lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
+        	CRMoFileTranslator * t = new CRMoFileTranslator();
+        	if ( t->openMoFile( mofilename ) ) {
+        		CRLog::info("translation file %s.mo found", lang);
+        		CRI18NTranslator::setTranslator( t );
+        	} else {
+        		CRLog::info("translation file %s.mo not found", lang);
+        		delete t;
+        	}
+        }
+    }
 
     const lChar16 * ini_fname = L"cr3.ini";
 #ifdef SEPARATE_INI_FILES
@@ -451,6 +468,15 @@ int InitDoc(char *fileName)
         CRLog::trace("creating window manager...");
         CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
         //main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
+
+        const char * keymap_locations [] = {
+            "/root/abook/crengine/",
+            "/home/crengine/",
+            "/root/crengine/",
+            NULL,
+        };
+        loadKeymaps( *wm, keymap_locations );
+
         CRLog::trace("creating main window...");
         main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );
         CRLog::trace("setting colors...");
@@ -467,13 +493,6 @@ int InitDoc(char *fileName)
         	if ( !main_win->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
             	main_win->loadSkin( lString16( L"/root/crengine/skin" ) );
 
-        const char * keymap_locations [] = {
-            "/root/abook/crengine/",
-            "/home/crengine/",
-            "/root/crengine/",
-            NULL,
-        };
-        loadKeymaps( *wm, keymap_locations );
 
         CRLog::trace("choosing init file...");
         static const lChar16 * dirs[] = {
@@ -492,30 +511,12 @@ int InitDoc(char *fileName)
             }
         }
         CRLog::debug("settings at %s", UnicodeToUtf8(ini).c_str() );
-//        if ( !main_win->loadSkin(lString16(L"/root/abook/crengine/skins/default.c3s") )
-  //          main_win->loadSkin(lString16(L"/root/crengine/skins/default.c3s");
-        static const int acc_table[] = {
-            '8', 0, MCMD_SETTINGS_FONTSIZE, 0,
-            '8', KEY_FLAG_LONG_PRESS, MCMD_SETTINGS_ORIENTATION, 0,
-            XK_Escape, 0, MCMD_QUIT, 0,
-            XK_Return, 0, MCMD_MAIN_MENU, 0,
-            XK_Return, KEY_FLAG_LONG_PRESS, MCMD_SETTINGS, 0,
-            '0', 0, DCMD_PAGEDOWN, 0,
-            XK_Down, 0, DCMD_PAGEDOWN, 0,
-            XK_Down, KEY_FLAG_LONG_PRESS, DCMD_PAGEDOWN, 10,
-            XK_Up, 0, DCMD_PAGEUP, 0,
-            XK_Up, KEY_FLAG_LONG_PRESS, DCMD_PAGEUP, 10,
-            '9', 0, DCMD_PAGEUP, 0,
-#ifdef WITH_DICT
-            '2', 0, MCMD_DICT, 0,
+#if USE_JINKE_USER_DATA!=1
+    if ( !main_win->loadHistory( lString16(history_file_name) ) ) {
+    	CRLog::error("Cannot read history file %s", history_file_name);
+    }
 #endif
-            '+', 0, DCMD_ZOOM_IN, 0,
-            '=', 0, DCMD_ZOOM_IN, 0,
-            '-', 0, DCMD_ZOOM_OUT, 0,
-            '_', 0, DCMD_ZOOM_OUT, 0,
-            0
-        };
-        main_win->setAccelerators( CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable( acc_table ) ) );
+
         wm->activateWindow( main_win );
         if ( !main_win->getDocView()->LoadDocument(fileName) ) {
             printf("Cannot open book file %s\n", fileName);
@@ -611,7 +612,8 @@ int GetPageNum()
 }
 void bGetUserData(void **vUserData, int *iUserDataLength)
 {
-    CRLog::trace("bGetUserData()");
+    printf("PLUGIN: bGetUserData()\n");
+#if USE_JINKE_USER_DATA==1
     if ( !main_win ) {
     	CRLog::error("bGetUserData() - No main window yet created");
     	return;
@@ -629,10 +631,12 @@ void bGetUserData(void **vUserData, int *iUserDataLength)
     	*vUserData = buf;
     	*iUserDataLength = sz;
     }
+#endif
 }
 void vSetUserData(void *vUserData, int iUserDataLength)
 {
-    CRLog::trace("vSetUserData()");
+    printf("PLUGIN: vSetUserData()");
+#if USE_JINKE_USER_DATA==1
     if ( !main_win ) {
     	CRLog::error("vSetUserData() - No main window yet created");
     	return;
@@ -643,6 +647,7 @@ void vSetUserData(void *vUserData, int iUserDataLength)
     	return;
     }
     main_win->getDocView()->restorePosition();
+#endif
 }
 int iGetDocPageWidth()
 {

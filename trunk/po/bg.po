@@ -6,318 +6,319 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-06 06:07+0300\n"
+"POT-Creation-Date: 2009-03-07 02:35+0300\n"
 "PO-Revision-Date: 2009-03-05 15:27+0300\n"
-"Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
+"Last-Translator: Zlatko Petkov <zlpetkov@gmail.com>\n"
 "Language-Team: Bulgarian\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ASCII\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/bmkdlg.cpp:17
 msgid "Empty slot"
-msgstr ""
+msgstr "(Празно)"
 
 #: src/bmkdlg.cpp:58
 msgid "Bookmarks"
-msgstr ""
+msgstr "Отбелязки"
 
 #: src/bmkdlg.cpp:77
 msgid "Long press 1..8 = set, short press = go to"
-msgstr ""
+msgstr "Дълго натискане 1..8 = запомня, късо = преход"
 
 #: src/cr3xcb.cpp:426 src/settings.cpp:92 src/settings.cpp:98
 #: src/settings.cpp:104 src/settings.cpp:110 src/settings.cpp:116
 #: src/settings.cpp:122
 msgid "On"
-msgstr ""
+msgstr "Да"
 
-#: src/cr3xcb.cpp:427 src/mainwnd.cpp:515
+#: src/cr3xcb.cpp:427 src/mainwnd.cpp:524
 msgid "About..."
-msgstr ""
+msgstr "Относно..."
 
 #: src/dictdlg.cpp:91
 msgid "[cannot read article]"
-msgstr ""
+msgstr "[не мога да прочета темата]"
 
-#: src/mainwnd.cpp:501
+#: src/mainwnd.cpp:510
 msgid "Main Menu"
-msgstr ""
+msgstr "Главно меню"
 
-#: src/mainwnd.cpp:525
+#: src/mainwnd.cpp:534
 msgid "Go to page ..."
-msgstr ""
-
-#: src/mainwnd.cpp:535
-msgid "Open recent book..."
-msgstr ""
-
-#: src/mainwnd.cpp:541
-msgid "Dictionary..."
-msgstr ""
+msgstr "Към страница..."
 
 #: src/mainwnd.cpp:546
-msgid "Cite.."
-msgstr ""
+msgid "Open recent book..."
+msgstr "Последно четени..."
 
-#: src/mainwnd.cpp:550
-msgid "Bookmarks..."
-msgstr ""
-
-#: src/mainwnd.cpp:554
-msgid "Search..."
-msgstr ""
+#: src/mainwnd.cpp:553
+msgid "Dictionary..."
+msgstr "Речник..."
 
 #: src/mainwnd.cpp:558
+msgid "Cite.."
+msgstr "Цитат..."
+
+#: src/mainwnd.cpp:562
+msgid "Bookmarks..."
+msgstr "Отбелязки..."
+
+#: src/mainwnd.cpp:566
+msgid "Search..."
+msgstr "Търсене..."
+
+#: src/mainwnd.cpp:570
 msgid "Settings..."
-msgstr ""
+msgstr "Настройки..."
 
-#: src/mainwnd.cpp:571
+#: src/mainwnd.cpp:583
 msgid "Table of contents"
-msgstr ""
+msgstr "Съдържание"
 
-#: src/mainwnd.cpp:575
+#: src/mainwnd.cpp:587
 msgid "Enter page number"
-msgstr ""
+msgstr "Въведете номер на страница"
 
-#: src/mainwnd.cpp:593
+#: src/mainwnd.cpp:605
 msgid "Search"
-msgstr ""
+msgstr "Търсене"
 
-#: src/mainwnd.cpp:607
+#: src/mainwnd.cpp:619
 msgid "Find in dictionary"
-msgstr ""
-
-#: src/mainwnd.cpp:706
-msgid "Archive name"
-msgstr ""
-
-#: src/mainwnd.cpp:707
-msgid "Archive path"
-msgstr ""
-
-#: src/mainwnd.cpp:708
-msgid "Archive size"
-msgstr ""
-
-#: src/mainwnd.cpp:709
-msgid "File name"
-msgstr ""
-
-#: src/mainwnd.cpp:710
-msgid "File path"
-msgstr ""
-
-#: src/mainwnd.cpp:711
-msgid "File size"
-msgstr ""
-
-#: src/mainwnd.cpp:712
-msgid "File format"
-msgstr ""
-
-#: src/mainwnd.cpp:715
-msgid "Title"
-msgstr ""
-
-#: src/mainwnd.cpp:716
-msgid "Author(s)"
-msgstr ""
-
-#: src/mainwnd.cpp:717
-msgid "Series name"
-msgstr ""
+msgstr "Търсене в речника"
 
 #: src/mainwnd.cpp:718
-msgid "Series number"
-msgstr ""
+msgid "Archive name"
+msgstr "Име на архива"
 
 #: src/mainwnd.cpp:719
-msgid "Date"
-msgstr ""
+msgid "Archive path"
+msgstr "Път към архива"
 
 #: src/mainwnd.cpp:720
-msgid "Genres"
-msgstr ""
+msgid "Archive size"
+msgstr "Размер на архива"
 
 #: src/mainwnd.cpp:721
-msgid "Translator"
-msgstr ""
+msgid "File name"
+msgstr "Име на файла"
 
-#: src/mainwnd.cpp:726
-msgid "Document author"
-msgstr ""
+#: src/mainwnd.cpp:722
+msgid "File path"
+msgstr "Път към файла"
+
+#: src/mainwnd.cpp:723
+msgid "File size"
+msgstr "Размер на файла"
+
+#: src/mainwnd.cpp:724
+msgid "File format"
+msgstr "Тип на файла"
 
 #: src/mainwnd.cpp:727
-msgid "Document date"
-msgstr ""
+msgid "Title"
+msgstr "Заглавие"
 
 #: src/mainwnd.cpp:728
-msgid "Document source URL"
-msgstr ""
+msgid "Author(s)"
+msgstr "Автор(и)"
 
 #: src/mainwnd.cpp:729
-msgid "OCR by"
-msgstr ""
+msgid "Series name"
+msgstr "Поредица"
 
 #: src/mainwnd.cpp:730
-msgid "Document version"
-msgstr ""
+msgid "Series number"
+msgstr "Номер в поредицата"
 
-#: src/mainwnd.cpp:735
-msgid "Publication name"
-msgstr ""
+#: src/mainwnd.cpp:731
+msgid "Date"
+msgstr "Дата"
 
-#: src/mainwnd.cpp:736
-msgid "Publisher"
-msgstr ""
+#: src/mainwnd.cpp:732
+msgid "Genres"
+msgstr "Жанрове"
 
-#: src/mainwnd.cpp:737
-msgid "Publisher city"
-msgstr ""
+#: src/mainwnd.cpp:733
+msgid "Translator"
+msgstr "Преводач"
 
 #: src/mainwnd.cpp:738
-msgid "Publication year"
-msgstr ""
+msgid "Document author"
+msgstr "Автор на документа"
 
 #: src/mainwnd.cpp:739
-msgid "ISBN"
-msgstr ""
+msgid "Document date"
+msgstr "Дата на документа"
 
-#: src/mainwnd.cpp:743
+#: src/mainwnd.cpp:740
+msgid "Document source URL"
+msgstr "Източник на документа"
+
+#: src/mainwnd.cpp:741
+msgid "OCR by"
+msgstr "Сканирано от"
+
+#: src/mainwnd.cpp:742
+msgid "Document version"
+msgstr "Версия на документа"
+
+#: src/mainwnd.cpp:747
+msgid "Publication name"
+msgstr "Публикация"
+
+#: src/mainwnd.cpp:748
+msgid "Publisher"
+msgstr "Издател"
+
+#: src/mainwnd.cpp:749
+msgid "Publisher city"
+msgstr "Град на издаване"
+
+#: src/mainwnd.cpp:750
+msgid "Publication year"
+msgstr "Година на издаване"
+
+#: src/mainwnd.cpp:751
+msgid "ISBN"
+msgstr "ISBN"
+
+#: src/mainwnd.cpp:755
 msgid "Custom info"
-msgstr ""
+msgstr "Допълнителна информация"
 
 #: src/recentdlg.cpp:70
 msgid "Open recent book"
-msgstr ""
+msgstr "Последно четени книги"
 
 #: src/settings.cpp:24 src/settings.cpp:128
 msgid "Normal"
-msgstr ""
+msgstr "Нормална"
 
 #: src/settings.cpp:25
 msgid "90 `"
-msgstr ""
+msgstr "90 `"
 
 #: src/settings.cpp:26
 msgid "180 `"
-msgstr ""
+msgstr "180 `"
 
 #: src/settings.cpp:27
 msgid "270 `"
-msgstr ""
+msgstr "270 `"
 
 #: src/settings.cpp:33
 msgid "Page orientation"
 msgstr ""
 
 #: src/settings.cpp:48
+#, fuzzy
 msgid "Default font size"
-msgstr ""
+msgstr "Шрифт по подразбиране"
 
 #: src/settings.cpp:77
 msgid "Settings"
-msgstr ""
+msgstr "Настройки"
 
 #: src/settings.cpp:85
 msgid "On for all fonts"
-msgstr ""
+msgstr "Включено за всички шрифтове"
 
 #: src/settings.cpp:86
 msgid "On for big fonts only"
-msgstr ""
+msgstr "Само за големи шрифтове"
 
 #: src/settings.cpp:87 src/settings.cpp:93 src/settings.cpp:99
 #: src/settings.cpp:105 src/settings.cpp:111 src/settings.cpp:117
 #: src/settings.cpp:123 src/settings.cpp:142
 msgid "Off"
-msgstr ""
+msgstr "Не"
 
 #: src/settings.cpp:129
 msgid "Inverse"
-msgstr ""
+msgstr "Инверсно"
 
 #: src/settings.cpp:134
 msgid "One"
-msgstr ""
+msgstr "Една"
 
 #: src/settings.cpp:135
 msgid "Two"
-msgstr ""
+msgstr "Две"
 
 #: src/settings.cpp:140
 msgid "Top"
-msgstr ""
+msgstr "Горе"
 
 #: src/settings.cpp:147
 msgid "90%"
-msgstr ""
+msgstr "90%"
 
 #: src/settings.cpp:148
 msgid "100%"
-msgstr ""
+msgstr "100%"
 
 #: src/settings.cpp:149
 msgid "110%"
-msgstr ""
+msgstr "110%"
 
 #: src/settings.cpp:150
 msgid "120%"
-msgstr ""
+msgstr "120%"
 
 #: src/settings.cpp:151
 msgid "140%"
-msgstr ""
+msgstr "140%"
 
 #: src/settings.cpp:176
 msgid "Default font face"
-msgstr ""
+msgstr "Шрифт по подразбиране"
 
 #: src/settings.cpp:197
 msgid "Font antialiasing"
-msgstr ""
+msgstr "Заглаждане на шрифтовете"
 
 #: src/settings.cpp:203
 msgid "Interline space"
-msgstr ""
+msgstr "Разредка"
 
 #: src/settings.cpp:212
 msgid "Footnotes at page bottom"
-msgstr ""
+msgstr "Бележки под линия"
 
 #: src/settings.cpp:223
 msgid "Show time"
-msgstr ""
+msgstr "Показване на часовника"
 
 #: src/settings.cpp:229
 msgid "Landscape pages"
-msgstr ""
+msgstr "Страници в режим пейзаж"
 
 #: src/settings.cpp:235
 msgid "Preformatted text"
-msgstr ""
+msgstr "Преформатиран текст"
 
 #: src/settings.cpp:243
 msgid "Document embedded styles"
-msgstr ""
+msgstr "Вградени стилове"
 
 #: src/settings.cpp:249
 msgid "Inverse display"
-msgstr ""
+msgstr "Инвертирано изображение"
 
 #: src/settings.cpp:255
 msgid "Show bookmark icons"
-msgstr ""
+msgstr "Отбелязки в колонтитула"
 
 #: src/settings.cpp:261
 msgid "Status line"
-msgstr ""
+msgstr "Колонтитул"
 
 #: src/settings.cpp:267
 msgid "Font kerning"
-msgstr ""
+msgstr "Кърнинг"
 
 #: src/tocdlg.cpp:72
 msgid "Enter page number to go: "
-msgstr ""
+msgstr "Въведете номер на страница"
