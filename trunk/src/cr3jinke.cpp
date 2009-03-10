@@ -68,15 +68,20 @@ class CRJinkeScreen : public CRGUIScreenBase
     public:
         static CRJinkeScreen * instance;
     protected:
-        virtual void update( const lvRect & rc, bool full )
+        virtual void update( const lvRect & rc2, bool full )
         {
+        	if ( rc2.isEmpty() && !full )
+        		return;
+        	lvRect rc = rc2;
+        	rc.left &= ~3;
+        	rc.right = (rc.right + 3) & ~3;
             CRLog::debug("CRJinkeScreen::update()");
             if ( rc.height()>400 )
             	full = true;
             else
             	full = false;
-			int h = rc.height();
-            v3_callbacks->BlitBitmap( 0, rc.top, 600, h, 0, rc.top, 600, h, (unsigned char *)_front->GetScanLine(0) );
+			CRLog::debug("CRJinkeScreen::update( %d, %d, %d, %d, %s )", rc.left, rc.top, rc.right, rc.bottom, full ? "full" : "partial");
+            v3_callbacks->BlitBitmap( rc.left, rc.top, rc.width(), rc.height(), rc.left, rc.top, 600, 800, (unsigned char *)_front->GetScanLine(0) );
             //v3_callbacks->PartialPrint();
             if ( full )
             	v3_callbacks->Print();
@@ -135,7 +140,7 @@ public:
     {
         if ( !onCommand( cmd, params ) )
             return false;
-        update( true );
+        update( false );
         return true;
     }
 };
@@ -155,6 +160,7 @@ public:
     {
         strcpy( last_bookmark, GetCurrentPositionBookmark() );
         last_bookmark_page = CRJinkeDocView::instance->getDocView()->getCurPage();
+        V3DocViewWin::closing();
     }
     virtual ~CRJinkeDocView()
     {
@@ -254,9 +260,10 @@ int OnKeyPressed(int keyId, int state)
         CRLog::debug( "Unknown key code in OnKeyPressed() : %d (%04x)", keyId, keyId );
         return 0;
     }
-    CRJinkeWindowManager::instance->onKeyPressed( code, flags );
-    CRJinkeWindowManager::instance->processPostedEvents();
-    CRJinkeWindowManager::instance->update( true );
+    bool needUpdate = CRJinkeWindowManager::instance->onKeyPressed( code, flags );
+    needUpdate = CRJinkeWindowManager::instance->processPostedEvents() || needUpdate;
+    if ( needUpdate )
+    	CRJinkeWindowManager::instance->update( false );
 
     if ( CRJinkeWindowManager::instance->getWindowCount()==0 ) {
         // QUIT
@@ -299,9 +306,11 @@ int GetBookmarkPage( const char * bookmark )
 void GoToBookmark( const char * bookmark )
 {
     CRLog::trace("GoToBookmark(%s)", bookmark);
+#if 0
     ldomXPointer bm = main_win->getDocView()->getDocument()->createXPointer(Utf8ToUnicode(lString8(bookmark)));
     if ( !bm.isNull() )
         main_win->getDocView()->goToBookmark(bm);
+#endif
 }
 
 
@@ -404,6 +413,7 @@ int InitDoc(char *fileName)
     	lString8 fn(fileName);
     	if ( fn.startsWith(lString8("/home")) )
     		strcpy( history_file_name, "/home/.cr3hist" );
+    	CRLog::info( "History file name: %s", history_file_name );
     }
 
     {
@@ -522,7 +532,7 @@ int InitDoc(char *fileName)
 #endif
 
         wm->activateWindow( main_win );
-        if ( !main_win->getDocView()->LoadDocument(fileName) ) {
+        if ( !main_win->loadDocument( lString16(fileName) ) ) {
             printf("Cannot open book file %s\n", fileName);
             delete wm;
             return 0;
@@ -549,12 +559,14 @@ void vSetDisplayState(Apollo_State*state) { }
 void vSetCurPage(int index)
 {
     CRLog::trace("vSetCurPage(%d)", index);
+#if 0
     if ( index < 0 ){
         index = 0;
     }
     if ( index<0 || index>CRJinkeDocView::instance->getDocView()->getPageCount() )
         return;
     CRJinkeWindowManager::instance->doCommand( DCMD_GO_PAGE, index );
+#endif
 }
 int bGetRotate() { return 0; }
 void vSetRotate(int rot) { }
@@ -602,7 +614,7 @@ void GetPageData(void **data)
     //_docview->setBatteryState( ::getBatteryState() );
     //_docview->Draw();
     //LVDocImageRef pageImage = _docview->getPageImage(0);
-    CRJinkeWindowManager::instance->update( true );
+    CRJinkeWindowManager::instance->update( false );
     LVRef<LVDrawBuf> pageImage = CRJinkeWindowManager::instance->getScreen()->getCanvas();
     LVDrawBuf * drawbuf = pageImage.get();
     *data = drawbuf->GetScanLine(0);
@@ -639,7 +651,7 @@ void bGetUserData(void **vUserData, int *iUserDataLength)
 }
 void vSetUserData(void *vUserData, int iUserDataLength)
 {
-    printf("PLUGIN: vSetUserData()");
+    CRLog::trace("vSetUserData()");
 #if USE_JINKE_USER_DATA==1
     if ( !main_win ) {
     	CRLog::error("vSetUserData() - No main window yet created");

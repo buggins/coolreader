@@ -313,6 +313,7 @@ bool V3DocViewWin::saveHistory( LVStreamRef stream )
 
 bool V3DocViewWin::loadHistory( lString16 filename )
 {
+	CRLog::trace("V3DocViewWin::loadHistory( %s )", UnicodeToUtf8(filename).c_str());
     _historyFileName = filename;
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
     return loadHistory( stream );
@@ -320,14 +321,17 @@ bool V3DocViewWin::loadHistory( lString16 filename )
 
 void V3DocViewWin::closing()
 {
+	CRLog::trace("V3DocViewWin::closing()");
     _docview->savePosition();
     saveHistory( lString16() );
 }
 
 bool V3DocViewWin::loadDocument( lString16 filename )
 {
-    if ( !_docview->LoadDocument( filename.c_str() ) )
+    if ( !_docview->LoadDocument( filename.c_str() ) ) {
+    	CRLog::error("V3DocViewWin::loadDocument( %s ) - failed!", UnicodeToUtf8(filename).c_str() );
         return false;
+    }
     _docview->restorePosition();
     return true;
 }
@@ -337,8 +341,10 @@ bool V3DocViewWin::saveHistory( lString16 filename )
     crtrace log;
     if ( filename.empty() )
         filename = _historyFileName;
-    if ( filename.empty() )
+    if ( filename.empty() ) {
+    	CRLog::info("Cannot write history file - no file name specified");
         return false;
+    }
 	_docview->exportBookmarks(lString16());//use default filename
     _historyFileName = filename;
     log << "V3DocViewWin::saveHistory(" << filename << ")";
@@ -361,6 +367,10 @@ bool V3DocViewWin::saveHistory( lString16 filename )
             stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
         }
 #endif
+    }
+    if ( stream.isNull() ) {
+    	CRLog::error("Error while creating history file %s - position will be lost", UnicodeToUtf8(filename).c_str() );
+    	return false;
     }
     return saveHistory( stream );
 }

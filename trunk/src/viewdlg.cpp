@@ -1,7 +1,7 @@
 //
 // C++ Implementation: document view dialog
 //
-// Description: 
+// Description:
 //      Allows to show (FB2) document on screen
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
@@ -24,7 +24,7 @@ lString8 CRViewDialog::makeFb2Xml( const lString8 & body )
     return res;
 }
 
-static const char * def_view_css = 
+static const char * def_view_css =
 "body { text-align: left; text-indent: 0px; font-family: \"DejaVu Sans\", \"FreeSans\", \"Arial\", sans-serif; }\n"
 "p { text-align: justify; text-indent: 2em; margin-top:0em; margin-bottom: 0em }\n"
 "empty-line { height: 1em }\n"
@@ -59,7 +59,7 @@ static const char * def_view_css =
 "td, th { text-indent: 0px; padding: 3px }\n"
 "th {  font-weight: bold; background-color: #DDD  }\n"
 "table > caption { text-indent: 0px; padding: 4px; background-color: #EEE }\n"
-"code, pre { display: block; white-space: pre; text-align: left; font-family: \"Courier New\", \"Courier\", monospace; text-align: left }\n"
+"code, pre { display: block; white-space: pre; text-align: left; font-weight: bold; font-family: \"Courier New\", \"Courier\", monospace; text-align: left }\n"
 "description { display: none; }\n"
 ""
 ;

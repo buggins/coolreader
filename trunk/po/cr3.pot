@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.18\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-07 02:35+0300\n"
+"POT-Creation-Date: 2009-03-08 02:44+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,7 +33,7 @@ msgstr ""
 msgid "On"
 msgstr ""
 
-#: src/cr3xcb.cpp:427 src/mainwnd.cpp:524
+#: src/cr3xcb.cpp:427 src/mainwnd.cpp:534
 msgid "About..."
 msgstr ""
 
@@ -41,151 +41,151 @@ msgstr ""
 msgid "[cannot read article]"
 msgstr ""
 
-#: src/mainwnd.cpp:510
+#: src/mainwnd.cpp:520
 msgid "Main Menu"
 msgstr ""
 
-#: src/mainwnd.cpp:534
+#: src/mainwnd.cpp:544
 msgid "Go to page ..."
 msgstr ""
 
-#: src/mainwnd.cpp:546
+#: src/mainwnd.cpp:556
 msgid "Open recent book..."
 msgstr ""
 
-#: src/mainwnd.cpp:553
+#: src/mainwnd.cpp:563
 msgid "Dictionary..."
 msgstr ""
 
-#: src/mainwnd.cpp:558
+#: src/mainwnd.cpp:568
 msgid "Cite.."
 msgstr ""
 
-#: src/mainwnd.cpp:562
+#: src/mainwnd.cpp:572
 msgid "Bookmarks..."
 msgstr ""
 
-#: src/mainwnd.cpp:566
+#: src/mainwnd.cpp:576
 msgid "Search..."
 msgstr ""
 
-#: src/mainwnd.cpp:570
+#: src/mainwnd.cpp:580
 msgid "Settings..."
 msgstr ""
 
-#: src/mainwnd.cpp:583
+#: src/mainwnd.cpp:593
 msgid "Table of contents"
 msgstr ""
 
-#: src/mainwnd.cpp:587
+#: src/mainwnd.cpp:597
 msgid "Enter page number"
 msgstr ""
 
-#: src/mainwnd.cpp:605
+#: src/mainwnd.cpp:615
 msgid "Search"
 msgstr ""
 
-#: src/mainwnd.cpp:619
+#: src/mainwnd.cpp:629
 msgid "Find in dictionary"
 msgstr ""
 
-#: src/mainwnd.cpp:718
+#: src/mainwnd.cpp:728
 msgid "Archive name"
 msgstr ""
 
-#: src/mainwnd.cpp:719
+#: src/mainwnd.cpp:729
 msgid "Archive path"
 msgstr ""
 
-#: src/mainwnd.cpp:720
+#: src/mainwnd.cpp:730
 msgid "Archive size"
 msgstr ""
 
-#: src/mainwnd.cpp:721
+#: src/mainwnd.cpp:731
 msgid "File name"
 msgstr ""
 
-#: src/mainwnd.cpp:722
+#: src/mainwnd.cpp:732
 msgid "File path"
 msgstr ""
 
-#: src/mainwnd.cpp:723
+#: src/mainwnd.cpp:733
 msgid "File size"
 msgstr ""
 
-#: src/mainwnd.cpp:724
+#: src/mainwnd.cpp:734
 msgid "File format"
 msgstr ""
 
-#: src/mainwnd.cpp:727
+#: src/mainwnd.cpp:737
 msgid "Title"
 msgstr ""
 
-#: src/mainwnd.cpp:728
+#: src/mainwnd.cpp:738
 msgid "Author(s)"
 msgstr ""
 
-#: src/mainwnd.cpp:729
+#: src/mainwnd.cpp:739
 msgid "Series name"
 msgstr ""
 
-#: src/mainwnd.cpp:730
+#: src/mainwnd.cpp:740
 msgid "Series number"
 msgstr ""
 
-#: src/mainwnd.cpp:731
+#: src/mainwnd.cpp:741
 msgid "Date"
 msgstr ""
 
-#: src/mainwnd.cpp:732
+#: src/mainwnd.cpp:742
 msgid "Genres"
 msgstr ""
 
-#: src/mainwnd.cpp:733
+#: src/mainwnd.cpp:743
 msgid "Translator"
 msgstr ""
 
-#: src/mainwnd.cpp:738
+#: src/mainwnd.cpp:748
 msgid "Document author"
 msgstr ""
 
-#: src/mainwnd.cpp:739
+#: src/mainwnd.cpp:749
 msgid "Document date"
 msgstr ""
 
-#: src/mainwnd.cpp:740
+#: src/mainwnd.cpp:750
 msgid "Document source URL"
 msgstr ""
 
-#: src/mainwnd.cpp:741
+#: src/mainwnd.cpp:751
 msgid "OCR by"
 msgstr ""
 
-#: src/mainwnd.cpp:742
+#: src/mainwnd.cpp:752
 msgid "Document version"
 msgstr ""
 
-#: src/mainwnd.cpp:747
+#: src/mainwnd.cpp:757
 msgid "Publication name"
 msgstr ""
 
-#: src/mainwnd.cpp:748
+#: src/mainwnd.cpp:758
 msgid "Publisher"
 msgstr ""
 
-#: src/mainwnd.cpp:749
+#: src/mainwnd.cpp:759
 msgid "Publisher city"
 msgstr ""
 
-#: src/mainwnd.cpp:750
+#: src/mainwnd.cpp:760
 msgid "Publication year"
 msgstr ""
 
-#: src/mainwnd.cpp:751
+#: src/mainwnd.cpp:761
 msgid "ISBN"
 msgstr ""
 
-#: src/mainwnd.cpp:755
+#: src/mainwnd.cpp:765
 msgid "Custom info"
 msgstr ""
 
