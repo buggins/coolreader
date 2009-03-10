@@ -71,8 +71,12 @@ class CRJinkeScreen : public CRGUIScreenBase
         virtual void update( const lvRect & rc, bool full )
         {
             CRLog::debug("CRJinkeScreen::update()");
-
-            v3_callbacks->BlitBitmap( 0, 0, 600, 800, 0, 0, 600, 800, (unsigned char *)_front->GetScanLine(0) );
+            if ( rc.height()>400 )
+            	full = true;
+            else
+            	full = false;
+			int h = rc.height();
+            v3_callbacks->BlitBitmap( 0, rc.top, 600, h, 0, rc.top, 600, h, (unsigned char *)_front->GetScanLine(0) );
             //v3_callbacks->PartialPrint();
             if ( full )
             	v3_callbacks->Print();
