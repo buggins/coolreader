@@ -108,13 +108,13 @@ public:
     /// empty table constructor
     CRGUIAcceleratorTable() { }
     /// copy constructor
-    CRGUIAcceleratorTable( const CRGUIAcceleratorTable& v) 
+    CRGUIAcceleratorTable( const CRGUIAcceleratorTable& v)
 	{
 		for ( int i=0; i<v._items.length(); i++ ) {
 			_items.add( new CRGUIAccelerator(*v._items[i]) );
 		}
 	}
-    /// constructor from int array: 4 ints per entry (keyCode, keyFlags, commandId, commandParam), keyCode==0 indicates end of list 
+    /// constructor from int array: 4 ints per entry (keyCode, keyFlags, commandId, commandParam), keyCode==0 indicates end of list
     CRGUIAcceleratorTable( const int * tableQuadsArray )
     {
         while( *tableQuadsArray ) {
@@ -135,7 +135,7 @@ typedef LVRef<CRGUIAcceleratorTable> CRGUIAcceleratorTableRef;
  * \brief Container for list of named accelerator tables read from files
  *
  * File format:
- * there are two files: 
+ * there are two files:
  *   1) definition file which has key code and command id definitions
  *   2) keymap file which has several key->command tables
  *
@@ -145,7 +145,7 @@ typedef LVRef<CRGUIAcceleratorTable> CRGUIAcceleratorTableRef;
  *   identifier=value
  *   where identifier is alphanumeric identifier to name value
  *   value is either decimal number, hex number with 0x prefix, or character in ''
- * example: 
+ * example:
  *
  * # this is sample definition file
  * XK_Return=0xFF01
@@ -521,6 +521,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         void closeWindow( CRGUIWindow * window )
         {
             int index = _windows.indexOf( window );
+            CRLog::trace("closing window with index=%d", index );
             if ( index >= 0 ) {
                 if ( window == _windows.peek() )
                     window->covered(); // send cover before close
@@ -607,6 +608,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         }
         virtual void closeAllWindows()
         {
+        	CRLog::info("WM::closeAllWindows() called, closing %d windows", _windows.length());
             for ( int i=_windows.length()-1; i>=0; i-- ) {
                 closeWindow(_windows[i]);
             }
