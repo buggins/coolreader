@@ -93,7 +93,8 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     : CRDocViewWindow(wm), _text(text), _showScroll( showScroll ), _showFrame( showFrame )
 {
     _passKeysToParent = _passCommandsToParent = false;
-    _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
+	if ( !_wm->getSkin().isNull() )
+		_skin = _wm->getSkin()->getWindowSkin(L"#dialog");
     setAccelerators( _wm->getAccTables().get("browse") );
     _title = title;
     lvRect fsRect = _wm->getScreen()->getRect();
@@ -260,6 +261,8 @@ bool CRViewDialog::onCommand( int command, int params )
 
 void CRViewDialog::draw()
 {
+	if ( _skin.isNull() )
+		return; // skin is not yet loaded
     CRRectSkinRef titleSkin = _skin->getTitleSkin();
     CRRectSkinRef clientSkin = _skin->getClientSkin();
     lvRect borders = clientSkin->getBorderWidths();

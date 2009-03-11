@@ -45,79 +45,6 @@
 
 DECL_DEF_CR_FONT_SIZES;
 
-const char * cr_default_skin =
-"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-"<CR3Skin>\n"
-"  <menu id=\"main\">\n"
-"        <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
-"        <background color=\"#AAAAAA\"/>\n"
-"        <border widths=\"0,8,8,8\"/>\n"
-"        <!--icon image=\"filename\" valign=\"\" halign=\"\"/-->\n"
-"        <title>\n"
-"            <size minvalue=\"32,0\" maxvalue=\"0,0\"/>\n"
-"            <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
-"            <background color=\"#AAAAAA\"/>\n"
-"            <border widths=\"4,4,4,4\"/>\n"
-"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
-"        </title>\n"
-"        <item>\n"
-"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
-"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"left\"/>\n"
-"            <background image=\"std_menu_item_background.xpm\" color=\"#FFFFFF\"/>\n"
-"            <border widths=\"6,6,6,6\"/>\n"
-"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
-"        </item>\n"
-"        <shortcut>\n"
-"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
-"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
-"            <background image=\"std_menu_shortcut_background.xpm\" color=\"#FFFFFF\"/>\n"
-"            <border widths=\"6,6,6,6\"/>\n"
-"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
-"        </shortcut>\n"
-"  </menu>\n"
-"  <menu id=\"settings\">\n"
-"        <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
-"        <background color=\"#AAAAAA\"/>\n"
-"        <border widths=\"8,8,8,8\"/>\n"
-"        <!--icon image=\"filename\" valign=\"\" halign=\"\"/-->\n"
-"        <title>\n"
-"            <size minvalue=\"0,40\" maxvalue=\"0,0\"/>\n"
-"            <text color=\"#000000\" face=\"Arial\" size=\"28\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
-"            <background color=\"#AAAAAA\"/>\n"
-"            <border widths=\"4,4,4,4\"/>\n"
-"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
-"        </title>\n"
-"        <item>\n"
-"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
-"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"left\"/>\n"
-"            <background image=\"std_menu_item_background.xpm\" color=\"#FFFFFF\"/>\n"
-"            <border widths=\"6,6,6,6\"/>\n"
-"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
-"        </item>\n"
-"        <shortcut>\n"
-"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
-"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
-"            <background image=\"std_menu_shortcut_background.xpm\" color=\"#FFFFFF\"/>\n"
-"            <border widths=\"6,6,6,6\"/>\n"
-"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
-"        </shortcut>\n"
-"  </menu>\n"
-"</CR3Skin>\n";
-
-
-bool V3DocViewWin::loadSkin( lString16 pathname )
-{
-    CRSkinRef skin;
-    if ( !pathname.empty() )
-        skin = LVOpenSkin( pathname );
-    if ( skin.isNull() ) {
-        skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );
-        _wm->setSkin( skin );
-        return false;
-    }
-    _wm->setSkin( skin );
-    return true;
-}
 
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
 : CRViewDialog ( wm, lString16(), lString8(), lvRect(), false, false ), _dataDir(dataDir)
@@ -759,5 +686,5 @@ bool V3DocViewWin::onCommand( int command, int params )
         // do nothing
         ;
     }
-    return CRDocViewWindow::onCommand( command, params );
+    return CRViewDialog::onCommand( command, params );
 }

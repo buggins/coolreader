@@ -91,7 +91,6 @@ public:
     bool loadDocument( lString16 filename );
     bool loadDefaultCover( lString16 filename );
     bool loadCSS( lString16 filename );
-    bool loadSkin( lString16 pathname );
     bool loadSettings( lString16 filename );
     bool saveSettings( lString16 filename );
     bool loadHistory( lString16 filename );
