@@ -22,15 +22,6 @@
 
 #include "mainwnd.h"
 
-#ifdef _WIN32
-#define DICTD_CONF "C:\\dict\\"
-#else
-#ifdef CR_USE_JINKE
-#define DICTD_CONF "/root/abook/dict"
-#else
-#define DICTD_CONF "/media/sd/dict"
-#endif
-#endif
 
 #include <cri18n.h>
 
@@ -129,7 +120,7 @@ bool V3DocViewWin::loadSkin( lString16 pathname )
 }
 
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
-: CRDocViewWindow ( wm ), _dataDir(dataDir) //defT9encoding)
+: CRViewDialog ( wm, lString16(), lString8(), lvRect(), false, false ), _dataDir(dataDir)
 {
     CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
@@ -137,12 +128,12 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     _props = LVCreatePropsContainer();
     _newProps = _props;
     // TODO: move skin outside
-    lString16 skinfile = _dataDir;
-    LVAppendPathDelimiter( skinfile );
-    skinfile << L"skin";
-    lString8 s8 = UnicodeToLocal( skinfile );
-    CRLog::debug("Skin file is %s", s8.c_str() );
-    loadSkin( skinfile );
+    //lString16 skinfile = _dataDir;
+    //LVAppendPathDelimiter( skinfile );
+    //skinfile << L"skin";
+    //lString8 s8 = UnicodeToLocal( skinfile );
+    //CRLog::debug("Skin file is %s", s8.c_str() );
+    //loadSkin( skinfile );
 
 
     LVRefVec<LVImageSource> icons;
@@ -322,6 +313,7 @@ bool V3DocViewWin::loadHistory( lString16 filename )
 void V3DocViewWin::closing()
 {
 	CRLog::trace("V3DocViewWin::closing()");
+	_dict = NULL;
     _docview->savePosition();
     saveHistory( lString16() );
 }
@@ -584,62 +576,6 @@ VIEWER_MENU_4ABOUT=About...
     _wm->activateWindow( menu_win );
 }
 
-void V3DocViewWin::showGoToPageDialog()
-{
-    LVTocItem * toc = _docview->getToc();
-    CRNumberEditDialog * dlg;
-    if ( toc && toc->getChildCount()>0 ) {
-        dlg = new CRTOCDialog( _wm,
-            lString16( _("Table of contents") ),
-            MCMD_GO_PAGE_APPLY,  _docview->getPageCount(), _docview );
-    } else {
-        dlg = new CRNumberEditDialog( _wm,
-            lString16( _("Enter page number") ),
-            lString16(),
-            MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
-    }
-    dlg->setAccelerators( getDialogAccelerators() );
-    _wm->activateWindow( dlg );
-}
-
-void V3DocViewWin::showSearchDialog()
-{
-    lvRect rc = _wm->getScreen()->getRect();
-    int h_margin = rc.width() / 12;
-    int v_margin = rc.height() / 12;
-    rc.left += h_margin;
-    rc.right -= h_margin;
-    rc.bottom -= v_margin;
-    rc.top += rc.height() / 2;
-    _searchPattern.clear();
-    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDFIRST, _16("Search"), _searchPattern, rc );
-    _wm->activateWindow( dlg );
-}
-
-void V3DocViewWin::showDictWithVKeyboard()
-{
-    lvRect rc = _wm->getScreen()->getRect();
-    int h_margin = rc.width() / 12;
-    int v_margin = rc.height() / 12;
-    rc.left += h_margin;
-    rc.right -= h_margin;
-    rc.bottom -= v_margin;
-    rc.top += rc.height() / 2;
-    _searchPattern.clear();
-    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_DICT_FIND, _16("Find in dictionary"), _searchPattern, rc );
-    _wm->activateWindow( dlg );
-}
-
-bool V3DocViewWin::showLinksDialog()
-{
-    CRLinksDialog * dlg = CRLinksDialog::create( _wm, this );
-    if ( !dlg )
-        return false;
-    dlg->setAccelerators( getMenuAccelerators() );
-    _wm->activateWindow( dlg );
-    return true;
-}
-
 void addPropLine( lString8 & buf, const char * description, const lString16 & value )
 {
     if ( !value.empty() ) {
@@ -773,31 +709,6 @@ void V3DocViewWin::showAboutDialog()
     _wm->activateWindow( dlg );
 }
 
-bool V3DocViewWin::findInDictionary( lString16 pattern )
-{
-    if ( _dict.isNull() )
-        _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
-	lString8 body = _dict->translate( UnicodeToUtf8( pattern ) );
-    lString8 txt = CRViewDialog::makeFb2Xml( body );
-    CRViewDialog * dlg = new CRViewDialog( _wm, pattern, txt, lvRect(), true, true );
-    _wm->activateWindow( dlg );
-	return true;
-}
-
-bool V3DocViewWin::findText( lString16 pattern )
-{
-    if ( pattern.empty() )
-        return false;
-    LVArray<ldomWord> words;
-    if ( _docview->getDocument()->findText( pattern, true, -1, -1, words, 2000 ) ) {
-        _docview->selectWords( words );
-        CRSelNavigationDialog * dlg = new CRSelNavigationDialog( _wm, this );
-        _wm->activateWindow( dlg );
-        return true;
-    }
-    return false;
-}
-
 /// returns true if command is processed
 bool V3DocViewWin::onCommand( int command, int params )
 {
@@ -814,12 +725,6 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_SETTINGS_ORIENTATION:
         showOrientationMenu();
         return true;
-    case MCMD_GO_PAGE:
-        showGoToPageDialog();
-        return true;
-    case MCMD_GO_LINK:
-        showLinksDialog();
-        return true;
     case MCMD_SETTINGS:
         showSettingsMenu();
         return true;
@@ -832,29 +737,6 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
 #endif
 
-#ifdef WITH_DICT
-
-
-    case MCMD_DICT:
-		showT9Keyboard( _wm, this, MCMD_DICT_FIND, _searchPattern );
-        return true;
-	case MCMD_DICT_VKEYBOARD:
-		showDictWithVKeyboard();
-		return true;
-	case MCMD_DICT_FIND:
-        if ( !_searchPattern.empty() && params ) {
-            findInDictionary( _searchPattern );
-        }
-        return true;
-#endif
-    case MCMD_SEARCH:
-        showSearchDialog();
-        return true;
-    case MCMD_SEARCH_FINDFIRST:
-        if ( !_searchPattern.empty() && params ) {
-            findText( _searchPattern );
-        }
-        return true;
     case MCMD_ABOUT:
         showAboutDialog();
         return true;

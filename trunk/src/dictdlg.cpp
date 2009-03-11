@@ -71,15 +71,13 @@ lString8 CRTinyDict::translate(const lString8 & w)
     lString8 body;
     TinyDictResultList results;
     if ( dicts.length() == 0 ) {
+    	// should not happen
         body << "<title><p>No dictionaries found</p></title>";
-        body << "<p>Place dictionaries to directory 'dict' of SD card.</p>";
-        body << "<p>Dictionaries in standard unix .dict format are supported.</p>";
-        body << "<p>For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension</p>";
     } else if ( dicts.find(results, word.c_str(), TINY_DICT_OPTION_STARTS_WITH ) ) {
         for ( int d = 0; d<results.length(); d++ ) {
             TinyDictWordList * words = results.get(d);
             if ( words->length()>0 )
-                body << "<title><p>From dictionary " << words->getDictionaryName() << ":</p></title>";
+                body << "<title><p>" << _("From dictionary ") << words->getDictionaryName() << ":</p></title>";
             // for each found word
             for ( int i=0; i<words->length(); i++ ) {
                 //TinyDictWord * word = words->get(i);
@@ -99,7 +97,7 @@ lString8 CRTinyDict::translate(const lString8 & w)
         body << "<title><p>Article for word " << word << " not found</p></title>";
     }
 
-    return CRViewDialog::makeFb2Xml( body );
+    return body;
 }
 
 
@@ -227,9 +225,9 @@ class selector {
 public:
 	void reinit() { words_.init(); candidates_.clear(); }
     lString8 getPrefix() { return prefix_; }
-    selector(LVDocView& docview, const TEncoding& encoding) : 
-        words_(docview, encoding), 
-        current_(0), 
+    selector(LVDocView& docview, const TEncoding& encoding) :
+        words_(docview, encoding),
+        current_(0),
         level_(0),
         candidates_(),
         prefix_(),

@@ -1,7 +1,7 @@
 //
 // C++ Implementation: links navigation dialog
 //
-// Description: 
+// Description:
 //      Allows to select link from current page, and go to it.
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
@@ -11,6 +11,7 @@
 //
 
 #include "linksdlg.h"
+#include "mainwnd.h"
 
 static const char * link_back_active[] = {
     "30 27 5 1",
@@ -177,7 +178,7 @@ void CRLinksDialog::draw()
     }
 }
 
-CRLinksDialog * CRLinksDialog::create( CRGUIWindowManager * wm, V3DocViewWin * docwin )
+CRLinksDialog * CRLinksDialog::create( CRGUIWindowManager * wm, CRViewDialog * docwin )
 {
     ldomXRangeList list;
     docwin->getDocView()->getCurrentPageLinks( list );
@@ -190,7 +191,7 @@ CRLinksDialog * CRLinksDialog::create( CRGUIWindowManager * wm, V3DocViewWin * d
     return new CRLinksDialog( wm, docwin );
 }
 
-CRLinksDialog::CRLinksDialog( CRGUIWindowManager * wm, V3DocViewWin * docwin )
+CRLinksDialog::CRLinksDialog( CRGUIWindowManager * wm, CRViewDialog * docwin )
 : CRGUIWindowBase( wm ), _docwin(docwin), _docview(docwin->getDocView())
 {
     _invalidateRect.left = 0;
@@ -208,7 +209,7 @@ CRLinksDialog::CRLinksDialog( CRGUIWindowManager * wm, V3DocViewWin * docwin )
         _additionalButtons[_addButtonCount++] = BACK;
     if ( _fwdSize )
         _additionalButtons[_addButtonCount++] = FORWARD;
-    
+
     CRLog::debug("LinksDialog: creating icons");
     _activeIcons[FORWARD] = LVCreateXPMImageSource( link_forward_active );
     _activeIcons[BACK] = LVCreateXPMImageSource( link_back_active );

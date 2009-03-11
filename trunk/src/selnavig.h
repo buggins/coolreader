@@ -1,7 +1,7 @@
 //
 // C++ Interface: selection navigation dialog
 //
-// Description: 
+// Description:
 //
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
@@ -22,7 +22,7 @@ protected:
     int _curIndex;
     void moveBy( int delta );
 public:
-    CRSelNavigationDialog(  CRGUIWindowManager * wm, V3DocViewWin * mainwin );
+    CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin );
 
     /// returns true if command is processed
     virtual bool onCommand( int command, int params );

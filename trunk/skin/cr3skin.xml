@@ -50,7 +50,7 @@
         <border widths="26,8,8,8"/>
         <!--icon image="filename" valign="" halign=""/-->
         <client>
-            <text color="#000000" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
+            <text color="#000000" face="DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
             <background image="cr3_menu_item.png" color="#FFFFFF"/>
         </client>
         <title>

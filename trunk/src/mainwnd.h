@@ -23,10 +23,7 @@
 #endif
 
 
-#ifdef WITH_DICT
-#include "dictdlg.h"
-#endif
-
+#include "viewdlg.h"
 
 #ifdef _WIN32
 #define XK_Return   0xFF0D
@@ -79,7 +76,7 @@ enum CRMainMenuCmd
     MCMD_KBD_PREVLAYOUT,
 };
 
-class V3DocViewWin : public CRDocViewWindow
+class V3DocViewWin : public CRViewDialog
 {
 protected:
     CRPropRef _props;
@@ -89,8 +86,6 @@ protected:
     lString16 _historyFileName;
     lString8  _css;
     lString16 _dictConfig;
-    lString16 _searchPattern;
-	LVRef<CRDictionary> _dict;
 public:
     virtual void flush(); // override
     bool loadDocument( lString16 filename );
@@ -104,14 +99,6 @@ public:
     bool loadHistory( LVStreamRef stream );
     bool saveHistory( LVStreamRef stream );
     bool loadDictConfig( lString16 filename );
-    CRGUIAcceleratorTableRef getMenuAccelerators()
-    {
-        return  _wm->getAccTables().get("menu");
-    }
-    CRGUIAcceleratorTableRef getDialogAccelerators()
-    {
-        return  _wm->getAccTables().get("dialog");
-    }
 
     /// returns current properties
     CRPropRef getProps() { return _props; }
@@ -135,10 +122,6 @@ public:
 
     void showMainMenu();
 
-    void showGoToPageDialog();
-
-    bool showLinksDialog();
-
     void showBookmarksMenu();
 
     void showRecentBooksMenu();
@@ -146,14 +129,6 @@ public:
     void openRecentBook( int index );
 
     void showAboutDialog();
-
-    void showSearchDialog();
-
-	void showDictWithVKeyboard();
-
-    bool findText( lString16 pattern );
-
-	bool findInDictionary( lString16 pattern );
 
     virtual bool onCommand( int command, int params );
 

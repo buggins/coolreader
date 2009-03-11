@@ -1,7 +1,7 @@
 //
 // C++ Interface: links navigation dialog
 //
-// Description: 
+// Description:
 //
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
@@ -13,7 +13,7 @@
 #ifndef LINKSDLG_H_INCLUDED
 #define LINKSDLG_H_INCLUDED
 
-#include "mainwnd.h"
+#include "viewdlg.h"
 
 
 class CRLinksDialog : public CRGUIWindowBase
@@ -25,7 +25,7 @@ class CRLinksDialog : public CRGUIWindowBase
     };
     protected:
         int _cursorPos;
-        V3DocViewWin * _docwin;
+        CRViewDialog * _docwin;
         LVDocView * _docview;
         lvRect _invalidateRect;
         int _additionalButtons[2];
@@ -43,8 +43,8 @@ class CRLinksDialog : public CRGUIWindowBase
         virtual void Update();
         virtual void draw();
     public:
-        static CRLinksDialog * create( CRGUIWindowManager * wm, V3DocViewWin * docwin );
-        CRLinksDialog( CRGUIWindowManager * wm, V3DocViewWin * docwin );
+        static CRLinksDialog * create( CRGUIWindowManager * wm, CRViewDialog * docwin );
+        CRLinksDialog( CRGUIWindowManager * wm, CRViewDialog * docwin );
         virtual ~CRLinksDialog() { }
         /// returns true if command is processed
         virtual bool onCommand( int command, int params );

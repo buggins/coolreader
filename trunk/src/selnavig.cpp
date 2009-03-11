@@ -1,7 +1,7 @@
 //
 // C++ Implementation: selection navigation dialog
 //
-// Description: 
+// Description:
 //      Shows keyboard, and allows to input text string
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2009
@@ -27,7 +27,7 @@ void CRSelNavigationDialog::moveBy( int delta )
     }
 }
 
-CRSelNavigationDialog::CRSelNavigationDialog(  CRGUIWindowManager * wm, V3DocViewWin * mainwin )
+CRSelNavigationDialog::CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin )
 : BackgroundFitWindow(  wm, mainwin )
 {
     _rect = _wm->getScreen()->getRect();

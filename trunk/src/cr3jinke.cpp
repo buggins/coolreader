@@ -363,6 +363,12 @@ int OnStatusInfoChange( status_info_t * statusInfo, myRECT * rectToUpdate )
     CRLog::trace("OnStatusInfoChange(bookmarks=%x, battery=%d)", statusInfo->bookmarkLabelFlags, statusInfo->batteryState);
     if ( !bookmarkChanged && !batteryChanged )
         return 0;
+    if ( batteryChanged && main_win!=NULL ) {
+        LVDocView * _docview = main_win->getDocView();
+        _docview->setBatteryState( ::getBatteryState() );
+        main_win->setDirty();
+        main_win->getWindowManager()->update( false );
+    }
     // Return 0 always, ignore Jinke status
     return 0;
 }
@@ -484,9 +490,9 @@ int InitDoc(char *fileName)
         //main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
 
         const char * keymap_locations [] = {
-            "/root/abook/crengine/",
-            "/home/crengine/",
             "/root/crengine/",
+            "/home/crengine/",
+            "/root/abook/crengine/",
             NULL,
         };
         loadKeymaps( *wm, keymap_locations );
@@ -531,6 +537,8 @@ int InitDoc(char *fileName)
     }
 #endif
 
+		LVDocView * _docview = main_win->getDocView();
+		_docview->setBatteryState( ::getBatteryState() );
         wm->activateWindow( main_win );
         if ( !main_win->loadDocument( lString16(fileName) ) ) {
             printf("Cannot open book file %s\n", fileName);

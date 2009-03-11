@@ -1,7 +1,7 @@
 //
 // C++ Interface: document view dialog
 //
-// Description: 
+// Description:
 //
 //
 // Author: Vadim Lopatin <vadim.lopatin@coolreader.org>, (C) 2008
@@ -12,7 +12,11 @@
 #ifndef VIEWDLG_H_INCLUDED
 #define VIEWDLG_H_INCLUDED
 
-#include "mainwnd.h"
+#include <crgui.h>
+//#ifdef WITH_DICT
+#include "dictdlg.h"
+//#endif
+
 
 
 class CRViewDialog : public  CRDocViewWindow {
@@ -23,8 +27,33 @@ protected:
     bool _showFrame;
     lvRect _scrollRect;
     lvRect _clientRect;
+    lString16 _searchPattern;
+	static LVRef<CRDictionary> _dict;
     virtual void draw();
 public:
+    CRGUIAcceleratorTableRef getMenuAccelerators()
+    {
+        return  _wm->getAccTables().get("menu");
+    }
+    CRGUIAcceleratorTableRef getDialogAccelerators()
+    {
+        return  _wm->getAccTables().get("dialog");
+    }
+
+    void showGoToPageDialog();
+
+    bool showLinksDialog();
+    /// returns true if dictionaries found, shows warning window otherwise
+    bool hasDictionaries();
+
+    void showSearchDialog();
+
+	void showDictWithVKeyboard();
+
+    bool findText( lString16 pattern );
+
+	bool findInDictionary( lString16 pattern );
+
     /// adds XML and FictionBook tags for utf8 fb2 document
     static lString8 makeFb2Xml( const lString8 & body );
     virtual void setRect( const lvRect & rc );

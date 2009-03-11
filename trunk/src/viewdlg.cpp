@@ -11,6 +11,31 @@
 // viewdlg.cpp
 
 #include "viewdlg.h"
+#include "mainwnd.h"
+
+#ifdef WITH_DICT
+#include "dictdlg.h"
+#endif
+#include "viewdlg.h"
+#include "scrkbd.h"
+#include "numedit.h"
+#include "linksdlg.h"
+#include "tocdlg.h"
+#include <cri18n.h>
+#include "selnavig.h"
+
+
+#ifdef _WIN32
+#define DICTD_CONF "C:\\dict\\"
+#else
+#ifdef CR_USE_JINKE
+#define DICTD_CONF "/root/abook/dict"
+#else
+#define DICTD_CONF "/media/sd/dict"
+#endif
+#endif
+
+LVRef<CRDictionary> CRViewDialog::_dict;
 
 /// adds XML and FictionBook tags for utf8 fb2 document
 lString8 CRViewDialog::makeFb2Xml( const lString8 & body )
@@ -68,7 +93,6 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     : CRDocViewWindow(wm), _text(text), _showScroll( showScroll ), _showFrame( showFrame )
 {
     _passKeysToParent = _passCommandsToParent = false;
-    _stream = LVCreateStringStream( text );
     _skin = _wm->getSkin()->getWindowSkin(L"#dialog");
     setAccelerators( _wm->getAccTables().get("browse") );
     _title = title;
@@ -80,8 +104,6 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     } else {
         _fullscreen = (rect == fsRect);
     }
-    //setRect( rect );
-    //_clientRect = rect;
     getDocView()->setStyleSheet( lString8(def_view_css) );
     getDocView()->setBackgroundColor(0xFFFFFF);
     getDocView()->setTextColor(0x000000);
@@ -89,16 +111,148 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     getDocView()->setShowCover( false );
     getDocView()->setPageHeaderInfo( 0 ); // hide title bar
     getDocView()->setPageMargins( lvRect(8,8,8,8) );
-    getDocView()->LoadDocument(_stream);
     setRect( rect );
+    if ( !text.empty() ) {
+		_stream = LVCreateStringStream( text );
+		getDocView()->LoadDocument(_stream);
+    }
+}
+
+bool CRViewDialog::hasDictionaries()
+{
+    if ( _dict.isNull() )
+        _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
+    if ( !_dict->empty() ) {
+    	return true;
+    }
+	// show warning
+	lString8 body;
+	body << "<title><p>" << _("No dictionaries found") << "</p></title>";
+	body << "<p>" << _("Place dictionaries to directory 'dict' of SD card.") << "</p>";
+	body << "<p>" << _("Dictionaries in standard unix .dict format are supported.") << "</p>";
+	body << "<p>" << _("For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension") << "</p>";
+	lString8 xml = CRViewDialog::makeFb2Xml( body );
+	CRViewDialog * dlg = new CRViewDialog( _wm, _16("Dictionary"), xml, lvRect(), true, true );
+	_wm->activateWindow( dlg );
+	return false;
+}
+
+void CRViewDialog::showGoToPageDialog()
+{
+    LVTocItem * toc = _docview->getToc();
+    CRNumberEditDialog * dlg;
+    if ( toc && toc->getChildCount()>0 ) {
+        dlg = new CRTOCDialog( _wm,
+            lString16( _("Table of contents") ),
+            MCMD_GO_PAGE_APPLY,  _docview->getPageCount(), _docview );
+    } else {
+        dlg = new CRNumberEditDialog( _wm,
+            lString16( _("Enter page number") ),
+            lString16(),
+            MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
+    }
+    dlg->setAccelerators( getDialogAccelerators() );
+    _wm->activateWindow( dlg );
+}
+
+bool CRViewDialog::showLinksDialog()
+{
+    CRLinksDialog * dlg = CRLinksDialog::create( _wm, this );
+    if ( !dlg )
+        return false;
+    dlg->setAccelerators( getMenuAccelerators() );
+    _wm->activateWindow( dlg );
+    return true;
+}
+
+void CRViewDialog::showSearchDialog()
+{
+    lvRect rc = _wm->getScreen()->getRect();
+    int h_margin = rc.width() / 12;
+    int v_margin = rc.height() / 12;
+    rc.left += h_margin;
+    rc.right -= h_margin;
+    rc.bottom -= v_margin;
+    rc.top += rc.height() / 2;
+    _searchPattern.clear();
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDFIRST, _16("Search"), _searchPattern, rc );
+    _wm->activateWindow( dlg );
+}
+
+bool CRViewDialog::findInDictionary( lString16 pattern )
+{
+    if ( _dict.isNull() )
+        _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
+	lString8 body = _dict->translate( UnicodeToUtf8( pattern ) );
+    lString8 txt = CRViewDialog::makeFb2Xml( body );
+    CRViewDialog * dlg = new CRViewDialog( _wm, pattern, txt, lvRect(), true, true );
+    _wm->activateWindow( dlg );
+	return true;
+}
+
+bool CRViewDialog::findText( lString16 pattern )
+{
+    if ( pattern.empty() )
+        return false;
+    LVArray<ldomWord> words;
+    if ( _docview->getDocument()->findText( pattern, true, -1, -1, words, 2000 ) ) {
+        _docview->selectWords( words );
+        CRSelNavigationDialog * dlg = new CRSelNavigationDialog( _wm, this );
+        _wm->activateWindow( dlg );
+        return true;
+    }
+    return false;
+}
+
+void CRViewDialog::showDictWithVKeyboard()
+{
+    lvRect rc = _wm->getScreen()->getRect();
+    int h_margin = rc.width() / 12;
+    int v_margin = rc.height() / 12;
+    rc.left += h_margin;
+    rc.right -= h_margin;
+    rc.bottom -= v_margin;
+    rc.top += rc.height() / 2;
+    _searchPattern.clear();
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_DICT_FIND, _16("Find in dictionary"), _searchPattern, rc );
+    _wm->activateWindow( dlg );
 }
 
 bool CRViewDialog::onCommand( int command, int params )
 {
     switch ( command ) {
+	#ifdef WITH_DICT
+		case MCMD_DICT:
+			if ( hasDictionaries() )
+				showT9Keyboard( _wm, this, MCMD_DICT_FIND, _searchPattern );
+			return true;
+		case MCMD_DICT_VKEYBOARD:
+			if ( hasDictionaries() )
+				showDictWithVKeyboard();
+			return true;
+		case MCMD_DICT_FIND:
+			if ( !_searchPattern.empty() && params ) {
+				findInDictionary( _searchPattern );
+			}
+			return true;
+	#endif
+		case MCMD_SEARCH:
+			showSearchDialog();
+			return true;
+		case MCMD_SEARCH_FINDFIRST:
+			if ( !_searchPattern.empty() && params ) {
+				findText( _searchPattern );
+			}
+			return true;
         case MCMD_CANCEL:
         case MCMD_OK:
             _wm->closeWindow( this );
+            return true;
+        case MCMD_GO_PAGE:
+            showGoToPageDialog();
+            return true;
+        case MCMD_GO_LINK:
+            showLinksDialog();
             return true;
     }
     return CRDocViewWindow::onCommand( command, params );

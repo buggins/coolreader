@@ -11,6 +11,7 @@
 class CRDictionary
 {
 public:
+    virtual bool empty() = 0;
 	virtual lString8 translate(const lString8 & w) = 0;
 	virtual ~CRDictionary() { }
 };
@@ -24,6 +25,7 @@ public:
 	CRTinyDict( const lString16& config );
 	virtual ~CRTinyDict() { }
     virtual lString8 translate(const lString8 & w);
+    virtual bool empty() { return dicts.length()==0; }
 };
 
 
