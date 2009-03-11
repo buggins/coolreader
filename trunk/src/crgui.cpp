@@ -23,6 +23,81 @@
 #define DEF_FONT_SIZE 22
 #define DEF_TITLE_FONT_SIZE 28
 
+
+const char * cr_default_skin =
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+"<CR3Skin>\n"
+"  <menu id=\"main\">\n"
+"        <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
+"        <background color=\"#AAAAAA\"/>\n"
+"        <border widths=\"0,8,8,8\"/>\n"
+"        <!--icon image=\"filename\" valign=\"\" halign=\"\"/-->\n"
+"        <title>\n"
+"            <size minvalue=\"32,0\" maxvalue=\"0,0\"/>\n"
+"            <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
+"            <background color=\"#AAAAAA\"/>\n"
+"            <border widths=\"4,4,4,4\"/>\n"
+"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
+"        </title>\n"
+"        <item>\n"
+"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
+"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"left\"/>\n"
+"            <background image=\"std_menu_item_background.xpm\" color=\"#FFFFFF\"/>\n"
+"            <border widths=\"6,6,6,6\"/>\n"
+"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
+"        </item>\n"
+"        <shortcut>\n"
+"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
+"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
+"            <background image=\"std_menu_shortcut_background.xpm\" color=\"#FFFFFF\"/>\n"
+"            <border widths=\"6,6,6,6\"/>\n"
+"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
+"        </shortcut>\n"
+"  </menu>\n"
+"  <menu id=\"settings\">\n"
+"        <text color=\"#000000\" face=\"Arial\" size=\"25\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
+"        <background color=\"#AAAAAA\"/>\n"
+"        <border widths=\"8,8,8,8\"/>\n"
+"        <!--icon image=\"filename\" valign=\"\" halign=\"\"/-->\n"
+"        <title>\n"
+"            <size minvalue=\"0,40\" maxvalue=\"0,0\"/>\n"
+"            <text color=\"#000000\" face=\"Arial\" size=\"28\" bold=\"true\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
+"            <background color=\"#AAAAAA\"/>\n"
+"            <border widths=\"4,4,4,4\"/>\n"
+"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
+"        </title>\n"
+"        <item>\n"
+"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
+"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"left\"/>\n"
+"            <background image=\"std_menu_item_background.xpm\" color=\"#FFFFFF\"/>\n"
+"            <border widths=\"6,6,6,6\"/>\n"
+"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
+"        </item>\n"
+"        <shortcut>\n"
+"            <size minvalue=\"48,48\" maxvalue=\"0,0\"/>\n"
+"            <text color=\"#000000\" face=\"Arial\" size=\"24\" bold=\"false\" italic=\"false\" valign=\"center\" halign=\"center\"/>\n"
+"            <background image=\"std_menu_shortcut_background.xpm\" color=\"#FFFFFF\"/>\n"
+"            <border widths=\"6,6,6,6\"/>\n"
+"            <!--icon image=\"filename\" valign=\"\" halign=\"\"-->\n"
+"        </shortcut>\n"
+"  </menu>\n"
+"</CR3Skin>\n";
+
+bool CRGUIWindowManager::loadSkin( lString16 pathname )
+{
+    CRSkinRef skin;
+    if ( !pathname.empty() )
+        skin = LVOpenSkin( pathname );
+    if ( skin.isNull() ) {
+        skin = LVOpenSimpleSkin( lString8( cr_default_skin ) );
+        setSkin( skin );
+        return false;
+    }
+    setSkin( skin );
+    return true;
+}
+
+
 /// add all items from another table
 void CRGUIAcceleratorTable::addAll( const CRGUIAcceleratorTable & v )
 {
