@@ -497,6 +497,10 @@ int InitDoc(char *fileName)
         };
         loadKeymaps( *wm, keymap_locations );
 
+        if ( !wm->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
+        	if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
+        		wm->loadSkin( lString16( L"/root/crengine/skin" ) );
+
         CRLog::trace("creating main window...");
         main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );
         CRLog::trace("setting colors...");
@@ -509,10 +513,6 @@ int InitDoc(char *fileName)
         if ( !main_win->loadCSS(  lString16( L"/root/abook/crengine/" ) + lString16(css_file_name) ) )
         	if ( !main_win->loadCSS(  lString16( L"/home/crengine/" ) + lString16(css_file_name) ) )
             	main_win->loadCSS( lString16( L"/root/crengine/" ) + lString16(css_file_name) );
-        if ( !main_win->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
-        	if ( !main_win->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
-            	main_win->loadSkin( lString16( L"/root/crengine/skin" ) );
-
 
         CRLog::trace("choosing init file...");
         static const lChar16 * dirs[] = {

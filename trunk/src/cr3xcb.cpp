@@ -496,6 +496,9 @@ int main(int argc, char **argv)
         };
         loadKeymaps( winman, keymap_locations );
 
+        if ( !winman.loadSkin(  homecrengine + L"skin" ) )
+            if ( !winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
+            	winman.loadSkin( lString16( L"/usr/share/crengine/skin" ) );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
@@ -506,9 +509,6 @@ int main(int argc, char **argv)
         if ( !main_win->loadCSS(  lString16( L"/media/sd/crengine/fb2.css" ) ) )
             main_win->loadCSS( lString16( L"/usr/share/crengine/fb2.css" ) );
 
-        if ( !main_win->loadSkin(  homecrengine + L"skin" ) )
-            if ( !main_win->loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
-                main_win->loadSkin( lString16( L"/usr/share/crengine/skin" ) );
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
             main_win->loadDictConfig( lString16( L"/usr/share/crengine/dict/dictd.conf" ) );
 
@@ -555,7 +555,7 @@ int main(int argc, char **argv)
 #if 0
         static const int acc_table[] = {
             XK_Escape, 0, MCMD_QUIT, 0,
-            XK_Return, 0, MCMD_MAIN_MENU, 0, 
+            XK_Return, 0, MCMD_MAIN_MENU, 0,
             '0', 0, DCMD_PAGEDOWN, 0,
             XK_Down, 0, DCMD_PAGEDOWN, 0,
             '9', 0, DCMD_PAGEUP, 0,
