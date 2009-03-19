@@ -450,7 +450,7 @@ VIEWER_MENU_4ABOUT=About...
 */
     menu_win->setSkinName(lString16(L"#main"));
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_ABOUT,
-                _("About..."),
+                _("About"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #if 0
@@ -460,7 +460,7 @@ VIEWER_MENU_4ABOUT=About...
                 LVFontRef() ) );
 #endif
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
-                _("Go to page ..."),
+                _("Go to page"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #if 0
@@ -472,31 +472,31 @@ VIEWER_MENU_4ABOUT=About...
 
 #if USE_JINKE_USER_DATA!=1
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_RECENT_BOOK_LIST,
-                _("Open recent book..."),
+                _("Open recent book"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
 
 #ifdef WITH_DICT
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
-                _("Dictionary..."),
+                _("Dictionary"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
 #endif
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_CITE,
-                _("Cite.."),
+                _("Cite"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_BOOKMARK_LIST,
-                _("Bookmarks..."),
+                _("Bookmarks"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_SEARCH,
-                _("Search..."),
+                _("Search"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
     menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
-                _("Settings..."),
+                _("Settings"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
     menu_win->setAccelerators( getMenuAccelerators() );
@@ -574,6 +574,11 @@ lString16 getDocAuthors( ldomDocument * doc, const char * path, const char * del
     return res;
 }
 
+static void addInfoSection( lString8 & buf, lString8 data, const char * caption )
+{
+    if ( !data.empty() )
+        buf << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">" << caption << "</td></tr>" << data;
+}
 
 void V3DocViewWin::showAboutDialog()
 {
@@ -604,8 +609,7 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( bookInfo, _("Date"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/date", ", " ) );
     addPropLine( bookInfo, _("Genres"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/genre", ", " ) );
     addPropLine( bookInfo, _("Translator"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/translator", ", " ) );
-    if ( !bookInfo.empty() )
-        txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">Book info</td></tr>" << bookInfo;
+    addInfoSection( txt, bookInfo, _("Book info") )
 
     lString8 docInfo;
     addPropLine( docInfo, _("Document author"), getDocAuthors( getDocView()->getDocument(), "/FictionBook/description/document-info/author", " " ) );
@@ -613,8 +617,7 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( docInfo, _("Document source URL"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-url", " " ) );
     addPropLine( docInfo, _("OCR by"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-ocr", " " ) );
     addPropLine( docInfo, _("Document version"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/version", " " ) );
-    if ( !docInfo.empty() )
-        txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">Document info</td></tr>" << docInfo;
+    addInfoSection( txt, docInfo, _("Document info") )
 
     lString8 pubInfo;
     addPropLine( pubInfo, _("Publication name"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/book-name", " " ) );
@@ -622,8 +625,7 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( pubInfo, _("Publisher city"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/city", " " ) );
     addPropLine( pubInfo, _("Publication year"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/year", " " ) );
     addPropLine( pubInfo, _("ISBN"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/isbn", " " ) );
-    if ( !pubInfo.empty() )
-        txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">Publication info</td></tr>" << pubInfo;
+    addInfoSection( txt, pubInfo, _("Publication info") )
 
     addPropLine( txt, _("Custom info"), getDocText( getDocView()->getDocument(), "/FictionBook/description/custom-info", " " ) );
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-08 20:29+0300\n"
+"POT-Creation-Date: 2009-03-19 22:48+0300\n"
 "PO-Revision-Date: 2009-03-10 15:32+0200\n"
 "Last-Translator: Boris Iefimenko <boris.iefimenko@gmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -20,13 +20,17 @@ msgstr ""
 msgid "Empty slot"
 msgstr "Немає закладок"
 
-#: src/bmkdlg.cpp:58
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:491
 msgid "Bookmarks"
 msgstr "Закладки"
 
 #: src/bmkdlg.cpp:77
 msgid "Long press 1..8 = set, short press = go to"
-msgstr "Довге натискання 1..8 - встановити, швидке - відкрити"
+msgstr "Довге натискання 1..8 - додати, швидке - відкрити"
+
+#: src/citedlg.cpp:27
+msgid "Select text"
+msgstr ""
 
 #: src/cr3xcb.cpp:426 src/settings.cpp:92 src/settings.cpp:98
 #: src/settings.cpp:104 src/settings.cpp:110 src/settings.cpp:116
@@ -34,7 +38,7 @@ msgstr "Довге натискання 1..8 - встановити, швидк�
 msgid "On"
 msgstr "Увімк."
 
-#: src/cr3xcb.cpp:427 src/mainwnd.cpp:453
+#: src/cr3xcb.cpp:427
 msgid "About..."
 msgstr "Інформація"
 
@@ -50,141 +54,149 @@ msgstr "[неможливо відкрити файл]"
 msgid "Main Menu"
 msgstr "Головне меню"
 
+#: src/mainwnd.cpp:453
+msgid "About"
+msgstr "Інформація"
+
 #: src/mainwnd.cpp:463
-msgid "Go to page ..."
+msgid "Go to page"
 msgstr "Перейти на сторінку"
 
-#: src/mainwnd.cpp:475
-msgid "Open recent book..."
+#: src/mainwnd.cpp:475 src/recentdlg.cpp:70
+msgid "Open recent book"
 msgstr "Відкрити останню книгу"
 
-#: src/mainwnd.cpp:482
-msgid "Dictionary..."
+#: src/mainwnd.cpp:482 src/viewdlg.cpp:136
+msgid "Dictionary"
 msgstr "Словник"
 
 #: src/mainwnd.cpp:487
-msgid "Cite.."
+msgid "Cite"
 msgstr "Цитати"
 
-#: src/mainwnd.cpp:491
-msgid "Bookmarks..."
-msgstr "Закладки..."
+#: src/mainwnd.cpp:495 src/viewdlg.cpp:179
+msgid "Search"
+msgstr "Пошук"
 
-#: src/mainwnd.cpp:495
-msgid "Search..."
-msgstr "Пошук..."
+#: src/mainwnd.cpp:499 src/settings.cpp:77
+msgid "Settings"
+msgstr "Налаштування"
 
-#: src/mainwnd.cpp:499
-msgid "Settings..."
-msgstr "Налаштування..."
-
-#: src/mainwnd.cpp:591
+#: src/mainwnd.cpp:596
 msgid "Archive name"
 msgstr "Ім'я архіву"
 
-#: src/mainwnd.cpp:592
+#: src/mainwnd.cpp:597
 msgid "Archive path"
 msgstr "Шлях до архіву"
 
-#: src/mainwnd.cpp:593
+#: src/mainwnd.cpp:598
 msgid "Archive size"
 msgstr "Розмір архіву"
 
-#: src/mainwnd.cpp:594
+#: src/mainwnd.cpp:599
 msgid "File name"
 msgstr "Ім'я файлу"
 
-#: src/mainwnd.cpp:595
+#: src/mainwnd.cpp:600
 msgid "File path"
 msgstr "Шлях до файлу"
 
-#: src/mainwnd.cpp:596
+#: src/mainwnd.cpp:601
 msgid "File size"
 msgstr "Розмір файлу"
 
-#: src/mainwnd.cpp:597
+#: src/mainwnd.cpp:602
 msgid "File format"
 msgstr "Формат файлу"
 
-#: src/mainwnd.cpp:600
+#: src/mainwnd.cpp:605
 msgid "Title"
 msgstr "Назва"
 
-#: src/mainwnd.cpp:601
+#: src/mainwnd.cpp:606
 msgid "Author(s)"
 msgstr "Автор"
 
-#: src/mainwnd.cpp:602
+#: src/mainwnd.cpp:607
 msgid "Series name"
 msgstr "Серія"
 
-#: src/mainwnd.cpp:603
+#: src/mainwnd.cpp:608
 msgid "Series number"
 msgstr "Номер у серії"
 
-#: src/mainwnd.cpp:604
+#: src/mainwnd.cpp:609
 msgid "Date"
 msgstr "Дата"
 
-#: src/mainwnd.cpp:605
+#: src/mainwnd.cpp:610
 msgid "Genres"
 msgstr "Жанр"
 
-#: src/mainwnd.cpp:606
+#: src/mainwnd.cpp:611
 msgid "Translator"
 msgstr "Перекладач"
 
-#: src/mainwnd.cpp:611
+#: src/mainwnd.cpp:612
+msgid "Book info"
+msgstr "Додаткова інформація"
+
+#: src/mainwnd.cpp:615
 msgid "Document author"
 msgstr "Власник книги"
 
-#: src/mainwnd.cpp:612
+#: src/mainwnd.cpp:616
 msgid "Document date"
 msgstr "Дата створення"
 
-#: src/mainwnd.cpp:613
+#: src/mainwnd.cpp:617
 msgid "Document source URL"
 msgstr "URL книги"
 
-#: src/mainwnd.cpp:614
+#: src/mainwnd.cpp:618
 msgid "OCR by"
 msgstr "OCR"
 
-#: src/mainwnd.cpp:615
+#: src/mainwnd.cpp:619
 msgid "Document version"
 msgstr "Версія книги"
 
 #: src/mainwnd.cpp:620
+msgid "Document info"
+msgstr ""
+
+#: src/mainwnd.cpp:623
 msgid "Publication name"
 msgstr "Назва видання"
 
-#: src/mainwnd.cpp:621
+#: src/mainwnd.cpp:624
 msgid "Publisher"
 msgstr "Видавник"
 
-#: src/mainwnd.cpp:622
+#: src/mainwnd.cpp:625
 msgid "Publisher city"
 msgstr "Місто видання"
 
-#: src/mainwnd.cpp:623
+#: src/mainwnd.cpp:626
 msgid "Publication year"
 msgstr "Рік видання"
 
-#: src/mainwnd.cpp:624
+#: src/mainwnd.cpp:627
 msgid "ISBN"
 msgstr "ISBN"
 
 #: src/mainwnd.cpp:628
+msgid "Publication info"
+msgstr "Назва видання"
+
+#: src/mainwnd.cpp:630
 msgid "Custom info"
 msgstr "Додаткова інформація"
 
-#: src/recentdlg.cpp:70
-msgid "Open recent book"
-msgstr "Відкрити останню книгу"
-
 #: src/settings.cpp:24 src/settings.cpp:128
 msgid "Normal"
-msgstr "Звичайно"
+msgstr "Звичайна"
 
 #: src/settings.cpp:25
 msgid "90 `"
@@ -204,11 +216,7 @@ msgstr "Орієнтація сторінки"
 
 #: src/settings.cpp:48
 msgid "Default font size"
-msgstr "Шрифт за замовчуванням"
-
-#: src/settings.cpp:77
-msgid "Settings"
-msgstr "Налаштування"
+msgstr "Розмір літер (у пікселях)"
 
 #: src/settings.cpp:85
 msgid "On for all fonts"
@@ -262,11 +270,11 @@ msgstr "140%"
 
 #: src/settings.cpp:176
 msgid "Default font face"
-msgstr "Стандартний шрифт"
+msgstr "Шрифт"
 
 #: src/settings.cpp:197
 msgid "Font antialiasing"
-msgstr "Згладжування шрифту"
+msgstr "Згладжування літер"
 
 #: src/settings.cpp:203
 msgid "Interline space"
@@ -278,11 +286,11 @@ msgstr "Виноски знизу сторінки"
 
 #: src/settings.cpp:223
 msgid "Show time"
-msgstr "Відобразити годинник"
+msgstr "Відображення годинника"
 
 #: src/settings.cpp:229
 msgid "Landscape pages"
-msgstr "Альбомна сторінка"
+msgstr "Колонок в альбомній сторінці"
 
 #: src/settings.cpp:235
 msgid "Preformatted text"
@@ -310,29 +318,27 @@ msgstr "Кернінг шрифту"
 
 #: src/tocdlg.cpp:72
 msgid "Enter page number to go: "
-msgstr "Введіть номер сторінки"
+msgstr " Введіть номер сторінки: "
 
 #: src/viewdlg.cpp:131
 msgid "No dictionaries found"
-msgstr ""
+msgstr "Жодного словника не знайдено!"
 
 #: src/viewdlg.cpp:132
 msgid "Place dictionaries to directory 'dict' of SD card."
-msgstr ""
+msgstr "Розташуйте словники в теці 'dict' на картці пам'яті."
 
 #: src/viewdlg.cpp:133
 msgid "Dictionaries in standard unix .dict format are supported."
-msgstr ""
+msgstr "Підтримуються словники у форматі .dict (як для unix систем)."
 
 #: src/viewdlg.cpp:134
 msgid ""
 "For each dictionary, pair of files should be provided: data file (with .dict "
 "or .dict.dz extension, and index file with .index extension"
 msgstr ""
-
-#: src/viewdlg.cpp:136
-msgid "Dictionary"
-msgstr "Словник"
+"Кожен словник складаються з файлу даних (.dict або .dict.dz),та файлу "
+"індексу слів (.index)."
 
 #: src/viewdlg.cpp:147
 msgid "Table of contents"
@@ -342,10 +348,21 @@ msgstr "Зміст"
 msgid "Enter page number"
 msgstr "Введіть номер сторінки"
 
-#: src/viewdlg.cpp:179
-msgid "Search"
-msgstr "Пошук"
-
 #: src/viewdlg.cpp:218
 msgid "Find in dictionary"
 msgstr "Пошук у словнику"
+
+#~ msgid "Open recent book..."
+#~ msgstr "Останні книги"
+
+#~ msgid "Dictionary..."
+#~ msgstr "Словник"
+
+#~ msgid "Bookmarks..."
+#~ msgstr "Закладки"
+
+#~ msgid "Search..."
+#~ msgstr "Пошук"
+
+#~ msgid "Settings..."
+#~ msgstr "Налаштування"
