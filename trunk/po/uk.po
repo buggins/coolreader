@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-19 22:48+0300\n"
+"POT-Creation-Date: 2009-03-20 00:37+0300\n"
 "PO-Revision-Date: 2009-03-10 15:32+0200\n"
 "Last-Translator: Boris Iefimenko <boris.iefimenko@gmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -28,7 +28,7 @@ msgstr "Закладки"
 msgid "Long press 1..8 = set, short press = go to"
 msgstr "Довге натискання 1..8 - додати, швидке - відкрити"
 
-#: src/citedlg.cpp:27
+#: src/citedlg.cpp:28
 msgid "Select text"
 msgstr ""
 
@@ -83,114 +83,118 @@ msgid "Settings"
 msgstr "Налаштування"
 
 #: src/mainwnd.cpp:596
+msgid "File info"
+msgstr ""
+
+#: src/mainwnd.cpp:597
 msgid "Archive name"
 msgstr "Ім'я архіву"
 
-#: src/mainwnd.cpp:597
+#: src/mainwnd.cpp:598
 msgid "Archive path"
 msgstr "Шлях до архіву"
 
-#: src/mainwnd.cpp:598
+#: src/mainwnd.cpp:599
 msgid "Archive size"
 msgstr "Розмір архіву"
 
-#: src/mainwnd.cpp:599
+#: src/mainwnd.cpp:600
 msgid "File name"
 msgstr "Ім'я файлу"
 
-#: src/mainwnd.cpp:600
+#: src/mainwnd.cpp:601
 msgid "File path"
 msgstr "Шлях до файлу"
 
-#: src/mainwnd.cpp:601
+#: src/mainwnd.cpp:602
 msgid "File size"
 msgstr "Розмір файлу"
 
-#: src/mainwnd.cpp:602
+#: src/mainwnd.cpp:603
 msgid "File format"
 msgstr "Формат файлу"
 
-#: src/mainwnd.cpp:605
+#: src/mainwnd.cpp:606
 msgid "Title"
 msgstr "Назва"
 
-#: src/mainwnd.cpp:606
+#: src/mainwnd.cpp:607
 msgid "Author(s)"
 msgstr "Автор"
 
-#: src/mainwnd.cpp:607
+#: src/mainwnd.cpp:608
 msgid "Series name"
 msgstr "Серія"
 
-#: src/mainwnd.cpp:608
+#: src/mainwnd.cpp:609
 msgid "Series number"
 msgstr "Номер у серії"
 
-#: src/mainwnd.cpp:609
+#: src/mainwnd.cpp:610
 msgid "Date"
 msgstr "Дата"
 
-#: src/mainwnd.cpp:610
+#: src/mainwnd.cpp:611
 msgid "Genres"
 msgstr "Жанр"
 
-#: src/mainwnd.cpp:611
+#: src/mainwnd.cpp:612
 msgid "Translator"
 msgstr "Перекладач"
 
-#: src/mainwnd.cpp:612
+#: src/mainwnd.cpp:613
 msgid "Book info"
 msgstr "Додаткова інформація"
 
-#: src/mainwnd.cpp:615
+#: src/mainwnd.cpp:616
 msgid "Document author"
 msgstr "Власник книги"
 
-#: src/mainwnd.cpp:616
+#: src/mainwnd.cpp:617
 msgid "Document date"
 msgstr "Дата створення"
 
-#: src/mainwnd.cpp:617
+#: src/mainwnd.cpp:618
 msgid "Document source URL"
 msgstr "URL книги"
 
-#: src/mainwnd.cpp:618
+#: src/mainwnd.cpp:619
 msgid "OCR by"
 msgstr "OCR"
 
-#: src/mainwnd.cpp:619
+#: src/mainwnd.cpp:620
 msgid "Document version"
 msgstr "Версія книги"
 
-#: src/mainwnd.cpp:620
+#: src/mainwnd.cpp:621
 msgid "Document info"
 msgstr ""
 
-#: src/mainwnd.cpp:623
+#: src/mainwnd.cpp:624
 msgid "Publication name"
 msgstr "Назва видання"
 
-#: src/mainwnd.cpp:624
+#: src/mainwnd.cpp:625
 msgid "Publisher"
 msgstr "Видавник"
 
-#: src/mainwnd.cpp:625
+#: src/mainwnd.cpp:626
 msgid "Publisher city"
 msgstr "Місто видання"
 
-#: src/mainwnd.cpp:626
+#: src/mainwnd.cpp:627
 msgid "Publication year"
 msgstr "Рік видання"
 
-#: src/mainwnd.cpp:627
+#: src/mainwnd.cpp:628
 msgid "ISBN"
 msgstr "ISBN"
 
-#: src/mainwnd.cpp:628
+#: src/mainwnd.cpp:629
 msgid "Publication info"
 msgstr "Назва видання"
 
-#: src/mainwnd.cpp:630
+#: src/mainwnd.cpp:631
 msgid "Custom info"
 msgstr "Додаткова інформація"
 
@@ -268,53 +272,73 @@ msgstr "120%"
 msgid "140%"
 msgstr "140%"
 
-#: src/settings.cpp:176
+#: src/settings.cpp:178
 msgid "Default font face"
 msgstr "Шрифт"
 
-#: src/settings.cpp:197
+#: src/settings.cpp:199
 msgid "Font antialiasing"
 msgstr "Згладжування літер"
 
-#: src/settings.cpp:203
+#: src/settings.cpp:205
 msgid "Interline space"
 msgstr "Міжрядкова відстань"
 
-#: src/settings.cpp:212
+#: src/settings.cpp:214
 msgid "Footnotes at page bottom"
 msgstr "Виноски знизу сторінки"
 
-#: src/settings.cpp:223
+#: src/settings.cpp:225
 msgid "Show time"
 msgstr "Відображення годинника"
 
-#: src/settings.cpp:229
+#: src/settings.cpp:231
 msgid "Landscape pages"
 msgstr "Колонок в альбомній сторінці"
 
-#: src/settings.cpp:235
+#: src/settings.cpp:237
 msgid "Preformatted text"
 msgstr "Форматований текст"
 
-#: src/settings.cpp:243
+#: src/settings.cpp:245
 msgid "Document embedded styles"
 msgstr "Використовувати стилі документу"
 
-#: src/settings.cpp:249
+#: src/settings.cpp:251
 msgid "Inverse display"
 msgstr "Інвертувати кольори"
 
-#: src/settings.cpp:255
+#: src/settings.cpp:257
 msgid "Show bookmark icons"
 msgstr "Відобразити іконки закладок"
 
-#: src/settings.cpp:261
+#: src/settings.cpp:263
 msgid "Status line"
 msgstr "Статусний рядок"
 
-#: src/settings.cpp:267
+#: src/settings.cpp:269
 msgid "Font kerning"
 msgstr "Кернінг шрифту"
+
+#: src/settings.cpp:276
+msgid "Page margins"
+msgstr ""
+
+#: src/settings.cpp:279
+msgid "Top margin"
+msgstr ""
+
+#: src/settings.cpp:284
+msgid "Bottom margin"
+msgstr ""
+
+#: src/settings.cpp:289
+msgid "Left margin"
+msgstr ""
+
+#: src/settings.cpp:294
+msgid "Right margin"
+msgstr ""
 
 #: src/tocdlg.cpp:72
 msgid "Enter page number to go: "

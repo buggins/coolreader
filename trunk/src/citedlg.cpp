@@ -6,6 +6,7 @@
 
 #include <crgui.h>
 #include <crtrace.h>
+#include <cri18n.h>
 
 #include "mainwnd.h"
 #include "bgfit.h"

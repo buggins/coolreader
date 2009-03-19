@@ -41,6 +41,11 @@ enum MainMenuItems_t {
     mm_Kerning,
     mm_LandscapePages,
     mm_PreformattedText,
+    mm_PageMargins,
+    mm_PageMarginTop,
+    mm_PageMarginLeft,
+    mm_PageMarginRight,
+    mm_PageMarginBottom,
 };
 
 

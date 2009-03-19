@@ -86,7 +86,10 @@ protected:
     lString16 _historyFileName;
     lString8  _css;
     lString16 _dictConfig;
+    lString16 _bookmarkDir;
 public:
+    lString16 getBookmarkDir() { return _bookmarkDir; }
+    void setBookmarkDir( lString16 dir ) { _bookmarkDir = dir; }
     virtual void flush(); // override
     bool loadDocument( lString16 filename );
     bool loadDefaultCover( lString16 filename );

@@ -415,10 +415,13 @@ int InitDoc(char *fileName)
     InitCREngineLog("/root/abook/crengine/crlog.ini");
 #endif
 
+    lString16 bookmarkDir("/root/abook/bookmarks/");
     {
     	lString8 fn(fileName);
-    	if ( fn.startsWith(lString8("/home")) )
+    	if ( fn.startsWith(lString8("/home")) ) {
     		strcpy( history_file_name, "/home/.cr3hist" );
+            bookmarkDir = lString16("/home/bookmarks/");
+        }
     	CRLog::info( "History file name: %s", history_file_name );
     }
 
@@ -513,7 +516,7 @@ int InitDoc(char *fileName)
         if ( !main_win->loadCSS(  lString16( L"/root/abook/crengine/" ) + lString16(css_file_name) ) )
         	if ( !main_win->loadCSS(  lString16( L"/home/crengine/" ) + lString16(css_file_name) ) )
             	main_win->loadCSS( lString16( L"/root/crengine/" ) + lString16(css_file_name) );
-
+        main_win->setBookmarkDir( bookmarkDir );
         CRLog::trace("choosing init file...");
         static const lChar16 * dirs[] = {
             L"/root/abook/crengine/",

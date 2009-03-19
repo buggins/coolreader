@@ -155,10 +155,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 	item_def_t page_margins[] = {
 		{"0", "0"},
 		{"5", "5"},
+		{"8", "8"},
 		{"10", "10"},
 		{"15", "15"},
 		{"20", "20"},
 		{"25", "25"},
+		{"30", "30"},
 		{NULL, NULL},
 	};
 
@@ -269,6 +271,33 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( kerningMenu, kerning_options );
         mainMenu->addItem( kerningMenu );
 
+        //====== Margins ==============
+        CRMenu * marginsMenu = new CRMenu(_wm, mainMenu, mm_PageMargins,
+                _("Page margins"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, NULL );
+        CRMenu * marginsMenuTop = new CRMenu(_wm, marginsMenu, mm_PageMarginTop,
+                _("Top margin"),
+                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_MARGIN_TOP );
+        addMenuItems( marginsMenuTop, page_margins );
+        marginsMenu->addItem( marginsMenuTop );
+        CRMenu * marginsMenuBottom = new CRMenu(_wm, marginsMenu, mm_PageMarginBottom,
+                _("Bottom margin"),
+                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_MARGIN_BOTTOM );
+        addMenuItems( marginsMenuBottom, page_margins );
+        marginsMenu->addItem( marginsMenuBottom );
+        CRMenu * marginsMenuLeft = new CRMenu(_wm, marginsMenu, mm_PageMarginLeft,
+                _("Left margin"),
+                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_MARGIN_LEFT );
+        addMenuItems( marginsMenuLeft, page_margins );
+        marginsMenu->addItem( marginsMenuLeft );
+        CRMenu * marginsMenuRight = new CRMenu(_wm, marginsMenu, mm_PageMarginRight,
+                _("Right margin"),
+                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_MARGIN_RIGHT );
+        addMenuItems( marginsMenuRight, page_margins );
+        marginsMenu->addItem( marginsMenuRight );
+
+        mainMenu->addItem( marginsMenu );
+        
 }
 
 

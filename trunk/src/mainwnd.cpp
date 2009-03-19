@@ -261,10 +261,10 @@ bool V3DocViewWin::saveHistory( lString16 filename )
     if ( filename.empty() )
         filename = _historyFileName;
     if ( filename.empty() ) {
-    	CRLog::info("Cannot write history file - no file name specified");
+        CRLog::info("Cannot write history file - no file name specified");
         return false;
     }
-	_docview->exportBookmarks(lString16());//use default filename
+    _docview->exportBookmarks(_bookmarkDir); //use default filename
     _historyFileName = filename;
     log << "V3DocViewWin::saveHistory(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
@@ -592,7 +592,8 @@ void V3DocViewWin::showAboutDialog()
     //=========================================================
     txt << "<table><col width=\"25%\"/><col width=\"75%\"/>\n";
     CRPropRef props = _docview->getDocProps();
-    txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">File info</td></tr>";
+    txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">" 
+        << _("File info") << "</td></tr>";
     addPropLine( txt, _("Archive name"), props->getStringDef(DOC_PROP_ARC_NAME) );
     addPropLine( txt, _("Archive path"), props->getStringDef(DOC_PROP_ARC_PATH) );
     addPropLine( txt, _("Archive size"), props->getStringDef(DOC_PROP_ARC_SIZE) );
@@ -609,7 +610,7 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( bookInfo, _("Date"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/date", ", " ) );
     addPropLine( bookInfo, _("Genres"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/genre", ", " ) );
     addPropLine( bookInfo, _("Translator"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/translator", ", " ) );
-    addInfoSection( txt, bookInfo, _("Book info") )
+    addInfoSection( txt, bookInfo, _("Book info") );
 
     lString8 docInfo;
     addPropLine( docInfo, _("Document author"), getDocAuthors( getDocView()->getDocument(), "/FictionBook/description/document-info/author", " " ) );
@@ -617,7 +618,7 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( docInfo, _("Document source URL"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-url", " " ) );
     addPropLine( docInfo, _("OCR by"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-ocr", " " ) );
     addPropLine( docInfo, _("Document version"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/version", " " ) );
-    addInfoSection( txt, docInfo, _("Document info") )
+    addInfoSection( txt, docInfo, _("Document info") );
 
     lString8 pubInfo;
     addPropLine( pubInfo, _("Publication name"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/book-name", " " ) );
@@ -625,7 +626,7 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( pubInfo, _("Publisher city"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/city", " " ) );
     addPropLine( pubInfo, _("Publication year"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/year", " " ) );
     addPropLine( pubInfo, _("ISBN"), getDocText( getDocView()->getDocument(), "/FictionBook/description/publish-info/isbn", " " ) );
-    addInfoSection( txt, pubInfo, _("Publication info") )
+    addInfoSection( txt, pubInfo, _("Publication info") );
 
     addPropLine( txt, _("Custom info"), getDocText( getDocView()->getDocument(), "/FictionBook/description/custom-info", " " ) );
 
@@ -683,6 +684,11 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
     case MCMD_BOOKMARK_LIST:
         showBookmarksMenu();
+        return true;
+    case DCMD_ZOOM_IN:
+    case DCMD_ZOOM_OUT:
+        _props->setInt( PROP_FONT_SIZE, _docview->getFontSize() );
+        saveSettings( lString16() );
         return true;
     default:
         // do nothing
