@@ -238,6 +238,11 @@ public:
     /// returns true if string starts with specified substring
     bool startsWith ( const lString8 & substring ) const;
 
+    /// returns last character
+    value_type lastChar() { return empty() ? 0 : at(length()-1); }
+    /// returns first character
+    value_type firstChar() { return empty() ? 0 : at(0); }
+
     /// calculate hash
     lUInt32 getHash() const;
 
@@ -417,6 +422,12 @@ public:
     bool endsWith ( const lString16 & substring ) const;
     /// returns true if string starts with specified substring, case insensitive
     bool startsWithNoCase ( const lString16 & substring ) const;
+
+    /// returns last character
+    value_type lastChar() { return empty() ? 0 : at(length()-1); }
+    /// returns first character
+    value_type firstChar() { return empty() ? 0 : at(0); }
+
     /// calculates hash for string
     lUInt32 getHash() const;
     /// returns character at specified position, with index bounds checking, fatal error if fails

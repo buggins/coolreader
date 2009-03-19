@@ -3182,3 +3182,38 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
     path << name;
     return path;
 }
+
+/// removes path delimiter character from end of path, if exists
+void LVRemovePathDelimiter( lString16 & pathName )
+{
+    int len = pathName.length();
+    if ( len>0 ) {
+        if ( pathName[len] == '/' || pathName[len] == '\\' )
+            pathName.erase( pathName.length()-1, 1 );
+    }
+}
+
+
+/// Create directory if not exist
+bool LVCreateDirectory( lString16 path )
+{
+    if ( path.empty() )
+        return false;
+    LVContainerRef dir = LVOpenDirectory( path.c_str() );
+    if ( dir.isNull() ) {
+        lString16 basedir = LVExtractPath( path );
+        if ( !LVCreateDirectory( basedir ) )
+            return false;
+#ifdef _WIN32
+        return CreateDirectoryW( path.c_str(), NULL )!=0;
+#else
+        LVRemovePathDelimiter( path );
+        lString8 path8 = UnicodeToUtf8( path );
+        if ( mkdir(path8.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) )
+            return false;
+        return true;
+#endif
+    }
+    return true;
+}
+

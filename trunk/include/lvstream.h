@@ -631,6 +631,9 @@ LVStreamRef LVCreateStringStream( lString16 data );
 
 LVContainerRef LVOpenDirectory( const lChar16 * path );
 
+/// Create directory if not exist
+bool LVCreateDirectory( lString16 path );
+
 /// copies content of in stream to out stream
 lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in );
 
@@ -651,12 +654,15 @@ lString16 LVExtractFilename( lString16 pathName );
 lString16 LVExtractFilenameWithoutExtension( lString16 pathName );
 /// appends path delimiter character to end of path, if absent
 void LVAppendPathDelimiter( lString16 & pathName );
+/// removes path delimiter character from end of path, if exists
+void LVRemovePathDelimiter( lString16 & pathName );
 /// returns path delimiter character
 lChar16 LVDetectPathDelimiter( lString16 pathName );
 /// returns true if absolute path is specified
 bool LVIsAbsolutePath( lString16 pathName );
 /// returns full path to file identified by pathName, with base directory == basePath
 lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName );
+
 
 
 #endif // __LVSTREAM_H_INCLUDED__

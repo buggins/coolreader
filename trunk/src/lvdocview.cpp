@@ -3240,6 +3240,13 @@ bool LVDocView::exportBookmarks( lString16 filename )
 {
 	if ( m_filename.empty() )
 		return true; // no document opened
+    lChar16 lastChar = filename.lastChar();
+    lString16 dir;
+    if ( lastChar=='/' || lastChar=='\\' ) {
+        dir = filename;
+        LVCreateDirectory( dir );
+        filename.clear();
+    }
 	if ( filename.empty() ) {
 	    CRPropRef props = getDocProps();
 	    lString16 arcname = props->getStringDef(DOC_PROP_ARC_NAME);
@@ -3251,10 +3258,16 @@ bool LVDocView::exportBookmarks( lString16 filename )
 		if ( !fpath.empty() )
 			LVAppendPathDelimiter( fpath );
 		if ( !arcname.empty() ) {
-			filename = arcpath + arcname + L"." + fname + L".bmk.txt";
+            if ( dir.empty() )
+                dir = arcpath;
+			filename = arcname + L"." + fname + L".bmk.txt";
 		} else {
-			filename = fpath + fname + L".bmk.txt";
+            if ( dir.empty() )
+                dir = fpath;
+			filename = fname + L".bmk.txt";
 		}
+        LVAppendPathDelimiter( dir );
+        filename = dir + filename;
 	}
 	CRFileHistRecord * rec = getCurrentFileHistRecord();
 	if ( !rec )
@@ -3529,11 +3542,11 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     static int def_status_line[] = { 0, 1, 2 };
     props->limitValueList( PROP_STATUS_LINE, def_status_line, 3 );
     props->limitValueList( PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false, 2 );
-    static int def_margin[] = { 3, 0, 1, 2, 4 };
-    props->limitValueList( PROP_PAGE_MARGIN_TOP, def_margin, 5 );
-    props->limitValueList( PROP_PAGE_MARGIN_BOTTOM, def_margin, 5 );
-    props->limitValueList( PROP_PAGE_MARGIN_LEFT, def_margin, 5 );
-    props->limitValueList( PROP_PAGE_MARGIN_RIGHT, def_margin, 5 );
+    static int def_margin[] = { 8, 0, 5, 10, 15, 20, 25, 30 };
+    props->limitValueList( PROP_PAGE_MARGIN_TOP, def_margin, 8 );
+    props->limitValueList( PROP_PAGE_MARGIN_BOTTOM, def_margin, 8 );
+    props->limitValueList( PROP_PAGE_MARGIN_LEFT, def_margin, 8 );
+    props->limitValueList( PROP_PAGE_MARGIN_RIGHT, def_margin, 8 );
 }
 
 #define H_MARGIN 8
@@ -3591,6 +3604,22 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_FONT_COLOR ) {
             lUInt32 textColor = props->getIntDef(PROP_FONT_COLOR, 0x000000 );
             setTextColor( textColor );
+        } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT || name==PROP_PAGE_MARGIN_RIGHT || name==PROP_PAGE_MARGIN_BOTTOM ) {
+            lUInt32 margin = props->getIntDef(name.c_str(), 8 );
+            if ( margin<0 )
+                margin = 0;
+            if ( margin>30 )
+                margin = 30;
+            lvRect rc = getPageMargins();
+            if ( name==PROP_PAGE_MARGIN_TOP )
+                rc.top = margin;
+            else if ( name==PROP_PAGE_MARGIN_BOTTOM )
+                rc.bottom = margin;
+            else if ( name==PROP_PAGE_MARGIN_LEFT )
+                rc.left = margin;
+            else if ( name==PROP_PAGE_MARGIN_RIGHT )
+                rc.right = margin;
+            setPageMargins( rc );
         } else if ( name==PROP_FONT_FACE ) {
             setDefaultFontFace( UnicodeToUtf8(value) );
         } else if ( name==PROP_STATUS_LINE ) {
