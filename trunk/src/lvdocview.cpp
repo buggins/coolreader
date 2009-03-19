@@ -1316,7 +1316,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
     clip.bottom = pageRect->top + m_pageMargins.top + height + headerHeight + offset;
     clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
     if ( page.type==PAGE_TYPE_COVER )
-        clip.top = pageRect->top + m_pageMargins.bottom;
+        clip.top = pageRect->top + m_pageMargins.top;
     if ( m_pageHeaderInfo && page.type!=PAGE_TYPE_COVER) {
         int phi = m_pageHeaderInfo;
         if ( getVisiblePageCount()==2 ) {
@@ -1342,8 +1342,8 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         if ( page.type == PAGE_TYPE_COVER ) {
             lvRect rc = *pageRect;
             drawbuf->SetClipRect(&rc);
-            if ( m_pageMargins.bottom > m_pageMargins.top )
-                rc.bottom -= m_pageMargins.bottom - m_pageMargins.top;
+            //if ( m_pageMargins.bottom > m_pageMargins.top )
+            //    rc.bottom -= m_pageMargins.bottom - m_pageMargins.top;
             /*
             rc.left += m_pageMargins.left / 2;
             rc.top += m_pageMargins.bottom / 2;
@@ -1451,7 +1451,7 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
             drawbuf.GetClipRect( &rc );
             rc.top -= position;
             rc.bottom -= position;
-            rc.top += m_pageMargins.bottom;
+            rc.top += m_pageMargins.top;
             rc.bottom -= m_pageMargins.bottom;
             rc.left += m_pageMargins.left;
             rc.right -= m_pageMargins.right;
