@@ -192,7 +192,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 if (wParam!=SIZE_MINIMIZED)
                 {
-                    CRWin32WindowManager::instance->setSize( LOWORD(lParam), HIWORD(lParam) );
+					RECT rect;
+					::GetClientRect(hWnd, &rect );
+					CRWin32WindowManager::instance->setSize( rect.right-rect.left, rect.bottom-rect.top );
                     needUpdate = true;
                 }
             }

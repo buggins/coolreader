@@ -51,6 +51,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
 {
     CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
+	_fullscreen = true;
     _docview->setFontSizes( sizes, true );
     _props = LVCreatePropsContainer();
     _newProps = _props;

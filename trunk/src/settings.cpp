@@ -295,7 +295,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
                  LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_MARGIN_RIGHT );
         addMenuItems( marginsMenuRight, page_margins );
         marginsMenu->addItem( marginsMenuRight );
-
+		marginsMenu->setAccelerators( _menuAccelerators );
+		marginsMenu->setSkinName(lString16(L"#settings"));
         mainMenu->addItem( marginsMenu );
         
 }
