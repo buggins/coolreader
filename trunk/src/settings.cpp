@@ -274,7 +274,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         //====== Margins ==============
         CRMenu * marginsMenu = new CRMenu(_wm, mainMenu, mm_PageMargins,
                 _("Page margins"),
-                                LVImageSourceRef(), LVFontRef(), valueFont, props, NULL );
+                                LVImageSourceRef(), LVFontRef(), valueFont, props );
         CRMenu * marginsMenuTop = new CRMenu(_wm, marginsMenu, mm_PageMarginTop,
                 _("Top margin"),
                  LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_MARGIN_TOP );
