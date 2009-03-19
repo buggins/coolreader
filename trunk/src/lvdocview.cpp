@@ -3604,7 +3604,8 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_FONT_COLOR ) {
             lUInt32 textColor = props->getIntDef(PROP_FONT_COLOR, 0x000000 );
             setTextColor( textColor );
-        } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT || name==PROP_PAGE_MARGIN_RIGHT || name==PROP_PAGE_MARGIN_BOTTOM ) {
+        } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT 
+                   || name==PROP_PAGE_MARGIN_RIGHT || name==PROP_PAGE_MARGIN_BOTTOM ) {
             lUInt32 margin = props->getIntDef(name.c_str(), 8 );
             if ( margin<0 )
                 margin = 0;
