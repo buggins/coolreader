@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-20 00:37+0300\n"
+"POT-Creation-Date: 2009-03-20 08:37+0300\n"
 "PO-Revision-Date: 2009-03-10 15:32+0200\n"
 "Last-Translator: Boris Iefimenko <boris.iefimenko@gmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "Empty slot"
 msgstr "Немає закладок"
 
-#: src/bmkdlg.cpp:58 src/mainwnd.cpp:491
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:492
 msgid "Bookmarks"
 msgstr "Закладки"
 
@@ -50,151 +50,151 @@ msgstr "Пошук у словнику"
 msgid "[cannot read article]"
 msgstr "[неможливо відкрити файл]"
 
-#: src/mainwnd.cpp:439
+#: src/mainwnd.cpp:440
 msgid "Main Menu"
 msgstr "Головне меню"
 
-#: src/mainwnd.cpp:453
+#: src/mainwnd.cpp:454
 msgid "About"
 msgstr "Інформація"
 
-#: src/mainwnd.cpp:463
+#: src/mainwnd.cpp:464
 msgid "Go to page"
 msgstr "Перейти на сторінку"
 
-#: src/mainwnd.cpp:475 src/recentdlg.cpp:70
+#: src/mainwnd.cpp:476 src/recentdlg.cpp:70
 msgid "Open recent book"
 msgstr "Відкрити останню книгу"
 
-#: src/mainwnd.cpp:482 src/viewdlg.cpp:136
+#: src/mainwnd.cpp:483 src/viewdlg.cpp:136
 msgid "Dictionary"
 msgstr "Словник"
 
-#: src/mainwnd.cpp:487
+#: src/mainwnd.cpp:488
 msgid "Cite"
 msgstr "Цитати"
 
-#: src/mainwnd.cpp:495 src/viewdlg.cpp:179
+#: src/mainwnd.cpp:496 src/viewdlg.cpp:179
 msgid "Search"
 msgstr "Пошук"
 
-#: src/mainwnd.cpp:499 src/settings.cpp:77
+#: src/mainwnd.cpp:500 src/settings.cpp:77
 msgid "Settings"
 msgstr "Налаштування"
 
-#: src/mainwnd.cpp:596
+#: src/mainwnd.cpp:597
 msgid "File info"
 msgstr ""
 
-#: src/mainwnd.cpp:597
+#: src/mainwnd.cpp:598
 msgid "Archive name"
 msgstr "Ім'я архіву"
 
-#: src/mainwnd.cpp:598
+#: src/mainwnd.cpp:599
 msgid "Archive path"
 msgstr "Шлях до архіву"
 
-#: src/mainwnd.cpp:599
+#: src/mainwnd.cpp:600
 msgid "Archive size"
 msgstr "Розмір архіву"
 
-#: src/mainwnd.cpp:600
+#: src/mainwnd.cpp:601
 msgid "File name"
 msgstr "Ім'я файлу"
 
-#: src/mainwnd.cpp:601
+#: src/mainwnd.cpp:602
 msgid "File path"
 msgstr "Шлях до файлу"
 
-#: src/mainwnd.cpp:602
+#: src/mainwnd.cpp:603
 msgid "File size"
 msgstr "Розмір файлу"
 
-#: src/mainwnd.cpp:603
+#: src/mainwnd.cpp:604
 msgid "File format"
 msgstr "Формат файлу"
 
-#: src/mainwnd.cpp:606
+#: src/mainwnd.cpp:607
 msgid "Title"
 msgstr "Назва"
 
-#: src/mainwnd.cpp:607
+#: src/mainwnd.cpp:608
 msgid "Author(s)"
 msgstr "Автор"
 
-#: src/mainwnd.cpp:608
+#: src/mainwnd.cpp:609
 msgid "Series name"
 msgstr "Серія"
 
-#: src/mainwnd.cpp:609
+#: src/mainwnd.cpp:610
 msgid "Series number"
 msgstr "Номер у серії"
 
-#: src/mainwnd.cpp:610
+#: src/mainwnd.cpp:611
 msgid "Date"
 msgstr "Дата"
 
-#: src/mainwnd.cpp:611
+#: src/mainwnd.cpp:612
 msgid "Genres"
 msgstr "Жанр"
 
-#: src/mainwnd.cpp:612
+#: src/mainwnd.cpp:613
 msgid "Translator"
 msgstr "Перекладач"
 
-#: src/mainwnd.cpp:613
+#: src/mainwnd.cpp:614
 msgid "Book info"
 msgstr "Додаткова інформація"
 
-#: src/mainwnd.cpp:616
+#: src/mainwnd.cpp:617
 msgid "Document author"
 msgstr "Власник книги"
 
-#: src/mainwnd.cpp:617
+#: src/mainwnd.cpp:618
 msgid "Document date"
 msgstr "Дата створення"
 
-#: src/mainwnd.cpp:618
+#: src/mainwnd.cpp:619
 msgid "Document source URL"
 msgstr "URL книги"
 
-#: src/mainwnd.cpp:619
+#: src/mainwnd.cpp:620
 msgid "OCR by"
 msgstr "OCR"
 
-#: src/mainwnd.cpp:620
+#: src/mainwnd.cpp:621
 msgid "Document version"
 msgstr "Версія книги"
 
-#: src/mainwnd.cpp:621
+#: src/mainwnd.cpp:622
 msgid "Document info"
 msgstr ""
 
-#: src/mainwnd.cpp:624
+#: src/mainwnd.cpp:625
 msgid "Publication name"
 msgstr "Назва видання"
 
-#: src/mainwnd.cpp:625
+#: src/mainwnd.cpp:626
 msgid "Publisher"
 msgstr "Видавник"
 
-#: src/mainwnd.cpp:626
+#: src/mainwnd.cpp:627
 msgid "Publisher city"
 msgstr "Місто видання"
 
-#: src/mainwnd.cpp:627
+#: src/mainwnd.cpp:628
 msgid "Publication year"
 msgstr "Рік видання"
 
-#: src/mainwnd.cpp:628
+#: src/mainwnd.cpp:629
 msgid "ISBN"
 msgstr "ISBN"
 
-#: src/mainwnd.cpp:629
+#: src/mainwnd.cpp:630
 msgid "Publication info"
 msgstr "Назва видання"
 
-#: src/mainwnd.cpp:631
+#: src/mainwnd.cpp:632
 msgid "Custom info"
 msgstr "Додаткова інформація"
 

@@ -265,6 +265,7 @@ bool V3DocViewWin::saveHistory( lString16 filename )
         CRLog::info("Cannot write history file - no file name specified");
         return false;
     }
+    CRLog::debug("Exporting bookmarks to %s", UnicodeToUtf8(_bookmarkDir).c_str());
     _docview->exportBookmarks(_bookmarkDir); //use default filename
     _historyFileName = filename;
     log << "V3DocViewWin::saveHistory(" << filename << ")";
