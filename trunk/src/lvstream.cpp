@@ -3188,7 +3188,7 @@ void LVRemovePathDelimiter( lString16 & pathName )
 {
     int len = pathName.length();
     if ( len>0 ) {
-        if ( pathName[len] == '/' || pathName[len] == '\\' )
+        if ( pathName.lastChar() == '/' || pathName.lastChar() == '\\' )
             pathName.erase( pathName.length()-1, 1 );
     }
 }
@@ -3197,13 +3197,18 @@ void LVRemovePathDelimiter( lString16 & pathName )
 /// Create directory if not exist
 bool LVCreateDirectory( lString16 path )
 {
+    CRLog::trace("LVCreateDirectory(%s)", UnicodeToUtf8(path).c_str() );
+    LVRemovePathDelimiter(path);
     if ( path.empty() )
         return false;
     LVContainerRef dir = LVOpenDirectory( path.c_str() );
     if ( dir.isNull() ) {
         lString16 basedir = LVExtractPath( path );
-        if ( !LVCreateDirectory( basedir ) )
+        CRLog::trace("Directory not found, checking base directory %s", UnicodeToUtf8(basedir).c_str());
+        if ( !LVCreateDirectory( basedir ) ) {
+            CRLog::error("Failed to create directory %s", UnicodeToUtf8(basedir).c_str());
             return false;
+        }
 #ifdef _WIN32
         return CreateDirectoryW( path.c_str(), NULL )!=0;
 #else
@@ -3214,6 +3219,7 @@ bool LVCreateDirectory( lString16 path )
         return true;
 #endif
     }
+    CRLog::error("Directory %s exists", path.c_str());
     return true;
 }
 

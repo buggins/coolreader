@@ -3242,8 +3242,10 @@ bool LVDocView::exportBookmarks( lString16 filename )
 		return true; // no document opened
     lChar16 lastChar = filename.lastChar();
     lString16 dir;
+    CRLog::trace("exportBookmarks(%s)", UnicodeToUtf8(filename).c_str() );
     if ( lastChar=='/' || lastChar=='\\' ) {
         dir = filename;
+        CRLog::debug("Creating directory, if not exist %s", UnicodeToUtf8(dir).c_str() );
         LVCreateDirectory( dir );
         filename.clear();
     }
@@ -3269,6 +3271,7 @@ bool LVDocView::exportBookmarks( lString16 filename )
         LVAppendPathDelimiter( dir );
         filename = dir + filename;
 	}
+    CRLog::debug("Exported bookmark filename: %s", UnicodeToUtf8(filename).c_str());
 	CRFileHistRecord * rec = getCurrentFileHistRecord();
 	if ( !rec )
 		return false;
