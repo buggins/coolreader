@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.18\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-20 08:37+0300\n"
+"POT-Creation-Date: 2009-03-21 12:54+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 msgid "Empty slot"
 msgstr ""
 
-#: src/bmkdlg.cpp:58 src/mainwnd.cpp:492
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:494
 msgid "Bookmarks"
 msgstr ""
 
@@ -31,13 +31,13 @@ msgstr ""
 msgid "Select text"
 msgstr ""
 
-#: src/cr3xcb.cpp:426 src/settings.cpp:92 src/settings.cpp:98
+#: src/cr3xcb.cpp:427 src/settings.cpp:92 src/settings.cpp:98
 #: src/settings.cpp:104 src/settings.cpp:110 src/settings.cpp:116
 #: src/settings.cpp:122
 msgid "On"
 msgstr ""
 
-#: src/cr3xcb.cpp:427
+#: src/cr3xcb.cpp:428
 msgid "About..."
 msgstr ""
 
@@ -49,151 +49,151 @@ msgstr ""
 msgid "[cannot read article]"
 msgstr ""
 
-#: src/mainwnd.cpp:440
+#: src/mainwnd.cpp:442
 msgid "Main Menu"
 msgstr ""
 
-#: src/mainwnd.cpp:454
+#: src/mainwnd.cpp:456
 msgid "About"
 msgstr ""
 
-#: src/mainwnd.cpp:464
+#: src/mainwnd.cpp:466
 msgid "Go to page"
 msgstr ""
 
-#: src/mainwnd.cpp:476 src/recentdlg.cpp:70
+#: src/mainwnd.cpp:478 src/recentdlg.cpp:70
 msgid "Open recent book"
 msgstr ""
 
-#: src/mainwnd.cpp:483 src/viewdlg.cpp:136
+#: src/mainwnd.cpp:485 src/viewdlg.cpp:136
 msgid "Dictionary"
 msgstr ""
 
-#: src/mainwnd.cpp:488
+#: src/mainwnd.cpp:490
 msgid "Cite"
 msgstr ""
 
-#: src/mainwnd.cpp:496 src/viewdlg.cpp:179
+#: src/mainwnd.cpp:498 src/viewdlg.cpp:179
 msgid "Search"
 msgstr ""
 
-#: src/mainwnd.cpp:500 src/settings.cpp:77
+#: src/mainwnd.cpp:502 src/settings.cpp:77
 msgid "Settings"
 msgstr ""
 
-#: src/mainwnd.cpp:597
+#: src/mainwnd.cpp:599
 msgid "File info"
 msgstr ""
 
-#: src/mainwnd.cpp:598
+#: src/mainwnd.cpp:600
 msgid "Archive name"
 msgstr ""
 
-#: src/mainwnd.cpp:599
+#: src/mainwnd.cpp:601
 msgid "Archive path"
 msgstr ""
 
-#: src/mainwnd.cpp:600
+#: src/mainwnd.cpp:602
 msgid "Archive size"
 msgstr ""
 
-#: src/mainwnd.cpp:601
+#: src/mainwnd.cpp:603
 msgid "File name"
 msgstr ""
 
-#: src/mainwnd.cpp:602
+#: src/mainwnd.cpp:604
 msgid "File path"
 msgstr ""
 
-#: src/mainwnd.cpp:603
+#: src/mainwnd.cpp:605
 msgid "File size"
 msgstr ""
 
-#: src/mainwnd.cpp:604
+#: src/mainwnd.cpp:606
 msgid "File format"
 msgstr ""
 
-#: src/mainwnd.cpp:607
+#: src/mainwnd.cpp:609
 msgid "Title"
 msgstr ""
 
-#: src/mainwnd.cpp:608
+#: src/mainwnd.cpp:610
 msgid "Author(s)"
 msgstr ""
 
-#: src/mainwnd.cpp:609
+#: src/mainwnd.cpp:611
 msgid "Series name"
 msgstr ""
 
-#: src/mainwnd.cpp:610
+#: src/mainwnd.cpp:612
 msgid "Series number"
 msgstr ""
 
-#: src/mainwnd.cpp:611
+#: src/mainwnd.cpp:613
 msgid "Date"
 msgstr ""
 
-#: src/mainwnd.cpp:612
+#: src/mainwnd.cpp:614
 msgid "Genres"
 msgstr ""
 
-#: src/mainwnd.cpp:613
+#: src/mainwnd.cpp:615
 msgid "Translator"
 msgstr ""
 
-#: src/mainwnd.cpp:614
+#: src/mainwnd.cpp:616
 msgid "Book info"
 msgstr ""
 
-#: src/mainwnd.cpp:617
+#: src/mainwnd.cpp:619
 msgid "Document author"
 msgstr ""
 
-#: src/mainwnd.cpp:618
+#: src/mainwnd.cpp:620
 msgid "Document date"
 msgstr ""
 
-#: src/mainwnd.cpp:619
+#: src/mainwnd.cpp:621
 msgid "Document source URL"
 msgstr ""
 
-#: src/mainwnd.cpp:620
+#: src/mainwnd.cpp:622
 msgid "OCR by"
 msgstr ""
 
-#: src/mainwnd.cpp:621
+#: src/mainwnd.cpp:623
 msgid "Document version"
 msgstr ""
 
-#: src/mainwnd.cpp:622
+#: src/mainwnd.cpp:624
 msgid "Document info"
 msgstr ""
 
-#: src/mainwnd.cpp:625
+#: src/mainwnd.cpp:627
 msgid "Publication name"
 msgstr ""
 
-#: src/mainwnd.cpp:626
+#: src/mainwnd.cpp:628
 msgid "Publisher"
 msgstr ""
 
-#: src/mainwnd.cpp:627
+#: src/mainwnd.cpp:629
 msgid "Publisher city"
 msgstr ""
 
-#: src/mainwnd.cpp:628
+#: src/mainwnd.cpp:630
 msgid "Publication year"
 msgstr ""
 
-#: src/mainwnd.cpp:629
+#: src/mainwnd.cpp:631
 msgid "ISBN"
 msgstr ""
 
-#: src/mainwnd.cpp:630
+#: src/mainwnd.cpp:632
 msgid "Publication info"
 msgstr ""
 
-#: src/mainwnd.cpp:632
+#: src/mainwnd.cpp:634
 msgid "Custom info"
 msgstr ""
 
@@ -319,23 +319,35 @@ msgstr ""
 msgid "Font kerning"
 msgstr ""
 
-#: src/settings.cpp:276
+#: src/settings.cpp:277
+msgid "[No Hyphenation]"
+msgstr ""
+
+#: src/settings.cpp:278
+msgid "[Algorythmic Hyphenation]"
+msgstr ""
+
+#: src/settings.cpp:280
+msgid "Hyphenation"
+msgstr ""
+
+#: src/settings.cpp:295
 msgid "Page margins"
 msgstr ""
 
-#: src/settings.cpp:279
+#: src/settings.cpp:298
 msgid "Top margin"
 msgstr ""
 
-#: src/settings.cpp:284
+#: src/settings.cpp:303
 msgid "Bottom margin"
 msgstr ""
 
-#: src/settings.cpp:289
+#: src/settings.cpp:308
 msgid "Left margin"
 msgstr ""
 
-#: src/settings.cpp:294
+#: src/settings.cpp:313
 msgid "Right margin"
 msgstr ""
 

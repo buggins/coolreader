@@ -23,7 +23,15 @@ dist_skin_DATA = skin/cr3skin.xml \
     skin/cr3_t9_frame.png skin/cr3_t9_input.png skin/cr3_t9_shortcut.png
 
 dist_pkgdata_DATA = src/fb2.css src/cr3_def_cover.png
-dist_hyph_DATA = hyph/Russian_EnUS_hyphen_(Alan).pdb
+dist_hyph_DATA = hyph/Russian_EnUS_hyphen_(Alan).pdb hyph/Bulgarian_hyphen_(Alan).pdb hyph/German_hyphen_(Alan).pdb hyph/Russian_EnGB_hyphen_(Alan).pdb \
+    hyph/Hungarian_hyphen_(Alan).pdb hyph/Russian_EnUS_hyphen_(Alan).pdb \
+    hyph/Czech_hyphen_(Alan).pdb hyph/Icelandic_hyphen_(Alan).pdb   hyph/Russian_hyphen_(Alan).pdb \
+    hyph/Danish_hyphen_(Alan).pdb      hyph/Irish_hyphen_(Alan).pdb       hyph/Slovak_hyphen_(Alan).pdb \
+    hyph/English_GB_hyphen_(Alan).pdb  hyph/Italian_hyphen_(Alan).pdb     hyph/Slovenian_hyphen_(Alan).pdb \
+    hyph/English_US_hyphen_(Alan).pdb  hyph/Polish_hyphen_(Alan).pdb      hyph/Spanish_hyphen_(Alan).pdb \
+    hyph/Finnish_hyphen_(Alan).pdb     hyph/Portuguese_hyphen_(Alan).pdb  hyph/Swedish_hyphen_(Alan).pdb \
+    hyph/French_hyphen_(Alan).pdb      hyph/Roman_hyphen_(Alan).pdb       hyph/Ukrain_hyphen_(Alan).pdb
+
 dist_keymap_DATA = keymaps/keydefs.ini keymaps/keymaps.ini keymaps/kblayout.ini
 
 MAINTAINERCLEANFILES = \

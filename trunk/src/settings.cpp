@@ -273,6 +273,9 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 
 		//====== Hyphenation ==========
 		if ( HyphMan::getDictList() ) {
+            // strings from CREngine - just to catch by gettext tools
+            _16("[No Hyphenation]");
+            _16("[Algorythmic Hyphenation]");
 			CRMenu * hyphMenu = new CRMenu(_wm, mainMenu, mm_Hyphenation,
 					_("Hyphenation"),
 					LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_HYPHENATION_DICT );

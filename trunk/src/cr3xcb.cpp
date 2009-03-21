@@ -504,6 +504,7 @@ int main(int argc, char **argv)
         if ( !winman.loadSkin(  homecrengine + L"skin" ) )
             if ( !winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
             	winman.loadSkin( lString16( L"/usr/share/crengine/skin" ) );
+        HyphMan::initDictionaries( lString16("/usr/share/crengine/hyph") );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
