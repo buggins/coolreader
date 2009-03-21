@@ -16,6 +16,7 @@
 // set to 0 for old hyphenation, 1 for new algorithm
 #define NEW_HYPHENATION 1
 
+
 #include "../include/crsetup.h"
 
 #include <stdlib.h>
@@ -31,8 +32,114 @@
 #include "../include/hyphman.h"
 #include "../include/lvfnt.h"
 #include "../include/lvstring.h"
+#include "../include/cri18n.h"
 
 HyphMan * HyphMan::_instance = NULL;
+
+HyphDictionary * HyphMan::_selectedDictionary = NULL;
+
+HyphDictionaryList * HyphMan::_dictList = NULL;
+
+bool HyphMan::_disabled = false;
+
+void HyphMan::uninit()
+{
+	if ( _dictList )
+		delete _dictList;
+	_selectedDictionary = NULL;
+	Close();
+}
+
+bool HyphMan::initDictionaries( lString16 dir )
+{
+	_dictList = new HyphDictionaryList();
+	if ( _dictList->open( dir ) ) {
+		if ( !_dictList->activate( lString16(DEF_HYPHENATION_DICT) ) )
+			_dictList->activate( lString16(HYPH_DICT_ID_ALGORITHM) );
+		return true;
+	} else {
+		_dictList->activate( lString16(HYPH_DICT_ID_ALGORITHM) );
+		return false;
+	}
+}
+
+bool HyphDictionary::activate()
+{
+	if ( getType() == HDT_ALGORITHM ) {
+		CRLog::info("Turn on algorythmic hyphenation" );
+		HyphMan::Close();
+		HyphMan::_disabled = false;
+	} else if ( getType() == HDT_NONE ) {
+		CRLog::info("Disabling hyphenation" );
+		HyphMan::Close();
+		HyphMan::_disabled = true;
+	} else if ( getType() == HDT_DICT_ALAN ) {
+		CRLog::info("Selecting hyphenation dictionary %s", UnicodeToUtf8(_filename).c_str() );
+		LVStreamRef stream = LVOpenFileStream( getFilename().c_str(), LVOM_READ );
+		if ( stream.isNull() ) {
+			CRLog::error("Cannot open hyphenation dictionary %s", UnicodeToUtf8(_filename).c_str() );
+			return false;
+		}
+		HyphMan::_disabled = false;
+		HyphMan::Open( stream.get() );
+	}
+	HyphMan::_selectedDictionary = this;
+	return true;
+}
+
+bool HyphDictionaryList::activate( lString16 id )
+{
+	HyphDictionary * p = find(id); 
+	if ( p ) 
+		return p->activate(); 
+	else 
+		return false;
+}
+
+void HyphDictionaryList::addDefault()
+{
+	if ( !find( lString16( HYPH_DICT_ID_NONE ) ) ) {
+		_list.add( new HyphDictionary( HDT_NONE, _16("[No Hyphenation]"), lString16(HYPH_DICT_ID_NONE), lString16(HYPH_DICT_ID_NONE) ) );
+	}
+	if ( !find( lString16( HYPH_DICT_ID_ALGORITHM ) ) ) {
+		_list.add( new HyphDictionary( HDT_ALGORITHM, _16("[Algorythmic Hyphenation]"), lString16(HYPH_DICT_ID_ALGORITHM), lString16(HYPH_DICT_ID_ALGORITHM) ) );
+	}
+		
+}
+
+HyphDictionary * HyphDictionaryList::find( lString16 id )
+{
+	for ( int i=0; i<_list.length(); i++ ) {
+		if ( _list[i]->getId() == id )
+			return _list[i];
+	}
+	return NULL;
+}
+
+bool HyphDictionaryList::open( lString16 hyphDirectory )
+{
+	_list.clear();
+	addDefault();
+	LVAppendPathDelimiter( hyphDirectory );
+    LVContainerRef container = LVOpenDirectory( hyphDirectory.c_str(), L"*.pdb" );
+	if ( !container.isNull() ) {
+		int len = container->GetObjectCount();
+		for ( int i=0; i<len; i++ ) {
+			const LVContainerItemInfo * item = container->GetObjectInfo( i );
+			lString16 name = item->GetName();
+
+			lString16 filename = hyphDirectory + name;
+			lString16 id = name;
+			lString16 title = name;
+			lString16 suffix("_hyphen_(Alan).pdb");
+			if ( title.endsWith( suffix ) )
+				title.erase( title.length() - suffix.length(), suffix.length() );
+			_list.add( new HyphDictionary( HDT_DICT_ALAN, title, id, filename ) );
+		}
+		return true;
+	}
+	return false;
+}
 
 bool HyphMan::Open(LVStream * stream)
 {
@@ -78,6 +185,9 @@ bool HyphMan::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
 {
     if (len<=3 || len>WORD_LENGTH)
         return false; // too short or too long word
+
+	if ( _disabled )
+		return false;
 
     if ( !_instance ) {
         //=====================================================================

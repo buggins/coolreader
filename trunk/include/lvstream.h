@@ -629,7 +629,7 @@ LVStreamRef LVCreateStringStream( lString8 data );
 /// Creates memory stream as copy of string contents
 LVStreamRef LVCreateStringStream( lString16 data );
 
-LVContainerRef LVOpenDirectory( const lChar16 * path );
+LVContainerRef LVOpenDirectory( const lChar16 * path, const wchar_t * mask = L"*.*" );
 
 /// Create directory if not exist
 bool LVCreateDirectory( lString16 path );

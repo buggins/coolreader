@@ -54,9 +54,54 @@ class HyphIndex {
         ~HyphIndex();
 };
 
+enum HyphDictType
+{
+	HDT_NONE,      // disable hyphenation
+	HDT_ALGORITHM, // universal
+	HDT_DICT_ALAN, // alreader
+};
+
+class HyphDictionary
+{
+	HyphDictType _type;
+	lString16 _title;
+	lString16 _id;
+	lString16 _filename;
+public:
+	HyphDictionary( HyphDictType type, lString16 title, lString16 id, lString16 filename )
+		: _type(type), _title(title), _id( id ), _filename( filename ) { }
+	HyphDictType getType() { return _type; }
+	lString16 getTitle() { return _title; }
+	lString16 getId() { return _id; }
+	lString16 getFilename() { return _filename; }
+	bool activate();
+};
+
+#define HYPH_DICT_ID_NONE L"@none"
+#define HYPH_DICT_ID_ALGORITHM L"@algorithm"
+
+class HyphDictionaryList
+{
+	LVPtrVector<HyphDictionary> _list;
+	void addDefault();
+public:
+	int length() { return _list.length(); }
+	HyphDictionary * get( int index ) { return (index>=0 && index<+_list.length()) ? _list[index] : NULL; }
+	HyphDictionaryList() { addDefault(); }
+	bool open( lString16 hyphDirectory );
+	HyphDictionary * find( lString16 id );
+	bool activate( lString16 id );
+};
+
+#define DEF_HYPHENATION_DICT "Russian_EnUS_hyphen_(Alan).pdb"
+
 /// AlReader hyphenation manager
 class HyphMan
 {
+	friend class HyphDictionary;
+	static HyphDictionary * _selectedDictionary;
+	static bool _disabled;
+	static HyphDictionaryList * _dictList;
     //int             _hyph;
     unsigned char * _wtoa_index[256];
     HyphIndex * _hyph_index[256];
@@ -68,6 +113,10 @@ class HyphMan
 
     void  mapChar( lUInt16 wc, unsigned char c );
 public:
+	static void uninit();
+	static HyphDictionaryList * getDictList() { return _dictList; }
+	static bool initDictionaries( lString16 dir );
+	static HyphDictionary * getSelectedDictionary() { return _selectedDictionary; }
     static int isCorrectHyphFile(LVStream * stream);
     static bool hyphenate( 
         const lChar16 * str, 

@@ -2707,7 +2707,7 @@ lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in )
 }
 
 
-LVContainerRef LVOpenDirectory( const wchar_t * path )
+LVContainerRef LVOpenDirectory( const wchar_t * path, const wchar_t * mask )
 {
     LVContainerRef dir( LVDirectoryContainer::OpenDirectory( path ) );
     return dir;

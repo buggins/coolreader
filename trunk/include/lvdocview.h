@@ -43,6 +43,7 @@
 #define PROP_SHOW_TIME               "window.status.clock"
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
+#define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
 
 /// source document formats
 typedef enum {

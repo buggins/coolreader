@@ -1959,8 +1959,12 @@ void LVDocView::setDefaultInterlineSpace( int percent )
 void LVDocView::setFontSize( int newSize )
 {
     LVLock lock(getMutex());
+	int oldSize = m_font_size;
     m_font_size = findBestFit( m_font_sizes, newSize );
-    requestRender();
+	if ( oldSize != newSize ) {
+		propsGetCurrent()->setInt( PROP_FONT_SIZE, m_font_size );
+		requestRender();
+	}
     //goToBookmark(_posBookmark);
 }
 
@@ -3550,6 +3554,14 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->limitValueList( PROP_PAGE_MARGIN_BOTTOM, def_margin, 8 );
     props->limitValueList( PROP_PAGE_MARGIN_LEFT, def_margin, 8 );
     props->limitValueList( PROP_PAGE_MARGIN_RIGHT, def_margin, 8 );
+	lString16 hyph = props->getStringDef( PROP_HYPHENATION_DICT, DEF_HYPHENATION_DICT );
+	HyphDictionaryList * dictlist = HyphMan::getDictList();
+	if ( dictlist ) {
+		if ( dictlist->find( hyph ) )
+			props->setString( PROP_HYPHENATION_DICT, hyph );
+		else
+			props->setString( PROP_HYPHENATION_DICT, lString16(HYPH_DICT_ID_ALGORITHM) );
+	}
 }
 
 #define H_MARGIN 8
@@ -3637,6 +3649,17 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             int fontSize = props->getIntDef( PROP_FONT_SIZE, m_font_sizes[0] );
             setFontSize( fontSize );//cr_font_sizes
             value = lString16::itoa( m_font_size );
+		} else if ( name==PROP_HYPHENATION_DICT ) {
+			// hyphenation dictionary
+			lString16 id = props->getStringDef( PROP_HYPHENATION_DICT, DEF_HYPHENATION_DICT );
+			HyphDictionaryList * list = HyphMan::getDictList();
+			HyphDictionary * curr = HyphMan::getSelectedDictionary();
+			if ( list ) {
+				if ( !curr || curr->getId()!=id ) {
+					if ( list->activate( id ) )
+						requestRender();
+				}
+			}
         } else if ( name==PROP_INTERLINE_SPACE ) {
             int interlineSpace = props->getIntDef( PROP_INTERLINE_SPACE,  cr_interline_spaces[0] );
             setDefaultInterlineSpace( interlineSpace );//cr_font_sizes

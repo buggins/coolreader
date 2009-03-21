@@ -198,6 +198,9 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
     int cmd, param;
     if ( _acceleratorTable->translate( key, flags, cmd, param ) ) {
         CRLog::trace("Accelerator applied: key %d(%d) -> command(%d,%d)", key, flags, cmd, param );
+		if ( cmd == GCMD_PASS_TO_PARENT ) {
+			return false;
+		}
         return onCommand( cmd, param );
     } else {
         CRLog::trace("Accelerator not found for key %d(%d)", key, flags );

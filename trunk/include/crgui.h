@@ -895,6 +895,10 @@ enum CRMenuControlCmd {
     MCMD_SCROLL_BACK_LONG,
 };
 
+enum CRGUICmd {
+	GCMD_PASS_TO_PARENT = 550,
+};
+
 class CRMenu;
 
 /// CRGUI menu item base class
