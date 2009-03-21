@@ -416,6 +416,7 @@ int main(int argc, char **argv)
     CRLog::setLogLevel( CRLog::LL_ERROR );
 #endif
 
+       
     // gettext initialization
     setlocale (LC_ALL, "");
     #undef LOCALEDIR
@@ -477,6 +478,10 @@ int main(int argc, char **argv)
     }
 
     const char * fname = argv[1];
+    const char * bmkdir = NULL;
+    lString8 fn8( fname );
+    if ( fn8.startsWith( lString8("/media/sd/") ) )
+        bmkdir = "/media/sd/bookmarks/";
     //TODO: remove hardcoded
 #ifdef __i386__
         CRXCBWindowManager winman( 600, 700 );
@@ -511,6 +516,8 @@ int main(int argc, char **argv)
 
         if ( !main_win->loadDictConfig(  lString16( L"/media/sd/crengine/dict/dictd.conf" ) ) )
             main_win->loadDictConfig( lString16( L"/usr/share/crengine/dict/dictd.conf" ) );
+        if ( bmkdir!=NULL )
+            main_win->setBookmarkDir( lString16(bmkdir) );
 
     #define SEPARATE_INI_FILES
 
