@@ -1188,8 +1188,8 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     drawbuf->FillRect(info.left+percent_pos, gpos-2, info.right, gpos-2+1, cl1 ); // cl3
 
     if ( !leftPage ) {
-        drawbuf->FillRect(info.left, gpos-3, info.left+percent_pos, gpos-3+1, 0xAAAAAA );
-        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos-1+1, 0xAAAAAA );
+        drawbuf->FillRect(info.left, gpos-3, info.left+percent_pos, gpos-3+1, cl1 );
+        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos-1+1, cl1 );
     }
 
     // disable section marks

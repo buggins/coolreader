@@ -2051,7 +2051,7 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags )
                 nch = nch * 10 + (ch - '0');
             else if (ch=='#' && state==1)
                 state = 2;
-            else if (state==1 && (ch>='a' && ch<='z' || ch>='A' && ch<='Z') ) {
+            else if (state==1 && ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z')) ) {
                 int k;
                 lChar16 entname[16];
                 for ( k=i; str[k] && str[k]!=';' && k-i<12; k++ )

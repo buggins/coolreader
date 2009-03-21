@@ -852,7 +852,7 @@ public:
                 item = LVFontGlyphCacheItem::newItem( &_glyph_cache, ch, _slot, _drawMonochrome );
                 _glyph_cache.put( item );
             }
-            if ( item && !isHyphen || i>=len-1 ) { // avoid soft hyphens inside text string
+            if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
                 int w = item->advance + (kerning >> 6);
                 buf->Draw( x + (kerning>>6) + item->origin_x,
                     y + _baseline - item->origin_y, 
