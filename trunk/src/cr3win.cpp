@@ -386,6 +386,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		main_win->loadCSS( exedir + L"fb2.css" );
 		main_win->loadSettings( exedir + L"cr3.ini" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
+		main_win->setBookmarkDir(lString16("c:\\cr3\\bookmarks\\"));
 		lString8 exedir8 = UnicodeToUtf8( exedir );
 		const char * dirs[] = {
 			exedir8.c_str(),
