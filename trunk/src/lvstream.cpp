@@ -3198,11 +3198,12 @@ void LVRemovePathDelimiter( lString16 & pathName )
 bool LVCreateDirectory( lString16 path )
 {
     CRLog::trace("LVCreateDirectory(%s)", UnicodeToUtf8(path).c_str() );
-    LVRemovePathDelimiter(path);
-    if ( path.empty() )
+    //LVRemovePathDelimiter(path);
+    if ( path.length() <= 1 )
         return false;
     LVContainerRef dir = LVOpenDirectory( path.c_str() );
     if ( dir.isNull() ) {
+	    LVRemovePathDelimiter(path);
         lString16 basedir = LVExtractPath( path );
         CRLog::trace("Directory not found, checking base directory %s", UnicodeToUtf8(basedir).c_str());
         if ( !LVCreateDirectory( basedir ) ) {
@@ -3219,7 +3220,7 @@ bool LVCreateDirectory( lString16 path )
         return true;
 #endif
     }
-    CRLog::error("Directory %s exists", path.c_str());
+    CRLog::trace("Directory %s exists", path.c_str());
     return true;
 }
 
