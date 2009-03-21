@@ -46,6 +46,7 @@ enum MainMenuItems_t {
     mm_PageMarginLeft,
     mm_PageMarginRight,
     mm_PageMarginBottom,
+    mm_Hyphenation,
 };
 
 

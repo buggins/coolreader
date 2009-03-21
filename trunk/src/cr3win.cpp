@@ -385,6 +385,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         main_win->getDocView()->setFontSize( 20 );
 		main_win->loadCSS( exedir + L"fb2.css" );
 		main_win->loadSettings( exedir + L"cr3.ini" );
+		HyphMan::initDictionaries( exedir + L"hyph" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
 		main_win->setBookmarkDir(lString16("c:\\cr3\\bookmarks\\"));
 		lString8 exedir8 = UnicodeToUtf8( exedir );
@@ -398,7 +399,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         main_win->loadHistory( exedir + L"cr3hist.bmk" );
 
         winman.activateWindow( main_win );
-        if ( !main_win->getDocView()->LoadDocument(cmdline.c_str()) ) {
+        if ( !main_win->loadDocument( LocalToUnicode( cmdline )) ) {
             char str[100];
             sprintf(str, "Cannot open document file %s", cmdline.c_str());
             MessageBoxA( NULL, str, "CR Engine :: Fb2Test -- fatal error!", MB_OK);

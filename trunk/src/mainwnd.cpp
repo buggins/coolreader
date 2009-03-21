@@ -52,6 +52,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
 	_fullscreen = true;
+    _docview->setShowCover( true );
     _docview->setFontSizes( sizes, true );
     _props = LVCreatePropsContainer();
     _newProps = _props;
@@ -689,6 +690,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
     case DCMD_ZOOM_IN:
     case DCMD_ZOOM_OUT:
+		CRViewDialog::onCommand( command, params );
         _props->setInt( PROP_FONT_SIZE, _docview->getFontSize() );
         saveSettings( lString16() );
         return true;

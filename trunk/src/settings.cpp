@@ -271,6 +271,22 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( kerningMenu, kerning_options );
         mainMenu->addItem( kerningMenu );
 
+		//====== Hyphenation ==========
+		if ( HyphMan::getDictList() ) {
+			CRMenu * hyphMenu = new CRMenu(_wm, mainMenu, mm_Hyphenation,
+					_("Hyphenation"),
+					LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_HYPHENATION_DICT );
+			for ( i=0; i<HyphMan::getDictList()->length(); i++ ) {
+				HyphDictionary * item = HyphMan::getDictList()->get( i );
+				hyphMenu->addItem( new CRMenuItem( hyphMenu, i,
+					item->getTitle(),
+					LVImageSourceRef(),
+					LVFontRef(), item->getId().c_str() ) );
+			}
+			hyphMenu->setAccelerators( _menuAccelerators );
+			hyphMenu->setSkinName(lString16(L"#settings"));
+			mainMenu->addItem( hyphMenu );
+		}
         //====== Margins ==============
         CRMenu * marginsMenu = new CRMenu(_wm, mainMenu, mm_PageMargins,
                 _("Page margins"),
