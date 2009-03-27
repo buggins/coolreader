@@ -425,6 +425,17 @@ void V3DocViewWin::openRecentBook( int index )
     }
 }
 
+void V3DocViewWin::showHelpDialog()
+{
+}
+
+void V3DocViewWin::showKeymapDialog()
+{
+    //TODO:
+    _8("Key");
+    _8("Assigned function");
+}
+
 void V3DocViewWin::showBookmarksMenu()
 {
     lvRect rc = _wm->getScreen()->getRect();
@@ -502,6 +513,16 @@ VIEWER_MENU_4ABOUT=About...
                 _("Settings"),
                 LVImageSourceRef(),
                 LVFontRef() ) );
+#if 0
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_HELP,
+                _("Help"),
+                LVImageSourceRef(),
+                LVFontRef() ) );
+    menu_win->addItem( new CRMenuItem( menu_win, MCMD_HELP_KEYS,
+                _("Keyboard layout"),
+                LVImageSourceRef(),
+                LVFontRef() ) );
+#endif
     menu_win->setAccelerators( getMenuAccelerators() );
     _wm->activateWindow( menu_win );
 }
@@ -694,6 +715,12 @@ bool V3DocViewWin::onCommand( int command, int params )
         _props->setInt( PROP_FONT_SIZE, _docview->getFontSize() );
         saveSettings( lString16() );
         return true;
+    case MCMD_HELP:
+        showHelpDialog();
+        break;
+    case MCMD_HELP_KEYS:
+        showKeymapDialog();
+        break;
     default:
         // do nothing
         ;

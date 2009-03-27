@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-21 12:54+0300\n"
+"POT-Creation-Date: 2009-03-27 08:52+0300\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "Empty slot"
 msgstr "空的存档位置"
 
-#: src/bmkdlg.cpp:58 src/mainwnd.cpp:494
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:505
 msgid "Bookmarks"
 msgstr "书签"
 
@@ -48,151 +48,167 @@ msgstr "在目录查找"
 msgid "[cannot read article]"
 msgstr "无法阅读此项"
 
-#: src/mainwnd.cpp:442
+#: src/mainwnd.cpp:435
+msgid "Key"
+msgstr ""
+
+#: src/mainwnd.cpp:436
+msgid "Assigned function"
+msgstr ""
+
+#: src/mainwnd.cpp:453
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: src/mainwnd.cpp:456
+#: src/mainwnd.cpp:467
 msgid "About"
 msgstr "关于"
 
-#: src/mainwnd.cpp:466
+#: src/mainwnd.cpp:477
 msgid "Go to page"
 msgstr "跳转到页"
 
-#: src/mainwnd.cpp:478 src/recentdlg.cpp:70
+#: src/mainwnd.cpp:489 src/recentdlg.cpp:70
 msgid "Open recent book"
 msgstr "打开最近的书籍"
 
-#: src/mainwnd.cpp:485 src/viewdlg.cpp:136
+#: src/mainwnd.cpp:496 src/viewdlg.cpp:136
 msgid "Dictionary"
 msgstr "词典"
 
-#: src/mainwnd.cpp:490
+#: src/mainwnd.cpp:501
 msgid "Cite"
 msgstr "列举"
 
-#: src/mainwnd.cpp:498 src/viewdlg.cpp:179
+#: src/mainwnd.cpp:509 src/viewdlg.cpp:179
 msgid "Search"
 msgstr "查找"
 
-#: src/mainwnd.cpp:502 src/settings.cpp:77
+#: src/mainwnd.cpp:513 src/settings.cpp:77
 msgid "Settings"
 msgstr "设置"
 
-#: src/mainwnd.cpp:599
+#: src/mainwnd.cpp:518
+msgid "Help"
+msgstr ""
+
+#: src/mainwnd.cpp:522
+msgid "Keyboard layout"
+msgstr ""
+
+#: src/mainwnd.cpp:620
 msgid "File info"
 msgstr ""
 
-#: src/mainwnd.cpp:600
+#: src/mainwnd.cpp:621
 msgid "Archive name"
 msgstr "存档作者"
 
-#: src/mainwnd.cpp:601
+#: src/mainwnd.cpp:622
 msgid "Archive path"
 msgstr "存档路径"
 
-#: src/mainwnd.cpp:602
+#: src/mainwnd.cpp:623
 msgid "Archive size"
 msgstr "存档大小"
 
-#: src/mainwnd.cpp:603
+#: src/mainwnd.cpp:624
 msgid "File name"
 msgstr "文件名"
 
-#: src/mainwnd.cpp:604
+#: src/mainwnd.cpp:625
 msgid "File path"
 msgstr "文件路径"
 
-#: src/mainwnd.cpp:605
+#: src/mainwnd.cpp:626
 msgid "File size"
 msgstr "文件大小"
 
-#: src/mainwnd.cpp:606
+#: src/mainwnd.cpp:627
 msgid "File format"
 msgstr "文件格式"
 
-#: src/mainwnd.cpp:609
+#: src/mainwnd.cpp:630
 msgid "Title"
 msgstr "标题"
 
-#: src/mainwnd.cpp:610
+#: src/mainwnd.cpp:631
 msgid "Author(s)"
 msgstr "作者"
 
-#: src/mainwnd.cpp:611
+#: src/mainwnd.cpp:632
 msgid "Series name"
 msgstr "系列名称"
 
-#: src/mainwnd.cpp:612
+#: src/mainwnd.cpp:633
 msgid "Series number"
 msgstr "序列号"
 
-#: src/mainwnd.cpp:613
+#: src/mainwnd.cpp:634
 msgid "Date"
 msgstr "日期"
 
-#: src/mainwnd.cpp:614
+#: src/mainwnd.cpp:635
 msgid "Genres"
 msgstr "摘要"
 
-#: src/mainwnd.cpp:615
+#: src/mainwnd.cpp:636
 msgid "Translator"
 msgstr "翻译"
 
-#: src/mainwnd.cpp:616
+#: src/mainwnd.cpp:637
 msgid "Book info"
 msgstr "用户信息"
 
-#: src/mainwnd.cpp:619
+#: src/mainwnd.cpp:640
 msgid "Document author"
 msgstr "文档作者"
 
-#: src/mainwnd.cpp:620
+#: src/mainwnd.cpp:641
 msgid "Document date"
 msgstr "文档日期"
 
-#: src/mainwnd.cpp:621
+#: src/mainwnd.cpp:642
 msgid "Document source URL"
 msgstr "源文档URL"
 
-#: src/mainwnd.cpp:622
+#: src/mainwnd.cpp:643
 msgid "OCR by"
 msgstr "OCR"
 
-#: src/mainwnd.cpp:623
+#: src/mainwnd.cpp:644
 msgid "Document version"
 msgstr "文档版本"
 
-#: src/mainwnd.cpp:624
+#: src/mainwnd.cpp:645
 msgid "Document info"
 msgstr ""
 
-#: src/mainwnd.cpp:627
+#: src/mainwnd.cpp:648
 msgid "Publication name"
 msgstr "发行商名称:"
 
-#: src/mainwnd.cpp:628
+#: src/mainwnd.cpp:649
 msgid "Publisher"
 msgstr "出版社"
 
-#: src/mainwnd.cpp:629
+#: src/mainwnd.cpp:650
 msgid "Publisher city"
 msgstr "出版社城市"
 
-#: src/mainwnd.cpp:630
+#: src/mainwnd.cpp:651
 msgid "Publication year"
 msgstr "出版日期"
 
-#: src/mainwnd.cpp:631
+#: src/mainwnd.cpp:652
 msgid "ISBN"
 msgstr "ISBN"
 
-#: src/mainwnd.cpp:632
+#: src/mainwnd.cpp:653
 msgid "Publication info"
 msgstr "发行商名称:"
 
-#: src/mainwnd.cpp:634
+#: src/mainwnd.cpp:655
 msgid "Custom info"
 msgstr "用户信息"
 

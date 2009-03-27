@@ -74,6 +74,8 @@ enum CRMainMenuCmd
     MCMD_DICT_FIND,
     MCMD_KBD_NEXTLAYOUT,
     MCMD_KBD_PREVLAYOUT,
+    MCMD_HELP,
+    MCMD_HELP_KEYS,
 };
 
 class V3DocViewWin : public CRViewDialog
@@ -131,6 +133,10 @@ public:
     void openRecentBook( int index );
 
     void showAboutDialog();
+
+    void showHelpDialog();
+
+    void showKeymapDialog();
 
     virtual bool onCommand( int command, int params );
 

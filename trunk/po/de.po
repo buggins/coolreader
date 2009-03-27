@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-21 12:54+0300\n"
+"POT-Creation-Date: 2009-03-27 08:52+0300\n"
 "PO-Revision-Date: 2009-03-05 15:25+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: German\n"
@@ -19,7 +19,7 @@ msgstr ""
 msgid "Empty slot"
 msgstr ""
 
-#: src/bmkdlg.cpp:58 src/mainwnd.cpp:494
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:505
 msgid "Bookmarks"
 msgstr ""
 
@@ -49,151 +49,167 @@ msgstr ""
 msgid "[cannot read article]"
 msgstr ""
 
-#: src/mainwnd.cpp:442
+#: src/mainwnd.cpp:435
+msgid "Key"
+msgstr ""
+
+#: src/mainwnd.cpp:436
+msgid "Assigned function"
+msgstr ""
+
+#: src/mainwnd.cpp:453
 msgid "Main Menu"
 msgstr ""
 
-#: src/mainwnd.cpp:456
+#: src/mainwnd.cpp:467
 msgid "About"
 msgstr ""
 
-#: src/mainwnd.cpp:466
+#: src/mainwnd.cpp:477
 msgid "Go to page"
 msgstr ""
 
-#: src/mainwnd.cpp:478 src/recentdlg.cpp:70
+#: src/mainwnd.cpp:489 src/recentdlg.cpp:70
 msgid "Open recent book"
 msgstr ""
 
-#: src/mainwnd.cpp:485 src/viewdlg.cpp:136
+#: src/mainwnd.cpp:496 src/viewdlg.cpp:136
 msgid "Dictionary"
 msgstr ""
 
-#: src/mainwnd.cpp:490
+#: src/mainwnd.cpp:501
 msgid "Cite"
 msgstr ""
 
-#: src/mainwnd.cpp:498 src/viewdlg.cpp:179
+#: src/mainwnd.cpp:509 src/viewdlg.cpp:179
 msgid "Search"
 msgstr ""
 
-#: src/mainwnd.cpp:502 src/settings.cpp:77
+#: src/mainwnd.cpp:513 src/settings.cpp:77
 msgid "Settings"
 msgstr ""
 
-#: src/mainwnd.cpp:599
-msgid "File info"
+#: src/mainwnd.cpp:518
+msgid "Help"
 msgstr ""
 
-#: src/mainwnd.cpp:600
-msgid "Archive name"
-msgstr ""
-
-#: src/mainwnd.cpp:601
-msgid "Archive path"
-msgstr ""
-
-#: src/mainwnd.cpp:602
-msgid "Archive size"
-msgstr ""
-
-#: src/mainwnd.cpp:603
-msgid "File name"
-msgstr ""
-
-#: src/mainwnd.cpp:604
-msgid "File path"
-msgstr ""
-
-#: src/mainwnd.cpp:605
-msgid "File size"
-msgstr ""
-
-#: src/mainwnd.cpp:606
-msgid "File format"
-msgstr ""
-
-#: src/mainwnd.cpp:609
-msgid "Title"
-msgstr ""
-
-#: src/mainwnd.cpp:610
-msgid "Author(s)"
-msgstr ""
-
-#: src/mainwnd.cpp:611
-msgid "Series name"
-msgstr ""
-
-#: src/mainwnd.cpp:612
-msgid "Series number"
-msgstr ""
-
-#: src/mainwnd.cpp:613
-msgid "Date"
-msgstr ""
-
-#: src/mainwnd.cpp:614
-msgid "Genres"
-msgstr ""
-
-#: src/mainwnd.cpp:615
-msgid "Translator"
-msgstr ""
-
-#: src/mainwnd.cpp:616
-msgid "Book info"
-msgstr ""
-
-#: src/mainwnd.cpp:619
-msgid "Document author"
+#: src/mainwnd.cpp:522
+msgid "Keyboard layout"
 msgstr ""
 
 #: src/mainwnd.cpp:620
-msgid "Document date"
+msgid "File info"
 msgstr ""
 
 #: src/mainwnd.cpp:621
-msgid "Document source URL"
+msgid "Archive name"
 msgstr ""
 
 #: src/mainwnd.cpp:622
-msgid "OCR by"
+msgid "Archive path"
 msgstr ""
 
 #: src/mainwnd.cpp:623
-msgid "Document version"
+msgid "Archive size"
 msgstr ""
 
 #: src/mainwnd.cpp:624
-msgid "Document info"
+msgid "File name"
+msgstr ""
+
+#: src/mainwnd.cpp:625
+msgid "File path"
+msgstr ""
+
+#: src/mainwnd.cpp:626
+msgid "File size"
 msgstr ""
 
 #: src/mainwnd.cpp:627
-msgid "Publication name"
-msgstr ""
-
-#: src/mainwnd.cpp:628
-msgid "Publisher"
-msgstr ""
-
-#: src/mainwnd.cpp:629
-msgid "Publisher city"
+msgid "File format"
 msgstr ""
 
 #: src/mainwnd.cpp:630
-msgid "Publication year"
+msgid "Title"
 msgstr ""
 
 #: src/mainwnd.cpp:631
-msgid "ISBN"
+msgid "Author(s)"
 msgstr ""
 
 #: src/mainwnd.cpp:632
-msgid "Publication info"
+msgid "Series name"
+msgstr ""
+
+#: src/mainwnd.cpp:633
+msgid "Series number"
 msgstr ""
 
 #: src/mainwnd.cpp:634
+msgid "Date"
+msgstr ""
+
+#: src/mainwnd.cpp:635
+msgid "Genres"
+msgstr ""
+
+#: src/mainwnd.cpp:636
+msgid "Translator"
+msgstr ""
+
+#: src/mainwnd.cpp:637
+msgid "Book info"
+msgstr ""
+
+#: src/mainwnd.cpp:640
+msgid "Document author"
+msgstr ""
+
+#: src/mainwnd.cpp:641
+msgid "Document date"
+msgstr ""
+
+#: src/mainwnd.cpp:642
+msgid "Document source URL"
+msgstr ""
+
+#: src/mainwnd.cpp:643
+msgid "OCR by"
+msgstr ""
+
+#: src/mainwnd.cpp:644
+msgid "Document version"
+msgstr ""
+
+#: src/mainwnd.cpp:645
+msgid "Document info"
+msgstr ""
+
+#: src/mainwnd.cpp:648
+msgid "Publication name"
+msgstr ""
+
+#: src/mainwnd.cpp:649
+msgid "Publisher"
+msgstr ""
+
+#: src/mainwnd.cpp:650
+msgid "Publisher city"
+msgstr ""
+
+#: src/mainwnd.cpp:651
+msgid "Publication year"
+msgstr ""
+
+#: src/mainwnd.cpp:652
+msgid "ISBN"
+msgstr ""
+
+#: src/mainwnd.cpp:653
+msgid "Publication info"
+msgstr ""
+
+#: src/mainwnd.cpp:655
 msgid "Custom info"
 msgstr ""
 
