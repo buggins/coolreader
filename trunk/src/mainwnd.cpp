@@ -414,6 +414,21 @@ void V3DocViewWin::showRecentBooksMenu()
     _wm->activateWindow( menu_win );
 }
 
+
+bool V3DocViewWin::setHelpFile( lString16 filename )
+{
+	if ( LVFileExists( filename ) ) {
+		_helpFile = filename;
+		return true;
+	}
+	return false;
+}
+
+lString16 V3DocViewWin::getHelpFile( )
+{
+	return _helpFile;
+}
+
 void V3DocViewWin::openRecentBook( int index )
 {
     LVPtrVector<CRFileHistRecord> & files = _docview->getHistory()->getRecords();
@@ -427,13 +442,20 @@ void V3DocViewWin::openRecentBook( int index )
 
 void V3DocViewWin::showHelpDialog()
 {
-}
-
-void V3DocViewWin::showKeymapDialog()
-{
-    //TODO:
-    _8("Key");
-    _8("Assigned function");
+	LVStreamRef stream = LVOpenFileStream( _helpFile.c_str(), LVOM_READ );
+	if ( stream.isNull() )
+		return;
+	int len = stream->GetSize();
+	lString8 help;
+	if ( len>100 && len <1000000 ) {
+		help.append( len, ' ' );
+		stream->Read( help.modify(), len, NULL );
+	}
+	//lString8 help = UnicodeToUtf8( LVReadTextFile( _helpFile ) );
+	if ( !help.empty() ) {
+		CRViewDialog * dlg = new CRViewDialog( _wm, _16("Help"), help, lvRect(), true, true );
+		_wm->activateWindow( dlg );
+	}
 }
 
 void V3DocViewWin::showBookmarksMenu()
@@ -463,67 +485,90 @@ VIEWER_MENU_5ABOUT=About...
 VIEWER_MENU_4ABOUT=About...
 */
     menu_win->setSkinName(lString16(L"#main"));
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_ABOUT,
-                _("About"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#if 0
-    menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
-                _wm->translateString("VIEWER_MENU_GOTOFIRSTPAGE", "Go to first page"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#endif
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
-                _("Go to page"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#if 0
-    menu_win->addItem( new CRMenuItem( menu_win, DCMD_END,
-                _wm->translateString("VIEWER_MENU_GOTOENDPAGE", "Go to last page"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#endif
+	CRGUIAcceleratorTableRef menuItems = _wm->getAccTables().get(lString16("mainMenuItems"));
+	if ( !menuItems.isNull() && menuItems->length()>1 ) {
+		// get menu from file
+		for ( unsigned i=0; i<menuItems->length(); i++ ) {
+			const CRGUIAccelerator * acc = menuItems->get( i );
+			int cmd = acc->commandId;
+			int param = acc->commandParam;
+			const char * name = getCommandName( cmd, param );
+			int key = 0;
+			int keyFlags = 0;
+			lString8 label( name );
+			if ( _acceleratorTable->findCommandKey( cmd, param, key, keyFlags ) ) {
+				const char * keyname = getKeyName( key, keyFlags );
+				if ( keyname && keyname[0] )
+					label << "   (" << keyname << ")";
+			}
+			menu_win->addItem( new CRMenuItem( menu_win, cmd,
+				label.c_str(),
+				LVImageSourceRef(),
+				LVFontRef() ) );
+		}
+	} else {
+		// default menu
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_ABOUT,
+					_("About"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+	#if 0
+		menu_win->addItem( new CRMenuItem( menu_win, DCMD_BEGIN,
+					_wm->translateString("VIEWER_MENU_GOTOFIRSTPAGE", "Go to first page"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+	#endif
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_GO_PAGE,
+					_("Go to page"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+	#if 0
+		menu_win->addItem( new CRMenuItem( menu_win, DCMD_END,
+					_wm->translateString("VIEWER_MENU_GOTOENDPAGE", "Go to last page"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+	#endif
 
-#if USE_JINKE_USER_DATA!=1
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_RECENT_BOOK_LIST,
-                _("Open recent book"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#endif
+	#if USE_JINKE_USER_DATA!=1
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_RECENT_BOOK_LIST,
+					_("Open recent book"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+	#endif
 
-#ifdef WITH_DICT
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
-                _("Dictionary"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#endif
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_CITE,
-                _("Cite"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_BOOKMARK_LIST,
-                _("Bookmarks"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_SEARCH,
-                _("Search"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
-                _("Settings"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#if 0
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_HELP,
-                _("Help"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-    menu_win->addItem( new CRMenuItem( menu_win, MCMD_HELP_KEYS,
-                _("Keyboard layout"),
-                LVImageSourceRef(),
-                LVFontRef() ) );
-#endif
-    menu_win->setAccelerators( getMenuAccelerators() );
+	#ifdef WITH_DICT
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
+					_("Dictionary"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+	#endif
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_CITE,
+					_("Cite"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_BOOKMARK_LIST,
+					_("Bookmarks"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_SEARCH,
+					_("Search"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_SETTINGS,
+					_("Settings"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+		if ( !_helpFile.empty() )
+			menu_win->addItem( new CRMenuItem( menu_win, MCMD_HELP,
+					_("Help"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+		menu_win->addItem( new CRMenuItem( menu_win, MCMD_HELP_KEYS,
+					_("Keyboard layout"),
+					LVImageSourceRef(),
+					LVFontRef() ) );
+	}
+	menu_win->setAccelerators( getMenuAccelerators() );
     _wm->activateWindow( menu_win );
 }
 
@@ -606,6 +651,8 @@ static void addInfoSection( lString8 & buf, lString8 data, const char * caption 
 
 void V3DocViewWin::showAboutDialog()
 {
+	_docview->savePosition();
+	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
     lString16 title = L"Cool Reader ";
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "3.0"
@@ -616,15 +663,29 @@ void V3DocViewWin::showAboutDialog()
     //=========================================================
     txt << "<table><col width=\"25%\"/><col width=\"75%\"/>\n";
     CRPropRef props = _docview->getDocProps();
-    txt << "<tr><td colspan=\"2\" style=\"font-weight: bold; text-align: center\">" 
-        << _("File info") << "</td></tr>";
-    addPropLine( txt, _("Archive name"), props->getStringDef(DOC_PROP_ARC_NAME) );
-    addPropLine( txt, _("Archive path"), props->getStringDef(DOC_PROP_ARC_PATH) );
-    addPropLine( txt, _("Archive size"), props->getStringDef(DOC_PROP_ARC_SIZE) );
-    addPropLine( txt, _("File name"), props->getStringDef(DOC_PROP_FILE_NAME) );
-    addPropLine( txt, _("File path"), props->getStringDef(DOC_PROP_FILE_PATH) );
-    addPropLine( txt, _("File size"), props->getStringDef(DOC_PROP_FILE_SIZE) );
-    addPropLine( txt, _("File format"), props->getStringDef(DOC_PROP_FILE_FORMAT) );
+
+    lString8 statusInfo;
+	addPropLine( statusInfo, _("Current page"), lString16::itoa(_docview->getCurPage()) );
+	addPropLine( statusInfo, _("Total pages"), lString16::itoa(_docview->getPageCount()) );
+	addPropLine( statusInfo, _("Battery state"), lString16::itoa(_docview->getBatteryState()) + L"%" );
+	// TODO:
+	if ( hist ) {
+		CRBookmark * lastpos = hist->getLastPos();
+		if ( lastpos ) {
+			addPropLine( statusInfo, _("Current chapter"), lastpos->getTitleText() );
+		}
+	}
+    addInfoSection( txt, statusInfo, _("Status") );
+
+    lString8 fileInfo;
+    addPropLine( fileInfo, _("Archive name"), props->getStringDef(DOC_PROP_ARC_NAME) );
+    addPropLine( fileInfo, _("Archive path"), props->getStringDef(DOC_PROP_ARC_PATH) );
+    addPropLine( fileInfo, _("Archive size"), props->getStringDef(DOC_PROP_ARC_SIZE) );
+    addPropLine( fileInfo, _("File name"), props->getStringDef(DOC_PROP_FILE_NAME) );
+    addPropLine( fileInfo, _("File path"), props->getStringDef(DOC_PROP_FILE_PATH) );
+    addPropLine( fileInfo, _("File size"), props->getStringDef(DOC_PROP_FILE_SIZE) );
+    addPropLine( fileInfo, _("File format"), props->getStringDef(DOC_PROP_FILE_FORMAT) );
+    addInfoSection( txt, fileInfo, _("File info") );
 
     lString8 bookInfo;
     addPropLine( bookInfo, _("Title"), props->getStringDef(DOC_PROP_TITLE) );
@@ -717,10 +778,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
     case MCMD_HELP:
         showHelpDialog();
-        break;
-    case MCMD_HELP_KEYS:
-        showKeymapDialog();
-        break;
+        return true;
     default:
         // do nothing
         ;

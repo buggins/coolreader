@@ -385,6 +385,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         main_win->getDocView()->setFontSize( 20 );
 		main_win->loadCSS( exedir + L"fb2.css" );
 		main_win->loadSettings( exedir + L"cr3.ini" );
+		main_win->setHelpFile( exedir + L"cr3-manual-ru.fb2" );
 		HyphMan::initDictionaries( exedir + L"hyph" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
 		main_win->setBookmarkDir(lString16("c:\\cr3\\bookmarks\\"));

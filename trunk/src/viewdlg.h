@@ -54,6 +54,11 @@ public:
 
 	bool findInDictionary( lString16 pattern );
 
+    void showKeymapDialog();
+
+	const char * getCommandName( int command, int param );
+	const char * getKeyName( int keyCode, int option );
+
     /// adds XML and FictionBook tags for utf8 fb2 document
     static lString8 makeFb2Xml( const lString8 & body );
     virtual void setRect( const lvRect & rc );

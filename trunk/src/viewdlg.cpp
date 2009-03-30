@@ -112,11 +112,11 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     getDocView()->setShowCover( false );
     getDocView()->setPageHeaderInfo( 0 ); // hide title bar
     getDocView()->setPageMargins( lvRect(8,8,8,8) );
-    setRect( rect );
     if ( !text.empty() ) {
 		_stream = LVCreateStringStream( text );
 		getDocView()->LoadDocument(_stream);
     }
+    setRect( rect );
 }
 
 bool CRViewDialog::hasDictionaries()
@@ -255,8 +255,123 @@ bool CRViewDialog::onCommand( int command, int params )
         case MCMD_GO_LINK:
             showLinksDialog();
             return true;
+		case MCMD_HELP_KEYS:
+			showKeymapDialog();
+			break;
     }
     return CRDocViewWindow::onCommand( command, params );
+}
+
+static 
+const char * getKeyName( int keyCode )
+{
+	static char name[256];
+	if ( (keyCode>='0' && keyCode<='9') || keyCode=='+' || keyCode=='-' ) {
+		sprintf( name, "'%c'", keyCode );
+		return name;
+	}
+	switch ( keyCode ) {
+	case XK_Return:
+		return "Ok";
+	case XK_Up:
+		return "'&gt;'";
+	case XK_Down:
+		return "'&lt;'";
+	case XK_Escape:
+		return "Esc";
+	default:
+		return "?";
+	}
+}
+
+const char * CRViewDialog::getKeyName( int keyCode, int option )
+{
+	if ( !option )
+		return ::getKeyName( keyCode );
+	static char name[256];
+	sprintf(name, "%s %s", _("Long"), ::getKeyName( keyCode ) );
+	return name;
+}
+
+static const char * getCommandName( int command )
+{
+	switch ( command ) {
+	case DCMD_BEGIN: return _("To first page");
+	case DCMD_LINEUP:
+	case DCMD_PAGEUP: return _("Back by page");
+	case DCMD_PAGEDOWN:
+	case DCMD_LINEDOWN: return _("Forward by page");
+	case DCMD_LINK_FORWARD: return _("Forward in move history");
+	case DCMD_LINK_BACK: return _("Back in move history");
+	case DCMD_LINK_NEXT: return _("Next link");
+	case DCMD_LINK_PREV: return _("Previous link");
+	case DCMD_LINK_GO: return _("Go to link");
+	case DCMD_END: return _("To last page");
+	case DCMD_GO_POS: return _("Go to position");
+	case DCMD_GO_PAGE: return _("Go to page");
+	case DCMD_ZOOM_IN: return _("Zoom in");
+	case DCMD_ZOOM_OUT: return _("Zoom out");
+	case DCMD_TOGGLE_TEXT_FORMAT: return _("Toggle text format");
+	case DCMD_BOOKMARK_SAVE_N: return _("Save bookmark by number");
+	case DCMD_BOOKMARK_GO_N: return _("Go to bookmark by number");
+	case DCMD_MOVE_BY_CHAPTER: return _("Move by chapter");
+	case MCMD_CANCEL: return _("Close dialog");
+	case MCMD_OK: return ("Ok");
+	case MCMD_SCROLL_FORWARD: return _("Scroll forward");
+	case MCMD_SCROLL_BACK: return _("Scroll back");
+	case MCMD_QUIT: return _("Close book");
+	case MCMD_MAIN_MENU: return _("Main menu");
+	case MCMD_GO_PAGE: return _("Go to page dialog");
+	case MCMD_SETTINGS: return _("Settings menu");
+	case MCMD_SETTINGS_FONTSIZE: return _("Font size settings");
+	case MCMD_SETTINGS_ORIENTATION: return _("Page orientation settings");
+	case MCMD_GO_LINK: return _("Go to link");
+	case MCMD_DICT: return _("Find in Dictionary (T5)");
+	case MCMD_BOOKMARK_LIST: return _("Bookmark list");
+	case MCMD_RECENT_BOOK_LIST: return _("Recent books list");
+	case MCMD_OPEN_RECENT_BOOK: return _("Open recent book by number");
+	case MCMD_ABOUT: return _("About");
+	case MCMD_CITE: return _("Cite selection dialog");
+	case MCMD_SEARCH: return _("Search dialog");
+	case MCMD_DICT_VKEYBOARD: return _("Find in Dictionary (virtual keyboard)");
+	case MCMD_KBD_NEXTLAYOUT: return _("Next keyboard layout");
+	case MCMD_KBD_PREVLAYOUT: return _("Previous keyboard layout");
+	case MCMD_HELP: return _("Show manual");
+	case MCMD_HELP_KEYS: return _("Show key mapping");
+	default: return _("Unknown command");
+	}
+}
+
+const char * CRViewDialog::getCommandName( int command, int param )
+{
+	if ( !param )
+		return ::getCommandName( command );
+	static char buf[ 256 ];
+	sprintf(buf, "%s (%d)", ::getCommandName( command ), param);
+	return buf;
+}
+
+void CRViewDialog::showKeymapDialog()
+{
+	if ( _acceleratorTable.isNull() )
+		return;
+	lString8 txt;
+	txt << "<table><tr><th>";
+	txt << _("Key") << "</th><th>"<< _("Assigned function") <<"</th></tr>";
+	for ( unsigned i=0; i<_acceleratorTable->length(); i++ ) {
+		const CRGUIAccelerator * acc = _acceleratorTable->get( i );
+		txt << "<tr><td>";
+		txt << getKeyName( acc->keyCode, acc->keyFlags );
+		txt << "</td><td>";
+		txt << getCommandName( acc->commandId, acc->commandParam );
+		txt << "</td></tr>";
+	}
+	txt << "</table>";
+	//============================================================
+    txt = CRViewDialog::makeFb2Xml(txt);
+    CRViewDialog * dlg = new CRViewDialog( _wm, _16("Keyboard layout"), txt, lvRect(), true, true );
+    _wm->activateWindow( dlg );
+    //TODO:
 }
 
 void CRViewDialog::draw()

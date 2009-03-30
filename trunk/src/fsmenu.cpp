@@ -30,7 +30,10 @@ int CRFullScreenMenu::getItemHeight()
 {
     CRMenuSkinRef skin = getSkin();
     lvRect rc = skin->getClientRect( _rect );
-    return (rc.height() - _helpHeight - 4) / _pageItems;
+	int scrollHeight = 0;
+	if ( _items.length() > _pageItems )
+		scrollHeight = 34;
+    return (rc.height() - _helpHeight - 4 - scrollHeight) / _pageItems;
 }
 
 lvPoint CRFullScreenMenu::getMaxItemSize()

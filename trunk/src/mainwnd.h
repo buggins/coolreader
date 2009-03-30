@@ -89,6 +89,7 @@ protected:
     lString8  _css;
     lString16 _dictConfig;
     lString16 _bookmarkDir;
+	lString16 _helpFile;
 public:
     lString16 getBookmarkDir() { return _bookmarkDir; }
     void setBookmarkDir( lString16 dir ) { _bookmarkDir = dir; }
@@ -103,6 +104,8 @@ public:
     bool loadHistory( LVStreamRef stream );
     bool saveHistory( LVStreamRef stream );
     bool loadDictConfig( lString16 filename );
+	bool setHelpFile( lString16 filename );
+	lString16 getHelpFile( );
 
     /// returns current properties
     CRPropRef getProps() { return _props; }
@@ -136,7 +139,6 @@ public:
 
     void showHelpDialog();
 
-    void showKeymapDialog();
 
     virtual bool onCommand( int command, int params );
 
