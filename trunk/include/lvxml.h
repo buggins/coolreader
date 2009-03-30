@@ -284,6 +284,9 @@ public:
     virtual ~LVHTMLParser();
 };
 
+/// read stream contents to string
 lString16 LVReadTextFile( LVStreamRef stream );
+/// read file contents to string
+lString16 LVReadTextFile( lString16 filename );
 
 #endif // __LVXML_H_INCLUDED__

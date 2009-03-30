@@ -386,8 +386,24 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
 {
     lString16 name;
     lString16 path;
+	lString16 chapter;
+	if ( !ptr.isNull() )
+	{
+		ldomXPointerEx p( ptr );
+		p.nextText();
+		while ( !p.isNull() ) {
+			if ( !p.prevElement() )
+				break;
+			lString16 nname = p.getNode()->getNodeName();
+			if ( !nname.compare(L"title") || !nname.compare(L"h1") || !nname.compare("h2")  || !nname.compare("h3") ) {
+				chapter = p.getText(' ');
+				break;
+			}
+		}
+	}
     splitFName( fpathname, path, name );
     CRBookmark bmk( ptr );
+	bmk.setTitleText( chapter );
     int index = findEntry( name, path, sz );
     if ( index>=0 ) {
         makeTop( index );

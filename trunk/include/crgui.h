@@ -63,6 +63,27 @@ protected:
         return -1;
     }
 public:
+	/// find key by command
+    bool findCommandKey( int cmd, int param, int & keyCode, int & keyFlags )
+    {
+        //CRLog::trace( "indexOf( %d, %d )", (int)keyCode, (int)keyFlags );
+        for ( int i=0; i<_items.length(); i++ ) {
+            //CRLog::trace( " compare( %d, %d )", (int)_items[i]->keyCode, (int)_items[i]->keyFlags );
+			if ( _items[i]->commandId==cmd && _items[i]->commandParam==param ) {
+                //CRLog::trace(" found index = %d", i);
+				keyCode = _items[i]->keyCode;
+				keyFlags = _items[i]->keyFlags;
+				return true;
+            }
+        }
+        return false;
+    }
+	/// get item by index
+	const CRGUIAccelerator * get( int index ) const
+	{
+		return _items[ index ];
+	}
+
 	/// debug dump of table
     void dump()
     {

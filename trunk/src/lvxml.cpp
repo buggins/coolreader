@@ -2332,8 +2332,17 @@ bool LVHTMLParser::Parse()
 }
 
 
+/// read file contents to string
+lString16 LVReadTextFile( lString16 filename )
+{
+	LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+	return LVReadTextFile( stream );
+}
+
 lString16 LVReadTextFile( LVStreamRef stream )
 {
+	if ( stream.isNull() )
+		return lString16();
     lString16 buf;
     LVTextParser reader( stream, NULL, true );
     if ( !reader.AutodetectEncoding() )

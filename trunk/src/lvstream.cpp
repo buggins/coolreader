@@ -3197,6 +3197,21 @@ void LVRemovePathDelimiter( lString16 & pathName )
 }
 
 
+/// returns true if specified file exists
+bool LVFileExists( lString16 pathName )
+{
+	LVStreamRef stream = LVOpenFileStream( pathName.c_str(), LVOM_READ );
+	return !stream.isNull();
+}
+
+/// returns true if specified directory exists
+bool LVDirectoryExists( lString16 pathName )
+{
+	// TODO: optimize
+    LVContainerRef dir = LVOpenDirectory( pathName.c_str() );
+    return !dir.isNull();
+}
+
 /// Create directory if not exist
 bool LVCreateDirectory( lString16 path )
 {

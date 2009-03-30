@@ -663,6 +663,9 @@ bool LVIsAbsolutePath( lString16 pathName );
 /// returns full path to file identified by pathName, with base directory == basePath
 lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName );
 
-
+/// returns true if specified file exists
+bool LVFileExists( lString16 pathName );
+/// returns true if specified directory exists
+bool LVDirectoryExists( lString16 pathName );
 
 #endif // __LVSTREAM_H_INCLUDED__
