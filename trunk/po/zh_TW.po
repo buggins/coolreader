@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-27 08:52+0300\n"
+"POT-Creation-Date: 2009-03-29 09:58+0400\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "Empty slot"
 msgstr "空的存档位置"
 
-#: src/bmkdlg.cpp:58 src/mainwnd.cpp:505
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:550
 msgid "Bookmarks"
 msgstr "书签"
 
@@ -48,174 +48,188 @@ msgstr "在目录查找"
 msgid "[cannot read article]"
 msgstr "无法阅读此项"
 
-#: src/mainwnd.cpp:435
-msgid "Key"
+#: src/mainwnd.cpp:456 src/mainwnd.cpp:563
+msgid "Help"
 msgstr ""
 
-#: src/mainwnd.cpp:436
-msgid "Assigned function"
-msgstr ""
-
-#: src/mainwnd.cpp:453
+#: src/mainwnd.cpp:475
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: src/mainwnd.cpp:467
+#: src/mainwnd.cpp:512 src/viewdlg.cpp:333
 #, fuzzy
 msgid "About"
 msgstr "关于..."
 
-#: src/mainwnd.cpp:477
+#: src/mainwnd.cpp:522 src/viewdlg.cpp:311
 #, fuzzy
 msgid "Go to page"
 msgstr "跳转到页..."
 
-#: src/mainwnd.cpp:489 src/recentdlg.cpp:70
+#: src/mainwnd.cpp:534 src/recentdlg.cpp:70
 msgid "Open recent book"
 msgstr "打开最近的书籍"
 
-#: src/mainwnd.cpp:496 src/viewdlg.cpp:136
+#: src/mainwnd.cpp:541 src/viewdlg.cpp:136
 msgid "Dictionary"
 msgstr "词典"
 
-#: src/mainwnd.cpp:501
+#: src/mainwnd.cpp:546
 #, fuzzy
 msgid "Cite"
 msgstr "列举..."
 
-#: src/mainwnd.cpp:509 src/viewdlg.cpp:179
+#: src/mainwnd.cpp:554 src/viewdlg.cpp:179
 msgid "Search"
 msgstr "查找"
 
-#: src/mainwnd.cpp:513 src/settings.cpp:77
+#: src/mainwnd.cpp:558 src/settings.cpp:77
 msgid "Settings"
 msgstr "设置"
 
-#: src/mainwnd.cpp:518
-msgid "Help"
-msgstr ""
-
-#: src/mainwnd.cpp:522
+#: src/mainwnd.cpp:567 src/viewdlg.cpp:372
 msgid "Keyboard layout"
 msgstr ""
 
-#: src/mainwnd.cpp:620
+#: src/mainwnd.cpp:668
+msgid "Current page"
+msgstr ""
+
+#: src/mainwnd.cpp:669
+#, fuzzy
+msgid "Total pages"
+msgstr "跳转到页..."
+
+#: src/mainwnd.cpp:670
+msgid "Battery state"
+msgstr ""
+
+#: src/mainwnd.cpp:675
+msgid "Current chapter"
+msgstr ""
+
+#: src/mainwnd.cpp:678
+#, fuzzy
+msgid "Status"
+msgstr "状态行"
+
+#: src/mainwnd.cpp:681
+msgid "Archive name"
+msgstr "存档作者"
+
+#: src/mainwnd.cpp:682
+msgid "Archive path"
+msgstr "存档路径"
+
+#: src/mainwnd.cpp:683
+msgid "Archive size"
+msgstr "存档大小"
+
+#: src/mainwnd.cpp:684
+msgid "File name"
+msgstr "文件名"
+
+#: src/mainwnd.cpp:685
+msgid "File path"
+msgstr "文件路径"
+
+#: src/mainwnd.cpp:686
+msgid "File size"
+msgstr "文件大小"
+
+#: src/mainwnd.cpp:687
+msgid "File format"
+msgstr "文件格式"
+
+#: src/mainwnd.cpp:688
 #, fuzzy
 msgid "File info"
 msgstr "文件格式"
 
-#: src/mainwnd.cpp:621
-msgid "Archive name"
-msgstr "存档作者"
-
-#: src/mainwnd.cpp:622
-msgid "Archive path"
-msgstr "存档路径"
-
-#: src/mainwnd.cpp:623
-msgid "Archive size"
-msgstr "存档大小"
-
-#: src/mainwnd.cpp:624
-msgid "File name"
-msgstr "文件名"
-
-#: src/mainwnd.cpp:625
-msgid "File path"
-msgstr "文件路径"
-
-#: src/mainwnd.cpp:626
-msgid "File size"
-msgstr "文件大小"
-
-#: src/mainwnd.cpp:627
-msgid "File format"
-msgstr "文件格式"
-
-#: src/mainwnd.cpp:630
+#: src/mainwnd.cpp:691
 msgid "Title"
 msgstr "标题"
 
-#: src/mainwnd.cpp:631
+#: src/mainwnd.cpp:692
 msgid "Author(s)"
 msgstr "作者"
 
-#: src/mainwnd.cpp:632
+#: src/mainwnd.cpp:693
 msgid "Series name"
 msgstr "系列名称"
 
-#: src/mainwnd.cpp:633
+#: src/mainwnd.cpp:694
 msgid "Series number"
 msgstr "序列号"
 
-#: src/mainwnd.cpp:634
+#: src/mainwnd.cpp:695
 msgid "Date"
 msgstr "日期"
 
-#: src/mainwnd.cpp:635
+#: src/mainwnd.cpp:696
 msgid "Genres"
 msgstr "摘要"
 
-#: src/mainwnd.cpp:636
+#: src/mainwnd.cpp:697
 msgid "Translator"
 msgstr "翻译"
 
-#: src/mainwnd.cpp:637
+#: src/mainwnd.cpp:698
 #, fuzzy
 msgid "Book info"
 msgstr "用户信息"
 
-#: src/mainwnd.cpp:640
+#: src/mainwnd.cpp:701
 msgid "Document author"
 msgstr "文档作者"
 
-#: src/mainwnd.cpp:641
+#: src/mainwnd.cpp:702
 msgid "Document date"
 msgstr "文档日期"
 
-#: src/mainwnd.cpp:642
+#: src/mainwnd.cpp:703
 msgid "Document source URL"
 msgstr "源文档URL"
 
-#: src/mainwnd.cpp:643
+#: src/mainwnd.cpp:704
 msgid "OCR by"
 msgstr "OCR"
 
-#: src/mainwnd.cpp:644
+#: src/mainwnd.cpp:705
 msgid "Document version"
 msgstr "文档版本"
 
-#: src/mainwnd.cpp:645
+#: src/mainwnd.cpp:706
 #, fuzzy
 msgid "Document info"
 msgstr "文档版本"
 
-#: src/mainwnd.cpp:648
+#: src/mainwnd.cpp:709
 msgid "Publication name"
 msgstr "发行商名称:"
 
-#: src/mainwnd.cpp:649
+#: src/mainwnd.cpp:710
 msgid "Publisher"
 msgstr "出版社"
 
-#: src/mainwnd.cpp:650
+#: src/mainwnd.cpp:711
 msgid "Publisher city"
 msgstr "出版社城市"
 
-#: src/mainwnd.cpp:651
+#: src/mainwnd.cpp:712
 msgid "Publication year"
 msgstr "出版日期"
 
-#: src/mainwnd.cpp:652
+#: src/mainwnd.cpp:713
 msgid "ISBN"
 msgstr "ISBN"
 
-#: src/mainwnd.cpp:653
+#: src/mainwnd.cpp:714
 #, fuzzy
 msgid "Publication info"
 msgstr "发行商名称:"
 
-#: src/mainwnd.cpp:655
+#: src/mainwnd.cpp:716
 msgid "Custom info"
 msgstr "用户信息"
 
@@ -406,6 +420,182 @@ msgstr "输入页数"
 #: src/viewdlg.cpp:218
 msgid "Find in dictionary"
 msgstr "在目录查找"
+
+#: src/viewdlg.cpp:292
+msgid "Long"
+msgstr ""
+
+#: src/viewdlg.cpp:299
+#, fuzzy
+msgid "To first page"
+msgstr "跳转到页..."
+
+#: src/viewdlg.cpp:301
+msgid "Back by page"
+msgstr ""
+
+#: src/viewdlg.cpp:303
+msgid "Forward by page"
+msgstr ""
+
+#: src/viewdlg.cpp:304
+msgid "Forward in move history"
+msgstr ""
+
+#: src/viewdlg.cpp:305
+msgid "Back in move history"
+msgstr ""
+
+#: src/viewdlg.cpp:306
+msgid "Next link"
+msgstr ""
+
+#: src/viewdlg.cpp:307
+msgid "Previous link"
+msgstr ""
+
+#: src/viewdlg.cpp:308 src/viewdlg.cpp:328
+#, fuzzy
+msgid "Go to link"
+msgstr "跳转到页..."
+
+#: src/viewdlg.cpp:309
+#, fuzzy
+msgid "To last page"
+msgstr "跳转到页..."
+
+#: src/viewdlg.cpp:310
+msgid "Go to position"
+msgstr ""
+
+#: src/viewdlg.cpp:312
+#, fuzzy
+msgid "Zoom in"
+msgstr "用户信息"
+
+#: src/viewdlg.cpp:313
+msgid "Zoom out"
+msgstr ""
+
+#: src/viewdlg.cpp:314
+#, fuzzy
+msgid "Toggle text format"
+msgstr "文件格式"
+
+#: src/viewdlg.cpp:315
+msgid "Save bookmark by number"
+msgstr ""
+
+#: src/viewdlg.cpp:316
+msgid "Go to bookmark by number"
+msgstr ""
+
+#: src/viewdlg.cpp:317
+msgid "Move by chapter"
+msgstr ""
+
+#: src/viewdlg.cpp:318
+msgid "Close dialog"
+msgstr ""
+
+#: src/viewdlg.cpp:320
+msgid "Scroll forward"
+msgstr ""
+
+#: src/viewdlg.cpp:321
+msgid "Scroll back"
+msgstr ""
+
+#: src/viewdlg.cpp:322
+msgid "Close book"
+msgstr ""
+
+#: src/viewdlg.cpp:323
+#, fuzzy
+msgid "Main menu"
+msgstr "主菜单"
+
+#: src/viewdlg.cpp:324
+#, fuzzy
+msgid "Go to page dialog"
+msgstr "跳转到页..."
+
+#: src/viewdlg.cpp:325
+#, fuzzy
+msgid "Settings menu"
+msgstr "设置"
+
+#: src/viewdlg.cpp:326
+#, fuzzy
+msgid "Font size settings"
+msgstr "字体核心"
+
+#: src/viewdlg.cpp:327
+msgid "Page orientation settings"
+msgstr ""
+
+#: src/viewdlg.cpp:329
+#, fuzzy
+msgid "Find in Dictionary (T5)"
+msgstr "在目录查找"
+
+#: src/viewdlg.cpp:330
+#, fuzzy
+msgid "Bookmark list"
+msgstr "书签"
+
+#: src/viewdlg.cpp:331
+#, fuzzy
+msgid "Recent books list"
+msgstr "打开最近的书籍"
+
+#: src/viewdlg.cpp:332
+#, fuzzy
+msgid "Open recent book by number"
+msgstr "打开最近的书籍"
+
+#: src/viewdlg.cpp:334
+msgid "Cite selection dialog"
+msgstr ""
+
+#: src/viewdlg.cpp:335
+#, fuzzy
+msgid "Search dialog"
+msgstr "查找"
+
+#: src/viewdlg.cpp:336
+#, fuzzy
+msgid "Find in Dictionary (virtual keyboard)"
+msgstr "在目录查找"
+
+#: src/viewdlg.cpp:337
+msgid "Next keyboard layout"
+msgstr ""
+
+#: src/viewdlg.cpp:338
+msgid "Previous keyboard layout"
+msgstr ""
+
+#: src/viewdlg.cpp:339
+#, fuzzy
+msgid "Show manual"
+msgstr "显示时间"
+
+#: src/viewdlg.cpp:340
+msgid "Show key mapping"
+msgstr ""
+
+#: src/viewdlg.cpp:341
+msgid "Unknown command"
+msgstr ""
+
+#: src/viewdlg.cpp:360
+msgid "Key"
+msgstr ""
+
+#: src/viewdlg.cpp:360
+msgid "Assigned function"
+msgstr ""
 
 #~ msgid "Open recent book..."
 #~ msgstr "打开最近的书籍"
