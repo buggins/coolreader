@@ -230,6 +230,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						break;
 					}
                 if ( ch>=' ' && ch<=127 ) {
+					switch ( ch ) {
+					case '+':
+						shift |= 1;
+					case '=':
+						ch = XK_KP_Add;
+						break;
+					case '_':
+						shift |= 1;
+						// fall
+					case '-':
+						ch = XK_KP_Subtract;
+						break;
+					}
                     needUpdate = CRWin32WindowManager::instance->onKeyPressed( ch, shift );
                 }
             }
@@ -259,10 +272,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     code = XK_Down;
                     break;
                 case VK_ADD:
-                    code = '+';
+                    code = XK_KP_Add;
                     break;
                 case VK_SUBTRACT:
-                    code = '-';
+                    code = XK_KP_Subtract;
                     break;
                 }
                 if ( code ) {

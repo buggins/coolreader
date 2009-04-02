@@ -151,6 +151,11 @@ void CRScreenKeyboard::draw()
 bool CRScreenKeyboard::onCommand( int command, int params )
 {
     switch ( command ) {
+    case MCMD_CLEAR:
+        _lastDigit = 0;
+        _value.clear();
+        setDirty();
+        return true;
     case MCMD_CANCEL:
         if ( _lastDigit!=0 )
             _lastDigit = 0;

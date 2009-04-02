@@ -668,6 +668,7 @@ void V3DocViewWin::showAboutDialog()
 	addPropLine( statusInfo, _("Current page"), lString16::itoa(_docview->getCurPage()) );
 	addPropLine( statusInfo, _("Total pages"), lString16::itoa(_docview->getPageCount()) );
 	addPropLine( statusInfo, _("Battery state"), lString16::itoa(_docview->getBatteryState()) + L"%" );
+	addPropLine( statusInfo, _("Current Time"), _docview->getTimeString() );
 	// TODO:
 	if ( hist ) {
 		CRBookmark * lastpos = hist->getLastPos();

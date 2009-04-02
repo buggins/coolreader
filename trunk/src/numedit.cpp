@@ -58,6 +58,10 @@ bool CRNumberEditDialog::digitEntered( lChar16 c )
 bool CRNumberEditDialog::onCommand( int command, int params )
 {
     switch ( command ) {
+    case MCMD_CLEAR:
+        _value.clear();
+        setDirty();
+        return true;
     case MCMD_CANCEL:
         if ( _value.length()>0 ) {
             _value.erase( _value.length()-1, 1 );

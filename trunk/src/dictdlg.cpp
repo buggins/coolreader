@@ -469,6 +469,12 @@ bool CRT9Keyboard::onCommand( int command, int params )
             }
             setDirty();
             break;
+        case MCMD_CLEAR:
+            while ( !selector_.pop() )
+				;
+			_mainwin->getDocView()->clearSelection();
+            setDirty();
+            break;
     }
     return true;
 }

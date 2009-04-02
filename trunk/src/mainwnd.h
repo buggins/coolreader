@@ -30,6 +30,8 @@
 #define XK_Up       0xFF52
 #define XK_Down     0xFF54
 #define XK_Escape   0xFF1B
+#define XK_KP_Add   0xffab 
+#define XK_KP_Subtract 0xffad
 #else
 
 #ifdef CR_USE_XCB

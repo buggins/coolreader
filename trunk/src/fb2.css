@@ -69,10 +69,6 @@ head, style, form, script { display: none; }
 
 body { margin: 0; text-align: justify; } 
 
-p { margin-top: 0.3em; margin-bottom:0.3em; text-indent: 0em; } 
-
-empty-line { height: 0.2em; } 
-
 hr { 
    height: 2px; 
    background-color: #808080; 
