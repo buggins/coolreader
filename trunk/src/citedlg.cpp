@@ -107,6 +107,7 @@ public:
 					selector_.getRange(range);
 					if ( !range.isNull() ) {
 						mainwin_->getDocView()->saveRangeBookmark( range, bmkt_comment, lString16() );
+						mainwin_->saveHistory(lString16());
 					}
 					close();
 				};
