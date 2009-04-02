@@ -387,6 +387,8 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
     lString16 name;
     lString16 path;
 	lString16 chapter;
+	FILE * f = fopen("ptrlog.txt", "wt");
+	int lastLevel = -1;
 	if ( !ptr.isNull() )
 	{
 		ldomXPointerEx p( ptr );
@@ -394,13 +396,21 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
 		while ( !p.isNull() ) {
 			if ( !p.prevElement() )
 				break;
+			fprintf(f, "%s\n", UnicodeToUtf8(p.toString()).c_str() );
 			lString16 nname = p.getNode()->getNodeName();
 			if ( !nname.compare(L"title") || !nname.compare(L"h1") || !nname.compare("h2")  || !nname.compare("h3") ) {
-				chapter = p.getText(' ');
-				break;
+				if ( lastLevel!=-1 && p.getLevel()>=lastLevel )
+					continue;
+				lastLevel = p.getLevel();
+				if ( !chapter.empty() )
+					chapter = lString16(L" / ") + chapter;
+				chapter = p.getText(' ') + chapter;
+				if ( !p.parent() )
+					break;
 			}
 		}
 	}
+	fclose(f);
     splitFName( fpathname, path, name );
     CRBookmark bmk( ptr );
 	bmk.setTitleText( chapter );

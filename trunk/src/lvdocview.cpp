@@ -96,6 +96,7 @@ LVDocView::LVDocView()
 #else
 , m_font_size(24)
 #endif
+, m_status_font_size(INFO_FONT_SIZE)
 , m_def_interline_space(130)
 , m_font_sizes( def_font_sizes, sizeof(def_font_sizes) / sizeof(int) )
 , m_font_sizes_cyclic(false)
@@ -142,6 +143,7 @@ LVDocView::LVDocView()
 #endif
 #endif
     m_defaultFontFace = lString8(DEFAULT_FONT_NAME);
+    m_statusFontFace = lString8(DEFAULT_FONT_NAME);
     m_props = LVCreatePropsContainer();
     m_doc_props = LVCreatePropsContainer();
     propsUpdateDefaults(m_props);
@@ -1623,7 +1625,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         updateLayout();
         lString8 fontName = lString8(DEFAULT_FONT_NAME);
         m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
-        m_infoFont = fontMan->GetFont( INFO_FONT_SIZE, 300, false, DEFAULT_FONT_FAMILY, fontName );
+        m_infoFont = fontMan->GetFont( m_status_font_size, 300, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
         if ( !m_font || !m_infoFont )
             return;
         if ( dx==0 )
@@ -1956,6 +1958,19 @@ void LVDocView::setDefaultInterlineSpace( int percent )
     goToBookmark(_posBookmark);
 }
 
+/// sets new status bar font size
+void LVDocView::setStatusFontSize( int newSize )
+{
+    LVLock lock(getMutex());
+	int oldSize = m_status_font_size;
+    m_status_font_size = newSize;
+	if ( oldSize != newSize ) {
+		propsGetCurrent()->setInt( PROP_STATUS_FONT_SIZE, m_status_font_size );
+		requestRender();
+	}
+    //goToBookmark(_posBookmark);
+}
+
 void LVDocView::setFontSize( int newSize )
 {
     LVLock lock(getMutex());
@@ -1971,6 +1986,12 @@ void LVDocView::setFontSize( int newSize )
 void LVDocView::setDefaultFontFace( const lString8 & newFace )
 {
     m_defaultFontFace = newFace;
+    requestRender();
+}
+
+void LVDocView::setStatusFontFace( const lString8 & newFace )
+{
+    m_statusFontFace = newFace;
     requestRender();
 }
 
@@ -3536,6 +3557,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setHexDef( PROP_BACKGROUND_COLOR, 0xFFFFFF );
     lString8 defFontFace("Arial");
     props->setStringDef( PROP_FONT_FACE, defFontFace.c_str() );
+    props->setStringDef( PROP_STATUS_FONT_FACE, defFontFace.c_str() );
     if ( list.length()>0 && !list.contains( props->getStringDef( PROP_FONT_FACE, defFontFace.c_str()) ) )
         props->setString( PROP_FONT_FACE, list[0] );
     props->limitValueList( PROP_FONT_SIZE, m_font_sizes.ptr(), m_font_sizes.length() );
@@ -3560,6 +3582,12 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->limitValueList( PROP_PAGE_MARGIN_BOTTOM, def_margin, 8 );
     props->limitValueList( PROP_PAGE_MARGIN_LEFT, def_margin, 8 );
     props->limitValueList( PROP_PAGE_MARGIN_RIGHT, def_margin, 8 );
+	int fs = props->getIntDef( PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE );
+	if ( fs<14 )
+		fs = 14;
+	else if ( fs>28 )
+		fs = 28;
+	props->setIntDef( PROP_STATUS_FONT_SIZE, fs );
 	lString16 hyph = props->getStringDef( PROP_HYPHENATION_DICT, DEF_HYPHENATION_DICT );
 	HyphDictionaryList * dictlist = HyphMan::getDictList();
 	if ( dictlist ) {
@@ -3644,6 +3672,8 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             setPageMargins( rc );
         } else if ( name==PROP_FONT_FACE ) {
             setDefaultFontFace( UnicodeToUtf8(value) );
+        } else if ( name==PROP_STATUS_FONT_FACE ) {
+            setStatusFontFace( UnicodeToUtf8(value) );
         } else if ( name==PROP_STATUS_LINE ) {
             setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
         //} else if ( name==PROP_BOOKMARK_ICONS ) {
@@ -3655,6 +3685,14 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             int fontSize = props->getIntDef( PROP_FONT_SIZE, m_font_sizes[0] );
             setFontSize( fontSize );//cr_font_sizes
             value = lString16::itoa( m_font_size );
+        } else if ( name==PROP_STATUS_FONT_SIZE ) {
+            int fontSize = props->getIntDef( PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE );
+			if ( fontSize<14 )
+				fontSize = 14;
+			else if ( fontSize > 28 )
+				fontSize = 28;
+            setStatusFontSize( fontSize );//cr_font_sizes
+            value = lString16::itoa( fontSize );
 		} else if ( name==PROP_HYPHENATION_DICT ) {
 			// hyphenation dictionary
 			lString16 id = props->getStringDef( PROP_HYPHENATION_DICT, DEF_HYPHENATION_DICT );

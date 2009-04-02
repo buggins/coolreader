@@ -624,12 +624,25 @@ bool CRMenu::onCommand( int command, int params )
             closeMenu( command ); // close, for root menu
         return true;
     }
+	
+    if ( command==MCMD_SCROLL_FORWARD_LONG ) {
+        setCurPage( getCurPage()+10 );
+        return true;
+    }
     if ( command==MCMD_SCROLL_FORWARD ) {
-        setCurPage( getCurPage()+1 );
+		if ( params==0 )
+			params = 1;
+        setCurPage( getCurPage()+params );
+        return true;
+    }
+    if ( command==MCMD_SCROLL_BACK_LONG ) {
+        setCurPage( getCurPage()-10 );
         return true;
     }
     if ( command==MCMD_SCROLL_BACK ) {
-        setCurPage( getCurPage()-1 );
+		if ( params==0 )
+			params = 1;
+        setCurPage( getCurPage()-params );
         return true;
     }
     int option = -1;

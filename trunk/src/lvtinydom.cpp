@@ -2067,7 +2067,7 @@ bool ldomXPointerEx::prevSiblingElement()
 /// move to parent
 bool ldomXPointerEx::parent()
 {
-    if ( _level<1 )
+    if ( _level<=1 )
         return false;
     _node = _node->getParentNode();
     _level--;
@@ -2748,6 +2748,7 @@ bool ldomXPointerEx::prevElement()
         }
         if ( !parent() )
             return false;
+		return true;
     }
 }
 

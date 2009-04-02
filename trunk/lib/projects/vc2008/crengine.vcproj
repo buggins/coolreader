@@ -344,7 +344,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="..\..\..\..\wxWidgets\include;..\..\..\..\wxWidgets\src\jpeg;..\..\..\..\wxWidgets\src;..\..\..\..\wxWidgets\src\png;..\..\..\..\freetype2\include;..\..\..\..\wxWidgets\include\msvc;..\..\..\..\wxWidgets\src\zlib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CR_WX_SUPPORT;_UNICODE;UNICODE;__WXMSW__;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;CR_WX_SUPPORT;_UNICODE;UNICODE;__WXMSW__;_CRT_SECURE_NO_WARNINGS;CR_EMULATE_GETTEXT=1"
 				RuntimeLibrary="0"
 				PrecompiledHeaderFile=".\crengine___Win32_Unicode_Release/crengine.pch"
 				AssemblerListingLocation=".\crengine___Win32_Unicode_Release/"
@@ -420,7 +420,7 @@
 				AdditionalOptions="/I /projects/wxWidgets/src/jpeg&quot; &quot;"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\wxWidgets\include;..\..\..\..\wxWidgets\src\jpeg;..\..\..\..\wxWidgets\src;..\..\..\..\wxWidgets\src\png;..\..\..\..\freetype2\include;..\..\..\..\wxWidgets\include\msvc;..\..\..\..\wxWidgets\src\zlib"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32;CR_WX_SUPPORT;_UNICODE;UNICODE;__WXMSW__;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32;CR_WX_SUPPORT;_UNICODE;UNICODE;__WXMSW__;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;CR_EMULATE_GETTEXT=1"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -533,6 +533,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\crgui.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\cri18n.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\crskin.cpp"
 				>
 			</File>
 			<File

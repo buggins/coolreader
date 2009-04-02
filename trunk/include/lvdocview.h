@@ -29,6 +29,8 @@
 #define PROP_LOG_FILENAME            "crengine.log.filename"
 #define PROP_LOG_LEVEL               "crengine.log.level"
 #define PROP_FONT_SIZE               "crengine.font.size"
+#define PROP_STATUS_FONT_FACE        "crengine.page.header.font.face"
+#define PROP_STATUS_FONT_SIZE        "crengine.page.header.font.size"
 #define PROP_PAGE_MARGIN_TOP         "crengine.page.margin.top"
 #define PROP_PAGE_MARGIN_BOTTOM      "crengine.page.margin.bottom"
 #define PROP_PAGE_MARGIN_LEFT        "crengine.page.margin.left"
@@ -315,6 +317,7 @@ private:
     int m_pos;
     int m_battery_state;
     int m_font_size;
+    int m_status_font_size;
     int m_def_interline_space;
     LVArray<int> m_font_sizes;
     bool m_font_sizes_cyclic;
@@ -373,6 +376,7 @@ private:
     bool m_posIsSet;
 
     lString8 m_defaultFontFace;
+	lString8 m_statusFontFace;
     ldomNavigationHistory _navigationHistory;
 
     doc_format_t m_doc_format;
@@ -516,6 +520,10 @@ public:
     lString8 getDefaultFontFace() { return m_defaultFontFace; }
     /// set default font face
     void setDefaultFontFace( const lString8 & newFace );
+    /// returns status bar font face
+    lString8 getStatusFontFace() { return m_statusFontFace; }
+    /// set status bar font face
+    void setStatusFontFace( const lString8 & newFace );
     /// invalidate formatted data, request render
     void requestRender();
     /// invalidate document data, request reload
@@ -697,6 +705,11 @@ public:
     int  getFontSize() { return m_font_size; }
     /// sets new base font size
     void setFontSize( int newSize );
+    /// retrieves current status bar font size
+    int  getStatusFontSize() { return m_status_font_size; }
+    /// sets new status bar font size
+    void setStatusFontSize( int newSize );
+	
     /// sets posible base font sizes (for ZoomFont)
     void setFontSizes( LVArray<int> & sizes, bool cyclic );
 

@@ -629,7 +629,7 @@ public:
     {
         if ( !_node )
             return lString16();
-        return _node->getText();
+        return _node->getText( blockDelimiter );
     }
     /// returns href attribute of <A> element, null string if not found
     lString16 getHRef();

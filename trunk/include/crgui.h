@@ -914,6 +914,7 @@ enum CRMenuControlCmd {
     MCMD_SELECT_9_LONG,
     MCMD_SCROLL_FORWARD_LONG,
     MCMD_SCROLL_BACK_LONG,
+    MCMD_CLEAR,
 };
 
 enum CRGUICmd {
