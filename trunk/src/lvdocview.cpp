@@ -1638,7 +1638,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         if ( m_showCover )
             pages->add( new LVRendPageInfo( dy ) );
         LVRendPageContext context( pages, dy );
-        CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
+        //CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
         m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
 
     #if 0
