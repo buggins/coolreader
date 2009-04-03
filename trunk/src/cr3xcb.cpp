@@ -30,10 +30,12 @@
 
 #include <xcb/xcb.h>
 int8_t i8sample = 0;
-#include <xcb/xcb_aux.h>
+#define class klass
 extern "C" {
+#include <xcb/xcb_aux.h>
 #include <xcb/shm.h>
 };
+#undef class
 #include <xcb/xcb_image.h>
 #include <xcb/xcb_keysyms.h>
 #include <sys/ipc.h>

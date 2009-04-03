@@ -25,7 +25,9 @@
 
 #include "viewdlg.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || !defined(CR_USE_XCB)
+
+//define key codes here
 #define XK_Return   0xFF0D
 #define XK_Up       0xFF52
 #define XK_Down     0xFF54
@@ -34,30 +36,21 @@
 #define XK_KP_Subtract 0xffad
 #define XK_Left     0xFF51
 #define XK_Right    0xFF53
-#define XK_Prior	0xFF55
+#define XK_Prior    0xFF55
 #define XK_Next     0xFF56	
 #define XK_KP_Enter 0xFF8D
 #define XK_Menu	    0xFF67
+#define XF86XK_RotateWindows    0x1008FF74
+#define XF86XK_Search           0x1008FF1B
+#define XF86XK_AudioPlay        0x1008FF14
+
 #else
 
-#ifdef CR_USE_XCB
+//use standard X11 key defs
 #define XK_MISCELLANY
 #include <X11/keysymdef.h>
-#else
+#include <X11/XF86keysym.h>
 
-#define XK_Return   0xFF0D
-#define XK_Up       0xFF52
-#define XK_Down     0xFF54
-#define XK_Escape   0xFF1B
-#define XK_KP_Add   0xffab 
-#define XK_KP_Subtract 0xffad
-#define XK_Left     0xFF51
-#define XK_Right    0xFF53
-#define XK_Prior	0xFF55
-#define XK_Next     0xFF56	
-#define XK_KP_Enter 0xFF8D
-#define XK_Menu	    0xFF67
-#endif
 #endif
 
 #define MAIN_MENU_COMMANDS_START 200
