@@ -271,6 +271,10 @@ const char * getKeyName( int keyCode )
 		return name;
 	}
 	switch ( keyCode ) {
+	case XK_KP_Add:
+		return "'+'";
+	case XK_KP_Subtract:
+		return "'-'";
 	case XK_Return:
 		return "Ok";
 	case XK_Up:
