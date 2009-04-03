@@ -12,6 +12,7 @@
 
 #include "viewdlg.h"
 #include "mainwnd.h"
+#include <cri18n.h>
 
 #ifdef WITH_DICT
 #include "dictdlg.h"
@@ -283,6 +284,18 @@ const char * getKeyName( int keyCode )
 		return "'&lt;'";
 	case XK_Escape:
 		return "Esc";
+	case XK_Left:
+		return "Left";
+	case XK_Right:
+		return "right";
+	case XK_Prior:
+		return "Prior";
+	case XK_Next:
+		return "Next";
+	case XK_KP_Enter:
+		return "KP_Enter";
+	case XK_Menu:
+		return _("Menu");
 	default:
 		return "?";
 	}
