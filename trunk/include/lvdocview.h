@@ -28,6 +28,7 @@
 #define PROP_TXT_OPTION_PREFORMATTED "crengine.file.txt.preformatted"
 #define PROP_LOG_FILENAME            "crengine.log.filename"
 #define PROP_LOG_LEVEL               "crengine.log.level"
+#define PROP_LOG_AUTOFLUSH           "crengine.log.autoflush"
 #define PROP_FONT_SIZE               "crengine.font.size"
 #define PROP_STATUS_FONT_FACE        "crengine.page.header.font.face"
 #define PROP_STATUS_FONT_SIZE        "crengine.page.header.font.size"

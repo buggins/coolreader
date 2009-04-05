@@ -34,6 +34,7 @@ private:
     lString16 _commenttext;
     time_t    _timestamp;
 public:
+	static lString16 getChapterName( ldomXPointer p );
     CRBookmark(const CRBookmark & v )
     : _startpos(v._startpos)
     , _endpos(v._endpos)

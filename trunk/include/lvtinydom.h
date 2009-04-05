@@ -53,6 +53,7 @@
 #define DOC_PROP_ARC_NAME        "doc.archive.name"
 #define DOC_PROP_ARC_PATH        "doc.archive.path"
 #define DOC_PROP_ARC_SIZE        "doc.archive.size"
+#define DOC_PROP_ARC_FILE_COUNT  "doc.archive.file.count"
 #define DOC_PROP_FILE_NAME       "doc.file.name"
 #define DOC_PROP_FILE_PATH       "doc.file.path"
 #define DOC_PROP_FILE_SIZE       "doc.file.size"

@@ -776,7 +776,7 @@ public:
     virtual ~CRLog();
 
     /// write log to specified file, flush after every message if autoFlush parameter is true
-    static void setFileLogger( const char * fname, bool autoFlush=true );
+    static void setFileLogger( const char * fname, bool autoFlush=false );
     /// use stdout for output
     static void setStdoutLogger();
     /// use stderr for output

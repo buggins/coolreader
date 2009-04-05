@@ -2536,6 +2536,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             }
             // archieve
             FileToArcProps( m_doc_props );
+			m_doc_props->setInt( DOC_PROP_ARC_FILE_COUNT, m_arc->GetObjectCount() );
             bool found = false;
             for (int i=0; i<m_arc->GetObjectCount(); i++)
             {
@@ -3261,6 +3262,7 @@ bool LVDocView::saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 
 	lString16 postext = range.getRangeText();
 	bmk->setPosText( postext );
 	bmk->setCommentText( comment );
+	bmk->setTitleText( CRBookmark::getChapterName( range.getStart() ) );
 	rec->getBookmarks().add( bmk );
 	return true;
 }
@@ -3284,6 +3286,7 @@ bool LVDocView::exportBookmarks( lString16 filename )
 	    CRPropRef props = getDocProps();
 	    lString16 arcname = props->getStringDef(DOC_PROP_ARC_NAME);
 		lString16 arcpath = props->getStringDef(DOC_PROP_ARC_PATH);
+		int arcFileCount = props->getIntDef(DOC_PROP_ARC_FILE_COUNT, 0);
 		if ( !arcpath.empty() )
 			LVAppendPathDelimiter( arcpath );
 		lString16 fname = props->getStringDef(DOC_PROP_FILE_NAME);
@@ -3293,7 +3296,10 @@ bool LVDocView::exportBookmarks( lString16 filename )
 		if ( !arcname.empty() ) {
             if ( dir.empty() )
                 dir = arcpath;
-			filename = arcname + L"." + fname + L".bmk.txt";
+			if ( arcFileCount>1 )
+				filename = arcname + L"." + fname + L".bmk.txt";
+			else
+				filename = arcname + L".bmk.txt";
 		} else {
             if ( dir.empty() )
                 dir = fpath;
@@ -3331,13 +3337,24 @@ bool LVDocView::exportBookmarks( lString16 filename )
 			newContent.append(1, (char)0xbb);
 			newContent.append(1, (char)0xbf);
 			newContent << "# Cool Reader 3 - exported bookmarks\r\n";
-			newContent << "# for file " << UnicodeToUtf8(rec->getFileName()) << "\r\n\r\n";
+			newContent << "# file name: " << UnicodeToUtf8(rec->getFileName()) << "\r\n";
+			if ( !rec->getFilePathName().empty() )
+				newContent << "# file path: " << UnicodeToUtf8(rec->getFilePath()) << "\r\n";
+			newContent << "# book title: " << UnicodeToUtf8(rec->getTitle()) << "\r\n";
+			newContent << "# author: " << UnicodeToUtf8(rec->getAuthor()) << "\r\n";
+			if ( !rec->getSeries().empty() )
+				newContent << "# series: " << UnicodeToUtf8(rec->getSeries()) << "\r\n";
+			newContent << "\r\n";
 		}
 		char pos[16];
 		int percent = bmk->getPercent();
+		lString16 title = bmk->getTitleText();
 		sprintf( pos, "%d.%02d%%", percent/100, percent % 100 );
 		newContent << "## " << pos << " - " << (bmk->getType()==bmkt_comment ? "comment" : "correction") << "\r\n";
-		newContent << "<< " << UnicodeToUtf8(bmk->getPosText()) << "\r\n";
+		if ( !title.empty() )
+			newContent << "## " << UnicodeToUtf8( title ) << "\r\n";
+		if ( !bmk->getPosText().empty() )
+			newContent << "<< " << UnicodeToUtf8(bmk->getPosText()) << "\r\n";
 		if ( !bmk->getCommentText().empty() )
 			newContent << ">> " << UnicodeToUtf8(bmk->getCommentText()) << "\r\n";
 		newContent << "\r\n";
