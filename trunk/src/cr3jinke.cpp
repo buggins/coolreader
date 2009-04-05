@@ -241,10 +241,10 @@ int OnKeyPressed(int keyId, int state)
     LONG_KEY_OK, XK_Return, KEY_FLAG_LONG_PRESS,
     LONG_KEY_DOWN, XK_Up, KEY_FLAG_LONG_PRESS,
     LONG_KEY_UP, XK_Down, KEY_FLAG_LONG_PRESS,
-    KEY_SHORTCUT_VOLUME_UP, '+', 0,
-    KEY_SHORTCUT_VOLUME_DOWN, '-', 0,
-    LONG_SHORTCUT_KEY_VOLUMN_UP, '+', KEY_FLAG_LONG_PRESS,
-    LONG_SHORTCUT_KEY_VOLUMN_DOWN, '-', KEY_FLAG_LONG_PRESS,
+    KEY_SHORTCUT_VOLUME_UP, XK_KP_Add, 0,
+    KEY_SHORTCUT_VOLUME_DOWN, XK_KP_Subtract, 0,
+    LONG_SHORTCUT_KEY_VOLUMN_UP, XK_KP_Add, KEY_FLAG_LONG_PRESS,
+    LONG_SHORTCUT_KEY_VOLUMN_DOWN, XK_KP_Subtract, KEY_FLAG_LONG_PRESS,
     0, 0, 0 // end marker
     };
     int code = 0;
@@ -279,11 +279,12 @@ const char * GetCurrentPositionBookmark()
 {
     if ( !CRJinkeDocView::instance )
         return last_bookmark;
-    CRLog::trace("GetCurrentPositionBookmark()");
-    ldomXPointer ptr = main_win->getDocView()->getBookmark();
-    lString16 bmtext( !ptr ? L"" : ptr.toString() );
+    CRLog::trace("GetCurrentPositionBookmark() - returning empty string");
+    //ldomXPointer ptr = main_win->getDocView()->getBookmark();
+    //lString16 bmtext( !ptr ? L"" : ptr.toString() );
     static char buf[1024];
-    strcpy( buf, UnicodeToUtf8( bmtext ).c_str() );
+    //strcpy( buf, UnicodeToUtf8( bmtext ).c_str() );
+    strcpy( buf, "" );
     CRLog::trace("   return bookmark=%s", buf);
     return buf;
 }
@@ -306,7 +307,9 @@ int GetBookmarkPage( const char * bookmark )
 void GoToBookmark( const char * bookmark )
 {
     CRLog::trace("GoToBookmark(%s)", bookmark);
-#if 0
+	if ( !bookmark || !bookmark[0] )
+		return;
+#if 1
     ldomXPointer bm = main_win->getDocView()->getDocument()->createXPointer(Utf8ToUnicode(lString8(bookmark)));
     if ( !bm.isNull() )
         main_win->getDocView()->goToBookmark(bm);
@@ -599,12 +602,15 @@ int Rotate() { return 0; }
 int Fit() { return 0; }
 int Prev() { return 0; }
 int Next() { return 0; }
+
 int GotoPage(int index)
 {
     CRLog::trace("GotoPage(%d)", index);
+	/*
     if ( index<0 || index>CRJinkeDocView::instance->getDocView()->getPageCount() )
         return 0;
     CRJinkeWindowManager::instance->doCommand( DCMD_GO_PAGE, index );
+	*/
     return 1;
 }
 void Release() { }
