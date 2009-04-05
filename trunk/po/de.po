@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-03-29 09:58+0400\n"
+"POT-Creation-Date: 2009-04-05 23:51+0400\n"
 "PO-Revision-Date: 2009-03-05 15:25+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: German\n"
@@ -31,13 +31,13 @@ msgstr ""
 msgid "Select text"
 msgstr ""
 
-#: src/cr3xcb.cpp:427 src/settings.cpp:92 src/settings.cpp:98
+#: src/cr3xcb.cpp:429 src/settings.cpp:92 src/settings.cpp:98
 #: src/settings.cpp:104 src/settings.cpp:110 src/settings.cpp:116
 #: src/settings.cpp:122
 msgid "On"
 msgstr ""
 
-#: src/cr3xcb.cpp:428
+#: src/cr3xcb.cpp:430
 msgid "About..."
 msgstr ""
 
@@ -57,11 +57,11 @@ msgstr ""
 msgid "Main Menu"
 msgstr ""
 
-#: src/mainwnd.cpp:512 src/viewdlg.cpp:333
+#: src/mainwnd.cpp:512 src/viewdlg.cpp:350
 msgid "About"
 msgstr ""
 
-#: src/mainwnd.cpp:522 src/viewdlg.cpp:311
+#: src/mainwnd.cpp:522 src/viewdlg.cpp:328
 msgid "Go to page"
 msgstr ""
 
@@ -69,7 +69,7 @@ msgstr ""
 msgid "Open recent book"
 msgstr ""
 
-#: src/mainwnd.cpp:541 src/viewdlg.cpp:136
+#: src/mainwnd.cpp:541 src/viewdlg.cpp:137
 msgid "Dictionary"
 msgstr ""
 
@@ -77,7 +77,7 @@ msgstr ""
 msgid "Cite"
 msgstr ""
 
-#: src/mainwnd.cpp:554 src/viewdlg.cpp:179
+#: src/mainwnd.cpp:554 src/viewdlg.cpp:180
 msgid "Search"
 msgstr ""
 
@@ -85,7 +85,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/mainwnd.cpp:567 src/viewdlg.cpp:372
+#: src/mainwnd.cpp:567 src/viewdlg.cpp:389
 msgid "Keyboard layout"
 msgstr ""
 
@@ -101,127 +101,131 @@ msgstr ""
 msgid "Battery state"
 msgstr ""
 
-#: src/mainwnd.cpp:675
+#: src/mainwnd.cpp:671
+msgid "Current Time"
+msgstr ""
+
+#: src/mainwnd.cpp:676
 msgid "Current chapter"
 msgstr ""
 
-#: src/mainwnd.cpp:678
+#: src/mainwnd.cpp:679
 msgid "Status"
 msgstr ""
 
-#: src/mainwnd.cpp:681
+#: src/mainwnd.cpp:682
 msgid "Archive name"
 msgstr ""
 
-#: src/mainwnd.cpp:682
+#: src/mainwnd.cpp:683
 msgid "Archive path"
 msgstr ""
 
-#: src/mainwnd.cpp:683
+#: src/mainwnd.cpp:684
 msgid "Archive size"
 msgstr ""
 
-#: src/mainwnd.cpp:684
+#: src/mainwnd.cpp:685
 msgid "File name"
 msgstr ""
 
-#: src/mainwnd.cpp:685
+#: src/mainwnd.cpp:686
 msgid "File path"
 msgstr ""
 
-#: src/mainwnd.cpp:686
+#: src/mainwnd.cpp:687
 msgid "File size"
 msgstr ""
 
-#: src/mainwnd.cpp:687
+#: src/mainwnd.cpp:688
 msgid "File format"
 msgstr ""
 
-#: src/mainwnd.cpp:688
+#: src/mainwnd.cpp:689
 msgid "File info"
 msgstr ""
 
-#: src/mainwnd.cpp:691
+#: src/mainwnd.cpp:692
 msgid "Title"
 msgstr ""
 
-#: src/mainwnd.cpp:692
+#: src/mainwnd.cpp:693
 msgid "Author(s)"
 msgstr ""
 
-#: src/mainwnd.cpp:693
+#: src/mainwnd.cpp:694
 msgid "Series name"
 msgstr ""
 
-#: src/mainwnd.cpp:694
+#: src/mainwnd.cpp:695
 msgid "Series number"
 msgstr ""
 
-#: src/mainwnd.cpp:695
+#: src/mainwnd.cpp:696
 msgid "Date"
 msgstr ""
 
-#: src/mainwnd.cpp:696
+#: src/mainwnd.cpp:697
 msgid "Genres"
 msgstr ""
 
-#: src/mainwnd.cpp:697
+#: src/mainwnd.cpp:698
 msgid "Translator"
 msgstr ""
 
-#: src/mainwnd.cpp:698
+#: src/mainwnd.cpp:699
 msgid "Book info"
 msgstr ""
 
-#: src/mainwnd.cpp:701
+#: src/mainwnd.cpp:702
 msgid "Document author"
 msgstr ""
 
-#: src/mainwnd.cpp:702
+#: src/mainwnd.cpp:703
 msgid "Document date"
 msgstr ""
 
-#: src/mainwnd.cpp:703
+#: src/mainwnd.cpp:704
 msgid "Document source URL"
 msgstr ""
 
-#: src/mainwnd.cpp:704
+#: src/mainwnd.cpp:705
 msgid "OCR by"
 msgstr ""
 
-#: src/mainwnd.cpp:705
+#: src/mainwnd.cpp:706
 msgid "Document version"
 msgstr ""
 
-#: src/mainwnd.cpp:706
+#: src/mainwnd.cpp:707
 msgid "Document info"
 msgstr ""
 
-#: src/mainwnd.cpp:709
+#: src/mainwnd.cpp:710
 msgid "Publication name"
 msgstr ""
 
-#: src/mainwnd.cpp:710
+#: src/mainwnd.cpp:711
 msgid "Publisher"
 msgstr ""
 
-#: src/mainwnd.cpp:711
+#: src/mainwnd.cpp:712
 msgid "Publisher city"
 msgstr ""
 
-#: src/mainwnd.cpp:712
+#: src/mainwnd.cpp:713
 msgid "Publication year"
 msgstr ""
 
-#: src/mainwnd.cpp:713
+#: src/mainwnd.cpp:714
 msgid "ISBN"
 msgstr ""
 
-#: src/mainwnd.cpp:714
+#: src/mainwnd.cpp:715
 msgid "Publication info"
 msgstr ""
 
-#: src/mainwnd.cpp:716
+#: src/mainwnd.cpp:717
 msgid "Custom info"
 msgstr ""
 
@@ -383,192 +387,196 @@ msgstr ""
 msgid "Enter page number to go: "
 msgstr ""
 
-#: src/viewdlg.cpp:131
+#: src/viewdlg.cpp:132
 msgid "No dictionaries found"
 msgstr ""
 
-#: src/viewdlg.cpp:132
+#: src/viewdlg.cpp:133
 msgid "Place dictionaries to directory 'dict' of SD card."
 msgstr ""
 
-#: src/viewdlg.cpp:133
+#: src/viewdlg.cpp:134
 msgid "Dictionaries in standard unix .dict format are supported."
 msgstr ""
 
-#: src/viewdlg.cpp:134
+#: src/viewdlg.cpp:135
 msgid ""
 "For each dictionary, pair of files should be provided: data file (with .dict "
 "or .dict.dz extension, and index file with .index extension"
 msgstr ""
 
-#: src/viewdlg.cpp:147
+#: src/viewdlg.cpp:148
 msgid "Table of contents"
 msgstr ""
 
-#: src/viewdlg.cpp:151
+#: src/viewdlg.cpp:152
 msgid "Enter page number"
 msgstr ""
 
-#: src/viewdlg.cpp:218
+#: src/viewdlg.cpp:219
 msgid "Find in dictionary"
 msgstr ""
 
-#: src/viewdlg.cpp:292
-msgid "Long"
-msgstr ""
-
-#: src/viewdlg.cpp:299
-msgid "To first page"
-msgstr ""
-
-#: src/viewdlg.cpp:301
-msgid "Back by page"
-msgstr ""
-
-#: src/viewdlg.cpp:303
-msgid "Forward by page"
-msgstr ""
-
-#: src/viewdlg.cpp:304
-msgid "Forward in move history"
-msgstr ""
-
-#: src/viewdlg.cpp:305
-msgid "Back in move history"
-msgstr ""
-
-#: src/viewdlg.cpp:306
-msgid "Next link"
-msgstr ""
-
-#: src/viewdlg.cpp:307
-msgid "Previous link"
-msgstr ""
-
-#: src/viewdlg.cpp:308 src/viewdlg.cpp:328
-msgid "Go to link"
+#: src/viewdlg.cpp:298
+msgid "Menu"
 msgstr ""
 
 #: src/viewdlg.cpp:309
-msgid "To last page"
-msgstr ""
-
-#: src/viewdlg.cpp:310
-msgid "Go to position"
-msgstr ""
-
-#: src/viewdlg.cpp:312
-msgid "Zoom in"
-msgstr ""
-
-#: src/viewdlg.cpp:313
-msgid "Zoom out"
-msgstr ""
-
-#: src/viewdlg.cpp:314
-msgid "Toggle text format"
-msgstr ""
-
-#: src/viewdlg.cpp:315
-msgid "Save bookmark by number"
+msgid "Long"
 msgstr ""
 
 #: src/viewdlg.cpp:316
-msgid "Go to bookmark by number"
-msgstr ""
-
-#: src/viewdlg.cpp:317
-msgid "Move by chapter"
+msgid "To first page"
 msgstr ""
 
 #: src/viewdlg.cpp:318
-msgid "Close dialog"
+msgid "Back by page"
 msgstr ""
 
 #: src/viewdlg.cpp:320
-msgid "Scroll forward"
+msgid "Forward by page"
 msgstr ""
 
 #: src/viewdlg.cpp:321
-msgid "Scroll back"
+msgid "Forward in move history"
 msgstr ""
 
 #: src/viewdlg.cpp:322
-msgid "Close book"
+msgid "Back in move history"
 msgstr ""
 
 #: src/viewdlg.cpp:323
-msgid "Main menu"
+msgid "Next link"
 msgstr ""
 
 #: src/viewdlg.cpp:324
-msgid "Go to page dialog"
+msgid "Previous link"
 msgstr ""
 
-#: src/viewdlg.cpp:325
-msgid "Settings menu"
+#: src/viewdlg.cpp:325 src/viewdlg.cpp:345
+msgid "Go to link"
 msgstr ""
 
 #: src/viewdlg.cpp:326
-msgid "Font size settings"
+msgid "To last page"
 msgstr ""
 
 #: src/viewdlg.cpp:327
-msgid "Page orientation settings"
+msgid "Go to position"
 msgstr ""
 
 #: src/viewdlg.cpp:329
-msgid "Find in Dictionary (T5)"
+msgid "Zoom in"
 msgstr ""
 
 #: src/viewdlg.cpp:330
-msgid "Bookmark list"
+msgid "Zoom out"
 msgstr ""
 
 #: src/viewdlg.cpp:331
-msgid "Recent books list"
+msgid "Toggle text format"
 msgstr ""
 
 #: src/viewdlg.cpp:332
-msgid "Open recent book by number"
+msgid "Save bookmark by number"
+msgstr ""
+
+#: src/viewdlg.cpp:333
+msgid "Go to bookmark by number"
 msgstr ""
 
 #: src/viewdlg.cpp:334
-msgid "Cite selection dialog"
+msgid "Move by chapter"
 msgstr ""
 
 #: src/viewdlg.cpp:335
-msgid "Search dialog"
-msgstr ""
-
-#: src/viewdlg.cpp:336
-msgid "Find in Dictionary (virtual keyboard)"
+msgid "Close dialog"
 msgstr ""
 
 #: src/viewdlg.cpp:337
-msgid "Next keyboard layout"
+msgid "Scroll forward"
 msgstr ""
 
 #: src/viewdlg.cpp:338
-msgid "Previous keyboard layout"
+msgid "Scroll back"
 msgstr ""
 
 #: src/viewdlg.cpp:339
-msgid "Show manual"
+msgid "Close book"
 msgstr ""
 
 #: src/viewdlg.cpp:340
-msgid "Show key mapping"
+msgid "Main menu"
 msgstr ""
 
 #: src/viewdlg.cpp:341
+msgid "Go to page dialog"
+msgstr ""
+
+#: src/viewdlg.cpp:342
+msgid "Settings menu"
+msgstr ""
+
+#: src/viewdlg.cpp:343
+msgid "Font size settings"
+msgstr ""
+
+#: src/viewdlg.cpp:344
+msgid "Page orientation settings"
+msgstr ""
+
+#: src/viewdlg.cpp:346
+msgid "Find in Dictionary (T5)"
+msgstr ""
+
+#: src/viewdlg.cpp:347
+msgid "Bookmark list"
+msgstr ""
+
+#: src/viewdlg.cpp:348
+msgid "Recent books list"
+msgstr ""
+
+#: src/viewdlg.cpp:349
+msgid "Open recent book by number"
+msgstr ""
+
+#: src/viewdlg.cpp:351
+msgid "Cite selection dialog"
+msgstr ""
+
+#: src/viewdlg.cpp:352
+msgid "Search dialog"
+msgstr ""
+
+#: src/viewdlg.cpp:353
+msgid "Find in Dictionary (virtual keyboard)"
+msgstr ""
+
+#: src/viewdlg.cpp:354
+msgid "Next keyboard layout"
+msgstr ""
+
+#: src/viewdlg.cpp:355
+msgid "Previous keyboard layout"
+msgstr ""
+
+#: src/viewdlg.cpp:356
+msgid "Show manual"
+msgstr ""
+
+#: src/viewdlg.cpp:357
+msgid "Show key mapping"
+msgstr ""
+
+#: src/viewdlg.cpp:358
 msgid "Unknown command"
 msgstr ""
 
-#: src/viewdlg.cpp:360
+#: src/viewdlg.cpp:377
 msgid "Key"
 msgstr ""
 
-#: src/viewdlg.cpp:360
+#: src/viewdlg.cpp:377
 msgid "Assigned function"
 msgstr ""

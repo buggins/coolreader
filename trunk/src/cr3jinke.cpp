@@ -428,6 +428,7 @@ int InitDoc(char *fileName)
     	CRLog::info( "History file name: %s", history_file_name );
     }
 
+    char manual_file[512] = "";
     {
         const char * lang = v3_callbacks->GetString( "CR3_LANG" );
         if ( lang && lang[0] ) {
@@ -442,6 +443,7 @@ int InitDoc(char *fileName)
         		CRLog::info("translation file %s.mo not found", lang);
         		delete t;
         	}
+            sprintf( manual_file, "/root/crengine/manual/cr3-manual-%s.fb2", lang );
         }
     }
 
@@ -514,6 +516,8 @@ int InitDoc(char *fileName)
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
+        if ( manual_file[0] )
+            main_win->setHelpFile( lString16( manual_file ) );
         if ( !main_win->loadDefaultCover( lString16( L"/root/abook/crengine/cr3_def_cover.png" ) ) )
         	if ( !main_win->loadDefaultCover( lString16( L"/home/crengine/cr3_def_cover.png" ) ) )
         		main_win->loadDefaultCover( lString16( L"/root/crengine/cr3_def_cover.png" ) );
