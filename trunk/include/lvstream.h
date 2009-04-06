@@ -105,9 +105,9 @@ class LVStream : public LVStorageObject
 public:
 
     /// Get read buffer (optimal for mmap)
-    LVStreamBufferRef getReadBuffer( lvpos_t pos, lvpos_t size );
+    virtual LVStreamBufferRef GetReadBuffer( lvpos_t pos, lvpos_t size );
     /// Get read/write buffer (optimal for mmap)
-    LVStreamBufferRef getWriteBuffer( lvpos_t pos, lvpos_t size );
+    virtual LVStreamBufferRef GetWriteBuffer( lvpos_t pos, lvpos_t size );
 
     /// Get stream open mode
     /** \return lvopen_mode_t open mode */
@@ -625,6 +625,25 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode );
     \return reference to opened stream if success, NULL if error
 */
 LVStreamRef LVOpenFileStream( const lChar8 * pathname, lvopen_mode_t mode );
+
+/// Open memory mapped file
+/**
+    \param pathname is file name to open (unicode)
+    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
+	\param minSize is minimum file size for R/W mode
+    \return reference to opened stream if success, NULL if error
+*/
+LVStreamRef LVMapFileStream( const lChar16 * pathname, lvopen_mode_t mode, lvsize_t minSize );
+
+/// Open memory mapped file
+/**
+    \param pathname is file name to open (unicode)
+    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
+	\param minSize is minimum file size for R/W mode
+    \return reference to opened stream if success, NULL if error
+*/
+LVStreamRef LVMapFileStream( const lChar8 * pathname, lvopen_mode_t mode, lvsize_t minSize );
+
 
 /// Open archieve from stream
 /**

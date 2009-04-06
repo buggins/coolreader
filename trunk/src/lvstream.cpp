@@ -139,7 +139,7 @@ public:
             break;
         }
         lvsize_t sz;
-        if ( !stream->GetSize(&sz) )
+        if ( stream->GetSize(&sz)!=LVERR_OK )
             return res;
         if ( pos<0 || pos + size > sz )
             return res; // wrong position/size
@@ -214,26 +214,31 @@ public:
 };
 
 /// Get read buffer - default implementation, with RAM buffer
-LVStreamBufferRef LVStream::getReadBuffer( lvpos_t pos, lvpos_t size )
+LVStreamBufferRef LVStream::GetReadBuffer( lvpos_t pos, lvpos_t size )
 {
     LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, true );
     return res;
 }
 
 /// Get read/write buffer - default implementation, with RAM buffer
-LVStreamBufferRef LVStream::getWriteBuffer( lvpos_t pos, lvpos_t size )
+LVStreamBufferRef LVStream::GetWriteBuffer( lvpos_t pos, lvpos_t size )
 {
     LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, false );
     return res;
 }
 
 //#if USE_MMAP_FILES==1
-#if defined(_LINUX)
+#if defined(_LINUX) || defined(_WIN32)
 
 class LVFileMappedStream : public LVNamedStream
 {
 private:
+#if defined(_WIN32)
+    HANDLE m_hFile;
+    HANDLE m_hMap;
+#else
     int m_fd;
+#endif
     lUInt8* m_map;
     lvsize_t m_size;
     lvpos_t m_pos;
@@ -279,10 +284,10 @@ private:
 public:
 
     /// Get read buffer (optimal for mmap)
-    LVStreamBufferRef getReadBuffer( lvpos_t pos, lvpos_t size )
+    virtual LVStreamBufferRef GetReadBuffer( lvpos_t pos, lvpos_t size )
     {
         LVStreamBufferRef res;
-        if ( !m_map || m_fd==-1 )
+        if ( !m_map )
             return res;
         if ( (m_mode!=LVOM_APPEND && m_mode!=LVOM_READ) || pos + size > m_size || size==0 )
             return res;
@@ -290,10 +295,10 @@ public:
     }
 
     /// Get read/write buffer (optimal for mmap)
-    LVStreamBufferRef getWriteBuffer( lvpos_t pos, lvpos_t size )
+    virtual LVStreamBufferRef GetWriteBuffer( lvpos_t pos, lvpos_t size )
     {
         LVStreamBufferRef res;
-        if ( !m_map || m_fd==-1 )
+        if ( !m_map )
             return res;
         if ( m_mode!=LVOM_APPEND || pos + size > m_size || size==0 )
             return res;
@@ -368,51 +373,29 @@ public:
 
     lverror_t error()
     {
-        if ( m_fd!= -1 )
+#if defined(_WIN32)
+		if ( m_hFile!=NULL ) {
+			UnMap();
+			if ( !CloseHandle(m_hFile) )
+				CRLog::error("Error while closing file handle");
+			m_hFile = NULL;
+		}
+#else
+		if ( m_fd!= -1 ) {
+			UnMap();
             close(m_fd);
+		}
         m_fd = -1;
+#endif
         m_map = NULL;
         m_size = 0;
         m_mode = LVOM_ERROR;
         return LVERR_FAIL;
     }
 
-    virtual lverror_t SetSize( lvsize_t size )
-    {
-        // support only size grow
-        if ( m_mode!=LVOM_APPEND )
-            return LVERR_FAIL;
-        if ( size == m_size )
-            return LVERR_OK;
-        if ( size < m_size )
-            return LVERR_FAIL;
-
-        if ( munmap( m_map, m_size ) == -1 ) {
-            CRLog::error("LVFileMappedStream::SetSize() -- Error while unmapping file");
-            return error();
-        }
-        if ( lseek( m_fd, size-1, SEEK_SET ) == -1 ) {
-            CRLog::error("LVFileMappedStream::SetSize() -- Seek error");
-            return error();
-        }
-        if ( write(m_fd, "", 1) != 1 ) {
-            CRLog::error("LVFileMappedStream::SetSize() -- File resize error");
-            return error();
-        }
-        m_size = size;
-
-        int mapFlags = (m_mode==LVOM_READ) ? PROT_READ : PROT_READ | PROT_WRITE;
-        m_map = (lUInt8*)mmap( 0, m_size, mapFlags, MAP_SHARED, m_fd, 0 );
-        if ( m_map == MAP_FAILED ) {
-            CRLog::error( "LVFileMappedStream::SetSize() -- Cannot map file to memory" );
-            return error();
-        }
-        return LVERR_OK;
-    }
-
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
     {
-        if ( m_fd==-1 )
+        if ( !m_map )
             return LVERR_FAIL;
         int cnt = (int)count;
         if ( m_pos + cnt > m_size )
@@ -487,29 +470,220 @@ public:
         return (m_pos >= m_size);
     }
 
-    static LVFileMappedStream * CreateFileStream( lString16 fname, lvopen_mode_t mode )
+    static LVFileMappedStream * CreateFileStream( lString16 fname, lvopen_mode_t mode, int minSize )
     {
         LVFileMappedStream * f = new LVFileMappedStream();
-        if ( f->OpenFile( fname, mode )==LVERR_OK ) {
+        if ( f->OpenFile( fname, mode, minSize )==LVERR_OK ) {
             return f;
         } else {
             delete f;
             return NULL;
         }
     }
-    lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = -1 )
+
+	lverror_t Map()
+	{
+#if defined(_WIN32)
+		m_hMap = CreateFileMapping(
+			m_hFile,
+			NULL,
+			(m_mode==LVOM_READ)?PAGE_READONLY:PAGE_READWRITE, //flProtect,
+			0,
+			0,
+			NULL
+		);
+		if ( m_hMap==NULL ) {
+			DWORD err = GetLastError();
+            CRLog::error( "LVFileMappedStream::Map() -- Cannot map file to memory, err=%08x", err );
+            return error();
+		}
+		m_map = (lUInt8*) MapViewOfFile(
+			m_hMap,
+			m_mode==LVOM_READ ? FILE_MAP_READ : FILE_MAP_READ|FILE_MAP_WRITE,
+			0,
+			0,
+			m_size
+		);
+		if ( m_map==NULL ) {
+            CRLog::error( "LVFileMappedStream::Map() -- Cannot map file to memory" );
+            return error();
+		}
+		return LVERR_OK;
+#else
+        int mapFlags = (m_mode==LVOM_READ) ? PROT_READ : PROT_READ | PROT_WRITE;
+        m_map = (lUInt8*)mmap( 0, m_size, mapFlags, MAP_SHARED, m_fd, 0 );
+        if ( m_map == MAP_FAILED ) {
+            CRLog::error( "LVFileMappedStream::Map() -- Cannot map file to memory" );
+            return error();
+        }
+        return LVERR_OK;
+#endif
+	}
+
+	lverror_t UnMap()
+	{
+#if defined(_WIN32)
+		lverror_t res = LVERR_OK;
+		if ( m_map!=NULL ) {
+			if ( !UnmapViewOfFile( m_map ) ) {
+	            CRLog::error("LVFileMappedStream::UnMap() -- Error while unmapping file");
+				res = LVERR_FAIL;
+			}
+			m_map = NULL;
+		}
+		if ( m_hMap!=NULL ) {
+			if ( !CloseHandle( m_hMap ) ) {
+	            CRLog::error("LVFileMappedStream::UnMap() -- Error while unmapping file");
+				res = LVERR_FAIL;
+			}
+			m_hMap = NULL;
+		}
+		if ( res!=LVERR_OK )
+			return error();
+		return res;
+#else
+        if ( m_map!=NULL && munmap( m_map, m_size ) == -1 ) {
+            CRLog::error("LVFileMappedStream::UnMap() -- Error while unmapping file");
+            return error();
+        }
+        return LVERR_OK;
+#endif
+	}
+
+    virtual lverror_t SetSize( lvsize_t size )
     {
-        m_fd = -1;
+        // support only size grow
+        if ( m_mode!=LVOM_APPEND )
+            return LVERR_FAIL;
+        if ( size == m_size )
+            return LVERR_OK;
+        if ( size < m_size )
+            return LVERR_FAIL;
+
+		bool wasMapped = false;
+        if ( m_map!=NULL ) {
+			wasMapped = true;
+			if ( UnMap()!=LVERR_OK )
+	            return LVERR_FAIL;
+        }
+        m_size = size;
+
+#if defined(_WIN32)
+		// WIN32
+		__int64 offset = size - 1;
+        lUInt32 pos_low = (lUInt32)((__int64)offset & 0xFFFFFFFF);
+        long pos_high = (long)(((__int64)offset >> 32) & 0xFFFFFFFF);
+		pos_low = SetFilePointer(m_hFile, pos_low, &pos_high, FILE_BEGIN );
+        if (pos_low == 0xFFFFFFFF) {
+            lUInt32 err = GetLastError();
+            if (err == ERROR_NOACCESS)
+                pos_low = (lUInt32)offset;
+            else if ( err != ERROR_SUCCESS)
+                return error();
+        }
+		DWORD bytesWritten = 0;
+		if ( !WriteFile( m_hFile, "", 1, &bytesWritten, NULL ) || bytesWritten!=1 )
+			return error();
+#else
+		// LINUX
+		if ( lseek( m_fd, size-1, SEEK_SET ) == -1 ) {
+            CRLog::error("LVFileMappedStream::SetSize() -- Seek error");
+            return error();
+        }
+        if ( write(m_fd, "", 1) != 1 ) {
+            CRLog::error("LVFileMappedStream::SetSize() -- File resize error");
+            return error();
+        }
+#endif
+		if ( wasMapped ) {
+			if ( Map() != LVERR_OK ) {
+				return error();
+			}
+		}
+        return LVERR_OK;
+    }
+	
+	lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = -1 )
+    {
         m_mode = mode;
         if ( mode!=LVOM_READ && mode!=LVOM_APPEND )
             return LVERR_FAIL; // not supported
         if ( mode==LVOM_APPEND && minSize<=0 )
             return LVERR_FAIL;
-
+        SetName(fname.c_str());
         lString8 fn8 = UnicodeToUtf8( fname );
+#if defined(_WIN32)
+		//========================================================
+		// WIN32 IMPLEMENTATION
+        lUInt32 m = 0;
+        lUInt32 s = 0;
+        lUInt32 c = 0;
+        SetName(fname.c_str());
+        switch (mode) {
+        case LVOM_READWRITE:
+            m |= GENERIC_WRITE|GENERIC_READ;
+            s |= FILE_SHARE_WRITE|FILE_SHARE_READ;
+            c |= OPEN_ALWAYS;
+            break;
+        case LVOM_READ:
+            m |= GENERIC_READ;
+            s |= FILE_SHARE_READ;
+            c |= OPEN_EXISTING;
+            break;
+        case LVOM_WRITE:
+            m |= GENERIC_WRITE;
+            s |= FILE_SHARE_WRITE;
+            c |= CREATE_ALWAYS;
+            break;
+        case LVOM_APPEND:
+            m |= GENERIC_WRITE|GENERIC_READ;
+            s |= FILE_SHARE_WRITE;
+            c |= OPEN_ALWAYS;
+            break;
+        case LVOM_CLOSED:
+        case LVOM_ERROR:
+            crFatalError();
+            break;
+        }
+        m_hFile = CreateFileW( fname.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (m_hFile == INVALID_HANDLE_VALUE || !m_hFile) {
+			// unicode not implemented?
+			lUInt32 err = GetLastError();
+			if (err==ERROR_CALL_NOT_IMPLEMENTED)
+				m_hFile = CreateFileA( fn8.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
+			if ( (m_hFile == INVALID_HANDLE_VALUE) || (!m_hFile) ) {
+				// error
+				return error();
+			}
+		}
+		// check size
+        lUInt32 hw=0;
+        m_size = GetFileSize( m_hFile, &hw );
+#if LVLONG_FILE_SUPPORT
+        if (hw)
+            m_size |= (((lvsize_t)hw)<<32);
+#endif
+
+        if ( mode == LVOM_APPEND && m_size < minSize ) {
+            if ( SetSize( minSize ) != LVERR_OK ) {
+                CRLog::error( "Cannot set file size for %s", fn8.c_str() );
+                return error();
+            }
+        }
+
+		if ( Map()!=LVERR_OK )
+			return error();
+
+		return LVERR_OK;
+
+
+#else
+		//========================================================
+		// LINUX IMPLEMENTATION
+        m_fd = -1;
+
         int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT;
         m_fd = open( fn8.c_str(), flags, (mode_t)0600);
-        SetName(fname.c_str());
         if (m_fd == -1) {
             CRLog::error( "Error opening file %s for reading", fn8.c_str() );
             return error();
@@ -534,23 +708,62 @@ public:
             return error();
         }
         return LVERR_OK;
+#endif
     }
-    LVFileMappedStream() : m_fd(-1), m_map(NULL), m_size(0), m_pos(0)
+    LVFileMappedStream() 
+#if defined(_WIN32)
+		: m_hFile(NULL), m_hMap(NULL),
+#else
+		: m_fd(-1),
+#endif
+		m_map(NULL), m_size(0), m_pos(0)
     {
         m_mode=LVOM_ERROR;
     }
     virtual ~LVFileMappedStream()
     {
-        if ( m_fd != -1 ) {
-            if ( m_map && munmap( m_map, m_size ) == -1 ) {
-               CRLog::error("Error while unmapping file");
-            }
-            m_map = NULL;
-            close(m_fd);
-        }
+		// reuse error() to close file
+		error();
     }
 };
 #endif
+
+/// Open memory mapped file
+/**
+    \param pathname is file name to open (unicode)
+    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
+	\param minSize is minimum file size for R/W mode
+    \return reference to opened stream if success, NULL if error
+*/
+LVStreamRef LVMapFileStream( const lChar16 * pathname, lvopen_mode_t mode, lvsize_t minSize )
+{
+#if !defined(_WIN32) && !defined(_LINUX)
+	// STUB for systems w/o mmap
+    LVFileStream * stream = LVFileStream::CreateFileStream( fn, mode );
+    if ( stream!=NULL )
+    {
+        return LVStreamRef( stream );
+    }
+    return LVStreamRef();
+#else
+	LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( lString16(pathname), mode, (int)minSize );
+	return LVStreamRef(stream);
+#endif
+}
+
+/// Open memory mapped file
+/**
+    \param pathname is file name to open (unicode)
+    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
+	\param minSize is minimum file size for R/W mode
+    \return reference to opened stream if success, NULL if error
+*/
+LVStreamRef LVMapFileStream( const lChar8 * pathname, lvopen_mode_t mode, lvsize_t minSize )
+{
+	lString16 fn = LocalToUnicode( lString8(pathname) );
+	return LVMapFileStream( fn.c_str(), mode, minSize );
+}
+
 
 #if (USE_ANSI_FILES==1)
 
