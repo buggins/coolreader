@@ -49,7 +49,8 @@ AC_C_BIGENDIAN
 AC_C_CONST
 AM_PROG_LIBTOOL
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.17])
+#don't submit!
+AM_GNU_GETTEXT_VERSION([0.16])
 
 if test "${with_jinke}" == "false"; then
     PKG_PROG_PKG_CONFIG
