@@ -327,6 +327,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
+#ifdef _DEBUG
+void MMapTest()
+{
+	// write
+	{
+		LVStreamRef stream = LVMapFileStream( "c:\\cr3\\mapfile.dat", LVOM_APPEND, 1000000 );
+		LVStreamBufferRef buf = stream->GetWriteBuffer( 0, stream->GetSize() );
+		lUInt32 * p = (lUInt32*)buf->getReadWrite();
+		for ( lUInt32 i=0; i<1000000/4; i++ ) {
+			p[i] = i;
+		}
+	}
+	// read
+	{
+		LVStreamRef stream = LVMapFileStream( "c:\\cr3\\mapfile.dat", LVOM_READ, 1000000 );
+		LVStreamBufferRef buf = stream->GetReadBuffer( 0, stream->GetSize() );
+		const lUInt32 * p = (const lUInt32*)buf->getReadOnly();
+		for ( lUInt32 i=0; i<1000000/4; i++ ) {
+			if ( p[i]!=i ) {
+				CRLog::error("MMapTest failed!!!");
+				break;
+			}
+		}
+	}
+}
+#endif
+
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPSTR     lpCmdLine,
@@ -336,6 +363,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     CRLog::setFileLogger( "crengine.log" );
     CRLog::setLogLevel( CRLog::LL_TRACE );
 
+#ifdef _DEBUG
+	MMapTest();
+#endif
 
     lString8 exe_dir;
     char exe_fn[MAX_PATH+1];
