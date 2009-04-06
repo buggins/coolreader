@@ -51,16 +51,16 @@ enum lverror_t {
 enum lvopen_mode_t {
     LVOM_ERROR=0,       ///< to indicate error state
     LVOM_CLOSED,        ///< to indicate closed state
-    LVOM_READ,          ///< readonly mode
+    LVOM_READ,          ///< readonly mode, use for r/o mmap
     LVOM_WRITE,         ///< writeonly mode
-    LVOM_APPEND,        ///< append (readwrite) mode
+    LVOM_APPEND,        ///< append (readwrite) mode, use for r/w mmap
     LVOM_READWRITE      ///< readwrite mode
 };
 
 class LVContainer;
 class LVStream;
 
-class LVStorageObject
+class LVStorageObject : public LVRefCounter
 {
 public:
     // construction/destruction
@@ -81,10 +81,34 @@ public:
     virtual lvsize_t GetSize( );
 };
 
+/// Read or write buffer for stream region
+class LVStreamBuffer : public LVRefCounter
+{
+public:
+    /// get pointer to read-only buffer, returns NULL if unavailable
+    virtual const lUInt8 * getReadOnly() = 0;
+    /// get pointer to read-write buffer, returns NULL if unavailable
+    virtual lUInt8 * getReadWrite() = 0;
+    /// get buffer size
+    virtual lvsize_t getSize() = 0;
+    /// flush on destroy
+    virtual ~LVStreamBuffer() { close(); }
+    /// detach from stream, write changes if necessary
+    virtual bool close() { return true; }
+};
+
+typedef LVFastRef<LVStreamBuffer> LVStreamBufferRef;
+
 /// Stream base class
 class LVStream : public LVStorageObject
 {
 public:
+
+    /// Get read buffer (optimal for mmap)
+    LVStreamBufferRef getReadBuffer( lvpos_t pos, lvpos_t size );
+    /// Get read/write buffer (optimal for mmap)
+    LVStreamBufferRef getWriteBuffer( lvpos_t pos, lvpos_t size );
+
     /// Get stream open mode
     /** \return lvopen_mode_t open mode */
     virtual lvopen_mode_t GetMode() { return LVOM_READ; }
@@ -362,7 +386,7 @@ public:
 };
 
 /// Stream reference
-typedef LVRef<LVStream>    LVStreamRef;
+typedef LVFastRef<LVStream> LVStreamRef;
 
 class LVContainer : public LVStorageObject
 {
@@ -584,7 +608,7 @@ public:
 };
 
 /// Container reference
-typedef LVRef<LVContainer> LVContainerRef;
+typedef LVFastRef<LVContainer> LVContainerRef;
 
 /// Open file stream
 /**

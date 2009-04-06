@@ -15,6 +15,8 @@
 #include "../include/lvptrvec.h"
 #include "../include/crtxtenc.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #if (USE_ZLIB==1)
 #include <zlib.h>
@@ -26,8 +28,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include <stdlib.h>
-#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 #endif
 
 #ifdef _LINUX
@@ -105,6 +108,449 @@ void LVNamedStream::SetName(const lChar16 * name)
     m_filename = m_fname.substr(pos, m_fname.length() - pos);
 }
 
+/// Universal Read or write buffer for stream region for non-memmapped streams
+// default implementation, with RAM buffer
+class LVDefStreamBuffer : public LVStreamBuffer
+{
+protected:
+    LVStreamRef m_stream;
+    lUInt8 * m_buf;
+    lvpos_t m_pos;
+    lvsize_t m_size;
+    bool m_readonly;
+    bool m_writeonly;
+public:
+    static LVStreamBufferRef create( LVStreamRef stream, lvpos_t pos, lvsize_t size, bool readonly )
+    {
+        LVStreamBufferRef res;
+        switch ( stream->GetMode() ) {
+        case LVOM_ERROR:       ///< to indicate error state
+        case LVOM_CLOSED:        ///< to indicate closed state
+            return res;
+        case LVOM_READ:          ///< readonly mode, use for r/o mmap
+            if ( !readonly )
+                return res;
+            break;
+        case LVOM_WRITE:         ///< writeonly mode
+        case LVOM_APPEND:        ///< append (readwrite) mode, use for r/w mmap
+        case LVOM_READWRITE:      ///< readwrite mode
+            if ( readonly )
+                return res;
+            break;
+        }
+        lvsize_t sz;
+        if ( !stream->GetSize(&sz) )
+            return res;
+        if ( pos<0 || pos + size > sz )
+            return res; // wrong position/size
+        LVDefStreamBuffer * buf = new LVDefStreamBuffer( stream, pos, size, readonly );
+        if ( !buf->m_buf ) {
+            delete buf;
+            return res;
+        }
+        if ( stream->SetPos( pos )!=LVERR_OK ) {
+            delete buf;
+            return res;
+        }
+        lvsize_t bytesRead = 0;
+        if ( stream->Read( buf->m_buf, size, &bytesRead )!=LVERR_OK || bytesRead!=size ) {
+            delete buf;
+            return res;
+        }
+        return LVStreamBufferRef( buf );
+    }
+
+    LVDefStreamBuffer( LVStreamRef stream, lvpos_t pos, lvsize_t size, bool readonly )
+    : m_stream( stream ), m_buf( NULL ), m_pos(pos), m_size( size ), m_readonly( readonly )
+    {
+        m_buf = (lUInt8*)malloc( size );
+        m_writeonly = (m_stream->GetMode()==LVOM_WRITE);
+    }
+    /// get pointer to read-only buffer, returns NULL if unavailable
+    virtual const lUInt8 * getReadOnly()
+    {
+        return m_writeonly ? NULL : m_buf;
+    }
+    /// get pointer to read-write buffer, returns NULL if unavailable
+    virtual lUInt8 * getReadWrite()
+    {
+        return m_readonly ? NULL : m_buf;
+    }
+
+    /// get buffer size
+    virtual lvsize_t getSize()
+    {
+        return m_size;
+    }
+
+    /// write on close
+    virtual bool close()
+    {
+        bool res = true;
+        if ( m_buf ) {
+            if ( !m_readonly ) {
+                if ( m_stream->SetPos( m_pos )!=LVERR_OK ) {
+                    res = false;
+                } else {
+                    lvsize_t bytesWritten = 0;
+                    if ( m_stream->Write( m_buf, m_size, &bytesWritten )!=LVERR_OK || bytesWritten!=m_size ) {
+                        res = false;
+                    }
+                }
+            }
+            free( m_buf );
+        }
+        m_buf = NULL;
+        m_stream = NULL;
+        m_size = 0;
+        m_pos = 0;
+        return res;
+    }
+    /// flush on destroy
+    virtual ~LVDefStreamBuffer()
+    {
+        close();
+    }
+};
+
+/// Get read buffer - default implementation, with RAM buffer
+LVStreamBufferRef LVStream::getReadBuffer( lvpos_t pos, lvpos_t size )
+{
+    LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, true );
+    return res;
+}
+
+/// Get read/write buffer - default implementation, with RAM buffer
+LVStreamBufferRef LVStream::getWriteBuffer( lvpos_t pos, lvpos_t size )
+{
+    LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, false );
+    return res;
+}
+
+//#if USE_MMAP_FILES==1
+#if defined(_LINUX)
+
+class LVFileMappedStream : public LVNamedStream
+{
+private:
+    int m_fd;
+    lUInt8* m_map;
+    lvsize_t m_size;
+    lvpos_t m_pos;
+
+    /// Read or write buffer for stream region
+    class LVMMapBuffer : public LVStreamBuffer
+    {
+    protected:
+        LVStreamRef m_stream;
+        lUInt8 * m_buf;
+        lvsize_t m_size;
+        bool m_readonly;
+    public:
+        LVMMapBuffer( LVStreamRef stream, lUInt8 * buf, lvsize_t size, bool readonly )
+        : m_stream( stream ), m_buf( buf ), m_size( size ), m_readonly( readonly )
+        {
+        }
+
+        /// get pointer to read-only buffer, returns NULL if unavailable
+        virtual const lUInt8 * getReadOnly()
+        {
+            return m_buf;
+        }
+
+        /// get pointer to read-write buffer, returns NULL if unavailable
+        virtual lUInt8 * getReadWrite()
+        {
+            return m_readonly ? NULL : m_buf;
+        }
+
+        /// get buffer size
+        virtual lvsize_t getSize()
+        {
+            return m_size;
+        }
+
+        /// flush on destroy
+        virtual ~LVMMapBuffer() { }
+
+    };
+
+
+public:
+
+    /// Get read buffer (optimal for mmap)
+    LVStreamBufferRef getReadBuffer( lvpos_t pos, lvpos_t size )
+    {
+        LVStreamBufferRef res;
+        if ( !m_map || m_fd==-1 )
+            return res;
+        if ( (m_mode!=LVOM_APPEND && m_mode!=LVOM_READ) || pos + size > m_size || size==0 )
+            return res;
+        return LVStreamBufferRef ( new LVMMapBuffer( LVStreamRef(this), m_map + pos, size, true ) );
+    }
+
+    /// Get read/write buffer (optimal for mmap)
+    LVStreamBufferRef getWriteBuffer( lvpos_t pos, lvpos_t size )
+    {
+        LVStreamBufferRef res;
+        if ( !m_map || m_fd==-1 )
+            return res;
+        if ( m_mode!=LVOM_APPEND || pos + size > m_size || size==0 )
+            return res;
+        return LVStreamBufferRef ( new LVMMapBuffer( LVStreamRef(this), m_map + pos, size, false ) );
+    }
+
+    virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
+    {
+        //
+        lvpos_t newpos = m_pos;
+        switch ( origin )
+        {
+        case LVSEEK_SET:
+            newpos = offset;
+            break;
+        case LVSEEK_CUR:
+            newpos += offset;
+            break;
+        case LVSEEK_END:
+            newpos = m_size + offset;
+            break;
+        }
+        if ( newpos<0 || newpos>m_size )
+            return LVERR_FAIL;
+        m_pos = newpos;
+        return LVERR_OK;
+    }
+
+    /// Tell current file position
+    /**
+        \param pNewPos points to place to store file position
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t Tell( lvpos_t * pPos )
+    {
+        *pPos = m_pos;
+        return LVERR_OK;
+    }
+
+    virtual lvpos_t SetPos(lvpos_t p)
+    {
+        if ( p>=0 && p<=m_size ) {
+            m_pos = p;
+            return m_pos;
+        }
+        return (lvpos_t)(~0);
+    }
+
+    /// Get file position
+    /**
+        \return lvpos_t file position
+    */
+    virtual lvpos_t   GetPos()
+    {
+        return m_pos;
+    }
+
+    /// Get file size
+    /**
+        \return lvsize_t file size
+    */
+    virtual lvsize_t  GetSize()
+    {
+        return m_size;
+    }
+
+    virtual lverror_t GetSize( lvsize_t * pSize )
+    {
+        *pSize = m_size;
+        return LVERR_OK;
+    }
+
+    lverror_t error()
+    {
+        if ( m_fd!= -1 )
+            close(m_fd);
+        m_fd = -1;
+        m_map = NULL;
+        m_size = 0;
+        m_mode = LVOM_ERROR;
+        return LVERR_FAIL;
+    }
+
+    virtual lverror_t SetSize( lvsize_t size )
+    {
+        // support only size grow
+        if ( m_mode!=LVOM_APPEND )
+            return LVERR_FAIL;
+        if ( size == m_size )
+            return LVERR_OK;
+        if ( size < m_size )
+            return LVERR_FAIL;
+
+        if ( munmap( m_map, m_size ) == -1 ) {
+            CRLog::error("LVFileMappedStream::SetSize() -- Error while unmapping file");
+            return error();
+        }
+        if ( lseek( m_fd, size-1, SEEK_SET ) == -1 ) {
+            CRLog::error("LVFileMappedStream::SetSize() -- Seek error");
+            return error();
+        }
+        if ( write(m_fd, "", 1) != 1 ) {
+            CRLog::error("LVFileMappedStream::SetSize() -- File resize error");
+            return error();
+        }
+        m_size = size;
+
+        int mapFlags = (m_mode==LVOM_READ) ? PROT_READ : PROT_READ | PROT_WRITE;
+        m_map = (lUInt8*)mmap( 0, m_size, mapFlags, MAP_SHARED, m_fd, 0 );
+        if ( m_map == MAP_FAILED ) {
+            CRLog::error( "LVFileMappedStream::SetSize() -- Cannot map file to memory" );
+            return error();
+        }
+        return LVERR_OK;
+    }
+
+    virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
+    {
+        if ( m_fd==-1 )
+            return LVERR_FAIL;
+        int cnt = (int)count;
+        if ( m_pos + cnt > m_size )
+            cnt = (int)(m_size - m_pos);
+        if ( cnt <= 0 )
+            return LVERR_FAIL;
+        memcpy( buf, m_map + m_pos, cnt );
+        m_pos += cnt;
+        if (nBytesRead)
+            *nBytesRead = cnt;
+        return LVERR_OK;
+    }
+
+    virtual bool Read( lUInt8 * buf )
+    {
+        if ( m_pos < m_size ) {
+            *buf = m_map[ m_pos++ ];
+            return true;
+        }
+        return false;
+    }
+
+    virtual bool Read( lUInt16 * buf )
+    {
+        if ( m_pos+1 < m_size ) {
+            *buf = m_map[ m_pos ] | ( ( (lUInt16)m_map[ m_pos+1 ] )<<8 );
+            m_pos += 2;
+            return true;
+        }
+        return false;
+    }
+
+    virtual bool Read( lUInt32 * buf )
+    {
+        if ( m_pos+3 < m_size ) {
+            *buf = m_map[ m_pos ] | ( ( (lUInt32)m_map[ m_pos+1 ] )<<8 )
+                | ( ( (lUInt32)m_map[ m_pos+2 ] )<<16 )
+                | ( ( (lUInt32)m_map[ m_pos+3 ] )<<24 )
+                ;
+            m_pos += 4;
+            return true;
+        }
+        return false;
+    }
+
+    virtual int ReadByte()
+    {
+        if ( m_pos < m_size ) {
+            return m_map[ m_pos++ ];
+        }
+        return -1;
+    }
+
+    virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
+    {
+        if ( m_mode!=LVOM_APPEND )
+            return LVERR_FAIL;
+        lvsize_t maxSize = (lvsize_t)(m_size - m_pos);
+        if ( maxSize<=0 )
+            return LVERR_FAIL; // end of file reached: resize is not supported yet
+        if ( count > maxSize || count > m_size )
+            count = maxSize;
+        memcpy( m_map + m_pos, buf, count );
+        m_pos += count;
+        if ( nBytesWritten )
+            *nBytesWritten = count;
+        return LVERR_OK;
+    }
+
+    virtual bool Eof()
+    {
+        return (m_pos >= m_size);
+    }
+
+    static LVFileMappedStream * CreateFileStream( lString16 fname, lvopen_mode_t mode )
+    {
+        LVFileMappedStream * f = new LVFileMappedStream();
+        if ( f->OpenFile( fname, mode )==LVERR_OK ) {
+            return f;
+        } else {
+            delete f;
+            return NULL;
+        }
+    }
+    lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = -1 )
+    {
+        m_fd = -1;
+        m_mode = mode;
+        if ( mode!=LVOM_READ && mode!=LVOM_APPEND )
+            return LVERR_FAIL; // not supported
+        if ( mode==LVOM_APPEND && minSize<=0 )
+            return LVERR_FAIL;
+
+        lString8 fn8 = UnicodeToUtf8( fname );
+        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT;
+        m_fd = open( fn8.c_str(), flags, (mode_t)0600);
+        SetName(fname.c_str());
+        if (m_fd == -1) {
+            CRLog::error( "Error opening file %s for reading", fn8.c_str() );
+            return error();
+        }
+        struct stat stat;
+        if ( fstat( m_fd, &stat ) ) {
+            CRLog::error( "Cannot get file size for %s", fn8.c_str() );
+            return error();
+        }
+        m_size = (lvsize_t) stat.st_size;
+        if ( mode == LVOM_APPEND && m_size < minSize ) {
+            if ( SetSize( minSize ) != LVERR_OK ) {
+                CRLog::error( "Cannot set file size for %s", fn8.c_str() );
+                return error();
+            }
+        }
+
+        int mapFlags = (mode==LVOM_READ) ? PROT_READ : PROT_READ | PROT_WRITE;
+        m_map = (lUInt8*)mmap( 0, m_size, mapFlags, MAP_SHARED, m_fd, 0 );
+        if ( m_map == MAP_FAILED ) {
+            CRLog::error( "Cannot map file %s to memory", fn8.c_str() );
+            return error();
+        }
+        return LVERR_OK;
+    }
+    LVFileMappedStream() : m_fd(-1), m_map(NULL), m_size(0), m_pos(0)
+    {
+        m_mode=LVOM_ERROR;
+    }
+    virtual ~LVFileMappedStream()
+    {
+        if ( m_fd != -1 ) {
+            if ( m_map && munmap( m_map, m_size ) == -1 ) {
+               CRLog::error("Error while unmapping file");
+            }
+            m_map = NULL;
+            close(m_fd);
+        }
+    }
+};
+#endif
 
 #if (USE_ANSI_FILES==1)
 
@@ -448,7 +894,18 @@ public:
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode )
 {
     lString16 fn(pathname);
-    LVFileStream * stream = stream->CreateFileStream( fn, mode );
+#if defined(_LINUX)
+    if ( mode==LVOM_READ ) {
+        LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( fn, mode );
+        if ( stream != NULL )
+        {
+            return LVStreamRef( stream );
+        }
+        return LVStreamRef();
+    }
+#endif
+
+    LVFileStream * stream = LVFileStream::CreateFileStream( fn, mode );
     if ( stream!=NULL )
     {
         return LVStreamRef( stream );
@@ -2757,7 +3214,7 @@ class LVTCRStream : public LVStream
     lUInt8 _readbuf[TCR_READ_BUF_SIZE];
     LVTCRStream( LVStreamRef stream )
     : _stream(stream), _index(NULL), _decoded(NULL),
-      _decodedSize(0), _decodedLen(0), _partIndex(-1), _decodedStart(0), _indexSize(0), _pos(0) {
+      _decodedSize(0), _decodedLen(0), _partIndex((unsigned)-1), _decodedStart(0), _indexSize(0), _pos(0) {
     }
     bool decodePart( unsigned index )
     {
