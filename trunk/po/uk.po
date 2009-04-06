@@ -112,7 +112,6 @@ msgid "Current chapter"
 msgstr ""
 
 #: src/mainwnd.cpp:679
-#, fuzzy
 msgid "Status"
 msgstr "Статусний рядок"
 
@@ -423,7 +422,6 @@ msgid "Find in dictionary"
 msgstr "Пошук у словнику"
 
 #: src/viewdlg.cpp:298
-#, fuzzy
 msgid "Menu"
 msgstr "Головне меню"
 
@@ -432,7 +430,6 @@ msgid "Long"
 msgstr ""
 
 #: src/viewdlg.cpp:316
-#, fuzzy
 msgid "To first page"
 msgstr "Перейти на сторінку"
 
@@ -461,12 +458,10 @@ msgid "Previous link"
 msgstr ""
 
 #: src/viewdlg.cpp:325 src/viewdlg.cpp:345
-#, fuzzy
 msgid "Go to link"
 msgstr "Перейти на сторінку"
 
 #: src/viewdlg.cpp:326
-#, fuzzy
 msgid "To last page"
 msgstr "Перейти на сторінку"
 
@@ -475,7 +470,6 @@ msgid "Go to position"
 msgstr ""
 
 #: src/viewdlg.cpp:329
-#, fuzzy
 msgid "Zoom in"
 msgstr "Додаткова інформація"
 
@@ -484,7 +478,6 @@ msgid "Zoom out"
 msgstr ""
 
 #: src/viewdlg.cpp:331
-#, fuzzy
 msgid "Toggle text format"
 msgstr "Формат файлу"
 
@@ -517,47 +510,38 @@ msgid "Close book"
 msgstr ""
 
 #: src/viewdlg.cpp:340
-#, fuzzy
 msgid "Main menu"
 msgstr "Головне меню"
 
 #: src/viewdlg.cpp:341
-#, fuzzy
 msgid "Go to page dialog"
 msgstr "Перейти на сторінку"
 
 #: src/viewdlg.cpp:342
-#, fuzzy
 msgid "Settings menu"
 msgstr "Налаштування"
 
 #: src/viewdlg.cpp:343
-#, fuzzy
 msgid "Font size settings"
 msgstr "Кернінг шрифту"
 
 #: src/viewdlg.cpp:344
-#, fuzzy
 msgid "Page orientation settings"
 msgstr "Орієнтація сторінки"
 
 #: src/viewdlg.cpp:346
-#, fuzzy
 msgid "Find in Dictionary (T5)"
 msgstr "Пошук у словнику"
 
 #: src/viewdlg.cpp:347
-#, fuzzy
 msgid "Bookmark list"
 msgstr "Закладки"
 
 #: src/viewdlg.cpp:348
-#, fuzzy
 msgid "Recent books list"
 msgstr "Відкрити останню книгу"
 
 #: src/viewdlg.cpp:349
-#, fuzzy
 msgid "Open recent book by number"
 msgstr "Відкрити останню книгу"
 
@@ -566,12 +550,10 @@ msgid "Cite selection dialog"
 msgstr ""
 
 #: src/viewdlg.cpp:352
-#, fuzzy
 msgid "Search dialog"
 msgstr "Пошук"
 
 #: src/viewdlg.cpp:353
-#, fuzzy
 msgid "Find in Dictionary (virtual keyboard)"
 msgstr "Пошук у словнику"
 
@@ -584,7 +566,6 @@ msgid "Previous keyboard layout"
 msgstr ""
 
 #: src/viewdlg.cpp:356
-#, fuzzy
 msgid "Show manual"
 msgstr "Відображення годинника"
 

@@ -103,9 +103,8 @@ msgid "Battery state"
 msgstr "Заряд батареи"
 
 #: src/mainwnd.cpp:671
-#, fuzzy
 msgid "Current Time"
-msgstr "Текущая страница"
+msgstr "Текущее время"
 
 #: src/mainwnd.cpp:676
 msgid "Current chapter"
@@ -422,7 +421,6 @@ msgid "Find in dictionary"
 msgstr "Поиск в словаре"
 
 #: src/viewdlg.cpp:298
-#, fuzzy
 msgid "Menu"
 msgstr "Основное меню"
 
