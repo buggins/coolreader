@@ -250,4 +250,14 @@
 #define MAX_IMAGE_SCALE_MUL 1
 #endif
 
+// max unpacked size of skin image to hold in cache unpacked
+#ifndef MAX_SKIN_IMAGE_CACHE_ITEM_UNPACKED_SIZE
+#define MAX_SKIN_IMAGE_CACHE_ITEM_UNPACKED_SIZE 80*80*4
+#endif
+
+// max skin image file size to hold as a packed copy in memory
+#ifndef MAX_SKIN_IMAGE_CACHE_ITEM_RAM_COPY_PACKED_SIZE
+#define MAX_SKIN_IMAGE_CACHE_ITEM_RAM_COPY_PACKED_SIZE 10000
+#endif
+
 #endif//CRSETUP_H_INCLUDED

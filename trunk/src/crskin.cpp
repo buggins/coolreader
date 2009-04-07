@@ -227,8 +227,14 @@ LVImageSourceRef CRSkinImpl::getImage(  const lChar16 * filename  )
         }
     if ( !standard && !!_container ) {
         LVStreamRef stream = _container->OpenStream( filename, LVOM_READ );
-        if ( !!stream )
-            res = LVCreateStreamImageSource( stream );
+        if ( !!stream ) {
+            if ( stream->GetSize() < MAX_SKIN_IMAGE_CACHE_ITEM_RAM_COPY_PACKED_SIZE )
+                res = LVCreateStreamCopyImageSource( stream );
+            else
+                res = LVCreateStreamImageSource( stream );
+            // try to hold unpacked image, if small enough
+            res = LVCreateUnpackedImageSource( res, MAX_SKIN_IMAGE_CACHE_ITEM_UNPACKED_SIZE, COLOR_BACKBUFFER==0 );
+        }
     }
     // add found image to cache
     _imageCache.set( fn, res );
@@ -447,7 +453,7 @@ CRSkinRef LVOpenSimpleSkin( const lString8 & xml )
     CRSkinRef res( skin );
     if ( !skin->open( xml ) )
         return CRSkinRef();
-    CRLog::trace("skin xml opened ok");
+    //CRLog::trace("skin xml opened ok");
     return res;
 }
 

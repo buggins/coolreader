@@ -55,6 +55,10 @@ LVImageSourceRef LVCreateDummyImageSource( ldomNode * node, int width, int heigh
 LVImageSourceRef LVCreateStreamImageSource( LVStreamRef stream );
 /// creates image source as memory copy of file contents
 LVImageSourceRef LVCreateFileCopyImageSource( lString16 fname );
+/// creates image source as memory copy of stream contents
+LVImageSourceRef LVCreateStreamCopyImageSource( LVStreamRef stream );
+/// creates decoded memory copy of image, if it's unpacked size is less than maxSize
+LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize = MAX_SKIN_IMAGE_CACHE_ITEM_UNPACKED_SIZE, bool gray=false );
 
 #define IMAGE_SOURCE_FROM_BYTES( imgvar , bufvar ) \
     extern unsigned char bufvar []; \

@@ -1427,6 +1427,14 @@ LVImageSourceRef LVCreateFileCopyImageSource( lString16 fname )
     return LVCreateStreamImageSource( LVCreateMemoryStream(fname) );
 }
 
+/// creates image source as memory copy of stream contents
+LVImageSourceRef LVCreateStreamCopyImageSource( LVStreamRef stream )
+{
+    if ( stream.isNull() )
+        return LVImageSourceRef();
+    return LVCreateStreamImageSource( LVCreateMemoryStream(stream) );
+}
+
 class LVStretchImgSource : public LVImageSource, public LVImageDecoderCallback
 {
 protected:
@@ -1458,34 +1466,7 @@ public:
 	{
 		_line.reserve( _dst_dx );
 	}
-    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data )
-	{
-		bool res = false;
-		int right_pixels = (_src_dx-_split_x-1);
-		int first_right_pixel = _dst_dx - right_pixels;
-		int right_offset = _src_dx - _dst_dx;
-		int middle_pixels = _dst_dy - _src_dy + 1;
-		//int bottom_pixels = (_src_dy-_split_y-1);
-		//int first_bottom_pixel = _dst_dy - bottom_pixels;
-		for ( int x=0; x<_dst_dx; x++ ) {
-			if ( x<_split_x )
-				_line[x] = data[x];
-			else if ( x < first_right_pixel )
-				_line[x] = data[_split_x];
-			else
-				_line[x] = data[x + right_offset];
-		}
-		if ( y < _split_y ) {
-			res = _callback->OnLineDecoded( obj, y, _line.get() );
-		} else if ( y==_split_y ) {
-			for ( int i=0; i < middle_pixels; i++ ) {
-				res = _callback->OnLineDecoded( obj, y+i, _line.get() );
-			}
-		} else {
-			res = _callback->OnLineDecoded( obj, y + (_dst_dy - _src_dy), _line.get() );
-		}
-		return res;
-	}
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data );
     virtual void OnEndDecode( LVImageSource * obj, bool errors )
 	{
 		_line.clear();
@@ -1505,10 +1486,157 @@ public:
 	}
 };
 
+bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data )
+{
+    bool res = false;
+
+    int right_pixels = (_src_dx-_split_x-1);
+    int first_right_pixel = _dst_dx - right_pixels;
+    int right_offset = _src_dx - _dst_dx;
+    int middle_pixels = _dst_dy - _src_dy + 1;
+    //int bottom_pixels = (_src_dy-_split_y-1);
+    //int first_bottom_pixel = _dst_dy - bottom_pixels;
+    for ( int x=0; x<_dst_dx; x++ ) {
+        if ( x<_split_x )
+            _line[x] = data[x];
+        else if ( x < first_right_pixel )
+            _line[x] = data[_split_x];
+        else
+            _line[x] = data[x + right_offset];
+    }
+    if ( y < _split_y ) {
+        res = _callback->OnLineDecoded( obj, y, _line.get() );
+    } else if ( y==_split_y ) {
+        for ( int i=0; i < middle_pixels; i++ ) {
+            res = _callback->OnLineDecoded( obj, y+i, _line.get() );
+        }
+    } else {
+        res = _callback->OnLineDecoded( obj, y + (_dst_dy - _src_dy), _line.get() );
+    }
+    return res;
+}
+
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
 LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, int splitX, int splitY )
 {
 	if ( src.isNull() )
 		return LVImageSourceRef();
 	return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, splitX, splitY ) );
+}
+
+class LVUnpackedImgSource : public LVImageSource, public LVImageDecoderCallback
+{
+protected:
+    bool _isGray;
+    lUInt8 * _grayImage;
+    lUInt32 * _colorImage;
+    int _dx;
+    int _dy;
+public:
+    LVUnpackedImgSource( LVImageSourceRef src, bool storeGray )
+        : _isGray(storeGray)
+        , _grayImage(NULL)
+        , _colorImage(NULL)
+        , _dx( src->GetWidth() )
+        , _dy( src->GetHeight() )
+    {
+        if ( _isGray ) {
+            _grayImage = (lUInt8*)malloc( _dx * _dy * sizeof(lUInt8) );
+        } else {
+            _colorImage = (lUInt32*)malloc( _dx * _dy * sizeof(lUInt32) );
+        }
+        src->Decode( this );
+    }
+    virtual void OnStartDecode( LVImageSource * obj )
+    {
+        //CRLog::trace( "LVUnpackedImgSource::OnStartDecode" );
+    }
+    // aaaaaaaarrrrrrrrggggggggbbbbbbbb -> yyyyyyaa
+    inline lUInt8 grayPack( lUInt32 pixel )
+    {
+        lUInt8 gray = (lUInt8)(( (pixel & 255) + ((pixel>>16) & 255) + ((pixel>>7)&510) ) >> 2);
+        lUInt8 alpha = (lUInt8)((pixel>>24) & 255);
+        return (gray & 0xFC) | ((alpha >> 6) & 3);
+    }
+    // yyyyyyaa -> aaaaaaaarrrrrrrrggggggggbbbbbbbb
+    inline lUInt32 grayUnpack( lUInt8 pixel )
+    {
+        lUInt32 gray = pixel & 0xFC;
+        lUInt32 alpha = (pixel & 3) << 6;
+        if ( alpha==0xC0 )
+            alpha = 0xFF;
+        return gray | (gray<<8) | (gray<<16) | (alpha<<24);
+    }
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data )
+    {
+        if ( y<0 || y>=_dy )
+            return false;
+        if ( _isGray ) {
+            lUInt8 * dst = _grayImage + _dx * y;
+            for ( int x=0; x<_dx; x++ ) {
+                dst[x] = grayPack( data[x] );
+            }
+        } else {
+            lUInt32 * dst = _colorImage + _dx * y;
+            memcpy( dst, data, sizeof(lUInt32) * _dx );
+        }
+        return true;
+    }
+    virtual void OnEndDecode( LVImageSource * obj, bool errors )
+    {
+        //CRLog::trace( "LVUnpackedImgSource::OnEndDecode" );
+    }
+    virtual ldomNode * GetSourceNode() { return NULL; }
+    virtual LVStream * GetSourceStream() { return NULL; }
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _dx; }
+    virtual int    GetHeight() { return _dy; }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        callback->OnStartDecode( this );
+        bool res = false;
+        if ( _isGray ) {
+            // gray
+            LVArray<lUInt32> line;
+            line.reserve( _dx );
+            for ( int y=0; y<_dy; y++ ) {
+                lUInt8 * src = _grayImage + _dx * y;
+                lUInt32 * dst = line.ptr();
+                for ( int x=0; x<_dx; x++ )
+                    dst[x] = grayUnpack( src[x] );
+                callback->OnLineDecoded( this, y, dst );
+            }
+            line.clear();
+        } else {
+            // color
+            for ( int y=0; y<_dy; y++ ) {
+                res = callback->OnLineDecoded( this, y, _colorImage + _dx * y );
+            }
+        }
+        callback->OnEndDecode( this, false );
+        return true;
+    }
+    virtual ~LVUnpackedImgSource()
+    {
+        if ( _grayImage )
+            free( _grayImage );
+        if ( _colorImage )
+            free( _colorImage );
+    }
+};
+
+/// creates decoded memory copy of image, if it's unpacked size is less than maxSize
+LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize, bool gray )
+{
+    if ( srcImage.isNull() )
+        return srcImage;
+    int dx = srcImage->GetWidth();
+    int dy = srcImage->GetHeight();
+    int sz = dx*dy * (gray?1:4);
+    if ( sz>maxSize )
+        return srcImage;
+    //CRLog::trace("Unpacking image %dx%d (%d)", dx, dy, sz);
+    LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, gray );
+    //CRLog::trace("Unpacking done");
+    return LVImageSourceRef( img );
 }

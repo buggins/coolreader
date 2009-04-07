@@ -513,7 +513,7 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
             scrollRc.right -= SCROLL_HEIGHT - 3;
             int x = scrollRc.width() * _topItem / totalCount;
             int endx = scrollRc.width() * (_topItem + visibleCount) / totalCount;
-            CRLog::trace("scrollBar: x=%d, dx=%d, _topItem=%d, visibleCount=%d, totalCount=%d", x, endx, _topItem, visibleCount, totalCount );
+            //CRLog::trace("scrollBar: x=%d, dx=%d, _topItem=%d, visibleCount=%d, totalCount=%d", x, endx, _topItem, visibleCount, totalCount );
             scrollRc.right = scrollRc.left + endx;
             scrollRc.left += x;
             buf.Rect( scrollRc, buf.GetTextColor() );
@@ -883,7 +883,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
                 if ( key != 0 && cmd != 0 ) {
                     // found valid key cmd definition
                     table->add( key, flag, cmd, cmdParam );
-                    CRLog::trace("Acc: %d, %d => %d, %d", key, flag, cmd, cmdParam);
+                    //CRLog::trace("Acc: %d, %d => %d, %d", key, flag, cmd, cmdParam);
                 } else {
                     CRLog::error( "unknown command definition %s in line %s", UnicodeToUtf8(cmdName).c_str(), UnicodeToUtf8(line).c_str() );
                     continue;

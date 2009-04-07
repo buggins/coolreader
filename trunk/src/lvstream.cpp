@@ -1107,9 +1107,9 @@ public:
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode )
 {
     lString16 fn(pathname);
-#if defined(_LINUX)
+#if defined(_LINUX) || defined(_WIN32)
     if ( mode==LVOM_READ ) {
-        LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( fn, mode );
+        LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( fn, mode, 0 );
         if ( stream != NULL )
         {
             return LVStreamRef( stream );
