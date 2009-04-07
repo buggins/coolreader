@@ -52,7 +52,7 @@ msgstr "[неможливо відкрити файл]"
 
 #: src/mainwnd.cpp:456 src/mainwnd.cpp:563
 msgid "Help"
-msgstr ""
+msgstr "Допомога"
 
 #: src/mainwnd.cpp:475
 msgid "Main Menu"
@@ -88,32 +88,31 @@ msgstr "Налаштування"
 
 #: src/mainwnd.cpp:567 src/viewdlg.cpp:389
 msgid "Keyboard layout"
-msgstr ""
+msgstr "Мова вводу"
 
 #: src/mainwnd.cpp:668
 msgid "Current page"
-msgstr ""
+msgstr "Поточна сторінка"
 
 #: src/mainwnd.cpp:669
-#, fuzzy
 msgid "Total pages"
-msgstr "Перейти на сторінку"
+msgstr "Всього сторінок"
 
 #: src/mainwnd.cpp:670
 msgid "Battery state"
-msgstr ""
+msgstr "Стан батареї"
 
 #: src/mainwnd.cpp:671
 msgid "Current Time"
-msgstr ""
+msgstr "Поточна сторінка"
 
 #: src/mainwnd.cpp:676
 msgid "Current chapter"
-msgstr ""
+msgstr "Поточна глава"
 
 #: src/mainwnd.cpp:679
 msgid "Status"
-msgstr "Статусний рядок"
+msgstr "Статус"
 
 #: src/mainwnd.cpp:682
 msgid "Archive name"
@@ -427,87 +426,87 @@ msgstr "Головне меню"
 
 #: src/viewdlg.cpp:309
 msgid "Long"
-msgstr ""
+msgstr "Довг. "
 
 #: src/viewdlg.cpp:316
 msgid "To first page"
-msgstr "Перейти на сторінку"
+msgstr "До першої сторінки"
 
 #: src/viewdlg.cpp:318
 msgid "Back by page"
-msgstr ""
+msgstr "Попередня сторінка"
 
 #: src/viewdlg.cpp:320
 msgid "Forward by page"
-msgstr ""
+msgstr "Наступна сторінка"
 
 #: src/viewdlg.cpp:321
 msgid "Forward in move history"
-msgstr ""
+msgstr "Вперед по історії переміщень"
 
 #: src/viewdlg.cpp:322
 msgid "Back in move history"
-msgstr ""
+msgstr "Назад по історії переміщень"
 
 #: src/viewdlg.cpp:323
 msgid "Next link"
-msgstr ""
+msgstr "Наступне посилання"
 
 #: src/viewdlg.cpp:324
 msgid "Previous link"
-msgstr ""
+msgstr "Попереднє посилання"
 
 #: src/viewdlg.cpp:325 src/viewdlg.cpp:345
 msgid "Go to link"
-msgstr "Перейти на сторінку"
+msgstr "Перейти за посиланням"
 
 #: src/viewdlg.cpp:326
 msgid "To last page"
-msgstr "Перейти на сторінку"
+msgstr "До останньої сторінки"
 
 #: src/viewdlg.cpp:327
 msgid "Go to position"
-msgstr ""
+msgstr "Перейти на позицію"
 
 #: src/viewdlg.cpp:329
 msgid "Zoom in"
-msgstr "Додаткова інформація"
+msgstr "Збільшити шрифт"
 
 #: src/viewdlg.cpp:330
 msgid "Zoom out"
-msgstr ""
+msgstr "Зменшити шрифт"
 
 #: src/viewdlg.cpp:331
 msgid "Toggle text format"
-msgstr "Формат файлу"
+msgstr "Змінити автоформатування"
 
 #: src/viewdlg.cpp:332
 msgid "Save bookmark by number"
-msgstr ""
+msgstr "Зберегти закладку за номером"
 
 #: src/viewdlg.cpp:333
 msgid "Go to bookmark by number"
-msgstr ""
+msgstr "Відкрити закладку за номером"
 
 #: src/viewdlg.cpp:334
 msgid "Move by chapter"
-msgstr ""
+msgstr "Перехід за змістом"
 
 #: src/viewdlg.cpp:335
 msgid "Close dialog"
-msgstr ""
+msgstr "Закрити вікно"
 
 #: src/viewdlg.cpp:337
 msgid "Scroll forward"
-msgstr ""
+msgstr "Перегортати вперед"
 
 #: src/viewdlg.cpp:338
 msgid "Scroll back"
-msgstr ""
+msgstr "Перегортати назад"
 
 #: src/viewdlg.cpp:339
 msgid "Close book"
-msgstr ""
+msgstr "Закрити книгу"
 
 #: src/viewdlg.cpp:340
 msgid "Main menu"
@@ -523,7 +522,7 @@ msgstr "Налаштування"
 
 #: src/viewdlg.cpp:343
 msgid "Font size settings"
-msgstr "Кернінг шрифту"
+msgstr "Налаштування розміру шрифту"
 
 #: src/viewdlg.cpp:344
 msgid "Page orientation settings"
@@ -547,7 +546,7 @@ msgstr "Відкрити останню книгу"
 
 #: src/viewdlg.cpp:351
 msgid "Cite selection dialog"
-msgstr ""
+msgstr "Виділити цитату"
 
 #: src/viewdlg.cpp:352
 msgid "Search dialog"
@@ -559,11 +558,11 @@ msgstr "Пошук у словнику"
 
 #: src/viewdlg.cpp:354
 msgid "Next keyboard layout"
-msgstr ""
+msgstr "Наступна мова вводу"
 
 #: src/viewdlg.cpp:355
 msgid "Previous keyboard layout"
-msgstr ""
+msgstr "Попередня мова вводу"
 
 #: src/viewdlg.cpp:356
 msgid "Show manual"
@@ -571,19 +570,19 @@ msgstr "Відображення годинника"
 
 #: src/viewdlg.cpp:357
 msgid "Show key mapping"
-msgstr ""
+msgstr "Призначення клавіш"
 
 #: src/viewdlg.cpp:358
 msgid "Unknown command"
-msgstr ""
+msgstr "Невідома команда"
 
 #: src/viewdlg.cpp:377
 msgid "Key"
-msgstr ""
+msgstr "Клавіша"
 
 #: src/viewdlg.cpp:377
 msgid "Assigned function"
-msgstr ""
+msgstr "Дія"
 
 #~ msgid "Open recent book..."
 #~ msgstr "Останні книги"

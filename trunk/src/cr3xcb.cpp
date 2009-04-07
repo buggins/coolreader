@@ -311,99 +311,110 @@ public:
         _ownScreen = true;
     }
 
-    virtual bool getBatteryStatus( int & percent, bool & charging )
+    bool hasValidConnection()
     {
-        charging = false;
-        percent = 0;
+        return ( xcb_get_setup(_connection) != NULL );
+    }
+
+    virtual bool getBatteryStatus( int & percent, bool & charging );
+
+    // runs event loop
+    virtual int runEventLoop();
+};
+
+bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
+{
+    charging = false;
+    percent = 0;
 //TODO: implement battery state conditional compilation for different devices
 #ifdef __arm__
 
-        int x, charge;
-        FILE *f_cf, *f_cn;
+    int x, charge;
+    FILE *f_cf, *f_cn;
 
-        f_cn = fopen("/sys/class/power_supply/lbookv3_battery/charge_now", "r");
-        f_cf = fopen("/sys/class/power_supply/lbookv3_battery/charge_full_design", "r");
+    f_cn = fopen("/sys/class/power_supply/lbookv3_battery/charge_now", "r");
+    f_cf = fopen("/sys/class/power_supply/lbookv3_battery/charge_full_design", "r");
 
-        char b[11];
-        if((f_cn != NULL) && (f_cf != NULL)) {
-            fgets(b, 10, f_cn);
-            charge = atoi(b);
-            fgets(b, 10, f_cf);
-            x = atoi(b);
-            if(x > 0)
-                charge = charge * 100 / x;
-        } else
-            charge = 0;
+    char b[11];
+    if((f_cn != NULL) && (f_cf != NULL)) {
+        fgets(b, 10, f_cn);
+        charge = atoi(b);
+        fgets(b, 10, f_cf);
+        x = atoi(b);
+        if(x > 0)
+            charge = charge * 100 / x;
+    } else
+        charge = 0;
 
-        if (f_cn != NULL)
-            fclose(f_cn);
-        if (f_cf != NULL)
-            fclose(f_cf);
-        percent = charge;
-        return true;
+    if (f_cn != NULL)
+        fclose(f_cn);
+    if (f_cf != NULL)
+        fclose(f_cf);
+    percent = charge;
+    return true;
 #else
-        return false;
+    return false;
 #endif
 
-    }
-    // runs event loop
-    virtual int runEventLoop()
-    {
-        xcb_key_symbols_t * keysyms = xcb_key_symbols_alloc( connection );
+}
 
-        xcb_generic_event_t *event;
-        bool stop = false;
-        while (!stop && (event = xcb_wait_for_event (connection)) ) {
-            bool needUpdate = false;
-            //processPostedEvents();
-            switch (event->response_type & ~0x80) {
-            case XCB_EXPOSE:
-                // draw buffer
-                {
-                    printf("EXPOSE\n");
-                    update(true);
-                }
-                break;
-            case XCB_KEY_RELEASE:
-                {
-                    xcb_key_press_event_t *release = (xcb_key_press_event_t *)event;
-#define XCB_LOOKUP_CHARS_T 2
-                    xcb_keycode_t key = release->detail;
-                    int state = (release->state & XCB_MOD_MASK_1) ? KEY_FLAG_LONG_PRESS : 0;
-                    xcb_keysym_t sym = xcb_key_symbols_get_keysym( keysyms,
-                                            key,
-                                            XCB_LOOKUP_CHARS_T); //xcb_lookup_key_sym_t xcb_lookup_chars_t
-                    printf("Key released keycode=%d char=%04x state=%d\n", (int)key, (int)sym, state );
-                    onKeyPressed( sym, state );
-                    //printf("page number = %d\n", main_win->getDocView()->getCurPage());
-                    needUpdate = true;
-                }
-                break;
-            case XCB_BUTTON_PRESS:
-                {
-                    //xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
-                }
-                break;
-            default:
-                /* Unknown event type, ignore it */
-                break;
+// runs event loop
+int CRXCBWindowManager::runEventLoop()
+{
+    CRLog::trace("CRXCBWindowManager::runEventLoop()");
+    xcb_key_symbols_t * keysyms = xcb_key_symbols_alloc( _connection );
+
+    xcb_generic_event_t *event;
+    bool stop = false;
+    while (!stop && (event = xcb_wait_for_event (_connection)) ) {
+        bool needUpdate = false;
+        //processPostedEvents();
+        switch (event->response_type & ~0x80) {
+        case XCB_EXPOSE:
+            // draw buffer
+            {
+                printf("EXPOSE\n");
+                update(true);
             }
-
-            free (event);
-
-            if ( processPostedEvents() || needUpdate )
-                update(false);
-            // stop loop if all windows are closed
-            if ( !getWindowCount() )
-                stop = true;
-
+            break;
+        case XCB_KEY_RELEASE:
+            {
+                xcb_key_press_event_t *release = (xcb_key_press_event_t *)event;
+#define XCB_LOOKUP_CHARS_T 2
+                xcb_keycode_t key = release->detail;
+                int state = (release->state & XCB_MOD_MASK_1) ? KEY_FLAG_LONG_PRESS : 0;
+                xcb_keysym_t sym = xcb_key_symbols_get_keysym( keysyms,
+                                        key,
+                                        XCB_LOOKUP_CHARS_T); //xcb_lookup_key_sym_t xcb_lookup_chars_t
+                printf("Key released keycode=%d char=%04x state=%d\n", (int)key, (int)sym, state );
+                onKeyPressed( sym, state );
+                //printf("page number = %d\n", main_win->getDocView()->getCurPage());
+                needUpdate = true;
+            }
+            break;
+        case XCB_BUTTON_PRESS:
+            {
+                //xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
+            }
+            break;
+        default:
+            /* Unknown event type, ignore it */
+            break;
         }
 
-        xcb_key_symbols_free( keysyms );
-        return 0;
-    }
-};
+        free (event);
 
+        if ( processPostedEvents() || needUpdate )
+            update(false);
+        // stop loop if all windows are closed
+        if ( !getWindowCount() )
+            stop = true;
+
+    }
+
+    xcb_key_symbols_free( keysyms );
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -491,6 +502,10 @@ int main(int argc, char **argv)
         CRXCBWindowManager winman( 600, 800 );
 
 #endif
+    if ( !winman.hasValidConnection() ) {
+        CRLog::error("connection has an error! exiting.");
+    } else {
+
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
         lString16 homecrengine = home + L"/.crengine/";
 
@@ -587,6 +602,7 @@ int main(int argc, char **argv)
             res = 4;
         } else {
             winman.runEventLoop();
+        }
         }
     }
     ShutdownCREngine();
