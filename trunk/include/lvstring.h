@@ -342,6 +342,8 @@ public:
     lString16(const value_type * str);
     /// constructor from utf8 c-string
     explicit lString16(const lChar8 * str);
+    /// constructor from utf8 character array fragment
+    explicit lString16(const lChar8 * str, size_type count);
     /// constructor from wide character array fragment
     explicit lString16(const value_type * str, size_type count);
     /// constructor from another string substring
@@ -735,8 +737,10 @@ lString16 ByteToUnicode( const lString8 & str, const lChar16 * table );
 lString16 LocalToUnicode( const lString8 & str );
 /// converts utf-8 string to wide unicode string
 lString16 Utf8ToUnicode( const lString8 & str );
-/// converts utf-8 string to wide unicode string
+/// converts utf-8 c-string to wide unicode string
 lString16 Utf8ToUnicode( const char * s );
+/// converts utf-8 string fragment to wide unicode string
+lString16 Utf8ToUnicode( const char * s, int sz );
 
 /// Logger
 class CRLog

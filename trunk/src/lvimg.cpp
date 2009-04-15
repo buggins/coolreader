@@ -34,7 +34,7 @@ extern "C" {
 
 #include <jerror.h>
 
-#if defined(HAVE_WXJPEG_BOOLEAN) && !defined(CYGWIN)
+#if !defined(HAVE_WXJPEG_BOOLEAN)
 typedef boolean wxjpeg_boolean;
 #endif
 

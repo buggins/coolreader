@@ -3,11 +3,13 @@
 
     CoolReader Engine
 
-    (c) Vadim Lopatin, 2000-2006
+    (c) Vadim Lopatin, 2000-2009
     This source code is distributed under the terms of
     GNU General Public License
     See LICENSE file for details
 
+
+	Goal: make fast DOM implementation with small memory footprint.
 
     2009/04 : Introducing new storage model, optimized for mmap.
     All DOM objects are divided by 2 parts.
@@ -37,10 +39,11 @@
 #include "lvimg.h"
 #include "props.h"
 
-#define LXML_DOCUMENT_NODE 1 ///< document node
-#define LXML_ELEMENT_NODE  2 ///< element node
-#define LXML_TEXT_NODE     3 ///< text node
-#define LXML_COMMENT_NODE  4 ///< comment node
+#define LXML_NO_DATA       0 ///< to mark data storage record as empty
+#define LXML_ELEMENT_NODE  1 ///< element node
+#define LXML_TEXT_NODE     2 ///< text node
+//#define LXML_DOCUMENT_NODE 3 ///< document node (not implemented)
+//#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
 #define LXML_NS_NONE 0       ///< no namespace specified
 #define LXML_NS_ANY  0xFFFF  ///< any namespace can be specified
@@ -82,19 +85,53 @@ xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index 
 
 class ldomElement;
 
+/// common header for data storage items
+struct DataStorageItemHeader {
+	/// item type: LXML_TEXT_NODE, LXML_ELEMENT_NODE, LXML_NO_DATA
+	lUInt16 type;
+	/// size of item / 16
+	lUInt16 sizeDiv16;
+	/// data index of this node in document
+	lInt32 dataIndex;
+	/// data index of parent node in document, 0 means no parent
+	lInt32 parentIndex;
+};
+
+/// text node storage implementation
+struct TextDataStorageItem : public DataStorageItemHeader {
+	/// utf8 text length, characters
+	lUInt16 length;
+	/// utf8 text, w/o zero
+	lChar8 text[2]; // utf8 text follows here, w/o zero byte at end
+	/// return text
+	inline lString16 getText() { return Utf8ToUnicode( text, length ); }
+};
+
+/// element node data storage
+struct ElementDataStorageItem : public DataStorageItemHeader {
+	lUInt16 id;
+	lUInt16 nsid;
+	// TODO: add items here
+};
+
+// default: 512K
+#define DEF_DOC_DATA_BUFFER_SIZE 0x80000
+
 /// Base class for XML DOM documents
 /**
     Helps to decrease memory usage and increase performance for DOM implementations.
     Maintains Name<->Id maps for element names, namespaces and attributes.
     It allows to use short IDs instead of strings in DOM internals,
     and avoid duplication of string values.
+
+	Manages data storage.
 */
 class lxmlDocBase
 {
 public:
 
     /// Default constructor
-    lxmlDocBase();
+    lxmlDocBase( int dataBufSize = DEF_DOC_DATA_BUFFER_SIZE );
     /// Copy constructor - copies ID tables contents
     lxmlDocBase( lxmlDocBase & doc );
     /// Destructor
@@ -108,7 +145,7 @@ public:
         \param id is numeric value of namespace
         \return string value of namespace
     */
-    const lString16 & getNsName( lUInt16 id )
+    inline const lString16 & getNsName( lUInt16 id )
     {
         return _nsNameTable.nameById( id );
     }
@@ -125,7 +162,7 @@ public:
         \param id is numeric value of attribute
         \return string value of attribute
     */
-    const lString16 & getAttrName( lUInt16 id )
+    inline const lString16 & getAttrName( lUInt16 id )
     {
         return _attrNameTable.nameById( id );
     }
@@ -138,19 +175,19 @@ public:
     lUInt16 getAttrNameIndex( const lChar16 * name );
 
     /// helper: returns attribute value
-    const lString16 & getAttrValue( lUInt16 index ) const
+    inline const lString16 & getAttrValue( lUInt16 index ) const
     {
         return _attrValueTable[index];
     }
 
     /// helper: returns attribute value index
-    lUInt16 getAttrValueIndex( const lChar16 * value )
+    inline lUInt16 getAttrValueIndex( const lChar16 * value )
     {
         return (lUInt16)_attrValueTable.add( value );
     }
 
     /// helper: returns attribute value index, 0xffff if not found
-    lUInt16 findAttrValueIndex( const lChar16 * value )
+    inline lUInt16 findAttrValueIndex( const lChar16 * value )
     {
         return (lUInt16)_attrValueTable.find( value );
     }
@@ -160,7 +197,7 @@ public:
         \param id is numeric value of element name
         \return string value of element name
     */
-    const lString16 & getElementName( lUInt16 id )
+    inline const lString16 & getElementName( lUInt16 id )
     {
         return _elementNameTable.nameById( id );
     }
@@ -178,7 +215,7 @@ public:
         \return pointer to elem_def_t structure containing type properties
         \sa elem_def_t
     */
-    const elem_def_t * getElementTypePtr( lUInt16 id )
+    inline const elem_def_t * getElementTypePtr( lUInt16 id )
     {
         return (const elem_def_t *) _elementNameTable.dataById( id );
     }
@@ -193,7 +230,7 @@ public:
     // debug dump
     void dumpUnknownEntities( const char * fname );
 
-    void cacheStyle(css_style_ref_t & styleref )
+    inline void cacheStyle(css_style_ref_t & styleref )
     {
         _styleCache.cacheIt( styleref );
     }
@@ -206,7 +243,7 @@ public:
 #endif
     }
 
-    LVStyleSheet * getStyleSheet() { return &_stylesheet; }
+    inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
 
     inline void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node )
     {
@@ -234,7 +271,7 @@ public:
         return NULL;
     }
     /// returns doc properties collection
-    CRPropRef getProps() { return _docProps; }
+    inline CRPropRef getProps() { return _docProps; }
     /// returns doc properties collection
     void setProps( CRPropRef props ) { _docProps = props; }
 
@@ -246,21 +283,57 @@ public:
         // object's RAM instance
         ldomNode * instance;
         // object's data pointer
-        void * data;
+        DataStorageItemHeader * data;
         // empty item constructor
         NodeItem() : instance(NULL), data(NULL) { }
     };
 
+	class DataBuffer {
+	private:
+		int _size;
+		int _len;
+		lUInt8 * _data;
+	public :
+		bool isNull()
+		{
+			return _data==NULL;
+		}
+		DataBuffer( int size )
+			: _size( size ), _len( 0 )
+		{
+			_data = (lUInt8*)malloc( size );
+		}
+		~DataBuffer()
+		{
+			free( _data );
+		}
+		DataStorageItemHeader * alloc( int size );
+	};
+
+	/// for persistent text node, return text by index, with cachin (TODO)
+    lString16 getTextNodeValue( lInt32 dataIndex );
     /// used by object constructor, to assign ID for created object
     lInt32 registerNode( ldomNode * node );
     /// used by object destructor, to remove RAM reference; leave data as is
     void unregisterNode( lInt32 dataIndex );
-    /// used by object destructor, to remove RAM reference; leave data as is
+    /// used by object destructor, to remove RAM reference; mark data as deleted
     void deleteNode( lInt32 dataIndex );
     /// returns or creates object instance by index
-    ldomNode * getInstance( lInt32 dataIndex );
-
+    ldomNode * getNodeInstance( lInt32 dataIndex );
+	/// returns pointer to node data block
+	inline DataStorageItemHeader * getNodeData( lInt32 dataIndex ) { return _instanceMap[ dataIndex ].data; }
+	/// returns pointer to text node data block
+	inline TextDataStorageItem * getTextNodeData( lInt32 dataIndex ) { return (TextDataStorageItem *)_instanceMap[ dataIndex ].data;  }
+	/// returns pointer to text node data block
+	inline ElementDataStorageItem * getElementNodeData( lInt32 dataIndex ) { return (ElementDataStorageItem *)_instanceMap[ dataIndex ].data;  }
+	/// allocate data block, return pointer to allocated block
+	DataStorageItemHeader * allocData( lInt32 dataIndex, int size );
+	/// allocate text block
+	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
 private:
+	LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
+	DataBuffer * _currentBuffer;
+	int _dataBufferSize;       // single data buffer size
     NodeItem * _instanceMap;   // Id->Instance & Id->Data map
     int _instanceMapSize;      //
     int _instanceMapCount;     //
@@ -366,7 +439,7 @@ public:
 
 #define LDOM_ALLOW_NODE_INDEX 0
 
-/// fastDOM NODE interface
+/// fastDOM NODE interface - base class for all text and element node implementations
 class ldomNode
 {
     friend class ldomElement;
@@ -380,22 +453,29 @@ protected:
     lInt32 _dataIndex;        //12: [4]
 
 #if (LDOM_ALLOW_NODE_INDEX==1)
+	/// optional index of this node in parent's children collection
     lUInt32 _index;
 #endif
 public:
     ldomNode( ldomDocument * document, ldomElement * parent, lUInt32 index )
-    : _document(document), _parentIndex( parent ? ((ldomNode*)parent)->getDataIndex() : 0 ), _dataIndex( ((lxmlDocBase*)document)->registerNode(this) )
+    : _document(document), _parentIndex( parent ? ((ldomNode*)parent)->getDataIndex() : 0 )
 #if (LDOM_ALLOW_NODE_INDEX==1)
     , _index(index)
 #endif
-    { }
+    {
+		_dataIndex  = ((lxmlDocBase*)document)->registerNode(this);
+	}
+	/// destructor
     virtual ~ldomNode();
-    /// returns data index of node's registration in document
+    /// returns data index of node's registration in document data storage
     inline lInt32 getDataIndex() { return _dataIndex; }
-    // inline functions
+    /// returns pointer to document
     inline ldomDocument * getDocument() const { return _document; }
-    inline ldomElement * getParentNode() const { return _parentIndex > 0 ? (ldomElement*)(((lxmlDocBase*)_document)->getInstance(_parentIndex)) : NULL; }
+	/// returns pointer to parent node, NULL if node has no parent
+    inline ldomElement * getParentNode() const { return _parentIndex > 0 ? (ldomElement*)(((lxmlDocBase*)_document)->getNodeInstance(_parentIndex)) : NULL; }
+	/// returns node type, either LXML_TEXT_NODE or LXML_ELEMENT_NODE
     virtual lUInt8 getNodeType() const = 0;
+	/// returns node level, 0 is root node
     virtual lUInt8 getNodeLevel() const;
     /// returns node index
 #if (LDOM_ALLOW_NODE_INDEX==1)
@@ -403,9 +483,13 @@ public:
 #else
     lUInt32 getNodeIndex() const;
 #endif
+	/// returns true if this pointer is NULL
     inline bool isNull() const { return this == NULL; }
+	/// returns true if node is document's root
     inline bool isRoot() const { return _parentIndex <= 0; }
+	/// returns true if node is text
     inline bool isText() const { return getNodeType() == LXML_TEXT_NODE; }
+	/// returns true if node is element
     inline bool isElement() const { return getNodeType() == LXML_ELEMENT_NODE; }
     /// returns true if node is and element that has children
     inline bool hasChildren() { return getChildCount()!=0; }
@@ -435,7 +519,7 @@ public:
     /// returns true if element node has attribute with specified name id and namespace id
     virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const = 0;
     /// returns attribute name by index
-    const lString16 & getAttributeName( lUInt32 index ) const { return lString16::empty_str; }
+    virtual const lString16 & getAttributeName( lUInt32 index ) const { return lString16::empty_str; }
     /// sets attribute value
     virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value ) { }
     /// returns element type structure pointer if it was set in document for this element name
@@ -479,24 +563,24 @@ public:
     // inline, dummy namespace
 
     /// returns attribute value by attribute name id
-    const lString16 & getAttributeValue( lUInt16 id ) const
+    inline const lString16 & getAttributeValue( lUInt16 id ) const
     {
         return getAttributeValue( LXML_NS_ANY, id );
     }
     /// returns true if element node has attribute with specified name id
-    bool hasAttribute( lUInt16 id ) const
+    inline bool hasAttribute( lUInt16 id ) const
     {
         return hasAttribute( LXML_NS_ANY, id );
     }
     /// returns first text child element
-    ldomText * getFirstTextChild();
+    virtual ldomText * getFirstTextChild();
     /// returns last text child element
-    ldomText * getLastTextChild();
+    virtual ldomText * getLastTextChild();
 #if BUILD_LITE!=1
     /// find node by coordinates of point in formatted document
-    ldomElement * elementFromPoint( lvPoint pt );
+    virtual ldomElement * elementFromPoint( lvPoint pt );
     /// find final node by coordinates of point in formatted document
-    ldomElement * finalBlockFromPoint( lvPoint pt );
+    virtual ldomElement * finalBlockFromPoint( lvPoint pt );
 #endif
 };
 
@@ -528,7 +612,7 @@ public:
         pmsREF->free((ldomMemBlock *)p);
     }
 #endif
-    ldomText( ldomElement * parent, lUInt32 index, lString16 value);
+    ldomText( ldomElement * parent, lUInt32 index, lString16 value );
     virtual ~ldomText() { }
     /// returns LXML_TEXT_NODE for text node
     virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
@@ -672,6 +756,7 @@ public:
 };
 
 #define MAX_DOM_LEVEL 64
+/// Xpointer optimized to iterate through DOM tree
 class ldomXPointerEx : public ldomXPointer
 {
 protected:
@@ -1138,6 +1223,7 @@ public:
         _docFlags = value;
     }
 
+
 #if COMPACT_DOM == 1
     ldomDocument(LVStreamRef stream, int min_ref_text_size);
     lString16 getTextNodeValue( const ldomTextRef * txt );
@@ -1202,6 +1288,60 @@ public:
 
     bool findText( lString16 pattern, bool caseInsensitive, int minY, int maxY, LVArray<ldomWord> & words, int maxCount );
 #endif
+};
+
+class ldomPersistentText : public ldomNode
+{
+    friend class ldomDocument;
+public:
+#if (LDOM_USE_OWN_MEM_MAN == 1)
+    static ldomMemManStorage * pmsHeap;
+    void * operator new( size_t size )
+    {
+        if (pmsHeap == NULL)
+        {
+            pmsHeap = new ldomMemManStorage(sizeof(ldomPersistentText));
+        }
+        return pmsHeap->alloc();
+    }
+    void operator delete( void * p )
+    {
+        pmsREF->free((ldomMemBlock *)p);
+    }
+#endif
+    ldomPersistentText( ldomElement * parent, lUInt32 index, lString16 value );
+    ldomPersistentText( ldomElement * parent, lUInt32 index, lString8 value );
+    virtual ~ldomPersistentText() { }
+    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
+    /// returns element child count
+    virtual lUInt32 getChildCount() const { return 0; }
+    /// returns element attribute count
+    virtual lUInt32 getAttrCount() const { return 0; }
+    /// returns attribute value by attribute name id and namespace id
+    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
+    {
+        return lString16::empty_str;
+    }
+    /// returns attribute by index
+    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
+    /// returns true if element node has attribute with specified name id and namespace id
+    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
+    /// returns element type structure pointer if it was set in document for this element name
+    virtual const elem_def_t * getElementTypePtr() { return NULL; }
+    /// returns element name id
+    virtual lUInt16 getNodeId() const { return 0; }
+    /// returns element namespace id
+    virtual lUInt16 getNodeNsId() const { return 0; }
+    /// returns element name
+    virtual const lString16 & getNodeName() const { return lString16::empty_str; }
+    /// returns element namespace name
+    virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
+    /// returns text node text
+    virtual lString16 getText( lChar16 blockDelimiter=0 ) const;
+    /// sets text node text
+    virtual void setText( lString16 value );
+    /// returns child node by index
+    virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
 };
 
 #if COMPACT_DOM == 1
@@ -1294,7 +1434,9 @@ public:
     ldomElement( ldomDocument * document, ldomElement * parent, lUInt32 index, lUInt16 nsid, lUInt16 id )
     : ldomNode( document, parent, index ), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
     { }
-    virtual ~ldomElement() { if (_renderData) delete _renderData; }
+	/// destructor
+    virtual ~ldomElement();
+	/// returns LXML_ELEMENT_NODE
     virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
     /// returns rendering method
     lvdom_element_render_method  getRendMethod() { return _rendMethod; }
@@ -1368,9 +1510,9 @@ public:
     virtual ldomTextRef * insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
 #endif
     /// inserts child text
-    virtual ldomText * insertChildText( lUInt32 index, lString16 value );
+    virtual ldomNode * insertChildText( lUInt32 index, lString16 value );
     /// inserts child text
-    virtual ldomText * insertChildText( lString16 value );
+    virtual ldomNode * insertChildText( lString16 value );
     /// remove child
     virtual ldomNode * removeChild( lUInt32 index );
     /// calls specified function recursively for all elements of DOM tree
