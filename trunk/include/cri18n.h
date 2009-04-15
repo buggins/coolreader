@@ -13,7 +13,7 @@
 #ifndef __CRI18N_H_INCLUDED__
 #define __CRI18N_H_INCLUDED__
 
-#if CR_EMULATE_GETTEXT!=1
+#if CR_EMULATE_GETTEXT!=1 && !defined(_WIN32)
 #include <libintl.h>
 #endif
 

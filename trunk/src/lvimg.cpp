@@ -1,6 +1,6 @@
 /*******************************************************
 
-   CoolReader Engine 
+   CoolReader Engine
 
    lvimg.cpp:  Image formats support
 
@@ -34,7 +34,7 @@ extern "C" {
 
 #include <jerror.h>
 
-#ifndef HAVE_WXJPEG_BOOLEAN
+#if defined(HAVE_WXJPEG_BOOLEAN) && !defined(CYGWIN)
 typedef boolean wxjpeg_boolean;
 #endif
 
@@ -55,9 +55,9 @@ public:
     LVNodeImageSource( ldomNode * node, LVStreamRef stream )
         : _node(node), _stream(stream), _width(0), _height(0)
     {
-        
+
     }
-    
+
     ldomNode * GetSourceNode() { return _node; }
     virtual LVStream * GetSourceStream() { return _stream.get(); }
     virtual void   Compact() { }
@@ -306,9 +306,9 @@ cr_jpeg_error (j_common_ptr cinfo)
 
     /* Create the message */
     //(*cinfo->err->format_message) (cinfo, buffer);
-  
+
     //fprintf( stderr, "message: %s\n", buffer );
-    
+
     /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
     my_error_ptr myerr = (my_error_ptr) cinfo->err;
 
@@ -370,9 +370,9 @@ public:
     LVDummyImageSource( ldomNode * node, int width, int height )
         : _node(node), _width(width), _height(height)
     {
-        
+
     }
-    
+
     ldomNode * GetSourceNode() { return _node; }
     virtual LVStream * GetSourceStream() { return NULL; }
     virtual void   Compact() { }
@@ -432,7 +432,7 @@ public:
                 _rows[i] = new char[_width];
                 memcpy( _rows[i], data[i+1+_ncolors], _width );
             }
-            
+
             _palette = new lUInt32[_ncolors];
             memset( _pchars, 0, 128 );
             for ( int cl=0; cl<_ncolors; cl++ ) {
@@ -477,7 +477,7 @@ public:
         if ( _palette )
             delete[] _palette;
     }
-    
+
     ldomNode * GetSourceNode() { return NULL; }
     virtual LVStream * GetSourceStream() { return NULL; }
     virtual void   Compact() { }
@@ -522,7 +522,7 @@ public:
     LVJpegImageSource( ldomNode * node, LVStreamRef stream )
         : LVNodeImageSource(node, stream)
     {
-        
+
     }
     virtual ~LVJpegImageSource() {}
     virtual void   Compact() { }
@@ -530,7 +530,7 @@ public:
     {
         struct jpeg_decompress_struct cinfo;
         /* Step 1: allocate and initialize JPEG decompression object */
-    
+
 	/* We use our private extension JPEG error handler.
 	 * Note that this struct must live as long as the main JPEG parameter
 	 * struct, to avoid dangling-pointer problems.
@@ -544,7 +544,7 @@ public:
 
         lUInt8 * buffer = NULL;
         lUInt32 * row = NULL;
-        
+
         if (setjmp(jerr.setjmp_buffer)) {
 	    /* If we get here, the JPEG code has signaled an error.
 	     * We need to clean up the JPEG object, close the input file, and return.
@@ -558,14 +558,14 @@ public:
             return false;
 	}
 
-        
+
             _stream->SetPos( 0 );
             /* Now we can initialize the JPEG decompression object. */
             jpeg_create_decompress(&cinfo);
             /* Step 2: specify data source (eg, a file) */
             cr_jpeg_src( &cinfo, _stream.get() );
             /* Step 3: read file parameters with jpeg_read_header() */
-        
+
             //fprintf(stderr, "    try to call jpeg_read_header...\n");
             (void) jpeg_read_header(&cinfo, TRUE);
             /* We can ignore the return value from jpeg_read_header since
@@ -576,18 +576,18 @@ public:
             _width = cinfo.image_width;
             _height = cinfo.image_height;
             //fprintf(stderr, "    jpeg_read_header() finished succesfully: image size = %d x %d\n", _width, _height);
-            
+
             if ( callback )
             {
                 /* Step 4: set parameters for decompression */
-              
+
                 /* In this example, we don't need to change any of the defaults set by
                  * jpeg_read_header(), so we do nothing here.
                  */
                 cinfo.out_color_space = JCS_RGB;
-        
+
                 /* Step 5: Start decompressor */
-            
+
                 (void) jpeg_start_decompress(&cinfo);
                 /* We can ignore the return value since suspension is not possible
                  * with the stdio data source.
@@ -596,7 +596,7 @@ public:
                 row = new lUInt32 [ cinfo.output_width ];
                 /* Step 6: while (scan lines remain to be read) */
                 /*           jpeg_read_scanlines(...); */
-              
+
                 /* Here we use the library's state variable cinfo.output_scanline as the
                  * loop counter, so that we don't have to keep track ourselves.
                  */
@@ -774,7 +774,7 @@ protected:
     unsigned char m_version;
     unsigned char m_bpp;     //
     unsigned char m_flg_gtc; // GTC (gobal table of colors) flag
-    unsigned char m_transparent_color; // index 
+    unsigned char m_transparent_color; // index
 
     lUInt32 * m_global_color_table;
 public:
@@ -809,9 +809,9 @@ public:
     LVGifImageSource();
     virtual ~LVGifImageSource();
     void Clear();
-    lUInt32 * GetColorTable() { 
-        if (m_flg_gtc) 
-            return m_global_color_table; 
+    lUInt32 * GetColorTable() {
+        if (m_flg_gtc)
+            return m_global_color_table;
         else
             return NULL;
     };
@@ -837,9 +837,9 @@ public:
     LVGifFrame(LVGifImageSource * pImage);
     ~LVGifFrame();
     void Clear();
-    lUInt32 * GetColorTable() { 
-        if (m_flg_ltc) 
-            return m_local_color_table; 
+    lUInt32 * GetColorTable() {
+        if (m_flg_ltc)
+            return m_local_color_table;
         else
             return m_pImage->GetColorTable();
     };
@@ -903,7 +903,7 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
         return 0; // bad version
 
     // read screen descriptor
-    unsigned char * p = buf+6;    
+    unsigned char * p = buf+6;
 
     _width = p[0] + (p[1]<<8);
     _height = p[2] + (p[3]<<8);
@@ -918,7 +918,7 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
     // next
     p+=7;
 
-    
+
     // read global color table
     if (m_flg_gtc) {
         int m_color_count = 1<<m_bpp;
@@ -1023,7 +1023,7 @@ public:
         } else {
             return 0;
         }
-        
+
     };
 
     int WriteOutString( int code ) {
@@ -1292,7 +1292,7 @@ int LVGifFrame::DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_
         }
         i+=block_size+1;
     }
-    
+
 
     // create image buffer
     m_buffer = new unsigned char [m_cx*m_cy];
@@ -1375,7 +1375,7 @@ LVImageSourceRef LVCreateStreamImageSource( ldomNode * node, LVStreamRef stream 
     if ( stream->Read( hdr, 256, &bytesRead )!=LVERR_OK )
         return ref;
     stream->SetPos( 0 );
-    
+
 
     LVImageSource * img = NULL;
 #if (USE_LIBPNG==1)
