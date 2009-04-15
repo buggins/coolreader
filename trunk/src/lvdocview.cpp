@@ -598,8 +598,9 @@ void LVDocView::makeToc()
 {
     m_toc.clear();
     ldomElement * body = ((ldomElement*)m_doc->getRootNode())
-        ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 )
-        ->findChildElement( LXML_NS_ANY, el_body, 0 );
+        ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 );
+	if ( body ) 
+		body = body->findChildElement( LXML_NS_ANY, el_body, 0 );
     if ( !body )
         return;
     for ( int i=0; ;i++ ) {
@@ -613,12 +614,9 @@ void LVDocView::makeToc()
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
+	lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
     ldomElement * cover_img_el = ((ldomElement*)m_doc->getRootNode())
-        ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 )
-        ->findChildElement( LXML_NS_ANY, el_description, -1 )
-        ->findChildElement( LXML_NS_ANY, el_title_info, -1 )
-        ->findChildElement( LXML_NS_ANY, el_coverpage, -1 )
-        ->findChildElement( LXML_NS_ANY, el_image, -1 );
+        ->findChildElement( path );
 
     if ( cover_img_el )
     {

@@ -3455,6 +3455,17 @@ void ldomElement::moveItemsTo( ldomElement * destination, int startChildIndex, i
     // TODO: renumber rest of children in necessary
 }
 
+ldomElement * ldomElement::findChildElement( lUInt16 idPath[] )
+{
+	ldomElement * elem = this;
+	for ( int i=0; idPath[i]; i++ ) {
+		elem = findChildElement( LXML_NS_ANY, idPath[i], -1 );
+		if ( elem )
+			return NULL;
+	}
+	return elem;
+}
+
 ldomElement * ldomElement::findChildElement( lUInt16 nsid, lUInt16 id, int index )
 {
     if ( !this )

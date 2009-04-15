@@ -1498,6 +1498,7 @@ public:
     virtual void getAbsRect( lvRect & rect );
 
     virtual ldomElement * findChildElement( lUInt16 nsid, lUInt16 id, int index );
+    virtual ldomElement * findChildElement( lUInt16 idPath[] );
 
     /// inserts child element
     virtual ldomElement * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
