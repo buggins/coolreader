@@ -44,6 +44,21 @@ public:
 simpleLogFile logfile("logfile.log");
 */
 
+
+ldomTextRef::ldomTextRef( ldomElement * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
+: ldomNode( parent->getDocument(), parent, index ), dataFormat(flags), dataSize(size), fileOffset(pos)
+{ }
+
+ldomText::ldomText( ldomElement * parent, lUInt32 index, lString16 value)
+: ldomNode( parent->getDocument(), parent, index )
+{
+#if (USE_DOM_UTF8_STORAGE==1)
+    _value = UnicodeToUtf8(value);
+#else
+    _value = value;
+#endif
+}
+
 /////////////////////////////////////////////////////////////////
 /// lxmlDocument
 
@@ -110,6 +125,16 @@ const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lCh
 
 ldomNode::~ldomNode() { }
 
+// use iteration instead of storing in memory
+lUInt8 ldomNode::getNodeLevel() const
+{
+    const ldomNode * node = this;
+    int level = 0;
+    for ( ; node; node = node->getParentNode() )
+        level++;
+    return level;
+}
+
 /// returns main element (i.e. FictionBook for FB2)
 ldomElement * ldomDocument::getMainNode()
 {
@@ -137,7 +162,7 @@ ldomDocument::ldomDocument(LVStreamRef stream, int min_ref_text_size)
 #endif
         , _docFlags(DOC_FLAG_DEFAULTS)
 {
-    _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
+    _root = new ldomElement( this, NULL, 0, 0, 0 );
 }
 
 #else
@@ -148,7 +173,7 @@ ldomDocument::ldomDocument()
 #endif
         _docFlags(DOC_FLAG_DEFAULTS)
 {
-    _root = new ldomElement( this, NULL, 0, 0, 0, 0 );
+    _root = new ldomElement( this, NULL, 0, 0, 0 );
 }
 #endif
 
@@ -1426,18 +1451,6 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
     }
     return xpath_step_error;
 }
-
-ldomDocument * ldomText::getDocument() const
-{
-    return _parent->getDocument();
-}
-
-#if COMPACT_DOM == 1
-ldomDocument * ldomTextRef::getDocument() const
-{
-    return _parent->getDocument();
-}
-#endif
 
 #if (LDOM_ALLOW_NODE_INDEX!=1)
 lUInt32 ldomNode::getNodeIndex() const
@@ -2954,9 +2967,9 @@ lString16 ldomXRange::getHRef()
 }
 
 
-ldomDocument * LVParseXMLStream( LVStreamRef stream, 
-                              const elem_def_t * elem_table, 
-                              const attr_def_t * attr_table, 
+ldomDocument * LVParseXMLStream( LVStreamRef stream,
+                              const elem_def_t * elem_table,
+                              const attr_def_t * attr_table,
                               const ns_def_t * ns_table )
 {
     if ( stream.isNull() )
@@ -3079,7 +3092,7 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomElement * node )
             // for LIB.ru - replace PRE element with DIV (section?)
             if ( node->getChildCount()==0 )
                 parent->removeLastChild(); // remove empty PRE element
-            //else if ( node->getLastChild()->getNodeId()==el_div && node->getLastChild()->getChildCount() && 
+            //else if ( node->getLastChild()->getNodeId()==el_div && node->getLastChild()->getChildCount() &&
             //          ((ldomElement*)node->getLastChild())->getLastChild()->getNodeId()==el_form )
             //    parent->removeLastChild(); // remove lib.ru final section
             else

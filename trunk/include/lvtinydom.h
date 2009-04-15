@@ -336,25 +336,24 @@ class ldomNode
     friend class ldomElement;
     // 0: this   [4]
 protected:
-    ldomElement * _parent;  // 4: [4]
+    ldomDocument * _document; // 4: [4]
+    ldomElement * _parent;    // 8: [4]
 #if (LDOM_ALLOW_NODE_INDEX==1)
     lUInt32 _index;
 #endif
-    lUInt8 _type;           // 8: [1]
-    lUInt8 _level;          // 9: [1]
 public:
-    ldomNode( ldomElement * parent, lUInt8 type, lUInt8 level, lUInt32 index )
-    : _parent(parent)
+    ldomNode( ldomDocument * document, ldomElement * parent, lUInt32 index )
+    : _document(document), _parent(parent)
 #if (LDOM_ALLOW_NODE_INDEX==1)
     , _index(index)
 #endif
-    , _type(type), _level(level) { }
+    { }
     virtual ~ldomNode();
     // inline functions
-    virtual ldomDocument * getDocument() const = 0;
+    inline ldomDocument * getDocument() const { return _document; }
     inline ldomElement * getParentNode() const { return _parent; }
-    inline lUInt8 getNodeType() const { return _type; }
-    inline lUInt8 getNodeLevel() const { return _level; }
+    virtual lUInt8 getNodeType() const = 0;
+    virtual lUInt8 getNodeLevel() const;
     /// returns node index
 #if (LDOM_ALLOW_NODE_INDEX==1)
     inline lUInt32 getNodeIndex() const { return _index; }
@@ -363,8 +362,8 @@ public:
 #endif
     inline bool isNull() const { return this == NULL; }
     inline bool isRoot() const { return _parent == NULL; }
-    inline bool isText() const { return _type == LXML_TEXT_NODE; }
-    inline bool isElement() const { return _type == LXML_ELEMENT_NODE; }
+    inline bool isText() const { return getNodeType() == LXML_TEXT_NODE; }
+    inline bool isElement() const { return getNodeType() == LXML_ELEMENT_NODE; }
     /// returns true if node is and element that has children
     inline bool hasChildren() { return getChildCount()!=0; }
     /// returns true if node is element has attributes
@@ -486,17 +485,10 @@ public:
         pmsREF->free((ldomMemBlock *)p);
     }
 #endif
-    ldomText( ldomElement * parent, lUInt8 level, lUInt32 index, lString16 value)
-    : ldomNode( parent, LXML_TEXT_NODE, level, index )
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        _value = UnicodeToUtf8(value);
-#else
-        _value = value;
-#endif
-    }
+    ldomText( ldomElement * parent, lUInt32 index, lString16 value);
     virtual ~ldomText() { }
-    virtual ldomDocument * getDocument() const;
+    /// returns LXML_TEXT_NODE for text node
+    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
     /// returns element child count
     virtual lUInt32 getChildCount() const { return 0; }
     /// returns element attribute count
@@ -1194,11 +1186,9 @@ public:
         pmsREF->free((ldomMemBlock *)p);
     }
 #endif
-    ldomTextRef( ldomElement * parent, lUInt8 level, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
-    : ldomNode( parent, LXML_TEXT_NODE, level, index ), dataFormat(flags), dataSize(size), fileOffset(pos)
-    { }
+    ldomTextRef( ldomElement * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags);
     virtual ~ldomTextRef() { }
-    virtual ldomDocument * getDocument() const;
+    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
     /// returns element child count
     virtual lUInt32 getChildCount() const { return 0; }
     /// returns element attribute count
@@ -1239,7 +1229,6 @@ private:
     lUInt16 _nsid;
     lvdomElementFormatRec * _renderData;   // used by rendering engine
     LVPtrVector < ldomNode > _children;
-    ldomDocument * _document;
     css_style_ref_t _style;
     font_ref_t      _font;
     lvdom_element_render_method _rendMethod;
@@ -1259,10 +1248,11 @@ public:
         pmsHeap->free((ldomMemBlock *)p);
     }
 #endif
-    ldomElement( ldomDocument * document, ldomElement * parent, lUInt8 level, lUInt32 index, lUInt16 nsid, lUInt16 id )
-    : ldomNode( parent, LXML_ELEMENT_NODE, level, index ), _id(id), _nsid(nsid), _renderData(NULL), _document(document), _rendMethod(erm_invisible)
+    ldomElement( ldomDocument * document, ldomElement * parent, lUInt32 index, lUInt16 nsid, lUInt16 id )
+    : ldomNode( document, parent, index ), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
     { }
     virtual ~ldomElement() { if (_renderData) delete _renderData; }
+    virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
     /// returns rendering method
     lvdom_element_render_method  getRendMethod() { return _rendMethod; }
     /// sets rendering method
@@ -1275,8 +1265,6 @@ public:
     void setFont( font_ref_t font ) { _font = font; }
     /// sets element style record
     void setStyle( css_style_ref_t & style ) { _style = style; }
-    /// returns document
-    virtual ldomDocument * getDocument() const { return _document; }
     /// returns element child count
     virtual lUInt32 getChildCount() const { return _children.length(); }
     /// returns first child node
@@ -1385,7 +1373,7 @@ public:
     {
         if (index>(lUInt32)_children.length())
             index = _children.length();
-        ldomElement * elem = new ldomElement( _document, this, _level+1, index, nsid, id );
+        ldomElement * elem = new ldomElement( _document, this, index, nsid, id );
         _children.insert( index, elem );
 #if (LDOM_ALLOW_NODE_INDEX==1)
         // reindex tail
@@ -1397,7 +1385,7 @@ public:
     /// inserts child element
     ldomElement * insertChildElement( lUInt16 id )
     {
-        ldomElement * elem = new ldomElement( _document, this, _level+1, _children.length(), LXML_NS_NONE, id );
+        ldomElement * elem = new ldomElement( _document, this, _children.length(), LXML_NS_NONE, id );
         _children.add( elem );
         return elem;
     }
@@ -1407,7 +1395,7 @@ public:
     {
         if (index>(lUInt32)_children.length())
             index = _children.length();
-        ldomTextRef * text = new ldomTextRef( this, _level+1, index, (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
+        ldomTextRef * text = new ldomTextRef( this, index, (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
         _children.insert( index, text );
 #if (LDOM_ALLOW_NODE_INDEX==1)
         // reindex tail
@@ -1419,7 +1407,7 @@ public:
     /// inserts text as reference to document file
     ldomTextRef * insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
     {
-        ldomTextRef * text = new ldomTextRef( this, _level+1, (lUInt16)_children.length(), (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
+        ldomTextRef * text = new ldomTextRef( this, (lUInt16)_children.length(), (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
         _children.add( text );
         return text;
     }
@@ -1429,7 +1417,7 @@ public:
     {
         if (index>(lUInt32)_children.length())
             index = _children.length();
-        ldomText * text = new ldomText( this, _level+1, index, value );
+        ldomText * text = new ldomText( this, index, value );
         _children.insert( index, text );
 #if (LDOM_ALLOW_NODE_INDEX==1)
         // reindex tail
@@ -1441,7 +1429,7 @@ public:
     /// inserts child text
     ldomText * insertChildText( lString16 value )
     {
-        ldomText * text = new ldomText( this, _level+1, _children.length(), value );
+        ldomText * text = new ldomText( this, _children.length(), value );
         _children.add( text );
         return text;
     }
@@ -1677,9 +1665,9 @@ lString16 extractDocSeries( ldomDocument * doc );
 bool IsEmptySpace( const lChar16 * text, int len );
 
 /// parse XML document from stream, returns NULL if failed
-ldomDocument * LVParseXMLStream( LVStreamRef stream, 
-                              const elem_def_t * elem_table=NULL, 
-                              const attr_def_t * attr_table=NULL, 
+ldomDocument * LVParseXMLStream( LVStreamRef stream,
+                              const elem_def_t * elem_table=NULL,
+                              const attr_def_t * attr_table=NULL,
                               const ns_def_t * ns_table=NULL );
 
 #endif
