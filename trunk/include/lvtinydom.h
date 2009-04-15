@@ -1271,7 +1271,7 @@ private:
     lUInt16 _id;
     lUInt16 _nsid;
     lvdomElementFormatRec * _renderData;   // used by rendering engine
-    LVPtrVector < ldomNode > _children;
+    LVArray < lInt32 > _children;
     css_style_ref_t _style;
     font_ref_t      _font;
     lvdom_element_render_method _rendMethod;
@@ -1311,39 +1311,19 @@ public:
     /// returns element child count
     virtual lUInt32 getChildCount() const { return _children.length(); }
     /// returns first child node
-    virtual ldomNode * getFirstChild() const { return _children.length()>0?_children[0]:NULL; }
+    virtual ldomNode * getFirstChild() const;
     /// returns last child node
-    virtual ldomNode * getLastChild() const { return _children.length()>0?_children[_children.length()-1]:NULL; }
+    virtual ldomNode * getLastChild() const;
     /// removes and deletes last child element
-    virtual void removeLastChild()
-    {
-        if ( _children.length()>0 )
-            delete _children.remove( _children.length() - 1 );
-    }
+    virtual void removeLastChild();
     /// returns element attribute count
     virtual lUInt32 getAttrCount() const { return _attrs.length(); }
     /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
-    {
-        lUInt16 val_id = _attrs.get( nsid, id );
-        if (val_id!=LXML_ATTR_VALUE_NONE)
-            return _document->getAttrValue( val_id );
-        else
-            return lString16::empty_str;
-    }
+    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
     /// returns attribute value by attribute name id
-    const lString16 & getAttributeValue( lUInt16 id ) const
-    {
-        return getAttributeValue( LXML_NS_ANY, id );
-    }
+    virtual const lString16 & getAttributeValue( lUInt16 id ) const;
     /// sets attribute value
-    virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
-    {
-        lUInt16 valueId = _document->getAttrValueIndex( value );
-        _attrs.set(nsid, id, valueId);
-        if (nsid == LXML_NS_NONE)
-            _document->onAttributeSet( id, valueId, this );
-    }
+    virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value );
     /// move range of children startChildIndex to endChildIndex inclusively to specified element
     virtual void moveItemsTo( ldomElement * destination, int startChildIndex, int endChildIndex );
     /// returns attribute by index
@@ -1367,154 +1347,36 @@ public:
     /// returns concatenation of all child node text
     virtual lString16 getText( lChar16 blockDelimiter=0 ) const;
     /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const
-    {
-        return _children[index];
-    }
+    virtual ldomNode * getChildNode( lUInt32 index ) const;
     /// returns render data structure
-    virtual lvdomElementFormatRec * getRenderData()
-    {
-        if ( !_renderData )
-            _renderData = new lvdomElementFormatRec;
-        return _renderData;
-    }
+    virtual lvdomElementFormatRec * getRenderData();
     /// sets node rendering structure pointer
-    virtual void setRenderData( lvdomElementFormatRec * pRenderData )
-    {
-        if (_renderData)
-            delete _renderData;
-        _renderData = pRenderData;
-    }
+    virtual void setRenderData( lvdomElementFormatRec * pRenderData );
     /// returns node absolute rectangle
     virtual void getAbsRect( lvRect & rect );
 
-    ldomElement * findChildElement( lUInt16 nsid, lUInt16 id, int index )
-    {
-        if ( !this )
-            return NULL;
-        ldomElement * res = NULL;
-        int k = 0;
-        for ( int i=0; i<_children.length(); i++ )
-        {
-            ldomElement * p = (ldomElement*)_children[i];
-            if ( !p->isElement() )
-                continue;
-            if ( p->getNodeId() == id && ( (p->getNodeNsId() == nsid) || (nsid==LXML_NS_ANY) ) )
-            {
-                if ( k==index || index==-1 )
-                    res = p;
-                k++;
-            }
-        }
-        if ( !res || (index==-1 && k>1) )
-            return NULL;
-        return res;
-    }
+    virtual ldomElement * findChildElement( lUInt16 nsid, lUInt16 id, int index );
 
     /// inserts child element
-    ldomElement * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
-    {
-        if (index>(lUInt32)_children.length())
-            index = _children.length();
-        ldomElement * elem = new ldomElement( _document, this, index, nsid, id );
-        _children.insert( index, elem );
-#if (LDOM_ALLOW_NODE_INDEX==1)
-        // reindex tail
-        for (int i=index; i<_children.length(); i++)
-            _children[i]->setIndex( i );
-#endif
-        return elem;
-    }
+    virtual ldomElement * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
     /// inserts child element
-    ldomElement * insertChildElement( lUInt16 id )
-    {
-        ldomElement * elem = new ldomElement( _document, this, _children.length(), LXML_NS_NONE, id );
-        _children.add( elem );
-        return elem;
-    }
+    virtual ldomElement * insertChildElement( lUInt16 id );
 #if COMPACT_DOM == 1
     /// inserts text as reference to document file
-    ldomTextRef * insertChildText( lUInt32 index, lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
-    {
-        if (index>(lUInt32)_children.length())
-            index = _children.length();
-        ldomTextRef * text = new ldomTextRef( this, index, (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
-        _children.insert( index, text );
-#if (LDOM_ALLOW_NODE_INDEX==1)
-        // reindex tail
-        for (int i=index; i<_children.length(); i++)
-            _children[i]->setIndex( i );
-#endif
-        return text;
-    }
+    virtual ldomTextRef * insertChildText( lUInt32 index, lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
     /// inserts text as reference to document file
-    ldomTextRef * insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
-    {
-        ldomTextRef * text = new ldomTextRef( this, (lUInt16)_children.length(), (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
-        _children.add( text );
-        return text;
-    }
+    virtual ldomTextRef * insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
 #endif
     /// inserts child text
-    ldomText * insertChildText( lUInt32 index, lString16 value )
-    {
-        if (index>(lUInt32)_children.length())
-            index = _children.length();
-        ldomText * text = new ldomText( this, index, value );
-        _children.insert( index, text );
-#if (LDOM_ALLOW_NODE_INDEX==1)
-        // reindex tail
-        for (int i=index; i<_children.length(); i++)
-            _children[i]->setIndex( i );
-#endif
-        return text;
-    }
+    virtual ldomText * insertChildText( lUInt32 index, lString16 value );
     /// inserts child text
-    ldomText * insertChildText( lString16 value )
-    {
-        ldomText * text = new ldomText( this, _children.length(), value );
-        _children.add( text );
-        return text;
-    }
-    ldomNode * removeChild( lUInt32 index )
-    {
-        if ( index>(lUInt32)_children.length() )
-            return NULL;
-        ldomNode * node = _children.remove(index);
-#if (LDOM_ALLOW_NODE_INDEX==1)
-        for (int i=index; i<_children.length(); i++)
-            _children[i]->setIndex( i );
-#endif
-        return node;
-    }
+    virtual ldomText * insertChildText( lString16 value );
+    /// remove child
+    virtual ldomNode * removeChild( lUInt32 index );
     /// calls specified function recursively for all elements of DOM tree
-    virtual void recurseElements( void (*pFun)( ldomNode * node ) )
-    {
-        pFun( this );
-        int cnt = getChildCount();
-        for (int i=0; i<cnt; i++)
-        {
-            ldomNode * child = getChildNode( i );
-            if ( child->getNodeType()==LXML_ELEMENT_NODE )
-            {
-                child->recurseElements( pFun );
-            }
-        }
-    }
+    virtual void recurseElements( void (*pFun)( ldomNode * node ) );
     /// calls specified function recursively for all nodes of DOM tree
-    virtual void recurseNodes( void (*pFun)( ldomNode * node ) )
-    {
-        pFun( this );
-        if ( getNodeType()==LXML_ELEMENT_NODE )
-        {
-            int cnt = getChildCount();
-            for (int i=0; i<cnt; i++)
-            {
-                ldomNode * child = getChildNode( i );
-                child->recurseNodes( pFun );
-            }
-        }
-    }
+    virtual void recurseNodes( void (*pFun)( ldomNode * node ) );
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
 #if BUILD_LITE!=1

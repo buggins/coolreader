@@ -1517,6 +1517,27 @@ lUInt32 ldomNode::getNodeIndex() const
 }
 #endif
 
+/// returns first child node
+ldomNode * ldomElement::getFirstChild() const
+{
+    return _children.length()>0?_document->getInstance(_children[0]):NULL;
+}
+/// returns last child node
+ldomNode * ldomElement::getLastChild() const
+{
+    return _children.length()>0?_document->getInstance(_children[_children.length()-1]):NULL;
+}
+
+/// removes and deletes last child element
+void ldomElement::removeLastChild()
+{
+    if ( _children.length()>0 ) {
+        ldomNode * child = ldomElement::getLastChild();
+        _children.remove( _children.length() - 1 );
+        delete child;
+    }
+}
+
 /// returns text node text
 lString16 ldomElement::getText( lChar16 blockDelimiter ) const
 {
@@ -3331,9 +3352,194 @@ void ldomElement::moveItemsTo( ldomElement * destination, int startChildIndex, i
 {
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
-        ldomNode * item = _children.remove( startChildIndex ); // + i
+        ldomNode * item = getChildNode( startChildIndex );
+        _children.remove( startChildIndex ); // + i
         item->_parentIndex = destination->getDataIndex();
-        destination->_children.add( item );
+        destination->_children.add( item->getDataIndex() );
     }
     // TODO: renumber rest of children in necessary
+}
+
+ldomElement * ldomElement::findChildElement( lUInt16 nsid, lUInt16 id, int index )
+{
+    if ( !this )
+        return NULL;
+    ldomElement * res = NULL;
+    int k = 0;
+    for ( int i=0; i<_children.length(); i++ )
+    {
+        ldomElement * p = (ldomElement*)getChildNode( i );
+        if ( !p->isElement() )
+            continue;
+        if ( p->getNodeId() == id && ( (p->getNodeNsId() == nsid) || (nsid==LXML_NS_ANY) ) )
+        {
+            if ( k==index || index==-1 )
+                res = p;
+            k++;
+        }
+    }
+    if ( !res || (index==-1 && k>1) )
+        return NULL;
+    return res;
+}
+
+/// inserts child element
+ldomElement * ldomElement::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
+{
+    if (index>(lUInt32)_children.length())
+        index = _children.length();
+    ldomElement * elem = new ldomElement( _document, this, index, nsid, id );
+    _children.insert( index, elem->getDataIndex() );
+#if (LDOM_ALLOW_NODE_INDEX==1)
+    // reindex tail
+    for (int i=index; i<_children.length(); i++)
+        _children[i]->setIndex( i );
+#endif
+    return elem;
+}
+
+/// inserts child element
+ldomElement * ldomElement::insertChildElement( lUInt16 id )
+{
+    ldomElement * elem = new ldomElement( _document, this, _children.length(), LXML_NS_NONE, id );
+    _children.add( elem->getDataIndex() );
+    return elem;
+}
+
+#if COMPACT_DOM == 1
+/// inserts text as reference to document file
+ldomTextRef * ldomElement::insertChildText( lUInt32 index, lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+{
+    if (index>(lUInt32)_children.length())
+        index = _children.length();
+    ldomTextRef * text = new ldomTextRef( this, index, (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
+    _children.insert( index, text->getDataIndex() );
+#if (LDOM_ALLOW_NODE_INDEX==1)
+    // reindex tail
+    for (int i=index; i<_children.length(); i++)
+        _children[i]->setIndex( i );
+#endif
+    return text;
+}
+
+/// inserts text as reference to document file
+ldomTextRef * ldomElement::insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+{
+    ldomTextRef * text = new ldomTextRef( this, (lUInt16)_children.length(), (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
+    _children.add( text->getDataIndex() );
+    return text;
+}
+#endif
+
+/// inserts child text
+ldomText * ldomElement::insertChildText( lUInt32 index, lString16 value )
+{
+    if (index>(lUInt32)_children.length())
+        index = _children.length();
+    ldomText * text = new ldomText( this, index, value );
+    _children.insert( index, text->getDataIndex() );
+#if (LDOM_ALLOW_NODE_INDEX==1)
+    // reindex tail
+    for (int i=index; i<_children.length(); i++)
+        _children[i]->setIndex( i );
+#endif
+    return text;
+}
+
+/// inserts child text
+ldomText * ldomElement::insertChildText( lString16 value )
+{
+    ldomText * text = new ldomText( this, _children.length(), value );
+    _children.add( text->getDataIndex() );
+    return text;
+}
+
+ldomNode * ldomElement::removeChild( lUInt32 index )
+{
+    if ( index>(lUInt32)_children.length() )
+        return NULL;
+    ldomNode * node = _document->getInstance( _children[index] );
+    _children.remove(index);
+#if (LDOM_ALLOW_NODE_INDEX==1)
+    for (int i=index; i<_children.length(); i++)
+        _children[i]->setIndex( i );
+#endif
+    return node;
+}
+
+/// calls specified function recursively for all elements of DOM tree
+void ldomElement::recurseElements( void (*pFun)( ldomNode * node ) )
+{
+    pFun( this );
+    int cnt = getChildCount();
+    for (int i=0; i<cnt; i++)
+    {
+        ldomNode * child = getChildNode( i );
+        if ( child->getNodeType()==LXML_ELEMENT_NODE )
+        {
+            child->recurseElements( pFun );
+        }
+    }
+}
+
+/// calls specified function recursively for all nodes of DOM tree
+void ldomElement::recurseNodes( void (*pFun)( ldomNode * node ) )
+{
+    pFun( this );
+    if ( getNodeType()==LXML_ELEMENT_NODE )
+    {
+        int cnt = getChildCount();
+        for (int i=0; i<cnt; i++)
+        {
+            ldomNode * child = getChildNode( i );
+            child->recurseNodes( pFun );
+        }
+    }
+}
+
+/// returns attribute value by attribute name id and namespace id
+const lString16 & ldomElement::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
+{
+    lUInt16 val_id = _attrs.get( nsid, id );
+    if (val_id!=LXML_ATTR_VALUE_NONE)
+        return _document->getAttrValue( val_id );
+    else
+        return lString16::empty_str;
+}
+
+/// returns attribute value by attribute name id
+const lString16 & ldomElement::getAttributeValue( lUInt16 id ) const
+{
+    return getAttributeValue( LXML_NS_ANY, id );
+}
+
+/// sets attribute value
+void ldomElement::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
+{
+    lUInt16 valueId = _document->getAttrValueIndex( value );
+    _attrs.set(nsid, id, valueId);
+    if (nsid == LXML_NS_NONE)
+        _document->onAttributeSet( id, valueId, this );
+}
+
+/// returns child node by index
+ldomNode * ldomElement::getChildNode( lUInt32 index ) const
+{
+    return _document->getInstance( _children[index] );
+}
+
+/// returns render data structure
+lvdomElementFormatRec * ldomElement::getRenderData()
+{
+    if ( !_renderData )
+        _renderData = new lvdomElementFormatRec;
+    return _renderData;
+}
+
+/// sets node rendering structure pointer
+void ldomElement::setRenderData( lvdomElementFormatRec * pRenderData )
+{
+    if (_renderData)
+        delete _renderData;
+    _renderData = pRenderData;
 }
