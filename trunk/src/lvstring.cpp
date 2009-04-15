@@ -446,6 +446,21 @@ lString16::lString16(const lChar8 * str)
 	*this = Utf8ToUnicode( str );
 }
 
+/// constructor from utf8 character array fragment
+lString16::lString16(const lChar8 * str, size_type count)
+{
+    if (!str || !(*str))
+    {
+        pchunk = EMPTY_STR_16;
+        addref();
+        return;
+    }
+    pchunk = EMPTY_STR_16;
+    addref();
+	*this = Utf8ToUnicode( str, count );
+}
+
+
 lString16::lString16(const value_type * str, size_type count)
 {
     if ( !str || !(*str) || count<=0 )
@@ -1857,6 +1872,29 @@ int Utf8CharCount( const lChar8 * str )
     return count;
 }
 
+int Utf8CharCount( const lChar8 * str, int len )
+{
+    int count = 0;
+    lUInt8 ch;
+    while ( (ch=*str++) && (len--)>0 ) {
+        if ( (ch & 0x80) == 0 ) {
+        } else if ( (ch & 0xE0) == 0xC0 ) {
+            if ( !(ch=*str++) )
+                break;
+			len--;
+        } else {
+            if ( !(ch=*str++) )
+                break;
+            if ( !(ch=*str++) )
+                break;
+			len--;
+			len--;
+        }
+        count++;
+    }
+    return count;
+}
+
 int Utf8ByteCount( const lChar16 * str )
 {
     int count = 0;
@@ -1891,6 +1929,42 @@ lString16 Utf8ToUnicode( const char * s )
         lStringBuf16<1024> buf( dst );
         lUInt16 ch;
         while ( (ch=*s++) ) {
+            if ( (ch & 0x80) == 0 ) {
+                buf.append( ch );
+            } else if ( (ch & 0xE0) == 0xC0 ) {
+                lChar16 d = (ch & 0x1F) << 6;
+                if ( !(ch=*s++) )
+                    break;
+                d |= (ch & 0x3F);
+                buf.append( d );
+            } else {
+                lChar16 d = (ch & 0x0F) << 12;
+                if ( !(ch=*s++) )
+                    break;
+                d |= (ch & 0x3F) << 6;
+                if ( !(ch=*s++) )
+                    break;
+                d |= (ch & 0x3F);
+                buf.append( d );
+            }
+        }
+    }
+    return dst;
+}
+
+lString16 Utf8ToUnicode( const char * s, int sz )
+{
+    lString16 dst;
+    if ( !s || !s[0] || sz<=0 )
+      return dst;
+    int len = Utf8CharCount( s, sz );
+    if (!len)
+      return dst;
+    dst.reserve( len );
+    {
+        lStringBuf16<1024> buf( dst );
+        lUInt16 ch;
+        while ( (ch=*s++)&&(len--) ) {
             if ( (ch & 0x80) == 0 ) {
                 buf.append( ch );
             } else if ( (ch & 0xE0) == 0xC0 ) {

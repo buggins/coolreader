@@ -45,28 +45,15 @@ simpleLogFile logfile("logfile.log");
 */
 
 
-ldomTextRef::ldomTextRef( ldomElement * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
-: ldomNode( parent->getDocument(), parent, index ), dataFormat(flags), dataSize(size), fileOffset(pos)
-{ }
-
-ldomText::ldomText( ldomElement * parent, lUInt32 index, lString16 value)
-: ldomNode( parent->getDocument(), parent, index )
-{
-#if (USE_DOM_UTF8_STORAGE==1)
-    _value = UnicodeToUtf8(value);
-#else
-    _value = value;
-#endif
-}
-
 
 /////////////////////////////////////////////////////////////////
 /// lxmlDocument
 
 
-lxmlDocBase::lxmlDocBase()
+lxmlDocBase::lxmlDocBase( int dataBufSize )
 :
- _instanceMap(NULL)
+  _dataBufferSize( dataBufSize ) // single data buffer size
+, _instanceMap(NULL)
 ,_instanceMapSize(2048) // *8 = 16K
 ,_instanceMapCount(1)
 ,_elementNameTable(MAX_ELEMENT_TYPE_ID)
@@ -80,6 +67,9 @@ lxmlDocBase::lxmlDocBase()
 ,_idAttrId(0)
 ,_docProps(LVCreatePropsContainer())
 {
+	// create and add one data buffer
+	_currentBuffer = new DataBuffer( _dataBufferSize );
+	_dataBuffers.add( _currentBuffer );
     _instanceMap = (NodeItem *)malloc( sizeof(NodeItem) * _instanceMapSize );
     memset( _instanceMap, 0, sizeof(NodeItem) * _instanceMapSize );
     _stylesheet.setDocument( this );
@@ -120,7 +110,7 @@ void lxmlDocBase::deleteNode( lInt32 dataIndex )
 }
 
 /// returns or creates object instance by index
-ldomNode * lxmlDocBase::getInstance( lInt32 dataIndex )
+ldomNode * lxmlDocBase::getNodeInstance( lInt32 dataIndex )
 {
     ldomNode * item = _instanceMap[ dataIndex ].instance;
     if ( item != NULL )
@@ -156,7 +146,97 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
     return _nextUnknownElementId++;
 }
 
+DataStorageItemHeader * lxmlDocBase::DataBuffer::alloc( int size )
+{
+	if ( _len + size > _size )
+		return NULL; // no room
+	size = (size + 15) & 0xFFFFFF0;
+	DataStorageItemHeader * item = (DataStorageItemHeader *) (_data + _len);
+	item->sizeDiv16 = size >> 4;
+	_len += size;
+	return item;
+}
 
+/// allocate data block, return pointer to allocated block
+DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
+{
+	if ( _instanceMap[dataIndex].data != NULL ) {
+		// mark data record as empty
+		_instanceMap[dataIndex].data->type = LXML_NO_DATA;
+	}
+	DataStorageItemHeader * item = _currentBuffer->alloc( size );
+	if ( !item ) {
+		if ( size >= _dataBufferSize )
+			return NULL;
+		_currentBuffer = new DataBuffer( _dataBufferSize );
+		if ( _currentBuffer->isNull() ) {
+			CRLog::error("Cannot create document data buffer #%d (size=%d)", _dataBuffers.length(), _dataBufferSize );
+			delete _currentBuffer;
+			return NULL; // OUT OF MEMORY
+		}
+		_dataBuffers.add( _currentBuffer );
+		item = _currentBuffer->alloc( size );
+	}
+	item->dataIndex = dataIndex;
+	//item->parentIndex = 0;
+	//item->type = nodeType;
+	_instanceMap[dataIndex].data = item;
+	return item;
+}
+
+/// allocate text block
+TextDataStorageItem * lxmlDocBase::allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount )
+{
+	int size = sizeof(TextDataStorageItem) + charCount - 2;
+	TextDataStorageItem *item = (TextDataStorageItem *)allocData( dataIndex, size );
+	if ( item ) {
+		item->type = LXML_TEXT_NODE;
+		item->parentIndex = parentIndex;
+		item->length = charCount;
+		if ( charCount>0 )
+			memcpy( item->text, text, charCount );
+	}
+	return item;
+}
+
+lString16 lxmlDocBase::getTextNodeValue( lInt32 dataIndex )
+{
+	// TODO: implement caching here
+	TextDataStorageItem * data = getTextNodeData( dataIndex );
+	if ( !data || data->type!=LXML_TEXT_NODE )
+		return lString16();
+	return data->getText();
+}
+
+ldomPersistentText::ldomPersistentText( ldomElement * parent, lUInt32 index, lString16 value )
+: ldomNode( parent->getDocument(), parent, index )
+{
+	lString8 s8 = UnicodeToUtf8( value );
+	_document->allocText( _dataIndex, _parentIndex, s8.c_str(), s8.length() );
+}
+
+ldomPersistentText::ldomPersistentText( ldomElement * parent, lUInt32 index, lString8 value )
+: ldomNode( parent->getDocument(), parent, index )
+{
+	_document->allocText( _dataIndex, _parentIndex, value.c_str(), value.length() );
+}
+
+/// returns text node text
+lString16 ldomPersistentText::getText( lChar16 blockDelimiter ) const
+{
+	return ((lxmlDocBase*)_document)->getTextNodeValue( _dataIndex );
+}
+
+/// sets text node text
+void ldomPersistentText::setText( lString16 value )
+{
+	// TODO: fix it!
+    // CAUTION! this node will be deleted and replaced by ldomText!!!
+    int index = ldomNode::getNodeIndex();
+    ldomNode * self = getParentNode()->removeChild( index );
+    getParentNode()->insertChildText( index, value );
+    delete self; // == this !!!
+}
 
 // memory pools
 #if (LDOM_USE_OWN_MEM_MAN==1)
@@ -166,6 +246,7 @@ ldomMemManStorage * lvdomElementFormatRec::pmsHeap = NULL;
 #if COMPACT_DOM == 1
 ldomMemManStorage * ldomTextRef::pmsHeap = NULL;
 #endif
+ldomMemManStorage * ldomPersistentText::pmsHeap = NULL;
 #endif
 
 const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
@@ -364,6 +445,20 @@ ldomDocument::~ldomDocument()
 }
 
 #if COMPACT_DOM == 1
+ldomTextRef::ldomTextRef( ldomElement * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
+: ldomNode( parent->getDocument(), parent, index ), dataFormat(flags), dataSize(size), fileOffset(pos)
+{ }
+
+ldomText::ldomText( ldomElement * parent, lUInt32 index, lString16 value)
+: ldomNode( parent->getDocument(), parent, index )
+{
+#if (USE_DOM_UTF8_STORAGE==1)
+    _value = UnicodeToUtf8(value);
+#else
+    _value = value;
+#endif
+}
+
 lString16 ldomDocument::getTextNodeValue( const ldomTextRef * txt )
 {
     //CRLog::debug("getTextNodeValue(%d,%d,%d)", (int)txt->fileOffset, (int)txt->dataSize, (int)txt->dataFormat);
@@ -1520,12 +1615,12 @@ lUInt32 ldomNode::getNodeIndex() const
 /// returns first child node
 ldomNode * ldomElement::getFirstChild() const
 {
-    return _children.length()>0?_document->getInstance(_children[0]):NULL;
+    return _children.length()>0?_document->getNodeInstance(_children[0]):NULL;
 }
 /// returns last child node
 ldomNode * ldomElement::getLastChild() const
 {
-    return _children.length()>0?_document->getInstance(_children[_children.length()-1]):NULL;
+    return _children.length()>0?_document->getNodeInstance(_children[_children.length()-1]):NULL;
 }
 
 /// removes and deletes last child element
@@ -3432,11 +3527,11 @@ ldomTextRef * ldomElement::insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt3
 #endif
 
 /// inserts child text
-ldomText * ldomElement::insertChildText( lUInt32 index, lString16 value )
+ldomNode * ldomElement::insertChildText( lUInt32 index, lString16 value )
 {
     if (index>(lUInt32)_children.length())
         index = _children.length();
-    ldomText * text = new ldomText( this, index, value );
+    ldomPersistentText * text = new ldomPersistentText( this, index, value );
     _children.insert( index, text->getDataIndex() );
 #if (LDOM_ALLOW_NODE_INDEX==1)
     // reindex tail
@@ -3447,9 +3542,9 @@ ldomText * ldomElement::insertChildText( lUInt32 index, lString16 value )
 }
 
 /// inserts child text
-ldomText * ldomElement::insertChildText( lString16 value )
+ldomNode * ldomElement::insertChildText( lString16 value )
 {
-    ldomText * text = new ldomText( this, _children.length(), value );
+    ldomPersistentText * text = new ldomPersistentText( this, _children.length(), value );
     _children.add( text->getDataIndex() );
     return text;
 }
@@ -3458,7 +3553,7 @@ ldomNode * ldomElement::removeChild( lUInt32 index )
 {
     if ( index>(lUInt32)_children.length() )
         return NULL;
-    ldomNode * node = _document->getInstance( _children[index] );
+    ldomNode * node = _document->getNodeInstance( _children[index] );
     _children.remove(index);
 #if (LDOM_ALLOW_NODE_INDEX==1)
     for (int i=index; i<_children.length(); i++)
@@ -3525,7 +3620,7 @@ void ldomElement::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * v
 /// returns child node by index
 ldomNode * ldomElement::getChildNode( lUInt32 index ) const
 {
-    return _document->getInstance( _children[index] );
+    return _document->getNodeInstance( _children[index] );
 }
 
 /// returns render data structure
@@ -3542,4 +3637,15 @@ void ldomElement::setRenderData( lvdomElementFormatRec * pRenderData )
     if (_renderData)
         delete _renderData;
     _renderData = pRenderData;
+}
+
+ldomElement::~ldomElement()
+{
+	if (_renderData)
+		delete _renderData;
+	for ( int i=0; i<_children.length(); i++ ) {
+		ldomNode * child = _document->getNodeInstance( _children[i] );
+		if ( child )
+			delete child;
+	}
 }
