@@ -59,11 +59,17 @@ ldomText::ldomText( ldomElement * parent, lUInt32 index, lString16 value)
 #endif
 }
 
+
 /////////////////////////////////////////////////////////////////
 /// lxmlDocument
 
+
 lxmlDocBase::lxmlDocBase()
-: _elementNameTable(MAX_ELEMENT_TYPE_ID)
+:
+ _instanceMap(NULL)
+,_instanceMapSize(2048) // *8 = 16K
+,_instanceMapCount(1)
+,_elementNameTable(MAX_ELEMENT_TYPE_ID)
 , _attrNameTable(MAX_ATTRIBUTE_TYPE_ID)
 , _nsNameTable(MAX_NAMESPACE_TYPE_ID)
 , _nextUnknownElementId(UNKNOWN_ELEMENT_TYPE_ID)
@@ -74,7 +80,53 @@ lxmlDocBase::lxmlDocBase()
 ,_idAttrId(0)
 ,_docProps(LVCreatePropsContainer())
 {
+    _instanceMap = (NodeItem *)malloc( sizeof(NodeItem) * _instanceMapSize );
+    memset( _instanceMap, 0, sizeof(NodeItem) * _instanceMapSize );
     _stylesheet.setDocument( this );
+}
+
+/// Destructor
+lxmlDocBase::~lxmlDocBase()
+{
+    free( _instanceMap );
+}
+
+/// used by object constructor, to assign ID for created object
+lInt32 lxmlDocBase::registerNode( ldomNode * node )
+{
+    if ( _instanceMapCount >= _instanceMapSize ) {
+        // resize
+        int oldSize = _instanceMapSize;
+        _instanceMapSize *= 2; // 16K
+        _instanceMap = (NodeItem *)realloc( _instanceMap, sizeof(NodeItem) * _instanceMapSize );
+        memset( _instanceMap + oldSize, 0, sizeof(NodeItem) * oldSize );
+    }
+    _instanceMap[_instanceMapCount].instance = node;
+    return _instanceMapCount++;
+}
+
+/// used by object destructor, to remove RAM reference; leave data as is
+void lxmlDocBase::unregisterNode( lInt32 dataIndex )
+{
+    _instanceMap[ dataIndex ].instance = NULL;
+}
+
+/// used by object destructor, to remove RAM reference and data block
+void lxmlDocBase::deleteNode( lInt32 dataIndex )
+{
+    _instanceMap[ dataIndex ].instance = NULL;
+    // todo: mark data block as erased
+    _instanceMap[ dataIndex ].data = NULL;
+}
+
+/// returns or creates object instance by index
+ldomNode * lxmlDocBase::getInstance( lInt32 dataIndex )
+{
+    ldomNode * item = _instanceMap[ dataIndex ].instance;
+    if ( item != NULL )
+        return item;
+    // TODO: try to create instance from data
+    return NULL;
 }
 
 lUInt16 lxmlDocBase::getNsNameIndex( const lChar16 * name )
@@ -322,8 +374,8 @@ void ldomTextRef::setText( lString16 value )
 {
     // CAUTION! this node will be deleted and replaced by ldomText!!!
     int index = ldomNode::getNodeIndex();
-    ldomNode * self = _parent->removeChild( index );
-    _parent->insertChildText( index, value );
+    ldomNode * self = getParentNode()->removeChild( index );
+    getParentNode()->insertChildText( index, value );
     delete self; // == this !!!
 }
 #endif
@@ -1455,10 +1507,11 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
 #if (LDOM_ALLOW_NODE_INDEX!=1)
 lUInt32 ldomNode::getNodeIndex() const
 {
-    if ( !_parent )
+    ldomElement * parent = getParentNode();
+    if ( !parent )
         return 0;
-    for (int i=_parent->getChildCount()-1; i>=0; i--)
-        if (_parent->getChildNode(i)==this)
+    for (int i=parent->getChildCount()-1; i>=0; i--)
+        if ( parent->getChildNode( i )==this )
             return i;
     return (lUInt32)-1;
 }
@@ -3279,7 +3332,7 @@ void ldomElement::moveItemsTo( ldomElement * destination, int startChildIndex, i
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
         ldomNode * item = _children.remove( startChildIndex ); // + i
-        item->_parent = destination;
+        item->_parentIndex = destination->getDataIndex();
         destination->_children.add( item );
     }
     // TODO: renumber rest of children in necessary

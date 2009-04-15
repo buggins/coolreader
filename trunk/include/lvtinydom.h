@@ -7,6 +7,16 @@
     This source code is distributed under the terms of
     GNU General Public License
     See LICENSE file for details
+
+
+    2009/04 : Introducing new storage model, optimized for mmap.
+    All DOM objects are divided by 2 parts.
+    1) Short RAM instance
+    2) Data storage part, which could be placed to mmap buffer.
+
+    Document object storage should handle object table and data buffer.
+    Each object has DataIndex, index of entry in object table.
+    Object table holds pointer to RAM instance and data storage for each object.
 */
 
 
@@ -88,7 +98,7 @@ public:
     /// Copy constructor - copies ID tables contents
     lxmlDocBase( lxmlDocBase & doc );
     /// Destructor
-    virtual ~lxmlDocBase() { }
+    virtual ~lxmlDocBase();
 
     //======================================================================
     // Name <-> Id maps functions
@@ -227,10 +237,36 @@ public:
     CRPropRef getProps() { return _docProps; }
     /// returns doc properties collection
     void setProps( CRPropRef props ) { _docProps = props; }
+
+
+    //=========================================
+    //       NEW STORAGE MODEL METHODS
+    //=========================================
+    struct NodeItem {
+        // object's RAM instance
+        ldomNode * instance;
+        // object's data pointer
+        void * data;
+        // empty item constructor
+        NodeItem() : instance(NULL), data(NULL) { }
+    };
+
+    /// used by object constructor, to assign ID for created object
+    lInt32 registerNode( ldomNode * node );
+    /// used by object destructor, to remove RAM reference; leave data as is
+    void unregisterNode( lInt32 dataIndex );
+    /// used by object destructor, to remove RAM reference; leave data as is
+    void deleteNode( lInt32 dataIndex );
+    /// returns or creates object instance by index
+    ldomNode * getInstance( lInt32 dataIndex );
+
 private:
+    NodeItem * _instanceMap;   // Id->Instance & Id->Data map
+    int _instanceMapSize;      //
+    int _instanceMapCount;     //
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map
-    LDOMNameIdMap _nsNameTable;         // Namespace Name<->Id map
+    LDOMNameIdMap _nsNameTable;          // Namespace Name<->Id map
     lUInt16       _nextUnknownElementId; // Next Id for unknown element
     lUInt16       _nextUnknownAttrId;    // Next Id for unknown attribute
     lUInt16       _nextUnknownNsId;      // Next Id for unknown namespace
@@ -334,24 +370,31 @@ public:
 class ldomNode
 {
     friend class ldomElement;
-    // 0: this   [4]
+    // vtable                    0: [4]
 protected:
+    /// document which owns this node
     ldomDocument * _document; // 4: [4]
-    ldomElement * _parent;    // 8: [4]
+    /// data index of parent node
+    lInt32 _parentIndex;      // 8: [4]
+    /// data index of this node
+    lInt32 _dataIndex;        //12: [4]
+
 #if (LDOM_ALLOW_NODE_INDEX==1)
     lUInt32 _index;
 #endif
 public:
     ldomNode( ldomDocument * document, ldomElement * parent, lUInt32 index )
-    : _document(document), _parent(parent)
+    : _document(document), _parentIndex( parent ? ((ldomNode*)parent)->getDataIndex() : 0 ), _dataIndex( ((lxmlDocBase*)document)->registerNode(this) )
 #if (LDOM_ALLOW_NODE_INDEX==1)
     , _index(index)
 #endif
     { }
     virtual ~ldomNode();
+    /// returns data index of node's registration in document
+    inline lInt32 getDataIndex() { return _dataIndex; }
     // inline functions
     inline ldomDocument * getDocument() const { return _document; }
-    inline ldomElement * getParentNode() const { return _parent; }
+    inline ldomElement * getParentNode() const { return _parentIndex > 0 ? (ldomElement*)(((lxmlDocBase*)_document)->getInstance(_parentIndex)) : NULL; }
     virtual lUInt8 getNodeType() const = 0;
     virtual lUInt8 getNodeLevel() const;
     /// returns node index
@@ -361,7 +404,7 @@ public:
     lUInt32 getNodeIndex() const;
 #endif
     inline bool isNull() const { return this == NULL; }
-    inline bool isRoot() const { return _parent == NULL; }
+    inline bool isRoot() const { return _parentIndex <= 0; }
     inline bool isText() const { return getNodeType() == LXML_TEXT_NODE; }
     inline bool isElement() const { return getNodeType() == LXML_ELEMENT_NODE; }
     /// returns true if node is and element that has children
