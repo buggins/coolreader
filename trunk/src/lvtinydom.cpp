@@ -122,12 +122,6 @@ public:
     virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
     /// inserts child element
     virtual ldomNode * insertChildElement( lUInt16 id );
-#if COMPACT_DOM == 1
-    /// inserts text as reference to document file
-    virtual ldomTextRef * insertChildText( lUInt32 index, lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
-    /// inserts text as reference to document file
-    virtual ldomTextRef * insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
-#endif
     /// inserts child text
     virtual ldomNode * insertChildText( lUInt32 index, lString16 value );
     /// inserts child text
@@ -378,9 +372,6 @@ void ldomPersistentText::setText( lString16 value )
 ldomMemManStorage * ldomElement::pmsHeap = NULL;
 ldomMemManStorage * ldomText::pmsHeap = NULL;
 ldomMemManStorage * lvdomElementFormatRec::pmsHeap = NULL;
-#if COMPACT_DOM == 1
-ldomMemManStorage * ldomTextRef::pmsHeap = NULL;
-#endif
 ldomMemManStorage * ldomPersistentText::pmsHeap = NULL;
 #endif
 
@@ -411,19 +402,6 @@ ldomNode * ldomDocument::getMainNode()
 	return _root;
 }
 
-#if COMPACT_DOM == 1
-ldomDocument::ldomDocument(LVStreamRef stream, int min_ref_text_size)
-: _textcache(stream, COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE),
-             _min_ref_text_size(min_ref_text_size)
-#if BUILD_LITE!=1
-        , _renderedBlockCache( 32 )
-#endif
-        , _docFlags(DOC_FLAG_DEFAULTS)
-{
-    _root = new ldomElement( this, NULL, 0, 0, 0 );
-}
-
-#else
 ldomDocument::ldomDocument()
 :
 #if BUILD_LITE!=1
@@ -433,7 +411,6 @@ ldomDocument::ldomDocument()
 {
     _root = new ldomElement( this, NULL, 0, 0, 0 );
 }
-#endif
 
 /// Copy constructor - copies ID tables contents
 lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
@@ -458,17 +435,8 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 , _def_style(doc._def_style)
 , _page_height(doc._page_height)
 
-#if COMPACT_DOM == 1
-,_textcache(doc._textcache.getStream(), COMPACT_DOM_MAX_TEXT_FRAGMENT_COUNT, COMPACT_DOM_MAX_TEXT_BUFFER_SIZE)
-    ,_min_ref_text_size(doc._min_ref_text_size)
 #if BUILD_LITE!=1
         , _renderedBlockCache( 32 )
-#endif
-#else
-    // COMPACT_DOM != 1
-#if BUILD_LITE!=1
-        , _renderedBlockCache( 32 )
-#endif
 #endif
 , _docFlags(doc._docFlags)
 , _container(doc._container)
@@ -568,37 +536,6 @@ ldomDocument::~ldomDocument()
 {
     delete _root;
 }
-
-#if COMPACT_DOM == 1
-ldomTextRef::ldomTextRef( ldomNode * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
-: ldomNode( parent->getDocument(), parent, index ), dataFormat(flags), dataSize(size), fileOffset(pos)
-{ }
-
-ldomText::ldomText( ldomNode * parent, lUInt32 index, lString16 value)
-: ldomNode( parent->getDocument(), parent, index )
-{
-#if (USE_DOM_UTF8_STORAGE==1)
-    _value = UnicodeToUtf8(value);
-#else
-    _value = value;
-#endif
-}
-
-lString16 ldomDocument::getTextNodeValue( const ldomTextRef * txt )
-{
-    //CRLog::debug("getTextNodeValue(%d,%d,%d)", (int)txt->fileOffset, (int)txt->dataSize, (int)txt->dataFormat);
-    return _textcache.getText( txt->fileOffset, txt->dataSize, txt->dataFormat );
-}
-
-void ldomTextRef::setText( lString16 value )
-{
-    // CAUTION! this node will be deleted and replaced by ldomText!!!
-    int index = ldomNode::getNodeIndex();
-    ldomNode * self = getParentNode()->removeChild( index );
-    getParentNode()->insertChildText( index, value );
-    delete self; // == this !!!
-}
-#endif
 
 #if BUILD_LITE!=1
 int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
@@ -816,14 +753,6 @@ void ldomElementWriter::onText( const lChar16 * text, int len,
     lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
 {
     //logfile << "{t";
-#if (COMPACT_DOM == 1)
-    if ( _document->allowTextRefForSize( len ) )
-    {
-        // compact mode: store reference to file
-        _element->insertChildText(fpos, fsize, flags);
-    }
-    else
-#endif
     {
         // normal mode: store text copy
         _element->insertChildText(lString16(text, len));
@@ -982,10 +911,6 @@ void ldomDocumentWriter::OnText( const lChar16 * text, int len,
 
 void ldomDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table )
 {
-#if COMPACT_DOM == 1
-    if (table)
-        _document->_textcache.SetCharset( name );
-#endif
 }
 
 ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
@@ -2922,11 +2847,7 @@ ldomDocument * LVParseXMLStream( LVStreamRef stream,
         return NULL;
     bool error = true;
     ldomDocument * doc;
-#if COMPACT_DOM==1
-    doc = new ldomDocument( stream, 0 );
-#else
     doc = new ldomDocument();
-#endif
     doc->setDocFlags( 0 );
 
     ldomDocumentWriter writer(doc);
@@ -3293,31 +3214,6 @@ ldomNode * ldomElement::insertChildElement( lUInt16 id )
     _children.add( elem->getDataIndex() );
     return elem;
 }
-
-#if COMPACT_DOM == 1
-/// inserts text as reference to document file
-ldomTextRef * ldomElement::insertChildText( lUInt32 index, lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
-{
-    if (index>(lUInt32)_children.length())
-        index = _children.length();
-    ldomTextRef * text = new ldomTextRef( this, index, (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
-    _children.insert( index, text->getDataIndex() );
-#if (LDOM_ALLOW_NODE_INDEX==1)
-    // reindex tail
-    for (int i=index; i<_children.length(); i++)
-        _children[i]->setIndex( i );
-#endif
-    return text;
-}
-
-/// inserts text as reference to document file
-ldomTextRef * ldomElement::insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
-{
-    ldomTextRef * text = new ldomTextRef( this, (lUInt16)_children.length(), (lUInt32)fpos, (lUInt32)fsize, (lUInt16)flags );
-    _children.add( text->getDataIndex() );
-    return text;
-}
-#endif
 
 /// inserts child text
 ldomNode * ldomElement::insertChildText( lUInt32 index, lString16 value )

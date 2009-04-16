@@ -108,9 +108,6 @@ void ldomFreeStorage()
     freeStorage( ldomText::pmsHeap );
     freeStorage( ldomPersistentText::pmsHeap );
     freeStorage( lvdomElementFormatRec::pmsHeap );
-#if (COMPACT_DOM==1)
-    freeStorage( ldomTextRef::pmsHeap );
-#endif
     free_ls_storage();
 }
 #endif

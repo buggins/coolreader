@@ -2238,11 +2238,7 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
     lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
     Clear();
     m_is_rendered = false;
-#if COMPACT_DOM==1
-    m_doc = new ldomDocument( LVStreamRef(), 0 );
-#else
     m_doc = new ldomDocument();
-#endif
     m_doc->setDocFlags( saveFlags );
 
     ldomDocumentWriter writer(m_doc);
@@ -2365,11 +2361,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             if ( mimeType == L"application/epub+zip" ) {
                 if ( m_doc )
                     delete m_doc;
-    #if COMPACT_DOM==1
-                m_doc = new ldomDocument( m_stream, 0 );
-    #else
                 m_doc = new ldomDocument();
-    #endif
                 m_doc->setProps( m_doc_props );
 
                 lString16 rootfilePath;
@@ -2704,20 +2696,11 @@ bool LVDocView::ParseDocument( )
     if ( m_doc )
         delete m_doc;
     m_is_rendered = false;
-#if COMPACT_DOM==1
-    int minRefLen = COMPACT_DOM_MIN_REF_TEXT_LENGTH;
-    m_doc = new ldomDocument( m_stream, minRefLen );
-#else
     m_doc = new ldomDocument();
-#endif
     m_doc->setProps( m_doc_props );
     m_doc->setDocFlags( saveFlags );
     m_doc->setContainer( m_container );
 
-#if COMPACT_DOM == 1
-    if ( m_stream->GetSize() < COMPACT_DOM_SIZE_THRESHOLD )
-        m_doc->setMinRefTextSize( 0 ); // disable compact mode
-#endif
     m_doc->setNodeTypes( fb2_elem_table );
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
@@ -2745,10 +2728,6 @@ bool LVDocView::ParseDocument( )
         if ( !parser->CheckFormat() ) {
             delete parser;
             parser = NULL;
-        } else {
-#if COMPACT_DOM==1
-            m_doc->setMinRefTextSize( 0 );
-#endif
         }
     }
 

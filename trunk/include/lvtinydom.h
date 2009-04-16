@@ -73,9 +73,6 @@
 #define DOC_PROP_FILE_FORMAT     "doc.file.format"
 
 class ldomElement;
-#if COMPACT_DOM == 1
-class ldomTextRef;
-#endif
 
 #if BUILD_LITE!=1
 /// final block cache
@@ -1224,11 +1221,6 @@ private:
     int _page_height;
     ldomXRangeList _selections;
 
-#if COMPACT_DOM == 1
-    LVXMLTextCache _textcache;
-    int            _min_ref_text_size;
-#endif
-
 #if BUILD_LITE!=1
     /// final block cache
     CVRendBlockCache _renderedBlockCache;
@@ -1268,20 +1260,7 @@ public:
     }
 
 
-#if COMPACT_DOM == 1
-    ldomDocument(LVStreamRef stream, int min_ref_text_size);
-    lString16 getTextNodeValue( const ldomTextRef * txt );
-    void setMinRefTextSize( int size )
-    {
-        _min_ref_text_size = size;
-    }
-    bool allowTextRefForSize( int size )
-    {
-        return _min_ref_text_size>0 && size>_min_ref_text_size;
-    }
-#else
     ldomDocument();
-#endif
     /// creates empty document which is ready to be copy target of doc partial contents
     ldomDocument( ldomDocument & doc );
 
@@ -1388,65 +1367,6 @@ public:
     virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
 };
 
-#if COMPACT_DOM == 1
-class ldomTextRef : public ldomNode
-{
-    friend class ldomDocument;
-private:
-
-    lUInt16 dataFormat; // format flags
-    lUInt32 dataSize;   // bytes
-    lUInt32 fileOffset; // offset from beginning of stream
-public:
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(ldomTextRef));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsREF->free((ldomMemBlock *)p);
-    }
-#endif
-    ldomTextRef( ldomNode * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags);
-    virtual ~ldomTextRef() { }
-    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
-    /// returns element child count
-    virtual lUInt32 getChildCount() const { return 0; }
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const { return 0; }
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
-    {
-        return lString16::empty_str;
-    }
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() { return NULL; }
-    /// returns element name id
-    virtual lUInt16 getNodeId() const { return 0; }
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const { return 0; }
-    /// returns element name
-    virtual const lString16 & getNodeName() const { return lString16::empty_str; }
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
-    /// returns text node text
-    virtual lString16 getText( lChar16 blockDelimiter=0 ) const { return getDocument()->getTextNodeValue(this); }
-    /// sets text node text
-    virtual void setText( lString16 value );
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
-};
-#endif
 
 class ldomDocumentWriter;
 
