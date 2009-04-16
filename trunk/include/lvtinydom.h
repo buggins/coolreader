@@ -1,5 +1,5 @@
 /** \file lvtinydom.h
-    \brief compact read-only XML DOM tree header
+    \brief fast and compact XML DOM tree
 
     CoolReader Engine
 
@@ -72,8 +72,6 @@
 #define DOC_PROP_FILE_SIZE       "doc.file.size"
 #define DOC_PROP_FILE_FORMAT     "doc.file.format"
 
-class ldomElement;
-
 #if BUILD_LITE!=1
 /// final block cache
 typedef LVRef<LFormattedText> LFormattedTextRef;
@@ -92,34 +90,12 @@ typedef enum {
 } xpath_step_t;
 xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index );
 
-/// common header for data storage items
-struct DataStorageItemHeader {
-	/// item type: LXML_TEXT_NODE, LXML_ELEMENT_NODE, LXML_NO_DATA
-	lUInt16 type;
-	/// size of item / 16
-	lUInt16 sizeDiv16;
-	/// data index of this node in document
-	lInt32 dataIndex;
-	/// data index of parent node in document, 0 means no parent
-	lInt32 parentIndex;
-};
+struct DataStorageItemHeader;
+struct TextDataStorageItem;
+struct ElementDataStorageItem;
+struct NodeItem;
+class DataBuffer;
 
-/// text node storage implementation
-struct TextDataStorageItem : public DataStorageItemHeader {
-	/// utf8 text length, characters
-	lUInt16 length;
-	/// utf8 text, w/o zero
-	lChar8 text[2]; // utf8 text follows here, w/o zero byte at end
-	/// return text
-	inline lString16 getText() { return Utf8ToUnicode( text, length ); }
-};
-
-/// element node data storage
-struct ElementDataStorageItem : public DataStorageItemHeader {
-	lUInt16 id;
-	lUInt16 nsid;
-	// TODO: add items here
-};
 
 // default: 512K
 #define DEF_DOC_DATA_BUFFER_SIZE 0x80000
@@ -135,6 +111,10 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
 */
 class lxmlDocBase
 {
+    friend class ldomNode;
+    friend class ldomElement;
+    friend class ldomText;
+    friend class ldomPersistentText;
 public:
 
     /// Default constructor
@@ -280,10 +260,10 @@ public:
     /// returns doc properties collection
     void setProps( CRPropRef props ) { _docProps = props; }
 
-
-    //=========================================
-    //       NEW STORAGE MODEL METHODS
-    //=========================================
+protected:
+//=========================================
+//       NEW STORAGE MODEL METHODS
+//=========================================
     struct NodeItem {
         // object's RAM instance
         ldomNode * instance;
@@ -292,39 +272,16 @@ public:
         // empty item constructor
         NodeItem() : instance(NULL), data(NULL) { }
     };
-
-	class DataBuffer {
-	private:
-		int _size;
-		int _len;
-		lUInt8 * _data;
-	public :
-		bool isNull()
-		{
-			return _data==NULL;
-		}
-		DataBuffer( int size )
-			: _size( size ), _len( 0 )
-		{
-			_data = (lUInt8*)malloc( size );
-		}
-		~DataBuffer()
-		{
-			free( _data );
-		}
-		DataStorageItemHeader * alloc( int size );
-	};
-
+    /// returns or creates object instance by index
+    ldomNode * getNodeInstance( lInt32 dataIndex );
 	/// for persistent text node, return text by index, with cachin (TODO)
     lString16 getTextNodeValue( lInt32 dataIndex );
     /// used by object constructor, to assign ID for created object
     lInt32 registerNode( ldomNode * node );
     /// used by object destructor, to remove RAM reference; leave data as is
-    void unregisterNode( lInt32 dataIndex );
+    void unregisterNode( lInt32 dataIndex, ldomNode * node );
     /// used by object destructor, to remove RAM reference; mark data as deleted
     void deleteNode( lInt32 dataIndex );
-    /// returns or creates object instance by index
-    ldomNode * getNodeInstance( lInt32 dataIndex );
 	/// returns pointer to node data block
 	inline DataStorageItemHeader * getNodeData( lInt32 dataIndex ) { return _instanceMap[ dataIndex ].data; }
 	/// returns pointer to text node data block

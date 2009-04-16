@@ -2,9 +2,9 @@
 
    CoolReader Engine
 
-   lvtinydom.cpp:  compact read-only XML DOM tree
+   lvtinydom.cpp: fast and compact XML DOM tree
 
-   (c) Vadim Lopatin, 2000-2006
+   (c) Vadim Lopatin, 2000-2009
    This source code is distributed under the terms of
    GNU General Public License
    See LICENSE file for details
@@ -17,6 +17,68 @@
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
 
+
+/// common header for data storage items
+struct DataStorageItemHeader {
+	/// item type: LXML_TEXT_NODE, LXML_ELEMENT_NODE, LXML_NO_DATA
+	lUInt16 type;
+	/// size of item / 16
+	lUInt16 sizeDiv16;
+	/// data index of this node in document
+	lInt32 dataIndex;
+	/// data index of parent node in document, 0 means no parent
+	lInt32 parentIndex;
+};
+
+/// text node storage implementation
+struct TextDataStorageItem : public DataStorageItemHeader {
+	/// utf8 text length, characters
+	lUInt16 length;
+	/// utf8 text, w/o zero
+	lChar8 text[2]; // utf8 text follows here, w/o zero byte at end
+	/// return text
+	inline lString16 getText() { return Utf8ToUnicode( text, length ); }
+};
+
+/// element node data storage
+struct ElementDataStorageItem : public DataStorageItemHeader {
+	lUInt16 id;
+	lUInt16 nsid;
+	// TODO: add items here
+};
+
+class DataBuffer {
+private:
+    int _size;
+    int _len;
+    lUInt8 * _data;
+public :
+    bool isNull()
+    {
+        return _data==NULL;
+    }
+    DataBuffer( int size )
+        : _size( size ), _len( 0 )
+    {
+        _data = (lUInt8*)malloc( size );
+    }
+    ~DataBuffer()
+    {
+        free( _data );
+    }
+    DataStorageItemHeader * alloc( int size );
+};
+
+DataStorageItemHeader * DataBuffer::alloc( int size )
+{
+	if ( _len + size > _size )
+		return NULL; // no room
+	size = (size + 15) & 0xFFFFFF0;
+	DataStorageItemHeader * item = (DataStorageItemHeader *) (_data + _len);
+	item->sizeDiv16 = size >> 4;
+	_len += size;
+	return item;
+}
 
 // ldomElement declaration placed here to hide DOM implementation
 // use ldomNode rich interface instead
@@ -225,9 +287,11 @@ lInt32 lxmlDocBase::registerNode( ldomNode * node )
 }
 
 /// used by object destructor, to remove RAM reference; leave data as is
-void lxmlDocBase::unregisterNode( lInt32 dataIndex )
+void lxmlDocBase::unregisterNode( lInt32 dataIndex, ldomNode * node )
 {
-    _instanceMap[ dataIndex ].instance = NULL;
+    ldomNode * & instance = _instanceMap[ dataIndex ].instance;
+    if ( instance == node )
+        instance = NULL;
 }
 
 /// used by object destructor, to remove RAM reference and data block
@@ -275,16 +339,6 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
     return _nextUnknownElementId++;
 }
 
-DataStorageItemHeader * lxmlDocBase::DataBuffer::alloc( int size )
-{
-	if ( _len + size > _size )
-		return NULL; // no room
-	size = (size + 15) & 0xFFFFFF0;
-	DataStorageItemHeader * item = (DataStorageItemHeader *) (_data + _len);
-	item->sizeDiv16 = size >> 4;
-	_len += size;
-	return item;
-}
 
 /// allocate data block, return pointer to allocated block
 DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
@@ -382,7 +436,10 @@ const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lCh
     return getAttributeValue( nsId, attrId );
 }
 
-ldomNode::~ldomNode() { }
+ldomNode::~ldomNode()
+{
+    _document->unregisterNode( _dataIndex, this );
+}
 
 // use iteration instead of storing in memory
 lUInt8 ldomNode::getNodeLevel() const
