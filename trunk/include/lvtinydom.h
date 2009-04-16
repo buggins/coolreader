@@ -113,6 +113,7 @@ class lxmlDocBase
 {
     friend class ldomNode;
     friend class ldomElement;
+    friend class ldomPersistentElement;
     friend class ldomText;
     friend class ldomPersistentText;
 public:
@@ -280,6 +281,8 @@ protected:
     lInt32 registerNode( ldomNode * node );
     /// used by object destructor, to remove RAM reference; leave data as is
     void unregisterNode( lInt32 dataIndex, ldomNode * node );
+    /// used by persistance management constructors, to replace one instance with another, deleting old instance
+    void replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
     /// used by object destructor, to remove RAM reference; mark data as deleted
     void deleteNode( lInt32 dataIndex );
 	/// returns pointer to node data block
@@ -292,6 +295,8 @@ protected:
 	DataStorageItemHeader * allocData( lInt32 dataIndex, int size );
 	/// allocate text block
 	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
+	/// allocate element
+	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
 private:
 	LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
 	DataBuffer * _currentBuffer;
@@ -418,6 +423,15 @@ protected:
 #endif
 
     virtual void addChild( lInt32 dataIndex ) { }
+
+    ldomNode( const ldomNode * node )
+    : _document(node->_document), _parentIndex( node->_parentIndex ), _dataIndex( node->_dataIndex )
+#if (LDOM_ALLOW_NODE_INDEX==1)
+    , _index( node->getNodeIndex() )
+#endif
+    {
+	}
+
 public:
     ldomNode( ldomDocument * document, ldomNode * parent, lUInt32 index )
     : _document(document), _parentIndex( parent ? parent->getDataIndex() : 0 )
@@ -591,6 +605,10 @@ public:
     /// formats final block
     virtual int renderFinalBlock(  LFormattedTextRef & frmtext, int width ) { return 0; }
 #endif
+    /// replace node with r/o persistent implementation
+    virtual ldomNode * persist() { return this; }
+    /// replace node with r/w implementation
+    virtual ldomNode * modify() { return this; }
 };
 
 class ldomDocument;

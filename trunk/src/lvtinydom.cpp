@@ -44,7 +44,18 @@ struct TextDataStorageItem : public DataStorageItemHeader {
 struct ElementDataStorageItem : public DataStorageItemHeader {
 	lUInt16 id;
 	lUInt16 nsid;
+	lInt16  attrCount;
+	lUInt8  rendMethod;
+	lUInt8  hasRenderData;
+	lInt32  childCount;
+	lvdomElementFormatRec renderData; // 4 * 4
+	lUInt16 fontIndex;
+	lUInt16 styleIndex;
+	lInt32  children[1];
+	lUInt16 * attrs() { return (lUInt16 *)(children + childCount); }
 	// TODO: add items here
+    //css_style_ref_t _style;
+    //font_ref_t      _font;
 };
 
 class DataBuffer {
@@ -84,6 +95,7 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
 // use ldomNode rich interface instead
 class ldomElement : public ldomNode
 {
+    friend class ldomPersistentElement;
 private:
     ldomAttributeCollection _attrs;
     lUInt16 _id;
@@ -202,9 +214,176 @@ public:
     /// formats final block
     virtual int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
 #endif
+    /// replace node with r/o persistent implementation
+    virtual ldomNode * persist();
+    /// replace node with r/w implementation
+    virtual ldomNode * modify() { return this; }
 };
 
 
+
+// ldomElement declaration placed here to hide DOM implementation
+// use ldomNode rich interface instead
+class ldomPersistentElement : public ldomNode
+{
+private:
+    css_style_ref_t _style;
+    font_ref_t      _font;
+protected:
+    virtual void addChild( lInt32 dataIndex );
+
+    inline ElementDataStorageItem * getData() const { return _document->getElementNodeData( _dataIndex ); }
+public:
+#if (LDOM_USE_OWN_MEM_MAN == 1)
+    static ldomMemManStorage * pmsHeap;
+    void * operator new( size_t size )
+    {
+        if (pmsHeap == NULL)
+        {
+            pmsHeap = new ldomMemManStorage(sizeof(ldomPersistentElement));
+        }
+        return pmsHeap->alloc();
+    }
+    void operator delete( void * p )
+    {
+        pmsHeap->free((ldomMemBlock *)p);
+    }
+#endif
+
+    ldomPersistentElement( ldomElement * v )
+    : ldomNode( v ), _style(v->_style), _font(v->_font)
+    {
+        int attrCount = v->getAttrCount();
+        int childCount = v->getChildCount();
+        ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
+        lUInt16 * attrs = data->attrs();
+        int i;
+        for ( i=0; i<attrCount; i++ ) {
+            const lxmlAttribute * attr = v->getAttribute(i);
+            attrs[i * 3] = attr->nsid;     // namespace
+            attrs[i * 3 + 1] = attr->id;   // id
+            attrs[i * 3 + 2] = attr->index;// value
+        }
+        for ( i=0; i<childCount; i++ ) {
+            data->children[i] = v->_children[i];
+        }
+        data->rendMethod = (lUInt8)v->_rendMethod;
+
+        data->styleIndex = 0; // todo
+        data->fontIndex = 0;  // todo
+
+        lvdomElementFormatRec * rdata = v->getRenderData();
+        if ( rdata ) {
+            data->hasRenderData = 1;
+            data->renderData = *rdata;
+        } else {
+            data->hasRenderData = 0;
+            memset( &data->renderData, 0, sizeof(lvdomElementFormatRec) );
+        }
+    }
+	/// destructor
+    virtual ~ldomPersistentElement();
+	/// returns LXML_ELEMENT_NODE
+    virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
+    /// returns rendering method
+    virtual lvdom_element_render_method  getRendMethod() { return (lvdom_element_render_method)getData()->rendMethod; }
+    /// sets rendering method
+    virtual void setRendMethod( lvdom_element_render_method  method ) { getData()->rendMethod = (lUInt8)method; }
+    /// returns element style record
+    virtual css_style_ref_t getStyle() { return _style; }
+    /// returns element font
+    virtual font_ref_t getFont() { return _font; }
+    /// sets element font
+    virtual void setFont( font_ref_t font ) { _font = font; }
+    /// sets element style record
+    virtual void setStyle( css_style_ref_t & style ) { _style = style; }
+    /// returns element child count
+    virtual lUInt32 getChildCount() const { return getData()->childCount; }
+    /// returns first child node
+    virtual ldomNode * getFirstChild() const;
+    /// returns last child node
+    virtual ldomNode * getLastChild() const;
+    /// removes and deletes last child element
+    virtual void removeLastChild();
+    /// returns element attribute count
+    virtual lUInt32 getAttrCount() const { return getData()->attrCount; }
+    /// returns attribute value by attribute name id and namespace id
+    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
+    /// returns attribute value by attribute name id
+    virtual const lString16 & getAttributeValue( lUInt16 id ) const;
+    /// sets attribute value
+    virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value );
+    /// move range of children startChildIndex to endChildIndex inclusively to specified element
+    virtual void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex );
+    /// returns attribute by index
+    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const;
+    /// returns attribute value by attribute name id
+    const lString16 & getAttributeName( lUInt32 index ) const { return _document->getAttrName(getAttribute(index)->id); }
+    /// returns true if element node has attribute with specified name id and namespace id
+    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const; // { return _attrs.get( nsid, id )!=LXML_ATTR_VALUE_NONE; }
+    /// returns element type structure pointer if it was set in document for this element name
+    virtual const elem_def_t * getElementTypePtr() { return _document->getElementTypePtr(getNodeId()); }
+    /// returns element name id
+    virtual lUInt16 getNodeId() const { return getData()->id; }
+    /// replace element name id with another value
+    virtual void setNodeId( lUInt16 id ) { getData()->id = id; }
+    /// returns element namespace id
+    virtual lUInt16 getNodeNsId() const { return getData()->nsid; }
+    /// returns element name
+    virtual const lString16 & getNodeName() const { return _document->getElementName(getData()->id); }
+    /// returns element namespace name
+    virtual const lString16 & getNodeNsName() const { return _document->getNsName(getData()->nsid); }
+    /// returns concatenation of all child node text
+    virtual lString16 getText( lChar16 blockDelimiter=0 ) const;
+    /// returns child node by index
+    virtual ldomNode * getChildNode( lUInt32 index ) const;
+    /// returns render data structure
+    virtual lvdomElementFormatRec * getRenderData();
+    /// sets node rendering structure pointer
+    virtual void setRenderData( lvdomElementFormatRec * pRenderData );
+    /// returns node absolute rectangle
+    virtual void getAbsRect( lvRect & rect );
+
+    virtual ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
+    virtual ldomNode * findChildElement( lUInt16 idPath[] );
+
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt16 id );
+    /// inserts child text
+    virtual ldomNode * insertChildText( lUInt32 index, lString16 value );
+    /// inserts child text
+    virtual ldomNode * insertChildText( lString16 value );
+    /// remove child
+    virtual ldomNode * removeChild( lUInt32 index );
+    /// calls specified function recursively for all elements of DOM tree
+    virtual void recurseElements( void (*pFun)( ldomNode * node ) );
+    /// calls specified function recursively for all nodes of DOM tree
+    virtual void recurseNodes( void (*pFun)( ldomNode * node ) );
+    /// creates stream to read base64 encoded data from element
+    virtual LVStreamRef createBase64Stream();
+#if BUILD_LITE!=1
+    /// returns object image source
+    virtual LVImageSourceRef getObjectImageSource();
+    /// formats final block
+    virtual int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
+#endif
+    /// replace node with r/w implementation
+    virtual ldomNode * modify()
+    {
+        // TODO: replace node instance with new ldomElement
+        return this;
+    }
+};
+
+/// replace node with r/o persistent implementation
+ldomNode * ldomElement::persist()
+{
+    // TODO: replace node instance with new ldomPersistentElement
+    //return new ldomPersistentElement( this );
+    return this;
+}
 
 
 
@@ -294,6 +473,15 @@ void lxmlDocBase::unregisterNode( lInt32 dataIndex, ldomNode * node )
         instance = NULL;
 }
 
+/// used by persistance management constructors, to replace one instance with another
+void lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
+{
+    ldomNode * & instance = _instanceMap[ dataIndex ].instance;
+    if ( instance )
+        delete instance;
+    instance = newInstance;
+}
+
 /// used by object destructor, to remove RAM reference and data block
 void lxmlDocBase::deleteNode( lInt32 dataIndex )
 {
@@ -378,6 +566,20 @@ TextDataStorageItem * lxmlDocBase::allocText( lInt32 dataIndex, lInt32 parentInd
 		item->length = charCount;
 		if ( charCount>0 )
 			memcpy( item->text, text, charCount );
+	}
+	return item;
+}
+
+/// allocate element
+ElementDataStorageItem * lxmlDocBase::allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount )
+{
+	int size = sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32);
+	ElementDataStorageItem *item = (ElementDataStorageItem *)allocData( dataIndex, size );
+	if ( item ) {
+		item->type = LXML_ELEMENT_NODE;
+		item->parentIndex = parentIndex;
+		item->attrCount = attrCount;
+		item->childCount = childCount;
 	}
 	return item;
 }
