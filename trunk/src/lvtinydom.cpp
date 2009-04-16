@@ -18,6 +18,141 @@
 #include "../include/lvrend.h"
 
 
+// ldomElement declaration placed here to hide DOM implementation
+// use ldomNode rich interface instead
+class ldomElement : public ldomNode
+{
+private:
+    ldomAttributeCollection _attrs;
+    lUInt16 _id;
+    lUInt16 _nsid;
+    lvdomElementFormatRec * _renderData;   // used by rendering engine
+    LVArray < lInt32 > _children;
+    css_style_ref_t _style;
+    font_ref_t      _font;
+    lvdom_element_render_method _rendMethod;
+protected:
+    virtual void addChild( lInt32 dataIndex );
+public:
+#if (LDOM_USE_OWN_MEM_MAN == 1)
+    static ldomMemManStorage * pmsHeap;
+    void * operator new( size_t size )
+    {
+        if (pmsHeap == NULL)
+        {
+            pmsHeap = new ldomMemManStorage(sizeof(ldomElement));
+        }
+        return pmsHeap->alloc();
+    }
+    void operator delete( void * p )
+    {
+        pmsHeap->free((ldomMemBlock *)p);
+    }
+#endif
+    ldomElement( ldomDocument * document, ldomNode * parent, lUInt32 index, lUInt16 nsid, lUInt16 id )
+    : ldomNode( document, parent, index ), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
+    { }
+	/// destructor
+    virtual ~ldomElement();
+	/// returns LXML_ELEMENT_NODE
+    virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
+    /// returns rendering method
+    virtual lvdom_element_render_method  getRendMethod() { return _rendMethod; }
+    /// sets rendering method
+    virtual void setRendMethod( lvdom_element_render_method  method ) { _rendMethod=method; }
+    /// returns element style record
+    virtual css_style_ref_t getStyle() { return _style; }
+    /// returns element font
+    virtual font_ref_t getFont() { return _font; }
+    /// sets element font
+    virtual void setFont( font_ref_t font ) { _font = font; }
+    /// sets element style record
+    virtual void setStyle( css_style_ref_t & style ) { _style = style; }
+    /// returns element child count
+    virtual lUInt32 getChildCount() const { return _children.length(); }
+    /// returns first child node
+    virtual ldomNode * getFirstChild() const;
+    /// returns last child node
+    virtual ldomNode * getLastChild() const;
+    /// removes and deletes last child element
+    virtual void removeLastChild();
+    /// returns element attribute count
+    virtual lUInt32 getAttrCount() const { return _attrs.length(); }
+    /// returns attribute value by attribute name id and namespace id
+    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
+    /// returns attribute value by attribute name id
+    virtual const lString16 & getAttributeValue( lUInt16 id ) const;
+    /// sets attribute value
+    virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value );
+    /// move range of children startChildIndex to endChildIndex inclusively to specified element
+    virtual void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex );
+    /// returns attribute by index
+    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return _attrs[index]; }
+    /// returns attribute value by attribute name id
+    const lString16 & getAttributeName( lUInt32 index ) const { return _document->getAttrName(_attrs[index]->id); }
+    /// returns true if element node has attribute with specified name id and namespace id
+    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return _attrs.get( nsid, id )!=LXML_ATTR_VALUE_NONE; }
+    /// returns element type structure pointer if it was set in document for this element name
+    virtual const elem_def_t * getElementTypePtr() { return _document->getElementTypePtr(_id); }
+    /// returns element name id
+    virtual lUInt16 getNodeId() const { return _id; }
+    /// replace element name id with another value
+    virtual void setNodeId( lUInt16 id ) { _id = id; }
+    /// returns element namespace id
+    virtual lUInt16 getNodeNsId() const { return _nsid; }
+    /// returns element name
+    virtual const lString16 & getNodeName() const { return _document->getElementName(_id); }
+    /// returns element namespace name
+    virtual const lString16 & getNodeNsName() const { return _document->getNsName(_nsid); }
+    /// returns concatenation of all child node text
+    virtual lString16 getText( lChar16 blockDelimiter=0 ) const;
+    /// returns child node by index
+    virtual ldomNode * getChildNode( lUInt32 index ) const;
+    /// returns render data structure
+    virtual lvdomElementFormatRec * getRenderData();
+    /// sets node rendering structure pointer
+    virtual void setRenderData( lvdomElementFormatRec * pRenderData );
+    /// returns node absolute rectangle
+    virtual void getAbsRect( lvRect & rect );
+
+    virtual ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
+    virtual ldomNode * findChildElement( lUInt16 idPath[] );
+
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt16 id );
+#if COMPACT_DOM == 1
+    /// inserts text as reference to document file
+    virtual ldomTextRef * insertChildText( lUInt32 index, lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
+    /// inserts text as reference to document file
+    virtual ldomTextRef * insertChildText( lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
+#endif
+    /// inserts child text
+    virtual ldomNode * insertChildText( lUInt32 index, lString16 value );
+    /// inserts child text
+    virtual ldomNode * insertChildText( lString16 value );
+    /// remove child
+    virtual ldomNode * removeChild( lUInt32 index );
+    /// calls specified function recursively for all elements of DOM tree
+    virtual void recurseElements( void (*pFun)( ldomNode * node ) );
+    /// calls specified function recursively for all nodes of DOM tree
+    virtual void recurseNodes( void (*pFun)( ldomNode * node ) );
+    /// creates stream to read base64 encoded data from element
+    virtual LVStreamRef createBase64Stream();
+#if BUILD_LITE!=1
+    /// returns object image source
+    virtual LVImageSourceRef getObjectImageSource();
+    /// formats final block
+    virtual int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
+#endif
+};
+
+
+
+
+
+
 /*
 class simpleLogFile
 {
@@ -208,14 +343,14 @@ lString16 lxmlDocBase::getTextNodeValue( lInt32 dataIndex )
 	return data->getText();
 }
 
-ldomPersistentText::ldomPersistentText( ldomElement * parent, lUInt32 index, lString16 value )
+ldomPersistentText::ldomPersistentText( ldomNode * parent, lUInt32 index, lString16 value )
 : ldomNode( parent->getDocument(), parent, index )
 {
 	lString8 s8 = UnicodeToUtf8( value );
 	_document->allocText( _dataIndex, _parentIndex, s8.c_str(), s8.length() );
 }
 
-ldomPersistentText::ldomPersistentText( ldomElement * parent, lUInt32 index, lString8 value )
+ldomPersistentText::ldomPersistentText( ldomNode * parent, lUInt32 index, lString8 value )
 : ldomNode( parent->getDocument(), parent, index )
 {
 	_document->allocText( _dataIndex, _parentIndex, value.c_str(), value.length() );
@@ -269,7 +404,7 @@ lUInt8 ldomNode::getNodeLevel() const
 }
 
 /// returns main element (i.e. FictionBook for FB2)
-ldomElement * ldomDocument::getMainNode()
+ldomNode * ldomDocument::getMainNode()
 {
     if (!_root || !_root->getChildCount())
         return NULL;
@@ -385,7 +520,7 @@ static void writeNode( LVStream * stream, ldomNode * node )
 #if 1
             if (!elemName.empty())
             {
-				ldomElement * elem = ((ldomElement*)node);
+				ldomNode * elem = node;
 				lvdomElementFormatRec * fmt = elem->getRenderData();
 				css_style_ref_t style = elem->getStyle();
 				if ( fmt ) {
@@ -445,11 +580,11 @@ ldomDocument::~ldomDocument()
 }
 
 #if COMPACT_DOM == 1
-ldomTextRef::ldomTextRef( ldomElement * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
+ldomTextRef::ldomTextRef( ldomNode * parent, lUInt32 index, lUInt32 pos, lUInt32 size, lUInt16 flags)
 : ldomNode( parent->getDocument(), parent, index ), dataFormat(flags), dataSize(size), fileOffset(pos)
 { }
 
-ldomText::ldomText( ldomElement * parent, lUInt32 index, lString16 value)
+ldomText::ldomText( ldomNode * parent, lUInt32 index, lString16 value)
 : ldomNode( parent->getDocument(), parent, index )
 {
 #if (USE_DOM_UTF8_STORAGE==1)
@@ -588,7 +723,7 @@ void lxmlDocBase::dumpUnknownEntities( const char * fname )
 /// returns node absolute rectangle
 void ldomElement::getAbsRect( lvRect & rect )
 {
-    ldomElement * node = this;
+    ldomNode * node = this;
     lvdomElementFormatRec * fmt = node->getRenderData();
     rect.left = 0;
     rect.top = 0;
@@ -1131,7 +1266,7 @@ void ldomDocumentWriter::OnStop()
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
 }
 
-ldomElement * ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+ldomNode * ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     //CRLog::trace("OnTagOpen(%s)", UnicodeToUtf8(lString16(tagname)).c_str());
@@ -1235,7 +1370,7 @@ bool FindNextNode( ldomNode * & node, ldomNode * root )
     if (node->isRoot() || node == root )
         return false; // root node reached
     int index = node->getNodeIndex();
-    ldomElement * parent = node->getParentNode();
+    ldomNode * parent = node->getParentNode();
     while (parent)
     {
         if ( index < (int)parent->getChildCount()-1 ) {
@@ -1269,7 +1404,7 @@ static const signed char base64_decode_table[] = {
 class LVBase64NodeStream : public LVNamedStream
 {
 private:
-    ldomElement * m_elem;
+    ldomNode *  m_elem;
     ldomNode *  m_curr_node;
     lString16   m_curr_text;
     int         m_text_pos;
@@ -1394,7 +1529,7 @@ private:
 
 public:
     virtual ~LVBase64NodeStream() { }
-    LVBase64NodeStream( ldomElement * element )
+    LVBase64NodeStream( ldomNode * element )
         : m_elem(element), m_curr_node(element), m_size(0), m_pos(0)
     {
         // calculate size
@@ -1602,7 +1737,7 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
 #if (LDOM_ALLOW_NODE_INDEX!=1)
 lUInt32 ldomNode::getNodeIndex() const
 {
-    ldomElement * parent = getParentNode();
+    ldomNode * parent = getParentNode();
     if ( !parent )
         return 0;
     for (int i=parent->getChildCount()-1; i>=0; i--)
@@ -1642,8 +1777,8 @@ lString16 ldomElement::getText( lChar16 blockDelimiter ) const
         ldomNode * child = getChildNode(i);
         if ( i>=getChildCount()-1 )
             break;
-        if ( blockDelimiter && child->getNodeType()==LXML_ELEMENT_NODE ) {
-            if ( ((ldomElement*)child)->getStyle()->display == css_d_block )
+        if ( blockDelimiter && child->isElement() ) {
+            if ( child->getStyle()->display == css_d_block )
                 txt << blockDelimiter;
         }
     }
@@ -1722,11 +1857,11 @@ ldomText * ldomNode::getLastTextChild()
 }
 
 #if BUILD_LITE!=1
-ldomElement * ldomNode::elementFromPoint( lvPoint pt )
+ldomNode * ldomNode::elementFromPoint( lvPoint pt )
 {
     if ( !isElement() )
         return NULL;
-    ldomElement * enode = (ldomElement*) this;
+    ldomNode * enode = this;
     lvdomElementFormatRec * fmt = getRenderData();
     if ( !fmt )
         return NULL;
@@ -1738,22 +1873,22 @@ ldomElement * ldomNode::elementFromPoint( lvPoint pt )
     if ( pt.y >= fmt->getY() + fmt->getHeight() )
         return NULL;
     if ( enode->getRendMethod() == erm_final ) {
-        return (ldomElement*)this;
+        return this;
     }
     int count = getChildCount();
     for ( int i=0; i<count; i++ ) {
         ldomNode * p = getChildNode( i );
-        ldomElement * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(),
+        ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(),
                 pt.y - fmt->getY() ) );
         if ( e )
             return e;
     }
-    return (ldomElement*)this;
+    return this;
 }
 
-ldomElement * ldomNode::finalBlockFromPoint( lvPoint pt )
+ldomNode * ldomNode::finalBlockFromPoint( lvPoint pt )
 {
-    ldomElement * elem = elementFromPoint( pt );
+    ldomNode * elem = elementFromPoint( pt );
     if ( elem && elem->getRendMethod() == erm_final )
         return elem;
     return NULL;
@@ -1766,7 +1901,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     ldomXPointer ptr;
     if ( !getMainNode() )
         return ptr;
-    ldomElement * finalNode = getMainNode()->elementFromPoint( pt );
+    ldomNode * finalNode = getMainNode()->elementFromPoint( pt );
     if ( !finalNode ) {
         if ( pt.y >= getFullHeight()) {
             ldomText * node = getMainNode()->getLastTextChild();
@@ -1851,8 +1986,8 @@ bool ldomXPointer::getRect(lvRect & rect) const
     //CRLog::trace("ldomXPointer::getRect()");
     if ( !_node )
         return false;
-    ldomElement * p = _node->isElement() ? (ldomElement *)_node : _node->getParentNode();
-    ldomElement * finalNode = NULL;
+    ldomNode * p = _node->isElement() ? _node : _node->getParentNode();
+    ldomNode * finalNode = NULL;
     if ( !p ) {
         //CRLog::trace("ldomXPointer::getRect() - p==NULL");
     }
@@ -1860,7 +1995,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
     if ( !p->getDocument() ) {
         //CRLog::trace("ldomXPointer::getRect() - p->getDocument()==NULL");
     }
-    ldomElement * mainNode = p->getDocument()->getMainNode();
+    ldomNode * mainNode = p->getDocument()->getMainNode();
     for ( ; p; p = p->getParentNode() ) {
         if ( p->getRendMethod() == erm_final ) {
             finalNode = p; // found final block
@@ -2167,7 +2302,7 @@ lString16 extractDocTitle( ldomDocument * doc )
 lString16 extractDocSeries( ldomDocument * doc )
 {
     lString16 res;
-    ldomElement * series = (ldomElement*)doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
+    ldomNode * series = doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
     if ( series ) {
         lString16 sname = series->getAttributeValue( attr_name );
         lString16 snumber = series->getAttributeValue( attr_number );
@@ -2200,7 +2335,7 @@ bool ldomXPointerEx::sibling( int index )
 {
     if ( _level < 1 )
         return false;
-    ldomElement * p = _node->getParentNode();
+    ldomNode * p = _node->getParentNode();
     if ( !p || index < 0 || index >= (int)p->getChildCount() )
         return false;
     _node = p->getChildNode( index );
@@ -2225,7 +2360,7 @@ bool ldomXPointerEx::nextSiblingElement()
 {
     if ( _level < 1 )
         return false;
-    ldomElement * p = _node->getParentNode();
+    ldomNode * p = _node->getParentNode();
     for ( int i=_indexes[_level-1] + 1; i<(int)_node->getChildCount(); i++ ) {
         if ( p->getChildNode( i )->getNodeType()==LXML_ELEMENT_NODE )
             return sibling( i );
@@ -2238,7 +2373,7 @@ bool ldomXPointerEx::prevSiblingElement()
 {
     if ( _level < 1 )
         return false;
-    ldomElement * p = _node->getParentNode();
+    ldomNode * p = _node->getParentNode();
     for ( int i=_indexes[_level-1] - 1; i>=0; i-- ) {
         if ( p->getChildNode( i )->getNodeType()==LXML_ELEMENT_NODE )
             return sibling( i );
@@ -2616,7 +2751,7 @@ bool ldomXRange::getRect( lvRect & rect )
         return !rect.isEmpty();
     }
     // on different lines
-    ldomElement * parent = getNearestCommonParent();
+    ldomNode * parent = getNearestCommonParent();
     if ( !parent )
         return false;
     parent->getAbsRect(rect);
@@ -2715,7 +2850,7 @@ ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRe
 }
 
 /// returns nearest common element for start and end points
-ldomElement * ldomXRange::getNearestCommonParent()
+ldomNode * ldomXRange::getNearestCommonParent()
 {
     ldomXPointerEx start(getStart());
     ldomXPointerEx end(getEnd());
@@ -2726,7 +2861,7 @@ ldomElement * ldomXRange::getNearestCommonParent()
     while ( start.getIndex()!=end.getIndex() && start.parent() && end.parent() )
         ;
     if ( start.getNode()==end.getNode() )
-        return (ldomElement *)start.getNode();
+        return start.getNode();
     return NULL;
 }
 
@@ -2736,7 +2871,7 @@ bool ldomXPointerEx::ensureFinal()
         return false;
     int cnt = 0;
     int foundCnt = -1;
-    ldomElement * e = (ldomElement*)_node;
+    ldomNode * e = _node;
     for ( ; e!=NULL; e = e->getParentNode() ) {
         if ( e->getRendMethod() == erm_final ) {
             foundCnt = cnt;
@@ -2822,7 +2957,7 @@ bool ldomXPointerEx::isVisibleFinal()
         return false;
     int cnt = 0;
     int foundCnt = -1;
-    ldomElement * e = (ldomElement*)_node;
+    ldomNode * e = _node;
     for ( ; e!=NULL; e = e->getParentNode() ) {
         switch ( e->getRendMethod() ) {
         case erm_final:
@@ -2855,11 +2990,11 @@ bool ldomXPointerEx::nextVisibleText()
 /// returns true if current node is visible element or text
 bool ldomXPointerEx::isVisible()
 {
-    ldomElement * p;
+    ldomNode * p;
     if ( _node && _node->isText() )
         p = _node->getParentNode();
     else
-        p = (ldomElement*) _node;
+        p = _node;
     while ( p ) {
         if ( p->getRendMethod() == erm_invisible )
             return false;
@@ -3023,7 +3158,7 @@ void ldomXRange::getRangeWords( LVArray<ldomWord> & list )
         /// called for each found node in range
         virtual bool onElement( ldomXPointerEx * ptr )
         {
-            ldomElement * elem = (ldomElement *)ptr->getNode();
+            ldomNode * elem = ptr->getNode();
             if ( elem->getRendMethod()==erm_invisible )
                 return false;
             return true;
@@ -3066,7 +3201,7 @@ public:
     /// called for each found node in range
     virtual bool onElement( ldomXPointerEx * ptr )
     {
-        ldomElement * elem = (ldomElement *)ptr->getNode();
+        ldomNode * elem = (ldomNode *)ptr->getNode();
         if ( elem->getRendMethod()==erm_invisible )
             return false;
         switch ( elem->getStyle()->display ) {
@@ -3207,7 +3342,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
             while ( !done && _currNode ) {
                 if ( _currNode == found )
                     done = true;
-                ldomElement * closedElement = _currNode->getElement();
+                ldomNode * closedElement = _currNode->getElement();
                 _currNode = pop( _currNode, closedElement->getNodeId() );
                 //ElementCloseHandler( closedElement );
             }
@@ -3218,7 +3353,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
     }
 }
 
-ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     if ( nsname && nsname[0] )
@@ -3245,9 +3380,9 @@ ldomElement * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const
     return _currNode->getElement();
 }
 
-void ldomDocumentWriterFilter::ElementCloseHandler( ldomElement * node )
+void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
 {
-    ldomElement * parent = node->getParentNode();
+    ldomNode * parent = node->getParentNode();
     lUInt16 id = node->getNodeId();
     if ( parent ) {
         if ( parent->getLastChild() != node )
@@ -3268,7 +3403,7 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomElement * node )
                 node->setNodeId( el_div );
         } else if ( id==el_div ) {
             if ( node->getAttributeValue(attr_align)==L"right" ) {
-                ldomElement * child = (ldomElement *)node->getLastChild();
+                ldomNode * child = node->getLastChild();
                 if ( child && child->getNodeId()==el_form )  {
                     // LIB.RU form detected: remove it
                     parent->removeLastChild();
@@ -3322,7 +3457,7 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
     //======== END FILTER CODE ==============
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     // save closed element
-    ldomElement * closedElement = _currNode->getElement();
+    ldomNode * closedElement = _currNode->getElement();
     _errFlag |= (id != closedElement->getNodeId());
     _currNode = pop( _currNode, id );
 
@@ -3442,22 +3577,27 @@ ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
     }
 }
 
+void ldomElement::addChild( lInt32 dataIndex )
+{
+    _children.add( dataIndex );
+}
+
 /// move range of children startChildIndex to endChildIndex inclusively to specified element
-void ldomElement::moveItemsTo( ldomElement * destination, int startChildIndex, int endChildIndex )
+void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex )
 {
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
         ldomNode * item = getChildNode( startChildIndex );
         _children.remove( startChildIndex ); // + i
         item->_parentIndex = destination->getDataIndex();
-        destination->_children.add( item->getDataIndex() );
+        destination->addChild( item->getDataIndex() );
     }
     // TODO: renumber rest of children in necessary
 }
 
-ldomElement * ldomElement::findChildElement( lUInt16 idPath[] )
+ldomNode * ldomElement::findChildElement( lUInt16 idPath[] )
 {
-	ldomElement * elem = this;
+	ldomNode * elem = this;
 	for ( int i=0; idPath[i]; i++ ) {
 		elem = findChildElement( LXML_NS_ANY, idPath[i], -1 );
 		if ( elem )
@@ -3466,15 +3606,15 @@ ldomElement * ldomElement::findChildElement( lUInt16 idPath[] )
 	return elem;
 }
 
-ldomElement * ldomElement::findChildElement( lUInt16 nsid, lUInt16 id, int index )
+ldomNode * ldomElement::findChildElement( lUInt16 nsid, lUInt16 id, int index )
 {
     if ( !this )
         return NULL;
-    ldomElement * res = NULL;
+    ldomNode * res = NULL;
     int k = 0;
     for ( int i=0; i<_children.length(); i++ )
     {
-        ldomElement * p = (ldomElement*)getChildNode( i );
+        ldomNode * p = getChildNode( i );
         if ( !p->isElement() )
             continue;
         if ( p->getNodeId() == id && ( (p->getNodeNsId() == nsid) || (nsid==LXML_NS_ANY) ) )
@@ -3490,11 +3630,11 @@ ldomElement * ldomElement::findChildElement( lUInt16 nsid, lUInt16 id, int index
 }
 
 /// inserts child element
-ldomElement * ldomElement::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
+ldomNode * ldomElement::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
 {
     if (index>(lUInt32)_children.length())
         index = _children.length();
-    ldomElement * elem = new ldomElement( _document, this, index, nsid, id );
+    ldomNode * elem = new ldomElement( _document, this, index, nsid, id );
     _children.insert( index, elem->getDataIndex() );
 #if (LDOM_ALLOW_NODE_INDEX==1)
     // reindex tail
@@ -3505,9 +3645,9 @@ ldomElement * ldomElement::insertChildElement( lUInt32 index, lUInt16 nsid, lUIn
 }
 
 /// inserts child element
-ldomElement * ldomElement::insertChildElement( lUInt16 id )
+ldomNode * ldomElement::insertChildElement( lUInt16 id )
 {
-    ldomElement * elem = new ldomElement( _document, this, _children.length(), LXML_NS_NONE, id );
+    ldomNode * elem = new ldomElement( _document, this, _children.length(), LXML_NS_NONE, id );
     _children.add( elem->getDataIndex() );
     return elem;
 }

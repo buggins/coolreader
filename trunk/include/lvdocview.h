@@ -294,11 +294,11 @@ public:
 
 //typedef lUInt64 LVPosBookmark;
 
-/// Callback interface 
+/// Callback interface
 class LVDocViewCallback {
 public:
     /// Override to handle external links
-    virtual void OnExternalLink( lString16 url, ldomElement * node ) { }
+    virtual void OnExternalLink( lString16 url, ldomNode * node ) { }
     virtual ~LVDocViewCallback() { }
 };
 
@@ -485,7 +485,7 @@ public:
 
     // Links and selections functions
     /// sets selection for whole element, clears previous selection
-    virtual void selectElement( ldomElement * elem );
+    virtual void selectElement( ldomNode * elem );
     /// sets selection for range, clears previous selection
     virtual void selectRange( const ldomXRange & range );
     /// sets selection for list of words, clears previous selection
@@ -649,7 +649,7 @@ public:
     lString16 getAuthors() { return m_doc_props->getStringDef(DOC_PROP_AUTHORS); }
     /// returns book series name and number (series name #1)
     lString16 getSeries()
-    { 
+    {
         lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
         lString16 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
         if ( !name.empty() && !number.empty() )
@@ -710,7 +710,7 @@ public:
     int  getStatusFontSize() { return m_status_font_size; }
     /// sets new status bar font size
     void setStatusFontSize( int newSize );
-	
+
     /// sets posible base font sizes (for ZoomFont)
     void setFontSizes( LVArray<int> & sizes, bool cyclic );
 

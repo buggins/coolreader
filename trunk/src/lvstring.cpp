@@ -2714,7 +2714,7 @@ void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props )
     const lChar16 maxchar = sizeof(char_props) / sizeof( lUInt16 );
     for ( int i=0; i<sz; i++ ) {
         lChar16 ch = str[i];
-        props[i] = (ch>=0 && ch<maxchar) ? char_props[ch] : 0;
+        props[i] = (ch<maxchar) ? char_props[ch] : 0;
     }
 }
 

@@ -59,7 +59,7 @@ public:
     {
     }
     /// called on opening tag
-    virtual ldomElement * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
         if ( lStr_cmp(tagname, L"FictionBookMarks")==0 && state==in_xml ) {
             state = in_fbm;
@@ -183,7 +183,7 @@ public:
         }
     }
     /// called on text
-    virtual void OnText( const lChar16 * text, int len, 
+    virtual void OnText( const lChar16 * text, int len,
         lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
     {
         lString16 txt( text, len );
@@ -265,7 +265,7 @@ static void putBookmark( LVStream * stream, CRBookmark * bmk )
     char percent[32];
     sprintf( percent, "%d.%02d%%", bmk->getPercent()/100, bmk->getPercent()%100 );
     char bmktag[255];
-    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\" shortcut=\"%d\"", tname, percent, (int)bmk->getTimestamp(), bmk->getShortcut() ); 
+    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\" shortcut=\"%d\"", tname, percent, (int)bmk->getTimestamp(), bmk->getShortcut() );
     putTag(stream, 3, bmktag);
     putTagValue( stream, 4, "start-point", bmk->getStartPos() );
     putTagValue( stream, 4, "end-point", bmk->getEndPos() );
@@ -410,7 +410,7 @@ lString16 CRBookmark::getChapterName( ldomXPointer ptr )
 	return chapter;
 }
 
-CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz, 
+CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
                             const lString16 & title,
                             const lString16 & author,
                             const lString16 & series,

@@ -1415,7 +1415,7 @@ LVImageSourceRef LVCreateNodeImageSource( ldomNode * node )
     LVImageSourceRef ref;
     if (!node->isElement())
         return ref;
-    LVStreamRef stream = ((ldomElement*)node)->createBase64Stream();
+    LVStreamRef stream = node->createBase64Stream();
     if (stream.isNull())
         return ref;
     return LVCreateStreamImageSource( stream );

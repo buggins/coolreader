@@ -493,12 +493,12 @@ bool LVDocView::exportWolFile( const wchar_t * fname, bool flgGray, int levels )
 	return exportWolFile( stream.get(), flgGray, levels );
 }
 
-lString16 getSectionHeader( ldomElement * section )
+lString16 getSectionHeader( ldomNode * section )
 {
     lString16 header;
     if ( !section || section->getChildCount() == 0 )
         return header;
-    ldomElement * child = (ldomElement *)section->getChildNode(0);
+    ldomNode * child = section->getChildNode(0);
     if ( !child->isElement() || child->getNodeName()!=L"title" )
         return header;
     header = child->getText(L' ');
@@ -506,14 +506,14 @@ lString16 getSectionHeader( ldomElement * section )
 }
 
 
-void dumpSection( ldomElement * elem )
+void dumpSection( ldomNode * elem )
 {
     lvRect rc;
     elem->getAbsRect(rc);
     //fprintf( log.f, "rect(%d, %d, %d, %d)  ", rc.left, rc.top, rc.right, rc.bottom );
 }
 
-int getSectionPage( ldomElement * section, LVRendPageList & pages )
+int getSectionPage( ldomNode * section, LVRendPageList & pages )
 {
     if ( !section )
         return -1;
@@ -533,7 +533,7 @@ int getSectionPage( ldomElement * section, LVRendPageList & pages )
     return page;
 }
 
-static void addTocItems( ldomElement * basesection, LVTocItem * parent )
+static void addTocItems( ldomNode * basesection, LVTocItem * parent )
 {
     if ( !basesection || !parent )
         return;
@@ -543,7 +543,7 @@ static void addTocItems( ldomElement * basesection, LVTocItem * parent )
     ldomXPointer ptr( basesection, 0 );
     LVTocItem * item = parent->addChild( name, ptr );
     for ( int i=0; ;i++ ) {
-        ldomElement * section = basesection->findChildElement( LXML_NS_ANY, el_section, i );
+        ldomNode * section = basesection->findChildElement( LXML_NS_ANY, el_section, i );
         if ( !section )
             break;
         addTocItems( section, item );
@@ -559,7 +559,7 @@ int LVTocItem::getY()
 /// returns page number
 int LVTocItem::getPageNum( LVRendPageList & pages )
 {
-    return getSectionPage( (ldomElement*)_position.getNode(), pages );
+    return getSectionPage( _position.getNode(), pages );
 }
 
 /// update page numbers for items
@@ -597,14 +597,13 @@ LVTocItem * LVDocView::getToc()
 void LVDocView::makeToc()
 {
     m_toc.clear();
-    ldomElement * body = ((ldomElement*)m_doc->getRootNode())
-        ->findChildElement( LXML_NS_ANY, el_FictionBook, -1 );
-	if ( body ) 
+    ldomNode * body = m_doc->getRootNode()->findChildElement( LXML_NS_ANY, el_FictionBook, -1 );
+	if ( body )
 		body = body->findChildElement( LXML_NS_ANY, el_body, 0 );
     if ( !body )
         return;
     for ( int i=0; ;i++ ) {
-        ldomElement * section = body->findChildElement( LXML_NS_ANY, el_section, i );
+        ldomNode * section = body->findChildElement( LXML_NS_ANY, el_section, i );
         if ( !section )
             break;
         addTocItems( section, &m_toc );
@@ -615,8 +614,7 @@ void LVDocView::makeToc()
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
 	lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
-    ldomElement * cover_img_el = ((ldomElement*)m_doc->getRootNode())
-        ->findChildElement( path );
+    ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
 
     if ( cover_img_el )
     {
@@ -781,13 +779,13 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         }
 
         // add TOC
-        ldomElement * body = (ldomElement *)m_doc->nodeFromXPath( lString16(L"/FictionBook/body[1]") );
+        ldomNode * body = m_doc->nodeFromXPath( lString16(L"/FictionBook/body[1]") );
         lUInt16 section_id = m_doc->getElementNameIndex( L"section" );
 
         if ( body ) {
             int l1n = 0;
             for ( int l1=0; l1<1000; l1++ ) {
-                ldomElement * l1section = body->findChildElement(LXML_NS_ANY, section_id, l1);
+                ldomNode * l1section = body->findChildElement(LXML_NS_ANY, section_id, l1);
                 if ( !l1section )
                     break;
                 lString8 title = UnicodeTo8Bit(getSectionHeader( l1section ), table);
@@ -798,7 +796,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
                     if ( levels<2 )
                         continue;
                     for ( int l2=0; l2<1000; l2++ ) {
-                        ldomElement * l2section = l1section->findChildElement(LXML_NS_ANY, section_id, l2);
+                        ldomNode * l2section = l1section->findChildElement(LXML_NS_ANY, section_id, l2);
                         if ( !l2section )
                             break;
                         lString8 title = UnicodeTo8Bit(getSectionHeader( l2section ), table);
@@ -809,7 +807,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
                             if ( levels<3 )
                                 continue;
                             for ( int l3=0; l3<1000; l3++ ) {
-                                ldomElement * l3section = l2section->findChildElement(LXML_NS_ANY, section_id, l3);
+                                ldomNode * l3section = l2section->findChildElement(LXML_NS_ANY, section_id, l3);
                                 if ( !l3section )
                                     break;
                                 lString8 title = UnicodeTo8Bit(getSectionHeader( l3section ), table);
@@ -1055,12 +1053,12 @@ LVArray<int> & LVDocView::getSectionBounds( )
         return m_section_bounds;
     m_section_bounds.clear();
     m_section_bounds.add(0);
-    ldomElement * body = (ldomElement *)m_doc->nodeFromXPath( lString16(L"/FictionBook/body[1]") );
+    ldomNode * body = m_doc->nodeFromXPath( lString16(L"/FictionBook/body[1]") );
     lUInt16 section_id = m_doc->getElementNameIndex( L"section" );
     int fh = GetFullHeight();
     if ( body && fh>0 ) {
         for ( int l1=0; l1<1000; l1++) {
-            ldomElement * l1section = body->findChildElement(LXML_NS_ANY, section_id, l1);
+            ldomNode * l1section = body->findChildElement(LXML_NS_ANY, section_id, l1);
             if ( !l1section )
                 break;
             lvRect rc;
@@ -1659,7 +1657,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 }
 
 /// sets selection for whole element, clears previous selection
-void LVDocView::selectElement( ldomElement * elem )
+void LVDocView::selectElement( ldomNode * elem )
 {
     ldomXRangeList & sel = getDocument()->getSelections();
     sel.clear();
@@ -1786,7 +1784,7 @@ ldomXRange * LVDocView::getCurrentPageSelectedLink()
 /// follow link, returns true if navigation was successful
 bool LVDocView::goLink( lString16 link )
 {
-    ldomElement * element = NULL;
+    ldomNode * element = NULL;
     if ( link.empty() ) {
         ldomXRange * node = LVDocView::getCurrentPageSelectedLink();
         if ( node ) {
@@ -1794,7 +1792,7 @@ bool LVDocView::goLink( lString16 link )
             ldomNode * p = node->getStart().getNode();
             if ( p->getNodeType()==LXML_TEXT_NODE )
                 p = p->getParentNode();
-            element = (ldomElement*)p;
+            element = p;
         }
         if ( link.empty() )
             return false;
@@ -1808,7 +1806,7 @@ bool LVDocView::goLink( lString16 link )
     }
     link = link.substr( 1, link.length()-1 );
     lUInt16 id = m_doc->getAttrValueIndex(link.c_str());
-    ldomElement * dest = (ldomElement*)m_doc->getNodeById( id );
+    ldomNode * dest = m_doc->getNodeById( id );
     if ( !dest )
         return false;
     savePosToNavigationHistory();
@@ -2116,7 +2114,7 @@ void SaveBase64Objects( ldomNode * node )
     if ( name.empty() )
         return;
     fprintf( stderr, "opening base64 stream...\n" );
-    LVStreamRef in = ((ldomElement*)node)->createBase64Stream();
+    LVStreamRef in = node->createBase64Stream();
     if ( in.isNull() )
         return;
     fprintf( stderr, "base64 stream opened: %d bytes\n", (int)in->GetSize() );
@@ -2926,7 +2924,7 @@ bool LVDocView::getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lStr
     titleText = posText = lString16();
     if ( bm.isNull() )
         return false;
-    ldomElement * el = (ldomElement *) bm.getNode();
+    ldomNode * el = bm.getNode();
     if ( el->getNodeType()==LXML_TEXT_NODE ) {
         lString16 txt = bm.getNode()->getText();
         int startPos = bm.getOffset();
@@ -3091,7 +3089,7 @@ void LVDocView::getCurrentPageLinks( ldomXRangeList & list )
             virtual bool onElement( ldomXPointerEx * ptr )
             {
                 //
-                ldomElement * elem = (ldomElement *)ptr->getNode();
+                ldomNode * elem = ptr->getNode();
                 if ( elem->getNodeId()==el_a ) {
                     for ( int i=0; i<_list.length(); i++ ) {
                         if ( _list[i]->getStart().getNode() == elem )
@@ -3668,7 +3666,7 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_FONT_COLOR ) {
             lUInt32 textColor = props->getIntDef(PROP_FONT_COLOR, 0x000000 );
             setTextColor( textColor );
-        } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT 
+        } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT
                    || name==PROP_PAGE_MARGIN_RIGHT || name==PROP_PAGE_MARGIN_BOTTOM ) {
             lUInt32 margin = props->getIntDef(name.c_str(), 8 );
             if ( margin<0 )

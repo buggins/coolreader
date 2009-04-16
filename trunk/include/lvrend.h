@@ -1,6 +1,6 @@
 /** \file lvrend.h
     \brief DOM document rendering (formatting) functions
-    
+
     CoolReader Engine
 
     (c) Vadim Lopatin, 2000-2006
@@ -33,7 +33,7 @@ void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFor
 /// renders block which contains subblocks
 int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int y, int width );
 /// renders table element
-int renderTable( LVRendPageContext & context, ldomElement * node, int x, int y, int width );
+int renderTable( LVRendPageContext & context, ldomNode * element, int x, int y, int width );
 /// sets node style
 void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font );
 

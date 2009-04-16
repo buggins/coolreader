@@ -374,7 +374,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                     line_x = isParaStart ? srcline->margin : 0;
                 } else {
                     line_x = (frmline?frmline->x:0);
-                }                
+                }
 
                 if (flgObject)
                 {
@@ -690,7 +690,7 @@ void LFormattedText::AddSourceObject(
             lInt8           letter_spacing
      )
 {
-    ldomElement * node = (ldomElement*)object;
+    ldomNode * node = (ldomNode*)object;
     LVImageSourceRef img = node->getObjectImageSource();
     if ( img.isNull() )
         img = LVCreateDummyImageSource( node, 50, 50 );
@@ -927,7 +927,7 @@ public:
      * Move to specified source line.
      * @param index is index of source line to go
      * @param pos is character position inside source line to go
-     * 
+     *
      */
     void setSrcLine( int index, int pos )
     {
@@ -1143,7 +1143,7 @@ public:
         // start from first source line
         setSrcLine( 0, 0 );
         // until there is any source line left
-        while ( srcline ) { //&& srcIndex < (int)m_pbuffer->srctextlen 
+        while ( srcline ) { //&& srcIndex < (int)m_pbuffer->srctextlen
             if ( flgObject ) {
                 // try to insert object
                 addObject();
@@ -1325,7 +1325,7 @@ public:
 };
 
 lUInt32 LFormattedText::FormatNew(lUInt16 width, lUInt16 page_height)
-{ 
+{
     // clear existing formatted data, if any
     if (m_pbuffer->frmlines)
     {
@@ -1390,7 +1390,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
                     srcline = &m_pbuffer->srctext[word->src_text_index];
-                    ldomElement * node = (ldomElement *) srcline->object;
+                    ldomNode * node = (ldomNode *) srcline->object;
                     LVImageSourceRef img = node->getObjectImageSource();
                     if ( img.isNull() )
                         img = LVCreateDummyImageSource( node, word->width, word->o.height );

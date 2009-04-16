@@ -482,8 +482,8 @@ int DetectHeadingLevelByText( const lString16 & str )
     }
     if ( ch=='I' || ch=='V' || ch=='X' ) {
         // TODO: optimize
-        static const char * romeNumbers[] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", 
-            "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", 
+        static const char * romeNumbers[] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX",
+            "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX",
             "XXX", "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII", "XXXVIII", "XXXIX", NULL };
         int i=0;
         for ( i=0; romeNumbers[i]; i++ ) {
@@ -658,8 +658,8 @@ public:
                 return la_right;
             if ( line->lpos==max_left_second_stats_pos )
                 return la_indent;
-            if ( line->lpos > max_left_second_stats_pos && 
-                    absCompare( center_dist, left_dist )<0 
+            if ( line->lpos > max_left_second_stats_pos &&
+                    absCompare( center_dist, left_dist )<0
                     && absCompare( center_dist, right_dist )<0 )
                 return la_centered;
             if ( absCompare( right_dist, left_dist )<0 )
@@ -718,7 +718,7 @@ public:
                 avg_right += line->rpos;
             }
         }
-           
+
         // pos stats
         int max_left_stats = 0;
         max_left_stats_pos = 0;
@@ -750,9 +750,9 @@ public:
         avg_right /= length();
         avg_center = (avg_left + avg_right) / 2;
 
-        int best_left_align_percent = max_left_stats * 100 / length();
+        //int best_left_align_percent = max_left_stats * 100 / length();
         int best_right_align_percent = max_right_stats * 100 / length();
-        int best_left_second_align_percent = max_left_second_stats * 100 / length();
+        //int best_left_second_align_percent = max_left_second_stats * 100 / length();
 
 
         for ( i=0; i<length(); i++ ) {
@@ -2079,7 +2079,7 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags )
                     str[j++] = str[i];
                     state = 0;
                 }
-                
+
             } else if (ch == ';')
             {
                 if (nch)
@@ -2103,7 +2103,7 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags )
     if ( tabCount > 0 ) {
         // expand tabs
         lString16 buf;
-        
+
         buf.reserve( j + tabCount * 8 );
         int x = 0;
         for ( int i=0; i<j; i++ ) {
