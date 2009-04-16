@@ -409,16 +409,6 @@ ldomNode * ldomDocument::getMainNode()
     if (!_root || !_root->getChildCount())
         return NULL;
 	return _root;
-	/*
-    //int elemCount = 0;
-    ldomElement * lastElem = NULL;
-    for ( unsigned i=0; i<_root->getChildCount(); i++) {
-        ldomElement * el = ((ldomElement *)_root->getChildNode(i));
-        if ( el->getNodeType() == LXML_ELEMENT_NODE )
-            lastElem = el;
-    }
-    return lastElem;
-	*/
 }
 
 #if COMPACT_DOM == 1
@@ -488,12 +478,12 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 
 static void writeNode( LVStream * stream, ldomNode * node )
 {
-    if ( node->getNodeType() == LXML_TEXT_NODE )
+    if ( node->isText() )
     {
         lString16 txt = node->getText();
         *stream << txt;
     }
-    else if (  node->getNodeType() == LXML_ELEMENT_NODE )
+    else if (  node->isElement() )
     {
         lString16 elemName = node->getNodeName();
         lString16 elemNsName = node->getNodeNsName();
@@ -788,236 +778,6 @@ LVImageSourceRef ldomElement::getObjectImageSource()
 }
 #endif
 
-/////////////////////////////////////////////////////////////////
-/// lxmlNodeRef
-
-#if 0
-const lString16 & ldomNode *::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
-{
-    DEF_ELEM_PTR(elem);
-    if (elem->nodeType!=LXML_ELEMENT_NODE)
-        return lString16::empty_str;
-    lxmlAttribute * attrs = elem->getAttributes();
-    for (lUInt32 i = elem->attrCount; i>0; i--, attrs++)
-    {
-        if (attrs->id == id && (nsid==LXML_NS_ANY) || (attrs->nsid==nsid) )
-            return _document->getAttrValue( attrs->index );
-    }
-    return lString16::empty_str;
-}
-
-void ldomNode *::getAbsRect( lvRect & rect )
-{
-    ldomNode * node = *this;
-    lvdomElementFormatRec * fmt = node->getRenderData();
-    rect.left = 0;
-    rect.top = 0;
-    rect.right = fmt->getWidth();
-    rect.bottom = fmt->getHeight();
-    for (;!node->isRoot();node = node->getParentNode())
-    {
-        lvdomElementFormatRec * fmt = node->getRenderData();
-        if (fmt)
-        {
-            rect.left += fmt->getX();
-            rect.top += fmt->getY();
-        }
-    }
-    rect.bottom += rect.top;
-    rect.right += rect.left;
-}
-
-lxmlAttrRef ldomNode *::getAttribute( lUInt32 index ) const
-{
-    DEF_ELEM_PTR(elem);
-    if (elem->nodeType!=LXML_ELEMENT_NODE || index>=elem->attrCount)
-        return lxmlAttrRef();
-    return lxmlAttrRef( _document, _offset + sizeof(lxmlElement)
-        + index*sizeof(lxmlAttribute) );
-}
-
-bool ldomNode *::hasAttribute( lUInt16 nsid, lUInt16 id ) const
-{
-    DEF_ELEM_PTR(elem);
-    if (elem->nodeType != LXML_ELEMENT_NODE)
-        return false;
-    lxmlAttribute * attrs = elem->getAttributes();
-    for (lUInt32 i = elem->attrCount; i>0; i--, attrs++)
-    {
-        if (attrs->id == id && ((nsid==LXML_NS_ANY) || (attrs->nsid==nsid)) )
-            return true;
-    }
-    return false;
-}
-
-/// returns node index
-lUInt32 ldomNode *::getNodeIndex() const
-{
-    if (isNull())
-        return 0;
-    ldomNode * parent = getParentNode();
-    if (parent->isNull())
-        return 0;
-    lxmlElement * elem = (lxmlElement *)_document->getNodePtr(parent._offset);
-    if ( elem->nodeType!=LXML_ELEMENT_NODE || elem->childIndex==0 )
-        return 0;
-    lUInt32 * children = _document->getOffsetArray( elem->childIndex );
-    for (lUInt32 i=0; i<elem->childCount; i++)
-        if (children[i] == _offset)
-            return i;
-    return 0;
-}
-
-
-/////////////////////////////////////////////////////////////////
-/// lxmlElementWriter
-
-lxmlElementWriter::lxmlElementWriter(lxmlDocument * document, lUInt16 nsid, lUInt16 id, lxmlElementWriter * parent)
-    : _parent(parent), _document(document), _childIndex(NULL), _childIndexSize(0)
-{
-    //logfile << "{c";
-    _typeDef = _document->getElementTypePtr( id );
-    _allowText = _typeDef ? _typeDef->props.allow_text : (_parent?true:false);
-    _offset  = _document->allocElement();
-    lxmlElement * _element = getElement();
-    _level = _parent ? _parent->_level+1 : 0;
-    _element->nsid = nsid;
-    _element->nodeId = id;
-    _element->nodeType = LXML_ELEMENT_NODE;
-    _element->nodeLevel = (lUInt8)_level;
-    _element->childCount = 0;
-    _element->childIndex = 0;
-    _element->attrCount = 0;
-    _element->renderData = NULL;
-    if (_parent)
-        _parent->addChild( _offset );
-    _element->parent = _parent ? _parent->_offset : 0;
-    //logfile << "}";
-}
-
-lUInt32 lxmlElementWriter::addChild( lUInt32 childOffset )
-{
-    lxmlElement * _element = getElement();
-    if ( _element->childCount >= _childIndexSize )
-    {
-        _childIndexSize += 16;
-        _childIndex = (lUInt32 *) realloc( _childIndex, sizeof(lUInt32) * _childIndexSize );
-    }
-    _childIndex[_element->childCount] = childOffset;
-    return _element->childCount++;
-}
-
-void lxmlElementWriter::onText( const lChar16 * text, int len,
-    lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
-{
-    //logfile << "{t";
-    lUInt32 offset = _document->allocText();
-    lxmlText * ptr = _document->getTextPtr( offset );
-    ptr->nodeType = LXML_TEXT_NODE;
-    ptr->nodeLevel = (lUInt8)_level;
-    ptr->dataFormat = flags;
-    ptr->fileOffset = fpos;
-    ptr->dataSize = (lUInt16)fsize;
-    addChild( offset );
-    ptr->parent = _offset;
-    //logfile << "}";
-}
-
-void lxmlElementWriter::addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value )
-{
-    _document->allocAttribute( nsid, id, value );
-    getElement()->attrCount++;
-}
-
-/*
-lxmlElementWriter * lxmlElementWriter::pop( lUInt16 id )
-{
-    logfile << "{p";
-    lxmlElementWriter * tmp = this;
-    for ( ; tmp; tmp = tmp->_parent )
-    {
-        logfile << "-";
-        if (tmp->getElement()->nodeId == id)
-            break;
-    }
-    logfile << "1";
-    if (!tmp)
-    {
-        logfile << "-err}";
-        return this; // error!!!
-    }
-    lxmlElementWriter * tmp2 = NULL;
-    logfile << "2";
-    for ( tmp = this; tmp; tmp = tmp2 )
-    {
-        logfile << "-";
-        tmp2 = tmp->_parent;
-        if (tmp->getElement()->nodeId == id)
-            break;
-        delete tmp;
-    }
-    logfile << "3";
-    delete tmp;
-    logfile << "}";
-    return tmp2;
-}
-
-  */
-
-lxmlElementWriter * pop( lxmlElementWriter * obj, lUInt16 id )
-{
-    //logfile << "{p";
-    lxmlElementWriter * tmp = obj;
-    for ( ; tmp; tmp = tmp->_parent )
-    {
-        //logfile << "-";
-        if (tmp->getElement()->nodeId == id)
-            break;
-    }
-    //logfile << "1";
-    if (!tmp)
-    {
-        //logfile << "-err}";
-        return obj; // error!!!
-    }
-    lxmlElementWriter * tmp2 = NULL;
-    //logfile << "2";
-    for ( tmp = obj; tmp; tmp = tmp2 )
-    {
-        //logfile << "-";
-        tmp2 = tmp->_parent;
-        if (tmp->getElement()->nodeId == id)
-            break;
-        delete tmp;
-    }
-    /*
-    logfile << "3 * ";
-    logfile << (int)tmp << " - " << (int)tmp2 << " | cnt=";
-    logfile << (int)tmp->getElement()->childCount << " - "
-            << (int)tmp2->getElement()->childCount;
-    */
-    delete tmp;
-    //logfile << "}";
-    return tmp2;
-}
-
-lxmlElementWriter::~lxmlElementWriter()
-{
-    //logfile << "{~";
-    if (getElement()->childCount)
-    {
-        // on delete, append child index
-        //logfile << "ci+" << getElement()->childCount;
-        lUInt32 offset = _document->allocOffsetArray( _childIndex, getElement()->childCount );
-        //logfile << " ^ " << offset;
-        getElement()->childIndex = offset;
-        //logfile << "~";
-        delete _childIndex;
-    }
-    //logfile << "}";
-}
-
-#endif
 
 bool IsEmptySpace( const lChar16 * text, int len )
 {
@@ -1027,89 +787,6 @@ bool IsEmptySpace( const lChar16 * text, int len )
    return true;
 }
 
-
-/////////////////////////////////////////////////////////////////
-/// lxmlDocumentWriter
-
-// overrides
-
-#if 0
-void lxmlDocumentWriter::OnStart(LVXMLParser * parser)
-{
-    //logfile << "lxmlDocumentWriter::OnStart()\n";
-    // add document root node
-    LVXMLParserCallback::OnStart( parser );
-    _currNode = new lxmlElementWriter(_document, 0, 0, NULL);
-}
-
-void lxmlDocumentWriter::OnStop()
-{
-    //logfile << "lxmlDocumentWriter::OnStop()\n";
-    while (_currNode)
-        _currNode = pop( _currNode, _currNode->getElement()->nodeId );
-    _document->pack();
-}
-
-void lxmlDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
-{
-    //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
-    lUInt16 id = _document->getElementNameIndex(tagname);
-    lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
-    _currNode = new lxmlElementWriter( _document, nsid, id, _currNode );
-    //logfile << " !o!\n";
-}
-
-void lxmlDocumentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
-{
-    //logfile << "lxmlDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
-    if (!_currNode)
-    {
-        _errFlag = true;
-        //logfile << " !c-err!\n";
-        return;
-    }
-    lUInt16 id = _document->getElementNameIndex(tagname);
-    //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
-    _errFlag |= (id != _currNode->getElement()->nodeId);
-    _currNode = pop( _currNode, id );
-    //logfile << " !c!\n";
-}
-
-void lxmlDocumentWriter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
-{
-    //logfile << "lxmlDocumentWriter::OnAttribute() [" << nsname << ":" << attrname << "]";
-    lUInt16 attr_id = _document->getAttrNameIndex( attrname );
-    _currNode->addAttribute( (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ):0, attr_id, attrvalue );
-    //logfile << " !a!\n";
-}
-
-void lxmlDocumentWriter::OnText( const lChar16 * text, int len,
-    lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
-{
-    //logfile << "lxmlDocumentWriter::OnText() fpos=" << fpos;
-    if (_currNode)
-    {
-        if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
-             && IsEmptySpace(text, len) )
-             return;
-        if (_currNode->_allowText)
-            _currNode->onText( text, len, fpos, fsize, flags );
-    }
-    //logfile << " !t!\n";
-}
-
-void lxmlDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table )
-{
-    if (table)
-        _document->_textcache.SetCharsetTable( table );
-}
-
-lxmlDocumentWriter::lxmlDocumentWriter(lxmlDocument * document)
-    : _document(document), _currNode(NULL), _errFlag(false), _flags(0)
-{
-}
-
-#endif
 
 /////////////////////////////////////////////////////////////////
 /// lxmlElementWriter
@@ -1158,41 +835,6 @@ void ldomElementWriter::addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * 
 {
     getElement()->setAttributeValue(nsid, id, value);
 }
-
-/*
-lxmlElementWriter * lxmlElementWriter::pop( lUInt16 id )
-{
-    logfile << "{p";
-    lxmlElementWriter * tmp = this;
-    for ( ; tmp; tmp = tmp->_parent )
-    {
-        logfile << "-";
-        if (tmp->getElement()->nodeId == id)
-            break;
-    }
-    logfile << "1";
-    if (!tmp)
-    {
-        logfile << "-err}";
-        return this; // error!!!
-    }
-    lxmlElementWriter * tmp2 = NULL;
-    logfile << "2";
-    for ( tmp = this; tmp; tmp = tmp2 )
-    {
-        logfile << "-";
-        tmp2 = tmp->_parent;
-        if (tmp->getElement()->nodeId == id)
-            break;
-        delete tmp;
-    }
-    logfile << "3";
-    delete tmp;
-    logfile << "}";
-    return tmp2;
-}
-
-  */
 
 ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id )
 {
@@ -2362,7 +2004,7 @@ bool ldomXPointerEx::nextSiblingElement()
         return false;
     ldomNode * p = _node->getParentNode();
     for ( int i=_indexes[_level-1] + 1; i<(int)_node->getChildCount(); i++ ) {
-        if ( p->getChildNode( i )->getNodeType()==LXML_ELEMENT_NODE )
+        if ( p->getChildNode( i )->isElement() )
             return sibling( i );
     }
     return false;
@@ -2375,7 +2017,7 @@ bool ldomXPointerEx::prevSiblingElement()
         return false;
     ldomNode * p = _node->getParentNode();
     for ( int i=_indexes[_level-1] - 1; i>=0; i-- ) {
-        if ( p->getChildNode( i )->getNodeType()==LXML_ELEMENT_NODE )
+        if ( p->getChildNode( i )->isElement() )
             return sibling( i );
     }
     return false;
@@ -2438,7 +2080,7 @@ int ldomXPointerEx::compare( const ldomXPointerEx& v ) const
 /// calls specified function recursively for all elements of DOM tree
 void ldomXPointerEx::recurseElements( void (*pFun)( ldomXPointerEx & node ) )
 {
-    if ( _node->getNodeType() != LXML_ELEMENT_NODE )
+    if ( !_node->isElement() )
         return;
     pFun( *this );
     if ( child( 0 ) ) {
@@ -2452,7 +2094,7 @@ void ldomXPointerEx::recurseElements( void (*pFun)( ldomXPointerEx & node ) )
 /// calls specified function recursively for all nodes of DOM tree
 void ldomXPointerEx::recurseNodes( void (*pFun)( ldomXPointerEx & node ) )
 {
-    if ( _node->getNodeType() != LXML_ELEMENT_NODE )
+    if ( !_node->isElement() )
         return;
     pFun( *this );
     if ( child( 0 ) ) {
@@ -2486,7 +2128,7 @@ ldomXRangeList::ldomXRangeList( ldomXRangeList & srcList, ldomXRange & filter )
 
 /// copy constructor of full node range
 ldomXRange::ldomXRange( ldomNode * p )
-: _start( p, 0 ), _end( p, p->getNodeType()==LXML_TEXT_NODE ? p->getText().length() : p->getChildCount() ), _flags(1)
+: _start( p, 0 ), _end( p, p->isText() ? p->getText().length() : p->getChildCount() ), _flags(1)
 {
 }
 
@@ -2764,7 +2406,7 @@ bool ldomXRange::getRect( lvRect & rect )
 bool ldomXRange::getWordRange( ldomXRange & range, ldomXPointer & p )
 {
     ldomNode * node = p.getNode();
-    if ( node->getNodeType() != LXML_TEXT_NODE )
+    if ( !node->isText() )
         return false;
     int pos = p.getOffset();
     lString16 txt = node->getText();
@@ -2891,9 +2533,9 @@ bool ldomXPointerEx::ensureElement()
 {
     if ( !_node )
         return false;
-    if ( _node->getNodeType() == LXML_TEXT_NODE && !parent() )
+    if ( _node->isText() && !parent() )
         return false;
-    if ( !_node || _node->getNodeType() != LXML_ELEMENT_NODE )
+    if ( !_node || !_node->isElement() )
         return false;
     return true;
 }
@@ -2918,7 +2560,7 @@ bool ldomXPointerEx::firstElementChild()
 {
     int count = _node->getChildCount();
     for ( int i=0; i<count; i++ ) {
-        if ( _node->getChildNode( i )->getNodeType() == LXML_ELEMENT_NODE )
+        if ( _node->getChildNode( i )->isElement() )
             return child( i );
     }
     return false;
@@ -2929,7 +2571,7 @@ bool ldomXPointerEx::lastElementChild()
 {
     int count = _node->getChildCount();
     for ( int i=count-1; i>=0; i-- ) {
-        if ( _node->getChildNode( i )->getNodeType() == LXML_ELEMENT_NODE )
+        if ( _node->getChildNode( i )->isElement() )
             return child( i );
     }
     return false;
@@ -3101,9 +2743,9 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
 	while ( !pos._start.isNull() && pos._start.compare( _end ) < 0 ) {
         // do something
         ldomNode * node = pos._start.getNode();
-        if ( node->getNodeType()==LXML_ELEMENT_NODE ) {
+        if ( node->isElement() ) {
             allowGoRecurse = callback->onElement( &pos.getStart() );
-        } else if ( node->getNodeType()==LXML_TEXT_NODE ) {
+        } else if ( node->isText() ) {
             lString16 txt = node->getText();
             pos._end = pos._start;
             pos._start.setOffset( 0 );
@@ -3721,7 +3363,7 @@ void ldomElement::recurseElements( void (*pFun)( ldomNode * node ) )
     for (int i=0; i<cnt; i++)
     {
         ldomNode * child = getChildNode( i );
-        if ( child->getNodeType()==LXML_ELEMENT_NODE )
+        if ( child->isElement() )
         {
             child->recurseElements( pFun );
         }
@@ -3732,7 +3374,7 @@ void ldomElement::recurseElements( void (*pFun)( ldomNode * node ) )
 void ldomElement::recurseNodes( void (*pFun)( ldomNode * node ) )
 {
     pFun( this );
-    if ( getNodeType()==LXML_ELEMENT_NODE )
+    if ( isElement() )
     {
         int cnt = getChildCount();
         for (int i=0; i<cnt; i++)

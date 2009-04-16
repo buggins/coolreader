@@ -44,7 +44,7 @@ ref_count_rec_t ref_count_rec_t::null_ref(NULL);
 #if (LDOM_USE_OWN_MEM_MAN==1)
 ldomMemManStorage * pmsREF = NULL;
 
-static ldomMemManStorage * block_storages[LOCAL_STORAGE_COUNT] = 
+static ldomMemManStorage * block_storages[LOCAL_STORAGE_COUNT] =
 {
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
@@ -106,6 +106,7 @@ void ldomFreeStorage()
     freeStorage( pmsREF );
     freeStorage( ldomElement::pmsHeap );
     freeStorage( ldomText::pmsHeap );
+    freeStorage( ldomPersistentText::pmsHeap );
     freeStorage( lvdomElementFormatRec::pmsHeap );
 #if (COMPACT_DOM==1)
     freeStorage( ldomTextRef::pmsHeap );

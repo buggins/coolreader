@@ -34,7 +34,7 @@ lString16 CRSkinContainer::getBasePath( const lChar16 * path )
     ldomXPointer p = getXPointer( lString16( path ) );
     if ( !p )
         return res;
-    if ( p.getNode()->getNodeType() != LXML_ELEMENT_NODE )
+    if ( !p.getNode()->isElement() )
         return res;
     lString16 value = p.getNode()->getAttributeValue( L"base" );
     if ( value.empty() || value[0]!=L'#' )
@@ -279,7 +279,7 @@ lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * att
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr )
         return lString16();
-    if ( ptr.getNode()->getNodeType() != LXML_ELEMENT_NODE )
+    if ( !ptr.getNode()->isElement() )
         return lString16();
 	//lString16 pnname = ptr.getNode()->getParentNode()->getNodeName();
 	//lString16 nname = ptr.getNode()->getNodeName();

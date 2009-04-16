@@ -1790,7 +1790,7 @@ bool LVDocView::goLink( lString16 link )
         if ( node ) {
             link = node->getHRef();
             ldomNode * p = node->getStart().getNode();
-            if ( p->getNodeType()==LXML_TEXT_NODE )
+            if ( p->isText() )
                 p = p->getParentNode();
             element = p;
         }
@@ -2925,7 +2925,7 @@ bool LVDocView::getBookmarkPosText( ldomXPointer bm, lString16 & titleText, lStr
     if ( bm.isNull() )
         return false;
     ldomNode * el = bm.getNode();
-    if ( el->getNodeType()==LXML_TEXT_NODE ) {
+    if ( el->isText() ) {
         lString16 txt = bm.getNode()->getText();
         int startPos = bm.getOffset();
         int len = txt.length() - startPos;

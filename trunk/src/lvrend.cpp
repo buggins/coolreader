@@ -964,7 +964,7 @@ bool isInlineItem( ldomNode * node )
             return false;
         }
     }
-    else if ( node->getNodeType()==LXML_TEXT_NODE )
+    else if ( node->isText() )
     {
         return true;
     }
@@ -1021,7 +1021,7 @@ void initRendMethod( ldomNode * enode )
                     break;
                 }
             }
-            else if ( child->getNodeType()==LXML_TEXT_NODE )
+            else if ( child->isText() )
             {
                 textCount++;
             }
@@ -1033,7 +1033,7 @@ void initRendMethod( ldomNode * enode )
             bool lastInline = false;
             for (i=cnt-1; i>=0; i--) {
                 ldomNode * child = enode->getChildNode( i );
-                if ( child->getNodeType()==LXML_TEXT_NODE ) {
+                if ( child->isText() ) {
                     lString16 s = child->getText();
                     if ( IsEmptySpace( s.c_str(), s.length() ) ) {
                         delete enode->removeChild( i );
