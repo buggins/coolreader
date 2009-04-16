@@ -1384,8 +1384,7 @@ class ldomElementWriter
     {
         return _element;
     }
-    void onText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
+    void onText( const lChar16 * text, int len, lUInt32 flags );
     void addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value );
     //lxmlElementWriter * pop( lUInt16 id );
 
@@ -1436,8 +1435,7 @@ public:
     /// close tags
     ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id );
     /// called on text
-    virtual void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags );
     /// constructor
     ldomDocumentWriter(ldomDocument * document, bool headerOnly=false );
     /// destructor
@@ -1468,8 +1466,7 @@ public:
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on text
-    virtual void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags );
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags );
     /// constructor
     ldomDocumentWriterFilter(ldomDocument * document, bool headerOnly, const char *** rules);
     /// destructor
@@ -1528,11 +1525,10 @@ public:
             parent->OnAttribute(nsname, attrname, attrvalue);
     }
     /// called on text
-    virtual void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
     {
         if ( insideTag )
-            parent->OnText( text, len, 0, 0, flags );
+            parent->OnText( text, len, flags );
     }
     /// constructor
     ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString16 baseTagName )

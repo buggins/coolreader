@@ -749,8 +749,7 @@ lUInt32 ldomElementWriter::getFlags()
     return flags;
 }
 
-void ldomElementWriter::onText( const lChar16 * text, int len,
-    lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 flags )
 {
     //logfile << "{t";
     {
@@ -894,8 +893,7 @@ void ldomDocumentWriter::OnAttribute( const lChar16 * nsname, const lChar16 * at
     //logfile << " !a!\n";
 }
 
-void ldomDocumentWriter::OnText( const lChar16 * text, int len,
-    lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+void ldomDocumentWriter::OnText( const lChar16 * text, int len, lUInt32 flags )
 {
     //logfile << "ldomDocumentWriter::OnText() fpos=" << fpos;
     if (_currNode)
@@ -904,7 +902,7 @@ void ldomDocumentWriter::OnText( const lChar16 * text, int len,
              && IsEmptySpace(text, len) )
              return;
         if (_currNode->_allowText)
-            _currNode->onText( text, len, fpos, fsize, flags );
+            _currNode->onText( text, len, flags );
     }
     //logfile << " !t!\n";
 }
@@ -3044,8 +3042,7 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
 }
 
 /// called on text
-void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
-    lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 flags )
 {
     //logfile << "lxmlDocumentWriter::OnText() fpos=" << fpos;
     if (_currNode)
@@ -3097,7 +3094,7 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len,
             } else if ( len > 0 ) {
                 if ( autoPara )
                     OnTagOpen( NULL, paraTag );
-                _currNode->onText( text, len, fpos, fsize, flags );
+                _currNode->onText( text, len, flags );
                 if ( autoPara )
                     OnTagClose( NULL, paraTag );
             }

@@ -154,8 +154,7 @@ public:
     virtual void OnTblProp( int id, int param ) { }
     virtual void OnAction( int action ) { }
     virtual void OnControlWord( const char * control, int param ) { }
-    virtual void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags ) { }
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) { }
     virtual ~LVRtfDestination() { }
 };
 

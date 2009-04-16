@@ -2259,7 +2259,7 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
       writer.OnTagOpen( NULL, L"description" );
         writer.OnTagOpen( NULL, L"title-info" );
           writer.OnTagOpen( NULL, L"book-title" );
-            writer.OnText( title.c_str(), title.length(), 0, 0, 0 );
+            writer.OnText( title.c_str(), title.length(), 0 );
           writer.OnTagClose( NULL, L"book-title" );
         writer.OnTagOpen( NULL, L"title-info" );
       writer.OnTagClose( NULL, L"description" );
@@ -2269,11 +2269,11 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
           // process text
           writer.OnTagOpen( NULL, L"title" );
           writer.OnTagOpen( NULL, L"p" );
-            writer.OnText( title.c_str(), title.length(), 0, 0, 0 );
+            writer.OnText( title.c_str(), title.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
           writer.OnTagClose( NULL, L"title" );
           writer.OnTagOpen( NULL, L"p" );
-            writer.OnText( message.c_str(), message.length(), 0, 0, 0 );
+            writer.OnText( message.c_str(), message.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
         //m_callback->OnTagClose( NULL, L"section" );
       writer.OnTagClose( NULL, L"body" );

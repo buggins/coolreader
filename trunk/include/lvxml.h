@@ -51,8 +51,7 @@ public:
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) = 0;
     /// called on text
-    virtual void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags ) = 0;
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
     /// destructor
     virtual ~LVXMLParserCallback() {}
 };

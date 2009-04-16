@@ -183,8 +183,7 @@ public:
         }
     }
     /// called on text
-    virtual void OnText( const lChar16 * text, int len,
-        lvpos_t fpos, lvsize_t fsize, lUInt32 flags )
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
     {
         lString16 txt( text, len );
         switch (state) {

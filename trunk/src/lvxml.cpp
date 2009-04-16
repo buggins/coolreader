@@ -908,22 +908,22 @@ public:
                 callback->OnTagOpen( NULL, L"author" );
                   callback->OnTagOpen( NULL, L"first-name" );
                     if ( !firstName.empty() )
-                        callback->OnText( firstName.c_str(), firstName.length(), 0, 0, TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+                        callback->OnText( firstName.c_str(), firstName.length(), TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
                   callback->OnTagClose( NULL, L"first-name" );
                   callback->OnTagOpen( NULL, L"middle-name" );
                     if ( !middleName.empty() )
-                        callback->OnText( middleName.c_str(), middleName.length(), 0, 0, TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+                        callback->OnText( middleName.c_str(), middleName.length(), TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
                   callback->OnTagClose( NULL, L"middle-name" );
                   callback->OnTagOpen( NULL, L"last-name" );
                     if ( !lastName.empty() )
-                        callback->OnText( lastName.c_str(), lastName.length(), 0, 0, TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+                        callback->OnText( lastName.c_str(), lastName.length(), TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
                   callback->OnTagClose( NULL, L"last-name" );
                 callback->OnTagClose( NULL, L"author" );
             }
         }
         callback->OnTagOpen( NULL, L"book-title" );
             if ( !bookTitle.empty() )
-                callback->OnText( bookTitle.c_str(), bookTitle.length(), 0, 0, 0 );
+                callback->OnText( bookTitle.c_str(), bookTitle.length(), 0 );
         callback->OnTagClose( NULL, L"book-title" );
         if ( !seriesName.empty() || !seriesNumber.empty() ) {
             callback->OnTagOpen( NULL, L"sequence" );
@@ -948,6 +948,7 @@ public:
     /// add one paragraph
     void AddPara( int startline, int endline, LVXMLParserCallback * callback )
     {
+        // TODO: remove pos, sz tracking
         lString16 str;
         lvpos_t pos = 0;
         lvsize_t sz = 0;
@@ -998,8 +999,7 @@ public:
             } else
                     lastParaWasTitle = false;
             callback->OnTagOpen( NULL, L"p" );
-               callback->OnText( str.c_str(), str.length(), pos, sz,
-                   TXTFLG_TRIM | TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
+               callback->OnText( str.c_str(), str.length(), TXTFLG_TRIM | TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
             callback->OnTagClose( NULL, L"p" );
             if ( isHeader ) {
                 callback->OnTagClose( NULL, title_tag );
@@ -1126,8 +1126,7 @@ public:
                 LVTextFileLine * item = get(i);
                 if ( item->rpos > item->lpos ) {
                     callback->OnTagOpen( NULL, L"pre" );
-                       callback->OnText( item->text.c_str(), item->text.length(), item->fpos, item->fsize,
-                           item->flags );
+                       callback->OnText( item->text.c_str(), item->text.length(), item->flags );
                     callback->OnTagClose( NULL, L"pre" );
                 } else {
                     callback->OnTagOpen( NULL, L"empty-line" );
@@ -2126,6 +2125,7 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags )
 
 bool LVXMLParser::ReadText()
 {
+    // TODO: remove tracking of file pos
     int text_start_pos = 0;
     int ch_start_pos = 0;
     int last_split_fpos = 0;
@@ -2169,7 +2169,7 @@ bool LVXMLParser::ReadText()
                     (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false,
                     (flags & TXTFLG_TRIM_REMOVE_EOL_HYPHENS)?true:false );
             }
-            m_callback->OnText(m_txt_buf.c_str(), m_txt_buf.length(), text_start_pos, last_split_fpos-text_start_pos, flags );
+            m_callback->OnText(m_txt_buf.c_str(), m_txt_buf.length(), flags );
             //=====================================================
             if (flgBreak)
             {
