@@ -782,7 +782,7 @@ public:
 
 void freeFormatData( ldomNode * node )
 {
-    node->setRenderData( NULL );
+    node->clearRenderData();
 }
 
 bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 )

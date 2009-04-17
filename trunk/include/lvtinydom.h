@@ -233,20 +233,12 @@ public:
 
     inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
 
-    inline void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node )
-    {
-        if ( _idAttrId==0 )
-            _idAttrId = _attrNameTable.idByName("id");
-        if (attrId == _idAttrId)
-        {
-            _idNodeMap.set( valueId, node );
-        }
-    }
+    void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node );
 
     /// get element by id attribute value code
     inline ldomNode * getNodeById( lUInt16 attrValueId )
     {
-        return _idNodeMap.get( attrValueId );
+        return getNodeInstance( _idNodeMap.get( attrValueId ) );
     }
 
     /// get element by id attribute value
@@ -275,14 +267,16 @@ protected:
     };
     /// returns or creates object instance by index
     ldomNode * getNodeInstance( lInt32 dataIndex );
-	/// for persistent text node, return text by index, with cachin (TODO)
+	/// for persistent text node, return wide text by index, with caching (TODO)
     lString16 getTextNodeValue( lInt32 dataIndex );
+	/// for persistent text node, return utf8 text by index, with caching (TODO)
+    lString8 getTextNodeValue8( lInt32 dataIndex );
     /// used by object constructor, to assign ID for created object
     lInt32 registerNode( ldomNode * node );
     /// used by object destructor, to remove RAM reference; leave data as is
     void unregisterNode( lInt32 dataIndex, ldomNode * node );
     /// used by persistance management constructors, to replace one instance with another, deleting old instance
-    void replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
+    ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
     /// used by object destructor, to remove RAM reference; mark data as deleted
     void deleteNode( lInt32 dataIndex );
 	/// returns pointer to node data block
@@ -313,7 +307,7 @@ private:
     lvdomStyleCache _styleCache;         // Style cache
     LVStyleSheet  _stylesheet;
     lString16HashedCollection _attrValueTable;
-    LVHashTable<lUInt16,ldomNode*> _idNodeMap;
+    LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
     CRPropRef _docProps;
 };
@@ -333,11 +327,11 @@ struct lxmlAttribute
     lUInt16 nsid;
     lUInt16 id;
     lUInt16 index;
-    bool compare( lUInt16 nsId, lUInt16 attrId )
+    inline bool compare( lUInt16 nsId, lUInt16 attrId )
     {
         return (nsId == nsid || nsId == LXML_NS_ANY) && (id == attrId);
     }
-    void setData( lUInt16 nsId, lUInt16 attrId, lUInt16 valueIndex )
+    inline void setData( lUInt16 nsId, lUInt16 attrId, lUInt16 valueIndex )
     {
         nsid = nsId;
         id = attrId;
@@ -347,60 +341,6 @@ struct lxmlAttribute
 
 class ldomDocument;
 
-class ldomText;
-
-// fastDOM
-class ldomAttributeCollection
-{
-private:
-    lUInt16 _len;
-    lUInt16 _size;
-    lxmlAttribute * _list;
-public:
-    ldomAttributeCollection()
-    : _len(0), _size(0), _list(NULL)
-    {
-    }
-    ~ldomAttributeCollection()
-    {
-        if (_list)
-            free(_list);
-    }
-    lxmlAttribute * operator [] (int index) { return &_list[index]; }
-    const lxmlAttribute * operator [] (int index) const { return &_list[index]; }
-    lUInt16 length() const
-    {
-        return _len;
-    }
-    lUInt16 get( lUInt16 nsId, lUInt16 attrId ) const
-    {
-        for (lUInt16 i=0; i<_len; i++)
-        {
-            if (_list[i].compare( nsId, attrId ))
-                return _list[i].index;
-        }
-        return LXML_ATTR_VALUE_NONE;
-    }
-    void set( lUInt16 nsId, lUInt16 attrId, lUInt16 valueIndex )
-    {
-        // find existing
-        for (lUInt16 i=0; i<_len; i++)
-        {
-            if (_list[i].compare( nsId, attrId ))
-            {
-                _list[i].index = valueIndex;
-                return;
-            }
-        }
-        // add
-        if (_len>=_size)
-        {
-            _size += 4;
-            _list = (lxmlAttribute*) realloc( _list, _size*sizeof(lxmlAttribute) );
-        }
-        _list[ _len++ ].setData(nsId, attrId, valueIndex);
-    }
-};
 
 #define LDOM_ALLOW_NODE_INDEX 0
 
@@ -484,7 +424,7 @@ public:
     /// returns attribute value by attribute name id and namespace id
     virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const = 0;
     /// returns attribute value by attribute name
-    virtual const lString16 & getAttributeValue( const lChar16 * attrName ) const
+    inline const lString16 & getAttributeValue( const lChar16 * attrName ) const
     {
         return getAttributeValue( NULL, attrName );
     }
@@ -510,32 +450,26 @@ public:
     virtual const lString16 & getNodeName() const = 0;
     /// returns element namespace name
     virtual const lString16 & getNodeNsName() const = 0;
-    /// returns text node text
-    virtual lString16 getText( lChar16 blockDelimiter = 0 ) const = 0;
-    /// sets text node text
+    /// returns text node text as wide string
+    virtual lString16 getText( lChar16 blockDelimiter = 0 ) const;
+    /// returns text node text as utf8 string
+    virtual lString8 getText8( lChar8 blockDelimiter = 0 ) const;
+    /// sets text node text as wide string
     virtual void setText( lString16 value ) { }
+    /// sets text node text as utf8 string
+    virtual void setText8( lString8 value ) { }
     /// returns child node by index
     virtual ldomNode * getChildNode( lUInt32 index ) const = 0;
     /// returns node absolute rectangle
-    virtual void getAbsRect( lvRect & rect ) { }
+    virtual void getAbsRect( lvRect & rect );
     /// returns render data structure
-    virtual lvdomElementFormatRec * getRenderData()
-    {
-        return NULL;
-    }
+    virtual lvdomElementFormatRec * getRenderData() { return NULL; }
     /// sets node rendering structure pointer
-    virtual void setRenderData( lvdomElementFormatRec * pRenderData )
-    {
-    }
+    virtual void clearRenderData() { }
     /// calls specified function recursively for all elements of DOM tree
-    virtual void recurseElements( void (*pFun)( ldomNode * node ) )
-    {
-    }
+    virtual void recurseElements( void (*pFun)( ldomNode * node ) );
     /// calls specified function recursively for all nodes of DOM tree
-    virtual void recurseNodes( void (*pFun)( ldomNode * node ) )
-    {
-        pFun( this );
-    }
+    virtual void recurseNodes( void (*pFun)( ldomNode * node ) );
 
 
     // inline, dummy namespace
@@ -551,9 +485,9 @@ public:
         return hasAttribute( LXML_NS_ANY, id );
     }
     /// returns first text child element
-    virtual ldomText * getFirstTextChild();
+    virtual ldomNode * getFirstTextChild();
     /// returns last text child element
-    virtual ldomText * getLastTextChild();
+    virtual ldomNode * getLastTextChild();
 #if BUILD_LITE!=1
     /// find node by coordinates of point in formatted document
     virtual ldomNode * elementFromPoint( lvPoint pt );
@@ -584,9 +518,9 @@ public:
     /// move range of children startChildIndex to endChildIndex inclusively to specified element
     virtual void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex ) { }
     /// find child element by tag id
-    virtual ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index ) { return NULL; }
+    ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
     /// find child element by id path
-    virtual ldomNode * findChildElement( lUInt16 idPath[] )  { return NULL; }
+    ldomNode * findChildElement( lUInt16 idPath[] );
     /// inserts child element
     virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id ) { return NULL; }
     /// inserts child element
@@ -598,12 +532,12 @@ public:
     /// remove child
     virtual ldomNode * removeChild( lUInt32 index ) { return NULL; }
     /// creates stream to read base64 encoded data from element
-    virtual LVStreamRef createBase64Stream() { return LVStreamRef(); }
+    LVStreamRef createBase64Stream();
 #if BUILD_LITE!=1
     /// returns object image source
-    virtual LVImageSourceRef getObjectImageSource() { return LVImageSourceRef(); }
+    LVImageSourceRef getObjectImageSource();
     /// formats final block
-    virtual int renderFinalBlock(  LFormattedTextRef & frmtext, int width ) { return 0; }
+    int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
 #endif
     /// replace node with r/o persistent implementation
     virtual ldomNode * persist() { return this; }
@@ -613,80 +547,6 @@ public:
 
 class ldomDocument;
 
-
-class ldomText : public ldomNode
-{
-private:
-#if (USE_DOM_UTF8_STORAGE==1)
-    lString8 _value;
-#else
-    lString16 _value;
-#endif
-
-public:
-#if (LDOM_USE_OWN_MEM_MAN==1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(ldomText));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsREF->free((ldomMemBlock *)p);
-    }
-#endif
-    ldomText( ldomNode * parent, lUInt32 index, lString16 value );
-    virtual ~ldomText() { }
-    /// returns LXML_TEXT_NODE for text node
-    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
-    /// returns element child count
-    virtual lUInt32 getChildCount() const { return 0; }
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const { return 0; }
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
-    {
-        return lString16::empty_str;
-    }
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() { return NULL; }
-    /// returns element name id
-    virtual lUInt16 getNodeId() const { return 0; }
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const { return 0; }
-    /// returns element name
-    virtual const lString16 & getNodeName() const { return lString16::empty_str; }
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
-    /// returns text node text
-    virtual lString16 getText( lChar16 blockDelimiter=0 ) const
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        return Utf8ToUnicode(_value);
-#else
-        return _value;
-#endif
-    }
-    /// sets text node text
-    virtual void setText( lString16 value )
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        _value = UnicodeToUtf8(value);
-#else
-        _value = value;
-#endif
-    }
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
-};
 
 /**
  * @brief XPointer/XPath object
@@ -918,14 +778,14 @@ public:
 /// range for word inside text node
 class ldomWord
 {
-    ldomText * _node;
+    ldomNode * _node;
     int _start;
     int _end;
 public:
     ldomWord( )
     : _node(NULL), _start(0), _end(0)
     { }
-    ldomWord( ldomText * node, int start, int end )
+    ldomWord( ldomNode * node, int start, int end )
     : _node(node), _start(start), _end(end)
     { }
     ldomWord( const ldomWord & v )
@@ -941,7 +801,7 @@ public:
     /// returns true if object doesn't point valid word
     bool isNull() { return _node==NULL || _start<0 || _end<=_start; }
     /// get word text node pointer
-    ldomText * getNode() const { return _node; }
+    ldomNode * getNode() const { return _node; }
     /// get word start offset
     int getStart() const { return _start; }
     /// get word end offset
@@ -1286,60 +1146,6 @@ public:
 
     bool findText( lString16 pattern, bool caseInsensitive, int minY, int maxY, LVArray<ldomWord> & words, int maxCount );
 #endif
-};
-
-class ldomPersistentText : public ldomNode
-{
-    friend class ldomDocument;
-public:
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(ldomPersistentText));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsREF->free((ldomMemBlock *)p);
-    }
-#endif
-    ldomPersistentText( ldomNode * parent, lUInt32 index, lString16 value );
-    ldomPersistentText( ldomNode * parent, lUInt32 index, lString8 value );
-    virtual ~ldomPersistentText() { }
-    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
-    /// returns element child count
-    virtual lUInt32 getChildCount() const { return 0; }
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const { return 0; }
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
-    {
-        return lString16::empty_str;
-    }
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() { return NULL; }
-    /// returns element name id
-    virtual lUInt16 getNodeId() const { return 0; }
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const { return 0; }
-    /// returns element name
-    virtual const lString16 & getNodeName() const { return lString16::empty_str; }
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
-    /// returns text node text
-    virtual lString16 getText( lChar16 blockDelimiter=0 ) const;
-    /// sets text node text
-    virtual void setText( lString16 value );
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
 };
 
 
