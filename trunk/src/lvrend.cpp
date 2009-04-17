@@ -1000,6 +1000,8 @@ void initRendMethod( ldomNode * enode )
             if ( child->isElement() )
             {
                 initRendMethod( child );
+                // may be modified
+                child = enode->getChildNode( i );
                 //lvdomElementFormatRec * childfmt = child->getRenderData();
                 switch( child->getStyle()->display )
                 {
@@ -1036,6 +1038,7 @@ void initRendMethod( ldomNode * enode )
                 if ( child->isText() ) {
                     lString16 s = child->getText();
                     if ( IsEmptySpace( s.c_str(), s.length() ) ) {
+                        enode = enode->modify();
                         delete enode->removeChild( i );
                         cnt--;
                         textCount--;
@@ -1056,6 +1059,7 @@ void initRendMethod( ldomNode * enode )
                     if ( !isInline || i==0 ) {
                         if ( firstInline>=0 ) {
                             int lastInline = isInline ? i : i+1;
+                            enode = enode->modify();
                             ldomNode * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing );
                             enode->moveItemsTo( abox, lastInline+1, firstInline+1 );
                             setNodeStyle( abox,

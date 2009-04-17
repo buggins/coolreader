@@ -253,6 +253,14 @@ public:
     /// returns doc properties collection
     void setProps( CRPropRef props ) { _docProps = props; }
 
+    /// put all object into persistent storage
+    virtual void persist();
+
+    /// returns main element (i.e. FictionBook for FB2)
+    ldomNode * getMainNode();
+    /// returns root element
+    ldomNode * getRootNode() { return getMainNode(); }
+
 protected:
 //=========================================
 //       NEW STORAGE MODEL METHODS
@@ -348,6 +356,7 @@ class ldomDocument;
 class ldomNode
 {
     friend class ldomElement;
+    friend class lxmlDocBase;
     // vtable                    0: [4]
 protected:
     /// document which owns this node
@@ -543,6 +552,9 @@ public:
     virtual ldomNode * persist() { return this; }
     /// replace node with r/w implementation
     virtual ldomNode * modify() { return this; }
+protected:
+    /// override to avoid deleting children while replacing
+    virtual void prepareReplace() { }
 };
 
 class ldomDocument;
@@ -1050,7 +1062,6 @@ class ldomDocument : public lxmlDocBase
 {
     friend class ldomDocumentWriter;
 private:
-    ldomNode * _root;
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
     int _page_height;
@@ -1113,10 +1124,6 @@ public:
     css_style_ref_t getDefaultStyle() { return _def_style; }
     /// destructor
     virtual ~ldomDocument();
-    /// returns root element
-    ldomNode * getRootNode() { return _root; }
-    /// returns main element (i.e. FictionBook for FB2)
-    ldomNode * getMainNode();
 #if BUILD_LITE!=1
     /// renders (formats) document in memory
     virtual int render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space );

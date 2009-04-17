@@ -47,7 +47,7 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
 	lUInt16 nsid;
 	lInt16  attrCount;
 	lUInt8  rendMethod;
-	lUInt8  hasRenderData;
+	lUInt8  reserved8;
 	lInt32  childCount;
 	lvdomElementFormatRec renderData; // 4 * 4
 	lUInt16 fontIndex;
@@ -457,6 +457,12 @@ public:
     virtual ldomNode * removeChild( lUInt32 index );
     /// replace node with r/o persistent implementation
     virtual ldomNode * persist();
+protected:
+    /// override to avoid deleting children while replacing
+    virtual void prepareReplace()
+    {
+        _children.clear();
+    }
 };
 
 
@@ -495,7 +501,33 @@ public:
     }
 #endif
 
-    ldomPersistentElement( ldomElement * v );
+    ldomPersistentElement( ldomElement * v )
+    : ldomNode( v )
+    {
+        int attrCount = v->getAttrCount();
+        int childCount = v->getChildCount();
+        ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
+        lUInt16 * attrs = data->attrs();
+        int i;
+        for ( i=0; i<attrCount; i++ ) {
+            const lxmlAttribute * attr = v->getAttribute(i);
+            attrs[i * 3] = attr->nsid;     // namespace
+            attrs[i * 3 + 1] = attr->id;   // id
+            attrs[i * 3 + 2] = attr->index;// value
+        }
+        for ( i=0; i<childCount; i++ ) {
+            data->children[i] = v->_children[i];
+        }
+        data->rendMethod = (lUInt8)v->_rendMethod;
+
+        data->styleIndex = 0; // todo
+        data->fontIndex = 0;  // todo
+
+        lvdomElementFormatRec * rdata = v->getRenderData();
+        data->renderData = *rdata;
+        _style = v->_style;
+        _font = v->_font;
+    }
 
 	/// destructor
     virtual ~ldomPersistentElement() { }
@@ -641,6 +673,12 @@ public:
     virtual ldomNode * removeChild( lUInt32 index ) { readOnlyError(); return NULL; }
     /// replace node with r/w implementation
     virtual ldomNode * modify();
+protected:
+    /// override to avoid deleting children while replacing
+    virtual void prepareReplace()
+    {
+        getData()->childCount = 0;
+    }
 };
 
 ldomText::ldomText( ldomPersistentText * v )
@@ -654,42 +692,8 @@ ldomText::ldomText( ldomPersistentText * v )
 }
 
 
-ldomPersistentElement::ldomPersistentElement( ldomElement * v )
-: ldomNode( v )
-{
-    int attrCount = v->getAttrCount();
-    int childCount = v->getChildCount();
-    ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
-    lUInt16 * attrs = data->attrs();
-    int i;
-    for ( i=0; i<attrCount; i++ ) {
-        const lxmlAttribute * attr = v->getAttribute(i);
-        attrs[i * 3] = attr->nsid;     // namespace
-        attrs[i * 3 + 1] = attr->id;   // id
-        attrs[i * 3 + 2] = attr->index;// value
-    }
-    for ( i=0; i<childCount; i++ ) {
-        data->children[i] = v->_children[i];
-    }
-    data->rendMethod = (lUInt8)v->_rendMethod;
-
-    data->styleIndex = 0; // todo
-    data->fontIndex = 0;  // todo
-
-    lvdomElementFormatRec * rdata = v->getRenderData();
-    if ( rdata ) {
-        data->hasRenderData = 1;
-        data->renderData = *rdata;
-    } else {
-        data->hasRenderData = 0;
-        memset( &data->renderData, 0, sizeof(lvdomElementFormatRec) );
-    }
-    _style = v->_style;
-    _font = v->_font;
-}
-
 ldomElement::ldomElement( ldomPersistentElement * v )
-: ldomNode( v )
+: ldomNode( v ), _id( v->getNodeId() ), _nsid( v->getNodeNsId() ), _renderData(NULL), _rendMethod(erm_invisible)
 {
     int attrCount = v->getAttrCount();
     int childCount = v->getChildCount();
@@ -707,14 +711,16 @@ ldomElement::ldomElement( ldomPersistentElement * v )
 /// replace node with r/o persistent implementation
 ldomNode * ldomElement::persist()
 {
-    return _document->replaceInstance( _dataIndex, new ldomPersistentElement( this ) );
+    ldomPersistentElement * newItem = new ldomPersistentElement( this );
+    return _document->replaceInstance( _dataIndex,  newItem );
     //return this;
 }
 
 /// replace node with r/w implementation
 ldomNode * ldomPersistentElement::modify()
 {
-    return _document->replaceInstance( _dataIndex, new ldomElement( this ) );
+    ldomElement * newItem = new ldomElement( this );
+    return _document->replaceInstance( _dataIndex, newItem );
     //return this;
 }
 
@@ -794,6 +800,11 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 /// Destructor
 lxmlDocBase::~lxmlDocBase()
 {
+    for ( int i=0; i<_instanceMapCount; i++ ) {
+        if ( _instanceMap[i].instance != NULL ) {
+            delete _instanceMap[i].instance;
+        }
+    }
     free( _instanceMap );
 }
 
@@ -804,6 +815,16 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
     if (attrId == _idAttrId)
     {
         _idNodeMap.set( valueId, node->getDataIndex() );
+    }
+}
+
+/// put all object into persistent storage
+void lxmlDocBase::persist()
+{
+    for ( int i=0; i<_instanceMapCount; i++ ) {
+        if ( _instanceMap[ i ].instance ) {
+            _instanceMap[ i ].instance = _instanceMap[ i ].instance->persist();
+        }
     }
 }
 
@@ -833,8 +854,10 @@ void lxmlDocBase::unregisterNode( lInt32 dataIndex, ldomNode * node )
 ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
 {
     ldomNode * & instance = _instanceMap[ dataIndex ].instance;
-    if ( instance )
+    if ( instance ) {
+        instance->prepareReplace();
         delete instance;
+    }
     return (instance = newInstance);
 }
 
@@ -1021,11 +1044,11 @@ lUInt8 ldomNode::getNodeLevel() const
 }
 
 /// returns main element (i.e. FictionBook for FB2)
-ldomNode * ldomDocument::getMainNode()
+ldomNode * lxmlDocBase::getMainNode()
 {
-    if (!_root || !_root->getChildCount())
+    if ( _instanceMapCount<2 )
         return NULL;
-	return _root;
+    return getNodeInstance( 1 );
 }
 
 ldomDocument::ldomDocument()
@@ -1035,7 +1058,8 @@ ldomDocument::ldomDocument()
 #endif
         _docFlags(DOC_FLAG_DEFAULTS)
 {
-    _root = new ldomElement( this, NULL, 0, 0, 0 );
+    new ldomElement( this, NULL, 0, 0, 0 );
+    //assert( _instanceMapCount==2 );
 }
 
 /// Copy constructor - copies ID tables contents
@@ -1160,7 +1184,8 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char * codepage )
 
 ldomDocument::~ldomDocument()
 {
-    delete _root;
+    //delete _root;
+    // TODO:
 }
 
 #if BUILD_LITE!=1
@@ -1210,6 +1235,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     gc();
     CRLog::trace("finalizing...");
     context.Finalize();
+    //persist();
     return height;
 }
 #endif

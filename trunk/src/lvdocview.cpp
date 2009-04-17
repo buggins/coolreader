@@ -2800,7 +2800,7 @@ bool LVDocView::ParseDocument( )
         m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle( m_doc ));
         m_doc_props->setString(DOC_PROP_SERIES_NAME, extractDocSeries( m_doc ));
     }
-
+    m_doc->persist();
     requestRender();
     return true;
 }
