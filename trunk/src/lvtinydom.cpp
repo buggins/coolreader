@@ -469,7 +469,6 @@ private:
     css_style_ref_t _style;
     font_ref_t      _font;
 protected:
-    virtual void addChild( lInt32 dataIndex );
 
     inline ElementDataStorageItem * getData() const { return _document->getElementNodeData( _dataIndex ); }
 
@@ -478,6 +477,7 @@ protected:
     {
         crFatalError( 123, "Element is persistent (read-only)! Call modify() to get r/w instance." );
     }
+    virtual void addChild( lInt32 dataIndex ) { readOnlyError(); }
 public:
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     static ldomMemManStorage * pmsHeap;
@@ -495,41 +495,10 @@ public:
     }
 #endif
 
-    ldomPersistentElement( ldomElement * v )
-    : ldomNode( v )
-    {
-        int attrCount = v->getAttrCount();
-        int childCount = v->getChildCount();
-        ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
-        lUInt16 * attrs = data->attrs();
-        int i;
-        for ( i=0; i<attrCount; i++ ) {
-            const lxmlAttribute * attr = v->getAttribute(i);
-            attrs[i * 3] = attr->nsid;     // namespace
-            attrs[i * 3 + 1] = attr->id;   // id
-            attrs[i * 3 + 2] = attr->index;// value
-        }
-        for ( i=0; i<childCount; i++ ) {
-            data->children[i] = v->_children[i];
-        }
-        data->rendMethod = (lUInt8)v->_rendMethod;
+    ldomPersistentElement( ldomElement * v );
 
-        data->styleIndex = 0; // todo
-        data->fontIndex = 0;  // todo
-
-        lvdomElementFormatRec * rdata = v->getRenderData();
-        if ( rdata ) {
-            data->hasRenderData = 1;
-            data->renderData = *rdata;
-        } else {
-            data->hasRenderData = 0;
-            memset( &data->renderData, 0, sizeof(lvdomElementFormatRec) );
-        }
-        _style = v->_style;
-        _font = v->_font;
-    }
 	/// destructor
-    virtual ~ldomPersistentElement();
+    virtual ~ldomPersistentElement() { }
 	/// returns LXML_ELEMENT_NODE
     virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
     /// returns rendering method
@@ -682,6 +651,41 @@ ldomText::ldomText( ldomPersistentText * v )
 #else
     _value =  v->getText();
 #endif
+}
+
+
+ldomPersistentElement::ldomPersistentElement( ldomElement * v )
+: ldomNode( v )
+{
+    int attrCount = v->getAttrCount();
+    int childCount = v->getChildCount();
+    ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
+    lUInt16 * attrs = data->attrs();
+    int i;
+    for ( i=0; i<attrCount; i++ ) {
+        const lxmlAttribute * attr = v->getAttribute(i);
+        attrs[i * 3] = attr->nsid;     // namespace
+        attrs[i * 3 + 1] = attr->id;   // id
+        attrs[i * 3 + 2] = attr->index;// value
+    }
+    for ( i=0; i<childCount; i++ ) {
+        data->children[i] = v->_children[i];
+    }
+    data->rendMethod = (lUInt8)v->_rendMethod;
+
+    data->styleIndex = 0; // todo
+    data->fontIndex = 0;  // todo
+
+    lvdomElementFormatRec * rdata = v->getRenderData();
+    if ( rdata ) {
+        data->hasRenderData = 1;
+        data->renderData = *rdata;
+    } else {
+        data->hasRenderData = 0;
+        memset( &data->renderData, 0, sizeof(lvdomElementFormatRec) );
+    }
+    _style = v->_style;
+    _font = v->_font;
 }
 
 ldomElement::ldomElement( ldomPersistentElement * v )
