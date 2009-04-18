@@ -116,6 +116,7 @@ class lxmlDocBase
     friend class ldomPersistentElement;
     friend class ldomText;
     friend class ldomPersistentText;
+	friend class ldomXPointer;
 public:
 
     /// Default constructor
@@ -256,10 +257,8 @@ public:
     /// put all object into persistent storage
     virtual void persist();
 
-    /// returns main element (i.e. FictionBook for FB2)
-    ldomNode * getMainNode();
     /// returns root element
-    ldomNode * getRootNode() { return getMainNode(); }
+    ldomNode * getRootNode();
 
 protected:
 //=========================================
@@ -561,40 +560,104 @@ class ldomDocument;
 
 
 /**
- * @brief XPointer/XPath object
+ * @brief XPointer/XPath object with reference counting.
+ * 
  */
 class ldomXPointer
 {
 protected:
+	struct XPointerData {
+	protected:
+		ldomDocument * _doc;
+		lInt32 _dataIndex;
+		int _offset;
+		int _refCount;
+	public:
+		inline void addRef() { _refCount++; }
+		inline void release() { if ( (--_refCount)==0 ) delete this; }
+		// create empty
+		XPointerData() : _doc(NULL), _dataIndex(0), _offset(0), _refCount(1) { }
+		// create instance
+		XPointerData( ldomNode * node, int offset ) 
+			: _doc(node?node->getDocument():NULL)
+			, _dataIndex(node?node->getDataIndex():0)
+			, _offset( offset )
+			, _refCount( 1 )
+		{ }
+		// clone
+		XPointerData( const XPointerData & v )  : _doc(v._doc), _dataIndex(v._dataIndex), _offset(v._offset), _refCount(1) { }
+		inline ldomDocument * getDocument() { return _doc; }
+		inline bool operator == (const XPointerData & v) const
+		{
+			return _doc==v._doc && _dataIndex == v._dataIndex && _offset == v._offset;
+		}
+		inline bool operator != (const XPointerData & v) const
+		{
+			return _doc!=v._doc || _dataIndex != v._dataIndex || _offset != v._offset;
+		}
+		inline bool isNull() { return _dataIndex==0; }
+		inline ldomNode * getNode() { return _dataIndex>0 ? ((lxmlDocBase*)_doc)->getNodeInstance( _dataIndex ) : NULL; }
+		inline int getOffset() { return _offset; }
+		inline void setNode( ldomNode * node )
+		{
+			if ( node ) {
+				_doc = node->getDocument();
+				_dataIndex = node->getDataIndex();
+			} else {
+				_doc = NULL;
+				_dataIndex = 0;
+			}
+		}
+		inline void setOffset( int offset ) { _offset = offset; }
+		~XPointerData() { }
+	};
 	/// node pointer
-	ldomNode * _node;
+	//ldomNode * _node;
 	/// offset within node for pointer, -1 for xpath
-	int _offset;
-public:
-    /// returns node pointer
-	ldomNode * getNode() const { return _node; }
-    /// returns offset within node
-	int getOffset() const { return _offset; }
-    /// default constructor makes NULL pointer
-	ldomXPointer()
-		: _node(NULL), _offset(-1)
+	//int _offset;
+	// cloning constructor
+	ldomXPointer( const XPointerData * data )
+		: _data( new XPointerData( *data ) )
 	{
 	}
+public:
+	XPointerData * _data;
+	/// 
+	inline ldomDocument * getDocument() { return _data->getDocument(); }
+    /// returns node pointer
+	inline ldomNode * getNode() const { return _data->getNode(); }
+    /// returns offset within node
+	inline int getOffset() const { return _data->getOffset(); }
+	/// set pointer node
+	inline void setNode( ldomNode * node ) { _data->setNode( node ); }
+	/// set pointer offset within node
+	inline void setOffset( int offset ) { _data->setOffset( offset ); }
+    /// default constructor makes NULL pointer
+	ldomXPointer()
+		: _data( new XPointerData() )
+	{
+	}
+	/// remove reference
+	~ldomXPointer() { _data->release(); }
     /// copy constructor
 	ldomXPointer( const ldomXPointer& v )
-		: _node(v._node), _offset(v._offset)
+		: _data(v._data)
 	{
+		_data->addRef();
 	}
     /// assignment operator
 	ldomXPointer & operator =( const ldomXPointer& v )
 	{
-        _node = v._node;
-        _offset = v._offset;
+		if ( _data==v._data )
+			return *this;
+		_data->release();
+		_data = v._data;
+		_data->addRef();
         return *this;
 	}
     /// constructor
 	ldomXPointer( ldomNode * node, int offset )
-		: _node(node), _offset(offset)
+		: _data( new XPointerData( node, offset ) )
 	{
 	}
     /// get pointer for relative path
@@ -608,32 +671,32 @@ public:
     /// returns true for NULL pointer
 	bool isNull() const
 	{
-		return _node==NULL;
+		return _data->isNull();
 	}
     /// returns true if object is pointer
 	bool isPointer() const
 	{
-		return _node!=NULL && _offset>=0;
+		return !_data->isNull() && getOffset()>=0;
 	}
     /// returns true if object is path (no offset specified)
 	bool isPath() const
 	{
-		return _node!=NULL && _offset==-1;
+		return !_data->isNull() && getOffset()==-1;
 	}
     /// returns true if pointer is NULL
 	bool operator !() const
 	{
-		return _node==NULL;
+		return _data->isNull();
 	}
     /// returns true if pointers are equal
 	bool operator == (const ldomXPointer & v) const
 	{
-		return _node==v._node && _offset==v._offset;
+		return *_data == *v._data;
 	}
     /// returns true if pointers are not equal
 	bool operator != (const ldomXPointer & v) const
 	{
-		return _node!=v._node || _offset!=v._offset;
+		return *_data != *v._data;
 	}
 #if BUILD_LITE!=1
     /// returns caret rectangle for pointer inside formatted document
@@ -646,12 +709,22 @@ public:
     /// returns XPath node text
     lString16 getText(  lChar16 blockDelimiter=0 )
     {
-        if ( !_node )
+		ldomNode * node = getNode();
+        if ( !node )
             return lString16();
-        return _node->getText( blockDelimiter );
+        return node->getText( blockDelimiter );
     }
     /// returns href attribute of <A> element, null string if not found
     lString16 getHRef();
+	/// create a copy of pointer data
+	ldomXPointer * clone()
+	{
+		return new ldomXPointer( _data );
+	}
+    /// returns true if current node is element
+    inline bool isElement() const { return !isNull() && getNode()->isElement(); }
+    /// returns true if current node is element
+    inline bool isText() const { return !isNull() && getNode()->isText(); }
 };
 
 #define MAX_DOM_LEVEL 64
@@ -669,25 +742,25 @@ public:
     int getLevel() { return _level; }
     /// default constructor
     ldomXPointerEx()
-    : ldomXPointer()
+	    : ldomXPointer()
     {
         initIndex();
     }
     /// constructor by node pointer and offset
     ldomXPointerEx(  ldomNode * node, int offset )
-    : ldomXPointer( node, offset )
+		: ldomXPointer( node, offset )
     {
         initIndex();
     }
     /// copy constructor
     ldomXPointerEx( const ldomXPointer& v )
-    : ldomXPointer( v )
+		: ldomXPointer( v._data )
     {
         initIndex();
     }
     /// copy constructor
     ldomXPointerEx( const ldomXPointerEx& v )
-    : ldomXPointer( v )
+		: ldomXPointer( v._data )
     {
         _level = v._level;
         for ( int i=0; i<_level; i++ )
@@ -696,16 +769,20 @@ public:
     /// assignment operator
     ldomXPointerEx & operator =( const ldomXPointer& v )
     {
-        _node = v.getNode();
-        _offset = v.getOffset();
+		if ( _data==v._data )
+			return *this;
+		_data->release();
+		_data = new XPointerData( *v._data );
         initIndex();
         return *this;
     }
     /// assignment operator
     ldomXPointerEx & operator =( const ldomXPointerEx& v )
     {
-        _node = v._node;
-        _offset = v._offset;
+		if ( _data==v._data )
+			return *this;
+		_data->release();
+		_data = new XPointerData( *v._data );
         _level = v._level;
         for ( int i=0; i<_level; i++ )
             _indexes[ i ] = v._indexes[i];
@@ -741,10 +818,6 @@ public:
     bool ensureFinal();
     /// returns true if current node is visible element with render method == erm_final
     bool isVisibleFinal();
-    /// returns true if current node is element
-    bool isElement() { return _node!=NULL && _node->isElement(); }
-    /// returns true if current node is element
-    bool isText() { return _node!=NULL && _node->isText(); }
     /// move to next final visible node (~paragraph)
     bool nextVisibleFinal();
     /// move to previous final visible node (~paragraph)
@@ -767,11 +840,6 @@ public:
     void recurseElements( void (*pFun)( ldomXPointerEx & node ) );
     /// calls specified function recursively for all nodes of DOM tree
     void recurseNodes( void (*pFun)( ldomXPointerEx & node ) );
-    /// set new offset value
-    void setOffset( int offset )
-    {
-        _offset = offset;
-    }
 };
 
 class ldomXRange;

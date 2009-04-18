@@ -869,7 +869,7 @@ int LVDocView::GetFullHeight()
 {
     LVLock lock(getMutex());
     checkRender();
-    lvdomElementFormatRec * rd = m_doc ? m_doc->getMainNode()->getRenderData() : NULL;
+    lvdomElementFormatRec * rd = m_doc ? m_doc->getRootNode()->getRenderData() : NULL;
     return ( rd ? rd->getHeight()+rd->getY() : m_dy );
 }
 
@@ -1353,7 +1353,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         } else {
             // draw main page text
             CRLog::trace("Entering DrawDocument()");
-            DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, clip.top, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
+            DrawDocument( *drawbuf, m_doc->getRootNode(), pageRect->left + m_pageMargins.left, clip.top, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
             CRLog::trace("Done DrawDocument() for main text");
             // draw footnotes
 #define FOOTNOTE_MARGIN 8
@@ -1368,7 +1368,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
                 clip.right = pageRect->right - m_pageMargins.right;
                 clip.bottom = fy + offset + fheight;
                 drawbuf->SetClipRect(&clip);
-                DrawDocument( *drawbuf, m_doc->getMainNode(), pageRect->left + m_pageMargins.left, fy + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, fheight, 0, -fstart+offset, m_dy, &m_markRanges );
+                DrawDocument( *drawbuf, m_doc->getRootNode(), pageRect->left + m_pageMargins.left, fy + offset, pageRect->width() - m_pageMargins.left - m_pageMargins.right, fheight, 0, -fstart+offset, m_dy, &m_markRanges );
                 footnoteDrawed = true;
                 fy += fheight;
             }
@@ -1455,7 +1455,7 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
             rc.right -= m_pageMargins.right;
             drawCoverTo( &drawbuf, rc );
         }
-        DrawDocument( drawbuf, m_doc->getMainNode(), m_pageMargins.left, 0, m_dx - m_pageMargins.left - m_pageMargins.right, m_dy, 0, -position, m_dy, &m_markRanges );
+        DrawDocument( drawbuf, m_doc->getRootNode(), m_pageMargins.left, 0, m_dx - m_pageMargins.left - m_pageMargins.right, m_dy, 0, -position, m_dy, &m_markRanges );
     }
     else
     {
@@ -1614,7 +1614,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
     LVLock lock(getMutex());
     {
-        if ( !m_doc || !isDocumentOpened() || m_doc->getMainNode()==NULL)
+        if ( !m_doc || !isDocumentOpened() || m_doc->getRootNode()==NULL)
             return;
         if ( pages==NULL )
             pages = &m_pages;

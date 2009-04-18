@@ -578,7 +578,7 @@ public:
         lUInt16 * attrs = data->attrs();
         for ( int i=0; i<attrCount; i++ ) {
             lxmlAttribute * attr = (lxmlAttribute*)(&(attrs[i*3]));
-            if ( attr->compare( nsid, id ) )
+            if ( !attr->compare( nsid, id ) )
                 continue;
             lUInt16 val_id = attr->index;
             if (val_id != LXML_ATTR_VALUE_NONE)
@@ -1046,7 +1046,7 @@ lUInt8 ldomNode::getNodeLevel() const
 }
 
 /// returns main element (i.e. FictionBook for FB2)
-ldomNode * lxmlDocBase::getMainNode()
+ldomNode * lxmlDocBase::getRootNode()
 {
     if ( _instanceMapCount<2 )
         return NULL;
@@ -1223,12 +1223,12 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     _def_style->line_height.value = def_interline_space;
     // update styles
     CRLog::trace("init format data...");
-    getMainNode()->recurseElements( initFormatData );
+    getRootNode()->recurseElements( initFormatData );
     CRLog::trace("init render method...");
-    initRendMethod( getMainNode() );
+    initRendMethod( getRootNode() );
     //updateStyles();
     CRLog::trace("rendering...");
-    int height = renderBlockElement( context, getMainNode(),
+    int height = renderBlockElement( context, getRootNode(),
         0, y0, width ) + y0;
 #if 0 //def _DEBUG
     LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
@@ -2031,7 +2031,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
 /// get pointer for relative path
 ldomXPointer ldomXPointer::relative( lString16 relativePath )
 {
-    return _node->getDocument()->createXPointer( _node, relativePath );
+    return getDocument()->createXPointer( getNode(), relativePath );
 }
 /// create xpointer from pointer string
 ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
@@ -2144,15 +2144,15 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
 {
     //
     ldomXPointer ptr;
-    if ( !getMainNode() )
+    if ( !getRootNode() )
         return ptr;
-    ldomNode * finalNode = getMainNode()->elementFromPoint( pt );
+    ldomNode * finalNode = getRootNode()->elementFromPoint( pt );
     if ( !finalNode ) {
         if ( pt.y >= getFullHeight()) {
-            ldomNode * node = getMainNode()->getLastTextChild();
+            ldomNode * node = getRootNode()->getLastTextChild();
 			return ldomXPointer(node,node ? node->getText().length() : 0);
         } else if ( pt.y <= 0 ) {
-            ldomNode * node = getMainNode()->getFirstTextChild();
+            ldomNode * node = getRootNode()->getFirstTextChild();
             return ldomXPointer(node, 0);
         }
         CRLog::trace("not final node");
@@ -2229,9 +2229,9 @@ lvPoint ldomXPointer::toPoint() const
 bool ldomXPointer::getRect(lvRect & rect) const
 {
     //CRLog::trace("ldomXPointer::getRect()");
-    if ( !_node )
+    if ( isNull() )
         return false;
-    ldomNode * p = _node->isElement() ? _node : _node->getParentNode();
+    ldomNode * p = isElement() ? getNode() : getNode()->getParentNode();
     ldomNode * finalNode = NULL;
     if ( !p ) {
         //CRLog::trace("ldomXPointer::getRect() - p==NULL");
@@ -2240,7 +2240,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
     if ( !p->getDocument() ) {
         //CRLog::trace("ldomXPointer::getRect() - p->getDocument()==NULL");
     }
-    ldomNode * mainNode = p->getDocument()->getMainNode();
+    ldomNode * mainNode = p->getDocument()->getRootNode();
     for ( ; p; p = p->getParentNode() ) {
         if ( p->getRendMethod() == erm_final ) {
             finalNode = p; // found final block
@@ -2259,8 +2259,8 @@ bool ldomXPointer::getRect(lvRect & rect) const
         LFormattedTextRef txtform;
         finalNode->renderFinalBlock( txtform, r->getWidth() );
 
-        ldomNode * node = _node;
-        int offset = _offset;
+        ldomNode * node = getNode();
+        int offset = getOffset();
         if ( node->isElement() ) {
             if ( offset>=0 ) {
                 //
@@ -2337,17 +2337,19 @@ bool ldomXPointer::getRect(lvRect & rect) const
     } else {
         // no base final node, using blocks
         //lvRect rc;
-        if ( _offset<0 || _node->getChildCount()==0 ) {
-            _node->getAbsRect( rect );
+		ldomNode * node = getNode();
+		int offset = getOffset();
+        if ( offset<0 || node->getChildCount()==0 ) {
+            node->getAbsRect( rect );
             return true;
             //return rc.topLeft();
         }
-        if ( _offset < (int)_node->getChildCount() ) {
-            _node->getChildNode(_offset)->getAbsRect( rect );
+        if ( offset < (int)node->getChildCount() ) {
+            node->getChildNode(offset)->getAbsRect( rect );
             return true;
             //return rc.topLeft();
         }
-        _node->getChildNode(_node->getChildCount()-1)->getAbsRect( rect );
+        node->getChildNode(node->getChildCount()-1)->getAbsRect( rect );
         return true;
         //return rc.bottomRight();
     }
@@ -2453,11 +2455,13 @@ lString16 ldomXPointer::toString()
     lString16 path;
 	if ( isNull() )
         return path;
-    if ( _offset>=0 ) {
-        path << L"." << lString16::itoa(_offset);
+	ldomNode * node = getNode();
+	int offset = getOffset();
+    if ( offset >= 0 ) {
+        path << L"." << lString16::itoa(offset);
     }
-    ldomNode * p = _node;
-    ldomNode * mainNode = _node->getDocument()->getRootNode();
+    ldomNode * p = node;
+    ldomNode * mainNode = node->getDocument()->getRootNode();
     while (p && p!=mainNode) {
         ldomNode * parent = p->getParentNode();
         if ( p->isElement() ) {
@@ -2506,7 +2510,7 @@ lString16 ldomXPointer::toString()
 
 int ldomDocument::getFullHeight()
 {
-    lvdomElementFormatRec * rd = this ? this->getMainNode()->getRenderData() : NULL;
+    lvdomElementFormatRec * rd = this ? this->getRootNode()->getRenderData() : NULL;
     return ( rd ? rd->getHeight() + rd->getY() : 0 );
 }
 
@@ -2563,7 +2567,7 @@ lString16 extractDocSeries( ldomDocument * doc )
 void ldomXPointerEx::initIndex()
 {
     int m[MAX_DOM_LEVEL];
-    ldomNode * p = _node;
+    ldomNode * p = getNode();
     _level = 0;
     while ( p ) {
         m[_level] = p->getNodeIndex();
@@ -2580,10 +2584,10 @@ bool ldomXPointerEx::sibling( int index )
 {
     if ( _level < 1 )
         return false;
-    ldomNode * p = _node->getParentNode();
+    ldomNode * p = getNode()->getParentNode();
     if ( !p || index < 0 || index >= (int)p->getChildCount() )
         return false;
-    _node = p->getChildNode( index );
+    setNode( p->getChildNode( index ) );
     _indexes[ _level-1 ] = index;
     return true;
 }
@@ -2605,8 +2609,9 @@ bool ldomXPointerEx::nextSiblingElement()
 {
     if ( _level < 1 )
         return false;
-    ldomNode * p = _node->getParentNode();
-    for ( int i=_indexes[_level-1] + 1; i<(int)_node->getChildCount(); i++ ) {
+	ldomNode * node = getNode();
+    ldomNode * p = node->getParentNode();
+    for ( int i=_indexes[_level-1] + 1; i<(int)node->getChildCount(); i++ ) {
         if ( p->getChildNode( i )->isElement() )
             return sibling( i );
     }
@@ -2618,7 +2623,8 @@ bool ldomXPointerEx::prevSiblingElement()
 {
     if ( _level < 1 )
         return false;
-    ldomNode * p = _node->getParentNode();
+	ldomNode * node = getNode();
+    ldomNode * p = node->getParentNode();
     for ( int i=_indexes[_level-1] - 1; i>=0; i-- ) {
         if ( p->getChildNode( i )->isElement() )
             return sibling( i );
@@ -2631,7 +2637,7 @@ bool ldomXPointerEx::parent()
 {
     if ( _level<=1 )
         return false;
-    _node = _node->getParentNode();
+    setNode( getNode()->getParentNode() );
     _level--;
     return true;
 }
@@ -2641,11 +2647,11 @@ bool ldomXPointerEx::child( int index )
 {
     if ( _level >= MAX_DOM_LEVEL )
         return false;
-    int count = _node->getChildCount();
+    int count = getNode()->getChildCount();
     if ( index<0 || index>=count )
         return false;
     _indexes[ _level++ ] = index;
-    _node = _node->getChildNode( index );
+    setNode( getNode()->getChildNode( index ) );
     return true;
 }
 
@@ -2683,7 +2689,7 @@ int ldomXPointerEx::compare( const ldomXPointerEx& v ) const
 /// calls specified function recursively for all elements of DOM tree
 void ldomXPointerEx::recurseElements( void (*pFun)( ldomXPointerEx & node ) )
 {
-    if ( !_node->isElement() )
+    if ( !isElement() )
         return;
     pFun( *this );
     if ( child( 0 ) ) {
@@ -2697,7 +2703,7 @@ void ldomXPointerEx::recurseElements( void (*pFun)( ldomXPointerEx & node ) )
 /// calls specified function recursively for all nodes of DOM tree
 void ldomXPointerEx::recurseNodes( void (*pFun)( ldomXPointerEx & node ) )
 {
-    if ( !_node->isElement() )
+    if ( !isElement() )
         return;
     pFun( *this );
     if ( child( 0 ) ) {
@@ -3116,7 +3122,7 @@ bool ldomXPointerEx::ensureFinal()
         return false;
     int cnt = 0;
     int foundCnt = -1;
-    ldomNode * e = _node;
+    ldomNode * e = getNode();
     for ( ; e!=NULL; e = e->getParentNode() ) {
         if ( e->getRendMethod() == erm_final ) {
             foundCnt = cnt;
@@ -3134,11 +3140,12 @@ bool ldomXPointerEx::ensureFinal()
 /// ensure that current node is element (move to parent, if not - from text node to element)
 bool ldomXPointerEx::ensureElement()
 {
-    if ( !_node )
+	ldomNode * node = getNode();
+    if ( !node )
         return false;
-    if ( _node->isText() && !parent() )
+    if ( node->isText() && !parent() )
         return false;
-    if ( !_node || !_node->isElement() )
+    if ( !node || !node->isElement() )
         return false;
     return true;
 }
@@ -3152,7 +3159,7 @@ bool ldomXPointerEx::firstChild()
 /// move to last child of current node
 bool ldomXPointerEx::lastChild()
 {
-    int count = _node->getChildCount();
+    int count = getNode()->getChildCount();
     if ( count <=0 )
         return false;
     return child( count - 1 );
@@ -3161,9 +3168,10 @@ bool ldomXPointerEx::lastChild()
 /// move to first element child of current node
 bool ldomXPointerEx::firstElementChild()
 {
-    int count = _node->getChildCount();
+	ldomNode * node = getNode();
+    int count = node->getChildCount();
     for ( int i=0; i<count; i++ ) {
-        if ( _node->getChildNode( i )->isElement() )
+        if ( node->getChildNode( i )->isElement() )
             return child( i );
     }
     return false;
@@ -3172,9 +3180,10 @@ bool ldomXPointerEx::firstElementChild()
 /// move to last element child of current node
 bool ldomXPointerEx::lastElementChild()
 {
-    int count = _node->getChildCount();
+	ldomNode * node = getNode();
+    int count = node->getChildCount();
     for ( int i=count-1; i>=0; i-- ) {
-        if ( _node->getChildNode( i )->isElement() )
+        if ( node->getChildNode( i )->isElement() )
             return child( i );
     }
     return false;
@@ -3202,7 +3211,7 @@ bool ldomXPointerEx::isVisibleFinal()
         return false;
     int cnt = 0;
     int foundCnt = -1;
-    ldomNode * e = _node;
+    ldomNode * e = getNode();
     for ( ; e!=NULL; e = e->getParentNode() ) {
         switch ( e->getRendMethod() ) {
         case erm_final:
@@ -3236,10 +3245,11 @@ bool ldomXPointerEx::nextVisibleText()
 bool ldomXPointerEx::isVisible()
 {
     ldomNode * p;
-    if ( _node && _node->isText() )
-        p = _node->getParentNode();
+	ldomNode * node = getNode();
+    if ( node && node->isText() )
+        p = node->getParentNode();
     else
-        p = _node;
+        p = node;
     while ( p ) {
         if ( p->getRendMethod() == erm_invisible )
             return false;
@@ -3251,17 +3261,17 @@ bool ldomXPointerEx::isVisible()
 /// move to next text node
 bool ldomXPointerEx::nextText()
 {
-    _offset = 0;
+    setOffset( 0 );
     while ( firstChild() ) {
-        if ( _node->isText() )
+        if ( isText() )
             return true;
     }
     for (;;) {
         while ( nextSibling() ) {
-            if ( _node->isText() )
+            if ( isText() )
                 return true;
             while ( firstChild() ) {
-                if ( _node->isText() )
+                if ( isText() )
                     return true;
             }
         }
@@ -3273,13 +3283,13 @@ bool ldomXPointerEx::nextText()
 /// move to previous text node
 bool ldomXPointerEx::prevText()
 {
-    _offset = 0;
+    setOffset( 0 );
     for (;;) {
         while ( prevSibling() ) {
-            if ( _node->isText() )
+            if ( isText() )
                 return true;
             while ( lastChild() ) {
-                if ( _node->isText() )
+                if ( isText() )
                     return true;
             }
         }
