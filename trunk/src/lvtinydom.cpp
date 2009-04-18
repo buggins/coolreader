@@ -507,6 +507,8 @@ public:
         int attrCount = v->getAttrCount();
         int childCount = v->getChildCount();
         ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
+		data->nsid = v->_nsid;
+		data->id = v->_id;
         lUInt16 * attrs = data->attrs();
         int i;
         for ( i=0; i<attrCount; i++ ) {
@@ -1235,7 +1237,7 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     gc();
     CRLog::trace("finalizing...");
     context.Finalize();
-    //persist();
+    persist();
     return height;
 }
 #endif
@@ -1461,6 +1463,7 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
 
 ldomElementWriter::~ldomElementWriter()
 {
+	//getElement()->persist();
 }
 
 
@@ -3808,6 +3811,7 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
 
 ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
 {
+
     for ( int i=0; i<MAX_ELEMENT_TYPE_ID; i++ ) {
         if ( _rules[i] )
             delete[] _rules[i];
