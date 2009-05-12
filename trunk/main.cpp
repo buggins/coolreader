@@ -35,10 +35,10 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    if ( argc!=2 ) {
-        printf("Usage: cr3 <filename_to_open>\n");
-        return 3;
-    }
+    //if ( argc!=2 ) {
+    //    printf("Usage: cr3 <filename_to_open>\n");
+    //    return 3;
+    //}
 
 
     QApplication a(argc, argv);

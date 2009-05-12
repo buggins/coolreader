@@ -3,9 +3,14 @@
 # -------------------------------------------------
 TARGET = cr3
 TEMPLATE = app
-DEFINES += _LINUX=1 LINUX=1 USE_FREETYPE=1 LDOM_USE_OWN_MEM_MAN=1 USE_DOM_UTF8_STORAGE=1
+DEFINES += _LINUX=1 \
+    LINUX=1 \
+    USE_FREETYPE=1 \
+    LDOM_USE_OWN_MEM_MAN=1 \
+    USE_DOM_UTF8_STORAGE=1
 INCLUDEPATH += /usr/include/freetype2
-LIBS += -ljpeg -lfreetype
+LIBS += -ljpeg \
+    -lfreetype
 SOURCES += main.cpp \
     mainwindow.cpp \
     crengine/src/cp_stats.cpp \
@@ -34,7 +39,8 @@ SOURCES += main.cpp \
     crengine/src/crtxtenc.cpp \
     crengine/src/crskin.cpp \
     crengine/src/cri18n.cpp \
-    crengine/src/crgui.cpp
+    crengine/src/crgui.cpp \
+    cr3widget.cpp
 HEADERS += mainwindow.h \
     crengine/include/rtfimp.h \
     crengine/include/rtfcmd.h \
@@ -76,5 +82,6 @@ HEADERS += mainwindow.h \
     crengine/include/crgui.h \
     crengine/include/crengine.h \
     crengine/include/cp_stats.h \
-    crengine/include/wolutil.h
+    crengine/include/wolutil.h \
+    cr3widget.h
 FORMS += mainwindow.ui
