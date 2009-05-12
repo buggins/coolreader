@@ -480,7 +480,7 @@ lString16::lString16(const lString16 & str, size_type offset, size_type count)
 {
     if ( count > str.length() - offset )
         count = str.length() - offset;
-    if (count<=0 || offset<0)
+    if (count<=0)
     {
         pchunk = EMPTY_STR_16; addref();
     }
@@ -555,7 +555,7 @@ lString16 & lString16::assign(const lString16 & str, size_type offset, size_type
 {
     if ( count > str.length() - offset )
         count = str.length() - offset;
-    if (count<=0 || offset<0)
+    if (count<=0)
     {
         clear();
     }
@@ -602,7 +602,7 @@ lString16 & lString16::erase(size_type offset, size_type count)
 {
     if ( count > length() - offset )
         count = length() - offset;
-    if (count<=0 || offset<0)
+    if (count<=0)
     {
         clear();
     }
@@ -1221,7 +1221,7 @@ lString8::lString8(const lString8 & str, size_type offset, size_type count)
 {
     if ( count > str.length() - offset )
         count = str.length() - offset;
-    if (count<=0 || offset<0)
+    if (count<=0)
     {
         pchunk = EMPTY_STR_8; addref();
     }
@@ -1296,7 +1296,7 @@ lString8 & lString8::assign(const lString8 & str, size_type offset, size_type co
 {
     if ( count > str.length() - offset )
         count = str.length() - offset;
-    if (count<=0 || offset<0)
+    if (count<=0)
     {
         clear();
     }
@@ -1343,7 +1343,7 @@ lString8 & lString8::erase(size_type offset, size_type count)
 {
     if ( count > length() - offset )
         count = length() - offset;
-    if (count<=0 || offset<0)
+    if (count<=0)
     {
         clear();
     }
@@ -2747,7 +2747,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
 
 void  lString16::limit( size_type sz )
 {
-    if ( length() > sz && sz >= 0 ) {
+    if ( length() > sz ) {
         modify();
         pchunk->len = sz;
         pchunk->buf16[sz] = 0;

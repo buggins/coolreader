@@ -60,7 +60,7 @@ enum propIndex {
 enum tpropIndex {
     tpi_trowd=0, // Sets table row defaults.
     tpi_irowN,   // N is the row index of this row.
-    tpi_irowbandN, // N is the row index of the row, adjusted to account for header rows. A header row has a value of –1.
+    tpi_irowbandN, // N is the row index of the row, adjusted to account for header rows. A header row has a value of Â–1.
     tpi_row,    // Denotes the end of a row.
     tpi_lastrow,// Output if this is the last row in the table.
     tpi_cell,   // Denotes the end of a table cell.
@@ -151,10 +151,10 @@ public:
         RA_SECTION,
     };
     LVRtfDestination( LVRtfParser & parser );
-    virtual void OnTblProp( int id, int param ) { }
-    virtual void OnAction( int action ) { }
-    virtual void OnControlWord( const char * control, int param ) { }
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) { }
+    virtual void OnTblProp( int id, int param ) = 0;
+    virtual void OnAction( int action ) = 0;
+    virtual void OnControlWord( const char * control, int param ) = 0;
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
     virtual ~LVRtfDestination() { }
 };
 

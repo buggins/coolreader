@@ -37,9 +37,9 @@ public:
     /// returns flags
     virtual lUInt32 getFlags() { return 0; }
     /// sets flags
-    virtual void setFlags( lUInt32 flags ) { }
+    virtual void setFlags( lUInt32 ) { }
     /// called on document encoding definition
-    virtual void OnEncoding( const lChar16 * name, const lChar16 * table ) { }
+    virtual void OnEncoding( const lChar16 *, const lChar16 * ) { }
     /// called on parsing start
     virtual void OnStart(LVFileFormatParser * parser) { _parser = parser; }
     /// called on parsing end
@@ -94,7 +94,7 @@ public:
     /// returns 8-bit charset conversion table (128 items, for codes 128..255)
     virtual lChar16 * GetCharsetTable( ) = 0;
     /// changes space mode
-    virtual void SetSpaceMode( bool flgTrimSpaces ) { }
+    virtual void SetSpaceMode( bool ) { }
     /// returns space mode
     virtual bool GetSpaceMode() { return false; }
     /// virtual destructor

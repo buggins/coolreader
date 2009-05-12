@@ -75,7 +75,7 @@ LVContainer * LVStorageObject::GetParentContainer()
     return NULL;
 }
 
-void LVStorageObject::SetName(const lChar16 * name)
+void LVStorageObject::SetName(const lChar16 *)
 {
 }
 
@@ -154,7 +154,7 @@ public:
         lvsize_t sz;
         if ( stream->GetSize(&sz)!=LVERR_OK )
             return res;
-        if ( pos<0 || pos + size > sz )
+        if ( pos + size > sz )
             return res; // wrong position/size
         LVDefStreamBuffer * buf = new LVDefStreamBuffer( stream, pos, size, readonly );
         if ( !buf->m_buf ) {
@@ -334,8 +334,10 @@ public:
             newpos = m_size + offset;
             break;
         }
-        if ( newpos<0 || newpos>m_size )
+        if ( newpos>m_size )
             return LVERR_FAIL;
+        if ( pNewPos!=NULL )
+            *pNewPos = newpos;
         m_pos = newpos;
         return LVERR_OK;
     }
@@ -353,7 +355,7 @@ public:
 
     virtual lvpos_t SetPos(lvpos_t p)
     {
-        if ( p>=0 && p<=m_size ) {
+        if ( p<=m_size ) {
             m_pos = p;
             return m_pos;
         }
@@ -741,28 +743,6 @@ public:
 };
 #endif
 
-/// Open memory mapped file
-/**
-    \param pathname is file name to open (unicode)
-    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
-	\param minSize is minimum file size for R/W mode
-    \return reference to opened stream if success, NULL if error
-*/
-LVStreamRef LVMapFileStream( const lChar16 * pathname, lvopen_mode_t mode, lvsize_t minSize )
-{
-#if !defined(_WIN32) && !defined(_LINUX)
-	// STUB for systems w/o mmap
-    LVFileStream * stream = LVFileStream::CreateFileStream( fn, mode );
-    if ( stream!=NULL )
-    {
-        return LVStreamRef( stream );
-    }
-    return LVStreamRef();
-#else
-	LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( lString16(pathname), mode, (int)minSize );
-	return LVStreamRef(stream);
-#endif
-}
 
 /// Open memory mapped file
 /**
@@ -811,7 +791,7 @@ public:
        CRLog::error("error setting file position to %d (%d)", (int)offset, (int)origin );
        return LVERR_FAIL;
     }
-    virtual lverror_t SetSize( lvsize_t size )
+    virtual lverror_t SetSize( lvsize_t )
     {
         /*
         int64 sz = m_file->SetSize( size );
@@ -1635,7 +1615,7 @@ public:
             npos = m_size + offset;
             break;
         }
-        if (npos < 0 || npos > m_size)
+        if (npos > m_size)
             return LVERR_FAIL;
         m_pos = npos;
         if (newPos)
@@ -2093,7 +2073,7 @@ public:
             npos = m_unpacksize + offset;
             break;
         }
-        if (npos < 0 || npos > m_unpacksize)
+        if (npos > m_unpacksize)
             return LVERR_FAIL;
         if ( npos != currpos )
         {
@@ -3202,7 +3182,7 @@ public:
 			newpos = m_size + offset;
 			break;
 		}
-		if (newpos<0 || newpos>m_size)
+                if (newpos>m_size)
 			return LVERR_FAIL;
 		m_pos = newpos;
 		if (pNewPos)
@@ -3282,7 +3262,7 @@ public:
 	}
 	lverror_t Open( lUInt8 * pBuf, lvsize_t size )
 	{
-		if (!pBuf || size<0)
+                if (!pBuf)
 			return LVERR_FAIL;
 		m_own_buffer = false;
 		m_pBuffer = pBuf;
@@ -3586,7 +3566,7 @@ public:
             npos = _unpSize + offset;
             break;
         }
-        if (npos < 0 || npos >= _unpSize)
+        if (npos >= _unpSize)
             return LVERR_FAIL;
         _pos = npos;
         if ( _pos < _decodedStart || _pos >= _decodedStart + _decodedLen ) {
@@ -3647,7 +3627,7 @@ public:
         \param size is new file size
         \return lverror_t status: LVERR_OK if success
     */
-    virtual lverror_t SetSize( lvsize_t size )
+    virtual lverror_t SetSize( lvsize_t )
     {
         return LVERR_FAIL;
     }
@@ -3699,7 +3679,7 @@ public:
         \param nBytesWritten is place to store real number of bytes written to stream
         \return lverror_t status: LVERR_OK if success
     */
-    virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
+    virtual lverror_t Write( const void *, lvsize_t, lvsize_t *)
     {
         return LVERR_FAIL;
     }
@@ -3929,3 +3909,25 @@ bool LVCreateDirectory( lString16 path )
     return true;
 }
 
+/// Open memory mapped file
+/**
+    \param pathname is file name to open (unicode)
+    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
+        \param minSize is minimum file size for R/W mode
+    \return reference to opened stream if success, NULL if error
+*/
+LVStreamRef LVMapFileStream( const lChar16 * pathname, lvopen_mode_t mode, lvsize_t minSize )
+{
+#if !defined(_WIN32) && !defined(_LINUX)
+        // STUB for systems w/o mmap
+    LVFileStream * stream = LVFileStream::CreateFileStream( pathname, mode );
+    if ( stream!=NULL )
+    {
+        return LVStreamRef( stream );
+    }
+    return LVStreamRef();
+#else
+        LVFileMappedStream * stream = LVFileMappedStream::CreateFileStream( lString16(pathname), mode, (int)minSize );
+        return LVStreamRef(stream);
+#endif
+}

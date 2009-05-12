@@ -728,7 +728,7 @@ public:
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found 
     */
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf)
+    virtual bool getGlyphImage(lUInt16, lUInt8 *)
     {
         return false;
     }
@@ -1131,16 +1131,16 @@ public:
         if ( ch_glyph_index1==0 )
             return false; // no required char!!!
         int w1, w2;
-        int error1 = FT_Load_Glyph( face,  //        /* handle to face object 
-                ch_glyph_index1,           //     /* glyph index           
-                FT_LOAD_DEFAULT );         //    /* load flags, see below 
+        int error1 = FT_Load_Glyph( face,  //    handle to face object
+                ch_glyph_index1,           //    glyph index
+                FT_LOAD_DEFAULT );         //   load flags, see below
         if ( error1 )
             w1 = 0;
         else
             w1 = (face->glyph->metrics.horiAdvance >> 6);
-        int error2 = FT_Load_Glyph( face,  //        /* handle to face object 
-                ch_glyph_index2,           //     /* glyph index           
-                FT_LOAD_DEFAULT );         //    /* load flags, see below 
+        int error2 = FT_Load_Glyph( face,  //     handle to face object
+                ch_glyph_index2,           //     glyph index
+                FT_LOAD_DEFAULT );         //     load flags, see below
         if ( error2 )
             w2 = 0;
         else
@@ -1626,7 +1626,7 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
 
 void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
                    const lChar16 * text, int len, 
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 , int )
 {
     static lUInt8 glyph_buf[16384];
     LVFont::glyph_info_t info;

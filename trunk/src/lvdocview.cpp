@@ -1600,7 +1600,7 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange( int pageIndex )
 }
 
 /// get page text, -1 for current page
-lString16 LVDocView::getPageText( bool wrapWords, int pageIndex )
+lString16 LVDocView::getPageText( bool , int pageIndex )
 {
     LVLock lock(getMutex());
     checkRender();
@@ -3063,7 +3063,7 @@ void LVDocView::getCurrentPageLinks( ldomXRangeList & list )
             LinkKeeper( ldomXRangeList & list )
                 : _list(list) { }
             /// called for each found text fragment in range
-            virtual void onText( ldomXRange * nodeRange ) { }
+            virtual void onText( ldomXRange * ) { }
             /// called for each found node in range
             virtual bool onElement( ldomXPointerEx * ptr )
             {
@@ -3648,8 +3648,6 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT
                    || name==PROP_PAGE_MARGIN_RIGHT || name==PROP_PAGE_MARGIN_BOTTOM ) {
             lUInt32 margin = props->getIntDef(name.c_str(), 8 );
-            if ( margin<0 )
-                margin = 0;
             if ( margin>30 )
                 margin = 30;
             lvRect rc = getPageMargins();

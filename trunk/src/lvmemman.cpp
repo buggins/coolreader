@@ -44,7 +44,7 @@ ref_count_rec_t ref_count_rec_t::null_ref(NULL);
 #if (LDOM_USE_OWN_MEM_MAN==1)
 ldomMemManStorage * pmsREF = NULL;
 
-static ldomMemManStorage * block_storages[LOCAL_STORAGE_COUNT] =
+ldomMemManStorage * block_storages[LOCAL_STORAGE_COUNT] =
 {
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
@@ -89,25 +89,5 @@ void   ldomFree( void * p, size_t n )
     {
         free( p );
     }
-}
-
-static void freeStorage( ldomMemManStorage * & p )
-{
-    if ( p ) {
-        delete p;
-        p = NULL;
-    }
-}
-
-void ldomFreeStorage()
-{
-    for ( int i=0; i<LOCAL_STORAGE_COUNT; i++ )
-        freeStorage( block_storages[i] );
-    freeStorage( pmsREF );
-    freeStorage( ldomElement::pmsHeap );
-    freeStorage( ldomText::pmsHeap );
-    freeStorage( ldomPersistentText::pmsHeap );
-    freeStorage( lvdomElementFormatRec::pmsHeap );
-    free_ls_storage();
 }
 #endif

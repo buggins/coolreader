@@ -38,7 +38,7 @@ public:
         return *this;
     }
 
-    void operator << (const endtrace& e) {
+    void operator << (const endtrace&) {
         flush();
     }
 

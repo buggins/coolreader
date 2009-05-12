@@ -724,7 +724,7 @@ static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
                 flgComment = false;
                 line.clear();
             } else {
-				if ( line[0]==0xEf && line[1]==0xBB && line[2] ==0xBF )
+                                if ( line[0]==(lChar8)0xEf && line[1]==(lChar8)0xBB && line[2]==(lChar8)0xBF )
 					line.erase( 0, 3 );
                 if ( !line.empty() ) {
                     dst = Utf8ToUnicode( line );

@@ -60,10 +60,10 @@ simpleLogFile logfile("logfile.log");
 class simpleLogFile
 {
 public:
-    simpleLogFile & operator << ( const char * str ) { return *this; }
-    simpleLogFile & operator << ( int d ) { return *this; }
-    simpleLogFile & operator << ( const wchar_t * str ) { return *this; }
-    simpleLogFile & operator << ( const lString16 &str ) { return *this; }
+    simpleLogFile & operator << ( const char * ) { return *this; }
+    simpleLogFile & operator << ( int ) { return *this; }
+    simpleLogFile & operator << ( const wchar_t * ) { return *this; }
+    simpleLogFile & operator << ( const lString16 & ) { return *this; }
 };
 
 simpleLogFile logfile;
@@ -1974,8 +1974,11 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
 }
 
+#define UNUSED(x)
 int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width )
 {
+    UNUSED(x);
+    UNUSED(y);
     CCRTable table( node, width, 10 );
     int h = table.renderCells( context );
 

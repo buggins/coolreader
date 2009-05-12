@@ -1348,7 +1348,7 @@ void MakeDblCharStat( const unsigned char * buf, int buf_size, dbl_char_stat_t *
    for ( int i=1; i<buf_size; i++) {
       ch1 = ch2;
       ch2 = buf[i];
-      if ( ch2<128 && ch2!='\'' && !(ch2>='a' && ch2<='z' || ch2>='A' && ch2<='Z') )
+      if ( ch2<128 && ch2!='\'' && !( (ch2>='a' && ch2<='z') || (ch2>='A' && ch2<='Z')) )
          ch2 = ' ';
       //if (i>0)
       maker.Add( ch1, ch2 );
@@ -1364,7 +1364,7 @@ void MakeCharStat( const unsigned char * buf, int buf_size, short stat_table[256
    unsigned char ch;
    for (int i=0; i<buf_size; i++) {
       ch = buf[i];
-      if ( ch>127 || ch>='a' && ch<='z' || ch>='A' && ch<='Z' || ch=='\'') {
+      if ( ch>127 || (ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || ch=='\'') {
          stat[ch]++;
          total++;
       }

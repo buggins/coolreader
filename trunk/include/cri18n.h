@@ -47,8 +47,8 @@ public:
 		}
 	protected:
 		// no copy
-		Item( const Item & v ) { }
-		Item & operator = ( const Item & v ) { return *this; }
+                Item( const Item & ) { }
+                Item & operator = ( const Item & ) { return *this; }
 	};
 protected:
 	LVPtrVector<Item> _list;

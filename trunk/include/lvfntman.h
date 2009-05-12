@@ -120,12 +120,12 @@ public:
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() { return false; }
     /// set bitmap mode (true=monochrome bitmap, false=antialiased)
-    virtual void setBitmapMode( bool drawMonochrome ) { }
+    virtual void setBitmapMode( bool ) { }
 
     /// get kerning mode: true==ON, false=OFF
     virtual bool getKerning() { return false; }
     /// get kerning mode: true==ON, false=OFF
-    virtual void setKerning( bool kerningEnabled ) { }
+    virtual void setKerning( bool ) { }
 
     /// returns true if font is empty
     virtual bool IsNull() const = 0;
@@ -179,7 +179,7 @@ public:
     /// destructor
     virtual ~LVFontManager() { }
     /// returns available typefaces
-    virtual void getFaceList( lString16Collection & list ) { }
+    virtual void getFaceList( lString16Collection & ) { }
 };
 
 class LVBaseFont : public LVFont

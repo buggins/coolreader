@@ -247,9 +247,9 @@ public:
     lUInt32 getHash() const;
 
     /// get character at specified position with range check
-    value_type & at( size_type pos ) { if (pos<0||pos>pchunk->len) crFatalError(); return modify()[pos]; }
+    value_type & at( size_type pos ) { if (pos>pchunk->len) crFatalError(); return modify()[pos]; }
     /// get character at specified position without range check
-    const value_type operator [] ( size_type pos ) const { return pchunk->buf8[pos]; }
+    value_type operator [] ( size_type pos ) const { return pchunk->buf8[pos]; }
     /// get reference to character at specified position
     value_type & operator [] ( size_type pos ) { return modify()[pos]; }
 
@@ -433,9 +433,9 @@ public:
     /// calculates hash for string
     lUInt32 getHash() const;
     /// returns character at specified position, with index bounds checking, fatal error if fails
-    value_type & at( size_type pos ) { if (pos<0||pos>pchunk->len) crFatalError(); return modify()[pos]; }
+    value_type & at( size_type pos ) { if (pos>pchunk->len) crFatalError(); return modify()[pos]; }
     /// returns character at specified position, without index bounds checking
-    const value_type operator [] ( size_type pos ) const { return pchunk->buf16[pos]; }
+    value_type operator [] ( size_type pos ) const { return pchunk->buf16[pos]; }
     /// returns reference to specified character position (lvalue)
     value_type & operator [] ( size_type pos ) { return modify()[pos]; }
     /// resizes string, copies if several references exist

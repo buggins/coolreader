@@ -13,10 +13,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "../include/lvstring.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
 
+class ldomPersistentText;
+class ldomPersistentElement;
 
 /// common header for data storage items
 struct DataStorageItemHeader {
@@ -182,7 +185,7 @@ private:
 public:
 #if (LDOM_USE_OWN_MEM_MAN==1)
     static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
+    void * operator new( size_t )
     {
         if (pmsHeap == NULL)
         {
@@ -221,15 +224,15 @@ public:
     virtual lUInt32 getChildCount() const { return 0; }
     /// returns element attribute count
     virtual lUInt32 getAttrCount() const { return 0; }
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
+    /// returns attribute value by attribute namespace id and name id
+    virtual const lString16 & getAttributeValue( lUInt16, lUInt16 ) const
     {
         return lString16::empty_str;
     }
     /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
+    virtual const lxmlAttribute * getAttribute( lUInt32 ) const { return NULL; }
+    /// returns true if element node has attribute with specified namespace id and name id
+    virtual bool hasAttribute( lUInt16, lUInt16 ) const { return false; }
     /// returns element type structure pointer if it was set in document for this element name
     virtual const elem_def_t * getElementTypePtr() { return NULL; }
     /// returns element name id
@@ -241,7 +244,7 @@ public:
     /// returns element namespace name
     virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
     /// returns text node text
-    virtual lString16 getText( lChar16 blockDelimiter=0 ) const
+    virtual lString16 getText( lChar16 ) const
     {
 #if (USE_DOM_UTF8_STORAGE==1)
         return Utf8ToUnicode(_value);
@@ -249,7 +252,7 @@ public:
         return _value;
 #endif
     }
-    virtual lString8 getText8( lChar8 blockDelimiter=0 ) const
+    virtual lString8 getText8( lChar8 = 0 ) const
     {
 #if (USE_DOM_UTF8_STORAGE==1)
         return _value;
@@ -276,9 +279,22 @@ public:
 #endif
     }
     /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
+    virtual ldomNode * getChildNode( lUInt32 ) const { return NULL; }
     /// replace node with r/o persistent implementation
     virtual ldomNode * persist();
+
+    // stubs
+
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt32, lUInt16, lUInt16 ) { return NULL; }
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt16 ) { return NULL; }
+    /// inserts child text
+    virtual ldomNode * insertChildText( lUInt32, lString16 ) { return NULL; }
+    /// inserts child text
+    virtual ldomNode * insertChildText( lString16 ) { return NULL; }
+    /// remove child
+    virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
 };
 
 // persistent r/o instance of text
@@ -294,7 +310,7 @@ class ldomPersistentText : public ldomNode
 public:
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
+    void * operator new( size_t )
     {
         if (pmsHeap == NULL)
         {
@@ -317,15 +333,15 @@ public:
     virtual lUInt32 getChildCount() const { return 0; }
     /// returns element attribute count
     virtual lUInt32 getAttrCount() const { return 0; }
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
+    /// returns attribute value by attribute namespace id and name id
+    virtual const lString16 & getAttributeValue( lUInt16, lUInt16 ) const
     {
         return lString16::empty_str;
     }
     /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return NULL; }
+    virtual const lxmlAttribute * getAttribute( lUInt32) const { return NULL; }
     /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return false; }
+    virtual bool hasAttribute( lUInt16, lUInt16 ) const { return false; }
     /// returns element type structure pointer if it was set in document for this element name
     virtual const elem_def_t * getElementTypePtr() { return NULL; }
     /// returns element name id
@@ -341,13 +357,26 @@ public:
     /// returns text node text
     virtual lString8 getText8( lChar8 blockDelimiter=0 ) const;
     /// sets text node text
-    virtual void setText( lString16 value ) { readOnlyError(); }
+    virtual void setText( lString16 ) { readOnlyError(); }
     /// sets text node text
-    virtual void setText8( lString8 value ) { readOnlyError(); }
+    virtual void setText8( lString8 ) { readOnlyError(); }
     /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const { return NULL; }
+    virtual ldomNode * getChildNode( lUInt32 ) const { return NULL; }
     /// replace text node with r/w implementation
     virtual ldomNode * modify();
+
+    // stubs
+
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt32, lUInt16, lUInt16 ) { return NULL; }
+    /// inserts child element
+    virtual ldomNode * insertChildElement( lUInt16 ) { return NULL; }
+    /// inserts child text
+    virtual ldomNode * insertChildText( lUInt32, lString16 ) { return NULL; }
+    /// inserts child text
+    virtual ldomNode * insertChildText( lString16 ) { return NULL; }
+    /// remove child
+    virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
 };
 
 
@@ -371,7 +400,7 @@ protected:
 public:
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
+    void * operator new( size_t )
     {
         if (pmsHeap == NULL)
         {
@@ -483,11 +512,11 @@ protected:
     {
         crFatalError( 123, "Element is persistent (read-only)! Call modify() to get r/w instance." );
     }
-    virtual void addChild( lInt32 dataIndex ) { readOnlyError(); }
+    virtual void addChild( lInt32 ) { readOnlyError(); }
 public:
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
+    void * operator new( size_t )
     {
         if (pmsHeap == NULL)
         {
@@ -607,7 +636,7 @@ public:
         readOnlyError();
     }
     /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    virtual void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex ) { readOnlyError(); }
+    virtual void moveItemsTo( ldomNode *, int, int ) { readOnlyError(); }
     /// returns attribute by index
     virtual const lxmlAttribute * getAttribute( lUInt32 index ) const
     {
@@ -664,15 +693,15 @@ public:
     }
 
     /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id ) { readOnlyError(); return NULL; }
+    virtual ldomNode * insertChildElement( lUInt32, lUInt16, lUInt16 ) { readOnlyError(); return NULL; }
     /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt16 id ) { readOnlyError(); return NULL; }
+    virtual ldomNode * insertChildElement( lUInt16 ) { readOnlyError(); return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32 index, lString16 value ) { readOnlyError(); return NULL; }
+    virtual ldomNode * insertChildText( lUInt32, lString16 ) { readOnlyError(); return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lString16 value ) { readOnlyError(); return NULL; }
+    virtual ldomNode * insertChildText( lString16 ) { readOnlyError(); return NULL; }
     /// remove child
-    virtual ldomNode * removeChild( lUInt32 index ) { readOnlyError(); return NULL; }
+    virtual ldomNode * removeChild( lUInt32 ) { readOnlyError(); return NULL; }
     /// replace node with r/w implementation
     virtual ldomNode * modify();
 protected:
@@ -1001,16 +1030,16 @@ ldomPersistentText::ldomPersistentText( ldomText * v )
 : ldomNode( v )
 {
     lString8 value = v->getText8();
-	_document->allocText( _dataIndex, _parentIndex, value.c_str(), value.length() );
+    _document->allocText( _dataIndex, _parentIndex, value.c_str(), value.length() );
 }
 
 /// returns text node text
-lString16 ldomPersistentText::getText( lChar16 blockDelimiter ) const
+lString16 ldomPersistentText::getText( lChar16 ) const
 {
 	return ((lxmlDocBase*)_document)->getTextNodeValue( _dataIndex );
 }
 
-lString8 ldomPersistentText::getText8( lChar8 blockDelimiter ) const
+lString8 ldomPersistentText::getText8( lChar8 ) const
 {
 	return ((lxmlDocBase*)_document)->getTextNodeValue8( _dataIndex );
 }
@@ -1021,6 +1050,7 @@ ldomMemManStorage * ldomElement::pmsHeap = NULL;
 ldomMemManStorage * ldomText::pmsHeap = NULL;
 ldomMemManStorage * lvdomElementFormatRec::pmsHeap = NULL;
 ldomMemManStorage * ldomPersistentText::pmsHeap = NULL;
+ldomMemManStorage * ldomPersistentElement::pmsHeap = NULL;
 #endif
 
 const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
@@ -1173,7 +1203,7 @@ static void writeNode( LVStream * stream, ldomNode * node )
     }
 }
 
-bool ldomDocument::saveToStream( LVStreamRef stream, const char * codepage )
+bool ldomDocument::saveToStream( LVStreamRef stream, const char * )
 {
     //CRLog::trace("ldomDocument::saveToStream()");
     if (!stream || !getRootNode()->getChildCount())
@@ -1407,7 +1437,7 @@ lUInt32 ldomElementWriter::getFlags()
     return flags;
 }
 
-void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 flags )
+void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
 {
     //logfile << "{t";
     {
@@ -1518,7 +1548,7 @@ ldomDocumentWriter::~ldomDocumentWriter()
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
 }
 
-void ldomDocumentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
     if (!_currNode)
@@ -1566,7 +1596,7 @@ void ldomDocumentWriter::OnText( const lChar16 * text, int len, lUInt32 flags )
     //logfile << " !t!\n";
 }
 
-void ldomDocumentWriter::OnEncoding( const lChar16 * name, const lChar16 * table )
+void ldomDocumentWriter::OnEncoding( const lChar16 *, const lChar16 *)
 {
 }
 
@@ -1806,7 +1836,7 @@ public:
             npos = m_size + offset;
             break;
         }
-        if (npos < 0 || npos > m_size)
+        if (npos > m_size)
             return LVERR_FAIL;
         if ( npos != currpos )
         {
@@ -4024,3 +4054,27 @@ ldomElement::~ldomElement()
 			delete child;
 	}
 }
+
+
+#if (LDOM_USE_OWN_MEM_MAN==1)
+extern ldomMemManStorage ** block_storages;
+static void freeStorage( ldomMemManStorage * & p )
+{
+    if ( p ) {
+        delete p;
+        p = NULL;
+    }
+}
+
+void ldomFreeStorage()
+{
+    for ( int i=0; i<LOCAL_STORAGE_COUNT; i++ )
+        freeStorage( block_storages[i] );
+    freeStorage( pmsREF );
+    freeStorage( ldomElement::pmsHeap );
+    freeStorage( ldomText::pmsHeap );
+    freeStorage( ldomPersistentText::pmsHeap );
+    freeStorage( lvdomElementFormatRec::pmsHeap );
+    free_ls_storage();
+}
+#endif

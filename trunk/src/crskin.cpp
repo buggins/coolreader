@@ -761,7 +761,7 @@ CRMenuSkin::CRMenuSkin()
 class CRSimpleWindowSkin : public CRWindowSkin
 {
 public:
-	CRSimpleWindowSkin( CRSkinImpl * skin )
+        CRSimpleWindowSkin( CRSkinImpl * )
 	{
 		setBackgroundColor( 0xAAAAAA );
 	}
@@ -770,7 +770,7 @@ public:
 class CRSimpleFrameSkin : public CRRectSkin
 {
 public:
-	CRSimpleFrameSkin( CRSkinImpl * skin )
+        CRSimpleFrameSkin( CRSkinImpl * )
 	{
 		setBackgroundColor( 0xAAAAAA );
 	}

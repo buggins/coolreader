@@ -35,7 +35,7 @@ public:
 
     ref_count_rec_t( void * obj ) : _refcount(1), _obj(obj) { }
 #if (LDOM_USE_OWN_MEM_MAN==1)
-    void * operator new( size_t size )
+    void * operator new( size_t )
     {
         if (pmsREF == NULL)
         {

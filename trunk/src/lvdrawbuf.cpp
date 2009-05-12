@@ -287,10 +287,10 @@ public:
         if (ymap)
             delete[] ymap;
     }
-    virtual void OnStartDecode( LVImageSource * obj )
+    virtual void OnStartDecode( LVImageSource * )
     {
     }
-    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data )
+    virtual bool OnLineDecoded( LVImageSource *, int y, lUInt32 * data )
     {
         //fprintf( stderr, "l_%d ", y );
         int yy = y;
@@ -396,7 +396,7 @@ public:
         }
         return true;
     }
-    virtual void OnEndDecode( LVImageSource * obj, bool errors )
+    virtual void OnEndDecode( LVImageSource *, bool )
     {
     }
 };
@@ -619,7 +619,7 @@ LVGrayDrawBuf::~LVGrayDrawBuf()
         free( _data );
 }
 
-void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette )
+void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * )
 {
     //int buf_width = _dx; /* 2bpp */
     int bx = 0;

@@ -199,7 +199,7 @@ cr_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
  * is possible.
  */
 GLOBAL(wxjpeg_boolean)
-cr_resync_to_restart (j_decompress_ptr cinfo, int desired)
+cr_resync_to_restart (j_decompress_ptr, int)
 {
     return FALSE;
 }
@@ -215,7 +215,7 @@ cr_resync_to_restart (j_decompress_ptr cinfo, int desired)
  */
 
 METHODDEF(void)
-cr_term_source (j_decompress_ptr cinfo)
+cr_term_source (j_decompress_ptr)
 {
   /* no work necessary here */
 }
@@ -336,13 +336,13 @@ public:
 };
 
 
-static void lvpng_error_func (png_structp png, png_const_charp msg)
+static void lvpng_error_func (png_structp png, png_const_charp)
 {
     //fprintf(stderr, "png error: %s\n", msg)
     longjmp(png_jmpbuf(png), 1);
 }
 
-static void lvpng_warning_func (png_structp png, png_const_charp msg)
+static void lvpng_warning_func (png_structp png, png_const_charp)
 {
     //fprintf(stderr, "png warning: %s\n", msg)
     longjmp(png_jmpbuf(png), 1);
@@ -626,7 +626,7 @@ public:
         jpeg_destroy_decompress(&cinfo);
         return true;
     }
-    static bool CheckPattern( const lUInt8 * buf, int len )
+    static bool CheckPattern( const lUInt8 * buf, int )
     {
         //check for SOI marker at beginning of file
         return (buf[0]==0xFF && buf[1]==0xD8);
@@ -752,7 +752,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
     return true;
 }
 
-bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int len )
+bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int )
 {
     return( !png_sig_cmp((unsigned char *)buf, (png_size_t)0, 4) );
 }
@@ -787,7 +787,7 @@ public:
         Clear();
     }
 public:
-    static bool CheckPattern( const lUInt8 * buf, int len )
+    static bool CheckPattern( const lUInt8 * buf, int )
     {
         if (buf[0]!='G' || buf[1]!='I' || buf[2]!='F')
             return false;
@@ -1462,12 +1462,12 @@ public:
 		if ( _split_y<0 || _split_y>=_src_dy )
 			_split_y = _src_dy / 2;
 	}
-    virtual void OnStartDecode( LVImageSource * obj )
+    virtual void OnStartDecode( LVImageSource * )
 	{
 		_line.reserve( _dst_dx );
 	}
     virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data );
-    virtual void OnEndDecode( LVImageSource * obj, bool errors )
+    virtual void OnEndDecode( LVImageSource *, bool )
 	{
 		_line.clear();
 	}
@@ -1547,7 +1547,7 @@ public:
         }
         src->Decode( this );
     }
-    virtual void OnStartDecode( LVImageSource * obj )
+    virtual void OnStartDecode( LVImageSource * )
     {
         //CRLog::trace( "LVUnpackedImgSource::OnStartDecode" );
     }
@@ -1567,7 +1567,7 @@ public:
             alpha = 0xFF;
         return gray | (gray<<8) | (gray<<16) | (alpha<<24);
     }
-    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data )
+    virtual bool OnLineDecoded( LVImageSource *, int y, lUInt32 * data )
     {
         if ( y<0 || y>=_dy )
             return false;
@@ -1582,7 +1582,7 @@ public:
         }
         return true;
     }
-    virtual void OnEndDecode( LVImageSource * obj, bool errors )
+    virtual void OnEndDecode( LVImageSource *, bool )
     {
         //CRLog::trace( "LVUnpackedImgSource::OnEndDecode" );
     }

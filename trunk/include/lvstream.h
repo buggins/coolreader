@@ -129,7 +129,7 @@ public:
 
     /// Set stream mode, supported not by all streams
     /** \return LVERR_OK if change is ok */
-    virtual lverror_t SetMode( lvopen_mode_t mode ) { return LVERR_NOTIMPL; }
+    virtual lverror_t SetMode( lvopen_mode_t ) { return LVERR_NOTIMPL; }
 
     /// Seek (change file pos)
     /**
@@ -532,7 +532,7 @@ protected:
     LVContainer * m_parent;
     LVStreamRef m_stream;
 public:
-    virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t mode )
+    virtual LVStreamRef OpenStream( const wchar_t *, lvopen_mode_t )
     {
         return LVStreamRef();
     }

@@ -113,10 +113,10 @@ public:
         }
         tblState = state;
     }
-    virtual void OnControlWord( const char * control, int param )
+    virtual void OnControlWord( const char *, int )
     {
     }
-    virtual void OnTblProp( int id, int param )
+    virtual void OnTblProp( int id, int )
     {
         switch ( id ) {
         case tpi_trowd: // Sets table row defaults.
@@ -260,10 +260,16 @@ public:
     : LVRtfDestination( parser )
     {
     }
-    virtual void OnControlWord( const char * control, int param )
+    virtual void OnControlWord( const char *, int )
     {
     }
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
+    virtual void OnText( const lChar16 *, int, lUInt32 )
+    {
+    }
+    virtual void OnTblProp( int, int )
+    {
+    }
+    virtual void OnAction( int )
     {
     }
     virtual ~LVRtfNullDestination()
@@ -522,13 +528,13 @@ void LVRtfParser::Reset()
 }
 
 /// sets charset by name
-void LVRtfParser::SetCharset( const lChar16 * name )
+void LVRtfParser::SetCharset( const lChar16 * )
 {
     //TODO
 }
 
 /// sets 8-bit charset conversion table (128 items, for codes 128..255)
-void LVRtfParser::SetCharsetTable( const lChar16 * table )
+void LVRtfParser::SetCharsetTable( const lChar16 * )
 {
     //TODO
 }

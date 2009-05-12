@@ -95,7 +95,7 @@ static int charToHex( lUInt8 ch )
 
 
 /// reads one character from buffer in RTF format
-lChar16 LVTextFileBase::ReadRtfChar( int enc_type, const lChar16 * conv_table )
+lChar16 LVTextFileBase::ReadRtfChar( int, const lChar16 * conv_table )
 {
     lChar16 ch = m_buf[m_buf_pos++];
     lChar16 ch2 = m_buf[m_buf_pos];
@@ -221,7 +221,7 @@ bool LVFileParserBase::Seek( lvpos_t pos, int bytesToPrefetch )
         m_buf_pos = (pos - m_buf_fpos);
         return true;
     }
-    if ( pos<0 || pos>=m_stream_size )
+    if ( pos>=m_stream_size )
         return false;
     unsigned bytesToRead = (bytesToPrefetch > m_buf_size) ? bytesToPrefetch : m_buf_size;
     if ( bytesToRead < BUF_SIZE_INCREMENT )

@@ -125,7 +125,7 @@ private:
 public:
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t size )
+    void * operator new( size_t )
     {
         if (pmsHeap == NULL)
         {

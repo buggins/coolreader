@@ -297,8 +297,8 @@ public:
 /// Callback interface
 class LVDocViewCallback {
 public:
-    /// Override to handle external links
-    virtual void OnExternalLink( lString16 url, ldomNode * node ) { }
+    /// Override to handle external links (url, node)
+    virtual void OnExternalLink( lString16 , ldomNode * ) { }
     virtual ~LVDocViewCallback() { }
 };
 

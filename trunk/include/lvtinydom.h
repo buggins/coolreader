@@ -370,7 +370,7 @@ protected:
     lUInt32 _index;
 #endif
 
-    virtual void addChild( lInt32 dataIndex ) { }
+    virtual void addChild( lInt32 ) { }
 
     ldomNode( const ldomNode * node )
     : _document(node->_document), _parentIndex( node->_parentIndex ), _dataIndex( node->_dataIndex )
@@ -381,7 +381,11 @@ protected:
 	}
 
 public:
-    ldomNode( ldomDocument * document, ldomNode * parent, lUInt32 index )
+    ldomNode( ldomDocument * document, ldomNode * parent, lUInt32
+#if (LDOM_ALLOW_NODE_INDEX==1)
+              index
+#endif
+              )
     : _document(document), _parentIndex( parent ? parent->getDataIndex() : 0 )
 #if (LDOM_ALLOW_NODE_INDEX==1)
     , _index(index)
@@ -439,13 +443,13 @@ public:
     /// returns attribute value by attribute name and namespace
     virtual const lString16 & getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const;
     /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const = 0;
+    virtual const lxmlAttribute * getAttribute( lUInt32 ) const = 0;
     /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const = 0;
+    virtual bool hasAttribute( lUInt16 nsId, lUInt16 attrId ) const = 0;
     /// returns attribute name by index
-    virtual const lString16 & getAttributeName( lUInt32 index ) const { return lString16::empty_str; }
+    virtual const lString16 & getAttributeName( lUInt32 ) const { return lString16::empty_str; }
     /// sets attribute value
-    virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value ) { }
+    virtual void setAttributeValue( lUInt16 , lUInt16 , const lChar16 *  ) { }
     /// returns element type structure pointer if it was set in document for this element name
     virtual const elem_def_t * getElementTypePtr() = 0;
     /// returns element name id
@@ -453,7 +457,7 @@ public:
     /// returns element namespace id
     virtual lUInt16 getNodeNsId() const = 0;
     /// replace element name id with another value
-    virtual void setNodeId( lUInt16 id ) { }
+    virtual void setNodeId( lUInt16 ) { }
     /// returns element name
     virtual const lString16 & getNodeName() const = 0;
     /// returns element namespace name
@@ -463,9 +467,9 @@ public:
     /// returns text node text as utf8 string
     virtual lString8 getText8( lChar8 blockDelimiter = 0 ) const;
     /// sets text node text as wide string
-    virtual void setText( lString16 value ) { }
+    virtual void setText( lString16 ) { }
     /// sets text node text as utf8 string
-    virtual void setText8( lString8 value ) { }
+    virtual void setText8( lString8 ) { }
     /// returns child node by index
     virtual ldomNode * getChildNode( lUInt32 index ) const = 0;
     /// returns node absolute rectangle
@@ -507,15 +511,15 @@ public:
     /// returns rendering method
     virtual lvdom_element_render_method  getRendMethod() { return erm_invisible; }
     /// sets rendering method
-    virtual void setRendMethod( lvdom_element_render_method  method ) { }
+    virtual void setRendMethod( lvdom_element_render_method ) { }
     /// returns element style record
     virtual css_style_ref_t getStyle() { return css_style_ref_t(); }
     /// returns element font
     virtual font_ref_t getFont() { return font_ref_t(); }
     /// sets element font
-    virtual void setFont( font_ref_t font ) { }
+    virtual void setFont( font_ref_t ) { }
     /// sets element style record
-    virtual void setStyle( css_style_ref_t & style ) { }
+    virtual void setStyle( css_style_ref_t & ) { }
 
     /// returns first child node
     virtual ldomNode * getFirstChild() const { return NULL; }
@@ -524,21 +528,21 @@ public:
     /// removes and deletes last child element
     virtual void removeLastChild() { }
     /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    virtual void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex ) { }
+    virtual void moveItemsTo( ldomNode *, int , int ) { }
     /// find child element by tag id
     ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
     /// find child element by id path
     ldomNode * findChildElement( lUInt16 idPath[] );
     /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id ) { return NULL; }
+    virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id ) = 0;
     /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt16 id ) { return NULL; }
+    virtual ldomNode * insertChildElement( lUInt16 id ) = 0;
     /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32 index, lString16 value ) { return NULL; }
+    virtual ldomNode * insertChildText( lUInt32 index, lString16 value ) = 0;
     /// inserts child text
-    virtual ldomNode * insertChildText( lString16 value ) { return NULL; }
+    virtual ldomNode * insertChildText( lString16 value ) = 0;
     /// remove child
-    virtual ldomNode * removeChild( lUInt32 index ) { return NULL; }
+    virtual ldomNode * removeChild( lUInt32 index ) = 0;
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
 #if BUILD_LITE!=1
@@ -850,9 +854,9 @@ public:
     /// destructor
     virtual ~ldomNodeCallback() { }
     /// called for each found text fragment in range
-    virtual void onText( ldomXRange * nodeRange ) { }
+    virtual void onText( ldomXRange * ) { }
     /// called for each found node in range
-    virtual bool onElement( ldomXPointerEx * ptr ) { return true; }
+    virtual bool onElement( ldomXPointerEx * ) { return true; }
 };
 
 /// range for word inside text node
@@ -1269,7 +1273,7 @@ protected:
     lUInt16 _stopTagId;
     //============================
     lUInt32 _flags;
-	virtual void ElementCloseHandler( ldomNode * elem ) { }
+    virtual void ElementCloseHandler( ldomNode * ) { }
 public:
     /// returns flags
     virtual lUInt32 getFlags() { return _flags; }
@@ -1346,7 +1350,7 @@ public:
     virtual void OnEncoding( const lChar16 * name, const lChar16 * table )
     { parent->OnEncoding( name, table ); }
     /// called on parsing start
-    virtual void OnStart(LVFileFormatParser * parser)
+    virtual void OnStart(LVFileFormatParser *)
     {
         insideTag = false;
     }

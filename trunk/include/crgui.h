@@ -301,7 +301,7 @@ class CRGUIStringTranslator
 {
 public:
     /// translate string by key, return default value if not found
-    virtual lString16 translateString( const char * key, const char * defValue )
+    virtual lString16 translateString( const char *, const char * defValue )
     {
         return Utf8ToUnicode( lString8(defValue) );
     }
@@ -317,7 +317,7 @@ class CRGUIScreen
         /// creates compatible canvas of specified size
         virtual LVDrawBuf * createCanvas( int dx, int dy ) = 0;
         /// sets new screen size, returns true if size is changed
-        virtual bool setSize( int dx, int dy ) { return false; }
+        virtual bool setSize( int dx, int dy ) = 0;
         /// returns screen width
         virtual int getWidth() = 0;
         /// returns screen height
@@ -329,7 +329,7 @@ class CRGUIScreen
         /// draw image on screen canvas
         virtual void draw( LVDrawBuf * img, int x = 0, int y = 0) = 0;
         /// transfers contents of buffer to device, if full==true, redraws whole screen, otherwise only changed area
-        virtual void flush( bool full ) { }
+        virtual void flush( bool full ) = 0;
         /// invalidates rectangle: add it to bounding box of next partial update
         virtual void invalidateRect( const lvRect & rc ) { }
         virtual ~CRGUIScreen() { }
@@ -344,13 +344,13 @@ class CRGUIWindow
         /// returns skin name for window
         virtual lString16 getSkinName() = 0;
         /// set accelerator table for window
-        virtual void setAccelerators( CRGUIAcceleratorTableRef table ) { }
+        virtual void setAccelerators( CRGUIAcceleratorTableRef ) { }
         /// get window accelerator table
         virtual CRGUIAcceleratorTableRef getAccelerators() { return CRGUIAcceleratorTableRef(); }
         /// returns true if key is processed
-        virtual bool onKeyPressed( int key, int flags = 0 ) { return false; }
+        virtual bool onKeyPressed( int key, int flags = 0 ) = 0;
         /// returns true if command is processed
-        virtual bool onCommand( int command, int params = 0 ) { return false; }
+        virtual bool onCommand( int command, int params = 0 ) = 0;
         /// returns true if window is visible
         virtual bool isVisible() const = 0;
         /// returns true if window is fullscreen
