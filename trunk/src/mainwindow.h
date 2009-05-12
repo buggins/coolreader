@@ -18,6 +18,9 @@ public:
 
 private:
     Ui::MainWindowClass *ui;
+
+private slots:
+    void on_view_destroyed();
 };
 
 #endif // MAINWINDOW_H
