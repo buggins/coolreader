@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 #else
     CRLog::setLogLevel( CRLog::LL_ERROR );
 #endif
+    CRLog::info("main()");
     lString16Collection fontDirs;
     //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
     //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
@@ -44,7 +45,9 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
-    return a.exec();
+    int res = a.exec();
+    ShutdownCREngine();
+    return res;
 }
 
 
@@ -202,6 +205,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
         lString16 fontExt = L".lbf";
     #endif
     #if (USE_FREETYPE==1)
+        CRLog::trace("USE_FREETYPE==1 -- msfonts");
         lString16Collection fonts;
         fontDirs.add( fontDir );
         static const char * msfonts[] = {
@@ -210,6 +214,17 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
             "times.ttf", "timesbd.ttf", "timesi.ttf", "timesbi.ttf",
             NULL
         };
+    #ifdef _WIN32
+        wchar_t sd_buf[MAX_PATH];
+        sd_buf[0] = 0;
+        ::GetSystemDirectoryW(sd_buf, MAX_PATH-1);
+        lString16 sysFontDir = lString16(sd_buf) + L"\\..\\fonts\\";
+        lString8 sfd = UnicodeToLocal( sysFontDir );
+        //const char * s = sfd.c_str();
+        //CRLog::debug(s);
+        for ( int fi=0; msfonts[fi]; fi++ )
+            fonts.add( sysFontDir + lString16(msfonts[fi]) );
+    #endif
     #ifdef _LINUX
     #ifndef LBOOK
         fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
