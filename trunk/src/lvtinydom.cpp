@@ -4057,7 +4057,7 @@ ldomElement::~ldomElement()
 
 
 #if (LDOM_USE_OWN_MEM_MAN==1)
-extern ldomMemManStorage ** block_storages;
+extern ldomMemManStorage * block_storages[LOCAL_STORAGE_COUNT];
 static void freeStorage( ldomMemManStorage * & p )
 {
     if ( p ) {
