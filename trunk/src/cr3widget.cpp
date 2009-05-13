@@ -1,10 +1,11 @@
 #include "cr3widget.h"
 #include "qpainter.h"
 #include <QResizeEvent>
+#include <QScrollBar>
 #include "../crengine/include/lvdocview.h"
 
 CR3View::CR3View( QWidget *parent)
-        : QWidget( parent, Qt::WindowFlags() )
+        : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL)
 {
     _docview = new LVDocView();
 }
@@ -49,9 +50,48 @@ void CR3View::paintEvent ( QPaintEvent * event )
         }
     }
     painter.drawImage( rc, img );
-
-    painter.setPen(Qt::blue);
-    painter.setFont(QFont("Arial", 30));
-    painter.drawText(rect(), Qt::AlignCenter, "Hello from widget");
+    updateScroll();
 }
 
+void CR3View::updateScroll()
+{
+    if ( _scroll!=NULL ) {
+        // TODO: set scroll range
+        const LVScrollInfo * si = _docview->getScrollInfo();
+        bool changed = false;
+        if ( si->maxpos-si->pagesize != _scroll->maximum() ) {
+            _scroll->setMaximum( si->maxpos-si->pagesize );
+            _scroll->setMinimum(0);
+            changed = true;
+        }
+        if ( si->pagesize != _scroll->pageStep() ) {
+            _scroll->setPageStep( si->pagesize );
+            changed = true;
+        }
+        if ( si->pos != _scroll->value() ) {
+            _scroll->setValue( si-> pos );
+            changed = true;
+        }
+    }
+}
+
+void CR3View::scrollTo( int value )
+{
+    _docview->doCommand( DCMD_GO_POS,
+        _docview->scrollPosToDocPos( value ));
+    update();
+}
+
+QScrollBar * CR3View::scrollBar() const
+{
+    return _scroll;
+}
+
+void CR3View::setScrollBar( QScrollBar * scroll )
+{
+    _scroll = scroll;
+    if ( _scroll!=NULL ) {
+        QObject::connect(_scroll, SIGNAL(valueChanged(int)),
+                          this,  SLOT(scrollTo(int)));
+}
+}

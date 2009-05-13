@@ -40,12 +40,13 @@ int main(int argc, char *argv[])
     //    printf("Usage: cr3 <filename_to_open>\n");
     //    return 3;
     //}
-
-
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    int res = a.exec();
+    int res = 0;
+    {
+        QApplication a(argc, argv);
+        MainWindow w;
+        w.show();
+        res = a.exec();
+    }
     ShutdownCREngine();
     return res;
 }

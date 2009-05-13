@@ -2,6 +2,7 @@
 #define CR3WIDGET_H
 
 #include <qwidget.h>
+#include <QScrollBar>
 
 class LVDocView;
 
@@ -9,9 +10,7 @@ class CR3View : public QWidget
 {
         Q_OBJECT
 
-        //Q_ENUMS( Mode )
-        //Q_PROPERTY( Mode mode READ mode WRITE setMode )
-        //Q_PROPERTY( QString fileName READ fileName WRITE setFileName )
+        Q_PROPERTY( QScrollBar* scrollBar READ scrollBar WRITE setScrollBar )
 
     public:
         CR3View( QWidget *parent = 0 );
@@ -19,14 +18,13 @@ class CR3View : public QWidget
 
         bool loadDocument( QString fileName );
 
-        //enum Mode { File, Directory };
-
-        //QString fileName() const;
-        //Mode mode() const;
+        QScrollBar * scrollBar() const;
 
     public slots:
-        //void setFileName( const QString &fn );
-        //void setMode( Mode m );
+        void setScrollBar( QScrollBar * scroll );
+        /// on scroll
+        void scrollTo( int value );
+
 
     signals:
         //void fileNameChanged( const QString & );
@@ -35,14 +33,13 @@ class CR3View : public QWidget
         virtual void paintEvent ( QPaintEvent * event );
         virtual void resizeEvent ( QResizeEvent * event );
 
+        void updateScroll();
+
     private slots:
-        //void chooseFile();
 
     private:
-        //QLineEdit *lineEdit;
-        //QPushButton *button;
-        //Mode md;
         LVDocView * _docview;
+        QScrollBar * _scroll;
 
 };
 
