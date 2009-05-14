@@ -77,10 +77,29 @@ void CR3View::updateScroll()
 
 void CR3View::scrollTo( int value )
 {
-    _docview->doCommand( DCMD_GO_POS,
-        _docview->scrollPosToDocPos( value ));
+    int currPos = _docview->scrollPosToDocPos( _docview->getScrollInfo()->pos );
+    int newPos = _docview->scrollPosToDocPos( value );
+    if ( currPos != newPos ) {
+        doCommand( DCMD_GO_POS, _docview->scrollPosToDocPos( value ) );
+    }
+}
+
+void CR3View::doCommand( int cmd, int param )
+{
+    _docview->doCommand( (LVDocCmd)cmd, param );
     update();
 }
+
+void CR3View::nextPage() { doCommand( DCMD_PAGEDOWN, 1 ); }
+void CR3View::prevPage() { doCommand( DCMD_PAGEUP, 1 ); }
+void CR3View::nextLine() { doCommand( DCMD_LINEDOWN, 1 ); }
+void CR3View::prevLine() { doCommand( DCMD_LINEUP, 1 ); }
+void CR3View::nextChapter() { doCommand( DCMD_MOVE_BY_CHAPTER, 1 ); }
+void CR3View::prevChapter() { doCommand( DCMD_MOVE_BY_CHAPTER, -1 ); }
+void CR3View::firstPage() { doCommand( DCMD_BEGIN, 1 ); }
+void CR3View::lastPage() { doCommand( DCMD_END, 1 ); }
+void CR3View::historyBack() { doCommand( DCMD_LINK_BACK, 1 ); }
+void CR3View::historyForward() { doCommand( DCMD_LINK_FORWARD, 1 ); }
 
 QScrollBar * CR3View::scrollBar() const
 {

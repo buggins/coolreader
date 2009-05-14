@@ -72,8 +72,25 @@
     <addaction name="actionToggle_Pages_Scroll"/>
     <addaction name="actionMinimize"/>
    </widget>
+   <widget class="QMenu" name="menuNavigation">
+    <property name="title">
+     <string>Navigation</string>
+    </property>
+    <addaction name="actionNextPage"/>
+    <addaction name="actionPrevPage"/>
+    <addaction name="actionNextLine"/>
+    <addaction name="actionPrevLine"/>
+    <addaction name="actionFirstPage"/>
+    <addaction name="actionLastPage"/>
+    <addaction name="actionNextChapter"/>
+    <addaction name="actionPrevChapter"/>
+    <addaction name="separator"/>
+    <addaction name="actionBack"/>
+    <addaction name="actionForward"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
+   <addaction name="menuNavigation"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -94,7 +111,7 @@
     <string>Open file</string>
    </property>
    <property name="shortcut">
-    <string>F3, Ctrl+O</string>
+    <string>F3</string>
    </property>
   </action>
   <action name="actionToggle_Pages_Scroll">
@@ -119,6 +136,116 @@
    </property>
    <property name="shortcut">
     <string>Esc</string>
+   </property>
+  </action>
+  <action name="actionNextPage">
+   <property name="text">
+    <string>Page Down</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to next page</string>
+   </property>
+   <property name="shortcut">
+    <string>PgDown</string>
+   </property>
+  </action>
+  <action name="actionPrevPage">
+   <property name="text">
+    <string>Page Up</string>
+   </property>
+   <property name="toolTip">
+    <string>Back by page</string>
+   </property>
+   <property name="shortcut">
+    <string>PgUp</string>
+   </property>
+  </action>
+  <action name="actionNextLine">
+   <property name="text">
+    <string>Line Down</string>
+   </property>
+   <property name="toolTip">
+    <string>Forward by one line</string>
+   </property>
+   <property name="shortcut">
+    <string>Down</string>
+   </property>
+  </action>
+  <action name="actionPrevLine">
+   <property name="text">
+    <string>Line Up</string>
+   </property>
+   <property name="toolTip">
+    <string>Back by line</string>
+   </property>
+   <property name="shortcut">
+    <string>Up</string>
+   </property>
+  </action>
+  <action name="actionFirstPage">
+   <property name="text">
+    <string>First Page</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to first page</string>
+   </property>
+   <property name="shortcut">
+    <string>Home</string>
+   </property>
+  </action>
+  <action name="actionLastPage">
+   <property name="text">
+    <string>Last Page</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to last page</string>
+   </property>
+   <property name="shortcut">
+    <string>End</string>
+   </property>
+  </action>
+  <action name="actionBack">
+   <property name="text">
+    <string>Back</string>
+   </property>
+   <property name="toolTip">
+    <string>Back in navigation history</string>
+   </property>
+   <property name="shortcut">
+    <string>Backspace</string>
+   </property>
+  </action>
+  <action name="actionForward">
+   <property name="text">
+    <string>Forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to the next position in navigation history</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Backspace</string>
+   </property>
+  </action>
+  <action name="actionNextChapter">
+   <property name="text">
+    <string>Next Chapter</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to next chapter</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Down</string>
+   </property>
+  </action>
+  <action name="actionPrevChapter">
+   <property name="text">
+    <string>Previous Chapter</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to previous chapter</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Up</string>
    </property>
   </action>
  </widget>

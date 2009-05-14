@@ -20,6 +20,16 @@ private:
     Ui::MainWindowClass *ui;
 
 private slots:
+    void on_actionPrevChapter_triggered();
+    void on_actionNextChapter_triggered();
+    void on_actionForward_triggered();
+    void on_actionBack_triggered();
+    void on_actionLastPage_triggered();
+    void on_actionFirstPage_triggered();
+    void on_actionPrevLine_triggered();
+    void on_actionNextLine_triggered();
+    void on_actionPrevPage_triggered();
+    void on_actionNextPage_triggered();
     void on_actionClose_triggered();
     void on_actionMinimize_triggered();
     void on_actionOpen_triggered();

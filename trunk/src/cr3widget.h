@@ -24,6 +24,16 @@ class CR3View : public QWidget
         void setScrollBar( QScrollBar * scroll );
         /// on scroll
         void scrollTo( int value );
+        void nextPage();
+        void prevPage();
+        void nextLine();
+        void prevLine();
+        void nextChapter();
+        void prevChapter();
+        void firstPage();
+        void lastPage();
+        void historyBack();
+        void historyForward();
 
 
     signals:
@@ -33,7 +43,8 @@ class CR3View : public QWidget
         virtual void paintEvent ( QPaintEvent * event );
         virtual void resizeEvent ( QResizeEvent * event );
 
-        void updateScroll();
+        virtual void updateScroll();
+        virtual void doCommand( int cmd, int param = 0 );
 
     private slots:
 
