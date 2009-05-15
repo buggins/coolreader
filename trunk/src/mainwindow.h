@@ -20,6 +20,7 @@ private:
     Ui::MainWindowClass *ui;
 
 private slots:
+    void on_actionToggle_Pages_Scroll_triggered();
     void on_actionPrevChapter_triggered();
     void on_actionNextChapter_triggered();
     void on_actionForward_triggered();

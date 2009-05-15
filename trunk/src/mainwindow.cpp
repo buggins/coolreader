@@ -90,3 +90,8 @@ void MainWindow::on_actionPrevChapter_triggered()
 {
     ui->view->prevChapter();
 }
+
+void MainWindow::on_actionToggle_Pages_Scroll_triggered()
+{
+    ui->view->togglePageScrollView();
+}

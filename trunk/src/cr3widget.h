@@ -23,6 +23,7 @@ class CR3View : public QWidget
     public slots:
         void setScrollBar( QScrollBar * scroll );
         /// on scroll
+        void togglePageScrollView();
         void scrollTo( int value );
         void nextPage();
         void prevPage();

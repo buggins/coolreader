@@ -59,8 +59,8 @@ void CR3View::updateScroll()
         // TODO: set scroll range
         const LVScrollInfo * si = _docview->getScrollInfo();
         bool changed = false;
-        if ( si->maxpos-si->pagesize != _scroll->maximum() ) {
-            _scroll->setMaximum( si->maxpos-si->pagesize );
+        if ( si->maxpos != _scroll->maximum() ) {
+            _scroll->setMaximum( si->maxpos );
             _scroll->setMinimum(0);
             changed = true;
         }
@@ -77,10 +77,9 @@ void CR3View::updateScroll()
 
 void CR3View::scrollTo( int value )
 {
-    int currPos = _docview->scrollPosToDocPos( _docview->getScrollInfo()->pos );
-    int newPos = _docview->scrollPosToDocPos( value );
-    if ( currPos != newPos ) {
-        doCommand( DCMD_GO_POS, _docview->scrollPosToDocPos( value ) );
+    int currPos = _docview->getScrollInfo()->pos;
+    if ( currPos != value ) {
+        doCommand( DCMD_GO_SCROLL_POS, value );
     }
 }
 
@@ -90,6 +89,7 @@ void CR3View::doCommand( int cmd, int param )
     update();
 }
 
+void CR3View::togglePageScrollView()  { doCommand( DCMD_TOGGLE_PAGE_SCROLL_VIEW, 1 ); }
 void CR3View::nextPage() { doCommand( DCMD_PAGEDOWN, 1 ); }
 void CR3View::prevPage() { doCommand( DCMD_PAGEUP, 1 ); }
 void CR3View::nextLine() { doCommand( DCMD_LINEDOWN, 1 ); }
