@@ -7,6 +7,15 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->view->setScrollBar( ui->scroll );
+#ifdef _LINUX
+    QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
+#else
+    QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
+#endif
+    QString histFile = homeDir + "cr3hist.bmk";
+    QString iniFile = homeDir + "cr3.ini";
+    ui->view->loadSettings( iniFile );
+    ui->view->loadHistory( histFile );
 }
 
 MainWindow::~MainWindow()

@@ -7,42 +7,30 @@ DEFINES += USE_FREETYPE=1 \
     LDOM_USE_OWN_MEM_MAN=1 \
     COLOR_BACKBUFFER=1 \
     USE_DOM_UTF8_STORAGE=1
-
-win32 {
-
-DEFINES += _WIN32=1 \
-           WIN32=1 \
-           CR_EMULATE_GETTEXT=1
-
-INCLUDEPATH += ../freetype2/include \
-               ../zlib \
-               ../libjpeg \
-               ../libpng
-  debug {
-    LIBS += ../freetype2/objs/freetype235MT_D.lib \
-            ../zlib/lib/zlibd.lib \
-            ../libpng/lib/libpngd.lib \
-            ../libjpeg/lib/libjpegd.lib
-  } else {
-    LIBS += ../freetype2/objs/freetype235MT.lib \
-            ../libpng/lib/libpng.lib \
-            ../zlib/lib/zlib.lib \
-            ../libjpeg/lib/libjpeg.lib
-  }
+win32 { 
+    DEFINES += _WIN32=1 \
+        WIN32=1 \
+        CR_EMULATE_GETTEXT=1
+    INCLUDEPATH += ../../freetype2/include \
+        ../../zlib \
+        ../../libjpeg \
+        ../../libpng
+    debug:LIBS += ../../freetype2/objs/freetype235MT_D.lib \
+        ../../zlib/lib/zlibd.lib \
+        ../../libpng/lib/libpngd.lib \
+        ../../libjpeg/lib/libjpegd.lib
+    else:LIBS += ../../freetype2/objs/freetype235MT.lib \
+        ../../libpng/lib/libpng.lib \
+        ../../zlib/lib/zlib.lib \
+        ../../libjpeg/lib/libjpeg.lib
 }
-
-!win32 {
-
-DEFINES += _LINUX=1 \
-           LINUX=1
-
-INCLUDEPATH += /usr/include/freetype2
-
-LIBS += -ljpeg \
-    -lfreetype
+!win32 { 
+    DEFINES += _LINUX=1 \
+        LINUX=1
+    INCLUDEPATH += /usr/include/freetype2
+    LIBS += -ljpeg \
+        -lfreetype
 }
-
-
 SOURCES += main.cpp \
     mainwindow.cpp \
     ../crengine/src/cp_stats.cpp \
@@ -72,7 +60,8 @@ SOURCES += main.cpp \
     ../crengine/src/crskin.cpp \
     ../crengine/src/cri18n.cpp \
     ../crengine/src/crgui.cpp \
-    cr3widget.cpp
+    cr3widget.cpp \
+    crqtutil.cpp
 HEADERS += mainwindow.h \
     ../crengine/include/rtfimp.h \
     ../crengine/include/rtfcmd.h \
@@ -115,5 +104,6 @@ HEADERS += mainwindow.h \
     ../crengine/include/crengine.h \
     ../crengine/include/cp_stats.h \
     ../crengine/include/wolutil.h \
-    cr3widget.h
+    cr3widget.h \
+    crqtutil.h
 FORMS += mainwindow.ui

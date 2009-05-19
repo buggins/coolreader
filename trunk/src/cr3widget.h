@@ -3,6 +3,8 @@
 
 #include <qwidget.h>
 #include <QScrollBar>
+//#include "../../crengine/include/crengine.h"
+#include "../crengine/include/lvdocview.h"
 
 class LVDocView;
 
@@ -19,6 +21,15 @@ class CR3View : public QWidget
         bool loadDocument( QString fileName );
 
         QScrollBar * scrollBar() const;
+
+        /// load settings from file
+        bool loadSettings( QString filename );
+        /// save settings from file
+        bool saveSettings( QString filename );
+        /// load history from file
+        bool loadHistory( QString filename );
+        /// save history to file
+        bool saveHistory( QString filename );
 
     public slots:
         void setScrollBar( QScrollBar * scroll );
@@ -46,6 +57,10 @@ class CR3View : public QWidget
 
         virtual void updateScroll();
         virtual void doCommand( int cmd, int param = 0 );
+
+        QString _settingsFileName;
+        QString _historyFileName;
+        CRPropRef _props;
 
     private slots:
 

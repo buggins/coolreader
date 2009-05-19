@@ -1,8 +1,10 @@
+#include "../crengine/include/lvdocview.h"
+#include "../crengine/include/crtrace.h"
 #include "cr3widget.h"
+#include "crqtutil.h"
 #include "qpainter.h"
 #include <QResizeEvent>
 #include <QScrollBar>
-#include "../crengine/include/lvdocview.h"
 
 CR3View::CR3View( QWidget *parent)
         : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL)
@@ -112,5 +114,124 @@ void CR3View::setScrollBar( QScrollBar * scroll )
     if ( _scroll!=NULL ) {
         QObject::connect(_scroll, SIGNAL(valueChanged(int)),
                           this,  SLOT(scrollTo(int)));
+    }
 }
+
+/// load settings from file
+bool CR3View::loadSettings( QString fn )
+{
+    lString16 filename( qt2cr(fn) );
+    _settingsFileName = fn;
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    if ( stream.isNull() ) {
+        _docview->propsUpdateDefaults( _props );
+        _docview->propsApply( _props );
+        return false;
+    }
+    if ( _props->loadFromStream( stream.get() ) ) {
+        _docview->propsUpdateDefaults( _props );
+        _docview->propsApply( _props );
+        return true;
+    }
+    _docview->propsUpdateDefaults( _props );
+    _docview->propsApply( _props );
+    return false;
 }
+
+/// save settings from file
+bool CR3View::saveSettings( QString fn )
+{
+    lString16 filename( qt2cr(fn) );
+    crtrace log;
+    if ( filename.empty() )
+        filename = qt2cr(_settingsFileName);
+    if ( filename.empty() )
+        return false;
+    _settingsFileName = cr2qt(filename);
+    log << "V3DocViewWin::saveSettings(" << filename << ")";
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+    if ( !stream ) {
+        lString16 path16 = LVExtractPath( filename );
+        lString8 path = UnicodeToLocal( path16 );
+#ifdef _WIN32
+        if ( !CreateDirectoryW( path16.c_str(), NULL ) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        }
+#else
+        path.erase( path.length()-1, 1 );
+        CRLog::warn("Cannot create settings file, trying to create directory %s", path.c_str());
+        if ( mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        }
+#endif
+    }
+    if ( stream.isNull() ) {
+        lString8 fn = UnicodeToUtf8( filename );
+        CRLog::error("Cannot open settings file %s for write", fn.c_str() );
+        return false;
+    }
+    return _docview->getHistory()->saveToStream( stream.get() );
+}
+
+/// load history from file
+bool CR3View::loadHistory( QString fn )
+{
+    lString16 filename( qt2cr(fn) );
+    CRLog::trace("V3DocViewWin::loadHistory( %s )", UnicodeToUtf8(filename).c_str());
+    _historyFileName = fn;
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+    if ( stream.isNull() ) {
+        return false;
+    }
+    if ( !_docview->getHistory()->loadFromStream( stream ) )
+        return false;
+    return true;
+}
+
+/// save history to file
+bool CR3View::saveHistory( QString fn )
+{
+    lString16 filename( qt2cr(fn) );
+    crtrace log;
+    if ( filename.empty() )
+        filename = qt2cr(_historyFileName );
+    if ( filename.empty() ) {
+        CRLog::info("Cannot write history file - no file name specified");
+        return false;
+    }
+    //CRLog::debug("Exporting bookmarks to %s", UnicodeToUtf8(_bookmarkDir).c_str());
+    //_docview->exportBookmarks(_bookmarkDir); //use default filename
+    _docview->exportBookmarks(lString16()); //use default filename
+    _historyFileName = cr2qt(filename);
+    log << "V3DocViewWin::saveHistory(" << filename << ")";
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+    if ( !stream ) {
+        lString16 path16 = LVExtractPath( filename );
+        lString8 path = UnicodeToLocal( path16 );
+#ifdef _WIN32
+        if ( !CreateDirectoryW( path16.c_str(), NULL ) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        }
+#else
+        path.erase( path.length()-1, 1 );
+        CRLog::warn("Cannot create settings file, trying to create directory %s", path.c_str());
+        if ( mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) ) {
+            CRLog::error("Cannot create directory %s", path.c_str() );
+        } else {
+            stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        }
+#endif
+    }
+    if ( stream.isNull() ) {
+    	CRLog::error("Error while creating history file %s - position will be lost", UnicodeToUtf8(filename).c_str() );
+    	return false;
+    }
+    return _docview->getHistory()->saveToStream( stream.get() );
+}
+
