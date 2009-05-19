@@ -4,7 +4,7 @@
 
    lvdocview.cpp:  XML DOM tree rendering tools
 
-   (c) Vadim Lopatin, 2000-2006
+   (c) Vadim Lopatin, 2000-2009
    This source code is distributed under the terms of
    GNU General Public License
    See LICENSE file for details
@@ -1902,6 +1902,16 @@ LVDocViewMode LVDocView::getViewMode()
     return m_view_mode;
 }
 
+/// toggle pages/scroll view mode
+void LVDocView::toggleViewMode()
+{
+    if ( m_view_mode == DVM_SCROLL )
+        setViewMode( DVM_PAGES );
+    else
+        setViewMode( DVM_SCROLL );
+
+}
+
 int LVDocView::getVisiblePageCount()
 {
     return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE || m_dx*5 < m_dy*6 )
@@ -3008,8 +3018,9 @@ void LVDocView::updateScroll()
     else
     {
         int page = m_pages.FindNearestPage( m_pos, 0 );
-        m_scrollinfo.pos = page;
-        m_scrollinfo.maxpos = m_pages.length()-1;
+        int vpc = getVisiblePageCount();
+        m_scrollinfo.pos = page / vpc;
+        m_scrollinfo.maxpos = (m_pages.length() + 1) / vpc - 1;
         m_scrollinfo.pagesize = 1;
         m_scrollinfo.scale = 0;
         char str[32] = {0};
@@ -3020,6 +3031,27 @@ void LVDocView::updateScroll()
                 sprintf(str, "%d / %d", page, m_pages.length()-1 );
         }
         m_scrollinfo.posText = lString16( str );
+    }
+}
+
+/// move to position specified by scrollbar
+bool LVDocView::goToScrollPos( int pos )
+{
+    if (m_view_mode==DVM_SCROLL) {
+        SetPos( scrollPosToDocPos( pos ) );
+        return true;
+    } else {
+        int vpc = this->getVisiblePageCount();
+        int curPage = getCurPage();
+        pos = pos * vpc;
+        if ( pos >= getPageCount() )
+            pos = getPageCount()-1;
+        if ( pos < 0 )
+            pos = 0;
+        if ( curPage == pos )
+            return false;
+        goToPage( pos );
+        return true;
     }
 }
 
@@ -3038,7 +3070,8 @@ int LVDocView::scrollPosToDocPos( int scrollpos )
     }
     else
     {
-        int n = scrollpos;
+        int vpc = getVisiblePageCount();
+        int n = scrollpos * vpc;
         if (!m_pages.length())
             return 0;
         if (n>=m_pages.length())
@@ -3388,6 +3421,16 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
 {
     switch (cmd)
     {
+    case DCMD_TOGGLE_PAGE_SCROLL_VIEW:
+        {
+            toggleViewMode();
+        }
+        break;
+    case DCMD_GO_SCROLL_POS:
+        {
+            goToScrollPos( param );
+        }
+        break;
     case DCMD_BEGIN:
         {
             if ( getCurPage() > 0 ) {

@@ -3,7 +3,7 @@
 
     CoolReader Engine
 
-    (c) Vadim Lopatin, 2000-2006
+    (c) Vadim Lopatin, 2000-2009
 
     This source code is distributed under the terms of
     GNU General Public License.
@@ -199,7 +199,9 @@ enum LVDocCmd
     DCMD_TOGGLE_TEXT_FORMAT,
     DCMD_BOOKMARK_SAVE_N, // save current page bookmark under spicified number
     DCMD_BOOKMARK_GO_N,  // go to bookmark with specified number
-	DCMD_MOVE_BY_CHAPTER, // param=-1 - previous chapter, 1 = next chapter
+    DCMD_MOVE_BY_CHAPTER, // param=-1 - previous chapter, 1 = next chapter
+    DCMD_GO_SCROLL_POS,  // param=position of scroll bar slider
+    DCMD_TOGGLE_PAGE_SCROLL_VIEW,  // toggle paged/scroll view mode
 };
 #define LVDOCVIEW_COMMANDS_END DCMD_MOVE_BY_CHAPTER
 
@@ -591,6 +593,8 @@ public:
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)
     LVDocViewMode getViewMode();
+    /// toggle pages/scroll view mode
+    void toggleViewMode();
     /// get window visible page count (1 or 2)
     int getVisiblePageCount();
     /// set window visible page count (1 or 2)
@@ -686,6 +690,8 @@ public:
 
     /// returns scrollbar control info
     const LVScrollInfo * getScrollInfo() { updateScroll(); return &m_scrollinfo; }
+    /// move to position specified by scrollbar
+    bool goToScrollPos( int pos );
     /// converts scrollbar pos to doc pos
     int scrollPosToDocPos( int scrollpos );
     /// returns position in 1/100 of percents
