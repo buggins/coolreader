@@ -3,16 +3,17 @@
 
 #include <qwidget.h>
 #include <QScrollBar>
-//#include "../../crengine/include/crengine.h"
-#include "../crengine/include/lvdocview.h"
 
 class LVDocView;
 
 class CR3View : public QWidget
 {
+
         Q_OBJECT
 
         Q_PROPERTY( QScrollBar* scrollBar READ scrollBar WRITE setScrollBar )
+
+        class DocViewData;
 
     public:
         CR3View( QWidget *parent = 0 );
@@ -58,16 +59,13 @@ class CR3View : public QWidget
         virtual void updateScroll();
         virtual void doCommand( int cmd, int param = 0 );
 
-        QString _settingsFileName;
-        QString _historyFileName;
-        CRPropRef _props;
 
     private slots:
 
     private:
+        DocViewData * _data; // to hide non-qt implementation
         LVDocView * _docview;
         QScrollBar * _scroll;
-
 };
 
 #endif // CR3WIDGET_H

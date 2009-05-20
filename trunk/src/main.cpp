@@ -15,37 +15,39 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
 
 int main(int argc, char *argv[])
 {
-    CRLog::setStdoutLogger();
-#ifdef __i386__
-    CRLog::setLogLevel( CRLog::LL_TRACE );
-#else
-    CRLog::setLogLevel( CRLog::LL_ERROR );
-#endif
-    CRLog::info("main()");
-    lString16Collection fontDirs;
-    //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
-    //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-    //fontDirs.add( lString16(L"/mnt/fonts") );
-    fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
-    fontDirs.add( lString16(L"/usr/share/fonts/truetype/liberation") );
-    fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
-    // TODO: use fontconfig instead
-    //fontDirs.add( lString16(L"/root/fonts/truetype") );
-    if ( !InitCREngine( argv[0], fontDirs ) ) {
-        printf("Cannot init CREngine - exiting\n");
-        return 2;
-    }
-
-    //if ( argc!=2 ) {
-    //    printf("Usage: cr3 <filename_to_open>\n");
-    //    return 3;
-    //}
     int res = 0;
     {
-        QApplication a(argc, argv);
-        MainWindow w;
-        w.show();
-        res = a.exec();
+        CRLog::setStdoutLogger();
+    #ifdef __i386__
+        CRLog::setLogLevel( CRLog::LL_TRACE );
+    #else
+        CRLog::setLogLevel( CRLog::LL_ERROR );
+    #endif
+        CRLog::info("main()");
+        lString16Collection fontDirs;
+        //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
+        //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
+        //fontDirs.add( lString16(L"/mnt/fonts") );
+        fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
+        fontDirs.add( lString16(L"/usr/share/fonts/truetype/liberation") );
+        fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+        // TODO: use fontconfig instead
+        //fontDirs.add( lString16(L"/root/fonts/truetype") );
+        if ( !InitCREngine( argv[0], fontDirs ) ) {
+            printf("Cannot init CREngine - exiting\n");
+            return 2;
+        }
+
+        //if ( argc!=2 ) {
+        //    printf("Usage: cr3 <filename_to_open>\n");
+        //    return 3;
+        //}
+        {
+            QApplication a(argc, argv);
+            MainWindow w;
+            w.show();
+            res = a.exec();
+        }
     }
     ShutdownCREngine();
     return res;
