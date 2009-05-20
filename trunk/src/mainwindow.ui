@@ -71,6 +71,7 @@
     </property>
     <addaction name="actionToggle_Pages_Scroll"/>
     <addaction name="actionMinimize"/>
+    <addaction name="actionToggle_Full_Screen"/>
    </widget>
    <widget class="QMenu" name="menuNavigation">
     <property name="title">
@@ -97,7 +98,7 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
    <addaction name="separator"/>
    <addaction name="actionOpen"/>
@@ -248,6 +249,20 @@
     <string>Alt+Up</string>
    </property>
   </action>
+  <action name="actionToggle_Full_Screen">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Full Screen</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Full Screen mode</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Return</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -256,6 +271,10 @@
    <extends>QWidget</extends>
    <header>cr3widget.h</header>
    <container>1</container>
+   <slots>
+    <signal>fileOpened()</signal>
+    <slot>open()</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>

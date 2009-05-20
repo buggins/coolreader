@@ -104,3 +104,8 @@ void MainWindow::on_actionToggle_Pages_Scroll_triggered()
 {
     ui->view->togglePageScrollView();
 }
+
+void MainWindow::on_actionToggle_Full_Screen_triggered()
+{
+    setWindowState(windowState() ^ Qt::WindowFullScreen);
+}
