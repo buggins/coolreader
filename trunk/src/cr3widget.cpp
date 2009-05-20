@@ -25,6 +25,7 @@ CR3View::CR3View( QWidget *parent)
 
 CR3View::~CR3View()
 {
+    _docview->savePosition();
     saveHistory( QString() );
     saveSettings( QString() );
     delete _docview;
@@ -33,8 +34,10 @@ CR3View::~CR3View()
 
 bool CR3View::loadDocument( QString fileName )
 {
+    _docview->savePosition();
     QByteArray utf8 = fileName.toUtf8();
     bool res = _docview->LoadDocument( utf8.constData() );
+    CRLog::debug( "Trying to restore position for %s", utf8.constData() );
     _docview->restorePosition();
     return res;
 }
