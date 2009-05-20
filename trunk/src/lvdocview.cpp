@@ -3020,7 +3020,7 @@ void LVDocView::updateScroll()
         int page = m_pages.FindNearestPage( m_pos, 0 );
         int vpc = getVisiblePageCount();
         m_scrollinfo.pos = page / vpc;
-        m_scrollinfo.maxpos = (m_pages.length() + 1) / vpc - 1;
+        m_scrollinfo.maxpos = (m_pages.length() + vpc-1) / vpc - 1;
         m_scrollinfo.pagesize = 1;
         m_scrollinfo.scale = 0;
         char str[32] = {0};
