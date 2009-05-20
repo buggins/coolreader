@@ -55,7 +55,7 @@ class CR3View : public QWidget
     protected:
         virtual void paintEvent ( QPaintEvent * event );
         virtual void resizeEvent ( QResizeEvent * event );
-
+        virtual void wheelEvent ( QWheelEvent * event );
         virtual void updateScroll();
         virtual void doCommand( int cmd, int param = 0 );
 

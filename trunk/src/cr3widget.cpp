@@ -42,6 +42,29 @@ bool CR3View::loadDocument( QString fileName )
     return res;
 }
 
+void CR3View::wheelEvent( QWheelEvent * event )
+{
+    int numDegrees = event->delta() / 8;
+    int numSteps = numDegrees / 15;
+    if ( numSteps==0 && numDegrees!=0 )
+        numSteps = numDegrees>0 ? 1 : -1;
+
+    if ( numSteps ) {
+        if ( _docview->getViewMode() == DVM_SCROLL ) {
+            if ( numSteps > 0 )
+                doCommand( DCMD_LINEUP, -numSteps );
+            else
+                doCommand( DCMD_LINEDOWN, numSteps );
+        } else {
+            if ( numSteps > 0 )
+                doCommand( DCMD_PAGEUP, -numSteps );
+            else
+                doCommand( DCMD_PAGEDOWN, numSteps );
+        }
+    }
+    event->accept();
+ }
+
 void CR3View::resizeEvent ( QResizeEvent * event )
 {
 

@@ -256,32 +256,8 @@
    <extends>QWidget</extends>
    <header>cr3widget.h</header>
    <container>1</container>
-   <slots>
-    <signal>fileOpened()</signal>
-    <slot>open()</slot>
-   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>
-   <sender>menuBar</sender>
-   <signal>triggered(QAction*)</signal>
-   <receiver>view</receiver>
-   <slot>open()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>181</x>
-     <y>10</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>105</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
- <slots>
-  <slot>open()</slot>
- </slots>
+ <connections/>
 </ui>
