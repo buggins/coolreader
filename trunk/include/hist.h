@@ -141,6 +141,12 @@ private:
     int findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz );
     void makeTop( int index );
 public:
+    void limit( int maxItems )
+    {
+        for ( int i=_records.length()-1; i>maxItems; i-- ) {
+            _records.erase( i, 1 );
+        }
+    }
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
     bool loadFromStream( LVStreamRef stream );
     bool saveToStream( LVStream * stream );
