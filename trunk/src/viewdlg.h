@@ -31,6 +31,7 @@ protected:
 	static LVRef<CRDictionary> _dict;
     virtual void draw();
 public:
+    void showWaitIcon() { _wm->showWaitIcon( lString16("cr3_wait_icon.png") ); }
     CRGUIAcceleratorTableRef getMenuAccelerators()
     {
         return  _wm->getAccTables().get("menu");

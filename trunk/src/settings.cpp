@@ -46,17 +46,18 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     CRMenu * fontSizeMenu;
     fontSizeMenu = new CRMenu(_wm, mainMenu, mm_FontSize,
                                 _("Default font size"),
-                                        LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE );
-	for ( unsigned i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
-		//char name[32];
-		char defvalue[32];
-		//sprintf( name, "VIEWER_DLG_FONT_SIZE_%d", cr_font_sizes[i] );
-		sprintf( defvalue, "%d", cr_font_sizes[i] );
-		fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
-								lString16(defvalue),
-										LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[i], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[i]).c_str()  ) );
-	}
-    fontSizeMenu->setAccelerators( _menuAccelerators );
+                                        LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE, 10 );
+    for ( unsigned i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
+        //char name[32];
+        char defvalue[200];
+        //sprintf( name, "VIEWER_DLG_FONT_SIZE_%d", cr_font_sizes[i] );
+        sprintf( defvalue, "%d %s", cr_font_sizes[i], _("The quick brown fox jumps over lazy dog") );
+        fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
+                        lString16(defvalue),
+                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[i], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[i]).c_str()  ) );
+    }
+    fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu10") );
+    //fontSizeMenu->setAccelerators( _menuAccelerators );
     fontSizeMenu->setSkinName(lString16(L"#settings"));
     return fontSizeMenu;
 }

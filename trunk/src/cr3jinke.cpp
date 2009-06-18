@@ -29,6 +29,8 @@ static CallbackFunction * v3_callbacks = NULL;
 static char last_bookmark[2048]= {0};
 static int last_bookmark_page = 0;
 
+static bool shuttingDown = false;
+
 #define USE_JINKE_USER_DATA 0
 
 
@@ -200,7 +202,10 @@ int OnMenuAction( int actionId )
 */
 int OnKeyPressed(int keyId, int state)
 {
+    if ( shuttingDown )
+        return 0;
     CRLog::debug("OnKeyPressed(%d, %d)", keyId, state);
+
 #if 0
     FILE * f = fopen("/root/abook/keys.log","at");
     if ( f ) {
@@ -266,6 +271,7 @@ int OnKeyPressed(int keyId, int state)
     	CRJinkeWindowManager::instance->update( false );
 
     if ( CRJinkeWindowManager::instance->getWindowCount()==0 ) {
+        shuttingDown = true;
         // QUIT
         CRLog::trace("windowCount==0, quitting");
         v3_callbacks->EndDialog();
@@ -591,11 +597,14 @@ int bGetRotate() { return 0; }
 void vSetRotate(int rot) { }
 void vGetTotalPage(int*iTotalPage)
 {
-    *iTotalPage = CRJinkeDocView::instance->getDocView()->getPageCount();
+    if (!shuttingDown)
+        *iTotalPage = CRJinkeDocView::instance->getDocView()->getPageCount();
 }
 int GetPageIndex()
 {
     CRLog::trace("GetPageIndex()");
+    if (shuttingDown)
+        return 0;
     return CRJinkeDocView::instance->getDocView()->getCurPage(); //pageNo
 }
 int Origin() { return 1; }

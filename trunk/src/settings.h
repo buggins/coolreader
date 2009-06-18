@@ -50,7 +50,7 @@ enum MainMenuItems_t {
 };
 
 
-#define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 18, 20, 22, 24, 26, 28, 32, 38 }
+#define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 18, 20, 22, 24, 26, 28, 32, 38, 42, 48 }
 
 class CRSettingsMenu : public CRMenu
 {

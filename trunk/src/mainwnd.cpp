@@ -228,6 +228,7 @@ bool V3DocViewWin::saveHistory( LVStreamRef stream )
         CRLog::error("Cannot open history file for write" );
         return false;
     }
+    _docview->getHistory()->limit( 50 );
     return _docview->getHistory()->saveToStream( stream.get() );
 }
 
@@ -367,6 +368,7 @@ bool V3DocViewWin::saveSettings( lString16 filename )
 
 void V3DocViewWin::applySettings()
 {
+    showWaitIcon();
     CRPropRef delta = _props ^ _newProps;
     CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
     _docview->propsApply( delta );
@@ -436,6 +438,7 @@ void V3DocViewWin::openRecentBook( int index )
         CRFileHistRecord * file = files.get( index );
         lString16 fn = file->getFilePathName();
         // TODO: check error
+        showWaitIcon();
         loadDocument( fn );
     }
 }
@@ -773,6 +776,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
     case DCMD_ZOOM_IN:
     case DCMD_ZOOM_OUT:
+        showWaitIcon();
 		CRViewDialog::onCommand( command, params );
         _props->setInt( PROP_FONT_SIZE, _docview->getFontSize() );
         saveSettings( lString16() );

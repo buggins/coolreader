@@ -183,8 +183,10 @@ void CRViewDialog::showSearchDialog()
 
 bool CRViewDialog::findInDictionary( lString16 pattern )
 {
-    if ( _dict.isNull() )
+    if ( _dict.isNull() ) {
+        showWaitIcon();
         _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
+    }
 	lString8 body = _dict->translate( UnicodeToUtf8( pattern ) );
     lString8 txt = CRViewDialog::makeFb2Xml( body );
     CRViewDialog * dlg = new CRViewDialog( _wm, pattern, txt, lvRect(), true, true );
@@ -197,6 +199,7 @@ bool CRViewDialog::findText( lString16 pattern )
     if ( pattern.empty() )
         return false;
     LVArray<ldomWord> words;
+    showWaitIcon();
     if ( _docview->getDocument()->findText( pattern, true, -1, -1, words, 2000 ) ) {
         _docview->selectWords( words );
         CRSelNavigationDialog * dlg = new CRSelNavigationDialog( _wm, this );
