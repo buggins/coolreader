@@ -14,10 +14,12 @@ class TocDlg : public QDialog {
     Q_OBJECT
     Q_DISABLE_COPY(TocDlg)
 public:
-    explicit TocDlg(QWidget *parent, CR3View * docView );
     virtual ~TocDlg();
 
+    static bool showDocDlg( CR3View * docView );
+
 protected:
+    explicit TocDlg(QWidget *parent, CR3View * docView );
     virtual void changeEvent(QEvent *e);
 
 private:

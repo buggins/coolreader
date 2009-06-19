@@ -128,6 +128,5 @@ void MainWindow::on_actionZoom_Out_triggered()
 
 void MainWindow::on_actionTOC_triggered()
 {
-    TocDlg * dlg = new TocDlg( NULL, ui->view );
-    dlg->show();
+    TocDlg::showDocDlg( ui->view );
 }
