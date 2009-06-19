@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QtGui/QMainWindow>
+#include "tocdlg.h"
 
 namespace Ui
 {
@@ -20,6 +21,9 @@ private:
     Ui::MainWindowClass *ui;
 
 private slots:
+    void on_actionTOC_triggered();
+    void on_actionZoom_Out_triggered();
+    void on_actionZoom_In_triggered();
     void on_actionToggle_Full_Screen_triggered();
     void on_actionToggle_Pages_Scroll_triggered();
     void on_actionPrevChapter_triggered();

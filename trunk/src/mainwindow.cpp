@@ -12,10 +12,16 @@ MainWindow::MainWindow(QWidget *parent)
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
+    QString exeDir = qApp->applicationDirPath() + QDir::separator();
     QString histFile = homeDir + "cr3hist.bmk";
     QString iniFile = homeDir + "cr3.ini";
+    QString cssFile = homeDir + "fb2.css";
+    QString cssFile2 = exeDir + "fb2.css";
+    ;
     ui->view->loadSettings( iniFile );
     ui->view->loadHistory( histFile );
+    if ( !ui->view->loadCSS( cssFile ) )
+        ui->view->loadCSS( cssFile2 );
 }
 
 MainWindow::~MainWindow()
@@ -108,4 +114,20 @@ void MainWindow::on_actionToggle_Pages_Scroll_triggered()
 void MainWindow::on_actionToggle_Full_Screen_triggered()
 {
     setWindowState(windowState() ^ Qt::WindowFullScreen);
+}
+
+void MainWindow::on_actionZoom_In_triggered()
+{
+    ui->view->zoomIn();
+}
+
+void MainWindow::on_actionZoom_Out_triggered()
+{
+    ui->view->zoomOut();
+}
+
+void MainWindow::on_actionTOC_triggered()
+{
+    TocDlg * dlg = new TocDlg( NULL, ui->view );
+    dlg->show();
 }

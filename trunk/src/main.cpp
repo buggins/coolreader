@@ -23,14 +23,21 @@ int main(int argc, char *argv[])
     #else
         CRLog::setLogLevel( CRLog::LL_ERROR );
     #endif
+        lString16 exename = LocalToUnicode( lString8(argv[0]) );
+        lString16 exedir = LVExtractPath(exename);
+        LVAppendPathDelimiter(exedir);
+        lString16 exefontpath = exedir + L"fonts";
         CRLog::info("main()");
         lString16Collection fontDirs;
         //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
         //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
         //fontDirs.add( lString16(L"/mnt/fonts") );
+#if 0
+        fontDirs.add( exefontpath );
         fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
         fontDirs.add( lString16(L"/usr/share/fonts/truetype/liberation") );
         fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+#endif
         // TODO: use fontconfig instead
         //fontDirs.add( lString16(L"/root/fonts/truetype") );
         if ( !InitCREngine( argv[0], fontDirs ) ) {
@@ -147,6 +154,9 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
         appPath = appname.substr( 0, lastSlash+1 );
 
     lString16 fontDir = appPath + L"fonts";
+
+    fontDirs.add( fontDir );
+
     fontDir << slashChar;
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     //const char * fontDir8s = fontDir8.c_str();
@@ -208,8 +218,9 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
         lString16 fontExt = L".lbf";
     #endif
     #if (USE_FREETYPE==1)
-        CRLog::trace("USE_FREETYPE==1 -- msfonts");
         lString16Collection fonts;
+#if 0
+        CRLog::trace("USE_FREETYPE==1 -- msfonts");
         fontDirs.add( fontDir );
         static const char * msfonts[] = {
             "arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf",
@@ -240,6 +251,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
             fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
     #endif
     #endif
+#endif
         getDirectoryFonts( fontDirs, fontExt, fonts, true );
 
         // load fonts from file

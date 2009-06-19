@@ -5,6 +5,7 @@
 #include <QScrollBar>
 
 class LVDocView;
+class LVTocItem;
 
 class CR3View : public QWidget
 {
@@ -23,6 +24,14 @@ class CR3View : public QWidget
 
         QScrollBar * scrollBar() const;
 
+        /// get document's table of contents
+        LVTocItem * getToc();
+        /// go to position specified by xPointer string
+        void goToXPointer(QString xPointer);
+
+        /// returns current page
+        int getCurPage();
+
         /// load settings from file
         bool loadSettings( QString filename );
         /// save settings from file
@@ -31,6 +40,8 @@ class CR3View : public QWidget
         bool loadHistory( QString filename );
         /// save history to file
         bool saveHistory( QString filename );
+        /// load fb2.css file
+        bool loadCSS( QString filename );
 
     public slots:
         void setScrollBar( QScrollBar * scroll );
@@ -47,6 +58,8 @@ class CR3View : public QWidget
         void lastPage();
         void historyBack();
         void historyForward();
+        void zoomIn();
+        void zoomOut();
 
 
     signals:

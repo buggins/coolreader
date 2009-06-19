@@ -32,6 +32,28 @@ CR3View::~CR3View()
     delete _data;
 }
 
+LVTocItem * CR3View::getToc()
+{
+    return _docview->getToc();
+}
+
+/// go to position specified by xPointer string
+void CR3View::goToXPointer(QString xPointer)
+{
+    ldomXPointer p = _docview->getDocument()->createXPointer(qt2cr(xPointer));
+    //if ( _docview->getViewMode() == DVM_SCROLL ) {
+        doCommand( DCMD_GO_POS, p.toPoint().y );
+    //} else {
+    //    doCommand( DCMD_GO_PAGE, item->getPage() );
+    //}
+}
+
+/// returns current page
+int CR3View::getCurPage()
+{
+    return _docview->getCurPage();
+}
+
 bool CR3View::loadDocument( QString fileName )
 {
     _docview->savePosition();
@@ -143,6 +165,8 @@ void CR3View::firstPage() { doCommand( DCMD_BEGIN, 1 ); }
 void CR3View::lastPage() { doCommand( DCMD_END, 1 ); }
 void CR3View::historyBack() { doCommand( DCMD_LINK_BACK, 1 ); }
 void CR3View::historyForward() { doCommand( DCMD_LINK_FORWARD, 1 ); }
+void CR3View::zoomIn() { doCommand( DCMD_ZOOM_IN, 1 ); }
+void CR3View::zoomOut() { doCommand( DCMD_ZOOM_OUT, 1 ); }
 
 QScrollBar * CR3View::scrollBar() const
 {
@@ -156,6 +180,20 @@ void CR3View::setScrollBar( QScrollBar * scroll )
         QObject::connect(_scroll, SIGNAL(valueChanged(int)),
                           this,  SLOT(scrollTo(int)));
     }
+}
+
+/// load fb2.css file
+bool CR3View::loadCSS( QString fn )
+{
+    lString16 filename( qt2cr(fn) );
+    lString8 css;
+    if ( LVLoadStylesheetFile( filename, css ) ) {
+        if ( !css.empty() ) {
+            _docview->setStyleSheet( css );
+            return true;
+        }
+    }
+    return false;
 }
 
 /// load settings from file

@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -72,6 +72,10 @@
     <addaction name="actionToggle_Pages_Scroll"/>
     <addaction name="actionMinimize"/>
     <addaction name="actionToggle_Full_Screen"/>
+    <addaction name="actionZoom_In"/>
+    <addaction name="actionZoom_Out"/>
+    <addaction name="separator"/>
+    <addaction name="actionTOC"/>
    </widget>
    <widget class="QMenu" name="menuNavigation">
     <property name="title">
@@ -261,6 +265,39 @@
    </property>
    <property name="shortcut">
     <string>Alt+Return</string>
+   </property>
+  </action>
+  <action name="actionZoom_In">
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+   <property name="toolTip">
+    <string>Increase font size</string>
+   </property>
+   <property name="shortcut">
+    <string>+</string>
+   </property>
+  </action>
+  <action name="actionZoom_Out">
+   <property name="text">
+    <string>Zoom Out</string>
+   </property>
+   <property name="toolTip">
+    <string>Decrease font size</string>
+   </property>
+   <property name="shortcut">
+    <string>-</string>
+   </property>
+  </action>
+  <action name="actionTOC">
+   <property name="text">
+    <string>Table of Contents</string>
+   </property>
+   <property name="toolTip">
+    <string>Show table of contents</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
    </property>
   </action>
  </widget>
