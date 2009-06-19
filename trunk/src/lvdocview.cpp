@@ -2714,101 +2714,104 @@ bool LVDocView::ParseDocument( )
     m_doc->setNodeTypes( fb2_elem_table );
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
-    ldomDocumentWriter writer(m_doc);
-    ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
 
-    if ( m_stream->GetSize()<5 ) {
-        createDefaultDocument( lString16(L"ERROR: Wrong document size"), lString16(L"Cannot open document") );
-        return false;
-    }
+    {
+        ldomDocumentWriter writer(m_doc);
+        ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
 
-    /// FB2 format
-    setDocFormat( doc_format_fb2 );
-    LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
-    if ( !parser->CheckFormat() ) {
-        delete parser;
-        parser = NULL;
-    } else {
-    }
-
-    /// RTF format
-    if ( parser==NULL ) {
-        setDocFormat( doc_format_rtf );
-        parser = new LVRtfParser(m_stream, &writer);
-        if ( !parser->CheckFormat() ) {
-            delete parser;
-            parser = NULL;
+        if ( m_stream->GetSize()<5 ) {
+            createDefaultDocument( lString16(L"ERROR: Wrong document size"), lString16(L"Cannot open document") );
+            return false;
         }
-    }
 
-    /// HTML format
-    if ( parser==NULL ) {
-        setDocFormat( doc_format_html );
-        parser = new LVHTMLParser(m_stream, &writerFilter);
+        /// FB2 format
+        setDocFormat( doc_format_fb2 );
+        LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
         if ( !parser->CheckFormat() ) {
             delete parser;
             parser = NULL;
         } else {
         }
-    }
 
-    /// plain text format
-    if ( parser==NULL ) {
-
-        //m_text_format = txt_format_pre; // DEBUG!!!
-        setDocFormat( doc_format_txt );
-        parser = new LVTextParser(m_stream, &writer, getTextFormatOptions()==txt_format_pre );
-        if ( !parser->CheckFormat() ) {
-            delete parser;
-            parser = NULL;
+        /// RTF format
+        if ( parser==NULL ) {
+            setDocFormat( doc_format_rtf );
+            parser = new LVRtfParser(m_stream, &writer);
+            if ( !parser->CheckFormat() ) {
+                delete parser;
+                parser = NULL;
+            }
         }
-    } else {
-    }
 
-    // unknown format
-    if ( !parser ) {
-        setDocFormat( doc_format_none );
-        createDefaultDocument( lString16(L"ERROR: Unknown document format"), lString16(L"Cannot open document") );
-        return false;
-    }
+        /// HTML format
+        if ( parser==NULL ) {
+            setDocFormat( doc_format_html );
+            parser = new LVHTMLParser(m_stream, &writerFilter);
+            if ( !parser->CheckFormat() ) {
+                delete parser;
+                parser = NULL;
+            } else {
+            }
+        }
 
-    // set stylesheet
-    m_doc->getStyleSheet()->clear();
-    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+        /// plain text format
+        if ( parser==NULL ) {
 
-    // parse
-    if ( !parser->Parse() ) {
+            //m_text_format = txt_format_pre; // DEBUG!!!
+            setDocFormat( doc_format_txt );
+            parser = new LVTextParser(m_stream, &writer, getTextFormatOptions()==txt_format_pre );
+            if ( !parser->CheckFormat() ) {
+                delete parser;
+                parser = NULL;
+            }
+        } else {
+        }
+
+        // unknown format
+        if ( !parser ) {
+            setDocFormat( doc_format_none );
+            createDefaultDocument( lString16(L"ERROR: Unknown document format"), lString16(L"Cannot open document") );
+            return false;
+        }
+
+        // set stylesheet
+        m_doc->getStyleSheet()->clear();
+        m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+
+        // parse
+        if ( !parser->Parse() ) {
+            delete parser;
+            createDefaultDocument( lString16(L"ERROR: Bad document format"), lString16(L"Cannot open document") );
+            return false;
+        }
         delete parser;
-        createDefaultDocument( lString16(L"ERROR: Bad document format"), lString16(L"Cannot open document") );
-        return false;
-    }
-    delete parser;
-    m_pos = 0;
+        m_pos = 0;
 
 
-    lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
-    if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
-        m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
-    }
+        lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
+        if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+            m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+        }
 
-#if 0 //def _DEBUG
-        LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
-        m_doc->saveToStream( ostream, "utf-16" );
-#endif
-#if 0
-    {
-        LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
-        m_doc->saveToStream( ostream, "utf-16" );
-        m_doc->getRootNode()->recurseElements( SaveBase64Objects );
-    }
-#endif
+    #if 0 //def _DEBUG
+            LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
+            m_doc->saveToStream( ostream, "utf-16" );
+    #endif
+    #if 0
+        {
+            LVStreamRef ostream = LVOpenFileStream( "test_save.fb2", LVOM_WRITE );
+            m_doc->saveToStream( ostream, "utf-16" );
+            m_doc->getRootNode()->recurseElements( SaveBase64Objects );
+        }
+    #endif
 
 
-    //m_doc->getProps()->clear();
-    if ( m_doc_props->getStringDef(DOC_PROP_TITLE, "").empty() ) {
-        m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors( m_doc ));
-        m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle( m_doc ));
-        m_doc_props->setString(DOC_PROP_SERIES_NAME, extractDocSeries( m_doc ));
+        //m_doc->getProps()->clear();
+        if ( m_doc_props->getStringDef(DOC_PROP_TITLE, "").empty() ) {
+            m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors( m_doc ));
+            m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle( m_doc ));
+            m_doc_props->setString(DOC_PROP_SERIES_NAME, extractDocSeries( m_doc ));
+        }
     }
     m_doc->persist();
     requestRender();
