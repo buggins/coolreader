@@ -36,10 +36,15 @@ void SettingsDlg::changeEvent(QEvent *e)
 
 void SettingsDlg::on_buttonBox_rejected()
 {
-
+    //
 }
 
 void SettingsDlg::on_buttonBox_accepted()
 {
+    //
+}
 
+void SettingsDlg::on_cbWindowFullscreen_stateChanged(int )
+{
+    //
 }

@@ -24,6 +24,7 @@ private:
     CR3View * m_docview;
 
 private slots:
+    void on_cbWindowFullscreen_stateChanged(int );
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
 };
