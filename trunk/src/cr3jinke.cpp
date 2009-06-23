@@ -680,6 +680,7 @@ void bGetUserData(void **vUserData, int *iUserDataLength)
     }
 #endif
 }
+
 void vSetUserData(void *vUserData, int iUserDataLength)
 {
     CRLog::trace("vSetUserData()");

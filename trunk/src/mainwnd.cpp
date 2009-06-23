@@ -242,9 +242,10 @@ bool V3DocViewWin::loadHistory( lString16 filename )
 
 void V3DocViewWin::closing()
 {
-	CRLog::trace("V3DocViewWin::closing()");
+	CRLog::trace("V3DocViewWin::closing(), before docview->savePosition()");
 	_dict = NULL;
     _docview->savePosition();
+    CRLog::trace("after docview->savePosition()");
     saveHistory( lString16() );
 }
 
