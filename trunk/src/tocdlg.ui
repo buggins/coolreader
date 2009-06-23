@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Table of Contents</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="cr3res.qrc">
+    <normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTreeWidget" name="treeWidget">
@@ -38,7 +42,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="cr3res.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

@@ -63,7 +63,8 @@ SOURCES += main.cpp \
     cr3widget.cpp \
     crqtutil.cpp \
     tocdlg.cpp \
-    recentdlg.cpp
+    recentdlg.cpp \
+    settings.cpp
 HEADERS += mainwindow.h \
     ../crengine/include/rtfimp.h \
     ../crengine/include/rtfcmd.h \
@@ -109,8 +110,11 @@ HEADERS += mainwindow.h \
     cr3widget.h \
     crqtutil.h \
     tocdlg.h \
-    recentdlg.h
+    recentdlg.h \
+    settings.h
 FORMS += mainwindow.ui \
     tocdlg.ui \
     tocdlg.ui \
-    recentdlg.ui
+    recentdlg.ui \
+    settings.ui
+RESOURCES += cr3res.qrc

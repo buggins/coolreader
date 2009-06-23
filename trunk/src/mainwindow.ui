@@ -107,9 +107,24 @@
    </attribute>
    <addaction name="separator"/>
    <addaction name="actionOpen"/>
+   <addaction name="actionRecentBooks"/>
+   <addaction name="separator"/>
+   <addaction name="actionTOC"/>
+   <addaction name="separator"/>
+   <addaction name="actionPrevPage"/>
+   <addaction name="actionNextPage"/>
+   <addaction name="separator"/>
+   <addaction name="actionZoom_In"/>
+   <addaction name="actionZoom_Out"/>
+   <addaction name="separator"/>
+   <addaction name="actionSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/fileopen.png</normaloff>:/icons/action/icons/fileopen.png</iconset>
+   </property>
    <property name="text">
     <string>Open...</string>
    </property>
@@ -129,6 +144,10 @@
    </property>
   </action>
   <action name="actionClose">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/exit.png</normaloff>:/icons/action/icons/exit.png</iconset>
+   </property>
    <property name="text">
     <string>Close</string>
    </property>
@@ -145,6 +164,10 @@
    </property>
   </action>
   <action name="actionNextPage">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/forward.png</normaloff>:/icons/action/icons/forward.png</iconset>
+   </property>
    <property name="text">
     <string>Page Down</string>
    </property>
@@ -156,6 +179,10 @@
    </property>
   </action>
   <action name="actionPrevPage">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/back.png</normaloff>:/icons/action/icons/back.png</iconset>
+   </property>
    <property name="text">
     <string>Page Up</string>
    </property>
@@ -258,6 +285,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/window_fullscreen.png</normaloff>:/icons/action/icons/window_fullscreen.png</iconset>
+   </property>
    <property name="text">
     <string>Toggle Full Screen</string>
    </property>
@@ -269,6 +300,10 @@
    </property>
   </action>
   <action name="actionZoom_In">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/viewmag+.png</normaloff>:/icons/action/icons/viewmag+.png</iconset>
+   </property>
    <property name="text">
     <string>Zoom In</string>
    </property>
@@ -280,6 +315,10 @@
    </property>
   </action>
   <action name="actionZoom_Out">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/viewmag-.png</normaloff>:/icons/action/icons/viewmag-.png</iconset>
+   </property>
    <property name="text">
     <string>Zoom Out</string>
    </property>
@@ -291,6 +330,10 @@
    </property>
   </action>
   <action name="actionTOC">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</iconset>
+   </property>
    <property name="text">
     <string>Table of Contents</string>
    </property>
@@ -302,6 +345,10 @@
    </property>
   </action>
   <action name="actionRecentBooks">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/folder_favorite.png</normaloff>:/icons/action/icons/folder_favorite.png</iconset>
+   </property>
    <property name="text">
     <string>Recent Books</string>
    </property>
@@ -310,6 +357,18 @@
    </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/configure.png</normaloff>:/icons/action/icons/configure.png</iconset>
+   </property>
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Settings</string>
    </property>
   </action>
  </widget>
@@ -326,6 +385,8 @@
    </slots>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="cr3res.qrc"/>
+ </resources>
  <connections/>
 </ui>

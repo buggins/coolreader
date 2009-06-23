@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
+#include "settings.h"
+#include "tocdlg.h"
+#include "recentdlg.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindowClass)
@@ -134,4 +137,9 @@ void MainWindow::on_actionTOC_triggered()
 void MainWindow::on_actionRecentBooks_triggered()
 {
     RecentBooksDlg::showDlg( ui->view );
+}
+
+void MainWindow::on_actionSettings_triggered()
+{
+    SettingsDlg::showDlg( ui->view );
 }

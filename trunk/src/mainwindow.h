@@ -2,8 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QtGui/QMainWindow>
-#include "tocdlg.h"
-#include "recentdlg.h"
 
 namespace Ui
 {
@@ -22,6 +20,7 @@ private:
     Ui::MainWindowClass *ui;
 
 private slots:
+    void on_actionSettings_triggered();
     void on_actionRecentBooks_triggered();
     void on_actionTOC_triggered();
     void on_actionZoom_Out_triggered();

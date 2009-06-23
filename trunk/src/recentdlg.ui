@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Recent Books</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="cr3res.qrc">
+    <normaloff>:/icons/action/icons/folder_favorite.png</normaloff>:/icons/action/icons/folder_favorite.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTableWidget" name="tableWidget"/>
@@ -29,7 +33,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="cr3res.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
