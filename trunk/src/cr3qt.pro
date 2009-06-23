@@ -62,7 +62,8 @@ SOURCES += main.cpp \
     ../crengine/src/crgui.cpp \
     cr3widget.cpp \
     crqtutil.cpp \
-    tocdlg.cpp
+    tocdlg.cpp \
+    recentdlg.cpp
 HEADERS += mainwindow.h \
     ../crengine/include/rtfimp.h \
     ../crengine/include/rtfcmd.h \
@@ -107,7 +108,9 @@ HEADERS += mainwindow.h \
     ../crengine/include/wolutil.h \
     cr3widget.h \
     crqtutil.h \
-    tocdlg.h
+    tocdlg.h \
+    recentdlg.h
 FORMS += mainwindow.ui \
     tocdlg.ui \
-    tocdlg.ui
+    tocdlg.ui \
+    recentdlg.ui

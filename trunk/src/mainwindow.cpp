@@ -128,5 +128,10 @@ void MainWindow::on_actionZoom_Out_triggered()
 
 void MainWindow::on_actionTOC_triggered()
 {
-    TocDlg::showDocDlg( ui->view );
+    TocDlg::showDlg( ui->view );
+}
+
+void MainWindow::on_actionRecentBooks_triggered()
+{
+    RecentBooksDlg::showDlg( ui->view );
 }

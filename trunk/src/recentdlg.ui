@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TocDlg</class>
- <widget class="QDialog" name="TocDlg">
+ <class>RecentBooksDlg</class>
+ <widget class="QDialog" name="RecentBooksDlg">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,20 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Table of Contents</string>
+   <string>Recent Books</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTreeWidget" name="treeWidget">
-     <property name="alternatingRowColors">
-      <bool>false</bool>
-     </property>
-     <column>
-      <property name="text">
-       <string notr="true">1</string>
-      </property>
-     </column>
-    </widget>
+    <widget class="QTableWidget" name="tableWidget"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -43,7 +34,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>TocDlg</receiver>
+   <receiver>RecentBooksDlg</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -59,7 +50,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>TocDlg</receiver>
+   <receiver>RecentBooksDlg</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

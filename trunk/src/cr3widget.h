@@ -26,6 +26,8 @@ class CR3View : public QWidget
 
         /// get document's table of contents
         LVTocItem * getToc();
+        /// return LVDocView associated with widget
+        LVDocView * getDocView() { return _docview; }
         /// go to position specified by xPointer string
         void goToXPointer(QString xPointer);
 

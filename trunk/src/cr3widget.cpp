@@ -21,6 +21,113 @@ CR3View::CR3View( QWidget *parent)
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
     _docview = new LVDocView();
+    LVRefVec<LVImageSource> icons;
+    static const char * battery4[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0..0.000.000.000.000.0.",
+        ".0000.000.000.000.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery3[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0..0.ooo.000.000.000.0.",
+        ".0000.ooo.000.000.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery2[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0..0.ooo.ooo.000.000.0.",
+        ".0000.ooo.ooo.000.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery1[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0..0.ooo.ooo.ooo.000.0.",
+        ".0000.ooo.ooo.ooo.000.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    static const char * battery0[] = {
+        "24 13 4 1",
+        "0 c #000000",
+        "o c #A1A1A1",
+        ". c #FFFFFF",
+        "  c None",
+        "   .....................",
+        "   .0000000000000000000.",
+        "....0.................0.",
+        ".0000.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0..0.ooo.ooo.ooo.ooo.0.",
+        ".0000.ooo.ooo.ooo.ooo.0.",
+        "....0.................0.",
+        "   .0000000000000000000.",
+        "   .....................",
+    };
+    icons.add( LVCreateXPMImageSource( battery0 ) );
+    icons.add( LVCreateXPMImageSource( battery1 ) );
+    icons.add( LVCreateXPMImageSource( battery2 ) );
+    icons.add( LVCreateXPMImageSource( battery3 ) );
+    icons.add( LVCreateXPMImageSource( battery4 ) );
+    _docview->setBatteryIcons( icons );
 }
 
 CR3View::~CR3View()
@@ -61,6 +168,7 @@ bool CR3View::loadDocument( QString fileName )
     bool res = _docview->LoadDocument( utf8.constData() );
     CRLog::debug( "Trying to restore position for %s", utf8.constData() );
     _docview->restorePosition();
+    update();
     return res;
 }
 

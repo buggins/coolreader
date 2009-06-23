@@ -76,6 +76,7 @@
     <addaction name="actionZoom_Out"/>
     <addaction name="separator"/>
     <addaction name="actionTOC"/>
+    <addaction name="actionRecentBooks"/>
    </widget>
    <widget class="QMenu" name="menuNavigation">
     <property name="title">
@@ -298,6 +299,17 @@
    </property>
    <property name="shortcut">
     <string>F4</string>
+   </property>
+  </action>
+  <action name="actionRecentBooks">
+   <property name="text">
+    <string>Recent Books</string>
+   </property>
+   <property name="toolTip">
+    <string>Show recent books list</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>
