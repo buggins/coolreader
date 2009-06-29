@@ -654,6 +654,10 @@ bool CRMenu::onCommand( int command, int params )
         setCurPage( getCurPage()+10 );
         return true;
     }
+    if ( command==MCMD_SCROLL_BACK_LONG ) {
+        setCurPage( getCurPage()-10 );
+        return true;
+    }
     if ( command==MCMD_SCROLL_FORWARD ) {
 		if ( params==0 )
 			params = 1;
@@ -671,8 +675,13 @@ bool CRMenu::onCommand( int command, int params )
         return true;
     }
     int option = -1;
+    int longPress = 0;
     if ( command>=MCMD_SELECT_0 && command<=MCMD_SELECT_9 )
         option = (command==MCMD_SELECT_0) ? 9 : command - MCMD_SELECT_1;
+    if ( command>=MCMD_SELECT_0_LONG && command<=MCMD_SELECT_9_LONG ) {
+        option = (command==MCMD_SELECT_0_LONG) ? 9 : command - MCMD_SELECT_1_LONG;
+        longPress = 1;
+    }
     if ( option < 0 ) {
         CRLog::error( "CRMenu::onCommand() - unsupported command %d, %d", command, params );
         return true;
@@ -713,7 +722,7 @@ bool CRMenu::onCommand( int command, int params )
         if ( _menu != NULL )
             closeMenu( 0 );
         else
-            closeMenu( command ); // close, for root menu
+            closeMenu( command, longPress ); // close, for root menu
         return true;
     }
     return false;

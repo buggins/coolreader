@@ -692,7 +692,7 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual void setFullscreen( bool fullscreen ) { _fullscreen = fullscreen; }
         virtual CRGUIWindowManager * getWindowManager() { return _wm; }
         CRGUIWindowBase( CRGUIWindowManager * wm )
-        : _wm(wm), _visible(true), _fullscreen(true), _dirty(true), _passKeysToParent(true), _passCommandsToParent(true)
+        : _wm(wm), _visible(true), _fullscreen(true), _dirty(true), _passKeysToParent(false), _passCommandsToParent(false)
 
         {
             // fullscreen visible by default
@@ -938,6 +938,8 @@ class CRMenuItem
     public:
         /// id of item
         int getId() { return _id; }
+        /// set id of item
+        void setId( int id ) { _id = id; }
         /// item label
         lString16 getLabel() { return _label; }
         /// item icon
