@@ -254,11 +254,13 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( inverseModeMenu, inverse_mode );
         mainMenu->addItem( inverseModeMenu );
 
+#if 0
         CRMenu * bookmarkIconsMenu = new CRMenu(_wm, mainMenu, mm_BookmarkIcons,
                 _("Show bookmark icons"),
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_BOOKMARK_ICONS );
         addMenuItems( bookmarkIconsMenu, bookmark_icons );
         mainMenu->addItem( bookmarkIconsMenu );
+#endif
 
         CRMenu * statusLineMenu = new CRMenu(_wm, mainMenu, mm_StatusLine,
                 _("Status line"),

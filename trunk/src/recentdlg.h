@@ -15,12 +15,13 @@
 
 #include "fsmenu.h"
 
-
 class CRRecentBooksMenu : public CRFullScreenMenu
 {
 private:
     lString16 _helpText;
     int _helpHeight;
+    LVPtrVector<CRFileHistRecord> * _files;
+    bool removeItem( int index );
 public:
     CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc);
 

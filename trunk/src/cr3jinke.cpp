@@ -475,6 +475,7 @@ int InitDoc(char *fileName)
 
     lString16Collection fontDirs;
     fontDirs.add( lString16(L"/root/abook/fonts") );
+    fontDirs.add( lString16(L"/home/fonts") );
     //fontDirs.add( lString16(L"/root/crengine/fonts") ); // will be added
     CRLog::info("INIT...");
     if ( !InitCREngine( "/root/crengine/", fontDirs ) )

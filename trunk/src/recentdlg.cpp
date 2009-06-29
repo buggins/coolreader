@@ -13,6 +13,8 @@
 #include "recentdlg.h"
 #include <cri18n.h>
 
+typedef LVPtrVector<CRFileHistRecord> FileList;
+
 class CRRecentBookMenuItem : public CRMenuItem
 {
 private:
@@ -71,6 +73,7 @@ CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docvie
 {
     docview->savePosition(); // to move current file to top
     LVPtrVector<CRFileHistRecord> & files = docview->getHistory()->getRecords();
+    _files = &files;
     // skip Null
     for ( int i=1; i<files.length(); i++ ) {
         CRFileHistRecord * file = files.get( i );
@@ -103,10 +106,12 @@ bool CRRecentBooksMenu::onCommand( int command, int params )
         closeMenu( MCMD_OPEN_RECENT_BOOK, n );
         return true;
     } else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {
-        int index = command - MCMD_SELECT_1_LONG + 1;
-        if ( index >=1 && index <= _pageItems ) {
+        int index = command - MCMD_SELECT_1_LONG + getTopItem();
+        if ( index >=0 && index < _pageItems ) {
             //TODO: allow removing book from history
             //closeMenu( MCMD_REMOVE_RECENT_BOOK, index );
+            removeItem( index );
+            setDirty();
             return true;
         }
     }
@@ -114,3 +119,18 @@ bool CRRecentBooksMenu::onCommand( int command, int params )
     return true;
 }
 
+bool CRRecentBooksMenu::removeItem( int index )
+{
+    if ( index <0 || index >= _items.length() )
+        return false;
+    CRMenuItem * item = getItems()[index];
+    int n = item->getId();
+    _files->erase( n, 1 );
+    _items.erase( index, 1 );
+    for ( int i=0; i<_items.length(); i++ ) {
+        if ( _items[i]->getId() > n )
+            _items[i]->setId( _items[i]->getId() - 1 );
+    }
+    setCurPage( (_items.length()-1) /  _pageItems );
+    return true;
+}

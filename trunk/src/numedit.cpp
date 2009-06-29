@@ -31,7 +31,7 @@ CRNumberEditDialog::CRNumberEditDialog( CRGUIWindowManager * wm, lString16 title
 {
     _skin = _wm->getSkin()->getWindowSkin(L"#toc");
     _fullscreen = false;
-    lvPoint clientSize( 250, _skin->getFont()->getHeight() + 24 );
+    lvPoint clientSize( 350, _skin->getFont()->getHeight() + 24 );
     lvPoint sz = _skin->getWindowSize( clientSize );
     lvRect rc = _wm->getScreen()->getRect();
     int x = (rc.width() - sz.x) / 2;
