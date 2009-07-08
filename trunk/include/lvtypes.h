@@ -76,6 +76,7 @@ public:
     int width() const { return right - left; }
     /// returns rectangle height
     int height() const { return bottom - top; }
+    lvPoint size() const { return lvPoint(right-left, bottom - top); }
     void shrink( int delta ) { left+=delta; right-=delta; top+=delta; bottom-=delta; }
     void shrinkBy( const lvRect & rc ) { left+=rc.left; right-=rc.right; top+=rc.top; bottom-=rc.bottom; }
     void extend( int delta ) { shrink(-delta); }

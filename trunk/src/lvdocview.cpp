@@ -177,6 +177,9 @@ void LVDocView::requestReload()
 {
     if ( getDocFormat() != doc_format_txt )
         return; // supported for text files only
+	if ( m_callback ) {
+		m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
+	}
     ParseDocument( );
     // TODO: save position
     checkRender();
@@ -2336,6 +2339,9 @@ public:
 /// load document from stream
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
+	if ( m_callback ) {
+		m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
+	}
     LVLock lock(getMutex());
     {
         clearImageCache();
@@ -2525,11 +2531,17 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         // DONE!
                         setDocFormat( doc_format_epub );
                         requestRender();
+						if ( m_callback ) {
+							m_callback->OnLoadFileEnd( );
+						}
                         return true;
                     }
                 }
                 setDocFormat( doc_format_none );
                 createDefaultDocument( lString16(L"ERROR: Error reading EPUB format"), lString16(L"Cannot open document") );
+				if ( m_callback ) {
+					m_callback->OnLoadFileError( lString16("Error reading EPUB document") );
+				}
                 return false;
             }
             // archieve
@@ -2572,6 +2584,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             if ( !found )
             {
                 Clear();
+				if ( m_callback ) {
+					m_callback->OnLoadFileError( lString16("File with supported extension not fouind in archive.") );
+				}
                 return false;
             }
 
@@ -2582,7 +2597,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
         {
     #if 1
-            m_stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
+            //m_stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
     #else
             LVStreamRef stream = LVCreateBufferedStream( m_stream, FILE_STREAM_BUFFER_SIZE );
             lvsize_t sz = stream->GetSize();
@@ -2767,26 +2782,36 @@ bool LVDocView::ParseDocument( )
         } else {
         }
 
-        // unknown format
-        if ( !parser ) {
-            setDocFormat( doc_format_none );
-            createDefaultDocument( lString16(L"ERROR: Unknown document format"), lString16(L"Cannot open document") );
-            return false;
-        }
+		// unknown format
+		if ( !parser ) {
+			setDocFormat( doc_format_none );
+			createDefaultDocument( lString16(L"ERROR: Unknown document format"), lString16(L"Cannot open document") );
+			if ( m_callback ) {
+				m_callback->OnLoadFileError( lString16("Unknown document format") );
+			}
+			return false;
+		}
 
-        // set stylesheet
-        m_doc->getStyleSheet()->clear();
-        m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+		if ( m_callback ) {
+			m_callback->OnLoadFileFormatDetected( getDocFormat() );
+		}
+
+
+		// set stylesheet
+		m_doc->getStyleSheet()->clear();
+		m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
         // parse
         if ( !parser->Parse() ) {
-            delete parser;
-            createDefaultDocument( lString16(L"ERROR: Bad document format"), lString16(L"Cannot open document") );
-            return false;
+			delete parser;
+			if ( m_callback ) {
+				m_callback->OnLoadFileError( lString16("Bad document format") );
+			}
+			createDefaultDocument( lString16(L"ERROR: Bad document format"), lString16(L"Cannot open document") );
+			return false;
         }
-        delete parser;
-        m_pos = 0;
-
+		delete parser;
+		m_pos = 0;
 
         lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
         if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
@@ -2815,6 +2840,9 @@ bool LVDocView::ParseDocument( )
     }
     m_doc->persist();
     requestRender();
+	if ( m_callback ) {
+		m_callback->OnLoadFileEnd( );
+	}
     return true;
 }
 
