@@ -51,6 +51,7 @@
 
 #define DOC_STRING_HASH_SIZE  256
 #define RESERVED_DOC_SPACE    4096
+#define MAX_TYPE_ID           1024 // max of element, ns, attr
 #define MAX_ELEMENT_TYPE_ID   1024
 #define MAX_NAMESPACE_TYPE_ID 64
 #define MAX_ATTRIBUTE_TYPE_ID 1024
@@ -125,6 +126,11 @@ public:
     lxmlDocBase( lxmlDocBase & doc );
     /// Destructor
     virtual ~lxmlDocBase();
+
+	/// serialize to byte array (pointer will be incremented by number of bytes written)
+	void serializeMaps( SerialBuf & buf );
+	/// deserialize from byte array (pointer will be incremented by number of bytes read)
+	bool deserializeMaps( SerialBuf & buf );
 
     //======================================================================
     // Name <-> Id maps functions

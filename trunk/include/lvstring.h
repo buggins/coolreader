@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include "lvtypes.h"
 #include "lvmemman.h"
 
@@ -599,6 +600,8 @@ public:
 /// calculates hash for wide c-string
 lUInt32 calcStringHash( const lChar16 * s );
 
+class SerialBuf;
+
 /// hashed wide string collection
 class lString16HashedCollection : public lString16Collection
 {
@@ -614,6 +617,12 @@ private:
     void clearHash();
     void reHash( int newSize );
 public:
+
+	/// serialize to byte array (pointer will be incremented by number of bytes written)
+	void serialize( SerialBuf & buf );
+	/// deserialize from byte array (pointer will be incremented by number of bytes read)
+	bool deserialize( SerialBuf & buf );
+
     lString16HashedCollection( lString16HashedCollection & v );
     lString16HashedCollection( lUInt32 hashSize );
     ~lString16HashedCollection();
@@ -742,6 +751,7 @@ lString16 Utf8ToUnicode( const char * s );
 /// converts utf-8 string fragment to wide unicode string
 lString16 Utf8ToUnicode( const char * s, int sz );
 
+/// serialization/deserialization buffer
 class SerialBuf
 {
 	lUInt8 * _buf;
@@ -750,10 +760,12 @@ class SerialBuf
 	int _size;
 	int _pos;
 public:
+    /// constructor of serialization buffer
 	SerialBuf( int sz )
 		: _buf( new lUInt8[sz] ), _ownbuf(true), _error(false), _size(sz), _pos(0)
 	{
 	}
+    /// constructor of deserialization buffer
 	SerialBuf( lUInt8 * p, int sz )
 		: _buf( p ), _ownbuf(false), _error(false), _size(sz), _pos(0)
 	{
@@ -763,10 +775,16 @@ public:
 		if ( _ownbuf )
 			delete _buf;
 	}
-	int space() { return _size-_pos; }
-	int pos() { return _pos; }
-	int size() { return _size; }
+	int space() const { return _size-_pos; }
+	int pos() const { return _pos; }
+	int size() const { return _size; }
 
+    /// returns true if error occured during one of operations
+	bool error() const { return _error; }
+
+    void seterror() { _error = true; }
+
+    /// checks whether specified number of bytes is available, returns true in case of error
 	bool check( int reserved )
 	{
 		if ( _error )
@@ -779,6 +797,7 @@ public:
 	}
 
 	// write methods
+    /// put magic signature
 	void putMagic( const char * s )
 	{
 		if ( check(1) )
@@ -789,6 +808,17 @@ public:
 				return;
 		}
 	}
+
+    /// add contents of another buffer
+    SerialBuf & operator << ( const SerialBuf & v )
+    {
+        if ( check(v.pos()) || v.pos()==0 )
+			return *this;
+        memcpy( _buf + _pos, v._buf, v._pos );
+        _pos += v._pos;
+    	return *this;
+    }
+
 	SerialBuf & operator << ( lUInt8 n )
 	{
 		if ( check(1) )
@@ -887,6 +917,14 @@ public:
 		if ( check(1) )
 			return *this;
 		n = (char)_buf[_pos++];
+		return *this;
+	}
+
+	SerialBuf & operator >> ( bool & n )
+	{
+		if ( check(1) )
+			return *this;
+        n = _buf[_pos++] ? true : false;
 		return *this;
 	}
 

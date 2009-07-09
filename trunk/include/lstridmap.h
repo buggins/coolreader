@@ -43,7 +43,7 @@ public:
 
 	/// serialize to byte array (pointer will be incremented by number of bytes written)
 	void serialize( SerialBuf & buf );
-	/// deserialize from byte array (pointer will be incremented by number of bytes written)
+	/// deserialize from byte array (pointer will be incremented by number of bytes read)
 	static LDOMNameIdMapItem * deserialize( SerialBuf & buf );
 };
 //===========================================
@@ -65,10 +65,17 @@ public:
     /// Copy constructor
     LDOMNameIdMap( LDOMNameIdMap & map );
     ~LDOMNameIdMap();
-    
+
+	/// serialize to byte array (pointer will be incremented by number of bytes written)
+	void serialize( SerialBuf & buf );
+	/// deserialize from byte array (pointer will be incremented by number of bytes read)
+	bool deserialize( SerialBuf & buf );
+
     void Clear();
 
     void AddItem( lUInt16 id, const lString16 & value, const css_elem_def_props_t * data );
+
+    void AddItem( LDOMNameIdMapItem * item );
 
     const LDOMNameIdMapItem * findItem( lUInt16 id ) const
     {

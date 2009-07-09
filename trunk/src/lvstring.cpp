@@ -1013,6 +1013,41 @@ lUInt32 calcStringHash( const lChar16 * s )
     return a;
 }
 
+static const char * str_hash_magic="STRS";
+
+/// serialize to byte array (pointer will be incremented by number of bytes written)
+void lString16HashedCollection::serialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return;
+    buf.putMagic( str_hash_magic );
+    lUInt32 count = length();
+    buf << count;
+    for ( unsigned i=0; i<length(); i++ )
+    {
+        buf << at(i);
+    }
+}
+
+/// deserialize from byte array (pointer will be incremented by number of bytes read)
+bool lString16HashedCollection::deserialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    clear();
+    buf.putMagic( str_hash_magic );
+    lUInt32 count;
+    buf >> count;
+    for ( unsigned i=0; i<count; i++ ) {
+        lString16 s;
+        buf >> s;
+        if ( buf.error() )
+            break;
+        add( s.c_str() );
+    }
+    return !buf.error();
+}
+
 lString16HashedCollection::lString16HashedCollection( lString16HashedCollection & v )
 : lString16Collection( v )
 , hashSize( v.hashSize )
