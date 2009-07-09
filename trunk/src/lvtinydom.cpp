@@ -1281,7 +1281,7 @@ void lxmlDocBase::setNodeTypes( const elem_def_t * node_scheme )
         _elementNameTable.AddItem(
             node_scheme->id,               // ID
             lString16(node_scheme->name),  // Name
-            (const void*)node_scheme );  // ptr
+			&node_scheme->props );  // ptr
     }
 }
 

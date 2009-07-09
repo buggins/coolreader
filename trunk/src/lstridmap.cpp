@@ -12,7 +12,60 @@
 *******************************************************/
 
 #include "../include/lstridmap.h"
+#include "../include/dtddef.h"
 #include <string.h>
+
+LDOMNameIdMapItem::LDOMNameIdMapItem(lUInt16 _id, const lString16 & _value, const css_elem_def_props_t * _data)
+    : id(_id), value(_value)
+{
+	data = new css_elem_def_props_t();
+	if ( _data )
+		*data = *_data;
+	else
+		data = NULL;
+}
+
+LDOMNameIdMapItem::LDOMNameIdMapItem(LDOMNameIdMapItem & item)
+    : id(item.id), value(item.value)
+{
+	if ( item.data ) {
+		data = new css_elem_def_props_t();
+		*data = *item.data;
+	} else {
+		data = NULL;
+	}
+}
+
+
+static const char id_map_item_magic[] = "ID";
+
+/// serialize to byte array
+void LDOMNameIdMapItem::serialize( SerialBuf & buf )
+{
+	buf.putMagic( id_map_item_magic );
+	buf << id;
+	buf << value;
+	if ( data ) {
+		buf << (lUInt8)1;
+		buf << (lUInt8)data->display;
+		buf << (lUInt8)data->white_space;
+		buf << data->allow_text;
+		buf << data->is_object;
+	} else {
+		buf << (lUInt8)0;
+	}
+}
+
+/// deserialize from byte array
+LDOMNameIdMapItem * LDOMNameIdMapItem::deserialize( SerialBuf & buf )
+{
+}
+
+LDOMNameIdMapItem::~LDOMNameIdMapItem()
+{
+	if ( data )
+		delete data;
+}
 
 LDOMNameIdMap::LDOMNameIdMap(lUInt16 maxId)
 {
@@ -125,7 +178,7 @@ const LDOMNameIdMapItem * LDOMNameIdMap::findItem( const lChar8 * name )
     }
 }
 
-void LDOMNameIdMap::AddItem( lUInt16 id, const lString16 & value, const void * data )
+void LDOMNameIdMap::AddItem( lUInt16 id, const lString16 & value, const css_elem_def_props_t * data )
 {
     if (id==0)
         return;

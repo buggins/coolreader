@@ -35,31 +35,31 @@
 
 
 /// default element type definition struct
-typedef struct {
+struct css_elem_def_props_t {
     bool                 allow_text;   ///< is true if element allows text nodes as children
     bool                 is_object;    ///< is true if element is object (i.e. image)
     css_display_t        display;      ///< default display property value
     css_white_space_t    white_space;  ///< default white-space property value
-} css_elem_def_props_t;
+};
 
 /// known element names and styles table entry
-typedef struct {
+struct elem_def_t {
     lUInt16      id;
     const char * name;
     css_elem_def_props_t props;
-} elem_def_t;
+};
 
 /// known attribute names table entry
-typedef struct {
+struct attr_def_t {
     lUInt16      id;
     const char * name;
-} attr_def_t;
+};
 
 /// known namespace names table entry
-typedef struct {
+struct ns_def_t {
     lUInt16      id;
     const char * name;
-} ns_def_t;
+};
 #endif
 
 #ifndef XS_IMPLEMENT_SCHEME

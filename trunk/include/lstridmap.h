@@ -18,28 +18,33 @@
 #define __LSTR_ID_MAP_H__INCLUDED__
 
 #include "lvstring.h"
-#include "stdio.h"
+#include <stdio.h>
+
+struct css_elem_def_props_t;
 
 //===========================================
 class LDOMNameIdMapItem 
 {
+    /// custom data pointer
+    css_elem_def_props_t * data;
 public:
     /// id
     lUInt16    id;
     /// value
     lString16 value;
-    /// custom data pointer
-    const void * data;
-
-    LDOMNameIdMapItem(lUInt16 _id, const lString16 & _value, const void * _data)
-        : id(_id), value(_value), data(_data)
-    {
-    }
+	/// constructor
+    LDOMNameIdMapItem(lUInt16 _id, const lString16 & _value, const css_elem_def_props_t * _data);
     /// copy constructor
-    LDOMNameIdMapItem(LDOMNameIdMapItem & item)
-        : id(item.id), value(item.value), data(item.data)
-    {
-    }
+    LDOMNameIdMapItem(LDOMNameIdMapItem & item);
+	/// destructor
+	~LDOMNameIdMapItem();
+
+	const css_elem_def_props_t * getData() const { return data; }
+
+	/// serialize to byte array (pointer will be incremented by number of bytes written)
+	void serialize( SerialBuf & buf );
+	/// deserialize from byte array (pointer will be incremented by number of bytes written)
+	static LDOMNameIdMapItem * deserialize( SerialBuf & buf );
 };
 //===========================================
 
@@ -63,7 +68,7 @@ public:
     
     void Clear();
 
-    void AddItem( lUInt16 id, const lString16 & value, const void * data );
+    void AddItem( lUInt16 id, const lString16 & value, const css_elem_def_props_t * data );
 
     const LDOMNameIdMapItem * findItem( lUInt16 id ) const
     {
@@ -94,12 +99,12 @@ public:
         return item?item->value:lString16::empty_str;
     }
 
-    inline const void * dataById( lUInt16 id )
+    inline const css_elem_def_props_t * dataById( lUInt16 id )
     { 
         if (id>=m_size)
             return NULL;
         const LDOMNameIdMapItem * item = findItem(id);
-        return item ? item->data : NULL;
+        return item ? item->getData() : NULL;
     }
 
     // debug dump of all unknown entities
