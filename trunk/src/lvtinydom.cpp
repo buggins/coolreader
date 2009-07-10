@@ -234,7 +234,7 @@ public:
     /// returns true if element node has attribute with specified namespace id and name id
     virtual bool hasAttribute( lUInt16, lUInt16 ) const { return false; }
     /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() { return NULL; }
+    virtual const css_elem_def_props_t * getElementTypePtr() { return NULL; }
     /// returns element name id
     virtual lUInt16 getNodeId() const { return 0; }
     /// returns element namespace id
@@ -343,7 +343,7 @@ public:
     /// returns true if element node has attribute with specified name id and namespace id
     virtual bool hasAttribute( lUInt16, lUInt16 ) const { return false; }
     /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() { return NULL; }
+    virtual const css_elem_def_props_t * getElementTypePtr() { return NULL; }
     /// returns element name id
     virtual lUInt16 getNodeId() const { return 0; }
     /// returns element namespace id
@@ -456,7 +456,7 @@ public:
     /// returns true if element node has attribute with specified name id and namespace id
     virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return _attrs.get( nsid, id )!=LXML_ATTR_VALUE_NONE; }
     /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() { return _document->getElementTypePtr(_id); }
+    virtual const css_elem_def_props_t * getElementTypePtr() { return _document->getElementTypePtr(_id); }
     /// returns element name id
     virtual lUInt16 getNodeId() const { return _id; }
     /// replace element name id with another value
@@ -669,7 +669,7 @@ public:
         return false;
     }
     /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() { return _document->getElementTypePtr(getNodeId()); }
+    virtual const css_elem_def_props_t * getElementTypePtr() { return _document->getElementTypePtr(getNodeId()); }
     /// returns element name id
     virtual lUInt16 getNodeId() const { return getData()->id; }
     /// replace element name id with another value
@@ -1399,8 +1399,8 @@ LVImageSourceRef ldomNode::getObjectImageSource()
         return LVImageSourceRef();
     //printf("ldomElement::getObjectImageSource() ... ");
     LVImageSourceRef ref;
-    const elem_def_t * et = _document->getElementTypePtr(getNodeId());
-    if (!et || !et->props.is_object)
+    const css_elem_def_props_t * et = _document->getElementTypePtr(getNodeId());
+    if (!et || !et->is_object)
         return ref;
     lUInt16 hrefId = _document->getAttrNameIndex(L"href");
     lUInt16 srcId = _document->getAttrNameIndex(L"src");
@@ -1458,7 +1458,7 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
 {
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
-    _allowText = _typeDef ? _typeDef->props.allow_text : (_parent?true:false);
+    _allowText = _typeDef ? _typeDef->allow_text : (_parent?true:false);
     if (_parent)
         _element = _parent->getElement()->insertChildElement( (lUInt32)-1, nsid, id );
     else
@@ -1469,7 +1469,7 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
 lUInt32 ldomElementWriter::getFlags()
 {
     lUInt32 flags = 0;
-    if ( _typeDef && _typeDef->props.white_space==css_ws_pre )
+    if ( _typeDef && _typeDef->white_space==css_ws_pre )
         flags |= TXTFLG_PRE;
     return flags;
 }

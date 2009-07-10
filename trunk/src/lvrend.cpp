@@ -1092,7 +1092,7 @@ void initRendMethod( ldomNode * enode )
             << " block: " << blockCount << "   rendMethod: ";
 #endif
 
-        const elem_def_t * ntype = enode->getElementTypePtr();
+        const css_elem_def_props_t * ntype = enode->getElementTypePtr();
         if ( textCount || inlineCount || runinCount )
         {
             // if there are inline or text in block, make it final
@@ -1109,7 +1109,7 @@ void initRendMethod( ldomNode * enode )
             logfile << "block";
 #endif
         }
-        else if (ntype && ntype->props.is_object)
+        else if (ntype && ntype->is_object)
         {
             switch ( enode->getStyle()->display )
             {
@@ -1312,8 +1312,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
             default:
                 break;
         }
-        const elem_def_t * ntype = enode->getElementTypePtr();
-        if ( ntype && ntype->props.is_object )
+        const css_elem_def_props_t * ntype = enode->getElementTypePtr();
+        if ( ntype && ntype->is_object )
         {
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "+OBJECT ";
@@ -1817,11 +1817,11 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     css_style_rec_t * pstyle = style.get();
 
     // init default style attribute values
-    const elem_def_t * type_ptr = enode->getElementTypePtr();
+    const css_elem_def_props_t * type_ptr = enode->getElementTypePtr();
     if (type_ptr)
     {
-        pstyle->display = type_ptr->props.display;
-        pstyle->white_space = type_ptr->props.white_space;
+        pstyle->display = type_ptr->display;
+        pstyle->white_space = type_ptr->white_space;
     }
 
     //////////////////////////////////////////////////////

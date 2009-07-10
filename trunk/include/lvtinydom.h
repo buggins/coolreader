@@ -210,9 +210,9 @@ public:
         \return pointer to elem_def_t structure containing type properties
         \sa elem_def_t
     */
-    inline const elem_def_t * getElementTypePtr( lUInt16 id )
+    inline const css_elem_def_props_t * getElementTypePtr( lUInt16 id )
     {
-        return (const elem_def_t *) _elementNameTable.dataById( id );
+        return _elementNameTable.dataById( id );
     }
 
     // set node types from table
@@ -457,7 +457,7 @@ public:
     /// sets attribute value
     virtual void setAttributeValue( lUInt16 , lUInt16 , const lChar16 *  ) { }
     /// returns element type structure pointer if it was set in document for this element name
-    virtual const elem_def_t * getElementTypePtr() = 0;
+    virtual const css_elem_def_props_t * getElementTypePtr() = 0;
     /// returns element name id
     virtual lUInt16 getNodeId() const = 0;
     /// returns element namespace id
@@ -1242,7 +1242,7 @@ class ldomElementWriter
     ldomDocument * _document;
 
     ldomNode * _element;
-    const elem_def_t * _typeDef;
+    const css_elem_def_props_t * _typeDef;
     bool _allowText;
     lUInt32 getFlags();
     ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
