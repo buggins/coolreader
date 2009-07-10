@@ -2843,6 +2843,11 @@ bool LVDocView::ParseDocument( )
 	if ( m_callback ) {
 		m_callback->OnLoadFileEnd( );
 	}
+
+#if 1 // test serialization
+
+#endif
+
     return true;
 }
 

@@ -1334,13 +1334,15 @@ void lxmlDocBase::dumpUnknownEntities( const char * fname )
 static const char * id_map_list_magic = "MAPS";
 static const char * elem_id_map_magic = "ELEM";
 static const char * attr_id_map_magic = "ATTR";
-static const char * ns_id_map_magic =   "NSPC";
+static const char * attr_value_map_magic = "ATTV";
+static const char * ns_id_map_magic =   "NMSP";
 
 /// serialize to byte array (pointer will be incremented by number of bytes written)
 void lxmlDocBase::serializeMaps( SerialBuf & buf )
 {
     if ( buf.error() )
         return;
+    int pos = buf.pos();
     buf.putMagic( id_map_list_magic );
     buf.putMagic( elem_id_map_magic );
     _elementNameTable.serialize( buf );
@@ -1348,6 +1350,9 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
     _attrNameTable.serialize( buf );
     buf.putMagic( ns_id_map_magic );
     _nsNameTable.serialize( buf );
+    buf.putMagic( attr_value_map_magic );
+    _attrValueTable.serialize( buf );
+    buf.putCRC( pos - buf.pos() );
 }
 
 /// deserialize from byte array (pointer will be incremented by number of bytes read)
@@ -1355,17 +1360,22 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
 {
     if ( buf.error() )
         return false;
+    int pos = buf.pos();
     if ( !buf.checkMagic( id_map_list_magic )
                 || !buf.checkMagic( elem_id_map_magic ) 
                 || !_elementNameTable.deserialize( buf )
                 || !buf.checkMagic( attr_id_map_magic )
                 || !_attrNameTable.deserialize( buf )
                 || !buf.checkMagic( ns_id_map_magic )
-                || !_nsNameTable.deserialize( buf ) ) {
+                || !_nsNameTable.deserialize( buf )
+                || !buf.checkMagic( attr_value_map_magic )
+                || !_attrValueTable.deserialize( buf ) ) {
         buf.seterror();
         return false;
     }
-    return true;
+    if ( !buf.checkCRC( pos - buf.pos() ) )
+        buf.seterror();
+    return !buf.error();
 }
 
 /// returns node absolute rectangle
