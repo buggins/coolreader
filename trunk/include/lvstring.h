@@ -809,6 +809,11 @@ public:
 		}
 	}
 
+    /// add CRC32 for last N bytes
+    void putCRC( int N );
+    /// read crc32 code, comapare with CRC32 for last N bytes
+    bool checkCRC( int N );
+
     /// add contents of another buffer
     SerialBuf & operator << ( const SerialBuf & v )
     {

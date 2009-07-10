@@ -23,6 +23,11 @@
 #endif
 
 
+
+#if (USE_ZLIB==1)
+#include <zlib.h>
+#endif
+
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 #include <windows.h>
 #endif
@@ -1020,6 +1025,7 @@ void lString16HashedCollection::serialize( SerialBuf & buf )
 {
     if ( buf.error() )
         return;
+    int start = buf.pos();
     buf.putMagic( str_hash_magic );
     lUInt32 count = length();
     buf << count;
@@ -1027,6 +1033,41 @@ void lString16HashedCollection::serialize( SerialBuf & buf )
     {
         buf << at(i);
     }
+    buf.putCRC( buf.pos() - start );
+}
+
+/// add CRC32 for last N bytes
+void SerialBuf::putCRC( int size )
+{
+    if ( error() )
+        return;
+    if ( size>_pos ) {
+        *this << (lUInt32)0;
+        seterror();
+    }
+    lUInt32 n = 0;
+    n = crc32( n, _buf + _pos-size, (int)(size) );
+    *this << n;
+}
+
+/// read crc32 code, comapare with CRC32 for last N bytes
+bool SerialBuf::checkCRC( int size )
+{
+    if ( error() )
+        return false;
+    if ( size>space() ) {
+        seterror();
+        return false;
+    }
+    lUInt32 n0 = 0;
+    n0 = crc32( n0, _buf + _pos-size, (int)(size) );
+    lUInt32 n;
+    *this >> n;
+    if ( error() )
+        return false;
+    if ( n!=n0 )
+        seterror();
+    return !error();
 }
 
 /// deserialize from byte array (pointer will be incremented by number of bytes read)
@@ -1035,6 +1076,7 @@ bool lString16HashedCollection::deserialize( SerialBuf & buf )
     if ( buf.error() )
         return false;
     clear();
+    int start = buf.pos();
     buf.putMagic( str_hash_magic );
     lUInt32 count;
     buf >> count;
@@ -1045,6 +1087,7 @@ bool lString16HashedCollection::deserialize( SerialBuf & buf )
             break;
         add( s.c_str() );
     }
+    buf.checkCRC( buf.pos() - start );
     return !buf.error();
 }
 

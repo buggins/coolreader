@@ -99,12 +99,14 @@ void LDOMNameIdMap::serialize( SerialBuf & buf )
 {
     if ( buf.error() )
         return;
+    int start = buf.pos();
 	buf.putMagic( id_map_magic );
     buf << m_count;
     for ( int i=0; i<m_size; i++ ) {
         if ( m_by_id[i] )
             m_by_id[i]->serialize( buf );
     }
+    buf.putCRC( buf.pos() - start );
 }
 
 /// deserialize from byte array (pointer will be incremented by number of bytes read)
@@ -112,6 +114,7 @@ bool LDOMNameIdMap::deserialize( SerialBuf & buf )
 {
     if ( buf.error() )
         return false;
+    int start = buf.pos();
     if ( !buf.checkMagic( id_map_magic ) ) {
         return false;
     }
@@ -133,6 +136,7 @@ bool LDOMNameIdMap::deserialize( SerialBuf & buf )
         AddItem( item );
     }
     m_sorted = false;
+    buf.checkCRC( buf.pos() - start );
     return !buf.error();
 }
 
