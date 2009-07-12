@@ -757,251 +757,79 @@ class SerialBuf
 	lUInt8 * _buf;
 	bool _ownbuf;
 	bool _error;
+    bool _autoresize;
 	int _size;
 	int _pos;
 public:
     /// constructor of serialization buffer
-	SerialBuf( int sz )
-		: _buf( new lUInt8[sz] ), _ownbuf(true), _error(false), _size(sz), _pos(0)
-	{
-	}
-    /// constructor of deserialization buffer
-	SerialBuf( lUInt8 * p, int sz )
-		: _buf( p ), _ownbuf(false), _error(false), _size(sz), _pos(0)
-	{
-	}
-	~SerialBuf()
-	{
-		if ( _ownbuf )
-			delete _buf;
-	}
-	int space() const { return _size-_pos; }
-	int pos() const { return _pos; }
-	int size() const { return _size; }
+	SerialBuf( int sz, bool autoresize = true );
+	SerialBuf( lUInt8 * p, int sz );
+	~SerialBuf();
+
+    inline lUInt8 * buf() { return _buf; }
+    inline void setPos( int pos ) { _pos = pos; }
+	inline int space() const { return _size-_pos; }
+	inline int pos() const { return _pos; }
+	inline int size() const { return _size; }
 
     /// returns true if error occured during one of operations
-	bool error() const { return _error; }
+	inline bool error() const { return _error; }
 
-    void seterror() { _error = true; }
+    inline void seterror() { _error = true; }
 
     /// checks whether specified number of bytes is available, returns true in case of error
-	bool check( int reserved )
-	{
-		if ( _error )
-			return true;
-		if ( space()<reserved ) {
-			_error = true;
-			return true;
-		}
-		return false;
-	}
+	bool check( int reserved );
 
 	// write methods
     /// put magic signature
-	void putMagic( const char * s )
-	{
-		if ( check(1) )
-			return;
-		while ( *s ) {
-			_buf[ _pos++ ] = *s++;
-			if ( check(1) )
-				return;
-		}
-	}
+	void putMagic( const char * s );
 
     /// add CRC32 for last N bytes
     void putCRC( int N );
-    /// read crc32 code, comapare with CRC32 for last N bytes
-    bool checkCRC( int N );
 
     /// add contents of another buffer
-    SerialBuf & operator << ( const SerialBuf & v )
-    {
-        if ( check(v.pos()) || v.pos()==0 )
-			return *this;
-        memcpy( _buf + _pos, v._buf, v._pos );
-        _pos += v._pos;
-    	return *this;
-    }
+    SerialBuf & operator << ( const SerialBuf & v );
 
-	SerialBuf & operator << ( lUInt8 n )
-	{
-		if ( check(1) )
-			return *this;
-		_buf[_pos++] = n;
-		return *this;
-	}
-	SerialBuf & operator << ( char n )
-	{
-		if ( check(1) )
-			return *this;
-		_buf[_pos++] = (lUInt8)n;
-		return *this;
-	}
-	SerialBuf & operator << ( bool n )
-	{
-		if ( check(1) )
-			return *this;
-		_buf[_pos++] = (lUInt8)(n ? 1 : 0);
-		return *this;
-	}
-	SerialBuf & operator << ( lUInt16 n )
-	{
-		if ( check(2) )
-			return *this;
-		_buf[_pos++] = (lUInt8)(n & 255);
-		_buf[_pos++] = (lUInt8)((n>>8) & 255);
-		return *this;
-	}
-	SerialBuf & operator << ( lInt16 n )
-	{
-		if ( check(2) )
-			return *this;
-		_buf[_pos++] = (lUInt8)(n & 255);
-		_buf[_pos++] = (lUInt8)((n>>8) & 255);
-		return *this;
-	}
-	SerialBuf & operator << ( lUInt32 n )
-	{
-		if ( check(4) )
-			return *this;
-		_buf[_pos++] = (lUInt8)(n & 255);
-		_buf[_pos++] = (lUInt8)((n>>8) & 255);
-		_buf[_pos++] = (lUInt8)((n>>16) & 255);
-		_buf[_pos++] = (lUInt8)((n>>24) & 255);
-		return *this;
-	}
-	SerialBuf & operator << ( lInt32 n )
-	{
-		if ( check(4) )
-			return *this;
-		_buf[_pos++] = (lUInt8)(n & 255);
-		_buf[_pos++] = (lUInt8)((n>>8) & 255);
-		_buf[_pos++] = (lUInt8)((n>>16) & 255);
-		_buf[_pos++] = (lUInt8)((n>>24) & 255);
-		return *this;
-	}
-	SerialBuf & operator << ( const lString16 & s )
-	{
-		if ( check(2) )
-			return *this;
-		lString8 s8 = UnicodeToUtf8(s);
-		lUInt16 len = (lUInt16)s8.length();
-		(*this) << len;
-		for ( int i=0; i<len; i++ ) {
-			if ( check(1) )
-				return *this;
-			(*this) << (lUInt8)(s8[i]);
-		}
-		return *this;
-	}
-	SerialBuf & operator << ( const lString8 & s8 )
-	{
-		if ( check(2) )
-			return *this;
-		lUInt16 len = (lUInt16)s8.length();
-		(*this) << len;
-		for ( int i=0; i<len; i++ ) {
-			if ( check(1) )
-				return *this;
-			(*this) << (lUInt8)(s8[i]);
-		}
-		return *this;
-	}
+	SerialBuf & operator << ( lUInt8 n );
 
-	SerialBuf & operator >> ( lUInt8 & n )
-	{
-		if ( check(1) )
-			return *this;
-		n = _buf[_pos++];
-		return *this;
-	}
+    SerialBuf & operator << ( char n );
 
-	SerialBuf & operator >> ( char & n )
-	{
-		if ( check(1) )
-			return *this;
-		n = (char)_buf[_pos++];
-		return *this;
-	}
+    SerialBuf & operator << ( bool n );
 
-	SerialBuf & operator >> ( bool & n )
-	{
-		if ( check(1) )
-			return *this;
-        n = _buf[_pos++] ? true : false;
-		return *this;
-	}
+    SerialBuf & operator << ( lUInt16 n );
 
-	SerialBuf & operator >> ( lUInt16 & n )
-	{
-		if ( check(2) )
-			return *this;
-		n = _buf[_pos++] | (((lUInt16)_buf[_pos++]) << 8);
-		return *this;
-	}
+    SerialBuf & operator << ( lInt16 n );
 
-	SerialBuf & operator >> ( lInt16 & n )
-	{
-		if ( check(2) )
-			return *this;
-		n = (lInt16)(_buf[_pos++] | (((lUInt16)_buf[_pos++]) << 8));
-		return *this;
-	}
+    SerialBuf & operator << ( lUInt32 n );
 
-	SerialBuf & operator >> ( lUInt32 & n )
-	{
-		if ( check(4) )
-			return *this;
-		n = _buf[_pos++] | (((lUInt32)_buf[_pos++]) << 8)  | (((lUInt32)_buf[_pos++]) << 16) | (((lUInt32)_buf[_pos++]) << 24);
-		return *this;
-	}
+    SerialBuf & operator << ( lInt32 n );
 
-	SerialBuf & operator >> ( lInt32 & n )
-	{
-		if ( check(4) )
-			return *this;
-		n = (lInt32)(_buf[_pos++] | (((lUInt32)_buf[_pos++]) << 8)  | (((lUInt32)_buf[_pos++]) << 16) | (((lUInt32)_buf[_pos++]) << 24));
-		return *this;
-	}
+    SerialBuf & operator << ( const lString16 & s );
 
-	SerialBuf & operator >> ( lString8 & s8 )
-	{
-		if ( check(2) )
-			return *this;
-		lUInt16 len;
-		(*this) >> len;
-		s8.clear();
-		s8.reserve(len);
-		for ( int i=0; i<len; i++ ) {
-			if ( check(1) )
-				return *this;
-			lUInt8 c;
-			(*this) >> c;
-			s8.append(1, c);
-		}
-		return *this;
-	}
-
-	SerialBuf & operator >> ( lString16 & s )
-	{
-		lString8 s8;
-		(*this) >> s8;
-		s = Utf8ToUnicode(s8);
-		return *this;
-	}
+    SerialBuf & operator << ( const lString8 & s8 );
 
 	// read methods
-	bool checkMagic( const char * s )
-	{
-		while ( *s ) {
-			if ( check(1) )
-				return false;
-			if ( _buf[ _pos++ ] != *s++ )
-				return false;
-		}
-		return true;
-	}
+	SerialBuf & operator >> ( lUInt8 & n );
+
+	SerialBuf & operator >> ( char & n );
+
+	SerialBuf & operator >> ( bool & n );
+
+	SerialBuf & operator >> ( lUInt16 & n );
+
+	SerialBuf & operator >> ( lInt16 & n );
+
+	SerialBuf & operator >> ( lUInt32 & n );
+
+    SerialBuf & operator >> ( lInt32 & n );
+
+	SerialBuf & operator >> ( lString8 & s8 );
+
+	SerialBuf & operator >> ( lString16 & s );
+
+	bool checkMagic( const char * s );
+    /// read crc32 code, comapare with CRC32 for last N bytes
+    bool checkCRC( int N );
 };
 
 

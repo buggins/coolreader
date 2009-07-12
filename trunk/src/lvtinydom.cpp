@@ -1352,7 +1352,7 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
     _nsNameTable.serialize( buf );
     buf.putMagic( attr_value_map_magic );
     _attrValueTable.serialize( buf );
-    buf.putCRC( pos - buf.pos() );
+    buf.putCRC( buf.pos() - pos );
 }
 
 /// deserialize from byte array (pointer will be incremented by number of bytes read)
@@ -1361,20 +1361,16 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
     if ( buf.error() )
         return false;
     int pos = buf.pos();
-    if ( !buf.checkMagic( id_map_list_magic )
-                || !buf.checkMagic( elem_id_map_magic ) 
-                || !_elementNameTable.deserialize( buf )
-                || !buf.checkMagic( attr_id_map_magic )
-                || !_attrNameTable.deserialize( buf )
-                || !buf.checkMagic( ns_id_map_magic )
-                || !_nsNameTable.deserialize( buf )
-                || !buf.checkMagic( attr_value_map_magic )
-                || !_attrValueTable.deserialize( buf ) ) {
-        buf.seterror();
-        return false;
-    }
-    if ( !buf.checkCRC( pos - buf.pos() ) )
-        buf.seterror();
+    buf.checkMagic( id_map_list_magic );
+    buf.checkMagic( elem_id_map_magic );
+    _elementNameTable.deserialize( buf );
+    buf.checkMagic( attr_id_map_magic );
+    _attrNameTable.deserialize( buf );
+    buf.checkMagic( ns_id_map_magic );
+    _nsNameTable.deserialize( buf );
+    buf.checkMagic( attr_value_map_magic );
+    _attrValueTable.deserialize( buf );
+    buf.checkCRC( buf.pos() - pos );
     return !buf.error();
 }
 
@@ -4125,3 +4121,17 @@ void ldomFreeStorage()
     free_ls_storage();
 }
 #endif
+
+
+bool ldomDocument::openFromCacheFile( lString16 fname )
+{
+    //
+    return false;
+}
+
+bool ldomDocument::swapToCacheFile( lString16 fname )
+{
+    //
+    return false;
+}
+

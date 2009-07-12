@@ -1153,7 +1153,12 @@ private:
     LVContainerRef _container;
     lString16 _codeBase;
 
+    LVStreamRef _mapfile;
+
 public:
+
+    bool openFromCacheFile( lString16 fname );
+    bool swapToCacheFile( lString16 fname );
 
     lString16 getCodeBase() { return _codeBase; }
     void setCodeBase(lString16 codeBase) { _codeBase = codeBase; }

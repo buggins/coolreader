@@ -116,6 +116,7 @@ bool LDOMNameIdMap::deserialize( SerialBuf & buf )
         return false;
     int start = buf.pos();
     if ( !buf.checkMagic( id_map_magic ) ) {
+        buf.seterror();
         return false;
     }
     Clear();

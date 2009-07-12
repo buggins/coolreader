@@ -1055,7 +1055,7 @@ bool SerialBuf::checkCRC( int size )
 {
     if ( error() )
         return false;
-    if ( size>space() ) {
+    if ( size>_pos ) {
         seterror();
         return false;
     }
@@ -3067,3 +3067,257 @@ bool lString16::startsWith( const lString16 & substring ) const
             return false;
     return true;
 }
+
+
+
+/// serialization/deserialization buffer
+
+/// constructor of serialization buffer
+SerialBuf::SerialBuf( int sz, bool autoresize )
+	: _buf( (lUInt8*)malloc(sz) ), _ownbuf(true), _error(false), _autoresize(autoresize), _size(sz), _pos(0)
+{
+}
+/// constructor of deserialization buffer
+SerialBuf::SerialBuf( lUInt8 * p, int sz )
+	: _buf( p ), _ownbuf(false), _error(false), _autoresize(false), _size(sz), _pos(0)
+{
+}
+SerialBuf::~SerialBuf()
+{
+	if ( _ownbuf )
+		free( _buf );
+}
+
+
+/// checks whether specified number of bytes is available, returns true in case of error
+bool SerialBuf::check( int reserved )
+{
+	if ( _error )
+		return true;
+	if ( space()<reserved ) {
+        if ( _autoresize ) {
+            _size = (_size>16384 ? _size*2 : 16384) + reserved;
+            _buf = (lUInt8*)realloc(_buf, _size );
+            return false;
+        } else {
+		    _error = true;
+		    return true;
+        }
+	}
+	return false;
+}
+
+// write methods
+/// put magic signature
+void SerialBuf::putMagic( const char * s )
+{
+	if ( check(1) )
+		return;
+	while ( *s ) {
+		_buf[ _pos++ ] = *s++;
+		if ( check(1) )
+			return;
+	}
+}
+
+/// add contents of another buffer
+SerialBuf & SerialBuf::operator << ( const SerialBuf & v )
+{
+    if ( check(v.pos()) || v.pos()==0 )
+		return *this;
+    memcpy( _buf + _pos, v._buf, v._pos );
+    _pos += v._pos;
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator << ( lUInt8 n )
+{
+	if ( check(1) )
+		return *this;
+	_buf[_pos++] = n;
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( char n )
+{
+	if ( check(1) )
+		return *this;
+	_buf[_pos++] = (lUInt8)n;
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( bool n )
+{
+	if ( check(1) )
+		return *this;
+	_buf[_pos++] = (lUInt8)(n ? 1 : 0);
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( lUInt16 n )
+{
+	if ( check(2) )
+		return *this;
+	_buf[_pos++] = (lUInt8)(n & 255);
+	_buf[_pos++] = (lUInt8)((n>>8) & 255);
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( lInt16 n )
+{
+	if ( check(2) )
+		return *this;
+	_buf[_pos++] = (lUInt8)(n & 255);
+	_buf[_pos++] = (lUInt8)((n>>8) & 255);
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( lUInt32 n )
+{
+	if ( check(4) )
+		return *this;
+	_buf[_pos++] = (lUInt8)(n & 255);
+	_buf[_pos++] = (lUInt8)((n>>8) & 255);
+	_buf[_pos++] = (lUInt8)((n>>16) & 255);
+	_buf[_pos++] = (lUInt8)((n>>24) & 255);
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( lInt32 n )
+{
+	if ( check(4) )
+		return *this;
+	_buf[_pos++] = (lUInt8)(n & 255);
+	_buf[_pos++] = (lUInt8)((n>>8) & 255);
+	_buf[_pos++] = (lUInt8)((n>>16) & 255);
+	_buf[_pos++] = (lUInt8)((n>>24) & 255);
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( const lString16 & s )
+{
+	if ( check(2) )
+		return *this;
+	lString8 s8 = UnicodeToUtf8(s);
+	lUInt16 len = (lUInt16)s8.length();
+	(*this) << len;
+	for ( int i=0; i<len; i++ ) {
+		if ( check(1) )
+			return *this;
+		(*this) << (lUInt8)(s8[i]);
+	}
+	return *this;
+}
+SerialBuf & SerialBuf::operator << ( const lString8 & s8 )
+{
+	if ( check(2) )
+		return *this;
+	lUInt16 len = (lUInt16)s8.length();
+	(*this) << len;
+	for ( int i=0; i<len; i++ ) {
+		if ( check(1) )
+			return *this;
+		(*this) << (lUInt8)(s8[i]);
+	}
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( lUInt8 & n )
+{
+	if ( check(1) )
+		return *this;
+	n = _buf[_pos++];
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( char & n )
+{
+	if ( check(1) )
+		return *this;
+	n = (char)_buf[_pos++];
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( bool & n )
+{
+	if ( check(1) )
+		return *this;
+    n = _buf[_pos++] ? true : false;
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( lUInt16 & n )
+{
+	if ( check(2) )
+		return *this;
+	n = _buf[_pos++];
+    n |= (((lUInt16)_buf[_pos++]) << 8);
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( lInt16 & n )
+{
+	if ( check(2) )
+		return *this;
+	n = (lInt16)(_buf[_pos++]);
+    n |= (lInt16)(((lUInt16)_buf[_pos++]) << 8);
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( lUInt32 & n )
+{
+	if ( check(4) )
+		return *this;
+	n = _buf[_pos++];
+    n |= (((lUInt32)_buf[_pos++]) << 8);
+    n |= (((lUInt32)_buf[_pos++]) << 16);
+    n |= (((lUInt32)_buf[_pos++]) << 24);
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( lInt32 & n )
+{
+	if ( check(4) )
+		return *this;
+	n = (lInt32)(_buf[_pos++]);
+    n |= (((lUInt32)_buf[_pos++]) << 8);
+    n |= (((lUInt32)_buf[_pos++]) << 16);
+    n |= (((lUInt32)_buf[_pos++]) << 24);
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( lString8 & s8 )
+{
+	if ( check(2) )
+		return *this;
+	lUInt16 len;
+	(*this) >> len;
+	s8.clear();
+	s8.reserve(len);
+	for ( int i=0; i<len; i++ ) {
+		if ( check(1) )
+			return *this;
+		lUInt8 c;
+		(*this) >> c;
+		s8.append(1, c);
+	}
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( lString16 & s )
+{
+	lString8 s8;
+	(*this) >> s8;
+	s = Utf8ToUnicode(s8);
+	return *this;
+}
+
+// read methods
+bool SerialBuf::checkMagic( const char * s )
+{
+    if ( _error )
+        return false;
+	while ( *s ) {
+		if ( check(1) )
+			return false;
+        if ( _buf[ _pos++ ] != *s++ ) {
+            seterror();
+			return false;
+        }
+	}
+	return true;
+}
+

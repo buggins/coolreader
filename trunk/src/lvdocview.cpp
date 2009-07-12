@@ -2845,7 +2845,16 @@ bool LVDocView::ParseDocument( )
 	}
 
 #if 1 // test serialization
-
+    SerialBuf buf( 1024 );
+    m_doc->serializeMaps(buf);
+    if ( !buf.error() ) {
+        int sz = buf.pos();
+        SerialBuf buf2( buf.buf(), buf.pos() );
+        ldomDocument * newdoc = new ldomDocument();
+        if ( newdoc->deserializeMaps( buf2 ) ) {
+            delete newdoc;
+        }
+    }
 #endif
 
     return true;
