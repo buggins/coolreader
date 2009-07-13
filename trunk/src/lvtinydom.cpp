@@ -4123,15 +4123,53 @@ void ldomFreeStorage()
 #endif
 
 
+static const char * doc_file_magic = "CR3DocDump-v0101";
+
+struct DocFileHeader {
+    char magic[16]; //== doc_file_magic
+    lUInt32 file_size;
+    lUInt32 props_offset;
+    lUInt32 props_size;
+    lUInt32 data_offset;
+    lUInt32 data_size;
+    lUInt32 data_crc32;
+    lUInt32 idtable_offset;
+    lUInt32 idtable_size;
+};
+
 bool ldomDocument::openFromCacheFile( lString16 fname )
 {
-    //
+    LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, 0 );
+    if ( map.isNull() )
+        return false;
+    LVStreamBufferRef buf = map->GetReadBuffer();
+    if ( buf.isNull() )
+        return false;
+    const lUInt8 * ptr = buf->getReadOnly();
+    if ( ptr==NULL )
+        return false;
+    {
+        DocFileHeader hdr;
+        SerialBuf hdrbuf( buf->getReadOnly(), buf->getSize() );
+        int start = hdrbuf.pos();
+        hdrbuf.checkMagic( doc_file_magic );
+        hdrbuf >> hdr.props_offset;
+        hdrbuf >> hdr.props_size;
+        hdrbuf >> hdr.data_offset;
+        hdrbuf >> hdr.data_size;
+        hdrbuf >> hdr.data_crc32;
+        hdrbuf >> hdr.idtable_offset;
+        hdrbuf >> hdr.idtable_size;
+        hdrbuf.checkCRC( hdrbuf.pos() - start );
+        if ( hdrbuf.error() )
+            return false;
+    }
     return false;
 }
 
 bool ldomDocument::swapToCacheFile( lString16 fname )
 {
-    //
+
     return false;
 }
 

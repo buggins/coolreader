@@ -835,3 +835,51 @@ CRPropRef LVCreatePropsContainer()
 {
     return CRPropRef(new CRPropContainer());
 }
+
+const char * props_magic = "PRPS";
+const char * props_name_magic = "n=";
+const char * props_value_magic = "v=";
+/// serialize to byte buffer
+void CRPropAccessor::serialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return;
+    int pos = buf.pos();
+    buf.putMagic( props_magic );
+    lInt32 sz = getCount();
+    buf << sz;
+    for ( int i=0; i<sz; i++ ) {
+        buf.putMagic( props_name_magic );
+        buf << getName(i);
+        buf.putMagic( props_value_magic );
+        buf << getValue(i);
+    }
+    buf.putCRC( buf.pos() - pos );
+}
+
+/// deserialize from byte buffer
+bool CRPropAccessor::deserialize( SerialBuf & buf )
+{
+    clear();
+    if ( buf.error() )
+        return false;
+    int pos = buf.pos();
+    if ( !buf.checkMagic( props_magic ) )
+        return false;
+    lInt32 sz;
+    buf >> sz;
+    for ( int i=0; i<sz; i++ ) {
+        lString8 nm;
+        lString16 val;
+        if ( !buf.checkMagic( props_name_magic ) )
+            return false;
+        buf >> nm;
+        if ( !buf.checkMagic( props_value_magic ) )
+            return false;
+        buf >> val;
+        setString( nm.c_str(), val );
+    }
+    buf.checkCRC( buf.pos() - pos );
+    return !buf.error();
+}
+

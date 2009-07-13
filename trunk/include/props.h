@@ -132,6 +132,10 @@ public:
     virtual bool saveToStream( LVStream * stream );
     /// virtual destructor
     virtual ~CRPropAccessor();
+    /// serialize to byte buffer
+    virtual void serialize( SerialBuf & buf );
+    /// deserialize from byte buffer
+    virtual bool deserialize( SerialBuf & buf );
 };
 
 
