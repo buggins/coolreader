@@ -68,19 +68,49 @@ private:
     int _size;
     int _len;
     lUInt8 * _data;
+    bool _own;
 public :
+    // return first non-empty item, NULL if no items found
+    DataStorageItemHeader * first()
+    {
+        if ( _len==0 )
+            return NULL;
+        DataStorageItemHeader * item = (DataStorageItemHeader *)_data;
+        if ( item->type == LXML_NO_DATA )
+            item = next( item );
+        return item;
+    }
+    // return next non-empty item, NULL if end of collection reached
+    DataStorageItemHeader * next( DataStorageItemHeader * item )
+    {
+        if ( item==NULL )
+            return NULL;
+        for ( ;; ) {
+            if ( (lUInt8*)item>=_data+_len )
+                return NULL;
+            item = (DataStorageItemHeader*)(((lUInt8*)item) + ((lUInt32)item->sizeDiv16 * 16));
+            if ( item->type != LXML_NO_DATA )
+                return item;
+        }
+
+    }
     bool isNull()
     {
         return _data==NULL;
     }
     DataBuffer( int size )
-        : _size( size ), _len( 0 )
+        : _size( size ), _len( 0 ), _own(true)
     {
         _data = (lUInt8*)malloc( size );
     }
+    DataBuffer( lUInt8 * data, int size, int len )
+        : _size( size ), _len( len ), _data(data), _own(false)
+    {
+    }
     ~DataBuffer()
     {
-        free( _data );
+        if ( _own )
+            free( _data );
     }
     DataStorageItemHeader * alloc( int size );
 };
@@ -323,6 +353,10 @@ public:
         pmsREF->free((ldomMemBlock *)p);
     }
 #endif
+    ldomPersistentText( ldomDocument * document, TextDataStorageItem * data )
+        : ldomNode( document, data->parentIndex, data->dataIndex )
+    {
+    }
     ldomPersistentText( ldomNode * parent, lUInt32 index, lString16 value );
     ldomPersistentText( ldomNode * parent, lUInt32 index, lString8 value );
     // create persistent r/o copy of r/w text node
@@ -529,6 +563,11 @@ public:
         pmsHeap->free((ldomMemBlock *)p);
     }
 #endif
+
+    ldomPersistentElement( ldomDocument * document, ElementDataStorageItem * data )
+        : ldomNode( document, data->parentIndex, data->dataIndex )
+    {
+    }
 
     ldomPersistentElement( ldomElement * v )
     : ldomNode( v )
@@ -1346,12 +1385,16 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
     buf.putMagic( id_map_list_magic );
     buf.putMagic( elem_id_map_magic );
     _elementNameTable.serialize( buf );
+    buf << _nextUnknownElementId; // Next Id for unknown element
     buf.putMagic( attr_id_map_magic );
     _attrNameTable.serialize( buf );
+    buf << _nextUnknownAttrId;    // Next Id for unknown attribute
     buf.putMagic( ns_id_map_magic );
     _nsNameTable.serialize( buf );
+    buf << _nextUnknownNsId;      // Next Id for unknown namespace
     buf.putMagic( attr_value_map_magic );
     _attrValueTable.serialize( buf );
+
     buf.putCRC( buf.pos() - pos );
 }
 
@@ -1364,10 +1407,13 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
     buf.checkMagic( id_map_list_magic );
     buf.checkMagic( elem_id_map_magic );
     _elementNameTable.deserialize( buf );
+    buf >> _nextUnknownElementId; // Next Id for unknown element
     buf.checkMagic( attr_id_map_magic );
     _attrNameTable.deserialize( buf );
+    buf >> _nextUnknownAttrId;    // Next Id for unknown attribute
     buf.checkMagic( ns_id_map_magic );
     _nsNameTable.deserialize( buf );
+    buf >> _nextUnknownNsId;      // Next Id for unknown namespace
     buf.checkMagic( attr_value_map_magic );
     _attrValueTable.deserialize( buf );
     buf.checkCRC( buf.pos() - pos );
@@ -4133,6 +4179,7 @@ struct DocFileHeader {
     lUInt32 data_offset;
     lUInt32 data_size;
     lUInt32 data_crc32;
+    lUInt32 data_index_size;
     lUInt32 idtable_offset;
     lUInt32 idtable_size;
 };
@@ -4142,15 +4189,16 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
     LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, 0 );
     if ( map.isNull() )
         return false;
-    LVStreamBufferRef buf = map->GetReadBuffer();
+    int fileSize = (int)map->GetSize();
+    LVStreamBufferRef buf = map->GetWriteBuffer( 0, fileSize );
     if ( buf.isNull() )
         return false;
-    const lUInt8 * ptr = buf->getReadOnly();
+    lUInt8 * ptr = buf->getReadWrite();
     if ( ptr==NULL )
         return false;
+    DocFileHeader hdr;
     {
-        DocFileHeader hdr;
-        SerialBuf hdrbuf( buf->getReadOnly(), buf->getSize() );
+        SerialBuf hdrbuf( (lUInt8*)buf->getReadOnly(), (int)buf->getSize() );
         int start = hdrbuf.pos();
         hdrbuf.checkMagic( doc_file_magic );
         hdrbuf >> hdr.props_offset;
@@ -4158,11 +4206,48 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         hdrbuf >> hdr.data_offset;
         hdrbuf >> hdr.data_size;
         hdrbuf >> hdr.data_crc32;
+        hdrbuf >> hdr.data_index_size;
         hdrbuf >> hdr.idtable_offset;
         hdrbuf >> hdr.idtable_size;
         hdrbuf.checkCRC( hdrbuf.pos() - start );
         if ( hdrbuf.error() )
             return false;
+
+    }
+
+    {
+        _dataBuffers.clear();
+        _currentBuffer = new DataBuffer( ptr + hdr.data_offset, fileSize-hdr.data_offset, hdr.data_size );
+        _dataBuffers.add( _currentBuffer );
+    }
+    {
+        //LVHashTable<lUInt16,lInt32> _idNodeMap
+        if ( _instanceMap ) {
+            for ( int i=0; i<_instanceMapCount; i++ ) {
+                if ( _instanceMap[i].instance != NULL ) {
+                    delete _instanceMap[i].instance;
+                }
+            }
+            free( _instanceMap );
+        }
+        _instanceMapCount = hdr.data_index_size;
+        _instanceMapSize = _instanceMapCount + 64;
+        _instanceMap = (NodeItem *)(malloc( _instanceMapSize * sizeof(NodeItem) ));
+        for ( int i=0; i<_instanceMapCount; i++ ) {
+            _instanceMap[i].data = NULL;
+            _instanceMap[i].instance = NULL;
+        }
+        //_idNodeMap.clear();
+        //_idNodeMap.resize( hdr.data_index_size );
+        for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
+            if ( item->type==LXML_ELEMENT_NODE ) {
+                ldomPersistentElement * elem = new ldomPersistentElement( this, (ElementDataStorageItem*)item );
+                registerNode( elem );
+            } else if ( item->type==LXML_TEXT_NODE ) {
+                ldomPersistentText * text = new ldomPersistentText( this, (TextDataStorageItem*)item );
+                registerNode( text );
+            }
+        }
     }
     return false;
 }

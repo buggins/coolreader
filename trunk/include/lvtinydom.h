@@ -304,7 +304,7 @@ protected:
 	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
 	/// allocate element
 	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
-private:
+protected:
 	LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
 	DataBuffer * _currentBuffer;
 	int _dataBufferSize;       // single data buffer size
@@ -385,6 +385,11 @@ protected:
 #endif
     {
 	}
+
+    ldomNode( ldomDocument * document, lInt32 parentIndex, lInt32 dataIndex )
+        : _document( document ), _parentIndex( parentIndex ), _dataIndex( dataIndex )
+    {
+    }
 
 public:
     ldomNode( ldomDocument * document, ldomNode * parent, lUInt32
