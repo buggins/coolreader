@@ -93,6 +93,25 @@ lvsize_t LVStorageObject::GetSize( )
 }
 
 
+/// calculate crc32 code for stream, if possible
+lverror_t LVNamedStream::crc32( lUInt32 & dst )
+{
+    if ( _crc!=0 ) {
+        dst = _crc;
+        return LVERR_OK;
+    } else {
+        if ( !_crcFailed ) {
+            lverror_t res = LVStream::crc32( dst );
+            if ( res==LVERR_OK ) {
+                _crc = dst;
+                return LVERR_OK;
+            }
+            _crcFailed = true;
+        }
+        dst = 0;
+        return LVERR_FAIL;
+    }
+}
 /// returns stream/container name, may be NULL if unknown
 const lChar16 * LVNamedStream::GetName()
 {
@@ -239,6 +258,39 @@ LVStreamBufferRef LVStream::GetWriteBuffer( lvpos_t pos, lvpos_t size )
     LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, false );
     return res;
 }
+
+
+#define CRC_BUF_SIZE 16384
+
+/// calculate crc32 code for stream, if possible
+lverror_t LVStream::crc32( lUInt32 & dst )
+{
+    dst = 0;
+    if ( GetMode() == LVOM_READ || GetMode() == LVOM_APPEND ) {
+        lvpos_t savepos = GetPos();
+        lvsize_t size = GetSize();
+        lUInt8 buf[CRC_BUF_SIZE];
+        SetPos( 0 );
+        lvsize_t bytesRead = 0;
+        for ( lvpos_t pos = 0; pos<size; pos+=CRC_BUF_SIZE ) {
+            lvsize_t sz = size - pos;
+            if ( sz > CRC_BUF_SIZE )
+                sz = CRC_BUF_SIZE;
+            Read( buf, sz, &bytesRead );
+            if ( bytesRead!=sz ) {
+                SetPos(savepos);
+                return LVERR_FAIL;
+            }
+            dst = lStr_crc32( dst, buf, sz );
+        }
+        SetPos( savepos );
+        return LVERR_OK;
+    } else {
+        // not supported
+        return LVERR_NOTIMPL;
+    }
+}
+
 
 //#if USE_MMAP_FILES==1
 #if defined(_LINUX) || defined(_WIN32)
@@ -765,6 +817,7 @@ class LVFileStream : public LVNamedStream
 private:
     FILE * m_file;
 public:
+
 
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
     {
@@ -1901,7 +1954,7 @@ private:
                     m_zstream.avail_in = 0;
                     return -1;
                 }
-                m_CRC = crc32( m_CRC, m_inbuf + tailpos, (int)(bytesRead) );
+                m_CRC = lStr_crc32( m_CRC, m_inbuf + tailpos, (int)(bytesRead) );
                 m_zstream.avail_in += (int)bytesRead;
                 m_inbytesleft -= bytesRead;
             }
@@ -2040,6 +2093,14 @@ private:
         return bytesRead;
     }
 public:
+
+    /// fastly return already known CRC
+    virtual lverror_t crc32( lUInt32 & dst )
+    {
+        dst = m_originalCRC;
+        return LVERR_OK;
+    }
+
     virtual bool Eof()
     {
         return m_outbytesleft==0; //m_pos >= m_size;
@@ -3377,7 +3438,7 @@ LVContainerRef LVOpenDirectory( const wchar_t * path, const wchar_t * mask )
 }
 
 /// Stream base class
-class LVTCRStream : public LVStream
+class LVTCRStream : public LVNamedStream
 {
     class TCRCode {
     public:
@@ -3420,8 +3481,10 @@ class LVTCRStream : public LVStream
     lUInt8 _readbuf[TCR_READ_BUF_SIZE];
     LVTCRStream( LVStreamRef stream )
     : _stream(stream), _index(NULL), _decoded(NULL),
-      _decodedSize(0), _decodedLen(0), _partIndex((unsigned)-1), _decodedStart(0), _indexSize(0), _pos(0) {
+      _decodedSize(0), _decodedLen(0), _partIndex((unsigned)-1), _decodedStart(0), _indexSize(0), _pos(0)
+    {
     }
+
     bool decodePart( unsigned index )
     {
         if ( _partIndex==index )

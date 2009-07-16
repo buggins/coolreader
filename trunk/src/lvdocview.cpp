@@ -2203,6 +2203,7 @@ static void FileToArcProps( CRPropRef props )
     props->setString( DOC_PROP_FILE_NAME, lString16() );
     props->setString( DOC_PROP_FILE_PATH, lString16() );
     props->setString( DOC_PROP_FILE_SIZE, lString16() );
+    props->setHex(DOC_PROP_FILE_CRC32, 0);
 }
 
 /// load document from file
@@ -2237,6 +2238,7 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
         return false;
     m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
     m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa((int)stream->GetSize()));
+    m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->crc32());
 
 
     if ( LoadDocument( stream ) ) {
@@ -2575,6 +2577,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                             continue;
                         m_doc_props->setString(DOC_PROP_FILE_NAME, item->GetName());
                         m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa((int)m_stream->GetSize()));
+                        m_doc_props->setHex(DOC_PROP_FILE_CRC32, m_stream->crc32());
                         found = true;
                         break;
                     }
@@ -2844,7 +2847,7 @@ bool LVDocView::ParseDocument( )
 		m_callback->OnLoadFileEnd( );
 	}
 
-#if 1 // test serialization
+#if 0 // test serialization
     SerialBuf buf( 1024 );
     m_doc->serializeMaps(buf);
     if ( !buf.error() ) {
@@ -2854,6 +2857,13 @@ bool LVDocView::ParseDocument( )
         if ( newdoc->deserializeMaps( buf2 ) ) {
             delete newdoc;
         }
+    }
+#endif
+#if 1 // test swap to disk
+    bool res = m_doc->swapToCacheFile( lString16("/tmp/cr3swap.bin") );
+    if ( !res ) {
+        CRLog::error( "Failed to swap to disk" );
+        return false;
     }
 #endif
 

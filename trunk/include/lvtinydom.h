@@ -72,6 +72,8 @@
 #define DOC_PROP_FILE_PATH       "doc.file.path"
 #define DOC_PROP_FILE_SIZE       "doc.file.size"
 #define DOC_PROP_FILE_FORMAT     "doc.file.format"
+#define DOC_PROP_FILE_CRC32      "doc.file.crc32"
+#define DOC_PROP_CODE_BASE       "doc.file.code.base"
 
 #if BUILD_LITE!=1
 /// final block cache
@@ -266,6 +268,10 @@ public:
     /// returns root element
     ldomNode * getRootNode();
 
+    /// returns code base path relative to document container
+    inline lString16 getCodeBase() { return getProps()->getStringDef(DOC_PROP_CODE_BASE, ""); }
+    /// sets code base path relative to document container
+    inline void setCodeBase(lString16 codeBase) { getProps()->setStringDef(DOC_PROP_CODE_BASE, codeBase); }
 protected:
 //=========================================
 //       NEW STORAGE MODEL METHODS
@@ -304,8 +310,10 @@ protected:
 	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
 	/// allocate element
 	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
+
 protected:
-	LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
+
+    LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
 	DataBuffer * _currentBuffer;
 	int _dataBufferSize;       // single data buffer size
     NodeItem * _instanceMap;   // Id->Instance & Id->Data map
@@ -323,6 +331,9 @@ protected:
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
     CRPropRef _docProps;
+
+    LVStreamRef _map; // memory mapped file
+    LVStreamBufferRef _mapbuf; // memory mapped file buffer
 };
 
 /*
@@ -1156,8 +1167,6 @@ private:
 #endif
     lUInt32 _docFlags;
     LVContainerRef _container;
-    lString16 _codeBase;
-
     LVStreamRef _mapfile;
 
 public:
@@ -1165,8 +1174,6 @@ public:
     bool openFromCacheFile( lString16 fname );
     bool swapToCacheFile( lString16 fname );
 
-    lString16 getCodeBase() { return _codeBase; }
-    void setCodeBase(lString16 codeBase) { _codeBase = codeBase; }
     LVContainerRef getContainer() { return _container; }
     void setContainer( LVContainerRef cont ) { _container = cont; }
 

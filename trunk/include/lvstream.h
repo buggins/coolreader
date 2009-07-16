@@ -254,6 +254,11 @@ public:
     /// writes array
     lverror_t Write( LVArray<lUInt32> & array );
 
+    /// calculate crc32 code for stream, if possible
+    virtual lverror_t crc32( lUInt32 & dst );
+    /// calculate crc32 code for stream, returns 0 for error or empty stream
+    inline lUInt32 crc32() { lUInt32 res = 0; crc32( res ); return res; }
+
     /// Constructor
     LVStream() { }
 
@@ -329,7 +334,10 @@ protected:
     lString16 m_filename;
     lString16 m_path;
     lvopen_mode_t          m_mode;
+    lUInt32 _crc;
+    bool _crcFailed;
 public:
+    LVNamedStream() : _crc(0), _crcFailed(false) { }
     /// returns stream/container name, may be NULL if unknown
     virtual const lChar16 * GetName();
     /// sets stream/container name, may be not implemented for some objects
@@ -339,6 +347,8 @@ public:
     {
         return m_mode;
     }
+    /// calculate crc32 code for stream, if possible
+    virtual lverror_t crc32( lUInt32 & dst );
 };
 
 

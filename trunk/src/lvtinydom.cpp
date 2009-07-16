@@ -113,6 +113,8 @@ public :
             free( _data );
     }
     DataStorageItemHeader * alloc( int size );
+    lUInt8 * ptr() { return _data; }
+    int length() { return _len; }
 };
 
 DataStorageItemHeader * DataBuffer::alloc( int size )
@@ -1161,7 +1163,6 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 #endif
 , _docFlags(doc._docFlags)
 , _container(doc._container)
-, _codeBase(doc._codeBase)
 {
 }
 
@@ -4172,16 +4173,20 @@ void ldomFreeStorage()
 static const char * doc_file_magic = "CR3DocDump-v0101";
 
 struct DocFileHeader {
-    char magic[16]; //== doc_file_magic
-    lUInt32 file_size;
+    //char magic[16]; //== doc_file_magic
+    lUInt32 src_file_size;
+    lUInt32 src_file_crc32;
     lUInt32 props_offset;
     lUInt32 props_size;
+    lUInt32 idtable_offset;
+    lUInt32 idtable_size;
     lUInt32 data_offset;
     lUInt32 data_size;
     lUInt32 data_crc32;
     lUInt32 data_index_size;
-    lUInt32 idtable_offset;
-    lUInt32 idtable_size;
+    lUInt32 file_size;
+    //
+    lString16 src_file_name;
 };
 
 bool ldomDocument::openFromCacheFile( lString16 fname )
@@ -4254,6 +4259,97 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
 
 bool ldomDocument::swapToCacheFile( lString16 fname )
 {
+    persist();
+
+    lvsize_t datasize = 0;
+    for ( int i=0; i<_dataBuffers.length(); i++ ) {
+        datasize += _dataBuffers[i]->length();
+    }
+
+    DocFileHeader hdr;
+    hdr.src_file_size = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
+    hdr.src_file_crc32 = (lUInt32)getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
+    hdr.src_file_name = getProps()->getStringDef(DOC_PROP_FILE_NAME, "");
+
+    SerialBuf propsbuf(4096);
+    getProps()->serialize( propsbuf );
+    int propssize = propsbuf.pos() + 4096;
+    propssize = (propssize + 4095) / 4096 * 4096;
+
+    SerialBuf idbuf(4096);
+    serializeMaps( idbuf );
+    int idsize = idbuf.pos() + 4096;
+    idsize = (idsize + 4095) / 4096 * 4096;
+
+    int pos = 0;
+    int hdrsize = 4096; // max header size
+    pos += hdrsize;
+
+    hdr.props_offset = pos;
+    hdr.props_size = propssize;
+    pos += propssize;
+
+    hdr.idtable_offset = pos;
+    hdr.idtable_size = idsize;
+    pos += idsize;
+
+    hdr.data_offset = pos;
+    hdr.data_size = datasize;
+    hdr.data_index_size = _instanceMapCount;
+
+    hdr.file_size = pos + datasize;
+    lUInt32 reserved = (hdr.file_size / 16) + 8192; // 8K + 1/16
+    hdr.file_size += reserved;
+    LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, hdr.file_size );
+    if ( map.isNull() )
+        return false;
+
+    LVStreamBufferRef buf = map->GetWriteBuffer( 0, hdr.file_size );
+    if ( buf.isNull() )
+        return false;
+
+    lUInt8 * ptr = buf->getReadWrite();
+    if ( ptr==NULL )
+        return false;
+
+    hdr.data_crc32 = 0;
+    // copy data
+    for ( int i=0; i<_dataBuffers.length(); i++ ) {
+        lUInt32 len = _dataBuffers[i]->length();
+        memcpy( ptr + pos, _dataBuffers[i]->ptr(), len );
+        hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
+        pos += len;
+    }
+
+    SerialBuf hdrbuf(4096);
+    int start = hdrbuf.pos();
+    hdrbuf.putMagic( doc_file_magic );
+    hdrbuf << hdr.src_file_size << hdr.src_file_crc32;
+    hdrbuf << hdr.props_offset << hdr.props_size;
+    hdrbuf << hdr.idtable_offset << hdr.idtable_size;
+    hdrbuf << hdr.data_offset << hdr.data_size << hdr.data_index_size << hdr.data_crc32;
+    hdrbuf << hdr.src_file_name;
+    hdrbuf.putCRC( hdrbuf.pos() - start );
+
+    hdrbuf.copyTo( ptr, hdrbuf.pos() );
+    propsbuf.copyTo( ptr + hdr.props_offset, hdr.props_size );
+    idbuf.copyTo( ptr + hdr.props_offset, hdr.props_size );
+
+    //
+    _currentBuffer = new DataBuffer( ptr + hdr.data_offset, hdr.file_size - hdr.data_offset, hdr.data_size );
+    _dataBuffers.clear();
+    _dataBuffers.add( _currentBuffer );
+    for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
+        if ( item->type==LXML_ELEMENT_NODE || item->type==LXML_TEXT_NODE ) {
+            if ( item->dataIndex < _instanceMapCount )
+                _instanceMap[ item->dataIndex ].data = item;
+            else
+                _instanceMap[ item->dataIndex ].data = NULL;
+        }
+    }
+
+    _map = map; // memory mapped file
+    _mapbuf = buf; // memory mapped file buffer
 
     return false;
 }

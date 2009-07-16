@@ -22,8 +22,6 @@
 #include <sys/time.h>
 #endif
 
-
-
 #if (USE_ZLIB==1)
 #include <zlib.h>
 #endif
@@ -1036,6 +1034,17 @@ void lString16HashedCollection::serialize( SerialBuf & buf )
     buf.putCRC( buf.pos() - start );
 }
 
+/// calculates CRC32 for buffer contents
+lUInt32 lStr_crc32( lUInt32 prevValue, const void * buf, int size )
+{
+#if (USE_ZLIB==1)
+    return crc32( prevValue, (const lUInt8 *)buf, size );
+#else
+    // TODO:
+    return 0;
+#endif
+}
+
 /// add CRC32 for last N bytes
 void SerialBuf::putCRC( int size )
 {
@@ -1046,7 +1055,7 @@ void SerialBuf::putCRC( int size )
         seterror();
     }
     lUInt32 n = 0;
-    n = crc32( n, _buf + _pos-size, (int)(size) );
+    n = lStr_crc32( n, _buf + _pos-size, (int)(size) );
     *this << n;
 }
 
@@ -1060,7 +1069,7 @@ bool SerialBuf::checkCRC( int size )
         return false;
     }
     lUInt32 n0 = 0;
-    n0 = crc32( n0, _buf + _pos-size, (int)(size) );
+    n0 = lStr_crc32( n0, _buf + _pos-size, (int)(size) );
     lUInt32 n;
     *this >> n;
     if ( error() )
@@ -3076,18 +3085,29 @@ bool lString16::startsWith( const lString16 & substring ) const
 SerialBuf::SerialBuf( int sz, bool autoresize )
 	: _buf( (lUInt8*)malloc(sz) ), _ownbuf(true), _error(false), _autoresize(autoresize), _size(sz), _pos(0)
 {
+    memset( _buf, 0, _size );
 }
 /// constructor of deserialization buffer
 SerialBuf::SerialBuf( lUInt8 * p, int sz )
 	: _buf( p ), _ownbuf(false), _error(false), _autoresize(false), _size(sz), _pos(0)
 {
 }
+
 SerialBuf::~SerialBuf()
 {
 	if ( _ownbuf )
 		free( _buf );
 }
 
+bool SerialBuf::copyTo( lUInt8 * buf, int maxSize )
+{
+    if ( _pos==0 )
+        return true;
+    if ( _pos > maxSize )
+        return false;
+    memcpy( buf, _buf, _pos );
+    return true;
+}
 
 /// checks whether specified number of bytes is available, returns true in case of error
 bool SerialBuf::check( int reserved )

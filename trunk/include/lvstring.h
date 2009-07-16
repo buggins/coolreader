@@ -64,7 +64,8 @@ int    lStr_cmp(const lChar8 * str1, const lChar8 * str2);
 void lStr_uppercase( lChar16 * str, int len );
 /// convert string to lowercase
 void lStr_lowercase( lChar16 * str, int len );
-
+/// calculates CRC32 for buffer contents
+lUInt32 lStr_crc32( lUInt32 prevValue, const void * buf, int size );
 
 #define CH_PROP_UPPER       0x0001 ///< uppercase alpha character flag
 #define CH_PROP_LOWER       0x0002 ///< lowercase alpha character flag
@@ -751,6 +752,7 @@ lString16 Utf8ToUnicode( const char * s );
 /// converts utf-8 string fragment to wide unicode string
 lString16 Utf8ToUnicode( const char * s, int sz );
 
+
 /// serialization/deserialization buffer
 class SerialBuf
 {
@@ -766,6 +768,7 @@ public:
 	SerialBuf( lUInt8 * p, int sz );
 	~SerialBuf();
 
+    bool copyTo( lUInt8 * buf, int maxSize );
     inline lUInt8 * buf() { return _buf; }
     inline void setPos( int pos ) { _pos = pos; }
 	inline int space() const { return _size-_pos; }
