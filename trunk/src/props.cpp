@@ -850,7 +850,7 @@ void CRPropAccessor::serialize( SerialBuf & buf )
     buf << sz;
     for ( int i=0; i<sz; i++ ) {
         buf.putMagic( props_name_magic );
-        buf << getName(i);
+        buf << lString8(getName(i));
         buf.putMagic( props_value_magic );
         buf << getValue(i);
     }

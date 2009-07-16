@@ -922,6 +922,13 @@ void lxmlDocBase::unregisterNode( lInt32 dataIndex, ldomNode * node )
         instance = NULL;
 }
 
+/// used to create instances from mmapped file
+void lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data )
+{
+    _instanceMap[ dataIndex ].instance = instance;
+    _instanceMap[ dataIndex ].data = data;
+}
+
 /// used by persistance management constructors, to replace one instance with another
 ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
 {
@@ -1376,6 +1383,7 @@ static const char * elem_id_map_magic = "ELEM";
 static const char * attr_id_map_magic = "ATTR";
 static const char * attr_value_map_magic = "ATTV";
 static const char * ns_id_map_magic =   "NMSP";
+static const char * node_by_id_map_magic = "NIDM";
 
 /// serialize to byte array (pointer will be incremented by number of bytes written)
 void lxmlDocBase::serializeMaps( SerialBuf & buf )
@@ -1395,6 +1403,15 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
     buf << _nextUnknownNsId;      // Next Id for unknown namespace
     buf.putMagic( attr_value_map_magic );
     _attrValueTable.serialize( buf );
+
+    int start = buf.pos();
+    buf.putMagic( node_by_id_map_magic );
+    buf << (lUInt32)_idNodeMap.length();
+    LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
+    for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
+        buf << p->key << p->value;
+    }
+    buf.putCRC( buf.pos() - start );
 
     buf.putCRC( buf.pos() - pos );
 }
@@ -1417,6 +1434,25 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
     buf >> _nextUnknownNsId;      // Next Id for unknown namespace
     buf.checkMagic( attr_value_map_magic );
     _attrValueTable.deserialize( buf );
+
+    int start = buf.pos();
+    buf.putMagic( node_by_id_map_magic );
+    lUInt32 idmsize;
+    buf >> idmsize;
+    _idNodeMap.clear();
+    if ( idmsize < 20000 )
+        _idNodeMap.resize( idmsize*2 );
+    for ( unsigned i=0; i<idmsize; i++ ) {
+        lUInt16 key;
+        lUInt32 value;
+        buf >> key;
+        buf >> value;
+        _idNodeMap.set( key, value );
+        if ( buf.error() )
+            return false;
+    }
+    buf.checkCRC( buf.pos() - start );
+
     buf.checkCRC( buf.pos() - pos );
     return !buf.error();
 }
@@ -4172,54 +4208,85 @@ void ldomFreeStorage()
 
 static const char * doc_file_magic = "CR3DocDump-v0101";
 
-struct DocFileHeader {
-    //char magic[16]; //== doc_file_magic
-    lUInt32 src_file_size;
-    lUInt32 src_file_crc32;
-    lUInt32 props_offset;
-    lUInt32 props_size;
-    lUInt32 idtable_offset;
-    lUInt32 idtable_size;
-    lUInt32 data_offset;
-    lUInt32 data_size;
-    lUInt32 data_crc32;
-    lUInt32 data_index_size;
-    lUInt32 file_size;
-    //
-    lString16 src_file_name;
-};
+
+bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
+{
+    int start = hdrbuf.pos();
+    hdrbuf.putMagic( doc_file_magic );
+    hdrbuf << src_file_size << src_file_crc32;
+    hdrbuf << props_offset << props_size;
+    hdrbuf << idtable_offset << idtable_size;
+    hdrbuf << data_offset << data_size << data_crc32 << data_index_size << file_size;
+    hdrbuf << src_file_name;
+    hdrbuf.putCRC( hdrbuf.pos() - start );
+    return !hdrbuf.error();
+}
+
+bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
+{
+    int start = hdrbuf.pos();
+    hdrbuf.checkMagic( doc_file_magic );
+    if ( hdrbuf.error() ) {
+        CRLog::error("Swap file Magic signature doesn't match");
+        return false;
+    }
+    hdrbuf >> src_file_size >> src_file_crc32;
+    hdrbuf >> props_offset >> props_size;
+    hdrbuf >> idtable_offset >> idtable_size;
+    hdrbuf >> data_offset >> data_size >> data_crc32 >> data_index_size >> file_size;
+    hdrbuf >> src_file_name;
+    hdrbuf.checkCRC( hdrbuf.pos() - start );
+    if ( hdrbuf.error() ) {
+        CRLog::error("Swap file - header unpack error");
+        return false;
+    }
+    return true;
+}
 
 bool ldomDocument::openFromCacheFile( lString16 fname )
 {
     LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, 0 );
     if ( map.isNull() )
         return false;
-    int fileSize = (int)map->GetSize();
+    lUInt32 fileSize = (lUInt32)map->GetSize();
     LVStreamBufferRef buf = map->GetWriteBuffer( 0, fileSize );
     if ( buf.isNull() )
         return false;
     lUInt8 * ptr = buf->getReadWrite();
     if ( ptr==NULL )
         return false;
-    DocFileHeader hdr;
     {
-        SerialBuf hdrbuf( (lUInt8*)buf->getReadOnly(), (int)buf->getSize() );
-        int start = hdrbuf.pos();
-        hdrbuf.checkMagic( doc_file_magic );
-        hdrbuf >> hdr.props_offset;
-        hdrbuf >> hdr.props_size;
-        hdrbuf >> hdr.data_offset;
-        hdrbuf >> hdr.data_size;
-        hdrbuf >> hdr.data_crc32;
-        hdrbuf >> hdr.data_index_size;
-        hdrbuf >> hdr.idtable_offset;
-        hdrbuf >> hdr.idtable_size;
-        hdrbuf.checkCRC( hdrbuf.pos() - start );
-        if ( hdrbuf.error() )
+        SerialBuf hdrbuf( ptr, fileSize );
+        if ( !hdr.deserialize( hdrbuf ) )
             return false;
-
+        if ( hdr.file_size != fileSize ) {
+            CRLog::error("Swap file - file size doesn't match");
+            return false;
+        }
+        if ( hdr.data_offset >= fileSize || hdr.data_offset+hdr.data_size > fileSize )
+            return false;
+        // data crc32
+        if ( lStr_crc32(0,  ptr + hdr.data_offset, hdr.data_size )!=hdr.data_crc32 ) {
+            CRLog::error("Swap file - CRC32 not matched for DOM data");
+            return false;
+        }
+        // TODO: add more checks here
     }
 
+    {
+        SerialBuf propsbuf( ptr + hdr.props_offset, hdr.props_size );
+        getProps()->deserialize( propsbuf );
+        if ( propsbuf.error() )
+            return false;
+
+        SerialBuf idbuf( ptr + hdr.idtable_offset, hdr.idtable_size );
+        deserializeMaps( idbuf );
+        if ( idbuf.error() )
+            return false;
+    }
+
+    _map = map;
+    _mapbuf = buf;
     {
         _dataBuffers.clear();
         _currentBuffer = new DataBuffer( ptr + hdr.data_offset, fileSize-hdr.data_offset, hdr.data_size );
@@ -4247,14 +4314,14 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
             if ( item->type==LXML_ELEMENT_NODE ) {
                 ldomPersistentElement * elem = new ldomPersistentElement( this, (ElementDataStorageItem*)item );
-                registerNode( elem );
+                setNode( item->dataIndex, elem, item );
             } else if ( item->type==LXML_TEXT_NODE ) {
                 ldomPersistentText * text = new ldomPersistentText( this, (TextDataStorageItem*)item );
-                registerNode( text );
+                setNode( item->dataIndex, text, item );
             }
         }
     }
-    return false;
+    return true;
 }
 
 bool ldomDocument::swapToCacheFile( lString16 fname )
@@ -4300,6 +4367,7 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     hdr.file_size = pos + datasize;
     lUInt32 reserved = (hdr.file_size / 16) + 8192; // 8K + 1/16
     hdr.file_size += reserved;
+
     LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, hdr.file_size );
     if ( map.isNull() )
         return false;
@@ -4322,18 +4390,12 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     }
 
     SerialBuf hdrbuf(4096);
-    int start = hdrbuf.pos();
-    hdrbuf.putMagic( doc_file_magic );
-    hdrbuf << hdr.src_file_size << hdr.src_file_crc32;
-    hdrbuf << hdr.props_offset << hdr.props_size;
-    hdrbuf << hdr.idtable_offset << hdr.idtable_size;
-    hdrbuf << hdr.data_offset << hdr.data_size << hdr.data_index_size << hdr.data_crc32;
-    hdrbuf << hdr.src_file_name;
-    hdrbuf.putCRC( hdrbuf.pos() - start );
+    if ( !hdr.serialize( hdrbuf ) )
+        return false;
 
     hdrbuf.copyTo( ptr, hdrbuf.pos() );
     propsbuf.copyTo( ptr + hdr.props_offset, hdr.props_size );
-    idbuf.copyTo( ptr + hdr.props_offset, hdr.props_size );
+    idbuf.copyTo( ptr + hdr.idtable_offset, hdr.idtable_size );
 
     //
     _currentBuffer = new DataBuffer( ptr + hdr.data_offset, hdr.file_size - hdr.data_offset, hdr.data_size );
@@ -4351,6 +4413,6 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     _map = map; // memory mapped file
     _mapbuf = buf; // memory mapped file buffer
 
-    return false;
+    return true;
 }
 

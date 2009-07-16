@@ -72,7 +72,7 @@ public:
 
 	iterator forwardIterator() const
 	{
-		return iterator(this);
+		return iterator(*this);
 	}
 
     LVHashTable( int size )

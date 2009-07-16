@@ -296,6 +296,8 @@ protected:
     void unregisterNode( lInt32 dataIndex, ldomNode * node );
     /// used by persistance management constructors, to replace one instance with another, deleting old instance
     ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
+    /// used to create instances from mmapped file
+    void setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data );
     /// used by object destructor, to remove RAM reference; mark data as deleted
     void deleteNode( lInt32 dataIndex );
 	/// returns pointer to node data block
@@ -312,6 +314,27 @@ protected:
 	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
 
 protected:
+    struct DocFileHeader {
+        //char magic[16]; //== doc_file_magic
+        lUInt32 src_file_size;
+        lUInt32 src_file_crc32;
+        lUInt32 props_offset;
+        lUInt32 props_size;
+        lUInt32 idtable_offset;
+        lUInt32 idtable_size;
+        lUInt32 data_offset;
+        lUInt32 data_size;
+        lUInt32 data_crc32;
+        lUInt32 data_index_size;
+        lUInt32 file_size;
+        //
+        lString16 src_file_name;
+
+        bool serialize( SerialBuf & buf );
+        bool deserialize( SerialBuf & buf );
+    };
+    DocFileHeader hdr;
+
 
     LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
 	DataBuffer * _currentBuffer;
@@ -1167,7 +1190,6 @@ private:
 #endif
     lUInt32 _docFlags;
     LVContainerRef _container;
-    LVStreamRef _mapfile;
 
 public:
 

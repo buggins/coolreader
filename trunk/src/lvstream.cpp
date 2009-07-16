@@ -675,8 +675,8 @@ public:
         m_mode = mode;
         if ( mode!=LVOM_READ && mode!=LVOM_APPEND )
             return LVERR_FAIL; // not supported
-        if ( mode==LVOM_APPEND && minSize<=0 )
-            return LVERR_FAIL;
+        //if ( mode==LVOM_APPEND && minSize<=0 )
+        //    return LVERR_FAIL;
         SetName(fname.c_str());
         lString8 fn8 = UnicodeToUtf8( fname );
 #if defined(_WIN32)
@@ -731,7 +731,7 @@ public:
             m_size |= (((lvsize_t)hw)<<32);
 #endif
 
-        if ( mode == LVOM_APPEND && m_size < minSize ) {
+        if ( minSize>=0 && mode == LVOM_APPEND && m_size < minSize ) {
             if ( SetSize( minSize ) != LVERR_OK ) {
                 CRLog::error( "Cannot set file size for %s", fn8.c_str() );
                 return error();
