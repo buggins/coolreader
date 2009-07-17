@@ -2859,7 +2859,7 @@ bool LVDocView::ParseDocument( )
         }
     }
 #endif
-#if 1 // test swap to disk
+#if 0 // test swap to disk
     lString16 cacheFile = lString16("/tmp/cr3swap.bin");
     bool res = m_doc->swapToCacheFile( cacheFile );
     if ( !res ) {
@@ -2869,10 +2869,14 @@ bool LVDocView::ParseDocument( )
     delete m_doc;
     m_doc = new ldomDocument();
     res = m_doc->openFromCacheFile( cacheFile );
+    m_doc->setDocFlags( saveFlags );
+    m_doc->setContainer( m_container );
     if ( !res ) {
         CRLog::error( "Failed loading of swap from disk" );
         return false;
     }
+	m_doc->getStyleSheet()->clear();
+	m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 #endif
 
     return true;

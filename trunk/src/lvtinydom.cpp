@@ -955,6 +955,7 @@ ldomNode * lxmlDocBase::getNodeInstance( lInt32 dataIndex )
     if ( item != NULL )
         return item;
     // TODO: try to create instance from data
+    CRLog::error("NULL instance for index %d", dataIndex);
     return NULL;
 }
 
