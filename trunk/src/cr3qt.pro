@@ -64,7 +64,8 @@ SOURCES += main.cpp \
     crqtutil.cpp \
     tocdlg.cpp \
     recentdlg.cpp \
-    settings.cpp
+    settings.cpp \
+    qtc-gdbmacros/gdbmacros.cpp
 HEADERS += mainwindow.h \
     ../crengine/include/rtfimp.h \
     ../crengine/include/rtfcmd.h \
