@@ -2859,7 +2859,8 @@ bool LVDocView::ParseDocument( )
         }
     }
 #endif
-#if 0 // test swap to disk
+
+#if 1 // test swap to disk
     lString16 cacheFile = lString16("/tmp/cr3swap.bin");
     bool res = m_doc->swapToCacheFile( cacheFile );
     if ( !res ) {

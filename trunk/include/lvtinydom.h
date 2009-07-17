@@ -296,8 +296,8 @@ protected:
     void unregisterNode( lInt32 dataIndex, ldomNode * node );
     /// used by persistance management constructors, to replace one instance with another, deleting old instance
     ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
-    /// used to create instances from mmapped file
-    void setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data );
+    /// used to create instances from mmapped file, returns passed node instance
+    ldomNode * setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data );
     /// used by object destructor, to remove RAM reference; mark data as deleted
     void deleteNode( lInt32 dataIndex );
 	/// returns pointer to node data block
@@ -313,6 +313,7 @@ protected:
 	/// allocate element
 	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
 
+    bool keepData() { return _keepData; }
 protected:
     struct DocFileHeader {
         //char magic[16]; //== doc_file_magic
@@ -354,6 +355,7 @@ protected:
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
     CRPropRef _docProps;
+    bool _keepData; // if true, node deletion will not change persistent data
 
     LVStreamRef _map; // memory mapped file
     LVStreamBufferRef _mapbuf; // memory mapped file buffer
@@ -440,6 +442,7 @@ public:
 	}
 	/// destructor
     virtual ~ldomNode();
+
     /// returns data index of node's registration in document data storage
     inline lInt32 getDataIndex() { return _dataIndex; }
     /// returns pointer to document

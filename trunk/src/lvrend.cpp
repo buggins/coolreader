@@ -1060,7 +1060,7 @@ void initRendMethod( ldomNode * enode )
                         if ( firstInline>=0 ) {
                             int lastInline = isInline ? i : i+1;
                             enode = enode->modify();
-                            ldomNode * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing );
+                            ldomNode * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing )->modify();
                             enode->moveItemsTo( abox, lastInline+1, firstInline+1 );
                             setNodeStyle( abox,
                                 enode->getStyle(),
