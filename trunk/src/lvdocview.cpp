@@ -600,7 +600,10 @@ LVTocItem * LVDocView::getToc()
 void LVDocView::makeToc()
 {
     m_toc.clear();
-    ldomNode * body = m_doc->getRootNode()->findChildElement( LXML_NS_ANY, el_FictionBook, -1 );
+    ldomNode * body = m_doc->getRootNode();
+    if ( !body )
+        return;
+    body = body->findChildElement( LXML_NS_ANY, el_FictionBook, -1 );
 	if ( body )
 		body = body->findChildElement( LXML_NS_ANY, el_body, 0 );
     if ( !body )
@@ -2859,14 +2862,15 @@ bool LVDocView::ParseDocument( )
         }
     }
 #endif
-
-#if 1 // test swap to disk
+#if 1// test swap to disk
     lString16 cacheFile = lString16("/tmp/cr3swap.bin");
     bool res = m_doc->swapToCacheFile( cacheFile );
     if ( !res ) {
         CRLog::error( "Failed to swap to disk" );
         return false;
     }
+#endif
+#if 1 // test restore from swap
     delete m_doc;
     m_doc = new ldomDocument();
     res = m_doc->openFromCacheFile( cacheFile );

@@ -249,7 +249,10 @@ public:
 #endif
     }
     ldomText( ldomPersistentText * v );
-    virtual ~ldomText() { }
+    virtual ~ldomText()
+    {
+        _document->unregisterNode( this );
+    }
     /// returns LXML_TEXT_NODE for text node
     virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
     /// returns element child count
@@ -365,12 +368,7 @@ public:
     ldomPersistentText( ldomText * v );
     virtual ~ldomPersistentText()
     {
-        if ( _document->keepData() )
-            return;
-        TextDataStorageItem * data = _document->getTextNodeData(_dataIndex);
-        if ( data ) {
-            data->type = LXML_NO_DATA;
-        }
+        _document->deleteNode( this );
     }
     virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
     /// returns element child count
@@ -607,22 +605,13 @@ public:
         data->renderData = *rdata;
         _style = v->_style;
         _font = v->_font;
+        _document->replaceInstance( _dataIndex, this );
     }
 
 	/// destructor
     virtual ~ldomPersistentElement()
     {
-        if ( _document->keepData() )
-            return;
-        ElementDataStorageItem * data = _document->getElementNodeData(_dataIndex);
-        if ( data ) {
-            for ( int i=0; i<data->childCount; i++ ) {
-                ldomNode * item = _document->getNodeInstance( data->children[i] );
-                if ( item )
-                    delete item;
-            }
-            data->type = LXML_NO_DATA;
-        }
+        _document->deleteNode( this );
     }
 	/// returns LXML_ELEMENT_NODE
     virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
@@ -782,6 +771,7 @@ ldomText::ldomText( ldomPersistentText * v )
 #else
     _value =  v->getText();
 #endif
+    _document->replaceInstance( _dataIndex, this );
 }
 
 
@@ -799,36 +789,31 @@ ldomElement::ldomElement( ldomPersistentElement * v )
     _font = v->getFont();
     _rendMethod = v->getRendMethod();
     memcpy( getRenderData(), v->getRenderData(), sizeof(lvdomElementFormatRec) );
+    _document->replaceInstance( _dataIndex, this );
 }
 
 /// replace node with r/o persistent implementation
 ldomNode * ldomElement::persist()
 {
-    ldomPersistentElement * newItem = new ldomPersistentElement( this );
-    return _document->replaceInstance( _dataIndex,  newItem );
-    //return this;
+    return new ldomPersistentElement( this );
 }
 
 /// replace node with r/w implementation
 ldomNode * ldomPersistentElement::modify()
 {
-    ldomElement * newItem = new ldomElement( this );
-    return _document->replaceInstance( _dataIndex, newItem );
-    //return this;
+    return new ldomElement( this );
 }
 
 /// replace node with r/o persistent implementation
 ldomNode * ldomText::persist()
 {
-    return _document->replaceInstance( _dataIndex, new ldomPersistentText( this ) );
-    //return this;
+    return new ldomPersistentText( this );
 }
 
 /// replace node with r/w implementation
 ldomNode * ldomPersistentText::modify()
 {
-    return _document->replaceInstance( _dataIndex, new ldomText( this ) );
-    //return this;
+    return new ldomText( this );
 }
 
 
@@ -930,18 +915,20 @@ lInt32 lxmlDocBase::registerNode( ldomNode * node )
         int oldSize = _instanceMapSize;
         _instanceMapSize *= 2; // 16K
         _instanceMap = (NodeItem *)realloc( _instanceMap, sizeof(NodeItem) * _instanceMapSize );
-        memset( _instanceMap + oldSize, 0, sizeof(NodeItem) * oldSize );
+        memset( _instanceMap + oldSize, 0, sizeof(NodeItem) * (_instanceMapSize-oldSize) );
     }
     _instanceMap[_instanceMapCount].instance = node;
     return _instanceMapCount++;
 }
 
 /// used by object destructor, to remove RAM reference; leave data as is
-void lxmlDocBase::unregisterNode( lInt32 dataIndex, ldomNode * node )
+void lxmlDocBase::unregisterNode( ldomNode * node )
 {
-    ldomNode * & instance = _instanceMap[ dataIndex ].instance;
-    if ( instance == node )
-        instance = NULL;
+    lInt32 dataIndex = node->getDataIndex(); 
+    NodeItem * p = &_instanceMap[ dataIndex ];
+    if ( p->instance == node ) {
+        p->instance = NULL;
+    }
 }
 
 /// used to create instances from mmapped file
@@ -965,20 +952,33 @@ ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStor
 /// used by persistance management constructors, to replace one instance with another
 ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
 {
-    ldomNode * & instance = _instanceMap[ dataIndex ].instance;
-    if ( instance ) {
-        instance->prepareReplace();
-        delete instance;
+    NodeItem * p = &_instanceMap[ dataIndex ];
+    if ( p->instance && p->instance!=newInstance ) {
+        p->instance->prepareReplace();
+        delete p->instance;
     }
-    return (instance = newInstance);
+    /*
+    if ( p->data )
+        p->data->type = LXML_NO_DATA;
+
+    p->data = data;
+    */
+    //if ( p->instance )
+    //    CRLog::error("removed instance still visible");
+    p->instance = newInstance;
+    return newInstance;
 }
 
 /// used by object destructor, to remove RAM reference and data block
-void lxmlDocBase::deleteNode( lInt32 dataIndex )
+void lxmlDocBase::deleteNode( ldomNode * node )
 {
-    _instanceMap[ dataIndex ].instance = NULL;
-    // todo: mark data block as erased
-    _instanceMap[ dataIndex ].data = NULL;
+    lInt32 dataIndex = node->getDataIndex(); 
+    NodeItem * p = &_instanceMap[ dataIndex ];
+    if ( p->instance == node ) {
+        p->instance = NULL;
+        if ( !_keepData )
+            p->data = NULL;
+    }
 }
 
 /// returns or creates object instance by index
@@ -1025,6 +1025,7 @@ DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
 {
 	if ( _instanceMap[dataIndex].data != NULL ) {
 		// mark data record as empty
+        CRLog::warn( "Node with id=%d data is overwritten", dataIndex );
 		_instanceMap[dataIndex].data->type = LXML_NO_DATA;
 	}
 	DataStorageItemHeader * item = _currentBuffer->alloc( size );
@@ -1113,6 +1114,7 @@ ldomPersistentText::ldomPersistentText( ldomText * v )
 {
     lString8 value = v->getText8();
     _document->allocText( _dataIndex, _parentIndex, value.c_str(), value.length() );
+    _document->replaceInstance( _dataIndex, this );
 }
 
 /// returns text node text
@@ -1144,7 +1146,6 @@ const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lCh
 
 ldomNode::~ldomNode()
 {
-    _document->unregisterNode( _dataIndex, this );
 }
 
 // use iteration instead of storing in memory
@@ -4025,6 +4026,7 @@ void ldomElement::addChild( lInt32 dataIndex )
 /// move range of children startChildIndex to endChildIndex inclusively to specified element
 void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex )
 {
+    CRLog::warn("moveItemsTo() invoked");
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
         ldomNode * item = getChildNode( startChildIndex );
@@ -4212,6 +4214,7 @@ ldomElement::~ldomElement()
 		if ( child )
 			delete child;
 	}
+    _document->unregisterNode( this );
 }
 
 
@@ -4312,7 +4315,7 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         SerialBuf hdrbuf( ptr, fileSize );
         if ( !hdr.deserialize( hdrbuf ) )
             return false;
-        if ( hdr.file_size != fileSize ) {
+        if ( hdr.file_size > fileSize ) {
             CRLog::error("Swap file - file size doesn't match");
             return false;
         }
@@ -4377,7 +4380,7 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
                 textcount++;
             }
         }
-        CRLog::info("%d elements and %d text nodes are read from disk (file size = %d)", elemcount, textcount, (int)fileSize);
+        CRLog::info("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
     }
     int cnt = 0;
     testTreeConsistency( getRootNode(), cnt );
@@ -4484,7 +4487,7 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
             }
         }
     }
-    CRLog::info("%d elements and %d text nodes are swapped to disk (file size = %d)", elemcount, textcount, (int)hdr.file_size);
+    CRLog::info("%d elements and %d text nodes (%d total) are swapped to disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)hdr.file_size);
 
     _map = map; // memory mapped file
     _mapbuf = buf; // memory mapped file buffer
@@ -4492,7 +4495,6 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     int cnt = 0;
     testTreeConsistency( getRootNode(), cnt );
     CRLog::warn("%d valid nodes found in tree", cnt);
-
     return true;
 }
 

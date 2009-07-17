@@ -293,13 +293,13 @@ protected:
     /// used by object constructor, to assign ID for created object
     lInt32 registerNode( ldomNode * node );
     /// used by object destructor, to remove RAM reference; leave data as is
-    void unregisterNode( lInt32 dataIndex, ldomNode * node );
+    void unregisterNode( ldomNode * node );
     /// used by persistance management constructors, to replace one instance with another, deleting old instance
     ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
     /// used to create instances from mmapped file, returns passed node instance
     ldomNode * setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data );
     /// used by object destructor, to remove RAM reference; mark data as deleted
-    void deleteNode( lInt32 dataIndex );
+    void deleteNode( ldomNode * node );
 	/// returns pointer to node data block
 	inline DataStorageItemHeader * getNodeData( lInt32 dataIndex ) { return _instanceMap[ dataIndex ].data; }
 	/// returns pointer to text node data block
