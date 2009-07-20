@@ -934,6 +934,9 @@ void lxmlDocBase::unregisterNode( ldomNode * node )
 /// used to create instances from mmapped file
 ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data )
 {
+    if ( dataIndex==94 ) {
+        dataIndex+=0;
+    }
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance ) {
         CRLog::error( "lxmlDocBase::setNode() - Node %d already has instance (%d)", dataIndex, p->instance->getDataIndex() );
@@ -952,6 +955,9 @@ ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStor
 /// used by persistance management constructors, to replace one instance with another
 ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
 {
+    if ( dataIndex==94 ) {
+        dataIndex+=0;
+    }
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance && p->instance!=newInstance ) {
         p->instance->prepareReplace();
