@@ -1263,6 +1263,12 @@ public:
             return lString16();
         return node->getText();
     }
+
+#ifdef _DEBUG
+    ///debug method, for DOM tree consistency check, returns false if failed
+    bool checkConsistency();
+#endif
+
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
 #if BUILD_LITE!=1

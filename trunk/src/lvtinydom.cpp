@@ -4285,25 +4285,81 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
     return true;
 }
 
-bool testTreeConsistency( ldomNode * base, int & count )
+#ifdef _DEBUG
+
+
+bool testTreeConsistency( ldomNode * base, int & count, int * flags )
 {
+    bool res = true;
     int cnt = base->getChildCount();
     for ( int i=0; i<cnt; i++ ) {
-        if ( base->getChildNode(i)==NULL ) {
+        ldomNode * node = base->getChildNode(i);
+        if ( node == NULL ) {
             // child node not found
             CRLog::error("child node %d of node %d not found!", i, base->getDataIndex() );
-            return false;
-        }
-        if ( !testTreeConsistency( base->getChildNode(i), count) )
-        {
+            res = false;
+        } else if ( !testTreeConsistency( node, count, flags) ) {
+            flags[ node->getDataIndex() ]++;
             // child node not found
             CRLog::error("inconsistency in child node %d of node %d", i, base->getDataIndex() );
-            return false;
+            res = false;
+        } else {
+            flags[ node->getDataIndex() ]++;
         }
     }
     count++;
-    return true;
+    return res;
 }
+
+///debug method, for DOM tree consistency check, returns false if failed
+bool ldomDocument::checkConsistency()
+{
+    bool res = true;
+    //test1: 
+    LVArray<int> dataIndexCount( _instanceMapCount, 0 );
+    LVArray<int> dataIndexInstanceFlag( _instanceMapCount, 0 );
+    int elemcount = 0;
+    int textcount = 0;
+    for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
+        if ( item->type==LXML_ELEMENT_NODE ) {
+            dataIndexCount[ item->dataIndex ]++;
+            elemcount++;
+        } else if ( item->type==LXML_TEXT_NODE ) {
+            dataIndexCount[ item->dataIndex ]++;
+            textcount++;
+        }
+    }
+    for ( int i=0; i<_instanceMapCount; i++ ) {
+        if ( dataIndexCount[ i ]>1 ) {
+            CRLog::error("ldomDocument::checkConsistency() - item with index %d has %d data records", i, dataIndexCount[ i ] );
+            res = false;
+        }
+    }
+    int cnt = 0;
+    testTreeConsistency( getRootNode(), cnt, dataIndexInstanceFlag.get() );
+    if ( cnt != elemcount+textcount ) {
+        CRLog::error( "Data storage item count is %d but tree item count is %d", cnt, elemcount + textcount );
+        res = false;
+    }
+    for ( int i=0; i<_instanceMapCount; i++ ) {
+        if ( _instanceMap[i].instance && dataIndexInstanceFlag[i]!=1 ) {
+            CRLog::error( "Instance for index %d exists in map, but reachable via tree %d times", i, dataIndexInstanceFlag[i] );
+            res = false;
+        }
+        if ( _instanceMap[i].instance && !_instanceMap[i].data ) {
+            CRLog::error( "Instance for index %d exists in map, but doesn't have data pointer (not persistent?)", i );
+            res = false;
+        }
+    }
+    if ( !res )
+        CRLog::error( "checkConsistency() failed - %d elements and %d text nodes", elemcount, textcount );
+    else
+        CRLog::error( "checkConsistency() passed - %d elements and %d text nodes", elemcount, textcount );
+    return res;
+}
+
+
+#endif
 
 bool ldomDocument::openFromCacheFile( lString16 fname )
 {
@@ -4388,9 +4444,7 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         }
         CRLog::info("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
     }
-    int cnt = 0;
-    testTreeConsistency( getRootNode(), cnt );
-    CRLog::warn("%d valid nodes found in tree", cnt);
+    checkConsistency();
     return true;
 }
 
@@ -4498,9 +4552,7 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     _map = map; // memory mapped file
     _mapbuf = buf; // memory mapped file buffer
 
-    int cnt = 0;
-    testTreeConsistency( getRootNode(), cnt );
-    CRLog::warn("%d valid nodes found in tree", cnt);
+    checkConsistency();
     return true;
 }
 
