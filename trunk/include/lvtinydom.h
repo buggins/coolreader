@@ -272,6 +272,12 @@ public:
     inline lString16 getCodeBase() { return getProps()->getStringDef(DOC_PROP_CODE_BASE, ""); }
     /// sets code base path relative to document container
     inline void setCodeBase(lString16 codeBase) { getProps()->setStringDef(DOC_PROP_CODE_BASE, codeBase); }
+
+#ifdef _DEBUG
+    ///debug method, for DOM tree consistency check, returns false if failed
+    bool checkConsistency();
+#endif
+
 protected:
 //=========================================
 //       NEW STORAGE MODEL METHODS
@@ -1263,11 +1269,6 @@ public:
             return lString16();
         return node->getText();
     }
-
-#ifdef _DEBUG
-    ///debug method, for DOM tree consistency check, returns false if failed
-    bool checkConsistency();
-#endif
 
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );

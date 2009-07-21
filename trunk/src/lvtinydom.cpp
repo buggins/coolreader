@@ -606,6 +606,10 @@ public:
         _style = v->_style;
         _font = v->_font;
         _document->replaceInstance( _dataIndex, this );
+        //#ifdef _DEBUG
+        //    _document->checkConsistency();
+        //#endif
+
     }
 
 	/// destructor
@@ -900,11 +904,15 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
 /// put all object into persistent storage
 void lxmlDocBase::persist()
 {
+    CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
     for ( int i=0; i<_instanceMapCount; i++ ) {
         if ( _instanceMap[ i ].instance ) {
             _instanceMap[ i ].instance = _instanceMap[ i ].instance->persist();
         }
     }
+#ifdef _DEBUG
+    checkConsistency();
+#endif
 }
 
 /// used by object constructor, to assign ID for created object
@@ -912,10 +920,9 @@ lInt32 lxmlDocBase::registerNode( ldomNode * node )
 {
     if ( _instanceMapCount >= _instanceMapSize ) {
         // resize
-        int oldSize = _instanceMapSize;
-        _instanceMapSize *= 2; // 16K
+        _instanceMapSize = (_instanceMapSize < 1024) ? 1024 : (_instanceMapSize * 2); // 16K
         _instanceMap = (NodeItem *)realloc( _instanceMap, sizeof(NodeItem) * _instanceMapSize );
-        memset( _instanceMap + oldSize, 0, sizeof(NodeItem) * (_instanceMapSize-oldSize) );
+        memset( _instanceMap + _instanceMapCount, 0, sizeof(NodeItem) * (_instanceMapSize-_instanceMapCount) );
     }
     _instanceMap[_instanceMapCount].instance = node;
     return _instanceMapCount++;
@@ -4304,15 +4311,15 @@ bool testTreeConsistency( ldomNode * base, int & count, int * flags )
             CRLog::error("inconsistency in child node %d of node %d", i, base->getDataIndex() );
             res = false;
         } else {
-            flags[ node->getDataIndex() ]++;
         }
     }
+    flags[ base->getDataIndex() ]++;
     count++;
     return res;
 }
 
 ///debug method, for DOM tree consistency check, returns false if failed
-bool ldomDocument::checkConsistency()
+bool lxmlDocBase::checkConsistency()
 {
     bool res = true;
     //test1: 
@@ -4354,7 +4361,7 @@ bool ldomDocument::checkConsistency()
     if ( !res )
         CRLog::error( "checkConsistency() failed - %d elements and %d text nodes", elemcount, textcount );
     else
-        CRLog::error( "checkConsistency() passed - %d elements and %d text nodes", elemcount, textcount );
+        CRLog::warn( "checkConsistency() passed - %d elements and %d text nodes", elemcount, textcount );
     return res;
 }
 
@@ -4444,7 +4451,9 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         }
         CRLog::info("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
     }
+#ifdef _DEBUG
     checkConsistency();
+#endif
     return true;
 }
 
@@ -4552,7 +4561,9 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     _map = map; // memory mapped file
     _mapbuf = buf; // memory mapped file buffer
 
+#ifdef _DEBUG
     checkConsistency();
+#endif
     return true;
 }
 
