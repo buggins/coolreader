@@ -31,6 +31,7 @@ win32 {
     LIBS += -ljpeg \
         -lfreetype
 }
+debug:DEFINES += _DEBUG=1
 SOURCES += main.cpp \
     mainwindow.cpp \
     ../crengine/src/cp_stats.cpp \
