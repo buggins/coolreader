@@ -1970,14 +1970,15 @@ int Utf8CharCount( const lChar8 * str, int len )
         } else if ( (ch & 0xE0) == 0xC0 ) {
             //if ( !(ch=*str++) )
             //    break;
+            str++;
 			len--;
         } else {
             //if ( !(ch=*str++) )
             //    break;
             //if ( !(ch=*str++) )
             //    break;
-			len--;
-			len--;
+            str+=2;
+			len-=2;
         }
         count++;
     }
