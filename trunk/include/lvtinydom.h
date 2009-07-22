@@ -278,6 +278,29 @@ public:
     bool checkConsistency( bool requirePersistent );
 #endif
 
+    inline bool getDocFlag( lUInt32 mask )
+    {
+        return (_docFlags & mask) != 0;
+    }
+
+    inline void setDocFlag( lUInt32 mask, bool value )
+    {
+        if ( value )
+            _docFlags |= mask;
+        else
+            _docFlags &= ~mask;
+    }
+
+    inline lUInt32 getDocFlags()
+    {
+        return _docFlags;
+    }
+
+    inline void setDocFlags( lUInt32 value )
+    {
+        _docFlags = value;
+    }
+
 protected:
 //=========================================
 //       NEW STORAGE MODEL METHODS
@@ -365,6 +388,8 @@ protected:
 
     LVStreamRef _map; // memory mapped file
     LVStreamBufferRef _mapbuf; // memory mapped file buffer
+    bool _mapped; // true if document is mapped to file
+    lUInt32 _docFlags; // document flags
 };
 
 /*
@@ -1199,39 +1224,18 @@ private:
     /// final block cache
     CVRendBlockCache _renderedBlockCache;
 #endif
-    lUInt32 _docFlags;
     LVContainerRef _container;
 
 public:
 
     bool openFromCacheFile( lString16 fname );
     bool swapToCacheFile( lString16 fname );
+    /// saves recent changes to mapped file
+    bool updateMap();
 
     LVContainerRef getContainer() { return _container; }
     void setContainer( LVContainerRef cont ) { _container = cont; }
 
-    inline bool getDocFlag( lUInt32 mask )
-    {
-        return (_docFlags & mask) != 0;
-    }
-
-    inline void setDocFlag( lUInt32 mask, bool value )
-    {
-        if ( value )
-            _docFlags |= mask;
-        else
-            _docFlags &= ~mask;
-    }
-
-    inline lUInt32 getDocFlags()
-    {
-        return _docFlags;
-    }
-
-    inline void setDocFlags( lUInt32 value )
-    {
-        _docFlags = value;
-    }
 
 
     ldomDocument();
@@ -1468,5 +1472,15 @@ ldomDocument * LVParseXMLStream( LVStreamRef stream,
                               const elem_def_t * elem_table=NULL,
                               const attr_def_t * attr_table=NULL,
                               const ns_def_t * ns_table=NULL );
+
+/// document cache
+class ldomDocCache
+{
+public:
+    static bool init( lString16 cacheDir, lvsize_t maxSize );
+    static bool close();
+    static ldomDocCache * instance();
+    virtual ~ldomDocCache();
+};
 
 #endif

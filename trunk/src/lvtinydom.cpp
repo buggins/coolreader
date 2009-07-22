@@ -899,6 +899,8 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 ,_idAttrId(0)
 ,_docProps(LVCreatePropsContainer())
 ,_keepData(false)
+,_mapped(false)
+,_docFlags(DOC_FLAG_DEFAULTS)
 {
     // create and add one data buffer
     _currentBuffer = new DataBuffer( _dataBufferSize );
@@ -1233,11 +1235,10 @@ ldomNode * lxmlDocBase::getRootNode()
 }
 
 ldomDocument::ldomDocument()
-:
 #if BUILD_LITE!=1
-     _renderedBlockCache( 32 ),
+:
+     _renderedBlockCache( 32 )
 #endif
-        _docFlags(DOC_FLAG_DEFAULTS)
 {
     new ldomElement( this, NULL, 0, 0, 0 );
     //assert( _instanceMapCount==2 );
@@ -1256,6 +1257,7 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 ,   _attrValueTable(doc._attrValueTable)
 ,   _idNodeMap(doc._idNodeMap)
 ,   _idAttrId(doc._idAttrId) // Id for "id" attribute name
+,   _docFlags(doc._docFlags)
 {
 }
 
@@ -1269,7 +1271,6 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 #if BUILD_LITE!=1
         , _renderedBlockCache( 32 )
 #endif
-, _docFlags(doc._docFlags)
 , _container(doc._container)
 {
 }
@@ -1364,6 +1365,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char * )
 
 ldomDocument::~ldomDocument()
 {
+    updateMap();
     _keepData = true;
 }
 
@@ -4591,8 +4593,6 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     //testTreeConsistency( getRootNode() );
     CRLog::info("Started swapping of document to file");
     persist();
-    persist();
-    persist();
     //testTreeConsistency( getRootNode() );
 
     lvsize_t datasize = 0;
@@ -4600,7 +4600,6 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
         datasize += _dataBuffers[i]->length();
     }
 
-    DocFileHeader hdr;
     hdr.src_file_size = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
     hdr.src_file_crc32 = (lUInt32)getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
     hdr.src_file_name = getProps()->getStringDef(DOC_PROP_FILE_NAME, "");
@@ -4701,6 +4700,162 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
 #ifdef _DEBUG
     checkConsistency( true);
 #endif
+    _mapped = true;
     return true;
 }
 
+/// saves recent changes to mapped file
+bool ldomDocument::updateMap()
+{
+    if ( !_mapped )
+        return false;
+    //testTreeConsistency( getRootNode() );
+    CRLog::info("Saving recent changes to file");
+    persist();
+
+    SerialBuf propsbuf(4096);
+    getProps()->serialize( propsbuf );
+    unsigned propssize = propsbuf.pos() + 4096;
+    propssize = (propssize + 4095) / 4096 * 4096;
+
+    SerialBuf idbuf(4096);
+    serializeMaps( idbuf );
+    unsigned idsize = idbuf.pos() + 4096;
+    idsize = (idsize + 4095) / 4096 * 4096;
+
+    if ( hdr.props_size < propssize )
+        return false;
+    if ( hdr.idtable_size < idsize )
+        return false;
+
+    hdr.data_index_size = _instanceMapCount;
+
+
+    lUInt8 * ptr = _currentBuffer->ptr();
+    // update crc32
+    {
+        _currentBuffer->length();
+        lUInt32 pos = hdr.data_offset;
+        hdr.data_crc32 = 0;
+        lUInt32 len = _currentBuffer->length();
+        hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
+    }
+
+    SerialBuf hdrbuf(4096);
+    if ( !hdr.serialize( hdrbuf ) )
+        return false;
+
+    hdrbuf.copyTo( ptr, hdrbuf.pos() );
+    propsbuf.copyTo( ptr + hdr.props_offset, propssize );
+    idbuf.copyTo( ptr + hdr.idtable_offset, idsize );
+
+#ifdef _DEBUG
+    checkConsistency( true);
+#endif
+    return true;
+}
+
+
+
+static const char * doccache_magic = "CoolReader3 Document Cache Directory Index\nV1.00\n";
+
+/// document cache
+class ldomDocCacheImpl : public ldomDocCache
+{
+    lString16 _cacheDir;
+    lvsize_t _maxSize;
+    LVContainerRef _container;
+
+    struct FileItem {
+        lString16 filename;
+        lUInt32 size;
+    };
+    LVPtrVector<FileItem> _files;
+public:
+    ldomDocCacheImpl( lString16 cacheDir, lvsize_t maxSize )
+        : _cacheDir( cacheDir ), _maxSize( maxSize )
+    {
+    }
+
+    bool readIndex( lString16 filename )
+    {
+        // read index
+        LVStreamRef instream = LVOpenFileStream( filename.c_str(), LVOM_READ );
+        if ( !instream.isNull() ) {
+            LVStreamBufferRef sb = instream->GetReadBuffer(0, instream->GetSize() );
+            if ( !sb )
+                return false;
+            SerialBuf buf( sb->getReadOnly(), sb->getSize() );
+            if ( !buf.checkMagic( doccache_magic ) )
+                return false;
+
+            lUInt32 start = buf.pos();
+            lUInt32 count;
+            buf >> count;
+            for ( unsigned i=0; i<count && !buf.error(); i++ ) {
+                FileItem * item = new FileItem();
+                _files.add( item );
+                buf >> item->filename;
+                buf >> item->size;
+            }
+            if ( !buf.checkCRC( buf.pos() - start ) )
+                return false;
+
+            if ( buf.error() )
+                return false;
+
+        }
+        return true;
+    }
+
+    bool init()
+    {
+        _container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
+        if ( _container.isNull() )
+            return false;
+        // read index
+        if ( readIndex( _cacheDir + L"cr3cache.inx" ) ) {
+            // read successfully
+        } else {
+            _files.clear();
+        }
+        return true;
+    }
+    ~ldomDocCacheImpl()
+    {
+    }
+    static ldomDocCacheImpl * instance;
+};
+
+ldomDocCacheImpl * ldomDocCacheImpl::instance = NULL;
+
+bool ldomDocCache::init( lString16 cacheDir, lvsize_t maxSize )
+{
+    if ( ldomDocCacheImpl::instance )
+        delete ldomDocCacheImpl::instance;
+    ldomDocCacheImpl::instance = new ldomDocCacheImpl( cacheDir, maxSize );
+    if ( !ldomDocCacheImpl::instance->init() ) {
+        delete ldomDocCacheImpl::instance;
+        ldomDocCacheImpl::instance = NULL;
+        return false;
+    }
+    return true;
+}
+
+bool ldomDocCache::close()
+{
+    if ( !ldomDocCacheImpl::instance )
+        return false;
+    delete ldomDocCacheImpl::instance;
+    ldomDocCacheImpl::instance = NULL;
+    return true;
+}
+
+ldomDocCache * ldomDocCache::instance()
+{
+    return ldomDocCacheImpl::instance;
+}
+
+ldomDocCache::~ldomDocCache()
+{
+}

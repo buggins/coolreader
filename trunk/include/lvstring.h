@@ -765,7 +765,7 @@ class SerialBuf
 public:
     /// constructor of serialization buffer
 	SerialBuf( int sz, bool autoresize = true );
-	SerialBuf( lUInt8 * p, int sz );
+	SerialBuf( const lUInt8 * p, int sz );
 	~SerialBuf();
 
     bool copyTo( lUInt8 * buf, int maxSize );

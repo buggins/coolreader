@@ -3091,8 +3091,8 @@ SerialBuf::SerialBuf( int sz, bool autoresize )
     memset( _buf, 0, _size );
 }
 /// constructor of deserialization buffer
-SerialBuf::SerialBuf( lUInt8 * p, int sz )
-	: _buf( p ), _ownbuf(false), _error(false), _autoresize(false), _size(sz), _pos(0)
+SerialBuf::SerialBuf( const lUInt8 * p, int sz )
+	: _buf( const_cast<lUInt8 *>(p) ), _ownbuf(false), _error(false), _autoresize(false), _size(sz), _pos(0)
 {
 }
 
