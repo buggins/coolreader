@@ -91,6 +91,7 @@ public :
             item = (DataStorageItemHeader*)(((lUInt8*)item) + ((lUInt32)item->sizeDiv16 * 16));
             if ( item->type != LXML_NO_DATA )
                 return item;
+            //CRLog::trace("skipping no_data item of size %d at offset %x (dataIndex=%d)", item->sizeDiv16*16, (int)((lUInt8*)item - _data), item->dataIndex );
         }
 
     }
@@ -361,6 +362,7 @@ public:
     ldomPersistentText( ldomDocument * document, TextDataStorageItem * data )
         : ldomNode( document, data->parentIndex, data->dataIndex )
     {
+        _document->setNode( data->dataIndex, this, data );
     }
     ldomPersistentText( ldomNode * parent, lUInt32 index, lString16 value );
     ldomPersistentText( ldomNode * parent, lUInt32 index, lString8 value );
@@ -370,6 +372,8 @@ public:
     {
         _document->deleteNode( this );
     }
+    /// returns true if node is stored in persistent storage
+    virtual bool isPersistent() { return true; }
     virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
     /// returns element child count
     virtual lUInt32 getChildCount() const { return 0; }
@@ -575,6 +579,7 @@ public:
     ldomPersistentElement( ldomDocument * document, ElementDataStorageItem * data )
         : ldomNode( document, data->parentIndex, data->dataIndex )
     {
+        _document->setNode( data->dataIndex, this, data );
     }
 
     ldomPersistentElement( ldomElement * v )
@@ -617,6 +622,9 @@ public:
     {
         _document->deleteNode( this );
     }
+    /// returns true if node is stored in persistent storage
+    virtual bool isPersistent() { return true; }
+
 	/// returns LXML_ELEMENT_NODE
     virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
     /// returns rendering method
@@ -799,13 +807,25 @@ ldomElement::ldomElement( ldomPersistentElement * v )
 /// replace node with r/o persistent implementation
 ldomNode * ldomElement::persist()
 {
-    return new ldomPersistentElement( this );
+    //ldomDocument * doc = _document;
+    //if ( !doc->checkConsistency(false) )
+    //    CRLog::trace( "check failed before elem:persist()" );
+    ldomNode * res = new ldomPersistentElement( this );
+    //if ( !doc->checkConsistency(false) )
+    //    CRLog::trace( "check failed after elem:persist()" );
+    return res;
 }
 
 /// replace node with r/w implementation
 ldomNode * ldomPersistentElement::modify()
 {
-    return new ldomElement( this );
+    ldomDocument * doc = _document;
+    if ( !doc->checkConsistency(false) )
+        CRLog::trace( "check failed before elem:modify()" );
+    ldomNode * res = new ldomElement( this );
+    if ( !doc->checkConsistency(false) )
+        CRLog::trace( "check failed after elem:modify()" );
+    return res;
 }
 
 /// replace node with r/o persistent implementation
@@ -905,19 +925,33 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
 void lxmlDocBase::persist()
 {
     CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
+#ifdef _DEBUG
+    if ( !checkConsistency(false) ) {
+        CRLog::error( "- before lxmlDocBase::persist()" );
+    }
+#endif
     for ( int i=0; i<_instanceMapCount; i++ ) {
-        if ( _instanceMap[ i ].instance ) {
-            _instanceMap[ i ].instance = _instanceMap[ i ].instance->persist();
+        ldomNode * old = _instanceMap[ i ].instance;
+        if ( old ) {
+            //_instanceMap[ i ].instance = 
+            if ( old->persist() != old ) {
+                //CRLog::trace("Item %d converted to persistent", i);
+            }
         }
     }
 #ifdef _DEBUG
-    checkConsistency();
+    if ( !checkConsistency(true) ) {
+        CRLog::error( "- after lxmlDocBase::persist()" );
+    }
 #endif
 }
 
 /// used by object constructor, to assign ID for created object
 lInt32 lxmlDocBase::registerNode( ldomNode * node )
 {
+    if ( node->getDataIndex()==96 || node->getDataIndex()==94 ) {
+        CRLog::trace("register node %d", node->getDataIndex() );
+    }
     if ( _instanceMapCount >= _instanceMapSize ) {
         // resize
         _instanceMapSize = (_instanceMapSize < 1024) ? 1024 : (_instanceMapSize * 2); // 16K
@@ -931,6 +965,9 @@ lInt32 lxmlDocBase::registerNode( ldomNode * node )
 /// used by object destructor, to remove RAM reference; leave data as is
 void lxmlDocBase::unregisterNode( ldomNode * node )
 {
+    if ( node->getDataIndex()==96 || node->getDataIndex()==94 ) {
+        CRLog::trace("unregister node %d", node->getDataIndex() );
+    }
     lInt32 dataIndex = node->getDataIndex(); 
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance == node ) {
@@ -941,8 +978,8 @@ void lxmlDocBase::unregisterNode( ldomNode * node )
 /// used to create instances from mmapped file
 ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data )
 {
-    if ( dataIndex==94 ) {
-        dataIndex+=0;
+    if ( dataIndex==96 || dataIndex==94) {
+        CRLog::trace("set node %d", dataIndex);
     }
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance ) {
@@ -962,8 +999,8 @@ ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStor
 /// used by persistance management constructors, to replace one instance with another
 ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
 {
-    if ( dataIndex==94 ) {
-        dataIndex+=0;
+    if ( dataIndex==96 || dataIndex==94) {
+        CRLog::trace("replace instance %d", dataIndex);
     }
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance && p->instance!=newInstance ) {
@@ -985,12 +1022,17 @@ ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstanc
 /// used by object destructor, to remove RAM reference and data block
 void lxmlDocBase::deleteNode( ldomNode * node )
 {
+    if ( node->getDataIndex()==96 || node->getDataIndex()==94 ) {
+        CRLog::trace("delete node %d", node->getDataIndex() );
+    }
     lInt32 dataIndex = node->getDataIndex(); 
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance == node ) {
         p->instance = NULL;
-        if ( !_keepData )
+        if ( !_keepData && p->data) {
+            p->data->type  = LXML_NO_DATA;
             p->data = NULL;
+        }
     }
 }
 
@@ -1036,6 +1078,9 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 /// allocate data block, return pointer to allocated block
 DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
 {
+    if ( dataIndex==96 || dataIndex==94) {
+        CRLog::trace("data for Node %d is allocated", dataIndex);
+    }
 	if ( _instanceMap[dataIndex].data != NULL ) {
 		// mark data record as empty
         CRLog::warn( "Node with id=%d data is overwritten", dataIndex );
@@ -1318,6 +1363,7 @@ ldomDocument::~ldomDocument()
 int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
 {
     CRLog::trace("initializing default style...");
+    persist();
     _renderedBlockCache.clear();
     _page_height = context.getPageHeight();
     _def_font = def_font;
@@ -4040,14 +4086,28 @@ void ldomElement::addChild( lInt32 dataIndex )
 void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex )
 {
     CRLog::warn("moveItemsTo() invoked");
+    if ( getDataIndex()==96 || getDataIndex()==94) {
+        CRLog::trace("nodes from element %d are being moved", getDataIndex());
+    }
+#ifdef _DEBUG
+    if ( !_document->checkConsistency( false ) )
+        CRLog::error("before moveItemsTo");
+#endif
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
         ldomNode * item = getChildNode( startChildIndex );
+        if ( item->getDataIndex()==96 || item->getDataIndex()==94 ) {
+            CRLog::trace("node %d is being moved", item->getDataIndex() );
+        }
         _children.remove( startChildIndex ); // + i
         item->_parentIndex = destination->getDataIndex();
         destination->addChild( item->getDataIndex() );
     }
     // TODO: renumber rest of children in necessary
+#ifdef _DEBUG
+    if ( !_document->checkConsistency( false ) )
+        CRLog::error("after moveItemsTo");
+#endif
 }
 
 ldomNode * ldomNode::findChildElement( lUInt16 idPath[] )
@@ -4313,13 +4373,16 @@ bool testTreeConsistency( ldomNode * base, int & count, int * flags )
         } else {
         }
     }
+    if ( flags[ base->getDataIndex() ] ) {
+        CRLog::error( "Node %d reached via tree twice!", base->getDataIndex() );
+    }
     flags[ base->getDataIndex() ]++;
     count++;
     return res;
 }
 
 ///debug method, for DOM tree consistency check, returns false if failed
-bool lxmlDocBase::checkConsistency()
+bool lxmlDocBase::checkConsistency( bool requirePersistent )
 {
     bool res = true;
     //test1: 
@@ -4327,13 +4390,31 @@ bool lxmlDocBase::checkConsistency()
     LVArray<int> dataIndexInstanceFlag( _instanceMapCount, 0 );
     int elemcount = 0;
     int textcount = 0;
-    for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
+    for ( int buf=0; buf<this->_dataBuffers.length(); buf++ )
+    for ( DataStorageItemHeader * item = _dataBuffers[buf]->first(); item!=NULL; item = _dataBuffers[buf]->next(item) ) {
         if ( item->type==LXML_ELEMENT_NODE ) {
+            if ( item->dataIndex==94 || item->dataIndex==96 ) {
+                CRLog::debug("item with index %d: element name=%s", item->dataIndex, UnicodeToUtf8(_instanceMap[item->dataIndex].instance->getNodeName()).c_str() );
+            }
             dataIndexCount[ item->dataIndex ]++;
             elemcount++;
+            if ( _instanceMap[item->dataIndex].data != item ) {
+                CRLog::error( "Data pointer doesn't match for element %d", item->dataIndex);
+                res = false;
+            }
+            
         } else if ( item->type==LXML_TEXT_NODE ) {
             dataIndexCount[ item->dataIndex ]++;
             textcount++;
+            if ( _instanceMap[item->dataIndex].data != item ) {
+                CRLog::error( "Data pointer doesn't match for text %d", item->dataIndex);
+                res = false;
+            }
+        } else 
+            continue;
+        if ( dataIndexCount[ item->dataIndex ]>1 ) {
+            CRLog::error("Number of data records is %d for index %d", dataIndexCount[ item->dataIndex ], item->dataIndex );
+            res = false;
         }
     }
     for ( int i=0; i<_instanceMapCount; i++ ) {
@@ -4344,23 +4425,59 @@ bool lxmlDocBase::checkConsistency()
     }
     int cnt = 0;
     testTreeConsistency( getRootNode(), cnt, dataIndexInstanceFlag.get() );
-    if ( cnt != elemcount+textcount ) {
-        CRLog::error( "Data storage item count is %d but tree item count is %d", cnt, elemcount + textcount );
+    if ( (requirePersistent && cnt != elemcount+textcount) || (!requirePersistent && cnt < elemcount+textcount) ) {
+        CRLog::error( "Data storage item count is %d but tree item count is %d", elemcount + textcount, cnt );
         res = false;
     }
+    int mapitemcount = 0;
+    int persistentmapcount = 0;
     for ( int i=0; i<_instanceMapCount; i++ ) {
         if ( _instanceMap[i].instance && dataIndexInstanceFlag[i]!=1 ) {
             CRLog::error( "Instance for index %d exists in map, but reachable via tree %d times", i, dataIndexInstanceFlag[i] );
             res = false;
         }
-        if ( _instanceMap[i].instance && !_instanceMap[i].data ) {
+        if ( requirePersistent && dataIndexInstanceFlag[i]!=dataIndexCount[i] ) {
+            CRLog::error( "%s Instance for index %d exists in map, but is not reachable from data (flag=%d, persistent=%d)", _instanceMap[i].instance->isElement() ? "element" : "text",  i, dataIndexCount[i], _instanceMap[i].instance->isPersistent()?1:0 );
+            res = false;
+        }
+        if ( requirePersistent && _instanceMap[i].instance && !_instanceMap[i].data ) {
             CRLog::error( "Instance for index %d exists in map, but doesn't have data pointer (not persistent?)", i );
             res = false;
         }
+        if ( _instanceMap[i].instance ) {
+            mapitemcount++;
+            if ( _instanceMap[i].instance->isPersistent() ) {
+                persistentmapcount++;
+                if ( _instanceMap[i].data==NULL ) {
+                    CRLog::error("No Data found for persistent item at index %d", i);
+                    res = false;
+                } else if ( _instanceMap[i].data->type==LXML_NO_DATA ) {
+                    CRLog::error("Data pointer points to NO_DATA area for persistent item at index %d", i);
+                    res = false;
+                } else if (_instanceMap[i].data->type!=_instanceMap[i].instance->getNodeType()) {
+                    CRLog::error("Node type doesn't match for index %d", i);
+                    res = false;
+                }
+            } else {
+                if ( requirePersistent ) {
+                    CRLog::error("Non-persistent item found at index %d", i);
+                    res = false;
+                }
+                if ( _instanceMap[i].data!=NULL ) {
+                    CRLog::error("Data found for Non-persistent item at index %d", i);
+                    res = false;
+                }
+
+            }
+        }
+    }
+    if ( mapitemcount!=cnt ) {
+        CRLog::error("Map item count=%d, tree item count=%d, data item count=%d", mapitemcount, cnt, elemcount+textcount);
+        res = false;
     }
     if ( !res )
-        CRLog::error( "checkConsistency() failed - %d elements and %d text nodes", elemcount, textcount );
-    else
+        CRLog::error( "checkConsistency() failed - %d elements and %d text nodes, Map item count=%d(%d persist), tree item count=%d, data item count=%d", elemcount, textcount, mapitemcount, persistentmapcount, cnt, elemcount+textcount );
+    else if ( requirePersistent )
         CRLog::warn( "checkConsistency() passed - %d elements and %d text nodes", elemcount, textcount );
     return res;
 }
@@ -4370,6 +4487,7 @@ bool lxmlDocBase::checkConsistency()
 
 bool ldomDocument::openFromCacheFile( lString16 fname )
 {
+    CRLog::info("Started restoring of document from file");
     LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, 0 );
     if ( map.isNull() )
         return false;
@@ -4441,18 +4559,18 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
             if ( item->type==LXML_ELEMENT_NODE ) {
                 ldomPersistentElement * elem = new ldomPersistentElement( this, (ElementDataStorageItem*)item );
-                setNode( item->dataIndex, elem, item );
+                //setNode( item->dataIndex, elem, item );
                 elemcount++;
             } else if ( item->type==LXML_TEXT_NODE ) {
                 ldomPersistentText * text = new ldomPersistentText( this, (TextDataStorageItem*)item );
-                setNode( item->dataIndex, text, item );
+                //setNode( item->dataIndex, text, item );
                 textcount++;
             }
         }
         CRLog::info("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
     }
 #ifdef _DEBUG
-    checkConsistency();
+    checkConsistency( true );
 #endif
     return true;
 }
@@ -4461,6 +4579,8 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
 {
     //testTreeConsistency( getRootNode() );
     CRLog::info("Started swapping of document to file");
+    persist();
+    persist();
     persist();
     //testTreeConsistency( getRootNode() );
 
@@ -4543,10 +4663,16 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
         if ( item->type==LXML_ELEMENT_NODE || item->type==LXML_TEXT_NODE ) {
             if ( item->type==LXML_ELEMENT_NODE )
                 elemcount++;
-            if ( item->type==LXML_TEXT_NODE )
+            else if ( item->type==LXML_TEXT_NODE )
                 textcount++;
+            else
+                continue;
             if ( !_instanceMap[ item->dataIndex ].instance ) {
                 CRLog::error("No instance found for dataIndex=%d", item->dataIndex);
+                continue;
+            }
+            if ( item->dataIndex==96 || item->dataIndex==94) {
+                CRLog::trace("changing pointer to node %d from %08x to %08x", item->dataIndex, (unsigned)_instanceMap[ item->dataIndex ].data, (unsigned)item );
             }
             if ( item->dataIndex < _instanceMapCount )
                 _instanceMap[ item->dataIndex ].data = item;
@@ -4562,7 +4688,7 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     _mapbuf = buf; // memory mapped file buffer
 
 #ifdef _DEBUG
-    checkConsistency();
+    checkConsistency( true);
 #endif
     return true;
 }

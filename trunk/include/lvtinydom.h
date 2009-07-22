@@ -101,7 +101,7 @@ class DataBuffer;
 
 
 // default: 512K
-#define DEF_DOC_DATA_BUFFER_SIZE 0x80000
+#define DEF_DOC_DATA_BUFFER_SIZE 0x180000
 
 /// Base class for XML DOM documents
 /**
@@ -275,7 +275,7 @@ public:
 
 #ifdef _DEBUG
     ///debug method, for DOM tree consistency check, returns false if failed
-    bool checkConsistency();
+    bool checkConsistency( bool requirePersistent );
 #endif
 
 protected:
@@ -448,6 +448,8 @@ public:
 	}
 	/// destructor
     virtual ~ldomNode();
+    /// returns true if node is stored in persistent storage
+    virtual bool isPersistent() { return false; }
 
     /// returns data index of node's registration in document data storage
     inline lInt32 getDataIndex() { return _dataIndex; }
