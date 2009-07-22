@@ -2870,7 +2870,7 @@ bool LVDocView::ParseDocument( )
         return false;
     }
 #endif
-#if 0 // test restore from swap
+#if 1 // test restore from swap
     delete m_doc;
     m_doc = new ldomDocument();
     res = m_doc->openFromCacheFile( cacheFile );

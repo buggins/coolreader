@@ -1644,6 +1644,12 @@ public:
         }
     }
 
+    /// fastly return already known CRC
+    virtual lverror_t crc32( lUInt32 & dst )
+    {
+        return m_stream->crc32( dst );
+    }
+
     virtual bool Eof()
     {
         return m_pos >= m_size;
@@ -1917,6 +1923,13 @@ private:
             delete[] m_inbuf;
         if (m_outbuf)
             delete[] m_outbuf;
+    }
+
+    /// Get stream open mode
+    /** \return lvopen_mode_t open mode */
+    virtual lvopen_mode_t GetMode()
+    {
+        return LVOM_READ;
     }
 
     void zUninit()

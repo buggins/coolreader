@@ -40,7 +40,7 @@ public:
     };
 
 	class iterator {
-		friend class LVHashTable;
+        	friend class LVHashTable;
 		const LVHashTable & _tbl;
 		int index;
 		pair * ptr;
@@ -120,7 +120,7 @@ public:
             }
         }
         if (_table)
-            delete _table;
+            delete[] _table;
         _table = new_table;
         _size = nsize;
 

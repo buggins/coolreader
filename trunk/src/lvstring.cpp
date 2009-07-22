@@ -1963,7 +1963,7 @@ int Utf8CharCount( const lChar8 * str, int len )
 {
     int count = 0;
     lUInt8 ch;
-    while ( (ch=*str++) && (len--)>0 ) {
+    while ( (--len)>=0 && (ch=*str++) ) {
         if ( (ch & 0x80) == 0 ) {
         } else if ( (ch & 0xE0) == 0xC0 ) {
             if ( !(ch=*str++) )
@@ -2051,7 +2051,7 @@ lString16 Utf8ToUnicode( const char * s, int sz )
     {
         lStringBuf16<1024> buf( dst );
         lUInt16 ch;
-        while ( (ch=*s++)&&(len--) ) {
+        while ( (--len>=0) && (ch=*s++) ) {
             if ( (ch & 0x80) == 0 ) {
                 buf.append( ch );
             } else if ( (ch & 0xE0) == 0xC0 ) {

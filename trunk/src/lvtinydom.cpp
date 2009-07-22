@@ -18,47 +18,53 @@
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
 
+//#define INDEX1 94
+//#define INDEX2 96
+
+#define INDEX1 105
+#define INDEX2 106
+
 class ldomPersistentText;
 class ldomPersistentElement;
 
 /// common header for data storage items
 struct DataStorageItemHeader {
-	/// item type: LXML_TEXT_NODE, LXML_ELEMENT_NODE, LXML_NO_DATA
-	lUInt16 type;
-	/// size of item / 16
-	lUInt16 sizeDiv16;
-	/// data index of this node in document
-	lInt32 dataIndex;
-	/// data index of parent node in document, 0 means no parent
-	lInt32 parentIndex;
+    /// item type: LXML_TEXT_NODE, LXML_ELEMENT_NODE, LXML_NO_DATA
+    lUInt16 type;
+    /// size of item / 16
+    lUInt16 sizeDiv16;
+    /// data index of this node in document
+    lInt32 dataIndex;
+    /// data index of parent node in document, 0 means no parent
+    lInt32 parentIndex;
 };
 
 /// text node storage implementation
 struct TextDataStorageItem : public DataStorageItemHeader {
-	/// utf8 text length, characters
-	lUInt16 length;
-	/// utf8 text, w/o zero
-	lChar8 text[2]; // utf8 text follows here, w/o zero byte at end
-	/// return text
-	inline lString16 getText() { return Utf8ToUnicode( text, length ); }
-	inline lString8 getText8() { return lString8( text, length ); }
+    /// utf8 text length, characters
+    lUInt16 length;
+    /// utf8 text, w/o zero
+    lChar8 text[2]; // utf8 text follows here, w/o zero byte at end
+    /// return text
+    inline lString16 getText() { return Utf8ToUnicode( text, length ); }
+    inline lString8 getText8() { return lString8( text, length ); }
 };
 
 /// element node data storage
 struct ElementDataStorageItem : public DataStorageItemHeader {
-	lUInt16 id;
-	lUInt16 nsid;
-	lInt16  attrCount;
-	lUInt8  rendMethod;
-	lUInt8  reserved8;
-	lInt32  childCount;
-	lvdomElementFormatRec renderData; // 4 * 4
-	lUInt16 fontIndex;
-	lUInt16 styleIndex;
-	lInt32  children[1];
-	lUInt16 * attrs() { return (lUInt16 *)(children + childCount); }
-	lxmlAttribute * attr( int index ) { return (lxmlAttribute *)&(((lUInt16 *)(children + childCount))[index*3]); }
-	// TODO: add items here
+    lUInt16 id;
+    lUInt16 nsid;
+    lInt16  attrCount;
+    lUInt8  rendMethod;
+    lUInt8  reserved8;
+    lInt32  childCount;
+    lvdomElementFormatRec renderData; // 4 * 4
+    lUInt16 fontIndex;
+    lUInt16 styleIndex;
+    lInt32  children[1];
+    lUInt16 * attrs() { return (lUInt16 *)(children + childCount); }
+    lxmlAttribute * attr( int index ) { return (lxmlAttribute *)&(((lUInt16 *)(children + childCount))[index*3]); }
+    // TODO: add items here
     //css_style_ref_t _style;
     //font_ref_t      _font;
 };
@@ -86,9 +92,9 @@ public :
         if ( item==NULL )
             return NULL;
         for ( ;; ) {
-            if ( (lUInt8*)item>=_data+_len )
-                return NULL;
             item = (DataStorageItemHeader*)(((lUInt8*)item) + ((lUInt32)item->sizeDiv16 * 16));
+            if ( (lUInt8*)item >= _data + _len )
+                return NULL;
             if ( item->type != LXML_NO_DATA )
                 return item;
             //CRLog::trace("skipping no_data item of size %d at offset %x (dataIndex=%d)", item->sizeDiv16*16, (int)((lUInt8*)item - _data), item->dataIndex );
@@ -102,7 +108,9 @@ public :
     DataBuffer( int size )
         : _size( size ), _len( 0 ), _own(true)
     {
+        //_data = (lUInt8*)calloc( size, sizeof(lUInt8) );
         _data = (lUInt8*)malloc( size );
+    memset( _data, 0, size );
     }
     DataBuffer( lUInt8 * data, int size, int len )
         : _size( size ), _len( len ), _data(data), _own(false)
@@ -120,13 +128,13 @@ public :
 
 DataStorageItemHeader * DataBuffer::alloc( int size )
 {
-	if ( _len + size > _size )
-		return NULL; // no room
-	size = (size + 15) & 0xFFFFFF0;
-	DataStorageItemHeader * item = (DataStorageItemHeader *) (_data + _len);
-	item->sizeDiv16 = size >> 4;
-	_len += size;
-	return item;
+    if ( _len + size > _size )
+        return NULL; // no room
+    size = (size + 15) & 0xFFFFFF0;
+    DataStorageItemHeader * item = (DataStorageItemHeader *) (_data + _len);
+    item->sizeDiv16 = size >> 4;
+    _len += size;
+    return item;
 }
 
 
@@ -463,9 +471,9 @@ public:
     ldomElement( ldomDocument * document, ldomNode * parent, lUInt32 index, lUInt16 nsid, lUInt16 id )
     : ldomNode( document, parent, index ), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
     { }
-	/// destructor
+    /// destructor
     virtual ~ldomElement();
-	/// returns LXML_ELEMENT_NODE
+    /// returns LXML_ELEMENT_NODE
     virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
     /// returns rendering method
     virtual lvdom_element_render_method  getRendMethod() { return _rendMethod; }
@@ -588,8 +596,8 @@ public:
         int attrCount = v->getAttrCount();
         int childCount = v->getChildCount();
         ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
-		data->nsid = v->_nsid;
-		data->id = v->_id;
+        data->nsid = v->_nsid;
+        data->id = v->_id;
         lUInt16 * attrs = data->attrs();
         int i;
         for ( i=0; i<attrCount; i++ ) {
@@ -617,7 +625,7 @@ public:
 
     }
 
-	/// destructor
+    /// destructor
     virtual ~ldomPersistentElement()
     {
         _document->deleteNode( this );
@@ -625,7 +633,7 @@ public:
     /// returns true if node is stored in persistent storage
     virtual bool isPersistent() { return true; }
 
-	/// returns LXML_ELEMENT_NODE
+    /// returns LXML_ELEMENT_NODE
     virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
     /// returns rendering method
     virtual lvdom_element_render_method  getRendMethod() { return (lvdom_element_render_method)getData()->rendMethod; }
@@ -819,12 +827,12 @@ ldomNode * ldomElement::persist()
 /// replace node with r/w implementation
 ldomNode * ldomPersistentElement::modify()
 {
-    ldomDocument * doc = _document;
-    if ( !doc->checkConsistency(false) )
-        CRLog::trace( "check failed before elem:modify()" );
+    //ldomDocument * doc = _document;
+    //if ( !doc->checkConsistency(false) )
+    //    CRLog::trace( "check failed before elem:modify()" );
     ldomNode * res = new ldomElement( this );
-    if ( !doc->checkConsistency(false) )
-        CRLog::trace( "check failed after elem:modify()" );
+    //if ( !doc->checkConsistency(false) )
+    //    CRLog::trace( "check failed after elem:modify()" );
     return res;
 }
 
@@ -892,9 +900,9 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 ,_docProps(LVCreatePropsContainer())
 ,_keepData(false)
 {
-	// create and add one data buffer
-	_currentBuffer = new DataBuffer( _dataBufferSize );
-	_dataBuffers.add( _currentBuffer );
+    // create and add one data buffer
+    _currentBuffer = new DataBuffer( _dataBufferSize );
+    _dataBuffers.add( _currentBuffer );
     _instanceMap = (NodeItem *)malloc( sizeof(NodeItem) * _instanceMapSize );
     memset( _instanceMap, 0, sizeof(NodeItem) * _instanceMapSize );
     _stylesheet.setDocument( this );
@@ -925,11 +933,11 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
 void lxmlDocBase::persist()
 {
     CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
-#ifdef _DEBUG
-    if ( !checkConsistency(false) ) {
-        CRLog::error( "- before lxmlDocBase::persist()" );
-    }
-#endif
+//#ifdef _DEBUG
+    //if ( !checkConsistency(false) ) {
+    //    CRLog::error( "- before lxmlDocBase::persist()" );
+    //}
+//#endif
     for ( int i=0; i<_instanceMapCount; i++ ) {
         ldomNode * old = _instanceMap[ i ].instance;
         if ( old ) {
@@ -939,19 +947,19 @@ void lxmlDocBase::persist()
             }
         }
     }
-#ifdef _DEBUG
-    if ( !checkConsistency(true) ) {
-        CRLog::error( "- after lxmlDocBase::persist()" );
-    }
-#endif
+//#ifdef _DEBUG
+//    if ( !checkConsistency(true) ) {
+//        CRLog::error( "- after lxmlDocBase::persist()" );
+//    }
+//#endif
 }
 
 /// used by object constructor, to assign ID for created object
 lInt32 lxmlDocBase::registerNode( ldomNode * node )
 {
-    if ( node->getDataIndex()==96 || node->getDataIndex()==94 ) {
-        CRLog::trace("register node %d", node->getDataIndex() );
-    }
+    //if ( node->getDataIndex()==INDEX2 || node->getDataIndex()==INDEX1 ) {
+    //    CRLog::trace("register node %d", node->getDataIndex() );
+   // }
     if ( _instanceMapCount >= _instanceMapSize ) {
         // resize
         _instanceMapSize = (_instanceMapSize < 1024) ? 1024 : (_instanceMapSize * 2); // 16K
@@ -965,7 +973,7 @@ lInt32 lxmlDocBase::registerNode( ldomNode * node )
 /// used by object destructor, to remove RAM reference; leave data as is
 void lxmlDocBase::unregisterNode( ldomNode * node )
 {
-    if ( node->getDataIndex()==96 || node->getDataIndex()==94 ) {
+    if ( node->getDataIndex()==INDEX2 || node->getDataIndex()==INDEX1 ) {
         CRLog::trace("unregister node %d", node->getDataIndex() );
     }
     lInt32 dataIndex = node->getDataIndex(); 
@@ -978,7 +986,7 @@ void lxmlDocBase::unregisterNode( ldomNode * node )
 /// used to create instances from mmapped file
 ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data )
 {
-    if ( dataIndex==96 || dataIndex==94) {
+    if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
         CRLog::trace("set node %d", dataIndex);
     }
     NodeItem * p = &_instanceMap[ dataIndex ];
@@ -999,7 +1007,7 @@ ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStor
 /// used by persistance management constructors, to replace one instance with another
 ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
 {
-    if ( dataIndex==96 || dataIndex==94) {
+    if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
         CRLog::trace("replace instance %d", dataIndex);
     }
     NodeItem * p = &_instanceMap[ dataIndex ];
@@ -1022,7 +1030,7 @@ ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstanc
 /// used by object destructor, to remove RAM reference and data block
 void lxmlDocBase::deleteNode( ldomNode * node )
 {
-    if ( node->getDataIndex()==96 || node->getDataIndex()==94 ) {
+    if ( node->getDataIndex()==INDEX2 || node->getDataIndex()==INDEX1 ) {
         CRLog::trace("delete node %d", node->getDataIndex() );
     }
     lInt32 dataIndex = node->getDataIndex(); 
@@ -1078,92 +1086,92 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 /// allocate data block, return pointer to allocated block
 DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
 {
-    if ( dataIndex==96 || dataIndex==94) {
+    if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
         CRLog::trace("data for Node %d is allocated", dataIndex);
     }
-	if ( _instanceMap[dataIndex].data != NULL ) {
-		// mark data record as empty
+    if ( _instanceMap[dataIndex].data != NULL ) {
+        // mark data record as empty
         CRLog::warn( "Node with id=%d data is overwritten", dataIndex );
-		_instanceMap[dataIndex].data->type = LXML_NO_DATA;
-	}
-	DataStorageItemHeader * item = _currentBuffer->alloc( size );
-	if ( !item ) {
-		if ( size >= _dataBufferSize )
-			return NULL;
-		_currentBuffer = new DataBuffer( _dataBufferSize );
-		if ( _currentBuffer->isNull() ) {
-			CRLog::error("Cannot create document data buffer #%d (size=%d)", _dataBuffers.length(), _dataBufferSize );
-			delete _currentBuffer;
-			return NULL; // OUT OF MEMORY
-		}
-		_dataBuffers.add( _currentBuffer );
-		item = _currentBuffer->alloc( size );
-	}
-	item->dataIndex = dataIndex;
-	//item->parentIndex = 0;
-	//item->type = nodeType;
-	_instanceMap[dataIndex].data = item;
-	return item;
+        _instanceMap[dataIndex].data->type = LXML_NO_DATA;
+    }
+    DataStorageItemHeader * item = _currentBuffer->alloc( size );
+    if ( !item ) {
+        if ( size >= _dataBufferSize )
+            return NULL;
+        _currentBuffer = new DataBuffer( _dataBufferSize );
+        if ( _currentBuffer->isNull() ) {
+            CRLog::error("Cannot create document data buffer #%d (size=%d)", _dataBuffers.length(), _dataBufferSize );
+            delete _currentBuffer;
+            return NULL; // OUT OF MEMORY
+        }
+        _dataBuffers.add( _currentBuffer );
+        item = _currentBuffer->alloc( size );
+    }
+    item->dataIndex = dataIndex;
+    //item->parentIndex = 0;
+    //item->type = nodeType;
+    _instanceMap[dataIndex].data = item;
+    return item;
 }
 
 /// allocate text block
 TextDataStorageItem * lxmlDocBase::allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount )
 {
-	int size = sizeof(TextDataStorageItem) + charCount - 2;
-	TextDataStorageItem *item = (TextDataStorageItem *)allocData( dataIndex, size );
-	if ( item ) {
-		item->type = LXML_TEXT_NODE;
-		item->parentIndex = parentIndex;
-		item->length = charCount;
-		if ( charCount>0 )
-			memcpy( item->text, text, charCount );
-	}
-	return item;
+    int size = sizeof(TextDataStorageItem) + charCount - 2;
+    TextDataStorageItem *item = (TextDataStorageItem *)allocData( dataIndex, size );
+    if ( item ) {
+        item->type = LXML_TEXT_NODE;
+        item->parentIndex = parentIndex;
+        item->length = charCount;
+        if ( charCount>0 )
+            memcpy( item->text, text, charCount );
+    }
+    return item;
 }
 
 /// allocate element
 ElementDataStorageItem * lxmlDocBase::allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount )
 {
-	int size = sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32);
-	ElementDataStorageItem *item = (ElementDataStorageItem *)allocData( dataIndex, size );
-	if ( item ) {
-		item->type = LXML_ELEMENT_NODE;
-		item->parentIndex = parentIndex;
-		item->attrCount = attrCount;
-		item->childCount = childCount;
-	}
-	return item;
+    int size = sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32);
+    ElementDataStorageItem *item = (ElementDataStorageItem *)allocData( dataIndex, size );
+    if ( item ) {
+        item->type = LXML_ELEMENT_NODE;
+        item->parentIndex = parentIndex;
+        item->attrCount = attrCount;
+        item->childCount = childCount;
+    }
+    return item;
 }
 
 lString16 lxmlDocBase::getTextNodeValue( lInt32 dataIndex )
 {
-	// TODO: implement caching here
-	TextDataStorageItem * data = getTextNodeData( dataIndex );
-	if ( !data || data->type!=LXML_TEXT_NODE )
-		return lString16();
-	return data->getText();
+    // TODO: implement caching here
+    TextDataStorageItem * data = getTextNodeData( dataIndex );
+    if ( !data || data->type!=LXML_TEXT_NODE )
+        return lString16();
+    return data->getText();
 }
 
 lString8 lxmlDocBase::getTextNodeValue8( lInt32 dataIndex )
 {
-	// TODO: implement caching here
-	TextDataStorageItem * data = getTextNodeData( dataIndex );
-	if ( !data || data->type!=LXML_TEXT_NODE )
-		return lString8();
-	return data->getText8();
+    // TODO: implement caching here
+    TextDataStorageItem * data = getTextNodeData( dataIndex );
+    if ( !data || data->type!=LXML_TEXT_NODE )
+        return lString8();
+    return data->getText8();
 }
 
 ldomPersistentText::ldomPersistentText( ldomNode * parent, lUInt32 index, lString16 value )
 : ldomNode( parent->getDocument(), parent, index )
 {
-	lString8 s8 = UnicodeToUtf8( value );
-	_document->allocText( _dataIndex, _parentIndex, s8.c_str(), s8.length() );
+    lString8 s8 = UnicodeToUtf8( value );
+    _document->allocText( _dataIndex, _parentIndex, s8.c_str(), s8.length() );
 }
 
 ldomPersistentText::ldomPersistentText( ldomNode * parent, lUInt32 index, lString8 value )
 : ldomNode( parent->getDocument(), parent, index )
 {
-	_document->allocText( _dataIndex, _parentIndex, value.c_str(), value.length() );
+    _document->allocText( _dataIndex, _parentIndex, value.c_str(), value.length() );
 }
 
 // create persistent r/o copy of r/w text node
@@ -1178,12 +1186,12 @@ ldomPersistentText::ldomPersistentText( ldomText * v )
 /// returns text node text
 lString16 ldomPersistentText::getText( lChar16 ) const
 {
-	return ((lxmlDocBase*)_document)->getTextNodeValue( _dataIndex );
+    return ((lxmlDocBase*)_document)->getTextNodeValue( _dataIndex );
 }
 
 lString8 ldomPersistentText::getText8( lChar8 ) const
 {
-	return ((lxmlDocBase*)_document)->getTextNodeValue8( _dataIndex );
+    return ((lxmlDocBase*)_document)->getTextNodeValue8( _dataIndex );
 }
 
 // memory pools
@@ -1300,26 +1308,26 @@ static void writeNode( LVStream * stream, ldomNode * node )
 #if 1
             if (!elemName.empty())
             {
-				ldomNode * elem = node;
-				lvdomElementFormatRec * fmt = elem->getRenderData();
-				css_style_ref_t style = elem->getStyle();
-				if ( fmt ) {
-					lvRect rect;
-					elem->getAbsRect( rect );
-					*stream << L" fmt=\"";
-					*stream << L"rm:" << lString16::itoa( (int)elem->getRendMethod() ) << L" ";
-					if ( style.isNull() )
-						*stream << L"style: NULL ";
-					else {
-						*stream << L"disp:" << lString16::itoa( (int)style->display ) << L" ";
-					}
-					*stream << L"y:" << lString16::itoa( (int)fmt->getY() ) << L" ";
-					*stream << L"h:" << lString16::itoa( (int)fmt->getHeight() ) << L" ";
-					*stream << L"ay:" << lString16::itoa( (int)rect.top ) << L" ";
-					*stream << L"ah:" << lString16::itoa( (int)rect.height() ) << L" ";
-					*stream << L"\"";
-				}
-			}
+                ldomNode * elem = node;
+                lvdomElementFormatRec * fmt = elem->getRenderData();
+                css_style_ref_t style = elem->getStyle();
+                if ( fmt ) {
+                    lvRect rect;
+                    elem->getAbsRect( rect );
+                    *stream << L" fmt=\"";
+                    *stream << L"rm:" << lString16::itoa( (int)elem->getRendMethod() ) << L" ";
+                    if ( style.isNull() )
+                        *stream << L"style: NULL ";
+                    else {
+                        *stream << L"disp:" << lString16::itoa( (int)style->display ) << L" ";
+                    }
+                    *stream << L"y:" << lString16::itoa( (int)fmt->getY() ) << L" ";
+                    *stream << L"h:" << lString16::itoa( (int)fmt->getHeight() ) << L" ";
+                    *stream << L"ay:" << lString16::itoa( (int)rect.top ) << L" ";
+                    *stream << L"ah:" << lString16::itoa( (int)rect.height() ) << L" ";
+                    *stream << L"\"";
+                }
+            }
 #endif
 
         if ( node->getChildCount() == 0 ) {
@@ -1421,7 +1429,7 @@ void lxmlDocBase::setNodeTypes( const elem_def_t * node_scheme )
         _elementNameTable.AddItem(
             node_scheme->id,               // ID
             lString16(node_scheme->name),  // Name
-			&node_scheme->props );  // ptr
+            &node_scheme->props );  // ptr
     }
 }
 
@@ -1712,7 +1720,7 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
 
 ldomElementWriter::~ldomElementWriter()
 {
-	//getElement()->persist();
+    //getElement()->persist();
 }
 
 
@@ -1869,7 +1877,7 @@ static const signed char base64_decode_table[] = {
    52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1, //48..63   30
    -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14, //64..79   40
    15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1, //80..95   50
-   -1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40, //96..111  60
+   -1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40, //INDEX2..111  60
    41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1  //112..127 70
 };
 
@@ -2156,32 +2164,32 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
     //int len = path.GetLength();
     name.clear();
     index = -1;
-	int flgPrefix = 0;
+    int flgPrefix = 0;
     if (s && s[pos]) {
-		lChar16 ch = s[pos];
-		// prefix: none, '/' or '.'
+        lChar16 ch = s[pos];
+        // prefix: none, '/' or '.'
         if (ch=='/') {
-			flgPrefix = 1;
+            flgPrefix = 1;
             ch = s[++pos];
-		} else if (ch=='.') {
-			flgPrefix = 2;
+        } else if (ch=='.') {
+            flgPrefix = 2;
             ch = s[++pos];
-		}
+        }
         int nstart = pos;
-		if (ch>='0' && ch<='9') {
-			// node or point index
-			pos++;
-			while (s[pos]>='0' && s[pos]<='9')
-				pos++;
-			if (s[pos] && s[pos!='/'] && s[pos]!='.')
-				return xpath_step_error;
+        if (ch>='0' && ch<='9') {
+            // node or point index
+            pos++;
+            while (s[pos]>='0' && s[pos]<='9')
+                pos++;
+            if (s[pos] && s[pos!='/'] && s[pos]!='.')
+                return xpath_step_error;
             lString16 sindex( path+nstart, pos-nstart );
-			index = sindex.atoi();
-			if (index<((flgPrefix==2)?0:1))
-				return xpath_step_error;
-			path += pos;
-			return (flgPrefix==2) ? xpath_step_point : xpath_step_nodeindex;
-		}
+            index = sindex.atoi();
+            if (index<((flgPrefix==2)?0:1))
+                return xpath_step_error;
+            path += pos;
+            return (flgPrefix==2) ? xpath_step_point : xpath_step_nodeindex;
+        }
         while (s[pos] && s[pos]!='[' && s[pos]!='/' && s[pos]!='.')
             pos++;
         if (pos==nstart)
@@ -2197,13 +2205,13 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
                 return xpath_step_error;
 
             lString16 sindex( path+istart, pos-istart );
-			index = sindex.atoi();
+            index = sindex.atoi();
             pos++;
         }
         if (!s[pos] || s[pos]=='/' || s[pos]=='.') {
-		    path += pos;
+            path += pos;
             return (name==L"text()") ? xpath_step_text : xpath_step_element; // OK!
-		}
+        }
         return xpath_step_error; // error
     }
     return xpath_step_error;
@@ -2399,7 +2407,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     if ( !finalNode ) {
         if ( pt.y >= getFullHeight()) {
             ldomNode * node = getRootNode()->getLastTextChild();
-			return ldomXPointer(node,node ? node->getText().length() : 0);
+            return ldomXPointer(node,node ? node->getText().length() : 0);
         } else if ( pt.y <= 0 ) {
             ldomNode * node = getRootNode()->getFirstTextChild();
             return ldomXPointer(node, 0);
@@ -2586,8 +2594,8 @@ bool ldomXPointer::getRect(lvRect & rect) const
     } else {
         // no base final node, using blocks
         //lvRect rc;
-		ldomNode * node = getNode();
-		int offset = getOffset();
+        ldomNode * node = getNode();
+        int offset = getOffset();
         if ( offset<0 || node->getChildCount()==0 ) {
             node->getAbsRect( rect );
             return true;
@@ -2609,103 +2617,103 @@ bool ldomXPointer::getRect(lvRect & rect) const
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
 {
     //CRLog::trace( "ldomDocument::createXPointer(%s)", UnicodeToUtf8(xPointerStr).c_str() );
-	if ( xPointerStr.empty() )
-		return ldomXPointer();
-	const lChar16 * str = xPointerStr.c_str();
-	int index = -1;
-	ldomNode * currNode = baseNode;
-	lString16 name;
+    if ( xPointerStr.empty() )
+        return ldomXPointer();
+    const lChar16 * str = xPointerStr.c_str();
+    int index = -1;
+    ldomNode * currNode = baseNode;
+    lString16 name;
     lString8 ptr8 = UnicodeToUtf8(xPointerStr);
     //const char * ptr = ptr8.c_str();
-	xpath_step_t step_type;
+    xpath_step_t step_type;
 
-	while ( *str ) {
+    while ( *str ) {
         //CRLog::trace( "    %s", UnicodeToUtf8(lString16(str)).c_str() );
-		step_type = ParseXPathStep( str, name, index );
+        step_type = ParseXPathStep( str, name, index );
         //CRLog::trace( "        name=%s index=%d", UnicodeToUtf8(lString16(name)).c_str(), index );
-		switch (step_type ) {
-		case xpath_step_error:
-			// error
+        switch (step_type ) {
+        case xpath_step_error:
+            // error
             //CRLog::trace("    xpath_step_error");
-			return ldomXPointer();
-		case xpath_step_element:
-			// element of type 'name' with 'index'        /elemname[N]/
-			{
-				lUInt16 id = getElementNameIndex( name.c_str() );
-				ldomNode * foundItem = NULL;
-				int foundCount = 0;
-				for (unsigned i=0; i<currNode->getChildCount(); i++) {
-					ldomNode * p = currNode->getChildNode(i);
+            return ldomXPointer();
+        case xpath_step_element:
+            // element of type 'name' with 'index'        /elemname[N]/
+            {
+                lUInt16 id = getElementNameIndex( name.c_str() );
+                ldomNode * foundItem = NULL;
+                int foundCount = 0;
+                for (unsigned i=0; i<currNode->getChildCount(); i++) {
+                    ldomNode * p = currNode->getChildNode(i);
                     //CRLog::trace( "        node[%d] = %d", i, p->getNodeId() );
                     if ( p && p->isElement() && p->getNodeId()==id ) {
-						foundCount++;
-						if ( foundCount==index || index==-1 ) {
-							foundItem = p;
-						}
-					}
-				}
-				if ( foundItem==NULL || (index==-1 && foundCount>1) ) {
-                    //CRLog::trace("    Element %d is not found. foundCount=%d", id, foundCount);
-					return ldomXPointer(); // node not found
-                }
-				// found element node
-				currNode = foundItem;
-			}
-			break;
-		case xpath_step_text:
-			// text node with 'index'                     /text()[N]/
-			{
-				ldomNode * foundItem = NULL;
-				int foundCount = 0;
-				for (unsigned i=0; i<currNode->getChildCount(); i++) {
-					ldomNode * p = currNode->getChildNode(i);
-					if ( p->isText() ) {
                         foundCount++;
-						if ( foundCount==index || index==-1 ) {
-							foundItem = p;
-						}
-					}
-				}
-				if ( foundItem==NULL || (index==-1 && foundCount>1) )
-					return ldomXPointer(); // node not found
-				// found text node
-				currNode = foundItem;
-			}
-			break;
-		case xpath_step_nodeindex:
-			// node index                                 /N/
-			if ( index<=0 || index>(int)currNode->getChildCount() )
-				return ldomXPointer(); // node not found: invalid index
-			currNode = currNode->getChildNode( index-1 );
-			break;
-		case xpath_step_point:
-			// point index                                .N
-			if (*str)
-				return ldomXPointer(); // not at end of string
-			if ( currNode->isElement() ) {
-				// element point
-				if ( index<0 || index>(int)currNode->getChildCount() )
-					return ldomXPointer();
-				return ldomXPointer(currNode, index);
-			} else {
-				// text point
-				if ( index<0 || index>(int)currNode->getText().length() )
-					return ldomXPointer();
-				return ldomXPointer(currNode, index);
-			}
-			break;
-		}
-	}
-	return ldomXPointer( currNode, -1 ); // XPath: index==-1
+                        if ( foundCount==index || index==-1 ) {
+                            foundItem = p;
+                        }
+                    }
+                }
+                if ( foundItem==NULL || (index==-1 && foundCount>1) ) {
+                    //CRLog::trace("    Element %d is not found. foundCount=%d", id, foundCount);
+                    return ldomXPointer(); // node not found
+                }
+                // found element node
+                currNode = foundItem;
+            }
+            break;
+        case xpath_step_text:
+            // text node with 'index'                     /text()[N]/
+            {
+                ldomNode * foundItem = NULL;
+                int foundCount = 0;
+                for (unsigned i=0; i<currNode->getChildCount(); i++) {
+                    ldomNode * p = currNode->getChildNode(i);
+                    if ( p->isText() ) {
+                        foundCount++;
+                        if ( foundCount==index || index==-1 ) {
+                            foundItem = p;
+                        }
+                    }
+                }
+                if ( foundItem==NULL || (index==-1 && foundCount>1) )
+                    return ldomXPointer(); // node not found
+                // found text node
+                currNode = foundItem;
+            }
+            break;
+        case xpath_step_nodeindex:
+            // node index                                 /N/
+            if ( index<=0 || index>(int)currNode->getChildCount() )
+                return ldomXPointer(); // node not found: invalid index
+            currNode = currNode->getChildNode( index-1 );
+            break;
+        case xpath_step_point:
+            // point index                                .N
+            if (*str)
+                return ldomXPointer(); // not at end of string
+            if ( currNode->isElement() ) {
+                // element point
+                if ( index<0 || index>(int)currNode->getChildCount() )
+                    return ldomXPointer();
+                return ldomXPointer(currNode, index);
+            } else {
+                // text point
+                if ( index<0 || index>(int)currNode->getText().length() )
+                    return ldomXPointer();
+                return ldomXPointer(currNode, index);
+            }
+            break;
+        }
+    }
+    return ldomXPointer( currNode, -1 ); // XPath: index==-1
 }
 
 lString16 ldomXPointer::toString()
 {
     lString16 path;
-	if ( isNull() )
+    if ( isNull() )
         return path;
-	ldomNode * node = getNode();
-	int offset = getOffset();
+    ldomNode * node = getNode();
+    int offset = getOffset();
     if ( offset >= 0 ) {
         path << L"." << lString16::itoa(offset);
     }
@@ -2858,7 +2866,7 @@ bool ldomXPointerEx::nextSiblingElement()
 {
     if ( _level < 1 )
         return false;
-	ldomNode * node = getNode();
+    ldomNode * node = getNode();
     ldomNode * p = node->getParentNode();
     for ( int i=_indexes[_level-1] + 1; i<(int)node->getChildCount(); i++ ) {
         if ( p->getChildNode( i )->isElement() )
@@ -2872,7 +2880,7 @@ bool ldomXPointerEx::prevSiblingElement()
 {
     if ( _level < 1 )
         return false;
-	ldomNode * node = getNode();
+    ldomNode * node = getNode();
     ldomNode * p = node->getParentNode();
     for ( int i=_indexes[_level-1] - 1; i>=0; i-- ) {
         if ( p->getChildNode( i )->isElement() )
@@ -3389,7 +3397,7 @@ bool ldomXPointerEx::ensureFinal()
 /// ensure that current node is element (move to parent, if not - from text node to element)
 bool ldomXPointerEx::ensureElement()
 {
-	ldomNode * node = getNode();
+    ldomNode * node = getNode();
     if ( !node )
         return false;
     if ( node->isText() && !parent() )
@@ -3417,7 +3425,7 @@ bool ldomXPointerEx::lastChild()
 /// move to first element child of current node
 bool ldomXPointerEx::firstElementChild()
 {
-	ldomNode * node = getNode();
+    ldomNode * node = getNode();
     int count = node->getChildCount();
     for ( int i=0; i<count; i++ ) {
         if ( node->getChildNode( i )->isElement() )
@@ -3429,7 +3437,7 @@ bool ldomXPointerEx::firstElementChild()
 /// move to last element child of current node
 bool ldomXPointerEx::lastElementChild()
 {
-	ldomNode * node = getNode();
+    ldomNode * node = getNode();
     int count = node->getChildCount();
     for ( int i=count-1; i>=0; i-- ) {
         if ( node->getChildNode( i )->isElement() )
@@ -3494,7 +3502,7 @@ bool ldomXPointerEx::nextVisibleText()
 bool ldomXPointerEx::isVisible()
 {
     ldomNode * p;
-	ldomNode * node = getNode();
+    ldomNode * node = getNode();
     if ( node && node->isText() )
         p = node->getParentNode();
     else
@@ -3569,7 +3577,7 @@ bool ldomXPointerEx::prevElement()
         }
         if ( !parent() )
             return false;
-		return true;
+        return true;
     }
 }
 
@@ -3602,7 +3610,7 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
         return;
     ldomXRange pos( _start, _end, 0 );
     bool allowGoRecurse = true;
-	while ( !pos._start.isNull() && pos._start.compare( _end ) < 0 ) {
+    while ( !pos._start.isNull() && pos._start.compare( _end ) < 0 ) {
         // do something
         ldomNode * node = pos._start.getNode();
         if ( node->isElement() ) {
@@ -4086,17 +4094,17 @@ void ldomElement::addChild( lInt32 dataIndex )
 void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex )
 {
     CRLog::warn("moveItemsTo() invoked");
-    if ( getDataIndex()==96 || getDataIndex()==94) {
+    if ( getDataIndex()==INDEX2 || getDataIndex()==INDEX1) {
         CRLog::trace("nodes from element %d are being moved", getDataIndex());
     }
-#ifdef _DEBUG
-    if ( !_document->checkConsistency( false ) )
-        CRLog::error("before moveItemsTo");
-#endif
+//#ifdef _DEBUG
+//    if ( !_document->checkConsistency( false ) )
+//        CRLog::error("before moveItemsTo");
+//#endif
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
         ldomNode * item = getChildNode( startChildIndex );
-        if ( item->getDataIndex()==96 || item->getDataIndex()==94 ) {
+        if ( item->getDataIndex()==INDEX2 || item->getDataIndex()==INDEX1 ) {
             CRLog::trace("node %d is being moved", item->getDataIndex() );
         }
         _children.remove( startChildIndex ); // + i
@@ -4104,23 +4112,23 @@ void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int 
         destination->addChild( item->getDataIndex() );
     }
     // TODO: renumber rest of children in necessary
-#ifdef _DEBUG
-    if ( !_document->checkConsistency( false ) )
-        CRLog::error("after moveItemsTo");
-#endif
+//#ifdef _DEBUG
+//    if ( !_document->checkConsistency( false ) )
+//        CRLog::error("after moveItemsTo");
+//#endif
 }
 
 ldomNode * ldomNode::findChildElement( lUInt16 idPath[] )
 {
     if ( !this || !isElement() )
         return NULL;
-	ldomNode * elem = this;
-	for ( int i=0; idPath[i]; i++ ) {
-		elem = elem->findChildElement( LXML_NS_ANY, idPath[i], -1 );
-		if ( !elem )
-			return NULL;
-	}
-	return elem;
+    ldomNode * elem = this;
+    for ( int i=0; idPath[i]; i++ ) {
+        elem = elem->findChildElement( LXML_NS_ANY, idPath[i], -1 );
+        if ( !elem )
+            return NULL;
+    }
+    return elem;
 }
 
 ldomNode * ldomNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
@@ -4280,13 +4288,13 @@ void ldomElement::clearRenderData()
 
 ldomElement::~ldomElement()
 {
-	if (_renderData)
-		delete _renderData;
-	for ( int i=0; i<_children.length(); i++ ) {
-		ldomNode * child = _document->getNodeInstance( _children[i] );
-		if ( child )
-			delete child;
-	}
+    if (_renderData)
+        delete _renderData;
+    for ( int i=0; i<_children.length(); i++ ) {
+        ldomNode * child = _document->getNodeInstance( _children[i] );
+        if ( child )
+            delete child;
+    }
     _document->unregisterNode( this );
 }
 
@@ -4390,10 +4398,13 @@ bool lxmlDocBase::checkConsistency( bool requirePersistent )
     LVArray<int> dataIndexInstanceFlag( _instanceMapCount, 0 );
     int elemcount = 0;
     int textcount = 0;
+    int itemcount = 0;
     for ( int buf=0; buf<this->_dataBuffers.length(); buf++ )
     for ( DataStorageItemHeader * item = _dataBuffers[buf]->first(); item!=NULL; item = _dataBuffers[buf]->next(item) ) {
+        itemcount++;
+    //CRLog::trace("checking item %d: %08x", itemcount, (unsigned) item );
         if ( item->type==LXML_ELEMENT_NODE ) {
-            if ( item->dataIndex==94 || item->dataIndex==96 ) {
+            if ( item->dataIndex==INDEX1 || item->dataIndex==INDEX2 ) {
                 CRLog::debug("item with index %d: element name=%s", item->dataIndex, UnicodeToUtf8(_instanceMap[item->dataIndex].instance->getNodeName()).c_str() );
             }
             dataIndexCount[ item->dataIndex ]++;
@@ -4671,7 +4682,7 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
                 CRLog::error("No instance found for dataIndex=%d", item->dataIndex);
                 continue;
             }
-            if ( item->dataIndex==96 || item->dataIndex==94) {
+            if ( item->dataIndex==INDEX2 || item->dataIndex==INDEX1) {
                 CRLog::trace("changing pointer to node %d from %08x to %08x", item->dataIndex, (unsigned)_instanceMap[ item->dataIndex ].data, (unsigned)item );
             }
             if ( item->dataIndex < _instanceMapCount )
