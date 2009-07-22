@@ -1308,7 +1308,7 @@ public:
 
     LVFormLine( formatted_text_fragment_t * buffer )
     : m_pbuffer(buffer)
-    , widths_buf_size(1024)
+    , widths_buf_size(512)
     , widths_buf( widths_buf_size, 0 )
     , flags_buf( widths_buf_size, 0 )
     , srcIndex(-1)

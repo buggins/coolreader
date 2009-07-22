@@ -571,18 +571,19 @@ public:
 
     inline int calcCharFlags( lChar16 ch )
     {
-        int bflags = 0;
-        int isSpace = lvfontIsUnicodeSpace(ch);
-        if (isSpace ||  ch == UNICODE_SOFT_HYPHEN_CODE )
-            bflags |= LCHAR_ALLOW_WRAP_AFTER;
-        if (ch == '-')
-            bflags |= LCHAR_DEPRECATED_WRAP_AFTER;
-        if (isSpace)
-            bflags |= LCHAR_IS_SPACE;
-        // TODO: add EOL support to other font engines
-        if ( ch=='\r' || ch=='\n' )
-            bflags |= LCHAR_IS_SPACE | LCHAR_IS_EOL | LCHAR_ALLOW_WRAP_AFTER;
-        return bflags;
+        switch ( ch ) {
+        case 0x0020: 
+            return LCHAR_IS_SPACE | LCHAR_ALLOW_WRAP_AFTER;
+        case UNICODE_SOFT_HYPHEN_CODE: 
+            return LCHAR_ALLOW_WRAP_AFTER;
+        case '-': 
+            return LCHAR_DEPRECATED_WRAP_AFTER;
+        case '\r':
+        case '\n':
+            return LCHAR_IS_SPACE | LCHAR_IS_EOL | LCHAR_ALLOW_WRAP_AFTER;
+        default:
+            return 0;
+        }
     }
     
     /** \brief measure text

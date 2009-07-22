@@ -1561,7 +1561,8 @@ lString8 & lString8::append(const lString8 & str, size_type offset, size_type co
 lString8 & lString8::append(size_type count, lChar8 ch)
 {
     reserve( pchunk->len+count );
-    _lStr_memset(pchunk->buf8+pchunk->len, ch, count);
+    memset( pchunk->buf8+pchunk->len, ch, count );
+    //_lStr_memset(pchunk->buf8+pchunk->len, ch, count);
     pchunk->len += count;
     pchunk->buf8[pchunk->len] = 0;
     return *this;
@@ -1574,7 +1575,8 @@ lString8 & lString8::insert(size_type p0, size_type count, lChar8 ch)
     reserve( pchunk->len+count );
     for (size_type i=pchunk->len+count; i>p0; i--)
         pchunk->buf8[i] = pchunk->buf8[i-1];
-    _lStr_memset(pchunk->buf8+p0, ch, count);
+    //_lStr_memset(pchunk->buf8+p0, ch, count);
+    memset(pchunk->buf8+p0, ch, count);
     pchunk->len += count;
     pchunk->buf8[pchunk->len] = 0;
     return *this;
@@ -1966,14 +1968,14 @@ int Utf8CharCount( const lChar8 * str, int len )
     while ( (--len)>=0 && (ch=*str++) ) {
         if ( (ch & 0x80) == 0 ) {
         } else if ( (ch & 0xE0) == 0xC0 ) {
-            if ( !(ch=*str++) )
-                break;
+            //if ( !(ch=*str++) )
+            //    break;
 			len--;
         } else {
-            if ( !(ch=*str++) )
-                break;
-            if ( !(ch=*str++) )
-                break;
+            //if ( !(ch=*str++) )
+            //    break;
+            //if ( !(ch=*str++) )
+            //    break;
 			len--;
 			len--;
         }
@@ -2047,19 +2049,19 @@ lString16 Utf8ToUnicode( const char * s, int sz )
     int len = Utf8CharCount( s, sz );
     if (!len)
       return dst;
-    dst.reserve( len );
+    dst.append( len, ' ' );
+    lChar16 * buf = dst.modify();
     {
-        lStringBuf16<1024> buf( dst );
         lUInt16 ch;
         while ( (--len>=0) && (ch=*s++) ) {
             if ( (ch & 0x80) == 0 ) {
-                buf.append( ch );
+                *buf++ = ( ch );
             } else if ( (ch & 0xE0) == 0xC0 ) {
                 lChar16 d = (ch & 0x1F) << 6;
                 if ( !(ch=*s++) )
                     break;
                 d |= (ch & 0x3F);
-                buf.append( d );
+                *buf++ = ( d );
             } else {
                 lChar16 d = (ch & 0x0F) << 12;
                 if ( !(ch=*s++) )
@@ -2068,7 +2070,7 @@ lString16 Utf8ToUnicode( const char * s, int sz )
                 if ( !(ch=*s++) )
                     break;
                 d |= (ch & 0x3F);
-                buf.append( d );
+                *buf++ = ( d );
             }
         }
     }
@@ -2083,20 +2085,20 @@ lString8 UnicodeToUtf8( const lString16 & str )
       return dst;
     const lChar16 * s = str.c_str();
     int len = Utf8ByteCount( s );
-    dst.reserve( len );
+    dst.append( len, ' ' );
+    lChar8 * buf = dst.modify();
     {
         lUInt16 ch;
-        lStringBuf8<1024> buf( dst );
         while ( (ch=*s++) ) {
             if ( (ch & 0xFF80) == 0 ) {
-                buf.append( (lUInt8)ch );
+                *buf++ = ( (lUInt8)ch );
             } else if ( (ch & 0xF800) == 0 ) {
-                buf.append( (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 ) );
-                buf.append( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 ) );
+                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
             } else {
-                buf.append( (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 ) );
-                buf.append( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
-                buf.append( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
             }
         }
     }

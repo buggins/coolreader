@@ -932,7 +932,7 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
 /// put all object into persistent storage
 void lxmlDocBase::persist()
 {
-    CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
+    //CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
 //#ifdef _DEBUG
     //if ( !checkConsistency(false) ) {
     //    CRLog::error( "- before lxmlDocBase::persist()" );
@@ -947,11 +947,11 @@ void lxmlDocBase::persist()
             }
         }
     }
-//#ifdef _DEBUG
-//    if ( !checkConsistency(true) ) {
-//        CRLog::error( "- after lxmlDocBase::persist()" );
-//    }
-//#endif
+#ifdef _DEBUG
+    if ( !checkConsistency(true) ) {
+        CRLog::error( "- after lxmlDocBase::persist()" );
+    }
+#endif
 }
 
 /// used by object constructor, to assign ID for created object
@@ -973,9 +973,9 @@ lInt32 lxmlDocBase::registerNode( ldomNode * node )
 /// used by object destructor, to remove RAM reference; leave data as is
 void lxmlDocBase::unregisterNode( ldomNode * node )
 {
-    if ( node->getDataIndex()==INDEX2 || node->getDataIndex()==INDEX1 ) {
-        CRLog::trace("unregister node %d", node->getDataIndex() );
-    }
+    //if ( node->getDataIndex()==INDEX2 || node->getDataIndex()==INDEX1 ) {
+    //    CRLog::trace("unregister node %d", node->getDataIndex() );
+    //}
     lInt32 dataIndex = node->getDataIndex(); 
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance == node ) {
@@ -986,9 +986,9 @@ void lxmlDocBase::unregisterNode( ldomNode * node )
 /// used to create instances from mmapped file
 ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data )
 {
-    if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
-        CRLog::trace("set node %d", dataIndex);
-    }
+    //if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
+    //    CRLog::trace("set node %d", dataIndex);
+    //}
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance ) {
         CRLog::error( "lxmlDocBase::setNode() - Node %d already has instance (%d)", dataIndex, p->instance->getDataIndex() );
@@ -1007,9 +1007,9 @@ ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStor
 /// used by persistance management constructors, to replace one instance with another
 ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstance )
 {
-    if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
-        CRLog::trace("replace instance %d", dataIndex);
-    }
+    //if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
+    //    CRLog::trace("replace instance %d", dataIndex);
+    //}
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance && p->instance!=newInstance ) {
         p->instance->prepareReplace();
@@ -1030,9 +1030,9 @@ ldomNode * lxmlDocBase::replaceInstance( lInt32 dataIndex, ldomNode * newInstanc
 /// used by object destructor, to remove RAM reference and data block
 void lxmlDocBase::deleteNode( ldomNode * node )
 {
-    if ( node->getDataIndex()==INDEX2 || node->getDataIndex()==INDEX1 ) {
-        CRLog::trace("delete node %d", node->getDataIndex() );
-    }
+    //if ( node->getDataIndex()==INDEX2 || node->getDataIndex()==INDEX1 ) {
+    //    CRLog::trace("delete node %d", node->getDataIndex() );
+    //}
     lInt32 dataIndex = node->getDataIndex(); 
     NodeItem * p = &_instanceMap[ dataIndex ];
     if ( p->instance == node ) {
@@ -1086,9 +1086,9 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 /// allocate data block, return pointer to allocated block
 DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
 {
-    if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
-        CRLog::trace("data for Node %d is allocated", dataIndex);
-    }
+    //if ( dataIndex==INDEX2 || dataIndex==INDEX1) {
+    //    CRLog::trace("data for Node %d is allocated", dataIndex);
+    //}
     if ( _instanceMap[dataIndex].data != NULL ) {
         // mark data record as empty
         CRLog::warn( "Node with id=%d data is overwritten", dataIndex );
@@ -4093,29 +4093,29 @@ void ldomElement::addChild( lInt32 dataIndex )
 /// move range of children startChildIndex to endChildIndex inclusively to specified element
 void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex )
 {
-    CRLog::warn("moveItemsTo() invoked");
-    if ( getDataIndex()==INDEX2 || getDataIndex()==INDEX1) {
-        CRLog::trace("nodes from element %d are being moved", getDataIndex());
-    }
-//#ifdef _DEBUG
-//    if ( !_document->checkConsistency( false ) )
-//        CRLog::error("before moveItemsTo");
-//#endif
+    CRLog::warn( "moveItemsTo() invoked from %d to %d", getDataIndex(), destination->getDataIndex() );
+    //if ( getDataIndex()==INDEX2 || getDataIndex()==INDEX1) {
+    //    CRLog::trace("nodes from element %d are being moved", getDataIndex());
+    //}
+#ifdef _DEBUG
+    if ( !_document->checkConsistency( false ) )
+        CRLog::error("before moveItemsTo");
+#endif
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
         ldomNode * item = getChildNode( startChildIndex );
-        if ( item->getDataIndex()==INDEX2 || item->getDataIndex()==INDEX1 ) {
-            CRLog::trace("node %d is being moved", item->getDataIndex() );
-        }
+        //if ( item->getDataIndex()==INDEX2 || item->getDataIndex()==INDEX1 ) {
+        //    CRLog::trace("node %d is being moved", item->getDataIndex() );
+        //}
         _children.remove( startChildIndex ); // + i
         item->_parentIndex = destination->getDataIndex();
         destination->addChild( item->getDataIndex() );
     }
     // TODO: renumber rest of children in necessary
-//#ifdef _DEBUG
-//    if ( !_document->checkConsistency( false ) )
-//        CRLog::error("after moveItemsTo");
-//#endif
+#ifdef _DEBUG
+    if ( !_document->checkConsistency( false ) )
+        CRLog::error("after moveItemsTo");
+#endif
 }
 
 ldomNode * ldomNode::findChildElement( lUInt16 idPath[] )

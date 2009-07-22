@@ -101,7 +101,7 @@ class DataBuffer;
 
 
 // default: 512K
-#define DEF_DOC_DATA_BUFFER_SIZE 0x180000
+#define DEF_DOC_DATA_BUFFER_SIZE 0x80000
 
 /// Base class for XML DOM documents
 /**

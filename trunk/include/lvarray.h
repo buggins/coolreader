@@ -37,8 +37,11 @@ public:
     {
         _size = _count = len;
         _array = new T[ _size ];
-        for (int i=0; i<_count; i++)
-            _array[i] = value;
+        if ( sizeof(value)<=2 && value==0 )
+            memset( _array, 0, sizeof(T)*_count );
+        else
+            for (int i=0; i<_count; i++)
+                _array[i] = value;
     }
     LVArray( const LVArray & v )
     {
