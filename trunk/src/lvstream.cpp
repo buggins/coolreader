@@ -4014,7 +4014,7 @@ bool LVDeleteFile( lString16 filename )
 #ifdef _WIN32
     return DeleteFileW( filename.c_str() ) ? true : false;
 #else
-    if ( unlink( UnicodeToUtf8( filename ).c_str() )
+    if ( unlink( UnicodeToUtf8( filename ).c_str() ) )
         return false;
     return true;
 #endif

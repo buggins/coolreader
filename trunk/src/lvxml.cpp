@@ -57,7 +57,9 @@ LVTextFileBase::LVTextFileBase( LVStreamRef stream )
     : LVFileParserBase(stream)
     , m_enc_type( ce_8bit_cp )
     , m_conv_table(NULL)
+    , m_eof(false)
 {
+    clearCharBuffer();
 }
 
 
@@ -125,6 +127,7 @@ lChar16 LVTextFileBase::ReadRtfChar( int, const lChar16 * conv_table )
     return ' ';
 }
 
+#if 0
 lChar16 LVTextFileBase::ReadChar()
 {
     lUInt16 ch = m_buf[m_buf_pos++];
@@ -177,6 +180,114 @@ lChar16 LVTextFileBase::ReadChar()
             lUInt16 ch2 = m_buf[m_buf_pos++];
             m_buf_pos+=2;
             return (ch << 8) | ch2;
+        }
+    default:
+        return 0;
+    }
+}
+#endif
+
+/// reads several characters from buffer
+int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
+{
+    if ( m_buf_pos>=m_buf_len )
+        return 0;
+    int count = 0;
+    switch ( m_enc_type ) {
+    case ce_8bit_cp:
+    case ce_utf8:
+        if ( m_conv_table!=NULL ) {
+            for ( ; count<maxsize && m_buf_pos<m_buf_len; count++ ) {
+                lUInt16 ch = m_buf[m_buf_pos++];
+                buf[count] = ( (ch & 0x80) == 0 ) ? ch : m_conv_table[ch&0x7F];
+            }
+            return count;
+        } else  {
+            for ( ; count<maxsize; count++ ) {
+                lUInt16 ch = m_buf[m_buf_pos++];
+                // support only 11 and 16 bit UTF8 chars
+                if ( (ch & 0x80) == 0 ) {
+                    buf[count] = ch;
+                    if ( m_buf_pos>=m_buf_len )
+                        return count + 1;
+                } else if ( (ch & 0xE0) == 0xC0 ) {
+                    // 11 bits
+                    if ( m_buf_pos>=m_buf_len )
+                        return count;
+                    ch = (ch&0x1F);
+                    lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
+                    buf[count] = (ch<<6) | ch2;
+                    //buf[count] = ((lUInt16)(ch&0x1F)<<6) | ((lUInt16)m_buf[m_buf_pos++]&0x3F);
+                } else if ( (ch & 0xF0) == 0xE0 ) {
+                    // 16 bits
+                    if ( m_buf_pos+1>=m_buf_len )
+                        return count;
+                    ch = (ch&0x0F);
+                    lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
+                    lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
+                    buf[count] = (ch<<12) | (ch2<<6) | ch3;
+                } else {
+                    // 20 bits
+                    if ( m_buf_pos+2>=m_buf_len )
+                        return count;
+                    ch = (ch&0x07);
+                    lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
+                    lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
+                    lUInt16 ch4 = m_buf[m_buf_pos++]&0x3F;
+                    buf[count] = ((lChar16)ch<<18) | (ch2<12) | (ch3<<6) | ch4;
+                }
+            }
+            return count;
+        }
+    case ce_utf16_be:
+        {
+            for ( ; count<maxsize; count++ ) {
+                if ( m_buf_pos>=m_buf_len )
+                    return count;
+                lUInt16 ch = m_buf[m_buf_pos++];
+                lUInt16 ch2 = m_buf[m_buf_pos++];
+                buf[count] = (ch << 8) | ch2;
+            }
+            return count;
+        }
+    case ce_utf16_le:
+        {
+            for ( ; count<maxsize; count++ ) {
+                if ( m_buf_pos>=m_buf_len )
+                    return count;
+                lUInt16 ch = m_buf[m_buf_pos++];
+                lUInt16 ch2 = m_buf[m_buf_pos++];
+                buf[count] = (ch2 << 8) | ch;
+            }
+            return count;
+        }
+    case ce_utf32_be:
+        // support 24 bits only
+        {
+            for ( ; count<maxsize; count++ ) {
+                if ( m_buf_pos>=m_buf_len )
+                    return count;
+                m_buf_pos++; //lUInt16 ch = m_buf[m_buf_pos++];
+                lUInt16 ch2 = m_buf[m_buf_pos++];
+                lUInt16 ch3 = m_buf[m_buf_pos++];
+                lUInt16 ch4 = m_buf[m_buf_pos++];
+                buf[count] = (ch2 << 16) | (ch3 << 8) | ch4;
+            }
+            return count;
+        }
+    case ce_utf32_le:
+        // support 24 bits only
+        {
+            for ( ; count<maxsize; count++ ) {
+                if ( m_buf_pos>=m_buf_len )
+                    return count;
+                lUInt16 ch = m_buf[m_buf_pos++];
+                lUInt16 ch2 = m_buf[m_buf_pos++];
+                lUInt16 ch3 = m_buf[m_buf_pos++];
+                m_buf_pos++; //lUInt16 ch4 = m_buf[m_buf_pos++];
+                buf[count] = (ch3 << 16) | (ch2 << 8) | ch;
+            }
+            return count;
         }
     default:
         return 0;
@@ -278,14 +389,12 @@ int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, 
             chcount++;
         }
     } else {
-        while ( m_buf_pos<max_pos && chcount < buf_size ) {
-            *buf++ = ReadChar();
-            chcount++;
-        }
+        return ReadChars( buf, buf_size );
     }
     return chcount;
 }
 
+#if 0
 /// reads specified number of characters and saves to buffer
 int LVTextFileBase::ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size, int flags)
 {
@@ -320,6 +429,7 @@ int LVTextFileBase::ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, 
     }
     return chcount;
 }
+#endif
 
 bool LVFileParserBase::FillBuffer( int bytesToRead )
 {
@@ -364,6 +474,12 @@ void LVFileParserBase::Reset()
     m_buf_pos = 0;
     m_buf_len = 0;
     m_stream_size = m_stream->GetSize();
+}
+
+void LVTextFileBase::Reset()
+{
+    LVFileParserBase::Reset();
+    clearCharBuffer();
 }
 
 void LVTextFileBase::SetCharset( const lChar16 * name )
@@ -1162,20 +1278,20 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
 
     lString16 res;
     res.reserve( 80 );
-    FillBuffer( maxLineSize*3 );
+    //FillBuffer( maxLineSize*3 );
 
     lvpos_t last_space_fpos = 0;
     int last_space_chpos = -1;
     lChar16 ch = 0;
     while ( res.length()<(unsigned)maxLineSize ) {
-        if ( Eof() ) {
+        if ( m_eof ) {
             // EOF: treat as EOLN
             last_space_fpos = m_buf_fpos + m_buf_pos;
             last_space_chpos = res.length();
             flags |= LINE_HAS_EOLN; // EOLN flag
             break;
         }
-        ch = ReadChar();
+        ch = ReadCharFromBuffer();
         if ( ch==0xFEFF && fpos==0 && res.empty() ) {
             fpos = m_buf_fpos + m_buf_pos;
         } else if ( ch!='\r' && ch!='\n' ) {
@@ -1189,8 +1305,8 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & 
             lvpos_t prev_pos = m_buf_pos;
             last_space_fpos = m_buf_fpos + m_buf_pos;
             last_space_chpos = res.length();
-            if ( !Eof() ) {
-                lChar16 ch2 = ReadChar();
+            if ( !m_eof ) {
+                lChar16 ch2 = ReadCharFromBuffer();
                 if ( ch2!=ch && (ch2=='\r' || ch2=='\n') ) {
                     last_space_fpos = m_buf_fpos + m_buf_pos;
                 } else {
@@ -1539,27 +1655,20 @@ bool LVXMLParser::Parse()
     lString16 attrns;
     lString16 attrvalue;
     bool errorFlag = false;
-    for (;!Eof() && !errorFlag;)
+    for (;!m_eof && !errorFlag;)
     {
         if ( m_stopped )
              break;
         // load next portion of data if necessary
-        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE ) {
-            if ( !FillBuffer( MIN_BUF_DATA_SIZE*2 ) ) {
-                errorFlag = true;
-                break;
-            }
-        }
-        if ( m_buf_len - m_buf_pos <=0 )
-            break;
+        lChar16 ch = PeekCharFromBuffer();
         switch (m_state)
         {
         case ps_bof:
             {
                 // skip file beginning until '<'
-                for ( ; m_buf_pos<m_buf_len && m_buf[m_buf_pos]!='<'; m_buf_pos++ )
+                for ( ; !m_eof && ch!='<'; ch = PeekNextCharFromBuffer() )
                     ;
-                if (m_buf_pos<m_buf_len)
+                if (!m_eof)
                 {
                     // m_buf[m_buf_pos] == '<'
                     m_state = ps_lt;
@@ -1569,52 +1678,45 @@ bool LVXMLParser::Parse()
             break;
         case ps_lt:
             {
-                if (!SkipSpaces())
+                if ( !SkipSpaces() )
                     break;
                 closeFlag = false;
                 qFlag = false;
-                if (m_buf[m_buf_pos]=='/')
+                if (ch=='/')
                 {
-                    m_buf_pos++;
+                    ch = ReadCharFromBuffer();
                     closeFlag = true;
                 }
-                else if (m_buf[m_buf_pos]=='?')
+                else if (ch=='?')
                 {
                     // <?xml?>
-                    m_buf_pos++;
+                    ch = ReadCharFromBuffer();
                     qFlag = true;
                 }
-                else if (m_buf[m_buf_pos]=='!')
+                else if (ch=='!')
                 {
                     // comments etc...
-                    if ( m_buf[m_buf_pos+1]=='-' && m_buf[m_buf_pos+2]=='-' ) {
+                    if ( PeekCharFromBuffer(1)=='-' && PeekCharFromBuffer(2)=='-' ) {
                         // skip comments
-                        m_buf_pos += 3;
-                        while ( m_buf[m_buf_pos]!='-' || m_buf[m_buf_pos+1]!='-'
-                                || m_buf[m_buf_pos+2]!='>' ) {
-                            //
-                            if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE ) {
-                                if ( !FillBuffer( MIN_BUF_DATA_SIZE*2 ) ) {
-                                    errorFlag = true;
-                                    break;
-                                }
-                            }
-                            m_buf_pos++;
+                        ch = PeekNextCharFromBuffer( 2 );
+                        while ( !m_eof && (ch!='-' || PeekCharFromBuffer(1)!='-'
+                                || PeekCharFromBuffer(2)!='>') ) {
+                            ch = PeekNextCharFromBuffer();
                         }
-                        if ( m_buf[m_buf_pos]=='-' && m_buf[m_buf_pos+1]=='-'
-                                && m_buf[m_buf_pos+2]=='>' )
-                                m_buf_pos += 3;
+                        if ( ch=='-' && PeekCharFromBuffer(1)=='-'
+                                && PeekCharFromBuffer(2)=='>' )
+                            ch = PeekNextCharFromBuffer(2);
                         m_state = ps_text;
                         break;
                     }
                 }
-                if (!ReadIdent(tagns, tagname) || m_buf[m_buf_pos]=='=')
+                if ( !ReadIdent(tagns, tagname) || PeekCharFromBuffer()=='=')
                 {
                     // error!
                     if (SkipTillChar('>'))
                     {
                         m_state = ps_text;
-                        ++m_buf_pos;
+                        ch = ReadCharFromBuffer();
                     }
                     break;
                 }
@@ -1625,7 +1727,7 @@ bool LVXMLParser::Parse()
                     if (SkipTillChar('>'))
                     {
                         m_state = ps_text;
-                        ++m_buf_pos;
+                        ch = ReadCharFromBuffer();
                     }
                     break;
                 }
@@ -1645,17 +1747,17 @@ bool LVXMLParser::Parse()
             {
                 if (!SkipSpaces())
                     break;
-                char ch = m_buf[m_buf_pos];
-                char nch = m_buf[m_buf_pos+1];
+                ch = PeekCharFromBuffer();
+                lChar16 nch = PeekCharFromBuffer(1);
                 if ( ch=='>' || (nch=='>' && (ch=='/' || ch=='?')) )
                 {
                     // end of tag
-                    if (ch!='>')
+                    if ( ch!='>' )
                         m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
-                    if (ch=='>')
-                        m_buf_pos++;
+                    if ( ch=='>' )
+                        ch = PeekNextCharFromBuffer();
                     else
-                        m_buf_pos+=2;
+                        ch = PeekNextCharFromBuffer(1);
                     m_state = ps_text;
                     break;
                 }
@@ -1663,44 +1765,37 @@ bool LVXMLParser::Parse()
                 {
                     // error: skip rest of tag
                     SkipTillChar('<');
-                    m_buf_pos++;
+                    ch = PeekNextCharFromBuffer(1);
                     m_state = ps_lt;
                     break;
                 }
                 SkipSpaces();
                 attrvalue.reset(16);
-                if ( m_buf[m_buf_pos]=='=' )
+                ch = PeekCharFromBuffer();
+                if ( ch=='=' )
                 {
                     // read attribute value
-                    m_buf_pos++;
+                    ch = PeekNextCharFromBuffer();
                     SkipSpaces();
                     lChar16 qChar = 0;
-                    lChar16 ch = m_buf[m_buf_pos];
+                    ch = PeekCharFromBuffer();
                     if (ch=='\"' || ch=='\'')
                     {
-                        qChar = m_buf[m_buf_pos];
-                        m_buf_pos++;
+                        qChar = ReadCharFromBuffer();
                     }
-                    for ( ;!Eof(); )
+                    for ( ;!m_eof; )
                     {
-                        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE ) {
-                            if ( !FillBuffer( MIN_BUF_DATA_SIZE*2 ) ) {
-                                errorFlag = true;
-                                break;
-                            }
-
-                        }
-                        ch = m_buf[m_buf_pos];
+                        ch = PeekCharFromBuffer();
                         if (ch=='>')
                             break;
                         if (!qChar && IsSpaceChar(ch))
                             break;
                         if (qChar && ch==qChar)
                         {
-                            m_buf_pos++;
+                            ch = PeekNextCharFromBuffer();
                             break;
                         }
-                        ch = ReadChar();
+                        ch = ReadCharFromBuffer();
                         if (ch)
                             attrvalue += ch;
                         else
@@ -2123,26 +2218,49 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags )
     }
 }
 
+void LVTextFileBase::clearCharBuffer()
+{
+    m_read_buffer_len = m_read_buffer_pos = 0;
+}
+
+int LVTextFileBase::fillCharBuffer()
+{
+    int available = m_read_buffer_len - m_read_buffer_pos;
+    if ( available > (XML_CHAR_BUFFER_SIZE>>3) )
+        return available; // don't update if more than 1/8 of buffer filled
+    if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
+        FillBuffer( MIN_BUF_DATA_SIZE*2 );
+    if ( m_read_buffer_len > (XML_CHAR_BUFFER_SIZE - (XML_CHAR_BUFFER_SIZE>>3)) ) {
+        memcpy( m_read_buffer, m_read_buffer+m_read_buffer_pos, available * sizeof(lChar16) );
+        m_read_buffer_pos = 0;
+        m_read_buffer_len = available;
+    }
+    int charsRead = ReadChars( m_read_buffer + m_read_buffer_len, XML_CHAR_BUFFER_SIZE - m_read_buffer_len );
+    m_read_buffer_len += charsRead;
+#ifdef _DEBUG
+    CRLog::trace("buf: %s\n", UnicodeToUtf8(lString16(m_read_buffer, m_read_buffer_len)).c_str() );
+#endif
+    return m_read_buffer_len - m_read_buffer_pos;
+}
+
 bool LVXMLParser::ReadText()
 {
     // TODO: remove tracking of file pos
-    int text_start_pos = 0;
-    int ch_start_pos = 0;
-    int last_split_fpos = 0;
+    //int text_start_pos = 0;
+    //int ch_start_pos = 0;
+    //int last_split_fpos = 0;
     int last_split_txtlen = 0;
     int tlen = 0;
-    text_start_pos = (int)(m_buf_fpos + m_buf_pos);
+    //text_start_pos = (int)(m_buf_fpos + m_buf_pos);
     m_txt_buf.reset(TEXT_SPLIT_SIZE+1);
     lUInt32 flags = m_callback->getFlags();
     bool pre_para_splitting = ( flags & TXTFLG_PRE_PARA_SPLITTING )!=0;
     bool last_eol = false;
-    for (;!Eof();)
+    for (;!m_eof;)
     {
-        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
-            FillBuffer( MIN_BUF_DATA_SIZE*2 );
-        ch_start_pos = (int)(m_buf_fpos + m_buf_pos);
-        lChar16 ch = ReadChar();
-        bool flgBreak = ch=='<' || Eof();
+        //ch_start_pos = (int)(m_buf_fpos + m_buf_pos);
+        lChar16 ch = ReadCharFromBuffer();
+        bool flgBreak = ch=='<' || m_eof;
         bool splitParas = false;
         if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) )
             splitParas = true;
@@ -2154,9 +2272,9 @@ bool LVXMLParser::ReadText()
         }
         if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
         {
-            if (last_split_fpos==0 || flgBreak || splitParas)
+            if (last_split_txtlen==0 || flgBreak || splitParas)
             {
-                last_split_fpos = (int)((ch=='<')?ch_start_pos : m_buf_fpos + m_buf_pos);
+                //last_split_fpos = (int)((ch=='<')?ch_start_pos : m_buf_fpos + m_buf_pos);
                 last_split_txtlen = tlen;
             }
             //=====================================================
@@ -2178,46 +2296,36 @@ bool LVXMLParser::ReadText()
             }
             m_txt_buf = nextText;
             tlen = m_txt_buf.length();
-            text_start_pos = last_split_fpos; //m_buf_fpos + m_buf_pos;
-            last_split_fpos = 0;
+            //text_start_pos = last_split_fpos; //m_buf_fpos + m_buf_pos;
+            //last_split_fpos = 0;
             last_split_txtlen = 0;
         }
         else if (ch==' ' || (ch=='\r' && m_buf[m_buf_pos]!='\n')
             || (ch=='\n' && m_buf[m_buf_pos]!='\r') )
         {
-            last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
+            //last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
             last_split_txtlen = tlen;
         }
         last_eol = (ch=='\r' || ch=='\n');
     }
     //if (!Eof())
     //    m_buf_pos++;
-    return (!Eof());
+    return (!m_eof);
 }
 
 bool LVXMLParser::SkipSpaces()
 {
-    while (!Eof())
-    {
-        for ( ; m_buf_pos<m_buf_len && IsSpaceChar(m_buf[m_buf_pos]); m_buf_pos++ )
-            ;
-        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
-            FillBuffer( MIN_BUF_DATA_SIZE*2 );
-        if (m_buf_pos<m_buf_len)
-            return true; // non-space found!
+    for ( lUInt16 ch = PeekCharFromBuffer(); !m_eof; ch = PeekNextCharFromBuffer() ) {
+        if ( !IsSpaceChar(ch) )
+            break; // char found!
     }
-    return false; // EOF
+    return (!m_eof);
 }
 
-bool LVXMLParser::SkipTillChar( char ch )
+bool LVXMLParser::SkipTillChar( lChar16 charToFind )
 {
-    while (!Eof())
-    {
-        for ( ; m_buf_pos<m_buf_len && m_buf[m_buf_pos]!=ch; m_buf_pos++ )
-            ;
-        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
-            FillBuffer( MIN_BUF_DATA_SIZE*2 );
-        if (m_buf[m_buf_pos]==ch)
+    for ( lUInt16 ch = PeekCharFromBuffer(); !m_eof; ch = PeekNextCharFromBuffer() ) {
+        if ( ch == charToFind )
             return true; // char found!
     }
     return false; // EOF
@@ -2248,37 +2356,29 @@ bool LVXMLParser::ReadIdent( lString16 & ns, lString16 & name )
     ns.reset(16);
     name.reset(16);
     // check first char
-    if (! isValidFirstIdentChar(m_buf[m_buf_pos]) )
+    lChar16 ch0 = PeekCharFromBuffer();
+    if ( !isValidFirstIdentChar(ch0) )
         return false;
-    name += (lChar16)m_buf[m_buf_pos++];
-    while (!Eof())
-    {
-        if ( m_buf_len - m_buf_pos < MIN_BUF_DATA_SIZE )
-            FillBuffer( MIN_BUF_DATA_SIZE*2 );
-        for ( ; m_buf_pos<m_buf_len; m_buf_pos++ )
+
+    name += ReadCharFromBuffer();
+
+    for ( lUInt16 ch = PeekCharFromBuffer(); !m_eof; ch = PeekNextCharFromBuffer() ) {
+        if ( !isValidIdentChar(ch) )
+            break;
+        if (ch == ':')
         {
-            lUInt8 ch = m_buf[m_buf_pos];
-            if (!isValidIdentChar(ch))
-                break;
-            if (ch == ':')
-            {
-                if ( ns.empty() )
-                    name.swap( ns ); // add namespace
-                else
-                    break; // error
-            }
+            if ( ns.empty() )
+                name.swap( ns ); // add namespace
             else
-            {
-                name += ch;
-            }
+                break; // error
         }
-        if (m_buf_pos<m_buf_len)
+        else
         {
-            char ch = m_buf[m_buf_pos];
-            return (!name.empty()) && (ch==' ' || ch=='/' || ch=='>' || ch=='?' || ch=='=');
+            name += ch;
         }
     }
-    return true; // EOF
+    char ch = PeekCharFromBuffer();
+    return (!name.empty()) && (ch==' ' || ch=='/' || ch=='>' || ch=='?' || ch=='=' || ch==0);
 }
 
 void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )

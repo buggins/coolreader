@@ -92,6 +92,10 @@ public :
         if ( item==NULL )
             return NULL;
         for ( ;; ) {
+            if ( !item->sizeDiv16 ) {
+                CRLog::error("Zero size block at offset %d, data len=%d, total reserved size=%d", (int)(((lUInt8*)item) - _data), _len, _size );
+                return NULL;
+            }
             item = (DataStorageItemHeader*)(((lUInt8*)item) + ((lUInt32)item->sizeDiv16 * 16));
             if ( (lUInt8*)item >= _data + _len )
                 return NULL;
@@ -4099,10 +4103,10 @@ void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int 
     //if ( getDataIndex()==INDEX2 || getDataIndex()==INDEX1) {
     //    CRLog::trace("nodes from element %d are being moved", getDataIndex());
     //}
-#ifdef _DEBUG
+/*#ifdef _DEBUG
     if ( !_document->checkConsistency( false ) )
         CRLog::error("before moveItemsTo");
-#endif
+#endif*/
     int len = endChildIndex - startChildIndex + 1;
     for ( int i=0; i<len; i++ ) {
         ldomNode * item = getChildNode( startChildIndex );
@@ -4114,10 +4118,10 @@ void ldomElement::moveItemsTo( ldomNode * destination, int startChildIndex, int 
         destination->addChild( item->getDataIndex() );
     }
     // TODO: renumber rest of children in necessary
-#ifdef _DEBUG
+/*#ifdef _DEBUG
     if ( !_document->checkConsistency( false ) )
         CRLog::error("after moveItemsTo");
-#endif
+#endif*/
 }
 
 ldomNode * ldomNode::findChildElement( lUInt16 idPath[] )
@@ -4396,6 +4400,13 @@ bool lxmlDocBase::checkConsistency( bool requirePersistent )
 {
     bool res = true;
     //test1: 
+    for ( int i=_instanceMapCount; i<_instanceMapSize && i<_instanceMapCount+5; i++ ) {
+        if ( _instanceMap[i].instance != NULL || _instanceMap[i].data != NULL ) {
+            CRLog::error("instance map tail is not empty (index=%d, len=%d, size=%d)", i, _instanceMapCount, _instanceMapSize);
+            res = false;
+        }
+    }
+
     LVArray<int> dataIndexCount( _instanceMapCount, 0 );
     LVArray<int> dataIndexInstanceFlag( _instanceMapCount, 0 );
     int elemcount = 0;
@@ -4561,21 +4572,20 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         _instanceMapCount = hdr.data_index_size;
         _instanceMapSize = _instanceMapCount + 64;
         _instanceMap = (NodeItem *)(malloc( _instanceMapSize * sizeof(NodeItem) ));
-        for ( int i=0; i<_instanceMapCount; i++ ) {
-            _instanceMap[i].data = NULL;
-            _instanceMap[i].instance = NULL;
-        }
+        memset( _instanceMap, 0, _instanceMapSize * sizeof(NodeItem) );
         //_idNodeMap.clear();
         //_idNodeMap.resize( hdr.data_index_size );
         int elemcount = 0;
         int textcount = 0;
         for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
             if ( item->type==LXML_ELEMENT_NODE ) {
-                ldomPersistentElement * elem = new ldomPersistentElement( this, (ElementDataStorageItem*)item );
+                //ldomPersistentElement * elem = 
+                new ldomPersistentElement( this, (ElementDataStorageItem*)item );
                 //setNode( item->dataIndex, elem, item );
                 elemcount++;
             } else if ( item->type==LXML_TEXT_NODE ) {
-                ldomPersistentText * text = new ldomPersistentText( this, (TextDataStorageItem*)item );
+                //ldomPersistentText * text = 
+                new ldomPersistentText( this, (TextDataStorageItem*)item );
                 //setNode( item->dataIndex, text, item );
                 textcount++;
             }
@@ -4707,11 +4717,14 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
 /// saves recent changes to mapped file
 bool ldomDocument::updateMap()
 {
-    if ( !_mapped )
+    if ( !_mapped || !_mapbuf )
         return false;
     //testTreeConsistency( getRootNode() );
     CRLog::info("Saving recent changes to file");
     persist();
+#ifdef _DEBUG
+    checkConsistency( true);
+#endif
 
     SerialBuf propsbuf(4096);
     getProps()->serialize( propsbuf );
@@ -4731,7 +4744,7 @@ bool ldomDocument::updateMap()
     hdr.data_index_size = _instanceMapCount;
 
 
-    lUInt8 * ptr = _currentBuffer->ptr();
+    lUInt8 * ptr = _mapbuf->getReadWrite();
     // update crc32
     {
         _currentBuffer->length();
@@ -4744,6 +4757,10 @@ bool ldomDocument::updateMap()
     SerialBuf hdrbuf(4096);
     if ( !hdr.serialize( hdrbuf ) )
         return false;
+
+#ifdef _DEBUG
+    checkConsistency( true);
+#endif
 
     hdrbuf.copyTo( ptr, hdrbuf.pos() );
     propsbuf.copyTo( ptr + hdr.props_offset, propssize );

@@ -19,10 +19,10 @@
 LDOMNameIdMapItem::LDOMNameIdMapItem(lUInt16 _id, const lString16 & _value, const css_elem_def_props_t * _data)
     : id(_id), value(_value)
 {
-	data = new css_elem_def_props_t();
-	if ( _data )
+	if ( _data ) {
+        data = new css_elem_def_props_t();
 		*data = *_data;
-	else
+	} else
 		data = NULL;
 }
 

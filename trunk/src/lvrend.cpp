@@ -1059,8 +1059,20 @@ void initRendMethod( ldomNode * enode )
                     if ( !isInline || i==0 ) {
                         if ( firstInline>=0 ) {
                             int lastInline = isInline ? i : i+1;
+/*#ifdef _DEBUG
+                            if ( !enode->getDocument()->checkConsistency( false ) )
+                                CRLog::error("before modify");
+#endif*/
                             enode = enode->modify();
+/*#ifdef _DEBUG
+                            if ( !enode->getDocument()->checkConsistency( false ) )
+                                CRLog::error("after modify, before insert child");
+#endif*/
                             ldomNode * abox = enode->insertChildElement( lastInline, LXML_NS_NONE, el_autoBoxing )->modify();
+/*#ifdef _DEBUG
+                            if ( !enode->getDocument()->checkConsistency( false ) )
+                                CRLog::error("after insert child");
+#endif*/
                             enode->moveItemsTo( abox, lastInline+1, firstInline+1 );
                             setNodeStyle( abox,
                                 enode->getStyle(),
