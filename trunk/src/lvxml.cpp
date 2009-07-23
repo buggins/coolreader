@@ -1622,6 +1622,9 @@ bool LVXMLParser::CheckFormat()
     //CRLog::trace("LVXMLParser::CheckFormat()");
     #define XML_PARSER_DETECT_SIZE 8192
     Reset();
+    if ( !AutodetectEncoding() )
+        ; //return false;
+    Reset();
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
     FillBuffer( XML_PARSER_DETECT_SIZE );
     int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, XML_PARSER_DETECT_SIZE-1, 0 );
@@ -1629,8 +1632,20 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        if ( s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6 ) //&& s.pos(L"<FictionBook") >= 0
+        if ( s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6 ) {
+            //&& s.pos(L"<FictionBook") >= 0
             res = true;
+            int encpos=s.pos(L"encoding=\"");
+            if ( encpos>=0 ) {
+                lString16 encname = s.substr( encpos+10, 20 );
+                int endpos = s.pos(L"\"");
+                if ( endpos>0 ) {
+                    encname.erase( endpos, encname.length() - endpos );
+                    SetCharset( encname.c_str() );
+                }
+            } else {
+            }
+        }
         //else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
         //    res = true;
     }
@@ -2256,10 +2271,8 @@ bool LVXMLParser::ReadText()
     lUInt32 flags = m_callback->getFlags();
     bool pre_para_splitting = ( flags & TXTFLG_PRE_PARA_SPLITTING )!=0;
     bool last_eol = false;
-    for (;!m_eof;)
+    for ( lChar16 ch = ReadCharFromBuffer(); ; ch = ReadCharFromBuffer() )
     {
-        //ch_start_pos = (int)(m_buf_fpos + m_buf_pos);
-        lChar16 ch = ReadCharFromBuffer();
         bool flgBreak = ch=='<' || m_eof;
         bool splitParas = false;
         if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) )
@@ -2331,7 +2344,7 @@ bool LVXMLParser::SkipTillChar( lChar16 charToFind )
     return false; // EOF
 }
 
-inline bool isValidIdentChar( char ch )
+inline bool isValidIdentChar( lChar16 ch )
 {
     return ( (ch>='a' && ch<='z')
           || (ch>='A' && ch<='Z')
@@ -2342,7 +2355,7 @@ inline bool isValidIdentChar( char ch )
           || (ch==':') );
 }
 
-inline bool isValidFirstIdentChar( char ch )
+inline bool isValidFirstIdentChar( lChar16 ch )
 {
     return ( (ch>='a' && ch<='z')
           || (ch>='A' && ch<='Z')
@@ -2377,7 +2390,7 @@ bool LVXMLParser::ReadIdent( lString16 & ns, lString16 & name )
             name += ch;
         }
     }
-    char ch = PeekCharFromBuffer();
+    lChar16 ch = PeekCharFromBuffer();
     return (!name.empty()) && (ch==' ' || ch=='/' || ch=='>' || ch=='?' || ch=='=' || ch==0);
 }
 
