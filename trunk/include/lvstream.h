@@ -700,6 +700,8 @@ LVContainerRef LVOpenDirectory( const lChar16 * path, const wchar_t * mask = L"*
 
 /// Create directory if not exist
 bool LVCreateDirectory( lString16 path );
+/// delete file, return true if file found and successfully deleted
+bool LVDeleteFile( lString16 filename );
 
 /// copies content of in stream to out stream
 lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in );

@@ -4764,7 +4764,6 @@ class ldomDocCacheImpl : public ldomDocCache
 {
     lString16 _cacheDir;
     lvsize_t _maxSize;
-    LVContainerRef _container;
 
     struct FileItem {
         lString16 filename;
@@ -4777,8 +4776,35 @@ public:
     {
     }
 
-    bool readIndex( lString16 filename )
+    bool writeIndex(  )
     {
+        lString16 filename = _cacheDir + L"cr3cache.inx";
+        LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+        if ( !stream )
+            return false;
+        SerialBuf buf( 16384, true );
+        buf.putMagic( doccache_magic );
+
+        lUInt32 start = buf.pos();
+        lUInt32 count = _files.length();
+        buf << count;
+        for ( unsigned i=0; i<count && !buf.error(); i++ ) {
+            FileItem * item = _files[i];
+            buf << item->filename;
+            buf << item->size;
+        }
+        buf.putCRC( buf.pos() - start );
+
+        if ( buf.error() )
+            return false;
+        if ( stream->Write( buf.buf(), buf.pos(), NULL )!=LVERR_OK )
+            return false;
+        return true;
+    }
+
+    bool readIndex(  )
+    {
+        lString16 filename = _cacheDir + L"cr3cache.inx";
         // read index
         LVStreamRef instream = LVOpenFileStream( filename.c_str(), LVOM_READ );
         if ( !instream.isNull() ) {
@@ -4808,16 +4834,82 @@ public:
         return true;
     }
 
+    // remove all extra files to add new one of specified size
+    bool reserve( lvsize_t allocSize )
+    {
+        bool res = true;
+        // remove extra files specified in list
+        lvsize_t dirsize = allocSize;
+        for ( int i=0; i<_files.length(); ) {
+            if ( LVFileExists( _files[i]->filename ) ) {
+                if ( (i>0 || allocSize>0) && dirsize+_files[i]->size > _maxSize ) {
+                    if ( LVDeleteFile( _cacheDir + _files[i]->filename ) ) {
+                        _files.erase(i, 1);
+                    } else {
+                        CRLog::error("Cannot delete cache file %s", UnicodeToUtf8(_files[i]->filename).c_str() );
+                        dirsize += _files[i]->size;
+                        res = false;
+                        i++;
+                    }
+                } else {
+                    dirsize += _files[i]->size;
+                    i++;
+                }
+            } else {
+                CRLog::error("File %s is found in cache index, but does not exist", UnicodeToUtf8(_files[i]->filename).c_str() );
+                _files.erase(i, 1);
+            }
+        }
+        return res;
+    }
+
+    int findFileIndex( lString16 filename )
+    {
+        for ( int i=0; i<_files.length(); i++ ) {
+            if ( _files[i]->filename == filename )
+                return i;
+        }
+        return -1;
+    }
+
     bool init()
     {
-        _container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
-        if ( _container.isNull() )
-            return false;
+        CRLog::error("Initialize document cache in directory %s", UnicodeToUtf8(_cacheDir).c_str() );
         // read index
-        if ( readIndex( _cacheDir + L"cr3cache.inx" ) ) {
+        if ( readIndex(  ) ) {
             // read successfully
         } else {
             _files.clear();
+
+        }
+        reserve(0);
+        // remove files not specified in list
+        LVContainerRef container;
+        container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
+        if ( container.isNull() ) {
+            if ( !LVCreateDirectory( _cacheDir ) ) {
+                CRLog::error("Cannot create directory %s", UnicodeToUtf8(_cacheDir).c_str() );
+                return false;
+            }
+            container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
+            if ( container.isNull() ) {
+                CRLog::error("Cannot open directory %s", UnicodeToUtf8(_cacheDir).c_str() );
+                return false;
+            }
+        }
+        for ( int i=0; i<container->GetObjectCount(); i++ ) {
+            const LVContainerItemInfo * item = container->GetObjectInfo( i );
+            if ( !item->IsContainer() ) {
+                lString16 fn = item->GetName();
+                if ( findFileIndex(fn)<0 ) {
+                    // delete file
+                    CRLog::info("Removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
+                    if ( !LVDeleteFile( fn ) ) {
+                        CRLog::error("Error while removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
+                    }
+                }
+                    
+            }
         }
         return true;
     }

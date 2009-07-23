@@ -4007,3 +4007,16 @@ LVStreamRef LVMapFileStream( const lChar16 * pathname, lvopen_mode_t mode, lvsiz
         return LVStreamRef(stream);
 #endif
 }
+
+/// delete file, return true if file found and successfully deleted
+bool LVDeleteFile( lString16 filename )
+{
+#ifdef _WIN32
+    return DeleteFileW( filename.c_str() ) ? true : false;
+#else
+    if ( unlink( UnicodeToUtf8( filename ).c_str() )
+        return false;
+    return true;
+#endif
+}
+
