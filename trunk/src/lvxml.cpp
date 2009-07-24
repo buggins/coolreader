@@ -2312,8 +2312,8 @@ bool LVXMLParser::ReadText()
             //last_split_fpos = 0;
             last_split_txtlen = 0;
         }
-        else if (ch==' ' || (ch=='\r' && m_buf[m_buf_pos]!='\n')
-            || (ch=='\n' && m_buf[m_buf_pos]!='\r') )
+        else if (ch==' ' || (ch=='\r' && PeekCharFromBuffer()!='\n')
+            || (ch=='\n' && PeekCharFromBuffer()!='\r') )
         {
             //last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
             last_split_txtlen = tlen;
