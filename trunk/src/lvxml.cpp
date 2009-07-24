@@ -341,7 +341,7 @@ bool LVFileParserBase::Seek( lvpos_t pos, int bytesToPrefetch )
         bytesToRead = (m_stream_size - pos);
     if ( (unsigned)m_buf_size < bytesToRead ) {
         m_buf_size = bytesToRead;
-        m_buf = (lUInt8 *)realloc( m_buf, m_buf_size + 16 );
+        m_buf = (lUInt8 *)realloc( m_buf, m_buf_size );
     }
     m_buf_fpos = pos;
     m_buf_pos = 0;
@@ -457,7 +457,7 @@ bool LVFileParserBase::FillBuffer( int bytesToRead )
         if (space < bytesToRead)
         {
             m_buf_size = m_buf_size + (bytesToRead - space + BUF_SIZE_INCREMENT);
-            m_buf = (lUInt8 *)realloc( m_buf, m_buf_size + 16 );
+            m_buf = (lUInt8 *)realloc( m_buf, m_buf_size );
         }
     }
     lvsize_t n = 0;
@@ -1622,8 +1622,7 @@ bool LVXMLParser::CheckFormat()
     //CRLog::trace("LVXMLParser::CheckFormat()");
     #define XML_PARSER_DETECT_SIZE 8192
     Reset();
-    if ( !AutodetectEncoding() )
-        ; //return false;
+    AutodetectEncoding();
     Reset();
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
     FillBuffer( XML_PARSER_DETECT_SIZE );
@@ -2252,9 +2251,9 @@ int LVTextFileBase::fillCharBuffer()
     }
     int charsRead = ReadChars( m_read_buffer + m_read_buffer_len, XML_CHAR_BUFFER_SIZE - m_read_buffer_len );
     m_read_buffer_len += charsRead;
-#ifdef _DEBUG
-    CRLog::trace("buf: %s\n", UnicodeToUtf8(lString16(m_read_buffer, m_read_buffer_len)).c_str() );
-#endif
+//#ifdef _DEBUG
+//    CRLog::trace("buf: %s\n", UnicodeToUtf8(lString16(m_read_buffer, m_read_buffer_len)).c_str() );
+//#endif
     return m_read_buffer_len - m_read_buffer_pos;
 }
 
