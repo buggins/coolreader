@@ -353,6 +353,7 @@ protected:
         lUInt32 idtable_offset;
         lUInt32 idtable_size;
         lUInt32 data_offset;
+        lUInt32 data_used;
         lUInt32 data_size;
         lUInt32 data_crc32;
         lUInt32 data_index_size;
@@ -1227,9 +1228,10 @@ private:
     LVContainerRef _container;
 
 public:
-
-    bool openFromCacheFile( lString16 fname );
-    bool swapToCacheFile( lString16 fname );
+    /// try opening from cache file, find by source file name (w/o path) and crc32
+    bool openFromCache( lString16 fname, lUInt32 crc );
+    /// swap to cache file, find by source file name (w/o path) and crc32
+    bool swapToCache( lString16 fname, lUInt32 crc );
     /// saves recent changes to mapped file
     bool updateMap();
 
@@ -1477,10 +1479,18 @@ ldomDocument * LVParseXMLStream( LVStreamRef stream,
 class ldomDocCache
 {
 public:
+    /// open existing cache file stream
+    static LVStreamRef openExisting( lString16 filename, lUInt32 crc, lUInt32 docFlags );
+    /// create new cache file
+    static LVStreamRef createNew( lString16 filename, lUInt32 crc, lUInt32 docFlags, lUInt32 fileSize );
+    /// init document cache
     static bool init( lString16 cacheDir, lvsize_t maxSize );
+    /// close document cache manager
     static bool close();
-    static ldomDocCache * instance();
-    virtual ~ldomDocCache();
+    /// delete all cache files
+    static bool clear();
+    /// returns true if cache is enabled (successfully initialized)
+    static bool enabled();
 };
 
 #endif

@@ -4339,7 +4339,7 @@ bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
     hdrbuf << src_file_size << src_file_crc32;
     hdrbuf << props_offset << props_size;
     hdrbuf << idtable_offset << idtable_size;
-    hdrbuf << data_offset << data_size << data_crc32 << data_index_size << file_size;
+    hdrbuf << data_offset << data_size << data_used << data_crc32 << data_index_size << file_size;
     hdrbuf << src_file_name;
     hdrbuf.putCRC( hdrbuf.pos() - start );
     return !hdrbuf.error();
@@ -4356,7 +4356,7 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
     hdrbuf >> src_file_size >> src_file_crc32;
     hdrbuf >> props_offset >> props_size;
     hdrbuf >> idtable_offset >> idtable_size;
-    hdrbuf >> data_offset >> data_size >> data_crc32 >> data_index_size >> file_size;
+    hdrbuf >> data_offset >> data_size >> data_used >> data_crc32 >> data_index_size >> file_size;
     hdrbuf >> src_file_name;
     hdrbuf.checkCRC( hdrbuf.pos() - start );
     if ( hdrbuf.error() ) {
@@ -4417,9 +4417,9 @@ bool lxmlDocBase::checkConsistency( bool requirePersistent )
         itemcount++;
     //CRLog::trace("checking item %d: %08x", itemcount, (unsigned) item );
         if ( item->type==LXML_ELEMENT_NODE ) {
-            if ( item->dataIndex==INDEX1 || item->dataIndex==INDEX2 ) {
-                CRLog::debug("item with index %d: element name=%s", item->dataIndex, UnicodeToUtf8(_instanceMap[item->dataIndex].instance->getNodeName()).c_str() );
-            }
+            //if ( item->dataIndex==INDEX1 || item->dataIndex==INDEX2 ) {
+            //    CRLog::debug("item with index %d: element name=%s", item->dataIndex, UnicodeToUtf8(_instanceMap[item->dataIndex].instance->getNodeName()).c_str() );
+            //}
             dataIndexCount[ item->dataIndex ]++;
             elemcount++;
             if ( _instanceMap[item->dataIndex].data != item ) {
@@ -4509,12 +4509,14 @@ bool lxmlDocBase::checkConsistency( bool requirePersistent )
 
 #endif
 
-bool ldomDocument::openFromCacheFile( lString16 fname )
+bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
 {
-    CRLog::info("Started restoring of document from file");
-    LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, 0 );
-    if ( map.isNull() )
+    CRLog::info("ldomDocument::openFromCache() - Started restoring of document from cache file");
+    LVStreamRef map = ldomDocCache::openExisting( fname, crc, getDocFlags() );
+    if ( map.isNull() ) {
+        CRLog::error("Document %s is not found in cache", UnicodeToUtf8(fname).c_str() );
         return false;
+    }
     lUInt32 fileSize = (lUInt32)map->GetSize();
     LVStreamBufferRef buf = map->GetWriteBuffer( 0, fileSize );
     if ( buf.isNull() )
@@ -4533,8 +4535,9 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
         if ( hdr.data_offset >= fileSize || hdr.data_offset+hdr.data_size > fileSize )
             return false;
         // data crc32
-        if ( lStr_crc32(0,  ptr + hdr.data_offset, hdr.data_size )!=hdr.data_crc32 ) {
-            CRLog::error("Swap file - CRC32 not matched for DOM data");
+        lUInt32 crc = lStr_crc32(0,  ptr + hdr.data_offset, hdr.data_size );
+        if ( crc!=hdr.data_crc32 ) {
+            CRLog::error("Swap file - CRC32 not matched for DOM data (%08x expected, %08x actual)", hdr.data_crc32, crc );
             return false;
         }
         // TODO: add more checks here
@@ -4595,13 +4598,24 @@ bool ldomDocument::openFromCacheFile( lString16 fname )
 #ifdef _DEBUG
     checkConsistency( true );
 #endif
+
+    CRLog::info("ldomDocument::openFromCache() - read successfully");
     return true;
 }
 
-bool ldomDocument::swapToCacheFile( lString16 fname )
+bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc )
 {
+    if ( !_map.isNull() ) {
+        // already in map file
+        return true;
+    }
+    if ( !ldomDocCache::enabled() ) {
+        return false;
+    }
+
     //testTreeConsistency( getRootNode() );
-    CRLog::info("Started swapping of document to file");
+    CRLog::info("ldomDocument::swapToCache() - Started swapping of document to cache file");
+
     persist();
     //testTreeConsistency( getRootNode() );
 
@@ -4644,7 +4658,7 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     lUInt32 reserved = (hdr.file_size / 16) + 8192; // 8K + 1/16
     hdr.file_size += reserved;
 
-    LVStreamRef map = LVMapFileStream( fname.c_str(), LVOM_APPEND, hdr.file_size );
+    LVStreamRef map = ldomDocCache::createNew( fname, crc, getDocFlags(), hdr.file_size );
     if ( map.isNull() )
         return false;
 
@@ -4658,12 +4672,15 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
 
     hdr.data_crc32 = 0;
     // copy data
+    hdr.data_used = 0;
     for ( int i=0; i<_dataBuffers.length(); i++ ) {
         lUInt32 len = _dataBuffers[i]->length();
         memcpy( ptr + pos, _dataBuffers[i]->ptr(), len );
         hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
         pos += len;
+        hdr.data_used += len;
     }
+    CRLog::info( "ldomDocument::updateMap() - data CRC is %08x", hdr.data_crc32 );
 
     SerialBuf hdrbuf(4096);
     if ( !hdr.serialize( hdrbuf ) )
@@ -4711,6 +4728,7 @@ bool ldomDocument::swapToCacheFile( lString16 fname )
     checkConsistency( true);
 #endif
     _mapped = true;
+    CRLog::info("ldomDocument::swapToCache() - swapping of document to cache file finished successfully");
     return true;
 }
 
@@ -4720,7 +4738,7 @@ bool ldomDocument::updateMap()
     if ( !_mapped || !_mapbuf )
         return false;
     //testTreeConsistency( getRootNode() );
-    CRLog::info("Saving recent changes to file");
+    CRLog::info("ldomDocument::updateMap() - Saving recent changes to cache file");
     persist();
 #ifdef _DEBUG
     checkConsistency( true);
@@ -4743,7 +4761,8 @@ bool ldomDocument::updateMap()
 
     hdr.data_index_size = _instanceMapCount;
 
-
+    hdr.data_used = _currentBuffer->length();
+    hdr.data_size = _currentBuffer->length();
     lUInt8 * ptr = _mapbuf->getReadWrite();
     // update crc32
     {
@@ -4752,6 +4771,8 @@ bool ldomDocument::updateMap()
         hdr.data_crc32 = 0;
         lUInt32 len = _currentBuffer->length();
         hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
+
+        CRLog::info( "ldomDocument::updateMap() - data CRC is %08x", hdr.data_crc32 );
     }
 
     SerialBuf hdrbuf(4096);
@@ -4769,6 +4790,8 @@ bool ldomDocument::updateMap()
 #ifdef _DEBUG
     checkConsistency( true);
 #endif
+
+    CRLog::info("ldomDocument::updateMap() - Changes saved");
     return true;
 }
 
@@ -4791,9 +4814,10 @@ public:
     ldomDocCacheImpl( lString16 cacheDir, lvsize_t maxSize )
         : _cacheDir( cacheDir ), _maxSize( maxSize )
     {
+        LVAppendPathDelimiter( _cacheDir );
     }
 
-    bool writeIndex(  )
+    bool writeIndex()
     {
         lString16 filename = _cacheDir + L"cr3cache.inx";
         LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
@@ -4823,14 +4847,17 @@ public:
     {
         lString16 filename = _cacheDir + L"cr3cache.inx";
         // read index
+        lUInt32 totalSize = 0;
         LVStreamRef instream = LVOpenFileStream( filename.c_str(), LVOM_READ );
         if ( !instream.isNull() ) {
             LVStreamBufferRef sb = instream->GetReadBuffer(0, instream->GetSize() );
             if ( !sb )
                 return false;
             SerialBuf buf( sb->getReadOnly(), sb->getSize() );
-            if ( !buf.checkMagic( doccache_magic ) )
+            if ( !buf.checkMagic( doccache_magic ) ) {
+                CRLog::error("wrong cache index file format");
                 return false;
+            }
 
             lUInt32 start = buf.pos();
             lUInt32 count;
@@ -4840,13 +4867,52 @@ public:
                 _files.add( item );
                 buf >> item->filename;
                 buf >> item->size;
+                totalSize += item->size;
             }
-            if ( !buf.checkCRC( buf.pos() - start ) )
+            if ( !buf.checkCRC( buf.pos() - start ) ) {
+                CRLog::error("CRC32 doesn't match in cache index file");
                 return false;
+            }
 
             if ( buf.error() )
                 return false;
 
+            CRLog::info( "Document cache index file read ok, %d files in cache, %d bytes", _files.length(), totalSize );
+            return true;
+        } else {
+            CRLog::error( "Document cache index file cannot be read" );
+            return false;
+        }
+    }
+
+    /// remove all .cr3 files which are not listed in index
+    bool removeExtraFiles( )
+    {
+        LVContainerRef container;
+        container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
+        if ( container.isNull() ) {
+            if ( !LVCreateDirectory( _cacheDir ) ) {
+                CRLog::error("Cannot create directory %s", UnicodeToUtf8(_cacheDir).c_str() );
+                return false;
+            }
+            container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
+            if ( container.isNull() ) {
+                CRLog::error("Cannot open directory %s", UnicodeToUtf8(_cacheDir).c_str() );
+                return false;
+            }
+        }
+        for ( int i=0; i<container->GetObjectCount(); i++ ) {
+            const LVContainerItemInfo * item = container->GetObjectInfo( i );
+            if ( !item->IsContainer() ) {
+                lString16 fn = item->GetName();
+                if ( findFileIndex(fn)<0 ) {
+                    // delete file
+                    CRLog::info("Removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
+                    if ( !LVDeleteFile( fn ) ) {
+                        CRLog::error("Error while removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
+                    }
+                }
+            }
         }
         return true;
     }
@@ -4889,63 +4955,110 @@ public:
         return -1;
     }
 
+    bool moveFileToTop( lString16 filename, lUInt32 size )
+    {
+        int index = findFileIndex( filename );
+        if ( index<0 ) {
+            FileItem * item = new FileItem();
+            item->filename = filename;
+            item->size = size;
+            _files.insert( 0, item );
+        } else {
+            _files.move( 0, index );
+            _files[0]->size = size;
+        }
+        return writeIndex();
+    }
+
     bool init()
     {
-        CRLog::error("Initialize document cache in directory %s", UnicodeToUtf8(_cacheDir).c_str() );
+        CRLog::info("Initialize document cache in directory %s", UnicodeToUtf8(_cacheDir).c_str() );
         // read index
         if ( readIndex(  ) ) {
             // read successfully
+            // remove files not specified in list
+            removeExtraFiles( );
         } else {
+            if ( !LVCreateDirectory( _cacheDir ) ) {
+                CRLog::error("Document Cache: cannot create cache directory %s, disabling cache", UnicodeToUtf8(_cacheDir).c_str() );
+                return false;
+            }
             _files.clear();
 
         }
         reserve(0);
-        // remove files not specified in list
-        LVContainerRef container;
-        container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
-        if ( container.isNull() ) {
-            if ( !LVCreateDirectory( _cacheDir ) ) {
-                CRLog::error("Cannot create directory %s", UnicodeToUtf8(_cacheDir).c_str() );
-                return false;
-            }
-            container = LVOpenDirectory( _cacheDir.c_str(), L"*.cr3" );
-            if ( container.isNull() ) {
-                CRLog::error("Cannot open directory %s", UnicodeToUtf8(_cacheDir).c_str() );
-                return false;
-            }
-        }
-        for ( int i=0; i<container->GetObjectCount(); i++ ) {
-            const LVContainerItemInfo * item = container->GetObjectInfo( i );
-            if ( !item->IsContainer() ) {
-                lString16 fn = item->GetName();
-                if ( findFileIndex(fn)<0 ) {
-                    // delete file
-                    CRLog::info("Removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
-                    if ( !LVDeleteFile( fn ) ) {
-                        CRLog::error("Error while removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
-                    }
-                }
-                    
-            }
-        }
+        if ( !writeIndex() )
+            return false; // cannot write index: read only?
         return true;
     }
-    ~ldomDocCacheImpl()
+
+    /// remove all files
+    bool clear()
+    {
+        for ( int i=0; i<_files.length(); i++ )
+            LVDeleteFile( _files[i]->filename );
+        _files.clear();
+        return writeIndex();
+    }
+
+    // dir/filename.{crc32}.cr3
+    lString16 makeFileName( lString16 filename, lUInt32 crc, lUInt32 docFlags )
+    {
+        char s[16];
+        sprintf(s, ".%08x.%d.cr3", crc, docFlags);
+        return _cacheDir + filename + lString16( s );
+    }
+
+    /// open existing cache file stream
+    LVStreamRef openExisting( lString16 filename, lUInt32 crc, lUInt32 docFlags )
+    {
+        lString16 fn = makeFileName( filename, crc, docFlags );
+        LVStreamRef res;
+        if ( findFileIndex( fn ) < 0 )
+            return res;
+        res = LVMapFileStream( fn.c_str(), LVOM_APPEND, 0 );
+        if ( !res ) {
+            CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn) );
+            return res;
+        }
+        lUInt32 fileSize = (lUInt32) res->GetSize();
+        moveFileToTop( fn, fileSize );
+        return res;
+    }
+
+    /// create new cache file
+    LVStreamRef createNew( lString16 filename, lUInt32 crc, lUInt32 docFlags, lUInt32 fileSize )
+    {
+        lString16 fn = makeFileName( filename, crc, docFlags );
+        LVStreamRef res;
+        if ( findFileIndex( fn ) >= 0 )
+            LVDeleteFile( fn );
+        reserve( fileSize );
+        res = LVMapFileStream( fn.c_str(), LVOM_APPEND, fileSize );
+        if ( !res ) {
+            CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn) );
+            return res;
+        }
+        lUInt32 sz = (lUInt32) res->GetSize();
+        moveFileToTop( fn, sz );
+        return res;
+    }
+
+    virtual ~ldomDocCacheImpl()
     {
     }
-    static ldomDocCacheImpl * instance;
 };
 
-ldomDocCacheImpl * ldomDocCacheImpl::instance = NULL;
+static ldomDocCacheImpl * _cacheInstance = NULL;
 
 bool ldomDocCache::init( lString16 cacheDir, lvsize_t maxSize )
 {
-    if ( ldomDocCacheImpl::instance )
-        delete ldomDocCacheImpl::instance;
-    ldomDocCacheImpl::instance = new ldomDocCacheImpl( cacheDir, maxSize );
-    if ( !ldomDocCacheImpl::instance->init() ) {
-        delete ldomDocCacheImpl::instance;
-        ldomDocCacheImpl::instance = NULL;
+    if ( _cacheInstance )
+        delete _cacheInstance;
+    _cacheInstance = new ldomDocCacheImpl( cacheDir, maxSize );
+    if ( !_cacheInstance->init() ) {
+        delete _cacheInstance;
+        _cacheInstance = NULL;
         return false;
     }
     return true;
@@ -4953,18 +5066,39 @@ bool ldomDocCache::init( lString16 cacheDir, lvsize_t maxSize )
 
 bool ldomDocCache::close()
 {
-    if ( !ldomDocCacheImpl::instance )
+    if ( !_cacheInstance )
         return false;
-    delete ldomDocCacheImpl::instance;
-    ldomDocCacheImpl::instance = NULL;
+    delete _cacheInstance;
+    _cacheInstance = NULL;
     return true;
 }
 
-ldomDocCache * ldomDocCache::instance()
+/// open existing cache file stream
+LVStreamRef ldomDocCache::openExisting( lString16 filename, lUInt32 crc, lUInt32 docFlags )
 {
-    return ldomDocCacheImpl::instance;
+    if ( !_cacheInstance )
+        return LVStreamRef();
+    return _cacheInstance->openExisting( filename, crc, docFlags );
 }
 
-ldomDocCache::~ldomDocCache()
+/// create new cache file
+LVStreamRef ldomDocCache::createNew( lString16 filename, lUInt32 crc, lUInt32 docFlags, lUInt32 fileSize )
 {
+    if ( !_cacheInstance )
+        return LVStreamRef();
+    return _cacheInstance->createNew( filename, crc, docFlags, fileSize );
+}
+
+/// delete all cache files
+bool ldomDocCache::clear()
+{
+    if ( !_cacheInstance )
+        return false;
+    return _cacheInstance->clear();
+}
+
+/// returns true if cache is enabled (successfully initialized)
+bool ldomDocCache::enabled()
+{
+    return _cacheInstance!=NULL;
 }

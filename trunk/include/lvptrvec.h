@@ -172,6 +172,21 @@ public:
         _list[pos] = item;
         _count++;
     }
+    /// move item to specified position, other items will be shifted
+    void move( int indexTo, int indexFrom )
+    {
+        if ( indexTo==indexFrom )
+            return;
+        T * p = _list[indexFrom];
+        if ( indexTo<indexFrom ) {
+            for ( int i=indexFrom; i>indexTo; i--)
+                _list[i] = _list[i-1];
+        } else {
+            for ( int i=indexFrom; i<indexTo; i++)
+                _list[i] = _list[i+1];
+        }
+        _list[ indexTo ] = p;
+    }
     /// copy constructor
     LVPtrVector( const LVPtrVector & v )
         : _list(NULL), _size(0), _count(0)

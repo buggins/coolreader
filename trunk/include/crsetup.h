@@ -13,6 +13,8 @@
 #ifndef CRSETUP_H_INCLUDED
 #define CRSETUP_H_INCLUDED
 
+
+
 // features set for LBOOK
 #if (LBOOK==1)
 #ifndef LDOM_USE_OWN_MEM_MAN
@@ -234,5 +236,20 @@
 #ifndef MAX_SKIN_IMAGE_CACHE_ITEM_RAM_COPY_PACKED_SIZE
 #define MAX_SKIN_IMAGE_CACHE_ITEM_RAM_COPY_PACKED_SIZE 10000
 #endif
+
+
+// Caching and MMAP options
+
+/// minimal document size to enable caching for
+#ifndef DOCUMENT_CACHING_SIZE_THRESHOLD
+#define DOCUMENT_CACHING_SIZE_THRESHOLD 0x8000 // 32K
+#endif
+
+/// max ram data block usage, after which swapping to disk should occur
+#ifndef DOCUMENT_CACHING_MAX_RAM_USAGE
+#define DOCUMENT_CACHING_MAX_RAM_USAGE 0x300000 // 3Mb
+#endif
+
+
 
 #endif//CRSETUP_H_INCLUDED

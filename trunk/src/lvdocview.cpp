@@ -409,7 +409,7 @@ bool LVDocView::isPageImageReady( int delta )
         offset = getPrevPageOffset();
     else if ( delta>0 )
         offset = getNextPageOffset();
-    CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
+    //CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
     LVDocImageRef ref = m_imageCache.get( offset );
     return ( !ref.isNull() );
 }
@@ -424,10 +424,10 @@ LVDocImageRef LVDocView::getPageImage( int delta )
         offset = getPrevPageOffset();
     else if ( delta>0 )
         offset = getNextPageOffset();
-    CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
+    //CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
     LVDocImageRef ref = m_imageCache.get( offset );
     if ( !ref.isNull() ) {
-        CRLog::trace("getPageImage: + page [%d] found in cache", offset);
+        //CRLog::trace("getPageImage: + page [%d] found in cache", offset);
         return ref;
     }
     while ( ref.isNull() ) {
@@ -435,7 +435,7 @@ LVDocImageRef LVDocView::getPageImage( int delta )
         cachePageImage( delta );
         ref = m_imageCache.get( offset );
     }
-    CRLog::trace("getPageImage: page [%d] is ready", offset);
+    //CRLog::trace("getPageImage: page [%d] is ready", offset);
     return ref;
 }
 
@@ -464,12 +464,12 @@ void LVDocView::cachePageImage( int delta )
         offset = getPrevPageOffset();
     else if ( delta>0 )
         offset = getNextPageOffset();
-    CRLog::trace("cachePageImage: request to cache page [%d] (delta=%d)", offset, delta);
+    //CRLog::trace("cachePageImage: request to cache page [%d] (delta=%d)", offset, delta);
     if ( m_imageCache.has(offset) ) {
-        CRLog::trace("cachePageImage: Page [%d] is found in cache", offset);
+        //CRLog::trace("cachePageImage: Page [%d] is found in cache", offset);
         return;
     }
-    CRLog::trace("cachePageImage: starting new render task for page [%d]", offset);
+    //CRLog::trace("cachePageImage: starting new render task for page [%d]", offset);
 #if (COLOR_BACKBUFFER==1)
     LVRef<LVDrawBuf> drawbuf( new LVColorDrawBuf( m_dx, m_dy ) );
 #else
@@ -477,7 +477,7 @@ void LVDocView::cachePageImage( int delta )
 #endif
     LVRef<LVThread> thread( new LVDrawThread( this, offset, drawbuf ) );
     m_imageCache.set( offset, drawbuf, thread );
-    CRLog::trace("cachePageImage: caching page [%d] is finished", offset);
+    //CRLog::trace("cachePageImage: caching page [%d] is finished", offset);
 }
 
 bool LVDocView::exportWolFile( const char * fname, bool flgGray, int levels )
@@ -2728,13 +2728,36 @@ bool LVDocView::ParseDocument( )
         delete m_doc;
     m_is_rendered = false;
     m_doc = new ldomDocument();
+
     m_doc->setProps( m_doc_props );
     m_doc->setDocFlags( saveFlags );
     m_doc->setContainer( m_container );
-
     m_doc->setNodeTypes( fb2_elem_table );
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
+
+    if ( m_stream->GetSize() > DOCUMENT_CACHING_SIZE_THRESHOLD ) {
+        // try loading from cache
+        lString16 fn( m_stream->GetName() );
+        fn = LVExtractFilename( fn );
+        lUInt32 crc = 0;
+        m_stream->crc32( crc );
+        if ( m_doc->openFromCache( fn, crc ) ) {
+            CRLog::info("Document is found in cache, will reuse");
+
+		    // set stylesheet
+		    m_doc->getStyleSheet()->clear();
+		    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+
+            lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
+            if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+                m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+            }
+
+            return true;
+        }
+        CRLog::info("Cannot get document from cache, parsing...");
+    }
 
     {
         ldomDocumentWriter writer(m_doc);
@@ -2862,7 +2885,7 @@ bool LVDocView::ParseDocument( )
         }
     }
 #endif
-#if 1// test swap to disk
+#if 0// test swap to disk
     lString16 cacheFile = lString16("/tmp/cr3swap.bin");
     bool res = m_doc->swapToCacheFile( cacheFile );
     if ( !res ) {
@@ -2870,7 +2893,7 @@ bool LVDocView::ParseDocument( )
         return false;
     }
 #endif
-#if 1 // test restore from swap
+#if 0 // test restore from swap
     delete m_doc;
     m_doc = new ldomDocument();
     res = m_doc->openFromCacheFile( cacheFile );
@@ -2883,6 +2906,17 @@ bool LVDocView::ParseDocument( )
 	m_doc->getStyleSheet()->clear();
 	m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 #endif
+
+    {
+        // try swapping to cache
+        lString16 fn( m_stream->GetName() );
+        fn = LVExtractFilename( fn );
+        lUInt32 crc = 0;
+        m_stream->crc32( crc );
+        if ( m_doc->swapToCache( fn, crc ) ) {
+            return true;
+        }
+    }
 
     return true;
 }
