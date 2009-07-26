@@ -16,7 +16,7 @@
 
 
 #define BUF_SIZE_INCREMENT 4096
-#define MIN_BUF_DATA_SIZE 2048
+#define MIN_BUF_DATA_SIZE 4096
 #define CP_AUTODETECT_BUF_SIZE 0x10000
 
 
@@ -187,6 +187,15 @@ lChar16 LVTextFileBase::ReadChar()
 }
 #endif
 
+void LVTextFileBase::checkEof()
+{
+    if ( m_buf_fpos+m_buf_len < this->m_stream_size )
+        m_buf_pos--;
+    else
+        m_buf_pos = m_buf_len = m_stream_size - (m_buf_fpos+m_buf_len);
+}
+
+
 /// reads several characters from buffer
 int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
 {
@@ -212,24 +221,30 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                         return count + 1;
                 } else if ( (ch & 0xE0) == 0xC0 ) {
                     // 11 bits
-                    if ( m_buf_pos>=m_buf_len )
+                    if ( m_buf_pos+1>=m_buf_len ) {
+                        checkEof();
                         return count;
+                    }
                     ch = (ch&0x1F);
                     lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
                     buf[count] = (ch<<6) | ch2;
                     //buf[count] = ((lUInt16)(ch&0x1F)<<6) | ((lUInt16)m_buf[m_buf_pos++]&0x3F);
                 } else if ( (ch & 0xF0) == 0xE0 ) {
                     // 16 bits
-                    if ( m_buf_pos+1>=m_buf_len )
+                    if ( m_buf_pos+2>=m_buf_len ) {
+                        checkEof();
                         return count;
+                    }
                     ch = (ch&0x0F);
                     lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
                     lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
                     buf[count] = (ch<<12) | (ch2<<6) | ch3;
                 } else {
                     // 20 bits
-                    if ( m_buf_pos+2>=m_buf_len )
+                    if ( m_buf_pos+3>=m_buf_len ) {
+                        checkEof();
                         return count;
+                    }
                     ch = (ch&0x07);
                     lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
                     lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
@@ -242,8 +257,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
     case ce_utf16_be:
         {
             for ( ; count<maxsize; count++ ) {
-                if ( m_buf_pos>=m_buf_len )
+                if ( m_buf_pos+1>=m_buf_len ) {
+                    checkEof();
                     return count;
+                }
                 lUInt16 ch = m_buf[m_buf_pos++];
                 lUInt16 ch2 = m_buf[m_buf_pos++];
                 buf[count] = (ch << 8) | ch2;
@@ -253,8 +270,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
     case ce_utf16_le:
         {
             for ( ; count<maxsize; count++ ) {
-                if ( m_buf_pos>=m_buf_len )
+                if ( m_buf_pos+1>=m_buf_len ) {
+                    checkEof();
                     return count;
+                }
                 lUInt16 ch = m_buf[m_buf_pos++];
                 lUInt16 ch2 = m_buf[m_buf_pos++];
                 buf[count] = (ch2 << 8) | ch;
@@ -265,8 +284,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
         // support 24 bits only
         {
             for ( ; count<maxsize; count++ ) {
-                if ( m_buf_pos>=m_buf_len )
+                if ( m_buf_pos+3>=m_buf_len ) {
+                    checkEof();
                     return count;
+                }
                 m_buf_pos++; //lUInt16 ch = m_buf[m_buf_pos++];
                 lUInt16 ch2 = m_buf[m_buf_pos++];
                 lUInt16 ch3 = m_buf[m_buf_pos++];
@@ -279,8 +300,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
         // support 24 bits only
         {
             for ( ; count<maxsize; count++ ) {
-                if ( m_buf_pos>=m_buf_len )
+                if ( m_buf_pos+3>=m_buf_len ) {
+                    checkEof();
                     return count;
+                }
                 lUInt16 ch = m_buf[m_buf_pos++];
                 lUInt16 ch2 = m_buf[m_buf_pos++];
                 lUInt16 ch3 = m_buf[m_buf_pos++];

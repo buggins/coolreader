@@ -20,6 +20,7 @@
 #include "crtxtenc.h"
 #include "dtddef.h"
 
+#define XML_CHAR_BUFFER_SIZE 4096
 #define XML_FLAG_NO_SPACE_TEXT 1
 
 //class LVXMLParser;
@@ -133,7 +134,6 @@ public:
     virtual void Stop();
 };
 
-#define XML_CHAR_BUFFER_SIZE 4096
 class LVTextFileBase : public LVFileParserBase
 {
 protected:
@@ -147,6 +147,8 @@ protected:
     int m_read_buffer_len;
     int m_read_buffer_pos;
     bool m_eof;
+
+    void checkEof();
 
     inline lChar16 ReadCharFromBuffer()
     {
