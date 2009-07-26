@@ -1104,14 +1104,34 @@ DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
     if ( !item ) {
         if ( size >= _dataBufferSize )
             return NULL;
-        _currentBuffer = new DataBuffer( _dataBufferSize );
-        if ( _currentBuffer->isNull() ) {
-            CRLog::error("Cannot create document data buffer #%d (size=%d)", _dataBuffers.length(), _dataBufferSize );
-            delete _currentBuffer;
-            return NULL; // OUT OF MEMORY
+        if ( !_map.isNull() ) {
+            // already has map file
+            CRLog::error( "Too small swap file is reserved" );
+            crFatalError(10, "Swap file is too small. Cannot allocate additional data. Exiting.");
         }
-        _dataBuffers.add( _currentBuffer );
-        item = _currentBuffer->alloc( size );
+
+        if ( (_dataBufferSize+1) * _dataBuffers.length() > DOCUMENT_CACHING_MAX_RAM_USAGE ) {
+            // swap to file
+            lString16 fn = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
+            lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
+            lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
+            CRLog::info("Document data size is too big for RAM: swapping to disk");
+            if ( !swapToCache( fn, crc, sz * 3 ) ) {
+                CRLog::error( "Cannot swap big document to disk" );
+                crFatalError(10, "Swapping big document is failed. Exiting.");
+            }
+            item = _currentBuffer->alloc( size );
+        } else {
+            // add one another buffer in RAM
+            _currentBuffer = new DataBuffer( _dataBufferSize );
+            if ( _currentBuffer->isNull() ) {
+                CRLog::error("Cannot create document data buffer #%d (size=%d)", _dataBuffers.length(), _dataBufferSize );
+                delete _currentBuffer;
+                return NULL; // OUT OF MEMORY
+            }
+            _dataBuffers.add( _currentBuffer );
+            item = _currentBuffer->alloc( size );
+        }
     }
     item->dataIndex = dataIndex;
     //item->parentIndex = 0;
@@ -4339,7 +4359,7 @@ bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
     hdrbuf << src_file_size << src_file_crc32;
     hdrbuf << props_offset << props_size;
     hdrbuf << idtable_offset << idtable_size;
-    hdrbuf << data_offset << data_size << data_used << data_crc32 << data_index_size << file_size;
+    hdrbuf << data_offset << data_size << data_crc32 << data_index_size << file_size;
     hdrbuf << src_file_name;
     hdrbuf.putCRC( hdrbuf.pos() - start );
     return !hdrbuf.error();
@@ -4356,7 +4376,7 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
     hdrbuf >> src_file_size >> src_file_crc32;
     hdrbuf >> props_offset >> props_size;
     hdrbuf >> idtable_offset >> idtable_size;
-    hdrbuf >> data_offset >> data_size >> data_used >> data_crc32 >> data_index_size >> file_size;
+    hdrbuf >> data_offset >> data_size >> data_crc32 >> data_index_size >> file_size;
     hdrbuf >> src_file_name;
     hdrbuf.checkCRC( hdrbuf.pos() - start );
     if ( hdrbuf.error() ) {
@@ -4603,7 +4623,7 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
     return true;
 }
 
-bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc )
+bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSize )
 {
     if ( !_map.isNull() ) {
         // already in map file
@@ -4616,7 +4636,8 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc )
     //testTreeConsistency( getRootNode() );
     CRLog::info("ldomDocument::swapToCache() - Started swapping of document to cache file");
 
-    persist();
+    if ( !reservedSize )
+        persist();
     //testTreeConsistency( getRootNode() );
 
     lvsize_t datasize = 0;
@@ -4654,7 +4675,7 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc )
     hdr.data_size = datasize;
     hdr.data_index_size = _instanceMapCount;
 
-    hdr.file_size = pos + datasize;
+    hdr.file_size = pos + (reservedSize > datasize ? reservedSize : datasize );
     lUInt32 reserved = (hdr.file_size / 16) + 8192; // 8K + 1/16
     hdr.file_size += reserved;
 
@@ -4672,13 +4693,11 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc )
 
     hdr.data_crc32 = 0;
     // copy data
-    hdr.data_used = 0;
     for ( int i=0; i<_dataBuffers.length(); i++ ) {
         lUInt32 len = _dataBuffers[i]->length();
         memcpy( ptr + pos, _dataBuffers[i]->ptr(), len );
         hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
         pos += len;
-        hdr.data_used += len;
     }
     CRLog::info( "ldomDocument::updateMap() - data CRC is %08x", hdr.data_crc32 );
 
@@ -4725,7 +4744,7 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc )
     _mapbuf = buf; // memory mapped file buffer
 
 #ifdef _DEBUG
-    checkConsistency( true);
+    checkConsistency( false );
 #endif
     _mapped = true;
     CRLog::info("ldomDocument::swapToCache() - swapping of document to cache file finished successfully");
@@ -4741,7 +4760,7 @@ bool ldomDocument::updateMap()
     CRLog::info("ldomDocument::updateMap() - Saving recent changes to cache file");
     persist();
 #ifdef _DEBUG
-    checkConsistency( true);
+    checkConsistency( true );
 #endif
 
     SerialBuf propsbuf(4096);
@@ -4761,7 +4780,6 @@ bool ldomDocument::updateMap()
 
     hdr.data_index_size = _instanceMapCount;
 
-    hdr.data_used = _currentBuffer->length();
     hdr.data_size = _currentBuffer->length();
     lUInt8 * ptr = _mapbuf->getReadWrite();
     // update crc32

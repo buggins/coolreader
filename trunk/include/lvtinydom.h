@@ -301,7 +301,16 @@ public:
         _docFlags = value;
     }
 
+    /// try opening from cache file, find by source file name (w/o path) and crc32
+    virtual bool openFromCache( lString16 fname, lUInt32 crc ) = 0;
+    /// swap to cache file, find by source file name (w/o path) and crc32
+    virtual bool swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedDataSize=0 ) = 0;
+    /// saves recent changes to mapped file
+    virtual bool updateMap() = 0;
+
 protected:
+
+    
 //=========================================
 //       NEW STORAGE MODEL METHODS
 //=========================================
@@ -353,7 +362,6 @@ protected:
         lUInt32 idtable_offset;
         lUInt32 idtable_size;
         lUInt32 data_offset;
-        lUInt32 data_used;
         lUInt32 data_size;
         lUInt32 data_crc32;
         lUInt32 data_index_size;
@@ -1227,13 +1235,17 @@ private:
 #endif
     LVContainerRef _container;
 
+protected:
+
 public:
+
     /// try opening from cache file, find by source file name (w/o path) and crc32
-    bool openFromCache( lString16 fname, lUInt32 crc );
+    virtual bool openFromCache( lString16 fname, lUInt32 crc );
     /// swap to cache file, find by source file name (w/o path) and crc32
-    bool swapToCache( lString16 fname, lUInt32 crc );
+    virtual bool swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedDataSize=0 );
     /// saves recent changes to mapped file
-    bool updateMap();
+    virtual bool updateMap();
+
 
     LVContainerRef getContainer() { return _container; }
     void setContainer( LVContainerRef cont ) { _container = cont; }
