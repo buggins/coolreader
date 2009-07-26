@@ -360,10 +360,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      int       nCmdShow)
 {
 
-    CRLog::setFileLogger( "crengine.log" );
+    CRLog::setFileLogger( "crengine.log", true );
     CRLog::setLogLevel( CRLog::LL_TRACE );
+    //InitCREngineLog("/root/abook/crengine/crlog.ini");
 
-#ifdef _DEBUG
+#if 0
 	MMapTest();
 #endif
 
@@ -420,6 +421,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		};
 		loadKeymaps( winman, keymap_locations );
 		
+
+        ldomDocCache::init( exedir + L"cache", 0x100000 * 96 ); /*96Mb*/
 
         winman.loadSkin( LVExtractPath(LocalToUnicode(lString8(exe_fn))) + L"skin" );
         V3DocViewWin * main_win = new V3DocViewWin( &winman, LVExtractPath(LocalToUnicode(lString8(exe_fn))) );

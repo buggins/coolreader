@@ -311,6 +311,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\msgbox.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\numedit.cpp"
 				>
 			</File>
@@ -546,6 +550,10 @@
 			</File>
 			<File
 				RelativePath=".\mainwnd.h"
+				>
+			</File>
+			<File
+				RelativePath=".\msgbox.h"
 				>
 			</File>
 			<File

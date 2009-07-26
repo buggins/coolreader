@@ -176,6 +176,51 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     setAccelerators( _wm->getAccTables().get("main") );
 }
 
+/// on starting file loading
+void V3DocViewWin::OnLoadFileStart( lString16 filename )
+{
+}
+
+/// format detection finished
+void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
+{
+}
+
+/// file loading is finished successfully - drawCoveTo() may be called there
+void V3DocViewWin::OnLoadFileEnd()
+{
+}
+
+/// file progress indicator, called with values 0..100
+void V3DocViewWin::OnLoadFileProgress( int percent )
+{
+}
+
+/// document formatting started
+void V3DocViewWin::OnFormatStart()
+{
+}
+
+/// document formatting finished
+void V3DocViewWin::OnFormatEnd()
+{
+}
+
+/// format progress, called with values 0..100
+void V3DocViewWin::OnFormatProgress( int percent )
+{
+}
+
+/// file load finiished with error
+void V3DocViewWin::OnLoadFileError( lString16 message )
+{
+}
+
+/// Override to handle external links
+void V3DocViewWin::OnExternalLink( lString16 url, ldomNode * node )
+{
+}
+
 bool V3DocViewWin::loadDefaultCover( lString16 filename )
 {
     LVImageSourceRef cover = LVCreateFileCopyImageSource( filename.c_str() );

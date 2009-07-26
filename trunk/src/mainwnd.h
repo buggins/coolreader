@@ -86,7 +86,7 @@ enum CRMainMenuCmd
     MCMD_HELP_KEYS,
 };
 
-class V3DocViewWin : public CRViewDialog
+class V3DocViewWin : public CRViewDialog, public LVDocViewCallback
 {
 protected:
     CRPropRef _props;
@@ -114,6 +114,24 @@ public:
     bool loadDictConfig( lString16 filename );
 	bool setHelpFile( lString16 filename );
 	lString16 getHelpFile( );
+	/// on starting file loading
+	virtual void OnLoadFileStart( lString16 filename );
+	/// format detection finished
+	virtual void OnLoadFileFormatDetected( doc_format_t fileFormat );
+	/// file loading is finished successfully - drawCoveTo() may be called there
+	virtual void OnLoadFileEnd();
+	/// file progress indicator, called with values 0..100
+	virtual void OnLoadFileProgress( int percent );
+	/// document formatting started
+	virtual void OnFormatStart();
+	/// document formatting finished
+	virtual void OnFormatEnd();
+	/// format progress, called with values 0..100
+	virtual void OnFormatProgress( int percent );
+	/// file load finiished with error
+	virtual void OnLoadFileError( lString16 message );
+    /// Override to handle external links
+    virtual void OnExternalLink( lString16 url, ldomNode * node );
 
     /// returns current properties
     CRPropRef getProps() { return _props; }
