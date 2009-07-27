@@ -1176,6 +1176,41 @@ void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )
     }
 }
 
+lUInt32 LVCssSelectorRule::getHash()
+{
+    lUInt32 hash = 0;
+    hash = ( ( ( (lUInt32)_type * 75
+        + (lUInt32)_id ) *75 )
+        + (lUInt32)_attrid * 75 )
+        + ::getHash(_value);
+    return hash;
+}
+
+lUInt32 LVCssSelector::getHash()
+{
+    lUInt32 hash = 0;
+    lUInt32 nextHash = 0;
+    if ( _next )
+        _next->getHash();
+    for ( LVCssSelectorRule * p = _rules; p; p = p->getNext() ) {
+        lUInt32 ruleHash = p->getHash();
+        hash = hash * 75 + ruleHash;
+    }
+    hash = hash * 75 + nextHash;
+    return hash;
+}
+
+/// calculate hash
+lUInt32 LVStyleSheet::getHash()
+{
+    lUInt32 hash = 0;
+    for ( int i=0; i<_selectors.length(); i++ ) {
+        if ( _selectors[i] )
+            hash = hash * 75 + _selectors[i]->getHash() + i*15324;
+    }
+    return hash;
+}
+
 bool LVStyleSheet::parse( const char * str )
 {
     LVCssSelector * selector = NULL;

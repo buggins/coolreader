@@ -121,6 +121,7 @@ public:
     ~LVCssSelectorRule() { if (_next) delete _next; }
     /// check condition for node
     bool check( const ldomNode * & node );
+    lUInt32 getHash();
 };
 
 /** \brief simple CSS selector
@@ -158,6 +159,7 @@ public:
     int getSpecificity() { return _specificity; }
     LVCssSelector * getNext() { return _next; }
     void setNext(LVCssSelector * next) { _next = next; }
+    lUInt32 getHash();
 };
 
 
@@ -186,6 +188,8 @@ public:
     bool parse( const char * str );
     /// apply stylesheet to node style
     void apply( const ldomNode * node, css_style_rec_t * style );
+    /// calculate hash
+    lUInt32 getHash();
 };
 
 /// parse color value like #334455, #345 or red
