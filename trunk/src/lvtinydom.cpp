@@ -21,8 +21,8 @@
 //#define INDEX1 94
 //#define INDEX2 96
 
-#define INDEX1 105
-#define INDEX2 106
+//#define INDEX1 105
+//#define INDEX2 106
 
 class ldomPersistentText;
 class ldomPersistentElement;
@@ -4727,9 +4727,9 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
                 CRLog::error("No instance found for dataIndex=%d", item->dataIndex);
                 continue;
             }
-            if ( item->dataIndex==INDEX2 || item->dataIndex==INDEX1) {
-                CRLog::trace("changing pointer to node %d from %08x to %08x", item->dataIndex, (unsigned)_instanceMap[ item->dataIndex ].data, (unsigned)item );
-            }
+            //if ( item->dataIndex==INDEX2 || item->dataIndex==INDEX1) {
+            //    CRLog::trace("changing pointer to node %d from %08x to %08x", item->dataIndex, (unsigned)_instanceMap[ item->dataIndex ].data, (unsigned)item );
+            //}
             if ( item->dataIndex < _instanceMapCount )
                 _instanceMap[ item->dataIndex ].data = item;
             else {
@@ -5023,7 +5023,7 @@ public:
     lString16 makeFileName( lString16 filename, lUInt32 crc, lUInt32 docFlags )
     {
         char s[16];
-        sprintf(s, ".%08x.%d.cr3", crc, docFlags);
+        sprintf(s, ".%08x.%d.cr3", (unsigned)crc, (int)docFlags);
         return _cacheDir + filename + lString16( s );
     }
 
@@ -5036,7 +5036,7 @@ public:
             return res;
         res = LVMapFileStream( fn.c_str(), LVOM_APPEND, 0 );
         if ( !res ) {
-            CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn) );
+            CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn).c_str() );
             return res;
         }
         lUInt32 fileSize = (lUInt32) res->GetSize();
@@ -5054,7 +5054,7 @@ public:
         reserve( fileSize );
         res = LVMapFileStream( fn.c_str(), LVOM_APPEND, fileSize );
         if ( !res ) {
-            CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn) );
+            CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return res;
         }
         lUInt32 sz = (lUInt32) res->GetSize();

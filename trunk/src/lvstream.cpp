@@ -610,6 +610,7 @@ public:
 		return res;
 #else
         if ( m_map!=NULL && munmap( m_map, m_size ) == -1 ) {
+            m_map = NULL;
             CRLog::error("LVFileMappedStream::UnMap() -- Error while unmapping file");
             return error();
         }

@@ -2212,6 +2212,9 @@ static void FileToArcProps( CRPropRef props )
 /// load document from file
 bool LVDocView::LoadDocument( const lChar16 * fname )
 {
+    if ( !fname || !fname[0] )
+        return false;
+
     Clear();
 
     // split file path and name
@@ -2923,6 +2926,8 @@ bool LVDocView::ParseDocument( )
 
 bool LVDocView::LoadDocument( const char * fname )
 {
+    if ( !fname || !fname[0] )
+        return false;
     return LoadDocument( LocalToUnicode(lString8(fname)).c_str() );
 }
 

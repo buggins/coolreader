@@ -1284,7 +1284,7 @@ public:
                 pData[k].count = 0;
             }
         }
-        delete pdata;
+        delete[] pdata;
         Close();
    }
 

@@ -417,43 +417,6 @@ int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, 
     return chcount;
 }
 
-#if 0
-/// reads specified number of characters and saves to buffer
-int LVTextFileBase::ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size, int flags)
-{
-    if ( !Seek( pos, charsToRead*4 ) )
-        return 0;
-    int chcount = 0;
-    if ( buf_size > charsToRead )
-        buf_size = charsToRead;
-    if ( (flags & TXTFLG_RTF)!=0 ) {
-        char_encoding_type enc_type = ce_utf8;
-        lChar16 * conv_table = NULL;
-        if ( flags & TXTFLG_ENCODING_MASK ) {
-        // set new encoding
-            int enc_id = (flags & TXTFLG_ENCODING_MASK) >> TXTFLG_ENCODING_SHIFT;
-            if ( enc_id >= ce_8bit_cp ) {
-                conv_table = (lChar16 *)GetCharsetByte2UnicodeTableById( enc_id );
-                enc_type = ce_8bit_cp;
-            } else {
-                conv_table = NULL;
-                enc_type = (char_encoding_type)enc_id;
-            }
-        }
-        while ( m_buf_pos<m_buf_len && chcount < buf_size ) {
-            *buf++ = ReadRtfChar(enc_type, conv_table);
-            chcount++;
-        }
-    } else {
-        while ( m_buf_pos<m_buf_len && chcount < buf_size ) {
-            *buf++ = ReadChar();
-            chcount++;
-        }
-    }
-    return chcount;
-}
-#endif
-
 bool LVFileParserBase::FillBuffer( int bytesToRead )
 {
     lvoffset_t bytesleft = (lvoffset_t) (m_stream_size - (m_buf_fpos+m_buf_len));
@@ -2293,25 +2256,52 @@ bool LVXMLParser::ReadText()
     lUInt32 flags = m_callback->getFlags();
     bool pre_para_splitting = ( flags & TXTFLG_PRE_PARA_SPLITTING )!=0;
     bool last_eol = false;
-    for ( lChar16 ch = ReadCharFromBuffer(); ; ch = ReadCharFromBuffer() )
-    {
-        bool flgBreak = ch=='<' || m_eof;
-        bool splitParas = false;
-        if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) )
-            splitParas = true;
 
-        if (!flgBreak && !splitParas)
-        {
-            m_txt_buf += ch;
-            tlen++;
+    bool flgBreak = false;
+    bool splitParas = false;
+    while ( !flgBreak ) {
+        int i=0;
+        if ( m_read_buffer_pos + 1 >= m_read_buffer_len ) {
+            if ( !fillCharBuffer() ) {
+                m_eof = true;
+                return false;
+            }
+        }
+        for ( ; m_read_buffer_pos+i<m_read_buffer_len; i++ ) {
+            lChar16 ch = m_read_buffer[m_read_buffer_pos + i];
+            lChar16 nextch = m_read_buffer_pos + i + 1 < m_read_buffer_len ? m_read_buffer[m_read_buffer_pos + i + 1] : 0;
+            flgBreak = ch=='<' || m_eof;
+            if ( flgBreak && !tlen ) {
+                m_read_buffer_pos++;
+                return false;
+            }
+            splitParas = false;
+            if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) )
+                splitParas = true;
+            if (!flgBreak && !splitParas)
+            {
+                tlen++;
+            }
+            if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
+            {
+                if ( last_split_txtlen==0 || flgBreak || splitParas )
+                    last_split_txtlen = tlen;
+                break;
+            }
+            else if (ch==' ' || (ch=='\r' && nextch!='\n')
+                || (ch=='\n' && nextch!='\r') )
+            {
+                //last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
+                last_split_txtlen = tlen;
+            }
+            last_eol = (ch=='\r' || ch=='\n');
+        }
+        if ( i>0 ) {
+            m_txt_buf.append( m_read_buffer + m_read_buffer_pos, i );
+            m_read_buffer_pos += i;
         }
         if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
         {
-            if (last_split_txtlen==0 || flgBreak || splitParas)
-            {
-                //last_split_fpos = (int)((ch=='<')?ch_start_pos : m_buf_fpos + m_buf_pos);
-                last_split_txtlen = tlen;
-            }
             //=====================================================
             lString16 nextText = m_txt_buf.substr( last_split_txtlen );
             m_txt_buf.limit( last_split_txtlen );
@@ -2326,7 +2316,8 @@ bool LVXMLParser::ReadText()
             //=====================================================
             if (flgBreak)
             {
-                //m_buf_pos++;
+                if ( m_read_buffer_pos < m_read_buffer_len )
+                    m_read_buffer_pos++;
                 break;
             }
             m_txt_buf = nextText;
@@ -2335,14 +2326,9 @@ bool LVXMLParser::ReadText()
             //last_split_fpos = 0;
             last_split_txtlen = 0;
         }
-        else if (ch==' ' || (ch=='\r' && PeekCharFromBuffer()!='\n')
-            || (ch=='\n' && PeekCharFromBuffer()!='\r') )
-        {
-            //last_split_fpos = (int)(m_buf_fpos + m_buf_pos);
-            last_split_txtlen = tlen;
-        }
-        last_eol = (ch=='\r' || ch=='\n');
     }
+
+
     //if (!Eof())
     //    m_buf_pos++;
     return (!m_eof);
