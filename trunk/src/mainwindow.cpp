@@ -4,6 +4,10 @@
 #include "settings.h"
 #include "tocdlg.h"
 #include "recentdlg.h"
+#include "crqtutil.h"
+#include "../crengine/include/lvtinydom.h"
+
+#define DOC_CACHE_SIZE 128 * 0x100000
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindowClass)
@@ -16,11 +20,12 @@ MainWindow::MainWindow(QWidget *parent)
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
     QString exeDir = qApp->applicationDirPath() + QDir::separator();
+    QString cacheDir = homeDir + "cache";
     QString histFile = homeDir + "cr3hist.bmk";
     QString iniFile = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
     QString cssFile2 = exeDir + "fb2.css";
-    ;
+    ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->loadSettings( iniFile );
     ui->view->loadHistory( histFile );
     if ( !ui->view->loadCSS( cssFile ) )
@@ -42,6 +47,8 @@ void MainWindow::on_actionOpen_triggered()
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open book file"),
          "",
          tr("All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)"));
+    if ( fileName.length()==0 )
+        return;
     if ( !ui->view->loadDocument( fileName ) ) {
         // error
     } else {
