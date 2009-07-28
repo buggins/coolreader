@@ -361,16 +361,27 @@ protected:
         lUInt32 props_size;
         lUInt32 idtable_offset;
         lUInt32 idtable_size;
+        lUInt32 pagetable_offset;
+        lUInt32 pagetable_size;
         lUInt32 data_offset;
         lUInt32 data_size;
         lUInt32 data_crc32;
         lUInt32 data_index_size;
         lUInt32 file_size;
+
+        lUInt32 render_dx;
+        lUInt32 render_dy;
+        lUInt32 render_docflags;
+        lUInt32 render_style_hash;
         //
         lString16 src_file_name;
 
         bool serialize( SerialBuf & buf );
         bool deserialize( SerialBuf & buf );
+        DocFileHeader()
+            : file_size(0), render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0)
+        {
+        }
     };
     DocFileHeader hdr;
 
@@ -399,6 +410,8 @@ protected:
     LVStreamBufferRef _mapbuf; // memory mapped file buffer
     bool _mapped; // true if document is mapped to file
     lUInt32 _docFlags; // document flags
+
+    SerialBuf _pagesData;
 };
 
 /*
@@ -1237,6 +1250,11 @@ private:
 
 protected:
 
+    /// save document formatting parameters after render
+    void updateRenderContext( LVRendPageList * pages, int dx, int dy );
+    /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
+    bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
+
 public:
 
     /// try opening from cache file, find by source file name (w/o path) and crc32
@@ -1249,7 +1267,6 @@ public:
 
     LVContainerRef getContainer() { return _container; }
     void setContainer( LVContainerRef cont ) { _container = cont; }
-
 
 
     ldomDocument();
@@ -1272,7 +1289,7 @@ public:
     virtual ~ldomDocument();
 #if BUILD_LITE!=1
     /// renders (formats) document in memory
-    virtual int render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space );
+    virtual int render( LVRendPageList * pages, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space );
 #endif
     /// create xpointer from pointer string
     ldomXPointer createXPointer( const lString16 & xPointerStr );

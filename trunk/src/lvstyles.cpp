@@ -16,6 +16,22 @@
 
 //DEFINE_NULL_REF( css_style_rec_t )
 
+/// calculate font instance record hash
+lUInt32 calcHash(font_ref_t & f)
+{
+    if ( !f )
+        return 14321;
+    lUInt32 v = 13;
+    v = v * 75 + (lUInt32)f->getFontFamily();
+    v = v * 75 + (lUInt32)f->getHeight();
+    v = v * 75 + (lUInt32)f->getKerning();
+    v = v * 75 + (lUInt32)f->getBitmapMode();
+    v = v * 75 + (lUInt32)f->getTypeFace().getHash();
+    v = v * 75 + (lUInt32)f->getBaseline();
+    return v;
+}
+
+
 lUInt32 calcHash(css_style_rec_t & rec)
 {
     return (((((((((((((((((((((((((lUInt32)rec.display * 11

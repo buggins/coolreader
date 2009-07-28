@@ -319,3 +319,85 @@ void LVRendPageContext::Finalize()
     footNotes.clear();
 }
 
+static const char * pagelist_magic = "PageList";
+
+bool LVRendPageList::serialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    buf.putMagic( pagelist_magic );
+    int pos = buf.pos();
+    buf << (lUInt32)length();
+    for ( int i=0; i<length(); i++ ) {
+        get(i)->serialize( buf );
+    }
+    buf.putCRC( buf.pos() - pos );
+    return !buf.error();
+}
+
+bool LVRendPageList::deserialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    if ( !buf.checkMagic( pagelist_magic ) )
+        return false;
+    clear();
+    int pos = buf.pos();
+    lUInt32 len;
+    buf >> len;
+    clear();
+    reserve(len);
+    for ( unsigned i=0; i<len; i++ ) {
+        LVRendPageInfo * item = new LVRendPageInfo();
+        item->deserialize( buf );
+        item->index = i;
+        add( item );
+    }
+    buf.checkCRC( buf.pos() - pos );
+    return !buf.error();
+}
+
+bool LVRendPageInfo::serialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    buf << (lUInt32)start; /// start of page
+    buf << (lUInt32)height; /// height of page, does not include footnotes
+    buf << (lUInt8) type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
+    lUInt16 len = footnotes.length();
+    buf << len;
+    for ( int i=0; i<len; i++ ) {
+        buf << (lUInt32)footnotes[i].start;
+        buf << (lUInt32)footnotes[i].height;
+    }
+    return !buf.error();
+}
+
+bool LVRendPageInfo::deserialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    lUInt32 n1, n2;
+    lUInt8 n3;
+
+    buf >> n1 >> n2 >> n3; /// start of page
+
+    start = n1;
+    height = n2;
+    type = n3;
+
+    lUInt16 len;
+    buf >> len;
+    footnotes.clear();
+    if ( len ) {
+        footnotes.reserve(len);
+        for ( int i=0; i<len; i++ ) {
+            buf >> n1;
+            buf >> n2;
+            footnotes[i].start = n1;
+            footnotes[i].height = n2;
+        }
+    }
+    return !buf.error();
+}
+

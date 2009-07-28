@@ -905,6 +905,7 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 ,_keepData(false)
 ,_mapped(false)
 ,_docFlags(DOC_FLAG_DEFAULTS)
+,_pagesData(8192)
 {
     // create and add one data buffer
     _currentBuffer = new DataBuffer( _dataBufferSize );
@@ -1282,6 +1283,7 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 ,   _idNodeMap(doc._idNodeMap)
 ,   _idAttrId(doc._idAttrId) // Id for "id" attribute name
 ,   _docFlags(doc._docFlags)
+,   _pagesData(8192)
 {
 }
 
@@ -1394,12 +1396,13 @@ ldomDocument::~ldomDocument()
 }
 
 #if BUILD_LITE!=1
-int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_ref_t def_font, int def_interline_space )
+int ldomDocument::render( LVRendPageList * pages, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
 {
+    CRLog::info("Render is called for width %d, pageHeight=%d", width, dy );
     CRLog::trace("initializing default style...");
-    persist();
+    //persist();
     _renderedBlockCache.clear();
-    _page_height = context.getPageHeight();
+    _page_height = dy;
     _def_font = def_font;
     _def_style = css_style_ref_t( new css_style_rec_t );
     _def_style->display = css_d_block;
@@ -1428,21 +1431,34 @@ int ldomDocument::render( LVRendPageContext & context, int width, int y0, font_r
     // update styles
     CRLog::trace("init format data...");
     getRootNode()->recurseElements( initFormatData );
-    CRLog::trace("init render method...");
-    initRendMethod( getRootNode() );
-    //updateStyles();
-    CRLog::trace("rendering...");
-    int height = renderBlockElement( context, getRootNode(),
-        0, y0, width ) + y0;
-#if 0 //def _DEBUG
-    LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
-    saveToStream( ostream, "utf-16" );
-#endif
-    gc();
-    CRLog::trace("finalizing...");
-    context.Finalize();
-    persist();
-    return height;
+
+    if ( !checkRenderContext( pages, width, dy ) ) {
+        pages->clear();
+        if ( showCover )
+            pages->add( new LVRendPageInfo( dy ) );
+        LVRendPageContext context( pages, dy );
+        CRLog::info("rendering context is changed - full render required...");
+        CRLog::trace("init render method...");
+        initRendMethod( getRootNode() );
+        //updateStyles();
+        CRLog::trace("rendering...");
+        int height = renderBlockElement( context, getRootNode(),
+            0, y0, width ) + y0;
+    #if 0 //def _DEBUG
+        LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
+        saveToStream( ostream, "utf-16" );
+    #endif
+        gc();
+        CRLog::trace("finalizing...");
+        context.Finalize();
+        updateRenderContext( pages, width, dy );
+        persist();
+        return height;
+    } else {
+        CRLog::info("rendering context is not changed - no render!");
+        return getFullHeight();
+    }
+
 }
 #endif
 
@@ -4349,7 +4365,7 @@ void ldomFreeStorage()
 #endif
 
 
-static const char * doc_file_magic = "CR3DocDump-v0101";
+static const char * doc_file_magic = "CoolReader3 Document Cache File\nformat version 3.01.03\n";
 
 
 bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
@@ -4359,8 +4375,11 @@ bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
     hdrbuf << src_file_size << src_file_crc32;
     hdrbuf << props_offset << props_size;
     hdrbuf << idtable_offset << idtable_size;
+    hdrbuf << pagetable_offset << pagetable_size;
     hdrbuf << data_offset << data_size << data_crc32 << data_index_size << file_size;
+    hdrbuf << render_dx << render_dy << render_docflags << render_style_hash;
     hdrbuf << src_file_name;
+
     hdrbuf.putCRC( hdrbuf.pos() - start );
     return !hdrbuf.error();
 }
@@ -4376,7 +4395,9 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
     hdrbuf >> src_file_size >> src_file_crc32;
     hdrbuf >> props_offset >> props_size;
     hdrbuf >> idtable_offset >> idtable_size;
+    hdrbuf >> pagetable_offset >> pagetable_size;
     hdrbuf >> data_offset >> data_size >> data_crc32 >> data_index_size >> file_size;
+    hdrbuf >> render_dx >> render_dy >> render_docflags >> render_style_hash;
     hdrbuf >> src_file_name;
     hdrbuf.checkCRC( hdrbuf.pos() - start );
     if ( hdrbuf.error() ) {
@@ -4413,6 +4434,65 @@ bool testTreeConsistency( ldomNode * base, int & count, int * flags )
     flags[ base->getDataIndex() ]++;
     count++;
     return res;
+}
+
+void calcStyleHash( ldomNode * node, lUInt32 & value )
+{
+    if ( !node )
+        return;
+
+    if ( !node->isText() && node->getRendMethod()==erm_invisible ) {
+        value = value * 75 + 1673251;
+        return; // don't go through invisible nodes
+    }
+
+    css_style_ref_t style = node->getStyle();
+    font_ref_t font = node->getFont();
+    lUInt32 styleHash = (!style) ? 4324324 : calcHash( style );
+    lUInt32 fontHash = (!font) ? 256371 : calcHash( font );
+    value = (value*75 + styleHash) * 75 + fontHash;
+
+    int cnt = node->getChildCount();
+    for ( int i=0; i<cnt; i++ ) {
+        calcStyleHash( node->getChildNode(i), value );
+    }
+}
+
+/// save document formatting parameters after render
+void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
+{
+    lUInt32 styleHash = 0;
+    calcStyleHash( getRootNode(), styleHash );
+    hdr.render_style_hash = styleHash;
+    hdr.render_dx = dx;
+    hdr.render_dy = dy;
+    hdr.render_docflags = _docFlags;
+    _pagesData.setPos( 0 );
+    pages->serialize( _pagesData );
+}
+
+/// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
+bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
+{
+    lUInt32 styleHash = 0;
+    calcStyleHash( getRootNode(), styleHash );
+    if ( styleHash == hdr.render_style_hash 
+        && _docFlags == hdr.render_docflags
+        && dx == hdr.render_dx
+        && dy == hdr.render_dy ) {
+
+        if ( pages->length()==0 ) {
+            _pagesData.setPos( 0 );
+            pages->deserialize( _pagesData );
+        }
+
+        return true;
+    }
+    hdr.render_style_hash = styleHash;
+    hdr.render_dx = dx;
+    hdr.render_dy = dy;
+    hdr.render_docflags = _docFlags;
+    return false;
 }
 
 ///debug method, for DOM tree consistency check, returns false if failed
@@ -4573,6 +4653,16 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
         deserializeMaps( idbuf );
         if ( idbuf.error() )
             return false;
+
+        SerialBuf pagebuf( ptr + hdr.pagetable_offset, hdr.pagetable_size );
+        _pagesData.setPos( 0 );
+        _pagesData << pagebuf;
+        _pagesData.setPos( 0 );
+        LVRendPageList pages;
+        pages.deserialize(_pagesData);
+        if ( _pagesData.error() )
+            return false;
+        _pagesData.setPos( 0 );
     }
 
     _map = map;
@@ -4659,6 +4749,10 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
     int idsize = idbuf.pos() + 4096;
     idsize = (idsize + 4095) / 4096 * 4096;
 
+    int pagesize = _pagesData.size();
+    if ( (unsigned)pagesize < hdr.file_size/1000 * 10 )
+        pagesize = hdr.file_size/1000 * 10 / 4096 * 4096 + 4096;
+
     int pos = 0;
     int hdrsize = 4096; // max header size
     pos += hdrsize;
@@ -4670,6 +4764,10 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
     hdr.idtable_offset = pos;
     hdr.idtable_size = idsize;
     pos += idsize;
+
+    hdr.pagetable_offset = pos;
+    hdr.pagetable_size = pagesize;
+    pos += pagesize;
 
     hdr.data_offset = pos;
     hdr.data_size = datasize;
@@ -4708,6 +4806,8 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
     hdrbuf.copyTo( ptr, hdrbuf.pos() );
     propsbuf.copyTo( ptr + hdr.props_offset, hdr.props_size );
     idbuf.copyTo( ptr + hdr.idtable_offset, hdr.idtable_size );
+    _pagesData.copyTo( ptr + hdr.pagetable_offset, hdr.pagetable_size );
+
 
     //
     _currentBuffer = new DataBuffer( ptr + hdr.data_offset, hdr.file_size - hdr.data_offset, hdr.data_size );
@@ -5120,3 +5220,4 @@ bool ldomDocCache::enabled()
 {
     return _cacheInstance!=NULL;
 }
+

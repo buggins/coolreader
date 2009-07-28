@@ -71,12 +71,16 @@ public:
     : start(0), height(coverHeight), index(0), type(PAGE_TYPE_COVER) {}
     LVRendPageInfo() 
     : start(0), height(0), index(0), type(PAGE_TYPE_NORMAL) { }
+    bool serialize( SerialBuf & buf );
+    bool deserialize( SerialBuf & buf );
 };
 
 class LVRendPageList : public LVPtrVector<LVRendPageInfo>
 {
 public:
     int FindNearestPage( int y, int direction );
+    bool serialize( SerialBuf & buf );
+    bool deserialize( SerialBuf & buf );
 };
 
 class LVFootNote;

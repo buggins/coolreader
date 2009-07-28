@@ -1636,12 +1636,8 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
             dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom - getPageHeaderHeight();
 
         CRLog::debug("Render(width=%d, height=%d, font=%s(%d))", dx, dy, fontName.c_str(), m_font_size);
-        pages->clear();
-        if ( m_showCover )
-            pages->add( new LVRendPageInfo( dy ) );
-        LVRendPageContext context( pages, dy );
         //CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
-        m_doc->render( context, dx, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
+        m_doc->render( pages, dx, dy, m_showCover, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
 
     #if 0
         FILE * f = fopen("pagelist.log", "wt");
