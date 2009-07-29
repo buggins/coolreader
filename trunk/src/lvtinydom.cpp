@@ -4737,11 +4737,9 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
     checkConsistency( true );
 #endif
 
-    lUInt32 styleHash = 0;
     _map = map;
     _mapbuf = buf;
-    calcStyleHash( getRootNode(), styleHash );
-    CRLog::info("ldomDocument::openFromCache() - read successfully, styleHash=%08x", styleHash);
+    CRLog::info("ldomDocument::openFromCache() - read successfully");
     return true;
 }
 
@@ -4943,9 +4941,7 @@ bool ldomDocument::updateMap()
     checkConsistency( true);
 #endif
 
-    lUInt32 styleHash = 0;
-    calcStyleHash( getRootNode(), styleHash );
-    CRLog::info("ldomDocument::updateMap() - Changes saved, styleHash=%08x", styleHash);
+    CRLog::info("ldomDocument::updateMap() - Changes saved");
     return true;
 }
 
