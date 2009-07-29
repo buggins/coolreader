@@ -335,7 +335,18 @@ protected:
         NodeItem() : instance(NULL), data(NULL) { }
     };
     /// returns or creates object instance by index
-    ldomNode * getNodeInstance( lInt32 dataIndex );
+    inline ldomNode * getNodeInstance( lInt32 dataIndex )
+    {
+        return _instanceMap[ dataIndex ].instance;
+/*
+        ldomNode * item = _instanceMap[ dataIndex ].instance;
+        if ( item != NULL )
+            return item;
+        // TODO: try to create instance from data
+        CRLog::error("NULL instance for index %d", dataIndex);
+        return NULL;
+*/
+    }
 	/// for persistent text node, return wide text by index, with caching (TODO)
     lString16 getTextNodeValue( lInt32 dataIndex );
 	/// for persistent text node, return utf8 text by index, with caching (TODO)

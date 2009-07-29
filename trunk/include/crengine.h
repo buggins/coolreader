@@ -137,7 +137,7 @@
     
 
 */
-#define CR_ENGINE_VERSION "3.0.19"
+#define CR_ENGINE_VERSION "3.0.20"
 
 #include "crsetup.h"
 #include "lvtypes.h"

@@ -1052,6 +1052,7 @@ void lxmlDocBase::deleteNode( ldomNode * node )
 }
 
 /// returns or creates object instance by index
+/*
 ldomNode * lxmlDocBase::getNodeInstance( lInt32 dataIndex )
 {
     ldomNode * item = _instanceMap[ dataIndex ].instance;
@@ -1061,6 +1062,7 @@ ldomNode * lxmlDocBase::getNodeInstance( lInt32 dataIndex )
     CRLog::error("NULL instance for index %d", dataIndex);
     return NULL;
 }
+*/
 
 lUInt16 lxmlDocBase::getNsNameIndex( const lChar16 * name )
 {
