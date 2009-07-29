@@ -517,6 +517,8 @@ int InitDoc(char *fileName)
         	if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
         		wm->loadSkin( lString16( L"/root/crengine/skin" ) );
 
+        ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ); /*96Mb*/
+
         CRLog::trace("creating main window...");
         main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );
         CRLog::trace("setting colors...");

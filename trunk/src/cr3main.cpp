@@ -345,8 +345,8 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 void InitCREngineLog( const char * cfgfile )
 {
     if ( !cfgfile ) {
-        CRLog::setStdoutLogger();
-        CRLog::setLogLevel( CRLog::LL_TRACE );
+        //CRLog::setStdoutLogger();
+        //CRLog::setLogLevel( CRLog::LL_TRACE );
         return;
     }
     lString16 logfname;
