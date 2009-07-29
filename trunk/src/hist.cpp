@@ -391,7 +391,7 @@ lString16 CRBookmark::getChapterName( ldomXPointer ptr )
 		while ( !p.isNull() ) {
 			if ( !p.prevElement() )
 				break;
-            bool foundSection = p.findElementInPath( section_id );
+            bool foundSection = p.findElementInPath( section_id ) > 0;
             //(p.toString().pos(lString16(L"section")) >=0 );
             foundAnySection = foundAnySection || foundSection;
             if ( !foundSection && foundAnySection )
