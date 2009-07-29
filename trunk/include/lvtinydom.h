@@ -918,6 +918,8 @@ public:
             _indexes[ i ] = v._indexes[i];
         return *this;
     }
+    /// searches path for element with specific id, returns level at which element is founs, 0 if not found
+    int findElementInPath( lUInt16 id );
     /// compare two pointers, returns -1, 0, +1
     int compare( const ldomXPointerEx& v ) const;
     /// move to next sibling

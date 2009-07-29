@@ -2169,8 +2169,17 @@ CRFileHistRecord * LVDocView::getCurrentFileHistRecord()
 {
     if ( m_filename.empty() )
         return NULL;
-    return m_hist.savePosition( m_filename, m_filesize,
-        getTitle(), getAuthors(), getSeries(), getBookmark() );
+    CRLog::trace("LVDocView::getCurrentFileHistRecord()");
+    CRLog::trace("get title, authors, series");
+    lString16 title = getTitle();
+    lString16 authors = getAuthors();
+    lString16 series = getSeries();
+    CRLog::trace("get bookmark");
+    ldomXPointer bmk = getBookmark();
+    CRFileHistRecord * res = m_hist.savePosition( m_filename, m_filesize,
+        title, authors, series, bmk );
+    CRLog::trace("savePosition() returned");
+    return res;
 }
 
 /// save last file position

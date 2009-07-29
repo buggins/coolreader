@@ -3417,6 +3417,20 @@ ldomNode * ldomXRange::getNearestCommonParent()
     return NULL;
 }
 
+/// searches path for element with specific id, returns level at which element is founs, 0 if not found
+int ldomXPointerEx::findElementInPath( lUInt16 id )
+{
+    if ( !ensureElement() )
+        return 0;
+    ldomNode * e = getNode();
+    for ( ; e!=NULL; e = e->getParentNode() ) {
+        if ( e->getNodeId()==id ) {
+            return e->getNodeLevel();
+        }
+    }
+    return 0;
+}
+
 bool ldomXPointerEx::ensureFinal()
 {
     if ( !ensureElement() )
