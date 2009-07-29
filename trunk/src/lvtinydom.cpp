@@ -4452,65 +4452,6 @@ bool testTreeConsistency( ldomNode * base, int & count, int * flags )
     return res;
 }
 
-void calcStyleHash( ldomNode * node, lUInt32 & value )
-{
-    if ( !node )
-        return;
-
-    if ( node->isText() || node->getRendMethod()==erm_invisible ) {
-        value = value * 75 + 1673251;
-        return; // don't go through invisible nodes
-    }
-
-    css_style_ref_t style = node->getStyle();
-    font_ref_t font = node->getFont();
-    lUInt32 styleHash = (!style) ? 4324324 : calcHash( style );
-    lUInt32 fontHash = (!font) ? 256371 : calcHash( font );
-    value = (value*75 + styleHash) * 75 + fontHash;
-
-    int cnt = node->getChildCount();
-    for ( int i=0; i<cnt; i++ ) {
-        calcStyleHash( node->getChildNode(i), value );
-    }
-}
-
-/// save document formatting parameters after render
-void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
-{
-    lUInt32 styleHash = 0;
-    calcStyleHash( getRootNode(), styleHash );
-    hdr.render_style_hash = styleHash;
-    hdr.render_dx = dx;
-    hdr.render_dy = dy;
-    hdr.render_docflags = _docFlags;
-    _pagesData.reset();
-    pages->serialize( _pagesData );
-}
-
-/// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
-bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
-{
-    lUInt32 styleHash = 0;
-    calcStyleHash( getRootNode(), styleHash );
-    if ( styleHash == hdr.render_style_hash 
-        && _docFlags == hdr.render_docflags
-        && dx == (int)hdr.render_dx
-        && dy == (int)hdr.render_dy ) {
-
-        //if ( pages->length()==0 ) {
-            _pagesData.reset();
-            pages->deserialize( _pagesData );
-        //}
-
-        return true;
-    }
-    hdr.render_style_hash = styleHash;
-    hdr.render_dx = dx;
-    hdr.render_dy = dy;
-    hdr.render_docflags = _docFlags;
-    return false;
-}
-
 ///debug method, for DOM tree consistency check, returns false if failed
 bool lxmlDocBase::checkConsistency( bool requirePersistent )
 {
@@ -5255,5 +5196,64 @@ bool ldomDocCache::clear()
 bool ldomDocCache::enabled()
 {
     return _cacheInstance!=NULL;
+}
+
+void calcStyleHash( ldomNode * node, lUInt32 & value )
+{
+    if ( !node )
+        return;
+
+    if ( node->isText() || node->getRendMethod()==erm_invisible ) {
+        value = value * 75 + 1673251;
+        return; // don't go through invisible nodes
+    }
+
+    css_style_ref_t style = node->getStyle();
+    font_ref_t font = node->getFont();
+    lUInt32 styleHash = (!style) ? 4324324 : calcHash( style );
+    lUInt32 fontHash = (!font) ? 256371 : calcHash( font );
+    value = (value*75 + styleHash) * 75 + fontHash;
+
+    int cnt = node->getChildCount();
+    for ( int i=0; i<cnt; i++ ) {
+        calcStyleHash( node->getChildNode(i), value );
+    }
+}
+
+/// save document formatting parameters after render
+void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
+{
+    lUInt32 styleHash = 0;
+    calcStyleHash( getRootNode(), styleHash );
+    hdr.render_style_hash = styleHash;
+    hdr.render_dx = dx;
+    hdr.render_dy = dy;
+    hdr.render_docflags = _docFlags;
+    _pagesData.reset();
+    pages->serialize( _pagesData );
+}
+
+/// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
+bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
+{
+    lUInt32 styleHash = 0;
+    calcStyleHash( getRootNode(), styleHash );
+    if ( styleHash == hdr.render_style_hash 
+        && _docFlags == hdr.render_docflags
+        && dx == (int)hdr.render_dx
+        && dy == (int)hdr.render_dy ) {
+
+        //if ( pages->length()==0 ) {
+            _pagesData.reset();
+            pages->deserialize( _pagesData );
+        //}
+
+        return true;
+    }
+    hdr.render_style_hash = styleHash;
+    hdr.render_dx = dx;
+    hdr.render_dy = dy;
+    hdr.render_docflags = _docFlags;
+    return false;
 }
 

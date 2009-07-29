@@ -320,6 +320,19 @@ public:
     /// saves recent changes to mapped file
     virtual bool updateMap() = 0;
 
+    /// returns or creates object instance by index
+    inline ldomNode * getNodeInstance( lInt32 dataIndex )
+    {
+        return _instanceMap[ dataIndex ].instance;
+/*
+        ldomNode * item = _instanceMap[ dataIndex ].instance;
+        if ( item != NULL )
+            return item;
+        // TODO: try to create instance from data
+        CRLog::error("NULL instance for index %d", dataIndex);
+        return NULL;
+*/
+    }
 protected:
 
     
@@ -334,19 +347,6 @@ protected:
         // empty item constructor
         NodeItem() : instance(NULL), data(NULL) { }
     };
-    /// returns or creates object instance by index
-    inline ldomNode * getNodeInstance( lInt32 dataIndex )
-    {
-        return _instanceMap[ dataIndex ].instance;
-/*
-        ldomNode * item = _instanceMap[ dataIndex ].instance;
-        if ( item != NULL )
-            return item;
-        // TODO: try to create instance from data
-        CRLog::error("NULL instance for index %d", dataIndex);
-        return NULL;
-*/
-    }
 	/// for persistent text node, return wide text by index, with caching (TODO)
     lString16 getTextNodeValue( lInt32 dataIndex );
 	/// for persistent text node, return utf8 text by index, with caching (TODO)
@@ -1268,14 +1268,15 @@ private:
 
 protected:
 
-    /// save document formatting parameters after render
-    void updateRenderContext( LVRendPageList * pages, int dx, int dy );
-    /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
-    bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
 public:
+
+    /// save document formatting parameters after render
+    void updateRenderContext( LVRendPageList * pages, int dx, int dy );
+    /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
+    bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
 
     /// try opening from cache file, find by source file name (w/o path) and crc32
     virtual bool openFromCache( lString16 fname, lUInt32 crc );
