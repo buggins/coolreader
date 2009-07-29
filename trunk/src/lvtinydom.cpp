@@ -4478,13 +4478,13 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
     calcStyleHash( getRootNode(), styleHash );
     if ( styleHash == hdr.render_style_hash 
         && _docFlags == hdr.render_docflags
-        && dx == hdr.render_dx
-        && dy == hdr.render_dy ) {
+        && dx == (int)hdr.render_dx
+        && dy == (int)hdr.render_dy ) {
 
-        if ( pages->length()==0 ) {
+        //if ( pages->length()==0 ) {
             _pagesData.reset();
             pages->deserialize( _pagesData );
-        }
+        //}
 
         return true;
     }
@@ -4655,6 +4655,7 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
             return false;
 
         SerialBuf pagebuf( ptr + hdr.pagetable_offset, hdr.pagetable_size );
+        pagebuf.setPos( hdr.pagetable_size );
         _pagesData.setPos( 0 );
         _pagesData << pagebuf;
         _pagesData.setPos( 0 );
@@ -4801,7 +4802,7 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
         hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
         pos += len;
     }
-    CRLog::info( "ldomDocument::updateMap() - data CRC is %08x", hdr.data_crc32 );
+    CRLog::info( "ldomDocument::swapToCache() - data CRC is %08x", hdr.data_crc32 );
 
     SerialBuf hdrbuf(4096);
     if ( !hdr.serialize( hdrbuf ) )
