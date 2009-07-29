@@ -29,7 +29,8 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     m_ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     m_ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui->tableWidget->setSortingEnabled(true);
-    for ( int i=1; i<files.length(); i++ ) {
+    int firstItem = docView->getDocView()->isDocumentOpened() ? 1 : 0;
+    for ( int i=firstItem; i<files.length(); i++ ) {
         CRFileHistRecord * book = files.get( i );
         lString16 author = book->getAuthor();
         lString16 title = book->getTitle();
@@ -42,10 +43,10 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
         else if ( !series.empty() )
             title << L" - " << series;
         int index = 0;
-        m_ui->tableWidget->setItem( i-1, index++, new QTableWidgetItem(cr2qt(lString16::itoa(i))));
-        m_ui->tableWidget->setItem( i-1, index++, new QTableWidgetItem(cr2qt(author)));
-        m_ui->tableWidget->setItem( i-1, index++, new QTableWidgetItem(cr2qt(title)));
-        m_ui->tableWidget->setItem( i-1, index++, new QTableWidgetItem(cr2qt(filename)));
+        m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(lString16::itoa(i - firstItem + 1 ))));
+        m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(author)));
+        m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(title)));
+        m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(filename)));
         //CRRecentBookMenuItem * item = new CRRecentBookMenuItem( this, i, file );
         //addItem( item );
     }
@@ -94,11 +95,13 @@ void RecentBooksDlg::openBook( int rowIndex )
     int n = s.toInt(&ok, 10);
     if ( !ok )
         return;
+    int firstItem = m_docview->getDocView()->isDocumentOpened() ? 1 : 0;
+    int index = n - 1 + firstItem;
     LVPtrVector<CRFileHistRecord> & files = m_docview->getDocView()->getHistory()->getRecords();
-    if ( n<1 || n>=files.length() )
+    if ( index < 0 || index>=files.length() )
         return;
     // go to file
-    QString fn = cr2qt(files[n]->getFilePathName());
+    QString fn = cr2qt(files[ index ]->getFilePathName());
     m_docview->loadDocument( fn );
     close();
 }
