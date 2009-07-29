@@ -4441,7 +4441,7 @@ void calcStyleHash( ldomNode * node, lUInt32 & value )
     if ( !node )
         return;
 
-    if ( !node->isText() && node->getRendMethod()==erm_invisible ) {
+    if ( node->isText() || node->getRendMethod()==erm_invisible ) {
         value = value * 75 + 1673251;
         return; // don't go through invisible nodes
     }
@@ -4467,7 +4467,7 @@ void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
     hdr.render_dx = dx;
     hdr.render_dy = dy;
     hdr.render_docflags = _docFlags;
-    _pagesData.setPos( 0 );
+    _pagesData.reset();
     pages->serialize( _pagesData );
 }
 
@@ -4482,7 +4482,7 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
         && dy == hdr.render_dy ) {
 
         if ( pages->length()==0 ) {
-            _pagesData.setPos( 0 );
+            _pagesData.reset();
             pages->deserialize( _pagesData );
         }
 
@@ -4660,8 +4660,10 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
         _pagesData.setPos( 0 );
         LVRendPageList pages;
         pages.deserialize(_pagesData);
-        if ( _pagesData.error() )
+        if ( _pagesData.error() ) {
+            CRLog::error("Page data deserialization is failed");
             return false;
+        }
         _pagesData.setPos( 0 );
     }
 
@@ -4709,7 +4711,9 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
     checkConsistency( true );
 #endif
 
-    CRLog::info("ldomDocument::openFromCache() - read successfully");
+    lUInt32 styleHash = 0;
+    calcStyleHash( getRootNode(), styleHash );
+    CRLog::info("ldomDocument::openFromCache() - read successfully, styleHash=%08x", styleHash);
     return true;
 }
 
@@ -4904,12 +4908,15 @@ bool ldomDocument::updateMap()
     hdrbuf.copyTo( ptr, hdrbuf.pos() );
     propsbuf.copyTo( ptr + hdr.props_offset, propssize );
     idbuf.copyTo( ptr + hdr.idtable_offset, idsize );
+    _pagesData.copyTo( ptr + hdr.pagetable_offset, hdr.pagetable_size );
 
 #ifdef _DEBUG
     checkConsistency( true);
 #endif
 
-    CRLog::info("ldomDocument::updateMap() - Changes saved");
+    lUInt32 styleHash = 0;
+    calcStyleHash( getRootNode(), styleHash );
+    CRLog::info("ldomDocument::updateMap() - Changes saved, styleHash=%08x", styleHash);
     return true;
 }
 

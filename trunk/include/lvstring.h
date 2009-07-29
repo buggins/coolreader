@@ -779,6 +779,8 @@ public:
 	inline bool error() const { return _error; }
 
     inline void seterror() { _error = true; }
+    /// move pointer to beginning, clear error flag
+    inline void reset() { _error = false; _pos = 0; }
 
     /// checks whether specified number of bytes is available, returns true in case of error
 	bool check( int reserved );
