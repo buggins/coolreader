@@ -45,6 +45,18 @@
 //#define LXML_DOCUMENT_NODE 3 ///< document node (not implemented)
 //#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
+
+/// docFlag mask, enable internal stylesheet of document and style attribute of elements
+#define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
+/// docFlag mask, enable paperbook-like footnotes
+#define DOC_FLAG_ENABLE_FOOTNOTES       2
+/// docFlag mask, enable paperbook-like footnotes
+#define DOC_FLAG_PREFORMATTED_TEXT      4
+/// default docFlag set
+#define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES)
+
+
+
 #define LXML_NS_NONE 0       ///< no namespace specified
 #define LXML_NS_ANY  0xFFFF  ///< any namespace can be specified
 #define LXML_ATTR_VALUE_NONE  0xFFFF  ///< attribute not found
@@ -1182,13 +1194,6 @@ public:
 
 
 
-/// docFlag mask, enable internal stylesheet of document and style attribute of elements
-#define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
-/// docFlag mask, enable paperbook-like footnotes
-#define DOC_FLAG_ENABLE_FOOTNOTES       2
-/// default docFlag set
-#define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES)
-
 class ldomNavigationHistory
 {
     private:
@@ -1254,6 +1259,8 @@ protected:
     void updateRenderContext( LVRendPageList * pages, int dx, int dy );
     /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
     bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
+    /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
+    int getPersistenceFlags();
 
 public:
 

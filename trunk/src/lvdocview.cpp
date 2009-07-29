@@ -127,7 +127,6 @@ LVDocView::LVDocView()
 , m_section_bounds_valid(false)
 , m_posIsSet(false)
 , m_doc_format(doc_format_none)
-, m_text_format(txt_format_auto)
 , m_callback(NULL)
 {
 #if (COLOR_BACKBUFFER==1)
@@ -157,13 +156,20 @@ LVDocView::~LVDocView()
     Clear();
 }
 
+/// get text format options
+txt_format_t LVDocView::getTextFormatOptions()
+{
+    return m_doc->getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ? txt_format_pre : txt_format_auto;
+}
+
 /// set text format options
 void LVDocView::setTextFormatOptions( txt_format_t fmt )
 {
+    txt_format_t m_text_format = getTextFormatOptions();
     CRLog::trace( "setTextFormatOptions( %d ), current state = %d", (int)fmt, (int)m_text_format );
     if ( m_text_format == fmt )
         return; // no change
-    m_text_format = fmt;
+    m_doc->setDocFlag( DOC_FLAG_PREFORMATTED_TEXT, ( fmt == txt_format_pre ) );
     if ( getDocFormat() == doc_format_txt ) {
         requestReload();
         CRLog::trace( "setTextFormatOptions() -- new value set, reload requested" );
@@ -3653,7 +3659,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         break;
     case DCMD_TOGGLE_TEXT_FORMAT:
         {
-            if ( m_text_format==txt_format_auto )
+            if ( getTextFormatOptions()==txt_format_auto )
                 setTextFormatOptions( txt_format_pre );
             else
                 setTextFormatOptions( txt_format_auto );

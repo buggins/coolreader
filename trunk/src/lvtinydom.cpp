@@ -4601,26 +4601,37 @@ bool lxmlDocBase::checkConsistency( bool requirePersistent )
     }
     if ( !res )
         CRLog::error( "checkConsistency() failed - %d elements and %d text nodes, Map item count=%d(%d persist), tree item count=%d, data item count=%d", elemcount, textcount, mapitemcount, persistentmapcount, cnt, elemcount+textcount );
-    else if ( requirePersistent )
-        CRLog::warn( "checkConsistency() passed - %d elements and %d text nodes", elemcount, textcount );
+    else if ( requirePersistent ) {
+        //CRLog::warn( "checkConsistency() passed - %d elements and %d text nodes", elemcount, textcount );
+    }
     return res;
 }
 
 
 #endif
 
+int ldomDocument::getPersistenceFlags()
+{
+    int format = getProps()->getIntDef(DOC_PROP_FILE_FORMAT, 0);
+    int flag = ( format==2 && getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ) ? 1 : 0;
+    return flag;
+}
+
 bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
 {
-    CRLog::info("ldomDocument::openFromCache() - Started restoring of document from cache file");
-    LVStreamRef map = ldomDocCache::openExisting( fname, crc, getDocFlags() );
+    CRLog::info("ldomDocument::openFromCache() - Started restoring of document %s from cache file", UnicodeToUtf8(fname).c_str() );
+    //doc_format_txt==2 TODO:
+    LVStreamRef map = ldomDocCache::openExisting( fname, crc, getPersistenceFlags() );
     if ( map.isNull() ) {
         CRLog::error("Document %s is not found in cache", UnicodeToUtf8(fname).c_str() );
         return false;
     }
     lUInt32 fileSize = (lUInt32)map->GetSize();
     LVStreamBufferRef buf = map->GetWriteBuffer( 0, fileSize );
-    if ( buf.isNull() )
+    if ( buf.isNull() ) {
+        CRLog::error("Cannot map file to read/write buffer");
         return false;
+    }
     lUInt8 * ptr = buf->getReadWrite();
     if ( ptr==NULL )
         return false;
@@ -4668,8 +4679,6 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
         _pagesData.setPos( 0 );
     }
 
-    _map = map;
-    _mapbuf = buf;
     {
         _dataBuffers.clear();
         _currentBuffer = new DataBuffer( ptr + hdr.data_offset, fileSize-hdr.data_offset, hdr.data_size );
@@ -4706,13 +4715,15 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
                 textcount++;
             }
         }
-        CRLog::info("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
+        CRLog::trace("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
     }
 #ifdef _DEBUG
     checkConsistency( true );
 #endif
 
     lUInt32 styleHash = 0;
+    _map = map;
+    _mapbuf = buf;
     calcStyleHash( getRootNode(), styleHash );
     CRLog::info("ldomDocument::openFromCache() - read successfully, styleHash=%08x", styleHash);
     return true;
@@ -4729,7 +4740,7 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
     }
 
     //testTreeConsistency( getRootNode() );
-    CRLog::info("ldomDocument::swapToCache() - Started swapping of document to cache file");
+    CRLog::info("ldomDocument::swapToCache() - Started swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
 
     if ( !reservedSize )
         persist();
@@ -4782,7 +4793,7 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
     lUInt32 reserved = (hdr.file_size / 16) + 8192; // 8K + 1/16
     hdr.file_size += reserved;
 
-    LVStreamRef map = ldomDocCache::createNew( fname, crc, getDocFlags(), hdr.file_size );
+    LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), hdr.file_size );
     if ( map.isNull() )
         return false;
 
@@ -4843,14 +4854,15 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
             }
         }
     }
-    CRLog::info("%d elements and %d text nodes (%d total) are swapped to disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)hdr.file_size);
+    CRLog::trace("%d elements and %d text nodes (%d total) are swapped to disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)hdr.file_size);
 
-    _map = map; // memory mapped file
-    _mapbuf = buf; // memory mapped file buffer
 
 #ifdef _DEBUG
     checkConsistency( false );
 #endif
+
+    _map = map; // memory mapped file
+    _mapbuf = buf; // memory mapped file buffer
     _mapped = true;
     CRLog::info("ldomDocument::swapToCache() - swapping of document to cache file finished successfully");
     return true;
@@ -5140,8 +5152,10 @@ public:
     {
         lString16 fn = makeFileName( filename, crc, docFlags );
         LVStreamRef res;
-        if ( findFileIndex( fn ) < 0 )
+        if ( findFileIndex( fn ) < 0 ) {
+            CRLog::error( "ldomDocCache::openExisting - File %s is not found in cache index", UnicodeToUtf8(fn).c_str() );
             return res;
+        }
         res = LVMapFileStream( fn.c_str(), LVOM_APPEND, 0 );
         if ( !res ) {
             CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn).c_str() );

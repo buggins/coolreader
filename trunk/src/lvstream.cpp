@@ -51,6 +51,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dlfcn.h>
+#include <errno.h>
 #endif
 
 
@@ -753,7 +754,7 @@ public:
         int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT;
         m_fd = open( fn8.c_str(), flags, (mode_t)0600);
         if (m_fd == -1) {
-            CRLog::error( "Error opening file %s for reading", fn8.c_str() );
+            CRLog::error( "Error opening file %s for reading, errno=%d, msg=%s", fn8.c_str(), (int)errno, strerror(errno) );
             return error();
         }
         struct stat stat;

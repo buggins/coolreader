@@ -400,7 +400,6 @@ private:
     ldomNavigationHistory _navigationHistory;
 
     doc_format_t m_doc_format;
-    txt_format_t m_text_format;
 
     LVDocViewCallback * m_callback;
 
@@ -498,7 +497,7 @@ public:
     /// set text format options
     void setTextFormatOptions( txt_format_t fmt );
     /// get text format options
-    txt_format_t getTextFormatOptions() { return m_text_format; }
+    txt_format_t getTextFormatOptions();
     /// get current document format
     doc_format_t getDocFormat() { return m_doc_format; }
 
