@@ -149,6 +149,10 @@ LVDocView::LVDocView()
 
     //m_drawbuf.Clear(m_backgroundColor);
     createDefaultDocument( lString16(L"No document"), lString16(L"Welcome to CoolReader! Please select file to open") );
+
+    m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
+    m_infoFont = fontMan->GetFont( m_status_font_size, 300, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+
 }
 
 LVDocView::~LVDocView()
@@ -194,7 +198,7 @@ void LVDocView::requestReload()
 /// returns true if document is opened
 bool LVDocView::isDocumentOpened()
 {
-    return m_doc && m_doc->getRootNode();
+    return m_doc && m_doc->getRootNode() && !m_doc_props->getStringDef(DOC_PROP_FILE_NAME,"").empty();
 }
 
 /// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
@@ -1626,7 +1630,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
     LVLock lock(getMutex());
     {
-        if ( !m_doc || !isDocumentOpened() || m_doc->getRootNode()==NULL)
+        if ( !m_doc || m_doc->getRootNode()==NULL)
             return;
         if ( pages==NULL )
             pages = &m_pages;

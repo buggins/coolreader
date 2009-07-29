@@ -450,6 +450,7 @@ public:
 		}
 #else
 		if ( m_fd!= -1 ) {
+            CRLog::trace("Closing mapped file %s", UnicodeToUtf8(GetName()).c_str() );
 			UnMap();
             close(m_fd);
 		}
@@ -752,9 +753,9 @@ public:
         m_fd = -1;
 
         int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT;
-        m_fd = open( fn8.c_str(), flags, (mode_t)0600);
+        m_fd = open( fn8.c_str(), flags, (mode_t)0666);
         if (m_fd == -1) {
-            CRLog::error( "Error opening file %s for reading, errno=%d, msg=%s", fn8.c_str(), (int)errno, strerror(errno) );
+            CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );
             return error();
         }
         struct stat stat;

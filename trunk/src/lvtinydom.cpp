@@ -5043,6 +5043,8 @@ public:
             const LVContainerItemInfo * item = container->GetObjectInfo( i );
             if ( !item->IsContainer() ) {
                 lString16 fn = item->GetName();
+                if ( !fn.endsWith(L".cr3") )
+                    continue;
                 if ( findFileIndex(fn)<0 ) {
                     // delete file
                     CRLog::info("Removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
