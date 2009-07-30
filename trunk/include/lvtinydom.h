@@ -314,9 +314,9 @@ public:
     }
 
     /// try opening from cache file, find by source file name (w/o path) and crc32
-    virtual bool openFromCache( lString16 fname, lUInt32 crc ) = 0;
+    virtual bool openFromCache( ) = 0;
     /// swap to cache file, find by source file name (w/o path) and crc32
-    virtual bool swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedDataSize=0 ) = 0;
+    virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
     /// saves recent changes to mapped file
     virtual bool updateMap() = 0;
 
@@ -1279,9 +1279,9 @@ public:
     bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
 
     /// try opening from cache file, find by source file name (w/o path) and crc32
-    virtual bool openFromCache( lString16 fname, lUInt32 crc );
+    virtual bool openFromCache( );
     /// swap to cache file, find by source file name (w/o path) and crc32
-    virtual bool swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedDataSize=0 );
+    virtual bool swapToCache( lUInt32 reservedDataSize=0 );
     /// saves recent changes to mapped file
     virtual bool updateMap();
 

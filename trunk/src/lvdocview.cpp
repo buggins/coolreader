@@ -2762,7 +2762,12 @@ bool LVDocView::ParseDocument( )
         fn = LVExtractFilename( fn );
         lUInt32 crc = 0;
         m_stream->crc32( crc );
-        if ( m_doc->openFromCache( fn, crc ) ) {
+
+	    // set stylesheet
+	    m_doc->getStyleSheet()->clear();
+	    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+
+        if ( m_doc->openFromCache( ) ) {
             CRLog::info("Document is found in cache, will reuse");
 
 		    // set stylesheet
@@ -2933,7 +2938,7 @@ bool LVDocView::ParseDocument( )
         fn = LVExtractFilename( fn );
         lUInt32 crc = 0;
         m_stream->crc32( crc );
-        if ( m_doc->swapToCache( fn, crc ) ) {
+        if ( m_doc->swapToCache( ) ) {
             return true;
         }
     }

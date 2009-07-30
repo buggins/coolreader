@@ -1115,11 +1115,9 @@ DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
 
         if ( (_dataBufferSize+1) * _dataBuffers.length() > DOCUMENT_CACHING_MAX_RAM_USAGE ) {
             // swap to file
-            lString16 fn = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
             lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
-            lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
             CRLog::info("Document data size is too big for RAM: swapping to disk, need to swap before allocating item %d[%d]", dataIndex, size);
-            if ( !swapToCache( fn, crc, sz * 3 ) ) {
+            if ( !swapToCache( sz * 3 ) ) {
                 CRLog::error( "Cannot swap big document to disk" );
                 crFatalError(10, "Swapping big document is failed. Exiting.");
             }
@@ -4574,8 +4572,11 @@ int ldomDocument::getPersistenceFlags()
     return flag;
 }
 
-bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
+bool ldomDocument::openFromCache( )
 {
+    lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
+    //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
+    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
     CRLog::info("ldomDocument::openFromCache() - Started restoring of document %s from cache file", UnicodeToUtf8(fname).c_str() );
     //doc_format_txt==2 TODO:
     LVStreamRef map = ldomDocCache::openExisting( fname, crc, getPersistenceFlags() );
@@ -4688,8 +4689,11 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
     return true;
 }
 
-bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSize )
+bool ldomDocument::swapToCache( lUInt32 reservedSize )
 {
+    lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
+    //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
+    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
     if ( !_map.isNull() ) {
         // already in map file
         return true;
