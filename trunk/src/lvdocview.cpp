@@ -2264,8 +2264,10 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
 
     if ( LoadDocument( stream ) ) {
         m_filename = lString16(fname);
+        m_stream.Clear();
         return true;
     }
+    m_stream.Clear();
     return false;
 }
 

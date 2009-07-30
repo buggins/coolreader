@@ -563,7 +563,7 @@ public:
 		);
 		if ( m_hMap==NULL ) {
 			DWORD err = GetLastError();
-            CRLog::error( "LVFileMappedStream::Map() -- Cannot map file to memory, err=%08x", err );
+            CRLog::error( "LVFileMappedStream::Map() -- Cannot map file to memory, err=%08x, hFile=%08x", err, (lUInt32)m_hFile );
             return error();
 		}
 		m_map = (lUInt8*) MapViewOfFile(
@@ -678,6 +678,10 @@ public:
         m_mode = mode;
         if ( mode!=LVOM_READ && mode!=LVOM_APPEND )
             return LVERR_FAIL; // not supported
+        if ( minSize==-1 ) {
+            if ( !LVFileExists(fname) )
+                return LVERR_FAIL;
+        }
         //if ( mode==LVOM_APPEND && minSize<=0 )
         //    return LVERR_FAIL;
         SetName(fname.c_str());
@@ -722,6 +726,8 @@ public:
 			if (err==ERROR_CALL_NOT_IMPLEMENTED)
 				m_hFile = CreateFileA( fn8.c_str(), m, s, NULL, c, FILE_ATTRIBUTE_NORMAL, NULL);
 			if ( (m_hFile == INVALID_HANDLE_VALUE) || (!m_hFile) ) {
+                CRLog::error("Error opening file %s", UnicodeToUtf8(fname).c_str() );
+                m_hFile = NULL;
 				// error
 				return error();
 			}

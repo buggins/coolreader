@@ -1118,7 +1118,7 @@ DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
             lString16 fn = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
             lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
             lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
-            CRLog::info("Document data size is too big for RAM: swapping to disk");
+            CRLog::info("Document data size is too big for RAM: swapping to disk, need to swap before allocating item %d[%d]", dataIndex, size);
             if ( !swapToCache( fn, crc, sz * 3 ) ) {
                 CRLog::error( "Cannot swap big document to disk" );
                 crFatalError(10, "Swapping big document is failed. Exiting.");
@@ -1581,7 +1581,7 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
     _attrValueTable.deserialize( buf );
 
     int start = buf.pos();
-    buf.putMagic( node_by_id_map_magic );
+    buf.checkMagic( node_by_id_map_magic );
     lUInt32 idmsize;
     buf >> idmsize;
     _idNodeMap.clear();
@@ -4614,13 +4614,17 @@ bool ldomDocument::openFromCache( lString16 fname, lUInt32 crc )
     {
         SerialBuf propsbuf( ptr + hdr.props_offset, hdr.props_size );
         getProps()->deserialize( propsbuf );
-        if ( propsbuf.error() )
+        if ( propsbuf.error() ) {
+            CRLog::error("Cannot read property table for document");
             return false;
+        }
 
         SerialBuf idbuf( ptr + hdr.idtable_offset, hdr.idtable_size );
         deserializeMaps( idbuf );
-        if ( idbuf.error() )
+        if ( idbuf.error() ) {
+            CRLog::error("Cannot read ID table for document");
             return false;
+        }
 
         SerialBuf pagebuf( ptr + hdr.pagetable_offset, hdr.pagetable_size );
         pagebuf.setPos( hdr.pagetable_size );
@@ -4717,12 +4721,12 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
 
     SerialBuf idbuf(4096);
     serializeMaps( idbuf );
-    int idsize = idbuf.pos() + 4096;
+    int idsize = idbuf.pos() * 4 + 4096;
     idsize = (idsize + 4095) / 4096 * 4096;
 
     int pagesize = _pagesData.size();
-    if ( (unsigned)pagesize < hdr.file_size/1000 * 10 )
-        pagesize = hdr.file_size/1000 * 10 / 4096 * 4096 + 4096;
+    if ( (unsigned)pagesize < hdr.src_file_size/1000 * 20 )
+        pagesize = hdr.src_file_size/1000 * 20 / 4096 * 4096 + 16384;
 
     int pos = 0;
     int hdrsize = 4096; // max header size
@@ -4745,7 +4749,7 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
     hdr.data_index_size = _instanceMapCount;
 
     hdr.file_size = pos + (reservedSize > datasize ? reservedSize : datasize );
-    lUInt32 reserved = (hdr.file_size / 16) + 8192; // 8K + 1/16
+    lUInt32 reserved = (hdr.file_size) + 8192; // 8K + 1/16
     hdr.file_size += reserved;
 
     LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), hdr.file_size );
@@ -4768,7 +4772,7 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
         hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
         pos += len;
     }
-    CRLog::info( "ldomDocument::swapToCache() - data CRC is %08x", hdr.data_crc32 );
+    CRLog::info( "ldomDocument::swapToCache() - data CRC is %08x, max itemId=%d", hdr.data_crc32, _instanceMapCount );
 
     SerialBuf hdrbuf(4096);
     if ( !hdr.serialize( hdrbuf ) )
@@ -4776,7 +4780,13 @@ bool ldomDocument::swapToCache( lString16 fname, lUInt32 crc, lUInt32 reservedSi
 
     hdrbuf.copyTo( ptr, hdrbuf.pos() );
     propsbuf.copyTo( ptr + hdr.props_offset, hdr.props_size );
+    if ( idbuf.pos() > (int)hdr.idtable_size ) {
+        CRLog::error("ID buffer size is too small");
+    }
     idbuf.copyTo( ptr + hdr.idtable_offset, hdr.idtable_size );
+    if ( _pagesData.pos() > (int)hdr.pagetable_size ) {
+        CRLog::error("Page buffer size is too small");
+    }
     _pagesData.copyTo( ptr + hdr.pagetable_offset, hdr.pagetable_size );
 
 
@@ -4875,7 +4885,13 @@ bool ldomDocument::updateMap()
 
     hdrbuf.copyTo( ptr, hdrbuf.pos() );
     propsbuf.copyTo( ptr + hdr.props_offset, propssize );
+    if ( idbuf.pos() > (int)hdr.idtable_size ) {
+        CRLog::error("ID buffer size is too small");
+    }
     idbuf.copyTo( ptr + hdr.idtable_offset, idsize );
+    if ( _pagesData.pos() > (int)hdr.pagetable_size ) {
+        CRLog::error("Page buffer size is too small");
+    }
     _pagesData.copyTo( ptr + hdr.pagetable_offset, hdr.pagetable_size );
 
 #ifdef _DEBUG
@@ -4958,6 +4974,7 @@ public:
                 _files.add( item );
                 buf >> item->filename;
                 buf >> item->size;
+                CRLog::trace("cache %d: %s [%d]", i, UnicodeToUtf8(item->filename).c_str(), (int)item->size );
                 totalSize += item->size;
             }
             if ( !buf.checkCRC( buf.pos() - start ) ) {
@@ -5001,7 +5018,7 @@ public:
                 if ( findFileIndex(fn)<0 ) {
                     // delete file
                     CRLog::info("Removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
-                    if ( !LVDeleteFile( fn ) ) {
+                    if ( !LVDeleteFile( _cacheDir + fn ) ) {
                         CRLog::error("Error while removing cache file not specified in index: %s", UnicodeToUtf8(fn).c_str() );
                     }
                 }
@@ -5017,7 +5034,7 @@ public:
         // remove extra files specified in list
         lvsize_t dirsize = allocSize;
         for ( int i=0; i<_files.length(); ) {
-            if ( LVFileExists( _files[i]->filename ) ) {
+            if ( LVFileExists( _cacheDir + _files[i]->filename ) ) {
                 if ( (i>0 || allocSize>0) && dirsize+_files[i]->size > _maxSize ) {
                     if ( LVDeleteFile( _cacheDir + _files[i]->filename ) ) {
                         _files.erase(i, 1);
@@ -5099,7 +5116,7 @@ public:
     {
         char s[16];
         sprintf(s, ".%08x.%d.cr3", (unsigned)crc, (int)docFlags);
-        return _cacheDir + filename + lString16( s );
+        return filename + lString16( s ); //_cacheDir + 
     }
 
     /// open existing cache file stream
@@ -5111,7 +5128,7 @@ public:
             CRLog::error( "ldomDocCache::openExisting - File %s is not found in cache index", UnicodeToUtf8(fn).c_str() );
             return res;
         }
-        res = LVMapFileStream( fn.c_str(), LVOM_APPEND, 0 );
+        res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, 0 );
         if ( !res ) {
             CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn).c_str() );
             return res;
@@ -5129,7 +5146,7 @@ public:
         if ( findFileIndex( fn ) >= 0 )
             LVDeleteFile( fn );
         reserve( fileSize );
-        res = LVMapFileStream( fn.c_str(), LVOM_APPEND, fileSize );
+        res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, fileSize );
         if ( !res ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return res;
