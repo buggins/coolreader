@@ -1,0 +1,9 @@
+#!/bin/sh
+#SDK=${SDK:-/home/lve/src/v3sdk-1.0}
+SDK=${SDK:-/home/lve/src/v5sdk}
+INCLUDES="-I ${SDK}/include/i386/zlib"
+LIBS="-L${SDK}/i386/lib"
+CONF=`dirname $0`
+PATH=${GCC_PATH}:${PATH} ${CONF}/configure \
+    --with-jinke=${SDK} --with-jinke-app --enable-debug=full
+

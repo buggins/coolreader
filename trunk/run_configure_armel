@@ -10,5 +10,5 @@ INCLUDES="-I ${SDK}/include/arm/zlib"
 LIBS="-L${SDK}/arm/lib"
 CONF=`dirname $0`
 PATH=${GCC_PATH}:${PATH} ${CONF}/configure --host=${TARGET} \
-    --with-jinke=${SDK}/thirdparty --disable-debug
+    --with-jinke=${SDK} --disable-debug
 
