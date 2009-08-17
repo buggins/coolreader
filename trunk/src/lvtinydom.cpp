@@ -5278,3 +5278,16 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
     return false;
 }
 
+
+void lxmlDocBase::setStyleSheet( const char * css, bool replace )
+{
+    if ( replace ) {
+        //CRLog::debug("cleaning stylesheet contents");
+        _stylesheet.clear();
+    }
+    if ( css && *css ) {
+        //CRLog::debug("appending stylesheet contents: \n%s", css);
+        _stylesheet.parse( css );
+    }
+}
+

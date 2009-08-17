@@ -16,7 +16,7 @@ AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
         esac
         JINKEPATH="$withval"
         CPPFLAGS="${CPPFLAGS} -I${JINKEPATH}/include"
-        LDFLAGS="${LDFLAGS} -L${JINKEPATH}/lib/${cpu_libdir}"
+        #LDFLAGS="${LDFLAGS} -L${JINKEPATH}/lib/${cpu_libdir}"
         export CPPFLAGS
         export LDFLAGS
         export JINKEPATH

@@ -612,8 +612,8 @@ typedef enum {
 class LVTextFileLine
 {
 public:
-    lvpos_t fpos;   // position of line in file
-    lvsize_t fsize;  // size of data in file
+    //lvpos_t fpos;   // position of line in file
+    //lvsize_t fsize;  // size of data in file
     lUInt32 flags;  // flags. 1=eoln
     lString16 text; // line text
     lUInt16 lpos;   // left non-space char position
@@ -624,7 +624,7 @@ public:
     LVTextFileLine( LVTextFileBase * file, int maxsize )
     : flags(0), lpos(0), rpos(0), align(la_unknown)
     {
-        text = file->ReadLine( maxsize, fpos, fsize, flags );
+        text = file->ReadLine( maxsize, flags );
         //CRLog::debug("  line read: %s", UnicodeToUtf8(text).c_str() );
         if ( !text.empty() ) {
             const lChar16 * s = text.c_str();
@@ -1052,13 +1052,13 @@ public:
     {
         // TODO: remove pos, sz tracking
         lString16 str;
-        lvpos_t pos = 0;
-        lvsize_t sz = 0;
+        //lvpos_t pos = 0;
+        //lvsize_t sz = 0;
         for ( int i=startline; i<=endline; i++ ) {
             LVTextFileLine * item = get(i);
-            if ( i==startline )
-                pos = item->fpos;
-            sz = (item->fpos + item->fsize) - pos;
+            //if ( i==startline )
+            //    pos = item->fpos;
+            //sz = (item->fpos + item->fsize) - pos;
             str += item->text + L"\n";
         }
         bool singleLineFollowedByEmpty = false;
@@ -1256,64 +1256,42 @@ public:
 };
 
 /// reads next text line, tells file position and size of line, sets EOL flag
-lString16 LVTextFileBase::ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags )
+lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
 {
-    fpos = m_buf_fpos + m_buf_pos;
-    fsize = 0;
+    //fsize = 0;
     flags = 0;
 
     lString16 res;
     res.reserve( 80 );
     //FillBuffer( maxLineSize*3 );
 
-    lvpos_t last_space_fpos = 0;
-    int last_space_chpos = -1;
     lChar16 ch = 0;
-    while ( res.length()<(unsigned)maxLineSize ) {
+    while ( 1 ) {
         if ( m_eof ) {
             // EOF: treat as EOLN
-            last_space_fpos = m_buf_fpos + m_buf_pos;
-            last_space_chpos = res.length();
             flags |= LINE_HAS_EOLN; // EOLN flag
             break;
         }
         ch = ReadCharFromBuffer();
-        if ( ch==0xFEFF && fpos==0 && res.empty() ) {
-            fpos = m_buf_fpos + m_buf_pos;
-        } else if ( ch!='\r' && ch!='\n' ) {
+        //if ( ch==0xFEFF && fpos==0 && res.empty() ) {
+        //} else 
+        if ( ch!='\r' && ch!='\n' ) {
             res.append( 1, ch );
             if ( ch==' ' || ch=='\t' ) {
-                last_space_fpos = m_buf_fpos + m_buf_pos;
-                last_space_chpos = res.length();
+                if ( res.length()>=(unsigned)maxLineSize )
+                    break;
             }
         } else {
             // eoln
-            lvpos_t prev_pos = m_buf_pos;
-            last_space_fpos = m_buf_fpos + m_buf_pos;
-            last_space_chpos = res.length();
             if ( !m_eof ) {
-                lChar16 ch2 = ReadCharFromBuffer();
+                lChar16 ch2 = PeekCharFromBuffer();
                 if ( ch2!=ch && (ch2=='\r' || ch2=='\n') ) {
-                    last_space_fpos = m_buf_fpos + m_buf_pos;
-                } else {
-                    m_buf_pos = prev_pos;
+                    ReadCharFromBuffer();
                 }
             }
-            flags |= 1; // EOLN flag
+            flags |= LINE_HAS_EOLN; // EOLN flag
             break;
         }
-    }
-    // now if flags==0, maximum line len reached
-    if ( !flags && last_space_chpos == -1 ) {
-        // long line w/o spaces
-        last_space_fpos = m_buf_fpos + m_buf_pos;
-        last_space_chpos = res.length();
-    }
-
-    m_buf_pos = (last_space_fpos - m_buf_fpos); // rollback to end of line
-    fsize = last_space_fpos - fpos; // length in bytes
-    if ( (unsigned)last_space_chpos>res.length() ) {
-        res.erase( last_space_chpos, res.length()-last_space_chpos );
     }
 
     if ( !res.empty() ) {
@@ -2468,11 +2446,9 @@ lString16 LVReadTextFile( LVStreamRef stream )
     LVTextParser reader( stream, NULL, true );
     if ( !reader.AutodetectEncoding() )
         return buf;
-    lvpos_t fpos;
-    lvsize_t fsize;
     lUInt32 flags;
     while ( !reader.Eof() ) {
-        lString16 line = reader.ReadLine( 4096, fpos, fsize, flags );
+        lString16 line = reader.ReadLine( 4096, flags );
         if ( !buf.empty() )
             buf << L'\n';
         if ( !line.empty() ) {

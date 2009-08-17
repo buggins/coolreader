@@ -1839,7 +1839,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     //////////////////////////////////////////////////////
     // apply style sheet
     //////////////////////////////////////////////////////
-    enode->getDocument()->getStyleSheet()->apply( enode, pstyle );
+    enode->getDocument()->applyStyle( enode, pstyle );
 
     if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
         lString16 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );

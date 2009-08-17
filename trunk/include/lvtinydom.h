@@ -252,7 +252,15 @@ public:
 #endif
     }
 
-    inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
+    //inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
+    /// sets style sheet, clears old content of css if arg replace is true
+    void setStyleSheet( const char * css, bool replace );
+    /// apply document's stylesheet to element node
+    inline void applyStyle( ldomNode * element, css_style_rec_t * pstyle)
+    {
+        _stylesheet.apply( element, pstyle );
+    }
+
 
     void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node );
 

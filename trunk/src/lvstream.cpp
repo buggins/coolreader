@@ -3948,8 +3948,17 @@ void LVRemovePathDelimiter( lString16 & pathName )
 /// returns true if specified file exists
 bool LVFileExists( lString16 pathName )
 {
+#ifdef _WIN32
 	LVStreamRef stream = LVOpenFileStream( pathName.c_str(), LVOM_READ );
 	return !stream.isNull();
+#else
+    FILE * f = fopen(UnicodeToUtf8(pathName).c_str(), "rb");
+    if ( f ) {
+        fclose( f );
+        return true;
+    }
+    return false;
+#endif
 }
 
 /// returns true if specified directory exists

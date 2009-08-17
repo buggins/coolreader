@@ -128,6 +128,7 @@ LVDocView::LVDocView()
 , m_posIsSet(false)
 , m_doc_format(doc_format_none)
 , m_callback(NULL)
+, m_swapDone(false)
 {
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFFFE0;
@@ -354,6 +355,7 @@ void LVDocView::Clear()
             m_arc.Clear();
         _posBookmark = ldomXPointer();
         m_is_rendered = false;
+        m_swapDone = false;
         m_pos = 0;
         m_filename.clear();
     }
@@ -2318,8 +2320,9 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
     writer.OnTagClose( NULL, L"FictionBook" );
 
     // set stylesheet
-    m_doc->getStyleSheet()->clear();
-    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+    m_doc->setStyleSheet( m_stylesheet.c_str(), true );
+    //m_doc->getStyleSheet()->clear();
+    //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
     m_doc_props->clear();
     m_doc->setProps( m_doc_props );
@@ -2364,6 +2367,7 @@ public:
 /// load document from stream
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
+    m_swapDone = false;
 	if ( m_callback ) {
 		m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
 	}
@@ -2529,11 +2533,12 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     if ( fragmentCount>0 ) {
 
                         // set stylesheet
-                        m_doc->getStyleSheet()->clear();
+                        //m_doc->getStyleSheet()->clear();
+                        m_doc->setStyleSheet( NULL, true );
                         //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
-                        if ( !css.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {                            m_doc->getStyleSheet()->parse(UnicodeToUtf8(css).c_str());
-                            m_doc->getStyleSheet()->parse(
-                                "p.p { text-align: justify }\n"
+                        if ( !css.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+
+                            m_doc->setStyleSheet( "p.p { text-align: justify }\n"
                                 "svg { text-align: center }\n"
                                 "i { display: inline; font-style: italic }\n"
                                 "b { display: inline; font-weight: bold }\n"
@@ -2542,10 +2547,12 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                                 "address { display: inline }\n"
                                 "p.title-p { hyphenate: none }\n"
 //abbr, acronym, address, blockquote, br, cite, code, dfn, div, em, h1, h2, h3, h4, h5, h6, kbd, p, pre, q, samp, span, strong, var
-                            );
-                            m_doc->getStyleSheet()->parse(UnicodeToUtf8(css).c_str());
+                            , false);
+                            m_doc->setStyleSheet( UnicodeToUtf8(css).c_str(), false );
+                            //m_doc->getStyleSheet()->parse(UnicodeToUtf8(css).c_str());
                         } else {
-                            m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+                            //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+                            m_doc->setStyleSheet( m_stylesheet.c_str(), false );
                         }
 #if 0
                         LVStreamRef out = LVOpenFileStream( L"c:\\doc.xml" , LVOM_WRITE );
@@ -2742,6 +2749,7 @@ void LVDocView::setDocFormat( doc_format_t fmt )
 bool LVDocView::ParseDocument( )
 {
     m_posIsSet = false;
+    m_swapDone = false;
     _posBookmark = ldomXPointer();
     lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
     if ( m_doc )
@@ -2764,19 +2772,20 @@ bool LVDocView::ParseDocument( )
         m_stream->crc32( crc );
 
 	    // set stylesheet
-	    m_doc->getStyleSheet()->clear();
-	    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+        m_doc->setStyleSheet( m_stylesheet.c_str(), true );
+	    //m_doc->getStyleSheet()->clear();
+	    //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
         if ( m_doc->openFromCache( ) ) {
             CRLog::info("Document is found in cache, will reuse");
 
 		    // set stylesheet
-		    m_doc->getStyleSheet()->clear();
-		    m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+            m_doc->setStyleSheet( m_stylesheet.c_str(), true );
 
             lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
             if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
-                m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+                //m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+                m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
             }
 
             return true;
@@ -2852,8 +2861,9 @@ bool LVDocView::ParseDocument( )
 
 
 		// set stylesheet
-		m_doc->getStyleSheet()->clear();
-		m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+		//m_doc->getStyleSheet()->clear();
+		//m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+        m_doc->setStyleSheet( m_stylesheet.c_str(), true );
 
         // parse
         if ( !parser->Parse() ) {
@@ -2869,7 +2879,8 @@ bool LVDocView::ParseDocument( )
 
         lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
         if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
-            m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+            //m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+            m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
         }
 
     #if 0 //def _DEBUG
@@ -2932,18 +2943,23 @@ bool LVDocView::ParseDocument( )
 	m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 #endif
 
-    {
-        // try swapping to cache
-        lString16 fn( m_stream->GetName() );
-        fn = LVExtractFilename( fn );
-        lUInt32 crc = 0;
-        m_stream->crc32( crc );
-        if ( m_doc->swapToCache( ) ) {
-            return true;
-        }
-    }
 
     return true;
+}
+
+void LVDocView::swapToCache()
+{
+    if ( m_swapDone )
+        return;
+    {
+        // try swapping to cache
+        //lString16 fn( m_stream->GetName() );
+        //fn = LVExtractFilename( fn );
+        //lUInt32 crc = 0;
+        //m_stream->crc32( crc );
+        m_doc->swapToCache( );
+        m_swapDone = true;
+    }
 }
 
 bool LVDocView::LoadDocument( const char * fname )

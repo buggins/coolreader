@@ -408,6 +408,8 @@ private:
     // document properties
     CRPropRef m_doc_props;
 
+    bool m_swapDone;
+
     /// sets current document format
     void setDocFormat( doc_format_t fmt );
 
@@ -444,6 +446,9 @@ protected:
     /// set status bar and clock mode
     void setStatusMode( int newMode, bool showClock );
 public:
+    /// try swappping of document to cache, if size is big enough, and no swapping attempt yet done
+    void swapToCache();
+
     /// returns selected (marked) ranges
     ldomMarkedRangeList * getMarkedRanges() { return &m_markRanges; }
 

@@ -228,7 +228,8 @@ public:
     /// tries to autodetect text encoding
     bool AutodetectEncoding();
     /// reads next text line, tells file position and size of line, sets EOL flag
-    lString16 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );
+    lString16 ReadLine( int maxLineSize, lUInt32 & flags );
+    //lString16 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );
     /// returns name of character encoding
     lString16 GetEncodingName() { return m_encoding_name; }
     /// returns name of language
