@@ -32,7 +32,7 @@ static int last_bookmark_page = 0;
 static bool shuttingDown = false;
 
 #define USE_JINKE_USER_DATA 0
-
+#define USE_OWN_BATTERY_TEST 0
 
 int getBatteryState()
 {
@@ -57,12 +57,6 @@ int getBatteryState()
 
 #include <cri18n.h>
 
-void SetCallbackFunction(struct CallbackFunction *cb)
-{
-    CRLog::trace("SetCallbackFunction()");
-    v3_callbacks = cb;
-    lastState.batteryState = v3_callbacks->GetBatteryState();
-}
 
 /// WXWidget support: draw to wxImage
 class CRJinkeScreen : public CRGUIScreenBase
@@ -170,6 +164,37 @@ public:
     }
 };
 CRJinkeDocView * CRJinkeDocView::instance = NULL;
+
+
+// some prototypes
+//int InitDoc(char *fileName);
+
+
+#ifdef JINKE_VIEWER
+
+int main( int argc, const char * argv[] )
+{
+    if ( argc<2 ) {
+        printf("usage: cr3 <filename>\n");
+        return 1;
+    }
+    if ( !InitDoc( (char *)argv[1] ) ) {
+        printf("Failed to show file %s\n", argv[1]);
+        return 2;
+    }
+    return 0;
+}
+
+#else
+
+
+void SetCallbackFunction(struct CallbackFunction *cb)
+{
+    CRLog::trace("SetCallbackFunction()");
+    v3_callbacks = cb;
+    lastState.batteryState = v3_callbacks->GetBatteryState();
+}
+
 
 /**
 * Call this function on final (non submenu) menu item selection.
@@ -279,20 +304,6 @@ int OnKeyPressed(int keyId, int state)
     }
     return 2;
 
-}
-
-const char * GetCurrentPositionBookmark()
-{
-    if ( !CRJinkeDocView::instance )
-        return last_bookmark;
-    CRLog::trace("GetCurrentPositionBookmark() - returning empty string");
-    //ldomXPointer ptr = main_win->getDocView()->getBookmark();
-    //lString16 bmtext( !ptr ? L"" : ptr.toString() );
-    static char buf[1024];
-    //strcpy( buf, UnicodeToUtf8( bmtext ).c_str() );
-    strcpy( buf, "" );
-    CRLog::trace("   return bookmark=%s", buf);
-    return buf;
 }
 
 /**
@@ -406,175 +417,6 @@ const char * GetAboutInfoText()
 
     lStr_cpy( about_text, UnicodeToUtf8( text ).c_str() );
     return about_text;
-}
-
-static char history_file_name[1024] = "/root/abook/.cr3hist";
-
-int InitDoc(char *fileName)
-{
-	static const lChar16 * css_file_name = L"fb2.css"; // fb2
-
-	CRLog::trace("InitDoc()");
-#ifdef __i386__
-    //CRLog::setFileLogger("/root/abook/crengine.log");
-    CRLog::setStdoutLogger();
-    CRLog::setLogLevel(CRLog::LL_TRACE);
-#else
-    //InitCREngineLog(NULL);
-    InitCREngineLog("/root/abook/crengine/crlog.ini");
-#endif
-
-    lString16 bookmarkDir("/root/abook/bookmarks/");
-    {
-    	lString8 fn(fileName);
-    	if ( fn.startsWith(lString8("/home")) ) {
-    		strcpy( history_file_name, "/home/.cr3hist" );
-            bookmarkDir = lString16("/home/bookmarks/");
-        }
-    	CRLog::info( "History file name: %s", history_file_name );
-    }
-
-    char manual_file[512] = "";
-    {
-        const char * lang = v3_callbacks->GetString( "CR3_LANG" );
-        if ( lang && lang[0] ) {
-        	// set translator
-        	CRLog::info("Current language is %s, looking for translation file", lang);
-        	lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
-        	CRMoFileTranslator * t = new CRMoFileTranslator();
-        	if ( t->openMoFile( mofilename ) ) {
-        		CRLog::info("translation file %s.mo found", lang);
-        		CRI18NTranslator::setTranslator( t );
-        	} else {
-        		CRLog::info("translation file %s.mo not found", lang);
-        		delete t;
-        	}
-            sprintf( manual_file, "/root/crengine/manual/cr3-manual-%s.fb2", lang );
-        }
-    }
-
-    const lChar16 * ini_fname = L"cr3.ini";
-#ifdef SEPARATE_INI_FILES
-    if ( strstr(fileName, ".txt")!=NULL || strstr(fileName, ".tcr")!=NULL) {
-        ini_fname = L"cr3-txt.ini";
-        css_file_name = L"txt.css";
-    } else if ( strstr(fileName, ".rtf")!=NULL ) {
-        ini_fname = L"cr3-rtf.ini";
-        css_file_name = L"rtf.css";
-    } else if ( strstr(fileName, ".htm")!=NULL ) {
-        ini_fname = L"cr3-htm.ini";
-        css_file_name = L"htm.css";
-    } else if ( strstr(fileName, ".epub")!=NULL ) {
-        ini_fname = L"cr3-epub.ini";
-        css_file_name = L"epub.css";
-    } else {
-        ini_fname = L"cr3-fb2.ini";
-        css_file_name = L"fb2.css";
-    }
-#endif
-
-    lString16Collection fontDirs;
-    fontDirs.add( lString16(L"/root/abook/fonts") );
-    fontDirs.add( lString16(L"/home/fonts") );
-    //fontDirs.add( lString16(L"/root/crengine/fonts") ); // will be added
-    CRLog::info("INIT...");
-    if ( !InitCREngine( "/root/crengine/", fontDirs ) )
-        return 0;
-
-
-
-#ifdef ALLOW_RUN_EXE
-    {
-        __pid_t pid;
-        if( strstr(fileName, ".exe.txt") || strstr(fileName, ".exe.fb2")) {
-            pid = fork();
-            if(!pid) {
-                execve(fileName, NULL, NULL);
-                exit(0);
-            } else {
-                waitpid(pid, NULL, 0);
-                exit(0);
-                //return 0;
-            }
-        }
-    }
-#endif
-    {
-        CRLog::trace("creating window manager...");
-        CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
-        //main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
-
-        const char * keymap_locations [] = {
-            "/root/crengine/",
-            "/home/crengine/",
-            "/root/abook/crengine/",
-            NULL,
-        };
-        loadKeymaps( *wm, keymap_locations );
-        HyphMan::initDictionaries( lString16("/root/crengine/hyph") );
-
-        if ( !wm->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
-        	if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
-        		wm->loadSkin( lString16( L"/root/crengine/skin" ) );
-
-        ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ); /*96Mb*/
-
-        CRLog::trace("creating main window...");
-        main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );
-        CRLog::trace("setting colors...");
-        main_win->getDocView()->setBackgroundColor(0xFFFFFF);
-        main_win->getDocView()->setTextColor(0x000000);
-        main_win->getDocView()->setFontSize( 20 );
-        if ( manual_file[0] )
-            main_win->setHelpFile( lString16( manual_file ) );
-        if ( !main_win->loadDefaultCover( lString16( L"/root/abook/crengine/cr3_def_cover.png" ) ) )
-        	if ( !main_win->loadDefaultCover( lString16( L"/home/crengine/cr3_def_cover.png" ) ) )
-        		main_win->loadDefaultCover( lString16( L"/root/crengine/cr3_def_cover.png" ) );
-        if ( !main_win->loadCSS(  lString16( L"/root/abook/crengine/" ) + lString16(css_file_name) ) )
-        	if ( !main_win->loadCSS(  lString16( L"/home/crengine/" ) + lString16(css_file_name) ) )
-            	main_win->loadCSS( lString16( L"/root/crengine/" ) + lString16(css_file_name) );
-        main_win->setBookmarkDir( bookmarkDir );
-        CRLog::trace("choosing init file...");
-        static const lChar16 * dirs[] = {
-            L"/root/abook/crengine/",
-            L"/home/crengine/",
-            L"/root/appdata/",
-            NULL
-        };
-        int i;
-        CRLog::debug("Loading settings...");
-        lString16 ini;
-        for ( i=0; dirs[i]; i++ ) {
-            ini = lString16(dirs[i]) + ini_fname;
-            if ( main_win->loadSettings( ini ) ) {
-                break;
-            }
-        }
-        CRLog::debug("settings at %s", UnicodeToUtf8(ini).c_str() );
-#if USE_JINKE_USER_DATA!=1
-    if ( !main_win->loadHistory( lString16(history_file_name) ) ) {
-    	CRLog::error("Cannot read history file %s", history_file_name);
-    }
-#endif
-
-		LVDocView * _docview = main_win->getDocView();
-		_docview->setBatteryState( ::getBatteryState() );
-        wm->activateWindow( main_win );
-        if ( !main_win->loadDocument( lString16(fileName) ) ) {
-            printf("Cannot open book file %s\n", fileName);
-            delete wm;
-            return 0;
-        } else {
-        }
-    }
-
-    //_docview->setVisiblePageCount( 1 );
-
-
-
-    //tocDebugDump( _docview->getToc() );
-
-    return 1;
 }
 
 
@@ -712,6 +554,7 @@ unsigned short usGetLeftBarFlag() { return 4; }
 void   vEndInit(int iEndStyle)
 {
     CRLog::trace("vEndInit()");
+    main_win->getDocView()->swapToCache();
 }
 
 void   vEndDoc()
@@ -752,3 +595,194 @@ int  bCurItemIsLeaf(int pos) { return 1; }
 void vEnterChildDir(int pos) { }
 void vReturnParentDir() { }
 void vFreeDir() { }
+
+
+
+
+
+#endif
+
+
+static char history_file_name[1024] = "/root/abook/.cr3hist";
+
+int InitDoc(char *fileName)
+{
+    static const lChar16 * css_file_name = L"fb2.css"; // fb2
+
+    CRLog::trace("InitDoc()");
+#ifdef __i386__
+    //CRLog::setFileLogger("/root/abook/crengine.log");
+    CRLog::setStdoutLogger();
+    CRLog::setLogLevel(CRLog::LL_TRACE);
+#else
+    //InitCREngineLog(NULL);
+    InitCREngineLog("/root/abook/crengine/crlog.ini");
+#endif
+
+    lString16 bookmarkDir("/root/abook/bookmarks/");
+    {
+        lString8 fn(fileName);
+        if ( fn.startsWith(lString8("/home")) ) {
+            strcpy( history_file_name, "/home/.cr3hist" );
+            bookmarkDir = lString16("/home/bookmarks/");
+        }
+        CRLog::info( "History file name: %s", history_file_name );
+    }
+
+    char manual_file[512] = "";
+    {
+        const char * lang = v3_callbacks->GetString( "CR3_LANG" );
+        if ( lang && lang[0] ) {
+            // set translator
+            CRLog::info("Current language is %s, looking for translation file", lang);
+            lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
+            CRMoFileTranslator * t = new CRMoFileTranslator();
+            if ( t->openMoFile( mofilename ) ) {
+                CRLog::info("translation file %s.mo found", lang);
+                CRI18NTranslator::setTranslator( t );
+            } else {
+                CRLog::info("translation file %s.mo not found", lang);
+                delete t;
+            }
+            sprintf( manual_file, "/root/crengine/manual/cr3-manual-%s.fb2", lang );
+        }
+    }
+
+    const lChar16 * ini_fname = L"cr3.ini";
+#ifdef SEPARATE_INI_FILES
+    if ( strstr(fileName, ".txt")!=NULL || strstr(fileName, ".tcr")!=NULL) {
+        ini_fname = L"cr3-txt.ini";
+        css_file_name = L"txt.css";
+    } else if ( strstr(fileName, ".rtf")!=NULL ) {
+        ini_fname = L"cr3-rtf.ini";
+        css_file_name = L"rtf.css";
+    } else if ( strstr(fileName, ".htm")!=NULL ) {
+        ini_fname = L"cr3-htm.ini";
+        css_file_name = L"htm.css";
+    } else if ( strstr(fileName, ".epub")!=NULL ) {
+        ini_fname = L"cr3-epub.ini";
+        css_file_name = L"epub.css";
+    } else {
+        ini_fname = L"cr3-fb2.ini";
+        css_file_name = L"fb2.css";
+    }
+#endif
+
+    lString16Collection fontDirs;
+    fontDirs.add( lString16(L"/root/abook/fonts") );
+    fontDirs.add( lString16(L"/home/fonts") );
+    //fontDirs.add( lString16(L"/root/crengine/fonts") ); // will be added
+    CRLog::info("INIT...");
+    if ( !InitCREngine( "/root/crengine/", fontDirs ) )
+        return 0;
+
+
+
+#ifdef ALLOW_RUN_EXE
+    {
+        __pid_t pid;
+        if( strstr(fileName, ".exe.txt") || strstr(fileName, ".exe.fb2")) {
+            pid = fork();
+            if(!pid) {
+                execve(fileName, NULL, NULL);
+                exit(0);
+            } else {
+                waitpid(pid, NULL, 0);
+                exit(0);
+                //return 0;
+            }
+        }
+    }
+#endif
+    {
+        CRLog::trace("creating window manager...");
+        CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
+        //main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
+
+        const char * keymap_locations [] = {
+            "/root/crengine/",
+            "/home/crengine/",
+            "/root/abook/crengine/",
+            NULL,
+        };
+        loadKeymaps( *wm, keymap_locations );
+        HyphMan::initDictionaries( lString16("/root/crengine/hyph") );
+
+        if ( !wm->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
+            if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
+                wm->loadSkin( lString16( L"/root/crengine/skin" ) );
+
+        ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ); /*96Mb*/
+
+        CRLog::trace("creating main window...");
+        main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );
+        CRLog::trace("setting colors...");
+        main_win->getDocView()->setBackgroundColor(0xFFFFFF);
+        main_win->getDocView()->setTextColor(0x000000);
+        main_win->getDocView()->setFontSize( 20 );
+        if ( manual_file[0] )
+            main_win->setHelpFile( lString16( manual_file ) );
+        if ( !main_win->loadDefaultCover( lString16( L"/root/abook/crengine/cr3_def_cover.png" ) ) )
+            if ( !main_win->loadDefaultCover( lString16( L"/home/crengine/cr3_def_cover.png" ) ) )
+                main_win->loadDefaultCover( lString16( L"/root/crengine/cr3_def_cover.png" ) );
+        if ( !main_win->loadCSS(  lString16( L"/root/abook/crengine/" ) + lString16(css_file_name) ) )
+            if ( !main_win->loadCSS(  lString16( L"/home/crengine/" ) + lString16(css_file_name) ) )
+                main_win->loadCSS( lString16( L"/root/crengine/" ) + lString16(css_file_name) );
+        main_win->setBookmarkDir( bookmarkDir );
+        CRLog::trace("choosing init file...");
+        static const lChar16 * dirs[] = {
+            L"/root/abook/crengine/",
+            L"/home/crengine/",
+            L"/root/appdata/",
+            NULL
+        };
+        int i;
+        CRLog::debug("Loading settings...");
+        lString16 ini;
+        for ( i=0; dirs[i]; i++ ) {
+            ini = lString16(dirs[i]) + ini_fname;
+            if ( main_win->loadSettings( ini ) ) {
+                break;
+            }
+        }
+        CRLog::debug("settings at %s", UnicodeToUtf8(ini).c_str() );
+#if USE_JINKE_USER_DATA!=1
+    if ( !main_win->loadHistory( lString16(history_file_name) ) ) {
+        CRLog::error("Cannot read history file %s", history_file_name);
+    }
+#endif
+
+        LVDocView * _docview = main_win->getDocView();
+        _docview->setBatteryState( ::getBatteryState() );
+        wm->activateWindow( main_win );
+        if ( !main_win->loadDocument( lString16(fileName) ) ) {
+            printf("Cannot open book file %s\n", fileName);
+            delete wm;
+            return 0;
+        } else {
+        }
+    }
+
+    //_docview->setVisiblePageCount( 1 );
+
+
+
+    //tocDebugDump( _docview->getToc() );
+
+    return 1;
+}
+
+const char * GetCurrentPositionBookmark()
+{
+    if ( !CRJinkeDocView::instance )
+        return last_bookmark;
+    CRLog::trace("GetCurrentPositionBookmark() - returning empty string");
+    //ldomXPointer ptr = main_win->getDocView()->getBookmark();
+    //lString16 bmtext( !ptr ? L"" : ptr.toString() );
+    static char buf[1024];
+    //strcpy( buf, UnicodeToUtf8( bmtext ).c_str() );
+    strcpy( buf, "" );
+    CRLog::trace("   return bookmark=%s", buf);
+    return buf;
+}
+

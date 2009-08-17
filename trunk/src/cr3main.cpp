@@ -16,6 +16,7 @@
 #include <fontconfig/fontconfig.h>
 #endif
 
+
 bool loadKeymaps( CRGUIWindowManager & winman, const char * locations[] )
 {
 	bool res = false;
@@ -220,7 +221,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     if (!fontMan->GetFontCount()) {
 
-	#if (USE_FONTCONFIG==1)
+	#if (LBOOK!=1) && (USE_FONTCONFIG==1)
 		lString16Collection fonts;
 
 		FcFontSet *fontset;

@@ -30,15 +30,30 @@ noinst_LTLIBRARIES = libcommon.la
 libcommon_la_SOURCES = ${COMMON_SOURCES}
 
 if WITH_JINKE
+
+if WITH_JINKE_APP
+
+AM_CPPFLAGS += -DJINKE_VIEWER
+bin_PROGRAMS = cr3
+cr3_SOURCES = cr3nanox.cpp
+cr3_LDADD = libcommon.la ${COMMON_LDADD} -lnano-X -lpthread
+
+else
+
 lib_LTLIBRARIES = libfb2.la
 libfb2_la_SOURCES = cr3jinke.cpp
 libfb2_la_LIBADD =  libcommon.la ${COMMON_LDADD}
 libfb2_la_LDFLAGS = --static-libtool-libs -rpath ${libdir} 
+
+endif
+
 else
+
 AM_CPPFLAGS += -DWITH_XCB
 bin_PROGRAMS = cr3
 cr3_SOURCES = cr3xcb.cpp
 cr3_LDADD = libcommon.la ${COMMON_LDADD}
+
 endif
 
 

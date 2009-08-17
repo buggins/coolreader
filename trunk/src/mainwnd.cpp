@@ -241,8 +241,11 @@ bool V3DocViewWin::loadCSS( lString16 filename )
         if ( !css.empty() ) {
             _docview->setStyleSheet( css );
             _css = css;
+            //CRLog::debug("Stylesheet found:\n%s", css.c_str() );
             return true;
         }
+    } else {
+        //CRLog::debug("Stylesheet file not found %s", UnicodeToUtf8(filename).c_str() );
     }
     return false;
 }
@@ -486,6 +489,7 @@ void V3DocViewWin::openRecentBook( int index )
         // TODO: check error
         showWaitIcon();
         loadDocument( fn );
+        _docview->swapToCache();
     }
 }
 
