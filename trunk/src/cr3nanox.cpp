@@ -237,6 +237,8 @@ int GrBitmapEx(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int height,GR_C
 
 #endif
 
+#ifndef USE_OLD_NANOX
+
 #define COLOR_LEVEL     4 //图像转换成16级徽度的图形
 #define BMPBUFGRAYLEVEL 2 //原是图形数据是4级徽度的图形
 #define BMP_PANEL_NUBS   (1<<COLOR_LEVEL)//调色版颜色个数
@@ -459,6 +461,8 @@ int GrBitmapEx_Apollo_FOUR(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int
     free(BmpFileBuf);
     return 0;
 }
+
+#endif
 
 class LedThreadApp
 {
@@ -693,7 +697,6 @@ class CRJinkeScreen : public CRGUIScreenBase
             CRLog::trace( "calling GrDrawImageBits wid=%08x, gc=%08x h=%d", (unsigned)_wid, (unsigned)_gc, h );
             //GrDrawImageBits(_wid,_gc, 0, rc.top, &hdr);
             //GrBitmapEx(_wid,_gc, 0, rc.top, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top));
-            GrBitmapEx_Apollo_FOUR(_wid,_gc, 0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top) );
             //GR_BITMAP bmp;
             //GrBitmap(_wid, _gc, 0, rc.top, 600, h, (GR_BITMAP*)buf );
             //GrBitmap(_wid, _gc, 0, rc.top, 600, h, (GR_BITMAP*)_front->GetScanLine(0) );
@@ -716,10 +719,19 @@ class CRJinkeScreen : public CRGUIScreenBase
 //        MWUCHAR *       imagebits;      /* image bits (dword right aligned)*/
 //} MWIMAGEHDR, *PMWIMAGEHDR;
 
+        #ifdef USE_OLD_NANOX
+            GrBitmapEx_Apollo (_wid,_gc,0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top));
+            if ( full )
+                GrPrint_Apollo();
+            else
+                GrPartialPrint_Apollo(rc.left, rc.top, rc.width(), rc.height() );
+        #else
+            GrBitmapEx_Apollo_FOUR(_wid,_gc, 0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top) );
             if ( full )
                 GrPrint(_wid);
             else
                 GrPartialPrint(_wid, rc.left, rc.top, rc.width(), rc.height() );
+        #endif
         }
     public:
         GR_WINDOW_ID getWID() { return _wid; }
@@ -739,14 +751,25 @@ class CRJinkeScreen : public CRGUIScreenBase
             }
 
             GR_WM_PROPERTIES props;
-            GR_SCREEN_INFO si;
-            GrGetScreenInfo(&si);
-            _wid = GrNewWindow(GR_ROOT_WINDOW_ID,VIEWER_WINDOW_X,VIEWER_WINDOW_Y,
-            VIEWER_WINDOW_WIDTH,VIEWER_WINDOW_HEIGHT, 0, GR_COLOR_WHITE, 0);
+            //GR_SCREEN_INFO si;
+            //GrGetScreenInfo(&si);
     
+        #ifdef USE_OLD_NANOX
+            //GrSetBitmapExDepth_Apollo( 2 );
             _gc = GrNewGC();
             GrSetGCForeground(_gc, GR_COLOR_BLACK);
             GrSetGCBackground(_gc, GR_COLOR_WHITE);
+            _wid = GrNewWindow(GR_ROOT_WINDOW_ID,VIEWER_WINDOW_X,VIEWER_WINDOW_Y,
+            VIEWER_WINDOW_WIDTH,VIEWER_WINDOW_HEIGHT, 0, GR_COLOR_WHITE, 0);
+            //_wid = GrNewWindow_Apollo(GR_APOLLO_ROOT_WINDOW_ID,VIEWER_WINDOW_X,VIEWER_WINDOW_Y,
+            //VIEWER_WINDOW_WIDTH,VIEWER_WINDOW_HEIGHT, 0, GR_COLOR_WHITE, 0);
+        #else
+            _wid = GrNewWindow(GR_ROOT_WINDOW_ID,VIEWER_WINDOW_X,VIEWER_WINDOW_Y,
+            VIEWER_WINDOW_WIDTH,VIEWER_WINDOW_HEIGHT, 0, GR_COLOR_WHITE, 0);
+            _gc = GrNewGC();
+            GrSetGCForeground(_gc, GR_COLOR_BLACK);
+            GrSetGCBackground(_gc, GR_COLOR_WHITE);
+        #endif
         
             GrSelectEvents(_wid, GR_EVENT_MASK_BUTTON_DOWN | \
                 GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_MOUSE_POSITION |\
@@ -757,8 +780,10 @@ class CRJinkeScreen : public CRGUIScreenBase
             props.flags = GR_WM_FLAGS_PROPS;
             props.props = GR_WM_PROPS_NODECORATE;
             GrSetWMProperties(_wid, &props);
+        //#ifndef USE_OLD_NANOX
             GrMapWindow(_wid);    
             GrSetFocus(_wid);
+        //#endif
             instance = this;
         }
 };
@@ -928,6 +953,7 @@ public:
                         needUpdate = CRJinkeWindowManager::instance->processPostedEvents() || needUpdate;
                         if ( needUpdate ) {
                             postLeds( true );
+                            CRLog::trace("Updating screen after keypress...");
                             CRJinkeWindowManager::instance->update( false );
                             postLeds( false );
                         }
@@ -1226,6 +1252,15 @@ int InitDoc(char *fileName)
             delete wm;
             return 0;
         } else {
+            postLeds( true );
+     #ifdef USE_OLD_NANOX
+                    wm->update(true);
+                    if ( firstDocUpdate ) {
+                        main_win->getDocView()->swapToCache();
+                        firstDocUpdate = false;
+                    }
+                    postLeds( false );
+     #endif
         }
     }
 

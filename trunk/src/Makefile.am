@@ -47,6 +47,10 @@ libfb2_la_LDFLAGS = --static-libtool-libs -rpath ${libdir}
 
 endif
 
+if WITH_OLD_NANOX
+AM_CPPFLAGS += -DUSE_OLD_NANOX
+endif
+
 else
 
 AM_CPPFLAGS += -DWITH_XCB

@@ -21,8 +21,7 @@ AC_ARG_WITH(jinke,AC_HELP_STRING([--with-jinke],[path to jinke SDK]),
         *) cpu_libdir="${host_cpu}";;
     esac
     JINKEPATH="$withval"
-    CPPFLAGS="-DLBOOK=1 ${CPPFLAGS} "
-    #-I${JINKEPATH}/thirdparty/include -I${JINKEPATH}/include"
+    CPPFLAGS="-DLBOOK=1 ${CPPFLAGS} -I${JINKEPATH}/include"
     #LDFLAGS="${LDFLAGS} -L${JINKEPATH}/thirdparty/lib/${cpu_libdir} "
     export CPPFLAGS
     export LDFLAGS
@@ -42,6 +41,16 @@ AC_ARG_WITH(jinke-app,AC_HELP_STRING([--with-jinke-app],[to build standalone vie
 ],[
     with_jinke_app=false
     ac_cv_use_jinke_app=none
+])
+
+AC_ARG_WITH(old-nanox,AC_HELP_STRING([--with-old-nanox],[use old nanoX build]),
+    [
+    ac_cv_use_old_nanox=$withval
+    with_old_nanox=true
+    AC_DEFINE(CR_USE_OLD_NANOX)
+],[
+    with_old_nanox=false
+    ac_cv_use_old_nanox=none
 ])
 
 localedir='${prefix}/share/locale'
@@ -129,6 +138,7 @@ AC_SUBST([SUBDIRS])
 
 AM_CONDITIONAL(WITH_JINKE,$with_jinke)
 AM_CONDITIONAL(WITH_JINKE_APP,$with_jinke_app)
+AM_CONDITIONAL(WITH_OLD_NANOX,$with_old_nanox)
 #AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT(Makefile src/Makefile po/Makefile.in)
