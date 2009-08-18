@@ -38,7 +38,7 @@ AC_DEFINE(_LINUX)
 
 dnl color backbuffer option
 AC_ARG_ENABLE(color-backbuffer,
-  AC_HELP_STRING(
+  AC_HELP_STRING([--enable-color-backbuffer],
   [enable color backbuffer (gray otherwise)]),
   [AC_DEFINE(COLOR_BACKBUFFER, 1, [Build with color backbuffer])
   #AC_DEFINE(LINUX)
@@ -52,7 +52,7 @@ AC_ARG_ENABLE(color-backbuffer,
 	       
 dnl crengine memory manager option
 AC_ARG_ENABLE(crengine-memory-manager,
-   AC_HELP_STRING(
+   AC_HELP_STRING([--enable-crengine-memory-manager],
       [enable crengine internal memory manager]),
    [AC_DEFINE(LDOM_USE_OWN_MEM_MAN, 1, [Build with internal memory manager support])],
    [AC_DEFINE(LDOM_USE_OWN_MEM_MAN, 0, [Build without internal memory manager support])]
