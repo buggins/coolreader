@@ -15,14 +15,15 @@ win32 {
         ../../zlib \
         ../../libjpeg \
         ../../libpng
-    debug:LIBS += ../../freetype2/objs/freetype235MT_D.lib \
-        ../../zlib/lib/zlibd.lib \
-        ../../libpng/lib/libpngd.lib \
-        ../../libjpeg/lib/libjpegd.lib
-    else:LIBS += ../../freetype2/objs/freetype235MT.lib \
-        ../../libpng/lib/libpng.lib \
-        ../../zlib/lib/zlib.lib \
-        ../../libjpeg/lib/libjpeg.lib
+    debug:LIBS += ../../freetype2/lib/freetyped.a \
+        ../../zlib/lib/zlibd.a \
+        ../../libpng/lib/libpngd.a \
+        ../../libjpeg/lib/libjpegd.a
+    else:LIBS += ../../freetype2/lib/freetype.a \
+        ../../libpng/lib/libpng.a \
+        ../../zlib/lib/zlib.a \
+        ../../libjpeg/lib/libjpeg.a
+    LIBS += ../../mingw/lib/libgdi32.a
 }
 !win32 { 
     DEFINES += _LINUX=1 \
