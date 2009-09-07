@@ -20,7 +20,9 @@
 #include "lvfnt.h"
 #include "lvdrawbuf.h"
 
+extern "C" {
 #include <windows.h>
+}
 
 /// draw gray bitmap buffer to Windows device context
 void DrawBuf2DC(HDC dc, int x, int y, LVDrawBuf * buf, COLORREF * palette, int scale=1 );

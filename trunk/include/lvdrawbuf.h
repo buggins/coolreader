@@ -17,7 +17,9 @@
 #include "crsetup.h"
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
+extern "C" {
 #include <windows.h>
+}
 #elif __SYMBIAN32__
 #include <e32base.h>
 #include <w32std.h>

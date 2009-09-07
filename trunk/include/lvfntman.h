@@ -26,7 +26,9 @@
 #include "lvdrawbuf.h"
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
+extern "C" {
 #include <windows.h>
+}
 #endif
 
 class LVDrawBuf;

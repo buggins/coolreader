@@ -36,7 +36,9 @@
 #endif
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
+extern "C" {
 #include <windows.h>
+}
 #else
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -17,7 +17,9 @@
 #include "../include/crsetup.h"
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 
+extern "C" {
 #include <windows.h>
+}
 #include "../include/w32utils.h"
 #include "../include/lvstream.h"
 
