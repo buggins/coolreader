@@ -3,9 +3,17 @@
 
 #include <qwidget.h>
 #include <QScrollBar>
+#include "crqtutil.h"
 
 class LVDocView;
 class LVTocItem;
+
+
+class PropsChangeCallback {
+public:
+    virtual void onPropsChange( PropsRef props ) = 0;
+    virtual ~PropsChangeCallback() { }
+};
 
 class CR3View : public QWidget
 {
@@ -44,7 +52,15 @@ class CR3View : public QWidget
         bool saveHistory( QString filename );
         /// load fb2.css file
         bool loadCSS( QString filename );
+        /// set new option values
+        PropsRef setOptions( PropsRef props );
+        /// get current option values
+        PropsRef getOptions();
 
+        void setPropsChangeCallback ( PropsChangeCallback * propsCallback )
+        {
+            _propsCallback = propsCallback;
+        }
     public slots:
         void setScrollBar( QScrollBar * scroll );
         /// on scroll
@@ -81,6 +97,7 @@ class CR3View : public QWidget
         DocViewData * _data; // to hide non-qt implementation
         LVDocView * _docview;
         QScrollBar * _scroll;
+        PropsChangeCallback * _propsCallback;
 };
 
 #endif // CR3WIDGET_H

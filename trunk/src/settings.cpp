@@ -9,6 +9,12 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_docview( docView )
 {
     m_ui->setupUi(this);
+    m_props = m_docview->getOptions();
+    optionToUi( PROP_WINDOW_FULLSCREEN, m_ui->cbWindowFullscreen );
+    optionToUi( PROP_WINDOW_SHOW_MENU, m_ui->cbWindowShowMenu );
+    optionToUi( PROP_WINDOW_SHOW_SCROLLBAR, m_ui->cbWindowShowScrollbar );
+    optionToUi( PROP_WINDOW_TOOLBAR_SIZE, m_ui->cbWindowShowToolbar );
+    optionToUi( PROP_WINDOW_SHOW_STATUSBAR, m_ui->cbWindowShowStatusBar );
 }
 
 SettingsDlg::~SettingsDlg()
@@ -36,15 +42,46 @@ void SettingsDlg::changeEvent(QEvent *e)
 
 void SettingsDlg::on_buttonBox_rejected()
 {
-    //
+    close();
 }
 
 void SettingsDlg::on_buttonBox_accepted()
 {
-    //
+    m_docview->setOptions( m_props );
+    close();
 }
 
-void SettingsDlg::on_cbWindowFullscreen_stateChanged(int )
+void SettingsDlg::optionToUi( const char * optionName, QCheckBox * cb )
 {
-    //
+    cb->setCheckState( m_props->getIntDef( optionName, 1 ) ? Qt::Checked : Qt::Unchecked );
+}
+
+void SettingsDlg::setCheck( const char * optionName, int checkState )
+{
+    m_props->setInt( optionName, checkState == Qt::Checked ? 1 : 0 );
+}
+
+void SettingsDlg::on_cbWindowFullscreen_stateChanged(int s)
+{
+    setCheck( PROP_WINDOW_FULLSCREEN, s );
+}
+
+void SettingsDlg::on_cbWindowShowToolbar_stateChanged(int s)
+{
+    setCheck( PROP_WINDOW_TOOLBAR_SIZE, s );
+}
+
+void SettingsDlg::on_cbWindowShowMenu_stateChanged(int s)
+{
+    setCheck( PROP_WINDOW_SHOW_MENU, s );
+}
+
+void SettingsDlg::on_cbWindowShowStatusBar_stateChanged(int s)
+{
+    setCheck( PROP_WINDOW_SHOW_STATUSBAR, s );
+}
+
+void SettingsDlg::on_cbWindowShowScrollbar_stateChanged(int s)
+{
+    setCheck( PROP_WINDOW_SHOW_SCROLLBAR, s );
 }

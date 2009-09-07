@@ -2,17 +2,20 @@
 #define MAINWINDOW_H
 
 #include <QtGui/QMainWindow>
+#include "settings.h"
+#include "cr3widget.h"
 
 namespace Ui
 {
     class MainWindowClass;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow : public QMainWindow, public PropsChangeCallback
 {
     Q_OBJECT
 
 public:
+    virtual void onPropsChange( PropsRef props );
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 

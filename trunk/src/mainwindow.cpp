@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString cssFile = homeDir + "fb2.css";
     QString cssFile2 = exeDir + "fb2.css";
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
+    ui->view->setPropsChangeCallback( this );
     ui->view->loadSettings( iniFile );
     ui->view->loadHistory( histFile );
     if ( !ui->view->loadCSS( cssFile ) )
@@ -150,3 +151,13 @@ void MainWindow::on_actionSettings_triggered()
 {
     SettingsDlg::showDlg( ui->view );
 }
+
+void MainWindow::onPropsChange( PropsRef props )
+{
+    for ( int i=0; i<props->count(); i++ ) {
+        QString name = props->name( i );
+        QString value = props->value( i );
+
+    }
+}
+

@@ -1,5 +1,6 @@
 #include "../crengine/include/lvdocview.h"
 #include "../crengine/include/crtrace.h"
+#include "../crengine/include/props.h"
 #include "cr3widget.h"
 #include "crqtutil.h"
 #include "qpainter.h"
@@ -16,7 +17,7 @@ class CR3View::DocViewData
 };
 
 CR3View::CR3View( QWidget *parent)
-        : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL)
+        : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL), _propsCallback(NULL)
 {
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
@@ -323,6 +324,27 @@ bool CR3View::loadSettings( QString fn )
     _docview->propsUpdateDefaults( _data->_props );
     _docview->propsApply( _data->_props );
     return false;
+}
+
+/// set new option values
+PropsRef CR3View::setOptions( PropsRef props )
+{
+    CRPropRef changed = _data->_props ^ qt2cr(props);
+    for ( int i=0; i<changed->getCount(); i++ ) {
+        CRLog::debug("Changed property '%s' : %s ", changed->getName(i), UnicodeToUtf8(changed->getValue(i)).c_str() );
+    }
+    _data->_props = changed | _data->_props;
+    CRPropRef r = _docview->propsApply( changed );
+    PropsRef unknownOptions = cr2qt(r);
+    saveSettings( QString() );
+    update();
+    return unknownOptions;
+}
+
+/// get current option values
+PropsRef CR3View::getOptions()
+{
+    return cr2qt( _data->_props );
 }
 
 /// save settings from file

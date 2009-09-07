@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -63,6 +63,8 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionRecentBooks"/>
+    <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -76,7 +78,6 @@
     <addaction name="actionZoom_Out"/>
     <addaction name="separator"/>
     <addaction name="actionTOC"/>
-    <addaction name="actionRecentBooks"/>
    </widget>
    <widget class="QMenu" name="menuNavigation">
     <property name="title">

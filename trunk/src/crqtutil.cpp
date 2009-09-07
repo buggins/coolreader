@@ -42,16 +42,30 @@ public:
     {
         return _ref->getInt(prop, result);
     }
+    virtual void setInt( const char * prop, int value )
+    {
+        _ref->setInt( prop, value );
+    }
     virtual int  getIntDef( const char * prop, int defValue )
     {
         return _ref->getIntDef(prop, defValue);
     }
-    virtual CRPropAccessor * accessor()
+    virtual CRPropRef & accessor()
     {
-        return _ref.get();
+        return _ref;
     }
     virtual ~CRPropsImpl() { }
 };
+
+PropsRef cr2qt( CRPropRef & ref )
+{
+    return QSharedPointer<Props>( new CRPropsImpl(ref) );
+}
+
+const CRPropRef & qt2cr( PropsRef & ref )
+{
+    return ref->accessor();
+}
 
 
 PropsRef Props::create()

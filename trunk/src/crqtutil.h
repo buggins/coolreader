@@ -9,7 +9,6 @@ lString16 qt2cr( QString str );
 QString cr2qt( lString16 str );
 
 class Props;
-class CRPropAccessor;
 typedef QSharedPointer<Props> PropsRef;
 
 /// proxy class for CoolReader properties
@@ -25,10 +24,11 @@ public:
     virtual bool getString( const char * prop, QString & result ) = 0;
     virtual QString getStringDef( const char * prop, const char * defValue ) = 0;
     virtual void setString( const char * prop, const QString & value ) = 0;
+    virtual void setInt( const char * prop, int value ) = 0;
     virtual bool getInt( const char * prop, int & result ) = 0;
     virtual int  getIntDef( const char * prop, int defValue ) = 0;
     virtual bool hasProperty( const char * propName ) const = 0;
-    virtual CRPropAccessor * accessor() = 0;
+    virtual const CRPropRef & accessor() = 0;
     virtual ~Props() { }
 };
 
@@ -40,5 +40,10 @@ PropsRef operator | ( PropsRef props1, PropsRef props2 );
 PropsRef operator & ( PropsRef props1, PropsRef props2 );
 /// returns added or changed items of props2 compared to props1
 PropsRef operator ^ ( PropsRef props1, PropsRef props2 );
+
+/// adapter from coolreader property collection to qt
+PropsRef cr2qt( CRPropRef & ref );
+/// adapter from qt property collection to coolreader
+const CRPropRef & qt2cr( PropsRef & ref );
 
 #endif // CRQTUTIL_H
