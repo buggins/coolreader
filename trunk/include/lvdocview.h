@@ -36,6 +36,7 @@
 #define PROP_PAGE_MARGIN_BOTTOM      "crengine.page.margin.bottom"
 #define PROP_PAGE_MARGIN_LEFT        "crengine.page.margin.left"
 #define PROP_PAGE_MARGIN_RIGHT       "crengine.page.margin.right"
+#define PROP_PAGE_VIEW_MODE          "crengine.page.view.mode" // pages/scroll
 #define PROP_INTERLINE_SPACE         "crengine.interline.space"
 #define PROP_ROTATE_ANGLE            "window.rotate.angle"
 #define PROP_EMBEDDED_STYLES         "crengine.doc.embedded.styles.enabled"
