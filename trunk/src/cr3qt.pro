@@ -11,7 +11,7 @@ win32 {
     DEFINES += _WIN32=1 \
         WIN32=1 \
         CR_EMULATE_GETTEXT=1
-    LIBS += ../../mingw/lib/libgdi32.a
+    LIBS += -lgdi32
 }
 !win32 { 
     DEFINES += _LINUX=1 \
