@@ -11,26 +11,11 @@ win32 {
     DEFINES += _WIN32=1 \
         WIN32=1 \
         CR_EMULATE_GETTEXT=1
-    INCLUDEPATH += ../../freetype2/include \
-        ../../zlib \
-        ../../libjpeg \
-        ../../libpng
-    debug:LIBS += ../../freetype2/lib/freetyped.a \
-        ../../zlib/lib/zlibd.a \
-        ../../libpng/lib/libpngd.a \
-        ../../libjpeg/lib/libjpegd.a
-    else:LIBS += ../../freetype2/lib/freetype.a \
-        ../../libpng/lib/libpng.a \
-        ../../zlib/lib/zlib.a \
-        ../../libjpeg/lib/libjpeg.a
     LIBS += ../../mingw/lib/libgdi32.a
 }
 !win32 { 
     DEFINES += _LINUX=1 \
-        LINUX=1
-    INCLUDEPATH += /usr/include/freetype2
-    LIBS += -ljpeg \
-        -lfreetype
+    LINUX=1
 }
 debug:DEFINES += _DEBUG=1
 SOURCES += main.cpp \
@@ -121,3 +106,155 @@ FORMS += mainwindow.ui \
     recentdlg.ui \
     settings.ui
 RESOURCES += cr3res.qrc
+
+!win32 {
+        unix:LIBS += -ljpeg
+        win32:LIBS += libjpeg.lib
+}
+
+win32 {
+	INCLUDEPATH += ../thirdparty/libjpeg
+	SOURCES  += \
+	    ../thirdparty/libjpeg/jcapimin.c \
+	    ../thirdparty/libjpeg/jcapistd.c \
+	    ../thirdparty/libjpeg/jccoefct.c \
+	    ../thirdparty/libjpeg/jccolor.c \
+	    ../thirdparty/libjpeg/jcdctmgr.c \
+	    ../thirdparty/libjpeg/jchuff.c \
+	    ../thirdparty/libjpeg/jcinit.c \
+	    ../thirdparty/libjpeg/jcmainct.c \
+	    ../thirdparty/libjpeg/jcmarker.c \
+	    ../thirdparty/libjpeg/jcmaster.c \
+	    ../thirdparty/libjpeg/jcomapi.c \
+	    ../thirdparty/libjpeg/jcparam.c \
+	    ../thirdparty/libjpeg/jcphuff.c \
+	    ../thirdparty/libjpeg/jcprepct.c \
+	    ../thirdparty/libjpeg/jcsample.c \
+	    ../thirdparty/libjpeg/jctrans.c \
+	    ../thirdparty/libjpeg/jdapimin.c \
+	    ../thirdparty/libjpeg/jdapistd.c \
+	    ../thirdparty/libjpeg/jdatadst.c \
+	    ../thirdparty/libjpeg/jdatasrc.c \
+	    ../thirdparty/libjpeg/jdcoefct.c \
+	    ../thirdparty/libjpeg/jdcolor.c \
+	    ../thirdparty/libjpeg/jddctmgr.c \
+	    ../thirdparty/libjpeg/jdhuff.c \
+	    ../thirdparty/libjpeg/jdinput.c \
+	    ../thirdparty/libjpeg/jdmainct.c \
+	    ../thirdparty/libjpeg/jdmarker.c \
+	    ../thirdparty/libjpeg/jdmaster.c \
+	    ../thirdparty/libjpeg/jdmerge.c \
+	    ../thirdparty/libjpeg/jdphuff.c \
+	    ../thirdparty/libjpeg/jdpostct.c \
+	    ../thirdparty/libjpeg/jdsample.c \
+	    ../thirdparty/libjpeg/jdtrans.c \
+	    ../thirdparty/libjpeg/jerror.c \
+	    ../thirdparty/libjpeg/jfdctflt.c \
+	    ../thirdparty/libjpeg/jfdctfst.c \
+	    ../thirdparty/libjpeg/jfdctint.c \
+	    ../thirdparty/libjpeg/jidctflt.c \
+	    ../thirdparty/libjpeg/jidctfst.c \
+	    ../thirdparty/libjpeg/jidctint.c \
+	    ../thirdparty/libjpeg/jidctred.c \
+	    ../thirdparty/libjpeg/jmemmgr.c \
+	    ../thirdparty/libjpeg/jquant1.c \
+	    ../thirdparty/libjpeg/jquant2.c \
+	    ../thirdparty/libjpeg/jutils.c \
+	    ../thirdparty/libjpeg/jmemnobs.c
+}
+
+!win32 {
+        unix:LIBS += -lpng
+        win32:LIBS += libpng.lib
+}
+
+win32 {
+	INCLUDEPATH += ../thirdparty/libpng
+	SOURCES  += \
+	    ../thirdparty/libpng/png.c \
+	    ../thirdparty/libpng/pngset.c \
+	    ../thirdparty/libpng/pngget.c \
+	    ../thirdparty/libpng/pngrutil.c \
+	    ../thirdparty/libpng/pngtrans.c \
+	    ../thirdparty/libpng/pngwutil.c \
+	    ../thirdparty/libpng/pngread.c \
+	    ../thirdparty/libpng/pngrio.c \
+	    ../thirdparty/libpng/pngwio.c \
+	    ../thirdparty/libpng/pngwrite.c \
+	    ../thirdparty/libpng/pngrtran.c \
+	    ../thirdparty/libpng/pngwtran.c \
+	    ../thirdparty/libpng/pngmem.c \
+	    ../thirdparty/libpng/pngerror.c \
+	    ../thirdparty/libpng/pngpread.c
+}
+
+!win32 {
+        unix:LIBS += -lfreetype
+        win32:LIBS += libfreetype.lib
+}
+
+win32 {
+        DEFINES += FT2_BUILD_LIBRARY=1
+	INCLUDEPATH += ../thirdparty/freetype/include
+	SOURCES  += \
+            ../thirdparty/freetype/src/autofit/autofit.c \
+            ../thirdparty/freetype/src/bdf/bdf.c \
+            ../thirdparty/freetype/src/cff/cff.c \
+            ../thirdparty/freetype/src/base/ftbase.c \
+            ../thirdparty/freetype/src/base/ftbbox.c \
+            ../thirdparty/freetype/src/base/ftbdf.c \
+            ../thirdparty/freetype/src/base/ftbitmap.c \
+            ../thirdparty/freetype/src/base/ftgasp.c \
+            ../thirdparty/freetype/src/cache/ftcache.c \
+            ../thirdparty/freetype/builds/win32/ftdebug.c \
+            ../thirdparty/freetype/src/base/ftglyph.c \
+            ../thirdparty/freetype/src/base/ftgxval.c \
+            ../thirdparty/freetype/src/gzip/ftgzip.c \
+            ../thirdparty/freetype/src/base/ftinit.c \
+            ../thirdparty/freetype/src/lzw/ftlzw.c \
+            ../thirdparty/freetype/src/base/ftmm.c \
+            ../thirdparty/freetype/src/base/ftotval.c \
+            ../thirdparty/freetype/src/base/ftpfr.c \
+            ../thirdparty/freetype/src/base/ftstroke.c \
+            ../thirdparty/freetype/src/base/ftsynth.c \
+            ../thirdparty/freetype/src/base/ftsystem.c \
+            ../thirdparty/freetype/src/base/fttype1.c \
+            ../thirdparty/freetype/src/base/ftwinfnt.c \
+            ../thirdparty/freetype/src/base/ftxf86.c \
+            ../thirdparty/freetype/src/pcf/pcf.c \
+            ../thirdparty/freetype/src/pfr/pfr.c \
+            ../thirdparty/freetype/src/psaux/psaux.c \
+            ../thirdparty/freetype/src/pshinter/pshinter.c \
+            ../thirdparty/freetype/src/psnames/psmodule.c \
+            ../thirdparty/freetype/src/raster/raster.c \
+            ../thirdparty/freetype/src/sfnt/sfnt.c \
+            ../thirdparty/freetype/src/smooth/smooth.c \
+            ../thirdparty/freetype/src/truetype/truetype.c \
+            ../thirdparty/freetype/src/type1/type1.c \
+            ../thirdparty/freetype/src/cid/type1cid.c \
+            ../thirdparty/freetype/src/type42/type42.c \
+            ../thirdparty/freetype/src/winfonts/winfnt.c
+}
+
+
+!win32 {
+        unix:LIBS += -lz
+        win32:LIBS += libz.lib
+}
+
+win32 {
+	INCLUDEPATH += ../thirdparty/zlib
+	SOURCES  += \
+	    ../thirdparty/zlib/adler32.c \
+	    ../thirdparty/zlib/compress.c \
+	    ../thirdparty/zlib/crc32.c \
+	    ../thirdparty/zlib/gzio.c \
+	    ../thirdparty/zlib/uncompr.c \
+	    ../thirdparty/zlib/deflate.c \
+	    ../thirdparty/zlib/trees.c \
+	    ../thirdparty/zlib/zutil.c \
+	    ../thirdparty/zlib/inflate.c \
+	    ../thirdparty/zlib/infback.c \
+	    ../thirdparty/zlib/inftrees.c \
+	    ../thirdparty/zlib/inffast.c
+}
