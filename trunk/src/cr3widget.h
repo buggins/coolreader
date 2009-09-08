@@ -61,7 +61,10 @@ class CR3View : public QWidget
         {
             _propsCallback = propsCallback;
         }
+        /// toggle boolean property
+        void toggleProperty( const char * name );
     public slots:
+        void contextMenu( QPoint pos );
         void setScrollBar( QScrollBar * scroll );
         /// on scroll
         void togglePageScrollView();

@@ -53,12 +53,16 @@ void SettingsDlg::on_buttonBox_accepted()
 
 void SettingsDlg::optionToUi( const char * optionName, QCheckBox * cb )
 {
-    cb->setCheckState( m_props->getIntDef( optionName, 1 ) ? Qt::Checked : Qt::Unchecked );
+    int state = ( m_props->getIntDef( optionName, 1 ) != 0 ) ? 1 : 0;
+    CRLog::debug("optionToUI(%s,%d)", optionName, state);
+    cb->setCheckState( state ? Qt::Checked : Qt::Unchecked );
 }
 
 void SettingsDlg::setCheck( const char * optionName, int checkState )
 {
-    m_props->setInt( optionName, checkState == Qt::Checked ? 1 : 0 );
+    int value = (checkState == Qt::Checked) ? 1 : 0;
+    CRLog::debug("setCheck(%s,%d)", optionName, value);
+    m_props->setInt( optionName, value );
 }
 
 void SettingsDlg::on_cbWindowFullscreen_stateChanged(int s)

@@ -4,8 +4,10 @@
 #include "cr3widget.h"
 #include "crqtutil.h"
 #include "qpainter.h"
+#include "settings.h"
 #include <QResizeEvent>
 #include <QScrollBar>
+#include <QMenu>
 
 /// to hide non-qt implementation, place all crengine-related fields here
 class CR3View::DocViewData
@@ -129,6 +131,12 @@ CR3View::CR3View( QWidget *parent)
     icons.add( LVCreateXPMImageSource( battery3 ) );
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
+
+    _data->_props->setStringDef( PROP_WINDOW_FULLSCREEN, "0" );
+    _data->_props->setStringDef( PROP_WINDOW_SHOW_MENU, "1" );
+    _data->_props->setStringDef( PROP_WINDOW_SHOW_SCROLLBAR, "1" );
+    _data->_props->setStringDef( PROP_WINDOW_TOOLBAR_SIZE, "1" );
+    _data->_props->setStringDef( PROP_WINDOW_SHOW_STATUSBAR, "0" );
 }
 
 CR3View::~CR3View()
@@ -311,31 +319,52 @@ bool CR3View::loadSettings( QString fn )
     lString16 filename( qt2cr(fn) );
     _data->_settingsFileName = filename;
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
-    if ( stream.isNull() ) {
-        _docview->propsUpdateDefaults( _data->_props );
-        _docview->propsApply( _data->_props );
-        return false;
-    }
-    if ( _data->_props->loadFromStream( stream.get() ) ) {
-        _docview->propsUpdateDefaults( _data->_props );
-        _docview->propsApply( _data->_props );
-        return true;
+    bool res = false;
+    if ( !stream.isNull() && _data->_props->loadFromStream( stream.get() ) ) {
+        CRLog::error("Loading settings from file %s", fn.toUtf8().data() );
+        res = true;
+    } else {
+        CRLog::error("Cannot load settings from file %s", fn.toUtf8().data() );
     }
     _docview->propsUpdateDefaults( _data->_props );
+    CRPropRef r = _docview->propsApply( _data->_props );
+    PropsRef unknownOptions = cr2qt(r);
+    if ( _propsCallback != NULL )
+        _propsCallback->onPropsChange( unknownOptions );
     _docview->propsApply( _data->_props );
-    return false;
+    return res;
+}
+
+/// toggle boolean property
+void CR3View::toggleProperty( const char * name )
+{
+    int state = _data->_props->getIntDef( name, 0 )!=0 ? 0 : 1;
+    PropsRef props = Props::create();
+    props->setString( name, state?"1":"0" );
+    setOptions( props );
 }
 
 /// set new option values
 PropsRef CR3View::setOptions( PropsRef props )
 {
+    //for ( int i=0; i<_data->_props->getCount(); i++ ) {
+    //    CRLog::debug("Old [%d] '%s'=%s ", i, _data->_props->getName(i), UnicodeToUtf8(_data->_props->getValue(i)).c_str() );
+    //}
+    //for ( int i=0; i<props->count(); i++ ) {
+    //    CRLog::debug("New [%d] '%s'=%s ", i, props->name(i), props->value(i).toUtf8().data() );
+    //}
     CRPropRef changed = _data->_props ^ qt2cr(props);
     for ( int i=0; i<changed->getCount(); i++ ) {
-        CRLog::debug("Changed property '%s' : %s ", changed->getName(i), UnicodeToUtf8(changed->getValue(i)).c_str() );
+        CRLog::debug("Changed [%d] '%s'=%s ", i, changed->getName(i), UnicodeToUtf8(changed->getValue(i)).c_str() );
     }
     _data->_props = changed | _data->_props;
+    //for ( int i=0; i<_data->_props->getCount(); i++ ) {
+    //    CRLog::debug("Result [%d] '%s'=%s ", i, _data->_props->getName(i), UnicodeToUtf8(_data->_props->getValue(i)).c_str() );
+    //}
     CRPropRef r = _docview->propsApply( changed );
     PropsRef unknownOptions = cr2qt(r);
+    if ( _propsCallback != NULL )
+        _propsCallback->onPropsChange( unknownOptions );
     saveSettings( QString() );
     update();
     return unknownOptions;
@@ -344,7 +373,7 @@ PropsRef CR3View::setOptions( PropsRef props )
 /// get current option values
 PropsRef CR3View::getOptions()
 {
-    return cr2qt( _data->_props );
+    return Props::clone(cr2qt( _data->_props ));
 }
 
 /// save settings from file
@@ -370,7 +399,7 @@ bool CR3View::saveSettings( QString fn )
     }
     if ( stream.isNull() ) {
         lString8 fn = UnicodeToUtf8( filename );
-        CRLog::error("Cannot open settings file %s for write", fn.c_str() );
+        CRLog::error("Cannot save settings to file %s", fn.c_str() );
         return false;
     }
     return _data->_props->saveToStream( stream.get() );
@@ -422,5 +451,9 @@ bool CR3View::saveHistory( QString fn )
     	return false;
     }
     return _docview->getHistory()->saveToStream( stream.get() );
+}
+
+void CR3View::contextMenu( QPoint pos )
+{
 }
 

@@ -21,7 +21,10 @@ public:
 
 private:
     Ui::MainWindowClass *ui;
+    void toggleProperty( const char * name );
 
+public slots:
+    void contextMenu( QPoint pos );
 private slots:
     void on_actionSettings_triggered();
     void on_actionRecentBooks_triggered();

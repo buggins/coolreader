@@ -124,7 +124,7 @@ void MainWindow::on_actionToggle_Pages_Scroll_triggered()
 
 void MainWindow::on_actionToggle_Full_Screen_triggered()
 {
-    setWindowState(windowState() ^ Qt::WindowFullScreen);
+    toggleProperty( PROP_WINDOW_FULLSCREEN );
 }
 
 void MainWindow::on_actionZoom_In_triggered()
@@ -152,12 +152,48 @@ void MainWindow::on_actionSettings_triggered()
     SettingsDlg::showDlg( ui->view );
 }
 
+void MainWindow::toggleProperty( const char * name )
+{
+    ui->view->toggleProperty( name );
+}
+
 void MainWindow::onPropsChange( PropsRef props )
 {
     for ( int i=0; i<props->count(); i++ ) {
         QString name = props->name( i );
         QString value = props->value( i );
-
+        int v = (value != "0");
+        CRLog::debug("MainWindow::onPropsChange [%d] '%s'=%s ", i, props->name(i), props->value(i).toUtf8().data() );
+        if ( name == PROP_WINDOW_FULLSCREEN ) {
+            bool state = windowState().testFlag(Qt::WindowFullScreen);
+            bool vv = v ? true : false;
+            if ( state != vv )
+                setWindowState( windowState() ^ Qt::WindowFullScreen );
+        }
+        if ( name == PROP_WINDOW_SHOW_MENU ) {
+            ui->menuBar->setVisible( v );
+        }
+        if ( name == PROP_WINDOW_SHOW_SCROLLBAR ) {
+            ui->scroll->setVisible( v );
+        }
+        if ( name == PROP_WINDOW_TOOLBAR_SIZE ) {
+            ui->mainToolBar->setVisible( v );
+        }
+        if ( name == PROP_WINDOW_SHOW_STATUSBAR ) {
+            ui->statusBar->setVisible( v );
+        }
     }
+}
+
+void MainWindow::contextMenu( QPoint pos )
+{
+    QMenu *menu = new QMenu;
+    menu->addAction(ui->actionOpen);
+    menu->addAction(ui->actionRecentBooks);
+    menu->addAction(ui->actionTOC);
+    menu->addAction(ui->actionToggle_Full_Screen);
+    menu->addAction(ui->actionSettings);
+    menu->addAction(ui->actionClose);
+    menu->exec(ui->view->mapToGlobal(pos));
 }
 

@@ -36,7 +36,11 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="CR3View" name="view" native="true"/>
+       <widget class="CR3View" name="view" native="true">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QScrollBar" name="scroll">
@@ -55,7 +59,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -64,6 +68,8 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionRecentBooks"/>
+    <addaction name="separator"/>
+    <addaction name="actionSettings"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
@@ -257,7 +263,7 @@
     <string>Go to the next position in navigation history</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Backspace</string>
+    <string>Shift+Backspace</string>
    </property>
   </action>
   <action name="actionNextChapter">
@@ -366,10 +372,13 @@
      <normaloff>:/icons/action/icons/configure.png</normaloff>:/icons/action/icons/configure.png</iconset>
    </property>
    <property name="text">
-    <string>Settings</string>
+    <string>Settings...</string>
    </property>
    <property name="toolTip">
-    <string>Settings</string>
+    <string>Settings dialog</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
  </widget>
@@ -383,11 +392,32 @@
    <slots>
     <signal>fileOpened()</signal>
     <slot>open()</slot>
+    <slot>contextMenu(QPoint)</slot>
    </slots>
   </customwidget>
  </customwidgets>
  <resources>
   <include location="cr3res.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>view</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>MainWindowClass</receiver>
+   <slot>contextMenu(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>261</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>652</x>
+     <y>32</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>contextMenu(QPoint)</slot>
+ </slots>
 </ui>

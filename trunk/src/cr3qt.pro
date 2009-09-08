@@ -16,6 +16,7 @@ win32 {
 !win32 { 
     DEFINES += _LINUX=1 \
     LINUX=1
+    INCLUDEPATH += /usr/include/freetype2
 }
 debug:DEFINES += _DEBUG=1
 SOURCES += main.cpp \
