@@ -191,9 +191,9 @@ void CR3View::wheelEvent( QWheelEvent * event )
     if ( numSteps ) {
         if ( _docview->getViewMode() == DVM_SCROLL ) {
             if ( numSteps > 0 )
-                doCommand( DCMD_LINEUP, -numSteps );
+                doCommand( DCMD_LINEDOWN, -numSteps );
             else
-                doCommand( DCMD_LINEDOWN, numSteps );
+                doCommand( DCMD_LINEUP, numSteps );
         } else {
             if ( numSteps > 0 )
                 doCommand( DCMD_PAGEUP, -numSteps );
@@ -271,7 +271,11 @@ void CR3View::doCommand( int cmd, int param )
     update();
 }
 
-void CR3View::togglePageScrollView()  { doCommand( DCMD_TOGGLE_PAGE_SCROLL_VIEW, 1 ); }
+void CR3View::togglePageScrollView()
+{
+    doCommand( DCMD_TOGGLE_PAGE_SCROLL_VIEW, 1 );
+    refreshPropFromView( PROP_PAGE_VIEW_MODE );
+}
 void CR3View::nextPage() { doCommand( DCMD_PAGEDOWN, 1 ); }
 void CR3View::prevPage() { doCommand( DCMD_PAGEUP, 1 ); }
 void CR3View::nextLine() { doCommand( DCMD_LINEDOWN, 1 ); }
@@ -282,8 +286,23 @@ void CR3View::firstPage() { doCommand( DCMD_BEGIN, 1 ); }
 void CR3View::lastPage() { doCommand( DCMD_END, 1 ); }
 void CR3View::historyBack() { doCommand( DCMD_LINK_BACK, 1 ); }
 void CR3View::historyForward() { doCommand( DCMD_LINK_FORWARD, 1 ); }
-void CR3View::zoomIn() { doCommand( DCMD_ZOOM_IN, 1 ); }
-void CR3View::zoomOut() { doCommand( DCMD_ZOOM_OUT, 1 ); }
+
+void CR3View::refreshPropFromView( const char * propName )
+{
+    _data->_props->setString( propName, _docview->propsGetCurrent()->getStringDef( propName, "" ) );
+}
+
+void CR3View::zoomIn()
+{ 
+    doCommand( DCMD_ZOOM_IN, 1 );
+    refreshPropFromView( PROP_FONT_SIZE );
+}
+
+void CR3View::zoomOut()
+{
+    doCommand( DCMD_ZOOM_OUT, 1 );
+    refreshPropFromView( PROP_FONT_SIZE );
+}
 
 QScrollBar * CR3View::scrollBar() const
 {

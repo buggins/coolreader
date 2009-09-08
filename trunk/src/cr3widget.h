@@ -93,6 +93,7 @@ class CR3View : public QWidget
         virtual void updateScroll();
         virtual void doCommand( int cmd, int param = 0 );
 
+        virtual void refreshPropFromView( const char * propName );
 
     private slots:
 
