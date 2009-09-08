@@ -14,6 +14,28 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->view->setScrollBar( ui->scroll );
+
+    addAction(ui->actionOpen);
+    addAction(ui->actionRecentBooks);
+    addAction(ui->actionTOC);
+    addAction(ui->actionToggle_Full_Screen);
+    addAction(ui->actionSettings);
+    addAction(ui->actionClose);
+    addAction(ui->actionToggle_Pages_Scroll);
+    addAction(ui->actionMinimize);
+    addAction(ui->actionNextPage);
+    addAction(ui->actionPrevPage);
+    addAction(ui->actionNextLine);
+    addAction(ui->actionPrevLine);
+    addAction(ui->actionFirstPage);
+    addAction(ui->actionLastPage);
+    addAction(ui->actionBack);
+    addAction(ui->actionForward);
+    addAction(ui->actionNextChapter);
+    addAction(ui->actionPrevChapter);
+    addAction(ui->actionZoom_In);
+    addAction(ui->actionZoom_Out);
+
 #ifdef _LINUX
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
 #else
