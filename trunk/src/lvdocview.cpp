@@ -1904,6 +1904,7 @@ void LVDocView::setViewMode( LVDocViewMode view_mode, int visiblePageCount )
     m_imageCache.clear();
     LVLock lock(getMutex());
     m_view_mode = view_mode;
+    m_props->setInt( PROP_PAGE_VIEW_MODE, m_view_mode );
     if ( visiblePageCount==1 || visiblePageCount==2 )
         m_pagesVisible = visiblePageCount;
     requestRender();
@@ -3753,6 +3754,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     static int int_options_1_2[] = { 1, 2 };
     props->limitValueList( PROP_LANDSCAPE_PAGES, int_options_1_2, 2 );
     props->limitValueList( PROP_EMBEDDED_STYLES, bool_options_def_true, 2 );
+    props->limitValueList( PROP_PAGE_VIEW_MODE, bool_options_def_true, 2 );
     props->limitValueList( PROP_FOOTNOTES, bool_options_def_true, 2 );
     props->limitValueList( PROP_SHOW_TIME, bool_options_def_false, 2 );
     props->limitValueList( PROP_DISPLAY_INVERSE, bool_options_def_false, 2 );
@@ -3904,6 +3906,9 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             requestRender();
         } else if ( name==PROP_SHOW_TIME ) {
             setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
+        } else if ( name==PROP_PAGE_VIEW_MODE ) {
+            LVDocViewMode m = props->getIntDef( PROP_PAGE_VIEW_MODE, 1 ) ? DVM_PAGES : DVM_SCROLL;
+            setViewMode(m);
         } else if ( name==PROP_DISPLAY_INVERSE ) {
             if ( value==L"1" ) {
                 CRLog::trace("Setting inverse colors");
