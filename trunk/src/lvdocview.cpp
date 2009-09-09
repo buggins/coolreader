@@ -319,6 +319,8 @@ void LVDocView::setPageMargins( const lvRect & rc )
 
 void LVDocView::setPageHeaderInfo( int hdrFlags )
 {
+    if ( m_pageHeaderInfo == hdrFlags )
+        return;
     LVLock lock(getMutex());
     int oldH = getPageHeaderHeight();
     m_pageHeaderInfo = hdrFlags;
@@ -1904,7 +1906,7 @@ void LVDocView::setViewMode( LVDocViewMode view_mode, int visiblePageCount )
     m_imageCache.clear();
     LVLock lock(getMutex());
     m_view_mode = view_mode;
-    m_props->setInt( PROP_PAGE_VIEW_MODE, m_view_mode );
+    m_props->setInt( PROP_PAGE_VIEW_MODE, m_view_mode == DVM_PAGES ? 1 : 0 );
     if ( visiblePageCount==1 || visiblePageCount==2 )
         m_pagesVisible = visiblePageCount;
     requestRender();
@@ -3782,12 +3784,16 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
 		else
 			props->setString( PROP_HYPHENATION_DICT, lString16(HYPH_DICT_ID_ALGORITHM) );
 	}
+    props->setStringDef( PROP_STATUS_LINE, "1" );
+    props->setStringDef( PROP_SHOW_TITLE, "1" );
+    props->setStringDef( PROP_SHOW_TIME, "1" );
+    props->setStringDef( PROP_SHOW_BATTERY, "1" );
 }
 
 #define H_MARGIN 8
 #define V_MARGIN 8
 #define ALLOW_BOTTOM_STATUSBAR 0
-void LVDocView::setStatusMode( int newMode, bool showClock )
+void LVDocView::setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery )
 {
 #if ALLOW_BOTTOM_STATUSBAR==1
     lvRect margins( H_MARGIN, V_MARGIN, H_MARGIN, V_MARGIN/2 );
@@ -3799,10 +3805,10 @@ void LVDocView::setStatusMode( int newMode, bool showClock )
         setPageHeaderInfo(
                 PGHDR_PAGE_NUMBER
                 | (showClock ? PGHDR_CLOCK : 0)
-                | PGHDR_BATTERY
+                | (showBattery ? PGHDR_BATTERY : 0)
                 | PGHDR_PAGE_COUNT
-                | PGHDR_AUTHOR
-                | PGHDR_TITLE
+                | (showTitle ? PGHDR_AUTHOR : 0)
+                | (showTitle ? PGHDR_TITLE : 0)
                 //| PGHDR_CLOCK
                          );
     else
@@ -3858,8 +3864,10 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             setDefaultFontFace( UnicodeToUtf8(value) );
         } else if ( name==PROP_STATUS_FONT_FACE ) {
             setStatusFontFace( UnicodeToUtf8(value) );
-        } else if ( name==PROP_STATUS_LINE ) {
-            setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
+        } else if ( name==PROP_STATUS_LINE || name==PROP_SHOW_TIME  || name==PROP_SHOW_TITLE  || name==PROP_SHOW_BATTERY ) {
+            setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false )
+                           , props->getBoolDef( PROP_SHOW_TITLE, true )
+                           , props->getBoolDef( PROP_SHOW_BATTERY, true ));
         //} else if ( name==PROP_BOOKMARK_ICONS ) {
         //    enableBookmarkIcons( value==L"1" );
         } else if ( name==PROP_BACKGROUND_COLOR ) {
@@ -3904,8 +3912,6 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             bool value = props->getBoolDef( PROP_FOOTNOTES, true );
             getDocument()->setDocFlag( DOC_FLAG_ENABLE_FOOTNOTES, value );
             requestRender();
-        } else if ( name==PROP_SHOW_TIME ) {
-            setStatusMode( props->getIntDef( PROP_STATUS_LINE, 0 ), props->getBoolDef( PROP_SHOW_TIME, false ) );
         } else if ( name==PROP_PAGE_VIEW_MODE ) {
             LVDocViewMode m = props->getIntDef( PROP_PAGE_VIEW_MODE, 1 ) ? DVM_PAGES : DVM_SCROLL;
             setViewMode(m);

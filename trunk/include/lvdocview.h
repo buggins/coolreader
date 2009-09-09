@@ -45,6 +45,8 @@
 #define PROP_BOOKMARK_ICONS          "crengine.bookmarks.icons"
 #define PROP_FOOTNOTES               "crengine.footnotes"
 #define PROP_SHOW_TIME               "window.status.clock"
+#define PROP_SHOW_TITLE              "window.status.title"
+#define PROP_SHOW_BATTERY            "window.status.battery"
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
 #define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
@@ -445,7 +447,7 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
     /// set status bar and clock mode
-    void setStatusMode( int newMode, bool showClock );
+    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery );
 public:
     /// try swappping of document to cache, if size is big enough, and no swapping attempt yet done
     void swapToCache();
