@@ -42,6 +42,13 @@ private:
     PropsRef m_props;
 
 private slots:
+    void on_cbMargins_currentIndexChanged(int index);
+    void on_cbShowFootNotes_stateChanged(int s);
+    void on_cbShowBattery_stateChanged(int s);
+    void on_cbShowClock_stateChanged(int s);
+    void on_cbShowBookName_stateChanged(int s);
+    void on_cbShowPageHeader_stateChanged(int s);
+    void on_cbViewMode_currentIndexChanged(int index);
     void on_cbWindowShowScrollbar_stateChanged(int );
     void on_cbWindowShowStatusBar_stateChanged(int );
     void on_cbWindowShowMenu_stateChanged(int );

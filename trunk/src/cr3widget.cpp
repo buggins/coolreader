@@ -137,6 +137,7 @@ CR3View::CR3View( QWidget *parent)
     _data->_props->setStringDef( PROP_WINDOW_SHOW_SCROLLBAR, "1" );
     _data->_props->setStringDef( PROP_WINDOW_TOOLBAR_SIZE, "1" );
     _data->_props->setStringDef( PROP_WINDOW_SHOW_STATUSBAR, "0" );
+
 }
 
 CR3View::~CR3View()
