@@ -98,6 +98,8 @@ class CR3View : public QWidget
     private slots:
 
     private:
+        void updateDefProps();
+
         DocViewData * _data; // to hide non-qt implementation
         LVDocView * _docview;
         QScrollBar * _scroll;

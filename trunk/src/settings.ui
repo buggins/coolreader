@@ -289,22 +289,42 @@
             <widget class="QComboBox" name="cbMargins">
              <item>
               <property name="text">
-               <string>Minimal</string>
+               <string>0</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Small</string>
+               <string>5</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Medium</string>
+               <string>8</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Big</string>
+               <string>10</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>15</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>20</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>25</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>30</string>
               </property>
              </item>
             </widget>

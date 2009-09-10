@@ -3,7 +3,8 @@
 #include "cr3widget.h"
 #include "crqtutil.h"
 
-static int def_margins[] = { 2, 6, 12, 20, 30 };
+static int def_margins[] = { 0, 5, 8, 10, 15, 20, 25, 30 };
+#define MAX_MARGIN_INDEX (sizeof(def_margins)/sizeof(int))
 
 SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
@@ -22,7 +23,11 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     optionToUi( PROP_SHOW_BATTERY, m_ui->cbShowBattery );
     optionToUi( PROP_SHOW_TIME, m_ui->cbShowClock );
     optionToUi( PROP_SHOW_TITLE, m_ui->cbShowBookName );
-    m_ui->cbShowPageHeader->setCheckState( ( m_props->getIntDef( PROP_STATUS_LINE, 1 ) != 0 ) ? Qt::Unchecked : Qt::Checked );
+    optionToUiInversed( PROP_STATUS_LINE, m_ui->cbShowPageHeader );
+    bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
+    m_ui->cbShowBattery->setEnabled( b );
+    m_ui->cbShowClock->setEnabled( b );
+    m_ui->cbShowBookName->setEnabled( b );
 
     int lp = m_props->getIntDef( PROP_LANDSCAPE_PAGES, 2 );
     int vm = m_props->getIntDef( PROP_PAGE_VIEW_MODE, 1 );
@@ -33,12 +38,13 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
     int mi = 0;
-    for ( int i=0; i<5; i++ ) {
+    for ( int i=0; i<MAX_MARGIN_INDEX; i++ ) {
         if ( n <= def_margins[i] ) {
             mi = i;
             break;
         }
     }
+    CRLog::debug("initial margins index: %d", mi);
     m_ui->cbMargins->setCurrentIndex( mi );
 }
 
@@ -83,10 +89,24 @@ void SettingsDlg::optionToUi( const char * optionName, QCheckBox * cb )
     cb->setCheckState( state ? Qt::Checked : Qt::Unchecked );
 }
 
+void SettingsDlg::optionToUiInversed( const char * optionName, QCheckBox * cb )
+{
+    int state = ( m_props->getIntDef( optionName, 1 ) != 0 ) ? 1 : 0;
+    CRLog::debug("optionToUIInversed(%s,%d)", optionName, state);
+    cb->setCheckState( !state ? Qt::Checked : Qt::Unchecked );
+}
+
 void SettingsDlg::setCheck( const char * optionName, int checkState )
 {
     int value = (checkState == Qt::Checked) ? 1 : 0;
     CRLog::debug("setCheck(%s,%d)", optionName, value);
+    m_props->setInt( optionName, value );
+}
+
+void SettingsDlg::setCheckInversed( const char * optionName, int checkState )
+{
+    int value = (checkState == Qt::Checked) ? 0 : 1;
+    CRLog::debug("setCheckInversed(%s,%d)", optionName, value);
     m_props->setInt( optionName, value );
 }
 
@@ -134,7 +154,11 @@ void SettingsDlg::on_cbViewMode_currentIndexChanged(int index)
 
 void SettingsDlg::on_cbShowPageHeader_stateChanged(int s)
 {
-    setCheck( PROP_STATUS_LINE, (s == Qt::Checked) ? Qt::Unchecked : Qt::Checked );
+    setCheckInversed( PROP_STATUS_LINE, s );
+    bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
+    m_ui->cbShowBattery->setEnabled( b );
+    m_ui->cbShowClock->setEnabled( b );
+    m_ui->cbShowBookName->setEnabled( b );
 }
 
 void SettingsDlg::on_cbShowBookName_stateChanged(int s)
@@ -161,6 +185,7 @@ void SettingsDlg::on_cbShowFootNotes_stateChanged(int s)
 void SettingsDlg::on_cbMargins_currentIndexChanged(int index)
 {
     int m = def_margins[index];
+    CRLog::debug("marginsChanged: %d", index);
     m_props->setInt( PROP_PAGE_MARGIN_BOTTOM, m*2/3 );
     m_props->setInt( PROP_PAGE_MARGIN_TOP, m );
     m_props->setInt( PROP_PAGE_MARGIN_LEFT, m );

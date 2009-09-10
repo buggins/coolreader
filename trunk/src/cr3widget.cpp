@@ -131,13 +131,16 @@ CR3View::CR3View( QWidget *parent)
     icons.add( LVCreateXPMImageSource( battery3 ) );
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
+    updateDefProps();
+}
 
+void CR3View::updateDefProps()
+{
     _data->_props->setStringDef( PROP_WINDOW_FULLSCREEN, "0" );
     _data->_props->setStringDef( PROP_WINDOW_SHOW_MENU, "1" );
     _data->_props->setStringDef( PROP_WINDOW_SHOW_SCROLLBAR, "1" );
     _data->_props->setStringDef( PROP_WINDOW_TOOLBAR_SIZE, "1" );
     _data->_props->setStringDef( PROP_WINDOW_SHOW_STATUSBAR, "0" );
-
 }
 
 CR3View::~CR3View()
@@ -347,11 +350,11 @@ bool CR3View::loadSettings( QString fn )
         CRLog::error("Cannot load settings from file %s", fn.toUtf8().data() );
     }
     _docview->propsUpdateDefaults( _data->_props );
+    updateDefProps();
     CRPropRef r = _docview->propsApply( _data->_props );
     PropsRef unknownOptions = cr2qt(r);
     if ( _propsCallback != NULL )
         _propsCallback->onPropsChange( unknownOptions );
-    _docview->propsApply( _data->_props );
     return res;
 }
 
@@ -367,20 +370,20 @@ void CR3View::toggleProperty( const char * name )
 /// set new option values
 PropsRef CR3View::setOptions( PropsRef props )
 {
-    //for ( int i=0; i<_data->_props->getCount(); i++ ) {
-    //    CRLog::debug("Old [%d] '%s'=%s ", i, _data->_props->getName(i), UnicodeToUtf8(_data->_props->getValue(i)).c_str() );
-    //}
-    //for ( int i=0; i<props->count(); i++ ) {
-    //    CRLog::debug("New [%d] '%s'=%s ", i, props->name(i), props->value(i).toUtf8().data() );
-    //}
+    for ( int i=0; i<_data->_props->getCount(); i++ ) {
+        CRLog::debug("Old [%d] '%s'=%s ", i, _data->_props->getName(i), UnicodeToUtf8(_data->_props->getValue(i)).c_str() );
+    }
+    for ( int i=0; i<props->count(); i++ ) {
+        CRLog::debug("New [%d] '%s'=%s ", i, props->name(i), props->value(i).toUtf8().data() );
+    }
     CRPropRef changed = _data->_props ^ qt2cr(props);
     for ( int i=0; i<changed->getCount(); i++ ) {
         CRLog::debug("Changed [%d] '%s'=%s ", i, changed->getName(i), UnicodeToUtf8(changed->getValue(i)).c_str() );
     }
     _data->_props = changed | _data->_props;
-    //for ( int i=0; i<_data->_props->getCount(); i++ ) {
-    //    CRLog::debug("Result [%d] '%s'=%s ", i, _data->_props->getName(i), UnicodeToUtf8(_data->_props->getValue(i)).c_str() );
-    //}
+    for ( int i=0; i<_data->_props->getCount(); i++ ) {
+        CRLog::debug("Result [%d] '%s'=%s ", i, _data->_props->getName(i), UnicodeToUtf8(_data->_props->getValue(i)).c_str() );
+    }
     CRPropRef r = _docview->propsApply( changed );
     PropsRef unknownOptions = cr2qt(r);
     if ( _propsCallback != NULL )

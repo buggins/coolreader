@@ -36,6 +36,8 @@ protected:
 
     void setCheck( const char * optionName, int checkState );
     void optionToUi( const char * optionName, QCheckBox * cb );
+    void setCheckInversed( const char * optionName, int checkState );
+    void optionToUiInversed( const char * optionName, QCheckBox * cb );
 private:
     Ui::SettingsDlg *m_ui;
     CR3View * m_docview;
