@@ -16,11 +16,12 @@ namespace Ui {
 #define PROP_WINDOW_MINIMIZED       "window.minimized"
 #define PROP_WINDOW_MAXIMIZED       "window.maximized"
 #define PROP_WINDOW_SHOW_MENU       "window.menu.show"
-//#define PROP_WINDOW_ROTATE_ANGLE    "window.rotate.angle"
+//#define PROP_WINDOW_ROTATE_ANGLE  "window.rotate.angle"
 #define PROP_WINDOW_TOOLBAR_SIZE    "window.toolbar.size"
 #define PROP_WINDOW_TOOLBAR_POSITION "window.toolbar.position"
 #define PROP_WINDOW_SHOW_STATUSBAR  "window.statusbar.show"
 #define PROP_WINDOW_SHOW_SCROLLBAR  "window.scrollbar.show"
+#define PROP_WINDOW_STYLE           "window.style"
 
 class CR3View;
 class SettingsDlg : public QDialog {
@@ -52,6 +53,7 @@ private:
     PropsRef m_props;
 
 private slots:
+    void on_cbLookAndFeel_currentIndexChanged(QString );
     void on_btnHeaderTextColor_clicked();
     void on_btnBgColor_clicked();
     void on_btnTextColor_clicked();

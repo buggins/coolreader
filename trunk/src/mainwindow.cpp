@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QFileDialog>
+#include <QtGui/QFileDialog>
+#include <QtGui/QStyleFactory>
 #include "settings.h"
 #include "tocdlg.h"
 #include "recentdlg.h"
@@ -203,6 +204,9 @@ void MainWindow::onPropsChange( PropsRef props )
         }
         if ( name == PROP_WINDOW_SHOW_STATUSBAR ) {
             ui->statusBar->setVisible( v );
+        }
+        if ( name == PROP_WINDOW_STYLE ) {
+            QApplication::setStyle( value );
         }
     }
 }

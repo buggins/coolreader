@@ -5,9 +5,12 @@
 #include "crqtutil.h"
 #include "qpainter.h"
 #include "settings.h"
-#include <QResizeEvent>
-#include <QScrollBar>
-#include <QMenu>
+#include <QtGui/QResizeEvent>
+#include <QtGui/QScrollBar>
+#include <QtGui/QMenu>
+#include <QtGui/QStyleFactory>
+#include <QtGui/QStyle>
+#include <QtGui/QApplication>
 
 /// to hide non-qt implementation, place all crengine-related fields here
 class CR3View::DocViewData
@@ -141,6 +144,15 @@ void CR3View::updateDefProps()
     _data->_props->setStringDef( PROP_WINDOW_SHOW_SCROLLBAR, "1" );
     _data->_props->setStringDef( PROP_WINDOW_TOOLBAR_SIZE, "1" );
     _data->_props->setStringDef( PROP_WINDOW_SHOW_STATUSBAR, "0" );
+
+
+    QStringList styles = QStyleFactory::keys();
+    QStyle * s = QApplication::style();
+    QString currStyle = s->objectName();
+    CRLog::debug("Current system style is %s", currStyle.toUtf8().data() );
+    QString style = cr2qt(_data->_props->getStringDef( PROP_WINDOW_STYLE, currStyle.toUtf8().data() ));
+    if ( !styles.contains(style, Qt::CaseInsensitive) )
+        _data->_props->setString( PROP_WINDOW_STYLE, qt2cr(currStyle) );
 }
 
 CR3View::~CR3View()

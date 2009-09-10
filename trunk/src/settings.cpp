@@ -3,15 +3,19 @@
 #include "cr3widget.h"
 #include "crqtutil.h"
 #include <QtGui/QColorDialog>
+#include <QtGui/QStyleFactory>
 
 static int def_margins[] = { 0, 5, 8, 10, 15, 20, 25, 30 };
 #define MAX_MARGIN_INDEX (sizeof(def_margins)/sizeof(int))
+
+static bool initDone = false;
 
 SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
     m_ui(new Ui::SettingsDlg),
     m_docview( docView )
 {
+    initDone = false;
     m_ui->setupUi(this);
     m_props = m_docview->getOptions();
     optionToUi( PROP_WINDOW_FULLSCREEN, m_ui->cbWindowFullscreen );
@@ -48,6 +52,19 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     CRLog::debug("initial margins index: %d", mi);
     m_ui->cbMargins->setCurrentIndex( mi );
     updateStyleSample();
+
+    QStringList styles = QStyleFactory::keys();
+    QString style = m_props->getStringDef( PROP_WINDOW_STYLE, "" );
+    m_ui->cbLookAndFeel->addItems( styles );
+    QStyle * s = QApplication::style();
+    QString currStyle = s->objectName();
+    CRLog::debug("Current system style is %s", currStyle.toUtf8().data() );
+    if ( !styles.contains(style, Qt::CaseInsensitive) )
+        style = currStyle;
+    int index = styles.indexOf( style, Qt::CaseInsensitive );
+    if ( index >=0 )
+        m_ui->cbLookAndFeel->setCurrentIndex( index );
+    initDone = true;
 }
 
 SettingsDlg::~SettingsDlg()
@@ -246,4 +263,12 @@ void SettingsDlg::on_btnBgColor_clicked()
 void SettingsDlg::on_btnHeaderTextColor_clicked()
 {
     colorDialog( PROP_STATUS_FONT_COLOR, tr("Page header text color") );
+}
+
+void SettingsDlg::on_cbLookAndFeel_currentIndexChanged( QString styleName )
+{
+    if ( !initDone )
+        return;
+    CRLog::debug( "on_cbLookAndFeel_currentIndexChanged(%s)", styleName.toUtf8().data() );
+    m_props->setString( PROP_WINDOW_STYLE, styleName );
 }
