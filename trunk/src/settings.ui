@@ -17,14 +17,14 @@
    <string>Settings</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="cr3res.qrc">
+   <iconset>
     <normaloff>:/icons/action/icons/configure.png</normaloff>:/icons/action/icons/configure.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tabWindow">
       <property name="toolTip">
@@ -338,10 +338,10 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox"/>
+            <widget class="QComboBox" name="cbTitleFontFace"/>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox_4"/>
+            <widget class="QComboBox" name="cbTitleFontSize"/>
            </item>
           </layout>
          </item>
@@ -544,16 +544,6 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <item>
-            <property name="text">
-             <string>Arial</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Times</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item>
@@ -582,26 +572,6 @@
              <height>0</height>
             </size>
            </property>
-           <item>
-            <property name="text">
-             <string>12</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>14</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>16</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>22</string>
-            </property>
-           </item>
           </widget>
          </item>
         </layout>
@@ -677,9 +647,7 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="cr3res.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>

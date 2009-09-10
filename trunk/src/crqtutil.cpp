@@ -1,5 +1,6 @@
 #include "crqtutil.h"
 #include "../crengine/include/props.h"
+#include <QStringList>
 
 lString16 qt2cr(QString str)
 {
@@ -105,3 +106,28 @@ PropsRef operator ^ ( PropsRef props1, PropsRef props2 )
 {
     return QSharedPointer<Props>( new CRPropsImpl(((CRPropsImpl*)props1.data())->getRef() ^ ((CRPropsImpl*)props2.data())->getRef()));
 }
+
+void cr2qt( QStringList & dst, const lString16Collection & src )
+{
+    dst.clear();
+    for ( int i=0; i<src.length(); i++ ) {
+        dst.append( cr2qt( src[i] ) );
+    }
+}
+
+void qt2cr( lString16Collection & dst, const QStringList & src )
+{
+    dst.clear();
+    for ( int i=0; i<src.length(); i++ ) {
+        dst.add( qt2cr( src[i] ) );
+    }
+}
+
+void crGetFontFaceList( QStringList & dst )
+{
+    lString16Collection faceList;
+    fontMan->getFaceList( faceList );
+    cr2qt( dst, faceList );
+}
+
+

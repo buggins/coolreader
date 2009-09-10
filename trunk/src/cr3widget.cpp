@@ -21,12 +21,16 @@ class CR3View::DocViewData
     CRPropRef _props;
 };
 
+DECL_DEF_CR_FONT_SIZES;
+
 CR3View::CR3View( QWidget *parent)
         : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL), _propsCallback(NULL)
 {
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
     _docview = new LVDocView();
+    LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
+    _docview->setFontSizes( sizes, false );
     LVRefVec<LVImageSource> icons;
     static const char * battery4[] = {
         "24 13 4 1",

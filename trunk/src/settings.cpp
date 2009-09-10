@@ -8,6 +8,8 @@
 static int def_margins[] = { 0, 5, 8, 10, 15, 20, 25, 30 };
 #define MAX_MARGIN_INDEX (sizeof(def_margins)/sizeof(int))
 
+DECL_DEF_CR_FONT_SIZES;
+
 static bool initDone = false;
 
 SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
@@ -64,7 +66,24 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     int index = styles.indexOf( style, Qt::CaseInsensitive );
     if ( index >=0 )
         m_ui->cbLookAndFeel->setCurrentIndex( index );
+
+    QStringList faceList;
+    crGetFontFaceList( faceList );
+    m_ui->cbTextFontFace->addItems( faceList );
+    m_ui->cbTitleFontFace->addItems( faceList );
+    QStringList sizeList;
+    LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
+    for ( int i=0; i<sizes.length(); i++ )
+        sizeList.append( QString("%1").arg(sizes[i]) );
+    m_ui->cbTextFontSize->addItems( sizeList );
+    m_ui->cbTitleFontSize->addItems( sizeList );
+
+    fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize );
+    fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize );
+
     initDone = true;
+
+
 }
 
 SettingsDlg::~SettingsDlg()
@@ -272,3 +291,44 @@ void SettingsDlg::on_cbLookAndFeel_currentIndexChanged( QString styleName )
     CRLog::debug( "on_cbLookAndFeel_currentIndexChanged(%s)", styleName.toUtf8().data() );
     m_props->setString( PROP_WINDOW_STYLE, styleName );
 }
+
+void SettingsDlg::on_cbTitleFontFace_currentIndexChanged(QString s)
+{
+    if ( !initDone )
+        return;
+    m_props->setString( PROP_STATUS_FONT_FACE, s );
+}
+
+void SettingsDlg::on_cbTitleFontSize_currentIndexChanged(QString s)
+{
+    if ( !initDone )
+        return;
+    m_props->setString( PROP_STATUS_FONT_SIZE, s );
+}
+
+void SettingsDlg::on_cbTextFontFace_currentIndexChanged(QString s)
+{
+    if ( !initDone )
+        return;
+    m_props->setString( PROP_FONT_FACE, s );
+}
+
+void SettingsDlg::on_cbTextFontSize_currentIndexChanged(QString s)
+{
+    if ( !initDone )
+        return;
+    m_props->setString( PROP_FONT_SIZE, s );
+}
+
+void SettingsDlg::fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo )
+{
+    QString faceName =  m_props->getStringDef( faceOptionName, faceCombo->itemText(0).toUtf8().data() );
+    QString sizeName =  m_props->getStringDef( sizeOptionName, sizeCombo->itemText(0).toUtf8().data() );
+    int faceIndex = faceCombo->findText( faceName );
+    if ( faceIndex>=0 )
+        faceCombo->setCurrentIndex( faceIndex );
+    int sizeIndex = sizeCombo->findText( sizeName );
+    if ( sizeIndex>=0 )
+        sizeCombo->setCurrentIndex( sizeIndex );
+}
+

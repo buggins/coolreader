@@ -47,4 +47,9 @@ PropsRef cr2qt( CRPropRef & ref );
 /// adapter from qt property collection to coolreader
 const CRPropRef & qt2cr( PropsRef & ref );
 
+void cr2qt( QStringList & dst, const lString16Collection & src );
+void qt2cr( lString16Collection & dst, const QStringList & src );
+
+void crGetFontFaceList( QStringList & dst );
+
 #endif // CRQTUTIL_H

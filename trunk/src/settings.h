@@ -3,6 +3,7 @@
 
 #include <QtGui/QDialog>
 #include <QtGui/QCheckBox>
+#include <QtGui/QComboBox>
 
 #include "crqtutil.h"
 
@@ -23,6 +24,8 @@ namespace Ui {
 #define PROP_WINDOW_SHOW_SCROLLBAR  "window.scrollbar.show"
 #define PROP_WINDOW_STYLE           "window.style"
 
+#define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 18, 20, 22, 24, 26, 28, 32, 38, 42, 48 }
+
 class CR3View;
 class SettingsDlg : public QDialog {
     Q_OBJECT
@@ -39,6 +42,7 @@ protected:
     void optionToUi( const char * optionName, QCheckBox * cb );
     void setCheckInversed( const char * optionName, int checkState );
     void optionToUiInversed( const char * optionName, QCheckBox * cb );
+    void fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo );
 
     QColor getColor( const char * optionName, unsigned def );
     void setColor( const char * optionName, QColor cl );
@@ -53,6 +57,10 @@ private:
     PropsRef m_props;
 
 private slots:
+    void on_cbTextFontSize_currentIndexChanged(QString );
+    void on_cbTextFontFace_currentIndexChanged(QString );
+    void on_cbTitleFontSize_currentIndexChanged(QString );
+    void on_cbTitleFontFace_currentIndexChanged(QString );
     void on_cbLookAndFeel_currentIndexChanged(QString );
     void on_btnHeaderTextColor_clicked();
     void on_btnBgColor_clicked();
