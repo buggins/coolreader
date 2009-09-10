@@ -50,6 +50,10 @@ public:
     {
         return _ref->getIntDef(prop, defValue);
     }
+    virtual void setHex( const char * propName, int value )
+    {
+        _ref->setHex( propName, value );
+    }
     virtual CRPropRef & accessor()
     {
         return _ref;

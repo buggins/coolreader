@@ -2,6 +2,7 @@
 #include "ui_settings.h"
 #include "cr3widget.h"
 #include "crqtutil.h"
+#include <QtGui/QColorDialog>
 
 static int def_margins[] = { 0, 5, 8, 10, 15, 20, 25, 30 };
 #define MAX_MARGIN_INDEX (sizeof(def_margins)/sizeof(int))
@@ -46,6 +47,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     }
     CRLog::debug("initial margins index: %d", mi);
     m_ui->cbMargins->setCurrentIndex( mi );
+    updateStyleSample();
 }
 
 SettingsDlg::~SettingsDlg()
@@ -190,4 +192,58 @@ void SettingsDlg::on_cbMargins_currentIndexChanged(int index)
     m_props->setInt( PROP_PAGE_MARGIN_TOP, m );
     m_props->setInt( PROP_PAGE_MARGIN_LEFT, m );
     m_props->setInt( PROP_PAGE_MARGIN_RIGHT, m );
+}
+
+void SettingsDlg::setBackground( QWidget * wnd, QColor cl )
+{
+    QPalette pal( wnd->palette() );
+    pal.setColor( QPalette::Window, cl );
+    wnd->setPalette( pal );
+}
+
+void SettingsDlg::updateStyleSample()
+{
+    QColor txtColor = getColor( PROP_FONT_COLOR, 0x000000 );
+    QColor bgColor = getColor( PROP_BACKGROUND_COLOR, 0xFFFFFF );
+    QColor headerColor = getColor( PROP_STATUS_FONT_COLOR, 0xFFFFFF );
+    setBackground( m_ui->frmTextColor, txtColor );
+    setBackground( m_ui->frmBgColor, bgColor );
+    setBackground( m_ui->frmHeaderTextColor, headerColor );
+}
+
+QColor SettingsDlg::getColor( const char * optionName, unsigned def )
+{
+    lvColor cr( m_props->getIntDef( optionName, def ) );
+    return QColor( cr.r(), cr.g(), cr.b() );
+}
+
+void SettingsDlg::setColor( const char * optionName, QColor cl )
+{
+    m_props->setHex( optionName, lvColor( cl.red(), cl.green(), cl.blue() ).get() );
+}
+
+void SettingsDlg::colorDialog( const char * optionName, QString title )
+{
+    QColorDialog dlg;
+    dlg.setWindowTitle(title);
+    dlg.setCurrentColor( getColor( optionName, 0x000000 ) );
+    if ( dlg.exec() == QDialog::Accepted ) {
+        setColor( optionName, dlg.currentColor() );
+        updateStyleSample();
+    }
+}
+
+void SettingsDlg::on_btnTextColor_clicked()
+{
+    colorDialog( PROP_FONT_COLOR, tr("Text color") );
+}
+
+void SettingsDlg::on_btnBgColor_clicked()
+{
+    colorDialog( PROP_BACKGROUND_COLOR, tr("Background color") );
+}
+
+void SettingsDlg::on_btnHeaderTextColor_clicked()
+{
+    colorDialog( PROP_STATUS_FONT_COLOR, tr("Page header text color") );
 }

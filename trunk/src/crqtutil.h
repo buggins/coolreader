@@ -27,6 +27,7 @@ public:
     virtual void setInt( const char * prop, int value ) = 0;
     virtual bool getInt( const char * prop, int & result ) = 0;
     virtual int  getIntDef( const char * prop, int defValue ) = 0;
+    virtual void setHex( const char * propName, int value ) = 0;
     virtual bool hasProperty( const char * propName ) const = 0;
     virtual const CRPropRef & accessor() = 0;
     virtual ~Props() { }
