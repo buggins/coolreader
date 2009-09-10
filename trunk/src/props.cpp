@@ -58,7 +58,7 @@ CRPropRef operator - ( CRPropRef props1, CRPropRef props2 )
     int cnt2 = props2->getCount();
     int p1 = 0;
     int p2 = 0;
-    while ( p1<cnt1 && p2<cnt2 ) {
+    while ( (p1<=cnt1 && p2<=cnt2) && (p1<cnt1 || p2<cnt2) ) {
         if ( p1==cnt1 ) {
             break;
         } else if ( p2==cnt2 ) {
@@ -87,7 +87,7 @@ CRPropRef operator | ( CRPropRef props1, CRPropRef props2 )
     int cnt2 = props2->getCount();
     int p1 = 0;
     int p2 = 0;
-    while ( p1<cnt1 && p2<cnt2 ) {
+    while ( (p1<=cnt1 && p2<=cnt2) && (p1<cnt1 || p2<cnt2) ) {
         if ( p1==cnt1 ) {
             v->setString( props2->getName( p2 ), props2->getValue( p2 ) );
             p2++;
@@ -119,7 +119,7 @@ CRPropRef operator & ( CRPropRef props1, CRPropRef props2 )
     int cnt2 = props2->getCount();
     int p1 = 0;
     int p2 = 0;
-    while ( p1<cnt1 && p2<cnt2 ) {
+    while ( (p1<=cnt1 && p2<=cnt2) && (p1<cnt1 || p2<cnt2) ) {
         if ( p1==cnt1 ) {
             break;
         } else if ( p2==cnt2 ) {
@@ -148,7 +148,7 @@ CRPropRef operator ^ ( CRPropRef props1, CRPropRef props2 )
     int cnt2 = props2->getCount();
     int p1 = 0;
     int p2 = 0;
-    while ( p1<cnt1 && p2<cnt2 ) {
+    while ( (p1<=cnt1 && p2<=cnt2) && (p1<cnt1 || p2<cnt2) ) {
         if ( p1==cnt1 ) {
             v->setString( props2->getName( p2 ), props2->getValue( p2 ) );
             p2++;
