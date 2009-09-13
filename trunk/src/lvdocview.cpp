@@ -2310,11 +2310,13 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
       writer.OnTagOpen( NULL, L"body" );
         //m_callback->OnTagOpen( NULL, L"section" );
           // process text
+      if ( title.length() ) {
           writer.OnTagOpen( NULL, L"title" );
           writer.OnTagOpen( NULL, L"p" );
             writer.OnText( title.c_str(), title.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
           writer.OnTagClose( NULL, L"title" );
+      }
           writer.OnTagOpen( NULL, L"p" );
             writer.OnText( message.c_str(), message.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
@@ -3843,9 +3845,24 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_TXT_OPTION_PREFORMATTED ) {
             bool preformatted = props->getBoolDef( PROP_TXT_OPTION_PREFORMATTED, false );
             setTextFormatOptions( preformatted ? txt_format_pre : txt_format_auto );
-        } else if ( name==PROP_FONT_COLOR ) {
+        } else if ( name==PROP_FONT_COLOR || name==PROP_BACKGROUND_COLOR || name==PROP_DISPLAY_INVERSE ) {
+            // update current value in properties
+            m_props->setString( name.c_str(), value );
             lUInt32 textColor = props->getIntDef(PROP_FONT_COLOR, 0x000000 );
-            setTextColor( textColor );
+            lUInt32 backColor = props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFFF );
+            bool inverse = props->getBoolDef(PROP_DISPLAY_INVERSE, false );
+            if ( inverse ) {
+                CRLog::trace("Setting inverse colors");
+                setBackgroundColor( textColor );
+                setTextColor( backColor );
+                requestRender(); // TODO: only colors to be changed
+            } else {
+                CRLog::trace("Setting normal colors");
+                setBackgroundColor( backColor );
+                setTextColor( textColor );
+                requestRender(); // TODO: only colors to be changed
+                value = L"0";
+            }
         } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT
                    || name==PROP_PAGE_MARGIN_RIGHT || name==PROP_PAGE_MARGIN_BOTTOM ) {
             lUInt32 margin = props->getIntDef(name.c_str(), 8 );
@@ -3872,9 +3889,6 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
                            , m_props->getBoolDef( PROP_SHOW_BATTERY, true ));
         //} else if ( name==PROP_BOOKMARK_ICONS ) {
         //    enableBookmarkIcons( value==L"1" );
-        } else if ( name==PROP_BACKGROUND_COLOR ) {
-            lUInt32 backColor = props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFFF );
-            setBackgroundColor( backColor );
         } else if ( name==PROP_FONT_SIZE ) {
             int fontSize = props->getIntDef( PROP_FONT_SIZE, m_font_sizes[0] );
             setFontSize( fontSize );//cr_font_sizes
@@ -3917,19 +3931,6 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_PAGE_VIEW_MODE ) {
             LVDocViewMode m = props->getIntDef( PROP_PAGE_VIEW_MODE, 1 ) ? DVM_PAGES : DVM_SCROLL;
             setViewMode(m);
-        } else if ( name==PROP_DISPLAY_INVERSE ) {
-            if ( value==L"1" ) {
-                CRLog::trace("Setting inverse colors");
-                setBackgroundColor( 0x000000 );
-                setTextColor( 0xFFFFFF );
-                requestRender(); // TODO: only colors to be changed
-            } else {
-                CRLog::trace("Setting normal colors");
-                setBackgroundColor( 0xFFFFFF );
-                setTextColor( 0x000000 );
-                requestRender(); // TODO: only colors to be changed
-                value = L"0";
-            }
         } else {
             // unknown property, adding to list of unknown properties
             unknown->setString( name.c_str(), value );
