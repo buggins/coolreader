@@ -168,6 +168,22 @@ CR3View::~CR3View()
     delete _data;
 }
 
+void CR3View::setHyphDir( QString dirname )
+{
+    HyphMan::initDictionaries( qt2cr( dirname) );
+    _hyphDicts.clear();
+    for ( int i=0; i<HyphMan::getDictList()->length(); i++ ) {
+        HyphDictionary * item = HyphMan::getDictList()->get( i );
+        QString fn = cr2qt( item->getFilename() );
+        _hyphDicts.append( fn );
+    }
+}
+
+const QStringList & CR3View::getHyphDicts()
+{
+    return _hyphDicts;
+}
+
 LVTocItem * CR3View::getToc()
 {
     return _docview->getToc();

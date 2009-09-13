@@ -48,10 +48,12 @@ MainWindow::MainWindow(QWidget *parent)
     QString iniFile = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
     QString cssFile2 = exeDir + "fb2.css";
+    QString hyphDir = exeDir + "hyph" + QDir::separator();
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
     ui->view->loadSettings( iniFile );
     ui->view->loadHistory( histFile );
+    ui->view->setHyphDir( hyphDir );
     if ( !ui->view->loadCSS( cssFile ) )
         ui->view->loadCSS( cssFile2 );
 }

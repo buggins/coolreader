@@ -57,6 +57,8 @@ private:
     PropsRef m_props;
 
 private slots:
+    void on_cbHyphenation_currentIndexChanged(int index);
+    void on_cbInterlineSpace_currentIndexChanged(int index);
     void on_cbTextFontSize_currentIndexChanged(QString );
     void on_cbTextFontFace_currentIndexChanged(QString );
     void on_cbTitleFontSize_currentIndexChanged(QString );

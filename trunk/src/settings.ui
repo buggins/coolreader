@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>411</width>
-    <height>370</height>
+    <height>372</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tabWindow">
       <property name="toolTip">
@@ -624,6 +624,32 @@
          <item row="1" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
+            <widget class="QComboBox" name="cbTextFontFace">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QComboBox" name="cbTextFontSize">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -651,32 +677,6 @@
              </property>
             </widget>
            </item>
-           <item>
-            <spacer name="horizontalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Maximum</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QComboBox" name="cbTextFontFace">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item row="4" column="0">
@@ -694,10 +694,10 @@
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QComboBox" name="comboBox"/>
+          <widget class="QComboBox" name="cbHyphenation"/>
          </item>
          <item row="5" column="1">
-          <widget class="QComboBox" name="comboBox_2"/>
+          <widget class="QComboBox" name="cbInterlineSpace"/>
          </item>
          <item row="2" column="0">
           <widget class="QLabel" name="label_14">
@@ -707,7 +707,7 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QComboBox" name="cbTextFontSize_2">
+          <widget class="QComboBox" name="cbPageSkin">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -742,7 +742,13 @@
           </widget>
          </item>
          <item row="6" column="1">
-          <widget class="QWidget" name="widget" native="true">
+          <widget class="CR3View" name="crSample" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
              <width>80</width>
@@ -769,6 +775,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CR3View</class>
+   <extends>QWidget</extends>
+   <header>cr3widget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="cr3res.qrc"/>
  </resources>

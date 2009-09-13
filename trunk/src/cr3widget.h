@@ -50,6 +50,10 @@ class CR3View : public QWidget
         bool loadHistory( QString filename );
         /// save history to file
         bool saveHistory( QString filename );
+
+        void setHyphDir( QString dirname );
+        const QStringList & getHyphDicts();
+
         /// load fb2.css file
         bool loadCSS( QString filename );
         /// set new option values
@@ -104,6 +108,7 @@ class CR3View : public QWidget
         LVDocView * _docview;
         QScrollBar * _scroll;
         PropsChangeCallback * _propsCallback;
+        QStringList _hyphDicts;
 };
 
 #endif // CR3WIDGET_H

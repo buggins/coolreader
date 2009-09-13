@@ -53,7 +53,6 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     }
     CRLog::debug("initial margins index: %d", mi);
     m_ui->cbMargins->setCurrentIndex( mi );
-    updateStyleSample();
 
     QStringList styles = QStyleFactory::keys();
     QString style = m_props->getStringDef( PROP_WINDOW_STYLE, "" );
@@ -81,6 +80,47 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize );
     fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize );
 
+//		{_("90%"), "90"},
+//		{_("100%"), "100"},
+//		{_("110%"), "110"},
+//		{_("120%"), "120"},
+//		{_("140%"), "140"},
+    //PROP_INTERLINE_SPACE
+    //PROP_HYPHENATION_DICT
+    QString v = QString("%1").arg(m_props->getIntDef(PROP_INTERLINE_SPACE, 100)) + "%";
+    QStringList isitems;
+    isitems.append("90%");
+    isitems.append("100%");
+    isitems.append("110%");
+    isitems.append("120%");
+    isitems.append("140%");
+    m_ui->cbInterlineSpace->addItems(isitems);
+    int isi = m_ui->cbInterlineSpace->findText(v);
+    m_ui->cbInterlineSpace->setCurrentIndex(isi>=0 ? isi : 1);
+
+    int hi = -1;
+    v = m_props->getStringDef(PROP_HYPHENATION_DICT,"@algorithm"); //HYPH_DICT_ID_ALGORITHM;
+    for ( int i=0; i<HyphMan::getDictList()->length(); i++ ) {
+        HyphDictionary * item = HyphMan::getDictList()->get( i );
+        if ( v == cr2qt(item->getFilename() ) )
+            hi = i;
+        QString s = cr2qt( item->getTitle() );
+        if ( item->getType()==HDT_NONE )
+            s = tr("[No hyphenation]");
+        else if ( item->getType()==HDT_ALGORITHM )
+            s = tr("[Algorythmic hyphenation]");
+        m_ui->cbHyphenation->addItem( s );
+    }
+    m_ui->cbHyphenation->setCurrentIndex(hi>=0 ? hi : 1);
+
+
+    m_ui->crSample->setOptions( m_props );
+    m_ui->crSample->getDocView()->setShowCover( false );
+    m_ui->crSample->getDocView()->setViewMode( DVM_SCROLL, 1 );
+    QString testPhrase = tr("The quick brown fox jumps over the lazy dog. ");
+    m_ui->crSample->getDocView()->createDefaultDocument( lString16(), qt2cr(testPhrase+testPhrase+testPhrase) );
+
+    updateStyleSample();
     initDone = true;
 
 
@@ -245,6 +285,11 @@ void SettingsDlg::updateStyleSample()
     setBackground( m_ui->frmTextColor, txtColor );
     setBackground( m_ui->frmBgColor, bgColor );
     setBackground( m_ui->frmHeaderTextColor, headerColor );
+
+    m_ui->crSample->setOptions( m_props );
+    m_ui->crSample->getDocView()->setShowCover( false );
+    m_ui->crSample->getDocView()->setViewMode( DVM_SCROLL, 1 );
+
 }
 
 QColor SettingsDlg::getColor( const char * optionName, unsigned def )
@@ -311,6 +356,7 @@ void SettingsDlg::on_cbTextFontFace_currentIndexChanged(QString s)
     if ( !initDone )
         return;
     m_props->setString( PROP_FONT_FACE, s );
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbTextFontSize_currentIndexChanged(QString s)
@@ -318,6 +364,7 @@ void SettingsDlg::on_cbTextFontSize_currentIndexChanged(QString s)
     if ( !initDone )
         return;
     m_props->setString( PROP_FONT_SIZE, s );
+    updateStyleSample();
 }
 
 void SettingsDlg::fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo )
@@ -332,3 +379,19 @@ void SettingsDlg::fontToUi( const char * faceOptionName, const char * sizeOption
         sizeCombo->setCurrentIndex( sizeIndex );
 }
 
+void SettingsDlg::on_cbInterlineSpace_currentIndexChanged(int index)
+{
+    if ( !initDone )
+        return;
+    static int n[] = {90,100,110,120,140};
+    m_props->setInt( PROP_INTERLINE_SPACE, n[index] );
+    updateStyleSample();
+}
+
+void SettingsDlg::on_cbHyphenation_currentIndexChanged(int index)
+{
+    const QStringList & dl( m_docview->getHyphDicts() );
+    QString s = dl[index < dl.count() ? index : 1];
+    m_props->setString( PROP_HYPHENATION_DICT, s );
+    updateStyleSample();
+}
