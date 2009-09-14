@@ -554,7 +554,7 @@ unsigned short usGetLeftBarFlag() { return 4; }
 void   vEndInit(int iEndStyle)
 {
     CRLog::trace("vEndInit()");
-    main_win->getDocView()->swapToCache();
+    //main_win->getDocView()->swapToCache();
 }
 
 void   vEndDoc()

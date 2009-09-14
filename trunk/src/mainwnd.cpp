@@ -303,6 +303,7 @@ bool V3DocViewWin::loadDocument( lString16 filename )
     	CRLog::error("V3DocViewWin::loadDocument( %s ) - failed!", UnicodeToUtf8(filename).c_str() );
         return false;
     }
+    //_docview->swapToCache();
     _docview->restorePosition();
     return true;
 }
@@ -489,7 +490,7 @@ void V3DocViewWin::openRecentBook( int index )
         // TODO: check error
         showWaitIcon();
         loadDocument( fn );
-        _docview->swapToCache();
+        //_docview->swapToCache();
     }
 }
 

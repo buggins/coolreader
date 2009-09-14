@@ -852,7 +852,7 @@ public:
                     postLeds( true );
                     update(true);
                     if ( firstDocUpdate ) {
-                        main_win->getDocView()->swapToCache();
+                        //main_win->getDocView()->swapToCache();
                         firstDocUpdate = false;
                     }
                     postLeds( false );
@@ -1256,7 +1256,7 @@ int InitDoc(char *fileName)
      #ifdef USE_OLD_NANOX
                     wm->update(true);
                     if ( firstDocUpdate ) {
-                        main_win->getDocView()->swapToCache();
+                        //main_win->getDocView()->swapToCache();
                         firstDocUpdate = false;
                     }
                     postLeds( false );
