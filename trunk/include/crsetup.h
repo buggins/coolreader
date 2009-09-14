@@ -242,12 +242,12 @@
 
 /// minimal document size to enable caching for
 #ifndef DOCUMENT_CACHING_SIZE_THRESHOLD
-#define DOCUMENT_CACHING_SIZE_THRESHOLD 0x8000 // 32K
+#define DOCUMENT_CACHING_SIZE_THRESHOLD 0x20000 // 128K
 #endif
 
 /// max ram data block usage, after which swapping to disk should occur
 #ifndef DOCUMENT_CACHING_MAX_RAM_USAGE
-#define DOCUMENT_CACHING_MAX_RAM_USAGE 0x400000 // 3Mb
+#define DOCUMENT_CACHING_MAX_RAM_USAGE 0x600000 // 6Mb
 #endif
 
 

@@ -2908,7 +2908,7 @@ bool LVDocView::ParseDocument( )
             m_doc_props->setString(DOC_PROP_SERIES_NAME, extractDocSeries( m_doc ));
         }
     }
-    m_doc->persist();
+    //m_doc->persist();
     requestRender();
 	if ( m_callback ) {
 		m_callback->OnLoadFileEnd( );
@@ -3861,7 +3861,6 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
                 setBackgroundColor( backColor );
                 setTextColor( textColor );
                 requestRender(); // TODO: only colors to be changed
-                value = L"0";
             }
         } else if ( name==PROP_PAGE_MARGIN_TOP || name==PROP_PAGE_MARGIN_LEFT
                    || name==PROP_PAGE_MARGIN_RIGHT || name==PROP_PAGE_MARGIN_BOTTOM ) {
