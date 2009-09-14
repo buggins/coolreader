@@ -128,6 +128,11 @@ public :
     DataStorageItemHeader * alloc( int size );
     lUInt8 * ptr() { return _data; }
     int length() { return _len; }
+    void relocatePtr( ptrdiff_t addrDiff, int newSize )
+    {
+        _data += addrDiff;
+        _size = newSize;
+    }
 };
 
 DataStorageItemHeader * DataBuffer::alloc( int size )
@@ -1108,16 +1113,22 @@ DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
         if ( size >= _dataBufferSize )
             return NULL;
         if ( !_map.isNull() ) {
-            // already has map file
-            CRLog::error( "Too small swap file is reserved" );
-            crFatalError(10, "Swap file is too small. Cannot allocate additional data. Exiting.");
+            if ( !resizeMap( hdr.data_offset + _dataBufferSize + _dataBufferSize / 4 +  size ) ) {
+                // already has map file
+                CRLog::error( "Too small swap file is reserved" );
+                crFatalError(10, "Swap file is too small. Cannot allocate additional data. Exiting.");
+            }
+            item = _currentBuffer->alloc( size );
         }
 
-        if ( (_dataBufferSize+1) * _dataBuffers.length() > DOCUMENT_CACHING_MAX_RAM_USAGE ) {
+        lUInt32 nsz = _dataBufferSize * (_dataBuffers.length()+1);
+        if ( nsz > DOCUMENT_CACHING_MAX_RAM_USAGE ) {
             // swap to file
-            lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
+            lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 ) + 0x8000;
             CRLog::info("Document data size is too big for RAM: swapping to disk, need to swap before allocating item %d[%d]", dataIndex, size);
-            if ( !swapToCache( sz * 3 ) ) {
+            if ( nsz > sz )
+                sz = nsz;
+            if ( !swapToCache( sz ) ) {
                 CRLog::error( "Cannot swap big document to disk" );
                 crFatalError(10, "Swapping big document is failed. Exiting.");
             }
@@ -4643,7 +4654,8 @@ bool ldomDocument::openFromCache( )
 
     {
         _dataBuffers.clear();
-        _currentBuffer = new DataBuffer( ptr + hdr.data_offset, fileSize-hdr.data_offset, hdr.data_size );
+        _dataBufferSize = fileSize-hdr.data_offset;
+        _currentBuffer = new DataBuffer( ptr + hdr.data_offset, _dataBufferSize, hdr.data_size );
         _dataBuffers.add( _currentBuffer );
     }
     {
@@ -4687,6 +4699,37 @@ bool ldomDocument::openFromCache( )
     _mapbuf = buf;
     CRLog::info("ldomDocument::openFromCache() - read successfully");
     return true;
+}
+
+/// change size of memory mapped buffer
+bool ldomDocument::resizeMap( lvsize_t newSize )
+{
+    if ( !_mapped || !_mapbuf || !_mapped )
+        return false;
+    lUInt8 * oldptr = _mapbuf->getReadWrite();
+    _mapbuf.Clear();
+    if ( _map->SetSize( newSize )!=LVERR_OK ) {
+        _map.Clear();
+        _mapped = false;
+        CRLog::error("Error while resizing mmap file");
+        return false;
+    }
+    _mapbuf = _map->GetWriteBuffer(0, newSize);
+    lUInt8 * newptr = _mapbuf->getReadWrite();
+    ptrdiff_t diff = newptr - oldptr;
+
+    for (int i=0; i<_instanceMapCount; i++ ) {
+        if ( _instanceMap[ i ].data != NULL )
+            _instanceMap[ i ].data += diff;
+    }
+
+    _dataBufferSize = newSize-hdr.data_offset;
+    _currentBuffer->relocatePtr( diff, _dataBufferSize );
+
+    return true;
+    //_map = map; // memory mapped file
+    //_mapbuf = buf; // memory mapped file buffer
+    //_mapped = true;
 }
 
 bool ldomDocument::swapToCache( lUInt32 reservedSize )
@@ -4795,7 +4838,8 @@ bool ldomDocument::swapToCache( lUInt32 reservedSize )
 
 
     //
-    _currentBuffer = new DataBuffer( ptr + hdr.data_offset, hdr.file_size - hdr.data_offset, hdr.data_size );
+    _dataBufferSize = hdr.file_size - hdr.data_offset;
+    _currentBuffer = new DataBuffer( ptr + hdr.data_offset, _dataBufferSize, hdr.data_size );
     _dataBuffers.clear();
     _dataBuffers.add( _currentBuffer );
     int elemcount = 0;
@@ -5171,6 +5215,7 @@ bool ldomDocCache::init( lString16 cacheDir, lvsize_t maxSize )
 {
     if ( _cacheInstance )
         delete _cacheInstance;
+    CRLog::info("Initialize document cache at %s (max size = %d)", UnicodeToUtf8(cacheDir).c_str(), (int)maxSize );
     _cacheInstance = new ldomDocCacheImpl( cacheDir, maxSize );
     if ( !_cacheInstance->init() ) {
         delete _cacheInstance;

@@ -343,7 +343,8 @@ public:
     }
 protected:
 
-    
+    virtual bool resizeMap( lvsize_t newSize ) = 0;
+
 //=========================================
 //       NEW STORAGE MODEL METHODS
 //=========================================
@@ -1279,6 +1280,8 @@ protected:
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
+    /// change size of memory mapped buffer
+    virtual bool resizeMap( lvsize_t newSize );
 public:
 
     /// save document formatting parameters after render
@@ -1292,6 +1295,7 @@ public:
     virtual bool swapToCache( lUInt32 reservedDataSize=0 );
     /// saves recent changes to mapped file
     virtual bool updateMap();
+
 
 
     LVContainerRef getContainer() { return _container; }
