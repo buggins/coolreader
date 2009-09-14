@@ -17,6 +17,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
+#include <stddef.h>
 
 //#define INDEX1 94
 //#define INDEX2 96
