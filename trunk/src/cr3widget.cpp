@@ -211,6 +211,9 @@ bool CR3View::loadDocument( QString fileName )
     _docview->savePosition();
     QByteArray utf8 = fileName.toUtf8();
     bool res = _docview->LoadDocument( utf8.constData() );
+    if ( res ) {
+        _docview->swapToCache();
+    }
     CRLog::debug( "Trying to restore position for %s", utf8.constData() );
     _docview->restorePosition();
     update();
