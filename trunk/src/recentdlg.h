@@ -16,7 +16,7 @@ class RecentBooksDlg : public QDialog {
 public:
     virtual ~RecentBooksDlg();
 
-    static bool showDlg( CR3View * docView );
+    static bool showDlg( QWidget * parent, CR3View * docView );
 protected:
     explicit RecentBooksDlg(QWidget *parent, CR3View * docView );
     virtual void changeEvent(QEvent *e);

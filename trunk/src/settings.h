@@ -34,7 +34,7 @@ class SettingsDlg : public QDialog {
 public:
     virtual ~SettingsDlg();
 
-    static bool showDlg( CR3View * docView );
+    static bool showDlg(  QWidget * parent, CR3View * docView );
 protected:
     explicit SettingsDlg(QWidget *parent, CR3View * docView );
     virtual void changeEvent(QEvent *e);

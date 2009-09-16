@@ -168,17 +168,17 @@ void MainWindow::on_actionZoom_Out_triggered()
 
 void MainWindow::on_actionTOC_triggered()
 {
-    TocDlg::showDlg( ui->view );
+    TocDlg::showDlg( this, ui->view );
 }
 
 void MainWindow::on_actionRecentBooks_triggered()
 {
-    RecentBooksDlg::showDlg( ui->view );
+    RecentBooksDlg::showDlg( this, ui->view );
 }
 
 void MainWindow::on_actionSettings_triggered()
 {
-    SettingsDlg::showDlg( ui->view );
+    SettingsDlg::showDlg( this, ui->view );
 }
 
 void MainWindow::toggleProperty( const char * name )
@@ -227,6 +227,7 @@ void MainWindow::contextMenu( QPoint pos )
     menu->addAction(ui->actionSettings);
     if ( ui->view->isPointInsideSelection( pos ) )
         menu->addAction(ui->actionCopy);
+    menu->addAction(ui->actionAddBookmark);
     menu->addAction(ui->actionClose);
     menu->exec(ui->view->mapToGlobal(pos));
 }
@@ -263,7 +264,7 @@ void MainWindow::showEvent ( QShowEvent * event )
         // show recent books dialog
         CRLog::info("Startup Action: Show recent books dialog");
         //hide();
-        RecentBooksDlg::showDlg( ui->view );
+        RecentBooksDlg::showDlg( this, ui->view );
         //show();
     } else if ( n==2 ) {
         // show file open dialog
@@ -299,5 +300,15 @@ void MainWindow::on_actionAboutQT_triggered()
 
 void MainWindow::on_actionAboutCoolReader_triggered()
 {
-    AboutDialog::showDlg();
+    AboutDialog::showDlg( this );
+}
+
+void MainWindow::on_actionAddBookmark_triggered()
+{
+
+}
+
+void MainWindow::on_actionShowBookmarksList_triggered()
+{
+
 }

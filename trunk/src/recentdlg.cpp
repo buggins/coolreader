@@ -58,9 +58,9 @@ RecentBooksDlg::~RecentBooksDlg()
     delete m_ui;
 }
 
-bool RecentBooksDlg::showDlg( CR3View * docView )
+bool RecentBooksDlg::showDlg( QWidget * parent,  CR3View * docView )
 {
-    RecentBooksDlg * dlg = new RecentBooksDlg( NULL, docView );
+    RecentBooksDlg * dlg = new RecentBooksDlg( parent, docView );
     dlg->setModal( true );
     dlg->show();
     dlg->raise();

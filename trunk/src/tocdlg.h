@@ -16,7 +16,7 @@ class TocDlg : public QDialog {
 public:
     virtual ~TocDlg();
 
-    static bool showDlg( CR3View * docView );
+    static bool showDlg(  QWidget * parent, CR3View * docView );
 
 protected:
     explicit TocDlg(QWidget *parent, CR3View * docView );

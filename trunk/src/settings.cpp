@@ -49,7 +49,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
     int mi = 0;
-    for ( int i=0; i<MAX_MARGIN_INDEX; i++ ) {
+    for ( unsigned i=0; i<MAX_MARGIN_INDEX; i++ ) {
         if ( n <= def_margins[i] ) {
             mi = i;
             break;
@@ -135,9 +135,9 @@ SettingsDlg::~SettingsDlg()
     delete m_ui;
 }
 
-bool SettingsDlg::showDlg( CR3View * docView )
+bool SettingsDlg::showDlg(  QWidget * parent, CR3View * docView )
 {
-    SettingsDlg * dlg = new SettingsDlg( NULL, docView );
+    SettingsDlg * dlg = new SettingsDlg( parent, docView );
     dlg->show();
     return true;
 }

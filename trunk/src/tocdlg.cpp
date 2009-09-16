@@ -30,12 +30,12 @@ class TocItem : public QTreeWidgetItem
         }
 };
 
-bool TocDlg::showDlg( CR3View * docView )
+bool TocDlg::showDlg(  QWidget * parent, CR3View * docView )
 {
     LVTocItem * root = docView->getToc();
     if ( !root || !root->getChildCount() )
         return false;
-    TocDlg * dlg = new TocDlg( NULL, docView );
+    TocDlg * dlg = new TocDlg( parent, docView );
     dlg->show();
     return true;
 }

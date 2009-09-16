@@ -59,7 +59,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -69,6 +69,7 @@
     <addaction name="actionOpen"/>
     <addaction name="actionRecentBooks"/>
     <addaction name="separator"/>
+    <addaction name="actionFileProperties"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
@@ -84,6 +85,7 @@
     <addaction name="actionZoom_Out"/>
     <addaction name="separator"/>
     <addaction name="actionTOC"/>
+    <addaction name="actionShowBookmarksList"/>
    </widget>
    <widget class="QMenu" name="menuNavigation">
     <property name="title">
@@ -353,7 +355,7 @@
      <normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</iconset>
    </property>
    <property name="text">
-    <string>Table of Contents</string>
+    <string>Table of Contents...</string>
    </property>
    <property name="toolTip">
     <string>Show table of contents</string>
@@ -435,6 +437,39 @@
    </property>
    <property name="shortcut">
     <string>F1</string>
+   </property>
+  </action>
+  <action name="actionAddBookmark">
+   <property name="text">
+    <string>Add Bookmark</string>
+   </property>
+   <property name="toolTip">
+    <string>Add bookmark</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionShowBookmarksList">
+   <property name="text">
+    <string>Bookmark List...</string>
+   </property>
+   <property name="toolTip">
+    <string>Show bookmarks list</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
+   </property>
+  </action>
+  <action name="actionFileProperties">
+   <property name="text">
+    <string>File Properties...</string>
+   </property>
+   <property name="toolTip">
+    <string>Show file properties</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F1</string>
    </property>
   </action>
  </widget>

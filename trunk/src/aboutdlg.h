@@ -14,13 +14,16 @@ public:
     explicit AboutDialog(QWidget *parent = 0);
     virtual ~AboutDialog();
 
-    static bool showDlg();
+    static bool showDlg( QWidget * parent );
 
 protected:
     virtual void changeEvent(QEvent *e);
 
 private:
     Ui::AboutDialog *m_ui;
+
+private slots:
+    void on_buttonBox_accepted();
 };
 
 #endif // ABOUTDIALOG_H

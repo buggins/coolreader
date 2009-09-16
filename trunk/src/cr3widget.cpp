@@ -543,9 +543,9 @@ bool CR3View::isPointInsideSelection( QPoint pos )
 
 void CR3View::mouseMoveEvent ( QMouseEvent * event )
 {
-    bool left = (event->buttons() & Qt::LeftButton);
-    bool right = (event->buttons() & Qt::RightButton);
-    bool mid = (event->buttons() & Qt::MidButton);
+    //bool left = (event->buttons() & Qt::LeftButton);
+    //bool right = (event->buttons() & Qt::RightButton);
+    //bool mid = (event->buttons() & Qt::MidButton);
     lvPoint pt ( event->x(), event->y() );
     ldomXPointer p = _docview->getNodeByPoint( pt );
     lString16 path;
@@ -636,8 +636,8 @@ bool CR3View::updateSelection( ldomXPointer p )
 void CR3View::mousePressEvent ( QMouseEvent * event )
 {
     bool left = event->button() == Qt::LeftButton;
-    bool right = event->button() == Qt::RightButton;
-    bool mid = event->button() == Qt::MidButton;
+    //bool right = event->button() == Qt::RightButton;
+    //bool mid = event->button() == Qt::MidButton;
     lvPoint pt (event->x(), event->y());
     ldomXPointer p = _docview->getNodeByPoint( pt );
     lString16 path;
@@ -665,8 +665,8 @@ void CR3View::mousePressEvent ( QMouseEvent * event )
 void CR3View::mouseReleaseEvent ( QMouseEvent * event )
 {
     bool left = event->button() == Qt::LeftButton;
-    bool right = event->button() == Qt::RightButton;
-    bool mid = event->button() == Qt::MidButton;
+    //bool right = event->button() == Qt::RightButton;
+    //bool mid = event->button() == Qt::MidButton;
     lvPoint pt (event->x(), event->y());
     ldomXPointer p = _docview->getNodeByPoint( pt );
     lString16 path;

@@ -24,9 +24,9 @@ void AboutDialog::changeEvent(QEvent *e)
     }
 }
 
-bool AboutDialog::showDlg()
+bool AboutDialog::showDlg( QWidget * parent )
 {
-    AboutDialog * dlg = new AboutDialog();
+    AboutDialog * dlg = new AboutDialog( parent );
     //dlg->setModal( true );
     dlg->setWindowTitle(tr("About CoolReader"));
     dlg->show();
@@ -34,3 +34,8 @@ bool AboutDialog::showDlg()
     dlg->activateWindow();
 }
 
+
+void AboutDialog::on_buttonBox_accepted()
+{
+    close();
+}
