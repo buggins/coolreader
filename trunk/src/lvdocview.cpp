@@ -1322,12 +1322,12 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
     lvRect fullRect( 0, 0, drawbuf->GetWidth(), drawbuf->GetHeight() );
     if ( !pageRect )
         pageRect = &fullRect;
-    int offset = (pageRect->height() - m_pageMargins.top - m_pageMargins.bottom - height) / 3;
-    if (offset>16)
-        offset = 16;
-    if (offset<0)
-        offset = 0;
-    offset = 0;
+    //int offset = (pageRect->height() - m_pageMargins.top - m_pageMargins.bottom - height) / 3;
+    //if (offset>16)
+    //    offset = 16;
+    //if (offset<0)
+    //    offset = 0;
+    int offset = 0;
     lvRect clip;
     clip.left = pageRect->left + m_pageMargins.left;
     clip.top = pageRect->top + m_pageMargins.top + headerHeight + offset;
@@ -1515,8 +1515,9 @@ bool LVDocView::windowToDocPoint( lvPoint & pt )
         int page = m_pages.FindNearestPage(m_pos, 0);
         lvRect * rc = NULL;
         lvRect page1( m_pageRects[0] );
+        int headerHeight = getPageHeaderHeight();
         page1.left += m_pageMargins.left;
-        page1.top += m_pageMargins.top;
+        page1.top += m_pageMargins.top + headerHeight;
         page1.right -= m_pageMargins.right;
         page1.bottom -= m_pageMargins.bottom;
         if ( page1.isPointInside( pt ) ) {
@@ -1524,7 +1525,7 @@ bool LVDocView::windowToDocPoint( lvPoint & pt )
         } else if ( getVisiblePageCount()==2 ) {
             lvRect page2( m_pageRects[1] );
             page2.left += m_pageMargins.left;
-            page2.top += m_pageMargins.top;
+            page2.top += m_pageMargins.top + headerHeight;
             page2.right -= m_pageMargins.right;
             page2.bottom -= m_pageMargins.bottom;
             if ( page2.isPointInside( pt ) ) {
@@ -1536,9 +1537,11 @@ bool LVDocView::windowToDocPoint( lvPoint & pt )
             int page_y = m_pages[page]->start;
             pt.x -= rc->left;
             pt.y -= rc->top;
-            //CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
-            pt.y += page_y;
-            return true;
+            if ( pt.y < m_pages[page]->height ) {
+                //CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
+                pt.y += page_y;
+                return true;
+            }
         }
     }
     return false;

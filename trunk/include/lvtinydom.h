@@ -748,7 +748,8 @@ protected:
 			}
 		}
 		inline void setOffset( int offset ) { _offset = offset; }
-		~XPointerData() { }
+        inline void addOffset( int offset ) { _offset+=offset; }
+        ~XPointerData() { }
 	};
 	/// node pointer
 	//ldomNode * _node;
@@ -973,6 +974,18 @@ public:
     bool nextVisibleText();
     /// move to previous visible text node
     bool prevVisibleText();
+    /// move to previous visible word beginning
+    bool prevVisibleWordStart();
+    /// move to previous visible word end
+    bool prevVisibleWordEnd();
+    /// move to next visible word beginning
+    bool nextVisibleWordStart();
+    /// move to next visible word end
+    bool nextVisibleWordEnd();
+    /// returns true if current position is visible word beginning
+    bool isVisibleWordStart();
+    /// returns true if current position is visible word end
+    bool isVisibleWordEnd();
     /// forward iteration by elements of DOM three
     bool nextElement();
     /// backward iteration by elements of DOM three
@@ -1068,6 +1081,8 @@ public:
         : _start( word.getStartXPointer() ), _end( word.getEndXPointer() ), _flags(1)
     {
     }
+    /// if start is after end, swap start and end
+    void sort();
     /// create intersection of two ranges
     ldomXRange( const ldomXRange & v1,  const ldomXRange & v2 );
     /// copy constructor of full node range

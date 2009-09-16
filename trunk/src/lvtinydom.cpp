@@ -3632,6 +3632,254 @@ bool ldomXPointerEx::prevVisibleText()
     return false;
 }
 
+// TODO: implement better behavior
+static bool IsUnicodeSpace( lChar16 ch )
+{
+    return ch==' ';
+}
+
+/// move to previous visible word beginning
+bool ldomXPointerEx::prevVisibleWordStart()
+{
+    if ( isNull() )
+        return false;
+    ldomNode * node = NULL;
+    lString16 text;
+    int textLen = 0;
+    for ( ;; ) {
+        if ( !isText() || !isVisible() || _data->getOffset()==0 ) {
+            // move to previous text
+            if ( !prevVisibleText() )
+                return false;
+            node = getNode();
+            text = node->getText();
+            textLen = text.length();
+            _data->setOffset( textLen );
+        } else {
+            node = getNode();
+            text = node->getText();
+            textLen = text.length();
+        }
+        bool foundNonSpace = false;
+        while ( _data->getOffset() > 0 && IsUnicodeSpace(text[_data->getOffset()-1]) )
+            _data->addOffset(-1);
+        while ( _data->getOffset()>0 ) {
+            if ( IsUnicodeSpace(text[ _data->getOffset()-1 ]) )
+                break;
+            foundNonSpace = true;
+            _data->addOffset(-1);
+        }
+        if ( foundNonSpace )
+            return true;
+    }
+}
+
+/// move to previous visible word end
+bool ldomXPointerEx::prevVisibleWordEnd()
+{
+    if ( isNull() )
+        return false;
+    ldomNode * node = NULL;
+    lString16 text;
+    int textLen = 0;
+    bool moved = false;
+    for ( ;; ) {
+        if ( !isText() || !isVisible() || _data->getOffset()==0 ) {
+            // move to previous text
+            if ( !prevVisibleText() )
+                return false;
+            node = getNode();
+            text = node->getText();
+            textLen = text.length();
+            _data->setOffset( textLen );
+            moved = true;
+        } else {
+            node = getNode();
+            text = node->getText();
+            textLen = text.length();
+        }
+        // skip spaces
+        while ( _data->getOffset() > 0 && IsUnicodeSpace(text[_data->getOffset()-1]) ) {
+            _data->addOffset(-1);
+            moved = true;
+        }
+        if ( moved && _data->getOffset()>0 )
+            return true; // found!
+        // skip non-spaces
+        while ( _data->getOffset()>0 ) {
+            if ( IsUnicodeSpace(text[ _data->getOffset()-1 ]) )
+                break;
+            _data->addOffset(-1);
+        }
+        // skip spaces
+        while ( _data->getOffset() > 0 && IsUnicodeSpace(text[_data->getOffset()-1]) ) {
+            _data->addOffset(-1);
+            moved = true;
+        }
+        if ( moved && _data->getOffset()>0 )
+            return true; // found!
+    }
+}
+
+/// move to next visible word beginning
+bool ldomXPointerEx::nextVisibleWordStart()
+{
+    if ( isNull() )
+        return false;
+    ldomNode * node = NULL;
+    lString16 text;
+    int textLen = 0;
+    bool moved = false;
+    for ( ;; ) {
+        if ( !isText() || !isVisible() ) {
+            // move to previous text
+            if ( !nextVisibleText() )
+                return false;
+            node = getNode();
+            text = node->getText();
+            textLen = text.length();
+            _data->setOffset( 0 );
+            moved = true;
+        } else {
+            for (;;) {
+                node = getNode();
+                text = node->getText();
+                textLen = text.length();
+                if ( _data->getOffset() < textLen )
+                    break;
+                if ( !nextVisibleText() )
+                    return false;
+                _data->setOffset( 0 );
+            }
+        }
+        // skip spaces
+        while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+            _data->addOffset(1);
+            moved = true;
+        }
+        if ( moved && _data->getOffset()<textLen )
+            return true;
+        // skip non-spaces
+        while ( _data->getOffset()<textLen ) {
+            if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+                break;
+            moved = true;
+            _data->addOffset(1);
+        }
+        // skip spaces
+        while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+            _data->addOffset(1);
+            moved = true;
+        }
+        if ( moved && _data->getOffset()<textLen )
+            return true;
+    }
+}
+
+/// move to next visible word end
+bool ldomXPointerEx::nextVisibleWordEnd()
+{
+    if ( isNull() )
+        return false;
+    ldomNode * node = NULL;
+    lString16 text;
+    int textLen = 0;
+    bool moved = false;
+    for ( ;; ) {
+        if ( !isText() || !isVisible() ) {
+            // move to previous text
+            if ( !nextVisibleText() )
+                return false;
+            node = getNode();
+            text = node->getText();
+            textLen = text.length();
+            _data->setOffset( 0 );
+            moved = true;
+        } else {
+            for (;;) {
+                node = getNode();
+                text = node->getText();
+                textLen = text.length();
+                if ( _data->getOffset() < textLen )
+                    break;
+                if ( !nextVisibleText() )
+                    return false;
+                _data->setOffset( 0 );
+            }
+        }
+        bool nonSpaceFound = false;
+        // skip non-spaces
+        while ( _data->getOffset()<textLen ) {
+            if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+                break;
+            nonSpaceFound = true;
+            _data->addOffset(1);
+        }
+        if ( nonSpaceFound )
+            return true;
+        // skip spaces
+        while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+            _data->addOffset(1);
+            moved = true;
+        }
+        // skip non-spaces
+        while ( _data->getOffset()<textLen ) {
+            if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+                break;
+            nonSpaceFound = true;
+            _data->addOffset(1);
+        }
+        if ( nonSpaceFound )
+            return true;
+    }
+}
+
+/// returns true if current position is visible word beginning
+bool ldomXPointerEx::isVisibleWordStart()
+{
+   if ( isNull() )
+        return false;
+    if ( !isText() || !isVisible() )
+        return false;
+    ldomNode * node = getNode();
+    lString16 text = node->getText();
+    int textLen = text.length();
+    int i = _data->getOffset();
+    if ( (i==0 && i<textLen && !IsUnicodeSpace(text[i])) || (i<textLen && IsUnicodeSpace(text[i-1]) && !IsUnicodeSpace(text[i]) ) )
+        return true;
+    return false;
+ }
+
+/// returns true if current position is visible word end
+bool ldomXPointerEx::isVisibleWordEnd()
+{
+   if ( isNull() )
+        return false;
+    if ( !isText() || !isVisible() )
+        return false;
+    ldomNode * node = getNode();
+    lString16 text = node->getText();
+    int textLen = text.length();
+    int i = _data->getOffset();
+    if ( (i==textLen && i>0 && !IsUnicodeSpace(text[i-1]))
+        || (i>0 && !IsUnicodeSpace(text[i-1]) && IsUnicodeSpace(text[i]) ) )
+        return true;
+    return false;
+}
+
+/// if start is after end, swap start and end
+void ldomXRange::sort()
+{
+    if ( _start.isNull() || _end.isNull() )
+        return;
+    if ( _start.compare(_end) > 0 ) {
+        ldomXPointer p1( _start );
+        ldomXPointer p2( _end );
+        _start = p2;
+        _end = p1;
+    }
+}
+
 /// backward iteration by elements of DOM three
 bool ldomXPointerEx::prevElement()
 {
@@ -3681,6 +3929,8 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
     while ( !pos._start.isNull() && pos._start.compare( _end ) < 0 ) {
         // do something
         ldomNode * node = pos._start.getNode();
+        lString16 path = pos._start.toString();
+        CRLog::trace( "%s", UnicodeToUtf8(path).c_str() );
         if ( node->isElement() ) {
             allowGoRecurse = callback->onElement( &pos.getStart() );
         } else if ( node->isText() ) {
@@ -3698,12 +3948,17 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
             allowGoRecurse = false;
         }
         // move to next item
+        bool stop = false;
         if ( !allowGoRecurse || !pos._start.child(0) ) {
             while ( !pos._start.nextSibling() ) {
-                if ( !pos._start.parent() )
+                if ( !pos._start.parent() ) {
+                    stop = true;
                     break;
+                }
             }
         }
+        if ( stop )
+            break;
     }
 }
 
