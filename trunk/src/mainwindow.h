@@ -22,7 +22,9 @@ public:
 private:
     Ui::MainWindowClass *ui;
     void toggleProperty( const char * name );
-
+protected:
+    virtual void showEvent ( QShowEvent * event );
+    virtual void focusInEvent ( QFocusEvent * event );
 public slots:
     void contextMenu( QPoint pos );
 private slots:

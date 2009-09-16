@@ -23,6 +23,7 @@ namespace Ui {
 #define PROP_WINDOW_SHOW_STATUSBAR  "window.statusbar.show"
 #define PROP_WINDOW_SHOW_SCROLLBAR  "window.scrollbar.show"
 #define PROP_WINDOW_STYLE           "window.style"
+#define PROP_APP_START_ACTION       "cr3.app.start.action"
 
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 18, 20, 22, 24, 26, 28, 32, 38, 42, 48 }
 
@@ -57,6 +58,7 @@ private:
     PropsRef m_props;
 
 private slots:
+    void on_cbStartupAction_currentIndexChanged(int index);
     void on_cbHyphenation_currentIndexChanged(int index);
     void on_cbInterlineSpace_currentIndexChanged(int index);
     void on_cbTextFontSize_currentIndexChanged(QString );

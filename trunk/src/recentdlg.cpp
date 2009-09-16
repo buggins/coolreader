@@ -61,7 +61,9 @@ RecentBooksDlg::~RecentBooksDlg()
 bool RecentBooksDlg::showDlg( CR3View * docView )
 {
     RecentBooksDlg * dlg = new RecentBooksDlg( NULL, docView );
+    dlg->setModal( true );
     dlg->show();
+    //dlg->
     return true;
 }
 

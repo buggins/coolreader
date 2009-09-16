@@ -244,3 +244,49 @@ void MainWindow::on_actionCopy2_triggered()
 {
     on_actionCopy_triggered();
 }
+
+static bool firstShow = true;
+
+void MainWindow::showEvent ( QShowEvent * event )
+{
+    if ( !firstShow )
+        return;
+    CRLog::debug("first showEvent()");
+    firstShow = false;
+    int n = ui->view->getOptions()->getIntDef( PROP_APP_START_ACTION, 0 );
+    if ( n==0 ) {
+        // open recent book
+        CRLog::info("Startup Action: Open recent book");
+        ui->view->loadLastDocument();
+    } else if ( n==1 ) {
+        // show recent books dialog
+        CRLog::info("Startup Action: Show recent books dialog");
+        //hide();
+        RecentBooksDlg::showDlg( ui->view );
+        //show();
+    } else if ( n==2 ) {
+        // show file open dialog
+        CRLog::info("Startup Action: Show file open dialog");
+        //hide();
+        on_actionOpen_triggered();
+        //RecentBooksDlg::showDlg( ui->view );
+        //show();
+    }
+}
+
+static bool firstFocus = true;
+
+void MainWindow::focusInEvent ( QFocusEvent * event )
+{
+    if ( !firstFocus )
+        return;
+    CRLog::debug("first focusInEvent()");
+//    int n = ui->view->getOptions()->getIntDef( PROP_APP_START_ACTION, 0 );
+//    if ( n==1 ) {
+//        // show recent books dialog
+//        CRLog::info("Startup Action: Show recent books dialog");
+//        RecentBooksDlg::showDlg( ui->view );
+//    }
+
+    firstFocus = false;
+}

@@ -29,6 +29,7 @@ class CR3View : public QWidget
         virtual ~CR3View();
 
         bool loadDocument( QString fileName );
+        bool loadLastDocument();
 
         QScrollBar * scrollBar() const;
 

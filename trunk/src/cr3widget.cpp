@@ -152,6 +152,7 @@ void CR3View::updateDefProps()
     _data->_props->setStringDef( PROP_WINDOW_SHOW_SCROLLBAR, "1" );
     _data->_props->setStringDef( PROP_WINDOW_TOOLBAR_SIZE, "1" );
     _data->_props->setStringDef( PROP_WINDOW_SHOW_STATUSBAR, "0" );
+    _data->_props->setStringDef( PROP_APP_START_ACTION, "0" );
 
 
     QStringList styles = QStyleFactory::keys();
@@ -208,6 +209,14 @@ void CR3View::goToXPointer(QString xPointer)
 int CR3View::getCurPage()
 {
     return _docview->getCurPage();
+}
+
+bool CR3View::loadLastDocument()
+{
+    CRFileHist * hist = _docview->getHistory();
+    if ( !hist || hist->getRecords().length()<=0 )
+        return false;
+    return loadDocument( cr2qt(hist->getRecords()[0]->getFilePathName()) );
 }
 
 bool CR3View::loadDocument( QString fileName )
@@ -554,10 +563,10 @@ void CR3View::mouseMoveEvent ( QMouseEvent * event )
         setCursor( _normalCursor );
     else
         setCursor( _linkCursor );
-    CRLog::trace("mouseMoveEvent - doc pos (%d,%d), buttons: %d %d %d %s", pt.x, pt.y, (int)left, (int)right
-                 , (int)mid, href.empty()?"":UnicodeToUtf8(href).c_str()
-                 //, path.empty()?"":UnicodeToUtf8(path).c_str()
-                 );
+    //CRLog::trace("mouseMoveEvent - doc pos (%d,%d), buttons: %d %d %d %s", pt.x, pt.y, (int)left, (int)right
+    //             , (int)mid, href.empty()?"":UnicodeToUtf8(href).c_str()
+    //             //, path.empty()?"":UnicodeToUtf8(path).c_str()
+    //             );
 }
 
 void CR3View::clearSelection()
@@ -650,7 +659,7 @@ void CR3View::mousePressEvent ( QMouseEvent * event )
                 update();
         }
     }
-    CRLog::debug("mousePressEvent - doc pos (%d,%d), buttons: %d %d %d", pt.x, pt.y, (int)left, (int)right, (int)mid);
+    //CRLog::debug("mousePressEvent - doc pos (%d,%d), buttons: %d %d %d", pt.x, pt.y, (int)left, (int)right, (int)mid);
 }
 
 void CR3View::mouseReleaseEvent ( QMouseEvent * event )
@@ -681,5 +690,5 @@ void CR3View::mouseReleaseEvent ( QMouseEvent * event )
             //    update();
         }
     }
-    CRLog::debug("mouseReleaseEvent - doc pos (%d,%d), buttons: %d %d %d", pt.x, pt.y, (int)left, (int)right, (int)mid);
+    //CRLog::debug("mouseReleaseEvent - doc pos (%d,%d), buttons: %d %d %d", pt.x, pt.y, (int)left, (int)right, (int)mid);
 }

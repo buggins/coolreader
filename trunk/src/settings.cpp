@@ -36,6 +36,10 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->cbShowClock->setEnabled( b );
     m_ui->cbShowBookName->setEnabled( b );
 
+    m_ui->cbStartupAction->setCurrentIndex( m_props->getIntDef( PROP_APP_START_ACTION, 0 ) );
+
+
+
     int lp = m_props->getIntDef( PROP_LANDSCAPE_PAGES, 2 );
     int vm = m_props->getIntDef( PROP_PAGE_VIEW_MODE, 1 );
     if ( vm==0 )
@@ -394,4 +398,9 @@ void SettingsDlg::on_cbHyphenation_currentIndexChanged(int index)
     QString s = dl[index < dl.count() ? index : 1];
     m_props->setString( PROP_HYPHENATION_DICT, s );
     updateStyleSample();
+}
+
+void SettingsDlg::on_cbStartupAction_currentIndexChanged(int index)
+{
+    m_props->setInt( PROP_APP_START_ACTION, index );
 }
