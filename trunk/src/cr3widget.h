@@ -67,6 +67,11 @@ class CR3View : public QWidget
         }
         /// toggle boolean property
         void toggleProperty( const char * name );
+        /// returns true if point is inside selected text
+        bool isPointInsideSelection( QPoint pt );
+        /// returns selection text
+        QString getSelectionText() { return _selText; }
+
     public slots:
         void contextMenu( QPoint pos );
         void setScrollBar( QScrollBar * scroll );
@@ -97,20 +102,33 @@ class CR3View : public QWidget
         virtual void updateScroll();
         virtual void doCommand( int cmd, int param = 0 );
         virtual void mouseMoveEvent ( QMouseEvent * event );
-        virtual void mouseMoveEvent ( QMouseEvent * event );
         virtual void mousePressEvent ( QMouseEvent * event );
+        virtual void mouseReleaseEvent ( QMouseEvent * event );
         virtual void refreshPropFromView( const char * propName );
 
     private slots:
 
     private:
         void updateDefProps();
+        void clearSelection();
+        void startSelection( ldomXPointer p );
+        bool endSelection( ldomXPointer p );
+        bool updateSelection( ldomXPointer p );
 
         DocViewData * _data; // to hide non-qt implementation
         LVDocView * _docview;
         QScrollBar * _scroll;
         PropsChangeCallback * _propsCallback;
         QStringList _hyphDicts;
+        QCursor _normalCursor;
+        QCursor _linkCursor;
+        QCursor _selCursor;
+        bool _selecting;
+        bool _selected;
+        ldomXPointer _selStart;
+        ldomXPointer _selEnd;
+        QString _selText;
+        ldomXRange _selRange;
 };
 
 #endif // CR3WIDGET_H

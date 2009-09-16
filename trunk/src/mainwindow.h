@@ -26,6 +26,8 @@ private:
 public slots:
     void contextMenu( QPoint pos );
 private slots:
+    void on_actionCopy2_triggered();
+    void on_actionCopy_triggered();
     void on_actionSettings_triggered();
     void on_actionRecentBooks_triggered();
     void on_actionTOC_triggered();

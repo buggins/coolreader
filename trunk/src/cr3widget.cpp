@@ -23,12 +23,15 @@ class CR3View::DocViewData
 
 DECL_DEF_CR_FONT_SIZES;
 
+
 CR3View::CR3View( QWidget *parent)
         : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL), _propsCallback(NULL)
+        , _normalCursor(Qt::ArrowCursor), _linkCursor(Qt::PointingHandCursor), _selCursor(Qt::IBeamCursor)
 {
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
     _docview = new LVDocView();
+    clearSelection();
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setFontSizes( sizes, false );
     LVRefVec<LVImageSource> icons;
@@ -139,6 +142,7 @@ CR3View::CR3View( QWidget *parent)
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
     updateDefProps();
+    setMouseTracking(true);
 }
 
 void CR3View::updateDefProps()
@@ -209,6 +213,7 @@ int CR3View::getCurPage()
 bool CR3View::loadDocument( QString fileName )
 {
     _docview->savePosition();
+    clearSelection();
     QByteArray utf8 = fileName.toUtf8();
     bool res = _docview->LoadDocument( utf8.constData() );
     if ( res ) {
@@ -515,3 +520,166 @@ void CR3View::contextMenu( QPoint pos )
 {
 }
 
+/// returns true if point is inside selected text
+bool CR3View::isPointInsideSelection( QPoint pos )
+{
+    if ( !_selected )
+        return false;
+    lvPoint pt( pos.x(), pos.y() );
+    ldomXPointerEx p( _docview->getNodeByPoint( pt ) );
+    if ( p.isNull() )
+        return false;
+    return _selRange.isInside( p );
+}
+
+void CR3View::mouseMoveEvent ( QMouseEvent * event )
+{
+    bool left = (event->buttons() & Qt::LeftButton);
+    bool right = (event->buttons() & Qt::RightButton);
+    bool mid = (event->buttons() & Qt::MidButton);
+    lvPoint pt ( event->x(), event->y() );
+    ldomXPointer p = _docview->getNodeByPoint( pt );
+    lString16 path;
+    lString16 href;
+    if ( !p.isNull() ) {
+        path = p.toString();
+        href = p.getHRef();
+        updateSelection(p);
+    } else {
+        //CRLog::trace("Node not found for %d, %d", event->x(), event->y());
+    }
+    if ( _selecting )
+        setCursor( _selCursor );
+    else if ( href.empty() )
+        setCursor( _normalCursor );
+    else
+        setCursor( _linkCursor );
+    CRLog::trace("mouseMoveEvent - doc pos (%d,%d), buttons: %d %d %d %s", pt.x, pt.y, (int)left, (int)right
+                 , (int)mid, href.empty()?"":UnicodeToUtf8(href).c_str()
+                 //, path.empty()?"":UnicodeToUtf8(path).c_str()
+                 );
+}
+
+void CR3View::clearSelection()
+{
+    if ( _selected ) {
+        _docview->clearSelection();
+        update();
+    }
+    _selecting = false;
+    _selected = false;
+    _selStart = ldomXPointer();
+    _selEnd = ldomXPointer();
+    _selText.clear();
+    ldomXPointerEx p1;
+    ldomXPointerEx p2;
+    _selRange.setStart(p1);
+    _selRange.setEnd(p2);
+}
+
+void CR3View::startSelection( ldomXPointer p )
+{
+    clearSelection();
+    _selecting = true;
+    _selStart = p;
+    updateSelection( p );
+}
+
+bool CR3View::endSelection( ldomXPointer p )
+{
+    if ( !_selecting )
+        return false;
+    updateSelection( p );
+    if ( _selected ) {
+
+    }
+    _selecting = false;
+    return _selected;
+}
+
+bool CR3View::updateSelection( ldomXPointer p )
+{
+    if ( !_selecting )
+        return false;
+    _selEnd = p;
+    ldomXRange r( _selStart, _selEnd );
+    if ( r.getStart().isNull() || r.getEnd().isNull() )
+        return false;
+    r.sort();
+    if ( !r.getStart().isVisibleWordStart() )
+        r.getStart().prevVisibleWordStart();
+    //lString16 start = r.getStart().toString();
+    if ( !r.getEnd().isVisibleWordEnd() )
+        r.getEnd().nextVisibleWordEnd();
+    if ( r.isNull() )
+        return false;
+    //lString16 end = r.getEnd().toString();
+    //CRLog::debug("Range: %s - %s", UnicodeToUtf8(start).c_str(), UnicodeToUtf8(end).c_str());
+    r.setFlags(1);
+    _docview->selectRange( r );
+    _selText = cr2qt( r.getRangeText( '\n', 100000 ) );
+    _selected = true;
+    _selRange = r;
+    update();
+    return true;
+}
+
+void CR3View::mousePressEvent ( QMouseEvent * event )
+{
+    bool left = event->button() == Qt::LeftButton;
+    bool right = event->button() == Qt::RightButton;
+    bool mid = event->button() == Qt::MidButton;
+    lvPoint pt (event->x(), event->y());
+    ldomXPointer p = _docview->getNodeByPoint( pt );
+    lString16 path;
+    lString16 href;
+    if ( !p.isNull() ) {
+        path = p.toString();
+        href = p.getHRef();
+    }
+    if ( href.empty() ) {
+        //CRLog::trace("No href pressed" );
+        if ( !p.isNull() && left ) {
+            startSelection(p);
+        }
+    } else {
+        CRLog::info("Link is selected: %s", UnicodeToUtf8(href).c_str() );
+        if ( left ) {
+            // link is pressed
+            if ( _docview->goLink( href ) )
+                update();
+        }
+    }
+    CRLog::debug("mousePressEvent - doc pos (%d,%d), buttons: %d %d %d", pt.x, pt.y, (int)left, (int)right, (int)mid);
+}
+
+void CR3View::mouseReleaseEvent ( QMouseEvent * event )
+{
+    bool left = event->button() == Qt::LeftButton;
+    bool right = event->button() == Qt::RightButton;
+    bool mid = event->button() == Qt::MidButton;
+    lvPoint pt (event->x(), event->y());
+    ldomXPointer p = _docview->getNodeByPoint( pt );
+    lString16 path;
+    lString16 href;
+    if ( !p.isNull() ) {
+        path = p.toString();
+        href = p.getHRef();
+    }
+    if ( _selecting )
+        endSelection(p);
+    if ( href.empty() ) {
+        //CRLog::trace("No href pressed" );
+        if ( !p.isNull() ) {
+            //startSelection(p);
+        }
+    } else {
+        CRLog::info("Link is selected: %s", UnicodeToUtf8(href).c_str() );
+        if ( left ) {
+            // link is pressed
+            //if ( _docview->goLink( href ) )
+            //    update();
+        }
+    }
+    CRLog::debug("mouseReleaseEvent - doc pos (%d,%d), buttons: %d %d %d", pt.x, pt.y, (int)left, (int)right, (int)mid);
+}

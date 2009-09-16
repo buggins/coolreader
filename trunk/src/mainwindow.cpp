@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <QtGui/QFileDialog>
 #include <QtGui/QStyleFactory>
+#include <QClipboard>
 #include "settings.h"
 #include "tocdlg.h"
 #include "recentdlg.h"
@@ -36,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
     addAction(ui->actionPrevChapter);
     addAction(ui->actionZoom_In);
     addAction(ui->actionZoom_Out);
+    addAction(ui->actionCopy);
+    addAction(ui->actionCopy2); // alternative shortcut
 
 #ifdef _LINUX
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
@@ -221,7 +224,23 @@ void MainWindow::contextMenu( QPoint pos )
     menu->addAction(ui->actionTOC);
     menu->addAction(ui->actionToggle_Full_Screen);
     menu->addAction(ui->actionSettings);
+    if ( ui->view->isPointInsideSelection( pos ) )
+        menu->addAction(ui->actionCopy);
     menu->addAction(ui->actionClose);
     menu->exec(ui->view->mapToGlobal(pos));
 }
 
+
+void MainWindow::on_actionCopy_triggered()
+{
+    QString txt = ui->view->getSelectionText();
+    if ( txt.length()>0 ) {
+         QClipboard * clipboard = QApplication::clipboard();
+         clipboard->setText(txt);
+    }
+}
+
+void MainWindow::on_actionCopy2_triggered()
+{
+    on_actionCopy_triggered();
+}

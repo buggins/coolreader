@@ -129,7 +129,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/fileopen.png</normaloff>:/icons/action/icons/fileopen.png</iconset>
    </property>
    <property name="text">
@@ -152,7 +152,7 @@
   </action>
   <action name="actionClose">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/exit.png</normaloff>:/icons/action/icons/exit.png</iconset>
    </property>
    <property name="text">
@@ -169,10 +169,13 @@
    <property name="shortcut">
     <string>Esc</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="actionNextPage">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/forward.png</normaloff>:/icons/action/icons/forward.png</iconset>
    </property>
    <property name="text">
@@ -187,7 +190,7 @@
   </action>
   <action name="actionPrevPage">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/back.png</normaloff>:/icons/action/icons/back.png</iconset>
    </property>
    <property name="text">
@@ -293,7 +296,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/window_fullscreen.png</normaloff>:/icons/action/icons/window_fullscreen.png</iconset>
    </property>
    <property name="text">
@@ -308,7 +311,7 @@
   </action>
   <action name="actionZoom_In">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/viewmag+.png</normaloff>:/icons/action/icons/viewmag+.png</iconset>
    </property>
    <property name="text">
@@ -323,7 +326,7 @@
   </action>
   <action name="actionZoom_Out">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/viewmag-.png</normaloff>:/icons/action/icons/viewmag-.png</iconset>
    </property>
    <property name="text">
@@ -338,7 +341,7 @@
   </action>
   <action name="actionTOC">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</iconset>
    </property>
    <property name="text">
@@ -353,7 +356,7 @@
   </action>
   <action name="actionRecentBooks">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/folder_favorite.png</normaloff>:/icons/action/icons/folder_favorite.png</iconset>
    </property>
    <property name="text">
@@ -368,7 +371,7 @@
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset resource="cr3res.qrc">
+    <iconset>
      <normaloff>:/icons/action/icons/configure.png</normaloff>:/icons/action/icons/configure.png</iconset>
    </property>
    <property name="text">
@@ -379,6 +382,28 @@
    </property>
    <property name="shortcut">
     <string>F9</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy selected text</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionCopy2">
+   <property name="text">
+    <string>copy2</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy alternative shortcut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Ins</string>
    </property>
   </action>
  </widget>
@@ -396,9 +421,7 @@
    </slots>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="cr3res.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>view</sender>
