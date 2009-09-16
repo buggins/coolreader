@@ -28,6 +28,8 @@ protected:
 public slots:
     void contextMenu( QPoint pos );
 private slots:
+    void on_actionAboutCoolReader_triggered();
+    void on_actionAboutQT_triggered();
     void on_actionCopy2_triggered();
     void on_actionCopy_triggered();
     void on_actionSettings_triggered();

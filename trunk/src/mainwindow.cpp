@@ -6,6 +6,7 @@
 #include "settings.h"
 #include "tocdlg.h"
 #include "recentdlg.h"
+#include "aboutdlg.h"
 #include "crqtutil.h"
 #include "../crengine/include/lvtinydom.h"
 
@@ -289,4 +290,14 @@ void MainWindow::focusInEvent ( QFocusEvent * event )
 //    }
 
     firstFocus = false;
+}
+
+void MainWindow::on_actionAboutQT_triggered()
+{
+    QApplication::aboutQt();
+}
+
+void MainWindow::on_actionAboutCoolReader_triggered()
+{
+    AboutDialog::showDlg();
 }
