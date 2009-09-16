@@ -3851,9 +3851,9 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_FONT_COLOR || name==PROP_BACKGROUND_COLOR || name==PROP_DISPLAY_INVERSE ) {
             // update current value in properties
             m_props->setString( name.c_str(), value );
-            lUInt32 textColor = props->getIntDef(PROP_FONT_COLOR, 0x000000 );
-            lUInt32 backColor = props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFFF );
-            bool inverse = props->getBoolDef(PROP_DISPLAY_INVERSE, false );
+            lUInt32 textColor = m_props->getIntDef(PROP_FONT_COLOR, 0x000000 );
+            lUInt32 backColor = m_props->getIntDef(PROP_BACKGROUND_COLOR, 0xFFFFFF );
+            bool inverse = m_props->getBoolDef(PROP_DISPLAY_INVERSE, false );
             if ( inverse ) {
                 CRLog::trace("Setting inverse colors");
                 setBackgroundColor( textColor );
