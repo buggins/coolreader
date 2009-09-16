@@ -22,5 +22,6 @@
         <file>icons/configure.png</file>
         <file>icons/folder_favorite.png</file>
         <file>icons/view-table-of-contents-ltr.png</file>
+        <file>icons/editcopy.png</file>
     </qresource>
 </RCC>
