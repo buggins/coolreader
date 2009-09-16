@@ -54,7 +54,10 @@ SOURCES += main.cpp \
     recentdlg.cpp \
     settings.cpp \
     qtc-gdbmacros/gdbmacros.cpp \
-    aboutdlg.cpp
+    aboutdlg.cpp \
+    filepropsdlg.cpp \
+    addbookmarkdlg.cpp \
+    bookmarklistdlg.cpp
 HEADERS += mainwindow.h \
     ../crengine/include/rtfimp.h \
     ../crengine/include/rtfcmd.h \
@@ -102,13 +105,19 @@ HEADERS += mainwindow.h \
     tocdlg.h \
     recentdlg.h \
     settings.h \
-    aboutdlg.h
+    aboutdlg.h \
+    filepropsdlg.h \
+    addbookmarkdlg.h \
+    bookmarklistdlg.h
 FORMS += mainwindow.ui \
     tocdlg.ui \
     tocdlg.ui \
     recentdlg.ui \
     settings.ui \
-    aboutdlg.ui
+    aboutdlg.ui \
+    filepropsdlg.ui \
+    addbookmarkdlg.ui \
+    bookmarklistdlg.ui
 RESOURCES += cr3res.qrc
 !win32 { 
     unix:LIBS += -ljpeg

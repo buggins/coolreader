@@ -30,7 +30,24 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>16-09-2009</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>(c) 1998-2009 Vadim Lopatin</string>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">

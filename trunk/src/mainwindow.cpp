@@ -7,6 +7,9 @@
 #include "tocdlg.h"
 #include "recentdlg.h"
 #include "aboutdlg.h"
+#include "filepropsdlg.h"
+#include "bookmarklistdlg.h"
+#include "addbookmarkdlg.h"
 #include "crqtutil.h"
 #include "../crengine/include/lvtinydom.h"
 
@@ -40,6 +43,9 @@ MainWindow::MainWindow(QWidget *parent)
     addAction(ui->actionZoom_Out);
     addAction(ui->actionCopy);
     addAction(ui->actionCopy2); // alternative shortcut
+    addAction(ui->actionAddBookmark);
+    addAction(ui->actionShowBookmarksList);
+    addAction(ui->actionCopy);
 
 #ifdef _LINUX
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
@@ -305,10 +311,15 @@ void MainWindow::on_actionAboutCoolReader_triggered()
 
 void MainWindow::on_actionAddBookmark_triggered()
 {
-
+    AddBookmarkDialog::showDlg( this, ui->view );
 }
 
 void MainWindow::on_actionShowBookmarksList_triggered()
 {
+    BookmarkListDialog::showDlg( this, ui->view );
+}
 
+void MainWindow::on_actionFileProperties_triggered()
+{
+    FilePropsDialog::showDlg( this, ui->view );
 }
