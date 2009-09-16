@@ -86,6 +86,7 @@
     <addaction name="separator"/>
     <addaction name="actionTOC"/>
     <addaction name="actionShowBookmarksList"/>
+    <addaction name="actionAddBookmark"/>
    </widget>
    <widget class="QMenu" name="menuNavigation">
     <property name="title">

@@ -3,6 +3,8 @@
 #include <QtGui/QFileDialog>
 #include <QtGui/QStyleFactory>
 #include <QClipboard>
+#include <QTranslator>
+#include <QLibraryInfo>
 #include "settings.h"
 #include "tocdlg.h"
 #include "recentdlg.h"
@@ -52,12 +54,13 @@ MainWindow::MainWindow(QWidget *parent)
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
-    QString exeDir = qApp->applicationDirPath() + QDir::separator();
+    QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
     QString cacheDir = homeDir + "cache";
     QString histFile = homeDir + "cr3hist.bmk";
     QString iniFile = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
     QString cssFile2 = exeDir + "fb2.css";
+    QString translations = exeDir + "i18n";
     QString hyphDir = exeDir + "hyph" + QDir::separator();
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
@@ -66,6 +69,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->view->setHyphDir( hyphDir );
     if ( !ui->view->loadCSS( cssFile ) )
         ui->view->loadCSS( cssFile2 );
+
+//     QTranslator qtTranslator;
+//     if (qtTranslator.load("qt_" + QLocale::system().name(),
+//             QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+//        QApplication::installTranslator(&qtTranslator);
+//
+//     QTranslator myappTranslator;
+//     QString trname = "cr3_" + QLocale::system().name();
+//     CRLog::info("Using translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
+//     if ( myappTranslator.load(trname, translations) )
+//         QApplication::installTranslator(&myappTranslator);
+
 }
 
 MainWindow::~MainWindow()

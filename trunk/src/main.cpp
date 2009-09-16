@@ -1,6 +1,9 @@
 #include <QtGui/QApplication>
 #include "../crengine/include/crengine.h"
 #include "mainwindow.h"
+#include <QTranslator>
+#include <QLibraryInfo>
+#include <QDir>
 
 // prototypes
 void InitCREngineLog( const char * cfgfile );
@@ -51,6 +54,20 @@ int main(int argc, char *argv[])
         //}
         {
             QApplication a(argc, argv);
+
+            QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
+            QString translations = exeDir + "i18n";
+             QTranslator qtTranslator;
+             if (qtTranslator.load("qt_" + QLocale::system().name(),
+                     QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+                QApplication::installTranslator(&qtTranslator);
+
+             QTranslator myappTranslator;
+             QString trname = "cr3_" + QLocale::system().name();
+             CRLog::info("Using translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
+             if ( myappTranslator.load(trname, translations) )
+                 QApplication::installTranslator(&myappTranslator);
+
             MainWindow w;
             w.show();
             res = a.exec();

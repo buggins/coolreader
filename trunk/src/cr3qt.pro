@@ -118,6 +118,10 @@ FORMS += mainwindow.ui \
     filepropsdlg.ui \
     addbookmarkdlg.ui \
     bookmarklistdlg.ui
+TRANSLATIONS += i18n/cr3_ru.ts \
+    i18n/cr3_uk.ts \
+    i18n/cr3_de.ts
+
 RESOURCES += cr3res.qrc
 !win32 { 
     unix:LIBS += -ljpeg
