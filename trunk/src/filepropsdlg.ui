@@ -15,18 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTableWidget" name="tableWidget">
-     <column>
-      <property name="text">
-       <string>Property</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Value</string>
-      </property>
-     </column>
-    </widget>
+    <widget class="QTableWidget" name="tableWidget"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
