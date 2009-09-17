@@ -15,7 +15,7 @@ public:
     virtual ~PropsChangeCallback() { }
 };
 
-class CR3View : public QWidget
+class CR3View : public QWidget, public LVDocViewCallback
 {
 
         Q_OBJECT
@@ -73,6 +73,10 @@ class CR3View : public QWidget
         bool isPointInsideSelection( QPoint pt );
         /// returns selection text
         QString getSelectionText() { return _selText; }
+
+
+        /// Override to handle external links
+        virtual void OnExternalLink( lString16 url, ldomNode * node );
 
     public slots:
         void contextMenu( QPoint pos );

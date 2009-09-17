@@ -11,6 +11,8 @@
 #include <QtGui/QStyleFactory>
 #include <QtGui/QStyle>
 #include <QtGui/QApplication>
+#include <QUrl>
+#include <QDesktopServices>
 
 /// to hide non-qt implementation, place all crengine-related fields here
 class CR3View::DocViewData
@@ -31,6 +33,7 @@ CR3View::CR3View( QWidget *parent)
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
     _docview = new LVDocView();
+    _docview->setCallback( this );
     clearSelection();
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setFontSizes( sizes, false );
@@ -700,4 +703,13 @@ void CR3View::mouseReleaseEvent ( QMouseEvent * event )
         }
     }
     //CRLog::debug("mouseReleaseEvent - doc pos (%d,%d), buttons: %d %d %d", pt.x, pt.y, (int)left, (int)right, (int)mid);
+}
+
+/// Override to handle external links
+void CR3View::OnExternalLink( lString16 url, ldomNode * node )
+{
+    // TODO: add support of file links
+    // only URL supported for now
+    QUrl qturl( cr2qt(url) );
+    QDesktopServices::openUrl( qturl );
 }
