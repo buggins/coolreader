@@ -26,6 +26,8 @@ private:
     CR3View * m_docview;
     void openBook( int index );
 private slots:
+    void on_actionClearAll_triggered();
+    void on_actionRemoveItem_triggered();
     void on_tableWidget_customContextMenuRequested(QPoint pos);
     void on_tableWidget_doubleClicked(QModelIndex index);
     void on_buttonBox_rejected();

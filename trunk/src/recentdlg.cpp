@@ -129,11 +129,11 @@ void RecentBooksDlg::on_tableWidget_customContextMenuRequested(QPoint pos)
 
 void RecentBooksDlg::on_actionRemoveItem_triggered()
 {
-    int firstItem = docView->getDocView()->isDocumentOpened() ? 1 : 0;
+    int firstItem = m_docview->getDocView()->isDocumentOpened() ? 1 : 0;
     QModelIndex index = m_ui->tableWidget->currentIndex();
     //int index = m_ui->tableWidget->
     int r = index.row();
-    LVPtrVector<CRFileHistRecord> & files = docView->getDocView()->getHistory()->getRecords();
+    LVPtrVector<CRFileHistRecord> & files = m_docview->getDocView()->getHistory()->getRecords();
     if ( r>=0 && r<files.length()-firstItem ) {
         files.remove( r + firstItem );
         m_ui->tableWidget->removeRow( r );
