@@ -4,6 +4,7 @@
 #include "crqtutil.h"
 #include "../crengine/include/lvdocview.h"
 #include <QMenu>
+#include <QMessageBox>
 
 RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
@@ -143,4 +144,13 @@ void RecentBooksDlg::on_actionRemoveItem_triggered()
 void RecentBooksDlg::on_actionClearAll_triggered()
 {
     //
+    if ( QMessageBox::question(this, tr("Remove all history items"), tr("Do you really want to remove all history records?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No ) == QMessageBox::Yes ) {
+        int firstItem = m_docview->getDocView()->isDocumentOpened() ? 1 : 0;
+        LVPtrVector<CRFileHistRecord> & files = m_docview->getDocView()->getHistory()->getRecords();
+        for ( int r=files.length(); r>=firstItem; r-- ) {
+            files.remove( r);
+            m_ui->tableWidget->removeRow( r - firstItem );
+        }
+        close();
+    }
 }
