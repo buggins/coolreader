@@ -65,7 +65,7 @@ publish-info { display: none; }
 custom-info { display: none; }
 coverpage { display: none }
 
-head, style, form, script { display: none; } 
+head, form, script { display: none; } 
 
 body { margin: 0; text-align: justify; } 
 
