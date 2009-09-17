@@ -211,6 +211,13 @@ int CR3View::getCurPage()
     return _docview->getCurPage();
 }
 
+void CR3View::setDocumentText( QString text )
+{
+    _docview->savePosition();
+    clearSelection();
+    _docview->createDefaultDocument( lString16(), qt2cr(text) );
+}
+
 bool CR3View::loadLastDocument()
 {
     CRFileHist * hist = _docview->getHistory();
@@ -227,9 +234,11 @@ bool CR3View::loadDocument( QString fileName )
     bool res = _docview->LoadDocument( utf8.constData() );
     if ( res ) {
         _docview->swapToCache();
+        CRLog::debug( "Trying to restore position for %s", utf8.constData() );
+        _docview->restorePosition();
+    } else {
+        _docview->createDefaultDocument( lString16(), qt2cr(tr("Error while opening document ") + fileName) );
     }
-    CRLog::debug( "Trying to restore position for %s", utf8.constData() );
-    _docview->restorePosition();
     update();
     return res;
 }

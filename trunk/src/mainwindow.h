@@ -21,6 +21,7 @@ public:
 
 private:
     Ui::MainWindowClass *ui;
+    QString _filenameToOpen;
     void toggleProperty( const char * name );
 protected:
     virtual void showEvent ( QShowEvent * event );

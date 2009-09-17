@@ -56,19 +56,33 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
     QString cacheDir = homeDir + "cache";
-    QString histFile = homeDir + "cr3hist.bmk";
-    QString iniFile = homeDir + "cr3.ini";
+    QString histFile = exeDir + "cr3hist.bmk";
+    QString histFile2 = homeDir + "cr3hist.bmk";
+    QString iniFile = exeDir + "cr3.ini";
+    QString iniFile2 = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
     QString cssFile2 = exeDir + "fb2.css";
     QString translations = exeDir + "i18n";
     QString hyphDir = exeDir + "hyph" + QDir::separator();
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
-    ui->view->loadSettings( iniFile );
-    ui->view->loadHistory( histFile );
+    if ( !ui->view->loadSettings( iniFile ) )
+        ui->view->loadSettings( iniFile2 );
+    if ( !ui->view->loadHistory( histFile ) )
+        ui->view->loadHistory( histFile2 );
     ui->view->setHyphDir( hyphDir );
     if ( !ui->view->loadCSS( cssFile ) )
         ui->view->loadCSS( cssFile2 );
+    QStringList args( qApp->arguments() );
+    for ( int i=1; i<args.length(); i++ ) {
+        if ( args[i].startsWith("--") ) {
+            // option
+        } else {
+            // filename to open
+            if ( _filenameToOpen.length()==0 )
+                _filenameToOpen = args[i];
+        }
+    }
 
 //     QTranslator qtTranslator;
 //     if (qtTranslator.load("qt_" + QLocale::system().name(),
@@ -277,7 +291,12 @@ void MainWindow::showEvent ( QShowEvent * event )
     CRLog::debug("first showEvent()");
     firstShow = false;
     int n = ui->view->getOptions()->getIntDef( PROP_APP_START_ACTION, 0 );
-    if ( n==0 ) {
+    if ( _filenameToOpen.length()>0 ) {
+        // file name specified at command line
+        CRLog::info("Startup Action: filename passed in command line");
+        if ( !ui->view->loadDocument( _filenameToOpen ) )
+            ;
+    } else if ( n==0 ) {
         // open recent book
         CRLog::info("Startup Action: Open recent book");
         ui->view->loadLastDocument();
