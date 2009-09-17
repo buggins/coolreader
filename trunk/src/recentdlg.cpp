@@ -3,6 +3,7 @@
 #include "cr3widget.h"
 #include "crqtutil.h"
 #include "../crengine/include/lvdocview.h"
+#include <QMenu>
 
 RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
@@ -47,10 +48,13 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(author)));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(title)));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(filename)));
+        m_ui->tableWidget->verticalHeader()->setResizeMode( i-firstItem, QHeaderView::ResizeToContents );
         //CRRecentBookMenuItem * item = new CRRecentBookMenuItem( this, i, file );
         //addItem( item );
     }
     m_ui->tableWidget->resizeRowsToContents();
+
+    addAction( m_ui->actionRemoveItem );
 }
 
 RecentBooksDlg::~RecentBooksDlg()
@@ -113,4 +117,30 @@ void RecentBooksDlg::openBook( int rowIndex )
 void RecentBooksDlg::on_tableWidget_doubleClicked(QModelIndex index)
 {
     openBook( index.row() );
+}
+
+void RecentBooksDlg::on_tableWidget_customContextMenuRequested(QPoint pos)
+{
+    QMenu *menu = new QMenu;
+    menu->addAction(m_ui->actionRemoveItem);
+    menu->addAction(m_ui->actionClearAll);
+    menu->exec(mapToGlobal(pos));
+}
+
+void RecentBooksDlg::on_actionRemoveItem_triggered()
+{
+    int firstItem = docView->getDocView()->isDocumentOpened() ? 1 : 0;
+    QModelIndex index = m_ui->tableWidget->currentIndex();
+    //int index = m_ui->tableWidget->
+    int r = index.row();
+    LVPtrVector<CRFileHistRecord> & files = docView->getDocView()->getHistory()->getRecords();
+    if ( r>=0 && r<files.length()-firstItem ) {
+        files.remove( r + firstItem );
+        m_ui->tableWidget->removeRow( r );
+    }
+}
+
+void RecentBooksDlg::on_actionClearAll_triggered()
+{
+    //
 }
