@@ -3402,15 +3402,15 @@ bool LVDocView::moveByChapter( int delta )
 }
 
 /// saves new bookmark
-bool LVDocView::saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 comment )
+CRBookmark * LVDocView::saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 comment )
 {
 	if ( range.isNull() )
-		return false;
+        return NULL;
 	if ( range.getStart().isNull() )
-		return false;
+        return NULL;
 	CRFileHistRecord * rec = getCurrentFileHistRecord();
 	if ( !rec )
-		return false;
+        return NULL;
 	CRBookmark * bmk = new CRBookmark();
 	bmk->setType( type );
 	bmk->setStartPos( range.getStart().toString() );
@@ -3429,7 +3429,22 @@ bool LVDocView::saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 
 	bmk->setCommentText( comment );
 	bmk->setTitleText( CRBookmark::getChapterName( range.getStart() ) );
 	rec->getBookmarks().add( bmk );
-	return true;
+    return bmk;
+}
+
+/// removes bookmark from list, and deletes it, false if not found
+bool LVDocView::removeBookmark( CRBookmark * bm )
+{
+    CRFileHistRecord * rec = getCurrentFileHistRecord();
+    if ( !rec )
+        return false;
+    bm = rec->getBookmarks().remove( bm );
+    if ( bm ) {
+        delete bm;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 #define MAX_EXPORT_BOOKMARKS_SIZE 200000
@@ -3539,20 +3554,56 @@ bool LVDocView::exportBookmarks( lString16 filename )
 }
 
 /// saves current page bookmark under numbered shortcut
-void LVDocView::saveCurrentPageShortcutBookmark( int number )
+CRBookmark * LVDocView::saveCurrentPageShortcutBookmark( int number )
 {
 	CRFileHistRecord * rec = getCurrentFileHistRecord();
 	if ( !rec )
-		return;
+        return NULL;
     ldomXPointer p = getBookmark();
+    if ( p.isNull() )
+        return NULL;
 	CRBookmark * bm = rec->setShortcutBookmark( number, p );
     lString16 titleText;
     lString16 posText;
-    if ( !p.isNull() && bm && getBookmarkPosText( p, titleText, posText ) ) {
+    if ( bm && getBookmarkPosText( p, titleText, posText ) ) {
+         bm->setTitleText( titleText );
+         bm->setPosText( posText );
+         return bm;
+    }
+    return NULL;
+}
+
+/// saves current page bookmark under numbered shortcut
+CRBookmark * LVDocView::saveCurrentPageBookmark( lString16 comment )
+{
+    CRFileHistRecord * rec = getCurrentFileHistRecord();
+    if ( !rec )
+        return NULL;
+    ldomXPointer p = getBookmark();
+    if ( p.isNull() )
+        return NULL;
+    CRBookmark * bm = new CRBookmark( p );
+    lString16 titleText;
+    lString16 posText;
+    bm->setType( bmkt_pos );
+    if ( getBookmarkPosText( p, titleText, posText ) ) {
          bm->setTitleText( titleText );
          bm->setPosText( posText );
     }
+    bm->setStartPos( p.toString() );
+    int pos = p.toPoint().y;
+    int fh = m_doc->getFullHeight();
+    int percent = fh > 0 ? (int)(pos * (lInt64)10000 / fh) : 0;
+    if ( percent<0 )
+        percent = 0;
+    if ( percent>10000 )
+        percent = 10000;
+    bm->setPercent( percent );
+    bm->setCommentText( comment );
+    rec->getBookmarks().add( bm );
+    return bm;
 }
+
 
 /// restores page using bookmark by numbered shortcut
 bool LVDocView::goToPageShortcutBookmark( int number )

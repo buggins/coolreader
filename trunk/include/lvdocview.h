@@ -469,12 +469,16 @@ public:
 	/// -1 moveto previous page, 1 to next page
 	bool moveByPage( int delta );
 	/// saves new bookmark
-	bool saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 comment );
+    CRBookmark * saveRangeBookmark( ldomXRange & range, bmk_type type, lString16 comment );
 	/// export bookmarks to text file
 	bool exportBookmarks( lString16 filename );
 	/// saves current page bookmark under numbered shortcut
-	void saveCurrentPageShortcutBookmark( int number );
-	/// restores page using bookmark by numbered shortcut
+    CRBookmark * saveCurrentPageShortcutBookmark( int number );
+    /// saves current page bookmark under numbered shortcut
+    CRBookmark * saveCurrentPageBookmark( lString16 comment );
+    /// removes bookmark from list, and deletes it, false if not found
+    bool removeBookmark( CRBookmark * bm );
+    /// restores page using bookmark by numbered shortcut
 	bool goToPageShortcutBookmark( int number );
     /// returns true if page image is available (0=current, -1=prev, 1=next)
     bool getShowCover() { return  m_showCover; }
