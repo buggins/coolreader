@@ -726,3 +726,16 @@ CRBookmark * CR3View::createBookmark()
     return bm;
 }
 
+void CR3View::goToBookmark( CRBookmark * bm )
+{
+    ldomXPointer start = _docview->getDocument()->createXPointer( bm->getStartPos() );
+    ldomXPointer end = _docview->getDocument()->createXPointer( bm->getEndPos() );
+    if ( start.isNull() )
+        return;
+    if ( end.isNull() )
+        end = start;
+    startSelection( start );
+    endSelection( end );
+    goToXPointer( cr2qt(bm->getStartPos()) );
+    update();
+}

@@ -132,5 +132,5 @@ void crGetFontFaceList( QStringList & dst )
 
 QString crpercent( int p )
 {
-    QString("%1.%2").arg(p/100).arg(p%100,2);
+    return QString("%1.%2%").arg(p/100).arg(p%100,2, 10,QLatin1Char('0'));
 }

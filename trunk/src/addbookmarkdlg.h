@@ -16,15 +16,17 @@ public:
     ~AddBookmarkDialog();
 
     static bool showDlg( QWidget * parent, CR3View * docView );
+    static bool editBookmark( QWidget * parent, CR3View * docView, CRBookmark * bm );
 
 protected:
-    explicit AddBookmarkDialog(QWidget *parent, CR3View * docView);
+    explicit AddBookmarkDialog(QWidget *parent, CR3View * docView, CRBookmark * bm);
     void changeEvent(QEvent *e);
 
 private:
     Ui::AddBookmarkDialog *m_ui;
     CR3View * _docview;
     CRBookmark * _bm;
+    bool _edit;
 
 private slots:
     void on_cbType_currentIndexChanged(int index);

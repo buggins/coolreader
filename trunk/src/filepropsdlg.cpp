@@ -126,6 +126,7 @@ void FilePropsDialog::addInfoSection( QString name )
     int y = m_ui->tableWidget->rowCount();
     m_ui->tableWidget->setRowCount(y+1);
     m_ui->tableWidget->setItem( y, 0, new QTableWidgetItem(name));
+    m_ui->tableWidget->setSpan( y, 0, 1, 2 );
     //m_ui->tableWidget->setItem( y, 1, new QTableWidgetItem(value));
     for ( int i=0; i<prop.length(); i++ ) {
         int y = m_ui->tableWidget->rowCount();

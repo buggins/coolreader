@@ -76,6 +76,8 @@ class CR3View : public QWidget, public LVDocViewCallback
         QString getSelectionText() { return _selText; }
         /// create bookmark
         CRBookmark * createBookmark();
+        /// go to bookmark and highlight it
+        void goToBookmark( CRBookmark * bm );
 
 
         /// Override to handle external links
