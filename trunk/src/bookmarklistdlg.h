@@ -22,6 +22,7 @@ protected:
 
 private:
     Ui::BookmarkListDialog *m_ui;
+    CR3View * _docview;
 
 private slots:
     void on_buttonBox_rejected();
