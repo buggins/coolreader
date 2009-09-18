@@ -24,7 +24,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QComboBox" name="comboBox"/>
+      <widget class="QComboBox" name="cbType"/>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_2">
@@ -34,31 +34,45 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="lblPosition">
        <property name="text">
         <string>Page 1/10 10%</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>Position text</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_5">
+     <item row="4" column="0">
+      <widget class="QLabel" name="lblComment">
        <property name="text">
         <string>Comment</string>
        </property>
       </widget>
      </item>
+     <item row="4" column="1">
+      <widget class="QPlainTextEdit" name="edComment"/>
+     </item>
      <item row="3" column="1">
-      <widget class="QPlainTextEdit" name="plainTextEdit"/>
+      <widget class="QPlainTextEdit" name="edPositionText"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Title</string>
+       </property>
+      </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QPlainTextEdit" name="plainTextEdit_2"/>
+      <widget class="QLabel" name="lblTitle">
+       <property name="text">
+        <string>sample title</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

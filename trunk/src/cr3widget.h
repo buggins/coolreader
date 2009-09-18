@@ -7,6 +7,7 @@
 
 class LVDocView;
 class LVTocItem;
+class CRBookmark;
 
 
 class PropsChangeCallback {
@@ -73,6 +74,8 @@ class CR3View : public QWidget, public LVDocViewCallback
         bool isPointInsideSelection( QPoint pt );
         /// returns selection text
         QString getSelectionText() { return _selText; }
+        /// create bookmark
+        CRBookmark * createBookmark();
 
 
         /// Override to handle external links

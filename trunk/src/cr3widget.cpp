@@ -713,3 +713,16 @@ void CR3View::OnExternalLink( lString16 url, ldomNode * node )
     QUrl qturl( cr2qt(url) );
     QDesktopServices::openUrl( qturl );
 }
+
+/// create bookmark
+CRBookmark * CR3View::createBookmark()
+{
+    CRBookmark * bm = NULL;
+    if ( getSelectionText().length()>0 && !_selRange.isNull() ) {
+        bm = getDocView()->saveRangeBookmark( _selRange, bmkt_comment, lString16() );
+    } else {
+        bm = getDocView()->saveCurrentPageBookmark(lString16());
+    }
+    return bm;
+}
+

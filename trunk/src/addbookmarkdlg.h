@@ -8,6 +8,7 @@ namespace Ui {
 }
 
 class CR3View;
+class CRBookmark;
 
 class AddBookmarkDialog : public QDialog {
     Q_OBJECT
@@ -22,8 +23,11 @@ protected:
 
 private:
     Ui::AddBookmarkDialog *m_ui;
+    CR3View * _docview;
+    CRBookmark * _bm;
 
 private slots:
+    void on_cbType_currentIndexChanged(int index);
     void on_buttonBox_rejected();
     void on_buttonBox_accepted();
 };
