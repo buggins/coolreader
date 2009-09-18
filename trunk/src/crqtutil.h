@@ -50,6 +50,9 @@ const CRPropRef & qt2cr( PropsRef & ref );
 void cr2qt( QStringList & dst, const lString16Collection & src );
 void qt2cr( lString16Collection & dst, const QStringList & src );
 
+/// format p as percent*100 - e.g. 1234->"12.34%"
+QString crpercent( int p );
+
 void crGetFontFaceList( QStringList & dst );
 
 #endif // CRQTUTIL_H

@@ -130,4 +130,7 @@ void crGetFontFaceList( QStringList & dst )
     cr2qt( dst, faceList );
 }
 
-
+QString crpercent( int p )
+{
+    QString("%1.%2").arg(p/100).arg(p%100,2);
+}

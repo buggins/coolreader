@@ -26,8 +26,8 @@ AddBookmarkDialog::AddBookmarkDialog(QWidget *parent, CR3View * docView ) :
         m_ui->edPositionText->setReadOnly( true );
         m_ui->edComment->setPlainText( QString() );
         m_ui->edComment->setReadOnly( false );
-        m_ui->lblPosition->setWindowTitle( QString("%1").arg(_bm->getPercent()) + "%" );
-        m_ui->lblTitle->setWindowTitle( cr2qt(_bm->getTitleText()) );
+        m_ui->lblPosition->setText( crpercent(_bm->getPercent()) );
+        m_ui->lblTitle->setText( cr2qt(_bm->getTitleText()) );
     }
     initialized = true;
 }
@@ -83,10 +83,10 @@ void AddBookmarkDialog::on_cbType_currentIndexChanged(int index)
     if ( index == 0 ) {
         _bm->setType( bmkt_comment );
         m_ui->edComment->setPlainText( QString() );
-        m_ui->lblComment->setWindowTitle( tr("Comment") );
+        m_ui->lblComment->setText( tr("Comment") );
     } else {
         _bm->setType( bmkt_correction );
         m_ui->edComment->setPlainText( cr2qt(_bm->getPosText()) );
-        m_ui->lblComment->setWindowTitle( tr("Correction") );
+        m_ui->lblComment->setText( tr("Correction") );
     }
 }

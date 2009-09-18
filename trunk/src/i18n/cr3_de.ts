@@ -106,9 +106,17 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
+    <name>CR3View</name>
+    <message>
+        <location filename="../cr3widget.cpp" line="243"/>
+        <source>Error while opening document </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FilePropsDialog</name>
     <message>
-        <location filename="../filepropsdlg.cpp" line="10"/>
+        <location filename="../filepropsdlg.cpp" line="12"/>
         <source>Document properties</source>
         <translation type="unfinished"></translation>
     </message>
@@ -118,25 +126,200 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.ui" line="21"/>
+        <location filename="../filepropsdlg.cpp" line="15"/>
         <source>Property</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.ui" line="26"/>
+        <location filename="../filepropsdlg.cpp" line="15"/>
         <source>Value</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="157"/>
+        <source>Current page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="158"/>
+        <source>Total pages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="159"/>
+        <source>Battery state</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="160"/>
+        <source>Current Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="165"/>
+        <source>Current chapter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="168"/>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="170"/>
+        <source>Archive name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="171"/>
+        <source>Archive path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="172"/>
+        <source>Archive size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="173"/>
+        <source>File name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="174"/>
+        <source>File path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="175"/>
+        <source>File size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="176"/>
+        <source>File format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="177"/>
+        <source>File info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="179"/>
+        <source>Title</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="180"/>
+        <source>Author(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="181"/>
+        <source>Series name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="182"/>
+        <source>Series number</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="183"/>
+        <source>Date</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="184"/>
+        <source>Genres</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="185"/>
+        <source>Translator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="186"/>
+        <source>Book info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="188"/>
+        <source>Document author</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="189"/>
+        <source>Document date</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="190"/>
+        <source>Document source URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="191"/>
+        <source>OCR by</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="192"/>
+        <source>Document version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="193"/>
+        <source>Document info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="195"/>
+        <source>Publication name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="196"/>
+        <source>Publisher</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="197"/>
+        <source>Publisher city</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="198"/>
+        <source>Publication year</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="199"/>
+        <source>ISBN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="200"/>
+        <source>Publication info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="202"/>
+        <source>Custom info</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.cpp" line="83"/>
+        <location filename="../mainwindow.cpp" line="112"/>
         <source>Open book file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="85"/>
+        <location filename="../mainwindow.cpp" line="114"/>
         <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -549,28 +732,53 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>RecentBooksDlg</name>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>#</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>Author</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>Filename</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.cpp" line="147"/>
+        <source>Remove all history items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.cpp" line="147"/>
+        <source>Do you really want to remove all history records?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="14"/>
         <source>Recent Books</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.ui" line="41"/>
+        <source>Remove Item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.ui" line="44"/>
+        <source>Del</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.ui" line="49"/>
+        <source>Clear All</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

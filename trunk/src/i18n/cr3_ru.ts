@@ -106,9 +106,17 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
+    <name>CR3View</name>
+    <message>
+        <location filename="../cr3widget.cpp" line="243"/>
+        <source>Error while opening document </source>
+        <translation type="unfinished">Ошибка открытия документа </translation>
+    </message>
+</context>
+<context>
     <name>FilePropsDialog</name>
     <message>
-        <location filename="../filepropsdlg.cpp" line="10"/>
+        <location filename="../filepropsdlg.cpp" line="12"/>
         <source>Document properties</source>
         <translation>Свойства документа</translation>
     </message>
@@ -118,25 +126,200 @@ p, li { white-space: pre-wrap; }
         <translation></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.ui" line="21"/>
+        <location filename="../filepropsdlg.cpp" line="15"/>
         <source>Property</source>
         <translation>Свойство</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.ui" line="26"/>
+        <location filename="../filepropsdlg.cpp" line="15"/>
         <source>Value</source>
         <translation>Значение</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="157"/>
+        <source>Current page</source>
+        <translation type="unfinished">Текущая страница</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="158"/>
+        <source>Total pages</source>
+        <translation type="unfinished">Всего страниц</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="159"/>
+        <source>Battery state</source>
+        <translation type="unfinished">Состояние батареи</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="160"/>
+        <source>Current Time</source>
+        <translation type="unfinished">Текущее время</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="165"/>
+        <source>Current chapter</source>
+        <translation type="unfinished">Глава</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="168"/>
+        <source>Status</source>
+        <translation type="unfinished">Статус</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="170"/>
+        <source>Archive name</source>
+        <translation type="unfinished">Имя файла архива</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="171"/>
+        <source>Archive path</source>
+        <translation type="unfinished">Путь к архиву</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="172"/>
+        <source>Archive size</source>
+        <translation type="unfinished">Размер архива</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="173"/>
+        <source>File name</source>
+        <translation type="unfinished">Имя файла</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="174"/>
+        <source>File path</source>
+        <translation type="unfinished">Путь к файлу</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="175"/>
+        <source>File size</source>
+        <translation type="unfinished">Размер файла</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="176"/>
+        <source>File format</source>
+        <translation type="unfinished">Формат файла</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="177"/>
+        <source>File info</source>
+        <translation type="unfinished">Информация о файле</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="179"/>
+        <source>Title</source>
+        <translation type="unfinished">Название</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="180"/>
+        <source>Author(s)</source>
+        <translation type="unfinished">Автор(ы)</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="181"/>
+        <source>Series name</source>
+        <translation type="unfinished">Серия</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="182"/>
+        <source>Series number</source>
+        <translation type="unfinished">Номер в серии</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="183"/>
+        <source>Date</source>
+        <translation type="unfinished">Дата</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="184"/>
+        <source>Genres</source>
+        <translation type="unfinished">Жанры</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="185"/>
+        <source>Translator</source>
+        <translation type="unfinished">Перевод</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="186"/>
+        <source>Book info</source>
+        <translation type="unfinished">Информация о книге</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="188"/>
+        <source>Document author</source>
+        <translation type="unfinished">Автор документа</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="189"/>
+        <source>Document date</source>
+        <translation type="unfinished">Дата документа</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="190"/>
+        <source>Document source URL</source>
+        <translation type="unfinished">URL исходного документа</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="191"/>
+        <source>OCR by</source>
+        <translation type="unfinished">OCR</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="192"/>
+        <source>Document version</source>
+        <translation type="unfinished">Версия документа</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="193"/>
+        <source>Document info</source>
+        <translation type="unfinished">Информация о документе</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="195"/>
+        <source>Publication name</source>
+        <translation type="unfinished">Название публикации</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="196"/>
+        <source>Publisher</source>
+        <translation type="unfinished">Издательство</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="197"/>
+        <source>Publisher city</source>
+        <translation type="unfinished">Город</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="198"/>
+        <source>Publication year</source>
+        <translation type="unfinished">Год издания</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="199"/>
+        <source>ISBN</source>
+        <translation type="unfinished">ISBN</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="200"/>
+        <source>Publication info</source>
+        <translation type="unfinished">Информация о публикации</translation>
+    </message>
+    <message>
+        <location filename="../filepropsdlg.cpp" line="202"/>
+        <source>Custom info</source>
+        <translation type="unfinished">Прочая информация</translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.cpp" line="83"/>
+        <location filename="../mainwindow.cpp" line="112"/>
         <source>Open book file</source>
         <translation>Открыть книгу</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="85"/>
+        <location filename="../mainwindow.cpp" line="114"/>
         <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
         <translation>Все форматы (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;Книги FB2 (*.fb2 *.fb2.zip);;Текстовые файлы (*.txt);;Текст RTF (*.rtf);;HTML (*.htm *.html);;EPUB (*.epub);;Архивы ZIP (*.zip)</translation>
     </message>
@@ -549,29 +732,54 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>RecentBooksDlg</name>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>#</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>Author</source>
         <translation type="unfinished">Автор</translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>Title</source>
         <translation type="unfinished">Название</translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="14"/>
+        <location filename="../recentdlg.cpp" line="16"/>
         <source>Filename</source>
         <translation type="unfinished">Имя файла</translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.cpp" line="147"/>
+        <source>Remove all history items</source>
+        <translation type="unfinished">Очистка списка последних книг</translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.cpp" line="147"/>
+        <source>Do you really want to remove all history records?</source>
+        <translation type="unfinished">Вы действительно ходите удалить все записи из списка последних открытых книг?</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="14"/>
         <source>Recent Books</source>
         <translation type="unfinished">Последние книги</translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.ui" line="41"/>
+        <source>Remove Item</source>
+        <translation type="unfinished">Удалить запись</translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.ui" line="44"/>
+        <source>Del</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../recentdlg.ui" line="49"/>
+        <source>Clear All</source>
+        <translation type="unfinished">Очистить весь список</translation>
     </message>
 </context>
 <context>
@@ -589,7 +797,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../settings.cpp" line="124"/>
         <source>The quick brown fox jumps over the lazy dog. </source>
-        <translation>Съешь ещё этих мягких французских булочек!</translation>
+        <translation>Съешь ещё этих мягких французских булочек! </translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="323"/>
