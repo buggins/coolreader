@@ -5,6 +5,7 @@
 #include <QClipboard>
 #include <QTranslator>
 #include <QLibraryInfo>
+#include <QMessageBox>
 #include "settings.h"
 #include "tocdlg.h"
 #include "recentdlg.h"
@@ -370,10 +371,11 @@ void MainWindow::on_actionFileProperties_triggered()
 
 void MainWindow::on_actionFindText_triggered()
 {
-    //
+    QMessageBox * mb = new QMessageBox( QMessageBox::Information, tr("Not implemented"), tr("Search is not implemented yet"), QMessageBox::Close, this );
+    mb->exec();
 }
 
 void MainWindow::on_actionRotate_triggered()
 {
-    //
+    ui->view->rotate( 1 );
 }

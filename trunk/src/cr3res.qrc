@@ -25,5 +25,6 @@
         <file>icons/editcopy.png</file>
         <file>icons/bookmark.png</file>
         <file>icons/bookmark_folder.png</file>
+        <file>icons/coolreader.png</file>
     </qresource>
 </RCC>

@@ -751,3 +751,17 @@ void CR3View::goToBookmark( CRBookmark * bm )
     update();
 }
 
+/// rotate view, +1 = 90` clockwise, -1 = 90` counterclockwise
+void CR3View::rotate( int angle )
+{
+    int currAngle = _data->_props->getIntDef( PROP_ROTATE_ANGLE, 0 );
+    int newAngle = currAngle + angle;
+    newAngle = newAngle % 4;
+    if ( newAngle < 0 )
+        newAngle += 4;
+    if ( newAngle == currAngle )
+        return;
+    getDocView()->SetRotateAngle( (cr_rotate_angle_t) newAngle );
+    _data->_props->setInt( PROP_ROTATE_ANGLE, newAngle );
+    update();
+}

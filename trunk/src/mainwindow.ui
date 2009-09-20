@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>CoolReader</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="cr3res.qrc">
+    <normaloff>:/icons/action/icons/coolreader.png</normaloff>:/icons/action/icons/coolreader.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="minimumSize">
     <size>
@@ -59,7 +63,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>28</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

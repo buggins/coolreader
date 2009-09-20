@@ -82,7 +82,8 @@ class CR3View : public QWidget, public LVDocViewCallback
         /// go to bookmark and highlight it
         void goToBookmark( CRBookmark * bm );
 
-
+        /// rotate view, +1 = 90` clockwise, -1 = 90` counterclockwise
+        void rotate( int angle );
         /// Override to handle external links
         virtual void OnExternalLink( lString16 url, ldomNode * node );
 
