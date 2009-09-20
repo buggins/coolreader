@@ -64,6 +64,9 @@ class CR3View : public QWidget, public LVDocViewCallback
         /// get current option values
         PropsRef getOptions();
 
+        void saveWindowPos( QWidget * window, const char * prefix );
+        void restoreWindowPos( QWidget * window, const char * prefix, bool allowExtraStates = false );
+
         void setPropsChangeCallback ( PropsChangeCallback * propsCallback )
         {
             _propsCallback = propsCallback;

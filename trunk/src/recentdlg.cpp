@@ -56,6 +56,13 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     m_ui->tableWidget->resizeRowsToContents();
 
     addAction( m_ui->actionRemoveItem );
+
+    m_docview->restoreWindowPos( this, "recentlist." );
+}
+
+void RecentBooksDlg::closeEvent ( QCloseEvent * event )
+{
+    m_docview->saveWindowPos( this, "recentlist." );
 }
 
 RecentBooksDlg::~RecentBooksDlg()

@@ -20,6 +20,7 @@ public:
 protected:
     explicit RecentBooksDlg(QWidget *parent, CR3View * docView );
     virtual void changeEvent(QEvent *e);
+    virtual void closeEvent ( QCloseEvent * event );
 
 private:
     Ui::RecentBooksDlg *m_ui;

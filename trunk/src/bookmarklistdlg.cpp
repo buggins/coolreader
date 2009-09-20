@@ -84,6 +84,12 @@ BookmarkListDialog::BookmarkListDialog(QWidget *parent, CR3View * docView ) :
     m_ui->tableWidget->resizeColumnsToContents();
     m_ui->tableWidget->resizeRowsToContents();
 
+    _docview->restoreWindowPos( this, "bookmarklist." );
+}
+
+void BookmarkListDialog::closeEvent ( QCloseEvent * event )
+{
+    _docview->saveWindowPos( this, "bookmarklist." );
 }
 
 BookmarkListDialog::~BookmarkListDialog()

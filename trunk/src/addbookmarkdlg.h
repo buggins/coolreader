@@ -21,6 +21,7 @@ public:
 protected:
     explicit AddBookmarkDialog(QWidget *parent, CR3View * docView, CRBookmark * bm);
     void changeEvent(QEvent *e);
+    virtual void closeEvent ( QCloseEvent * event );
 
 private:
     Ui::AddBookmarkDialog *m_ui;

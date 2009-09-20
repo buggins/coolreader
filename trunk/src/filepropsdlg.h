@@ -25,11 +25,13 @@ protected:
     void addInfoSection( QString name );
     explicit FilePropsDialog(QWidget *parent, CR3View * docView );
     void changeEvent(QEvent *e);
+    virtual void closeEvent ( QCloseEvent * event );
     QStringList prop;
     QStringList value;
 
 private:
     Ui::FilePropsDialog *m_ui;
+    CR3View * _cr3v;
     LVDocView * _docview;
 };
 

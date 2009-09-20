@@ -55,4 +55,10 @@ QString crpercent( int p );
 
 void crGetFontFaceList( QStringList & dst );
 
+class QWidget;
+/// save window position to properties
+void saveWindowPosition( QWidget * window, CRPropRef props, const char * prefix );
+/// restore window position from properties
+void restoreWindowPosition( QWidget * window, CRPropRef props, const char * prefix, bool allowFullscreen = false );
+
 #endif // CRQTUTIL_H

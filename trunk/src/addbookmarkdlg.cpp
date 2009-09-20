@@ -45,8 +45,15 @@ AddBookmarkDialog::AddBookmarkDialog(QWidget *parent, CR3View * docView, CRBookm
         m_ui->lblPosition->setText( crpercent(_bm->getPercent()) );
         m_ui->lblTitle->setText( cr2qt(_bm->getTitleText()) );
     }
+    _docview->restoreWindowPos( this, "bookmarkedit." );
     initialized = true;
 }
+
+void AddBookmarkDialog::closeEvent ( QCloseEvent * event )
+{
+    _docview->saveWindowPos( this, "bookmarkedit." );
+}
+
 
 AddBookmarkDialog::~AddBookmarkDialog()
 {

@@ -94,7 +94,12 @@ MainWindow::MainWindow(QWidget *parent)
 //     CRLog::info("Using translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
 //     if ( myappTranslator.load(trname, translations) )
 //         QApplication::installTranslator(&myappTranslator);
+    ui->view->restoreWindowPos( this, "main.", true );
+}
 
+void MainWindow::closeEvent ( QCloseEvent * event )
+{
+    ui->view->saveWindowPos( this, "main." );
 }
 
 MainWindow::~MainWindow()
@@ -109,8 +114,13 @@ void MainWindow::on_view_destroyed()
 
 void MainWindow::on_actionOpen_triggered()
 {
+    QString lastPath;
+    LVPtrVector<CRFileHistRecord> & files = ui->view->getDocView()->getHistory()->getRecords();
+    if ( files.length()>0 ) {
+        lastPath = cr2qt( files[0]->getFilePath() );
+    }
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open book file"),
-         "",
+         lastPath,
          tr("All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)"));
     if ( fileName.length()==0 )
         return;

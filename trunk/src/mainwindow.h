@@ -26,6 +26,7 @@ private:
 protected:
     virtual void showEvent ( QShowEvent * event );
     virtual void focusInEvent ( QFocusEvent * event );
+    virtual void closeEvent ( QCloseEvent * event );
 public slots:
     void contextMenu( QPoint pos );
 private slots:

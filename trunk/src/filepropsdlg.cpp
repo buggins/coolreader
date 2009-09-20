@@ -6,6 +6,7 @@
 FilePropsDialog::FilePropsDialog(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
     m_ui(new Ui::FilePropsDialog)
+    ,_cr3v(docView)
     ,_docview(docView->getDocView())
 {
     m_ui->setupUi(this);
@@ -28,6 +29,12 @@ FilePropsDialog::FilePropsDialog(QWidget *parent, CR3View * docView ) :
     //m_ui->tableWidget->setRowCount(1);
 
     fillItems();
+    _cr3v->restoreWindowPos( this, "fileprops." );
+}
+
+void FilePropsDialog::closeEvent ( QCloseEvent * event )
+{
+    _cr3v->saveWindowPos( this, "fileprops." );
 }
 
 FilePropsDialog::~FilePropsDialog()
@@ -113,6 +120,7 @@ QString FilePropsDialog::getDocAuthors( const char * path, const char * delim )
 
 void FilePropsDialog::addPropLine( QString name, QString v )
 {
+    v = v.trimmed();
     if ( v.length()==0 )
         return;
     prop.append(name);

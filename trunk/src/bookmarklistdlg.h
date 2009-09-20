@@ -21,6 +21,7 @@ public:
 protected:
     explicit BookmarkListDialog(QWidget *parent, CR3View * docView);
     void changeEvent(QEvent *e);
+    virtual void closeEvent ( QCloseEvent * event );
 
 private:
     Ui::BookmarkListDialog *m_ui;

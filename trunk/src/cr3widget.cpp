@@ -454,6 +454,16 @@ PropsRef CR3View::setOptions( PropsRef props )
     return unknownOptions;
 }
 
+void CR3View::saveWindowPos( QWidget * window, const char * prefix )
+{
+    ::saveWindowPosition( window, _data->_props, prefix );
+}
+
+void CR3View::restoreWindowPos( QWidget * window, const char * prefix, bool allowExtraStates  )
+{
+    ::restoreWindowPosition( window, _data->_props, prefix, allowExtraStates );
+}
+
 /// get current option values
 PropsRef CR3View::getOptions()
 {
@@ -739,3 +749,4 @@ void CR3View::goToBookmark( CRBookmark * bm )
     goToXPointer( cr2qt(bm->getStartPos()) );
     update();
 }
+

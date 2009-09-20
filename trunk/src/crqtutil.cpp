@@ -1,6 +1,8 @@
 #include "crqtutil.h"
 #include "../crengine/include/props.h"
 #include <QStringList>
+#include <QWidget>
+#include <QPoint>
 
 lString16 qt2cr(QString str)
 {
@@ -133,4 +135,52 @@ void crGetFontFaceList( QStringList & dst )
 QString crpercent( int p )
 {
     return QString("%1.%2%").arg(p/100).arg(p%100,2, 10,QLatin1Char('0'));
+}
+
+/// save window position to properties
+void saveWindowPosition( QWidget * window, CRPropRef props, const char * prefix )
+{
+    QPoint pos = window->pos();
+    QSize size = window->size();
+    bool minimized = window->isMinimized();
+    bool maximized = window->isMaximized();
+    bool fs = window->isFullScreen();
+    CRPropRef p = props->getSubProps( prefix );
+    p->setBool( "window.minimized", minimized );
+    p->setBool( "window.maximized", maximized );
+    p->setBool( "window.fullscreen", fs );
+    if ( !minimized && !maximized && !fs ) {
+        p->setPoint( "window.pos", lvPoint( pos.x(), pos.y() ) );
+        p->setPoint( "window.size", lvPoint( size.width(), size.height() ) );
+    }
+}
+
+/// restore window position from properties
+void restoreWindowPosition( QWidget * window, CRPropRef props, const char * prefix, bool allowFullscreen )
+{
+    CRPropRef p = props->getSubProps( prefix );
+    lvPoint pos;
+    bool posRead = p->getPoint( "window.pos", pos );
+    lvPoint size;
+    bool sizeRead = p->getPoint( "window.size", size );
+
+    if ( posRead && sizeRead ) {
+        if ( size.x > 100 && size.y>100 ) {
+            window->resize( size.x, size.y );
+            window->move( pos.x, pos.y );
+        }
+        //window->setGeometry( pos.x, pos.y, size.x, size.y );
+    }
+    if ( allowFullscreen ) {
+        bool minimized = p->getBoolDef( "window.minimized", false );
+        bool maximized = p->getBoolDef( "window.maximized", false );
+        bool fs = p->getBoolDef( "window.fullscreen", false );
+        if ( fs ) {
+            window->showFullScreen ();
+        } else if ( maximized ) {
+            window->showMaximized();
+        } else if ( minimized ) {
+            window->showMinimized();
+        }
+    }
 }
