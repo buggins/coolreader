@@ -367,3 +367,13 @@ void MainWindow::on_actionFileProperties_triggered()
 {
     FilePropsDialog::showDlg( this, ui->view );
 }
+
+void MainWindow::on_actionFindText_triggered()
+{
+    //
+}
+
+void MainWindow::on_actionRotate_triggered()
+{
+    //
+}

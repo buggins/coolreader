@@ -23,5 +23,7 @@
         <file>icons/folder_favorite.png</file>
         <file>icons/view-table-of-contents-ltr.png</file>
         <file>icons/editcopy.png</file>
+        <file>icons/bookmark.png</file>
+        <file>icons/bookmark_folder.png</file>
     </qresource>
 </RCC>

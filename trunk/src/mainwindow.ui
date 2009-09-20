@@ -59,7 +59,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>22</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -78,11 +78,13 @@
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionFindText"/>
     <addaction name="actionToggle_Pages_Scroll"/>
     <addaction name="actionMinimize"/>
     <addaction name="actionToggle_Full_Screen"/>
     <addaction name="actionZoom_In"/>
     <addaction name="actionZoom_Out"/>
+    <addaction name="actionRotate"/>
     <addaction name="separator"/>
     <addaction name="actionTOC"/>
     <addaction name="actionShowBookmarksList"/>
@@ -129,11 +131,14 @@
    <addaction name="separator"/>
    <addaction name="actionTOC"/>
    <addaction name="separator"/>
+   <addaction name="actionFindText"/>
+   <addaction name="separator"/>
    <addaction name="actionPrevPage"/>
    <addaction name="actionNextPage"/>
    <addaction name="separator"/>
    <addaction name="actionZoom_In"/>
    <addaction name="actionZoom_Out"/>
+   <addaction name="actionRotate"/>
    <addaction name="separator"/>
    <addaction name="actionSettings"/>
   </widget>
@@ -441,6 +446,10 @@
    </property>
   </action>
   <action name="actionAddBookmark">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/bookmark.png</normaloff>:/icons/action/icons/bookmark.png</iconset>
+   </property>
    <property name="text">
     <string>Add Bookmark</string>
    </property>
@@ -452,6 +461,10 @@
    </property>
   </action>
   <action name="actionShowBookmarksList">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/bookmark_folder.png</normaloff>:/icons/action/icons/bookmark_folder.png</iconset>
+   </property>
    <property name="text">
     <string>Bookmark List...</string>
    </property>
@@ -463,6 +476,10 @@
    </property>
   </action>
   <action name="actionFileProperties">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/player_playlist.png</normaloff>:/icons/action/icons/player_playlist.png</iconset>
+   </property>
    <property name="text">
     <string>File Properties...</string>
    </property>
@@ -471,6 +488,33 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+F1</string>
+   </property>
+  </action>
+  <action name="actionRotate">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/rotate_cw.png</normaloff>:/icons/action/icons/rotate_cw.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rotate</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionFindText">
+   <property name="icon">
+    <iconset resource="cr3res.qrc">
+     <normaloff>:/icons/action/icons/find.png</normaloff>:/icons/action/icons/find.png</iconset>
+   </property>
+   <property name="text">
+    <string>Find text...</string>
+   </property>
+   <property name="toolTip">
+    <string>Find text</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
  </widget>

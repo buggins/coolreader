@@ -29,7 +29,9 @@ protected:
     virtual void closeEvent ( QCloseEvent * event );
 public slots:
     void contextMenu( QPoint pos );
-private slots:
+void on_actionFindText_triggered();
+    private slots:
+    void on_actionRotate_triggered();
     void on_actionFileProperties_triggered();
     void on_actionShowBookmarksList_triggered();
     void on_actionAddBookmark_triggered();
