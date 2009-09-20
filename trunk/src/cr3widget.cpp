@@ -144,6 +144,7 @@ CR3View::CR3View( QWidget *parent)
     icons.add( LVCreateXPMImageSource( battery3 ) );
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
+    _docview->setBatteryState( -1 );
     updateDefProps();
     setMouseTracking(true);
 }
