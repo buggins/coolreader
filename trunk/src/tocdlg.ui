@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>537</width>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Table of Contents</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="cr3res.qrc">
+   <iconset>
     <normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</normaloff>:/icons/action/icons/view-table-of-contents-ltr.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -42,9 +42,7 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="cr3res.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>

@@ -63,6 +63,12 @@ TocDlg::TocDlg(QWidget *parent, CR3View * docView) :
     if ( nearestItem ) {
         m_ui->treeWidget->setCurrentItem( nearestItem );
     }
+    m_docview->restoreWindowPos( this, "toc." );
+}
+
+void TocDlg::closeEvent ( QCloseEvent * event )
+{
+    m_docview->saveWindowPos( this, "toc." );
 }
 
 TocDlg::~TocDlg()

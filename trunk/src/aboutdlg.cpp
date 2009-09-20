@@ -1,5 +1,6 @@
 #include "aboutdlg.h"
 #include "ui_aboutdlg.h"
+#include <QDesktopServices>
 
 AboutDialog::AboutDialog(QWidget *parent) :
     QDialog(parent),
@@ -38,4 +39,10 @@ bool AboutDialog::showDlg( QWidget * parent )
 void AboutDialog::on_buttonBox_accepted()
 {
     close();
+}
+
+void AboutDialog::on_btnSite_clicked()
+{
+    QUrl qturl( "http://coolreader.org/" );
+    QDesktopServices::openUrl( qturl );
 }
