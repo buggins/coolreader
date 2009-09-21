@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-08-18 07:47+0400\n"
+"POT-Creation-Date: 2009-09-17 23:35+0400\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "Empty slot"
 msgstr "空的存档位置"
 
-#: src/bmkdlg.cpp:58 src/mainwnd.cpp:603
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:604
 msgid "Bookmarks"
 msgstr "书签"
 
@@ -48,192 +48,192 @@ msgstr "在目录查找"
 msgid "[cannot read article]"
 msgstr "无法阅读此项"
 
-#: src/mainwnd.cpp:509 src/mainwnd.cpp:616
+#: src/mainwnd.cpp:510 src/mainwnd.cpp:617
 msgid "Help"
 msgstr ""
 
-#: src/mainwnd.cpp:528
+#: src/mainwnd.cpp:529
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: src/mainwnd.cpp:565 src/viewdlg.cpp:353
+#: src/mainwnd.cpp:566 src/viewdlg.cpp:353
 #, fuzzy
 msgid "About"
 msgstr "关于..."
 
-#: src/mainwnd.cpp:575 src/viewdlg.cpp:331
+#: src/mainwnd.cpp:576 src/viewdlg.cpp:331
 #, fuzzy
 msgid "Go to page"
 msgstr "跳转到页..."
 
-#: src/mainwnd.cpp:587 src/recentdlg.cpp:72
+#: src/mainwnd.cpp:588 src/recentdlg.cpp:72
 msgid "Open recent book"
 msgstr "打开最近的书籍"
 
-#: src/mainwnd.cpp:594 src/viewdlg.cpp:137
+#: src/mainwnd.cpp:595 src/viewdlg.cpp:137
 msgid "Dictionary"
 msgstr "词典"
 
-#: src/mainwnd.cpp:599
+#: src/mainwnd.cpp:600
 #, fuzzy
 msgid "Cite"
 msgstr "列举..."
 
-#: src/mainwnd.cpp:607 src/viewdlg.cpp:180
+#: src/mainwnd.cpp:608 src/viewdlg.cpp:180
 msgid "Search"
 msgstr "查找"
 
-#: src/mainwnd.cpp:611 src/settings.cpp:78
+#: src/mainwnd.cpp:612 src/settings.cpp:78
 msgid "Settings"
 msgstr "设置"
 
-#: src/mainwnd.cpp:620 src/viewdlg.cpp:392
+#: src/mainwnd.cpp:621 src/viewdlg.cpp:392
 msgid "Keyboard layout"
 msgstr ""
 
-#: src/mainwnd.cpp:721
+#: src/mainwnd.cpp:722
 msgid "Current page"
 msgstr ""
 
-#: src/mainwnd.cpp:722
+#: src/mainwnd.cpp:723
 #, fuzzy
 msgid "Total pages"
 msgstr "跳转到页..."
 
-#: src/mainwnd.cpp:723
+#: src/mainwnd.cpp:724
 msgid "Battery state"
 msgstr ""
 
-#: src/mainwnd.cpp:724
+#: src/mainwnd.cpp:725
 msgid "Current Time"
 msgstr ""
 
-#: src/mainwnd.cpp:729
+#: src/mainwnd.cpp:730
 msgid "Current chapter"
 msgstr ""
 
-#: src/mainwnd.cpp:732
+#: src/mainwnd.cpp:733
 #, fuzzy
 msgid "Status"
 msgstr "状态行"
 
-#: src/mainwnd.cpp:735
+#: src/mainwnd.cpp:736
 msgid "Archive name"
 msgstr "存档作者"
 
-#: src/mainwnd.cpp:736
+#: src/mainwnd.cpp:737
 msgid "Archive path"
 msgstr "存档路径"
 
-#: src/mainwnd.cpp:737
+#: src/mainwnd.cpp:738
 msgid "Archive size"
 msgstr "存档大小"
 
-#: src/mainwnd.cpp:738
+#: src/mainwnd.cpp:739
 msgid "File name"
 msgstr "文件名"
 
-#: src/mainwnd.cpp:739
+#: src/mainwnd.cpp:740
 msgid "File path"
 msgstr "文件路径"
 
-#: src/mainwnd.cpp:740
+#: src/mainwnd.cpp:741
 msgid "File size"
 msgstr "文件大小"
 
-#: src/mainwnd.cpp:741
+#: src/mainwnd.cpp:742
 msgid "File format"
 msgstr "文件格式"
 
-#: src/mainwnd.cpp:742
+#: src/mainwnd.cpp:743
 #, fuzzy
 msgid "File info"
 msgstr "文件格式"
 
-#: src/mainwnd.cpp:745
+#: src/mainwnd.cpp:746
 msgid "Title"
 msgstr "标题"
 
-#: src/mainwnd.cpp:746
+#: src/mainwnd.cpp:747
 msgid "Author(s)"
 msgstr "作者"
 
-#: src/mainwnd.cpp:747
+#: src/mainwnd.cpp:748
 msgid "Series name"
 msgstr "系列名称"
 
-#: src/mainwnd.cpp:748
+#: src/mainwnd.cpp:749
 msgid "Series number"
 msgstr "序列号"
 
-#: src/mainwnd.cpp:749
+#: src/mainwnd.cpp:750
 msgid "Date"
 msgstr "日期"
 
-#: src/mainwnd.cpp:750
+#: src/mainwnd.cpp:751
 msgid "Genres"
 msgstr "摘要"
 
-#: src/mainwnd.cpp:751
+#: src/mainwnd.cpp:752
 msgid "Translator"
 msgstr "翻译"
 
-#: src/mainwnd.cpp:752
+#: src/mainwnd.cpp:753
 #, fuzzy
 msgid "Book info"
 msgstr "用户信息"
 
-#: src/mainwnd.cpp:755
+#: src/mainwnd.cpp:756
 msgid "Document author"
 msgstr "文档作者"
 
-#: src/mainwnd.cpp:756
+#: src/mainwnd.cpp:757
 msgid "Document date"
 msgstr "文档日期"
 
-#: src/mainwnd.cpp:757
+#: src/mainwnd.cpp:758
 msgid "Document source URL"
 msgstr "源文档URL"
 
-#: src/mainwnd.cpp:758
+#: src/mainwnd.cpp:759
 msgid "OCR by"
 msgstr "OCR"
 
-#: src/mainwnd.cpp:759
+#: src/mainwnd.cpp:760
 msgid "Document version"
 msgstr "文档版本"
 
-#: src/mainwnd.cpp:760
+#: src/mainwnd.cpp:761
 #, fuzzy
 msgid "Document info"
 msgstr "文档版本"
 
-#: src/mainwnd.cpp:763
+#: src/mainwnd.cpp:764
 msgid "Publication name"
 msgstr "发行商名称:"
 
-#: src/mainwnd.cpp:764
+#: src/mainwnd.cpp:765
 msgid "Publisher"
 msgstr "出版社"
 
-#: src/mainwnd.cpp:765
+#: src/mainwnd.cpp:766
 msgid "Publisher city"
 msgstr "出版社城市"
 
-#: src/mainwnd.cpp:766
+#: src/mainwnd.cpp:767
 msgid "Publication year"
 msgstr "出版日期"
 
-#: src/mainwnd.cpp:767
+#: src/mainwnd.cpp:768
 msgid "ISBN"
 msgstr "ISBN"
 
-#: src/mainwnd.cpp:768
+#: src/mainwnd.cpp:769
 #, fuzzy
 msgid "Publication info"
 msgstr "发行商名称:"
 
-#: src/mainwnd.cpp:770
+#: src/mainwnd.cpp:771
 msgid "Custom info"
 msgstr "用户信息"
 
