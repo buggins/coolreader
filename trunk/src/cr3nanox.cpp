@@ -51,6 +51,27 @@ static bool shuttingDown = false;
 #define USE_JINKE_USER_DATA 0
 #define USE_OWN_BATTERY_TEST 0
 
+static int batteryState = -1;
+
+int checkPowerState()
+{
+    FILE * fp = fopen("/tmp/batteryinfo", "rb");
+    char buf[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int batteryvalue=0; 
+    if (fp) {
+        fread(buf, 1, 20, fp);
+        batteryvalue=atoi(buf);
+        if (batteryvalue>4 || batteryvalue<0)
+            batteryvalue=4;//6
+        batteryState = batteryvalue;
+        fclose(fp);
+    }else{
+        batteryState = -1; // 4
+    }
+    return batteryState;
+}
+
+/*
 int getBatteryState()
 {
 #if 1
@@ -76,7 +97,7 @@ int getBatteryState()
 #endif
 #endif
 }
-
+*/
 #include <cri18n.h>
 
 #define VIEWER_WINDOW_X         0
@@ -633,9 +654,11 @@ void postLeds( bool turnOn )
 {
     if ( g_ledThread ) {
         if ( turnOn )
-            g_ledActive++;
+            //g_ledActive++;
+            g_ledActive = 1;
         else
-            g_ledActive--;
+            g_ledActive = 0;
+            //g_ledActive--;
         g_ledThread->post_led_sem();
     }
 }
@@ -925,10 +948,20 @@ public:
                         KEY_OK, XK_Return, 0,
                         KEY_DOWN, XK_Up, 0,
                         KEY_UP, XK_Down, 0,
+
+                        KEY_CURSOR_OK, XK_Return, 0,
+                        KEY_CURSOR_DOWN, XK_Up, 0,
+                        KEY_CURSOR_UP, XK_Down, 0,
+
                         LONG_KEY_CANCEL, XK_Escape, KEY_FLAG_LONG_PRESS,
                         LONG_KEY_OK, XK_Return, KEY_FLAG_LONG_PRESS,
                         LONG_KEY_DOWN, XK_Up, KEY_FLAG_LONG_PRESS,
                         LONG_KEY_UP, XK_Down, KEY_FLAG_LONG_PRESS,
+
+                        LONG_KEY_CURSOR_OK, XK_Return, KEY_FLAG_LONG_PRESS,
+                        LONG_KEY_CURSOR_DOWN, XK_Up, KEY_FLAG_LONG_PRESS,
+                        LONG_KEY_CURSOR_UP, XK_Down, KEY_FLAG_LONG_PRESS,
+
                         KEY_SHORTCUT_VOLUME_UP, XK_KP_Add, 0,
                         KEY_SHORTCUT_VOLUME_DOWN, XK_KP_Subtract, 0,
                         LONG_SHORTCUT_KEY_VOLUMN_UP, XK_KP_Add, KEY_FLAG_LONG_PRESS,
@@ -985,10 +1018,14 @@ public:
     {
         if ( !onCommand( cmd, params ) )
             return false;
+        if ( main_win!=NULL ) {
+            main_win->getDocView()->setBatteryState( checkPowerState()*100/4);
+        }
         update( false );
         return true;
     }
 };
+
 
 CRJinkeWindowManager * CRJinkeWindowManager::instance = NULL;
 
@@ -1011,8 +1048,9 @@ public:
         instance = NULL;
     }
 };
-CRJinkeDocView * CRJinkeDocView::instance = NULL;
 
+
+CRJinkeDocView * CRJinkeDocView::instance = NULL;
 
 // some prototypes
 //int InitDoc(char *fileName);
@@ -1245,7 +1283,8 @@ int InitDoc(char *fileName)
 #endif
 
         LVDocView * _docview = main_win->getDocView();
-        _docview->setBatteryState( ::getBatteryState() );
+        _docview->setBatteryState( checkPowerState() * 100 / 4 );
+        //_docview->setBatteryState( ::getBatteryState() );
         wm->activateWindow( main_win );
         if ( !main_win->loadDocument( lString16(fileName) ) ) {
             printf("Cannot open book file %s\n", fileName);
