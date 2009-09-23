@@ -60,6 +60,8 @@ typedef enum {
     doc_format_rtf,
     doc_format_epub,
     doc_format_html,
+    doc_format_txt_bookmark, // coolreader TXT format bookmark
+    // don't forget update getDocFormatName() when changing this enum
 } doc_format_t;
 
 const lChar16 * getDocFormatName( doc_format_t fmt );

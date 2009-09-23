@@ -1332,6 +1332,158 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
     return res;
 }
 
+//=======================
+// Text bookmark parser
+
+/// constructor
+LVTextBookmarkParser::LVTextBookmarkParser( LVStreamRef stream, LVXMLParserCallback * callback )
+    : LVTextParser(stream, callback, false)
+{
+}
+
+/// descructor
+LVTextBookmarkParser::~LVTextBookmarkParser()
+{
+}
+
+/// returns true if format is recognized by parser
+bool LVTextBookmarkParser::CheckFormat()
+{
+    Reset();
+    // encoding test
+    m_lang_name = lString16("en");
+    SetCharset( L"utf8" );
+
+    #define TEXT_PARSER_DETECT_SIZE 16384
+    Reset();
+    lChar16 * chbuf = new lChar16[TEXT_PARSER_DETECT_SIZE];
+    FillBuffer( TEXT_PARSER_DETECT_SIZE );
+    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
+    bool res = false;
+    lString16 pattern("# Cool Reader 3 - exported bookmarks\r\n# file name: ");
+    if ( charsDecoded > pattern.length() && chbuf[0]==65279 ) {
+        res = true;
+        for ( int i=0; i<pattern.length(); i++ )
+            if ( chbuf[i+1] != pattern[i] )
+                res = false;
+    }
+    delete[] chbuf;
+    Reset();
+    return res;
+}
+
+static bool extractItem( lString16 & dst, const lString16 & src, const char * prefix )
+{
+    lString16 pref( prefix );
+    if ( src.startsWith( pref ) ) {
+        dst = src.substr( pref.length() );
+        return true;
+    }
+    return false;
+}
+
+static void postParagraph( LVXMLParserCallback * callback, const char * prefix, lString16 text )
+{
+    lString16 title( prefix );
+    if ( text.empty() )
+        return;
+    callback->OnTagOpen( NULL, L"p" );
+    callback->OnAttribute(NULL, L"style", L"text-indent: 0em");
+    if ( !title.empty() ) {
+        callback->OnTagOpen( NULL, L"strong" );
+        callback->OnText( title.c_str(), title.length(), 0 );
+        callback->OnTagClose( NULL, L"strong" );
+    }
+    callback->OnText( text.c_str(), text.length(), 0 );
+    callback->OnTagClose( NULL, L"p" );
+}
+
+/// parses input stream
+bool LVTextBookmarkParser::Parse()
+{
+    lString16 line;
+    lUInt32 flags = 0;
+    lString16 fname("Unknown");
+    lString16 path;
+    lString16 title("No Title");
+    lString16 author;
+    for ( ;; ) {
+        line = ReadLine( 20000, flags );
+        if ( line.empty() || m_eof )
+            break;
+        extractItem( fname, line, "# file name: " );
+        extractItem( path,  line, "# file path: " );
+        extractItem( title, line, "# book title: " );
+        extractItem( author, line, "# author: " );
+        //if ( line.startsWith( lString16() )
+    }
+    lString16 desc;
+    desc << L"Bookmarks: ";
+    if ( !author.empty() )
+        desc << author << L"  ";
+    if ( !title.empty() )
+        desc << title << L"  ";
+    else
+        desc << fname << L"  ";
+    //queue.
+    // make fb2 document structure
+    m_callback->OnTagOpen( NULL, L"?xml" );
+    m_callback->OnAttribute( NULL, L"version", L"1.0" );
+    m_callback->OnAttribute( NULL, L"encoding", GetEncodingName().c_str() );
+    m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
+    m_callback->OnTagClose( NULL, L"?xml" );
+    m_callback->OnTagOpen( NULL, L"FictionBook" );
+      // DESCRIPTION
+      m_callback->OnTagOpen( NULL, L"description" );
+        m_callback->OnTagOpen( NULL, L"title-info" );
+          m_callback->OnTagOpen( NULL, L"book-title" );
+            m_callback->OnText( desc.c_str(), desc.length(), 0 );
+          m_callback->OnTagClose( NULL, L"book-title" );
+        m_callback->OnTagOpen( NULL, L"title-info" );
+      m_callback->OnTagClose( NULL, L"description" );
+      // BODY
+      m_callback->OnTagOpen( NULL, L"body" );
+          m_callback->OnTagOpen( NULL, L"title" );
+              postParagraph( m_callback, "", lString16("CoolReader Bookmarks file") );
+          m_callback->OnTagClose( NULL, L"title" );
+          postParagraph( m_callback, "file: ", fname );
+          postParagraph( m_callback, "path: ", path );
+          postParagraph( m_callback, "title: ", title );
+          postParagraph( m_callback, "author: ", author );
+          m_callback->OnTagOpen( NULL, L"empty-line" );
+          m_callback->OnTagClose( NULL, L"empty-line" );
+          m_callback->OnTagOpen( NULL, L"section" );
+          // process text
+            for ( ;; ) {
+                line = ReadLine( 20000, flags );
+                if ( m_eof )
+                    break;
+                if ( line.empty() ) {
+                  m_callback->OnTagOpen( NULL, L"empty-line" );
+                  m_callback->OnTagClose( NULL, L"empty-line" );
+                } else {
+                    lString16 prefix;
+                    lString16 txt = line;
+                    if ( txt.length()>3 && txt[1]==txt[0] && txt[2]==' ' ) {
+                        if ( txt[0] < 'A' ) {
+                            prefix = txt.substr(0, 3);
+                            txt = txt.substr( 3 );
+                        }
+                        if ( prefix==L"## " ) {
+                            prefix = txt;
+                            txt = L" ";
+                        }
+                    }
+                    postParagraph( m_callback, UnicodeToUtf8(prefix).c_str(), txt );
+                }
+            }
+        m_callback->OnTagClose( NULL, L"section" );
+      m_callback->OnTagClose( NULL, L"body" );
+    m_callback->OnTagClose( NULL, L"FictionBook" );
+    return true;
+}
+
+
 //==================================================
 // Text file parser
 
@@ -1347,6 +1499,7 @@ LVTextParser::LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback, 
 LVTextParser::~LVTextParser()
 {
 }
+
 
 /// returns true if format is recognized by parser
 bool LVTextParser::CheckFormat()

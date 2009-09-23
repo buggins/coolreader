@@ -360,6 +360,7 @@ void LVDocView::Clear()
         m_swapDone = false;
         m_pos = 0;
         m_filename.clear();
+        m_section_bounds_valid = false;
     }
     m_imageCache.clear();
     _navigationHistory.clear();
@@ -2283,6 +2284,7 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
 {
     lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
     Clear();
+    m_showCover = false;
     m_is_rendered = false;
     m_doc = new ldomDocument();
     m_doc->setDocFlags( saveFlags );
@@ -2741,6 +2743,8 @@ const lChar16 * getDocFormatName( doc_format_t fmt )
         return L"EPUB";
     case doc_format_html:
         return L"HTML";
+    case doc_format_txt_bookmark:
+        return L"CR3 TXT Bookmark";
     default:
         return L"Unknown format";
     }
@@ -2796,6 +2800,8 @@ bool LVDocView::ParseDocument( )
                 m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
             }
 
+            m_showCover = !getCoverPageImage().isNull();
+
             return true;
         }
         CRLog::info("Cannot get document from cache, parsing...");
@@ -2838,6 +2844,18 @@ bool LVDocView::ParseDocument( )
                 parser = NULL;
             } else {
             }
+        }
+        ///cool reader bookmark in txt format
+        if ( parser==NULL ) {
+
+            //m_text_format = txt_format_pre; // DEBUG!!!
+            setDocFormat( doc_format_txt_bookmark );
+            parser = new LVTextBookmarkParser(m_stream, &writer );
+            if ( !parser->CheckFormat() ) {
+                delete parser;
+                parser = NULL;
+            }
+        } else {
         }
 
         /// plain text format
@@ -2912,6 +2930,9 @@ bool LVDocView::ParseDocument( )
         }
     }
     //m_doc->persist();
+
+    m_showCover = !getCoverPageImage().isNull();
+
     requestRender();
 	if ( m_callback ) {
 		m_callback->OnLoadFileEnd( );

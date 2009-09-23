@@ -1465,7 +1465,7 @@ int ldomDocument::render( LVRendPageList * pages, int width, int dy, bool showCo
         CRLog::trace("finalizing...");
         context.Finalize();
         updateRenderContext( pages, width, dy );
-        persist();
+        //persist();
         return height;
     } else {
         CRLog::info("rendering context is not changed - no render!");
@@ -4977,7 +4977,7 @@ bool ldomDocument::resizeMap( lvsize_t newSize )
     CRLog::debug("Relocating data pointers after mapped file resize: by %d (0x%x)  %p->%p", (int)(diff),(int)(diff), oldptr, newptr);
     for (int i=0; i<_instanceMapCount; i++ ) {
         if ( _instanceMap[ i ].data != NULL )
-            _instanceMap[ i ].data += diff;
+            _instanceMap[ i ].data = (DataStorageItemHeader*) ( (lUInt8*)_instanceMap[ i ].data + diff );
     }
 
     _dataBufferSize = newSize-hdr.data_offset;
@@ -5005,8 +5005,10 @@ bool ldomDocument::swapToCache( lUInt32 reservedSize )
     //testTreeConsistency( getRootNode() );
     CRLog::info("ldomDocument::swapToCache() - Started swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
 
-    if ( !reservedSize )
-        persist();
+    //if ( !reservedSize )
+    //    persist(); //!!!
+
+
     //testTreeConsistency( getRootNode() );
 
     lvsize_t datasize = 0;

@@ -300,7 +300,7 @@ public:
 
 class LVTextParser : public LVTextFileBase
 {
-private:
+protected:
     LVXMLParserCallback * m_callback;
     bool m_isPreFormatted;
 public:
@@ -308,6 +308,20 @@ public:
     LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback, bool isPreFormatted );
     /// descructor
     virtual ~LVTextParser();
+    /// returns true if format is recognized by parser
+    virtual bool CheckFormat();
+    /// parses input stream
+    virtual bool Parse();
+};
+
+/// parser of CoolReader's text format bookmarks
+class LVTextBookmarkParser : public LVTextParser
+{
+public:
+    /// constructor
+    LVTextBookmarkParser( LVStreamRef stream, LVXMLParserCallback * callback );
+    /// descructor
+    virtual ~LVTextBookmarkParser();
     /// returns true if format is recognized by parser
     virtual bool CheckFormat();
     /// parses input stream
