@@ -13,6 +13,7 @@
 
 #include "../include/lvxml.h"
 #include "../include/crtxtenc.h"
+#include "../include/fb2def.h"
 
 
 #define BUF_SIZE_INCREMENT 4096
@@ -2407,7 +2408,7 @@ bool LVXMLParser::ReadText()
                 return false;
             }
             splitParas = false;
-            if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) )
+            if (last_eol && pre_para_splitting && (ch==' ' || ch=='\t' || ch==160) && tlen>0 ) //!!!
                 splitParas = true;
             if (!flgBreak && !splitParas)
             {
@@ -2579,7 +2580,6 @@ LVHTMLParser::~LVHTMLParser()
 bool LVHTMLParser::Parse()
 {
     bool res = LVXMLParser::Parse();
-
     return res;
 }
 

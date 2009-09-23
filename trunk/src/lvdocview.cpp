@@ -2903,6 +2903,17 @@ bool LVDocView::ParseDocument( )
 		delete parser;
 		m_pos = 0;
 
+        if ( m_doc_format == doc_format_html ) {
+            static lUInt16 path[] = { el_html, el_head, el_title, 0 };
+            ldomNode * el = m_doc->getRootNode()->findChildElement( path );
+            if ( el!=NULL ) {
+                lString16 s = el->getText();
+                if ( !s.empty() ) {
+                    m_doc_props->setString(DOC_PROP_TITLE, s);
+                }
+            }
+        }
+
         lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
         if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
             //m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
