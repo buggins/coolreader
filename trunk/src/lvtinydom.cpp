@@ -1120,30 +1120,31 @@ DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
                 crFatalError(10, "Swap file is too small. Cannot allocate additional data. Exiting.");
             }
             item = _currentBuffer->alloc( size );
-        }
-
-        lUInt32 nsz = _dataBufferSize * (_dataBuffers.length()+1);
-        if ( nsz > DOCUMENT_CACHING_MAX_RAM_USAGE ) {
-            // swap to file
-            lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 ) + 0x8000;
-            CRLog::info("Document data size is too big for RAM: swapping to disk, need to swap before allocating item %d[%d]", dataIndex, size);
-            if ( nsz > sz )
-                sz = nsz;
-            if ( !swapToCache( sz ) ) {
-                CRLog::error( "Cannot swap big document to disk" );
-                crFatalError(10, "Swapping big document is failed. Exiting.");
-            }
-            item = _currentBuffer->alloc( size );
         } else {
-            // add one another buffer in RAM
-            _currentBuffer = new DataBuffer( _dataBufferSize );
-            if ( _currentBuffer->isNull() ) {
-                CRLog::error("Cannot create document data buffer #%d (size=%d)", _dataBuffers.length(), _dataBufferSize );
-                delete _currentBuffer;
-                return NULL; // OUT OF MEMORY
+
+            lUInt32 nsz = _dataBufferSize * (_dataBuffers.length()+1);
+            if ( nsz > DOCUMENT_CACHING_MAX_RAM_USAGE ) {
+                // swap to file
+                lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 ) + 0x8000;
+                CRLog::info("Document data size is too big for RAM: swapping to disk, need to swap before allocating item %d[%d]", dataIndex, size);
+                if ( nsz > sz )
+                    sz = nsz;
+                if ( !swapToCache( sz ) ) {
+                    CRLog::error( "Cannot swap big document to disk" );
+                    crFatalError(10, "Swapping big document is failed. Exiting.");
+                }
+                item = _currentBuffer->alloc( size );
+            } else {
+                // add one another buffer in RAM
+                _currentBuffer = new DataBuffer( _dataBufferSize );
+                if ( _currentBuffer->isNull() ) {
+                    CRLog::error("Cannot create document data buffer #%d (size=%d)", _dataBuffers.length(), _dataBufferSize );
+                    delete _currentBuffer;
+                    return NULL; // OUT OF MEMORY
+                }
+                _dataBuffers.add( _currentBuffer );
+                item = _currentBuffer->alloc( size );
             }
-            _dataBuffers.add( _currentBuffer );
-            item = _currentBuffer->alloc( size );
         }
     }
     item->dataIndex = dataIndex;
@@ -4753,7 +4754,7 @@ bool lxmlDocBase::checkConsistency( bool requirePersistent )
             dataIndexCount[ item->dataIndex ]++;
             textcount++;
             if ( _instanceMap[item->dataIndex].data != item ) {
-                CRLog::error( "Data pointer doesn't match for text %d", item->dataIndex);
+                CRLog::error( "Data pointer doesn't match for text %d, diff is %d  %p->%p", item->dataIndex, (int)((char *)_instanceMap[item->dataIndex].data - (char *)item), _instanceMap[item->dataIndex].data, item);
                 res = false;
             }
         } else 
@@ -4973,7 +4974,7 @@ bool ldomDocument::resizeMap( lvsize_t newSize )
     _mapbuf = _map->GetWriteBuffer(0, newSize);
     lUInt8 * newptr = _mapbuf->getReadWrite();
     ptrdiff_t diff = newptr - oldptr;
-
+    CRLog::debug("Relocating data pointers after mapped file resize: by %d (0x%x)  %p->%p", (int)(diff),(int)(diff), oldptr, newptr);
     for (int i=0; i<_instanceMapCount; i++ ) {
         if ( _instanceMap[ i ].data != NULL )
             _instanceMap[ i ].data += diff;
