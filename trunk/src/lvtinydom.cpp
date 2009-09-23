@@ -247,7 +247,7 @@ public:
     }
     void operator delete( void * p )
     {
-        pmsREF->free((ldomMemBlock *)p);
+        pmsHeap->free((ldomMemBlock *)p);
     }
 #endif
     ldomText( ldomNode * parent, lUInt32 index, lString16 value )
@@ -380,7 +380,7 @@ public:
     }
     void operator delete( void * p )
     {
-        pmsREF->free((ldomMemBlock *)p);
+        pmsHeap->free((ldomMemBlock *)p);
     }
 #endif
     ldomPersistentText( ldomDocument * document, TextDataStorageItem * data )
@@ -929,7 +929,9 @@ _instanceMap(NULL)
 ,_mapped(false)
 #endif
 ,_docFlags(DOC_FLAG_DEFAULTS)
+#if BUILD_LITE!=1
 ,_pagesData(8192)
+#endif
 {
     // create and add one data buffer
 #if BUILD_LITE!=1
@@ -1330,7 +1332,9 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 ,   _idNodeMap(doc._idNodeMap)
 ,   _idAttrId(doc._idAttrId) // Id for "id" attribute name
 ,   _docFlags(doc._docFlags)
+#if BUILD_LITE!=1
 ,   _pagesData(8192)
+#endif
 {
 }
 
@@ -1570,6 +1574,7 @@ void lxmlDocBase::dumpUnknownEntities( const char * fname )
     fclose(f);
 }
 
+#if BUILD_LITE!=1
 static const char * id_map_list_magic = "MAPS";
 static const char * elem_id_map_magic = "ELEM";
 static const char * attr_id_map_magic = "ATTR";
@@ -1648,6 +1653,7 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
     buf.checkCRC( buf.pos() - pos );
     return !buf.error();
 }
+#endif
 
 /// returns node absolute rectangle
 void ldomNode::getAbsRect( lvRect & rect )
