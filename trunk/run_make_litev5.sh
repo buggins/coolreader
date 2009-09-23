@@ -11,7 +11,8 @@ if test ! -x "${GCC_PATH}/${TARGET}-gcc"; then
 fi
 #INCLUDES="-I ${SDK}/include/arm/zlib -I ${SDK}/include"
 echo building ARM
-PATH=${GCC_PATH}:${PATH} make -f Makefile.lbookv5 LBOOK=arm BUILD=Release BUILD_LITE=1 V2HOME=${SDK} clean all
+PATH=${GCC_PATH}:${PATH} make -f Makefile.lbookv5 LBOOK=i386 BUILD_LITE=1 V2HOME=${SDK}
+#PATH=${GCC_PATH}:${PATH} make -f Makefile.lbookv5 LBOOK=i386 BUILD=Debug BUILD_LITE=1 V2HOME=${SDK} lbook-i386
 #PATH=${GCC_PATH}:${PATH} make -f Makefile.lbookv5 LBOOK=i386 BUILD_LITE=1 V2HOME=${SDK} all
 #make -f Makefile.lbook LBOOK=arm BUILD_LITE=1 V2HOME=${V2HOME} all
 #make -f Makefile.lbook LBOOK=i386 BUILD_LITE=1 V2HOME=${V2HOME} all

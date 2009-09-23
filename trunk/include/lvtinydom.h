@@ -105,12 +105,13 @@ typedef enum {
 } xpath_step_t;
 xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index );
 
+#if BUILD_LITE!=1
 struct DataStorageItemHeader;
 struct TextDataStorageItem;
 struct ElementDataStorageItem;
 struct NodeItem;
 class DataBuffer;
-
+#endif
 
 // default: 512K
 #define DEF_DOC_DATA_BUFFER_SIZE 0x80000
@@ -141,10 +142,12 @@ public:
     /// Destructor
     virtual ~lxmlDocBase();
 
+#if BUILD_LITE!=1
 	/// serialize to byte array (pointer will be incremented by number of bytes written)
 	void serializeMaps( SerialBuf & buf );
 	/// deserialize from byte array (pointer will be incremented by number of bytes read)
 	bool deserializeMaps( SerialBuf & buf );
+#endif
 
     //======================================================================
     // Name <-> Id maps functions
@@ -281,10 +284,10 @@ public:
     inline CRPropRef getProps() { return _docProps; }
     /// returns doc properties collection
     void setProps( CRPropRef props ) { _docProps = props; }
-
+#if BUILD_LITE!=1
     /// put all object into persistent storage
     virtual void persist();
-
+#endif
     /// returns root element
     ldomNode * getRootNode();
 
@@ -294,8 +297,10 @@ public:
     inline void setCodeBase(lString16 codeBase) { getProps()->setStringDef(DOC_PROP_CODE_BASE, codeBase); }
 
 #ifdef _DEBUG
+#if BUILD_LITE!=1
     ///debug method, for DOM tree consistency check, returns false if failed
     bool checkConsistency( bool requirePersistent );
+#endif
 #endif
 
     inline bool getDocFlag( lUInt32 mask )
@@ -321,13 +326,14 @@ public:
         _docFlags = value;
     }
 
+#if BUILD_LITE!=1
     /// try opening from cache file, find by source file name (w/o path) and crc32
     virtual bool openFromCache( ) = 0;
     /// swap to cache file, find by source file name (w/o path) and crc32
     virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
     /// saves recent changes to mapped file
     virtual bool updateMap() = 0;
-
+#endif
     /// returns or creates object instance by index
     inline ldomNode * getNodeInstance( lInt32 dataIndex )
     {
@@ -343,7 +349,9 @@ public:
     }
 protected:
 
+#if BUILD_LITE!=1
     virtual bool resizeMap( lvsize_t newSize ) = 0;
+#endif
 
 //=========================================
 //       NEW STORAGE MODEL METHODS
@@ -351,19 +359,28 @@ protected:
     struct NodeItem {
         // object's RAM instance
         ldomNode * instance;
+#if BUILD_LITE!=1
         // object's data pointer
         DataStorageItemHeader * data;
+#endif
         // empty item constructor
-        NodeItem() : instance(NULL), data(NULL) { }
+        NodeItem() : instance(NULL)
+#if BUILD_LITE!=1
+, data(NULL) 
+#endif
+{ }
     };
+#if BUILD_LITE!=1
 	/// for persistent text node, return wide text by index, with caching (TODO)
     lString16 getTextNodeValue( lInt32 dataIndex );
 	/// for persistent text node, return utf8 text by index, with caching (TODO)
     lString8 getTextNodeValue8( lInt32 dataIndex );
+#endif
     /// used by object constructor, to assign ID for created object
     lInt32 registerNode( ldomNode * node );
     /// used by object destructor, to remove RAM reference; leave data as is
     void unregisterNode( ldomNode * node );
+#if BUILD_LITE!=1
     /// used by persistance management constructors, to replace one instance with another, deleting old instance
     ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
     /// used to create instances from mmapped file, returns passed node instance
@@ -382,9 +399,10 @@ protected:
 	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
 	/// allocate element
 	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
-
+#endif
     bool keepData() { return _keepData; }
 protected:
+#if BUILD_LITE!=1
     struct DocFileHeader {
         //char magic[16]; //== doc_file_magic
         lUInt32 src_file_size;
@@ -416,11 +434,13 @@ protected:
         }
     };
     DocFileHeader hdr;
+#endif
 
-
+#if BUILD_LITE!=1
     LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
 	DataBuffer * _currentBuffer;
 	int _dataBufferSize;       // single data buffer size
+#endif
     NodeItem * _instanceMap;   // Id->Instance & Id->Data map
     int _instanceMapSize;      //
     int _instanceMapCount;     //
@@ -438,12 +458,16 @@ protected:
     CRPropRef _docProps;
     bool _keepData; // if true, node deletion will not change persistent data
 
+#if BUILD_LITE!=1
     LVStreamRef _map; // memory mapped file
     LVStreamBufferRef _mapbuf; // memory mapped file buffer
     bool _mapped; // true if document is mapped to file
+#endif
     lUInt32 _docFlags; // document flags
 
+#if BUILD_LITE!=1
     SerialBuf _pagesData;
+#endif
 };
 
 /*
@@ -1295,22 +1319,27 @@ protected:
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
+#if BUILD_LITE!=1
     /// change size of memory mapped buffer
     virtual bool resizeMap( lvsize_t newSize );
+#endif
 public:
 
+#if BUILD_LITE!=1
     /// save document formatting parameters after render
     void updateRenderContext( LVRendPageList * pages, int dx, int dy );
     /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
     bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
+#endif
 
+#if BUILD_LITE!=1
     /// try opening from cache file, find by source file name (w/o path) and crc32
     virtual bool openFromCache( );
     /// swap to cache file, find by source file name (w/o path) and crc32
     virtual bool swapToCache( lUInt32 reservedDataSize=0 );
     /// saves recent changes to mapped file
     virtual bool updateMap();
-
+#endif
 
 
     LVContainerRef getContainer() { return _container; }

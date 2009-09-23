@@ -275,14 +275,14 @@ lbook :
 	make -f Makefile.lbook lbook-arm
 
 lbook-arm :
-	#make -f Makefile.lbook LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
-	make -f Makefile.lbook LBOOK=arm BUILD=Release SHARED=0
-	make -f Makefile.lbook LBOOK=arm BUILD=Debug SHARED=0
+	make -f Makefile.lbook LBOOK=arm BUILD_LITE=1 BUILD=Release SHARED=0
+	#make -f Makefile.lbook LBOOK=arm BUILD=Release SHARED=0
+	#make -f Makefile.lbook LBOOK=arm BUILD=Debug SHARED=0
 
 lbook-i386 :
-	#make -f Makefile.lbook LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
-	make -f Makefile.lbook LBOOK=i386 BUILD=Release SHARED=0
-	make -f Makefile.lbook LBOOK=i386 BUILD=Debug SHARED=0
+	make -f Makefile.lbook LBOOK=i386 BUILD_LITE=1 BUILD=Release SHARED=0
+	#make -f Makefile.lbook LBOOK=i386 BUILD=Release SHARED=0
+	#make -f Makefile.lbook LBOOK=i386 BUILD=Debug SHARED=0
 
 #clean :
 #	rm -f libs/*.a

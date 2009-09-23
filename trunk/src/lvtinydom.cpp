@@ -25,6 +25,7 @@
 //#define INDEX1 105
 //#define INDEX2 106
 
+#if BUILD_LITE!=1
 class ldomPersistentText;
 class ldomPersistentElement;
 
@@ -146,7 +147,7 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
     _len += size;
     return item;
 }
-
+#endif
 
 
 // moved to .cpp to hide implementation
@@ -267,7 +268,9 @@ public:
         _value = Utf8ToUnicode(value);
 #endif
     }
+#if BUILD_LITE!=1
     ldomText( ldomPersistentText * v );
+#endif
     virtual ~ldomText()
     {
         _document->unregisterNode( this );
@@ -334,8 +337,10 @@ public:
     }
     /// returns child node by index
     virtual ldomNode * getChildNode( lUInt32 ) const { return NULL; }
+#if BUILD_LITE!=1
     /// replace node with r/o persistent implementation
     virtual ldomNode * persist();
+#endif
 
     // stubs
 
@@ -351,6 +356,7 @@ public:
     virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
 };
 
+#if BUILD_LITE!=1
 // persistent r/o instance of text
 class ldomPersistentText : public ldomNode
 {
@@ -442,7 +448,7 @@ public:
     /// remove child
     virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
 };
-
+#endif
 
 
 // ldomElement declaration placed here to hide DOM implementation
@@ -477,7 +483,9 @@ public:
         pmsHeap->free((ldomMemBlock *)p);
     }
 #endif
+#if BUILD_LITE!=1
     ldomElement( ldomPersistentElement * v );
+#endif
     ldomElement( ldomDocument * document, ldomNode * parent, lUInt32 index, lUInt16 nsid, lUInt16 id )
     : ldomNode( document, parent, index ), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
     { }
@@ -548,8 +556,10 @@ public:
     virtual ldomNode * insertChildText( lString16 value );
     /// remove child
     virtual ldomNode * removeChild( lUInt32 index );
+#if BUILD_LITE!=1
     /// replace node with r/o persistent implementation
     virtual ldomNode * persist();
+#endif
 protected:
     /// override to avoid deleting children while replacing
     virtual void prepareReplace()
@@ -559,6 +569,7 @@ protected:
 };
 
 
+#if BUILD_LITE!=1
 
 // ldomElement declaration placed here to hide DOM implementation
 // use ldomNode rich interface instead
@@ -792,7 +803,9 @@ protected:
         getData()->childCount = 0;
     }
 };
+#endif
 
+#if BUILD_LITE!=1
 ldomText::ldomText( ldomPersistentText * v )
 : ldomNode( v )
 {
@@ -857,7 +870,7 @@ ldomNode * ldomPersistentText::modify()
 {
     return new ldomText( this );
 }
-
+#endif
 
 
 /*
@@ -894,8 +907,11 @@ simpleLogFile logfile("logfile.log");
 
 lxmlDocBase::lxmlDocBase( int dataBufSize )
 :
+#if BUILD_LITE!=1
   _dataBufferSize( dataBufSize ) // single data buffer size
-, _instanceMap(NULL)
+, 
+#endif
+_instanceMap(NULL)
 ,_instanceMapSize(2048) // *8 = 16K
 ,_instanceMapCount(1)
 ,_elementNameTable(MAX_ELEMENT_TYPE_ID)
@@ -908,14 +924,18 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 ,_idNodeMap(1024)
 ,_idAttrId(0)
 ,_docProps(LVCreatePropsContainer())
+#if BUILD_LITE!=1
 ,_keepData(false)
 ,_mapped(false)
+#endif
 ,_docFlags(DOC_FLAG_DEFAULTS)
 ,_pagesData(8192)
 {
     // create and add one data buffer
+#if BUILD_LITE!=1
     _currentBuffer = new DataBuffer( _dataBufferSize );
     _dataBuffers.add( _currentBuffer );
+#endif
     _instanceMap = (NodeItem *)malloc( sizeof(NodeItem) * _instanceMapSize );
     memset( _instanceMap, 0, sizeof(NodeItem) * _instanceMapSize );
     _stylesheet.setDocument( this );
@@ -942,6 +962,7 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
     }
 }
 
+#if BUILD_LITE!=1
 /// put all object into persistent storage
 void lxmlDocBase::persist()
 {
@@ -966,6 +987,7 @@ void lxmlDocBase::persist()
     }
 #endif
 }
+#endif
 
 /// used by object constructor, to assign ID for created object
 lInt32 lxmlDocBase::registerNode( ldomNode * node )
@@ -996,6 +1018,7 @@ void lxmlDocBase::unregisterNode( ldomNode * node )
     }
 }
 
+#if BUILD_LITE!=1
 /// used to create instances from mmapped file
 ldomNode * lxmlDocBase::setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data )
 {
@@ -1056,6 +1079,7 @@ void lxmlDocBase::deleteNode( ldomNode * node )
         }
     }
 }
+#endif
 
 /// returns or creates object instance by index
 /*
@@ -1098,6 +1122,7 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 }
 
 
+#if BUILD_LITE!=1
 /// allocate data block, return pointer to allocated block
 DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
 {
@@ -1129,11 +1154,15 @@ DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
                 CRLog::info("Document data size is too big for RAM: swapping to disk, need to swap before allocating item %d[%d]", dataIndex, size);
                 if ( nsz > sz )
                     sz = nsz;
+#if BUILD_LITE!=1
                 if ( !swapToCache( sz ) ) {
+#endif
                     CRLog::error( "Cannot swap big document to disk" );
                     crFatalError(10, "Swapping big document is failed. Exiting.");
+#if BUILD_LITE!=1
                 }
                 item = _currentBuffer->alloc( size );
+#endif
             } else {
                 // add one another buffer in RAM
                 _currentBuffer = new DataBuffer( _dataBufferSize );
@@ -1182,7 +1211,9 @@ ElementDataStorageItem * lxmlDocBase::allocElement( lInt32 dataIndex, lInt32 par
     }
     return item;
 }
+#endif
 
+#if BUILD_LITE!=1
 lString16 lxmlDocBase::getTextNodeValue( lInt32 dataIndex )
 {
     // TODO: implement caching here
@@ -1233,14 +1264,17 @@ lString8 ldomPersistentText::getText8( lChar8 ) const
 {
     return ((lxmlDocBase*)_document)->getTextNodeValue8( _dataIndex );
 }
+#endif
 
 // memory pools
 #if (LDOM_USE_OWN_MEM_MAN==1)
 ldomMemManStorage * ldomElement::pmsHeap = NULL;
 ldomMemManStorage * ldomText::pmsHeap = NULL;
 ldomMemManStorage * lvdomElementFormatRec::pmsHeap = NULL;
+#if BUILD_LITE!=1
 ldomMemManStorage * ldomPersistentText::pmsHeap = NULL;
 ldomMemManStorage * ldomPersistentElement::pmsHeap = NULL;
+#endif
 #endif
 
 const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
@@ -1404,7 +1438,9 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char * )
 
 ldomDocument::~ldomDocument()
 {
+#if BUILD_LITE!=1
     updateMap();
+#endif
     _keepData = true;
 }
 
@@ -4507,7 +4543,11 @@ ldomNode * ldomElement::insertChildText( lUInt32 index, lString16 value )
 {
     if (index>(lUInt32)_children.length())
         index = _children.length();
+#if BUILD_LITE!=1
     ldomPersistentText * text = new ldomPersistentText( this, index, value );
+#else
+    ldomText * text = new ldomText( this, index, value );
+#endif
     _children.insert( index, text->getDataIndex() );
 #if (LDOM_ALLOW_NODE_INDEX==1)
     // reindex tail
@@ -4520,7 +4560,11 @@ ldomNode * ldomElement::insertChildText( lUInt32 index, lString16 value )
 /// inserts child text
 ldomNode * ldomElement::insertChildText( lString16 value )
 {
+#if BUILD_LITE!=1
     ldomPersistentText * text = new ldomPersistentText( this, _children.length(), value );
+#else
+    ldomText * text = new ldomText( this, _children.length(), value );
+#endif
     _children.add( text->getDataIndex() );
     return text;
 }
@@ -4640,13 +4684,17 @@ void ldomFreeStorage()
     freeStorage( pmsREF );
     freeStorage( ldomElement::pmsHeap );
     freeStorage( ldomText::pmsHeap );
+#if BUILD_LITE!=1
     freeStorage( ldomPersistentText::pmsHeap );
+    freeStorage( ldomPersistentElement::pmsHeap );
+#endif
     freeStorage( lvdomElementFormatRec::pmsHeap );
     free_ls_storage();
 }
 #endif
 
 
+#if BUILD_LITE!=1
 static const char * doc_file_magic = "CoolReader3 Document Cache File\nformat version 3.01.03\n";
 
 
@@ -4688,8 +4736,10 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
     }
     return true;
 }
+#endif
 
 #ifdef _DEBUG
+#if BUILD_LITE!=1
 
 
 bool testTreeConsistency( ldomNode * base, int & count, int * flags )
@@ -4830,7 +4880,7 @@ bool lxmlDocBase::checkConsistency( bool requirePersistent )
     return res;
 }
 
-
+#endif
 #endif
 
 int ldomDocument::getPersistenceFlags()
@@ -4840,6 +4890,7 @@ int ldomDocument::getPersistenceFlags()
     return flag;
 }
 
+#if BUILD_LITE!=1
 bool ldomDocument::openFromCache( )
 {
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
@@ -5209,7 +5260,7 @@ bool ldomDocument::updateMap()
     return true;
 }
 
-
+#endif
 
 static const char * doccache_magic = "CoolReader3 Document Cache Directory Index\nV1.00\n";
 
@@ -5545,6 +5596,8 @@ void calcStyleHash( ldomNode * node, lUInt32 & value )
     }
 }
 
+#if BUILD_LITE!=1
+
 /// save document formatting parameters after render
 void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
 {
@@ -5582,6 +5635,7 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
     return false;
 }
 
+#endif
 
 void lxmlDocBase::setStyleSheet( const char * css, bool replace )
 {
