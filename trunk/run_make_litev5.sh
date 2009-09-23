@@ -1,16 +1,17 @@
-#build for V2 LBook reader
+#build for V5 LBook reader
 #V2HOME=/home/lve/src/v2sdk-1.0/
 
-SDK=${SDK:-/home/lve/src/v3sdk-1.0}
+SDK=/home/lve/src/v5sdk
 TARGET="arm-9tdmi-linux-gnu"
-GCC_PATH=${SDK}/${TARGET}/gcc-3.3.4-glibc-2.2.5/bin
+GCC_PATH=${SDK}/toolchain/gcc-4.0.0-glibc-2.3.5/${TARGET}/bin
 echo GCC_PATH is ${GCC_PATH}
 if test ! -x "${GCC_PATH}/${TARGET}-gcc"; then
     echo "Can't find cross toolchain"
     exit 1
 fi
 #INCLUDES="-I ${SDK}/include/arm/zlib -I ${SDK}/include"
-PATH=${GCC_PATH}:${PATH} make  -f Makefile.lbook LBOOK=arm BUILD_LITE=1 V2HOME=${SDK} all
-#PATH=${GCC_PATH}:${PATH} make  -f Makefile.lbook LBOOK=i386 BUILD_LITE=1 V2HOME=${SDK} all
+echo building ARM
+PATH=${GCC_PATH}:${PATH} make -f Makefile.lbookv5 LBOOK=arm BUILD=Release BUILD_LITE=1 V2HOME=${SDK} clean all
+#PATH=${GCC_PATH}:${PATH} make -f Makefile.lbookv5 LBOOK=i386 BUILD_LITE=1 V2HOME=${SDK} all
 #make -f Makefile.lbook LBOOK=arm BUILD_LITE=1 V2HOME=${V2HOME} all
 #make -f Makefile.lbook LBOOK=i386 BUILD_LITE=1 V2HOME=${V2HOME} all
