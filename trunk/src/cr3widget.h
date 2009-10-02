@@ -86,6 +86,18 @@ class CR3View : public QWidget, public LVDocViewCallback
         void rotate( int angle );
         /// Override to handle external links
         virtual void OnExternalLink( lString16 url, ldomNode * node );
+        /// format detection finished
+        virtual void OnLoadFileFormatDetected( doc_format_t fileFormat );
+        /// on starting file loading
+        virtual void OnLoadFileStart( lString16 filename );
+        /// file load finiished with error
+        virtual void OnLoadFileError( lString16 message );
+        /// file loading is finished successfully - drawCoveTo() may be called there
+        virtual void OnLoadFileEnd();
+        /// document formatting started
+        virtual void OnFormatStart();
+        /// document formatting finished
+        virtual void OnFormatEnd();
 
     public slots:
         void contextMenu( QPoint pos );
@@ -138,12 +150,14 @@ class CR3View : public QWidget, public LVDocViewCallback
         QCursor _normalCursor;
         QCursor _linkCursor;
         QCursor _selCursor;
+        QCursor _waitCursor;
         bool _selecting;
         bool _selected;
         ldomXPointer _selStart;
         ldomXPointer _selEnd;
         QString _selText;
         ldomXRange _selRange;
+        QString _cssDir;
 };
 
 #endif // CR3WIDGET_H

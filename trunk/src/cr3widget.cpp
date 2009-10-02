@@ -12,6 +12,8 @@
 #include <QtGui/QStyle>
 #include <QtGui/QApplication>
 #include <QUrl>
+#include <QDir>
+#include <QFileInfo>
 #include <QDesktopServices>
 
 /// to hide non-qt implementation, place all crengine-related fields here
@@ -28,7 +30,9 @@ DECL_DEF_CR_FONT_SIZES;
 
 CR3View::CR3View( QWidget *parent)
         : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL), _propsCallback(NULL)
-        , _normalCursor(Qt::ArrowCursor), _linkCursor(Qt::PointingHandCursor), _selCursor(Qt::IBeamCursor), _selecting(false), _selected(false)
+        , _normalCursor(Qt::ArrowCursor), _linkCursor(Qt::PointingHandCursor)
+        , _selCursor(Qt::IBeamCursor), _waitCursor(Qt::WaitCursor)
+        , _selecting(false), _selected(false)
 {
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
@@ -397,6 +401,8 @@ bool CR3View::loadCSS( QString fn )
     lString8 css;
     if ( LVLoadStylesheetFile( filename, css ) ) {
         if ( !css.empty() ) {
+            QFileInfo f( fn );
+            _cssDir = f.absolutePath();
             _docview->setStyleSheet( css );
             return true;
         }
@@ -770,4 +776,64 @@ void CR3View::rotate( int angle )
     getDocView()->SetRotateAngle( (cr_rotate_angle_t) newAngle );
     _data->_props->setInt( PROP_ROTATE_ANGLE, newAngle );
     update();
+}
+
+/// format detection finished
+void CR3View::OnLoadFileFormatDetected( doc_format_t fileFormat )
+{
+    QString filename = "fb2.css";
+    if ( _cssDir.length() > 0 ) {
+        switch ( fileFormat ) {
+        case doc_format_txt:
+            filename = "txt.css";
+            break;
+        case doc_format_rtf:
+            filename = "rtf.css";
+            break;
+        case doc_format_epub:
+            filename = "epub.css";
+            break;
+        case doc_format_html:
+            filename = "htm.css";
+            break;
+        default:
+            // do nothing
+            ;
+        }
+        if ( QFileInfo( _cssDir + filename ).exists() ) {
+            loadCSS( _cssDir + filename );
+        } else if ( QFileInfo( _cssDir + "fb2.css" ).exists() ) {
+            loadCSS( _cssDir + "fb2.css" );
+        }
+    }
+}
+
+/// on starting file loading
+void CR3View::OnLoadFileStart( lString16 filename )
+{
+    setCursor( _waitCursor );
+}
+
+/// file load finiished with error
+void CR3View::OnLoadFileError( lString16 message )
+{
+    setCursor( _normalCursor );
+}
+
+/// file loading is finished successfully - drawCoveTo() may be called there
+void CR3View::OnLoadFileEnd()
+{
+    setCursor( _normalCursor );
+}
+
+/// document formatting started
+void CR3View::OnFormatStart()
+{
+    setCursor( _waitCursor );
+}
+
+/// document formatting finished
+void CR3View::OnFormatEnd()
+{
+    setCursor( _normalCursor );
 }
