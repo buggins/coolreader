@@ -28,13 +28,19 @@ DECL_DEF_CR_FONT_SIZES;
 
 CR3View::CR3View( QWidget *parent)
         : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL), _propsCallback(NULL)
-        , _normalCursor(Qt::ArrowCursor), _linkCursor(Qt::PointingHandCursor), _selCursor(Qt::IBeamCursor)
+        , _normalCursor(Qt::ArrowCursor), _linkCursor(Qt::PointingHandCursor), _selCursor(Qt::IBeamCursor), _selecting(false), _selected(false)
 {
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
     _docview = new LVDocView();
     _docview->setCallback( this );
-    clearSelection();
+    _selStart = ldomXPointer();
+    _selEnd = ldomXPointer();
+    _selText.clear();
+    ldomXPointerEx p1;
+    ldomXPointerEx p2;
+    _selRange.setStart(p1);
+    _selRange.setEnd(p2);
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setFontSizes( sizes, false );
     LVRefVec<LVImageSource> icons;
