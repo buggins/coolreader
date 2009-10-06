@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include "crsetup.h"
 
-typedef long int lInt32;            ///< signed 32 bit int
-typedef unsigned long int lUInt32;  ///< unsigned 32 bit int
+typedef int lInt32;            ///< signed 32 bit int
+typedef unsigned int lUInt32;  ///< unsigned 32 bit int
 
 typedef short int lInt16;           ///< signed 16 bit int
 typedef unsigned short int lUInt16; ///< unsigned 16 bit int
