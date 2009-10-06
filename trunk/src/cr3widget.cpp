@@ -746,6 +746,7 @@ CRBookmark * CR3View::createBookmark()
     } else {
         bm = getDocView()->saveCurrentPageBookmark(lString16());
     }
+
     return bm;
 }
 
