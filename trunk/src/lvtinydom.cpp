@@ -3972,8 +3972,8 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
     while ( !pos._start.isNull() && pos._start.compare( _end ) < 0 ) {
         // do something
         ldomNode * node = pos._start.getNode();
-        lString16 path = pos._start.toString();
-        CRLog::trace( "%s", UnicodeToUtf8(path).c_str() );
+        //lString16 path = pos._start.toString();
+        //CRLog::trace( "%s", UnicodeToUtf8(path).c_str() );
         if ( node->isElement() ) {
             allowGoRecurse = callback->onElement( &pos.getStart() );
         } else if ( node->isText() ) {

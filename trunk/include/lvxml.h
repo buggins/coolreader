@@ -127,7 +127,7 @@ public:
     /// return stream file name
     lString16 getFileName();
     /// returns true if end of fle is reached, and there is no data left in buffer
-    bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
+    virtual bool Eof() { return m_buf_fpos + m_buf_pos >= m_stream_size; }
     /// resets parsing, moves to beginning of stream
     virtual void Reset();
     /// stops parsing in the middle of file, to read header only
@@ -224,6 +224,8 @@ protected:
     int ReadTextChars( lvpos_t pos, int charsToRead, lChar16 * buf, int buf_size, int flags );
 #endif
 public:
+    /// returns true if end of fle is reached, and there is no data left in buffer
+    virtual bool Eof() { return m_eof; /* m_buf_fpos + m_buf_pos >= m_stream_size;*/ }
     virtual void Reset();
     /// tries to autodetect text encoding
     bool AutodetectEncoding();
