@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+п»ї<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
 <TS version="2.0" language="uk_UA" sourcelanguage="en">
 <context>
@@ -6,12 +6,12 @@
     <message>
         <location filename="../aboutdlg.cpp" line="32"/>
         <source>About CoolReader</source>
-        <translation>Про CoolReader</translation>
+        <translation>РџСЂРѕ CoolReader</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation>Р”С–Р°Р»РѕРі</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="24"/>
@@ -21,19 +21,19 @@
     <message>
         <location filename="../aboutdlg.ui" line="40"/>
         <source>Cool Reader 3.0.21</source>
-        <translatorcomment>Версія змінюєтьтся</translatorcomment>
+        <translatorcomment>Р’РµСЂСЃС–СЏ Р·РјС–РЅСЋС”С‚СЊС‚СЃСЏ</translatorcomment>
         <translation>Cool Reader 3.0.21</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="47"/>
         <source>20-09-2009</source>
-        <translatorcomment>Дата змінюється</translatorcomment>
+        <translatorcomment>Р”Р°С‚Р° Р·РјС–РЅСЋС”С‚СЊСЃСЏ</translatorcomment>
         <translation>20.09.2009</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="102"/>
         <source>License</source>
-        <translation>Ліцензія</translation>
+        <translation>Р›С–С†РµРЅР·С–СЏ</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="117"/>
@@ -322,8 +322,8 @@ POSSIBILITY OF SUCH DAMAGES.
 		       Version 2, June 1991
 
 
-Український неофіційний переклад Загальною Публічної Ліцензії GNU 
-версії 2 доступний за адресою:
+РЈРєСЂР°С—РЅСЃСЊРєРёР№ РЅРµРѕС„С–С†С–Р№РЅРёР№ РїРµСЂРµРєР»Р°Рґ Р—Р°РіР°Р»СЊРЅРѕСЋ РџСѓР±Р»С–С‡РЅРѕС— Р›С–С†РµРЅР·С–С— GNU 
+РІРµСЂСЃС–С— 2 РґРѕСЃС‚СѓРїРЅРёР№ Р·Р° Р°РґСЂРµСЃРѕСЋ:
 http://www.linux.kiev.ua/ua/devel/licenses/gnu-gpl2/
 
 
@@ -609,7 +609,7 @@ POSSIBILITY OF SUCH DAMAGES.
     <message>
         <location filename="../aboutdlg.ui" line="405"/>
         <source>Source Code</source>
-        <translation>Джерельний код</translation>
+        <translation>Р”Р¶РµСЂРµР»СЊРЅРёР№ РєРѕРґ</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="414"/>
@@ -620,9 +620,9 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -
 cd cr3qt
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</source>
-        <translation>Сирці можна завантажити з сторінки проекту sourceforge crengine.
+        <translation>РЎРёСЂС†С– РјРѕР¶РЅР° Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё Р· СЃС‚РѕСЂС–РЅРєРё РїСЂРѕРµРєС‚Сѓ sourceforge crengine.
 
-Найновіші сирці доступні на CVS:
+РќР°Р№РЅРѕРІС–С€С– СЃРёСЂС†С– РґРѕСЃС‚СѓРїРЅС– РЅР° CVS:
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
 cd cr3qt
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
@@ -631,17 +631,17 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     <message>
         <location filename="../aboutdlg.ui" line="59"/>
         <source>(c) 1998-2009 Vadim Lopatin</source>
-        <translation>© 1998-2009 Вадім Лопатін</translation>
+        <translation>В© 1998-2009 Р’Р°РґС–Рј Р›РѕРїР°С‚С–РЅ</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="70"/>
         <source>About</source>
-        <translation>Про</translation>
+        <translation>РџСЂРѕ</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="76"/>
         <source>About Cool Reader</source>
-        <translation>Про Cool Reader</translation>
+        <translation>РџСЂРѕ Cool Reader</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="79"/>
@@ -665,17 +665,17 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader є безкоштовною вільною (open source) читалкою електронних текстів, що базується на двигуні CoolReader.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Сирці (джерельний код) доступні на SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Цирці розповсюджуються згідно умов ліцензії GNU GPL2.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader С” Р±РµР·РєРѕС€С‚РѕРІРЅРѕСЋ РІС–Р»СЊРЅРѕСЋ (open source) С‡РёС‚Р°Р»РєРѕСЋ РµР»РµРєС‚СЂРѕРЅРЅРёС… С‚РµРєСЃС‚С–РІ, С‰Рѕ Р±Р°Р·СѓС”С‚СЊСЃСЏ РЅР° РґРІРёРіСѓРЅС– CoolReader.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;РЎРёСЂС†С– (РґР¶РµСЂРµР»СЊРЅРёР№ РєРѕРґ) РґРѕСЃС‚СѓРїРЅС– РЅР° SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Р¦РёСЂС†С– СЂРѕР·РїРѕРІСЃСЋРґР¶СѓСЋС‚СЊСЃСЏ Р·РіС–РґРЅРѕ СѓРјРѕРІ Р»С–С†РµРЅР·С–С— GNU GPL2.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Використані компоненти сторонніх розробників:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 - як бібліотеку GUI&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;FreeType - двигун шрифту&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;ZLib - бібліотека архівації&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libpng - підтримка зображень формату PNG&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - підтримка зображень формату JPEG&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Словники переносів - взято з AlReader&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Р’РёРєРѕСЂРёСЃС‚Р°РЅС– РєРѕРјРїРѕРЅРµРЅС‚Рё СЃС‚РѕСЂРѕРЅРЅС–С… СЂРѕР·СЂРѕР±РЅРёРєС–РІ:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 - СЏРє Р±С–Р±Р»С–РѕС‚РµРєСѓ GUI&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;FreeType - РґРІРёРіСѓРЅ С€СЂРёС„С‚Сѓ&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;ZLib - Р±С–Р±Р»С–РѕС‚РµРєР° Р°СЂС…С–РІР°С†С–С—&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libpng - РїС–РґС‚СЂРёРјРєР° Р·РѕР±СЂР°Р¶РµРЅСЊ С„РѕСЂРјР°С‚Сѓ PNG&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - РїС–РґС‚СЂРёРјРєР° Р·РѕР±СЂР°Р¶РµРЅСЊ С„РѕСЂРјР°С‚Сѓ JPEG&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;РЎР»РѕРІРЅРёРєРё РїРµСЂРµРЅРѕСЃС–РІ - РІР·СЏС‚Рѕ Р· AlReader&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
@@ -684,56 +684,56 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../addbookmarkdlg.cpp" line="30"/>
         <source>Add bookmark</source>
-        <translation>Додати закладку</translation>
+        <translation>Р”РѕРґР°С‚Рё Р·Р°РєР»Р°РґРєСѓ</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="38"/>
         <location filename="../addbookmarkdlg.cpp" line="113"/>
         <source>Correction</source>
-        <translation>Корекція</translation>
+        <translation>РљРѕСЂРµРєС†С–СЏ</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation>Р”С–Р°Р»РѕРі</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="22"/>
         <source>Bookmark type</source>
-        <translation>Тип закладки</translation>
+        <translation>РўРёРї Р·Р°РєР»Р°РґРєРё</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="66"/>
         <source>Title</source>
-        <translation>Назва</translation>
+        <translation>РќР°Р·РІР°</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="73"/>
         <source>sample title</source>
-        <translation>зразок назви</translation>
+        <translation>Р·СЂР°Р·РѕРє РЅР°Р·РІРё</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="35"/>
         <location filename="../addbookmarkdlg.ui" line="32"/>
         <source>Position</source>
-        <translation>Позиція</translation>
+        <translation>РџРѕР·РёС†С–СЏ</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="39"/>
         <source>Page 1/10 10%</source>
-        <translation>Сторінка 1/10 10%</translation>
+        <translation>РЎС‚РѕСЂС–РЅРєР° 1/10 10%</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="46"/>
         <source>Position text</source>
-        <translation>Позиція тексту</translation>
+        <translation>РџРѕР·РёС†С–СЏ С‚РµРєСЃС‚Сѓ</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="37"/>
         <location filename="../addbookmarkdlg.cpp" line="109"/>
         <location filename="../addbookmarkdlg.ui" line="53"/>
         <source>Comment</source>
-        <translation>Коментар</translation>
+        <translation>РљРѕРјРµРЅС‚Р°СЂ</translation>
     </message>
 </context>
 <context>
@@ -741,66 +741,66 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../bookmarklistdlg.cpp" line="22"/>
         <source>Bookmarks</source>
-        <translation>Закладки</translation>
+        <translation>Р—Р°РєР»Р°РґРєРё</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Position</source>
-        <translation>Позиція</translation>
+        <translation>РџРѕР·РёС†С–СЏ</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Type</source>
         <comment>bookmark type</comment>
-        <translation>Тип</translation>
+        <translation>РўРёРї</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Text</source>
-        <translation>Текст</translation>
+        <translation>РўРµРєСЃС‚</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Comment</source>
-        <translation>Коментар</translation>
+        <translation>РљРѕРјРµРЅС‚Р°СЂ</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="63"/>
         <source>P</source>
         <comment>Bookmark type first letter - Position</comment>
-        <translation>П</translation>
+        <translation>Рџ</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="65"/>
         <source>C</source>
         <comment>Bookmark type first letter - Comment</comment>
-        <translation>К</translation>
+        <translation>Рљ</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="67"/>
         <source>E</source>
         <comment>Bookmark type first letter - Correction/Edit</comment>
-        <translation>Р</translation>
+        <translation>Р </translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation>Р”С–Р°Р»РѕРі</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="49"/>
         <source>Go to Bookmark</source>
-        <translation>Перейти до закладки</translation>
+        <translation>РџРµСЂРµР№С‚Рё РґРѕ Р·Р°РєР»Р°РґРєРё</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="52"/>
         <source>Return</source>
-        <translation>Повернутися</translation>
+        <translation>РџРѕРІРµСЂРЅСѓС‚РёСЃСЏ</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="57"/>
         <source>Remove Bookmark</source>
-        <translation>Вилучити закладку</translation>
+        <translation>Р’РёР»СѓС‡РёС‚Рё Р·Р°РєР»Р°РґРєСѓ</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="60"/>
@@ -810,12 +810,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../bookmarklistdlg.ui" line="65"/>
         <source>Remove ALL Bookmarks</source>
-        <translation>Вилучити УСІ закладки</translation>
+        <translation>Р’РёР»СѓС‡РёС‚Рё РЈРЎР† Р·Р°РєР»Р°РґРєРё</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="70"/>
         <source>Edit Bookmark</source>
-        <translation>Редагувати закладку</translation>
+        <translation>Р РµРґР°РіСѓРІР°С‚Рё Р·Р°РєР»Р°РґРєСѓ</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="73"/>
@@ -825,7 +825,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../bookmarklistdlg.ui" line="78"/>
         <source>Close</source>
-        <translation>Закрити</translation>
+        <translation>Р—Р°РєСЂРёС‚Рё</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="81"/>
@@ -838,7 +838,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../cr3widget.cpp" line="244"/>
         <source>Error while opening document </source>
-        <translation>Помилка при відкритті документу </translation>
+        <translation>РџРѕРјРёР»РєР° РїСЂРё РІС–РґРєСЂРёС‚С‚С– РґРѕРєСѓРјРµРЅС‚Сѓ </translation>
     </message>
 </context>
 <context>
@@ -846,182 +846,182 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../filepropsdlg.cpp" line="13"/>
         <source>Document properties</source>
-        <translation>Властивості документу</translation>
+        <translation>Р’Р»Р°СЃС‚РёРІРѕСЃС‚С– РґРѕРєСѓРјРµРЅС‚Сѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation>Р”С–Р°Р»РѕРі</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Property</source>
-        <translation>Властивість</translation>
+        <translation>Р’Р»Р°СЃС‚РёРІС–СЃС‚СЊ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Value</source>
-        <translation>Значення</translation>
+        <translation>Р—РЅР°С‡РµРЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="166"/>
         <source>Current page</source>
-        <translation>Поточна сторінка</translation>
+        <translation>РџРѕС‚РѕС‡РЅР° СЃС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="167"/>
         <source>Total pages</source>
-        <translation>Всього сторінок</translation>
+        <translation>Р’СЃСЊРѕРіРѕ СЃС‚РѕСЂС–РЅРѕРє</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="168"/>
         <source>Battery state</source>
-        <translation>Стан батареї</translation>
+        <translation>РЎС‚Р°РЅ Р±Р°С‚Р°СЂРµС—</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="169"/>
         <source>Current Time</source>
-        <translation>Поточний час</translation>
+        <translation>РџРѕС‚РѕС‡РЅРёР№ С‡Р°СЃ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="174"/>
         <source>Current chapter</source>
-        <translation>Поточний розділ</translation>
+        <translation>РџРѕС‚РѕС‡РЅРёР№ СЂРѕР·РґС–Р»</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="177"/>
         <source>Status</source>
-        <translation>Стан</translation>
+        <translation>РЎС‚Р°РЅ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="179"/>
         <source>Archive name</source>
-        <translation>Ім&apos;я архіву</translation>
+        <translation>Р†Рј&apos;СЏ Р°СЂС…С–РІСѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="180"/>
         <source>Archive path</source>
-        <translation>Шлях до архіву</translation>
+        <translation>РЁР»СЏС… РґРѕ Р°СЂС…С–РІСѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="181"/>
         <source>Archive size</source>
-        <translation>Розмір архіву</translation>
+        <translation>Р РѕР·РјС–СЂ Р°СЂС…С–РІСѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="182"/>
         <source>File name</source>
-        <translation>Ім&apos;я файлу</translation>
+        <translation>Р†Рј&apos;СЏ С„Р°Р№Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="183"/>
         <source>File path</source>
-        <translation>Шлях до файлу</translation>
+        <translation>РЁР»СЏС… РґРѕ С„Р°Р№Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="184"/>
         <source>File size</source>
-        <translation>Розмір файлу</translation>
+        <translation>Р РѕР·РјС–СЂ С„Р°Р№Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="185"/>
         <source>File format</source>
-        <translation>Формат файлу</translation>
+        <translation>Р¤РѕСЂРјР°С‚ С„Р°Р№Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="186"/>
         <source>File info</source>
-        <translation>Інформація про файл</translation>
+        <translation>Р†РЅС„РѕСЂРјР°С†С–СЏ РїСЂРѕ С„Р°Р№Р»</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="188"/>
         <source>Title</source>
-        <translation>Назва</translation>
+        <translation>РќР°Р·РІР°</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="189"/>
         <source>Author(s)</source>
-        <translation>Автор(и)</translation>
+        <translation>РђРІС‚РѕСЂ(Рё)</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="190"/>
         <source>Series name</source>
-        <translation>Назва серії</translation>
+        <translation>РќР°Р·РІР° СЃРµСЂС–С—</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="191"/>
         <source>Series number</source>
-        <translation>№ в серії</translation>
+        <translation>в„– РІ СЃРµСЂС–С—</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="192"/>
         <source>Date</source>
-        <translation>Дата</translation>
+        <translation>Р”Р°С‚Р°</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="193"/>
         <source>Genres</source>
-        <translation>Жанри</translation>
+        <translation>Р–Р°РЅСЂРё</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="194"/>
         <source>Translator</source>
-        <translation>Перекладач</translation>
+        <translation>РџРµСЂРµРєР»Р°РґР°С‡</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="195"/>
         <source>Book info</source>
-        <translation>Інформація про книгу</translation>
+        <translation>Р†РЅС„РѕСЂРјР°С†С–СЏ РїСЂРѕ РєРЅРёРіСѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="197"/>
         <source>Document author</source>
-        <translation>Документ створив</translation>
+        <translation>Р”РѕРєСѓРјРµРЅС‚ СЃС‚РІРѕСЂРёРІ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="198"/>
         <source>Document date</source>
-        <translation>Дата створення документу</translation>
+        <translation>Р”Р°С‚Р° СЃС‚РІРѕСЂРµРЅРЅСЏ РґРѕРєСѓРјРµРЅС‚Сѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="199"/>
         <source>Document source URL</source>
-        <translation>URL тексту-джерела</translation>
+        <translation>URL С‚РµРєСЃС‚Сѓ-РґР¶РµСЂРµР»Р°</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="200"/>
         <source>OCR by</source>
-        <translation>Оцифровувач</translation>
+        <translation>РћС†РёС„СЂРѕРІСѓРІР°С‡</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="201"/>
         <source>Document version</source>
-        <translation>Версія документу</translation>
+        <translation>Р’РµСЂСЃС–СЏ РґРѕРєСѓРјРµРЅС‚Сѓ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="202"/>
         <source>Document info</source>
-        <translation>Інформація про документ</translation>
+        <translation>Р†РЅС„РѕСЂРјР°С†С–СЏ РїСЂРѕ РґРѕРєСѓРјРµРЅС‚</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="204"/>
         <source>Publication name</source>
-        <translation>Назва видання</translation>
+        <translation>РќР°Р·РІР° РІРёРґР°РЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="205"/>
         <source>Publisher</source>
-        <translation>Видавництво</translation>
+        <translation>Р’РёРґР°РІРЅРёС†С‚РІРѕ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="206"/>
         <source>Publisher city</source>
-        <translation>Місто видання</translation>
+        <translation>РњС–СЃС‚Рѕ РІРёРґР°РЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="207"/>
         <source>Publication year</source>
-        <translation>Рік видання</translation>
+        <translation>Р С–Рє РІРёРґР°РЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="208"/>
@@ -1031,12 +1031,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../filepropsdlg.cpp" line="209"/>
         <source>Publication info</source>
-        <translation>Інформація про видання</translation>
+        <translation>Р†РЅС„РѕСЂРјР°С†С–СЏ РїСЂРѕ РІРёРґР°РЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="211"/>
         <source>Custom info</source>
-        <translation>Додаткова інформація</translation>
+        <translation>Р”РѕРґР°С‚РєРѕРІР° С–РЅС„РѕСЂРјР°С†С–СЏ</translation>
     </message>
 </context>
 <context>
@@ -1044,22 +1044,22 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.cpp" line="123"/>
         <source>Open book file</source>
-        <translation>Відкриття файлу книги</translation>
+        <translation>Р’С–РґРєСЂРёС‚С‚СЏ С„Р°Р№Р»Сѓ РєРЅРёРіРё</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="125"/>
         <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
-        <translation>Усі, що підтримуються (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2-книги (*.fb2 *.fb2.zip);;Текстові файли (*.txt);;RTF-документи (*.rtf);;HTML-файли (*.htm *.html);;ePub-файли (*.epub);;ZIP-архіви (*.zip)</translation>
+        <translation>РЈСЃС–, С‰Рѕ РїС–РґС‚СЂРёРјСѓСЋС‚СЊСЃСЏ (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2-РєРЅРёРіРё (*.fb2 *.fb2.zip);;РўРµРєСЃС‚РѕРІС– С„Р°Р№Р»Рё (*.txt);;RTF-РґРѕРєСѓРјРµРЅС‚Рё (*.rtf);;HTML-С„Р°Р№Р»Рё (*.htm *.html);;ePub-С„Р°Р№Р»Рё (*.epub);;ZIP-Р°СЂС…С–РІРё (*.zip)</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="374"/>
         <source>Not implemented</source>
-        <translation>Ще не впроваджено</translation>
+        <translation>Р©Рµ РЅРµ РІРїСЂРѕРІР°РґР¶РµРЅРѕ</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="374"/>
         <source>Search is not implemented yet</source>
-        <translation>Пошук ще не впроваджено</translation>
+        <translation>РџРѕС€СѓРє С‰Рµ РЅРµ РІРїСЂРѕРІР°РґР¶РµРЅРѕ</translation>
     </message>
 </context>
 <context>
@@ -1072,32 +1072,32 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="71"/>
         <source>File</source>
-        <translation>Файл</translation>
+        <translation>Р¤Р°Р№Р»</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="83"/>
         <source>View</source>
-        <translation>Вигляд</translation>
+        <translation>Р’РёРіР»СЏРґ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="99"/>
         <source>Navigation</source>
-        <translation>Навіґація</translation>
+        <translation>РќР°РІС–Т‘Р°С†С–СЏ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="115"/>
         <source>Help</source>
-        <translation>Довідка</translation>
+        <translation>Р”РѕРІС–РґРєР°</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="156"/>
         <source>Open...</source>
-        <translation>Відкрити...</translation>
+        <translation>Р’С–РґРєСЂРёС‚Рё...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="159"/>
         <source>Open file</source>
-        <translation>Відкрити файл</translation>
+        <translation>Р’С–РґРєСЂРёС‚Рё С„Р°Р№Р»</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="162"/>
@@ -1107,7 +1107,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="167"/>
         <source>Toggle Pages/Scroll</source>
-        <translation>Сторінки/Сувій</translation>
+        <translation>РЎС‚РѕСЂС–РЅРєРё/РЎСѓРІС–Р№</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="170"/>
@@ -1117,7 +1117,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="179"/>
         <source>Close</source>
-        <translation>Закрити</translation>
+        <translation>Р—Р°РєСЂРёС‚Рё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="182"/>
@@ -1127,7 +1127,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="187"/>
         <source>Minimize</source>
-        <translation>Згорнути</translation>
+        <translation>Р—РіРѕСЂРЅСѓС‚Рё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="190"/>
@@ -1137,12 +1137,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="202"/>
         <source>Page Down</source>
-        <translation>Наступна сторінка</translation>
+        <translation>РќР°СЃС‚СѓРїРЅР° СЃС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="205"/>
         <source>Go to next page</source>
-        <translation>Перейти до наступної сторінки</translation>
+        <translation>РџРµСЂРµР№С‚Рё РґРѕ РЅР°СЃС‚СѓРїРЅРѕС— СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="208"/>
@@ -1152,12 +1152,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="217"/>
         <source>Page Up</source>
-        <translation>Попередня сторінка</translation>
+        <translation>РџРѕРїРµСЂРµРґРЅСЏ СЃС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="220"/>
         <source>Back by page</source>
-        <translation>Назад за сторінкою</translation>
+        <translation>РќР°Р·Р°Рґ Р·Р° СЃС‚РѕСЂС–РЅРєРѕСЋ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="223"/>
@@ -1167,42 +1167,42 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="228"/>
         <source>Line Down</source>
-        <translation>На рядок вниз</translation>
+        <translation>РќР° СЂСЏРґРѕРє РІРЅРёР·</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="231"/>
         <source>Forward by one line</source>
-        <translation>Вперед на один рядок</translation>
+        <translation>Р’РїРµСЂРµРґ РЅР° РѕРґРёРЅ СЂСЏРґРѕРє</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="234"/>
         <source>Down</source>
-        <translation>Вниз</translation>
+        <translation>Р’РЅРёР·</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="239"/>
         <source>Line Up</source>
-        <translation>На рядок вгору</translation>
+        <translation>РќР° СЂСЏРґРѕРє РІРіРѕСЂСѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="242"/>
         <source>Back by line</source>
-        <translation>Назад за рядком</translation>
+        <translation>РќР°Р·Р°Рґ Р·Р° СЂСЏРґРєРѕРј</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="245"/>
         <source>Up</source>
-        <translation>Вгору</translation>
+        <translation>Р’РіРѕСЂСѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="250"/>
         <source>First Page</source>
-        <translation>Перша сторінка</translation>
+        <translation>РџРµСЂС€Р° СЃС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="253"/>
         <source>Go to first page</source>
-        <translation>Перейти до першої сторінки</translation>
+        <translation>РџРµСЂРµР№С‚Рё РґРѕ РїРµСЂС€РѕС— СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="256"/>
@@ -1212,12 +1212,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="261"/>
         <source>Last Page</source>
-        <translation>Остання сторінка</translation>
+        <translation>РћСЃС‚Р°РЅРЅСЏ СЃС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="264"/>
         <source>Go to last page</source>
-        <translation>Перейти до останньої сторінки</translation>
+        <translation>РџРµСЂРµР№С‚Рё РґРѕ РѕСЃС‚Р°РЅРЅСЊРѕС— СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="267"/>
@@ -1227,12 +1227,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="272"/>
         <source>Back</source>
-        <translation>Назад</translation>
+        <translation>РќР°Р·Р°Рґ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="275"/>
         <source>Back in navigation history</source>
-        <translation>Перейти назад по історії навіґації</translation>
+        <translation>РџРµСЂРµР№С‚Рё РЅР°Р·Р°Рґ РїРѕ С–СЃС‚РѕСЂС–С— РЅР°РІС–Т‘Р°С†С–С—</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="278"/>
@@ -1242,12 +1242,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="283"/>
         <source>Forward</source>
-        <translation>Вперед</translation>
+        <translation>Р’РїРµСЂРµРґ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="286"/>
         <source>Go to the next position in navigation history</source>
-        <translation>Перейти на наступну позицію в історії навіґації</translation>
+        <translation>РџРµСЂРµР№С‚Рё РЅР° РЅР°СЃС‚СѓРїРЅСѓ РїРѕР·РёС†С–СЋ РІ С–СЃС‚РѕСЂС–С— РЅР°РІС–Т‘Р°С†С–С—</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="289"/>
@@ -1257,42 +1257,42 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="294"/>
         <source>Next Chapter</source>
-        <translation>Наступний розділ</translation>
+        <translation>РќР°СЃС‚СѓРїРЅРёР№ СЂРѕР·РґС–Р»</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="297"/>
         <source>Go to next chapter</source>
-        <translation>Перейти до наступного розділу</translation>
+        <translation>РџРµСЂРµР№С‚Рё РґРѕ РЅР°СЃС‚СѓРїРЅРѕРіРѕ СЂРѕР·РґС–Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="300"/>
         <source>Alt+Down</source>
-        <translation>Alt+Вниз</translation>
+        <translation>Alt+Р’РЅРёР·</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="305"/>
         <source>Previous Chapter</source>
-        <translation>Попередній розділ</translation>
+        <translation>РџРѕРїРµСЂРµРґРЅС–Р№ СЂРѕР·РґС–Р»</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="308"/>
         <source>Go to previous chapter</source>
-        <translation>Перейти до попереднього розділу</translation>
+        <translation>РџРµСЂРµР№С‚Рё РґРѕ РїРѕРїРµСЂРµРґРЅСЊРѕРіРѕ СЂРѕР·РґС–Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="311"/>
         <source>Alt+Up</source>
-        <translation>Alt+Вгору</translation>
+        <translation>Alt+Р’РіРѕСЂСѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="323"/>
         <source>Toggle Full Screen</source>
-        <translation>На весь екран</translation>
+        <translation>РќР° РІРµСЃСЊ РµРєСЂР°РЅ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="326"/>
         <source>Toggle Full Screen mode</source>
-        <translation>Повноекранний режим</translation>
+        <translation>РџРѕРІРЅРѕРµРєСЂР°РЅРЅРёР№ СЂРµР¶РёРј</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="329"/>
@@ -1302,12 +1302,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="338"/>
         <source>Zoom In</source>
-        <translation>Збільшити</translation>
+        <translation>Р—Р±С–Р»СЊС€РёС‚Рё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="341"/>
         <source>Increase font size</source>
-        <translation>Збільшити розмір шрифту</translation>
+        <translation>Р—Р±С–Р»СЊС€РёС‚Рё СЂРѕР·РјС–СЂ С€СЂРёС„С‚Сѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="344"/>
@@ -1317,12 +1317,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="353"/>
         <source>Zoom Out</source>
-        <translation>Зменшити</translation>
+        <translation>Р—РјРµРЅС€РёС‚Рё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="356"/>
         <source>Decrease font size</source>
-        <translation>Зменшити розмір шрифту</translation>
+        <translation>Р—РјРµРЅС€РёС‚Рё СЂРѕР·РјС–СЂ С€СЂРёС„С‚Сѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="359"/>
@@ -1332,12 +1332,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="368"/>
         <source>Table of Contents...</source>
-        <translation>Зміст...</translation>
+        <translation>Р—РјС–СЃС‚...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="371"/>
         <source>Show table of contents</source>
-        <translation>Показати зміст книги</translation>
+        <translation>РџРѕРєР°Р·Р°С‚Рё Р·РјС–СЃС‚ РєРЅРёРіРё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="374"/>
@@ -1347,12 +1347,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="383"/>
         <source>Recent Books</source>
-        <translation>Останні книги</translation>
+        <translation>РћСЃС‚Р°РЅРЅС– РєРЅРёРіРё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="386"/>
         <source>Show recent books list</source>
-        <translation>Показати список останніх книг</translation>
+        <translation>РџРѕРєР°Р·Р°С‚Рё СЃРїРёСЃРѕРє РѕСЃС‚Р°РЅРЅС–С… РєРЅРёРі</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="389"/>
@@ -1362,12 +1362,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="398"/>
         <source>Settings...</source>
-        <translation>Налаштування...</translation>
+        <translation>РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="401"/>
         <source>Settings dialog</source>
-        <translation>Діалог налаштувань</translation>
+        <translation>Р”С–Р°Р»РѕРі РЅР°Р»Р°С€С‚СѓРІР°РЅСЊ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="404"/>
@@ -1377,12 +1377,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="413"/>
         <source>Copy</source>
-        <translation>Копіювати</translation>
+        <translation>РљРѕРїС–СЋРІР°С‚Рё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="416"/>
         <source>Copy selected text</source>
-        <translation>Копіювати виділений текст</translation>
+        <translation>РљРѕРїС–СЋРІР°С‚Рё РІРёРґС–Р»РµРЅРёР№ С‚РµРєСЃС‚</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="419"/>
@@ -1397,7 +1397,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="427"/>
         <source>Copy alternative shortcut</source>
-        <translation>Копіювати альтернативний ярлик</translation>
+        <translation>РљРѕРїС–СЋРІР°С‚Рё Р°Р»СЊС‚РµСЂРЅР°С‚РёРІРЅРёР№ СЏСЂР»РёРє</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="430"/>
@@ -1408,13 +1408,13 @@ p, li { white-space: pre-wrap; }
         <location filename="../mainwindow.ui" line="435"/>
         <location filename="../mainwindow.ui" line="438"/>
         <source>About Qt</source>
-        <translation>Про Qt</translation>
+        <translation>РџСЂРѕ Qt</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="443"/>
         <location filename="../mainwindow.ui" line="446"/>
         <source>About CoolReader</source>
-        <translation>Про CoolReader</translation>
+        <translation>РџСЂРѕ CoolReader</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="449"/>
@@ -1424,12 +1424,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="458"/>
         <source>Add Bookmark</source>
-        <translation>Додати закладку</translation>
+        <translation>Р”РѕРґР°С‚Рё Р·Р°РєР»Р°РґРєСѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="461"/>
         <source>Add bookmark</source>
-        <translation>Додати закладку</translation>
+        <translation>Р”РѕРґР°С‚Рё Р·Р°РєР»Р°РґРєСѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="464"/>
@@ -1439,12 +1439,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="473"/>
         <source>Bookmark List...</source>
-        <translation>Список закладок...</translation>
+        <translation>РЎРїРёСЃРѕРє Р·Р°РєР»Р°РґРѕРє...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="476"/>
         <source>Show bookmarks list</source>
-        <translation>Показати список закладок</translation>
+        <translation>РџРѕРєР°Р·Р°С‚Рё СЃРїРёСЃРѕРє Р·Р°РєР»Р°РґРѕРє</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="479"/>
@@ -1454,12 +1454,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="488"/>
         <source>File Properties...</source>
-        <translation>Властивості файлу...</translation>
+        <translation>Р’Р»Р°СЃС‚РёРІРѕСЃС‚С– С„Р°Р№Р»Сѓ...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="491"/>
         <source>Show file properties</source>
-        <translation>Показати властивості файлу</translation>
+        <translation>РџРѕРєР°Р·Р°С‚Рё РІР»Р°СЃС‚РёРІРѕСЃС‚С– С„Р°Р№Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="494"/>
@@ -1469,7 +1469,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="503"/>
         <source>Rotate</source>
-        <translation>Повернути</translation>
+        <translation>РџРѕРІРµСЂРЅСѓС‚Рё</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="506"/>
@@ -1479,12 +1479,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="515"/>
         <source>Find text...</source>
-        <translation>Знайти текст...</translation>
+        <translation>Р—РЅР°Р№С‚Рё С‚РµРєСЃС‚...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="518"/>
         <source>Find text</source>
-        <translation>Знайти текст</translation>
+        <translation>Р—РЅР°Р№С‚Рё С‚РµРєСЃС‚</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="521"/>
@@ -1497,42 +1497,42 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>#</source>
-        <translation>№</translation>
+        <translation>в„–</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>Author</source>
-        <translation>Автор</translation>
+        <translation>РђРІС‚РѕСЂ</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>Title</source>
-        <translation>Назва</translation>
+        <translation>РќР°Р·РІР°</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>Filename</source>
-        <translation>Ім&apos;я файлу</translation>
+        <translation>Р†Рј&apos;СЏ С„Р°Р№Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="154"/>
         <source>Remove all history items</source>
-        <translation>Вилучити усі записи історії</translation>
+        <translation>Р’РёР»СѓС‡РёС‚Рё СѓСЃС– Р·Р°РїРёСЃРё С–СЃС‚РѕСЂС–С—</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="154"/>
         <source>Do you really want to remove all history records?</source>
-        <translation>Справді бажаєте вилучити усі записи історії?</translation>
+        <translation>РЎРїСЂР°РІРґС– Р±Р°Р¶Р°С”С‚Рµ РІРёР»СѓС‡РёС‚Рё СѓСЃС– Р·Р°РїРёСЃРё С–СЃС‚РѕСЂС–С—?</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="14"/>
         <source>Recent Books</source>
-        <translation>Нещодавні книги</translation>
+        <translation>РќРµС‰РѕРґР°РІРЅС– РєРЅРёРіРё</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="41"/>
         <source>Remove Item</source>
-        <translation>Вилучити елемент</translation>
+        <translation>Р’РёР»СѓС‡РёС‚Рё РµР»РµРјРµРЅС‚</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="44"/>
@@ -1542,7 +1542,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../recentdlg.ui" line="49"/>
         <source>Clear All</source>
-        <translation>Очистити усе</translation>
+        <translation>РћС‡РёСЃС‚РёС‚Рё СѓСЃРµ</translation>
     </message>
 </context>
 <context>
@@ -1550,140 +1550,140 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../settings.cpp" line="113"/>
         <source>[No hyphenation]</source>
-        <translation>[Без переносів]</translation>
+        <translation>[Р‘РµР· РїРµСЂРµРЅРѕСЃС–РІ]</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="115"/>
         <source>[Algorythmic hyphenation]</source>
-        <translation>[Алгоритмічні переноси]</translation>
+        <translation>[РђР»РіРѕСЂРёС‚РјС–С‡РЅС– РїРµСЂРµРЅРѕСЃРё]</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="124"/>
         <source>The quick brown fox jumps over the lazy dog. </source>
-        <translation>Спритний собака здатен долати високі бар&apos;єри. </translation>
+        <translation>РЎРїСЂРёС‚РЅРёР№ СЃРѕР±Р°РєР° Р·РґР°С‚РµРЅ РґРѕР»Р°С‚Рё РІРёСЃРѕРєС– Р±Р°СЂ&apos;С”СЂРё. </translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="323"/>
         <location filename="../settings.ui" line="515"/>
         <source>Text color</source>
-        <translation>Колір тексту</translation>
+        <translation>РљРѕР»С–СЂ С‚РµРєСЃС‚Сѓ</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="328"/>
         <location filename="../settings.ui" line="529"/>
         <source>Background color</source>
-        <translation>Колір тла</translation>
+        <translation>РљРѕР»С–СЂ С‚Р»Р°</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="333"/>
         <location filename="../settings.ui" line="399"/>
         <source>Page header text color</source>
-        <translation>Колір тексту заголовку сторінки</translation>
+        <translation>РљРѕР»С–СЂ С‚РµРєСЃС‚Сѓ Р·Р°РіРѕР»РѕРІРєСѓ СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="17"/>
         <source>Settings</source>
-        <translation>Налаштування</translation>
+        <translation>РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="31"/>
         <source>Window options</source>
-        <translation>Налаштування вікна</translation>
+        <translation>РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ РІС–РєРЅР°</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="37"/>
         <source>Window</source>
-        <translation>Вікно</translation>
+        <translation>Р’С–РєРЅРѕ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="45"/>
         <source>Look &amp; feel</source>
-        <translation>Оформлення</translation>
+        <translation>РћС„РѕСЂРјР»РµРЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="55"/>
         <source>Startup action</source>
-        <translation>Дія при запуску</translation>
+        <translation>Р”С–СЏ РїСЂРё Р·Р°РїСѓСЃРєСѓ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="63"/>
         <source>Open recent book</source>
-        <translation>Відкрити останню книгу</translation>
+        <translation>Р’С–РґРєСЂРёС‚Рё РѕСЃС‚Р°РЅРЅСЋ РєРЅРёРіСѓ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="68"/>
         <source>Show list of recent books</source>
-        <translation>Показати список останніх книг</translation>
+        <translation>РџРѕРєР°Р·Р°С‚Рё СЃРїРёСЃРѕРє РѕСЃС‚Р°РЅРЅС–С… РєРЅРёРі</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="73"/>
         <source>Show File Open dialog</source>
-        <translation>Показати діалог відкриття файлу</translation>
+        <translation>РџРѕРєР°Р·Р°С‚Рё РґС–Р°Р»РѕРі РІС–РґРєСЂРёС‚С‚СЏ С„Р°Р№Р»Сѓ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="78"/>
         <source>Do nothing</source>
-        <translation>Нічого не робити</translation>
+        <translation>РќС–С‡РѕРіРѕ РЅРµ СЂРѕР±РёС‚Рё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="86"/>
         <source>Controls</source>
-        <translation>Керування</translation>
+        <translation>РљРµСЂСѓРІР°РЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="95"/>
         <source>Show toolbar</source>
-        <translation>Показувати панель інструментів</translation>
+        <translation>РџРѕРєР°Р·СѓРІР°С‚Рё РїР°РЅРµР»СЊ С–РЅСЃС‚СЂСѓРјРµРЅС‚С–РІ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="102"/>
         <source>Show menu</source>
-        <translation>Показувати меню</translation>
+        <translation>РџРѕРєР°Р·СѓРІР°С‚Рё РјРµРЅСЋ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="109"/>
         <source>Show scroll bar</source>
-        <translation>Показувати смугу прокрутки</translation>
+        <translation>РџРѕРєР°Р·СѓРІР°С‚Рё СЃРјСѓРіСѓ РїСЂРѕРєСЂСѓС‚РєРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="116"/>
         <source>Show status bar</source>
-        <translation>Показувати смугу стану</translation>
+        <translation>РџРѕРєР°Р·СѓРІР°С‚Рё СЃРјСѓРіСѓ СЃС‚Р°РЅСѓ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="127"/>
         <source>Fullscreen display</source>
-        <translation>Відображення на весь екран</translation>
+        <translation>Р’С–РґРѕР±СЂР°Р¶РµРЅРЅСЏ РЅР° РІРµСЃСЊ РµРєСЂР°РЅ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="135"/>
         <source>Page</source>
-        <translation>Сторінка</translation>
+        <translation>РЎС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="181"/>
         <source>One page</source>
-        <translation>Одна сторінка</translation>
+        <translation>РћРґРЅР° СЃС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="186"/>
         <source>Two pages</source>
-        <translation>Дві сторінки</translation>
+        <translation>Р”РІС– СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="191"/>
         <source>Scroll View</source>
-        <translation>Сувій (єдина довга сторінка)</translation>
+        <translation>РЎСѓРІС–Р№ (С”РґРёРЅР° РґРѕРІРіР° СЃС‚РѕСЂС–РЅРєР°)</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="205"/>
         <source>Vew Mode</source>
-        <translation>Режим читання</translation>
+        <translation>Р РµР¶РёРј С‡РёС‚Р°РЅРЅСЏ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="218"/>
         <source>Page margins</source>
-        <translation>Поля сторінки</translation>
+        <translation>РџРѕР»СЏ СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="226"/>
@@ -1728,69 +1728,69 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../settings.ui" line="271"/>
         <source>Show page header</source>
-        <translation>Показувати заголовок сторінки</translation>
+        <translation>РџРѕРєР°Р·СѓРІР°С‚Рё Р·Р°РіРѕР»РѕРІРѕРє СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="296"/>
         <source>Book name</source>
-        <translation>Назва книги</translation>
+        <translation>РќР°Р·РІР° РєРЅРёРіРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="323"/>
         <source>Clock</source>
-        <translation>Годинник</translation>
+        <translation>Р“РѕРґРёРЅРЅРёРє</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="350"/>
         <source>Battery status</source>
-        <translation>Стан батареї</translation>
+        <translation>РЎС‚Р°РЅ Р±Р°С‚Р°СЂРµС—</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="382"/>
         <source>Header font</source>
-        <translation>Шрифт заголовку</translation>
+        <translation>РЁСЂРёС„С‚ Р·Р°РіРѕР»РѕРІРєСѓ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="414"/>
         <location filename="../settings.ui" line="680"/>
         <location filename="../settings.ui" line="734"/>
         <source>Change</source>
-        <translation>Змінити</translation>
+        <translation>Р—РјС–РЅРёС‚Рё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="471"/>
         <source>Show footnotes at bottom of page</source>
-        <translation>Показувати примітки внизу сторінки</translation>
+        <translation>РџРѕРєР°Р·СѓРІР°С‚Рё РїСЂРёРјС–С‚РєРё РІРЅРёР·Сѓ СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="507"/>
         <source>Styles</source>
-        <translation>Стилі</translation>
+        <translation>РЎС‚РёР»С–</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="522"/>
         <source>Text font</source>
-        <translation>Шрифт тексту</translation>
+        <translation>РЁСЂРёС„С‚ С‚РµРєСЃС‚Сѓ</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="594"/>
         <source>Hyphenation</source>
-        <translation>Переноси</translation>
+        <translation>РџРµСЂРµРЅРѕСЃРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="601"/>
         <source>Interline spacing</source>
-        <translation>Міжрядковий інтервал</translation>
+        <translation>РњС–Р¶СЂСЏРґРєРѕРІРёР№ С–РЅС‚РµСЂРІР°Р»</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="614"/>
         <source>Page skin</source>
-        <translation>Жупан сторінки</translation>
+        <translation>Р–СѓРїР°РЅ СЃС‚РѕСЂС–РЅРєРё</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="649"/>
         <source>Sample</source>
-        <translation>Зразок</translation>
+        <translation>Р—СЂР°Р·РѕРє</translation>
     </message>
 </context>
 <context>
@@ -1798,17 +1798,17 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../tocdlg.cpp" line="50"/>
         <source>Title</source>
-        <translation>Назва</translation>
+        <translation>РќР°Р·РІР°</translation>
     </message>
     <message>
         <location filename="../tocdlg.cpp" line="50"/>
         <source>Page</source>
-        <translation>Сторінка</translation>
+        <translation>РЎС‚РѕСЂС–РЅРєР°</translation>
     </message>
     <message>
         <location filename="../tocdlg.ui" line="14"/>
         <source>Table of Contents</source>
-        <translation>Зміст</translation>
+        <translation>Р—РјС–СЃС‚</translation>
     </message>
 </context>
 </TS>
