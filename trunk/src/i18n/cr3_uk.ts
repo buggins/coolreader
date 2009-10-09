@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0">
+<TS version="2.0" language="uk_UA" sourcelanguage="en">
 <context>
     <name>AboutDialog</name>
     <message>
         <location filename="../aboutdlg.cpp" line="32"/>
         <source>About CoolReader</source>
-        <translation type="unfinished"></translation>
+        <translation>Про CoolReader</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Діалог</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="24"/>
         <source>...</source>
-        <translation type="unfinished"></translation>
+        <translation>...</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="40"/>
         <source>Cool Reader 3.0.21</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Версія змінюєтьтся</translatorcomment>
+        <translation>Cool Reader 3.0.21</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="47"/>
         <source>20-09-2009</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Дата змінюється</translatorcomment>
+        <translation>20.09.2009</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="102"/>
         <source>License</source>
-        <translation type="unfinished"></translation>
+        <translation>Ліцензія</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="117"/>
@@ -316,12 +318,298 @@ POSSIBILITY OF SUCH DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 </source>
-        <translation type="unfinished"></translation>
+        <translation>		    GNU GENERAL PUBLIC LICENSE
+		       Version 2, June 1991
+
+
+Український неофіційний переклад Загальною Публічної Ліцензії GNU 
+версії 2 доступний за адресою:
+http://www.linux.kiev.ua/ua/devel/licenses/gnu-gpl2/
+
+
+ Copyright (C) 1989, 1991 Free Software Foundation, Inc.
+                       59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+			    Preamble
+
+  The licenses for most software are designed to take away your
+freedom to share and change it.  By contrast, the GNU General Public
+License is intended to guarantee your freedom to share and change free
+software--to make sure the software is free for all its users.  This
+General Public License applies to most of the Free Software
+Foundation&apos;s software and to any other program whose authors commit to
+using it.  (Some other Free Software Foundation software is covered by
+the GNU Library General Public License instead.)  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+this service if you wish), that you receive source code or can get it
+if you want it, that you can change the software or use pieces of it
+in new free programs; and that you know you can do these things.
+
+  To protect your rights, we need to make restrictions that forbid
+anyone to deny you these rights or to ask you to surrender the rights.
+These restrictions translate to certain responsibilities for you if you
+distribute copies of the software, or if you modify it.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must give the recipients all the rights that
+you have.  You must make sure that they, too, receive or can get the
+source code.  And you must show them these terms so they know their
+rights.
+
+  We protect your rights with two steps: (1) copyright the software, and
+(2) offer you this license which gives you legal permission to copy,
+distribute and/or modify the software.
+
+  Also, for each author&apos;s protection and ours, we want to make certain
+that everyone understands that there is no warranty for this free
+software.  If the software is modified by someone else and passed on, we
+want its recipients to know that what they have is not the original, so
+that any problems introduced by others will not reflect on the original
+authors&apos; reputations.
+
+  Finally, any free program is threatened constantly by software
+patents.  We wish to avoid the danger that redistributors of a free
+program will individually obtain patent licenses, in effect making the
+program proprietary.  To prevent this, we have made it clear that any
+patent must be licensed for everyone&apos;s free use or not licensed at all.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+		    GNU GENERAL PUBLIC LICENSE
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+  0. This License applies to any program or other work which contains
+a notice placed by the copyright holder saying it may be distributed
+under the terms of this General Public License.  The &quot;Program&quot;, below,
+refers to any such program or work, and a &quot;work based on the Program&quot;
+means either the Program or any derivative work under copyright law:
+that is to say, a work containing the Program or a portion of it,
+either verbatim or with modifications and/or translated into another
+language.  (Hereinafter, translation is included without limitation in
+the term &quot;modification&quot;.)  Each licensee is addressed as &quot;you&quot;.
+
+Activities other than copying, distribution and modification are not
+covered by this License; they are outside its scope.  The act of
+running the Program is not restricted, and the output from the Program
+is covered only if its contents constitute a work based on the
+Program (independent of having been made by running the Program).
+Whether that is true depends on what the Program does.
+
+  1. You may copy and distribute verbatim copies of the Program&apos;s
+source code as you receive it, in any medium, provided that you
+conspicuously and appropriately publish on each copy an appropriate
+copyright notice and disclaimer of warranty; keep intact all the
+notices that refer to this License and to the absence of any warranty;
+and give any other recipients of the Program a copy of this License
+along with the Program.
+
+You may charge a fee for the physical act of transferring a copy, and
+you may at your option offer warranty protection in exchange for a fee.
+
+  2. You may modify your copy or copies of the Program or any portion
+of it, thus forming a work based on the Program, and copy and
+distribute such modifications or work under the terms of Section 1
+above, provided that you also meet all of these conditions:
+
+    a) You must cause the modified files to carry prominent notices
+    stating that you changed the files and the date of any change.
+
+    b) You must cause any work that you distribute or publish, that in
+    whole or in part contains or is derived from the Program or any
+    part thereof, to be licensed as a whole at no charge to all third
+    parties under the terms of this License.
+
+    c) If the modified program normally reads commands interactively
+    when run, you must cause it, when started running for such
+    interactive use in the most ordinary way, to print or display an
+    announcement including an appropriate copyright notice and a
+    notice that there is no warranty (or else, saying that you provide
+    a warranty) and that users may redistribute the program under
+    these conditions, and telling the user how to view a copy of this
+    License.  (Exception: if the Program itself is interactive but
+    does not normally print such an announcement, your work based on
+    the Program is not required to print an announcement.)
+
+These requirements apply to the modified work as a whole.  If
+identifiable sections of that work are not derived from the Program,
+and can be reasonably considered independent and separate works in
+themselves, then this License, and its terms, do not apply to those
+sections when you distribute them as separate works.  But when you
+distribute the same sections as part of a whole which is a work based
+on the Program, the distribution of the whole must be on the terms of
+this License, whose permissions for other licensees extend to the
+entire whole, and thus to each and every part regardless of who wrote it.
+
+Thus, it is not the intent of this section to claim rights or contest
+your rights to work written entirely by you; rather, the intent is to
+exercise the right to control the distribution of derivative or
+collective works based on the Program.
+
+In addition, mere aggregation of another work not based on the Program
+with the Program (or with a work based on the Program) on a volume of
+a storage or distribution medium does not bring the other work under
+the scope of this License.
+
+  3. You may copy and distribute the Program (or a work based on it,
+under Section 2) in object code or executable form under the terms of
+Sections 1 and 2 above provided that you also do one of the following:
+
+    a) Accompany it with the complete corresponding machine-readable
+    source code, which must be distributed under the terms of Sections
+    1 and 2 above on a medium customarily used for software interchange; or,
+
+    b) Accompany it with a written offer, valid for at least three
+    years, to give any third party, for a charge no more than your
+    cost of physically performing source distribution, a complete
+    machine-readable copy of the corresponding source code, to be
+    distributed under the terms of Sections 1 and 2 above on a medium
+    customarily used for software interchange; or,
+
+    c) Accompany it with the information you received as to the offer
+    to distribute corresponding source code.  (This alternative is
+    allowed only for noncommercial distribution and only if you
+    received the program in object code or executable form with such
+    an offer, in accord with Subsection b above.)
+
+The source code for a work means the preferred form of the work for
+making modifications to it.  For an executable work, complete source
+code means all the source code for all modules it contains, plus any
+associated interface definition files, plus the scripts used to
+control compilation and installation of the executable.  However, as a
+special exception, the source code distributed need not include
+anything that is normally distributed (in either source or binary
+form) with the major components (compiler, kernel, and so on) of the
+operating system on which the executable runs, unless that component
+itself accompanies the executable.
+
+If distribution of executable or object code is made by offering
+access to copy from a designated place, then offering equivalent
+access to copy the source code from the same place counts as
+distribution of the source code, even though third parties are not
+compelled to copy the source along with the object code.
+
+  4. You may not copy, modify, sublicense, or distribute the Program
+except as expressly provided under this License.  Any attempt
+otherwise to copy, modify, sublicense or distribute the Program is
+void, and will automatically terminate your rights under this License.
+However, parties who have received copies, or rights, from you under
+this License will not have their licenses terminated so long as such
+parties remain in full compliance.
+
+  5. You are not required to accept this License, since you have not
+signed it.  However, nothing else grants you permission to modify or
+distribute the Program or its derivative works.  These actions are
+prohibited by law if you do not accept this License.  Therefore, by
+modifying or distributing the Program (or any work based on the
+Program), you indicate your acceptance of this License to do so, and
+all its terms and conditions for copying, distributing or modifying
+the Program or works based on it.
+
+  6. Each time you redistribute the Program (or any work based on the
+Program), the recipient automatically receives a license from the
+original licensor to copy, distribute or modify the Program subject to
+these terms and conditions.  You may not impose any further
+restrictions on the recipients&apos; exercise of the rights granted herein.
+You are not responsible for enforcing compliance by third parties to
+this License.
+
+  7. If, as a consequence of a court judgment or allegation of patent
+infringement or for any other reason (not limited to patent issues),
+conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot
+distribute so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you
+may not distribute the Program at all.  For example, if a patent
+license would not permit royalty-free redistribution of the Program by
+all those who receive copies directly or indirectly through you, then
+the only way you could satisfy both it and this License would be to
+refrain entirely from distribution of the Program.
+
+If any portion of this section is held invalid or unenforceable under
+any particular circumstance, the balance of the section is intended to
+apply and the section as a whole is intended to apply in other
+circumstances.
+
+It is not the purpose of this section to induce you to infringe any
+patents or other property right claims or to contest validity of any
+such claims; this section has the sole purpose of protecting the
+integrity of the free software distribution system, which is
+implemented by public license practices.  Many people have made
+generous contributions to the wide range of software distributed
+through that system in reliance on consistent application of that
+system; it is up to the author/donor to decide if he or she is willing
+to distribute software through any other system and a licensee cannot
+impose that choice.
+
+This section is intended to make thoroughly clear what is believed to
+be a consequence of the rest of this License.
+
+  8. If the distribution and/or use of the Program is restricted in
+certain countries either by patents or by copyrighted interfaces, the
+original copyright holder who places the Program under this License
+may add an explicit geographical distribution limitation excluding
+those countries, so that distribution is permitted only in or among
+countries not thus excluded.  In such case, this License incorporates
+the limitation as if written in the body of this License.
+
+  9. The Free Software Foundation may publish revised and/or new versions
+of the General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+Each version is given a distinguishing version number.  If the Program
+specifies a version number of this License which applies to it and &quot;any
+later version&quot;, you have the option of following the terms and conditions
+either of that version or of any later version published by the Free
+Software Foundation.  If the Program does not specify a version number of
+this License, you may choose any version ever published by the Free Software
+Foundation.
+
+  10. If you wish to incorporate parts of the Program into other free
+programs whose distribution conditions are different, write to the author
+to ask for permission.  For software which is copyrighted by the Free
+Software Foundation, write to the Free Software Foundation; we sometimes
+make exceptions for this.  Our decision will be guided by the two goals
+of preserving the free status of all derivatives of our free software and
+of promoting the sharing and reuse of software generally.
+
+			    NO WARRANTY
+
+  11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
+FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
+OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
+PROVIDE THE PROGRAM &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED
+OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS
+TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE
+PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,
+REPAIR OR CORRECTION.
+
+  12. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
+REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING
+OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED
+TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY
+YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
+PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES.
+
+		     END OF TERMS AND CONDITIONS
+</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="405"/>
         <source>Source Code</source>
-        <translation type="unfinished"></translation>
+        <translation>Джерельний код</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="414"/>
@@ -332,22 +620,28 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -
 cd cr3qt
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</source>
-        <translation type="unfinished"></translation>
+        <translation>Сирці можна завантажити з сторінки проекту sourceforge crengine.
+
+Найновіші сирці доступні на CVS:
+cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
+cd cr3qt
+cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
+cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="59"/>
         <source>(c) 1998-2009 Vadim Lopatin</source>
-        <translation type="unfinished"></translation>
+        <translation>© 1998-2009 Вадім Лопатін</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="70"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>Про</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="76"/>
         <source>About Cool Reader</source>
-        <translation type="unfinished"></translation>
+        <translation>Про Cool Reader</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="79"/>
@@ -367,7 +661,22 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - JPEG image format support&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Hyphenation dictionaries - from AlReader&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader є безкоштовною вільною (open source) читалкою електронних текстів, що базується на двигуні CoolReader.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Сирці (джерельний код) доступні на SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Цирці розповсюджуються згідно умов ліцензії GNU GPL2.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Використані компоненти сторонніх розробників:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 - як бібліотеку GUI&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;FreeType - двигун шрифту&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;ZLib - бібліотека архівації&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libpng - підтримка зображень формату PNG&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - підтримка зображень формату JPEG&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Словники переносів - взято з AlReader&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -375,56 +684,56 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../addbookmarkdlg.cpp" line="30"/>
         <source>Add bookmark</source>
-        <translation type="unfinished"></translation>
+        <translation>Додати закладку</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="38"/>
         <location filename="../addbookmarkdlg.cpp" line="113"/>
         <source>Correction</source>
-        <translation type="unfinished"></translation>
+        <translation>Корекція</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Діалог</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="22"/>
         <source>Bookmark type</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип закладки</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="66"/>
         <source>Title</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="73"/>
         <source>sample title</source>
-        <translation type="unfinished"></translation>
+        <translation>зразок назви</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="35"/>
         <location filename="../addbookmarkdlg.ui" line="32"/>
         <source>Position</source>
-        <translation type="unfinished"></translation>
+        <translation>Позиція</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="39"/>
         <source>Page 1/10 10%</source>
-        <translation type="unfinished"></translation>
+        <translation>Сторінка 1/10 10%</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.ui" line="46"/>
         <source>Position text</source>
-        <translation type="unfinished"></translation>
+        <translation>Позиція тексту</translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="37"/>
         <location filename="../addbookmarkdlg.cpp" line="109"/>
         <location filename="../addbookmarkdlg.ui" line="53"/>
         <source>Comment</source>
-        <translation type="unfinished"></translation>
+        <translation>Коментар</translation>
     </message>
 </context>
 <context>
@@ -432,96 +741,96 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../bookmarklistdlg.cpp" line="22"/>
         <source>Bookmarks</source>
-        <translation type="unfinished"></translation>
+        <translation>Закладки</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Position</source>
-        <translation type="unfinished"></translation>
+        <translation>Позиція</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Type</source>
         <comment>bookmark type</comment>
-        <translation type="unfinished"></translation>
+        <translation>Тип</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Text</source>
-        <translation type="unfinished"></translation>
+        <translation>Текст</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Comment</source>
-        <translation type="unfinished"></translation>
+        <translation>Коментар</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="63"/>
         <source>P</source>
         <comment>Bookmark type first letter - Position</comment>
-        <translation type="unfinished"></translation>
+        <translation>П</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="65"/>
         <source>C</source>
         <comment>Bookmark type first letter - Comment</comment>
-        <translation type="unfinished"></translation>
+        <translation>К</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.cpp" line="67"/>
         <source>E</source>
         <comment>Bookmark type first letter - Correction/Edit</comment>
-        <translation type="unfinished"></translation>
+        <translation>Р</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Діалог</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="49"/>
         <source>Go to Bookmark</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти до закладки</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="52"/>
         <source>Return</source>
-        <translation type="unfinished"></translation>
+        <translation>Повернутися</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="57"/>
         <source>Remove Bookmark</source>
-        <translation type="unfinished"></translation>
+        <translation>Вилучити закладку</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="60"/>
         <source>Del</source>
-        <translation type="unfinished"></translation>
+        <translation>Del</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="65"/>
         <source>Remove ALL Bookmarks</source>
-        <translation type="unfinished"></translation>
+        <translation>Вилучити УСІ закладки</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="70"/>
         <source>Edit Bookmark</source>
-        <translation type="unfinished"></translation>
+        <translation>Редагувати закладку</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="73"/>
         <source>F4</source>
-        <translation type="unfinished"></translation>
+        <translation>F4</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="78"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Закрити</translation>
     </message>
     <message>
         <location filename="../bookmarklistdlg.ui" line="81"/>
         <source>Esc</source>
-        <translation type="unfinished"></translation>
+        <translation>Esc</translation>
     </message>
 </context>
 <context>
@@ -529,7 +838,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../cr3widget.cpp" line="244"/>
         <source>Error while opening document </source>
-        <translation type="unfinished"></translation>
+        <translation>Помилка при відкритті документу </translation>
     </message>
 </context>
 <context>
@@ -537,197 +846,197 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../filepropsdlg.cpp" line="13"/>
         <source>Document properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Властивості документу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.ui" line="14"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Діалог</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Property</source>
-        <translation type="unfinished"></translation>
+        <translation>Властивість</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Значення</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="166"/>
         <source>Current page</source>
-        <translation type="unfinished"></translation>
+        <translation>Поточна сторінка</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="167"/>
         <source>Total pages</source>
-        <translation type="unfinished"></translation>
+        <translation>Всього сторінок</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="168"/>
         <source>Battery state</source>
-        <translation type="unfinished"></translation>
+        <translation>Стан батареї</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="169"/>
         <source>Current Time</source>
-        <translation type="unfinished"></translation>
+        <translation>Поточний час</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="174"/>
         <source>Current chapter</source>
-        <translation type="unfinished"></translation>
+        <translation>Поточний розділ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="177"/>
         <source>Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Стан</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="179"/>
         <source>Archive name</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я архіву</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="180"/>
         <source>Archive path</source>
-        <translation type="unfinished"></translation>
+        <translation>Шлях до архіву</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="181"/>
         <source>Archive size</source>
-        <translation type="unfinished"></translation>
+        <translation>Розмір архіву</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="182"/>
         <source>File name</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я файлу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="183"/>
         <source>File path</source>
-        <translation type="unfinished"></translation>
+        <translation>Шлях до файлу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="184"/>
         <source>File size</source>
-        <translation type="unfinished"></translation>
+        <translation>Розмір файлу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="185"/>
         <source>File format</source>
-        <translation type="unfinished"></translation>
+        <translation>Формат файлу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="186"/>
         <source>File info</source>
-        <translation type="unfinished"></translation>
+        <translation>Інформація про файл</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="188"/>
         <source>Title</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="189"/>
         <source>Author(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Автор(и)</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="190"/>
         <source>Series name</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва серії</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="191"/>
         <source>Series number</source>
-        <translation type="unfinished"></translation>
+        <translation>№ в серії</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="192"/>
         <source>Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Дата</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="193"/>
         <source>Genres</source>
-        <translation type="unfinished"></translation>
+        <translation>Жанри</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="194"/>
         <source>Translator</source>
-        <translation type="unfinished"></translation>
+        <translation>Перекладач</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="195"/>
         <source>Book info</source>
-        <translation type="unfinished"></translation>
+        <translation>Інформація про книгу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="197"/>
         <source>Document author</source>
-        <translation type="unfinished"></translation>
+        <translation>Документ створив</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="198"/>
         <source>Document date</source>
-        <translation type="unfinished"></translation>
+        <translation>Дата створення документу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="199"/>
         <source>Document source URL</source>
-        <translation type="unfinished"></translation>
+        <translation>URL тексту-джерела</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="200"/>
         <source>OCR by</source>
-        <translation type="unfinished"></translation>
+        <translation>Оцифровувач</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="201"/>
         <source>Document version</source>
-        <translation type="unfinished"></translation>
+        <translation>Версія документу</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="202"/>
         <source>Document info</source>
-        <translation type="unfinished"></translation>
+        <translation>Інформація про документ</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="204"/>
         <source>Publication name</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва видання</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="205"/>
         <source>Publisher</source>
-        <translation type="unfinished"></translation>
+        <translation>Видавництво</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="206"/>
         <source>Publisher city</source>
-        <translation type="unfinished"></translation>
+        <translation>Місто видання</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="207"/>
         <source>Publication year</source>
-        <translation type="unfinished"></translation>
+        <translation>Рік видання</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="208"/>
         <source>ISBN</source>
-        <translation type="unfinished"></translation>
+        <translation>ISBN</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="209"/>
         <source>Publication info</source>
-        <translation type="unfinished"></translation>
+        <translation>Інформація про видання</translation>
     </message>
     <message>
         <location filename="../filepropsdlg.cpp" line="211"/>
         <source>Custom info</source>
-        <translation type="unfinished"></translation>
+        <translation>Додаткова інформація</translation>
     </message>
 </context>
 <context>
@@ -735,22 +1044,22 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.cpp" line="123"/>
         <source>Open book file</source>
-        <translation type="unfinished"></translation>
+        <translation>Відкриття файлу книги</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="125"/>
         <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
-        <translation type="unfinished"></translation>
+        <translation>Усі, що підтримуються (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2-книги (*.fb2 *.fb2.zip);;Текстові файли (*.txt);;RTF-документи (*.rtf);;HTML-файли (*.htm *.html);;ePub-файли (*.epub);;ZIP-архіви (*.zip)</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="374"/>
         <source>Not implemented</source>
-        <translation type="unfinished"></translation>
+        <translation>Ще не впроваджено</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="374"/>
         <source>Search is not implemented yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошук ще не впроваджено</translation>
     </message>
 </context>
 <context>
@@ -758,429 +1067,429 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="14"/>
         <source>CoolReader</source>
-        <translation type="unfinished"></translation>
+        <translation>CoolReader</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="71"/>
         <source>File</source>
-        <translation type="unfinished"></translation>
+        <translation>Файл</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="83"/>
         <source>View</source>
-        <translation type="unfinished"></translation>
+        <translation>Вигляд</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="99"/>
         <source>Navigation</source>
-        <translation type="unfinished"></translation>
+        <translation>Навіґація</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="115"/>
         <source>Help</source>
-        <translation type="unfinished"></translation>
+        <translation>Довідка</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="156"/>
         <source>Open...</source>
-        <translation type="unfinished"></translation>
+        <translation>Відкрити...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="159"/>
         <source>Open file</source>
-        <translation type="unfinished"></translation>
+        <translation>Відкрити файл</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="162"/>
         <source>F3</source>
-        <translation type="unfinished"></translation>
+        <translation>F3</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="167"/>
         <source>Toggle Pages/Scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Сторінки/Сувій</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="170"/>
         <source>Ctrl+P</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+P</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="179"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Закрити</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="182"/>
         <source>F12</source>
-        <translation type="unfinished"></translation>
+        <translation>F12</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="187"/>
         <source>Minimize</source>
-        <translation type="unfinished"></translation>
+        <translation>Згорнути</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="190"/>
         <source>Esc</source>
-        <translation type="unfinished"></translation>
+        <translation>Esc</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="202"/>
         <source>Page Down</source>
-        <translation type="unfinished"></translation>
+        <translation>Наступна сторінка</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="205"/>
         <source>Go to next page</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти до наступної сторінки</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="208"/>
         <source>PgDown</source>
-        <translation type="unfinished"></translation>
+        <translation>PgDown</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="217"/>
         <source>Page Up</source>
-        <translation type="unfinished"></translation>
+        <translation>Попередня сторінка</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="220"/>
         <source>Back by page</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад за сторінкою</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="223"/>
         <source>PgUp</source>
-        <translation type="unfinished"></translation>
+        <translation>PgUp</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="228"/>
         <source>Line Down</source>
-        <translation type="unfinished"></translation>
+        <translation>На рядок вниз</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="231"/>
         <source>Forward by one line</source>
-        <translation type="unfinished"></translation>
+        <translation>Вперед на один рядок</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="234"/>
         <source>Down</source>
-        <translation type="unfinished"></translation>
+        <translation>Вниз</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="239"/>
         <source>Line Up</source>
-        <translation type="unfinished"></translation>
+        <translation>На рядок вгору</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="242"/>
         <source>Back by line</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад за рядком</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="245"/>
         <source>Up</source>
-        <translation type="unfinished"></translation>
+        <translation>Вгору</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="250"/>
         <source>First Page</source>
-        <translation type="unfinished"></translation>
+        <translation>Перша сторінка</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="253"/>
         <source>Go to first page</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти до першої сторінки</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="256"/>
         <source>Home</source>
-        <translation type="unfinished"></translation>
+        <translation>Home</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="261"/>
         <source>Last Page</source>
-        <translation type="unfinished"></translation>
+        <translation>Остання сторінка</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="264"/>
         <source>Go to last page</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти до останньої сторінки</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="267"/>
         <source>End</source>
-        <translation type="unfinished"></translation>
+        <translation>End</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="272"/>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="275"/>
         <source>Back in navigation history</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти назад по історії навіґації</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="278"/>
         <source>Backspace</source>
-        <translation type="unfinished"></translation>
+        <translation>Backspace</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="283"/>
         <source>Forward</source>
-        <translation type="unfinished"></translation>
+        <translation>Вперед</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="286"/>
         <source>Go to the next position in navigation history</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти на наступну позицію в історії навіґації</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="289"/>
         <source>Shift+Backspace</source>
-        <translation type="unfinished"></translation>
+        <translation>Shift+Backspace</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="294"/>
         <source>Next Chapter</source>
-        <translation type="unfinished"></translation>
+        <translation>Наступний розділ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="297"/>
         <source>Go to next chapter</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти до наступного розділу</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="300"/>
         <source>Alt+Down</source>
-        <translation type="unfinished"></translation>
+        <translation>Alt+Вниз</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="305"/>
         <source>Previous Chapter</source>
-        <translation type="unfinished"></translation>
+        <translation>Попередній розділ</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="308"/>
         <source>Go to previous chapter</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти до попереднього розділу</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="311"/>
         <source>Alt+Up</source>
-        <translation type="unfinished"></translation>
+        <translation>Alt+Вгору</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="323"/>
         <source>Toggle Full Screen</source>
-        <translation type="unfinished"></translation>
+        <translation>На весь екран</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="326"/>
         <source>Toggle Full Screen mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Повноекранний режим</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="329"/>
         <source>Alt+Return</source>
-        <translation type="unfinished"></translation>
+        <translation>Alt+Return</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="338"/>
         <source>Zoom In</source>
-        <translation type="unfinished"></translation>
+        <translation>Збільшити</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="341"/>
         <source>Increase font size</source>
-        <translation type="unfinished"></translation>
+        <translation>Збільшити розмір шрифту</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="344"/>
         <source>+</source>
-        <translation type="unfinished"></translation>
+        <translation>+</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="353"/>
         <source>Zoom Out</source>
-        <translation type="unfinished"></translation>
+        <translation>Зменшити</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="356"/>
         <source>Decrease font size</source>
-        <translation type="unfinished"></translation>
+        <translation>Зменшити розмір шрифту</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="359"/>
         <source>-</source>
-        <translation type="unfinished"></translation>
+        <translation>-</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="368"/>
         <source>Table of Contents...</source>
-        <translation type="unfinished"></translation>
+        <translation>Зміст...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="371"/>
         <source>Show table of contents</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати зміст книги</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="374"/>
         <source>F4</source>
-        <translation type="unfinished"></translation>
+        <translation>F4</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="383"/>
         <source>Recent Books</source>
-        <translation type="unfinished"></translation>
+        <translation>Останні книги</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="386"/>
         <source>Show recent books list</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати список останніх книг</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="389"/>
         <source>F5</source>
-        <translation type="unfinished"></translation>
+        <translation>F5</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="398"/>
         <source>Settings...</source>
-        <translation type="unfinished"></translation>
+        <translation>Налаштування...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="401"/>
         <source>Settings dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Діалог налаштувань</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="404"/>
         <source>F9</source>
-        <translation type="unfinished"></translation>
+        <translation>F9</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="413"/>
         <source>Copy</source>
-        <translation type="unfinished"></translation>
+        <translation>Копіювати</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="416"/>
         <source>Copy selected text</source>
-        <translation type="unfinished"></translation>
+        <translation>Копіювати виділений текст</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="419"/>
         <source>Ctrl+C</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+C</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="424"/>
         <source>copy2</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="427"/>
         <source>Copy alternative shortcut</source>
-        <translation type="unfinished"></translation>
+        <translation>Копіювати альтернативний ярлик</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="430"/>
         <source>Ctrl+Ins</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+Ins</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="435"/>
         <location filename="../mainwindow.ui" line="438"/>
         <source>About Qt</source>
-        <translation type="unfinished"></translation>
+        <translation>Про Qt</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="443"/>
         <location filename="../mainwindow.ui" line="446"/>
         <source>About CoolReader</source>
-        <translation type="unfinished"></translation>
+        <translation>Про CoolReader</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="449"/>
         <source>F1</source>
-        <translation type="unfinished"></translation>
+        <translation>F1</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="458"/>
         <source>Add Bookmark</source>
-        <translation type="unfinished"></translation>
+        <translation>Додати закладку</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="461"/>
         <source>Add bookmark</source>
-        <translation type="unfinished"></translation>
+        <translation>Додати закладку</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="464"/>
         <source>Ctrl+B</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+B</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="473"/>
         <source>Bookmark List...</source>
-        <translation type="unfinished"></translation>
+        <translation>Список закладок...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="476"/>
         <source>Show bookmarks list</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати список закладок</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="479"/>
         <source>F6</source>
-        <translation type="unfinished"></translation>
+        <translation>F6</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="488"/>
         <source>File Properties...</source>
-        <translation type="unfinished"></translation>
+        <translation>Властивості файлу...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="491"/>
         <source>Show file properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати властивості файлу</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="494"/>
         <source>Ctrl+F1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+F1</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="503"/>
         <source>Rotate</source>
-        <translation type="unfinished"></translation>
+        <translation>Повернути</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="506"/>
         <source>Ctrl+R</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+R</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="515"/>
         <source>Find text...</source>
-        <translation type="unfinished"></translation>
+        <translation>Знайти текст...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="518"/>
         <source>Find text</source>
-        <translation type="unfinished"></translation>
+        <translation>Знайти текст</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="521"/>
         <source>Ctrl+F</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+F</translation>
     </message>
 </context>
 <context>
@@ -1188,52 +1497,52 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>#</source>
-        <translation type="unfinished"></translation>
+        <translation>№</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>Author</source>
-        <translation type="unfinished"></translation>
+        <translation>Автор</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>Title</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="16"/>
         <source>Filename</source>
-        <translation type="unfinished"></translation>
+        <translation>Ім&apos;я файлу</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="154"/>
         <source>Remove all history items</source>
-        <translation type="unfinished"></translation>
+        <translation>Вилучити усі записи історії</translation>
     </message>
     <message>
         <location filename="../recentdlg.cpp" line="154"/>
         <source>Do you really want to remove all history records?</source>
-        <translation type="unfinished"></translation>
+        <translation>Справді бажаєте вилучити усі записи історії?</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="14"/>
         <source>Recent Books</source>
-        <translation type="unfinished"></translation>
+        <translation>Нещодавні книги</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="41"/>
         <source>Remove Item</source>
-        <translation type="unfinished"></translation>
+        <translation>Вилучити елемент</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="44"/>
         <source>Del</source>
-        <translation type="unfinished"></translation>
+        <translation>Del</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="49"/>
         <source>Clear All</source>
-        <translation type="unfinished"></translation>
+        <translation>Очистити усе</translation>
     </message>
 </context>
 <context>
@@ -1241,247 +1550,247 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../settings.cpp" line="113"/>
         <source>[No hyphenation]</source>
-        <translation type="unfinished"></translation>
+        <translation>[Без переносів]</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="115"/>
         <source>[Algorythmic hyphenation]</source>
-        <translation type="unfinished"></translation>
+        <translation>[Алгоритмічні переноси]</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="124"/>
         <source>The quick brown fox jumps over the lazy dog. </source>
-        <translation type="unfinished"></translation>
+        <translation>Спритний собака здатен долати високі бар&apos;єри. </translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="323"/>
         <location filename="../settings.ui" line="515"/>
         <source>Text color</source>
-        <translation type="unfinished"></translation>
+        <translation>Колір тексту</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="328"/>
         <location filename="../settings.ui" line="529"/>
         <source>Background color</source>
-        <translation type="unfinished"></translation>
+        <translation>Колір тла</translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="333"/>
         <location filename="../settings.ui" line="399"/>
         <source>Page header text color</source>
-        <translation type="unfinished"></translation>
+        <translation>Колір тексту заголовку сторінки</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="17"/>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Налаштування</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="31"/>
         <source>Window options</source>
-        <translation type="unfinished"></translation>
+        <translation>Налаштування вікна</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="37"/>
         <source>Window</source>
-        <translation type="unfinished"></translation>
+        <translation>Вікно</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="45"/>
         <source>Look &amp; feel</source>
-        <translation type="unfinished"></translation>
+        <translation>Оформлення</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="55"/>
         <source>Startup action</source>
-        <translation type="unfinished"></translation>
+        <translation>Дія при запуску</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="63"/>
         <source>Open recent book</source>
-        <translation type="unfinished"></translation>
+        <translation>Відкрити останню книгу</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="68"/>
         <source>Show list of recent books</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати список останніх книг</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="73"/>
         <source>Show File Open dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Показати діалог відкриття файлу</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="78"/>
         <source>Do nothing</source>
-        <translation type="unfinished"></translation>
+        <translation>Нічого не робити</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="86"/>
         <source>Controls</source>
-        <translation type="unfinished"></translation>
+        <translation>Керування</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="95"/>
         <source>Show toolbar</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати панель інструментів</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="102"/>
         <source>Show menu</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати меню</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="109"/>
         <source>Show scroll bar</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати смугу прокрутки</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="116"/>
         <source>Show status bar</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати смугу стану</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="127"/>
         <source>Fullscreen display</source>
-        <translation type="unfinished"></translation>
+        <translation>Відображення на весь екран</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="135"/>
         <source>Page</source>
-        <translation type="unfinished"></translation>
+        <translation>Сторінка</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="181"/>
         <source>One page</source>
-        <translation type="unfinished"></translation>
+        <translation>Одна сторінка</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="186"/>
         <source>Two pages</source>
-        <translation type="unfinished"></translation>
+        <translation>Дві сторінки</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="191"/>
         <source>Scroll View</source>
-        <translation type="unfinished"></translation>
+        <translation>Сувій (єдина довга сторінка)</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="205"/>
         <source>Vew Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Режим читання</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="218"/>
         <source>Page margins</source>
-        <translation type="unfinished"></translation>
+        <translation>Поля сторінки</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="226"/>
         <source>0</source>
-        <translation type="unfinished"></translation>
+        <translation>0</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="231"/>
         <source>5</source>
-        <translation type="unfinished"></translation>
+        <translation>5</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="236"/>
         <source>8</source>
-        <translation type="unfinished"></translation>
+        <translation>8</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="241"/>
         <source>10</source>
-        <translation type="unfinished"></translation>
+        <translation>10</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="246"/>
         <source>15</source>
-        <translation type="unfinished"></translation>
+        <translation>15</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="251"/>
         <source>20</source>
-        <translation type="unfinished"></translation>
+        <translation>20</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="256"/>
         <source>25</source>
-        <translation type="unfinished"></translation>
+        <translation>25</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="261"/>
         <source>30</source>
-        <translation type="unfinished"></translation>
+        <translation>30</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="271"/>
         <source>Show page header</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати заголовок сторінки</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="296"/>
         <source>Book name</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва книги</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="323"/>
         <source>Clock</source>
-        <translation type="unfinished"></translation>
+        <translation>Годинник</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="350"/>
         <source>Battery status</source>
-        <translation type="unfinished"></translation>
+        <translation>Стан батареї</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="382"/>
         <source>Header font</source>
-        <translation type="unfinished"></translation>
+        <translation>Шрифт заголовку</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="414"/>
         <location filename="../settings.ui" line="680"/>
         <location filename="../settings.ui" line="734"/>
         <source>Change</source>
-        <translation type="unfinished"></translation>
+        <translation>Змінити</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="471"/>
         <source>Show footnotes at bottom of page</source>
-        <translation type="unfinished"></translation>
+        <translation>Показувати примітки внизу сторінки</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="507"/>
         <source>Styles</source>
-        <translation type="unfinished"></translation>
+        <translation>Стилі</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="522"/>
         <source>Text font</source>
-        <translation type="unfinished"></translation>
+        <translation>Шрифт тексту</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="594"/>
         <source>Hyphenation</source>
-        <translation type="unfinished"></translation>
+        <translation>Переноси</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="601"/>
         <source>Interline spacing</source>
-        <translation type="unfinished"></translation>
+        <translation>Міжрядковий інтервал</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="614"/>
         <source>Page skin</source>
-        <translation type="unfinished"></translation>
+        <translation>Жупан сторінки</translation>
     </message>
     <message>
         <location filename="../settings.ui" line="649"/>
         <source>Sample</source>
-        <translation type="unfinished"></translation>
+        <translation>Зразок</translation>
     </message>
 </context>
 <context>
@@ -1489,17 +1798,17 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../tocdlg.cpp" line="50"/>
         <source>Title</source>
-        <translation type="unfinished"></translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <location filename="../tocdlg.cpp" line="50"/>
         <source>Page</source>
-        <translation type="unfinished"></translation>
+        <translation>Сторінка</translation>
     </message>
     <message>
         <location filename="../tocdlg.ui" line="14"/>
         <source>Table of Contents</source>
-        <translation type="unfinished"></translation>
+        <translation>Зміст</translation>
     </message>
 </context>
 </TS>
