@@ -467,6 +467,8 @@ void LVTextFileBase::Reset()
 {
     LVFileParserBase::Reset();
     clearCharBuffer();
+    if ( PeekCharFromBuffer() == 0xFEFF )
+        ReadCharFromBuffer();
 }
 
 void LVTextFileBase::SetCharset( const lChar16 * name )
@@ -1362,10 +1364,10 @@ bool LVTextBookmarkParser::CheckFormat()
     int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
     bool res = false;
     lString16 pattern("# Cool Reader 3 - exported bookmarks\r\n# file name: ");
-    if ( charsDecoded > pattern.length() && chbuf[0]==65279 ) {
+    if ( charsDecoded > pattern.length() ) { //&& chbuf[0]==65279
         res = true;
         for ( int i=0; i<pattern.length(); i++ )
-            if ( chbuf[i+1] != pattern[i] )
+            if ( chbuf[i] != pattern[i] )
                 res = false;
     }
     delete[] chbuf;

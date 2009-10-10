@@ -1698,6 +1698,10 @@ void LVDocView::selectWords( const LVArray<ldomWord> & words )
 void LVDocView::selectRange( const ldomXRange & range )
 {
     ldomXRangeList & sel = getDocument()->getSelections();
+    if ( sel.length()==1 ) {
+        if ( range == *sel[0] )
+            return; // the same range is set
+    }
     sel.clear();
     sel.add( new ldomXRange(range) );
     updateSelections();

@@ -294,7 +294,7 @@ public:
     /// returns code base path relative to document container
     inline lString16 getCodeBase() { return getProps()->getStringDef(DOC_PROP_CODE_BASE, ""); }
     /// sets code base path relative to document container
-    inline void setCodeBase(lString16 codeBase) { getProps()->setStringDef(DOC_PROP_CODE_BASE, codeBase); }
+    inline void setCodeBase(const lString16 & codeBase) { getProps()->setStringDef(DOC_PROP_CODE_BASE, codeBase); }
 
 #ifdef _DEBUG
 #if BUILD_LITE!=1
@@ -952,6 +952,11 @@ public:
             _indexes[ i ] = v._indexes[i];
         return *this;
     }
+    /// returns true if ranges are equal
+    bool operator == ( const ldomXPointerEx & v ) const
+    {
+        return _data->getDocument()==v._data->getDocument() && _data->getNode()==v._data->getNode() && _data->getOffset()==v._data->getOffset();
+    }
     /// searches path for element with specific id, returns level at which element is founs, 0 if not found
     int findElementInPath( lUInt16 id );
     /// compare two pointers, returns -1, 0, +1
@@ -1117,6 +1122,11 @@ public:
         _start = v._start;
         _end = v._end;
         return *this;
+    }
+    /// returns true if ranges are equal
+    bool operator == ( const ldomXRange & v ) const
+    {
+        return _start == v._start && _end == v._end && _flags==v._flags;
     }
     /// returns true if interval is invalid or empty
     bool isNull()
