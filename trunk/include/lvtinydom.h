@@ -95,7 +95,7 @@ typedef LVCacheMap< ldomNode *, LFormattedTextRef> CVRendBlockCache;
 
 
 //#define LDOM_USE_OWN_MEM_MAN 0
-
+/// XPath step kind
 typedef enum {
 	xpath_step_error = 0, // error
 	xpath_step_element,   // element of type 'name' with 'index'        /elemname[N]/

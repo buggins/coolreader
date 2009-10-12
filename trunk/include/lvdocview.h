@@ -95,6 +95,7 @@ public:
 
 typedef LVRef<LVDocImageHolder> LVDocImageRef;
 
+/// page image cache
 class LVDocViewImageCache
 {
     private:
@@ -183,8 +184,8 @@ class LVDocViewImageCache
         }
 };
 
-/// LVDocView commands
 #define LVDOCVIEW_COMMANDS_START 100
+/// LVDocView commands
 enum LVDocCmd
 {
     DCMD_BEGIN = LVDOCVIEW_COMMANDS_START,
@@ -211,12 +212,14 @@ enum LVDocCmd
 };
 #define LVDOCVIEW_COMMANDS_END DCMD_MOVE_BY_CHAPTER
 
+/// document view mode: pages/scroll
 enum LVDocViewMode
 {
     DVM_SCROLL,
     DVM_PAGES,
 };
 
+/// document scroll position info
 class LVScrollInfo
 {
 public:
@@ -245,6 +248,7 @@ enum {
 class LVTocItem;
 class LVDocView;
 
+/// TOC item
 class LVTocItem
 {
 private:
