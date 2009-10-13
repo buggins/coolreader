@@ -467,7 +467,8 @@ void LVTextFileBase::Reset()
 {
     LVFileParserBase::Reset();
     clearCharBuffer();
-    if ( PeekCharFromBuffer() == 0xFEFF )
+    // Remove Byte Order Mark from beginning of file
+    if ( PeekCharFromBuffer()==0xFEFF )
         ReadCharFromBuffer();
 }
 
@@ -1361,10 +1362,10 @@ bool LVTextBookmarkParser::CheckFormat()
     Reset();
     lChar16 * chbuf = new lChar16[TEXT_PARSER_DETECT_SIZE];
     FillBuffer( TEXT_PARSER_DETECT_SIZE );
-    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
+    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, TEXT_PARSER_DETECT_SIZE-1, 0 );
     bool res = false;
     lString16 pattern("# Cool Reader 3 - exported bookmarks\r\n# file name: ");
-    if ( charsDecoded > pattern.length() ) { //&& chbuf[0]==65279
+    if ( charsDecoded > pattern.length() ) {
         res = true;
         for ( int i=0; i<pattern.length(); i++ )
             if ( chbuf[i] != pattern[i] )
@@ -1515,7 +1516,7 @@ bool LVTextParser::CheckFormat()
     Reset();
     lChar16 * chbuf = new lChar16[TEXT_PARSER_DETECT_SIZE];
     FillBuffer( TEXT_PARSER_DETECT_SIZE );
-    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf+m_buf_pos, m_buf_len-m_buf_pos, 0 );
+    int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, TEXT_PARSER_DETECT_SIZE-1, 0 );
     bool res = false;
     if ( charsDecoded > 16 ) {
         int illegal_char_count = 0;
