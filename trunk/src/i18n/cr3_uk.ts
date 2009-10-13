@@ -22,7 +22,7 @@
         <location filename="../aboutdlg.ui" line="40"/>
         <source>Cool Reader 3.0.21</source>
         <translatorcomment>Версія змінюєтьтся</translatorcomment>
-        <translation>Cool Reader 3.0.21</translation>
+        <translation>CoolReader 3.0.21</translation>
     </message>
     <message>
         <location filename="../aboutdlg.ui" line="47"/>
@@ -667,7 +667,7 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader є безкоштовною вільною (open source) читалкою електронних текстів, що базується на двигуні CoolReader.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Сирці (джерельний код) доступні на SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Цирці розповсюджуються згідно умов ліцензії GNU GPL2.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Сирці розповсюджуються згідно умов ліцензії GNU GPL2.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Використані компоненти сторонніх розробників:&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 - як бібліотеку GUI&lt;/span&gt;&lt;/p&gt;
@@ -1157,7 +1157,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="220"/>
         <source>Back by page</source>
-        <translation>Назад за сторінкою</translation>
+        <translation>Перейти на попередню сторінку</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="223"/>
@@ -1367,7 +1367,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwindow.ui" line="401"/>
         <source>Settings dialog</source>
-        <translation>Діалог налаштувань</translation>
+        <translation>Вікно налаштувань</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="404"/>
@@ -1527,7 +1527,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../recentdlg.ui" line="14"/>
         <source>Recent Books</source>
-        <translation>Нещодавні книги</translation>
+        <translation>Нещодавно відкриті книги</translation>
     </message>
     <message>
         <location filename="../recentdlg.ui" line="41"/>

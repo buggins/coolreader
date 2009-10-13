@@ -24,7 +24,7 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="cr3res.qrc">
            <normaloff>:/icons/action/icons/coolreader.png</normaloff>:/icons/action/icons/coolreader.png</iconset>
          </property>
         </widget>
@@ -37,7 +37,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Cool Reader 3.0.21</string>
+          <string>Cool Reader 3.0.22</string>
          </property>
         </widget>
        </item>
@@ -112,6 +112,9 @@ p, li { white-space: pre-wrap; }
            </property>
            <property name="lineWrapMode">
             <enum>QPlainTextEdit::NoWrap</enum>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
            </property>
            <property name="plainText">
             <string>		    GNU GENERAL PUBLIC LICENSE
@@ -410,6 +413,9 @@ POSSIBILITY OF SUCH DAMAGES.
            <property name="lineWrapMode">
             <enum>QPlainTextEdit::NoWrap</enum>
            </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
            <property name="plainText">
             <string>Source code may be downloaded from sourceforge crengine project page.
 
@@ -442,7 +448,9 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="cr3res.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
