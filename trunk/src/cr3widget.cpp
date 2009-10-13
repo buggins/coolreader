@@ -402,7 +402,8 @@ bool CR3View::loadCSS( QString fn )
     if ( LVLoadStylesheetFile( filename, css ) ) {
         if ( !css.empty() ) {
             QFileInfo f( fn );
-            _cssDir = f.absolutePath();
+            CRLog::info( "Using style sheet from %s", fn.toUtf8().constData() );
+            _cssDir = f.absolutePath() + "/";
             _docview->setStyleSheet( css );
             return true;
         }
@@ -801,6 +802,7 @@ void CR3View::OnLoadFileFormatDetected( doc_format_t fileFormat )
             // do nothing
             ;
         }
+        CRLog::debug( "CSS file to load: %s", filename.toUtf8().constData() );
         if ( QFileInfo( _cssDir + filename ).exists() ) {
             loadCSS( _cssDir + filename );
         } else if ( QFileInfo( _cssDir + "fb2.css" ).exists() ) {
