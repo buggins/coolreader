@@ -84,6 +84,7 @@
 #define DOC_PROP_FILE_PATH       "doc.file.path"
 #define DOC_PROP_FILE_SIZE       "doc.file.size"
 #define DOC_PROP_FILE_FORMAT     "doc.file.format"
+#define DOC_PROP_FILE_FORMAT_ID  "doc.file.format.id"
 #define DOC_PROP_FILE_CRC32      "doc.file.crc32"
 #define DOC_PROP_CODE_BASE       "doc.file.code.base"
 

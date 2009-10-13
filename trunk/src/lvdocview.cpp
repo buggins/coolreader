@@ -2760,6 +2760,7 @@ void LVDocView::setDocFormat( doc_format_t fmt )
     m_doc_format = fmt;
     lString16 desc( getDocFormatName( fmt ) );
     m_doc_props->setString(DOC_PROP_FILE_FORMAT, desc );
+    m_doc_props->setInt(DOC_PROP_FILE_FORMAT_ID, (int)fmt );
 }
 
 bool LVDocView::ParseDocument( )
@@ -2794,6 +2795,20 @@ bool LVDocView::ParseDocument( )
 
         if ( m_doc->openFromCache( ) ) {
             CRLog::info("Document is found in cache, will reuse");
+
+            // update document format id
+            int fmt = m_doc_props->getIntDef(DOC_PROP_FILE_FORMAT_ID, doc_format_fb2 );
+            if ( fmt<doc_format_fb2 || fmt>doc_format_txt_bookmark )
+                fmt = doc_format_fb2;
+            m_doc_format = (doc_format_t)fmt;
+            // notify about format detection, to allow setting format-specific CSS
+            if ( m_callback ) {
+                m_callback->OnLoadFileFormatDetected( getDocFormat() );
+            }
+
+            // TODO: init doc format
+            //m_doc_format = fmt;
+
 
 		    // set stylesheet
             m_doc->setStyleSheet( m_stylesheet.c_str(), true );

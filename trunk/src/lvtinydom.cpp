@@ -4701,7 +4701,7 @@ void ldomFreeStorage()
 
 
 #if BUILD_LITE!=1
-static const char * doc_file_magic = "CoolReader3 Document Cache File\nformat version 3.01.03\n";
+static const char * doc_file_magic = "CoolReader3 Document Cache File\nformat version 3.01.04\n";
 
 
 bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )

@@ -1365,10 +1365,10 @@ bool LVTextBookmarkParser::CheckFormat()
     int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, TEXT_PARSER_DETECT_SIZE-1, 0 );
     bool res = false;
     lString16 pattern("# Cool Reader 3 - exported bookmarks\r\n# file name: ");
-    if ( charsDecoded > pattern.length() ) {
+    if ( charsDecoded > pattern.length() && chbuf[0]==0xFEFF) { // BOM
         res = true;
         for ( int i=0; i<pattern.length(); i++ )
-            if ( chbuf[i] != pattern[i] )
+            if ( chbuf[i+1] != pattern[i] )
                 res = false;
     }
     delete[] chbuf;
