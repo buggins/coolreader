@@ -58,6 +58,8 @@ private:
     PropsRef m_props;
 
 private slots:
+    void on_cbTxtPreFormatted_stateChanged(int );
+    void on_cbTxtPreFormatted_toggled(bool checked);
     void on_cbStartupAction_currentIndexChanged(int index);
     void on_cbHyphenation_currentIndexChanged(int index);
     void on_cbInterlineSpace_currentIndexChanged(int index);

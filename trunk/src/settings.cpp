@@ -30,6 +30,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     optionToUi( PROP_SHOW_BATTERY, m_ui->cbShowBattery );
     optionToUi( PROP_SHOW_TIME, m_ui->cbShowClock );
     optionToUi( PROP_SHOW_TITLE, m_ui->cbShowBookName );
+    optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUiInversed( PROP_STATUS_LINE, m_ui->cbShowPageHeader );
     bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
     m_ui->cbShowBattery->setEnabled( b );
@@ -403,4 +404,14 @@ void SettingsDlg::on_cbHyphenation_currentIndexChanged(int index)
 void SettingsDlg::on_cbStartupAction_currentIndexChanged(int index)
 {
     m_props->setInt( PROP_APP_START_ACTION, index );
+}
+
+void SettingsDlg::on_cbTxtPreFormatted_toggled(bool checked)
+{
+
+}
+
+void SettingsDlg::on_cbTxtPreFormatted_stateChanged(int s)
+{
+    setCheck( PROP_TXT_OPTION_PREFORMATTED, s );
 }
