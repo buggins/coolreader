@@ -174,6 +174,7 @@ void LVDocView::setTextFormatOptions( txt_format_t fmt )
     CRLog::trace( "setTextFormatOptions( %d ), current state = %d", (int)fmt, (int)m_text_format );
     if ( m_text_format == fmt )
         return; // no change
+    m_props->setBool( PROP_TXT_OPTION_PREFORMATTED, ( fmt == txt_format_pre ) );
     m_doc->setDocFlag( DOC_FLAG_PREFORMATTED_TEXT, ( fmt == txt_format_pre ) );
     if ( getDocFormat() == doc_format_txt ) {
         requestReload();
@@ -191,6 +192,22 @@ void LVDocView::requestReload()
 	if ( m_callback ) {
 		m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
 	}
+    if ( m_stream.isNull() && isDocumentOpened() ) {
+        savePosition();
+        CRFileHist * hist = getHistory();
+        if ( !hist || hist->getRecords().length()<=0 )
+            return;
+        lString16 fn = hist->getRecords()[0]->getFilePathName();
+        bool res = LoadDocument( fn.c_str() );
+        if ( res ) {
+            //swapToCache();
+            restorePosition();
+        } else {
+            createDefaultDocument( lString16(), lString16("Error while opening document ") + fn );
+        }
+        checkRender();
+        return;
+    }
     ParseDocument( );
     // TODO: save position
     checkRender();
@@ -2286,17 +2303,11 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
 
 void LVDocView::createDefaultDocument( lString16 title, lString16 message )
 {
-    lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
     Clear();
     m_showCover = false;
-    m_is_rendered = false;
-    m_doc = new ldomDocument();
-    m_doc->setDocFlags( saveFlags );
+    createEmptyDocument();
 
     ldomDocumentWriter writer(m_doc);
-    m_doc->setNodeTypes( fb2_elem_table );
-    m_doc->setAttributeTypes( fb2_attr_table );
-    m_doc->setNameSpaceTypes( fb2_ns_table );
 
     m_pos = 0;
 
@@ -2420,7 +2431,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             if ( mimeType == L"application/epub+zip" ) {
                 if ( m_doc )
                     delete m_doc;
-                m_doc = new ldomDocument();
+                createEmptyDocument();
                 m_doc->setProps( m_doc_props );
 
                 lString16 rootfilePath;
@@ -2763,23 +2774,37 @@ void LVDocView::setDocFormat( doc_format_t fmt )
     m_doc_props->setInt(DOC_PROP_FILE_FORMAT_ID, (int)fmt );
 }
 
-bool LVDocView::ParseDocument( )
+/// create document and set flags
+void LVDocView::createEmptyDocument()
 {
     m_posIsSet = false;
     m_swapDone = false;
     _posBookmark = ldomXPointer();
-    lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
+    lUInt32 saveFlags = 0;
+
+    //m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
+    m_is_rendered = false;
     if ( m_doc )
         delete m_doc;
-    m_is_rendered = false;
     m_doc = new ldomDocument();
 
+
     m_doc->setProps( m_doc_props );
-    m_doc->setDocFlags( saveFlags );
+    m_doc->setDocFlags( 0 );
+    m_doc->setDocFlag( DOC_FLAG_PREFORMATTED_TEXT, m_props->getBoolDef( PROP_TXT_OPTION_PREFORMATTED, false) );
+    m_doc->setDocFlag( DOC_FLAG_ENABLE_FOOTNOTES, m_props->getBoolDef( PROP_FOOTNOTES, true) );
+    m_doc->setDocFlag( DOC_FLAG_ENABLE_INTERNAL_STYLES, m_props->getBoolDef( PROP_EMBEDDED_STYLES, true) );
+
     m_doc->setContainer( m_container );
     m_doc->setNodeTypes( fb2_elem_table );
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
+}
+
+bool LVDocView::ParseDocument( )
+{
+
+    createEmptyDocument();
 
     if ( m_stream->GetSize() > DOCUMENT_CACHING_SIZE_THRESHOLD ) {
         // try loading from cache
@@ -3849,6 +3874,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->limitValueList( PROP_FONT_ANTIALIASING, def_aa_props, sizeof(def_aa_props)/sizeof(int) );
     props->setHexDef( PROP_FONT_COLOR, 0x000000 );
     props->setHexDef( PROP_BACKGROUND_COLOR, 0xFFFFFF );
+    props->setIntDef( PROP_TXT_OPTION_PREFORMATTED, 0 );
     lString8 defFontFace("Arial");
     props->setStringDef( PROP_FONT_FACE, defFontFace.c_str() );
     props->setStringDef( PROP_STATUS_FONT_FACE, defFontFace.c_str() );

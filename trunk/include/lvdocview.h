@@ -455,6 +455,8 @@ protected:
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
     /// set status bar and clock mode
     void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery );
+    /// create document and set flags
+    void createEmptyDocument();
 public:
     /// try swappping of document to cache, if size is big enough, and no swapping attempt yet done
     void swapToCache();
