@@ -1,49 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0">
+<!DOCTYPE TS><TS>
 <context>
     <name>AboutDialog</name>
     <message>
-        <location filename="../aboutdlg.cpp" line="32"/>
         <source>About CoolReader</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="24"/>
         <source>...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="40"/>
-        <source>Cool Reader 3.0.21</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../aboutdlg.ui" line="47"/>
         <source>20-09-2009</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="102"/>
         <source>License</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="117"/>
-        <source>		    GNU GENERAL PUBLIC LICENSE
-		       Version 2, June 1991
+        <source><byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
+<byte value="x9"/><byte value="x9"/>       Version 2, June 1991
 
  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
                        59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
-			    Preamble
+<byte value="x9"/><byte value="x9"/><byte value="x9"/>    Preamble
 
   The licenses for most software are designed to take away your
 freedom to share and change it.  By contrast, the GNU General Public
@@ -93,7 +80,7 @@ patent must be licensed for everyone&apos;s free use or not licensed at all.
   The precise terms and conditions for copying, distribution and
 modification follow.
 
-		    GNU GENERAL PUBLIC LICENSE
+<byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   0. This License applies to any program or other work which contains
@@ -292,7 +279,7 @@ make exceptions for this.  Our decision will be guided by the two goals
 of preserving the free status of all derivatives of our free software and
 of promoting the sharing and reuse of software generally.
 
-			    NO WARRANTY
+<byte value="x9"/><byte value="x9"/><byte value="x9"/>    NO WARRANTY
 
   11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
 FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
@@ -314,17 +301,15 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+<byte value="x9"/><byte value="x9"/>     END OF TERMS AND CONDITIONS
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="405"/>
         <source>Source Code</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="414"/>
         <source>Source code may be downloaded from sourceforge crengine project page.
 
 Latest source code is available from CVS:
@@ -335,22 +320,18 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="59"/>
         <source>(c) 1998-2009 Vadim Lopatin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="70"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="76"/>
         <source>About Cool Reader</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="79"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -369,60 +350,50 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Cool Reader 3.0.22</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>AddBookmarkDialog</name>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="30"/>
         <source>Add bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="38"/>
-        <location filename="../addbookmarkdlg.cpp" line="113"/>
         <source>Correction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="22"/>
         <source>Bookmark type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="66"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="73"/>
         <source>sample title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="35"/>
-        <location filename="../addbookmarkdlg.ui" line="32"/>
         <source>Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="39"/>
         <source>Page 1/10 10%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="46"/>
         <source>Position text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="37"/>
-        <location filename="../addbookmarkdlg.cpp" line="109"/>
-        <location filename="../addbookmarkdlg.ui" line="53"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
@@ -430,96 +401,78 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>BookmarkListDialog</name>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="22"/>
         <source>Bookmarks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Type</source>
         <comment>bookmark type</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="63"/>
         <source>P</source>
         <comment>Bookmark type first letter - Position</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="65"/>
         <source>C</source>
         <comment>Bookmark type first letter - Comment</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="67"/>
         <source>E</source>
         <comment>Bookmark type first letter - Correction/Edit</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="49"/>
         <source>Go to Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="52"/>
         <source>Return</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="57"/>
         <source>Remove Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="60"/>
         <source>Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="65"/>
         <source>Remove ALL Bookmarks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="70"/>
         <source>Edit Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="73"/>
         <source>F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="78"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="81"/>
         <source>Esc</source>
         <translation type="unfinished"></translation>
     </message>
@@ -527,7 +480,6 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>CR3View</name>
     <message>
-        <location filename="../cr3widget.cpp" line="244"/>
         <source>Error while opening document </source>
         <translation type="unfinished"></translation>
     </message>
@@ -535,197 +487,158 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>FilePropsDialog</name>
     <message>
-        <location filename="../filepropsdlg.cpp" line="13"/>
         <source>Document properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Property</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="166"/>
         <source>Current page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="167"/>
         <source>Total pages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="168"/>
         <source>Battery state</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="169"/>
         <source>Current Time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="174"/>
         <source>Current chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="177"/>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="179"/>
         <source>Archive name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="180"/>
         <source>Archive path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="181"/>
         <source>Archive size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="182"/>
         <source>File name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="183"/>
         <source>File path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="184"/>
         <source>File size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="185"/>
         <source>File format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="186"/>
         <source>File info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="188"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="189"/>
         <source>Author(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="190"/>
         <source>Series name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="191"/>
         <source>Series number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="192"/>
         <source>Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="193"/>
         <source>Genres</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="194"/>
         <source>Translator</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="195"/>
         <source>Book info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="197"/>
         <source>Document author</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="198"/>
         <source>Document date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="199"/>
         <source>Document source URL</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="200"/>
         <source>OCR by</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="201"/>
         <source>Document version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="202"/>
         <source>Document info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="204"/>
         <source>Publication name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="205"/>
         <source>Publisher</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="206"/>
         <source>Publisher city</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="207"/>
         <source>Publication year</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="208"/>
         <source>ISBN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="209"/>
         <source>Publication info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="211"/>
         <source>Custom info</source>
         <translation type="unfinished"></translation>
     </message>
@@ -733,22 +646,18 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.cpp" line="123"/>
         <source>Open book file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="125"/>
         <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="374"/>
         <source>Not implemented</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="374"/>
         <source>Search is not implemented yet</source>
         <translation type="unfinished"></translation>
     </message>
@@ -756,429 +665,342 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>MainWindowClass</name>
     <message>
-        <location filename="../mainwindow.ui" line="14"/>
         <source>CoolReader</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="71"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="83"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="99"/>
         <source>Navigation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="115"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="156"/>
         <source>Open...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="159"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="162"/>
         <source>F3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="167"/>
         <source>Toggle Pages/Scroll</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="170"/>
         <source>Ctrl+P</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="179"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="182"/>
         <source>F12</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="187"/>
         <source>Minimize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="190"/>
         <source>Esc</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="202"/>
         <source>Page Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="205"/>
         <source>Go to next page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="208"/>
         <source>PgDown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="217"/>
         <source>Page Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="220"/>
         <source>Back by page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="223"/>
         <source>PgUp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="228"/>
         <source>Line Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="231"/>
         <source>Forward by one line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="234"/>
         <source>Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="239"/>
         <source>Line Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="242"/>
         <source>Back by line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="245"/>
         <source>Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="250"/>
         <source>First Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="253"/>
         <source>Go to first page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="256"/>
         <source>Home</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="261"/>
         <source>Last Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="264"/>
         <source>Go to last page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="267"/>
         <source>End</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="272"/>
         <source>Back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="275"/>
         <source>Back in navigation history</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="278"/>
         <source>Backspace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="283"/>
         <source>Forward</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="286"/>
         <source>Go to the next position in navigation history</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="289"/>
         <source>Shift+Backspace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="294"/>
         <source>Next Chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="297"/>
         <source>Go to next chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="300"/>
         <source>Alt+Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="305"/>
         <source>Previous Chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="308"/>
         <source>Go to previous chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="311"/>
         <source>Alt+Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="323"/>
         <source>Toggle Full Screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="326"/>
         <source>Toggle Full Screen mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="329"/>
         <source>Alt+Return</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="338"/>
         <source>Zoom In</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="341"/>
         <source>Increase font size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="344"/>
         <source>+</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="353"/>
         <source>Zoom Out</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="356"/>
         <source>Decrease font size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="359"/>
         <source>-</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="368"/>
         <source>Table of Contents...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="371"/>
         <source>Show table of contents</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="374"/>
         <source>F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="383"/>
         <source>Recent Books</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="386"/>
         <source>Show recent books list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="389"/>
         <source>F5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="398"/>
         <source>Settings...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="401"/>
         <source>Settings dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="404"/>
         <source>F9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="413"/>
         <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="416"/>
         <source>Copy selected text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="419"/>
         <source>Ctrl+C</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="424"/>
         <source>copy2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="427"/>
         <source>Copy alternative shortcut</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="430"/>
         <source>Ctrl+Ins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="435"/>
-        <location filename="../mainwindow.ui" line="438"/>
         <source>About Qt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="443"/>
-        <location filename="../mainwindow.ui" line="446"/>
         <source>About CoolReader</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="449"/>
         <source>F1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="458"/>
         <source>Add Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="461"/>
         <source>Add bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="464"/>
         <source>Ctrl+B</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="473"/>
         <source>Bookmark List...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="476"/>
         <source>Show bookmarks list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="479"/>
         <source>F6</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="488"/>
         <source>File Properties...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="491"/>
         <source>Show file properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="494"/>
         <source>Ctrl+F1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="503"/>
         <source>Rotate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="506"/>
         <source>Ctrl+R</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="515"/>
         <source>Find text...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="518"/>
         <source>Find text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="521"/>
         <source>Ctrl+F</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1186,52 +1008,42 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>RecentBooksDlg</name>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>#</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>Author</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>Filename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="154"/>
         <source>Remove all history items</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="154"/>
         <source>Do you really want to remove all history records?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="14"/>
         <source>Recent Books</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="41"/>
         <source>Remove Item</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="44"/>
         <source>Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="49"/>
         <source>Clear All</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1239,266 +1051,222 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>SettingsDlg</name>
     <message>
-        <location filename="../settings.cpp" line="113"/>
         <source>[No hyphenation]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="115"/>
         <source>[Algorythmic hyphenation]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="124"/>
         <source>The quick brown fox jumps over the lazy dog. </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="323"/>
-        <location filename="../settings.ui" line="515"/>
         <source>Text color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="328"/>
-        <location filename="../settings.ui" line="529"/>
         <source>Background color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="333"/>
-        <location filename="../settings.ui" line="399"/>
         <source>Page header text color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="17"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="31"/>
         <source>Window options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="37"/>
         <source>Window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="45"/>
         <source>Look &amp; feel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="55"/>
         <source>Startup action</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="63"/>
         <source>Open recent book</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="68"/>
         <source>Show list of recent books</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="73"/>
         <source>Show File Open dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="78"/>
         <source>Do nothing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="86"/>
         <source>Controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="95"/>
         <source>Show toolbar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="102"/>
         <source>Show menu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="109"/>
         <source>Show scroll bar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="116"/>
         <source>Show status bar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="127"/>
         <source>Fullscreen display</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="135"/>
         <source>Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="181"/>
         <source>One page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="186"/>
         <source>Two pages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="191"/>
         <source>Scroll View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="205"/>
         <source>Vew Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="218"/>
         <source>Page margins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="226"/>
         <source>0</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="231"/>
         <source>5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="236"/>
         <source>8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="241"/>
         <source>10</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="246"/>
         <source>15</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="251"/>
         <source>20</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="256"/>
         <source>25</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="261"/>
         <source>30</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="271"/>
         <source>Show page header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="296"/>
         <source>Book name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="323"/>
         <source>Clock</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="350"/>
         <source>Battery status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="382"/>
         <source>Header font</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="414"/>
-        <location filename="../settings.ui" line="680"/>
-        <location filename="../settings.ui" line="734"/>
         <source>Change</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="471"/>
         <source>Show footnotes at bottom of page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="507"/>
         <source>Styles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="522"/>
         <source>Text font</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="594"/>
         <source>Hyphenation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="601"/>
         <source>Interline spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="614"/>
         <source>Page skin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="649"/>
         <source>Sample</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>.TXT files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable automatic formatting</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>TocDlg</name>
     <message>
-        <location filename="../tocdlg.cpp" line="50"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tocdlg.cpp" line="50"/>
         <source>Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tocdlg.ui" line="14"/>
         <source>Table of Contents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

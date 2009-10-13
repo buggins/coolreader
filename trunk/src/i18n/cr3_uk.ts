@@ -1,51 +1,40 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="uk_UA" sourcelanguage="en">
+<!DOCTYPE TS><TS>
 <context>
     <name>AboutDialog</name>
     <message>
-        <location filename="../aboutdlg.cpp" line="32"/>
         <source>About CoolReader</source>
         <translation>Про CoolReader</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="24"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="40"/>
         <source>Cool Reader 3.0.21</source>
-        <translatorcomment>Версія змінюєтьтся</translatorcomment>
-        <translation>CoolReader 3.0.21</translation>
+        <translation type="obsolete">CoolReader 3.0.21</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="47"/>
         <source>20-09-2009</source>
-        <translatorcomment>Дата змінюється</translatorcomment>
         <translation>20.09.2009</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="102"/>
         <source>License</source>
         <translation>Ліцензія</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="117"/>
-        <source>		    GNU GENERAL PUBLIC LICENSE
-		       Version 2, June 1991
+        <source><byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
+<byte value="x9"/><byte value="x9"/>       Version 2, June 1991
 
  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
                        59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
-			    Preamble
+<byte value="x9"/><byte value="x9"/><byte value="x9"/>    Preamble
 
   The licenses for most software are designed to take away your
 freedom to share and change it.  By contrast, the GNU General Public
@@ -95,7 +84,7 @@ patent must be licensed for everyone&apos;s free use or not licensed at all.
   The precise terms and conditions for copying, distribution and
 modification follow.
 
-		    GNU GENERAL PUBLIC LICENSE
+<byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   0. This License applies to any program or other work which contains
@@ -294,7 +283,7 @@ make exceptions for this.  Our decision will be guided by the two goals
 of preserving the free status of all derivatives of our free software and
 of promoting the sharing and reuse of software generally.
 
-			    NO WARRANTY
+<byte value="x9"/><byte value="x9"/><byte value="x9"/>    NO WARRANTY
 
   11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
 FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
@@ -316,10 +305,10 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+<byte value="x9"/><byte value="x9"/>     END OF TERMS AND CONDITIONS
 </source>
-        <translation>		    GNU GENERAL PUBLIC LICENSE
-		       Version 2, June 1991
+        <translation><byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
+<byte value="x9"/><byte value="x9"/>       Version 2, June 1991
 
 
 Український неофіційний переклад Загальною Публічної Ліцензії GNU 
@@ -332,7 +321,7 @@ http://www.linux.kiev.ua/ua/devel/licenses/gnu-gpl2/
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
-			    Preamble
+<byte value="x9"/><byte value="x9"/><byte value="x9"/>    Preamble
 
   The licenses for most software are designed to take away your
 freedom to share and change it.  By contrast, the GNU General Public
@@ -382,7 +371,7 @@ patent must be licensed for everyone&apos;s free use or not licensed at all.
   The precise terms and conditions for copying, distribution and
 modification follow.
 
-		    GNU GENERAL PUBLIC LICENSE
+<byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   0. This License applies to any program or other work which contains
@@ -581,7 +570,7 @@ make exceptions for this.  Our decision will be guided by the two goals
 of preserving the free status of all derivatives of our free software and
 of promoting the sharing and reuse of software generally.
 
-			    NO WARRANTY
+<byte value="x9"/><byte value="x9"/><byte value="x9"/>    NO WARRANTY
 
   11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
 FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
@@ -603,16 +592,14 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+<byte value="x9"/><byte value="x9"/>     END OF TERMS AND CONDITIONS
 </translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="405"/>
         <source>Source Code</source>
         <translation>Джерельний код</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="414"/>
         <source>Source code may be downloaded from sourceforge crengine project page.
 
 Latest source code is available from CVS:
@@ -629,22 +616,18 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="59"/>
         <source>(c) 1998-2009 Vadim Lopatin</source>
         <translation>© 1998-2009 Вадім Лопатін</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="70"/>
         <source>About</source>
         <translation>Про</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="76"/>
         <source>About Cool Reader</source>
         <translation>Про Cool Reader</translation>
     </message>
     <message>
-        <location filename="../aboutdlg.ui" line="79"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -678,60 +661,50 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Словники переносів - взято з AlReader&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
+    <message>
+        <source>Cool Reader 3.0.22</source>
+        <translation type="unfinished">CoolReader 3.0.22</translation>
+    </message>
 </context>
 <context>
     <name>AddBookmarkDialog</name>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="30"/>
         <source>Add bookmark</source>
         <translation>Додати закладку</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="38"/>
-        <location filename="../addbookmarkdlg.cpp" line="113"/>
         <source>Correction</source>
         <translation>Корекція</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="22"/>
         <source>Bookmark type</source>
         <translation>Тип закладки</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="66"/>
         <source>Title</source>
         <translation>Назва</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="73"/>
         <source>sample title</source>
         <translation>зразок назви</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="35"/>
-        <location filename="../addbookmarkdlg.ui" line="32"/>
         <source>Position</source>
         <translation>Позиція</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="39"/>
         <source>Page 1/10 10%</source>
         <translation>Сторінка 1/10 10%</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.ui" line="46"/>
         <source>Position text</source>
         <translation>Позиція тексту</translation>
     </message>
     <message>
-        <location filename="../addbookmarkdlg.cpp" line="37"/>
-        <location filename="../addbookmarkdlg.cpp" line="109"/>
-        <location filename="../addbookmarkdlg.ui" line="53"/>
         <source>Comment</source>
         <translation>Коментар</translation>
     </message>
@@ -739,96 +712,78 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>BookmarkListDialog</name>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="22"/>
         <source>Bookmarks</source>
         <translation>Закладки</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Position</source>
         <translation>Позиція</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Type</source>
         <comment>bookmark type</comment>
         <translation>Тип</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Text</source>
         <translation>Текст</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="25"/>
         <source>Comment</source>
         <translation>Коментар</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="63"/>
         <source>P</source>
         <comment>Bookmark type first letter - Position</comment>
         <translation>П</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="65"/>
         <source>C</source>
         <comment>Bookmark type first letter - Comment</comment>
         <translation>К</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.cpp" line="67"/>
         <source>E</source>
         <comment>Bookmark type first letter - Correction/Edit</comment>
         <translation>Р</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="49"/>
         <source>Go to Bookmark</source>
         <translation>Перейти до закладки</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="52"/>
         <source>Return</source>
         <translation>Повернутися</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="57"/>
         <source>Remove Bookmark</source>
         <translation>Вилучити закладку</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="60"/>
         <source>Del</source>
         <translation>Del</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="65"/>
         <source>Remove ALL Bookmarks</source>
         <translation>Вилучити УСІ закладки</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="70"/>
         <source>Edit Bookmark</source>
         <translation>Редагувати закладку</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="73"/>
         <source>F4</source>
         <translation>F4</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="78"/>
         <source>Close</source>
         <translation>Закрити</translation>
     </message>
     <message>
-        <location filename="../bookmarklistdlg.ui" line="81"/>
         <source>Esc</source>
         <translation>Esc</translation>
     </message>
@@ -836,7 +791,6 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>CR3View</name>
     <message>
-        <location filename="../cr3widget.cpp" line="244"/>
         <source>Error while opening document </source>
         <translation>Помилка при відкритті документу </translation>
     </message>
@@ -844,197 +798,158 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>FilePropsDialog</name>
     <message>
-        <location filename="../filepropsdlg.cpp" line="13"/>
         <source>Document properties</source>
         <translation>Властивості документу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.ui" line="14"/>
         <source>Dialog</source>
         <translation>Діалог</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Property</source>
         <translation>Властивість</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="16"/>
         <source>Value</source>
         <translation>Значення</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="166"/>
         <source>Current page</source>
         <translation>Поточна сторінка</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="167"/>
         <source>Total pages</source>
         <translation>Всього сторінок</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="168"/>
         <source>Battery state</source>
         <translation>Стан батареї</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="169"/>
         <source>Current Time</source>
         <translation>Поточний час</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="174"/>
         <source>Current chapter</source>
         <translation>Поточний розділ</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="177"/>
         <source>Status</source>
         <translation>Стан</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="179"/>
         <source>Archive name</source>
         <translation>Ім&apos;я архіву</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="180"/>
         <source>Archive path</source>
         <translation>Шлях до архіву</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="181"/>
         <source>Archive size</source>
         <translation>Розмір архіву</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="182"/>
         <source>File name</source>
         <translation>Ім&apos;я файлу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="183"/>
         <source>File path</source>
         <translation>Шлях до файлу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="184"/>
         <source>File size</source>
         <translation>Розмір файлу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="185"/>
         <source>File format</source>
         <translation>Формат файлу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="186"/>
         <source>File info</source>
         <translation>Інформація про файл</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="188"/>
         <source>Title</source>
         <translation>Назва</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="189"/>
         <source>Author(s)</source>
         <translation>Автор(и)</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="190"/>
         <source>Series name</source>
         <translation>Назва серії</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="191"/>
         <source>Series number</source>
         <translation>№ в серії</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="192"/>
         <source>Date</source>
         <translation>Дата</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="193"/>
         <source>Genres</source>
         <translation>Жанри</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="194"/>
         <source>Translator</source>
         <translation>Перекладач</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="195"/>
         <source>Book info</source>
         <translation>Інформація про книгу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="197"/>
         <source>Document author</source>
         <translation>Документ створив</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="198"/>
         <source>Document date</source>
         <translation>Дата створення документу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="199"/>
         <source>Document source URL</source>
         <translation>URL тексту-джерела</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="200"/>
         <source>OCR by</source>
         <translation>Оцифровувач</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="201"/>
         <source>Document version</source>
         <translation>Версія документу</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="202"/>
         <source>Document info</source>
         <translation>Інформація про документ</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="204"/>
         <source>Publication name</source>
         <translation>Назва видання</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="205"/>
         <source>Publisher</source>
         <translation>Видавництво</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="206"/>
         <source>Publisher city</source>
         <translation>Місто видання</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="207"/>
         <source>Publication year</source>
         <translation>Рік видання</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="208"/>
         <source>ISBN</source>
         <translation>ISBN</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="209"/>
         <source>Publication info</source>
         <translation>Інформація про видання</translation>
     </message>
     <message>
-        <location filename="../filepropsdlg.cpp" line="211"/>
         <source>Custom info</source>
         <translation>Додаткова інформація</translation>
     </message>
@@ -1042,22 +957,18 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.cpp" line="123"/>
         <source>Open book file</source>
         <translation>Відкриття файлу книги</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="125"/>
         <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
         <translation>Усі, що підтримуються (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2-книги (*.fb2 *.fb2.zip);;Текстові файли (*.txt);;RTF-документи (*.rtf);;HTML-файли (*.htm *.html);;ePub-файли (*.epub);;ZIP-архіви (*.zip)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="374"/>
         <source>Not implemented</source>
         <translation>Ще не впроваджено</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="374"/>
         <source>Search is not implemented yet</source>
         <translation>Пошук ще не впроваджено</translation>
     </message>
@@ -1065,429 +976,342 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>MainWindowClass</name>
     <message>
-        <location filename="../mainwindow.ui" line="14"/>
         <source>CoolReader</source>
         <translation>CoolReader</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="71"/>
         <source>File</source>
         <translation>Файл</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="83"/>
         <source>View</source>
         <translation>Вигляд</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="99"/>
         <source>Navigation</source>
         <translation>Навіґація</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="115"/>
         <source>Help</source>
         <translation>Довідка</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="156"/>
         <source>Open...</source>
         <translation>Відкрити...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="159"/>
         <source>Open file</source>
         <translation>Відкрити файл</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="162"/>
         <source>F3</source>
         <translation>F3</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="167"/>
         <source>Toggle Pages/Scroll</source>
         <translation>Сторінки/Сувій</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="170"/>
         <source>Ctrl+P</source>
         <translation>Ctrl+P</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="179"/>
         <source>Close</source>
         <translation>Закрити</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="182"/>
         <source>F12</source>
         <translation>F12</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="187"/>
         <source>Minimize</source>
         <translation>Згорнути</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="190"/>
         <source>Esc</source>
         <translation>Esc</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="202"/>
         <source>Page Down</source>
         <translation>Наступна сторінка</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="205"/>
         <source>Go to next page</source>
         <translation>Перейти до наступної сторінки</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="208"/>
         <source>PgDown</source>
         <translation>PgDown</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="217"/>
         <source>Page Up</source>
         <translation>Попередня сторінка</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="220"/>
         <source>Back by page</source>
         <translation>Перейти на попередню сторінку</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="223"/>
         <source>PgUp</source>
         <translation>PgUp</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="228"/>
         <source>Line Down</source>
         <translation>На рядок вниз</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="231"/>
         <source>Forward by one line</source>
         <translation>Вперед на один рядок</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="234"/>
         <source>Down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="239"/>
         <source>Line Up</source>
         <translation>На рядок вгору</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="242"/>
         <source>Back by line</source>
         <translation>Назад за рядком</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="245"/>
         <source>Up</source>
         <translation>Вгору</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="250"/>
         <source>First Page</source>
         <translation>Перша сторінка</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="253"/>
         <source>Go to first page</source>
         <translation>Перейти до першої сторінки</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="256"/>
         <source>Home</source>
         <translation>Home</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="261"/>
         <source>Last Page</source>
         <translation>Остання сторінка</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="264"/>
         <source>Go to last page</source>
         <translation>Перейти до останньої сторінки</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="267"/>
         <source>End</source>
         <translation>End</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="272"/>
         <source>Back</source>
         <translation>Назад</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="275"/>
         <source>Back in navigation history</source>
         <translation>Перейти назад по історії навіґації</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="278"/>
         <source>Backspace</source>
         <translation>Backspace</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="283"/>
         <source>Forward</source>
         <translation>Вперед</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="286"/>
         <source>Go to the next position in navigation history</source>
         <translation>Перейти на наступну позицію в історії навіґації</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="289"/>
         <source>Shift+Backspace</source>
         <translation>Shift+Backspace</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="294"/>
         <source>Next Chapter</source>
         <translation>Наступний розділ</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="297"/>
         <source>Go to next chapter</source>
         <translation>Перейти до наступного розділу</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="300"/>
         <source>Alt+Down</source>
         <translation>Alt+Вниз</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="305"/>
         <source>Previous Chapter</source>
         <translation>Попередній розділ</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="308"/>
         <source>Go to previous chapter</source>
         <translation>Перейти до попереднього розділу</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="311"/>
         <source>Alt+Up</source>
         <translation>Alt+Вгору</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="323"/>
         <source>Toggle Full Screen</source>
         <translation>На весь екран</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="326"/>
         <source>Toggle Full Screen mode</source>
         <translation>Повноекранний режим</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="329"/>
         <source>Alt+Return</source>
         <translation>Alt+Return</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="338"/>
         <source>Zoom In</source>
         <translation>Збільшити</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="341"/>
         <source>Increase font size</source>
         <translation>Збільшити розмір шрифту</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="344"/>
         <source>+</source>
         <translation>+</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="353"/>
         <source>Zoom Out</source>
         <translation>Зменшити</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="356"/>
         <source>Decrease font size</source>
         <translation>Зменшити розмір шрифту</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="359"/>
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="368"/>
         <source>Table of Contents...</source>
         <translation>Зміст...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="371"/>
         <source>Show table of contents</source>
         <translation>Показати зміст книги</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="374"/>
         <source>F4</source>
         <translation>F4</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="383"/>
         <source>Recent Books</source>
         <translation>Останні книги</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="386"/>
         <source>Show recent books list</source>
         <translation>Показати список останніх книг</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="389"/>
         <source>F5</source>
         <translation>F5</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="398"/>
         <source>Settings...</source>
         <translation>Налаштування...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="401"/>
         <source>Settings dialog</source>
         <translation>Вікно налаштувань</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="404"/>
         <source>F9</source>
         <translation>F9</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="413"/>
         <source>Copy</source>
         <translation>Копіювати</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="416"/>
         <source>Copy selected text</source>
         <translation>Копіювати виділений текст</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="419"/>
         <source>Ctrl+C</source>
         <translation>Ctrl+C</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="424"/>
         <source>copy2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="427"/>
         <source>Copy alternative shortcut</source>
         <translation>Копіювати альтернативний ярлик</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="430"/>
         <source>Ctrl+Ins</source>
         <translation>Ctrl+Ins</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="435"/>
-        <location filename="../mainwindow.ui" line="438"/>
         <source>About Qt</source>
         <translation>Про Qt</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="443"/>
-        <location filename="../mainwindow.ui" line="446"/>
         <source>About CoolReader</source>
         <translation>Про CoolReader</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="449"/>
         <source>F1</source>
         <translation>F1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="458"/>
         <source>Add Bookmark</source>
         <translation>Додати закладку</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="461"/>
         <source>Add bookmark</source>
         <translation>Додати закладку</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="464"/>
         <source>Ctrl+B</source>
         <translation>Ctrl+B</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="473"/>
         <source>Bookmark List...</source>
         <translation>Список закладок...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="476"/>
         <source>Show bookmarks list</source>
         <translation>Показати список закладок</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="479"/>
         <source>F6</source>
         <translation>F6</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="488"/>
         <source>File Properties...</source>
         <translation>Властивості файлу...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="491"/>
         <source>Show file properties</source>
         <translation>Показати властивості файлу</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="494"/>
         <source>Ctrl+F1</source>
         <translation>Ctrl+F1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="503"/>
         <source>Rotate</source>
         <translation>Повернути</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="506"/>
         <source>Ctrl+R</source>
         <translation>Ctrl+R</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="515"/>
         <source>Find text...</source>
         <translation>Знайти текст...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="518"/>
         <source>Find text</source>
         <translation>Знайти текст</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="521"/>
         <source>Ctrl+F</source>
         <translation>Ctrl+F</translation>
     </message>
@@ -1495,52 +1319,42 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>RecentBooksDlg</name>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>#</source>
         <translation>№</translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>Author</source>
         <translation>Автор</translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>Title</source>
         <translation>Назва</translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="16"/>
         <source>Filename</source>
         <translation>Ім&apos;я файлу</translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="154"/>
         <source>Remove all history items</source>
         <translation>Вилучити усі записи історії</translation>
     </message>
     <message>
-        <location filename="../recentdlg.cpp" line="154"/>
         <source>Do you really want to remove all history records?</source>
         <translation>Справді бажаєте вилучити усі записи історії?</translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="14"/>
         <source>Recent Books</source>
         <translation>Нещодавно відкриті книги</translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="41"/>
         <source>Remove Item</source>
         <translation>Вилучити елемент</translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="44"/>
         <source>Del</source>
         <translation>Del</translation>
     </message>
     <message>
-        <location filename="../recentdlg.ui" line="49"/>
         <source>Clear All</source>
         <translation>Очистити усе</translation>
     </message>
@@ -1548,267 +1362,223 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>SettingsDlg</name>
     <message>
-        <location filename="../settings.cpp" line="113"/>
         <source>[No hyphenation]</source>
         <translation>[Без переносів]</translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="115"/>
         <source>[Algorythmic hyphenation]</source>
         <translation>[Алгоритмічні переноси]</translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="124"/>
         <source>The quick brown fox jumps over the lazy dog. </source>
         <translation>Спритний собака здатен долати високі бар&apos;єри. </translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="323"/>
-        <location filename="../settings.ui" line="515"/>
         <source>Text color</source>
         <translation>Колір тексту</translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="328"/>
-        <location filename="../settings.ui" line="529"/>
         <source>Background color</source>
         <translation>Колір тла</translation>
     </message>
     <message>
-        <location filename="../settings.cpp" line="333"/>
-        <location filename="../settings.ui" line="399"/>
         <source>Page header text color</source>
         <translation>Колір тексту заголовку сторінки</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="17"/>
         <source>Settings</source>
         <translation>Налаштування</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="31"/>
         <source>Window options</source>
         <translation>Налаштування вікна</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="37"/>
         <source>Window</source>
         <translation>Вікно</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="45"/>
         <source>Look &amp; feel</source>
         <translation>Оформлення</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="55"/>
         <source>Startup action</source>
         <translation>Дія при запуску</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="63"/>
         <source>Open recent book</source>
         <translation>Відкрити останню книгу</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="68"/>
         <source>Show list of recent books</source>
         <translation>Показати список останніх книг</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="73"/>
         <source>Show File Open dialog</source>
         <translation>Показати діалог відкриття файлу</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="78"/>
         <source>Do nothing</source>
         <translation>Нічого не робити</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="86"/>
         <source>Controls</source>
         <translation>Керування</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="95"/>
         <source>Show toolbar</source>
         <translation>Показувати панель інструментів</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="102"/>
         <source>Show menu</source>
         <translation>Показувати меню</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="109"/>
         <source>Show scroll bar</source>
         <translation>Показувати смугу прокрутки</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="116"/>
         <source>Show status bar</source>
         <translation>Показувати смугу стану</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="127"/>
         <source>Fullscreen display</source>
         <translation>Відображення на весь екран</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="135"/>
         <source>Page</source>
         <translation>Сторінка</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="181"/>
         <source>One page</source>
         <translation>Одна сторінка</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="186"/>
         <source>Two pages</source>
         <translation>Дві сторінки</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="191"/>
         <source>Scroll View</source>
         <translation>Сувій (єдина довга сторінка)</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="205"/>
         <source>Vew Mode</source>
         <translation>Режим читання</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="218"/>
         <source>Page margins</source>
         <translation>Поля сторінки</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="226"/>
         <source>0</source>
         <translation>0</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="231"/>
         <source>5</source>
         <translation>5</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="236"/>
         <source>8</source>
         <translation>8</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="241"/>
         <source>10</source>
         <translation>10</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="246"/>
         <source>15</source>
         <translation>15</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="251"/>
         <source>20</source>
         <translation>20</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="256"/>
         <source>25</source>
         <translation>25</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="261"/>
         <source>30</source>
         <translation>30</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="271"/>
         <source>Show page header</source>
         <translation>Показувати заголовок сторінки</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="296"/>
         <source>Book name</source>
         <translation>Назва книги</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="323"/>
         <source>Clock</source>
         <translation>Годинник</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="350"/>
         <source>Battery status</source>
         <translation>Стан батареї</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="382"/>
         <source>Header font</source>
         <translation>Шрифт заголовку</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="414"/>
-        <location filename="../settings.ui" line="680"/>
-        <location filename="../settings.ui" line="734"/>
         <source>Change</source>
         <translation>Змінити</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="471"/>
         <source>Show footnotes at bottom of page</source>
         <translation>Показувати примітки внизу сторінки</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="507"/>
         <source>Styles</source>
         <translation>Стилі</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="522"/>
         <source>Text font</source>
         <translation>Шрифт тексту</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="594"/>
         <source>Hyphenation</source>
         <translation>Переноси</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="601"/>
         <source>Interline spacing</source>
         <translation>Міжрядковий інтервал</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="614"/>
         <source>Page skin</source>
         <translation>Жупан сторінки</translation>
     </message>
     <message>
-        <location filename="../settings.ui" line="649"/>
         <source>Sample</source>
         <translation>Зразок</translation>
+    </message>
+    <message>
+        <source>.TXT files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable automatic formatting</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>TocDlg</name>
     <message>
-        <location filename="../tocdlg.cpp" line="50"/>
         <source>Title</source>
         <translation>Назва</translation>
     </message>
     <message>
-        <location filename="../tocdlg.cpp" line="50"/>
         <source>Page</source>
         <translation>Сторінка</translation>
     </message>
     <message>
-        <location filename="../tocdlg.ui" line="14"/>
         <source>Table of Contents</source>
         <translation>Зміст</translation>
+    </message>
+    <message>
+        <source>1</source>
+        <translation type="unfinished">1</translation>
     </message>
 </context>
 </TS>
