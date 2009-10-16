@@ -1839,9 +1839,41 @@ bool LVDocView::goLink( lString16 link )
             return false;
     }
     if ( link[0]!='#' || link.length()<=1 ) {
-        if ( m_callback ) {
-            m_callback->OnExternalLink( link, element );
-            return true;
+        lString16 filename = link;
+        lString16 id;
+        int p = filename.pos(L"#");
+        if ( p>=0 ) {
+            // split filename and anchor
+            // part1.html#chapter3 =>   part1.html & chapter3
+            id = filename.substr( p + 1 );
+            filename = filename.substr( 0, p );
+        }
+        if ( filename.pos(L":")>=0 ) {
+            // URL with protocol like http://
+            if ( m_callback ) {
+                m_callback->OnExternalLink( link, element );
+                return true;
+            }
+        } else {
+            // otherwise assume
+            CRLog::debug("Link to another file: %s   anchor=%s", UnicodeToUtf8(filename).c_str(), UnicodeToUtf8(id).c_str() );
+            LVStreamRef stream = m_container->OpenStream( filename.c_str(), LVOM_READ );
+            if ( stream.isNull() ) {
+                CRLog::error("Go to link: cannot find file %s", UnicodeToUtf8(filename).c_str() );
+                return false;
+            }
+            CRLog::info("Go to link: file %s is found", UnicodeToUtf8(filename).c_str() );
+            // TODO: load document from stream properly
+            if ( !LoadDocument(stream) ) {
+                createDefaultDocument( lString16(L"Load error"), lString16(L"Cannot open file ") + filename );
+                return false;
+            }
+            // TODO: setup properties
+            // go to anchor
+            if ( !id.empty() )
+                goLink(lString16(L"#") + id );
+            clearImageCache();
+            requestRender();
         }
         return false; // only internal links supported (started with #)
     }
