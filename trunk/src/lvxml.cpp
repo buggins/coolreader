@@ -2542,6 +2542,34 @@ void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )
     m_trimspaces = flgTrimSpaces;
 }
 
+lString16 htmlCharset( lString16 htmlHeader )
+{
+    // META HTTP-EQUIV
+    lString16 meta(L"meta http-equiv=\"content-type\"");
+    int p = htmlHeader.pos( meta );
+    if ( p<0 )
+        return lString16();
+    htmlHeader = htmlHeader.substr( p + meta.length() );
+    p = htmlHeader.pos(L">");
+    if ( p<0 )
+        return lString16();
+    htmlHeader = htmlHeader.substr( 0, p );
+    CRLog::trace("http-equiv content-type: %s", UnicodeToUtf8(htmlHeader).c_str() );
+    p = htmlHeader.pos(L"charset=");
+    if ( p<0 )
+        return lString16();
+    htmlHeader = htmlHeader.substr( p + 8 ); // skip "charset="
+    lString16 enc;
+    for ( int i=0; i<htmlHeader.length(); i++ ) {
+        lChar16 ch = htmlHeader[i];
+        if ( (ch>='a' && ch<='z') || (ch>='0' && ch<='9') || (ch=='-') || (ch=='_') )
+            enc += ch;
+        else
+            break;
+    }
+    return enc;
+}
+
 /// HTML parser
 /// returns true if format is recognized by parser
 bool LVHTMLParser::CheckFormat()
@@ -2557,8 +2585,12 @@ bool LVHTMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        if ( s.pos(L"<html") >=0 && ( s.pos(L"<head") >= 0 || s.pos(L"<body") ) ) //&& s.pos(L"<FictionBook") >= 0
+        s.lowercase();
+        if ( s.pos(L"<html") >=0 && ( s.pos(L"<head") >= 0 || s.pos(L"<body") >=0 ) ) //&& s.pos(L"<FictionBook") >= 0
             res = true;
+        lString16 enc = htmlCharset( s );
+        if ( !enc.empty() )
+            SetCharset( enc.c_str() );
         //else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
         //    res = true;
     }
