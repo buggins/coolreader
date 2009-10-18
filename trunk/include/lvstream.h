@@ -723,6 +723,8 @@ lString16 LVExtractFilename( lString16 pathName );
 lString16 LVExtractFilenameWithoutExtension( lString16 pathName );
 /// appends path delimiter character to end of path, if absent
 void LVAppendPathDelimiter( lString16 & pathName );
+/// replaces any found / or \\ separator with specified one
+void LVReplacePathSeparator( lString16 & pathName, lChar16 separator );
 /// removes path delimiter character from end of path, if exists
 void LVRemovePathDelimiter( lString16 & pathName );
 /// returns path delimiter character
@@ -731,6 +733,8 @@ lChar16 LVDetectPathDelimiter( lString16 pathName );
 bool LVIsAbsolutePath( lString16 pathName );
 /// returns full path to file identified by pathName, with base directory == basePath
 lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName );
+// resolve relative links
+lString16 LVCombinePaths( lString16 basePath, lString16 newPath );
 
 /// returns true if specified file exists
 bool LVFileExists( lString16 pathName );

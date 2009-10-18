@@ -469,7 +469,7 @@ public:
     /// render document, if not rendered
     void checkRender();
     /// saves current position to navigation history, to be able return back
-    void savePosToNavigationHistory();
+    bool savePosToNavigationHistory();
     /// returns pointer to bookmark/last position containter of currently opened file
     CRFileHistRecord * getCurrentFileHistRecord();
 	/// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
@@ -544,7 +544,7 @@ public:
     /// returns selected link on page, if any. null if no links.
     virtual ldomXRange * getCurrentPageSelectedLink();
     /// follow link, returns true if navigation was successful
-    virtual bool goLink( lString16 href );
+    virtual bool goLink( lString16 href, bool savePos=true );
     /// follow selected link, returns true if navigation was successful
     virtual bool goSelectedLink();
     /// go back. returns true if navigation was successful

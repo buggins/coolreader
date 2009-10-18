@@ -2242,6 +2242,8 @@ class LVZipArc : public LVArcContainerBase
 public:
     virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t mode )
     {
+        if ( fname[0]=='/' )
+            fname++;
         int found_index = -1;
         for (int i=0; i<m_list.length(); i++) {
             if ( !lStr_cmp( fname, m_list[i]->GetName() ) ) {
@@ -3877,6 +3879,67 @@ void LVAppendPathDelimiter( lString16 & pathName )
     if ( pathName[pathName.length()-1]!=delim )
         pathName << delim;
 }
+
+/// replaces any found / or \\ separator with specified one
+void LVReplacePathSeparator( lString16 & pathName, lChar16 separator )
+{
+    lChar16 * buf = pathName.modify();
+    for ( ; *buf; buf++ )
+        if ( *buf=='/' || *buf=='\\' )
+            *buf = separator;
+}
+
+// resolve relative links
+lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
+{
+    if ( newPath[0]=='/' || newPath[0]=='\\' || (newPath.length()>0 && newPath[1]==':' && newPath[2]=='\\') )
+        return newPath; // absolute path
+    lChar16 separator = 0;
+    for ( int i=0; i<basePath.length(); i++ ) {
+        if ( basePath[i]=='/' || basePath[i]=='\\' ) {
+            separator = basePath[i];
+            break;
+        }
+    }
+    if ( separator == 0 )
+        for ( int i=0; i<newPath.length(); i++ ) {
+            if ( newPath[i]=='/' || newPath[i]=='\\' ) {
+                separator = newPath[i];
+                break;
+            }
+        }
+    if ( separator == 0 )
+        separator = '/';
+    lString16 s = basePath;
+    LVAppendPathDelimiter( s );
+    s += newPath;
+    //LVAppendPathDelimiter( s );
+    LVReplacePathSeparator( s, separator );
+    lString16 pattern;
+    pattern << separator << L".." << separator;
+    bool changed;
+    do {
+        changed = false;
+        int lastElementStart = -1;
+        for ( int i=0; i<s.length()-pattern.length(); i++ ) {
+            if ( s[i]==separator && s[i+1]!='.' && s[i]!=separator )
+                lastElementStart = i;
+            else if ( s[i]==separator && s[i+1]=='.' && s[i+2]=='.' && s[i+3]==separator ) {
+                if ( lastElementStart>=0 ) {
+                    // /a/b/../c/
+                    // 0123456789
+                    //   ^ ^
+                    s.erase( lastElementStart+1, i+4-lastElementStart-1 );
+                    changed = true;
+                    lastElementStart = -1;
+                    break;
+                }
+            }
+        }
+    } while ( changed );
+    return s;
+}
+
 
 /// removes last path part from pathname and returns it
 lString16 LVExtractLastPathElement( lString16 & pathName )

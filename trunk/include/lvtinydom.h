@@ -1282,11 +1282,17 @@ class ldomNavigationHistory
             _links.clear();
             _pos = 0;
         }
-        void save( lString16 link )
+        bool save( lString16 link )
         {
-            clearTail();
-            _links.add( link );
-            _pos = _links.length();
+            if (_pos==_links.length() && _pos>0 && _links[_pos-1]==link )
+                return false;
+            if ( _pos>=_links.length() || _links[_pos]!=link ) {
+                clearTail();
+                _links.add( link );
+                _pos = _links.length();
+                return true;
+            }
+            return false;
         }
         lString16 back()
         {
@@ -1296,9 +1302,9 @@ class ldomNavigationHistory
         }
         lString16 forward()
         {
-            if (_pos>=(int)_links.length())
+            if (_pos>=(int)_links.length()-1)
                 return lString16();
-            return _links[_pos++];
+            return _links[++_pos];
         }
         int backCount()
         {

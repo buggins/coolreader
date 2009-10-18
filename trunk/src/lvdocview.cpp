@@ -1823,7 +1823,7 @@ ldomXRange * LVDocView::getCurrentPageSelectedLink()
 }
 
 /// follow link, returns true if navigation was successful
-bool LVDocView::goLink( lString16 link )
+bool LVDocView::goLink( lString16 link, bool savePos )
 {
     ldomNode * element = NULL;
     if ( link.empty() ) {
@@ -1855,25 +1855,71 @@ bool LVDocView::goLink( lString16 link )
                 return true;
             }
         } else {
-            // otherwise assume
+            // otherwise assume link to another file
             CRLog::debug("Link to another file: %s   anchor=%s", UnicodeToUtf8(filename).c_str(), UnicodeToUtf8(id).c_str() );
-            LVStreamRef stream = m_container->OpenStream( filename.c_str(), LVOM_READ );
+
+            lString16 baseDir = m_doc_props->getStringDef(DOC_PROP_FILE_PATH, ".");
+            LVAppendPathDelimiter(baseDir);
+            lString16 fn = m_doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
+            CRLog::debug("Current path: %s   filename:%s", UnicodeToUtf8(baseDir).c_str(), UnicodeToUtf8(fn).c_str() );
+            baseDir = LVExtractPath(baseDir + fn);
+            //lString16 newPathName = LVMakeRelativeFilename( baseDir, filename );
+            lString16 newPathName = LVCombinePaths( baseDir, filename );
+            lString16 dir = LVExtractPath( newPathName );
+            lString16 filename = LVExtractFilename( newPathName );
+            LVContainerRef container = m_container;
+            lString16 arcname = m_doc_props->getStringDef(DOC_PROP_ARC_NAME, "");
+            if ( arcname.empty() ) {
+                container = LVOpenDirectory( dir.c_str() );
+                if ( container.isNull() )
+                    return false;
+            } else {
+                filename = newPathName;
+                dir.clear();
+            }
+            CRLog::debug("Base dir: %s newPathName=%s", UnicodeToUtf8(baseDir).c_str(), UnicodeToUtf8(newPathName).c_str());
+
+            LVStreamRef stream = container->OpenStream( filename.c_str(), LVOM_READ );
             if ( stream.isNull() ) {
                 CRLog::error("Go to link: cannot find file %s", UnicodeToUtf8(filename).c_str() );
                 return false;
             }
             CRLog::info("Go to link: file %s is found", UnicodeToUtf8(filename).c_str() );
+            // return point
+            if ( savePos )
+                savePosToNavigationHistory();
+
+            // close old document
+            savePosition();
+            clearSelection();
+            _posBookmark = ldomXPointer();
+            m_is_rendered = false;
+            m_swapDone = false;
+            m_pos = 0;
+            m_section_bounds_valid = false;
+            m_doc_props->setString(DOC_PROP_FILE_PATH, dir);
+            m_doc_props->setString(DOC_PROP_FILE_NAME, filename);
+            m_doc_props->setString(DOC_PROP_CODE_BASE, LVExtractPath(filename) );
+            m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa((int)stream->GetSize()));
+            m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->crc32());
             // TODO: load document from stream properly
             if ( !LoadDocument(stream) ) {
                 createDefaultDocument( lString16(L"Load error"), lString16(L"Cannot open file ") + filename );
                 return false;
             }
+            //m_filename = newPathName;
+            m_stream = stream;
+            m_container = container;
+
+            //restorePosition();
+
             // TODO: setup properties
             // go to anchor
             if ( !id.empty() )
                 goLink(lString16(L"#") + id );
             clearImageCache();
             requestRender();
+            return true;
         }
         return false; // only internal links supported (started with #)
     }
@@ -1888,16 +1934,6 @@ bool LVDocView::goLink( lString16 link )
     return true;
 }
 
-void LVDocView::savePosToNavigationHistory()
-{
-    ldomXPointer bookmark = getBookmark();
-    if ( !bookmark.isNull() ) {
-        lString16 path = bookmark.toString();
-        if ( !path.empty() )
-            _navigationHistory.save( path );
-    }
-}
-
 /// follow selected link, returns true if navigation was successful
 bool LVDocView::goSelectedLink()
 {
@@ -1910,10 +1946,54 @@ bool LVDocView::goSelectedLink()
     return goLink( href );
 }
 
+#define NAVIGATION_FILENAME_SEPARATOR L":"
+bool splitNavigationPos( lString16 pos, lString16 & fname, lString16 & path )
+{
+    int p = pos.pos(lString16(NAVIGATION_FILENAME_SEPARATOR));
+    if ( p<=0 ) {
+        fname = lString16();
+        path = pos;
+        return false;
+    }
+    fname = pos.substr(0, p);
+    path = pos.substr(p+1);
+    return true;
+}
+
+bool LVDocView::savePosToNavigationHistory()
+{
+    ldomXPointer bookmark = getBookmark();
+    if ( !bookmark.isNull() ) {
+        lString16 path = bookmark.toString();
+        if ( !path.empty() ) {
+            lString16 fname = m_doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
+            lString16 fpath = m_doc_props->getStringDef(DOC_PROP_FILE_PATH, "");
+            LVAppendPathDelimiter(fpath);
+            lString16 s = fpath + fname + NAVIGATION_FILENAME_SEPARATOR + path;
+            if ( !m_arc.isNull() )
+                s = lString16(L"/") + s;
+            CRLog::debug("savePosToNavigationHistory(%s)", UnicodeToUtf8(s).c_str() );
+            return _navigationHistory.save( s );
+        }
+    }
+    return false;
+}
+
 /// go back. returns true if navigation was successful
 bool LVDocView::goBack()
 {
-    lString16 path = _navigationHistory.back();
+    if ( _navigationHistory.forwardCount()==0 && savePosToNavigationHistory() )
+        _navigationHistory.back();
+    lString16 s = _navigationHistory.back();
+    if ( s.empty() )
+        return false;
+    CRLog::debug("goBack(%s)", UnicodeToUtf8(s).c_str() );
+    lString16 fname, path;
+    if ( splitNavigationPos( s, fname, path ) ) {
+        if ( m_filename!=fname )
+            if ( !goLink( fname, false ) )
+                return false;
+    }
     if ( path.empty() )
         return false;
     ldomXPointer bookmark = m_doc->createXPointer( path );
@@ -1926,7 +2006,16 @@ bool LVDocView::goBack()
 /// go forward. returns true if navigation was successful
 bool LVDocView::goForward()
 {
-    lString16 path = _navigationHistory.forward();
+    lString16 s = _navigationHistory.forward();
+    if ( s.empty() )
+        return false;
+    CRLog::debug("goForward(%s)", UnicodeToUtf8(s).c_str() );
+    lString16 fname, path;
+    if ( splitNavigationPos( s, fname, path ) ) {
+        if ( m_filename!=fname )
+            if ( !goLink( fname, false ) )
+                return false;
+    }
     if ( path.empty() )
         return false;
     ldomXPointer bookmark = m_doc->createXPointer( path );
@@ -2635,8 +2724,22 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             }
             // archieve
             FileToArcProps( m_doc_props );
-			m_doc_props->setInt( DOC_PROP_ARC_FILE_COUNT, m_arc->GetObjectCount() );
+            m_container = m_arc;
+            m_doc_props->setInt( DOC_PROP_ARC_FILE_COUNT, m_arc->GetObjectCount() );
             bool found = false;
+            lString16 htmlExt(L".html");
+            lString16 htmExt(L".htm");
+            lString16 fb2Ext(L".fb2");
+            lString16 rtfExt(L".rtf");
+            lString16 txtExt(L".txt");
+            lString16 fbdExt(L".fbd");
+            int htmCount = 0;
+            int fb2Count = 0;
+            int rtfCount = 0;
+            int txtCount = 0;
+            int fbdCount = 0;
+            lString16 defHtml;
+            lString16 firstGood;
             for (int i=0; i<m_arc->GetObjectCount(); i++)
             {
                 const LVContainerItemInfo * item = m_arc->GetObjectInfo(i);
@@ -2645,7 +2748,29 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     if ( !item->IsContainer() )
                     {
                         lString16 name( item->GetName() );
-                        bool nameIsOk = false;
+                        lString16 s = name;
+                        s.lowercase();
+                        bool nameIsOk = true;
+                        if ( s.endsWith(htmExt) || s.endsWith(htmlExt) ) {
+                            lString16 nm = LVExtractFilenameWithoutExtension( s );
+                            if ( nm==L"index" || nm==L"default" )
+                                defHtml = name;
+                            htmCount++;
+                        } else if ( s.endsWith(fb2Ext) ) {
+                            fb2Count++;
+                        } else if ( s.endsWith(rtfExt) ) {
+                            rtfCount++;
+                        } else if ( s.endsWith(txtExt) ) {
+                            txtCount++;
+                        } else if ( s.endsWith(fbdExt) ) {
+                            fbdCount++;
+                        } else {
+                            nameIsOk = false;
+                        }
+                        if ( nameIsOk ) {
+                            if ( firstGood.empty() )
+                                firstGood = name;
+                        }
                         if ( name.length() >= 5 )
                         {
                             name.lowercase();
@@ -2659,15 +2784,18 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         }
                         if ( !nameIsOk )
                             continue;
-                        m_stream = m_arc->OpenStream( item->GetName(), LVOM_READ );
-                        if ( m_stream.isNull() )
-                            continue;
-                        m_doc_props->setString(DOC_PROP_FILE_NAME, item->GetName());
-                        m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa((int)m_stream->GetSize()));
-                        m_doc_props->setHex(DOC_PROP_FILE_CRC32, m_stream->crc32());
-                        found = true;
-                        break;
                     }
+                }
+            }
+            lString16 fn = !defHtml.empty() ? defHtml : firstGood;
+            if ( !fn.empty() ) {
+                m_stream = m_arc->OpenStream( fn.c_str(), LVOM_READ );
+                if ( !m_stream.isNull() ) {
+                    m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
+                    m_doc_props->setString(DOC_PROP_CODE_BASE, LVExtractPath(fn) );
+                    m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa((int)m_stream->GetSize()));
+                    m_doc_props->setHex(DOC_PROP_FILE_CRC32, m_stream->crc32());
+                    found = true;
                 }
             }
             // opened archieve stream
