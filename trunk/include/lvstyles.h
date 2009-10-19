@@ -146,10 +146,17 @@ public:
     {
     }
     // Get/Set
-    int getX() { return _x; }
-    int getY() { return _y; }
-    int getWidth() { return _width; }
-    int getHeight() { return _height; }
+    int getX() const { return _x; }
+    int getY() const { return _y; }
+    int getWidth() const { return _width; }
+    int getHeight() const { return _height; }
+    void getRect( lvRect & rc ) const
+    {
+        rc.left = _x;
+        rc.top = _y;
+        rc.right = _x + _width;
+        rc.bottom = _y + _height;
+    }
     void setX( int x ) { _x = x; }
     void setY( int y ) { _y = y; }
     void setWidth( int w ) { _width = w; }

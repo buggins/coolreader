@@ -420,6 +420,9 @@ private:
 
     bool m_swapDone;
 
+    /// edit cursor position
+    ldomXPointer m_cursorPos;
+
     /// sets current document format
     void setDocFormat( doc_format_t fmt );
 
@@ -457,7 +460,20 @@ protected:
     void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery );
     /// create document and set flags
     void createEmptyDocument();
+    /// get document rectangle for specified cursor position, returns false if not visible
+    bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
+    /// get screen rectangle for specified cursor position, returns false if not visible
+    bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+    /// get screen rectangle for current cursor position, returns false if not visible
+    bool getCursorRect( lvRect & rc, bool scrollToCursor = false )
+    {
+        return getCursorRect( m_cursorPos, rc, scrollToCursor );
+    }
+    /// returns cursor position
+    ldomXPointer getCursorPos() { return m_cursorPos; }
+    /// set cursor position
+    void setCursorPos( ldomXPointer ptr ) { m_cursorPos = ptr; }
     /// try swappping of document to cache, if size is big enough, and no swapping attempt yet done
     void swapToCache();
 

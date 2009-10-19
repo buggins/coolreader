@@ -2394,6 +2394,43 @@ ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
 }
 
 #if BUILD_LITE!=1
+
+/// return parent final node, if found
+ldomNode * ldomXPointer::getFinalNode() const
+{
+    ldomNode * node = getNode();
+    for (;;) {
+        if ( !node )
+            return NULL;
+        if ( node->getRendMethod()==erm_final )
+            return node;
+        node = node->getParentNode();
+    }
+}
+
+/// formats final block again after change, returns true if size of block is changed
+bool ldomNode::refreshFinalBlock()
+{
+    if ( getRendMethod() != erm_final )
+        return false;
+    // TODO: implement reformatting of one node
+    CVRendBlockCache & cache = getDocument()->getRendBlockCache();
+    cache.remove( this );
+    lvdomElementFormatRec * fmt = getRenderData();
+    if ( !fmt )
+        return false;
+    lvRect oldRect, newRect;
+    fmt->getRect( oldRect );
+    LFormattedTextRef txtform;
+    int width = fmt->getWidth();
+    int h = renderFinalBlock( txtform, width );
+    fmt->getRect( newRect );
+    if ( oldRect == newRect )
+        return false;
+    // TODO: relocate other blocks
+    return true;
+}
+
 /// formats final block
 int ldomNode::renderFinalBlock( LFormattedTextRef & txtform, int width )
 {

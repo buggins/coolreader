@@ -376,6 +376,7 @@ void LVDocView::Clear()
         m_is_rendered = false;
         m_swapDone = false;
         m_pos = 0;
+        m_cursorPos.clear();
         m_filename.clear();
         m_section_bounds_valid = false;
     }
@@ -1570,6 +1571,48 @@ bool LVDocView::docToWindowPoint( lvPoint & pt )
 {
     LVLock lock(getMutex());
     checkRender();
+    // TODO: implement coordinate conversion here
+    if ( getViewMode() == DVM_SCROLL ) {
+        // SCROLL mode
+        pt.y -= m_pos;
+        pt.x += m_pageMargins.left;
+        return true;
+    } else {
+        // PAGES mode
+#if 0
+        int page = m_pages.FindNearestPage(m_pos, 0);
+        lvRect * rc = NULL;
+        lvRect page1( m_pageRects[0] );
+        int headerHeight = getPageHeaderHeight();
+        page1.left += m_pageMargins.left;
+        page1.top += m_pageMargins.top + headerHeight;
+        page1.right -= m_pageMargins.right;
+        page1.bottom -= m_pageMargins.bottom;
+        if ( page1.isPointInside( pt ) ) {
+            rc = &page1;
+        } else if ( getVisiblePageCount()==2 ) {
+            lvRect page2( m_pageRects[1] );
+            page2.left += m_pageMargins.left;
+            page2.top += m_pageMargins.top + headerHeight;
+            page2.right -= m_pageMargins.right;
+            page2.bottom -= m_pageMargins.bottom;
+            if ( page2.isPointInside( pt ) ) {
+                rc = &page2;
+                page++;
+            }
+        }
+        if ( rc && page>=0 && page<m_pages.length() ) {
+            int page_y = m_pages[page]->start;
+            pt.x -= rc->left;
+            pt.y -= rc->top;
+            if ( pt.y < m_pages[page]->height ) {
+                //CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
+                pt.y += page_y;
+                return true;
+            }
+        }
+#endif
+    }
     pt = rotatePoint( pt, false );
     return false;
 }
@@ -1820,6 +1863,44 @@ ldomXRange * LVDocView::selectPrevPageLink( bool wrapAround )
 ldomXRange * LVDocView::getCurrentPageSelectedLink()
 {
     return selectPageLink( 0, false );
+}
+
+/// get document rectangle for specified cursor position, returns false if not visible
+bool LVDocView::getCursorDocRect( ldomXPointer ptr, lvRect & rc )
+{
+    rc.clear();
+    if ( ptr.isNull() )
+        return false;
+    if ( !ptr.getRect( rc ) ) {
+        rc.clear();
+        return false;
+    }
+    return true;
+}
+
+/// get screen rectangle for specified cursor position, returns false if not visible
+bool LVDocView::getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor )
+{
+    if ( !getCursorDocRect( ptr, rc ) )
+        return false;
+    for (;;) {
+
+        lvPoint topLeft = rc.topLeft();
+        lvPoint bottomRight = rc.bottomRight();
+        if ( docToWindowPoint( topLeft ) && docToWindowPoint( bottomRight ) ) {
+            rc.setTopLeft( topLeft );
+            rc.setBottomRight( bottomRight );
+            return true;
+        }
+        // try to scroll and convert doc->window again
+        if ( !scrollToCursor )
+            break;
+        // scroll
+        goToBookmark( ptr );
+        scrollToCursor = false;
+    };
+    rc.clear();
+    return false;
 }
 
 /// follow link, returns true if navigation was successful
@@ -2947,7 +3028,13 @@ void LVDocView::createEmptyDocument()
     if ( m_doc )
         delete m_doc;
     m_doc = new ldomDocument();
-
+    m_cursorPos.clear();
+    m_markRanges.clear();
+    _posBookmark.clear();
+    m_section_bounds.clear();
+    m_section_bounds_valid = false;
+    m_posIsSet = false;
+    m_swapDone = false;
 
     m_doc->setProps( m_doc_props );
     m_doc->setDocFlags( 0 );

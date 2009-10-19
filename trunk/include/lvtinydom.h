@@ -669,7 +669,7 @@ public:
 
     // rich interface stubs for supporting Element operations
     /// returns rendering method
-    virtual lvdom_element_render_method  getRendMethod() { return erm_invisible; }
+    virtual lvdom_element_render_method getRendMethod() { return erm_invisible; }
     /// sets rendering method
     virtual void setRendMethod( lvdom_element_render_method ) { }
     /// returns element style record
@@ -710,6 +710,8 @@ public:
     LVImageSourceRef getObjectImageSource();
     /// formats final block
     int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
+    /// formats final block again after change, returns true if size of block is changed
+    bool refreshFinalBlock();
 #endif
     /// replace node with r/o persistent implementation
     virtual ldomNode * persist() { return this; }
@@ -751,7 +753,7 @@ protected:
 		// clone
 		XPointerData( const XPointerData & v )  : _doc(v._doc), _dataIndex(v._dataIndex), _offset(v._offset), _refCount(1) { }
 		inline ldomDocument * getDocument() { return _doc; }
-		inline bool operator == (const XPointerData & v) const
+        inline bool operator == (const XPointerData & v) const
 		{
 			return _doc==v._doc && _dataIndex == v._dataIndex && _offset == v._offset;
 		}
@@ -787,10 +789,16 @@ protected:
 	}
 public:
 	XPointerData * _data;
-	/// 
+    /// clear pointer (make null)
+    void clear() { *this = ldomXPointer(); }
+    /// return document
 	inline ldomDocument * getDocument() { return _data->getDocument(); }
     /// returns node pointer
 	inline ldomNode * getNode() const { return _data->getNode(); }
+#if BUILD_LITE!=1
+    /// return parent final node, if found
+    ldomNode * getFinalNode() const;
+#endif
     /// returns offset within node
 	inline int getOffset() const { return _data->getOffset(); }
 	/// set pointer node

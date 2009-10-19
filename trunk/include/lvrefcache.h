@@ -166,6 +166,18 @@ public:
         }
         return false;
     }
+    bool remove( keyT key )
+    {
+        for ( int i=0; i<size; i++ ) {
+            if ( buf[i].key == key ) {
+                buf[i].key = keyT();
+                buf[i].data = dataT();
+                buf[i].lastAccess = 0;
+                return true;
+            }
+        }
+        return false;
+    }
     void set( keyT key, dataT data )
     {
         int oldestAccessTime = -1;
