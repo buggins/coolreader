@@ -18,6 +18,10 @@
 
 #define DOC_CACHE_SIZE 128 * 0x100000
 
+#ifndef ENABLE_BOOKMARKS_DIR
+#define ENABLE_BOOKMARKS_DIR 1
+#endif
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindowClass)
 {
@@ -49,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
     addAction(ui->actionAddBookmark);
     addAction(ui->actionShowBookmarksList);
     addAction(ui->actionCopy);
+    addAction(ui->actionToggleEditMode);
 
 #ifdef _LINUX
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
@@ -57,6 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
     QString cacheDir = homeDir + "cache";
+    QString bookmarksDir = homeDir + "bookmarks";
     QString histFile = exeDir + "cr3hist.bmk";
     QString histFile2 = homeDir + "cr3hist.bmk";
     QString iniFile = exeDir + "cr3.ini";
@@ -74,6 +80,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->view->setHyphDir( hyphDir );
     if ( !ui->view->loadCSS( cssFile ) )
         ui->view->loadCSS( cssFile2 );
+#if ENABLE_BOOKMARKS_DIR==1
+    ui->view->setBookmarksDir( bookmarksDir );
+#endif
     QStringList args( qApp->arguments() );
     for ( int i=1; i<args.length(); i++ ) {
         if ( args[i].startsWith("--") ) {
@@ -378,4 +387,9 @@ void MainWindow::on_actionFindText_triggered()
 void MainWindow::on_actionRotate_triggered()
 {
     ui->view->rotate( 1 );
+}
+
+void MainWindow::on_actionToggleEditMode_triggered()
+{
+    ui->view->setEditMode( !ui->view->getEditMode() );
 }

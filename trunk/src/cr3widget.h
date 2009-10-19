@@ -59,10 +59,16 @@ class CR3View : public QWidget, public LVDocViewCallback
 
         /// load fb2.css file
         bool loadCSS( QString filename );
+        /// set bookmarks dir
+        void setBookmarksDir( QString dirname );
         /// set new option values
         PropsRef setOptions( PropsRef props );
         /// get current option values
         PropsRef getOptions();
+        /// turns on/off Edit mode (forces Scroll view)
+        void setEditMode( bool flgEdit );
+        /// returns true if edit mode is active
+        bool getEditMode() { return _editMode; }
 
         void saveWindowPos( QWidget * window, const char * prefix );
         void restoreWindowPos( QWidget * window, const char * prefix, bool allowExtraStates = false );
@@ -158,6 +164,8 @@ class CR3View : public QWidget, public LVDocViewCallback
         QString _selText;
         ldomXRange _selRange;
         QString _cssDir;
+        QString _bookmarkDir;
+        bool _editMode;
 };
 
 #endif // CR3WIDGET_H

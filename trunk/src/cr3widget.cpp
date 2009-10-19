@@ -32,7 +32,7 @@ CR3View::CR3View( QWidget *parent)
         : QWidget( parent, Qt::WindowFlags() ), _scroll(NULL), _propsCallback(NULL)
         , _normalCursor(Qt::ArrowCursor), _linkCursor(Qt::PointingHandCursor)
         , _selCursor(Qt::IBeamCursor), _waitCursor(Qt::WaitCursor)
-        , _selecting(false), _selected(false)
+        , _selecting(false), _selected(false), _editMode(false)
 {
     _data = new DocViewData();
     _data->_props = LVCreatePropsContainer();
@@ -308,6 +308,28 @@ void CR3View::paintEvent ( QPaintEvent * event )
         }
     }
     painter.drawImage( rc, img );
+    if ( _editMode ) {
+        // draw caret
+        lvRect cursorRc;
+        if ( _docview->getCursorRect( cursorRc, false ) ) {
+            if ( cursorRc.left<0 )
+                cursorRc.left = 0;
+            if ( cursorRc.top<0 )
+                cursorRc.top = 0;
+            if ( cursorRc.right>dx )
+                cursorRc.right = dx;
+            if ( cursorRc.bottom > dy )
+                cursorRc.bottom = dy;
+            if ( !cursorRc.isEmpty() ) {
+                painter.setPen(QColor(255,255,255));
+                painter.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
+                //QPainter::RasterOp_SourceXorDestination;
+                //QPainter::CompositionMode_Xor;
+                //painter.setBrush(
+                painter.drawRect( cursorRc.left, cursorRc.top, cursorRc.width(), cursorRc.height() );
+            }
+        }
+    }
     updateScroll();
 }
 
@@ -349,9 +371,24 @@ void CR3View::doCommand( int cmd, int param )
 
 void CR3View::togglePageScrollView()
 {
+    if ( _editMode )
+        return;
     doCommand( DCMD_TOGGLE_PAGE_SCROLL_VIEW, 1 );
     refreshPropFromView( PROP_PAGE_VIEW_MODE );
 }
+
+void CR3View::setEditMode( bool flgEdit )
+{
+    if ( _editMode == flgEdit )
+        return;
+
+    if ( flgEdit && _data->_props->getIntDef( PROP_PAGE_VIEW_MODE, 0 ) )
+        togglePageScrollView();
+    _editMode = flgEdit;
+    update();
+}
+
+
 void CR3View::nextPage() { doCommand( DCMD_PAGEDOWN, 1 ); }
 void CR3View::prevPage() { doCommand( DCMD_PAGEUP, 1 ); }
 void CR3View::nextLine() { doCommand( DCMD_LINEDOWN, 1 ); }
@@ -541,7 +578,9 @@ bool CR3View::saveHistory( QString fn )
     }
     //CRLog::debug("Exporting bookmarks to %s", UnicodeToUtf8(_bookmarkDir).c_str());
     //_docview->exportBookmarks(_bookmarkDir); //use default filename
-    _docview->exportBookmarks(lString16()); //use default filename
+    lString16 bmdir = qt2cr(_bookmarkDir);
+    LVAppendPathDelimiter( bmdir );
+    _docview->exportBookmarks( bmdir ); //use default filename
     _data->_historyFileName = filename;
     log << "V3DocViewWin::saveHistory(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
@@ -589,6 +628,8 @@ void CR3View::mouseMoveEvent ( QMouseEvent * event )
     if ( !p.isNull() ) {
         path = p.toString();
         href = p.getHRef();
+        if ( _editMode && _selecting )
+            _docview->setCursorPos( p );
         updateSelection(p);
     } else {
         //CRLog::trace("Node not found for %d, %d", event->x(), event->y());
@@ -651,11 +692,13 @@ bool CR3View::updateSelection( ldomXPointer p )
     if ( r.getStart().isNull() || r.getEnd().isNull() )
         return false;
     r.sort();
-    if ( !r.getStart().isVisibleWordStart() )
-        r.getStart().prevVisibleWordStart();
-    //lString16 start = r.getStart().toString();
-    if ( !r.getEnd().isVisibleWordEnd() )
-        r.getEnd().nextVisibleWordEnd();
+    if ( !_editMode ) {
+        if ( !r.getStart().isVisibleWordStart() )
+            r.getStart().prevVisibleWordStart();
+        //lString16 start = r.getStart().toString();
+        if ( !r.getEnd().isVisibleWordEnd() )
+            r.getEnd().nextVisibleWordEnd();
+    }
     if ( r.isNull() )
         return false;
     //lString16 end = r.getEnd().toString();
@@ -680,11 +723,15 @@ void CR3View::mousePressEvent ( QMouseEvent * event )
     lString16 href;
     if ( !p.isNull() ) {
         path = p.toString();
-        href = p.getHRef();
+        bool ctrlPressed = (event->modifiers() & Qt::ControlModifier)!=0;
+        if ( ctrlPressed || !_editMode )
+            href = p.getHRef();
     }
     if ( href.empty() ) {
         //CRLog::trace("No href pressed" );
         if ( !p.isNull() && left ) {
+            if ( _editMode )
+                _docview->setCursorPos( p );
             startSelection(p);
         }
     } else {
@@ -710,6 +757,8 @@ void CR3View::mouseReleaseEvent ( QMouseEvent * event )
     if ( !p.isNull() ) {
         path = p.toString();
         href = p.getHRef();
+        if ( _editMode )
+            _docview->setCursorPos( p );
     }
     if ( _selecting )
         endSelection(p);
@@ -839,4 +888,10 @@ void CR3View::OnFormatStart()
 void CR3View::OnFormatEnd()
 {
     setCursor( _normalCursor );
+}
+
+/// set bookmarks dir
+void CR3View::setBookmarksDir( QString dirname )
+{
+    _bookmarkDir = dirname;
 }
