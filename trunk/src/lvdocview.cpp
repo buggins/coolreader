@@ -189,9 +189,9 @@ void LVDocView::requestReload()
 {
     if ( getDocFormat() != doc_format_txt )
         return; // supported for text files only
-	if ( m_callback ) {
-		m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
-	}
+    if ( m_callback ) {
+            m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
+    }
     if ( m_stream.isNull() && isDocumentOpened() ) {
         savePosition();
         CRFileHist * hist = getHistory();
@@ -2514,9 +2514,9 @@ public:
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
     m_swapDone = false;
-	if ( m_callback ) {
-		m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
-	}
+    if ( m_callback ) {
+            m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
+    }
     LVLock lock(getMutex());
     {
         clearImageCache();
