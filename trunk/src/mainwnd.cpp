@@ -184,6 +184,32 @@ void V3DocViewWin::OnLoadFileStart( lString16 filename )
 /// format detection finished
 void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
 {
+    lString16 filename = L"fb2.css";
+    if ( _cssDir.length() > 0 ) {
+        switch ( fileFormat ) {
+        case doc_format_txt:
+            filename = L"txt.css";
+            break;
+        case doc_format_rtf:
+            filename = L"rtf.css";
+            break;
+        case doc_format_epub:
+            filename = L"epub.css";
+            break;
+        case doc_format_html:
+            filename = L"htm.css";
+            break;
+        default:
+            // do nothing
+            ;
+        }
+        CRLog::debug( "CSS file to load: %s", UnicodeToUtf8(filename).c_str() );
+        if ( LVFileExists( _cssDir + filename ) ) {
+            loadCSS( _cssDir + filename );
+        } else if ( LVFileExists( _cssDir + L"fb2.css" ) ) {
+            loadCSS( _cssDir + L"fb2.css" );
+        }
+    }
 }
 
 /// file loading is finished successfully - drawCoveTo() may be called there
@@ -239,6 +265,9 @@ bool V3DocViewWin::loadCSS( lString16 filename )
     lString8 css;
     if ( LVLoadStylesheetFile( filename, css ) ) {
         if ( !css.empty() ) {
+            CRLog::info( "Using style sheet from %s", UnicodeToUtf8(filename).c_str() );
+            _cssDir = LVExtractPath(filename);
+            LVAppendPathDelimiter(_cssDir);
             _docview->setStyleSheet( css );
             _css = css;
             //CRLog::debug("Stylesheet found:\n%s", css.c_str() );

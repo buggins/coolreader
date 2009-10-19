@@ -34,6 +34,10 @@ static bool shuttingDown = false;
 #define USE_JINKE_USER_DATA 0
 #define USE_OWN_BATTERY_TEST 0
 
+#ifdef ALLOW_RUN_EXE
+static const char * EXE_FILE_NAME = NULL;
+#endif
+
 int getBatteryState()
 {
 #if USE_OWN_BATTERY_TEST==0
@@ -485,6 +489,21 @@ void vSetResizePro(double dSetPro) { }
 
 void GetPageData(void **data)
 {
+#ifdef ALLOW_RUN_EXE
+    if ( EXE_FILE_NAME!=NULL ) {
+        __pid_t pid;
+        pid = fork();
+        if(!pid) {
+            execve(EXE_FILE_NAME, NULL, NULL);
+            exit(0);
+        } else {
+            waitpid(pid, NULL, 0);
+            exit(0);
+            //return 0;
+        }
+    }
+#endif
+
     //TODO:
     CRLog::trace("GetPageData() enter");
     //_docview->setBatteryState( ::getBatteryState() );
@@ -678,22 +697,6 @@ int InitDoc(char *fileName)
 
 
 
-#ifdef ALLOW_RUN_EXE
-    {
-        __pid_t pid;
-        if( strstr(fileName, ".exe.txt") || strstr(fileName, ".exe.fb2")) {
-            pid = fork();
-            if(!pid) {
-                execve(fileName, NULL, NULL);
-                exit(0);
-            } else {
-                waitpid(pid, NULL, 0);
-                exit(0);
-                //return 0;
-            }
-        }
-    }
-#endif
     {
         CRLog::trace("creating window manager...");
         CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
@@ -716,6 +719,16 @@ int InitDoc(char *fileName)
 
         CRLog::trace("creating main window...");
         main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );
+
+#ifdef ALLOW_RUN_EXE
+    {
+        if( strstr(fileName, ".exe.txt") || strstr(fileName, ".exe.fb2")) {
+            EXE_FILE_NAME = fileName;
+            return true;
+        }
+    }
+#endif
+
         CRLog::trace("setting colors...");
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
