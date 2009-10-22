@@ -22,7 +22,7 @@ dist_skin_DATA = skin/cr3skin.xml \
     skin/cr3_menu_item_selected.png skin/cr3_settings_menu.png skin/scroll_arrow_left_enabled.png skin/scroll_arrow_up_enabled.png skin/scroll_slider_vertical.png \
     skin/cr3_t9_frame.png skin/cr3_t9_input.png skin/cr3_t9_shortcut.png
 
-dist_pkgdata_DATA = src/fb2.css src/cr3_def_cover.png
+dist_pkgdata_DATA = src/fb2.css src/txt.css src/epub.css src/rtf.css src/htm.css src/cr3_def_cover.png
 dist_hyph_DATA = hyph/Russian_EnUS_hyphen_(Alan).pdb hyph/Bulgarian_hyphen_(Alan).pdb hyph/German_hyphen_(Alan).pdb hyph/Russian_EnGB_hyphen_(Alan).pdb \
     hyph/Hungarian_hyphen_(Alan).pdb hyph/Russian_EnUS_hyphen_(Alan).pdb \
     hyph/Czech_hyphen_(Alan).pdb hyph/Icelandic_hyphen_(Alan).pdb   hyph/Russian_hyphen_(Alan).pdb \
