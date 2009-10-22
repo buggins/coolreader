@@ -4156,6 +4156,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setHexDef( PROP_FONT_COLOR, 0x000000 );
     props->setHexDef( PROP_BACKGROUND_COLOR, 0xFFFFFF );
     props->setIntDef( PROP_TXT_OPTION_PREFORMATTED, 0 );
+    props->setIntDef( PROP_AUTOSAVE_BOOKMARKS, 0 );
     lString8 defFontFace("Arial");
     props->setStringDef( PROP_FONT_FACE, defFontFace.c_str() );
     props->setStringDef( PROP_STATUS_FONT_FACE, defFontFace.c_str() );

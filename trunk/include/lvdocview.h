@@ -51,6 +51,7 @@
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
 #define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
+#define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
 
 /// source document formats
 typedef enum {
