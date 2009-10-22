@@ -1370,6 +1370,7 @@ public:
     LVContainerRef getContainer() { return _container; }
     void setContainer( LVContainerRef cont ) { _container = cont; }
 
+    void clearRendBlockCache() { _renderedBlockCache.clear(); }
 
     ldomDocument();
     /// creates empty document which is ready to be copy target of doc partial contents

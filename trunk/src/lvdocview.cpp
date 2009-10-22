@@ -394,7 +394,8 @@ void LVDocView::clearImageCache()
 void LVDocView::requestRender()
 {
     m_is_rendered = false;
-    m_imageCache.clear();
+    clearImageCache();
+    m_doc->clearRendBlockCache();
 }
 
 /// render document, if not rendered
@@ -4298,8 +4299,11 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
 			HyphDictionary * curr = HyphMan::getSelectedDictionary();
 			if ( list ) {
 				if ( !curr || curr->getId()!=id ) {
-					if ( list->activate( id ) )
-						requestRender();
+                    //if (
+                    CRLog::debug("Changing hyphenation to %s", LCSTR(id));
+                    list->activate( id );
+                    //)
+                    requestRender();
 				}
 			}
         } else if ( name==PROP_INTERLINE_SPACE ) {
