@@ -1,0 +1,11 @@
+2009-03-05  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* Makefile.am (SUBDIRS): Add intl.
+	* configure.ac (AC_OUTPUT): Add intl/Makefile.
+
+2009-03-05  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): New variable.
+	(EXTRA_DIST): New variable.
+	* configure.ac (AC_OUTPUT): Add po/Makefile.in.
+

@@ -1,0 +1,15 @@
+#!/bin/sh
+SDK=/home/lve/src/v5sdk
+TARGET="arm-9tdmi-linux-gnu"
+GCC_PATH=${SDK}/toolchain/gcc-4.0.0-glibc-2.3.5/${TARGET}/bin
+echo GCC_PATH is ${GCC_PATH}
+if test ! -x "${GCC_PATH}/${TARGET}-gcc"; then
+    echo "Can't find cross toolchain"
+    exit 1
+fi
+#INCLUDES="-I ${SDK}/include/arm/zlib -I ${SDK}/include"
+#INCLUDES="-I ${SDK}/include"
+#LIBS="-L${SDK}/arm/lib"
+CONF=`dirname $0`
+PATH=${GCC_PATH}:${PATH} ${CONF}/configure --host=${TARGET} PREFIX=/usr \
+    --with-jinke=${SDK} --with-jinke-app --disable-debug
