@@ -864,6 +864,11 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_HELP:
         showHelpDialog();
         return true;
+    case DCMD_BOOKMARK_SAVE_N:
+        _docview->doCommand( DCMD_BOOKMARK_SAVE_N, params );
+        if ( _props->getBoolDef( PROP_AUTOSAVE_BOOKMARKS, false ) )
+            saveHistory( lString16() );
+        return true;
     default:
         // do nothing
         ;
