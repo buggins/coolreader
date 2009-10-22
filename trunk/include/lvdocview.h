@@ -209,6 +209,9 @@ enum LVDocCmd
     DCMD_MOVE_BY_CHAPTER, // param=-1 - previous chapter, 1 = next chapter
     DCMD_GO_SCROLL_POS,  // param=position of scroll bar slider
     DCMD_TOGGLE_PAGE_SCROLL_VIEW,  // toggle paged/scroll view mode
+    DCMD_LINK_FIRST, // select first link on page
+    DCMD_ROTATE_BY, // rotate view, param =  +1 - clockwise, -1 - counter-clockwise
+    DCMD_ROTATE_SET, // rotate viewm param = 0..3 (0=normal, 1=90`, ...)
 };
 #define LVDOCVIEW_COMMANDS_END DCMD_MOVE_BY_CHAPTER
 

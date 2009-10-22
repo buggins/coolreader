@@ -2315,6 +2315,7 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 {
     if ( m_rotateAngle==angle )
         return;
+    m_props->setInt( PROP_ROTATE_ANGLE, ((int)angle) & 3 );
     m_imageCache.clear();
     LVLock lock(getMutex());
     if ( (m_rotateAngle & 1) == (angle & 1) ) {
@@ -4020,6 +4021,25 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
     case DCMD_LINK_PREV:
         {
             selectPrevPageLink(true);
+        }
+        break;
+    case DCMD_LINK_FIRST:
+        {
+            selectFirstPageLink();
+        }
+        break;
+    case DCMD_ROTATE_BY: // rotate view, param =  +1 - clockwise, -1 - counter-clockwise
+        {
+            int a = (int)m_rotateAngle;
+            if ( param==0 )
+                param = 1;
+            a = (a + param) & 3;
+            SetRotateAngle( (cr_rotate_angle_t)(a) );
+        }
+        break;
+    case DCMD_ROTATE_SET: // rotate viewm param = 0..3 (0=normal, 1=90`, ...)
+        {
+            SetRotateAngle( (cr_rotate_angle_t)(param & 3 ) );
         }
         break;
     case DCMD_LINK_GO:
