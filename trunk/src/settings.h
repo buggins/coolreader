@@ -56,6 +56,7 @@ private:
     Ui::SettingsDlg *m_ui;
     CR3View * m_docview;
     PropsRef m_props;
+    QString m_oldHyph;
 
 private slots:
     void on_cbTxtPreFormatted_stateChanged(int );

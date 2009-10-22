@@ -18,6 +18,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_docview( docView )
 {
     initDone = false;
+    m_oldHyph = cr2qt(HyphMan::getSelectedDictionary()->getId());
+
     m_ui->setupUi(this);
     m_props = m_docview->getOptions();
     optionToUi( PROP_WINDOW_FULLSCREEN, m_ui->cbWindowFullscreen );
@@ -295,6 +297,9 @@ void SettingsDlg::updateStyleSample()
     m_ui->crSample->getDocView()->setShowCover( false );
     m_ui->crSample->getDocView()->setViewMode( DVM_SCROLL, 1 );
 
+    m_ui->crSample->getDocView()->getPageImage(0);
+
+    HyphMan::getDictList()->activate( qt2cr(m_oldHyph) );
 }
 
 QColor SettingsDlg::getColor( const char * optionName, unsigned def )
