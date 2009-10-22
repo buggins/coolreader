@@ -752,6 +752,7 @@ lString16 Utf8ToUnicode( const char * s );
 /// converts utf-8 string fragment to wide unicode string
 lString16 Utf8ToUnicode( const char * s, int sz );
 
+#define LCSTR(x) (UnicodeToUtf8(x).c_str())
 
 /// serialization/deserialization buffer
 class SerialBuf

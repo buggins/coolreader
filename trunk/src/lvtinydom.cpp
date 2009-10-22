@@ -4435,7 +4435,7 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                 }
                 if ( !ch )
                     sameCh = false;
-                if ( ch=='-' || ch=='=' || ch=='_' || ch=='*' || ch=='#' )
+                if ( (ch=='-' || ch=='=' || ch=='_' || ch=='*' || ch=='#') && sameCh )
                     isHr = true;
             }
             if ( isHr ) {

@@ -52,8 +52,13 @@ public:
     {
         state = in_xml;
     }
+    virtual lUInt32 getFlags() { return TXTFLG_PRE; }
     /// called on parsing start
-    virtual void OnStart(LVXMLParser * parser) { _parser = parser; }
+    virtual void OnStart(LVXMLParser * parser)
+    {
+        _parser = parser;
+        parser->SetSpaceMode(false);
+    }
     /// called on parsing end
     virtual void OnStop()
     {
