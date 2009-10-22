@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/icons/action" >
+        <file>icons/back.png</file>
+        <file>icons/forward.png</file>
+        <file>icons/fileopen.png</file>
+        <file>icons/contents.png</file>
+        <file>icons/fileclose.png</file>
+        <file>icons/window_fullscreen.png</file>
+        <file>icons/gear.png</file>
+        <file>icons/gohome.png</file>
+        <file>icons/filter.png</file>
+        <file>icons/find.png</file>
+        <file>icons/finish.png</file>
+        <file>icons/goto.png</file>
+        <file>icons/rotate_ccw.png</file>
+        <file>icons/rotate_cw.png</file>
+        <file>icons/viewmag-.png</file>
+        <file>icons/viewmag+.png</file>
+        <file>icons/exit.png</file>
+        <file>icons/player_playlist.png</file>
+        <file>icons/project_open.png</file>
+        <file>icons/configure.png</file>
+        <file>icons/folder_favorite.png</file>
+        <file>icons/view-table-of-contents-ltr.png</file>
+        <file>icons/editcopy.png</file>
+        <file>icons/bookmark.png</file>
+        <file>icons/bookmark_folder.png</file>
+        <file>icons/coolreader.png</file>
+    </qresource>
+</RCC>
