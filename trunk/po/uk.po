@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-10-22 19:47+0400\n"
+"POT-Creation-Date: 2009-10-23 07:25+0400\n"
 "PO-Revision-Date: 2009-03-10 15:32+0200\n"
 "Last-Translator: Boris Iefimenko <boris.iefimenko@gmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -230,9 +230,9 @@ msgstr "Назва видання"
 msgid "Custom info"
 msgstr "Додаткова інформація"
 
-#: src/settings.cpp:24 src/settings.cpp:129
-msgid "Normal"
-msgstr "Звичайна"
+#: src/settings.cpp:24
+msgid "0` (Portrait)"
+msgstr "Книжкова"
 
 #: src/settings.cpp:25
 msgid "90 `"
@@ -271,6 +271,10 @@ msgstr "Лише для великих шрифтів"
 #: src/settings.cpp:124 src/settings.cpp:143
 msgid "Off"
 msgstr "Вимк."
+
+#: src/settings.cpp:129
+msgid "Normal"
+msgstr "Звичайна"
 
 #: src/settings.cpp:130
 msgid "Inverse"

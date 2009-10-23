@@ -21,7 +21,7 @@ DECL_DEF_CR_FONT_SIZES;
 CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef props )
 {
 	item_def_t page_orientations[] = {
-		{_("Normal"), "0"},
+		{_("0` (Portrait)"), "0"},
 		{_("90 `"), "1"},
 		{_("180 `"), "2"},
 		{_("270 `"), "3"},

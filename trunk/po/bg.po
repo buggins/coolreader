@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-10-22 19:47+0400\n"
+"POT-Creation-Date: 2009-10-23 07:25+0400\n"
 "PO-Revision-Date: 2009-09-28 13:41+0200\n"
 "Last-Translator: Zlatko Petkov <zlpetkov@gmail.com>\n"
 "Language-Team: Bulgarian\n"
@@ -228,9 +228,9 @@ msgstr "Публикация"
 msgid "Custom info"
 msgstr "Допълнителна информация"
 
-#: src/settings.cpp:24 src/settings.cpp:129
-msgid "Normal"
-msgstr "Нормална"
+#: src/settings.cpp:24
+msgid "0` (Portrait)"
+msgstr "0`"
 
 #: src/settings.cpp:25
 msgid "90 `"
@@ -269,6 +269,10 @@ msgstr "Само за големи шрифтове"
 #: src/settings.cpp:124 src/settings.cpp:143
 msgid "Off"
 msgstr "Не"
+
+#: src/settings.cpp:129
+msgid "Normal"
+msgstr "Нормална"
 
 #: src/settings.cpp:130
 msgid "Inverse"

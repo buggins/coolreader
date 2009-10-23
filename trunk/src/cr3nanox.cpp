@@ -1236,8 +1236,10 @@ int InitDoc(char *fileName)
             NULL,
         };
         loadKeymaps( *wm, keymap_locations );
-        HyphMan::initDictionaries( lString16("/root/crengine/hyph") );
-
+        if ( LVDirectoryExists( L"/root/abook/crengine/hyph" ) )
+            HyphMan::initDictionaries( lString16("/root/abook/crengine/hyph") );
+        else
+            HyphMan::initDictionaries( lString16("/root/crengine/hyph") );
         if ( !wm->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
             if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
                 wm->loadSkin( lString16( L"/root/crengine/skin" ) );

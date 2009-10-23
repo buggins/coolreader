@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-10-22 19:47+0400\n"
+"POT-Creation-Date: 2009-10-23 07:25+0400\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -230,9 +230,9 @@ msgstr "发行商名称:"
 msgid "Custom info"
 msgstr "用户信息"
 
-#: src/settings.cpp:24 src/settings.cpp:129
-msgid "Normal"
-msgstr "正常"
+#: src/settings.cpp:24
+msgid "0` (Portrait)"
+msgstr ""
 
 #: src/settings.cpp:25
 msgid "90 `"
@@ -271,6 +271,10 @@ msgstr "只支持大字体"
 #: src/settings.cpp:124 src/settings.cpp:143
 msgid "Off"
 msgstr "关闭"
+
+#: src/settings.cpp:129
+msgid "Normal"
+msgstr "正常"
 
 #: src/settings.cpp:130
 msgid "Inverse"
