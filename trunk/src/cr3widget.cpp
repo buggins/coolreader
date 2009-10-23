@@ -895,3 +895,27 @@ void CR3View::setBookmarksDir( QString dirname )
 {
     _bookmarkDir = dirname;
 }
+
+/// file progress indicator, called with values 0..100
+void CR3View::OnLoadFileProgress( int percent )
+{
+    CRLog::info( "OnLoadFileProgress(%d%%)", percent );
+}
+
+/// format progress, called with values 0..100
+void CR3View::OnFormatProgress( int percent )
+{
+    CRLog::info( "OnFormatProgress(%d%%)", percent );
+}
+
+/// first page is loaded from file an can be formatted for preview
+void CR3View::OnLoadFileFirstPagesReady()
+{
+    CRLog::info( "OnLoadFileFirstPagesReady() - painting first page" );
+    //update();
+    repaint();
+    CRLog::info( "OnLoadFileFirstPagesReady() - painting done" );
+    _docview->requestRender();
+    // TODO: remove debug sleep
+    //sleep(5);
+}

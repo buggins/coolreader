@@ -96,6 +96,8 @@ class CR3View : public QWidget, public LVDocViewCallback
         virtual void OnLoadFileFormatDetected( doc_format_t fileFormat );
         /// on starting file loading
         virtual void OnLoadFileStart( lString16 filename );
+        /// first page is loaded from file an can be formatted for preview
+        virtual void OnLoadFileFirstPagesReady();
         /// file load finiished with error
         virtual void OnLoadFileError( lString16 message );
         /// file loading is finished successfully - drawCoveTo() may be called there
@@ -104,6 +106,10 @@ class CR3View : public QWidget, public LVDocViewCallback
         virtual void OnFormatStart();
         /// document formatting finished
         virtual void OnFormatEnd();
+        /// file progress indicator, called with values 0..100
+        virtual void OnLoadFileProgress( int percent );
+        /// format progress, called with values 0..100
+        virtual void OnFormatProgress( int percent );
 
     public slots:
         void contextMenu( QPoint pos );
