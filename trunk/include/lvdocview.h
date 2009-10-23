@@ -319,7 +319,9 @@ public:
 	virtual void OnLoadFileFormatDetected( doc_format_t fileFormat ) { }
 	/// file loading is finished successfully - drawCoveTo() may be called there
 	virtual void OnLoadFileEnd() { }
-	/// file progress indicator, called with values 0..100
+    /// first page is loaded from file an can be formatted for preview
+    virtual void OnLoadFileFirstPagesReady() { }
+    /// file progress indicator, called with values 0..100
 	virtual void OnLoadFileProgress( int percent ) { }
 	/// document formatting started
 	virtual void OnFormatStart() { }

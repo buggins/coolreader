@@ -14,6 +14,7 @@
 #include "../include/lvxml.h"
 #include "../include/crtxtenc.h"
 #include "../include/fb2def.h"
+#include "../include/lvdocview.h"
 
 
 #define BUF_SIZE_INCREMENT 4096
@@ -35,8 +36,68 @@ LVFileParserBase::LVFileParserBase( LVStreamRef stream )
     , m_buf_pos(0)
     , m_buf_fpos(0)
     , m_stopped(false)
+    , m_progressCallback(NULL)
+    , m_lastProgressTime((time_t)0)
+    , m_progressLastPercent(0)
+    , m_progressUpdateCounter(0)
+    , m_firstPageTextCounter(-1)
+
 {
     m_stream_size = stream.isNull()?0:stream->GetSize();
+}
+
+/// returns pointer to loading progress callback object
+LVDocViewCallback * LVFileParserBase::getProgressCallback()
+{
+    return m_progressCallback;
+}
+
+// should be (2^N - 1)
+#define PROGRESS_UPDATE_RATE_MASK 63
+/// call to send progress update to callback, if timeout expired
+void LVFileParserBase::updateProgress()
+{
+    if ( m_progressCallback == NULL )
+        return;
+    /// first page is loaded from file an can be formatted for preview
+    if ( m_firstPageTextCounter>=0 ) {
+        m_firstPageTextCounter--;
+        if ( m_firstPageTextCounter==0 ) {
+            if ( getProgressPercent()<30 )
+                m_progressCallback->OnLoadFileFirstPagesReady();
+            m_firstPageTextCounter=-1;
+        }
+    }
+    m_progressUpdateCounter = (m_progressUpdateCounter + 1) & PROGRESS_UPDATE_RATE_MASK;
+    if ( m_progressUpdateCounter!=0 )
+        return; // to speed up checks
+    time_t t = (time_t)time((time_t)0);
+    if ( m_lastProgressTime==0 ) {
+        m_lastProgressTime = t;
+        return;
+    }
+    if ( t == m_lastProgressTime )
+        return;
+    m_lastProgressTime = t;
+    int p = getProgressPercent();
+    if ( p!= m_progressLastPercent ) {
+        m_progressCallback->OnLoadFileProgress( p );
+        m_progressLastPercent = p;
+    }
+}
+
+/// sets pointer to loading progress callback object
+void LVFileParserBase::setProgressCallback( LVDocViewCallback * callback )
+{
+    m_progressCallback = callback;
+}
+
+/// override to return file reading position percent
+int LVFileParserBase::getProgressPercent()
+{
+    if ( m_stream_size<=0 )
+        return 0;
+    return (int)((lInt64)100 * (m_buf_pos + m_buf_fpos) / m_stream_size);
 }
 
 lString16 LVFileParserBase::getFileName()
@@ -1122,10 +1183,12 @@ public:
     /// one line per paragraph
     bool DoParaPerLineImport(LVXMLParserCallback * callback)
     {
+        int firstPageTextCounter = 0;
         CRLog::debug("DoParaPerLineImport()");
         do {
             for ( int i=0; i<length(); i++ ) {
                 AddPara( i, i, callback );
+                file->updateProgress();
             }
             RemoveLines( length() );
         } while ( ReadLines( 100 ) );
@@ -1166,6 +1229,7 @@ public:
                 }
             }
             AddPara( pos, i-1 - (emptyLineFlag?1:0), callback );
+            file->updateProgress();
             pos = i;
         }
         if ( inSubSection )
@@ -1210,6 +1274,7 @@ public:
                 i--;
             if ( i>=pos ) {
                 AddPara( pos, i, callback );
+                file->updateProgress();
                 if ( emptyLineCount ) {
                     if ( shortLineCount > 1 )
                         AddEmptyLine( callback );
@@ -1227,12 +1292,15 @@ public:
     bool DoPreFormattedImport(LVXMLParserCallback * callback)
     {
         CRLog::debug("DoPreFormattedImport()");
+        int firstPageTextCounter = 0;
         do {
             for ( int i=0; i<length(); i++ ) {
                 LVTextFileLine * item = get(i);
                 if ( item->rpos > item->lpos ) {
                     callback->OnTagOpen( NULL, L"pre" );
                        callback->OnText( item->text.c_str(), item->text.length(), item->flags );
+                       file->updateProgress();
+
                     callback->OnTagClose( NULL, L"pre" );
                 } else {
                     callback->OnTagOpen( NULL, L"empty-line" );
@@ -1497,6 +1565,7 @@ LVTextParser::LVTextParser( LVStreamRef stream, LVXMLParserCallback * callback, 
     , m_callback(callback)
     , m_isPreFormatted( isPreFormatted )
 {
+    m_firstPageTextCounter = 300;
 }
 
 /// descructor
@@ -1723,6 +1792,7 @@ LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback )
     , m_trimspaces(true)
     , m_state(0)
 {
+    m_firstPageTextCounter = 2000;
 }
 
 LVXMLParser::~LVXMLParser()
@@ -1784,6 +1854,7 @@ bool LVXMLParser::Parse()
     m_callback->OnStart(this);
     bool closeFlag = false;
     bool qFlag = false;
+    bool bodyStarted = false;
     lString16 tagname;
     lString16 tagns;
     lString16 attrname;
@@ -1874,6 +1945,8 @@ bool LVXMLParser::Parse()
                     inXmlTag = false;
                 }
                 m_callback->OnTagOpen(tagns.c_str(), tagname.c_str());
+                if ( !bodyStarted && tagname==L"body" )
+                    bodyStarted = true;
 
                 m_state = ps_attr;
             }
@@ -1947,6 +2020,8 @@ bool LVXMLParser::Parse()
         case ps_text:
             {
                 ReadText();
+                if ( bodyStarted )
+                    updateProgress();
                 m_state = ps_lt;
             }
             break;

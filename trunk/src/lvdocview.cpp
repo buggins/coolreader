@@ -3198,6 +3198,7 @@ bool LVDocView::ParseDocument( )
         m_doc->setStyleSheet( m_stylesheet.c_str(), true );
 
         // parse
+        parser->setProgressCallback( m_callback );
         if ( !parser->Parse() ) {
 			delete parser;
 			if ( m_callback ) {

@@ -225,6 +225,7 @@ public:
         if ( action==RA_PARA || action==RA_SECTION ) {
             if ( in_para ) {
                 m_callback->OnTagClose(NULL, L"p");
+                m_parser.updateProgress();
                 in_para = false;
             }
             if ( in_title ) {
@@ -285,6 +286,7 @@ LVRtfParser::LVRtfParser( LVStreamRef stream, LVXMLParserCallback * callback )
     , txtbuf(NULL)
 {
     m_stack.setDestination(  new LVRtfDefDestination(*this) );
+    m_firstPageTextCounter = 1000;
 }
 
 LVRtfDestination::LVRtfDestination( LVRtfParser & parser )

@@ -629,8 +629,8 @@ public:
             return LVERR_FAIL;
         if ( size == m_size )
             return LVERR_OK;
-        if ( size < m_size )
-            return LVERR_FAIL;
+        //if ( size < m_size )
+        //    return LVERR_FAIL;
 
 		bool wasMapped = false;
         if ( m_map!=NULL ) {

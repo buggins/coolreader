@@ -76,10 +76,16 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags );
 
 #define MAX_PERSISTENT_BUF_SIZE 16384
 
+class LVDocViewCallback;
+
 /// base class for all document format parsers
 class LVFileFormatParser
 {
 public:
+    /// returns pointer to loading progress callback object
+    virtual LVDocViewCallback * getProgressCallback() { return NULL; }
+    /// sets pointer to loading progress callback object
+    virtual void setProgressCallback( LVDocViewCallback * callback ) { }
     /// returns true if format is recognized by parser
     virtual bool CheckFormat() = 0;
     /// parses input stream
@@ -113,11 +119,24 @@ protected:
     int      m_buf_pos;
     lvpos_t  m_buf_fpos;
     bool     m_stopped; // true if Stop() is called
+    LVDocViewCallback * m_progressCallback;
+    time_t   m_lastProgressTime;
+    int      m_progressLastPercent;
+    int      m_progressUpdateCounter;
+    int      m_firstPageTextCounter;
     /// fills buffer, to provide specified number of bytes for read
     bool FillBuffer( int bytesToRead );
     /// seek to specified stream position
     bool Seek( lvpos_t pos, int bytesToPrefetch=0 );
+    /// override to return file reading position percent
+    virtual int getProgressPercent();
 public:
+    /// call to send progress update to callback, if timeout expired
+    void updateProgress();
+    /// returns pointer to loading progress callback object
+    virtual LVDocViewCallback * getProgressCallback();
+    /// sets pointer to loading progress callback object
+    virtual void setProgressCallback( LVDocViewCallback * callback );
     /// constructor
     LVFileParserBase( LVStreamRef stream );
     /// virtual destructor
