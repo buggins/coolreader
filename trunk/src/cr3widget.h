@@ -135,6 +135,7 @@ class CR3View : public QWidget, public LVDocViewCallback
         //void fileNameChanged( const QString & );
 
     protected:
+        virtual void keyPressEvent ( QKeyEvent * event );
         virtual void paintEvent ( QPaintEvent * event );
         virtual void resizeEvent ( QResizeEvent * event );
         virtual void wheelEvent ( QWheelEvent * event );

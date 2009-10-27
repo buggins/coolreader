@@ -896,6 +896,24 @@ void CR3View::setBookmarksDir( QString dirname )
     _bookmarkDir = dirname;
 }
 
+void CR3View::keyPressEvent ( QKeyEvent * event )
+{
+    if ( !_editMode )
+        return;
+    switch ( event->key() ) {
+    case Qt::Key_Left:
+        break;
+    case Qt::Key_Right:
+    case Qt::Key_Up:
+    case Qt::Key_Down:
+    case Qt::Key_Home:
+    case Qt::Key_End:
+    case Qt::Key_PageUp:
+    case Qt::Key_PageDown:
+        break;
+    }
+}
+
 /// file progress indicator, called with values 0..100
 void CR3View::OnLoadFileProgress( int percent )
 {
