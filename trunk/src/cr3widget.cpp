@@ -912,9 +912,11 @@ void CR3View::OnFormatProgress( int percent )
 void CR3View::OnLoadFileFirstPagesReady()
 {
     CRLog::info( "OnLoadFileFirstPagesReady() - painting first page" );
+    _docview->setPageHeaderOverride(qt2cr(tr("Loading: please wait...")));
     //update();
     repaint();
     CRLog::info( "OnLoadFileFirstPagesReady() - painting done" );
+    _docview->setPageHeaderOverride(lString16());
     _docview->requestRender();
     // TODO: remove debug sleep
     //sleep(5);
