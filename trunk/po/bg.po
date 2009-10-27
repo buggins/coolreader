@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
-"POT-Creation-Date: 2009-10-23 07:25+0400\n"
+"POT-Creation-Date: 2009-10-27 21:55+0300\n"
 "PO-Revision-Date: 2009-09-28 13:41+0200\n"
 "Last-Translator: Zlatko Petkov <zlpetkov@gmail.com>\n"
 "Language-Team: Bulgarian\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "Empty slot"
 msgstr "(Празно)"
 
-#: src/bmkdlg.cpp:58 src/mainwnd.cpp:633
+#: src/bmkdlg.cpp:58 src/mainwnd.cpp:634
 msgid "Bookmarks"
 msgstr "Отбелязки"
 
@@ -48,185 +48,189 @@ msgstr "Търсене в речника"
 msgid "[cannot read article]"
 msgstr "[не мога да прочета темата]"
 
-#: src/mainwnd.cpp:539 src/mainwnd.cpp:646
+#: src/mainwnd.cpp:540 src/mainwnd.cpp:647
 msgid "Help"
 msgstr "Справка"
 
-#: src/mainwnd.cpp:558
+#: src/mainwnd.cpp:559
 msgid "Main Menu"
 msgstr "Главно меню"
 
-#: src/mainwnd.cpp:595 src/viewdlg.cpp:353
+#: src/mainwnd.cpp:596 src/viewdlg.cpp:353
 msgid "About"
 msgstr "Информация за документа"
 
-#: src/mainwnd.cpp:605 src/viewdlg.cpp:331
+#: src/mainwnd.cpp:606 src/viewdlg.cpp:331
 msgid "Go to page"
 msgstr "Към страница"
 
-#: src/mainwnd.cpp:617 src/recentdlg.cpp:72
+#: src/mainwnd.cpp:618 src/recentdlg.cpp:72
 msgid "Open recent book"
 msgstr "Последно четени книги"
 
-#: src/mainwnd.cpp:624 src/viewdlg.cpp:137
+#: src/mainwnd.cpp:625 src/viewdlg.cpp:137
 msgid "Dictionary"
 msgstr "Речник"
 
-#: src/mainwnd.cpp:629
+#: src/mainwnd.cpp:630
 msgid "Cite"
 msgstr "Цитат"
 
-#: src/mainwnd.cpp:637 src/viewdlg.cpp:180
+#: src/mainwnd.cpp:638 src/viewdlg.cpp:180
 msgid "Search"
 msgstr "Търсене"
 
-#: src/mainwnd.cpp:641 src/settings.cpp:78
+#: src/mainwnd.cpp:642 src/settings.cpp:78
 msgid "Settings"
 msgstr "Настройки"
 
-#: src/mainwnd.cpp:650 src/viewdlg.cpp:392
+#: src/mainwnd.cpp:651 src/viewdlg.cpp:392
 msgid "Keyboard layout"
 msgstr "Клавиатурна подредба"
 
-#: src/mainwnd.cpp:751
+#: src/mainwnd.cpp:752
 msgid "Current page"
 msgstr "Текуща страница"
 
-#: src/mainwnd.cpp:752
+#: src/mainwnd.cpp:753
 msgid "Total pages"
 msgstr "Общо страници"
 
-#: src/mainwnd.cpp:753
+#: src/mainwnd.cpp:754
 msgid "Battery state"
 msgstr "Батерия"
 
-#: src/mainwnd.cpp:754
+#: src/mainwnd.cpp:755
 msgid "Current Time"
 msgstr "Текущо време"
 
-#: src/mainwnd.cpp:759
+#: src/mainwnd.cpp:760
 msgid "Current chapter"
 msgstr "Текуща глава"
 
-#: src/mainwnd.cpp:762
+#: src/mainwnd.cpp:763
 msgid "Status"
 msgstr "Статус"
 
-#: src/mainwnd.cpp:765
+#: src/mainwnd.cpp:766
 msgid "Archive name"
 msgstr "Име на архива"
 
-#: src/mainwnd.cpp:766
+#: src/mainwnd.cpp:767
 msgid "Archive path"
 msgstr "Път към архива"
 
-#: src/mainwnd.cpp:767
+#: src/mainwnd.cpp:768
 msgid "Archive size"
 msgstr "Размер на архива"
 
-#: src/mainwnd.cpp:768
+#: src/mainwnd.cpp:769
 msgid "File name"
 msgstr "Име на файла"
 
-#: src/mainwnd.cpp:769
+#: src/mainwnd.cpp:770
 msgid "File path"
 msgstr "Път към файла"
 
-#: src/mainwnd.cpp:770
+#: src/mainwnd.cpp:771
 msgid "File size"
 msgstr "Размер на файла"
 
-#: src/mainwnd.cpp:771
+#: src/mainwnd.cpp:772
 msgid "File format"
 msgstr "Тип на файла"
 
-#: src/mainwnd.cpp:772
+#: src/mainwnd.cpp:773
 msgid "File info"
 msgstr "Информация за файла"
 
-#: src/mainwnd.cpp:775
+#: src/mainwnd.cpp:776
 msgid "Title"
 msgstr "Заглавие"
 
-#: src/mainwnd.cpp:776
+#: src/mainwnd.cpp:777
 msgid "Author(s)"
 msgstr "Автор(и)"
 
-#: src/mainwnd.cpp:777
+#: src/mainwnd.cpp:778
 msgid "Series name"
 msgstr "Поредица"
 
-#: src/mainwnd.cpp:778
+#: src/mainwnd.cpp:779
 msgid "Series number"
 msgstr "Номер в поредицата"
 
-#: src/mainwnd.cpp:779
+#: src/mainwnd.cpp:780
 msgid "Date"
 msgstr "Дата"
 
-#: src/mainwnd.cpp:780
+#: src/mainwnd.cpp:781
 msgid "Genres"
 msgstr "Жанрове"
 
-#: src/mainwnd.cpp:781
+#: src/mainwnd.cpp:782
 msgid "Translator"
 msgstr "Преводач"
 
-#: src/mainwnd.cpp:782
+#: src/mainwnd.cpp:783
 msgid "Book info"
 msgstr "Допълнителна информация"
 
-#: src/mainwnd.cpp:785
+#: src/mainwnd.cpp:786
 msgid "Document author"
 msgstr "Автор"
 
-#: src/mainwnd.cpp:786
+#: src/mainwnd.cpp:787
 msgid "Document date"
 msgstr "Дата"
 
-#: src/mainwnd.cpp:787
+#: src/mainwnd.cpp:788
 msgid "Document source URL"
 msgstr "Източник"
 
-#: src/mainwnd.cpp:788
+#: src/mainwnd.cpp:789
 msgid "OCR by"
 msgstr "Сканирано от"
 
-#: src/mainwnd.cpp:789
+#: src/mainwnd.cpp:790
 msgid "Document version"
 msgstr "Версия"
 
-#: src/mainwnd.cpp:790
+#: src/mainwnd.cpp:791
 msgid "Document info"
 msgstr "Информация за документа"
 
-#: src/mainwnd.cpp:793
+#: src/mainwnd.cpp:794
 msgid "Publication name"
 msgstr "Публикация"
 
-#: src/mainwnd.cpp:794
+#: src/mainwnd.cpp:795
 msgid "Publisher"
 msgstr "Издател"
 
-#: src/mainwnd.cpp:795
+#: src/mainwnd.cpp:796
 msgid "Publisher city"
 msgstr "Град на издаване"
 
-#: src/mainwnd.cpp:796
+#: src/mainwnd.cpp:797
 msgid "Publication year"
 msgstr "Година на издаване"
 
-#: src/mainwnd.cpp:797
+#: src/mainwnd.cpp:798
 msgid "ISBN"
 msgstr "ISBN"
 
-#: src/mainwnd.cpp:798
+#: src/mainwnd.cpp:799
 msgid "Publication info"
 msgstr "Публикация"
 
-#: src/mainwnd.cpp:800
+#: src/mainwnd.cpp:801
 msgid "Custom info"
 msgstr "Допълнителна информация"
+
+#: src/mainwnd.cpp:884
+msgid "Loading: please wait..."
+msgstr ""
 
 #: src/settings.cpp:24
 msgid "0` (Portrait)"

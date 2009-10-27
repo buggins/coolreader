@@ -1133,6 +1133,60 @@ int main( int argc, const char * argv[] )
 
 static char history_file_name[1024] = "/root/abook/.cr3hist";
 
+static const char * getLang( )
+{
+    int langId = -1;
+    if ( getenv("WOLLANG") )
+        langId = atoi( getenv("WOLLANG") );
+    static char * langs[] = {
+        "zh_CN",
+        "en_US",
+        "zh_TW",
+        "ru",
+        "uk",
+        "ka",
+        "es",
+        "tr",
+        "fr",
+        "de",
+        "bg",
+        "ar",
+        "be",
+        "ca",
+        "cs",
+        "da",
+        "el",
+        "et",
+        "fi",
+        "hr",
+        "hu",
+        "is",
+        "it",
+        "iw",
+        "ja",
+        "ko",
+        "lt",
+        "lv",
+        "mk",
+        "nl",
+        "no",
+        "pl",
+        "pt",
+        "ro",
+        "sh",
+        "sk",
+        "sl",
+        "sq",
+        "sr",
+        "sv",
+        "th",
+    };
+    int numlangs = sizeof(langs)/sizeof(langs[0]);
+    if ( langId>=0 && langId< numlangs )
+        return langs[langId];
+    return "en";
+}
+
 int InitDoc(char *fileName)
 {
 
@@ -1161,20 +1215,23 @@ int InitDoc(char *fileName)
 
     char manual_file[512] = "";
     {
-        const char * lang = "ru"; //  TODO: get fro WOLLANG : v3_callbacks->GetString( "CR3_LANG" );
+        const char * lang = getLang();
         if ( lang && lang[0] ) {
             // set translator
             CRLog::info("Current language is %s, looking for translation file", lang);
             lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
+            lString16 mofilename2 = L"/root/abook/crengine/i18n/" + lString16(lang) + L".mo";
             CRMoFileTranslator * t = new CRMoFileTranslator();
-            if ( t->openMoFile( mofilename ) ) {
+            if ( t->openMoFile( mofilename2 ) || t->openMoFile( mofilename ) ) {
                 CRLog::info("translation file %s.mo found", lang);
                 CRI18NTranslator::setTranslator( t );
             } else {
                 CRLog::info("translation file %s.mo not found", lang);
                 delete t;
             }
-            sprintf( manual_file, "/root/crengine/manual/cr3-manual-%s.fb2", lang );
+            sprintf( manual_file, "/root/abook/crengine/manual/cr3-manual-%s.fb2", lang );
+            if ( !LVFileExists( lString16(manual_file).c_str() ) )
+                sprintf( manual_file, "/root/crengine/manual/cr3-manual-%s.fb2", lang );
         }
     }
 

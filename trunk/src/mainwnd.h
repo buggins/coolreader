@@ -123,6 +123,8 @@ public:
 	virtual void OnLoadFileEnd();
 	/// file progress indicator, called with values 0..100
 	virtual void OnLoadFileProgress( int percent );
+    /// first page is loaded from file an can be formatted for preview
+    virtual void OnLoadFileFirstPagesReady();
 	/// document formatting started
 	virtual void OnFormatStart();
 	/// document formatting finished

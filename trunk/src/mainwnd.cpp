@@ -54,6 +54,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
 	_fullscreen = true;
     _docview->setShowCover( true );
     _docview->setFontSizes( sizes, true );
+    _docview->setCallback( this );
     _props = LVCreatePropsContainer();
     _newProps = _props;
     // TODO: move skin outside
@@ -874,4 +875,18 @@ bool V3DocViewWin::onCommand( int command, int params )
         ;
     }
     return CRViewDialog::onCommand( command, params );
+}
+
+/// first page is loaded from file an can be formatted for preview
+void V3DocViewWin::OnLoadFileFirstPagesReady()
+{
+    CRLog::info( "OnLoadFileFirstPagesReady() - painting first page" );
+    _docview->setPageHeaderOverride(_16("Loading: please wait..."));
+    //update();
+    _wm->update(true);
+    CRLog::info( "OnLoadFileFirstPagesReady() - painting done" );
+    _docview->setPageHeaderOverride(lString16());
+    _docview->requestRender();
+    // TODO: remove debug sleep
+    //sleep(5);
 }
