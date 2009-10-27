@@ -4179,6 +4179,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setStringDef( PROP_STATUS_FONT_FACE, defFontFace.c_str() );
     if ( list.length()>0 && !list.contains( props->getStringDef( PROP_FONT_FACE, defFontFace.c_str()) ) )
         props->setString( PROP_FONT_FACE, list[0] );
+    props->setIntDef( PROP_FONT_SIZE, m_font_sizes[m_font_sizes.length()*3/2] );
     props->limitValueList( PROP_FONT_SIZE, m_font_sizes.ptr(), m_font_sizes.length() );
     props->limitValueList( PROP_INTERLINE_SPACE, cr_interline_spaces, sizeof(cr_interline_spaces)/sizeof(int) );
     static int def_rot_angle[] = { 0, 1, 2, 3 };
