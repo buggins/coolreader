@@ -429,6 +429,9 @@ private:
     /// edit cursor position
     ldomXPointer m_cursorPos;
 
+    lString16 m_pageHeaderOverride;
+
+
     /// sets current document format
     void setDocFormat( doc_format_t fmt );
 
@@ -471,6 +474,8 @@ protected:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+    /// substitute page header with custom text (e.g. to be used while loading)
+    void setPageHeaderOverride( lString16 s );
     /// get screen rectangle for current cursor position, returns false if not visible
     bool getCursorRect( lvRect & rc, bool scrollToCursor = false )
     {

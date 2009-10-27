@@ -928,7 +928,7 @@ void LVDocView::getPageHeaderRectangle( int pageIndex, lvRect & headerRc )
     lvRect pageRc;
     getPageRectangle( pageIndex, pageRc );
     headerRc = pageRc;
-    if ( pageIndex==0 ) {
+    if ( pageIndex==0 && m_showCover ) {
         headerRc.bottom = 0;
     } else {
         int h = getPageHeaderHeight();
@@ -1188,6 +1188,13 @@ lString16 fitTextWidthWithEllipsis( lString16 text, LVFontRef font, int maxwidth
     return lString16();
 }
 
+/// substitute page header with custom text (e.g. to be used while loading)
+void LVDocView::setPageHeaderOverride( lString16 s )
+{
+    m_pageHeaderOverride = s;
+    clearImageCache();
+}
+
 /// draw page header to buffer
 void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, int pageIndex, int phi, int pageCount )
 {
@@ -1225,100 +1232,108 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
     //drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
     drawbuf->FillRect(info.left+percent_pos, gpos-2, info.right, gpos-2+1, cl1 ); // cl3
 
-    if ( !leftPage ) {
-        drawbuf->FillRect(info.left, gpos-3, info.left+percent_pos, gpos-3+1, cl1 );
-        drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos-1+1, cl1 );
-    }
-
-    // disable section marks
-    if ( !leftPage ) {
-        for ( int i=0; i<sbounds.length(); i++) {
-            int x = info.left + sbounds[i]*(info.width()-1) / 10000;
-            lUInt32 c = x<info.left+percent_pos ? cl2 : cl1;
-            drawbuf->FillRect(x, gpos-4, x+1, gpos-0+2, c );
-        }
-    }
-
-
-    int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
-    if ( getVisiblePageCount()==1 || !(pageIndex&1) ) {
-        int dwIcons = 0;
-        int icony = iy + m_infoFont->getHeight() / 2;
-        for ( int ni=0; ni<m_headerIcons.length(); ni++ ) {
-            LVImageSourceRef icon = m_headerIcons[ni];
-            int h = icon->GetHeight();
-            int w = icon->GetWidth();
-            drawbuf->Draw( icon, info.left + dwIcons, icony - h / 2, w, h );
-            dwIcons += w + 4;
-        }
-        info.left += dwIcons;
-    }
-
-    if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
-        lvRect brc = info;
-        brc.right -= 3;
-        brc.top += 1;
-        brc.bottom -= 2;
-        int h = brc.height();
-        bool isVertical = (h>30);
-        if ( isVertical )
-            brc.left = brc.right - brc.height()/2;
-        else
-            brc.left = brc.right - 30;
-        drawBatteryState( drawbuf, brc, isVertical );
-        info.right = brc.left - info.height()/2;
-    }
-    lString16 pageinfo;
-    if ( pageCount>0 ) {
-        if ( phi & PGHDR_PAGE_NUMBER )
-            pageinfo += lString16::itoa( pageIndex+1 );
-        if ( phi & PGHDR_PAGE_COUNT )
-            pageinfo += L" / " + lString16::itoa( pageCount );
-    }
-    int piw = 0;
-    if ( !pageinfo.empty() ) {
-        piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
-        m_infoFont->DrawTextString( drawbuf, info.right-piw, iy,
-            pageinfo.c_str(), pageinfo.length(), L' ', NULL, false);
-        info.right -= piw + info.height()/2;
-    }
-    if ( phi & PGHDR_CLOCK ) {
-        lString16 clock = getTimeString();
-        m_last_clock = clock;
-        int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + 2;
-        m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
-            clock.c_str(), clock.length(), L' ', NULL, false);
-        info.right -= w + info.height()/2;
-    }
-    int titlew = 0;
-    lString16 title;
-    if ( phi & PGHDR_TITLE ) {
-        title = getTitle();
-        if ( !title.empty() )
-             titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
-    }
-    int authorsw = 0;
-    lString16 authors;
-    if ( phi & PGHDR_AUTHOR ) {
-        authors = getAuthors();
-        if ( !authors.empty() ) {
-            if ( !title.empty() )
-                authors += L'.';
-            authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
-        }
-    }
-    int w = info.width() - 10;
     lString16 text;
-    if ( authorsw + titlew + 10 > w ) {
-        if ( (pageIndex & 1) )
-            text = title;
-        else {
-            text = authors;
-            if ( !text.empty() && text[text.length()-1]=='.')
-                text = text.substr(0, text.length() - 1 );
-        }
+    int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
+
+    if ( !m_pageHeaderOverride.empty() ) {
+        text = m_pageHeaderOverride;
     } else {
-        text = authors + L"  " + title;
+
+        if ( !leftPage ) {
+            drawbuf->FillRect(info.left, gpos-3, info.left+percent_pos, gpos-3+1, cl1 );
+            drawbuf->FillRect(info.left, gpos-1, info.left+percent_pos, gpos-1+1, cl1 );
+        }
+
+
+
+        // disable section marks
+        if ( !leftPage ) {
+            for ( int i=0; i<sbounds.length(); i++) {
+                int x = info.left + sbounds[i]*(info.width()-1) / 10000;
+                lUInt32 c = x<info.left+percent_pos ? cl2 : cl1;
+                drawbuf->FillRect(x, gpos-4, x+1, gpos-0+2, c );
+            }
+        }
+
+
+        if ( getVisiblePageCount()==1 || !(pageIndex&1) ) {
+            int dwIcons = 0;
+            int icony = iy + m_infoFont->getHeight() / 2;
+            for ( int ni=0; ni<m_headerIcons.length(); ni++ ) {
+                LVImageSourceRef icon = m_headerIcons[ni];
+                int h = icon->GetHeight();
+                int w = icon->GetWidth();
+                drawbuf->Draw( icon, info.left + dwIcons, icony - h / 2, w, h );
+                dwIcons += w + 4;
+            }
+            info.left += dwIcons;
+        }
+
+        if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
+            lvRect brc = info;
+            brc.right -= 3;
+            brc.top += 1;
+            brc.bottom -= 2;
+            int h = brc.height();
+            bool isVertical = (h>30);
+            if ( isVertical )
+                brc.left = brc.right - brc.height()/2;
+            else
+                brc.left = brc.right - 30;
+            drawBatteryState( drawbuf, brc, isVertical );
+            info.right = brc.left - info.height()/2;
+        }
+        lString16 pageinfo;
+        if ( pageCount>0 ) {
+            if ( phi & PGHDR_PAGE_NUMBER )
+                pageinfo += lString16::itoa( pageIndex+1 );
+            if ( phi & PGHDR_PAGE_COUNT )
+                pageinfo += L" / " + lString16::itoa( pageCount );
+        }
+        int piw = 0;
+        if ( !pageinfo.empty() ) {
+            piw = m_infoFont->getTextWidth( pageinfo.c_str(), pageinfo.length() );
+            m_infoFont->DrawTextString( drawbuf, info.right-piw, iy,
+                pageinfo.c_str(), pageinfo.length(), L' ', NULL, false);
+            info.right -= piw + info.height()/2;
+        }
+        if ( phi & PGHDR_CLOCK ) {
+            lString16 clock = getTimeString();
+            m_last_clock = clock;
+            int w = m_infoFont->getTextWidth( clock.c_str(), clock.length() ) + 2;
+            m_infoFont->DrawTextString( drawbuf, info.right-w, iy,
+                clock.c_str(), clock.length(), L' ', NULL, false);
+            info.right -= w + info.height()/2;
+        }
+        int titlew = 0;
+        lString16 title;
+        if ( phi & PGHDR_TITLE ) {
+            title = getTitle();
+            if ( !title.empty() )
+                 titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
+        }
+        int authorsw = 0;
+        lString16 authors;
+        if ( phi & PGHDR_AUTHOR ) {
+            authors = getAuthors();
+            if ( !authors.empty() ) {
+                if ( !title.empty() )
+                    authors += L'.';
+                authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
+            }
+        }
+        int w = info.width() - 10;
+        if ( authorsw + titlew + 10 > w ) {
+            if ( (pageIndex & 1) )
+                text = title;
+            else {
+                text = authors;
+                if ( !text.empty() && text[text.length()-1]=='.')
+                    text = text.substr(0, text.length() - 1 );
+            }
+        } else {
+            text = authors + L"  " + title;
+        }
     }
     lvRect newcr = headerRc;
     newcr.right = info.right - 10;
@@ -1355,7 +1370,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
     clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
     if ( page.type==PAGE_TYPE_COVER )
         clip.top = pageRect->top + m_pageMargins.top;
-    if ( m_pageHeaderInfo && page.type!=PAGE_TYPE_COVER) {
+    if ( (m_pageHeaderInfo || !m_pageHeaderOverride.empty()) && page.type!=PAGE_TYPE_COVER) {
         int phi = m_pageHeaderInfo;
         if ( getVisiblePageCount()==2 ) {
             if ( page.index & 1 ) {
@@ -1704,6 +1719,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         if ( pages==NULL )
             pages = &m_pages;
         updateLayout();
+        m_showCover = !getCoverPageImage().isNull();
         lString8 fontName = lString8(DEFAULT_FONT_NAME);
         m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
         m_infoFont = fontMan->GetFont( m_status_font_size, 300, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
