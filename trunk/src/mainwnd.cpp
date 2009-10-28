@@ -560,6 +560,7 @@ void V3DocViewWin::showMainMenu()
         LVImageSourceRef(),
         LVFontRef(),
         LVFontRef() );
+    menu_win->setFullscreen( true );
 /*
 VIEWER_MENU_GOTOFIRSTPAGE=Go to first page
 VIEWER_MENU_GOTOENDPAGE=Go to last page

@@ -36,6 +36,25 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
     return orientationMenu;
 }
 
+class FontSizeMenu : public CRMenu
+{
+public:
+    FontSizeMenu(  CRGUIWindowManager * wm, CRMenu * parentMenu, LVFontRef valueFont, CRPropRef props  )
+    : CRMenu( wm, parentMenu, mm_FontSize,
+                                _("Default font size"),
+                                        LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE, 10 )
+    {
+        _fullscreen = true;
+    }
+
+    /// submenu for options dialog support
+    virtual lString16 getSubmenuValue()
+    { 
+        return getProps()->getStringDef(
+            UnicodeToUtf8(getPropName()).c_str(), "24");
+    }
+};
+
 CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props )
 {
     lString16Collection list;
@@ -44,9 +63,7 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     //LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, false, css_ff_sans_serif, lString8("Arial")) );
     LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
     CRMenu * fontSizeMenu;
-    fontSizeMenu = new CRMenu(_wm, mainMenu, mm_FontSize,
-                                _("Default font size"),
-                                        LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE, 10 );
+    fontSizeMenu = new FontSizeMenu(_wm, mainMenu, valueFont, props );
     for ( unsigned i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
         //char name[32];
         char defvalue[200];
@@ -82,6 +99,9 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
   props( newProps ),
   _menuAccelerators( menuAccelerators )
 {
+
+    _fullscreen = true;
+
 	item_def_t antialiasing_modes[] = {
 		{_("On for all fonts"), "2"},
 		{_("On for big fonts only"), "1"},
