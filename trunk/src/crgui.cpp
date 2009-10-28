@@ -406,6 +406,8 @@ lvPoint CRMenu::getMaxItemSize()
 
 lvPoint CRMenu::getSize()
 {
+    if ( _fullscreen )
+        return lvPoint( _wm->getScreen()->getWidth(), _wm->getScreen()->getHeight() );
     lvPoint itemSize = getMaxItemSize();
     int nItems = _items.length();
     int scrollHeight = 0;
