@@ -421,8 +421,7 @@ bool LVRendPageInfo::deserialize( SerialBuf & buf )
         for ( int i=0; i<len; i++ ) {
             buf >> n1;
             buf >> n2;
-            footnotes[i].start = n1;
-            footnotes[i].height = n2;
+            footnotes.add( LVPageFootNoteInfo( n1, n2 ) );
         }
     }
     return !buf.error();
