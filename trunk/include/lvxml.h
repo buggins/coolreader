@@ -204,7 +204,7 @@ protected:
     // skip current char (was already peeked), peek next
     inline lChar16 PeekNextCharFromBuffer()
     {
-        if ( m_read_buffer_pos >= m_read_buffer_len ) {
+        if ( m_read_buffer_pos + 1 >= m_read_buffer_len ) {
             if ( !fillCharBuffer() ) {
                 m_eof = true;
                 return 0;

@@ -3305,7 +3305,13 @@ bool LVDocView::ParseDocument( )
 	m_doc->getStyleSheet()->clear();
 	m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 #endif
-
+#if 0
+    {
+        LVStreamRef ostream = LVOpenFileStream(L"out.xml", LVOM_WRITE );
+        if ( !ostream.isNull() )
+            m_doc->saveToStream( ostream, "utf-8" );
+    }
+#endif
 
     return true;
 }

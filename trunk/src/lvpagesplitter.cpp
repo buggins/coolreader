@@ -58,6 +58,11 @@ void LVRendPageContext::enterFootNote( lString16 id )
 {
     if ( !page_list )
         return;
+    //CRLog::trace("enterFootNote( %s )", LCSTR(id) );
+    if ( curr_note != NULL ) {
+        CRLog::error("Nested entering note" );
+        return;
+    }
     curr_note = getOrCreateFootNote( id );
 }
 
@@ -66,6 +71,10 @@ void LVRendPageContext::leaveFootNote()
 {
     if ( !page_list )
         return;
+    //CRLog::trace("leaveFootNote()" );
+    if ( !curr_note ) {
+        CRLog::error("leaveFootNote() w/o current note set");
+    }
     curr_note = NULL;
 }
 
@@ -76,8 +85,10 @@ void LVRendPageContext::AddLine( int starty, int endy, int flags )
         flags |= RN_SPLIT_FOOT_NOTE;
     LVRendLineInfo * line = new LVRendLineInfo(starty, endy, flags);
     lines.add( line );
-    if ( curr_note!=NULL )
+    if ( curr_note != NULL ) {
+        //CRLog::trace("adding line to note (%d)", line->start);
         curr_note->addLine( line );
+    }
 }
 
 #define FOOTNOTE_MARGIN 12
@@ -125,6 +136,11 @@ public:
 
     void StartPage( const LVRendLineInfo * line )
     {
+        //if ( !line ) {
+        //    CRLog::trace("StartPage(NULL)");
+        //}
+        //if ( CRLog::isTraceEnabled() )
+        //    CRLog::trace("StartPage(%d)", line ? line->start : -111111111);
         last = pagestart = line;
         pageend = NULL;
         next = NULL;
@@ -138,6 +154,8 @@ public:
             pageend = pagestart;
         if ( !pagestart )
             return;
+        //if ( CRLog::isTraceEnabled() )
+        //    CRLog::trace("AddToList(%d, %d) footnotes: %d", pagestart->start, pageend->end, footnotes.length());
         LVRendPageInfo * page = new LVRendPageInfo(pagestart->start, pageend->end-pagestart->start, page_list->length());
         if ( footnotes.length()>0 ) {
             page->footnotes.add( footnotes );
@@ -216,7 +234,8 @@ public:
     }
     void StartFootNote( LVFootNote * note )
     {
-        if ( !footnote || footnote->getLines().length()==0 )
+        //CRLog::trace( "StartFootNote(%d)", note->getLines().length() );
+        if ( !note || note->getLines().length()==0 )
             return;
         footnote = note;
         footstart = footnote->getLines()[0];
@@ -229,6 +248,7 @@ public:
             return; // no data
         if ( footend==NULL )
             footend = footstart;
+        //CRLog::trace("AddFootnoteFragmentToList(%d, %d)", footstart->start, footend->end );
         int h = footend->end - footstart->start; // currentFootnoteHeight();
         if ( h>0 && h<page_h ) {
             footheight += h;
@@ -249,6 +269,7 @@ public:
             - (footstart ? footstart->end : line->start)
             + (footheight==0?FOOTNOTE_MARGIN:0);
         int h = currentHeight(next);
+        //CRLog::trace("Add footnote line %d", line->start);
         if ( h + dh > page_h ) {
             if ( footstart==NULL ) {
                 // no footnote lines fit
@@ -256,11 +277,14 @@ public:
                 StartPage( last );
             } else {
                 AddFootnoteFragmentToList();
-                //const LVRendLineInfo * save = next?next:last;
-                //next = NULL;
-                pageend = last;
-                AddToList();
-                StartPage( next );
+                //const LVRendLineInfo * save = ?:last;
+                // = NULL;
+                // LVE-TODO-TEST
+                //if ( next != NULL ) {
+                    pageend = last;
+                    AddToList();
+                    StartPage( next );
+                //}
             }
             footstart = footlast = line;
             footend = NULL;
@@ -294,6 +318,9 @@ void LVRendPageContext::split()
             s.last = line;
             s.next = lindex<lineCount-1?lines[lindex+1]:line;
             bool foundFootNote = false;
+            //if ( CRLog::isTraceEnabled() && line->getLinks()->length()>0 ) {
+            //    CRLog::trace("LVRendPageContext::split() line %d: found %d links", lindex, line->getLinks()->length() );
+           // }
             for ( int j=0; j<line->getLinks()->length(); j++ ) {
                 LVFootNote* note = line->getLinks()->get(j);
                 if ( note->getLines().length() ) {

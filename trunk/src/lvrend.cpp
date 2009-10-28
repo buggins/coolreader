@@ -1487,6 +1487,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         isFootNoteBody = true;
             }
         }
+//        if ( isFootNoteBody )
+//            CRLog::trace("renderBlockElement() : Footnote body detected! %s", LCSTR(ldomXPointer(enode,0).toString()) );
         lvdomElementFormatRec * fmt = enode->getRenderData();
         if (!fmt)
             crFatalError();

@@ -1850,6 +1850,7 @@ bool LVXMLParser::Parse()
     //
     //CRLog::trace("LVXMLParser::Parse()");
     Reset();
+//    bool dumpActive = false;
     bool inXmlTag = false;
     m_callback->OnStart(this);
     bool closeFlag = false;
@@ -1929,7 +1930,14 @@ bool LVXMLParser::Parse()
 
                 if (closeFlag)
                 {
+//                    if ( tagname==L"body" ) {
+//                        dumpActive = true;
+//                    } else if ( tagname==L"section" ) {
+//                        dumpActive = false;
+//                    }
                     m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
+//                    if ( dumpActive )
+//                        CRLog::trace("</%s>", LCSTR(tagname) );
                     if (SkipTillChar('>'))
                     {
                         m_state = ps_text;
@@ -1945,6 +1953,8 @@ bool LVXMLParser::Parse()
                     inXmlTag = false;
                 }
                 m_callback->OnTagOpen(tagns.c_str(), tagname.c_str());
+//                if ( dumpActive )
+//                    CRLog::trace("<%s>", LCSTR(tagname) );
                 if ( !bodyStarted && tagname==L"body" )
                     bodyStarted = true;
 
@@ -2019,6 +2029,13 @@ bool LVXMLParser::Parse()
             break;
         case ps_text:
             {
+//                if ( dumpActive ) {
+//                    lString16 s;
+//                    s << PeekCharFromBuffer(0) << PeekCharFromBuffer(1) << PeekCharFromBuffer(2) << PeekCharFromBuffer(3)
+//                      << PeekCharFromBuffer(4) << PeekCharFromBuffer(5) << PeekCharFromBuffer(6) << PeekCharFromBuffer(7);
+//                    CRLog::trace("text: %s...", LCSTR(s) );
+//                    dumpActive = true;
+//                }
                 ReadText();
                 if ( bodyStarted )
                     updateProgress();
@@ -2526,8 +2543,11 @@ bool LVXMLParser::ReadText()
             //=====================================================
             if (flgBreak)
             {
-                if ( m_read_buffer_pos < m_read_buffer_len )
+                // TODO:LVE???
+                if ( PeekCharFromBuffer()=='<' )
                     m_read_buffer_pos++;
+                //if ( m_read_buffer_pos < m_read_buffer_len )
+                //    m_read_buffer_pos++;
                 break;
             }
             m_txt_buf = nextText;

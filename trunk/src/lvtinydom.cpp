@@ -1356,34 +1356,34 @@ static void writeNode( LVStream * stream, ldomNode * node )
 {
     if ( node->isText() )
     {
-        lString16 txt = node->getText();
+        lString8 txt = node->getText8();
         *stream << txt;
     }
     else if (  node->isElement() )
     {
-        lString16 elemName = node->getNodeName();
-        lString16 elemNsName = node->getNodeNsName();
+        lString8 elemName = UnicodeToUtf8(node->getNodeName());
+        lString8 elemNsName = UnicodeToUtf8(node->getNodeNsName());
         if (!elemNsName.empty())
-            elemName = elemNsName + L":" + elemName;
+            elemName = elemNsName + ":" + elemName;
         if (!elemName.empty())
-            *stream << L"<" << elemName;
+            *stream << "<" << elemName;
         int i;
         for (i=0; i<(int)node->getAttrCount(); i++)
         {
             const lxmlAttribute * attr = node->getAttribute(i);
             if (attr)
             {
-                lString16 attrName( node->getDocument()->getAttrName(attr->id) );
-                lString16 nsName( node->getDocument()->getNsName(attr->nsid) );
-                lString16 attrValue( node->getDocument()->getAttrValue(attr->index) );
-                *stream << L" ";
+                lString8 attrName( UnicodeToUtf8(node->getDocument()->getAttrName(attr->id)) );
+                lString8 nsName( UnicodeToUtf8(node->getDocument()->getNsName(attr->nsid)) );
+                lString8 attrValue( UnicodeToUtf8(node->getDocument()->getAttrValue(attr->index)) );
+                *stream << " ";
                 if ( nsName.length() > 0 )
-                    *stream << nsName << L":";
-                *stream << attrName << L"=\"" << attrValue << L"\"";
+                    *stream << nsName << ":";
+                *stream << attrName << "=\"" << attrValue << "\"";
             }
         }
 
-#if 1
+#if 0
             if (!elemName.empty())
             {
                 ldomNode * elem = node;
@@ -1412,19 +1412,19 @@ static void writeNode( LVStream * stream, ldomNode * node )
             if (!elemName.empty())
             {
                 if ( elemName[0] == '?' )
-                    *stream << L"?>";
+                    *stream << "?>";
                 else
-                    *stream << L"/>";
+                    *stream << "/>";
             }
         } else {
             if (!elemName.empty())
-                *stream << L">";
+                *stream << ">";
             for (i=0; i<(int)node->getChildCount(); i++)
             {
                 writeNode( stream, node->getChildNode(i) );
             }
             if (!elemName.empty())
-                *stream << L"</" << elemName << L">";
+                *stream << "</" << elemName << ">";
         }
     }
 }
@@ -1435,7 +1435,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char * )
     if (!stream || !getRootNode()->getChildCount())
         return false;
 
-    *stream.get() << L"\xFEFF";
+    *stream.get() << UnicodeToLocal(lString16(L"\xFEFF"));
     writeNode( stream.get(), getRootNode() );
     return true;
 }
