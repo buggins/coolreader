@@ -653,13 +653,18 @@ void LVDocView::makeToc()
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
-	lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
-    ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
+    lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
+    //lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
+    ldomNode * cover_el = m_doc->getRootNode()->findChildElement( path );
+    //ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
 
-    if ( cover_img_el )
+    if ( cover_el )
     {
-        LVImageSourceRef imgsrc = cover_img_el->getObjectImageSource();
-        return imgsrc;
+        ldomNode * cover_img_el = cover_el->findChildElement( LXML_NS_ANY, el_image, 0 );
+        if ( cover_img_el ) {
+            LVImageSourceRef imgsrc = cover_img_el->getObjectImageSource();
+            return imgsrc;
+        }
     }
     return LVImageSourceRef(); // not found: return NULL ref
 }
