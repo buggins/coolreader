@@ -1292,9 +1292,9 @@ class ldomNavigationHistory
         }
         bool save( lString16 link )
         {
-            if (_pos==_links.length() && _pos>0 && _links[_pos-1]==link )
+            if (_pos==(int)_links.length() && _pos>0 && _links[_pos-1]==link )
                 return false;
-            if ( _pos>=_links.length() || _links[_pos]!=link ) {
+            if ( _pos>=(int)_links.length() || _links[_pos]!=link ) {
                 clearTail();
                 _links.add( link );
                 _pos = _links.length();

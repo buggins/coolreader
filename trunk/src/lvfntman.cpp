@@ -448,6 +448,14 @@ void LVFontGlobalGlyphCache::clear()
     }
 }
 
+lString8 familyName( FT_Face face )
+{
+    lString8 faceName( face->family_name );
+    if ( faceName == "Arial" && face->style_name && !strcmp(face->style_name, "Narrow") )
+        faceName << " " << face->style_name;
+    return faceName;
+}
+
 class LVFreeTypeFace : public LVFont
 {
 private:
@@ -467,6 +475,7 @@ private:
     bool          _drawMonochrome;
     bool          _allowKerning;
 public:
+
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false)
@@ -515,7 +524,7 @@ public:
         if (error)
             return false;
         _slot = _face->glyph;
-        _faceName = _face->family_name;
+        _faceName = familyName(_face);
         CRLog::debug("Loaded font %s [%d]: faceName=%s, ", _fileName.c_str(), index, _face->family_name );
         //if ( !FT_IS_SCALABLE( _face ) ) {
         //    Clear();
@@ -775,7 +784,7 @@ public:
     /// returns font typeface name
     virtual lString8 getTypeFace()
     {
-        return lString8(_face->family_name);
+        return familyName(_face);
     }
 
     /// returns font family id
@@ -1202,7 +1211,7 @@ public:
             css_font_family_t fontFamily = css_ff_sans_serif;
             if ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH )
                 fontFamily = css_ff_monospace;
-            lString8 familyName( face->family_name );
+            lString8 familyName( familyName(face) );
             if ( familyName=="Times" || familyName=="Times New Roman" )
                 fontFamily = css_ff_serif;
 

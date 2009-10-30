@@ -23,6 +23,8 @@
 #define DEF_FONT_SIZE 22
 #define DEF_TITLE_FONT_SIZE 28
 
+// if 1, full page (e.g. 8 items) is scrolled even if on next page would be less items (show empty space)
+#define FULL_SCROLL 1
 
 const char * cr_default_skin =
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -290,8 +292,13 @@ void CRMenu::setCurPage( int nPage )
 {
     int oldTop = _topItem;
     _topItem = _pageItems * nPage;
+#if FULL_SCROLL==1
+    if ( _topItem > (int)_items.length() )
+        _topItem = (int)_items.length() / _pageItems * _pageItems;
+#else
     if ( _topItem + _pageItems > (int)_items.length() )
         _topItem = (int)_items.length() - _pageItems;
+#endif
     if ( _topItem < 0 )
         _topItem = 0;
     if ( _topItem != oldTop )
@@ -379,6 +386,19 @@ int CRMenu::getItemHeight()
     lvPoint minsize = skin->getMinSize();
     if ( minsize.y>0 && h < minsize.y )
         h = minsize.y;
+    if ( _fullscreen ) {
+        int nItems = _pageItems;
+        int scrollHeight = 0;
+        if ( _items.length() > _pageItems ) {
+            scrollHeight = SCROLL_HEIGHT;
+        }
+        lvRect rc(0,0,_wm->getScreen()->getWidth(), _wm->getScreen()->getHeight() );
+        lvRect client = skin->getClientRect( rc );
+        h = client.height() - scrollHeight;
+        if ( nItems > 0 )
+            h /= nItems;
+    }
+
     return h;
 }
 
@@ -401,6 +421,8 @@ lvPoint CRMenu::getMaxItemSize()
         maxx = mySize.x;
     if ( maxy < mySize.y )
         maxy = mySize.y;
+    if ( _fullscreen )
+        maxy = getItemHeight();
     return lvPoint( maxx, maxy );
 }
 
@@ -526,7 +548,12 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     if ( scrollHeight ) {
         CRScrollSkinRef sskin = skin->getScrollSkin();
         if ( !sskin.isNull() ) {
-            sskin->drawScroll(  buf, scrollRc, false, _topItem, _items.length(), _pageItems );
+#if FULL_SCROLL==1
+            int numItems = (_items.length() + _pageItems - 1) / _pageItems * _pageItems - 1;
+#else
+            int numItems = _items.length()
+#endif
+            sskin->drawScroll(  buf, scrollRc, false, _topItem, numItems, _pageItems );
         } else {
             int totalCount = _items.length();
             int visibleCount = _pageItems;
