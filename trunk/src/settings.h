@@ -15,8 +15,9 @@
 
 #include <crgui.h>
 
-#define MENU_FONT_SIZE 20
-#define VALUE_FONT_SIZE 17
+#define MENU_FONT_SIZE 28
+#define MENU_FONT_FACE_SIZE 36
+#define VALUE_FONT_SIZE 24
 
 typedef struct {
     const char * translate_default;

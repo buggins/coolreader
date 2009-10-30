@@ -83,7 +83,7 @@ static const char * def_view_css =
 "h5 { font-size: 110% }\n"
 "table { font-size: 80% }\n"
 "td, th { text-indent: 0px; padding: 3px }\n"
-"th {  font-weight: bold; background-color: #DDD  }\n"
+"th {  font-size: 120%; font-weight: bold; background-color: #DDD  }\n"
 "table > caption { text-indent: 0px; padding: 4px; background-color: #EEE }\n"
 "code, pre { display: block; white-space: pre; text-align: left; font-weight: bold; font-family: \"Courier New\", \"Courier\", monospace; text-align: left }\n"
 "description { display: none; }\n"
@@ -377,7 +377,7 @@ void CRViewDialog::showKeymapDialog()
 		return;
 	lString8 txt;
 	txt << "<table><tr><th>";
-	txt << _("Key") << "</th><th>"<< _("Assigned function") <<"</th></tr>";
+	txt << "<b>" << _("Key") << "</b></th><th><b>"<< _("Assigned function") <<"</b></th></tr>";
 	for ( unsigned i=0; i<_acceleratorTable->length(); i++ ) {
 		const CRGUIAccelerator * acc = _acceleratorTable->get( i );
 		txt << "<tr><td>";

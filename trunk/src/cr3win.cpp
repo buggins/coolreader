@@ -385,10 +385,60 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	GetWindowsDirectoryW(sysdir, MAX_PATH);
 	lString16 fontdir( sysdir );
 	fontdir << L"\\Fonts\\";
+	lString8 fontdir8( UnicodeToUtf8(fontdir) );
 	lString8 fd = UnicodeToLocal(exedir);
 	lString16Collection fontDirs;
-	fontDirs.add( fontdir );
+	//fontDirs.add( fontdir );
+    fontDirs.add( exedir + L"fonts" );
 	InitCREngine( exe_fn, fontDirs );
+    const char * fontnames[] = {
+#if 1
+        "arial.ttf",
+        "ariali.ttf",
+        "arialb.ttf",
+        "arialbi.ttf",
+#endif
+        "arialn.ttf",
+        "arialni.ttf",
+        "arialnb.ttf",
+        "arialnbi.ttf",
+        "cour.ttf",
+        "couri.ttf",
+        "courbd.ttf",
+        "courbi.ttf",
+        "times.ttf",
+        "timesi.ttf",
+        "timesb.ttf",
+        "timesbi.ttf",
+        "comic.ttf",
+        "comicbd.ttf",
+        "verdana.ttf",
+        "verdanai.ttf",
+        "verdanab.ttf",
+        "verdanaz.ttf",
+        "bookos.ttf",
+        "bookosi.ttf",
+        "bookosb.ttf",
+        "bookosbi.ttf",
+#if 1
+        "calibri.ttf",
+        "calibrii.ttf",
+        "calibrib.ttf",
+        "calibriz.ttf",
+        "cambria.ttf",
+        "cambriai.ttf",
+        "cambriab.ttf",
+        "cambriaz.ttf",
+        "georgia.ttf",
+        "georgiai.ttf",
+        "georgiab.ttf",
+        "georgiaz.ttf",
+#endif
+        NULL
+    };
+    for ( int fi = 0; fontnames[fi]; fi++ ) {
+        fontMan->RegisterFont( fontdir8 + fontnames[fi] );
+    }
     //LVCHECKPOINT("WinMain start");
 
     if (!fontMan->GetFontCount())

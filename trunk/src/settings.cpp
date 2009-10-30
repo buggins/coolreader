@@ -206,8 +206,9 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         int i;
         for ( i=0; i<(int)list.length(); i++ ) {
             fontFaceMenu->addItem( new CRMenuItem( fontFaceMenu, i,
-                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_SIZE, 300,
+                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_FACE_SIZE, 300,
 									false, css_ff_sans_serif, UnicodeToUtf8(list[i])), list[i].c_str() ) );
+            fontFaceMenu->setFullscreen( true );
         }
         fontFaceMenu->setAccelerators( _menuAccelerators );
         //lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
