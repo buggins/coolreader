@@ -38,6 +38,8 @@
 #define SKIN_HALIGN_CENTER  0x0010
 #define SKIN_HALIGN_RIGHT   0x0020
 
+#define SKIN_EXTEND_TAB     0x0040
+
 
 /// base skinned item class
 class CRSkinnedItem : public LVRefCounter

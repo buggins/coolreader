@@ -268,8 +268,8 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool se
 {
     lvRect itemBorders = skin->getBorderWidths();
     skin->draw( buf, rc );
-    buf.SetTextColor( 0x000000 );
-    buf.SetBackgroundColor( 0xFFFFFF );
+    buf.SetTextColor( skin->getTextColor() );
+    buf.SetBackgroundColor( skin->getBackgroundColor() );
     int imgWidth = 0;
     int hh = rc.bottom - rc.top - itemBorders.top - itemBorders.bottom;
     if ( !_image.isNull() ) {
@@ -610,10 +610,13 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 
         ss->draw( buf, numberRc );
         lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
+        buf.SetTextColor( ss->getTextColor() );
+        buf.SetBackgroundColor( ss->getBackgroundColor() );
         ss->drawText( buf, numberRc, number );
         // item
         lvRect itemRc( rc );
         itemRc.left = numberRc.right;
+        is->setTextAlign( is->getTextAlign() | SKIN_EXTEND_TAB);
         _items[i]->Draw( buf, itemRc, is, selected );
         rc.top += itemSize.y;
     }

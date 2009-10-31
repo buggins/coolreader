@@ -616,6 +616,16 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         font = getFont();
     if ( font.isNull() )
         return;
+    lString16 tabText;
+    int tabPos = text.pos(lString16(L"\t"));
+    if ( tabPos>=0 ) {
+        if ( flags & SKIN_EXTEND_TAB ) {
+            tabText = text.substr( tabPos+1 );
+            text = text.substr( 0, tabPos );
+        } else {
+            text[tabPos] = L' ';
+        }
+    }
     buf.SetTextColor( textColor );
     buf.SetBackgroundColor( bgColor );
     lvRect oldRc;
@@ -623,12 +633,13 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     buf.SetClipRect( &rc );
     int th = font->getHeight();
     int tw = font->getTextWidth( text.c_str(), text.length() );
+    int ttw = tabText.empty() ? 0 : font->getTextWidth( tabText.c_str(), tabText.length() );
     lvRect txtrc = rc;
     int x = txtrc.left;
     int dx = txtrc.width() - tw;
     int y = txtrc.top;
     int dy = txtrc.height() - th;
-    int halign = flags & SKIN_HALIGN_MASK;
+    int halign = tabText.empty() ? (flags & SKIN_HALIGN_MASK) : SKIN_HALIGN_LEFT;
     int valign = flags & SKIN_VALIGN_MASK;
     if ( valign == SKIN_VALIGN_CENTER )
         y += dy / 2;
@@ -639,6 +650,9 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     else if ( halign == SKIN_HALIGN_RIGHT )
         x += dx;
     font->DrawTextString( &buf, x, y, text.c_str(), text.length(), L'?', NULL, false, 0 );
+    if ( !tabText.empty() ) {
+        font->DrawTextString( &buf, txtrc.right-ttw, y, tabText.c_str(), tabText.length(), L'?', NULL, false, 0 );
+    }
     buf.SetClipRect( &oldRc );
 }
 
