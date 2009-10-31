@@ -584,7 +584,7 @@ VIEWER_MENU_4ABOUT=About...
 			if ( _acceleratorTable->findCommandKey( cmd, param, key, keyFlags ) ) {
 				const char * keyname = getKeyName( key, keyFlags );
 				if ( keyname && keyname[0] )
-					label << "   (" << keyname << ")";
+					label << "\t" << keyname;
 			}
 			menu_win->addItem( new CRMenuItem( menu_win, cmd,
 				label.c_str(),
