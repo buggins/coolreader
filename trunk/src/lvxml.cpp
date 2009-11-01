@@ -251,10 +251,9 @@ lChar16 LVTextFileBase::ReadChar()
 
 void LVTextFileBase::checkEof()
 {
-    if ( m_buf_fpos+m_buf_len < this->m_stream_size )
-        m_buf_pos--;
-    else
-        m_buf_pos = m_buf_len = m_stream_size - (m_buf_fpos+m_buf_len);
+    if ( m_buf_fpos+m_buf_len >= this->m_stream_size-4 )
+        m_buf_pos = m_buf_len = m_stream_size - m_buf_fpos; //force eof
+        //m_buf_pos = m_buf_len = m_stream_size - (m_buf_fpos+m_buf_len);
 }
 
 
@@ -274,13 +273,12 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
             }
             return count;
         } else  {
-            for ( ; count<maxsize; count++ ) {
-                lUInt16 ch = m_buf[m_buf_pos++];
+            for ( ; count<maxsize && m_buf_pos<m_buf_len; count++ ) {
+                lUInt16 ch = m_buf[m_buf_pos];
                 // support only 11 and 16 bit UTF8 chars
                 if ( (ch & 0x80) == 0 ) {
                     buf[count] = ch;
-                    if ( m_buf_pos>=m_buf_len )
-                        return count + 1;
+                    m_buf_pos++;
                 } else if ( (ch & 0xE0) == 0xC0 ) {
                     // 11 bits
                     if ( m_buf_pos+1>=m_buf_len ) {
@@ -288,6 +286,15 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                         return count;
                     }
                     ch = (ch&0x1F);
+#ifdef _DEBUG
+//#define CHECK_UTF8_CODE 1
+#endif
+#if CHECK_UTF8_CODE==1
+                    if ( (m_buf[m_buf_pos+1] & 0xC0) != 0x80 ) {
+                        CRLog::error("Wrong utf8 character at position %08x", (int)(m_buf_fpos+m_buf_pos));
+                    }
+#endif
+                    m_buf_pos++;
                     lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
                     buf[count] = (ch<<6) | ch2;
                     //buf[count] = ((lUInt16)(ch&0x1F)<<6) | ((lUInt16)m_buf[m_buf_pos++]&0x3F);
@@ -298,6 +305,12 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                         return count;
                     }
                     ch = (ch&0x0F);
+#if CHECK_UTF8_CODE==1
+                    if ( (m_buf[m_buf_pos+1] & 0xC0) != 0x80 || (m_buf[m_buf_pos+2] & 0xC0) != 0x80 ) {
+                        CRLog::error("Wrong utf8 character at position %08x", (int)(m_buf_fpos+m_buf_pos));
+                    }
+#endif
+                    m_buf_pos++;
                     lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
                     lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
                     buf[count] = (ch<<12) | (ch2<<6) | ch3;
@@ -308,6 +321,12 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                         return count;
                     }
                     ch = (ch&0x07);
+#if CHECK_UTF8_CODE==1
+                    if ( (m_buf[m_buf_pos+1] & 0xC0) != 0x80 || (m_buf[m_buf_pos+2] & 0xC0) != 0x80  || (m_buf[m_buf_pos+3] & 0xC0) != 0x80 ) {
+                        CRLog::error("Wrong utf8 character at position %08x", (int)(m_buf_fpos+m_buf_pos));
+                    }
+#endif
+                    m_buf_pos++;
                     lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
                     lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
                     lUInt16 ch4 = m_buf[m_buf_pos++]&0x3F;
@@ -511,15 +530,15 @@ bool LVFileParserBase::FillBuffer( int bytesToRead )
     lvsize_t n = 0;
     if ( m_stream->Read(m_buf+m_buf_len, bytesToRead, &n) != LVERR_OK )
         return false;
-    if ( CRLog::isTraceEnabled() ) {
-        const lUInt8 * s = m_buf + m_buf_len;
-        const lUInt8 * s2 = m_buf + m_buf_len + (int)n - 8;
-        CRLog::trace("fpos=%06x+%06x, sz=%04x, data: %02x %02x %02x %02x %02x %02x %02x %02x .. %02x %02x %02x %02x %02x %02x %02x %02x",
-                     m_buf_fpos, m_buf_len, (int) n,
-                     s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7],
-                     s2[0], s2[1], s2[2], s2[3], s2[4], s2[5], s2[6], s2[7]
-                     );
-    }
+//    if ( CRLog::isTraceEnabled() ) {
+//        const lUInt8 * s = m_buf + m_buf_len;
+//        const lUInt8 * s2 = m_buf + m_buf_len + (int)n - 8;
+//        CRLog::trace("fpos=%06x+%06x, sz=%04x, data: %02x %02x %02x %02x %02x %02x %02x %02x .. %02x %02x %02x %02x %02x %02x %02x %02x",
+//                     m_buf_fpos, m_buf_len, (int) n,
+//                     s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7],
+//                     s2[0], s2[1], s2[2], s2[3], s2[4], s2[5], s2[6], s2[7]
+//                     );
+//    }
     m_buf_len += (int)n;
     return (n>0);
 }
@@ -1442,9 +1461,9 @@ bool LVTextBookmarkParser::CheckFormat()
     int charsDecoded = ReadTextBytes( 0, m_buf_len, chbuf, TEXT_PARSER_DETECT_SIZE-1, 0 );
     bool res = false;
     lString16 pattern("# Cool Reader 3 - exported bookmarks\r\n# file name: ");
-    if ( charsDecoded > pattern.length() && chbuf[0]==0xFEFF) { // BOM
+    if ( charsDecoded > (int)pattern.length() && chbuf[0]==0xFEFF) { // BOM
         res = true;
-        for ( int i=0; i<pattern.length(); i++ )
+        for ( int i=0; i<(int)pattern.length(); i++ )
             if ( chbuf[i+1] != pattern[i] )
                 res = false;
     }
@@ -1860,7 +1879,7 @@ bool LVXMLParser::Parse()
     //CRLog::trace("LVXMLParser::Parse()");
     Reset();
 //    bool dumpActive = false;
-    int txt_count = 0;
+//    int txt_count = 0;
     bool inXmlTag = false;
     m_callback->OnStart(this);
     bool closeFlag = false;
@@ -1889,7 +1908,7 @@ bool LVXMLParser::Parse()
                 {
                     // m_buf[m_buf_pos] == '<'
                     m_state = ps_lt;
-                    m_buf_pos++;
+                    ReadCharFromBuffer();
                 }
             }
             break;
@@ -2046,12 +2065,12 @@ bool LVXMLParser::Parse()
 //                    CRLog::trace("text: %s...", LCSTR(s) );
 //                    dumpActive = true;
 //                }
-                txt_count++;
-                if ( txt_count<121 ) {
-                    if ( txt_count>118 ) {
-                        CRLog::trace("Text[%d]:", txt_count);
-                    }
-                }
+//                txt_count++;
+//                if ( txt_count<121 ) {
+//                    if ( txt_count>118 ) {
+//                        CRLog::trace("Text[%d]:", txt_count);
+//                    }
+//                }
                 ReadText();
                 if ( bodyStarted )
                     updateProgress();
@@ -2483,6 +2502,7 @@ int LVTextFileBase::fillCharBuffer()
 //#ifdef _DEBUG
 //    CRLog::trace("buf: %s\n", UnicodeToUtf8(lString16(m_read_buffer, m_read_buffer_len)).c_str() );
 //#endif
+    CRLog::trace("Buf:'%s'", LCSTR(lString16(m_read_buffer, m_read_buffer_len)) );
     return m_read_buffer_len - m_read_buffer_pos;
 }
 
@@ -2671,7 +2691,7 @@ lString16 htmlCharset( lString16 htmlHeader )
         return lString16();
     htmlHeader = htmlHeader.substr( p + 8 ); // skip "charset="
     lString16 enc;
-    for ( int i=0; i<htmlHeader.length(); i++ ) {
+    for ( int i=0; i<(int)htmlHeader.length(); i++ ) {
         lChar16 ch = htmlHeader[i];
         if ( (ch>='a' && ch<='z') || (ch>='0' && ch<='9') || (ch=='-') || (ch=='_') )
             enc += ch;
