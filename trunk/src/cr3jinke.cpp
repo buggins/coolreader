@@ -62,6 +62,7 @@ int getBatteryState()
 #include <cri18n.h>
 
 
+static bool noDialog = true;
 /// WXWidget support: draw to wxImage
 class CRJinkeScreen : public CRGUIScreenBase
 {
@@ -72,6 +73,10 @@ class CRJinkeScreen : public CRGUIScreenBase
         {
         	if ( rc2.isEmpty() && !full )
         		return;
+            if ( noDialog ) {
+                v3_callbacks->BeginDialog();
+            }
+
         	lvRect rc = rc2;
         	rc.left &= ~3;
         	rc.right = (rc.right + 3) & ~3;
@@ -87,6 +92,8 @@ class CRJinkeScreen : public CRGUIScreenBase
             	v3_callbacks->Print();
             else
 				v3_callbacks->PartialPrint();
+            if ( noDialog )
+                v3_callbacks->EndDialog();
         }
     public:
         virtual ~CRJinkeScreen()
@@ -244,8 +251,10 @@ int OnKeyPressed(int keyId, int state)
 #endif
     if ( keyId & 128 )
         return 2; // to ignore UP event after long keypress
-    if ( state != CUSTOMIZESTATE )
+    if ( state != CUSTOMIZESTATE ) {
         v3_callbacks->BeginDialog();
+        noDialog = false;
+    }
     static int convert_table[] = {
     KEY_0, '0', 0,
     KEY_1, '1', 0,
@@ -304,6 +313,7 @@ int OnKeyPressed(int keyId, int state)
         // QUIT
         CRLog::trace("windowCount==0, quitting");
         v3_callbacks->EndDialog();
+        noDialog = true;
         return 0;
     }
     return 2;
@@ -624,6 +634,60 @@ void vFreeDir() { }
 
 static char history_file_name[1024] = "/root/abook/.cr3hist";
 
+static const char * getLang( )
+{
+    int langId = -1;
+    if ( getenv("WOLLANG") )
+        langId = atoi( getenv("WOLLANG") );
+    static char * langs[] = {
+        "zh_CN",
+        "en_US",
+        "zh_TW",
+        "ru",
+        "uk",
+        "ka",
+        "es",
+        "tr",
+        "fr",
+        "de",
+        "bg",
+        "ar",
+        "be",
+        "ca",
+        "cs",
+        "da",
+        "el",
+        "et",
+        "fi",
+        "hr",
+        "hu",
+        "is",
+        "it",
+        "iw",
+        "ja",
+        "ko",
+        "lt",
+        "lv",
+        "mk",
+        "nl",
+        "no",
+        "pl",
+        "pt",
+        "ro",
+        "sh",
+        "sk",
+        "sl",
+        "sq",
+        "sr",
+        "sv",
+        "th",
+    };
+    int numlangs = sizeof(langs)/sizeof(langs[0]);
+    if ( langId>=0 && langId< numlangs )
+        return langs[langId];
+    return "en";
+}
+
 int InitDoc(char *fileName)
 {
     static const lChar16 * css_file_name = L"fb2.css"; // fb2
@@ -650,20 +714,23 @@ int InitDoc(char *fileName)
 
     char manual_file[512] = "";
     {
-        const char * lang = v3_callbacks->GetString( "CR3_LANG" );
+        const char * lang = getLang();
         if ( lang && lang[0] ) {
             // set translator
             CRLog::info("Current language is %s, looking for translation file", lang);
             lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
+            lString16 mofilename2 = L"/root/abook/crengine/i18n/" + lString16(lang) + L".mo";
             CRMoFileTranslator * t = new CRMoFileTranslator();
-            if ( t->openMoFile( mofilename ) ) {
+            if ( t->openMoFile( mofilename2 ) || t->openMoFile( mofilename ) ) {
                 CRLog::info("translation file %s.mo found", lang);
                 CRI18NTranslator::setTranslator( t );
             } else {
                 CRLog::info("translation file %s.mo not found", lang);
                 delete t;
             }
-            sprintf( manual_file, "/root/crengine/manual/cr3-manual-%s.fb2", lang );
+            sprintf( manual_file, "/root/abook/crengine/manual/cr3-manual-%s.fb2", lang );
+            if ( !LVFileExists( lString16(manual_file).c_str() ) )
+                sprintf( manual_file, "/root/crengine/manual/cr3-manual-%s.fb2", lang );
         }
     }
 

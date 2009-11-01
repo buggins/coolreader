@@ -25,7 +25,7 @@ stanza { margin-left: 30%; text-align: left; font-style: italic  }
 poem { margin-top: 1em; margin-bottom: 1em; text-indent: 0px }
 text-author { font-weight: bold; font-style: italic; margin-left: 5%}
 epigraph { margin-left: 25%; margin-right: 1em; text-align: left; text-indent: 1px; font-style: italic; margin-top: 15px; margin-bottom: 25px }
-cite { font-style: italic; margin-left: 5%; margin-right: 5%; text-align: justyfy; margin-top: 20px; margin-bottom: 20px }
+cite { font-style: italic; margin-left: 5%; margin-right: 5%; text-align: justify; margin-top: 20px; margin-bottom: 20px }
 
 title, h1, h2 { text-align: center; text-indent: 0px; font-weight: bold; hyphenate: none; page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }
 subtitle, h3, h4, h5, h6 { text-align: center; text-indent: 0px; font-weight: bold; hyphenate: none; page-break-inside: avoid; page-break-after: avoid; }
@@ -65,7 +65,7 @@ publish-info { display: none; }
 custom-info { display: none; }
 coverpage { display: none }
 
-head, style, form, script { display: none; } 
+head, form, script { display: none; } 
 
 body { margin: 0; text-align: justify; } 
 
@@ -84,7 +84,7 @@ b,strong { font-weight: bold; }
 i,em,dfn,var { font-style: italic; } 
 
 u { text-decoration: underline; } 
-del,s,strike { text-decoration: line-through; } 
+del,s,strike,strikethrough { text-decoration: line-through; } 
 small { font-size: 80%; } 
 big { font-size: 130%; } 
 sub { vertical-align: sub; font-size: 70% } 
