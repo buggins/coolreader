@@ -213,6 +213,17 @@ enum LVDocCmd
     DCMD_LINK_FIRST, // select first link on page
     DCMD_ROTATE_BY, // rotate view, param =  +1 - clockwise, -1 - counter-clockwise
     DCMD_ROTATE_SET, // rotate viewm param = 0..3 (0=normal, 1=90`, ...)
+    //=======================================
+    DCMD_EDIT_CURSOR_LEFT,
+    DCMD_EDIT_CURSOR_RIGHT,
+    DCMD_EDIT_CURSOR_UP,
+    DCMD_EDIT_CURSOR_DOWN,
+    DCMD_EDIT_PAGE_UP,
+    DCMD_EDIT_PAGE_DOWN,
+    DCMD_EDIT_HOME,
+    DCMD_EDIT_END,
+    DCMD_EDIT_INSERT_CHAR,
+    DCMD_EDIT_REPLACE_CHAR,
 };
 #define LVDOCVIEW_COMMANDS_END DCMD_MOVE_BY_CHAPTER
 
