@@ -1211,7 +1211,7 @@ public:
             css_font_family_t fontFamily = css_ff_sans_serif;
             if ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH )
                 fontFamily = css_ff_monospace;
-            lString8 familyName( familyName(face) );
+            lString8 familyName( ::familyName(face) );
             if ( familyName=="Times" || familyName=="Times New Roman" )
                 fontFamily = css_ff_serif;
 
