@@ -639,6 +639,8 @@ static const char * getLang( )
     int langId = -1;
     if ( getenv("WOLLANG") )
         langId = atoi( getenv("WOLLANG") );
+    else if ( getenv("WOLLOCALLANG") )
+        langId = atoi( getenv("WOLLOCALLANG") );
     static char * langs[] = {
         "zh_CN",
         "en_US",
