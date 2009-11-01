@@ -853,6 +853,13 @@ bool V3DocViewWin::onCommand( int command, int params )
         applySettings();
         saveSettings( lString16() );
         return true;
+    case DCMD_SAVE_HISTORY:
+        saveHistory( lString16() );
+        saveSettings( lString16() );
+        return true;
+    case DCMD_SAVE_TO_CACHE:
+        _docview->swapToCache();
+        return true;
     case MCMD_BOOKMARK_LIST:
         showBookmarksMenu();
         return true;
