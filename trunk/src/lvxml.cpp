@@ -511,6 +511,15 @@ bool LVFileParserBase::FillBuffer( int bytesToRead )
     lvsize_t n = 0;
     if ( m_stream->Read(m_buf+m_buf_len, bytesToRead, &n) != LVERR_OK )
         return false;
+    if ( CRLog::isTraceEnabled() ) {
+        const lUInt8 * s = m_buf + m_buf_len;
+        const lUInt8 * s2 = m_buf + m_buf_len + (int)n - 8;
+        CRLog::trace("fpos=%06x+%06x, sz=%04x, data: %02x %02x %02x %02x %02x %02x %02x %02x .. %02x %02x %02x %02x %02x %02x %02x %02x",
+                     m_buf_fpos, m_buf_len, (int) n,
+                     s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7],
+                     s2[0], s2[1], s2[2], s2[3], s2[4], s2[5], s2[6], s2[7]
+                     );
+    }
     m_buf_len += (int)n;
     return (n>0);
 }
@@ -1851,6 +1860,7 @@ bool LVXMLParser::Parse()
     //CRLog::trace("LVXMLParser::Parse()");
     Reset();
 //    bool dumpActive = false;
+    int txt_count = 0;
     bool inXmlTag = false;
     m_callback->OnStart(this);
     bool closeFlag = false;
@@ -2036,6 +2046,12 @@ bool LVXMLParser::Parse()
 //                    CRLog::trace("text: %s...", LCSTR(s) );
 //                    dumpActive = true;
 //                }
+                txt_count++;
+                if ( txt_count<121 ) {
+                    if ( txt_count>118 ) {
+                        CRLog::trace("Text[%d]:", txt_count);
+                    }
+                }
                 ReadText();
                 if ( bodyStarted )
                     updateProgress();

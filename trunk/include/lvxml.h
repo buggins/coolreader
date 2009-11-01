@@ -20,7 +20,7 @@
 #include "crtxtenc.h"
 #include "dtddef.h"
 
-#define XML_CHAR_BUFFER_SIZE 4096
+#define XML_CHAR_BUFFER_SIZE 1024
 #define XML_FLAG_NO_SPACE_TEXT 1
 
 //class LVXMLParser;

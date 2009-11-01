@@ -213,6 +213,8 @@ enum LVDocCmd
     DCMD_LINK_FIRST, // select first link on page
     DCMD_ROTATE_BY, // rotate view, param =  +1 - clockwise, -1 - counter-clockwise
     DCMD_ROTATE_SET, // rotate viewm param = 0..3 (0=normal, 1=90`, ...)
+    DCMD_SAVE_HISTORY, // save history and bookmarks
+    DCMD_SAVE_TO_CACHE, // save document to cache for fast opening
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,
     DCMD_EDIT_CURSOR_RIGHT,

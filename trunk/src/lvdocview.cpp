@@ -57,7 +57,8 @@ const char * def_stylesheet =
 "code, pre { display: block; white-space: pre; font-family: \"Courier New\", monospace }\n"
 ;
 
-static const char * DEFAULT_FONT_NAME = "Arial"; //Times New Roman";
+static const char * DEFAULT_FONT_NAME = "Arial, DejaVu Sans"; //Times New Roman";
+static const char * DEFAULT_STATUS_FONT_NAME = "Arial Narrow, Arial, DejaVu Sans"; //Times New Roman";
 static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_serif,
 //    css_ff_sans_serif,
@@ -66,9 +67,9 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 //    css_ff_monospace
 
 #ifdef LBOOK
-#define INFO_FONT_SIZE      20
+#define INFO_FONT_SIZE      22
 #else
-#define INFO_FONT_SIZE      18
+#define INFO_FONT_SIZE      22
 #endif
 
 #if defined(__SYMBIAN32__)
@@ -143,7 +144,7 @@ LVDocView::LVDocView()
 #endif
 #endif
     m_defaultFontFace = lString8(DEFAULT_FONT_NAME);
-    m_statusFontFace = lString8(DEFAULT_FONT_NAME);
+    m_statusFontFace = lString8(DEFAULT_STATUS_FONT_NAME);
     m_props = LVCreatePropsContainer();
     m_doc_props = LVCreatePropsContainer();
     propsUpdateDefaults(m_props);
@@ -4185,9 +4186,10 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setHexDef( PROP_BACKGROUND_COLOR, 0xFFFFFF );
     props->setIntDef( PROP_TXT_OPTION_PREFORMATTED, 0 );
     props->setIntDef( PROP_AUTOSAVE_BOOKMARKS, 1 );
-    lString8 defFontFace("Arial");
+    lString8 defFontFace(DEFAULT_FONT_NAME);
+    lString8 defStatusFontFace(DEFAULT_STATUS_FONT_NAME);
     props->setStringDef( PROP_FONT_FACE, defFontFace.c_str() );
-    props->setStringDef( PROP_STATUS_FONT_FACE, defFontFace.c_str() );
+    props->setStringDef( PROP_STATUS_FONT_FACE, defStatusFontFace.c_str() );
     if ( list.length()>0 && !list.contains( props->getStringDef( PROP_FONT_FACE, defFontFace.c_str()) ) )
         props->setString( PROP_FONT_FACE, list[0] );
     props->setIntDef( PROP_FONT_SIZE, m_font_sizes[m_font_sizes.length()*2/3] );
