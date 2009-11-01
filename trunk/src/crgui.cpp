@@ -549,7 +549,7 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         CRScrollSkinRef sskin = skin->getScrollSkin();
         if ( !sskin.isNull() ) {
 #if FULL_SCROLL==1
-            int numItems = (_items.length() + _pageItems - 1) / _pageItems * _pageItems - 1;
+            int numItems = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;// - 1;
 #else
             int numItems = _items.length()
 #endif
