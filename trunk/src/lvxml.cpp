@@ -2502,7 +2502,7 @@ int LVTextFileBase::fillCharBuffer()
 //#ifdef _DEBUG
 //    CRLog::trace("buf: %s\n", UnicodeToUtf8(lString16(m_read_buffer, m_read_buffer_len)).c_str() );
 //#endif
-    CRLog::trace("Buf:'%s'", LCSTR(lString16(m_read_buffer, m_read_buffer_len)) );
+    //CRLog::trace("Buf:'%s'", LCSTR(lString16(m_read_buffer, m_read_buffer_len)) );
     return m_read_buffer_len - m_read_buffer_pos;
 }
 
