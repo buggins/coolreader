@@ -636,11 +636,16 @@ static char history_file_name[1024] = "/root/abook/.cr3hist";
 
 static const char * getLang( )
 {
+#if 1
+    const char * lang = v3_callbacks->GetString( "CR3_LANG" );
+    return lang;
+#else
+
     int langId = -1;
     if ( getenv("WOLLANG") )
         langId = atoi( getenv("WOLLANG") );
-    else if ( getenv("WOLLOCALLANG") )
-        langId = atoi( getenv("WOLLOCALLANG") );
+//    else if ( getenv("WOLLOCALLANG") )
+//        langId = atoi( getenv("WOLLOCALLANG") );
     static char * langs[] = {
         "zh_CN",
         "en_US",
@@ -688,6 +693,7 @@ static const char * getLang( )
     if ( langId>=0 && langId< numlangs )
         return langs[langId];
     return "en";
+#endif
 }
 
 int InitDoc(char *fileName)
