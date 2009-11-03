@@ -1003,13 +1003,13 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
 
         for (xx = width; xx>0; --xx)
         {
-            lUInt32 opaque = ((*(src++))>>4)&15;
-            if ( opaque>=15 )
+            lUInt32 opaque = ((*(src++))>>1)&0x7F;
+            if ( opaque>=0x78 )
                 *dst = bmpcl;
             else if ( opaque>0 ) {
-                lUInt32 alpha = 15-opaque;
-                lUInt32 cl1 = ((alpha*((*dst)&0xFF00FF) + opaque*(bmpcl&0xFF00FF))>>4) & 0xFF00FF;
-                lUInt32 cl2 = ((alpha*((*dst)&0x00FF00) + opaque*(bmpcl&0x00FF00))>>4) & 0x00FF00;
+                lUInt32 alpha = 0x7F-opaque;
+                lUInt32 cl1 = ((alpha*((*dst)&0xFF00FF) + opaque*(bmpcl&0xFF00FF))>>7) & 0xFF00FF;
+                lUInt32 cl2 = ((alpha*((*dst)&0x00FF00) + opaque*(bmpcl&0x00FF00))>>7) & 0x00FF00;
                 *dst = cl1 | cl2;
             }
             /* next pixel */

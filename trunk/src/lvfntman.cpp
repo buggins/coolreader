@@ -293,14 +293,14 @@ struct LVFontGlyphCacheItem
         return sizeof(LVFontGlyphCacheItem) 
             + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
     }
-    static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar16 ch, FT_GlyphSlot slot, bool drawMonochrome )
+    static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar16 ch, FT_GlyphSlot slot ) // , bool drawMonochrome
     {
         FT_Bitmap*  bitmap = &slot->bitmap;
         lUInt8 w = (lUInt8)(bitmap->width);
         lUInt8 h = (lUInt8)(bitmap->rows);
         LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( sizeof(LVFontGlyphCacheItem) 
             + (w*h - 1)*sizeof(lUInt8) );
-        if ( drawMonochrome ) {
+        if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
             lUInt8 mask = 0x80;
             const lUInt8 * ptr = (const lUInt8 *)bitmap->buffer;
             lUInt8 * dst = item->bmp;
@@ -316,10 +316,28 @@ struct LVFontGlyphCacheItem
                         row++;
                     }
                 }
-                ptr += rowsize;
+                ptr += bitmap->pitch;//rowsize;
             }
         } else {
-            memcpy( item->bmp, bitmap->buffer, w*h );
+#if 0
+            if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) {
+                memset( item->bmp, 0, w*h );
+                lUInt8 * srcrow = bitmap->buffer;
+                lUInt8 * dstrow = item->bmp;
+                for ( int y=0; y<h; y++ ) {
+                    lUInt8 * src = srcrow;
+                    for ( int x=0; x<w; x++ ) {
+                        dstrow[x] =  ( (*src)&(0x80>>(x&7)) ) ? 255 : 0;
+                        if ((x&7)==7)
+                            src++;
+                    }
+                    srcrow += bitmap->pitch;
+                    dstrow += w;
+                }
+            } else {
+#endif
+                memcpy( item->bmp, bitmap->buffer, w*h );
+//            }
         }
         item->ch = ch;
         item->bmp_width = w;
@@ -858,8 +876,23 @@ public:
                 if ( error ) {
                     continue;  /* ignore errors */
                 }
-
-                item = LVFontGlyphCacheItem::newItem( &_glyph_cache, ch, _slot, _drawMonochrome );
+#if 0
+                {
+                    FT_Bitmap*  bitmap = &(_slot->bitmap);
+                    lUInt8 w = (lUInt8)(bitmap->width);
+                    lUInt8 h = (lUInt8)(bitmap->rows);
+                    CRLog::trace("ch=%c %d    %dx%d", ch&0x7f, ch, w, h);
+                    for ( int y=0; y<h; y++ ) {
+                        const char * chars = "01234567";
+                        lString8 s;
+                        for ( x=0; x<w; x++ ) {
+                            s << chars[bitmap->buffer[y*w+x]>>5];
+                        }
+                        CRLog::trace("> %s", s.c_str());
+                    }
+                }
+#endif
+                item = LVFontGlyphCacheItem::newItem( &_glyph_cache, ch, _slot ); //, _drawMonochrome
                 _glyph_cache.put( item );
             }
             if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
@@ -1011,7 +1044,7 @@ public:
             fprintf(_log, "=========================== LOGGING STARTED ===================\n");
         }
     #endif
-        _requiredChars = L"azAZ\x0410\x042F\x0430\x044F";
+        _requiredChars = L"azAZ09";//\x0410\x042F\x0430\x044F";
     }
 
     virtual void gc() // garbage collector
@@ -1124,8 +1157,10 @@ public:
         for ( unsigned i=0; i<_requiredChars.length(); i++ ) {
             lChar16 ch = _requiredChars[i];
             FT_UInt ch_glyph_index = FT_Get_Char_Index( face, ch );
-            if ( ch_glyph_index==0 )
+            if ( ch_glyph_index==0 ) {
+                CRLog::debug("Required char not found in font: %04x", ch);
                 return false; // no required char!!!
+            }
         }
         return true;
     }
