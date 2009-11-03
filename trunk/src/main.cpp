@@ -180,6 +180,57 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     //InitFontManager( fontDir8 );
     InitFontManager( lString8() );
 
+#ifdef _WIN32
+    lChar16 sysdir[MAX_PATH+1];
+    GetWindowsDirectoryW(sysdir, MAX_PATH);
+    lString16 fontdir( sysdir );
+    fontdir << L"\\Fonts\\";
+    lString8 fontdir8( UnicodeToUtf8(fontdir) );
+    const char * fontnames[] = {
+        "arial.ttf",
+        "ariali.ttf",
+        "arialb.ttf",
+        "arialbi.ttf",
+        "arialn.ttf",
+        "arialni.ttf",
+        "arialnb.ttf",
+        "arialnbi.ttf",
+        "cour.ttf",
+        "couri.ttf",
+        "courbd.ttf",
+        "courbi.ttf",
+        "times.ttf",
+        "timesi.ttf",
+        "timesb.ttf",
+        "timesbi.ttf",
+        "comic.ttf",
+        "comicbd.ttf",
+        "verdana.ttf",
+        "verdanai.ttf",
+        "verdanab.ttf",
+        "verdanaz.ttf",
+        "bookos.ttf",
+        "bookosi.ttf",
+        "bookosb.ttf",
+        "bookosbi.ttf",
+       "calibri.ttf",
+        "calibrii.ttf",
+        "calibrib.ttf",
+        "calibriz.ttf",
+        "cambria.ttf",
+        "cambriai.ttf",
+        "cambriab.ttf",
+        "cambriaz.ttf",
+        "georgia.ttf",
+        "georgiai.ttf",
+        "georgiab.ttf",
+        "georgiaz.ttf",
+        NULL
+    };
+    for ( int fi = 0; fontnames[fi]; fi++ ) {
+        fontMan->RegisterFont( fontdir8 + fontnames[fi] );
+    }
+#endif
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     if (!fontMan->GetFontCount()) {
