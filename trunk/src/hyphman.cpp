@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "../include/lvxml.h"
 
 #if !defined(__SYMBIAN32__)
 #include <stdio.h>
@@ -366,7 +367,7 @@ static void rwords( lUInt16 * buf, int len )
 }
 */
 
-int HyphMan::isCorrectHyphFile(LVStream * stream)
+static int isCorrectHyphFile(LVStream * stream)
 {
     if (!stream)
         return false;
@@ -658,3 +659,320 @@ void  HyphMan::hyphenateNew( const lChar16 * word4hyph, int word_size, unsigned 
     dest_mask[word_size - 2]='0';
 }
 
+class TexPattern {
+public:
+    lChar16 word[MAX_PATTERN_SIZE];
+    char attr[MAX_PATTERN_SIZE+1];
+    TexPattern * next;
+
+    int cmp( TexPattern * v )
+    {
+        return lStr_cmp( word, v->word );
+    }
+
+    static int hash( const lChar16 * s )
+    {
+        return (((s[0] *31 + s[1])*31 + s[2]) * 31 + s[3]) % PATTERN_HASH_SIZE;
+    }
+
+    int hash()
+    {
+        return (((word[0] *31 + word[1])*31 + word[2]) * 31 + word[3]) % PATTERN_HASH_SIZE;
+    }
+
+    TexPattern * match( const lChar16 * s )
+    {
+        TexPattern * p = this;
+        while ( p ) {
+            bool res = true;
+            for ( int i=0; p->word[i]; i++ )
+                if ( p->word[i]!=s[i] ) {
+                    res = false;
+                    p = p->next;
+                    break;
+                }
+            if ( res )
+                return p;
+        }
+        return NULL;
+    }
+
+    void apply( char * mask )
+    {
+        ;
+        for ( char * p = attr; *p; p++, mask++ ) {
+            if ( *mask < *p )
+                *mask = *p;
+        }
+    }
+
+    TexPattern( const lString16 &s ) : next( NULL )
+    {
+        memset( word, 0, sizeof(word) );
+        memset( attr, 0, sizeof(word) );
+        int n = 0;
+        for ( int i=0; i<(int)s.length() && n<MAX_PATTERN_SIZE; i++ ) {
+            lChar16 ch = s[i];
+            if ( ch>='0' && ch<='9' ) {
+                attr[n] = (char)ch;
+            } else {
+                word[n++] = ch;
+            }
+        }
+    }
+
+    TexPattern( const unsigned char * s, int sz, const lChar16 * charMap )
+    {
+        if ( sz >= MAX_PATTERN_SIZE )
+            sz = MAX_PATTERN_SIZE - 1;
+        memset( word, 0, sizeof(word) );
+        memset( attr, 0, sizeof(word) );
+        for ( int i=0; i<sz; i++ )
+            word[i] = charMap[ s[i] ];
+        memcpy( attr, s+sz, sz+1 );
+    }
+};
+
+class HyphPatternReader : public LVXMLParserCallback
+{
+protected:
+    bool insidePatternTag;
+    lString16Collection & data;
+public:
+    HyphPatternReader(lString16Collection & result) : insidePatternTag(false), data(result)
+    {
+        result.clear();
+    }
+    /// called on parsing end
+    virtual void OnStop() { }
+    /// called on opening tag
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    {
+        if ( !lStr_cmp(tagname, L"pattern") ) {
+            insidePatternTag = true;
+        }
+    }
+    /// called on closing
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+    {
+        insidePatternTag = false;
+    }
+    /// called on element attribute
+    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+    {
+    }
+    /// called on text
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
+    {
+        if ( insidePatternTag )
+            data.add( lString16(text, len) );
+    }
+};
+
+TexHyph::TexHyph()
+{
+    memset( table, 0, sizeof(table) );
+}
+
+TexHyph::~TexHyph()
+{
+}
+
+void TexHyph::addPattern( TexPattern * pattern )
+{
+    int h = pattern->hash();
+    TexPattern * * p = &table[h];
+    while ( *p && pattern->cmp(*p)<0 )
+        p = &((*p)->next);
+    pattern->next = *p;
+    *p = pattern;
+}
+
+bool TexHyph::load( LVStreamRef stream )
+{
+    int w = isCorrectHyphFile(stream.get());
+    if (w) {
+        int        i;
+        lvsize_t   dw;
+
+        lvByteOrderConv cnv;
+
+        int hyph_count = w;
+        thyph hyph;
+
+        lvpos_t p = 78 + (hyph_count * 8 + 2);
+        stream->SetPos(p);
+        if ( stream->SetPos(p)!=p )
+            return false;
+        lChar16 charMap[256];
+        unsigned char buf[0x10000];
+        memset( charMap, 0, sizeof( charMap ) );
+        // make char map table
+        for (i=0; i<hyph_count; i++)
+        {
+            if ( stream->Read( &hyph, 522, &dw )!=LVERR_OK || dw!=522 ) 
+                return false;
+            cnv.msf( &hyph.len ); //rword(_main_hyph[i].len);
+            lvpos_t newPos;
+            if ( stream->Seek( hyph.len, LVSEEK_CUR, &newPos )!=LVERR_OK )
+                return false;
+
+            unsigned char ch = hyph.al;
+            cnv.msf( hyph.wl );
+            cnv.msf( hyph.wu );
+            charMap[ (unsigned char)hyph.al ] = hyph.wl;
+            charMap[ (unsigned char)hyph.au ] = hyph.wu;
+        }
+
+        if ( stream->SetPos(p)!=p )
+            return false;
+
+        for (i=0; i<hyph_count; i++)
+        {
+            stream->Read( &hyph, 522, &dw );
+            if (dw!=522) 
+                return false;
+            cnv.msf( &hyph.len );
+
+            stream->Read(buf, hyph.len, &dw); 
+            if (dw!=hyph.len)
+                return false;
+
+            unsigned char * p = buf;
+            unsigned char * end_p = p + hyph.len;
+            while ( p < end_p ) {
+                lUInt8 sz = *p++;
+                if ( p + sz > end_p )
+                    break;
+                TexPattern * pattern = new TexPattern( p, sz, charMap );
+                CRLog::debug("Pattern: '%s' - %s", LCSTR(lString16(pattern->word)), pattern->attr );
+                addPattern( pattern );
+                p += sz + sz + 1;
+            }
+        }
+
+        return true;
+    } else {
+        // tex xml format as for FBReader
+        lString16Collection data;
+        HyphPatternReader reader( data );
+        LVXMLParser parser( stream, &reader );
+        if ( !parser.CheckFormat() )
+            return false;
+        if ( !parser.Parse() )
+            return false;
+        if ( !data.length() )
+            return false;
+        for ( int i=0; i<(int)data.length(); i++ ) {
+            TexPattern * pattern = new TexPattern( data[i] );
+            CRLog::debug("Pattern: '%s' - %s", LCSTR(lString16(pattern->word)), pattern->attr );
+            addPattern( pattern );
+        }
+        return true;
+    }
+}
+
+bool TexHyph::load( lString16 fileName )
+{
+    LVStreamRef stream = LVOpenFileStream( fileName.c_str(), LVOM_READ );
+    if ( stream.isNull() )
+        return false;
+    return load( stream );
+}
+
+
+TexPattern * TexHyph::match( const lChar16 * str )
+{
+    int h = TexPattern::hash( str );
+    TexPattern * res = table[h];
+    if ( !res )
+        return NULL;
+    return res->match( str );
+}
+
+bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth )
+{
+    if ( len<=3 )
+        return false;
+    lChar16 word[WORD_LENGTH+3];
+    char mask[WORD_LENGTH+3];
+    word[0] = ' ';
+    lStr_memcpy( word+1, str, len );
+    lStr_lowercase( word+1, len );
+    word[len+1] = ' ';
+    word[len+2] = 0;
+    word[len+3] = 0;
+    memset( mask, '0', len+3 );
+    mask[len+3] = 0;
+    bool found = false;
+    for ( int i=0; i<len-1; i++ ) {
+        TexPattern * p = match( word + i );
+        if ( p ) {
+            p->apply( mask + i );
+            found = true;
+        }
+    }
+    if ( !found )
+        return false;
+    int p=0;
+    for ( p=len-2; p>=2; p-- ) {
+        // hyphenate
+        //00010030100
+        int nw = widths[p]+hyphCharWidth;
+        if ( (mask[p+2]&1) && nw <= maxWidth ) {
+            widths[p] = nw;
+            flags[p] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AlgoHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth )
+{
+    lUInt16 chprops[WORD_LENGTH];
+    lStr_getCharProps( str, len, chprops );
+    int start, end, i, j;
+    #define MIN_WORD_LEN_TO_HYPHEN 2
+    for ( start = 0; start<len; ) {
+        // find start of word
+        while (start<len && !(chprops[start] & CH_PROP_ALPHA) )
+            ++start;
+        // find end of word
+        for ( end=start+1; end<len && (chprops[start] & CH_PROP_ALPHA); ++end )
+            ;
+        // now look over word, placing hyphens
+        if ( end-start > MIN_WORD_LEN_TO_HYPHEN ) { // word must be long enough
+            for (i=start;i<end-MIN_WORD_LEN_TO_HYPHEN;++i) {
+                if ( widths[i] > maxWidth )
+                    break;
+                if ( chprops[i] & CH_PROP_VOWEL ) {
+                    for ( j=i+1; j<end; ++j ) {
+                        if ( chprops[j] & CH_PROP_VOWEL ) {
+                            if ( (chprops[i+1] & CH_PROP_CONSONANT) && (chprops[i+2] & CH_PROP_CONSONANT) )
+                                ++i;
+                            else if ( (chprops[i+1] & CH_PROP_CONSONANT) && ( chprops[i+2] & CH_PROP_ALPHA_SIGN ) )
+                                i += 2;
+                            if ( i-start>=1 && end-i>2 ) {
+                                // insert hyphenation mark
+                                lUInt16 nw = widths[i] + hyphCharWidth;
+                                if ( nw<maxWidth )
+                                {
+                                    flags[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+                                    widths[i] = nw;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        start=end;
+    }
+    return true;
+}
+
+AlgoHyph::~AlgoHyph()
+{
+}

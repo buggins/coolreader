@@ -18,6 +18,14 @@
 #include "lvtypes.h"
 #include "lvstream.h"
 
+class HyphMethod
+{
+public:
+    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth ) = 0;
+    virtual ~HyphMethod() { }
+};
+
+
 #define WORD_LENGTH   64
 #define MAX_REAL_WORD 24
 
@@ -80,6 +88,28 @@ public:
 #define HYPH_DICT_ID_NONE L"@none"
 #define HYPH_DICT_ID_ALGORITHM L"@algorithm"
 
+#define MAX_PATTERN_SIZE  8
+#define PATTERN_HASH_SIZE 4000
+class TexPattern;
+class TexHyph : public HyphMethod
+{
+    TexPattern * table[PATTERN_HASH_SIZE];
+public:
+    TexPattern * match( const lChar16 * str );
+    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth );
+    void addPattern( TexPattern * pattern );
+    TexHyph();
+    virtual ~TexHyph();
+    bool load( LVStreamRef stream );
+    bool load( lString16 fileName );
+};
+
+class AlgoHyph : public HyphMethod
+{
+    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth );
+    virtual ~AlgoHyph();
+};
+
 class HyphDictionaryList
 {
 	LVPtrVector<HyphDictionary> _list;
@@ -117,7 +147,7 @@ public:
 	static HyphDictionaryList * getDictList() { return _dictList; }
 	static bool initDictionaries( lString16 dir );
 	static HyphDictionary * getSelectedDictionary() { return _selectedDictionary; }
-    static int isCorrectHyphFile(LVStream * stream);
+    //static int isCorrectHyphFile(LVStream * stream);
     static bool hyphenate( 
         const lChar16 * str, 
         int len, 

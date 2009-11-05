@@ -1482,7 +1482,7 @@ public:
     /// called on parsing end
     virtual void OnStop();
     /// called on opening tag
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on attribute
@@ -1517,7 +1517,7 @@ public:
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on opening tag
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on text
@@ -1555,15 +1555,13 @@ public:
         insideTag = false;
     }
     /// called on opening tag
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
     {
-        ldomNode * res = NULL;
         if ( insideTag ) {
-            res = parent->OnTagOpen(nsname, tagname);
+            parent->OnTagOpen(nsname, tagname);
         }
         if ( !insideTag && baseTag==tagname )
             insideTag = true;
-        return res;
     }
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )

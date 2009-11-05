@@ -1849,7 +1849,7 @@ void ldomDocumentWriter::OnStop()
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
 }
 
-ldomNode * ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     //CRLog::trace("OnTagOpen(%s)", UnicodeToUtf8(lString16(tagname)).c_str());
@@ -1863,7 +1863,7 @@ ldomNode * ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 
     _currNode = new ldomElementWriter( _document, nsid, id, _currNode );
     _flags = _currNode->getFlags();
     //logfile << " !o!\n";
-    return _currNode->getElement();
+    //return _currNode->getElement();
 }
 
 ldomDocumentWriter::~ldomDocumentWriter()
@@ -4264,7 +4264,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
     }
 }
 
-ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     if ( nsname && nsname[0] )
@@ -4288,7 +4288,7 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
     if ( _libRuDocumentDetected && (_flags & TXTFLG_PRE) )
         _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
     //logfile << " !o!\n";
-    return _currNode->getElement();
+    //return _currNode->getElement();
 }
 
 void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )

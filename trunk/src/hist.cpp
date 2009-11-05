@@ -64,7 +64,7 @@ public:
     {
     }
     /// called on opening tag
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
         if ( lStr_cmp(tagname, L"FictionBookMarks")==0 && state==in_xml ) {
             state = in_fbm;
@@ -101,7 +101,6 @@ public:
         } else if ( lStr_cmp(tagname, L"comment-text")==0 && state==in_bm ) {
             state = in_comment_txt;
         }
-        return NULL;
     }
     /// called on closing
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
