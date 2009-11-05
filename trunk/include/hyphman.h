@@ -29,38 +29,6 @@ public:
 #define WORD_LENGTH   64
 #define MAX_REAL_WORD 24
 
-#pragma pack(push, 1)
-typedef struct {
-    lUInt16         wl;
-    lUInt16         wu;
-    char            al;
-    char            au;
-
-    unsigned char   mask0[2];
-    lUInt16         aux[256];
-
-    lUInt16         len;
-} thyph;
-
-typedef struct {
-    lUInt16 start;
-    lUInt16 len;
-} hyph_index_item_t;
-#pragma pack(pop)
-
-class HyphIndex {
-    private:
-        unsigned char mask0[2];    // mask for first 2 characters
-        unsigned char * pattern;   // full patterns list for 2 characters
-        unsigned char ** index;    // pointers to each pattern start
-        int size;                  // count of patterns in index
-        hyph_index_item_t pos[256]; // ranges of second char in index
-    public:
-        // checks pattern match and applies mask if found
-        void apply( unsigned char * word, int word_len, unsigned char * result  );
-        HyphIndex ( thyph * hyph, unsigned char * hyph_pattern );
-        ~HyphIndex();
-};
 
 enum HyphDictType
 {
@@ -88,27 +56,6 @@ public:
 #define HYPH_DICT_ID_NONE L"@none"
 #define HYPH_DICT_ID_ALGORITHM L"@algorithm"
 
-#define MAX_PATTERN_SIZE  8
-#define PATTERN_HASH_SIZE 4000
-class TexPattern;
-class TexHyph : public HyphMethod
-{
-    TexPattern * table[PATTERN_HASH_SIZE];
-public:
-    TexPattern * match( const lChar16 * str );
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth );
-    void addPattern( TexPattern * pattern );
-    TexHyph();
-    virtual ~TexHyph();
-    bool load( LVStreamRef stream );
-    bool load( lString16 fileName );
-};
-
-class AlgoHyph : public HyphMethod
-{
-    virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth );
-    virtual ~AlgoHyph();
-};
 
 class HyphDictionaryList
 {
@@ -125,44 +72,29 @@ public:
 
 #define DEF_HYPHENATION_DICT "Russian_EnUS_hyphen_(Alan).pdb"
 
-/// AlReader hyphenation manager
+class HyphDictionary;
+class HyphDictionaryList;
+
+/// hyphenation manager
 class HyphMan
 {
 	friend class HyphDictionary;
+    static HyphMethod * _method;
 	static HyphDictionary * _selectedDictionary;
-	static bool _disabled;
 	static HyphDictionaryList * _dictList;
-    //int             _hyph;
-    unsigned char * _wtoa_index[256];
-    HyphIndex * _hyph_index[256];
-    static HyphMan * _instance;
-    bool  open(LVStream * stream);
-    void  close();
-
-    void  hyphenateNew( const lChar16 * word4hyph, int word_size, unsigned char * dest_mask );
-
-    void  mapChar( lUInt16 wc, unsigned char c );
 public:
 	static void uninit();
 	static HyphDictionaryList * getDictList() { return _dictList; }
 	static bool initDictionaries( lString16 dir );
 	static HyphDictionary * getSelectedDictionary() { return _selectedDictionary; }
-    //static int isCorrectHyphFile(LVStream * stream);
-    static bool hyphenate( 
-        const lChar16 * str, 
-        int len, 
-        lChar8 * flags );
-    static HyphMan * GetInstance() { return _instance; }
-    static bool Open(LVStream * stream);
-    static void Close()
-    {
-        if (_instance)
-            delete _instance;
-        _instance= NULL;
-    }
+
     HyphMan();
     ~HyphMan();
-    static bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth );
+
+    inline static bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth )
+    {
+        return _method->hyphenate( str, len, widths, flags, hyphCharWidth, maxWidth );
+    }
 };
 
 
