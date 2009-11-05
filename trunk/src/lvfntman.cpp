@@ -476,7 +476,7 @@ lString8 familyName( FT_Face face )
 
 class LVFreeTypeFace : public LVFont
 {
-private:
+protected:
     LVMutex &      _mutex;
     lString8      _fileName;
     lString8      _faceName;
@@ -493,6 +493,8 @@ private:
     bool          _drawMonochrome;
     bool          _allowKerning;
 public:
+    LVMutex & getMutex() { return _mutex; }
+    FT_Library getLibrary() { return _library; }
 
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
@@ -947,6 +949,205 @@ public:
     }
 
 };
+
+class LVFontBoldTransform : public LVFont
+{
+    LVFontRef _baseFontRef;
+    LVFont * _baseFont;
+    int _hyphWidth;
+    LVFontGlyphWidthCache _wcache;
+    LVFontLocalGlyphCache _glyph_cache;
+    int _hShift;
+public:
+    LVFontBoldTransform( LVFontGlobalGlyphCache * globalCache, LVFontRef baseFont )
+        : _baseFontRef( baseFont ), _baseFont( baseFont.get() ), _hyphWidth(-1)
+        , _glyph_cache(globalCache)
+    {
+        _hShift = _baseFont->getHeight() < 24 ? 1 : 2;
+    }
+
+    /// hyphenation character
+    virtual lChar16 getHyphChar() { return UNICODE_SOFT_HYPHEN_CODE; }
+
+    /// hyphen width
+    virtual int getHyphenWidth() {
+        if ( _hyphWidth<0 )
+            _hyphWidth = getCharWidth( getHyphChar() );
+        return _hyphWidth;
+    }
+
+    /** \brief get glyph info
+        \param glyph is pointer to glyph_info_t struct to place retrieved info
+        \return true if glyh was found
+    */
+    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
+    {
+        bool res = _baseFont->getGlyphInfo( code, glyph );
+        if ( !res )
+            return res;
+        glyph->blackBoxX += _hShift;
+        glyph->width += _hShift;
+        return true;
+    }
+
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \param max_width is maximum width to measure line
+        \param def_char is character to replace absent glyphs in font
+        \param letter_spacing is number of pixels to add between letters
+        \return number of characters before max_width reached
+    */
+    virtual lUInt16 measureText(
+                        const lChar16 * text, int len,
+                        lUInt16 * widths,
+                        lUInt8 * flags,
+                        int max_width,
+                        lChar16 def_char,
+                        int letter_spacing=0
+                     )
+    {
+        lUInt16 res = _baseFont->measureText(
+                        text, len,
+                        widths,
+                        flags,
+                        max_width,
+                        def_char,
+                        letter_spacing
+                     );
+        int w = 0;
+        for ( unsigned i=0; i<res; i++ ) {
+            w += _hShift;
+            widths[i] += w;
+        }
+        return res;
+    }
+
+    /** \brief measure text
+        \param text is text string pointer
+        \param len is number of characters to measure
+        \return width of specified string
+    */
+    virtual lUInt32 getTextWidth(
+                        const lChar16 * text, int len
+        )
+    {
+        static lUInt16 widths[MAX_LINE_CHARS+1];
+        static lUInt8 flags[MAX_LINE_CHARS+1];
+        if ( len>MAX_LINE_CHARS )
+            len = MAX_LINE_CHARS;
+        if ( len<=0 )
+            return 0;
+        lUInt16 res = measureText(
+                        text, len,
+                        widths,
+                        flags,
+                        2048, // max_width,
+                        L' ',  // def_char
+                        0
+                     );
+        if ( res>0 && res<MAX_LINE_CHARS )
+            return widths[res-1];
+        return 0;
+    }
+
+    /** \brief get glyph image in 1 byte per pixel format
+        \param code is unicode character
+        \param buf is buffer [width*height] to place glyph data
+        \return true if glyph was found
+    */
+    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf)
+    {
+        bool res = _baseFont->getGlyphImage( code, buf );
+    }
+
+    /// returns font baseline offset
+    virtual int getBaseline()
+    {
+        return _baseFont->getBaseline();
+    }
+
+    /// returns font height
+    virtual int getHeight()
+    {
+        return _baseFont->getHeight();
+    }
+
+    /// returns char width
+    virtual int getCharWidth( lChar16 ch )
+    {
+        int w = _wcache.get(ch);
+        if ( w==0xFF ) {
+            w = _baseFont->getCharWidth( ch ) + _hShift;
+            _wcache.put(ch, w);
+        }
+        return w;
+    }
+
+    /// retrieves font handle
+    virtual void * GetHandle()
+    {
+        return NULL;
+    }
+
+    /// returns font typeface name
+    virtual lString8 getTypeFace()
+    {
+        return _baseFont->getTypeFace();
+    }
+
+    /// returns font family id
+    virtual css_font_family_t getFontFamily()
+    {
+        return _baseFont->getFontFamily();
+    }
+
+    /// draws text string
+    virtual void DrawTextString( LVDrawBuf * buf, int x, int y,
+                       const lChar16 * text, int len,
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen,
+                       lUInt32 flags=0, int letter_spacing=0 )
+    {
+        //
+    }
+
+    /// get bitmap mode (true=monochrome bitmap, false=antialiased)
+    virtual bool getBitmapMode()
+    {
+        return _baseFont->getBitmapMode();
+    }
+
+    /// set bitmap mode (true=monochrome bitmap, false=antialiased)
+    virtual void setBitmapMode( bool m )
+    {
+        _baseFont->setBitmapMode( m );
+    }
+
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() { return _baseFont->getKerning(); }
+
+    /// get kerning mode: true==ON, false=OFF
+    virtual void setKerning( bool b ) { _baseFont->setKerning( b ); }
+
+    /// returns true if font is empty
+    virtual bool IsNull() const
+    {
+        return _baseFont->IsNull();
+    }
+
+    virtual bool operator ! () const
+    {
+        return !(*_baseFont);
+    }
+    virtual void Clear()
+    {
+        _baseFont->Clear();
+    }
+    virtual ~LVFontBoldTransform()
+    {
+    }
+};
+
 
 #define DEBUG_FONT_MAN 0
 #define DEBUG_FONT_MAN_LOG_FILE "/tmp/font_man.log"
