@@ -118,6 +118,7 @@ bool loadKeymaps( CRGUIWindowManager & winman, const char * locations[] )
 	return res;
 }
 
+#if 0
 bool initHyph(const char * fname)
 {
     //HyphMan hyphman;
@@ -129,8 +130,15 @@ bool initHyph(const char * fname)
         printf("Cannot load hyphenation file %s\n", fname);
         return false;
     }
-    return HyphMan::Open( stream.get() );
+    TexHyph * method = new TexHyph();
+    if ( method->load( stream ) ) {
+        _method = method;
+        return true;
+    }
+    _method = NO_HYPH;
+    return false;
 }
+#endif
 
 lString8 readFileToString( const char * fname )
 {

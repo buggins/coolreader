@@ -120,7 +120,7 @@ public:
 
        _hWnd = CreateWindowW(
            L"CoolReader",
-           L"CREngine - Simple FB2 viewer",
+           L"CoolReader3 - GUI for EInk based devices - Simulator",
           flags, //WS_OVERLAPPEDWINDOW
           x, y, dx, dy,
           NULL, NULL, hInst, NULL);
