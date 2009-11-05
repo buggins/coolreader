@@ -46,7 +46,7 @@ class TexHyph : public HyphMethod
 {
     TexPattern * table[PATTERN_HASH_SIZE];
 public:
-    TexPattern * match( const lChar16 * str );
+    bool match( const lChar16 * str, char * mask );
     virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth );
     void addPattern( TexPattern * pattern );
     TexHyph();
@@ -269,26 +269,39 @@ public:
         return (((s[0] *31 + s[1])*31 + s[2]) * 31 + s[3]) % PATTERN_HASH_SIZE;
     }
 
+    static int hash3( const lChar16 * s )
+    {
+        return (((s[0] *31 + s[1])*31 + s[2]) * 31 + 0) % PATTERN_HASH_SIZE;
+    }
+
+    static int hash2( const lChar16 * s )
+    {
+        return (((s[0] *31 + s[1])*31 + 0) * 31 + 0) % PATTERN_HASH_SIZE;
+    }
+
     int hash()
     {
         return (((word[0] *31 + word[1])*31 + word[2]) * 31 + word[3]) % PATTERN_HASH_SIZE;
     }
 
-    TexPattern * match( const lChar16 * s )
+    bool match( const lChar16 * s, char * mask )
     {
         TexPattern * p = this;
+        bool found = false;
         while ( p ) {
             bool res = true;
             for ( int i=0; p->word[i]; i++ )
                 if ( p->word[i]!=s[i] ) {
                     res = false;
-                    p = p->next;
                     break;
                 }
-            if ( res )
-                return p;
+            if ( res ) {
+                apply(mask);
+                found = true;
+            }
+            p = p->next;
         }
-        return NULL;
+        return found;
     }
 
     void apply( char * mask )
@@ -478,13 +491,22 @@ bool TexHyph::load( lString16 fileName )
 }
 
 
-TexPattern * TexHyph::match( const lChar16 * str )
+bool TexHyph::match( const lChar16 * str, char * mask )
 {
-    int h = TexPattern::hash( str );
-    TexPattern * res = table[h];
-    if ( !res )
-        return NULL;
-    return res->match( str );
+    bool found = false;
+    TexPattern * res = table[ TexPattern::hash( str ) ];
+    if ( res ) {
+        found = res->match( str, mask ) || found;
+    }
+    res = table[ TexPattern::hash3( str ) ];
+    if ( res ) {
+        found = res->match( str, mask ) || found;
+    }
+    res = table[ TexPattern::hash2( str ) ];
+    if ( res ) {
+        found = res->match( str, mask ) || found;
+    }
+    return found;
 }
 
 bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth )
@@ -501,26 +523,31 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     word[len+1] = ' ';
     word[len+2] = 0;
     word[len+3] = 0;
+    word[len+4] = 0;
     memset( mask, '0', len+3 );
     mask[len+3] = 0;
     bool found = false;
     for ( int i=0; i<len-1; i++ ) {
-        TexPattern * p = match( word + i );
-        if ( p ) {
-            p->apply( mask + i );
-            found = true;
-        }
+        found = match( word + i, mask + i ) | found;
     }
     if ( !found )
         return false;
     int p=0;
-    for ( p=len-2; p>=1; p-- ) {
+    for ( p=len-3; p>=1; p-- ) {
         // hyphenate
         //00010030100
         int nw = widths[p]+hyphCharWidth;
+        int bestp = -1;
+        int bestm = '0';
         if ( (mask[p+2]&1) && nw <= maxWidth ) {
-            widths[p] = nw;
-            flags[p] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+            if ( bestp<0 || mask[p+2]>bestm ) {
+                bestp = p;
+                bestm = mask[p+2];
+            }
+        }
+        if ( bestp>=0 ) {
+            widths[bestp] = nw;
+            flags[bestp] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
             return true;
         }
     }
