@@ -2819,22 +2819,40 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     for (hwStart=pos-1; hwStart>0; hwStart--)
     {
         lChar16 ch = str[hwStart];
-        if ( !((ch<(int)maxchar) && (char_props[ch] & CH_PROP_ALPHA)) ) {
+        int lastAlpha = -1;
+        if ( ch<(int)maxchar ) {
+            lUInt16 props = char_props[ch];
+            if ( !(props & (CH_PROP_PUNCT|CH_PROP_DIGIT)) )
+                break;
+        }
+    }
+    for (; hwStart>0; hwStart--)
+    {
+        lChar16 ch = str[hwStart];
+        int lastAlpha = -1;
+        if ( ((ch<(int)maxchar) && (char_props[ch] & CH_PROP_ALPHA)) ) {
+            lastAlpha = hwStart;
+        } else {
             hwStart++;
             break;
         }
+        if ( lastAlpha<0 ) {
+            start = end = pos;
+            return;
+        }
     }
-    for (hwEnd=pos; hwEnd<sz; hwEnd++) // 20080404
+    for (hwEnd=hwStart+1; hwEnd<sz; hwEnd++) // 20080404
     {
         lChar16 ch = str[hwEnd];
         if ( !((ch<(int)maxchar) && (char_props[ch] & CH_PROP_ALPHA)) )
             break;
         ch = str[hwEnd-1];
-        if (ch==' ' || ch==UNICODE_SOFT_HYPHEN_CODE)
+        if ( (ch==' ' || ch==UNICODE_SOFT_HYPHEN_CODE) )
             break;
     }
     start = hwStart;
     end = hwEnd;
+    //CRLog::debug("Word bounds: '%s'", LCSTR(lString16(str+start, end-start)));
 }
 
 void  lString16::limit( size_type sz )
