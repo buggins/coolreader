@@ -227,7 +227,7 @@ enum LVDocCmd
     DCMD_EDIT_INSERT_CHAR,
     DCMD_EDIT_REPLACE_CHAR,
 };
-#define LVDOCVIEW_COMMANDS_END DCMD_MOVE_BY_CHAPTER
+#define LVDOCVIEW_COMMANDS_END DCMD_ROTATE_SET
 
 /// document view mode: pages/scroll
 enum LVDocViewMode
