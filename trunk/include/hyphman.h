@@ -34,7 +34,8 @@ enum HyphDictType
 {
 	HDT_NONE,      // disable hyphenation
 	HDT_ALGORITHM, // universal
-	HDT_DICT_ALAN, // alreader
+	HDT_DICT_ALAN, // tex/alreader
+	HDT_DICT_TEX,  // tex/fbreader
 };
 
 class HyphDictionary
@@ -71,6 +72,7 @@ public:
 };
 
 #define DEF_HYPHENATION_DICT "Russian_EnUS_hyphen_(Alan).pdb"
+#define DEF_HYPHENATION_DICT2 "ru.pattern"
 
 class HyphDictionary;
 class HyphDictionaryList;

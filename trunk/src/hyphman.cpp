@@ -111,7 +111,8 @@ bool HyphMan::initDictionaries( lString16 dir )
 	_dictList = new HyphDictionaryList();
 	if ( _dictList->open( dir ) ) {
 		if ( !_dictList->activate( lString16(DEF_HYPHENATION_DICT) ) )
-			_dictList->activate( lString16(HYPH_DICT_ID_ALGORITHM) );
+	    	if ( !_dictList->activate( lString16(DEF_HYPHENATION_DICT2) ) )
+    			_dictList->activate( lString16(HYPH_DICT_ID_ALGORITHM) );
 		return true;
 	} else {
 		_dictList->activate( lString16(HYPH_DICT_ID_ALGORITHM) );
@@ -135,7 +136,7 @@ bool HyphDictionary::activate()
                 delete HyphMan::_method;
             HyphMan::_method = &NO_HYPH;
         }
-	} else if ( getType() == HDT_DICT_ALAN ) {
+	} else if ( getType() == HDT_DICT_ALAN || getType() == HDT_DICT_TEX ) {
         if ( HyphMan::_method != &NO_HYPH && HyphMan::_method != &ALGO_HYPH ) {
             delete HyphMan::_method;
             HyphMan::_method = &NO_HYPH;
@@ -192,20 +193,40 @@ bool HyphDictionaryList::open( lString16 hyphDirectory )
 	_list.clear();
 	addDefault();
 	LVAppendPathDelimiter( hyphDirectory );
-    LVContainerRef container = LVOpenDirectory( hyphDirectory.c_str(), L"*.pdb" );
+    LVContainerRef container;
+    LVStreamRef stream;
+    if ( LVFileExists(hyphDirectory) ) {
+        stream = LVOpenFileStream( hyphDirectory.c_str(), LVOM_READ );
+        if ( !stream.isNull() )
+            container = LVOpenArchieve( stream );
+    } else
+        container = LVOpenDirectory( hyphDirectory.c_str(), L"*.*" );
+
 	if ( !container.isNull() ) {
 		int len = container->GetObjectCount();
 		for ( int i=0; i<len; i++ ) {
 			const LVContainerItemInfo * item = container->GetObjectInfo( i );
 			lString16 name = item->GetName();
+            lString16 suffix;
+            HyphDictType t = HDT_NONE;
+            if ( name.endsWith(lString16(".pdb")) ) {
+                suffix = L"_hyphen_(Alan).pdb";
+                t = HDT_DICT_ALAN;
+            } else if ( name.endsWith(lString16(".pattern")) ) {
+                suffix = L".pattern";
+                t = HDT_DICT_TEX;
+            } else
+                continue;
+            
+
 
 			lString16 filename = hyphDirectory + name;
 			lString16 id = name;
 			lString16 title = name;
-			lString16 suffix("_hyphen_(Alan).pdb");
 			if ( title.endsWith( suffix ) )
 				title.erase( title.length() - suffix.length(), suffix.length() );
-			_list.add( new HyphDictionary( HDT_DICT_ALAN, title, id, filename ) );
+            
+			_list.add( new HyphDictionary( t, title, id, filename ) );
 		}
 		return true;
 	}
