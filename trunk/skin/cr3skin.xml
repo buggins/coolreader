@@ -32,7 +32,7 @@
         <border widths="26,8,8,8"/>
         <!--icon image="filename" valign="" halign=""/-->
         <client>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
             <background image="cr3_menu_item.png" color="#FFFFFF"/>
         </client>
         <title>
@@ -226,14 +226,14 @@
         </shortcut>
         <selitem>
            <size minvalue="48,48" maxvalue="0,0"/>
-           <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+           <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="22" bold="false" italic="false" valign="center" halign="left"/>
            <background image="cr3_menu_item_selected.png" color="#FFFFFF"/>
            <border widths="6,6,6,6"/>
            <!--icon image="filename" valign="" halign=""-->
         </selitem>
         <selshortcut>
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="40" bold="true" italic="false" valign="center" halign="center"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
             <background image="cr3_menu_shortcut_selected.png" color="#FFFFFF"/>
             <border widths="12,6,6,6"/>
             <!--icon image="filename" valign="" halign=""-->
