@@ -400,6 +400,7 @@ bool V3DocViewWin::loadSettings( lString16 filename )
         return false;
     }
     if ( _props->loadFromStream( stream.get() ) ) {
+        _props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 26);
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
         return true;
@@ -807,6 +808,8 @@ void V3DocViewWin::showAboutDialog()
     //=========================================================
     txt = CRViewDialog::makeFb2Xml(txt);
     CRViewDialog * dlg = new CRViewDialog( _wm, title, txt, lvRect(), true, true );
+    int fs = _props->getIntDef( PROP_FILE_PROPS_FONT_SIZE, 26 );
+    dlg->getDocView()->setFontSize(fs);
     _wm->activateWindow( dlg );
 }
 
@@ -888,6 +891,10 @@ bool V3DocViewWin::onCommand( int command, int params )
 /// first page is loaded from file an can be formatted for preview
 void V3DocViewWin::OnLoadFileFirstPagesReady()
 {
+    if ( !_props->getBoolDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 ) ) {
+        CRLog::info( "OnLoadFileFirstPagesReady() - don't paint first page because " PROP_PROGRESS_SHOW_FIRST_PAGE " setting is 0" );
+        return;
+    }
     CRLog::info( "OnLoadFileFirstPagesReady() - painting first page" );
     _docview->setPageHeaderOverride(_16("Loading: please wait..."));
     //update();

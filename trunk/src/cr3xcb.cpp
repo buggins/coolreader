@@ -496,12 +496,12 @@ int main(int argc, char **argv)
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
     //TODO: remove hardcoded
-#ifdef __i386__
+//#ifdef __i386__
         CRXCBWindowManager winman( 600, 700 );
-#else
-        CRXCBWindowManager winman( 600, 800 );
+//#else
+//        CRXCBWindowManager winman( 600, 800 );
 
-#endif
+//#endif
     if ( !winman.hasValidConnection() ) {
         CRLog::error("connection has an error! exiting.");
     } else {
