@@ -246,7 +246,7 @@ bool CR3View::loadDocument( QString fileName )
     clearSelection();
     bool res = _docview->LoadDocument( qt2cr(fileName).c_str() );
     if ( res ) {
-        _docview->swapToCache();
+        //_docview->swapToCache();
         QByteArray utf8 = fileName.toUtf8();
         CRLog::debug( "Trying to restore position for %s", utf8.constData() );
         _docview->restorePosition();
@@ -932,6 +932,10 @@ void CR3View::OnFormatProgress( int percent )
 /// first page is loaded from file an can be formatted for preview
 void CR3View::OnLoadFileFirstPagesReady()
 {
+    if ( !_data->_props->getBoolDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 ) ) {
+        CRLog::info( "OnLoadFileFirstPagesReady() - don't paint first page because " PROP_PROGRESS_SHOW_FIRST_PAGE " setting is 0" );
+        return;
+    }
     CRLog::info( "OnLoadFileFirstPagesReady() - painting first page" );
     _docview->setPageHeaderOverride(qt2cr(tr("Loading: please wait...")));
     //update();

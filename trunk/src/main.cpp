@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     return res;
 }
 
-
+/*
 bool initHyph(const char * fname)
 {
     //HyphMan hyphman;
@@ -91,6 +91,8 @@ bool initHyph(const char * fname)
     }
     return HyphMan::Open( stream.get() );
 }
+*/
+
 
 lString8 readFileToString( const char * fname )
 {
