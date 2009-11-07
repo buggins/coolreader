@@ -190,20 +190,24 @@ HyphDictionary * HyphDictionaryList::find( lString16 id )
 
 bool HyphDictionaryList::open( lString16 hyphDirectory )
 {
-	_list.clear();
-	addDefault();
-	LVAppendPathDelimiter( hyphDirectory );
+    CRLog::info("HyphDictionaryList::open(%s)", LCSTR(hyphDirectory) );
+    _list.clear();
+    addDefault();
+    //LVAppendPathDelimiter( hyphDirectory );
     LVContainerRef container;
     LVStreamRef stream;
-    if ( LVFileExists(hyphDirectory) ) {
+    if ( (hyphDirectory.endsWith(lString16(L"/")) || hyphDirectory.endsWith(lString16(L"\\"))) && LVDirectoryExists(hyphDirectory) ) {
+        container = LVOpenDirectory( hyphDirectory.c_str(), L"*.*" );
+    } else if ( LVFileExists(hyphDirectory) ) {
         stream = LVOpenFileStream( hyphDirectory.c_str(), LVOM_READ );
         if ( !stream.isNull() )
             container = LVOpenArchieve( stream );
-    } else
-        container = LVOpenDirectory( hyphDirectory.c_str(), L"*.*" );
+    }
 
 	if ( !container.isNull() ) {
 		int len = container->GetObjectCount();
+        int count = 0;
+        CRLog::info("%d items found in hyph directory");
 		for ( int i=0; i<len; i++ ) {
 			const LVContainerItemInfo * item = container->GetObjectInfo( i );
 			lString16 name = item->GetName();
@@ -227,7 +231,9 @@ bool HyphDictionaryList::open( lString16 hyphDirectory )
 				title.erase( title.length() - suffix.length(), suffix.length() );
             
 			_list.add( new HyphDictionary( t, title, id, filename ) );
+            count++;
 		}
+        CRLog::info("%d dictionaries added to list");
 		return true;
 	}
 	return false;
@@ -328,7 +334,7 @@ public:
     void apply( char * mask )
     {
         ;
-        for ( char * p = attr; *p; p++, mask++ ) {
+        for ( char * p = attr; *p && *mask; p++, mask++ ) {
             if ( *mask < *p )
                 *mask = *p;
         }
@@ -337,7 +343,7 @@ public:
     TexPattern( const lString16 &s ) : next( NULL )
     {
         memset( word, 0, sizeof(word) );
-        memset( attr, 0, sizeof(word) );
+        memset( attr, 0, sizeof(attr) );
         int n = 0;
         for ( int i=0; i<(int)s.length() && n<MAX_PATTERN_SIZE; i++ ) {
             lChar16 ch = s[i];
@@ -354,7 +360,7 @@ public:
         if ( sz >= MAX_PATTERN_SIZE )
             sz = MAX_PATTERN_SIZE - 1;
         memset( word, 0, sizeof(word) );
-        memset( attr, 0, sizeof(word) );
+        memset( attr, 0, sizeof(attr) );
         for ( int i=0; i<sz; i++ )
             word[i] = charMap[ s[i] ];
         memcpy( attr, s+sz, sz+1 );

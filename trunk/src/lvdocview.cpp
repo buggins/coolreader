@@ -466,7 +466,7 @@ LVDocImageRef LVDocView::getPageImage( int delta )
         return ref;
     }
     while ( ref.isNull() ) {
-        CRLog::trace("getPageImage: - page [%d] not found, force rendering", offset);
+        //CRLog::trace("getPageImage: - page [%d] not found, force rendering", offset);
         cachePageImage( delta );
         ref = m_imageCache.get( offset );
     }
@@ -486,7 +486,7 @@ public:
     }
     virtual void run()
     {
-        CRLog::trace("LVDrawThread::run() offset==%d", _offset);
+        //CRLog::trace("LVDrawThread::run() offset==%d", _offset);
         _view->Draw( *_drawbuf, _offset, true );
         //_drawbuf->Rotate( _view->GetRotateAngle() );
     }
@@ -688,7 +688,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
         base_font_size = 22;
     else
         base_font_size = 24;
-    CRLog::trace("drawCoverTo() - loading fonts...");
+    //CRLog::trace("drawCoverTo() - loading fonts...");
     LVFontRef author_fnt( fontMan->GetFont( base_font_size, 600, false, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef title_fnt( fontMan->GetFont( base_font_size+4, 600, false, css_ff_serif, lString8("Times New Roman")) );
     LVFontRef series_fnt( fontMan->GetFont( base_font_size-3, 300, true, css_ff_serif, lString8("Times New Roman")) );
@@ -709,7 +709,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     lvRect imgrc = rc;
     imgrc.bottom -= h + 16;
 
-    CRLog::trace("drawCoverTo() - getting cover image");
+    //CRLog::trace("drawCoverTo() - getting cover image");
     LVImageSourceRef imgsrc = getCoverPageImage();
     LVImageSourceRef defcover = getDefaultCover();
     if ( !imgsrc.isNull() && imgrc.height()>30 )
@@ -729,7 +729,7 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
             dst_dx = imgrc.width();
         if (dst_dy>rc.height())
             dst_dy = imgrc.height();
-            CRLog::trace("drawCoverTo() - drawing image");
+            //CRLog::trace("drawCoverTo() - drawing image");
             drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
         //fprintf( stderr, "Done.\n" );
     } else if ( !defcover.isNull() ) {
@@ -749,20 +749,20 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
             dst_dx = imgrc.width();
         if (dst_dy>rc.height() - 10)
             dst_dy = imgrc.height();
-        CRLog::trace("drawCoverTo() - drawing image");
+        //CRLog::trace("drawCoverTo() - drawing image");
         drawBuf->Draw( defcover, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
-        CRLog::trace("drawCoverTo() - drawing text");
+        //CRLog::trace("drawCoverTo() - drawing text");
         txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2,
             (rc.bottom + rc.top - h) / 2, NULL );
-        CRLog::trace("drawCoverTo() - done");
+        //CRLog::trace("drawCoverTo() - done");
         return;
     } else {
         imgrc.bottom = imgrc.top;
     }
     rc.top = imgrc.bottom;
-    CRLog::trace("drawCoverTo() - drawing text");
+    //CRLog::trace("drawCoverTo() - drawing text");
     txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2, NULL );
-    CRLog::trace("drawCoverTo() - done");
+    //CRLog::trace("drawCoverTo() - done");
 }
 
 /// export to WOL format
@@ -1409,13 +1409,13 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
             rc.right -= m_pageMargins.right / 2;
             rc.bottom -= m_pageMargins.bottom / 2;
             */
-            CRLog::trace("Entering drawCoverTo()");
+            //CRLog::trace("Entering drawCoverTo()");
             drawCoverTo( drawbuf, rc );
         } else {
             // draw main page text
-            CRLog::trace("Entering DrawDocument()");
+            //CRLog::trace("Entering DrawDocument()");
             DrawDocument( *drawbuf, m_doc->getRootNode(), pageRect->left + m_pageMargins.left, clip.top, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
-            CRLog::trace("Done DrawDocument() for main text");
+            //CRLog::trace("Done DrawDocument() for main text");
             // draw footnotes
 #define FOOTNOTE_MARGIN 8
             int fny = clip.top + page.height + FOOTNOTE_MARGIN;
@@ -1521,18 +1521,18 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
     else
     {
         int pc = getVisiblePageCount();
-        CRLog::trace("searching for page with offset=%d", position);
+        //CRLog::trace("searching for page with offset=%d", position);
         int page = m_pages.FindNearestPage(position, 0);
-        CRLog::trace("found page #%d", page);
+        //CRLog::trace("found page #%d", page);
         if ( page>=0 && page<m_pages.length() )
             drawPageTo( &drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length(), 1 );
         if ( pc==2 && page>=0 && page+1<m_pages.length() )
             drawPageTo( &drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length(), 1 );
     }
     if ( rotate ) {
-        CRLog::trace("Rotate drawing buffer. Src size=(%d, %d), angle=%d, buf(%d, %d)", m_dx, m_dy, m_rotateAngle, drawbuf.GetWidth(), drawbuf.GetHeight() );
+       //CRLog::trace("Rotate drawing buffer. Src size=(%d, %d), angle=%d, buf(%d, %d)", m_dx, m_dy, m_rotateAngle, drawbuf.GetWidth(), drawbuf.GetHeight() );
         drawbuf.Rotate( m_rotateAngle );
-        CRLog::trace("Rotate done. buf(%d, %d)", drawbuf.GetWidth(), drawbuf.GetHeight() );
+        //CRLog::trace("Rotate done. buf(%d, %d)", drawbuf.GetWidth(), drawbuf.GetHeight() );
     }
 }
 
@@ -3232,6 +3232,12 @@ bool LVDocView::ParseDocument( )
 		delete parser;
 		m_pos = 0;
 
+        int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
+        int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, 6000000);
+        CRLog::info("File size = %d, min size to cache = %d", fs, mfs);
+        if ( fs>=mfs )
+            swapToCache();
+
         if ( m_doc_format == doc_format_html ) {
             static lUInt16 path[] = { el_html, el_head, el_title, 0 };
             ldomNode * el = m_doc->getRootNode()->findChildElement( path );
@@ -4181,6 +4187,10 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     lString16Collection list;
     fontMan->getFaceList( list );
     static int def_aa_props[] = { 2, 1, 0 };
+
+    props->setIntDef( PROP_MIN_FILE_SIZE_TO_CACHE, 8000000 );
+    props->setIntDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 );
+
     props->limitValueList( PROP_FONT_ANTIALIASING, def_aa_props, sizeof(def_aa_props)/sizeof(int) );
     props->setHexDef( PROP_FONT_COLOR, 0x000000 );
     props->setHexDef( PROP_BACKGROUND_COLOR, 0xFFFFFF );
@@ -4382,10 +4392,10 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             unknown->setString( name.c_str(), value );
             isUnknown = true;
         }
-        if ( !isUnknown ) {
+        //if ( !isUnknown ) {
             // update current value in properties
             m_props->setString( name.c_str(), value );
-        }
+        //}
     }
     return unknown;
 }
