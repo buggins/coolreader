@@ -438,7 +438,7 @@ msgstr "Головне меню"
 
 #: src/viewdlg.cpp:312
 msgid "Long"
-msgstr "Довг. "
+msgstr "Довге"
 
 #: src/viewdlg.cpp:319
 msgid "To first page"
@@ -578,7 +578,7 @@ msgstr "Попередня мова вводу"
 
 #: src/viewdlg.cpp:359
 msgid "Show manual"
-msgstr "Відображення годинника"
+msgstr "Довідка"
 
 #: src/viewdlg.cpp:360
 msgid "Show key mapping"
