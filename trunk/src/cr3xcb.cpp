@@ -434,6 +434,9 @@ int main(int argc, char **argv)
     setlocale (LC_ALL, "");
     #undef LOCALEDIR
     #define LOCALEDIR "/usr/share/locale"
+    #ifndef PACKAGE
+    #define PACKAGE "cr3"
+    #endif
     const char * bindres = bindtextdomain (PACKAGE, LOCALEDIR);
     textdomain (PACKAGE);
     CRLog::info("Initializing gettext: dir=%s, LANGUAGE=%s, DOMAIN=%s, bindtxtdomain result = %s", LOCALEDIR, getenv("LANGUAGE"), PACKAGE, bindres);
