@@ -1,0 +1,91 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cr3gui", "cr3gui.vcproj", "{3FED6DC4-212B-45BC-A03F-D6637620DC92}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinydict", "..\tinydict\tinydict.vcproj", "{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug Multithreaded|Win32 = Debug Multithreaded|Win32
+		Debug Singlethreaded|Win32 = Debug Singlethreaded|Win32
+		Debug|Win32 = Debug|Win32
+		DLL ASM Debug|Win32 = DLL ASM Debug|Win32
+		DLL ASM Release|Win32 = DLL ASM Release|Win32
+		DLL Debug|Win32 = DLL Debug|Win32
+		DLL Release|Win32 = DLL Release|Win32
+		DLL VB|Win32 = DLL VB|Win32
+		LIB ASM Debug|Win32 = LIB ASM Debug|Win32
+		LIB ASM Release|Win32 = LIB ASM Release|Win32
+		LIB Debug|Win32 = LIB Debug|Win32
+		LIB Release|Win32 = LIB Release|Win32
+		Release Multithreaded|Win32 = Release Multithreaded|Win32
+		Release Singlethreaded|Win32 = Release Singlethreaded|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Debug Multithreaded|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Debug Multithreaded|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Debug Singlethreaded|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Debug Singlethreaded|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Debug|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL ASM Debug|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL ASM Debug|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL ASM Release|Win32.ActiveCfg = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL ASM Release|Win32.Build.0 = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL Debug|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL Debug|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL Release|Win32.ActiveCfg = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL Release|Win32.Build.0 = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL VB|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.DLL VB|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB ASM Debug|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB ASM Debug|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB ASM Release|Win32.ActiveCfg = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB ASM Release|Win32.Build.0 = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB Debug|Win32.ActiveCfg = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB Debug|Win32.Build.0 = Debug|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB Release|Win32.ActiveCfg = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.LIB Release|Win32.Build.0 = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Release Multithreaded|Win32.ActiveCfg = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Release Multithreaded|Win32.Build.0 = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Release Singlethreaded|Win32.ActiveCfg = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Release Singlethreaded|Win32.Build.0 = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Release|Win32.ActiveCfg = Release|Win32
+		{3FED6DC4-212B-45BC-A03F-D6637620DC92}.Release|Win32.Build.0 = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Debug Multithreaded|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Debug Multithreaded|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Debug Singlethreaded|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Debug Singlethreaded|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Debug|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL ASM Debug|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL ASM Debug|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL ASM Release|Win32.ActiveCfg = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL ASM Release|Win32.Build.0 = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL Debug|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL Debug|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL Release|Win32.ActiveCfg = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL Release|Win32.Build.0 = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL VB|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.DLL VB|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB ASM Debug|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB ASM Debug|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB ASM Release|Win32.ActiveCfg = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB ASM Release|Win32.Build.0 = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB Debug|Win32.ActiveCfg = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB Debug|Win32.Build.0 = Debug|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB Release|Win32.ActiveCfg = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.LIB Release|Win32.Build.0 = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Release Multithreaded|Win32.ActiveCfg = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Release Multithreaded|Win32.Build.0 = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Release Singlethreaded|Win32.ActiveCfg = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Release Singlethreaded|Win32.Build.0 = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Release|Win32.ActiveCfg = Release|Win32
+		{AD6F8C23-FC13-4448-8F85-BCB4E94C79E8}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
