@@ -1,0 +1,108 @@
+head, style, form, script { display: none; } 
+
+body { margin: 0; text-align: justify; } 
+
+p { margin-top: 0.3em; margin-bottom:0.3em; text-indent: 0em; } 
+
+empty-line { height: 0.2em; } 
+
+hr { 
+   height: 2px; 
+   background-color: #808080; 
+   margin-top: 0.5em; 
+   margin-bottom: 0.5em; 
+   } 
+
+b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
+   display: inline; 
+   } 
+
+b,strong { font-weight: bold; } 
+i,em,dfn,var { font-style: italic; } 
+
+u { text-decoration: underline; } 
+del,s,strike { text-decoration: line-through; } 
+small { font-size: 80%; } 
+big { font-size: 130%; } 
+sub { vertical-align: sub; font-size: 70% } 
+sup { vertical-align: super; font-size: 70% } 
+tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
+pre { display: block; 
+   margin-top: 0.5em; 
+   margin-bottom: 0.5em; 
+   white-space: pre; 
+   text-align: left; 
+  /* background-color: #BFBFBF; */ 
+   } 
+
+nobr { display: inline; hyphenate: none; white-space: nowrap; } 
+
+h1,h2,h3,h4,h5,h6 { 
+   display: block; 
+   margin-top: 0.5em; 
+   margin-bottom: 0.3em; 
+   font-weight: bold; 
+   text-align: left; 
+   } 
+h1 { font-size: 150%; 
+/*     color: #FFFFFF; background-color: #000000; */ 
+     padding: 10px ; 
+     margin-top: 0.5em; 
+     margin-bottom: 0.5em; 
+   } 
+h2 { font-size: 135%; 
+/*     color: #FFFFFF; background-color: #808080;   */ 
+     padding: 10px ; 
+     margin-top: 0.5em; 
+     margin-bottom: 0.5em; 
+   } 
+h3 { font-size: 125% } 
+h4 { font-size: 125%; font-style: italic; } 
+h5 { font-size: 115%; font-style: italic; } 
+h6 { font-size: 105%; font-style: italic; } 
+
+ul, ol, dl { 
+   display: block; 
+   margin-left: 1em; 
+   margin-top:0.3em; 
+   margin-bottom: 0.3em; 
+/*   background-color: #808080; */ 
+   } 
+
+li { 
+   display: block; 
+   margin-top: 0.3em; 
+   margin-bottom: 0.3em; 
+   background-color: #EFEFEF; 
+   } 
+
+
+dl { margin-left: 0em; } 
+dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 
+dd { display: block; } 
+
+a { display:inline; text-decoration: underline;  } 
+
+span { display: inline; } 
+
+cite { display: inline; font-style: italic;} 
+div { display: block; } 
+blockquote { display: block; 
+   margin-left: 1.5em; 
+   margin-right: 1.5em; 
+   margin-top: 0.5em; 
+   margin-bottom: 0.5em; 
+   } 
+
+img { 
+   margin: 0.5em; 
+   text-align: center; 
+   text-indent: 0em; 
+   border-style: solid; 
+   border-width: medium; 
+   } 
+
+table { font-size: 100% } 
+td, th { text-indent: 0px; padding: 3px } 
+th { font-weight: bold; text-align: center; background-color: #808080; } 
+table caption { text-indent: 0px; padding: 4px; }

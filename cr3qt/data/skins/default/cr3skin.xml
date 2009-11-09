@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CR3Skin>
+  <!-- For scroll -->
+  <scroll>
+     <background image="paper9.jpeg" color="#FFEEFF"/>
+     <icon image="scroll-left.png" margins="0,0,0,0" halign="left" valign="tiled">
+     <icon image="scroll-right.png" margins="0,0,0,0" halign="right" valign="tiled">
+  </scroll>
+  <!-- Left page for book-view, two-pages mode -->
+  <left-page>
+     <background image="paper9.jpeg" color="#FFEEFF"/>
+     <icon image="page1-top-left.png" margins="0,0,0,0" halign="left" valign="top">
+     <icon image="page1-top-right.png" margins="0,0,0,0" halign="right" valign="top">
+     <icon image="page1-bottom-left.png" margins="0,0,0,0" halign="left" valign="bottom">
+     <icon image="page1-bottom-right.png" margins="0,0,0,0" halign="right" valign="bottom">
+     <icon image="page1-left.png" margins="0,0,0,0" halign="left" valign="tiled">
+     <icon image="page1-right.png" margins="0,0,0,0" halign="right" valign="tiled">
+     <icon image="page1-top.png" margins="0,0,0,0" halign="tiled" valign="top">
+     <icon image="page1-bottom.png" margins="0,0,0,0" halign="tiled" valign="bottom">
+  </left-page>
+  <!-- Right page for book-view, two-pages mode, or single page mode -->
+  <right-page>
+     <background image="paper9.jpeg" color="#FFEEFF"/>
+     <icon image="page2-top-left.png" margins="0,0,0,0" halign="left" valign="top">
+     <icon image="page2-top-right.png" margins="0,0,0,0" halign="right" valign="top">
+     <icon image="page2-bottom-left.png" margins="0,0,0,0" halign="left" valign="bottom">
+     <icon image="page2-bottom-right.png" margins="0,0,0,0" halign="right" valign="bottom">
+     <icon image="page2-left.png" margins="0,0,0,0" halign="left" valign="tiled">
+     <icon image="page2-right.png" margins="0,0,0,0" halign="right" valign="tiled">
+     <icon image="page2-top.png" margins="0,0,0,0" halign="tiled" valign="top">
+     <icon image="page2-bottom.png" margins="0,0,0,0" halign="tiled" valign="bottom">
+  </right-page>
+</CR3Skin>
