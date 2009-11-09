@@ -1,3 +1,0 @@
-g++ -o crrcconv crrcconv.cpp
-chmod 777 crrcconv
-./crrcconv cr3res.zip cr3res.h cr3_icons
