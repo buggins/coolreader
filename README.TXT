@@ -1,0 +1,33 @@
+CoolReader 3 - free e-book reader
+(c) Vadim Lopatin, 1998-2009
+
+LICENSE: All source codes (except thirdparty directory) 
+are provided under the terms of GNU GPL license, version 2
+
+
+
+Directories:
+
+crengine   - CREngine (DOM/XML/CSS ebook rendering library) sources
+cr3gui     - CR3 with CR3GUI for e-ink devices sources
+cr3qt      - CR3 with Qt based GUI
+cr3wx      - CR3 with wxWidgets based GUI
+thirdparty - third party libraries, to use if not found in system (zlib, libpng, libjpeg, freetype)
+tinydict   - small library for .dict file format support
+tools      - miscellaneous configuration files
+
+External dependencies: 
+
+common: zlib, libpng, libjpeg, freetype
+cr3gui/xcb: libxcb, fontconfig
+cr3gui/nanoX: libnanoX
+cr3/Qt: qt4-core, qt4-gui
+cr3/wx: wxWidgets 2.8
+
+
+
+# Building Jinke/LBook V3 viewer plugin (libfb2.so)
+mkdir v3build
+cd v3build
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=CRGUI_JINKE_PLUGIN ..
+make

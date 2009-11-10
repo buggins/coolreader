@@ -8,7 +8,7 @@ src/lvrend.cpp    src/lvtinydom.cpp
 src/wolutil.cpp
 src/hist.cpp      src/lvfnt.cpp      
 src/lvstream.cpp  src/lvxml.cpp     
-src/xutils.cpp
+#src/xutils.cpp
 )
 ADD_LIBRARY(crengine STATIC ${CRENGINE_SOURCES})
 
