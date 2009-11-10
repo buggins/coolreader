@@ -14,5 +14,5 @@ src/wolopt.cpp
 )
 
 ADD_EXECUTABLE(cr3 ${CR3_SOURCES})
-SET (EXTRA_LIBS ${wxWidgets_LIBRARIES} freetype jpeg png z)
+SET (EXTRA_LIBS ${wxWidgets_LIBRARIES} ${STD_LIBS})
 TARGET_LINK_LIBRARIES(cr3 crengine tinydict ${EXTRA_LIBS})

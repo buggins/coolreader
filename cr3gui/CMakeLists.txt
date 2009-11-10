@@ -11,5 +11,5 @@ src/viewdlg.cpp
 )
 
 ADD_EXECUTABLE(cr3 ${CR3_SOURCES})
-SET (EXTRA_LIBS xcb xcb-aux xcb-image xcb-keysyms fontconfig freetype jpeg png z)
+SET (EXTRA_LIBS xcb xcb-aux xcb-image xcb-keysyms fontconfig ${STD_LIBS} )
 TARGET_LINK_LIBRARIES(cr3 crengine tinydict ${EXTRA_LIBS})

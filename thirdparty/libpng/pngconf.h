@@ -1385,7 +1385,9 @@ typedef z_stream FAR *  png_zstreamp;
 #   endif
 
 #   if !defined(PNG_IMPEXP)
+#ifndef CR3_PATCH
 #       include <qconfig.h>
+#endif
 #       if defined(QT_VISIBILITY_AVAILABLE)
 #           define PNG_IMPEXP __attribute__((visibility("default")))
 #       endif

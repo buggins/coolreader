@@ -32,7 +32,9 @@
 #define ZLIB_H
 
 #include "zconf.h"
+#ifndef CR3_PATCH
 #include "qconfig.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
