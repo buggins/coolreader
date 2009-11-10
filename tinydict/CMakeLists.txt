@@ -1,0 +1,4 @@
+SET (TINYDICT_SOURCES
+    tinydict.cpp
+)
+ADD_LIBRARY(tinydict STATIC ${TINYDICT_SOURCES})
