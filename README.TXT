@@ -4,6 +4,9 @@ CoolReader 3 - free e-book reader
 LICENSE: All source codes (except thirdparty directory) 
 are provided under the terms of GNU GPL license, version 2
 
+Source codes are available at sourceforge:
+git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
 
 
 Directories:
@@ -25,9 +28,22 @@ cr3/Qt: qt4-core, qt4-gui
 cr3/wx: wxWidgets 2.8
 
 
+Build instructions:
 
-# Building Jinke/LBook V3 viewer plugin (libfb2.so)
+# Building wxWidgets version
+# libwxgtk2.8-dev should be installed
+mkdir wxbuild
+cd wxbuild
+cmake -D GUI=WX ..
+
+# Building Jinke/LBook V3 viewer plugin (libfb2.so):
 mkdir v3build
 cd v3build
 cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=CRGUI_JINKE_PLUGIN ..
+make
+
+# Building Jinke/LBook V5 viewer app (cr3):
+mkdir v5build
+cd v5build
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX ..
 make

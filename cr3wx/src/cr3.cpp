@@ -480,13 +480,14 @@ bool initHyph(const char * fname)
     //HyphMan hyphman;
     //return;
 
-    LVStreamRef stream = LVOpenFileStream( fname, LVOM_READ);
-    if (!stream)
-    {
-        printf("Cannot load hyphenation file %s\n", fname);
-        return false;
-    }
-    return HyphMan::Open( stream.get() );
+    //LVStreamRef stream = LVOpenFileStream( fname, LVOM_READ);
+    //if (!stream)
+   // {
+    //    printf("Cannot load hyphenation file %s\n", fname);
+    //    return false;
+   // }
+    // stream.get()
+    return HyphMan::initDictionaries( lString16(fname) );
 }
 
 lString8 readFileToString( const char * fname )
@@ -509,7 +510,7 @@ int cr3app::OnExit()
 {
     ShutdownFontManager();
     delete resources;
-    HyphMan::Close();
+    HyphMan::uninit();
 #if LDOM_USE_OWN_MEM_MAN == 1
     ldomFreeStorage();
 #endif
