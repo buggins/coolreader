@@ -13,25 +13,23 @@ src/viewdlg.cpp
 )
 
 if ( ${GUI} STREQUAL CRGUI_XCB )
-  ADD_DEFINITIONS( -DUSE_FONTCONFIG=1 )
-  SET(CR3SOURCES ${CR3SOURCES} src/cr3xcb.cpp)
-  SET (EXTRA_LIBS xcb xcb-aux xcb-image xcb-keysyms fontconfig )
+
+    ADD_DEFINITIONS( -DUSE_FONTCONFIG=1 )
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3xcb.cpp)
+    SET (EXTRA_LIBS xcb xcb-aux xcb-image xcb-keysyms fontconfig )
 
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
-  ADD_DEFINITIONS( -DUSE_FONTCONFIG=0 )
-  SET(CR3SOURCES ${CR3SOURCES} src/cr3nanox.cpp)
-  SET (EXTRA_LIBS nano-X )
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3nanox.cpp)
+    SET (EXTRA_LIBS nano-X pthread )
 
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 
-  ADD_DEFINITIONS( -DUSE_FONTCONFIG=0 )
-  SET(CR3SOURCES ${CR3SOURCES} src/cr3jinke.cpp)
+    SET(CR3_SOURCES ${CR3SOURCES} src/cr3jinke.cpp)
 
 elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
 
-  ADD_DEFINITIONS( -DUSE_FONTCONFIG=0 )
-  SET(CR3SOURCES ${CR3SOURCES} src/cr3win.cpp)
+    SET(CR3_SOURCES ${CR3SOURCES} src/cr3win.cpp)
 
 endif ( ${GUI} STREQUAL CRGUI_XCB )
 
