@@ -35,6 +35,10 @@
 //#include FT_FREETYPE_H
 #include <freetype/freetype.h>
 
+#if (USE_FONTCONFIG==1)
+    #include <fontconfig/fontconfig.h>
+#endif
+
 #endif
 
 
@@ -1219,6 +1223,146 @@ public:
         return _cache.length();
     }
 
+    bool initSystemFonts()
+    {
+        #if (USE_FONTCONFIG==1)
+        {
+            CRLog::info("Reading list of system fonts using FONTCONFIG");
+            lString16Collection fonts;
+            
+            int facesFound = 0;
+
+            FcFontSet *fontset;
+
+            FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY, 
+                                               FC_SLANT, FC_SPACING, FC_INDEX, 
+                                               FC_STYLE, NULL);
+            FcPattern *pat = FcPatternCreate();
+            //FcBool b = 1;
+            FcPatternAddBool(pat, FC_SCALABLE, 1);
+
+            fontset = FcFontList(NULL, pat, os);
+
+            FcPatternDestroy(pat);
+            FcObjectSetDestroy(os);
+
+            // load fonts from file
+            CRLog::debug("FONTCONFIG: %d font files found", fontset->nfont);
+            for(int i = 0; i < fontset->nfont; i++) {
+                FcChar8 *s;
+                FcChar8 *family;
+                FcChar8 *style;
+                //FcBool b;
+                FcResult res;
+                //FC_SCALABLE
+                //res = FcPatternGetBool( fontset->fonts[i], FC_OUTLINE, 0, (FcBool*)&b);
+                //if(res != FcResultMatch)
+                //    continue;
+                //if ( !b )
+                //    continue; // skip non-scalable fonts
+                res = FcPatternGetString(fontset->fonts[i], FC_FILE, 0, (FcChar8 **)&s);
+                if(res != FcResultMatch) {
+                    continue;
+                }
+                lString8 fn( (const char *)s );
+                lString16 fn16( fn.c_str() );
+                fn16.lowercase();
+                if ( !fn16.endsWith(L".ttf") ) {
+                    continue;
+                }
+                int weight = FC_WEIGHT_MEDIUM;
+                res = FcPatternGetInteger(fontset->fonts[i], FC_WEIGHT, 0, &weight);
+                if(res != FcResultMatch) {
+                    CRLog::debug("no FC_WEIGHT for %s", s);
+                    //continue;
+                }
+                int index = 0;
+                res = FcPatternGetInteger(fontset->fonts[i], FC_INDEX, 0, &index);
+                if(res != FcResultMatch) {
+                    CRLog::debug("no FC_INDEX for %s", s);
+                    //continue;
+                }
+                res = FcPatternGetString(fontset->fonts[i], FC_FAMILY, 0, (FcChar8 **)&family);
+                if(res != FcResultMatch) {
+                    CRLog::debug("no FC_FAMILY for %s", s);
+                    continue;
+                }
+                res = FcPatternGetString(fontset->fonts[i], FC_STYLE, 0, (FcChar8 **)&style);
+                if(res != FcResultMatch) {
+                    CRLog::debug("no FC_STYLE for %s", s);
+                    style = (FcChar8*)"";
+                    //continue;
+                }
+                int slant = FC_SLANT_ROMAN;
+                res = FcPatternGetInteger(fontset->fonts[i], FC_SLANT, 0, &slant);
+                if(res != FcResultMatch) {
+                    CRLog::debug("no FC_SLANT for %s", s);
+                    //continue;
+                }
+                int spacing = 0;
+                res = FcPatternGetInteger(fontset->fonts[i], FC_SPACING, 0, &spacing);
+                if(res != FcResultMatch) {
+                    CRLog::debug("no FC_SPACING for %s", s);
+                    //continue;
+                }
+                int cr_weight;
+                switch(weight) {
+                    case FC_WEIGHT_LIGHT: cr_weight = 200; break;
+                    case FC_WEIGHT_MEDIUM: cr_weight = 300; break;
+                    case FC_WEIGHT_DEMIBOLD: cr_weight = 500; break;
+                    case FC_WEIGHT_BOLD: cr_weight = 700; break;
+                    case FC_WEIGHT_BLACK: cr_weight = 800; break;
+                    default: cr_weight=300; break;
+                }
+                css_font_family_t fontFamily = css_ff_sans_serif;
+                lString16 face16((const char *)family);
+                face16.lowercase();
+                if ( spacing==FC_MONO )
+                    fontFamily = css_ff_monospace;
+                else if ( face16.pos(L"sans")>=0 )
+                    fontFamily = css_ff_sans_serif;
+                else if ( face16.pos(L"serif")>=0 )
+                    fontFamily = css_ff_serif;
+                
+                //css_ff_inherit,
+                //css_ff_serif,
+                //css_ff_sans_serif,
+                //css_ff_cursive,
+                //css_ff_fantasy,
+                //css_ff_monospace,
+                bool italic = (slant==FC_SLANT_ITALIC);
+                
+                LVFontDef def(
+                    lString8((const char*)s),
+                    -1, // height==-1 for scalable fonts
+                    cr_weight,
+                    italic,
+                    fontFamily,
+                    lString8((const char*)family),
+                    index
+                );
+
+                CRLog::debug("FONTCONFIG: Font family:%s style:%s weight:%d slant:%d spacing:%d file:%s", family, style, weight, slant, spacing, s);
+                if ( _cache.findDuplicate( &def ) ) {
+                    CRLog::debug("is duplicate, skipping");
+                    continue;
+                }
+                _cache.update( &def, LVFontRef(NULL) );
+                
+                facesFound++;
+                
+                
+            }
+
+            FcFontSetDestroy(fontset);
+            CRLog::info("FONTCONFIG: %d fonts registered", facesFound);
+            return facesFound > 0;
+        }
+        #else
+        return false;
+        #endif
+    }
+
     virtual ~LVFreeTypeFontManager() 
     {
         _globalCache.clear();
@@ -1487,6 +1631,7 @@ public:
     virtual bool Init( lString8 path )
     {
         _path = path;
+        initSystemFonts();
         return (_library != NULL);
     }
 };

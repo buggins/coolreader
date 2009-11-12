@@ -1,4 +1,6 @@
-<!DOCTYPE TS><TS>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0">
 <context>
     <name>AboutDialog</name>
     <message>
@@ -7,11 +9,11 @@
     </message>
     <message>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation type="obsolete">Діалог</translation>
     </message>
     <message>
         <source>...</source>
-        <translation>...</translation>
+        <translation type="obsolete">...</translation>
     </message>
     <message>
         <source>Cool Reader 3.0.21</source>
@@ -19,22 +21,22 @@
     </message>
     <message>
         <source>20-09-2009</source>
-        <translation>20.09.2009</translation>
+        <translation type="obsolete">20.09.2009</translation>
     </message>
     <message>
         <source>License</source>
-        <translation>Ліцензія</translation>
+        <translation type="obsolete">Ліцензія</translation>
     </message>
     <message>
-        <source><byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
-<byte value="x9"/><byte value="x9"/>       Version 2, June 1991
+        <source>		    GNU GENERAL PUBLIC LICENSE
+		       Version 2, June 1991
 
  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
                        59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
-<byte value="x9"/><byte value="x9"/><byte value="x9"/>    Preamble
+			    Preamble
 
   The licenses for most software are designed to take away your
 freedom to share and change it.  By contrast, the GNU General Public
@@ -84,7 +86,7 @@ patent must be licensed for everyone&apos;s free use or not licensed at all.
   The precise terms and conditions for copying, distribution and
 modification follow.
 
-<byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
+		    GNU GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   0. This License applies to any program or other work which contains
@@ -283,7 +285,7 @@ make exceptions for this.  Our decision will be guided by the two goals
 of preserving the free status of all derivatives of our free software and
 of promoting the sharing and reuse of software generally.
 
-<byte value="x9"/><byte value="x9"/><byte value="x9"/>    NO WARRANTY
+			    NO WARRANTY
 
   11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
 FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
@@ -305,10 +307,10 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
-<byte value="x9"/><byte value="x9"/>     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS
 </source>
-        <translation><byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
-<byte value="x9"/><byte value="x9"/>       Version 2, June 1991
+        <translation type="obsolete">		    GNU GENERAL PUBLIC LICENSE
+		       Version 2, June 1991
 
 
 Український неофіційний переклад Загальною Публічної Ліцензії GNU 
@@ -321,7 +323,7 @@ http://www.linux.kiev.ua/ua/devel/licenses/gnu-gpl2/
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
-<byte value="x9"/><byte value="x9"/><byte value="x9"/>    Preamble
+			    Preamble
 
   The licenses for most software are designed to take away your
 freedom to share and change it.  By contrast, the GNU General Public
@@ -371,7 +373,7 @@ patent must be licensed for everyone&apos;s free use or not licensed at all.
   The precise terms and conditions for copying, distribution and
 modification follow.
 
-<byte value="x9"/><byte value="x9"/>    GNU GENERAL PUBLIC LICENSE
+		    GNU GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
   0. This License applies to any program or other work which contains
@@ -570,7 +572,7 @@ make exceptions for this.  Our decision will be guided by the two goals
 of preserving the free status of all derivatives of our free software and
 of promoting the sharing and reuse of software generally.
 
-<byte value="x9"/><byte value="x9"/><byte value="x9"/>    NO WARRANTY
+			    NO WARRANTY
 
   11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
 FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
@@ -592,12 +594,12 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
-<byte value="x9"/><byte value="x9"/>     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS
 </translation>
     </message>
     <message>
         <source>Source Code</source>
-        <translation>Джерельний код</translation>
+        <translation type="obsolete">Джерельний код</translation>
     </message>
     <message>
         <source>Source code may be downloaded from sourceforge crengine project page.
@@ -607,7 +609,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -
 cd cr3qt
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</source>
-        <translation>Сирці можна завантажити з сторінки проекту sourceforge crengine.
+        <translation type="obsolete">Сирці можна завантажити з сторінки проекту sourceforge crengine.
 
 Найновіші сирці доступні на CVS:
 cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
@@ -617,15 +619,15 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>(c) 1998-2009 Vadim Lopatin</source>
-        <translation>© 1998-2009 Вадім Лопатін</translation>
+        <translation type="obsolete">© 1998-2009 Вадім Лопатін</translation>
     </message>
     <message>
         <source>About</source>
-        <translation>Про</translation>
+        <translation type="obsolete">Про</translation>
     </message>
     <message>
         <source>About Cool Reader</source>
-        <translation>Про Cool Reader</translation>
+        <translation type="obsolete">Про Cool Reader</translation>
     </message>
     <message>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -644,7 +646,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - JPEG image format support&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Hyphenation dictionaries - from AlReader&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+        <translation type="obsolete">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
@@ -663,7 +665,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Cool Reader 3.0.22</source>
-        <translation type="unfinished">CoolReader 3.0.22</translation>
+        <translation type="obsolete">CoolReader 3.0.22</translation>
     </message>
 </context>
 <context>
@@ -678,19 +680,19 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation type="obsolete">Діалог</translation>
     </message>
     <message>
         <source>Bookmark type</source>
-        <translation>Тип закладки</translation>
+        <translation type="obsolete">Тип закладки</translation>
     </message>
     <message>
         <source>Title</source>
-        <translation>Назва</translation>
+        <translation type="obsolete">Назва</translation>
     </message>
     <message>
         <source>sample title</source>
-        <translation>зразок назви</translation>
+        <translation type="obsolete">зразок назви</translation>
     </message>
     <message>
         <source>Position</source>
@@ -698,11 +700,11 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Page 1/10 10%</source>
-        <translation>Сторінка 1/10 10%</translation>
+        <translation type="obsolete">Сторінка 1/10 10%</translation>
     </message>
     <message>
         <source>Position text</source>
-        <translation>Позиція тексту</translation>
+        <translation type="obsolete">Позиція тексту</translation>
     </message>
     <message>
         <source>Comment</source>
@@ -749,43 +751,43 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation type="obsolete">Діалог</translation>
     </message>
     <message>
         <source>Go to Bookmark</source>
-        <translation>Перейти до закладки</translation>
+        <translation type="obsolete">Перейти до закладки</translation>
     </message>
     <message>
         <source>Return</source>
-        <translation>Повернутися</translation>
+        <translation type="obsolete">Повернутися</translation>
     </message>
     <message>
         <source>Remove Bookmark</source>
-        <translation>Вилучити закладку</translation>
+        <translation type="obsolete">Вилучити закладку</translation>
     </message>
     <message>
         <source>Del</source>
-        <translation>Del</translation>
+        <translation type="obsolete">Del</translation>
     </message>
     <message>
         <source>Remove ALL Bookmarks</source>
-        <translation>Вилучити УСІ закладки</translation>
+        <translation type="obsolete">Вилучити УСІ закладки</translation>
     </message>
     <message>
         <source>Edit Bookmark</source>
-        <translation>Редагувати закладку</translation>
+        <translation type="obsolete">Редагувати закладку</translation>
     </message>
     <message>
         <source>F4</source>
-        <translation>F4</translation>
+        <translation type="obsolete">F4</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation>Закрити</translation>
+        <translation type="obsolete">Закрити</translation>
     </message>
     <message>
         <source>Esc</source>
-        <translation>Esc</translation>
+        <translation type="obsolete">Esc</translation>
     </message>
 </context>
 <context>
@@ -793,6 +795,10 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>Error while opening document </source>
         <translation>Помилка при відкритті документу </translation>
+    </message>
+    <message>
+        <source>Loading: please wait...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -803,7 +809,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Dialog</source>
-        <translation>Діалог</translation>
+        <translation type="obsolete">Діалог</translation>
     </message>
     <message>
         <source>Property</source>
@@ -977,343 +983,339 @@ p, li { white-space: pre-wrap; }
     <name>MainWindowClass</name>
     <message>
         <source>CoolReader</source>
-        <translation>CoolReader</translation>
+        <translation type="obsolete">CoolReader</translation>
     </message>
     <message>
         <source>File</source>
-        <translation>Файл</translation>
+        <translation type="obsolete">Файл</translation>
     </message>
     <message>
         <source>View</source>
-        <translation>Вигляд</translation>
+        <translation type="obsolete">Вигляд</translation>
     </message>
     <message>
         <source>Navigation</source>
-        <translation>Навіґація</translation>
+        <translation type="obsolete">Навіґація</translation>
     </message>
     <message>
         <source>Help</source>
-        <translation>Довідка</translation>
+        <translation type="obsolete">Довідка</translation>
     </message>
     <message>
         <source>Open...</source>
-        <translation>Відкрити...</translation>
+        <translation type="obsolete">Відкрити...</translation>
     </message>
     <message>
         <source>Open file</source>
-        <translation>Відкрити файл</translation>
+        <translation type="obsolete">Відкрити файл</translation>
     </message>
     <message>
         <source>F3</source>
-        <translation>F3</translation>
+        <translation type="obsolete">F3</translation>
     </message>
     <message>
         <source>Toggle Pages/Scroll</source>
-        <translation>Сторінки/Сувій</translation>
+        <translation type="obsolete">Сторінки/Сувій</translation>
     </message>
     <message>
         <source>Ctrl+P</source>
-        <translation>Ctrl+P</translation>
+        <translation type="obsolete">Ctrl+P</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation>Закрити</translation>
+        <translation type="obsolete">Закрити</translation>
     </message>
     <message>
         <source>F12</source>
-        <translation>F12</translation>
+        <translation type="obsolete">F12</translation>
     </message>
     <message>
         <source>Minimize</source>
-        <translation>Згорнути</translation>
+        <translation type="obsolete">Згорнути</translation>
     </message>
     <message>
         <source>Esc</source>
-        <translation>Esc</translation>
+        <translation type="obsolete">Esc</translation>
     </message>
     <message>
         <source>Page Down</source>
-        <translation>Наступна сторінка</translation>
+        <translation type="obsolete">Наступна сторінка</translation>
     </message>
     <message>
         <source>Go to next page</source>
-        <translation>Перейти до наступної сторінки</translation>
+        <translation type="obsolete">Перейти до наступної сторінки</translation>
     </message>
     <message>
         <source>PgDown</source>
-        <translation>PgDown</translation>
+        <translation type="obsolete">PgDown</translation>
     </message>
     <message>
         <source>Page Up</source>
-        <translation>Попередня сторінка</translation>
+        <translation type="obsolete">Попередня сторінка</translation>
     </message>
     <message>
         <source>Back by page</source>
-        <translation>Перейти на попередню сторінку</translation>
+        <translation type="obsolete">Перейти на попередню сторінку</translation>
     </message>
     <message>
         <source>PgUp</source>
-        <translation>PgUp</translation>
+        <translation type="obsolete">PgUp</translation>
     </message>
     <message>
         <source>Line Down</source>
-        <translation>На рядок вниз</translation>
+        <translation type="obsolete">На рядок вниз</translation>
     </message>
     <message>
         <source>Forward by one line</source>
-        <translation>Вперед на один рядок</translation>
+        <translation type="obsolete">Вперед на один рядок</translation>
     </message>
     <message>
         <source>Down</source>
-        <translation>Вниз</translation>
+        <translation type="obsolete">Вниз</translation>
     </message>
     <message>
         <source>Line Up</source>
-        <translation>На рядок вгору</translation>
+        <translation type="obsolete">На рядок вгору</translation>
     </message>
     <message>
         <source>Back by line</source>
-        <translation>Назад за рядком</translation>
+        <translation type="obsolete">Назад за рядком</translation>
     </message>
     <message>
         <source>Up</source>
-        <translation>Вгору</translation>
+        <translation type="obsolete">Вгору</translation>
     </message>
     <message>
         <source>First Page</source>
-        <translation>Перша сторінка</translation>
+        <translation type="obsolete">Перша сторінка</translation>
     </message>
     <message>
         <source>Go to first page</source>
-        <translation>Перейти до першої сторінки</translation>
+        <translation type="obsolete">Перейти до першої сторінки</translation>
     </message>
     <message>
         <source>Home</source>
-        <translation>Home</translation>
+        <translation type="obsolete">Home</translation>
     </message>
     <message>
         <source>Last Page</source>
-        <translation>Остання сторінка</translation>
+        <translation type="obsolete">Остання сторінка</translation>
     </message>
     <message>
         <source>Go to last page</source>
-        <translation>Перейти до останньої сторінки</translation>
+        <translation type="obsolete">Перейти до останньої сторінки</translation>
     </message>
     <message>
         <source>End</source>
-        <translation>End</translation>
+        <translation type="obsolete">End</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation>Назад</translation>
+        <translation type="obsolete">Назад</translation>
     </message>
     <message>
         <source>Back in navigation history</source>
-        <translation>Перейти назад по історії навіґації</translation>
+        <translation type="obsolete">Перейти назад по історії навіґації</translation>
     </message>
     <message>
         <source>Backspace</source>
-        <translation>Backspace</translation>
+        <translation type="obsolete">Backspace</translation>
     </message>
     <message>
         <source>Forward</source>
-        <translation>Вперед</translation>
+        <translation type="obsolete">Вперед</translation>
     </message>
     <message>
         <source>Go to the next position in navigation history</source>
-        <translation>Перейти на наступну позицію в історії навіґації</translation>
+        <translation type="obsolete">Перейти на наступну позицію в історії навіґації</translation>
     </message>
     <message>
         <source>Shift+Backspace</source>
-        <translation>Shift+Backspace</translation>
+        <translation type="obsolete">Shift+Backspace</translation>
     </message>
     <message>
         <source>Next Chapter</source>
-        <translation>Наступний розділ</translation>
+        <translation type="obsolete">Наступний розділ</translation>
     </message>
     <message>
         <source>Go to next chapter</source>
-        <translation>Перейти до наступного розділу</translation>
+        <translation type="obsolete">Перейти до наступного розділу</translation>
     </message>
     <message>
         <source>Alt+Down</source>
-        <translation>Alt+Вниз</translation>
+        <translation type="obsolete">Alt+Вниз</translation>
     </message>
     <message>
         <source>Previous Chapter</source>
-        <translation>Попередній розділ</translation>
+        <translation type="obsolete">Попередній розділ</translation>
     </message>
     <message>
         <source>Go to previous chapter</source>
-        <translation>Перейти до попереднього розділу</translation>
+        <translation type="obsolete">Перейти до попереднього розділу</translation>
     </message>
     <message>
         <source>Alt+Up</source>
-        <translation>Alt+Вгору</translation>
+        <translation type="obsolete">Alt+Вгору</translation>
     </message>
     <message>
         <source>Toggle Full Screen</source>
-        <translation>На весь екран</translation>
+        <translation type="obsolete">На весь екран</translation>
     </message>
     <message>
         <source>Toggle Full Screen mode</source>
-        <translation>Повноекранний режим</translation>
+        <translation type="obsolete">Повноекранний режим</translation>
     </message>
     <message>
         <source>Alt+Return</source>
-        <translation>Alt+Return</translation>
+        <translation type="obsolete">Alt+Return</translation>
     </message>
     <message>
         <source>Zoom In</source>
-        <translation>Збільшити</translation>
+        <translation type="obsolete">Збільшити</translation>
     </message>
     <message>
         <source>Increase font size</source>
-        <translation>Збільшити розмір шрифту</translation>
+        <translation type="obsolete">Збільшити розмір шрифту</translation>
     </message>
     <message>
         <source>+</source>
-        <translation>+</translation>
+        <translation type="obsolete">+</translation>
     </message>
     <message>
         <source>Zoom Out</source>
-        <translation>Зменшити</translation>
+        <translation type="obsolete">Зменшити</translation>
     </message>
     <message>
         <source>Decrease font size</source>
-        <translation>Зменшити розмір шрифту</translation>
+        <translation type="obsolete">Зменшити розмір шрифту</translation>
     </message>
     <message>
         <source>-</source>
-        <translation>-</translation>
+        <translation type="obsolete">-</translation>
     </message>
     <message>
         <source>Table of Contents...</source>
-        <translation>Зміст...</translation>
+        <translation type="obsolete">Зміст...</translation>
     </message>
     <message>
         <source>Show table of contents</source>
-        <translation>Показати зміст книги</translation>
+        <translation type="obsolete">Показати зміст книги</translation>
     </message>
     <message>
         <source>F4</source>
-        <translation>F4</translation>
+        <translation type="obsolete">F4</translation>
     </message>
     <message>
         <source>Recent Books</source>
-        <translation>Останні книги</translation>
+        <translation type="obsolete">Останні книги</translation>
     </message>
     <message>
         <source>Show recent books list</source>
-        <translation>Показати список останніх книг</translation>
+        <translation type="obsolete">Показати список останніх книг</translation>
     </message>
     <message>
         <source>F5</source>
-        <translation>F5</translation>
+        <translation type="obsolete">F5</translation>
     </message>
     <message>
         <source>Settings...</source>
-        <translation>Налаштування...</translation>
+        <translation type="obsolete">Налаштування...</translation>
     </message>
     <message>
         <source>Settings dialog</source>
-        <translation>Вікно налаштувань</translation>
+        <translation type="obsolete">Вікно налаштувань</translation>
     </message>
     <message>
         <source>F9</source>
-        <translation>F9</translation>
+        <translation type="obsolete">F9</translation>
     </message>
     <message>
         <source>Copy</source>
-        <translation>Копіювати</translation>
+        <translation type="obsolete">Копіювати</translation>
     </message>
     <message>
         <source>Copy selected text</source>
-        <translation>Копіювати виділений текст</translation>
+        <translation type="obsolete">Копіювати виділений текст</translation>
     </message>
     <message>
         <source>Ctrl+C</source>
-        <translation>Ctrl+C</translation>
-    </message>
-    <message>
-        <source>copy2</source>
-        <translation></translation>
+        <translation type="obsolete">Ctrl+C</translation>
     </message>
     <message>
         <source>Copy alternative shortcut</source>
-        <translation>Копіювати альтернативний ярлик</translation>
+        <translation type="obsolete">Копіювати альтернативний ярлик</translation>
     </message>
     <message>
         <source>Ctrl+Ins</source>
-        <translation>Ctrl+Ins</translation>
+        <translation type="obsolete">Ctrl+Ins</translation>
     </message>
     <message>
         <source>About Qt</source>
-        <translation>Про Qt</translation>
+        <translation type="obsolete">Про Qt</translation>
     </message>
     <message>
         <source>About CoolReader</source>
-        <translation>Про CoolReader</translation>
+        <translation type="obsolete">Про CoolReader</translation>
     </message>
     <message>
         <source>F1</source>
-        <translation>F1</translation>
+        <translation type="obsolete">F1</translation>
     </message>
     <message>
         <source>Add Bookmark</source>
-        <translation>Додати закладку</translation>
+        <translation type="obsolete">Додати закладку</translation>
     </message>
     <message>
         <source>Add bookmark</source>
-        <translation>Додати закладку</translation>
+        <translation type="obsolete">Додати закладку</translation>
     </message>
     <message>
         <source>Ctrl+B</source>
-        <translation>Ctrl+B</translation>
+        <translation type="obsolete">Ctrl+B</translation>
     </message>
     <message>
         <source>Bookmark List...</source>
-        <translation>Список закладок...</translation>
+        <translation type="obsolete">Список закладок...</translation>
     </message>
     <message>
         <source>Show bookmarks list</source>
-        <translation>Показати список закладок</translation>
+        <translation type="obsolete">Показати список закладок</translation>
     </message>
     <message>
         <source>F6</source>
-        <translation>F6</translation>
+        <translation type="obsolete">F6</translation>
     </message>
     <message>
         <source>File Properties...</source>
-        <translation>Властивості файлу...</translation>
+        <translation type="obsolete">Властивості файлу...</translation>
     </message>
     <message>
         <source>Show file properties</source>
-        <translation>Показати властивості файлу</translation>
+        <translation type="obsolete">Показати властивості файлу</translation>
     </message>
     <message>
         <source>Ctrl+F1</source>
-        <translation>Ctrl+F1</translation>
+        <translation type="obsolete">Ctrl+F1</translation>
     </message>
     <message>
         <source>Rotate</source>
-        <translation>Повернути</translation>
+        <translation type="obsolete">Повернути</translation>
     </message>
     <message>
         <source>Ctrl+R</source>
-        <translation>Ctrl+R</translation>
+        <translation type="obsolete">Ctrl+R</translation>
     </message>
     <message>
         <source>Find text...</source>
-        <translation>Знайти текст...</translation>
+        <translation type="obsolete">Знайти текст...</translation>
     </message>
     <message>
         <source>Find text</source>
-        <translation>Знайти текст</translation>
+        <translation type="obsolete">Знайти текст</translation>
     </message>
     <message>
         <source>Ctrl+F</source>
-        <translation>Ctrl+F</translation>
+        <translation type="obsolete">Ctrl+F</translation>
     </message>
 </context>
 <context>
@@ -1344,19 +1346,19 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Recent Books</source>
-        <translation>Нещодавно відкриті книги</translation>
+        <translation type="obsolete">Нещодавно відкриті книги</translation>
     </message>
     <message>
         <source>Remove Item</source>
-        <translation>Вилучити елемент</translation>
+        <translation type="obsolete">Вилучити елемент</translation>
     </message>
     <message>
         <source>Del</source>
-        <translation>Del</translation>
+        <translation type="obsolete">Del</translation>
     </message>
     <message>
         <source>Clear All</source>
-        <translation>Очистити усе</translation>
+        <translation type="obsolete">Очистити усе</translation>
     </message>
 </context>
 <context>
@@ -1387,179 +1389,171 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Settings</source>
-        <translation>Налаштування</translation>
+        <translation type="obsolete">Налаштування</translation>
     </message>
     <message>
         <source>Window options</source>
-        <translation>Налаштування вікна</translation>
+        <translation type="obsolete">Налаштування вікна</translation>
     </message>
     <message>
         <source>Window</source>
-        <translation>Вікно</translation>
+        <translation type="obsolete">Вікно</translation>
     </message>
     <message>
         <source>Look &amp; feel</source>
-        <translation>Оформлення</translation>
+        <translation type="obsolete">Оформлення</translation>
     </message>
     <message>
         <source>Startup action</source>
-        <translation>Дія при запуску</translation>
+        <translation type="obsolete">Дія при запуску</translation>
     </message>
     <message>
         <source>Open recent book</source>
-        <translation>Відкрити останню книгу</translation>
+        <translation type="obsolete">Відкрити останню книгу</translation>
     </message>
     <message>
         <source>Show list of recent books</source>
-        <translation>Показати список останніх книг</translation>
+        <translation type="obsolete">Показати список останніх книг</translation>
     </message>
     <message>
         <source>Show File Open dialog</source>
-        <translation>Показати діалог відкриття файлу</translation>
+        <translation type="obsolete">Показати діалог відкриття файлу</translation>
     </message>
     <message>
         <source>Do nothing</source>
-        <translation>Нічого не робити</translation>
+        <translation type="obsolete">Нічого не робити</translation>
     </message>
     <message>
         <source>Controls</source>
-        <translation>Керування</translation>
+        <translation type="obsolete">Керування</translation>
     </message>
     <message>
         <source>Show toolbar</source>
-        <translation>Показувати панель інструментів</translation>
+        <translation type="obsolete">Показувати панель інструментів</translation>
     </message>
     <message>
         <source>Show menu</source>
-        <translation>Показувати меню</translation>
+        <translation type="obsolete">Показувати меню</translation>
     </message>
     <message>
         <source>Show scroll bar</source>
-        <translation>Показувати смугу прокрутки</translation>
+        <translation type="obsolete">Показувати смугу прокрутки</translation>
     </message>
     <message>
         <source>Show status bar</source>
-        <translation>Показувати смугу стану</translation>
+        <translation type="obsolete">Показувати смугу стану</translation>
     </message>
     <message>
         <source>Fullscreen display</source>
-        <translation>Відображення на весь екран</translation>
+        <translation type="obsolete">Відображення на весь екран</translation>
     </message>
     <message>
         <source>Page</source>
-        <translation>Сторінка</translation>
+        <translation type="obsolete">Сторінка</translation>
     </message>
     <message>
         <source>One page</source>
-        <translation>Одна сторінка</translation>
+        <translation type="obsolete">Одна сторінка</translation>
     </message>
     <message>
         <source>Two pages</source>
-        <translation>Дві сторінки</translation>
+        <translation type="obsolete">Дві сторінки</translation>
     </message>
     <message>
         <source>Scroll View</source>
-        <translation>Сувій (єдина довга сторінка)</translation>
+        <translation type="obsolete">Сувій (єдина довга сторінка)</translation>
     </message>
     <message>
         <source>Vew Mode</source>
-        <translation>Режим читання</translation>
+        <translation type="obsolete">Режим читання</translation>
     </message>
     <message>
         <source>Page margins</source>
-        <translation>Поля сторінки</translation>
+        <translation type="obsolete">Поля сторінки</translation>
     </message>
     <message>
         <source>0</source>
-        <translation>0</translation>
+        <translation type="obsolete">0</translation>
     </message>
     <message>
         <source>5</source>
-        <translation>5</translation>
+        <translation type="obsolete">5</translation>
     </message>
     <message>
         <source>8</source>
-        <translation>8</translation>
+        <translation type="obsolete">8</translation>
     </message>
     <message>
         <source>10</source>
-        <translation>10</translation>
+        <translation type="obsolete">10</translation>
     </message>
     <message>
         <source>15</source>
-        <translation>15</translation>
+        <translation type="obsolete">15</translation>
     </message>
     <message>
         <source>20</source>
-        <translation>20</translation>
+        <translation type="obsolete">20</translation>
     </message>
     <message>
         <source>25</source>
-        <translation>25</translation>
+        <translation type="obsolete">25</translation>
     </message>
     <message>
         <source>30</source>
-        <translation>30</translation>
+        <translation type="obsolete">30</translation>
     </message>
     <message>
         <source>Show page header</source>
-        <translation>Показувати заголовок сторінки</translation>
+        <translation type="obsolete">Показувати заголовок сторінки</translation>
     </message>
     <message>
         <source>Book name</source>
-        <translation>Назва книги</translation>
+        <translation type="obsolete">Назва книги</translation>
     </message>
     <message>
         <source>Clock</source>
-        <translation>Годинник</translation>
+        <translation type="obsolete">Годинник</translation>
     </message>
     <message>
         <source>Battery status</source>
-        <translation>Стан батареї</translation>
+        <translation type="obsolete">Стан батареї</translation>
     </message>
     <message>
         <source>Header font</source>
-        <translation>Шрифт заголовку</translation>
+        <translation type="obsolete">Шрифт заголовку</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation>Змінити</translation>
+        <translation type="obsolete">Змінити</translation>
     </message>
     <message>
         <source>Show footnotes at bottom of page</source>
-        <translation>Показувати примітки внизу сторінки</translation>
+        <translation type="obsolete">Показувати примітки внизу сторінки</translation>
     </message>
     <message>
         <source>Styles</source>
-        <translation>Стилі</translation>
+        <translation type="obsolete">Стилі</translation>
     </message>
     <message>
         <source>Text font</source>
-        <translation>Шрифт тексту</translation>
+        <translation type="obsolete">Шрифт тексту</translation>
     </message>
     <message>
         <source>Hyphenation</source>
-        <translation>Переноси</translation>
+        <translation type="obsolete">Переноси</translation>
     </message>
     <message>
         <source>Interline spacing</source>
-        <translation>Міжрядковий інтервал</translation>
+        <translation type="obsolete">Міжрядковий інтервал</translation>
     </message>
     <message>
         <source>Page skin</source>
-        <translation>Жупан сторінки</translation>
+        <translation type="obsolete">Жупан сторінки</translation>
     </message>
     <message>
         <source>Sample</source>
-        <translation>Зразок</translation>
-    </message>
-    <message>
-        <source>.TXT files</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Disable automatic formatting</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Зразок</translation>
     </message>
 </context>
 <context>
@@ -1574,11 +1568,11 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Table of Contents</source>
-        <translation>Зміст</translation>
+        <translation type="obsolete">Зміст</translation>
     </message>
     <message>
         <source>1</source>
-        <translation type="unfinished">1</translation>
+        <translation type="obsolete">1</translation>
     </message>
 </context>
 </TS>

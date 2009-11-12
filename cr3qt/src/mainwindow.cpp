@@ -60,7 +60,11 @@ MainWindow::MainWindow(QWidget *parent)
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
+#ifdef _LINUX
+    QString exeDir = QString(CR3_DATA_DIR);
+#else
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
+#endif
     QString cacheDir = homeDir + "cache";
     QString bookmarksDir = homeDir + "bookmarks";
     QString histFile = exeDir + "cr3hist.bmk";
