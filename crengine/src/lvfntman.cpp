@@ -178,6 +178,7 @@ public:
             lString16 name = Utf8ToUnicode( _registered_list[i]->getDef()->getTypeFace() );
             if ( !list.contains(name) )
                 list.add( name );
+            list.sort();
         }
     }
     LVFontCache( )
@@ -1249,9 +1250,9 @@ public:
             // load fonts from file
             CRLog::debug("FONTCONFIG: %d font files found", fontset->nfont);
             for(int i = 0; i < fontset->nfont; i++) {
-                FcChar8 *s;
-                FcChar8 *family;
-                FcChar8 *style;
+                FcChar8 *s=(FcChar8*)"";
+                FcChar8 *family=(FcChar8*)"";
+                FcChar8 *style=(FcChar8*)"";
                 //FcBool b;
                 FcResult res;
                 //FC_SCALABLE
@@ -1302,7 +1303,7 @@ public:
                 int spacing = 0;
                 res = FcPatternGetInteger(fontset->fonts[i], FC_SPACING, 0, &spacing);
                 if(res != FcResultMatch) {
-                    CRLog::debug("no FC_SPACING for %s", s);
+                    //CRLog::debug("no FC_SPACING for %s", s);
                     //continue;
                 }
                 int cr_weight;
@@ -1330,7 +1331,15 @@ public:
                 //css_ff_cursive,
                 //css_ff_fantasy,
                 //css_ff_monospace,
-                bool italic = (slant==FC_SLANT_ITALIC);
+                bool italic = (slant!=FC_SLANT_ROMAN);
+                
+                lString8 face((const char*)family);
+                lString16 style16((const char*)style);
+                style16.lowercase();
+                if ( style16.pos(L"condensed")>=0 )
+                    face << " Condensed";
+                else if ( style16.pos(L"extralight")>=0 )
+                    face << " Extra Light";
                 
                 LVFontDef def(
                     lString8((const char*)s),
@@ -1338,7 +1347,7 @@ public:
                     cr_weight,
                     italic,
                     fontFamily,
-                    lString8((const char*)family),
+                    face,
                     index
                 );
 

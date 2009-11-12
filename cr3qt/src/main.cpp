@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
             QString translations = exeDir + "i18n";
 #else
             QString exeDir = cr2qt(datadir);
-            QString translations = exeDir + "i18n";
+            QString translations = exeDir + "i18n/";
 #endif
              QTranslator qtTranslator;
              if (qtTranslator.load("qt_" + QLocale::system().name(),
@@ -80,7 +80,8 @@ int main(int argc, char *argv[])
              CRLog::info("Using translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
              if ( myappTranslator.load(trname, translations) )
                  QApplication::installTranslator(&myappTranslator);
-
+             else
+                CRLog::error("Canot load translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
             MainWindow w;
             w.show();
             res = a.exec();
