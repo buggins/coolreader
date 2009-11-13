@@ -30,11 +30,26 @@ cr3/wx: wxWidgets 2.8
 
 Build instructions:
 
+# Building QT version
+# libqt4-dev should be installed
+mkdir qtbuild
+cd qtbuild
+cmake -D GUI=QT ..
+make
+sudo make install
+
 # Building wxWidgets version
 # libwxgtk2.8-dev should be installed
 mkdir wxbuild
 cd wxbuild
 cmake -D GUI=WX ..
+make
+
+# Building ARM version on OpenInkpot:
+mkdir armbuild
+cd armbuild
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-oi.cmake -D GUI=CRGUI_XCB ..
+make
 
 # Building Jinke/LBook V3 viewer plugin (libfb2.so):
 mkdir v3build

@@ -920,6 +920,19 @@ void lString16Collection::reserve( size_t space )
         chunks = (lstring_chunk_t * *)realloc( chunks, sizeof(lstring_chunk_t *) * size );
     }
 }
+
+static int (str16_comparator)(const void * n1, const void * n2)
+{
+    lstring_chunk_t ** s1 = (lstring_chunk_t **)n1;
+    lstring_chunk_t ** s2 = (lstring_chunk_t **)n2;
+    return lStr_cmp( (*s1)->data16(), (*s2)->data16() );
+}
+
+void lString16Collection::sort()
+{
+    qsort(chunks,count,sizeof(lstring_chunk_t*), str16_comparator);
+}
+
 size_t lString16Collection::add( const lString16 & str )
 {
     reserve( 1 );

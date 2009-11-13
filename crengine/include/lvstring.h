@@ -97,6 +97,8 @@ struct lstring_chunk_t {
 public:
     lstring_chunk_t(lChar16 * _buf16) : size(1), len(0), nref(1), buf16(_buf16) {}
     lstring_chunk_t(lChar8 * _buf8) : size(1), len(0), nref(1), buf8(_buf8) {}
+    const lChar16 * data16() const { return buf16; }
+    const lChar8 * data8() const { return buf8; }
 private:
     lUInt32 size;   // 0 for free chunk
     lUInt32 len;    // count of chars in string
@@ -558,6 +560,7 @@ public:
                 return true;
         return false;
     }
+    void sort();
     ~lString16Collection()
     {
         clear();

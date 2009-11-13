@@ -60,7 +60,11 @@ MainWindow::MainWindow(QWidget *parent)
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
+#ifdef _LINUX
+    QString exeDir = QString(CR3_DATA_DIR);
+#else
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
+#endif
     QString cacheDir = homeDir + "cache";
     QString bookmarksDir = homeDir + "bookmarks";
     QString histFile = exeDir + "cr3hist.bmk";
@@ -69,7 +73,8 @@ MainWindow::MainWindow(QWidget *parent)
     QString iniFile2 = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
     QString cssFile2 = exeDir + "fb2.css";
-    QString translations = exeDir + "i18n";
+    //QString translations = exeDir + "i18n";
+    //CRLog::info("Translations directory: %s", LCSTR(qt2cr(translations)) );
     QString hyphDir = exeDir + "hyph" + QDir::separator();
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );

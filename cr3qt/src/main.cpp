@@ -1,3 +1,11 @@
+// CoolReader3 / Qt
+// main.cpp - entry point
+
+#if (USE_FONTCONFIG==1)
+    #include <fontconfig/fontconfig.h>
+#endif
+
+
 #include <QtGui/QApplication>
 #include "../crengine/include/crengine.h"
 #include "mainwindow.h"
@@ -15,7 +23,6 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
 #endif
 
 
-
 int main(int argc, char *argv[])
 {
     int res = 0;
@@ -28,7 +35,9 @@ int main(int argc, char *argv[])
     #endif
         lString16 exename = LocalToUnicode( lString8(argv[0]) );
         lString16 exedir = LVExtractPath(exename);
+	lString16 datadir = lString16(CR3_DATA_DIR);
         LVAppendPathDelimiter(exedir);
+        LVAppendPathDelimiter(datadir);
         lString16 exefontpath = exedir + L"fonts";
         CRLog::info("main()");
         lString16Collection fontDirs;
@@ -54,9 +63,13 @@ int main(int argc, char *argv[])
         //}
         {
             QApplication a(argc, argv);
-
+#ifdef _WIN32
             QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
             QString translations = exeDir + "i18n";
+#else
+            QString exeDir = cr2qt(datadir);
+            QString translations = exeDir + "i18n/";
+#endif
              QTranslator qtTranslator;
              if (qtTranslator.load("qt_" + QLocale::system().name(),
                      QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
@@ -67,7 +80,8 @@ int main(int argc, char *argv[])
              CRLog::info("Using translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
              if ( myappTranslator.load(trname, translations) )
                  QApplication::installTranslator(&myappTranslator);
-
+             else
+                CRLog::error("Canot load translation file %s from dir %s", UnicodeToUtf8(qt2cr(trname)).c_str(), UnicodeToUtf8(qt2cr(translations)).c_str() );
             MainWindow w;
             w.show();
             res = a.exec();
@@ -155,6 +169,7 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
 bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 {
     CRLog::trace("InitCREngine(%s)", exename);
+#ifdef _WIN32
     lString16 appname( exename );
     int lastSlash=-1;
     lChar16 slashChar = '/';
@@ -171,12 +186,16 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     lString16 appPath;
     if ( lastSlash>=0 )
         appPath = appname.substr( 0, lastSlash+1 );
-
-    lString16 fontDir = appPath + L"fonts";
+    lString16 datadir = appPath;
+#else
+    lString16 datadir = lString16(CR3_DATA_DIR);
+#endif
+    lString16 fontDir = datadir + L"fonts";
 
     fontDirs.add( fontDir );
 
-    fontDir << slashChar;
+    LVAppendPathDelimiter( fontDir );
+
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     //const char * fontDir8s = fontDir8.c_str();
     //InitFontManager( fontDir8 );
@@ -235,117 +254,23 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 #endif
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
+    // use fontconfig
+
+    lString16 fontExt = L".ttf";
+    lString16Collection fonts;
+
+    getDirectoryFonts( fontDirs, fontExt, fonts, true );
+
+    // load fonts from file
+    CRLog::debug("%d font files found", fonts.length());
     if (!fontMan->GetFontCount()) {
-
-        // TODO: use fontconfig
-        #if 0 //(USE_FONTCONFIG==1)
-                lString16Collection fonts;
-
-                FcFontSet *fontset;
-
-                FcObjectSet *os = FcObjectSetBuild(FC_FILE, NULL);
-                FcPattern *pat = FcPatternCreate();
-        //FcBool b = 1;
-        FcPatternAddBool(pat, FC_SCALABLE, 1);
-
-                fontset = FcFontList(NULL, pat, os);
-
-                FcPatternDestroy(pat);
-                FcObjectSetDestroy(os);
-
-                // load fonts from file
-                CRLog::debug("%d font files found", fonts.length());
-                if (!fontMan->GetFontCount()) {
-                        for(int i = 0; i < fontset->nfont; i++) {
-                                FcChar8 *s;
-                //FcBool b;
-                                FcResult res;
-                //FC_SCALABLE
-                //res = FcPatternGetBool( fontset->fonts[i], FC_OUTLINE, 0, (FcBool*)&b);
-                //if(res != FcResultMatch)
-                //    continue;
-                //if ( !b )
-                //    continue; // skip non-scalable fonts
-                                res = FcPatternGetString(fontset->fonts[i], FC_FILE, 0, (FcChar8 **)&s);
-                                if(res != FcResultMatch)
-                                        continue;
-
-                                lString8 fn = UnicodeToLocal(lString16((lChar8 *)s));
-                                //CRLog::trace("loading font: %s", fn.c_str());
-                                if ( !fontMan->RegisterFont(fn) ) {
-                    CRLog::trace("loading of font %s failed", fn.c_str());
-                                }
-                        }
-                }
-
-                FcFontSetDestroy(fontset);
-
-        #else
-
-    #if (USE_FREETYPE==1)
-        lString16 fontExt = L".ttf";
-    #else
-        lString16 fontExt = L".lbf";
-    #endif
-    #if (USE_FREETYPE==1)
-        lString16Collection fonts;
-#if 0
-        CRLog::trace("USE_FREETYPE==1 -- msfonts");
-        fontDirs.add( fontDir );
-        static const char * msfonts[] = {
-            "arial.ttf", "arialbd.ttf", "ariali.ttf", "arialbi.ttf",
-            "cour.ttf", "courbd.ttf", "couri.ttf", "courbi.ttf",
-            "times.ttf", "timesbd.ttf", "timesi.ttf", "timesbi.ttf",
-            NULL
-        };
-    #ifdef _WIN32
-        wchar_t sd_buf[MAX_PATH];
-        sd_buf[0] = 0;
-        ::GetSystemDirectoryW(sd_buf, MAX_PATH-1);
-        lString16 sysFontDir = lString16(sd_buf) + L"\\..\\fonts\\";
-        lString8 sfd = UnicodeToLocal( sysFontDir );
-        //const char * s = sfd.c_str();
-        //CRLog::debug(s);
-        for ( int fi=0; msfonts[fi]; fi++ )
-            fonts.add( sysFontDir + lString16(msfonts[fi]) );
-    #endif
-    #ifdef _LINUX
-    #ifndef LBOOK
-        fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
-        fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-        fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
-        fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
-        fontDirs.add( lString16(L"/root/fonts/truetype") );
-        //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
-        for ( int fi=0; msfonts[fi]; fi++ )
-            fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
-    #endif
-    #endif
-#endif
-        getDirectoryFonts( fontDirs, fontExt, fonts, true );
-
-        // load fonts from file
-        CRLog::debug("%d font files found", fonts.length());
-        if (!fontMan->GetFontCount()) {
-            for ( unsigned fi=0; fi<fonts.length(); fi++ ) {
-                lString8 fn = UnicodeToLocal(fonts[fi]);
-                CRLog::trace("loading font: %s", fn.c_str());
-                if ( !fontMan->RegisterFont(fn) ) {
-                    CRLog::trace("    failed\n");
-                }
-            }
-        }
-    #else
-            #define MAX_FONT_FILE 128
-            for (int i=0; i<MAX_FONT_FILE; i++)
-            {
-                char fn[1024];
-                sprintf( fn, "font%d.lbf", i );
-                printf("try load font: %s\n", fn);
-                fontMan->RegisterFont( lString8(fn) );
-            }
-    #endif
-        #endif
+	for ( unsigned fi=0; fi<fonts.length(); fi++ ) {
+	    lString8 fn = UnicodeToLocal(fonts[fi]);
+	    CRLog::trace("loading font: %s", fn.c_str());
+	    if ( !fontMan->RegisterFont(fn) ) {
+		CRLog::trace("    failed\n");
+	    }
+	}
     }
 
     // init hyphenation manager
