@@ -1,4 +1,4 @@
-# CMake toolchain file for building ARM software on OI environment
+# CMake toolchain file for building MIPS software on OI environment
 
 # this one is important
 SET(CMAKE_SYSTEM_NAME Linux)
@@ -6,11 +6,11 @@ SET(CMAKE_SYSTEM_NAME Linux)
 SET(CMAKE_SYSTEM_VERSION 1)
 
 # specify the cross compiler
-SET(CMAKE_C_COMPILER   /usr/bin/arm-ip-linux-gnueabi-gcc)
-SET(CMAKE_CXX_COMPILER /usr/bin/arm-ip-linux-gnueabi-g++)
+SET(CMAKE_C_COMPILER   /usr/bin/mipsel-ip-linux-gnueabi-gcc)
+SET(CMAKE_CXX_COMPILER /usr/bin/mipsel-ip-linux-gnueabi-g++)
 
 # where is the target environment 
-SET(CMAKE_FIND_ROOT_PATH  /usr/arm-ip-linux-gnueabi)
+SET(CMAKE_FIND_ROOT_PATH  /usr/mipsel-ip-linux-gnueabi)
 
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
