@@ -1,3 +1,19 @@
+#FIND_PACKAGE(Gettext REQUIRED)
+#use macros from kwwidgets instead of usual
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../tools/FindGettext.cmake)
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../tools/KWWidgetsGettextExtract.cmake)
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../tools/KWWidgetsGettextInitOrMerge.cmake)
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../tools/KWWidgetsInternationalizationMacros.cmake)
+
+SET (LANGUAGES ru uk de bg es zh_CN zh_TW)
+message( "Languages: ${LANGUAGES}" )
+SET(LANGUAGE_PO_FILES)
+FOREACH(LANGUAGE ${LANGUAGES})
+    SET(PO_FILE "${CMAKE_CURRENT_SOURCE_DIR}/po/${LANGUAGE}.po")
+    SET(LANGUAGE_PO_FILES ${LANGUAGE_PO_FILES} ${PO_FILE})
+    SET_SOURCE_FILES_PROPERTIES(${TS_FILE} PROPERTIES OUTPUT_LOCATION
+        "${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n")
+ENDFOREACH(LANGUAGE ${LANGUAGES})
 
 
 SET (CR3_SOURCES 
@@ -17,6 +33,16 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
     ADD_DEFINITIONS( -DUSE_FONTCONFIG=1 )
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3xcb.cpp)
     SET (EXTRA_LIBS xcb xcb-aux xcb-image xcb-keysyms fontconfig )
+
+    INSTALL( TARGETS cr3 RUNTIME DESTINATION bin )
+    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
+      FILES_MATCHING PATTERN "*.css" )
+    INSTALL( DIRECTORY data/hyph DESTINATION share/cr3 
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph DESTINATION share/cr3 
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/skins DESTINATION share/cr3/skins )
+    INSTALL( FILES ${QM_FILES} DESTINATION share/cr3/i18n )
 
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
