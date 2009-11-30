@@ -51,6 +51,7 @@ KWWidgets_CREATE_GETTEXT_TARGETS(
    CREATE_POT_TARGET 1
    CREATE_PO_TARGET 1
    MO_BUILD_DIR ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n
+   ADD_MO_TARGET_TO_ALL 1
 )
 #   CREATE_PO_TARGET
 #   CREATE_MO_TARGET
@@ -71,8 +72,8 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
     INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION share/cr3 )
     INSTALL( DIRECTORY data/manual/ DESTINATION share/cr3/manual )
-    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION share/cr3/i18n
-      FILES_MATCHING PATTERN "*.po" )
+    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n/ DESTINATION share/i18n
+      FILES_MATCHING PATTERN "*.mo" )
 
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
@@ -88,7 +89,7 @@ elseif ( ${GUI} STREQUAL CRGUI_NANOX )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION root/crengine )
     INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
-      FILES_MATCHING PATTERN "*.po" )
+      FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION root)
 
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
@@ -104,7 +105,7 @@ elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION root/crengine )
     INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
-      FILES_MATCHING PATTERN "*.po" )
+      FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION usr/lib)
 
 elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
@@ -120,7 +121,7 @@ elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION crengine )
     INSTALL( DIRECTORY data/manual/ DESTINATION crengine/manual )
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION cr3/i18n
-      FILES_MATCHING PATTERN "*.po" )
+      FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION )
 
 endif ( ${GUI} STREQUAL CRGUI_XCB )
