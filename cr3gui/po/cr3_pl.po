@@ -1,7 +1,7 @@
 # Polish translations for cr package
-# Polskie tlumaczenia dla pakietu cr.
+# Polskie tłumaczenia dla pakietu cr.
 # This file is put in the public domain.
-# Tomasz Dlugosz <tomek3d@gmail.com>, 2009.
+# Tomasz Długosz <tomek3d@gmail.com>, 2009.
 #
 msgid ""
 msgstr ""
@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
 "POT-Creation-Date: 2009-11-03 09:25+0300\n"
 "PO-Revision-Date: 2009-11-18 22:36+0100\n"
-"Last-Translator: Tomasz Dlugosz <tomek3d@gmail.com>\n"
+"Last-Translator: Tomasz Długosz <tomek3d@gmail.com>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,11 +23,11 @@ msgstr "Wolne miejsce"
 
 #: src/bmkdlg.cpp:58 src/mainwnd.cpp:635
 msgid "Bookmarks"
-msgstr "Zakladki"
+msgstr "Zakładki"
 
 #: src/bmkdlg.cpp:77
 msgid "Long press 1..8 = set, short press = go to"
-msgstr "Przytrzymaj 1..8 aby ustawic, wcisnij aby przejsc"
+msgstr "Przytrzymaj 1..8 aby ustawić, wciśnij aby przejść"
 
 #: src/citedlg.cpp:28
 msgid "Select text"
@@ -37,7 +37,7 @@ msgstr "Wybierz tekst"
 #: src/settings.cpp:125 src/settings.cpp:131 src/settings.cpp:137
 #: src/settings.cpp:143
 msgid "On"
-msgstr "Wlaczone"
+msgstr "Włączone"
 
 #: src/cr3xcb.cpp:441
 msgid "About..."
@@ -45,11 +45,11 @@ msgstr "O programie..."
 
 #: src/dictdlg.cpp:80
 msgid "From dictionary "
-msgstr "Ze slownika "
+msgstr "Ze słownika "
 
 #: src/dictdlg.cpp:89
 msgid "[cannot read article]"
-msgstr "[nie mozna otworzyc tlumaczenia]"
+msgstr "[nie można otworzyć tłumaczenia]"
 
 #: src/mainwnd.cpp:540 src/mainwnd.cpp:648
 msgid "Help"
@@ -57,23 +57,23 @@ msgstr "Pomoc"
 
 #: src/mainwnd.cpp:559
 msgid "Main Menu"
-msgstr "Menu glowne"
+msgstr "Menu główne"
 
 #: src/mainwnd.cpp:597 src/viewdlg.cpp:353
 msgid "About"
-msgstr "O ksiazce"
+msgstr "O książce"
 
 #: src/mainwnd.cpp:607 src/viewdlg.cpp:331
 msgid "Go to page"
-msgstr "Idz do strony"
+msgstr "Idź do strony"
 
 #: src/mainwnd.cpp:619 src/recentdlg.cpp:72
 msgid "Open recent book"
-msgstr "Ostatnio otwierane ksiazki"
+msgstr "Ostatnio otwierane książki"
 
 #: src/mainwnd.cpp:626 src/viewdlg.cpp:137
 msgid "Dictionary"
-msgstr "Slownik"
+msgstr "Słownik"
 
 #: src/mainwnd.cpp:631
 msgid "Cite"
@@ -89,11 +89,11 @@ msgstr "Ustawienia"
 
 #: src/mainwnd.cpp:652 src/viewdlg.cpp:392
 msgid "Keyboard layout"
-msgstr "Uklad klawiatury"
+msgstr "Układ klawiatury"
 
 #: src/mainwnd.cpp:753
 msgid "Current page"
-msgstr "Bierzaca strona"
+msgstr "Bieżąca strona"
 
 #: src/mainwnd.cpp:754
 msgid "Total pages"
@@ -109,7 +109,7 @@ msgstr "Aktualny czas"
 
 #: src/mainwnd.cpp:761
 msgid "Current chapter"
-msgstr "Bierzacy rozdzial"
+msgstr "Bieżący rozdział"
 
 #: src/mainwnd.cpp:764
 msgid "Status"
@@ -121,7 +121,7 @@ msgstr "Nazwa archiwum"
 
 #: src/mainwnd.cpp:768
 msgid "Archive path"
-msgstr "Sciezka do archiwum"
+msgstr "Ścieżka do archiwum"
 
 #: src/mainwnd.cpp:769
 msgid "Archive size"
@@ -133,7 +133,7 @@ msgstr "Nazwa pliku"
 
 #: src/mainwnd.cpp:771
 msgid "File path"
-msgstr "Sciezka do pliku"
+msgstr "Ścieżka do pliku"
 
 #: src/mainwnd.cpp:772
 msgid "File size"
@@ -149,7 +149,7 @@ msgstr "Informacje o pliku"
 
 #: src/mainwnd.cpp:777
 msgid "Title"
-msgstr "Tytul"
+msgstr "Tytuł"
 
 #: src/mainwnd.cpp:778
 msgid "Author(s)"
@@ -173,11 +173,11 @@ msgstr "Gatunek"
 
 #: src/mainwnd.cpp:783
 msgid "Translator"
-msgstr "Tlumaczenie"
+msgstr "Tłumaczenie"
 
 #: src/mainwnd.cpp:784
 msgid "Book info"
-msgstr "Informacje o ksiazce"
+msgstr "Informacje o książce"
 
 #: src/mainwnd.cpp:787
 msgid "Document author"
@@ -189,7 +189,7 @@ msgstr "Data dokumentu"
 
 #: src/mainwnd.cpp:789
 msgid "Document source URL"
-msgstr "Zrodlo dokumentu"
+msgstr "Źródło dokumentu"
 
 #: src/mainwnd.cpp:790
 msgid "OCR by"
@@ -233,23 +233,23 @@ msgstr "Inne informacje"
 
 #: src/mainwnd.cpp:892
 msgid "Loading: please wait..."
-msgstr "Otwieranie: prosze czekac..."
+msgstr "Otwieranie: proszę czekać..."
 
 #: src/settings.cpp:24
 msgid "0` (Portrait)"
-msgstr "0� (Pionowo)"
+msgstr "0° (Pionowo)"
 
 #: src/settings.cpp:25
 msgid "90 `"
-msgstr "90�"
+msgstr "90°"
 
 #: src/settings.cpp:26
 msgid "180 `"
-msgstr "180�"
+msgstr "180°"
 
 #: src/settings.cpp:27
 msgid "270 `"
-msgstr "270�"
+msgstr "270°"
 
 #: src/settings.cpp:33
 msgid "Page orientation"
@@ -257,25 +257,25 @@ msgstr "Orientacja strony"
 
 #: src/settings.cpp:44
 msgid "Default font size"
-msgstr "Domyslny rozmiar czcionki"
+msgstr "Domyślny rozmiar czcionki"
 
 #: src/settings.cpp:71
 msgid "The quick brown fox jumps over lazy dog"
-msgstr "W Szczebrzeszynie chrzaszcz brzmi w trzcinie"
+msgstr "W Szczebrzeszynie chrząszcz brzmi w trzcinie"
 
 #: src/settings.cpp:106
 msgid "On for all fonts"
-msgstr "Wlacz dla wszystkich czcionek"
+msgstr "Włącz dla wszystkich czcionek"
 
 #: src/settings.cpp:107
 msgid "On for big fonts only"
-msgstr "Tylko dla duzych czcionek"
+msgstr "Tylko dla dużych czcionek"
 
 #: src/settings.cpp:108 src/settings.cpp:114 src/settings.cpp:120
 #: src/settings.cpp:126 src/settings.cpp:132 src/settings.cpp:138
 #: src/settings.cpp:144 src/settings.cpp:163
 msgid "Off"
-msgstr "Wylaczone"
+msgstr "Wyłączone"
 
 #: src/settings.cpp:149
 msgid "Normal"
@@ -295,7 +295,7 @@ msgstr "Dwie"
 
 #: src/settings.cpp:161
 msgid "Top"
-msgstr "Gora"
+msgstr "Góra"
 
 #: src/settings.cpp:168
 msgid "90%"
@@ -319,11 +319,11 @@ msgstr "140%"
 
 #: src/settings.cpp:199
 msgid "Default font face"
-msgstr "Domyslna czcionka"
+msgstr "Domyślna czcionka"
 
 #: src/settings.cpp:221
 msgid "Font antialiasing"
-msgstr "Wygladzanie czcionek"
+msgstr "Wygładzanie czcionek"
 
 #: src/settings.cpp:227
 msgid "Interline space"
@@ -335,7 +335,7 @@ msgstr "Przypisy na dole strony"
 
 #: src/settings.cpp:247
 msgid "Show time"
-msgstr "Pokaz zegarek"
+msgstr "Pokaż zegarek"
 
 #: src/settings.cpp:253
 msgid "Landscape pages"
@@ -351,11 +351,11 @@ msgstr "Wbudowane style dokumentu"
 
 #: src/settings.cpp:273
 msgid "Inverse display"
-msgstr "Kolory wyswietlacza"
+msgstr "Kolory wyświetlacza"
 
 #: src/settings.cpp:280
 msgid "Show bookmark icons"
-msgstr "Pokazuj ikony zakladek"
+msgstr "Pokazuj ikony zakładek"
 
 #: src/settings.cpp:287
 msgid "Status line"
@@ -367,7 +367,7 @@ msgstr "Kerning czcionek"
 
 #: src/settings.cpp:301
 msgid "[No Hyphenation]"
-msgstr "[bez dzielenia wyrazow]"
+msgstr "[bez dzielenia wyrazów]"
 
 #: src/settings.cpp:302
 msgid "[Algorythmic Hyphenation]"
@@ -375,7 +375,7 @@ msgstr "[dzielenie algorytem]"
 
 #: src/settings.cpp:304
 msgid "Hyphenation"
-msgstr "Dzielenie wyrazow"
+msgstr "Dzielenie wyrazów"
 
 #: src/settings.cpp:319
 msgid "Page margins"
@@ -383,7 +383,7 @@ msgstr "Marginesy"
 
 #: src/settings.cpp:322
 msgid "Top margin"
-msgstr "Gorny margines"
+msgstr "Górny margines"
 
 #: src/settings.cpp:327
 msgid "Bottom margin"
@@ -403,27 +403,27 @@ msgstr "Podaj numer strony docelowej:"
 
 #: src/viewdlg.cpp:132
 msgid "No dictionaries found"
-msgstr "Nie znaleziono slownikow"
+msgstr "Nie znaleziono słowników"
 
 #: src/viewdlg.cpp:133
 msgid "Place dictionaries to directory 'dict' of SD card."
-msgstr "Umiesc slowniki w katalogu 'dict' na karcie SD."
+msgstr "Umieść słowniki w katalogu 'dict' na karcie SD."
 
 #: src/viewdlg.cpp:134
 msgid "Dictionaries in standard unix .dict format are supported."
-msgstr "Wspierane sa slowniki w standardowym uniksowym formacie .dict"
+msgstr "Wspierane są słowniki w standardowym uniksowym formacie .dict"
 
 #: src/viewdlg.cpp:135
 msgid ""
 "For each dictionary, pair of files should be provided: data file (with .dict "
 "or .dict.dz extension, and index file with .index extension"
 msgstr ""
-"Dla kazdego slownika nalezy wgrac dwa pliki: plik z danymi (rozszerzenie "
+"Dla każdego słownika należy wgrać dwa pliki: plik z danymi (rozszerzenie "
 ".dict lub .dict.dz) i plik z indeksem o rozszerzeniu .index"
 
 #: src/viewdlg.cpp:148
 msgid "Table of contents"
-msgstr "Spis tresci"
+msgstr "Spis treści"
 
 #: src/viewdlg.cpp:152
 msgid "Enter page number"
@@ -431,7 +431,7 @@ msgstr "Podaj numer strony"
 
 #: src/viewdlg.cpp:222
 msgid "Find in dictionary"
-msgstr "Znajdz w slowniku"
+msgstr "Znajdź w słowniku"
 
 #: src/viewdlg.cpp:301
 msgid "Menu"
@@ -439,7 +439,7 @@ msgstr "Menu"
 
 #: src/viewdlg.cpp:312
 msgid "Long"
-msgstr "Dlugie"
+msgstr "Długie"
 
 #: src/viewdlg.cpp:319
 msgid "To first page"
@@ -447,11 +447,11 @@ msgstr "Do pierwszej strony"
 
 #: src/viewdlg.cpp:321
 msgid "Back by page"
-msgstr "Cofnij o strone"
+msgstr "Cofnij o stronę"
 
 #: src/viewdlg.cpp:323
 msgid "Forward by page"
-msgstr "Dalej o strone"
+msgstr "Dalej o stronę"
 
 #: src/viewdlg.cpp:324
 msgid "Forward in move history"
@@ -463,7 +463,7 @@ msgstr "Cofnij w historii nawigacji"
 
 #: src/viewdlg.cpp:326
 msgid "Next link"
-msgstr "Nasteny link"
+msgstr "Nastęny link"
 
 #: src/viewdlg.cpp:327
 msgid "Previous link"
@@ -471,7 +471,7 @@ msgstr "Poprzedni link"
 
 #: src/viewdlg.cpp:328 src/viewdlg.cpp:348
 msgid "Go to link"
-msgstr "Idz do linku"
+msgstr "Idź do linku"
 
 #: src/viewdlg.cpp:329
 msgid "To last page"
@@ -479,11 +479,11 @@ msgstr "Do ostatniej strony"
 
 #: src/viewdlg.cpp:330
 msgid "Go to position"
-msgstr "Do polozenia"
+msgstr "Do położenia"
 
 #: src/viewdlg.cpp:332
 msgid "Zoom in"
-msgstr "Powieksz"
+msgstr "Powiększ"
 
 #: src/viewdlg.cpp:333
 msgid "Zoom out"
@@ -491,19 +491,19 @@ msgstr "Oddal"
 
 #: src/viewdlg.cpp:334
 msgid "Toggle text format"
-msgstr "Zmien format tekstu"
+msgstr "Zmień format tekstu"
 
 #: src/viewdlg.cpp:335
 msgid "Save bookmark by number"
-msgstr "Zapisz zakladke pod numerem"
+msgstr "Zapisz zakładkę pod numerem"
 
 #: src/viewdlg.cpp:336
 msgid "Go to bookmark by number"
-msgstr "Idz do zakladki w/g numeru"
+msgstr "Idź do zakładki w/g numeru"
 
 #: src/viewdlg.cpp:337
 msgid "Move by chapter"
-msgstr "Przesun o rozdzial"
+msgstr "Przesuń o rozdział"
 
 #: src/viewdlg.cpp:338
 msgid "Close dialog"
@@ -519,19 +519,19 @@ msgstr "Wycofaj"
 
 #: src/viewdlg.cpp:342
 msgid "Close book"
-msgstr "Zamknij ksiazke"
+msgstr "Zamknij książkę"
 
 #: src/viewdlg.cpp:343
 msgid "Main menu"
-msgstr "Glowne menu"
+msgstr "Główne menu"
 
 #: src/viewdlg.cpp:344
 msgid "Go to page dialog"
-msgstr "Idz do strony"
+msgstr "Idź do strony"
 
 #: src/viewdlg.cpp:345
 msgid "Settings menu"
-msgstr "Menu ustawien"
+msgstr "Menu ustawień"
 
 #: src/viewdlg.cpp:346
 msgid "Font size settings"
@@ -543,19 +543,19 @@ msgstr "Ustawienia orientacji strony"
 
 #: src/viewdlg.cpp:349
 msgid "Find in Dictionary (T5)"
-msgstr "Znajdz w slowniku (T5)"
+msgstr "Znajdź w słowniku (T5)"
 
 #: src/viewdlg.cpp:350
 msgid "Bookmark list"
-msgstr "Lista zakladek"
+msgstr "Lista zakładek"
 
 #: src/viewdlg.cpp:351
 msgid "Recent books list"
-msgstr "Lista ostatnio czytanych ksiazek"
+msgstr "Lista ostatnio czytanych książek"
 
 #: src/viewdlg.cpp:352
 msgid "Open recent book by number"
-msgstr "Otworz ostatnio otwierana ksiazke w/g numeru"
+msgstr "Otwórz ostatnio otwieraną książkę w/g numeru"
 
 #: src/viewdlg.cpp:354
 msgid "Cite selection dialog"
@@ -567,23 +567,23 @@ msgstr "Wyszukiwanie"
 
 #: src/viewdlg.cpp:356
 msgid "Find in Dictionary (virtual keyboard)"
-msgstr "Znajdz w slowniku (wirtualna klawiatura)"
+msgstr "Znajdź w słowniku (wirtualna klawiatura)"
 
 #: src/viewdlg.cpp:357
 msgid "Next keyboard layout"
-msgstr "Nastepny uklad klawiatury"
+msgstr "Następny układ klawiatury"
 
 #: src/viewdlg.cpp:358
 msgid "Previous keyboard layout"
-msgstr "Poprzedni uklad klawiatury"
+msgstr "Poprzedni układ klawiatury"
 
 #: src/viewdlg.cpp:359
 msgid "Show manual"
-msgstr "Pokaz instrukcje"
+msgstr "Pokaż instrukcję"
 
 #: src/viewdlg.cpp:360
 msgid "Show key mapping"
-msgstr "Pokaz mapowanie klawiatury"
+msgstr "Pokaż mapowanie klawiatury"
 
 #: src/viewdlg.cpp:361
 msgid "Unknown command"
