@@ -5,7 +5,7 @@ if (NOT DEFINED DEVICE_NAME)
   message("Add cmake parameter -D DEVICE_NAME={v3|n516} to use another device settings")
 else ()
   message("Device type is set to ${DEVICE_NAME}")
-endif (NOT DEFINED GUI)
+endif (NOT DEFINED DEVICE_NAME)
 
 
 #FIND_PACKAGE(Gettext REQUIRED)
