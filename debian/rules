@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
+#include /usr/share/cdbs/1/class/autotools.mk
 
 CFLAGS += -fvisibility=hidden
 
@@ -9,6 +9,6 @@ DEB_CONFIGURE_EXTRA_FLAGS := --disable-rpath --host=$(DEB_HOST_GNU_TYPE)
 DEB_MAKE_CLEAN_TARGET := clean
 
 clean::
-	cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-$(DEB_HOST_GNU_TYPE)-oi.cmake -D GUI=CRGUI_XCB ..
+	cmake -D CMAKE_TOOLCHAIN_FILE=tools/toolchain-$(DEB_HOST_GNU_TYPE).cmake -D GUI=CRGUI_XCB .
 
 #	./configure --prefix=/usr --sysconfdir=/etc $(DEB_CONFIGURE_EXTRA_FLAGS)
