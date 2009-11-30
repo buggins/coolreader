@@ -1,3 +1,13 @@
+if (NOT DEFINED DEVICE_NAME)
+  SET(DEVICE_NAME v3)
+  message("Device type is not specified! It's necessary to know device type in order to choose proper keyboard kayout, etc...")
+  message("Using ${DEVICE_NAME} as default")
+  message("Add cmake parameter -D DEVICE_NAME={v3|n516} to use another device settings")
+else ()
+  message("Device type is set to ${DEVICE_NAME}")
+endif (NOT DEFINED GUI)
+
+
 #FIND_PACKAGE(Gettext REQUIRED)
 
 #use macros from kwwidgets instead of usual
@@ -28,6 +38,10 @@ src/scrkbd.cpp   src/settings.cpp
 src/viewdlg.cpp
 )
 
+SET (CR3_STYLES
+data/epub.css  data/fb2.css  data/htm.css  data/rtf.css  data/txt.css
+)
+
 #   
 KWWidgets_CREATE_GETTEXT_TARGETS(
    DOMAIN_NAME "cr3"
@@ -41,57 +55,73 @@ KWWidgets_CREATE_GETTEXT_TARGETS(
 #   CREATE_PO_TARGET
 #   CREATE_MO_TARGET
 
+SET (CR3_BIN_DESTINATION bin)
+
 if ( ${GUI} STREQUAL CRGUI_XCB )
 
     ADD_DEFINITIONS( -DUSE_FONTCONFIG=1 )
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3xcb.cpp)
     SET (EXTRA_LIBS xcb xcb-aux xcb-image xcb-keysyms fontconfig )
 
-    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
-      FILES_MATCHING PATTERN "*.css" )
+    INSTALL( FILES ${CR3_STYLES} DESTINATION share/cr3)
     INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
       FILES_MATCHING PATTERN "*.pdb" )
     INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
       FILES_MATCHING PATTERN "*.pattern" )
     INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
-    #INSTALL( FILES ${QM_FILES} DESTINATION share/cr3/i18n )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION share/cr3 )
+    INSTALL( DIRECTORY data/manual/ DESTINATION share/cr3/manual )
+    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION share/cr3/i18n
+      FILES_MATCHING PATTERN "*.po" )
 
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3nanox.cpp)
     SET (EXTRA_LIBS nano-X pthread )
 
-    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
-      FILES_MATCHING PATTERN "*.css" )
-    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+    INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
       FILES_MATCHING PATTERN "*.pdb" )
-    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
       FILES_MATCHING PATTERN "*.pattern" )
-    INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
+    INSTALL( DIRECTORY data/skins/default/ DESTINATION root/crengine/skin )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION root/crengine )
+    INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
+    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
+      FILES_MATCHING PATTERN "*.po" )
+    SET (CR3_BIN_DESTINATION root)
 
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 
     SET(CR3_SOURCES ${CR3SOURCES} src/cr3jinke.cpp)
 
-    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
-      FILES_MATCHING PATTERN "*.css" )
-    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+    INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
       FILES_MATCHING PATTERN "*.pdb" )
-    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
       FILES_MATCHING PATTERN "*.pattern" )
-    INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
+    INSTALL( DIRECTORY data/skins/default/ DESTINATION root/crengine/skin )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION root/crengine )
+    INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
+    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
+      FILES_MATCHING PATTERN "*.po" )
+    SET (CR3_BIN_DESTINATION usr/lib)
 
 elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
 
     SET(CR3_SOURCES ${CR3SOURCES} src/cr3win.cpp)
 
-    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
-      FILES_MATCHING PATTERN "*.css" )
-    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+    INSTALL( FILES ${CR3_STYLES} DESTINATION crengine)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION crengine/hyph
       FILES_MATCHING PATTERN "*.pdb" )
-    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+    INSTALL( DIRECTORY data/hyph/ DESTINATION crengine/hyph
       FILES_MATCHING PATTERN "*.pattern" )
-    INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
+    INSTALL( DIRECTORY data/skins/default/ DESTINATION crengine/skin )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION crengine )
+    INSTALL( DIRECTORY data/manual/ DESTINATION crengine/manual )
+    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION cr3/i18n
+      FILES_MATCHING PATTERN "*.po" )
+    SET (CR3_BIN_DESTINATION )
 
 endif ( ${GUI} STREQUAL CRGUI_XCB )
 
@@ -99,10 +129,11 @@ endif ( ${GUI} STREQUAL CRGUI_XCB )
 if ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
     ADD_LIBRARY(fb2 SHARED ${CR3_SOURCES})
     TARGET_LINK_LIBRARIES(fb2 crengine tinydict ${EXTRA_LIBS} ${STD_LIBS})
+    INSTALL( TARGETS fb2 LIBRARY DESTINATION ${CR3_BIN_DESTINATION} )
 else()
     ADD_EXECUTABLE(cr3 ${CR3_SOURCES})
     TARGET_LINK_LIBRARIES(cr3 crengine tinydict ${EXTRA_LIBS} ${STD_LIBS})
-    INSTALL( TARGETS cr3 RUNTIME DESTINATION bin )
+    INSTALL( TARGETS cr3 RUNTIME DESTINATION ${CR3_BIN_DESTINATION} )
 endif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 
 

@@ -54,11 +54,12 @@ make
 # Building Jinke/LBook V3 viewer plugin (libfb2.so):
 mkdir v3build
 cd v3build
-cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=CRGUI_JINKE_PLUGIN ..
+mkdir dest
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=CRGUI_JINKE_PLUGIN -D CMAKE_INSTALL_PREFIX=dest ..
 make
 
 # Building Jinke/LBook V5 viewer app (cr3):
 mkdir v5build
 cd v5build
-cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX ..
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D CMAKE_INSTALL_PREFIX=dest ..
 make
