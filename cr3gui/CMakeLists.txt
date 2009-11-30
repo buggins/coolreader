@@ -49,25 +49,49 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
 
     INSTALL( DIRECTORY data/ DESTINATION share/cr3 
       FILES_MATCHING PATTERN "*.css" )
-    INSTALL( DIRECTORY data/hyph DESTINATION share/cr3 
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
       FILES_MATCHING PATTERN "*.pdb" )
-    INSTALL( DIRECTORY data/hyph DESTINATION share/cr3 
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
       FILES_MATCHING PATTERN "*.pattern" )
-    INSTALL( DIRECTORY data/skins DESTINATION share/cr3/skins )
-    INSTALL( FILES ${QM_FILES} DESTINATION share/cr3/i18n )
+    INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
+    #INSTALL( FILES ${QM_FILES} DESTINATION share/cr3/i18n )
 
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3nanox.cpp)
     SET (EXTRA_LIBS nano-X pthread )
 
+    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
+      FILES_MATCHING PATTERN "*.css" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
+
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 
     SET(CR3_SOURCES ${CR3SOURCES} src/cr3jinke.cpp)
 
+    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
+      FILES_MATCHING PATTERN "*.css" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
+
 elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
 
     SET(CR3_SOURCES ${CR3SOURCES} src/cr3win.cpp)
+
+    INSTALL( DIRECTORY data/ DESTINATION share/cr3 
+      FILES_MATCHING PATTERN "*.css" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
 
 endif ( ${GUI} STREQUAL CRGUI_XCB )
 
