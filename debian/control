@@ -1,8 +1,8 @@
 Source: cr3
 Section: media
 Maintainer: Alexander Kerner <lunohod@openinkpot.org>
-Build-Depends: debhelper (>= 5.0.22), cdbs, libxcb1-dev, libxcb-image0-dev, libxcb-aux0-dev, libxcb-keysyms1-dev, libz-dev, libjpeg62-dev, libpng12-dev, libtinydict-dev, autoconf, libtool, automake, pkg-config, libfreetype6-dev, libfontconfig1-dev, cvs
-XCS-Cross-Host-Build-Depends: debhelper (>> 2.0.0), cdbs, cdbs-embedded, autoconf, libtool, automake, pkg-config, cvs
+Build-Depends: debhelper (>= 5.0.22), cdbs, libxcb1-dev, libxcb-image0-dev, libxcb-aux0-dev, libxcb-keysyms1-dev, libz-dev, libjpeg62-dev, libpng12-dev, libtinydict-dev, autoconf, libtool, automake, pkg-config, libfreetype6-dev, libfontconfig1-dev
+XCS-Cross-Host-Build-Depends: debhelper (>> 2.0.0), cdbs, cdbs-embedded, autoconf, libtool, cmake, pkg-config, cvs
 XCS-Cross-Build-Depends: libz1-dev, libjpeg62-dev, libpng12-dev, libfreetype6-dev, libfontconfig1-dev, libtinydict-dev, libxcb1-dev, libxcb-image0-dev, libxcb-aux0-dev, libxcb-keysyms1-dev
 Priority: optional
 Standards-Version: 3.6.2
