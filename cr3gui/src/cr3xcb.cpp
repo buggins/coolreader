@@ -421,7 +421,7 @@ public:
         set_prop_str(4, UnicodeToUtf8(props->getStringDef(DOC_PROP_FILE_PATH)).c_str());
         set_prop_str(5, UnicodeToUtf8(props->getStringDef(DOC_PROP_SERIES_NAME)).c_str() );
         set_prop_int(6, seriesNumber);
-        set_prop_int(9, 0); //f->bookTextView().positionIndicator()->textPosition()
+        set_prop_int(9, doc_view->getPosPercent()/100 ); //f->bookTextView().positionIndicator()->textPosition()
         set_prop_int(10, doc_view->getCurPage() );
         set_prop_int(11, doc_view->getPageCount() );
 
@@ -468,11 +468,11 @@ public:
 
     void updatePositionProperty()
     {
-        if (!atoms[9].atom)
+        if ( !atoms[9].atom )
             return;
 
         LVDocView* doc_view = main_win->getDocView();
-        set_prop_int(9, 0); //f->bookTextView().positionIndicator()->textPosition()
+        set_prop_int(9, doc_view->getPosPercent()/100 ); //f->bookTextView().positionIndicator()->textPosition()
         set_prop_int(10, doc_view->getCurPage() );
         set_prop_int(11, doc_view->getPageCount() );
     }
@@ -589,6 +589,8 @@ void sigusr1_handler(int)
     lString16 filename( Utf8ToUnicode(lString8(buf)) );
     if (filename.empty())
         return;
+    
+    // TODO: open document
 /*
     FBReader *f = (FBReader*)myapplication;
     if(!f->myModel->fileName().compare(filename))
