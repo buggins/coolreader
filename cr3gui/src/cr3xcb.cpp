@@ -63,6 +63,59 @@ class CRXCBScreen : public CRGUIScreenBase
         xcb_shm_segment_info_t shminfo;
         xcb_image_t *im;
         unsigned int *pal;
+        uint8_t depth;
+        /// sets new screen size
+        virtual bool setSize( int dx, int dy )
+        {
+            if ( !CRGUIScreenBase::setSize( dx, dy ) )
+                return false;
+            createImage();
+        }
+        void createImage()
+        {
+            CRLog::info("CRXCBScreen::createImage(%d, %d)", _width, _height);
+            if ( im )
+                xcb_image_destroy( im );
+            im = NULL;
+            xcb_shm_query_version_reply_t *rep_shm;
+
+            rep_shm = xcb_shm_query_version_reply (connection,
+                    xcb_shm_query_version (connection),
+                    NULL);
+            if(rep_shm) {
+                xcb_image_format_t format;
+                int shmctl_status;
+
+                if (rep_shm->shared_pixmaps &&
+                        (rep_shm->major_version > 1 || rep_shm->minor_version > 0))
+                    format = (xcb_image_format_t)rep_shm->pixmap_format;
+                else
+                    format = (xcb_image_format_t)0;
+
+                im = xcb_image_create_native (connection, _width, _height,
+                        format, depth, NULL, ~0, NULL);
+                assert(im);
+
+                shminfo.shmid = shmget (IPC_PRIVATE,
+                        im->stride*im->height,
+                        IPC_CREAT | 0777);
+                assert(shminfo.shmid != (unsigned)-1);
+                shminfo.shmaddr = (uint8_t*)shmat (shminfo.shmid, 0, 0);
+                assert(shminfo.shmaddr);
+                im->data = shminfo.shmaddr;
+                printf("Created image depth=%d bpp=%d stride=%d\n", (int)im->depth, (int)im->bpp, (int)im->stride );
+
+                shminfo.shmseg = xcb_generate_id (connection);
+                xcb_shm_attach (connection, shminfo.shmseg,
+                        shminfo.shmid, 0);
+                shmctl_status = shmctl(shminfo.shmid, IPC_RMID, 0);
+                assert(shmctl_status != -1);
+                free (rep_shm);
+
+            } else {
+                printf("Can't get shm\n");
+            }
+        }
         virtual void update( const lvRect & rc, bool full )
         {
             printf("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d\n", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
@@ -205,9 +258,12 @@ class CRXCBScreen : public CRGUIScreenBase
                 XCB_EVENT_MASK_KEY_RELEASE |
                 XCB_EVENT_MASK_BUTTON_PRESS |
                 XCB_EVENT_MASK_EXPOSURE |
-                XCB_EVENT_MASK_POINTER_MOTION;
+                XCB_EVENT_MASK_POINTER_MOTION |
+                XCB_EVENT_MASK_VISIBILITY_CHANGE |
+                XCB_EVENT_MASK_PROPERTY_CHANGE |
+                XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
-            uint8_t depth = xcb_aux_get_depth (connection, screen);
+            depth = xcb_aux_get_depth (connection, screen);
             printf("depth = %d, root depth = %d\n",depth, screen->root_depth);
             xcb_aux_create_window(connection,
                     depth,
@@ -248,46 +304,9 @@ class CRXCBScreen : public CRGUIScreenBase
 
             pal = pal_;
 
-            xcb_shm_query_version_reply_t *rep_shm;
-
-            rep_shm = xcb_shm_query_version_reply (connection,
-                    xcb_shm_query_version (connection),
-                    NULL);
-            if(rep_shm) {
-                xcb_image_format_t format;
-                int shmctl_status;
-
-                if (rep_shm->shared_pixmaps &&
-                        (rep_shm->major_version > 1 || rep_shm->minor_version > 0))
-                    format = (xcb_image_format_t)rep_shm->pixmap_format;
-                else
-                    format = (xcb_image_format_t)0;
-
-                im = xcb_image_create_native (connection, width, height,
-                        format, depth, NULL, ~0, NULL);
-                assert(im);
-
-                shminfo.shmid = shmget (IPC_PRIVATE,
-                        im->stride*im->height,
-                        IPC_CREAT | 0777);
-                assert(shminfo.shmid != (unsigned)-1);
-                shminfo.shmaddr = (uint8_t*)shmat (shminfo.shmid, 0, 0);
-                assert(shminfo.shmaddr);
-                im->data = shminfo.shmaddr;
-                printf("Created image depth=%d bpp=%d stride=%d\n", (int)im->depth, (int)im->bpp, (int)im->stride );
-
-                shminfo.shmseg = xcb_generate_id (connection);
-                xcb_shm_attach (connection, shminfo.shmseg,
-                        shminfo.shmid, 0);
-                shmctl_status = shmctl(shminfo.shmid, IPC_RMID, 0);
-                assert(shmctl_status != -1);
-                free (rep_shm);
-
-            } else {
-                printf("Can't get shm\n");
-            }
             _width = width;
             _height = height;
+            createImage();
             _canvas = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
             _front = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
 
@@ -361,12 +380,37 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 // runs event loop
 int CRXCBWindowManager::runEventLoop()
 {
+    xcb_visibility_t visibility;
+
+    xcb_intern_atom_cookie_t cookie;
+    xcb_intern_atom_reply_t *reply = NULL;
+
+    xcb_atom_t wm_protocols_atom, wm_delete_window_atom;
+
+    cookie = xcb_intern_atom_unchecked(connection, 0, strlen("WM_DELETE_WINDOW"), "WM_DELETE_WINDOW");
+    reply = xcb_intern_atom_reply(connection, cookie, NULL);
+    wm_delete_window_atom = reply->atom;
+    free(reply);
+
+    cookie = xcb_intern_atom_unchecked(connection, 0, strlen("WM_PROTOCOLS"), "WM_PROTOCOLS");
+    reply = xcb_intern_atom_reply(connection, cookie, NULL);
+    wm_protocols_atom = reply->atom;
+    free(reply);
+
+    static bool alt_pressed = false;
+
     CRLog::trace("CRXCBWindowManager::runEventLoop()");
     xcb_key_symbols_t * keysyms = xcb_key_symbols_alloc( _connection );
 
     xcb_generic_event_t *event;
     bool stop = false;
     while (!stop && (event = xcb_wait_for_event (_connection)) ) {
+
+        if(xcb_connection_has_error(_connection)) {
+            CRLog::error("Connection to server closed\n");
+            break;
+        }
+        
         bool needUpdate = false;
         //processPostedEvents();
         switch (event->response_type & ~0x80) {
@@ -377,6 +421,36 @@ int CRXCBWindowManager::runEventLoop()
                 update(true);
             }
             break;
+        case XCB_VISIBILITY_NOTIFY:
+            {
+                xcb_visibility_notify_event_t *v = (xcb_visibility_notify_event_t *)event;
+                visibility = (xcb_visibility_t)v->state;
+
+                break;
+            }
+        case XCB_CONFIGURE_NOTIFY:
+            {
+                //if(count_if(efifo.begin(), efifo.end(), isConfigure) > 0)
+                //    break;
+
+                xcb_configure_notify_event_t *conf = (xcb_configure_notify_event_t *)event;
+                if (_screen->getWidth() != conf->width || _screen->getHeight() != conf->height) {
+                    CRLog::info("Setting new window size: %d x %d", conf->width, conf->height );
+                    setSize( conf->width, conf->height );
+                    needUpdate = true;
+                }
+
+                break;
+            }
+        case XCB_CLIENT_MESSAGE:
+            {
+                xcb_client_message_event_t *msg = (xcb_client_message_event_t *)event;
+                if((msg->type == wm_protocols_atom) &&
+                        (msg->format == 32) &&
+                        (msg->data.data32[0] == (uint32_t)wm_delete_window_atom)) {
+                    stop = true;
+                }
+            }
         case XCB_KEY_RELEASE:
             {
                 xcb_key_press_event_t *release = (xcb_key_press_event_t *)event;
@@ -499,12 +573,12 @@ int main(int argc, char **argv)
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
     //TODO: remove hardcoded
-//#ifdef __i386__
-        CRXCBWindowManager winman( 600, 700 );
-//#else
-//        CRXCBWindowManager winman( 600, 800 );
+#ifdef __i386__
+        CRXCBWindowManager winman( 600, 650 );
+#else
+        CRXCBWindowManager winman( 600, 800 );
 
-//#endif
+#endif
     if ( !winman.hasValidConnection() ) {
         CRLog::error("connection has an error! exiting.");
     } else {
@@ -515,6 +589,7 @@ int main(int argc, char **argv)
         lString8 home8 = UnicodeToUtf8( homecrengine );
         const char * keymap_locations [] = {
             "/etc/cr3",
+            "/usr/share/cr3",
             home8.c_str(),
             "/media/sd/crengine/",
             NULL,

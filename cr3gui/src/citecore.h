@@ -13,7 +13,8 @@ enum granularity {
     grn_block,
 };
 
-const lString16 phrase_bounds(L".?!");
+//const lString16 phrase_bounds(L".?!");
+
 
 enum last_move_type {
     not_moved,
@@ -199,12 +200,12 @@ public:
     }
 
     void growUpPhrase() {
-        start_ = upper_phrase_bound(start_, phrase_bounds);
+        start_ = upper_phrase_bound(start_, lString16(L".?!"));
         move_to_upper_bound();
     }
 
     void shrinkDownPhrase() {
-        ldomXPointerEx xp = lower_phrase_bound(start_, phrase_bounds);
+        ldomXPointerEx xp = lower_phrase_bound(start_, lString16(L".?!"));
         if (end_.compare(xp) >= 0) {
             start_ = xp;
         };
@@ -212,7 +213,7 @@ public:
     }
 
     void shrinkUpPhrase() {
-        ldomXPointerEx xp = upper_phrase_bound(end_, phrase_bounds);
+        ldomXPointerEx xp = upper_phrase_bound(end_, lString16(L".?!"));
         if(start_.compare(xp) <= 0) {
             end_ = xp;
         };
@@ -220,7 +221,7 @@ public:
     }
 
     void growDownPhrase() {
-        end_ = lower_phrase_bound(end_, phrase_bounds);
+        end_ = lower_phrase_bound(end_, lString16(L".?!"));
         move_to_lower_bound();
     }
 
