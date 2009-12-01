@@ -34,7 +34,8 @@ int8_t i8sample = 0;
 extern "C" {
 #include <xcb/xcb_aux.h>
 #include <xcb/shm.h>
-};
+#include <xcb/xcb_atom.h>
+}
 #undef class
 #include <xcb/xcb_image.h>
 #include <xcb/xcb_keysyms.h>
@@ -43,9 +44,10 @@ extern "C" {
 
 #define XCB_ALL_PLANES ~0
 
-static xcb_connection_t *connection;
-static xcb_window_t window;
-static xcb_screen_t *screen;
+static xcb_connection_t *connection = NULL;
+static xcb_window_t window = NULL;
+static xcb_screen_t *screen = NULL;
+static V3DocViewWin * main_win = NULL;
 
 
 /// WXWidget support: draw to wxImage
@@ -315,18 +317,144 @@ class CRXCBScreen : public CRGUIScreenBase
         }
 };
 
+static struct atom {
+    const char *name;
+    xcb_atom_t atom;
+} atoms[] = {
+    "UTF8_STRING", 0,
+    "ACTIVE_DOC_AUTHOR", 0,
+    "ACTIVE_DOC_TITLE", 0,
+    "ACTIVE_DOC_FILENAME", 0,
+    "ACTIVE_DOC_FILEPATH", 0,
+    "ACTIVE_DOC_SERIES", 0,
+    "ACTIVE_DOC_SERIES_NUMBER", 0,
+    "ACTIVE_DOC_TYPE", 0,
+    "ACTIVE_DOC_SIZE", 0,
+    "ACTIVE_DOC_CURRENT_POSITION", 0,
+    "ACTIVE_DOC_CURRENT_PAGE", 0,
+    "ACTIVE_DOC_PAGES_COUNT", 0,
+    "ACTIVE_DOC_WINDOW_ID", 0,
+    "ACTIVE_DOC_COVER_IMAGE", 0,
+};
 
 class CRXCBWindowManager : public CRGUIWindowManager
 {
 protected:
     xcb_connection_t * _connection;
+
+
+    void init_properties()
+    {
+        if(!connection)
+            return;
+
+        xcb_intern_atom_cookie_t cookie;
+        xcb_intern_atom_reply_t *reply = NULL;
+
+        int atoms_cnt = sizeof(atoms) / sizeof(struct atom);
+        for(int i = 0; i < atoms_cnt; i++) {
+            cookie = xcb_intern_atom_unchecked(_connection, 0, strlen(atoms[i].name), atoms[i].name);
+            reply = xcb_intern_atom_reply(_connection, cookie, NULL);
+            atoms[i].atom = reply->atom;
+            free(reply);
+        }
+    }
+
+    
 public:
+    
+    void updateProperties()
+    {
+        if (!(window && connection))
+            return;
+
+        CRLog::info("CRXCBWindowManager::updateProperties() -- updating properties on file load completion");
+    #define set_prop_str(__i__, __prop__) \
+        xcb_change_property(connection, \
+                XCB_PROP_MODE_REPLACE, \
+                window, \
+                atoms[(__i__)].atom, \
+                atoms[0].atom, \
+                8, \
+                strlen((__prop__)), \
+                (__prop__));
+
+    #define set_prop_int(__i__, __prop__) \
+        { \
+        int i = (__prop__); \
+        xcb_change_property(connection, \
+                XCB_PROP_MODE_REPLACE, \
+                window, \
+                atoms[(__i__)].atom, \
+                INTEGER, \
+                32, \
+                1, \
+                (unsigned char*)&i); \
+        }
+
+        LVDocView* doc_view = main_win->getDocView();
+        CRPropRef props = doc_view->getDocProps();
+        lString16 series = props->getStringDef(DOC_PROP_SERIES_NUMBER);
+        int seriesNumber = series.empty() ? 0 : series.atoi();
+        lString8 cover_image_file;
+        set_prop_str(1, UnicodeToUtf8(props->getStringDef(DOC_PROP_AUTHORS)).c_str());
+        set_prop_str(2, UnicodeToUtf8(props->getStringDef(DOC_PROP_TITLE)).c_str());
+        set_prop_str(3, UnicodeToUtf8(props->getStringDef(DOC_PROP_FILE_NAME)).c_str());
+        set_prop_str(4, UnicodeToUtf8(props->getStringDef(DOC_PROP_FILE_PATH)).c_str());
+        set_prop_str(5, UnicodeToUtf8(props->getStringDef(DOC_PROP_SERIES_NAME)).c_str() );
+        set_prop_int(6, seriesNumber);
+        set_prop_int(9, 0); //f->bookTextView().positionIndicator()->textPosition()
+        set_prop_int(10, doc_view->getCurPage() );
+        set_prop_int(11, doc_view->getPageCount() );
+
+        xcb_change_property(connection,
+                XCB_PROP_MODE_REPLACE,
+                screen->root,
+                atoms[12].atom,
+                WINDOW,
+                sizeof(xcb_window_t) * 8,
+                1,
+                (unsigned char*)&window);
+
+        xcb_change_property(connection,
+                XCB_PROP_MODE_REPLACE,
+                window,
+                WM_NAME,
+                atoms[0].atom,
+                8,
+                strlen("CoolReader3"),
+                "CoolReader3");
+
+        xcb_change_property(connection,
+                XCB_PROP_MODE_REPLACE,
+                window,
+                WM_CLASS,
+                STRING,
+                8,
+                strlen("cr3") * 2 + 2,
+                "cr3\0cr3");
+
+        xcb_change_property(connection,
+                XCB_PROP_MODE_REPLACE,
+                window,
+                atoms[13].atom,
+                STRING,
+                8,
+                cover_image_file.length(),
+                cover_image_file.c_str());
+
+        xcb_flush(connection);
+
+        //free(myBookInfo);
+    }
+    
     CRXCBWindowManager( int dx, int dy )
     : CRGUIWindowManager(NULL)
     {
         CRXCBScreen * s = new CRXCBScreen( dx, dy );
         _screen = s;
         _connection = s->getXcbConnection();
+        init_properties();
         _ownScreen = true;
     }
 
@@ -339,6 +467,25 @@ public:
 
     // runs event loop
     virtual int runEventLoop();
+};
+
+class XCBDocViewWin : public V3DocViewWin 
+{
+    public:
+        /// file loading is finished successfully - drawCoveTo() may be called there
+        virtual void OnLoadFileEnd()
+        {
+            V3DocViewWin::OnLoadFileEnd();
+            ((CRXCBWindowManager*)_wm)->updateProperties();
+        }
+        
+        XCBDocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
+        : V3DocViewWin( wm, dataDir )
+        {
+        }
+        virtual ~XCBDocViewWin()
+        {
+        }
 };
 
 bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
@@ -601,7 +748,7 @@ int main(int argc, char **argv)
             	winman.loadSkin( lString16( L"/usr/share/cr3/skins/default" ) );
         HyphMan::initDictionaries( lString16("/usr/share/cr3/hyph/") );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
-        V3DocViewWin * main_win = new V3DocViewWin( &winman, lString16(CRSKIN) );
+        main_win = new XCBDocViewWin( &winman, lString16(CRSKIN) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
