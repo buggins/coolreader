@@ -27,6 +27,9 @@
 #include <unistd.h>      /* pause() */
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/fcntl.h>
+#include <errno.h>
+#include <signal.h>
 
 #include <xcb/xcb.h>
 int8_t i8sample = 0;
@@ -43,6 +46,12 @@ extern "C" {
 #include <sys/shm.h>
 
 #define XCB_ALL_PLANES ~0
+
+#define PIDFILE "/tmp/cr3.pid"
+#define CR3_FIFO "/tmp/.cr3-fifo"
+#ifndef NAME_MAX
+#define NAME_MAX 4096
+#endif
 
 static xcb_connection_t *connection = NULL;
 static xcb_window_t window = NULL;
@@ -360,6 +369,15 @@ protected:
         }
     }
 
+    void delete_properties()
+    {
+        xcb_delete_property(connection,
+                screen->root,
+                atoms[12].atom);
+
+        xcb_flush(connection);
+    }
+
     
 public:
     
@@ -447,14 +465,25 @@ public:
 
         //free(myBookInfo);
     }
-    
+
+    void updatePositionProperty()
+    {
+        if (!atoms[9].atom)
+            return;
+
+        LVDocView* doc_view = main_win->getDocView();
+        set_prop_int(9, 0); //f->bookTextView().positionIndicator()->textPosition()
+        set_prop_int(10, doc_view->getCurPage() );
+        set_prop_int(11, doc_view->getPageCount() );
+    }
+
+
     CRXCBWindowManager( int dx, int dy )
     : CRGUIWindowManager(NULL)
     {
         CRXCBScreen * s = new CRXCBScreen( dx, dy );
         _screen = s;
         _connection = s->getXcbConnection();
-        init_properties();
         _ownScreen = true;
     }
 
@@ -524,9 +553,80 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 
 }
 
+void sigint_handler(int)
+{
+    exit(1);
+}
+
+void sigusr1_handler(int)
+{
+    if (!(window && connection))
+        return;
+
+    //if (!in_main_loop)
+    //    ecore_main_loop_quit();
+
+    // raise window
+    uint32_t value_list = XCB_STACK_MODE_ABOVE;
+    xcb_configure_window(connection, window, XCB_CONFIG_WINDOW_STACK_MODE, &value_list);
+    xcb_flush(connection);
+
+    int fifo = open(CR3_FIFO, O_RDONLY);
+    if (!fifo)
+        return;
+
+    char buf[NAME_MAX];
+    char *p = buf;
+    int ret;
+    int len = NAME_MAX - 1;
+    while(len > 0 && (ret = read(fifo, p, len)) > 0) {
+        len -= ret;
+        p += ret;
+    }
+    *p = '\0';
+    close(fifo);
+
+    lString16 filename( Utf8ToUnicode(lString8(buf)) );
+    if (filename.empty())
+        return;
+/*
+    FBReader *f = (FBReader*)myapplication;
+    if(!f->myModel->fileName().compare(filename))
+        return;
+
+    BookDescriptionPtr description;
+    f->createDescription(filename, description);
+    if (!description.isNull()) {
+        cover_image_file = "";
+
+        f->openBook(description);
+        f->refreshWindow();
+        set_properties();
+    }
+*/
+}
+
+void sigalrm_handler(int)
+{
+}
+
 // runs event loop
 int CRXCBWindowManager::runEventLoop()
 {
+    struct sigaction act;
+    act.sa_handler = sigint_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction(SIGINT, &act, NULL);
+
+    act.sa_handler = sigusr1_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction(SIGUSR1, &act, NULL);
+    
+    init_properties();
+
+    
     xcb_visibility_t visibility;
 
     xcb_intern_atom_cookie_t cookie;
@@ -564,8 +664,10 @@ int CRXCBWindowManager::runEventLoop()
         case XCB_EXPOSE:
             // draw buffer
             {
-                printf("EXPOSE\n");
-                update(true);
+                if ( visibility != XCB_VISIBILITY_FULLY_OBSCURED ) {
+                    printf("EXPOSE\n");
+                    update(true);
+                }
             }
             break;
         case XCB_VISIBILITY_NOTIFY:
@@ -625,14 +727,17 @@ int CRXCBWindowManager::runEventLoop()
 
         free (event);
 
-        if ( processPostedEvents() || needUpdate )
+        if ( processPostedEvents() || needUpdate ) {
+            updatePositionProperty();
             update(false);
+        }
         // stop loop if all windows are closed
         if ( !getWindowCount() )
             stop = true;
 
     }
 
+    delete_properties();
     xcb_key_symbols_free( keysyms );
     return 0;
 }
@@ -642,6 +747,81 @@ int main(int argc, char **argv)
 
     int res = 0;
 
+    int pid;
+    struct stat pid_stat;
+    FILE *pidfile;
+
+    int done;
+
+    do {
+        done = 1;
+
+        if(stat(PIDFILE, &pid_stat) == -1)
+            break;
+
+        pidfile = fopen(PIDFILE, "r");
+        if(!pidfile)
+            break;
+
+        fscanf(pidfile, "%d", &pid);
+        fclose(pidfile);
+
+        if(!pid)
+            break;
+
+        if(pid <= 0 || pid == getpid() || kill(pid, 0))
+            break;
+
+        struct sigaction act;
+        act.sa_handler = sigalrm_handler;
+        sigemptyset(&act.sa_mask);
+        act.sa_flags = 0;
+        sigaction(SIGALRM, &act, NULL);
+
+        if(mkfifo(CR3_FIFO, 0666) && errno != EEXIST)
+            break;
+
+        kill(pid, SIGUSR1);
+
+        alarm(1);
+        int fifo = open(CR3_FIFO, O_WRONLY);
+        if(fifo < 0) {
+            if(errno == EINTR) {
+                done = 0;
+                continue;
+            }
+
+            unlink(CR3_FIFO);
+            break;
+        }
+
+        const char *p;
+        if(argc > 1)
+            p = argv[1];
+        else
+            p = "";
+        int len = strlen(p);
+        int ret;
+        while(len) {
+            ret = write(fifo, p, len);
+            if(ret == -1 && errno != EINTR)
+                break;
+
+            len -= ret;
+            p += ret;
+        }
+
+        close(fifo);
+        unlink(CR3_FIFO);
+        exit(0);
+    } while (!done);
+    
+    pidfile = fopen(PIDFILE, "w");
+    if(pidfile) {
+        fprintf(pidfile, "%d", getpid());
+        fclose(pidfile);
+    }
+    
     {
     CRLog::setStdoutLogger();
 #ifdef __i386__
