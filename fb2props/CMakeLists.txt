@@ -1,0 +1,15 @@
+#libfb2props.so plugin for Hanlon Jinke V3/V5 Bookshelf app
+SET (FB2PROPS_SOURCES 
+    fb2props.cpp
+)
+
+SET (CR3_BIN_DESTINATION usr/lib)
+
+ADD_LIBRARY(fb2props SHARED ${FB2PROPS_SOURCES})
+TARGET_LINK_LIBRARIES(fb2props crengine ${EXTRA_LIBS} ${ZLIB_LIBRARIES})
+INSTALL( TARGETS fb2props LIBRARY DESTINATION ${CR3_BIN_DESTINATION} )
+
+ADD_EXECUTABLE(fb2propstest fb2propstest.cpp)
+TARGET_LINK_LIBRARIES(fb2propstest crengine fb2props ${ZLIB_LIBRARIES})
+INSTALL( TARGETS fb2propstest RUNTIME DESTINATION ${CR3_BIN_DESTINATION} )
+
