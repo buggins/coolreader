@@ -58,6 +58,13 @@ mkdir dest
 cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=CRGUI_JINKE_PLUGIN -D CMAKE_INSTALL_PREFIX=dest ..
 make
 
+# Building Jinke/LBook V3 viewer plugin (libfb2.so), new SDK:
+mkdir v3build
+cd v3build
+mkdir dest
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-linux-gnueabi.cmake -D GUI=CRGUI_JINKE_PLUGIN -D CMAKE_INSTALL_PREFIX=dest ..
+make
+
 # Building Jinke/LBook V3 fb2props plugin for Bookshelf (libfb2props.so):
 mkdir v3fb2propsbuild
 cd v3fb2propsbuild
