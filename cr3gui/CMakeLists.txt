@@ -16,14 +16,7 @@ INCLUDE(${KWWidgets_CMAKE_DIR}FindGettext.cmake)
 INCLUDE(${KWWidgets_CMAKE_DIR}KWWidgetsInternationalizationMacros.cmake)
 
 SET (LANGUAGES ru uk de bg es pl zh_CN zh_TW)
-#message( "Languages: ${LANGUAGES}" )
-#SET(LANGUAGE_PO_FILES)
-#FOREACH(LANGUAGE ${LANGUAGES})
-#    SET(PO_FILE "${CMAKE_CURRENT_SOURCE_DIR}/po/${LANGUAGE}.po")
-#    SET(LANGUAGE_PO_FILES ${LANGUAGE_PO_FILES} ${PO_FILE})
-#    SET_SOURCE_FILES_PROPERTIES(${TS_FILE} PROPERTIES OUTPUT_LOCATION
-#        "${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n")
-#ENDFOREACH(LANGUAGE ${LANGUAGES})
+message( "Languages: ${LANGUAGES}" )
 
 
 SET (CR3_SOURCES 
@@ -106,6 +99,12 @@ elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
     INSTALL( DIRECTORY data/skins/default/ DESTINATION root/crengine/skin )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION root/crengine )
     INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
+
+    FOREACH(LANGUAGE ${LANGUAGES})
+        SET(MO_FILE "${CMAKE_BINARY_DIR}/i18n/${LANGUAGE}/LC_MESSAGES/cr3.mo")
+        INSTALL(FILES ${MO_FILE} DESTINATION root/crengine/i18n RENAME cr3_${LANGUAGE}.mo)
+    ENDFOREACH(LANGUAGE ${LANGUAGES})
+
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
       FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION usr/lib)
