@@ -1064,6 +1064,7 @@ public:
     virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf)
     {
         bool res = _baseFont->getGlyphImage( code, buf );
+        return res;
     }
 
     /// returns font baseline offset

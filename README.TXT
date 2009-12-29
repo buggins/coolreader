@@ -48,7 +48,7 @@ make
 # Building ARM version on OpenInkpot:
 mkdir armbuild
 cd armbuild
-cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-oi.cmake -D GUI=CRGUI_XCB ..
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-oi.cmake -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_XCB ..
 make
 
 # Building Jinke/LBook V3 viewer plugin (libfb2.so):
@@ -62,11 +62,11 @@ make
 mkdir v3fb2propsbuild
 cd v3fb2propsbuild
 mkdir dest
-cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=FB2PROPS -D CMAKE_INSTALL_PREFIX=dest ..
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=FB2PROPS -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
 make
 
 # Building Jinke/LBook V5 viewer app (cr3):
 mkdir v5build
 cd v5build
-cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D CMAKE_INSTALL_PREFIX=dest ..
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
 make
