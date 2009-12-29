@@ -652,7 +652,7 @@ public:
     /// returns section bounds, in 1/100 of percent
     LVArray<int> & getSectionBounds( );
     /// sets battery state
-    void setBatteryState( int newState ) { m_battery_state = newState; }
+    virtual bool setBatteryState( int newState );
     /// returns battery state
     int getBatteryState( ) { return m_battery_state; }
     /// returns current time representation string

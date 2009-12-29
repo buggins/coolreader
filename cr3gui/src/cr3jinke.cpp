@@ -303,7 +303,9 @@ int OnKeyPressed(int keyId, int state)
         CRLog::debug( "Unknown key code in OnKeyPressed() : %d (%04x)", keyId, keyId );
         return 0;
     }
-    bool needUpdate = CRJinkeWindowManager::instance->onKeyPressed( code, flags );
+    bool needUpdate = false;
+    needUpdate = CRJinkeWindowManager::instance->onKeyPressed( code, flags ) || needUpdate;
+    needUpdate = main_win->getDocView()->setBatteryState( ::getBatteryState() ) || needUpdate;
     needUpdate = CRJinkeWindowManager::instance->processPostedEvents() || needUpdate;
     if ( needUpdate )
     	CRJinkeWindowManager::instance->update( false );

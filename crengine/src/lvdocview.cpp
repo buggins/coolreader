@@ -1173,6 +1173,16 @@ void LVDocView::drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int perce
     //lUInt32 cl2 = getBackgroundColor();
 }
 
+/// sets battery state
+bool LVDocView::setBatteryState( int newState )
+{ 
+    if ( m_battery_state == newState )
+        return false;
+    m_battery_state = newState;
+    clearImageCache();
+    return true;
+}
+
 /// set list of battery icons to display battery state
 void LVDocView::setBatteryIcons( LVRefVec<LVImageSource> icons )
 {
