@@ -5,6 +5,7 @@ include /usr/share/cdbs/1/class/cmake.mk
 
 CC := $(DEB_HOST_GNU_TYPE)-gcc
 CXX := $(DEB_HOST_GNU_TYPE)-g++
+STRIP := $(DEB_HOST_GNU_TYPE)-strip
 
 CFLAGS += -fvisibility=hidden
 

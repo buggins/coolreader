@@ -1,6 +1,14 @@
 PROJECT(cr3)
 cmake_minimum_required(VERSION 2.6)
 
+#INCLUDE(CPack)
+
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
 if (NOT DEFINED GUI)
   SET(GUI QT)
   message("GUI type is not specified!")
