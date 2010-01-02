@@ -20,19 +20,26 @@ message( "Languages: ${LANGUAGES}" )
 
 
 SET (CR3_SOURCES 
-src/bgfit.cpp    src/citedlg.cpp 
-src/fsmenu.cpp    
-src/mainwnd.cpp  src/recentdlg.cpp 
-src/selnavig.cpp src/tocdlg.cpp 
-src/bmkdlg.cpp   src/cr3_def_cover.cpp 
-src/cr3main.cpp  src/dictdlg.cpp 
-src/linksdlg.cpp src/numedit.cpp 
-src/scrkbd.cpp   src/settings.cpp 
-src/viewdlg.cpp
+  src/bgfit.cpp
+  src/citedlg.cpp 
+  src/fsmenu.cpp    
+  src/mainwnd.cpp  
+  src/recentdlg.cpp 
+  src/selnavig.cpp 
+  src/tocdlg.cpp 
+  src/bmkdlg.cpp   
+  src/cr3_def_cover.cpp 
+  src/cr3main.cpp  
+  src/dictdlg.cpp 
+  src/linksdlg.cpp 
+  src/numedit.cpp 
+  src/scrkbd.cpp   
+  src/settings.cpp 
+  src/viewdlg.cpp
 )
 
 SET (CR3_STYLES
-data/epub.css  data/fb2.css  data/htm.css  data/rtf.css  data/txt.css
+  data/epub.css  data/fb2.css  data/htm.css  data/rtf.css  data/txt.css
 )
 
 #   
@@ -83,13 +90,19 @@ elseif ( ${GUI} STREQUAL CRGUI_NANOX )
     INSTALL( DIRECTORY data/skins/default/ DESTINATION root/crengine/skin )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION root/crengine )
     INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
-    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
-      FILES_MATCHING PATTERN "*.mo" )
+
+    FOREACH(LANGUAGE ${LANGUAGES})
+        SET(MO_FILE "${CMAKE_BINARY_DIR}/i18n/${LANGUAGE}/LC_MESSAGES/cr3.mo")
+        INSTALL(FILES ${MO_FILE} DESTINATION root/crengine/i18n RENAME ${LANGUAGE}.mo)
+    ENDFOREACH(LANGUAGE ${LANGUAGES})
+
+#    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
+#      FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION root)
 
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 
-    SET(CR3_SOURCES ${CR3SOURCES} src/cr3jinke.cpp)
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3jinke.cpp)
 
     INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
     INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
@@ -106,13 +119,13 @@ elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 #        INSTALL(FILES ${MO_FILE} DESTINATION root/crengine/i18n RENAME cr3_${LANGUAGE}.mo)
     ENDFOREACH(LANGUAGE ${LANGUAGES})
 
-    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
-      FILES_MATCHING PATTERN "*.mo" )
+#    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/cr3gui/po/ DESTINATION root/crengine/i18n
+#      FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION usr/lib)
 
 elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
 
-    SET(CR3_SOURCES ${CR3SOURCES} src/cr3win.cpp)
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3win.cpp)
 
     INSTALL( FILES ${CR3_STYLES} DESTINATION crengine)
     INSTALL( DIRECTORY data/hyph/ DESTINATION crengine/hyph
