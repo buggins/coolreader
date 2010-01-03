@@ -390,12 +390,16 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         LVRef<CRGUIStringTranslator> _i18n;
         int _postedCommand;
         int _postedCommandParam;
+        time_t _lastProgressUpdate;
+        int _lastProgressPercent;
         CRSkinRef _skin;
         CRGUIAcceleratorTableList _accTables;
 		CRKeyboardLayoutList _kbLayouts;
     public:
-        /// draws icon at center of screen
-        virtual void showWaitIcon( lString16 filename );
+        /// draws icon at center of screen, with optional progress gauge
+        virtual void showWaitIcon( lString16 filename, int progressPercent=-1 );
+        /// draws icon with gauge at center of screen, skipping too frequent updates
+        virtual void showProgress( lString16 filename, int progressPercent );
 		/// loads skin from file
 	    virtual bool loadSkin( lString16 pathname );
 		/// returns keyboard layouts
@@ -615,6 +619,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
                 }
             }
             _screen->flush( fullScreenUpdate );
+            _lastProgressPercent = -1;
         }
         /// returns screen associated with window manager
         virtual CRGUIScreen * getScreen()
@@ -628,6 +633,8 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         : _screen( screen ), _ownScreen(false)
         , _postedCommand(0)
         , _postedCommandParam(0)
+        ,_lastProgressUpdate(0)
+        ,_lastProgressPercent(-1)
         {
         }
         virtual void closeAllWindows()

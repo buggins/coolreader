@@ -149,7 +149,7 @@ void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
 }
 
 /// draws icon at center of screen
-void CRGUIWindowManager::showWaitIcon( lString16 filename )
+void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
 {
     LVImageSourceRef img = _skin->getImage( filename );
     if ( !img.isNull() ) {
@@ -157,13 +157,35 @@ void CRGUIWindowManager::showWaitIcon( lString16 filename )
         int dy = img->GetHeight();
         int x = (_screen->getWidth() - dx) / 2;
         int y = (_screen->getHeight() - dy) / 2;
-        CRLog::debug("Drawing wait image %s %dx%d", UnicodeToUtf8(filename).c_str(), dx, dy );
+        CRLog::debug("Drawing wait image %s %dx%d  progress=%d%%", UnicodeToUtf8(filename).c_str(), dx, dy, progressPercent );
         _screen->getCanvas()->Draw( img, x, y, dx, dy, true );
-        _screen->invalidateRect( lvRect(x, y, x+dx, y+dy) );
+        int gaugeH = 0;
+        if ( progressPercent>=0 && progressPercent<=100 ) {
+            CRScrollSkinRef skin = _skin->getScrollSkin(L"#progress");
+            if ( !skin.isNull() ) {
+                CRLog::trace("Drawing gauge %d%%", progressPercent);
+                gaugeH = 16;
+                lvRect gaugeRect( x, y+dy, x+dx, y+dy+gaugeH );
+                skin->drawGauge( *(_screen->getCanvas()), gaugeRect, progressPercent );
+            }
+        }
+        _screen->invalidateRect( lvRect(x, y, x+dx, y+dy+gaugeH) );
         _screen->flush(false);
     } else {
         CRLog::error("CRGUIWindowManager::showWaitIcon(%s): image not found in current skin", UnicodeToUtf8(filename).c_str() );
     }
+}
+
+#define PROGRESS_UPDATE_INTERVAL 2
+/// draws icon at center of screen, with optional progress gauge
+void CRGUIWindowManager::showProgress( lString16 filename, int progressPercent )
+{
+    time_t t = (time_t)time((time_t)0);
+    if ( t<_lastProgressUpdate+PROGRESS_UPDATE_INTERVAL || progressPercent==_lastProgressPercent )
+        return;
+    showWaitIcon( filename, progressPercent );
+    _lastProgressUpdate = t;
+    _lastProgressPercent = progressPercent;
 }
 
 void CRGUIScreenBase::flush( bool full )

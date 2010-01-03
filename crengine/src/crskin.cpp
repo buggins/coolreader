@@ -53,9 +53,12 @@ protected:
     LVAutoPtr<ldomDocument> _doc;
     LVCacheMap<lString16,LVImageSourceRef> _imageCache;
     LVCacheMap<lString16,CRRectSkinRef> _rectCache;
+    LVCacheMap<lString16,CRScrollSkinRef> _scrollCache;
     LVCacheMap<lString16,CRWindowSkinRef> _windowCache;
     LVCacheMap<lString16,CRMenuSkinRef> _menuCache;
 public:
+    /// returns scroll skin by path or #id
+    virtual CRScrollSkinRef getScrollSkin( const lChar16 * path );
     /// returns rect skin by path or #id
     virtual CRRectSkinRef getRectSkin( const lChar16 * path );
     /// returns window skin by path or #id
@@ -69,7 +72,7 @@ public:
     /// gets doc pointer by asolute path
     virtual ldomXPointer getXPointer( const lString16 & xPointerStr ) { return _doc->createXPointer( xPointerStr ); }
     /// constructor does nothing
-    CRSkinImpl()  : _imageCache(8), _rectCache(8), _windowCache(8), _menuCache(8) { }
+    CRSkinImpl()  : _imageCache(8), _rectCache(8), _scrollCache(1), _windowCache(8), _menuCache(8) { }
     virtual ~CRSkinImpl(){ }
     // open from container
     virtual bool open( LVContainerRef container );
@@ -756,6 +759,41 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
     }
 }
 
+void CRScrollSkin::drawGauge( LVDrawBuf & buf, const lvRect & rect, int percent )
+{
+    lvRect rc = rect;
+    rc.shrinkBy( _margins );
+    bool vertical = rect.width()<rect.height();
+    lvRect bodyRect = rc;
+    lvRect sliderRect = rc;
+    LVImageSourceRef bodyImg;
+    LVImageSourceRef sliderImg;
+    if ( vertical ) {
+        // draw vertical
+        int sz = bodyRect.height();
+        sliderRect.bottom = bodyRect.top + sz * percent / 100;
+        bodyImg = _vBody;
+        sliderImg = _vSlider;
+    } else {
+        // draw horz
+        int sz = bodyRect.width();
+        sliderRect.right = bodyRect.left + sz * percent / 100;
+        bodyImg = _hBody;
+        sliderImg = _hSlider;
+    }
+    if ( !bodyImg.isNull() ) {
+        LVImageSourceRef img = LVCreateStretchFilledTransform( bodyImg,
+            bodyRect.width(), bodyRect.height() );
+        buf.Draw( img, bodyRect.left, bodyRect.top, bodyRect.width(), bodyRect.height(), false );
+    }
+    if ( !sliderImg.isNull() ) {
+        LVImageSourceRef img = LVCreateStretchFilledTransform( sliderImg,
+            sliderRect.width(), sliderRect.height() );
+        buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
+    }
+}
+
+
 CRRectSkin::CRRectSkin()
 : _margins( 0, 0, 0, 0 )
 {
@@ -1105,6 +1143,24 @@ CRRectSkinRef CRSkinImpl::getRectSkin( const lChar16 * path )
     res = CRRectSkinRef( new CRRectSkin() );
     readRectSkin( p.c_str(), res.get() );
     _rectCache.set( lString16(path), res );
+    return res;
+}
+
+/// returns scroll skin by path or #id
+CRScrollSkinRef CRSkinImpl::getScrollSkin( const lChar16 * path )
+{
+    lString16 p(path);
+    CRScrollSkinRef res;
+    if ( _scrollCache.get( p, res ) )
+        return res; // found in cache
+    if ( *path == '#' ) {
+        // find by id
+        p = pathById( path+1 );
+    }
+    // create new one
+    res = CRScrollSkinRef( new CRScrollSkin() );
+    readScrollSkin( p.c_str(), res.get() );
+    _scrollCache.set( lString16(path), res );
     return res;
 }
 

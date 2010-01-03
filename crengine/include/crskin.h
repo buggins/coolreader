@@ -181,6 +181,7 @@ public:
     void setVBody( LVImageSourceRef img ) { _vBody = img; }
     void setVSlider( LVImageSourceRef img ) { _vSlider = img; }
     virtual void drawScroll( LVDrawBuf & buf, const lvRect & rc, bool vertical, int pos, int maxpos, int pagesize );
+    virtual void drawGauge( LVDrawBuf & buf, const lvRect & rc, int percent );
     CRScrollSkin();
     virtual ~CRScrollSkin() { }
 };
@@ -281,6 +282,8 @@ public:
 
     /// returns rect skin by path or #id
     virtual CRRectSkinRef getRectSkin( const lChar16 * path ) = 0;
+    /// returns scroll skin by path or #id
+    virtual CRScrollSkinRef getScrollSkin( const lChar16 * path ) = 0;
     /// returns window skin by path or #id
     virtual CRWindowSkinRef getWindowSkin( const lChar16 * path ) = 0;
     /// returns menu skin by path or #id

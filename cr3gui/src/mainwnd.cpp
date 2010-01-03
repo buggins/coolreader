@@ -221,21 +221,27 @@ void V3DocViewWin::OnLoadFileEnd()
 /// file progress indicator, called with values 0..100
 void V3DocViewWin::OnLoadFileProgress( int percent )
 {
+    CRLog::trace("OnLoadFileProgress(%d)", percent);
+    _wm->showProgress(lString16("cr3_wait_icon.png"), 25+percent/2);
 }
 
 /// document formatting started
 void V3DocViewWin::OnFormatStart()
 {
+    _wm->showProgress(lString16("cr3_wait_icon.png"), 75);
 }
 
 /// document formatting finished
 void V3DocViewWin::OnFormatEnd()
 {
+    _wm->showProgress(lString16("cr3_wait_icon.png"), 100);
 }
 
 /// format progress, called with values 0..100
 void V3DocViewWin::OnFormatProgress( int percent )
 {
+    CRLog::trace("OnFormatProgress(%d)", percent);
+    _wm->showProgress(lString16("cr3_wait_icon.png"), 75+percent/4);
 }
 
 /// file load finiished with error
@@ -888,10 +894,11 @@ bool V3DocViewWin::onCommand( int command, int params )
     return CRViewDialog::onCommand( command, params );
 }
 
+#define DISABLE_FIRST_PAGE_RENDER 1
 /// first page is loaded from file an can be formatted for preview
 void V3DocViewWin::OnLoadFileFirstPagesReady()
 {
-    if ( !_props->getBoolDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 ) ) {
+    if ( DISABLE_FIRST_PAGE_RENDER || !_props->getBoolDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 ) ) {
         CRLog::info( "OnLoadFileFirstPagesReady() - don't paint first page because " PROP_PROGRESS_SHOW_FIRST_PAGE " setting is 0" );
         return;
     }

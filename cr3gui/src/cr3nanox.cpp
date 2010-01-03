@@ -758,7 +758,14 @@ class CRJinkeScreen : public CRGUIScreenBase
         }
     public:
         GR_WINDOW_ID getWID() { return _wid; }
-        
+
+
+        virtual void drawIcon( LVGrayDrawBuf * buf, int x, int y )
+        {
+            GrBitmapEx_Apollo_FOUR(_wid,_gc, x, y, buf->GetWidth(), buf->GetHeight(), 0, 0, buf->GetWidth(), buf->GetHeight(), (GR_CHAR*)buf->GetScanLine(0) );
+            GrPartialPrint(_wid, x, y, buf->GetWidth(), buf->GetHeight() );
+        }
+
         virtual ~CRJinkeScreen()
         {
             instance = NULL;
@@ -840,10 +847,13 @@ public:
     CRJinkeWindowManager( int dx, int dy )
     : CRGUIWindowManager(NULL)
     {
-        CRJinkeScreen * s = new CRJinkeScreen( dx, dy );
-        _screen = CRJinkeScreen::instance;
+        
+        if ( CRJinkeScreen::instance==NULL )
+            _screen = new CRJinkeScreen( dx, dy );
+        else
+            _screen = CRJinkeScreen::instance;
         if ( _screen ) {
-            _wid = s->getWID();
+            _wid = ((CRJinkeScreen*)_screen)->getWID();
             _ownScreen = true;
             instance = this;
         }
@@ -1029,6 +1039,7 @@ public:
 
 CRJinkeWindowManager * CRJinkeWindowManager::instance = NULL;
 
+
 class CRJinkeDocView : public V3DocViewWin {
 public:
     static CRJinkeDocView * instance;
@@ -1203,6 +1214,17 @@ int InitDoc(char *fileName)
     InitCREngineLog("/root/abook/crengine/crlog.ini");
 #endif
 
+    CRLog::trace("creating window manager...");
+    CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
+    CRLog::trace("loading skin...");
+    if ( !wm->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
+        if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
+            wm->loadSkin( lString16( L"/root/crengine/skin" ) );
+    CRLog::trace("drawing progressbar 0%%...");
+    wm->getScreen()->getCanvas()->Clear(0xFFFFFF);
+    wm->getScreen()->invalidateRect( lvRect(0, 0, 600, 800) );
+    wm->showProgress(lString16("cr3_wait_icon.png"), 0);
+
     lString16 bookmarkDir("/root/abook/bookmarks/");
     {
         lString8 fn(fileName);
@@ -1282,8 +1304,6 @@ int InitDoc(char *fileName)
     }
 #endif
     {
-        CRLog::trace("creating window manager...");
-        CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
         //main_win = new V3DocViewWin( wm, lString16(CRSKIN) );
 
         const char * keymap_locations [] = {
@@ -1297,9 +1317,6 @@ int InitDoc(char *fileName)
             HyphMan::initDictionaries( lString16("/root/abook/crengine/hyph") );
         else
             HyphMan::initDictionaries( lString16("/root/crengine/hyph") );
-        if ( !wm->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
-            if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
-                wm->loadSkin( lString16( L"/root/crengine/skin" ) );
 
         ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ); /*96Mb*/
 

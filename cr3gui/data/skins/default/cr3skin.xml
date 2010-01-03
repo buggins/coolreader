@@ -9,6 +9,11 @@
       <downbutton normal="scroll_arrow_down_enabled.png" disabled="scroll_arrow_down_disabled.png"/>
       <vbody frame="scroll_body_vertical.png" slider="scroll_slider_vertical.png"/>
   </scroll>
+  <scroll id="progress" base="#menuscroll">
+      <border widths="2,2,2,2"/>
+      <hbody frame="cr3_progress_body.png" slider="cr3_progress_slider.png"/>
+      <vbody frame="cr3_progress_body.png" slider="cr3_progress_slider.png"/>
+  </scroll>
   <window id="dialog">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
