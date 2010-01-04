@@ -11,6 +11,8 @@
 */
 
 #include "../include/lvpagesplitter.h"
+#include "../include/lvtinydom.h"
+#include <time.h>
 
 
 int LVRendPageList::FindNearestPage( int y, int direction )
@@ -38,8 +40,26 @@ int LVRendPageList::FindNearestPage( int y, int direction )
 }
 
 LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight)
-    : page_list(pageList), page_h(pageHeight), footNotes(64), curr_note(NULL)
+    : callback(NULL), totalFinalBlocks(0)
+    , renderedFinalBlocks(0), lastSentProgress(0), page_list(pageList), page_h(pageHeight), footNotes(64), curr_note(NULL)
 {
+}
+
+void LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
+{
+    renderedFinalBlocks += numFinalBlocksRendered;
+    int percent = totalFinalBlocks>0 ? renderedFinalBlocks * 100 / totalFinalBlocks : 0;
+    if ( percent<0 )
+        percent = 0;
+    if ( percent>100 )
+        percent = 100;
+    if ( callback ) {
+        time_t t = time((time_t)0);
+        if ( t>lastSentProgress ) {
+            callback->OnFormatProgress(percent);
+            lastSentProgress = t;
+        }
+    }
 }
 
 /// append footnote link to last added line

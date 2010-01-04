@@ -13,6 +13,23 @@
 #include "tocdlg.h"
 #include <cri18n.h>
 
+lString16 limitTextWidth( lString16 s, int width, LVFontRef font )
+{
+
+    int w = font->getTextWidth(s.c_str(), s.length());
+    if ( w<width )
+        return s;
+    lString16 sss = L"...";
+    int www = font->getTextWidth(sss.c_str(), sss.length());
+    while (s.length()>0) {
+        s.erase(s.length()-1, 1);
+        int w = font->getTextWidth(s.c_str(), s.length());
+        if ( w+www<=width )
+            return s+sss;
+    }
+    return lString16(".");
+}
+
 void CRTOCDialog::draw()
 {
     CRRectSkinRef titleSkin = _skin->getTitleSkin();
@@ -45,7 +62,8 @@ void CRTOCDialog::draw()
         if ( !itemRect.isEmpty() ) {
             lvRect rc = itemRect;
             rc.extendBy( borders );
-            clientSkin->drawText( *drawbuf, rc, titleString );
+            lString16 s = limitTextWidth( titleString, rc.width()-borders.left-borders.right, clientSkin->getFont() );
+            clientSkin->drawText( *drawbuf, rc, s );
         }
         if ( !pageNumRect.isEmpty() ) {
             lvRect rc = pageNumRect;
@@ -95,6 +113,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     _tocRect.bottom = _inputRect.top;
     _itemHeight = _font->getHeight();
     _scrollRect = _tocRect;
+    _pageItems = _tocRect.height() / _itemHeight;
     _topItem = 0;
     if ( _items.length() > _pageItems ) {
         // show scroll

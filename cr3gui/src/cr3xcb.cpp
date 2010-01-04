@@ -321,6 +321,9 @@ class CRXCBScreen : public CRGUIScreenBase
             _canvas = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
             _front = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
 
+            _canvas->Clear(0xFFFFFF);
+            _front->Clear(0xFFFFFF);
+
             xcb_flush(connection);
             printf("Created screen %d x %d, depth = %d\n", _width, _height, depth );
         }
@@ -908,6 +911,8 @@ int main(int argc, char **argv)
         CRXCBWindowManager winman( 600, 800 );
 
 #endif
+    if ( !ldomDocCache::init( lString16(L"/media/sd/.cr3/cache"), 0x100000 * 64 ))
+        ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*96Mb*/
     if ( !winman.hasValidConnection() ) {
         CRLog::error("connection has an error! exiting.");
     } else {

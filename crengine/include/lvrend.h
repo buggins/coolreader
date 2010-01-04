@@ -25,7 +25,7 @@ LVFontRef getFont( css_style_rec_t * style );
 /// initializes format data for node
 void initFormatData( ldomNode * node );
 /// initializes rendering method for node
-void initRendMethod( ldomNode * node );
+int initRendMethod( ldomNode * node );
 /// converts style to text formatting API flags
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags );
 /// renders block as single text formatter object

@@ -814,6 +814,13 @@ class CRJinkeScreen : public CRGUIScreenBase
             GrMapWindow(_wid);    
             GrSetFocus(_wid);
         //#endif
+
+            _canvas = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
+            _front = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
+            
+            _canvas->Clear(0xFFFFFF);
+            _front->Clear(0xFFFFFF);
+
             instance = this;
         }
 };
@@ -1278,8 +1285,8 @@ int InitDoc(char *fileName)
 #endif
 
     lString16Collection fontDirs;
-    fontDirs.add( lString16(L"/root/abook/fonts") );
-    fontDirs.add( lString16(L"/home/fonts") );
+    fontDirs.add( lString16(L"/root/abook/fonts/") );
+    fontDirs.add( lString16(L"/home/fonts/") );
     //fontDirs.add( lString16(L"/root/crengine/fonts") ); // will be added
     CRLog::info("INIT...");
     if ( !InitCREngine( "/root/crengine/", fontDirs ) )
@@ -1314,9 +1321,9 @@ int InitDoc(char *fileName)
         };
         loadKeymaps( *wm, keymap_locations );
         if ( LVDirectoryExists( L"/root/abook/crengine/hyph" ) )
-            HyphMan::initDictionaries( lString16("/root/abook/crengine/hyph") );
+            HyphMan::initDictionaries( lString16("/root/abook/crengine/hyph/") );
         else
-            HyphMan::initDictionaries( lString16("/root/crengine/hyph") );
+            HyphMan::initDictionaries( lString16("/root/crengine/hyph/") );
 
         ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ); /*96Mb*/
 

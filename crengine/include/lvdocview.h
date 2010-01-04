@@ -56,18 +56,6 @@
 #define PROP_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"
 
-/// source document formats
-typedef enum {
-    doc_format_none,
-    doc_format_fb2,
-    doc_format_txt,
-    doc_format_rtf,
-    doc_format_epub,
-    doc_format_html,
-    doc_format_txt_bookmark, // coolreader TXT format bookmark
-    // don't forget update getDocFormatName() when changing this enum
-} doc_format_t;
-
 const lChar16 * getDocFormatName( doc_format_t fmt );
 
 /// text format import options
@@ -326,32 +314,6 @@ public:
 
 //typedef lUInt64 LVPosBookmark;
 
-/// DocView Callback interface - track progress, external links, etc.
-class LVDocViewCallback {
-public:
-	/// on starting file loading
-	virtual void OnLoadFileStart( lString16 filename ) { }
-	/// format detection finished
-	virtual void OnLoadFileFormatDetected( doc_format_t fileFormat ) { }
-	/// file loading is finished successfully - drawCoveTo() may be called there
-	virtual void OnLoadFileEnd() { }
-    /// first page is loaded from file an can be formatted for preview
-    virtual void OnLoadFileFirstPagesReady() { }
-    /// file progress indicator, called with values 0..100
-	virtual void OnLoadFileProgress( int percent ) { }
-	/// document formatting started
-	virtual void OnFormatStart() { }
-	/// document formatting finished
-	virtual void OnFormatEnd() { }
-	/// format progress, called with values 0..100
-	virtual void OnFormatProgress( int percent ) { }
-	/// file load finiished with error
-	virtual void OnLoadFileError( lString16 message ) { }
-    /// Override to handle external links
-    virtual void OnExternalLink( lString16 url, ldomNode * node ) { }
-	/// destructor
-    virtual ~LVDocViewCallback() { }
-};
 
 /**
     \brief XML document view

@@ -196,6 +196,8 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
 bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 {
     CRLog::trace("InitCREngine(%s)", exename);
+    for ( int k=0; k<fontDirs.length(); k++ )
+        CRLog::trace(" fontDir: %s", LCSTR(fontDirs[k]));
     lString16 appname( exename );
     int lastSlash=-1;
     lChar16 slashChar = '/';
@@ -254,7 +256,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 
         // load fonts from file
         CRLog::debug("%d font files found", fonts.length());
-        if (!fontMan->GetFontCount()) {
+        //if (!fontMan->GetFontCount()) {
             for ( unsigned fi=0; fi<fonts.length(); fi++ ) {
                 lString8 fn = UnicodeToLocal(fonts[fi]);
                 CRLog::trace("loading font: %s", fn.c_str());
@@ -262,7 +264,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
                     CRLog::trace("    failed\n");
                 }
             }
-        }
+        //}
     #else
             #define MAX_FONT_FILE 128
             for (int i=0; i<MAX_FONT_FILE; i++)

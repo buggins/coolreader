@@ -114,6 +114,47 @@ struct NodeItem;
 class DataBuffer;
 #endif
 
+/// source document formats
+typedef enum {
+    doc_format_none,
+    doc_format_fb2,
+    doc_format_txt,
+    doc_format_rtf,
+    doc_format_epub,
+    doc_format_html,
+    doc_format_txt_bookmark, // coolreader TXT format bookmark
+    // don't forget update getDocFormatName() when changing this enum
+} doc_format_t;
+
+
+/// DocView Callback interface - track progress, external links, etc.
+class LVDocViewCallback {
+public:
+    /// on starting file loading
+    virtual void OnLoadFileStart( lString16 filename ) { }
+    /// format detection finished
+    virtual void OnLoadFileFormatDetected( doc_format_t fileFormat ) { }
+    /// file loading is finished successfully - drawCoveTo() may be called there
+    virtual void OnLoadFileEnd() { }
+    /// first page is loaded from file an can be formatted for preview
+    virtual void OnLoadFileFirstPagesReady() { }
+    /// file progress indicator, called with values 0..100
+    virtual void OnLoadFileProgress( int percent ) { }
+    /// document formatting started
+    virtual void OnFormatStart() { }
+    /// document formatting finished
+    virtual void OnFormatEnd() { }
+    /// format progress, called with values 0..100
+    virtual void OnFormatProgress( int percent ) { }
+    /// file load finiished with error
+    virtual void OnLoadFileError( lString16 message ) { }
+    /// Override to handle external links
+    virtual void OnExternalLink( lString16 url, ldomNode * node ) { }
+    /// destructor
+    virtual ~LVDocViewCallback() { }
+};
+
+
 // default: 512K
 #define DEF_DOC_DATA_BUFFER_SIZE 0x80000
 
@@ -1394,7 +1435,7 @@ public:
     virtual ~ldomDocument();
 #if BUILD_LITE!=1
     /// renders (formats) document in memory
-    virtual int render( LVRendPageList * pages, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space );
+    virtual int render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space );
 #endif
     /// create xpointer from pointer string
     ldomXPointer createXPointer( const lString16 & xPointerStr );

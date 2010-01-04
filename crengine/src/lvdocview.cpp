@@ -1748,7 +1748,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 
         CRLog::debug("Render(width=%d, height=%d, font=%s(%d))", dx, dy, fontName.c_str(), m_font_size);
         //CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
-        m_doc->render( pages, dx, dy, m_showCover, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
+        m_doc->render( pages, isDocumentOpened() ? m_callback : NULL, dx, dy, m_showCover, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
 
     #if 0
         FILE * f = fopen("pagelist.log", "wt");
@@ -2446,6 +2446,7 @@ CRFileHistRecord * LVDocView::getCurrentFileHistRecord()
     lString16 series = getSeries();
     CRLog::trace("get bookmark");
     ldomXPointer bmk = getBookmark();
+    CRLog::debug("m_hist.savePosition(%s, %d)", LCSTR(m_filename), m_filesize);
     CRFileHistRecord * res = m_hist.savePosition( m_filename, m_filesize,
         title, authors, series, bmk );
     CRLog::trace("savePosition() returned");
@@ -2466,6 +2467,7 @@ void LVDocView::restorePosition()
         return;
     LVLock lock(getMutex());
     //checkRender();
+    CRLog::debug("m_hist.restorePosition(%s, %d)", LCSTR(m_filename), m_filesize);
     ldomXPointer pos = m_hist.restorePosition( m_doc, m_filename, m_filesize );
     if ( !pos.isNull() ) {
         //goToBookmark( pos );

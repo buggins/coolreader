@@ -359,8 +359,10 @@ int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvs
         CRFileHistRecord * rec = _records[i];
         if ( rec->getFileName().compare(fname) )
             continue;
-        if ( rec->getFileSize()!=sz )
+        if ( rec->getFileSize()!=sz ) {
+            CRLog::warn("CRFileHist::findEntry() Filename matched %s but sizes are different %d!=%d", LCSTR(fname), sz, rec->getFileSize() );
             continue;
+        }
         return i;
     }
     return -1;

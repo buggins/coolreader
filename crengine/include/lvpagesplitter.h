@@ -161,11 +161,17 @@ public:
     void clear() { lines.clear(); }
 };
 
+class LVDocViewCallback;
 class LVRendPageContext
 {
 
 
     LVPtrVector<LVRendLineInfo> lines;
+
+    LVDocViewCallback * callback;
+    int totalFinalBlocks;
+    int renderedFinalBlocks;
+    time_t lastSentProgress;
     
 
     // page start line
@@ -197,6 +203,12 @@ class LVRendPageContext
 
     void split();
 public:
+
+    void setCallback(LVDocViewCallback * cb, int _totalFinalBlocks) {
+        callback = cb; totalFinalBlocks=_totalFinalBlocks;
+        lastSentProgress = 0;
+    }
+    void updateRenderProgress( int numFinalBlocksRendered );
 
     /// append footnote link to last added line
     void addLink( lString16 id );

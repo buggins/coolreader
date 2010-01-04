@@ -165,12 +165,15 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 	};
 
 	item_def_t interline_spaces[] = {
-		{_("90%"), "90"},
+        {_("80%"), "80"},
+        {_("90%"), "90"},
 		{_("100%"), "100"},
 		{_("110%"), "110"},
 		{_("120%"), "120"},
-		{_("140%"), "140"},
-		{NULL, NULL},
+        {_("130%"), "130"},
+        {_("140%"), "140"},
+        {_("150%"), "150"},
+        {NULL, NULL},
 	};
 
 	item_def_t page_margins[] = {

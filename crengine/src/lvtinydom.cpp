@@ -1449,7 +1449,7 @@ ldomDocument::~ldomDocument()
 }
 
 #if BUILD_LITE!=1
-int ldomDocument::render( LVRendPageList * pages, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
+int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
 {
     CRLog::info("Render is called for width %d, pageHeight=%d", width, dy );
     CRLog::trace("initializing default style...");
@@ -1492,7 +1492,9 @@ int ldomDocument::render( LVRendPageList * pages, int width, int dy, bool showCo
         LVRendPageContext context( pages, dy );
         CRLog::info("rendering context is changed - full render required...");
         CRLog::trace("init render method...");
-        initRendMethod( getRootNode() );
+        int numFinalBlocks = initRendMethod( getRootNode() );
+        CRLog::trace("%d final blocks found", numFinalBlocks);
+        context.setCallback(callback, numFinalBlocks);
         //updateStyles();
         CRLog::trace("rendering...");
         int height = renderBlockElement( context, getRootNode(),
@@ -5093,6 +5095,7 @@ bool ldomDocument::swapToCache( lUInt32 reservedSize )
         return true;
     }
     if ( !ldomDocCache::enabled() ) {
+        CRLog::error("Cannot swap: cache dir is not initialized");
         return false;
     }
 

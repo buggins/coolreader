@@ -972,19 +972,20 @@ bool isInlineItem( ldomNode * node )
 }
 
 // init element render method
-void initRendMethod( ldomNode * enode )
+int initRendMethod( ldomNode * enode )
 {
+    int res = 0;
     if ( enode->isElement() )
     {
         if (enode->getStyle()->display == css_d_none)
         {
             enode->setRendMethod( erm_invisible );
-            return;
+            return 0;
         }
         if (enode->getStyle()->display == css_d_table)
         {
             initTableRendMethods( enode, 0 );
-            return;
+            return 0;
         }
         int cnt = enode->getChildCount();
         int textCount = 0;
@@ -999,7 +1000,7 @@ void initRendMethod( ldomNode * enode )
             ldomNode * child = enode->getChildNode( i );
             if ( child->isElement() )
             {
-                initRendMethod( child );
+                res += initRendMethod( child );
                 // may be modified
                 child = enode->getChildNode( i );
                 //lvdomElementFormatRec * childfmt = child->getRenderData();
@@ -1079,6 +1080,7 @@ void initRendMethod( ldomNode * enode )
                                 enode->getFont()
                                 );
                             abox->setRendMethod( erm_final );
+                            res++;
                             //initRendMethod( abox );
                             firstInline = -1;
                             blockCount++;
@@ -1109,6 +1111,7 @@ void initRendMethod( ldomNode * enode )
         {
             // if there are inline or text in block, make it final
             enode->setRendMethod( erm_final );
+            res++;
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "final";
 #endif
@@ -1129,6 +1132,7 @@ void initRendMethod( ldomNode * enode )
             case css_d_inline:
             case css_d_run_in:
                 enode->setRendMethod( erm_final );
+                res++;
 #ifdef DEBUG_DUMP_ENABLED
                 logfile << "object final";
 #endif
@@ -1158,6 +1162,7 @@ void initRendMethod( ldomNode * enode )
         logfile << "\n";
 #endif
     }
+    return res;
 }
 
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags )
@@ -1577,6 +1582,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                 fmt->setX( fmt->getX() );
                 fmt->setY( fmt->getY() );
                 int h = enode->renderFinalBlock( txform, width - padding_left - padding_right );
+                context.updateRenderProgress(1);
 #ifdef DEBUG_DUMP_ENABLED
                 logfile << "\n";
 #endif
@@ -1734,7 +1740,6 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 // draw whole node content as single formatted object
                 LFormattedTextRef txform;
                 enode->renderFinalBlock( txform, fmt->getWidth() - padding_left - padding_right );
-
                 {
                     if ( marks && marks->length() ) {
                         lvRect rc;
