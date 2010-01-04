@@ -513,6 +513,10 @@ public:
     void checkRender();
     /// saves current position to navigation history, to be able return back
     bool savePosToNavigationHistory();
+    /// navigate to history path URL
+    bool navigateTo( lString16 historyPath );
+    /// packs current file path and name
+    lString16 getNavigationPath();
     /// returns pointer to bookmark/last position containter of currently opened file
     CRFileHistRecord * getCurrentFileHistRecord();
 	/// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter

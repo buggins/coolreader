@@ -9,37 +9,37 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="164"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="164"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="165"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="165"/>
         <source>...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="166"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="166"/>
         <source>Cool Reader 3.0.22</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="167"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="167"/>
         <source>20-09-2009</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="168"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="168"/>
         <source>(c) 1998-2009 Vadim Lopatin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="170"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="170"/>
         <source>About Cool Reader</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="172"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="172"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -59,12 +59,12 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="191"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="191"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="192"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="192"/>
         <source>		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -349,12 +349,12 @@ POSSIBILITY OF SUCH DAMAGES.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="488"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="488"/>
         <source>License</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="489"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="489"/>
         <source>Source code may be downloaded from sourceforge crengine project page.
 
 Latest source code is available from CVS:
@@ -365,7 +365,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_aboutdlg.h" line="496"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_aboutdlg.h" line="496"/>
         <source>Source Code</source>
         <translation type="unfinished"></translation>
     </message>
@@ -379,14 +379,14 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="35"/>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="126"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="126"/>
         <source>Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../addbookmarkdlg.cpp" line="37"/>
         <location filename="../addbookmarkdlg.cpp" line="109"/>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="129"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="129"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
@@ -397,32 +397,32 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="124"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="124"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="125"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="125"/>
         <source>Bookmark type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="127"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="127"/>
         <source>Page 1/10 10%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="128"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="128"/>
         <source>Position text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="130"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="130"/>
         <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_addbookmarkdlg.h" line="131"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_addbookmarkdlg.h" line="131"/>
         <source>sample title</source>
         <translation type="unfinished"></translation>
     </message>
@@ -474,52 +474,52 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="81"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="81"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="82"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="82"/>
         <source>Go to Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="83"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="83"/>
         <source>Return</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="84"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="84"/>
         <source>Remove Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="85"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="85"/>
         <source>Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="86"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="86"/>
         <source>Remove ALL Bookmarks</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="87"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="87"/>
         <source>Edit Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="88"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="88"/>
         <source>F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="89"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="89"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_bookmarklistdlg.h" line="90"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_bookmarklistdlg.h" line="90"/>
         <source>Esc</source>
         <translation type="unfinished"></translation>
     </message>
@@ -730,7 +730,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_filepropsdlg.h" line="62"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_filepropsdlg.h" line="62"/>
         <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
@@ -761,444 +761,444 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
 <context>
     <name>MainWindowClass</name>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="300"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="300"/>
         <source>CoolReader</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="301"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="301"/>
         <source>Open...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="303"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="303"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="305"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="305"/>
         <source>F3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="306"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="306"/>
         <source>Toggle Pages/Scroll</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="307"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="307"/>
         <source>Ctrl+P</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="308"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="308"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="309"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="309"/>
         <source>F12</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="310"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="310"/>
         <source>Minimize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="311"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="311"/>
         <source>Esc</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="312"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="312"/>
         <source>Page Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="314"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="314"/>
         <source>Go to next page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="316"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="316"/>
         <source>PgDown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="317"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="317"/>
         <source>Page Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="319"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="319"/>
         <source>Back by page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="321"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="321"/>
         <source>PgUp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="322"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="322"/>
         <source>Line Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="324"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="324"/>
         <source>Forward by one line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="326"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="326"/>
         <source>Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="327"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="327"/>
         <source>Line Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="329"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="329"/>
         <source>Back by line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="331"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="331"/>
         <source>Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="332"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="332"/>
         <source>First Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="334"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="334"/>
         <source>Go to first page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="336"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="336"/>
         <source>Home</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="337"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="337"/>
         <source>Last Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="339"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="339"/>
         <source>Go to last page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="341"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="341"/>
         <source>End</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="342"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="342"/>
         <source>Back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="344"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="344"/>
         <source>Back in navigation history</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="346"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="346"/>
         <source>Backspace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="347"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="347"/>
         <source>Forward</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="349"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="349"/>
         <source>Go to the next position in navigation history</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="351"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="351"/>
         <source>Shift+Backspace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="352"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="352"/>
         <source>Next Chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="354"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="354"/>
         <source>Go to next chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="356"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="356"/>
         <source>Alt+Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="357"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="357"/>
         <source>Previous Chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="359"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="359"/>
         <source>Go to previous chapter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="361"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="361"/>
         <source>Alt+Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="362"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="362"/>
         <source>Toggle Full Screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="364"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="364"/>
         <source>Toggle Full Screen mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="366"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="366"/>
         <source>Alt+Return</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="367"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="367"/>
         <source>Zoom In</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="369"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="369"/>
         <source>Increase font size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="371"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="371"/>
         <source>+</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="372"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="372"/>
         <source>Zoom Out</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="374"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="374"/>
         <source>Decrease font size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="376"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="376"/>
         <source>-</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="377"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="377"/>
         <source>Table of Contents...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="379"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="379"/>
         <source>Show table of contents</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="381"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="381"/>
         <source>F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="382"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="382"/>
         <source>Recent Books</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="384"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="384"/>
         <source>Show recent books list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="386"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="386"/>
         <source>F5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="387"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="387"/>
         <source>Settings...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="389"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="389"/>
         <source>Settings dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="391"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="391"/>
         <source>F9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="392"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="392"/>
         <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="394"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="394"/>
         <source>Copy selected text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="396"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="396"/>
         <source>Ctrl+C</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="397"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="397"/>
         <source>copy2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="399"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="399"/>
         <source>Copy alternative shortcut</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="401"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="401"/>
         <source>Ctrl+Ins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="402"/>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="404"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="402"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="404"/>
         <source>About Qt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="406"/>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="408"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="406"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="408"/>
         <source>About CoolReader</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="410"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="410"/>
         <source>F1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="411"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="411"/>
         <source>Add Bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="413"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="413"/>
         <source>Add bookmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="415"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="415"/>
         <source>Ctrl+B</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="416"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="416"/>
         <source>Bookmark List...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="418"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="418"/>
         <source>Show bookmarks list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="420"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="420"/>
         <source>F6</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="421"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="421"/>
         <source>File Properties...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="423"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="423"/>
         <source>Show file properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="425"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="425"/>
         <source>Ctrl+F1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="426"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="426"/>
         <source>Rotate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="427"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="427"/>
         <source>Ctrl+R</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="428"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="428"/>
         <source>Find text...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="430"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="430"/>
         <source>Find text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="432"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="432"/>
         <source>Ctrl+F</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="433"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="433"/>
         <source>Toggle Edit Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="435"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="435"/>
         <source>Toggle edit mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="437"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="437"/>
         <source>Ctrl+E</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="438"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="438"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="439"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="439"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="440"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="440"/>
         <source>Navigation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_mainwindow.h" line="441"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_mainwindow.h" line="441"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1236,22 +1236,22 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_recentdlg.h" line="71"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_recentdlg.h" line="71"/>
         <source>Recent Books</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_recentdlg.h" line="72"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_recentdlg.h" line="72"/>
         <source>Remove Item</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_recentdlg.h" line="73"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_recentdlg.h" line="73"/>
         <source>Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_recentdlg.h" line="74"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_recentdlg.h" line="74"/>
         <source>Clear All</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1275,241 +1275,241 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <location filename="../settings.cpp" line="329"/>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="628"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="628"/>
         <source>Text color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="334"/>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="630"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="630"/>
         <source>Background color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../settings.cpp" line="339"/>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="624"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="624"/>
         <source>Page header text color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="577"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="577"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="579"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="579"/>
         <source>Window options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="584"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="584"/>
         <source>Look &amp; feel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="585"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="585"/>
         <source>Startup action</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="588"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="588"/>
         <source>Open recent book</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="589"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="589"/>
         <source>Show list of recent books</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="590"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="590"/>
         <source>Show File Open dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="591"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="591"/>
         <source>Do nothing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="593"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="593"/>
         <source>Controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="594"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="594"/>
         <source>Show toolbar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="595"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="595"/>
         <source>Show menu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="596"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="596"/>
         <source>Show scroll bar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="597"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="597"/>
         <source>Show status bar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="598"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="598"/>
         <source>Fullscreen display</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="599"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="599"/>
         <source>Window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="602"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="602"/>
         <source>One page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="603"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="603"/>
         <source>Two pages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="604"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="604"/>
         <source>Scroll View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="606"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="606"/>
         <source>Vew Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="607"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="607"/>
         <source>Page margins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="610"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="610"/>
         <source>0</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="611"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="611"/>
         <source>5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="612"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="612"/>
         <source>8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="613"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="613"/>
         <source>10</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="614"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="614"/>
         <source>15</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="615"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="615"/>
         <source>20</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="616"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="616"/>
         <source>25</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="617"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="617"/>
         <source>30</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="619"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="619"/>
         <source>Show page header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="620"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="620"/>
         <source>Book name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="621"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="621"/>
         <source>Clock</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="622"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="622"/>
         <source>Battery status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="623"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="623"/>
         <source>Header font</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="625"/>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="635"/>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="636"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="625"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="635"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="636"/>
         <source>Change</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="626"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="626"/>
         <source>Show footnotes at bottom of page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="627"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="627"/>
         <source>Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="629"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="629"/>
         <source>Text font</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="631"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="631"/>
         <source>Hyphenation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="632"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="632"/>
         <source>Interline spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="633"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="633"/>
         <source>Page skin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="634"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="634"/>
         <source>Sample</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="637"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="637"/>
         <source>.TXT files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="638"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="638"/>
         <source>Disable automatic formatting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_settings.h" line="639"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_settings.h" line="639"/>
         <source>Styles</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1527,7 +1527,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../qtbuild/cr3qt/ui_tocdlg.h" line="68"/>
+        <location filename="../../../qtcreator-build/cr3qt/ui_tocdlg.h" line="68"/>
         <source>Table of Contents</source>
         <translation type="unfinished"></translation>
     </message>

@@ -1939,6 +1939,7 @@ bool LVDocView::getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCurso
 /// follow link, returns true if navigation was successful
 bool LVDocView::goLink( lString16 link, bool savePos )
 {
+    CRLog::debug("goLink(%s)", LCSTR(link) );
     ldomNode * element = NULL;
     if ( link.empty() ) {
         ldomXRange * node = LVDocView::getCurrentPageSelectedLink();
@@ -2074,23 +2075,52 @@ bool splitNavigationPos( lString16 pos, lString16 & fname, lString16 & path )
     return true;
 }
 
+/// packs current file path and name
+lString16 LVDocView::getNavigationPath()
+{
+    lString16 fname = m_doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
+    lString16 fpath = m_doc_props->getStringDef(DOC_PROP_FILE_PATH, "");
+    LVAppendPathDelimiter(fpath);
+    lString16 s = fpath + fname;
+    if ( !m_arc.isNull() )
+        s = lString16(L"/") + s;
+    return s;
+}
+
 bool LVDocView::savePosToNavigationHistory()
 {
     ldomXPointer bookmark = getBookmark();
     if ( !bookmark.isNull() ) {
         lString16 path = bookmark.toString();
         if ( !path.empty() ) {
-            lString16 fname = m_doc_props->getStringDef(DOC_PROP_FILE_NAME, "");
-            lString16 fpath = m_doc_props->getStringDef(DOC_PROP_FILE_PATH, "");
-            LVAppendPathDelimiter(fpath);
-            lString16 s = fpath + fname + NAVIGATION_FILENAME_SEPARATOR + path;
-            if ( !m_arc.isNull() )
-                s = lString16(L"/") + s;
+            lString16 s = getNavigationPath() + NAVIGATION_FILENAME_SEPARATOR + path;
             CRLog::debug("savePosToNavigationHistory(%s)", UnicodeToUtf8(s).c_str() );
             return _navigationHistory.save( s );
         }
     }
     return false;
+}
+
+/// navigate to history path URL
+bool LVDocView::navigateTo( lString16 historyPath )
+{
+    CRLog::debug("navigateTo(%s)", LCSTR(historyPath) );
+    lString16 fname, path;
+    if ( splitNavigationPos( historyPath, fname, path ) ) {
+        lString16 curr_fname = getNavigationPath();
+        if ( curr_fname!=fname) {
+            CRLog::debug("navigateTo() : file name doesn't match: current=%s %s, new=%s %s", LCSTR(curr_fname), LCSTR(fname) );
+            if ( !goLink( fname, false ) )
+                return false;
+        }
+    }
+    if ( path.empty() )
+        return false;
+    ldomXPointer bookmark = m_doc->createXPointer( path );
+    if ( bookmark.isNull() )
+        return false;
+    goToBookmark( bookmark );
+    return true;
 }
 
 /// go back. returns true if navigation was successful
@@ -2101,20 +2131,7 @@ bool LVDocView::goBack()
     lString16 s = _navigationHistory.back();
     if ( s.empty() )
         return false;
-    CRLog::debug("goBack(%s)", UnicodeToUtf8(s).c_str() );
-    lString16 fname, path;
-    if ( splitNavigationPos( s, fname, path ) ) {
-        if ( m_filename!=fname )
-            if ( !goLink( fname, false ) )
-                return false;
-    }
-    if ( path.empty() )
-        return false;
-    ldomXPointer bookmark = m_doc->createXPointer( path );
-    if ( bookmark.isNull() )
-        return false;
-    goToBookmark( bookmark );
-    return true;
+    return navigateTo(s);
 }
 
 /// go forward. returns true if navigation was successful
@@ -2123,20 +2140,7 @@ bool LVDocView::goForward()
     lString16 s = _navigationHistory.forward();
     if ( s.empty() )
         return false;
-    CRLog::debug("goForward(%s)", UnicodeToUtf8(s).c_str() );
-    lString16 fname, path;
-    if ( splitNavigationPos( s, fname, path ) ) {
-        if ( m_filename!=fname )
-            if ( !goLink( fname, false ) )
-                return false;
-    }
-    if ( path.empty() )
-        return false;
-    ldomXPointer bookmark = m_doc->createXPointer( path );
-    if ( bookmark.isNull() )
-        return false;
-    goToBookmark( bookmark );
-    return true;
+    return navigateTo(s);
 }
 
 
