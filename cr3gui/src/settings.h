@@ -49,6 +49,7 @@ enum MainMenuItems_t {
     mm_PageMarginRight,
     mm_PageMarginBottom,
     mm_Hyphenation,
+    mm_Controls,
 };
 
 
@@ -69,6 +70,7 @@ class CRSettingsMenu : public CRFullScreenMenu
         CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
         CRMenu * createOrientationMenu( CRMenu * mainMenu, CRPropRef props );
         CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect & rc );
+        virtual bool onCommand( int command, int params );
 };
 
 

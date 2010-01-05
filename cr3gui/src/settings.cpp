@@ -97,7 +97,10 @@ public:
         }
     }
 
-    virtual bool onCommand( int command, int params );
+    virtual bool onCommand( int command, int params )
+    {
+        return CRMenu::onCommand( command, params );
+    }
 };
 
 CRControlsMenuItem::CRControlsMenuItem( CRControlsMenu * menu, int id, int key, int flags, const CRGUIAccelerator * defAcc )
@@ -116,7 +119,20 @@ void CRControlsMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
 {
 }
 
-
+bool CRSettingsMenu::onCommand( int command, int params )
+{
+    switch ( command ) {
+    case mm_Controls:
+        {
+            CRControlsMenu * controlsMenu =
+                    new CRControlsMenu(_wm, mm_Controls, _props, lString16("main"), 8, _rect);
+            _wm->activateWindow( controlsMenu );
+        }
+        return true;
+    default:
+        return CRMenu::onCommand( command, params );
+    }
+}
 
 CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef props )
 {
@@ -440,9 +456,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
                 _("Right margin"),
                  LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_PAGE_MARGIN_RIGHT );
         addMenuItems( marginsMenuRight, page_margins );
+
+
         marginsMenu->addItem( marginsMenuRight );
 		marginsMenu->setAccelerators( _menuAccelerators );
 		marginsMenu->setSkinName(lString16(L"#settings"));
         mainMenu->addItem( marginsMenu );
-        
+
+        mainMenu->addItem( new CRMenuItem( this, mm_Controls, lString16(_("Controls")), LVImageSourceRef(), LVFontRef()) );
 }
