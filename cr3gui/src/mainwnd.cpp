@@ -822,6 +822,7 @@ void V3DocViewWin::showAboutDialog()
 /// returns true if command is processed
 bool V3DocViewWin::onCommand( int command, int params )
 {
+    CRLog::info("V3DocViewWin::onCommand(%d [%s], %d)", command, getCommandName(command, params), params );
     switch ( command ) {
     case MCMD_QUIT:
         getWindowManager()->closeAllWindows();

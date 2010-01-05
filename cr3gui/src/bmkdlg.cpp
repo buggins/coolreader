@@ -54,11 +54,17 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
         skin->drawText( buf, textRect, text, skin->getFont() );
 }
 
+#define MIN_BOOKMARK_ITEMS 32
 CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
     : CRFullScreenMenu( wm, MCMD_BOOKMARK_LIST, lString16(_("Bookmarks")), numItems, rc )
 {
     CRFileHistRecord * bookmarks = docview->getCurrentFileHistRecord();
-    for ( int i=1; i<=_pageItems; i++ ) {
+    int n = bookmarks->getLastShortcutBookmark()+1;
+    n = (n + _pageItems - 1) / _pageItems * _pageItems;
+    int minitems = (MIN_BOOKMARK_ITEMS + _pageItems - 1) / _pageItems * _pageItems;
+    if ( n<minitems )
+        n = minitems;
+    for ( int i=1; i<=n; i++ ) {
         CRBookmark * bm = bookmarks->getShortcutBookmark(i);
         int page = 0;
         if ( bm ) {
@@ -82,19 +88,20 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
 bool CRBookmarkMenu::onCommand( int command, int params )
 {
     if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 ) {
-        int index = command - MCMD_SELECT_1 + 1;
+        int index = command - MCMD_SELECT_1 + 1 + _topItem;
         if ( index >=1 && index <= _pageItems ) {
             closeMenu( DCMD_BOOKMARK_GO_N, index );
             return true;
         }
     } else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {
-        int index = command - MCMD_SELECT_1_LONG + 1;
+        int index = command - MCMD_SELECT_1_LONG + 1 + _topItem;
         if ( index >=1 && index <= _pageItems ) {
             closeMenu( DCMD_BOOKMARK_SAVE_N, index );
             return true;
         }
     }
-    closeMenu( 0 );
-    return true;
+    return CRMenu::onCommand(command, params);
+    //closeMenu( 0 );
+    //return true;
 }
 

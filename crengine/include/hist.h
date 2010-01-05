@@ -93,6 +93,10 @@ private:
     LVPtrVector<CRBookmark> _bookmarks;
     CRBookmark _lastpos;
 public:
+    /// returns first available placeholder for new bookmark, -1 if no more space
+    int getLastShortcutBookmark();
+    /// returns first available placeholder for new bookmark, -1 if no more space
+    int getFirstFreeShortcutBookmark();
     CRBookmark * setShortcutBookmark( int shortcut, ldomXPointer ptr );
     CRBookmark * getShortcutBookmark( int shortcut );
     time_t getLastTime() { return _lastpos.getTimestamp(); }

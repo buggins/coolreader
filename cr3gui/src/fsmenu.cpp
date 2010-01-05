@@ -53,6 +53,10 @@ void CRFullScreenMenu::Draw( LVDrawBuf & buf, int x, int y )
     lvRect rc = skin->getClientRect( _rect );
     int ih = getItemHeight();
     rc.top += _pageItems * ih + 4;
+    int scrollHeight = 0;
+    if ( _items.length() > _pageItems )
+        scrollHeight = 34;
+    rc.bottom -= scrollHeight;
     //skin->getItemSkin()->draw( buf, rc );
     if ( !_helpText.empty() )
         skin->getItemSkin()->drawText( buf, rc, _helpText );

@@ -3951,7 +3951,13 @@ CRBookmark * LVDocView::saveCurrentPageShortcutBookmark( int number )
     ldomXPointer p = getBookmark();
     if ( p.isNull() )
         return NULL;
-	CRBookmark * bm = rec->setShortcutBookmark( number, p );
+    if ( number==0 )
+        number = rec->getFirstFreeShortcutBookmark();
+    if ( number==-1 ) {
+        CRLog::error("Cannot add bookmark: no space left in bookmarks storage.");
+        return NULL;
+    }
+    CRBookmark * bm = rec->setShortcutBookmark( number, p );
     lString16 titleText;
     lString16 posText;
     if ( bm && getBookmarkPosText( p, titleText, posText ) ) {

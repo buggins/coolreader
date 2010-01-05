@@ -315,10 +315,10 @@ void CRMenu::setCurPage( int nPage )
     int oldTop = _topItem;
     _topItem = _pageItems * nPage;
 #if FULL_SCROLL==1
-    if ( _topItem > (int)_items.length() )
-        _topItem = (int)_items.length() / _pageItems * _pageItems;
+    if ( _topItem >= (int)_items.length() )
+        _topItem = ((int)_items.length() - 1) / _pageItems * _pageItems;
 #else
-    if ( _topItem + _pageItems > (int)_items.length() )
+    if ( _topItem + _pageItems >= (int)_items.length() )
         _topItem = (int)_items.length() - _pageItems;
 #endif
     if ( _topItem < 0 )

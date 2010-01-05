@@ -1288,8 +1288,8 @@ static const dbl_char_stat_t dbl_ch_stat_cp1257_lat1[256] = {
 typedef struct {
     const short * ch_stat;
     const dbl_char_stat_t * dbl_ch_stat;
-    char * cp_name;
-    char * lang_name;
+    const char * cp_name;
+    const char * lang_name;
 } cp_stat_t;
 
 

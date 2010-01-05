@@ -353,6 +353,37 @@ CRBookmark * CRFileHistRecord::getShortcutBookmark( int shortcut )
     return NULL;
 }
 
+#define MAX_SHORTCUT_BOOKMARKS 64
+
+/// returns first available placeholder for new bookmark, -1 if no more space
+int CRFileHistRecord::getLastShortcutBookmark()
+{
+    int last = -1;
+    for ( int i=0; i<_bookmarks.length(); i++ ) {
+        if ( _bookmarks[i]->getShortcut()>0 && _bookmarks[i]->getShortcut() > last && _bookmarks[i]->getShortcut() < MAX_SHORTCUT_BOOKMARKS
+                && _bookmarks[i]->getType() == bmkt_pos )
+            last = _bookmarks[i]->getShortcut();
+    }
+    return last;
+}
+
+/// returns first available placeholder for new bookmark, -1 if no more space
+int CRFileHistRecord::getFirstFreeShortcutBookmark()
+{
+    int last = -1;
+    char flags[MAX_SHORTCUT_BOOKMARKS+1];
+    memset( flags, 0, sizeof(flags) );
+    for ( int i=0; i<_bookmarks.length(); i++ ) {
+        if ( _bookmarks[i]->getShortcut()>0 && _bookmarks[i]->getShortcut() < MAX_SHORTCUT_BOOKMARKS && _bookmarks[i]->getType() == bmkt_pos )
+            flags[ _bookmarks[i]->getShortcut() ] = 1;
+    }
+    for ( int j=1; j<MAX_SHORTCUT_BOOKMARKS; j++ ) {
+        if ( flags[j]==0 )
+            return j;
+    }
+    return -1;
+}
+
 int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz )
 {
     for ( int i=0; i<_records.length(); i++ ) {
