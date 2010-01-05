@@ -134,7 +134,7 @@ bool CRViewDialog::hasDictionaries()
 	body << "<p>" << _("Dictionaries in standard unix .dict format are supported.") << "</p>";
 	body << "<p>" << _("For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension") << "</p>";
 	lString8 xml = CRViewDialog::makeFb2Xml( body );
-	CRViewDialog * dlg = new CRViewDialog( _wm, _16("Dictionary"), xml, lvRect(), true, true );
+	CRViewDialog * dlg = new CRViewDialog( _wm, lString16(_("Dictionary")), xml, lvRect(), true, true );
 	_wm->activateWindow( dlg );
 	return false;
 }
@@ -177,7 +177,7 @@ void CRViewDialog::showSearchDialog()
     rc.bottom -= v_margin;
     rc.top += rc.height() / 2;
     _searchPattern.clear();
-    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDFIRST, _16("Search"), _searchPattern, rc );
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_SEARCH_FINDFIRST, lString16(_("Search")), _searchPattern, rc );
     _wm->activateWindow( dlg );
 }
 
@@ -219,7 +219,7 @@ void CRViewDialog::showDictWithVKeyboard()
     rc.bottom -= v_margin;
     rc.top += rc.height() / 2;
     _searchPattern.clear();
-    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_DICT_FIND, _16("Find in dictionary"), _searchPattern, rc );
+    CRScreenKeyboard * dlg = new CRScreenKeyboard( _wm, MCMD_DICT_FIND, lString16(_("Find in dictionary")), _searchPattern, rc );
     _wm->activateWindow( dlg );
 }
 
@@ -389,7 +389,7 @@ void CRViewDialog::showKeymapDialog()
 	txt << "</table>";
 	//============================================================
     txt = CRViewDialog::makeFb2Xml(txt);
-    CRViewDialog * dlg = new CRViewDialog( _wm, _16("Keyboard layout"), txt, lvRect(), true, true );
+    CRViewDialog * dlg = new CRViewDialog( _wm, lString16(_("Keyboard layout")), txt, lvRect(), true, true );
     _wm->activateWindow( dlg );
     //TODO:
 }

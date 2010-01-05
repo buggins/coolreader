@@ -1230,7 +1230,7 @@ int InitDoc(char *fileName)
     CRLog::trace("drawing progressbar 0%%...");
     wm->getScreen()->getCanvas()->Clear(0xFFFFFF);
     wm->getScreen()->invalidateRect( lvRect(0, 0, 600, 800) );
-    wm->showProgress(lString16("cr3_wait_icon.png"), 0);
+    wm->showProgress(lString16("cr3_wait_icon.png"), 10);
 
     lString16 bookmarkDir("/root/abook/bookmarks/");
     {

@@ -30,7 +30,7 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
 
     LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
     CRMenu * orientationMenu = new CRMenu(_wm, mainMenu, mm_Orientation,
-            _16("Page orientation"),
+            lString16(_("Page orientation")),
                             LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_ROTATE_ANGLE );
     addMenuItems( orientationMenu, page_orientations );
     return orientationMenu;
@@ -301,8 +301,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 		//====== Hyphenation ==========
 		if ( HyphMan::getDictList() ) {
             // strings from CREngine - just to catch by gettext tools
-            _16("[No Hyphenation]");
-            _16("[Algorythmic Hyphenation]");
+            _("[No Hyphenation]");
+            _("[Algorythmic Hyphenation]");
 			CRMenu * hyphMenu = new CRMenu(_wm, mainMenu, mm_Hyphenation,
 					_("Hyphenation"),
 					LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_HYPHENATION_DICT );

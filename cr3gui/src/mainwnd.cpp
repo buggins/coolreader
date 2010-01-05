@@ -222,13 +222,13 @@ void V3DocViewWin::OnLoadFileEnd()
 void V3DocViewWin::OnLoadFileProgress( int percent )
 {
     CRLog::trace("OnLoadFileProgress(%d)", percent);
-    _wm->showProgress(lString16("cr3_wait_icon.png"), 25+percent/2);
+    _wm->showProgress(lString16("cr3_wait_icon.png"), 10+percent/2);
 }
 
 /// document formatting started
 void V3DocViewWin::OnFormatStart()
 {
-    _wm->showProgress(lString16("cr3_wait_icon.png"), 75);
+    _wm->showProgress(lString16("cr3_wait_icon.png"), 60);
 }
 
 /// document formatting finished
@@ -241,7 +241,7 @@ void V3DocViewWin::OnFormatEnd()
 void V3DocViewWin::OnFormatProgress( int percent )
 {
     CRLog::trace("OnFormatProgress(%d)", percent);
-    _wm->showProgress(lString16("cr3_wait_icon.png"), 75+percent/4);
+    _wm->showProgress(lString16("cr3_wait_icon.png"), 60+percent*4/10);
 }
 
 /// file load finiished with error
@@ -544,7 +544,7 @@ void V3DocViewWin::showHelpDialog()
 	}
 	//lString8 help = UnicodeToUtf8( LVReadTextFile( _helpFile ) );
 	if ( !help.empty() ) {
-		CRViewDialog * dlg = new CRViewDialog( _wm, _16("Help"), help, lvRect(), true, true );
+		CRViewDialog * dlg = new CRViewDialog( _wm, lString16(_("Help")), help, lvRect(), true, true );
 		_wm->activateWindow( dlg );
 	}
 }
@@ -563,7 +563,7 @@ void V3DocViewWin::showMainMenu()
     CRMenu * menu_win = new CRMenu( _wm,
         NULL, //CRMenu * parentMenu,
         1,
-        _16("Main Menu"),
+        lString16(_("Main Menu")),
         LVImageSourceRef(),
         LVFontRef(),
         LVFontRef() );
@@ -903,7 +903,7 @@ void V3DocViewWin::OnLoadFileFirstPagesReady()
         return;
     }
     CRLog::info( "OnLoadFileFirstPagesReady() - painting first page" );
-    _docview->setPageHeaderOverride(_16("Loading: please wait..."));
+    _docview->setPageHeaderOverride(lString16(_("Loading: please wait...")));
     //update();
     _wm->update(true);
     CRLog::info( "OnLoadFileFirstPagesReady() - painting done" );
