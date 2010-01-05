@@ -88,14 +88,16 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
 bool CRBookmarkMenu::onCommand( int command, int params )
 {
     if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 ) {
-        int index = command - MCMD_SELECT_1 + 1 + _topItem;
+        int index = command - MCMD_SELECT_1 + 1;
         if ( index >=1 && index <= _pageItems ) {
+            index += _topItem;
             closeMenu( DCMD_BOOKMARK_GO_N, index );
             return true;
         }
     } else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {
-        int index = command - MCMD_SELECT_1_LONG + 1 + _topItem;
+        int index = command - MCMD_SELECT_1_LONG + 1;
         if ( index >=1 && index <= _pageItems ) {
+            index += _topItem;
             closeMenu( DCMD_BOOKMARK_SAVE_N, index );
             return true;
         }
