@@ -123,7 +123,7 @@ public:
         CRLog::info("Closing cite");
         _mainwin->getDocView()->clearSelection();
         _wm->closeWindow(this);
-    };
+    }
 
 protected:
     CiteWindow(const CiteWindow&); //non-copyable

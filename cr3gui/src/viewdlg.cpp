@@ -304,7 +304,7 @@ const char * getKeyName( int keyCode )
 	}
 }
 
-const char * CRViewDialog::getKeyName( int keyCode, int option )
+const char * getKeyName( int keyCode, int option )
 {
 	if ( !option )
 		return ::getKeyName( keyCode );
@@ -362,7 +362,7 @@ static const char * getCommandName( int command )
 	}
 }
 
-const char * CRViewDialog::getCommandName( int command, int param )
+const char * getCommandName( int command, int param )
 {
 	if ( !param )
 		return ::getCommandName( command );

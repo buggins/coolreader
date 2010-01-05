@@ -13,7 +13,7 @@
 #ifndef FSMENU_H_INCLUDED
 #define FSMENU_H_INCLUDED
 
-#include "mainwnd.h"
+#include <crgui.h>
 
 
 class CRFullScreenMenu : public CRMenu

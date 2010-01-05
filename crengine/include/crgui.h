@@ -126,6 +126,14 @@ public:
         commandParam = _items[index]->commandParam;
         return true;
     }
+    /// translate keycode to command, returns true if translated
+    const CRGUIAccelerator * findKeyAccelerator( int keyCode, int keyFlags )
+    {
+        int index = indexOf( keyCode, keyFlags );
+        if ( index<0 )
+            return NULL;
+        return get(index);
+    }
     /// empty table constructor
     CRGUIAcceleratorTable() { }
     /// copy constructor

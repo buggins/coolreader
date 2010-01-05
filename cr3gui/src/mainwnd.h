@@ -15,6 +15,7 @@
 #include <crengine.h>
 #include <crgui.h>
 #include <crtrace.h>
+#include "fsmenu.h"
 #include "settings.h"
 #include "t9encoding.h"
 

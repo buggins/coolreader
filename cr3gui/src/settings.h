@@ -14,6 +14,7 @@
 #define CR3_SETTINGS_H_INCLUDED
 
 #include <crgui.h>
+#include "fsmenu.h"
 
 #define MENU_FONT_SIZE 28
 #define MENU_FONT_FACE_SIZE 36
@@ -58,7 +59,7 @@ enum MainMenuItems_t {
 //    2    2   2   2   2   4   6   4   6
 
 
-class CRSettingsMenu : public CRMenu
+class CRSettingsMenu : public CRFullScreenMenu
 {
     protected:
         CRPropRef props;
@@ -67,7 +68,7 @@ class CRSettingsMenu : public CRMenu
     public:
         CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
         CRMenu * createOrientationMenu( CRMenu * mainMenu, CRPropRef props );
-        CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators );
+        CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect & rc );
 };
 
 

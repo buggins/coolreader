@@ -11,12 +11,112 @@
 //
 
 #include "settings.h"
+#include <crgui.h>
+#include "viewdlg.h"
+#include "mainwnd.h"
+//#include "fsmenu.h"
 
 #include <cri18n.h>
 
 
+class CRControlsMenu;
+class CRControlsMenuItem : public CRMenuItem
+{
+private:
+    int _key;
+    int _flags;
+    int _command;
+    int _params;
+    CRControlsMenu * _controlsMenu;
+    lString16 _settingKey;
+    int _defCommand;
+    int _defParams;
+public:
+    CRControlsMenuItem( CRControlsMenu * menu, int id, int key, int flags, const CRGUIAccelerator * defAcc );
+    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
+};
 
-DECL_DEF_CR_FONT_SIZES;
+class CRControlsMenu : public CRFullScreenMenu
+{
+    lString16 _accelTableId;
+    CRGUIAcceleratorTableRef _baseAccs;
+    CRGUIAcceleratorTableRef _overrideCommands;
+    lString16 _settingKey;
+public:
+    CRPropRef getProps() { return _props; }
+    lString16 getSettingKey( int key, int flags )
+    {
+        lString16 res = _settingKey;
+        if ( key!=0 )
+            res = res + L"." + lString16::itoa(key) + L"." + lString16::itoa(flags);
+        return res;
+    }
+    lString16 getSettingLabel( int key, int flags )
+    {
+        return lString16(getKeyName(key, flags));
+    }
+    CRMenu * createCommandsMenu(int key, int flags)
+    {
+        lString16 label = getSettingLabel( key, flags ) + L" - " + lString16(_("choose command"));
+        lString16 keyid = getSettingKey( key, flags );
+        CRMenu * menu = new CRMenu(_wm, this, _id, label, LVImageSourceRef(), LVFontRef(), LVFontRef(), _props, LCSTR(keyid), 8);
+        for ( int i=0; i<_overrideCommands->length(); i++ ) {
+            const CRGUIAccelerator * acc = _overrideCommands->get(i);
+            lString16 cmdLabel = lString16( getCommandName(acc->commandId, acc->commandParam) );
+            lString16 cmdValue = lString16::itoa(acc->commandId) + L"," + lString16::itoa(acc->commandParam);
+            CRMenuItem * item = new CRMenuItem( menu, i, cmdLabel, LVImageSourceRef(), LVFontRef(), cmdValue.c_str());
+            menu->addItem(item);
+        }
+        return menu;
+    }
+    CRControlsMenu(CRGUIWindowManager * wm, int id, CRPropRef props, lString16 accelTableId, int numItems, lvRect & rc)
+    : CRFullScreenMenu( wm, id, lString16(_("Controls")), numItems, rc )
+    {
+        _props = props;
+        _baseAccs = wm->getAccTables().get( accelTableId );
+        if (_baseAccs.isNull()) {
+            CRLog::error("CRControlsMenu: No accelerators %s", LCSTR(_accelTableId) );
+        }
+        _accelTableId = accelTableId;
+        CRGUIAcceleratorTableRef _overrideKeys = wm->getAccTables().get( accelTableId + L"-override-keys" );
+        if ( _overrideKeys.isNull() ) {
+            CRLog::error("CRControlsMenu: No table of allowed keys for override accelerators %s", LCSTR(_accelTableId) );
+            return;
+        }
+        _overrideCommands = wm->getAccTables().get( accelTableId + L"-override-commands" );
+        if ( _overrideCommands.isNull() ) {
+            CRLog::error("CRControlsMenu: No table of allowed commands to override accelerators %s", LCSTR(_accelTableId) );
+            return;
+        }
+        _settingKey = lString16("keymap.") + _accelTableId;
+        for ( int i=0; i<_overrideKeys->length(); i++ ) {
+            const CRGUIAccelerator * acc = _overrideKeys->get(i);
+            CRControlsMenuItem * item = new CRControlsMenuItem(this, i, acc->keyCode, acc->keyFlags,
+                         _baseAccs->findKeyAccelerator( acc->keyCode, acc->keyFlags ) );
+            addItem(item);
+        }
+    }
+
+    virtual bool onCommand( int command, int params );
+};
+
+CRControlsMenuItem::CRControlsMenuItem( CRControlsMenu * menu, int id, int key, int flags, const CRGUIAccelerator * defAcc )
+: CRMenuItem(menu, id, getKeyName(key, flags), LVImageSourceRef(), LVFontRef() ), _key( key ), _flags(flags)
+{
+    _defCommand = _defParams = 0;
+    if ( defAcc ) {
+        _defCommand = defAcc->commandId;
+        _defParams = defAcc->commandParam;
+    }
+    _controlsMenu = menu;
+    _settingKey = menu->getSettingKey( key, flags );
+}
+
+void CRControlsMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
+{
+}
+
+
 
 CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef props )
 {
@@ -35,6 +135,8 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
     addMenuItems( orientationMenu, page_orientations );
     return orientationMenu;
 }
+
+DECL_DEF_CR_FONT_SIZES;
 
 class FontSizeMenu : public CRMenu
 {
@@ -91,11 +193,8 @@ void CRSettingsMenu::addMenuItems( CRMenu * menu, item_def_t values[] )
 }
 
 
-CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators )
-: CRMenu( wm, NULL, id, lString16(_("Settings")),
-            LVImageSourceRef(),
-            font,
-            font ),
+CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect &rc )
+: CRFullScreenMenu( wm, id, lString16(_("Settings")), 8, rc ),
   props( newProps ),
   _menuAccelerators( menuAccelerators )
 {
@@ -192,7 +291,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
-        setSkinName(lString16(L"#settings"));
+        //setSkinName(lString16(L"#settings"));
+        setSkinName(lString16(L"#main"));
 
         LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * mainMenu = this;
@@ -346,5 +446,3 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         mainMenu->addItem( marginsMenu );
         
 }
-
-

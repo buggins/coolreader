@@ -10,8 +10,9 @@
 //
 // bmkdlg.cpp
 
-#include "recentdlg.h"
 #include <cri18n.h>
+#include "recentdlg.h"
+#include "mainwnd.h"
 
 typedef LVPtrVector<CRFileHistRecord> FileList;
 

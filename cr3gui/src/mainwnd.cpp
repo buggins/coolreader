@@ -468,7 +468,8 @@ void V3DocViewWin::showSettingsMenu()
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    CRMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators() );
+    lvRect rc = _wm->getScreen()->getRect();
+    CRMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators(), rc );
     _wm->activateWindow( mainMenu );
 }
 
@@ -478,7 +479,8 @@ void V3DocViewWin::showFontSizeMenu()
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators() );
+    lvRect rc = _wm->getScreen()->getRect();
+    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators(), rc );
     CRMenu * menu = mainMenu->createFontSizeMenu( NULL, _newProps );
     _wm->activateWindow( menu );
 }
@@ -489,7 +491,8 @@ void V3DocViewWin::showOrientationMenu()
     //_props->set( _docview->propsGetCurrent() );
     _props = _docview->propsGetCurrent() | _props;
     _newProps = LVClonePropsContainer( _props );
-    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators() );
+    lvRect rc = _wm->getScreen()->getRect();
+    CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators(), rc );
     CRMenu * menu = mainMenu->createOrientationMenu( NULL, _newProps );
     _wm->activateWindow( menu );
 }

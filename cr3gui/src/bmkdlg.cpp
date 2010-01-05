@@ -10,8 +10,9 @@
 //
 // bmkdlg.cpp
 
-#include "bmkdlg.h"
 #include <cri18n.h>
+#include "bmkdlg.h"
+#include "mainwnd.h"
 
 CRBookmarkMenuItem::CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark, int page )
 : CRMenuItem(menu, shortcut, lString16(_("Empty slot")), LVImageSourceRef(), LVFontRef() ), _bookmark( bookmark ), _page(page)
