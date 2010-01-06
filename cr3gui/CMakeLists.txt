@@ -74,7 +74,7 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
     INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION share/cr3 )
     INSTALL( DIRECTORY data/manual/ DESTINATION share/cr3/manual )
-    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n/ DESTINATION share/i18n
+    INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n/ DESTINATION share/locale
       FILES_MATCHING PATTERN "*.mo" )
 
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
