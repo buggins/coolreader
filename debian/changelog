@@ -1,3 +1,11 @@
+cr3 (3.0.24-1) asimov; urgency=low
+
+  * Merge latest upstream
+  * Bookmarks management improvements
+  * Controls setting added
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Wed, 06 Jan 2009 21:00:00 +0300
+
 cr3 (3.0.23-1) asimov; urgency=low
 
   * Merge latest upstream
