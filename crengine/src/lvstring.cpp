@@ -3377,3 +3377,20 @@ bool SerialBuf::checkMagic( const char * s )
 	return true;
 }
 
+bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
+{
+    if ( s.empty() )
+        return false;
+    int p = s.pos(delim);
+    if ( p<=0 || p>=s.length()-1 )
+        return false;
+    int n1 = s.substr(0, p).atoi();
+    int n2 = s.substr(p+1).atoi();
+    if ( n1>0 ) {
+        value1 = n1;
+        value2 = n2;
+        return true;
+    }
+    return false;
+}
+

@@ -335,7 +335,12 @@ static const char * getCommandName( int command )
 	case DCMD_BOOKMARK_SAVE_N: return _("Save bookmark by number");
 	case DCMD_BOOKMARK_GO_N: return _("Go to bookmark by number");
 	case DCMD_MOVE_BY_CHAPTER: return _("Move by chapter");
-	case MCMD_CANCEL: return _("Close dialog");
+    case DCMD_LINK_FIRST: return _("First link");
+    case DCMD_ROTATE_BY: return _("Rotate by");
+    case DCMD_ROTATE_SET: return _("Set rotate angle");
+    case DCMD_SAVE_HISTORY: return _("Save history and bookmarks");
+    case DCMD_SAVE_TO_CACHE: return _("Save document to cache");
+    case MCMD_CANCEL: return _("Close dialog");
 	case MCMD_OK: return ("Ok");
 	case MCMD_SCROLL_FORWARD: return _("Scroll forward");
 	case MCMD_SCROLL_BACK: return _("Scroll back");
@@ -364,7 +369,30 @@ static const char * getCommandName( int command )
 
 const char * getCommandName( int command, int param )
 {
-	if ( !param )
+    if ( command==DCMD_PAGEUP && param == 0 )
+        return _("Previous Page");
+    if ( command==DCMD_PAGEDOWN && param == 0 )
+        return _("Next Page");
+    if ( command==DCMD_PAGEUP && param == 10 )
+        return _("Back by 10 Pages");
+    if ( command==DCMD_PAGEDOWN && param == 10 )
+        return _("Forward by 10 Pages");
+    if ( command==DCMD_MOVE_BY_CHAPTER && param == 1 )
+        return _("Next Chapter");
+    if ( command==DCMD_MOVE_BY_CHAPTER && param == -1 )
+        return _("Previous Chapter");
+    if ( command==DCMD_BOOKMARK_SAVE_N && param == 0 )
+        return _("Add Bookmark");
+    if ( command==DCMD_ROTATE_BY && param == 1 )
+        return _("Rotate Clockwise");
+    if ( command==DCMD_ROTATE_BY && param == -1 )
+        return _("Rotate Anti-Clockwise");
+    if ( command==DCMD_ROTATE_SET && param == 0 )
+        return _("Portrait View");
+    if ( command==DCMD_ROTATE_SET && param == 1 )
+        return _("Landscape View");
+
+    if ( !param )
 		return ::getCommandName( command );
 	static char buf[ 256 ];
 	sprintf(buf, "%s (%d)", ::getCommandName( command ), param);

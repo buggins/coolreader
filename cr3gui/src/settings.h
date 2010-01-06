@@ -74,5 +74,4 @@ class CRSettingsMenu : public CRFullScreenMenu
 };
 
 
-
 #endif //CR3_SETTINGS_H_INCLUDED

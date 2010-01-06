@@ -120,6 +120,10 @@ public:
     virtual lvRect getClientRect( const lvRect &windowRect );
     virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text );
     virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font );
+    virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags )
+    {
+        CRSkinnedItem::drawText( buf, rc, text, font, textColor, bgColor, flags );
+    }
 };
 typedef LVFastRef<CRRectSkin> CRRectSkinRef;
 

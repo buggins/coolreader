@@ -403,16 +403,19 @@ bool V3DocViewWin::loadSettings( lString16 filename )
     if ( stream.isNull() ) {
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
+        //setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
         return false;
     }
     if ( _props->loadFromStream( stream.get() ) ) {
         _props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 26);
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
+        setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
         return true;
     }
     _docview->propsUpdateDefaults( _props );
     _docview->propsApply( _props );
+    //setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
     return false;
 }
 
@@ -460,6 +463,7 @@ void V3DocViewWin::applySettings()
     CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
     _docview->propsApply( delta );
     _props = _newProps; // | _props;
+    setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
 }
 
 void V3DocViewWin::showSettingsMenu()

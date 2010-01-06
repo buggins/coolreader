@@ -225,6 +225,7 @@ public:
     }
     /// find accelerator table by name
     CRGUIAcceleratorTableRef get( const lString16 & name ) { return _table.get( name ); }
+    CRGUIAcceleratorTableRef get( const lString16 & name, CRPropRef keyRemappingOptions );
     /// find accelerator table by name
     CRGUIAcceleratorTableRef get( const char * name ) { return _table.get( lString16( name ) ); }
     /// returns true if there are no no tables in list
@@ -972,7 +973,7 @@ class CRMenuItem
         /// draws item
         virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
         /// returns true if submenu
-        virtual bool isSubmenu() { return false; }
+        virtual bool isSubmenu() const { return false; }
         /// called on item selection
         virtual int onSelect() { return 0; }
         virtual ~CRMenuItem() { }
@@ -1002,10 +1003,12 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(pageItems) { _fullscreen = false; }
         CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL, int pageItems=8 )
         : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(pageItems) { _fullscreen = false; }
-        virtual bool isSubmenu() { return true; }
+        virtual bool isSubmenu() const { return true; }
         LVPtrVector<CRMenuItem> & getItems() { return _items; }
-        CRPropRef getProps() { return _props; }
-        lString16 getPropName() { return _propName; }
+        CRPropRef getProps() const { return _props; }
+        lString16 getPropName() const { return _propName; }
+        LVFontRef getValueFont() const { return _valueFont; }
+        void setValueFont( LVFontRef font ) { _valueFont = font; }
         void addItem( CRMenuItem * item ) { _items.add( item ); }
         CRMenuItem * findItem( int id ) {
             for ( int i=0; i<_items.length(); i++ )

@@ -32,6 +32,25 @@ private:
     int _defCommand;
     int _defParams;
 public:
+    bool getCommand( int & cmd, int & params )
+    {
+        lString16 v = _menu->getProps()->getStringDef(LCSTR(_settingKey), "");
+        cmd = _defCommand;
+        params = _defParams;
+        return splitIntegerList( v, lString16(","), cmd, params );
+   }
+    /// submenu for options dialog support
+    virtual lString16 getSubmenuValue()
+    {
+        int cmd;
+        int params;
+        bool isSet = getCommand( cmd, params );
+        lString16 res = Utf8ToUnicode(lString8(getCommandName( cmd, params )));
+        // TODO: use default flag
+        return res;
+    }
+    /// called on item selection
+    virtual int onSelect();
     CRControlsMenuItem( CRControlsMenu * menu, int id, int key, int flags, const CRGUIAccelerator * defAcc );
     virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
 };
@@ -67,23 +86,28 @@ public:
             CRMenuItem * item = new CRMenuItem( menu, i, cmdLabel, LVImageSourceRef(), LVFontRef(), cmdValue.c_str());
             menu->addItem(item);
         }
+        menu->setAccelerators( getAccelerators() );
+        menu->setSkinName(lString16(L"#settings"));
+        menu->setValueFont(_valueFont);
+        menu->setFullscreen(true);
         return menu;
     }
-    CRControlsMenu(CRGUIWindowManager * wm, int id, CRPropRef props, lString16 accelTableId, int numItems, lvRect & rc)
-    : CRFullScreenMenu( wm, id, lString16(_("Controls")), numItems, rc )
+    CRControlsMenu(CRMenu * baseMenu, int id, CRPropRef props, lString16 accelTableId, int numItems, lvRect & rc)
+    : CRFullScreenMenu( baseMenu->getWindowManager(), id, lString16(_("Controls")), numItems, rc )
     {
+        _menu = baseMenu;
         _props = props;
-        _baseAccs = wm->getAccTables().get( accelTableId );
+        _baseAccs = _wm->getAccTables().get( accelTableId );
         if (_baseAccs.isNull()) {
             CRLog::error("CRControlsMenu: No accelerators %s", LCSTR(_accelTableId) );
         }
         _accelTableId = accelTableId;
-        CRGUIAcceleratorTableRef _overrideKeys = wm->getAccTables().get( accelTableId + L"-override-keys" );
+        CRGUIAcceleratorTableRef _overrideKeys = _wm->getAccTables().get( accelTableId + L"-override-keys" );
         if ( _overrideKeys.isNull() ) {
             CRLog::error("CRControlsMenu: No table of allowed keys for override accelerators %s", LCSTR(_accelTableId) );
             return;
         }
-        _overrideCommands = wm->getAccTables().get( accelTableId + L"-override-commands" );
+        _overrideCommands = _wm->getAccTables().get( accelTableId + L"-override-commands" );
         if ( _overrideCommands.isNull() ) {
             CRLog::error("CRControlsMenu: No table of allowed commands to override accelerators %s", LCSTR(_accelTableId) );
             return;
@@ -99,9 +123,22 @@ public:
 
     virtual bool onCommand( int command, int params )
     {
-        return CRMenu::onCommand( command, params );
+        switch ( command ) {
+        case mm_Controls:
+            return true;
+        default:
+            return CRMenu::onCommand( command, params );
+        }
     }
 };
+
+/// called on item selection
+int CRControlsMenuItem::onSelect()
+{
+    CRMenu * menu = _controlsMenu->createCommandsMenu(_key, _flags);
+    _menu->getWindowManager()->activateWindow(menu);
+    return 1;
+}
 
 CRControlsMenuItem::CRControlsMenuItem( CRControlsMenu * menu, int id, int key, int flags, const CRGUIAccelerator * defAcc )
 : CRMenuItem(menu, id, getKeyName(key, flags), LVImageSourceRef(), LVFontRef() ), _key( key ), _flags(flags)
@@ -117,6 +154,22 @@ CRControlsMenuItem::CRControlsMenuItem( CRControlsMenu * menu, int id, int key, 
 
 void CRControlsMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
 {
+    lvRect itemBorders = skin->getBorderWidths();
+    skin->draw( buf, rc );
+    buf.SetTextColor( skin->getTextColor() );
+    buf.SetBackgroundColor( skin->getBackgroundColor() );
+    lvRect textRect = rc;
+    lvRect borders = skin->getBorderWidths();
+    textRect.shrinkBy(borders);
+    skin->drawText(buf, textRect, _label, getFont(), skin->getTextColor(), skin->getBackgroundColor(),
+                   SKIN_VALIGN_TOP|SKIN_HALIGN_LEFT);
+    //skin->drawText( buf, textRect, _label, getFont() );
+    lString16 s = getSubmenuValue();
+    if ( s.empty() )
+        return;
+    //_menu->getValueFont()->DrawTextString( &buf, rc.right - w - 8, rc.top + hh/2 - _menu->getValueFont()->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
+    skin->drawText(buf, textRect, s, _menu->getValueFont(), skin->getTextColor(), skin->getBackgroundColor(),
+                   SKIN_VALIGN_BOTTOM|SKIN_HALIGN_RIGHT);
 }
 
 bool CRSettingsMenu::onCommand( int command, int params )
@@ -124,9 +177,6 @@ bool CRSettingsMenu::onCommand( int command, int params )
     switch ( command ) {
     case mm_Controls:
         {
-            CRControlsMenu * controlsMenu =
-                    new CRControlsMenu(_wm, mm_Controls, _props, lString16("main"), 8, _rect);
-            _wm->activateWindow( controlsMenu );
         }
         return true;
     default:
@@ -214,6 +264,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
   props( newProps ),
   _menuAccelerators( menuAccelerators )
 {
+    setSkinName(lString16(L"#settings"));
 
     _fullscreen = true;
 
@@ -463,5 +514,30 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 		marginsMenu->setSkinName(lString16(L"#settings"));
         mainMenu->addItem( marginsMenu );
 
-        mainMenu->addItem( new CRMenuItem( this, mm_Controls, lString16(_("Controls")), LVImageSourceRef(), LVFontRef()) );
+        CRControlsMenu * controlsMenu =
+                new CRControlsMenu(this, mm_Controls, props, lString16("main"), 8, _rect);
+        controlsMenu->setAccelerators( _menuAccelerators );
+        controlsMenu->setSkinName(lString16(L"#settings"));
+        controlsMenu->setValueFont(valueFont);
+        mainMenu->addItem( controlsMenu );
+//        class ControlsActivateItem : public CRMenuItem
+//        {
+//            public:
+//                ControlsActivateItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, const lChar16 * propValue=NULL  )
+//                : CRMenuItem( menu, id, label, image, defFont, propValue  )
+//                {
+//                }
+//                virtual int onSelect()
+//                {
+//                    lvRect rc = _menu->getRect();
+//                    CRControlsMenu * controlsMenu =
+//                            new CRControlsMenu(_menu->getWindowManager(), mm_Controls, _menu->getProps(), lString16("main"), 8, rc);
+//                    menu->setAccelerators( _menuAccelerators );
+//                    menu->setSkinName(lString16(L"#settings"));
+//                    _menu->getWindowManager()->activateWindow( controlsMenu );
+//                }
+//        };
+
+
+//        mainMenu->addItem( new ControlsActivateItem( this, mm_Controls, lString16(_("Controls")), LVImageSourceRef(), LVFontRef()) );
 }

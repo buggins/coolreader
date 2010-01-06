@@ -129,6 +129,30 @@ bool CRGUIAcceleratorTable::add( int keyCode, int keyFlags, int commandId, int c
     return true;
 }
 
+CRGUIAcceleratorTableRef CRGUIAcceleratorTableList::get( const lString16 & name, CRPropRef keyRemappingOptions )
+{
+    CRGUIAcceleratorTableRef prev = get(name);
+    if ( !prev )
+        return prev;
+    CRPropRef keymaps = keyRemappingOptions->getSubProps(LCSTR(lString16("keymap.") + name + L"."));
+    if ( keymaps.isNull() || keymaps->getCount()==0 )
+        return prev;
+    CRGUIAcceleratorTableRef acc( new CRGUIAcceleratorTable( *prev ));
+    for ( int i=0; i<keymaps->getCount(); i++ ) {
+        lString16 name( keymaps->getName(i) );
+        lString16 value = keymaps->getValue(i);
+//        CRLog::trace("Override key map: %s -> %s", LCSTR(name), LCSTR(value) );
+        int key, flags;
+        int cmd, params;
+        if ( !splitIntegerList( name, lString16("."), key, flags ))
+            continue;
+        if ( !splitIntegerList( value, lString16(","), cmd, params ))
+            continue;
+        acc->add(key, flags, cmd, params);
+    }
+    return acc;
+}
+
 /// add all tables
 void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
 {
@@ -639,7 +663,8 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         lvRect itemRc( rc );
         itemRc.left = numberRc.right;
         is->setTextAlign( is->getTextAlign() | SKIN_EXTEND_TAB);
-        _items[i]->Draw( buf, itemRc, is, selected );
+        CRMenuItem * item = _items[i];
+        item->Draw( buf, itemRc, is, selected );
         rc.top += itemSize.y;
     }
 }

@@ -756,6 +756,7 @@ lString16 Utf8ToUnicode( const char * s );
 lString16 Utf8ToUnicode( const char * s, int sz );
 
 #define LCSTR(x) (UnicodeToUtf8(x).c_str())
+bool splitIntegerList( lString16 s, lString16 delim, int & value1, int & value2 );
 
 /// serialization/deserialization buffer
 class SerialBuf
