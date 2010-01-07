@@ -25,7 +25,7 @@ protected:
         CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
         LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
         skin->draw( *buf, _rect );
-        lString16 prompt(lString16(_("Select text")));
+        lString16 prompt(_("Select text"));
         buf->FillRect( _rect, 0xAAAAAA );
         lvRect keyRect = _rect;
         lvRect borders = skin->getBorderWidths();
