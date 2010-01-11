@@ -143,6 +143,10 @@ bool CRTOCDialog::digitEntered( lChar16 c )
 /// returns true if command is processed
 bool CRTOCDialog::onCommand( int command, int params )
 {
+    if ( command == MCMD_SELECT_0 && _value.empty() )
+        command == MCMD_SCROLL_FORWARD;
+    if ( command == MCMD_SELECT_0_LONG && _value.empty() )
+        command == MCMD_SCROLL_FORWARD_LONG;
     switch ( command ) {
     case MCMD_CANCEL:
         if ( _value.length()>0 ) {
@@ -164,8 +168,10 @@ bool CRTOCDialog::onCommand( int command, int params )
             return true;
         }
     case MCMD_SCROLL_FORWARD:
+    case MCMD_SCROLL_FORWARD_LONG:
         {
-            _topItem = _topItem + _pageItems;
+            int step = command == MCMD_SCROLL_FORWARD_LONG ? 10 : 1;
+            _topItem = _topItem + _pageItems * step;
             if ( _topItem > _items.length() - _pageItems )
                 _topItem = _items.length() - _pageItems;
             if ( _topItem < 0 )
@@ -174,8 +180,10 @@ bool CRTOCDialog::onCommand( int command, int params )
         }
         break;
     case MCMD_SCROLL_BACK:
+    case MCMD_SCROLL_BACK_LONG:
         {
-            _topItem = _topItem - _pageItems;
+            int step = command == MCMD_SCROLL_BACK_LONG ? 10 : 1;
+            _topItem = _topItem - _pageItems * step;
             if ( _topItem > _items.length() - _pageItems )
                 _topItem = _items.length() - _pageItems;
             if ( _topItem < 0 )
