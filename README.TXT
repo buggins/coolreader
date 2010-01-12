@@ -73,8 +73,8 @@ cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v3.cmake -D GUI=FB2PROPS -D
 make
 
 # Building Jinke/LBook V3 fb2props plugin for Bookshelf NEW SDK (libfb2props.so):
-mkdir v3fb2propsbuild
-cd v3fb2propsbuild
+mkdir v3newfb2propsbuild
+cd v3newfb2propsbuild
 mkdir dest
 cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-linux-gnueabi.cmake -D GUI=FB2PROPS -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
 make
