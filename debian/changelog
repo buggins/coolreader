@@ -1,9 +1,14 @@
-cr3 (3.0.24-2) asimov; urgency=low
+cr3 (3.0.24-2) zelazny; urgency=low
 
+  [ Vadim Lopatin ]
   * Merge latest upstream
-  * Section is changed from 'media' to 'gui'
+  * section changed from media to gui
 
- -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Tue, 19 Jan 2009 08:05:00 +0300
+  [ Alexander Kerner ]
+  * Bump debhelper compatibility level
+  * Add packages with per-device settings
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 19 Jan 2010 21:02:42 +0100
 
 cr3 (3.0.24-1) asimov; urgency=low
 
