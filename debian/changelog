@@ -1,3 +1,10 @@
+cr3 (3.0.24-2) asimov; urgency=low
+
+  * Merge latest upstream
+  * Section is changed from 'media' to 'gui'
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Tue, 19 Jan 2009 08:05:00 +0300
+
 cr3 (3.0.24-1) asimov; urgency=low
 
   * Merge latest upstream
