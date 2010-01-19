@@ -72,7 +72,8 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
     INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
       FILES_MATCHING PATTERN "*.pattern" )
     INSTALL( DIRECTORY data/skins/default/ DESTINATION share/cr3/skins/default )
-    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION share/cr3 )
+    INSTALL( DIRECTORY data/devices/v3/keymaps/ DESTINATION share/cr3/v3 )
+    INSTALL( DIRECTORY data/devices/n516/keymaps/ DESTINATION share/cr3/n516 )
     INSTALL( DIRECTORY data/manual/ DESTINATION share/cr3/manual )
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n/ DESTINATION share/locale
       FILES_MATCHING PATTERN "*.mo" )
