@@ -70,6 +70,9 @@ class CRXCBScreen : public CRGUIScreenBase
         xcb_gcontext_t      gc;
         xcb_gcontext_t      bgcolor;
         unsigned int pal_[4];
+        unsigned int pal8_[8];
+        unsigned int pal16_[16];
+        unsigned int pal256_[256];
         xcb_drawable_t rect;
         xcb_shm_segment_info_t shminfo;
         xcb_image_t *im;
@@ -149,38 +152,84 @@ class CRXCBScreen : public CRGUIScreenBase
             switch ( im->bpp ) {
             case 32:
                 {
-                    for ( int y = rc.top; y<rc.bottom; y++ ) {
-                        lUInt8 * src = _front->GetScanLine( y );
-                        lUInt32 * dst = (lUInt32 *)(im->data + im->stride * y);
-                        //printf("line %d : %08X -> %08X   ", y, src, dst);
-                        int shift = 6;
-                        for ( int x = 0; x< _width; x++ ) {
-                            lUInt8 data = src[x>>2];
-                            int pixel = (data>>shift) & 3;
-                            lUInt32 color = pal_[ pixel ]; // to check valgrind finding
-                            dst[x] = color;
-                            shift -= 2;
-                            if ( shift < 0 )
-                                shift = 6;
+                    int bpp = _front->GetBitsPerPixel();
+                    if ( bpp==2 ) {
+                        for ( int y = rc.top; y<rc.bottom; y++ ) {
+                            lUInt8 * src = _front->GetScanLine( y );
+                            lUInt32 * dst = (lUInt32 *)(im->data + im->stride * y);
+                            //printf("line %d : %08X -> %08X   ", y, src, dst);
+                            int shift = 6;
+                            for ( int x = 0; x< _width; x++ ) {
+                                lUInt8 data = src[x>>2];
+                                int pixel = (data>>shift) & 3;
+                                lUInt32 color = pal_[ pixel ]; // to check valgrind finding
+                                dst[x] = color;
+                                shift -= 2;
+                                if ( shift < 0 )
+                                    shift = 6;
+                            }
+                        }
+                    } else {
+                        unsigned int * pal;
+                        int shift;
+                        int mask;
+                        if ( bpp==4 ) {
+                            pal = pal16_;
+                            shift = 4;
+                            mask = 15;
+                        } else if ( bpp==8 ) {
+                            pal = pal256_;
+                            shift = 0;
+                            mask = 255;
+                        } else {
+                            pal = pal8_;
+                            shift = 5;
+                            mask = 7;
+                        }
+                        for ( int y = rc.top; y<rc.bottom; y++ ) {
+                            lUInt8 * src = _front->GetScanLine( y );
+                            lUInt32 * dst = (lUInt32 *)(im->data + im->stride * y);
+                            //printf("line %d : %08X -> %08X   ", y, src, dst);
+                            for ( int x = 0; x< _width; x++ ) {
+                                lUInt8 data = src[x];
+                                int pixel = (data>>shift) & mask;
+                                lUInt32 color = pal[ pixel ]; // to check valgrind finding
+                                dst[x] = color;
+                            }
                         }
                     }
                 }
                 break;
             case 8:
                 {
-                    for ( int y = rc.top; y<rc.bottom; y++ ) {
-                        lUInt8 * src = _front->GetScanLine( y );
-                        lUInt8 * dst = (lUInt8 *)(im->data + im->stride * y);
-                        //printf("line %d : %08X -> %08X   ", y, src, dst);
-                        int shift = 6;
-                        for ( int x = 0; x< _width; x++ ) {
-                            lUInt8 data = src[x>>2];
-                            int pixel = (data>>shift) & 3;
-                            lUInt8 color = (lUInt8)pal_[ pixel ]; // to check valgrind finding
-                            dst[x] = color;
-                            shift -= 2;
-                            if ( shift < 0 )
-                                shift = 6;
+                    if ( _front->GetBitsPerPixel()==2 ) {
+                        for ( int y = rc.top; y<rc.bottom; y++ ) {
+                             lUInt8 * src = _front->GetScanLine( y );
+                             lUInt8 * dst = (lUInt8 *)(im->data + im->stride * y);
+                             //printf("line %d : %08X -> %08X   ", y, src, dst);
+                             int shift = 6;
+                             for ( int x = 0; x< _width; x++ ) {
+                                 lUInt8 data = src[x>>2];
+                                 int pixel = (data>>shift) & 3;
+                                 lUInt8 color = (lUInt8)pal_[ pixel ]; // to check valgrind finding
+                                 dst[x] = color;
+                                 shift -= 2;
+                                 if ( shift < 0 )
+                                     shift = 6;
+                             }
+                         }
+                    } else {
+
+                        for ( int y = rc.top; y<rc.bottom; y++ ) {
+                            lUInt8 * src = _front->GetScanLine( y );
+                            lUInt8 * dst = (lUInt8 *)(im->data + im->stride * y);
+                            //printf("line %d : %08X -> %08X   ", y, src, dst);
+                            for ( int x = 0; x< _width; x++ ) {
+                                // TODO: support 8bits as well
+                                int pixel = ((src[x]) >> 4) & 15;
+                                lUInt8 color = (lUInt8)pal16_[ pixel ]; // to check valgrind finding
+                                dst[x] = color;
+                            }
                         }
                     }
                 }
@@ -223,6 +272,8 @@ class CRXCBScreen : public CRGUIScreenBase
             pal_[1] = 0x555555;
             pal_[2] = 0xaaaaaa;
             pal_[3] = 0xffffff;
+            for ( int k=0; k<16; k++ )
+                pal16_[k] = k | (k<<4) | (k<<8) | (k<<12) | (k<<16) | (k<<20);
             //xcb_screen_iterator_t screen_iter;
             //const xcb_setup_t    *setup;
             //xcb_generic_event_t  *e;
@@ -233,6 +284,7 @@ class CRXCBScreen : public CRGUIScreenBase
             uint32_t              values[2];
             int                   screen_number;
             //uint8_t               is_hand = 0;
+            im = NULL;
 
             /* getting the connection */
             connection = xcb_connect (NULL, &screen_number);
@@ -312,6 +364,25 @@ class CRXCBScreen : public CRGUIScreenBase
             rep = xcb_alloc_color_reply (connection, xcb_alloc_color (connection, colormap, 0xff<<8, 0xff<<8, 0xff<<8), NULL);
             pal_[3] = rep->pixel;
             free(rep);
+
+            for ( int kk=0; kk<16; kk++ ) {
+                int cc = kk | (kk<<4);
+                rep = xcb_alloc_color_reply (connection, xcb_alloc_color (connection, colormap, cc<<8, cc<<8, cc<<8), NULL);
+                pal16_[kk] = rep->pixel;
+                free(rep);
+            }
+            for ( int kk=0; kk<8; kk++ ) {
+                int cc = (kk<<5) | (kk<<2) | (kk>>1);
+                rep = xcb_alloc_color_reply (connection, xcb_alloc_color (connection, colormap, cc<<8, cc<<8, cc<<8), NULL);
+                pal8_[kk] = rep->pixel;
+                free(rep);
+            }
+            for ( int kk=0; kk<256; kk++ ) {
+                int cc = kk;
+                rep = xcb_alloc_color_reply (connection, xcb_alloc_color (connection, colormap, cc<<8, cc<<8, cc<<8), NULL);
+                pal256_[kk] = rep->pixel;
+                free(rep);
+            }
 
             pal = pal_;
 

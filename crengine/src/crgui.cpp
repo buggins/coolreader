@@ -222,7 +222,7 @@ void CRGUIScreenBase::flush( bool full )
         // calculate really changed area
         lvRect rc;
         lvRect lineRect(_updateRect);
-        int sz = _width * _canvas->GetBitsPerPixel() / 8;
+        int sz = _canvas->GetRowSize();
         for ( int y = _updateRect.top; y < _updateRect.bottom; y++ ) {
             if ( y>=0 && y<_height ) {
                 void * line1 = _canvas->GetScanLine( y );

@@ -51,7 +51,7 @@ BackgroundFitWindow::draw()
     // TODO: support top position of window too
     int dst_y0 = fullRect.top;
     int dst_y1 = _rect.top;
-    int linesz = buf->GetBitsPerPixel() * buf->GetWidth() / 8;
+    int linesz = buf->GetRowSize();
     int lastline = -3;
     //int delta = (src_y1 - src_y0) - (dst_y1 - dst_y0);
     for ( int y = dst_y0; y<dst_y1; y++ ) {

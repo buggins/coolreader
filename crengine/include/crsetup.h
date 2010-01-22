@@ -152,8 +152,9 @@
 
 //1: use color backbuffer
 //0: use gray backbuffer
-
+#ifndef GRAY_BACKBUFFER_BITS
 #define GRAY_BACKBUFFER_BITS 2
+#endif // GRAY_BACKBUFFER_BITS
 
 #ifndef COLOR_BACKBUFFER
 #ifdef _WIN32

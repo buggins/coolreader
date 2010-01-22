@@ -214,7 +214,26 @@ public:
 
 #define SAVE_DRAW_STATE( buf ) LVDrawStateSaver drawBufSaver( buf )
 
-/// 2-bit gray bitmap buffer, partial support for 1-bit buffer
+enum DrawBufPixelFormat
+{
+    DRAW_BUF_1_BPP = 1, /// 1 bpp, 8 pixels per byte packed
+    DRAW_BUF_2_BPP = 2, /// 2 bpp, 4 pixels per byte packed
+    DRAW_BUF_3_BPP = 3, /// 3 bpp, 1 pixel per byte, higher 3 bits are significant
+    DRAW_BUF_4_BPP = 4, /// 4 bpp, 1 pixel per byte, higher 4 bits are significant
+    DRAW_BUF_8_BPP = 8, /// 8 bpp, 1 pixel per byte, all 8 bits are significant
+    DRAW_BUF_32_BPP = 32, /// color 32bit RGB 888
+};
+
+/**
+ * 2-bit gray bitmap buffer, partial support for 1-bit buffer
+ * Supported pixel formats for LVGrayDrawBuf :
+ *    1 bpp, 8 pixels per byte packed
+ *    2 bpp, 4 pixels per byte packed
+ *    3 bpp, 1 pixel per byte, higher 3 bits are significant
+ *    4 bpp, 1 pixel per byte, higher 4 bits are significant
+ *    8 bpp, 1 pixel per byte, all 8 bits are significant
+ *
+ */
 class LVGrayDrawBuf : public LVBaseDrawBuf
 {
 private:
