@@ -914,7 +914,8 @@ int main(int argc, char **argv)
 #ifdef __i386__
     CRLog::setLogLevel( CRLog::LL_TRACE );
 #else
-    CRLog::setLogLevel( CRLog::LL_ERROR );
+    //CRLog::setLogLevel( CRLog::LL_ERROR );
+    InitCREngineLog("/home/user/.crengine/crlog.ini");
 #endif
 
        
