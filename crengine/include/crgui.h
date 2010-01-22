@@ -875,7 +875,7 @@ class CRDocViewWindow : public CRGUIWindowBase
         : CRGUIWindowBase( wm )
         {
             CRLog::trace("CRDocViewWindow()");
-            _docview = new LVDocView();
+            _docview = new LVDocView( wm->getScreen()->getCanvas()->GetBitsPerPixel() );
             CRLog::trace("resizing...");
             _docview->Resize( getWidth(), getHeight() );
             _docview->setPageMargins( lvRect(10, 10, 10, 10) );

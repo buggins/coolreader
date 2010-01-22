@@ -88,8 +88,8 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 
 static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
-LVDocView::LVDocView()
-: m_dx(400), m_dy(200), m_pos(50), m_battery_state(66)
+LVDocView::LVDocView( int bitsPerPixel)
+: m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), m_pos(50), m_battery_state(66)
 #if (LBOOK==1)
 , m_font_size(32)
 #elif defined(__SYMBIAN32__)
@@ -505,11 +505,21 @@ void LVDocView::cachePageImage( int delta )
         return;
     }
     //CRLog::trace("cachePageImage: starting new render task for page [%d]", offset);
-#if (COLOR_BACKBUFFER==1)
-    LVRef<LVDrawBuf> drawbuf( new LVColorDrawBuf( m_dx, m_dy ) );
-#else
-    LVRef<LVDrawBuf> drawbuf( new LVGrayDrawBuf( m_dx, m_dy, GRAY_BACKBUFFER_BITS ) );
-#endif
+    LVDrawBuf * buf = NULL;
+    if ( m_bitsPerPixel==-1 ) {
+    #if (COLOR_BACKBUFFER==1)
+        buf = new LVColorDrawBuf( m_dx, m_dy );
+    #else
+        buf = new LVGrayDrawBuf( m_dx, m_dy, GRAY_BACKBUFFER_BITS );
+    #endif
+    } else {
+        if ( m_bitsPerPixel==32 ) {
+            buf = new LVColorDrawBuf( m_dx, m_dy );
+        } else {
+            buf = new LVGrayDrawBuf( m_dx, m_dy, m_bitsPerPixel );
+        }
+    }
+    LVRef<LVDrawBuf> drawbuf( buf );
     LVRef<LVThread> thread( new LVDrawThread( this, offset, drawbuf ) );
     m_imageCache.set( offset, drawbuf, thread );
     //CRLog::trace("cachePageImage: caching page [%d] is finished", offset);

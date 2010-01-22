@@ -326,6 +326,7 @@ class LVDocView
 {
     friend class LVDrawThread;
 private:
+    int m_bitsPerPixel;
     int m_dx;
     int m_dy;
     int m_pos;
@@ -811,7 +812,7 @@ public:
     void Render( int dx=0, int dy=0, LVRendPageList * pages=NULL );
 
     /// Constructor
-    LVDocView();
+    LVDocView( int bitsPerPixel=-1 );
     /// Destructor
     virtual ~LVDocView();
 };

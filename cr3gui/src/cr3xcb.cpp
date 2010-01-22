@@ -389,8 +389,19 @@ class CRXCBScreen : public CRGUIScreenBase
             _width = width;
             _height = height;
             createImage();
-            _canvas = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
-            _front = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
+
+            // substitute GRAY_BACKBUFFER_BITS with depth of screen
+            int d = im->depth;
+            if ( d==32 || d==24 )
+                d = 3; // 8 colors for desktop simulation
+            if ( d<2 )
+                d = 2;
+            if ( d>4 )
+                d = 4;
+            CRLog::info( "Device depth=%d, will use rendering depth=%d", (int)im->depth, d );
+
+            _canvas = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, d ) );
+            _front = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, d ) );
 
             _canvas->Clear(0xFFFFFF);
             _front->Clear(0xFFFFFF);
