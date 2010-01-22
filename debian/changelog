@@ -1,3 +1,10 @@
+cr3 (3.0.24-3) zelazny; urgency=low
+
+  * Change keyboard mapping for N516
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Fri, 22 Jan 2009 06:00:00 +0300
+
+
 cr3 (3.0.24-2) zelazny; urgency=low
 
   [ Vadim Lopatin ]
