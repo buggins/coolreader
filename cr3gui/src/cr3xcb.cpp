@@ -1,5 +1,5 @@
 /*
-    First version of CR3 for EWL, based on etimetool example by Lunohod
+    CR3 for OpenInkpot (XCB)
 */
 #include <stdint.h>
 #include <stdio.h>
