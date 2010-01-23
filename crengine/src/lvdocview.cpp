@@ -27,6 +27,10 @@
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
 
+/// to avoid showing title/author if coverpage image present
+#define NO_TEXT_IN_COVERPAGE
+
+
 const char * def_stylesheet =
 "image { text-align: center; text-indent: 0px } \n"
 "empty-line { height: 1em; } \n"
@@ -717,13 +721,18 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     int h = txform.Format( title_w, rc.height() );
 
     lvRect imgrc = rc;
-    imgrc.bottom -= h + 16;
+    
 
     //CRLog::trace("drawCoverTo() - getting cover image");
     LVImageSourceRef imgsrc = getCoverPageImage();
     LVImageSourceRef defcover = getDefaultCover();
     if ( !imgsrc.isNull() && imgrc.height()>30 )
     {
+#ifdef NO_TEXT_IN_COVERPAGE
+        h = 0;
+#endif
+        if ( h )
+            imgrc.bottom -= h + 16;
         //fprintf( stderr, "Writing coverpage image...\n" );
         int src_dx = imgsrc->GetWidth();
         int src_dy = imgsrc->GetHeight();
@@ -735,14 +744,16 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
             scale_x = scale_y;
         int dst_dx = (src_dx * scale_x) >> 16;
         int dst_dy = (src_dy * scale_y) >> 16;
-        if (dst_dx>rc.width())
+        if (dst_dx>rc.width()*9/10)
             dst_dx = imgrc.width();
-        if (dst_dy>rc.height())
+        if (dst_dy>rc.height()*9/10)
             dst_dy = imgrc.height();
-            //CRLog::trace("drawCoverTo() - drawing image");
-            drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
+        //CRLog::trace("drawCoverTo() - drawing image");
+        drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
         //fprintf( stderr, "Done.\n" );
     } else if ( !defcover.isNull() ) {
+        if ( h )
+            imgrc.bottom -= h + 16;
         // draw default cover with title at center
         imgrc = rc;
         int src_dx = defcover->GetWidth();
@@ -771,7 +782,8 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     }
     rc.top = imgrc.bottom;
     //CRLog::trace("drawCoverTo() - drawing text");
-    txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2, NULL );
+    if ( h )
+        txform.Draw( drawBuf, (rc.right + rc.left - title_w) / 2, (rc.bottom + rc.top - h) / 2, NULL );
     //CRLog::trace("drawCoverTo() - done");
 }
 
@@ -974,6 +986,7 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc,
             iconIndex = 0;
         if ( iconIndex>m_batteryIcons.length()-1 )
             iconIndex = m_batteryIcons.length()-1;
+        CRLog::trace("battery icon index = %d", iconIndex);
         LVImageSourceRef icon = m_batteryIcons[iconIndex];
         drawbuf->Draw( icon, (batteryRc.left + batteryRc.right - icon->GetWidth() ) / 2,
             (batteryRc.top + batteryRc.bottom - icon->GetHeight())/2,
@@ -1188,6 +1201,7 @@ bool LVDocView::setBatteryState( int newState )
 { 
     if ( m_battery_state == newState )
         return false;
+    CRLog::info("New battery state: %d", newState );
     m_battery_state = newState;
     clearImageCache();
     return true;

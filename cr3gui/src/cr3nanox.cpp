@@ -69,15 +69,20 @@ int checkPowerState()
     if (fp) {
         fread(buf, 1, 20, fp);
         batteryvalue=atoi(buf);
+        CRLog::trace("/tmp/batteryinfo = %d", batteryvalue);
         if (batteryvalue>4 || batteryvalue<0)
             batteryvalue=4;//6
         batteryvalue = batteryvalue * 100 / 4;
         batteryState = batteryvalue;
         fclose(fp);
     } else {
+#if USE_OWN_BATTERY_TEST==1
         FILE * f = fopen( "/dev/misc/s3c2410_batt", "rb" );
         if ( !f ) {
+#endif
             batteryState = -1;
+            CRLog::debug("cannot read battery state");
+#if USE_OWN_BATTERY_TEST==1
         } else {
             int ch = fgetc( f );
             fclose(f);
@@ -88,6 +93,7 @@ int checkPowerState()
             else
                 batteryState = 100;
         }
+#endif
     }
     return batteryState;
 }
@@ -931,6 +937,19 @@ protected:
    DBusConnection *m_bus;               //bus name
 #endif
 public:
+    virtual bool getBatteryStatus( int & percent, bool & charging )
+    {
+        charging = false;
+        percent = checkPowerState();
+        if ( percent<0 ) {
+            percent = 0;
+            return false;
+        }
+        return true;
+
+    }
+
+    
     /// translate string by key, return default value if not found
     virtual lString16 translateString( const char * key, const char * defValue )
     {
@@ -1004,26 +1023,26 @@ public:
         {
                     //read the parameters
             if (!dbus_message_iter_init(msg, &args))
-                    fprintf(stderr, "Message Has No Parameters\n");
+                    CRLog::error("dbus: Message Has No Parameters\n");
             else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
-                    fprintf(stderr, "Argument is not string!\n");
+                    CRLog::error("dbus: Argument is not string!\n");
             else
             {
                     dbus_message_iter_get_basic(&args, &sigvalue);
-                    printf("Got Signal with value %s\n", sigvalue);
+                    CRLog::info("dbus: Got Signal with value %s\n", sigvalue);
             }
         }
         else if (dbus_message_is_signal (msg, "com.burtonini.dbus.Signal", "Exit"))
         {
                     //read the parameters
             if (!dbus_message_iter_init(msg, &args))
-                    fprintf(stderr, "Message Has No Parameters\n");
+                    CRLog::error("dbus: Message Has No Parameters\n");
             else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
-                    fprintf(stderr, "Argument is not string!\n");
+                    CRLog::error("dbus: Argument is not string!\n");
             else
             {
                 dbus_message_iter_get_basic(&args, &sigvalue);
-                printf("Got Signal with value %s\n", sigvalue);
+                CRLog::info("dbus: Got Signal with value %s\n", sigvalue);
             }
         }
         //free the message
@@ -1185,6 +1204,7 @@ public:
                     CRLog::debug( "GR_EVENT_TYPE_FDINPUT" );
                     break;
             default:
+                    CRLog::debug( "unknown event %d", (int)event.type );
                     break;
             }
         }
@@ -1197,6 +1217,7 @@ public:
         } while(1);
         return 1;
     }
+#if 0
     bool doCommand( int cmd, int params )
     {
         if ( !onCommand( cmd, params ) )
@@ -1207,6 +1228,7 @@ public:
         update( false );
         return true;
     }
+#endif
 };
 
 
@@ -1532,7 +1554,7 @@ int InitDoc(char *fileName)
 #endif
 
         LVDocView * _docview = main_win->getDocView();
-        _docview->setBatteryState( checkPowerState() * 100 / 4 );
+        _docview->setBatteryState( checkPowerState() );
         //_docview->setBatteryState( ::getBatteryState() );
         wm->activateWindow( main_win );
         if ( !main_win->loadDocument( lString16(fileName) ) ) {
