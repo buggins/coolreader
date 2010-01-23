@@ -434,7 +434,7 @@ static struct atom {
 class CRXCBWindowManager : public CRGUIWindowManager
 {
 protected:
-    xcb_connection_t * _connection;
+    //xcb_connection_t * _connection;
 
 
     void init_properties()
@@ -447,8 +447,8 @@ protected:
 
         int atoms_cnt = sizeof(atoms) / sizeof(struct atom);
         for(int i = 0; i < atoms_cnt; i++) {
-            cookie = xcb_intern_atom_unchecked(_connection, 0, strlen(atoms[i].name), atoms[i].name);
-            reply = xcb_intern_atom_reply(_connection, cookie, NULL);
+            cookie = xcb_intern_atom_unchecked(connection, 0, strlen(atoms[i].name), atoms[i].name);
+            reply = xcb_intern_atom_reply(connection, cookie, NULL);
             atoms[i].atom = reply->atom;
             free(reply);
         }
@@ -568,13 +568,14 @@ public:
     {
         CRXCBScreen * s = new CRXCBScreen( dx, dy );
         _screen = s;
-        _connection = s->getXcbConnection();
+        init_properties();
+        //_connection = s->getXcbConnection();
         _ownScreen = true;
     }
 
     bool hasValidConnection()
     {
-        return ( xcb_get_setup(_connection) != NULL );
+        return ( xcb_get_setup(connection) != NULL );
     }
 
     virtual bool getBatteryStatus( int & percent, bool & charging );
@@ -711,7 +712,6 @@ int CRXCBWindowManager::runEventLoop()
     act.sa_flags = 0;
     sigaction(SIGUSR1, &act, NULL);
     
-    init_properties();
 
     
     xcb_visibility_t visibility;
@@ -734,13 +734,13 @@ int CRXCBWindowManager::runEventLoop()
     static bool alt_pressed = false;
 
     CRLog::trace("CRXCBWindowManager::runEventLoop()");
-    xcb_key_symbols_t * keysyms = xcb_key_symbols_alloc( _connection );
+    xcb_key_symbols_t * keysyms = xcb_key_symbols_alloc( connection );
 
     xcb_generic_event_t *event;
     bool stop = false;
-    while (!stop && (event = xcb_wait_for_event (_connection)) ) {
+    while (!stop && (event = xcb_wait_for_event (connection)) ) {
 
-        if(xcb_connection_has_error(_connection)) {
+        if(xcb_connection_has_error(connection)) {
             CRLog::error("Connection to server closed\n");
             break;
         }
