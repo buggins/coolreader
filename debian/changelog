@@ -1,3 +1,9 @@
+cr3 (3.0.24-5) zelazny; urgency=low
+
+  * Keymap fixes
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Sat, 23 Jan 2009 21:50:00 +0300
+
 cr3 (3.0.24-4) zelazny; urgency=low
 
   * Add support of extended grayscale depth (8 and 16 colors)
