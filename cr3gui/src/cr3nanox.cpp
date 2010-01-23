@@ -477,6 +477,101 @@ int GrBitmapEx_Apollo_FOUR(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int
     return 0;
 }
 
+int GrBitmapEx_Apollo_NEW(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int height,int src_x,int src_y, int src_width,int src_height, GR_CHAR *imagebits)
+{
+    
+    BMPHEADER_256 lpHeader;
+    GR_IMAGE_ID ImageId;
+    int HeaderLen;
+    int i;
+    int Lines;
+    int BmpBufBytsPerLine=0,BytesPerLine=0;
+
+
+    unsigned char char1,char2,char3,char4,BmpChar1;
+    unsigned char *Screen_Buf=NULL,*BmpFileBuf=NULL,*BufPtr=NULL,*HeaderBuf=NULL,*pimg = NULL;
+    int GrayLevel=8;//256 gray level
+    int BmpWidth=0,BmpHeight=0,PixesPerByte=0,BmpPanelNumbers=0,Bmpheadersize=0;
+    BmpWidth=min(width,src_width);
+    BmpHeight=min(height,src_height-src_y);
+//  BmpHeight=min(height,src_height);
+    if(BmpHeight<=0)
+        BmpHeight=1;    
+
+    PixesPerByte=8/GrayLevel;
+    BmpPanelNumbers=1<<GrayLevel;
+    BytesPerLine=(BmpWidth*GrayLevel+31)/32*4;//��Ҫ4�ֽڶ���ÿ��
+    BmpBufBytsPerLine=(((src_width*GrayLevel+7)/8+3)/4)*4;
+
+
+    i=sizeof(BMPHEADER_256);
+    HeaderLen=BITMAPFILEHEADER_SIZE+sizeof(BITMAPINFOHEADER)+sizeof(MWPALENTRY)*BmpPanelNumbers;
+    memcpy((unsigned char *)&lpHeader.FileHeader.bfType,"BM",2);//�ļ�����
+    lpHeader.FileHeader.bfSize=(BmpHeight*BytesPerLine)/PixesPerByte+HeaderLen; //�ļ���С
+    lpHeader.FileHeader.bfReserved1=0;//����
+    lpHeader.FileHeader.bfReserved2=0;//����
+    lpHeader.FileHeader.bfOffBits=HeaderLen;//ͼƬ����λ��
+    lpHeader.BmpInfo.biSize=sizeof(BITMAPINFOHEADER);//BMP ��Ϣ�ṹ�Ĵ�С
+    lpHeader.BmpInfo.biWidth=BmpWidth;//BMP���� 
+    lpHeader.BmpInfo.biHeight=BmpHeight;//BMP �߶�
+    lpHeader.BmpInfo.biPlanes=1;//����(1)   
+    lpHeader.BmpInfo.biBitCount=GrayLevel;//BMP �Ҷȵȼ�
+    lpHeader.BmpInfo.biCompression=0;//ѹ������
+    lpHeader.BmpInfo.biSizeImage=lpHeader.FileHeader.bfSize-HeaderLen;//ͼƬ���ݴ�С
+    lpHeader.BmpInfo.biXPelsPerMeter=0x257E;//XÿӢ�����ظ���(�̶�)
+    lpHeader.BmpInfo.biYPelsPerMeter=0x257E;//YÿӢ�����ظ���(�̶�)
+    lpHeader.BmpInfo.biClrUsed=0;//0��ʾ��ɫ���е���ɫֵ��������
+    lpHeader.BmpInfo.biClrImportant=0;//0��ʾ������ɫ����Ҫȥ��ɫ���в�ѯ
+    
+    Bmpheadersize=HeaderLen;
+    BmpFileBuf=new unsigned char[BmpHeight*BytesPerLine+Bmpheadersize];
+
+    if(!BmpFileBuf)
+    {
+        return 1;
+    }
+    memset(BmpFileBuf,0xFF,BmpHeight*BytesPerLine+Bmpheadersize);
+    HeaderBuf=BmpFileBuf;   
+    Screen_Buf=BmpFileBuf+Bmpheadersize;
+    BufPtr=Screen_Buf;
+
+    memcpy(HeaderBuf,(char *)&lpHeader.FileHeader.bfType,2);
+    memcpy(&HeaderBuf[2],(char *)&lpHeader.FileHeader.bfSize,4);
+    memcpy(&HeaderBuf[6],(char *)&lpHeader.FileHeader.bfReserved1,2);
+    memcpy(&HeaderBuf[8],(char *)&lpHeader.FileHeader.bfReserved2,2);
+    memcpy(&HeaderBuf[10],(char *)&lpHeader.FileHeader.bfOffBits,4);
+    HeaderBuf+=BITMAPFILEHEADER_SIZE;
+    memcpy(HeaderBuf,(unsigned char *)&lpHeader.BmpInfo,BITMAPINFOHEADER_SIZE);
+    HeaderBuf+=BITMAPINFOHEADER_SIZE;
+    memcpy(HeaderBuf,(unsigned char *)&panel256,sizeof(MWPALENTRY)*BmpPanelNumbers);
+    HeaderBuf=BmpFileBuf;   
+                
+    Lines=0;
+    BufPtr = (unsigned char *)(Screen_Buf+(BmpHeight-1)*BytesPerLine);
+    pimg = (unsigned char *)(imagebits + src_y*BmpBufBytsPerLine +src_x);
+    for(Lines=0;Lines<BmpHeight;Lines++)
+    {
+//printf("%s line = %d,height =%d,byte = %d,buf =%d\n",__FUNCTION__,Lines,BmpHeight,BytesPerLine,BufPtr);
+//      BufPtr=(unsigned char *)&Screen_Buf[(BmpHeight-1-Lines)*BytesPerLine];
+//      memcpy(BufPtr,(unsigned char *)&imagebits[(Lines+src_y)*BmpBufBytsPerLine+src_x],BytesPerLine);
+        memcpy(BufPtr,pimg,BytesPerLine);
+        BufPtr -= BytesPerLine;
+        pimg += BmpBufBytsPerLine;      
+    }
+    
+
+
+    
+    ImageId=GrLoadImageFromBuffer(BmpFileBuf,lpHeader.FileHeader.bfSize,GR_BACKGROUND_TOPLEFT);
+    
+    GrDrawImageToFit(id,gc,x,y,BmpWidth,BmpHeight,ImageId);
+    printf("x=%d,y=%d,BmpWidth=%d,BmpHeight=%d\n",x,y,BmpWidth,BmpHeight);
+    GrFreeImage(ImageId);
+
+    delete(BmpFileBuf);
+    return 0;
+}
+
 #endif
 
 class LedThreadApp
@@ -743,7 +838,11 @@ class CRJinkeScreen : public CRGUIScreenBase
             else
                 GrPartialPrint_Apollo(rc.left, rc.top, rc.width(), rc.height() );
         #else
-            GrBitmapEx_Apollo_FOUR(_wid,_gc, 0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top) );
+            int bpp=_front->GetBitsPerPixel();
+            if ( bpp>=3 && bpp<=8 )
+                GrBitmapEx_Apollo_NEW(_wid,_gc, 0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top) );
+            else
+                GrBitmapEx_Apollo_FOUR(_wid,_gc, 0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top) );
             if ( full )
                 GrPrint(_wid);
             else
@@ -813,7 +912,8 @@ class CRJinkeScreen : public CRGUIScreenBase
             _front = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, GRAY_BACKBUFFER_BITS ) );
             
             _canvas->Clear(0xFFFFFF);
-            _front->Clear(0xFFFFFF);
+            //_front->Clear(0xFFFFFF);
+            _front->Clear(0x000000);
 
             instance = this;
         }
