@@ -1,8 +1,12 @@
 cr3 (3.0.24-5) zelazny; urgency=low
 
+  [ Vadim Lopatin ]
   * Keymap fixes
 
- -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Sat, 23 Jan 2009 21:50:00 +0300
+  [ Mikhail Gusarov ]
+  * Build
+
+ -- Mikhail Gusarov <dottedmag@dottedmag.net>  Sun, 24 Jan 2010 01:17:57 +0600
 
 cr3 (3.0.24-4) zelazny; urgency=low
 
