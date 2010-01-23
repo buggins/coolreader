@@ -9,12 +9,20 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
+#define ENABLE_DBUS_VIEWER_EVENTS
+
 
 #include <unistd.h>
 #include <sys/wait.h>
 #include "cr3jinke.h"
 #include <crengine.h>
 #include <crgui.h>
+
+#ifdef ENABLE_DBUS_VIEWER_EVENTS
+#define DBUS_API_SUBJECT_TO_CHANGE
+#include <dbus/dbus.h>
+#endif
+
 #include <microwin/nano-X.h>
 #include <microwin/nxcolors.h>
 #include "cr3main.h"
@@ -63,41 +71,27 @@ int checkPowerState()
         batteryvalue=atoi(buf);
         if (batteryvalue>4 || batteryvalue<0)
             batteryvalue=4;//6
+        batteryvalue = batteryvalue * 100 / 4;
         batteryState = batteryvalue;
         fclose(fp);
-    }else{
-        batteryState = -1; // 4
+    } else {
+        FILE * f = fopen( "/dev/misc/s3c2410_batt", "rb" );
+        if ( !f ) {
+            batteryState = -1;
+        } else {
+            int ch = fgetc( f );
+            fclose(f);
+            if ( ch == ' ' )
+                batteryState = -1;
+            else if ( ch>=0 && ch <= 16 )
+                batteryState = ch * 100 / 16;
+            else
+                batteryState = 100;
+        }
     }
     return batteryState;
 }
 
-/*
-int getBatteryState()
-{
-#if 1
-    // TODO: battery state
-    return 100;
-#else
-#if USE_OWN_BATTERY_TEST==0
-    lastState.batteryState = v3_callbacks->GetBatteryState();
-    if ( lastState.batteryState >=0 && lastState.batteryState <=4 )
-        return lastState.batteryState * 100 / 4;
-    return 100;
-#else
-    FILE * f = fopen( "/dev/misc/s3c2410_batt", "rb" );
-    if ( !f )
-        return -1;
-    int ch = fgetc( f );
-    fclose(f);
-    if ( ch == ' ' )
-        return -1;
-    if ( ch>=0 && ch <= 16 )
-        return ch * 100 / 16;
-    return 100;
-#endif
-#endif
-}
-*/
 #include <cri18n.h>
 
 #define VIEWER_WINDOW_X         0
@@ -833,6 +827,9 @@ class CRJinkeWindowManager : public CRGUIWindowManager
 {
 protected:
     GR_WINDOW_ID _wid;
+#ifdef ENABLE_DBUS_VIEWER_EVENTS
+   DBusConnection *m_bus;               //bus name
+#endif
 public:
     /// translate string by key, return default value if not found
     virtual lString16 translateString( const char * key, const char * defValue )
@@ -854,6 +851,7 @@ public:
     CRJinkeWindowManager( int dx, int dy )
     : CRGUIWindowManager(NULL)
     {
+        int bus_fd;
         
         if ( CRJinkeScreen::instance==NULL )
             _screen = new CRJinkeScreen( dx, dy );
@@ -863,8 +861,76 @@ public:
             _wid = ((CRJinkeScreen*)_screen)->getWID();
             _ownScreen = true;
             instance = this;
+
+#ifdef ENABLE_DBUS_VIEWER_EVENTS
+            //dbus, nanox
+            m_bus = dbus_bus_get (DBUS_BUS_SESSION, NULL);
+            if (!m_bus)
+            {
+                printf ("Failed to connect to the D-BUS daemon");
+                //return 0;
+            } else {
+                dbus_bus_add_match (m_bus, "type='signal',interface='com.burtonini.dbus.Signal'", NULL);
+                dbus_connection_get_unix_fd(m_bus, &bus_fd);
+                GrRegisterInput(bus_fd);
+            }
+#endif
+        
         }
     }
+
+#ifdef ENABLE_DBUS_VIEWER_EVENTS
+    void onDbusMessage(DBusConnection *conn)
+    {
+        if ( !m_bus )
+            return;
+        DBusMessage* msg;
+        DBusMessageIter args;
+        DBusError err;
+        int ret;
+        char* sigvalue;
+
+        // non blocking read of the next available message
+        dbus_connection_read_write_dispatch(conn, 0);
+        msg = dbus_connection_pop_message(conn);
+
+        // loop again if we haven't read a message
+        if (NULL == msg)
+        {
+            return;
+        }
+        //check if the message is a signal from the correct interface and with the correct name
+        if (dbus_message_is_signal (msg, "com.burtonini.dbus.Signal", "Ping"))
+        {
+                    //read the parameters
+            if (!dbus_message_iter_init(msg, &args))
+                    fprintf(stderr, "Message Has No Parameters\n");
+            else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
+                    fprintf(stderr, "Argument is not string!\n");
+            else
+            {
+                    dbus_message_iter_get_basic(&args, &sigvalue);
+                    printf("Got Signal with value %s\n", sigvalue);
+            }
+        }
+        else if (dbus_message_is_signal (msg, "com.burtonini.dbus.Signal", "Exit"))
+        {
+                    //read the parameters
+            if (!dbus_message_iter_init(msg, &args))
+                    fprintf(stderr, "Message Has No Parameters\n");
+            else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
+                    fprintf(stderr, "Argument is not string!\n");
+            else
+            {
+                dbus_message_iter_get_basic(&args, &sigvalue);
+                printf("Got Signal with value %s\n", sigvalue);
+            }
+        }
+        //free the message
+        dbus_message_unref(msg);
+    }
+#endif
+
     // runs event loop
     virtual int runEventLoop()
     {
@@ -1036,7 +1102,7 @@ public:
         if ( !onCommand( cmd, params ) )
             return false;
         if ( main_win!=NULL ) {
-            main_win->getDocView()->setBatteryState( checkPowerState()*100/4);
+            main_win->getDocView()->setBatteryState( checkPowerState() );
         }
         update( false );
         return true;

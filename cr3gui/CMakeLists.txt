@@ -81,7 +81,7 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3nanox.cpp)
-    SET (EXTRA_LIBS nano-X pthread )
+    SET (EXTRA_LIBS nano-X pthread ${DBUS_LIBRARIES} )
 
     INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
     INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
