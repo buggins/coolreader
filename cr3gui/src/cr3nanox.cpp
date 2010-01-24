@@ -9,8 +9,21 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#define ENABLE_DBUS_VIEWER_EVENTS
 
+// support DBUS interface signals
+#ifndef ENABLE_DBUS_VIEWER_EVENTS
+#define ENABLE_DBUS_VIEWER_EVENTS 0
+#endif
+
+// flash leds while long operation
+#ifndef LEDTHREAD
+#define LEDTHREAD 0
+#endif
+
+// uncomment following line to allow running executables named .exe.txt
+#define ALLOW_RUN_EXE 1
+// uncomment to use separate .ini files for different formats
+#define SEPARATE_INI_FILES 1
 
 #include <unistd.h>
 #include <sys/wait.h>
@@ -18,7 +31,7 @@
 #include <crengine.h>
 #include <crgui.h>
 
-#ifdef ENABLE_DBUS_VIEWER_EVENTS
+#if ENABLE_DBUS_VIEWER_EVENTS==1
 #define DBUS_API_SUBJECT_TO_CHANGE
 #include <dbus/dbus.h>
 #endif
@@ -39,12 +52,7 @@
 #define min(a,b) ((a)<(b)?(a):(b))
 #define max(a,b) ((a)>(b)?(a):(b))
 
-// uncomment following line to allow running executables named .exe.txt
-#define ALLOW_RUN_EXE 1
-// uncomment to use separate .ini files for different formats
-#define SEPARATE_INI_FILES 1
 
-#define LEDTHREAD 1
 
 static bool firstDocUpdate = true;
 
@@ -933,7 +941,7 @@ class CRJinkeWindowManager : public CRGUIWindowManager
 {
 protected:
     GR_WINDOW_ID _wid;
-#ifdef ENABLE_DBUS_VIEWER_EVENTS
+#if ENABLE_DBUS_VIEWER_EVENTS==1
    DBusConnection *m_bus;               //bus name
 #endif
 public:
@@ -981,7 +989,7 @@ public:
             _ownScreen = true;
             instance = this;
 
-#ifdef ENABLE_DBUS_VIEWER_EVENTS
+#if ENABLE_DBUS_VIEWER_EVENTS==1
             //dbus, nanox
             m_bus = dbus_bus_get (DBUS_BUS_SESSION, NULL);
             if (!m_bus)
@@ -998,7 +1006,7 @@ public:
         }
     }
 
-#ifdef ENABLE_DBUS_VIEWER_EVENTS
+#if ENABLE_DBUS_VIEWER_EVENTS==1
     void onDbusMessage(DBusConnection *conn)
     {
         if ( !m_bus )
