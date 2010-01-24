@@ -34,6 +34,14 @@ static lUInt32 rgbToGray( lUInt32 color )
     return ((r + g + g + b)>>2) & 0xFF;
 }
 
+static lUInt32 rgbToGray( lUInt32 color, int bpp )
+{
+    lUInt32 r = (0xFF0000 & color) >> 16;
+    lUInt32 g = (0x00FF00 & color) >> 8;
+    lUInt32 b = (0x0000FF & color) >> 0;
+    return ((r + g + g + b)>>2) & (((1<<bpp)-1)<<(8-bpp));
+}
+
 static lUInt8 rgbToGrayMask( lUInt32 color, int bpp )
 {
     switch ( bpp ) {
@@ -89,24 +97,24 @@ static const short dither_2bpp_8x8[] = {
 59, 27, 55, 23, 57, 25, 53, 21, 
 };
 
+// returns byte with higher significant bits, lower bits are 0
 lUInt32 DitherNBitColor( lUInt32 color, lUInt32 x, lUInt32 y, int bits )
 {
-    int cl = ((((color>>16) & 255) + ((color>>8) & 255) + ((color) & 255)) * (256/3)) >> 8;
+    int mask = ((1<<bits)-1)<<(8-bits);
+    // gray = (r + 2*g + b)>>2
+    int cl = ((((color>>16) & 255) + ((color>>(8-1)) & (255<<1)) + ((color) & 255)) >> 2) & 255;
     int white = (1<<bits) - 1;
     int precision = white;
     if (cl<precision)
         return 0;
     else if (cl>=255-precision)
-        return white;
+        return mask;
     //int d = dither_2bpp_4x4[(x&3) | ( (y&3) << 2 )] - 1;
+    // dither = 0..63
     int d = dither_2bpp_8x8[(x&7) | ( (y&7) << 3 )] - 1;
-
-    cl = ( cl + d - 32 );
-    if (cl<precision)
-        return 0;
-    else if (cl>=255-precision)
-        return white;
-    return (cl >> (8-bits)) & white;
+    int shift = bits-2;
+    cl = ( (cl<<shift) + d - 32 ) >> shift;
+    return cl & mask;
 }
 
 lUInt32 Dither2BitColor( lUInt32 color, lUInt32 x, lUInt32 y )
@@ -352,7 +360,8 @@ public:
         {
             if ( yy+dst_y<clip.top || yy+dst_y>=clip.bottom )
                 continue;
-            if ( dst->GetBitsPerPixel() >= 24 )
+            int bpp = dst->GetBitsPerPixel();
+            if ( bpp >= 24 )
             {
                 lUInt32 * row = (lUInt32 *)dst->GetScanLine( yy + dst_y );
                 row += dst_x;
@@ -369,7 +378,7 @@ public:
                         ApplyAlphaRGB( row[x], cl, alpha );
                 }
             }
-            else if ( dst->GetBitsPerPixel() > 2 ) // 3,4,8 bpp
+            else if ( bpp > 2 ) // 3,4,8 bpp
             {
                 lUInt8 * row = (lUInt8 *)dst->GetScanLine( yy + dst_y );
                 row += dst_x;
@@ -380,14 +389,24 @@ public:
                     lUInt32 alpha = (cl >> 24)&0xFF;
                     if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
                         continue;
+                    lUInt8 dcl;
+                    if ( dither ) {
+#if (GRAY_INVERSE==1)
+                        dcl = DitherNBitColor( cl^0xFFFFFF, x, yy, bpp );
+#else
+                        dcl = DitherNBitColor( cl, x, yy, bpp );
+#endif
+                    } else {
+                        dcl = rgbToGray( cl, bpp );
+                    }
                     // TODO: implement alpha
                     if ( !alpha )
-                        row[ x ] = cl;
+                        row[ x ] = dcl;
                     //else
                     //    ApplyAlphaRGB( row[x], cl, alpha );
                 }
             }
-            else if ( dst->GetBitsPerPixel() == 2 )
+            else if ( bpp == 2 )
             {
                 //fprintf( stderr, "." );
                 lUInt8 * row = (lUInt8 *)dst->GetScanLine( yy+dst_y );
@@ -416,7 +435,7 @@ public:
                     row[ byteindex ] = (lUInt8)((row[ byteindex ] & (~mask)) | dcl);
                 }
             }
-            else if ( dst->GetBitsPerPixel() == 1 )
+            else if ( bpp == 1 )
             {
                 //fprintf( stderr, "." );
                 lUInt8 * row = (lUInt8 *)dst->GetScanLine( yy+dst_y );
