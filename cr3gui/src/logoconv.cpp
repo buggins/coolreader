@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     }
     printf("Stop image: %s %d x %d\n", argv[1], startimg->GetWidth(), startimg->GetHeight());
     LVGrayDrawBuf buf2( 600, 800, 3 );
-    buf2.Draw(startimg, 0, 0, 600, 800, true);
+    buf2.Draw(stopimg, 0, 0, 600, 800, true);
 
     FILE * out = fopen( argv[3], "wb" );
     if ( !out ) {
