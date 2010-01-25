@@ -79,6 +79,19 @@ static void ApplyAlphaRGB( lUInt32 &dst, lUInt32 src, lUInt32 alpha )
     }
 }
 
+static void ApplyAlphaGray( lUInt8 &dst, lUInt8 src, lUInt32 alpha, int bpp )
+{
+    if ( alpha==0 )
+        dst = src;
+    else if ( alpha<255 ) {
+        src &= 0xFFFFFF;
+        lUInt32 opaque = 256 - alpha;
+        int mask = ((1<<bpp)-1) << (8-bpp);
+        lUInt32 n1 = ((dst * alpha + src * opaque) >> 1) & mask;
+        dst = (lUInt8)n1;
+    }
+}
+
 static const short dither_2bpp_4x4[] = {
     5, 13,  8,  16,
     9,  1,  12,  4,
@@ -402,8 +415,8 @@ public:
                     // TODO: implement alpha
                     if ( !alpha )
                         row[ x ] = dcl;
-                    //else
-                    //    ApplyAlphaRGB( row[x], cl, alpha );
+                    else
+                        ApplyAlphaGray( row[x], cl, alpha, bpp );
                 }
             }
             else if ( bpp == 2 )

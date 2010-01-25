@@ -78,6 +78,7 @@ class CRXCBScreen : public CRGUIScreenBase
         xcb_image_t *im;
         unsigned int *pal;
         uint8_t depth;
+        int bufDepth;
         /// sets new screen size
         virtual bool setSize( int dx, int dy )
         {
@@ -258,6 +259,13 @@ class CRXCBScreen : public CRGUIScreenBase
             xcb_flush(connection);
         }
     public:
+        /// creates compatible canvas of specified size
+        virtual LVDrawBuf * createCanvas( int dx, int dy )
+        {
+            LVDrawBuf * buf = new LVGrayDrawBuf( dx, dy, bufDepth );
+            buf->Clear(0xFFFFFF);
+            return buf;
+        }
         virtual ~CRXCBScreen()
         {
             if ( im )
@@ -398,13 +406,12 @@ class CRXCBScreen : public CRGUIScreenBase
                 d = 2;
             if ( d>4 )
                 d = 4;
+            bufDepth = d;
             CRLog::info( "Device depth=%d, will use rendering depth=%d", (int)im->depth, d );
 
-            _canvas = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, d ) );
-            _front = LVRef<LVDrawBuf>( new LVGrayDrawBuf( _width, _height, d ) );
+            _canvas = LVRef<LVDrawBuf>( createCanvas( _width, _height ) );
+            _front = LVRef<LVDrawBuf>( createCanvas( _width, _height ) );
 
-            _canvas->Clear(0xFFFFFF);
-            _front->Clear(0xFFFFFF);
 
             xcb_flush(connection);
             printf("Created screen %d x %d, depth = %d\n", _width, _height, depth );
