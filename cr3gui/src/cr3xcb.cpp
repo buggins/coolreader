@@ -977,7 +977,7 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    if ( argc!=2 ) {
+    if ( argc<2 ) {
         printf("Usage: cr3 <filename_to_open>\n");
         return 3;
     }
@@ -985,6 +985,8 @@ int main(int argc, char **argv)
     const char * fname = argv[1];
     const char * bmkdir = NULL;
     lString8 fn8( fname );
+    lString16 fn16 = LocalToUnicode( fn8 );
+    CRLog::info("Filename to open=\"%s\"", LCSTR(fn16) );
     if ( fn8.startsWith( lString8("/media/sd/") ) )
         bmkdir = "/media/sd/bookmarks/";
     //TODO: remove hardcoded
