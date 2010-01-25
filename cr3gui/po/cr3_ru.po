@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2010-01-06 02:46+0300\n"
+"POT-Creation-Date: 2010-01-25 16:07+0300\n"
 "PO-Revision-Date: 2009-03-05 11:43+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Russian\n"
@@ -230,11 +230,11 @@ msgstr "[не удалось прочитать статью]"
 
 #: ../src/settings.cpp:79
 msgid "choose command"
-msgstr "выберите команду"
+msgstr "Выберите команда"
 
 #: ../src/settings.cpp:96
 msgid "Controls"
-msgstr "Настройка клавиш"
+msgstr "Управление"
 
 #: ../src/settings.cpp:190
 msgid "0` (Portrait)"
@@ -274,7 +274,7 @@ msgstr "В больших шрифтах"
 
 #: ../src/settings.cpp:274 ../src/settings.cpp:280 ../src/settings.cpp:286
 #: ../src/settings.cpp:292 ../src/settings.cpp:298 ../src/settings.cpp:304
-#: ../src/settings.cpp:310 ../src/settings.cpp:329
+#: ../src/settings.cpp:310 ../src/settings.cpp:335
 msgid "Off"
 msgstr "Выкл."
 
@@ -283,7 +283,7 @@ msgstr "Выкл."
 msgid "On"
 msgstr "Вкл."
 
-#: ../src/settings.cpp:315
+#: ../src/settings.cpp:315 ../src/settings.cpp:321
 msgid "Normal"
 msgstr "Обычный"
 
@@ -291,127 +291,135 @@ msgstr "Обычный"
 msgid "Inverse"
 msgstr "Инвертировано"
 
-#: ../src/settings.cpp:321
+#: ../src/settings.cpp:322
+msgid "Bold"
+msgstr "Жирный"
+
+#: ../src/settings.cpp:327
 msgid "One"
 msgstr "Одна"
 
-#: ../src/settings.cpp:322
+#: ../src/settings.cpp:328
 msgid "Two"
 msgstr "Две"
 
-#: ../src/settings.cpp:327
+#: ../src/settings.cpp:333
 msgid "Top"
 msgstr "Сверху"
 
-#: ../src/settings.cpp:334
+#: ../src/settings.cpp:340
 msgid "80%"
 msgstr "80%"
 
-#: ../src/settings.cpp:335
+#: ../src/settings.cpp:341
 msgid "90%"
 msgstr "90%"
 
-#: ../src/settings.cpp:336
+#: ../src/settings.cpp:342
 msgid "100%"
 msgstr "100%"
 
-#: ../src/settings.cpp:337
+#: ../src/settings.cpp:343
 msgid "110%"
 msgstr "110%"
 
-#: ../src/settings.cpp:338
+#: ../src/settings.cpp:344
 msgid "120%"
 msgstr "120%"
 
-#: ../src/settings.cpp:339
+#: ../src/settings.cpp:345
 msgid "130%"
 msgstr "130%"
 
-#: ../src/settings.cpp:340
+#: ../src/settings.cpp:346
 msgid "140%"
 msgstr "140%"
 
-#: ../src/settings.cpp:341
+#: ../src/settings.cpp:347
 msgid "150%"
 msgstr "150%"
 
-#: ../src/settings.cpp:369
+#: ../src/settings.cpp:375
 msgid "Default font face"
 msgstr "Шрифт"
 
-#: ../src/settings.cpp:391
+#: ../src/settings.cpp:397
+msgid "Font weight"
+msgstr "Насыщенность шрифта"
+
+#: ../src/settings.cpp:403
 msgid "Font antialiasing"
 msgstr "Сглаживание букв"
 
-#: ../src/settings.cpp:397
+#: ../src/settings.cpp:409
 msgid "Interline space"
 msgstr "Межстрочный интервал"
 
-#: ../src/settings.cpp:406
+#: ../src/settings.cpp:418
 msgid "Footnotes at page bottom"
 msgstr "Сноски внизу страницы"
 
-#: ../src/settings.cpp:417
+#: ../src/settings.cpp:429
 msgid "Show time"
 msgstr "Отображение часов в колонтитуле"
 
-#: ../src/settings.cpp:423
+#: ../src/settings.cpp:435
 msgid "Landscape pages"
 msgstr "Колонки в альбомной странице"
 
-#: ../src/settings.cpp:429
+#: ../src/settings.cpp:441
 msgid "Preformatted text"
 msgstr "Форматированный текст"
 
-#: ../src/settings.cpp:437
+#: ../src/settings.cpp:449
 msgid "Document embedded styles"
 msgstr "Использовать стили документа"
 
-#: ../src/settings.cpp:443
+#: ../src/settings.cpp:455
 msgid "Inverse display"
 msgstr "Инверсное отображение"
 
-#: ../src/settings.cpp:450
+#: ../src/settings.cpp:462
 msgid "Show bookmark icons"
 msgstr "Показывать закладки"
 
-#: ../src/settings.cpp:457
+#: ../src/settings.cpp:469
 msgid "Status line"
 msgstr "Колонтитул"
 
-#: ../src/settings.cpp:463
+#: ../src/settings.cpp:475
 msgid "Font kerning"
 msgstr "Кернинг шрифта"
 
-#: ../src/settings.cpp:471
+#: ../src/settings.cpp:483
 msgid "[No Hyphenation]"
 msgstr "[Отключить переносы]"
 
-#: ../src/settings.cpp:472
+#: ../src/settings.cpp:484
 msgid "[Algorythmic Hyphenation]"
 msgstr "[Алгоритмические переносы]"
 
-#: ../src/settings.cpp:474
+#: ../src/settings.cpp:486
 msgid "Hyphenation"
 msgstr "Переносы"
 
-#: ../src/settings.cpp:489
+#: ../src/settings.cpp:501
 msgid "Page margins"
 msgstr "Поля страницы"
 
-#: ../src/settings.cpp:492
+#: ../src/settings.cpp:504
 msgid "Top margin"
 msgstr "Верхний отступ"
 
-#: ../src/settings.cpp:497
+#: ../src/settings.cpp:509
 msgid "Bottom margin"
 msgstr "Нижний отступ"
 
-#: ../src/settings.cpp:502
+#: ../src/settings.cpp:514
 msgid "Left margin"
 msgstr "Левый отступ"
 
-#: ../src/settings.cpp:507
+#: ../src/settings.cpp:519
 msgid "Right margin"
 msgstr "Правый отступ"
 
@@ -521,23 +529,23 @@ msgstr "Переход по главам"
 
 #: ../src/viewdlg.cpp:338
 msgid "First link"
-msgstr "Первая ссылка страницы"
+msgstr "Первая ссылка"
 
 #: ../src/viewdlg.cpp:339
 msgid "Rotate by"
-msgstr "Поворот на"
+msgstr "Повернуть на"
 
 #: ../src/viewdlg.cpp:340
 msgid "Set rotate angle"
-msgstr "Установить поворот"
+msgstr "Установить угол поворота"
 
 #: ../src/viewdlg.cpp:341
 msgid "Save history and bookmarks"
-msgstr "Сохранить историю и закладки"
+msgstr "Сохранить закладки"
 
 #: ../src/viewdlg.cpp:342
 msgid "Save document to cache"
-msgstr "Сохранить документ в кеш"
+msgstr "Сохранить документ в кэш"
 
 #: ../src/viewdlg.cpp:343
 msgid "Close dialog"
@@ -641,7 +649,7 @@ msgstr "Вперед на 10 страниц"
 
 #: ../src/viewdlg.cpp:381
 msgid "Next Chapter"
-msgstr "Следущая глава"
+msgstr "Следующая глава"
 
 #: ../src/viewdlg.cpp:383
 msgid "Previous Chapter"
@@ -653,11 +661,11 @@ msgstr "Добавить закладку"
 
 #: ../src/viewdlg.cpp:387
 msgid "Rotate Clockwise"
-msgstr "Повернуть по часовой стрелке"
+msgstr "Поворот по часовой стрелке"
 
 #: ../src/viewdlg.cpp:389
 msgid "Rotate Anti-Clockwise"
-msgstr "Повернуть против часовой стрелки"
+msgstr "Поворот против часовой стрелки"
 
 #: ../src/viewdlg.cpp:391
 msgid "Portrait View"
@@ -665,7 +673,7 @@ msgstr "Книжная ориентация"
 
 #: ../src/viewdlg.cpp:393
 msgid "Landscape View"
-msgstr "Альбомная ориентаци"
+msgstr "Альбомная ориентация"
 
 #: ../src/viewdlg.cpp:408
 msgid "Key"
