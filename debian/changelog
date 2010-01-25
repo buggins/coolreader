@@ -1,3 +1,26 @@
+cr3 (3.0.24-8) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * V3/V5 battery fix
+  * dithering fix
+  * add book filename to log
+  * update readme for i386 xcb build
+  * replace wait icon
+  * add Font Weight option
+  * update russian translation
+  * update changelog
+  * fix resize/rotate for XCB frontend
+
+  [ Tomasz Długosz ]
+  * Update Polish translation
+
+  [ Vadim Lopatin ]
+  * Lbook logo convertor
+  * fix lbook logo convertor
+  * changelog update
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Mon, 25 Jan 2010 22:21:22 +0100
+
 cr3 (3.0.24-7) zelazny; urgency=low
 
   * Fixed resize (rotate) bug on XCB (OI)
