@@ -45,6 +45,12 @@ cd wxbuild
 cmake -D GUI=WX ..
 make
 
+# Building i386 debug version for OpenInkpot:
+mkdir build-i386
+cd build-i386
+cmake -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB ..
+make
+
 # Building ARM version on OpenInkpot:
 mkdir armbuild
 cd armbuild
