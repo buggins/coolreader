@@ -1,3 +1,10 @@
+cr3 (3.0.24-6) zelazny; urgency=low
+
+  * Added support of Font Weight setting
+  * Updated Russian translation
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Mon, 25 Jan 2010 18:35:00 +0300
+
 cr3 (3.0.24-5) zelazny; urgency=low
 
   [ Vadim Lopatin ]
@@ -12,13 +19,13 @@ cr3 (3.0.24-4) zelazny; urgency=low
 
   * Add support of extended grayscale depth (8 and 16 colors)
 
- -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Fri, 22 Jan 2009 19:05:00 +0300
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Fri, 22 Jan 2010 19:05:00 +0300
 
 cr3 (3.0.24-3) zelazny; urgency=low
 
   * Change keyboard mapping for N516
 
- -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Fri, 22 Jan 2009 06:00:00 +0300
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Fri, 22 Jan 2010 06:00:00 +0300
 
 cr3 (3.0.24-2) zelazny; urgency=low
 
