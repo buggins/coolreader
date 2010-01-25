@@ -763,9 +763,27 @@ public:
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found 
     */
-    virtual bool getGlyphImage(lUInt16, lUInt8 *)
+    virtual bool getGlyphImage(lUInt16 ch, lUInt8 * bmp)
     {
-        return false;
+        FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, ch );
+        if ( ch_glyph_index==0 )
+            return false;
+        LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
+        if ( !item ) {
+
+            int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
+            /* load glyph image into the slot (erase previous one) */
+            int error = FT_Load_Glyph( _face,          /* handle to face object */
+                    ch_glyph_index,                /* glyph index           */
+                    rend_flags );             /* load flags, see below */
+            if ( error ) {
+                return false;  /* ignore errors */
+            }
+            item = LVFontGlyphCacheItem::newItem( &_glyph_cache, ch, _slot ); //, _drawMonochrome
+            _glyph_cache.put( item );
+        }
+        memcpy( bmp, item->bmp, item->bmp_width * item->bmp_height );
+        return true;
     }
 
     /// returns font baseline offset
@@ -960,15 +978,19 @@ class LVFontBoldTransform : public LVFont
     LVFontRef _baseFontRef;
     LVFont * _baseFont;
     int _hyphWidth;
-    LVFontGlyphWidthCache _wcache;
-    LVFontLocalGlyphCache _glyph_cache;
     int _hShift;
+    int _vShift;
+    int           _size; // height in pixels
+    //int           _hyphen_width;
+    int           _baseline;
 public:
-    LVFontBoldTransform( LVFontGlobalGlyphCache * globalCache, LVFontRef baseFont )
+    LVFontBoldTransform( LVFontRef baseFont )
         : _baseFontRef( baseFont ), _baseFont( baseFont.get() ), _hyphWidth(-1)
-        , _glyph_cache(globalCache)
     {
-        _hShift = _baseFont->getHeight() < 24 ? 1 : 2;
+        _hShift = _baseFont->getHeight() <= 36 ? 1 : 2;
+        _vShift = _baseFont->getHeight() <= 36 ? 0 : 1;
+        _size = _baseFont->getHeight();
+        _baseline = _baseFont->getBaseline();
     }
 
     /// hyphenation character
@@ -990,8 +1012,10 @@ public:
         bool res = _baseFont->getGlyphInfo( code, glyph );
         if ( !res )
             return res;
-        glyph->blackBoxX += _hShift;
+        glyph->blackBoxX += glyph->blackBoxX>0 ? _hShift : 0;
+        glyph->blackBoxY += _vShift;
         glyph->width += _hShift;
+
         return true;
     }
 
@@ -1063,30 +1087,55 @@ public:
     */
     virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf)
     {
-        bool res = _baseFont->getGlyphImage( code, buf );
+        glyph_info_t glyph;
+        if ( !_baseFont->getGlyphInfo( code, &glyph ) )
+            return 0;
+        int oldx = glyph.blackBoxX;
+        int oldy = glyph.blackBoxY;
+        int dx = oldx + _hShift;
+        int dy = oldy + _vShift;
+        if ( !oldx || !oldy )
+            return true;
+        lUInt8 tmp[oldx*oldy];
+        memset(buf, 0, dx*dy);
+        bool res = _baseFont->getGlyphImage( code, tmp );
+        for ( int y=0; y<dy; y++ ) {
+            lUInt8 * dst = buf + y*dx;
+            for ( int x=0; x<dx; x++ ) {
+                int s = 0;
+                for ( int yy=-_vShift; yy<=0; yy++ ) {
+                    int srcy = y+yy;
+                    if ( srcy<0 || srcy>=oldy )
+                        continue;
+                    lUInt8 * src = tmp + srcy*oldx;
+                    for ( int xx=-_hShift; xx<=0; xx++ ) {
+                        int srcx = x+xx;
+                        if ( srcx>=0 && srcx<oldx && src[srcx] > s )
+                            s = src[srcx];
+                    }
+                }
+                dst[x] = s;
+            }
+        }
         return res;
     }
 
     /// returns font baseline offset
     virtual int getBaseline()
     {
-        return _baseFont->getBaseline();
+        return _baseline;
     }
 
     /// returns font height
     virtual int getHeight()
     {
-        return _baseFont->getHeight();
+        return _size;
     }
 
     /// returns char width
     virtual int getCharWidth( lChar16 ch )
     {
-        int w = _wcache.get(ch);
-        if ( w==0xFF ) {
-            w = _baseFont->getCharWidth( ch ) + _hShift;
-            _wcache.put(ch, w);
-        }
+        int w = _baseFont->getCharWidth( ch ) + _hShift;
         return w;
     }
 
@@ -1114,7 +1163,75 @@ public:
                        lChar16 def_char, lUInt32 * palette, bool addHyphen,
                        lUInt32 flags=0, int letter_spacing=0 )
     {
-        //
+        if ( len <= 0 )
+            return;
+        if ( letter_spacing<0 || letter_spacing>50 )
+            letter_spacing = 0;
+        lvRect clip;
+        buf->GetClipRect( &clip );
+        if ( y + _size < clip.top || y >= clip.bottom )
+            return;
+
+        int error;
+
+        int i;
+
+        //lUInt16 prev_width = 0;
+        lChar16 ch;
+        // measure character widths
+        bool isHyphen = false;
+        int x0 = x;
+        for ( i=0; i<=len; i++) {
+            if ( i==len && (!addHyphen || isHyphen) )
+                break;
+            if ( i<len ) {
+                ch = text[i];
+                isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE) && (i<len-1);
+            } else {
+                ch = UNICODE_SOFT_HYPHEN_CODE;
+                isHyphen = 0;
+            }
+
+            glyph_info_t glyph;
+            if ( !getGlyphInfo( ch, &glyph ) ) {
+                ch = def_char;
+                if ( !getGlyphInfo( ch, &glyph ) ) {
+                    glyph.blackBoxX = glyph.blackBoxY = 0;
+                }
+            }
+            // avoid soft hyphens inside text string
+            int w = glyph.width;
+            if ( glyph.blackBoxX && glyph.blackBoxY && (!isHyphen || i>=len-1) ) {
+                lUInt8 bmp[glyph.blackBoxX * glyph.blackBoxY];
+                if ( getGlyphImage( ch, bmp ) ) {
+                    buf->Draw( x + glyph.originX,
+                        y + _baseline - glyph.originY,
+                        bmp,
+                        glyph.blackBoxX,
+                        glyph.blackBoxY,
+                        palette);
+
+                }
+            }
+            x  += w + letter_spacing;
+        }
+        if ( flags & LTEXT_TD_MASK ) {
+            // text decoration: underline, etc.
+            int h = _size > 30 ? 2 : 1;
+            lUInt32 cl = buf->GetTextColor();
+            if ( flags & LTEXT_TD_UNDERLINE || flags & LTEXT_TD_BLINK ) {
+                int liney = y + _baseline + h;
+                buf->FillRect( x0, liney, x, liney+h, cl );
+            }
+            if ( flags & LTEXT_TD_OVERLINE ) {
+                int liney = y + h;
+                buf->FillRect( x0, liney, x, liney+h, cl );
+            }
+            if ( flags & LTEXT_TD_LINE_THROUGH ) {
+                int liney = y + _size/2 - h/2;
+                buf->FillRect( x0, liney, x, liney+h, cl );
+            }
+        }
     }
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
@@ -1153,6 +1270,17 @@ public:
     {
     }
 };
+
+/// create transform for font
+LVFontRef LVCreateFontTransform( LVFontRef baseFont, int transformFlags )
+{
+    if ( transformFlags & LVFONT_TRANSFORM_EMBOLDEN ) {
+        // BOLD transform
+        return LVFontRef( new LVFontBoldTransform( baseFont ) );
+    } else {
+        return baseFont; // no transform
+    }
+}
 
 
 #define DEBUG_FONT_MAN 0
@@ -1488,6 +1616,14 @@ public:
             //item->setFont( ref );
             //_cache.update( def, ref );
             _cache.update( &newDef, ref );
+            int deltaWeight = weight - newDef.getWeight();
+            if ( deltaWeight > 250 ) {
+                // embolden
+                CRLog::debug("font: apply Embolding to increase weight from %d to %d", newDef.getWeight(), newDef.getWeight() + 300 );
+                newDef.setWeight( newDef.getWeight() + 300 );
+                ref = LVCreateFontTransform( ref, LVFONT_TRANSFORM_EMBOLDEN );
+                _cache.update( &newDef, ref );
+            }
             int rsz = ref->getHeight();
             if ( rsz!=size ) {
                 size++;

@@ -1761,7 +1761,9 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         updateLayout();
         m_showCover = !getCoverPageImage().isNull();
         lString8 fontName = lString8(DEFAULT_FONT_NAME);
-        m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
+
+        m_font = fontMan->GetFont( m_font_size, 300 + LVRendGetFontEmbolden(), false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
+        //m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
         m_infoFont = fontMan->GetFont( m_status_font_size, 300, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
         if ( !m_font || !m_infoFont )
             return;
@@ -4255,6 +4257,8 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->limitValueList( PROP_ROTATE_ANGLE, def_rot_angle, 4 );
     static int bool_options_def_true[] = { 1, 0 };
     static int bool_options_def_false[] = { 0, 1 };
+
+    props->limitValueList( PROP_FONT_WEIGHT_EMBOLDEN, bool_options_def_false, 2 );
     static int int_options_1_2[] = { 1, 2 };
     props->limitValueList( PROP_LANDSCAPE_PAGES, int_options_1_2, 2 );
     props->limitValueList( PROP_EMBEDDED_STYLES, bool_options_def_true, 2 );
@@ -4341,6 +4345,10 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
         } else if ( name==PROP_FONT_KERNING_ENABLED ) {
             bool kerning = props->getBoolDef( PROP_FONT_KERNING_ENABLED, false );
             fontMan->setKerning( kerning );
+            requestRender();
+        } else if ( name==PROP_FONT_WEIGHT_EMBOLDEN ) {
+            bool embolden = props->getBoolDef( PROP_FONT_WEIGHT_EMBOLDEN, false );
+            LVRendSetFontEmbolden( embolden ? STYLE_FONT_EMBOLD_MODE_EMBOLD : STYLE_FONT_EMBOLD_MODE_NORMAL );
             requestRender();
         } else if ( name==PROP_TXT_OPTION_PREFORMATTED ) {
             bool preformatted = props->getBoolDef( PROP_TXT_OPTION_PREFORMATTED, false );

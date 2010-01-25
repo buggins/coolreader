@@ -40,4 +40,12 @@ void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef pare
 /// draws formatted document to drawing buffer
 void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks );
 
+#define STYLE_FONT_EMBOLD_MODE_NORMAL 0
+#define STYLE_FONT_EMBOLD_MODE_EMBOLD 300
+
+/// set global document font style embolden mode (0=off, 300=on)
+void LVRendSetFontEmbolden( int addWidth=STYLE_FONT_EMBOLD_MODE_EMBOLD );
+/// get global document font style embolden mode
+int LVRendGetFontEmbolden();
+
 #endif

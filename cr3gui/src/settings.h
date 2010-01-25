@@ -50,11 +50,13 @@ enum MainMenuItems_t {
     mm_PageMarginBottom,
     mm_Hyphenation,
     mm_Controls,
+    mm_Embolden,
 };
 
 
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
- { 18, 20, 22, 24, 26, 28, 32, 36, 42, 48 }
+ { 20, 22, 24, 26, 28, 32, 36, 42, 48, 56 }
+ //{ 18, 20, 22, 24, 26, 28, 32, 36, 42, 48 }
 //    2    2   2   4   4   4   6   6   8
 //{ 18, 20, 22, 24, 26, 28, 32, 38, 42, 48 }
 //    2    2   2   2   2   4   6   4   6

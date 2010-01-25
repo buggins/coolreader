@@ -794,6 +794,24 @@ bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 )
         && (style1->font_weight == style2->font_weight);
 }
 
+//int rend_font_embolden = STYLE_FONT_EMBOLD_MODE_EMBOLD;
+int rend_font_embolden = STYLE_FONT_EMBOLD_MODE_NORMAL;
+
+void LVRendSetFontEmbolden( int addWidth )
+{
+    if ( addWidth < 0 )
+        addWidth = 0;
+    else if ( addWidth>STYLE_FONT_EMBOLD_MODE_EMBOLD )
+        addWidth = STYLE_FONT_EMBOLD_MODE_EMBOLD;
+
+    rend_font_embolden = addWidth;
+}
+
+int LVRendGetFontEmbolden()
+{
+    return rend_font_embolden;
+}
+
 LVFontRef getFont( css_style_rec_t * style )
 {
     int sz = style->font_size.value;
@@ -808,12 +826,16 @@ LVFontRef getFont( css_style_rec_t * style )
         fw = ((style->font_weight - css_fw_100)+1) * 100;
     else
         fw = 400;
+    fw += rend_font_embolden;
+    if ( fw>900 )
+        fw = 900;
     LVFontRef fnt = fontMan->GetFont(
         sz,
         fw,
         style->font_style==css_fs_italic,
         style->font_family,
         lString8(style->font_name.c_str()) );
+    fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
     return fnt;
 }
 

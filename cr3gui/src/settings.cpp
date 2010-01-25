@@ -317,7 +317,13 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 		{NULL, NULL},
 	};
 
-	item_def_t landscape_pages[] = {
+    item_def_t embolden_mode[] = {
+        {_("Normal"), "0"},
+        {_("Bold"), "1"},
+        {NULL, NULL},
+    };
+
+    item_def_t landscape_pages[] = {
 		{_("One"), "1"},
 		{_("Two"), "2"},
 		{NULL, NULL},
@@ -386,6 +392,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 
         CRMenu * fontSizeMenu = createFontSizeMenu( mainMenu, props );
         mainMenu->addItem( fontSizeMenu );
+
+        CRMenu * emboldenModeMenu = new CRMenu(_wm, mainMenu, mm_Embolden,
+                _("Font weight"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_WEIGHT_EMBOLDEN );
+        addMenuItems( emboldenModeMenu, embolden_mode );
+        mainMenu->addItem( emboldenModeMenu );
 
         CRMenu * fontAntialiasingMenu = new CRMenu(_wm, mainMenu, mm_FontAntiAliasing,
                 _("Font antialiasing"),
