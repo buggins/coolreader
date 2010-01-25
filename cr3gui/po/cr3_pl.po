@@ -230,13 +230,12 @@ msgid "[cannot read article]"
 msgstr "[nie można otworzyć tłumaczenia]"
 
 #: ../src/settings.cpp:79
-#, fuzzy
 msgid "choose command"
-msgstr "Nieznana komenda"
+msgstr "Wybierz komendę"
 
 #: ../src/settings.cpp:96
 msgid "Controls"
-msgstr ""
+msgstr "Sterowanie"
 
 #: ../src/settings.cpp:190
 msgid "0` (Portrait)"
@@ -306,9 +305,8 @@ msgid "Top"
 msgstr "Góra"
 
 #: ../src/settings.cpp:334
-#, fuzzy
 msgid "80%"
-msgstr "90%"
+msgstr "80%"
 
 #: ../src/settings.cpp:335
 msgid "90%"
@@ -327,18 +325,16 @@ msgid "120%"
 msgstr "120%"
 
 #: ../src/settings.cpp:339
-#, fuzzy
 msgid "130%"
-msgstr "100%"
+msgstr "130%"
 
 #: ../src/settings.cpp:340
 msgid "140%"
 msgstr "140%"
 
 #: ../src/settings.cpp:341
-#, fuzzy
 msgid "150%"
-msgstr "100%"
+msgstr "150%"
 
 #: ../src/settings.cpp:369
 msgid "Default font face"
@@ -458,7 +454,7 @@ msgstr "Menu"
 
 #: ../src/viewdlg.cpp:312
 msgid "Long"
-msgstr "Długie"
+msgstr "trzymaj"
 
 #: ../src/viewdlg.cpp:319
 msgid "To first page"
@@ -506,7 +502,7 @@ msgstr "Powiększ"
 
 #: ../src/viewdlg.cpp:333
 msgid "Zoom out"
-msgstr "Oddal"
+msgstr "Pomniejsz"
 
 #: ../src/viewdlg.cpp:334
 msgid "Toggle text format"
@@ -525,25 +521,24 @@ msgid "Move by chapter"
 msgstr "Przesuń o rozdział"
 
 #: ../src/viewdlg.cpp:338
-#, fuzzy
 msgid "First link"
-msgstr "Nastęny link"
+msgstr "Pierwszy link"
 
 #: ../src/viewdlg.cpp:339
 msgid "Rotate by"
-msgstr ""
+msgstr "Obróć o"
 
 #: ../src/viewdlg.cpp:340
 msgid "Set rotate angle"
-msgstr ""
+msgstr "Ustaw kąt obrotu"
 
 #: ../src/viewdlg.cpp:341
 msgid "Save history and bookmarks"
-msgstr ""
+msgstr "Zapisz historię i zakładki"
 
 #: ../src/viewdlg.cpp:342
 msgid "Save document to cache"
-msgstr ""
+msgstr "Zapisz dokument w cache"
 
 #: ../src/viewdlg.cpp:343
 msgid "Close dialog"
@@ -630,56 +625,48 @@ msgid "Unknown command"
 msgstr "Nieznana komenda"
 
 #: ../src/viewdlg.cpp:373
-#, fuzzy
 msgid "Previous Page"
-msgstr "Poprzedni link"
+msgstr "Poprzednia strona"
 
 #: ../src/viewdlg.cpp:375
 msgid "Next Page"
-msgstr ""
+msgstr "Następna strona"
 
 #: ../src/viewdlg.cpp:377
-#, fuzzy
 msgid "Back by 10 Pages"
-msgstr "Cofnij o stronę"
+msgstr "Cofnij o 10 stron"
 
 #: ../src/viewdlg.cpp:379
-#, fuzzy
 msgid "Forward by 10 Pages"
-msgstr "Dalej o stronę"
+msgstr "Dalej o 10 stron"
 
 #: ../src/viewdlg.cpp:381
-#, fuzzy
 msgid "Next Chapter"
-msgstr "Bieżący rozdział"
+msgstr "Następny rozdział"
 
 #: ../src/viewdlg.cpp:383
-#, fuzzy
 msgid "Previous Chapter"
-msgstr "Poprzedni link"
+msgstr "Poprzedni rozdział"
 
 #: ../src/viewdlg.cpp:385
-#, fuzzy
 msgid "Add Bookmark"
-msgstr "Zakładki"
+msgstr "Dodaj Zakładkę"
 
 #: ../src/viewdlg.cpp:387
 msgid "Rotate Clockwise"
-msgstr ""
+msgstr "Obróć w prawo"
 
 #: ../src/viewdlg.cpp:389
 msgid "Rotate Anti-Clockwise"
-msgstr ""
+msgstr "Obróc w lewo"
 
 #: ../src/viewdlg.cpp:391
-#, fuzzy
 msgid "Portrait View"
-msgstr "0° (Pionowo)"
+msgstr "Układ pionowy"
 
 #: ../src/viewdlg.cpp:393
-#, fuzzy
 msgid "Landscape View"
-msgstr "Strony w trybie poziomym"
+msgstr "Układ poziomy"
 
 #: ../src/viewdlg.cpp:408
 msgid "Key"
