@@ -1,3 +1,10 @@
+cr3 (3.0.24-7) zelazny; urgency=low
+
+  * Fixed resize (rotate) bug on XCB (OI)
+  * Skin change - wait icon
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Mon, 25 Jan 2010 23:55:00 +0300
+
 cr3 (3.0.24-6) zelazny; urgency=low
 
   * Added support of Font Weight setting
