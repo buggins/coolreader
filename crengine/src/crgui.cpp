@@ -1169,7 +1169,9 @@ static int inv_control_table[] = {
 bool CRDocViewWindow::onCommand( int command, int params )
 {
     if ( command >= LVDOCVIEW_COMMANDS_START && command <= LVDOCVIEW_COMMANDS_END ) {
-		cr_rotate_angle_t a = _docview->GetRotateAngle();
+        // TODO: rework controls inversion
+#if CR_INTERNAL_PAGE_ORIENTATION==1
+        cr_rotate_angle_t a = _docview->GetRotateAngle();
 		if ( a==CR_ROTATE_ANGLE_90 || a==CR_ROTATE_ANGLE_180 ) {
 			// inverse controls
 			for ( int i=0; inv_control_table[i]; i+=3 ) {
@@ -1180,6 +1182,7 @@ bool CRDocViewWindow::onCommand( int command, int params )
 				}
 			}
 		}
+#endif
         _docview->doCommand( (LVDocCmd)command, params );
         _dirty = true;
         return true;

@@ -489,6 +489,7 @@ void V3DocViewWin::showFontSizeMenu()
     _wm->activateWindow( menu );
 }
 
+#if CR_INTERNAL_PAGE_ORIENTATION==1
 void V3DocViewWin::showOrientationMenu()
 {
     LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
@@ -500,6 +501,7 @@ void V3DocViewWin::showOrientationMenu()
     CRMenu * menu = mainMenu->createOrientationMenu( NULL, _newProps );
     _wm->activateWindow( menu );
 }
+#endif
 
 void V3DocViewWin::showRecentBooksMenu()
 {
@@ -840,9 +842,11 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_SETTINGS_FONTSIZE:
         showFontSizeMenu();
         return true;
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     case MCMD_SETTINGS_ORIENTATION:
         showOrientationMenu();
         return true;
+#endif
     case MCMD_SETTINGS:
         showSettingsMenu();
         return true;
@@ -865,7 +869,9 @@ bool V3DocViewWin::onCommand( int command, int params )
         _docview->doCommand( DCMD_GO_PAGE, params-1 );
         return true;
     case MCMD_SETTINGS_APPLY:
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     case mm_Orientation:
+#endif
     case mm_FontSize:
         applySettings();
         saveSettings( lString16() );

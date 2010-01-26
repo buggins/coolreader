@@ -184,6 +184,7 @@ bool CRSettingsMenu::onCommand( int command, int params )
     }
 }
 
+#if CR_INTERNAL_PAGE_ORIENTATION==1
 CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef props )
 {
 	item_def_t page_orientations[] = {
@@ -201,6 +202,7 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
     addMenuItems( orientationMenu, page_orientations );
     return orientationMenu;
 }
+#endif
 
 DECL_DEF_CR_FONT_SIZES;
 
@@ -411,8 +413,10 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( interlineSpaceMenu, interline_spaces );
         mainMenu->addItem( interlineSpaceMenu );
 
+#if CR_INTERNAL_PAGE_ORIENTATION==1
         CRMenu * orientationMenu = createOrientationMenu(mainMenu, props);
         mainMenu->addItem( orientationMenu );
+#endif
 
         CRMenu * footnotesMenu = new CRMenu(_wm, mainMenu, mm_Footnotes,
                 _("Footnotes at page bottom"),

@@ -155,7 +155,9 @@ public:
 
     void showSettingsMenu();
 
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     void showOrientationMenu();
+#endif
 
     void showFontSizeMenu();
 

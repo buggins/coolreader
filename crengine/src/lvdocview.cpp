@@ -128,7 +128,9 @@ LVDocView::LVDocView( int bitsPerPixel)
     | PGHDR_AUTHOR
     | PGHDR_TITLE)
 , m_showCover(true)
+#if CR_INTERNAL_PAGE_ORIENTATION==1
 , m_rotateAngle(CR_ROTATE_ANGLE_0)
+#endif
 , m_section_bounds_valid(false)
 , m_posIsSet(false)
 , m_doc_format(doc_format_none)
@@ -227,6 +229,7 @@ bool LVDocView::isDocumentOpened()
 /// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
 lvRect LVDocView::rotateRect( lvRect & rc, bool winToDoc )
 {
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     lvRect rc2;
     cr_rotate_angle_t angle = m_rotateAngle;
     if ( winToDoc )
@@ -277,11 +280,15 @@ lvRect LVDocView::rotateRect( lvRect & rc, bool winToDoc )
         break;
     }
     return rc2;
+#else
+    return rc;
+#endif
 }
 
 /// rotate point by current angle, winToDoc==false for doc->window translation, true==ccw
 lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
 {
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     lvPoint pt2;
     cr_rotate_angle_t angle = m_rotateAngle;
     if ( winToDoc )
@@ -326,6 +333,9 @@ lvPoint LVDocView::rotatePoint( lvPoint & pt, bool winToDoc )
         break;
     }
     return pt2;
+#else
+    return pt;
+#endif
 }
 
 /// sets page margins
@@ -892,8 +902,14 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
     }
     m_pageHeaderInfo = old_flags;
     m_pos = save_pos;
-    int ndx = (GetRotateAngle()&1) ? save_m_dy : save_m_dx;
-    int ndy = (GetRotateAngle()&1) ? save_m_dx : save_m_dy;
+    bool rotated =
+#if CR_INTERNAL_PAGE_ORIENTATION==1
+            (GetRotateAngle()&1);
+#else
+            false;
+#endif
+    int ndx = rotated ? save_m_dy : save_m_dx;
+    int ndy = rotated ? save_m_dx : save_m_dy;
     Resize( ndx, ndy );
     clearImageCache();
 
@@ -1563,11 +1579,13 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
         if ( pc==2 && page>=0 && page+1<m_pages.length() )
             drawPageTo( &drawbuf, *m_pages[page + 1], &m_pageRects[1], m_pages.length(), 1 );
     }
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     if ( rotate ) {
        //CRLog::trace("Rotate drawing buffer. Src size=(%d, %d), angle=%d, buf(%d, %d)", m_dx, m_dy, m_rotateAngle, drawbuf.GetWidth(), drawbuf.GetHeight() );
         drawbuf.Rotate( m_rotateAngle );
         //CRLog::trace("Rotate done. buf(%d, %d)", drawbuf.GetWidth(), drawbuf.GetHeight() );
     }
+#endif
 }
 
 //void LVDocView::Draw()
@@ -1579,7 +1597,9 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
 bool LVDocView::windowToDocPoint( lvPoint & pt )
 {
     checkRender();
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     pt = rotatePoint( pt, true );
+#endif
     if ( getViewMode() == DVM_SCROLL ) {
         // SCROLL mode
         pt.y += m_pos;
@@ -1669,7 +1689,9 @@ bool LVDocView::docToWindowPoint( lvPoint & pt )
         }
 #endif
     }
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     pt = rotatePoint( pt, false );
+#endif
     return false;
 }
 
@@ -2363,15 +2385,24 @@ void LVDocView::setBookmark( ldomXPointer bm )
 /// get view height
 int LVDocView::GetHeight()
 {
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     return (m_rotateAngle & 1) ? m_dx : m_dy;
+#else
+    return m_dy;
+#endif
 }
 
 /// get view width
 int LVDocView::GetWidth()
 {
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     return (m_rotateAngle & 1) ? m_dy : m_dx;
+#else
+    return m_dx;
+#endif
 }
 
+#if CR_INTERNAL_PAGE_ORIENTATION==1
 /// sets rotate angle
 void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 {
@@ -2389,6 +2420,7 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
     int ndy = (angle&1) ? m_dy : m_dx;
     Resize( ndx, ndy );
 }
+#endif
 
 void LVDocView::Resize( int dx, int dy )
 {
@@ -2397,11 +2429,13 @@ void LVDocView::Resize( int dx, int dy )
         dx = 80;
     if (dy<80 || dy>3000)
         dy = 80;
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     if ( m_rotateAngle==CR_ROTATE_ANGLE_90 || m_rotateAngle==CR_ROTATE_ANGLE_270 ) {
         int tmp = dx;
         dx = dy;
         dy = tmp;
     }
+#endif
     m_imageCache.clear();
     //m_drawbuf.Resize(dx, dy);
     if (m_doc)
@@ -4111,6 +4145,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             selectFirstPageLink();
         }
         break;
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     case DCMD_ROTATE_BY: // rotate view, param =  +1 - clockwise, -1 - counter-clockwise
         {
             int a = (int)m_rotateAngle;
@@ -4125,6 +4160,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             SetRotateAngle( (cr_rotate_angle_t)(param & 3 ) );
         }
         break;
+#endif
     case DCMD_LINK_GO:
         {
             goSelectedLink();
@@ -4253,8 +4289,10 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setIntDef( PROP_FONT_SIZE, m_font_sizes[m_font_sizes.length()*2/3] );
     props->limitValueList( PROP_FONT_SIZE, m_font_sizes.ptr(), m_font_sizes.length() );
     props->limitValueList( PROP_INTERLINE_SPACE, cr_interline_spaces, sizeof(cr_interline_spaces)/sizeof(int) );
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     static int def_rot_angle[] = { 0, 1, 2, 3 };
     props->limitValueList( PROP_ROTATE_ANGLE, def_rot_angle, 4 );
+#endif
     static int bool_options_def_true[] = { 1, 0 };
     static int bool_options_def_false[] = { 0, 1 };
 
@@ -4429,10 +4467,12 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             int interlineSpace = props->getIntDef( PROP_INTERLINE_SPACE,  cr_interline_spaces[0] );
             setDefaultInterlineSpace( interlineSpace );//cr_font_sizes
             value = lString16::itoa( m_def_interline_space );
+#if CR_INTERNAL_PAGE_ORIENTATION==1
         } else if ( name==PROP_ROTATE_ANGLE ) {
             cr_rotate_angle_t angle = (cr_rotate_angle_t) (props->getIntDef( PROP_ROTATE_ANGLE, 0 )&3);
             SetRotateAngle( angle );
             value = lString16::itoa( m_rotateAngle );
+#endif
         } else if ( name==PROP_EMBEDDED_STYLES ) {
             bool value = props->getBoolDef( PROP_EMBEDDED_STYLES, true );
             getDocument()->setDocFlag( DOC_FLAG_ENABLE_INTERNAL_STYLES, value );

@@ -70,7 +70,9 @@ class CRSettingsMenu : public CRFullScreenMenu
         void addMenuItems( CRMenu * menu, item_def_t values[] );
     public:
         CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
+#if CR_INTERNAL_PAGE_ORIENTATION==1
         CRMenu * createOrientationMenu( CRMenu * mainMenu, CRPropRef props );
+#endif
         CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect & rc );
         virtual bool onCommand( int command, int params );
 };
