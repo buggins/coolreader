@@ -5644,11 +5644,23 @@ void calcStyleHash( ldomNode * node, lUInt32 & value )
 
 #if BUILD_LITE!=1
 
+lUInt32 calcGlobalSettingsHash()
+{
+    lUInt32 hash = 0;
+    if ( fontMan->getKerning() )
+        hash += 127365;
+    if ( LVRendGetFontEmbolden() )
+        hash = hash * 75 + 2384761;
+    return hash;
+}
+
+
 /// save document formatting parameters after render
 void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
 {
     lUInt32 styleHash = 0;
     calcStyleHash( getRootNode(), styleHash );
+    styleHash = styleHash * 31 + calcGlobalSettingsHash();
     hdr.render_style_hash = styleHash;
     hdr.render_dx = dx;
     hdr.render_dy = dy;
@@ -5662,7 +5674,8 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
 {
     lUInt32 styleHash = 0;
     calcStyleHash( getRootNode(), styleHash );
-    if ( styleHash == hdr.render_style_hash 
+    styleHash = styleHash * 31 + calcGlobalSettingsHash();
+    if ( styleHash == hdr.render_style_hash
         && _docFlags == hdr.render_docflags
         && dx == (int)hdr.render_dx
         && dy == (int)hdr.render_dy ) {

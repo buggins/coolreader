@@ -4348,8 +4348,11 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
             requestRender();
         } else if ( name==PROP_FONT_WEIGHT_EMBOLDEN ) {
             bool embolden = props->getBoolDef( PROP_FONT_WEIGHT_EMBOLDEN, false );
-            LVRendSetFontEmbolden( embolden ? STYLE_FONT_EMBOLD_MODE_EMBOLD : STYLE_FONT_EMBOLD_MODE_NORMAL );
-            requestRender();
+            int v = embolden ? STYLE_FONT_EMBOLD_MODE_EMBOLD : STYLE_FONT_EMBOLD_MODE_NORMAL;
+            if ( v != LVRendGetFontEmbolden() ) {
+                LVRendSetFontEmbolden( v );
+                requestRender();
+            }
         } else if ( name==PROP_TXT_OPTION_PREFORMATTED ) {
             bool preformatted = props->getBoolDef( PROP_TXT_OPTION_PREFORMATTED, false );
             setTextFormatOptions( preformatted ? txt_format_pre : txt_format_auto );
