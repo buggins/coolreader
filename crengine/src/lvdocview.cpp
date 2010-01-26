@@ -754,9 +754,9 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
             scale_x = scale_y;
         int dst_dx = (src_dx * scale_x) >> 16;
         int dst_dy = (src_dy * scale_y) >> 16;
-        if (dst_dx>rc.width()*9/10)
+        if (dst_dx>rc.width()*7/8)
             dst_dx = imgrc.width();
-        if (dst_dy>rc.height()*9/10)
+        if (dst_dy>rc.height()*7/8)
             dst_dy = imgrc.height();
         //CRLog::trace("drawCoverTo() - drawing image");
         drawBuf->Draw( imgsrc, imgrc.left + (imgrc.width()-dst_dx)/2, imgrc.top + (imgrc.height()-dst_dy)/2, dst_dx, dst_dy );
