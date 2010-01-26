@@ -62,7 +62,7 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
 
     ADD_DEFINITIONS( -DUSE_FONTCONFIG=1 )
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3xcb.cpp)
-    SET (EXTRA_LIBS xcb xcb-aux xcb-atom xcb-image xcb-keysyms fontconfig )
+    SET (EXTRA_LIBS xcb xcb-aux xcb-atom xcb-image xcb-keysyms xcb-randr fontconfig )
 
     INSTALL( FILES ${CR3_STYLES} DESTINATION share/cr3)
     INSTALL( FILES data/desktop/cr3.desktop DESTINATION share/applications)

@@ -40,7 +40,9 @@
 #define PROP_PAGE_MARGIN_RIGHT       "crengine.page.margin.right"
 #define PROP_PAGE_VIEW_MODE          "crengine.page.view.mode" // pages/scroll
 #define PROP_INTERLINE_SPACE         "crengine.interline.space"
+#if CR_INTERNAL_PAGE_ORIENTATION==1
 #define PROP_ROTATE_ANGLE            "window.rotate.angle"
+#endif
 #define PROP_EMBEDDED_STYLES         "crengine.doc.embedded.styles.enabled"
 #define PROP_DISPLAY_INVERSE         "crengine.display.inverse"
 #define PROP_STATUS_LINE             "window.status.line"
@@ -219,7 +221,7 @@ enum LVDocCmd
     DCMD_EDIT_INSERT_CHAR,
     DCMD_EDIT_REPLACE_CHAR,
 };
-#define LVDOCVIEW_COMMANDS_END DCMD_ROTATE_SET
+#define LVDOCVIEW_COMMANDS_END DCMD_SAVE_TO_CACHE
 
 /// document view mode: pages/scroll
 enum LVDocViewMode
@@ -379,7 +381,9 @@ private:
     LVRefVec<LVImageSource> m_headerIcons;
     LVRefVec<LVImageSource> m_batteryIcons;
 
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     cr_rotate_angle_t m_rotateAngle;
+#endif
 
     CRFileHist m_hist;
 
@@ -607,14 +611,18 @@ public:
     void setPageMargins( const lvRect & rc );
     /// returns page margins
     lvRect getPageMargins() const { return m_pageMargins; }
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     /// sets rotate angle
     void SetRotateAngle( cr_rotate_angle_t angle );
+#endif
     /// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
     lvRect rotateRect( lvRect & rc, bool winToDoc );
     /// rotate point by current angle, winToDoc==false for doc->window translation, true==ccw
     lvPoint rotatePoint( lvPoint & pt, bool winToDoc );
+#if CR_INTERNAL_PAGE_ORIENTATION==1
     /// returns rotate angle
     cr_rotate_angle_t GetRotateAngle() { return m_rotateAngle; }
+#endif
     /// returns true if document is opened
     bool isDocumentOpened();
     /// returns section bounds, in 1/100 of percent

@@ -212,6 +212,11 @@
 #define USE_DOM_UTF8_STORAGE 0
 #endif
 
+/// Set to 1 to support CR internal rotation of screen, 0 for system rotation
+#ifndef CR_INTERNAL_PAGE_ORIENTATION
+#define CR_INTERNAL_PAGE_ORIENTATION 1
+#endif
+
 
 #ifndef USE_BITMAP_FONTS
 
