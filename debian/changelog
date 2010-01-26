@@ -1,3 +1,10 @@
+cr3 (3.0.24-9) zelazny; urgency=low
+
+  * Fixed V3 key mapping
+  * Fixed N516 battery status
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Tue, 26 Jan 2010 23:23:00 +0300
+
 cr3 (3.0.24-8) zelazny; urgency=low
 
   [ Vadim Lopatin ]
