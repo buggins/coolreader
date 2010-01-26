@@ -404,7 +404,12 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         CRSkinRef _skin;
         CRGUIAcceleratorTableList _accTables;
 		CRKeyboardLayoutList _kbLayouts;
+        cr_rotate_angle_t _orientation;
     public:
+        /// sets screen orientation value, to be red by corresponding getter. Doesn't rotate screen actually.
+        virtual void setScreenOrientation( cr_rotate_angle_t angle ) { _orientation = angle; }
+        /// returns current screen orientation
+        virtual cr_rotate_angle_t getScreenOrientation() { return _orientation; }
         /// draws icon at center of screen, with optional progress gauge
         virtual void showWaitIcon( lString16 filename, int progressPercent=-1 );
         /// draws icon with gauge at center of screen, skipping too frequent updates
@@ -644,6 +649,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         , _postedCommandParam(0)
         ,_lastProgressUpdate(0)
         ,_lastProgressPercent(-1)
+        ,_orientation(CR_ROTATE_ANGLE_0)
         {
         }
         virtual void closeAllWindows()

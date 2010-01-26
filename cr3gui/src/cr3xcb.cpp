@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-//#include <Ewl.h>
 #include <crengine.h>
 #include <crgui.h>
 #include <crtrace.h>
@@ -37,6 +36,7 @@ int8_t i8sample = 0;
 extern "C" {
 #include <xcb/xcb_aux.h>
 #include <xcb/shm.h>
+#include <xcb/randr.h>
 #include <xcb/xcb_atom.h>
 }
 #undef class
@@ -438,6 +438,32 @@ static struct atom {
     "ACTIVE_DOC_COVER_IMAGE", 0,
 };
 
+cr_rotate_angle_t readXCBScreenRotationAngle()
+{
+    xcb_randr_get_screen_info_cookie_t cookie;
+    xcb_randr_get_screen_info_reply_t *reply;
+    xcb_randr_rotation_t rotation;
+
+    cookie = xcb_randr_get_screen_info(connection, screen->root);
+    reply = xcb_randr_get_screen_info_reply(connection, cookie, NULL);
+
+    rotation = (xcb_randr_rotation_t)reply->rotation;
+    free(reply);
+
+    switch(rotation) {
+        case XCB_RANDR_ROTATION_ROTATE_0:
+            return CR_ROTATE_ANGLE_0;
+        case XCB_RANDR_ROTATION_ROTATE_90:
+            return CR_ROTATE_ANGLE_90;
+        case XCB_RANDR_ROTATION_ROTATE_180:
+            return CR_ROTATE_ANGLE_180;
+        case XCB_RANDR_ROTATION_ROTATE_270:
+            return CR_ROTATE_ANGLE_270;
+        default:
+            return CR_ROTATE_ANGLE_0;
+    }
+}
+
 class CRXCBWindowManager : public CRGUIWindowManager
 {
 protected:
@@ -578,6 +604,10 @@ public:
         init_properties();
         //_connection = s->getXcbConnection();
         _ownScreen = true;
+        cr_rotate_angle_t angle = readXCBScreenRotationAngle();
+        if ( angle!=0 )
+        CRLog::info("Setting rotation angle: %d", (int)angle );
+        setScreenOrientation( angle );
     }
 
     bool hasValidConnection()
@@ -778,7 +808,9 @@ int CRXCBWindowManager::runEventLoop()
 
                 xcb_configure_notify_event_t *conf = (xcb_configure_notify_event_t *)event;
                 if (_screen->getWidth() != conf->width || _screen->getHeight() != conf->height) {
-                    CRLog::info("Setting new window size: %d x %d", conf->width, conf->height );
+                    cr_rotate_angle_t angle = readXCBScreenRotationAngle();
+                    CRLog::info("Setting new window size: %d x %d, angle: %d", conf->width, conf->height, (int)angle );
+                    setScreenOrientation( angle );
                     setSize( conf->width, conf->height );
                     needUpdate = true;
                 }
