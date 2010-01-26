@@ -53,6 +53,119 @@ extern "C" {
 #define NAME_MAX 4096
 #endif
 
+//=================================
+// START OF LIBEOI BATTERY SUPPORT
+//=================================
+typedef enum {
+    UNKNOWN,
+    CHARGING,
+    DISCHARGING,
+    NOT_CHARGING,
+    FULL_CHARGE,
+    LOW_CHARGE,
+} battery_status_t;
+
+typedef struct {
+    battery_status_t status;
+
+    /* This field is reliable only in DISCHARGING and LOW_CHARGE states */
+    int charge;
+} battery_info_t;
+
+typedef struct {
+    char *now;
+    char *min;
+    char *max;
+    char *status;
+} battery_loc_t;
+
+static battery_loc_t batteries[] = {
+    {
+     "/sys/class/power_supply/n516-battery/charge_now",
+     "/sys/class/power_supply/n516-battery/charge_empty_design",
+     "/sys/class/power_supply/n516-battery/charge_full_design",
+     "/sys/class/power_supply/n516-battery/status",
+     },
+    {
+     "/sys/class/power_supply/lbookv3_battery/charge_now",
+     "/sys/class/power_supply/lbookv3_battery/charge_empty_design",
+     "/sys/class/power_supply/lbookv3_battery/charge_full_design",
+     "/sys/class/power_supply/lbookv3_battery/status",
+     },
+};
+
+static int
+_find_battery()
+{
+    unsigned int i;
+    for (i = 0; i < sizeof(batteries) / sizeof(batteries[0]); ++i)
+        if (!access(batteries[i].now, R_OK))
+            return i;
+    return -1;
+}
+
+static battery_status_t
+_read_status_file(const char *filename)
+{
+    char buf[256];
+    FILE *f = fopen(filename, "r");
+    if (!f)
+        return UNKNOWN;
+    if (!fgets(buf, 255, f))
+        *buf = '\0';
+    fclose(f);
+
+    if (!strcmp(buf, "Charging\n"))
+        return CHARGING;
+    if (!strcmp(buf, "Discharging\n"))
+        return DISCHARGING;
+    if (!strcmp(buf, "Not charging\n"))
+        return NOT_CHARGING;
+    if (!strcmp(buf, "Full\n"))
+        return FULL_CHARGE;
+    if (!strcmp(buf, "Low charge\n"))
+        return LOW_CHARGE;
+    return UNKNOWN;
+}
+
+static int
+_read_int_file(const char *filename)
+{
+    int res;
+    FILE *f = fopen(filename, "r");
+    if (1 != fscanf(f, "%d", &res))
+        res = 0;
+    fclose(f);
+    return res;
+}
+
+void
+eoi_get_battery_info(battery_info_t * info)
+{
+    static int batt = -1;
+    if ( batt == -1 )
+        batt = _find_battery();
+
+    if (batt == -1) {
+        info->status = UNKNOWN;
+        info->charge = -1;
+    } else {
+        int now = _read_int_file(batteries[batt].now);
+        int min = _read_int_file(batteries[batt].min);
+        int max = _read_int_file(batteries[batt].max);
+        info->status = _read_status_file(batteries[batt].status);
+        if (max > min && now >= min && now <= max)
+            info->charge = 100 * (now - min) / (max - min);
+        else
+            info->charge = -1;
+    }
+}
+
+//=================================
+// END OF LIBEOI BATTERY SUPPORT
+//=================================
+
+
 static xcb_connection_t *connection = NULL;
 static xcb_window_t window = NULL;
 static xcb_screen_t *screen = NULL;
