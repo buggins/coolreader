@@ -55,6 +55,7 @@ extern "C" {
 
 //=================================
 // START OF LIBEOI BATTERY SUPPORT
+// OpenInkpot: libeoi-battery
 //=================================
 typedef enum {
     UNKNOWN,
@@ -73,10 +74,10 @@ typedef struct {
 } battery_info_t;
 
 typedef struct {
-    char *now;
-    char *min;
-    char *max;
-    char *status;
+    const char *now;
+    const char *min;
+    const char *max;
+    const char *status;
 } battery_loc_t;
 
 static battery_loc_t batteries[] = {
@@ -755,8 +756,21 @@ class XCBDocViewWin : public V3DocViewWin
 
 bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
 {
+
+    battery_info_t info;
+    eoi_get_battery_info(&info);
     charging = false;
     percent = 0;
+    if ( info.status==DISCHARGING || info.status==LOW_CHARGE ) {
+        charging = false;
+        percent = info.charge;
+        return true;
+    } else {
+        charging = true;
+        percent = 100;
+        return true;
+    }
+#if 0
 //TODO: implement battery state conditional compilation for different devices
 #ifdef __arm__
 
@@ -787,6 +801,7 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
     return false;
 #endif
 
+#endif
 }
 
 void sigint_handler(int)
