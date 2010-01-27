@@ -835,7 +835,7 @@ LVFontRef getFont( css_style_rec_t * style )
         style->font_style==css_fs_italic,
         style->font_family,
         lString8(style->font_name.c_str()) );
-    fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
+    //fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
     return fnt;
 }
 

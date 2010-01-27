@@ -987,8 +987,9 @@ public:
     LVFontBoldTransform( LVFontRef baseFont )
         : _baseFontRef( baseFont ), _baseFont( baseFont.get() ), _hyphWidth(-1)
     {
-        _hShift = _baseFont->getHeight() <= 36 ? 1 : 2;
-        _vShift = _baseFont->getHeight() <= 36 ? 0 : 1;
+        int h = _baseFont->getHeight();
+        _hShift = h <= 36 ? 1 : 2;
+        _vShift = h <= 36 ? 0 : 1;
         _size = _baseFont->getHeight();
         _baseline = _baseFont->getBaseline();
     }
@@ -1406,6 +1407,46 @@ public:
                     CRLog::debug("no FC_WEIGHT for %s", s);
                     //continue;
                 }
+                switch ( weight ) {
+                case FC_WEIGHT_THIN:          //    0
+                    weight = 100;
+                    break;
+                case FC_WEIGHT_EXTRALIGHT:    //    40
+                //case FC_WEIGHT_ULTRALIGHT        FC_WEIGHT_EXTRALIGHT
+                    weight = 200;
+                    break;
+                case FC_WEIGHT_LIGHT:         //    50
+                case FC_WEIGHT_BOOK:          //    75
+                case FC_WEIGHT_REGULAR:       //    80
+                //case FC_WEIGHT_NORMAL:            FC_WEIGHT_REGULAR
+                    weight = 400;
+                    break;
+                case FC_WEIGHT_MEDIUM:        //    100
+                    weight = 500;
+                    break;
+                case FC_WEIGHT_DEMIBOLD:      //    180
+                //case FC_WEIGHT_SEMIBOLD:          FC_WEIGHT_DEMIBOLD
+                    weight = 600;
+                    break;
+                case FC_WEIGHT_BOLD:          //    200
+                    weight = 700;
+                    break;
+                case FC_WEIGHT_EXTRABOLD:     //    205
+                //case FC_WEIGHT_ULTRABOLD:         FC_WEIGHT_EXTRABOLD
+                    weight = 800;
+                    break;
+                case FC_WEIGHT_BLACK:         //    210
+                //case FC_WEIGHT_HEAVY:             FC_WEIGHT_BLACK
+                    weight = 900;
+                    break;
+                case FC_WEIGHT_EXTRABLACK:    //    215
+                //case FC_WEIGHT_ULTRABLACK:        FC_WEIGHT_EXTRABLACK
+                    weight = 900;
+                    break;
+                default:
+                    weight = 400;
+                    break;
+                }
                 int index = 0;
                 res = FcPatternGetInteger(fontset->fonts[i], FC_INDEX, 0, &index);
                 if(res != FcResultMatch) {
@@ -1435,15 +1476,15 @@ public:
                     //CRLog::debug("no FC_SPACING for %s", s);
                     //continue;
                 }
-                int cr_weight;
-                switch(weight) {
-                    case FC_WEIGHT_LIGHT: cr_weight = 200; break;
-                    case FC_WEIGHT_MEDIUM: cr_weight = 300; break;
-                    case FC_WEIGHT_DEMIBOLD: cr_weight = 500; break;
-                    case FC_WEIGHT_BOLD: cr_weight = 700; break;
-                    case FC_WEIGHT_BLACK: cr_weight = 800; break;
-                    default: cr_weight=300; break;
-                }
+//                int cr_weight;
+//                switch(weight) {
+//                    case FC_WEIGHT_LIGHT: cr_weight = 200; break;
+//                    case FC_WEIGHT_MEDIUM: cr_weight = 300; break;
+//                    case FC_WEIGHT_DEMIBOLD: cr_weight = 500; break;
+//                    case FC_WEIGHT_BOLD: cr_weight = 700; break;
+//                    case FC_WEIGHT_BLACK: cr_weight = 800; break;
+//                    default: cr_weight=300; break;
+//                }
                 css_font_family_t fontFamily = css_ff_sans_serif;
                 lString16 face16((const char *)family);
                 face16.lowercase();
@@ -1473,7 +1514,7 @@ public:
                 LVFontDef def(
                     lString8((const char*)s),
                     -1, // height==-1 for scalable fonts
-                    cr_weight,
+                    weight,
                     italic,
                     fontFamily,
                     face,
@@ -1554,8 +1595,8 @@ public:
     {
     //#if (DEBUG_FONT_MAN==1)
     //    if ( _log ) {
-        //CRLog::debug("GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
-        //        size, weight, italic?1:0, (int)family, typeface.c_str() );
+//        CRLog::debug("GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
+//                size, weight, italic?1:0, (int)family, typeface.c_str() );
     //    }
     //#endif
         lString8 fontname;
@@ -1575,16 +1616,29 @@ public:
         //    italic?"italic":"" );
         LVFontCacheItem * item = _cache.find( &def );
     //#if (DEBUG_FONT_MAN==1)
-    //    if ( _log && item ) {
-        /*
-        CRLog::debug("   found item: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s) FontRef=%d\n",
-                item->getDef()->getName().c_str(), item->getDef()->getIndex(), item->getDef()->getSize(), item->getDef()->getWeight(), item->getDef()->getItalic()?1:0, (int)item->getDef()->getFamily(), item->getDef()->getTypeFace().c_str(), item->getFont().isNull()?0:item->getFont()->getHeight()
-            );
-        */
-    //    }
+//        if ( item ) { //_log &&
+//        ///*
+//        CRLog::debug("   found item: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s, weightDelta=%d) FontRef=%d\n",
+//                item->getDef()->getName().c_str(), item->getDef()->getIndex(), item->getDef()->getSize(), item->getDef()->getWeight(), item->getDef()->getItalic()?1:0,
+//                (int)item->getDef()->getFamily(), item->getDef()->getTypeFace().c_str(),
+//                weight - item->getDef()->getWeight(), item->getFont().isNull()?0:item->getFont()->getHeight()
+//            );
+//        //*/
+//        }
     //#endif
         if (!item->getFont().isNull())
         {
+            int deltaWeight = weight - item->getDef()->getWeight();
+            if ( deltaWeight >= 200 ) {
+                // embolden
+                LVFontDef newDef(*item->getDef());
+                CRLog::debug("font: apply Embolding to increase weight from %d to %d", newDef.getWeight(), newDef.getWeight() + 200 );
+                newDef.setWeight( newDef.getWeight() + 200 );
+                LVFontRef ref = LVCreateFontTransform( item->getFont(), LVFONT_TRANSFORM_EMBOLDEN );
+                _cache.update( &newDef, ref );
+                return ref;
+            }
+
             //fprintf(_log, "    : fount existing\n");
             return item->getFont();
         }
@@ -1617,10 +1671,10 @@ public:
             //_cache.update( def, ref );
             _cache.update( &newDef, ref );
             int deltaWeight = weight - newDef.getWeight();
-            if ( deltaWeight > 250 ) {
+            if ( 1 && deltaWeight >= 200 ) {
                 // embolden
-                CRLog::debug("font: apply Embolding to increase weight from %d to %d", newDef.getWeight(), newDef.getWeight() + 300 );
-                newDef.setWeight( newDef.getWeight() + 300 );
+                CRLog::debug("font: apply Embolding to increase weight from %d to %d", newDef.getWeight(), newDef.getWeight() + 200 );
+                newDef.setWeight( newDef.getWeight() + 200 );
                 ref = LVCreateFontTransform( ref, LVFONT_TRANSFORM_EMBOLDEN );
                 _cache.update( &newDef, ref );
             }
@@ -1744,7 +1798,7 @@ public:
             LVFontDef def(
                 name,
                 -1, // height==-1 for scalable fonts
-                ( face->style_flags & FT_STYLE_FLAG_BOLD ) ? 700 : 300,
+                ( face->style_flags & FT_STYLE_FLAG_BOLD ) ? 700 : 400,
                 ( face->style_flags & FT_STYLE_FLAG_ITALIC ) ? true : false,
                 fontFamily,
                 familyName,
@@ -1874,7 +1928,7 @@ public:
             LVFontDef def( 
                 name,
                 hdr.fontHeight,
-                hdr.flgBold?700:300,
+                hdr.flgBold?700:400,
                 hdr.flgItalic?true:false,
                 (css_font_family_t)hdr.fontFamily,
                 lString8(hdr.fontName)
@@ -2139,17 +2193,22 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
 {
     int size_match = (_size==-1 || def._size==-1) ? 256 
         : (def._size>_size ? _size*256/def._size : def._size*256/_size );
+    int weight_diff = def._weight - _weight;
+    if ( weight_diff<0 )
+        weight_diff = -weight_diff;
+    if ( weight_diff > 800 )
+        weight_diff = 800;
     int weight_match = (_weight==-1 || def._weight==-1) ? 256 
-        : (def._weight>_weight ? _weight*256/def._weight : def._weight*256/_weight );
+        : ( 256 - weight_diff * 256 / 800 );
     int italic_match = (_italic == def._italic || _italic==-1 || def._italic==-1) ? 256 : 0;
     int family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == def._family) 
         ? 256 
         : ( (_family==css_ff_monospace)==(def._family==css_ff_monospace) ? 64 : 0 );
     int typeface_match = (_typeface == def._typeface) ? 256 : 0;
     return
-        + (size_match     * 1000)
-        + (weight_match   * 100)
-        + (italic_match   * 100)
+        + (size_match     * 10000)
+        + (weight_match   * 500)
+        + (italic_match   * 500)
         + (family_match   * 10000)
         + (typeface_match * 100000);
 }

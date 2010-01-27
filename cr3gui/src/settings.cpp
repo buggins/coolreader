@@ -195,7 +195,7 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
 		{NULL, NULL},
 	};
 
-    LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
+    LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
     CRMenu * orientationMenu = new CRMenu(_wm, mainMenu, mm_Orientation,
             lString16(_("Page orientation")),
                             LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_ROTATE_ANGLE );
@@ -231,7 +231,7 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     fontMan->getFaceList( list );
     lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
     //LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, false, css_ff_sans_serif, lString8("Arial")) );
-    LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
+    LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
     CRMenu * fontSizeMenu;
     fontSizeMenu = new FontSizeMenu(_wm, mainMenu, valueFont, props );
     for ( unsigned i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
@@ -241,7 +241,7 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
         sprintf( defvalue, "%d %s", cr_font_sizes[i], _("The quick brown fox jumps over lazy dog") );
         fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
                         lString16(defvalue),
-                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[i], 300, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[i]).c_str()  ) );
+                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[i], 400, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[i]).c_str()  ) );
     }
     fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu10") );
     //fontSizeMenu->setAccelerators( _menuAccelerators );
@@ -369,7 +369,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         //setSkinName(lString16(L"#settings"));
         setSkinName(lString16(L"#main"));
 
-        LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 300, true, css_ff_sans_serif, lString8("Arial")) );
+        LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
         CRMenu * mainMenu = this;
         mainMenu->setAccelerators( _menuAccelerators );
 
@@ -384,7 +384,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         int i;
         for ( i=0; i<(int)list.length(); i++ ) {
             fontFaceMenu->addItem( new CRMenuItem( fontFaceMenu, i,
-                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_FACE_SIZE, 300,
+                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_FACE_SIZE, 400,
 									false, css_ff_sans_serif, UnicodeToUtf8(list[i])), list[i].c_str() ) );
             fontFaceMenu->setFullscreen( true );
         }

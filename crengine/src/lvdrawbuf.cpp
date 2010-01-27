@@ -115,6 +115,7 @@ lUInt32 DitherNBitColor( lUInt32 color, lUInt32 x, lUInt32 y, int bits )
 {
     int mask = ((1<<bits)-1)<<(8-bits);
     // gray = (r + 2*g + b)>>2
+    //int cl = ((((color>>16) & 255) + ((color>>(8-1)) & (255<<1)) + ((color) & 255)) >> 2) & 255;
     int cl = ((((color>>16) & 255) + ((color>>(8-1)) & (255<<1)) + ((color) & 255)) >> 2) & 255;
     int white = (1<<bits) - 1;
     int precision = white;
@@ -127,6 +128,10 @@ lUInt32 DitherNBitColor( lUInt32 color, lUInt32 x, lUInt32 y, int bits )
     int d = dither_2bpp_8x8[(x&7) | ( (y&7) << 3 )] - 1;
     int shift = bits-2;
     cl = ( (cl<<shift) + d - 32 ) >> shift;
+    if ( cl>255 )
+        cl = 255;
+    if ( cl<0 )
+        cl = 0;
     return cl & mask;
 }
 

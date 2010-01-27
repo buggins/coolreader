@@ -588,7 +588,7 @@ void CRSkinnedItem::setFontItalic( bool italic )
 LVFontRef CRSkinnedItem::getFont()
 {
     if ( _font.isNull() ) {
-        _font = fontMan->GetFont( _fontSize, _fontBold ? 600 : 300, _fontItalic, css_ff_sans_serif, UnicodeToUtf8(_fontFace) );
+        _font = fontMan->GetFont( _fontSize, _fontBold ? 700 : 400, _fontItalic, css_ff_sans_serif, UnicodeToUtf8(_fontFace) );
     }
     return _font;
 }

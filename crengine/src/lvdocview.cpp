@@ -158,9 +158,9 @@ LVDocView::LVDocView( int bitsPerPixel)
     //m_drawbuf.Clear(m_backgroundColor);
     createDefaultDocument( lString16(L"No document"), lString16(L"Welcome to CoolReader! Please select file to open") );
 
-    m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
-    m_infoFont = fontMan->GetFont( m_status_font_size, 300, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
-    m_batteryFont = fontMan->GetFont( 12, 600, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+    m_font = fontMan->GetFont( m_font_size, 400, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
+    m_infoFont = fontMan->GetFont( m_status_font_size, 400, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+    m_batteryFont = fontMan->GetFont( 12, 700, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
 
 }
 
@@ -714,9 +714,9 @@ void LVDocView::drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc )
     else
         base_font_size = 24;
     //CRLog::trace("drawCoverTo() - loading fonts...");
-    LVFontRef author_fnt( fontMan->GetFont( base_font_size, 600, false, css_ff_serif, lString8("Times New Roman")) );
-    LVFontRef title_fnt( fontMan->GetFont( base_font_size+4, 600, false, css_ff_serif, lString8("Times New Roman")) );
-    LVFontRef series_fnt( fontMan->GetFont( base_font_size-3, 300, true, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef author_fnt( fontMan->GetFont( base_font_size, 700, false, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef title_fnt( fontMan->GetFont( base_font_size+4, 700, false, css_ff_serif, lString8("Times New Roman")) );
+    LVFontRef series_fnt( fontMan->GetFont( base_font_size-3, 400, true, css_ff_serif, lString8("Times New Roman")) );
     lString16 authors = getAuthors();
     lString16 title = getTitle();
     lString16 series = getSeries();
@@ -1796,9 +1796,9 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         m_showCover = !getCoverPageImage().isNull();
         lString8 fontName = lString8(DEFAULT_FONT_NAME);
 
-        m_font = fontMan->GetFont( m_font_size, 300 + LVRendGetFontEmbolden(), false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
+        m_font = fontMan->GetFont( m_font_size, 400 + LVRendGetFontEmbolden(), false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
         //m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
-        m_infoFont = fontMan->GetFont( m_status_font_size, 300, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+        m_infoFont = fontMan->GetFont( m_status_font_size, 400, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
         if ( !m_font || !m_infoFont )
             return;
         if ( dx==0 )

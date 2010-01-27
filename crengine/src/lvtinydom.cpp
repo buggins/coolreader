@@ -1477,6 +1477,8 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     _def_style->font_size.type = css_val_px;
     _def_style->font_size.value = def_font->getHeight();
     _def_style->font_name = def_font->getTypeFace();
+    _def_style->font_weight = css_fw_400;
+    _def_style->font_style = css_fs_normal;
     _def_style->text_indent.type = css_val_px;
     _def_style->text_indent.value = 0;
     _def_style->line_height.type = css_val_percent;
