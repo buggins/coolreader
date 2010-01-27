@@ -766,9 +766,17 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
         percent = info.charge;
         return true;
     } else {
+#if 0
+        //debug
+        charging = false;
+        percent = 25;
+        return true;
+#else
+        // implementation
         charging = true;
         percent = 100;
         return true;
+#endif
     }
 #if 0
 //TODO: implement battery state conditional compilation for different devices

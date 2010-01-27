@@ -84,10 +84,10 @@ static void ApplyAlphaGray( lUInt8 &dst, lUInt8 src, lUInt32 alpha, int bpp )
     if ( alpha==0 )
         dst = src;
     else if ( alpha<255 ) {
-        src &= 0xFFFFFF;
-        lUInt32 opaque = 256 - alpha;
         int mask = ((1<<bpp)-1) << (8-bpp);
-        lUInt32 n1 = ((dst * alpha + src * opaque) >> 1) & mask;
+        src &= mask;
+        lUInt32 opaque = 256 - alpha;
+        lUInt32 n1 = ((dst * alpha + src * opaque)>>8 ) & mask;
         dst = (lUInt8)n1;
     }
 }
@@ -416,7 +416,7 @@ public:
                     if ( !alpha )
                         row[ x ] = dcl;
                     else
-                        ApplyAlphaGray( row[x], cl, alpha, bpp );
+                        ApplyAlphaGray( row[x], dcl, alpha, bpp );
                 }
             }
             else if ( bpp == 2 )
@@ -808,13 +808,19 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
             }
         } else { // 3,4,8
             int mask = ((1<<_bpp)-1)<<(8-_bpp);
+            lUInt8 color = rgbToGrayMask(GetTextColor(), _bpp);
             for (xx = width; xx>0; --xx)
             {
-#if (GRAY_INVERSE==1)
-                *dst++ = (*src++) & mask;
-#else
-                *dst++ = ~(*src++) & mask;
-#endif
+                lUInt8 b = (*src++);
+                if ( b ) {
+                    if ( b>=mask )
+                        *dst = color;
+                    else {
+                        int alpha = 256 - b;
+                        ApplyAlphaGray( *dst, color, alpha, _bpp );
+                    }
+                }
+                dst++;
             }
         }
         /* new dest line */

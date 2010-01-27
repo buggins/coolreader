@@ -60,10 +60,21 @@ LVImageSourceRef LVCreateStreamCopyImageSource( LVStreamRef stream );
 /// creates decoded memory copy of image, if it's unpacked size is less than maxSize
 LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize = MAX_SKIN_IMAGE_CACHE_ITEM_UNPACKED_SIZE, bool gray=false );
 
+
+class LVFont;
+class LVDrawBuf;
+
+/// draws battery icon in specified rectangle of draw buffer; if font is specified, draws charge %
+// first icon is for charging, the rest - indicate progress icon[1] is lowest level, icon[n-1] is full power
+// if no icons provided, battery will be drawn
+void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int percent, bool charging, LVRefVec<LVImageSource> icons, LVFont * font );
+
+
 #define IMAGE_SOURCE_FROM_BYTES( imgvar , bufvar ) \
     extern unsigned char bufvar []; \
     extern int bufvar ## _size ; \
     LVImageSourceRef imgvar = LVCreateStreamImageSource( \
         LVCreateMemoryStream( bufvar , bufvar ## _size ) )
+
 
 #endif

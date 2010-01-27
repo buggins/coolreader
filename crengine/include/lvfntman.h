@@ -114,7 +114,7 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, 
+                       lChar16 def_char, lUInt32 * palette = NULL, bool addHyphen = false,
                        lUInt32 flags=0, int letter_spacing=0 ) = 0;
     /// constructor
     LVFont() : _visual_alignment_width(-1) { }

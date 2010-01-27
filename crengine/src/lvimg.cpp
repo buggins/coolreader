@@ -1640,3 +1640,75 @@ LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int max
     //CRLog::trace("Unpacking done");
     return LVImageSourceRef( img );
 }
+
+
+/// draws battery icon in specified rectangle of draw buffer; if font is specified, draws charge %
+// first icon is for charging, the rest - indicate progress icon[1] is lowest level, icon[n-1] is full power
+// if no icons provided, battery will be drawn
+void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int percent, bool charging, LVRefVec<LVImageSource> icons, LVFont * font )
+{
+    lvRect rc( batteryRc );
+    bool drawText = (font != NULL);
+    if ( icons.length()>1 ) {
+        int iconIndex = 0;
+        if ( !charging ) {
+            if ( icons.length()>2 ) {
+                int numTicks = icons.length() - 1;
+                iconIndex = ((numTicks - 1) * percent + (100/numTicks/2) )/ 100 + 1;
+                if ( iconIndex<1 )
+                    iconIndex = 1;
+                if ( iconIndex>icons.length()-1 )
+                    iconIndex = icons.length()-1;
+            } else {
+                // empty battery icon, for % display
+                iconIndex = 1;
+            }
+        }
+
+        lvPoint sz( icons[0]->GetWidth(), icons[0]->GetHeight() );
+        rc.left += (rc.width() - sz.x)/4;
+        rc.top += (rc.height() - sz.y)/4;
+        rc.right = rc.left + sz.x;
+        rc.bottom = rc.top + sz.y;
+        LVImageSourceRef icon = icons[iconIndex];
+        drawbuf->Draw( icon, rc.left,
+            rc.top,
+            sz.x,
+            sz.y );
+        if ( charging )
+            drawText = false;
+        rc.left += 3;
+    } else {
+        // todo: draw w/o icons
+    }
+
+    if ( drawText ) {
+        // rc is rectangle to draw text to
+        lString16 txt;
+        if ( charging )
+            txt = L"+++";
+        else
+            txt = lString16::itoa(percent) + L"%";
+        int w = font->getTextWidth(txt.c_str(), txt.length());
+        int h = font->getHeight();
+        int x = (rc.left + rc.right - w)/2;
+        int y = (rc.top + rc.bottom - h)/2+1;
+        lUInt32 bgcolor = drawbuf->GetBackgroundColor();
+        lUInt32 textcolor = drawbuf->GetTextColor();
+        drawbuf->SetBackgroundColor( textcolor );
+        drawbuf->SetTextColor( bgcolor );
+        font->DrawTextString(drawbuf, x-1, y, txt.c_str(), txt.length(), '?', NULL);
+        font->DrawTextString(drawbuf, x+1, y, txt.c_str(), txt.length(), '?', NULL);
+        font->DrawTextString(drawbuf, x-1, y+1, txt.c_str(), txt.length(), '?', NULL);
+        font->DrawTextString(drawbuf, x+1, y-1, txt.c_str(), txt.length(), '?', NULL);
+        font->DrawTextString(drawbuf, x, y-1, txt.c_str(), txt.length(), '?', NULL);
+        font->DrawTextString(drawbuf, x, y+1, txt.c_str(), txt.length(), '?', NULL);
+        font->DrawTextString(drawbuf, x+1, y+1, txt.c_str(), txt.length(), '?', NULL);
+        font->DrawTextString(drawbuf, x-1, y+1, txt.c_str(), txt.length(), '?', NULL);
+        //drawbuf->SetBackgroundColor( textcolor );
+        //drawbuf->SetTextColor( bgcolor );
+        drawbuf->SetBackgroundColor( bgcolor );
+        drawbuf->SetTextColor( textcolor );
+        font->DrawTextString(drawbuf, x, y, txt.c_str(), txt.length(), '?', NULL);
+    }
+}

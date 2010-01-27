@@ -353,6 +353,7 @@ private:
     lUInt32 m_textColor;
     font_ref_t     m_font;
     font_ref_t     m_infoFont;
+    LVFontRef      m_batteryFont;
     LVContainerRef m_container;
     LVStreamRef    m_stream;
     LVContainerRef m_arc;
@@ -414,6 +415,7 @@ private:
     ldomXPointer m_cursorPos;
 
     lString16 m_pageHeaderOverride;
+
 
 
     /// sets current document format

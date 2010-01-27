@@ -160,6 +160,7 @@ LVDocView::LVDocView( int bitsPerPixel)
 
     m_font = fontMan->GetFont( m_font_size, 300, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
     m_infoFont = fontMan->GetFont( m_status_font_size, 300, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+    m_batteryFont = fontMan->GetFont( 12, 600, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
 
 }
 
@@ -996,6 +997,13 @@ lString16 LVDocView::getTimeString()
 /// draw battery state to buffer
 void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc, bool isVertical )
 {
+    if ( m_battery_state==-2 )
+        return;
+    LVDrawStateSaver saver( *drawbuf );
+    drawbuf->SetTextColor(0xFFFFFF);
+    drawbuf->SetBackgroundColor(0x000000);
+    LVDrawBatteryIcon( drawbuf, batteryRc, m_battery_state, m_battery_state==-1, m_batteryIcons, m_batteryFont.get() );
+#if 0
     if ( m_batteryIcons.length()>1 ) {
         int iconIndex = ((m_batteryIcons.length() - 1 ) * m_battery_state + (100/m_batteryIcons.length()/2) )/ 100;
         if ( iconIndex<0 )
@@ -1129,6 +1137,7 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc,
         }
     #endif
     }
+#endif
 }
 
 /// returns section bounds, in 1/100 of percent
@@ -1325,17 +1334,20 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
             info.left += dwIcons;
         }
 
-        if ( (phi & PGHDR_BATTERY) && m_battery_state>=0 ) {
+        if ( (phi & PGHDR_BATTERY) && m_battery_state>=-1 ) {
             lvRect brc = info;
-            brc.right -= 3;
-            brc.top += 1;
-            brc.bottom -= 2;
+            brc.right -= 2;
+            //brc.top += 1;
+            //brc.bottom -= 2;
             int h = brc.height();
+            int batteryIconWidth = 32;
+            if ( m_batteryIcons.length()>0 )
+                batteryIconWidth = m_batteryIcons[0]->GetWidth();
             bool isVertical = (h>30);
-            if ( isVertical )
-                brc.left = brc.right - brc.height()/2;
-            else
-                brc.left = brc.right - 30;
+            //if ( isVertical )
+            //    brc.left = brc.right - brc.height()/2;
+            //else
+                brc.left = brc.right - batteryIconWidth - 2;
             drawBatteryState( drawbuf, brc, isVertical );
             info.right = brc.left - info.height()/2;
         }
