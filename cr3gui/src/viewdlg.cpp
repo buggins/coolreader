@@ -280,26 +280,28 @@ const char * getKeyName( int keyCode )
 	case XK_KP_Subtract:
 		return "'-'";
 	case XK_Return:
-		return "Ok";
+        return _("Ok");
 	case XK_Up:
-		return "'&gt;'";
+        return _("Up");
 	case XK_Down:
-		return "'&lt;'";
+        return _("Down");
 	case XK_Escape:
-		return "Esc";
+        return _("Cancel");
 	case XK_Left:
-		return "Left";
+        return _("Left");
 	case XK_Right:
-		return "right";
+        return _("Right");
 	case XK_Prior:
-		return "Prior";
+        return _("Side Up");
 	case XK_Next:
-		return "Next";
+        return _("Side Down");
 	case XK_KP_Enter:
-		return "KP_Enter";
+        return _("Side Press");
 	case XK_Menu:
 		return _("Menu");
-	default:
+    case XF86XK_Search:
+        return _("Zoom");
+    default:
 		return "?";
 	}
 }
