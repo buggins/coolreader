@@ -1156,8 +1156,8 @@ public:
                         LONG_KEY_9, '9', KEY_FLAG_LONG_PRESS,
                         KEY_CANCEL, XK_Escape, 0,
                         KEY_OK, XK_Return, 0,
-                        KEY_DOWN, XK_Left, 0,
-                        KEY_UP, XK_Right, 0,
+                        KEY_DOWN, XK_Right, 0,
+                        KEY_UP, XK_Left, 0,
 
                         KEY_CURSOR_OK, XK_KP_Enter, 0,
                         KEY_CURSOR_DOWN, XK_Next, 0,
@@ -1168,8 +1168,8 @@ public:
 
                         LONG_KEY_CANCEL, XK_Escape, KEY_FLAG_LONG_PRESS,
                         LONG_KEY_OK, XK_Return, KEY_FLAG_LONG_PRESS,
-                        LONG_KEY_DOWN, XK_Left, KEY_FLAG_LONG_PRESS,
-                        LONG_KEY_UP, XK_Right, KEY_FLAG_LONG_PRESS,
+                        LONG_KEY_DOWN, XK_Right, KEY_FLAG_LONG_PRESS,
+                        LONG_KEY_UP, XK_Left, KEY_FLAG_LONG_PRESS,
 
                         LONG_KEY_CURSOR_OK, XK_KP_Enter, KEY_FLAG_LONG_PRESS,
                         LONG_KEY_CURSOR_DOWN, XK_Next, KEY_FLAG_LONG_PRESS,
