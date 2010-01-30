@@ -116,7 +116,7 @@
         </title>
     <scroll base="#menuscroll"/>
   </window>
-  <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="true" >
+  <menu id="main" min-item-count="9" max-item-count="9" show-shortcuts="false" >
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_main_menu.png" color="#AAAAAA"/>
         <border widths="32,8,8,8"/>
@@ -161,7 +161,7 @@
         </selshortcut>
     <scroll base="#menuscroll-noautohide"/>
   </menu>
-  <menu id="main-rotated" min-item-count="5" max-item-count="5" show-shortcuts="false" >
+  <menu id="main-rotated" min-item-count="5" max-item-count="5" show-shortcuts="true" >
   </menu>
   <menu id="t9input">
     <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
@@ -250,7 +250,7 @@
         </selshortcut>
     <scroll base="#menuscroll"/>
   </menu>
-  <menu id="settings">
+  <menu id="settings" min-item-count="9" max-item-count="9" show-shortcuts="false" >
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
         <border widths="28,8,8,8"/>
@@ -294,5 +294,7 @@
             <border widths="12,6,6,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </selshortcut>
+  </menu>
+  <menu id="settings-rotated" min-item-count="5" max-item-count="5" show-shortcuts="true" >
   </menu>
 </CR3Skin>

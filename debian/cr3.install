@@ -4,5 +4,4 @@ usr/share/applications/*
 usr/share/locale/*
 usr/share/cr3/hyph/*
 usr/share/cr3/manual/*
-usr/share/cr3/skins/*
 usr/share/cr3/*.css
