@@ -805,6 +805,8 @@ CRWindowSkin::CRWindowSkin()
 }
 
 CRMenuSkin::CRMenuSkin()
+: _minItemCount(-1)
+, _maxItemCount(-1)
 {
 }
 
@@ -921,9 +923,9 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     }
 
     return flg;
-};
+}
 
-CRScrollSkin::CRScrollSkin() { }
+CRScrollSkin::CRScrollSkin() : _autohide(false) { }
 
 bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res )
 {
@@ -943,6 +945,7 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
         return false;
     }
 
+    res->setAutohide( readBool( (p).c_str(), L"autohide", false) );
 
     flg = readRectSkin( path, res ) || flg;
 
@@ -1116,6 +1119,9 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     CRRectSkinRef shortcutSelSkin( new CRRectSkin() );
     readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
     res->setSelItemShortcutSkin( shortcutSelSkin );
+
+    res->setMinItemCount( readInt( path, L"min-item-count", -1) );
+    res->setMaxItemCount( readInt( path, L"max-item-count", -1) );
 
     return flg;
 }
