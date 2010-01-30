@@ -168,6 +168,7 @@ protected:
     LVImageSourceRef _vBody;
     LVImageSourceRef _vSlider;
     bool _autohide;
+    bool _showPageNumbers;
 public:
     CRButtonSkinRef getUpButton() { return _upButton; }
     CRButtonSkinRef getDownButton() { return _downButton; }
@@ -187,6 +188,8 @@ public:
     void setVSlider( LVImageSourceRef img ) { _vSlider = img; }
     bool getAutohide() { return _autohide; }
     void setAutohide( bool flgAutoHide ) { _autohide = flgAutoHide; }
+    bool getShowPageNumbers() { return _showPageNumbers; }
+    void setShowPageNumbers( bool flg ) { _showPageNumbers = flg; }
     virtual void drawScroll( LVDrawBuf & buf, const lvRect & rc, bool vertical, int pos, int maxpos, int pagesize );
     virtual void drawGauge( LVDrawBuf & buf, const lvRect & rc, int percent );
     CRScrollSkin();
@@ -229,6 +232,7 @@ protected:
     CRRectSkinRef _selItemShortcutSkin;
     int _minItemCount;
     int _maxItemCount;
+    bool _showShortcuts;
 public:
     CRMenuSkin();
     virtual ~CRMenuSkin() { }
@@ -244,6 +248,8 @@ public:
     int getMaxItemCount() { return _maxItemCount; }
     void setMinItemCount( int v ) { _minItemCount = v; }
     void setMaxItemCount( int v ) { _maxItemCount = v; }
+    bool getShowShortcuts() { return _showShortcuts; }
+    void setShowShortcuts( bool flgShowShortcuts ) { _showShortcuts = flgShowShortcuts; }
 };
 typedef LVFastRef<CRMenuSkin> CRMenuSkinRef;
 

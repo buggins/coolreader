@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CR3Skin>
-  <scroll id="menuscroll">
+  <scroll id="menuscroll" autohide="true" show-page-numbers="true">
       <border widths="2,2,2,2"/>
       <leftbutton normal="scroll_arrow_left_enabled.png" disabled="scroll_arrow_left_disabled.png"/>
       <rightbutton normal="scroll_arrow_right_enabled.png" disabled="scroll_arrow_right_disabled.png"/>
@@ -8,9 +8,11 @@
       <upbutton normal="scroll_arrow_up_enabled.png" disabled="scroll_arrow_up_disabled.png"/>
       <downbutton normal="scroll_arrow_down_enabled.png" disabled="scroll_arrow_down_disabled.png"/>
       <vbody frame="scroll_body_vertical.png" slider="scroll_slider_vertical.png"/>
+      <text color="#555555" face="Arial Narrow, Arial, DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="center"/>
+  </scroll>
+  <scroll id="menuscroll-noautohide" base="#menuscroll" autohide="false">
   </scroll>
   <scroll id="progress" base="#menuscroll">
-      <border widths="2,2,2,2"/>
       <hbody frame="cr3_progress_body.png" slider="cr3_progress_slider.png"/>
       <vbody frame="cr3_progress_body.png" slider="cr3_progress_slider.png"/>
   </scroll>
@@ -114,13 +116,13 @@
         </title>
     <scroll base="#menuscroll"/>
   </window>
-  <menu id="main">
+  <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="true" >
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_main_menu.png" color="#AAAAAA"/>
         <border widths="32,8,8,8"/>
         <!--icon image="filename" valign="" halign=""/-->
         <title>
-            <size minvalue="0,0" maxvalue="0,0"/>
+            <size minvalue="0,40" maxvalue="0,40"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
             <background color="#AAAAAA"/>
             <border widths="4,4,4,4"/>
@@ -157,7 +159,9 @@
             <border widths="12,6,6,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </selshortcut>
-    <scroll base="#menuscroll"/>
+    <scroll base="#menuscroll-noautohide"/>
+  </menu>
+  <menu id="main-rotated" min-item-count="5" max-item-count="5" show-shortcuts="false" >
   </menu>
   <menu id="t9input">
     <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>

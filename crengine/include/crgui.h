@@ -344,6 +344,11 @@ class CRGUIScreen
         virtual ~CRGUIScreen() { }
 };
 
+/// window configure flag, on screen size change
+#define CRGUI_CONFIGURE_FLAG_SCREEN_SIZE 1
+/// window configure flag, on screen orientation change
+#define CRGUI_CONFIGURE_FLAG_SCREEN_ORIENTATION 2
+
 /// Window interface
 class CRGUIWindow
 {
@@ -370,6 +375,8 @@ class CRGUIWindow
         virtual void setDirty() = 0;
         /// shows or hides window
         virtual void setVisible( bool visible ) = 0;
+        /// called on system configuration change: screen size and orientation
+        virtual void reconfigure( int flags ) = 0;
         /// returns window rectangle
         virtual const lvRect & getRect() = 0;
         /// sets window rectangle
@@ -444,30 +451,24 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         }
         /// returns count of windows
         virtual int getWindowCount() { return _windows.length(); }
-        /// sets new screen size
-        virtual void setSize( int dx, int dy )
+        /// changes screen size and orientation
+        virtual void reconfigure( int dx, int dy, cr_rotate_angle_t orientation )
         {
+            CRLog::info("CRGuiWindowManager::reconfigure( dx=%d, dy=%d, angle=%d", dx, dy, (int)orientation);
+            int flags = 0;
+            lvRect fullRect = _screen->getRect();
+            if ( fullRect.width()!=dx || fullRect.height()!=dy )
+                flags |= CRGUI_CONFIGURE_FLAG_SCREEN_SIZE;
+            if ( orientation!=_orientation ) {
+                flags |= CRGUI_CONFIGURE_FLAG_SCREEN_ORIENTATION;
+                _orientation = orientation;
+            }
+            if ( !flags )
+                return;
             if ( _screen->setSize( dx, dy ) ) {
-                lvRect fullRect = _screen->getRect();
+                fullRect = _screen->getRect();
                 for ( int i=_windows.length()-1; i>=0; i-- ) {
-                    lvRect rc = _windows[i]->getRect();
-                    if ( _windows[i]->isFullscreen() )
-                        _windows[i]->setRect( fullRect );
-                    else {
-                        if ( rc.right > dx ) {
-                            rc.left -= rc.right - dx;
-                            rc.right = dx;
-                            if ( rc.left < 0 )
-                                rc.left = 0;
-                        }
-                        if ( rc.right > dx ) {
-                            rc.left -= rc.right - dx;
-                            rc.right = dx;
-                            if ( rc.left < 0 )
-                                rc.left = 0;
-                        }
-                        _windows[i]->setRect( rc );
-                    }
+                    _windows[i]->reconfigure( flags );
                 }
                 update( true );
             }
@@ -682,6 +683,8 @@ class CRGUIWindowBase : public CRGUIWindow
         lString16 _skinName;
         virtual void draw() = 0;
     public:
+        /// called on system configuration change: screen size and orientation
+        virtual void reconfigure( int flags );
         /// sets skin name for window
         virtual void setSkinName( const lString16  & skin ) { _skinName = skin; }
         /// returns skin name for window
@@ -1028,6 +1031,8 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
                     return (CRMenu*)_items[i];
             return NULL;
         }
+        /// called on system configuration change: screen size and orientation
+        virtual void reconfigure( int flags );
         virtual int getPageCount();
         virtual void setCurPage( int nPage );
         virtual int getCurPage( );

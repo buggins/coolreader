@@ -255,6 +255,31 @@ void CRGUIScreenBase::flush( bool full )
     _updateRect.clear();
 }
 
+/// called on system configuration change: screen size and orientation
+void CRGUIWindowBase::reconfigure( int flags )
+{
+    lvRect fs = _wm->getScreen()->getRect();
+    if ( _fullscreen ) {
+        setRect( fs );
+    } else {
+        lvRect rc = getRect();
+        int dx = fs.width();
+        int dy = fs.height();
+        if ( rc.right > dx ) {
+            rc.left -= rc.right - dx;
+            rc.right = dx;
+            if ( rc.left < 0 )
+                rc.left = 0;
+        }
+        if ( rc.right > dx ) {
+            rc.left -= rc.right - dx;
+            rc.right = dx;
+            if ( rc.left < 0 )
+                rc.left = 0;
+        }
+        setRect( rc );
+    }
+}
 
 /// returns true if key is processed (by default, let's translate key to command using accelerator table)
 bool CRGUIWindowBase::onKeyPressed( int key, int flags )
@@ -398,9 +423,13 @@ CRMenuSkinRef CRMenu::getSkin()
     if ( !_skin.isNull() )
         return _skin;
     lString16 path = getSkinName();
+    lString16 path2;
     if ( !path.startsWith( L"#" ) )
         path = lString16(L"/CR3Skin/") + path;
-    _skin = _wm->getSkin()->getMenuSkin( path.c_str() );
+    else if ( _wm->getScreenOrientation()&1 )
+        _skin = _wm->getSkin()->getMenuSkin( (path + L"-rotated").c_str() );
+    if ( !_skin )
+        _skin = _wm->getSkin()->getMenuSkin( path.c_str() );
     return _skin;
 }
 
@@ -564,6 +593,8 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     lvRect itemBorders = itemSkin->getBorderWidths();
     lvRect headerRc = skin->getTitleRect(_rect);
 
+    bool showShortcuts = skin->getShowShortcuts();
+
     buf.SetTextColor( 0x000000 );
     buf.SetBackgroundColor( 0xFFFFFF );
 
@@ -577,7 +608,8 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 
     int nItems = _items.length();
     int scrollHeight = 0;
-    if ( nItems > _pageItems ) {
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    if ( nItems > _pageItems || !sskin->getAutohide() ) {
         nItems = _pageItems;
         scrollHeight = SCROLL_HEIGHT;
     }
@@ -592,7 +624,6 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     //buf.Rect( itemsRc, buf.GetTextColor() );
     // draw scrollbar
     if ( scrollHeight ) {
-        CRScrollSkinRef sskin = skin->getScrollSkin();
         if ( !sskin.isNull() ) {
 #if FULL_SCROLL==1
             int numItems = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;// - 1;
@@ -649,19 +680,24 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
             sel.extend( 4 );
             //buf.FillRect(sel, itemSelSkin->getBackgroundColor() );
         }
-        // number
-        lvRect numberRc( rc );
-        //numberRc.extend(ITEM_MARGIN/4); //ITEM_MARGIN/8-2);
-        numberRc.right = numberRc.left + HOTKEY_SIZE;
 
-        ss->draw( buf, numberRc );
-        lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
-        buf.SetTextColor( ss->getTextColor() );
-        buf.SetBackgroundColor( ss->getBackgroundColor() );
-        ss->drawText( buf, numberRc, number );
-        // item
         lvRect itemRc( rc );
-        itemRc.left = numberRc.right;
+
+        if ( showShortcuts ) {
+            // number
+            lvRect numberRc( rc );
+            //numberRc.extend(ITEM_MARGIN/4); //ITEM_MARGIN/8-2);
+            numberRc.right = numberRc.left + HOTKEY_SIZE;
+
+            ss->draw( buf, numberRc );
+            lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
+            buf.SetTextColor( ss->getTextColor() );
+            buf.SetBackgroundColor( ss->getBackgroundColor() );
+            ss->drawText( buf, numberRc, number );
+            // item
+            itemRc.left = numberRc.right;
+        }
+
         is->setTextAlign( is->getTextAlign() | SKIN_EXTEND_TAB);
         CRMenuItem * item = _items[i];
         item->Draw( buf, itemRc, is, selected );
@@ -704,6 +740,24 @@ void CRMenu::closeAllMenu( int command, int params )
     if ( command )
         _wm->postCommand( command, params );
     p->destroyMenu();
+}
+
+/// called on system configuration change: screen size and orientation
+void CRMenu::reconfigure( int flags )
+{
+    CRGUIWindowBase::reconfigure( flags );
+    _skin.Clear();
+    getSkin();
+    int pageItems = _pageItems;
+    if ( _skin->getMinItemCount()>0 && pageItems<_skin->getMinItemCount() )
+        pageItems = _skin->getMinItemCount();
+    if ( _skin->getMaxItemCount()>0 && pageItems>_skin->getMaxItemCount() )
+        pageItems = _skin->getMaxItemCount();
+    if ( pageItems!=_pageItems ) {
+        // change items per page
+        _pageItems = pageItems;
+        _topItem = _topItem / pageItems * pageItems;
+    }
 }
 
 bool CRMenu::onKeyPressed( int key, int flags )

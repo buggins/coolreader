@@ -878,6 +878,7 @@ VIEWER_MENU_4ABOUT=About...
 					LVFontRef() ) );
 	}
 	menu_win->setAccelerators( getMenuAccelerators() );
+    menu_win->reconfigure(0);
     _wm->activateWindow( menu_win );
 }
 

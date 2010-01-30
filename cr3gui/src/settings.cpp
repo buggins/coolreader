@@ -90,6 +90,7 @@ public:
         menu->setSkinName(lString16(L"#settings"));
         menu->setValueFont(_valueFont);
         menu->setFullscreen(true);
+        menu->reconfigure( 0 );
         return menu;
     }
     CRControlsMenu(CRMenu * baseMenu, int id, CRPropRef props, lString16 accelTableId, int numItems, lvRect & rc)
@@ -200,6 +201,8 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
             lString16(_("Page orientation")),
                             LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_ROTATE_ANGLE );
     addMenuItems( orientationMenu, page_orientations );
+    orientationMenu->reconfigure( 0 );
+
     return orientationMenu;
 }
 #endif
@@ -246,6 +249,7 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu10") );
     //fontSizeMenu->setAccelerators( _menuAccelerators );
     fontSizeMenu->setSkinName(lString16(L"#settings"));
+    fontSizeMenu->reconfigure( 0 );
     return fontSizeMenu;
 }
 
@@ -258,6 +262,7 @@ void CRSettingsMenu::addMenuItems( CRMenu * menu, item_def_t values[] )
             LVFontRef(), Utf8ToUnicode(lString8(values[i].value)).c_str() ) );
     menu->setAccelerators( _menuAccelerators );
     menu->setSkinName(lString16(L"#settings"));
+    menu->reconfigure( 0 );
 }
 
 
@@ -389,6 +394,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
             fontFaceMenu->setFullscreen( true );
         }
         fontFaceMenu->setAccelerators( _menuAccelerators );
+        fontFaceMenu->reconfigure( 0 );
+
         //lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
         mainMenu->addItem( fontFaceMenu );
 
@@ -498,7 +505,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 			}
 			hyphMenu->setAccelerators( _menuAccelerators );
 			hyphMenu->setSkinName(lString16(L"#settings"));
-			mainMenu->addItem( hyphMenu );
+            hyphMenu->reconfigure( 0 );
+            mainMenu->addItem( hyphMenu );
 		}
         //====== Margins ==============
         CRMenu * marginsMenu = new CRMenu(_wm, mainMenu, mm_PageMargins,
@@ -528,6 +536,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         marginsMenu->addItem( marginsMenuRight );
 		marginsMenu->setAccelerators( _menuAccelerators );
 		marginsMenu->setSkinName(lString16(L"#settings"));
+        marginsMenu->reconfigure( 0 );
         mainMenu->addItem( marginsMenu );
 
         CRControlsMenu * controlsMenu =
@@ -535,25 +544,6 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         controlsMenu->setAccelerators( _menuAccelerators );
         controlsMenu->setSkinName(lString16(L"#settings"));
         controlsMenu->setValueFont(valueFont);
+        controlsMenu->reconfigure( 0 );
         mainMenu->addItem( controlsMenu );
-//        class ControlsActivateItem : public CRMenuItem
-//        {
-//            public:
-//                ControlsActivateItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, const lChar16 * propValue=NULL  )
-//                : CRMenuItem( menu, id, label, image, defFont, propValue  )
-//                {
-//                }
-//                virtual int onSelect()
-//                {
-//                    lvRect rc = _menu->getRect();
-//                    CRControlsMenu * controlsMenu =
-//                            new CRControlsMenu(_menu->getWindowManager(), mm_Controls, _menu->getProps(), lString16("main"), 8, rc);
-//                    menu->setAccelerators( _menuAccelerators );
-//                    menu->setSkinName(lString16(L"#settings"));
-//                    _menu->getWindowManager()->activateWindow( controlsMenu );
-//                }
-//        };
-
-
-//        mainMenu->addItem( new ControlsActivateItem( this, mm_Controls, lString16(_("Controls")), LVImageSourceRef(), LVFontRef()) );
 }

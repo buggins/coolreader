@@ -946,8 +946,7 @@ int CRXCBWindowManager::runEventLoop()
                 if (_screen->getWidth() != conf->width || _screen->getHeight() != conf->height) {
                     cr_rotate_angle_t angle = readXCBScreenRotationAngle();
                     CRLog::info("Setting new window size: %d x %d, angle: %d", conf->width, conf->height, (int)angle );
-                    setScreenOrientation( angle );
-                    setSize( conf->width, conf->height );
+                    reconfigure( conf->width, conf->height, angle );
                     needUpdate = true;
                 }
 

@@ -756,6 +756,11 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
         LVImageSourceRef img = LVCreateStretchFilledTransform( sliderImg,
             sliderRect.width(), sliderRect.height() );
         buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
+        int page = pos/(maxpos-pagesize)+1;
+        int pages = (maxpos-pagesize) / pagesize + 1;
+        lString16 label;
+        label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
+        drawText( buf, sliderRect, label );
     }
 }
 
@@ -807,6 +812,7 @@ CRWindowSkin::CRWindowSkin()
 CRMenuSkin::CRMenuSkin()
 : _minItemCount(-1)
 , _maxItemCount(-1)
+, _showShortcuts(true)
 {
 }
 
@@ -925,7 +931,7 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     return flg;
 }
 
-CRScrollSkin::CRScrollSkin() : _autohide(false) { }
+CRScrollSkin::CRScrollSkin() : _autohide(false), _showPageNumbers(true) { }
 
 bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res )
 {
@@ -945,9 +951,12 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
         return false;
     }
 
-    res->setAutohide( readBool( (p).c_str(), L"autohide", false) );
+
 
     flg = readRectSkin( path, res ) || flg;
+
+    res->setAutohide( readBool( (p).c_str(), L"autohide", res->getAutohide()) );
+    res->setShowPageNumbers( readBool( (p).c_str(), L"show-page-numbers", res->getShowPageNumbers()) );
 
     CRButtonSkinRef upButton( new CRButtonSkin() );
     if ( readButtonSkin(  (p + L"/upbutton").c_str(), upButton.get() ) ) {
@@ -992,7 +1001,7 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
     }
 
     return flg;
-};
+}
 
 bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
 {
@@ -1017,18 +1026,21 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     lString16 borderpath = p + L"/border";
     lString16 textpath = p + L"/text";
     lString16 sizepath = p + L"/size";
-    res->setBackgroundImage( readImage( bgpath.c_str(), L"image", &flg ) );
-    res->setBackgroundColor( readColor( bgpath.c_str(), L"color", 0xFFFFFF, &flg ) );
-    res->setBorderWidths( readRect( borderpath.c_str(), L"widths", lvRect( 0, 0, 0, 0 ), &flg ) );
-    res->setMinSize( readSize( sizepath.c_str(), L"minvalue", lvPoint( 0, 0 ), &flg ) );
-    res->setMaxSize( readSize( sizepath.c_str(), L"maxvalue", lvPoint( 0, 0 ), &flg ) );
-    res->setFontFace( readString( textpath.c_str(), L"face", L"Arial", &flg ) );
-    res->setTextColor( readColor( textpath.c_str(), L"color", 0x000000, &flg ) );
-    res->setFontBold( readBool( textpath.c_str(), L"bold", false, &flg ) );
-    res->setFontItalic( readBool( textpath.c_str(), L"italic", false, &flg ) );
-    res->setFontSize( readInt( textpath.c_str(), L"size", 24, &flg ) );
-    res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", SKIN_HALIGN_LEFT, &flg) );
-    res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", SKIN_VALIGN_CENTER, &flg) );
+    LVImageSourceRef img;
+    img = readImage( bgpath.c_str(), L"image", &flg );
+    if ( !img.isNull() )
+        res->setBackgroundImage( img );
+    res->setBackgroundColor( readColor( bgpath.c_str(), L"color", res->getBackgroundColor(), &flg ) );
+    res->setBorderWidths( readRect( borderpath.c_str(), L"widths", res->getBorderWidths(), &flg ) );
+    res->setMinSize( readSize( sizepath.c_str(), L"minvalue", res->getMinSize(), &flg ) );
+    res->setMaxSize( readSize( sizepath.c_str(), L"maxvalue", res->getMaxSize(), &flg ) );
+    res->setFontFace( readString( textpath.c_str(), L"face", res->getFontFace(), &flg ) );
+    res->setTextColor( readColor( textpath.c_str(), L"color", res->getTextColor(), &flg ) );
+    res->setFontBold( readBool( textpath.c_str(), L"bold", res->getFontBold(), &flg ) );
+    res->setFontItalic( readBool( textpath.c_str(), L"italic", res->getFontItalic(), &flg ) );
+    res->setFontSize( readInt( textpath.c_str(), L"size", res->getFontSize(), &flg ) );
+    res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", res->getTextHAlign(), &flg) );
+    res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", res->getTextVAlign(), &flg) );
 
     if ( !flg ) {
         crtrace log;
@@ -1120,8 +1132,9 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
     res->setSelItemShortcutSkin( shortcutSelSkin );
 
-    res->setMinItemCount( readInt( path, L"min-item-count", -1) );
-    res->setMaxItemCount( readInt( path, L"max-item-count", -1) );
+    res->setMinItemCount( readInt( path, L"min-item-count", res->getMinItemCount()) );
+    res->setMaxItemCount( readInt( path, L"max-item-count", res->getMaxItemCount()) );
+    res->setShowShortcuts( readBool( path, L"show-shortcuts", res->getShowShortcuts() ) );
 
     return flg;
 }
