@@ -51,6 +51,7 @@
 #define PROP_SHOW_TIME               "window.status.clock"
 #define PROP_SHOW_TITLE              "window.status.title"
 #define PROP_SHOW_BATTERY            "window.status.battery"
+#define PROP_SHOW_BATTERY_PERCENT    "window.status.battery.percent"
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
 #define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"

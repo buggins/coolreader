@@ -159,8 +159,8 @@ LVDocView::LVDocView( int bitsPerPixel)
     createDefaultDocument( lString16(L"No document"), lString16(L"Welcome to CoolReader! Please select file to open") );
 
     m_font = fontMan->GetFont( m_font_size, 400, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
-    m_infoFont = fontMan->GetFont( m_status_font_size, 400, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
-    m_batteryFont = fontMan->GetFont( 14, 700, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+    m_infoFont = fontMan->GetFont( m_status_font_size, 700, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+    m_batteryFont = fontMan->GetFont( 20, 700, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
 
 }
 
@@ -1002,7 +1002,11 @@ void LVDocView::drawBatteryState( LVDrawBuf * drawbuf, const lvRect & batteryRc,
     LVDrawStateSaver saver( *drawbuf );
     drawbuf->SetTextColor(0xFFFFFF);
     drawbuf->SetBackgroundColor(0x000000);
-    LVDrawBatteryIcon( drawbuf, batteryRc, m_battery_state, m_battery_state==-1, m_batteryIcons, m_batteryFont.get() );
+    bool drawPercent = m_props->getBoolDef( PROP_SHOW_BATTERY_PERCENT, true );
+    LVDrawBatteryIcon( drawbuf, batteryRc,
+                       m_battery_state, m_battery_state==-1,
+                       m_batteryIcons,
+                       drawPercent?m_batteryFont.get():NULL );
 #if 0
     if ( m_batteryIcons.length()>1 ) {
         int iconIndex = ((m_batteryIcons.length() - 1 ) * m_battery_state + (100/m_batteryIcons.length()/2) )/ 100;
@@ -4344,6 +4348,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setStringDef( PROP_SHOW_TITLE, "1" );
     props->setStringDef( PROP_SHOW_TIME, "1" );
     props->setStringDef( PROP_SHOW_BATTERY, "1" );
+    props->setStringDef( PROP_SHOW_BATTERY_PERCENT, "1" );
 }
 
 #define H_MARGIN 8
