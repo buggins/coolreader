@@ -1,3 +1,10 @@
+cr3 (3.0.24-10) zelazny; urgency=low
+
+  * Advanced skin support for n516
+  * Splitting skins for different devices
+
+ -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Sun, 31 Jan 2010 23:34:00 +0300
+
 cr3 (3.0.24-9) zelazny; urgency=low
 
   * Fixed V3 key mapping
