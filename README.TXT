@@ -45,16 +45,22 @@ cd wxbuild
 cmake -D GUI=WX ..
 make
 
-# Building i386 debug version for OpenInkpot:
-mkdir build-i386
-cd build-i386
-cmake -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB ..
-make
-
 # Building ARM version on OpenInkpot:
 mkdir armbuild
 cd armbuild
 cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-oi.cmake -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_XCB ..
+make
+
+# Building i386 version (for OpenInkpot), V3 simulation:
+mkdir xcb-v3
+cd xcb-v3
+cmake -D DEVICE_NAME=v3 -D CMAKE_BUILD_TYPE=Debug  -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB ..
+make
+
+# Building i386 version (for OpenInkpot), n516/azbooka simulation:
+mkdir xcb-n516
+cd xcb-n516
+cmake -D DEVICE_NAME=n516 -D CMAKE_BUILD_TYPE=Debug  -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB ..
 make
 
 # Building Jinke/LBook V3 viewer plugin (libfb2.so):
