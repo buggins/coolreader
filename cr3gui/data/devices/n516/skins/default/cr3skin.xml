@@ -117,14 +117,14 @@
     <scroll base="#menuscroll"/>
   </window>
   <menu id="main" min-item-count="9" max-item-count="9" show-shortcuts="false" >
-        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
-        <background image="cr3_main_menu.png" color="#AAAAAA"/>
-        <border widths="32,8,8,8"/>
+        <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
+        <background color="#AAAAAA"/>
+        <border widths="2,2,2,2"/>
         <!--icon image="filename" valign="" halign=""/-->
         <title>
             <size minvalue="0,40" maxvalue="0,40"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
-            <background color="#AAAAAA"/>
+            <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
+            <background color="#555555"/>
             <border widths="4,4,4,4"/>
             <!--icon image="filename" valign="" halign=""-->
         </title>
@@ -134,10 +134,18 @@
         <item>
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
-            <background image="cr3_menu_item.png" color="#FFFFFF"/>
-            <border widths="12,6,12,6"/>
+            <background color="#FFFFFF"/>
+            <background color="#555555" pos="5,5%" size="5,90%"/>
+            <border widths="24,6,12,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </item>
+        <item-even>
+            <size minvalue="48,48" maxvalue="0,0"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+            <background color="#AAAAAA"/>
+            <background color="#555555" pos="5,5%" size="5,90%"/>
+            <border widths="24,6,12,6"/>
+        </item-even>
         <shortcut>
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#555555" face="Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
@@ -269,10 +277,15 @@
         <item>
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
-            <background image="cr3_menu_item.png" color="#FFFFFF"/>
+            <background color="#FFFFFF"/>
             <border widths="6,9,6,9"/>
-            <!--icon image="filename" valign="" halign=""-->
         </item>
+        <item-even>
+            <size minvalue="48,48" maxvalue="0,0"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+            <background color="#AAAAAA"/>
+            <border widths="6,9,6,9"/>
+        </item-even>
         <shortcut>
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#555555" face="Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>

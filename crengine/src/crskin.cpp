@@ -34,6 +34,14 @@ int fromSkinPercent( int x, int fullx )
         x ^= SKIN_COORD_PERCENT_FLAG;
         return x * fullx / 10000;
     } else {
+        if ( x<0 ) {
+            if ( !(x & SKIN_COORD_PERCENT_FLAG) ) {
+                x ^= SKIN_COORD_PERCENT_FLAG;
+                x = 10000-x;
+                return x * fullx / 10000;
+            }
+            return fullx + x;
+        }
         return x;
     }
 }
@@ -57,7 +65,7 @@ int toSkinPercent( const lString16 & value, int defValue, bool * res )
         if ( value.substr(0, p).atoi(pvalue) ) {
             if ( res )
                 *res = true;
-            return toSkinPercent(pvalue);
+            return toSkinPercent(pvalue*100);
         }
     }
     // "75px" format - in pixels
@@ -92,37 +100,37 @@ CRIconSkin::CRIconSkin()
 
 void CRIconSkin::draw( LVDrawBuf & buf, const lvRect & rc )
 {
+    int dx = _image.isNull() ? 0 : _image->GetWidth();
+    int dy = _image.isNull() ? 0 : _image->GetHeight();
+    lvRect rc2(rc);
+    rc2.left = rc.left + fromSkinPercent( _pos.x, rc.width() );
+    rc2.top = rc.top + fromSkinPercent( _pos.y, rc.height() );
+    rc2.right = rc2.left + fromSkinPercent( _size.x, rc.width() );
+    rc2.bottom = rc2.top + fromSkinPercent( _size.y, rc.height() );
+    if ( _hTransform==IMG_TRANSFORM_NONE ) {
+        int ddx = rc2.width()-dx;
+        if ( getHAlign()==SKIN_HALIGN_RIGHT )
+            rc2.left = rc2.right - dx;
+        else if ( getHAlign()==SKIN_HALIGN_CENTER ) {
+            rc2.left += ddx/2;
+            rc2.right = rc2.left + dx;
+        } else
+            rc2.right = rc2.left + dx;
+    }
+    if ( _vTransform==IMG_TRANSFORM_NONE ) {
+        int ddy = rc2.height()-dy;
+        if ( getVAlign()==SKIN_VALIGN_BOTTOM )
+            rc2.left = rc2.right - dx;
+        else if ( getHAlign()==SKIN_VALIGN_CENTER ) {
+            rc2.top += ddy/2;
+            rc2.bottom = rc2.top + dy;
+        } else
+            rc2.bottom = rc2.top + dy;
+    }
     if ( _image.isNull() ) {
         if ( ((_bgcolor>>24)&255) != 255 )
-            buf.FillRect( rc, _bgcolor );
+            buf.FillRect( rc2, _bgcolor );
     } else {
-        int dx = _image->GetWidth();
-        int dy = _image->GetHeight();
-        lvRect rc2(rc);
-        rc2.left = rc.left + fromSkinPercent( _pos.x, rc.width() );
-        rc2.top = rc.top + fromSkinPercent( _pos.y, rc.height() );
-        rc2.right = rc2.left + fromSkinPercent( _size.x, rc.width() );
-        rc2.bottom = rc2.top + fromSkinPercent( _size.y, rc.height() );
-        if ( _hTransform==IMG_TRANSFORM_NONE ) {
-            int ddx = rc2.width()-dx;
-            if ( getHAlign()==SKIN_HALIGN_RIGHT )
-                rc2.left = rc2.right - dx;
-            else if ( getHAlign()==SKIN_HALIGN_CENTER ) {
-                rc2.left += ddx/2;
-                rc2.right = rc2.left + dx;
-            } else
-                rc2.right = rc2.left + dx;
-        }
-        if ( _vTransform==IMG_TRANSFORM_NONE ) {
-            int ddy = rc2.height()-dy;
-            if ( getVAlign()==SKIN_VALIGN_BOTTOM )
-                rc2.left = rc2.right - dx;
-            else if ( getHAlign()==SKIN_VALIGN_CENTER ) {
-                rc2.top += ddy/2;
-                rc2.bottom = rc2.top + dy;
-            } else
-                rc2.bottom = rc2.top + dy;
-        }
         LVImageSourceRef img = LVCreateStretchFilledTransform( _image,
             rc2.width(), rc2.height(), _hTransform, _vTransform, _splitPoint.x, _splitPoint.y );
         LVDrawStateSaver saver(buf);
@@ -590,7 +598,7 @@ lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrnam
     bool b1=false;
     bool b2=false;
     p.x = toSkinPercent( s1, defValue.x, &b1 );
-    p.y = toSkinPercent( s1, defValue.x, &b2 );
+    p.y = toSkinPercent( s2, defValue.x, &b2 );
     if ( b1 && b2 ) {
         if ( res )
             *res = true;
@@ -674,7 +682,7 @@ CRSkinRef LVOpenSkin( const lString16 & pathname )
     CRSkinRef res( skin );
     if ( !skin->open( container ) )
         return CRSkinRef();
-    CRLog::trace("skin container opened ok");
+    CRLog::trace("skin container %s opened ok", LCSTR(pathname) );
     return res;
 }
 
@@ -994,7 +1002,6 @@ CRRectSkin::CRRectSkin()
 }
 
 CRWindowSkin::CRWindowSkin()
-: _titleSize( 0, 28 )
 {
 }
 
@@ -1060,7 +1067,7 @@ public:
     CRSimpleMenuSkin( CRSkinImpl * skin )
     {
         //setBackgroundColor( 0xAAAAAA );
-        setTitleSize( lvPoint( 0, 48 ) );
+        //setTitleSize( lvPoint( 0, 48 ) );
         setBorderWidths( lvRect( 8, 8, 8, 8 ) );
         _titleSkin = CRRectSkinRef( new CRRectSkin() );
         //_titleSkin->setBackgroundColor(0xAAAAAA);
@@ -1208,6 +1215,9 @@ bool CRSkinContainer::readIconSkin(  const lChar16 * path, CRIconSkin * res )
         log << "Image skin by path " << p << " was not found";
         return false;
     }
+    LVImageSourceRef image = readImage( path, L"image", &flg );
+    if ( !image.isNull() )
+        res->setImage( image );
     res->setHAlign( readHAlign( path, L"halign", res->getHAlign(), &flg) );
     res->setVAlign( readVAlign( path, L"valign", res->getVAlign(), &flg) );
     res->setBgColor( readColor( path, L"color", res->getBgColor(), &flg) );
@@ -1216,6 +1226,7 @@ bool CRSkinContainer::readIconSkin(  const lChar16 * path, CRIconSkin * res )
     res->setSplitPoint( readSize( path, L"split", res->getSplitPoint(), &flg) );
     res->setPos( readSize( path, L"pos", res->getPos(), &flg) );
     res->setSize( readSize( path, L"size", res->getSize(), &flg) );
+    return flg;
 }
 
 bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
@@ -1241,10 +1252,7 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     lString16 borderpath = p + L"/border";
     lString16 textpath = p + L"/text";
     lString16 sizepath = p + L"/size";
-    LVImageSourceRef img;
-    img = readImage( bgpath.c_str(), L"image", &flg );
-    if ( !img.isNull() )
-        res->setBackgroundImage( img );
+
     CRIconListRef icons;
     bool bgIconsFlag = false;
     icons = readIcons( bgpath.c_str(), &bgIconsFlag);
@@ -1272,6 +1280,12 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     return flg;
 }
 
+lvPoint CRWindowSkin::getTitleSize()
+{
+    lvPoint minsize = _titleSkin->getMinSize();
+    return minsize;
+}
+
 bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
 {
     bool flg = false;
@@ -1297,8 +1311,6 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
         res->setTitleSkin( titleSkin );
         flg = true;
     }
-    lvPoint minsize = titleSkin->getMinSize();
-    res->setTitleSize( minsize );
 
     CRRectSkinRef clientSkin( new CRRectSkin() );
     if ( readRectSkin(  (p + L"/client").c_str(), clientSkin.get() ) ) {
@@ -1340,6 +1352,7 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     }
 
     flg = readWindowSkin( path, res ) || flg;
+
     CRRectSkinRef itemSkin( new CRRectSkin() );
     flg = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() ) || flg;
     res->setItemSkin( itemSkin );
@@ -1353,6 +1366,20 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     CRRectSkinRef shortcutSelSkin( new CRRectSkin() );
     readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
     res->setSelItemShortcutSkin( shortcutSelSkin );
+
+    CRRectSkinRef evenitemSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/item-even").c_str(), evenitemSkin.get() ) )
+        res->setEvenItemSkin( evenitemSkin );
+    CRRectSkinRef evenshortcutSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/shortcut-even").c_str(), evenshortcutSkin.get() ) )
+        res->setEvenItemShortcutSkin( evenshortcutSkin );
+
+    CRRectSkinRef evenitemSelSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/selitem-even").c_str(), evenitemSelSkin.get() ) )
+        res->setEvenSelItemSkin( evenitemSelSkin );
+    CRRectSkinRef evenshortcutSelSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/selshortcut-even").c_str(), evenshortcutSelSkin.get() ) )
+        res->setEvenSelItemShortcutSkin( evenshortcutSelSkin );
 
     res->setMinItemCount( readInt( path, L"min-item-count", res->getMinItemCount()) );
     res->setMaxItemCount( readInt( path, L"max-item-count", res->getMaxItemCount()) );

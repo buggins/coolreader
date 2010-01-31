@@ -430,7 +430,9 @@ void CRViewDialog::draw()
 		return; // skin is not yet loaded
     CRRectSkinRef titleSkin = _skin->getTitleSkin();
     CRRectSkinRef clientSkin = _skin->getClientSkin();
-    lvRect borders = clientSkin->getBorderWidths();
+    lvRect borders;
+    if ( !clientSkin.isNull() )
+        borders = clientSkin->getBorderWidths();
     LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
     if ( _showFrame ) {
         _skin->draw( *drawbuf, _rect );
@@ -439,7 +441,8 @@ void CRViewDialog::draw()
         titleSkin->drawText( *drawbuf, titleRect, _title );
     }
     // draw toc
-    clientSkin->draw( *drawbuf, _clientRect );
+    if ( !clientSkin.isNull() )
+        clientSkin->draw( *drawbuf, _clientRect );
     if ( !_scrollRect.isEmpty() ) {
         // draw scrollbar
         CRScrollSkinRef sskin = _skin->getScrollSkin();

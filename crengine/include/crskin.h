@@ -300,7 +300,7 @@ typedef LVFastRef<CRScrollSkin> CRScrollSkinRef;
 class CRWindowSkin : public CRRectSkin
 {
 protected:
-    lvPoint _titleSize;
+    //lvPoint _titleSize;
     CRRectSkinRef _titleSkin;
     CRRectSkinRef _clientSkin;
     CRScrollSkinRef _scrollSkin;
@@ -311,8 +311,8 @@ public:
     CRScrollSkinRef getScrollSkin() { return _scrollSkin; }
     void setScrollSkin( CRScrollSkinRef v ) { _scrollSkin = v; }
     virtual lvPoint getWindowSize( const lvPoint & clientSize );
-    virtual lvPoint getTitleSize() { return _titleSize; }
-    virtual void setTitleSize( lvPoint sz ) { _titleSize = sz; }
+    virtual lvPoint getTitleSize();
+    //virtual void setTitleSize( lvPoint sz ) { _titleSize = sz; }
     virtual lvRect getTitleRect( const lvRect &windowRect );
     virtual lvRect getClientRect( const lvRect &windowRect );
     virtual CRRectSkinRef getTitleSkin() { return _titleSkin; }
@@ -327,8 +327,12 @@ class CRMenuSkin : public CRWindowSkin
 protected:
     CRRectSkinRef _itemSkin;
     CRRectSkinRef _itemShortcutSkin;
+    CRRectSkinRef _evenItemSkin;
+    CRRectSkinRef _evenItemShortcutSkin;
     CRRectSkinRef _selItemSkin;
     CRRectSkinRef _selItemShortcutSkin;
+    CRRectSkinRef _evenSelItemSkin;
+    CRRectSkinRef _evenSelItemShortcutSkin;
     int _minItemCount;
     int _maxItemCount;
     bool _showShortcuts;
@@ -337,12 +341,20 @@ public:
     virtual ~CRMenuSkin() { }
     virtual CRRectSkinRef getItemSkin() { return _itemSkin; }
     virtual void setItemSkin( CRRectSkinRef skin ) { _itemSkin = skin; }
+    virtual CRRectSkinRef getEvenItemSkin() { return _evenItemSkin; }
+    virtual void setEvenItemSkin( CRRectSkinRef skin ) { _evenItemSkin = skin; }
     virtual CRRectSkinRef getItemShortcutSkin() { return _itemShortcutSkin; }
     virtual void setItemShortcutSkin( CRRectSkinRef skin ) { _itemShortcutSkin = skin; }
+    virtual CRRectSkinRef getEvenItemShortcutSkin() { return _evenItemShortcutSkin; }
+    virtual void setEvenItemShortcutSkin( CRRectSkinRef skin ) { _evenItemShortcutSkin = skin; }
     virtual CRRectSkinRef getSelItemSkin() { return _selItemSkin; }
     virtual void setSelItemSkin( CRRectSkinRef skin ) { _selItemSkin = skin; }
+    virtual CRRectSkinRef getEvenSelItemSkin() { return _evenSelItemSkin; }
+    virtual void setEvenSelItemSkin( CRRectSkinRef skin ) { _evenSelItemSkin = skin; }
     virtual CRRectSkinRef getSelItemShortcutSkin() { return _selItemShortcutSkin; }
     virtual void setSelItemShortcutSkin( CRRectSkinRef skin ) { _selItemShortcutSkin = skin; }
+    virtual CRRectSkinRef getEvenSelItemShortcutSkin() { return _evenSelItemShortcutSkin; }
+    virtual void setEvenSelItemShortcutSkin( CRRectSkinRef skin ) { _evenSelItemShortcutSkin = skin; }
     int getMinItemCount() { return _minItemCount; }
     int getMaxItemCount() { return _maxItemCount; }
     void setMinItemCount( int v ) { _minItemCount = v; }

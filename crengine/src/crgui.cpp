@@ -590,6 +590,18 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();
     CRRectSkinRef itemSelSkin = skin->getSelItemSkin();
     CRRectSkinRef itemSelShortcutSkin = skin->getSelItemShortcutSkin();
+    CRRectSkinRef evenitemSkin = skin->getEvenItemSkin();
+    CRRectSkinRef evenitemShortcutSkin = skin->getEvenItemShortcutSkin();
+    CRRectSkinRef evenitemSelSkin = skin->getEvenSelItemSkin();
+    CRRectSkinRef evenitemSelShortcutSkin = skin->getEvenSelItemShortcutSkin();
+    if ( evenitemSkin.isNull() )
+        evenitemSkin = itemSkin;
+    if ( evenitemShortcutSkin.isNull() )
+        evenitemShortcutSkin = itemShortcutSkin;
+    if ( evenitemSelSkin.isNull() )
+        evenitemSelSkin = itemSelSkin;
+    if ( evenitemSelShortcutSkin.isNull() )
+        evenitemSelShortcutSkin = itemSelShortcutSkin;
     lvRect itemBorders = itemSkin->getBorderWidths();
     lvRect headerRc = skin->getTitleRect(_rect);
 
@@ -673,8 +685,13 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
             selected = true;
 
         rc.bottom = rc.top + itemSize.y;
-        CRRectSkinRef is = selected ? itemSelSkin : itemSkin;
-        CRRectSkinRef ss = selected ? itemSelShortcutSkin : itemShortcutSkin;
+        bool even = (i & 1);
+        CRRectSkinRef is = selected
+                           ? (even ? evenitemSelSkin : itemSelSkin)
+                           : (even ? evenitemSkin : itemSkin);
+        CRRectSkinRef ss = selected
+                           ? (even ? evenitemSelShortcutSkin : itemSelShortcutSkin)
+                           : (even ? evenitemShortcutSkin : itemShortcutSkin);
         if ( selected ) {
             lvRect sel = rc;
             sel.extend( 4 );
