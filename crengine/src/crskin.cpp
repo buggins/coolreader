@@ -436,16 +436,19 @@ lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname
     if ( value.empty() )
         return defValue;
     lvRect p = defValue;
-    lString16 s1, s2, s3, s4;
-    if ( !value.split2(lString16(L","), s1, s2) )
+    lString16 s1, s2, s3, s4, s;
+    s = value;
+    if ( !s.split2(lString16(L","), s1, s2) )
         return p;
     s1.trim();
     s2.trim();
-    if ( !s2.split2(lString16(L","), s2, s3) )
+    s = s2;
+    if ( !s.split2(lString16(L","), s2, s3) )
         return p;
     s2.trim();
     s3.trim();
-    if ( !s3.split2(lString16(L","), s3, s4) )
+    s = s3;
+    if ( !s.split2(lString16(L","), s3, s4) )
         return p;
     s3.trim();
     s4.trim();
@@ -455,9 +458,9 @@ lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname
     bool b3=false;
     bool b4=false;
     p.left = toSkinPercent( s1, defValue.left, &b1 );
-    p.top = toSkinPercent( s1, defValue.top, &b2 );
-    p.right = toSkinPercent( s1, defValue.right, &b3 );
-    p.bottom = toSkinPercent( s1, defValue.bottom, &b4 );
+    p.top = toSkinPercent( s2, defValue.top, &b2 );
+    p.right = toSkinPercent( s3, defValue.right, &b3 );
+    p.bottom = toSkinPercent( s4, defValue.bottom, &b4 );
     if ( b1 && b2 && b3 && b4) {
         if ( res )
             *res = true;
