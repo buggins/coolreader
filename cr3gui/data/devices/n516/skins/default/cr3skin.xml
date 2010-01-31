@@ -129,28 +129,27 @@
             <!--icon image="filename" valign="" halign=""-->
         </title>
         <client>
-            <background color="#AAAAAA"/>
+            <background color="#dddddd" />
+            <background image="sheet.png" pos="5,0" size="0,100%" htransform="none" vtransform="tile" />
         </client>
         <item>
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
-            <background color="#FFFFFF"/>
-            <background color="#555555" pos="5,5%" size="5,90%"/>
-            <border widths="24,6,12,6"/>
+            <background image="separator.png" pos="32,0" size="-32,100%" htransform="tile" vtransform="none" valign="bottom" />
+            <border widths="32,6,12,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </item>
         <item-even>
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
-            <background color="#AAAAAA"/>
-            <background color="#555555" pos="5,5%" size="5,90%"/>
-            <border widths="24,6,12,6"/>
+            <background image="separator.png" pos="32,0" size="-32,100%" htransform="tile" vtransform="none" valign="bottom" />
+            <border widths="32,6,12,6"/>
         </item-even>
         <shortcut>
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#555555" face="Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_shortcut.png" color="#FFFFFF"/>
-            <border widths="12,6,6,6"/>
+            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="32" bold="true" italic="false" valign="center" halign="center"/>
+            <background image="shortcut.png" htransform="none" vtransform="none" halign="center" valign="center"/>
+            <border widths="6,6,6,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </shortcut>
         <selitem>
@@ -170,6 +169,10 @@
     <scroll base="#menuscroll-noautohide"/>
   </menu>
   <menu id="main-rotated" min-item-count="5" max-item-count="5" show-shortcuts="true" >
+        <client>
+            <background color="#dddddd" />
+            <background image="sheet.png" pos="40,0" size="0,100%" htransform="none" vtransform="tile" />
+        </client>
   </menu>
   <menu id="t9input">
     <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>

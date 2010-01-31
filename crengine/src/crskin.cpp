@@ -120,8 +120,8 @@ void CRIconSkin::draw( LVDrawBuf & buf, const lvRect & rc )
     if ( _vTransform==IMG_TRANSFORM_NONE ) {
         int ddy = rc2.height()-dy;
         if ( getVAlign()==SKIN_VALIGN_BOTTOM )
-            rc2.left = rc2.right - dx;
-        else if ( getHAlign()==SKIN_VALIGN_CENTER ) {
+            rc2.top = rc2.bottom - dy;
+        else if ( getVAlign()==SKIN_VALIGN_CENTER ) {
             rc2.top += ddy/2;
             rc2.bottom = rc2.top + dy;
         } else
@@ -696,7 +696,7 @@ void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
 	buf.SetTextColor( getTextColor() );
     CRIconListRef bgimg = getBgIcons();
 	if ( bgimg.isNull() ) {
-		buf.FillRect( rc, getBackgroundColor() );
+        //buf.FillRect( rc, getBackgroundColor() );
 	} else {
         bgimg->draw( buf, rc );
 	}

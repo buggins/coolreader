@@ -585,6 +585,7 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
     CRMenuSkinRef skin = getSkin();
+    CRRectSkinRef clientSkin = skin->getClientSkin();
     CRRectSkinRef titleSkin = skin->getTitleSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();
@@ -614,6 +615,10 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     titleSkin->draw( buf, headerRc );
     titleSkin->drawText( buf, headerRc, _label );
 
+    lvRect clientRect = skin->getClientRect(_rect);
+    if ( !clientSkin.isNull() )
+        clientSkin->draw( buf, clientRect );
+
     lvPoint itemSize = getMaxItemSize();
     //int hdrHeight = itemSize.y; // + ITEM_MARGIN + ITEM_MARGIN;
     lvPoint sz = getSize();
@@ -626,7 +631,7 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         scrollHeight = SCROLL_HEIGHT;
     }
 
-    lvRect itemsRc( skin->getClientRect(_rect) );
+    lvRect itemsRc( clientRect );
     itemsRc.bottom -= scrollHeight;
     //lvRect headerRc( x + itemBorders.left, y + itemBorders.top, x + sz.x - itemBorders.right, itemsRc.top+1 );
     lvRect scrollRc( skin->getClientRect(_rect) );
