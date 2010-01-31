@@ -408,6 +408,9 @@ public:
     int compare(size_type p0, size_type n0, const value_type *s) const;
     int compare(size_type p0, size_type n0, const value_type *s, size_type pos) const;
 
+    /// split string into two strings using delimiter
+    bool split2( const lString16 & delim, lString16 & value1, lString16 & value2 );
+
     /// returns n characters beginning with pos
     lString16 substr(size_type pos, size_type n) const;
     /// returns part of string from specified position to end of string

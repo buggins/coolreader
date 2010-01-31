@@ -1,9 +1,26 @@
-cr3 (3.0.24-10) zelazny; urgency=low
+cr3 (3.0.24-11) zelazny; urgency=low
 
   * Advanced skin support for n516
   * Splitting skins for different devices
 
  -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Sun, 31 Jan 2010 23:34:00 +0300
+
+cr3 (3.0.24-10) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * coverpage scaling change
+  * percent on battery icon
+  * fix font weight bug, 3-bit dither bug
+  * fix key names
+  * fix keymaps for nano-x and jinke plugin builds
+  * fix battery icon
+  * skin improvements, part 1
+  * skin support improvements, part 2
+  * make skins device specific
+  * split v3 and v516 skins
+  * skin splitting
+
+ -- Alexander V. Nikolaev <avn@daemon.hole.ru>  Sun, 31 Jan 2010 23:47:37 +0200
 
 cr3 (3.0.24-9) zelazny; urgency=low
 
