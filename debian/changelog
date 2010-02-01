@@ -1,3 +1,20 @@
+cr3 (3.0.24-10) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * coverpage scaling change
+  * percent on battery icon
+  * fix font weight bug, 3-bit dither bug
+  * fix key names
+  * fix keymaps for nano-x and jinke plugin builds
+  * fix battery icon
+  * skin improvements, part 1
+  * skin support improvements, part 2
+  * make skins device specific
+  * split v3 and v516 skins
+  * skin splitting
+
+ -- Alexander V. Nikolaev <avn@daemon.hole.ru>  Sun, 31 Jan 2010 23:47:37 +0200
+
 cr3 (3.0.24-9) zelazny; urgency=low
 
   * Fixed V3 key mapping
