@@ -458,6 +458,12 @@ public:
         insert( -1, item );
     }
 
+    void add( LVRefVec<T> & list )
+    {
+        for ( int i=0; i<list.length(); i++ )
+            add( list[i] );
+    }
+
     /// adds new item to end of vector
     void append( const LVRef<T> * items, int count )
     {

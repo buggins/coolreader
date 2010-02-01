@@ -90,6 +90,53 @@ CRIconSkin::CRIconSkin()
 {
 }
 
+void CRIconSkin::draw( LVDrawBuf & buf, const lvRect & rc )
+{
+    if ( _image.isNull() ) {
+        if ( ((_bgcolor>>24)&255) != 255 )
+            buf.FillRect( rc, _bgcolor );
+    } else {
+        int dx = _image->GetWidth();
+        int dy = _image->GetHeight();
+        lvRect rc2(rc);
+        rc2.left = rc.left + fromSkinPercent( _pos.x, rc.width() );
+        rc2.top = rc.top + fromSkinPercent( _pos.y, rc.height() );
+        rc2.right = rc2.left + fromSkinPercent( _size.x, rc.width() );
+        rc2.bottom = rc2.top + fromSkinPercent( _size.y, rc.height() );
+        if ( _hTransform==IMG_TRANSFORM_NONE ) {
+            int ddx = rc2.width()-dx;
+            if ( getHAlign()==SKIN_HALIGN_RIGHT )
+                rc2.left = rc2.right - dx;
+            else if ( getHAlign()==SKIN_HALIGN_CENTER ) {
+                rc2.left += ddx/2;
+                rc2.right = rc2.left + dx;
+            } else
+                rc2.right = rc2.left + dx;
+        }
+        if ( _vTransform==IMG_TRANSFORM_NONE ) {
+            int ddy = rc2.height()-dy;
+            if ( getVAlign()==SKIN_VALIGN_BOTTOM )
+                rc2.left = rc2.right - dx;
+            else if ( getHAlign()==SKIN_VALIGN_CENTER ) {
+                rc2.top += ddy/2;
+                rc2.bottom = rc2.top + dy;
+            } else
+                rc2.bottom = rc2.top + dy;
+        }
+        LVImageSourceRef img = LVCreateStretchFilledTransform( _image,
+            rc2.width(), rc2.height(), _hTransform, _vTransform, _splitPoint.x, _splitPoint.y );
+        LVDrawStateSaver saver(buf);
+        buf.SetClipRect(&rc);
+        buf.Draw( img, rc2.left, rc2.top, rc2.width(), rc2.height(), false );
+    }
+}
+
+void CRIconList::draw( LVDrawBuf & buf, const lvRect & rc )
+{
+    for ( int i=0; i<_list.length(); i++ )
+        _list[i]->draw( buf, rc );
+}
+
 /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
 lString16 CRSkinContainer::getBasePath( const lChar16 * path )
 {
@@ -569,6 +616,30 @@ LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16
     return res;
 }
 
+/// reads rect value from attrname attribute of element specified by path, returns null ref if not found
+CRIconListRef CRSkinContainer::readIcons( const lChar16 * path, bool * r )
+{
+    CRIconListRef list = CRIconListRef(new CRIconList() );
+    for ( int i=1; i<16; i++ ) {
+        lString16 p = lString16(path) + L"[" + lString16::itoa(i) + L"]";
+        CRIconSkin * icon = new CRIconSkin();
+        if ( readIconSkin(p.c_str(), icon ) )
+            list->add( CRIconSkinRef(icon) );
+        else {
+            delete icon;
+            break;
+        }
+    }
+    if ( list->length()==0 ) {
+        crtrace log;
+        log << "CRSkinContainer::readIcons( " << path << ") - cannot read icon from specified path";
+        return CRIconListRef();
+    }
+    if ( r )
+        *r = true;
+    return list;
+}
+
 /// open simple skin, without image files, from string
 CRSkinRef LVOpenSimpleSkin( const lString8 & xml )
 {
@@ -612,14 +683,11 @@ void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
     SAVE_DRAW_STATE( buf );
 	buf.SetBackgroundColor( getBackgroundColor() );
 	buf.SetTextColor( getTextColor() );
-	LVImageSourceRef bgimg = getBackgroundImage();
+    CRIconListRef bgimg = getBgIcons();
 	if ( bgimg.isNull() ) {
 		buf.FillRect( rc, getBackgroundColor() );
 	} else {
-		lvPoint split = getBackgroundImageSplit();
-		LVImageSourceRef img = LVCreateStretchFilledTransform( bgimg,
-			rc.width(), rc.height() );
-		buf.Draw( img, rc.left, rc.top, rc.width(), rc.height(), false );
+        bgimg->draw( buf, rc );
 	}
 }
 
@@ -663,8 +731,6 @@ lvPoint CRWindowSkin::getWindowSize( const lvPoint & clientSize )
 
 CRSkinnedItem::CRSkinnedItem()
 :   _textcolor( 0x000000 )
-,   _bgcolor( 0xFFFFFF )
-,   _bgimagesplit(-1,-1)
 ,   _fontFace(L"Arial")
 ,   _fontSize( 24 )
 ,   _fontBold( false )
@@ -943,7 +1009,7 @@ class CRSimpleWindowSkin : public CRWindowSkin
 public:
         CRSimpleWindowSkin( CRSkinImpl * )
 	{
-		setBackgroundColor( 0xAAAAAA );
+        //setBackgroundColor( 0xAAAAAA );
 	}
 };
 
@@ -952,7 +1018,7 @@ class CRSimpleFrameSkin : public CRRectSkin
 public:
         CRSimpleFrameSkin( CRSkinImpl * )
 	{
-		setBackgroundColor( 0xAAAAAA );
+        //setBackgroundColor( 0xAAAAAA );
 	}
 };
 
@@ -990,11 +1056,11 @@ class CRSimpleMenuSkin : public CRMenuSkin
 public:
     CRSimpleMenuSkin( CRSkinImpl * skin )
     {
-        setBackgroundColor( 0xAAAAAA );
+        //setBackgroundColor( 0xAAAAAA );
         setTitleSize( lvPoint( 0, 48 ) );
         setBorderWidths( lvRect( 8, 8, 8, 8 ) );
         _titleSkin = CRRectSkinRef( new CRRectSkin() );
-        _titleSkin->setBackgroundColor(0xAAAAAA);
+        //_titleSkin->setBackgroundColor(0xAAAAAA);
         _titleSkin->setTextColor(0x000000);
         _titleSkin->setFontBold( true );
         _titleSkin->setFontSize( 28 );
@@ -1176,7 +1242,14 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     img = readImage( bgpath.c_str(), L"image", &flg );
     if ( !img.isNull() )
         res->setBackgroundImage( img );
-    res->setBackgroundColor( readColor( bgpath.c_str(), L"color", res->getBackgroundColor(), &flg ) );
+    CRIconListRef icons;
+    bool bgIconsFlag = false;
+    icons = readIcons( bgpath.c_str(), &bgIconsFlag);
+    if ( bgIconsFlag ) {
+        res->setBgIcons( icons );
+        flg = true;
+    }
+    //res->setBackgroundColor( readColor( bgpath.c_str(), L"color", res->getBackgroundColor(), &flg ) );
     res->setBorderWidths( readRect( borderpath.c_str(), L"widths", res->getBorderWidths(), &flg ) );
     res->setMinSize( readSize( sizepath.c_str(), L"minvalue", res->getMinSize(), &flg ) );
     res->setMaxSize( readSize( sizepath.c_str(), L"maxvalue", res->getMaxSize(), &flg ) );

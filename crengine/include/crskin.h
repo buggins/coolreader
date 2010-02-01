@@ -58,7 +58,7 @@ int fromSkinPercent( int x, int fullx );
 lvPoint fromSkinPercent( lvPoint pt, lvPoint fullpt );
 
 /// resizable/autoplaceable icon for using in skins
-class CRIconSkin : public LVRefCounter
+class CRIconSkin
 {
 protected:
     LVImageSourceRef _image; /// image to draw
@@ -104,18 +104,38 @@ public:
     virtual void setAlign( int align ) { _align = align; }
     virtual void setVAlign( int align ) { _align = (_align & ~SKIN_VALIGN_MASK ) | (align & SKIN_VALIGN_MASK); }
     virtual void setHAlign( int align ) { _align = (_align & ~SKIN_HALIGN_MASK ) | (align & SKIN_HALIGN_MASK); }
+    virtual void draw( LVDrawBuf & buf, const lvRect & rc );
     CRIconSkin();
     virtual ~CRIconSkin() { }
 };
+typedef LVRef<CRIconSkin> CRIconSkinRef;
+
+/// list of icons
+class CRIconList
+{
+protected:
+    LVRefVec<CRIconSkin> _list;
+public:
+    void add( CRIconSkinRef icon ) { _list.add( icon ); }
+    void add( CRIconList & list ) { _list.add( list._list ); }
+    CRIconSkinRef first() { return _list.length()>0 ? _list[0] : CRIconSkinRef(); }
+    lUInt32 getBgColor() { CRIconSkinRef r = first(); return r.isNull() ? 0xFFFFFF : r->getBgColor(); }
+    int length() { return _list.length(); }
+    virtual void draw( LVDrawBuf & buf, const lvRect & rc );
+    CRIconList() { }
+    virtual ~CRIconList() { }
+};
+typedef LVRef<CRIconList> CRIconListRef;
 
 /// base skinned item class
 class CRSkinnedItem : public LVRefCounter
 {
 protected:
     lUInt32 _textcolor;
-    lUInt32 _bgcolor;
-    LVImageSourceRef _bgimage;
-    lvPoint _bgimagesplit;
+    CRIconListRef _bgicons;
+    //lUInt32 _bgcolor;
+    //LVImageSourceRef _bgimage;
+    //lvPoint _bgimagesplit;
     lString16 _fontFace;
     int _fontSize;
     bool _fontBold;
@@ -124,6 +144,18 @@ protected:
     int _textAlign;
 public:
     CRSkinnedItem();
+    virtual lUInt32 getBackgroundColor() { return _bgicons.isNull() ? 0xFFFFFF : _bgicons->getBgColor(); }
+    // set icons to single image, with splitting
+    virtual void setBackgroundImage( LVImageSourceRef img )
+    {
+        CRIconListRef icons( new CRIconList() );
+        CRIconSkinRef icon( new CRIconSkin() );
+        icon->setImage( img );
+        icons->add( icon );
+        _bgicons = icons;
+    }
+    virtual CRIconListRef getBgIcons() { return _bgicons; }
+    virtual void setBgIcons( CRIconListRef list ) { _bgicons = list; }
     virtual int getTextAlign() { return _textAlign; }
     virtual int getTextVAlign() { return _textAlign & SKIN_VALIGN_MASK; }
     virtual int getTextHAlign() { return _textAlign & SKIN_HALIGN_MASK; }
@@ -131,9 +163,9 @@ public:
     virtual void setTextVAlign( int align ) { _textAlign = (_textAlign & ~SKIN_VALIGN_MASK ) | (align & SKIN_VALIGN_MASK); }
     virtual void setTextHAlign( int align ) { _textAlign = (_textAlign & ~SKIN_HALIGN_MASK ) | (align & SKIN_HALIGN_MASK); }
     virtual lUInt32 getTextColor() { return _textcolor; }
-    virtual lUInt32 getBackgroundColor() { return _bgcolor; }
-    virtual LVImageSourceRef getBackgroundImage() { return _bgimage; }
-    virtual lvPoint getBackgroundImageSplit() { return _bgimagesplit; }
+    //virtual lUInt32 getBackgroundColor() { return _bgcolor; }
+    //virtual LVImageSourceRef getBackgroundImage() { return _bgimage; }
+    //virtual lvPoint getBackgroundImageSplit() { return _bgimagesplit; }
     virtual lString16 getFontFace() { return _fontFace; }
     virtual int getFontSize() { return _fontSize; }
     virtual bool getFontBold() { return _fontBold; }
@@ -144,9 +176,9 @@ public:
     virtual void setFontItalic( bool italic );
     virtual LVFontRef getFont();
     virtual void setTextColor( lUInt32 color ) { _textcolor = color; }
-    virtual void setBackgroundColor( lUInt32 color ) { _bgcolor = color; }
-    virtual void setBackgroundImage( LVImageSourceRef img ) { _bgimage = img; }
-    virtual void setBackgroundImageSplit( lvPoint pt ) { _bgimagesplit = pt; }
+    //virtual void setBackgroundColor( lUInt32 color ) { _bgcolor = color; }
+    //virtual void setBackgroundImage( LVImageSourceRef img ) { _bgimage = img; }
+    //virtual void setBackgroundImageSplit( lvPoint pt ) { _bgimagesplit = pt; }
     virtual void setFont( LVFontRef fnt ) { _font = fnt; }
     virtual void draw( LVDrawBuf & buf, const lvRect & rc );
     virtual void drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, LVFontRef font, lUInt32 textColor, lUInt32 bgColor, int flags );
@@ -367,6 +399,9 @@ public:
     virtual lvPoint readSize( const lChar16 * path, const lChar16 * attrname, lvPoint defValue, bool * res=NULL );
     /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
     virtual LVImageSourceRef readImage( const lChar16 * path, const lChar16 * attrname, bool * res=NULL );
+    /// reads list of icons
+    virtual CRIconListRef readIcons( const lChar16 * path, bool * res=NULL );
+
 
 
     /// returns rect skin by path or #id
