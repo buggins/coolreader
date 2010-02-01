@@ -953,11 +953,13 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
         LVImageSourceRef img = LVCreateStretchFilledTransform( sliderImg,
             sliderRect.width(), sliderRect.height() );
         buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
-        int page = pos/(maxpos-pagesize)+1;
-        int pages = (maxpos-pagesize) / pagesize + 1;
-        lString16 label;
-        label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
-        drawText( buf, sliderRect, label );
+        if ( this->getShowPageNumbers() ) {
+            int pages = pagesize>0 ? (maxpos+pagesize-1)/pagesize : 0;
+            int page = pages>0 ? pos/pagesize+1 : 0;
+            lString16 label;
+            label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
+            drawText( buf, sliderRect, label );
+        }
     }
 }
 

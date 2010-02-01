@@ -69,7 +69,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     //loadSkin( skinfile );
 
 #define BATTERY_HEADER \
-        "40 23 5 1", \
+        "40 21 5 1", \
         "0 c #000000", \
         "X c #555555", \
         "o c #AAAAAA", \
@@ -85,7 +85,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
-        "....0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0000.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
@@ -97,7 +96,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0000.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
-        "....0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.XXX.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.................................0.",
@@ -111,7 +109,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
-        "....0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0000.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
@@ -123,7 +120,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0000.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
-        "....0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.XXX.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.................................0.",
@@ -137,7 +133,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
-        "....0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0000.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
@@ -149,7 +144,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         ".0000.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
-        "....0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.XXX.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.................................0.",
@@ -161,7 +155,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "   .....................................",
         "   .00000000000000000000000000000000000.",
         "....0.................................0.",
-        "....0.ooo.ooo.ooo.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.XXX.XXX.XXX.XXX.XXX.0.",
         ".0000.ooo.ooo.ooo.XXX.XXX.XXX.XXX.XXX.0.",
@@ -177,7 +170,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0000.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.XXX.XXX.XXX.XXX.XXX.0.",
-        "....0.ooo.ooo.ooo.XXX.XXX.XXX.XXX.XXX.0.",
         "....0.................................0.",
         "   .00000000000000000000000000000000000.",
         "   .....................................",
@@ -189,7 +181,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
@@ -201,7 +192,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.XXX.XXX.XXX.XXX.0.",
         "....0.................................0.",
@@ -215,7 +205,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
@@ -227,7 +216,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.XXX.XXX.XXX.0.",
         "....0.................................0.",
@@ -241,7 +229,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
@@ -253,7 +240,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.XXX.XXX.0.",
         "....0.................................0.",
@@ -267,7 +253,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
@@ -279,7 +264,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.XXX.0.",
         "....0.................................0.",
@@ -293,7 +277,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
@@ -305,7 +288,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         ".0..0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         ".0000.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
-        "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         "....0.ooo.ooo.ooo.ooo.ooo.ooo.ooo.ooo.0.",
         "....0.................................0.",
@@ -316,7 +298,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         BATTERY_HEADER
         "   .....................................",
         "   .00000000000000000000000000000000000.",
-        "....0.................................0.",
         "....0.................................0.",
         "....0.................................0.",
         "....0.................................0.",
@@ -334,7 +315,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.................................0.",
         "....0.................................0.",
-        "....0.................................0.",
         "   .00000000000000000000000000000000000.",
         "   .....................................",
     };
@@ -345,7 +325,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "....0.................................0.",
         "....0.................................0.",
         "....0.................................0.",
-        "....0.................................0.",
         ".0000.................................0.",
         ".0..0.................................0.",
         ".0..0.................................0.",
@@ -357,7 +336,6 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         ".0..0.................................0.",
         ".0..0.................................0.",
         ".0000.................................0.",
-        "....0.................................0.",
         "....0.................................0.",
         "....0.................................0.",
         "....0.................................0.",
@@ -965,7 +943,7 @@ void V3DocViewWin::showAboutDialog()
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
     lString16 title = L"Cool Reader ";
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "3.0"
+#define PACKAGE_VERSION "3.0.25"
 #endif
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
 

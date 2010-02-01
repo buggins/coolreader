@@ -2,6 +2,7 @@
 <CR3Skin>
   <scroll id="menuscroll" autohide="true" show-page-numbers="true">
       <border widths="2,2,2,2"/>
+      <background color="#555555"/>
       <leftbutton normal="scroll_arrow_left_enabled.png" disabled="scroll_arrow_left_disabled.png"/>
       <rightbutton normal="scroll_arrow_right_enabled.png" disabled="scroll_arrow_right_disabled.png"/>
       <hbody frame="scroll_body_horizontal.png" slider="scroll_slider_horizontal.png"/>
@@ -133,7 +134,7 @@
         </client>
         <item>
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="34" bold="true" italic="false" valign="center" halign="left"/>
             <background image="cr3_menu_item.png" color="#FFFFFF"/>
             <border widths="12,6,12,6"/>
             <!--icon image="filename" valign="" halign=""-->
@@ -147,7 +148,7 @@
         </shortcut>
         <selitem>
            <size minvalue="48,48" maxvalue="0,0"/>
-           <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+           <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="34" bold="true" italic="false" valign="center" halign="left"/>
            <background image="cr3_menu_item_selected.png" color="#FFFFFF"/>
            <border widths="12,6,12,6"/>
            <!--icon image="filename" valign="" halign=""-->

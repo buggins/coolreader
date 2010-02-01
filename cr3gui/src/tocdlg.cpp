@@ -91,7 +91,8 @@ void CRTOCDialog::draw()
     if ( !_scrollRect.isEmpty() ) {
         // draw scrollbar
         CRScrollSkinRef sskin = _skin->getScrollSkin();
-        sskin->drawScroll( *drawbuf, _scrollRect, false, _topItem, _items.length(), _pageItems );
+        int maxpos = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;
+        sskin->drawScroll( *drawbuf, _scrollRect, false, _topItem, maxpos, _pageItems );
     }
 }
 
@@ -172,8 +173,9 @@ bool CRTOCDialog::onCommand( int command, int params )
         {
             int step = command == MCMD_SCROLL_FORWARD_LONG ? 10 : 1;
             _topItem = _topItem + _pageItems * step;
-            if ( _topItem > _items.length() - _pageItems )
-                _topItem = _items.length() - _pageItems;
+            int maxpos = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;
+            if ( _topItem > maxpos )
+                _topItem = maxpos;
             if ( _topItem < 0 )
                 _topItem = 0;
             setDirty();
@@ -184,8 +186,9 @@ bool CRTOCDialog::onCommand( int command, int params )
         {
             int step = command == MCMD_SCROLL_BACK_LONG ? 10 : 1;
             _topItem = _topItem - _pageItems * step;
-            if ( _topItem > _items.length() - _pageItems )
-                _topItem = _items.length() - _pageItems;
+            int maxpos = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;
+            if ( _topItem > maxpos )
+                _topItem = maxpos;
             if ( _topItem < 0 )
                 _topItem = 0;
             setDirty();
