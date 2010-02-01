@@ -1443,17 +1443,21 @@ protected:
 	int _src_dy;
 	int _dst_dx;
 	int _dst_dy;
+    ImageTransform _hTransform;
+    ImageTransform _vTransform;
 	int _split_x;
 	int _split_y;
 	LVArray<lUInt32> _line;
 	LVImageDecoderCallback * _callback;
 public:
-	LVStretchImgSource( LVImageSourceRef src, int newWidth, int newHeight, int splitX, int splitY )
+    LVStretchImgSource( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform, ImageTransform vTransform, int splitX, int splitY )
 		: _src( src )
 		, _src_dx( src->GetWidth() )
 		, _src_dy( src->GetHeight() )
 		, _dst_dx( newWidth )
 		, _dst_dy( newHeight )
+        , _hTransform(hTransform)
+        , _vTransform(vTransform)
 		, _split_x( splitX )
 		, _split_y( splitY )
 	{
@@ -1517,11 +1521,11 @@ bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * da
 }
 
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
-LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, int splitX, int splitY )
+LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform, ImageTransform vTransform, int splitX, int splitY )
 {
 	if ( src.isNull() )
 		return LVImageSourceRef();
-	return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, splitX, splitY ) );
+    return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, hTransform, vTransform, splitX, splitY ) );
 }
 
 class LVUnpackedImgSource : public LVImageSource, public LVImageDecoderCallback

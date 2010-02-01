@@ -40,6 +40,73 @@
 
 #define SKIN_EXTEND_TAB     0x0040
 
+#define SKIN_COORD_PERCENT_FLAG 0x10000000
+
+/// encodes percent value*100 (0..10000), to store in skin
+inline int toSkinPercent( int x )
+{
+    return ((x)|SKIN_COORD_PERCENT_FLAG);
+}
+
+/// encodes percent value*100 (0..10000), to store in skin, from string like "75%" or "10"
+int toSkinPercent( const lString16 & value, int defValue, bool * res );
+
+/// decodes skin percent to pixels (fullx is value corresponding to 100%)
+int fromSkinPercent( int x, int fullx );
+
+/// decodes skin percent point to pixels (fullx is value corresponding to 100%)
+lvPoint fromSkinPercent( lvPoint pt, lvPoint fullpt );
+
+/// resizable/autoplaceable icon for using in skins
+class CRIconSkin : public LVRefCounter
+{
+protected:
+    LVImageSourceRef _image; /// image to draw
+    lUInt32 _bgcolor; /// color to fill area if image is not found
+    ImageTransform _hTransform;
+    ImageTransform _vTransform;
+    lvPoint _splitPoint;
+    lvPoint _pos;
+    lvPoint _size;
+    int _align;
+public:
+    /// image to draw
+    LVImageSourceRef getImage() { return _image; }
+    /// color to fill area if image is not found
+    lUInt32 getBgColor() { return _bgcolor; }
+    /// horizontal image transform
+    ImageTransform getHTransform() { return _hTransform; }
+    /// vertical image transform
+    ImageTransform getVTransform() { return _vTransform; }
+    /// splitting point of image for split transform
+    lvPoint getSplitPoint() { return _splitPoint; }
+    /// position of image inside destination rectangle
+    lvPoint getPos() { return _pos; }
+    /// size of image (percents are relative to destination rectangle)
+    lvPoint getSize() { return _size; }
+    /// set image to draw
+    void setImage( LVImageSourceRef img ) { _image = img; }
+    /// color to fill area if image is not found
+    void setBgColor(lUInt32 cl) { _bgcolor = cl; }
+    /// horizontal image transform
+    void setHTransform( ImageTransform t) { _hTransform = t; }
+    /// vertical image transform
+    void setVTransform( ImageTransform t) { _vTransform = t; }
+    /// splitting point of image for split transform
+    void setSplitPoint(lvPoint p) { _splitPoint = p ; }
+    /// position of image inside destination rectangle
+    void setPos(lvPoint p) { _pos = p; }
+    /// size of image (percents are relative to destination rectangle)
+    void setSize( lvPoint sz) { _size = sz; }
+    virtual int getAlign() { return _align; }
+    virtual int getVAlign() { return _align & SKIN_VALIGN_MASK; }
+    virtual int getHAlign() { return _align & SKIN_HALIGN_MASK; }
+    virtual void setAlign( int align ) { _align = align; }
+    virtual void setVAlign( int align ) { _align = (_align & ~SKIN_VALIGN_MASK ) | (align & SKIN_VALIGN_MASK); }
+    virtual void setHAlign( int align ) { _align = (_align & ~SKIN_HALIGN_MASK ) | (align & SKIN_HALIGN_MASK); }
+    CRIconSkin();
+    virtual ~CRIconSkin() { }
+};
 
 /// base skinned item class
 class CRSkinnedItem : public LVRefCounter
@@ -260,6 +327,7 @@ class CRSkinContainer : public LVRefCounter
 {
 protected:
     virtual bool readRectSkin(  const lChar16 * path, CRRectSkin * res );
+    virtual bool readIconSkin(  const lChar16 * path, CRIconSkin * res );
     virtual bool readButtonSkin(  const lChar16 * path, CRButtonSkin * res );
     virtual bool readScrollSkin(  const lChar16 * path, CRScrollSkin * res );
     virtual bool readWindowSkin(  const lChar16 * path, CRWindowSkin * res );
@@ -281,6 +349,8 @@ public:
     virtual int readInt( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
     /// reads boolean value from attrname attribute of element specified by path, returns defValue if not found
     virtual bool readBool( const lChar16 * path, const lChar16 * attrname, bool defValue, bool * res=NULL );
+    /// reads image transform value from attrname attribute of element specified by path, returns defValue if not found
+    ImageTransform readTransform( const lChar16 * path, const lChar16 * attrname, ImageTransform defValue, bool * res );
     /// reads h align value from attrname attribute of element specified by path, returns defValue if not found
     virtual int readHAlign( const lChar16 * path, const lChar16 * attrname, int defValue, bool * res=NULL );
     /// reads h align value from attrname attribute of element specified by path, returns defValue if not found

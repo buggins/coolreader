@@ -27,6 +27,69 @@ public:
 int RecursionLimit::counter = 0;
 
 
+/// decodes skin percent
+int fromSkinPercent( int x, int fullx )
+{
+    if ( x>0 && (x & SKIN_COORD_PERCENT_FLAG) ) {
+        x ^= SKIN_COORD_PERCENT_FLAG;
+        return x * fullx / 10000;
+    } else {
+        return x;
+    }
+}
+
+/// decodes skin percent point to pixels (fullx is value corresponding to 100%)
+lvPoint fromSkinPercent( lvPoint pt, lvPoint fullpt )
+{
+    lvPoint res;
+    res.x = fromSkinPercent( pt.x, fullpt.x );
+    res.y = fromSkinPercent( pt.y, fullpt.y );
+    return res;
+}
+
+/// encodes percent value*100 (0..10000), to store in skin, from string like "75%" or "10"
+int toSkinPercent( const lString16 & value, int defValue, bool * res )
+{
+    // "75%" format - in percent
+    int p = value.pos(lString16(L"%"));
+    int pvalue;
+    if ( p>0 ) {
+        if ( value.substr(0, p).atoi(pvalue) ) {
+            if ( res )
+                *res = true;
+            return toSkinPercent(pvalue);
+        }
+    }
+    // "75px" format - in pixels
+    p = value.pos(lString16(L"px"));
+    if ( p>0 ) {
+        if ( value.substr(0, p).atoi(pvalue) ) {
+            if ( res )
+                *res = true;
+            return pvalue;
+        }
+    }
+    // simple "75" format
+    if ( value.atoi(pvalue) ) {
+        if ( res )
+            *res = true;
+        return pvalue;
+    }
+    return defValue;
+}
+
+
+CRIconSkin::CRIconSkin()
+: _bgcolor(0xFF000000) // transparent
+, _hTransform(IMG_TRANSFORM_SPLIT)
+, _vTransform(IMG_TRANSFORM_SPLIT)
+, _splitPoint(-1, -1)
+, _pos(0, 0)
+, _size(toSkinPercent( 10000 ), toSkinPercent( 10000 )) // 100% x 100%
+, _align(SKIN_VALIGN_TOP|SKIN_HALIGN_LEFT) // relative to top left
+{
+}
+
 /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
 lString16 CRSkinContainer::getBasePath( const lChar16 * path )
 {
@@ -325,13 +388,35 @@ lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname
     lString16 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
-    lString8 s8 = UnicodeToUtf8( value );
-    int n1, n2, n3, n4;
-    if ( sscanf( s8.c_str(), "%d,%d,%d,%d", &n1, &n2, &n3, &n4 )!=4 )
-        return defValue;
-	if ( res )
-		*res = true;
-    return lvRect( n1, n2, n3, n4 );
+    lvRect p = defValue;
+    lString16 s1, s2, s3, s4;
+    if ( !value.split2(lString16(L","), s1, s2) )
+        return p;
+    s1.trim();
+    s2.trim();
+    if ( !s2.split2(lString16(L","), s2, s3) )
+        return p;
+    s2.trim();
+    s3.trim();
+    if ( !s3.split2(lString16(L","), s3, s4) )
+        return p;
+    s3.trim();
+    s4.trim();
+
+    bool b1=false;
+    bool b2=false;
+    bool b3=false;
+    bool b4=false;
+    p.left = toSkinPercent( s1, defValue.left, &b1 );
+    p.top = toSkinPercent( s1, defValue.top, &b2 );
+    p.right = toSkinPercent( s1, defValue.right, &b3 );
+    p.bottom = toSkinPercent( s1, defValue.bottom, &b4 );
+    if ( b1 && b2 && b3 && b4) {
+        if ( res )
+            *res = true;
+        return p;
+    }
+    return defValue;
 }
 
 /// reads boolean value from attrname attribute of element specified by path, returns defValue if not found
@@ -346,6 +431,37 @@ bool CRSkinContainer::readBool( const lChar16 * path, const lChar16 * attrname, 
         return false;
 	if ( res )
 		*res = true;
+    return defValue;
+}
+
+/// reads image transform value from attrname attribute of element specified by path, returns defValue if not found
+ImageTransform CRSkinContainer::readTransform( const lChar16 * path, const lChar16 * attrname, ImageTransform defValue, bool * res )
+{
+    lString16 value = readString( path, attrname );
+    if ( value.empty() )
+        return defValue;
+    value.lowercase();
+    if ( value == L"none" ) {
+        if ( res )
+            *res = true;
+        return IMG_TRANSFORM_NONE;
+    }
+    if ( value == L"split" ) {
+        if ( res )
+            *res = true;
+        return IMG_TRANSFORM_SPLIT;
+    }
+    if ( value == L"stretch" ) {
+        if ( res )
+            *res = true;
+        return IMG_TRANSFORM_STRETCH;
+    }
+    if ( value == L"tile" ) {
+        if ( res )
+            *res = true;
+        return IMG_TRANSFORM_TILE;
+    }
+    // invalid value
     return defValue;
 }
 
@@ -405,13 +521,8 @@ int CRSkinContainer::readInt( const lChar16 * path, const lChar16 * attrname, in
     lString16 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
-    lString8 s8 = UnicodeToUtf8( value );
-    int n1;
-    if ( sscanf( s8.c_str(), "%d", &n1 )!=1 )
-        return defValue;
-	if ( res )
-		*res = true;
-    return n1;
+    value.trim();
+    return toSkinPercent( value, defValue, res);
 }
 
 /// reads point(size) value from attrname attribute of element specified by path, returns defValue if not found
@@ -420,13 +531,22 @@ lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrnam
     lString16 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
-    lString8 s8 = UnicodeToUtf8( value );
-    int n1, n2;
-    if ( sscanf( s8.c_str(), "%d,%d", &n1, &n2 )!=2 )
-        return defValue;
-	if ( res )
-		*res = true;
-    return lvPoint( n1, n2 );
+    lvPoint p = defValue;
+    lString16 s1, s2;
+    if ( !value.split2(lString16(L","), s1, s2) )
+        return p;
+    s1.trim();
+    s2.trim();
+    bool b1=false;
+    bool b2=false;
+    p.x = toSkinPercent( s1, defValue.x, &b1 );
+    p.y = toSkinPercent( s1, defValue.x, &b2 );
+    if ( b1 && b2 ) {
+        if ( res )
+            *res = true;
+        return p;
+    }
+    return defValue;
 }
 
 /// reads rect value from attrname attribute of element specified by path, returns null ref if not found
@@ -1001,6 +1121,32 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
     }
 
     return flg;
+}
+
+bool CRSkinContainer::readIconSkin(  const lChar16 * path, CRIconSkin * res )
+{
+    bool flg = false;
+    lString16 base = getBasePath( path );
+    RecursionLimit limit;
+    if ( !base.empty() && limit.test() ) {
+        // read base skin first
+        flg = readIconSkin( base.c_str(), res ) || flg;
+    }
+    lString16 p( path );
+    ldomXPointer ptr = getXPointer( path );
+    if ( !ptr ) {
+        crtrace log;
+        log << "Image skin by path " << p << " was not found";
+        return false;
+    }
+    res->setHAlign( readHAlign( path, L"halign", res->getHAlign(), &flg) );
+    res->setVAlign( readVAlign( path, L"valign", res->getVAlign(), &flg) );
+    res->setBgColor( readColor( path, L"color", res->getBgColor(), &flg) );
+    res->setHTransform( readTransform( path, L"htransform", res->getHTransform(), &flg) );
+    res->setVTransform( readTransform( path, L"vtransform", res->getVTransform(), &flg) );
+    res->setSplitPoint( readSize( path, L"split", res->getSplitPoint(), &flg) );
+    res->setPos( readSize( path, L"pos", res->getPos(), &flg) );
+    res->setSize( readSize( path, L"size", res->getSize(), &flg) );
 }
 
 bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )

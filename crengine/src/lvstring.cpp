@@ -3377,20 +3377,32 @@ bool SerialBuf::checkMagic( const char * s )
 	return true;
 }
 
+bool lString16::split2( const lString16 & delim, lString16 & value1, lString16 & value2 )
+{
+    if ( empty() )
+        return false;
+    int p = pos(delim);
+    if ( p<=0 || p>=length()-delim.length() )
+        return false;
+    value1 = substr(0, p);
+    value2 = substr(p+delim.length());
+    return true;
+}
+
 bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
 {
     if ( s.empty() )
         return false;
-    int p = s.pos(delim);
-    if ( p<=0 || p>=s.length()-1 )
+    lString16 s1, s2;
+    if ( !s.split2( delim, s1, s2 ) )
         return false;
-    int n1 = s.substr(0, p).atoi();
-    int n2 = s.substr(p+1).atoi();
-    if ( n1>0 ) {
-        value1 = n1;
-        value2 = n2;
-        return true;
-    }
-    return false;
+    int n1, n2;
+    if ( !s1.atoi(n1) )
+        return false;
+    if ( !s2.atoi(n2) )
+        return false;
+    value1 = n1;
+    value2 = n2;
+    return true;
 }
 

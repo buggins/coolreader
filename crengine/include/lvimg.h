@@ -45,8 +45,16 @@ public:
 
 typedef LVRef< LVImageSource > LVImageSourceRef;
 
+/// type of image transform
+enum ImageTransform {
+    IMG_TRANSFORM_NONE,    // just draw w/o any resizing/tiling
+    IMG_TRANSFORM_SPLIT,   // split at specified pixel, fill extra middle space with value of this pixel
+    IMG_TRANSFORM_STRETCH, // stretch image proportionally to fill whole area
+    IMG_TRANSFORM_TILE,    // tile image
+};
+
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
-LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, int splitX=-1, int splitY=-1 );
+LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform=IMG_TRANSFORM_SPLIT, ImageTransform vTransform=IMG_TRANSFORM_SPLIT, int splitX=-1, int splitY=-1 );
 /// creates XPM image
 LVImageSourceRef LVCreateXPMImageSource( const char * data[] );
 LVImageSourceRef LVCreateNodeImageSource( ldomNode * node );
