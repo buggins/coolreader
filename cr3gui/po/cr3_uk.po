@@ -5,10 +5,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
-"Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2010-01-06 02:46+0300\n"
-"PO-Revision-Date: 2009-03-10 15:32+0200\n"
-"Last-Translator: Boris Iefimenko <boris.iefimenko@gmail.com>\n"
+"Report-Msgid-Bugs-To: vadim.lopatin@coolreader.org\n"
+"POT-Creation-Date: 2009-11-03 09:25+0300\n"
+"PO-Revision-Date: 2010-02-02 10:17+0200\n"
+"Last-Translator: Vitaliy Stopchans'kyy <stopchan DOG gmail.com>\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -22,7 +22,7 @@ msgstr "Оберіть абзац"
 
 #: ../src/mainwnd.cpp:554 ../src/mainwnd.cpp:662
 msgid "Help"
-msgstr "Допомога"
+msgstr "Довідка"
 
 #: ../src/mainwnd.cpp:573
 msgid "Main Menu"
@@ -62,7 +62,7 @@ msgstr "Налаштування"
 
 #: ../src/mainwnd.cpp:666 ../src/viewdlg.cpp:420
 msgid "Keyboard layout"
-msgstr "Мова вводу"
+msgstr "Призначення клавіш"
 
 #: ../src/mainwnd.cpp:767
 msgid "Current page"
@@ -118,7 +118,7 @@ msgstr "Формат файлу"
 
 #: ../src/mainwnd.cpp:788
 msgid "File info"
-msgstr "Інформація"
+msgstr "Інформація про файл"
 
 #: ../src/mainwnd.cpp:791
 msgid "Title"
@@ -126,7 +126,7 @@ msgstr "Назва"
 
 #: ../src/mainwnd.cpp:792
 msgid "Author(s)"
-msgstr "Автор"
+msgstr "Автор(и)"
 
 #: ../src/mainwnd.cpp:793
 msgid "Series name"
@@ -150,11 +150,11 @@ msgstr "Перекладач"
 
 #: ../src/mainwnd.cpp:798
 msgid "Book info"
-msgstr "Додаткова інформація"
+msgstr "Інформація про книгу"
 
 #: ../src/mainwnd.cpp:801
 msgid "Document author"
-msgstr "Власник книги"
+msgstr "Автор книги"
 
 #: ../src/mainwnd.cpp:802
 msgid "Document date"
@@ -182,7 +182,7 @@ msgstr "Назва видання"
 
 #: ../src/mainwnd.cpp:810
 msgid "Publisher"
-msgstr "Видавник"
+msgstr "Видавництво"
 
 #: ../src/mainwnd.cpp:811
 msgid "Publisher city"
@@ -206,7 +206,7 @@ msgstr "Додаткова інформація"
 
 #: ../src/mainwnd.cpp:914
 msgid "Loading: please wait..."
-msgstr ""
+msgstr "Відкривається. Зачекайте..."
 
 #: ../src/tocdlg.cpp:90
 msgid "Enter page number to go: "
@@ -239,19 +239,19 @@ msgstr ""
 
 #: ../src/settings.cpp:190
 msgid "0` (Portrait)"
-msgstr "Книжкова"
+msgstr "Книжкова (0°)"
 
 #: ../src/settings.cpp:191
 msgid "90 `"
-msgstr "Альбомна"
+msgstr "Альбомна (90°)"
 
 #: ../src/settings.cpp:192
 msgid "180 `"
-msgstr "Книжкова (перевернута)"
+msgstr "Книжкова перевернута (180°)"
 
 #: ../src/settings.cpp:193
 msgid "270 `"
-msgstr "Альбомна (перевернута)"
+msgstr "Альбомна перевернута (270°)"
 
 #: ../src/settings.cpp:199
 msgid "Page orientation"
@@ -259,11 +259,11 @@ msgstr "Орієнтація сторінки"
 
 #: ../src/settings.cpp:212
 msgid "Default font size"
-msgstr "Розмір літер (у пікселях)"
+msgstr "Розмір шрифту (пікселі)"
 
 #: ../src/settings.cpp:239
 msgid "The quick brown fox jumps over lazy dog"
-msgstr ""
+msgstr "На даху є добре"
 
 #: ../src/settings.cpp:272
 msgid "On for all fonts"
@@ -286,11 +286,11 @@ msgstr "Увімк."
 
 #: ../src/settings.cpp:315
 msgid "Normal"
-msgstr "Звичайна"
+msgstr "Звичайні"
 
 #: ../src/settings.cpp:316
 msgid "Inverse"
-msgstr "Інвертовано"
+msgstr "Інвертовані"
 
 #: ../src/settings.cpp:321
 msgid "One"
@@ -326,18 +326,16 @@ msgid "120%"
 msgstr "120%"
 
 #: ../src/settings.cpp:339
-#, fuzzy
 msgid "130%"
-msgstr "100%"
+msgstr "140%"
 
 #: ../src/settings.cpp:340
 msgid "140%"
 msgstr "140%"
 
 #: ../src/settings.cpp:341
-#, fuzzy
 msgid "150%"
-msgstr "100%"
+msgstr "150%"
 
 #: ../src/settings.cpp:369
 msgid "Default font face"
@@ -353,7 +351,7 @@ msgstr "Міжрядкова відстань"
 
 #: ../src/settings.cpp:406
 msgid "Footnotes at page bottom"
-msgstr "Виноски знизу сторінки"
+msgstr "Виноски внизу сторінки"
 
 #: ../src/settings.cpp:417
 msgid "Show time"
@@ -381,7 +379,7 @@ msgstr "Відобразити іконки закладок"
 
 #: ../src/settings.cpp:457
 msgid "Status line"
-msgstr "Статусний рядок"
+msgstr "Рядок стану"
 
 #: ../src/settings.cpp:463
 msgid "Font kerning"
@@ -389,11 +387,11 @@ msgstr "Кернінг шрифту"
 
 #: ../src/settings.cpp:471
 msgid "[No Hyphenation]"
-msgstr "Без перенесень"
+msgstr "Без переносів"
 
 #: ../src/settings.cpp:472
 msgid "[Algorythmic Hyphenation]"
-msgstr "Автоматичні перенесення"
+msgstr "Автоматичні переноси"
 
 #: ../src/settings.cpp:474
 msgid "Hyphenation"
@@ -405,7 +403,7 @@ msgstr "Поля сторінки"
 
 #: ../src/settings.cpp:492
 msgid "Top margin"
-msgstr "Згори"
+msgstr "Вгорі"
 
 #: ../src/settings.cpp:497
 msgid "Bottom margin"
@@ -413,11 +411,11 @@ msgstr "Знизу"
 
 #: ../src/settings.cpp:502
 msgid "Left margin"
-msgstr "Зліва"
+msgstr "Ліворуч"
 
 #: ../src/settings.cpp:507
 msgid "Right margin"
-msgstr "Зправа"
+msgstr "Праворуч"
 
 #: ../src/viewdlg.cpp:132
 msgid "No dictionaries found"
@@ -425,19 +423,15 @@ msgstr "Жодного словника не знайдено!"
 
 #: ../src/viewdlg.cpp:133
 msgid "Place dictionaries to directory 'dict' of SD card."
-msgstr "Розташуйте словники в теці 'dict' на картці пам'яті."
+msgstr "Розташуйте словники у теці «dict» на картці пам'яті."
 
 #: ../src/viewdlg.cpp:134
 msgid "Dictionaries in standard unix .dict format are supported."
 msgstr "Підтримуються словники у форматі .dict (як для unix систем)."
 
 #: ../src/viewdlg.cpp:135
-msgid ""
-"For each dictionary, pair of files should be provided: data file (with .dict "
-"or .dict.dz extension, and index file with .index extension"
-msgstr ""
-"Кожен словник складаються з файлу даних (.dict або .dict.dz),та файлу "
-"індексу слів (.index)."
+msgid "For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension"
+msgstr "Кожен словник складається з файлу даних (.dict або .dict.dz) та файлу індексу слів (.index)."
 
 #: ../src/viewdlg.cpp:148
 msgid "Table of contents"
@@ -445,7 +439,7 @@ msgstr "Зміст"
 
 #: ../src/viewdlg.cpp:152
 msgid "Enter page number"
-msgstr "Введіть номер сторінки"
+msgstr "Вкажіть номер сторінки"
 
 #: ../src/viewdlg.cpp:222
 msgid "Find in dictionary"
@@ -550,11 +544,11 @@ msgstr "Закрити вікно"
 
 #: ../src/viewdlg.cpp:345
 msgid "Scroll forward"
-msgstr "Перегортати вперед"
+msgstr "Перегорнути вперед"
 
 #: ../src/viewdlg.cpp:346
 msgid "Scroll back"
-msgstr "Перегортати назад"
+msgstr "Перегорнути назад"
 
 #: ../src/viewdlg.cpp:347
 msgid "Close book"
@@ -590,11 +584,11 @@ msgstr "Закладки"
 
 #: ../src/viewdlg.cpp:356
 msgid "Recent books list"
-msgstr "Відкрити останню книгу"
+msgstr "Список останніх книг"
 
 #: ../src/viewdlg.cpp:357
 msgid "Open recent book by number"
-msgstr "Відкрити останню книгу"
+msgstr "Відкрити останню книгу за номером"
 
 #: ../src/viewdlg.cpp:359
 msgid "Cite selection dialog"
@@ -610,11 +604,11 @@ msgstr "Пошук у словнику"
 
 #: ../src/viewdlg.cpp:362
 msgid "Next keyboard layout"
-msgstr "Наступна мова вводу"
+msgstr "Наступне призначення клавіш"
 
 #: ../src/viewdlg.cpp:363
 msgid "Previous keyboard layout"
-msgstr "Попередня мова вводу"
+msgstr "Попереднє призначення клавіш"
 
 #: ../src/viewdlg.cpp:364
 msgid "Show manual"
