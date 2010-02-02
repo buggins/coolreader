@@ -1,0 +1,292 @@
+CoolReader3 skin file format.
+
+
+FILE STRUCTURE
+
+
+Skin is description of CoolReader GUI theme.
+Currently used for UI of e-ink based devices like Jinke V3/V5 or Hanvon N516.
+
+Skin is stored as directory or .zip archive with cr3skin.xml file and additional image files.
+
+Main part of skin is file cr3skin.xml - XML file with skin definition.
+It's XML document (utf-8 encoding), with CR3Skin root tag.
+
+<?xml version="1.0" encoding="UTF-8"?>
+<CR3Skin>
+  ...
+</CR3Skin>
+
+On top level, there are tags for objects of following types: windows (dialogs), menus, and scrollbars.
+Corresponding object tags are <window>, <menu>, and <scroll>.
+Each top level tag should have `id` attribute, for reference from code, or for cross-reference (inheritance) from other tags.
+Optional attribute `base` may be used to inherit properties of another object (use it as base), and overload only a few properties.
+Other attributes depend on object type.
+
+Example:
+<?xml version="1.0" encoding="UTF-8"?>
+<CR3Skin>
+  ...
+  <window id="dialog">
+     ...
+  </window>
+  ...
+  <menu id="main" min-item-count="9" max-item-count="9" show-shortcuts="false">
+     ...
+  </menu>
+  ...
+  <menu id="settings" base="#main" show-shortcuts="true">
+     ...
+  </menu>
+  ...
+  <scroll id="menuscroll" autohide="true" show-page-numbers="true">
+     ...
+  </scroll>
+  ...
+</CR3Skin>
+
+
+
+
+RECTANGLE AREA SKIN
+
+
+Base of all skin objects is Rectangle skin.
+Other kinds of object have all properties of Rectangle skin object, and add some specific.
+Rectangle skin describes how to draw rectangular area of screen (properties of backgound and text).
+
+Sample content of Rectangle object tag:
+
+<size minvalue="48,48" maxvalue="0,0"/>
+<border widths="32,6,12,6"/>
+<text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+<background image="separator.png" pos="32,0" size="-32,100%" htransform="tile" vtransform="none" valign="bottom" />
+
+Properties of Rectangle - stored in inner tags:
+
+Tag <size> describes size constraints of object. 
+    minvalue="x,y" - minimal size
+    maxvalue="x,y" - maximum size (0,0) means no restriction
+
+Tag <border> describes margin from object bounds to object's internal content (e.g. text, client area, internal objects)  
+    widths="left,top,right,bottom" - margin sizes, may be in pixel or percents of full rectangle: 
+e.g. <border widths="15%,10,5%,10"/>
+
+Tag <text> describes properties of font face, color and layout of text inside rectangle
+    color="#rrggbb" - text color (html-like hex), e.g. "#FFFFFF" is white, "#00FF00" is green
+    face="face1, face2, face3" - font faces, comma separated, first found is selected, e.g. face="Arial, Verdana"
+    size="pxsize" - font height, in pixels. E.g.: size="24"
+    bold="true|false" - font weight, bold if "true" is specified. E.g.: bold="true"
+           Default value: false
+    italic="true|false" - italic if "true" is specified. E.g.: italic="false"
+           Default value: false
+    valign="top|center|bottom" - vertical alignment of text. 
+           E.g. valign="bottom" aligns text to bottom of text rectangle
+           Default value: center
+    halign="left|center|right" - horizontal alignment of text. 
+           E.g. halign="center" aligns text to left of text rectangle
+           Default value: left
+
+Tags <background> - none, one, or several elements (images or solid rectangles) used to draw rectangle background.
+If no <background> items specified, rectangle's background is transparent.
+If more than one <background> items specified, they are being drawn in order they appear in XML.
+Background item is located somewhere inside base rectangle (based on pos size attributes), and fills its rectangle
+with image or solid color.
+
+Attributes of <background>:
+    color="#rrggbb" - background color (html-like hex), e.g. "#FFFFFF" is white, "#00FF00" is green.
+           If no image is specified (or found), area will be filled with this solid color
+    image="filename" - filename of image inside skin container. E.g. image="menu-background.png"
+    pos="x,y" - position of item's (target) rectangle relative to base rectangle.
+           Simple positive numbers - pixel offset relative to left (for x) or top (for y) bound of base rectangle.
+           Percent values - position relative to whole base rectangle 
+                     (0% is left, 50% is middle, 100% is right for x) 
+                     (0% is top, 50% is middle, 100% is bottom for y) 
+           Negative numbers - pixel offset relative to right (for x) or bottom (for y) bound of base rectangle.
+    size="width,height" - size of item's (target) rectangle relative to base rectangle.
+           Simple positive numbers - size in pixels
+           Percent values - width or height is percent of base rectangle 
+           Negative numbers - use base rectangle size decreased by specified number of pixels
+                     (size="-50,-20" means width=base_rectangle.width-50, height=base_rectangle.height-20
+    htransform="none|tile|split|stretch" - sets horizontal transform for image, to be used in case 
+                     when image width is not equal to item's (target) rectangle width.
+           none: no resize, align image according to halign attribute (left, center, right)
+           tile: tile image, repeat several times to fill the whole item rectangle
+           stretch: resize image proportionally, to fill target rectangle
+           split: select some pixel position (split position) inside image (center by default), 
+                     draw left part of image at left side 
+                     of item rectangle, right part - at right side of item rectangle, fill the rest (middle) 
+                     with value of center pixel.
+    vtransform="none|tile|split|stretch" - sets vertical transform for image, to be used in case 
+                     when image height is not equal to item's (target) rectangle size.
+           none: no resize, align image according to valign attribute (top, center, bottom)
+           tile: tile image, repeat several times to fill the whole item rectangle
+           stretch: resize image proportionally, to fill target rectangle
+           split: select some pixel position (split position) inside image (center by default), 
+                     draw left part of image at left side 
+                     of item rectangle, right part - at right side of item rectangle, fill the rest (middle) 
+                     with value of center pixel.
+    valign="top|center|bottom" - vertical alignment of image inside item rectangle, for htransform="none" 
+           E.g. valign="bottom" aligns image to bottom of item rectangle
+    halign="left|center|right" - horizontal alignment of image inside item rectangle, for vtransform="none" 
+           E.g. halign="center" aligns image to left of item rectangle
+           Default value: left
+  
+Using several <background> items, it's possible to create complicated background drawing: 
+e.g. specify separate tiles for frame (corners, sides), and middle area, then place icon at specified position.
+
+
+
+SCROLL SKIN
+
+Describes appearance of scroll bar.
+
+Scrollbar item can have following attributes:
+  autohide="true|false" - if true, don't show if not necessary
+  show-page-numbers="true|false" - if true, PAGE / PAGES numbers shown (e.g. "2/5")
+
+As addition to usual Rectangle object properties, following items added:
+<leftbutton>, <rightbutton> - buttons for horizontal scrollbar
+<upbutton>, <downbutton> - buttons for vertical scrollbar
+     Each of buttons has following attributes:
+       normal="image_file_name" - normal state of button
+       disabled="image_file_name" - button is disabled
+<hbody>, <vbody> - images to draw horizontal or vertical scrollbar body and slider.
+     Attributes:
+     frame="image_file_to_draw_body_frame" - image, to draw background of scrollbar (used in "split" mode)
+     slider="image_file_to_draw_slider" - image, to draw slider of scrollbar (used in "split" mode)
+
+Example:
+  <scroll id="menuscroll" autohide="true" show-page-numbers="true">
+      <border widths="2,2,2,2"/>
+      <text color="#555555" face="Arial Narrow, Arial, DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="center"/>
+      <leftbutton normal="scroll_arrow_left_enabled.png" disabled="scroll_arrow_left_disabled.png"/>
+      <rightbutton normal="scroll_arrow_right_enabled.png" disabled="scroll_arrow_right_disabled.png"/>
+      <hbody frame="scroll_body_horizontal.png" slider="scroll_slider_horizontal.png"/>
+      <upbutton normal="scroll_arrow_up_enabled.png" disabled="scroll_arrow_up_disabled.png"/>
+      <downbutton normal="scroll_arrow_down_enabled.png" disabled="scroll_arrow_down_disabled.png"/>
+      <vbody frame="scroll_body_vertical.png" slider="scroll_slider_vertical.png"/>
+  </scroll>
+
+
+WINDOW SKIN
+
+
+Window has all properties of rectangle skin. Usually it uses them to draw window frame.
+Tags <text>, <border>, <size>, <background> are the same as for all rectangle skins, used to draw frame.
+Widths attribute of <border> specifies margin from window bound to its internal parts (frame width).
+
+Window tag contains also several additional skin definitions for different parts of window.
+<title> - window header, usually located at top of window. Not shown if minsize and maxsize are 0.
+<client> - skin of window client area
+Content of <title> and <client> tags is rectangle skin description.
+<scroll> - skin of scrollbar, see description above.
+
+Example:
+  <window id="toc">
+        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
+        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
+        <border widths="26,8,8,8"/>
+        <client>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
+            <background image="cr3_menu_item.png" color="#FFFFFF"/>
+            <border widths="4,4,4,4"/>
+        </client>
+        <title>
+            <size minvalue="0,48" maxvalue="0,0"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
+            <background image="cr3_menu_title.png" color="#FFFFFF"/>
+            <border widths="4,4,4,4"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </title>
+        <scroll base="#menuscroll"/>
+  </window>
+
+
+MENU SKIN
+
+
+Menu skin object is window skin with added rectangle skins for menu items.
+Menu object tag attributes:
+  min-item-count="1..10" - minimal number of items in menu
+  max-item-count="1..10" - maximum number of items in menu
+  show-shortcuts="true|false" - true to show item shortcuts (numbers)
+
+Rectangle skin objects to draw menu items:
+  <item> - rectangle skin for usual item
+  <selitem> - rectangle skin for selected item
+  <shortcut> - rectangle skin for usual item shortcut
+  <selshortcut> - rectangle skin for selected item shortcut
+Also, similar tags with -even suffixe can be used (if specified) to draw even items in menu:
+  <item-even>, <selitem-even>, <shortcut-even>, <selshortcut-even> 
+
+Example:
+  <menu id="main" min-item-count="9" max-item-count="9" show-shortcuts="false" >
+        <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
+        <background color="#AAAAAA"/>
+        <border widths="2,2,2,2"/>
+        <!--icon image="filename" valign="" halign=""/-->
+        <title>
+            <size minvalue="0,40" maxvalue="0,40"/>
+            <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
+            <background color="#555555"/>
+            <border widths="4,4,4,4"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </title>
+        <client>
+            <background color="#dddddd" />
+            <background image="sheet.png" pos="5,0" size="0,100%" htransform="none" vtransform="tile" />
+        </client>
+        <item>
+            <size minvalue="48,48" maxvalue="0,0"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+            <background image="separator.png" pos="32,0" size="-32,100%" htransform="tile" vtransform="none" valign="bottom" />
+            <border widths="32,6,12,6"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </item>
+        <item-even>
+            <size minvalue="48,48" maxvalue="0,0"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+            <background image="separator.png" pos="32,0" size="-32,100%" htransform="tile" vtransform="none" valign="bottom" />
+            <border widths="32,6,12,6"/>
+        </item-even>
+        <shortcut>
+            <size minvalue="48,48" maxvalue="0,0"/>
+            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="32" bold="true" italic="false" valign="center" halign="center"/>
+            <background image="shortcut.png" htransform="none" vtransform="none" halign="center" valign="center"/>
+            <border widths="6,6,6,6"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </shortcut>
+        <selitem>
+           <size minvalue="48,48" maxvalue="0,0"/>
+           <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
+           <background image="cr3_menu_item_selected.png" color="#FFFFFF"/>
+           <border widths="12,6,12,6"/>
+           <!--icon image="filename" valign="" halign=""-->
+        </selitem>
+        <selshortcut>
+            <size minvalue="48,48" maxvalue="0,0"/>
+            <text color="#000000" face="Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
+            <background image="cr3_menu_shortcut_selected.png" color="#FFFFFF"/>
+            <border widths="12,6,6,6"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </selshortcut>
+    <scroll base="#menuscroll-noautohide"/>
+  </menu>
+
+
+
+SKIN USAGE IN CODE
+
+
+Skin items are being queried from code by ID.
+For Menu skins (and possible for other skin types in future), additional skin may be specified 
+for landscape screen orientation (e.g. to show less number of items)
+It should have the same ID as original item, but with -rotated suffix.
+It can be based on normal skin, with a few changes, using inheritance:
+
+E.g., use the same skin as "settings", but with reduced number of items and shortcuts turned on:
+
+  <menu id="settings-rotated" min-item-count="5" max-item-count="5" show-shortcuts="true" >
+  </menu>
+
