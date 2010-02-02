@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CR3Skin>
   <scroll id="menuscroll" autohide="true" show-page-numbers="true">
-      <border widths="2,2,2,2"/>
+      <size minvalue="20,51" maxvalue="0,0"/>
+      <background color="#555555"/>
+      <background color="#FFFFFF" pos="0,0" size="100%,2"/>
+      <border widths="44,0,0,0"/>
       <leftbutton normal="scroll_arrow_left_enabled.png" disabled="scroll_arrow_left_disabled.png"/>
       <rightbutton normal="scroll_arrow_right_enabled.png" disabled="scroll_arrow_right_disabled.png"/>
       <hbody frame="scroll_body_horizontal.png" slider="scroll_slider_horizontal.png"/>
@@ -9,6 +12,21 @@
       <downbutton normal="scroll_arrow_down_enabled.png" disabled="scroll_arrow_down_disabled.png"/>
       <vbody frame="scroll_body_vertical.png" slider="scroll_slider_vertical.png"/>
       <text color="#555555" face="Arial Narrow, Arial, DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="center"/>
+      <tab-bottom>
+        <background image="tab-h51.png" htransform="split" vtransform="none" valign="top" />
+        <size minvalue="100,51" maxvalue="120,51"/>
+        <border widths="8,4,8,4"/>
+        <text color="#555555" face="Arial Narrow, Arial, DejaVu Sans" size="28" bold="false" italic="false" valign="center" halign="center"/>
+      </tab-bottom>
+      <tab-bottom-active>
+        <background image="tab-h51.png" htransform="split" vtransform="none" valign="top" />
+        <size minvalue="80,51" maxvalue="120,51"/>
+        <border widths="8,4,8,4"/>
+        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="28" bold="false" italic="false" valign="center" halign="center"/>
+      </tab-bottom-active>
+      <page-bound-bottom>
+        <background image="paper-bound-h4.png" htransform="split" vtransform="none" valign="top" />
+      </page-bound-bottom>
   </scroll>
   <scroll id="menuscroll-noautohide" base="#menuscroll" autohide="false">
   </scroll>
@@ -119,31 +137,38 @@
   <menu id="main" min-item-count="9" max-item-count="9" show-shortcuts="false" >
         <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
         <background color="#AAAAAA"/>
-        <border widths="2,2,2,2"/>
+        <border widths="0,0,0,0"/>
         <!--icon image="filename" valign="" halign=""/-->
         <title>
-            <size minvalue="0,40" maxvalue="0,40"/>
+            <size minvalue="0,56" maxvalue="0,56"/>
             <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
             <background color="#555555"/>
-            <border widths="4,4,4,4"/>
+            <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
+            <background color="#CCCCCC" pos="0,-5" size="100%,5"/>
+            <background color="#999999" pos="-4,-5" size="4,5"/>
+            <background color="#FFFFFF" pos="20,-5" size="6,5"/>
+            <border widths="16,4,16,11"/>
             <!--icon image="filename" valign="" halign=""-->
         </title>
         <client>
-            <background color="#dddddd" />
-            <background image="sheet.png" pos="5,0" size="0,100%" htransform="none" vtransform="tile" />
+            <background color="#cccccc" />
+            <background image="sheet-h79.png" pos="0,0" size="0,100%" htransform="none" vtransform="tile" />
+            <background color="#999999" pos="-4,0" size="4,100%"/>
         </client>
+        <separator>
+            <background color="#FFFFFF" image="separator-h16.png" pos="44,0" size="-60,0" vtransform="none" htransform="tile" />
+            <size minvalue="0,16" maxvalue="0,0"/>
+        </separator>
         <item>
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
-            <background image="separator.png" pos="32,0" size="-32,100%" htransform="tile" vtransform="none" valign="bottom" />
-            <border widths="32,6,12,6"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
+            <border widths="44,6,16,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </item>
         <item-even>
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="left"/>
-            <background image="separator.png" pos="32,0" size="-32,100%" htransform="tile" vtransform="none" valign="bottom" />
-            <border widths="32,6,12,6"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
+            <border widths="44,6,16,6"/>
         </item-even>
         <shortcut>
             <size minvalue="48,48" maxvalue="0,0"/>
