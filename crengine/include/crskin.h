@@ -314,7 +314,10 @@ protected:
     CRRectSkinRef _titleSkin;
     CRRectSkinRef _clientSkin;
     CRScrollSkinRef _scrollSkin;
+    bool _fullscreen;
 public:
+    bool getFullScreen() { return _fullscreen; }
+    void setFullScreen( bool fs ) { _fullscreen = fs; }
     CRWindowSkin();
     virtual ~CRWindowSkin() { }
     /// returns necessary window size for specified client size

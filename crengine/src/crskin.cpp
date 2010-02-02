@@ -20,7 +20,7 @@ class RecursionLimit
 {
 static int counter;
 public:
-    bool test( int limit = 10 ) { return counter < limit; }
+    bool test( int limit = 15 ) { return counter < limit; }
     RecursionLimit() { counter++; }
     ~RecursionLimit() { counter--; }
 };
@@ -1049,6 +1049,7 @@ CRRectSkin::CRRectSkin()
 
 CRWindowSkin::CRWindowSkin()
 {
+    _fullscreen = false;
 }
 
 CRMenuSkin::CRMenuSkin()
@@ -1368,6 +1369,8 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
         log << "Window skin by path " << p << " was not found";
         return false;
     }
+
+    res->setFullScreen(readBool(path, L"fullscreen", res->getFullScreen(), &flg));
 
     flg = readRectSkin(  path, res ) || flg;
     CRRectSkinRef titleSkin( new CRRectSkin() );

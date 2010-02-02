@@ -20,13 +20,10 @@ class CRFullScreenMenu : public CRMenu
 {
 protected:
     lString16 _helpText;
-    int _helpHeight;
 public:
     CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lString16 & caption, int numItems, lvRect & rc);
 
     virtual const lvRect & getRect();
-
-    virtual int getItemHeight();
 
     virtual lvPoint getMaxItemSize();
 

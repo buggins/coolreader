@@ -477,7 +477,7 @@ int CRMenu::getItemHeight()
         }
         lvRect rc(0,0,_wm->getScreen()->getWidth(), _wm->getScreen()->getHeight() );
         lvRect client = skin->getClientRect( rc );
-        h = client.height() - scrollHeight - separatorHeight*(nItems-1);
+        h = client.height() - scrollHeight - separatorHeight*(nItems-1) - _helpHeight;
         if ( nItems > 0 )
             h /= nItems;
     }
@@ -590,11 +590,27 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
     }
 }
 
+int CRMenu::getScrollHeight()
+{
+    CRMenuSkinRef skin = getSkin();
+    int nItems = _items.length();
+    int scrollHeight = 0;
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    if ( nItems > _pageItems || !sskin->getAutohide() ) {
+        nItems = _pageItems;
+        scrollHeight = SCROLL_HEIGHT;
+        if ( sskin->getMinSize().y>0 )
+            scrollHeight = sskin->getMinSize().y;
+    }
+    return scrollHeight;
+}
+
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef clientSkin = skin->getClientSkin();
     CRRectSkinRef titleSkin = skin->getTitleSkin();
+    CRScrollSkinRef sskin = skin->getScrollSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();
     CRRectSkinRef itemSelSkin = skin->getSelItemSkin();
@@ -637,15 +653,8 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     //int hdrHeight = itemSize.y; // + ITEM_MARGIN + ITEM_MARGIN;
     lvPoint sz = getSize();
 
-    int nItems = _items.length();
-    int scrollHeight = 0;
-    CRScrollSkinRef sskin = skin->getScrollSkin();
-    if ( nItems > _pageItems || !sskin->getAutohide() ) {
-        nItems = _pageItems;
-        scrollHeight = SCROLL_HEIGHT;
-        if ( sskin->getMinSize().y>0 )
-            scrollHeight = sskin->getMinSize().y;
-    }
+    //int nItems = _items.length();
+    int scrollHeight = getScrollHeight();
 
     lvRect itemsRc( clientRect );
     itemsRc.bottom -= scrollHeight;
@@ -794,6 +803,7 @@ void CRMenu::reconfigure( int flags )
     CRGUIWindowBase::reconfigure( flags );
     _skin.Clear();
     getSkin();
+    _fullscreen = _fullscreen || _skin->getFullScreen();
     int pageItems = _pageItems;
     if ( _skin->getMinItemCount()>0 && pageItems<_skin->getMinItemCount() )
         pageItems = _skin->getMinItemCount();
