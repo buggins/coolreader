@@ -1,9 +1,13 @@
 cr3 (3.0.24-11) zelazny; urgency=low
 
+  [ Vadim Lopatin ]
   * Advanced skin support for n516
   * Splitting skins for different devices
 
- -- Vadim Lopatin <vadim.lopatin@coolreader.org>  Sun, 31 Jan 2010 23:34:00 +0300
+  [ Mikhail Gusarov ]
+  * Upload
+
+ -- Mikhail Gusarov <dottedmag@dottedmag.net>  Tue, 02 Feb 2010 13:24:16 +0600
 
 cr3 (3.0.24-10) zelazny; urgency=low
 
