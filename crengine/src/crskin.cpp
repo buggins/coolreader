@@ -893,6 +893,52 @@ void CRButtonSkin::drawButton( LVDrawBuf & buf, const lvRect & rect, int flags )
 void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertical, int pos, int maxpos, int pagesize )
 {
     lvRect rc = rect;
+
+    draw( buf, rc );
+
+    int pages = pagesize>0 ? (maxpos+pagesize-1)/pagesize : 0;
+    int page = pages>0 ? pos/pagesize+1 : 0;
+
+    if ( !_bottomTabSkin.isNull() && !_bottomPageBoundSkin.isNull() &&
+         !_bottomActiveTabSkin.isNull() ) {
+        // tabs
+        if ( pages<=1 )
+            return; // don't draw tabs if no other pages
+        int tabwidth = _bottomTabSkin->getMinSize().x;
+        if ( tabwidth<40 )
+            tabwidth = 40;
+        if ( tabwidth>_bottomTabSkin->getMaxSize().x && _bottomTabSkin->getMaxSize().x>0)
+            tabwidth = _bottomTabSkin->getMaxSize().x;
+        int maxtabs = rc.width()-_margins.left-_margins.right / tabwidth;
+        if ( pages <= maxtabs ) {
+            // can draw tabs
+            lvRect r(rc);
+            r.left += _margins.left;
+            for ( int i=0; i<pages; i++ ) {
+                r.right = r.left + tabwidth;
+                if ( i+1!=page ) {
+                    _bottomTabSkin->draw(buf, r);
+                    lString16 label = lString16::itoa(i+1);
+                    _bottomTabSkin->drawText(buf, r, label);
+                }
+                r.left += tabwidth - r.height()/6;
+            }
+            _bottomPageBoundSkin->draw(buf, rc);
+            r = rc;
+            r.left += _margins.left;
+            for ( int i=0; i<pages; i++ ) {
+                r.right = r.left + tabwidth;
+                if ( i+1==page ) {
+                    _bottomActiveTabSkin->draw(buf, r);
+                    lString16 label = lString16::itoa(i+1);
+                    _bottomActiveTabSkin->drawText(buf, r, label);
+                }
+                r.left += tabwidth - r.height()/6;
+            }
+            return;
+        }
+    }
+
     rc.shrinkBy( _margins );
 
     int btn1State = CRButtonSkin::ENABLED;
@@ -954,8 +1000,6 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
             sliderRect.width(), sliderRect.height() );
         buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
         if ( this->getShowPageNumbers() ) {
-            int pages = pagesize>0 ? (maxpos+pagesize-1)/pagesize : 0;
-            int page = pages>0 ? pos/pagesize+1 : 0;
             lString16 label;
             label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
             drawText( buf, sliderRect, label );
@@ -1180,6 +1224,24 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
         flg = true;
     }
 
+    CRRectSkinRef tabSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/tab-bottom").c_str(), tabSkin.get() ) ) {
+        res->setBottomTabSkin( tabSkin );
+        flg = true;
+    }
+
+    CRRectSkinRef tabActiveSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/tab-bottom-active").c_str(), tabActiveSkin.get() ) ) {
+        res->setBottomActiveTabSkin( tabActiveSkin );
+        flg = true;
+    }
+
+    CRRectSkinRef pageBoundSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/page-bound-bottom").c_str(), pageBoundSkin.get() ) ) {
+        res->setBottomPageBoundSkin( pageBoundSkin );
+        flg = true;
+    }
+
     LVImageSourceRef hf = readImage( (p + L"/hbody").c_str(), L"frame", &flg );
     if ( !hf.isNull() )
         res->setHBody( hf );
@@ -1354,6 +1416,10 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     }
 
     flg = readWindowSkin( path, res ) || flg;
+
+    CRRectSkinRef separatorSkin( new CRRectSkin() );
+    flg = readRectSkin(  (p + L"/separator").c_str(), separatorSkin.get() ) || flg;
+    res->setSeparatorSkin( separatorSkin );
 
     CRRectSkinRef itemSkin( new CRRectSkin() );
     flg = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() ) || flg;
