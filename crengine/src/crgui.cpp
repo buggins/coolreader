@@ -731,10 +731,13 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         lvRect itemRc( rc );
 
         if ( showShortcuts ) {
+            int shortcutSize = HOTKEY_SIZE;
+            if ( shortcutSize < ss->getMinSize().x )
+                shortcutSize = ss->getMinSize().x;
             // number
             lvRect numberRc( rc );
             //numberRc.extend(ITEM_MARGIN/4); //ITEM_MARGIN/8-2);
-            numberRc.right = numberRc.left + HOTKEY_SIZE;
+            numberRc.right = numberRc.left + shortcutSize;
 
             ss->draw( buf, numberRc );
             lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
@@ -800,10 +803,10 @@ void CRMenu::closeAllMenu( int command, int params )
 /// called on system configuration change: screen size and orientation
 void CRMenu::reconfigure( int flags )
 {
-    CRGUIWindowBase::reconfigure( flags );
     _skin.Clear();
     getSkin();
     _fullscreen = _fullscreen || _skin->getFullScreen();
+    CRGUIWindowBase::reconfigure( flags );
     int pageItems = _pageItems;
     if ( _skin->getMinItemCount()>0 && pageItems<_skin->getMinItemCount() )
         pageItems = _skin->getMinItemCount();

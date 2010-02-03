@@ -1420,36 +1420,55 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
 
     flg = readWindowSkin( path, res ) || flg;
 
+    bool b;
     CRRectSkinRef separatorSkin( new CRRectSkin() );
-    flg = readRectSkin(  (p + L"/separator").c_str(), separatorSkin.get() ) || flg;
-    res->setSeparatorSkin( separatorSkin );
+    b = readRectSkin(  (p + L"/separator").c_str(), separatorSkin.get() );
+    flg = flg || b;
+    if ( b || res->getSeparatorSkin().isNull() )
+        res->setSeparatorSkin( separatorSkin );
 
     CRRectSkinRef itemSkin( new CRRectSkin() );
-    flg = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() ) || flg;
-    res->setItemSkin( itemSkin );
+    b = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() );
+    flg = flg || b;
+    if ( b || res->getItemSkin().isNull() )
+        res->setItemSkin( itemSkin );
     CRRectSkinRef shortcutSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/shortcut").c_str(), shortcutSkin.get() );
-    res->setItemShortcutSkin( shortcutSkin );
+    b = readRectSkin(  (p + L"/shortcut").c_str(), shortcutSkin.get() );
+    flg = flg || b;
+    if ( b || res->getItemShortcutSkin().isNull() )
+        res->setItemShortcutSkin( shortcutSkin );
 
     CRRectSkinRef itemSelSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/selitem").c_str(), itemSelSkin.get() );
-    res->setSelItemSkin( itemSelSkin );
+    b = readRectSkin(  (p + L"/selitem").c_str(), itemSelSkin.get() );
+    flg = flg || b;
+    if ( b || res->getSelItemSkin().isNull() )
+        res->setSelItemSkin( itemSelSkin );
     CRRectSkinRef shortcutSelSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
-    res->setSelItemShortcutSkin( shortcutSelSkin );
+    b = readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
+    flg = flg || b;
+    if ( b || res->getSelItemShortcutSkin().isNull() )
+        res->setSelItemShortcutSkin( shortcutSelSkin );
 
     CRRectSkinRef evenitemSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/item-even").c_str(), evenitemSkin.get() ) )
+    b = readRectSkin(  (p + L"/item-even").c_str(), evenitemSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenItemSkin( evenitemSkin );
     CRRectSkinRef evenshortcutSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/shortcut-even").c_str(), evenshortcutSkin.get() ) )
+    b = readRectSkin(  (p + L"/shortcut-even").c_str(), evenshortcutSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenItemShortcutSkin( evenshortcutSkin );
 
     CRRectSkinRef evenitemSelSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/selitem-even").c_str(), evenitemSelSkin.get() ) )
+    b = readRectSkin(  (p + L"/selitem-even").c_str(), evenitemSelSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenSelItemSkin( evenitemSelSkin );
     CRRectSkinRef evenshortcutSelSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/selshortcut-even").c_str(), evenshortcutSelSkin.get() ) )
+    b = readRectSkin(  (p + L"/selshortcut-even").c_str(), evenshortcutSelSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenSelItemShortcutSkin( evenshortcutSelSkin );
 
     res->setMinItemCount( readInt( path, L"min-item-count", res->getMinItemCount()) );
