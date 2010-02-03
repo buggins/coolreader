@@ -79,24 +79,19 @@
         </title>
     <scroll base="#tabs"/>
   </window>
-  <window id="toc">
-        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
-        <border widths="26,8,8,8"/>
-        <!--icon image="filename" valign="" halign=""/-->
+  <window id="toc" base="#main">
+        <title base="#title-main">
+            <size minvalue="0,51" maxvalue="0,51"/>
+            <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
+            <background color="#555555"/>
+            <border widths="16,4,16,4"/>
+        </title>
         <client>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
             <background image="cr3_menu_item.png" color="#FFFFFF"/>
             <border widths="4,4,4,4"/>
         </client>
-        <title>
-            <size minvalue="0,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_title.png" color="#FFFFFF"/>
-            <border widths="4,4,4,4"/>
-            <!--icon image="filename" valign="" halign=""-->
-        </title>
-    <scroll base="#tabs"/>
+        <scroll base="#tabs"/>
   </window>
   <menu id="vkeyboard" base="#toc">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
@@ -165,7 +160,7 @@
   <menu id="main" base="#main-nosc" show-shortcuts="true">
         <client>
             <background color="#cccccc" />
-            <background image="sheet-h79.png" pos="50,0" size="0,100%" htransform="none" vtransform="tile" />
+            <background image="sheet-h79.png" pos="45,0" size="0,100%" htransform="none" vtransform="tile" />
             <background color="#999999" pos="-4,0" size="4,100%"/>
         </client>
         <title base="#title-main">
@@ -173,8 +168,12 @@
             <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
             <background color="#CCCCCC" pos="0,-5" size="100%,5"/>
             <background color="#999999" pos="-4,-5" size="4,5"/>
-            <background color="#FFFFFF" pos="70,-5" size="6,5"/>
+            <background color="#FFFFFF" pos="65,-5" size="6,5"/>
         </title>
+        <separator>
+            <background color="#FFFFFF" image="separator-h16.png" pos="86,0" size="-102,0" vtransform="none" htransform="tile" />
+            <size minvalue="0,16" maxvalue="0,0"/>
+        </separator>
         <scroll base="#tabs-noautohide-sc"/>
   </menu>
   <menu id="main-nosc" min-item-count="9" max-item-count="9" show-shortcuts="false" fullscreen="true" >
@@ -216,7 +215,7 @@
         <shortcut id="menu-shortcut">
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#FFFFFF" face="Arial, DejaVu Sans" size="32" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="shortcut.png" pos="14,0" size="-14,100%" htransform="none" vtransform="none" halign="center" valign="center"/>
+            <background image="shortcut.png" pos="12,0" size="-15,100%" htransform="none" vtransform="none" halign="center" valign="center"/>
             <border widths="12,6,3,6"/>
             <!--icon image="filename" valign="" halign=""-->
         </shortcut>
@@ -277,49 +276,7 @@
     </selshortcut>
     <scroll base="#menuscroll"/>
   </menu>
-  <menu id="bookmarks">
-        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
-        <background image="cr3_main_menu.png" color="#AAAAAA"/>
-        <border widths="32,8,8,8"/>
-        <!--icon image="filename" valign="" halign=""/-->
-        <title>
-            <size minvalue="0,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_title.png" color="#AAAAAA"/>
-            <border widths="4,4,4,4"/>
-            <!--icon image="filename" valign="" halign=""-->
-        </title>
-        <client>
-            <background color="#AAAAAA"/>
-        </client>
-        <item>
-            <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="22" bold="false" italic="false" valign="center" halign="left"/>
-            <background image="cr3_menu_item.png" color="#FFFFFF"/>
-            <border widths="4,4,4,4"/>
-            <!--icon image="filename" valign="" halign=""-->
-        </item>
-        <shortcut>
-            <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="false" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_shortcut.png" color="#FFFFFF"/>
-            <border widths="12,6,6,6"/>
-            <!--icon image="filename" valign="" halign=""-->
-        </shortcut>
-        <selitem>
-           <size minvalue="48,48" maxvalue="0,0"/>
-           <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="22" bold="false" italic="false" valign="center" halign="left"/>
-           <background image="cr3_menu_item_selected.png" color="#FFFFFF"/>
-           <border widths="6,6,6,6"/>
-           <!--icon image="filename" valign="" halign=""-->
-        </selitem>
-        <selshortcut>
-            <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_shortcut_selected.png" color="#FFFFFF"/>
-            <border widths="12,6,6,6"/>
-            <!--icon image="filename" valign="" halign=""-->
-        </selshortcut>
+  <menu id="bookmarks" base="#main">
     <scroll base="#tabs-noautohide"/>
   </menu>
   <menu id="settings" base="#main" fullscreen="true">

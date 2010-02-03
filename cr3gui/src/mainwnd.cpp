@@ -71,7 +71,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
 #define BATTERY_HEADER \
         "36 19 5 1", \
         "0 c #000000", \
-        "X c #555555", \
+        "X c #000000", \
         "o c #AAAAAA", \
         ". c #FFFFFF", \
         "  c None",
