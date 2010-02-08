@@ -368,6 +368,16 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 		{NULL, NULL},
 	};
 
+    item_def_t screen_update_options[] = {
+        {_("Always use fast updates"), "0"},
+        {_("Don't use fast updates"), "1"},
+        {_("Full updates every 2 pages"), "2"},
+        {_("Full updates every 3 pages"), "3"},
+        {_("Full updates every 4 pages"), "4"},
+        {_("Full updates every 5 pages"), "5"},
+        {_("Full updates every 6 pages"), "6"},
+        {NULL, NULL},
+    };
 
 
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
@@ -468,6 +478,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_DISPLAY_INVERSE );
         addMenuItems( inverseModeMenu, inverse_mode );
         mainMenu->addItem( inverseModeMenu );
+
+        CRMenu * fastUpdatesMenu = new CRMenu(_wm, mainMenu, mm_FastUpdates,
+                _("Display update mode"),
+                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_DISPLAY_FULL_UPDATE_INTERVAL );
+        addMenuItems( fastUpdatesMenu, screen_update_options );
+        mainMenu->addItem( fastUpdatesMenu );
 
 #if 0
         CRMenu * bookmarkIconsMenu = new CRMenu(_wm, mainMenu, mm_BookmarkIcons,

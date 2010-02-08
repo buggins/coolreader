@@ -51,6 +51,7 @@ enum MainMenuItems_t {
     mm_Hyphenation,
     mm_Controls,
     mm_Embolden,
+    mm_FastUpdates,
 };
 
 

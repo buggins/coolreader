@@ -4306,6 +4306,7 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setHexDef( PROP_BACKGROUND_COLOR, 0xFFFFFF );
     props->setIntDef( PROP_TXT_OPTION_PREFORMATTED, 0 );
     props->setIntDef( PROP_AUTOSAVE_BOOKMARKS, 1 );
+    props->setIntDef( PROP_DISPLAY_FULL_UPDATE_INTERVAL, 0 );
     lString8 defFontFace(DEFAULT_FONT_NAME);
     lString8 defStatusFontFace(DEFAULT_STATUS_FONT_NAME);
     props->setStringDef( PROP_FONT_FACE, defFontFace.c_str() );
@@ -4340,7 +4341,9 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->limitValueList( PROP_PAGE_MARGIN_BOTTOM, def_margin, 8 );
     props->limitValueList( PROP_PAGE_MARGIN_LEFT, def_margin, 8 );
     props->limitValueList( PROP_PAGE_MARGIN_RIGHT, def_margin, 8 );
-	int fs = props->getIntDef( PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE );
+    static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7 };
+    props->limitValueList( PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 8 );
+    int fs = props->getIntDef( PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE );
 	if ( fs<14 )
 		fs = 14;
 	else if ( fs>28 )

@@ -567,6 +567,7 @@ bool V3DocViewWin::loadSettings( lString16 filename )
     if ( stream.isNull() ) {
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
+        _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
         //setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
         return false;
     }
@@ -574,11 +575,13 @@ bool V3DocViewWin::loadSettings( lString16 filename )
         _props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 26);
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
+        _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
         setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
         return true;
     }
     _docview->propsUpdateDefaults( _props );
     _docview->propsApply( _props );
+    _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
     //setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
     return false;
 }
@@ -627,6 +630,7 @@ void V3DocViewWin::applySettings()
     CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
     _docview->propsApply( delta );
     _props = _newProps; // | _props;
+    _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
     setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
 }
 

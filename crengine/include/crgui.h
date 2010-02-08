@@ -323,6 +323,8 @@ public:
 class CRGUIScreen
 {
     public:
+        /// fast update feature parameter setting
+        virtual void setFullUpdateInterval( int pagesBeforeFullupdate=1 ) = 0;
         /// creates compatible canvas of specified size
         virtual LVDrawBuf * createCanvas( int dx, int dy ) = 0;
         /// sets new screen size, returns true if size is changed
@@ -735,9 +737,32 @@ class CRGUIScreenBase : public CRGUIScreen
         lvRect _updateRect;
         LVRef<LVDrawBuf> _canvas;
         LVRef<LVDrawBuf> _front;
+        int _fullUpdateInterval;
+        int _fullUpdateCounter;
         /// override in ancessor to transfer image to device
         virtual void update( const lvRect & rc, bool full ) = 0;
     public:
+        /// fast update feature parameter setting
+        virtual void setFullUpdateInterval( int pagesBeforeFullupdate=1 )
+        {
+            _fullUpdateInterval = pagesBeforeFullupdate;
+            if ( _fullUpdateInterval>0 )
+                _fullUpdateCounter = _fullUpdateInterval;
+        }
+        virtual bool checkFullUpdateCounter()
+        {
+            if ( _fullUpdateInterval<=0 )
+                return false; // always partial update
+            if ( _fullUpdateInterval==1 )
+                return true;  // always full update
+            _fullUpdateCounter--;
+            if ( _fullUpdateCounter<=0 ) {
+                _fullUpdateCounter = _fullUpdateInterval;
+                return true; // full update
+            }
+            return false; // partial update
+        }
+
         /// creates compatible canvas of specified size
         virtual LVDrawBuf * createCanvas( int dx, int dy )
         {
@@ -782,6 +807,8 @@ class CRGUIScreenBase : public CRGUIScreen
         }
         CRGUIScreenBase( int width, int height, bool doublebuffer  )
         : _width( width ), _height( height ), _canvas(NULL), _front(NULL)
+        , _fullUpdateInterval(1)
+        , _fullUpdateCounter(1)
         {
             if ( width && height ) {
                 _canvas = LVRef<LVDrawBuf>( createCanvas( width, height ) );
