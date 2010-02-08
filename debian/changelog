@@ -1,3 +1,21 @@
+cr3 (3.0.24-12) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * ukrainian lang update, phase 1
+  * fixes for scrollbar, battery, v3 skin
+  * fix battery icon
+  * update n516 skin
+  * skin: add support of tabs
+  * skin improvements
+  * add skin format description
+  * skin fixes
+  * menu skin inheritance fix
+  * skin fixes
+  * fix wxWidgets build
+  * Implement WOL export in Qt version
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Mon, 08 Feb 2010 14:39:55 +0100
+
 cr3 (3.0.24-11) zelazny; urgency=low
 
   [ Vadim Lopatin ]
