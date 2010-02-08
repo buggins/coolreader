@@ -841,8 +841,16 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         drawCoverTo( &cover, coverRc );
         wol.addCoverImage(cover);
 
+        int lastPercent = 0;
         for ( int i=1; i<pages.length(); i+=getVisiblePageCount() )
         {
+            int percent = i * 100 / pages.length();
+            percent -= percent%5;
+            if ( percent!=lastPercent ) {
+                lastPercent = percent;
+                if ( m_callback!=NULL )
+                    m_callback->OnExportProgress( percent );
+            }
             LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
             //drawbuf.SetBackgroundColor(0xFFFFFF);
             //drawbuf.SetTextColor(0x000000);

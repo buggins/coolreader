@@ -43,6 +43,9 @@ LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight)
     : callback(NULL), totalFinalBlocks(0)
     , renderedFinalBlocks(0), lastSentProgress(0), page_list(pageList), page_h(pageHeight), footNotes(64), curr_note(NULL)
 {
+    if ( callback ) {
+        callback->OnFormatStart();
+    }
 }
 
 void LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
@@ -362,6 +365,9 @@ void LVRendPageContext::split()
 void LVRendPageContext::Finalize()
 {
     split();
+    if ( callback ) {
+        callback->OnFormatEnd();
+    }
     lines.clear();
     footNotes.clear();
 }

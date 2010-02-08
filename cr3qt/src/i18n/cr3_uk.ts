@@ -802,6 +802,17 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
+    <name>ExportProgressDlg</name>
+    <message>
+        <source>Dialog</source>
+        <translation type="unfinished">Діалог</translation>
+    </message>
+    <message>
+        <source>Export is in progress...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FilePropsDialog</name>
     <message>
         <source>Document properties</source>
@@ -977,6 +988,18 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>Search is not implemented yet</source>
         <translation>Пошук ще не впроваджено</translation>
+    </message>
+    <message>
+        <source>Export document to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WOL book (*.wol)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export to WOL format</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1333,6 +1356,18 @@ p, li { white-space: pre-wrap; }
         <source>Ctrl+E</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export document</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+S</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>RecentBooksDlg</name>
@@ -1597,6 +1632,33 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>1</source>
         <translation type="obsolete">1</translation>
+    </message>
+</context>
+<context>
+    <name>WolExportDlg</name>
+    <message>
+        <source>Dialog</source>
+        <translation type="unfinished">Діалог</translation>
+    </message>
+    <message>
+        <source>Bits per pixel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1</source>
+        <translation type="unfinished">1</translation>
+    </message>
+    <message>
+        <source>2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Table of Contents levels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

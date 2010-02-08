@@ -4,13 +4,20 @@ INCLUDE(${QT_USE_FILE})
 SET(CR3_UIS
   src/aboutdlg.ui        src/bookmarklistdlg.ui  src/mainwindow.ui  src/settings.ui
   src/addbookmarkdlg.ui  src/filepropsdlg.ui     src/recentdlg.ui   src/tocdlg.ui
+  src/wolexportdlg.ui    src/exportprogressdlg.ui
 )
 
 SET(CR3_MOC_HDRS
-  src/aboutdlg.h        src/bookmarklistdlg.h  
-  src/mainwindow.h      src/settings.h
-  src/addbookmarkdlg.h  src/cr3widget.h        
-  src/filepropsdlg.h    src/recentdlg.h   
+  src/aboutdlg.h        
+  src/bookmarklistdlg.h  
+  src/mainwindow.h      
+  src/settings.h
+  src/addbookmarkdlg.h  
+  src/cr3widget.h        
+  src/filepropsdlg.h    
+  src/recentdlg.h   
+  src/wolexportdlg.h
+  src/exportprogressdlg.h
   src/tocdlg.h
 )
 
@@ -26,6 +33,8 @@ SET (CR3_SOURCES
   src/filepropsdlg.cpp  
   src/mainwindow.cpp  
   src/settings.cpp
+  src/wolexportdlg.cpp
+  src/exportprogressdlg.cpp
 )
 
 IF (UNIX)
@@ -38,7 +47,7 @@ ELSE()
     )
 ENDIF(UNIX)
 
-SET(LANGUAGES ru uk de es)
+SET(LANGUAGES ru uk de es pl)
 message( "Languages: ${LANGUAGES}" )
 SET(LANGUAGE_TS_FILES)
 FOREACH(LANGUAGE ${LANGUAGES})

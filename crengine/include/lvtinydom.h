@@ -146,6 +146,8 @@ public:
     virtual void OnFormatEnd() { }
     /// format progress, called with values 0..100
     virtual void OnFormatProgress( int percent ) { }
+    /// format progress, called with values 0..100
+    virtual void OnExportProgress( int percent ) { }
     /// file load finiished with error
     virtual void OnLoadFileError( lString16 message ) { }
     /// Override to handle external links

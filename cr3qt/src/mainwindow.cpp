@@ -14,6 +14,8 @@
 #include "bookmarklistdlg.h"
 #include "addbookmarkdlg.h"
 #include "crqtutil.h"
+#include "wolexportdlg.h"
+#include "exportprogressdlg.h"
 #include "../crengine/include/lvtinydom.h"
 
 #define DOC_CACHE_SIZE 128 * 0x100000
@@ -125,6 +127,73 @@ MainWindow::~MainWindow()
 void MainWindow::on_view_destroyed()
 {
     //
+}
+
+class ExportProgressCallback : public LVDocViewCallback
+{
+    ExportProgressDlg * _dlg;
+public:
+    ExportProgressCallback( ExportProgressDlg * dlg )
+            : _dlg(dlg)
+    {
+    }
+    /// document formatting started
+    virtual void OnFormatStart()
+    {
+        _dlg->setPercent(0);
+    }
+    /// document formatting finished
+    virtual void OnFormatEnd()
+    {
+        _dlg->setPercent(100);
+    }
+    /// format progress, called with values 0..100
+    virtual void OnFormatProgress( int percent )
+    {
+        //_dlg->setPercent(percent);
+    }
+    /// export progress, called with values 0..100
+    virtual void OnExportProgress( int percent )
+    {
+        _dlg->setPercent(percent);
+    }
+};
+
+void MainWindow::on_actionExport_triggered()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export document to"),
+         QString(),
+         tr("WOL book (*.wol)"));
+    if ( fileName.length()==0 )
+        return;
+    WolExportDlg * dlg = new WolExportDlg( this );
+    //dlg->setModal( true );
+    dlg->setWindowTitle(tr("Export to WOL format"));
+//    dlg->setModal( true );
+//    dlg->show();
+    //dlg->raise();
+    //dlg->activateWindow();
+    int result = dlg->exec();
+    if ( result==QDialog::Accepted ) {
+        int bpp = dlg->getBitsPerPixel();
+        int levels = dlg->getTocLevels();
+        delete dlg;
+        repaint();
+        ExportProgressDlg * msg = new ExportProgressDlg(this);
+        msg->show();
+        msg->raise();
+        msg->activateWindow();
+        msg->repaint();
+        repaint();
+        ExportProgressCallback progress(msg);
+        LVDocViewCallback * oldCallback = ui->view->getDocView()->getCallback( );
+        ui->view->getDocView()->setCallback( &progress );
+        ui->view->getDocView()->exportWolFile(qt2cr(fileName).c_str(), bpp, levels );
+        ui->view->getDocView()->setCallback( oldCallback );
+        delete msg;
+    } else {
+        delete dlg;
+    }
 }
 
 void MainWindow::on_actionOpen_triggered()

@@ -491,6 +491,17 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
 </context>
 <context>
+    <name>ExportProgressDlg</name>
+    <message>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export is in progress...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FilePropsDialog</name>
     <message>
         <source>Document properties</source>
@@ -665,6 +676,18 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Search is not implemented yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export document to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WOL book (*.wol)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export to WOL format</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1022,6 +1045,18 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export document</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+S</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>RecentBooksDlg</name>
@@ -1281,6 +1316,33 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Table of Contents</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>WolExportDlg</name>
+    <message>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bits per pixel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Table of Contents levels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

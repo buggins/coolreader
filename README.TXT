@@ -34,7 +34,7 @@ Build instructions:
 # libqt4-dev should be installed
 mkdir qtbuild
 cd qtbuild
-cmake -D GUI=QT ..
+cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release  -D CMAKE_INSTALL_PREFIX=/usr ..
 make
 sudo make install
 
@@ -42,7 +42,7 @@ sudo make install
 # libwxgtk2.8-dev should be installed
 mkdir wxbuild
 cd wxbuild
-cmake -D GUI=WX ..
+cmake -D GUI=WX -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr ..
 make
 
 # Building ARM version on OpenInkpot:
