@@ -293,7 +293,7 @@ void cr3view::OnTimer(wxTimerEvent& event)
             _allowRender = true;
         }
 
-        _wm.setSize( dx, dy );
+        _wm.reconfigure( dx, dy, CR_ROTATE_ANGLE_0 );
 
         Paint();
         UpdateScrollBar();
