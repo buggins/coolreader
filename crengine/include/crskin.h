@@ -266,9 +266,19 @@ protected:
     LVImageSourceRef _hSlider;
     LVImageSourceRef _vBody;
     LVImageSourceRef _vSlider;
+    CRRectSkinRef _bottomTabSkin;
+    CRRectSkinRef _bottomActiveTabSkin;
+    CRRectSkinRef _bottomPageBoundSkin;
+
     bool _autohide;
     bool _showPageNumbers;
 public:
+    CRRectSkinRef getBottomTabSkin() { return _bottomTabSkin; }
+    CRRectSkinRef getBottomActiveTabSkin() { return _bottomActiveTabSkin; }
+    CRRectSkinRef getBottomPageBoundSkin() { return _bottomPageBoundSkin; }
+    void setBottomTabSkin( CRRectSkinRef skin ) { _bottomTabSkin = skin; }
+    void setBottomActiveTabSkin( CRRectSkinRef skin ) { _bottomActiveTabSkin = skin; }
+    void setBottomPageBoundSkin( CRRectSkinRef skin ) { _bottomPageBoundSkin = skin; }
     CRButtonSkinRef getUpButton() { return _upButton; }
     CRButtonSkinRef getDownButton() { return _downButton; }
     CRButtonSkinRef getLeftButton() { return _leftButton; }
@@ -304,7 +314,10 @@ protected:
     CRRectSkinRef _titleSkin;
     CRRectSkinRef _clientSkin;
     CRScrollSkinRef _scrollSkin;
+    bool _fullscreen;
 public:
+    bool getFullScreen() { return _fullscreen; }
+    void setFullScreen( bool fs ) { _fullscreen = fs; }
     CRWindowSkin();
     virtual ~CRWindowSkin() { }
     /// returns necessary window size for specified client size
@@ -325,6 +338,7 @@ typedef LVFastRef<CRWindowSkin> CRWindowSkinRef;
 class CRMenuSkin : public CRWindowSkin
 {
 protected:
+    CRRectSkinRef _separatorSkin;
     CRRectSkinRef _itemSkin;
     CRRectSkinRef _itemShortcutSkin;
     CRRectSkinRef _evenItemSkin;
@@ -341,6 +355,8 @@ public:
     virtual ~CRMenuSkin() { }
     virtual CRRectSkinRef getItemSkin() { return _itemSkin; }
     virtual void setItemSkin( CRRectSkinRef skin ) { _itemSkin = skin; }
+    virtual CRRectSkinRef getSeparatorSkin() { return _separatorSkin; }
+    virtual void setSeparatorSkin( CRRectSkinRef skin ) { _separatorSkin = skin; }
     virtual CRRectSkinRef getEvenItemSkin() { return _evenItemSkin; }
     virtual void setEvenItemSkin( CRRectSkinRef skin ) { _evenItemSkin = skin; }
     virtual CRRectSkinRef getItemShortcutSkin() { return _itemShortcutSkin; }

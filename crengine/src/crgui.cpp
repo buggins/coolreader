@@ -457,19 +457,27 @@ int CRMenu::getItemHeight()
 {
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
+    CRRectSkinRef separatorSkin = skin->getSeparatorSkin();
+    int separatorHeight = 0;
+    if ( !separatorSkin.isNull() )
+        separatorHeight = separatorSkin->getMinSize().y;
     int h = itemSkin->getFont()->getHeight() * 5/4;
     lvPoint minsize = skin->getMinSize();
     if ( minsize.y>0 && h < minsize.y )
         h = minsize.y;
     if ( _fullscreen ) {
-        int nItems = _pageItems;
+        int nItems = _items.length();
         int scrollHeight = 0;
-        if ( _items.length() > _pageItems ) {
+        CRScrollSkinRef sskin = skin->getScrollSkin();
+        if ( nItems > _pageItems || !sskin->getAutohide() ) {
+            nItems = _pageItems;
             scrollHeight = SCROLL_HEIGHT;
+            if ( sskin->getMinSize().y>0 )
+                scrollHeight = sskin->getMinSize().y;
         }
         lvRect rc(0,0,_wm->getScreen()->getWidth(), _wm->getScreen()->getHeight() );
         lvRect client = skin->getClientRect( rc );
-        h = client.height() - scrollHeight;
+        h = client.height() - scrollHeight - separatorHeight*(nItems-1) - _helpHeight;
         if ( nItems > 0 )
             h /= nItems;
     }
@@ -582,11 +590,27 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
     }
 }
 
+int CRMenu::getScrollHeight()
+{
+    CRMenuSkinRef skin = getSkin();
+    int nItems = _items.length();
+    int scrollHeight = 0;
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    if ( nItems > _pageItems || !sskin->getAutohide() ) {
+        nItems = _pageItems;
+        scrollHeight = SCROLL_HEIGHT;
+        if ( sskin->getMinSize().y>0 )
+            scrollHeight = sskin->getMinSize().y;
+    }
+    return scrollHeight;
+}
+
 void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef clientSkin = skin->getClientSkin();
     CRRectSkinRef titleSkin = skin->getTitleSkin();
+    CRScrollSkinRef sskin = skin->getScrollSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();
     CRRectSkinRef itemSelSkin = skin->getSelItemSkin();
@@ -603,6 +627,12 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         evenitemSelSkin = itemSelSkin;
     if ( evenitemSelShortcutSkin.isNull() )
         evenitemSelShortcutSkin = itemSelShortcutSkin;
+
+    CRRectSkinRef separatorSkin = skin->getSeparatorSkin();
+    int separatorHeight = 0;
+    if ( !separatorSkin.isNull() )
+        separatorHeight = separatorSkin->getMinSize().y;
+
     lvRect itemBorders = itemSkin->getBorderWidths();
     lvRect headerRc = skin->getTitleRect(_rect);
 
@@ -623,13 +653,8 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     //int hdrHeight = itemSize.y; // + ITEM_MARGIN + ITEM_MARGIN;
     lvPoint sz = getSize();
 
-    int nItems = _items.length();
-    int scrollHeight = 0;
-    CRScrollSkinRef sskin = skin->getScrollSkin();
-    if ( nItems > _pageItems || !sskin->getAutohide() ) {
-        nItems = _pageItems;
-        scrollHeight = SCROLL_HEIGHT;
-    }
+    //int nItems = _items.length();
+    int scrollHeight = getScrollHeight();
 
     lvRect itemsRc( clientRect );
     itemsRc.bottom -= scrollHeight;
@@ -706,10 +731,13 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         lvRect itemRc( rc );
 
         if ( showShortcuts ) {
+            int shortcutSize = HOTKEY_SIZE;
+            if ( shortcutSize < ss->getMinSize().x )
+                shortcutSize = ss->getMinSize().x;
             // number
             lvRect numberRc( rc );
             //numberRc.extend(ITEM_MARGIN/4); //ITEM_MARGIN/8-2);
-            numberRc.right = numberRc.left + HOTKEY_SIZE;
+            numberRc.right = numberRc.left + shortcutSize;
 
             ss->draw( buf, numberRc );
             lString16 number = index<9 ? lString16::itoa( index+1 ) : L"0";
@@ -723,7 +751,15 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         is->setTextAlign( is->getTextAlign() | SKIN_EXTEND_TAB);
         CRMenuItem * item = _items[i];
         item->Draw( buf, itemRc, is, selected );
-        rc.top += itemSize.y;
+
+        // draw separator
+        if ( separatorHeight>0 && index<_pageItems-1 ) {
+            lvRect r(rc);
+            r.top += itemSize.y;
+            r.bottom = r.top + separatorHeight;
+            separatorSkin->draw(buf, r);
+        }
+        rc.top += itemSize.y + separatorHeight;
     }
 }
 
@@ -767,9 +803,10 @@ void CRMenu::closeAllMenu( int command, int params )
 /// called on system configuration change: screen size and orientation
 void CRMenu::reconfigure( int flags )
 {
-    CRGUIWindowBase::reconfigure( flags );
     _skin.Clear();
     getSkin();
+    _fullscreen = _fullscreen || _skin->getFullScreen();
+    CRGUIWindowBase::reconfigure( flags );
     int pageItems = _pageItems;
     if ( _skin->getMinItemCount()>0 && pageItems<_skin->getMinItemCount() )
         pageItems = _skin->getMinItemCount();

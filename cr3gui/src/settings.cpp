@@ -248,7 +248,8 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     }
     fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu10") );
     //fontSizeMenu->setAccelerators( _menuAccelerators );
-    fontSizeMenu->setSkinName(lString16(L"#settings"));
+    //fontSizeMenu->setSkinName(lString16(L"#settings"));
+    fontSizeMenu->setSkinName(lString16(L"#main"));
     fontSizeMenu->reconfigure( 0 );
     return fontSizeMenu;
 }

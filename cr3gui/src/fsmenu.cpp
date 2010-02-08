@@ -19,21 +19,12 @@ CRFullScreenMenu::CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lStrin
     _rect = rc;
     _pageItems = numItems;
     _helpHeight = 0;
+    _fullscreen = true;
 }
 
 const lvRect & CRFullScreenMenu::getRect()
 {
     return _rect;
-}
-
-int CRFullScreenMenu::getItemHeight()
-{
-    CRMenuSkinRef skin = getSkin();
-    lvRect rc = skin->getClientRect( _rect );
-	int scrollHeight = 0;
-	if ( _items.length() > _pageItems )
-		scrollHeight = 34;
-    return (rc.height() - _helpHeight - 4 - scrollHeight) / _pageItems;
 }
 
 lvPoint CRFullScreenMenu::getMaxItemSize()

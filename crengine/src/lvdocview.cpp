@@ -160,7 +160,9 @@ LVDocView::LVDocView( int bitsPerPixel)
 
     m_font = fontMan->GetFont( m_font_size, 400, false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
     m_infoFont = fontMan->GetFont( m_status_font_size, 700, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+#if 0
     m_batteryFont = fontMan->GetFont( 20, 700, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+#endif
 
 }
 

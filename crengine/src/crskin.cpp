@@ -20,7 +20,7 @@ class RecursionLimit
 {
 static int counter;
 public:
-    bool test( int limit = 10 ) { return counter < limit; }
+    bool test( int limit = 15 ) { return counter < limit; }
     RecursionLimit() { counter++; }
     ~RecursionLimit() { counter--; }
 };
@@ -893,6 +893,52 @@ void CRButtonSkin::drawButton( LVDrawBuf & buf, const lvRect & rect, int flags )
 void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertical, int pos, int maxpos, int pagesize )
 {
     lvRect rc = rect;
+
+    draw( buf, rc );
+
+    int pages = pagesize>0 ? (maxpos+pagesize-1)/pagesize : 0;
+    int page = pages>0 ? pos/pagesize+1 : 0;
+
+    if ( !_bottomTabSkin.isNull() && !_bottomPageBoundSkin.isNull() &&
+         !_bottomActiveTabSkin.isNull() ) {
+        // tabs
+        if ( pages<=1 )
+            return; // don't draw tabs if no other pages
+        int tabwidth = _bottomTabSkin->getMinSize().x;
+        if ( tabwidth<40 )
+            tabwidth = 40;
+        if ( tabwidth>_bottomTabSkin->getMaxSize().x && _bottomTabSkin->getMaxSize().x>0)
+            tabwidth = _bottomTabSkin->getMaxSize().x;
+        int maxtabs = rc.width()-_margins.left-_margins.right / tabwidth;
+        if ( pages <= maxtabs ) {
+            // can draw tabs
+            lvRect r(rc);
+            r.left += _margins.left;
+            for ( int i=0; i<pages; i++ ) {
+                r.right = r.left + tabwidth;
+                if ( i+1!=page ) {
+                    _bottomTabSkin->draw(buf, r);
+                    lString16 label = lString16::itoa(i+1);
+                    _bottomTabSkin->drawText(buf, r, label);
+                }
+                r.left += tabwidth - r.height()/6;
+            }
+            _bottomPageBoundSkin->draw(buf, rc);
+            r = rc;
+            r.left += _margins.left;
+            for ( int i=0; i<pages; i++ ) {
+                r.right = r.left + tabwidth;
+                if ( i+1==page ) {
+                    _bottomActiveTabSkin->draw(buf, r);
+                    lString16 label = lString16::itoa(i+1);
+                    _bottomActiveTabSkin->drawText(buf, r, label);
+                }
+                r.left += tabwidth - r.height()/6;
+            }
+            return;
+        }
+    }
+
     rc.shrinkBy( _margins );
 
     int btn1State = CRButtonSkin::ENABLED;
@@ -953,11 +999,11 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
         LVImageSourceRef img = LVCreateStretchFilledTransform( sliderImg,
             sliderRect.width(), sliderRect.height() );
         buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
-        int page = pos/(maxpos-pagesize)+1;
-        int pages = (maxpos-pagesize) / pagesize + 1;
-        lString16 label;
-        label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
-        drawText( buf, sliderRect, label );
+        if ( this->getShowPageNumbers() ) {
+            lString16 label;
+            label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
+            drawText( buf, sliderRect, label );
+        }
     }
 }
 
@@ -1003,6 +1049,7 @@ CRRectSkin::CRRectSkin()
 
 CRWindowSkin::CRWindowSkin()
 {
+    _fullscreen = false;
 }
 
 CRMenuSkin::CRMenuSkin()
@@ -1178,6 +1225,24 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
         flg = true;
     }
 
+    CRRectSkinRef tabSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/tab-bottom").c_str(), tabSkin.get() ) ) {
+        res->setBottomTabSkin( tabSkin );
+        flg = true;
+    }
+
+    CRRectSkinRef tabActiveSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/tab-bottom-active").c_str(), tabActiveSkin.get() ) ) {
+        res->setBottomActiveTabSkin( tabActiveSkin );
+        flg = true;
+    }
+
+    CRRectSkinRef pageBoundSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/page-bound-bottom").c_str(), pageBoundSkin.get() ) ) {
+        res->setBottomPageBoundSkin( pageBoundSkin );
+        flg = true;
+    }
+
     LVImageSourceRef hf = readImage( (p + L"/hbody").c_str(), L"frame", &flg );
     if ( !hf.isNull() )
         res->setHBody( hf );
@@ -1305,6 +1370,8 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
         return false;
     }
 
+    res->setFullScreen(readBool(path, L"fullscreen", res->getFullScreen(), &flg));
+
     flg = readRectSkin(  path, res ) || flg;
     CRRectSkinRef titleSkin( new CRRectSkin() );
     if ( readRectSkin(  (p + L"/title").c_str(), titleSkin.get() ) ) {
@@ -1353,32 +1420,55 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
 
     flg = readWindowSkin( path, res ) || flg;
 
+    bool b;
+    CRRectSkinRef separatorSkin( new CRRectSkin() );
+    b = readRectSkin(  (p + L"/separator").c_str(), separatorSkin.get() );
+    flg = flg || b;
+    if ( b || res->getSeparatorSkin().isNull() )
+        res->setSeparatorSkin( separatorSkin );
+
     CRRectSkinRef itemSkin( new CRRectSkin() );
-    flg = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() ) || flg;
-    res->setItemSkin( itemSkin );
+    b = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() );
+    flg = flg || b;
+    if ( b || res->getItemSkin().isNull() )
+        res->setItemSkin( itemSkin );
     CRRectSkinRef shortcutSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/shortcut").c_str(), shortcutSkin.get() );
-    res->setItemShortcutSkin( shortcutSkin );
+    b = readRectSkin(  (p + L"/shortcut").c_str(), shortcutSkin.get() );
+    flg = flg || b;
+    if ( b || res->getItemShortcutSkin().isNull() )
+        res->setItemShortcutSkin( shortcutSkin );
 
     CRRectSkinRef itemSelSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/selitem").c_str(), itemSelSkin.get() );
-    res->setSelItemSkin( itemSelSkin );
+    b = readRectSkin(  (p + L"/selitem").c_str(), itemSelSkin.get() );
+    flg = flg || b;
+    if ( b || res->getSelItemSkin().isNull() )
+        res->setSelItemSkin( itemSelSkin );
     CRRectSkinRef shortcutSelSkin( new CRRectSkin() );
-    readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
-    res->setSelItemShortcutSkin( shortcutSelSkin );
+    b = readRectSkin(  (p + L"/selshortcut").c_str(), shortcutSelSkin.get() );
+    flg = flg || b;
+    if ( b || res->getSelItemShortcutSkin().isNull() )
+        res->setSelItemShortcutSkin( shortcutSelSkin );
 
     CRRectSkinRef evenitemSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/item-even").c_str(), evenitemSkin.get() ) )
+    b = readRectSkin(  (p + L"/item-even").c_str(), evenitemSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenItemSkin( evenitemSkin );
     CRRectSkinRef evenshortcutSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/shortcut-even").c_str(), evenshortcutSkin.get() ) )
+    b = readRectSkin(  (p + L"/shortcut-even").c_str(), evenshortcutSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenItemShortcutSkin( evenshortcutSkin );
 
     CRRectSkinRef evenitemSelSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/selitem-even").c_str(), evenitemSelSkin.get() ) )
+    b = readRectSkin(  (p + L"/selitem-even").c_str(), evenitemSelSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenSelItemSkin( evenitemSelSkin );
     CRRectSkinRef evenshortcutSelSkin( new CRRectSkin() );
-    if ( readRectSkin(  (p + L"/selshortcut-even").c_str(), evenshortcutSelSkin.get() ) )
+    b = readRectSkin(  (p + L"/selshortcut-even").c_str(), evenshortcutSelSkin.get() );
+    flg = flg || b;
+    if ( b )
         res->setEvenSelItemShortcutSkin( evenshortcutSelSkin );
 
     res->setMinItemCount( readInt( path, L"min-item-count", res->getMinItemCount()) );
