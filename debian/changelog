@@ -1,3 +1,13 @@
+cr3 (3.0.24-13) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * fast screen updates feature, part 1
+  * fast screen update feature for Jinke devices
+  * update keymaps, add switch to recent book command
+  * fix crash on screen rotation in menu
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 09 Feb 2010 13:20:16 +0100
+
 cr3 (3.0.24-12) zelazny; urgency=low
 
   [ Vadim Lopatin ]
