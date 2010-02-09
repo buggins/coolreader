@@ -1,3 +1,10 @@
+cr3 (3.0.24-14) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * screen turbo update mode
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 09 Feb 2010 17:45:36 +0100
+
 cr3 (3.0.24-13) zelazny; urgency=low
 
   [ Vadim Lopatin ]
