@@ -91,7 +91,7 @@ static const char * def_view_css =
 ;
 
 CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 text, lvRect rect, bool showScroll, bool showFrame )
-    : CRDocViewWindow(wm), _text(text), _showScroll( showScroll ), _showFrame( showFrame )
+    : CRDocViewWindow(wm), _text(text), _showScroll( showScroll ), _showFrame( showFrame ), _lastNavigationDirection(0)
 {
     _passKeysToParent = _passCommandsToParent = false;
 	if ( !_wm->getSkin().isNull() )
@@ -225,6 +225,7 @@ void CRViewDialog::showDictWithVKeyboard()
 
 bool CRViewDialog::onCommand( int command, int params )
 {
+    _lastNavigationDirection = 0;
     switch ( command ) {
 	#ifdef WITH_DICT
 		case MCMD_DICT:
@@ -262,7 +263,16 @@ bool CRViewDialog::onCommand( int command, int params )
 		case MCMD_HELP_KEYS:
 			showKeymapDialog();
 			break;
+        case DCMD_PAGEDOWN:
+            if ( params==0 || params==1 )
+                _lastNavigationDirection = 1;
+            break;
+        case DCMD_PAGEUP:
+            if ( params==0 || params==1 )
+                _lastNavigationDirection = -1;
+            break;
     }
+
     return CRDocViewWindow::onCommand( command, params );
 }
 
@@ -491,13 +501,13 @@ void CRViewDialog::setRect( const lvRect & rc )
     setDirty();
 }
 
-void CRViewDialog::prepareNextPageImage()
+void CRViewDialog::prepareNextPageImage( int offset )
 {
     if ( _wm->getScreen()->getTurboUpdateEnabled() && _wm->getScreen()->getTurboUpdateSupported() ) {
         CRLog::debug("CRViewDialog::prepareNextPageImage() in turbo mode");
         _wm->getScreen()->setTurboUpdateMode( CRGUIScreen::PrepareMode );
-        draw(1);
-        _wm->getScreen()->flush(false);
+        draw(offset);
+        _wm->getScreen()->flush(true);
         _wm->getScreen()->setTurboUpdateMode( CRGUIScreen::NormalMode );
     } else {
         CRLog::debug("CRViewDialog::prepareNextPageImage() in normal mode");

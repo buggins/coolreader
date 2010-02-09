@@ -214,7 +214,7 @@ void CRGUIWindowManager::showProgress( lString16 filename, int progressPercent )
 
 void CRGUIScreenBase::flush( bool full )
 {
-    if ( _updateRect.isEmpty() && !full ) {
+    if ( _updateRect.isEmpty() && !full && !getTurboUpdateEnabled() ) {
         CRLog::trace("CRGUIScreenBase::flush() - update rectangle is empty");
         return;
     }

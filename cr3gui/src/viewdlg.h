@@ -25,6 +25,7 @@ protected:
     LVStreamRef _stream;
     bool _showScroll;
     bool _showFrame;
+    int _lastNavigationDirection;
     lvRect _scrollRect;
     lvRect _clientRect;
     lString16 _searchPattern;
@@ -33,7 +34,9 @@ protected:
     virtual void draw();
 public:
 
-    void prepareNextPageImage();
+    int getLastNavigationDirection() { return _lastNavigationDirection; }
+
+    void prepareNextPageImage( int offset );
 
     void showWaitIcon() { /* _wm->showWaitIcon( lString16("cr3_wait_icon.png") );*/ }
     CRGUIAcceleratorTableRef getMenuAccelerators()

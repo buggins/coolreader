@@ -238,7 +238,7 @@ class CRXCBScreen : public CRGUIScreenBase
         {
             if ( _mode==mode )
                 return;
-            if ( _mode==CRGUIScreen::PrepareMode ) {
+            if ( mode==CRGUIScreen::PrepareMode ) {
                 _forceNextUpdate = true;
                 _forceUpdateRect.clear();
             }
@@ -510,7 +510,7 @@ class CRXCBScreen : public CRGUIScreenBase
         , _forceUpdateRect(0,0,0,0)
         {
             // autodetect turbo mode - check whether enable auto draw is passed
-            _turboModeSupported = true; //enableAutoDraw();
+            _turboModeSupported = enableAutoDraw();
             CRLog::info("CRXCBScreen : turbo mode is %s", (_turboModeSupported?"enabled":"disabled"));
             pal_[0] = 0x000000;
             pal_[1] = 0x555555;
@@ -704,7 +704,6 @@ class CRXCBWindowManager : public CRGUIWindowManager
 {
 protected:
     //xcb_connection_t * _connection;
-    bool _lastCommandIsPageDown;
 
     void init_properties()
     {
@@ -833,7 +832,7 @@ public:
 
 
     CRXCBWindowManager( int dx, int dy )
-    : CRGUIWindowManager(NULL), _lastCommandIsPageDown(false)
+    : CRGUIWindowManager(NULL)
     {
         CRXCBScreen * s = new CRXCBScreen( dx, dy );
         _screen = s;
@@ -863,13 +862,6 @@ public:
             return true;
         }
         return CRGUIWindowManager::onKeyPressed( key, flags );
-    }
-
-    /// returns true if command is processed
-    virtual bool onCommand( int command, int params = 0 )
-    {
-        _lastCommandIsPageDown = (command==DCMD_PAGEDOWN && params==1);
-        return CRGUIWindowManager::onCommand( command, params );
     }
 
     bool hasValidConnection()
@@ -1143,9 +1135,9 @@ int CRXCBWindowManager::runEventLoop()
         if ( !getWindowCount() )
             stop = true;
 
-        if ( getWindowCount()==1 && _lastCommandIsPageDown ) {
+        if ( getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
             CRLog::debug("Last command is page down: preparing next page for fast navigation");
-            main_win->prepareNextPageImage();
+            main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
         }
     }
 
