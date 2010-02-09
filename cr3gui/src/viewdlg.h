@@ -29,8 +29,12 @@ protected:
     lvRect _clientRect;
     lString16 _searchPattern;
 	static LVRef<CRDictionary> _dict;
+    virtual void draw( int pageOffset );
     virtual void draw();
 public:
+
+    void prepareNextPageImage();
+
     void showWaitIcon() { /* _wm->showWaitIcon( lString16("cr3_wait_icon.png") );*/ }
     CRGUIAcceleratorTableRef getMenuAccelerators()
     {

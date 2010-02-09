@@ -379,6 +379,14 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {NULL, NULL},
     };
 
+    item_def_t turbo_update_options[] = {
+        {_("Turbo mode disabled"), "0"},
+        {_("Turbo mode enabled"), "1"},
+        {NULL, NULL},
+    };
+
+
+
 
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
@@ -486,6 +494,13 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( fastUpdatesMenu, screen_update_options );
         mainMenu->addItem( fastUpdatesMenu );
 #endif
+        if ( _wm->getScreen()->getTurboUpdateSupported() ) {
+            CRMenu * turboUpdatesMenu = new CRMenu(_wm, mainMenu, mm_TurboUpdateMode,
+                    _("Turbo update mode"),
+                    LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_DISPLAY_TURBO_UPDATE_MODE );
+            addMenuItems( turboUpdatesMenu, turbo_update_options );
+            mainMenu->addItem( turboUpdatesMenu );
+        }
 
 #if 0
         CRMenu * bookmarkIconsMenu = new CRMenu(_wm, mainMenu, mm_BookmarkIcons,

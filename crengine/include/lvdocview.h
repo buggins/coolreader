@@ -46,6 +46,7 @@
 #define PROP_EMBEDDED_STYLES         "crengine.doc.embedded.styles.enabled"
 #define PROP_DISPLAY_INVERSE         "crengine.display.inverse"
 #define PROP_DISPLAY_FULL_UPDATE_INTERVAL "crengine.display.full.update.interval"
+#define PROP_DISPLAY_TURBO_UPDATE_MODE "crengine.display.turbo.update"
 #define PROP_STATUS_LINE             "window.status.line"
 #define PROP_BOOKMARK_ICONS          "crengine.bookmarks.icons"
 #define PROP_FOOTNOTES               "crengine.footnotes"

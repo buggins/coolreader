@@ -318,11 +318,19 @@ public:
 };
 
 
-
 /// Screen object - provides canvas and interface to device screen
 class CRGUIScreen
 {
     public:
+        // for turbo updates
+        enum UpdateMode {
+            NormalMode,
+            PrepareMode,
+        };
+        virtual void setTurboUpdateEnabled( bool flg ) { }
+        virtual bool getTurboUpdateEnabled() {  return false; }
+        virtual bool getTurboUpdateSupported() {  return false; }
+        virtual void setTurboUpdateMode( UpdateMode mode ) { }
         /// fast update feature parameter setting
         virtual void setFullUpdateInterval( int pagesBeforeFullupdate=1 ) = 0;
         /// creates compatible canvas of specified size

@@ -52,6 +52,7 @@ enum MainMenuItems_t {
     mm_Controls,
     mm_Embolden,
     mm_FastUpdates,
+    mm_TurboUpdateMode,
 };
 
 

@@ -44,6 +44,10 @@ extern "C" {
 #include <xcb/xcb_keysyms.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 
 #define XCB_ALL_PLANES ~0
 
@@ -52,6 +56,14 @@ extern "C" {
 #ifndef NAME_MAX
 #define NAME_MAX 4096
 #endif
+
+// For Turbo Updates feature
+#ifndef FBIO_WAITFORVSYNC
+#define FBIO_WAITFORVSYNC       _IOW('F', 0x20, uint32_t)
+#endif
+#define EINK_APOLLOFB_IOCTL_SET_AUTOREDRAW _IOW('F', 0x21, unsigned int)
+#define EINK_APOLLOFB_IOCTL_FORCE_REDRAW _IO('F', 0x22)
+#define EINK_APOLLOFB_IOCTL_SHOW_PREVIOUS _IO('F', 0x23)
 
 //=================================
 // START OF LIBEOI BATTERY SUPPORT
@@ -180,6 +192,58 @@ class CRXCBScreen : public CRGUIScreenBase
         xcb_connection_t * getXcbConnection() { return connection; }
         xcb_window_t getXcbWindow() { return window; }
         xcb_screen_t * getXcbScreen() { return screen; }
+        bool _turboModeSupported;
+
+
+        bool enableAutoDraw()
+        {
+            int f;
+            bool res = false;
+            f = open("/dev/fb0", O_NONBLOCK);
+            if ( f!=-1 ) {
+                ioctl(f, FBIO_WAITFORVSYNC);
+                res = ioctl(f, EINK_APOLLOFB_IOCTL_SET_AUTOREDRAW, 1)!=-1;
+                close(f);
+            }
+            return res;
+        }
+        bool disableAutoDraw()
+        {
+            int f;
+            bool res = false;
+            f = open("/dev/fb0", O_NONBLOCK);
+            if ( f!=-1 ) {
+                ioctl(f, FBIO_WAITFORVSYNC);
+                res = ioctl(f, EINK_APOLLOFB_IOCTL_SET_AUTOREDRAW, 0)!=-1;
+                close(f);
+            }
+            return res;
+        }
+        bool forceDraw()
+        {
+            bool res = false;
+            int f;
+            f = open("/dev/fb0", O_NONBLOCK);
+            if ( f!=-1 ) {
+                ioctl(f, FBIO_WAITFORVSYNC);
+                res = ioctl(f, EINK_APOLLOFB_IOCTL_FORCE_REDRAW)!=-1;
+                close(f);
+            }
+            return res;
+        }
+        virtual void setTurboUpdateEnabled( bool flg ) { _turbo = flg && _turboModeSupported; }
+        virtual bool getTurboUpdateEnabled() {  return _turbo; }
+        virtual bool getTurboUpdateSupported() {  return _turboModeSupported; }
+        virtual void setTurboUpdateMode( CRGUIScreen::UpdateMode mode )
+        {
+            if ( _mode==mode )
+                return;
+            if ( _mode==CRGUIScreen::PrepareMode ) {
+                _forceNextUpdate = true;
+                _forceUpdateRect.clear();
+            }
+            _mode = mode;
+        }
     protected:
         xcb_gcontext_t      gc;
         xcb_gcontext_t      bgcolor;
@@ -193,6 +257,10 @@ class CRXCBScreen : public CRGUIScreenBase
         unsigned int *pal;
         uint8_t depth;
         int bufDepth;
+        bool _turbo;
+        UpdateMode _mode;
+        bool _forceNextUpdate;
+        lvRect _forceUpdateRect;
         /// sets new screen size
         virtual bool setSize( int dx, int dy )
         {
@@ -245,11 +313,41 @@ class CRXCBScreen : public CRGUIScreenBase
                 printf("Can't get shm\n");
             }
         }
-        virtual void update( const lvRect & rc, bool full )
+        virtual void update( const lvRect & a_rc, bool full )
         {
+            lvRect rc(a_rc);
             printf("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d\n", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
+            if ( _forceNextUpdate && !_forceUpdateRect.isEmpty() ) {
+                if ( _mode==NormalMode ) {
+                    if ( rc.isEmpty() ) {
+                        // no changes since last update!
+                        CRLog::debug("CRXCBScreen::update() : Showing already prepared image");
+                        forceDraw();
+                        _forceNextUpdate = false;
+                        _forceUpdateRect.clear();
+                        return;
+                    }
+                    // some changes detected
+                    // expand update rect up to forced update rect
+                    if ( rc.right < _forceUpdateRect.right )
+                        rc.right = _forceUpdateRect.right;
+                    if ( rc.left > _forceUpdateRect.left )
+                        rc.left = _forceUpdateRect.left;
+                    if ( rc.bottom < _forceUpdateRect.bottom )
+                        rc.bottom = _forceUpdateRect.bottom;
+                    if ( rc.top > _forceUpdateRect.top )
+                        rc.top = _forceUpdateRect.top;
+                    _forceNextUpdate = false;
+                    _forceUpdateRect.clear();
+                    CRLog::debug("CRXCBScreen::update() : prepared image is invalidated for rect(%d, %d, %d, %d)",
+                                 rc.left, rc.top, rc.right, rc.bottom);
+                }
+            }
             if ( rc.isEmpty() )
                 return;
+
+
+            //if (
             int i;
             i = xcb_image_shm_get (connection, window,
                     im, shminfo,
@@ -261,6 +359,10 @@ class CRXCBScreen : public CRGUIScreenBase
             }
             printf("update screen, bpp=%d\n", (int)im->bpp);
 
+            if ( _mode==PrepareMode ) {
+                CRLog::debug("CRXCBScreen::update() : disabling autodraw for prepare mode");
+                disableAutoDraw();
+            }
             // pal
             //static lUInt32 pal[4] = {0x000000, 0x555555, 0xaaaaaa, 0xffffff };
             //static lUInt8 pal8[4] = {0x00, 0x55, 0xaa, 0xff };
@@ -371,6 +473,20 @@ class CRXCBScreen : public CRGUIScreenBase
                     im, shminfo,
                     rc.left, rc.top, rc.left, rc.top, rc.width(), rc.height(), 0);
             xcb_flush(connection);
+            if ( _mode == PrepareMode ) {
+                enableAutoDraw();
+                if ( _forceUpdateRect.left > rc.left || _forceUpdateRect.right==0)
+                    _forceUpdateRect.left = rc.left;
+                if ( _forceUpdateRect.right < rc.right )
+                    _forceUpdateRect.right = rc.right;
+                if ( _forceUpdateRect.top > rc.top || _forceUpdateRect.bottom==0 )
+                    _forceUpdateRect.top = rc.top;
+                if ( _forceUpdateRect.bottom < rc.bottom )
+                    _forceUpdateRect.bottom = rc.bottom;
+                CRLog::debug("CRXCBScreen::update() : prepared rect (%d, %d, %d, %d)",
+                             _forceUpdateRect.left, _forceUpdateRect.top,
+                             _forceUpdateRect.right, _forceUpdateRect.bottom );
+            }
         }
     public:
         /// creates compatible canvas of specified size
@@ -389,7 +505,13 @@ class CRXCBScreen : public CRGUIScreenBase
         }
         CRXCBScreen( int width, int height )
         :  CRGUIScreenBase( 0, 0, true )
+        , _turbo(false), _mode(NormalMode)
+        , _forceNextUpdate(false)
+        , _forceUpdateRect(0,0,0,0)
         {
+            // autodetect turbo mode - check whether enable auto draw is passed
+            _turboModeSupported = true; //enableAutoDraw();
+            CRLog::info("CRXCBScreen : turbo mode is %s", (_turboModeSupported?"enabled":"disabled"));
             pal_[0] = 0x000000;
             pal_[1] = 0x555555;
             pal_[2] = 0xaaaaaa;
@@ -582,7 +704,7 @@ class CRXCBWindowManager : public CRGUIWindowManager
 {
 protected:
     //xcb_connection_t * _connection;
-
+    bool _lastCommandIsPageDown;
 
     void init_properties()
     {
@@ -711,7 +833,7 @@ public:
 
 
     CRXCBWindowManager( int dx, int dy )
-    : CRGUIWindowManager(NULL)
+    : CRGUIWindowManager(NULL), _lastCommandIsPageDown(false)
     {
         CRXCBScreen * s = new CRXCBScreen( dx, dy );
         _screen = s;
@@ -741,6 +863,13 @@ public:
             return true;
         }
         return CRGUIWindowManager::onKeyPressed( key, flags );
+    }
+
+    /// returns true if command is processed
+    virtual bool onCommand( int command, int params = 0 )
+    {
+        _lastCommandIsPageDown = (command==DCMD_PAGEDOWN && params==1);
+        return CRGUIWindowManager::onCommand( command, params );
     }
 
     bool hasValidConnection()
@@ -931,7 +1060,6 @@ int CRXCBWindowManager::runEventLoop()
     xcb_generic_event_t *event;
     bool stop = false;
     while (!stop && (event = xcb_wait_for_event (connection)) ) {
-
         if(xcb_connection_has_error(connection)) {
             CRLog::error("Connection to server closed\n");
             break;
@@ -1015,6 +1143,10 @@ int CRXCBWindowManager::runEventLoop()
         if ( !getWindowCount() )
             stop = true;
 
+        if ( getWindowCount()==1 && _lastCommandIsPageDown ) {
+            CRLog::debug("Last command is page down: preparing next page for fast navigation");
+            main_win->prepareNextPageImage();
+        }
     }
 
     delete_properties();

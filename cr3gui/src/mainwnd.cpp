@@ -568,6 +568,7 @@ bool V3DocViewWin::loadSettings( lString16 filename )
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
         _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
+        _wm->getScreen()->setTurboUpdateEnabled(_props->getIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0));
         //setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
         return false;
     }
@@ -576,12 +577,14 @@ bool V3DocViewWin::loadSettings( lString16 filename )
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
         _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
+        _wm->getScreen()->setTurboUpdateEnabled(_props->getIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0));
         setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
         return true;
     }
     _docview->propsUpdateDefaults( _props );
     _docview->propsApply( _props );
     _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
+    _wm->getScreen()->setTurboUpdateEnabled(_props->getIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0));
     //setAccelerators( _wm->getAccTables().get(lString16("main"), _props) );
     return false;
 }

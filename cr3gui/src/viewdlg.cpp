@@ -427,6 +427,11 @@ void CRViewDialog::showKeymapDialog()
 
 void CRViewDialog::draw()
 {
+    draw(0);
+}
+
+void CRViewDialog::draw( int pageOffset )
+{
 	if ( _skin.isNull() )
 		return; // skin is not yet loaded
     CRRectSkinRef titleSkin = _skin->getTitleSkin();
@@ -452,7 +457,7 @@ void CRViewDialog::draw()
         CRLog::trace("drawing scrollbar %d, %d, %d", page, pages, 1);
         sskin->drawScroll( *drawbuf, _scrollRect, false, page, pages, 1 );
     }
-    LVDocImageRef pageImage = _docview->getPageImage(0);
+    LVDocImageRef pageImage = _docview->getPageImage( pageOffset );
     LVDrawBuf * pagedrawbuf = pageImage->getDrawBuf();
     _wm->getScreen()->draw( pagedrawbuf, _clientRect.left, _clientRect.top );
 }
@@ -484,4 +489,18 @@ void CRViewDialog::setRect( const lvRect & rc )
         _docview->Resize( _clientRect.width(), _clientRect.height() );
     }
     setDirty();
+}
+
+void CRViewDialog::prepareNextPageImage()
+{
+    if ( _wm->getScreen()->getTurboUpdateEnabled() && _wm->getScreen()->getTurboUpdateSupported() ) {
+        CRLog::debug("CRViewDialog::prepareNextPageImage() in turbo mode");
+        _wm->getScreen()->setTurboUpdateMode( CRGUIScreen::PrepareMode );
+        draw(1);
+        _wm->getScreen()->flush(false);
+        _wm->getScreen()->setTurboUpdateMode( CRGUIScreen::NormalMode );
+    } else {
+        CRLog::debug("CRViewDialog::prepareNextPageImage() in normal mode");
+        LVDocImageRef pageImage = _docview->getPageImage(1);
+    }
 }
