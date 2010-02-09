@@ -783,7 +783,11 @@ class CRJinkeScreen : public CRGUIScreenBase
         	rc.left &= ~3;
         	rc.right = (rc.right + 3) & ~3;
             CRLog::debug("CRJinkeScreen::update()");
-            if ( rc.height()>400 )
+            if ( rc.height()>400
+#if ENABLE_UPDATE_MODE_SETTING==1
+                  && checkFullUpdateCounter()
+#endif
+                )
             	full = true;
             else
             	full = false;

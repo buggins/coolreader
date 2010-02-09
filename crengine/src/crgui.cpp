@@ -245,8 +245,8 @@ void CRGUIScreenBase::flush( bool full )
         _updateRect.top = rc.top;
         _updateRect.bottom = rc.bottom;
     }
-    if ( !full && !checkFullUpdateCounter() )
-        full = false;
+    //if ( !full && !checkFullUpdateCounter() )
+    //    full = false;
     if ( full && !_front.isNull() ) {
         // copy full screen to front buffer
         _canvas->DrawTo( _front.get(), 0, 0, 0, NULL );

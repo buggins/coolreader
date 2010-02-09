@@ -479,11 +479,13 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( inverseModeMenu, inverse_mode );
         mainMenu->addItem( inverseModeMenu );
 
+#if ENABLE_UPDATE_MODE_SETTING==1
         CRMenu * fastUpdatesMenu = new CRMenu(_wm, mainMenu, mm_FastUpdates,
                 _("Display update mode"),
                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_DISPLAY_FULL_UPDATE_INTERVAL );
         addMenuItems( fastUpdatesMenu, screen_update_options );
         mainMenu->addItem( fastUpdatesMenu );
+#endif
 
 #if 0
         CRMenu * bookmarkIconsMenu = new CRMenu(_wm, mainMenu, mm_BookmarkIcons,

@@ -313,6 +313,7 @@ protected:
     //lvPoint _titleSize;
     CRRectSkinRef _titleSkin;
     CRRectSkinRef _clientSkin;
+    CRRectSkinRef _statusSkin;
     CRScrollSkinRef _scrollSkin;
     bool _fullscreen;
 public:
@@ -332,6 +333,8 @@ public:
     virtual void setTitleSkin( CRRectSkinRef skin ) { _titleSkin = skin; }
     virtual CRRectSkinRef getClientSkin() { return _clientSkin; }
     virtual void setClientSkin( CRRectSkinRef skin ) { _clientSkin = skin; }
+    virtual CRRectSkinRef getStatusSkin() { return _statusSkin; }
+    virtual void setStatusSkin( CRRectSkinRef skin ) { _statusSkin = skin; }
 };
 typedef LVFastRef<CRWindowSkin> CRWindowSkinRef;
 

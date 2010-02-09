@@ -355,6 +355,10 @@ class CRGUIScreen
 class CRGUIWindow
 {
     public:
+        /// sets scroll label (e.g. "Page $1 of $2" or "$1 / $2")
+        virtual void setScrollLabelTemplate( lString16 text ) = 0;
+        /// returns scroll label (e.g. "$1 of $2")
+        virtual lString16 getScrollLabelTemplate() = 0;
         /// sets skin name for window
         virtual void setSkinName( const lString16  & skin ) = 0;
         /// returns skin name for window
@@ -683,8 +687,13 @@ class CRGUIWindowBase : public CRGUIWindow
         bool _passCommandsToParent;
         CRGUIAcceleratorTableRef _acceleratorTable;
         lString16 _skinName;
+        lString16 _scrollLabel;
         virtual void draw() = 0;
     public:
+        /// sets scroll label (e.g. "Page $1 of $2" or "$1 / $2")
+        virtual void setScrollLabelTemplate( lString16 text ) { _scrollLabel=text; }
+        /// returns scroll label (e.g. "$1 of $2")
+        virtual lString16 getScrollLabelTemplate() { return _scrollLabel; }
         /// called on system configuration change: screen size and orientation
         virtual void reconfigure( int flags );
         /// sets skin name for window

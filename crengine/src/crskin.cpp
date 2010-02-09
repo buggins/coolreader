@@ -1385,6 +1385,12 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
         flg = true;
     }
 
+    CRRectSkinRef statusSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/status").c_str(), statusSkin.get() ) ) {
+        res->setStatusSkin( statusSkin );
+        flg = true;
+    }
+
     CRScrollSkinRef scrollSkin( new CRScrollSkin() );
     if ( readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() ) ) {
         res->setScrollSkin( scrollSkin );
