@@ -1031,7 +1031,6 @@ bool V3DocViewWin::onCommand( int command, int params )
         openRecentBook( 1 );
         return true;
 #endif
-
     case MCMD_ABOUT:
         showAboutDialog();
         return true;

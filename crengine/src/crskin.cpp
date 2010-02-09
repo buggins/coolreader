@@ -1347,7 +1347,7 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
 
 lvPoint CRWindowSkin::getTitleSize()
 {
-    lvPoint minsize = _titleSkin->getMinSize();
+    lvPoint minsize = _titleSkin.isNull() ? lvPoint(0, 0) : _titleSkin->getMinSize();
     return minsize;
 }
 

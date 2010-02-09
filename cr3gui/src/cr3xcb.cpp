@@ -724,6 +724,25 @@ public:
         setScreenOrientation( angle );
     }
 
+    /// returns true if key is processed
+    virtual bool onKeyPressed( int key, int flags = 0 )
+    {
+        // DEBUG ONLY
+        if ( key == 65289 ) // 'r' == rotate
+        {
+            CRLog::info("Simulating rotation on R keypress...");
+            cr_rotate_angle_t angle = (cr_rotate_angle_t)(getScreenOrientation() ^ 1);
+            int dx = getScreen()->getWidth();
+            int dy = getScreen()->getHeight();
+            reconfigure(dy, dx, angle);
+            update( true );
+            reconfigure(dx, dy, angle);
+            update( true );
+            return true;
+        }
+        return CRGUIWindowManager::onKeyPressed( key, flags );
+    }
+
     bool hasValidConnection()
     {
         return ( xcb_get_setup(connection) != NULL );

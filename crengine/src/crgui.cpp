@@ -479,7 +479,7 @@ int CRMenu::getItemHeight()
         int nItems = _items.length();
         int scrollHeight = 0;
         CRScrollSkinRef sskin = skin->getScrollSkin();
-        if ( nItems > _pageItems || !sskin->getAutohide() ) {
+        if ( !sskin.isNull() && (nItems > _pageItems || !sskin->getAutohide()) ) {
             nItems = _pageItems;
             scrollHeight = SCROLL_HEIGHT;
             if ( sskin->getMinSize().y>0 )
@@ -652,8 +652,10 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     buf.SetBackgroundColor( 0xFFFFFF );
 
     skin->draw( buf, _rect );
-    titleSkin->draw( buf, headerRc );
-    titleSkin->drawText( buf, headerRc, _label );
+    if ( !titleSkin.isNull() ) {
+        titleSkin->draw( buf, headerRc );
+        titleSkin->drawText( buf, headerRc, _label );
+    }
 
     lvRect clientRect = skin->getClientRect(_rect);
     if ( !clientSkin.isNull() )
