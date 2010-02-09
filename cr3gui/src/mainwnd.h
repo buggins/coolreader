@@ -85,6 +85,7 @@ enum CRMainMenuCmd
     MCMD_KBD_PREVLAYOUT,
     MCMD_HELP,
     MCMD_HELP_KEYS,
+    MCMD_SWITCH_TO_RECENT_BOOK,
 };
 
 #define PROP_FILE_PROPS_FONT_SIZE "cr3.dlg.fileprops.font.size"

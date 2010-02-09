@@ -136,7 +136,7 @@
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="34" bold="true" italic="false" valign="center" halign="left"/>
             <background image="cr3_menu_item.png" color="#FFFFFF"/>
-            <border widths="12,6,12,6"/>
+            <border widths="12,0,12,0"/>
             <!--icon image="filename" valign="" halign=""-->
         </item>
         <shortcut>
@@ -150,7 +150,7 @@
            <size minvalue="48,48" maxvalue="0,0"/>
            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="34" bold="true" italic="false" valign="center" halign="left"/>
            <background image="cr3_menu_item_selected.png" color="#FFFFFF"/>
-           <border widths="12,6,12,6"/>
+           <border widths="12,0,12,0"/>
            <!--icon image="filename" valign="" halign=""-->
         </selitem>
         <selshortcut>

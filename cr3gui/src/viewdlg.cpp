@@ -357,7 +357,8 @@ static const char * getCommandName( int command )
 	case MCMD_BOOKMARK_LIST: return _("Bookmark list");
 	case MCMD_RECENT_BOOK_LIST: return _("Recent books list");
 	case MCMD_OPEN_RECENT_BOOK: return _("Open recent book by number");
-	case MCMD_ABOUT: return _("About");
+    case MCMD_SWITCH_TO_RECENT_BOOK: return _("Switch to recent book");
+    case MCMD_ABOUT: return _("About");
 	case MCMD_CITE: return _("Cite selection dialog");
 	case MCMD_SEARCH: return _("Search dialog");
 	case MCMD_DICT_VKEYBOARD: return _("Find in Dictionary (virtual keyboard)");

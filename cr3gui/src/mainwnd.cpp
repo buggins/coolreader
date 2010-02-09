@@ -1026,6 +1026,10 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_OPEN_RECENT_BOOK:
         openRecentBook( params );
         return true;
+    case MCMD_SWITCH_TO_RECENT_BOOK:
+        _docview->swapToCache();
+        openRecentBook( 1 );
+        return true;
 #endif
 
     case MCMD_ABOUT:
