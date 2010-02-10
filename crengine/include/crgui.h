@@ -698,6 +698,20 @@ class CRGUIWindowBase : public CRGUIWindow
         lString16 _scrollLabel;
         virtual void draw() = 0;
     public:
+        /// calculates title rectangle for window rectangle
+        virtual bool getTitleRect( lvRect & rc );
+        /// calculates status rectangle for window rectangle
+        virtual bool getStatusRect( lvRect & rc, int page, int pages );
+        /// calculates client rectangle for window rectangle
+        virtual bool getClientRect( lvRect & rc, int page, int pages );
+        /// calculates scroll rectangle for window rectangle
+        virtual bool getScrollRect( lvRect & rc, int page, int pages );
+        /// formats scroll label (like "1 of 2")
+        virtual lString16 getScrollLabel( int page, int pages );
+        /// calculates minimum scroll size
+        virtual lvPoint getMinScrollSize( int page, int pages );
+        /// draw status bar using current skin, with optional status text and scroll/tab/page indicator
+        virtual void drawStatusBar( LVDrawBuf & buf, const lvRect &rc, lString16 statusString, int page, int numPages );
         /// sets scroll label (e.g. "Page $1 of $2" or "$1 / $2")
         virtual void setScrollLabelTemplate( lString16 text ) { _scrollLabel=text; }
         /// returns scroll label (e.g. "$1 of $2")

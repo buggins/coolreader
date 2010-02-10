@@ -257,6 +257,127 @@ void CRGUIScreenBase::flush( bool full )
     _updateRect.clear();
 }
 
+/// calculates title rectangle for specified window rectangle
+bool CRGUIWindowBase::getTitleRect( lvRect & rc )
+{
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    rc = skin->getClientRect(_rect);
+    rc.bottom = rc.top;
+    CRRectSkinRef clientSkin = skin->getClientSkin();
+    CRRectSkinRef titleSkin = skin->getTitleSkin();
+    CRRectSkinRef statusSkin = skin->getStatusSkin();
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    if ( !titleSkin.isNull() ) {
+        rc.bottom += titleSkin->getMinSize().y;
+    }
+    return !rc.isEmpty();
+}
+
+/// calculates status rectangle for specified window rectangle
+bool CRGUIWindowBase::getStatusRect( lvRect & rc, int page, int pages  )
+{
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    rc = skin->getClientRect(_rect);
+    rc.top = rc.bottom;
+    lvPoint scrollSize = getMinScrollSize( page, pages );
+    int h = scrollSize.y;
+    CRRectSkinRef statusSkin = skin->getStatusSkin();
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    if ( !statusSkin.isNull() ) {
+        rc.top -= statusSkin->getMinSize().y;
+    } else if ( !sskin.isNull() ) {
+        rc.top -= sskin->getMinSize().y;
+    }
+    return !rc.isEmpty();
+}
+
+/// calculates client rectangle for specified window rectangle
+bool CRGUIWindowBase::getClientRect( lvRect & rc, int page, int pages )
+{
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    rc = skin->getClientRect(_rect);
+    rc.bottom = rc.top;
+    lvRect titleRect;
+    getTitleRect( titleRect );
+    lvRect statusRect;
+    getStatusRect( statusRect, page, pages );
+    rc.top = titleRect.bottom;
+    rc.bottom = titleRect.top;
+    return !rc.isEmpty();
+}
+
+/// formats scroll label (like "1 of 2")
+lString16 CRGUIWindowBase::getScrollLabel( int page, int pages )
+{
+    return lString16::itoa(page) + L" of " + lString16::itoa(pages);
+}
+
+/// calculates minimum scroll size
+lvPoint CRGUIWindowBase::getMinScrollSize( int page, int pages )
+{
+    lvPoint sz(0,0);
+    //if ( pages<=1 )
+    //    return sz; // can hide scrollbar
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    CRRectSkinRef statusSkin = skin->getStatusSkin();
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    if ( !sskin.isNull() ) {
+        int h = sskin->getFontSize();
+        int w = 0;
+        bool noData = sskin->getAutohide() && pages<=1;
+        lString16 label = getScrollLabel( page, pages );
+        if ( !label.empty() )
+            w = sskin->getFont()->getTextWidth(label.c_str(), label.length());
+        if ( !sskin->getBottomTabSkin().isNull() ) {
+            if ( h < sskin->getBottomTabSkin()->getMinSize().y )
+                h = sskin->getBottomTabSkin()->getMinSize().y;
+            if ( !noData && w < _rect.width()/4 )
+                w = _rect.width()/4;
+        }
+        if ( !noData && h < sskin->getMinSize().y )
+            h = sskin->getMinSize().y;
+        if ( !sskin->getHBody().isNull() ) {
+            if ( h < sskin->getHBody()->GetHeight() )
+                h = sskin->getHBody()->GetHeight();
+            if ( !noData && w < _rect.width()/4 )
+                w = _rect.width()/4;
+        }
+        if ( h && w ) {
+            sz.y = h;
+            sz.x = w;
+        }
+    }
+    return sz;
+}
+
+/// calculates scroll rectangle for specified window rectangle
+bool CRGUIWindowBase::getScrollRect( lvRect & rc, int page, int pages )
+{
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    rc = skin->getClientRect(_rect);
+    rc.top = rc.bottom;
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    if ( sskin.isNull() )
+        return false;
+    CRRectSkinRef statusSkin = skin->getStatusSkin();
+    if ( !statusSkin.isNull() ) {
+        rc.top -= statusSkin->getMinSize().y;
+    } else if ( !sskin.isNull() ) {
+        rc.top -= sskin->getMinSize().y;
+    }
+    return !rc.isEmpty();
+}
+
+/// draw status bar using current skin, with optional status text and scroll/tab/page indicator
+void CRGUIWindowBase::drawStatusBar( LVDrawBuf & buf, const lvRect &rc, lString16 statusString, int page, int numPages )
+{
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    CRRectSkinRef clientSkin = skin->getClientSkin();
+    CRRectSkinRef statusSkin = skin->getStatusSkin();
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    lvRect statusRc( skin->getClientRect(_rect) );
+}
+
 /// called on system configuration change: screen size and orientation
 void CRGUIWindowBase::reconfigure( int flags )
 {
@@ -391,6 +512,22 @@ int CRMenu::getTopItem()
 void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
 {
     lvRect rc2 = rc;
+
+    lvRect itemBorders = skin->getBorderWidths();
+    skin->draw( buf, rc );
+    buf.SetTextColor( skin->getTextColor() );
+    buf.SetBackgroundColor( skin->getBackgroundColor() );
+    int imgWidth = 0;
+    int hh = rc.bottom - rc.top - itemBorders.top - itemBorders.bottom;
+    if ( !_image.isNull() ) {
+        int w = _image->GetWidth();
+        int h = _image->GetHeight();
+        buf.Draw( _image, rc.left + hh/2-w/2 + itemBorders.left, rc.top + hh/2 - h/2 + itemBorders.top, w, h );
+        imgWidth = w + ITEM_MARGIN;
+    }
+    lvRect textRect = rc;
+    textRect.left += imgWidth;
+
     lString16 s = getSubmenuValue();
     if ( !s.empty() ) {
         int w = _valueFont->getTextWidth( s.c_str(), s.length() );
@@ -400,11 +537,9 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool select
         buf.SetTextColor( skin->getTextColor() );
         _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
 
-        rc2 = rc;
-        rc2.bottom -= rc2.height()*2/5;
+        textRect.bottom -= textRect.height()*2/5;
     }
-
-    CRMenuItem::Draw( buf, rc2, skin, selected );
+    skin->drawText( buf, textRect, _label, getFont() );
 }
 
 lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )
