@@ -796,6 +796,10 @@ p, li { white-space: pre-wrap; }
         <source>Error while opening document </source>
         <translation>Помилка при відкритті документу </translation>
     </message>
+    <message>
+        <source>Loading: please wait...</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ExportProgressDlg</name>
@@ -1352,6 +1356,18 @@ p, li { white-space: pre-wrap; }
         <source>Ctrl+S</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Toggle Edit Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle edit mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+E</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>RecentBooksDlg</name>
@@ -1615,7 +1631,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>1</source>
-        <translation>1</translation>
+        <translation type="obsolete">1</translation>
     </message>
 </context>
 <context>

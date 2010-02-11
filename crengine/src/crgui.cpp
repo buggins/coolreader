@@ -274,12 +274,12 @@ bool CRGUIWindowBase::getTitleRect( lvRect & rc )
 }
 
 /// calculates status rectangle for specified window rectangle
-bool CRGUIWindowBase::getStatusRect( lvRect & rc, int page, int pages  )
+bool CRGUIWindowBase::getStatusRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = skin->getClientRect(_rect);
     rc.top = rc.bottom;
-    lvPoint scrollSize = getMinScrollSize( page, pages );
+    lvPoint scrollSize = getMinScrollSize( _page, _pages );
     int h = scrollSize.y;
     CRRectSkinRef statusSkin = skin->getStatusSkin();
     CRScrollSkinRef sskin = skin->getScrollSkin();
@@ -292,7 +292,7 @@ bool CRGUIWindowBase::getStatusRect( lvRect & rc, int page, int pages  )
 }
 
 /// calculates client rectangle for specified window rectangle
-bool CRGUIWindowBase::getClientRect( lvRect & rc, int page, int pages )
+bool CRGUIWindowBase::getClientRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = skin->getClientRect(_rect);
@@ -300,7 +300,7 @@ bool CRGUIWindowBase::getClientRect( lvRect & rc, int page, int pages )
     lvRect titleRect;
     getTitleRect( titleRect );
     lvRect statusRect;
-    getStatusRect( statusRect, page, pages );
+    getStatusRect( statusRect );
     rc.top = titleRect.bottom;
     rc.bottom = titleRect.top;
     return !rc.isEmpty();
@@ -351,7 +351,7 @@ lvPoint CRGUIWindowBase::getMinScrollSize( int page, int pages )
 }
 
 /// calculates scroll rectangle for specified window rectangle
-bool CRGUIWindowBase::getScrollRect( lvRect & rc, int page, int pages )
+bool CRGUIWindowBase::getScrollRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = skin->getClientRect(_rect);

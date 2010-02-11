@@ -693,6 +693,8 @@ class CRGUIWindowBase : public CRGUIWindow
         bool _dirty;
         bool _passKeysToParent;
         bool _passCommandsToParent;
+        int _page;
+        int _pages;
         CRGUIAcceleratorTableRef _acceleratorTable;
         lString16 _skinName;
         lString16 _scrollLabel;
@@ -701,11 +703,11 @@ class CRGUIWindowBase : public CRGUIWindow
         /// calculates title rectangle for window rectangle
         virtual bool getTitleRect( lvRect & rc );
         /// calculates status rectangle for window rectangle
-        virtual bool getStatusRect( lvRect & rc, int page, int pages );
+        virtual bool getStatusRect( lvRect & rc );
         /// calculates client rectangle for window rectangle
-        virtual bool getClientRect( lvRect & rc, int page, int pages );
+        virtual bool getClientRect( lvRect & rc );
         /// calculates scroll rectangle for window rectangle
-        virtual bool getScrollRect( lvRect & rc, int page, int pages );
+        virtual bool getScrollRect( lvRect & rc );
         /// formats scroll label (like "1 of 2")
         virtual lString16 getScrollLabel( int page, int pages );
         /// calculates minimum scroll size
@@ -751,7 +753,7 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual CRGUIWindowManager * getWindowManager() { return _wm; }
         CRGUIWindowBase( CRGUIWindowManager * wm )
         : _wm(wm), _visible(true), _fullscreen(true), _dirty(true), _passKeysToParent(false), _passCommandsToParent(false)
-
+        , _page(0), _pages(0)
         {
             // fullscreen visible by default
             _rect = _wm->getScreen()->getRect();
