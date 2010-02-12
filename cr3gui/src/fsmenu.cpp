@@ -37,8 +37,10 @@ lvPoint CRFullScreenMenu::getSize()
     return lvPoint( _rect.width(), _rect.height() );
 }
 
+/*
 void CRFullScreenMenu::Draw( LVDrawBuf & buf, int x, int y )
 {
+    CRGUIWindow::draw();
     CRMenu::Draw( buf, x, y );
     CRMenuSkinRef skin = getSkin();
     lvRect rc = skin->getClientRect( _rect );
@@ -52,3 +54,4 @@ void CRFullScreenMenu::Draw( LVDrawBuf & buf, int x, int y )
     if ( !_helpText.empty() )
         skin->getItemSkin()->drawText( buf, rc, _helpText );
 }
+*/

@@ -29,7 +29,7 @@ public:
 
     virtual lvPoint getSize();
 
-    virtual void Draw( LVDrawBuf & buf, int x, int y );
+    //virtual void Draw( LVDrawBuf & buf, int x, int y );
 
 };
 

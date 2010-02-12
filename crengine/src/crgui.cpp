@@ -369,13 +369,88 @@ bool CRGUIWindowBase::getScrollRect( lvRect & rc )
 }
 
 /// draw status bar using current skin, with optional status text and scroll/tab/page indicator
-void CRGUIWindowBase::drawStatusBar( LVDrawBuf & buf, const lvRect &rc, lString16 statusString, int page, int numPages )
+void CRGUIWindowBase::drawStatusBar()
 {
+    LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
-    CRRectSkinRef clientSkin = skin->getClientSkin();
     CRRectSkinRef statusSkin = skin->getStatusSkin();
     CRScrollSkinRef sskin = skin->getScrollSkin();
-    lvRect statusRc( skin->getClientRect(_rect) );
+    lvRect statusRc;
+    lvRect scrollRc;
+    if ( !getStatusRect( statusRc ) )
+        return;
+    getScrollRect( scrollRc );
+    if ( !statusSkin.isNull() ) {
+        statusSkin->draw( buf, statusRc );
+    }
+    if ( !sskin.isNull() && !scrollRc.isEmpty() ) {
+        sskin->drawScroll( buf, scrollRc, false, _page, _pages, 1 );
+    }
+    if ( !statusSkin.isNull() && !statusRc.isEmpty() && !_statusText.empty() ) {
+        if ( scrollRc.left - statusRc.left > statusRc.right - scrollRc.right )
+            statusRc.right = scrollRc.left;
+        else
+            statusRc.left = scrollRc.right;
+        lvRect b = statusSkin->getBorderWidths();
+        statusRc.shrinkBy( b );
+        if ( statusRc.width() > 100 ) {
+            // draw status text
+            statusSkin->drawText( buf, statusRc, _statusText );
+        }
+    }
+}
+
+// draws frame, title, status and client
+void CRGUIWindowBase::draw()
+{
+    LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    skin->draw( buf, _rect );
+    drawTitleBar();
+    drawStatusBar();
+    drawClient();
+}
+
+/// draw title bar using current skin, with optional scroll/tab/page indicator
+void CRGUIWindowBase::drawClient()
+{
+    LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    CRRectSkinRef clientSkin = skin->getClientSkin();
+    if ( clientSkin.isNull() )
+        return;
+    lvRect rc;
+    if ( !getClientRect( rc ) )
+        return;
+    clientSkin->draw( buf, rc );
+}
+
+/// draw title bar using current skin, with optional scroll/tab/page indicator
+void CRGUIWindowBase::drawTitleBar()
+{
+    LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    CRRectSkinRef titleSkin = skin->getTitleSkin();
+    lvRect titleRc;
+    if ( !getTitleRect( titleRc ) )
+        return;
+    titleSkin->draw( buf, titleRc );
+    lvRect b = titleSkin->getBorderWidths();
+    buf.SetTextColor( skin->getTextColor() );
+    buf.SetBackgroundColor( skin->getBackgroundColor() );
+    int imgWidth = 0;
+    titleRc.shrinkBy( b );
+    int hh = titleRc.bottom - titleRc.top;
+    if ( !_icon.isNull() ) {
+        int w = _icon->GetWidth();
+        int h = _icon->GetHeight();
+        buf.Draw( _icon, titleRc.left + hh/2-w/2, titleRc.top + hh/2 - h/2, w, h );
+        imgWidth = w + ITEM_MARGIN;
+    }
+    lvRect textRect = titleRc;
+    textRect.left += imgWidth;
+    skin->drawText( buf, textRect, _caption );
+
 }
 
 /// called on system configuration change: screen size and orientation
@@ -402,6 +477,7 @@ void CRGUIWindowBase::reconfigure( int flags )
         }
         setRect( rc );
     }
+    setDirty();
 }
 
 /// returns true if key is processed (by default, let's translate key to command using accelerator table)
@@ -750,12 +826,13 @@ int CRMenu::getScrollHeight()
     return scrollHeight;
 }
 
-void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
+void CRMenu::drawClient()
 {
+    LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef clientSkin = skin->getClientSkin();
-    CRRectSkinRef titleSkin = skin->getTitleSkin();
-    CRScrollSkinRef sskin = skin->getScrollSkin();
+    //CRRectSkinRef titleSkin = skin->getTitleSkin();
+    //CRScrollSkinRef sskin = skin->getScrollSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();
     CRRectSkinRef itemSelSkin = skin->getSelItemSkin();
@@ -779,20 +856,14 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
         separatorHeight = separatorSkin->getMinSize().y;
 
     lvRect itemBorders = itemSkin->getBorderWidths();
-    lvRect headerRc = skin->getTitleRect(_rect);
 
     bool showShortcuts = skin->getShowShortcuts();
 
     buf.SetTextColor( 0x000000 );
     buf.SetBackgroundColor( 0xFFFFFF );
 
-    skin->draw( buf, _rect );
-    if ( !titleSkin.isNull() ) {
-        titleSkin->draw( buf, headerRc );
-        titleSkin->drawText( buf, headerRc, _label );
-    }
-
-    lvRect clientRect = skin->getClientRect(_rect);
+    lvRect clientRect;
+    getClientRect(clientRect);
     if ( !clientSkin.isNull() )
         clientSkin->draw( buf, clientRect );
 
@@ -804,47 +875,6 @@ void CRMenu::Draw( LVDrawBuf & buf, int x, int y )
     int scrollHeight = getScrollHeight();
 
     lvRect itemsRc( clientRect );
-    itemsRc.bottom -= scrollHeight;
-    //lvRect headerRc( x + itemBorders.left, y + itemBorders.top, x + sz.x - itemBorders.right, itemsRc.top+1 );
-    lvRect scrollRc( skin->getClientRect(_rect) );
-    scrollRc.top = scrollRc.bottom - scrollHeight;
-    //buf.FillRect( x, y, x+sz.x, y+sz.y, buf.GetBackgroundColor() );
-    //buf.Rect( headerRc, buf.GetTextColor() );
-    //buf.Rect( itemsRc, buf.GetTextColor() );
-    // draw scrollbar
-    if ( scrollHeight ) {
-        if ( !sskin.isNull() ) {
-#if FULL_SCROLL==1
-            int numItems = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;// - 1;
-#else
-            int numItems = _items.length()
-#endif
-            sskin->drawScroll(  buf, scrollRc, false, _topItem, numItems, _pageItems );
-        } else {
-            int totalCount = _items.length();
-            int visibleCount = _pageItems;
-            buf.Rect( scrollRc, buf.GetTextColor() );
-            scrollRc.shrink( 2 );
-            buf.Rect( scrollRc.left, scrollRc.top, scrollRc.left+SCROLL_HEIGHT - 4, scrollRc.bottom, buf.GetTextColor() );
-            buf.Rect( scrollRc.right - SCROLL_HEIGHT + 4, scrollRc.top, scrollRc.right, scrollRc.bottom, buf.GetTextColor() );
-            DrawArrow( buf, scrollRc.left, scrollRc.top, SCROLL_HEIGHT-4, SCROLL_HEIGHT-4, _topItem>0?buf.GetTextColor() : 0xAAAAAA, 0 );
-            DrawArrow( buf, scrollRc.right-SCROLL_HEIGHT+4, scrollRc.top, SCROLL_HEIGHT-4, SCROLL_HEIGHT-4, _topItem < totalCount - visibleCount ? buf.GetTextColor() : 0xAAAAAA, 1 );
-            scrollRc.left += SCROLL_HEIGHT - 3;
-            scrollRc.right -= SCROLL_HEIGHT - 3;
-            int x = scrollRc.width() * _topItem / totalCount;
-            int endx = scrollRc.width() * (_topItem + visibleCount) / totalCount;
-            //CRLog::trace("scrollBar: x=%d, dx=%d, _topItem=%d, visibleCount=%d, totalCount=%d", x, endx, _topItem, visibleCount, totalCount );
-            scrollRc.right = scrollRc.left + endx;
-            scrollRc.left += x;
-            buf.Rect( scrollRc, buf.GetTextColor() );
-            scrollRc.shrink( 2 );
-            buf.FillRect( scrollRc, 0xAAAAAA );
-        }
-    }
-    //headerRc.shrink( 2 );
-    //buf.FillRect( headerRc, 0xA0A0A0 );
-    //headerRc.shrink( ITEM_MARGIN );
-    //CRMenuItem::Draw( buf, headerRc, itemSkin, false );
     lvRect rc( itemsRc );
     rc.top += 0; //ITEM_MARGIN;
     //rc.left += ITEM_MARGIN;
@@ -1079,8 +1109,11 @@ const lvRect & CRMenu::getRect()
 
 void CRMenu::draw()
 {
-    Draw( *_wm->getScreen()->getCanvas(), _rect.left, _rect.top );
-    //_wm->getScreen()->getCanvas()->Rect( _rect, 0xAAAAAA );
+    _pages = _pageItems>0 ? (_items.length()+_pageItems-1)/_pageItems : 0;
+    _page = _pages>0 ? _topItem/_pageItems+1 : 0;
+    _caption = _label;
+    _icon = _image;
+    CRGUIWindowBase::draw();
 }
 
 static bool readNextLine( const LVStreamRef & stream, lString16 & dst )

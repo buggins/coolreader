@@ -698,7 +698,11 @@ class CRGUIWindowBase : public CRGUIWindow
         CRGUIAcceleratorTableRef _acceleratorTable;
         lString16 _skinName;
         lString16 _scrollLabel;
-        virtual void draw() = 0;
+        lString16 _caption;
+        lString16 _statusText;
+        LVImageSourceRef _icon; // window title icon
+        // draws frame, title, status and client
+        virtual void draw();
     public:
         /// calculates title rectangle for window rectangle
         virtual bool getTitleRect( lvRect & rc );
@@ -713,7 +717,11 @@ class CRGUIWindowBase : public CRGUIWindow
         /// calculates minimum scroll size
         virtual lvPoint getMinScrollSize( int page, int pages );
         /// draw status bar using current skin, with optional status text and scroll/tab/page indicator
-        virtual void drawStatusBar( LVDrawBuf & buf, const lvRect &rc, lString16 statusString, int page, int numPages );
+        virtual void drawStatusBar();
+        /// draw title bar using current skin, with optional scroll/tab/page indicator
+        virtual void drawTitleBar();
+        /// draw title bar using current skin, with optional scroll/tab/page indicator
+        virtual void drawClient();
         /// sets scroll label (e.g. "Page $1 of $2" or "$1 / $2")
         virtual void setScrollLabelTemplate( lString16 text ) { _scrollLabel=text; }
         /// returns scroll label (e.g. "$1 of $2")
@@ -1066,8 +1074,9 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         // override for CRGUIWindow method
         virtual void draw();
         virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
-        virtual void Draw( LVDrawBuf & buf, int x, int y );
+        //virtual void Draw( LVDrawBuf & buf, int x, int y );
     public:
+        virtual void drawClient();
         virtual int getScrollHeight();
         CRMenuSkinRef getSkin();
         CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL, int pageItems=8 )
