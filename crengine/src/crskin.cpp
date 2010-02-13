@@ -863,7 +863,7 @@ void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text, L
 }
 void CRRectSkin::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text )
 {
-    lvRect rect = getClientRect( rc );
+    lvRect rect = CRRectSkin::getClientRect( rc );
     CRSkinnedItem::drawText( buf, rect, text );
 }
 

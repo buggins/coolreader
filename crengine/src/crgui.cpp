@@ -261,7 +261,8 @@ void CRGUIScreenBase::flush( bool full )
 bool CRGUIWindowBase::getTitleRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
-    rc = skin->getClientRect(_rect);
+    rc = _rect;
+    rc.shrinkBy(skin->getBorderWidths());
     rc.bottom = rc.top;
     CRRectSkinRef clientSkin = skin->getClientSkin();
     CRRectSkinRef titleSkin = skin->getTitleSkin();
@@ -277,7 +278,8 @@ bool CRGUIWindowBase::getTitleRect( lvRect & rc )
 bool CRGUIWindowBase::getStatusRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
-    rc = skin->getClientRect(_rect);
+    rc = _rect;
+    rc.shrinkBy(skin->getBorderWidths());
     rc.top = rc.bottom;
     lvPoint scrollSize = getMinScrollSize( _page, _pages );
     int h = scrollSize.y;
@@ -286,7 +288,7 @@ bool CRGUIWindowBase::getStatusRect( lvRect & rc )
     if ( !statusSkin.isNull() ) {
         rc.top -= statusSkin->getMinSize().y;
     } else if ( !sskin.isNull() ) {
-        rc.top -= sskin->getMinSize().y;
+        rc.top -= h;
     }
     return !rc.isEmpty();
 }
@@ -295,14 +297,15 @@ bool CRGUIWindowBase::getStatusRect( lvRect & rc )
 bool CRGUIWindowBase::getClientRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
-    rc = skin->getClientRect(_rect);
+    rc = _rect;
+    rc.shrinkBy(skin->getBorderWidths());
     rc.bottom = rc.top;
     lvRect titleRect;
     getTitleRect( titleRect );
     lvRect statusRect;
     getStatusRect( statusRect );
     rc.top = titleRect.bottom;
-    rc.bottom = titleRect.top;
+    rc.bottom = statusRect.top;
     return !rc.isEmpty();
 }
 
@@ -354,16 +357,19 @@ lvPoint CRGUIWindowBase::getMinScrollSize( int page, int pages )
 bool CRGUIWindowBase::getScrollRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
-    rc = skin->getClientRect(_rect);
+    rc = _rect;
+    rc.shrinkBy(skin->getBorderWidths());
     rc.top = rc.bottom;
     CRScrollSkinRef sskin = skin->getScrollSkin();
     if ( sskin.isNull() )
         return false;
+    lvPoint scrollSize = getMinScrollSize( _page, _pages );
+    int h = scrollSize.y;
     CRRectSkinRef statusSkin = skin->getStatusSkin();
     if ( !statusSkin.isNull() ) {
         rc.top -= statusSkin->getMinSize().y;
     } else if ( !sskin.isNull() ) {
-        rc.top -= sskin->getMinSize().y;
+        rc.top -= h;
     }
     return !rc.isEmpty();
 }
@@ -384,7 +390,7 @@ void CRGUIWindowBase::drawStatusBar()
         statusSkin->draw( buf, statusRc );
     }
     if ( !sskin.isNull() && !scrollRc.isEmpty() ) {
-        sskin->drawScroll( buf, scrollRc, false, _page, _pages, 1 );
+        sskin->drawScroll( buf, scrollRc, false, _page-1, _pages, 1 );
     }
     if ( !statusSkin.isNull() && !statusRc.isEmpty() && !_statusText.empty() ) {
         if ( scrollRc.left - statusRc.left > statusRc.right - scrollRc.right )
@@ -435,11 +441,11 @@ void CRGUIWindowBase::drawTitleBar()
     if ( !getTitleRect( titleRc ) )
         return;
     titleSkin->draw( buf, titleRc );
-    lvRect b = titleSkin->getBorderWidths();
+    //lvRect b = titleSkin->getBorderWidths();
     buf.SetTextColor( skin->getTextColor() );
     buf.SetBackgroundColor( skin->getBackgroundColor() );
     int imgWidth = 0;
-    titleRc.shrinkBy( b );
+    //titleRc.shrinkBy( b );
     int hh = titleRc.bottom - titleRc.top;
     if ( !_icon.isNull() ) {
         int w = _icon->GetWidth();
