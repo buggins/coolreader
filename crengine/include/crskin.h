@@ -314,6 +314,7 @@ protected:
     CRRectSkinRef _titleSkin;
     CRRectSkinRef _clientSkin;
     CRRectSkinRef _statusSkin;
+    CRRectSkinRef _inputSkin;
     CRScrollSkinRef _scrollSkin;
     bool _fullscreen;
 public:
@@ -335,6 +336,8 @@ public:
     virtual void setClientSkin( CRRectSkinRef skin ) { _clientSkin = skin; }
     virtual CRRectSkinRef getStatusSkin() { return _statusSkin; }
     virtual void setStatusSkin( CRRectSkinRef skin ) { _statusSkin = skin; }
+    virtual CRRectSkinRef getInputSkin() { return _inputSkin; }
+    virtual void setInputSkin( CRRectSkinRef skin ) { _inputSkin = skin; }
 };
 typedef LVFastRef<CRWindowSkin> CRWindowSkinRef;
 

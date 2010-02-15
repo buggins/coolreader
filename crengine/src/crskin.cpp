@@ -1385,6 +1385,12 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
         flg = true;
     }
 
+    CRRectSkinRef inputSkin( new CRRectSkin() );
+    if ( readRectSkin(  (p + L"/input").c_str(), inputSkin.get() ) ) {
+        res->setInputSkin( inputSkin );
+        flg = true;
+    }
+
     CRRectSkinRef statusSkin( new CRRectSkin() );
     if ( readRectSkin(  (p + L"/status").c_str(), statusSkin.get() ) ) {
         res->setStatusSkin( statusSkin );
