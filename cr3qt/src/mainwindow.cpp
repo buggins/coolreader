@@ -188,7 +188,7 @@ void MainWindow::on_actionExport_triggered()
         ExportProgressCallback progress(msg);
         LVDocViewCallback * oldCallback = ui->view->getDocView()->getCallback( );
         ui->view->getDocView()->setCallback( &progress );
-        ui->view->getDocView()->exportWolFile(qt2cr(fileName).c_str(), bpp, levels );
+        ui->view->getDocView()->exportWolFile(qt2cr(fileName).c_str(), bpp>1, levels );
         ui->view->getDocView()->setCallback( oldCallback );
         delete msg;
     } else {

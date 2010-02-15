@@ -808,7 +808,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
     int save_m_dy = m_dy;
     int old_flags = m_pageHeaderInfo;
     int save_pos = m_pos;
-
+    bool showCover = getShowCover();
     m_pageHeaderInfo &= ~(PGHDR_CLOCK | PGHDR_BATTERY);
     int dx = 600; // - m_pageMargins.left - m_pageMargins.right;
     int dy = 800; // - m_pageMargins.top - m_pageMargins.bottom;
@@ -844,7 +844,7 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         wol.addCoverImage(cover);
 
         int lastPercent = 0;
-        for ( int i=1; i<pages.length(); i+=getVisiblePageCount() )
+        for ( int i=showCover ? 1 : 0; i<pages.length(); i+=getVisiblePageCount() )
         {
             int percent = i * 100 / pages.length();
             percent -= percent%5;
@@ -860,10 +860,12 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
             drawPageTo( &drawbuf, *pages[i], NULL, pages.length(), 0 );
             m_pos = pages[i]->start;
             Draw( drawbuf, m_pos, true );
-            if (!flgGray)
+            if (!flgGray) {
                 drawbuf.ConvertToBitmap(false);
-            else
                 drawbuf.Invert();
+            } else {
+                //drawbuf.Invert();
+            }
             wol.addImage(drawbuf);
         }
 
@@ -879,6 +881,8 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
                     break;
                 lString8 title = UnicodeTo8Bit(getSectionHeader( l1section ), table);
                 int page = getSectionPage( l1section, pages );
+                if ( !showCover )
+                    page++;
                 if ( !title.empty() && page>=0 ) {
                     wol.addTocItem( ++l1n, 0, 0, page, title );
                     int l2n = 0;
