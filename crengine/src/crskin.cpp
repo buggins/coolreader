@@ -1398,7 +1398,16 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
     }
 
     CRScrollSkinRef scrollSkin( new CRScrollSkin() );
-    if ( readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() ) ) {
+    if ( readScrollSkin(  (p + L"/title/scroll").c_str(), scrollSkin.get() ) ) {
+        scrollSkin->setLocation( CRScrollSkin::Title );
+        res->setScrollSkin( scrollSkin );
+        flg = true;
+    } else if ( readScrollSkin(  (p + L"/status/scroll").c_str(), scrollSkin.get() ) ) {
+        scrollSkin->setLocation( CRScrollSkin::Status );
+        res->setScrollSkin( scrollSkin );
+        flg = true;
+    } else if ( readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() ) ) {
+        scrollSkin->setLocation( CRScrollSkin::Status );
         res->setScrollSkin( scrollSkin );
         flg = true;
     }

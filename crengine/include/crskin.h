@@ -257,6 +257,12 @@ typedef LVFastRef<CRButtonSkin> CRButtonSkinRef;
 
 class CRScrollSkin : public CRRectSkin
 {
+public:
+    enum Location {
+        Title,
+        Status,
+    };
+
 protected:
     CRButtonSkinRef _upButton;
     CRButtonSkinRef _downButton;
@@ -272,7 +278,13 @@ protected:
 
     bool _autohide;
     bool _showPageNumbers;
+    Location _location;
+
 public:
+
+
+    Location getLocation() { return _location; }
+    void setLocation( Location location ) { _location = location; }
     CRRectSkinRef getBottomTabSkin() { return _bottomTabSkin; }
     CRRectSkinRef getBottomActiveTabSkin() { return _bottomActiveTabSkin; }
     CRRectSkinRef getBottomPageBoundSkin() { return _bottomPageBoundSkin; }

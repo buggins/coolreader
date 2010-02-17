@@ -629,19 +629,27 @@ lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )
     LVFontRef font = _defFont;
     if ( font.isNull() )
         font = skin->getFont();
-    int h = font->getHeight() * 5/4;
+    lvRect borders = skin->getBorderWidths();
+    int h = font->getHeight() * 7/4;
+
     int w = font->getTextWidth( _label.c_str(), _label.length() );
     w += ITEM_MARGIN * 2;
     if ( !_image.isNull() ) {
+        int hi = 0;
         if ( _image->GetHeight()>h )
-            h = _image->GetHeight() * 8 / 7;
-        w += h;
+            hi = _image->GetHeight() * 8 / 7;
+        if ( h < hi )
+            h = hi;
+        w += hi;
     }
+
     lvPoint minsize = skin->getMinSize();
     if ( minsize.y>0 && h < minsize.y )
         h = minsize.y;
     if ( minsize.x>0 && w < minsize.x )
         w = minsize.x;
+    h += borders.bottom + borders.top;
+    w += borders.left + borders.right;
     return lvPoint( w, h );
 }
 
