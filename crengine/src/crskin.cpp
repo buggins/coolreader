@@ -1174,7 +1174,7 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     return flg;
 }
 
-CRScrollSkin::CRScrollSkin() : _autohide(false), _showPageNumbers(true) { }
+CRScrollSkin::CRScrollSkin() : _autohide(false), _showPageNumbers(true), _location(CRScrollSkin::Status) { }
 
 bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res )
 {
@@ -1200,7 +1200,12 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
 
     res->setAutohide( readBool( (p).c_str(), L"autohide", res->getAutohide()) );
     res->setShowPageNumbers( readBool( (p).c_str(), L"show-page-numbers", res->getShowPageNumbers()) );
-
+    lString16 l = readString( (p).c_str(), L"location", lString16() );
+    if ( !l.empty() ) {
+        l.lowercase();
+        if ( l==L"title" )
+            res->setLocation( CRScrollSkin::Status );
+    }
     CRButtonSkinRef upButton( new CRButtonSkin() );
     if ( readButtonSkin(  (p + L"/upbutton").c_str(), upButton.get() ) ) {
         res->setUpButton( upButton );
@@ -1398,16 +1403,7 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
     }
 
     CRScrollSkinRef scrollSkin( new CRScrollSkin() );
-    if ( readScrollSkin(  (p + L"/title/scroll").c_str(), scrollSkin.get() ) ) {
-        scrollSkin->setLocation( CRScrollSkin::Title );
-        res->setScrollSkin( scrollSkin );
-        flg = true;
-    } else if ( readScrollSkin(  (p + L"/status/scroll").c_str(), scrollSkin.get() ) ) {
-        scrollSkin->setLocation( CRScrollSkin::Status );
-        res->setScrollSkin( scrollSkin );
-        flg = true;
-    } else if ( readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() ) ) {
-        scrollSkin->setLocation( CRScrollSkin::Status );
+    if ( readScrollSkin(  (p + L"/scroll").c_str(), scrollSkin.get() ) ) {
         res->setScrollSkin( scrollSkin );
         flg = true;
     }

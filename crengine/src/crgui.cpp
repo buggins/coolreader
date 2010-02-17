@@ -359,17 +359,28 @@ bool CRGUIWindowBase::getScrollRect( lvRect & rc )
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = _rect;
     rc.shrinkBy(skin->getBorderWidths());
-    rc.top = rc.bottom;
     CRScrollSkinRef sskin = skin->getScrollSkin();
     if ( sskin.isNull() )
         return false;
     lvPoint scrollSize = getMinScrollSize( _page, _pages );
     int h = scrollSize.y;
-    CRRectSkinRef statusSkin = skin->getStatusSkin();
-    if ( !statusSkin.isNull() ) {
-        rc.top -= statusSkin->getMinSize().y;
-    } else if ( !sskin.isNull() ) {
-        rc.top -= h;
+    if ( sskin->getLocation()==CRScrollSkin::Title ) {
+        rc.top = rc.bottom;
+        CRRectSkinRef titleSkin = skin->getTitleSkin();
+        if ( !titleSkin.isNull() ) {
+            getTitleRect( rc );
+            rc.left = rc.right - rc.width()/4;
+        } else if ( !sskin.isNull() ) {
+            rc.bottom += h;
+        }
+    } else {
+        rc.bottom = rc.top;
+        CRRectSkinRef statusSkin = skin->getStatusSkin();
+        if ( !statusSkin.isNull() ) {
+            rc.top -= statusSkin->getMinSize().y;
+        } else if ( !sskin.isNull() ) {
+            rc.top -= h;
+        }
     }
     return !rc.isEmpty();
 }
