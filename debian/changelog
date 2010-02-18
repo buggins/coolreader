@@ -1,3 +1,12 @@
+cr3 (3.0.24-15) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * skin fixes
+  * recent book opening - save position fix
+  * wol export fixes
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Wed, 17 Feb 2010 09:16:43 +0100
+
 cr3 (3.0.24-14) zelazny; urgency=low
 
   [ Vadim Lopatin ]
