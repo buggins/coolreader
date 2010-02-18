@@ -355,7 +355,7 @@ lvPoint CRGUIWindowBase::getMinScrollSize( int page, int pages )
     return sz;
 }
 
-#define BATTERY_ICON_SIZE 40
+#define BATTERY_ICON_SIZE 60
 /// calculates scroll rectangle for specified window rectangle
 bool CRGUIWindowBase::getScrollRect( lvRect & rc )
 {
@@ -372,7 +372,13 @@ bool CRGUIWindowBase::getScrollRect( lvRect & rc )
         CRRectSkinRef titleSkin = skin->getTitleSkin();
         if ( !titleSkin.isNull() ) {
             getTitleRect( rc );
-            rc.left = rc.right - rc.width()/4;
+            lvRect rc2;
+            sskin->getRect( rc2, rc );
+            if ( rc2.width() < rc.width()/2 )
+                rc = rc2;
+            else
+                rc.left = rc.right - rc.width()/4;
+            rc.left -= BATTERY_ICON_SIZE;
             rc.right -= BATTERY_ICON_SIZE;
         } else if ( !sskin.isNull() ) {
             rc.bottom += h;

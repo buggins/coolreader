@@ -711,6 +711,7 @@ class CRGUIWindowBase : public CRGUIWindow
         lString16 _scrollLabel;
         lString16 _caption;
         lString16 _statusText;
+        lString16 _inputText;
         LVImageSourceRef _icon; // window title icon
         // draws frame, title, status and client
         virtual void draw();

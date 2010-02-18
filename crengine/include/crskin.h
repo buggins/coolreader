@@ -205,11 +205,26 @@ protected:
     lvRect _margins;
     lvPoint _minsize;
     lvPoint _maxsize;
+    lvPoint _size;
+    lvPoint _pos;
+    int _align;
 public:
     /// same as measureText, but with added margins and minSize applied
     virtual lvPoint measureTextItem( lString16 text );
     CRRectSkin();
     virtual ~CRRectSkin() { }
+    /// returns rect based on pos and size
+    virtual bool getRect( lvRect & rc, const lvRect & baseRect );
+    virtual lvPoint getSize() { return _size; }
+    virtual lvPoint getPos() { return _pos; }
+    virtual void setSize( lvPoint sz ) { _size = sz; }
+    virtual void setPos( lvPoint pos ) { _pos = pos; }
+    virtual int getAlign() { return _align; }
+    virtual int getVAlign() { return _align & SKIN_VALIGN_MASK; }
+    virtual int getHAlign() { return _align & SKIN_HALIGN_MASK; }
+    virtual void setAlign( int align ) { _align = align; }
+    virtual void setVAlign( int align ) { _align = (_align & ~SKIN_VALIGN_MASK ) | (align & SKIN_VALIGN_MASK); }
+    virtual void setHAlign( int align ) { _align = (_align & ~SKIN_HALIGN_MASK ) | (align & SKIN_HALIGN_MASK); }
     virtual lvPoint getMinSize() { return _minsize; }
     virtual lvPoint getMaxSize() { return _maxsize; }
     virtual void setMinSize( lvPoint sz ) { _minsize = sz; }

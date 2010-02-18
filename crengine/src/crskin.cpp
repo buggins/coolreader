@@ -98,6 +98,55 @@ CRIconSkin::CRIconSkin()
 {
 }
 
+bool CRRectSkin::getRect( lvRect & rc, const lvRect & baseRect )
+{
+    rc = baseRect;
+    lvPoint pos( fromSkinPercent( _pos.x, rc.width()),
+                 fromSkinPercent( _pos.y, rc.height()) );
+    lvPoint sz( fromSkinPercent( _size.x, rc.width()),
+                fromSkinPercent( _size.y, rc.height()) );
+
+    // left top corner -> origin point
+    if ( getHAlign()==SKIN_HALIGN_RIGHT )
+        pos.x = pos.x + sz.x;
+    else if ( getHAlign()==SKIN_HALIGN_CENTER ) {
+        pos.x = pos.x + sz.x / 2;
+    }
+    if ( getVAlign()==SKIN_VALIGN_BOTTOM )
+        pos.y = pos.y + sz.y;
+    else if ( getVAlign()==SKIN_VALIGN_CENTER ) {
+        pos.y = pos.y + sz.y/2;
+    }
+
+    // apply size constraints
+    if ( _minsize.x>0 && sz.x < _minsize.x )
+        sz.x = _minsize.x;
+    if ( _minsize.y>0 && sz.y < _minsize.y )
+        sz.y = _minsize.y;
+    if ( _maxsize.x>0 && sz.x > _maxsize.x )
+        sz.x = _maxsize.x;
+    if ( _maxsize.y>0 && sz.y > _maxsize.y )
+        sz.y = _maxsize.y;
+
+    // origin -> left top corner
+    if ( getHAlign()==SKIN_HALIGN_RIGHT )
+        pos.x = pos.x - sz.x;
+    else if ( getHAlign()==SKIN_HALIGN_CENTER ) {
+        pos.x = pos.x - sz.x / 2;
+    }
+    if ( getVAlign()==SKIN_VALIGN_BOTTOM )
+        pos.y = pos.y - sz.y;
+    else if ( getVAlign()==SKIN_VALIGN_CENTER ) {
+        pos.y = pos.y - sz.y/2;
+    }
+
+    rc.left = pos.x;
+    rc.top = pos.y;
+    rc.right = pos.x + sz.x;
+    rc.bottom = pos.y + sz.y;
+    return true;
+}
+
 void CRIconSkin::draw( LVDrawBuf & buf, const lvRect & rc )
 {
     int dx = _image.isNull() ? 0 : _image->GetWidth();
@@ -958,11 +1007,27 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
     LVImageSourceRef sliderImg;
 
     if ( _hBody.isNull() ) {
-        // text
+        // text label with optional arrows
+        lString16 label;
+        label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
+        // calc label width
+        int w = getFont()->getTextWidth( label.c_str(), label.length() );
+        int margin = 4;
         btn1Skin = _leftButton;
         btn2Skin = _rightButton;
-        btn1Rect.right = btn1Rect.left + btn1Skin->getMinSize().x;
-        btn2Rect.left = btn2Rect.right - btn2Skin->getMinSize().x;
+        // calc button widths
+        int bw1 = btn1Skin.isNull() ? 0 : btn1Skin->getMinSize().x;
+        int bw2 = btn1Skin.isNull() ? 0 : btn2Skin->getMinSize().x;
+        // total width
+        int ww = w + margin + margin + bw1 + bw2;
+        int dw = rc.width() - ww;
+        rc.left += dw*3/4;
+        rc.right = rc.left + ww;
+        // adjust rectangle size
+        btn1Rect = rc;
+        btn2Rect = rc;
+        btn1Rect.right = btn1Rect.left + bw1;
+        btn2Rect.left = btn2Rect.right - bw2;
         bodyRect.left = btn1Rect.right;
         bodyRect.right = btn2Rect.left;
         int dy = bodyRect.height() - btn1Skin->getMinSize().y;
@@ -973,8 +1038,6 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
         btn2Rect.bottom = btn2Rect.top + btn2Skin->getMinSize().y;
         btn1Skin->drawButton( buf, btn1Rect, btn1State );
         btn2Skin->drawButton( buf, btn2Rect, btn2State );
-        lString16 label;
-        label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
         drawText( buf, bodyRect, label );
         return;
     }
@@ -1068,6 +1131,9 @@ void CRScrollSkin::drawGauge( LVDrawBuf & buf, const lvRect & rect, int percent 
 
 CRRectSkin::CRRectSkin()
 : _margins( 0, 0, 0, 0 )
+, _pos(0, 0)
+, _size(toSkinPercent( 10000 ), toSkinPercent( 10000 )) // 100% x 100%
+, _align(SKIN_VALIGN_TOP|SKIN_HALIGN_LEFT) // relative to top left
 {
 }
 
@@ -1365,6 +1431,11 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     res->setFontSize( readInt( textpath.c_str(), L"size", res->getFontSize(), &flg ) );
     res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", res->getTextHAlign(), &flg) );
     res->setTextVAlign( readVAlign( textpath.c_str(), L"valign", res->getTextVAlign(), &flg) );
+
+    res->setHAlign( readHAlign( path, L"halign", res->getHAlign(), &flg) );
+    res->setVAlign( readVAlign( path, L"valign", res->getVAlign(), &flg) );
+    res->setPos( readSize( path, L"pos", res->getPos(), &flg) );
+    res->setSize( readSize( path, L"size", res->getSize(), &flg) );
 
     if ( !flg ) {
         crtrace log;

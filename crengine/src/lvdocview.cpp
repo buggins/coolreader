@@ -1366,6 +1366,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
             //    brc.left = brc.right - brc.height()/2;
             //else
                 brc.left = brc.right - batteryIconWidth - 2;
+            brc.bottom -= 4;
             drawBatteryState( drawbuf, brc, isVertical );
             info.right = brc.left - info.height()/2;
         }
