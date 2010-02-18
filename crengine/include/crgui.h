@@ -426,7 +426,18 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         CRGUIAcceleratorTableList _accTables;
 		CRKeyboardLayoutList _kbLayouts;
         cr_rotate_angle_t _orientation;
+        LVRefVec<LVImageSource> m_batteryIcons;
     public:
+        /// returns list of battery icons
+        virtual LVRefVec<LVImageSource> & getBatteryIcons() { return m_batteryIcons; }
+        /// set list of battery icons to display battery state
+        virtual void setBatteryIcons( LVRefVec<LVImageSource> icons )
+        {
+            m_batteryIcons.clear();
+            m_batteryIcons.add(icons);
+        }
+        /// draw battery state to specified rectangle of screen
+        virtual void drawBattery( LVDrawBuf & buf, const lvRect & rc );
         /// sets screen orientation value, to be red by corresponding getter. Doesn't rotate screen actually.
         virtual void setScreenOrientation( cr_rotate_angle_t angle ) { _orientation = angle; }
         /// returns current screen orientation
@@ -765,6 +776,7 @@ class CRGUIWindowBase : public CRGUIWindow
         {
             // fullscreen visible by default
             _rect = _wm->getScreen()->getRect();
+            //_statusText = L"Sample status text";
         }
         virtual ~CRGUIWindowBase() { }
 };

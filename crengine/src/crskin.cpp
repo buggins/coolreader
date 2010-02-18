@@ -939,6 +939,7 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
         }
     }
 
+
     rc.shrinkBy( _margins );
 
     int btn1State = CRButtonSkin::ENABLED;
@@ -955,6 +956,29 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
     lvRect sliderRect = rc;
     LVImageSourceRef bodyImg;
     LVImageSourceRef sliderImg;
+
+    if ( _hBody.isNull() ) {
+        // text
+        btn1Skin = _leftButton;
+        btn2Skin = _rightButton;
+        btn1Rect.right = btn1Rect.left + btn1Skin->getMinSize().x;
+        btn2Rect.left = btn2Rect.right - btn2Skin->getMinSize().x;
+        bodyRect.left = btn1Rect.right;
+        bodyRect.right = btn2Rect.left;
+        int dy = bodyRect.height() - btn1Skin->getMinSize().y;
+        btn1Rect.top += dy/2;
+        btn1Rect.bottom = btn1Rect.top + btn1Skin->getMinSize().y;
+        dy = bodyRect.height() - btn2Skin->getMinSize().y;
+        btn2Rect.top += dy/2;
+        btn2Rect.bottom = btn2Rect.top + btn2Skin->getMinSize().y;
+        btn1Skin->drawButton( buf, btn1Rect, btn1State );
+        btn2Skin->drawButton( buf, btn2Rect, btn2State );
+        lString16 label;
+        label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
+        drawText( buf, bodyRect, label );
+        return;
+    }
+
     if ( vertical ) {
         // draw vertical
         btn1Skin = _upButton;
@@ -1204,7 +1228,7 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
     if ( !l.empty() ) {
         l.lowercase();
         if ( l==L"title" )
-            res->setLocation( CRScrollSkin::Status );
+            res->setLocation( CRScrollSkin::Title );
     }
     CRButtonSkinRef upButton( new CRButtonSkin() );
     if ( readButtonSkin(  (p + L"/upbutton").c_str(), upButton.get() ) ) {

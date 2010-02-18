@@ -285,10 +285,12 @@ bool CRGUIWindowBase::getStatusRect( lvRect & rc )
     int h = scrollSize.y;
     CRRectSkinRef statusSkin = skin->getStatusSkin();
     CRScrollSkinRef sskin = skin->getScrollSkin();
+    bool scroll = ( !sskin.isNull() && sskin->getLocation()==CRScrollSkin::Status );
     if ( !statusSkin.isNull() ) {
         rc.top -= statusSkin->getMinSize().y;
-    } else if ( !sskin.isNull() ) {
-        rc.top -= h;
+    }
+    if ( scroll && rc.height()<h ) {
+        rc.top = rc.bottom - h;
     }
     return !rc.isEmpty();
 }
@@ -353,6 +355,7 @@ lvPoint CRGUIWindowBase::getMinScrollSize( int page, int pages )
     return sz;
 }
 
+#define BATTERY_ICON_SIZE 40
 /// calculates scroll rectangle for specified window rectangle
 bool CRGUIWindowBase::getScrollRect( lvRect & rc )
 {
@@ -365,22 +368,23 @@ bool CRGUIWindowBase::getScrollRect( lvRect & rc )
     lvPoint scrollSize = getMinScrollSize( _page, _pages );
     int h = scrollSize.y;
     if ( sskin->getLocation()==CRScrollSkin::Title ) {
-        rc.top = rc.bottom;
+        rc.bottom = rc.top;
         CRRectSkinRef titleSkin = skin->getTitleSkin();
         if ( !titleSkin.isNull() ) {
             getTitleRect( rc );
             rc.left = rc.right - rc.width()/4;
+            rc.right -= BATTERY_ICON_SIZE;
         } else if ( !sskin.isNull() ) {
             rc.bottom += h;
         }
     } else {
-        rc.bottom = rc.top;
+        rc.top = rc.bottom;
         CRRectSkinRef statusSkin = skin->getStatusSkin();
         if ( !statusSkin.isNull() ) {
-            rc.top -= statusSkin->getMinSize().y;
-        } else if ( !sskin.isNull() ) {
-            rc.top -= h;
+            if ( statusSkin->getMinSize().y > h )
+                h = statusSkin->getMinSize().y;
         }
+        rc.top -= h;
     }
     return !rc.isEmpty();
 }
@@ -400,14 +404,17 @@ void CRGUIWindowBase::drawStatusBar()
     if ( !statusSkin.isNull() ) {
         statusSkin->draw( buf, statusRc );
     }
-    if ( !sskin.isNull() && !scrollRc.isEmpty() ) {
+    bool scroll = ( !sskin.isNull() && sskin->getLocation()==CRScrollSkin::Status && !scrollRc.isEmpty() );
+    if ( scroll ) {
         sskin->drawScroll( buf, scrollRc, false, _page-1, _pages, 1 );
     }
     if ( !statusSkin.isNull() && !statusRc.isEmpty() && !_statusText.empty() ) {
-        if ( scrollRc.left - statusRc.left > statusRc.right - scrollRc.right )
-            statusRc.right = scrollRc.left;
-        else
-            statusRc.left = scrollRc.right;
+        if ( scroll ) {
+            if ( scrollRc.left - statusRc.left > statusRc.right - scrollRc.right )
+                statusRc.right = scrollRc.left;
+            else
+                statusRc.left = scrollRc.right;
+        }
         lvRect b = statusSkin->getBorderWidths();
         statusRc.shrinkBy( b );
         if ( statusRc.width() > 100 ) {
@@ -452,6 +459,21 @@ void CRGUIWindowBase::drawTitleBar()
     if ( !getTitleRect( titleRc ) )
         return;
     titleSkin->draw( buf, titleRc );
+
+    lvRect batteryRc( titleRc );
+    batteryRc.left = batteryRc.right - BATTERY_ICON_SIZE;
+    batteryRc.shrinkBy( titleSkin->getBorderWidths() );
+    _wm->drawBattery( buf, batteryRc );
+
+    CRScrollSkinRef sskin = skin->getScrollSkin();
+    lvRect scrollRc;
+    getScrollRect( scrollRc );
+    bool scroll = ( !sskin.isNull() && sskin->getLocation()==CRScrollSkin::Title && !scrollRc.isEmpty() );
+    if ( scroll ) {
+        sskin->drawScroll( buf, scrollRc, false, _page-1, _pages, 1 );
+        titleRc.right = scrollRc.left;
+    }
+
     //lvRect b = titleSkin->getBorderWidths();
     buf.SetTextColor( skin->getTextColor() );
     buf.SetBackgroundColor( skin->getBackgroundColor() );
@@ -466,8 +488,7 @@ void CRGUIWindowBase::drawTitleBar()
     }
     lvRect textRect = titleRc;
     textRect.left += imgWidth;
-    skin->drawText( buf, textRect, _caption );
-
+    titleSkin->drawText( buf, textRect, _caption );
 }
 
 /// called on system configuration change: screen size and orientation
@@ -712,18 +733,15 @@ int CRMenu::getItemHeight()
     if ( minsize.y>0 && h < minsize.y )
         h = minsize.y;
     if ( _fullscreen ) {
-        int nItems = _items.length();
+        int nItems = _pageItems; // _items.length();
         int scrollHeight = 0;
-        CRScrollSkinRef sskin = skin->getScrollSkin();
-        if ( !sskin.isNull() && (nItems > _pageItems || !sskin->getAutohide()) ) {
-            nItems = _pageItems;
-            scrollHeight = SCROLL_HEIGHT;
-            if ( sskin->getMinSize().y>0 )
-                scrollHeight = sskin->getMinSize().y;
-        }
+        //lvRect statusRect;
+        //if ( getStatusRect(  statusRect ) )
+        //    scrollHeight = statusRect.height();
         lvRect rc(0,0,_wm->getScreen()->getWidth(), _wm->getScreen()->getHeight() );
-        lvRect client = skin->getClientRect( rc );
-        h = client.height() - scrollHeight - separatorHeight*(nItems-1) - _helpHeight;
+        lvRect client;
+        getClientRect( client );
+        h = client.height() - separatorHeight*(nItems-1);
         if ( nItems > 0 )
             h /= nItems;
     }
@@ -963,6 +981,23 @@ void CRMenu::drawClient()
         }
         rc.top += itemSize.y + separatorHeight;
     }
+}
+
+/// draw battery state to specified rectangle of screen
+void CRGUIWindowManager::drawBattery( LVDrawBuf & buf, const lvRect & rc )
+{
+    int percent;
+    bool charge;
+    if ( !getBatteryStatus( percent, charge ) )
+        return;
+    LVDrawStateSaver saver( buf );
+    buf.SetTextColor(0xFFFFFF);
+    buf.SetBackgroundColor(0x000000);
+    //bool drawPercent = m_props->getBoolDef( PROP_SHOW_BATTERY_PERCENT, true );
+    LVDrawBatteryIcon( &buf, rc,
+                       percent, charge,
+                       getBatteryIcons(),
+                       NULL );
 }
 
 /// closes menu and its submenus

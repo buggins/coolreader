@@ -1724,8 +1724,8 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
         }
 
         lvPoint sz( icons[0]->GetWidth(), icons[0]->GetHeight() );
-        rc.left += (rc.width() - sz.x)/4;
-        rc.top += (rc.height() - sz.y)/4;
+        rc.left += (rc.width() - sz.x)/2;
+        rc.top += (rc.height() - sz.y)/2;
         rc.right = rc.left + sz.x;
         rc.bottom = rc.top + sz.y;
         LVImageSourceRef icon = icons[iconIndex];
