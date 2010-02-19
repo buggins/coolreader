@@ -97,17 +97,28 @@
   </window>
   <window id="toc" base="#main">
         <title base="#title-main">
-            <size minvalue="0,51" maxvalue="0,51"/>
-            <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
             <background color="#555555"/>
-            <border widths="16,4,16,4"/>
+            <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
+            <background color="#CCCCCC" pos="0,-5" size="100%,5"/>
         </title>
+        <status>
+            <border widths="44,0,0,0"/>
+            <size minvalue="20,51" maxvalue="0,0"/>
+            <background color="#555555"/>
+            <background color="#CCCCCC" pos="0,0" size="100%,2"/>
+            <background color="#FFFFFF" pos="0,2" size="100%,2"/>
+            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
+        </status>
         <client>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
-            <background image="cr3_menu_item.png" color="#FFFFFF"/>
+            <background color="#FFFFFF"/>
             <border widths="4,4,4,4"/>
         </client>
-        <scroll base="#tabs"/>
+        <input size="30%,70%" pos="68%,21%">
+            <background color="#FFFFFF"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
+        </input>
+        <scroll base="#titlescroll"/>
   </window>
   <menu id="vkeyboard" base="#toc">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
@@ -224,10 +235,6 @@
             <background color="#FFFFFF" pos="0,0" size="100%,2"/>
             <text color="#FFFFFF" face="Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
         </status>
-        <input>
-            <background color="#FFFFFF" />
-            <text color="#000000" face="Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
-        </input>
         <item id="menu-item">
             <size minvalue="48,48" maxvalue="0,0"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>

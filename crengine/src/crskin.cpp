@@ -140,6 +140,8 @@ bool CRRectSkin::getRect( lvRect & rc, const lvRect & baseRect )
         pos.y = pos.y - sz.y/2;
     }
 
+    pos.x += baseRect.left;
+    pos.y += baseRect.top;
     rc.left = pos.x;
     rc.top = pos.y;
     rc.right = pos.x + sz.x;

@@ -722,6 +722,8 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual bool getStatusRect( lvRect & rc );
         /// calculates client rectangle for window rectangle
         virtual bool getClientRect( lvRect & rc );
+        /// calculates input box rectangle for window rectangle
+        virtual bool getInputRect( lvRect & rc );
         /// calculates scroll rectangle for window rectangle
         virtual bool getScrollRect( lvRect & rc );
         /// formats scroll label (like "1 of 2")
@@ -732,6 +734,8 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual void drawStatusBar();
         /// draw title bar using current skin, with optional scroll/tab/page indicator
         virtual void drawTitleBar();
+        /// draw input box, if any
+        virtual void drawInputBox();
         /// draw title bar using current skin, with optional scroll/tab/page indicator
         virtual void drawClient();
         /// sets scroll label (e.g. "Page $1 of $2" or "$1 / $2")

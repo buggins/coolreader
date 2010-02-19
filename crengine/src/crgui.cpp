@@ -395,6 +395,41 @@ bool CRGUIWindowBase::getScrollRect( lvRect & rc )
     return !rc.isEmpty();
 }
 
+/// calculates input box rectangle for window rectangle
+bool CRGUIWindowBase::getInputRect( lvRect & rc )
+{
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    rc = _rect;
+    rc.shrinkBy(skin->getBorderWidths());
+    CRRectSkinRef inputSkin = skin->getInputSkin();
+    CRRectSkinRef statusSkin = skin->getStatusSkin();
+    if ( inputSkin.isNull() || statusSkin.isNull() )
+        return false;
+    lvRect rc2;
+    if ( !getStatusRect( rc2 ) )
+        return false;
+    inputSkin->getRect( rc, rc2 );
+    return !rc.isEmpty();
+}
+
+/// draw input box, if any
+void CRGUIWindowBase::drawInputBox()
+{
+    LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    CRRectSkinRef inputSkin = skin->getInputSkin();
+    CRRectSkinRef statusSkin = skin->getStatusSkin();
+    if ( inputSkin.isNull() || statusSkin.isNull() )
+        return;
+    lvRect rc2;
+    if ( !getInputRect( rc2 ) )
+        return;
+    inputSkin->draw( buf, rc2 );
+    if ( !_inputText.empty() )
+        inputSkin->drawText(buf, rc2, _inputText );
+}
+
+
 /// draw status bar using current skin, with optional status text and scroll/tab/page indicator
 void CRGUIWindowBase::drawStatusBar()
 {
@@ -428,6 +463,7 @@ void CRGUIWindowBase::drawStatusBar()
             statusSkin->drawText( buf, statusRc, _statusText );
         }
     }
+    drawInputBox();
 }
 
 // draws frame, title, status and client
@@ -921,7 +957,7 @@ void CRMenu::drawClient()
     lvPoint sz = getSize();
 
     //int nItems = _items.length();
-    int scrollHeight = getScrollHeight();
+    //int scrollHeight = getScrollHeight();
 
     lvRect itemsRc( clientRect );
     lvRect rc( itemsRc );

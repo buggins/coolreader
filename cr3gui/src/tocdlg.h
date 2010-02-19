@@ -21,9 +21,6 @@ class CRTOCDialog : public CRNumberEditDialog
     protected:
         LVPtrVector<LVTocItem, false> _items;
         LVFontRef _font;
-        lvRect _inputRect;
-        lvRect _tocRect;
-        lvRect _scrollRect;
         int _itemHeight;
         int _topItem;
         int _pageItems;

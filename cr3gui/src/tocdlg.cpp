@@ -32,21 +32,18 @@ lString16 limitTextWidth( lString16 s, int width, LVFontRef font )
 
 void CRTOCDialog::draw()
 {
-    CRRectSkinRef titleSkin = _skin->getTitleSkin();
+    CRGUIWindowBase::draw();
     CRRectSkinRef clientSkin = _skin->getClientSkin();
     lvRect borders = clientSkin->getBorderWidths();
     LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
-    _skin->draw( *drawbuf, _rect );
-    lvRect titleRect = _skin->getTitleRect( _rect );
-    titleSkin->draw( *drawbuf, titleRect );
-    titleSkin->drawText( *drawbuf, titleRect, _title );
+    lvRect tocRect;
+    getClientRect( tocRect );
     // draw toc
-    clientSkin->draw( *drawbuf, _tocRect );
     for ( int i=0; i<_pageItems && i+_topItem<(int)_items.length(); i++ ) {
         lvRect margins( 10, 10, 10, 10 );
-        lvRect itemRect = _tocRect;
+        lvRect itemRect = tocRect;
         itemRect.shrinkBy( margins );
-        itemRect.top = i * _itemHeight + _tocRect.top + margins.top;
+        itemRect.top = i * _itemHeight + tocRect.top + margins.top;
         itemRect.bottom = itemRect.top + _itemHeight;
         LVTocItem * item = _items[ i + _topItem];
         lString16 titleString = item->getName();
@@ -85,47 +82,30 @@ void CRTOCDialog::draw()
 
         }
     }
-    // draw input area
-    clientSkin->draw( *drawbuf, _inputRect );
-    clientSkin->drawText( *drawbuf, _inputRect, lString16(_("Enter page number to go: ")) + _value+L"_" );
-    if ( !_scrollRect.isEmpty() ) {
-        // draw scrollbar
-        CRScrollSkinRef sskin = _skin->getScrollSkin();
-        int maxpos = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;
-        sskin->drawScroll( *drawbuf, _scrollRect, false, _topItem, maxpos, _pageItems );
-    }
 }
 
 CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCmd, int pageCount, LVDocView * docview )
 : CRNumberEditDialog( wm, title, lString16(), resultCmd, 1, pageCount )
 {
     docview->getFlatToc( _items );
-    _skin = _wm->getSkin()->getWindowSkin(L"#toc");
+    _skinName = L"#toc";
+    _skin = _wm->getSkin()->getWindowSkin(_skinName.c_str());
     CRRectSkinRef clientSkin = _skin->getClientSkin();
     lvRect borders = clientSkin->getBorderWidths();
     CRScrollSkinRef sskin = _skin->getScrollSkin();
     _font = clientSkin->getFont();
     _fullscreen = true;
     _rect = _wm->getScreen()->getRect();
+    _caption = title;
     lvRect clientRect = _skin->getClientRect( _rect );
-    _inputRect = clientRect;
-    _inputRect.top = _inputRect.bottom - 40;
-    _tocRect = clientRect;
-    _tocRect.bottom = _inputRect.top;
+    lvRect tocRect;
+    getClientRect( tocRect );
     _itemHeight = _font->getHeight();
-    _scrollRect = _tocRect;
-    _pageItems = _tocRect.height() / _itemHeight;
+    _pageItems = tocRect.height() / _itemHeight;
     _topItem = 0;
-    if ( _items.length() > _pageItems ) {
-        // show scroll
-        _scrollRect.top = _scrollRect.bottom - 36; //sskin->getMinSize().y
-        _tocRect.bottom = _scrollRect.top;
-        _pageItems = _tocRect.height() / _itemHeight;
-    } else {
-        // no scroll
-        _scrollRect.top = _scrollRect.bottom;
-    }
-    _pageItems = ( _tocRect.height() - 20 ) / _itemHeight;
+    _page = _topItem / _pageItems + 1;
+    _pages = (_items.length()+(_pageItems-1))/ _pageItems;
+    _statusText = L"Enter page number:";
 }
 
 bool CRTOCDialog::digitEntered( lChar16 c )
@@ -135,6 +115,7 @@ bool CRTOCDialog::digitEntered( lChar16 c )
     int n = v.atoi();
     if ( n<=_maxvalue ) {
         _value = v;
+        _inputText = _value + L"_";
         setDirty();
         return true;
     }
@@ -152,6 +133,7 @@ bool CRTOCDialog::onCommand( int command, int params )
     case MCMD_CANCEL:
         if ( _value.length()>0 ) {
             _value.erase( _value.length()-1, 1 );
+            _inputText = _value + L"_";
             setDirty();
         } else {
             _wm->closeWindow( this );
