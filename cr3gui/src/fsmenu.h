@@ -18,8 +18,6 @@
 
 class CRFullScreenMenu : public CRMenu
 {
-protected:
-    lString16 _helpText;
 public:
     CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lString16 & caption, int numItems, lvRect & rc);
 

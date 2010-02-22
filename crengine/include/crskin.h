@@ -40,6 +40,8 @@
 
 #define SKIN_EXTEND_TAB     0x0040
 
+#define SKIN_WORD_WRAP      0x0080
+
 #define SKIN_COORD_PERCENT_FLAG 0x10000000
 
 /// encodes percent value*100 (0..10000), to store in skin
@@ -162,6 +164,8 @@ public:
     virtual void setTextAlign( int align ) { _textAlign = align; }
     virtual void setTextVAlign( int align ) { _textAlign = (_textAlign & ~SKIN_VALIGN_MASK ) | (align & SKIN_VALIGN_MASK); }
     virtual void setTextHAlign( int align ) { _textAlign = (_textAlign & ~SKIN_HALIGN_MASK ) | (align & SKIN_HALIGN_MASK); }
+    virtual void setWordWrap( bool v ) { _textAlign = v ? (_textAlign | SKIN_WORD_WRAP ) : (_textAlign & ~SKIN_WORD_WRAP ); }
+    virtual bool getWordWrap() { return (_textAlign & SKIN_WORD_WRAP) ? true : false; }
     virtual lUInt32 getTextColor() { return _textcolor; }
     //virtual lUInt32 getBackgroundColor() { return _bgcolor; }
     //virtual LVImageSourceRef getBackgroundImage() { return _bgimage; }

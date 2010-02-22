@@ -55,11 +55,82 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
         valueSkin->drawText( buf, textRect, text );
 }
 
+void CRBookmarkMenu::setMode( bool goToMode )
+{
+    //if ( _goToMode==goToMode )
+    //    return;
+    int k, f;
+    int k9, f9;
+    bool hasModeSwitch = _acceleratorTable->findCommandKey( MCMD_NEXT_MODE, 0, k, f );
+    bool hasKey9 = _acceleratorTable->findCommandKey( MCMD_SELECT_9, 0, k9, f9 );
+    lString16 modeKeyName;
+    lString16 selKeyName;
+    if ( hasModeSwitch )
+        modeKeyName = lString16(getKeyName( k, f ));
+    if ( hasKey9 )
+        selKeyName = lString16(_("1..9"));
+    else
+        selKeyName = lString16(_("1..8"));
+    _goToMode = goToMode;
+    if ( _goToMode ) {
+        _caption = lString16(_("Go to bookmark"));
+        _label = _caption;
+        _statusText = lString16(
+                hasModeSwitch
+                ? _("Short press $1 - go to bookmark,\n$2 - switch to SET mode")
+                : _("Short press $1 - go to bookmark,\nlong press - set bookmark")
+                );
+    } else {
+        _caption = lString16(_("Set bookmark"));
+        _label = _caption;
+        _statusText = lString16(
+                hasModeSwitch
+                ? _("$1 - set bookmark,\n$2 - switch to GO mode")
+                : _("Short press $1 - set bookmark,\nlong press - go to bookmark")
+                );
+    }
+    _statusText.replace(lString16("$1"), selKeyName);
+    _statusText.replace(lString16("$2"), modeKeyName);
+    setDirty();
+}
+
+/// returns index of selected item, -1 if no item selected
+int CRBookmarkMenu::getSelectedItemIndex()
+{
+    CRFileHistRecord * bookmarks = _docview->getCurrentFileHistRecord();
+    int curPage = _docview->getCurPage();
+    int n = bookmarks->getLastShortcutBookmark()+1;
+    for ( int i=1; i<=n; i++ ) {
+        CRBookmark * bm = bookmarks->getShortcutBookmark(i);
+        int page = 0;
+        if ( bm ) {
+            ldomXPointer p = _docview->getDocument()->createXPointer( bm->getStartPos() );
+            if ( !p.isNull() ) {
+                /// get page number by bookmark
+                page = _docview->getBookmarkPage( p );
+                /// get bookmark position text
+                if ( page>0 && page==curPage )
+                    return i-1;
+            }
+        }
+    }
+    return -1;
+}
+
 #define MIN_BOOKMARK_ITEMS 32
-CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
+CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode)
     : CRFullScreenMenu( wm, MCMD_BOOKMARK_LIST, lString16(_("Bookmarks")), numItems, rc )
+    , _docview(docview)
 {
     CRFileHistRecord * bookmarks = docview->getCurrentFileHistRecord();
+    CRGUIAcceleratorTableRef acc = _wm->getAccTables().get("bookmarks");
+    if ( acc.isNull() )
+        acc = _wm->getAccTables().get("menu");
+    setAccelerators( acc );
+    setSkinName(lString16(L"#bookmarks"));
+    int mc = getSkin()->getMinItemCount();
+    if ( _pageItems < mc )
+        _pageItems = mc;
     int n = bookmarks->getLastShortcutBookmark()+1;
     n = (n + _pageItems - 1) / _pageItems * _pageItems;
     int minitems = (MIN_BOOKMARK_ITEMS + _pageItems - 1) / _pageItems * _pageItems;
@@ -81,8 +152,7 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
         CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bm, page );
         addItem( item );
     }
-    _helpText = lString16(_("Long press 1..8 = set, short press = go to"));
-    _helpHeight = 36;
+    setMode( goToMode );
 }
 
 /// returns true if command is processed
@@ -92,16 +162,21 @@ bool CRBookmarkMenu::onCommand( int command, int params )
         int index = command - MCMD_SELECT_1 + 1;
         if ( index >=1 && index <= _pageItems ) {
             index += _topItem;
-            closeMenu( DCMD_BOOKMARK_GO_N, index );
+            int cmd = _goToMode ? DCMD_BOOKMARK_GO_N : DCMD_BOOKMARK_SAVE_N;
+            closeMenu( cmd, index );
             return true;
         }
     } else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {
         int index = command - MCMD_SELECT_1_LONG + 1;
         if ( index >=1 && index <= _pageItems ) {
             index += _topItem;
-            closeMenu( DCMD_BOOKMARK_SAVE_N, index );
+            int cmd = _goToMode ? DCMD_BOOKMARK_SAVE_N : DCMD_BOOKMARK_GO_N;
+            closeMenu( cmd, index );
             return true;
         }
+    } else if ( command==MCMD_NEXT_MODE || command==MCMD_PREV_MODE ) {
+        setMode( !_goToMode );
+        return true;
     }
     return CRMenu::onCommand(command, params);
     //closeMenu( 0 );

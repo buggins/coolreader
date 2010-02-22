@@ -142,7 +142,6 @@ bool CRViewDialog::hasDictionaries()
 	return false;
 }
 
-
 void CRViewDialog::showGoToPageDialog()
 {
     LVTocItem * toc = _docview->getToc();
@@ -297,14 +296,16 @@ const char * getKeyName( int keyCode )
 		return "'+'";
 	case XK_KP_Subtract:
 		return "'-'";
-	case XK_Return:
+    case ' ':
+        return _("M");
+    case XK_Return:
         return _("Ok");
 	case XK_Up:
         return _("Up");
 	case XK_Down:
         return _("Down");
 	case XK_Escape:
-        return _("Cancel");
+        return _("C");
 	case XK_Left:
         return _("Left");
 	case XK_Right:
@@ -373,6 +374,7 @@ static const char * getCommandName( int command )
 	case MCMD_GO_LINK: return _("Go to link");
 	case MCMD_DICT: return _("Find in Dictionary (T5)");
 	case MCMD_BOOKMARK_LIST: return _("Bookmark list");
+    case MCMD_BOOKMARK_LIST_GO_MODE: return _("Go to bookmark...");
 	case MCMD_RECENT_BOOK_LIST: return _("Recent books list");
 	case MCMD_OPEN_RECENT_BOOK: return _("Open recent book by number");
     case MCMD_SWITCH_TO_RECENT_BOOK: return _("Switch to recent book");

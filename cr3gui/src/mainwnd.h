@@ -86,6 +86,9 @@ enum CRMainMenuCmd
     MCMD_HELP,
     MCMD_HELP_KEYS,
     MCMD_SWITCH_TO_RECENT_BOOK,
+    MCMD_NEXT_MODE,
+    MCMD_PREV_MODE,
+    MCMD_BOOKMARK_LIST_GO_MODE,
 };
 
 #define PROP_FILE_PROPS_FONT_SIZE "cr3.dlg.fileprops.font.size"
@@ -164,7 +167,7 @@ public:
 
     void showMainMenu();
 
-    void showBookmarksMenu();
+    void showBookmarksMenu( bool goMode=false );
 
     void showRecentBooksMenu();
 

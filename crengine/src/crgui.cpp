@@ -1027,12 +1027,8 @@ void CRMenu::drawClient()
         int i = _topItem + index;
         if ( i >= _items.length() )
             break;
-        bool selected = false; //TODO
-        if ( !getProps().isNull() && !_items[i]->getPropValue().empty() &&
-              getProps()->getStringDef(
-                       UnicodeToUtf8(getPropName()).c_str()
-                       , "")==(_items[i]->getPropValue()) )
-            selected = true;
+
+        bool selected = (i == getSelectedItemIndex());
 
         rc.bottom = rc.top + itemSize.y;
         bool even = (i & 1);

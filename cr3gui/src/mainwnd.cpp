@@ -730,12 +730,10 @@ void V3DocViewWin::showHelpDialog()
 	}
 }
 
-void V3DocViewWin::showBookmarksMenu()
+void V3DocViewWin::showBookmarksMenu( bool goMode )
 {
     lvRect rc = _wm->getScreen()->getRect();
-    CRBookmarkMenu * menu_win = new CRBookmarkMenu(_wm, _docview, 8, rc);
-    menu_win->setAccelerators( getMenuAccelerators() );
-    menu_win->setSkinName(lString16(L"#bookmarks"));
+    CRBookmarkMenu * menu_win = new CRBookmarkMenu(_wm, _docview, 8, rc, goMode);
     _wm->activateWindow( menu_win );
 }
 
@@ -1060,7 +1058,10 @@ bool V3DocViewWin::onCommand( int command, int params )
         _docview->swapToCache();
         return true;
     case MCMD_BOOKMARK_LIST:
-        showBookmarksMenu();
+        showBookmarksMenu(false);
+        return true;
+    case MCMD_BOOKMARK_LIST_GO_MODE:
+        showBookmarksMenu(true);
         return true;
     case DCMD_ZOOM_IN:
     case DCMD_ZOOM_OUT:

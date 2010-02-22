@@ -848,6 +848,46 @@ lvPoint CRSkinnedItem::measureText( lString16 text )
     return lvPoint( tw, th );
 }
 
+static void wrapLine( lString16Collection & dst, lString16 stringToSplit, int maxWidth, LVFontRef font )
+{
+    lString16 str = stringToSplit;
+    int w = font->getTextWidth( str.c_str(), str.length() );
+    if ( w<=maxWidth ) {
+        dst.add( str );
+        return;
+    }
+    for ( ;!str.empty(); ) {
+        int wpos = 1;
+        int wquality = 0;
+        for ( int i=str.length(); i>=0; i-- ) {
+            lChar16 ch = str[i];
+            if ( ch!=' ' && ch!=0 && wpos>1 )
+                continue;
+            lChar16 prevChar = i>0 ? str[i-1] : 0;
+            w = font->getTextWidth( str.c_str(), i );
+            int q = 0;
+            if ( ch!=' ' && ch!=0 )
+                q = 1;
+            else
+                q = (prevChar=='.' || prevChar==',' || prevChar==';'
+                     || prevChar=='!'  || prevChar=='?'
+                     ) ? (w<maxWidth*2/3 ? 3 : 2) : 2;
+            if ( q>wquality && w<maxWidth ) {
+                wquality = q;
+                wpos = i;
+            }
+            if ( wquality>1 && w<=maxWidth*2/3 )
+                break;
+        }
+        lString16 s = str.substr(0, wpos);
+        s.trim();
+        if ( s.length()>0 )
+            dst.add( s );
+        str = str.substr( wpos );
+        str.trim();
+    }
+}
+
 lvPoint CRRectSkin::measureTextItem( lString16 text )
 {
     lvPoint sz = CRSkinnedItem::measureText( text );
@@ -867,6 +907,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         font = getFont();
     if ( font.isNull() )
         return;
+    lString16Collection lines;
     lString16 tabText;
     int tabPos = text.pos(lString16(L"\t"));
     if ( tabPos>=0 ) {
@@ -877,32 +918,61 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
             text[tabPos] = L' ';
         }
     }
+    lString16 cr("\n");
+    if ( flags & SKIN_WORD_WRAP ) {
+        lString16Collection crlines;
+        lString16 s1, s2;
+        while ( text.split2( cr, s1, s2 ) ) {
+            crlines.add(s1);
+            text = s2;
+        }
+        crlines.add( text );
+        for ( int i=0; i<crlines.length(); i++ ) {
+            wrapLine( lines, crlines[i], rc.width(), font );
+        }
+    } else {
+        lString16 s = text;
+        while ( s.replace( cr, lString16(L" ") ) )
+            ;
+        lines.add( s );
+    }
     buf.SetTextColor( textColor );
     buf.SetBackgroundColor( bgColor );
     lvRect oldRc;
     buf.GetClipRect( &oldRc );
     buf.SetClipRect( &rc );
-    int th = font->getHeight();
+    int lh = font->getHeight();
+    int th = lh * lines.length();
     int tw = font->getTextWidth( text.c_str(), text.length() );
     int ttw = tabText.empty() ? 0 : font->getTextWidth( tabText.c_str(), tabText.length() );
-    lvRect txtrc = rc;
-    int x = txtrc.left;
-    int dx = txtrc.width() - tw;
-    int y = txtrc.top;
-    int dy = txtrc.height() - th;
+
     int halign = tabText.empty() ? (flags & SKIN_HALIGN_MASK) : SKIN_HALIGN_LEFT;
     int valign = flags & SKIN_VALIGN_MASK;
+
+    lvRect txtrc = rc;
+    int y = txtrc.top;
+    int dy = txtrc.height() - th;
     if ( valign == SKIN_VALIGN_CENTER )
         y += dy / 2;
     else if ( valign == SKIN_VALIGN_BOTTOM )
         y += dy;
-    if ( halign == SKIN_HALIGN_CENTER )
-        x += dx / 2;
-    else if ( halign == SKIN_HALIGN_RIGHT )
-        x += dx;
-    font->DrawTextString( &buf, x, y, text.c_str(), text.length(), L'?', NULL, false, 0 );
-    if ( !tabText.empty() ) {
-        font->DrawTextString( &buf, txtrc.right-ttw, y, tabText.c_str(), tabText.length(), L'?', NULL, false, 0 );
+
+    for ( int i=0; i<lines.length(); i++ ) {
+        int x = txtrc.left;
+        int dx = txtrc.width() - tw;
+        if ( halign == SKIN_HALIGN_CENTER )
+            x += dx / 2;
+        else if ( halign == SKIN_HALIGN_RIGHT )
+            x += dx;
+
+        lString16 s = lines[i];
+
+        font->DrawTextString( &buf, x, y, s.c_str(), s.length(), L'?', NULL, false, 0 );
+        if ( !tabText.empty() ) {
+            font->DrawTextString( &buf, txtrc.right-ttw, y, tabText.c_str(), tabText.length(), L'?', NULL, false, 0 );
+            tabText.clear();
+        }
+        y = y + lh;
     }
     buf.SetClipRect( &oldRc );
 }
@@ -1429,6 +1499,7 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     res->setFontFace( readString( textpath.c_str(), L"face", res->getFontFace(), &flg ) );
     res->setTextColor( readColor( textpath.c_str(), L"color", res->getTextColor(), &flg ) );
     res->setFontBold( readBool( textpath.c_str(), L"bold", res->getFontBold(), &flg ) );
+    res->setWordWrap( readBool( textpath.c_str(), L"wordwrap", res->getWordWrap(), &flg ) );
     res->setFontItalic( readBool( textpath.c_str(), L"italic", res->getFontItalic(), &flg ) );
     res->setFontSize( readInt( textpath.c_str(), L"size", res->getFontSize(), &flg ) );
     res->setTextHAlign( readHAlign( textpath.c_str(), L"halign", res->getTextHAlign(), &flg) );

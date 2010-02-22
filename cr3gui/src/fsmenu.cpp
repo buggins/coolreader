@@ -18,7 +18,6 @@ CRFullScreenMenu::CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lStrin
 {
     _rect = rc;
     _pageItems = numItems;
-    _helpHeight = 0;
     _fullscreen = true;
 }
 
