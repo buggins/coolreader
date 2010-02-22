@@ -741,6 +741,8 @@ class CRGUIWindowBase : public CRGUIWindow
         /// calculates scroll rectangle for window rectangle
         virtual bool getScrollRect( lvRect & rc );
     public:
+        /// use to override status text
+        virtual void setStatusText( lString16 s ) { _statusText = s; }
         /// formats scroll label (like "1 of 2")
         virtual lString16 getScrollLabel( int page, int pages );
         /// calculates minimum scroll size
