@@ -678,8 +678,6 @@ void V3DocViewWin::showRecentBooksMenu()
 {
     lvRect rc = _wm->getScreen()->getRect();
     CRRecentBooksMenu * menu_win = new CRRecentBooksMenu(_wm, _docview, 8, rc);
-    menu_win->setAccelerators( getMenuAccelerators() );
-    menu_win->setSkinName(lString16(L"#bookmarks"));
     _wm->activateWindow( menu_win );
 }
 

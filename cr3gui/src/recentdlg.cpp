@@ -83,6 +83,13 @@ CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docvie
     }
     //_helpText = L"Long press 1..8 = set, short press = go to";
     //_helpHeight = 36;
+    setAccelerators( _wm->getAccTables().get("menu") );
+    setSkinName(lString16(L"#bookmarks"));
+    lString16 pattern(_("$1 - open book\n$2, $3 - close"));
+    pattern.replace(lString16("$1"), getItemNumberKeysName());
+    pattern.replace(lString16("$2"), getCommandKeyName(MCMD_OK) );
+    pattern.replace(lString16("$3"), getCommandKeyName(MCMD_CANCEL) );
+    _statusText = pattern;
 }
 
 /// returns true if command is processed

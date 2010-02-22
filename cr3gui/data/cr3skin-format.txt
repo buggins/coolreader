@@ -55,6 +55,20 @@ Base of all skin objects is Rectangle skin.
 Other kinds of object have all properties of Rectangle skin object, and add some specific.
 Rectangle skin describes how to draw rectangular area of screen (properties of backgound and text).
 
+Following attributes may specify rectangle location and size hints:
+    pos="x,y" - position of item's (target) rectangle relative to base rectangle.
+           Simple positive numbers - pixel offset relative to left (for x) or top (for y) bound of base rectangle.
+           Percent values - position relative to whole base rectangle
+                     (0% is left, 50% is middle, 100% is right for x)
+                     (0% is top, 50% is middle, 100% is bottom for y)
+           Negative numbers - pixel offset relative to right (for x) or bottom (for y) bound of base rectangle.
+    size="width,height" - size of item's (target) rectangle relative to base rectangle.
+           Simple positive numbers - size in pixels
+           Percent values - width or height is percent of base rectangle
+           Negative numbers - use base rectangle size decreased by specified number of pixels
+                     (size="-50,-20" means width=base_rectangle.width-50, height=base_rectangle.height-20
+
+
 Sample content of Rectangle object tag:
 
 <size minvalue="48,48" maxvalue="0,0"/>
@@ -140,10 +154,15 @@ e.g. specify separate tiles for frame (corners, sides), and middle area, then pl
 SCROLL SKIN
 
 Describes appearance of scroll bar.
+It can represent usual scroll bar, tabs, or page numbers (#/#)
+If tags for tab view specified and page number is small, tab view is used.
+Otherwise, if scroll skin is specified, scroll view is used.
+Otherwise, simple page number indicator is used (<> buttons and #/#)
 
 Scrollbar item can have following attributes:
   autohide="true|false" - if true, don't show if not necessary
   show-page-numbers="true|false" - if true, PAGE / PAGES numbers shown (e.g. "2/5")
+  location="title|status" - position
 
 As addition to usual Rectangle object properties, following items added:
 <leftbutton>, <rightbutton> - buttons for horizontal scrollbar
@@ -155,6 +174,9 @@ As addition to usual Rectangle object properties, following items added:
      Attributes:
      frame="image_file_to_draw_body_frame" - image, to draw background of scrollbar (used in "split" mode)
      slider="image_file_to_draw_slider" - image, to draw slider of scrollbar (used in "split" mode)
+<tab-bottom> - rect skin for tab normal tab
+<tab-bottom-active> - rect skin for active tab
+<page-bound-bottom> - rect skin of horizontal line (bottom page bound) for tabs
 
 Example:
   <scroll id="menuscroll" autohide="true" show-page-numbers="true">
@@ -213,6 +235,7 @@ Menu object tag attributes:
   show-shortcuts="true|false" - true to show item shortcuts (numbers)
 
 Rectangle skin objects to draw menu items:
+  <value> - rectangle skin for drawing additional text (e.g. hot key, setting value...)
   <item> - rectangle skin for usual item
   <selitem> - rectangle skin for selected item
   <shortcut> - rectangle skin for usual item shortcut
