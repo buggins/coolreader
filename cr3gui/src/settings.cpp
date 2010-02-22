@@ -574,7 +574,6 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         controlsMenu->setValueFont(valueFont);
         controlsMenu->reconfigure( 0 );
         mainMenu->addItem( controlsMenu );
-
 }
 
 /// use to override status text
@@ -590,8 +589,9 @@ lString16 CRSettingsMenu::getStatusText()
         return _statusText;
     lString16 applyKeyName( getKeyName( applyKey, applyFlags ) );
     lString16 cancelKeyName( getKeyName( cancelKey, cancelFlags ) );
-    lString16 pattern(_("Press $1 to apply, $2 to cancel"));
-    pattern.replace(lString16(L"$1"), applyKeyName );
-    pattern.replace(lString16(L"$2"), cancelKeyName );
+    lString16 pattern(_("Press $1 to change option\n$2 to apply, $3 to cancel"));
+    pattern.replace(lString16("$1"), getItemNumberKeysName());
+    pattern.replace(lString16("$2"), applyKeyName );
+    pattern.replace(lString16("$3"), cancelKeyName );
     return pattern;
 }

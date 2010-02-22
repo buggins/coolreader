@@ -739,14 +739,9 @@ void V3DocViewWin::showBookmarksMenu( bool goMode )
 
 void V3DocViewWin::showMainMenu()
 {
-    CRMenu * menu_win = new CRMenu( _wm,
-        NULL, //CRMenu * parentMenu,
-        1,
-        lString16(_("Main Menu")),
-        LVImageSourceRef(),
-        LVFontRef(),
-        LVFontRef() );
-    menu_win->setFullscreen( true );
+    lvRect fullRc = _wm->getScreen()->getRect();
+    CRFullScreenMenu * menu_win = new CRFullScreenMenu(
+            _wm, 0, lString16(_("Main Menu")), 8, fullRc );
 /*
 VIEWER_MENU_GOTOFIRSTPAGE=Go to first page
 VIEWER_MENU_GOTOENDPAGE=Go to last page
@@ -839,7 +834,16 @@ VIEWER_MENU_4ABOUT=About...
 					LVImageSourceRef(),
 					LVFontRef() ) );
 	}
-	menu_win->setAccelerators( getMenuAccelerators() );
+
+    menu_win->setAccelerators( getMenuAccelerators() );
+
+    lString16 s("$1 - choose command\n$2, $3 - close");
+    s.replace(lString16("$1"), menu_win->getItemNumberKeysName());
+    s.replace(lString16("$2"), menu_win->getCommandKeyName(MCMD_OK) );
+    s.replace(lString16("$3"), menu_win->getCommandKeyName(MCMD_CANCEL) );
+    menu_win->setStatusText( s );
+    menu_win->setFullscreen( true );
+
     menu_win->reconfigure(0);
     _wm->activateWindow( menu_win );
 }

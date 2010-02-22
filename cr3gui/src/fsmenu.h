@@ -27,6 +27,11 @@ public:
 
     virtual lvPoint getSize();
 
+    virtual lString16 getItemNumberKeysName();
+
+    virtual lString16 getCommandKeyName( int cmd, int param=0 );
+
+
     //virtual void Draw( LVDrawBuf & buf, int x, int y );
 
 };

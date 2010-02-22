@@ -60,17 +60,9 @@ void CRBookmarkMenu::setMode( bool goToMode )
     //if ( _goToMode==goToMode )
     //    return;
     int k, f;
-    int k9, f9;
-    bool hasModeSwitch = _acceleratorTable->findCommandKey( MCMD_NEXT_MODE, 0, k, f );
-    bool hasKey9 = _acceleratorTable->findCommandKey( MCMD_SELECT_9, 0, k9, f9 );
-    lString16 modeKeyName;
-    lString16 selKeyName;
-    if ( hasModeSwitch )
-        modeKeyName = lString16(getKeyName( k, f ));
-    if ( hasKey9 )
-        selKeyName = lString16(_("1..9"));
-    else
-        selKeyName = lString16(_("1..8"));
+    lString16 selKeyName = getItemNumberKeysName();
+    lString16 modeKeyName = getCommandKeyName( MCMD_NEXT_MODE );
+    bool hasModeSwitch = !modeKeyName.empty();
     _goToMode = goToMode;
     if ( _goToMode ) {
         _caption = lString16(_("Go to bookmark"));

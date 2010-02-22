@@ -251,13 +251,13 @@
         </status>
         <value id="menu-value">
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="center" halign="right"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="bottom" halign="right"/>
             <border widths="50,0,20,0"/>
             <!--icon image="filename" valign="" halign=""-->
         </value>
         <item id="menu-item">
             <size minvalue="48,48" maxvalue="50%,100%"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="top" halign="left"/>
             <border widths="50,0,20,0"/>
             <!--icon image="filename" valign="" halign=""-->
         </item>
