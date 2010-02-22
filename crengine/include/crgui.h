@@ -967,7 +967,6 @@ class CRDocViewWindow : public CRGUIWindowBase
     protected:
         LVDocView * _docview;
 	    CRWindowSkinRef _skin;
-		lString16 _title;
         virtual void draw();
     public:
         LVDocView * getDocView()

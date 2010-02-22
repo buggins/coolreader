@@ -259,8 +259,12 @@ void CRGUIScreenBase::flush( bool full )
 /// calculates title rectangle for specified window rectangle
 bool CRGUIWindowBase::getTitleRect( lvRect & rc )
 {
-    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = _rect;
+    if ( _skinName.empty() ) {
+        rc.bottom = rc.top;
+        return false;
+    }
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc.shrinkBy(skin->getBorderWidths());
     rc.bottom = rc.top;
     CRRectSkinRef clientSkin = skin->getClientSkin();
@@ -276,8 +280,12 @@ bool CRGUIWindowBase::getTitleRect( lvRect & rc )
 /// calculates status rectangle for specified window rectangle
 bool CRGUIWindowBase::getStatusRect( lvRect & rc )
 {
-    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = _rect;
+    if ( _skinName.empty() ) {
+        rc.bottom = rc.top;
+        return false;
+    }
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc.shrinkBy(skin->getBorderWidths());
     rc.top = rc.bottom;
     lvPoint scrollSize = getMinScrollSize( _page, _pages );
@@ -297,8 +305,10 @@ bool CRGUIWindowBase::getStatusRect( lvRect & rc )
 /// calculates client rectangle for specified window rectangle
 bool CRGUIWindowBase::getClientRect( lvRect & rc )
 {
-    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = _rect;
+    if ( _skinName.empty() )
+        return true;
+    CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc.shrinkBy(skin->getBorderWidths());
     rc.bottom = rc.top;
     lvRect titleRect;
@@ -598,16 +608,11 @@ void CRDocViewWindow::draw()
 {
     lvRect clientRect = _rect;
     if ( !_skin.isNull() ) {
-        clientRect = _skin->getClientRect( _rect );
-        _skin->draw( *_wm->getScreen()->getCanvas(), _rect );
-        if ( !_title.empty() ) {
-            lvRect titleRect = _skin->getTitleRect( _rect );
-            if ( !titleRect.isEmpty() ) {
-                _skin->getTitleSkin()->draw( *_wm->getScreen()->getCanvas(), titleRect );
-                _skin->getTitleSkin()->drawText( *_wm->getScreen()->getCanvas(), titleRect, _title );
-            }
+        if ( getClientRect( clientRect ) ) {
+            _skin->draw( *_wm->getScreen()->getCanvas(), _rect );
+            drawTitleBar();
+            drawStatusBar();
         }
-
     }
     LVDocImageRef pageImage = _docview->getPageImage(0);
     LVDrawBuf * drawbuf = pageImage->getDrawBuf();

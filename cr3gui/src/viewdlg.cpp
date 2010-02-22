@@ -97,10 +97,13 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     : CRDocViewWindow(wm), _text(text), _showScroll( showScroll ), _showFrame( showFrame ), _lastNavigationDirection(0)
 {
     _passKeysToParent = _passCommandsToParent = false;
-	if ( !_wm->getSkin().isNull() )
-		_skin = _wm->getSkin()->getWindowSkin(L"#dialog");
+    if ( _showFrame ) {
+        setSkinName( lString16("#dialog") );
+        if ( !_wm->getSkin().isNull() )
+            _skin = _wm->getSkin()->getWindowSkin(getSkinName().c_str());
+    }
     setAccelerators( _wm->getAccTables().get("browse") );
-    _title = title;
+    _caption = title;
     lvRect fsRect = _wm->getScreen()->getRect();
     _fullscreen = false;
     if ( rect.isEmpty() ) {
@@ -113,9 +116,19 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     getDocView()->setBackgroundColor(0xFFFFFF);
     getDocView()->setTextColor(0x000000);
     getDocView()->setFontSize( 20 );
+    getDocView()->setPageMargins( lvRect(8,8,8,8) );
+    if ( !_skin.isNull() ) {
+        CRRectSkinRef clientSkin = _skin->getClientSkin();
+        if ( !clientSkin.isNull() ) {
+            getDocView()->setBackgroundColor(clientSkin->getBackgroundColor());
+            getDocView()->setTextColor(clientSkin->getTextColor());
+            getDocView()->setFontSize(clientSkin->getFontSize());
+            getDocView()->setDefaultFontFace(UnicodeToUtf8(clientSkin->getFontFace()));
+            getDocView()->setPageMargins( clientSkin->getBorderWidths() );
+        }
+    }
     getDocView()->setShowCover( false );
     getDocView()->setPageHeaderInfo( 0 ); // hide title bar
-    getDocView()->setPageMargins( lvRect(8,8,8,8) );
     if ( !text.empty() ) {
 		_stream = LVCreateStringStream( text );
 		getDocView()->LoadDocument(_stream);
@@ -452,34 +465,36 @@ void CRViewDialog::draw()
 
 void CRViewDialog::draw( int pageOffset )
 {
-	if ( _skin.isNull() )
-		return; // skin is not yet loaded
-    CRRectSkinRef titleSkin = _skin->getTitleSkin();
-    CRRectSkinRef clientSkin = _skin->getClientSkin();
+    //if ( _skin.isNull() )
+    //	return; // skin is not yet loaded
+    _pages = _docview->getPageCount();
+    _page = _docview->getCurPage() + pageOffset + 1;
+    if ( _page<1 )
+        _page = 1;
+    if ( _page>_pages )
+        _page = _pages;
+    lvRect clientRect = _rect;
     lvRect borders;
-    if ( !clientSkin.isNull() )
-        borders = clientSkin->getBorderWidths();
     LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
-    if ( _showFrame ) {
+    if ( _showFrame && !_skin.isNull() ) {
+
+        //CRRectSkinRef titleSkin = _skin->getTitleSkin();
+        CRRectSkinRef clientSkin = _skin->getClientSkin();
+        if ( !clientSkin.isNull() )
+            borders = clientSkin->getBorderWidths();
+        getClientRect( clientRect );
+        if ( !clientSkin.isNull() )
+            clientSkin->draw( *drawbuf, clientRect );
         _skin->draw( *drawbuf, _rect );
-        lvRect titleRect = _skin->getTitleRect( _rect );
-        titleSkin->draw( *drawbuf, titleRect );
-        titleSkin->drawText( *drawbuf, titleRect, _title );
     }
-    // draw toc
-    if ( !clientSkin.isNull() )
-        clientSkin->draw( *drawbuf, _clientRect );
-    if ( !_scrollRect.isEmpty() ) {
-        // draw scrollbar
-        CRScrollSkinRef sskin = _skin->getScrollSkin();
-        int pages = getDocView()->getPageCount();
-        int page = getDocView()->getCurPage();
-        CRLog::trace("drawing scrollbar %d, %d, %d", page, pages, 1);
-        sskin->drawScroll( *drawbuf, _scrollRect, false, page, pages, 1 );
+
+    if ( _showFrame ) {
+        drawTitleBar();
+        drawStatusBar();
     }
     LVDocImageRef pageImage = _docview->getPageImage( pageOffset );
     LVDrawBuf * pagedrawbuf = pageImage->getDrawBuf();
-    _wm->getScreen()->draw( pagedrawbuf, _clientRect.left, _clientRect.top );
+    _wm->getScreen()->draw( pagedrawbuf, clientRect.left, clientRect.top );
 }
 
 void CRViewDialog::setRect( const lvRect & rc )
@@ -487,27 +502,17 @@ void CRViewDialog::setRect( const lvRect & rc )
     //if ( rc == _rect )
     //    return;
     _rect = rc;
-    _clientRect = _rect;
+    lvRect clientRect = _rect;
     if ( _showFrame ) {
         if ( !_skin.isNull() )
-            _clientRect = _skin->getClientRect( rc );
+            getClientRect(clientRect);
     }
-    _scrollRect = _clientRect;
-    if ( _showScroll ) {
-        _scrollRect.top = _scrollRect.bottom - 32; //TODO: scroll height
-    } else {
-        _scrollRect.top = _scrollRect.bottom;
-    }
-    _clientRect.bottom = _scrollRect.top;
-    _docview->Resize( _clientRect.width(), _clientRect.height() );
+    _docview->Resize( clientRect.width(), clientRect.height() );
     _docview->checkRender();
-    int pages = _docview->getPageCount();
-    if ( pages <= 1 && _showScroll ) {
-        // hide scroll
-        _scrollRect.top = _scrollRect.bottom;
-        _clientRect.bottom = _scrollRect.top;
-        _docview->Resize( _clientRect.width(), _clientRect.height() );
-    }
+    _pages = _docview->getPageCount();
+    if ( !_skin.isNull() )
+        getClientRect(clientRect);
+    _docview->Resize( clientRect.width(), clientRect.height() );
     setDirty();
 }
 
@@ -521,6 +526,6 @@ void CRViewDialog::prepareNextPageImage( int offset )
         _wm->getScreen()->setTurboUpdateMode( CRGUIScreen::NormalMode );
     } else {
         CRLog::debug("CRViewDialog::prepareNextPageImage() in normal mode");
-        LVDocImageRef pageImage = _docview->getPageImage(1);
+        LVDocImageRef pageImage = _docview->getPageImage(offset);
     }
 }

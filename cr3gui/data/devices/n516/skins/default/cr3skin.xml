@@ -79,21 +79,19 @@
       <vbody frame="cr3_progress_body.png" slider="cr3_progress_slider.png"/>
   </scroll>
   <window id="dialog">
-        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
-        <border widths="26,8,8,8"/>
-        <!--icon image="filename" valign="" halign=""/-->
-        <client>
-            <background image="cr3_menu_item.png" color="#FFFFFF"/>
-        </client>
-        <title>
-            <size minvalue="0,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_title.png" color="#FFFFFF"/>
-            <border widths="4,4,4,4"/>
-            <!--icon image="filename" valign="" halign=""-->
+        <title base="#title-main" size="100%,40">
+            <background color="#555555"/>
+            <background color="#FFFFFF" pos="0,-4" size="100%,2"/>
+            <background color="#CCCCCC" pos="0,-2" size="100%,2"/>
         </title>
-    <scroll base="#tabs"/>
+        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="center"/>
+        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
+        <client>
+            <background color="#FFFFFF"/>
+            <border widths="8,8,8,8"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="32" bold="false" italic="false" valign="center" halign="center"/>
+        </client>
+        <scroll base="#titlescroll"/>
   </window>
   <menu id="toc" base="#main">
         <title base="#title-main" size="100%,40">

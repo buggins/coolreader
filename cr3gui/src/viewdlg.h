@@ -26,8 +26,6 @@ protected:
     bool _showScroll;
     bool _showFrame;
     int _lastNavigationDirection;
-    lvRect _scrollRect;
-    lvRect _clientRect;
     lString16 _searchPattern;
 	static LVRef<CRDictionary> _dict;
     virtual void draw( int pageOffset );
