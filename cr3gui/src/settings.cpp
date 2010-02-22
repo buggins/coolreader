@@ -574,6 +574,8 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         controlsMenu->setValueFont(valueFont);
         controlsMenu->reconfigure( 0 );
         mainMenu->addItem( controlsMenu );
+
+        reconfigure(0);
 }
 
 /// use to override status text
