@@ -36,6 +36,9 @@
 #endif
 #endif
 
+
+#define USE_SEPARATE_GO_TO_PAGE_DIALOG 0
+
 LVRef<CRDictionary> CRViewDialog::_dict;
 
 /// adds XML and FictionBook tags for utf8 fb2 document
@@ -139,20 +142,25 @@ bool CRViewDialog::hasDictionaries()
 	return false;
 }
 
+
 void CRViewDialog::showGoToPageDialog()
 {
     LVTocItem * toc = _docview->getToc();
     CRNumberEditDialog * dlg;
+#if USE_SEPARATE_GO_TO_PAGE_DIALOG==1
     if ( toc && toc->getChildCount()>0 ) {
+#endif
         dlg = new CRTOCDialog( _wm,
             lString16( _("Table of contents") ),
             MCMD_GO_PAGE_APPLY,  _docview->getPageCount(), _docview );
+#if USE_SEPARATE_GO_TO_PAGE_DIALOG==1
     } else {
         dlg = new CRNumberEditDialog( _wm,
             lString16( _("Enter page number") ),
             lString16(),
             MCMD_GO_PAGE_APPLY, 1, _docview->getPageCount() );
     }
+#endif
     dlg->setAccelerators( getDialogAccelerators() );
     _wm->activateWindow( dlg );
 }
