@@ -1102,6 +1102,9 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
 
 
     public:
+        /// returns index of selected item, -1 if no item selected
+        virtual int getSelectedItemIndex();
+        virtual void activated();
         virtual void drawClient();
         virtual int getScrollHeight();
         CRMenuSkinRef getSkin();

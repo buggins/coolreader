@@ -653,11 +653,14 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectS
         s1 = _label;
     }
 
+    LVFontRef font = getFont();
+    if ( font.isNull() )
+        font = skin->getFont();
     if ( s2.empty() ) {
-        textRect.top += (textRect.height() - skin->getFontSize() - itemBorders.top - itemBorders.bottom) / 2;
-        textRect.bottom = textRect.top + skin->getFontSize() + itemBorders.top + itemBorders.bottom;
+        textRect.top += (textRect.height() - font->getHeight() - itemBorders.top - itemBorders.bottom) / 2;
+        textRect.bottom = textRect.top + font->getHeight() + itemBorders.top + itemBorders.bottom;
     }
-    skin->drawText( buf, textRect, s1, getFont() );
+    skin->drawText( buf, textRect, s1, font );
 }
 
 int CRMenu::getPageCount()
@@ -950,6 +953,21 @@ int CRMenu::getScrollHeight()
     return scrollHeight;
 }
 
+/// returns index of selected item, -1 if no item selected
+int CRMenu::getSelectedItemIndex()
+{
+    if ( getProps().isNull() )
+        return -1;
+    for ( int i=0; i<_items.length(); i++ ) {
+        if ( !_items[i]->getPropValue().empty() &&
+              getProps()->getStringDef(
+                       UnicodeToUtf8(getPropName()).c_str()
+                       , "")==(_items[i]->getPropValue()) )
+            return i;
+    }
+    return -1;
+}
+
 void CRMenu::drawClient()
 {
     LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
@@ -1142,6 +1160,16 @@ bool CRMenu::onKeyPressed( int key, int flags )
 {
     CRGUIWindowBase::onKeyPressed( key, flags );
     return true; // don't allow key processing by parent window
+}
+
+/// called if window gets focus
+void CRMenu::activated()
+{
+    int curItem = getSelectedItemIndex();
+    if ( curItem>=0 ) {
+        _topItem = curItem / _pageItems * _pageItems;
+    }
+    setDirty();
 }
 
 /// returns true if command is processed

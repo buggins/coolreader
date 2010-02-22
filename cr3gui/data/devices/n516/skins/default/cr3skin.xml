@@ -95,7 +95,7 @@
         </title>
     <scroll base="#tabs"/>
   </window>
-  <window id="toc" base="#main">
+  <menu id="toc" base="#main">
         <title base="#title-main" size="100%,40">
             <background color="#555555"/>
             <background color="#FFFFFF" pos="0,-4" size="100%,2"/>
@@ -119,9 +119,22 @@
             <background color="#FFFFFF"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
         </input>
+        <value>
+            <border widths="0,4,0,4"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="right"/>
+        </value>
+        <item>
+            <border widths="0,4,0,4"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
+        </item>
+        <selitem>
+            <border widths="0,4,0,4"/>
+            <background color="#AAAAAA"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
+        </selitem>
         <scroll base="#titlescroll"/>
-  </window>
-  <menu id="vkeyboard" base="#toc">
+  </menu>
+  <menu id="vkeyboard" base="#toc" show-shortcuts="false">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
         <border widths="26,8,8,8"/>

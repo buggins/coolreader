@@ -24,7 +24,7 @@ class CRNumberEditDialog : public CRGUIWindowBase
         int _minvalue;
         int _maxvalue;
         int _resultCmd;
-        CRWindowSkinRef _skin;
+        CRMenuSkinRef _skin;
         virtual void draw();
     public:
         CRNumberEditDialog( CRGUIWindowManager * wm, lString16 title, lString16 initialValue, int resultCmd, int minvalue, int maxvalue );

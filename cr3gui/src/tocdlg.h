@@ -24,6 +24,7 @@ class CRTOCDialog : public CRNumberEditDialog
         int _itemHeight;
         int _topItem;
         int _pageItems;
+        LVDocView * _docview;
 
         virtual void draw();
     public:
@@ -32,6 +33,7 @@ class CRTOCDialog : public CRNumberEditDialog
         {
         }
         bool digitEntered( lChar16 c );
+        int getCurItemIndex();
 
         /// returns true if command is processed
         virtual bool onCommand( int command, int params );

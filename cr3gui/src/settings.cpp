@@ -221,7 +221,7 @@ public:
     virtual lString16 getSubmenuValue()
     { 
         return getProps()->getStringDef(
-            UnicodeToUtf8(getPropName()).c_str(), "24");
+            UnicodeToUtf8(getPropName()).c_str(), "32");
     }
 };
 
@@ -236,14 +236,14 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
     fontSizeMenu = new FontSizeMenu(_wm, mainMenu, valueFont, props );
     for ( unsigned i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
         //char name[32];
-        char defvalue[200];
+        char defvalue[400];
         //sprintf( name, "VIEWER_DLG_FONT_SIZE_%d", cr_font_sizes[i] );
         sprintf( defvalue, "%d %s", cr_font_sizes[i], _("The quick brown fox jumps over lazy dog") );
         fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
                         lString16(defvalue),
                         LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[i], 400, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[i]).c_str()  ) );
     }
-    fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu10") );
+    fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu") );
     //fontSizeMenu->setAccelerators( _menuAccelerators );
     //fontSizeMenu->setSkinName(lString16(L"#settings"));
     fontSizeMenu->setSkinName(lString16(L"#main"));

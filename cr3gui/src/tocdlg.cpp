@@ -34,38 +34,63 @@ void CRTOCDialog::draw()
 {
     CRGUIWindowBase::draw();
     CRRectSkinRef clientSkin = _skin->getClientSkin();
+    CRRectSkinRef normalItemSkin = _skin->getItemSkin();
+    CRRectSkinRef valueSkin = _skin->getValueSkin();
+    CRRectSkinRef selItemSkin = _skin->getSelItemSkin();
+    if ( normalItemSkin.isNull() )
+        normalItemSkin = clientSkin;
+    if ( valueSkin.isNull() )
+        valueSkin = clientSkin;
+    if ( selItemSkin.isNull() )
+        selItemSkin = clientSkin;
     lvRect borders = clientSkin->getBorderWidths();
     LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
     lvRect tocRect;
     getClientRect( tocRect );
+    int curPage = _docview->getCurPage();
     // draw toc
     for ( int i=0; i<_pageItems && i+_topItem<(int)_items.length(); i++ ) {
-        lvRect margins( 10, 10, 10, 10 );
-        lvRect itemRect = tocRect;
-        itemRect.shrinkBy( margins );
-        itemRect.top = i * _itemHeight + tocRect.top + margins.top;
-        itemRect.bottom = itemRect.top + _itemHeight;
         LVTocItem * item = _items[ i + _topItem];
+        LVTocItem * nextitem = (i+_topItem+1)<(int)_items.length()
+                               ? _items[ i + _topItem + 1] : NULL;
+
+        //lvRect margins( 10, 10, 10, 10 );
+        lvRect itemRect = tocRect;
+        bool isSelected = true;
+
+        if ( curPage < item->getPage() )
+            isSelected = false;
+        else if ( nextitem!=NULL && curPage >= nextitem->getPage() &&
+                  curPage > item->getPage() )
+            isSelected = false;
+        CRRectSkinRef itemSkin = isSelected ? selItemSkin : normalItemSkin;
+        //itemRect.shrinkBy( margins );
+        itemRect.top = i * _itemHeight + tocRect.top;
+        itemRect.bottom = itemRect.top + _itemHeight;
+
+
+
         lString16 titleString = item->getName();
         lString16 pageString = lString16::itoa( item->getPage() + 1 );
-        int pageNumWidth = _font->getTextWidth( pageString.c_str(), pageString.length() );
-        int titleWidth = _font->getTextWidth( titleString.c_str(), titleString.length() );
+        int pageNumWidth = valueSkin->getFont()->getTextWidth( pageString.c_str(), pageString.length() );
+        int titleWidth = itemSkin->getFont()->getTextWidth( titleString.c_str(), titleString.length() );
         int level = item->getLevel();
         int levelMargin = 32; // TODO: get better value
+        itemSkin->draw( *drawbuf, itemRect );
         itemRect.left += (level - 1) * levelMargin;
         lvRect pageNumRect = itemRect;
         pageNumRect.left = pageNumRect.right - pageNumWidth;
         itemRect.right = pageNumRect.left;
         if ( !itemRect.isEmpty() ) {
             lvRect rc = itemRect;
-            rc.extendBy( borders );
-            lString16 s = limitTextWidth( titleString, rc.width()-borders.left-borders.right, clientSkin->getFont() );
-            clientSkin->drawText( *drawbuf, rc, s );
+            //rc.extendBy( borders );
+            lString16 s = limitTextWidth( titleString, rc.width()-borders.left-borders.right, itemSkin->getFont() );
+            itemSkin->drawText( *drawbuf, rc, s );
         }
         if ( !pageNumRect.isEmpty() ) {
             lvRect rc = pageNumRect;
-            rc.extendBy( borders );
-            clientSkin->drawText( *drawbuf, rc, pageString );
+            //rc.extendBy( borders );
+            valueSkin->drawText( *drawbuf, rc, pageString );
         }
         if ( itemRect.left + titleWidth < itemRect.right + 5 ) {
             itemRect.left = itemRect.left + titleWidth;
@@ -86,26 +111,39 @@ void CRTOCDialog::draw()
 
 CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCmd, int pageCount, LVDocView * docview )
 : CRNumberEditDialog( wm, title, lString16(), resultCmd, 1, pageCount )
+,_docview(docview)
 {
     docview->getFlatToc( _items );
     _skinName = L"#toc";
-    _skin = _wm->getSkin()->getWindowSkin(_skinName.c_str());
+    _skin = _wm->getSkin()->getMenuSkin(_skinName.c_str());
     CRRectSkinRef clientSkin = _skin->getClientSkin();
+    CRRectSkinRef itemSkin = _skin->getItemSkin();
+    CRRectSkinRef valueSkin = _skin->getValueSkin();
+    CRRectSkinRef selItemSkin = _skin->getSelItemSkin();
+    if ( itemSkin.isNull() )
+        itemSkin = clientSkin;
+    if ( valueSkin.isNull() )
+        valueSkin = clientSkin;
+    if ( selItemSkin.isNull() )
+        selItemSkin = clientSkin;
+
     lvRect borders = clientSkin->getBorderWidths();
     CRScrollSkinRef sskin = _skin->getScrollSkin();
-    _font = clientSkin->getFont();
+    _font = itemSkin->getFont();
     _fullscreen = true;
     _rect = _wm->getScreen()->getRect();
     _caption = title;
     lvRect clientRect = _skin->getClientRect( _rect );
     lvRect tocRect;
     getClientRect( tocRect );
-    _itemHeight = _font->getHeight();
+    lvRect itemBorders = itemSkin->getBorderWidths();
+    _itemHeight = _font->getHeight() + itemBorders.top + itemBorders.bottom;
     _pageItems = tocRect.height() / _itemHeight;
-    _topItem = 0;
+    int curItem = getCurItemIndex();
+    _topItem = curItem>=0 ? curItem / _pageItems * _pageItems : 0;
     _page = _topItem / _pageItems + 1;
     _pages = (_items.length()+(_pageItems-1))/ _pageItems;
-    _statusText = L"Enter page number:";
+    _statusText = lString16(_("Enter page number:"));
     _inputText = L"_";
 }
 
@@ -121,6 +159,26 @@ bool CRTOCDialog::digitEntered( lChar16 c )
         return true;
     }
     return false;
+}
+
+/// returns index of first item for current page, -1 if not found
+int CRTOCDialog::getCurItemIndex()
+{
+    int curPage = _docview->getCurPage();
+    for ( int i=0; i<_items.length(); i++ ) {
+        LVTocItem * item = _items[ i ];
+        LVTocItem * nextitem = (i+1)<(int)_items.length()
+                               ? _items[ i + 1] : NULL;
+        bool isSelected = true;
+        if ( curPage < item->getPage() )
+            isSelected = false;
+        else if ( nextitem!=NULL && curPage >= nextitem->getPage() &&
+                  curPage > item->getPage() )
+            isSelected = false;
+        if ( isSelected )
+            return i;
+    }
+    return -1;
 }
 
 /// returns true if command is processed
@@ -158,7 +216,7 @@ bool CRTOCDialog::onCommand( int command, int params )
         {
             int step = command == MCMD_SCROLL_FORWARD_LONG ? 10 : 1;
             _topItem = _topItem + _pageItems * step;
-            int maxpos = (_items.length()) / _pageItems * _pageItems;
+            int maxpos = (_items.length()-1) / _pageItems * _pageItems;
             if ( _topItem > maxpos )
                 _topItem = maxpos;
             if ( _topItem < 0 )
@@ -171,7 +229,7 @@ bool CRTOCDialog::onCommand( int command, int params )
         {
             int step = command == MCMD_SCROLL_BACK_LONG ? 10 : 1;
             _topItem = _topItem - _pageItems * step;
-            int maxpos = (_items.length()) / _pageItems * _pageItems;
+            int maxpos = (_items.length()-1) / _pageItems * _pageItems;
             if ( _topItem > maxpos )
                 _topItem = maxpos;
             if ( _topItem < 0 )

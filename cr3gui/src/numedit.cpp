@@ -29,7 +29,7 @@ void CRNumberEditDialog::draw()
 CRNumberEditDialog::CRNumberEditDialog( CRGUIWindowManager * wm, lString16 title, lString16 initialValue, int resultCmd, int minvalue, int maxvalue )
 : CRGUIWindowBase( wm ), _title(title), _value(initialValue), _minvalue(minvalue), _maxvalue(maxvalue), _resultCmd(resultCmd)
 {
-    _skin = _wm->getSkin()->getWindowSkin(L"#toc");
+    _skin = _wm->getSkin()->getMenuSkin(L"#toc");
     _fullscreen = false;
     lvPoint clientSize( 350, _skin->getFont()->getHeight() + 24 );
     lvPoint sz = _skin->getWindowSize( clientSize );
