@@ -454,6 +454,7 @@ void CRViewDialog::showKeymapDialog()
 	//============================================================
     txt = CRViewDialog::makeFb2Xml(txt);
     CRViewDialog * dlg = new CRViewDialog( _wm, lString16(_("Keyboard layout")), txt, lvRect(), true, true );
+    dlg->getDocView()->setVisiblePageCount(1);
     _wm->activateWindow( dlg );
     //TODO:
 }

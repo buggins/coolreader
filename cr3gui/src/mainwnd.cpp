@@ -935,13 +935,13 @@ void V3DocViewWin::showAboutDialog()
 
     lString8 txt;
     //=========================================================
-    txt << "<table><col width=\"25%\"/><col width=\"75%\"/>\n";
+    txt << "<table><col width=\"30%\"/><col width=\"70%\"/>\n";
     CRPropRef props = _docview->getDocProps();
 
     lString8 statusInfo;
 	addPropLine( statusInfo, _("Current page"), lString16::itoa(_docview->getCurPage()) );
 	addPropLine( statusInfo, _("Total pages"), lString16::itoa(_docview->getPageCount()) );
-	addPropLine( statusInfo, _("Battery state"), lString16::itoa(_docview->getBatteryState()) + L"%" );
+    addPropLine( statusInfo, _("Battery state"), _docview->getBatteryState()==-1 ? lString16(_("charging...")) : lString16::itoa(_docview->getBatteryState()) + L"%" );
 	addPropLine( statusInfo, _("Current Time"), _docview->getTimeString() );
 	// TODO:
 	if ( hist ) {
@@ -996,8 +996,9 @@ void V3DocViewWin::showAboutDialog()
     //=========================================================
     txt = CRViewDialog::makeFb2Xml(txt);
     CRViewDialog * dlg = new CRViewDialog( _wm, title, txt, lvRect(), true, true );
-    int fs = _props->getIntDef( PROP_FILE_PROPS_FONT_SIZE, 26 );
-    dlg->getDocView()->setFontSize(fs);
+    dlg->getDocView()->setVisiblePageCount(1);
+    //int fs = _props->getIntDef( PROP_FILE_PROPS_FONT_SIZE, 26 );
+    //dlg->getDocView()->setFontSize(fs);
     _wm->activateWindow( dlg );
 }
 

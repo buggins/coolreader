@@ -93,6 +93,7 @@
         </client>
         <scroll base="#titlescroll"/>
   </window>
+  <window id="dialog-rotated" base="#dialog">
   <menu id="toc" base="#main">
         <title base="#title-main" size="100%,40">
             <background color="#555555"/>
@@ -132,6 +133,7 @@
         </selitem>
         <scroll base="#titlescroll"/>
   </menu>
+  <menu id="toc-rotated" base="#toc" min-item-count="5" max-item-count="5" show-shortcuts="true" />
   <menu id="vkeyboard" base="#toc" show-shortcuts="false">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
@@ -179,43 +181,8 @@
     <scroll base="#menuscroll"/>
   </menu>
   <window id="about" base="#dialog">
-        <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="26" bold="true" italic="false" valign="center" halign="center"/>
-        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
-        <border widths="26,8,8,8"/>
-        <!--icon image="filename" valign="" halign=""/-->
-        <client>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="false" valign="center" halign="left"/>
-            <background image="cr3_menu_item.png" color="#FFFFFF"/>
-        </client>
-        <title>
-            <size minvalue="0,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_title.png" color="#FFFFFF"/>
-            <border widths="4,4,4,4"/>
-            <!--icon image="filename" valign="" halign=""-->
-        </title>
-    <scroll base="#tabs"/>
   </window>
-  <menu id="main" base="#main-nosc" show-shortcuts="true">
-        <client>
-            <background color="#cccccc" />
-            <background image="sheet-h79.png" pos="45,0" size="0,100%" htransform="none" vtransform="tile" />
-            <background color="#999999" pos="-4,0" size="4,100%"/>
-        </client>
-        <title base="#title-main">
-            <background color="#555555"/>
-            <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
-            <background color="#CCCCCC" pos="0,-5" size="100%,5"/>
-            <background color="#999999" pos="-4,-5" size="4,5"/>
-            <background color="#FFFFFF" pos="65,-5" size="6,5"/>
-        </title>
-        <separator>
-            <background color="#FFFFFF" image="separator-h16.png" pos="86,0" size="-102,0" vtransform="none" htransform="tile" />
-            <size minvalue="0,16" maxvalue="0,0"/>
-        </separator>
-        <scroll base="#titlescroll"/>
-  </menu>
-  <menu id="main-nosc" min-item-count="9" max-item-count="9" show-shortcuts="false" fullscreen="true" >
+  <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="true" fullscreen="true" >
         <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
         <background color="#AAAAAA"/>
         <border widths="0,0,0,0"/>
@@ -227,17 +194,17 @@
             <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
             <background color="#CCCCCC" pos="0,-5" size="100%,5"/>
             <background color="#999999" pos="-4,-5" size="4,5"/>
-            <background color="#FFFFFF" pos="20,-5" size="6,5"/>
+            <background color="#FFFFFF" pos="65,-5" size="6,5"/>
             <border widths="16,4,16,11"/>
             <icon image="cr-white.png" valign="center" halign="left">
         </title>
         <client>
             <background color="#cccccc" />
-            <background image="sheet-h79.png" pos="0,0" size="0,100%" htransform="none" vtransform="tile" />
+            <background image="sheet-h79.png" pos="45,0" size="0,100%" htransform="none" vtransform="tile" />
             <background color="#999999" pos="-4,0" size="4,100%"/>
         </client>
         <separator>
-            <background color="#FFFFFF" image="separator-h16.png" pos="44,0" size="-60,0" vtransform="none" htransform="tile" />
+            <background color="#FFFFFF" image="separator-h16.png" pos="86,0" size="-102,0" vtransform="none" htransform="tile" />
             <size minvalue="0,16" maxvalue="0,0"/>
         </separator>
         <status>
@@ -278,14 +245,9 @@
         <selshortcut base="#menu-shortcut">
             <text color="#FFFFFF" face="Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
         </selshortcut>
-    <scroll base="#tabs-noautohide"/>
+    <scroll base="#titlescroll"/>
   </menu>
-  <menu id="main-rotated" min-item-count="5" max-item-count="5" show-shortcuts="true" >
-        <client>
-            <background color="#dddddd" />
-            <background image="sheet.png" pos="40,0" size="0,100%" htransform="none" vtransform="tile" />
-        </client>
-  </menu>
+  <menu id="main-rotated" base="#main" min-item-count="5" max-item-count="5" show-shortcuts="true" />
   <menu id="t9input">
     <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="25" bold="true" italic="false" valign="center" halign="center"/>
     <background image="cr3_t9_frame.png"/>
@@ -336,6 +298,7 @@
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
         </item>
   </menu>
+  <menu id="bookmarks-rotated" base="#bookmarks" min-item-count="5" max-item-count="5" />
   <menu id="settings" base="#main" fullscreen="true">
         <value base="#menu-value">
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="bottom" halign="right"/>
@@ -344,12 +307,6 @@
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="top" halign="left"/>
         </item>
   </menu>
-  <menu id="settings-rotated" base="#main-rotated" >
-        <value base="#menu-value">
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="bottom" halign="right"/>
-        </value>
-        <item base="#menu-item">
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="top" halign="left"/>
-        </item>
+  <menu id="settings-rotated" base="#settings" min-item-count="5" max-item-count="5" show-shortcuts="true" >
   </menu>
 </CR3Skin>
