@@ -71,7 +71,7 @@ void CRTOCDialog::draw()
             itemRect.left = itemRect.left + titleWidth;
             itemRect.left = (itemRect.left + 3) & (~3);
             itemRect.right &= (~3);
-            lUInt32 cl = drawbuf->GetTextColor();
+            lUInt32 cl = clientSkin->getTextColor();
             if ( !itemRect.isEmpty() ) {
                 // draw line of points
                 for ( int i = itemRect.left; i < itemRect.right; i += 4 ) {
@@ -106,6 +106,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     _page = _topItem / _pageItems + 1;
     _pages = (_items.length()+(_pageItems-1))/ _pageItems;
     _statusText = L"Enter page number:";
+    _inputText = L"_";
 }
 
 bool CRTOCDialog::digitEntered( lChar16 c )
@@ -125,10 +126,12 @@ bool CRTOCDialog::digitEntered( lChar16 c )
 /// returns true if command is processed
 bool CRTOCDialog::onCommand( int command, int params )
 {
-    if ( command == MCMD_SELECT_0 && _value.empty() )
-        command == MCMD_SCROLL_FORWARD;
-    if ( command == MCMD_SELECT_0_LONG && _value.empty() )
-        command == MCMD_SCROLL_FORWARD_LONG;
+    if ( _value.empty() ) {
+        if ( command == MCMD_SELECT_0 )
+            command = MCMD_SCROLL_FORWARD;
+        if ( command == MCMD_SELECT_0_LONG )
+            command = MCMD_SCROLL_FORWARD_LONG;
+    }
     switch ( command ) {
     case MCMD_CANCEL:
         if ( _value.length()>0 ) {
@@ -155,7 +158,7 @@ bool CRTOCDialog::onCommand( int command, int params )
         {
             int step = command == MCMD_SCROLL_FORWARD_LONG ? 10 : 1;
             _topItem = _topItem + _pageItems * step;
-            int maxpos = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;
+            int maxpos = (_items.length()) / _pageItems * _pageItems;
             if ( _topItem > maxpos )
                 _topItem = maxpos;
             if ( _topItem < 0 )
@@ -168,7 +171,7 @@ bool CRTOCDialog::onCommand( int command, int params )
         {
             int step = command == MCMD_SCROLL_BACK_LONG ? 10 : 1;
             _topItem = _topItem - _pageItems * step;
-            int maxpos = (_items.length() + _pageItems - 1) / _pageItems * _pageItems;
+            int maxpos = (_items.length()) / _pageItems * _pageItems;
             if ( _topItem > maxpos )
                 _topItem = maxpos;
             if ( _topItem < 0 )

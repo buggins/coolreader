@@ -23,7 +23,7 @@ private:
     int _page;
 public:
     CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark, int page );
-    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
+    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
 };
 
 class CRBookmarkMenu : public CRFullScreenMenu

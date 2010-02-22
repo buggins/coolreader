@@ -70,6 +70,7 @@ class CRSettingsMenu : public CRFullScreenMenu
         CRPropRef props;
         CRGUIAcceleratorTableRef _menuAccelerators;
         void addMenuItems( CRMenu * menu, item_def_t values[] );
+        lString16 getStatusText();
     public:
         CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
 #if CR_INTERNAL_PAGE_ORIENTATION==1

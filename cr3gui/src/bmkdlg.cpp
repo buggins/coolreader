@@ -20,10 +20,10 @@ CRBookmarkMenuItem::CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark 
 
 }
 
-void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
+void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
     if ( !_bookmark ) {
-        CRMenuItem::Draw( buf, rc, skin, selected );
+        CRMenuItem::Draw( buf, rc, skin, valueSkin, selected );
         return;
     }
     lvRect itemBorders = skin->getBorderWidths();
@@ -44,15 +44,15 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
     lvRect posRect = textRect;
     lString16 text = _bookmark->getPosText();
     if ( !text.empty() ) {
-        posRect.bottom = posRect.top + skin->getFont()->getHeight() + 8 + 8;
-        textRect.top = posRect.bottom - 8;
+        posRect.bottom = posRect.top + skin->getFont()->getHeight() + itemBorders.top + itemBorders.bottom;
+        textRect.top = posRect.bottom;
     }
     postext << lString16::itoa( _page+1 ) << L" (";
     postext << lString16::itoa( _bookmark->getPercent()/100 ) << L"." << lString16::itoa( _bookmark->getPercent()%100 ) << L"%)";
     postext << L"  " << _bookmark->getTitleText();
-    skin->drawText( buf, posRect, postext, skin->getFont() );
+    skin->drawText( buf, posRect, postext );
     if ( !text.empty() )
-        skin->drawText( buf, textRect, text, skin->getFont() );
+        valueSkin->drawText( buf, textRect, text );
 }
 
 #define MIN_BOOKMARK_ITEMS 32

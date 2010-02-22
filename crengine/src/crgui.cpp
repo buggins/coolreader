@@ -5,8 +5,7 @@
    lvxml.cpp:  XML parser implementation
 
    (c) Vadim Lopatin, 2000-2006
-   This source code is distributed under the terms of
-   GNU General Public License
+   This source code is distributed under the terms of   GNU General Public License
    See LICENSE file for details
 
 *******************************************************/
@@ -400,7 +399,7 @@ bool CRGUIWindowBase::getInputRect( lvRect & rc )
 {
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
     rc = _rect;
-    rc.shrinkBy(skin->getBorderWidths());
+    //rc.shrinkBy(skin->getBorderWidths());
     CRRectSkinRef inputSkin = skin->getInputSkin();
     CRRectSkinRef statusSkin = skin->getStatusSkin();
     if ( inputSkin.isNull() || statusSkin.isNull() )
@@ -429,6 +428,17 @@ void CRGUIWindowBase::drawInputBox()
         inputSkin->drawText(buf, rc2, _inputText );
 }
 
+/// draw status text
+void CRGUIWindowBase::drawStatusText( LVDrawBuf & buf, const lvRect & rc, CRRectSkinRef skin )
+{
+    lvRect statusRc( rc );
+    lvRect b = skin->getBorderWidths();
+    statusRc.shrinkBy( b );
+    if ( statusRc.width() > 100 ) {
+        // draw status text
+        skin->drawText( buf, statusRc, getStatusText() );
+    }
+}
 
 /// draw status bar using current skin, with optional status text and scroll/tab/page indicator
 void CRGUIWindowBase::drawStatusBar()
@@ -439,9 +449,11 @@ void CRGUIWindowBase::drawStatusBar()
     CRScrollSkinRef sskin = skin->getScrollSkin();
     lvRect statusRc;
     lvRect scrollRc;
+    lvRect inputRc;
     if ( !getStatusRect( statusRc ) )
         return;
     getScrollRect( scrollRc );
+    bool showInput = getInputRect( inputRc );
     if ( !statusSkin.isNull() ) {
         statusSkin->draw( buf, statusRc );
     }
@@ -449,19 +461,20 @@ void CRGUIWindowBase::drawStatusBar()
     if ( scroll ) {
         sskin->drawScroll( buf, scrollRc, false, _page-1, _pages, 1 );
     }
-    if ( !statusSkin.isNull() && !statusRc.isEmpty() && !_statusText.empty() ) {
+    if ( !statusSkin.isNull() && !statusRc.isEmpty() && !getStatusText().empty() ) {
         if ( scroll ) {
             if ( scrollRc.left - statusRc.left > statusRc.right - scrollRc.right )
                 statusRc.right = scrollRc.left;
             else
                 statusRc.left = scrollRc.right;
         }
-        lvRect b = statusSkin->getBorderWidths();
-        statusRc.shrinkBy( b );
-        if ( statusRc.width() > 100 ) {
-            // draw status text
-            statusSkin->drawText( buf, statusRc, _statusText );
+        if ( showInput ) {
+            if ( inputRc.left - statusRc.left > statusRc.right - inputRc.right )
+                statusRc.right = inputRc.left;
+            else
+                statusRc.left = inputRc.right;
         }
+        drawStatusText( buf, statusRc, statusSkin );
     }
     drawInputBox();
 }
@@ -614,7 +627,7 @@ void CRDocViewWindow::setRect( const lvRect & rc )
 }
 
 
-void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
+void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
     lvRect itemBorders = skin->getBorderWidths();
     skin->draw( buf, rc );
@@ -628,9 +641,23 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool se
         buf.Draw( _image, rc.left + hh/2-w/2 + itemBorders.left, rc.top + hh/2 - h/2 + itemBorders.top, w, h );
         imgWidth = w + ITEM_MARGIN;
     }
+
     lvRect textRect = rc;
     textRect.left += imgWidth;
-    skin->drawText( buf, textRect, _label, getFont() );
+
+    lString16 s1;
+    lString16 s2;
+    if ( _label.split2(lString16("\t"), s1, s2 ) ) {
+        valueSkin->drawText( buf, textRect, s2 );
+    } else {
+        s1 = _label;
+    }
+
+    if ( s2.empty() ) {
+        textRect.top += (textRect.height() - skin->getFontSize() - itemBorders.top - itemBorders.bottom) / 2;
+        textRect.bottom = textRect.top + skin->getFontSize() + itemBorders.top + itemBorders.bottom;
+    }
+    skin->drawText( buf, textRect, s1, getFont() );
 }
 
 int CRMenu::getPageCount()
@@ -665,8 +692,11 @@ int CRMenu::getTopItem()
     return _topItem;
 }
 
-void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
+void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
+    CRMenuSkinRef menuSkin = _skin; //getSkin();
+    //CRRectSkinRef valueSkin = menuSkin->getValueSkin();
+
     lvRect rc2 = rc;
 
     lvRect itemBorders = skin->getBorderWidths();
@@ -683,19 +713,28 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool select
     }
     lvRect textRect = rc;
     textRect.left += imgWidth;
+    //textRect.shrinkBy( itemBorders );
 
     lString16 s = getSubmenuValue();
     if ( !s.empty() ) {
-        int w = _valueFont->getTextWidth( s.c_str(), s.length() );
-        rc2 = rc;
-        rc2.top += rc2.height()*3/8;
-        int hh = rc2.height();
-        buf.SetTextColor( skin->getTextColor() );
-        _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
+        if ( valueSkin.isNull() ) {
+            // old implementation: no value skin
+            int w = _valueFont->getTextWidth( s.c_str(), s.length() );
+            rc2 = rc;
+            rc2.top += rc2.height()*3/8;
+            int hh = rc2.height();
+            buf.SetTextColor( skin->getTextColor() );
+            _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
 
-        textRect.bottom -= textRect.height()*2/5;
+            textRect.bottom -= textRect.height()*2/5;
+        } else {
+            valueSkin->drawText( buf, textRect, s );
+        }
+    } else {
+        textRect.top += (textRect.height() - skin->getFontSize() - itemBorders.top - itemBorders.bottom) / 2;
+        textRect.bottom = textRect.top + skin->getFontSize() + itemBorders.top + itemBorders.bottom;
     }
-    skin->drawText( buf, textRect, _label, getFont() );
+    skin->drawText( buf, textRect, _label );
 }
 
 lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )
@@ -918,6 +957,7 @@ void CRMenu::drawClient()
     CRRectSkinRef clientSkin = skin->getClientSkin();
     //CRRectSkinRef titleSkin = skin->getTitleSkin();
     //CRScrollSkinRef sskin = skin->getScrollSkin();
+    CRRectSkinRef valueSkin = skin->getValueSkin();
     CRRectSkinRef itemSkin = skin->getItemSkin();
     CRRectSkinRef itemShortcutSkin = skin->getItemShortcutSkin();
     CRRectSkinRef itemSelSkin = skin->getSelItemSkin();
@@ -1012,7 +1052,7 @@ void CRMenu::drawClient()
 
         is->setTextAlign( is->getTextAlign() | SKIN_EXTEND_TAB);
         CRMenuItem * item = _items[i];
-        item->Draw( buf, itemRc, is, selected );
+        item->Draw( buf, itemRc, is, valueSkin, selected );
 
         // draw separator
         if ( separatorHeight>0 && index<_pageItems-1 ) {

@@ -372,6 +372,7 @@ class CRMenuSkin : public CRWindowSkin
 {
 protected:
     CRRectSkinRef _separatorSkin;
+    CRRectSkinRef _valueSkin;
     CRRectSkinRef _itemSkin;
     CRRectSkinRef _itemShortcutSkin;
     CRRectSkinRef _evenItemSkin;
@@ -386,6 +387,8 @@ protected:
 public:
     CRMenuSkin();
     virtual ~CRMenuSkin() { }
+    virtual CRRectSkinRef getValueSkin() { return _valueSkin; }
+    virtual void setValueSkin( CRRectSkinRef skin ) { _valueSkin = skin; }
     virtual CRRectSkinRef getItemSkin() { return _itemSkin; }
     virtual void setItemSkin( CRRectSkinRef skin ) { _itemSkin = skin; }
     virtual CRRectSkinRef getSeparatorSkin() { return _separatorSkin; }

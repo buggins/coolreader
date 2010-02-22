@@ -715,7 +715,21 @@ class CRGUIWindowBase : public CRGUIWindow
         LVImageSourceRef _icon; // window title icon
         // draws frame, title, status and client
         virtual void draw();
-    public:
+
+        /// use to override status text
+        virtual lString16 getStatusText() { return _statusText; }
+
+        /// draw status bar using current skin, with optional status text and scroll/tab/page indicator
+        virtual void drawStatusBar();
+        /// draw status text
+        virtual void drawStatusText( LVDrawBuf & buf, const lvRect & rc, CRRectSkinRef skin );
+        /// draw title bar using current skin, with optional scroll/tab/page indicator
+        virtual void drawTitleBar();
+        /// draw input box, if any
+        virtual void drawInputBox();
+        /// draw title bar using current skin, with optional scroll/tab/page indicator
+        virtual void drawClient();
+
         /// calculates title rectangle for window rectangle
         virtual bool getTitleRect( lvRect & rc );
         /// calculates status rectangle for window rectangle
@@ -726,18 +740,11 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual bool getInputRect( lvRect & rc );
         /// calculates scroll rectangle for window rectangle
         virtual bool getScrollRect( lvRect & rc );
+    public:
         /// formats scroll label (like "1 of 2")
         virtual lString16 getScrollLabel( int page, int pages );
         /// calculates minimum scroll size
         virtual lvPoint getMinScrollSize( int page, int pages );
-        /// draw status bar using current skin, with optional status text and scroll/tab/page indicator
-        virtual void drawStatusBar();
-        /// draw title bar using current skin, with optional scroll/tab/page indicator
-        virtual void drawTitleBar();
-        /// draw input box, if any
-        virtual void drawInputBox();
-        /// draw title bar using current skin, with optional scroll/tab/page indicator
-        virtual void drawClient();
         /// sets scroll label (e.g. "Page $1 of $2" or "$1 / $2")
         virtual void setScrollLabelTemplate( lString16 text ) { _scrollLabel=text; }
         /// returns scroll label (e.g. "$1 of $2")
@@ -1065,7 +1072,7 @@ class CRMenuItem
         /// measures item size
         virtual lvPoint getItemSize( CRRectSkinRef skin );
         /// draws item
-        virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
+        virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
         /// returns true if submenu
         virtual bool isSubmenu() const { return false; }
         /// called on item selection
@@ -1090,8 +1097,10 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         CRMenuSkinRef _skin;// = _wm->getSkin()->getMenuSkin( path.c_str() );
         // override for CRGUIWindow method
         virtual void draw();
-        virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
+        virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
         //virtual void Draw( LVDrawBuf & buf, int x, int y );
+
+
     public:
         virtual void drawClient();
         virtual int getScrollHeight();

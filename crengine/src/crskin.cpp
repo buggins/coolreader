@@ -605,7 +605,7 @@ int CRSkinContainer::readVAlign( const lChar16 * path, const lChar16 * attrname,
     lString16 value = readString( path, attrname );
     if ( value.empty() )
         return defValue;
-	if ( value == L"left" ) {
+    if ( value == L"top" ) {
 		if ( res )
 			*res = true;
         return SKIN_VALIGN_TOP;
@@ -1540,6 +1540,12 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     flg = flg || b;
     if ( b || res->getSeparatorSkin().isNull() )
         res->setSeparatorSkin( separatorSkin );
+
+    CRRectSkinRef valueSkin( new CRRectSkin() );
+    b = readRectSkin(  (p + L"/value").c_str(), valueSkin.get() );
+    flg = flg || b;
+    if ( b || res->getValueSkin().isNull() )
+        res->setValueSkin( valueSkin );
 
     CRRectSkinRef itemSkin( new CRRectSkin() );
     b = readRectSkin(  (p + L"/item").c_str(), itemSkin.get() );

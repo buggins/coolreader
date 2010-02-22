@@ -3406,3 +3406,20 @@ bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
     return true;
 }
 
+lString16 & lString16::replace(size_type p0, size_type n0, const lString16 & str)
+{
+    lString16 s1 = substr( 0, p0 );
+    lString16 s2 = length()-p0-n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString16(L"");
+    *this = s1 + str + s2;
+    return *this;
+}
+
+/// replaces part of string, if pattern is found
+bool lString16::replace(const lString16 & findStr, const lString16 & replaceStr)
+{
+    int p = pos(findStr);
+    if ( p<0 )
+        return false;
+    *this = replace( p, findStr.length(), replaceStr );
+    return true;
+}

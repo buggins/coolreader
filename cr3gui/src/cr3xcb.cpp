@@ -1308,7 +1308,7 @@ int main(int argc, char **argv)
         bmkdir = "/media/sd/bookmarks/";
     //TODO: remove hardcoded
 #ifdef __i386__
-        CRXCBWindowManager winman( 600, 650 );
+        CRXCBWindowManager winman( 600, 750 );
 #else
         CRXCBWindowManager winman( 600, 800 );
 

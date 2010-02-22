@@ -96,18 +96,18 @@
     <scroll base="#tabs"/>
   </window>
   <window id="toc" base="#main">
-        <title base="#title-main">
+        <title base="#title-main" size="100%,40">
             <background color="#555555"/>
-            <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
-            <background color="#CCCCCC" pos="0,-5" size="100%,5"/>
+            <background color="#FFFFFF" pos="0,-4" size="100%,2"/>
+            <background color="#CCCCCC" pos="0,-2" size="100%,2"/>
         </title>
         <status>
-            <border widths="44,0,0,0"/>
+            <border widths="4,4,4,4"/>
             <size minvalue="20,51" maxvalue="0,0"/>
             <background color="#555555"/>
             <background color="#CCCCCC" pos="0,0" size="100%,2"/>
             <background color="#FFFFFF" pos="0,2" size="100%,2"/>
-            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
+            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="right"/>
         </status>
         <client>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
@@ -115,6 +115,7 @@
             <border widths="4,4,4,4"/>
         </client>
         <input size="30%,70%" pos="68%,21%">
+            <border widths="4,4,4,4"/>
             <background color="#FFFFFF"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>
         </input>
@@ -235,8 +236,14 @@
             <background color="#FFFFFF" pos="0,0" size="100%,2"/>
             <text color="#FFFFFF" face="Arial, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
         </status>
-        <item id="menu-item">
+        <value id="menu-value">
             <size minvalue="48,48" maxvalue="0,0"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="center" halign="right"/>
+            <border widths="50,0,20,0"/>
+            <!--icon image="filename" valign="" halign=""-->
+        </value>
+        <item id="menu-item">
+            <size minvalue="48,48" maxvalue="50%,100%"/>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
             <border widths="50,0,20,0"/>
             <!--icon image="filename" valign="" halign=""-->
@@ -314,7 +321,19 @@
     <scroll base="#tabs-noautohide"/>
   </menu>
   <menu id="settings" base="#main" fullscreen="true">
+        <value base="#menu-value">
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="center" halign="right"/>
+        </value>
+        <item base="#menu-item">
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
+        </item>
   </menu>
   <menu id="settings-rotated" base="#main-rotated" >
+        <value base="#menu-value">
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="bottom" halign="right"/>
+        </value>
+        <item base="#menu-item">
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="top" halign="left"/>
+        </item>
   </menu>
 </CR3Skin>

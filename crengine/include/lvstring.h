@@ -415,6 +415,9 @@ public:
     lString16 substr(size_type pos, size_type n) const;
     /// returns part of string from specified position to end of string
     lString16 substr(size_type pos) const { return substr(pos, length()-pos); }
+    /// replaces first found occurence of pattern
+    bool replace(const lString16 & findStr, const lString16 & replaceStr);
+
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;
 

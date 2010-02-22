@@ -22,7 +22,7 @@ private:
     CRFileHistRecord * _book;
 public:
     CRRecentBookMenuItem( CRMenu * menu, int index, CRFileHistRecord * book );
-    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
+    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
 };
 
 CRRecentBookMenuItem::CRRecentBookMenuItem( CRMenu * menu, int index, CRFileHistRecord * book )
@@ -30,10 +30,10 @@ CRRecentBookMenuItem::CRRecentBookMenuItem( CRMenu * menu, int index, CRFileHist
 {
 }
 
-void CRRecentBookMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
+void CRRecentBookMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
     if ( !_book ) {
-        CRMenuItem::Draw( buf, rc, skin, selected );
+        CRMenuItem::Draw( buf, rc, skin, valueSkin, selected );
         return;
     }
     lvRect itemBorders = skin->getBorderWidths();
@@ -61,12 +61,12 @@ void CRRecentBookMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef ski
 
     lvRect posRect = textRect;
     if ( !author.empty() ) {
-        posRect.bottom = posRect.top + skin->getFont()->getHeight() + 8 + 8;
-        textRect.top = posRect.bottom - 8;
-        skin->drawText( buf, posRect, author, skin->getFont() );
+        posRect.bottom = posRect.top + skin->getFont()->getHeight() + itemBorders.top + itemBorders.bottom;
+        textRect.top = posRect.bottom;
+        valueSkin->drawText( buf, posRect, author );
     }
     if ( !title.empty() )
-        skin->drawText( buf, textRect, title, skin->getFont() );
+        skin->drawText( buf, textRect, title );
 }
 
 CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)

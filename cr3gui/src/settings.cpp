@@ -52,7 +52,7 @@ public:
     /// called on item selection
     virtual int onSelect();
     CRControlsMenuItem( CRControlsMenu * menu, int id, int key, int flags, const CRGUIAccelerator * defAcc );
-    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected );
+    virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
 };
 
 class CRControlsMenu : public CRFullScreenMenu
@@ -153,7 +153,7 @@ CRControlsMenuItem::CRControlsMenuItem( CRControlsMenu * menu, int id, int key, 
     _settingKey = menu->getSettingKey( key, flags );
 }
 
-void CRControlsMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, bool selected )
+void CRControlsMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
     lvRect itemBorders = skin->getBorderWidths();
     skin->draw( buf, rc );
@@ -161,16 +161,13 @@ void CRControlsMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
     buf.SetBackgroundColor( skin->getBackgroundColor() );
     lvRect textRect = rc;
     lvRect borders = skin->getBorderWidths();
-    textRect.shrinkBy(borders);
-    skin->drawText(buf, textRect, _label, getFont(), skin->getTextColor(), skin->getBackgroundColor(),
-                   SKIN_VALIGN_TOP|SKIN_HALIGN_LEFT);
-    //skin->drawText( buf, textRect, _label, getFont() );
+    //textRect.shrinkBy(borders);
+    skin->drawText(buf, textRect, _label);
     lString16 s = getSubmenuValue();
     if ( s.empty() )
-        return;
+        s = lString16(_("[Command is not assigned]"));
     //_menu->getValueFont()->DrawTextString( &buf, rc.right - w - 8, rc.top + hh/2 - _menu->getValueFont()->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
-    skin->drawText(buf, textRect, s, _menu->getValueFont(), skin->getTextColor(), skin->getBackgroundColor(),
-                   SKIN_VALIGN_BOTTOM|SKIN_HALIGN_RIGHT);
+    valueSkin->drawText(buf, textRect, s);
 }
 
 bool CRSettingsMenu::onCommand( int command, int params )
@@ -385,9 +382,6 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {NULL, NULL},
     };
 
-
-
-
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
         //setSkinName(lString16(L"#settings"));
@@ -580,4 +574,24 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         controlsMenu->setValueFont(valueFont);
         controlsMenu->reconfigure( 0 );
         mainMenu->addItem( controlsMenu );
+
+}
+
+/// use to override status text
+lString16 CRSettingsMenu::getStatusText()
+{
+    /// find key by command
+    int applyKey = 0;
+    int applyFlags = 0;
+    int cancelKey = 0;
+    int cancelFlags = 0;
+    if ( !_acceleratorTable->findCommandKey( MCMD_OK, 0, applyKey, applyFlags )
+        || !_acceleratorTable->findCommandKey( MCMD_CANCEL, 0, cancelKey, cancelFlags ) )
+        return _statusText;
+    lString16 applyKeyName( getKeyName( applyKey, applyFlags ) );
+    lString16 cancelKeyName( getKeyName( cancelKey, cancelFlags ) );
+    lString16 pattern(_("Press $1 to apply, $2 to cancel"));
+    pattern.replace(lString16(L"$1"), applyKeyName );
+    pattern.replace(lString16(L"$2"), cancelKeyName );
+    return pattern;
 }
