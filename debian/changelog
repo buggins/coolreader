@@ -1,3 +1,17 @@
+cr3 (3.0.24-16) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * skin fixes
+  * TOC skinning
+  * always show TOC at Go to Page dialog
+  * bookmarks menu for N516
+  * add menu help at status bar
+  * add separate skin and keymap for V5
+  * recent books dialog fix
+  * add V3 white skin
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 23 Feb 2010 22:34:10 +0100
+
 cr3 (3.0.24-15) zelazny; urgency=low
 
   [ Vadim Lopatin ]
