@@ -62,11 +62,11 @@ void CRRecentBookMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef ski
     lvRect posRect = textRect;
     if ( !author.empty() ) {
         posRect.bottom = posRect.top + skin->getFont()->getHeight() + itemBorders.top + itemBorders.bottom;
-        textRect.top = posRect.bottom;
-        valueSkin->drawText( buf, posRect, author );
+        textRect.top = posRect.bottom - itemBorders.bottom;
+        skin->drawText( buf, posRect, author );
     }
     if ( !title.empty() )
-        skin->drawText( buf, textRect, title );
+        valueSkin->drawText( buf, textRect, title );
 }
 
 CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
