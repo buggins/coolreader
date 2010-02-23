@@ -45,7 +45,7 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
     lString16 text = _bookmark->getPosText();
     if ( !text.empty() ) {
         posRect.bottom = posRect.top + skin->getFont()->getHeight() + itemBorders.top + itemBorders.bottom;
-        textRect.top = posRect.bottom;
+        textRect.top = posRect.bottom - itemBorders.bottom;
     }
     postext << lString16::itoa( _page+1 ) << L" (";
     postext << lString16::itoa( _bookmark->getPercent()/100 ) << L"." << lString16::itoa( _bookmark->getPercent()%100 ) << L"%)";

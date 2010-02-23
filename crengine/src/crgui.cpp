@@ -652,8 +652,9 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectS
 
     lString16 s1;
     lString16 s2;
+    lvRect valueRect = textRect;
     if ( _label.split2(lString16("\t"), s1, s2 ) ) {
-        valueSkin->drawText( buf, textRect, s2 );
+        //valueSkin->drawText( buf, textRect, s2 );
     } else {
         s1 = _label;
     }
@@ -666,6 +667,9 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectS
         textRect.bottom = textRect.top + font->getHeight() + itemBorders.top + itemBorders.bottom;
     }
     skin->drawText( buf, textRect, s1, font );
+    if ( !s2.empty() ) {
+        valueSkin->drawText( buf, valueRect, s2 );
+    }
 }
 
 int CRMenu::getPageCount()
@@ -724,16 +728,9 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
     //textRect.shrinkBy( itemBorders );
 
     lString16 s = getSubmenuValue();
+    lvRect valueRect = textRect;
     if ( !s.empty() ) {
         if ( valueSkin.isNull() ) {
-            // old implementation: no value skin
-            int w = _valueFont->getTextWidth( s.c_str(), s.length() );
-            rc2 = rc;
-            rc2.top += rc2.height()*3/8;
-            int hh = rc2.height();
-            buf.SetTextColor( skin->getTextColor() );
-            _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
-
             textRect.bottom -= textRect.height()*2/5;
         } else {
             valueSkin->drawText( buf, textRect, s );
@@ -743,6 +740,20 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
         textRect.bottom = textRect.top + skin->getFontSize() + itemBorders.top + itemBorders.bottom;
     }
     skin->drawText( buf, textRect, _label );
+    if ( !s.empty() ) {
+        if ( valueSkin.isNull() ) {
+            // old implementation: no value skin
+            int w = _valueFont->getTextWidth( s.c_str(), s.length() );
+            rc2 = valueRect;
+            rc2.top += rc2.height()*3/8;
+            int hh = rc2.height();
+            buf.SetTextColor( skin->getTextColor() );
+            _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
+
+        } else {
+            valueSkin->drawText( buf, valueRect, s );
+        }
+    }
 }
 
 lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )

@@ -47,6 +47,7 @@ void CRTOCDialog::draw()
     LVRef<LVDrawBuf> drawbuf = _wm->getScreen()->getCanvas();
     lvRect tocRect;
     getClientRect( tocRect );
+    tocRect.shrinkBy(borders);
     int curPage = _docview->getCurPage();
     // draw toc
     for ( int i=0; i<_pageItems && i+_topItem<(int)_items.length(); i++ ) {
@@ -136,6 +137,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     lvRect clientRect = _skin->getClientRect( _rect );
     lvRect tocRect;
     getClientRect( tocRect );
+    tocRect.shrinkBy(borders);
     lvRect itemBorders = itemSkin->getBorderWidths();
     _itemHeight = _font->getHeight() + itemBorders.top + itemBorders.bottom;
     _pageItems = tocRect.height() / _itemHeight;
@@ -221,6 +223,8 @@ bool CRTOCDialog::onCommand( int command, int params )
                 _topItem = maxpos;
             if ( _topItem < 0 )
                 _topItem = 0;
+            _page = _topItem / _pageItems + 1;
+            _pages = (_items.length()+(_pageItems-1))/ _pageItems;
             setDirty();
         }
         break;
@@ -234,6 +238,8 @@ bool CRTOCDialog::onCommand( int command, int params )
                 _topItem = maxpos;
             if ( _topItem < 0 )
                 _topItem = 0;
+            _page = _topItem / _pageItems + 1;
+            _pages = (_items.length()+(_pageItems-1))/ _pageItems;
             setDirty();
         }
         break;
