@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2010-01-25 16:07+0300\n"
+"POT-Creation-Date: 2010-02-24 20:26+0300\n"
 "PO-Revision-Date: 2009-03-05 11:43+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Russian\n"
@@ -20,205 +20,261 @@ msgstr ""
 msgid "Select text"
 msgstr "Выделите текст"
 
-#: ../src/mainwnd.cpp:554 ../src/mainwnd.cpp:662
+#: ../src/fsmenu.cpp:41
+msgid "1..9"
+msgstr ""
+
+#: ../src/fsmenu.cpp:43
+msgid "1..8"
+msgstr ""
+
+#: ../src/mainwnd.cpp:726 ../src/mainwnd.cpp:827
 msgid "Help"
 msgstr "Справка"
 
-#: ../src/mainwnd.cpp:573
+#: ../src/mainwnd.cpp:742
 msgid "Main Menu"
 msgstr "Основное меню"
 
-#: ../src/mainwnd.cpp:611 ../src/viewdlg.cpp:358
+#: ../src/mainwnd.cpp:776 ../src/viewdlg.cpp:394
 msgid "About"
 msgstr "Свойства документа"
 
-#: ../src/mainwnd.cpp:621 ../src/viewdlg.cpp:331
+#: ../src/mainwnd.cpp:786 ../src/viewdlg.cpp:365
 msgid "Go to page"
 msgstr "Перейти на страницу"
 
-#: ../src/mainwnd.cpp:633 ../src/recentdlg.cpp:73
+#: ../src/mainwnd.cpp:798 ../src/recentdlg.cpp:73
 msgid "Open recent book"
 msgstr "Повторное открытие книги"
 
-#: ../src/mainwnd.cpp:640 ../src/viewdlg.cpp:137
+#: ../src/mainwnd.cpp:805 ../src/viewdlg.cpp:153
 msgid "Dictionary"
 msgstr "Словарь"
 
-#: ../src/mainwnd.cpp:645
+#: ../src/mainwnd.cpp:810
 msgid "Cite"
 msgstr "Цитатник"
 
-#: ../src/mainwnd.cpp:649 ../src/bmkdlg.cpp:60
+#: ../src/mainwnd.cpp:814 ../src/bmkdlg.cpp:114
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: ../src/mainwnd.cpp:653 ../src/viewdlg.cpp:180
+#: ../src/mainwnd.cpp:818 ../src/viewdlg.cpp:200
 msgid "Search"
 msgstr "Поиск"
 
-#: ../src/mainwnd.cpp:657 ../src/settings.cpp:263
+#: ../src/mainwnd.cpp:822 ../src/settings.cpp:268
 msgid "Settings"
 msgstr "Настройки"
 
-#: ../src/mainwnd.cpp:666 ../src/viewdlg.cpp:420
+#: ../src/mainwnd.cpp:831 ../src/viewdlg.cpp:456
 msgid "Keyboard layout"
 msgstr "Назначение клавиш"
 
-#: ../src/mainwnd.cpp:767
+#: ../src/mainwnd.cpp:942
 msgid "Current page"
 msgstr "Текущая страница"
 
-#: ../src/mainwnd.cpp:768
+#: ../src/mainwnd.cpp:943
 msgid "Total pages"
 msgstr "Всего страниц"
 
-#: ../src/mainwnd.cpp:769
+#: ../src/mainwnd.cpp:944
 msgid "Battery state"
 msgstr "Заряд батареи"
 
-#: ../src/mainwnd.cpp:770
+#: ../src/mainwnd.cpp:944
+msgid "charging..."
+msgstr "заряжается..."
+
+#: ../src/mainwnd.cpp:945
 msgid "Current Time"
 msgstr "Текущее время"
 
-#: ../src/mainwnd.cpp:775
+#: ../src/mainwnd.cpp:950
 msgid "Current chapter"
 msgstr "Текущая глава"
 
-#: ../src/mainwnd.cpp:778
+#: ../src/mainwnd.cpp:953
 msgid "Status"
 msgstr "Статус"
 
-#: ../src/mainwnd.cpp:781
+#: ../src/mainwnd.cpp:956
 msgid "Archive name"
 msgstr "Имя файла архива"
 
-#: ../src/mainwnd.cpp:782
+#: ../src/mainwnd.cpp:957
 msgid "Archive path"
 msgstr "Путь к архиву"
 
-#: ../src/mainwnd.cpp:783
+#: ../src/mainwnd.cpp:958
 msgid "Archive size"
 msgstr "Размер архива"
 
-#: ../src/mainwnd.cpp:784
+#: ../src/mainwnd.cpp:959
 msgid "File name"
 msgstr "Имя файла"
 
-#: ../src/mainwnd.cpp:785
+#: ../src/mainwnd.cpp:960
 msgid "File path"
 msgstr "Путь к файлу"
 
-#: ../src/mainwnd.cpp:786
+#: ../src/mainwnd.cpp:961
 msgid "File size"
 msgstr "Размер файла"
 
-#: ../src/mainwnd.cpp:787
+#: ../src/mainwnd.cpp:962
 msgid "File format"
 msgstr "Формат"
 
-#: ../src/mainwnd.cpp:788
+#: ../src/mainwnd.cpp:963
 msgid "File info"
 msgstr "Информация о файле"
 
-#: ../src/mainwnd.cpp:791
+#: ../src/mainwnd.cpp:966
 msgid "Title"
 msgstr "Название"
 
-#: ../src/mainwnd.cpp:792
+#: ../src/mainwnd.cpp:967
 msgid "Author(s)"
 msgstr "Автор(ы)"
 
-#: ../src/mainwnd.cpp:793
+#: ../src/mainwnd.cpp:968
 msgid "Series name"
 msgstr "Серия"
 
-#: ../src/mainwnd.cpp:794
+#: ../src/mainwnd.cpp:969
 msgid "Series number"
 msgstr "Номер в серии"
 
-#: ../src/mainwnd.cpp:795
+#: ../src/mainwnd.cpp:970
 msgid "Date"
 msgstr "Дата"
 
-#: ../src/mainwnd.cpp:796
+#: ../src/mainwnd.cpp:971
 msgid "Genres"
 msgstr "Жанры"
 
-#: ../src/mainwnd.cpp:797
+#: ../src/mainwnd.cpp:972
 msgid "Translator"
 msgstr "Переводчик"
 
-#: ../src/mainwnd.cpp:798
+#: ../src/mainwnd.cpp:973
 msgid "Book info"
 msgstr "Прочая информация"
 
-#: ../src/mainwnd.cpp:801
+#: ../src/mainwnd.cpp:976
 msgid "Document author"
 msgstr "Автор документа"
 
-#: ../src/mainwnd.cpp:802
+#: ../src/mainwnd.cpp:977
 msgid "Document date"
 msgstr "Дата документа"
 
-#: ../src/mainwnd.cpp:803
+#: ../src/mainwnd.cpp:978
 msgid "Document source URL"
 msgstr "URL исходного документа"
 
-#: ../src/mainwnd.cpp:804
+#: ../src/mainwnd.cpp:979
 msgid "OCR by"
 msgstr "OCR"
 
-#: ../src/mainwnd.cpp:805
+#: ../src/mainwnd.cpp:980
 msgid "Document version"
 msgstr "Версия документа"
 
-#: ../src/mainwnd.cpp:806
+#: ../src/mainwnd.cpp:981
 msgid "Document info"
 msgstr "Версия документа"
 
-#: ../src/mainwnd.cpp:809
+#: ../src/mainwnd.cpp:984
 msgid "Publication name"
 msgstr "Название издания"
 
-#: ../src/mainwnd.cpp:810
+#: ../src/mainwnd.cpp:985
 msgid "Publisher"
 msgstr "Издательство"
 
-#: ../src/mainwnd.cpp:811
+#: ../src/mainwnd.cpp:986
 msgid "Publisher city"
 msgstr "Город издания"
 
-#: ../src/mainwnd.cpp:812
+#: ../src/mainwnd.cpp:987
 msgid "Publication year"
 msgstr "Год издания"
 
-#: ../src/mainwnd.cpp:813
+#: ../src/mainwnd.cpp:988
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:814
+#: ../src/mainwnd.cpp:989
 msgid "Publication info"
 msgstr "Название издания"
 
-#: ../src/mainwnd.cpp:816
+#: ../src/mainwnd.cpp:991
 msgid "Custom info"
 msgstr "Прочая информация"
 
-#: ../src/mainwnd.cpp:914
+#: ../src/mainwnd.cpp:1100
 msgid "Loading: please wait..."
 msgstr "Открытие файла... Поожалуйста, подождите..."
 
-#: ../src/tocdlg.cpp:90
-msgid "Enter page number to go: "
-msgstr " Введите номер страницы: "
+#: ../src/recentdlg.cpp:88
+msgid ""
+"$1 - open book\n"
+"$2, $3 - close"
+msgstr ""
+"$1 - открыть книгу\n"
+"$2, $3 - отмена"
+
+#: ../src/tocdlg.cpp:148
+msgid "Enter page number:"
+msgstr "Введите номер страницы:"
 
 #: ../src/bmkdlg.cpp:18
 msgid "Empty slot"
 msgstr "Нет закладок"
 
-#: ../src/bmkdlg.cpp:84
-msgid "Long press 1..8 = set, short press = go to"
-msgstr "Долгое нажатие 1..8 - установить, короткое - перейти"
+#: ../src/bmkdlg.cpp:68
+msgid "Go to bookmark"
+msgstr "Перейти на закладку по номеру"
+
+#: ../src/bmkdlg.cpp:72
+msgid ""
+"Short press $1 - go to bookmark,\n"
+"$2 - switch to SET mode"
+msgstr ""
+"Короткое нажатие $1 - перейти на закладку,\n"
+"$2 - режим установки закладок"
+
+#: ../src/bmkdlg.cpp:73
+msgid ""
+"Short press $1 - go to bookmark,\n"
+"long press - set bookmark"
+msgstr ""
+"Короткое нажатие $1 - перейти на закладку,\n"
+"длинное нажатие - установить закладку"
+
+#: ../src/bmkdlg.cpp:76
+msgid "Set bookmark"
+msgstr "Установка закладки"
+
+#: ../src/bmkdlg.cpp:80
+msgid ""
+"$1 - set bookmark,\n"
+"$2 - switch to GO mode"
+msgstr ""
+"$1 - установить закладку,\n"
+"$2 - переключиться в режим перехода"
+
+#: ../src/bmkdlg.cpp:81
+msgid ""
+"Short press $1 - set bookmark,\n"
+"long press - go to bookmark"
+msgstr ""
+"Короткое нажатие $1 - установить закладку,\n"
+"длинное нажатие - перейти на закладку"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -230,212 +286,268 @@ msgstr "[не удалось прочитать статью]"
 
 #: ../src/settings.cpp:79
 msgid "choose command"
-msgstr "Выберите команда"
+msgstr "выберите команду"
 
-#: ../src/settings.cpp:96
+#: ../src/settings.cpp:97
 msgid "Controls"
-msgstr "Управление"
+msgstr "Назначение клавиш"
 
-#: ../src/settings.cpp:190
+#: ../src/settings.cpp:168
+msgid "[Command is not assigned]"
+msgstr "[Команда не назначена]"
+
+#: ../src/settings.cpp:189
 msgid "0` (Portrait)"
 msgstr "Книжная"
 
-#: ../src/settings.cpp:191
+#: ../src/settings.cpp:190
 msgid "90 `"
 msgstr "Альбомная"
 
-#: ../src/settings.cpp:192
+#: ../src/settings.cpp:191
 msgid "180 `"
 msgstr "Книжная (перевернутая)"
 
-#: ../src/settings.cpp:193
+#: ../src/settings.cpp:192
 msgid "270 `"
 msgstr "Альбомная (перевернутая)"
 
-#: ../src/settings.cpp:199
+#: ../src/settings.cpp:198
 msgid "Page orientation"
 msgstr "Формат страницы"
 
-#: ../src/settings.cpp:212
+#: ../src/settings.cpp:214
 msgid "Default font size"
 msgstr "Размер шрифта"
 
-#: ../src/settings.cpp:239
+#: ../src/settings.cpp:241
 msgid "The quick brown fox jumps over lazy dog"
-msgstr "Съешь ещё этих мягких французских булочек"
+msgstr "Съешь ещё этих мягких французских булочек да выпей чаю"
 
-#: ../src/settings.cpp:272
+#: ../src/settings.cpp:277
 msgid "On for all fonts"
 msgstr "Во всех шрифтах"
 
-#: ../src/settings.cpp:273
+#: ../src/settings.cpp:278
 msgid "On for big fonts only"
 msgstr "В больших шрифтах"
 
-#: ../src/settings.cpp:274 ../src/settings.cpp:280 ../src/settings.cpp:286
-#: ../src/settings.cpp:292 ../src/settings.cpp:298 ../src/settings.cpp:304
-#: ../src/settings.cpp:310 ../src/settings.cpp:335
+#: ../src/settings.cpp:279 ../src/settings.cpp:285 ../src/settings.cpp:291
+#: ../src/settings.cpp:297 ../src/settings.cpp:303 ../src/settings.cpp:309
+#: ../src/settings.cpp:315 ../src/settings.cpp:340
 msgid "Off"
 msgstr "Выкл."
 
-#: ../src/settings.cpp:279 ../src/settings.cpp:285 ../src/settings.cpp:291
-#: ../src/settings.cpp:297 ../src/settings.cpp:303 ../src/settings.cpp:309
+#: ../src/settings.cpp:284 ../src/settings.cpp:290 ../src/settings.cpp:296
+#: ../src/settings.cpp:302 ../src/settings.cpp:308 ../src/settings.cpp:314
 msgid "On"
 msgstr "Вкл."
 
-#: ../src/settings.cpp:315 ../src/settings.cpp:321
+#: ../src/settings.cpp:320 ../src/settings.cpp:326
 msgid "Normal"
 msgstr "Обычный"
 
-#: ../src/settings.cpp:316
+#: ../src/settings.cpp:321
 msgid "Inverse"
 msgstr "Инвертировано"
 
-#: ../src/settings.cpp:322
+#: ../src/settings.cpp:327
 msgid "Bold"
 msgstr "Жирный"
 
-#: ../src/settings.cpp:327
+#: ../src/settings.cpp:332
 msgid "One"
 msgstr "Одна"
 
-#: ../src/settings.cpp:328
+#: ../src/settings.cpp:333
 msgid "Two"
 msgstr "Две"
 
-#: ../src/settings.cpp:333
+#: ../src/settings.cpp:338
 msgid "Top"
 msgstr "Сверху"
 
-#: ../src/settings.cpp:340
+#: ../src/settings.cpp:345
 msgid "80%"
 msgstr "80%"
 
-#: ../src/settings.cpp:341
+#: ../src/settings.cpp:346
 msgid "90%"
 msgstr "90%"
 
-#: ../src/settings.cpp:342
+#: ../src/settings.cpp:347
 msgid "100%"
 msgstr "100%"
 
-#: ../src/settings.cpp:343
+#: ../src/settings.cpp:348
 msgid "110%"
 msgstr "110%"
 
-#: ../src/settings.cpp:344
+#: ../src/settings.cpp:349
 msgid "120%"
 msgstr "120%"
 
-#: ../src/settings.cpp:345
+#: ../src/settings.cpp:350
 msgid "130%"
 msgstr "130%"
 
-#: ../src/settings.cpp:346
+#: ../src/settings.cpp:351
 msgid "140%"
 msgstr "140%"
 
-#: ../src/settings.cpp:347
+#: ../src/settings.cpp:352
 msgid "150%"
 msgstr "150%"
 
+#: ../src/settings.cpp:369
+msgid "Always use fast updates"
+msgstr "Всегда быстрое обновление"
+
+#: ../src/settings.cpp:370
+msgid "Don't use fast updates"
+msgstr "Не использовать быстрое обновление"
+
+#: ../src/settings.cpp:371
+msgid "Full updates every 2 pages"
+msgstr "Полное обновление раз в 2 страницы"
+
+#: ../src/settings.cpp:372
+msgid "Full updates every 3 pages"
+msgstr "Полное обновление раз в 3 страницы"
+
+#: ../src/settings.cpp:373
+msgid "Full updates every 4 pages"
+msgstr "Полное обновление раз в 4 страницы"
+
+#: ../src/settings.cpp:374
+msgid "Full updates every 5 pages"
+msgstr "Полное обновление раз в 5 страниц"
+
 #: ../src/settings.cpp:375
+msgid "Full updates every 6 pages"
+msgstr "Полное обновление раз в 6 страниц"
+
+#: ../src/settings.cpp:380
+msgid "Turbo mode disabled"
+msgstr "Турбо режим отключен"
+
+#: ../src/settings.cpp:381
+msgid "Turbo mode enabled"
+msgstr "Турбо режим включен"
+
+#: ../src/settings.cpp:395
 msgid "Default font face"
 msgstr "Шрифт"
 
-#: ../src/settings.cpp:397
+#: ../src/settings.cpp:419
 msgid "Font weight"
 msgstr "Насыщенность шрифта"
 
-#: ../src/settings.cpp:403
+#: ../src/settings.cpp:425
 msgid "Font antialiasing"
 msgstr "Сглаживание букв"
 
-#: ../src/settings.cpp:409
+#: ../src/settings.cpp:431
 msgid "Interline space"
 msgstr "Межстрочный интервал"
 
-#: ../src/settings.cpp:418
+#: ../src/settings.cpp:442
 msgid "Footnotes at page bottom"
 msgstr "Сноски внизу страницы"
 
-#: ../src/settings.cpp:429
+#: ../src/settings.cpp:453
 msgid "Show time"
 msgstr "Отображение часов в колонтитуле"
 
-#: ../src/settings.cpp:435
+#: ../src/settings.cpp:459
 msgid "Landscape pages"
 msgstr "Колонки в альбомной странице"
 
-#: ../src/settings.cpp:441
+#: ../src/settings.cpp:465
 msgid "Preformatted text"
 msgstr "Форматированный текст"
 
-#: ../src/settings.cpp:449
+#: ../src/settings.cpp:473
 msgid "Document embedded styles"
 msgstr "Использовать стили документа"
 
-#: ../src/settings.cpp:455
+#: ../src/settings.cpp:479
 msgid "Inverse display"
 msgstr "Инверсное отображение"
 
-#: ../src/settings.cpp:462
+#: ../src/settings.cpp:486
+msgid "Display update mode"
+msgstr "Режим обновления экрана"
+
+#: ../src/settings.cpp:493
+msgid "Turbo update mode"
+msgstr "Турбо режим"
+
+#: ../src/settings.cpp:501
 msgid "Show bookmark icons"
 msgstr "Показывать закладки"
 
-#: ../src/settings.cpp:469
+#: ../src/settings.cpp:508
 msgid "Status line"
 msgstr "Колонтитул"
 
-#: ../src/settings.cpp:475
+#: ../src/settings.cpp:514
 msgid "Font kerning"
 msgstr "Кернинг шрифта"
 
-#: ../src/settings.cpp:483
+#: ../src/settings.cpp:522
 msgid "[No Hyphenation]"
 msgstr "[Отключить переносы]"
 
-#: ../src/settings.cpp:484
+#: ../src/settings.cpp:523
 msgid "[Algorythmic Hyphenation]"
 msgstr "[Алгоритмические переносы]"
 
-#: ../src/settings.cpp:486
+#: ../src/settings.cpp:525
 msgid "Hyphenation"
 msgstr "Переносы"
 
-#: ../src/settings.cpp:501
+#: ../src/settings.cpp:541
 msgid "Page margins"
 msgstr "Поля страницы"
 
-#: ../src/settings.cpp:504
+#: ../src/settings.cpp:544
 msgid "Top margin"
 msgstr "Верхний отступ"
 
-#: ../src/settings.cpp:509
+#: ../src/settings.cpp:549
 msgid "Bottom margin"
 msgstr "Нижний отступ"
 
-#: ../src/settings.cpp:514
+#: ../src/settings.cpp:554
 msgid "Left margin"
 msgstr "Левый отступ"
 
-#: ../src/settings.cpp:519
+#: ../src/settings.cpp:559
 msgid "Right margin"
 msgstr "Правый отступ"
 
-#: ../src/viewdlg.cpp:132
+#: ../src/settings.cpp:592
+msgid ""
+"Press $1 to change option\n"
+"$2 to apply, $3 to cancel"
+msgstr ""
+"Нажмите $1 для изменения параметра\n"
+"$2 для применения, $3 для отмены"
+
+#: ../src/viewdlg.cpp:148
 msgid "No dictionaries found"
 msgstr "Словари не найдены!"
 
-#: ../src/viewdlg.cpp:133
+#: ../src/viewdlg.cpp:149
 msgid "Place dictionaries to directory 'dict' of SD card."
 msgstr "Разместите словари в каталоге 'dict' на карте памяти."
 
-#: ../src/viewdlg.cpp:134
+#: ../src/viewdlg.cpp:150
 msgid "Dictionaries in standard unix .dict format are supported."
 msgstr "Поддерживаются словари в формате .dict (как в unix системах)"
 
-#: ../src/viewdlg.cpp:135
+#: ../src/viewdlg.cpp:151
 msgid ""
 "For each dictionary, pair of files should be provided: data file (with .dict "
 "or .dict.dz extension, and index file with .index extension"
@@ -443,245 +555,302 @@ msgstr ""
 "Каждый словарь состоит из файла данных (.dict или .dict.dz), и файла-индекса "
 "слов (.index)."
 
-#: ../src/viewdlg.cpp:148
+#: ../src/viewdlg.cpp:166
 msgid "Table of contents"
 msgstr "Содержание"
 
-#: ../src/viewdlg.cpp:152
+#: ../src/viewdlg.cpp:171
 msgid "Enter page number"
 msgstr "Введите номер страницы"
 
-#: ../src/viewdlg.cpp:222
+#: ../src/viewdlg.cpp:242
 msgid "Find in dictionary"
 msgstr "Поиск в словаре"
 
-#: ../src/viewdlg.cpp:301
+#: ../src/viewdlg.cpp:313
+msgid "M"
+msgstr ""
+
+#: ../src/viewdlg.cpp:315
+msgid "Ok"
+msgstr ""
+
+#: ../src/viewdlg.cpp:317
+msgid "Up"
+msgstr "Вверх"
+
+#: ../src/viewdlg.cpp:319
+msgid "Down"
+msgstr "Вниз"
+
+#: ../src/viewdlg.cpp:321
+msgid "C"
+msgstr ""
+
+#: ../src/viewdlg.cpp:323
+msgid "Left"
+msgstr "Влево"
+
+#: ../src/viewdlg.cpp:325
+msgid "Right"
+msgstr "Вправо"
+
+#: ../src/viewdlg.cpp:327
+msgid "Side Up"
+msgstr "Боковая Вверх"
+
+#: ../src/viewdlg.cpp:329
+msgid "Side Down"
+msgstr "Боковая Вниз"
+
+#: ../src/viewdlg.cpp:331
+msgid "Side Press"
+msgstr "Боковая Нажатие"
+
+#: ../src/viewdlg.cpp:333
 msgid "Menu"
 msgstr "Основное меню"
 
-#: ../src/viewdlg.cpp:312
+#: ../src/viewdlg.cpp:335
+#, fuzzy
+msgid "Zoom"
+msgstr "Увеличить шрифт"
+
+#: ../src/viewdlg.cpp:346
 msgid "Long"
 msgstr "Длинн. "
 
-#: ../src/viewdlg.cpp:319
+#: ../src/viewdlg.cpp:353
 msgid "To first page"
 msgstr "В начало книги"
 
-#: ../src/viewdlg.cpp:321
+#: ../src/viewdlg.cpp:355
 msgid "Back by page"
 msgstr "Назад на страницу"
 
-#: ../src/viewdlg.cpp:323
+#: ../src/viewdlg.cpp:357
 msgid "Forward by page"
 msgstr "Вперед на страницу"
 
-#: ../src/viewdlg.cpp:324
+#: ../src/viewdlg.cpp:358
 msgid "Forward in move history"
 msgstr "Назад по истории перемещений"
 
-#: ../src/viewdlg.cpp:325
+#: ../src/viewdlg.cpp:359
 msgid "Back in move history"
 msgstr "Вперед по истории перемещений"
 
-#: ../src/viewdlg.cpp:326
+#: ../src/viewdlg.cpp:360
 msgid "Next link"
 msgstr "Следующая ссылка"
 
-#: ../src/viewdlg.cpp:327
+#: ../src/viewdlg.cpp:361
 msgid "Previous link"
 msgstr "Предыдущая ссылка"
 
-#: ../src/viewdlg.cpp:328 ../src/viewdlg.cpp:353
+#: ../src/viewdlg.cpp:362 ../src/viewdlg.cpp:387
 msgid "Go to link"
 msgstr "Перейти по ссылке"
 
-#: ../src/viewdlg.cpp:329
+#: ../src/viewdlg.cpp:363
 msgid "To last page"
 msgstr "В конец книги"
 
-#: ../src/viewdlg.cpp:330
+#: ../src/viewdlg.cpp:364
 msgid "Go to position"
 msgstr "Перейти на позицию"
 
-#: ../src/viewdlg.cpp:332
+#: ../src/viewdlg.cpp:366
 msgid "Zoom in"
 msgstr "Увеличить шрифт"
 
-#: ../src/viewdlg.cpp:333
+#: ../src/viewdlg.cpp:367
 msgid "Zoom out"
 msgstr "Уменьшить шрифт"
 
-#: ../src/viewdlg.cpp:334
+#: ../src/viewdlg.cpp:368
 msgid "Toggle text format"
 msgstr "Переключить автоформат текста"
 
-#: ../src/viewdlg.cpp:335
+#: ../src/viewdlg.cpp:369
 msgid "Save bookmark by number"
 msgstr "Сохранить закладку по номеру"
 
-#: ../src/viewdlg.cpp:336
+#: ../src/viewdlg.cpp:370
 msgid "Go to bookmark by number"
 msgstr "Перейти на закладку по номеру"
 
-#: ../src/viewdlg.cpp:337
+#: ../src/viewdlg.cpp:371
 msgid "Move by chapter"
 msgstr "Переход по главам"
 
-#: ../src/viewdlg.cpp:338
+#: ../src/viewdlg.cpp:372
 msgid "First link"
 msgstr "Первая ссылка"
 
-#: ../src/viewdlg.cpp:339
+#: ../src/viewdlg.cpp:373
 msgid "Rotate by"
 msgstr "Повернуть на"
 
-#: ../src/viewdlg.cpp:340
+#: ../src/viewdlg.cpp:374
 msgid "Set rotate angle"
 msgstr "Установить угол поворота"
 
-#: ../src/viewdlg.cpp:341
+#: ../src/viewdlg.cpp:375
 msgid "Save history and bookmarks"
 msgstr "Сохранить закладки"
 
-#: ../src/viewdlg.cpp:342
+#: ../src/viewdlg.cpp:376
 msgid "Save document to cache"
 msgstr "Сохранить документ в кэш"
 
-#: ../src/viewdlg.cpp:343
+#: ../src/viewdlg.cpp:377
 msgid "Close dialog"
 msgstr "Закрыть окно"
 
-#: ../src/viewdlg.cpp:345
+#: ../src/viewdlg.cpp:379
 msgid "Scroll forward"
 msgstr "Листать вперед"
 
-#: ../src/viewdlg.cpp:346
+#: ../src/viewdlg.cpp:380
 msgid "Scroll back"
 msgstr "Листать назад"
 
-#: ../src/viewdlg.cpp:347
+#: ../src/viewdlg.cpp:381
 msgid "Close book"
 msgstr "Закрыть книгу"
 
-#: ../src/viewdlg.cpp:348
+#: ../src/viewdlg.cpp:382
 msgid "Main menu"
 msgstr "Основное меню"
 
-#: ../src/viewdlg.cpp:349
+#: ../src/viewdlg.cpp:383
 msgid "Go to page dialog"
 msgstr "Перейти на страницу"
 
-#: ../src/viewdlg.cpp:350
+#: ../src/viewdlg.cpp:384
 msgid "Settings menu"
 msgstr "Настройки"
 
-#: ../src/viewdlg.cpp:351
+#: ../src/viewdlg.cpp:385
 msgid "Font size settings"
 msgstr "Размер шрифта"
 
-#: ../src/viewdlg.cpp:352
+#: ../src/viewdlg.cpp:386
 msgid "Page orientation settings"
 msgstr "Ориентация страницы"
 
-#: ../src/viewdlg.cpp:354
+#: ../src/viewdlg.cpp:388
 msgid "Find in Dictionary (T5)"
 msgstr "Поиск в словаре (T5)"
 
-#: ../src/viewdlg.cpp:355
+#: ../src/viewdlg.cpp:389
 msgid "Bookmark list"
 msgstr "Закладки"
 
-#: ../src/viewdlg.cpp:356
+#: ../src/viewdlg.cpp:390
+#, fuzzy
+msgid "Go to bookmark..."
+msgstr "Закладки"
+
+#: ../src/viewdlg.cpp:391
 msgid "Recent books list"
 msgstr "Повторное открытие книги"
 
-#: ../src/viewdlg.cpp:357
+#: ../src/viewdlg.cpp:392
 msgid "Open recent book by number"
 msgstr "Повторное открытие книги по номеру"
 
-#: ../src/viewdlg.cpp:359
+#: ../src/viewdlg.cpp:393
+msgid "Switch to recent book"
+msgstr "Переключиться на последнюю книгу"
+
+#: ../src/viewdlg.cpp:395
 msgid "Cite selection dialog"
 msgstr "Выделить цитату"
 
-#: ../src/viewdlg.cpp:360
+#: ../src/viewdlg.cpp:396
 msgid "Search dialog"
 msgstr "Поиск"
 
-#: ../src/viewdlg.cpp:361
+#: ../src/viewdlg.cpp:397
 msgid "Find in Dictionary (virtual keyboard)"
 msgstr "Поиск в словаре"
 
-#: ../src/viewdlg.cpp:362
+#: ../src/viewdlg.cpp:398
 msgid "Next keyboard layout"
 msgstr "Следующая раскладка клавиатуры"
 
-#: ../src/viewdlg.cpp:363
+#: ../src/viewdlg.cpp:399
 msgid "Previous keyboard layout"
 msgstr "Предыдущая раскладка клавиатуры"
 
-#: ../src/viewdlg.cpp:364
+#: ../src/viewdlg.cpp:400
 msgid "Show manual"
 msgstr "Руководство пользователя"
 
-#: ../src/viewdlg.cpp:365
+#: ../src/viewdlg.cpp:401
 msgid "Show key mapping"
 msgstr "Назначение клавиш"
 
-#: ../src/viewdlg.cpp:366
+#: ../src/viewdlg.cpp:402
 msgid "Unknown command"
 msgstr "Неизвестная команда"
 
-#: ../src/viewdlg.cpp:373
+#: ../src/viewdlg.cpp:409
 msgid "Previous Page"
 msgstr "Предыдущая страница"
 
-#: ../src/viewdlg.cpp:375
+#: ../src/viewdlg.cpp:411
 msgid "Next Page"
 msgstr "Следующая страница"
 
-#: ../src/viewdlg.cpp:377
+#: ../src/viewdlg.cpp:413
 msgid "Back by 10 Pages"
 msgstr "Назад на 10 страниц"
 
-#: ../src/viewdlg.cpp:379
+#: ../src/viewdlg.cpp:415
 msgid "Forward by 10 Pages"
 msgstr "Вперед на 10 страниц"
 
-#: ../src/viewdlg.cpp:381
+#: ../src/viewdlg.cpp:417
 msgid "Next Chapter"
 msgstr "Следующая глава"
 
-#: ../src/viewdlg.cpp:383
+#: ../src/viewdlg.cpp:419
 msgid "Previous Chapter"
 msgstr "Предыдущая глава"
 
-#: ../src/viewdlg.cpp:385
+#: ../src/viewdlg.cpp:421
 msgid "Add Bookmark"
 msgstr "Добавить закладку"
 
-#: ../src/viewdlg.cpp:387
+#: ../src/viewdlg.cpp:423
 msgid "Rotate Clockwise"
 msgstr "Поворот по часовой стрелке"
 
-#: ../src/viewdlg.cpp:389
+#: ../src/viewdlg.cpp:425
 msgid "Rotate Anti-Clockwise"
 msgstr "Поворот против часовой стрелки"
 
-#: ../src/viewdlg.cpp:391
+#: ../src/viewdlg.cpp:427
 msgid "Portrait View"
 msgstr "Книжная ориентация"
 
-#: ../src/viewdlg.cpp:393
+#: ../src/viewdlg.cpp:429
 msgid "Landscape View"
 msgstr "Альбомная ориентация"
 
-#: ../src/viewdlg.cpp:408
+#: ../src/viewdlg.cpp:444
 msgid "Key"
 msgstr "Клавиша"
 
-#: ../src/viewdlg.cpp:408
+#: ../src/viewdlg.cpp:444
 msgid "Assigned function"
 msgstr "Действие"
+
+#~ msgid "Enter page number to go: "
+#~ msgstr " Введите номер страницы: "
 
 #~ msgid "About..."
 #~ msgstr "Свойства документа"
@@ -691,9 +860,6 @@ msgstr "Действие"
 
 #~ msgid "Dictionary..."
 #~ msgstr "Словарь"
-
-#~ msgid "Bookmarks..."
-#~ msgstr "Закладки"
 
 #~ msgid "Search..."
 #~ msgstr "Поиск"
