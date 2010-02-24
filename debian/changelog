@@ -1,3 +1,11 @@
+cr3 (3.0.24-17) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * increase menu font size for n516
+  * fix bug with long footnotes
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Wed, 24 Feb 2010 13:14:17 +0100
+
 cr3 (3.0.24-16) zelazny; urgency=low
 
   [ Vadim Lopatin ]
