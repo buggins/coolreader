@@ -5,7 +5,7 @@
       <size minvalue="20,30" maxvalue="0,0"/>
       <leftbutton normal="arrow-left-enabled.png" disabled="arrow-left-disabled.png"/>
       <rightbutton normal="arrow-right-enabled.png" disabled="arrow-right-disabled.png"/>
-      <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="center"/>
+      <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
       <border widths="2,2,2,2"/>
   </scroll>
   <scroll id="menuscroll" autohide="true" show-page-numbers="true" location="status">
@@ -136,31 +136,31 @@
   <menu id="toc-rotated" base="#toc" min-item-count="5" max-item-count="5" show-shortcuts="true" />
   <menu id="vkeyboard" base="#toc" show-shortcuts="false">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-        <background image="cr3_settings_menu.png" color="#AAAAAA"/>
-        <border widths="26,8,8,8"/>
+        <background color="#555555"/>
+        <border widths="8,4,8,4"/>
         <!--icon image="filename" valign="" halign=""/-->
         <client>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
-            <background image="cr3_menu_item.png" color="#FFFFFF"/>
+            <background color="#FFFFFF"/>
         </client>
         <title>
             <size minvalue="0,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-            <background image="cr3_menu_title.png" color="#FFFFFF"/>
+            <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
+            <background color="#555555"/>
             <border widths="4,4,4,4"/>
             <!--icon image="filename" valign="" halign=""-->
         </title>
         <item>
           <size minvalue="32,32" maxvalue="0,0"/>
-          <text color="#555555" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-          <background color="#FFFFFF"/>
+          <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
+          <background color="#cccccc"/>
           <border widths="1,2,4,2"/>
           <!--icon image="filename" valign="" halign=""-->
         </item>
         <shortcut>
           <size minvalue="20,36" maxvalue="0,0"/>
           <text color="#FFFFFF" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="center"/>
-          <background image="cr3_t9_shortcut.png" color="#FFFFFF"/>
+          <background color="#808080"/>
           <border widths="3,3,3,3"/>
           <!--icon image="filename" valign="" halign=""-->
         </shortcut>
@@ -174,7 +174,7 @@
         <selshortcut>
           <size minvalue="20,32" maxvalue="0,0"/>
           <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="40" bold="true" italic="false" valign="center" halign="center"/>
-          <background image="cr3_t9_shortcut.png" color="#FFFFFF"/>
+          <background color="#FFFFFF"/>
           <border widths="12,6,6,6"/>
           <!--icon image="filename" valign="" halign=""-->
         </selshortcut>
@@ -208,7 +208,7 @@
             <size minvalue="0,16" maxvalue="0,0"/>
         </separator>
         <status>
-            <border widths="44,0,0,0"/>
+            <border widths="8,0,8,0"/>
             <size minvalue="20,51" maxvalue="0,0"/>
             <background color="#555555"/>
             <background color="#FFFFFF" pos="0,0" size="100%,2"/>
@@ -216,13 +216,13 @@
         </status>
         <value id="menu-value">
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="center" halign="right"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="28" bold="false" italic="true" valign="center" halign="right"/>
             <border widths="50,0,20,0"/>
             <!--icon image="filename" valign="" halign=""-->
         </value>
         <item id="menu-item">
             <size minvalue="48,48" maxvalue="50%,100%"/>
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="32" bold="true" italic="false" valign="center" halign="left"/>
             <border widths="50,0,20,0"/>
             <!--icon image="filename" valign="" halign=""-->
         </item>
@@ -292,19 +292,19 @@
   </menu>
   <menu id="bookmarks" base="#main">
         <value base="#menu-value">
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="bottom" halign="left"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="28" bold="false" italic="true" valign="bottom" halign="left"/>
         </value>
         <item base="#menu-item">
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="center" halign="left"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="32" bold="true" italic="false" valign="center" halign="left"/>
         </item>
   </menu>
   <menu id="bookmarks-rotated" base="#bookmarks" min-item-count="5" max-item-count="5" />
   <menu id="settings" base="#main" fullscreen="true">
         <value base="#menu-value">
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="20" bold="false" italic="true" valign="bottom" halign="right"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="28" bold="false" italic="true" valign="bottom" halign="right"/>
         </value>
         <item base="#menu-item">
-            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="30" bold="true" italic="false" valign="top" halign="left"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="32" bold="true" italic="false" valign="top" halign="left"/>
         </item>
   </menu>
   <menu id="settings-rotated" base="#settings" min-item-count="5" max-item-count="5" show-shortcuts="true" >

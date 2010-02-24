@@ -399,7 +399,7 @@ static const char * getCommandName( int command )
 	case MCMD_KBD_PREVLAYOUT: return _("Previous keyboard layout");
 	case MCMD_HELP: return _("Show manual");
 	case MCMD_HELP_KEYS: return _("Show key mapping");
-	default: return _("Unknown command");
+    default: return _("Unknown command");
 	}
 }
 

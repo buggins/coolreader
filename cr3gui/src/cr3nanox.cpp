@@ -1528,7 +1528,11 @@ int InitDoc(char *fileName)
         else
             HyphMan::initDictionaries( lString16("/root/crengine/hyph/") );
 
-        ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ); /*96Mb*/
+        if ( !ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ) ) {
+            if ( !ldomDocCache::init( lString16(L"/home/crengine/.cache"), 0x100000 * 64 ) ) {
+                CRLog::error("Cannot initialize swap directory");
+            }
+        }
 
         CRLog::trace("creating main window...");
         main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );

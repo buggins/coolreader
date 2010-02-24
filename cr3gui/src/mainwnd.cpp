@@ -719,7 +719,7 @@ void V3DocViewWin::showHelpDialog()
     if ( stream.isNull() ) {
         // show warning
         lString8 body;
-        body << "<p>" << _("No help file available for your language") << "</p>";
+        body << "<title><p>" << _("No manual currently available for this language, sorry!") << "</p></title>";
         help = CRViewDialog::makeFb2Xml( body );
     } else {
         int len = stream->GetSize();
@@ -936,7 +936,7 @@ void V3DocViewWin::showAboutDialog()
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
     lString16 title = L"Cool Reader ";
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "3.0.25"
+#define PACKAGE_VERSION "3.0.26"
 #endif
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
 
