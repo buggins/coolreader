@@ -3558,6 +3558,10 @@ void LVDocView::swapToCache()
 {
     if ( m_swapDone )
         return;
+    int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
+    int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, 6000000);
+    if ( fs < mfs )
+        return;
     {
         // try swapping to cache
         //lString16 fn( m_stream->GetName() );

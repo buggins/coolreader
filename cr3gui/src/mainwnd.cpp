@@ -704,8 +704,10 @@ void V3DocViewWin::openRecentBook( int index )
         CRFileHistRecord * file = files.get( index );
         lString16 fn = file->getFilePathName();
         // TODO: check error
-        showWaitIcon();
-        loadDocument( fn );
+        if ( LVFileExists(fn) ) {
+            showWaitIcon();
+            loadDocument( fn );
+        }
         //_docview->swapToCache();
     }
 }
@@ -713,14 +715,19 @@ void V3DocViewWin::openRecentBook( int index )
 void V3DocViewWin::showHelpDialog()
 {
 	LVStreamRef stream = LVOpenFileStream( _helpFile.c_str(), LVOM_READ );
-	if ( stream.isNull() )
-		return;
-	int len = stream->GetSize();
 	lString8 help;
-	if ( len>100 && len <1000000 ) {
-		help.append( len, ' ' );
-		stream->Read( help.modify(), len, NULL );
-	}
+    if ( stream.isNull() ) {
+        // show warning
+        lString8 body;
+        body << "<p>" << _("No help file available for your language") << "</p>";
+        help = CRViewDialog::makeFb2Xml( body );
+    } else {
+        int len = stream->GetSize();
+        if ( len>100 && len <1000000 ) {
+            help.append( len, ' ' );
+            stream->Read( help.modify(), len, NULL );
+        }
+    }
 	//lString8 help = UnicodeToUtf8( LVReadTextFile( _helpFile ) );
 	if ( !help.empty() ) {
 		CRViewDialog * dlg = new CRViewDialog( _wm, lString16(_("Help")), help, lvRect(), true, true );
