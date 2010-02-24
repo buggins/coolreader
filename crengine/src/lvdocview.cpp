@@ -93,7 +93,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
 LVDocView::LVDocView( int bitsPerPixel)
-: m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), m_pos(50), m_battery_state(66)
+: m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0), _posIsSet(false), m_battery_state(66)
 #if (LBOOK==1)
 , m_font_size(32)
 #elif defined(__SYMBIAN32__)
@@ -102,7 +102,7 @@ LVDocView::LVDocView( int bitsPerPixel)
 , m_font_size(24)
 #endif
 , m_status_font_size(INFO_FONT_SIZE)
-, m_def_interline_space(130)
+, m_def_interline_space(100)
 , m_font_sizes( def_font_sizes, sizeof(def_font_sizes) / sizeof(int) )
 , m_font_sizes_cyclic(false)
 , m_is_rendered(false)
@@ -132,7 +132,6 @@ LVDocView::LVDocView( int bitsPerPixel)
 , m_rotateAngle(CR_ROTATE_ANGLE_0)
 #endif
 , m_section_bounds_valid(false)
-, m_posIsSet(false)
 , m_doc_format(doc_format_none)
 , m_callback(NULL)
 , m_swapDone(false)
@@ -393,7 +392,9 @@ void LVDocView::Clear()
         _posBookmark = ldomXPointer();
         m_is_rendered = false;
         m_swapDone = false;
-        m_pos = 0;
+        _pos = 0;
+        _page = 0;
+        _posIsSet = false;
         m_cursorPos.clear();
         m_filename.clear();
         m_section_bounds_valid = false;
@@ -424,7 +425,7 @@ void LVDocView::checkRender()
         Render();
         m_imageCache.clear();
         m_is_rendered = true;
-        m_posIsSet = false;
+        _posIsSet = false;
     }
 }
 
@@ -432,16 +433,25 @@ void LVDocView::checkRender()
 void LVDocView::checkPos()
 {
     checkRender();
-    if ( m_posIsSet )
+    if ( _posIsSet )
         return;
-    m_posIsSet = true;
+    _posIsSet = true;
     LVLock lock(getMutex());
     if ( _posBookmark.isNull() ) {
-        SetPos( 0, false );
+        if ( isPageMode() ) {
+            goToPage( 0 );
+        } else {
+            SetPos( 0, false );
+        }
     } else {
-        //CRLog::trace("checkPos() _posBookmark node=%08X offset=%d", (unsigned)_posBookmark.getNode(), (int)_posBookmark.getOffset());
-        lvPoint pt = _posBookmark.toPoint();
-        SetPos( pt.y, false );
+        if ( isPageMode() ) {
+            int p = getBookmarkPage( _posBookmark );
+            goToPage( p );
+        } else {
+            //CRLog::trace("checkPos() _posBookmark node=%08X offset=%d", (unsigned)_posBookmark.getNode(), (int)_posBookmark.getOffset());
+            lvPoint pt = _posBookmark.toPoint();
+            SetPos( pt.y, false );
+        }
     }
 }
 
@@ -454,15 +464,26 @@ bool LVDocView::IsDrawed()
 /// returns true if page image is available (0=current, -1=prev, 1=next)
 bool LVDocView::isPageImageReady( int delta )
 {
-    if ( !m_is_rendered || !m_posIsSet )
+    if ( !m_is_rendered || !_posIsSet )
         return false;
-    int offset = m_pos;
-    if ( delta<0 )
-        offset = getPrevPageOffset();
-    else if ( delta>0 )
-        offset = getNextPageOffset();
-    //CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
-    LVDocImageRef ref = m_imageCache.get( offset );
+    LVDocImageRef ref;
+    if ( isPageMode() ) {
+        int p = _page;
+        if ( delta<0 )
+            p--;
+        else if ( delta>0 )
+            p++;
+        //CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
+        ref = m_imageCache.get( -1, p );
+    } else {
+        int offset = _pos;
+        if ( delta<0 )
+            offset = getPrevPageOffset();
+        else if ( delta>0 )
+            offset = getNextPageOffset();
+        //CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
+        ref = m_imageCache.get( offset, -1 );
+    }
     return ( !ref.isNull() );
 }
 
@@ -471,21 +492,39 @@ LVDocImageRef LVDocView::getPageImage( int delta )
 {
     checkPos();
     // find existing object in cache
-    int offset = m_pos;
-    if ( delta<0 )
-        offset = getPrevPageOffset();
-    else if ( delta>0 )
-        offset = getNextPageOffset();
-    //CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
-    LVDocImageRef ref = m_imageCache.get( offset );
-    if ( !ref.isNull() ) {
-        //CRLog::trace("getPageImage: + page [%d] found in cache", offset);
-        return ref;
+    LVDocImageRef ref;
+    int p = -1;
+    int offset = -1;
+    if ( isPageMode() ) {
+        p = _page;
+        if ( delta<0 )
+            p--;
+        else if ( delta>0 )
+            p++;
+        if ( p<0 || p>=m_pages.length() )
+            return ref;
+        ref = m_imageCache.get( -1, p );
+        if ( !ref.isNull() ) {
+            //CRLog::trace("getPageImage: + page [%d] found in cache", offset);
+            return ref;
+        }
+    } else {
+        offset = _pos;
+        if ( delta<0 )
+            offset = getPrevPageOffset();
+        else if ( delta>0 )
+            offset = getNextPageOffset();
+        //CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
+        ref = m_imageCache.get( offset, -1 );
+        if ( !ref.isNull() ) {
+            //CRLog::trace("getPageImage: + page [%d] found in cache", offset);
+            return ref;
+        }
     }
     while ( ref.isNull() ) {
         //CRLog::trace("getPageImage: - page [%d] not found, force rendering", offset);
         cachePageImage( delta );
-        ref = m_imageCache.get( offset );
+        ref = m_imageCache.get( offset, p );
     }
     //CRLog::trace("getPageImage: page [%d] is ready", offset);
     return ref;
@@ -494,30 +533,43 @@ LVDocImageRef LVDocView::getPageImage( int delta )
 class LVDrawThread : public LVThread {
     LVDocView * _view;
     int _offset;
+    int _page;
     LVRef<LVDrawBuf> _drawbuf;
 public:
-    LVDrawThread( LVDocView * view, int offset, LVRef<LVDrawBuf> drawbuf )
-    : _view(view), _offset(offset), _drawbuf(drawbuf)
+    LVDrawThread( LVDocView * view, int offset, int page, LVRef<LVDrawBuf> drawbuf )
+    : _view(view), _offset(offset), _page(page), _drawbuf(drawbuf)
     {
         start();
     }
     virtual void run()
     {
         //CRLog::trace("LVDrawThread::run() offset==%d", _offset);
-        _view->Draw( *_drawbuf, _offset, true );
+        _view->Draw( *_drawbuf, _offset, _page, true );
         //_drawbuf->Rotate( _view->GetRotateAngle() );
     }
 };
 /// cache page image (render in background if necessary)
 void LVDocView::cachePageImage( int delta )
 {
-    int offset = m_pos;
-    if ( delta<0 )
-        offset = getPrevPageOffset();
-    else if ( delta>0 )
-        offset = getNextPageOffset();
+    int offset = -1;
+    int p = -1;
+    if ( isPageMode() ) {
+        p = _page;
+        if ( delta<0 )
+            p--;
+        else if ( delta>0 )
+            p++;
+        if ( p<0 || p>=m_pages.length() )
+            return;
+    } else {
+        offset = _pos;
+        if ( delta<0 )
+            offset = getPrevPageOffset();
+        else if ( delta>0 )
+            offset = getNextPageOffset();
+    }
     //CRLog::trace("cachePageImage: request to cache page [%d] (delta=%d)", offset, delta);
-    if ( m_imageCache.has(offset) ) {
+    if ( m_imageCache.has(offset, p) ) {
         //CRLog::trace("cachePageImage: Page [%d] is found in cache", offset);
         return;
     }
@@ -537,8 +589,8 @@ void LVDocView::cachePageImage( int delta )
         }
     }
     LVRef<LVDrawBuf> drawbuf( buf );
-    LVRef<LVThread> thread( new LVDrawThread( this, offset, drawbuf ) );
-    m_imageCache.set( offset, drawbuf, thread );
+    LVRef<LVThread> thread( new LVDrawThread( this, offset, p, drawbuf ) );
+    m_imageCache.set( offset, p, drawbuf, thread );
     //CRLog::trace("cachePageImage: caching page [%d] is finished", offset);
 }
 
@@ -807,7 +859,8 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
     int save_m_dx = m_dx;
     int save_m_dy = m_dy;
     int old_flags = m_pageHeaderInfo;
-    int save_pos = m_pos;
+    int save_pos = _pos;
+    int save_page = _pos;
     bool showCover = getShowCover();
     m_pageHeaderInfo &= ~(PGHDR_CLOCK | PGHDR_BATTERY);
     int dx = 600; // - m_pageMargins.left - m_pageMargins.right;
@@ -858,8 +911,9 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
             //drawbuf.SetTextColor(0x000000);
             drawbuf.Clear(m_backgroundColor);
             drawPageTo( &drawbuf, *pages[i], NULL, pages.length(), 0 );
-            m_pos = pages[i]->start;
-            Draw( drawbuf, m_pos, true );
+            _pos = pages[i]->start;
+            _page = i;
+            Draw( drawbuf, -1, _page, true );
             if (!flgGray) {
                 drawbuf.ConvertToBitmap(false);
                 drawbuf.Invert();
@@ -916,7 +970,8 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
         }
     }
     m_pageHeaderInfo = old_flags;
-    m_pos = save_pos;
+    _pos = save_pos;
+    _page = save_page;
     bool rotated =
 #if CR_INTERNAL_PAGE_ORIENTATION==1
             (GetRotateAngle()&1);
@@ -929,39 +984,6 @@ bool LVDocView::exportWolFile( LVStream * stream, bool flgGray, int levels )
     clearImageCache();
 
     return true;
-}
-
-void LVDocView::SetPos( int pos, bool savePos )
-{
-    LVLock lock(getMutex());
-    m_posIsSet = true;
-    checkRender();
-    //if ( m_posIsSet && m_pos==pos )
-    //    return;
-    if (m_view_mode==DVM_SCROLL)
-    {
-        if (pos > GetFullHeight() - m_dy )
-            pos = GetFullHeight() - m_dy;
-        if (pos<0)
-            pos = 0;
-        m_pos = pos;
-    }
-    else
-    {
-        int pc = getVisiblePageCount();
-        int page = m_pages.FindNearestPage( pos, 0 );
-        if ( pc==2 )
-            page &= ~1;
-        if (page<m_pages.length())
-            m_pos = m_pages[page]->start;
-        else
-            m_pos = 0;
-    }
-    if ( savePos )
-        _posBookmark = getBookmark();
-    m_posIsSet = true;
-    updateScroll();
-    //Draw();
 }
 
 int LVDocView::GetFullHeight()
@@ -1539,11 +1561,104 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
 #endif
 }
 
+/// returns page count
+int LVDocView::getPageCount()
+{
+    return m_pages.length();
+}
+
+//============================================================================
+// Navigation code
+//============================================================================
+
+/// get vertical position of view inside document
+int LVDocView::GetPos()
+{
+    if ( isPageMode() && _page>=0 && _page<m_pages.length() )
+        return m_pages[_page]->start;
+    return _pos;
+}
+
+void LVDocView::SetPos( int pos, bool savePos )
+{
+    LVLock lock(getMutex());
+    _posIsSet = true;
+    checkRender();
+    //if ( m_posIsSet && m_pos==pos )
+    //    return;
+    if ( isScrollMode() )
+    {
+        if (pos > GetFullHeight() - m_dy )
+            pos = GetFullHeight() - m_dy;
+        if (pos<0)
+            pos = 0;
+        _pos = pos;
+        int page = m_pages.FindNearestPage(pos, 0);
+        if ( page>=0 && page<m_pages.length() )
+            _page = page;
+        else
+            _page = -1;
+    }
+    else
+    {
+        int pc = getVisiblePageCount();
+        int page = m_pages.FindNearestPage(pos, 0);
+        if ( pc==2 )
+            page &= ~1;
+        if (page<m_pages.length()) {
+            _pos = m_pages[page]->start;
+            _page = page;
+        } else {
+            _pos = 0;
+            _page = 0;
+        }
+    }
+    if ( savePos )
+        _posBookmark = getBookmark();
+    _posIsSet = true;
+    updateScroll();
+    //Draw();
+}
+
 int LVDocView::getCurPage()
 {
     LVLock lock(getMutex());
     checkPos();
-    return m_pages.FindNearestPage(m_pos, 0);
+    if ( isPageMode() && _page>=0 )
+        return _page;
+    return m_pages.FindNearestPage(_pos, 0);
+}
+
+void LVDocView::goToPage( int page )
+{
+    LVLock lock(getMutex());
+    checkRender();
+    if (!m_pages.length())
+        return;
+
+    if ( isScrollMode() ) {
+        if (page>=0 && page<m_pages.length() ) {
+            _pos = m_pages[page]->start;
+            _page = page;
+        } else {
+            _pos = 0;
+            _page = 0;
+        }
+    } else {
+        int pc = getVisiblePageCount();
+        if ( pc==2 )
+            page &= ~1;
+        if ( page>=0 && page<m_pages.length() ) {
+            _pos = m_pages[page]->start;
+            _page = page;
+        } else {
+            _pos = 0;
+            _page = 0;
+        }
+    }
+    _posBookmark = getBookmark();
+    _posIsSet = true;
+    updateScroll();
 }
 
 /// returns true if time changed since clock has been last drawed
@@ -1559,7 +1674,7 @@ bool LVDocView::isTimeChanged()
 }
 
 /// draw to specified buffer
-void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
+void LVDocView::Draw( LVDrawBuf & drawbuf, int position, int page, bool rotate  )
 {
     LVLock lock(getMutex());
     checkPos();
@@ -1580,7 +1695,7 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
         return;
     if (m_font.isNull())
         return;
-    if (m_view_mode==DVM_SCROLL)
+    if ( isScrollMode() )
     {
         drawbuf.SetClipRect(NULL);
         int cover_height = 0;
@@ -1603,7 +1718,8 @@ void LVDocView::Draw( LVDrawBuf & drawbuf, int position, bool rotate  )
     {
         int pc = getVisiblePageCount();
         //CRLog::trace("searching for page with offset=%d", position);
-        int page = m_pages.FindNearestPage(position, 0);
+        if ( page==-1 )
+            page = m_pages.FindNearestPage(position, 0);
         //CRLog::trace("found page #%d", page);
         if ( page>=0 && page<m_pages.length() )
             drawPageTo( &drawbuf, *m_pages[page], &m_pageRects[0], m_pages.length(), 1 );
@@ -1633,12 +1749,12 @@ bool LVDocView::windowToDocPoint( lvPoint & pt )
 #endif
     if ( getViewMode() == DVM_SCROLL ) {
         // SCROLL mode
-        pt.y += m_pos;
+        pt.y += _pos;
         pt.x -= m_pageMargins.left;
         return true;
     } else {
         // PAGES mode
-        int page = m_pages.FindNearestPage(m_pos, 0);
+        int page = getCurPage();
         lvRect * rc = NULL;
         lvRect page1( m_pageRects[0] );
         int headerHeight = getPageHeaderHeight();
@@ -1681,7 +1797,7 @@ bool LVDocView::docToWindowPoint( lvPoint & pt )
     // TODO: implement coordinate conversion here
     if ( getViewMode() == DVM_SCROLL ) {
         // SCROLL mode
-        pt.y -= m_pos;
+        pt.y -= _pos;
         pt.x += m_pageMargins.left;
         return true;
     } else {
@@ -1763,10 +1879,10 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange( int pageIndex )
     LVLock lock(getMutex());
     checkRender();
     LVRef<ldomXRange> res(NULL);
-    if ( getViewMode()==DVM_SCROLL ) {
+    if ( isScrollMode() ) {
         // SCROLL mode
-        int starty = m_pos;
-        int endy = m_pos + m_dy;
+        int starty = _pos;
+        int endy = _pos + m_dy;
         int fh = GetFullHeight();
         if ( endy>=fh )
             endy = fh-1;
@@ -2089,7 +2205,8 @@ bool LVDocView::goLink( lString16 link, bool savePos )
             _posBookmark = ldomXPointer();
             m_is_rendered = false;
             m_swapDone = false;
-            m_pos = 0;
+            _pos = 0;
+            _page = 0;
             m_section_bounds_valid = false;
             m_doc_props->setString(DOC_PROP_FILE_PATH, dir);
             m_doc_props->setString(DOC_PROP_FILE_NAME, filename);
@@ -2564,7 +2681,7 @@ void LVDocView::restorePosition()
         //goToBookmark( pos );
     	CRLog::info("LVDocView::restorePosition() - last position is found");
         _posBookmark = pos; //getBookmark();
-        m_posIsSet = false;
+        _posIsSet = false;
     } else {
     	CRLog::info("LVDocView::restorePosition() - last position not found for file %s, size %d", UnicodeToUtf8(m_filename).c_str(), (int)m_filesize);
     }
@@ -2650,7 +2767,8 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
 
     ldomDocumentWriter writer(m_doc);
 
-    m_pos = 0;
+    _pos = 0;
+    _page = 0;
 
     // make fb2 document structure
     writer.OnTagOpen( NULL, L"?xml" );
@@ -3159,7 +3277,7 @@ void LVDocView::setDocFormat( doc_format_t fmt )
 /// create document and set flags
 void LVDocView::createEmptyDocument()
 {
-    m_posIsSet = false;
+    _posIsSet = false;
     m_swapDone = false;
     _posBookmark = ldomXPointer();
     lUInt32 saveFlags = 0;
@@ -3174,7 +3292,7 @@ void LVDocView::createEmptyDocument()
     _posBookmark.clear();
     m_section_bounds.clear();
     m_section_bounds_valid = false;
-    m_posIsSet = false;
+    _posIsSet = false;
     m_swapDone = false;
 
     m_doc->setProps( m_doc_props );
@@ -3337,7 +3455,8 @@ bool LVDocView::ParseDocument( )
 			return false;
         }
 		delete parser;
-		m_pos = 0;
+        _pos = 0;
+        _page = 0;
 
         int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
         int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, 6000000);
@@ -3468,8 +3587,8 @@ ldomXPointer LVDocView::getCurrentPageMiddleParagraph()
 
     if ( getViewMode()==DVM_SCROLL ) {
         // SCROLL mode
-        int starty = m_pos;
-        int endy = m_pos + m_dy;
+        int starty = _pos;
+        int endy = _pos + m_dy;
         int fh = GetFullHeight();
         if ( endy>=fh )
             endy = fh-1;
@@ -3500,8 +3619,14 @@ ldomXPointer LVDocView::getBookmark()
     LVLock lock(getMutex());
     checkPos();
     ldomXPointer ptr;
-    if ( m_doc )
-        ptr = m_doc->createXPointer( lvPoint( 0, m_pos ) );
+    if ( m_doc ) {
+        if ( isPageMode() ) {
+            if ( _page>=0 && _page<m_pages.length() )
+                ptr = m_doc->createXPointer( lvPoint( 0, m_pages[_page]->start ) );
+        } else {
+            ptr = m_doc->createXPointer( lvPoint( 0, _pos ) );
+        }
+    }
     return ptr;
 /*
     lUInt64 pos = m_pos;
@@ -3607,7 +3732,7 @@ void LVDocView::goToBookmark(ldomXPointer bm)
 {
     LVLock lock(getMutex());
     checkRender();
-    m_posIsSet = false;
+    _posIsSet = false;
     _posBookmark = bm;
 }
 
@@ -3631,7 +3756,7 @@ void LVDocView::updateScroll()
     checkPos();
     if (m_view_mode==DVM_SCROLL)
     {
-        int npos = m_pos;
+        int npos = _pos;
         int fh = GetFullHeight();
         int shift = 0;
         int npage = m_dy;
@@ -3654,7 +3779,7 @@ void LVDocView::updateScroll()
     }
     else
     {
-        int page = m_pages.FindNearestPage( m_pos, 0 );
+        int page = getCurPage();
         int vpc = getVisiblePageCount();
         m_scrollinfo.pos = page / vpc;
         m_scrollinfo.maxpos = (m_pages.length() + vpc-1) / vpc - 1;
@@ -3761,32 +3886,18 @@ void LVDocView::getCurrentPageLinks( ldomXRangeList & list )
     }
 }
 
-
-void LVDocView::goToPage( int page )
-{
-    LVLock lock(getMutex());
-    checkRender();
-    if (!m_pages.length())
-        return;
-    if (page >= m_pages.length())
-        page = m_pages.length()-1;
-    if (page<0)
-        page = 0;
-    SetPos( m_pages[page]->start );
-}
-
 /// returns document offset for next page
 int LVDocView::getNextPageOffset()
 {
     LVLock lock(getMutex());
     checkPos();
-    if (m_view_mode==DVM_SCROLL)
+    if ( isScrollMode() )
     {
         return GetPos() + m_dy;
     }
     else
     {
-        int p = m_pages.FindNearestPage(m_pos, 0)  + getVisiblePageCount();
+        int p = getCurPage()  + getVisiblePageCount();
         if ( p<m_pages.length() )
             return m_pages[p]->start;
         if ( !p || m_pages.length()==0 )
@@ -3806,7 +3917,7 @@ int LVDocView::getPrevPageOffset()
     }
     else
     {
-        int p = m_pages.FindNearestPage(m_pos, 0);
+        int p = getCurPage();
         p -= getVisiblePageCount();
         if ( p < 0 )
             p = 0;
@@ -4141,7 +4252,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             }
             else
             {
-                int p = m_pages.FindNearestPage(m_pos, 0);
+                int p = getCurPage();
                 goToPage( p - getVisiblePageCount() );
                 //goToPage( m_pages.FindNearestPage(m_pos, -1));
             }
@@ -4215,7 +4326,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             }
             else
             {
-                int p = m_pages.FindNearestPage(m_pos, 0);
+                int p = getCurPage();
                 goToPage( p + getVisiblePageCount() );
                 //goToPage( m_pages.FindNearestPage(m_pos, +1));
             }

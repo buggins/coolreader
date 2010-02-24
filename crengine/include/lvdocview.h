@@ -103,6 +103,7 @@ class LVDocViewImageCache
                 LVRef<LVDrawBuf> _drawbuf;
                 LVRef<LVThread> _thread;
                 int _offset;
+                int _page;
                 bool _ready;
                 bool _valid;
         };
@@ -112,7 +113,7 @@ class LVDocViewImageCache
         /// return mutex
         LVMutex & getMutex() { return _mutex; }
         /// set page to cache
-        void set( int offset, LVRef<LVDrawBuf> drawbuf, LVRef<LVThread> thread )
+        void set( int offset, int page, LVRef<LVDrawBuf> drawbuf, LVRef<LVThread> thread )
         {
             LVLock lock( _mutex );
             _last = (_last + 1) & 1;
@@ -120,13 +121,16 @@ class LVDocViewImageCache
             _items[_last]._thread = thread;
             _items[_last]._drawbuf = drawbuf;
             _items[_last]._offset = offset;
+            _items[_last]._page = page;
             _items[_last]._valid = true;
         }
         /// return page image, wait until ready
-        LVRef<LVDrawBuf> getWithoutLock( int offset )
+        LVRef<LVDrawBuf> getWithoutLock( int offset, int page )
         {
             for ( int i=0; i<2; i++ ) {
-                if ( _items[i]._valid && _items[i]._offset == offset ) {
+                if ( _items[i]._valid &&
+                     (_items[i]._offset == offset && offset!=-1
+                      || _items[i]._page==page && page!=-1) ) {
                     if ( !_items[i]._ready ) {
                         _items[i]._thread->join();
                         _items[i]._thread = NULL;
@@ -139,19 +143,20 @@ class LVDocViewImageCache
             return LVRef<LVDrawBuf>();
         }
         /// return page image, wait until ready
-        LVDocImageRef get( int offset )
+        LVDocImageRef get( int offset, int page )
         {
             _mutex.lock();
-            LVRef<LVDrawBuf> buf = getWithoutLock( offset );
+            LVRef<LVDrawBuf> buf = getWithoutLock( offset, page );
             if ( !buf.isNull() )
-                return LVDocImageRef( new LVDocImageHolder(getWithoutLock( offset ), _mutex) );
+                return LVDocImageRef( new LVDocImageHolder(getWithoutLock( offset, page ), _mutex) );
             return LVDocImageRef( NULL );
         }
-        bool has( int offset )
+        bool has( int offset, int page )
         {
             _mutex.lock();
             for ( int i=0; i<2; i++ ) {
-                if ( _items[i]._valid && _items[i]._offset == offset ) {
+                if ( _items[i]._valid && (_items[i]._offset == offset && offset!=-1
+                      || _items[i]._page==page && page!=-1) ) {
                     return true;
                 }
             }
@@ -167,7 +172,8 @@ class LVDocViewImageCache
                 _items[i]._thread = NULL;
                 _items[i]._valid = false;
                 _items[i]._drawbuf = NULL;
-                _items[i]._offset = 0;
+                _items[i]._offset = -1;
+                _items[i]._page = -1;
             }
         }
         LVDocViewImageCache()
@@ -335,7 +341,13 @@ private:
     int m_bitsPerPixel;
     int m_dx;
     int m_dy;
-    int m_pos;
+
+    // current position
+    int _pos;  // >=0 is correct vertical offset inside document, <0 - get based on m_page
+    int _page; // >=0 is correct page number, <0 - get based on _pos
+    bool _posIsSet;
+    ldomXPointer _posBookmark; // bookmark for current position
+
     int m_battery_state;
     int m_font_size;
     int m_status_font_size;
@@ -343,7 +355,11 @@ private:
     LVArray<int> m_font_sizes;
     bool m_font_sizes_cyclic;
     bool m_is_rendered;
-    LVDocViewMode m_view_mode;
+
+    LVDocViewMode m_view_mode; // DVM_SCROLL, DVM_PAGES
+    inline bool isPageMode() { return m_view_mode==DVM_PAGES; }
+    inline bool isScrollMode() { return m_view_mode==DVM_SCROLL; }
+
     LVTocItem m_toc;
     /*
 #if (COLOR_BACKBUFFER==1)
@@ -375,7 +391,6 @@ private:
     lString16 m_filename;
     lvsize_t  m_filesize;
 
-    ldomXPointer _posBookmark;
 
     lvRect m_pageMargins;
     lvRect m_pageRects[2];
@@ -397,7 +412,6 @@ private:
     LVMutex _mutex;
     LVDocViewImageCache m_imageCache;
 
-    bool m_posIsSet;
 
     lString8 m_defaultFontFace;
 	lString8 m_statusFontFace;
@@ -436,8 +450,8 @@ private:
 
 
 protected:
-    /// draw to specified buffer
-    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, bool rotate );
+    /// draw to specified buffer by either Y pos or page number (unused param should be -1)
+    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate );
 
     virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
 
@@ -797,7 +811,7 @@ public:
     int GetFullHeight();
 
     /// get vertical position of view inside document
-    int GetPos() { return m_pos; }
+    int GetPos();
     /// set vertical position of view inside document
     void SetPos( int pos, bool savePos=true );
 
@@ -806,7 +820,7 @@ public:
     /// move to specified page
     void goToPage( int page );
     /// returns page count
-    int getPageCount() { return m_pages.length(); }
+    int getPageCount();
 
     /// clear view
     void Clear();
