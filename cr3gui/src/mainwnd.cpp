@@ -44,13 +44,14 @@
 
 
 
+#define SECONDS_BEFORE_PROGRESS_BAR 2
 
 
 DECL_DEF_CR_FONT_SIZES;
 
 
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
-: CRViewDialog ( wm, lString16(), lString8(), lvRect(), false, false ), _dataDir(dataDir)
+: CRViewDialog ( wm, lString16(), lString8(), lvRect(), false, false ), _dataDir(dataDir), _loadFileStart(0)
 {
     CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
@@ -342,6 +343,7 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
 /// on starting file loading
 void V3DocViewWin::OnLoadFileStart( lString16 filename )
 {
+    _loadFileStart = time((time_t)0);
 }
 
 /// format detection finished
@@ -384,26 +386,34 @@ void V3DocViewWin::OnLoadFileEnd()
 void V3DocViewWin::OnLoadFileProgress( int percent )
 {
     CRLog::trace("OnLoadFileProgress(%d)", percent);
-    _wm->showProgress(lString16("cr3_wait_icon.png"), 10+percent/2);
+    time_t t = time((time_t)0);
+    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR )
+        _wm->showProgress(lString16("cr3_wait_icon.png"), 10+percent/2);
 }
 
 /// document formatting started
 void V3DocViewWin::OnFormatStart()
 {
-    _wm->showProgress(lString16("cr3_wait_icon.png"), 60);
+    time_t t = time((time_t)0);
+    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR )
+        _wm->showProgress(lString16("cr3_wait_icon.png"), 60);
 }
 
 /// document formatting finished
 void V3DocViewWin::OnFormatEnd()
 {
-    _wm->showProgress(lString16("cr3_wait_icon.png"), 100);
+    time_t t = time((time_t)0);
+    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR )
+        _wm->showProgress(lString16("cr3_wait_icon.png"), 100);
 }
 
 /// format progress, called with values 0..100
 void V3DocViewWin::OnFormatProgress( int percent )
 {
     CRLog::trace("OnFormatProgress(%d)", percent);
-    _wm->showProgress(lString16("cr3_wait_icon.png"), 60+percent*4/10);
+    time_t t = time((time_t)0);
+    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR )
+        _wm->showProgress(lString16("cr3_wait_icon.png"), 60+percent*4/10);
 }
 
 /// file load finiished with error
@@ -705,7 +715,7 @@ void V3DocViewWin::openRecentBook( int index )
         lString16 fn = file->getFilePathName();
         // TODO: check error
         if ( LVFileExists(fn) ) {
-            showWaitIcon();
+            //showWaitIcon();
             loadDocument( fn );
         }
         //_docview->swapToCache();

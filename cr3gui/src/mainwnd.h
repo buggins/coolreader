@@ -106,6 +106,7 @@ protected:
     lString16 _bookmarkDir;
 	lString16 _helpFile;
     lString16 _cssDir;
+    time_t _loadFileStart;
 public:
     lString16 getBookmarkDir() { return _bookmarkDir; }
     void setBookmarkDir( lString16 dir ) { _bookmarkDir = dir; }

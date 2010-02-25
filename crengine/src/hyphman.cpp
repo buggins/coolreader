@@ -412,6 +412,14 @@ TexHyph::TexHyph()
 
 TexHyph::~TexHyph()
 {
+    for ( int i=0; i<PATTERN_HASH_SIZE; i++ ) {
+        TexPattern * p = table[i];
+        while (p) {
+            TexPattern * tmp = p;
+            p = p->next;
+            delete tmp;
+        }
+    }
 }
 
 void TexHyph::addPattern( TexPattern * pattern )
