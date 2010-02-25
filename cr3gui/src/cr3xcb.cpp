@@ -738,6 +738,8 @@ public:
     {
         if (!(window && connection))
             return;
+        if ( !main_win || !main_win->getDocView() )
+            return;
 
         CRLog::info("CRXCBWindowManager::updateProperties() -- updating properties on file load completion");
     #define set_prop_str(__i__, __prop__) \
@@ -823,7 +825,8 @@ public:
     {
         if ( !atoms[9].atom )
             return;
-
+        if ( !main_win || !main_win->getDocView() )
+            return;
         LVDocView* doc_view = main_win->getDocView();
         set_prop_int(9, doc_view->getPosPercent()/100 ); //f->bookTextView().positionIndicator()->textPosition()
         set_prop_int(10, doc_view->getCurPage() );
@@ -1127,7 +1130,7 @@ int CRXCBWindowManager::runEventLoop()
 
         free (event);
 
-        if ( processPostedEvents() || needUpdate ) {
+        if ( (processPostedEvents() || needUpdate ) && getWindowCount() ) {
             updatePositionProperty();
             update(false);
         }
@@ -1135,7 +1138,7 @@ int CRXCBWindowManager::runEventLoop()
         if ( !getWindowCount() )
             stop = true;
 
-        if ( getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
+        if ( !stop && getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
             CRLog::debug("Last command is page down: preparing next page for fast navigation");
             main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
         }

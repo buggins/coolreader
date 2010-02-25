@@ -169,9 +169,9 @@ class LVDocViewImageCache
                 if ( _items[i]._valid && !_items[i]._ready ) {
                     _items[i]._thread->join();
                 }
-                _items[i]._thread = NULL;
+                _items[i]._thread.Clear();
                 _items[i]._valid = false;
-                _items[i]._drawbuf = NULL;
+                _items[i]._drawbuf.Clear();
                 _items[i]._offset = -1;
                 _items[i]._page = -1;
             }

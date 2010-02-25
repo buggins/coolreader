@@ -986,6 +986,7 @@ class CRDocViewWindow : public CRGUIWindowBase
         virtual ~CRDocViewWindow()
         {
             delete _docview;
+            _docview = NULL;
         }
 
         virtual void setRect( const lvRect & rc );
