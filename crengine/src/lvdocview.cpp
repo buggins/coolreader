@@ -2584,6 +2584,10 @@ void LVDocView::Resize( int dx, int dy )
         dy = tmp;
     }
 #endif
+
+    if (dx==m_dx && dy==m_dy)
+        return;
+
     m_imageCache.clear();
     //m_drawbuf.Resize(dx, dy);
     if (m_doc)
@@ -3559,7 +3563,9 @@ void LVDocView::swapToCache()
     if ( m_swapDone )
         return;
     int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
-    int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, 6000000);
+    // minimum file size to swap, even if forced
+    int mfs = m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
+
     if ( fs < mfs )
         return;
     {
@@ -4418,7 +4424,8 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     fontMan->getFaceList( list );
     static int def_aa_props[] = { 2, 1, 0 };
 
-    props->setIntDef( PROP_MIN_FILE_SIZE_TO_CACHE, 8000000 );
+    props->setIntDef( PROP_MIN_FILE_SIZE_TO_CACHE, 6000000 ); // ~6M
+    props->setIntDef( PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000 ); // ~30K
     props->setIntDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 );
 
     props->limitValueList( PROP_FONT_ANTIALIASING, def_aa_props, sizeof(def_aa_props)/sizeof(int) );

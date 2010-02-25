@@ -502,6 +502,7 @@ void CRViewDialog::setRect( const lvRect & rc )
 {
     //if ( rc == _rect )
     //    return;
+    CRLog::info("CRViewDialog::setRect(%d,%d,%d,%d)", rc.left, rc.top, rc.right, rc.bottom);
     _rect = rc;
     lvRect clientRect = _rect;
     if ( _showFrame ) {

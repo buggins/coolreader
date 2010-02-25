@@ -102,6 +102,8 @@ void HyphMan::uninit()
 		delete _dictList;
     _dictList = NULL;
 	_selectedDictionary = NULL;
+    if ( HyphMan::_method != &ALGO_HYPH && HyphMan::_method != &NO_HYPH )
+            delete HyphMan::_method;
     _method = &NO_HYPH;
 }
 

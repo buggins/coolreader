@@ -143,7 +143,7 @@ void LVNamedStream::SetName(const lChar16 * name)
     m_filename = m_fname.substr(pos, m_fname.length() - pos);
 }
 
-/// Universal Read or write buffer for stream region for non-memmapped streams
+/// Universal Read or write buffer for stream region for non-meped streams
 // default implementation, with RAM buffer
 class LVDefStreamBuffer : public LVStreamBuffer
 {
@@ -162,12 +162,12 @@ public:
         case LVOM_ERROR:       ///< to indicate error state
         case LVOM_CLOSED:        ///< to indicate closed state
             return res;
-        case LVOM_READ:          ///< readonly mode, use for r/o mmap
+        case LVOM_READ:          ///< readonly mode, use for r/o
             if ( !readonly )
                 return res;
             break;
         case LVOM_WRITE:         ///< writeonly mode
-        case LVOM_APPEND:        ///< append (readwrite) mode, use for r/w mmap
+        case LVOM_APPEND:        ///< append (readwrite) mode, use for r/w
         case LVOM_READWRITE:      ///< readwrite mode
             if ( readonly )
                 return res;
@@ -295,7 +295,7 @@ lverror_t LVStream::crc32( lUInt32 & dst )
 }
 
 
-//#if USE_MMAP_FILES==1
+//#if USE__FILES==1
 #if defined(_LINUX) || defined(_WIN32)
 
 class LVFileMappedStream : public LVNamedStream
@@ -312,7 +312,7 @@ private:
     lvpos_t m_pos;
 
     /// Read or write buffer for stream region
-    class LVMMapBuffer : public LVStreamBuffer
+    class LVBuffer : public LVStreamBuffer
     {
     protected:
         LVStreamRef m_stream;
@@ -320,7 +320,7 @@ private:
         lvsize_t m_size;
         bool m_readonly;
     public:
-        LVMMapBuffer( LVStreamRef stream, lUInt8 * buf, lvsize_t size, bool readonly )
+        LVBuffer( LVStreamRef stream, lUInt8 * buf, lvsize_t size, bool readonly )
         : m_stream( stream ), m_buf( buf ), m_size( size ), m_readonly( readonly )
         {
         }
@@ -344,14 +344,14 @@ private:
         }
 
         /// flush on destroy
-        virtual ~LVMMapBuffer() { }
+        virtual ~LVBuffer() { }
 
     };
 
 
 public:
 
-    /// Get read buffer (optimal for mmap)
+    /// Get read buffer (optimal for )
     virtual LVStreamBufferRef GetReadBuffer( lvpos_t pos, lvpos_t size )
     {
         LVStreamBufferRef res;
@@ -359,10 +359,10 @@ public:
             return res;
         if ( (m_mode!=LVOM_APPEND && m_mode!=LVOM_READ) || pos + size > m_size || size==0 )
             return res;
-        return LVStreamBufferRef ( new LVMMapBuffer( LVStreamRef(this), m_map + pos, size, true ) );
+        return LVStreamBufferRef ( new LVBuffer( LVStreamRef(this), m_map + pos, size, true ) );
     }
 
-    /// Get read/write buffer (optimal for mmap)
+    /// Get read/write buffer (optimal for )
     virtual LVStreamBufferRef GetWriteBuffer( lvpos_t pos, lvpos_t size )
     {
         LVStreamBufferRef res;
@@ -370,7 +370,7 @@ public:
             return res;
         if ( m_mode!=LVOM_APPEND || pos + size > m_size || size==0 )
             return res;
-        return LVStreamBufferRef ( new LVMMapBuffer( LVStreamRef(this), m_map + pos, size, false ) );
+        return LVStreamBufferRef ( new LVBuffer( LVStreamRef(this), m_map + pos, size, false ) );
     }
 
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
@@ -760,7 +760,7 @@ public:
 		// LINUX IMPLEMENTATION
         m_fd = -1;
 
-        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT;
+        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT | O_SYNC;
         m_fd = open( fn8.c_str(), flags, (mode_t)0666);
         if (m_fd == -1) {
             CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );

@@ -852,7 +852,7 @@ public:
     virtual bool onKeyPressed( int key, int flags = 0 )
     {
         // DEBUG ONLY
-        if ( key == 65289 || key==1739 || key=='r' ) // 'r' == rotate
+        if ( /* key == 65289 || */ key==1739 || key=='r' ) // 'r' == rotate
         {
             CRLog::info("Simulating rotation on R keypress...");
             cr_rotate_angle_t angle = (cr_rotate_angle_t)(getScreenOrientation() ^ 1);
@@ -1422,6 +1422,8 @@ int main(int argc, char **argv)
         }
         }
     }
+    HyphMan::uninit();
+    ldomDocCache::close();
     ShutdownCREngine();
 
     return res;

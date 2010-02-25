@@ -1348,6 +1348,10 @@ int main( int argc, const char * argv[] )
 
     closeLeds();
 
+    HyphMan::uninit();
+    ldomDocCache::close();
+    ShutdownCREngine();
+
     return 0;
 }
 
