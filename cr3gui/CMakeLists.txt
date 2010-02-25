@@ -19,7 +19,7 @@ SET(KWWidgets_CMAKE_DIR ${CMAKE_SOURCE_DIR}/tools/)
 INCLUDE(${KWWidgets_CMAKE_DIR}FindGettext.cmake)
 INCLUDE(${KWWidgets_CMAKE_DIR}KWWidgetsInternationalizationMacros.cmake)
 
-SET (LANGUAGES ru uk de bg es pl zh_CN zh_TW)
+SET (LANGUAGES ru uk de bg es pl lt zh_CN zh_TW)
 message( "Languages: ${LANGUAGES}" )
 
 

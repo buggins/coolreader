@@ -2196,6 +2196,7 @@ static const ent_def_t def_entity_table[] = {
 {L"amp", 38},
 {L"lt", 60},
 {L"gt", 62},
+{L"apos", '\''},
 {L"OElig", 338},
 {L"oelig", 339},
 {L"Scaron", 352},

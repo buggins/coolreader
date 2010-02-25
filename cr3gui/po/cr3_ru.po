@@ -7,14 +7,13 @@ msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
 "POT-Creation-Date: 2010-02-24 20:26+0300\n"
-"PO-Revision-Date: 2009-03-05 11:43+0300\n"
-"Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
+"PO-Revision-Date: 2010-02-25 12:54+0200\n"
+"Last-Translator: Vladimir <v@v>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/citedlg.cpp:28
 msgid "Select text"
@@ -22,13 +21,14 @@ msgstr "Выделите текст"
 
 #: ../src/fsmenu.cpp:41
 msgid "1..9"
-msgstr ""
+msgstr "1..9"
 
 #: ../src/fsmenu.cpp:43
 msgid "1..8"
-msgstr ""
+msgstr "1..8"
 
-#: ../src/mainwnd.cpp:726 ../src/mainwnd.cpp:827
+#: ../src/mainwnd.cpp:726
+#: ../src/mainwnd.cpp:827
 msgid "Help"
 msgstr "Справка"
 
@@ -36,19 +36,23 @@ msgstr "Справка"
 msgid "Main Menu"
 msgstr "Основное меню"
 
-#: ../src/mainwnd.cpp:776 ../src/viewdlg.cpp:394
+#: ../src/mainwnd.cpp:776
+#: ../src/viewdlg.cpp:394
 msgid "About"
 msgstr "Свойства документа"
 
-#: ../src/mainwnd.cpp:786 ../src/viewdlg.cpp:365
+#: ../src/mainwnd.cpp:786
+#: ../src/viewdlg.cpp:365
 msgid "Go to page"
 msgstr "Перейти на страницу"
 
-#: ../src/mainwnd.cpp:798 ../src/recentdlg.cpp:73
+#: ../src/mainwnd.cpp:798
+#: ../src/recentdlg.cpp:73
 msgid "Open recent book"
 msgstr "Повторное открытие книги"
 
-#: ../src/mainwnd.cpp:805 ../src/viewdlg.cpp:153
+#: ../src/mainwnd.cpp:805
+#: ../src/viewdlg.cpp:153
 msgid "Dictionary"
 msgstr "Словарь"
 
@@ -56,19 +60,23 @@ msgstr "Словарь"
 msgid "Cite"
 msgstr "Цитатник"
 
-#: ../src/mainwnd.cpp:814 ../src/bmkdlg.cpp:114
+#: ../src/mainwnd.cpp:814
+#: ../src/bmkdlg.cpp:114
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: ../src/mainwnd.cpp:818 ../src/viewdlg.cpp:200
+#: ../src/mainwnd.cpp:818
+#: ../src/viewdlg.cpp:200
 msgid "Search"
 msgstr "Поиск"
 
-#: ../src/mainwnd.cpp:822 ../src/settings.cpp:268
+#: ../src/mainwnd.cpp:822
+#: ../src/settings.cpp:268
 msgid "Settings"
 msgstr "Настройки"
 
-#: ../src/mainwnd.cpp:831 ../src/viewdlg.cpp:456
+#: ../src/mainwnd.cpp:831
+#: ../src/viewdlg.cpp:456
 msgid "Keyboard layout"
 msgstr "Назначение клавиш"
 
@@ -332,18 +340,28 @@ msgstr "Во всех шрифтах"
 msgid "On for big fonts only"
 msgstr "В больших шрифтах"
 
-#: ../src/settings.cpp:279 ../src/settings.cpp:285 ../src/settings.cpp:291
-#: ../src/settings.cpp:297 ../src/settings.cpp:303 ../src/settings.cpp:309
-#: ../src/settings.cpp:315 ../src/settings.cpp:340
+#: ../src/settings.cpp:279
+#: ../src/settings.cpp:285
+#: ../src/settings.cpp:291
+#: ../src/settings.cpp:297
+#: ../src/settings.cpp:303
+#: ../src/settings.cpp:309
+#: ../src/settings.cpp:315
+#: ../src/settings.cpp:340
 msgid "Off"
 msgstr "Выкл."
 
-#: ../src/settings.cpp:284 ../src/settings.cpp:290 ../src/settings.cpp:296
-#: ../src/settings.cpp:302 ../src/settings.cpp:308 ../src/settings.cpp:314
+#: ../src/settings.cpp:284
+#: ../src/settings.cpp:290
+#: ../src/settings.cpp:296
+#: ../src/settings.cpp:302
+#: ../src/settings.cpp:308
+#: ../src/settings.cpp:314
 msgid "On"
 msgstr "Вкл."
 
-#: ../src/settings.cpp:320 ../src/settings.cpp:326
+#: ../src/settings.cpp:320
+#: ../src/settings.cpp:326
 msgid "Normal"
 msgstr "Обычный"
 
@@ -548,12 +566,8 @@ msgid "Dictionaries in standard unix .dict format are supported."
 msgstr "Поддерживаются словари в формате .dict (как в unix системах)"
 
 #: ../src/viewdlg.cpp:151
-msgid ""
-"For each dictionary, pair of files should be provided: data file (with .dict "
-"or .dict.dz extension, and index file with .index extension"
-msgstr ""
-"Каждый словарь состоит из файла данных (.dict или .dict.dz), и файла-индекса "
-"слов (.index)."
+msgid "For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension"
+msgstr "Каждый словарь состоит из файла данных (.dict или .dict.dz), и файла-индекса слов (.index)."
 
 #: ../src/viewdlg.cpp:166
 msgid "Table of contents"
@@ -569,11 +583,11 @@ msgstr "Поиск в словаре"
 
 #: ../src/viewdlg.cpp:313
 msgid "M"
-msgstr ""
+msgstr "М"
 
 #: ../src/viewdlg.cpp:315
 msgid "Ok"
-msgstr ""
+msgstr "ОК"
 
 #: ../src/viewdlg.cpp:317
 msgid "Up"
@@ -585,7 +599,7 @@ msgstr "Вниз"
 
 #: ../src/viewdlg.cpp:321
 msgid "C"
-msgstr ""
+msgstr "С"
 
 #: ../src/viewdlg.cpp:323
 msgid "Left"
@@ -612,9 +626,8 @@ msgid "Menu"
 msgstr "Основное меню"
 
 #: ../src/viewdlg.cpp:335
-#, fuzzy
 msgid "Zoom"
-msgstr "Увеличить шрифт"
+msgstr "Изменить шрифт"
 
 #: ../src/viewdlg.cpp:346
 msgid "Long"
@@ -648,7 +661,8 @@ msgstr "Следующая ссылка"
 msgid "Previous link"
 msgstr "Предыдущая ссылка"
 
-#: ../src/viewdlg.cpp:362 ../src/viewdlg.cpp:387
+#: ../src/viewdlg.cpp:362
+#: ../src/viewdlg.cpp:387
 msgid "Go to link"
 msgstr "Перейти по ссылке"
 
@@ -749,9 +763,8 @@ msgid "Bookmark list"
 msgstr "Закладки"
 
 #: ../src/viewdlg.cpp:390
-#, fuzzy
 msgid "Go to bookmark..."
-msgstr "Закладки"
+msgstr "По закладкам"
 
 #: ../src/viewdlg.cpp:391
 msgid "Recent books list"
@@ -851,18 +864,14 @@ msgstr "Действие"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Введите номер страницы: "
-
 #~ msgid "About..."
 #~ msgstr "Свойства документа"
-
 #~ msgid "Open recent book..."
 #~ msgstr "Последние книги"
-
 #~ msgid "Dictionary..."
 #~ msgstr "Словарь"
-
 #~ msgid "Search..."
 #~ msgstr "Поиск"
-
 #~ msgid "Settings..."
 #~ msgstr "Настройки"
+
