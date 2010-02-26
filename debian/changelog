@@ -1,3 +1,15 @@
+cr3 (3.0.24-18) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * update translation files, fix russian translation
+  * fixes for missing manual, switch to recent file
+  * fix valgrind findings
+  * ukrainian translation update, apos xml entity
+  * fix memory leak
+  * update Spanish translation, add initial LT translation file
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Fri, 26 Feb 2010 13:51:18 +0100
+
 cr3 (3.0.24-17) zelazny; urgency=low
 
   [ Vadim Lopatin ]
