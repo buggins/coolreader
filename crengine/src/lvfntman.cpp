@@ -504,6 +504,7 @@ public:
     virtual int getWeight() { return _weight; }
     /// returns italic flag
     virtual int getItalic() { return _italic; }
+    virtual void setFaceName( lString8 face ) { _faceName = face; }
 
     LVMutex & getMutex() { return _mutex; }
     FT_Library getLibrary() { return _library; }
@@ -1617,12 +1618,12 @@ public:
 
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
     {
-    //#if (DEBUG_FONT_MAN==1)
-    //    if ( _log ) {
-//        CRLog::debug("GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
-//                size, weight, italic?1:0, (int)family, typeface.c_str() );
-    //    }
-    //#endif
+    #if (DEBUG_FONT_MAN==1)
+        if ( _log ) {
+             fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
+                size, weight, italic?1:0, (int)family, typeface.c_str() );
+        }
+    #endif
         lString8 fontname;
         LVFontDef def( 
             fontname,
@@ -1633,23 +1634,24 @@ public:
             typeface,
             -1
         );
-        //fprintf( _log, "GetFont: %s %d %s %s\n",
-        //    typeface.c_str(),
-        //    size,
-        //    weight>400?"bold":"",
-        //    italic?"italic":"" );
+    #if (DEBUG_FONT_MAN==1)
+        if ( _log )
+            fprintf( _log, "GetFont: %s %d %s %s\n",
+                typeface.c_str(),
+                size,
+                weight>400?"bold":"",
+                italic?"italic":"" );
+    #endif
         LVFontCacheItem * item = _cache.find( &def );
-    //#if (DEBUG_FONT_MAN==1)
-//        if ( item ) { //_log &&
-//        ///*
-//        CRLog::debug("   found item: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s, weightDelta=%d) FontRef=%d\n",
-//                item->getDef()->getName().c_str(), item->getDef()->getIndex(), item->getDef()->getSize(), item->getDef()->getWeight(), item->getDef()->getItalic()?1:0,
-//                (int)item->getDef()->getFamily(), item->getDef()->getTypeFace().c_str(),
-//                weight - item->getDef()->getWeight(), item->getFont().isNull()?0:item->getFont()->getHeight()
-//            );
-//        //*/
-//        }
-    //#endif
+    #if (DEBUG_FONT_MAN==1)
+        if ( item && _log ) { //_log &&
+            fprintf(_log, "   found item: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s, weightDelta=%d) FontRef=%d\n",
+                item->getDef()->getName().c_str(), item->getDef()->getIndex(), item->getDef()->getSize(), item->getDef()->getWeight(), item->getDef()->getItalic()?1:0,
+                (int)item->getDef()->getFamily(), item->getDef()->getTypeFace().c_str(),
+                weight - item->getDef()->getWeight(), item->getFont().isNull()?0:item->getFont()->getHeight()
+            );
+        }
+    #endif
         if (!item->getFont().isNull())
         {
             int deltaWeight = weight - item->getDef()->getWeight();
@@ -1667,10 +1669,10 @@ public:
             return item->getFont();
         }
         lString8 fname = item->getDef()->getName();
-        //int index = item->getDef()->getIndex();
     #if (DEBUG_FONT_MAN==1)
         if ( _log ) {
-            fprintf(_log, "   no instance: adding new one for filename=%s, index = %d\n", fname.c_str() );
+            int index = item->getDef()->getIndex();
+            fprintf(_log, "   no instance: adding new one for filename=%s, index = %d\n", fname.c_str(), index );
         }
     #endif
         LVFreeTypeFace * font = new LVFreeTypeFace(_lock, _library, &_globalCache);
@@ -1689,6 +1691,7 @@ public:
             //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
             LVFontRef ref(font);
             font->setKerning( getKerning() );
+            font->setFaceName( item->getDef()->getTypeFace() );
             LVFontDef newDef(*item->getDef());
             newDef.setSize( size );
             //item->setFont( ref );
@@ -1828,13 +1831,13 @@ public:
                 familyName,
                 index
             );
-    //#if (DEBUG_FONT_MAN==1)
-    //    if ( _log ) {
-            CRLog::debug("registering font: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s)\n",
+    #if (DEBUG_FONT_MAN==1)
+        if ( _log ) {
+            fprintf(_log, "registering font: (file=%s[%d], size=%d, weight=%d, italic=%d, family=%d, typeface=%s)\n",
                 def.getName().c_str(), def.getIndex(), def.getSize(), def.getWeight(), def.getItalic()?1:0, (int)def.getFamily(), def.getTypeFace().c_str()
             );
-    //    }
-    //#endif
+        }
+    #endif
             if ( _cache.findDuplicate( &def ) )
                 return false;
             _cache.update( &def, LVFontRef(NULL) );

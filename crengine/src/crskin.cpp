@@ -943,7 +943,6 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     buf.SetClipRect( &rc );
     int lh = font->getHeight();
     int th = lh * lines.length();
-    int tw = font->getTextWidth( text.c_str(), text.length() );
     int ttw = tabText.empty() ? 0 : font->getTextWidth( tabText.c_str(), tabText.length() );
 
     int halign = tabText.empty() ? (flags & SKIN_HALIGN_MASK) : SKIN_HALIGN_LEFT;
@@ -958,6 +957,8 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         y += dy;
 
     for ( int i=0; i<lines.length(); i++ ) {
+        lString16 s = lines[i];
+        int tw = font->getTextWidth( s.c_str(), s.length() );
         int x = txtrc.left;
         int dx = txtrc.width() - tw;
         if ( halign == SKIN_HALIGN_CENTER )
@@ -965,7 +966,6 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         else if ( halign == SKIN_HALIGN_RIGHT )
             x += dx;
 
-        lString16 s = lines[i];
 
         font->DrawTextString( &buf, x, y, s.c_str(), s.length(), L'?', NULL, false, 0 );
         if ( !tabText.empty() ) {

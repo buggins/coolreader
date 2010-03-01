@@ -80,7 +80,7 @@ void CRTOCDialog::draw()
         itemSkin->draw( *drawbuf, itemRect );
         itemRect.left += (level - 1) * levelMargin;
         lvRect pageNumRect = itemRect;
-        pageNumRect.left = pageNumRect.right - pageNumWidth;
+        pageNumRect.left = pageNumRect.right - pageNumWidth - valueSkin->getBorderWidths().left - valueSkin->getBorderWidths().right;
         itemRect.right = pageNumRect.left;
         if ( !itemRect.isEmpty() ) {
             lvRect rc = itemRect;
@@ -94,14 +94,14 @@ void CRTOCDialog::draw()
             valueSkin->drawText( *drawbuf, rc, pageString );
         }
         if ( itemRect.left + titleWidth < itemRect.right + 5 ) {
-            itemRect.left = itemRect.left + titleWidth;
+            itemRect.left = itemRect.left + titleWidth + itemSkin->getBorderWidths().left;
             itemRect.left = (itemRect.left + 3) & (~3);
             itemRect.right &= (~3);
             lUInt32 cl = clientSkin->getTextColor();
             if ( !itemRect.isEmpty() ) {
                 // draw line of points
                 for ( int i = itemRect.left; i < itemRect.right; i += 4 ) {
-                    int y = itemRect.bottom - 2;
+                    int y = itemRect.bottom - itemSkin->getFontSize()/5;
                     drawbuf->FillRect( i, y, i+1, y+1, cl );
                 }
             }
@@ -145,7 +145,12 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     _topItem = curItem>=0 ? curItem / _pageItems * _pageItems : 0;
     _page = _topItem / _pageItems + 1;
     _pages = (_items.length()+(_pageItems-1))/ _pageItems;
-    _statusText = lString16(_("Enter page number:"));
+    int curPage = _docview->getCurPage();
+    int docPages = _docview->getPageCount();
+    lString16 pageString(_("Current page: $1 of $2\n"));
+    pageString.replace(lString16(L"$1"), lString16::itoa(curPage+1));
+    pageString.replace(lString16(L"$2"), lString16::itoa(docPages));
+    _statusText = pageString + lString16(_("Enter page number:"));
     _inputText = L"_";
 }
 
