@@ -493,16 +493,24 @@ protected:
     int           _size; // height in pixels
     int           _hyphen_width;
     int           _baseline;
+    int            _weight;
+    int            _italic;
     LVFontGlyphWidthCache _wcache;
     LVFontLocalGlyphCache _glyph_cache;
     bool          _drawMonochrome;
     bool          _allowKerning;
 public:
+    /// returns font weight
+    virtual int getWeight() { return _weight; }
+    /// returns italic flag
+    virtual int getItalic() { return _italic; }
+
     LVMutex & getMutex() { return _mutex; }
     FT_Library getLibrary() { return _library; }
 
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
+    , _weight(400), _italic(0)
     , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false)
     {
     }
@@ -572,6 +580,9 @@ public:
 
         _size = size; //(_face->size->metrics.height >> 6);
         _baseline = _size + (_face->size->metrics.descender >> 6);
+        _weight = _face->style_flags & FT_STYLE_FLAG_BOLD ? 700 : 400;
+        _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
+
         if ( error ) {
             // error
             return false;
@@ -984,6 +995,19 @@ class LVFontBoldTransform : public LVFont
     //int           _hyphen_width;
     int           _baseline;
 public:
+    /// returns font weight
+    virtual int getWeight()
+    {
+        int w = _baseFont->getWeight() + 200;
+        if ( w>900 )
+            w = 900;
+        return w;
+    }
+    /// returns italic flag
+    virtual int getItalic()
+    {
+        return _baseFont->getItalic();
+    }
     LVFontBoldTransform( LVFontRef baseFont )
         : _baseFontRef( baseFont ), _baseFont( baseFont.get() ), _hyphWidth(-1)
     {

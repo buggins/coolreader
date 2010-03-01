@@ -4236,6 +4236,14 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
 {
     switch (cmd)
     {
+    case DCMD_TOGGLE_BOLD:
+        {
+            int b = m_props->getIntDef(PROP_FONT_WEIGHT_EMBOLDEN, 0)?0:1;
+            m_props->setInt(PROP_FONT_WEIGHT_EMBOLDEN, b);
+            LVRendSetFontEmbolden(b ? STYLE_FONT_EMBOLD_MODE_EMBOLD : STYLE_FONT_EMBOLD_MODE_NORMAL);
+            requestRender();
+        }
+        break;
     case DCMD_TOGGLE_PAGE_SCROLL_VIEW:
         {
             toggleViewMode();

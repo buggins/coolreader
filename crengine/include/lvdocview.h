@@ -63,6 +63,7 @@
 #define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"
 
+
 const lChar16 * getDocFormatName( doc_format_t fmt );
 
 /// text format import options
@@ -219,6 +220,8 @@ enum LVDocCmd
     DCMD_ROTATE_SET, // rotate viewm param = 0..3 (0=normal, 1=90`, ...)
     DCMD_SAVE_HISTORY, // save history and bookmarks
     DCMD_SAVE_TO_CACHE, // save document to cache for fast opening
+    DCMD_TOGGLE_BOLD, // togle font bolder attribute
+
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,
     DCMD_EDIT_CURSOR_RIGHT,
@@ -231,7 +234,7 @@ enum LVDocCmd
     DCMD_EDIT_INSERT_CHAR,
     DCMD_EDIT_REPLACE_CHAR,
 };
-#define LVDOCVIEW_COMMANDS_END DCMD_SAVE_TO_CACHE
+#define LVDOCVIEW_COMMANDS_END DCMD_TOGGLE_BOLD
 
 /// document view mode: pages/scroll
 enum LVDocViewMode

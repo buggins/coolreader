@@ -365,6 +365,7 @@ static const char * getCommandName( int command )
 	case DCMD_GO_PAGE: return _("Go to page");
 	case DCMD_ZOOM_IN: return _("Zoom in");
 	case DCMD_ZOOM_OUT: return _("Zoom out");
+    case DCMD_TOGGLE_BOLD: return _("Toggle bold text");
 	case DCMD_TOGGLE_TEXT_FORMAT: return _("Toggle text format");
 	case DCMD_BOOKMARK_SAVE_N: return _("Save bookmark by number");
 	case DCMD_BOOKMARK_GO_N: return _("Go to bookmark by number");

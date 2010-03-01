@@ -103,6 +103,10 @@ public:
     virtual int getBaseline() = 0;
     /// returns font height
     virtual int getHeight() = 0;
+    /// returns font weight
+    virtual int getWeight() = 0;
+    /// returns italic flag
+    virtual int getItalic() = 0;
     /// returns char width
     virtual int getCharWidth( lChar16 ch ) = 0;
     /// retrieves font handle

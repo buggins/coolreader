@@ -24,6 +24,8 @@ lUInt32 calcHash(font_ref_t & f)
     lUInt32 v = 13;
     v = v * 75 + (lUInt32)f->getFontFamily();
     v = v * 75 + (lUInt32)f->getHeight();
+    v = v * 75 + (lUInt32)f->getWeight();
+    v = v * 75 + (lUInt32)f->getItalic();
     v = v * 75 + (lUInt32)f->getKerning();
     v = v * 75 + (lUInt32)f->getBitmapMode();
     v = v * 75 + (lUInt32)f->getTypeFace().getHash();
