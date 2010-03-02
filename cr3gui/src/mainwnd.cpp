@@ -853,9 +853,9 @@ VIEWER_MENU_4ABOUT=About...
     menu_win->setAccelerators( getMenuAccelerators() );
 
     lString16 s("$1 - choose command\n$2, $3 - close");
-    s.replace(lString16("$1"), menu_win->getItemNumberKeysName());
-    s.replace(lString16("$2"), menu_win->getCommandKeyName(MCMD_OK) );
-    s.replace(lString16("$3"), menu_win->getCommandKeyName(MCMD_CANCEL) );
+    s.replaceParam(1, menu_win->getItemNumberKeysName());
+    s.replaceParam(2, menu_win->getCommandKeyName(MCMD_OK) );
+    s.replaceParam(3, menu_win->getCommandKeyName(MCMD_CANCEL) );
     menu_win->setStatusText( s );
     menu_win->setFullscreen( true );
 

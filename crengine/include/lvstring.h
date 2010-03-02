@@ -417,6 +417,10 @@ public:
     lString16 substr(size_type pos) const { return substr(pos, length()-pos); }
     /// replaces first found occurence of pattern
     bool replace(const lString16 & findStr, const lString16 & replaceStr);
+    /// replaces first found occurence of "$N" pattern with string, where N=index
+    bool replaceParam(int index, const lString16 & replaceStr);
+    /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
+    bool replaceIntParam(int index, int replaceNumber);
 
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;

@@ -3423,3 +3423,14 @@ bool lString16::replace(const lString16 & findStr, const lString16 & replaceStr)
     *this = replace( p, findStr.length(), replaceStr );
     return true;
 }
+
+bool lString16::replaceParam(int index, const lString16 & replaceStr)
+{
+    return replace( lString16("$") + lString16::itoa(index), replaceStr );
+}
+
+/// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
+bool lString16::replaceIntParam(int index, int replaceNumber)
+{
+    return replaceParam( index, lString16::itoa(replaceNumber));
+}

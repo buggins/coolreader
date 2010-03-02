@@ -70,7 +70,7 @@
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans Condensed, DejaVu Sans" size="24" bold="true" italic="false" valign="center" halign="left"/>
         </selitem>
         <status base="#menu-status">
-            <text color="#000000" face="Arial, DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="right" wordwrap="true"/>
+            <text color="#000000" face="Arial, DejaVu Sans" size="20" bold="true" italic="false" valign="center" halign="right" wordwrap="true"/>
         </status>
         <scroll base="#titlescroll"/>
   </window>

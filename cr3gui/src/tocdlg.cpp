@@ -148,8 +148,8 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     int curPage = _docview->getCurPage();
     int docPages = _docview->getPageCount();
     lString16 pageString(_("Current page: $1 of $2\n"));
-    pageString.replace(lString16(L"$1"), lString16::itoa(curPage+1));
-    pageString.replace(lString16(L"$2"), lString16::itoa(docPages));
+    pageString.replaceIntParam(1, curPage+1);
+    pageString.replaceIntParam(2, docPages);
     _statusText = pageString + lString16(_("Enter page number:"));
     _inputText = L"_";
 }

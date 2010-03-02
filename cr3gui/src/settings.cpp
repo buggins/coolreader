@@ -590,8 +590,8 @@ lString16 CRSettingsMenu::getStatusText()
         || !_acceleratorTable->findCommandKey( MCMD_CANCEL, 0, cancelKey, cancelFlags ) )
         return _statusText;
     lString16 pattern(_("Press $1 to change option\n$2 to apply, $3 to cancel"));
-    pattern.replace(lString16("$1"), getItemNumberKeysName());
-    pattern.replace(lString16("$2"), getCommandKeyName(MCMD_OK) );
-    pattern.replace(lString16("$3"), getCommandKeyName(MCMD_CANCEL) );
+    pattern.replaceParam(1, getItemNumberKeysName());
+    pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
+    pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
     return pattern;
 }

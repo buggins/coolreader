@@ -106,7 +106,7 @@
             <background color="#555555"/>
             <background color="#CCCCCC" pos="0,0" size="100%,2"/>
             <background color="#FFFFFF" pos="0,2" size="100%,2"/>
-            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="right" wordwrap="true"/>
+            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="20" bold="true" italic="false" valign="center" halign="right" wordwrap="true"/>
         </status>
         <client>
             <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="24" bold="false" italic="false" valign="center" halign="left"/>

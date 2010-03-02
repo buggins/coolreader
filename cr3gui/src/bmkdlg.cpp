@@ -40,15 +40,15 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
     }
     lvRect textRect = rc;
     textRect.left += imgWidth;
-    lString16 postext(L"Page ");
     lvRect posRect = textRect;
     lString16 text = _bookmark->getPosText();
     if ( !text.empty() ) {
         posRect.bottom = posRect.top + skin->getFont()->getHeight() + itemBorders.top + itemBorders.bottom;
         textRect.top = posRect.bottom - itemBorders.bottom;
     }
-    postext << lString16::itoa( _page+1 ) << L" (";
-    postext << lString16::itoa( _bookmark->getPercent()/100 ) << L"." << lString16::itoa( _bookmark->getPercent()%100 ) << L"%)";
+    lString16 postext(_("Page $1 ($2%)"));
+    postext.replaceIntParam(1, _page+1);
+    postext.replaceParam(2, lString16::itoa( _bookmark->getPercent()/100 ) + L"." + lString16::itoa( _bookmark->getPercent()%100 ));
     postext << L"  " << _bookmark->getTitleText();
     skin->drawText( buf, posRect, postext );
     if ( !text.empty() )
@@ -81,8 +81,8 @@ void CRBookmarkMenu::setMode( bool goToMode )
                 : _("Short press $1 - set bookmark,\nlong press - go to bookmark")
                 );
     }
-    _statusText.replace(lString16("$1"), selKeyName);
-    _statusText.replace(lString16("$2"), modeKeyName);
+    _statusText.replaceParam(1, selKeyName);
+    _statusText.replaceParam(2, modeKeyName);
     setDirty();
 }
 

@@ -86,9 +86,9 @@ CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docvie
     setAccelerators( _wm->getAccTables().get("menu") );
     setSkinName(lString16(L"#bookmarks"));
     lString16 pattern(_("$1 - open book\n$2, $3 - close"));
-    pattern.replace(lString16("$1"), getItemNumberKeysName());
-    pattern.replace(lString16("$2"), getCommandKeyName(MCMD_OK) );
-    pattern.replace(lString16("$3"), getCommandKeyName(MCMD_CANCEL) );
+    pattern.replaceParam(1, getItemNumberKeysName());
+    pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
+    pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
     _statusText = pattern;
 }
 

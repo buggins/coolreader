@@ -31,8 +31,10 @@
 #else
 #ifdef CR_USE_JINKE
 #define DICTD_CONF "/root/abook/dict"
+#define DICTD_CONF_ALT "/root/crengine/dict"
 #else
 #define DICTD_CONF "/media/sd/dict"
+#define DICTD_CONF_ALT "/usr/share/cr3/dict"
 #endif
 #endif
 
@@ -138,8 +140,12 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
 
 bool CRViewDialog::hasDictionaries()
 {
+
+    const char * dict_path = DICTD_CONF;
+    if ( !LVDirectoryExists(lString16(dict_path)) )
+        dict_path = DICTD_CONF_ALT;
     if ( _dict.isNull() )
-        _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
+        _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(dict_path)) ) );
     if ( !_dict->empty() ) {
     	return true;
     }
