@@ -40,7 +40,7 @@ HyphDictionary * HyphMan::_selectedDictionary = NULL;
 HyphDictionaryList * HyphMan::_dictList = NULL;
 
 #define MAX_PATTERN_SIZE  8
-#define PATTERN_HASH_SIZE 4000
+#define PATTERN_HASH_SIZE 16384
 class TexPattern;
 class TexHyph : public HyphMethod
 {

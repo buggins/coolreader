@@ -479,6 +479,19 @@ lString8 familyName( FT_Face face )
     return faceName;
 }
 
+static lUInt16 char_flags[] = {
+    0, 0, 0, 0, 0, 0, 0, 0, // 0    00
+    0, 0, LCHAR_IS_SPACE | LCHAR_IS_EOL | LCHAR_ALLOW_WRAP_AFTER, 0, 0, LCHAR_IS_SPACE | LCHAR_IS_EOL | LCHAR_ALLOW_WRAP_AFTER, 0, 0, // 8    08
+    0, 0, 0, 0, 0, 0, 0, 0, // 16   10
+    0, 0, 0, 0, 0, 0, 0, 0, // 24   18
+    LCHAR_IS_SPACE | LCHAR_ALLOW_WRAP_AFTER, 0, 0, 0, 0, 0, 0, 0, // 32   20
+    0, 0, 0, 0, 0, LCHAR_DEPRECATED_WRAP_AFTER, 0, 0, // 40   28
+    0, 0, 0, 0, 0, 0, 0, 0, // 48   30
+};
+
+#define GET_CHAR_FLAGS(ch) \
+     (ch<48?char_flags[ch]:(ch==UNICODE_SOFT_HYPHEN_CODE?LCHAR_ALLOW_WRAP_AFTER:0))
+
 class LVFreeTypeFace : public LVFont
 {
 protected:
@@ -614,7 +627,8 @@ public:
         glyph->width =     (lUInt8)(_slot->metrics.horiAdvance >> 6);
         return true;
     }
-
+/*
+  // USE GET_CHAR_FLAGS instead
     inline int calcCharFlags( lChar16 ch )
     {
         switch ( ch ) {
@@ -631,7 +645,7 @@ public:
             return 0;
         }
     }
-    
+  */
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
@@ -689,7 +703,7 @@ public:
             }
 #endif
 
-            flags[nchars] = calcCharFlags( ch );
+            flags[nchars] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
 
             /* load glyph image into the slot (erase previous one) */
             int w = _wcache.get(ch);
@@ -723,7 +737,7 @@ public:
 
         // fill props for rest of chars
         for ( int ii=nchars; ii<len; ii++ ) {
-            flags[nchars] = calcCharFlags( text[ii] );
+            flags[nchars] = GET_CHAR_FLAGS( text[ii] );
         }
 
         //maxFit = nchars;
