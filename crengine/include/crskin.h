@@ -481,6 +481,9 @@ public:
     /// returns menu skin by path or #id
     virtual CRMenuSkinRef getMenuSkin( const lChar16 * path ) = 0;
 
+    /// garbage collection
+    virtual void gc() { }
+
     /// destructor
     virtual ~CRSkinContainer() { }
 };

@@ -3463,7 +3463,7 @@ bool LVDocView::ParseDocument( )
         _page = 0;
 
         int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
-        int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, 6000000);
+        int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD);
         CRLog::info("File size = %d, min size to cache = %d", fs, mfs);
         if ( fs>=mfs )
             swapToCache();
@@ -4432,8 +4432,8 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     fontMan->getFaceList( list );
     static int def_aa_props[] = { 2, 1, 0 };
 
-    props->setIntDef( PROP_MIN_FILE_SIZE_TO_CACHE, 6000000 ); // ~6M
-    props->setIntDef( PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000 ); // ~30K
+    props->setIntDef( PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD ); // ~6M
+    props->setIntDef( PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 32768 ); // 32K
     props->setIntDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 );
 
     props->limitValueList( PROP_FONT_ANTIALIASING, def_aa_props, sizeof(def_aa_props)/sizeof(int) );

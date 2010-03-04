@@ -199,7 +199,7 @@ void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
     }
 }
 
-#define PROGRESS_UPDATE_INTERVAL 2
+#define PROGRESS_UPDATE_INTERVAL 5
 /// draws icon at center of screen, with optional progress gauge
 void CRGUIWindowManager::showProgress( lString16 filename, int progressPercent )
 {

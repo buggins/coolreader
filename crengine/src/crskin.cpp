@@ -240,6 +240,11 @@ public:
     virtual LVImageSourceRef getImage( const lChar16 * filename );
     /// gets doc pointer by asolute path
     virtual ldomXPointer getXPointer( const lString16 & xPointerStr ) { return _doc->createXPointer( xPointerStr ); }
+    /// garbage collection
+    virtual void gc()
+    {
+        _imageCache.clear();
+    }
     /// constructor does nothing
     CRSkinImpl()  : _imageCache(8), _rectCache(8), _scrollCache(1), _windowCache(8), _menuCache(8) { }
     virtual ~CRSkinImpl(){ }

@@ -638,7 +638,7 @@ bool V3DocViewWin::saveSettings( lString16 filename )
 
 void V3DocViewWin::applySettings()
 {
-    showWaitIcon();
+    //showWaitIcon();
     CRPropRef delta = _props ^ _newProps;
     CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
     _docview->propsApply( delta );
@@ -1069,6 +1069,7 @@ bool V3DocViewWin::onCommand( int command, int params )
     case mm_FontSize:
         applySettings();
         saveSettings( lString16() );
+        _wm->getSkin()->gc();
         return true;
     case DCMD_SAVE_HISTORY:
         saveHistory( lString16() );

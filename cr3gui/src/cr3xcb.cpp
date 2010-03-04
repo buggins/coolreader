@@ -1059,7 +1059,7 @@ int CRXCBWindowManager::runEventLoop()
             CRLog::error("Connection to server closed\n");
             break;
         }
-        
+        main_win->unsetLastNavigationDirection();
         bool needUpdate = false;
         //processPostedEvents();
         switch (event->response_type & ~0x80) {
@@ -1141,6 +1141,7 @@ int CRXCBWindowManager::runEventLoop()
         if ( !stop && getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
             CRLog::debug("Last command is page down: preparing next page for fast navigation");
             main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
+            main_win->unsetLastNavigationDirection();
         }
     }
 
