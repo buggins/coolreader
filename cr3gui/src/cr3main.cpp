@@ -310,7 +310,13 @@ void InitCREngineLog( const char * cfgfile )
         //CRLog::setLogLevel( CRLog::LL_TRACE );
         return;
     }
-    lString16 logfname;
+    lString16 logfname(
+#ifdef __arm__
+                                               "/dev/null"
+#else
+                                               "stdout"
+#endif
+            );
     lString16 loglevelstr = L"INFO";
 	bool autoFlush = false;
     CRPropRef logprops = LVCreatePropsContainer();
@@ -318,8 +324,20 @@ void InitCREngineLog( const char * cfgfile )
         LVStreamRef cfg = LVOpenFileStream( cfgfile, LVOM_READ );
         if ( !cfg.isNull() ) {
             logprops->loadFromStream( cfg.get() );
-            logfname = logprops->getStringDef( PROP_LOG_FILENAME, "stdout" );
-            loglevelstr = logprops->getStringDef( PROP_LOG_LEVEL, "TRACE" );
+            logfname = logprops->getStringDef( PROP_LOG_FILENAME,
+#ifdef __arm__
+                                               "/dev/null"
+#else
+                                               "stdout"
+#endif
+                                               );
+            loglevelstr = logprops->getStringDef( PROP_LOG_LEVEL,
+#ifdef __arm__
+                                                  "INFO"
+#else
+                                                  "TRACE"
+#endif
+                                                  );
 			autoFlush = logprops->getBoolDef( PROP_LOG_AUTOFLUSH, false );
         }
     }

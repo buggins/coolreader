@@ -1068,6 +1068,8 @@ public:
         GR_EVENT event;
         while( !shuttingDown )
         {
+            main_win->unsetLastNavigationDirection();
+
             GrGetNextEvent(&event);
             switch(event.type) 
             {
@@ -1221,6 +1223,10 @@ public:
             default:
                     CRLog::debug( "unknown event %d", (int)event.type );
                     break;
+            }
+            if ( !shuttingDown && getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
+                CRLog::debug("Last command is page up/down: preparing next page for fast navigation");
+                main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
             }
         }
         do {

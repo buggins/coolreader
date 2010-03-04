@@ -1418,6 +1418,11 @@ LVImageSourceRef LVCreateNodeImageSource( ldomNode * node )
     LVStreamRef stream = node->createBase64Stream();
     if (stream.isNull())
         return ref;
+    if ( CRLog::isDebugEnabled() ) {
+        lUInt16 attr_id = node->getDocument()->getAttrNameIndex(L"id");
+        lString16 id = node->getAttributeValue(attr_id);
+        CRLog::debug("Opening node image id=%s", LCSTR(id));
+    }
     return LVCreateStreamImageSource( stream );
 }
 

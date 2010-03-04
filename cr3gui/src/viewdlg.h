@@ -33,6 +33,7 @@ protected:
 public:
 
     int getLastNavigationDirection() { return _lastNavigationDirection; }
+    void unsetLastNavigationDirection() { _lastNavigationDirection=0; }
 
     void prepareNextPageImage( int offset );
 

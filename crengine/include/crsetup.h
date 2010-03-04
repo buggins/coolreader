@@ -253,7 +253,12 @@
 
 /// max ram data block usage, after which swapping to disk should occur
 #ifndef DOCUMENT_CACHING_MAX_RAM_USAGE
-#define DOCUMENT_CACHING_MAX_RAM_USAGE 0x600000 // 6Mb
+#define DOCUMENT_CACHING_MAX_RAM_USAGE 0xC00000 // 12Mb
+#endif
+
+/// max ram data block usage, after which swapping to disk should occur
+#ifndef DOCUMENT_CACHING_SIZE_THRESHOLD
+#define DOCUMENT_CACHING_SIZE_THRESHOLD 0x800000 // 8Mb
 #endif
 
 
