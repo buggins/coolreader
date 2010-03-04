@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2010-02-24 20:26+0300\n"
+"POT-Creation-Date: 2010-03-02 06:25+0300\n"
 "PO-Revision-Date: 2009-11-18 22:36+0100\n"
 "Last-Translator: Tomasz Długosz <tomek3d@gmail.com>\n"
 "Language-Team: Polish\n"
@@ -29,195 +29,199 @@ msgstr ""
 msgid "1..8"
 msgstr ""
 
-#: ../src/mainwnd.cpp:726 ../src/mainwnd.cpp:827
+#: ../src/mainwnd.cpp:732
+msgid "No manual currently available for this language, sorry!"
+msgstr ""
+
+#: ../src/mainwnd.cpp:743 ../src/mainwnd.cpp:844
 msgid "Help"
 msgstr "Pomoc"
 
-#: ../src/mainwnd.cpp:742
+#: ../src/mainwnd.cpp:759
 msgid "Main Menu"
 msgstr "Menu główne"
 
-#: ../src/mainwnd.cpp:776 ../src/viewdlg.cpp:394
+#: ../src/mainwnd.cpp:793 ../src/viewdlg.cpp:395
 msgid "About"
 msgstr "O książce"
 
-#: ../src/mainwnd.cpp:786 ../src/viewdlg.cpp:365
+#: ../src/mainwnd.cpp:803 ../src/viewdlg.cpp:365
 msgid "Go to page"
 msgstr "Idź do strony"
 
-#: ../src/mainwnd.cpp:798 ../src/recentdlg.cpp:73
+#: ../src/mainwnd.cpp:815 ../src/recentdlg.cpp:73
 msgid "Open recent book"
 msgstr "Ostatnio otwierane książki"
 
-#: ../src/mainwnd.cpp:805 ../src/viewdlg.cpp:153
+#: ../src/mainwnd.cpp:822 ../src/viewdlg.cpp:153
 msgid "Dictionary"
 msgstr "Słownik"
 
-#: ../src/mainwnd.cpp:810
+#: ../src/mainwnd.cpp:827
 msgid "Cite"
 msgstr "Cytuj"
 
-#: ../src/mainwnd.cpp:814 ../src/bmkdlg.cpp:114
+#: ../src/mainwnd.cpp:831 ../src/bmkdlg.cpp:114
 msgid "Bookmarks"
 msgstr "Zakładki"
 
-#: ../src/mainwnd.cpp:818 ../src/viewdlg.cpp:200
+#: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:200
 msgid "Search"
 msgstr "Szukaj"
 
-#: ../src/mainwnd.cpp:822 ../src/settings.cpp:268
+#: ../src/mainwnd.cpp:839 ../src/settings.cpp:268
 msgid "Settings"
 msgstr "Ustawienia"
 
-#: ../src/mainwnd.cpp:831 ../src/viewdlg.cpp:456
+#: ../src/mainwnd.cpp:848 ../src/viewdlg.cpp:457
 msgid "Keyboard layout"
 msgstr "Układ klawiatury"
 
-#: ../src/mainwnd.cpp:942
+#: ../src/mainwnd.cpp:959
 msgid "Current page"
 msgstr "Bieżąca strona"
 
-#: ../src/mainwnd.cpp:943
+#: ../src/mainwnd.cpp:960
 msgid "Total pages"
 msgstr "Wszystkich stron"
 
-#: ../src/mainwnd.cpp:944
+#: ../src/mainwnd.cpp:961
 msgid "Battery state"
 msgstr "Stan baterii"
 
-#: ../src/mainwnd.cpp:944
+#: ../src/mainwnd.cpp:961
 msgid "charging..."
 msgstr ""
 
-#: ../src/mainwnd.cpp:945
+#: ../src/mainwnd.cpp:962
 msgid "Current Time"
 msgstr "Aktualny czas"
 
-#: ../src/mainwnd.cpp:950
+#: ../src/mainwnd.cpp:967
 msgid "Current chapter"
 msgstr "Bieżący rozdział"
 
-#: ../src/mainwnd.cpp:953
+#: ../src/mainwnd.cpp:970
 msgid "Status"
 msgstr "Status"
 
-#: ../src/mainwnd.cpp:956
+#: ../src/mainwnd.cpp:973
 msgid "Archive name"
 msgstr "Nazwa archiwum"
 
-#: ../src/mainwnd.cpp:957
+#: ../src/mainwnd.cpp:974
 msgid "Archive path"
 msgstr "Ścieżka do archiwum"
 
-#: ../src/mainwnd.cpp:958
+#: ../src/mainwnd.cpp:975
 msgid "Archive size"
 msgstr "Rozmiar archiwum"
 
-#: ../src/mainwnd.cpp:959
+#: ../src/mainwnd.cpp:976
 msgid "File name"
 msgstr "Nazwa pliku"
 
-#: ../src/mainwnd.cpp:960
+#: ../src/mainwnd.cpp:977
 msgid "File path"
 msgstr "Ścieżka do pliku"
 
-#: ../src/mainwnd.cpp:961
+#: ../src/mainwnd.cpp:978
 msgid "File size"
 msgstr "Rozmiar pliku"
 
-#: ../src/mainwnd.cpp:962
+#: ../src/mainwnd.cpp:979
 msgid "File format"
 msgstr "Format pliku"
 
-#: ../src/mainwnd.cpp:963
+#: ../src/mainwnd.cpp:980
 msgid "File info"
 msgstr "Informacje o pliku"
 
-#: ../src/mainwnd.cpp:966
+#: ../src/mainwnd.cpp:983
 msgid "Title"
 msgstr "Tytuł"
 
-#: ../src/mainwnd.cpp:967
+#: ../src/mainwnd.cpp:984
 msgid "Author(s)"
 msgstr "Autor(zy)"
 
-#: ../src/mainwnd.cpp:968
+#: ../src/mainwnd.cpp:985
 msgid "Series name"
 msgstr "Nazwa cyklu"
 
-#: ../src/mainwnd.cpp:969
+#: ../src/mainwnd.cpp:986
 msgid "Series number"
 msgstr "Numer w cyklu"
 
-#: ../src/mainwnd.cpp:970
+#: ../src/mainwnd.cpp:987
 msgid "Date"
 msgstr "Data"
 
-#: ../src/mainwnd.cpp:971
+#: ../src/mainwnd.cpp:988
 msgid "Genres"
 msgstr "Gatunek"
 
-#: ../src/mainwnd.cpp:972
+#: ../src/mainwnd.cpp:989
 msgid "Translator"
 msgstr "Tłumaczenie"
 
-#: ../src/mainwnd.cpp:973
+#: ../src/mainwnd.cpp:990
 msgid "Book info"
 msgstr "Informacje o książce"
 
-#: ../src/mainwnd.cpp:976
+#: ../src/mainwnd.cpp:993
 msgid "Document author"
 msgstr "Autor documentu"
 
-#: ../src/mainwnd.cpp:977
+#: ../src/mainwnd.cpp:994
 msgid "Document date"
 msgstr "Data dokumentu"
 
-#: ../src/mainwnd.cpp:978
+#: ../src/mainwnd.cpp:995
 msgid "Document source URL"
 msgstr "Źródło dokumentu"
 
-#: ../src/mainwnd.cpp:979
+#: ../src/mainwnd.cpp:996
 msgid "OCR by"
 msgstr "OCR"
 
-#: ../src/mainwnd.cpp:980
+#: ../src/mainwnd.cpp:997
 msgid "Document version"
 msgstr "wersja dokumentu"
 
-#: ../src/mainwnd.cpp:981
+#: ../src/mainwnd.cpp:998
 msgid "Document info"
 msgstr "O dokumencie"
 
-#: ../src/mainwnd.cpp:984
+#: ../src/mainwnd.cpp:1001
 msgid "Publication name"
 msgstr "Nazwa publikacji"
 
-#: ../src/mainwnd.cpp:985
+#: ../src/mainwnd.cpp:1002
 msgid "Publisher"
 msgstr "Wydawaca"
 
-#: ../src/mainwnd.cpp:986
+#: ../src/mainwnd.cpp:1003
 msgid "Publisher city"
 msgstr "Miasto wydania"
 
-#: ../src/mainwnd.cpp:987
+#: ../src/mainwnd.cpp:1004
 msgid "Publication year"
 msgstr "Rok wydania"
 
-#: ../src/mainwnd.cpp:988
+#: ../src/mainwnd.cpp:1005
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:989
+#: ../src/mainwnd.cpp:1006
 msgid "Publication info"
 msgstr "Informacje o wydaniu"
 
-#: ../src/mainwnd.cpp:991
+#: ../src/mainwnd.cpp:1008
 msgid "Custom info"
 msgstr "Inne informacje"
 
-#: ../src/mainwnd.cpp:1100
+#: ../src/mainwnd.cpp:1117
 msgid "Loading: please wait..."
 msgstr "Otwieranie: proszę czekać..."
 
@@ -227,7 +231,12 @@ msgid ""
 "$2, $3 - close"
 msgstr ""
 
-#: ../src/tocdlg.cpp:148
+#: ../src/tocdlg.cpp:150
+#, fuzzy
+msgid "Current page: $1 of $2\n"
+msgstr "Bieżąca strona"
+
+#: ../src/tocdlg.cpp:153
 #, fuzzy
 msgid "Enter page number:"
 msgstr "Podaj numer strony"
@@ -235,6 +244,10 @@ msgstr "Podaj numer strony"
 #: ../src/bmkdlg.cpp:18
 msgid "Empty slot"
 msgstr "Wolne miejsce"
+
+#: ../src/bmkdlg.cpp:49
+msgid "Page $1 ($2%)"
+msgstr ""
 
 #: ../src/bmkdlg.cpp:68
 #, fuzzy
@@ -642,7 +655,7 @@ msgstr "Nastęny link"
 msgid "Previous link"
 msgstr "Poprzedni link"
 
-#: ../src/viewdlg.cpp:362 ../src/viewdlg.cpp:387
+#: ../src/viewdlg.cpp:362 ../src/viewdlg.cpp:388
 msgid "Go to link"
 msgstr "Idź do linku"
 
@@ -663,184 +676,189 @@ msgid "Zoom out"
 msgstr "Pomniejsz"
 
 #: ../src/viewdlg.cpp:368
-msgid "Toggle text format"
+#, fuzzy
+msgid "Toggle bold text"
 msgstr "Zmień format tekstu"
 
 #: ../src/viewdlg.cpp:369
+msgid "Toggle text format"
+msgstr "Zmień format tekstu"
+
+#: ../src/viewdlg.cpp:370
 msgid "Save bookmark by number"
 msgstr "Zapisz zakładkę pod numerem"
 
-#: ../src/viewdlg.cpp:370
+#: ../src/viewdlg.cpp:371
 msgid "Go to bookmark by number"
 msgstr "Idź do zakładki w/g numeru"
 
-#: ../src/viewdlg.cpp:371
+#: ../src/viewdlg.cpp:372
 msgid "Move by chapter"
 msgstr "Przesuń o rozdział"
 
-#: ../src/viewdlg.cpp:372
+#: ../src/viewdlg.cpp:373
 msgid "First link"
 msgstr "Pierwszy link"
 
-#: ../src/viewdlg.cpp:373
+#: ../src/viewdlg.cpp:374
 msgid "Rotate by"
 msgstr "Obróć o"
 
-#: ../src/viewdlg.cpp:374
+#: ../src/viewdlg.cpp:375
 msgid "Set rotate angle"
 msgstr "Ustaw kąt obrotu"
 
-#: ../src/viewdlg.cpp:375
+#: ../src/viewdlg.cpp:376
 msgid "Save history and bookmarks"
 msgstr "Zapisz historię i zakładki"
 
-#: ../src/viewdlg.cpp:376
+#: ../src/viewdlg.cpp:377
 msgid "Save document to cache"
 msgstr "Zapisz dokument w cache"
 
-#: ../src/viewdlg.cpp:377
+#: ../src/viewdlg.cpp:378
 msgid "Close dialog"
 msgstr "Zamykanie"
 
-#: ../src/viewdlg.cpp:379
+#: ../src/viewdlg.cpp:380
 msgid "Scroll forward"
 msgstr "Do przodu"
 
-#: ../src/viewdlg.cpp:380
+#: ../src/viewdlg.cpp:381
 msgid "Scroll back"
 msgstr "Wycofaj"
 
-#: ../src/viewdlg.cpp:381
+#: ../src/viewdlg.cpp:382
 msgid "Close book"
 msgstr "Zamknij książkę"
 
-#: ../src/viewdlg.cpp:382
+#: ../src/viewdlg.cpp:383
 msgid "Main menu"
 msgstr "Główne menu"
 
-#: ../src/viewdlg.cpp:383
+#: ../src/viewdlg.cpp:384
 msgid "Go to page dialog"
 msgstr "Idź do strony"
 
-#: ../src/viewdlg.cpp:384
+#: ../src/viewdlg.cpp:385
 msgid "Settings menu"
 msgstr "Menu ustawień"
 
-#: ../src/viewdlg.cpp:385
+#: ../src/viewdlg.cpp:386
 msgid "Font size settings"
 msgstr "Ustawienia rozmiaru czcionki"
 
-#: ../src/viewdlg.cpp:386
+#: ../src/viewdlg.cpp:387
 msgid "Page orientation settings"
 msgstr "Ustawienia orientacji strony"
 
-#: ../src/viewdlg.cpp:388
+#: ../src/viewdlg.cpp:389
 msgid "Find in Dictionary (T5)"
 msgstr "Znajdź w słowniku (T5)"
 
-#: ../src/viewdlg.cpp:389
+#: ../src/viewdlg.cpp:390
 msgid "Bookmark list"
 msgstr "Lista zakładek"
 
-#: ../src/viewdlg.cpp:390
+#: ../src/viewdlg.cpp:391
 #, fuzzy
 msgid "Go to bookmark..."
 msgstr "Idź do zakładki w/g numeru"
 
-#: ../src/viewdlg.cpp:391
+#: ../src/viewdlg.cpp:392
 msgid "Recent books list"
 msgstr "Lista ostatnio czytanych książek"
 
-#: ../src/viewdlg.cpp:392
+#: ../src/viewdlg.cpp:393
 msgid "Open recent book by number"
 msgstr "Otwórz ostatnio otwieraną książkę w/g numeru"
 
-#: ../src/viewdlg.cpp:393
+#: ../src/viewdlg.cpp:394
 #, fuzzy
 msgid "Switch to recent book"
 msgstr "Ostatnio otwierane książki"
 
-#: ../src/viewdlg.cpp:395
+#: ../src/viewdlg.cpp:396
 msgid "Cite selection dialog"
 msgstr "Zaznacz cytat"
 
-#: ../src/viewdlg.cpp:396
+#: ../src/viewdlg.cpp:397
 msgid "Search dialog"
 msgstr "Wyszukiwanie"
 
-#: ../src/viewdlg.cpp:397
+#: ../src/viewdlg.cpp:398
 msgid "Find in Dictionary (virtual keyboard)"
 msgstr "Znajdź w słowniku (wirtualna klawiatura)"
 
-#: ../src/viewdlg.cpp:398
+#: ../src/viewdlg.cpp:399
 msgid "Next keyboard layout"
 msgstr "Następny układ klawiatury"
 
-#: ../src/viewdlg.cpp:399
+#: ../src/viewdlg.cpp:400
 msgid "Previous keyboard layout"
 msgstr "Poprzedni układ klawiatury"
 
-#: ../src/viewdlg.cpp:400
+#: ../src/viewdlg.cpp:401
 msgid "Show manual"
 msgstr "Pokaż instrukcję"
 
-#: ../src/viewdlg.cpp:401
+#: ../src/viewdlg.cpp:402
 msgid "Show key mapping"
 msgstr "Pokaż mapowanie klawiatury"
 
-#: ../src/viewdlg.cpp:402
+#: ../src/viewdlg.cpp:403
 msgid "Unknown command"
 msgstr "Nieznana komenda"
 
-#: ../src/viewdlg.cpp:409
+#: ../src/viewdlg.cpp:410
 msgid "Previous Page"
 msgstr "Poprzednia strona"
 
-#: ../src/viewdlg.cpp:411
+#: ../src/viewdlg.cpp:412
 msgid "Next Page"
 msgstr "Następna strona"
 
-#: ../src/viewdlg.cpp:413
+#: ../src/viewdlg.cpp:414
 msgid "Back by 10 Pages"
 msgstr "Cofnij o 10 stron"
 
-#: ../src/viewdlg.cpp:415
+#: ../src/viewdlg.cpp:416
 msgid "Forward by 10 Pages"
 msgstr "Dalej o 10 stron"
 
-#: ../src/viewdlg.cpp:417
+#: ../src/viewdlg.cpp:418
 msgid "Next Chapter"
 msgstr "Następny rozdział"
 
-#: ../src/viewdlg.cpp:419
+#: ../src/viewdlg.cpp:420
 msgid "Previous Chapter"
 msgstr "Poprzedni rozdział"
 
-#: ../src/viewdlg.cpp:421
+#: ../src/viewdlg.cpp:422
 msgid "Add Bookmark"
 msgstr "Dodaj Zakładkę"
 
-#: ../src/viewdlg.cpp:423
+#: ../src/viewdlg.cpp:424
 msgid "Rotate Clockwise"
 msgstr "Obróć w prawo"
 
-#: ../src/viewdlg.cpp:425
+#: ../src/viewdlg.cpp:426
 msgid "Rotate Anti-Clockwise"
 msgstr "Obróc w lewo"
 
-#: ../src/viewdlg.cpp:427
+#: ../src/viewdlg.cpp:428
 msgid "Portrait View"
 msgstr "Układ pionowy"
 
-#: ../src/viewdlg.cpp:429
+#: ../src/viewdlg.cpp:430
 msgid "Landscape View"
 msgstr "Układ poziomy"
 
-#: ../src/viewdlg.cpp:444
+#: ../src/viewdlg.cpp:445
 msgid "Key"
 msgstr "Klawisz"
 
-#: ../src/viewdlg.cpp:444
+#: ../src/viewdlg.cpp:445
 msgid "Assigned function"
 msgstr "Przypisana funkcja"
 
