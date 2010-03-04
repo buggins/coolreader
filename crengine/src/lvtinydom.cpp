@@ -349,9 +349,9 @@ public:
     /// inserts child element
     virtual ldomNode * insertChildElement( lUInt16 ) { return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32, lString16 ) { return NULL; }
+    virtual ldomNode * insertChildText( lUInt32, const lString16 & ) { return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lString16 ) { return NULL; }
+    virtual ldomNode * insertChildText( const lString16 &  ) { return NULL; }
     /// remove child
     virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
 };
@@ -442,9 +442,9 @@ public:
     /// inserts child element
     virtual ldomNode * insertChildElement( lUInt16 ) { return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32, lString16 ) { return NULL; }
+    virtual ldomNode * insertChildText( lUInt32, const lString16 &  ) { return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lString16 ) { return NULL; }
+    virtual ldomNode * insertChildText( const lString16 &  ) { return NULL; }
     /// remove child
     virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
 };
@@ -551,9 +551,9 @@ public:
     /// inserts child element
     virtual ldomNode * insertChildElement( lUInt16 id );
     /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32 index, lString16 value );
+    virtual ldomNode * insertChildText( lUInt32 index, const lString16 &  value );
     /// inserts child text
-    virtual ldomNode * insertChildText( lString16 value );
+    virtual ldomNode * insertChildText( const lString16 &  value );
     /// remove child
     virtual ldomNode * removeChild( lUInt32 index );
 #if BUILD_LITE!=1
@@ -789,9 +789,9 @@ public:
     /// inserts child element
     virtual ldomNode * insertChildElement( lUInt16 ) { readOnlyError(); return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32, lString16 ) { readOnlyError(); return NULL; }
+    virtual ldomNode * insertChildText( lUInt32, const lString16 &  ) { readOnlyError(); return NULL; }
     /// inserts child text
-    virtual ldomNode * insertChildText( lString16 ) { readOnlyError(); return NULL; }
+    virtual ldomNode * insertChildText( const lString16 &  ) { readOnlyError(); return NULL; }
     /// remove child
     virtual ldomNode * removeChild( lUInt32 ) { readOnlyError(); return NULL; }
     /// replace node with r/w implementation
@@ -4586,7 +4586,7 @@ ldomNode * ldomElement::insertChildElement( lUInt16 id )
 }
 
 /// inserts child text
-ldomNode * ldomElement::insertChildText( lUInt32 index, lString16 value )
+ldomNode * ldomElement::insertChildText( lUInt32 index, const lString16 &  value )
 {
     if (index>(lUInt32)_children.length())
         index = _children.length();
@@ -4605,7 +4605,7 @@ ldomNode * ldomElement::insertChildText( lUInt32 index, lString16 value )
 }
 
 /// inserts child text
-ldomNode * ldomElement::insertChildText( lString16 value )
+ldomNode * ldomElement::insertChildText( const lString16 &  value )
 {
 #if BUILD_LITE!=1
     ldomPersistentText * text = new ldomPersistentText( this, _children.length(), value );

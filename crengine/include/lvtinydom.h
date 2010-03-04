@@ -741,9 +741,9 @@ public:
     /// inserts child element
     virtual ldomNode * insertChildElement( lUInt16 id ) = 0;
     /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32 index, lString16 value ) = 0;
+    virtual ldomNode * insertChildText( lUInt32 index, const lString16 & value ) = 0;
     /// inserts child text
-    virtual ldomNode * insertChildText( lString16 value ) = 0;
+    virtual ldomNode * insertChildText( const lString16 & value ) = 0;
     /// remove child
     virtual ldomNode * removeChild( lUInt32 index ) = 0;
     /// creates stream to read base64 encoded data from element
