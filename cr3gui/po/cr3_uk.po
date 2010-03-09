@@ -242,7 +242,7 @@ msgstr ""
 
 #: ../src/tocdlg.cpp:150
 msgid "Current page: $1 of $2\n"
-msgstr "Поточна сторінка"
+msgstr "Поточна сторінка: $1 of $2\n"
 
 #: ../src/tocdlg.cpp:153
 msgid "Enter page number:"
