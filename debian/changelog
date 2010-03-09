@@ -1,6 +1,7 @@
 cr3 (3.0.24-19) zelazny; urgency=low
 
   [ Vadim Lopatin ]
+  * V3 keys fix: +/-
   * bold toggle command
   * fix TOC dialog
   * update Spanish translation
@@ -12,7 +13,7 @@ cr3 (3.0.24-19) zelazny; urgency=low
   * add update-po script
   * UK translation
 
- -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 09 Mar 2010 09:42:42 +0100
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 09 Mar 2010 15:26:03 +0100
 
 cr3 (3.0.24-18) zelazny; urgency=low
 
