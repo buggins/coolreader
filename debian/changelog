@@ -1,3 +1,19 @@
+cr3 (3.0.24-19) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * bold toggle command
+  * fix TOC dialog
+  * update Spanish translation
+  * formatting performance optimization
+  * performance optimizations
+  * optimizations
+  * update BG translation
+  * update .po files
+  * add update-po script
+  * UK translation
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 09 Mar 2010 09:42:42 +0100
+
 cr3 (3.0.24-18) zelazny; urgency=low
 
   [ Vadim Lopatin ]
