@@ -156,6 +156,7 @@ ldomTextStorageChunk::ldomTextStorageChunk()
 , _filepos(0)    /// position in swap file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
+, _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(0)      /// ? index of chunk in storage
 {
 }
@@ -164,6 +165,26 @@ ldomTextStorageChunk::~ldomTextStorageChunk()
 {
     setpacked(NULL, 0);
     setunpacked(NULL, 0);
+}
+
+/// returns free space in buffer
+int ldomTextStorageChunk::space()
+{
+    return _bufsize - _bufpos;
+}
+
+/// returns free space in buffer
+int ldomTextStorageChunk::add( const lUInt8 * data, int size )
+{
+    if ( !_buf ) {
+        // create new buffer, if necessary
+        _bufsize = 0xFFFF;
+        _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
+        _bufpos = 0;
+    }
+    if ( _bufsize - _bufpos < size )
+        return -1;
+
 }
 
 #define TEXT_COMPRESSION_LEVEL 6

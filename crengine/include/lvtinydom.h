@@ -156,6 +156,19 @@ public:
     virtual ~LVDocViewCallback() { }
 };
 
+
+class ldomTextStorageChunk;
+class ldomTextStorageChunkBuilder;
+
+class ldomTextStorageManager
+{
+    LVPtrVector<ldomTextStorageChunk> _chunks;
+    ldomTextStorageChunkBuilder * _builder;
+public:
+    ldomTextStorageManager();
+    ~ldomTextStorageManager();
+};
+
 /// class to store compressed/uncompressed text nodes chunk
 class ldomTextStorageChunk
 {
@@ -164,6 +177,7 @@ class ldomTextStorageChunk
     lUInt32 _filepos;  /// position in swap file
     lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
+    lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
 
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
@@ -173,6 +187,10 @@ class ldomTextStorageChunk
     void setpacked( const lUInt8 * compbuf, int compsize );
     void setunpacked( const lUInt8 * buf, int bufsize );
 public:
+    /// returns free space in buffer
+    int space();
+    /// adds new item to buffer, returns offset inside chunk of stored data
+    int add( const lUInt8 * data, int size );
     ldomTextStorageChunk();
     ~ldomTextStorageChunk();
 };
