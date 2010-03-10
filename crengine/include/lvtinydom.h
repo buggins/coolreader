@@ -156,6 +156,27 @@ public:
     virtual ~LVDocViewCallback() { }
 };
 
+/// class to store compressed/uncompressed text nodes chunk
+class ldomTextStorageChunk
+{
+    lUInt8 * _buf;     /// buffer for uncompressed data
+    lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
+    lUInt32 _filepos;  /// position in swap file
+    lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
+    lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
+    lUInt16 _index;  /// ? index of chunk in storage
+
+    bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
+    bool unpack() { return unpack(_compbuf, _compsize); } /// unpack data from compbuf to _buf
+    bool pack( const lUInt8 * buf, int bufsize );   /// pack data from buf[bufsize] to _compbuf
+    bool pack() { return pack(_buf, _bufsize); }   /// pack data from _buf[_bufsize] to _compbuf
+    void setpacked( const lUInt8 * compbuf, int compsize );
+    void setunpacked( const lUInt8 * buf, int bufsize );
+public:
+    ldomTextStorageChunk();
+    ~ldomTextStorageChunk();
+};
+
 
 // default: 512K
 #define DEF_DOC_DATA_BUFFER_SIZE 0x80000

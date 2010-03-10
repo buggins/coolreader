@@ -18,6 +18,7 @@
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
 #include <stddef.h>
+#include <zlib.h>
 
 //#define INDEX1 94
 //#define INDEX2 96
@@ -149,6 +150,114 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
 }
 #endif
 
+ldomTextStorageChunk::ldomTextStorageChunk()
+: _buf(NULL)   /// buffer for uncompressed data
+, _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
+, _filepos(0)    /// position in swap file
+, _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
+, _bufsize(0)    /// _buf (uncompressed) area size, bytes
+, _index(0)      /// ? index of chunk in storage
+{
+}
+
+ldomTextStorageChunk::~ldomTextStorageChunk()
+{
+    setpacked(NULL, 0);
+    setunpacked(NULL, 0);
+}
+
+#define TEXT_COMPRESSION_LEVEL 6
+#define PACK_BUF_SIZE 0x10000
+/// pack data from _buf to _compbuf
+bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
+{
+    if ( !buf || !bufsize )
+        return false; // no data to compress
+    setpacked(NULL, 0);
+    lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
+    int ret, flush;
+    z_stream z;
+    z.zalloc = Z_NULL;
+    z.zfree = Z_NULL;
+    z.opaque = Z_NULL;
+    ret = deflateInit( &z, TEXT_COMPRESSION_LEVEL );
+    if ( ret != Z_OK )
+        return false;
+    z.avail_in = bufsize;
+    z.next_in = (unsigned char *)buf;
+    z.avail_out = PACK_BUF_SIZE;
+    z.next_out = tmp;
+    ret = deflate( &z, Z_FINISH );
+    int have = PACK_BUF_SIZE - z.avail_out;
+    if ( ret!=Z_STREAM_END || have==0 || have>=PACK_BUF_SIZE || z.avail_in!=0 ) {
+        // some error occured while packing, leave unpacked
+        setpacked( buf, bufsize );
+    } else {
+        setpacked( tmp, have );
+    }
+    deflateEnd(&z);
+    return true;
+}
+
+/// unpack data from _compbuf to _buf
+bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
+{
+    if ( !compbuf || !compsize )
+        return false; // no data to compress
+    setunpacked(NULL, 0);
+    lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
+    int ret, flush;
+    z_stream z;
+    z.zalloc = Z_NULL;
+    z.zfree = Z_NULL;
+    z.opaque = Z_NULL;
+    ret = inflateInit( &z );
+    if ( ret != Z_OK )
+        return false;
+    z.avail_in = compsize;
+    z.next_in = (unsigned char *)compbuf;
+    z.avail_out = PACK_BUF_SIZE;
+    z.next_out = tmp;
+    ret = inflate( &z, Z_FINISH );
+    int have = PACK_BUF_SIZE - z.avail_out;
+    if ( ret!=Z_STREAM_END || have==0 || have>=PACK_BUF_SIZE || z.avail_in!=0 ) {
+        // some error occured while unpacking
+        inflateEnd(&z);
+        return false;
+    } else {
+        setunpacked( tmp, have );
+    }
+    inflateEnd(&z);
+    return true;
+}
+
+void ldomTextStorageChunk::setpacked( const lUInt8 * compbuf, int compsize )
+{
+    if ( _compbuf ) {
+        free(_compbuf);
+        _compbuf = NULL;
+        _compsize = 0;
+    }
+    if ( compbuf && compsize ) {
+        _compsize = compsize;
+        _compbuf = (lUInt8 *)malloc( sizeof(lUInt8) * _compsize );
+        memcpy( _compbuf, compbuf, compsize );
+    }
+}
+
+void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
+{
+    if ( _buf ) {
+        free(_buf);
+        _buf = NULL;
+        _bufsize = 0;
+    }
+    if ( buf && bufsize ) {
+        _bufsize = bufsize;
+        _buf = (lUInt8 *)malloc( sizeof(lUInt8) * _compsize );
+        memcpy( _buf, buf, bufsize );
+    }
+}
 
 // moved to .cpp to hide implementation
 // fastDOM
