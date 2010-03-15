@@ -1,3 +1,16 @@
+cr3 (3.0.24-20) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * big files support redesign
+  * cr3 startup screen
+  * fix DejaVu Sans Condensed support
+  * fix V3 key mapping for +/-
+  * fix skin font names
+  * fix V5 startup logo
+  * fix startup screen on V3
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Mon, 15 Mar 2010 22:53:46 +0100
+
 cr3 (3.0.24-19) zelazny; urgency=low
 
   [ Vadim Lopatin ]
