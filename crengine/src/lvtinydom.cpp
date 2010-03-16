@@ -62,8 +62,6 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     lUInt8  reserved8;
     lInt32  childCount;
     lvdomElementFormatRec renderData; // 4 * 4
-    lUInt16 fontIndex;
-    lUInt16 styleIndex;
     lInt32  children[1];
     lUInt16 * attrs() { return (lUInt16 *)(children + childCount); }
     lxmlAttribute * attr( int index ) { return (lxmlAttribute *)&(((lUInt16 *)(children + childCount))[index*3]); }
@@ -149,6 +147,95 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
     return item;
 }
 #endif
+
+
+//=================================================================
+// tinyNodeCollection implementation
+//=================================================================
+
+tinyNodeCollection::tinyNodeCollection()
+: _size(0)
+, _count(0)
+, _nextFree(0)
+, _list(NULL)
+{
+}
+
+/// get tinyNode instance pointer
+tinyNode * tinyNodeCollection::getTinyNode( lUInt32 index )
+{
+    return &_list[index>>4];
+}
+
+#define TNCOLLECTION_INITIAL_SIZE 1024
+/// allocate new tiny node
+tinyNode * tinyNodeCollection::allocTinyNode( int type )
+{
+    tinyNode * res;
+    if ( _nextFree ) {
+        // reuse existing free item
+        res = &_list[_nextFree];
+        res->_dataIndex = (_nextFree << 4) | type;
+        _nextFree = res->_data._nextFreeIndex;
+    } else {
+        // create new item
+        _count++;
+        if ( _count >= _size ) {
+            _size = _size ? _size * 2 : TNCOLLECTION_INITIAL_SIZE;
+            _list = (tinyNode*)realloc( _list, sizeof(tinyNode) * _size );
+            if ( _count==1 ) {
+                // init node 0
+                _list[0]._document = (ldomDocument*)this;
+                _list[0]._dataIndex = 0;
+            }
+        }
+        res = &_list[_count];
+        res->_document = (ldomDocument*)this;
+        res->_dataIndex = (_count << 4) | type;
+    }
+    return res;
+}
+
+void tinyNodeCollection::recycleTinyNode( lUInt32 index )
+{
+    index >>= 4;
+    tinyNode * p = &_list[index];
+    p->_dataIndex = 0; // indicates NULL node
+    p->_data._nextFreeIndex = _nextFree;
+    _nextFree = index;
+}
+
+tinyNodeCollection::~tinyNodeCollection()
+{
+    if ( _list ) {
+        // node 0 is reserved
+        for ( int i=1; i<_count; i++ )
+            _list[i].onCollectionDestroy();
+        free( _list );
+    }
+}
+
+
+/*
+
+  Struct Node
+  { document, nodeid&type, address }
+
+  Data Offset format
+
+  Chunk index, offset, type.
+
+  getDataPtr( lUInt32 address )
+  {
+     return (address & TYPE_MASK) ? textStorage.get( address & ~TYPE_MASK ) : elementStorage.get( address & ~TYPE_MASK );
+  }
+
+  index->instance, data
+  >
+  [index] { vtable, doc, id, dataptr } // 16 bytes per node
+
+
+ */
 
 ldomTextStorageChunk::ldomTextStorageChunk()
 : _buf(NULL)   /// buffer for uncompressed data
@@ -761,9 +848,6 @@ public:
             data->children[i] = v->_children[i];
         }
         data->rendMethod = (lUInt8)v->_rendMethod;
-
-        data->styleIndex = 0; // todo
-        data->fontIndex = 0;  // todo
 
         lvdomElementFormatRec * rdata = v->getRenderData();
         data->renderData = *rdata;
@@ -5838,5 +5922,512 @@ void lxmlDocBase::setStyleSheet( const char * css, bool replace )
         //CRLog::debug("appending stylesheet contents: \n%s", css);
         _stylesheet.parse( css );
     }
+}
+
+
+
+//=====================================================
+/// returns node level, 0 is root node
+lUInt8 tinyNode::getNodeLevel() const
+{
+    const tinyNode * node = this;
+    int level = 0;
+    for ( ; node; node = node->getParentNode() )
+        level++;
+    return level;
+}
+
+void tinyNode::onCollectionDestroy()
+{
+    if ( isNull() )
+        return;
+    switch ( TNTYPE ) {
+    case NT_TEXT:
+        delete _data._text;
+        break;
+    case NT_ELEMENT:
+        delete _data._elem;
+        break;
+    case NT_PTEXT:      // immutable (persistent) text node
+        // do nothing
+    case NT_PELEMENT:   // immutable (persistent) element node
+        // do nothing
+        ;
+    }
+}
+
+void tinyNode::onNodeDestroy()
+{
+    if ( isNull() )
+        return;
+    switch ( TNTYPE ) {
+    case NT_TEXT:
+    case NT_ELEMENT:
+    case NT_PTEXT:      // immutable (persistent) text node
+    case NT_PELEMENT:   // immutable (persistent) element node
+        //
+        ;
+    }
+    _document->recycleTinyNode( _dataIndex );
+}
+
+/// returns index of node inside parent's child collection
+lUInt32 tinyNode::getNodeIndex() const
+{
+    return 0; // TODO
+}
+
+/// returns child node by index
+tinyNode * tinyNode::getChildNode( lUInt32 index ) const
+{
+    if ( !isElement() )
+        return NULL;
+    // TODO
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    return NULL;
+}
+
+/// returns element child count
+lUInt32 tinyNode::getChildCount() const
+{
+    if ( !isElement() )
+        return 0;
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    return 0; // TODO
+}
+
+/// returns element attribute count
+lUInt32 tinyNode::getAttrCount() const
+{
+    if ( !isElement() )
+        return 0;
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    return 0;
+}
+
+/// returns attribute value by attribute name id and namespace id
+const lString16 & tinyNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
+{
+    if ( !isElement() )
+        return lString16::empty_str;
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    // TODO
+    return lString16::empty_str;
+}
+
+/// returns attribute value by attribute name and namespace
+const lString16 & tinyNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
+{
+    lUInt16 nsId = (nsName&&nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
+    lUInt16 attrId = getDocument()->getAttrNameIndex( attrName );
+    return getAttributeValue( nsId, attrId );
+}
+
+/// returns attribute by index
+const lxmlAttribute * tinyNode::getAttribute( lUInt32 ) const
+{
+    if ( !isElement() )
+        return NULL;
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    // TODO
+    return NULL;
+}
+
+/// returns true if element node has attribute with specified name id and namespace id
+bool tinyNode::hasAttribute( lUInt16 nsId, lUInt16 attrId ) const
+{
+    if ( !isElement() )
+        return false;
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    return false;
+}
+
+/// returns attribute name by index
+const lString16 & tinyNode::getAttributeName( lUInt32 ) const
+{
+    if ( !isElement() )
+        return lString16::empty_str;
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    // TODO
+    return lString16::empty_str;
+}
+
+/// sets attribute value
+void tinyNode::setAttributeValue( lUInt16 , lUInt16 , const lChar16 *  )
+{
+    if ( !isElement() )
+        return;
+    // TODO
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+}
+
+/// returns element type structure pointer if it was set in document for this element name
+const css_elem_def_props_t * tinyNode::getElementTypePtr()
+{
+    if ( !isElement() )
+        return NULL;
+    // TODO
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    return NULL;
+}
+
+/// returns element name id
+lUInt16 tinyNode::getNodeId() const
+{
+    if ( !isElement() )
+        return 0;
+    // TODO
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    return 0;
+}
+
+/// returns element namespace id
+lUInt16 tinyNode::getNodeNsId() const
+{
+    if ( !isElement() )
+        return 0;
+    // TODO
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    return 0;
+}
+
+/// replace element name id with another value
+void tinyNode::setNodeId( lUInt16 )
+{
+    if ( !isElement() )
+        return;
+    // TODO
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+}
+
+/// returns element name
+const lString16 & tinyNode::getNodeName() const
+{
+    if ( !isElement() )
+        return lString16::empty_str;
+    if ( !isPersistent() ) {
+        // element
+        //_document->getElementName(getData()->id);
+    } else {
+        // persistent element
+    }
+    // TODO
+    return lString16::empty_str;
+}
+
+/// returns element namespace name
+const lString16 & tinyNode::getNodeNsName() const
+{
+    if ( !isElement() )
+        return lString16::empty_str;
+    if ( !isPersistent() ) {
+        // element
+    } else {
+        // persistent element
+    }
+    // TODO
+    return lString16::empty_str;
+}
+
+
+
+/// returns text node text as wide string
+lString16 tinyNode::getText( lChar16 blockDelimiter ) const
+{
+    // TODO
+    return lString16::empty_str;
+}
+
+/// returns text node text as utf8 string
+lString8 tinyNode::getText8( lChar8 blockDelimiter ) const
+{
+    // TODO
+    return lString8::empty_str;
+}
+
+/// sets text node text as wide string
+void tinyNode::setText( lString16 )
+{
+    // TODO
+}
+
+/// sets text node text as utf8 string
+void tinyNode::setText8( lString8 )
+{
+    // TODO
+}
+
+/// returns node absolute rectangle
+void tinyNode::getAbsRect( lvRect & rect )
+{
+    // TODO
+}
+
+/// returns render data structure
+lvdomElementFormatRec * tinyNode::getRenderData()
+{
+    // TODO
+    return NULL;
+}
+
+/// sets node rendering structure pointer
+void tinyNode::clearRenderData()
+{
+    // TODO
+}
+
+/// calls specified function recursively for all elements of DOM tree
+void tinyNode::recurseElements( void (*pFun)( tinyNode * node ) )
+{
+    // TODO
+}
+
+/// calls specified function recursively for all nodes of DOM tree
+void tinyNode::recurseNodes( void (*pFun)( tinyNode * node ) )
+{
+    // TODO
+}
+
+/// returns first text child element
+tinyNode * tinyNode::getFirstTextChild()
+{
+    // TODO
+    return NULL;
+}
+
+/// returns last text child element
+tinyNode * tinyNode::getLastTextChild()
+{
+    // TODO
+    return NULL;
+}
+
+#if BUILD_LITE!=1
+/// find node by coordinates of point in formatted document
+tinyNode * tinyNode::elementFromPoint( lvPoint pt )
+{
+    // TODO
+    return NULL;
+}
+
+/// find final node by coordinates of point in formatted document
+tinyNode * tinyNode::finalBlockFromPoint( lvPoint pt )
+{
+    // TODO
+    return NULL;
+}
+#endif
+
+/// returns rendering method
+lvdom_element_render_method tinyNode::getRendMethod()
+{
+    // TODO
+    return erm_invisible;
+}
+
+/// sets rendering method
+void tinyNode::setRendMethod( lvdom_element_render_method )
+{
+    // TODO
+}
+
+/// returns element style record
+css_style_ref_t tinyNode::getStyle()
+{
+    // TODO
+    return css_style_ref_t();
+}
+
+/// returns element font
+font_ref_t tinyNode::getFont()
+{
+    // TODO
+    return font_ref_t();
+}
+
+/// sets element font
+void tinyNode::setFont( font_ref_t )
+{
+    // TODO
+}
+
+/// sets element style record
+void tinyNode::setStyle( css_style_ref_t & )
+{
+    // TODO
+}
+
+/// returns first child node
+tinyNode * tinyNode::getFirstChild() const
+{
+    // TODO
+    return NULL;
+}
+
+/// returns last child node
+tinyNode * tinyNode::getLastChild() const
+{
+    // TODO
+    return NULL;
+}
+
+/// removes and deletes last child element
+void tinyNode::removeLastChild()
+{
+    // TODO
+}
+
+/// move range of children startChildIndex to endChildIndex inclusively to specified element
+void tinyNode::moveItemsTo( tinyNode *, int , int )
+{
+    // TODO
+}
+
+/// find child element by tag id
+tinyNode * tinyNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
+{
+    // TODO
+    return NULL;
+}
+
+/// find child element by id path
+tinyNode * tinyNode::findChildElement( lUInt16 idPath[] )
+{
+    // TODO
+    return NULL;
+}
+
+/// inserts child element
+tinyNode * tinyNode::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
+{
+    // TODO
+    return NULL;
+}
+
+/// inserts child element
+tinyNode * tinyNode::insertChildElement( lUInt16 id )
+{
+    // TODO
+    return NULL;
+}
+
+/// inserts child text
+tinyNode * tinyNode::insertChildText( lUInt32 index, const lString16 & value )
+{
+    // TODO
+    return NULL;
+}
+
+/// inserts child text
+tinyNode * tinyNode::insertChildText( const lString16 & value )
+{
+    // TODO
+    return NULL;
+}
+
+/// remove child
+tinyNode * tinyNode::removeChild( lUInt32 index )
+{
+    // TODO
+    return NULL;
+}
+
+/// creates stream to read base64 encoded data from element
+LVStreamRef tinyNode::createBase64Stream()
+{
+    // TODO
+    return LVStreamRef();
+}
+
+#if BUILD_LITE!=1
+/// returns object image source
+LVImageSourceRef tinyNode::getObjectImageSource()
+{
+    // TODO
+    return LVImageSourceRef();
+}
+
+/// formats final block
+int tinyNode::renderFinalBlock(  LFormattedTextRef & frmtext, int width )
+{
+    // TODO
+    return 0;
+}
+
+/// formats final block again after change, returns true if size of block is changed
+bool tinyNode::refreshFinalBlock()
+{
+    // TODO
+    return false;
+}
+
+#endif
+
+/// replace node with r/o persistent implementation
+tinyNode * tinyNode::persist()
+{
+    // TODO
+    return this;
+}
+
+/// replace node with r/w implementation
+tinyNode * tinyNode::modify()
+{
+    // TODO
+    return this;
+}
+
+/// override to avoid deleting children while replacing
+void tinyNode::prepareReplace()
+{
+    // TODO
 }
 
