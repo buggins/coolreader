@@ -195,6 +195,236 @@ public:
     ~ldomTextStorageChunk();
 };
 
+// forward declaration
+class tinyNode;
+
+/// storage of tinyNode
+class tinyNodeCollection
+{
+    friend class tinyNode;
+private:
+    int _size;
+    int _count;
+    lUInt32 _nextFree;
+    tinyNode * _list;
+public:
+    /// get tinyNode instance pointer
+    tinyNode * getTinyNode( lUInt32 index );
+    /// allocate new tinyNode
+    tinyNode * allocTinyNode( int type );
+    /// recycle tinyNode on node removing
+    void recycleTinyNode( lUInt32 index );
+    /// creates empty collection
+    tinyNodeCollection();
+    /// destroys collection
+    virtual ~tinyNodeCollection();
+};
+
+class ldomDocument;
+class ldomText;
+class ldomElement;
+class lxmlAttribute;
+
+// no vtable, very small size (16 bytes)
+// optimized for 32 bit systems
+class tinyNode
+{
+    friend class tinyNodeCollection;
+private:
+    enum {
+        NT_TEXT=0,       // mutable text node
+        NT_ELEMENT=1,    // mutable element node
+        NT_PTEXT=2,      // immutable (persistent) text node
+        NT_PELEMENT=3,   // immutable (persistent) element node
+    };
+    /// data index of this node and its type
+    lUInt32 _dataIndex;        // [0] 4 bytes
+    /// data index of parent node, 0 if no parent
+    lUInt32 _parentIndex;      // [4] 4 bytes
+    /// document which owns this node
+    ldomDocument * _document;  // [8] 4 bytes (8 bytes on x64)
+    /// misc data
+    union {
+        struct {
+            lUInt16 _chunk;
+            lUInt16 _offset;
+        } _data;
+        ldomElement * _elem;
+        ldomText * _text;
+        lUInt32 _nextFreeIndex; // for removed items
+    } _data;                      // [12] 4 bytes (8 bytes on x64)
+#define TNTYPE  (_dataIndex&0x0F)
+#define TNINDEX (_dataIndex&(~0x0F))
+#define TNCHUNK (_addr>>&(~0x0F))
+    void onCollectionDestroy();
+    void onNodeDestroy();
+    inline tinyNode * getTinyNode( lUInt32 index ) const { return &((tinyNodeCollection*)_document)->_list[index>>4]; }
+public:
+
+    /// returns true for invalid/deleted node ot NULL this pointer
+    inline bool isNull() const { return this == NULL || _dataIndex==0; }
+    /// returns true if node is stored in persistent storage
+    inline bool isPersistent() const { return TNTYPE&2; }
+    /// returns data index of node's registration in document data storage
+    inline lInt32 getDataIndex() const { return TNINDEX; }
+    /// returns pointer to document
+    inline ldomDocument * getDocument() const { return _document; }
+    /// returns pointer to parent node, NULL if node has no parent
+    tinyNode * getParentNode() const { _parentIndex ? getTinyNode(_parentIndex) : NULL; }
+    /// returns node type, either LXML_TEXT_NODE or LXML_ELEMENT_NODE
+    inline lUInt8 getNodeType() const
+    {
+        return (_dataIndex & 1) ? LXML_ELEMENT_NODE : LXML_TEXT_NODE;
+    }
+    /// returns node level, 0 is root node
+    lUInt8 getNodeLevel() const;
+    /// returns index of node inside parent's child collection
+    lUInt32 getNodeIndex() const;
+    /// returns true if node is document's root
+    inline bool isRoot() const { return _parentIndex <= 0; }
+    /// returns true if node is text
+    inline bool isText() const { return _dataIndex && !(_dataIndex&1); }
+    /// returns true if node is element
+    inline bool isElement() const { return _dataIndex && (_dataIndex&1); }
+    /// returns true if node is and element that has children
+    inline bool hasChildren() { return getChildCount()!=0; }
+    /// returns true if node is element has attributes
+    inline bool hasAttributes() const { return getAttrCount()!=0; }
+
+    /// returns element child count
+    lUInt32 getChildCount() const;
+    /// returns element attribute count
+    lUInt32 getAttrCount() const;
+    /// returns attribute value by attribute name id and namespace id
+    const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
+    /// returns attribute value by attribute name
+    inline const lString16 & getAttributeValue( const lChar16 * attrName ) const
+    {
+        return getAttributeValue( NULL, attrName );
+    }
+    /// returns attribute value by attribute name and namespace
+    const lString16 & getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const;
+    /// returns attribute by index
+    const lxmlAttribute * getAttribute( lUInt32 ) const;
+    /// returns true if element node has attribute with specified name id and namespace id
+    bool hasAttribute( lUInt16 nsId, lUInt16 attrId ) const;
+    /// returns attribute name by index
+    const lString16 & getAttributeName( lUInt32 ) const;
+    /// sets attribute value
+    void setAttributeValue( lUInt16 , lUInt16 , const lChar16 *  );
+    /// returns attribute value by attribute name id
+    inline const lString16 & getAttributeValue( lUInt16 id ) const { return getAttributeValue( LXML_NS_ANY, id ); }
+    /// returns true if element node has attribute with specified name id
+    inline bool hasAttribute( lUInt16 id ) const  { return hasAttribute( LXML_NS_ANY, id ); }
+
+
+    /// returns element type structure pointer if it was set in document for this element name
+    const css_elem_def_props_t * getElementTypePtr();
+    /// returns element name id
+    lUInt16 getNodeId() const;
+    /// returns element namespace id
+    lUInt16 getNodeNsId() const;
+    /// replace element name id with another value
+    void setNodeId( lUInt16 );
+    /// returns element name
+    const lString16 & getNodeName() const;
+    /// returns element namespace name
+    const lString16 & getNodeNsName() const;
+
+    /// returns child node by index
+    tinyNode * getChildNode( lUInt32 index ) const;
+
+    /// returns text node text as wide string
+    lString16 getText( lChar16 blockDelimiter = 0 ) const;
+    /// returns text node text as utf8 string
+    lString8 getText8( lChar8 blockDelimiter = 0 ) const;
+    /// sets text node text as wide string
+    void setText( lString16 );
+    /// sets text node text as utf8 string
+    void setText8( lString8 );
+
+
+    /// returns node absolute rectangle
+    void getAbsRect( lvRect & rect );
+    /// returns render data structure
+    lvdomElementFormatRec * getRenderData();
+    /// sets node rendering structure pointer
+    void clearRenderData();
+    /// calls specified function recursively for all elements of DOM tree
+    void recurseElements( void (*pFun)( tinyNode * node ) );
+    /// calls specified function recursively for all nodes of DOM tree
+    void recurseNodes( void (*pFun)( tinyNode * node ) );
+
+
+    /// returns first text child element
+    tinyNode * getFirstTextChild();
+    /// returns last text child element
+    tinyNode * getLastTextChild();
+
+#if BUILD_LITE!=1
+    /// find node by coordinates of point in formatted document
+    tinyNode * elementFromPoint( lvPoint pt );
+    /// find final node by coordinates of point in formatted document
+    tinyNode * finalBlockFromPoint( lvPoint pt );
+#endif
+
+    // rich interface stubs for supporting Element operations
+    /// returns rendering method
+    lvdom_element_render_method getRendMethod();
+    /// sets rendering method
+    void setRendMethod( lvdom_element_render_method );
+    /// returns element style record
+    css_style_ref_t getStyle();
+    /// returns element font
+    font_ref_t getFont();
+    /// sets element font
+    void setFont( font_ref_t );
+    /// sets element style record
+    void setStyle( css_style_ref_t & );
+
+    /// returns first child node
+    tinyNode * getFirstChild() const;
+    /// returns last child node
+    tinyNode * getLastChild() const;
+    /// removes and deletes last child element
+    void removeLastChild();
+    /// move range of children startChildIndex to endChildIndex inclusively to specified element
+    void moveItemsTo( tinyNode *, int , int );
+    /// find child element by tag id
+    tinyNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
+    /// find child element by id path
+    tinyNode * findChildElement( lUInt16 idPath[] );
+    /// inserts child element
+    tinyNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
+    /// inserts child element
+    tinyNode * insertChildElement( lUInt16 id );
+    /// inserts child text
+    tinyNode * insertChildText( lUInt32 index, const lString16 & value );
+    /// inserts child text
+    tinyNode * insertChildText( const lString16 & value );
+    /// remove child
+    tinyNode * removeChild( lUInt32 index );
+
+    /// creates stream to read base64 encoded data from element
+    LVStreamRef createBase64Stream();
+#if BUILD_LITE!=1
+    /// returns object image source
+    LVImageSourceRef getObjectImageSource();
+    /// formats final block
+    int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
+    /// formats final block again after change, returns true if size of block is changed
+    bool refreshFinalBlock();
+#endif
+    /// replace node with r/o persistent implementation
+    tinyNode * persist();
+    /// replace node with r/w implementation
+    tinyNode * modify();
+protected:
+    /// override to avoid deleting children while replacing
+    void prepareReplace();
+
+};
+
 
 // default: 512K
 #define DEF_DOC_DATA_BUFFER_SIZE 0x80000
@@ -208,7 +438,7 @@ public:
 
 	Manages data storage.
 */
-class lxmlDocBase
+class lxmlDocBase : public tinyNodeCollection
 {
     friend class ldomNode;
     friend class ldomElement;
