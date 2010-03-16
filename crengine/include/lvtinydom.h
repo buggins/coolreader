@@ -249,6 +249,7 @@ private:
             union {
                 // just store utf8 string for dynamic
                 lChar8 * _str;
+                //
                 struct {
                     lUInt16 _chunk;       // text storage chunk index
                     lUInt16 _offset;      // text storage offset inside chunk
