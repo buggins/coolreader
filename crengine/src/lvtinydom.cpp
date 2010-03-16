@@ -176,7 +176,7 @@ tinyNode * tinyNodeCollection::allocTinyNode( int type )
         // reuse existing free item
         res = &_list[_nextFree];
         res->_dataIndex = (_nextFree << 4) | type;
-        _nextFree = res->_data._nextFreeIndex;
+        _nextFree = res->_data._empty._nextFreeIndex;
     } else {
         // create new item
         _count++;
@@ -201,7 +201,7 @@ void tinyNodeCollection::recycleTinyNode( lUInt32 index )
     index >>= 4;
     tinyNode * p = &_list[index];
     p->_dataIndex = 0; // indicates NULL node
-    p->_data._nextFreeIndex = _nextFree;
+    p->_data._empty._nextFreeIndex = _nextFree;
     _nextFree = index;
 }
 
@@ -5943,16 +5943,17 @@ void tinyNode::onCollectionDestroy()
         return;
     switch ( TNTYPE ) {
     case NT_TEXT:
-        delete _data._text;
+        free(_data._text._v._str);
         break;
     case NT_ELEMENT:
-        delete _data._elem;
+        delete _data._elem._v._dynamic;
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         // do nothing
+        break;
     case NT_PELEMENT:   // immutable (persistent) element node
         // do nothing
-        ;
+        break;
     }
 }
 
@@ -5962,19 +5963,72 @@ void tinyNode::onNodeDestroy()
         return;
     switch ( TNTYPE ) {
     case NT_TEXT:
+        free(_data._text._v._str);
+        break;
     case NT_ELEMENT:
+        delete _data._elem._v._dynamic;
+        break;
     case NT_PTEXT:      // immutable (persistent) text node
+        break;
     case NT_PELEMENT:   // immutable (persistent) element node
-        //
-        ;
+        break;
     }
     _document->recycleTinyNode( _dataIndex );
 }
 
-/// returns index of node inside parent's child collection
-lUInt32 tinyNode::getNodeIndex() const
+/// returns index of child node by dataIndex
+int tinyNode::getChildIndex( lUInt32 dataIndex ) const
 {
-    return 0; // TODO
+    if ( isNull() )
+        return -1;
+    int parentIndex = -1;
+    switch ( TNTYPE ) {
+    case NT_ELEMENT:
+        // TODO:
+        break;
+    case NT_PELEMENT:
+        // TODO:
+        break;
+    case NT_PTEXT:      // immutable (persistent) text node
+    case NT_TEXT:
+        break;
+    }
+    return parentIndex;
+}
+
+/// returns index of node inside parent's child collection
+int tinyNode::getNodeIndex() const
+{
+    tinyNode * parent = getParentNode();
+    if ( parent )
+        return parent->getChildIndex( getDataIndex() );
+    return 0;
+}
+
+/// returns dataIndex of node's parent, 0 if no parent
+int tinyNode::getParentIndex() const
+{
+    if ( isNull() )
+        return 0;
+    int parentIndex = 0;
+    switch ( TNTYPE ) {
+    case NT_ELEMENT:
+    case NT_PELEMENT:   // immutable (persistent) element node
+        // TODO: get parent for element
+        break;
+    case NT_PTEXT:      // immutable (persistent) text node
+    case NT_TEXT:
+        parentIndex = _data._text._parentIndex;
+        break;
+    }
+    return parentIndex;
+}
+
+/// returns pointer to parent node, NULL if node has no parent
+tinyNode * tinyNode::getParentNode() const
+{
+    int parentIndex = getParentIndex();
+    return parentIndex ? getTinyNode(parentIndex) : NULL;
 }
 
 /// returns child node by index
