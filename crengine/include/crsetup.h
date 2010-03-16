@@ -247,13 +247,13 @@
 // Caching and MMAP options
 
 /// minimal document size to enable caching for
-#ifndef DOCUMENT_CACHING_SIZE_THRESHOLD
-#define DOCUMENT_CACHING_SIZE_THRESHOLD 0x20000 // 128K
+#ifndef DOCUMENT_CACHING_MIN_SIZE
+#define DOCUMENT_CACHING_MIN_SIZE 0x20000 // 128K
 #endif
 
 /// max ram data block usage, after which swapping to disk should occur
 #ifndef DOCUMENT_CACHING_MAX_RAM_USAGE
-#define DOCUMENT_CACHING_MAX_RAM_USAGE 0xC00000 // 12Mb
+#define DOCUMENT_CACHING_MAX_RAM_USAGE 0xA00000 // 10Mb
 #endif
 
 /// max ram data block usage, after which swapping to disk should occur
