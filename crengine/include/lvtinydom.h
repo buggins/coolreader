@@ -237,21 +237,41 @@ private:
         NT_PTEXT=2,      // immutable (persistent) text node
         NT_PELEMENT=3,   // immutable (persistent) element node
     };
-    /// data index of this node and its type
-    lUInt32 _dataIndex;        // [0] 4 bytes
-    /// data index of parent node, 0 if no parent
-    lUInt32 _parentIndex;      // [4] 4 bytes
     /// document which owns this node
-    ldomDocument * _document;  // [8] 4 bytes (8 bytes on x64)
+    ldomDocument * _document;  // [0] 4 bytes (8 bytes on x64)
+    /// data index of this node and its type
+    lUInt32 _dataIndex;        // [4] 4 bytes
     /// misc data
-    union {
+    union {                    // [8] 8 bytes (16 bytes on x64)
         struct {
-            lUInt16 _chunk;
-            lUInt16 _offset;
-        } _data;
-        ldomElement * _elem;
-        ldomText * _text;
-        lUInt32 _nextFreeIndex; // for removed items
+            // common part - hold parent index
+            lUInt32 _parentIndex; // just to avoid extra access to storage
+            union {
+                // just store utf8 string for dynamic
+                lChar8 * _str;
+                struct {
+                    lUInt16 _chunk;       // text storage chunk index
+                    lUInt16 _offset;      // text storage offset inside chunk
+                } _persistent;
+            } _v;
+        } _text;
+        struct {
+            // common part for all elements
+            lUInt16 _fontIndex;
+            lUInt16 _styleIndex;
+            union {
+                // dynamic (RAM)
+                ldomElement * _dynamic;
+                // persistent
+                struct {
+                    lUInt16 _chunk;
+                    lUInt16 _offset;
+                } _persistent;
+            } _v;
+        } _elem;
+        struct {
+            lUInt32 _nextFreeIndex; // for removed items
+        } _empty;
     } _data;                      // [12] 4 bytes (8 bytes on x64)
 #define TNTYPE  (_dataIndex&0x0F)
 #define TNINDEX (_dataIndex&(~0x0F))
@@ -270,7 +290,7 @@ public:
     /// returns pointer to document
     inline ldomDocument * getDocument() const { return _document; }
     /// returns pointer to parent node, NULL if node has no parent
-    tinyNode * getParentNode() const { _parentIndex ? getTinyNode(_parentIndex) : NULL; }
+    tinyNode * getParentNode() const;
     /// returns node type, either LXML_TEXT_NODE or LXML_ELEMENT_NODE
     inline lUInt8 getNodeType() const
     {
@@ -278,10 +298,14 @@ public:
     }
     /// returns node level, 0 is root node
     lUInt8 getNodeLevel() const;
+    /// returns dataIndex of node's parent, 0 if no parent
+    int getParentIndex() const;
     /// returns index of node inside parent's child collection
-    lUInt32 getNodeIndex() const;
+    int getNodeIndex() const;
+    /// returns index of child node by dataIndex
+    int getChildIndex( lUInt32 dataIndex ) const;
     /// returns true if node is document's root
-    inline bool isRoot() const { return _parentIndex <= 0; }
+    inline bool isRoot() const { return getParentIndex() <= 0; }
     /// returns true if node is text
     inline bool isText() const { return _dataIndex && !(_dataIndex&1); }
     /// returns true if node is element
