@@ -154,42 +154,37 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
 //=================================================================
 
 tinyNodeCollection::tinyNodeCollection()
-: _size(0)
-, _count(0)
+: _count(0)
 , _nextFree(0)
-, _list(NULL)
 {
+    memset( _list, 0, sizeof(_list) );
 }
 
 /// get tinyNode instance pointer
 tinyNode * tinyNodeCollection::getTinyNode( lUInt32 index )
 {
-    return &_list[index>>4];
+    return &(_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
 }
 
-#define TNCOLLECTION_INITIAL_SIZE 1024
 /// allocate new tiny node
 tinyNode * tinyNodeCollection::allocTinyNode( int type )
 {
     tinyNode * res;
     if ( _nextFree ) {
         // reuse existing free item
-        res = &_list[_nextFree];
-        res->_dataIndex = (_nextFree << 4) | type;
+        int index = (_nextFree << 4) | type;
+        res = getTinyNode(index);
+        res->_dataIndex = index;
         _nextFree = res->_data._empty._nextFreeIndex;
     } else {
         // create new item
         _count++;
-        if ( _count >= _size ) {
-            _size = _size ? _size * 2 : TNCOLLECTION_INITIAL_SIZE;
-            _list = (tinyNode*)realloc( _list, sizeof(tinyNode) * _size );
-            if ( _count==1 ) {
-                // init node 0
-                _list[0]._document = (ldomDocument*)this;
-                _list[0]._dataIndex = 0;
-            }
+        tinyNode * part = _list[_count >> TNC_PART_SHIFT];
+        if ( !part ) {
+            part = (tinyNode*)malloc( sizeof(tinyNode) * TNC_PART_LEN );
+            _list[ _count >> TNC_PART_SHIFT ] = part;
         }
-        res = &_list[_count];
+        res = &part[_count & TNC_PART_MASK];
         res->_document = (ldomDocument*)this;
         res->_dataIndex = (_count << 4) | type;
     }
@@ -199,7 +194,8 @@ tinyNode * tinyNodeCollection::allocTinyNode( int type )
 void tinyNodeCollection::recycleTinyNode( lUInt32 index )
 {
     index >>= 4;
-    tinyNode * p = &_list[index];
+    tinyNode * part = _list[index >> TNC_PART_SHIFT];
+    tinyNode * p = &part[index & TNC_PART_MASK];
     p->_dataIndex = 0; // indicates NULL node
     p->_data._empty._nextFreeIndex = _nextFree;
     _nextFree = index;
@@ -207,13 +203,18 @@ void tinyNodeCollection::recycleTinyNode( lUInt32 index )
 
 tinyNodeCollection::~tinyNodeCollection()
 {
-    if ( _list ) {
-        // node 0 is reserved
-        for ( int i=1; i<_count; i++ )
-            _list[i].onCollectionDestroy();
-        free( _list );
+    // clear all parts
+    for ( int partindex = 0; partindex<=(_count>>TNC_PART_SHIFT); partindex++ ) {
+        tinyNode * part = _list[partindex];
+        if ( part ) {
+            int n0 = TNC_PART_LEN * partindex;
+            for ( int i=0; n0+i<=_count; i++ )
+                part[i].onCollectionDestroy();
+            free(part);
+        }
     }
 }
+
 
 
 /*
@@ -5926,7 +5927,126 @@ void lxmlDocBase::setStyleSheet( const char * css, bool replace )
 
 
 
+
+
+
 //=====================================================
+// ldomElement declaration placed here to hide DOM implementation
+// use ldomNode rich interface instead
+class tinyElement
+{
+    friend class tinyNode;
+private:
+    ldomDocument * _document;
+    ldomAttributeCollection _attrs;
+    lUInt16 _id;
+    lUInt16 _nsid;
+    lvdomElementFormatRec * _renderData;   // used by rendering engine
+    LVArray < lInt32 > _children;
+    css_style_ref_t _style;
+    font_ref_t      _font;
+    lvdom_element_render_method _rendMethod;
+protected:
+    void addChild( lInt32 dataIndex );
+public:
+#if BUILD_LITE!=1
+    tinyElement( ldomPersistentElement * v );
+#endif
+    tinyElement( ldomDocument * document, lUInt16 nsid, lUInt16 id )
+    : _document(document), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
+    { }
+    /// destructor
+    ~tinyElement() { }
+    /// returns LXML_ELEMENT_NODE
+    lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
+    /// returns rendering method
+    lvdom_element_render_method  getRendMethod() { return _rendMethod; }
+    /// sets rendering method
+    void setRendMethod( lvdom_element_render_method  method ) { _rendMethod=method; }
+    /// returns element style record
+    css_style_ref_t getStyle() { return _style; }
+    /// returns element font
+    font_ref_t getFont() { return _font; }
+    /// sets element font
+    void setFont( font_ref_t font ) { _font = font; }
+    /// sets element style record
+    void setStyle( css_style_ref_t & style ) { _style = style; }
+    /// returns element child count
+    lUInt32 getChildCount() const { return _children.length(); }
+    /// returns first child node
+    ldomNode * getFirstChild() const;
+    /// returns last child node
+    ldomNode * getLastChild() const;
+    /// removes and deletes last child element
+    void removeLastChild();
+    /// returns element attribute count
+    lUInt32 getAttrCount() const { return _attrs.length(); }
+    /// returns attribute value by attribute name id and namespace id
+    const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
+    /// sets attribute value
+    void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value );
+    /// move range of children startChildIndex to endChildIndex inclusively to specified element
+    void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex );
+    /// returns attribute by index
+    const lxmlAttribute * getAttribute( lUInt32 index ) const { return _attrs[index]; }
+    /// returns attribute value by attribute name id
+    const lString16 & getAttributeName( lUInt32 index ) const { return _document->getAttrName(_attrs[index]->id); }
+    /// returns true if element node has attribute with specified name id and namespace id
+    bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return _attrs.get( nsid, id )!=LXML_ATTR_VALUE_NONE; }
+    /// returns element type structure pointer if it was set in document for this element name
+    const css_elem_def_props_t * getElementTypePtr() { return _document->getElementTypePtr(_id); }
+    /// returns element name id
+    lUInt16 getNodeId() const { return _id; }
+    /// replace element name id with another value
+    void setNodeId( lUInt16 id ) { _id = id; }
+    /// returns element namespace id
+    lUInt16 getNodeNsId() const { return _nsid; }
+    /// returns element name
+    const lString16 & getNodeName() const { return _document->getElementName(_id); }
+    /// returns element namespace name
+    const lString16 & getNodeNsName() const { return _document->getNsName(_nsid); }
+    /// returns child node by index
+    ldomNode * getChildNode( lUInt32 index ) const;
+    /// returns render data structure
+    lvdomElementFormatRec * getRenderData();
+    /// sets node rendering structure pointer
+    void clearRenderData();
+
+    /// inserts child element
+    ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
+    /// inserts child element
+    ldomNode * insertChildElement( lUInt16 id );
+    /// inserts child text
+    ldomNode * insertChildText( lUInt32 index, const lString16 &  value );
+    /// inserts child text
+    ldomNode * insertChildText( const lString16 &  value );
+    /// remove child
+    ldomNode * removeChild( lUInt32 index );
+#if BUILD_LITE!=1
+    /// replace node with r/o persistent implementation
+    ldomNode * persist();
+#endif
+protected:
+    /// override to avoid deleting children while replacing
+    void prepareReplace()
+    {
+        _children.clear();
+    }
+};
+
+
+
+
+
+
+static void readOnlyError()
+{
+    crFatalError( 125, "Text node is persistent (read-only)! Call modify() to get r/w instance." );
+}
+
+//=====================================================
+
+
 /// returns node level, 0 is root node
 lUInt8 tinyNode::getNodeLevel() const
 {
@@ -6039,6 +6159,8 @@ tinyNode * tinyNode::getChildNode( lUInt32 index ) const
     // TODO
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        return getTinyNode( me->_children[index] );
     } else {
         // persistent element
     }
@@ -6052,6 +6174,8 @@ lUInt32 tinyNode::getChildCount() const
         return 0;
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        return me->_children.length();
     } else {
         // persistent element
     }
@@ -6065,6 +6189,8 @@ lUInt32 tinyNode::getAttrCount() const
         return 0;
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        return me->_attrs.length();
     } else {
         // persistent element
     }
@@ -6078,6 +6204,11 @@ const lString16 & tinyNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
         return lString16::empty_str;
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        lUInt16 valueId = me->_attrs.get( nsid, id );
+        if ( valueId==LXML_ATTR_VALUE_NONE )
+            return lString16::empty_str;
+        return _document->getAttrValue(valueId);
     } else {
         // persistent element
     }
@@ -6094,12 +6225,14 @@ const lString16 & tinyNode::getAttributeValue( const lChar16 * nsName, const lCh
 }
 
 /// returns attribute by index
-const lxmlAttribute * tinyNode::getAttribute( lUInt32 ) const
+const lxmlAttribute * tinyNode::getAttribute( lUInt32 index ) const
 {
     if ( !isElement() )
         return NULL;
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        return me->_attrs[index];
     } else {
         // persistent element
     }
@@ -6108,12 +6241,15 @@ const lxmlAttribute * tinyNode::getAttribute( lUInt32 ) const
 }
 
 /// returns true if element node has attribute with specified name id and namespace id
-bool tinyNode::hasAttribute( lUInt16 nsId, lUInt16 attrId ) const
+bool tinyNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
 {
     if ( !isElement() )
         return false;
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        lUInt16 valueId = me->_attrs.get( nsid, id );
+        return ( valueId!=LXML_ATTR_VALUE_NONE );
     } else {
         // persistent element
     }
@@ -6121,29 +6257,27 @@ bool tinyNode::hasAttribute( lUInt16 nsId, lUInt16 attrId ) const
 }
 
 /// returns attribute name by index
-const lString16 & tinyNode::getAttributeName( lUInt32 ) const
+const lString16 & tinyNode::getAttributeName( lUInt32 index ) const
 {
-    if ( !isElement() )
-        return lString16::empty_str;
-    if ( !isPersistent() ) {
-        // element
-    } else {
-        // persistent element
-    }
-    // TODO
+    const lxmlAttribute * attr = getAttribute( index );
+    if ( attr )
+        return _document->getAttrName( attr->id );
     return lString16::empty_str;
 }
 
 /// sets attribute value
-void tinyNode::setAttributeValue( lUInt16 , lUInt16 , const lChar16 *  )
+void tinyNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
 {
     if ( !isElement() )
         return;
-    // TODO
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        int valueIndex = _document->getAttrValueIndex(value);
+        me->_attrs.set(nsid, id, valueIndex);
     } else {
         // persistent element
+        //TODO:
     }
 }
 
@@ -6152,11 +6286,13 @@ const css_elem_def_props_t * tinyNode::getElementTypePtr()
 {
     if ( !isElement() )
         return NULL;
-    // TODO
     if ( !isPersistent() ) {
         // element
+        tinyElement * me = _data._elem._v._dynamic;
+        return _document->getElementTypePtr(me->_id);
     } else {
         // persistent element
+        // TODO
     }
     return NULL;
 }
@@ -6169,6 +6305,7 @@ lUInt16 tinyNode::getNodeId() const
     // TODO
     if ( !isPersistent() ) {
         // element
+        return _data._elem._v._dynamic->_id;
     } else {
         // persistent element
     }
@@ -6183,6 +6320,7 @@ lUInt16 tinyNode::getNodeNsId() const
     // TODO
     if ( !isPersistent() ) {
         // element
+        return _data._elem._v._dynamic->_nsid;
     } else {
         // persistent element
     }
@@ -6190,13 +6328,14 @@ lUInt16 tinyNode::getNodeNsId() const
 }
 
 /// replace element name id with another value
-void tinyNode::setNodeId( lUInt16 )
+void tinyNode::setNodeId( lUInt16 id )
 {
     if ( !isElement() )
         return;
     // TODO
     if ( !isPersistent() ) {
         // element
+        _data._elem._v._dynamic->_id = id;
     } else {
         // persistent element
     }
@@ -6209,7 +6348,7 @@ const lString16 & tinyNode::getNodeName() const
         return lString16::empty_str;
     if ( !isPersistent() ) {
         // element
-        //_document->getElementName(getData()->id);
+        return _document->getElementName(_data._elem._v._dynamic->_id);
     } else {
         // persistent element
     }
@@ -6224,6 +6363,7 @@ const lString16 & tinyNode::getNodeNsName() const
         return lString16::empty_str;
     if ( !isPersistent() ) {
         // element
+        return _document->getElementName(_data._elem._v._dynamic->_nsid);
     } else {
         // persistent element
     }
@@ -6402,35 +6542,93 @@ tinyNode * tinyNode::findChildElement( lUInt16 idPath[] )
 /// inserts child element
 tinyNode * tinyNode::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
 {
-    // TODO
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            tinyElement * me = _data._elem._v._dynamic;
+            if (index>(lUInt32)me->_children.length())
+                index = me->_children.length();
+            tinyNode * node = _document->allocTinyNode( NT_ELEMENT );
+            tinyElement * elem = new tinyElement( _document, nsid, id );
+            node->_data._elem._fontIndex = node->_data._elem._styleIndex = 0;
+            node->_data._elem._v._dynamic = elem;
+            me->_children.insert( index, node->getDataIndex() );
+            return node;
+        }
+    }
+    readOnlyError();
     return NULL;
 }
 
 /// inserts child element
 tinyNode * tinyNode::insertChildElement( lUInt16 id )
 {
-    // TODO
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            tinyElement * me = _data._elem._v._dynamic;
+            tinyNode * node = _document->allocTinyNode( NT_ELEMENT );
+            tinyElement * elem = new tinyElement( _document, LXML_NS_NONE, id );
+            node->_data._elem._fontIndex = node->_data._elem._styleIndex = 0;
+            node->_data._elem._v._dynamic = elem;
+            me->_children.insert( me->_children.length(), node->getDataIndex() );
+            return node;
+        }
+    }
+    readOnlyError();
     return NULL;
 }
 
 /// inserts child text
 tinyNode * tinyNode::insertChildText( lUInt32 index, const lString16 & value )
 {
-    // TODO
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            tinyElement * me = _data._elem._v._dynamic;
+            if (index>(lUInt32)me->_children.length())
+                index = me->_children.length();
+            tinyNode * node = _document->allocTinyNode( NT_TEXT );
+            lString8 s8 = UnicodeToUtf8(value);
+            node->_data._text._parentIndex = _dataIndex;
+            node->_data._text._v._str = (lChar8*)malloc( s8.length()+1 );
+            memcpy( node->_data._text._v._str, s8.c_str(), s8.length()+1 );
+            me->_children.insert( index, node->getDataIndex() );
+            return node;
+        }
+    }
+    readOnlyError();
     return NULL;
 }
 
 /// inserts child text
 tinyNode * tinyNode::insertChildText( const lString16 & value )
 {
-    // TODO
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            tinyElement * me = _data._elem._v._dynamic;
+            tinyNode * node = _document->allocTinyNode( NT_TEXT );
+            lString8 s8 = UnicodeToUtf8(value);
+            node->_data._text._parentIndex = _dataIndex;
+            node->_data._text._v._str = (lChar8*)malloc( s8.length()+1 );
+            memcpy( node->_data._text._v._str, s8.c_str(), s8.length()+1 );
+            me->_children.insert( me->_children.length(), node->getDataIndex() );
+            return node;
+        }
+    }
+    readOnlyError();
     return NULL;
 }
 
 /// remove child
 tinyNode * tinyNode::removeChild( lUInt32 index )
 {
-    // TODO
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            tinyElement * me = _data._elem._v._dynamic;
+            lUInt32 removedIndex = me->_children.remove(index);
+            tinyNode * node = getTinyNode( removedIndex );
+            return node;
+        }
+    }
+    readOnlyError();
     return NULL;
 }
 

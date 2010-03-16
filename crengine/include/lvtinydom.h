@@ -198,15 +198,19 @@ public:
 // forward declaration
 class tinyNode;
 
+#define TNC_PART_COUNT 1024
+#define TNC_PART_SHIFT 8
+#define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
+#define TNC_PART_LEN (1<<TNC_PART_SHIFT)
+#define TNC_PART_MASK (TNC_PART_LEN-1)
 /// storage of tinyNode
 class tinyNodeCollection
 {
     friend class tinyNode;
 private:
-    int _size;
     int _count;
     lUInt32 _nextFree;
-    tinyNode * _list;
+    tinyNode * _list[TNC_PART_COUNT];
 public:
     /// get tinyNode instance pointer
     tinyNode * getTinyNode( lUInt32 index );
@@ -221,8 +225,7 @@ public:
 };
 
 class ldomDocument;
-class ldomText;
-class ldomElement;
+class tinyElement;
 class lxmlAttribute;
 
 // no vtable, very small size (16 bytes)
@@ -262,7 +265,7 @@ private:
             lUInt16 _styleIndex;
             union {
                 // dynamic (RAM)
-                ldomElement * _dynamic;
+                tinyElement * _dynamic;
                 // persistent
                 struct {
                     lUInt16 _chunk;
@@ -279,7 +282,7 @@ private:
 #define TNCHUNK (_addr>>&(~0x0F))
     void onCollectionDestroy();
     void onNodeDestroy();
-    inline tinyNode * getTinyNode( lUInt32 index ) const { return &((tinyNodeCollection*)_document)->_list[index>>4]; }
+    inline tinyNode * getTinyNode( lUInt32 index ) const { return &(((tinyNodeCollection*)_document)->_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]); }
 public:
 
     /// returns true for invalid/deleted node ot NULL this pointer
