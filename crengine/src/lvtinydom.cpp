@@ -5943,100 +5943,18 @@ class tinyElement
 private:
     ldomDocument * _document;
     tinyNode * _parentNode;
-    ldomAttributeCollection _attrs;
     lUInt16 _id;
     lUInt16 _nsid;
     lvdomElementFormatRec _renderData;   // used by rendering engine
     LVArray < lInt32 > _children;
-    css_style_ref_t _style;
-    font_ref_t      _font;
+    ldomAttributeCollection _attrs;
     lvdom_element_render_method _rendMethod;
-protected:
-    void addChild( lInt32 dataIndex );
 public:
-#if BUILD_LITE!=1
-    //tinyElement( ldomPersistentElement * v );
-#endif
     tinyElement( ldomDocument * document, tinyNode * parentNode, lUInt16 nsid, lUInt16 id )
     : _document(document), _parentNode(parentNode), _id(id), _nsid(nsid), _rendMethod(erm_invisible)
     { }
     /// destructor
     ~tinyElement() { }
-    /// returns LXML_ELEMENT_NODE
-    lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
-    /// returns rendering method
-    lvdom_element_render_method  getRendMethod() { return _rendMethod; }
-    /// sets rendering method
-    void setRendMethod( lvdom_element_render_method  method ) { _rendMethod=method; }
-    /// returns element style record
-    css_style_ref_t getStyle() { return _style; }
-    /// returns element font
-    font_ref_t getFont() { return _font; }
-    /// sets element font
-    void setFont( font_ref_t font ) { _font = font; }
-    /// sets element style record
-    void setStyle( css_style_ref_t & style ) { _style = style; }
-    /// returns element child count
-    lUInt32 getChildCount() const { return _children.length(); }
-    /// returns first child node
-    ldomNode * getFirstChild() const;
-    /// returns last child node
-    ldomNode * getLastChild() const;
-    /// removes and deletes last child element
-    void removeLastChild();
-    /// returns element attribute count
-    lUInt32 getAttrCount() const { return _attrs.length(); }
-    /// returns attribute value by attribute name id and namespace id
-    const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
-    /// sets attribute value
-    void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value );
-    /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex );
-    /// returns attribute by index
-    const lxmlAttribute * getAttribute( lUInt32 index ) const { return _attrs[index]; }
-    /// returns attribute value by attribute name id
-    const lString16 & getAttributeName( lUInt32 index ) const { return _document->getAttrName(_attrs[index]->id); }
-    /// returns true if element node has attribute with specified name id and namespace id
-    bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return _attrs.get( nsid, id )!=LXML_ATTR_VALUE_NONE; }
-    /// returns element type structure pointer if it was set in document for this element name
-    const css_elem_def_props_t * getElementTypePtr() { return _document->getElementTypePtr(_id); }
-    /// returns element name id
-    lUInt16 getNodeId() const { return _id; }
-    /// replace element name id with another value
-    void setNodeId( lUInt16 id ) { _id = id; }
-    /// returns element namespace id
-    lUInt16 getNodeNsId() const { return _nsid; }
-    /// returns element name
-    const lString16 & getNodeName() const { return _document->getElementName(_id); }
-    /// returns element namespace name
-    const lString16 & getNodeNsName() const { return _document->getNsName(_nsid); }
-    /// returns child node by index
-    ldomNode * getChildNode( lUInt32 index ) const;
-    /// returns render data structure
-    lvdomElementFormatRec * getRenderData();
-    /// sets node rendering structure pointer
-    void clearRenderData();
-
-    /// inserts child element
-    ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
-    /// inserts child element
-    ldomNode * insertChildElement( lUInt16 id );
-    /// inserts child text
-    ldomNode * insertChildText( lUInt32 index, const lString16 &  value );
-    /// inserts child text
-    ldomNode * insertChildText( const lString16 &  value );
-    /// remove child
-    ldomNode * removeChild( lUInt32 index );
-#if BUILD_LITE!=1
-    /// replace node with r/o persistent implementation
-    ldomNode * persist();
-#endif
-protected:
-    /// override to avoid deleting children while replacing
-    void prepareReplace()
-    {
-        _children.clear();
-    }
 };
 
 
@@ -6708,7 +6626,7 @@ lvdom_element_render_method tinyNode::getRendMethod()
     ASSERT_NODE_NOT_NULL;
     if ( isElement() ) {
         if ( !isPersistent() ) {
-            return NPELEM->getRendMethod();
+            return NPELEM->_rendMethod;
         } else {
             // TODO
         }
@@ -6722,7 +6640,7 @@ void tinyNode::setRendMethod( lvdom_element_render_method method )
     ASSERT_NODE_NOT_NULL;
     if ( isElement() ) {
         if ( !isPersistent() ) {
-            NPELEM->setRendMethod(method);
+            NPELEM->_rendMethod = method;
         } else {
             // TODO
         }
@@ -7109,6 +7027,111 @@ void runTinyDomUnitTests()
     MYASSERT(el1->getLastTextChild()==text1, "lastTextNode");
     MYASSERT(el21->getLastTextChild()==NULL, "lastTextNode NULL");
 
+    CRLog::info("* style cache");
+    {
+        css_style_ref_t style1;
+        style1 = css_style_ref_t( new css_style_rec_t );
+        style1->display = css_d_block;
+        style1->white_space = css_ws_normal;
+        style1->text_align = css_ta_left;
+        style1->text_decoration = css_td_none;
+        style1->hyphenate = css_hyph_auto;
+        style1->color.type = css_val_unspecified;
+        style1->color.value = 0x000000;
+        style1->background_color.type = css_val_unspecified;
+        style1->background_color.value = 0xFFFFFF;
+        style1->page_break_before = css_pb_auto;
+        style1->page_break_after = css_pb_auto;
+        style1->page_break_inside = css_pb_auto;
+        style1->vertical_align = css_va_baseline;
+        style1->font_family = css_ff_sans_serif;
+        style1->font_size.type = css_val_px;
+        style1->font_size.value = 24;
+        style1->font_name = lString8("Arial");
+        style1->font_weight = css_fw_400;
+        style1->font_style = css_fs_normal;
+        style1->text_indent.type = css_val_px;
+        style1->text_indent.value = 0;
+        style1->line_height.type = css_val_percent;
+        style1->line_height.value = 100;
+
+        css_style_ref_t style2;
+        style2 = css_style_ref_t( new css_style_rec_t );
+        style2->display = css_d_block;
+        style2->white_space = css_ws_normal;
+        style2->text_align = css_ta_left;
+        style2->text_decoration = css_td_none;
+        style2->hyphenate = css_hyph_auto;
+        style2->color.type = css_val_unspecified;
+        style2->color.value = 0x000000;
+        style2->background_color.type = css_val_unspecified;
+        style2->background_color.value = 0xFFFFFF;
+        style2->page_break_before = css_pb_auto;
+        style2->page_break_after = css_pb_auto;
+        style2->page_break_inside = css_pb_auto;
+        style2->vertical_align = css_va_baseline;
+        style2->font_family = css_ff_sans_serif;
+        style2->font_size.type = css_val_px;
+        style2->font_size.value = 24;
+        style2->font_name = lString8("Arial");
+        style2->font_weight = css_fw_400;
+        style2->font_style = css_fs_normal;
+        style2->text_indent.type = css_val_px;
+        style2->text_indent.value = 0;
+        style2->line_height.type = css_val_percent;
+        style2->line_height.value = 100;
+
+        css_style_ref_t style3;
+        style3 = css_style_ref_t( new css_style_rec_t );
+        style3->display = css_d_block;
+        style3->white_space = css_ws_normal;
+        style3->text_align = css_ta_right;
+        style3->text_decoration = css_td_none;
+        style3->hyphenate = css_hyph_auto;
+        style3->color.type = css_val_unspecified;
+        style3->color.value = 0x000000;
+        style3->background_color.type = css_val_unspecified;
+        style3->background_color.value = 0xFFFFFF;
+        style3->page_break_before = css_pb_auto;
+        style3->page_break_after = css_pb_auto;
+        style3->page_break_inside = css_pb_auto;
+        style3->vertical_align = css_va_baseline;
+        style3->font_family = css_ff_sans_serif;
+        style3->font_size.type = css_val_px;
+        style3->font_size.value = 24;
+        style3->font_name = lString8("Arial");
+        style3->font_weight = css_fw_400;
+        style3->font_style = css_fs_normal;
+        style3->text_indent.type = css_val_px;
+        style3->text_indent.value = 0;
+        style3->line_height.type = css_val_percent;
+        style3->line_height.value = 100;
+
+        el1->setStyle(style1);
+        MYASSERT(!el1->getStyle().isNull(), "style is set");
+        el2->setStyle(style2);
+        MYASSERT(*style1==*style2, "identical styles : == is true");
+        MYASSERT(calcHash(*style1)==calcHash(*style2), "identical styles have the same hashes");
+        MYASSERT(el1->getStyle().get()==el2->getStyle().get(), "identical styles reused");
+        el21->setStyle(style3);
+        MYASSERT(el1->getStyle().get()!=el21->getStyle().get(), "different styles not reused");
+    }
+
+    CRLog::info("* font cache");
+    {
+        font_ref_t font1 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, lString8("DejaVu Sans"));
+        font_ref_t font2 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, lString8("DejaVu Sans"));
+        font_ref_t font3 = fontMan->GetFont(28, 800, false, css_ff_serif, lString8("DejaVu Sans Condensed"));
+        MYASSERT(el1->getFont().isNull(), "font is not set");
+        el1->setFont(font1);
+        MYASSERT(!el1->getFont().isNull(), "font is set");
+        el2->setFont(font2);
+        MYASSERT(*font1==*font2, "identical fonts : == is true");
+        MYASSERT(calcHash(font1)==calcHash(font2), "identical styles have the same hashes");
+        MYASSERT(el1->getFont().get()==el2->getFont().get(), "identical fonts reused");
+        el21->setFont(font3);
+        MYASSERT(el1->getFont().get()!=el21->getFont().get(), "different fonts not reused");
+    }
 
     CRLog::info("Finished tinyDOM unit test");
     CRLog::info("==========================");
