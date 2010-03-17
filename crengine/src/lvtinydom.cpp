@@ -6448,7 +6448,19 @@ const lString16 & tinyNode::getNodeNsName() const
 lString16 tinyNode::getText( lChar16 blockDelimiter ) const
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    switch ( TNTYPE ) {
+    case NT_ELEMENT:
+        // TODO
+        break;
+    case NT_PELEMENT:
+        // TODO
+        break;
+    case NT_PTEXT:
+        // TODO
+        break;
+    case NT_TEXT:
+        return lString16(_data._text._str);
+    }
     return lString16::empty_str;
 }
 
@@ -6456,22 +6468,69 @@ lString16 tinyNode::getText( lChar16 blockDelimiter ) const
 lString8 tinyNode::getText8( lChar8 blockDelimiter ) const
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    switch ( TNTYPE ) {
+    case NT_ELEMENT:
+        // TODO
+        break;
+    case NT_PELEMENT:
+        // TODO
+        break;
+    case NT_PTEXT:
+        // TODO
+        break;
+    case NT_TEXT:
+        return lString8(_data._text._str);
+    }
     return lString8::empty_str;
 }
 
 /// sets text node text as wide string
-void tinyNode::setText( lString16 )
+void tinyNode::setText( lString16 str )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    switch ( TNTYPE ) {
+    case NT_ELEMENT:
+        // TODO
+        break;
+    case NT_PELEMENT:
+        // TODO
+        break;
+    case NT_PTEXT:
+        // TODO
+        break;
+    case NT_TEXT:
+        {
+            free(_data._text._str);
+            lString8 utf8 = UnicodeToUtf8(str);
+            _data._text._str = (lChar8*)malloc(utf8.length()+1);
+            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+        }
+        break;
+    }
 }
 
 /// sets text node text as utf8 string
-void tinyNode::setText8( lString8 )
+void tinyNode::setText8( lString8 utf8 )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    switch ( TNTYPE ) {
+    case NT_ELEMENT:
+        // TODO
+        break;
+    case NT_PELEMENT:
+        // TODO
+        break;
+    case NT_PTEXT:
+        // TODO
+        break;
+    case NT_TEXT:
+        {
+            free(_data._text._str);
+            _data._text._str = (lChar8*)malloc(utf8.length()+1);
+            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+        }
+        break;
+    }
 }
 
 /// returns node absolute rectangle
@@ -6500,21 +6559,49 @@ void tinyNode::clearRenderData()
 void tinyNode::recurseElements( void (*pFun)( tinyNode * node ) )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( !isElement() )
+        return;
+    pFun( this );
+    int cnt = getChildCount();
+    for (int i=0; i<cnt; i++)
+    {
+        tinyNode * child = getChildNode( i );
+        if ( child->isElement() )
+        {
+            child->recurseElements( pFun );
+        }
+    }
 }
 
 /// calls specified function recursively for all nodes of DOM tree
 void tinyNode::recurseNodes( void (*pFun)( tinyNode * node ) )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    pFun( this );
+    if ( isElement() )
+    {
+        int cnt = getChildCount();
+        for (int i=0; i<cnt; i++)
+        {
+            tinyNode * child = getChildNode( i );
+            child->recurseNodes( pFun );
+        }
+    }
 }
 
 /// returns first text child element
 tinyNode * tinyNode::getFirstTextChild()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( isText() )
+        return this;
+    else {
+        for ( int i=0; i<(int)getChildCount(); i++ ) {
+            tinyNode * p = getChildNode(i)->getFirstTextChild();
+            if (p)
+                return p;
+        }
+    }
     return NULL;
 }
 
@@ -6522,7 +6609,15 @@ tinyNode * tinyNode::getFirstTextChild()
 tinyNode * tinyNode::getLastTextChild()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( isText() )
+        return this;
+    else {
+        for ( int i=(int)getChildCount()-1; i>=0; i-- ) {
+            tinyNode * p = getChildNode(i)->getLastTextChild();
+            if (p)
+                return p;
+        }
+    }
     return NULL;
 }
 
@@ -6548,15 +6643,27 @@ tinyNode * tinyNode::finalBlockFromPoint( lvPoint pt )
 lvdom_element_render_method tinyNode::getRendMethod()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( isElement() ) {
+        if ( !isPersistent() ) {
+            return NPELEM->getRendMethod();
+        } else {
+            // TODO
+        }
+    }
     return erm_invisible;
 }
 
 /// sets rendering method
-void tinyNode::setRendMethod( lvdom_element_render_method )
+void tinyNode::setRendMethod( lvdom_element_render_method method )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( isElement() ) {
+        if ( !isPersistent() ) {
+            NPELEM->setRendMethod(method);
+        } else {
+            // TODO
+        }
+    }
 }
 
 /// returns element style record
@@ -6625,7 +6732,10 @@ tinyNode * tinyNode::getLastChild() const
 void tinyNode::removeLastChild()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( hasChildren() ) {
+        tinyNode * lastChild = removeChild( getChildCount() - 1 );
+        lastChild->destroy();
+    }
 }
 
 /// move range of children startChildIndex to endChildIndex inclusively to specified element
@@ -6639,16 +6749,41 @@ void tinyNode::moveItemsTo( tinyNode *, int , int )
 tinyNode * tinyNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
-    return NULL;
+    if ( !isElement() )
+        return NULL;
+    tinyNode * res = NULL;
+    int k = 0;
+    int childCount = getChildCount();
+    for ( int i=0; i<childCount; i++ )
+    {
+        tinyNode * p = getChildNode( i );
+        if ( !p->isElement() )
+            continue;
+        if ( p->getNodeId() == id && ( (p->getNodeNsId() == nsid) || (nsid==LXML_NS_ANY) ) )
+        {
+            if ( k==index || index==-1 )
+                res = p;
+            k++;
+        }
+    }
+    if ( !res || (index==-1 && k>1) )
+        return NULL;
+    return res;
 }
 
 /// find child element by id path
 tinyNode * tinyNode::findChildElement( lUInt16 idPath[] )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
-    return NULL;
+    if ( !this || !isElement() )
+        return NULL;
+    tinyNode * elem = this;
+    for ( int i=0; idPath[i]; i++ ) {
+        elem = elem->findChildElement( LXML_NS_ANY, idPath[i], -1 );
+        if ( !elem )
+            return NULL;
+    }
+    return elem;
 }
 
 /// inserts child element
@@ -6809,6 +6944,10 @@ void runTinyDomUnitTests()
     CRLog::info("Starting tinyDOM unit test");
     ldomDocument * doc = new ldomDocument();
     tinyNode * root = doc->allocTinyElement( NULL, 0, 0 );
+
+    int el_p = doc->getElementNameIndex(L"p");
+    int el_title = doc->getElementNameIndex(L"title");
+
     CRLog::info("* simple DOM operations, tinyElement");
     MYASSERT(root->isRoot(),"root isRoot");
     MYASSERT(root->getParentNode()==NULL,"root parent is null");
@@ -6821,6 +6960,11 @@ void runTinyDomUnitTests()
     MYASSERT(!el1->isRoot(),"elem not isRoot");
     tinyNode * el2 = root->insertChildElement(el_title);
     MYASSERT(root->getChildCount()==2,"root child count 2");
+    MYASSERT(el2->getNodeId()==el_title, "node id");
+    MYASSERT(el2->getNodeNsId()==LXML_NS_NONE, "node nsid");
+    lString16 nodename = el2->getNodeName();
+    //CRLog::debug("node name: %s", LCSTR(nodename));
+    MYASSERT(nodename==L"title","node name");
     tinyNode * el21 = el2->insertChildElement(el_p);
     MYASSERT(root->getNodeLevel()==1,"node level 1");
     MYASSERT(el2->getNodeLevel()==2,"node level 2");
@@ -6850,6 +6994,33 @@ void runTinyDomUnitTests()
     MYASSERT(root->getChildNode(1)==el2,"child node 1, after removal");
     tinyNode * el02 = root->insertChildElement(5, LXML_NS_NONE, el_emphasis);
     MYASSERT(el02==el0,"removed node reusage");
+
+    CRLog::info("* simple DOM operations, mutable text");
+    lString16 sampleText("Some sample text.");
+    lString16 sampleText2("Some sample text 2.");
+    lString16 sampleText3("Some sample text 3.");
+    tinyNode * text1 = el1->insertChildText(sampleText);
+    MYASSERT(text1->getNodeLevel()==3,"text node level");
+    MYASSERT(text1->getNodeIndex()==0,"text node index");
+    MYASSERT(text1->isText(),"text node isText");
+    MYASSERT(!text1->isElement(),"text node isElement");
+    MYASSERT(!text1->isNull(),"text node isNull");
+    tinyNode * text2 = el1->insertChildText(0, sampleText2);
+    MYASSERT(text2->getNodeIndex()==0,"text node index, insert at beginning");
+    MYASSERT(text1->getText()==sampleText, "sample text 1 match unicode");
+    MYASSERT(text2->getText()==sampleText2, "sample text 2 match unicode");
+    MYASSERT(text2->getText8()==UnicodeToUtf8(sampleText2), "sample text 2 match utf8");
+    text1->setText(sampleText2);
+    MYASSERT(text1->getText()==sampleText2, "sample text 1 match unicode, changed");
+    text1->setText8(UnicodeToUtf8(sampleText3));
+    MYASSERT(text1->getText()==sampleText3, "sample text 1 match unicode, changed 8");
+    MYASSERT(text1->getText8()==UnicodeToUtf8(sampleText3), "sample text 1 match utf8, changed");
+
+    MYASSERT(el1->getFirstTextChild()==text2, "firstTextNode");
+    MYASSERT(el1->getLastTextChild()==text1, "lastTextNode");
+    MYASSERT(el21->getLastTextChild()==NULL, "lastTextNode NULL");
+
+
     CRLog::info("Finished tinyDOM unit test");
     CRLog::info("==========================");
 }
