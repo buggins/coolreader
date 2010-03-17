@@ -1305,6 +1305,12 @@ int main(int argc, char **argv)
 
     const char * fname = argv[1];
     const char * bmkdir = NULL;
+
+    if ( !strcmp(fname, "unittest") ) {
+        runTinyDomUnitTests();
+        return 0;
+    }
+
     lString8 fn8( fname );
     lString16 fn16 = LocalToUnicode( fn8 );
     CRLog::info("Filename to open=\"%s\"", LCSTR(fn16) );

@@ -216,6 +216,8 @@ public:
     tinyNode * getTinyNode( lUInt32 index );
     /// allocate new tinyNode
     tinyNode * allocTinyNode( int type );
+    /// allocate new tinyElement
+    tinyNode * allocTinyElement( tinyNode * parent, lUInt16 nsid, lUInt16 id );
     /// recycle tinyNode on node removing
     void recycleTinyNode( lUInt32 index );
     /// creates empty collection
@@ -249,30 +251,27 @@ private:
         struct {
             // common part - hold parent index
             lUInt32 _parentIndex; // just to avoid extra access to storage
-            union {
-                // just store utf8 string for dynamic
-                lChar8 * _str;
-                //
-                struct {
-                    lUInt16 _chunk;       // text storage chunk index
-                    lUInt16 _offset;      // text storage offset inside chunk
-                } _persistent;
-            } _v;
+            lUInt16 _chunk;       // text storage chunk index
+            lUInt16 _offset;      // text storage offset inside chunk
+        } _ptext;
+        struct {
+            // common part - hold parent index
+            lUInt32 _parentIndex; // just to avoid extra access to storage
+            lChar8 * _str;        // actual zstring, utf-8
         } _text;
         struct {
             // common part for all elements
             lUInt16 _fontIndex;
             lUInt16 _styleIndex;
-            union {
-                // dynamic (RAM)
-                tinyElement * _dynamic;
-                // persistent
-                struct {
-                    lUInt16 _chunk;
-                    lUInt16 _offset;
-                } _persistent;
-            } _v;
+            tinyElement * _ptr;
         } _elem;
+        struct {
+            // common part for all elements
+            lUInt16 _fontIndex;
+            lUInt16 _styleIndex;
+            lUInt16 _chunk;
+            lUInt16 _offset;
+        } _pelem;
         struct {
             lUInt32 _nextFreeIndex; // for removed items
         } _empty;
@@ -281,9 +280,16 @@ private:
 #define TNINDEX (_dataIndex&(~0x0F))
 #define TNCHUNK (_addr>>&(~0x0F))
     void onCollectionDestroy();
-    void onNodeDestroy();
     inline tinyNode * getTinyNode( lUInt32 index ) const { return &(((tinyNodeCollection*)_document)->_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]); }
+
+    void operator delete( void * p )
+    {
+        // Do nothing. Just to disable delete.
+    }
+
 public:
+    /// remove node, clear resources
+    void destroy();
 
     /// returns true for invalid/deleted node ot NULL this pointer
     inline bool isNull() const { return this == NULL || _dataIndex==0; }
@@ -309,7 +315,7 @@ public:
     /// returns index of child node by dataIndex
     int getChildIndex( lUInt32 dataIndex ) const;
     /// returns true if node is document's root
-    inline bool isRoot() const { return getParentIndex() <= 0; }
+    bool isRoot() const;
     /// returns true if node is text
     inline bool isText() const { return _dataIndex && !(_dataIndex&1); }
     /// returns true if node is element
@@ -1964,5 +1970,8 @@ public:
     /// returns true if cache is enabled (successfully initialized)
     static bool enabled();
 };
+
+/// unit test for DOM
+void runTinyDomUnitTests();
 
 #endif
