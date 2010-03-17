@@ -102,19 +102,19 @@ public:
     /// returns font baseline offset
     virtual int getBaseline() = 0;
     /// returns font height
-    virtual int getHeight() = 0;
+    virtual int getHeight() const = 0;
     /// returns font weight
-    virtual int getWeight() = 0;
+    virtual int getWeight() const = 0;
     /// returns italic flag
-    virtual int getItalic() = 0;
+    virtual int getItalic() const = 0;
     /// returns char width
     virtual int getCharWidth( lChar16 ch ) = 0;
     /// retrieves font handle
     virtual void * GetHandle() = 0;
     /// returns font typeface name
-    virtual lString8 getTypeFace() = 0;
+    virtual lString8 getTypeFace() const = 0;
     /// returns font family id
-    virtual css_font_family_t getFontFamily() = 0;
+    virtual css_font_family_t getFontFamily() const = 0;
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
@@ -129,7 +129,7 @@ public:
     virtual void setBitmapMode( bool ) { }
 
     /// get kerning mode: true==ON, false=OFF
-    virtual bool getKerning() { return false; }
+    virtual bool getKerning() const { return false; }
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning( bool ) { }
 
@@ -562,5 +562,8 @@ bool InitFontManager( lString8 path );
 bool ShutdownFontManager();
 
 LVFontRef LoadFontFromFile( const char * fname );
+
+/// to compare two fonts
+bool operator == (const LVFont & r1, const LVFont & r2);
 
 #endif //__LV_FNT_MAN_H_INCLUDED__

@@ -516,9 +516,9 @@ protected:
     bool          _allowKerning;
 public:
     /// returns font weight
-    virtual int getWeight() { return _weight; }
+    virtual int getWeight() const { return _weight; }
     /// returns italic flag
-    virtual int getItalic() { return _italic; }
+    virtual int getItalic() const { return _italic; }
     virtual void setFaceName( lString8 face ) { _faceName = face; }
 
     LVMutex & getMutex() { return _mutex; }
@@ -545,7 +545,7 @@ public:
     }
 
     /// get kerning mode: true==ON, false=OFF
-    virtual bool getKerning() { return _allowKerning; }
+    virtual bool getKerning() const { return _allowKerning; }
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning( bool kerningEnabled ) { _allowKerning = kerningEnabled; }
 
@@ -821,7 +821,7 @@ public:
     }
 
     /// returns font height
-    virtual int getHeight()
+    virtual int getHeight() const
     {
         return _size;
     }
@@ -853,13 +853,13 @@ public:
     }
 
     /// returns font typeface name
-    virtual lString8 getTypeFace()
+    virtual lString8 getTypeFace() const
     {
         return _faceName;
     }
 
     /// returns font family id
-    virtual css_font_family_t getFontFamily()
+    virtual css_font_family_t getFontFamily() const
     {
         return _fontFamily;
     }
@@ -1013,7 +1013,7 @@ class LVFontBoldTransform : public LVFont
     int           _baseline;
 public:
     /// returns font weight
-    virtual int getWeight()
+    virtual int getWeight() const
     {
         int w = _baseFont->getWeight() + 200;
         if ( w>900 )
@@ -1021,7 +1021,7 @@ public:
         return w;
     }
     /// returns italic flag
-    virtual int getItalic()
+    virtual int getItalic() const
     {
         return _baseFont->getItalic();
     }
@@ -1169,7 +1169,7 @@ public:
     }
 
     /// returns font height
-    virtual int getHeight()
+    virtual int getHeight() const
     {
         return _size;
     }
@@ -1188,13 +1188,13 @@ public:
     }
 
     /// returns font typeface name
-    virtual lString8 getTypeFace()
+    virtual lString8 getTypeFace() const
     {
         return _baseFont->getTypeFace();
     }
 
     /// returns font family id
-    virtual css_font_family_t getFontFamily()
+    virtual css_font_family_t getFontFamily() const
     {
         return _baseFont->getFontFamily();
     }
@@ -1289,7 +1289,7 @@ public:
     }
 
     /// get kerning mode: true==ON, false=OFF
-    virtual bool getKerning() { return _baseFont->getKerning(); }
+    virtual bool getKerning() const { return _baseFont->getKerning(); }
 
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning( bool b ) { _baseFont->setKerning( b ); }
@@ -2358,7 +2358,7 @@ int LBitmapFont::getBaseline()
     return hdr->fontBaseline;
 }
 /// returns font height
-int LBitmapFont::getHeight()
+int LBitmapFont::getHeight() const
 {
     const lvfont_header_t * hdr = lvfontGetHeader( m_font );
     return hdr->fontHeight;
@@ -3136,3 +3136,17 @@ bool LVWin32Font::Create(int size, int weight, bool italic, css_font_family_t fa
 }
 
 #endif
+
+/// to compare two fonts
+bool operator == (const LVFont & r1, const LVFont & r2)
+{
+    if ( &r1 == &r2 )
+        return true;
+    return r1.getHeight()==r2.getHeight()
+            && r1.getWeight()==r2.getWeight()
+            && r1.getItalic()==r2.getItalic()
+            && r1.getFontFamily()==r2.getFontFamily()
+            && r1.getTypeFace()==r2.getTypeFace()
+            && r1.getKerning()==r2.getKerning();
+}
+
