@@ -159,6 +159,7 @@ private:
         rec->index = n;
         index[n].item = rec;
         index[n].refcount = 1;
+        return n;
     }
 
     // remove item from hash table
