@@ -153,9 +153,13 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
 // tinyNodeCollection implementation
 //=================================================================
 
+#define STYLE_HASH_TABLE_SIZE 2048
+#define FONT_HASH_TABLE_SIZE 1024
 tinyNodeCollection::tinyNodeCollection()
 : _count(0)
 , _nextFree(0)
+, _styles(STYLE_HASH_TABLE_SIZE)
+, _fonts(FONT_HASH_TABLE_SIZE)
 {
     memset( _list, 0, sizeof(_list) );
 }
@@ -6105,10 +6109,14 @@ void tinyNode::destroy()
         break;
     case NT_ELEMENT:
         delete NPELEM;
+        _document->_styles.release( _data._elem._styleIndex );
+        _document->_fonts.release( _data._elem._fontIndex );
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
+        _document->_styles.release( _data._pelem._styleIndex );
+        _document->_fonts.release( _data._pelem._fontIndex );
         break;
     }
     _document->recycleTinyNode( _dataIndex );
@@ -6727,8 +6735,13 @@ css_style_ref_t tinyNode::getStyle()
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return css_style_ref_t();
-    // TODO
-    return css_style_ref_t();
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            return _document->_styles.get( _data._elem._styleIndex );
+        } else {
+            return _document->_styles.get( _data._pelem._styleIndex );
+        }
+    }
 }
 
 /// returns element font
@@ -6737,22 +6750,39 @@ font_ref_t tinyNode::getFont()
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return font_ref_t();
-    // TODO
-    return font_ref_t();
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            return _document->_fonts.get( _data._elem._fontIndex );
+        } else {
+            return _document->_fonts.get( _data._pelem._fontIndex );
+        }
+    }
 }
 
 /// sets element font
-void tinyNode::setFont( font_ref_t )
+void tinyNode::setFont( font_ref_t font )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            _document->_fonts.cache( _data._elem._fontIndex, font );
+        } else {
+            _document->_fonts.cache( _data._pelem._fontIndex, font );
+        }
+    }
 }
 
 /// sets element style record
-void tinyNode::setStyle( css_style_ref_t & )
+void tinyNode::setStyle( css_style_ref_t & style )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if  ( isElement() ) {
+        if ( !isPersistent() ) {
+            _document->_styles.cache( _data._elem._styleIndex, style );
+        } else {
+            _document->_styles.cache( _data._pelem._styleIndex, style );
+        }
+    }
 }
 
 /// returns first child node

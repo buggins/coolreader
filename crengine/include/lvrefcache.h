@@ -107,6 +107,176 @@ public:
     }
 };
 
+template <class ref_t>
+class LVIndexedRefCache {
+
+    // hash table item
+    struct LVRefCacheRec {
+        int index;
+        ref_t style;
+        lUInt32 hash;
+        LVRefCacheRec * next;
+        LVRefCacheRec(ref_t & s, lUInt32 h)
+            : style(s), hash(h), next(NULL) { }
+    };
+
+    // index item
+    struct LVRefCacheIndexRec {
+        LVRefCacheRec * item;
+        int refcount; // refcount, or next free index if item==NULL
+    };
+
+private:
+    int size;
+    LVRefCacheRec ** table;
+
+    LVRefCacheIndexRec * index;
+    int indexsize;
+    int nextindex;
+    int freeindex;
+
+    int indexItem( LVRefCacheRec * rec )
+    {
+        int n;
+        if ( freeindex ) {
+            n = freeindex;
+            freeindex = index[freeindex].refcount; // next free index
+        } else {
+            n = ++nextindex;
+        }
+        if ( n>=indexsize ) {
+            // resize
+            if ( indexsize==0 )
+                indexsize = size/2;
+            else
+                indexsize *= 2;
+            index = (LVRefCacheIndexRec*)realloc( index, sizeof(LVRefCacheIndexRec)*indexsize );
+            for ( int i=nextindex+1; i<indexsize; i++ ) {
+                index[i].item = NULL;
+                index[i].refcount = 0;
+            }
+        }
+        rec->index = n;
+        index[n].item = rec;
+        index[n].refcount = 1;
+    }
+
+    // remove item from hash table
+    void removeItem( LVRefCacheRec * item )
+    {
+        lUInt32 hash = item->hash;
+        lUInt32 tindex = hash & (size - 1);
+        LVRefCacheRec **rr = &table[tindex];
+        for ( ; *rr; rr = &(*rr)->next ) {
+            if ( *rr == item ) {
+                LVRefCacheRec * tmp = *rr;
+                *rr = (*rr)->next;
+                delete tmp;
+                return;
+            }
+        }
+        // not found!
+    }
+
+public:
+
+    void release( int n )
+    {
+        if ( n<1 || n>nextindex )
+            return;
+        if ( index[n].item ) {
+            if ( (--index[n].refcount)<=0 ) {
+                removeItem( index[n].item );
+                // next free
+                index[n].refcount = freeindex;
+                index[n].item = NULL;
+                freeindex = n;
+            }
+        }
+    }
+
+    // get by index
+    ref_t get( int n )
+    {
+        if ( n>0 && n<=nextindex )
+            return index[n].item->style;
+        return ref_t();
+    }
+
+    // check whether equal object already exists if cache
+    // if found, replace reference with cached value
+    // returns index of item - use it to release reference
+    void cache( lUInt16 &indexholder, ref_t & style)
+    {
+        int newindex = cache( style );
+        if ( indexholder ) {
+            release( indexholder );
+        }
+        indexholder = (lUInt16)newindex;
+    }
+
+    // check whether equal object already exists if cache
+    // if found, replace reference with cached value
+    // returns index of item - use it to release reference
+    int cache(ref_t & style)
+    {
+        lUInt32 hash = calcHash( style );
+        lUInt32 index = hash & (size - 1);
+        LVRefCacheRec **rr;
+        rr = &table[index];
+        while ( *rr != NULL )
+        {
+            if ( (*rr)->hash==hash && *(*rr)->style.get() == *style.get() )
+            {
+                style = (*rr)->style;
+                int n = (*rr)->index;
+                this->index[n].refcount++;
+                return n;
+            }
+            rr = &(*rr)->next;
+        }
+        *rr = new LVRefCacheRec( style, hash );
+        return indexItem( *rr );
+    }
+    LVIndexedRefCache( int sz )
+    : index(NULL)
+    , indexsize(0)
+    , nextindex(0)
+    , freeindex(0)
+    {
+        size = sz;
+        table = new LVRefCacheRec * [ sz ];
+        for( int i=0; i<sz; i++ )
+            table[i] = NULL;
+    }
+    void clear()
+    {
+        LVRefCacheRec *r, *r2;
+        for ( int i=0; i < size; i++ )
+        {
+            for ( r = table[ i ]; r;  )
+            {
+                r2 = r;
+                r = r->next;
+                delete r2;
+            }
+            table[i] = NULL;
+        }
+        if (index) {
+            free( index );
+            index = NULL;
+            indexsize = 0;
+            nextindex = 0;
+            freeindex = 0;
+        }
+    }
+    ~LVIndexedRefCache()
+    {
+        clear();
+        delete[] table;
+    }
+};
+
 template <typename keyT, class dataT> class LVCacheMap
 {
 private:

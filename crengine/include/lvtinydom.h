@@ -211,6 +211,8 @@ private:
     int _count;
     lUInt32 _nextFree;
     tinyNode * _list[TNC_PART_COUNT];
+    LVIndexedRefCache<css_style_ref_t> _styles;
+    LVIndexedRefCache<font_ref_t> _fonts;
 public:
     /// get tinyNode instance pointer
     tinyNode * getTinyNode( lUInt32 index );
