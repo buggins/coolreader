@@ -145,6 +145,10 @@ public:
     ~lvdomElementFormatRec()
     {
     }
+    void clear()
+    {
+        _x = _width = _y = _height = 0;
+    }
     // Get/Set
     int getX() const { return _x; }
     int getY() const { return _y; }

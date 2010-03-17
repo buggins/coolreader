@@ -5942,7 +5942,7 @@ private:
     ldomAttributeCollection _attrs;
     lUInt16 _id;
     lUInt16 _nsid;
-    lvdomElementFormatRec * _renderData;   // used by rendering engine
+    lvdomElementFormatRec _renderData;   // used by rendering engine
     LVArray < lInt32 > _children;
     css_style_ref_t _style;
     font_ref_t      _font;
@@ -5954,7 +5954,7 @@ public:
     //tinyElement( ldomPersistentElement * v );
 #endif
     tinyElement( ldomDocument * document, tinyNode * parentNode, lUInt16 nsid, lUInt16 id )
-    : _document(document), _parentNode(parentNode), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
+    : _document(document), _parentNode(parentNode), _id(id), _nsid(nsid), _rendMethod(erm_invisible)
     { }
     /// destructor
     ~tinyElement() { }
@@ -6537,22 +6537,52 @@ void tinyNode::setText8( lString8 utf8 )
 void tinyNode::getAbsRect( lvRect & rect )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    tinyNode * node = this;
+    lvdomElementFormatRec * fmt = node->getRenderData();
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = fmt ? fmt->getWidth() : 0;
+    rect.bottom = fmt ? fmt->getHeight() : 0;
+    if ( !fmt )
+        return;
+    for (; node; node = node->getParentNode())
+    {
+        lvdomElementFormatRec * fmt = node->getRenderData();
+        if (fmt)
+        {
+            rect.left += fmt->getX();
+            rect.top += fmt->getY();
+        }
+    }
+    rect.bottom += rect.top;
+    rect.right += rect.left;
 }
 
 /// returns render data structure
 lvdomElementFormatRec * tinyNode::getRenderData()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
-    return NULL;
+    if ( !isElement() )
+        return NULL;
+    if ( !isPersistent() ) {
+        return &NPELEM->_renderData;
+    } else {
+        // TODO:
+        return NULL;
+    }
 }
 
 /// sets node rendering structure pointer
 void tinyNode::clearRenderData()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( !isElement() )
+        return;
+    if ( !isPersistent() ) {
+        NPELEM->_renderData.clear();
+    } else {
+        // TODO:
+    }
 }
 
 /// calls specified function recursively for all elements of DOM tree
@@ -6626,15 +6656,40 @@ tinyNode * tinyNode::getLastTextChild()
 tinyNode * tinyNode::elementFromPoint( lvPoint pt )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
-    return NULL;
+    if ( !isElement() )
+        return NULL;
+    tinyNode * enode = this;
+    lvdomElementFormatRec * fmt = getRenderData();
+    if ( !fmt )
+        return NULL;
+    if ( enode->getRendMethod() == erm_invisible ) {
+        return NULL;
+    }
+    if ( pt.y < fmt->getY() )
+        return NULL;
+    if ( pt.y >= fmt->getY() + fmt->getHeight() )
+        return NULL;
+    if ( enode->getRendMethod() == erm_final ) {
+        return this;
+    }
+    int count = getChildCount();
+    for ( int i=0; i<count; i++ ) {
+        tinyNode * p = getChildNode( i );
+        tinyNode * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(),
+                pt.y - fmt->getY() ) );
+        if ( e )
+            return e;
+    }
+    return this;
 }
 
 /// find final node by coordinates of point in formatted document
 tinyNode * tinyNode::finalBlockFromPoint( lvPoint pt )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    tinyNode * elem = elementFromPoint( pt );
+    if ( elem && elem->getRendMethod() == erm_final )
+        return elem;
     return NULL;
 }
 #endif
@@ -6670,6 +6725,8 @@ void tinyNode::setRendMethod( lvdom_element_render_method method )
 css_style_ref_t tinyNode::getStyle()
 {
     ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return css_style_ref_t();
     // TODO
     return css_style_ref_t();
 }
@@ -6678,6 +6735,8 @@ css_style_ref_t tinyNode::getStyle()
 font_ref_t tinyNode::getFont()
 {
     ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return font_ref_t();
     // TODO
     return font_ref_t();
 }
