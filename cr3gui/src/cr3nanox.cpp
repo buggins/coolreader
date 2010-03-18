@@ -1444,6 +1444,14 @@ int InitDoc(char *fileName)
     wm->getScreen()->getCanvas()->Clear(0xFFFFFF);
     wm->getScreen()->invalidateRect( lvRect(0, 0, 600, 800) );
     wm->showProgress(lString16("cr3_wait_icon.png"), 10);
+        {
+            const lChar16 * imgname =
+                ( wm->getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
+            LVImageSourceRef img = wm->getSkin()->getImage(imgname);
+            if ( !img.isNull() ) {
+                wm->getScreen()->getCanvas()->Draw(img, 0, 0, wm->getScreen()->getWidth(), wm->getScreen()->getHeight(),  false );
+            }
+        }
 
     lString16 bookmarkDir("/root/abook/bookmarks/");
     {

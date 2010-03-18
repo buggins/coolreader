@@ -171,6 +171,8 @@ void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
 	}
 }
 
+static bool firstWaitUpdate = true;
+
 /// draws icon at center of screen
 void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
 {
@@ -193,7 +195,8 @@ void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
             }
         }
         _screen->invalidateRect( lvRect(x, y, x+dx, y+dy+gaugeH) );
-        _screen->flush(false);
+        _screen->flush(firstWaitUpdate);
+        firstWaitUpdate = false;
     } else {
         CRLog::error("CRGUIWindowManager::showWaitIcon(%s): image not found in current skin", UnicodeToUtf8(filename).c_str() );
     }

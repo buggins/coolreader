@@ -110,7 +110,7 @@
   </menu>
   <window id="about" base="#dialog">
   </window>
-  <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="true" >
+  <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="true" fullscreen="true">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans" size="38" bold="true" italic="false" valign="center" halign="center"/>
         <background color="#FFFFFF"/>
         <border widths="2,2,2,2"/>

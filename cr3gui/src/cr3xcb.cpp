@@ -21,7 +21,7 @@
 
 #ifndef _WIN32
 
-#ifdef CR_USE_XCB
+//#ifdef CR_USE_XCB
 
 #include <unistd.h>      /* pause() */
 #include <sys/types.h>
@@ -1339,6 +1339,14 @@ int main(int argc, char **argv)
         if ( !winman.loadSkin(  homecrengine + L"skin" ) )
             if ( !winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
             	winman.loadSkin( lString16( L"/usr/share/cr3/skins/default" ) );
+        {
+            const lChar16 * imgname =
+                ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
+            LVImageSourceRef img = winman.getSkin()->getImage(imgname);
+            if ( !img.isNull() ) {
+                winman.getScreen()->getCanvas()->Draw(img, 0, 0, winman.getScreen()->getWidth(), winman.getScreen()->getHeight(),  false );
+            }
+        }
         HyphMan::initDictionaries( lString16("/usr/share/cr3/hyph/") );
         //LVExtractPath(LocalToUnicode(lString8(fname)))
         main_win = new XCBDocViewWin( &winman, lString16(CRSKIN) );
@@ -1430,5 +1438,5 @@ int main(int argc, char **argv)
     return res;
 }
 
-#endif
+//#endif
 #endif

@@ -138,7 +138,7 @@
         </title>
     <scroll base="#menuscroll"/>
   </window>
-  <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="true" >
+  <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="true" fullscreen="true">
         <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans Condensed, DejaVu Sans" size="36" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_main_menu.png" color="#AAAAAA"/>
         <border widths="32,2,4,2"/>
