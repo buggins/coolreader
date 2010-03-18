@@ -1441,9 +1441,9 @@ int InitDoc(char *fileName)
         if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
             wm->loadSkin( lString16( L"/root/crengine/skin" ) );
     CRLog::trace("drawing progressbar 0%%...");
-    wm->getScreen()->getCanvas()->Clear(0xFFFFFF);
-    wm->getScreen()->invalidateRect( lvRect(0, 0, 600, 800) );
-    wm->showProgress(lString16("cr3_wait_icon.png"), 10);
+    //wm->getScreen()->getCanvas()->Clear(0xFFFFFF);
+    //wm->getScreen()->invalidateRect( lvRect(0, 0, 600, 800) );
+    //wm->showProgress(lString16("cr3_wait_icon.png"), 10);
         {
             const lChar16 * imgname =
                 ( wm->getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
