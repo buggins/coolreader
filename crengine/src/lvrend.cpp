@@ -1062,7 +1062,7 @@ int initRendMethod( ldomNode * enode )
                     lString16 s = child->getText();
                     if ( IsEmptySpace( s.c_str(), s.length() ) ) {
                         enode = enode->modify();
-                        delete enode->removeChild( i );
+                        enode->removeChild( i )->destroy();
                         cnt--;
                         textCount--;
                     }

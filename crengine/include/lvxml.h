@@ -26,8 +26,7 @@
 //class LVXMLParser;
 class LVFileFormatParser;
 
-class ldomElement;
-class ldomNode;
+class tinyNode;
 
 /// XML parser callback interface
 class LVXMLParserCallback
