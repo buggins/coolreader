@@ -394,7 +394,13 @@ void ldomTextStorageChunk::setTextParent( int offset, lUInt32 parent )
     offset <<= 4;
     if ( offset>=0 && offset<_bufpos ) {
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
-        item->parentIndex = parent;
+        if ( item->parentIndex != parent ) {
+            item->parentIndex = parent;
+            if ( _compbuf ) {
+                CRLog::debug("Dropping compressed data of chunk %d due to modification");
+                setpacked(NULL, 0);
+            }
+        }
     }
 }
 
@@ -513,9 +519,9 @@ void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
 /// pack data, and remove unpacked
 void ldomTextStorageChunk::compact()
 {
-    if ( !_compbuf && _buf ) {
-        CRLog::debug("Packing %d bytes of chunk %d", _bufpos, _index);
+    if ( !_compbuf && _buf && _bufpos) {
         pack(_buf, _bufpos);
+        CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %d", _bufpos, _compsize, 100*_compsize/_bufpos, _index);
     }
     if ( _buf )
         setunpacked(NULL, 0);
