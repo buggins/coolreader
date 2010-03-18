@@ -182,7 +182,7 @@
         </selitem>
         <selshortcut>
             <size minvalue="48,48" maxvalue="0,0"/>
-            <text color="#000000" face="Arial, DejaVu Sans" size="36" bold="true" italic="false" valign="center" halign="center"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans Condensed, DejaVu Sans" size="36" bold="true" italic="false" valign="center" halign="center"/>
             <background image="cr3_menu_shortcut_selected.png" color="#FFFFFF"/>
             <border widths="12,6,6,6"/>
             <!--icon image="filename" valign="" halign=""-->
@@ -191,7 +191,7 @@
             <border widths="4,0,4,0"/>
             <size minvalue="20,51" maxvalue="0,0"/>
             <background color="#AAAAAA"/>
-            <text color="#000000" face="Arial, DejaVu Sans" size="20" bold="true" italic="false" valign="center" halign="left" wordwrap="true"/>
+            <text color="#000000" face="Arial Narrow, Arial, DejaVu Sans Condensed, DejaVu Sans" size="20" bold="true" italic="false" valign="center" halign="left" wordwrap="true"/>
         </status>
     <scroll base="#titlescroll"/>
   </menu>
