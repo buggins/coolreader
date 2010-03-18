@@ -171,6 +171,8 @@ tinyNodeCollection::tinyNodeCollection()
 /// get ldomNode instance pointer
 ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
 {
+    if ( !index )
+        return NULL;
     return &(_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
 }
 
@@ -6436,6 +6438,8 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
         tinyElement * me = NPELEM;
         int valueIndex = _document->getAttrValueIndex(value);
         me->_attrs.set(nsid, id, valueIndex);
+        if (nsid == LXML_NS_NONE)
+            _document->onAttributeSet( id, valueIndex, this );
     } else {
         // persistent element
         //TODO:
@@ -7165,9 +7169,48 @@ LVStreamRef ldomNode::createBase64Stream()
 /// returns object image source
 LVImageSourceRef ldomNode::getObjectImageSource()
 {
-    ASSERT_NODE_NOT_NULL;
-    // TODO
-    return LVImageSourceRef();
+    if ( !this || !isElement() )
+        return LVImageSourceRef();
+    //printf("ldomElement::getObjectImageSource() ... ");
+    LVImageSourceRef ref;
+    const css_elem_def_props_t * et = _document->getElementTypePtr(getNodeId());
+    if (!et || !et->is_object)
+        return ref;
+    lUInt16 hrefId = _document->getAttrNameIndex(L"href");
+    lUInt16 srcId = _document->getAttrNameIndex(L"src");
+    lString16 refName = getAttributeValue( _document->getNsNameIndex(L"xlink"),
+        hrefId );
+    if ( refName.empty() )
+        refName = getAttributeValue( _document->getNsNameIndex(L"l"), hrefId );
+    if ( refName.empty() )
+        refName = getAttributeValue( LXML_NS_NONE, hrefId );
+    if ( refName.empty() )
+        refName = getAttributeValue( LXML_NS_NONE, srcId );
+    if ( refName.length()<2 )
+        return ref;
+    if ( refName[0]!='#' ) {
+        if ( !getDocument()->getContainer().isNull() ) {
+            lString16 name = refName;
+            if ( !getDocument()->getCodeBase().empty() )
+                name = getDocument()->getCodeBase() + refName;
+            LVStreamRef stream = getDocument()->getContainer()->OpenStream(name.c_str(), LVOM_READ);
+            if ( !stream.isNull() )
+                ref = LVCreateStreamImageSource( stream );
+        }
+        return ref;
+    }
+    lUInt16 refValueId = _document->findAttrValueIndex( refName.c_str() + 1 );
+    if ( refValueId == (lUInt16)-1 )
+        return ref;
+    //printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
+    ldomNode * objnode = _document->getNodeById( refValueId );
+    if ( !objnode ) {
+        //printf("no OBJ node found!!!\n" );
+        return ref;
+    }
+    //printf(" (found) ");
+    ref = LVCreateNodeImageSource( objnode );
+    return ref;
 }
 
 /// formats final block
