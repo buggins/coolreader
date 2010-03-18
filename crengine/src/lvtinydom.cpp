@@ -23,6 +23,8 @@
 // define to store new text nodes as persistent text, instead of mutable
 #define USE_PERSISTENT_TEXT 1
 
+#define LASSERT(x) \
+    if (!(x)) crFatalError(1111, "assertion failed: " #x)
 
 //#define INDEX1 94
 //#define INDEX2 96
@@ -257,8 +259,11 @@ ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
     if ( chunk!=_recentChunk ) {
         if ( chunk->_prevRecent )
             chunk->_prevRecent->_nextRecent = chunk->_nextRecent;
+        if ( chunk->_nextRecent )
+            chunk->_nextRecent->_prevRecent = chunk->_prevRecent;
         chunk->_prevRecent = NULL;
-        chunk->_nextRecent = _recentChunk;
+        if ( (chunk->_nextRecent = _recentChunk) )
+            _recentChunk->_prevRecent = chunk;
         _recentChunk = chunk;
     }
     chunk->ensureUnpacked();
@@ -409,8 +414,9 @@ lString8 ldomTextStorageChunk::getText( int offset )
 /// pack data from _buf to _compbuf
 bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
 {
-    if ( !buf || !bufsize )
-        return false; // no data to compress
+    LASSERT(buf && bufsize>0);
+    //if ( !buf || !bufsize )
+    //    return false; // no data to compress
     setpacked(NULL, 0);
     lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
     int ret, flush;
@@ -440,12 +446,14 @@ bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
 /// unpack data from _compbuf to _buf
 bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
 {
-    if ( !compbuf || !compsize )
-        return false; // no data to compress
+    LASSERT(compbuf && compsize>0);
+    //if ( !compbuf || !compsize )
+    //    return false; // no data to compress
     setunpacked(NULL, 0);
     lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
     int ret, flush;
     z_stream z;
+    memset( &z, 0, sizeof(z) );
     z.zalloc = Z_NULL;
     z.zfree = Z_NULL;
     z.opaque = Z_NULL;
@@ -479,8 +487,8 @@ void ldomTextStorageChunk::setpacked( const lUInt8 * compbuf, int compsize )
     }
     if ( compbuf && compsize ) {
         _compsize = compsize;
-        _compbuf = (lUInt8 *)malloc( sizeof(lUInt8) * _compsize );
-        _manager->_compressedSize += _compsize;
+        _compbuf = (lUInt8 *)malloc( sizeof(lUInt8) * compsize );
+        _manager->_compressedSize += compsize;
         memcpy( _compbuf, compbuf, compsize );
     }
 }
@@ -496,7 +504,7 @@ void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
     if ( buf && bufsize ) {
         _bufsize = bufsize;
         _bufpos = bufsize;
-        _buf = (lUInt8 *)malloc( sizeof(lUInt8) * _compsize );
+        _buf = (lUInt8 *)malloc( sizeof(lUInt8) * bufsize );
         _manager->_uncompressedSize += _bufsize;
         memcpy( _buf, buf, bufsize );
     }
