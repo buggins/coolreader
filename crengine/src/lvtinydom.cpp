@@ -20,6 +20,10 @@
 #include <stddef.h>
 #include <zlib.h>
 
+// define to store new text nodes as persistent text, instead of mutable
+#define USE_PERSISTENT_TEXT 1
+
+
 //#define INDEX1 94
 //#define INDEX2 96
 
@@ -186,6 +190,7 @@ ldomNode * tinyNodeCollection::allocTinyNode( int type )
         ldomNode * part = _list[_count >> TNC_PART_SHIFT];
         if ( !part ) {
             part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
+            memset( part, 0, sizeof(ldomNode) * TNC_PART_LEN );
             _list[ _count >> TNC_PART_SHIFT ] = part;
         }
         res = &part[_count & TNC_PART_MASK];
@@ -243,14 +248,53 @@ tinyNodeCollection::~tinyNodeCollection()
 
  */
 
-ldomTextStorageChunk::ldomTextStorageChunk()
+lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
+{
+    if ( !_activeChunk ) {
+        _activeChunk = new ldomTextStorageChunk(_chunks.length());
+        _chunks.add( _activeChunk );
+    }
+    int offset = _activeChunk->addText( dataIndex, parentIndex, text );
+    if ( offset<0 ) {
+        // no space in current chunk, add one more chunk
+        _activeChunk = new ldomTextStorageChunk(_chunks.length());
+        _chunks.add( _activeChunk );
+        offset = _activeChunk->addText( dataIndex, parentIndex, text );
+        if ( offset<0 )
+            crFatalError(1001, "Unexpected error while allocation of text");
+    }
+    return offset | (_activeChunk->getIndex()<<16);
+}
+
+/// change node's parent
+void ldomDataStorageManager::setTextParent( lUInt32 address, lUInt32 parent )
+{
+    return _chunks[address>>16]->setTextParent(address&0xFFFF, parent);
+}
+
+lString8 ldomDataStorageManager::getText( lUInt32 address )
+{
+    return _chunks[address>>16]->getText(address&0xFFFF);
+}
+
+ldomDataStorageManager::ldomDataStorageManager()
+: _activeChunk(NULL)
+{
+}
+
+ldomDataStorageManager::~ldomDataStorageManager()
+{
+}
+
+
+ldomTextStorageChunk::ldomTextStorageChunk( int index )
 : _buf(NULL)   /// buffer for uncompressed data
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _filepos(0)    /// position in swap file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
-, _index(0)      /// ? index of chunk in storage
+, _index(index)      /// ? index of chunk in storage
 {
 }
 
@@ -267,17 +311,48 @@ int ldomTextStorageChunk::space()
 }
 
 /// returns free space in buffer
-int ldomTextStorageChunk::add( const lUInt8 * data, int size )
+int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
 {
+    int itemsize = (sizeof(TextDataStorageItem)+text.length()-2 + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
         // create new buffer, if necessary
         _bufsize = 0xFFFF;
         _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
         _bufpos = 0;
     }
-    if ( _bufsize - _bufpos < size )
+    if ( _bufsize - _bufpos < itemsize )
         return -1;
+    TextDataStorageItem * p = (TextDataStorageItem*)(_buf + _bufpos);
+    p->sizeDiv16 = itemsize>>4;
+    p->dataIndex = dataIndex;
+    p->parentIndex = parentIndex;
+    p->type = LXML_TEXT_NODE;
+    p->length = text.length();
+    memcpy(p->text, text.c_str(), p->length);
+    int res = _bufpos >> 4;
+    _bufpos += itemsize;
+    return res;
+}
 
+/// change node's parent
+void ldomTextStorageChunk::setTextParent( int offset, lUInt32 parent )
+{
+    offset <<= 4;
+    if ( offset>=0 && offset<_bufpos ) {
+        TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
+        item->parentIndex = parent;
+    }
+}
+
+/// get text item from buffer by offset
+lString8 ldomTextStorageChunk::getText( int offset )
+{
+    offset <<= 4;
+    if ( offset>=0 && offset<_bufpos ) {
+        TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
+        return item->getText8();
+    }
+    return lString8();
 }
 
 #define TEXT_COMPRESSION_LEVEL 6
@@ -6162,6 +6237,34 @@ bool ldomNode::isRoot() const
     return false;
 }
 
+/// changes parent of item
+void ldomNode::setParentNode( ldomNode * parent )
+{
+    ASSERT_NODE_NOT_NULL;
+    int parentIndex = 0;
+    switch ( TNTYPE ) {
+    case NT_ELEMENT:
+        NPELEM->_parentNode = parent;
+        break;
+    case NT_PELEMENT:   // immutable (persistent) element node
+        // TODO: get parent for element
+        break;
+    case NT_PTEXT:      // immutable (persistent) text node
+        {
+            lUInt32 parentIndex = parent->_dataIndex;
+            _data._ptext._parentIndex = parentIndex;
+            _document->_textStorage.setTextParent( _data._ptext._addr, parentIndex );
+        }
+        break;
+    case NT_TEXT:
+        {
+            lUInt32 parentIndex = parent->_dataIndex;
+            _data._text._parentIndex = parentIndex;
+        }
+        break;
+    }
+}
+
 /// returns dataIndex of node's parent, 0 if no parent
 int ldomNode::getParentIndex() const
 {
@@ -6460,8 +6563,7 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
         }
         break;
     case NT_PTEXT:
-        // TODO
-        break;
+        return Utf8ToUnicode(_document->_textStorage.getText( _data._ptext._addr ));
     case NT_TEXT:
         return lString16(_data._text._str);
     }
@@ -6492,8 +6594,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
         }
         break;
     case NT_PTEXT:
-        // TODO
-        break;
+        return _document->_textStorage.getText( _data._ptext._addr );
     case NT_TEXT:
         return lString8(_data._text._str);
     }
@@ -6509,10 +6610,10 @@ void ldomNode::setText( lString16 str )
         // TODO
         break;
     case NT_PELEMENT:
-        // TODO
+        readOnlyError();
         break;
     case NT_PTEXT:
-        // TODO
+        readOnlyError();
         break;
     case NT_TEXT:
         {
@@ -6534,10 +6635,10 @@ void ldomNode::setText8( lString8 utf8 )
         // TODO
         break;
     case NT_PELEMENT:
-        // TODO
+        readOnlyError();
         break;
     case NT_PTEXT:
-        // TODO
+        readOnlyError();
         break;
     case NT_TEXT:
         {
@@ -6835,11 +6936,52 @@ void ldomNode::removeLastChild()
     }
 }
 
-/// move range of children startChildIndex to endChildIndex inclusively to specified element
-void ldomNode::moveItemsTo( ldomNode *, int , int )
+/// add child
+void ldomNode::addChild( lInt32 childNodeIndex )
 {
     ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return;
+    if ( isPersistent() )
+        readOnlyError();
+    tinyElement * me = NPELEM;
+    me->_children.add( childNodeIndex );
+}
+
+/// move range of children startChildIndex to endChildIndex inclusively to specified element
+void ldomNode::moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex )
+{
+    ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return;
+    if ( isPersistent() )
+        readOnlyError();
     // TODO
+    CRLog::warn( "moveItemsTo() invoked from %d to %d", getDataIndex(), destination->getDataIndex() );
+    //if ( getDataIndex()==INDEX2 || getDataIndex()==INDEX1) {
+    //    CRLog::trace("nodes from element %d are being moved", getDataIndex());
+    //}
+/*#ifdef _DEBUG
+    if ( !_document->checkConsistency( false ) )
+        CRLog::error("before moveItemsTo");
+#endif*/
+    int len = endChildIndex - startChildIndex + 1;
+    tinyElement * me = NPELEM;
+    for ( int i=0; i<len; i++ ) {
+        ldomNode * item = getChildNode( startChildIndex );
+        //if ( item->getDataIndex()==INDEX2 || item->getDataIndex()==INDEX1 ) {
+        //    CRLog::trace("node %d is being moved", item->getDataIndex() );
+        //}
+        me->_children.remove( startChildIndex ); // + i
+        item->setParentNode(destination);
+        destination->addChild( item->getDataIndex() );
+    }
+    // TODO: renumber rest of children in necessary
+/*#ifdef _DEBUG
+    if ( !_document->checkConsistency( false ) )
+        CRLog::error("after moveItemsTo");
+#endif*/
+
 }
 
 /// find child element by tag id
@@ -6925,11 +7067,18 @@ ldomNode * ldomNode::insertChildText( lUInt32 index, const lString16 & value )
             tinyElement * me = NPELEM;
             if (index>(lUInt32)me->_children.length())
                 index = me->_children.length();
+#ifndef USE_PERSISTENT_TEXT
             ldomNode * node = _document->allocTinyNode( NT_TEXT );
             lString8 s8 = UnicodeToUtf8(value);
             node->_data._text._parentIndex = _dataIndex;
             node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
             memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
+#else
+            ldomNode * node = _document->allocTinyNode( NT_PTEXT );
+            node->_data._ptext._parentIndex = _dataIndex;
+            lString8 s8 = UnicodeToUtf8(value);
+            node->_data._ptext._addr = _document->_textStorage.allocText( node->_dataIndex, node->_data._ptext._parentIndex, s8 );
+#endif
             me->_children.insert( index, node->getDataIndex() );
             return node;
         }
@@ -6945,11 +7094,18 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
     if  ( isElement() ) {
         if ( !isPersistent() ) {
             tinyElement * me = NPELEM;
+#ifndef USE_PERSISTENT_TEXT
             ldomNode * node = _document->allocTinyNode( NT_TEXT );
             lString8 s8 = UnicodeToUtf8(value);
             node->_data._text._parentIndex = _dataIndex;
             node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
             memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
+#else
+            ldomNode * node = _document->allocTinyNode( NT_PTEXT );
+            node->_data._ptext._parentIndex = _dataIndex;
+            lString8 s8 = UnicodeToUtf8(value);
+            node->_data._ptext._addr = _document->_textStorage.allocText( node->_dataIndex, node->_data._ptext._parentIndex, s8 );
+#endif
             me->_children.insert( me->_children.length(), node->getDataIndex() );
             return node;
         }
@@ -6976,7 +7132,6 @@ ldomNode * ldomNode::removeChild( lUInt32 index )
 /// creates stream to read base64 encoded data from element
 LVStreamRef ldomNode::createBase64Stream()
 {
-#if 0
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return LVStreamRef();
@@ -7004,9 +7159,6 @@ LVStreamRef ldomNode::createBase64Stream()
 #endif
 
     return istream;
-#else
-    return LVStreamRef();
-#endif
 }
 
 #if BUILD_LITE!=1
@@ -7149,6 +7301,7 @@ void runTinyDomUnitTests()
     lString16 sampleText2("Some sample text 2.");
     lString16 sampleText3("Some sample text 3.");
     ldomNode * text1 = el1->insertChildText(sampleText);
+    MYASSERT(text1->getText()==sampleText, "sample text 1 match unicode");
     MYASSERT(text1->getNodeLevel()==3,"text node level");
     MYASSERT(text1->getNodeIndex()==0,"text node index");
     MYASSERT(text1->isText(),"text node isText");
@@ -7156,7 +7309,6 @@ void runTinyDomUnitTests()
     MYASSERT(!text1->isNull(),"text node isNull");
     ldomNode * text2 = el1->insertChildText(0, sampleText2);
     MYASSERT(text2->getNodeIndex()==0,"text node index, insert at beginning");
-    MYASSERT(text1->getText()==sampleText, "sample text 1 match unicode");
     MYASSERT(text2->getText()==sampleText2, "sample text 2 match unicode");
     MYASSERT(text2->getText8()==UnicodeToUtf8(sampleText2), "sample text 2 match utf8");
     text1->setText(sampleText2);

@@ -1673,7 +1673,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
     }
     else
     {
-        crFatalError();
+        crFatalError(111, "Attempting to render Text node");
     }
     return 0;
 }

@@ -160,18 +160,26 @@ public:
 class ldomTextStorageChunk;
 class ldomTextStorageChunkBuilder;
 
-class ldomTextStorageManager
+class ldomDataStorageManager
 {
     LVPtrVector<ldomTextStorageChunk> _chunks;
     ldomTextStorageChunkBuilder * _builder;
+    ldomTextStorageChunk * _activeChunk;
 public:
-    ldomTextStorageManager();
-    ~ldomTextStorageManager();
+    /// allocates new text node, return its address inside storage
+    lUInt32 allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
+    /// get text by address
+    lString8 getText( lUInt32 address );
+    /// change node's parent
+    void setTextParent( lUInt32 address, lUInt32 parent );
+    ldomDataStorageManager();
+    ~ldomDataStorageManager();
 };
 
 /// class to store compressed/uncompressed text nodes chunk
 class ldomTextStorageChunk
 {
+    friend class ldomDataStorageManager;
     lUInt8 * _buf;     /// buffer for uncompressed data
     lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
     lUInt32 _filepos;  /// position in swap file
@@ -186,12 +194,18 @@ class ldomTextStorageChunk
     bool pack() { return pack(_buf, _bufsize); }   /// pack data from _buf[_bufsize] to _compbuf
     void setpacked( const lUInt8 * compbuf, int compsize );
     void setunpacked( const lUInt8 * buf, int bufsize );
+    /// change node's parent
+    void setTextParent( int offset, lUInt32 parent );
 public:
+    /// returns chunk index inside collection
+    int getIndex() { return _index; }
     /// returns free space in buffer
     int space();
-    /// adds new item to buffer, returns offset inside chunk of stored data
-    int add( const lUInt8 * data, int size );
-    ldomTextStorageChunk();
+    /// adds new text item to buffer, returns offset inside chunk of stored data
+    int addText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
+    /// get text item from buffer by offset
+    lString8 getText( int offset );
+    ldomTextStorageChunk( int index );
     ~ldomTextStorageChunk();
 };
 
@@ -213,6 +227,7 @@ private:
     ldomNode * _list[TNC_PART_COUNT];
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
+    ldomDataStorageManager _textStorage;
 public:
     /// get ldomNode instance pointer
     ldomNode * getTinyNode( lUInt32 index );
@@ -253,8 +268,7 @@ private:
         struct {
             // common part - hold parent index
             lUInt32 _parentIndex; // just to avoid extra access to storage
-            lUInt16 _chunk;       // text storage chunk index
-            lUInt16 _offset;      // text storage offset inside chunk
+            lUInt32 _addr;        // text storage address: chunk+offset
         } _ptext;
         struct {
             // common part - hold parent index
@@ -271,8 +285,7 @@ private:
             // common part for all elements
             lUInt16 _fontIndex;
             lUInt16 _styleIndex;
-            lUInt16 _chunk;
-            lUInt16 _offset;
+            lUInt32 _addr;        // element storage address: chunk+offset
         } _pelem;
         struct {
             lUInt32 _nextFreeIndex; // for removed items
@@ -289,6 +302,10 @@ private:
         // Do nothing. Just to disable delete.
     }
 
+    /// changes parent of item
+    void setParentNode( ldomNode * newParent );
+    /// add child
+    void addChild( lInt32 childNodeIndex );
 public:
     /// remove node, clear resources
     void destroy();
@@ -296,7 +313,7 @@ public:
     /// returns true for invalid/deleted node ot NULL this pointer
     inline bool isNull() const { return this == NULL || _dataIndex==0; }
     /// returns true if node is stored in persistent storage
-    inline bool isPersistent() const { return TNTYPE&2; }
+    inline bool isPersistent() const { return _dataIndex&2; }
     /// returns data index of node's registration in document data storage
     inline lInt32 getDataIndex() const { return TNINDEX; }
     /// returns pointer to document
