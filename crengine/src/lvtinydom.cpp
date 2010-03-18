@@ -1581,7 +1581,7 @@ ldomDocument::~ldomDocument()
 #if BUILD_LITE!=1
 int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
 {
-    CRLog::info("Render is called for width %d, pageHeight=%d", width, dy );
+    CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
     CRLog::trace("initializing default style...");
     //persist();
     _renderedBlockCache.clear();

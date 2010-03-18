@@ -476,6 +476,8 @@ lString8 familyName( FT_Face face )
     lString8 faceName( face->family_name );
     if ( faceName == "Arial" && face->style_name && !strcmp(face->style_name, "Narrow") )
         faceName << " " << face->style_name;
+    else if ( /*faceName == "Arial" &&*/ face->style_name && strstr(face->style_name, "Condensed") )
+        faceName << " " << "Condensed";
     return faceName;
 }
 
@@ -572,7 +574,7 @@ public:
             return false;
         _slot = _face->glyph;
         _faceName = familyName(_face);
-        CRLog::debug("Loaded font %s [%d]: faceName=%s, ", _fileName.c_str(), index, _face->family_name );
+        CRLog::debug("Loaded font %s [%d]: faceName=%s, ", _fileName.c_str(), index, _faceName.c_str() );
         //if ( !FT_IS_SCALABLE( _face ) ) {
         //    Clear();
         //    return false;
@@ -853,7 +855,7 @@ public:
     /// returns font typeface name
     virtual lString8 getTypeFace()
     {
-        return familyName(_face);
+        return _faceName;
     }
 
     /// returns font family id
@@ -2247,11 +2249,11 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
         : ( (_family==css_ff_monospace)==(def._family==css_ff_monospace) ? 64 : 0 );
     int typeface_match = (_typeface == def._typeface) ? 256 : 0;
     return
-        + (size_match     * 10000)
-        + (weight_match   * 500)
-        + (italic_match   * 500)
-        + (family_match   * 10000)
-        + (typeface_match * 100000);
+        + (size_match     * 100)
+        + (weight_match   * 5)
+        + (italic_match   * 5)
+        + (family_match   * 100)
+        + (typeface_match * 1000);
 }
 
 
