@@ -164,16 +164,16 @@ tinyNodeCollection::tinyNodeCollection()
     memset( _list, 0, sizeof(_list) );
 }
 
-/// get tinyNode instance pointer
-tinyNode * tinyNodeCollection::getTinyNode( lUInt32 index )
+/// get ldomNode instance pointer
+ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
 {
     return &(_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
 }
 
 /// allocate new tiny node
-tinyNode * tinyNodeCollection::allocTinyNode( int type )
+ldomNode * tinyNodeCollection::allocTinyNode( int type )
 {
-    tinyNode * res;
+    ldomNode * res;
     if ( _nextFree ) {
         // reuse existing free item
         int index = (_nextFree << 4) | type;
@@ -183,9 +183,9 @@ tinyNode * tinyNodeCollection::allocTinyNode( int type )
     } else {
         // create new item
         _count++;
-        tinyNode * part = _list[_count >> TNC_PART_SHIFT];
+        ldomNode * part = _list[_count >> TNC_PART_SHIFT];
         if ( !part ) {
-            part = (tinyNode*)malloc( sizeof(tinyNode) * TNC_PART_LEN );
+            part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
             _list[ _count >> TNC_PART_SHIFT ] = part;
         }
         res = &part[_count & TNC_PART_MASK];
@@ -198,8 +198,8 @@ tinyNode * tinyNodeCollection::allocTinyNode( int type )
 void tinyNodeCollection::recycleTinyNode( lUInt32 index )
 {
     index >>= 4;
-    tinyNode * part = _list[index >> TNC_PART_SHIFT];
-    tinyNode * p = &part[index & TNC_PART_MASK];
+    ldomNode * part = _list[index >> TNC_PART_SHIFT];
+    ldomNode * p = &part[index & TNC_PART_MASK];
     p->_dataIndex = 0; // indicates NULL node
     p->_data._empty._nextFreeIndex = _nextFree;
     _nextFree = index;
@@ -209,12 +209,13 @@ tinyNodeCollection::~tinyNodeCollection()
 {
     // clear all parts
     for ( int partindex = 0; partindex<=(_count>>TNC_PART_SHIFT); partindex++ ) {
-        tinyNode * part = _list[partindex];
+        ldomNode * part = _list[partindex];
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
             for ( int i=0; n0+i<=_count; i++ )
                 part[i].onCollectionDestroy();
             free(part);
+            _list[partindex] = NULL;
         }
     }
 }
@@ -446,6 +447,7 @@ public:
     }
 };
 
+#ifdef TINYNODE_MIGRATION
 // non-persistent r/w instance of text
 class ldomText : public ldomNode
 {
@@ -1091,6 +1093,8 @@ ldomNode * ldomPersistentText::modify()
 }
 #endif
 
+#endif
+
 
 /*
 class simpleLogFile
@@ -1130,10 +1134,13 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
   _dataBufferSize( dataBufSize ) // single data buffer size
 , 
 #endif
+#ifdef TINYNODE_MIGRATION
 _instanceMap(NULL)
 ,_instanceMapSize(2048) // *8 = 16K
 ,_instanceMapCount(1)
-,_elementNameTable(MAX_ELEMENT_TYPE_ID)
+,
+#endif
+_elementNameTable(MAX_ELEMENT_TYPE_ID)
 , _attrNameTable(MAX_ATTRIBUTE_TYPE_ID)
 , _nsNameTable(MAX_NAMESPACE_TYPE_ID)
 , _nextUnknownElementId(UNKNOWN_ELEMENT_TYPE_ID)
@@ -1145,7 +1152,7 @@ _instanceMap(NULL)
 ,_docProps(LVCreatePropsContainer())
 #if BUILD_LITE!=1
 ,_keepData(false)
-,_mapped(false)
+//,_mapped(false)
 #endif
 ,_docFlags(DOC_FLAG_DEFAULTS)
 #if BUILD_LITE!=1
@@ -1157,20 +1164,24 @@ _instanceMap(NULL)
     _currentBuffer = new DataBuffer( _dataBufferSize );
     _dataBuffers.add( _currentBuffer );
 #endif
+#ifdef TINYNODE_MIGRATION
     _instanceMap = (NodeItem *)malloc( sizeof(NodeItem) * _instanceMapSize );
     memset( _instanceMap, 0, sizeof(NodeItem) * _instanceMapSize );
+#endif
     _stylesheet.setDocument( this );
 }
 
 /// Destructor
 lxmlDocBase::~lxmlDocBase()
 {
+#ifdef TINYNODE_MIGRATION
     for ( int i=0; i<_instanceMapCount; i++ ) {
         if ( _instanceMap[i].instance != NULL ) {
             delete _instanceMap[i].instance;
         }
     }
     free( _instanceMap );
+#endif
 }
 
 void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node )
@@ -1187,6 +1198,7 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
 /// put all object into persistent storage
 void lxmlDocBase::persist()
 {
+#ifdef TINYNODE_MIGRATION
     //CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
 //#ifdef _DEBUG
     //if ( !checkConsistency(false) ) {
@@ -1207,9 +1219,12 @@ void lxmlDocBase::persist()
         CRLog::error( "- after lxmlDocBase::persist()" );
     }
 #endif
+
+#endif
 }
 #endif
 
+#ifdef TINYNODE_MIGRATION
 /// used by object constructor, to assign ID for created object
 lInt32 lxmlDocBase::registerNode( ldomNode * node )
 {
@@ -1314,6 +1329,7 @@ ldomNode * lxmlDocBase::getNodeInstance( lInt32 dataIndex )
     return NULL;
 }
 */
+#endif
 
 lUInt16 lxmlDocBase::getNsNameIndex( const lChar16 * name )
 {
@@ -1344,6 +1360,7 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 
 
 #if BUILD_LITE!=1
+#ifdef TINYNODE_MIGRATION
 /// allocate data block, return pointer to allocated block
 DataStorageItemHeader * lxmlDocBase::allocData( lInt32 dataIndex, int size )
 {
@@ -1433,8 +1450,10 @@ ElementDataStorageItem * lxmlDocBase::allocElement( lInt32 dataIndex, lInt32 par
     return item;
 }
 #endif
+#endif
 
 #if BUILD_LITE!=1
+#ifdef TINYNODE_MIGRATION
 lString16 lxmlDocBase::getTextNodeValue( lInt32 dataIndex )
 {
     // TODO: implement caching here
@@ -1486,7 +1505,9 @@ lString8 ldomPersistentText::getText8( lChar8 ) const
     return ((lxmlDocBase*)_document)->getTextNodeValue8( _dataIndex );
 }
 #endif
+#endif
 
+#ifdef TINYNODE_MIGRATION
 // memory pools
 #if (LDOM_USE_OWN_MEM_MAN==1)
 ldomMemManStorage * ldomElement::pmsHeap = NULL;
@@ -1497,7 +1518,9 @@ ldomMemManStorage * ldomPersistentText::pmsHeap = NULL;
 ldomMemManStorage * ldomPersistentElement::pmsHeap = NULL;
 #endif
 #endif
+#endif
 
+#ifdef TINYNODE_MIGRATION
 const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
 {
     lUInt16 nsId = (nsName&&nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
@@ -1518,13 +1541,12 @@ lUInt8 ldomNode::getNodeLevel() const
         level++;
     return level;
 }
+#endif
 
 /// returns main element (i.e. FictionBook for FB2)
 ldomNode * lxmlDocBase::getRootNode()
 {
-    if ( _instanceMapCount<2 )
-        return NULL;
-    return getNodeInstance( 1 );
+    return getTinyNode(16);
 }
 
 ldomDocument::ldomDocument()
@@ -1533,7 +1555,8 @@ ldomDocument::ldomDocument()
      _renderedBlockCache( 32 )
 #endif
 {
-    new ldomElement( this, NULL, 0, 0, 0 );
+    allocTinyElement(NULL, 0, 0);
+    //new ldomElement( this, NULL, 0, 0, 0 );
     //assert( _instanceMapCount==2 );
 }
 
@@ -1878,6 +1901,7 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
 }
 #endif
 
+#ifdef TINYNODE_MIGRATION
 /// returns node absolute rectangle
 void ldomNode::getAbsRect( lvRect & rect )
 {
@@ -1949,7 +1973,7 @@ LVImageSourceRef ldomNode::getObjectImageSource()
     return ref;
 }
 #endif
-
+#endif
 
 bool IsEmptySpace( const lChar16 * text, int len )
 {
@@ -2444,6 +2468,7 @@ public:
     }
 };
 
+#ifdef TINYNODE_MIGRATION
 /// creates stream to read base64 encoded data from element
 LVStreamRef ldomNode::createBase64Stream()
 {
@@ -2474,7 +2499,7 @@ LVStreamRef ldomNode::createBase64Stream()
 
     return istream;
 }
-
+#endif
 
 
 xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & index )
@@ -2537,6 +2562,7 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
     return xpath_step_error;
 }
 
+#ifdef TINYNODE_MIGRATION
 #if (LDOM_ALLOW_NODE_INDEX!=1)
 lUInt32 ldomNode::getNodeIndex() const
 {
@@ -2604,6 +2630,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
     }
     return txt;
 }
+#endif
 
 /// get pointer for relative path
 ldomXPointer ldomXPointer::relative( lString16 relativePath )
@@ -2631,6 +2658,7 @@ ldomNode * ldomXPointer::getFinalNode() const
     }
 }
 
+#ifdef TINYNODE_MIGRATION
 /// formats final block again after change, returns true if size of block is changed
 bool ldomNode::refreshFinalBlock()
 {
@@ -2684,7 +2712,9 @@ int ldomNode::renderFinalBlock( LFormattedTextRef & txtform, int width )
     return h;
 }
 #endif
+#endif
 
+#ifdef TINYNODE_MIGRATION
 /// returns first text child element
 ldomNode * ldomNode::getFirstTextChild()
 {
@@ -2752,6 +2782,8 @@ ldomNode * ldomNode::finalBlockFromPoint( lvPoint pt )
         return elem;
     return NULL;
 }
+#endif
+#endif
 
 /// create xpointer from doc point
 ldomXPointer ldomDocument::createXPointer( lvPoint pt )
@@ -2968,7 +3000,6 @@ bool ldomXPointer::getRect(lvRect & rect) const
         //return rc.bottomRight();
     }
 }
-#endif
 
 /// create xpointer from relative pointer string
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
@@ -4711,6 +4742,7 @@ ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
     }
 }
 
+#ifdef TINYNODE_MIGRATION
 void ldomElement::addChild( lInt32 dataIndex )
 {
     _children.add( dataIndex );
@@ -4931,7 +4963,7 @@ ldomElement::~ldomElement()
     }
     _document->unregisterNode( this );
 }
-
+#endif
 
 #if (LDOM_USE_OWN_MEM_MAN==1)
 extern ldomMemManStorage * block_storages[LOCAL_STORAGE_COUNT];
@@ -4948,6 +4980,7 @@ void ldomFreeStorage()
     for ( int i=0; i<LOCAL_STORAGE_COUNT; i++ )
         freeStorage( block_storages[i] );
     freeStorage( pmsREF );
+#ifdef TINYNODE_MIGRATION
     freeStorage( ldomElement::pmsHeap );
     freeStorage( ldomText::pmsHeap );
 #if BUILD_LITE!=1
@@ -4955,6 +4988,7 @@ void ldomFreeStorage()
     freeStorage( ldomPersistentElement::pmsHeap );
 #endif
     freeStorage( lvdomElementFormatRec::pmsHeap );
+#endif
     free_ls_storage();
 }
 #endif
@@ -5159,6 +5193,7 @@ int ldomDocument::getPersistenceFlags()
 #if BUILD_LITE!=1
 bool ldomDocument::openFromCache( )
 {
+#ifdef TINYNODE_MIGRATION
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
     lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
@@ -5264,6 +5299,7 @@ bool ldomDocument::openFromCache( )
             }
         }
         CRLog::trace("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
+
     }
 #ifdef _DEBUG
     checkConsistency( true );
@@ -5273,8 +5309,12 @@ bool ldomDocument::openFromCache( )
     _mapbuf = buf;
     CRLog::info("ldomDocument::openFromCache() - read successfully");
     return true;
+#else
+    return false;
+#endif
 }
 
+#ifdef TINYNODE_MIGRATION
 /// change size of memory mapped buffer
 bool ldomDocument::resizeMap( lvsize_t newSize )
 {
@@ -5305,9 +5345,11 @@ bool ldomDocument::resizeMap( lvsize_t newSize )
     //_mapbuf = buf; // memory mapped file buffer
     //_mapped = true;
 }
+#endif
 
 bool ldomDocument::swapToCache( lUInt32 reservedSize )
 {
+#ifdef TINYNODE_MIGRATION
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
     lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
@@ -5456,11 +5498,15 @@ bool ldomDocument::swapToCache( lUInt32 reservedSize )
     _mapped = true;
     CRLog::info("ldomDocument::swapToCache() - swapping of document to cache file finished successfully");
     return true;
+#else
+    return false;
+#endif
 }
 
 /// saves recent changes to mapped file
 bool ldomDocument::updateMap()
 {
+#ifdef TINYNODE_MIGRATION
     if ( !_mapped || !_mapbuf )
         return false;
     //testTreeConsistency( getRootNode() );
@@ -5525,6 +5571,9 @@ bool ldomDocument::updateMap()
 
     CRLog::info("ldomDocument::updateMap() - Changes saved");
     return true;
+#else
+    return true;
+#endif
 }
 
 #endif
@@ -5939,10 +5988,10 @@ void lxmlDocBase::setStyleSheet( const char * css, bool replace )
 // use ldomNode rich interface instead
 class tinyElement
 {
-    friend class tinyNode;
+    friend class ldomNode;
 private:
     ldomDocument * _document;
-    tinyNode * _parentNode;
+    ldomNode * _parentNode;
     lUInt16 _id;
     lUInt16 _nsid;
     lvdomElementFormatRec _renderData;   // used by rendering engine
@@ -5950,7 +5999,7 @@ private:
     ldomAttributeCollection _attrs;
     lvdom_element_render_method _rendMethod;
 public:
-    tinyElement( ldomDocument * document, tinyNode * parentNode, lUInt16 nsid, lUInt16 id )
+    tinyElement( ldomDocument * document, ldomNode * parentNode, lUInt16 nsid, lUInt16 id )
     : _document(document), _parentNode(parentNode), _id(id), _nsid(nsid), _rendMethod(erm_invisible)
     { }
     /// destructor
@@ -5963,9 +6012,9 @@ public:
 
 //=====================================================
 /// allocate new tinyElement
-tinyNode * tinyNodeCollection::allocTinyElement( tinyNode * parent, lUInt16 nsid, lUInt16 id )
+ldomNode * tinyNodeCollection::allocTinyElement( ldomNode * parent, lUInt16 nsid, lUInt16 id )
 {
-    tinyNode * node = allocTinyNode( tinyNode::NT_ELEMENT );
+    ldomNode * node = allocTinyNode( ldomNode::NT_ELEMENT );
     tinyElement * elem = new tinyElement( (ldomDocument*)this, parent, nsid, id );
     node->_data._elem._fontIndex = node->_data._elem._styleIndex = 0;
     node->NPELEM = elem;
@@ -5988,25 +6037,29 @@ static void readOnlyError()
 #endif
 
 /// returns node level, 0 is root node
-lUInt8 tinyNode::getNodeLevel() const
+lUInt8 ldomNode::getNodeLevel() const
 {
-    const tinyNode * node = this;
+    const ldomNode * node = this;
     int level = 0;
     for ( ; node; node = node->getParentNode() )
         level++;
     return level;
 }
 
-void tinyNode::onCollectionDestroy()
+void ldomNode::onCollectionDestroy()
 {
     if ( isNull() )
         return;
     switch ( TNTYPE ) {
     case NT_TEXT:
         free(NPTEXT);
+        NPTEXT = NULL;
         break;
     case NT_ELEMENT:
+        _document->_styles.release( _data._elem._styleIndex );
+        _document->_fonts.release( _data._elem._fontIndex );
         delete NPELEM;
+        NPELEM = NULL;
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         // do nothing
@@ -6017,7 +6070,7 @@ void tinyNode::onCollectionDestroy()
     }
 }
 
-void tinyNode::destroy()
+void ldomNode::destroy()
 {
     if ( isNull() )
         return;
@@ -6026,9 +6079,20 @@ void tinyNode::destroy()
         free(NPTEXT);
         break;
     case NT_ELEMENT:
+        {
+            _document->_styles.release( _data._elem._styleIndex );
+            _document->_fonts.release( _data._elem._fontIndex );
+            tinyElement * me = NPELEM;
+            // delete children
+            for ( int i=0; i<me->_children.length(); i++ ) {
+                ldomNode * child = _document->getTinyNode(me->_children[i]);
+                if ( child )
+                    child->destroy();
+            }
+            delete me;
+            NPELEM = NULL;
+        }
         delete NPELEM;
-        _document->_styles.release( _data._elem._styleIndex );
-        _document->_fonts.release( _data._elem._fontIndex );
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         break;
@@ -6041,7 +6105,7 @@ void tinyNode::destroy()
 }
 
 /// returns index of child node by dataIndex
-int tinyNode::getChildIndex( lUInt32 dataIndex ) const
+int ldomNode::getChildIndex( lUInt32 dataIndex ) const
 {
     ASSERT_NODE_NOT_NULL;
     int parentIndex = -1;
@@ -6069,17 +6133,17 @@ int tinyNode::getChildIndex( lUInt32 dataIndex ) const
 }
 
 /// returns index of node inside parent's child collection
-int tinyNode::getNodeIndex() const
+int ldomNode::getNodeIndex() const
 {
     ASSERT_NODE_NOT_NULL;
-    tinyNode * parent = getParentNode();
+    ldomNode * parent = getParentNode();
     if ( parent )
         return parent->getChildIndex( getDataIndex() );
     return 0;
 }
 
 /// returns true if node is document's root
-bool tinyNode::isRoot() const
+bool ldomNode::isRoot() const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
@@ -6097,7 +6161,7 @@ bool tinyNode::isRoot() const
 }
 
 /// returns dataIndex of node's parent, 0 if no parent
-int tinyNode::getParentIndex() const
+int ldomNode::getParentIndex() const
 {
     ASSERT_NODE_NOT_NULL;
     int parentIndex = 0;
@@ -6116,7 +6180,7 @@ int tinyNode::getParentIndex() const
 }
 
 /// returns pointer to parent node, NULL if node has no parent
-tinyNode * tinyNode::getParentNode() const
+ldomNode * ldomNode::getParentNode() const
 {
     ASSERT_NODE_NOT_NULL;
     int parentIndex = 0;
@@ -6137,7 +6201,7 @@ tinyNode * tinyNode::getParentNode() const
 }
 
 /// returns child node by index
-tinyNode * tinyNode::getChildNode( lUInt32 index ) const
+ldomNode * ldomNode::getChildNode( lUInt32 index ) const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isPersistent() ) {
@@ -6152,7 +6216,7 @@ tinyNode * tinyNode::getChildNode( lUInt32 index ) const
 }
 
 /// returns element child count
-lUInt32 tinyNode::getChildCount() const
+lUInt32 ldomNode::getChildCount() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6168,7 +6232,7 @@ lUInt32 tinyNode::getChildCount() const
 }
 
 /// returns element attribute count
-lUInt32 tinyNode::getAttrCount() const
+lUInt32 ldomNode::getAttrCount() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6184,7 +6248,7 @@ lUInt32 tinyNode::getAttrCount() const
 }
 
 /// returns attribute value by attribute name id and namespace id
-const lString16 & tinyNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
+const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6204,7 +6268,7 @@ const lString16 & tinyNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
 }
 
 /// returns attribute value by attribute name and namespace
-const lString16 & tinyNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
+const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
 {
     ASSERT_NODE_NOT_NULL;
     lUInt16 nsId = (nsName&&nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
@@ -6213,7 +6277,7 @@ const lString16 & tinyNode::getAttributeValue( const lChar16 * nsName, const lCh
 }
 
 /// returns attribute by index
-const lxmlAttribute * tinyNode::getAttribute( lUInt32 index ) const
+const lxmlAttribute * ldomNode::getAttribute( lUInt32 index ) const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6230,7 +6294,7 @@ const lxmlAttribute * tinyNode::getAttribute( lUInt32 index ) const
 }
 
 /// returns true if element node has attribute with specified name id and namespace id
-bool tinyNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
+bool ldomNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6247,7 +6311,7 @@ bool tinyNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
 }
 
 /// returns attribute name by index
-const lString16 & tinyNode::getAttributeName( lUInt32 index ) const
+const lString16 & ldomNode::getAttributeName( lUInt32 index ) const
 {
     ASSERT_NODE_NOT_NULL;
     const lxmlAttribute * attr = getAttribute( index );
@@ -6257,7 +6321,7 @@ const lString16 & tinyNode::getAttributeName( lUInt32 index ) const
 }
 
 /// sets attribute value
-void tinyNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
+void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6274,7 +6338,7 @@ void tinyNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
 }
 
 /// returns element type structure pointer if it was set in document for this element name
-const css_elem_def_props_t * tinyNode::getElementTypePtr()
+const css_elem_def_props_t * ldomNode::getElementTypePtr()
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6290,7 +6354,7 @@ const css_elem_def_props_t * tinyNode::getElementTypePtr()
 }
 
 /// returns element name id
-lUInt16 tinyNode::getNodeId() const
+lUInt16 ldomNode::getNodeId() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6306,7 +6370,7 @@ lUInt16 tinyNode::getNodeId() const
 }
 
 /// returns element namespace id
-lUInt16 tinyNode::getNodeNsId() const
+lUInt16 ldomNode::getNodeNsId() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6322,7 +6386,7 @@ lUInt16 tinyNode::getNodeNsId() const
 }
 
 /// replace element name id with another value
-void tinyNode::setNodeId( lUInt16 id )
+void ldomNode::setNodeId( lUInt16 id )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6337,7 +6401,7 @@ void tinyNode::setNodeId( lUInt16 id )
 }
 
 /// returns element name
-const lString16 & tinyNode::getNodeName() const
+const lString16 & ldomNode::getNodeName() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6353,7 +6417,7 @@ const lString16 & tinyNode::getNodeName() const
 }
 
 /// returns element namespace name
-const lString16 & tinyNode::getNodeNsName() const
+const lString16 & ldomNode::getNodeNsName() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6371,7 +6435,7 @@ const lString16 & tinyNode::getNodeNsName() const
 
 
 /// returns text node text as wide string
-lString16 tinyNode::getText( lChar16 blockDelimiter ) const
+lString16 ldomNode::getText( lChar16 blockDelimiter ) const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
@@ -6391,7 +6455,7 @@ lString16 tinyNode::getText( lChar16 blockDelimiter ) const
 }
 
 /// returns text node text as utf8 string
-lString8 tinyNode::getText8( lChar8 blockDelimiter ) const
+lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
@@ -6411,7 +6475,7 @@ lString8 tinyNode::getText8( lChar8 blockDelimiter ) const
 }
 
 /// sets text node text as wide string
-void tinyNode::setText( lString16 str )
+void ldomNode::setText( lString16 str )
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
@@ -6436,7 +6500,7 @@ void tinyNode::setText( lString16 str )
 }
 
 /// sets text node text as utf8 string
-void tinyNode::setText8( lString8 utf8 )
+void ldomNode::setText8( lString8 utf8 )
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
@@ -6460,10 +6524,10 @@ void tinyNode::setText8( lString8 utf8 )
 }
 
 /// returns node absolute rectangle
-void tinyNode::getAbsRect( lvRect & rect )
+void ldomNode::getAbsRect( lvRect & rect )
 {
     ASSERT_NODE_NOT_NULL;
-    tinyNode * node = this;
+    ldomNode * node = this;
     lvdomElementFormatRec * fmt = node->getRenderData();
     rect.left = 0;
     rect.top = 0;
@@ -6485,7 +6549,7 @@ void tinyNode::getAbsRect( lvRect & rect )
 }
 
 /// returns render data structure
-lvdomElementFormatRec * tinyNode::getRenderData()
+lvdomElementFormatRec * ldomNode::getRenderData()
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6499,7 +6563,7 @@ lvdomElementFormatRec * tinyNode::getRenderData()
 }
 
 /// sets node rendering structure pointer
-void tinyNode::clearRenderData()
+void ldomNode::clearRenderData()
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6512,7 +6576,7 @@ void tinyNode::clearRenderData()
 }
 
 /// calls specified function recursively for all elements of DOM tree
-void tinyNode::recurseElements( void (*pFun)( tinyNode * node ) )
+void ldomNode::recurseElements( void (*pFun)( ldomNode * node ) )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6521,7 +6585,7 @@ void tinyNode::recurseElements( void (*pFun)( tinyNode * node ) )
     int cnt = getChildCount();
     for (int i=0; i<cnt; i++)
     {
-        tinyNode * child = getChildNode( i );
+        ldomNode * child = getChildNode( i );
         if ( child->isElement() )
         {
             child->recurseElements( pFun );
@@ -6530,7 +6594,7 @@ void tinyNode::recurseElements( void (*pFun)( tinyNode * node ) )
 }
 
 /// calls specified function recursively for all nodes of DOM tree
-void tinyNode::recurseNodes( void (*pFun)( tinyNode * node ) )
+void ldomNode::recurseNodes( void (*pFun)( ldomNode * node ) )
 {
     ASSERT_NODE_NOT_NULL;
     pFun( this );
@@ -6539,21 +6603,21 @@ void tinyNode::recurseNodes( void (*pFun)( tinyNode * node ) )
         int cnt = getChildCount();
         for (int i=0; i<cnt; i++)
         {
-            tinyNode * child = getChildNode( i );
+            ldomNode * child = getChildNode( i );
             child->recurseNodes( pFun );
         }
     }
 }
 
 /// returns first text child element
-tinyNode * tinyNode::getFirstTextChild()
+ldomNode * ldomNode::getFirstTextChild()
 {
     ASSERT_NODE_NOT_NULL;
     if ( isText() )
         return this;
     else {
         for ( int i=0; i<(int)getChildCount(); i++ ) {
-            tinyNode * p = getChildNode(i)->getFirstTextChild();
+            ldomNode * p = getChildNode(i)->getFirstTextChild();
             if (p)
                 return p;
         }
@@ -6562,14 +6626,14 @@ tinyNode * tinyNode::getFirstTextChild()
 }
 
 /// returns last text child element
-tinyNode * tinyNode::getLastTextChild()
+ldomNode * ldomNode::getLastTextChild()
 {
     ASSERT_NODE_NOT_NULL;
     if ( isText() )
         return this;
     else {
         for ( int i=(int)getChildCount()-1; i>=0; i-- ) {
-            tinyNode * p = getChildNode(i)->getLastTextChild();
+            ldomNode * p = getChildNode(i)->getLastTextChild();
             if (p)
                 return p;
         }
@@ -6579,12 +6643,12 @@ tinyNode * tinyNode::getLastTextChild()
 
 #if BUILD_LITE!=1
 /// find node by coordinates of point in formatted document
-tinyNode * tinyNode::elementFromPoint( lvPoint pt )
+ldomNode * ldomNode::elementFromPoint( lvPoint pt )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return NULL;
-    tinyNode * enode = this;
+    ldomNode * enode = this;
     lvdomElementFormatRec * fmt = getRenderData();
     if ( !fmt )
         return NULL;
@@ -6600,8 +6664,8 @@ tinyNode * tinyNode::elementFromPoint( lvPoint pt )
     }
     int count = getChildCount();
     for ( int i=0; i<count; i++ ) {
-        tinyNode * p = getChildNode( i );
-        tinyNode * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(),
+        ldomNode * p = getChildNode( i );
+        ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(),
                 pt.y - fmt->getY() ) );
         if ( e )
             return e;
@@ -6610,10 +6674,10 @@ tinyNode * tinyNode::elementFromPoint( lvPoint pt )
 }
 
 /// find final node by coordinates of point in formatted document
-tinyNode * tinyNode::finalBlockFromPoint( lvPoint pt )
+ldomNode * ldomNode::finalBlockFromPoint( lvPoint pt )
 {
     ASSERT_NODE_NOT_NULL;
-    tinyNode * elem = elementFromPoint( pt );
+    ldomNode * elem = elementFromPoint( pt );
     if ( elem && elem->getRendMethod() == erm_final )
         return elem;
     return NULL;
@@ -6621,7 +6685,7 @@ tinyNode * tinyNode::finalBlockFromPoint( lvPoint pt )
 #endif
 
 /// returns rendering method
-lvdom_element_render_method tinyNode::getRendMethod()
+lvdom_element_render_method ldomNode::getRendMethod()
 {
     ASSERT_NODE_NOT_NULL;
     if ( isElement() ) {
@@ -6635,7 +6699,7 @@ lvdom_element_render_method tinyNode::getRendMethod()
 }
 
 /// sets rendering method
-void tinyNode::setRendMethod( lvdom_element_render_method method )
+void ldomNode::setRendMethod( lvdom_element_render_method method )
 {
     ASSERT_NODE_NOT_NULL;
     if ( isElement() ) {
@@ -6648,7 +6712,7 @@ void tinyNode::setRendMethod( lvdom_element_render_method method )
 }
 
 /// returns element style record
-css_style_ref_t tinyNode::getStyle()
+css_style_ref_t ldomNode::getStyle()
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6663,7 +6727,7 @@ css_style_ref_t tinyNode::getStyle()
 }
 
 /// returns element font
-font_ref_t tinyNode::getFont()
+font_ref_t ldomNode::getFont()
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -6678,7 +6742,7 @@ font_ref_t tinyNode::getFont()
 }
 
 /// sets element font
-void tinyNode::setFont( font_ref_t font )
+void ldomNode::setFont( font_ref_t font )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -6691,7 +6755,7 @@ void tinyNode::setFont( font_ref_t font )
 }
 
 /// sets element style record
-void tinyNode::setStyle( css_style_ref_t & style )
+void ldomNode::setStyle( css_style_ref_t & style )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -6704,7 +6768,7 @@ void tinyNode::setStyle( css_style_ref_t & style )
 }
 
 /// returns first child node
-tinyNode * tinyNode::getFirstChild() const
+ldomNode * ldomNode::getFirstChild() const
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -6720,7 +6784,7 @@ tinyNode * tinyNode::getFirstChild() const
 }
 
 /// returns last child node
-tinyNode * tinyNode::getLastChild() const
+ldomNode * ldomNode::getLastChild() const
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -6736,34 +6800,34 @@ tinyNode * tinyNode::getLastChild() const
 }
 
 /// removes and deletes last child element
-void tinyNode::removeLastChild()
+void ldomNode::removeLastChild()
 {
     ASSERT_NODE_NOT_NULL;
     if ( hasChildren() ) {
-        tinyNode * lastChild = removeChild( getChildCount() - 1 );
+        ldomNode * lastChild = removeChild( getChildCount() - 1 );
         lastChild->destroy();
     }
 }
 
 /// move range of children startChildIndex to endChildIndex inclusively to specified element
-void tinyNode::moveItemsTo( tinyNode *, int , int )
+void ldomNode::moveItemsTo( ldomNode *, int , int )
 {
     ASSERT_NODE_NOT_NULL;
     // TODO
 }
 
 /// find child element by tag id
-tinyNode * tinyNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
+ldomNode * ldomNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return NULL;
-    tinyNode * res = NULL;
+    ldomNode * res = NULL;
     int k = 0;
     int childCount = getChildCount();
     for ( int i=0; i<childCount; i++ )
     {
-        tinyNode * p = getChildNode( i );
+        ldomNode * p = getChildNode( i );
         if ( !p->isElement() )
             continue;
         if ( p->getNodeId() == id && ( (p->getNodeNsId() == nsid) || (nsid==LXML_NS_ANY) ) )
@@ -6779,12 +6843,12 @@ tinyNode * tinyNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
 }
 
 /// find child element by id path
-tinyNode * tinyNode::findChildElement( lUInt16 idPath[] )
+ldomNode * ldomNode::findChildElement( lUInt16 idPath[] )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !this || !isElement() )
         return NULL;
-    tinyNode * elem = this;
+    ldomNode * elem = this;
     for ( int i=0; idPath[i]; i++ ) {
         elem = elem->findChildElement( LXML_NS_ANY, idPath[i], -1 );
         if ( !elem )
@@ -6794,7 +6858,7 @@ tinyNode * tinyNode::findChildElement( lUInt16 idPath[] )
 }
 
 /// inserts child element
-tinyNode * tinyNode::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
+ldomNode * ldomNode::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -6802,7 +6866,7 @@ tinyNode * tinyNode::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id
             tinyElement * me = NPELEM;
             if (index>(lUInt32)me->_children.length())
                 index = me->_children.length();
-            tinyNode * node = _document->allocTinyElement( this, nsid, id );
+            ldomNode * node = _document->allocTinyElement( this, nsid, id );
             me->_children.insert( index, node->getDataIndex() );
             return node;
         }
@@ -6812,12 +6876,12 @@ tinyNode * tinyNode::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id
 }
 
 /// inserts child element
-tinyNode * tinyNode::insertChildElement( lUInt16 id )
+ldomNode * ldomNode::insertChildElement( lUInt16 id )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
         if ( !isPersistent() ) {
-            tinyNode * node = _document->allocTinyElement( this, LXML_NS_NONE, id );
+            ldomNode * node = _document->allocTinyElement( this, LXML_NS_NONE, id );
             NPELEM->_children.insert( NPELEM->_children.length(), node->getDataIndex() );
             return node;
         }
@@ -6827,7 +6891,7 @@ tinyNode * tinyNode::insertChildElement( lUInt16 id )
 }
 
 /// inserts child text
-tinyNode * tinyNode::insertChildText( lUInt32 index, const lString16 & value )
+ldomNode * ldomNode::insertChildText( lUInt32 index, const lString16 & value )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
@@ -6835,7 +6899,7 @@ tinyNode * tinyNode::insertChildText( lUInt32 index, const lString16 & value )
             tinyElement * me = NPELEM;
             if (index>(lUInt32)me->_children.length())
                 index = me->_children.length();
-            tinyNode * node = _document->allocTinyNode( NT_TEXT );
+            ldomNode * node = _document->allocTinyNode( NT_TEXT );
             lString8 s8 = UnicodeToUtf8(value);
             node->_data._text._parentIndex = _dataIndex;
             node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
@@ -6849,13 +6913,13 @@ tinyNode * tinyNode::insertChildText( lUInt32 index, const lString16 & value )
 }
 
 /// inserts child text
-tinyNode * tinyNode::insertChildText( const lString16 & value )
+ldomNode * ldomNode::insertChildText( const lString16 & value )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
         if ( !isPersistent() ) {
             tinyElement * me = NPELEM;
-            tinyNode * node = _document->allocTinyNode( NT_TEXT );
+            ldomNode * node = _document->allocTinyNode( NT_TEXT );
             lString8 s8 = UnicodeToUtf8(value);
             node->_data._text._parentIndex = _dataIndex;
             node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
@@ -6869,13 +6933,13 @@ tinyNode * tinyNode::insertChildText( const lString16 & value )
 }
 
 /// remove child
-tinyNode * tinyNode::removeChild( lUInt32 index )
+ldomNode * ldomNode::removeChild( lUInt32 index )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
         if ( !isPersistent() ) {
             lUInt32 removedIndex = NPELEM->_children.remove(index);
-            tinyNode * node = getTinyNode( removedIndex );
+            ldomNode * node = getTinyNode( removedIndex );
             return node;
         }
     }
@@ -6884,16 +6948,44 @@ tinyNode * tinyNode::removeChild( lUInt32 index )
 }
 
 /// creates stream to read base64 encoded data from element
-LVStreamRef tinyNode::createBase64Stream()
+LVStreamRef ldomNode::createBase64Stream()
 {
+#if 0
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( !isElement() )
+        return LVStreamRef();
+#define DEBUG_BASE64_IMAGE 0
+#if DEBUG_BASE64_IMAGE==1
+    lString16 fname = getAttributeValue( attr_id );
+    lString8 fname8 = UnicodeToUtf8( fname );
+    LVStreamRef ostream = LVOpenFileStream( fname.empty()?L"image.png":fname.c_str(), LVOM_WRITE );
+    printf("createBase64Stream(%s)\n", fname8.c_str());
+#endif
+    LVStream * stream = new LVBase64NodeStream( this );
+    if ( stream->GetSize()==0 )
+    {
+#if DEBUG_BASE64_IMAGE==1
+        printf("    cannot create base64 decoder stream!!!\n");
+#endif
+        delete stream;
+        return LVStreamRef();
+    }
+    LVStreamRef istream( stream );
+
+#if DEBUG_BASE64_IMAGE==1
+    LVPumpStream( ostream, istream );
+    istream->SetPos(0);
+#endif
+
+    return istream;
+#else
     return LVStreamRef();
+#endif
 }
 
 #if BUILD_LITE!=1
 /// returns object image source
-LVImageSourceRef tinyNode::getObjectImageSource()
+LVImageSourceRef ldomNode::getObjectImageSource()
 {
     ASSERT_NODE_NOT_NULL;
     // TODO
@@ -6901,15 +6993,38 @@ LVImageSourceRef tinyNode::getObjectImageSource()
 }
 
 /// formats final block
-int tinyNode::renderFinalBlock(  LFormattedTextRef & frmtext, int width )
+int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, int width )
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
-    return 0;
+    if ( !isElement() )
+        return 0;
+    CVRendBlockCache & cache = getDocument()->getRendBlockCache();
+    LFormattedTextRef f;
+    if ( cache.get( this, f ) ) {
+        frmtext = f;
+        lvdomElementFormatRec * fmt = getRenderData();
+        if ( !fmt || getRendMethod() != erm_final )
+            return 0;
+        //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
+        return fmt->getHeight();
+    }
+    f = new LFormattedText();
+    lvdomElementFormatRec * fmt = getRenderData();
+    if ( !fmt || (getRendMethod() != erm_final && getRendMethod() != erm_table_caption) )
+        return 0;
+    /// render whole node content as single formatted object
+    int flags = styleToTextFmtFlags( getStyle(), 0 );
+    ::renderFinalBlock( this, f.get(), fmt, flags, 0, 16 );
+    int page_h = getDocument()->getPageHeight();
+    cache.set( this, f );
+    int h = f->Format( width, page_h );
+    frmtext = f;
+    //CRLog::trace("Created new formatted object for node #%08X", (lUInt32)this);
+    return h;
 }
 
 /// formats final block again after change, returns true if size of block is changed
-bool tinyNode::refreshFinalBlock()
+bool ldomNode::refreshFinalBlock()
 {
     ASSERT_NODE_NOT_NULL;
     // TODO
@@ -6919,7 +7034,7 @@ bool tinyNode::refreshFinalBlock()
 #endif
 
 /// replace node with r/o persistent implementation
-tinyNode * tinyNode::persist()
+ldomNode * ldomNode::persist()
 {
     ASSERT_NODE_NOT_NULL;
     // TODO
@@ -6927,7 +7042,7 @@ tinyNode * tinyNode::persist()
 }
 
 /// replace node with r/w implementation
-tinyNode * tinyNode::modify()
+ldomNode * ldomNode::modify()
 {
     ASSERT_NODE_NOT_NULL;
     // TODO
@@ -6935,7 +7050,7 @@ tinyNode * tinyNode::modify()
 }
 
 /// override to avoid deleting children while replacing
-void tinyNode::prepareReplace()
+void ldomNode::prepareReplace()
 {
     ASSERT_NODE_NOT_NULL;
     // TODO
@@ -6950,7 +7065,7 @@ void runTinyDomUnitTests()
     CRLog::info("==========================");
     CRLog::info("Starting tinyDOM unit test");
     ldomDocument * doc = new ldomDocument();
-    tinyNode * root = doc->allocTinyElement( NULL, 0, 0 );
+    ldomNode * root = doc->allocTinyElement( NULL, 0, 0 );
 
     int el_p = doc->getElementNameIndex(L"p");
     int el_title = doc->getElementNameIndex(L"title");
@@ -6960,19 +7075,19 @@ void runTinyDomUnitTests()
     MYASSERT(root->getParentNode()==NULL,"root parent is null");
     MYASSERT(root->getParentIndex()==0,"root parent index == 0");
     MYASSERT(root->getChildCount()==0,"empty root child count");
-    tinyNode * el1 = root->insertChildElement(el_p);
+    ldomNode * el1 = root->insertChildElement(el_p);
     MYASSERT(root->getChildCount()==1,"root child count 1");
     MYASSERT(el1->getParentNode()==root,"element parent node");
     MYASSERT(el1->getParentIndex()==root->getDataIndex(),"element parent node index");
     MYASSERT(!el1->isRoot(),"elem not isRoot");
-    tinyNode * el2 = root->insertChildElement(el_title);
+    ldomNode * el2 = root->insertChildElement(el_title);
     MYASSERT(root->getChildCount()==2,"root child count 2");
     MYASSERT(el2->getNodeId()==el_title, "node id");
     MYASSERT(el2->getNodeNsId()==LXML_NS_NONE, "node nsid");
     lString16 nodename = el2->getNodeName();
     //CRLog::debug("node name: %s", LCSTR(nodename));
     MYASSERT(nodename==L"title","node name");
-    tinyNode * el21 = el2->insertChildElement(el_p);
+    ldomNode * el21 = el2->insertChildElement(el_p);
     MYASSERT(root->getNodeLevel()==1,"node level 1");
     MYASSERT(el2->getNodeLevel()==2,"node level 2");
     MYASSERT(el21->getNodeLevel()==3,"node level 3");
@@ -6986,33 +7101,33 @@ void runTinyDomUnitTests()
     MYASSERT(el2->getLastChild()==el21,"last single child");
     MYASSERT(el21->getFirstChild()==NULL,"first child - no children");
     MYASSERT(el21->getLastChild()==NULL,"last child - no children");
-    tinyNode * el0 = root->insertChildElement(1, LXML_NS_NONE, el_title);
+    ldomNode * el0 = root->insertChildElement(1, LXML_NS_NONE, el_title);
     MYASSERT(el1->getNodeIndex()==0,"insert in the middle");
     MYASSERT(el0->getNodeIndex()==1,"insert in the middle");
     MYASSERT(el2->getNodeIndex()==2,"insert in the middle");
     MYASSERT(root->getChildNode(0)==el1,"child node 0");
     MYASSERT(root->getChildNode(1)==el0,"child node 1");
     MYASSERT(root->getChildNode(2)==el2,"child node 2");
-    tinyNode * removedNode = root->removeChild( 1 );
+    ldomNode * removedNode = root->removeChild( 1 );
     MYASSERT(removedNode==el0,"removed node");
     el0->destroy();
     MYASSERT(el0->isNull(),"destroyed node isNull");
     MYASSERT(root->getChildNode(0)==el1,"child node 0, after removal");
     MYASSERT(root->getChildNode(1)==el2,"child node 1, after removal");
-    tinyNode * el02 = root->insertChildElement(5, LXML_NS_NONE, el_emphasis);
+    ldomNode * el02 = root->insertChildElement(5, LXML_NS_NONE, el_emphasis);
     MYASSERT(el02==el0,"removed node reusage");
 
     CRLog::info("* simple DOM operations, mutable text");
     lString16 sampleText("Some sample text.");
     lString16 sampleText2("Some sample text 2.");
     lString16 sampleText3("Some sample text 3.");
-    tinyNode * text1 = el1->insertChildText(sampleText);
+    ldomNode * text1 = el1->insertChildText(sampleText);
     MYASSERT(text1->getNodeLevel()==3,"text node level");
     MYASSERT(text1->getNodeIndex()==0,"text node index");
     MYASSERT(text1->isText(),"text node isText");
     MYASSERT(!text1->isElement(),"text node isElement");
     MYASSERT(!text1->isNull(),"text node isNull");
-    tinyNode * text2 = el1->insertChildText(0, sampleText2);
+    ldomNode * text2 = el1->insertChildText(0, sampleText2);
     MYASSERT(text2->getNodeIndex()==0,"text node index, insert at beginning");
     MYASSERT(text1->getText()==sampleText, "sample text 1 match unicode");
     MYASSERT(text2->getText()==sampleText2, "sample text 2 match unicode");

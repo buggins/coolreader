@@ -196,31 +196,31 @@ public:
 };
 
 // forward declaration
-class tinyNode;
+class ldomNode;
 
 #define TNC_PART_COUNT 1024
 #define TNC_PART_SHIFT 8
 #define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
 #define TNC_PART_LEN (1<<TNC_PART_SHIFT)
 #define TNC_PART_MASK (TNC_PART_LEN-1)
-/// storage of tinyNode
+/// storage of ldomNode
 class tinyNodeCollection
 {
-    friend class tinyNode;
+    friend class ldomNode;
 private:
     int _count;
     lUInt32 _nextFree;
-    tinyNode * _list[TNC_PART_COUNT];
+    ldomNode * _list[TNC_PART_COUNT];
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
 public:
-    /// get tinyNode instance pointer
-    tinyNode * getTinyNode( lUInt32 index );
-    /// allocate new tinyNode
-    tinyNode * allocTinyNode( int type );
+    /// get ldomNode instance pointer
+    ldomNode * getTinyNode( lUInt32 index );
+    /// allocate new ldomNode
+    ldomNode * allocTinyNode( int type );
     /// allocate new tinyElement
-    tinyNode * allocTinyElement( tinyNode * parent, lUInt16 nsid, lUInt16 id );
-    /// recycle tinyNode on node removing
+    ldomNode * allocTinyElement( ldomNode * parent, lUInt16 nsid, lUInt16 id );
+    /// recycle ldomNode on node removing
     void recycleTinyNode( lUInt32 index );
     /// creates empty collection
     tinyNodeCollection();
@@ -234,7 +234,7 @@ class lxmlAttribute;
 
 // no vtable, very small size (16 bytes)
 // optimized for 32 bit systems
-class tinyNode
+class ldomNode
 {
     friend class tinyNodeCollection;
 private:
@@ -282,7 +282,7 @@ private:
 #define TNINDEX (_dataIndex&(~0x0F))
 #define TNCHUNK (_addr>>&(~0x0F))
     void onCollectionDestroy();
-    inline tinyNode * getTinyNode( lUInt32 index ) const { return &(((tinyNodeCollection*)_document)->_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]); }
+    inline ldomNode * getTinyNode( lUInt32 index ) const { return &(((tinyNodeCollection*)_document)->_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]); }
 
     void operator delete( void * p )
     {
@@ -302,7 +302,7 @@ public:
     /// returns pointer to document
     inline ldomDocument * getDocument() const { return _document; }
     /// returns pointer to parent node, NULL if node has no parent
-    tinyNode * getParentNode() const;
+    ldomNode * getParentNode() const;
     /// returns node type, either LXML_TEXT_NODE or LXML_ELEMENT_NODE
     inline lUInt8 getNodeType() const
     {
@@ -368,7 +368,7 @@ public:
     const lString16 & getNodeNsName() const;
 
     /// returns child node by index
-    tinyNode * getChildNode( lUInt32 index ) const;
+    ldomNode * getChildNode( lUInt32 index ) const;
 
     /// returns text node text as wide string
     lString16 getText( lChar16 blockDelimiter = 0 ) const;
@@ -387,21 +387,21 @@ public:
     /// sets node rendering structure pointer
     void clearRenderData();
     /// calls specified function recursively for all elements of DOM tree
-    void recurseElements( void (*pFun)( tinyNode * node ) );
+    void recurseElements( void (*pFun)( ldomNode * node ) );
     /// calls specified function recursively for all nodes of DOM tree
-    void recurseNodes( void (*pFun)( tinyNode * node ) );
+    void recurseNodes( void (*pFun)( ldomNode * node ) );
 
 
     /// returns first text child element
-    tinyNode * getFirstTextChild();
+    ldomNode * getFirstTextChild();
     /// returns last text child element
-    tinyNode * getLastTextChild();
+    ldomNode * getLastTextChild();
 
 #if BUILD_LITE!=1
     /// find node by coordinates of point in formatted document
-    tinyNode * elementFromPoint( lvPoint pt );
+    ldomNode * elementFromPoint( lvPoint pt );
     /// find final node by coordinates of point in formatted document
-    tinyNode * finalBlockFromPoint( lvPoint pt );
+    ldomNode * finalBlockFromPoint( lvPoint pt );
 #endif
 
     // rich interface stubs for supporting Element operations
@@ -419,27 +419,27 @@ public:
     void setStyle( css_style_ref_t & );
 
     /// returns first child node
-    tinyNode * getFirstChild() const;
+    ldomNode * getFirstChild() const;
     /// returns last child node
-    tinyNode * getLastChild() const;
+    ldomNode * getLastChild() const;
     /// removes and deletes last child element
     void removeLastChild();
     /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    void moveItemsTo( tinyNode *, int , int );
+    void moveItemsTo( ldomNode *, int , int );
     /// find child element by tag id
-    tinyNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
+    ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
     /// find child element by id path
-    tinyNode * findChildElement( lUInt16 idPath[] );
+    ldomNode * findChildElement( lUInt16 idPath[] );
     /// inserts child element
-    tinyNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
+    ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
     /// inserts child element
-    tinyNode * insertChildElement( lUInt16 id );
+    ldomNode * insertChildElement( lUInt16 id );
     /// inserts child text
-    tinyNode * insertChildText( lUInt32 index, const lString16 & value );
+    ldomNode * insertChildText( lUInt32 index, const lString16 & value );
     /// inserts child text
-    tinyNode * insertChildText( const lString16 & value );
+    ldomNode * insertChildText( const lString16 & value );
     /// remove child
-    tinyNode * removeChild( lUInt32 index );
+    ldomNode * removeChild( lUInt32 index );
 
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
@@ -452,14 +452,16 @@ public:
     bool refreshFinalBlock();
 #endif
     /// replace node with r/o persistent implementation
-    tinyNode * persist();
+    ldomNode * persist();
     /// replace node with r/w implementation
-    tinyNode * modify();
+    ldomNode * modify();
 protected:
     /// override to avoid deleting children while replacing
     void prepareReplace();
 
 };
+
+typedef ldomNode ldomNode;
 
 
 // default: 512K
@@ -476,11 +478,8 @@ protected:
 */
 class lxmlDocBase : public tinyNodeCollection
 {
+    //friend class ldomNode;
     friend class ldomNode;
-    friend class ldomElement;
-    friend class ldomPersistentElement;
-    friend class ldomText;
-    friend class ldomPersistentText;
 	friend class ldomXPointer;
 public:
 
@@ -619,7 +618,7 @@ public:
     /// get element by id attribute value code
     inline ldomNode * getNodeById( lUInt16 attrValueId )
     {
-        return getNodeInstance( _idNodeMap.get( attrValueId ) );
+        return getTinyNode( _idNodeMap.get( attrValueId ) );
     }
 
     /// get element by id attribute value
@@ -683,6 +682,7 @@ public:
     /// saves recent changes to mapped file
     virtual bool updateMap() = 0;
 #endif
+#ifdef TINYNODE_MIGRATION
     /// returns or creates object instance by index
     inline ldomNode * getNodeInstance( lInt32 dataIndex )
     {
@@ -696,15 +696,19 @@ public:
         return NULL;
 */
     }
+#endif
 protected:
 
+#ifdef TINYNODE_MIGRATION
 #if BUILD_LITE!=1
     virtual bool resizeMap( lvsize_t newSize ) = 0;
+#endif
 #endif
 
 //=========================================
 //       NEW STORAGE MODEL METHODS
 //=========================================
+#ifdef TINYNODE_MIGRATION
     struct NodeItem {
         // object's RAM instance
         ldomNode * instance;
@@ -720,16 +724,20 @@ protected:
 { }
     };
 #if BUILD_LITE!=1
+
 	/// for persistent text node, return wide text by index, with caching (TODO)
     lString16 getTextNodeValue( lInt32 dataIndex );
 	/// for persistent text node, return utf8 text by index, with caching (TODO)
     lString8 getTextNodeValue8( lInt32 dataIndex );
+
 #endif
     /// used by object constructor, to assign ID for created object
     lInt32 registerNode( ldomNode * node );
     /// used by object destructor, to remove RAM reference; leave data as is
     void unregisterNode( ldomNode * node );
+#endif
 #if BUILD_LITE!=1
+#ifdef TINYNODE_MIGRATION
     /// used by persistance management constructors, to replace one instance with another, deleting old instance
     ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
     /// used to create instances from mmapped file, returns passed node instance
@@ -748,6 +756,7 @@ protected:
 	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
 	/// allocate element
 	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
+#endif
 #endif
     bool keepData() { return _keepData; }
 protected:
@@ -790,9 +799,11 @@ protected:
 	DataBuffer * _currentBuffer;
 	int _dataBufferSize;       // single data buffer size
 #endif
+#ifdef TINYNODE_MIGRATION
     NodeItem * _instanceMap;   // Id->Instance & Id->Data map
     int _instanceMapSize;      //
     int _instanceMapCount;     //
+#endif
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map
     LDOMNameIdMap _nsNameTable;          // Namespace Name<->Id map
@@ -808,9 +819,11 @@ protected:
     bool _keepData; // if true, node deletion will not change persistent data
 
 #if BUILD_LITE!=1
+#ifdef TINYNODE_MIGRATION
     LVStreamRef _map; // memory mapped file
     LVStreamBufferRef _mapbuf; // memory mapped file buffer
     bool _mapped; // true if document is mapped to file
+#endif
 #endif
     lUInt32 _docFlags; // document flags
 
@@ -851,6 +864,7 @@ class ldomDocument;
 
 #define LDOM_ALLOW_NODE_INDEX 0
 
+#ifdef TINYNODE_MIGRATION
 /// fastDOM NODE interface - base class for all text and element node implementations
 class ldomNode
 {
@@ -1069,6 +1083,7 @@ protected:
     /// override to avoid deleting children while replacing
     virtual void prepareReplace() { }
 };
+#endif
 
 class ldomDocument;
 
@@ -1092,7 +1107,7 @@ protected:
 		// create empty
 		XPointerData() : _doc(NULL), _dataIndex(0), _offset(0), _refCount(1) { }
 		// create instance
-		XPointerData( ldomNode * node, int offset ) 
+        XPointerData( ldomNode * node, int offset )
 			: _doc(node?node->getDocument():NULL)
 			, _dataIndex(node?node->getDataIndex():0)
 			, _offset( offset )
@@ -1110,9 +1125,9 @@ protected:
 			return _doc!=v._doc || _dataIndex != v._dataIndex || _offset != v._offset;
 		}
 		inline bool isNull() { return _dataIndex==0; }
-		inline ldomNode * getNode() { return _dataIndex>0 ? ((lxmlDocBase*)_doc)->getNodeInstance( _dataIndex ) : NULL; }
+        inline ldomNode * getNode() { return _dataIndex>0 ? ((lxmlDocBase*)_doc)->getTinyNode( _dataIndex ) : NULL; }
 		inline int getOffset() { return _offset; }
-		inline void setNode( ldomNode * node )
+        inline void setNode( ldomNode * node )
 		{
 			if ( node ) {
 				_doc = node->getDocument();
@@ -1127,7 +1142,7 @@ protected:
         ~XPointerData() { }
 	};
 	/// node pointer
-	//ldomNode * _node;
+    //ldomNode * _node;
 	/// offset within node for pointer, -1 for xpath
 	//int _offset;
 	// cloning constructor
@@ -1142,7 +1157,7 @@ public:
     /// return document
 	inline ldomDocument * getDocument() { return _data->getDocument(); }
     /// returns node pointer
-	inline ldomNode * getNode() const { return _data->getNode(); }
+    inline ldomNode * getNode() const { return _data->getNode(); }
 #if BUILD_LITE!=1
     /// return parent final node, if found
     ldomNode * getFinalNode() const;
@@ -1150,7 +1165,7 @@ public:
     /// returns offset within node
 	inline int getOffset() const { return _data->getOffset(); }
 	/// set pointer node
-	inline void setNode( ldomNode * node ) { _data->setNode( node ); }
+    inline void setNode( ldomNode * node ) { _data->setNode( node ); }
 	/// set pointer offset within node
 	inline void setOffset( int offset ) { _data->setOffset( offset ); }
     /// default constructor makes NULL pointer
@@ -1177,7 +1192,7 @@ public:
         return *this;
 	}
     /// constructor
-	ldomXPointer( ldomNode * node, int offset )
+    ldomXPointer( ldomNode * node, int offset )
 		: _data( new XPointerData( node, offset ) )
 	{
 	}
@@ -1230,7 +1245,7 @@ public:
     /// returns XPath node text
     lString16 getText(  lChar16 blockDelimiter=0 )
     {
-		ldomNode * node = getNode();
+        ldomNode * node = getNode();
         if ( !node )
             return lString16();
         return node->getText( blockDelimiter );
@@ -1692,9 +1707,11 @@ protected:
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
+#ifdef TINYNODE_MIGRATION
 #if BUILD_LITE!=1
     /// change size of memory mapped buffer
     virtual bool resizeMap( lvsize_t newSize );
+#endif
 #endif
 public:
 
