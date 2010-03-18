@@ -212,7 +212,7 @@ tinyNodeCollection::~tinyNodeCollection()
         ldomNode * part = _list[partindex];
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
-            for ( int i=0; n0+i<=_count; i++ )
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_count; i++ )
                 part[i].onCollectionDestroy();
             free(part);
             _list[partindex] = NULL;
@@ -6050,6 +6050,7 @@ void ldomNode::onCollectionDestroy()
 {
     if ( isNull() )
         return;
+    //CRLog::trace("ldomNode::onCollectionDestroy(%d) type=%d", this->_dataIndex, TNTYPE);
     switch ( TNTYPE ) {
     case NT_TEXT:
         free(NPTEXT);
@@ -6074,6 +6075,7 @@ void ldomNode::destroy()
 {
     if ( isNull() )
         return;
+    //CRLog::trace("ldomNode::destroy(%d) type=%d", this->_dataIndex, TNTYPE);
     switch ( TNTYPE ) {
     case NT_TEXT:
         free(NPTEXT);
@@ -6439,11 +6441,23 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
-    case NT_ELEMENT:
-        // TODO
-        break;
     case NT_PELEMENT:
-        // TODO
+    case NT_ELEMENT:
+        {
+            lString16 txt;
+            int cc = getChildCount();
+            for ( unsigned i=0; i<cc; i++ ) {
+                txt += getChildNode(i)->getText(blockDelimiter);
+                ldomNode * child = getChildNode(i);
+                if ( i>=getChildCount()-1 )
+                    break;
+                if ( blockDelimiter && child->isElement() ) {
+                    if ( child->getStyle()->display == css_d_block )
+                        txt << blockDelimiter;
+                }
+            }
+            return txt;
+        }
         break;
     case NT_PTEXT:
         // TODO
@@ -6460,10 +6474,22 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
     case NT_ELEMENT:
-        // TODO
-        break;
     case NT_PELEMENT:
-        // TODO
+        {
+            lString8 txt;
+            int cc = getChildCount();
+            for ( unsigned i=0; i<cc; i++ ) {
+                txt += getChildNode(i)->getText8(blockDelimiter);
+                ldomNode * child = getChildNode(i);
+                if ( i>=getChildCount()-1 )
+                    break;
+                if ( blockDelimiter && child->isElement() ) {
+                    if ( child->getStyle()->display == css_d_block )
+                        txt << blockDelimiter;
+                }
+            }
+            return txt;
+        }
         break;
     case NT_PTEXT:
         // TODO
@@ -7065,7 +7091,8 @@ void runTinyDomUnitTests()
     CRLog::info("==========================");
     CRLog::info("Starting tinyDOM unit test");
     ldomDocument * doc = new ldomDocument();
-    ldomNode * root = doc->allocTinyElement( NULL, 0, 0 );
+    ldomNode * root = doc->getRootNode();//doc->allocTinyElement( NULL, 0, 0 );
+    MYASSERT(root!=NULL,"root != NULL");
 
     int el_p = doc->getElementNameIndex(L"p");
     int el_title = doc->getElementNameIndex(L"title");
@@ -7247,6 +7274,8 @@ void runTinyDomUnitTests()
         el21->setFont(font3);
         MYASSERT(el1->getFont().get()!=el21->getFont().get(), "different fonts not reused");
     }
+
+    delete doc;
 
     CRLog::info("Finished tinyDOM unit test");
     CRLog::info("==========================");
