@@ -3053,6 +3053,8 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         requestRender();
 						if ( m_callback ) {
 							m_callback->OnLoadFileEnd( );
+                            m_doc->compact();
+                            m_doc->dumpStatistics();
 						}
                         return true;
                     }
@@ -3461,6 +3463,9 @@ bool LVDocView::ParseDocument( )
 		delete parser;
         _pos = 0;
         _page = 0;
+
+        m_doc->compact();
+        m_doc->dumpStatistics();
 
         int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
         int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD);

@@ -250,16 +250,32 @@ tinyNodeCollection::~tinyNodeCollection()
 
  */
 
+/// get chunk pointer and update usage data
+ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
+{
+    ldomTextStorageChunk * chunk = _chunks[address>>16];
+    if ( chunk!=_recentChunk ) {
+        if ( chunk->_prevRecent )
+            chunk->_prevRecent->_nextRecent = chunk->_nextRecent;
+        chunk->_prevRecent = NULL;
+        chunk->_nextRecent = _recentChunk;
+        _recentChunk = chunk;
+    }
+    chunk->ensureUnpacked();
+    return chunk;
+}
+
 lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
 {
     if ( !_activeChunk ) {
-        _activeChunk = new ldomTextStorageChunk(_chunks.length());
+        _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
     }
     int offset = _activeChunk->addText( dataIndex, parentIndex, text );
     if ( offset<0 ) {
         // no space in current chunk, add one more chunk
-        _activeChunk = new ldomTextStorageChunk(_chunks.length());
+        _activeChunk->compact();
+        _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
         offset = _activeChunk->addText( dataIndex, parentIndex, text );
         if ( offset<0 )
@@ -271,16 +287,43 @@ lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentInde
 /// change node's parent
 void ldomDataStorageManager::setTextParent( lUInt32 address, lUInt32 parent )
 {
-    return _chunks[address>>16]->setTextParent(address&0xFFFF, parent);
+    ldomTextStorageChunk * chunk = getChunk(address);
+    return chunk->setTextParent(address&0xFFFF, parent);
 }
 
 lString8 ldomDataStorageManager::getText( lUInt32 address )
 {
-    return _chunks[address>>16]->getText(address&0xFFFF);
+    ldomTextStorageChunk * chunk = getChunk(address);
+    return chunk->getText(address&0xFFFF);
 }
 
+void ldomDataStorageManager::compact( int reservedSpace )
+{
+    if ( _uncompressedSize + reservedSpace > _maxUncompressedSize ) {
+        // do compacting
+        int sumsize = reservedSpace;
+        for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
+            if ( p->_bufsize <= 0 )
+                continue;
+            if ( p->_bufsize + sumsize < _maxUncompressedSize ) {
+                // fits
+                sumsize += p->_bufsize;
+            } else {
+                p->compact();
+            }
+        }
+
+    }
+}
+
+// max 512K of uncompressed data (~8 chunks)
+#define DEF_MAX_UNCOMPRESSED_SIZE 0x80000
 ldomDataStorageManager::ldomDataStorageManager()
 : _activeChunk(NULL)
+, _recentChunk(NULL)
+, _compressedSize(0)
+, _uncompressedSize(0)
+, _maxUncompressedSize(DEF_MAX_UNCOMPRESSED_SIZE)
 {
 }
 
@@ -289,14 +332,17 @@ ldomDataStorageManager::~ldomDataStorageManager()
 }
 
 
-ldomTextStorageChunk::ldomTextStorageChunk( int index )
-: _buf(NULL)   /// buffer for uncompressed data
+ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
+: _manager(manager)
+, _buf(NULL)   /// buffer for uncompressed data
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _filepos(0)    /// position in swap file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
+, _nextRecent(NULL)
+, _prevRecent(NULL)
 {
 }
 
@@ -321,6 +367,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
         _bufsize = 0xFFFF;
         _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
         _bufpos = 0;
+        _manager->_uncompressedSize += _bufsize;
     }
     if ( _bufsize - _bufpos < itemsize )
         return -1;
@@ -425,6 +472,7 @@ bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
 void ldomTextStorageChunk::setpacked( const lUInt8 * compbuf, int compsize )
 {
     if ( _compbuf ) {
+        _manager->_compressedSize -= _compsize;
         free(_compbuf);
         _compbuf = NULL;
         _compsize = 0;
@@ -432,6 +480,7 @@ void ldomTextStorageChunk::setpacked( const lUInt8 * compbuf, int compsize )
     if ( compbuf && compsize ) {
         _compsize = compsize;
         _compbuf = (lUInt8 *)malloc( sizeof(lUInt8) * _compsize );
+        _manager->_compressedSize += _compsize;
         memcpy( _compbuf, compbuf, compsize );
     }
 }
@@ -439,16 +488,54 @@ void ldomTextStorageChunk::setpacked( const lUInt8 * compbuf, int compsize )
 void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
 {
     if ( _buf ) {
+        _manager->_uncompressedSize -= _bufsize;
         free(_buf);
         _buf = NULL;
         _bufsize = 0;
     }
     if ( buf && bufsize ) {
         _bufsize = bufsize;
+        _bufpos = bufsize;
         _buf = (lUInt8 *)malloc( sizeof(lUInt8) * _compsize );
+        _manager->_uncompressedSize += _bufsize;
         memcpy( _buf, buf, bufsize );
     }
 }
+
+/// pack data, and remove unpacked
+void ldomTextStorageChunk::compact()
+{
+    if ( !_compbuf && _buf ) {
+        CRLog::debug("Packing %d bytes of chunk %d", _bufpos, _index);
+        pack(_buf, _bufpos);
+    }
+    if ( _buf )
+        setunpacked(NULL, 0);
+}
+
+/// unpacks chunk, if packed; checks storage space, compact if necessary
+void ldomTextStorageChunk::ensureUnpacked()
+{
+    if ( !_buf ) {
+        if (_compbuf) {
+            _manager->compact( _bufpos );
+            unpack();
+        }
+    }
+}
+
+
+
+
+/// dumps memory usage statistics to debug log
+void tinyNodeCollection::dumpStatistics()
+{
+    CRLog::info("*** Document memory usage: text=(%d compressed, %d uncompressed)", _textStorage.getCompressedSize(), _textStorage.getUncompressedSize() );
+}
+
+
+
+
 
 // moved to .cpp to hide implementation
 // fastDOM

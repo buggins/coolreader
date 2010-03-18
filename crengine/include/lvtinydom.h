@@ -162,10 +162,20 @@ class ldomTextStorageChunkBuilder;
 
 class ldomDataStorageManager
 {
+    friend class ldomTextStorageChunk;
     LVPtrVector<ldomTextStorageChunk> _chunks;
     ldomTextStorageChunkBuilder * _builder;
     ldomTextStorageChunk * _activeChunk;
+    ldomTextStorageChunk * _recentChunk;
+    int _compressedSize;
+    int _uncompressedSize;
+    int _maxUncompressedSize;
+    ldomTextStorageChunk * getChunk( lUInt32 address );
 public:
+    /// checks buffer sizes, compacts most unused chunks
+    void compact( int reservedSpace );
+    int getCompressedSize() { return _compressedSize; }
+    int getUncompressedSize() { return _uncompressedSize; }
     /// allocates new text node, return its address inside storage
     lUInt32 allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
     /// get text by address
@@ -180,6 +190,7 @@ public:
 class ldomTextStorageChunk
 {
     friend class ldomDataStorageManager;
+    ldomDataStorageManager * _manager;
     lUInt8 * _buf;     /// buffer for uncompressed data
     lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
     lUInt32 _filepos;  /// position in swap file
@@ -187,6 +198,8 @@ class ldomTextStorageChunk
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
+    ldomTextStorageChunk * _nextRecent;
+    ldomTextStorageChunk * _prevRecent;
 
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
     bool unpack() { return unpack(_compbuf, _compsize); } /// unpack data from compbuf to _buf
@@ -196,6 +209,10 @@ class ldomTextStorageChunk
     void setunpacked( const lUInt8 * buf, int bufsize );
     /// change node's parent
     void setTextParent( int offset, lUInt32 parent );
+    /// pack data, and remove unpacked
+    void compact();
+    /// unpacks chunk, if packed; checks storage space, compact if necessary
+    void ensureUnpacked();
 public:
     /// returns chunk index inside collection
     int getIndex() { return _index; }
@@ -205,7 +222,7 @@ public:
     int addText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
     /// get text item from buffer by offset
     lString8 getText( int offset );
-    ldomTextStorageChunk( int index );
+    ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
     ~ldomTextStorageChunk();
 };
 
@@ -229,6 +246,15 @@ private:
     LVIndexedRefCache<font_ref_t> _fonts;
     ldomDataStorageManager _textStorage;
 public:
+
+    /// minimize memory consumption
+    void compact()
+    {
+        _textStorage.compact(0xFFFFFF);
+    }
+    /// dumps memory usage statistics to debug log
+    void dumpStatistics();
+
     /// get ldomNode instance pointer
     ldomNode * getTinyNode( lUInt32 index );
     /// allocate new ldomNode
