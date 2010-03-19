@@ -182,6 +182,8 @@ public:
     lString8 getText( lUInt32 address );
     /// change node's parent
     void setTextParent( lUInt32 address, lUInt32 parent );
+    /// free data item
+    void freeNode( lUInt32 addr );
     ldomDataStorageManager();
     ~ldomDataStorageManager();
 };
@@ -213,6 +215,8 @@ class ldomTextStorageChunk
     void compact();
     /// unpacks chunk, if packed; checks storage space, compact if necessary
     void ensureUnpacked();
+    /// free data item
+    void freeNode( int offset );
 public:
     /// returns chunk index inside collection
     int getIndex() { return _index; }
@@ -238,6 +242,7 @@ class ldomNode;
 class tinyNodeCollection
 {
     friend class ldomNode;
+    friend class tinyElement;
 private:
     int _count;
     lUInt32 _nextFree;
@@ -245,6 +250,15 @@ private:
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
     ldomDataStorageManager _textStorage;
+    int _tinyElementCount;
+    int _itemCount;
+
+protected:
+#if BUILD_LITE!=1
+    /// final block cache
+    CVRendBlockCache _renderedBlockCache;
+#endif
+
 public:
 
     /// minimize memory consumption
@@ -498,10 +512,6 @@ public:
     ldomNode * persist();
     /// replace node with r/w implementation
     ldomNode * modify();
-protected:
-    /// override to avoid deleting children while replacing
-    void prepareReplace();
-
 };
 
 typedef ldomNode ldomNode;
@@ -633,14 +643,9 @@ public:
     // debug dump
     void dumpUnknownEntities( const char * fname );
 
-    inline void cacheStyle(css_style_ref_t & styleref )
-    {
-        _styleCache.cacheIt( styleref );
-    }
     /// garbage collector
     virtual void gc()
     {
-        _styleCache.gc();
 #if BUILD_LITE!=1
         fontMan->gc();
 #endif
@@ -654,7 +659,6 @@ public:
     {
         _stylesheet.apply( element, pstyle );
     }
-
 
     void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node );
 
@@ -724,21 +728,6 @@ public:
     virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
     /// saves recent changes to mapped file
     virtual bool updateMap() = 0;
-#endif
-#ifdef TINYNODE_MIGRATION
-    /// returns or creates object instance by index
-    inline ldomNode * getNodeInstance( lInt32 dataIndex )
-    {
-        return _instanceMap[ dataIndex ].instance;
-/*
-        ldomNode * item = _instanceMap[ dataIndex ].instance;
-        if ( item != NULL )
-            return item;
-        // TODO: try to create instance from data
-        CRLog::error("NULL instance for index %d", dataIndex);
-        return NULL;
-*/
-    }
 #endif
 protected:
 
@@ -853,7 +842,6 @@ protected:
     lUInt16       _nextUnknownElementId; // Next Id for unknown element
     lUInt16       _nextUnknownAttrId;    // Next Id for unknown attribute
     lUInt16       _nextUnknownNsId;      // Next Id for unknown namespace
-    lvdomStyleCache _styleCache;         // Style cache
     LVStyleSheet  _stylesheet;
     lString16HashedCollection _attrValueTable;
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
@@ -1739,10 +1727,6 @@ private:
     int _page_height;
     ldomXRangeList _selections;
 
-#if BUILD_LITE!=1
-    /// final block cache
-    CVRendBlockCache _renderedBlockCache;
-#endif
     LVContainerRef _container;
 
 protected:

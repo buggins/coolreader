@@ -166,6 +166,11 @@ tinyNodeCollection::tinyNodeCollection()
 , _nextFree(0)
 , _styles(STYLE_HASH_TABLE_SIZE)
 , _fonts(FONT_HASH_TABLE_SIZE)
+, _tinyElementCount(0)
+, _itemCount(0)
+#if BUILD_LITE!=1
+, _renderedBlockCache( 32 )
+#endif
 {
     memset( _list, 0, sizeof(_list) );
 }
@@ -201,6 +206,7 @@ ldomNode * tinyNodeCollection::allocTinyNode( int type )
         res->_document = (ldomDocument*)this;
         res->_dataIndex = (_count << 4) | type;
     }
+    _itemCount++;
     return res;
 }
 
@@ -212,6 +218,7 @@ void tinyNodeCollection::recycleTinyNode( lUInt32 index )
     p->_dataIndex = 0; // indicates NULL node
     p->_data._empty._nextFreeIndex = _nextFree;
     _nextFree = index;
+    _itemCount--;
 }
 
 tinyNodeCollection::~tinyNodeCollection()
@@ -295,6 +302,14 @@ void ldomDataStorageManager::setTextParent( lUInt32 address, lUInt32 parent )
     ldomTextStorageChunk * chunk = getChunk(address);
     return chunk->setTextParent(address&0xFFFF, parent);
 }
+
+/// free data item
+void ldomDataStorageManager::freeNode( lUInt32 addr )
+{
+    ldomTextStorageChunk * chunk = getChunk(addr);
+    chunk->freeNode(addr&0xFFFF);
+}
+
 
 lString8 ldomDataStorageManager::getText( lUInt32 address )
 {
@@ -386,6 +401,23 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
     int res = _bufpos >> 4;
     _bufpos += itemsize;
     return res;
+}
+
+/// free data item
+void ldomTextStorageChunk::freeNode( int offset )
+{
+    offset <<= 4;
+    if ( offset>=0 && offset<_bufpos ) {
+        TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
+        if ( (item->type==LXML_TEXT_NODE || item->type==LXML_ELEMENT_NODE) && item->dataIndex ) {
+            item->type = LXML_NO_DATA;
+            item->dataIndex = 0;
+            if ( _compbuf ) {
+                CRLog::debug("Dropping compressed data of chunk %d due to modification");
+                setpacked(NULL, 0);
+            }
+        }
+    }
 }
 
 /// change node's parent
@@ -541,11 +573,6 @@ void ldomTextStorageChunk::ensureUnpacked()
 
 
 
-/// dumps memory usage statistics to debug log
-void tinyNodeCollection::dumpStatistics()
-{
-    CRLog::info("*** Document memory usage: text=(%d compressed, %d uncompressed)", _textStorage.getCompressedSize(), _textStorage.getUncompressedSize() );
-}
 
 
 
@@ -1728,10 +1755,6 @@ ldomNode * lxmlDocBase::getRootNode()
 }
 
 ldomDocument::ldomDocument()
-#if BUILD_LITE!=1
-:
-     _renderedBlockCache( 32 )
-#endif
 {
     allocTinyElement(NULL, 0, 0);
     //new ldomElement( this, NULL, 0, 0, 0 );
@@ -1764,10 +1787,6 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 , _def_font(doc._def_font) // default font
 , _def_style(doc._def_style)
 , _page_height(doc._page_height)
-
-#if BUILD_LITE!=1
-        , _renderedBlockCache( 32 )
-#endif
 , _container(doc._container)
 {
 }
@@ -1930,6 +1949,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         context.Finalize();
         updateRenderContext( pages, width, dy );
         //persist();
+        dumpStatistics();
         return height;
     } else {
         CRLog::info("rendering context is not changed - no render!");
@@ -6179,9 +6199,9 @@ private:
 public:
     tinyElement( ldomDocument * document, ldomNode * parentNode, lUInt16 nsid, lUInt16 id )
     : _document(document), _parentNode(parentNode), _id(id), _nsid(nsid), _rendMethod(erm_invisible)
-    { }
+    { _document->_tinyElementCount++; }
     /// destructor
-    ~tinyElement() { }
+    ~tinyElement() { _document->_tinyElementCount--; }
 };
 
 
@@ -6274,7 +6294,8 @@ void ldomNode::destroy()
         }
         delete NPELEM;
         break;
-    case NT_PTEXT:      // immutable (persistent) text node
+    case NT_PTEXT:
+        _document->_textStorage.freeNode( _data._ptext._addr );
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
         _document->_styles.release( _data._pelem._styleIndex );
@@ -6718,7 +6739,15 @@ void ldomNode::setText( lString16 str )
         readOnlyError();
         break;
     case NT_PTEXT:
-        readOnlyError();
+        {
+            // convert persistent text to mutable
+            _document->_textStorage.freeNode( _data._ptext._addr );
+            lString8 utf8 = UnicodeToUtf8(str);
+            _data._text._str = (lChar8*)malloc(utf8.length()+1);
+            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            // change type from PTEXT to TEXT
+            _dataIndex = (_dataIndex & ~0xF) | NT_TEXT;
+        }
         break;
     case NT_TEXT:
         {
@@ -7349,8 +7378,24 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, int width )
 bool ldomNode::refreshFinalBlock()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
-    return false;
+    if ( getRendMethod() != erm_final )
+        return false;
+    // TODO: implement reformatting of one node
+    CVRendBlockCache & cache = getDocument()->getRendBlockCache();
+    cache.remove( this );
+    lvdomElementFormatRec * fmt = getRenderData();
+    if ( !fmt )
+        return false;
+    lvRect oldRect, newRect;
+    fmt->getRect( oldRect );
+    LFormattedTextRef txtform;
+    int width = fmt->getWidth();
+    int h = renderFinalBlock( txtform, width );
+    fmt->getRect( newRect );
+    if ( oldRect == newRect )
+        return false;
+    // TODO: relocate other blocks
+    return true;
 }
 
 #endif
@@ -7359,7 +7404,18 @@ bool ldomNode::refreshFinalBlock()
 ldomNode * ldomNode::persist()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( !isPersistent() ) {
+        if ( isElement() ) {
+            // ELEM->PELEM
+        } else {
+            // TEXT->PTEXT
+            lString8 utf8(_data._text._str);
+            free(_data._text._str);
+            _data._ptext._addr = _document->_textStorage.allocText(_dataIndex, _data._text._parentIndex, utf8 );
+            // change type
+            _dataIndex = (_dataIndex & ~0xF) | NT_PTEXT;
+        }
+    }
     return this;
 }
 
@@ -7367,16 +7423,41 @@ ldomNode * ldomNode::persist()
 ldomNode * ldomNode::modify()
 {
     ASSERT_NODE_NOT_NULL;
-    // TODO
+    if ( isPersistent() ) {
+        if ( isElement() ) {
+            // PELEM->ELEM
+        } else {
+            // PTEXT->TEXT
+            // convert persistent text to mutable
+            lString8 utf8 = _document->_textStorage.getText(_data._ptext._addr);
+            _document->_textStorage.freeNode( _data._ptext._addr );
+            _data._text._str = (lChar8*)malloc(utf8.length()+1);
+            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            // change type
+            _dataIndex = (_dataIndex & ~0xF) | NT_TEXT;
+        }
+    }
     return this;
 }
 
-/// override to avoid deleting children while replacing
-void ldomNode::prepareReplace()
+
+/// dumps memory usage statistics to debug log
+void tinyNodeCollection::dumpStatistics()
 {
-    ASSERT_NODE_NOT_NULL;
-    // TODO
+    CRLog::info("*** Document memory usage: text=(%d compressed, %d uncompressed), "
+                "styles:%d, fonts:%d, renderedNodes:%d, "
+                "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
+                _textStorage.getCompressedSize(), _textStorage.getUncompressedSize(),
+                _styles.length(), _fonts.length(),
+#if BUILD_LITE!=1
+                ((ldomDocument*)this)->_renderedBlockCache.length(),
+#else
+                0,
+#endif
+                _itemCount, _itemCount*16/1024,
+                _tinyElementCount, _tinyElementCount*(sizeof(tinyElement)+8*4)/1024 );
 }
+
 
 
 #define MYASSERT(x,t) \
