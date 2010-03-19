@@ -134,6 +134,7 @@ private:
     int indexsize;
     int nextindex;
     int freeindex;
+    int numitems;
 
     int indexItem( LVRefCacheRec * rec )
     {
@@ -173,6 +174,7 @@ private:
                 LVRefCacheRec * tmp = *rr;
                 *rr = (*rr)->next;
                 delete tmp;
+                numitems--;
                 return;
             }
         }
@@ -180,6 +182,11 @@ private:
     }
 
 public:
+
+    int length()
+    {
+        return numitems;
+    }
 
     void release( int n )
     {
@@ -237,6 +244,7 @@ public:
             rr = &(*rr)->next;
         }
         *rr = new LVRefCacheRec( style, hash );
+        numitems++;
         return indexItem( *rr );
     }
     LVIndexedRefCache( int sz )
@@ -244,6 +252,7 @@ public:
     , indexsize(0)
     , nextindex(0)
     , freeindex(0)
+    , numitems(0)
     {
         size = sz;
         table = new LVRefCacheRec * [ sz ];
@@ -270,6 +279,7 @@ public:
             nextindex = 0;
             freeindex = 0;
         }
+        numitems = 0;
     }
     ~LVIndexedRefCache()
     {
@@ -289,6 +299,7 @@ private:
     };
     Pair * buf;
     int size;
+    int numitems;
     int lastAccess;
     void checkOverflow( int oldestAccessTime )
     {
@@ -309,8 +320,12 @@ private:
         }
     }
 public:
+    int length()
+    {
+        return numitems;
+    }
     LVCacheMap( int maxSize )
-    : size(maxSize), lastAccess(1)
+    : size(maxSize), numitems(0), lastAccess(1)
     {
         buf = new Pair[ size ];
         clear();
@@ -323,6 +338,7 @@ public:
             buf[i].data = dataT();
             buf[i].lastAccess = 0;
         }
+        numitems = 0;
     }
     bool get( keyT key, dataT & data )
     {
@@ -344,6 +360,7 @@ public:
                 buf[i].key = keyT();
                 buf[i].data = dataT();
                 buf[i].lastAccess = 0;
+                numitems--;
                 return true;
             }
         }
@@ -366,6 +383,8 @@ public:
             }
         }
         checkOverflow(oldestAccessTime);
+        if ( buf[oldestIndex].key==keyT() )
+            numitems++;
         buf[oldestIndex].key = key;
         buf[oldestIndex].data = data;
         buf[oldestIndex].lastAccess = ++lastAccess;
