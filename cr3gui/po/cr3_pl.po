@@ -23,15 +23,15 @@ msgstr "Wybierz tekst"
 
 #: ../src/fsmenu.cpp:41
 msgid "1..9"
-msgstr ""
+msgstr "1..9"
 
 #: ../src/fsmenu.cpp:43
 msgid "1..8"
-msgstr ""
+msgstr "1..8"
 
 #: ../src/mainwnd.cpp:732
 msgid "No manual currently available for this language, sorry!"
-msgstr ""
+msgstr "Przepraszamy, obecnie nie ma instrukcji w tym języku."
 
 #: ../src/mainwnd.cpp:743 ../src/mainwnd.cpp:844
 msgid "Help"
@@ -91,7 +91,7 @@ msgstr "Stan baterii"
 
 #: ../src/mainwnd.cpp:961
 msgid "charging..."
-msgstr ""
+msgstr "ładowanie..."
 
 #: ../src/mainwnd.cpp:962
 msgid "Current Time"
@@ -230,16 +230,16 @@ msgid ""
 "$1 - open book\n"
 "$2, $3 - close"
 msgstr ""
+"$1 - otwórz książkę\n"
+"$2, $3 - zamknij"
 
 #: ../src/tocdlg.cpp:150
-#, fuzzy
 msgid "Current page: $1 of $2\n"
-msgstr "Bieżąca strona"
+msgstr "Bieżąca strona: $1 z $2\n"
 
 #: ../src/tocdlg.cpp:153
-#, fuzzy
 msgid "Enter page number:"
-msgstr "Podaj numer strony"
+msgstr "Podaj numer strony:"
 
 #: ../src/bmkdlg.cpp:18
 msgid "Empty slot"
@@ -247,12 +247,11 @@ msgstr "Wolne miejsce"
 
 #: ../src/bmkdlg.cpp:49
 msgid "Page $1 ($2%)"
-msgstr ""
+msgstr "Strona $1 ($2%)"
 
 #: ../src/bmkdlg.cpp:68
-#, fuzzy
 msgid "Go to bookmark"
-msgstr "Idź do zakładki w/g numeru"
+msgstr "Idź do zakładki"
 
 #: ../src/bmkdlg.cpp:72
 msgid ""
@@ -265,11 +264,12 @@ msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
 msgstr ""
+"Krótkie wciśnięcie $1 - idź do zakładek,\n"
+"przytrzymanie - dodanie zakładki"
 
 #: ../src/bmkdlg.cpp:76
-#, fuzzy
 msgid "Set bookmark"
-msgstr "Zakładki"
+msgstr "Dodaj zakładkę"
 
 #: ../src/bmkdlg.cpp:80
 msgid ""
@@ -361,7 +361,7 @@ msgstr "Negatyw"
 
 #: ../src/settings.cpp:327
 msgid "Bold"
-msgstr ""
+msgstr "Wytłuszczenie"
 
 #: ../src/settings.cpp:332
 msgid "One"
@@ -409,39 +409,39 @@ msgstr "150%"
 
 #: ../src/settings.cpp:369
 msgid "Always use fast updates"
-msgstr ""
+msgstr "Zawsze rób szybkie odświeżanie"
 
 #: ../src/settings.cpp:370
 msgid "Don't use fast updates"
-msgstr ""
+msgstr "Nigdy nie rób szybkiego odświeżania"
 
 #: ../src/settings.cpp:371
 msgid "Full updates every 2 pages"
-msgstr ""
+msgstr "Pełne odświeżenie co 2 strony"
 
 #: ../src/settings.cpp:372
 msgid "Full updates every 3 pages"
-msgstr ""
+msgstr "Pełne odświeżenie co 3 strony"
 
 #: ../src/settings.cpp:373
 msgid "Full updates every 4 pages"
-msgstr ""
+msgstr "Pełne odświeżenie co 4 strony"
 
 #: ../src/settings.cpp:374
 msgid "Full updates every 5 pages"
-msgstr ""
+msgstr "Pełne odświeżenie co 5 stron"
 
 #: ../src/settings.cpp:375
 msgid "Full updates every 6 pages"
-msgstr ""
+msgstr "Pełne odświeżenie co 6 stron"
 
 #: ../src/settings.cpp:380
 msgid "Turbo mode disabled"
-msgstr ""
+msgstr "Tryb turbo wyłączony"
 
 #: ../src/settings.cpp:381
 msgid "Turbo mode enabled"
-msgstr ""
+msgstr "Tryb turbo włączony"
 
 #: ../src/settings.cpp:395
 msgid "Default font face"
@@ -486,11 +486,11 @@ msgstr "Kolory wyświetlacza"
 
 #: ../src/settings.cpp:486
 msgid "Display update mode"
-msgstr ""
+msgstr "Tryb odświeżania ekranu"
 
 #: ../src/settings.cpp:493
 msgid "Turbo update mode"
-msgstr ""
+msgstr "Tryb turbo"
 
 #: ../src/settings.cpp:501
 msgid "Show bookmark icons"
@@ -619,9 +619,8 @@ msgid "Menu"
 msgstr "Menu"
 
 #: ../src/viewdlg.cpp:335
-#, fuzzy
 msgid "Zoom"
-msgstr "Powiększ"
+msgstr "Powiększenie"
 
 #: ../src/viewdlg.cpp:346
 msgid "Long"
@@ -676,9 +675,8 @@ msgid "Zoom out"
 msgstr "Pomniejsz"
 
 #: ../src/viewdlg.cpp:368
-#, fuzzy
 msgid "Toggle bold text"
-msgstr "Zmień format tekstu"
+msgstr "Zmień wytłuszczanie tekstu"
 
 #: ../src/viewdlg.cpp:369
 msgid "Toggle text format"
@@ -761,9 +759,8 @@ msgid "Bookmark list"
 msgstr "Lista zakładek"
 
 #: ../src/viewdlg.cpp:391
-#, fuzzy
 msgid "Go to bookmark..."
-msgstr "Idź do zakładki w/g numeru"
+msgstr "Idź do zakładki..."
 
 #: ../src/viewdlg.cpp:392
 msgid "Recent books list"
@@ -774,9 +771,8 @@ msgid "Open recent book by number"
 msgstr "Otwórz ostatnio otwieraną książkę w/g numeru"
 
 #: ../src/viewdlg.cpp:394
-#, fuzzy
 msgid "Switch to recent book"
-msgstr "Ostatnio otwierane książki"
+msgstr "Przejdź do ostatnio otwieranych książek"
 
 #: ../src/viewdlg.cpp:396
 msgid "Cite selection dialog"
