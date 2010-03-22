@@ -345,7 +345,7 @@ lUInt32 ldomDataStorageManager::allocElem( lUInt32 dataIndex, lUInt32 parentInde
         _activeChunk->compact();
         _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
-        int offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
+        offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
         if ( offset<0 )
             crFatalError(1002, "Unexpected error while allocation of element");
     }
@@ -517,7 +517,7 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 void ldomTextStorageChunk::modified()
 {
     if ( _compbuf ) {
-        CRLog::debug("Dropping compressed data of chunk %d due to modification");
+        CRLog::debug("Dropping compressed data of chunk %d due to modification", _index);
         setpacked(NULL, 0);
     }
 }
@@ -1469,7 +1469,7 @@ _elementNameTable(MAX_ELEMENT_TYPE_ID)
 ,_idAttrId(0)
 ,_docProps(LVCreatePropsContainer())
 #if BUILD_LITE!=1
-,_keepData(false)
+//,_keepData(false)
 //,_mapped(false)
 #endif
 ,_docFlags(DOC_FLAG_DEFAULTS)
@@ -1968,7 +1968,6 @@ ldomDocument::~ldomDocument()
 #if BUILD_LITE!=1
     updateMap();
 #endif
-    _keepData = true;
 }
 
 #if BUILD_LITE!=1
@@ -2311,6 +2310,8 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
     ldomElementWriter * tmp = obj;
     for ( ; tmp; tmp = tmp->_parent )
     {
+        tmp->getElement()->persist();
+
         //logfile << "-";
         if (tmp->getElement()->getNodeId() == id)
             break;
@@ -6293,6 +6294,14 @@ public:
 #define NPTEXT _data._text._str
 
 //=====================================================
+
+/// minimize memory consumption
+void tinyNodeCollection::compact()
+{
+    _textStorage.compact(0xFFFFFF);
+    _elemStorage.compact(0xFFFFFF);
+}
+
 /// allocate new tinyElement
 ldomNode * tinyNodeCollection::allocTinyElement( ldomNode * parent, lUInt16 nsid, lUInt16 id )
 {
@@ -6563,12 +6572,9 @@ ldomNode * ldomNode::getChildNode( lUInt32 index ) const
         return getTinyNode( me->_children[index] );
     } else {
         // persistent element
-        {
-            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-            getTinyNode( me->children[index] );
-        }
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return getTinyNode( me->children[index] );
     }
-    return NULL;
 }
 
 /// returns element child count
@@ -6660,8 +6666,6 @@ const lxmlAttribute * ldomNode::getAttribute( lUInt32 index ) const
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
         return me->attr( index );
     }
-    // TODO
-    return NULL;
 }
 
 /// returns true if element node has attribute with specified name id and namespace id
@@ -6680,7 +6684,6 @@ bool ldomNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
         return (me->findAttr( nsid, id ) != NULL);
     }
-    return false;
 }
 
 /// returns attribute name by index
@@ -6733,7 +6736,6 @@ const css_elem_def_props_t * ldomNode::getElementTypePtr()
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
         return _document->getElementTypePtr(me->id);
     }
-    return NULL;
 }
 
 /// returns element name id
@@ -6750,7 +6752,6 @@ lUInt16 ldomNode::getNodeId() const
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
         return me->id;
     }
-    return 0;
 }
 
 /// returns element namespace id
@@ -6767,7 +6768,6 @@ lUInt16 ldomNode::getNodeNsId() const
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
         return me->nsid;
     }
-    return 0;
 }
 
 /// replace element name id with another value
@@ -6783,6 +6783,7 @@ void ldomNode::setNodeId( lUInt16 id )
         // persistent element
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
         me->id = id;
+        modified();
     }
 }
 
@@ -7161,11 +7162,10 @@ font_ref_t ldomNode::getFont()
     if ( !isElement() )
         return font_ref_t();
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
+        if ( !isPersistent() )
             return _document->_fonts.get( _data._elem._fontIndex );
-        } else {
+        else
             return _document->_fonts.get( _data._pelem._fontIndex );
-        }
     }
 }
 
@@ -7174,11 +7174,10 @@ void ldomNode::setFont( font_ref_t font )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
+        if ( !isPersistent() )
             _document->_fonts.cache( _data._elem._fontIndex, font );
-        } else {
+        else
             _document->_fonts.cache( _data._pelem._fontIndex, font );
-        }
     }
 }
 
@@ -7187,11 +7186,10 @@ void ldomNode::setStyle( css_style_ref_t & style )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
+        if ( !isPersistent() )
             _document->_styles.cache( _data._elem._styleIndex, style );
-        } else {
+        else
             _document->_styles.cache( _data._pelem._styleIndex, style );
-        }
     }
 }
 
@@ -7582,7 +7580,7 @@ ldomNode * ldomNode::persist()
             int attrCount = elem->_attrs.length();
             int childCount = elem->_children.length();
             _dataIndex = (_dataIndex & ~0xF) | NT_PELEMENT;
-            _data._pelem._addr = _document->_elemStorage.allocElem(_dataIndex, elem->_parentNode->_dataIndex, elem->_children.length(), elem->_attrs.length() );
+            _data._pelem._addr = _document->_elemStorage.allocElem(_dataIndex, elem->_parentNode ? elem->_parentNode->_dataIndex : 0, elem->_children.length(), elem->_attrs.length() );
             ElementDataStorageItem * data = _document->_elemStorage.getElem(_data._pelem._addr);
             data->nsid = elem->_nsid;
             data->id = elem->_id;
@@ -7630,6 +7628,7 @@ ldomNode * ldomNode::modify()
             elem->_rendMethod = (lvdom_element_render_method)data->rendMethod;
             elem->_renderData = data->renderData;
             _document->_elemStorage.freeNode( _data._pelem._addr );
+            NPELEM = elem;
         } else {
             // PTEXT->TEXT
             // convert persistent text to mutable
@@ -7680,6 +7679,8 @@ void runTinyDomUnitTests()
 
     int el_p = doc->getElementNameIndex(L"p");
     int el_title = doc->getElementNameIndex(L"title");
+    int el_strong = doc->getElementNameIndex(L"strong");
+    int el_emphasis = doc->getElementNameIndex(L"emphasis");
 
     CRLog::info("* simple DOM operations, tinyElement");
     MYASSERT(root->isRoot(),"root isRoot");
@@ -7858,6 +7859,31 @@ void runTinyDomUnitTests()
         el21->setFont(font3);
         MYASSERT(el1->getFont().get()!=el21->getFont().get(), "different fonts not reused");
     }
+
+    CRLog::info("* convert to persistent");
+    doc->persist();
+    doc->dumpStatistics();
+
+    MYASSERT(el21->getFirstChild()==NULL,"first child - no children");
+    MYASSERT(el21->isPersistent(), "persistent before insertChildElement");
+    ldomNode * el211 = el21->insertChildElement(el_strong);
+    MYASSERT(!el21->isPersistent(), "mutable after insertChildElement");
+    el211->persist();
+    MYASSERT(el211->isPersistent(), "persistent before insertChildText");
+    el211->insertChildText(lString16(L"bla bla bla"));
+    el211->insertChildText(lString16(L"bla bla blaw"));
+    MYASSERT(!el211->isPersistent(), "modifable after insertChildText");
+    //el21->insertChildElement(el_strong);
+    MYASSERT(el211->getChildCount()==2, "child count, in mutable");
+    el211->persist();
+    MYASSERT(el211->getChildCount()==2, "child count, in persistent");
+    el211->modify();
+    MYASSERT(el211->getChildCount()==2, "child count, in mutable again");
+    doc->persist();
+
+    CRLog::info("* compacting");
+    doc->compact();
+    doc->dumpStatistics();
 
     delete doc;
 

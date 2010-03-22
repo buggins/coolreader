@@ -733,6 +733,8 @@ void LVDocView::makeToc()
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
+    //CRLog::trace("LVDocView::getCoverPageImage()");
+    //m_doc->dumpStatistics();
     lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
     //lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
     ldomNode * cover_el = m_doc->getRootNode()->findChildElement( path );

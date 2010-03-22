@@ -277,10 +277,7 @@ protected:
 public:
 
     /// minimize memory consumption
-    void compact()
-    {
-        _textStorage.compact(0xFFFFFF);
-    }
+    void compact();
     /// dumps memory usage statistics to debug log
     void dumpStatistics();
 
@@ -750,68 +747,7 @@ public:
     /// saves recent changes to mapped file
     virtual bool updateMap() = 0;
 #endif
-protected:
 
-#ifdef TINYNODE_MIGRATION
-#if BUILD_LITE!=1
-    virtual bool resizeMap( lvsize_t newSize ) = 0;
-#endif
-#endif
-
-//=========================================
-//       NEW STORAGE MODEL METHODS
-//=========================================
-#ifdef TINYNODE_MIGRATION
-    struct NodeItem {
-        // object's RAM instance
-        ldomNode * instance;
-#if BUILD_LITE!=1
-        // object's data pointer
-        DataStorageItemHeader * data;
-#endif
-        // empty item constructor
-        NodeItem() : instance(NULL)
-#if BUILD_LITE!=1
-, data(NULL) 
-#endif
-{ }
-    };
-#if BUILD_LITE!=1
-
-	/// for persistent text node, return wide text by index, with caching (TODO)
-    lString16 getTextNodeValue( lInt32 dataIndex );
-	/// for persistent text node, return utf8 text by index, with caching (TODO)
-    lString8 getTextNodeValue8( lInt32 dataIndex );
-
-#endif
-    /// used by object constructor, to assign ID for created object
-    lInt32 registerNode( ldomNode * node );
-    /// used by object destructor, to remove RAM reference; leave data as is
-    void unregisterNode( ldomNode * node );
-#endif
-#if BUILD_LITE!=1
-#ifdef TINYNODE_MIGRATION
-    /// used by persistance management constructors, to replace one instance with another, deleting old instance
-    ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
-    /// used to create instances from mmapped file, returns passed node instance
-    ldomNode * setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data );
-    /// used by object destructor, to remove RAM reference; mark data as deleted
-    void deleteNode( ldomNode * node );
-	/// returns pointer to node data block
-	inline DataStorageItemHeader * getNodeData( lInt32 dataIndex ) { return _instanceMap[ dataIndex ].data; }
-	/// returns pointer to text node data block
-	inline TextDataStorageItem * getTextNodeData( lInt32 dataIndex ) { return (TextDataStorageItem *)_instanceMap[ dataIndex ].data;  }
-	/// returns pointer to text node data block
-	inline ElementDataStorageItem * getElementNodeData( lInt32 dataIndex ) { return (ElementDataStorageItem *)_instanceMap[ dataIndex ].data;  }
-	/// allocate data block, return pointer to allocated block
-	DataStorageItemHeader * allocData( lInt32 dataIndex, int size );
-	/// allocate text block
-	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
-	/// allocate element
-	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
-#endif
-#endif
-    bool keepData() { return _keepData; }
 protected:
 #if BUILD_LITE!=1
     struct DocFileHeader {
@@ -852,11 +788,6 @@ protected:
 	DataBuffer * _currentBuffer;
 	int _dataBufferSize;       // single data buffer size
 #endif
-#ifdef TINYNODE_MIGRATION
-    NodeItem * _instanceMap;   // Id->Instance & Id->Data map
-    int _instanceMapSize;      //
-    int _instanceMapCount;     //
-#endif
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map
     LDOMNameIdMap _nsNameTable;          // Namespace Name<->Id map
@@ -868,7 +799,6 @@ protected:
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
     CRPropRef _docProps;
-    bool _keepData; // if true, node deletion will not change persistent data
 
 #if BUILD_LITE!=1
 #ifdef TINYNODE_MIGRATION
