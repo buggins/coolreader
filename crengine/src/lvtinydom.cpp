@@ -71,6 +71,27 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     lInt32  children[1];
     lUInt16 * attrs() { return (lUInt16 *)(children + childCount); }
     lxmlAttribute * attr( int index ) { return (lxmlAttribute *)&(((lUInt16 *)(children + childCount))[index*3]); }
+    lUInt16 getAttrValueId( lUInt16 ns, lUInt16 id )
+    {
+        lxmlAttribute * a = attr(0);
+        for ( int i=0; i<attrCount; i++ ) {
+            lxmlAttribute * attr = &a[i];
+            if ( !attr->compare( nsid, id ) )
+                continue;
+            return  attr->index;
+        }
+        return LXML_ATTR_VALUE_NONE;
+    }
+    lxmlAttribute * findAttr( lUInt16 ns, lUInt16 id )
+    {
+        lxmlAttribute * a = attr(0);
+        for ( int i=0; i<attrCount; i++ ) {
+            lxmlAttribute * attr = &a[i];
+            if ( attr->compare( nsid, id ) )
+                return attr;
+        }
+        return NULL;
+    }
     // TODO: add items here
     //css_style_ref_t _style;
     //font_ref_t      _font;
@@ -1216,7 +1237,7 @@ public:
         }
         return lString16::empty_str;
     }
-    /// sets attribute value
+    / sets attribute value
     virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
     {
         lUInt16 valueId = _document->getAttrValueIndex( value );
@@ -6350,6 +6371,7 @@ void ldomNode::destroy()
         _document->_textStorage.freeNode( _data._ptext._addr );
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
+        _document->_elemStorage.freeNode( _data._pelem._addr );
         _document->_styles.release( _data._pelem._styleIndex );
         _document->_fonts.release( _data._pelem._fontIndex );
         break;
@@ -6376,7 +6398,16 @@ int ldomNode::getChildIndex( lUInt32 dataIndex ) const
         }
         break;
     case NT_PELEMENT:
-        // TODO:
+        {
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            for ( int i=0; i<me->childCount; i++ ) {
+                if ( me->children[i] == dataIndex ) {
+                    // found
+                    parentIndex = i;
+                    break;
+                }
+            }
+        }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
     case NT_TEXT:
@@ -6403,7 +6434,10 @@ bool ldomNode::isRoot() const
     case NT_ELEMENT:
         return !NPELEM->_parentNode;
     case NT_PELEMENT:   // immutable (persistent) element node
-        // TODO: get parent for element
+        {
+             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+             return me->parentIndex==0;
+        }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         return _data._ptext._parentIndex==0;
@@ -6423,7 +6457,11 @@ void ldomNode::setParentNode( ldomNode * parent )
         NPELEM->_parentNode = parent;
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
-        // TODO: get parent for element
+        {
+            lUInt32 parentIndex = parent->_dataIndex;
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            me->parentIndex = parentIndex;
+        }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         {
@@ -6450,7 +6488,10 @@ int ldomNode::getParentIndex() const
     case NT_ELEMENT:
         return NPELEM->_parentNode ? NPELEM->_parentNode->getDataIndex() : 0;
     case NT_PELEMENT:   // immutable (persistent) element node
-        // TODO: get parent for element
+        {
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            return me->parentIndex;
+        }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         return _data._ptext._parentIndex;
@@ -6469,7 +6510,10 @@ ldomNode * ldomNode::getParentNode() const
     case NT_ELEMENT:
         return NPELEM->_parentNode;
     case NT_PELEMENT:   // immutable (persistent) element node
-        // TODO: get parent for element
+        {
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            parentIndex = me->parentIndex;
+        }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         parentIndex = _data._ptext._parentIndex;
@@ -6491,7 +6535,10 @@ ldomNode * ldomNode::getChildNode( lUInt32 index ) const
         return getTinyNode( me->_children[index] );
     } else {
         // persistent element
-        // TODO
+        {
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            getTinyNode( me->children[index] );
+        }
     }
     return NULL;
 }
@@ -6508,6 +6555,11 @@ lUInt32 ldomNode::getChildCount() const
         return me->_children.length();
     } else {
         // persistent element
+        // persistent element
+        {
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            return me->childCount;
+        }
     }
     return 0; // TODO
 }
@@ -6524,6 +6576,10 @@ lUInt32 ldomNode::getAttrCount() const
         return me->_attrs.length();
     } else {
         // persistent element
+        {
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            return me->attrCount;
+        }
     }
     return 0;
 }
@@ -6543,8 +6599,12 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
         return _document->getAttrValue(valueId);
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        lUInt16 valueId = me->getAttrValueId( nsid, id );
+        if ( valueId==LXML_ATTR_VALUE_NONE )
+            return lString16::empty_str;
+        return _document->getAttrValue(valueId);
     }
-    // TODO
     return lString16::empty_str;
 }
 
@@ -6569,6 +6629,8 @@ const lxmlAttribute * ldomNode::getAttribute( lUInt32 index ) const
         return me->_attrs[index];
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return me->attr( index );
     }
     // TODO
     return NULL;
@@ -6587,6 +6649,8 @@ bool ldomNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
         return ( valueId!=LXML_ATTR_VALUE_NONE );
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return (me->findAttr( nsid, id ) != NULL);
     }
     return false;
 }
@@ -6607,17 +6671,23 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    if ( !isPersistent() ) {
-        // element
-        tinyElement * me = NPELEM;
-        int valueIndex = _document->getAttrValueIndex(value);
-        me->_attrs.set(nsid, id, valueIndex);
-        if (nsid == LXML_NS_NONE)
-            _document->onAttributeSet( id, valueIndex, this );
-    } else {
+    int valueIndex = _document->getAttrValueIndex(value);
+    if ( isPersistent() ) {
         // persistent element
-        //TODO:
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        lxmlAttribute * attr = me->findAttr( nsid, id );
+        if ( attr ) {
+            attr->index = valueIndex;
+            return;
+        }
+        // else: convert to modifable and continue as non-persistent
+        modify();
     }
+    // element
+    tinyElement * me = NPELEM;
+    me->_attrs.set(nsid, id, valueIndex);
+    if (nsid == LXML_NS_NONE)
+        _document->onAttributeSet( id, valueIndex, this );
 }
 
 /// returns element type structure pointer if it was set in document for this element name
@@ -6631,7 +6701,8 @@ const css_elem_def_props_t * ldomNode::getElementTypePtr()
         return _document->getElementTypePtr(NPELEM->_id);
     } else {
         // persistent element
-        // TODO
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return _document->getElementTypePtr(me->id);
     }
     return NULL;
 }
@@ -6642,12 +6713,13 @@ lUInt16 ldomNode::getNodeId() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return 0;
-    // TODO
     if ( !isPersistent() ) {
         // element
         return NPELEM->_id;
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return me->id;
     }
     return 0;
 }
@@ -6658,12 +6730,13 @@ lUInt16 ldomNode::getNodeNsId() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return 0;
-    // TODO
     if ( !isPersistent() ) {
         // element
         return NPELEM->_nsid;
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return me->nsid;
     }
     return 0;
 }
@@ -6674,12 +6747,13 @@ void ldomNode::setNodeId( lUInt16 id )
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    // TODO
     if ( !isPersistent() ) {
         // element
         NPELEM->_id = id;
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        me->id = id;
     }
 }
 
@@ -6694,9 +6768,9 @@ const lString16 & ldomNode::getNodeName() const
         return _document->getElementName(NPELEM->_id);
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return _document->getElementName(me->id);
     }
-    // TODO
-    return lString16::empty_str;
 }
 
 /// returns element namespace name
@@ -6707,12 +6781,12 @@ const lString16 & ldomNode::getNodeNsName() const
         return lString16::empty_str;
     if ( !isPersistent() ) {
         // element
-        return _document->getElementName(NPELEM->_nsid);
+        return _document->getNsName(NPELEM->_nsid);
     } else {
         // persistent element
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return _document->getNsName(me->nsid);
     }
-    // TODO
-    return lString16::empty_str;
 }
 
 
@@ -6785,7 +6859,7 @@ void ldomNode::setText( lString16 str )
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
     case NT_ELEMENT:
-        // TODO
+        readOnlyError();
         break;
     case NT_PELEMENT:
         readOnlyError();
@@ -6818,7 +6892,7 @@ void ldomNode::setText8( lString8 utf8 )
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
     case NT_ELEMENT:
-        // TODO
+        readOnlyError();
         break;
     case NT_PELEMENT:
         readOnlyError();
@@ -6870,8 +6944,8 @@ lvdomElementFormatRec * ldomNode::getRenderData()
     if ( !isPersistent() ) {
         return &NPELEM->_renderData;
     } else {
-        // TODO:
-        return NULL;
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        return &me->renderData;
     }
 }
 
@@ -6884,7 +6958,8 @@ void ldomNode::clearRenderData()
     if ( !isPersistent() ) {
         NPELEM->_renderData.clear();
     } else {
-        // TODO:
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        me->renderData.clear();;
     }
 }
 
