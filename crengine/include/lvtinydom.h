@@ -159,6 +159,7 @@ public:
 
 class ldomTextStorageChunk;
 class ldomTextStorageChunkBuilder;
+struct ElementDataStorageItem;
 
 class ldomDataStorageManager
 {
@@ -178,8 +179,12 @@ public:
     int getUncompressedSize() { return _uncompressedSize; }
     /// allocates new text node, return its address inside storage
     lUInt32 allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
+    /// allocates storage for new element, returns address address inside storage
+    lUInt32 allocElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount );
     /// get text by address
     lString8 getText( lUInt32 address );
+    /// get pointer to element data
+    ElementDataStorageItem * getElem( lUInt32 addr );
     /// change node's parent
     void setTextParent( lUInt32 address, lUInt32 parent );
     /// free data item
@@ -224,8 +229,13 @@ public:
     int space();
     /// adds new text item to buffer, returns offset inside chunk of stored data
     int addText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
+    /// adds new element item to buffer, returns offset inside chunk of stored data
+    int addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount );
     /// get text item from buffer by offset
     lString8 getText( int offset );
+    /// get pointer to element data
+    ElementDataStorageItem * getElem( int offset );
+
     ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
     ~ldomTextStorageChunk();
 };
@@ -250,6 +260,7 @@ private:
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
     ldomDataStorageManager _textStorage;
+    ldomDataStorageManager _elemStorage;
     int _tinyElementCount;
     int _itemCount;
 
@@ -277,6 +288,13 @@ public:
     ldomNode * allocTinyElement( ldomNode * parent, lUInt16 nsid, lUInt16 id );
     /// recycle ldomNode on node removing
     void recycleTinyNode( lUInt32 index );
+
+
+#if BUILD_LITE!=1
+    /// put all object into persistent storage
+    virtual void persist();
+#endif
+
     /// creates empty collection
     tinyNodeCollection();
     /// destroys collection
@@ -679,10 +697,6 @@ public:
     inline CRPropRef getProps() { return _docProps; }
     /// returns doc properties collection
     void setProps( CRPropRef props ) { _docProps = props; }
-#if BUILD_LITE!=1
-    /// put all object into persistent storage
-    virtual void persist();
-#endif
     /// returns root element
     ldomNode * getRootNode();
 

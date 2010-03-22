@@ -236,6 +236,22 @@ tinyNodeCollection::~tinyNodeCollection()
     }
 }
 
+#if BUILD_LITE!=1
+/// put all objects into persistent storage
+void tinyNodeCollection::persist()
+{
+    CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
+    for ( int partindex = 0; partindex<=(_count>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _list[partindex];
+        if ( part ) {
+            int n0 = TNC_PART_LEN * partindex;
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_count; i++ )
+                if ( !part[i].isNull() && !part[i].isPersistent() )
+                    part[i].persist();
+        }
+    }
+}
+#endif
 
 
 /*
@@ -296,6 +312,25 @@ lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentInde
     return offset | (_activeChunk->getIndex()<<16);
 }
 
+lUInt32 ldomDataStorageManager::allocElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
+{
+    if ( !_activeChunk ) {
+        _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
+        _chunks.add( _activeChunk );
+    }
+    int offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
+    if ( offset<0 ) {
+        // no space in current chunk, add one more chunk
+        _activeChunk->compact();
+        _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
+        _chunks.add( _activeChunk );
+        int offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
+        if ( offset<0 )
+            crFatalError(1002, "Unexpected error while allocation of element");
+    }
+    return offset | (_activeChunk->getIndex()<<16);
+}
+
 /// change node's parent
 void ldomDataStorageManager::setTextParent( lUInt32 address, lUInt32 parent )
 {
@@ -315,6 +350,13 @@ lString8 ldomDataStorageManager::getText( lUInt32 address )
 {
     ldomTextStorageChunk * chunk = getChunk(address);
     return chunk->getText(address&0xFFFF);
+}
+
+/// get pointer to element data
+ElementDataStorageItem * ldomDataStorageManager::getElem( lUInt32 addr )
+{
+    ldomTextStorageChunk * chunk = getChunk(addr);
+    return chunk->getElem(addr&0xFFFF);
 }
 
 void ldomDataStorageManager::compact( int reservedSpace )
@@ -401,6 +443,45 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
     int res = _bufpos >> 4;
     _bufpos += itemsize;
     return res;
+}
+
+/// adds new element item to buffer, returns offset inside chunk of stored data
+int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
+{
+    int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
+    if ( !_buf ) {
+        // create new buffer, if necessary
+        _bufsize = itemsize < 0xFFFF ? 0xFFFF : itemsize;
+        _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
+        _bufpos = 0;
+        _manager->_uncompressedSize += _bufsize;
+    }
+    if ( _bufsize - _bufpos < itemsize )
+        return -1;
+    ElementDataStorageItem *item = (ElementDataStorageItem *)(_buf + _bufpos);
+    if ( item ) {
+        item->sizeDiv16 = itemsize>>4;
+        item->dataIndex = dataIndex;
+        item->parentIndex = parentIndex;
+        item->type = LXML_ELEMENT_NODE;
+        item->parentIndex = parentIndex;
+        item->attrCount = attrCount;
+        item->childCount = childCount;
+    }
+    int res = _bufpos >> 4;
+    _bufpos += itemsize;
+    return res;
+}
+
+/// get pointer to element data
+ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
+{
+    offset <<= 4;
+    if ( offset>=0 && offset<_bufpos ) {
+        ElementDataStorageItem * item = (ElementDataStorageItem *)(_buf+offset);
+        return item;
+    }
+    return NULL;
 }
 
 /// free data item
@@ -1399,35 +1480,6 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
     }
 }
 
-#if BUILD_LITE!=1
-/// put all object into persistent storage
-void lxmlDocBase::persist()
-{
-#ifdef TINYNODE_MIGRATION
-    //CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
-//#ifdef _DEBUG
-    //if ( !checkConsistency(false) ) {
-    //    CRLog::error( "- before lxmlDocBase::persist()" );
-    //}
-//#endif
-    for ( int i=0; i<_instanceMapCount; i++ ) {
-        ldomNode * old = _instanceMap[ i ].instance;
-        if ( old ) {
-            //_instanceMap[ i ].instance = 
-            if ( old->persist() != old ) {
-                //CRLog::trace("Item %d converted to persistent", i);
-            }
-        }
-    }
-#ifdef _DEBUG
-    if ( !checkConsistency(true) ) {
-        CRLog::error( "- after lxmlDocBase::persist()" );
-    }
-#endif
-
-#endif
-}
-#endif
 
 #ifdef TINYNODE_MIGRATION
 /// used by object constructor, to assign ID for created object
@@ -7407,13 +7459,36 @@ ldomNode * ldomNode::persist()
     if ( !isPersistent() ) {
         if ( isElement() ) {
             // ELEM->PELEM
+            tinyElement * elem = NPELEM;
+            int attrCount = elem->_attrs.length();
+            int childCount = elem->_children.length();
+            _dataIndex = (_dataIndex & ~0xF) | NT_PELEMENT;
+            _data._pelem._addr = _document->_elemStorage.allocElem(_dataIndex, elem->_parentNode->_dataIndex, elem->_children.length(), elem->_attrs.length() );
+            ElementDataStorageItem * data = _document->_elemStorage.getElem(_data._pelem._addr);
+            data->nsid = elem->_nsid;
+            data->id = elem->_id;
+            lUInt16 * attrs = data->attrs();
+            int i;
+            for ( i=0; i<attrCount; i++ ) {
+                const lxmlAttribute * attr = elem->_attrs[i];
+                attrs[i * 3] = attr->nsid;     // namespace
+                attrs[i * 3 + 1] = attr->id;   // id
+                attrs[i * 3 + 2] = attr->index;// value
+            }
+            for ( i=0; i<childCount; i++ ) {
+                data->children[i] = elem->_children[i];
+            }
+            data->rendMethod = (lUInt8)elem->_rendMethod;
+            lvdomElementFormatRec * rdata = &elem->_renderData;
+            data->renderData = *rdata;
+            delete elem;
         } else {
             // TEXT->PTEXT
             lString8 utf8(_data._text._str);
             free(_data._text._str);
+            _dataIndex = (_dataIndex & ~0xF) | NT_PTEXT;
             _data._ptext._addr = _document->_textStorage.allocText(_dataIndex, _data._text._parentIndex, utf8 );
             // change type
-            _dataIndex = (_dataIndex & ~0xF) | NT_PTEXT;
         }
     }
     return this;
