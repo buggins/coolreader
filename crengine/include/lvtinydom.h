@@ -189,6 +189,8 @@ public:
     void setTextParent( lUInt32 address, lUInt32 parent );
     /// free data item
     void freeNode( lUInt32 addr );
+    /// call to invalidate chunk if content is modified
+    void modified( lUInt32 addr );
     ldomDataStorageManager();
     ~ldomDataStorageManager();
 };
@@ -223,6 +225,8 @@ class ldomTextStorageChunk
     /// free data item
     void freeNode( int offset );
 public:
+    /// call to invalidate chunk if content is modified
+    void modified();
     /// returns chunk index inside collection
     int getIndex() { return _index; }
     /// returns free space in buffer
@@ -364,6 +368,9 @@ private:
     void setParentNode( ldomNode * newParent );
     /// add child
     void addChild( lInt32 childNodeIndex );
+
+    /// call to invalidate cache if persistent node content is modified
+    void modified();
 public:
     /// remove node, clear resources
     void destroy();
