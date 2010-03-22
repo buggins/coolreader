@@ -352,6 +352,13 @@ lUInt32 ldomDataStorageManager::allocElem( lUInt32 dataIndex, lUInt32 parentInde
     return offset | (_activeChunk->getIndex()<<16);
 }
 
+/// call to invalidate chunk if content is modified
+void ldomDataStorageManager::modified( lUInt32 addr )
+{
+    ldomTextStorageChunk * chunk = getChunk(addr);
+    chunk->modified();
+}
+
 /// change node's parent
 void ldomDataStorageManager::setTextParent( lUInt32 address, lUInt32 parent )
 {
@@ -505,6 +512,16 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
     return NULL;
 }
 
+
+/// call to invalidate chunk if content is modified
+void ldomTextStorageChunk::modified()
+{
+    if ( _compbuf ) {
+        CRLog::debug("Dropping compressed data of chunk %d due to modification");
+        setpacked(NULL, 0);
+    }
+}
+
 /// free data item
 void ldomTextStorageChunk::freeNode( int offset )
 {
@@ -514,10 +531,7 @@ void ldomTextStorageChunk::freeNode( int offset )
         if ( (item->type==LXML_TEXT_NODE || item->type==LXML_ELEMENT_NODE) && item->dataIndex ) {
             item->type = LXML_NO_DATA;
             item->dataIndex = 0;
-            if ( _compbuf ) {
-                CRLog::debug("Dropping compressed data of chunk %d due to modification");
-                setpacked(NULL, 0);
-            }
+            modified();
         }
     }
 }
@@ -530,10 +544,7 @@ void ldomTextStorageChunk::setTextParent( int offset, lUInt32 parent )
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         if ( item->parentIndex != parent ) {
             item->parentIndex = parent;
-            if ( _compbuf ) {
-                CRLog::debug("Dropping compressed data of chunk %d due to modification");
-                setpacked(NULL, 0);
-            }
+            modified();
         }
     }
 }
@@ -6371,9 +6382,14 @@ void ldomNode::destroy()
         _document->_textStorage.freeNode( _data._ptext._addr );
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
-        _document->_elemStorage.freeNode( _data._pelem._addr );
-        _document->_styles.release( _data._pelem._styleIndex );
-        _document->_fonts.release( _data._pelem._fontIndex );
+        {
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            for ( int i=0; i<me->childCount; i++ )
+                _document->getTinyNode( me->children[i] )->destroy();
+            _document->_styles.release( _data._pelem._styleIndex );
+            _document->_fonts.release( _data._pelem._fontIndex );
+            _document->_elemStorage.freeNode( _data._pelem._addr );
+        }
         break;
     }
     _document->recycleTinyNode( _dataIndex );
@@ -6447,6 +6463,17 @@ bool ldomNode::isRoot() const
     return false;
 }
 
+/// call to invalidate cache if persistent node content is modified
+void ldomNode::modified()
+{
+    if ( isPersistent() ) {
+        if ( isElement() )
+            _document->_elemStorage.modified( _data._pelem._addr );
+        else
+            _document->_textStorage.modified( _data._ptext._addr );
+    }
+}
+
 /// changes parent of item
 void ldomNode::setParentNode( ldomNode * parent )
 {
@@ -6461,6 +6488,7 @@ void ldomNode::setParentNode( ldomNode * parent )
             lUInt32 parentIndex = parent->_dataIndex;
             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
             me->parentIndex = parentIndex;
+            modified();
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
@@ -6678,6 +6706,7 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
         lxmlAttribute * attr = me->findAttr( nsid, id );
         if ( attr ) {
             attr->index = valueIndex;
+            modified();
             return;
         }
         // else: convert to modifable and continue as non-persistent
@@ -6898,7 +6927,14 @@ void ldomNode::setText8( lString8 utf8 )
         readOnlyError();
         break;
     case NT_PTEXT:
-        readOnlyError();
+        {
+            // convert persistent text to mutable
+            _document->_textStorage.freeNode( _data._ptext._addr );
+            _data._text._str = (lChar8*)malloc(utf8.length()+1);
+            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            // change type from PTEXT to TEXT
+            _dataIndex = (_dataIndex & ~0xF) | NT_TEXT;
+        }
         break;
     case NT_TEXT:
         {
@@ -6959,7 +6995,8 @@ void ldomNode::clearRenderData()
         NPELEM->_renderData.clear();
     } else {
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        me->renderData.clear();;
+        me->renderData.clear();
+        modified();
     }
 }
 
@@ -7080,7 +7117,8 @@ lvdom_element_render_method ldomNode::getRendMethod()
         if ( !isPersistent() ) {
             return NPELEM->_rendMethod;
         } else {
-            // TODO
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            return (lvdom_element_render_method)me->rendMethod;
         }
     }
     return erm_invisible;
@@ -7094,7 +7132,9 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
         if ( !isPersistent() ) {
             NPELEM->_rendMethod = method;
         } else {
-            // TODO
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            me->rendMethod = method;
+            modified();
         }
     }
 }
@@ -7165,7 +7205,9 @@ ldomNode * ldomNode::getFirstChild() const
             if ( me->_children.length() )
                 return _document->getTinyNode(me->_children[0]);
         } else {
-            // TODO: for persistent
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            if ( me->childCount )
+                return _document->getTinyNode(me->children[0]);
         }
     }
     return NULL;
@@ -7181,7 +7223,9 @@ ldomNode * ldomNode::getLastChild() const
             if ( me->_children.length() )
                 return _document->getTinyNode(me->_children[me->_children.length()-1]);
         } else {
-            // TODO: for persistent
+            ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+            if ( me->childCount )
+                return _document->getTinyNode(me->children[me->childCount-1]);
         }
     }
     return NULL;
@@ -7204,7 +7248,7 @@ void ldomNode::addChild( lInt32 childNodeIndex )
     if ( !isElement() )
         return;
     if ( isPersistent() )
-        readOnlyError();
+        modify(); // convert to mutable element
     tinyElement * me = NPELEM;
     me->_children.add( childNodeIndex );
 }
@@ -7216,8 +7260,8 @@ void ldomNode::moveItemsTo( ldomNode * destination, int startChildIndex, int end
     if ( !isElement() )
         return;
     if ( isPersistent() )
-        readOnlyError();
-    // TODO
+        modify();
+
     CRLog::warn( "moveItemsTo() invoked from %d to %d", getDataIndex(), destination->getDataIndex() );
     //if ( getDataIndex()==INDEX2 || getDataIndex()==INDEX1) {
     //    CRLog::trace("nodes from element %d are being moved", getDataIndex());
@@ -7291,14 +7335,14 @@ ldomNode * ldomNode::insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            tinyElement * me = NPELEM;
-            if (index>(lUInt32)me->_children.length())
-                index = me->_children.length();
-            ldomNode * node = _document->allocTinyElement( this, nsid, id );
-            me->_children.insert( index, node->getDataIndex() );
-            return node;
-        }
+        if ( isPersistent() )
+            modify();
+        tinyElement * me = NPELEM;
+        if (index>(lUInt32)me->_children.length())
+            index = me->_children.length();
+        ldomNode * node = _document->allocTinyElement( this, nsid, id );
+        me->_children.insert( index, node->getDataIndex() );
+        return node;
     }
     readOnlyError();
     return NULL;
@@ -7309,11 +7353,11 @@ ldomNode * ldomNode::insertChildElement( lUInt16 id )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            ldomNode * node = _document->allocTinyElement( this, LXML_NS_NONE, id );
-            NPELEM->_children.insert( NPELEM->_children.length(), node->getDataIndex() );
-            return node;
-        }
+        if ( isPersistent() )
+            modify();
+        ldomNode * node = _document->allocTinyElement( this, LXML_NS_NONE, id );
+        NPELEM->_children.insert( NPELEM->_children.length(), node->getDataIndex() );
+        return node;
     }
     readOnlyError();
     return NULL;
@@ -7324,25 +7368,25 @@ ldomNode * ldomNode::insertChildText( lUInt32 index, const lString16 & value )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            tinyElement * me = NPELEM;
-            if (index>(lUInt32)me->_children.length())
-                index = me->_children.length();
+        if ( isPersistent() )
+            modify();
+        tinyElement * me = NPELEM;
+        if (index>(lUInt32)me->_children.length())
+            index = me->_children.length();
 #ifndef USE_PERSISTENT_TEXT
-            ldomNode * node = _document->allocTinyNode( NT_TEXT );
-            lString8 s8 = UnicodeToUtf8(value);
-            node->_data._text._parentIndex = _dataIndex;
-            node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
-            memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
+        ldomNode * node = _document->allocTinyNode( NT_TEXT );
+        lString8 s8 = UnicodeToUtf8(value);
+        node->_data._text._parentIndex = _dataIndex;
+        node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
+        memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
 #else
-            ldomNode * node = _document->allocTinyNode( NT_PTEXT );
-            node->_data._ptext._parentIndex = _dataIndex;
-            lString8 s8 = UnicodeToUtf8(value);
-            node->_data._ptext._addr = _document->_textStorage.allocText( node->_dataIndex, node->_data._ptext._parentIndex, s8 );
+        ldomNode * node = _document->allocTinyNode( NT_PTEXT );
+        node->_data._ptext._parentIndex = _dataIndex;
+        lString8 s8 = UnicodeToUtf8(value);
+        node->_data._ptext._addr = _document->_textStorage.allocText( node->_dataIndex, node->_data._ptext._parentIndex, s8 );
 #endif
-            me->_children.insert( index, node->getDataIndex() );
-            return node;
-        }
+        me->_children.insert( index, node->getDataIndex() );
+        return node;
     }
     readOnlyError();
     return NULL;
@@ -7353,23 +7397,23 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            tinyElement * me = NPELEM;
+        if ( isPersistent() )
+            modify();
+        tinyElement * me = NPELEM;
 #ifndef USE_PERSISTENT_TEXT
-            ldomNode * node = _document->allocTinyNode( NT_TEXT );
-            lString8 s8 = UnicodeToUtf8(value);
-            node->_data._text._parentIndex = _dataIndex;
-            node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
-            memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
+        ldomNode * node = _document->allocTinyNode( NT_TEXT );
+        lString8 s8 = UnicodeToUtf8(value);
+        node->_data._text._parentIndex = _dataIndex;
+        node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
+        memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
 #else
-            ldomNode * node = _document->allocTinyNode( NT_PTEXT );
-            node->_data._ptext._parentIndex = _dataIndex;
-            lString8 s8 = UnicodeToUtf8(value);
-            node->_data._ptext._addr = _document->_textStorage.allocText( node->_dataIndex, node->_data._ptext._parentIndex, s8 );
+        ldomNode * node = _document->allocTinyNode( NT_PTEXT );
+        node->_data._ptext._parentIndex = _dataIndex;
+        lString8 s8 = UnicodeToUtf8(value);
+        node->_data._ptext._addr = _document->_textStorage.allocText( node->_dataIndex, node->_data._ptext._parentIndex, s8 );
 #endif
-            me->_children.insert( me->_children.length(), node->getDataIndex() );
-            return node;
-        }
+        me->_children.insert( me->_children.length(), node->getDataIndex() );
+        return node;
     }
     readOnlyError();
     return NULL;
@@ -7380,11 +7424,11 @@ ldomNode * ldomNode::removeChild( lUInt32 index )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            lUInt32 removedIndex = NPELEM->_children.remove(index);
-            ldomNode * node = getTinyNode( removedIndex );
-            return node;
-        }
+        if ( isPersistent() )
+            modify();
+        lUInt32 removedIndex = NPELEM->_children.remove(index);
+        ldomNode * node = getTinyNode( removedIndex );
+        return node;
     }
     readOnlyError();
     return NULL;
@@ -7576,6 +7620,16 @@ ldomNode * ldomNode::modify()
     if ( isPersistent() ) {
         if ( isElement() ) {
             // PELEM->ELEM
+            ElementDataStorageItem * data = _document->_elemStorage.getElem(_data._pelem._addr);
+            tinyElement * elem = new tinyElement(_document, getParentNode(), data->nsid, data->id );
+            for ( int i=0; i<data->childCount; i++ )
+                elem->_children.add( data->children[i] );
+            for ( int i=0; i<data->attrCount; i++ )
+                elem->_attrs.add( data->attr(i) );
+            _dataIndex = (_dataIndex & ~0xF) | NT_ELEMENT;
+            elem->_rendMethod = (lvdom_element_render_method)data->rendMethod;
+            elem->_renderData = data->renderData;
+            _document->_elemStorage.freeNode( _data._pelem._addr );
         } else {
             // PTEXT->TEXT
             // convert persistent text to mutable
@@ -7594,10 +7648,13 @@ ldomNode * ldomNode::modify()
 /// dumps memory usage statistics to debug log
 void tinyNodeCollection::dumpStatistics()
 {
-    CRLog::info("*** Document memory usage: text=(%d compressed, %d uncompressed), "
+    CRLog::info("*** Document memory usage: "
+                "ptext=(%d compressed, %d uncompressed), "
+                "ptelems=(%d compressed, %d uncompressed), "
                 "styles:%d, fonts:%d, renderedNodes:%d, "
                 "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
                 _textStorage.getCompressedSize(), _textStorage.getUncompressedSize(),
+                _elemStorage.getCompressedSize(), _elemStorage.getUncompressedSize(),
                 _styles.length(), _fonts.length(),
 #if BUILD_LITE!=1
                 ((ldomDocument*)this)->_renderedBlockCache.length(),
