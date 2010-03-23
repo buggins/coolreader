@@ -310,8 +310,14 @@ class RenderRectAccessor : public lvdomElementFormatRec
 {
     ldomNode * _node;
     bool _modified;
+    bool _dirty;
 public:
     RenderRectAccessor & operator -> () { return *this; }
+    int getX();
+    int getY();
+    int getWidth();
+    int getHeight();
+    void getRect( lvRect & rc );
     void setX( int x );
     void setY( int y );
     void setWidth( int w );
@@ -545,7 +551,7 @@ public:
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
     /// formats final block
-    int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
+    int renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor * fmt, int width );
     /// formats final block again after change, returns true if size of block is changed
     bool refreshFinalBlock();
 #endif
