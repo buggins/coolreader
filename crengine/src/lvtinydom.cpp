@@ -7880,6 +7880,13 @@ void runTinyDomUnitTests()
     el211->modify();
     MYASSERT(el211->getChildCount()==2, "child count, in mutable again");
     doc->persist();
+    static lUInt16 path1[] = {el_title, el_p, 0};
+    static lUInt16 path2[] = {el_title, el_p, el_strong, 0};
+    ldomNode * f1 = root->findChildElement(path1);
+    MYASSERT(f1->getNodeId()==el_p, "find 1");
+    ldomNode * f2 = root->findChildElement(path1);
+    MYASSERT(f2->getNodeId()==el_strong, "find 2");
+
 
     CRLog::info("* compacting");
     doc->compact();
