@@ -1543,7 +1543,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         int h = 0;
         LFormattedTextRef txform;
         {
-            CRLog::trace("renderBlockElement - creating render accessor");
+            //CRLog::trace("renderBlockElement - creating render accessor");
             RenderRectAccessor fmt( enode );
             fmt.setX( x );
             fmt.setY( y );
