@@ -992,8 +992,8 @@ int LVDocView::GetFullHeight()
 {
     LVLock lock(getMutex());
     checkRender();
-    lvdomElementFormatRec * rd = m_doc ? m_doc->getRootNode()->getRenderData() : NULL;
-    return ( rd ? rd->getHeight()+rd->getY() : m_dy );
+    RenderRectAccessor rd(m_doc->getRootNode());
+    return ( rd.getHeight()+rd.getY() );
 }
 
 #define HEADER_MARGIN 4

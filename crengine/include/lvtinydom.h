@@ -306,11 +306,27 @@ class ldomDocument;
 class tinyElement;
 class lxmlAttribute;
 
+class RenderRectAccessor : public lvdomElementFormatRec
+{
+    ldomNode * _node;
+    bool _modified;
+public:
+    RenderRectAccessor & operator -> () { return *this; }
+    void setX( int x );
+    void setY( int y );
+    void setWidth( int w );
+    void setHeight( int h );
+    void push();
+    RenderRectAccessor( ldomNode * node );
+    ~RenderRectAccessor();
+};
+
 // no vtable, very small size (16 bytes)
 // optimized for 32 bit systems
 class ldomNode
 {
     friend class tinyNodeCollection;
+    friend class RenderRectAccessor;
 private:
     enum {
         NT_TEXT=0,       // mutable text node
@@ -368,6 +384,11 @@ private:
 
     /// call to invalidate cache if persistent node content is modified
     void modified();
+
+    /// returns copy of render data structure
+    void getRenderData( lvdomElementFormatRec & dst);
+    /// sets new value for render data structure
+    void setRenderData( lvdomElementFormatRec & newData);
 public:
     /// remove node, clear resources
     void destroy();
@@ -461,8 +482,6 @@ public:
 
     /// returns node absolute rectangle
     void getAbsRect( lvRect & rect );
-    /// returns render data structure
-    lvdomElementFormatRec * getRenderData();
     /// sets node rendering structure pointer
     void clearRenderData();
     /// calls specified function recursively for all elements of DOM tree

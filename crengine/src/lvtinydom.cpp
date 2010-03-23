@@ -33,6 +33,58 @@
 //#define INDEX2 106
 
 #if BUILD_LITE!=1
+
+
+RenderRectAccessor::RenderRectAccessor( ldomNode * node )
+: _node(node), _modified(false)
+{
+    _node->getRenderData(*this);
+}
+
+RenderRectAccessor::~RenderRectAccessor()
+{
+    if ( _modified )
+        _node->setRenderData(*this);
+}
+
+void RenderRectAccessor::push()
+{
+    if ( _modified ) {
+        _node->setRenderData(*this);
+        _modified = false;
+    }
+}
+
+void RenderRectAccessor::setX( int x )
+{
+    if ( _x != x ) {
+        _x = x;
+        _modified = true;
+    }
+}
+void RenderRectAccessor::setY( int y )
+{
+    if ( _y != y ) {
+        _y = y;
+        _modified = true;
+    }
+}
+void RenderRectAccessor::setWidth( int w )
+{
+    if ( _width != w ) {
+        _width = w;
+        _modified = true;
+    }
+}
+void RenderRectAccessor::setHeight( int h )
+{
+    if ( _height != h ) {
+        _height = h;
+        _modified = true;
+    }
+}
+
+
 class ldomPersistentText;
 class ldomPersistentElement;
 
@@ -3092,9 +3144,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     //CRLog::debug("ldomDocument::createXPointer point = (%d, %d), finalNode %08X rect = (%d,%d,%d,%d)", pt.x, pt.y, (lUInt32)finalNode, rc.left, rc.top, rc.right, rc.bottom );
     pt.x -= rc.left;
     pt.y -= rc.top;
-    lvdomElementFormatRec * r = finalNode->getRenderData();
-    if ( !r )
-        return ptr;
+    //if ( !r )
+    //    return ptr;
     if ( finalNode->getRendMethod() != erm_final ) {
         // not final, use as is
         if ( pt.y < (rc.bottom + rc.top) / 2 )
@@ -3104,7 +3155,10 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     }
     // final, format and search
     LFormattedTextRef txtform;
-    finalNode->renderFinalBlock( txtform, r->getWidth() );
+    {
+        RenderRectAccessor r( finalNode );
+        finalNode->renderFinalBlock( txtform, r.getWidth() );
+    }
     int lcount = txtform->GetLineCount();
     for ( int l = 0; l<lcount; l++ ) {
         const formatted_line_t * frmline = txtform->GetLineInfo(l);
@@ -3182,11 +3236,11 @@ bool ldomXPointer::getRect(lvRect & rect) const
     if ( finalNode!=NULL ) {
         lvRect rc;
         finalNode->getAbsRect( rc );
-        lvdomElementFormatRec * r = finalNode->getRenderData();
-        if ( !r )
-            return false;
+        RenderRectAccessor r( finalNode );
+        //if ( !r )
+        //    return false;
         LFormattedTextRef txtform;
-        finalNode->renderFinalBlock( txtform, r->getWidth() );
+        finalNode->renderFinalBlock( txtform, r.getWidth() );
 
         ldomNode * node = getNode();
         int offset = getOffset();
@@ -3438,8 +3492,8 @@ lString16 ldomXPointer::toString()
 
 int ldomDocument::getFullHeight()
 {
-    lvdomElementFormatRec * rd = this ? this->getRootNode()->getRenderData() : NULL;
-    return ( rd ? rd->getHeight() + rd->getY() : 0 );
+    RenderRectAccessor rd( this->getRootNode() );
+    return rd.getHeight() + rd.getY();
 }
 
 
@@ -6952,37 +7006,51 @@ void ldomNode::getAbsRect( lvRect & rect )
 {
     ASSERT_NODE_NOT_NULL;
     ldomNode * node = this;
-    lvdomElementFormatRec * fmt = node->getRenderData();
+    RenderRectAccessor fmt( node );
     rect.left = 0;
     rect.top = 0;
-    rect.right = fmt ? fmt->getWidth() : 0;
-    rect.bottom = fmt ? fmt->getHeight() : 0;
-    if ( !fmt )
-        return;
+    rect.right = fmt.getWidth();
+    rect.bottom = fmt.getHeight();
     for (; node; node = node->getParentNode())
     {
-        lvdomElementFormatRec * fmt = node->getRenderData();
-        if (fmt)
-        {
-            rect.left += fmt->getX();
-            rect.top += fmt->getY();
-        }
+        RenderRectAccessor fmt( node );
+        rect.left += fmt.getX();
+        rect.top += fmt.getY();
     }
     rect.bottom += rect.top;
     rect.right += rect.left;
 }
 
 /// returns render data structure
-lvdomElementFormatRec * ldomNode::getRenderData()
+void ldomNode::getRenderData( lvdomElementFormatRec & dst)
+{
+    ASSERT_NODE_NOT_NULL;
+    if ( !isElement() ) {
+        dst.clear();
+        return;
+    }
+    if ( !isPersistent() ) {
+        dst = NPELEM->_renderData;
+    } else {
+        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+        dst = me->renderData;
+    }
+}
+
+/// sets new value for render data structure
+void ldomNode::setRenderData( lvdomElementFormatRec & newData)
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
-        return NULL;
+        return;
     if ( !isPersistent() ) {
-        return &NPELEM->_renderData;
+        NPELEM->_renderData = newData;
     } else {
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        return &me->renderData;
+        if ( newData != me->renderData ) {
+            me->renderData = newData;
+            modified();
+        }
     }
 }
 
@@ -7075,15 +7143,13 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt )
     if ( !isElement() )
         return NULL;
     ldomNode * enode = this;
-    lvdomElementFormatRec * fmt = getRenderData();
-    if ( !fmt )
-        return NULL;
+    RenderRectAccessor fmt( this );
     if ( enode->getRendMethod() == erm_invisible ) {
         return NULL;
     }
-    if ( pt.y < fmt->getY() )
+    if ( pt.y < fmt.getY() )
         return NULL;
-    if ( pt.y >= fmt->getY() + fmt->getHeight() )
+    if ( pt.y >= fmt.getY() + fmt.getHeight() )
         return NULL;
     if ( enode->getRendMethod() == erm_final ) {
         return this;
@@ -7091,8 +7157,8 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt )
     int count = getChildCount();
     for ( int i=0; i<count; i++ ) {
         ldomNode * p = getChildNode( i );
-        ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt->getX(),
-                pt.y - fmt->getY() ) );
+        ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt.getX(),
+                pt.y - fmt.getY() ) );
         if ( e )
             return e;
     }
@@ -7522,19 +7588,20 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, int width )
     LFormattedTextRef f;
     if ( cache.get( this, f ) ) {
         frmtext = f;
-        lvdomElementFormatRec * fmt = getRenderData();
-        if ( !fmt || getRendMethod() != erm_final )
+        if ( getRendMethod() != erm_final )
             return 0;
+        RenderRectAccessor fmt( this );
         //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
-        return fmt->getHeight();
+        return fmt.getHeight();
     }
     f = new LFormattedText();
-    lvdomElementFormatRec * fmt = getRenderData();
-    if ( !fmt || (getRendMethod() != erm_final && getRendMethod() != erm_table_caption) )
+    if ( (getRendMethod() != erm_final && getRendMethod() != erm_table_caption) )
         return 0;
+    RenderRectAccessor fmt( this );
     /// render whole node content as single formatted object
     int flags = styleToTextFmtFlags( getStyle(), 0 );
-    ::renderFinalBlock( this, f.get(), fmt, flags, 0, 16 );
+    ::renderFinalBlock( this, f.get(), &fmt, flags, 0, 16 );
+    setRenderData(fmt);
     int page_h = getDocument()->getPageHeight();
     cache.set( this, f );
     int h = f->Format( width, page_h );
@@ -7552,15 +7619,13 @@ bool ldomNode::refreshFinalBlock()
     // TODO: implement reformatting of one node
     CVRendBlockCache & cache = getDocument()->getRendBlockCache();
     cache.remove( this );
-    lvdomElementFormatRec * fmt = getRenderData();
-    if ( !fmt )
-        return false;
+    RenderRectAccessor fmt( this );
     lvRect oldRect, newRect;
-    fmt->getRect( oldRect );
+    fmt.getRect( oldRect );
     LFormattedTextRef txtform;
-    int width = fmt->getWidth();
+    int width = fmt.getWidth();
     int h = renderFinalBlock( txtform, width );
-    fmt->getRect( newRect );
+    fmt.getRect( newRect );
     if ( oldRect == newRect )
         return false;
     // TODO: relocate other blocks

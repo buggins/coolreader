@@ -29,7 +29,7 @@ int initRendMethod( ldomNode * node );
 /// converts style to text formatting API flags
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags );
 /// renders block as single text formatter object
-void renderFinalBlock( ldomNode * node, LFormattedText * txform, lvdomElementFormatRec * fmt, int & flags, int ident, int line_h );
+void renderFinalBlock( ldomNode * node, LFormattedText * txform, RenderRectAccessor * fmt, int & flags, int ident, int line_h );
 /// renders block which contains subblocks
 int renderBlockElement( LVRendPageContext & context, ldomNode * node, int x, int y, int width );
 /// renders table element
