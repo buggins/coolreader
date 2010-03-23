@@ -117,27 +117,12 @@ enum lvdom_element_render_method
 
 /// node format record
 class lvdomElementFormatRec {
-private:
+protected:
     int  _x;
     int  _width;
     int  _y;
     int  _height;
 public:
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(lvdomElementFormatRec));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsHeap->free((ldomMemBlock *)p);
-    }
-#endif
     lvdomElementFormatRec()
     : _x(0), _width(0), _y(0), _height(0)//, _formatter(NULL)
     {
@@ -148,6 +133,14 @@ public:
     void clear()
     {
         _x = _width = _y = _height = 0;
+    }
+    bool operator == ( lvdomElementFormatRec & v )
+    {
+        return (_height==v._height && _y==v._y && _width==v._width && _x==v._x );
+    }
+    bool operator != ( lvdomElementFormatRec & v )
+    {
+        return (_height!=v._height || _y!=v._y || _width!=v._width || _x!=v._x );
     }
     // Get/Set
     int getX() const { return _x; }
