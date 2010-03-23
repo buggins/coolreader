@@ -34,10 +34,33 @@
 
 #if BUILD_LITE!=1
 
+//#define DEBUG_RENDER_RECT_ACCESS
+#ifdef DEBUG_RENDER_RECT_ACCESS
+  static signed char render_rect_flags[200000]={0};
+  static void rr_lock( ldomNode * node )
+  {
+    int index = node->getDataIndex()>>4;
+    CRLog::debug("RenderRectAccessor(%d) lock", index );
+    if ( render_rect_flags[index] )
+        crFatalError(123, "render rect accessor: cannot get lock");
+    render_rect_flags[index] = 1;
+  }
+  static void rr_unlock( ldomNode * node )
+  {
+    int index = node->getDataIndex()>>4;
+    CRLog::debug("RenderRectAccessor(%d) lock", index );
+    if ( !render_rect_flags[index] )
+        crFatalError(123, "render rect accessor: unlock w/o lock");
+    render_rect_flags[index] = 0;
+  }
+#endif
 
 RenderRectAccessor::RenderRectAccessor( ldomNode * node )
-: _node(node), _modified(false)
+: _node(node), _modified(false), _dirty(false)
 {
+#ifdef DEBUG_RENDER_RECT_ACCESS
+    rr_lock( _node );
+#endif
     _node->getRenderData(*this);
 }
 
@@ -45,6 +68,10 @@ RenderRectAccessor::~RenderRectAccessor()
 {
     if ( _modified )
         _node->setRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+    if ( !_dirty )
+        rr_unlock( _node );
+#endif
 }
 
 void RenderRectAccessor::push()
@@ -52,11 +79,22 @@ void RenderRectAccessor::push()
     if ( _modified ) {
         _node->setRenderData(*this);
         _modified = false;
+        _dirty = true;
+        #ifdef DEBUG_RENDER_RECT_ACCESS
+            rr_unlock( _node );
+        #endif
     }
 }
 
 void RenderRectAccessor::setX( int x )
 {
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
     if ( _x != x ) {
         _x = x;
         _modified = true;
@@ -64,6 +102,13 @@ void RenderRectAccessor::setX( int x )
 }
 void RenderRectAccessor::setY( int y )
 {
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
     if ( _y != y ) {
         _y = y;
         _modified = true;
@@ -71,6 +116,13 @@ void RenderRectAccessor::setY( int y )
 }
 void RenderRectAccessor::setWidth( int w )
 {
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
     if ( _width != w ) {
         _width = w;
         _modified = true;
@@ -78,10 +130,76 @@ void RenderRectAccessor::setWidth( int w )
 }
 void RenderRectAccessor::setHeight( int h )
 {
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
     if ( _height != h ) {
         _height = h;
         _modified = true;
     }
+}
+
+int RenderRectAccessor::getX()
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    return _x;
+}
+int RenderRectAccessor::getY()
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    return _y;
+}
+int RenderRectAccessor::getWidth()
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    return _width;
+}
+int RenderRectAccessor::getHeight()
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    return _height;
+}
+void RenderRectAccessor::getRect( lvRect & rc )
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    rc.left = _x;
+    rc.top = _y;
+    rc.right = _x + _width;
+    rc.bottom = _y + _height;
 }
 
 
@@ -3157,7 +3275,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt )
     LFormattedTextRef txtform;
     {
         RenderRectAccessor r( finalNode );
-        finalNode->renderFinalBlock( txtform, r.getWidth() );
+        finalNode->renderFinalBlock( txtform, &r, r.getWidth() );
     }
     int lcount = txtform->GetLineCount();
     for ( int l = 0; l<lcount; l++ ) {
@@ -3240,7 +3358,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
         //if ( !r )
         //    return false;
         LFormattedTextRef txtform;
-        finalNode->renderFinalBlock( txtform, r.getWidth() );
+        finalNode->renderFinalBlock( txtform, &r, r.getWidth() );
 
         ldomNode * node = getNode();
         int offset = getOffset();
@@ -7007,10 +7125,11 @@ void ldomNode::getAbsRect( lvRect & rect )
     ASSERT_NODE_NOT_NULL;
     ldomNode * node = this;
     RenderRectAccessor fmt( node );
-    rect.left = 0;
-    rect.top = 0;
+    rect.left = fmt.getX();
+    rect.top = fmt.getY();
     rect.right = fmt.getWidth();
     rect.bottom = fmt.getHeight();
+    node = node->getParentNode();
     for (; node; node = node->getParentNode())
     {
         RenderRectAccessor fmt( node );
@@ -7579,7 +7698,7 @@ LVImageSourceRef ldomNode::getObjectImageSource()
 }
 
 /// formats final block
-int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, int width )
+int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor * fmt, int width )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -7590,18 +7709,17 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, int width )
         frmtext = f;
         if ( getRendMethod() != erm_final )
             return 0;
-        RenderRectAccessor fmt( this );
+        //RenderRectAccessor fmt( this );
         //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
-        return fmt.getHeight();
+        return fmt->getHeight();
     }
     f = new LFormattedText();
     if ( (getRendMethod() != erm_final && getRendMethod() != erm_table_caption) )
         return 0;
-    RenderRectAccessor fmt( this );
+    //RenderRectAccessor fmt( this );
     /// render whole node content as single formatted object
     int flags = styleToTextFmtFlags( getStyle(), 0 );
-    ::renderFinalBlock( this, f.get(), &fmt, flags, 0, 16 );
-    setRenderData(fmt);
+    ::renderFinalBlock( this, f.get(), fmt, flags, 0, 16 );
     int page_h = getDocument()->getPageHeight();
     cache.set( this, f );
     int h = f->Format( width, page_h );
@@ -7624,7 +7742,7 @@ bool ldomNode::refreshFinalBlock()
     fmt.getRect( oldRect );
     LFormattedTextRef txtform;
     int width = fmt.getWidth();
-    int h = renderFinalBlock( txtform, width );
+    int h = renderFinalBlock( txtform, &fmt, width );
     fmt.getRect( newRect );
     if ( oldRect == newRect )
         return false;
