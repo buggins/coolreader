@@ -76,7 +76,7 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
         lxmlAttribute * a = attr(0);
         for ( int i=0; i<attrCount; i++ ) {
             lxmlAttribute * attr = &a[i];
-            if ( !attr->compare( nsid, id ) )
+            if ( !attr->compare( ns, id ) )
                 continue;
             return  attr->index;
         }
@@ -7681,6 +7681,10 @@ void runTinyDomUnitTests()
     int el_title = doc->getElementNameIndex(L"title");
     int el_strong = doc->getElementNameIndex(L"strong");
     int el_emphasis = doc->getElementNameIndex(L"emphasis");
+    int attr_id = doc->getAttrNameIndex(L"id");
+    int attr_name = doc->getAttrNameIndex(L"name");
+    static lUInt16 path1[] = {el_title, el_p, 0};
+    static lUInt16 path2[] = {el_title, el_p, el_strong, 0};
 
     CRLog::info("* simple DOM operations, tinyElement");
     MYASSERT(root->isRoot(),"root isRoot");
@@ -7691,6 +7695,8 @@ void runTinyDomUnitTests()
     MYASSERT(root->getChildCount()==1,"root child count 1");
     MYASSERT(el1->getParentNode()==root,"element parent node");
     MYASSERT(el1->getParentIndex()==root->getDataIndex(),"element parent node index");
+    MYASSERT(el1->getNodeId()==el_p, "node id");
+    MYASSERT(el1->getNodeNsId()==LXML_NS_NONE, "node nsid");
     MYASSERT(!el1->isRoot(),"elem not isRoot");
     ldomNode * el2 = root->insertChildElement(el_title);
     MYASSERT(root->getChildCount()==2,"root child count 2");
@@ -7728,6 +7734,16 @@ void runTinyDomUnitTests()
     MYASSERT(root->getChildNode(1)==el2,"child node 1, after removal");
     ldomNode * el02 = root->insertChildElement(5, LXML_NS_NONE, el_emphasis);
     MYASSERT(el02==el0,"removed node reusage");
+
+    {
+        ldomNode * f1 = root->findChildElement(path1);
+        MYASSERT(f1==el21, "find 1 on mutable - is el21");
+        MYASSERT(f1->getNodeId()==el_p, "find 1 on mutable");
+        //ldomNode * f2 = root->findChildElement(path2);
+        //MYASSERT(f2!=NULL, "find 2 on mutable - not null");
+        //MYASSERT(f2==el21, "find 2 on mutable - is el21");
+        //MYASSERT(f2->getNodeId()==el_strong, "find 2 on mutable");
+    }
 
     CRLog::info("* simple DOM operations, mutable text");
     lString16 sampleText("Some sample text.");
@@ -7860,6 +7876,41 @@ void runTinyDomUnitTests()
         MYASSERT(el1->getFont().get()!=el21->getFont().get(), "different fonts not reused");
     }
 
+    CRLog::info("* persistance test");
+
+    el2->setAttributeValue(LXML_NS_NONE, attr_id, L"id1");
+    el2->setAttributeValue(LXML_NS_NONE, attr_name, L"name1");
+    MYASSERT(el2->getNodeId()==el_title, "mutable node id");
+    MYASSERT(el2->getNodeNsId()==LXML_NS_NONE, "mutable node nsid");
+    MYASSERT(el2->getAttributeValue(attr_id)==L"id1", "attr id1 mutable");
+    MYASSERT(el2->getAttributeValue(attr_name)==L"name1", "attr name1 mutable");
+    MYASSERT(el2->getAttrCount()==2, "attr count mutable");
+    el2->persist();
+    MYASSERT(el2->getAttributeValue(attr_id)==L"id1", "attr id1 pers");
+    MYASSERT(el2->getAttributeValue(attr_name)==L"name1", "attr name1 pers");
+    MYASSERT(el2->getNodeId()==el_title, "persistent node id");
+    MYASSERT(el2->getNodeNsId()==LXML_NS_NONE, "persistent node nsid");
+    MYASSERT(el2->getAttrCount()==2, "attr count persist");
+
+    {
+        ldomNode * f1 = root->findChildElement(path1);
+        MYASSERT(f1==el21, "find 1 on mutable - is el21");
+        MYASSERT(f1->getNodeId()==el_p, "find 1 on mutable");
+    }
+
+    el2->modify();
+    MYASSERT(el2->getNodeId()==el_title, "mutable 2 node id");
+    MYASSERT(el2->getNodeNsId()==LXML_NS_NONE, "mutable 2 node nsid");
+    MYASSERT(el2->getAttributeValue(attr_id)==L"id1", "attr id1 mutable 2");
+    MYASSERT(el2->getAttributeValue(attr_name)==L"name1", "attr name1 mutable 2");
+    MYASSERT(el2->getAttrCount()==2, "attr count mutable 2");
+
+    {
+        ldomNode * f1 = root->findChildElement(path1);
+        MYASSERT(f1==el21, "find 1 on mutable - is el21");
+        MYASSERT(f1->getNodeId()==el_p, "find 1 on mutable");
+    }
+
     CRLog::info("* convert to persistent");
     doc->persist();
     doc->dumpStatistics();
@@ -7880,12 +7931,12 @@ void runTinyDomUnitTests()
     el211->modify();
     MYASSERT(el211->getChildCount()==2, "child count, in mutable again");
     doc->persist();
-    static lUInt16 path1[] = {el_title, el_p, 0};
-    static lUInt16 path2[] = {el_title, el_p, el_strong, 0};
+
     ldomNode * f1 = root->findChildElement(path1);
     MYASSERT(f1->getNodeId()==el_p, "find 1");
-    ldomNode * f2 = root->findChildElement(path1);
+    ldomNode * f2 = root->findChildElement(path2);
     MYASSERT(f2->getNodeId()==el_strong, "find 2");
+    MYASSERT(f2 == el211, "find 2, ref");
 
 
     CRLog::info("* compacting");
