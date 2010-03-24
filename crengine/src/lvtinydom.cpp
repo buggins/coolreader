@@ -257,7 +257,7 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
         lxmlAttribute * a = attr(0);
         for ( int i=0; i<attrCount; i++ ) {
             lxmlAttribute * attr = &a[i];
-            if ( attr->compare( nsid, id ) )
+            if ( attr->compare( ns, id ) )
                 return attr;
         }
         return NULL;
