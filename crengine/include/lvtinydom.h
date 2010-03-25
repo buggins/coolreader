@@ -247,7 +247,7 @@ public:
 // forward declaration
 class ldomNode;
 
-#define TNC_PART_COUNT 1024
+#define TNC_PART_COUNT 2048
 #define TNC_PART_SHIFT 8
 #define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
 #define TNC_PART_LEN (1<<TNC_PART_SHIFT)
@@ -258,9 +258,12 @@ class tinyNodeCollection
     friend class ldomNode;
     friend class tinyElement;
 private:
-    int _count;
-    lUInt32 _nextFree;
-    ldomNode * _list[TNC_PART_COUNT];
+    int _textCount;
+    lUInt32 _textNextFree;
+    ldomNode * _textList[TNC_PART_COUNT];
+    int _elemCount;
+    lUInt32 _elemNextFree;
+    ldomNode * _elemList[TNC_PART_COUNT];
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
     ldomDataStorageManager _textStorage;
@@ -373,10 +376,10 @@ private:
         } _empty;
     } _data;                      // [12] 4 bytes (8 bytes on x64)
 #define TNTYPE  (_dataIndex&0x0F)
-#define TNINDEX (_dataIndex&(~0x0F))
+#define TNINDEX (_dataIndex&(~0x0E))
 #define TNCHUNK (_addr>>&(~0x0F))
     void onCollectionDestroy();
-    inline ldomNode * getTinyNode( lUInt32 index ) const { return &(((tinyNodeCollection*)_document)->_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]); }
+    inline ldomNode * getTinyNode( lUInt32 index ) const { return ((tinyNodeCollection*)_document)->getTinyNode(index); }
 
     void operator delete( void * p )
     {
