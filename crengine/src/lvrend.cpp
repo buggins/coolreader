@@ -1549,7 +1549,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             fmt.setY( y );
             fmt.setWidth( width );
             fmt.setHeight( 0 );
-            //fmt.push();
+            fmt.push();
 
             switch( enode->getRendMethod() )
             {
@@ -1587,7 +1587,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     for (int i=0; i<cnt; i++)
                     {
                         ldomNode * child = enode->getChildNode( i );
-                        fmt.push();
+                        //fmt.push();
                         int h = renderBlockElement( context, child, padding_left, y,
                             width - padding_left - padding_right );
                         y += h;

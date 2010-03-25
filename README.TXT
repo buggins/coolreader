@@ -54,7 +54,7 @@ make
 # Building i386 version (for OpenInkpot), V3 simulation:
 mkdir xcb-v3
 cd xcb-v3
-cmake -D DEVICE_NAME=v3 -D CMAKE_BUILD_TYPE=Debug  -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB ..
+cmake -D DEVICE_NAME=v3 -D CMAKE_BUILD_TYPE=Debug -D USE_STATIC_ZLIB=1 -Wdev -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB ..
 make
 
 # Building i386 version (for OpenInkpot), n516/azbooka simulation:
