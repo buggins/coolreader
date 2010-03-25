@@ -495,12 +495,17 @@ void CRGUIWindowBase::drawStatusBar()
 // draws frame, title, status and client
 void CRGUIWindowBase::draw()
 {
+    CRLog::trace("enter CRGUIWindowBase::draw()");
     LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+    CRLog::trace("getting skin at CRGUIWindowBase::draw()");
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    CRLog::trace("drawing window skin background at CRGUIWindowBase::draw()");
     skin->draw( buf, _rect );
+    CRLog::trace("start drawing at CRGUIWindowBase::draw()");
     drawTitleBar();
     drawStatusBar();
     drawClient();
+    CRLog::trace("exit CRGUIWindowBase::draw()");
 }
 
 /// draw title bar using current skin, with optional scroll/tab/page indicator
@@ -709,6 +714,7 @@ int CRMenu::getTopItem()
 
 void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
+    CRLog::trace("enter CRMenu::Draw()");
     CRMenuSkinRef menuSkin = _skin; //getSkin();
     //CRRectSkinRef valueSkin = menuSkin->getValueSkin();
 
@@ -757,6 +763,7 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
             valueSkin->drawText( buf, valueRect, s );
         }
     }
+    CRLog::trace("exit CRMenu::Draw()");
 }
 
 lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )
@@ -989,6 +996,7 @@ int CRMenu::getSelectedItemIndex()
 
 void CRMenu::drawClient()
 {
+    CRLog::trace("enter CRMenu::drawClient()");
     LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef clientSkin = skin->getClientSkin();
@@ -1096,6 +1104,7 @@ void CRMenu::drawClient()
         }
         rc.top += itemSize.y + separatorHeight;
     }
+    CRLog::trace("exit CRMenu::drawClient()");
 }
 
 /// draw battery state to specified rectangle of screen

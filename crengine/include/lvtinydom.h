@@ -827,11 +827,6 @@ protected:
     DocFileHeader hdr;
 #endif
 
-#if BUILD_LITE!=1
-    LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
-	DataBuffer * _currentBuffer;
-	int _dataBufferSize;       // single data buffer size
-#endif
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map
     LDOMNameIdMap _nsNameTable;          // Namespace Name<->Id map
@@ -843,14 +838,6 @@ protected:
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
     CRPropRef _docProps;
-
-#if BUILD_LITE!=1
-#ifdef TINYNODE_MIGRATION
-    LVStreamRef _map; // memory mapped file
-    LVStreamBufferRef _mapbuf; // memory mapped file buffer
-    bool _mapped; // true if document is mapped to file
-#endif
-#endif
     lUInt32 _docFlags; // document flags
 
 #if BUILD_LITE!=1
