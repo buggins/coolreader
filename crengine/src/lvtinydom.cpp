@@ -353,8 +353,10 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
 #define STYLE_HASH_TABLE_SIZE 2048
 #define FONT_HASH_TABLE_SIZE 1024
 tinyNodeCollection::tinyNodeCollection()
-: _count(0)
-, _nextFree(0)
+: _textCount(0)
+, _textNextFree(0)
+, _elemCount(0)
+, _elemNextFree(0)
 , _styles(STYLE_HASH_TABLE_SIZE)
 , _fonts(FONT_HASH_TABLE_SIZE)
 , _tinyElementCount(0)
@@ -363,7 +365,8 @@ tinyNodeCollection::tinyNodeCollection()
 , _renderedBlockCache( 32 )
 #endif
 {
-    memset( _list, 0, sizeof(_list) );
+    memset( _textList, 0, sizeof(_textList) );
+    memset( _elemList, 0, sizeof(_elemList) );
 }
 
 /// get ldomNode instance pointer
@@ -371,58 +374,109 @@ ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
 {
     if ( !index )
         return NULL;
-    return &(_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
+    if ( index & 1 ) // element
+        return &(_elemList[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
+    else // text
+        return &(_textList[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
 }
 
 /// allocate new tiny node
 ldomNode * tinyNodeCollection::allocTinyNode( int type )
 {
     ldomNode * res;
-    if ( _nextFree ) {
-        // reuse existing free item
-        int index = (_nextFree << 4) | type;
-        res = getTinyNode(index);
-        res->_dataIndex = index;
-        _nextFree = res->_data._empty._nextFreeIndex;
-    } else {
-        // create new item
-        _count++;
-        ldomNode * part = _list[_count >> TNC_PART_SHIFT];
-        if ( !part ) {
-            part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
-            memset( part, 0, sizeof(ldomNode) * TNC_PART_LEN );
-            _list[ _count >> TNC_PART_SHIFT ] = part;
+    if ( type & 1 ) {
+        // allocate Element
+        if ( _elemNextFree ) {
+            // reuse existing free item
+            int index = (_elemNextFree << 4) | type;
+            res = getTinyNode(index);
+            res->_dataIndex = index;
+            _elemNextFree = res->_data._empty._nextFreeIndex;
+        } else {
+            // create new item
+            _elemCount++;
+            ldomNode * part = _elemList[_elemCount >> TNC_PART_SHIFT];
+            if ( !part ) {
+                part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
+                memset( part, 0, sizeof(ldomNode) * TNC_PART_LEN );
+                _elemList[ _elemCount >> TNC_PART_SHIFT ] = part;
+            }
+            res = &part[_elemCount & TNC_PART_MASK];
+            res->_document = (ldomDocument*)this;
+            res->_dataIndex = (_elemCount << 4) | type;
         }
-        res = &part[_count & TNC_PART_MASK];
-        res->_document = (ldomDocument*)this;
-        res->_dataIndex = (_count << 4) | type;
+        _itemCount++;
+    } else {
+        // allocate Text
+        if ( _textNextFree ) {
+            // reuse existing free item
+            int index = (_textNextFree << 4) | type;
+            res = getTinyNode(index);
+            res->_dataIndex = index;
+            _textNextFree = res->_data._empty._nextFreeIndex;
+        } else {
+            // create new item
+            _textCount++;
+            ldomNode * part = _textList[_textCount >> TNC_PART_SHIFT];
+            if ( !part ) {
+                part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
+                memset( part, 0, sizeof(ldomNode) * TNC_PART_LEN );
+                _textList[ _textCount >> TNC_PART_SHIFT ] = part;
+            }
+            res = &part[_textCount & TNC_PART_MASK];
+            res->_document = (ldomDocument*)this;
+            res->_dataIndex = (_textCount << 4) | type;
+        }
+        _itemCount++;
     }
-    _itemCount++;
     return res;
 }
 
 void tinyNodeCollection::recycleTinyNode( lUInt32 index )
 {
-    index >>= 4;
-    ldomNode * part = _list[index >> TNC_PART_SHIFT];
-    ldomNode * p = &part[index & TNC_PART_MASK];
-    p->_dataIndex = 0; // indicates NULL node
-    p->_data._empty._nextFreeIndex = _nextFree;
-    _nextFree = index;
-    _itemCount--;
+    if ( index & 1 ) {
+        // element
+        index >>= 4;
+        ldomNode * part = _elemList[index >> TNC_PART_SHIFT];
+        ldomNode * p = &part[index & TNC_PART_MASK];
+        p->_dataIndex = 0; // indicates NULL node
+        p->_data._empty._nextFreeIndex = _elemNextFree;
+        _elemNextFree = index;
+        _itemCount--;
+    } else {
+        // text
+        index >>= 4;
+        ldomNode * part = _textList[index >> TNC_PART_SHIFT];
+        ldomNode * p = &part[index & TNC_PART_MASK];
+        p->_dataIndex = 0; // indicates NULL node
+        p->_data._empty._nextFreeIndex = _textNextFree;
+        _textNextFree = index;
+        _itemCount--;
+    }
 }
 
 tinyNodeCollection::~tinyNodeCollection()
 {
-    // clear all parts
-    for ( int partindex = 0; partindex<=(_count>>TNC_PART_SHIFT); partindex++ ) {
-        ldomNode * part = _list[partindex];
+    // clear all elem parts
+    for ( int partindex = 0; partindex<=(_elemCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _elemList[partindex];
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
-            for ( int i=0; i<TNC_PART_LEN && n0+i<=_count; i++ )
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_elemCount; i++ )
                 part[i].onCollectionDestroy();
             free(part);
-            _list[partindex] = NULL;
+            _elemList[partindex] = NULL;
+        }
+    }
+    // clear all text parts
+    for ( int partindex = 0; partindex<=(_textCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _textList[partindex];
+        if ( part ) {
+            int n0 = TNC_PART_LEN * partindex;
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_textCount; i++ )
+                part[i].onCollectionDestroy();
+            free(part);
+            _textList[partindex] = NULL;
         }
     }
 }
@@ -432,11 +486,22 @@ tinyNodeCollection::~tinyNodeCollection()
 void tinyNodeCollection::persist()
 {
     CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
-    for ( int partindex = 0; partindex<=(_count>>TNC_PART_SHIFT); partindex++ ) {
-        ldomNode * part = _list[partindex];
+    // elements
+    for ( int partindex = 0; partindex<=(_elemCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _elemList[partindex];
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
-            for ( int i=0; i<TNC_PART_LEN && n0+i<=_count; i++ )
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_elemCount; i++ )
+                if ( !part[i].isNull() && !part[i].isPersistent() )
+                    part[i].persist();
+        }
+    }
+    // texts
+    for ( int partindex = 0; partindex<=(_textCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _textList[partindex];
+        if ( part ) {
+            int n0 = TNC_PART_LEN * partindex;
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_textCount; i++ )
                 if ( !part[i].isNull() && !part[i].isPersistent() )
                     part[i].persist();
         }
@@ -2005,7 +2070,7 @@ lUInt8 ldomNode::getNodeLevel() const
 /// returns main element (i.e. FictionBook for FB2)
 ldomNode * lxmlDocBase::getRootNode()
 {
-    return getTinyNode(16);
+    return getTinyNode(17);
 }
 
 ldomDocument::ldomDocument()
@@ -7831,10 +7896,12 @@ ldomNode * ldomNode::modify()
 void tinyNodeCollection::dumpStatistics()
 {
     CRLog::info("*** Document memory usage: "
+                "elements:%d, textNodes:%d, "
                 "ptext=(%d compressed, %d uncompressed), "
                 "ptelems=(%d compressed, %d uncompressed), "
                 "styles:%d, fonts:%d, renderedNodes:%d, "
                 "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
+                _elemCount, _textCount,
                 _textStorage.getCompressedSize(), _textStorage.getUncompressedSize(),
                 _elemStorage.getCompressedSize(), _elemStorage.getUncompressedSize(),
                 _styles.length(), _fonts.length(),
