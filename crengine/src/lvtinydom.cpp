@@ -237,7 +237,6 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     lUInt8  rendMethod;
     lUInt8  reserved8;
     lInt32  childCount;
-    lvdomElementFormatRec renderData; // 4 * 4
     lInt32  children[1];
     lUInt16 * attrs() { return (lUInt16 *)(children + childCount); }
     lxmlAttribute * attr( int index ) { return (lxmlAttribute *)&(((lUInt16 *)(children + childCount))[index*3]); }
@@ -364,6 +363,9 @@ tinyNodeCollection::tinyNodeCollection()
 #if BUILD_LITE!=1
 , _renderedBlockCache( 32 )
 #endif
+, _textStorage('t', 0x80000, 0xFFFF ) // persistent text node data storage
+, _elemStorage('e', 0x80000, 0x7FFF ) // persistent element data storage
+, _rectStorage('r', 0x80000, 0x3FFF ) // element render rect storage
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
@@ -549,6 +551,44 @@ ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
     return chunk;
 }
 
+
+#define RECT_DATA_CHUNK_ITEMS_SHIFT 10
+#define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
+#define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
+#define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
+
+/// get or allocate space for rect data item
+void ldomDataStorageManager::getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst )
+{
+    // assume storage has raw data chunks
+    int index = elemDataIndex>>4; // element sequential index
+    int chunkIndex = index >> RECT_DATA_CHUNK_ITEMS_SHIFT;
+    while ( _chunks.length() <= chunkIndex ) {
+        if ( _chunks.length()>0 )
+            _chunks[_chunks.length()-1]->compact();
+        _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
+    }
+    ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
+    int offsetIndex = index & RECT_DATA_CHUNK_MASK;
+    chunk->getRaw( offsetIndex * sizeof(lvdomElementFormatRec), sizeof(lvdomElementFormatRec), (lUInt8 *)dst );
+}
+
+/// set rect data item
+void ldomDataStorageManager::setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src )
+{
+    // assume storage has raw data chunks
+    int index = elemDataIndex>>4; // element sequential index
+    int chunkIndex = index >> RECT_DATA_CHUNK_ITEMS_SHIFT;
+    while ( _chunks.length() < chunkIndex ) {
+        if ( _chunks.length()>0 )
+            _chunks[_chunks.length()-1]->compact();
+        _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
+    }
+    ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
+    int offsetIndex = index & RECT_DATA_CHUNK_MASK;
+    chunk->setRaw( offsetIndex * sizeof(lvdomElementFormatRec), sizeof(lvdomElementFormatRec), (const lUInt8 *)src );
+}
+
 lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
 {
     if ( !_activeChunk ) {
@@ -643,12 +683,14 @@ void ldomDataStorageManager::compact( int reservedSpace )
 
 // max 512K of uncompressed data (~8 chunks)
 #define DEF_MAX_UNCOMPRESSED_SIZE 0x80000
-ldomDataStorageManager::ldomDataStorageManager()
+ldomDataStorageManager::ldomDataStorageManager( char type, int maxUnpackedSize, int chunkSize )
 : _activeChunk(NULL)
 , _recentChunk(NULL)
 , _compressedSize(0)
 , _uncompressedSize(0)
-, _maxUncompressedSize(DEF_MAX_UNCOMPRESSED_SIZE)
+, _maxUncompressedSize(maxUnpackedSize)
+, _chunkSize(chunkSize)
+, _type(type)
 {
 }
 
@@ -656,6 +698,24 @@ ldomDataStorageManager::~ldomDataStorageManager()
 {
 }
 
+
+ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
+: _manager(manager)
+, _buf(NULL)   /// buffer for uncompressed data
+, _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
+, _filepos(0)    /// position in swap file
+, _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
+, _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
+, _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
+, _index(index)      /// ? index of chunk in storage
+, _type( manager->_type )
+, _nextRecent(NULL)
+, _prevRecent(NULL)
+{
+    _buf = (lUInt8*)malloc(preAllocSize);
+    memset(_buf, 0, preAllocSize);
+    _manager->_uncompressedSize += _bufsize;
+}
 
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
 : _manager(manager)
@@ -666,6 +726,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
+, _type( manager->_type )
 , _nextRecent(NULL)
 , _prevRecent(NULL)
 {
@@ -676,6 +737,30 @@ ldomTextStorageChunk::~ldomTextStorageChunk()
     setpacked(NULL, 0);
     setunpacked(NULL, 0);
 }
+
+/// get raw data bytes
+void ldomTextStorageChunk::getRaw( int offset, int size, lUInt8 * buf )
+{
+#ifdef _DEBUG
+    if ( !_buf || offset+size>_bufpos || offset+size>_bufsize )
+        crFatalError(123, "ldomTextStorageChunk: Invalid raw data buffer position");
+#endif
+    memcpy( buf, _buf+offset, size );
+}
+
+/// set raw data bytes
+void ldomTextStorageChunk::setRaw( int offset, int size, const lUInt8 * buf )
+{
+#ifdef _DEBUG
+    if ( !_buf || offset+size>_bufpos || offset+size>_bufsize )
+        crFatalError(123, "ldomTextStorageChunk: Invalid raw data buffer position");
+#endif
+    if ( memcmp( _buf+offset, buf, size ) ) {
+        memcpy( _buf+offset, buf, size );
+        modified();
+    }
+}
+
 
 /// returns free space in buffer
 int ldomTextStorageChunk::space()
@@ -689,7 +774,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
     int itemsize = (sizeof(TextDataStorageItem)+text.length()-2 + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
         // create new buffer, if necessary
-        _bufsize = 0xFFFF;
+        _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
         _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
         _bufpos = 0;
         _manager->_uncompressedSize += _bufsize;
@@ -714,7 +799,7 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
         // create new buffer, if necessary
-        _bufsize = itemsize < 0xFFFF ? 0xFFFF : itemsize;
+        _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
         _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
         _bufpos = 0;
         _manager->_uncompressedSize += _bufsize;
@@ -752,7 +837,7 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 void ldomTextStorageChunk::modified()
 {
     if ( _compbuf ) {
-        CRLog::debug("Dropping compressed data of chunk %d due to modification", _index);
+        CRLog::debug("Dropping compressed data of chunk %c%d due to modification", _type, _index);
         setpacked(NULL, 0);
     }
 }
@@ -901,7 +986,7 @@ void ldomTextStorageChunk::compact()
 {
     if ( !_compbuf && _buf && _bufpos) {
         pack(_buf, _bufpos);
-        CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %d", _bufpos, _compsize, 100*_compsize/_bufpos, _index);
+        CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %c%d", _bufpos, _compsize, 100*_compsize/_bufpos, _type, _index);
     }
     if ( _buf )
         setunpacked(NULL, 0);
@@ -6514,7 +6599,6 @@ private:
     ldomNode * _parentNode;
     lUInt16 _id;
     lUInt16 _nsid;
-    lvdomElementFormatRec _renderData;   // used by rendering engine
     LVArray < lInt32 > _children;
     ldomAttributeCollection _attrs;
     lvdom_element_render_method _rendMethod;
@@ -6537,6 +6621,7 @@ void tinyNodeCollection::compact()
 {
     _textStorage.compact(0xFFFFFF);
     _elemStorage.compact(0xFFFFFF);
+    _rectStorage.compact(0xFFFFFF);
 }
 
 /// allocate new tinyElement
@@ -7213,12 +7298,7 @@ void ldomNode::getRenderData( lvdomElementFormatRec & dst)
         dst.clear();
         return;
     }
-    if ( !isPersistent() ) {
-        dst = NPELEM->_renderData;
-    } else {
-        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        dst = me->renderData;
-    }
+    _document->_rectStorage.getRendRectData(_dataIndex, &dst);
 }
 
 /// sets new value for render data structure
@@ -7227,15 +7307,7 @@ void ldomNode::setRenderData( lvdomElementFormatRec & newData)
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    if ( !isPersistent() ) {
-        NPELEM->_renderData = newData;
-    } else {
-        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        if ( newData != me->renderData ) {
-            me->renderData = newData;
-            modified();
-        }
-    }
+    _document->_rectStorage.setRendRectData(_dataIndex, &newData);
 }
 
 /// sets node rendering structure pointer
@@ -7244,13 +7316,8 @@ void ldomNode::clearRenderData()
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    if ( !isPersistent() ) {
-        NPELEM->_renderData.clear();
-    } else {
-        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        me->renderData.clear();
-        modified();
-    }
+    lvdomElementFormatRec rec;
+    _document->_rectStorage.setRendRectData(_dataIndex, &rec);
 }
 
 /// calls specified function recursively for all elements of DOM tree
@@ -7384,8 +7451,10 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
             NPELEM->_rendMethod = method;
         } else {
             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-            me->rendMethod = method;
-            modified();
+            if ( me->rendMethod != method ) {
+                me->rendMethod = method;
+                modified();
+            }
         }
     }
 }
@@ -7844,8 +7913,6 @@ ldomNode * ldomNode::persist()
                 data->children[i] = elem->_children[i];
             }
             data->rendMethod = (lUInt8)elem->_rendMethod;
-            lvdomElementFormatRec * rdata = &elem->_renderData;
-            data->renderData = *rdata;
             delete elem;
         } else {
             // TEXT->PTEXT
@@ -7874,7 +7941,6 @@ ldomNode * ldomNode::modify()
                 elem->_attrs.add( data->attr(i) );
             _dataIndex = (_dataIndex & ~0xF) | NT_ELEMENT;
             elem->_rendMethod = (lvdom_element_render_method)data->rendMethod;
-            elem->_renderData = data->renderData;
             _document->_elemStorage.freeNode( _data._pelem._addr );
             NPELEM = elem;
         } else {
@@ -7899,11 +7965,13 @@ void tinyNodeCollection::dumpStatistics()
                 "elements:%d, textNodes:%d, "
                 "ptext=(%d compressed, %d uncompressed), "
                 "ptelems=(%d compressed, %d uncompressed), "
+                "rects=(%d compressed, %d uncompressed), "
                 "styles:%d, fonts:%d, renderedNodes:%d, "
                 "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
                 _elemCount, _textCount,
                 _textStorage.getCompressedSize(), _textStorage.getUncompressedSize(),
                 _elemStorage.getCompressedSize(), _elemStorage.getUncompressedSize(),
+                _rectStorage.getCompressedSize(), _rectStorage.getUncompressedSize(),
                 _styles.length(), _fonts.length(),
 #if BUILD_LITE!=1
                 ((ldomDocument*)this)->_renderedBlockCache.length(),
