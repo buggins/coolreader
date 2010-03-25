@@ -243,9 +243,9 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     lxmlAttribute * attr( int index ) { return (lxmlAttribute *)&(((lUInt16 *)(children + childCount))[index*3]); }
     lUInt16 getAttrValueId( lUInt16 ns, lUInt16 id )
     {
-        lxmlAttribute * a = attr(0);
+        lUInt16 * a = attrs();
         for ( int i=0; i<attrCount; i++ ) {
-            lxmlAttribute * attr = &a[i];
+            lxmlAttribute * attr = (lxmlAttribute *)(&a[i*3]);
             if ( !attr->compare( ns, id ) )
                 continue;
             return  attr->index;
@@ -254,9 +254,9 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     }
     lxmlAttribute * findAttr( lUInt16 ns, lUInt16 id )
     {
-        lxmlAttribute * a = attr(0);
+        lUInt16 * a = attrs();
         for ( int i=0; i<attrCount; i++ ) {
-            lxmlAttribute * attr = &a[i];
+            lxmlAttribute * attr = (lxmlAttribute *)(&a[i*3]);
             if ( attr->compare( ns, id ) )
                 return attr;
         }
