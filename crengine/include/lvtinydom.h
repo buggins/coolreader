@@ -165,12 +165,13 @@ class ldomDataStorageManager
 {
     friend class ldomTextStorageChunk;
     LVPtrVector<ldomTextStorageChunk> _chunks;
-    ldomTextStorageChunkBuilder * _builder;
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
     int _compressedSize;
     int _uncompressedSize;
     int _maxUncompressedSize;
+    int _chunkSize;
+    char _type;       /// type, to show in log
     ldomTextStorageChunk * getChunk( lUInt32 address );
 public:
     /// checks buffer sizes, compacts most unused chunks
@@ -191,7 +192,13 @@ public:
     void freeNode( lUInt32 addr );
     /// call to invalidate chunk if content is modified
     void modified( lUInt32 addr );
-    ldomDataStorageManager();
+
+    /// get or allocate space for rect data item
+    void getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst );
+    /// set rect data item
+    void setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src );
+
+    ldomDataStorageManager( char type, int maxUnpackedSize, int chunkSize );
     ~ldomDataStorageManager();
 };
 
@@ -207,6 +214,7 @@ class ldomTextStorageChunk
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
+    char _type;       /// type, to show in log
     ldomTextStorageChunk * _nextRecent;
     ldomTextStorageChunk * _prevRecent;
 
@@ -239,15 +247,22 @@ public:
     lString8 getText( int offset );
     /// get pointer to element data
     ElementDataStorageItem * getElem( int offset );
+    /// get raw data bytes
+    void getRaw( int offset, int size, lUInt8 * buf );
+    /// set raw data bytes
+    void setRaw( int offset, int size, const lUInt8 * buf );
 
+    /// create empty buffer
     ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
+    /// create with preallocated buffer, for raw access
+    ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index );
     ~ldomTextStorageChunk();
 };
 
 // forward declaration
 class ldomNode;
 
-#define TNC_PART_COUNT 1024
+#define TNC_PART_COUNT 2048
 #define TNC_PART_SHIFT 8
 #define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
 #define TNC_PART_LEN (1<<TNC_PART_SHIFT)
@@ -258,13 +273,17 @@ class tinyNodeCollection
     friend class ldomNode;
     friend class tinyElement;
 private:
-    int _count;
-    lUInt32 _nextFree;
-    ldomNode * _list[TNC_PART_COUNT];
+    int _textCount;
+    lUInt32 _textNextFree;
+    ldomNode * _textList[TNC_PART_COUNT];
+    int _elemCount;
+    lUInt32 _elemNextFree;
+    ldomNode * _elemList[TNC_PART_COUNT];
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
-    ldomDataStorageManager _textStorage;
-    ldomDataStorageManager _elemStorage;
+    ldomDataStorageManager _textStorage; // persistent text node data storage
+    ldomDataStorageManager _elemStorage; // persistent element data storage
+    ldomDataStorageManager _rectStorage; // element render rect storage
     int _tinyElementCount;
     int _itemCount;
 
@@ -373,10 +392,10 @@ private:
         } _empty;
     } _data;                      // [12] 4 bytes (8 bytes on x64)
 #define TNTYPE  (_dataIndex&0x0F)
-#define TNINDEX (_dataIndex&(~0x0F))
+#define TNINDEX (_dataIndex&(~0x0E))
 #define TNCHUNK (_addr>>&(~0x0F))
     void onCollectionDestroy();
-    inline ldomNode * getTinyNode( lUInt32 index ) const { return &(((tinyNodeCollection*)_document)->_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]); }
+    inline ldomNode * getTinyNode( lUInt32 index ) const { return ((tinyNodeCollection*)_document)->getTinyNode(index); }
 
     void operator delete( void * p )
     {
@@ -808,11 +827,6 @@ protected:
     DocFileHeader hdr;
 #endif
 
-#if BUILD_LITE!=1
-    LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
-	DataBuffer * _currentBuffer;
-	int _dataBufferSize;       // single data buffer size
-#endif
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map
     LDOMNameIdMap _nsNameTable;          // Namespace Name<->Id map
@@ -824,14 +838,6 @@ protected:
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
     CRPropRef _docProps;
-
-#if BUILD_LITE!=1
-#ifdef TINYNODE_MIGRATION
-    LVStreamRef _map; // memory mapped file
-    LVStreamBufferRef _mapbuf; // memory mapped file buffer
-    bool _mapped; // true if document is mapped to file
-#endif
-#endif
     lUInt32 _docFlags; // document flags
 
 #if BUILD_LITE!=1

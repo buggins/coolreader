@@ -237,15 +237,14 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     lUInt8  rendMethod;
     lUInt8  reserved8;
     lInt32  childCount;
-    lvdomElementFormatRec renderData; // 4 * 4
     lInt32  children[1];
     lUInt16 * attrs() { return (lUInt16 *)(children + childCount); }
     lxmlAttribute * attr( int index ) { return (lxmlAttribute *)&(((lUInt16 *)(children + childCount))[index*3]); }
     lUInt16 getAttrValueId( lUInt16 ns, lUInt16 id )
     {
-        lxmlAttribute * a = attr(0);
+        lUInt16 * a = attrs();
         for ( int i=0; i<attrCount; i++ ) {
-            lxmlAttribute * attr = &a[i];
+            lxmlAttribute * attr = (lxmlAttribute *)(&a[i*3]);
             if ( !attr->compare( ns, id ) )
                 continue;
             return  attr->index;
@@ -254,9 +253,9 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     }
     lxmlAttribute * findAttr( lUInt16 ns, lUInt16 id )
     {
-        lxmlAttribute * a = attr(0);
+        lUInt16 * a = attrs();
         for ( int i=0; i<attrCount; i++ ) {
-            lxmlAttribute * attr = &a[i];
+            lxmlAttribute * attr = (lxmlAttribute *)(&a[i*3]);
             if ( attr->compare( ns, id ) )
                 return attr;
         }
@@ -353,8 +352,10 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
 #define STYLE_HASH_TABLE_SIZE 2048
 #define FONT_HASH_TABLE_SIZE 1024
 tinyNodeCollection::tinyNodeCollection()
-: _count(0)
-, _nextFree(0)
+: _textCount(0)
+, _textNextFree(0)
+, _elemCount(0)
+, _elemNextFree(0)
 , _styles(STYLE_HASH_TABLE_SIZE)
 , _fonts(FONT_HASH_TABLE_SIZE)
 , _tinyElementCount(0)
@@ -362,8 +363,12 @@ tinyNodeCollection::tinyNodeCollection()
 #if BUILD_LITE!=1
 , _renderedBlockCache( 32 )
 #endif
+, _textStorage('t', 0x80000, 0xFFFF ) // persistent text node data storage
+, _elemStorage('e', 0x80000, 0x7FFF ) // persistent element data storage
+, _rectStorage('r', 0x80000, 0x3FFF ) // element render rect storage
 {
-    memset( _list, 0, sizeof(_list) );
+    memset( _textList, 0, sizeof(_textList) );
+    memset( _elemList, 0, sizeof(_elemList) );
 }
 
 /// get ldomNode instance pointer
@@ -371,58 +376,109 @@ ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
 {
     if ( !index )
         return NULL;
-    return &(_list[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
+    if ( index & 1 ) // element
+        return &(_elemList[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
+    else // text
+        return &(_textList[index>>TNC_PART_INDEX_SHIFT][(index>>4)&TNC_PART_MASK]);
 }
 
 /// allocate new tiny node
 ldomNode * tinyNodeCollection::allocTinyNode( int type )
 {
     ldomNode * res;
-    if ( _nextFree ) {
-        // reuse existing free item
-        int index = (_nextFree << 4) | type;
-        res = getTinyNode(index);
-        res->_dataIndex = index;
-        _nextFree = res->_data._empty._nextFreeIndex;
-    } else {
-        // create new item
-        _count++;
-        ldomNode * part = _list[_count >> TNC_PART_SHIFT];
-        if ( !part ) {
-            part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
-            memset( part, 0, sizeof(ldomNode) * TNC_PART_LEN );
-            _list[ _count >> TNC_PART_SHIFT ] = part;
+    if ( type & 1 ) {
+        // allocate Element
+        if ( _elemNextFree ) {
+            // reuse existing free item
+            int index = (_elemNextFree << 4) | type;
+            res = getTinyNode(index);
+            res->_dataIndex = index;
+            _elemNextFree = res->_data._empty._nextFreeIndex;
+        } else {
+            // create new item
+            _elemCount++;
+            ldomNode * part = _elemList[_elemCount >> TNC_PART_SHIFT];
+            if ( !part ) {
+                part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
+                memset( part, 0, sizeof(ldomNode) * TNC_PART_LEN );
+                _elemList[ _elemCount >> TNC_PART_SHIFT ] = part;
+            }
+            res = &part[_elemCount & TNC_PART_MASK];
+            res->_document = (ldomDocument*)this;
+            res->_dataIndex = (_elemCount << 4) | type;
         }
-        res = &part[_count & TNC_PART_MASK];
-        res->_document = (ldomDocument*)this;
-        res->_dataIndex = (_count << 4) | type;
+        _itemCount++;
+    } else {
+        // allocate Text
+        if ( _textNextFree ) {
+            // reuse existing free item
+            int index = (_textNextFree << 4) | type;
+            res = getTinyNode(index);
+            res->_dataIndex = index;
+            _textNextFree = res->_data._empty._nextFreeIndex;
+        } else {
+            // create new item
+            _textCount++;
+            ldomNode * part = _textList[_textCount >> TNC_PART_SHIFT];
+            if ( !part ) {
+                part = (ldomNode*)malloc( sizeof(ldomNode) * TNC_PART_LEN );
+                memset( part, 0, sizeof(ldomNode) * TNC_PART_LEN );
+                _textList[ _textCount >> TNC_PART_SHIFT ] = part;
+            }
+            res = &part[_textCount & TNC_PART_MASK];
+            res->_document = (ldomDocument*)this;
+            res->_dataIndex = (_textCount << 4) | type;
+        }
+        _itemCount++;
     }
-    _itemCount++;
     return res;
 }
 
 void tinyNodeCollection::recycleTinyNode( lUInt32 index )
 {
-    index >>= 4;
-    ldomNode * part = _list[index >> TNC_PART_SHIFT];
-    ldomNode * p = &part[index & TNC_PART_MASK];
-    p->_dataIndex = 0; // indicates NULL node
-    p->_data._empty._nextFreeIndex = _nextFree;
-    _nextFree = index;
-    _itemCount--;
+    if ( index & 1 ) {
+        // element
+        index >>= 4;
+        ldomNode * part = _elemList[index >> TNC_PART_SHIFT];
+        ldomNode * p = &part[index & TNC_PART_MASK];
+        p->_dataIndex = 0; // indicates NULL node
+        p->_data._empty._nextFreeIndex = _elemNextFree;
+        _elemNextFree = index;
+        _itemCount--;
+    } else {
+        // text
+        index >>= 4;
+        ldomNode * part = _textList[index >> TNC_PART_SHIFT];
+        ldomNode * p = &part[index & TNC_PART_MASK];
+        p->_dataIndex = 0; // indicates NULL node
+        p->_data._empty._nextFreeIndex = _textNextFree;
+        _textNextFree = index;
+        _itemCount--;
+    }
 }
 
 tinyNodeCollection::~tinyNodeCollection()
 {
-    // clear all parts
-    for ( int partindex = 0; partindex<=(_count>>TNC_PART_SHIFT); partindex++ ) {
-        ldomNode * part = _list[partindex];
+    // clear all elem parts
+    for ( int partindex = 0; partindex<=(_elemCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _elemList[partindex];
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
-            for ( int i=0; i<TNC_PART_LEN && n0+i<=_count; i++ )
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_elemCount; i++ )
                 part[i].onCollectionDestroy();
             free(part);
-            _list[partindex] = NULL;
+            _elemList[partindex] = NULL;
+        }
+    }
+    // clear all text parts
+    for ( int partindex = 0; partindex<=(_textCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _textList[partindex];
+        if ( part ) {
+            int n0 = TNC_PART_LEN * partindex;
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_textCount; i++ )
+                part[i].onCollectionDestroy();
+            free(part);
+            _textList[partindex] = NULL;
         }
     }
 }
@@ -432,11 +488,22 @@ tinyNodeCollection::~tinyNodeCollection()
 void tinyNodeCollection::persist()
 {
     CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
-    for ( int partindex = 0; partindex<=(_count>>TNC_PART_SHIFT); partindex++ ) {
-        ldomNode * part = _list[partindex];
+    // elements
+    for ( int partindex = 0; partindex<=(_elemCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _elemList[partindex];
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
-            for ( int i=0; i<TNC_PART_LEN && n0+i<=_count; i++ )
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_elemCount; i++ )
+                if ( !part[i].isNull() && !part[i].isPersistent() )
+                    part[i].persist();
+        }
+    }
+    // texts
+    for ( int partindex = 0; partindex<=(_textCount>>TNC_PART_SHIFT); partindex++ ) {
+        ldomNode * part = _textList[partindex];
+        if ( part ) {
+            int n0 = TNC_PART_LEN * partindex;
+            for ( int i=0; i<TNC_PART_LEN && n0+i<=_textCount; i++ )
                 if ( !part[i].isNull() && !part[i].isPersistent() )
                     part[i].persist();
         }
@@ -482,6 +549,44 @@ ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
     }
     chunk->ensureUnpacked();
     return chunk;
+}
+
+
+#define RECT_DATA_CHUNK_ITEMS_SHIFT 10
+#define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
+#define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
+#define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
+
+/// get or allocate space for rect data item
+void ldomDataStorageManager::getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst )
+{
+    // assume storage has raw data chunks
+    int index = elemDataIndex>>4; // element sequential index
+    int chunkIndex = index >> RECT_DATA_CHUNK_ITEMS_SHIFT;
+    while ( _chunks.length() <= chunkIndex ) {
+        if ( _chunks.length()>0 )
+            _chunks[_chunks.length()-1]->compact();
+        _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
+    }
+    ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
+    int offsetIndex = index & RECT_DATA_CHUNK_MASK;
+    chunk->getRaw( offsetIndex * sizeof(lvdomElementFormatRec), sizeof(lvdomElementFormatRec), (lUInt8 *)dst );
+}
+
+/// set rect data item
+void ldomDataStorageManager::setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src )
+{
+    // assume storage has raw data chunks
+    int index = elemDataIndex>>4; // element sequential index
+    int chunkIndex = index >> RECT_DATA_CHUNK_ITEMS_SHIFT;
+    while ( _chunks.length() < chunkIndex ) {
+        if ( _chunks.length()>0 )
+            _chunks[_chunks.length()-1]->compact();
+        _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
+    }
+    ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
+    int offsetIndex = index & RECT_DATA_CHUNK_MASK;
+    chunk->setRaw( offsetIndex * sizeof(lvdomElementFormatRec), sizeof(lvdomElementFormatRec), (const lUInt8 *)src );
 }
 
 lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
@@ -578,12 +683,14 @@ void ldomDataStorageManager::compact( int reservedSpace )
 
 // max 512K of uncompressed data (~8 chunks)
 #define DEF_MAX_UNCOMPRESSED_SIZE 0x80000
-ldomDataStorageManager::ldomDataStorageManager()
+ldomDataStorageManager::ldomDataStorageManager( char type, int maxUnpackedSize, int chunkSize )
 : _activeChunk(NULL)
 , _recentChunk(NULL)
 , _compressedSize(0)
 , _uncompressedSize(0)
-, _maxUncompressedSize(DEF_MAX_UNCOMPRESSED_SIZE)
+, _maxUncompressedSize(maxUnpackedSize)
+, _chunkSize(chunkSize)
+, _type(type)
 {
 }
 
@@ -591,6 +698,24 @@ ldomDataStorageManager::~ldomDataStorageManager()
 {
 }
 
+
+ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
+: _manager(manager)
+, _buf(NULL)   /// buffer for uncompressed data
+, _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
+, _filepos(0)    /// position in swap file
+, _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
+, _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
+, _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
+, _index(index)      /// ? index of chunk in storage
+, _type( manager->_type )
+, _nextRecent(NULL)
+, _prevRecent(NULL)
+{
+    _buf = (lUInt8*)malloc(preAllocSize);
+    memset(_buf, 0, preAllocSize);
+    _manager->_uncompressedSize += _bufsize;
+}
 
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
 : _manager(manager)
@@ -601,6 +726,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
+, _type( manager->_type )
 , _nextRecent(NULL)
 , _prevRecent(NULL)
 {
@@ -611,6 +737,30 @@ ldomTextStorageChunk::~ldomTextStorageChunk()
     setpacked(NULL, 0);
     setunpacked(NULL, 0);
 }
+
+/// get raw data bytes
+void ldomTextStorageChunk::getRaw( int offset, int size, lUInt8 * buf )
+{
+#ifdef _DEBUG
+    if ( !_buf || offset+size>_bufpos || offset+size>_bufsize )
+        crFatalError(123, "ldomTextStorageChunk: Invalid raw data buffer position");
+#endif
+    memcpy( buf, _buf+offset, size );
+}
+
+/// set raw data bytes
+void ldomTextStorageChunk::setRaw( int offset, int size, const lUInt8 * buf )
+{
+#ifdef _DEBUG
+    if ( !_buf || offset+size>_bufpos || offset+size>_bufsize )
+        crFatalError(123, "ldomTextStorageChunk: Invalid raw data buffer position");
+#endif
+    if ( memcmp( _buf+offset, buf, size ) ) {
+        memcpy( _buf+offset, buf, size );
+        modified();
+    }
+}
+
 
 /// returns free space in buffer
 int ldomTextStorageChunk::space()
@@ -624,8 +774,9 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
     int itemsize = (sizeof(TextDataStorageItem)+text.length()-2 + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
         // create new buffer, if necessary
-        _bufsize = 0xFFFF;
+        _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
         _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
+        memset(_buf, 0, _bufsize );
         _bufpos = 0;
         _manager->_uncompressedSize += _bufsize;
     }
@@ -649,8 +800,9 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
         // create new buffer, if necessary
-        _bufsize = itemsize < 0xFFFF ? 0xFFFF : itemsize;
+        _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
         _buf = (lUInt8*)malloc(sizeof(lUInt8) * _bufsize);
+        memset(_buf, 0, _bufsize );
         _bufpos = 0;
         _manager->_uncompressedSize += _bufsize;
     }
@@ -687,7 +839,7 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 void ldomTextStorageChunk::modified()
 {
     if ( _compbuf ) {
-        CRLog::debug("Dropping compressed data of chunk %d due to modification", _index);
+        CRLog::debug("Dropping compressed data of chunk %c%d due to modification", _type, _index);
         setpacked(NULL, 0);
     }
 }
@@ -754,13 +906,13 @@ bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
     z.next_out = tmp;
     ret = deflate( &z, Z_FINISH );
     int have = PACK_BUF_SIZE - z.avail_out;
+    deflateEnd(&z);
     if ( ret!=Z_STREAM_END || have==0 || have>=PACK_BUF_SIZE || z.avail_in!=0 ) {
         // some error occured while packing, leave unpacked
-        setpacked( buf, bufsize );
-    } else {
-        setpacked( tmp, have );
+        //setpacked( buf, bufsize );
+        crFatalError(-1, "ldomTextStorageChunk::pack error");
     }
-    deflateEnd(&z);
+    setpacked( tmp, have );
     return true;
 }
 
@@ -787,14 +939,13 @@ bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
     z.next_out = tmp;
     ret = inflate( &z, Z_FINISH );
     int have = PACK_BUF_SIZE - z.avail_out;
+    inflateEnd(&z);
     if ( ret!=Z_STREAM_END || have==0 || have>=PACK_BUF_SIZE || z.avail_in!=0 ) {
         // some error occured while unpacking
-        inflateEnd(&z);
+        crFatalError(-1, "ldomTextStorageChunk::pack error");
         return false;
-    } else {
-        setunpacked( tmp, have );
     }
-    inflateEnd(&z);
+    setunpacked( tmp, have );
     return true;
 }
 
@@ -836,7 +987,7 @@ void ldomTextStorageChunk::compact()
 {
     if ( !_compbuf && _buf && _bufpos) {
         pack(_buf, _bufpos);
-        CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %d", _bufpos, _compsize, 100*_compsize/_bufpos, _index);
+        CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %c%d", _bufpos, _compsize, 100*_compsize/_bufpos, _type, _index);
     }
     if ( _buf )
         setunpacked(NULL, 0);
@@ -935,654 +1086,6 @@ public:
     }
 };
 
-#ifdef TINYNODE_MIGRATION
-// non-persistent r/w instance of text
-class ldomText : public ldomNode
-{
-private:
-#if (USE_DOM_UTF8_STORAGE==1)
-    lString8 _value;
-#else
-    lString16 _value;
-#endif
-
-public:
-#if (LDOM_USE_OWN_MEM_MAN==1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(ldomText));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsHeap->free((ldomMemBlock *)p);
-    }
-#endif
-    ldomText( ldomNode * parent, lUInt32 index, lString16 value )
-    : ldomNode( parent->getDocument(), parent, index )
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        _value = UnicodeToUtf8(value);
-#else
-        _value = value;
-#endif
-    }
-    ldomText( ldomNode * parent, lUInt32 index, lString8 value )
-    : ldomNode( parent->getDocument(), parent, index )
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        _value = value;
-#else
-        _value = Utf8ToUnicode(value);
-#endif
-    }
-#if BUILD_LITE!=1
-    ldomText( ldomPersistentText * v );
-#endif
-    virtual ~ldomText()
-    {
-        _document->unregisterNode( this );
-    }
-    /// returns LXML_TEXT_NODE for text node
-    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
-    /// returns element child count
-    virtual lUInt32 getChildCount() const { return 0; }
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const { return 0; }
-    /// returns attribute value by attribute namespace id and name id
-    virtual const lString16 & getAttributeValue( lUInt16, lUInt16 ) const
-    {
-        return lString16::empty_str;
-    }
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 ) const { return NULL; }
-    /// returns true if element node has attribute with specified namespace id and name id
-    virtual bool hasAttribute( lUInt16, lUInt16 ) const { return false; }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const css_elem_def_props_t * getElementTypePtr() { return NULL; }
-    /// returns element name id
-    virtual lUInt16 getNodeId() const { return 0; }
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const { return 0; }
-    /// returns element name
-    virtual const lString16 & getNodeName() const { return lString16::empty_str; }
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
-    /// returns text node text
-    virtual lString16 getText( lChar16 ) const
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        return Utf8ToUnicode(_value);
-#else
-        return _value;
-#endif
-    }
-    virtual lString8 getText8( lChar8 = 0 ) const
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        return _value;
-#else
-        return UnicodeToUtf8(_value);
-#endif
-    }
-    /// sets text node text
-    virtual void setText( lString16 value )
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        _value = UnicodeToUtf8(value);
-#else
-        _value = value;
-#endif
-    }
-    /// sets text node text
-    virtual void setText8( lString8 value )
-    {
-#if (USE_DOM_UTF8_STORAGE==1)
-        _value = value;
-#else
-        _value = Utf8ToUnicode(value);
-#endif
-    }
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 ) const { return NULL; }
-#if BUILD_LITE!=1
-    /// replace node with r/o persistent implementation
-    virtual ldomNode * persist();
-#endif
-
-    // stubs
-
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt32, lUInt16, lUInt16 ) { return NULL; }
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt16 ) { return NULL; }
-    /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32, const lString16 & ) { return NULL; }
-    /// inserts child text
-    virtual ldomNode * insertChildText( const lString16 &  ) { return NULL; }
-    /// remove child
-    virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
-};
-
-#if BUILD_LITE!=1
-// persistent r/o instance of text
-class ldomPersistentText : public ldomNode
-{
-    friend class ldomDocument;
-
-    /// call to initiate fatal error due to modification of read only data
-    void readOnlyError()
-    {
-        crFatalError( 124, "Text node is persistent (read-only)! Call modify() to get r/w instance." );
-    }
-public:
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(ldomPersistentText));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsHeap->free((ldomMemBlock *)p);
-    }
-#endif
-    ldomPersistentText( ldomDocument * document, TextDataStorageItem * data )
-        : ldomNode( document, data->parentIndex, data->dataIndex )
-    {
-        _document->setNode( data->dataIndex, this, data );
-    }
-    ldomPersistentText( ldomNode * parent, lUInt32 index, lString16 value );
-    ldomPersistentText( ldomNode * parent, lUInt32 index, lString8 value );
-    // create persistent r/o copy of r/w text node
-    ldomPersistentText( ldomText * v );
-    virtual ~ldomPersistentText()
-    {
-        _document->deleteNode( this );
-    }
-    /// returns true if node is stored in persistent storage
-    virtual bool isPersistent() { return true; }
-    virtual lUInt8 getNodeType() const { return LXML_TEXT_NODE; }
-    /// returns element child count
-    virtual lUInt32 getChildCount() const { return 0; }
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const { return 0; }
-    /// returns attribute value by attribute namespace id and name id
-    virtual const lString16 & getAttributeValue( lUInt16, lUInt16 ) const
-    {
-        return lString16::empty_str;
-    }
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32) const { return NULL; }
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16, lUInt16 ) const { return false; }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const css_elem_def_props_t * getElementTypePtr() { return NULL; }
-    /// returns element name id
-    virtual lUInt16 getNodeId() const { return 0; }
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const { return 0; }
-    /// returns element name
-    virtual const lString16 & getNodeName() const { return lString16::empty_str; }
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const { return lString16::empty_str; }
-    /// returns text node text
-    virtual lString16 getText( lChar16 blockDelimiter=0 ) const;
-    /// returns text node text
-    virtual lString8 getText8( lChar8 blockDelimiter=0 ) const;
-    /// sets text node text
-    virtual void setText( lString16 ) { readOnlyError(); }
-    /// sets text node text
-    virtual void setText8( lString8 ) { readOnlyError(); }
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 ) const { return NULL; }
-    /// replace text node with r/w implementation
-    virtual ldomNode * modify();
-
-    // stubs
-
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt32, lUInt16, lUInt16 ) { return NULL; }
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt16 ) { return NULL; }
-    /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32, const lString16 &  ) { return NULL; }
-    /// inserts child text
-    virtual ldomNode * insertChildText( const lString16 &  ) { return NULL; }
-    /// remove child
-    virtual ldomNode * removeChild( lUInt32 ) { return NULL; }
-};
-#endif
-
-
-// ldomElement declaration placed here to hide DOM implementation
-// use ldomNode rich interface instead
-class ldomElement : public ldomNode
-{
-    friend class ldomPersistentElement;
-private:
-    ldomAttributeCollection _attrs;
-    lUInt16 _id;
-    lUInt16 _nsid;
-    lvdomElementFormatRec * _renderData;   // used by rendering engine
-    LVArray < lInt32 > _children;
-    css_style_ref_t _style;
-    font_ref_t      _font;
-    lvdom_element_render_method _rendMethod;
-protected:
-    virtual void addChild( lInt32 dataIndex );
-public:
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(ldomElement));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsHeap->free((ldomMemBlock *)p);
-    }
-#endif
-#if BUILD_LITE!=1
-    ldomElement( ldomPersistentElement * v );
-#endif
-    ldomElement( ldomDocument * document, ldomNode * parent, lUInt32 index, lUInt16 nsid, lUInt16 id )
-    : ldomNode( document, parent, index ), _id(id), _nsid(nsid), _renderData(NULL), _rendMethod(erm_invisible)
-    { }
-    /// destructor
-    virtual ~ldomElement();
-    /// returns LXML_ELEMENT_NODE
-    virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
-    /// returns rendering method
-    virtual lvdom_element_render_method  getRendMethod() { return _rendMethod; }
-    /// sets rendering method
-    virtual void setRendMethod( lvdom_element_render_method  method ) { _rendMethod=method; }
-    /// returns element style record
-    virtual css_style_ref_t getStyle() { return _style; }
-    /// returns element font
-    virtual font_ref_t getFont() { return _font; }
-    /// sets element font
-    virtual void setFont( font_ref_t font ) { _font = font; }
-    /// sets element style record
-    virtual void setStyle( css_style_ref_t & style ) { _style = style; }
-    /// returns element child count
-    virtual lUInt32 getChildCount() const { return _children.length(); }
-    /// returns first child node
-    virtual ldomNode * getFirstChild() const;
-    /// returns last child node
-    virtual ldomNode * getLastChild() const;
-    /// removes and deletes last child element
-    virtual void removeLastChild();
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const { return _attrs.length(); }
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
-    /// sets attribute value
-    virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value );
-    /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    virtual void moveItemsTo( ldomNode * destination, int startChildIndex, int endChildIndex );
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const { return _attrs[index]; }
-    /// returns attribute value by attribute name id
-    const lString16 & getAttributeName( lUInt32 index ) const { return _document->getAttrName(_attrs[index]->id); }
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const { return _attrs.get( nsid, id )!=LXML_ATTR_VALUE_NONE; }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const css_elem_def_props_t * getElementTypePtr() { return _document->getElementTypePtr(_id); }
-    /// returns element name id
-    virtual lUInt16 getNodeId() const { return _id; }
-    /// replace element name id with another value
-    virtual void setNodeId( lUInt16 id ) { _id = id; }
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const { return _nsid; }
-    /// returns element name
-    virtual const lString16 & getNodeName() const { return _document->getElementName(_id); }
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const { return _document->getNsName(_nsid); }
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const;
-    /// returns render data structure
-    virtual lvdomElementFormatRec * getRenderData();
-    /// sets node rendering structure pointer
-    virtual void clearRenderData();
-
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt16 id );
-    /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32 index, const lString16 &  value );
-    /// inserts child text
-    virtual ldomNode * insertChildText( const lString16 &  value );
-    /// remove child
-    virtual ldomNode * removeChild( lUInt32 index );
-#if BUILD_LITE!=1
-    /// replace node with r/o persistent implementation
-    virtual ldomNode * persist();
-#endif
-protected:
-    /// override to avoid deleting children while replacing
-    virtual void prepareReplace()
-    {
-        _children.clear();
-    }
-};
-
-
-#if BUILD_LITE!=1
-
-// ldomElement declaration placed here to hide DOM implementation
-// use ldomNode rich interface instead
-class ldomPersistentElement : public ldomNode
-{
-private:
-    css_style_ref_t _style;
-    font_ref_t      _font;
-protected:
-
-    inline ElementDataStorageItem * getData() const { return _document->getElementNodeData( _dataIndex ); }
-
-    /// call to initiate fatal error due to modification of read only data
-    void readOnlyError()
-    {
-        crFatalError( 123, "Element is persistent (read-only)! Call modify() to get r/w instance." );
-    }
-    virtual void addChild( lInt32 ) { readOnlyError(); }
-public:
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(ldomPersistentElement));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsHeap->free((ldomMemBlock *)p);
-    }
-#endif
-
-    ldomPersistentElement( ldomDocument * document, ElementDataStorageItem * data )
-        : ldomNode( document, data->parentIndex, data->dataIndex )
-    {
-        _document->setNode( data->dataIndex, this, data );
-    }
-
-    ldomPersistentElement( ldomElement * v )
-    : ldomNode( v )
-    {
-        int attrCount = v->getAttrCount();
-        int childCount = v->getChildCount();
-        ElementDataStorageItem * data = _document->allocElement( _dataIndex, _parentIndex, attrCount, childCount );
-        data->nsid = v->_nsid;
-        data->id = v->_id;
-        lUInt16 * attrs = data->attrs();
-        int i;
-        for ( i=0; i<attrCount; i++ ) {
-            const lxmlAttribute * attr = v->getAttribute(i);
-            attrs[i * 3] = attr->nsid;     // namespace
-            attrs[i * 3 + 1] = attr->id;   // id
-            attrs[i * 3 + 2] = attr->index;// value
-        }
-        for ( i=0; i<childCount; i++ ) {
-            data->children[i] = v->_children[i];
-        }
-        data->rendMethod = (lUInt8)v->_rendMethod;
-
-        lvdomElementFormatRec * rdata = v->getRenderData();
-        data->renderData = *rdata;
-        _style = v->_style;
-        _font = v->_font;
-        _document->replaceInstance( _dataIndex, this );
-        //#ifdef _DEBUG
-        //    _document->checkConsistency();
-        //#endif
-
-    }
-
-    /// destructor
-    virtual ~ldomPersistentElement()
-    {
-        _document->deleteNode( this );
-    }
-    /// returns true if node is stored in persistent storage
-    virtual bool isPersistent() { return true; }
-
-    /// returns LXML_ELEMENT_NODE
-    virtual lUInt8 getNodeType() const { return LXML_ELEMENT_NODE; }
-    /// returns rendering method
-    virtual lvdom_element_render_method  getRendMethod() { return (lvdom_element_render_method)getData()->rendMethod; }
-    /// sets rendering method
-    virtual void setRendMethod( lvdom_element_render_method  method ) { getData()->rendMethod = (lUInt8)method; }
-    /// returns element style record
-    virtual css_style_ref_t getStyle() { return _style; }
-    /// returns element font
-    virtual font_ref_t getFont() { return _font; }
-    /// sets element font
-    virtual void setFont( font_ref_t font ) { _font = font; }
-    /// sets element style record
-    virtual void setStyle( css_style_ref_t & style ) { _style = style; }
-    /// returns element child count
-    virtual lUInt32 getChildCount() const { return getData()->childCount; }
-    /// returns first child node
-    virtual ldomNode * getFirstChild() const
-    {
-        ElementDataStorageItem * data = getData();
-        if ( data->childCount <=0 )
-            return NULL;
-        return _document->getNodeInstance( data->children[0] );
-    }
-
-    /// returns last child node
-    virtual ldomNode * getLastChild() const
-    {
-        ElementDataStorageItem * data = getData();
-        if ( data->childCount <=0 )
-            return NULL;
-        return _document->getNodeInstance( data->children[data->childCount-1] );
-    }
-    /// removes and deletes last child element
-    virtual void removeLastChild() { readOnlyError(); }
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const { return getData()->attrCount; }
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const
-    {
-        ElementDataStorageItem * data = getData();
-        int attrCount = data->attrCount;
-        lUInt16 * attrs = data->attrs();
-        for ( int i=0; i<attrCount; i++ ) {
-            lxmlAttribute * attr = (lxmlAttribute*)(&(attrs[i*3]));
-            if ( !attr->compare( nsid, id ) )
-                continue;
-            lUInt16 val_id = attr->index;
-            if (val_id != LXML_ATTR_VALUE_NONE)
-                return _document->getAttrValue( val_id );
-            else
-                return lString16::empty_str;
-        }
-        return lString16::empty_str;
-    }
-    / sets attribute value
-    virtual void setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * value )
-    {
-        lUInt16 valueId = _document->getAttrValueIndex( value );
-        ElementDataStorageItem * data = getData();
-        int attrCount = data->attrCount;
-        lUInt16 * attrs = data->attrs();
-        for ( int i=0; i<attrCount; i++ ) {
-            lxmlAttribute * attr = (lxmlAttribute*)(&(attrs[i*3]));
-            if ( attr->compare( nsid, id ) )
-                continue;
-            attr->index = valueId;
-            if ( nsid == LXML_NS_NONE )
-                _document->onAttributeSet( id, valueId, this );
-        }
-        // in persistent mode only modification of existing attribute allowed
-        readOnlyError();
-    }
-    /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    virtual void moveItemsTo( ldomNode *, int, int ) { readOnlyError(); }
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 index ) const
-    {
-        ElementDataStorageItem * data = getData();
-        lUInt16 attrCount = data->attrCount;
-        if ( index > attrCount )
-            return NULL;
-        return data->attr( index );
-    }
-    /// returns attribute value by attribute name id
-    virtual const lString16 & getAttributeName( lUInt32 index ) const
-    {
-        const lxmlAttribute * attr = getAttribute( index );
-        if ( attr!=NULL )
-            return _document->getAttrName( attr->id );
-        return lString16::empty_str;
-    }
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsid, lUInt16 id ) const
-    {
-        ElementDataStorageItem * data = getData();
-        int attrCount = data->attrCount;
-        lUInt16 * attrs = data->attrs();
-        for ( int i=0; i<attrCount; i++ ) {
-            lxmlAttribute * attr = (lxmlAttribute*)(&(attrs[i*3]));
-            if ( attr->compare( nsid, id ) )
-                continue;
-            return true;
-        }
-        return false;
-    }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const css_elem_def_props_t * getElementTypePtr() { return _document->getElementTypePtr(getNodeId()); }
-    /// returns element name id
-    virtual lUInt16 getNodeId() const { return getData()->id; }
-    /// replace element name id with another value
-    virtual void setNodeId( lUInt16 id ) { getData()->id = id; }
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const { return getData()->nsid; }
-    /// returns element name
-    virtual const lString16 & getNodeName() const { return _document->getElementName(getData()->id); }
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const { return _document->getNsName(getData()->nsid); }
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const
-    {
-        ElementDataStorageItem * data = getData();
-        return _document->getNodeInstance( data->children[index] );
-    }
-    /// returns render data structure
-    virtual lvdomElementFormatRec * getRenderData()
-    {
-        return &getData()->renderData;
-    }
-
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt32, lUInt16, lUInt16 ) { readOnlyError(); return NULL; }
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt16 ) { readOnlyError(); return NULL; }
-    /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32, const lString16 &  ) { readOnlyError(); return NULL; }
-    /// inserts child text
-    virtual ldomNode * insertChildText( const lString16 &  ) { readOnlyError(); return NULL; }
-    /// remove child
-    virtual ldomNode * removeChild( lUInt32 ) { readOnlyError(); return NULL; }
-    /// replace node with r/w implementation
-    virtual ldomNode * modify();
-protected:
-    /// override to avoid deleting children while replacing
-    virtual void prepareReplace()
-    {
-        getData()->childCount = 0;
-    }
-};
-#endif
-
-#if BUILD_LITE!=1
-ldomText::ldomText( ldomPersistentText * v )
-: ldomNode( v )
-{
-#if (USE_DOM_UTF8_STORAGE==1)
-    _value = v->getText8();
-#else
-    _value =  v->getText();
-#endif
-    _document->replaceInstance( _dataIndex, this );
-}
-
-
-ldomElement::ldomElement( ldomPersistentElement * v )
-: ldomNode( v ), _id( v->getNodeId() ), _nsid( v->getNodeNsId() ), _renderData(NULL), _rendMethod(erm_invisible)
-{
-    int attrCount = v->getAttrCount();
-    int childCount = v->getChildCount();
-    int i;
-    for ( i=0; i<attrCount; i++ )
-        _attrs.add( v->getAttribute( i ) );
-    for ( i=0; i<childCount; i++ )
-        _children.add( v->getChildNode( i )->getDataIndex() );
-    _style = v->getStyle();
-    _font = v->getFont();
-    _rendMethod = v->getRendMethod();
-    memcpy( getRenderData(), v->getRenderData(), sizeof(lvdomElementFormatRec) );
-    _document->replaceInstance( _dataIndex, this );
-}
-
-/// replace node with r/o persistent implementation
-ldomNode * ldomElement::persist()
-{
-    //ldomDocument * doc = _document;
-    //if ( !doc->checkConsistency(false) )
-    //    CRLog::trace( "check failed before elem:persist()" );
-    ldomNode * res = new ldomPersistentElement( this );
-    //if ( !doc->checkConsistency(false) )
-    //    CRLog::trace( "check failed after elem:persist()" );
-    return res;
-}
-
-/// replace node with r/w implementation
-ldomNode * ldomPersistentElement::modify()
-{
-    //ldomDocument * doc = _document;
-    //if ( !doc->checkConsistency(false) )
-    //    CRLog::trace( "check failed before elem:modify()" );
-    ldomNode * res = new ldomElement( this );
-    //if ( !doc->checkConsistency(false) )
-    //    CRLog::trace( "check failed after elem:modify()" );
-    return res;
-}
-
-/// replace node with r/o persistent implementation
-ldomNode * ldomText::persist()
-{
-    return new ldomPersistentText( this );
-}
-
-/// replace node with r/w implementation
-ldomNode * ldomPersistentText::modify()
-{
-    return new ldomText( this );
-}
-#endif
-
-#endif
-
 
 /*
 class simpleLogFile
@@ -1617,18 +1120,7 @@ simpleLogFile logfile("logfile.log");
 
 
 lxmlDocBase::lxmlDocBase( int dataBufSize )
-:
-#if BUILD_LITE!=1
-  _dataBufferSize( dataBufSize ) // single data buffer size
-, 
-#endif
-#ifdef TINYNODE_MIGRATION
-_instanceMap(NULL)
-,_instanceMapSize(2048) // *8 = 16K
-,_instanceMapCount(1)
-,
-#endif
-_elementNameTable(MAX_ELEMENT_TYPE_ID)
+: _elementNameTable(MAX_ELEMENT_TYPE_ID)
 , _attrNameTable(MAX_ATTRIBUTE_TYPE_ID)
 , _nsNameTable(MAX_NAMESPACE_TYPE_ID)
 , _nextUnknownElementId(UNKNOWN_ELEMENT_TYPE_ID)
@@ -1648,28 +1140,12 @@ _elementNameTable(MAX_ELEMENT_TYPE_ID)
 #endif
 {
     // create and add one data buffer
-#if BUILD_LITE!=1
-    _currentBuffer = new DataBuffer( _dataBufferSize );
-    _dataBuffers.add( _currentBuffer );
-#endif
-#ifdef TINYNODE_MIGRATION
-    _instanceMap = (NodeItem *)malloc( sizeof(NodeItem) * _instanceMapSize );
-    memset( _instanceMap, 0, sizeof(NodeItem) * _instanceMapSize );
-#endif
     _stylesheet.setDocument( this );
 }
 
 /// Destructor
 lxmlDocBase::~lxmlDocBase()
 {
-#ifdef TINYNODE_MIGRATION
-    for ( int i=0; i<_instanceMapCount; i++ ) {
-        if ( _instanceMap[i].instance != NULL ) {
-            delete _instanceMap[i].instance;
-        }
-    }
-    free( _instanceMap );
-#endif
 }
 
 void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node )
@@ -2005,7 +1481,7 @@ lUInt8 ldomNode::getNodeLevel() const
 /// returns main element (i.e. FictionBook for FB2)
 ldomNode * lxmlDocBase::getRootNode()
 {
-    return getTinyNode(16);
+    return getTinyNode(17);
 }
 
 ldomDocument::ldomDocument()
@@ -6449,7 +5925,6 @@ private:
     ldomNode * _parentNode;
     lUInt16 _id;
     lUInt16 _nsid;
-    lvdomElementFormatRec _renderData;   // used by rendering engine
     LVArray < lInt32 > _children;
     ldomAttributeCollection _attrs;
     lvdom_element_render_method _rendMethod;
@@ -6472,6 +5947,7 @@ void tinyNodeCollection::compact()
 {
     _textStorage.compact(0xFFFFFF);
     _elemStorage.compact(0xFFFFFF);
+    _rectStorage.compact(0xFFFFFF);
 }
 
 /// allocate new tinyElement
@@ -7148,12 +6624,7 @@ void ldomNode::getRenderData( lvdomElementFormatRec & dst)
         dst.clear();
         return;
     }
-    if ( !isPersistent() ) {
-        dst = NPELEM->_renderData;
-    } else {
-        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        dst = me->renderData;
-    }
+    _document->_rectStorage.getRendRectData(_dataIndex, &dst);
 }
 
 /// sets new value for render data structure
@@ -7162,15 +6633,7 @@ void ldomNode::setRenderData( lvdomElementFormatRec & newData)
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    if ( !isPersistent() ) {
-        NPELEM->_renderData = newData;
-    } else {
-        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        if ( newData != me->renderData ) {
-            me->renderData = newData;
-            modified();
-        }
-    }
+    _document->_rectStorage.setRendRectData(_dataIndex, &newData);
 }
 
 /// sets node rendering structure pointer
@@ -7179,13 +6642,8 @@ void ldomNode::clearRenderData()
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    if ( !isPersistent() ) {
-        NPELEM->_renderData.clear();
-    } else {
-        ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        me->renderData.clear();
-        modified();
-    }
+    lvdomElementFormatRec rec;
+    _document->_rectStorage.setRendRectData(_dataIndex, &rec);
 }
 
 /// calls specified function recursively for all elements of DOM tree
@@ -7319,8 +6777,10 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
             NPELEM->_rendMethod = method;
         } else {
             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-            me->rendMethod = method;
-            modified();
+            if ( me->rendMethod != method ) {
+                me->rendMethod = method;
+                modified();
+            }
         }
     }
 }
@@ -7779,8 +7239,6 @@ ldomNode * ldomNode::persist()
                 data->children[i] = elem->_children[i];
             }
             data->rendMethod = (lUInt8)elem->_rendMethod;
-            lvdomElementFormatRec * rdata = &elem->_renderData;
-            data->renderData = *rdata;
             delete elem;
         } else {
             // TEXT->PTEXT
@@ -7809,7 +7267,6 @@ ldomNode * ldomNode::modify()
                 elem->_attrs.add( data->attr(i) );
             _dataIndex = (_dataIndex & ~0xF) | NT_ELEMENT;
             elem->_rendMethod = (lvdom_element_render_method)data->rendMethod;
-            elem->_renderData = data->renderData;
             _document->_elemStorage.freeNode( _data._pelem._addr );
             NPELEM = elem;
         } else {
@@ -7831,12 +7288,16 @@ ldomNode * ldomNode::modify()
 void tinyNodeCollection::dumpStatistics()
 {
     CRLog::info("*** Document memory usage: "
+                "elements:%d, textNodes:%d, "
                 "ptext=(%d compressed, %d uncompressed), "
                 "ptelems=(%d compressed, %d uncompressed), "
+                "rects=(%d compressed, %d uncompressed), "
                 "styles:%d, fonts:%d, renderedNodes:%d, "
                 "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
+                _elemCount, _textCount,
                 _textStorage.getCompressedSize(), _textStorage.getUncompressedSize(),
                 _elemStorage.getCompressedSize(), _elemStorage.getUncompressedSize(),
+                _rectStorage.getCompressedSize(), _rectStorage.getUncompressedSize(),
                 _styles.length(), _fonts.length(),
 #if BUILD_LITE!=1
                 ((ldomDocument*)this)->_renderedBlockCache.length(),
