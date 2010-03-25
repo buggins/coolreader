@@ -165,12 +165,13 @@ class ldomDataStorageManager
 {
     friend class ldomTextStorageChunk;
     LVPtrVector<ldomTextStorageChunk> _chunks;
-    ldomTextStorageChunkBuilder * _builder;
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
     int _compressedSize;
     int _uncompressedSize;
     int _maxUncompressedSize;
+    int _chunkSize;
+    char _type;       /// type, to show in log
     ldomTextStorageChunk * getChunk( lUInt32 address );
 public:
     /// checks buffer sizes, compacts most unused chunks
@@ -191,7 +192,13 @@ public:
     void freeNode( lUInt32 addr );
     /// call to invalidate chunk if content is modified
     void modified( lUInt32 addr );
-    ldomDataStorageManager();
+
+    /// get or allocate space for rect data item
+    void getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst );
+    /// set rect data item
+    void setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src );
+
+    ldomDataStorageManager( char type, int maxUnpackedSize, int chunkSize );
     ~ldomDataStorageManager();
 };
 
@@ -207,6 +214,7 @@ class ldomTextStorageChunk
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
+    char _type;       /// type, to show in log
     ldomTextStorageChunk * _nextRecent;
     ldomTextStorageChunk * _prevRecent;
 
@@ -239,8 +247,15 @@ public:
     lString8 getText( int offset );
     /// get pointer to element data
     ElementDataStorageItem * getElem( int offset );
+    /// get raw data bytes
+    void getRaw( int offset, int size, lUInt8 * buf );
+    /// set raw data bytes
+    void setRaw( int offset, int size, const lUInt8 * buf );
 
+    /// create empty buffer
     ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
+    /// create with preallocated buffer, for raw access
+    ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index );
     ~ldomTextStorageChunk();
 };
 
@@ -266,8 +281,9 @@ private:
     ldomNode * _elemList[TNC_PART_COUNT];
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
-    ldomDataStorageManager _textStorage;
-    ldomDataStorageManager _elemStorage;
+    ldomDataStorageManager _textStorage; // persistent text node data storage
+    ldomDataStorageManager _elemStorage; // persistent element data storage
+    ldomDataStorageManager _rectStorage; // element render rect storage
     int _tinyElementCount;
     int _itemCount;
 
