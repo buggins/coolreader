@@ -882,7 +882,7 @@ lString8 ldomTextStorageChunk::getText( int offset )
     return lString8();
 }
 
-#define TEXT_COMPRESSION_LEVEL 6
+#define TEXT_COMPRESSION_LEVEL 3
 #define PACK_BUF_SIZE 0x10000
 /// pack data from _buf to _compbuf
 bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
