@@ -34,6 +34,52 @@
 
 #if BUILD_LITE!=1
 
+
+struct CacheFileItem
+{
+    lUInt32 _magic;    // magic number
+    int _blockIndex;   // sequential number of block
+    int _blockFilePos; // start of block
+    int _blockSize;    // size of block within file
+    int _dataSize;     // used data size inside block (<= block size)
+    int _dataType;     // data type
+    int _dataIndex;    // additional data index, for internal usage for data type
+    lUInt32 _dataCRC;  // crc of data
+};
+
+#define CACHE_FILE_MAGIC_SIZE 32
+struct CacheFileHeader
+{
+    char _magic[CACHE_FILE_MAGIC_SIZE]; // magic
+    CacheFileItem _indexBlock; // index array block parameters,
+    // duplicate of one of index records which contains
+};
+
+/**
+ * Cache file implementation.
+ */
+class CacheFile
+{
+    int  _sectorSize; // block position and size granularity
+    LVStreamRef _stream; // file stream
+    LVPtrVector<CacheFileItem> _index; // file block index
+    // reads and allocates block in memory
+    bool readBlock( CacheFileItem * item, lUInt8 * &buf, int &size );
+    // writes data to block
+    bool writeBlock( CacheFileItem * item, const lUInt8  * buf, int size );
+public:
+    // try open existing cache file
+    bool open( lString16 filename );
+    // create new cache file
+    bool create( lString16 filename );
+    // reads and allocates block in memory
+    bool read( int type, int dataIndex, lUInt8 * &buf, int &size );
+    // reads and allocates block in memory
+    bool write( int type, int dataIndex, const lUInt8 * buf, int size );
+};
+
+
+
 //#define DEBUG_RENDER_RECT_ACCESS
 #ifdef DEBUG_RENDER_RECT_ACCESS
   static signed char render_rect_flags[200000]={0};
