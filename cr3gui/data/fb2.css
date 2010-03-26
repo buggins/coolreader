@@ -146,17 +146,6 @@ dd { display: block; margin-left: 1.3em; }
 
 a { display:inline; text-decoration: underline;  } 
 
-span { display: inline; } 
-
-cite { display: inline; font-style: italic;} 
-div { display: block; } 
-blockquote { display: block; 
-   margin-left: 1.5em; 
-   margin-right: 1.5em; 
-   margin-top: 0.5em; 
-   margin-bottom: 0.5em; 
-   } 
-
 img { 
    margin: 0.5em; 
    text-align: center; 

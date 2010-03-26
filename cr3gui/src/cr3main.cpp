@@ -155,9 +155,6 @@ void ShutdownCREngine()
     HyphMan::uninit();
     ShutdownFontManager();
     CRLog::setLogger( NULL );
-#if LDOM_USE_OWN_MEM_MAN == 1
-    ldomFreeStorage();
-#endif
 }
 
 #if (USE_FREETYPE==1)
