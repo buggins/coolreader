@@ -161,10 +161,12 @@ class ldomTextStorageChunk;
 class ldomTextStorageChunkBuilder;
 struct ElementDataStorageItem;
 class CacheFile;
+class tinyNodeCollection;
 
 class ldomDataStorageManager
 {
     friend class ldomTextStorageChunk;
+    tinyNodeCollection * _owner;
     LVPtrVector<ldomTextStorageChunk> _chunks;
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
@@ -177,8 +179,8 @@ class ldomDataStorageManager
     char _type;       /// type, to show in log
     ldomTextStorageChunk * getChunk( lUInt32 address );
     /// checks buffer sizes, compacts most unused chunks
-    void setCache( CacheFile * cache );
 public:
+    void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
     int getCompressedSize() { return _compressedSize; }
@@ -203,7 +205,7 @@ public:
     /// set rect data item
     void setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src );
 
-    ldomDataStorageManager( char type, int maxUnpackedSize, int maxPackedSize, int chunkSize );
+    ldomDataStorageManager( tinyNodeCollection * owner, char type, int maxUnpackedSize, int maxPackedSize, int chunkSize );
     ~ldomDataStorageManager();
 };
 
@@ -293,19 +295,23 @@ private:
     ldomNode * _elemList[TNC_PART_COUNT];
     LVIndexedRefCache<css_style_ref_t> _styles;
     LVIndexedRefCache<font_ref_t> _fonts;
-    ldomDataStorageManager _textStorage; // persistent text node data storage
-    ldomDataStorageManager _elemStorage; // persistent element data storage
-    ldomDataStorageManager _rectStorage; // element render rect storage
     int _tinyElementCount;
     int _itemCount;
+
 
 protected:
 #if BUILD_LITE!=1
     /// final block cache
     CVRendBlockCache _renderedBlockCache;
+    CacheFile * _cacheFile;
 #endif
 
+    ldomDataStorageManager _textStorage; // persistent text node data storage
+    ldomDataStorageManager _elemStorage; // persistent element data storage
+    ldomDataStorageManager _rectStorage; // element render rect storage
+
 public:
+    bool createCacheFile();
 
     /// minimize memory consumption
     void compact();
