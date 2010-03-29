@@ -39,6 +39,7 @@ enum CacheFileBlockType {
     CBT_INDEX = 1,
     CBT_TEXT_DATA,
     CBT_ELEM_DATA,
+    CBT_RECT_DATA,
 };
 
 #define CACHE_FILE_ITEM_MAGIC 0xC007B00C
@@ -185,9 +186,9 @@ bool CacheFile::readIndex()
     _stream->Read(&hdr, sizeof(hdr), &bytesRead );
     if ( bytesRead!=sizeof(hdr) )
         return false;
-    if ( hdr.validate() )
+    if ( !hdr.validate() )
         return false;
-    if ( hdr._fsize != _size ) {
+    if ( hdr._fsize > _size ) {
         CRLog::error("CacheFile::readIndex: file size doesn't match with header");
         return false;
     }
@@ -197,7 +198,7 @@ bool CacheFile::readIndex()
         CRLog::error("CacheFile::readIndex: Wrong index file position specified in header");
         return false;
     }
-    if ( _stream->SetPos(hdr._indexBlock._blockFilePos)!=LVERR_OK ) {
+    if ( _stream->SetPos(hdr._indexBlock._blockFilePos)!=hdr._indexBlock._blockFilePos ) {
         CRLog::error("CacheFile::readIndex: cannot move file position to index block");
         return false;
     }
@@ -206,7 +207,7 @@ bool CacheFile::readIndex()
         CRLog::error("CacheFile::readIndex: invalid number of blocks in index");
         return false;
     }
-    CacheFileItem * index = new CacheFileItem[_index.length()];
+    CacheFileItem * index = new CacheFileItem[count];
     bytesRead = 0;
     lvsize_t  sz = sizeof(CacheFileItem)*count;
     _stream->Read(index, sz, &bytesRead );
@@ -235,7 +236,7 @@ bool CacheFile::readIndex()
     }
     delete index;
     CacheFileItem * indexitem = findBlock(CBT_INDEX, 0);
-    if ( memcmp(indexitem, &hdr._indexBlock, sizeof(CacheFileItem)) ) {
+    if ( !indexitem ) {
         CRLog::error("CacheFile::readIndex: index block info doesn't match header");
         return false;
     }
@@ -250,6 +251,12 @@ bool CacheFile::writeIndex()
     if ( _index.length()==0 )
         return updateHeader( 0 );
     // create copy of index in memory
+    bool indexItemFound = findBlock( CBT_INDEX, 0 )!=NULL;
+    int count = _index.length();
+    if ( !indexItemFound ) {
+        count++;
+        allocBlock( CBT_INDEX, 0, sizeof(CacheFileItem)*count );
+    }
     CacheFileItem * index = new CacheFileItem[_index.length()];
     for ( int i=0; i<_index.length(); i++ ) {
         memcpy( &index[i], _index[i], sizeof(CacheFileItem) );
@@ -275,6 +282,7 @@ bool CacheFile::updateHeader( CacheFileItem * indexItem )
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
     if ( bytesWritten!=sizeof(hdr) )
         return false;
+    return true;
 }
 
 //
@@ -355,6 +363,9 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
         CRLog::error("CacheFile::read: Block %d:%d not found in file", type, dataIndex);
         return false;
     }
+    if ( _stream->SetPos( block->_blockFilePos )!=block->_blockFilePos )
+        return false;
+
     size = block->_dataSize;
     buf = (lUInt8 *)malloc(size);
     lvsize_t bytesRead = 0;
@@ -385,7 +396,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     CacheFileItem * block = allocBlock( type, dataIndex, size );
     if ( !block )
         return false;
-    if ( _stream->SetPos( block->_blockFilePos )!=LVERR_OK )
+    if ( _stream->SetPos( block->_blockFilePos )!=block->_blockFilePos )
         return false;
     // assert: size == block->_dataSize
     // actual writing of data
@@ -393,6 +404,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     _stream->Write(buf, block->_dataSize, &bytesWritten );
     if ( bytesWritten!=block->_dataSize )
         return false;
+    _stream->Flush(true);
     int paddingSize = roundSector( block->_dataSize ) - block->_dataSize;
     if ( paddingSize ) {
         lUInt8 tmp[paddingSize];
@@ -402,33 +414,36 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     // update CRC
     block->_dataCRC = lStr_crc32(0,  buf, block->_dataSize );
     _indexChanged = true;
+    // success
+    return true;
 }
 
 // try open existing cache file
 bool CacheFile::open( lString16 filename )
 {
-    _stream = LVOpenFileStream( filename.c_str(), LVOM_APPEND );
+    _stream = LVOpenFileStream( filename.c_str(), LVOM_READWRITE );
     if ( !_stream ) {
         CRLog::error( "CacheFile::open: cannot open file %s", LCSTR(filename));
         return false;
     }
     _size = _stream->GetSize();
 
-    CacheFileHeader hdr(NULL, _size);
-    _stream->SetPos(0);
-    lvsize_t bytesRead = 0;
-    _stream->Read(&hdr, sizeof(hdr), &bytesRead );
-    if ( bytesRead!=sizeof(hdr) )
-        return false;
+    return readIndex();
 }
 
 bool CacheFile::create( lString16 filename )
 {
-    _stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
-    if ( !_stream ) {
+    _stream = LVOpenFileStream( filename.c_str(), LVOM_APPEND );
+    if ( _stream.isNull() ) {
         CRLog::error( "CacheFile::create: cannot create file %s", LCSTR(filename));
         return false;
     }
+    if ( _stream->SetPos(0)!=0 ) {
+        CRLog::error( "CacheFile::create: cannot seek file %s", LCSTR(filename));
+        _stream.Clear();
+        return false;
+    }
+
     _size = _sectorSize;
     lUInt8 sector0[_sectorSize];
     memset(sector0, 0, _sectorSize);
@@ -775,9 +790,9 @@ tinyNodeCollection::tinyNodeCollection()
 #if BUILD_LITE!=1
 , _renderedBlockCache( 32 )
 #endif
-, _textStorage('t', 0x80000, 0xFFFF ) // persistent text node data storage
-, _elemStorage('e', 0x80000, 0x7FFF ) // persistent element data storage
-, _rectStorage('r', 0x80000, 0x3FFF ) // element render rect storage
+, _textStorage('t', 0x80000, 0x80000, 0xFFFF ) // persistent text node data storage
+, _elemStorage('e', 0x80000, 0x80000, 0x7FFF ) // persistent element data storage
+, _rectStorage('r', 0x80000, 0x80000, 0x3FFF ) // element render rect storage
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
@@ -1079,6 +1094,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
     if ( _uncompressedSize + reservedSpace > _maxUncompressedSize ) {
         // do compacting
         int sumsize = reservedSpace;
+        int sumpackedsize = 0;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
             if ( p->_bufsize <= 0 )
                 continue;
@@ -1088,19 +1104,35 @@ void ldomDataStorageManager::compact( int reservedSpace )
             } else {
                 p->compact();
             }
+            if ( _cache && p->_compsize + sumpackedsize < _maxCompressedSize ) {
+                // fits
+                sumpackedsize += p->_compsize;
+            } else {
+                if ( !p->swapToCache(true) ) {
+                    crFatalError(111, "Swap file writing error!");
+                }
+            }
         }
 
     }
 }
 
+/// checks buffer sizes, compacts most unused chunks
+void ldomDataStorageManager::setCache( CacheFile * cache )
+{
+    _cache = cache;
+}
+
 // max 512K of uncompressed data (~8 chunks)
 #define DEF_MAX_UNCOMPRESSED_SIZE 0x80000
-ldomDataStorageManager::ldomDataStorageManager( char type, int maxUnpackedSize, int chunkSize )
+ldomDataStorageManager::ldomDataStorageManager( char type, int maxUnpackedSize, int maxPackedSize, int chunkSize )
 : _activeChunk(NULL)
 , _recentChunk(NULL)
+, _cache(NULL)
 , _compressedSize(0)
 , _uncompressedSize(0)
 , _maxUncompressedSize(maxUnpackedSize)
+, _maxCompressedSize(maxPackedSize)
 , _chunkSize(chunkSize)
 , _type(type)
 {
@@ -1123,6 +1155,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageMan
 , _type( manager->_type )
 , _nextRecent(NULL)
 , _prevRecent(NULL)
+, _saved(false)
 {
     _buf = (lUInt8*)malloc(preAllocSize);
     memset(_buf, 0, preAllocSize);
@@ -1141,6 +1174,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _type( manager->_type )
 , _nextRecent(NULL)
 , _prevRecent(NULL)
+, _saved(false)
 {
 }
 
@@ -1148,6 +1182,63 @@ ldomTextStorageChunk::~ldomTextStorageChunk()
 {
     setpacked(NULL, 0);
     setunpacked(NULL, 0);
+}
+
+/// type
+lUInt16 ldomTextStorageChunk::cacheType()
+{
+    switch ( _type ) {
+    case 't':
+        return CBT_TEXT_DATA;
+    case 'e':
+        return CBT_ELEM_DATA;
+    case 'r':
+        return CBT_RECT_DATA;
+    }
+    return 0;
+}
+
+/// pack data, and remove unpacked, put packed data to cache file
+bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
+{
+    if ( removeFromMemory )
+        compact();
+    else {
+        if ( !_compbuf && _buf && _bufpos) {
+            pack(_buf, _bufpos);
+            CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %c%d", _bufpos, _compsize, 100*_compsize/_bufpos, _type, _index);
+        }
+    }
+    if ( !_manager->_cache )
+        return true;
+    if ( _compbuf ) {
+        if ( !_saved ) {
+            CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
+            if ( !_manager->_cache->write( cacheType(), _index, _compbuf, _compsize ) )
+                return false;
+            _saved = true;
+        }
+    }
+    if ( removeFromMemory ) {
+        setpacked(NULL, 0);
+    }
+    return true;
+}
+
+/// read packed data from cache
+bool ldomTextStorageChunk::restoreFromCache()
+{
+    if ( _compbuf )
+        return true;
+    if ( !_saved )
+        return false;
+    int compsize;
+    if ( !_manager->_cache->read( cacheType(), _index, _compbuf, compsize ) )
+        return false;
+    _compsize = compsize;
+    _manager->_compressedSize += _compsize;
+    CRLog::debug("Read %d bytes of chunk %c%d from cache", _compsize, _type, _index);
+    return true;
 }
 
 /// get raw data bytes
@@ -1253,6 +1344,7 @@ void ldomTextStorageChunk::modified()
     if ( _compbuf ) {
         CRLog::debug("Dropping compressed data of chunk %c%d due to modification", _type, _index);
         setpacked(NULL, 0);
+        _saved = false;
     }
 }
 
@@ -1413,6 +1505,9 @@ void ldomTextStorageChunk::ensureUnpacked()
         if (_compbuf) {
             _manager->compact( _bufpos );
             unpack();
+        } else if ( _saved ) {
+            _manager->compact( _bufpos );
+            restoreFromCache();
         }
     }
 }
@@ -6703,6 +6798,70 @@ void tinyNodeCollection::dumpStatistics()
 #define MYASSERT(x,t) \
     if (!(x)) crFatalError(1111, "UnitTest assertion failed: " t)
 
+void testCacheFile()
+{
+    CRLog::info("Starting CacheFile unit test");
+    lUInt8 data1[] = {'T', 'e', 's', 't', 'd', 'a', 't', 'a', 1, 2, 3, 4, 5, 6, 7};
+    lUInt8 data2[] = {'T', 'e', 's', 't', 'd', 'a', 't', 'a', '2', 1, 2, 3, 4, 5, 6, 7};
+    lUInt8 * buf1;
+    lUInt8 * buf2;
+    int sz1;
+    int sz2;
+    lString16 fn("/tmp/test-cache-file.dat");
+
+    {
+        lUInt8 data1[] = {'T', 'e', 's', 't', 'D', 'a', 't', 'a', '1'};
+        lUInt8 data2[] = {'T', 'e', 's', 't', 'D', 'a', 't', 'a', '2', 1, 2, 3, 4, 5, 6, 7};
+        LVStreamRef s = LVOpenFileStream( fn.c_str(), LVOM_APPEND );
+        s->SetPos(0);
+        s->Write(data1, sizeof(data1), NULL);
+        s->SetPos(4096);
+        s->Write(data1, sizeof(data1), NULL);
+        s->SetPos(8192);
+        s->Write(data2, sizeof(data2), NULL);
+        s->SetPos(4096);
+        s->Write(data2, sizeof(data2), NULL);
+        lUInt8 buf[16];
+        s->SetPos(0);
+        s->Read(buf, sizeof(data1), NULL);
+        MYASSERT(!memcmp(buf, data1, sizeof(data1)), "read 1 content");
+        s->SetPos(4096);
+        s->Read(buf, sizeof(data2), NULL);
+        MYASSERT(!memcmp(buf, data2, sizeof(data2)), "read 2 content");
+
+        //return;
+    }
+
+    // write
+    {
+        CacheFile f;
+        MYASSERT(f.open(lString16("/tmp/blabla-not-exits-file-name"))==false, "Wrong failed open result");
+        MYASSERT(f.create( fn )==true, "new file created");
+        MYASSERT(f.write(CBT_TEXT_DATA, 1, data1, sizeof(data1))==true, "write 1");
+        MYASSERT(f.write(CBT_ELEM_DATA, 3, data2, sizeof(data2))==true, "write 2");
+
+        MYASSERT(f.read(CBT_TEXT_DATA, 1, buf1, sz1)==true, "read 1");
+        MYASSERT(f.read(CBT_ELEM_DATA, 3, buf2, sz2)==true, "read 2");
+        MYASSERT(sz1==sizeof(data1), "read 1 size");
+        MYASSERT(!memcmp(buf1, data1, sizeof(data1)), "read 1 content");
+        MYASSERT(sz2==sizeof(data2), "read 2 size");
+        MYASSERT(!memcmp(buf2, data2, sizeof(data2)), "read 2 content");
+    }
+    // write
+    {
+        CacheFile f;
+        MYASSERT(f.open(fn)==true, "Wrong failed open result");
+        MYASSERT(f.read(CBT_TEXT_DATA, 1, buf1, sz1)==true, "read 1");
+        MYASSERT(f.read(CBT_ELEM_DATA, 3, buf2, sz2)==true, "read 2");
+        MYASSERT(sz1==sizeof(data1), "read 1 size");
+        MYASSERT(!memcmp(buf1, data1, sizeof(data1)), "read 1 content");
+        MYASSERT(sz2==sizeof(data2), "read 2 size");
+        MYASSERT(!memcmp(buf2, data2, sizeof(data2)), "read 2 content");
+    }
+
+    CRLog::info("Finished CacheFile unit test");
+}
+
 void runTinyDomUnitTests()
 {
     CRLog::info("==========================");
@@ -6980,5 +7139,9 @@ void runTinyDomUnitTests()
     delete doc;
 
     CRLog::info("Finished tinyDOM unit test");
+
+    testCacheFile();
+
     CRLog::info("==========================");
+
 }
