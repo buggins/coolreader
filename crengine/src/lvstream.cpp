@@ -888,6 +888,14 @@ public:
         }
         return LVERR_OK;
     }
+    /// flushes unsaved data from buffers to file, with optional flush of OS buffers
+    virtual lverror_t Flush( bool sync )
+    {
+        if ( !m_file )
+            return LVERR_FAIL;
+        fflush( m_file );
+        return LVERR_OK;
+    }
     virtual bool Eof()
     {
         return feof(m_file)!=0;
