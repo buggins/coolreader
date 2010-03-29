@@ -160,6 +160,7 @@ public:
 class ldomTextStorageChunk;
 class ldomTextStorageChunkBuilder;
 struct ElementDataStorageItem;
+class CacheFile;
 
 class ldomDataStorageManager
 {
@@ -167,12 +168,16 @@ class ldomDataStorageManager
     LVPtrVector<ldomTextStorageChunk> _chunks;
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
+    CacheFile * _cache;
     int _compressedSize;
     int _uncompressedSize;
     int _maxUncompressedSize;
+    int _maxCompressedSize;
     int _chunkSize;
     char _type;       /// type, to show in log
     ldomTextStorageChunk * getChunk( lUInt32 address );
+    /// checks buffer sizes, compacts most unused chunks
+    void setCache( CacheFile * cache );
 public:
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
@@ -198,7 +203,7 @@ public:
     /// set rect data item
     void setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src );
 
-    ldomDataStorageManager( char type, int maxUnpackedSize, int chunkSize );
+    ldomDataStorageManager( char type, int maxUnpackedSize, int maxPackedSize, int chunkSize );
     ~ldomDataStorageManager();
 };
 
@@ -217,6 +222,7 @@ class ldomTextStorageChunk
     char _type;       /// type, to show in log
     ldomTextStorageChunk * _nextRecent;
     ldomTextStorageChunk * _prevRecent;
+    bool _saved;
 
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
     bool unpack() { return unpack(_compbuf, _compsize); } /// unpack data from compbuf to _buf
@@ -228,10 +234,16 @@ class ldomTextStorageChunk
     void setTextParent( int offset, lUInt32 parent );
     /// pack data, and remove unpacked
     void compact();
+    /// pack data, and remove unpacked, put packed data to cache file
+    bool swapToCache( bool removeFromMemory );
+    /// read packed data from cache
+    bool restoreFromCache();
     /// unpacks chunk, if packed; checks storage space, compact if necessary
     void ensureUnpacked();
     /// free data item
     void freeNode( int offset );
+    /// type
+    lUInt16 cacheType();
 public:
     /// call to invalidate chunk if content is modified
     void modified();
