@@ -143,8 +143,12 @@ public:
     ~CacheFile();
     // try open existing cache file
     bool open( lString16 filename );
+    // try open existing cache file from stream
+    bool open( LVStreamRef stream );
     // create new cache file
     bool create( lString16 filename );
+    // create new cache file in stream
+    bool create( LVStreamRef stream );
     // reads and allocates block in memory
     bool read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size );
     // writes block to file
@@ -263,7 +267,7 @@ bool CacheFile::writeIndex()
     }
     bool res = write( CBT_INDEX, 0, (const lUInt8*)index, _index.length()*sizeof(CacheFileItem) );
     CacheFileItem * indexItem = findBlock( CBT_INDEX, 0 );
-    delete index;
+    delete[] index;
     if ( !res || !indexItem ) {
         CRLog::error("CacheFile::writeIndex: error while writing index!!!");
         return false;
@@ -400,19 +404,20 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         return false;
     // assert: size == block->_dataSize
     // actual writing of data
+    block->_dataSize = size;
     lvsize_t bytesWritten = 0;
-    _stream->Write(buf, block->_dataSize, &bytesWritten );
-    if ( bytesWritten!=block->_dataSize )
+    _stream->Write(buf, size, &bytesWritten );
+    if ( bytesWritten!=size )
         return false;
     _stream->Flush(true);
-    int paddingSize = roundSector( block->_dataSize ) - block->_dataSize;
+    int paddingSize = roundSector( size ) - size;
     if ( paddingSize ) {
         lUInt8 tmp[paddingSize];
         memset(tmp, 0xFF, paddingSize );
         _stream->Write(tmp, paddingSize, &bytesWritten );
     }
     // update CRC
-    block->_dataCRC = lStr_crc32(0,  buf, block->_dataSize );
+    block->_dataCRC = lStr_crc32(0,  buf, size );
     _indexChanged = true;
     // success
     return true;
@@ -421,11 +426,17 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
 // try open existing cache file
 bool CacheFile::open( lString16 filename )
 {
-    _stream = LVOpenFileStream( filename.c_str(), LVOM_READWRITE );
-    if ( !_stream ) {
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_APPEND );
+    if ( !stream ) {
         CRLog::error( "CacheFile::open: cannot open file %s", LCSTR(filename));
         return false;
     }
+    return open(stream);
+}
+// try open existing cache file
+bool CacheFile::open( LVStreamRef stream )
+{
+    _stream = stream;
     _size = _stream->GetSize();
 
     return readIndex();
@@ -433,13 +444,19 @@ bool CacheFile::open( lString16 filename )
 
 bool CacheFile::create( lString16 filename )
 {
-    _stream = LVOpenFileStream( filename.c_str(), LVOM_APPEND );
+    LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_APPEND );
     if ( _stream.isNull() ) {
         CRLog::error( "CacheFile::create: cannot create file %s", LCSTR(filename));
         return false;
     }
+    return create(stream);
+}
+
+bool CacheFile::create( LVStreamRef stream )
+{
+    _stream = stream;
     if ( _stream->SetPos(0)!=0 ) {
-        CRLog::error( "CacheFile::create: cannot seek file %s", LCSTR(filename));
+        CRLog::error( "CacheFile::create: cannot seek file");
         _stream.Clear();
         return false;
     }
@@ -794,6 +811,8 @@ tinyNodeCollection::tinyNodeCollection()
 , _textStorage(this, 't', 0x80000, 0x80000, 0xFFFF ) // persistent text node data storage
 , _elemStorage(this, 'e', 0x80000, 0x80000, 0x7FFF ) // persistent element data storage
 , _rectStorage(this, 'r', 0x80000, 0x80000, 0x3FFF ) // element render rect storage
+,_docProps(LVCreatePropsContainer())
+,_docFlags(DOC_FLAG_DEFAULTS)
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
@@ -805,7 +824,23 @@ bool tinyNodeCollection::createCacheFile()
         return true;
     CacheFile * f = new CacheFile();
     lString16 cacheFileName("/tmp/cr3swap.tmp");
-    if ( !f->create( cacheFileName ) ) {
+
+    lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
+    lUInt32 sz = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
+    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
+
+    if ( !ldomDocCache::enabled() ) {
+        CRLog::error("Cannot swap: cache dir is not initialized");
+        return false;
+    }
+
+    CRLog::info("ldomDocument::swapToCache() - Started swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
+
+    LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), sz );
+    if ( map.isNull() )
+        return false;
+
+    if ( !f->create( map ) ) {
         delete f;
         return false;
     }
@@ -1664,12 +1699,10 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 , _attrValueTable( DOC_STRING_HASH_SIZE )
 ,_idNodeMap(1024)
 ,_idAttrId(0)
-,_docProps(LVCreatePropsContainer())
 #if BUILD_LITE!=1
 //,_keepData(false)
 //,_mapped(false)
 #endif
-,_docFlags(DOC_FLAG_DEFAULTS)
 #if BUILD_LITE!=1
 ,_pagesData(8192)
 #endif
@@ -1747,7 +1780,7 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 ,   _attrValueTable(doc._attrValueTable)
 ,   _idNodeMap(doc._idNodeMap)
 ,   _idAttrId(doc._idAttrId) // Id for "id" attribute name
-,   _docFlags(doc._docFlags)
+//,   _docFlags(doc._docFlags)
 #if BUILD_LITE!=1
 ,   _pagesData(8192)
 #endif
@@ -4658,7 +4691,7 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
 }
 #endif
 
-int ldomDocument::getPersistenceFlags()
+int tinyNodeCollection::getPersistenceFlags()
 {
     int format = getProps()->getIntDef(DOC_PROP_FILE_FORMAT, 0);
     int flag = ( format==2 && getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ) ? 1 : 0;
@@ -5263,13 +5296,13 @@ public:
         if ( findFileIndex( fn ) >= 0 )
             LVDeleteFile( fn );
         reserve( fileSize );
-        res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, fileSize );
+        //res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, fileSize );
+        res = LVOpenFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND );
         if ( !res ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return res;
         }
-        lUInt32 sz = (lUInt32) res->GetSize();
-        moveFileToTop( fn, sz );
+        moveFileToTop( fn, fileSize );
         return res;
     }
 

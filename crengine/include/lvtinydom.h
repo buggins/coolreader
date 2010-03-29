@@ -310,8 +310,44 @@ protected:
     ldomDataStorageManager _elemStorage; // persistent element data storage
     ldomDataStorageManager _rectStorage; // element render rect storage
 
+    CRPropRef _docProps;
+    lUInt32 _docFlags; // document flags
+
+    /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
+    int getPersistenceFlags();
+
 public:
     bool createCacheFile();
+
+    inline bool getDocFlag( lUInt32 mask )
+    {
+        return (_docFlags & mask) != 0;
+    }
+
+    inline void setDocFlag( lUInt32 mask, bool value )
+    {
+        if ( value )
+            _docFlags |= mask;
+        else
+            _docFlags &= ~mask;
+    }
+
+    inline lUInt32 getDocFlags()
+    {
+        return _docFlags;
+    }
+
+    inline void setDocFlags( lUInt32 value )
+    {
+        _docFlags = value;
+    }
+
+
+    /// returns doc properties collection
+    inline CRPropRef getProps() { return _docProps; }
+    /// returns doc properties collection
+    void setProps( CRPropRef props ) { _docProps = props; }
+
 
     /// minimize memory consumption
     void compact();
@@ -759,10 +795,6 @@ public:
         ldomNode * node = getNodeById( attrValueId );
         return node;
     }
-    /// returns doc properties collection
-    inline CRPropRef getProps() { return _docProps; }
-    /// returns doc properties collection
-    void setProps( CRPropRef props ) { _docProps = props; }
     /// returns root element
     ldomNode * getRootNode();
 
@@ -777,29 +809,6 @@ public:
     bool checkConsistency( bool requirePersistent );
 #endif
 #endif
-
-    inline bool getDocFlag( lUInt32 mask )
-    {
-        return (_docFlags & mask) != 0;
-    }
-
-    inline void setDocFlag( lUInt32 mask, bool value )
-    {
-        if ( value )
-            _docFlags |= mask;
-        else
-            _docFlags &= ~mask;
-    }
-
-    inline lUInt32 getDocFlags()
-    {
-        return _docFlags;
-    }
-
-    inline void setDocFlags( lUInt32 value )
-    {
-        _docFlags = value;
-    }
 
 #if BUILD_LITE!=1
     /// try opening from cache file, find by source file name (w/o path) and crc32
@@ -855,8 +864,6 @@ protected:
     lString16HashedCollection _attrValueTable;
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
-    CRPropRef _docProps;
-    lUInt32 _docFlags; // document flags
 
 #if BUILD_LITE!=1
     SerialBuf _pagesData;
@@ -1511,8 +1518,6 @@ private:
 
 protected:
 
-    /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
-    int getPersistenceFlags();
 
 public:
 
