@@ -789,14 +789,33 @@ tinyNodeCollection::tinyNodeCollection()
 , _itemCount(0)
 #if BUILD_LITE!=1
 , _renderedBlockCache( 32 )
+, _cacheFile(NULL)
 #endif
-, _textStorage('t', 0x80000, 0x80000, 0xFFFF ) // persistent text node data storage
-, _elemStorage('e', 0x80000, 0x80000, 0x7FFF ) // persistent element data storage
-, _rectStorage('r', 0x80000, 0x80000, 0x3FFF ) // element render rect storage
+, _textStorage(this, 't', 0x80000, 0x80000, 0xFFFF ) // persistent text node data storage
+, _elemStorage(this, 'e', 0x80000, 0x80000, 0x7FFF ) // persistent element data storage
+, _rectStorage(this, 'r', 0x80000, 0x80000, 0x3FFF ) // element render rect storage
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
 }
+
+bool tinyNodeCollection::createCacheFile()
+{
+    if ( _cacheFile )
+        return true;
+    CacheFile * f = new CacheFile();
+    lString16 cacheFileName("/tmp/cr3swap.tmp");
+    if ( !f->create( cacheFileName ) ) {
+        delete f;
+        return false;
+    }
+    _cacheFile = f;
+    _textStorage.setCache( f );
+    _elemStorage.setCache( f );
+    _rectStorage.setCache( f );
+    return true;
+}
+
 
 /// get ldomNode instance pointer
 ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
@@ -886,6 +905,8 @@ void tinyNodeCollection::recycleTinyNode( lUInt32 index )
 
 tinyNodeCollection::~tinyNodeCollection()
 {
+    if ( _cacheFile )
+        delete _cacheFile;
     // clear all elem parts
     for ( int partindex = 0; partindex<=(_elemCount>>TNC_PART_SHIFT); partindex++ ) {
         ldomNode * part = _elemList[partindex];
@@ -978,6 +999,10 @@ ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
     return chunk;
 }
 
+void ldomDataStorageManager::setCache( CacheFile * cache )
+{
+    _cache = cache;
+}
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 10
 #define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
@@ -1105,12 +1130,16 @@ void ldomDataStorageManager::compact( int reservedSpace )
                 }
             }
             if ( p->_compsize>=0 ) {
-                if ( _cache && p->_compsize + sumpackedsize < _maxCompressedSize ) {
+                if ( p->_compsize + sumpackedsize < _maxCompressedSize ) {
                     // fits
                     sumpackedsize += p->_compsize;
                 } else {
-                    if ( !p->swapToCache(true) ) {
-                        crFatalError(111, "Swap file writing error!");
+                    if ( !_cache )
+                        _owner->createCacheFile();
+                    if ( _cache ) {
+                        if ( !p->swapToCache(true) ) {
+                            crFatalError(111, "Swap file writing error!");
+                        }
                     }
                 }
             }
@@ -1119,16 +1148,11 @@ void ldomDataStorageManager::compact( int reservedSpace )
     }
 }
 
-/// checks buffer sizes, compacts most unused chunks
-void ldomDataStorageManager::setCache( CacheFile * cache )
-{
-    _cache = cache;
-}
-
 // max 512K of uncompressed data (~8 chunks)
 #define DEF_MAX_UNCOMPRESSED_SIZE 0x80000
-ldomDataStorageManager::ldomDataStorageManager( char type, int maxUnpackedSize, int maxPackedSize, int chunkSize )
-: _activeChunk(NULL)
+ldomDataStorageManager::ldomDataStorageManager( tinyNodeCollection * owner, char type, int maxUnpackedSize, int maxPackedSize, int chunkSize )
+: _owner( owner )
+, _activeChunk(NULL)
 , _recentChunk(NULL)
 , _cache(NULL)
 , _compressedSize(0)
