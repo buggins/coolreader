@@ -130,6 +130,8 @@ public:
     /// Set stream mode, supported not by all streams
     /** \return LVERR_OK if change is ok */
     virtual lverror_t SetMode( lvopen_mode_t ) { return LVERR_NOTIMPL; }
+    /// flushes unsaved data from buffers to file, with optional flush of OS buffers
+    virtual lverror_t Flush( bool sync ) { return LVERR_OK; }
 
     /// Seek (change file pos)
     /**

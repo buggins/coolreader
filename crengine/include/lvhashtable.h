@@ -149,7 +149,7 @@ public:
     {
         lUInt32 index = getHash( key ) & ( _size-1 );
         pair ** p = &_table[index];
-        for ( ;*p ;p = &p->next )
+        for ( ;*p ;p = &(*p)->next )
         {
             if ( (*p)->key == key )
             {
