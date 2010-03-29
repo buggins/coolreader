@@ -1096,20 +1096,22 @@ void ldomDataStorageManager::compact( int reservedSpace )
         int sumsize = reservedSpace;
         int sumpackedsize = 0;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
-            if ( p->_bufsize <= 0 )
-                continue;
-            if ( p->_bufsize + sumsize < _maxUncompressedSize ) {
-                // fits
-                sumsize += p->_bufsize;
-            } else {
-                p->compact();
+            if ( p->_bufsize >= 0 ) {
+                if ( p->_bufsize + sumsize < _maxUncompressedSize ) {
+                    // fits
+                    sumsize += p->_bufsize;
+                } else {
+                    p->compact();
+                }
             }
-            if ( _cache && p->_compsize + sumpackedsize < _maxCompressedSize ) {
-                // fits
-                sumpackedsize += p->_compsize;
-            } else {
-                if ( !p->swapToCache(true) ) {
-                    crFatalError(111, "Swap file writing error!");
+            if ( p->_compsize>=0 ) {
+                if ( _cache && p->_compsize + sumpackedsize < _maxCompressedSize ) {
+                    // fits
+                    sumpackedsize += p->_compsize;
+                } else {
+                    if ( !p->swapToCache(true) ) {
+                        crFatalError(111, "Swap file writing error!");
+                    }
                 }
             }
         }
@@ -1212,7 +1214,7 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
     if ( !_manager->_cache )
         return true;
     if ( _compbuf ) {
-        if ( !_saved ) {
+        if ( !_saved && _manager->_cache) {
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
             if ( !_manager->_cache->write( cacheType(), _index, _compbuf, _compsize ) )
                 return false;
@@ -1443,7 +1445,7 @@ bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
     z.avail_out = UNPACK_BUF_SIZE;
     z.next_out = tmp;
     ret = inflate( &z, Z_FINISH );
-    int have = PACK_BUF_SIZE - z.avail_out;
+    int have = UNPACK_BUF_SIZE - z.avail_out;
     inflateEnd(&z);
     if ( ret!=Z_STREAM_END || have==0 || have>=UNPACK_BUF_SIZE || z.avail_in!=0 ) {
         // some error occured while unpacking
@@ -1508,6 +1510,7 @@ void ldomTextStorageChunk::ensureUnpacked()
         } else if ( _saved ) {
             _manager->compact( _bufpos );
             restoreFromCache();
+            unpack();
         }
     }
 }
