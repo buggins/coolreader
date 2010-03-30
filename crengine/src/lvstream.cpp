@@ -1277,6 +1277,7 @@ public:
             CRLog::error( "Cannot get file size for %s", fn8.c_str() );
             return LVERR_FAIL;
         }
+        m_mode = mode;
         m_size = (lvsize_t) stat.st_size;
 #endif
 
