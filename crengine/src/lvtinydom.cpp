@@ -34,7 +34,9 @@ enum CacheFileBlockType {
     CBT_MAPS_DATA,
     CBT_PAGE_DATA,
     CBT_PROP_DATA,
-    CBT_NODE_DATA,
+    CBT_NODE_INDEX,
+    CBT_ELEM_NODE,
+    CBT_TEXT_NODE,
 };
 
 
@@ -58,6 +60,10 @@ enum CacheFileBlockType {
 
 //#define INDEX1 105
 //#define INDEX2 106
+
+/// pack data from _buf to _compbuf
+bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+
 
 #if BUILD_LITE!=1
 
@@ -819,23 +825,39 @@ bool tinyNodeCollection::createCacheFile()
     return true;
 }
 
-bool tinyNodeCollection::saveNodeData()
+bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodecount )
 {
-    int count = (_elemCount >> TNC_PART_SHIFT) + 1;
+    int count = (nodecount >> TNC_PART_SHIFT) + 1;
     for ( int i=0; i<count; i++ ) {
-        if ( !_elemList[i] )
+        if ( !list[i] )
             continue;
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
-        if ( offs + sz >= _elemCount ) {
-            sz = _elemCount - offs + 1;
+        if ( offs + sz >= nodecount ) {
+            sz = nodecount - offs + 1;
         }
         ldomNode buf[TNC_PART_LEN];
-        memcpy( buf, _elemList[i], sizeof(ldomNode)*sz );
+        memcpy( buf, list[i], sizeof(ldomNode)*sz );
         for ( int j=0; j<sz; j++ )
             buf[j]._document = NULL;
-        //        _elemList[ _elemCount >> TNC_PART_SHIFT ] = part;
+        lUInt8 * packed = NULL;
+        lUInt32 packedsize = 0;
+        if ( !ldomPack( (lUInt8*)buf, sizeof(ldomNode)*sz, packed, packedsize ) )
+            crFatalError(-1, "Cannot pack node data");
+        if ( !_cacheFile->write( type, 0, packed, packedsize ) )
+            crFatalError(-1, "Cannot write node data");
+        free( packed );
     }
+    return true;
+}
+
+bool tinyNodeCollection::saveNodeData()
+{
+    if ( !saveNodeData( CBT_ELEM_NODE, _elemList, _elemCount ) )
+        return false;
+    if ( !saveNodeData( CBT_TEXT_NODE, _textList, _textCount ) )
+        return false;
+    return true;
 }
 
 /// get ldomNode instance pointer
@@ -4862,6 +4884,8 @@ bool ldomDocument::swapToCache( lUInt32 reservedSize )
 
     _cacheFile->write( CBT_PAGE_DATA, _pagesData );
 
+    saveNodeData();
+
 #ifdef TINYNODE_MIGRATION
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
@@ -5334,7 +5358,9 @@ public:
             LVDeleteFile( fn );
         reserve( fileSize );
         //res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, fileSize );
-        res = LVOpenFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND );
+        lString16 pathname( _cacheDir+fn );
+        LVDeleteFile( pathname ); // try to delete, ignore errors
+        res = LVOpenFileStream( pathname.c_str(), LVOM_APPEND );
         if ( !res ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return res;

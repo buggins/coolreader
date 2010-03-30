@@ -318,6 +318,7 @@ protected:
     int getPersistenceFlags();
 
     bool saveNodeData();
+    bool saveNodeData( lUInt16 type, ldomNode ** list, int nodecount );
 
 public:
     bool createCacheFile();
