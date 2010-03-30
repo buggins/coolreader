@@ -25,6 +25,17 @@
 #define STYLE_HASH_TABLE_SIZE     2048
 #define FONT_HASH_TABLE_SIZE      1024
 
+enum CacheFileBlockType {
+    CBT_FREE = 0,
+    CBT_INDEX = 1,
+    CBT_TEXT_DATA,
+    CBT_ELEM_DATA,
+    CBT_RECT_DATA,
+    CBT_MAPS_DATA,
+    CBT_PAGE_DATA,
+    CBT_PROP_DATA,
+    CBT_NODE_DATA,
+};
 
 
 #include <stdlib.h>
@@ -49,14 +60,6 @@
 //#define INDEX2 106
 
 #if BUILD_LITE!=1
-
-enum CacheFileBlockType {
-    CBT_FREE = 0,
-    CBT_INDEX = 1,
-    CBT_TEXT_DATA,
-    CBT_ELEM_DATA,
-    CBT_RECT_DATA,
-};
 
 #define CACHE_FILE_ITEM_MAGIC 0xC007B00C
 struct CacheFileItem
@@ -169,6 +172,11 @@ public:
     bool read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size );
     // writes block to file
     bool write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size );
+    /// writes content of serial buffer
+    bool write( lUInt16 type, SerialBuf & buf );
+    /// reads content of serial buffer
+    bool read( lUInt16 type, SerialBuf & buf );
+
     // flushes index
     bool flush( bool sync );
     int roundSector( int n )
@@ -441,6 +449,24 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     //CRLog::error("CacheFile::write: block %d:%d (pos %ds, size %ds) is written (crc=%08x)", type, dataIndex, (int)block->_blockFilePos/_sectorSize, (int)(size+_sectorSize-1)/_sectorSize, block->_dataCRC);
     // success
     return true;
+}
+
+/// writes content of serial buffer
+bool CacheFile::write( lUInt16 type, SerialBuf & buf )
+{
+    return write( type, 0, buf.buf(), buf.pos() );
+}
+
+/// reads content of serial buffer
+bool CacheFile::read( lUInt16 type, SerialBuf & buf )
+{
+    lUInt8 * tmp = NULL;
+    int size = 0;
+    bool res = read( type, 0, tmp, size );
+    if ( res ) {
+        buf.set( tmp, size );
+    }
+    return res;
 }
 
 // try open existing cache file
@@ -730,82 +756,6 @@ struct ElementDataStorageItem : public DataStorageItemHeader {
     //font_ref_t      _font;
 };
 
-class DataBuffer {
-private:
-    int _size;
-    int _len;
-    lUInt8 * _data;
-    bool _own;
-public :
-    // return first non-empty item, NULL if no items found
-    DataStorageItemHeader * first()
-    {
-        if ( _len==0 )
-            return NULL;
-        DataStorageItemHeader * item = (DataStorageItemHeader *)_data;
-        if ( item->type == LXML_NO_DATA )
-            item = next( item );
-        return item;
-    }
-    // return next non-empty item, NULL if end of collection reached
-    DataStorageItemHeader * next( DataStorageItemHeader * item )
-    {
-        if ( item==NULL )
-            return NULL;
-        for ( ;; ) {
-            if ( !item->sizeDiv16 ) {
-                CRLog::error("Zero size block at offset %d, data len=%d, total reserved size=%d", (int)(((lUInt8*)item) - _data), _len, _size );
-                return NULL;
-            }
-            item = (DataStorageItemHeader*)(((lUInt8*)item) + ((lUInt32)item->sizeDiv16 * 16));
-            if ( (lUInt8*)item >= _data + _len )
-                return NULL;
-            if ( item->type != LXML_NO_DATA )
-                return item;
-            //CRLog::trace("skipping no_data item of size %d at offset %x (dataIndex=%d)", item->sizeDiv16*16, (int)((lUInt8*)item - _data), item->dataIndex );
-        }
-
-    }
-    bool isNull()
-    {
-        return _data==NULL;
-    }
-    DataBuffer( int size )
-        : _size( size ), _len( 0 ), _own(true)
-    {
-        //_data = (lUInt8*)calloc( size, sizeof(lUInt8) );
-        _data = (lUInt8*)malloc( size );
-    memset( _data, 0, size );
-    }
-    DataBuffer( lUInt8 * data, int size, int len )
-        : _size( size ), _len( len ), _data(data), _own(false)
-    {
-    }
-    ~DataBuffer()
-    {
-        if ( _own )
-            free( _data );
-    }
-    DataStorageItemHeader * alloc( int size );
-    lUInt8 * ptr() { return _data; }
-    int length() { return _len; }
-    void relocatePtr( ptrdiff_t addrDiff, int newSize )
-    {
-        _data += addrDiff;
-        _size = newSize;
-    }
-};
-
-DataStorageItemHeader * DataBuffer::alloc( int size )
-{
-    if ( _len + size > _size )
-        return NULL; // no room
-    size = (size + 15) & 0xFFFFFF0;
-    DataStorageItemHeader * item = (DataStorageItemHeader *) (_data + _len);
-    item->sizeDiv16 = size >> 4;
-    _len += size;
-    return item;
-}
 #endif
 
 
@@ -841,7 +791,7 @@ bool tinyNodeCollection::createCacheFile()
     if ( _cacheFile )
         return true;
     CacheFile * f = new CacheFile();
-    lString16 cacheFileName("/tmp/cr3swap.tmp");
+    //lString16 cacheFileName("/tmp/cr3swap.tmp");
 
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     lUInt32 sz = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
@@ -869,6 +819,24 @@ bool tinyNodeCollection::createCacheFile()
     return true;
 }
 
+bool tinyNodeCollection::saveNodeData()
+{
+    int count = (_elemCount >> TNC_PART_SHIFT) + 1;
+    for ( int i=0; i<count; i++ ) {
+        if ( !_elemList[i] )
+            continue;
+        int offs = i*TNC_PART_LEN;
+        int sz = TNC_PART_LEN;
+        if ( offs + sz >= _elemCount ) {
+            sz = _elemCount - offs + 1;
+        }
+        ldomNode buf[TNC_PART_LEN];
+        memcpy( buf, _elemList[i], sizeof(ldomNode)*sz );
+        for ( int j=0; j<sz; j++ )
+            buf[j]._document = NULL;
+        //        _elemList[ _elemCount >> TNC_PART_SHIFT ] = part;
+    }
+}
 
 /// get ldomNode instance pointer
 ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
@@ -1226,7 +1194,6 @@ ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageMan
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
-, _filepos(0)    /// position in swap file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
 , _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
 , _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
@@ -1245,7 +1212,6 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
-, _filepos(0)    /// position in swap file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
@@ -1475,13 +1441,11 @@ lString8 ldomTextStorageChunk::getText( int offset )
 #define TEXT_COMPRESSION_LEVEL 3
 #define PACK_BUF_SIZE 0x10000
 #define UNPACK_BUF_SIZE 0x40000
+
+
 /// pack data from _buf to _compbuf
-bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
+bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
 {
-    LASSERT(buf && bufsize>0);
-    //if ( !buf || !bufsize )
-    //    return false; // no data to compress
-    setpacked(NULL, 0);
     lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
     int ret, flush;
     z_stream z;
@@ -1501,19 +1465,32 @@ bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
     if ( ret!=Z_STREAM_END || have==0 || have>=PACK_BUF_SIZE || z.avail_in!=0 ) {
         // some error occured while packing, leave unpacked
         //setpacked( buf, bufsize );
+        return false;
+    }
+    dstsize = have;
+    dstbuf = (lUInt8 *)malloc(have);
+    memcpy( dstbuf, tmp, have );
+    return true;
+}
+
+/// pack data from _buf to _compbuf
+bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
+{
+    LASSERT(buf && bufsize>0);
+    //if ( !buf || !bufsize )
+    //    return false; // no data to compress
+    setpacked(NULL, 0);
+    if ( !ldomPack( buf, bufsize, _compbuf, _compsize ) ) {
+        // some error occured while packing
         crFatalError(-1, "ldomTextStorageChunk::pack error");
     }
-    setpacked( tmp, have );
+    _manager->_compressedSize += _compsize;
     return true;
 }
 
 /// unpack data from _compbuf to _buf
-bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
+bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
 {
-    LASSERT(compbuf && compsize>0);
-    //if ( !compbuf || !compsize )
-    //    return false; // no data to compress
-    setunpacked(NULL, 0);
     lUInt8 tmp[UNPACK_BUF_SIZE]; // 64K buffer for compressed data
     int ret, flush;
     z_stream z;
@@ -1533,10 +1510,27 @@ bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
     inflateEnd(&z);
     if ( ret!=Z_STREAM_END || have==0 || have>=UNPACK_BUF_SIZE || z.avail_in!=0 ) {
         // some error occured while unpacking
+        return false;
+    }
+    dstsize = have;
+    dstbuf = (lUInt8 *)malloc(have);
+    memcpy( dstbuf, tmp, have );
+    return true;
+}
+
+/// unpack data from _compbuf to _buf
+bool ldomTextStorageChunk::unpack( const lUInt8 * compbuf, int compsize )
+{
+    LASSERT(compbuf && compsize>0);
+    //if ( !compbuf || !compsize )
+    //    return false; // no data to compress
+    setunpacked(NULL, 0);
+    if ( !ldomUnpack( compbuf, compsize, _buf, _bufsize ) ) {
+        // some error occured while unpacking
         crFatalError(-1, "ldomTextStorageChunk::pack error");
         return false;
     }
-    setunpacked( tmp, have );
+    _manager->_uncompressedSize += _bufsize;
     return true;
 }
 
@@ -4853,6 +4847,21 @@ bool ldomDocument::openFromCache( )
 
 bool ldomDocument::swapToCache( lUInt32 reservedSize )
 {
+    if ( !createCacheFile() ) {
+        CRLog::error("ldomDocument::swapToCache: failed: cannot create cache file");
+        return false;
+    }
+
+    SerialBuf propsbuf(4096);
+    getProps()->serialize( propsbuf );
+    _cacheFile->write( CBT_PROP_DATA, propsbuf );
+
+    SerialBuf idbuf(4096);
+    serializeMaps( idbuf );
+    _cacheFile->write( CBT_MAPS_DATA, idbuf );
+
+    _cacheFile->write( CBT_PAGE_DATA, _pagesData );
+
 #ifdef TINYNODE_MIGRATION
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
