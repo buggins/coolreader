@@ -11,6 +11,22 @@
 
 *******************************************************/
 
+// cache memory sizes
+#define TEXT_CACHE_UNPACKED_SPACE 0x080000
+#define TEXT_CACHE_PACKED_SPACE   0x180000
+#define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
+#define ELEM_CACHE_UNPACKED_SPACE 0x100000
+#define ELEM_CACHE_PACKED_SPACE   0x180000
+#define ELEM_CACHE_CHUNK_SIZE     0x008000
+#define RECT_CACHE_UNPACKED_SPACE 0x080000
+#define RECT_CACHE_PACKED_SPACE   0x100000
+#define RECT_CACHE_CHUNK_SIZE     0x004000
+
+#define STYLE_HASH_TABLE_SIZE     2048
+#define FONT_HASH_TABLE_SIZE      1024
+
+
+
 #include <stdlib.h>
 #include <string.h>
 #include "../include/lvstring.h"
@@ -323,6 +339,7 @@ CacheFileItem * CacheFile::allocBlock( lUInt16 type, lUInt16 index, int size )
         }
         // old block has not enough space: free it
         freeBlock( existing );
+        existing = NULL;
     }
     // search for existing free block of proper size
     int bestSize = -1;
@@ -383,8 +400,9 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     }
     // check CRC
     lUInt32 crc = lStr_crc32(0,  buf, block->_dataSize );
+    //CRLog::error("CacheFile::read: block %d:%d (pos %ds, size %ds) is read (crc=%08x)", type, dataIndex, (int)block->_blockFilePos/_sectorSize, (int)(block->_dataSize+_sectorSize-1)/_sectorSize, crc);
     if ( crc!=block->_dataCRC ) {
-        CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d", type, dataIndex, (int)size);
+        CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d (crc=%08x, expected=%08x)", type, dataIndex, (int)size, crc, block->_dataCRC);
         free(buf);
         buf = NULL;
         size = 0;
@@ -412,6 +430,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     _stream->Flush(true);
     int paddingSize = roundSector( size ) - size;
     if ( paddingSize ) {
+        LASSERT(size + paddingSize == block->_blockSize );
         lUInt8 tmp[paddingSize];
         memset(tmp, 0xFF, paddingSize );
         _stream->Write(tmp, paddingSize, &bytesWritten );
@@ -419,6 +438,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     // update CRC
     block->_dataCRC = lStr_crc32(0,  buf, size );
     _indexChanged = true;
+    //CRLog::error("CacheFile::write: block %d:%d (pos %ds, size %ds) is written (crc=%08x)", type, dataIndex, (int)block->_blockFilePos/_sectorSize, (int)(size+_sectorSize-1)/_sectorSize, block->_dataCRC);
     // success
     return true;
 }
@@ -793,8 +813,6 @@ DataStorageItemHeader * DataBuffer::alloc( int size )
 // tinyNodeCollection implementation
 //=================================================================
 
-#define STYLE_HASH_TABLE_SIZE 2048
-#define FONT_HASH_TABLE_SIZE 1024
 tinyNodeCollection::tinyNodeCollection()
 : _textCount(0)
 , _textNextFree(0)
@@ -808,9 +826,9 @@ tinyNodeCollection::tinyNodeCollection()
 , _renderedBlockCache( 32 )
 , _cacheFile(NULL)
 #endif
-, _textStorage(this, 't', 0x80000, 0x80000, 0xFFFF ) // persistent text node data storage
-, _elemStorage(this, 'e', 0x80000, 0x80000, 0x7FFF ) // persistent element data storage
-, _rectStorage(this, 'r', 0x80000, 0x80000, 0x3FFF ) // element render rect storage
+, _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_PACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
+, _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_PACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
+, _rectStorage(this, 'r', RECT_CACHE_UNPACKED_SPACE, RECT_CACHE_PACKED_SPACE, RECT_CACHE_CHUNK_SIZE ) // element render rect storage
 ,_docProps(LVCreatePropsContainer())
 ,_docFlags(DOC_FLAG_DEFAULTS)
 {
@@ -1259,6 +1277,8 @@ lUInt16 ldomTextStorageChunk::cacheType()
     return 0;
 }
 
+static int dummy1_valgrind_test = 0;
+
 /// pack data, and remove unpacked, put packed data to cache file
 bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 {
@@ -1275,8 +1295,13 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
     if ( _compbuf ) {
         if ( !_saved && _manager->_cache) {
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
-            if ( !_manager->_cache->write( cacheType(), _index, _compbuf, _compsize ) )
+            if ( _compbuf[_compsize-1] )
+                dummy1_valgrind_test++; // valgrind test
+            if ( !_manager->_cache->write( cacheType(), _index, _compbuf, _compsize ) ) {
+                CRLog::error("Error while swapping of chunk %c%d to cache file", _type, _index);
+                crFatalError(-1, "Error while swapping of chunk to cache file");
                 return false;
+            }
             _saved = true;
         }
     }
@@ -1568,7 +1593,10 @@ void ldomTextStorageChunk::ensureUnpacked()
             unpack();
         } else if ( _saved ) {
             _manager->compact( _bufpos );
-            restoreFromCache();
+            if ( !restoreFromCache() ) {
+                CRLog::error( "restoreFromCache() failed for chunk %c%d", _type, _index);
+                crFatalError( 111, "restoreFromCache() failed for chunk");
+            }
             unpack();
         }
     }
