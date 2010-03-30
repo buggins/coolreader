@@ -783,6 +783,16 @@ public:
 	SerialBuf( const lUInt8 * p, int sz );
 	~SerialBuf();
 
+    void set( lUInt8 * buf, int size )
+    {
+        if ( _buf && _ownbuf )
+            free( _buf );
+        _buf = buf;
+        _ownbuf = true;
+        _error = false;
+        _autoresize = true;
+        _size = _pos = size;
+    }
     bool copyTo( lUInt8 * buf, int maxSize );
     inline lUInt8 * buf() { return _buf; }
     inline void setPos( int pos ) { _pos = pos; }

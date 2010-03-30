@@ -166,6 +166,7 @@ class tinyNodeCollection;
 class ldomDataStorageManager
 {
     friend class ldomTextStorageChunk;
+protected:
     tinyNodeCollection * _owner;
     LVPtrVector<ldomTextStorageChunk> _chunks;
     ldomTextStorageChunk * _activeChunk;
@@ -216,7 +217,7 @@ class ldomTextStorageChunk
     ldomDataStorageManager * _manager;
     lUInt8 * _buf;     /// buffer for uncompressed data
     lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
-    lUInt32 _filepos;  /// position in swap file
+    //lUInt32 _filepos;  /// position in swap file
     lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
@@ -315,6 +316,8 @@ protected:
 
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
+
+    bool saveNodeData();
 
 public:
     bool createCacheFile();
