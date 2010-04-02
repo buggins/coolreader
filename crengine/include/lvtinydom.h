@@ -181,6 +181,9 @@ protected:
     ldomTextStorageChunk * getChunk( lUInt32 address );
     /// checks buffer sizes, compacts most unused chunks
 public:
+    /// saves all unsaved chunks to cache file
+    bool save();
+    /// sets cache file
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
@@ -247,6 +250,8 @@ class ldomTextStorageChunk
     void freeNode( int offset );
     /// type
     lUInt16 cacheType();
+    /// saves data to cache file, if unsaved
+    bool save();
 public:
     /// call to invalidate chunk if content is modified
     void modified();
@@ -305,6 +310,7 @@ protected:
     /// final block cache
     CVRendBlockCache _renderedBlockCache;
     CacheFile * _cacheFile;
+    bool _mapped;
 #endif
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
@@ -1519,6 +1525,9 @@ private:
     ldomXRangeList _selections;
 
     LVContainerRef _container;
+
+    /// save changes to cache file
+    bool saveChanges();
 
 protected:
 
