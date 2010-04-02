@@ -162,6 +162,8 @@ class CacheFile
     // reads index from file
     bool readIndex();
 public:
+    // return current file size
+    int getSize() { return _size; }
     // create uninitialized cache file, call open or create to initialize
     CacheFile();
     // free resources
@@ -207,8 +209,9 @@ CacheFile::~CacheFile()
 // flushes index
 bool CacheFile::flush( bool sync )
 {
-    writeIndex();
-    _stream->Flush( sync );
+    if ( !writeIndex() )
+        return false;
+    return _stream->Flush( sync )==LVERR_OK;
 }
 
 // reads index from file
@@ -781,6 +784,7 @@ tinyNodeCollection::tinyNodeCollection()
 #if BUILD_LITE!=1
 , _renderedBlockCache( 32 )
 , _cacheFile(NULL)
+, _mapped(false)
 #endif
 , _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_PACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_PACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
@@ -851,11 +855,18 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
     return true;
 }
 
+#define NODE_INDEX_MAGIC 0x19283746
 bool tinyNodeCollection::saveNodeData()
 {
+    SerialBuf buf(8, true);
+    buf << (lUInt32)NODE_INDEX_MAGIC;
+    buf << _elemCount;
+    buf << _textCount;
     if ( !saveNodeData( CBT_ELEM_NODE, _elemList, _elemCount ) )
         return false;
     if ( !saveNodeData( CBT_TEXT_NODE, _textList, _textCount ) )
+        return false;
+    if ( !_cacheFile->write(CBT_NODE_INDEX, buf) )
         return false;
     return true;
 }
@@ -1023,6 +1034,18 @@ void tinyNodeCollection::persist()
 
 
  */
+
+/// saves all unsaved chunks to cache file
+bool ldomDataStorageManager::save()
+{
+    if ( !_cache )
+        return true;
+    bool res = true;
+    for ( int i=0; i<_chunks.length(); i++ )
+        if ( !_chunks[i]->save() )
+            res = false;
+    return res;
+}
 
 /// get chunk pointer and update usage data
 ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
@@ -1243,6 +1266,14 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _prevRecent(NULL)
 , _saved(false)
 {
+}
+
+/// saves data to cache file, if unsaved
+bool ldomTextStorageChunk::save()
+{
+    if ( !_saved )
+        return swapToCache(false);
+    return true;
 }
 
 ldomTextStorageChunk::~ldomTextStorageChunk()
@@ -4867,6 +4898,60 @@ bool ldomDocument::openFromCache( )
 }
 
 
+/// save changes to cache file
+bool ldomDocument::saveChanges()
+{
+    bool res = true;
+    if ( !_cacheFile )
+        return true;
+    persist();
+    if ( !_elemStorage.save() ) {
+        CRLog::error("Error while saving element data");
+        res = false;
+    }
+    if ( !_textStorage.save() ) {
+        CRLog::error("Error while saving tect data");
+        res = false;
+    }
+    if ( !_rectStorage.save() ) {
+        CRLog::error("Error while saving rect data");
+        res = false;
+    }
+
+    SerialBuf propsbuf(4096);
+    getProps()->serialize( propsbuf );
+    if ( !_cacheFile->write( CBT_PROP_DATA, propsbuf ) ) {
+        CRLog::error("Error while saving props data");
+        res = false;
+    }
+
+    SerialBuf idbuf(4096);
+    serializeMaps( idbuf );
+    if ( !_cacheFile->write( CBT_MAPS_DATA, idbuf ) ) {
+        CRLog::error("Error while saving Id data");
+        res = false;
+    }
+
+    if ( !_cacheFile->write( CBT_PAGE_DATA, _pagesData ) ) {
+        CRLog::error("Error while saving pages data");
+        res = false;
+    }
+
+    if ( !saveNodeData() ) {
+        CRLog::error("Error while node instance data");
+        res = false;
+    }
+
+    if ( res ) {
+        if ( !_cacheFile->flush(true) ) {
+            CRLog::error("Error while updating index of cache file");
+            res = false;
+        }
+    }
+
+    return res;
+}
+
 bool ldomDocument::swapToCache( lUInt32 reservedSize )
 {
     if ( !createCacheFile() ) {
@@ -4874,243 +4959,31 @@ bool ldomDocument::swapToCache( lUInt32 reservedSize )
         return false;
     }
 
-    SerialBuf propsbuf(4096);
-    getProps()->serialize( propsbuf );
-    _cacheFile->write( CBT_PROP_DATA, propsbuf );
-
-    SerialBuf idbuf(4096);
-    serializeMaps( idbuf );
-    _cacheFile->write( CBT_MAPS_DATA, idbuf );
-
-    _cacheFile->write( CBT_PAGE_DATA, _pagesData );
-
-    saveNodeData();
-
-#ifdef TINYNODE_MIGRATION
-    lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
-    //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
-    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
-    if ( !_map.isNull() ) {
-        // already in map file
-        return true;
-    }
-    if ( !ldomDocCache::enabled() ) {
-        CRLog::error("Cannot swap: cache dir is not initialized");
+    if ( !saveChanges() )
+    {
+        CRLog::error("Error while saving changes to cache file");
         return false;
     }
 
-    //testTreeConsistency( getRootNode() );
-    CRLog::info("ldomDocument::swapToCache() - Started swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
-
-    //if ( !reservedSize )
-    //    persist(); //!!!
-
-
-    //testTreeConsistency( getRootNode() );
-
-    lvsize_t datasize = 0;
-    for ( int i=0; i<_dataBuffers.length(); i++ ) {
-        datasize += _dataBuffers[i]->length();
-    }
-
-    hdr.src_file_size = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
-    hdr.src_file_crc32 = (lUInt32)getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
-    hdr.src_file_name = getProps()->getStringDef(DOC_PROP_FILE_NAME, "");
-
-    SerialBuf propsbuf(4096);
-    getProps()->serialize( propsbuf );
-    int propssize = propsbuf.pos() + 4096;
-    propssize = (propssize + 4095) / 4096 * 4096;
-
-    SerialBuf idbuf(4096);
-    serializeMaps( idbuf );
-    int idsize = idbuf.pos() * 4 + 4096;
-    idsize = (idsize + 4095) / 4096 * 4096;
-
-    int pagesize = _pagesData.size();
-    if ( (unsigned)pagesize < hdr.src_file_size/1000 * 20 )
-        pagesize = hdr.src_file_size/1000 * 20 / 4096 * 4096 + 16384;
-
-    int pos = 0;
-    int hdrsize = 4096; // max header size
-    pos += hdrsize;
-
-    hdr.props_offset = pos;
-    hdr.props_size = propssize;
-    pos += propssize;
-
-    hdr.idtable_offset = pos;
-    hdr.idtable_size = idsize;
-    pos += idsize;
-
-    hdr.pagetable_offset = pos;
-    hdr.pagetable_size = pagesize;
-    pos += pagesize;
-
-    hdr.data_offset = pos;
-    hdr.data_size = datasize;
-    hdr.data_index_size = _instanceMapCount;
-
-    hdr.file_size = pos + (reservedSize > datasize ? reservedSize : datasize );
-    lUInt32 reserved = (hdr.file_size) + 8192; // 8K + 1/16
-    hdr.file_size += reserved;
-
-    LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), hdr.file_size );
-    if ( map.isNull() )
-        return false;
-
-    LVStreamBufferRef buf = map->GetWriteBuffer( 0, hdr.file_size );
-    if ( buf.isNull() )
-        return false;
-
-    lUInt8 * ptr = buf->getReadWrite();
-    if ( ptr==NULL )
-        return false;
-
-    hdr.data_crc32 = 0;
-    // copy data
-    for ( int i=0; i<_dataBuffers.length(); i++ ) {
-        lUInt32 len = _dataBuffers[i]->length();
-        memcpy( ptr + pos, _dataBuffers[i]->ptr(), len );
-        hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
-        pos += len;
-    }
-    CRLog::info( "ldomDocument::swapToCache() - data CRC is %08x, max itemId=%d", hdr.data_crc32, _instanceMapCount );
-
-    SerialBuf hdrbuf(4096);
-    if ( !hdr.serialize( hdrbuf ) )
-        return false;
-
-    hdrbuf.copyTo( ptr, hdrbuf.pos() );
-    propsbuf.copyTo( ptr + hdr.props_offset, hdr.props_size );
-    if ( idbuf.pos() > (int)hdr.idtable_size ) {
-        CRLog::error("ID buffer size is too small");
-    }
-    idbuf.copyTo( ptr + hdr.idtable_offset, hdr.idtable_size );
-    if ( _pagesData.pos() > (int)hdr.pagetable_size ) {
-        CRLog::error("Page buffer size is too small");
-    }
-    _pagesData.copyTo( ptr + hdr.pagetable_offset, hdr.pagetable_size );
-
-
-    //
-    _dataBufferSize = hdr.file_size - hdr.data_offset;
-    _currentBuffer = new DataBuffer( ptr + hdr.data_offset, _dataBufferSize, hdr.data_size );
-    _dataBuffers.clear();
-    _dataBuffers.add( _currentBuffer );
-    int elemcount = 0;
-    int textcount = 0;
-    for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
-        if ( item->type==LXML_ELEMENT_NODE || item->type==LXML_TEXT_NODE ) {
-            if ( item->type==LXML_ELEMENT_NODE )
-                elemcount++;
-            else if ( item->type==LXML_TEXT_NODE )
-                textcount++;
-            else
-                continue;
-            if ( !_instanceMap[ item->dataIndex ].instance ) {
-                CRLog::error("No instance found for dataIndex=%d", item->dataIndex);
-                continue;
-            }
-            //if ( item->dataIndex==INDEX2 || item->dataIndex==INDEX1) {
-            //    CRLog::trace("changing pointer to node %d from %08x to %08x", item->dataIndex, (unsigned)_instanceMap[ item->dataIndex ].data, (unsigned)item );
-            //}
-            if ( item->dataIndex < _instanceMapCount )
-                _instanceMap[ item->dataIndex ].data = item;
-            else {
-                CRLog::error("Out of range dataIndex=%d", item->dataIndex);
-                _instanceMap[ item->dataIndex ].data = NULL;
-            }
-        }
-    }
-    CRLog::trace("%d elements and %d text nodes (%d total) are swapped to disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)hdr.file_size);
-
-
-#ifdef _DEBUG
-    checkConsistency( false );
-#endif
-
-    _map = map; // memory mapped file
-    _mapbuf = buf; // memory mapped file buffer
     _mapped = true;
-    CRLog::info("ldomDocument::swapToCache() - swapping of document to cache file finished successfully");
+
+    CRLog::info("Successfully saved document to cache file: %dK", _cacheFile->getSize()/1024 );
     return true;
-#else
-    return false;
-#endif
 }
 
 /// saves recent changes to mapped file
 bool ldomDocument::updateMap()
 {
-#ifdef TINYNODE_MIGRATION
-    if ( !_mapped || !_mapbuf )
-        return false;
-    //testTreeConsistency( getRootNode() );
-    CRLog::info("ldomDocument::updateMap() - Saving recent changes to cache file");
-    persist();
-#ifdef _DEBUG
-    checkConsistency( true );
-#endif
-
-    SerialBuf propsbuf(4096);
-    getProps()->serialize( propsbuf );
-    unsigned propssize = propsbuf.pos() + 4096;
-    propssize = (propssize + 4095) / 4096 * 4096;
-
-    SerialBuf idbuf(4096);
-    serializeMaps( idbuf );
-    unsigned idsize = idbuf.pos() + 4096;
-    idsize = (idsize + 4095) / 4096 * 4096;
-
-    if ( hdr.props_size < propssize )
-        return false;
-    if ( hdr.idtable_size < idsize )
+    if ( !_cacheFile || !_mapped )
         return false;
 
-    hdr.data_index_size = _instanceMapCount;
-
-    hdr.data_size = _currentBuffer->length();
-    lUInt8 * ptr = _mapbuf->getReadWrite();
-    // update crc32
+    if ( !saveChanges() )
     {
-        _currentBuffer->length();
-        lUInt32 pos = hdr.data_offset;
-        hdr.data_crc32 = 0;
-        lUInt32 len = _currentBuffer->length();
-        hdr.data_crc32 = lStr_crc32( hdr.data_crc32, ptr+pos, len );
-
-        CRLog::info( "ldomDocument::updateMap() - data CRC is %08x", hdr.data_crc32 );
-    }
-
-    SerialBuf hdrbuf(4096);
-    if ( !hdr.serialize( hdrbuf ) )
+        CRLog::error("Error while saving changes to cache file");
         return false;
-
-#ifdef _DEBUG
-    checkConsistency( true);
-#endif
-
-    hdrbuf.copyTo( ptr, hdrbuf.pos() );
-    propsbuf.copyTo( ptr + hdr.props_offset, propssize );
-    if ( idbuf.pos() > (int)hdr.idtable_size ) {
-        CRLog::error("ID buffer size is too small");
     }
-    idbuf.copyTo( ptr + hdr.idtable_offset, idsize );
-    if ( _pagesData.pos() > (int)hdr.pagetable_size ) {
-        CRLog::error("Page buffer size is too small");
-    }
-    _pagesData.copyTo( ptr + hdr.pagetable_offset, hdr.pagetable_size );
 
-#ifdef _DEBUG
-    checkConsistency( true);
-#endif
-
-    CRLog::info("ldomDocument::updateMap() - Changes saved");
     return true;
-#else
-    return true;
-#endif
 }
 
 #endif
