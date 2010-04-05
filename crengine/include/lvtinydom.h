@@ -183,6 +183,8 @@ protected:
 public:
     /// saves all unsaved chunks to cache file
     bool save();
+    /// load chunk index from cache file
+    bool load();
     /// sets cache file
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
@@ -274,6 +276,8 @@ public:
 
     /// create empty buffer
     ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
+    /// create chunk to be read from cache file
+    ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize );
     /// create with preallocated buffer, for raw access
     ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index );
     ~ldomTextStorageChunk();
@@ -325,7 +329,11 @@ protected:
 
     bool saveNodeData();
     bool saveNodeData( lUInt16 type, ldomNode ** list, int nodecount );
+    bool loadNodeData();
+    bool loadNodeData( lUInt16 type, ldomNode ** &list, int &nodecount );
 
+
+    bool openCacheFile();
 public:
     bool createCacheFile();
 
@@ -1528,6 +1536,8 @@ private:
 
     /// save changes to cache file
     bool saveChanges();
+    /// load document cache file content
+    bool loadCacheFileContent();
 
 protected:
 

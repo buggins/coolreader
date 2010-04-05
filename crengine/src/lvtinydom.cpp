@@ -796,6 +796,43 @@ tinyNodeCollection::tinyNodeCollection()
     memset( _elemList, 0, sizeof(_elemList) );
 }
 
+bool tinyNodeCollection::openCacheFile()
+{
+    if ( _cacheFile )
+        return true;
+    CacheFile * f = new CacheFile();
+    //lString16 cacheFileName("/tmp/cr3swap.tmp");
+
+    lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
+    lUInt32 sz = (lUInt32)getProps()->getInt64Def(DOC_PROP_FILE_SIZE, 0);
+    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
+
+    if ( !ldomDocCache::enabled() ) {
+        CRLog::error("Cannot open cached document: cache dir is not initialized");
+        return false;
+    }
+
+    CRLog::info("ldomDocument::openCacheFile() - looking for cache file", UnicodeToUtf8(fname).c_str() );
+
+    LVStreamRef map = ldomDocCache::openExisting( fname, crc, getPersistenceFlags() );
+    if ( map.isNull() ) {
+        delete f;
+        return false;
+    }
+    CRLog::info("ldomDocument::openCacheFile() - cache file found, trying to read index", UnicodeToUtf8(fname).c_str() );
+
+    if ( !f->create( map ) ) {
+        delete f;
+        return false;
+    }
+    CRLog::info("ldomDocument::openCacheFile() - index read successfully", UnicodeToUtf8(fname).c_str() );
+    _cacheFile = f;
+    _textStorage.setCache( f );
+    _elemStorage.setCache( f );
+    _rectStorage.setCache( f );
+    return true;
+}
+
 bool tinyNodeCollection::createCacheFile()
 {
     if ( _cacheFile )
@@ -815,8 +852,10 @@ bool tinyNodeCollection::createCacheFile()
     CRLog::info("ldomDocument::swapToCache() - Started swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
 
     LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), sz );
-    if ( map.isNull() )
+    if ( map.isNull() ) {
+        delete f;
         return false;
+    }
 
     if ( !f->create( map ) ) {
         delete f;
@@ -826,6 +865,36 @@ bool tinyNodeCollection::createCacheFile()
     _textStorage.setCache( f );
     _elemStorage.setCache( f );
     _rectStorage.setCache( f );
+    return true;
+}
+
+bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** &list, int &nodecount )
+{
+    int count = (nodecount >> TNC_PART_SHIFT) + 1;
+    for ( int i=0; i<count; i++ ) {
+        int offs = i*TNC_PART_LEN;
+        int sz = TNC_PART_LEN;
+        if ( offs + sz >= nodecount ) {
+            sz = nodecount - offs + 1;
+        }
+
+        lUInt8 * packed = NULL;
+        int packedsize = 0;
+        if ( !_cacheFile->read( type, 0, packed, packedsize ) )
+            return false;
+        ldomNode * buf;
+        int buflen;
+        if ( !ldomUnpack( packed, packedsize, (lUInt8*)buf, buflen ) ) {
+            free( packed );
+            return false;
+        }
+        free( packed );
+        if ( !buf || buflen != sizeof(ldomNode)*sz )
+            return false;
+        list[i] = buf;
+        for ( int j=0; j<sz; j++ )
+            buf[j]._document = (ldomDocument*)this;
+    }
     return true;
 }
 
@@ -858,10 +927,8 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
 #define NODE_INDEX_MAGIC 0x19283746
 bool tinyNodeCollection::saveNodeData()
 {
-    SerialBuf buf(8, true);
-    buf << (lUInt32)NODE_INDEX_MAGIC;
-    buf << _elemCount;
-    buf << _textCount;
+    SerialBuf buf(12, true);
+    buf << (lUInt32)NODE_INDEX_MAGIC << _elemCount << _textCount;
     if ( !saveNodeData( CBT_ELEM_NODE, _elemList, _elemCount ) )
         return false;
     if ( !saveNodeData( CBT_TEXT_NODE, _textList, _textCount ) )
@@ -870,6 +937,52 @@ bool tinyNodeCollection::saveNodeData()
         return false;
     return true;
 }
+
+bool tinyNodeCollection::loadNodeData()
+{
+    SerialBuf buf();
+    if ( !_cacheFile->read(CBT_NODE_INDEX, buf) )
+        return false;
+    int magic;
+    int elemcount;
+    int textcount;
+    buf >> magic >> elemcount >> textcount;
+    if ( magic != NODE_INDEX_MAGIC ) {
+        return false;
+    }
+    if ( elemcount<=0 || elemcount>200000 )
+        return false;
+    if ( textcount<=0 || textcount>200000 )
+        return false;
+    ldomNode * elemList[TNC_PART_COUNT];
+    memset( elemList, 0, sizeof(elemList) );
+    ldomNode * textList[TNC_PART_COUNT];
+    memset( textList, 0, sizeof(textList) );
+    if ( !loadNodeData( CBT_ELEM_NODE, elemList, elemcount ) ) {
+        for ( int i=0; i<TNC_PART_COUNT; i++ )
+            if ( elemList[i] )
+                free( elemList[i] );
+        return false;
+    }
+    if ( !loadNodeData( CBT_TEXT_NODE, textList, textcount ) ) {
+        for ( int i=0; i<TNC_PART_COUNT; i++ )
+            if ( textList[i] )
+                free( textList[i] );
+        return false;
+    }
+    for ( int i=0; i<TNC_PART_COUNT; i++ ) {
+        if ( _elemList[i] )
+            free( _elemList[i] );
+        if ( _textList[i] )
+            free( _textList[i] );
+    }
+    memcpy( _elemList, elemList, sizeof(elemList) );
+    memcpy( _textList, textList, sizeof(textList) );
+    _elemCount = elemcount;
+    _textCount = textcount;
+    return true;
+}
+
 
 /// get ldomNode instance pointer
 ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
@@ -1045,6 +1158,13 @@ bool ldomDataStorageManager::save()
         if ( !_chunks[i]->save() )
             res = false;
     return res;
+}
+
+/// load chunk index from cache file
+bool ldomDataStorageManager::load()
+{
+    if ( !_cache )
+        return false;
 }
 
 /// get chunk pointer and update usage data
@@ -1234,6 +1354,21 @@ ldomDataStorageManager::~ldomDataStorageManager()
 {
 }
 
+/// create chunk to be read from cache file
+ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize )
+: _manager(manager)
+, _buf(NULL)   /// buffer for uncompressed data
+, _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
+, _compsize(compdatasize)   /// _compbuf (compressed) area size (in file or compbuffer)
+, _bufsize(NULL)    /// _buf (uncompressed) area size, bytes
+, _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
+, _index(index)      /// ? index of chunk in storage
+, _type( manager->_type )
+, _nextRecent(NULL)
+, _prevRecent(NULL)
+, _saved(false)
+{
+}
 
 ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
 : _manager(manager)
@@ -4776,6 +4911,11 @@ int tinyNodeCollection::getPersistenceFlags()
 #if BUILD_LITE!=1
 bool ldomDocument::openFromCache( )
 {
+    if ( !openCacheFile() ) {
+        CRLog::info("Cannot open doccument from cache. Need to read fully");
+        return false;
+    }
+
 #ifdef TINYNODE_MIGRATION
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
     //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
@@ -4897,8 +5037,72 @@ bool ldomDocument::openFromCache( )
 #endif
 }
 
+/// load document cache file content, @see saveChanges()
+bool ldomDocument::loadCacheFileContent()
+{
 
-/// save changes to cache file
+    {
+        SerialBuf propsbuf();
+        if ( !_cacheFile->read( CBT_PROP_DATA, propsbuf ) ) {
+            CRLog::error("Error while reading props data");
+            return false;
+        }
+        getProps()->deserialize( propsbuf );
+        if ( propsbuf.error() ) {
+            CRLog::error("Cannot decode property table for document");
+            return false;
+        }
+
+        SerialBuf idbuf();
+        if ( !_cacheFile->read( CBT_MAPS_DATA, idbuf ) ) {
+            CRLog::error("Error while reading Id data");
+            return false;
+        }
+        deserializeMaps( idbuf );
+        if ( idbuf.error() ) {
+            CRLog::error("Cannot decode ID table for document");
+            return false;
+        }
+
+        SerialBuf pagebuf();
+        if ( !_cacheFile->read( CBT_PAGE_DATA, pagebuf ) ) {
+            CRLog::error("Error while reading pages data");
+            return false;
+        }
+        pagebuf.swap( _pagesData );
+        _pagesData.setPos( 0 );
+        LVRendPageList pages;
+        pages.deserialize(_pagesData);
+        if ( _pagesData.error() ) {
+            CRLog::error("Page data deserialization is failed");
+            return false;
+        }
+        _pagesData.setPos( 0 );
+    }
+
+    if ( !loadNodeData() ) {
+        CRLog::error("Error while reading node instance data");
+        return false;
+    }
+
+
+    if ( !_elemStorage.load() ) {
+        CRLog::error("Error while loading element data");
+        return false;
+    }
+    if ( !_textStorage.load() ) {
+        CRLog::error("Error while loading text data");
+        return false;
+    }
+    if ( !_rectStorage.load() ) {
+        CRLog::error("Error while loading rect data");
+        return false;
+    }
+
+    return true;
+}
+
+/// save changes to cache file, @see loadCacheFileContent()
 bool ldomDocument::saveChanges()
 {
     bool res = true;
@@ -4910,7 +5114,7 @@ bool ldomDocument::saveChanges()
         res = false;
     }
     if ( !_textStorage.save() ) {
-        CRLog::error("Error while saving tect data");
+        CRLog::error("Error while saving text data");
         res = false;
     }
     if ( !_rectStorage.save() ) {

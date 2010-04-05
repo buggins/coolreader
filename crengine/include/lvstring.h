@@ -778,6 +778,8 @@ class SerialBuf
 	int _size;
 	int _pos;
 public:
+    /// swap content of buffer with another buffer
+    void swap( SerialBuf & v );
     /// constructor of serialization buffer
 	SerialBuf( int sz, bool autoresize = true );
 	SerialBuf( const lUInt8 * p, int sz );
