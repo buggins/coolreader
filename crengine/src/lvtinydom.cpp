@@ -63,6 +63,8 @@ enum CacheFileBlockType {
 
 /// pack data from _buf to _compbuf
 bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize );
+/// unpack data from _compbuf to _buf
+bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  );
 
 
 #if BUILD_LITE!=1
@@ -84,7 +86,7 @@ struct CacheFileItem
             CRLog::error("CacheFileItem::validate: block magic doesn't match");
             return false;
         }
-        if ( _dataSize>_blockSize || _blockSize<=0 || _dataSize<0 || _blockFilePos+_blockSize>fsize || _blockFilePos<1024) {
+        if ( _dataSize>_blockSize || _blockSize<0 || _dataSize<0 || _blockFilePos+_blockSize>fsize || _blockFilePos<1024) {
             CRLog::error("CacheFileItem::validate: invalid block size or position");
             return false;
         }
@@ -445,7 +447,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     if ( bytesWritten!=size )
         return false;
     _stream->Flush(true);
-    int paddingSize = roundSector( size ) - size;
+    int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
         LASSERT(size + paddingSize == block->_blockSize );
         lUInt8 tmp[paddingSize];
@@ -475,6 +477,7 @@ bool CacheFile::read( lUInt16 type, SerialBuf & buf )
     if ( res ) {
         buf.set( tmp, size );
     }
+    buf.setPos(0);
     return res;
 }
 
@@ -821,7 +824,7 @@ bool tinyNodeCollection::openCacheFile()
     }
     CRLog::info("ldomDocument::openCacheFile() - cache file found, trying to read index", UnicodeToUtf8(fname).c_str() );
 
-    if ( !f->create( map ) ) {
+    if ( !f->open( map ) ) {
         delete f;
         return false;
     }
@@ -868,7 +871,7 @@ bool tinyNodeCollection::createCacheFile()
     return true;
 }
 
-bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** &list, int &nodecount )
+bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int &nodecount )
 {
     int count = (nodecount >> TNC_PART_SHIFT) + 1;
     for ( int i=0; i<count; i++ ) {
@@ -882,12 +885,13 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** &list, int &nod
         int packedsize = 0;
         if ( !_cacheFile->read( type, 0, packed, packedsize ) )
             return false;
-        ldomNode * buf;
-        int buflen;
-        if ( !ldomUnpack( packed, packedsize, (lUInt8*)buf, buflen ) ) {
+        lUInt8 * p;
+        lUInt32 buflen;
+        if ( !ldomUnpack( packed, packedsize, p, buflen ) ) {
             free( packed );
             return false;
         }
+        ldomNode * buf = (ldomNode *)p;
         free( packed );
         if ( !buf || buflen != sizeof(ldomNode)*sz )
             return false;
@@ -940,8 +944,8 @@ bool tinyNodeCollection::saveNodeData()
 
 bool tinyNodeCollection::loadNodeData()
 {
-    SerialBuf buf();
-    if ( !_cacheFile->read(CBT_NODE_INDEX, buf) )
+    SerialBuf buf(0, true);
+    if ( !_cacheFile->read((lUInt16)CBT_NODE_INDEX, buf) )
         return false;
     int magic;
     int elemcount;
@@ -1359,7 +1363,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
-, _compsize(compdatasize)   /// _compbuf (compressed) area size (in file or compbuffer)
+, _compsize(compsize)   /// _compbuf (compressed) area size (in file or compbuffer)
 , _bufsize(NULL)    /// _buf (uncompressed) area size, bytes
 , _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
@@ -4912,9 +4916,14 @@ int tinyNodeCollection::getPersistenceFlags()
 bool ldomDocument::openFromCache( )
 {
     if ( !openCacheFile() ) {
-        CRLog::info("Cannot open doccument from cache. Need to read fully");
+        CRLog::info("Cannot open document from cache. Need to read fully");
         return false;
     }
+    if ( !loadCacheFileContent() ) {
+        CRLog::info("Error while loading document content from cache file.");
+        return false;
+    }
+    return true;
 
 #ifdef TINYNODE_MIGRATION
     lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
@@ -5042,7 +5051,7 @@ bool ldomDocument::loadCacheFileContent()
 {
 
     {
-        SerialBuf propsbuf();
+        SerialBuf propsbuf(0, true);
         if ( !_cacheFile->read( CBT_PROP_DATA, propsbuf ) ) {
             CRLog::error("Error while reading props data");
             return false;
@@ -5053,7 +5062,7 @@ bool ldomDocument::loadCacheFileContent()
             return false;
         }
 
-        SerialBuf idbuf();
+        SerialBuf idbuf(0, true);
         if ( !_cacheFile->read( CBT_MAPS_DATA, idbuf ) ) {
             CRLog::error("Error while reading Id data");
             return false;
@@ -5064,7 +5073,7 @@ bool ldomDocument::loadCacheFileContent()
             return false;
         }
 
-        SerialBuf pagebuf();
+        SerialBuf pagebuf(0, true);
         if ( !_cacheFile->read( CBT_PAGE_DATA, pagebuf ) ) {
             CRLog::error("Error while reading pages data");
             return false;

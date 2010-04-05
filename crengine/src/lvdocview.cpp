@@ -3320,7 +3320,7 @@ bool LVDocView::ParseDocument( )
 
     createEmptyDocument();
 
-    if ( m_stream->GetSize() > DOCUMENT_CACHING_SIZE_THRESHOLD ) {
+    if ( m_stream->GetSize() > DOCUMENT_CACHING_MIN_SIZE ) {
         // try loading from cache
 
         //lString16 fn( m_stream->GetName() );

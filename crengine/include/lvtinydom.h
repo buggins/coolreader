@@ -330,7 +330,7 @@ protected:
     bool saveNodeData();
     bool saveNodeData( lUInt16 type, ldomNode ** list, int nodecount );
     bool loadNodeData();
-    bool loadNodeData( lUInt16 type, ldomNode ** &list, int &nodecount );
+    bool loadNodeData( lUInt16 type, ldomNode ** list, int &nodecount );
 
 
     bool openCacheFile();
