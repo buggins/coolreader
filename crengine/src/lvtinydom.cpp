@@ -273,7 +273,7 @@ bool CacheFile::readIndex()
         else
             _map.set( key, item );
     }
-    delete index;
+    delete[] index;
     CacheFileItem * indexitem = findBlock(CBT_INDEX, 0);
     if ( !indexitem ) {
         CRLog::error("CacheFile::readIndex: index block info doesn't match header");
