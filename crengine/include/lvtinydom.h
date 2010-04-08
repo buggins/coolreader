@@ -181,6 +181,8 @@ protected:
     ldomTextStorageChunk * getChunk( lUInt32 address );
     /// checks buffer sizes, compacts most unused chunks
 public:
+    /// type
+    lUInt16 cacheType();
     /// saves all unsaved chunks to cache file
     bool save();
     /// load chunk index from cache file
@@ -250,8 +252,6 @@ class ldomTextStorageChunk
     void ensureUnpacked();
     /// free data item
     void freeNode( int offset );
-    /// type
-    lUInt16 cacheType();
     /// saves data to cache file, if unsaved
     bool save();
 public:
@@ -1567,6 +1567,7 @@ public:
 #if BUILD_LITE!=1
     void clearRendBlockCache() { _renderedBlockCache.clear(); }
 #endif
+    void clear();
 
     ldomDocument();
     /// creates empty document which is ready to be copy target of doc partial contents
