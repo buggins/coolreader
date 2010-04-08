@@ -183,9 +183,19 @@ public:
     // writes block to file
     bool write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size );
     /// writes content of serial buffer
-    bool write( lUInt16 type, SerialBuf & buf );
+    bool write( lUInt16 type, lUInt16 index, SerialBuf & buf );
     /// reads content of serial buffer
-    bool read( lUInt16 type, SerialBuf & buf );
+    bool read( lUInt16 type, lUInt16 index, SerialBuf & buf );
+    /// writes content of serial buffer
+    bool write( lUInt16 type, SerialBuf & buf )
+    {
+        return write( type, 0, buf);
+    }
+    /// reads content of serial buffer
+    bool read( lUInt16 type, SerialBuf & buf )
+    {
+        return read(type, 0, buf);
+    }
 
     // flushes index
     bool flush( bool sync );
@@ -463,17 +473,17 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
 }
 
 /// writes content of serial buffer
-bool CacheFile::write( lUInt16 type, SerialBuf & buf )
+bool CacheFile::write( lUInt16 type, lUInt16 index, SerialBuf & buf )
 {
-    return write( type, 0, buf.buf(), buf.pos() );
+    return write( type, index, buf.buf(), buf.pos() );
 }
 
 /// reads content of serial buffer
-bool CacheFile::read( lUInt16 type, SerialBuf & buf )
+bool CacheFile::read( lUInt16 type, lUInt16 index, SerialBuf & buf )
 {
     lUInt8 * tmp = NULL;
     int size = 0;
-    bool res = read( type, 0, tmp, size );
+    bool res = read( type, index, tmp, size );
     if ( res ) {
         buf.set( tmp, size );
     }
@@ -896,8 +906,13 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int &node
         if ( !buf || buflen != sizeof(ldomNode)*sz )
             return false;
         list[i] = buf;
-        for ( int j=0; j<sz; j++ )
+        for ( int j=0; j<sz; j++ ) {
             buf[j]._document = (ldomDocument*)this;
+            if ( buf[i].isElement() ) {
+                buf[i]._data._pelem._styleIndex = 0;
+                buf[i]._data._pelem._fontIndex = 0;
+            }
+        }
     }
     return true;
 }
@@ -1161,7 +1176,19 @@ bool ldomDataStorageManager::save()
     for ( int i=0; i<_chunks.length(); i++ )
         if ( !_chunks[i]->save() )
             res = false;
-    // TODO: save chunk index
+    if ( !res )
+        return false;
+    // save chunk index
+    int n = _chunks.length();
+    SerialBuf buf(n*4+4, true);
+    buf << n;
+    for ( int i=0; i<n; i++ ) {
+        buf << _chunks[i]->_compsize << _chunks[i]->_bufpos;
+    }
+    res = _cache->write( cacheType(), 0xFFFF, buf );
+    if ( !res ) {
+        CRLog::error("ldomDataStorageManager::save() - Cannot write chunk index");
+    }
     return res;
 }
 
@@ -1170,8 +1197,28 @@ bool ldomDataStorageManager::load()
 {
     if ( !_cache )
         return false;
-    //TODO: load chunk index
-    return false;
+    //load chunk index
+    SerialBuf buf(0, true);
+    if ( !_cache->read( cacheType(), 0xFFFF, buf ) ) {
+        CRLog::error("ldomDataStorageManager::load() - Cannot read chunk index");
+        return false;
+    }
+    int n;
+    buf >> n;
+    if ( n<0 || n > 10000 )
+        return false; // invalid
+    _chunks.clear();
+    int compsize;
+    int uncompsize = 0;
+    for ( int i=0; i<n; i++ ) {
+        buf >> compsize >> uncompsize;
+        if ( buf.error() ) {
+            _chunks.clear();
+            return false;
+        }
+        _chunks.add( new ldomTextStorageChunk( this, i,compsize, uncompsize ) );
+    }
+    return true;
 }
 
 /// get chunk pointer and update usage data
@@ -1195,6 +1242,20 @@ ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
 void ldomDataStorageManager::setCache( CacheFile * cache )
 {
     _cache = cache;
+}
+
+/// type
+lUInt16 ldomDataStorageManager::cacheType()
+{
+    switch ( _type ) {
+    case 't':
+        return CBT_TEXT_DATA;
+    case 'e':
+        return CBT_ELEM_DATA;
+    case 'r':
+        return CBT_RECT_DATA;
+    }
+    return 0;
 }
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 10
@@ -1373,7 +1434,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _type( manager->_type )
 , _nextRecent(NULL)
 , _prevRecent(NULL)
-, _saved(false)
+, _saved(true)
 {
 }
 
@@ -1424,20 +1485,6 @@ ldomTextStorageChunk::~ldomTextStorageChunk()
     setunpacked(NULL, 0);
 }
 
-/// type
-lUInt16 ldomTextStorageChunk::cacheType()
-{
-    switch ( _type ) {
-    case 't':
-        return CBT_TEXT_DATA;
-    case 'e':
-        return CBT_ELEM_DATA;
-    case 'r':
-        return CBT_RECT_DATA;
-    }
-    return 0;
-}
-
 static int dummy1_valgrind_test = 0;
 
 /// pack data, and remove unpacked, put packed data to cache file
@@ -1458,7 +1505,7 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
             if ( _compbuf[_compsize-1] )
                 dummy1_valgrind_test++; // valgrind test
-            if ( !_manager->_cache->write( cacheType(), _index, _compbuf, _compsize ) ) {
+            if ( !_manager->_cache->write( _manager->cacheType(), _index, _compbuf, _compsize ) ) {
                 CRLog::error("Error while swapping of chunk %c%d to cache file", _type, _index);
                 crFatalError(-1, "Error while swapping of chunk to cache file");
                 return false;
@@ -1480,7 +1527,7 @@ bool ldomTextStorageChunk::restoreFromCache()
     if ( !_saved )
         return false;
     int compsize;
-    if ( !_manager->_cache->read( cacheType(), _index, _compbuf, compsize ) )
+    if ( !_manager->_cache->read( _manager->cacheType(), _index, _compbuf, compsize ) )
         return false;
     _compsize = compsize;
     _manager->_compressedSize += _compsize;
@@ -4915,138 +4962,27 @@ int tinyNodeCollection::getPersistenceFlags()
     return flag;
 }
 
+void ldomDocument::clear()
+{
+    clearRendBlockCache();
+    //TODO: implement clear
+    //_elemStorage.
+}
+
 #if BUILD_LITE!=1
 bool ldomDocument::openFromCache( )
 {
     if ( !openCacheFile() ) {
         CRLog::info("Cannot open document from cache. Need to read fully");
+        clear();
         return false;
     }
     if ( !loadCacheFileContent() ) {
         CRLog::info("Error while loading document content from cache file.");
+        clear();
         return false;
     }
     return true;
-
-#ifdef TINYNODE_MIGRATION
-    lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "noname" );
-    //lUInt32 sz = getProps()->getIntDef( DOC_PROP_FILE_SIZE, 0 );
-    lUInt32 crc = getProps()->getIntDef(DOC_PROP_FILE_CRC32, 0);
-    CRLog::info("ldomDocument::openFromCache() - Started restoring of document %s from cache file", UnicodeToUtf8(fname).c_str() );
-    //doc_format_txt==2 TODO:
-    LVStreamRef map = ldomDocCache::openExisting( fname, crc, getPersistenceFlags() );
-    if ( map.isNull() ) {
-        CRLog::error("Document %s is not found in cache", UnicodeToUtf8(fname).c_str() );
-        return false;
-    }
-    lUInt32 fileSize = (lUInt32)map->GetSize();
-    LVStreamBufferRef buf = map->GetWriteBuffer( 0, fileSize );
-    if ( buf.isNull() ) {
-        CRLog::error("Cannot map file to read/write buffer");
-        return false;
-    }
-    lUInt8 * ptr = buf->getReadWrite();
-    if ( ptr==NULL )
-        return false;
-    {
-        SerialBuf hdrbuf( ptr, fileSize );
-        if ( !hdr.deserialize( hdrbuf ) )
-            return false;
-        if ( hdr.file_size > fileSize ) {
-            CRLog::error("Swap file - file size doesn't match");
-            return false;
-        }
-        if ( hdr.data_offset >= fileSize || hdr.data_offset+hdr.data_size > fileSize )
-            return false;
-        // data crc32
-        lUInt32 crc = lStr_crc32(0,  ptr + hdr.data_offset, hdr.data_size );
-        if ( crc!=hdr.data_crc32 ) {
-            CRLog::error("Swap file - CRC32 not matched for DOM data (%08x expected, %08x actual)", hdr.data_crc32, crc );
-            return false;
-        }
-        // TODO: add more checks here
-    }
-
-    {
-        SerialBuf propsbuf( ptr + hdr.props_offset, hdr.props_size );
-        getProps()->deserialize( propsbuf );
-        if ( propsbuf.error() ) {
-            CRLog::error("Cannot read property table for document");
-            return false;
-        }
-
-        SerialBuf idbuf( ptr + hdr.idtable_offset, hdr.idtable_size );
-        deserializeMaps( idbuf );
-        if ( idbuf.error() ) {
-            CRLog::error("Cannot read ID table for document");
-            return false;
-        }
-
-        SerialBuf pagebuf( ptr + hdr.pagetable_offset, hdr.pagetable_size );
-        pagebuf.setPos( hdr.pagetable_size );
-        _pagesData.setPos( 0 );
-        _pagesData << pagebuf;
-        _pagesData.setPos( 0 );
-        LVRendPageList pages;
-        pages.deserialize(_pagesData);
-        if ( _pagesData.error() ) {
-            CRLog::error("Page data deserialization is failed");
-            return false;
-        }
-        _pagesData.setPos( 0 );
-    }
-
-    {
-        _dataBuffers.clear();
-        _dataBufferSize = fileSize-hdr.data_offset;
-        _currentBuffer = new DataBuffer( ptr + hdr.data_offset, _dataBufferSize, hdr.data_size );
-        _dataBuffers.add( _currentBuffer );
-    }
-    {
-        //LVHashTable<lUInt16,lInt32> _idNodeMap
-        if ( _instanceMap ) {
-            for ( int i=0; i<_instanceMapCount; i++ ) {
-                if ( _instanceMap[i].instance != NULL ) {
-                    delete _instanceMap[i].instance;
-                }
-            }
-            free( _instanceMap );
-        }
-        _instanceMapCount = hdr.data_index_size;
-        _instanceMapSize = _instanceMapCount + 64;
-        _instanceMap = (NodeItem *)(malloc( _instanceMapSize * sizeof(NodeItem) ));
-        memset( _instanceMap, 0, _instanceMapSize * sizeof(NodeItem) );
-        //_idNodeMap.clear();
-        //_idNodeMap.resize( hdr.data_index_size );
-        int elemcount = 0;
-        int textcount = 0;
-        for ( DataStorageItemHeader * item = _currentBuffer->first(); item!=NULL; item = _currentBuffer->next(item) ) {
-            if ( item->type==LXML_ELEMENT_NODE ) {
-                //ldomPersistentElement * elem = 
-                new ldomPersistentElement( this, (ElementDataStorageItem*)item );
-                //setNode( item->dataIndex, elem, item );
-                elemcount++;
-            } else if ( item->type==LXML_TEXT_NODE ) {
-                //ldomPersistentText * text = 
-                new ldomPersistentText( this, (TextDataStorageItem*)item );
-                //setNode( item->dataIndex, text, item );
-                textcount++;
-            }
-        }
-        CRLog::trace("%d elements and %d text nodes (%d total) are read from disk (file size = %d)", elemcount, textcount, elemcount+textcount, (int)fileSize);
-
-    }
-#ifdef _DEBUG
-    checkConsistency( true );
-#endif
-
-    _map = map;
-    _mapbuf = buf;
-    CRLog::info("ldomDocument::openFromCache() - read successfully");
-    return true;
-#else
-    return false;
-#endif
 }
 
 /// load document cache file content, @see saveChanges()
