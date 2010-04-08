@@ -3571,7 +3571,8 @@ void LVDocView::swapToCache()
         return;
     int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
     // minimum file size to swap, even if forced
-    int mfs = m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
+    // TODO
+    int mfs = 30000; //m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
 
     if ( fs < mfs )
         return;
