@@ -883,7 +883,7 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int &node
 
         lUInt8 * packed = NULL;
         int packedsize = 0;
-        if ( !_cacheFile->read( type, 0, packed, packedsize ) )
+        if ( !_cacheFile->read( type, i, packed, packedsize ) )
             return false;
         lUInt8 * p;
         lUInt32 buflen;
@@ -921,7 +921,7 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
         lUInt32 packedsize = 0;
         if ( !ldomPack( (lUInt8*)buf, sizeof(ldomNode)*sz, packed, packedsize ) )
             crFatalError(-1, "Cannot pack node data");
-        if ( !_cacheFile->write( type, 0, packed, packedsize ) )
+        if ( !_cacheFile->write( type, i, packed, packedsize ) )
             crFatalError(-1, "Cannot write node data");
         free( packed );
     }
@@ -1161,6 +1161,7 @@ bool ldomDataStorageManager::save()
     for ( int i=0; i<_chunks.length(); i++ )
         if ( !_chunks[i]->save() )
             res = false;
+    // TODO: save chunk index
     return res;
 }
 
@@ -1169,6 +1170,8 @@ bool ldomDataStorageManager::load()
 {
     if ( !_cache )
         return false;
+    //TODO: load chunk index
+    return false;
 }
 
 /// get chunk pointer and update usage data
@@ -7007,6 +7010,8 @@ void tinyNodeCollection::dumpStatistics()
 #define MYASSERT(x,t) \
     if (!(x)) crFatalError(1111, "UnitTest assertion failed: " t)
 
+#include <lvdocview.h>
+
 void testCacheFile()
 {
     CRLog::info("Starting CacheFile unit test");
@@ -7070,6 +7075,39 @@ void testCacheFile()
 
     CRLog::info("Finished CacheFile unit test");
 }
+
+void runFileCacheTest()
+{
+    CRLog::info("====Cache test started =====");
+
+    // init and clear cache
+    ldomDocCache::init(lString16("/tmp/cr3cache"), 100);
+    MYASSERT(ldomDocCache::enabled(), "clear cache");
+
+    {
+        CRLog::info("====Open document and save to cache=====");
+        LVDocView view(4);
+        view.Resize(600, 800);
+        bool res = view.LoadDocument("/home/lve/test/example.fb2");
+        MYASSERT(res, "load document");
+        view.getPageImage(0);
+        view.getDocProps()->setInt(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000);
+        view.swapToCache();
+        //MYASSERT(res, "swap to cache");
+        view.getDocument()->dumpStatistics();
+    }
+    {
+        CRLog::info("====Open document from cache=====");
+        LVDocView view(4);
+        view.Resize(600, 800);
+        bool res = view.LoadDocument("/home/lve/test/example.fb2");
+        MYASSERT(res, "load document");
+        view.getDocument()->dumpStatistics();
+        view.getPageImage(0);
+    }
+    CRLog::info("====Cache test finished=====");
+}
+
 
 void runTinyDomUnitTests()
 {
@@ -7349,8 +7387,10 @@ void runTinyDomUnitTests()
 
     CRLog::info("Finished tinyDOM unit test");
 
+    CRLog::info("==========================");
     testCacheFile();
 
+    runFileCacheTest();
     CRLog::info("==========================");
 
 }
