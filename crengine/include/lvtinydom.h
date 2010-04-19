@@ -840,32 +840,14 @@ public:
 protected:
 #if BUILD_LITE!=1
     struct DocFileHeader {
-        //char magic[16]; //== doc_file_magic
-        lUInt32 src_file_size;
-        lUInt32 src_file_crc32;
-        lUInt32 props_offset;
-        lUInt32 props_size;
-        lUInt32 idtable_offset;
-        lUInt32 idtable_size;
-        lUInt32 pagetable_offset;
-        lUInt32 pagetable_size;
-        lUInt32 data_offset;
-        lUInt32 data_size;
-        lUInt32 data_crc32;
-        lUInt32 data_index_size;
-        lUInt32 file_size;
-
         lUInt32 render_dx;
         lUInt32 render_dy;
         lUInt32 render_docflags;
         lUInt32 render_style_hash;
-        //
-        lString16 src_file_name;
-
         bool serialize( SerialBuf & buf );
         bool deserialize( SerialBuf & buf );
         DocFileHeader()
-            : file_size(0), render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0)
+            : render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0)
         {
         }
     };
