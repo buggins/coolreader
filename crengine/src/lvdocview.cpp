@@ -1959,8 +1959,9 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
     #endif
         fontMan->gc();
         m_is_rendered = true;
-
+        CRLog::debug("Making TOC...");
         makeToc();
+        CRLog::debug("Updating selections...");
         updateSelections();
         CRLog::debug("Render is finished");
     }

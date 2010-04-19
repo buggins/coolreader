@@ -206,7 +206,7 @@ public:
     // get by index
     ref_t get( int n )
     {
-        if ( n>0 && n<=nextindex )
+        if ( n>0 && n<=nextindex && index[n].item )
             return index[n].item->style;
         return ref_t();
     }

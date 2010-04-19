@@ -37,6 +37,7 @@ enum CacheFileBlockType {
     CBT_NODE_INDEX,
     CBT_ELEM_NODE,
     CBT_TEXT_NODE,
+    CBT_REND_PARAMS,
 };
 
 
@@ -908,9 +909,9 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int &node
         list[i] = buf;
         for ( int j=0; j<sz; j++ ) {
             buf[j]._document = (ldomDocument*)this;
-            if ( buf[i].isElement() ) {
-                buf[i]._data._pelem._styleIndex = 0;
-                buf[i]._data._pelem._fontIndex = 0;
+            if ( buf[j].isElement() ) {
+                buf[j]._data._pelem._styleIndex = 0;
+                buf[j]._data._pelem._fontIndex = 0;
             }
         }
     }
@@ -4919,13 +4920,7 @@ bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
 {
     int start = hdrbuf.pos();
     hdrbuf.putMagic( doc_file_magic );
-    hdrbuf << src_file_size << src_file_crc32;
-    hdrbuf << props_offset << props_size;
-    hdrbuf << idtable_offset << idtable_size;
-    hdrbuf << pagetable_offset << pagetable_size;
-    hdrbuf << data_offset << data_size << data_crc32 << data_index_size << file_size;
     hdrbuf << render_dx << render_dy << render_docflags << render_style_hash;
-    hdrbuf << src_file_name;
 
     hdrbuf.putCRC( hdrbuf.pos() - start );
     return !hdrbuf.error();
@@ -4939,13 +4934,7 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
         CRLog::error("Swap file Magic signature doesn't match");
         return false;
     }
-    hdrbuf >> src_file_size >> src_file_crc32;
-    hdrbuf >> props_offset >> props_size;
-    hdrbuf >> idtable_offset >> idtable_size;
-    hdrbuf >> pagetable_offset >> pagetable_size;
-    hdrbuf >> data_offset >> data_size >> data_crc32 >> data_index_size >> file_size;
     hdrbuf >> render_dx >> render_dy >> render_docflags >> render_style_hash;
-    hdrbuf >> src_file_name;
     hdrbuf.checkCRC( hdrbuf.pos() - start );
     if ( hdrbuf.error() ) {
         CRLog::error("Swap file - header unpack error");
@@ -4982,6 +4971,11 @@ bool ldomDocument::openFromCache( )
         clear();
         return false;
     }
+#if 0
+    LVStreamRef s = LVOpenFileStream("/tmp/test.xml", LVOM_WRITE);
+    if ( !s.isNull() )
+        saveToStream(s, "UTF8");
+#endif
     return true;
 }
 
@@ -5026,6 +5020,18 @@ bool ldomDocument::loadCacheFileContent()
             return false;
         }
         _pagesData.setPos( 0 );
+
+        DocFileHeader h;
+        memset(&h, 0, sizeof(h));
+        SerialBuf hdrbuf(0,true);
+        if ( !_cacheFile->read( CBT_REND_PARAMS, hdrbuf ) ) {
+            CRLog::error("Error while reading header data");
+            return false;
+        } else if ( !h.deserialize(hdrbuf) ) {
+            CRLog::error("Header data deserialization is failed");
+            return false;
+        }
+        hdr = h;
     }
 
     if ( !loadNodeData() ) {
@@ -5084,13 +5090,24 @@ bool ldomDocument::saveChanges()
         res = false;
     }
 
-    if ( !_cacheFile->write( CBT_PAGE_DATA, _pagesData ) ) {
-        CRLog::error("Error while saving pages data");
-        res = false;
+    if ( _pagesData.pos() ) {
+        if ( !_cacheFile->write( CBT_PAGE_DATA, _pagesData ) ) {
+            CRLog::error("Error while saving pages data");
+            res = false;
+        }
     }
 
     if ( !saveNodeData() ) {
         CRLog::error("Error while node instance data");
+        res = false;
+    }
+
+    SerialBuf hdrbuf(0,true);
+    if ( !hdr.serialize(hdrbuf) ) {
+        CRLog::error("Header data serialization is failed");
+        res = false;
+    } else if ( !_cacheFile->write( CBT_REND_PARAMS, hdrbuf ) ) {
+        CRLog::error("Error while writing header data");
         res = false;
     }
 
@@ -5364,7 +5381,7 @@ public:
             CRLog::error( "ldomDocCache::openExisting - File %s is not found in cache index", UnicodeToUtf8(fn).c_str() );
             return res;
         }
-        res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, 0 );
+        res = LVOpenFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND );
         if ( !res ) {
             CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn).c_str() );
             return res;
@@ -5631,6 +5648,8 @@ void ldomNode::onCollectionDestroy()
     case NT_ELEMENT:
         _document->_styles.release( _data._elem._styleIndex );
         _document->_fonts.release( _data._elem._fontIndex );
+        _data._elem._styleIndex = 0;
+        _data._elem._fontIndex = 0;
         delete NPELEM;
         NPELEM = NULL;
         break;
@@ -5656,6 +5675,8 @@ void ldomNode::destroy()
         {
             _document->_styles.release( _data._elem._styleIndex );
             _document->_fonts.release( _data._elem._fontIndex );
+            _data._elem._styleIndex = 0;
+            _data._elem._fontIndex = 0;
             tinyElement * me = NPELEM;
             // delete children
             for ( int i=0; i<me->_children.length(); i++ ) {
@@ -5678,6 +5699,8 @@ void ldomNode::destroy()
                 _document->getTinyNode( me->children[i] )->destroy();
             _document->_styles.release( _data._pelem._styleIndex );
             _document->_fonts.release( _data._pelem._fontIndex );
+            _data._pelem._styleIndex = 0;
+            _data._pelem._fontIndex = 0;
             _document->_elemStorage.freeNode( _data._pelem._addr );
         }
         break;
@@ -6946,6 +6969,8 @@ void tinyNodeCollection::dumpStatistics()
 #define MYASSERT(x,t) \
     if (!(x)) crFatalError(1111, "UnitTest assertion failed: " t)
 
+#define TEST_FILE_NAME "/tmp/test-cache-file.dat"
+
 #include <lvdocview.h>
 
 void testCacheFile()
@@ -6957,7 +6982,7 @@ void testCacheFile()
     lUInt8 * buf2;
     int sz1;
     int sz2;
-    lString16 fn("/tmp/test-cache-file.dat");
+    lString16 fn(TEST_FILE_NAME);
 
     {
         lUInt8 data1[] = {'T', 'e', 's', 't', 'D', 'a', 't', 'a', '1'};
@@ -7012,6 +7037,8 @@ void testCacheFile()
     CRLog::info("Finished CacheFile unit test");
 }
 
+#define TEST_FN_TO_OPEN "/home/lve/src/test/example.fb2"
+
 void runFileCacheTest()
 {
     CRLog::info("====Cache test started =====");
@@ -7024,7 +7051,7 @@ void runFileCacheTest()
         CRLog::info("====Open document and save to cache=====");
         LVDocView view(4);
         view.Resize(600, 800);
-        bool res = view.LoadDocument("/home/lve/test/example.fb2");
+        bool res = view.LoadDocument(TEST_FN_TO_OPEN);
         MYASSERT(res, "load document");
         view.getPageImage(0);
         view.getDocProps()->setInt(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000);
@@ -7036,7 +7063,7 @@ void runFileCacheTest()
         CRLog::info("====Open document from cache=====");
         LVDocView view(4);
         view.Resize(600, 800);
-        bool res = view.LoadDocument("/home/lve/test/example.fb2");
+        bool res = view.LoadDocument(TEST_FN_TO_OPEN);
         MYASSERT(res, "load document");
         view.getDocument()->dumpStatistics();
         view.getPageImage(0);
