@@ -12,19 +12,19 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.00.02\n";
+                                       " File v3.00.03\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
 // cache memory sizes
 #define TEXT_CACHE_UNPACKED_SPACE 0x040000
-#define TEXT_CACHE_PACKED_SPACE   0x140000
+#define TEXT_CACHE_PACKED_SPACE   0x120000
 #define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
 #define ELEM_CACHE_UNPACKED_SPACE 0x060000
-#define ELEM_CACHE_PACKED_SPACE   0x140000
+#define ELEM_CACHE_PACKED_SPACE   0x100000
 #define ELEM_CACHE_CHUNK_SIZE     0x008000
-#define RECT_CACHE_UNPACKED_SPACE 0x040000
-#define RECT_CACHE_PACKED_SPACE   0x080000
-#define RECT_CACHE_CHUNK_SIZE     0x004000
+#define RECT_CACHE_UNPACKED_SPACE 0x030000
+#define RECT_CACHE_PACKED_SPACE   0x060000
+#define RECT_CACHE_CHUNK_SIZE     0x006000
 
 #define STYLE_HASH_TABLE_SIZE     2048
 #define FONT_HASH_TABLE_SIZE      1024
@@ -443,9 +443,17 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     return true;
 }
 
+#define CACHE_FILE_WRITE_BLOCK_PADDING 0
+
 // writes block to file
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size )
 {
+    lUInt32 newcrc = lStr_crc32(0,  buf, size );
+    CacheFileItem * existingblock = findBlock( type, dataIndex );
+    if ( existingblock && existingblock->_dataSize==size && existingblock->_dataCRC==newcrc ) {
+        // data not changed: don't write again
+        return true;
+    }
     CacheFileItem * block = allocBlock( type, dataIndex, size );
     if ( !block )
         return false;
@@ -459,15 +467,17 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     if ( bytesWritten!=size )
         return false;
     _stream->Flush(true);
-    int paddingSize = block->_blockSize - size; //roundSector( size ) - size
+#if CACHE_FILE_WRITE_BLOCK_PADDING
+        int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
         LASSERT(size + paddingSize == block->_blockSize );
         lUInt8 tmp[paddingSize];
         memset(tmp, 0xFF, paddingSize );
         _stream->Write(tmp, paddingSize, &bytesWritten );
     }
+#endif
     // update CRC
-    block->_dataCRC = lStr_crc32(0,  buf, size );
+    block->_dataCRC = newcrc;
     _indexChanged = true;
     //CRLog::error("CacheFile::write: block %d:%d (pos %ds, size %ds) is written (crc=%08x)", type, dataIndex, (int)block->_blockFilePos/_sectorSize, (int)(size+_sectorSize-1)/_sectorSize, block->_dataCRC);
     // success
@@ -4985,6 +4995,7 @@ bool ldomDocument::openFromCache( )
     if ( !s.isNull() )
         saveToStream(s, "UTF8");
 #endif
+    _mapped = true;
     return true;
 }
 
