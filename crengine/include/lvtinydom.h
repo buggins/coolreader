@@ -868,6 +868,7 @@ protected:
 #if BUILD_LITE!=1
     SerialBuf _pagesData;
 #endif
+
 };
 
 /*
@@ -1453,6 +1454,63 @@ public:
     ldomXRangeList() {};
 };
 
+class LVTocItem;
+class LVDocView;
+
+/// TOC item
+class LVTocItem
+{
+    friend class LVDocView;
+private:
+    LVTocItem *     _parent;
+    int             _level;
+    int             _index;
+    int             _page;
+    int             _percent;
+    lString16       _name;
+    ldomXPointer    _position;
+    LVPtrVector<LVTocItem> _children;
+    //====================================================
+    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _position(pos) { }
+    void addChild( LVTocItem * item ) { item->_level=_level+1; item->_parent=this; item->_index=_children.length(), _children.add(item); }
+    //====================================================
+    void setPage( int n ) { _page = n; }
+    void setPercent( int n ) { _percent = n; }
+public:
+    /// get page number
+    int getPage() { return _page; }
+    /// get position percent * 100
+    int getPercent() { return _percent; }
+    /// returns parent node pointer
+    LVTocItem * getParent() const { return _parent; }
+    /// returns node level (0==root node, 1==top level)
+    int getLevel() const { return _level; }
+    /// returns node index
+    int getIndex() const { return _index; }
+    /// returns section title
+    lString16 getName() const { return _name; }
+    /// returns position
+    ldomXPointer getXPointer() const { return _position; }
+    /// returns Y position
+    int getY();
+    /// returns page number
+    //int getPageNum( LVRendPageList & pages );
+    /// returns child node count
+    int getChildCount() const { return _children.length(); }
+    /// returns child node by index
+    LVTocItem * getChild( int index ) const { return _children[index]; }
+    /// add child TOC node
+    LVTocItem * addChild( const lString16 & name, ldomXPointer ptr )
+    {
+        LVTocItem * item = new LVTocItem( ptr, name );
+        addChild( item );
+        return item;
+    }
+    void clear() { _children.clear(); }
+    // root node constructor
+    LVTocItem() : _parent(NULL), _level(0), _index(0) { }
+    ~LVTocItem() { clear(); }
+};
 
 
 class ldomNavigationHistory
@@ -1523,8 +1581,12 @@ private:
 
 protected:
 
+    LVTocItem m_toc;
 
 public:
+
+    /// returns pointer to TOC root node
+    LVTocItem * getToc() { return &m_toc; }
 
 #if BUILD_LITE!=1
     /// save document formatting parameters after render
