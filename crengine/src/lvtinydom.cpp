@@ -6966,6 +6966,23 @@ void tinyNodeCollection::dumpStatistics()
 
 
 
+
+
+/// returns Y position
+int LVTocItem::getY()
+{
+    return _position.toPoint().y;
+}
+
+/// returns page number
+//int LVTocItem::getPageNum( LVRendPageList & pages )
+//{
+//    return getSectionPage( _position.getNode(), pages );
+//}
+
+
+
+
 #define MYASSERT(x,t) \
     if (!(x)) crFatalError(1111, "UnitTest assertion failed: " t)
 
@@ -7357,3 +7374,4 @@ void runTinyDomUnitTests()
     CRLog::info("==========================");
 
 }
+

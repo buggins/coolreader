@@ -382,7 +382,6 @@ void LVDocView::Clear()
             delete m_doc;
         m_doc = NULL;
         m_doc_props->clear();
-        m_toc.clear();
         if (!m_stream.isNull())
             m_stream.Clear();
         if ( !m_container.isNull() )
@@ -610,6 +609,21 @@ bool LVDocView::exportWolFile( const wchar_t * fname, bool flgGray, int levels )
 	return exportWolFile( stream.get(), flgGray, levels );
 }
 
+void dumpSection( ldomNode * elem )
+{
+    lvRect rc;
+    elem->getAbsRect(rc);
+    //fprintf( log.f, "rect(%d, %d, %d, %d)  ", rc.left, rc.top, rc.right, rc.bottom );
+}
+
+LVTocItem * LVDocView::getToc()
+{
+    if ( !m_doc )
+        return NULL;
+    updatePageNumbers( m_doc->getToc() );
+    return m_doc->getToc();
+}
+
 lString16 getSectionHeader( ldomNode * section )
 {
     lString16 header;
@@ -620,14 +634,6 @@ lString16 getSectionHeader( ldomNode * section )
         return header;
     header = child->getText(L' ');
     return header;
-}
-
-
-void dumpSection( ldomNode * elem )
-{
-    lvRect rc;
-    elem->getAbsRect(rc);
-    //fprintf( log.f, "rect(%d, %d, %d, %d)  ", rc.left, rc.top, rc.right, rc.bottom );
 }
 
 int getSectionPage( ldomNode * section, LVRendPageList & pages )
@@ -650,6 +656,7 @@ int getSectionPage( ldomNode * section, LVRendPageList & pages )
     return page;
 }
 
+
 static void addTocItems( ldomNode * basesection, LVTocItem * parent )
 {
     if ( !basesection || !parent )
@@ -667,53 +674,10 @@ static void addTocItems( ldomNode * basesection, LVTocItem * parent )
     }
 }
 
-/// returns Y position
-int LVTocItem::getY()
-{
-    return _position.toPoint().y;
-}
-
-/// returns page number
-int LVTocItem::getPageNum( LVRendPageList & pages )
-{
-    return getSectionPage( _position.getNode(), pages );
-}
-
-/// update page numbers for items
-void LVTocItem::updatePageNumbers( LVDocView * docview )
-{
-    if ( !_position.isNull() ) {
-        lvPoint p = _position.toPoint();
-        int y = p.y;
-        int h = docview->GetFullHeight();
-        int page = docview->getBookmarkPage( _position );
-        if ( page>=0 && page < docview->getPageCount() )
-            _page = page;
-        else
-            _page = -1;
-        if ( y >=0 && y < h && h > 0 )
-            _percent = (int) ( (lInt64)y * 10000 / h ); // % * 100
-        else
-            _percent = -1;
-    } else {
-        // unknown position
-        _page = -1;
-        _percent = -1;
-    }
-    for ( int i = 0; i<getChildCount(); i++ ) {
-        getChild(i)->updatePageNumbers( docview );
-    }
-}
-
-LVTocItem * LVDocView::getToc()
-{
-    m_toc.updatePageNumbers( this );
-    return &m_toc;
-}
-
 void LVDocView::makeToc()
 {
-    m_toc.clear();
+    LVTocItem * toc = m_doc->getToc();
+    toc->clear();
     ldomNode * body = m_doc->getRootNode();
     if ( !body )
         return;
@@ -726,9 +690,36 @@ void LVDocView::makeToc()
         ldomNode * section = body->findChildElement( LXML_NS_ANY, el_section, i );
         if ( !section )
             break;
-        addTocItems( section, &m_toc );
+        addTocItems( section, toc );
     }
 }
+
+/// update page numbers for items
+void LVDocView::updatePageNumbers( LVTocItem * item )
+{
+    if ( !item->_position.isNull() ) {
+        lvPoint p = item->_position.toPoint();
+        int y = p.y;
+        int h = GetFullHeight();
+        int page = getBookmarkPage( item->_position );
+        if ( page>=0 && page < getPageCount() )
+            item->_page = page;
+        else
+            item->_page = -1;
+        if ( y >=0 && y < h && h > 0 )
+            item->_percent = (int) ( (lInt64)y * 10000 / h ); // % * 100
+        else
+            item->_percent = -1;
+    } else {
+        // unknown position
+        item->_page = -1;
+        item->_percent = -1;
+    }
+    for ( int i = 0; i<item->getChildCount(); i++ ) {
+        updatePageNumbers( item->getChild(i) );
+    }
+}
+
 
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
