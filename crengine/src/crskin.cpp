@@ -762,7 +762,7 @@ void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
     SAVE_DRAW_STATE( buf );
 	buf.SetBackgroundColor( getBackgroundColor() );
 	buf.SetTextColor( getTextColor() );
-    CRLog::trace("CRSkinnedItem::draw before getBgIcons()");
+    //CRLog::trace("CRSkinnedItem::draw before getBgIcons()");
     CRIconListRef bgimg = getBgIcons();
 	if ( bgimg.isNull() ) {
         //buf.FillRect( rc, getBackgroundColor() );

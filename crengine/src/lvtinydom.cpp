@@ -11,6 +11,10 @@
 
 *******************************************************/
 
+static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
+                                       " File v3.00.02\n";
+#define CACHE_FILE_MAGIC_SIZE 32
+
 // cache memory sizes
 #define TEXT_CACHE_UNPACKED_SPACE 0x040000
 #define TEXT_CACHE_PACKED_SPACE   0x140000
@@ -110,9 +114,6 @@ struct CacheFileItem
 };
 
 
-static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.00.01\n";
-#define CACHE_FILE_MAGIC_SIZE 32
 struct CacheFileHeader
 {
     char _magic[CACHE_FILE_MAGIC_SIZE]; // magic
@@ -799,6 +800,7 @@ tinyNodeCollection::tinyNodeCollection()
 , _renderedBlockCache( 32 )
 , _cacheFile(NULL)
 , _mapped(false)
+, _maperror(false)
 #endif
 , _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_PACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_PACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
@@ -845,6 +847,13 @@ bool tinyNodeCollection::openCacheFile()
     _elemStorage.setCache( f );
     _rectStorage.setCache( f );
     return true;
+}
+
+bool tinyNodeCollection::swapToCacheIfNecessary()
+{
+    if ( !_cacheFile || _mapped || _maperror)
+        return false;
+    return swapToCache();
 }
 
 bool tinyNodeCollection::createCacheFile()
@@ -1429,7 +1438,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _buf(NULL)   /// buffer for uncompressed data
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _compsize(compsize)   /// _compbuf (compressed) area size (in file or compbuffer)
-, _bufsize(NULL)    /// _buf (uncompressed) area size, bytes
+, _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
 , _type( manager->_type )
@@ -5123,14 +5132,20 @@ bool ldomDocument::saveChanges()
 
 bool ldomDocument::swapToCache( lUInt32 reservedSize )
 {
+    if ( _maperror )
+        return false;
+    if ( _mapped )
+        return true;
     if ( !createCacheFile() ) {
         CRLog::error("ldomDocument::swapToCache: failed: cannot create cache file");
+        _maperror = true;
         return false;
     }
 
     if ( !saveChanges() )
     {
         CRLog::error("Error while saving changes to cache file");
+        _maperror = true;
         return false;
     }
 
@@ -5151,6 +5166,8 @@ bool ldomDocument::updateMap()
         CRLog::error("Error while saving changes to cache file");
         return false;
     }
+    CRLog::info("Cache file updated successfully");
+    dumpStatistics();
 
     return true;
 }
