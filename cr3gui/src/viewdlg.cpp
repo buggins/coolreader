@@ -533,8 +533,10 @@ void CRViewDialog::prepareNextPageImage( int offset )
         draw(offset);
         _wm->getScreen()->flush(true);
         _wm->getScreen()->setTurboUpdateMode( CRGUIScreen::NormalMode );
+        _docview->getDocument()->swapToCacheIfNecessary();
     } else {
         CRLog::debug("CRViewDialog::prepareNextPageImage() in normal mode");
         LVDocImageRef pageImage = _docview->getPageImage(offset);
+        _docview->getDocument()->swapToCacheIfNecessary();
     }
 }

@@ -315,6 +315,7 @@ protected:
     CVRendBlockCache _renderedBlockCache;
     CacheFile * _cacheFile;
     bool _mapped;
+    bool _maperror;
 #endif
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
@@ -335,6 +336,19 @@ protected:
 
     bool openCacheFile();
 public:
+
+#if BUILD_LITE!=1
+    /// try opening from cache file, find by source file name (w/o path) and crc32
+    virtual bool openFromCache( ) = 0;
+    /// swap to cache file, find by source file name (w/o path) and crc32
+    virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
+    /// saves recent changes to mapped file
+    virtual bool updateMap() = 0;
+
+    bool swapToCacheIfNecessary();
+#endif
+
+
     bool createCacheFile();
 
     inline bool getDocFlag( lUInt32 mask )
@@ -828,14 +842,6 @@ public:
 #endif
 #endif
 
-#if BUILD_LITE!=1
-    /// try opening from cache file, find by source file name (w/o path) and crc32
-    virtual bool openFromCache( ) = 0;
-    /// swap to cache file, find by source file name (w/o path) and crc32
-    virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
-    /// saves recent changes to mapped file
-    virtual bool updateMap() = 0;
-#endif
 
 protected:
 #if BUILD_LITE!=1
