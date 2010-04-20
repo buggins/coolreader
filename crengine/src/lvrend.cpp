@@ -854,9 +854,15 @@ void initFormatData( ldomNode * node )
     {
         ldomNode * parent = node->getParentNode();
         //lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
+        css_style_ref_t style = parent->getStyle();
+        LVFontRef font = parent->getFont();
+        if ( style.isNull() ) {
+            // for debugging
+            style = parent->getStyle();
+        }
         setNodeStyle( node,
-            parent->getStyle(),
-            parent->getFont()
+            style,
+            font
             );
     }
 }
