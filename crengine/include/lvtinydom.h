@@ -1474,6 +1474,7 @@ private:
     int             _page;
     int             _percent;
     lString16       _name;
+    lString16       _path;
     ldomXPointer    _position;
     LVPtrVector<LVTocItem> _children;
     //====================================================
@@ -1499,8 +1500,10 @@ public:
     int getIndex() const { return _index; }
     /// returns section title
     lString16 getName() const { return _name; }
-    /// returns position
-    ldomXPointer getXPointer() const { return _position; }
+    /// returns position pointer
+    ldomXPointer getXPointer() const;
+    /// returns position path
+    lString16 getPath();
     /// returns Y position
     int getY();
     /// returns page number

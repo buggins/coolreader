@@ -677,6 +677,10 @@ static void addTocItems( ldomNode * basesection, LVTocItem * parent )
 void LVDocView::makeToc()
 {
     LVTocItem * toc = m_doc->getToc();
+    if ( toc->getChildCount() ) {
+        return;
+    }
+    CRLog::info("LVDocView::makeToc()");
     toc->clear();
     ldomNode * body = m_doc->getRootNode();
     if ( !body )
