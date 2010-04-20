@@ -5041,6 +5041,7 @@ bool ldomDocument::openFromCache( )
 bool ldomDocument::loadCacheFileContent()
 {
 
+    CRLog::trace("ldomDocument::loadCacheFileContent()");
     {
         SerialBuf propsbuf(0, true);
         if ( !_cacheFile->read( CBT_PROP_DATA, propsbuf ) ) {
@@ -5064,6 +5065,7 @@ bool ldomDocument::loadCacheFileContent()
             return false;
         }
 
+        CRLog::trace("ldomDocument::loadCacheFileContent() - page data");
         SerialBuf pagebuf(0, true);
         if ( !_cacheFile->read( CBT_PAGE_DATA, pagebuf ) ) {
             CRLog::error("Error while reading pages data");
@@ -5093,25 +5095,30 @@ bool ldomDocument::loadCacheFileContent()
 
     }
 
+    CRLog::trace("ldomDocument::loadCacheFileContent() - node data");
     if ( !loadNodeData() ) {
         CRLog::error("Error while reading node instance data");
         return false;
     }
 
 
+    CRLog::trace("ldomDocument::loadCacheFileContent() - element storage");
     if ( !_elemStorage.load() ) {
         CRLog::error("Error while loading element data");
         return false;
     }
+    CRLog::trace("ldomDocument::loadCacheFileContent() - text storage");
     if ( !_textStorage.load() ) {
         CRLog::error("Error while loading text data");
         return false;
     }
+    CRLog::trace("ldomDocument::loadCacheFileContent() - rect storage");
     if ( !_rectStorage.load() ) {
         CRLog::error("Error while loading rect data");
         return false;
     }
 
+    CRLog::trace("ldomDocument::loadCacheFileContent() - TOC");
     {
         SerialBuf tocbuf(0,true);
         if ( !_cacheFile->read( CBT_TOC_DATA, tocbuf ) ) {
@@ -5123,6 +5130,8 @@ bool ldomDocument::loadCacheFileContent()
         }
     }
 
+    CRLog::trace("ldomDocument::loadCacheFileContent() - completed successfully");
+
     return true;
 }
 
@@ -5132,20 +5141,25 @@ bool ldomDocument::saveChanges()
     bool res = true;
     if ( !_cacheFile )
         return true;
+    CRLog::trace("ldomDocument::saveChanges()");
     persist();
+    CRLog::trace("ldomDocument::saveChanges() - element storage");
     if ( !_elemStorage.save() ) {
         CRLog::error("Error while saving element data");
         res = false;
     }
+    CRLog::trace("ldomDocument::saveChanges() - text storage");
     if ( !_textStorage.save() ) {
         CRLog::error("Error while saving text data");
         res = false;
     }
+    CRLog::trace("ldomDocument::saveChanges() - rect storage");
     if ( !_rectStorage.save() ) {
         CRLog::error("Error while saving rect data");
         res = false;
     }
 
+    CRLog::trace("ldomDocument::saveChanges() - misc data");
     SerialBuf propsbuf(4096);
     getProps()->serialize( propsbuf );
     if ( !_cacheFile->write( CBT_PROP_DATA, propsbuf ) ) {
@@ -5167,11 +5181,13 @@ bool ldomDocument::saveChanges()
         }
     }
 
+    CRLog::trace("ldomDocument::saveChanges() - node data");
     if ( !saveNodeData() ) {
         CRLog::error("Error while node instance data");
         res = false;
     }
 
+    CRLog::trace("ldomDocument::saveChanges() - render info");
     SerialBuf hdrbuf(0,true);
     if ( !_hdr.serialize(hdrbuf) ) {
         CRLog::error("Header data serialization is failed");
@@ -5182,6 +5198,7 @@ bool ldomDocument::saveChanges()
     }
 
 
+    CRLog::trace("ldomDocument::saveChanges() - TOC");
     SerialBuf tocbuf(0,true);
     if ( !m_toc.serialize(tocbuf) ) {
         CRLog::error("TOC data serialization is failed");
@@ -5192,12 +5209,14 @@ bool ldomDocument::saveChanges()
     }
 
     if ( res ) {
+        CRLog::trace("ldomDocument::saveChanges() - flush");
         if ( !_cacheFile->flush(true) ) {
             CRLog::error("Error while updating index of cache file");
             res = false;
         }
     }
 
+    CRLog::trace("ldomDocument::saveChanges() - done %s", (res?"successfully":"with error"));
     return res;
 }
 
@@ -7053,13 +7072,26 @@ void tinyNodeCollection::dumpStatistics()
 }
 
 
+/// returns position pointer
+ldomXPointer LVTocItem::getXPointer() const
+{
+//    if ( _position.isNull() && !_path.empty() )
+//        _position.toString();
+    return _position;
+}
 
-
+/// returns position path
+lString16 LVTocItem::getPath()
+{
+    if ( _path.empty() && !_position.isNull())
+        _path = _position.toString();
+    return _path;
+}
 
 /// returns Y position
 int LVTocItem::getY()
 {
-    return _position.toPoint().y;
+    return getXPointer().toPoint().y;
 }
 
 /// serialize to byte array (pointer will be incremented by number of bytes written)
@@ -7074,7 +7106,7 @@ bool LVTocItem::serialize( SerialBuf & buf )
 //    ldomXPointer    _position;
 //    LVPtrVector<LVTocItem> _children;
 
-    buf << _level << _index << _page << _percent << _children.length() << _name << _position.toString();
+    buf << _level << _index << _page << _percent << _children.length() << _name << getPath();
     if ( buf.error() )
         return false;
     for ( int i=0; i<_children.length(); i++ ) {
@@ -7091,14 +7123,13 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
     if ( buf.error() )
         return false;
     int childCount = 0;
-    lString16 path;
-    buf >> _level >> _index >> _page >> _percent >> childCount >> _name >> path;
+    buf >> _level >> _index >> _page >> _percent >> childCount >> _name >> _path;
     if ( buf.error() )
         return false;
     if ( _level>0 ) {
-        _position = doc->createXPointer( path );
+        _position = doc->createXPointer( _path );
         if ( _position.isNull() ) {
-            CRLog::error("Cannot find TOC node by path %s", LCSTR(path) );
+            CRLog::error("Cannot find TOC node by path %s", LCSTR(_path) );
             buf.seterror();
             return false;
         }
