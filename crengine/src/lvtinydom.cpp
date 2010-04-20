@@ -12,19 +12,19 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.06\n";
+                                       " File v3.02.07\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
 // cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x080000
-#define TEXT_CACHE_PACKED_SPACE   0x100000
+#define TEXT_CACHE_UNPACKED_SPACE 0x0C0000
+#define TEXT_CACHE_PACKED_SPACE   0x160000
 #define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
-#define ELEM_CACHE_UNPACKED_SPACE 0x080000
-#define ELEM_CACHE_PACKED_SPACE   0x100000
-#define ELEM_CACHE_CHUNK_SIZE     0x008000
-#define RECT_CACHE_UNPACKED_SPACE 0x060000
-#define RECT_CACHE_PACKED_SPACE   0x060000
-#define RECT_CACHE_CHUNK_SIZE     0x006000
+#define ELEM_CACHE_UNPACKED_SPACE 0x0C0000
+#define ELEM_CACHE_PACKED_SPACE   0x120000
+#define ELEM_CACHE_CHUNK_SIZE     0x00FFFF
+#define RECT_CACHE_UNPACKED_SPACE 0x040000
+#define RECT_CACHE_PACKED_SPACE   0x040000
+#define RECT_CACHE_CHUNK_SIZE     0x00FFFF
 
 #define STYLE_HASH_TABLE_SIZE     2048
 #define FONT_HASH_TABLE_SIZE      1024
@@ -259,7 +259,7 @@ bool CacheFile::readIndex()
     }
     if ( !hdr._indexBlock._blockFilePos )
         return true; // empty index is ok
-    if ( hdr._indexBlock._blockFilePos>=hdr._fsize || hdr._indexBlock._blockFilePos+hdr._indexBlock._blockSize>hdr._fsize ) {
+    if ( hdr._indexBlock._blockFilePos>=hdr._fsize || hdr._indexBlock._blockFilePos+hdr._indexBlock._blockSize>hdr._fsize+4096-1 ) {
         CRLog::error("CacheFile::readIndex: Wrong index file position specified in header");
         return false;
     }
@@ -846,6 +846,32 @@ tinyNodeCollection::tinyNodeCollection()
     memset( _elemList, 0, sizeof(_elemList) );
 }
 
+tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
+: _textCount(0)
+, _textNextFree(0)
+, _elemCount(0)
+, _elemNextFree(0)
+, _styles(STYLE_HASH_TABLE_SIZE)
+, _fonts(FONT_HASH_TABLE_SIZE)
+, _tinyElementCount(0)
+, _itemCount(0)
+#if BUILD_LITE!=1
+, _renderedBlockCache( 32 )
+, _cacheFile(NULL)
+, _mapped(false)
+, _maperror(false)
+#endif
+, _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_PACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
+, _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_PACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
+, _rectStorage(this, 'r', RECT_CACHE_UNPACKED_SPACE, RECT_CACHE_PACKED_SPACE, RECT_CACHE_CHUNK_SIZE ) // element render rect storage
+,_docProps(LVCreatePropsContainer())
+,_docFlags(v._docFlags)
+,_stylesheet(v._stylesheet)
+{
+}
+
+
+
 bool tinyNodeCollection::openCacheFile()
 {
     if ( _cacheFile )
@@ -953,7 +979,8 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
         for ( int j=0; j<sz; j++ ) {
             buf[j]._document = (ldomDocument*)this;
             if ( buf[j].isElement() ) {
-                buf[j]._data._pelem._styleIndex = 0;
+                // will be set by loadStyles/updateStyles
+                //buf[j]._data._pelem._styleIndex = 0;
                 buf[j]._data._pelem._fontIndex = 0;
             }
         }
@@ -1302,7 +1329,7 @@ lUInt16 ldomDataStorageManager::cacheType()
     return 0;
 }
 
-#define RECT_DATA_CHUNK_ITEMS_SHIFT 10
+#define RECT_DATA_CHUNK_ITEMS_SHIFT 12
 #define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
 #define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
@@ -2069,6 +2096,7 @@ ldomNode * lxmlDocBase::getRootNode()
 }
 
 ldomDocument::ldomDocument()
+: m_toc(this)
 {
     allocTinyElement(NULL, 0, 0);
     //new ldomElement( this, NULL, 0, 0, 0 );
@@ -2077,14 +2105,14 @@ ldomDocument::ldomDocument()
 
 /// Copy constructor - copies ID tables contents
 lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
-:    _elementNameTable(doc._elementNameTable)    // Element Name<->Id map
-,    _attrNameTable(doc._attrNameTable)       // Attribute Name<->Id map
+:    tinyNodeCollection(doc)
+,   _elementNameTable(doc._elementNameTable)    // Element Name<->Id map
+,   _attrNameTable(doc._attrNameTable)       // Attribute Name<->Id map
 ,   _nsNameTable(doc._nsNameTable)           // Namespace Name<->Id map
 ,   _nextUnknownElementId(doc._nextUnknownElementId) // Next Id for unknown element
 ,   _nextUnknownAttrId(doc._nextUnknownAttrId)    // Next Id for unknown attribute
 ,   _nextUnknownNsId(doc._nextUnknownNsId)      // Next Id for unknown namespace
     //lvdomStyleCache _styleCache;         // Style cache
-,   _stylesheet(doc._stylesheet)
 ,   _attrValueTable(doc._attrValueTable)
 ,   _idNodeMap(doc._idNodeMap)
 ,   _idAttrId(doc._idAttrId) // Id for "id" attribute name
@@ -2102,6 +2130,7 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 , _def_style(doc._def_style)
 , _page_height(doc._page_height)
 , _container(doc._container)
+, m_toc(this)
 {
 }
 
@@ -2235,11 +2264,20 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     _def_style->text_indent.value = 0;
     _def_style->line_height.type = css_val_percent;
     _def_style->line_height.value = def_interline_space;
+    lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     // update styles
-    CRLog::trace("init format data...");
-    getRootNode()->recurseElements( initFormatData );
+//    if ( getRootNode()->getStyle().isNull() || getRootNode()->getFont().isNull()
+//        || _docFlags != _hdr.render_docflags
+//        || width!=_hdr.render_dx || dy!=_hdr.render_dy || defStyleHash!=_hdr.stylesheet_hash ) {
+//        CRLog::trace("init format data...");
+//        getRootNode()->recurseElements( initFormatData );
+//    } else {
+//        CRLog::trace("reusing existing format data...");
+//    }
 
-    if ( !checkRenderContext( pages, width, dy ) ) {
+    if ( !checkRenderContext( pages, width, dy, defStyleHash ) ) {
+        CRLog::trace("init format data...");
+        getRootNode()->recurseElements( initFormatData );
         pages->clear();
         if ( showCover )
             pages->add( new LVRendPageInfo( dy ) );
@@ -2260,7 +2298,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         gc();
         CRLog::trace("finalizing...");
         context.Finalize();
-        updateRenderContext( pages, width, dy );
+        updateRenderContext( pages, width, dy, defStyleHash );
         //persist();
         dumpStatistics();
         return height;
@@ -4964,7 +5002,7 @@ bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
     int start = hdrbuf.pos();
     hdrbuf.putMagic( doc_file_magic );
     //CRLog::trace("Serializing render data: %d %d %d %d", render_dx, render_dy, render_docflags, render_style_hash);
-    hdrbuf << render_dx << render_dy << render_docflags << render_style_hash;
+    hdrbuf << render_dx << render_dy << render_docflags << render_style_hash << stylesheet_hash;
 
     hdrbuf.putCRC( hdrbuf.pos() - start );
 
@@ -4991,7 +5029,7 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
         CRLog::error("Swap file Magic signature doesn't match");
         return false;
     }
-    hdrbuf >> render_dx >> render_dy >> render_docflags >> render_style_hash;
+    hdrbuf >> render_dx >> render_dy >> render_docflags >> render_style_hash >> stylesheet_hash;
     //CRLog::trace("Deserialized render data: %d %d %d %d", render_dx, render_dy, render_docflags, render_style_hash);
     hdrbuf.checkCRC( hdrbuf.pos() - start );
     if ( hdrbuf.error() ) {
@@ -5131,6 +5169,14 @@ bool ldomDocument::loadCacheFileContent()
         }
     }
 
+    if ( loadStylesData() ) {
+        CRLog::trace("ldomDocument::loadCacheFileContent() - using loaded styles");
+        updateLoadedStyles( true );
+    } else {
+        CRLog::trace("ldomDocument::loadCacheFileContent() - style loading failed: will reinit ");
+        updateLoadedStyles( false );
+    }
+
     CRLog::trace("ldomDocument::loadCacheFileContent() - completed successfully");
 
     return true;
@@ -5231,8 +5277,10 @@ bool ldomDocument::saveChanges()
 bool tinyNodeCollection::saveStylesData()
 {
     SerialBuf stylebuf(0, true);
+    lUInt32 stHash = _stylesheet.getHash();
     LVArray<css_style_ref_t> * list = _styles.getIndex();
     stylebuf.putMagic(styles_magic);
+    stylebuf << stHash;
     stylebuf << list->length(); // index
     for ( int i=0; i<list->length(); i++ ) {
         css_style_ref_t rec = list->get(i);
@@ -5241,6 +5289,8 @@ bool tinyNodeCollection::saveStylesData()
             rec->serialize( stylebuf ); // style
         }
     }
+    stylebuf << (int)0; // index=0 is end list mark
+    stylebuf.putMagic(styles_magic);
     delete list;
     if ( stylebuf.error() )
         return false;
@@ -5253,7 +5303,126 @@ bool tinyNodeCollection::saveStylesData()
 
 bool tinyNodeCollection::loadStylesData()
 {
-    return false;
+    SerialBuf stylebuf(0, true);
+    if ( !_cacheFile->read( CBT_STYLE_DATA, stylebuf ) ) {
+        CRLog::error("Error while reading style data");
+        return false;
+    }
+    lUInt32 stHash = 0;
+    int len = 0;
+    lUInt32 myHash = _stylesheet.getHash();
+
+    //LVArray<css_style_ref_t> * list = _styles.getIndex();
+    stylebuf.checkMagic(styles_magic);
+    stylebuf >> stHash;
+    if ( stHash != myHash ) {
+        CRLog::info("tinyNodeCollection::loadStylesData() - stylesheet hash is changed: skip loading styles");
+        return false;
+    }
+    stylebuf >> len; // index
+    if ( stylebuf.error() )
+        return false;
+    LVArray<css_style_ref_t> list(len, css_style_ref_t());
+    for ( int i=0; i<list.length(); i++ ) {
+        int index = 0;
+        stylebuf >> index; // index
+        if ( index<=0 || index>=len || stylebuf.error() )
+            break;
+        css_style_ref_t rec( new css_style_rec_t() );
+        if ( !rec->deserialize(stylebuf) )
+            break;
+        list.set( index, rec );
+    }
+    stylebuf.checkMagic(styles_magic);
+    if ( stylebuf.error() )
+        return false;
+
+    CRLog::trace("Setting style data: %d bytes", stylebuf.size());
+    _styles.setIndex( list );
+
+    return !stylebuf.error();
+}
+
+lUInt32 tinyNodeCollection::calcStyleHash()
+{
+    int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
+    lUInt32 res = _elemCount;
+    for ( int i=0; i<count; i++ ) {
+        int offs = i*TNC_PART_LEN;
+        int sz = TNC_PART_LEN;
+        if ( offs + sz > _elemCount+1 ) {
+            sz = _elemCount+1 - offs;
+        }
+        ldomNode * buf = _elemList[i];
+        for ( int j=0; j<sz; j++ ) {
+            if ( buf[j].isElement() ) {
+                res *= 31;
+                css_style_ref_t style = buf[j].getStyle();
+                if ( !style.isNull() )
+                    res += calcHash( style );
+                res *= 31;
+                LVFontRef font = buf[j].getFont();
+                if ( !font.isNull() )
+                    res += calcHash( font );
+            }
+        }
+    }
+    return res;
+}
+
+bool tinyNodeCollection::updateLoadedStyles( bool enabled )
+{
+    int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
+    bool res = true;
+    LVArray<css_style_ref_t> * list = _styles.getIndex();
+    for ( int i=0; i<count; i++ ) {
+        int offs = i*TNC_PART_LEN;
+        int sz = TNC_PART_LEN;
+        if ( offs + sz > _elemCount+1 ) {
+            sz = _elemCount+1 - offs;
+        }
+        ldomNode * buf = _elemList[i];
+        for ( int j=0; j<sz; j++ ) {
+            buf[j]._document = (ldomDocument*)this;
+            if ( buf[j].isElement() ) {
+                lUInt16 style = buf[j]._data._pelem._styleIndex;
+                if ( enabled ) {
+                    css_style_ref_t s = list->get( style );
+                    if ( !s.isNull() ) {
+                        LVFontRef fnt = getFont( s.get() );
+                        if ( fnt.isNull() ) {
+                            CRLog::error("font not found for style!");
+                        } else {
+                            int fntindex = _fonts.cache( fnt );
+                            if ( fntindex<=0 )
+                                CRLog::error("font caching failed for style!");
+                            else
+                                buf[j]._data._pelem._fontIndex = fntindex;
+                        }
+                    } else {
+                        buf[j]._data._pelem._styleIndex = 0;
+                        buf[j]._data._pelem._fontIndex = 0;
+                        res = false;
+                    }
+                } else {
+                    buf[j]._data._pelem._styleIndex = 0;
+                    buf[j]._data._pelem._fontIndex = 0;
+                }
+            }
+        }
+    }
+    if ( enabled ) {
+        // correct list reference counters
+        for ( int i=0; i<list->length(); i++ ) {
+            if ( !list->get(i).isNull() ) {
+                // decrease reference counter
+                // TODO:
+                //_styles.release( list->get(i) );
+            }
+        }
+    }
+    delete list;
+    return res;
 }
 
 bool ldomDocument::swapToCache( lUInt32 reservedSize )
@@ -5614,27 +5783,27 @@ bool ldomDocCache::enabled()
     return _cacheInstance!=NULL;
 }
 
-void calcStyleHash( ldomNode * node, lUInt32 & value )
-{
-    if ( !node )
-        return;
-
-    if ( node->isText() || node->getRendMethod()==erm_invisible ) {
-        value = value * 75 + 1673251;
-        return; // don't go through invisible nodes
-    }
-
-    css_style_ref_t style = node->getStyle();
-    font_ref_t font = node->getFont();
-    lUInt32 styleHash = (!style) ? 4324324 : calcHash( style );
-    lUInt32 fontHash = (!font) ? 256371 : calcHash( font );
-    value = (value*75 + styleHash) * 75 + fontHash;
-
-    int cnt = node->getChildCount();
-    for ( int i=0; i<cnt; i++ ) {
-        calcStyleHash( node->getChildNode(i), value );
-    }
-}
+//void calcStyleHash( ldomNode * node, lUInt32 & value )
+//{
+//    if ( !node )
+//        return;
+//
+//    if ( node->isText() || node->getRendMethod()==erm_invisible ) {
+//        value = value * 75 + 1673251;
+//        return; // don't go through invisible nodes
+//    }
+//
+//    css_style_ref_t style = node->getStyle();
+//    font_ref_t font = node->getFont();
+//    lUInt32 styleHash = (!style) ? 4324324 : calcHash( style );
+//    lUInt32 fontHash = (!font) ? 256371 : calcHash( font );
+//    value = (value*75 + styleHash) * 75 + fontHash;
+//
+//    int cnt = node->getChildCount();
+//    for ( int i=0; i<cnt; i++ ) {
+//        calcStyleHash( node->getChildNode(i), value );
+//    }
+//}
 
 #if BUILD_LITE!=1
 
@@ -5650,12 +5819,13 @@ lUInt32 calcGlobalSettingsHash()
 
 
 /// save document formatting parameters after render
-void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
+void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash )
 {
-    lUInt32 styleHash = 0;
-    calcStyleHash( getRootNode(), styleHash );
+    lUInt32 styleHash = calcStyleHash();
+    //calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
     _hdr.render_style_hash = styleHash;
+    _hdr.stylesheet_hash = stylesheetHash;
     _hdr.render_dx = dx;
     _hdr.render_dy = dy;
     _hdr.render_docflags = _docFlags;
@@ -5664,12 +5834,13 @@ void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
 }
 
 /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
-bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
+bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash )
 {
-    lUInt32 styleHash = 0;
-    calcStyleHash( getRootNode(), styleHash );
+    lUInt32 styleHash = calcStyleHash();
+    //calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
     if ( styleHash == _hdr.render_style_hash
+        && stylesheetHash == _hdr.stylesheet_hash
         && _docFlags == _hdr.render_docflags
         && dx == (int)_hdr.render_dx
         && dy == (int)_hdr.render_dy ) {
@@ -5682,6 +5853,7 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
         return true;
     }
     _hdr.render_style_hash = styleHash;
+    _hdr.stylesheet_hash = stylesheetHash;
     _hdr.render_dx = dx;
     _hdr.render_dy = dy;
     _hdr.render_docflags = _docFlags;
@@ -7109,10 +7281,10 @@ void tinyNodeCollection::dumpStatistics()
 
 
 /// returns position pointer
-ldomXPointer LVTocItem::getXPointer() const
+ldomXPointer LVTocItem::getXPointer()
 {
-//    if ( _position.isNull() && !_path.empty() )
-//        _position.toString();
+    if ( _position.isNull() && !_path.empty() )
+        _position = _doc->createXPointer( _path );
     return _position;
 }
 
@@ -7163,15 +7335,15 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
     if ( buf.error() )
         return false;
     if ( _level>0 ) {
-        _position = doc->createXPointer( _path );
-        if ( _position.isNull() ) {
-            CRLog::error("Cannot find TOC node by path %s", LCSTR(_path) );
-            buf.seterror();
-            return false;
-        }
+//        _position = doc->createXPointer( _path );
+//        if ( _position.isNull() ) {
+//            CRLog::error("Cannot find TOC node by path %s", LCSTR(_path) );
+//            buf.seterror();
+//            return false;
+//        }
     }
     for ( int i=0; i<childCount; i++ ) {
-        LVTocItem * item = new LVTocItem();
+        LVTocItem * item = new LVTocItem(doc);
         if ( !item->deserialize( doc, buf ) ) {
             delete item;
             return false;

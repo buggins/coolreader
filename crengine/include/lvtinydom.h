@@ -325,11 +325,15 @@ protected:
     CRPropRef _docProps;
     lUInt32 _docFlags; // document flags
 
+    LVStyleSheet  _stylesheet;
+
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
     bool saveStylesData();
     bool loadStylesData();
+    bool updateLoadedStyles( bool enabled );
+    lUInt32 calcStyleHash();
     bool saveNodeData();
     bool saveNodeData( lUInt16 type, ldomNode ** list, int nodecount );
     bool loadNodeData();
@@ -337,6 +341,8 @@ protected:
 
 
     bool openCacheFile();
+
+    tinyNodeCollection( tinyNodeCollection & v );
 public:
 
 #if BUILD_LITE!=1
@@ -852,10 +858,11 @@ protected:
         lUInt32 render_dy;
         lUInt32 render_docflags;
         lUInt32 render_style_hash;
+        lUInt32 stylesheet_hash;
         bool serialize( SerialBuf & buf );
         bool deserialize( SerialBuf & buf );
         DocFileHeader()
-            : render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0)
+            : render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0), stylesheet_hash(0)
         {
         }
     };
@@ -868,7 +875,6 @@ protected:
     lUInt16       _nextUnknownElementId; // Next Id for unknown element
     lUInt16       _nextUnknownAttrId;    // Next Id for unknown attribute
     lUInt16       _nextUnknownNsId;      // Next Id for unknown namespace
-    LVStyleSheet  _stylesheet;
     lString16HashedCollection _attrValueTable;
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
@@ -1471,6 +1477,7 @@ class LVTocItem
     friend class LVDocView;
 private:
     LVTocItem *     _parent;
+    ldomDocument *  _doc;
     int             _level;
     int             _index;
     int             _page;
@@ -1480,8 +1487,8 @@ private:
     ldomXPointer    _position;
     LVPtrVector<LVTocItem> _children;
     //====================================================
-    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _position(pos) { }
-    void addChild( LVTocItem * item ) { item->_level=_level+1; item->_parent=this; item->_index=_children.length(), _children.add(item); }
+    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _path(pos.toString()), _position(pos) { }
+    void addChild( LVTocItem * item ) { item->_level=_level+1; item->_parent=this; item->_index=_children.length(), item->_doc=_doc; _children.add(item); }
     //====================================================
     void setPage( int n ) { _page = n; }
     void setPercent( int n ) { _percent = n; }
@@ -1503,7 +1510,7 @@ public:
     /// returns section title
     lString16 getName() const { return _name; }
     /// returns position pointer
-    ldomXPointer getXPointer() const;
+    ldomXPointer getXPointer();
     /// returns position path
     lString16 getPath();
     /// returns Y position
@@ -1523,7 +1530,7 @@ public:
     }
     void clear() { _children.clear(); }
     // root node constructor
-    LVTocItem() : _parent(NULL), _level(0), _index(0) { }
+    LVTocItem( ldomDocument * doc ) : _parent(NULL), _doc(doc), _level(0), _index(0) { }
     ~LVTocItem() { clear(); }
 };
 
@@ -1605,9 +1612,9 @@ public:
 
 #if BUILD_LITE!=1
     /// save document formatting parameters after render
-    void updateRenderContext( LVRendPageList * pages, int dx, int dy );
+    void updateRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash );
     /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
-    bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
+    bool checkRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash );
 #endif
 
 #if BUILD_LITE!=1
