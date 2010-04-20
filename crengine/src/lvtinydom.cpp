@@ -12,17 +12,17 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.00.03\n";
+                                       " File v3.00.04\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
 // cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x040000
-#define TEXT_CACHE_PACKED_SPACE   0x120000
+#define TEXT_CACHE_UNPACKED_SPACE 0x080000
+#define TEXT_CACHE_PACKED_SPACE   0x100000
 #define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
-#define ELEM_CACHE_UNPACKED_SPACE 0x060000
+#define ELEM_CACHE_UNPACKED_SPACE 0x080000
 #define ELEM_CACHE_PACKED_SPACE   0x100000
 #define ELEM_CACHE_CHUNK_SIZE     0x008000
-#define RECT_CACHE_UNPACKED_SPACE 0x030000
+#define RECT_CACHE_UNPACKED_SPACE 0x060000
 #define RECT_CACHE_PACKED_SPACE   0x060000
 #define RECT_CACHE_CHUNK_SIZE     0x006000
 
@@ -239,7 +239,7 @@ bool CacheFile::readIndex()
         return false;
     if ( !hdr.validate() )
         return false;
-    if ( hdr._fsize > _size ) {
+    if ( hdr._fsize > _size + 4096-1 ) {
         CRLog::error("CacheFile::readIndex: file size doesn't match with header");
         return false;
     }
@@ -939,7 +939,7 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int &node
 
 bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodecount )
 {
-    int count = (nodecount >> TNC_PART_SHIFT) + 1;
+    int count = (nodecount >> TNC_PART_SHIFT);// + 1;
     for ( int i=0; i<count; i++ ) {
         if ( !list[i] )
             continue;
