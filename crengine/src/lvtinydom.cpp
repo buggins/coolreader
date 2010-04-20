@@ -42,6 +42,7 @@ enum CacheFileBlockType {
     CBT_ELEM_NODE,
     CBT_TEXT_NODE,
     CBT_REND_PARAMS,
+    CBT_TOC_DATA,
 };
 
 
@@ -469,12 +470,11 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         // data not changed: don't write again
         // TODO:
         if ( existingblock->_dataHash==newhash ) {
-            CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
+            //CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
             return true;
         } else {
-            CRLog::debug("Found existing block %d:%d with CRC matched - but with different hash %08x!!!", type, dataIndex, existingblock->_dataHash );
+            //CRLog::debug("Found existing block %d:%d with CRC matched - but with different hash %08x!!!", type, dataIndex, existingblock->_dataHash );
         }
-        //return true;
     }
     CacheFileItem * block = allocBlock( type, dataIndex, size );
     if ( !block )
@@ -5090,6 +5090,7 @@ bool ldomDocument::loadCacheFileContent()
             return false;
         }
         _hdr = h;
+
     }
 
     if ( !loadNodeData() ) {
@@ -5109,6 +5110,17 @@ bool ldomDocument::loadCacheFileContent()
     if ( !_rectStorage.load() ) {
         CRLog::error("Error while loading rect data");
         return false;
+    }
+
+    {
+        SerialBuf tocbuf(0,true);
+        if ( !_cacheFile->read( CBT_TOC_DATA, tocbuf ) ) {
+            CRLog::error("Error while reading TOC data");
+            return false;
+        } else if ( !m_toc.deserialize(this, tocbuf) ) {
+            CRLog::error("TOC data deserialization is failed");
+            return false;
+        }
     }
 
     return true;
@@ -5166,6 +5178,16 @@ bool ldomDocument::saveChanges()
         res = false;
     } else if ( !_cacheFile->write( CBT_REND_PARAMS, hdrbuf ) ) {
         CRLog::error("Error while writing header data");
+        res = false;
+    }
+
+
+    SerialBuf tocbuf(0,true);
+    if ( !m_toc.serialize(tocbuf) ) {
+        CRLog::error("TOC data serialization is failed");
+        res = false;
+    } else if ( !_cacheFile->write( CBT_TOC_DATA, tocbuf) ) {
+        CRLog::error("Error while writing TOC data");
         res = false;
     }
 
@@ -7038,6 +7060,61 @@ void tinyNodeCollection::dumpStatistics()
 int LVTocItem::getY()
 {
     return _position.toPoint().y;
+}
+
+/// serialize to byte array (pointer will be incremented by number of bytes written)
+bool LVTocItem::serialize( SerialBuf & buf )
+{
+//    LVTocItem *     _parent;
+//    int             _level;
+//    int             _index;
+//    int             _page;
+//    int             _percent;
+//    lString16       _name;
+//    ldomXPointer    _position;
+//    LVPtrVector<LVTocItem> _children;
+
+    buf << _level << _index << _page << _percent << _children.length() << _name << _position.toString();
+    if ( buf.error() )
+        return false;
+    for ( int i=0; i<_children.length(); i++ ) {
+        _children[i]->serialize( buf );
+        if ( buf.error() )
+            return false;
+    }
+    return !buf.error();
+}
+
+/// deserialize from byte array (pointer will be incremented by number of bytes read)
+bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    int childCount = 0;
+    lString16 path;
+    buf >> _level >> _index >> _page >> _percent >> childCount >> _name >> path;
+    if ( buf.error() )
+        return false;
+    if ( _level>0 ) {
+        _position = doc->createXPointer( path );
+        if ( _position.isNull() ) {
+            CRLog::error("Cannot find TOC node by path %s", LCSTR(path) );
+            buf.seterror();
+            return false;
+        }
+    }
+    for ( int i=0; i<childCount; i++ ) {
+        LVTocItem * item = new LVTocItem();
+        if ( !item->deserialize( doc, buf ) ) {
+            delete item;
+            return false;
+        }
+        item->_parent = this;
+        _children.add( item );
+        if ( buf.error() )
+            return false;
+    }
+    return true;
 }
 
 /// returns page number

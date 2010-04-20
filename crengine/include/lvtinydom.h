@@ -1483,6 +1483,10 @@ private:
     void setPage( int n ) { _page = n; }
     void setPercent( int n ) { _percent = n; }
 public:
+    /// serialize to byte array (pointer will be incremented by number of bytes written)
+    bool serialize( SerialBuf & buf );
+    /// deserialize from byte array (pointer will be incremented by number of bytes read)
+    bool deserialize( ldomDocument * doc, SerialBuf & buf );
     /// get page number
     int getPage() { return _page; }
     /// get position percent * 100
