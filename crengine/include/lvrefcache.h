@@ -16,6 +16,7 @@
 #define __LV_REF_CACHE_H_INCLUDED__
 
 #include "lvref.h"
+#include "lvarray.h"
 
 /*
     Object cache
@@ -183,6 +184,16 @@ private:
 
 public:
 
+    LVArray<ref_t> * getIndex()
+    {
+        LVArray<ref_t> * list = new LVArray<ref_t>(indexsize, ref_t());
+        for ( int i=1; i<indexsize; i++ ) {
+            if ( index[i].item )
+                list->set(i, index[i].item->style);
+        }
+        return list;
+    }
+
     int length()
     {
         return numitems;
@@ -247,6 +258,41 @@ public:
         numitems++;
         return indexItem( *rr );
     }
+
+    // from index array
+    LVIndexedRefCache( LVArray<ref_t> &list )
+    : index(NULL)
+    , indexsize(0)
+    , nextindex(0)
+    , freeindex(0)
+    , numitems(0)
+    {
+        size = list.length()>0 ? list.length()*4 : 32;
+        table = new LVRefCacheRec * [ size ];
+        for( int i=0; i<size; i++ )
+            table[i] = NULL;
+        indexsize = list.length();
+        index = (LVRefCacheIndexRec*)realloc( index, sizeof(LVRefCacheIndexRec)*indexsize );
+        for ( int i=1; i<indexsize; i++ ) {
+            if ( list[i].isNull() ) {
+                // add free node
+                index[i].item = NULL;
+                index[i].refcount = freeindex;
+                freeindex = i;
+            } else {
+                // add item
+                lUInt32 hash = calcHash( list[i] );
+                lUInt32 hindex = hash & (size - 1);
+                LVRefCacheRec * rec = new LVRefCacheRec(list[i], hash);
+                rec->next = table[hindex];
+                table[hindex] = rec;
+                index[i].item = rec;
+                index[i].refcount = 1;
+                numitems++;
+            }
+        }
+    }
+
     LVIndexedRefCache( int sz )
     : index(NULL)
     , indexsize(0)

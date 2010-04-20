@@ -43,6 +43,7 @@ enum CacheFileBlockType {
     CBT_TEXT_NODE,
     CBT_REND_PARAMS,
     CBT_TOC_DATA,
+    CBT_STYLE_DATA,
 };
 
 
@@ -5135,6 +5136,8 @@ bool ldomDocument::loadCacheFileContent()
     return true;
 }
 
+static const char * styles_magic = "CRSTYLES";
+
 /// save changes to cache file, @see loadCacheFileContent()
 bool ldomDocument::saveChanges()
 {
@@ -5208,6 +5211,11 @@ bool ldomDocument::saveChanges()
         res = false;
     }
 
+    if ( !saveStylesData() ) {
+            CRLog::error("Error while writing style data");
+            res = false;
+    }
+
     if ( res ) {
         CRLog::trace("ldomDocument::saveChanges() - flush");
         if ( !_cacheFile->flush(true) ) {
@@ -5218,6 +5226,34 @@ bool ldomDocument::saveChanges()
 
     CRLog::trace("ldomDocument::saveChanges() - done %s", (res?"successfully":"with error"));
     return res;
+}
+
+bool tinyNodeCollection::saveStylesData()
+{
+    SerialBuf stylebuf(0, true);
+    LVArray<css_style_ref_t> * list = _styles.getIndex();
+    stylebuf.putMagic(styles_magic);
+    stylebuf << list->length(); // index
+    for ( int i=0; i<list->length(); i++ ) {
+        css_style_ref_t rec = list->get(i);
+        if ( !rec.isNull() ) {
+            stylebuf << i; // index
+            rec->serialize( stylebuf ); // style
+        }
+    }
+    delete list;
+    if ( stylebuf.error() )
+        return false;
+    CRLog::trace("Writing style data: %d bytes", stylebuf.pos());
+    if ( !_cacheFile->write( CBT_STYLE_DATA, stylebuf) ) {
+        return false;
+    }
+    return !stylebuf.error();
+}
+
+bool tinyNodeCollection::loadStylesData()
+{
+    return false;
 }
 
 bool ldomDocument::swapToCache( lUInt32 reservedSize )
