@@ -12,7 +12,7 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.00.04\n";
+                                       " File v3.02.06\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
 // cache memory sizes
@@ -74,6 +74,16 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
 
 #if BUILD_LITE!=1
 
+static lUInt32 calcHash32( const lUInt8 * s, int len )
+{
+    lUInt32 res = 0;
+    for ( int i=0; i<len; i++ ) {
+        // res*31 + s
+        res = (((((((res<<1)+res)<<1)+res)<<1)+res)<<1)+res + s[i];
+    }
+    return res;
+}
+
 #define CACHE_FILE_ITEM_MAGIC 0xC007B00C
 struct CacheFileItem
 {
@@ -85,13 +95,14 @@ struct CacheFileItem
     int _blockSize;    // size of block within file
     int _dataSize;     // used data size inside block (<= block size)
     lUInt32 _dataCRC;  // crc of data
+    lUInt32 _dataHash; // additional hash of data
     bool validate( int fsize )
     {
         if ( _magic!=CACHE_FILE_ITEM_MAGIC ) {
             CRLog::error("CacheFileItem::validate: block magic doesn't match");
             return false;
         }
-        if ( _dataSize>_blockSize || _blockSize<0 || _dataSize<0 || _blockFilePos+_blockSize>fsize || _blockFilePos<1024) {
+        if ( _dataSize>_blockSize || _blockSize<0 || _dataSize<0 || _blockFilePos+_dataSize>fsize || _blockFilePos<1024) {
             CRLog::error("CacheFileItem::validate: invalid block size or position");
             return false;
         }
@@ -109,6 +120,7 @@ struct CacheFileItem
     , _blockSize(0)         // size of block within file
     , _dataSize(0)          // used data size inside block (<= block size)
     , _dataCRC(0)           // crc of data
+    , _dataHash(0)          // hash of data
     {
     }
 };
@@ -266,7 +278,8 @@ bool CacheFile::readIndex()
         return false;
     // check CRC
     lUInt32 crc = lStr_crc32(0,  index, sz );
-    if ( hdr._indexBlock._dataCRC!=crc ) {
+    lUInt32 hash = calcHash32( (lUInt8*)index, sz );
+    if ( hdr._indexBlock._dataCRC!=crc || hdr._indexBlock._dataHash!=hash ) {
         CRLog::error("CacheFile::readIndex: CRC doesn't match");
         delete index;
         return false;
@@ -431,8 +444,9 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     }
     // check CRC
     lUInt32 crc = lStr_crc32(0,  buf, block->_dataSize );
+    lUInt32 hash = calcHash32( buf, block->_dataSize );
     //CRLog::error("CacheFile::read: block %d:%d (pos %ds, size %ds) is read (crc=%08x)", type, dataIndex, (int)block->_blockFilePos/_sectorSize, (int)(block->_dataSize+_sectorSize-1)/_sectorSize, crc);
-    if ( crc!=block->_dataCRC ) {
+    if ( crc!=block->_dataCRC || hash!=block->_dataHash ) {
         CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d (crc=%08x, expected=%08x)", type, dataIndex, (int)size, crc, block->_dataCRC);
         free(buf);
         buf = NULL;
@@ -449,10 +463,18 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size )
 {
     lUInt32 newcrc = lStr_crc32(0,  buf, size );
+    lUInt32 newhash = calcHash32( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
     if ( existingblock && existingblock->_dataSize==size && existingblock->_dataCRC==newcrc ) {
         // data not changed: don't write again
-        return true;
+        // TODO:
+        if ( existingblock->_dataHash==newhash ) {
+            CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
+            return true;
+        } else {
+            CRLog::debug("Found existing block %d:%d with CRC matched - but with different hash %08x!!!", type, dataIndex, existingblock->_dataHash );
+        }
+        //return true;
     }
     CacheFileItem * block = allocBlock( type, dataIndex, size );
     if ( !block )
@@ -478,6 +500,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
 #endif
     // update CRC
     block->_dataCRC = newcrc;
+    block->_dataHash = newhash;
     _indexChanged = true;
     //CRLog::error("CacheFile::write: block %d:%d (pos %ds, size %ds) is written (crc=%08x)", type, dataIndex, (int)block->_blockFilePos/_sectorSize, (int)(size+_sectorSize-1)/_sectorSize, block->_dataCRC);
     // success
@@ -901,14 +924,14 @@ bool tinyNodeCollection::createCacheFile()
     return true;
 }
 
-bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int &nodecount )
+bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodecount )
 {
-    int count = (nodecount >> TNC_PART_SHIFT) + 1;
+    int count = ((nodecount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
-        if ( offs + sz >= nodecount ) {
-            sz = nodecount - offs + 1;
+        if ( offs + sz > nodecount ) {
+            sz = nodecount - offs;
         }
 
         lUInt8 * packed = NULL;
@@ -939,14 +962,14 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int &node
 
 bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodecount )
 {
-    int count = (nodecount >> TNC_PART_SHIFT);// + 1;
+    int count = ((nodecount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     for ( int i=0; i<count; i++ ) {
         if ( !list[i] )
             continue;
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
-        if ( offs + sz >= nodecount ) {
-            sz = nodecount - offs + 1;
+        if ( offs + sz > nodecount ) {
+            sz = nodecount - offs;
         }
         ldomNode buf[TNC_PART_LEN];
         memcpy( buf, list[i], sizeof(ldomNode)*sz );
@@ -968,9 +991,9 @@ bool tinyNodeCollection::saveNodeData()
 {
     SerialBuf buf(12, true);
     buf << (lUInt32)NODE_INDEX_MAGIC << _elemCount << _textCount;
-    if ( !saveNodeData( CBT_ELEM_NODE, _elemList, _elemCount ) )
+    if ( !saveNodeData( CBT_ELEM_NODE, _elemList, _elemCount+1 ) )
         return false;
-    if ( !saveNodeData( CBT_TEXT_NODE, _textList, _textCount ) )
+    if ( !saveNodeData( CBT_TEXT_NODE, _textList, _textCount+1 ) )
         return false;
     if ( !_cacheFile->write(CBT_NODE_INDEX, buf) )
         return false;
@@ -997,13 +1020,13 @@ bool tinyNodeCollection::loadNodeData()
     memset( elemList, 0, sizeof(elemList) );
     ldomNode * textList[TNC_PART_COUNT];
     memset( textList, 0, sizeof(textList) );
-    if ( !loadNodeData( CBT_ELEM_NODE, elemList, elemcount ) ) {
+    if ( !loadNodeData( CBT_ELEM_NODE, elemList, elemcount+1 ) ) {
         for ( int i=0; i<TNC_PART_COUNT; i++ )
             if ( elemList[i] )
                 free( elemList[i] );
         return false;
     }
-    if ( !loadNodeData( CBT_TEXT_NODE, textList, textcount ) ) {
+    if ( !loadNodeData( CBT_TEXT_NODE, textList, textcount+1 ) ) {
         for ( int i=0; i<TNC_PART_COUNT; i++ )
             if ( textList[i] )
                 free( textList[i] );
@@ -4932,16 +4955,30 @@ ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
 }
 
 #if BUILD_LITE!=1
-static const char * doc_file_magic = "CoolReader3 Document Cache File\nformat version 3.01.06\n";
+static const char * doc_file_magic = "CR3\n";
 
 
 bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
 {
     int start = hdrbuf.pos();
     hdrbuf.putMagic( doc_file_magic );
+    //CRLog::trace("Serializing render data: %d %d %d %d", render_dx, render_dy, render_docflags, render_style_hash);
     hdrbuf << render_dx << render_dy << render_docflags << render_style_hash;
 
     hdrbuf.putCRC( hdrbuf.pos() - start );
+
+#if 0
+    {
+        lString8 s;
+        s<<"SERIALIZED HDR BUF: ";
+        for ( int i=0; i<hdrbuf.pos(); i++ ) {
+            char tmp[20];
+            sprintf(tmp, "%02x ", hdrbuf.buf()[i]);
+            s<<tmp;
+        }
+        CRLog::trace(s.c_str());
+    }
+#endif
     return !hdrbuf.error();
 }
 
@@ -4954,6 +4991,7 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
         return false;
     }
     hdrbuf >> render_dx >> render_dy >> render_docflags >> render_style_hash;
+    //CRLog::trace("Deserialized render data: %d %d %d %d", render_dx, render_dy, render_docflags, render_style_hash);
     hdrbuf.checkCRC( hdrbuf.pos() - start );
     if ( hdrbuf.error() ) {
         CRLog::error("Swap file - header unpack error");
@@ -5051,7 +5089,7 @@ bool ldomDocument::loadCacheFileContent()
             CRLog::error("Header data deserialization is failed");
             return false;
         }
-        hdr = h;
+        _hdr = h;
     }
 
     if ( !loadNodeData() ) {
@@ -5123,7 +5161,7 @@ bool ldomDocument::saveChanges()
     }
 
     SerialBuf hdrbuf(0,true);
-    if ( !hdr.serialize(hdrbuf) ) {
+    if ( !_hdr.serialize(hdrbuf) ) {
         CRLog::error("Header data serialization is failed");
         res = false;
     } else if ( !_cacheFile->write( CBT_REND_PARAMS, hdrbuf ) ) {
@@ -5540,10 +5578,10 @@ void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy )
     lUInt32 styleHash = 0;
     calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
-    hdr.render_style_hash = styleHash;
-    hdr.render_dx = dx;
-    hdr.render_dy = dy;
-    hdr.render_docflags = _docFlags;
+    _hdr.render_style_hash = styleHash;
+    _hdr.render_dx = dx;
+    _hdr.render_dy = dy;
+    _hdr.render_docflags = _docFlags;
     _pagesData.reset();
     pages->serialize( _pagesData );
 }
@@ -5554,10 +5592,10 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
     lUInt32 styleHash = 0;
     calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
-    if ( styleHash == hdr.render_style_hash
-        && _docFlags == hdr.render_docflags
-        && dx == (int)hdr.render_dx
-        && dy == (int)hdr.render_dy ) {
+    if ( styleHash == _hdr.render_style_hash
+        && _docFlags == _hdr.render_docflags
+        && dx == (int)_hdr.render_dx
+        && dy == (int)_hdr.render_dy ) {
 
         //if ( pages->length()==0 ) {
             _pagesData.reset();
@@ -5566,10 +5604,10 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy )
 
         return true;
     }
-    hdr.render_style_hash = styleHash;
-    hdr.render_dx = dx;
-    hdr.render_dy = dy;
-    hdr.render_docflags = _docFlags;
+    _hdr.render_style_hash = styleHash;
+    _hdr.render_dx = dx;
+    _hdr.render_dy = dy;
+    _hdr.render_docflags = _docFlags;
     return false;
 }
 

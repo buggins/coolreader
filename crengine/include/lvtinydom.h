@@ -286,8 +286,8 @@ public:
 // forward declaration
 class ldomNode;
 
-#define TNC_PART_COUNT 2048
-#define TNC_PART_SHIFT 8
+#define TNC_PART_COUNT 512
+#define TNC_PART_SHIFT 10
 #define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
 #define TNC_PART_LEN (1<<TNC_PART_SHIFT)
 #define TNC_PART_MASK (TNC_PART_LEN-1)
@@ -331,7 +331,7 @@ protected:
     bool saveNodeData();
     bool saveNodeData( lUInt16 type, ldomNode ** list, int nodecount );
     bool loadNodeData();
-    bool loadNodeData( lUInt16 type, ldomNode ** list, int &nodecount );
+    bool loadNodeData( lUInt16 type, ldomNode ** list, int nodecount );
 
 
     bool openCacheFile();
@@ -857,7 +857,7 @@ protected:
         {
         }
     };
-    DocFileHeader hdr;
+    DocFileHeader _hdr;
 #endif
 
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
