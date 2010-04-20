@@ -77,6 +77,8 @@ typedef struct css_style_rec_tag {
     void AddRef() { refCount++; }
     int Release() { return --refCount; }
     int getRefCount() { return refCount; }
+    bool serialize( SerialBuf & buf );
+    bool deserialize( SerialBuf & buf );
 } css_style_rec_t;
 
 /// style record reference type
