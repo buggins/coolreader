@@ -932,7 +932,7 @@ bool tinyNodeCollection::createCacheFile()
         return false;
     }
 
-    CRLog::info("ldomDocument::swapToCache() - Started swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
+    CRLog::info("ldomDocument::swapToCache() - initialized swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
 
     LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), sz );
     if ( map.isNull() ) {
@@ -1707,6 +1707,9 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 void ldomTextStorageChunk::modified()
 {
     if ( _compbuf ) {
+        if ( _type=='t' ) {
+            CRLog::warn("ldomTextStorageChunk::modified() called for text node %c%d", _type, _index);
+        }
         CRLog::debug("Dropping compressed data of chunk %c%d due to modification", _type, _index);
         setpacked(NULL, 0);
         _saved = false;
