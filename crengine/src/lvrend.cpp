@@ -948,7 +948,7 @@ int initTableRendMethods( ldomNode * enode, int state )
                     child->setRendMethod( erm_table_cell );
                     cellCount++;
                     // will be translated to block or final below
-                    initRendMethod( child );
+                    initRendMethod( child, true, true );
                 } else {
                     child->setRendMethod( erm_invisible );
                 }
@@ -1000,7 +1000,7 @@ bool isInlineItem( ldomNode * node )
 }
 
 // init element render method
-int initRendMethod( ldomNode * enode )
+int initRendMethod( ldomNode * enode, bool recurseChildren, bool allowAutoboxing )
 {
     int res = 0;
     if ( enode->isElement() )
@@ -1028,9 +1028,10 @@ int initRendMethod( ldomNode * enode )
             ldomNode * child = enode->getChildNode( i );
             if ( child->isElement() )
             {
-                res += initRendMethod( child );
+                if ( recurseChildren )
+                    res += initRendMethod( child, recurseChildren, allowAutoboxing );
                 // may be modified
-                child = enode->getChildNode( i );
+                //child = enode->getChildNode( i );
                 //lvdomElementFormatRec * childfmt = child->getRenderData();
                 switch( child->getStyle()->display )
                 {
@@ -1058,7 +1059,7 @@ int initRendMethod( ldomNode * enode )
             }
         }
         //======= AUTOBOXING =================================================
-        if ( (textCount || inlineCount || runinCount) && blockCount ) {
+        if ( allowAutoboxing && (textCount || inlineCount || runinCount) && blockCount ) {
             // Mixed inline and block items! Autoboxing is necessary!
             int firstInline = -1;
             bool lastInline = false;
@@ -1102,6 +1103,7 @@ int initRendMethod( ldomNode * enode )
                             if ( !enode->getDocument()->checkConsistency( false ) )
                                 CRLog::error("after insert child");
 #endif*/
+                            CRLog::trace("Autoboxing applied to node <%s>", LCSTR(enode->getNodeName()) );
                             enode->moveItemsTo( abox, lastInline+1, firstInline+1 );
                             setNodeStyle( abox,
                                 enode->getStyle(),

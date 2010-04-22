@@ -785,6 +785,8 @@ public:
 
     /// render (format) document
     void Render( int dx=0, int dy=0, LVRendPageList * pages=NULL );
+    /// set properties before rendering
+    void setRenderProps( int dx, int dy );
 
     /// Constructor
     LVDocView( int bitsPerPixel=-1 );

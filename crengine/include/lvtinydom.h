@@ -318,6 +318,7 @@ protected:
     bool _maperror;
 #endif
 
+    int calcFinalBlocks();
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
     ldomDataStorageManager _rectStorage; // element render rect storage
@@ -508,7 +509,13 @@ private:
     void getRenderData( lvdomElementFormatRec & dst);
     /// sets new value for render data structure
     void setRenderData( lvdomElementFormatRec & newData);
+
+
 public:
+    void initNodeStyle();
+    void initNodeRendMethod();
+
+
     /// remove node, clear resources
     void destroy();
 
@@ -1592,6 +1599,8 @@ private:
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
     int _page_height;
+    int _page_width;
+    bool _rendered;
     ldomXRangeList _selections;
 
     LVContainerRef _container;
@@ -1601,11 +1610,17 @@ private:
     /// load document cache file content
     bool loadCacheFileContent();
 
+
 protected:
 
     LVTocItem m_toc;
 
 public:
+
+    bool isDefStyleSet()
+    {
+        return !_def_style.isNull();
+    }
 
     /// returns pointer to TOC root node
     LVTocItem * getToc() { return &m_toc; }
@@ -1656,6 +1671,8 @@ public:
 #if BUILD_LITE!=1
     /// renders (formats) document in memory
     virtual int render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space );
+    /// renders (formats) document in memory
+    virtual bool setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space );
 #endif
     /// create xpointer from pointer string
     ldomXPointer createXPointer( const lString16 & xPointerStr );
@@ -1696,8 +1713,10 @@ class ldomElementWriter
     ldomNode * _element;
     const css_elem_def_props_t * _typeDef;
     bool _allowText;
+    bool _isBlock;
     lUInt32 getFlags();
-    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
+    void onBodyEnter();
+    void onBodyExit();
     ldomNode * getElement()
     {
         return _element;
@@ -1706,6 +1725,7 @@ class ldomElementWriter
     void addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value );
     //lxmlElementWriter * pop( lUInt16 id );
 
+    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
     ~ldomElementWriter();
 
     friend class ldomDocumentWriter;
@@ -1746,6 +1766,8 @@ public:
     virtual void OnStop();
     /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody();
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on attribute
@@ -1781,6 +1803,8 @@ public:
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody();
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on text
@@ -1825,6 +1849,13 @@ public:
         }
         if ( !insideTag && baseTag==tagname )
             insideTag = true;
+    }
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody()
+    {
+        if ( insideTag ) {
+            parent->OnTagBody();
+        }
     }
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
