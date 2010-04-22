@@ -1916,29 +1916,49 @@ lString16 LVDocView::getPageText( bool , int pageIndex )
     return txt;
 }
 
+void LVDocView::setRenderProps( int dx, int dy )
+{
+    if ( !m_doc || m_doc->getRootNode()==NULL)
+        return;
+    updateLayout();
+    m_showCover = !getCoverPageImage().isNull();
+
+    if ( dx==0 )
+        dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
+    if ( dy==0 )
+        dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom - getPageHeaderHeight();
+
+    lString8 fontName = lString8(DEFAULT_FONT_NAME);
+    m_font = fontMan->GetFont( m_font_size, 400 + LVRendGetFontEmbolden(), false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
+    //m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
+    m_infoFont = fontMan->GetFont( m_status_font_size, 400, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+    if ( !m_font || !m_infoFont )
+        return;
+    m_doc->setRenderProps( dx, dy, m_showCover, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
+}
+
 void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
     LVLock lock(getMutex());
     {
         if ( !m_doc || m_doc->getRootNode()==NULL)
             return;
-        if ( pages==NULL )
-            pages = &m_pages;
-        updateLayout();
-        m_showCover = !getCoverPageImage().isNull();
-        lString8 fontName = lString8(DEFAULT_FONT_NAME);
 
-        m_font = fontMan->GetFont( m_font_size, 400 + LVRendGetFontEmbolden(), false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
-        //m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
-        m_infoFont = fontMan->GetFont( m_status_font_size, 400, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
-        if ( !m_font || !m_infoFont )
-            return;
         if ( dx==0 )
             dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
         if ( dy==0 )
             dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom - getPageHeaderHeight();
 
-        CRLog::debug("Render(width=%d, height=%d, font=%s(%d))", dx, dy, fontName.c_str(), m_font_size);
+        setRenderProps( dx, dy );
+
+        if ( pages==NULL )
+            pages = &m_pages;
+
+        if ( !m_font || !m_infoFont )
+            return;
+
+
+        CRLog::debug("Render(width=%d, height=%d, fontSize=%d)", dx, dy, m_font_size);
         //CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
         m_doc->render( pages, isDocumentOpened() ? m_callback : NULL, dx, dy, m_showCover, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
 
@@ -2854,6 +2874,9 @@ public:
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
     m_swapDone = false;
+
+    setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
+
     if ( m_callback ) {
             m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
     }

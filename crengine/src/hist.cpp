@@ -63,6 +63,10 @@ public:
     virtual void OnStop()
     {
     }
+    /// called on opening tag end
+    virtual void OnTagBody()
+    {
+    }
     /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {

@@ -167,7 +167,7 @@ lUInt32 calcHash(css_style_rec_t & rec);
 /// calculate font instance record hash
 lUInt32 calcHash(font_ref_t & rec);
 /// calculate cache record hash
-inline lUInt32 calcHash(css_style_ref_t & rec) { return calcHash( *rec.get() ); }
+inline lUInt32 calcHash(css_style_ref_t & rec) { return rec.isNull() ? 0 : calcHash( *rec.get() ); }
 
 /// splits string like "Arial", Times New Roman, Courier;  into list
 // returns number of characters processed

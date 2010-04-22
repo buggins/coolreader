@@ -232,13 +232,15 @@ public:
     // check whether equal object already exists if cache
     // if found, replace reference with cached value
     // returns index of item - use it to release reference
-    void cache( lUInt16 &indexholder, ref_t & style)
+    bool cache( lUInt16 &indexholder, ref_t & style)
     {
         int newindex = cache( style );
         if ( indexholder ) {
             release( indexholder );
         }
+        bool res = indexholder != newindex;
         indexholder = (lUInt16)newindex;
+        return res;
     }
 
     // check whether equal object already exists if cache

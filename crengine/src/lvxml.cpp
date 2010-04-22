@@ -1100,28 +1100,28 @@ public:
                     middleName = name_list[1];
                     lastName = name_list[2];
                 }
-                callback->OnTagOpen( NULL, L"author" );
-                  callback->OnTagOpen( NULL, L"first-name" );
+                callback->OnTagOpenNoAttr( NULL, L"author" );
+                  callback->OnTagOpenNoAttr( NULL, L"first-name" );
                     if ( !firstName.empty() )
                         callback->OnText( firstName.c_str(), firstName.length(), TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
                   callback->OnTagClose( NULL, L"first-name" );
-                  callback->OnTagOpen( NULL, L"middle-name" );
+                  callback->OnTagOpenNoAttr( NULL, L"middle-name" );
                     if ( !middleName.empty() )
                         callback->OnText( middleName.c_str(), middleName.length(), TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
                   callback->OnTagClose( NULL, L"middle-name" );
-                  callback->OnTagOpen( NULL, L"last-name" );
+                  callback->OnTagOpenNoAttr( NULL, L"last-name" );
                     if ( !lastName.empty() )
                         callback->OnText( lastName.c_str(), lastName.length(), TXTFLG_TRIM|TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
                   callback->OnTagClose( NULL, L"last-name" );
                 callback->OnTagClose( NULL, L"author" );
             }
         }
-        callback->OnTagOpen( NULL, L"book-title" );
+        callback->OnTagOpenNoAttr( NULL, L"book-title" );
             if ( !bookTitle.empty() )
                 callback->OnText( bookTitle.c_str(), bookTitle.length(), 0 );
         callback->OnTagClose( NULL, L"book-title" );
         if ( !seriesName.empty() || !seriesNumber.empty() ) {
-            callback->OnTagOpen( NULL, L"sequence" );
+            callback->OnTagOpenNoAttr( NULL, L"sequence" );
             if ( !seriesName.empty() )
                 callback->OnAttribute( NULL, L"name", seriesName.c_str() );
             if ( !seriesNumber.empty() )
@@ -1137,8 +1137,7 @@ public:
     /// add one paragraph
     void AddEmptyLine( LVXMLParserCallback * callback )
     {
-        callback->OnTagOpen( NULL, L"empty-line" );
-        callback->OnTagClose( NULL, L"empty-line" );
+        callback->OnTagOpenAndClose( NULL, L"empty-line" );
     }
     /// add one paragraph
     void AddPara( int startline, int endline, LVXMLParserCallback * callback )
@@ -1185,15 +1184,15 @@ public:
                     if ( !lastParaWasTitle ) {
                         if ( inSubSection )
                             callback->OnTagClose( NULL, L"section" );
-                        callback->OnTagOpen( NULL, L"section" );
+                        callback->OnTagOpenNoAttr( NULL, L"section" );
                         inSubSection = true;
                     }
                     lastParaWasTitle = true;
                 }
-                callback->OnTagOpen( NULL, title_tag );
+                callback->OnTagOpenNoAttr( NULL, title_tag );
             } else
                     lastParaWasTitle = false;
-            callback->OnTagOpen( NULL, L"p" );
+            callback->OnTagOpenNoAttr( NULL, L"p" );
                callback->OnText( str.c_str(), str.length(), TXTFLG_TRIM | TXTFLG_TRIM_REMOVE_EOL_HYPHENS );
             callback->OnTagClose( NULL, L"p" );
             if ( isHeader ) {
@@ -1203,8 +1202,7 @@ public:
             paraCount++;
         } else {
             if ( !(formatFlags & tftEmptyLineDelimPara) || !isHeader ) {
-                callback->OnTagOpen( NULL, L"empty-line" );
-                callback->OnTagClose( NULL, L"empty-line" );
+                callback->OnTagOpenAndClose( NULL, L"empty-line" );
             }
         }
     }
@@ -1325,14 +1323,13 @@ public:
             for ( int i=0; i<length(); i++ ) {
                 LVTextFileLine * item = get(i);
                 if ( item->rpos > item->lpos ) {
-                    callback->OnTagOpen( NULL, L"pre" );
+                    callback->OnTagOpenNoAttr( NULL, L"pre" );
                        callback->OnText( item->text.c_str(), item->text.length(), item->flags );
                        file->updateProgress();
 
                     callback->OnTagClose( NULL, L"pre" );
                 } else {
-                    callback->OnTagOpen( NULL, L"empty-line" );
-                    callback->OnTagClose( NULL, L"empty-line" );
+                    callback->OnTagOpenAndClose( NULL, L"empty-line" );
                 }
            }
             RemoveLines( length() );
@@ -1489,8 +1486,9 @@ static void postParagraph( LVXMLParserCallback * callback, const char * prefix, 
         return;
     callback->OnTagOpen( NULL, L"p" );
     callback->OnAttribute(NULL, L"style", L"text-indent: 0em");
+    callback->OnTagBody();
     if ( !title.empty() ) {
-        callback->OnTagOpen( NULL, L"strong" );
+        callback->OnTagOpenNoAttr( NULL, L"strong" );
         callback->OnText( title.c_str(), title.length(), 0 );
         callback->OnTagClose( NULL, L"strong" );
     }
@@ -1531,36 +1529,35 @@ bool LVTextBookmarkParser::Parse()
     m_callback->OnAttribute( NULL, L"version", L"1.0" );
     m_callback->OnAttribute( NULL, L"encoding", GetEncodingName().c_str() );
     m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
+    m_callback->OnTagBody();
     m_callback->OnTagClose( NULL, L"?xml" );
-    m_callback->OnTagOpen( NULL, L"FictionBook" );
+    m_callback->OnTagOpenNoAttr( NULL, L"FictionBook" );
       // DESCRIPTION
-      m_callback->OnTagOpen( NULL, L"description" );
-        m_callback->OnTagOpen( NULL, L"title-info" );
-          m_callback->OnTagOpen( NULL, L"book-title" );
+      m_callback->OnTagOpenNoAttr( NULL, L"description" );
+        m_callback->OnTagOpenNoAttr( NULL, L"title-info" );
+          m_callback->OnTagOpenNoAttr( NULL, L"book-title" );
             m_callback->OnText( desc.c_str(), desc.length(), 0 );
           m_callback->OnTagClose( NULL, L"book-title" );
-        m_callback->OnTagOpen( NULL, L"title-info" );
+        m_callback->OnTagClose( NULL, L"title-info" );
       m_callback->OnTagClose( NULL, L"description" );
       // BODY
-      m_callback->OnTagOpen( NULL, L"body" );
-          m_callback->OnTagOpen( NULL, L"title" );
+      m_callback->OnTagOpenNoAttr( NULL, L"body" );
+          m_callback->OnTagOpenNoAttr( NULL, L"title" );
               postParagraph( m_callback, "", lString16("CoolReader Bookmarks file") );
           m_callback->OnTagClose( NULL, L"title" );
           postParagraph( m_callback, "file: ", fname );
           postParagraph( m_callback, "path: ", path );
           postParagraph( m_callback, "title: ", title );
           postParagraph( m_callback, "author: ", author );
-          m_callback->OnTagOpen( NULL, L"empty-line" );
-          m_callback->OnTagClose( NULL, L"empty-line" );
-          m_callback->OnTagOpen( NULL, L"section" );
+          m_callback->OnTagOpenAndClose( NULL, L"empty-line" );
+          m_callback->OnTagOpenNoAttr( NULL, L"section" );
           // process text
             for ( ;; ) {
                 line = ReadLine( 20000, flags );
                 if ( m_eof )
                     break;
                 if ( line.empty() ) {
-                  m_callback->OnTagOpen( NULL, L"empty-line" );
-                  m_callback->OnTagClose( NULL, L"empty-line" );
+                  m_callback->OnTagOpenAndClose( NULL, L"empty-line" );
                 } else {
                     lString16 prefix;
                     lString16 txt = line;
@@ -1665,16 +1662,17 @@ bool LVTextParser::Parse()
     m_callback->OnAttribute( NULL, L"version", L"1.0" );
     m_callback->OnAttribute( NULL, L"encoding", GetEncodingName().c_str() );
     m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
+    m_callback->OnTagBody();
     m_callback->OnTagClose( NULL, L"?xml" );
     m_callback->OnTagOpen( NULL, L"FictionBook" );
       // DESCRIPTION
-      m_callback->OnTagOpen( NULL, L"description" );
-        m_callback->OnTagOpen( NULL, L"title-info" );
+      m_callback->OnTagOpenNoAttr( NULL, L"description" );
+        m_callback->OnTagOpenNoAttr( NULL, L"title-info" );
           queue.DetectBookDescription( m_callback );
-        m_callback->OnTagOpen( NULL, L"title-info" );
+        m_callback->OnTagClose( NULL, L"title-info" );
       m_callback->OnTagClose( NULL, L"description" );
       // BODY
-      m_callback->OnTagOpen( NULL, L"body" );
+      m_callback->OnTagOpenNoAttr( NULL, L"body" );
         //m_callback->OnTagOpen( NULL, L"section" );
           // process text
           queue.DoTextImport( m_callback );
@@ -1998,6 +1996,7 @@ bool LVXMLParser::Parse()
                 lChar16 nch = PeekCharFromBuffer(1);
                 if ( ch=='>' || (nch=='>' && (ch=='/' || ch=='?')) )
                 {
+                    m_callback->OnTagBody();
                     // end of tag
                     if ( ch!='>' )
                         m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
@@ -2013,6 +2012,7 @@ bool LVXMLParser::Parse()
                     // error: skip rest of tag
                     SkipTillChar('<');
                     ch = PeekNextCharFromBuffer(1);
+                    m_callback->OnTagBody();
                     m_state = ps_lt;
                     break;
                 }

@@ -2100,6 +2100,9 @@ ldomNode * lxmlDocBase::getRootNode()
 
 ldomDocument::ldomDocument()
 : m_toc(this)
+, _page_height(0)
+, _page_width(0)
+, _rendered(false)
 {
     allocTinyElement(NULL, 0, 0);
     //new ldomElement( this, NULL, 0, 0, 0 );
@@ -2132,6 +2135,7 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 , _def_font(doc._def_font) // default font
 , _def_style(doc._def_style)
 , _page_height(doc._page_height)
+, _page_width(doc._page_width)
 , _container(doc._container)
 , m_toc(this)
 {
@@ -2233,40 +2237,89 @@ ldomDocument::~ldomDocument()
 }
 
 #if BUILD_LITE!=1
+
+/// renders (formats) document in memory
+bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
+{
+    bool changed = false;
+    _renderedBlockCache.clear();
+    css_style_ref_t s( new css_style_rec_t );
+    s->display = css_d_block;
+    s->white_space = css_ws_normal;
+    s->text_align = css_ta_left;
+    s->text_decoration = css_td_none;
+    s->hyphenate = css_hyph_auto;
+    s->color.type = css_val_unspecified;
+    s->color.value = 0x000000;
+    s->background_color.type = css_val_unspecified;
+    s->background_color.value = 0xFFFFFF;
+    //_def_style->background_color.type = color;
+    //_def_style->background_color.value = 0xFFFFFF;
+    s->page_break_before = css_pb_auto;
+    s->page_break_after = css_pb_auto;
+    s->page_break_inside = css_pb_auto;
+    s->vertical_align = css_va_baseline;
+    s->font_family = def_font->getFontFamily();
+    s->font_size.type = css_val_px;
+    s->font_size.value = def_font->getHeight();
+    s->font_name = def_font->getTypeFace();
+    s->font_weight = css_fw_400;
+    s->font_style = css_fs_normal;
+    s->text_indent.type = css_val_px;
+    s->text_indent.value = 0;
+    s->line_height.type = css_val_percent;
+    s->line_height.value = def_interline_space;
+    if ( calcHash(_def_style) != calcHash(s) ) {
+        CRLog::trace("ldomDocument::setRenderProps() - style is changed");
+        _def_style = s;
+        changed = true;
+    }
+    if ( calcHash(_def_font) != calcHash(def_font)) {
+        CRLog::trace("ldomDocument::setRenderProps() - font is changed");
+        _def_font = def_font;
+        changed = true;
+    }
+    if ( _page_height != dy ) {
+        CRLog::trace("ldomDocument::setRenderProps() - page height is changed");
+        _page_height = dy;
+        changed = true;
+    }
+    if ( _page_width != width ) {
+        CRLog::trace("ldomDocument::setRenderProps() - page width is changed");
+        _page_width = width;
+        changed = true;
+    }
+    return changed;
+}
+
+int tinyNodeCollection::calcFinalBlocks()
+{
+    int cnt = 0;
+    int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
+    for ( int i=0; i<count; i++ ) {
+        int offs = i*TNC_PART_LEN;
+        int sz = TNC_PART_LEN;
+        if ( offs + sz > _elemCount+1 ) {
+            sz = _elemCount+1 - offs;
+        }
+        ldomNode * buf = _elemList[i];
+        for ( int j=0; j<sz; j++ ) {
+            if ( buf[j].isElement() ) {
+                if ( buf[j].getRendMethod()==erm_block )
+                    cnt++;
+            }
+        }
+    }
+    return cnt;
+}
+
 int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
 {
     CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
     CRLog::trace("initializing default style...");
     //persist();
-    _renderedBlockCache.clear();
-    _page_height = dy;
-    _def_font = def_font;
-    _def_style = css_style_ref_t( new css_style_rec_t );
-    _def_style->display = css_d_block;
-    _def_style->white_space = css_ws_normal;
-    _def_style->text_align = css_ta_left;
-    _def_style->text_decoration = css_td_none;
-    _def_style->hyphenate = css_hyph_auto;
-    _def_style->color.type = css_val_unspecified;
-    _def_style->color.value = 0x000000;
-    _def_style->background_color.type = css_val_unspecified;
-    _def_style->background_color.value = 0xFFFFFF;
-    //_def_style->background_color.type = color;
-    //_def_style->background_color.value = 0xFFFFFF;
-    _def_style->page_break_before = css_pb_auto;
-    _def_style->page_break_after = css_pb_auto;
-    _def_style->page_break_inside = css_pb_auto;
-    _def_style->vertical_align = css_va_baseline;
-    _def_style->font_family = def_font->getFontFamily();
-    _def_style->font_size.type = css_val_px;
-    _def_style->font_size.value = def_font->getHeight();
-    _def_style->font_name = def_font->getTypeFace();
-    _def_style->font_weight = css_fw_400;
-    _def_style->font_style = css_fs_normal;
-    _def_style->text_indent.type = css_val_px;
-    _def_style->text_indent.value = 0;
-    _def_style->line_height.type = css_val_percent;
-    _def_style->line_height.value = def_interline_space;
+    bool propsChanged = setRenderProps( width, dy, showCover, y0, def_font, def_interline_space );
+
     lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     // update styles
 //    if ( getRootNode()->getStyle().isNull() || getRootNode()->getFont().isNull()
@@ -2278,22 +2331,26 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
 //        CRLog::trace("reusing existing format data...");
 //    }
 
-    if ( !checkRenderContext( pages, width, dy, defStyleHash ) ) {
+    if ( !checkRenderContext( pages, _page_width, _page_height, defStyleHash ) ) {
+        CRLog::info("rendering context is changed - full render required...");
         CRLog::trace("init format data...");
         getRootNode()->recurseElements( initFormatData );
+        CRLog::trace("init render method...");
+        initRendMethod( getRootNode(), true, false );
+        _rendered = false;
+    }
+    if ( !_rendered ) {
         pages->clear();
         if ( showCover )
-            pages->add( new LVRendPageInfo( dy ) );
-        LVRendPageContext context( pages, dy );
-        CRLog::info("rendering context is changed - full render required...");
-        CRLog::trace("init render method...");
-        int numFinalBlocks = initRendMethod( getRootNode() );
-        CRLog::trace("%d final blocks found", numFinalBlocks);
+            pages->add( new LVRendPageInfo( _page_height ) );
+        LVRendPageContext context( pages, _page_height );
+        int numFinalBlocks = calcFinalBlocks();
         context.setCallback(callback, numFinalBlocks);
         //updateStyles();
         CRLog::trace("rendering...");
         int height = renderBlockElement( context, getRootNode(),
             0, y0, width ) + y0;
+        _rendered = true;
     #if 0 //def _DEBUG
         LVStreamRef ostream = LVOpenFileStream( "test_save_after_init_rend_method.xml", LVOM_WRITE );
         saveToStream( ostream, "utf-16" );
@@ -2466,7 +2523,7 @@ bool IsEmptySpace( const lChar16 * text, int len )
 /// lxmlElementWriter
 
 ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent)
-    : _parent(parent), _document(document)
+    : _parent(parent), _document(document), _isBlock(true)
 {
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
@@ -2486,12 +2543,86 @@ lUInt32 ldomElementWriter::getFlags()
     return flags;
 }
 
+static bool isBlockNode( ldomNode * node )
+{
+    if ( !node->isElement() )
+        return false;
+    switch ( node->getStyle()->display )
+    {
+    case css_d_block:
+    case css_d_list_item:
+    case css_d_table:
+    case css_d_table_row:
+    case css_d_inline_table:
+    case css_d_table_row_group:
+    case css_d_table_header_group:
+    case css_d_table_footer_group:
+    case css_d_table_column_group:
+    case css_d_table_column:
+    case css_d_table_cell:
+    case css_d_table_caption:
+        return true;
+
+    case css_d_inherit:
+    case css_d_inline:
+    case css_d_run_in:
+    case css_d_compact:
+    case css_d_marker:
+    case css_d_none:
+        break;
+    }
+    return false;
+}
+
+void ldomElementWriter::onBodyEnter()
+{
+    if ( _document->isDefStyleSet() ) {
+        _element->initNodeStyle();
+        _isBlock = isBlockNode(_element);
+    }
+}
+
+void ldomElementWriter::onBodyExit()
+{
+    if ( !_document->isDefStyleSet() )
+        return;
+    if ( _isBlock && !_element->getChildCount() ) {
+        // remove last empty space text nodes
+        bool hasBlockItems = false;
+        for ( int i=_element->getChildCount()-1; i>0; i++ ) {
+            if ( isBlockNode(_element->getChildNode(i)) ) {
+                hasBlockItems = true;
+                // detected block nodes inside block node
+                break;
+            }
+        }
+        for ( int i=_element->getChildCount()-1; i>0; i++ ) {
+            if ( !_element->getChildNode(i)->isText() )
+                if ( !hasBlockItems )
+                    break;
+            lString16 txt = _element->getChildNode(i)->getText();
+            if ( IsEmptySpace( txt.c_str(), txt.length() ) ) {
+                CRLog::trace("ldomElementWriter::onBodyExit() - removing trailing space text node");
+                ldomNode * removed = _element->removeChild( i );
+                removed->destroy();
+            } else if ( !hasBlockItems )
+                break;
+        }
+    }
+    initRendMethod( _element, false, true );
+}
+
 void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
 {
     //logfile << "{t";
     {
         // normal mode: store text copy
-        _element->insertChildText(lString16(text, len));
+        // add text node, if not first empty space string of block node
+        if ( !_isBlock || !_element->getChildCount()==0 || !IsEmptySpace( text, len ) )
+            _element->insertChildText(lString16(text, len));
+        else {
+            CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
+        }
     }
     //logfile << "}";
 }
@@ -2545,6 +2676,7 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
 ldomElementWriter::~ldomElementWriter()
 {
     //getElement()->persist();
+    onBodyExit();
 }
 
 
@@ -2574,6 +2706,15 @@ void ldomDocumentWriter::OnStop()
     //logfile << "ldomDocumentWriter::OnStop()\n";
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
+}
+
+/// called after > of opening tag (when entering tag body)
+void ldomDocumentWriter::OnTagBody()
+{
+    // init element style
+    if ( _currNode ) {
+        _currNode->onBodyEnter();
+    }
 }
 
 void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
@@ -4772,6 +4913,12 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
     }
 }
 
+/// called after > of opening tag (when entering tag body)
+void ldomDocumentWriterFilter::OnTagBody()
+{
+    // TODO:
+}
+
 void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
@@ -6793,10 +6940,12 @@ void ldomNode::setFont( font_ref_t font )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() )
+        if ( !isPersistent() ) {
             _document->_fonts.cache( _data._elem._fontIndex, font );
-        else
-            _document->_fonts.cache( _data._pelem._fontIndex, font );
+        } else {
+            if ( _document->_fonts.cache( _data._pelem._fontIndex, font ) )
+                modified();
+        }
     }
 }
 
@@ -6805,11 +6954,26 @@ void ldomNode::setStyle( css_style_ref_t & style )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() )
+        if ( !isPersistent() ) {
             _document->_styles.cache( _data._elem._styleIndex, style );
-        else
-            _document->_styles.cache( _data._pelem._styleIndex, style );
+        } else {
+            if ( _document->_styles.cache( _data._pelem._styleIndex, style ) )
+                modified();
+        }
     }
+}
+
+void ldomNode::initNodeStyle()
+{
+    // assume all parent styles already initialized
+    if ( !_document->isDefStyleSet() )
+        return;
+    if ( isElement() )
+        initFormatData( this );
+}
+
+void ldomNode::initNodeRendMethod()
+{
 }
 
 /// returns first child node
