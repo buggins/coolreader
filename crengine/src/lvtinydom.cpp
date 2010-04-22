@@ -2336,7 +2336,8 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         CRLog::trace("init format data...");
         getRootNode()->recurseElements( initFormatData );
         CRLog::trace("init render method...");
-        initRendMethod( getRootNode(), true, false );
+        //getRootNode()->initNodeRendMethodRecursive();
+        //initRendMethod( getRootNode(), true, false );
         _rendered = false;
     }
     if ( !_rendered ) {
@@ -2574,6 +2575,16 @@ static bool isBlockNode( ldomNode * node )
     return false;
 }
 
+static bool isInlineNode( ldomNode * node )
+{
+    if ( node->isText() )
+        return true;
+    //int d = node->getStyle()->display;
+    //return ( d==css_d_inline || d==css_d_run_in );
+    int m = node->getRendMethod();
+    return m==erm_inline;
+}
+
 void ldomElementWriter::onBodyEnter()
 {
     if ( _document->isDefStyleSet() ) {
@@ -2582,34 +2593,238 @@ void ldomElementWriter::onBodyEnter()
     }
 }
 
+void ldomNode::removeChildren( int startIndex, int endIndex )
+{
+    for ( int i=endIndex; i>=startIndex; i-- ) {
+        removeChild(i)->destroy();
+    }
+}
+
+void ldomNode::autoboxChildren( int startIndex, int endIndex )
+{
+    if ( !isElement() )
+        return;
+    int firstNonEmpty = startIndex;
+    int lastNonEmpty = endIndex;
+    while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
+        lString16 s = getChildNode(firstNonEmpty)->getText();
+        if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            break;
+        firstNonEmpty++;
+    }
+    while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
+        lString16 s = getChildNode(lastNonEmpty)->getText();
+        if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            break;
+        lastNonEmpty--;
+    }
+    if ( firstNonEmpty<=lastNonEmpty ) {
+        CRLog::trace("Autobox children %d..%d of node <%s>", firstNonEmpty, lastNonEmpty, LCSTR(getNodeName()));
+        // remove starting empty
+        removeChildren(lastNonEmpty+1, endIndex);
+        // inner inline
+        ldomNode * abox = insertChildElement( firstNonEmpty, LXML_NS_NONE, el_autoBoxing );
+        abox->setRendMethod( erm_final );
+        moveItemsTo( abox, firstNonEmpty+1, lastNonEmpty+1 );
+        // remove trailing empty
+        removeChildren(startIndex, firstNonEmpty-1);
+    } else {
+        // only empty items: remove them instead of autoboxing
+        removeChildren(startIndex, endIndex);
+    }
+}
+
+static void resetRendMethodToInline( ldomNode * node )
+{
+    node->setRendMethod(erm_inline);
+}
+
+static void resetRendMethodToInvisible( ldomNode * node )
+{
+    node->setRendMethod(erm_invisible);
+}
+
+static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & hasInline )
+{
+    hasBlockItems = false;
+    hasInline = false;
+    int len = parent->getChildCount();
+    for ( int i=len-1; i>=0; i-- ) {
+        ldomNode * node = parent->getChildNode(i);
+        if ( !node->isElement() ) {
+            // text
+            hasInline = true;
+        } else {
+            // element
+            int d = node->getStyle()->display;
+            int m = node->getRendMethod();
+            if ( d==css_d_none || m==erm_invisible )
+                continue;
+            if ( m==erm_inline ) { //d==css_d_inline || d==css_d_run_in
+                hasInline = true;
+            } else {
+                hasBlockItems = true;
+            }
+        }
+    }
+}
+
+// init table element render methods
+// states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
+// returns table cell count
+int initTableRendMethods( ldomNode * enode, int state )
+{
+    //main node: table
+    if ( state==0 && enode->getStyle()->display==css_d_table )
+        enode->setRendMethod( erm_table ); // for table
+    int cellCount = 0;
+    int cnt = enode->getChildCount();
+    int i;
+    for (i=0; i<cnt; i++)
+    {
+        ldomNode * child = enode->getChildNode( i );
+        if ( child->isElement() )
+        {
+            switch( child->getStyle()->display )
+            {
+            case css_d_table_caption:
+                if ( state==0 ) {
+                    child->setRendMethod( erm_table_caption );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_inline:
+                {
+                }
+                break;
+            case css_d_table_row_group:
+                if ( state==0 ) {
+                    child->setRendMethod( erm_table_row_group );
+                    cellCount += initTableRendMethods( child, 2 );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_header_group:
+                if ( state==0 ) {
+                    child->setRendMethod( erm_table_header_group );
+                    cellCount += initTableRendMethods( child, 2);
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_footer_group:
+                if ( state==0 ) {
+                    child->setRendMethod( erm_table_footer_group );
+                    cellCount += initTableRendMethods( child, 2 );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_row:
+                if ( state==0 || state==2 ) {
+                    child->setRendMethod( erm_table_row );
+                    cellCount += initTableRendMethods( child, 3 );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_column_group:
+                if ( state==0 ) {
+                    child->setRendMethod( erm_table_column_group );
+                    cellCount += initTableRendMethods( child, 1 );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_column:
+                if ( state==0 || state==1 ) {
+                    child->setRendMethod( erm_table_column );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            case css_d_table_cell:
+                if ( state==3 ) {
+                    child->setRendMethod( erm_table_cell );
+                    cellCount++;
+                    // will be translated to block or final below
+                    child->initNodeRendMethod();
+                    //initRendMethod( child, true, true );
+                } else {
+                    child->setRendMethod( erm_invisible );
+                }
+                break;
+            default:
+                // ignore
+                break;
+            }
+        }
+    }
+    return cellCount;
+}
+
+void ldomNode::initNodeRendMethod()
+{
+    if ( !isElement() )
+        return;
+    int d = getStyle()->display;
+    if ( d==css_d_none ) {
+        // invisible
+        recurseElements( resetRendMethodToInvisible );
+    } else if ( d==css_d_inline || d==css_d_run_in ) {
+        // inline
+        CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
+        recurseElements( resetRendMethodToInline );
+    } else if (d == css_d_table) {
+        // table
+        initTableRendMethods( this, 0 );
+    } else {
+        // block or final
+        // remove last empty space text nodes
+        bool hasBlockItems = false;
+        bool hasInline = false;
+        detectChildTypes( this, hasBlockItems, hasInline );
+        if ( hasBlockItems && !hasInline ) {
+            setRendMethod( erm_block );
+        } else if ( !hasBlockItems && hasInline ) {
+            setRendMethod( erm_final );
+        } else if ( !hasBlockItems && !hasInline ) {
+            setRendMethod( erm_block );
+            //setRendMethod( erm_invisible );
+        } else if ( hasBlockItems && hasInline ) {
+            // cleanup or autobox
+            int i=getChildCount()-1;
+            for ( ; i>=0; i-- ) {
+                ldomNode * node = getChildNode(i);
+                if ( isInlineNode(node) ) {
+                    int j = i-1;
+                    for ( ; j>=0; j-- ) {
+                        if ( !isInlineNode(node) )
+                            break;
+                    }
+                    j++;
+                    // j..i are inline
+                    autoboxChildren( j, i );
+                    i = j;
+                }
+            }
+            // check types after autobox
+            detectChildTypes( this, hasBlockItems, hasInline );
+            if ( hasInline )
+                setRendMethod( erm_final );
+            else
+                setRendMethod( erm_block );
+        }
+    }
+}
+
 void ldomElementWriter::onBodyExit()
 {
     if ( !_document->isDefStyleSet() )
         return;
-    if ( _isBlock && !_element->getChildCount() ) {
-        // remove last empty space text nodes
-        bool hasBlockItems = false;
-        for ( int i=_element->getChildCount()-1; i>0; i++ ) {
-            if ( isBlockNode(_element->getChildNode(i)) ) {
-                hasBlockItems = true;
-                // detected block nodes inside block node
-                break;
-            }
-        }
-        for ( int i=_element->getChildCount()-1; i>0; i++ ) {
-            if ( !_element->getChildNode(i)->isText() )
-                if ( !hasBlockItems )
-                    break;
-            lString16 txt = _element->getChildNode(i)->getText();
-            if ( IsEmptySpace( txt.c_str(), txt.length() ) ) {
-                CRLog::trace("ldomElementWriter::onBodyExit() - removing trailing space text node");
-                ldomNode * removed = _element->removeChild( i );
-                removed->destroy();
-            } else if ( !hasBlockItems )
-                break;
-        }
-    }
-    initRendMethod( _element, false, true );
+    _element->initNodeRendMethod();
 }
 
 void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
@@ -2618,7 +2833,7 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     {
         // normal mode: store text copy
         // add text node, if not first empty space string of block node
-        if ( !_isBlock || !_element->getChildCount()==0 || !IsEmptySpace( text, len ) )
+        if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) )
             _element->insertChildText(lString16(text, len));
         else {
             CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
@@ -4916,7 +5131,9 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 /// called after > of opening tag (when entering tag body)
 void ldomDocumentWriterFilter::OnTagBody()
 {
-    // TODO:
+    if ( _currNode ) {
+        _currNode->onBodyEnter();
+    }
 }
 
 void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
@@ -6767,6 +6984,35 @@ void ldomNode::clearRenderData()
     _document->_rectStorage.setRendRectData(_dataIndex, &rec);
 }
 
+/// calls specified function recursively for all elements of DOM tree, children before parent
+void ldomNode::recurseElementsDeepFirst( void (*pFun)( ldomNode * node ) )
+{
+    ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return;
+    int cnt = getChildCount();
+    for (int i=0; i<cnt; i++)
+    {
+        ldomNode * child = getChildNode( i );
+        if ( child->isElement() )
+        {
+            child->recurseElements( pFun );
+        }
+    }
+    pFun( this );
+}
+
+static void updateRendMethod( ldomNode * node )
+{
+    node->initNodeRendMethod();
+}
+
+/// init render method for the whole subtree
+void ldomNode::initNodeRendMethodRecursive()
+{
+    recurseElementsDeepFirst( updateRendMethod );
+}
+
 /// calls specified function recursively for all elements of DOM tree
 void ldomNode::recurseElements( void (*pFun)( ldomNode * node ) )
 {
@@ -6970,10 +7216,6 @@ void ldomNode::initNodeStyle()
         return;
     if ( isElement() )
         initFormatData( this );
-}
-
-void ldomNode::initNodeRendMethod()
-{
 }
 
 /// returns first child node

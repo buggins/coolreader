@@ -510,10 +510,15 @@ private:
     /// sets new value for render data structure
     void setRenderData( lvdomElementFormatRec & newData);
 
+    void autoboxChildren( int startIndex, int endIndex );
+    void removeChildren( int startIndex, int endIndex );
 
 public:
     void initNodeStyle();
+    /// init render method for this node only (children should already have rend method set)
     void initNodeRendMethod();
+    /// init render method for the whole subtree
+    void initNodeRendMethodRecursive();
 
 
     /// remove node, clear resources
@@ -612,6 +617,8 @@ public:
     void clearRenderData();
     /// calls specified function recursively for all elements of DOM tree
     void recurseElements( void (*pFun)( ldomNode * node ) );
+    /// calls specified function recursively for all elements of DOM tree, children before parent
+    void recurseElementsDeepFirst( void (*pFun)( ldomNode * node ) );
     /// calls specified function recursively for all nodes of DOM tree
     void recurseNodes( void (*pFun)( ldomNode * node ) );
 

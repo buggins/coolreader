@@ -105,6 +105,7 @@ enum lvdom_element_render_method
     erm_invisible = 0, ///< invisible: don't render
     erm_block,         ///< render as block element (render as containing other elements)
     erm_final,         ///< final element: render the whole it's content as single render block
+    erm_inline,        ///< inline element
     erm_mixed,         ///< block and inline elements are mixed: autobox inline portions of nodes; TODO
     erm_table,         ///< table element: render as table
     erm_table_row_group, ///< table row group

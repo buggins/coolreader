@@ -2917,6 +2917,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     delete m_doc;
                 createEmptyDocument();
                 m_doc->setProps( m_doc_props );
+                setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
 
                 lString16 rootfilePath;
                 lString16 rootfileMediaType;
@@ -3354,6 +3355,7 @@ bool LVDocView::ParseDocument( )
 	    //m_doc->getStyleSheet()->clear();
 	    //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
+        setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
         if ( m_doc->openFromCache( ) ) {
             CRLog::info("Document is found in cache, will reuse");
 
