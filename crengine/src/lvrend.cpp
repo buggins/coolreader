@@ -22,9 +22,9 @@
 // define to non-zero (1..5) to see block bounds
 #define DEBUG_TREE_DRAW 0
 
-#ifdef _DEBUG
-//#define DEBUG_DUMP_ENABLED
-#endif
+//#ifdef _DEBUG
+#define DEBUG_DUMP_ENABLED
+//#endif
 
 #ifdef DEBUG_DUMP_ENABLED
 
@@ -52,7 +52,7 @@ public:
     simpleLogFile & operator << ( const lString16 &str ) { return operator << (str.c_str()); }
 };
 
-simpleLogFile logfile("logfile.log");
+simpleLogFile logfile("/tmp/logfile.log");
 
 #else
 
@@ -867,101 +867,6 @@ void initFormatData( ldomNode * node )
     }
 }
 
-// init table element render methods
-// states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
-// returns table cell count
-int initTableRendMethods( ldomNode * enode, int state )
-{
-    //main node: table
-    if ( state==0 && enode->getStyle()->display==css_d_table )
-        enode->setRendMethod( erm_table ); // for table
-    int cellCount = 0;
-    int cnt = enode->getChildCount();
-    int i;
-    for (i=0; i<cnt; i++)
-    {
-        ldomNode * child = enode->getChildNode( i );
-        if ( child->isElement() )
-        {
-            switch( child->getStyle()->display )
-            {
-            case css_d_table_caption:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_caption );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_inline:
-                {
-                }
-                break;
-            case css_d_table_row_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_row_group );
-                    cellCount += initTableRendMethods( child, 2 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_header_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_header_group );
-                    cellCount += initTableRendMethods( child, 2);
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_footer_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_footer_group );
-                    cellCount += initTableRendMethods( child, 2 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_row:
-                if ( state==0 || state==2 ) {
-                    child->setRendMethod( erm_table_row );
-                    cellCount += initTableRendMethods( child, 3 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_column_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_column_group );
-                    cellCount += initTableRendMethods( child, 1 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_column:
-                if ( state==0 || state==1 ) {
-                    child->setRendMethod( erm_table_column );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_cell:
-                if ( state==3 ) {
-                    child->setRendMethod( erm_table_cell );
-                    cellCount++;
-                    // will be translated to block or final below
-                    initRendMethod( child, true, true );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            default:
-                // ignore
-                break;
-            }
-        }
-    }
-    return cellCount;
-}
-
 bool isInvisibleItem( ldomNode * node )
 {
     if ( node->isElement() ) {
@@ -999,6 +904,7 @@ bool isInlineItem( ldomNode * node )
     return false;
 }
 
+#if 0
 // init element render method
 int initRendMethod( ldomNode * enode, bool recurseChildren, bool allowAutoboxing )
 {
@@ -1125,13 +1031,13 @@ int initRendMethod( ldomNode * enode, bool recurseChildren, bool allowAutoboxing
         }
 
 #ifdef DEBUG_DUMP_ENABLED
-      for (i=0; i<node->getNodeLevel(); i++)
+      for (i=0; i<enode->getNodeLevel(); i++)
         logfile << " . ";
 #endif
 #ifdef DEBUG_DUMP_ENABLED
         lvRect rect;
-        node->getAbsRect( rect );
-        logfile << "<" << node->getNodeName() << ">     text:"
+        enode->getAbsRect( rect );
+        logfile << "<" << enode->getNodeName() << ">     text:"
             << textCount << " inline: " << inlineCount
             << " block: " << blockCount << "   rendMethod: ";
 #endif
@@ -1140,6 +1046,16 @@ int initRendMethod( ldomNode * enode, bool recurseChildren, bool allowAutoboxing
         if ( textCount || inlineCount || runinCount )
         {
             // if there are inline or text in block, make it final
+            if ( blockCount ) {
+                CRLog::warn("FINAL element <%s> contains %d text, %d inline, %d runin, %d blocks", LCSTR(enode->getNodeName()), textCount, inlineCount, runinCount, blockCount);
+                for ( int i=0; i<enode->getChildCount(); i++ )
+                    if ( enode->getChildNode(i)->isText() ) {
+                        lString16 s = enode->getChildNode(i)->getText();
+                        CRLog::warn("text: '%s' first ch=%04x", LCSTR(s), s[0]);
+                    }
+            } else {
+                CRLog::trace("FINAL element <%s> contains %d text, %d inline, %d runin", LCSTR(enode->getNodeName()), textCount, inlineCount, runinCount);
+            }
             enode->setRendMethod( erm_final );
             res++;
 #ifdef DEBUG_DUMP_ENABLED
@@ -1150,6 +1066,7 @@ int initRendMethod( ldomNode * enode, bool recurseChildren, bool allowAutoboxing
         {
             // if there are blocks only inside element, treat it as block too
             enode->setRendMethod( erm_block );
+            CRLog::trace("BLOCK element <%s> contains %d blocks", LCSTR(enode->getNodeName()), blockCount);
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "block";
 #endif
@@ -1194,6 +1111,7 @@ int initRendMethod( ldomNode * enode, bool recurseChildren, bool allowAutoboxing
     }
     return res;
 }
+#endif
 
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags )
 {
@@ -1403,13 +1321,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
 
 #ifdef DEBUG_DUMP_ENABLED
-      for (int i=0; i<node->getNodeLevel(); i++)
+      for (int i=0; i<enode->getNodeLevel(); i++)
         logfile << " . ";
 #endif
 #ifdef DEBUG_DUMP_ENABLED
         lvRect rect;
-        node->getAbsRect( rect );
-        logfile << "<" << node->getNodeName() << ">     flags( "
+        enode->getAbsRect( rect );
+        logfile << "<" << enode->getNodeName() << ">     flags( "
             << baseflags << "-> " << flags << ")  rect( "
             << rect.left << rect.top << rect.right << rect.bottom << ")\n";
 #endif
@@ -1432,7 +1350,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         {
 
 #ifdef DEBUG_DUMP_ENABLED
-      for (int i=0; i<node->getNodeLevel(); i++)
+      for (int i=0; i<enode->getNodeLevel(); i++)
         logfile << " . ";
 #endif
 #ifdef DEBUG_DUMP_ENABLED
@@ -1559,7 +1477,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             fmt.setHeight( 0 );
             fmt.push();
 
-            switch( enode->getRendMethod() )
+            int m = enode->getRendMethod();
+            switch( m )
             {
             case erm_mixed:
                 {
@@ -1635,6 +1554,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                 // don't render invisible blocks
                 return 0;
             default:
+                CRLog::error("Unsupported render method %d", m);
                 crFatalError(); // error
             }
         }
