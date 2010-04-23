@@ -839,6 +839,7 @@ LVFontRef getFont( css_style_rec_t * style )
     return fnt;
 }
 
+#if 0
 void initFormatData( ldomNode * node )
 {
     //lvdomElementFormatRec * fmt = new lvdomElementFormatRec;
@@ -903,6 +904,7 @@ bool isInlineItem( ldomNode * node )
     }
     return false;
 }
+#endif
 
 #if 0
 // init element render method
@@ -1942,6 +1944,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // set calculated style
     //node->getDocument()->cacheStyle( style );
     enode->setStyle( style );
+    if ( enode->getStyle().isNull() ) {
+        CRLog::error("NULL style set!!!");
+    }
 
     // set font
     if ( isSameFontStyle( parent_style.get(), style.get() ) )
