@@ -283,12 +283,12 @@ bool CacheFile::readIndex()
     lUInt32 hash = calcHash32( (lUInt8*)index, sz );
     if ( hdr._indexBlock._dataCRC!=crc || hdr._indexBlock._dataHash!=hash ) {
         CRLog::error("CacheFile::readIndex: CRC doesn't match");
-        delete index;
+        delete[] index;
         return false;
     }
     for ( int i=0; i<count; i++ ) {
         if ( !index[i].validate(_size) ) {
-            delete index;
+            delete[] index;
             return false;
         }
         CacheFileItem * item = new CacheFileItem();
@@ -3010,6 +3010,9 @@ ldomDocumentWriter::~ldomDocumentWriter()
 {
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
+    if ( _document->isDefStyleSet() && !_document->validateDocument() ) {
+        CRLog::error("*** document style validation failed!!!");
+    }
 }
 
 void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
@@ -5789,6 +5792,43 @@ lUInt32 tinyNodeCollection::calcStyleHash()
                 LVFontRef font = buf[j].getFont();
                 if ( !font.isNull() )
                     res += calcHash( font );
+            }
+        }
+    }
+    return res;
+}
+
+/// called on document loading end
+bool tinyNodeCollection::validateDocument()
+{
+    int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
+    bool res = true;
+    for ( int i=0; i<count; i++ ) {
+        int offs = i*TNC_PART_LEN;
+        int sz = TNC_PART_LEN;
+        if ( offs + sz > _elemCount+1 ) {
+            sz = _elemCount+1 - offs;
+        }
+        ldomNode * buf = _elemList[i];
+        for ( int j=0; j<sz; j++ ) {
+            buf[j]._document = (ldomDocument*)this;
+            if ( buf[j].isElement() ) {
+                lUInt16 style = buf[j]._data._pelem._styleIndex;
+                lUInt16 font = buf[j]._data._pelem._fontIndex;
+                if ( !style ) {
+                    CRLog::error("styleId=0 for node <%s>", LCSTR(buf[j].getNodeName()));
+                    res = false;
+                } else if ( _styles.get(style).isNull() ) {
+                    CRLog::error("styleId!=0, but absent in cache for node <%s>", LCSTR(buf[j].getNodeName()));
+                    res = false;
+                }
+                if ( !font ) {
+                    CRLog::error("fontId=0 for node <%s>", LCSTR(buf[j].getNodeName()));
+                    res = false;
+                } else if ( _fonts.get(font).isNull() ) {
+                    CRLog::error("fontId!=0, but absent in cache for node <%s>", LCSTR(buf[j].getNodeName()));
+                    res = false;
+                }
             }
         }
     }
