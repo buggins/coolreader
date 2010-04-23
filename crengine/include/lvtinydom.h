@@ -348,6 +348,9 @@ protected:
     tinyNodeCollection( tinyNodeCollection & v );
 public:
 
+    /// called on document loading end
+    bool validateDocument();
+
 #if BUILD_LITE!=1
     /// try opening from cache file, find by source file name (w/o path) and crc32
     virtual bool openFromCache( ) = 0;
@@ -1627,6 +1630,7 @@ protected:
     LVTocItem m_toc;
 
 public:
+
 
     bool isDefStyleSet()
     {
