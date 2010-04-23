@@ -319,6 +319,8 @@ protected:
 #endif
 
     int calcFinalBlocks();
+    void dropStyles();
+
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
     ldomDataStorageManager _rectStorage; // element render rect storage
@@ -519,6 +521,8 @@ public:
     void initNodeRendMethod();
     /// init render method for the whole subtree
     void initNodeRendMethodRecursive();
+    /// init render method for the whole subtree
+    void initNodeStyleRecursive();
 
 
     /// remove node, clear resources

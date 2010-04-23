@@ -2292,6 +2292,29 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
     return changed;
 }
 
+void tinyNodeCollection::dropStyles()
+{
+    _styles.clear(-1);
+    int cnt = 0;
+    int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
+    for ( int i=0; i<count; i++ ) {
+        int offs = i*TNC_PART_LEN;
+        int sz = TNC_PART_LEN;
+        if ( offs + sz > _elemCount+1 ) {
+            sz = _elemCount+1 - offs;
+        }
+        ldomNode * buf = _elemList[i];
+        for ( int j=0; j<sz; j++ ) {
+            if ( buf[j].isElement() ) {
+                if ( buf[j].isPersistent() )
+                    buf[j]._data._pelem._styleIndex = 0;
+                else
+                    buf[j]._data._elem._styleIndex = 0;
+            }
+        }
+    }
+}
+
 int tinyNodeCollection::calcFinalBlocks()
 {
     int cnt = 0;
@@ -2334,8 +2357,9 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     if ( !checkRenderContext( pages, _page_width, _page_height, defStyleHash ) ) {
         CRLog::info("rendering context is changed - full render required...");
         CRLog::trace("init format data...");
-        getRootNode()->recurseElements( initFormatData );
-        CRLog::trace("init render method...");
+        dropStyles();
+        getRootNode()->initNodeStyleRecursive();
+        //CRLog::trace("init render method...");
         //getRootNode()->initNodeRendMethodRecursive();
         //initRendMethod( getRootNode(), true, false );
         _rendered = false;
@@ -2618,12 +2642,31 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
             break;
         lastNonEmpty--;
     }
-    if ( firstNonEmpty<=lastNonEmpty ) {
+
+    bool hasInline = false;
+    for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
+        ldomNode * node = getChildNode(i);
+        if ( isInlineNode( node ) )
+            hasInline = true;
+    }
+
+    if ( hasInline ) { //&& firstNonEmpty<=lastNonEmpty
+
         CRLog::trace("Autobox children %d..%d of node <%s>", firstNonEmpty, lastNonEmpty, LCSTR(getNodeName()));
+        bool hasInline = false;
+        for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
+            ldomNode * node = getChildNode(i);
+            if ( node->isText() )
+                CRLog::trace("    text: '%s'", LCSTR(node->getText()));
+            else
+                CRLog::trace("    elem: <%s> rendMode=%d  display=%d", LCSTR(node->getNodeName()), node->getRendMethod(), node->getStyle()->display);
+        }
         // remove starting empty
         removeChildren(lastNonEmpty+1, endIndex);
+
         // inner inline
         ldomNode * abox = insertChildElement( firstNonEmpty, LXML_NS_NONE, el_autoBoxing );
+        abox->initNodeStyle();
         abox->setRendMethod( erm_final );
         moveItemsTo( abox, firstNonEmpty+1, lastNonEmpty+1 );
         // remove trailing empty
@@ -2765,17 +2808,30 @@ int initTableRendMethods( ldomNode * enode, int state )
     return cellCount;
 }
 
+bool hasInvisibleParent( ldomNode * node )
+{
+    for ( ; !node->isRoot(); node = node->getParentNode() )
+        if ( node->getStyle()->display==css_d_none )
+            return true;
+    return false;
+}
+
 void ldomNode::initNodeRendMethod()
 {
     if ( !isElement() )
         return;
+    if ( isRoot() ) {
+        setRendMethod(erm_block);
+        return;
+    }
     int d = getStyle()->display;
-    if ( d==css_d_none ) {
+    if ( hasInvisibleParent(this) ) {
         // invisible
-        recurseElements( resetRendMethodToInvisible );
+        //recurseElements( resetRendMethodToInvisible );
+        setRendMethod(erm_invisible);
     } else if ( d==css_d_inline || d==css_d_run_in ) {
         // inline
-        CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
+        //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
         recurseElements( resetRendMethodToInline );
     } else if (d == css_d_table) {
         // table
@@ -2801,6 +2857,7 @@ void ldomNode::initNodeRendMethod()
                 if ( isInlineNode(node) ) {
                     int j = i-1;
                     for ( ; j>=0; j-- ) {
+                        node = getChildNode(j);
                         if ( !isInlineNode(node) )
                             break;
                     }
@@ -2811,10 +2868,10 @@ void ldomNode::initNodeRendMethod()
                 }
             }
             // check types after autobox
-            detectChildTypes( this, hasBlockItems, hasInline );
-            if ( hasInline )
-                setRendMethod( erm_final );
-            else
+            //detectChildTypes( this, hasBlockItems, hasInline );
+            //if ( hasInline )
+            //    setRendMethod( erm_final );
+            //else
                 setRendMethod( erm_block );
         }
     }
@@ -2836,7 +2893,7 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
         if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) )
             _element->insertChildText(lString16(text, len));
         else {
-            CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
+            //CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
         }
     }
     //logfile << "}";
@@ -5440,6 +5497,7 @@ bool ldomDocument::openFromCache( )
         saveToStream(s, "UTF8");
 #endif
     _mapped = true;
+    _rendered = true;
     return true;
 }
 
@@ -5767,6 +5825,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                                 buf[j]._data._pelem._fontIndex = fntindex;
                         }
                     } else {
+                        CRLog::error("Loaded style index not found in style collection");
                         buf[j]._data._pelem._styleIndex = 0;
                         buf[j]._data._pelem._fontIndex = 0;
                         res = false;
@@ -5784,7 +5843,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
             if ( !list->get(i).isNull() ) {
                 // decrease reference counter
                 // TODO:
-                //_styles.release( list->get(i) );
+                _styles.release( list->get(i) );
             }
         }
     }
@@ -6372,7 +6431,8 @@ void ldomNode::destroy()
         delete NPELEM;
         break;
     case NT_PTEXT:
-        _document->_textStorage.freeNode( _data._ptext._addr );
+        // disable removing from storage: to minimize modifications
+        //_document->_textStorage.freeNode( _data._ptext._addr );
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
         {
@@ -7013,6 +7073,17 @@ void ldomNode::initNodeRendMethodRecursive()
     recurseElementsDeepFirst( updateRendMethod );
 }
 
+static void updateStyleData( ldomNode * node )
+{
+    node->initNodeStyle();
+}
+
+/// init render method for the whole subtree
+void ldomNode::initNodeStyleRecursive()
+{
+    recurseElements( updateStyleData );
+}
+
 /// calls specified function recursively for all elements of DOM tree
 void ldomNode::recurseElements( void (*pFun)( ldomNode * node ) )
 {
@@ -7214,8 +7285,36 @@ void ldomNode::initNodeStyle()
     // assume all parent styles already initialized
     if ( !_document->isDefStyleSet() )
         return;
-    if ( isElement() )
-        initFormatData( this );
+    if ( isElement() ) {
+        if ( isRoot() || getParentNode()->isRoot() )
+        {
+            setNodeStyle( this,
+                getDocument()->getDefaultStyle(),
+                getDocument()->getDefaultFont()
+            );
+        }
+        else
+        {
+            ldomNode * parent = getParentNode();
+            //lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
+            css_style_ref_t style = parent->getStyle();
+            LVFontRef font = parent->getFont();
+            if ( style.isNull() ) {
+                // for debugging
+                CRLog::error("NULL style is returned for parent <%s>", LCSTR(parent->getNodeName()) );
+
+                style = parent->getStyle();
+            }
+            setNodeStyle( this,
+                style,
+                font
+                );
+            if ( this->getStyle().isNull() ) {
+                CRLog::error("NULL style is set for <%s>", LCSTR(getNodeName()) );
+                style = this->getStyle();
+            }
+        }
+    }
 }
 
 /// returns first child node

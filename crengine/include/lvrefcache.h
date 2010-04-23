@@ -235,10 +235,10 @@ public:
     bool cache( lUInt16 &indexholder, ref_t & style)
     {
         int newindex = cache( style );
-        if ( indexholder ) {
+        bool res = indexholder != newindex;
+        if ( !res ) {
             release( indexholder );
         }
-        bool res = indexholder != newindex;
         indexholder = (lUInt16)newindex;
         return res;
     }
@@ -346,8 +346,10 @@ public:
         for( int i=0; i<sz; i++ )
             table[i] = NULL;
     }
-    void clear()
+    void clear( int sz = 0 )
     {
+        if ( sz==-1 )
+            sz = size;
         LVRefCacheRec *r, *r2;
         for ( int i=0; i < size; i++ )
         {
@@ -367,6 +369,12 @@ public:
             freeindex = 0;
         }
         numitems = 0;
+        if ( sz ) {
+            size = sz;
+            table = new LVRefCacheRec * [ sz ];
+            for( int i=0; i<sz; i++ )
+                table[i] = NULL;
+        }
     }
     ~LVIndexedRefCache()
     {
