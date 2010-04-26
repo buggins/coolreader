@@ -2357,7 +2357,11 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     if ( !checkRenderContext( pages, _page_width, _page_height, defStyleHash ) ) {
         CRLog::info("rendering context is changed - full render required...");
         CRLog::trace("init format data...");
+        CRLog::trace("validate 1...");
+        validateDocument();
         dropStyles();
+        CRLog::trace("validate 2...");
+        validateDocument();
         getRootNode()->initNodeStyleRecursive();
         //CRLog::trace("init render method...");
         //getRootNode()->initNodeRendMethodRecursive();
@@ -2488,6 +2492,7 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
     for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
         buf << p->key << p->value;
     }
+    buf.putMagic( node_by_id_map_magic );
     buf.putCRC( buf.pos() - start );
 
     buf.putCRC( buf.pos() - pos );
@@ -2528,6 +2533,7 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
         if ( buf.error() )
             return false;
     }
+    buf.checkMagic( node_by_id_map_magic );
     buf.checkCRC( buf.pos() - start );
 
     buf.checkCRC( buf.pos() - pos );
@@ -2657,9 +2663,9 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
         for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
             ldomNode * node = getChildNode(i);
             if ( node->isText() )
-                CRLog::trace("    text: '%s'", LCSTR(node->getText()));
+                CRLog::trace("    text: %d '%s'", node->getDataIndex(), LCSTR(node->getText()));
             else
-                CRLog::trace("    elem: <%s> rendMode=%d  display=%d", LCSTR(node->getNodeName()), node->getRendMethod(), node->getStyle()->display);
+                CRLog::trace("    elem: %d <%s> rendMode=%d  display=%d", node->getDataIndex(), LCSTR(node->getNodeName()), node->getRendMethod(), node->getStyle()->display);
         }
         // remove starting empty
         removeChildren(lastNonEmpty+1, endIndex);
@@ -2824,6 +2830,12 @@ void ldomNode::initNodeRendMethod()
         setRendMethod(erm_block);
         return;
     }
+
+    // DEBUG TEST
+    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
+    }
+
     int d = getStyle()->display;
     if ( hasInvisibleParent(this) ) {
         // invisible
@@ -2854,6 +2866,12 @@ void ldomNode::initNodeRendMethod()
             int i=getChildCount()-1;
             for ( ; i>=0; i-- ) {
                 ldomNode * node = getChildNode(i);
+
+                // DEBUG TEST
+                if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+                    CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
+                }
+
                 if ( isInlineNode(node) ) {
                     int j = i-1;
                     for ( ; j>=0; j-- ) {
@@ -5798,9 +5816,18 @@ lUInt32 tinyNodeCollection::calcStyleHash()
     return res;
 }
 
+static void validateChild( ldomNode * node )
+{
+    // DEBUG TEST
+    if ( !node->isRoot() && node->getParentNode()->getChildIndex( node->getDataIndex() )<0 ) {
+        CRLog::error("Invalid parent->child relation for nodes %d->%d", node->getParentNode()->getDataIndex(), node->getParentNode()->getDataIndex() );
+    }
+}
+
 /// called on document loading end
 bool tinyNodeCollection::validateDocument()
 {
+    ((ldomDocument*)this)->getRootNode()->recurseElements(validateChild);
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     bool res = true;
     for ( int i=0; i<count; i++ ) {
@@ -5816,15 +5843,19 @@ bool tinyNodeCollection::validateDocument()
                 lUInt16 style = buf[j]._data._pelem._styleIndex;
                 lUInt16 font = buf[j]._data._pelem._fontIndex;
                 if ( !style ) {
-                    CRLog::error("styleId=0 for node <%s>", LCSTR(buf[j].getNodeName()));
-                    res = false;
+                    if ( !buf[j].isRoot() ) {
+                        CRLog::error("styleId=0 for node <%s> %d", LCSTR(buf[j].getNodeName()), buf[j].getDataIndex());
+                        res = false;
+                    }
                 } else if ( _styles.get(style).isNull() ) {
-                    CRLog::error("styleId!=0, but absent in cache for node <%s>", LCSTR(buf[j].getNodeName()));
+                    CRLog::error("styleId!=0, but absent in cache for node <%s> %d", LCSTR(buf[j].getNodeName()), buf[j].getDataIndex());
                     res = false;
                 }
                 if ( !font ) {
-                    CRLog::error("fontId=0 for node <%s>", LCSTR(buf[j].getNodeName()));
-                    res = false;
+                    if ( !buf[j].isRoot() ) {
+                        CRLog::error("fontId=0 for node <%s>", LCSTR(buf[j].getNodeName()));
+                        res = false;
+                    }
                 } else if ( _fonts.get(font).isNull() ) {
                     CRLog::error("fontId!=0, but absent in cache for node <%s>", LCSTR(buf[j].getNodeName()));
                     res = false;
@@ -6493,6 +6524,7 @@ void ldomNode::destroy()
 /// returns index of child node by dataIndex
 int ldomNode::getChildIndex( lUInt32 dataIndex ) const
 {
+    dataIndex &= 0xFFFFFFF0;
     ASSERT_NODE_NOT_NULL;
     int parentIndex = -1;
     switch ( TNTYPE ) {
@@ -6500,7 +6532,7 @@ int ldomNode::getChildIndex( lUInt32 dataIndex ) const
         {
             tinyElement * me = NPELEM;
             for ( int i=0; i<me->_children.length(); i++ ) {
-                if ( me->_children[i] == dataIndex ) {
+                if ( (me->_children[i] & 0xFFFFFFF0) == dataIndex ) {
                     // found
                     parentIndex = i;
                     break;
@@ -6512,7 +6544,7 @@ int ldomNode::getChildIndex( lUInt32 dataIndex ) const
         {
             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
             for ( int i=0; i<me->childCount; i++ ) {
-                if ( me->children[i] == dataIndex ) {
+                if ( (me->children[i] & 0xFFFFFFF0) == dataIndex ) {
                     // found
                     parentIndex = i;
                     break;
@@ -6590,7 +6622,7 @@ void ldomNode::setParentNode( ldomNode * parent )
         {
             lUInt32 parentIndex = parent->_dataIndex;
             _data._ptext._parentIndex = parentIndex;
-            _document->_textStorage.setTextParent( _data._ptext._addr, parentIndex );
+            //_document->_textStorage.setTextParent( _data._ptext._addr, parentIndex );
         }
         break;
     case NT_TEXT:
@@ -7300,8 +7332,7 @@ void ldomNode::setFont( font_ref_t font )
         if ( !isPersistent() ) {
             _document->_fonts.cache( _data._elem._fontIndex, font );
         } else {
-            if ( _document->_fonts.cache( _data._pelem._fontIndex, font ) )
-                modified();
+            _document->_fonts.cache( _data._pelem._fontIndex, font );
         }
     }
 }
@@ -7314,8 +7345,7 @@ void ldomNode::setStyle( css_style_ref_t & style )
         if ( !isPersistent() ) {
             _document->_styles.cache( _data._elem._styleIndex, style );
         } else {
-            if ( _document->_styles.cache( _data._pelem._styleIndex, style ) )
-                modified();
+            _document->_styles.cache( _data._pelem._styleIndex, style );
         }
     }
 }
@@ -7336,12 +7366,23 @@ void ldomNode::initNodeStyle()
         else
         {
             ldomNode * parent = getParentNode();
+
+            // DEBUG TEST
+            if ( parent->getChildIndex( getDataIndex() )<0 ) {
+                CRLog::error("Invalid parent->child relation for nodes %d->%d", parent->getDataIndex(), getDataIndex() );
+            }
+
+
             //lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
             css_style_ref_t style = parent->getStyle();
             LVFontRef font = parent->getFont();
             if ( style.isNull() ) {
                 // for debugging
-                CRLog::error("NULL style is returned for parent <%s>", LCSTR(parent->getNodeName()) );
+                CRLog::error("NULL style is returned for node <%s> %d level=%d  "
+                             "parent <%s> %d level=%d children %d childIndex=%d",
+                             LCSTR(getNodeName()), getDataIndex(), getNodeLevel(),
+                             LCSTR(parent->getNodeName()), parent->getDataIndex(),
+                             parent->getNodeLevel(), parent->getChildCount(), parent->getChildIndex(getDataIndex()) );
 
                 style = parent->getStyle();
             }
