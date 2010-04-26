@@ -236,11 +236,13 @@ public:
     {
         int newindex = cache( style );
         bool res = indexholder != newindex;
-        if ( !res ) {
+        if ( indexholder != newindex ) {
+            indexholder = (lUInt16)newindex;
+            return true;
+        } else {
             release( indexholder );
+            return false;
         }
-        indexholder = (lUInt16)newindex;
-        return res;
     }
 
     // check whether equal object already exists if cache
