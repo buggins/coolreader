@@ -125,3 +125,11 @@ Run Qt SDK / Qt Command Prompt. Execute:
 > cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" CMAKE_INSTALL_PREFIX=dist ..
 > make
 > make install
+
+It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
+You need also add following DLLs to this directory in order to get cr3.exe working:
+- mingwm10.dll
+- QtCore4.dll
+- QtGui4.dll
+- libz.dll
+
