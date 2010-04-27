@@ -14,6 +14,7 @@
 #define __LV_PAGESPLITTER_H_INCLUDED__
 
 #include <stdlib.h>
+#include <time.h>
 #include "lvtypes.h"
 #include "lvarray.h"
 #include "lvptrvec.h"

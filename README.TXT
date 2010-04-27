@@ -102,3 +102,26 @@ mkdir v5build
 cd v5build
 cmake -D DEVICE_NAME=v5 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D GRAY_BACKBUFFER_BITS=3 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
 make
+
+
+==============================
+*** QT Build under Windows ***
+==============================
+
+    Using QT SDK  
+
+Environment setup: 
+- Download and install QT SDK, git, cmake, msys
+- Copy contents of git and cmake dirs to QT/mingw/
+- Copy make.exe from msys/bin to QT/mingw/bin
+
+Run Qt SDK / Qt Command Prompt. Execute:
+> sh
+> git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+> mv crengine cr3
+> cd cr3
+> mkdir qtbuild
+> cd qtbuild
+> cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" CMAKE_INSTALL_PREFIX=dist ..
+> make
+> make install
