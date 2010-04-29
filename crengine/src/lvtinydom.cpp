@@ -5588,6 +5588,8 @@ bool ldomDocument::loadCacheFileContent()
             return false;
         }
         _hdr = h;
+        CRLog::info("Loaded render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
 
     }
 
@@ -5629,6 +5631,8 @@ bool ldomDocument::loadCacheFileContent()
     if ( loadStylesData() ) {
         CRLog::trace("ldomDocument::loadCacheFileContent() - using loaded styles");
         updateLoadedStyles( true );
+//        lUInt32 styleHash = calcStyleHash();
+//        CRLog::info("Loaded style hash = %08x", styleHash);
     } else {
         CRLog::trace("ldomDocument::loadCacheFileContent() - style loading failed: will reinit ");
         updateLoadedStyles( false );
@@ -5702,6 +5706,8 @@ bool ldomDocument::saveChanges()
         CRLog::error("Error while writing header data");
         res = false;
     }
+    CRLog::info("Saving render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
 
 
     CRLog::trace("ldomDocument::saveChanges() - TOC");
@@ -5802,8 +5808,10 @@ bool tinyNodeCollection::loadStylesData()
 
 lUInt32 tinyNodeCollection::calcStyleHash()
 {
+//    int maxlog = 30;
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     lUInt32 res = _elemCount;
+//    CRLog::info("Calculating style hash...");
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
@@ -5813,17 +5821,21 @@ lUInt32 tinyNodeCollection::calcStyleHash()
         ldomNode * buf = _elemList[i];
         for ( int j=0; j<sz; j++ ) {
             if ( buf[j].isElement() ) {
-                res *= 31;
                 css_style_ref_t style = buf[j].getStyle();
-                if ( !style.isNull() )
-                    res += calcHash( style );
-                res *= 31;
+                lUInt32 sh = calcHash( style );
+                res = res * 31 + sh;
                 LVFontRef font = buf[j].getFont();
-                if ( !font.isNull() )
-                    res += calcHash( font );
+                lUInt32 fh = calcHash( font );
+                res = res * 31 + fh;
+//                if ( maxlog>0 && sh==0 ) {
+//                    style = buf[j].getStyle();
+//                    CRLog::trace("[%06d] : s=%08x f=%08x  res=%08x", offs+j, sh, fh, res);
+//                    maxlog--;
+//                }
             }
         }
     }
+//    CRLog::info("Calculated style hash = %08x", res);
     return res;
 }
 
@@ -5919,8 +5931,11 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
             }
         }
     }
-    if ( enabled ) {
+#ifdef TODO_INVESTIGATE
+    if ( enabled && res) {
+        //_styles.setIndex( *list );
         // correct list reference counters
+
         for ( int i=0; i<list->length(); i++ ) {
             if ( !list->get(i).isNull() ) {
                 // decrease reference counter
@@ -5929,6 +5944,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
             }
         }
     }
+#endif
     delete list;
     return res;
 }
@@ -6337,6 +6353,8 @@ void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy, 
     _hdr.render_dx = dx;
     _hdr.render_dy = dy;
     _hdr.render_docflags = _docFlags;
+    CRLog::info("Updating render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
     _pagesData.reset();
     pages->serialize( _pagesData );
 }
@@ -6378,6 +6396,8 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy, l
     _hdr.render_dx = dx;
     _hdr.render_dy = dy;
     _hdr.render_docflags = _docFlags;
+    CRLog::info("New render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
     return false;
 }
 
