@@ -471,7 +471,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         // data not changed: don't write again
         // TODO:
         if ( existingblock->_dataHash==newhash ) {
-            //CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
+            CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
             return true;
         } else {
             //CRLog::debug("Found existing block %d:%d with CRC matched - but with different hash %08x!!!", type, dataIndex, existingblock->_dataHash );
@@ -2337,7 +2337,8 @@ int tinyNodeCollection::calcFinalBlocks()
         ldomNode * buf = _elemList[i];
         for ( int j=0; j<sz; j++ ) {
             if ( buf[j].isElement() ) {
-                if ( buf[j].getRendMethod()==erm_block )
+                int rm = buf[j].getRendMethod();
+                if ( rm==erm_final )
                     cnt++;
             }
         }
@@ -2384,6 +2385,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
             pages->add( new LVRendPageInfo( _page_height ) );
         LVRendPageContext context( pages, _page_height );
         int numFinalBlocks = calcFinalBlocks();
+        CRLog::info("Final block count: %d", numFinalBlocks);
         context.setCallback(callback, numFinalBlocks);
         //updateStyles();
         CRLog::trace("rendering...");
@@ -2497,10 +2499,22 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
 
     int start = buf.pos();
     buf.putMagic( node_by_id_map_magic );
-    buf << (lUInt32)_idNodeMap.length();
-    LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
-    for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
-        buf << p->key << p->value;
+    lUInt32 cnt = 0;
+    {
+        LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
+        for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
+            cnt++;
+        }
+    }
+    // TODO: investigate why length() doesn't work as count
+    if ( cnt!=_idNodeMap.length() )
+        CRLog::error("_idNodeMap.length=%d doesn't match real item count %d", _idNodeMap.length(), cnt);
+    buf << cnt;
+    {
+        LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
+        for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
+            buf << (lUInt16)p->key << (lUInt32)p->value;
+        }
     }
     buf.putMagic( node_by_id_map_magic );
     buf.putCRC( buf.pos() - start );
@@ -2518,14 +2532,38 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
     buf.checkMagic( elem_id_map_magic );
     _elementNameTable.deserialize( buf );
     buf >> _nextUnknownElementId; // Next Id for unknown element
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of Element ID map");
+        return false;
+    }
+
     buf.checkMagic( attr_id_map_magic );
     _attrNameTable.deserialize( buf );
     buf >> _nextUnknownAttrId;    // Next Id for unknown attribute
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of Attr ID map");
+        return false;
+    }
+
+
     buf.checkMagic( ns_id_map_magic );
     _nsNameTable.deserialize( buf );
     buf >> _nextUnknownNsId;      // Next Id for unknown namespace
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of NS ID map");
+        return false;
+    }
+
     buf.checkMagic( attr_value_map_magic );
     _attrValueTable.deserialize( buf );
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of AttrValue map");
+        return false;
+    }
 
     int start = buf.pos();
     buf.checkMagic( node_by_id_map_magic );
@@ -2544,9 +2582,21 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
             return false;
     }
     buf.checkMagic( node_by_id_map_magic );
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of ID->Node map");
+        return false;
+    }
+
     buf.checkCRC( buf.pos() - start );
 
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of ID->Node map - CRC check failed");
+        return false;
+    }
+
     buf.checkCRC( buf.pos() - pos );
+
     return !buf.error();
 }
 #endif
@@ -2622,7 +2672,7 @@ static bool isInlineNode( ldomNode * node )
     //int d = node->getStyle()->display;
     //return ( d==css_d_inline || d==css_d_run_in );
     int m = node->getRendMethod();
-    return m==erm_inline;
+    return m==erm_inline || m==erm_runin;
 }
 
 void ldomElementWriter::onBodyEnter()
@@ -2668,7 +2718,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
 
     if ( hasInline ) { //&& firstNonEmpty<=lastNonEmpty
 
-        CRLog::trace("Autobox children %d..%d of node <%s>", firstNonEmpty, lastNonEmpty, LCSTR(getNodeName()));
+        CRLog::trace("Autobox children %d..%d of node <%s>  childCount=%d", firstNonEmpty, lastNonEmpty, LCSTR(getNodeName()), getChildCount());
         bool hasInline = false;
         for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
             ldomNode * node = getChildNode(i);
@@ -2719,7 +2769,7 @@ static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & ha
             int m = node->getRendMethod();
             if ( d==css_d_none || m==erm_invisible )
                 continue;
-            if ( m==erm_inline ) { //d==css_d_inline || d==css_d_run_in
+            if ( m==erm_inline || m==erm_runin) { //d==css_d_inline || d==css_d_run_in
                 hasInline = true;
             } else {
                 hasBlockItems = true;
@@ -2842,9 +2892,9 @@ void ldomNode::initNodeRendMethod()
     }
 
     // DEBUG TEST
-    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
-        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
-    }
+//    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+//        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
+//    }
 
     int d = getStyle()->display;
     if ( hasInvisibleParent(this) ) {
@@ -2855,6 +2905,7 @@ void ldomNode::initNodeRendMethod()
         // inline
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
         recurseElements( resetRendMethodToInline );
+        setRendMethod(erm_runin);
     } else if (d == css_d_table) {
         // table
         initTableRendMethods( this, 0 );
@@ -2872,35 +2923,51 @@ void ldomNode::initNodeRendMethod()
             setRendMethod( erm_block );
             //setRendMethod( erm_invisible );
         } else if ( hasBlockItems && hasInline ) {
-            // cleanup or autobox
-            int i=getChildCount()-1;
-            for ( ; i>=0; i-- ) {
-                ldomNode * node = getChildNode(i);
+            if ( getParentNode()->getNodeId()==el_autoBoxing ) {
+                // already autoboxed
+                setRendMethod( erm_final );
+            } else {
+                // cleanup or autobox
+                int i=getChildCount()-1;
+                for ( ; i>=0; i-- ) {
+                    ldomNode * node = getChildNode(i);
 
-                // DEBUG TEST
-                if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
-                    CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
-                }
+                    // DEBUG TEST
+//                    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+//                        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
+//                    }
 
-                if ( isInlineNode(node) ) {
-                    int j = i-1;
-                    for ( ; j>=0; j-- ) {
-                        node = getChildNode(j);
-                        if ( !isInlineNode(node) )
-                            break;
+                    if ( isInlineNode(node) ) {
+                        int j = i-1;
+                        for ( ; j>=0; j-- ) {
+                            node = getChildNode(j);
+                            if ( !isInlineNode(node) )
+                                break;
+                        }
+                        j++;
+                        // j..i are inline
+                        if ( j>0 || i<getChildCount()-1 )
+                            autoboxChildren( j, i );
+                        i = j;
+                    } else if ( i>0 ) {
+                        ldomNode * prev = getChildNode(i-1);
+                        if ( prev->isElement() && prev->getRendMethod()==erm_runin ) {
+                            // autobox run-in
+                            if ( getChildCount()!=2 ) {
+                                CRLog::debug("Autoboxing run-in items");
+                                autoboxChildren( i-1, i );
+                            }
+                            i--;
+                        }
                     }
-                    j++;
-                    // j..i are inline
-                    autoboxChildren( j, i );
-                    i = j;
                 }
+                // check types after autobox
+                detectChildTypes( this, hasBlockItems, hasInline );
+                if ( hasInline )
+                    setRendMethod( erm_final );
+                else
+                    setRendMethod( erm_block );
             }
-            // check types after autobox
-            //detectChildTypes( this, hasBlockItems, hasInline );
-            //if ( hasInline )
-            //    setRendMethod( erm_final );
-            //else
-                setRendMethod( erm_block );
         }
     }
 }
