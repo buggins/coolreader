@@ -1643,6 +1643,10 @@ void LVDocView::goToPage( int page )
         }
     } else {
         int pc = getVisiblePageCount();
+        if ( page >= m_pages.length() )
+            page = m_pages.length()-1;
+        if ( page<0 )
+            page = 0;
         if ( pc==2 )
             page &= ~1;
         if ( page>=0 && page<m_pages.length() ) {

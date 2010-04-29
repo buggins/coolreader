@@ -16,8 +16,8 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define CACHE_FILE_MAGIC_SIZE 32
 
 // cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x0C0000
-#define TEXT_CACHE_PACKED_SPACE   0x1C0000
+#define TEXT_CACHE_UNPACKED_SPACE 0x100000
+#define TEXT_CACHE_PACKED_SPACE   0x200000
 #define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
 #define ELEM_CACHE_UNPACKED_SPACE 0x100000
 #define ELEM_CACHE_PACKED_SPACE   0x180000
@@ -484,7 +484,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         // data not changed: don't write again
         // TODO:
         if ( existingblock->_dataHash==newhash ) {
-            CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
+            //CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
             return true;
         } else {
             //CRLog::debug("Found existing block %d:%d with CRC matched - but with different hash %08x!!!", type, dataIndex, existingblock->_dataHash );
