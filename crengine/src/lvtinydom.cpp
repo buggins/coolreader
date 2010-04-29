@@ -2360,9 +2360,9 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         CRLog::trace("validate 1...");
         validateDocument();
         dropStyles();
+        getRootNode()->initNodeStyleRecursive();
         CRLog::trace("validate 2...");
         validateDocument();
-        getRootNode()->initNodeStyleRecursive();
         //CRLog::trace("init render method...");
         //getRootNode()->initNodeRendMethodRecursive();
         //initRendMethod( getRootNode(), true, false );
@@ -6605,6 +6605,8 @@ void ldomNode::modified()
 void ldomNode::setParentNode( ldomNode * parent )
 {
     ASSERT_NODE_NOT_NULL;
+    if ( getParentNode()!=NULL && parent != NULL )
+        CRLog::trace("Changing parent of %d from %d to %d", getDataIndex(), getParentNode()->getDataIndex(), parent->getDataIndex());
     int parentIndex = 0;
     switch ( TNTYPE ) {
     case NT_ELEMENT:
@@ -6614,8 +6616,10 @@ void ldomNode::setParentNode( ldomNode * parent )
         {
             lUInt32 parentIndex = parent->_dataIndex;
             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-            me->parentIndex = parentIndex;
-            modified();
+            if ( me->parentIndex != parentIndex ) {
+                me->parentIndex = parentIndex;
+                modified();
+            }
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
