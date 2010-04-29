@@ -1979,6 +1979,15 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
         CRLog::debug("Updating selections...");
         updateSelections();
         CRLog::debug("Render is finished");
+
+        if ( !m_swapDone ) {
+            int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
+            int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD);
+            CRLog::info("Check whether to swap: file size = %d, min size to cache = %d", fs, mfs);
+            if ( fs>=mfs ) {
+                swapToCache();
+            }
+        }
     }
 }
 
@@ -3490,11 +3499,6 @@ bool LVDocView::ParseDocument( )
         m_doc->compact();
         m_doc->dumpStatistics();
 
-        int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
-        int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD);
-        CRLog::info("File size = %d, min size to cache = %d", fs, mfs);
-        if ( fs>=mfs )
-            swapToCache();
 
         if ( m_doc_format == doc_format_html ) {
             static lUInt16 path[] = { el_html, el_head, el_title, 0 };
