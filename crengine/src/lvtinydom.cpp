@@ -2373,9 +2373,10 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         dropStyles();
         //CRLog::trace("validate 2...");
         //validateDocument();
+        CRLog::trace("Init node styles...");
         getRootNode()->initNodeStyleRecursive();
-        //CRLog::trace("init render method...");
-        //getRootNode()->initNodeRendMethodRecursive();
+        CRLog::trace("init render method...");
+        getRootNode()->initNodeRendMethodRecursive();
         //initRendMethod( getRootNode(), true, false );
         _rendered = false;
     }
