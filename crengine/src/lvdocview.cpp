@@ -701,8 +701,8 @@ void LVDocView::makeToc()
 /// update page numbers for items
 void LVDocView::updatePageNumbers( LVTocItem * item )
 {
-    if ( !item->_position.isNull() ) {
-        lvPoint p = item->_position.toPoint();
+    if ( !item->getXPointer().isNull() ) {
+        lvPoint p = item->getXPointer().toPoint();
         int y = p.y;
         int h = GetFullHeight();
         int page = getBookmarkPage( item->_position );

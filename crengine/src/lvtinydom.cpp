@@ -8067,16 +8067,17 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
         return false;
     int childCount = 0;
     buf >> _level >> _index >> _page >> _percent >> childCount >> _name >> _path;
+//    CRLog::trace("[%d] %05d  %s  %s", _level, _page, LCSTR(_name), LCSTR(_path));
     if ( buf.error() )
         return false;
-    if ( _level>0 ) {
+//    if ( _level>0 ) {
 //        _position = doc->createXPointer( _path );
 //        if ( _position.isNull() ) {
 //            CRLog::error("Cannot find TOC node by path %s", LCSTR(_path) );
 //            buf.seterror();
 //            return false;
 //        }
-    }
+//    }
     for ( int i=0; i<childCount; i++ ) {
         LVTocItem * item = new LVTocItem(doc);
         if ( !item->deserialize( doc, buf ) ) {
