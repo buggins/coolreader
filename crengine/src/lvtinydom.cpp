@@ -86,6 +86,19 @@ static lUInt32 calcHash32( const lUInt8 * s, int len )
     return res;
 }
 
+static void dumpRendMethods( ldomNode * node, lString16 prefix )
+{
+    lString16 name = prefix;
+    if ( node->isText() )
+        name << node->getText();
+    else
+        name << L"<" << node->getNodeName() << L">   " << lString16::itoa(node->getRendMethod());
+    CRLog::trace( "%s ",LCSTR(name) );
+    for ( int i=0; i<node->getChildCount(); i++ ) {
+        dumpRendMethods( node->getChildNode(i), prefix + L"   ");
+    }
+}
+
 #define CACHE_FILE_ITEM_MAGIC 0xC007B00C
 struct CacheFileItem
 {
@@ -2378,6 +2391,9 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         getRootNode()->initNodeStyleRecursive();
         CRLog::trace("init render method...");
         getRootNode()->initNodeRendMethodRecursive();
+
+        //dumpRendMethods( getRootNode(), lString16(" - ") );
+
         //initRendMethod( getRootNode(), true, false );
         _rendered = false;
     }
@@ -2780,6 +2796,7 @@ static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & ha
     }
 }
 
+
 // init table element render methods
 // states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
 // returns table cell count
@@ -2861,7 +2878,9 @@ int initTableRendMethods( ldomNode * enode, int state )
                     child->setRendMethod( erm_table_cell );
                     cellCount++;
                     // will be translated to block or final below
-                    child->initNodeRendMethod();
+                    //child->initNodeRendMethod();
+                    child->initNodeRendMethodRecursive();
+                    //child->setRendMethod( erm_table_cell );
                     //initRendMethod( child, true, true );
                 } else {
                     child->setRendMethod( erm_invisible );
@@ -2873,6 +2892,9 @@ int initTableRendMethods( ldomNode * enode, int state )
             }
         }
     }
+//    if ( state==0 ) {
+//        dumpRendMethods( enode, lString16(L"   ") );
+//    }
     return cellCount;
 }
 
@@ -2903,8 +2925,12 @@ void ldomNode::initNodeRendMethod()
         // invisible
         //recurseElements( resetRendMethodToInvisible );
         setRendMethod(erm_invisible);
-    } else if ( d==css_d_inline || d==css_d_run_in ) {
+    } else if ( d==css_d_inline ) {
         // inline
+        //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
+        recurseElements( resetRendMethodToInline );
+    } else if ( d==css_d_run_in ) {
+        // runin
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
         recurseElements( resetRendMethodToInline );
         setRendMethod(erm_runin);
@@ -7248,7 +7274,7 @@ void ldomNode::recurseElementsDeepFirst( void (*pFun)( ldomNode * node ) )
         ldomNode * child = getChildNode( i );
         if ( child->isElement() )
         {
-            child->recurseElements( pFun );
+            child->recurseElementsDeepFirst( pFun );
         }
     }
     pFun( this );

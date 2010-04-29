@@ -232,6 +232,7 @@ public:
                 // for each child element
                 ldomNode * item = el->getChildNode(i);
                 lvdom_element_render_method rendMethod = item->getRendMethod();
+                CRLog::trace("LookupElem[%d] (%s, %d) %d", i, LCSTR(item->getNodeName()), state, (int)item->getRendMethod() );
                 switch ( rendMethod ) {
                 case erm_invisible:  // invisible: don't render
                     // do nothing: invisible
@@ -1531,6 +1532,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                 }
                 break;
             case erm_final:
+            case erm_table_cell:
                 {
                     if ( isFootNoteBody )
                         context.enterFootNote( enode->getAttributeValue(attr_id) );
