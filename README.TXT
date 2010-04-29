@@ -102,3 +102,40 @@ mkdir v5build
 cd v5build
 cmake -D DEVICE_NAME=v5 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D GRAY_BACKBUFFER_BITS=3 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
 make
+
+# Building Jinke/LBook V3+ viewer app (cr3):
+mkdir v3abuild
+cd v3abuild
+cmake -D DEVICE_NAME=v3a -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D GRAY_BACKBUFFER_BITS=4 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
+make
+
+
+==============================
+*** QT Build under Windows ***
+==============================
+
+    Using QT SDK  
+
+Environment setup: 
+- Download and install QT SDK, git, cmake, msys
+- Copy contents of git and cmake dirs to QT/mingw/
+- Copy make.exe from msys/bin to QT/mingw/bin
+
+Run Qt SDK / Qt Command Prompt. Execute:
+> sh
+> git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+> mv crengine cr3
+> cd cr3
+> mkdir qtbuild
+> cd qtbuild
+> cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" CMAKE_INSTALL_PREFIX=dist ..
+> make
+> make install
+
+It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
+You need also add following DLLs to this directory in order to get cr3.exe working:
+- mingwm10.dll
+- QtCore4.dll
+- QtGui4.dll
+- libz.dll
+

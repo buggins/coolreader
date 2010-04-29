@@ -812,12 +812,10 @@ VIEWER_MENU_4ABOUT=About...
 					LVFontRef() ) );
 	#endif
 
-	#if USE_JINKE_USER_DATA!=1
 		menu_win->addItem( new CRMenuItem( menu_win, MCMD_RECENT_BOOK_LIST,
 					_("Open recent book"),
 					LVImageSourceRef(),
 					LVFontRef() ) );
-	#endif
 
 	#ifdef WITH_DICT
 		menu_win->addItem( new CRMenuItem( menu_win, MCMD_DICT,
@@ -1046,15 +1044,14 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_RECENT_BOOK_LIST:
         showRecentBooksMenu();
         return true;
-#if USE_JINKE_USER_DATA!=1
     case MCMD_OPEN_RECENT_BOOK:
+        _docview->swapToCache();
         openRecentBook( params );
         return true;
     case MCMD_SWITCH_TO_RECENT_BOOK:
         _docview->swapToCache();
         openRecentBook( 1 );
         return true;
-#endif
     case MCMD_ABOUT:
         showAboutDialog();
         return true;

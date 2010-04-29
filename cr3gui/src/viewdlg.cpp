@@ -501,8 +501,10 @@ void CRViewDialog::draw( int pageOffset )
         drawStatusBar();
     }
     LVDocImageRef pageImage = _docview->getPageImage( pageOffset );
-    LVDrawBuf * pagedrawbuf = pageImage->getDrawBuf();
-    _wm->getScreen()->draw( pagedrawbuf, clientRect.left, clientRect.top );
+    if ( !pageImage.isNull() ) {
+        LVDrawBuf * pagedrawbuf = pageImage->getDrawBuf();
+        _wm->getScreen()->draw( pagedrawbuf, clientRect.left, clientRect.top );
+    }
 }
 
 void CRViewDialog::setRect( const lvRect & rc )

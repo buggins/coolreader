@@ -961,6 +961,7 @@ public:
 
 #else
 
+class LVDirectoryContainer;
 class LVFileStream : public LVNamedStream
 {
     friend class LVDirectoryContainer;

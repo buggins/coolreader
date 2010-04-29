@@ -1995,7 +1995,7 @@ public:
 #endif
 
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE!=1
 
 // prototype
 int CALLBACK LVWin32FontEnumFontFamExProc(

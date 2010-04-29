@@ -17,13 +17,13 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 
 // cache memory sizes
 #define TEXT_CACHE_UNPACKED_SPACE 0x0C0000
-#define TEXT_CACHE_PACKED_SPACE   0x160000
+#define TEXT_CACHE_PACKED_SPACE   0x1C0000
 #define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
-#define ELEM_CACHE_UNPACKED_SPACE 0x0C0000
-#define ELEM_CACHE_PACKED_SPACE   0x120000
+#define ELEM_CACHE_UNPACKED_SPACE 0x100000
+#define ELEM_CACHE_PACKED_SPACE   0x180000
 #define ELEM_CACHE_CHUNK_SIZE     0x00FFFF
-#define RECT_CACHE_UNPACKED_SPACE 0x040000
-#define RECT_CACHE_PACKED_SPACE   0x040000
+#define RECT_CACHE_UNPACKED_SPACE 0x080000
+#define RECT_CACHE_PACKED_SPACE   0x080000
 #define RECT_CACHE_CHUNK_SIZE     0x00FFFF
 
 #define STYLE_HASH_TABLE_SIZE     2048
@@ -471,7 +471,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         // data not changed: don't write again
         // TODO:
         if ( existingblock->_dataHash==newhash ) {
-            //CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
+            CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
             return true;
         } else {
             //CRLog::debug("Found existing block %d:%d with CRC matched - but with different hash %08x!!!", type, dataIndex, existingblock->_dataHash );
@@ -913,7 +913,8 @@ bool tinyNodeCollection::swapToCacheIfNecessary()
 {
     if ( !_cacheFile || _mapped || _maperror)
         return false;
-    return swapToCache();
+    return createCacheFile();
+    //return swapToCache();
 }
 
 bool tinyNodeCollection::createCacheFile()
@@ -932,7 +933,7 @@ bool tinyNodeCollection::createCacheFile()
         return false;
     }
 
-    CRLog::info("ldomDocument::swapToCache() - initialized swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
+    CRLog::info("ldomDocument::createCacheFile() - initialized swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
 
     LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), sz );
     if ( map.isNull() ) {
@@ -1666,6 +1667,13 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
 int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
 {
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
+    if ( _compbuf!=NULL ) {
+        CRLog::debug("Adding new item of size %d to compressed block %c%d of size %d", itemsize, _type, _index, _bufpos);
+        if ( !_buf ) {
+            unpack();
+        }
+        modified();
+    }
     if ( !_buf ) {
         // create new buffer, if necessary
         _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
@@ -1699,6 +1707,7 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
         ElementDataStorageItem * item = (ElementDataStorageItem *)(_buf+offset);
         return item;
     }
+    CRLog::error("Offset %d is out of bounds (%d) for storage chunk %c%d, chunkCount=%d", offset, this->_bufpos, this->_type, this->_index, _manager->_chunks.length() );
     return NULL;
 }
 
@@ -2328,7 +2337,8 @@ int tinyNodeCollection::calcFinalBlocks()
         ldomNode * buf = _elemList[i];
         for ( int j=0; j<sz; j++ ) {
             if ( buf[j].isElement() ) {
-                if ( buf[j].getRendMethod()==erm_block )
+                int rm = buf[j].getRendMethod();
+                if ( rm==erm_final )
                     cnt++;
             }
         }
@@ -2357,14 +2367,17 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     if ( !checkRenderContext( pages, _page_width, _page_height, defStyleHash ) ) {
         CRLog::info("rendering context is changed - full render required...");
         CRLog::trace("init format data...");
-        CRLog::trace("validate 1...");
-        validateDocument();
+        //CRLog::trace("validate 1...");
+        //validateDocument();
+        CRLog::trace("Dropping existing styles...");
         dropStyles();
+
+        //CRLog::trace("validate 2...");
+        //validateDocument();
+        CRLog::trace("Init node styles...");
         getRootNode()->initNodeStyleRecursive();
-        CRLog::trace("validate 2...");
-        validateDocument();
-        //CRLog::trace("init render method...");
-        //getRootNode()->initNodeRendMethodRecursive();
+        CRLog::trace("init render method...");
+        getRootNode()->initNodeRendMethodRecursive();
         //initRendMethod( getRootNode(), true, false );
         _rendered = false;
     }
@@ -2374,6 +2387,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
             pages->add( new LVRendPageInfo( _page_height ) );
         LVRendPageContext context( pages, _page_height );
         int numFinalBlocks = calcFinalBlocks();
+        CRLog::info("Final block count: %d", numFinalBlocks);
         context.setCallback(callback, numFinalBlocks);
         //updateStyles();
         CRLog::trace("rendering...");
@@ -2487,10 +2501,22 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
 
     int start = buf.pos();
     buf.putMagic( node_by_id_map_magic );
-    buf << (lUInt32)_idNodeMap.length();
-    LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
-    for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
-        buf << p->key << p->value;
+    lUInt32 cnt = 0;
+    {
+        LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
+        for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
+            cnt++;
+        }
+    }
+    // TODO: investigate why length() doesn't work as count
+    if ( cnt!=_idNodeMap.length() )
+        CRLog::error("_idNodeMap.length=%d doesn't match real item count %d", _idNodeMap.length(), cnt);
+    buf << cnt;
+    {
+        LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
+        for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
+            buf << (lUInt16)p->key << (lUInt32)p->value;
+        }
     }
     buf.putMagic( node_by_id_map_magic );
     buf.putCRC( buf.pos() - start );
@@ -2508,14 +2534,38 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
     buf.checkMagic( elem_id_map_magic );
     _elementNameTable.deserialize( buf );
     buf >> _nextUnknownElementId; // Next Id for unknown element
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of Element ID map");
+        return false;
+    }
+
     buf.checkMagic( attr_id_map_magic );
     _attrNameTable.deserialize( buf );
     buf >> _nextUnknownAttrId;    // Next Id for unknown attribute
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of Attr ID map");
+        return false;
+    }
+
+
     buf.checkMagic( ns_id_map_magic );
     _nsNameTable.deserialize( buf );
     buf >> _nextUnknownNsId;      // Next Id for unknown namespace
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of NS ID map");
+        return false;
+    }
+
     buf.checkMagic( attr_value_map_magic );
     _attrValueTable.deserialize( buf );
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of AttrValue map");
+        return false;
+    }
 
     int start = buf.pos();
     buf.checkMagic( node_by_id_map_magic );
@@ -2534,9 +2584,21 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
             return false;
     }
     buf.checkMagic( node_by_id_map_magic );
+
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of ID->Node map");
+        return false;
+    }
+
     buf.checkCRC( buf.pos() - start );
 
+    if ( buf.error() ) {
+        CRLog::error("Error while deserialization of ID->Node map - CRC check failed");
+        return false;
+    }
+
     buf.checkCRC( buf.pos() - pos );
+
     return !buf.error();
 }
 #endif
@@ -2612,7 +2674,7 @@ static bool isInlineNode( ldomNode * node )
     //int d = node->getStyle()->display;
     //return ( d==css_d_inline || d==css_d_run_in );
     int m = node->getRendMethod();
-    return m==erm_inline;
+    return m==erm_inline || m==erm_runin;
 }
 
 void ldomElementWriter::onBodyEnter()
@@ -2658,7 +2720,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
 
     if ( hasInline ) { //&& firstNonEmpty<=lastNonEmpty
 
-        CRLog::trace("Autobox children %d..%d of node <%s>", firstNonEmpty, lastNonEmpty, LCSTR(getNodeName()));
+        CRLog::trace("Autobox children %d..%d of node <%s>  childCount=%d", firstNonEmpty, lastNonEmpty, LCSTR(getNodeName()), getChildCount());
         bool hasInline = false;
         for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
             ldomNode * node = getChildNode(i);
@@ -2709,7 +2771,7 @@ static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & ha
             int m = node->getRendMethod();
             if ( d==css_d_none || m==erm_invisible )
                 continue;
-            if ( m==erm_inline ) { //d==css_d_inline || d==css_d_run_in
+            if ( m==erm_inline || m==erm_runin) { //d==css_d_inline || d==css_d_run_in
                 hasInline = true;
             } else {
                 hasBlockItems = true;
@@ -2832,9 +2894,9 @@ void ldomNode::initNodeRendMethod()
     }
 
     // DEBUG TEST
-    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
-        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
-    }
+//    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+//        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
+//    }
 
     int d = getStyle()->display;
     if ( hasInvisibleParent(this) ) {
@@ -2845,6 +2907,7 @@ void ldomNode::initNodeRendMethod()
         // inline
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
         recurseElements( resetRendMethodToInline );
+        setRendMethod(erm_runin);
     } else if (d == css_d_table) {
         // table
         initTableRendMethods( this, 0 );
@@ -2862,35 +2925,51 @@ void ldomNode::initNodeRendMethod()
             setRendMethod( erm_block );
             //setRendMethod( erm_invisible );
         } else if ( hasBlockItems && hasInline ) {
-            // cleanup or autobox
-            int i=getChildCount()-1;
-            for ( ; i>=0; i-- ) {
-                ldomNode * node = getChildNode(i);
+            if ( getParentNode()->getNodeId()==el_autoBoxing ) {
+                // already autoboxed
+                setRendMethod( erm_final );
+            } else {
+                // cleanup or autobox
+                int i=getChildCount()-1;
+                for ( ; i>=0; i-- ) {
+                    ldomNode * node = getChildNode(i);
 
-                // DEBUG TEST
-                if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
-                    CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
-                }
+                    // DEBUG TEST
+//                    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+//                        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
+//                    }
 
-                if ( isInlineNode(node) ) {
-                    int j = i-1;
-                    for ( ; j>=0; j-- ) {
-                        node = getChildNode(j);
-                        if ( !isInlineNode(node) )
-                            break;
+                    if ( isInlineNode(node) ) {
+                        int j = i-1;
+                        for ( ; j>=0; j-- ) {
+                            node = getChildNode(j);
+                            if ( !isInlineNode(node) )
+                                break;
+                        }
+                        j++;
+                        // j..i are inline
+                        if ( j>0 || i<getChildCount()-1 )
+                            autoboxChildren( j, i );
+                        i = j;
+                    } else if ( i>0 ) {
+                        ldomNode * prev = getChildNode(i-1);
+                        if ( prev->isElement() && prev->getRendMethod()==erm_runin ) {
+                            // autobox run-in
+                            if ( getChildCount()!=2 ) {
+                                CRLog::debug("Autoboxing run-in items");
+                                autoboxChildren( i-1, i );
+                            }
+                            i--;
+                        }
                     }
-                    j++;
-                    // j..i are inline
-                    autoboxChildren( j, i );
-                    i = j;
                 }
+                // check types after autobox
+                detectChildTypes( this, hasBlockItems, hasInline );
+                if ( hasInline )
+                    setRendMethod( erm_final );
+                else
+                    setRendMethod( erm_block );
             }
-            // check types after autobox
-            //detectChildTypes( this, hasBlockItems, hasInline );
-            //if ( hasInline )
-            //    setRendMethod( erm_final );
-            //else
-                setRendMethod( erm_block );
         }
     }
 }
@@ -3725,6 +3804,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
                         foundCount++;
                         if ( foundCount==index || index==-1 ) {
                             foundItem = p;
+                            break; // DON'T CHECK WHETHER OTHER ELEMENTS EXIST
                         }
                     }
                 }
@@ -5577,6 +5657,8 @@ bool ldomDocument::loadCacheFileContent()
             return false;
         }
         _hdr = h;
+        CRLog::info("Loaded render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
 
     }
 
@@ -5618,6 +5700,8 @@ bool ldomDocument::loadCacheFileContent()
     if ( loadStylesData() ) {
         CRLog::trace("ldomDocument::loadCacheFileContent() - using loaded styles");
         updateLoadedStyles( true );
+//        lUInt32 styleHash = calcStyleHash();
+//        CRLog::info("Loaded style hash = %08x", styleHash);
     } else {
         CRLog::trace("ldomDocument::loadCacheFileContent() - style loading failed: will reinit ");
         updateLoadedStyles( false );
@@ -5691,6 +5775,8 @@ bool ldomDocument::saveChanges()
         CRLog::error("Error while writing header data");
         res = false;
     }
+    CRLog::info("Saving render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
 
 
     CRLog::trace("ldomDocument::saveChanges() - TOC");
@@ -5791,8 +5877,10 @@ bool tinyNodeCollection::loadStylesData()
 
 lUInt32 tinyNodeCollection::calcStyleHash()
 {
+//    int maxlog = 30;
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     lUInt32 res = _elemCount;
+//    CRLog::info("Calculating style hash...");
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
@@ -5802,17 +5890,21 @@ lUInt32 tinyNodeCollection::calcStyleHash()
         ldomNode * buf = _elemList[i];
         for ( int j=0; j<sz; j++ ) {
             if ( buf[j].isElement() ) {
-                res *= 31;
                 css_style_ref_t style = buf[j].getStyle();
-                if ( !style.isNull() )
-                    res += calcHash( style );
-                res *= 31;
+                lUInt32 sh = calcHash( style );
+                res = res * 31 + sh;
                 LVFontRef font = buf[j].getFont();
-                if ( !font.isNull() )
-                    res += calcHash( font );
+                lUInt32 fh = calcHash( font );
+                res = res * 31 + fh;
+//                if ( maxlog>0 && sh==0 ) {
+//                    style = buf[j].getStyle();
+//                    CRLog::trace("[%06d] : s=%08x f=%08x  res=%08x", offs+j, sh, fh, res);
+//                    maxlog--;
+//                }
             }
         }
     }
+//    CRLog::info("Calculated style hash = %08x", res);
     return res;
 }
 
@@ -5908,8 +6000,11 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
             }
         }
     }
-    if ( enabled ) {
+#ifdef TODO_INVESTIGATE
+    if ( enabled && res) {
+        //_styles.setIndex( *list );
         // correct list reference counters
+
         for ( int i=0; i<list->length(); i++ ) {
             if ( !list->get(i).isNull() ) {
                 // decrease reference counter
@@ -5918,6 +6013,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
             }
         }
     }
+#endif
     delete list;
     return res;
 }
@@ -6326,6 +6422,8 @@ void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy, 
     _hdr.render_dx = dx;
     _hdr.render_dy = dy;
     _hdr.render_docflags = _docFlags;
+    CRLog::info("Updating render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
     _pagesData.reset();
     pages->serialize( _pagesData );
 }
@@ -6336,11 +6434,24 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy, l
     lUInt32 styleHash = calcStyleHash();
     //calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
-    if ( styleHash == _hdr.render_style_hash
-        && stylesheetHash == _hdr.stylesheet_hash
-        && _docFlags == _hdr.render_docflags
-        && dx == (int)_hdr.render_dx
-        && dy == (int)_hdr.render_dy ) {
+    bool res = true;
+    if ( styleHash != _hdr.render_style_hash ) {
+        CRLog::info("checkRenderContext: Style hash doesn't match %x!=%x", styleHash, _hdr.render_style_hash);
+        res = false;
+    } else if ( stylesheetHash != _hdr.stylesheet_hash ) {
+        CRLog::info("checkRenderContext: Stylesheet hash doesn't match %x!=%x", stylesheetHash, _hdr.stylesheet_hash);
+        res = false;
+    } else if ( _docFlags != _hdr.render_docflags ) {
+        CRLog::info("checkRenderContext: Doc flags don't match %x!=%x", _docFlags, _hdr.render_docflags);
+        res = false;
+    } else if ( dx != (int)_hdr.render_dx ) {
+        CRLog::info("checkRenderContext: Width doesn't match %x!=%x", dx, (int)_hdr.render_dx);
+        res = false;
+    } else if ( dy != (int)_hdr.render_dy ) {
+        CRLog::info("checkRenderContext: Page height doesn't match %x!=%x", dy, (int)_hdr.render_dy);
+        res = false;
+    }
+    if ( res ) {
 
         //if ( pages->length()==0 ) {
             _pagesData.reset();
@@ -6354,6 +6465,8 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy, l
     _hdr.render_dx = dx;
     _hdr.render_dy = dy;
     _hdr.render_docflags = _docFlags;
+    CRLog::info("New render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
     return false;
 }
 
@@ -6714,6 +6827,9 @@ lUInt32 ldomNode::getChildCount() const
         // persistent element
         {
             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+//            if ( me==NULL ) { // DEBUG
+//                me = _document->_elemStorage.getElem( _data._pelem._addr );
+//            }
             return me->childCount;
         }
     }

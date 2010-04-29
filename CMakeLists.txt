@@ -19,7 +19,7 @@ else ()
 endif (NOT DEFINED GUI)
 
 if ( WIN32 )
-  ADD_DEFINITIONS( -DWIN32=1 -D_WIN32=1 )
+  ADD_DEFINITIONS( -DWIN32=1 -D_WIN32=1 -DCR_EMULATE_GETTEXT=1 )
 else()
   ADD_DEFINITIONS( -DLINUX=1 -D_LINUX=1 )
 endif( WIN32 )
@@ -72,7 +72,7 @@ if (NOT FREETYPE_FOUND)
   message("System FREETYPE not found, will build local one")
   ADD_SUBDIRECTORY(thirdparty/freetype)
   SET(FREETYPE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/freetype/include)
-  SET(FREETYPE_LIBRARIES jpeg)
+  SET(FREETYPE_LIBRARIES freetype)
 endif (NOT FREETYPE_FOUND)
 
 
