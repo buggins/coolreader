@@ -17,13 +17,13 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 
 // cache memory sizes
 #define TEXT_CACHE_UNPACKED_SPACE 0x0C0000
-#define TEXT_CACHE_PACKED_SPACE   0x160000
+#define TEXT_CACHE_PACKED_SPACE   0x1C0000
 #define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
-#define ELEM_CACHE_UNPACKED_SPACE 0x0C0000
-#define ELEM_CACHE_PACKED_SPACE   0x120000
+#define ELEM_CACHE_UNPACKED_SPACE 0x100000
+#define ELEM_CACHE_PACKED_SPACE   0x180000
 #define ELEM_CACHE_CHUNK_SIZE     0x00FFFF
-#define RECT_CACHE_UNPACKED_SPACE 0x040000
-#define RECT_CACHE_PACKED_SPACE   0x040000
+#define RECT_CACHE_UNPACKED_SPACE 0x080000
+#define RECT_CACHE_PACKED_SPACE   0x080000
 #define RECT_CACHE_CHUNK_SIZE     0x00FFFF
 
 #define STYLE_HASH_TABLE_SIZE     2048
@@ -913,7 +913,8 @@ bool tinyNodeCollection::swapToCacheIfNecessary()
 {
     if ( !_cacheFile || _mapped || _maperror)
         return false;
-    return swapToCache();
+    return createCacheFile();
+    //return swapToCache();
 }
 
 bool tinyNodeCollection::createCacheFile()
@@ -932,7 +933,7 @@ bool tinyNodeCollection::createCacheFile()
         return false;
     }
 
-    CRLog::info("ldomDocument::swapToCache() - initialized swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
+    CRLog::info("ldomDocument::createCacheFile() - initialized swapping of document %s to cache file", UnicodeToUtf8(fname).c_str() );
 
     LVStreamRef map = ldomDocCache::createNew( fname, crc, getPersistenceFlags(), sz );
     if ( map.isNull() ) {
@@ -1666,6 +1667,13 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
 int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
 {
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
+    if ( _compbuf!=NULL ) {
+        CRLog::debug("Adding new item of size %d to compressed block %c%d of size %d", itemsize, _type, _index, _bufpos);
+        if ( !_buf ) {
+            unpack();
+        }
+        modified();
+    }
     if ( !_buf ) {
         // create new buffer, if necessary
         _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
@@ -1699,6 +1707,7 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
         ElementDataStorageItem * item = (ElementDataStorageItem *)(_buf+offset);
         return item;
     }
+    CRLog::error("Offset %d is out of bounds (%d) for storage chunk %c%d, chunkCount=%d", offset, this->_bufpos, this->_type, this->_index, _manager->_chunks.length() );
     return NULL;
 }
 
@@ -2357,11 +2366,12 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     if ( !checkRenderContext( pages, _page_width, _page_height, defStyleHash ) ) {
         CRLog::info("rendering context is changed - full render required...");
         CRLog::trace("init format data...");
-        CRLog::trace("validate 1...");
-        validateDocument();
+        //CRLog::trace("validate 1...");
+        //validateDocument();
+        CRLog::trace("Dropping existing styles...");
         dropStyles();
-        CRLog::trace("validate 2...");
-        validateDocument();
+        //CRLog::trace("validate 2...");
+        //validateDocument();
         getRootNode()->initNodeStyleRecursive();
         //CRLog::trace("init render method...");
         //getRootNode()->initNodeRendMethodRecursive();
@@ -3725,6 +3735,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
                         foundCount++;
                         if ( foundCount==index || index==-1 ) {
                             foundItem = p;
+                            break; // DON'T CHECK WHETHER OTHER ELEMENTS EXIST
                         }
                     }
                 }
@@ -6336,11 +6347,24 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy, l
     lUInt32 styleHash = calcStyleHash();
     //calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
-    if ( styleHash == _hdr.render_style_hash
-        && stylesheetHash == _hdr.stylesheet_hash
-        && _docFlags == _hdr.render_docflags
-        && dx == (int)_hdr.render_dx
-        && dy == (int)_hdr.render_dy ) {
+    bool res = true;
+    if ( styleHash != _hdr.render_style_hash ) {
+        CRLog::info("checkRenderContext: Style hash doesn't match %x!=%x", styleHash, _hdr.render_style_hash);
+        res = false;
+    } else if ( stylesheetHash != _hdr.stylesheet_hash ) {
+        CRLog::info("checkRenderContext: Stylesheet hash doesn't match %x!=%x", stylesheetHash, _hdr.stylesheet_hash);
+        res = false;
+    } else if ( _docFlags != _hdr.render_docflags ) {
+        CRLog::info("checkRenderContext: Doc flags don't match %x!=%x", _docFlags, _hdr.render_docflags);
+        res = false;
+    } else if ( dx != (int)_hdr.render_dx ) {
+        CRLog::info("checkRenderContext: Width doesn't match %x!=%x", dx, (int)_hdr.render_dx);
+        res = false;
+    } else if ( dy != (int)_hdr.render_dy ) {
+        CRLog::info("checkRenderContext: Page height doesn't match %x!=%x", dy, (int)_hdr.render_dy);
+        res = false;
+    }
+    if ( res ) {
 
         //if ( pages->length()==0 ) {
             _pagesData.reset();
@@ -6710,6 +6734,9 @@ lUInt32 ldomNode::getChildCount() const
         // persistent element
         {
             ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
+//            if ( me==NULL ) { // DEBUG
+//                me = _document->_elemStorage.getElem( _data._pelem._addr );
+//            }
             return me->childCount;
         }
     }
