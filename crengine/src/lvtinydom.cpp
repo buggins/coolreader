@@ -2399,7 +2399,6 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
 
         //dumpRendMethods( getRootNode(), lString16(" - ") );
 
-        //initRendMethod( getRootNode(), true, false );
         _rendered = false;
     }
     if ( !_rendered ) {
@@ -2924,6 +2923,9 @@ void ldomNode::initNodeRendMethod()
 //    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
 //        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
 //    }
+//    if ( getNodeName()==L"image" ) {
+//        CRLog::trace("Init log for image");
+//    }
 
     int d = getStyle()->display;
     if ( hasInvisibleParent(this) ) {
@@ -2948,7 +2950,22 @@ void ldomNode::initNodeRendMethod()
         bool hasBlockItems = false;
         bool hasInline = false;
         detectChildTypes( this, hasBlockItems, hasInline );
-        if ( hasBlockItems && !hasInline ) {
+        const css_elem_def_props_t * ntype = getElementTypePtr();
+        if (ntype && ntype->is_object) {
+            switch ( d )
+            {
+            case css_d_block:
+            case css_d_inline:
+            case css_d_run_in:
+                setRendMethod( erm_final );
+                break;
+            default:
+                //setRendMethod( erm_invisible );
+                recurseElements( resetRendMethodToInvisible );
+                break;
+            }
+        } else if ( hasBlockItems && !hasInline ) {
+            // only blocks inside
             setRendMethod( erm_block );
         } else if ( !hasBlockItems && hasInline ) {
             setRendMethod( erm_final );
@@ -2996,10 +3013,13 @@ void ldomNode::initNodeRendMethod()
                 }
                 // check types after autobox
                 detectChildTypes( this, hasBlockItems, hasInline );
-                if ( hasInline )
+                if ( hasInline ) {
+                    // Final
                     setRendMethod( erm_final );
-                else
+                } else {
+                    // Block
                     setRendMethod( erm_block );
+                }
             }
         }
     }
@@ -7010,11 +7030,19 @@ const css_elem_def_props_t * ldomNode::getElementTypePtr()
         return NULL;
     if ( !isPersistent() ) {
         // element
-        return _document->getElementTypePtr(NPELEM->_id);
+        const css_elem_def_props_t * res = _document->getElementTypePtr(NPELEM->_id);
+//        if ( res && res->is_object ) {
+//            CRLog::trace("Object found");
+//        }
+        return res;
     } else {
         // persistent element
         ElementDataStorageItem * me = _document->_elemStorage.getElem( _data._pelem._addr );
-        return _document->getElementTypePtr(me->id);
+        const css_elem_def_props_t * res = _document->getElementTypePtr(me->id);
+//        if ( res && res->is_object ) {
+//            CRLog::trace("Object found");
+//        }
+        return res;
     }
 }
 

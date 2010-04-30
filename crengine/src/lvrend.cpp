@@ -1209,9 +1209,10 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         //fmt = &fmt2;
         int flags = styleToTextFmtFlags( enode->getStyle(), baseflags );
         int width = fmt->getWidth();
+        css_style_rec_t * style = enode->getStyle().get();
         if (flags & LTEXT_FLAG_NEWLINE)
         {
-            css_length_t len = enode->getStyle()->text_indent;
+            css_length_t len = style->text_indent;
             switch( len.type )
             {
             case css_val_percent:
@@ -1227,7 +1228,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 ident = 0;
                 break;
             }
-            len = enode->getStyle()->line_height;
+            len = style->line_height;
             switch( len.type )
             {
             case css_val_percent:
@@ -1246,7 +1247,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // save flags
         int f = flags;
         // vertical alignment flags
-        switch (enode->getStyle()->vertical_align)
+        switch (style->vertical_align)
         {
         case css_va_sub:
             flags |= LTEXT_VALIGN_SUB;
@@ -1258,7 +1259,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         default:
             break;
         }
-        switch ( enode->getStyle()->text_decoration ) {
+        switch ( style->text_decoration ) {
         case css_td_underline:
             flags |= LTEXT_TD_UNDERLINE;
             break;
@@ -1274,7 +1275,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         default:
             break;
         }
-        switch ( enode->getStyle()->hyphenate ) {
+        switch ( style->hyphenate ) {
             case css_hyph_auto:
                 flags |= LTEXT_HYPHENATE;
                 break;
@@ -1282,6 +1283,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
         }
         const css_elem_def_props_t * ntype = enode->getElementTypePtr();
+//        if ( ntype ) {
+//            CRLog::trace("Node %s is Object ?  %d", LCSTR(enode->getNodeName()), ntype->is_object );
+//        } else {
+//            CRLog::trace("Node %s (%d) has no css_elem_def_props_t", LCSTR(enode->getNodeName()), enode->getNodeId() );
+//        }
         if ( ntype && ntype->is_object )
         {
 #ifdef DEBUG_DUMP_ENABLED
