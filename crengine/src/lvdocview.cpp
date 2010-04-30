@@ -666,10 +666,11 @@ static void addTocItems( ldomNode * basesection, LVTocItem * parent )
         return; // section without header
     ldomXPointer ptr( basesection, 0 );
     LVTocItem * item = parent->addChild( name, ptr );
-    for ( int i=0; ;i++ ) {
-        ldomNode * section = basesection->findChildElement( LXML_NS_ANY, el_section, i );
-        if ( !section )
-            break;
+    int cnt = basesection->getChildCount();
+    for ( int i=0; i<cnt; i++ ) {
+        ldomNode * section = basesection->getChildNode(i);
+        if ( section->getNodeId() != el_section  )
+            continue;
         addTocItems( section, item );
     }
 }
@@ -690,10 +691,11 @@ void LVDocView::makeToc()
 		body = body->findChildElement( LXML_NS_ANY, el_body, 0 );
     if ( !body )
         return;
-    for ( int i=0; ;i++ ) {
-        ldomNode * section = body->findChildElement( LXML_NS_ANY, el_section, i );
-        if ( !section )
-            break;
+    int cnt = body->getChildCount();
+    for ( int i=0; i<cnt; i++ ) {
+        ldomNode * section = body->getChildNode(i);
+        if ( section->getNodeId()!=el_section )
+            continue;
         addTocItems( section, toc );
     }
 }
