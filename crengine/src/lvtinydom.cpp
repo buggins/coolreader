@@ -15,8 +15,12 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
                                        " File v3.02.07\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
+#define TEXT_COMPRESSION_LEVEL 1 //3
+#define PACK_BUF_SIZE 0x10000
+#define UNPACK_BUF_SIZE 0x40000
+
 // cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x100000
+#define TEXT_CACHE_UNPACKED_SPACE 0x0C0000
 #define TEXT_CACHE_PACKED_SPACE   0x200000
 #define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
 #define ELEM_CACHE_UNPACKED_SPACE 0x100000
@@ -1357,8 +1361,8 @@ void ldomDataStorageManager::getRendRectData( lUInt32 elemDataIndex, lvdomElemen
     int index = elemDataIndex>>4; // element sequential index
     int chunkIndex = index >> RECT_DATA_CHUNK_ITEMS_SHIFT;
     while ( _chunks.length() <= chunkIndex ) {
-        if ( _chunks.length()>0 )
-            _chunks[_chunks.length()-1]->compact();
+        //if ( _chunks.length()>0 )
+        //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
     }
     ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
@@ -1373,8 +1377,8 @@ void ldomDataStorageManager::setRendRectData( lUInt32 elemDataIndex, const lvdom
     int index = elemDataIndex>>4; // element sequential index
     int chunkIndex = index >> RECT_DATA_CHUNK_ITEMS_SHIFT;
     while ( _chunks.length() < chunkIndex ) {
-        if ( _chunks.length()>0 )
-            _chunks[_chunks.length()-1]->compact();
+        //if ( _chunks.length()>0 )
+        //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
     }
     ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
@@ -1391,9 +1395,10 @@ lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentInde
     int offset = _activeChunk->addText( dataIndex, parentIndex, text );
     if ( offset<0 ) {
         // no space in current chunk, add one more chunk
-        _activeChunk->compact();
+        //_activeChunk->compact();
         _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
+        getChunk( _chunks.length()-1 );
         offset = _activeChunk->addText( dataIndex, parentIndex, text );
         if ( offset<0 )
             crFatalError(1001, "Unexpected error while allocation of text");
@@ -1410,9 +1415,10 @@ lUInt32 ldomDataStorageManager::allocElem( lUInt32 dataIndex, lUInt32 parentInde
     int offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
     if ( offset<0 ) {
         // no space in current chunk, add one more chunk
-        _activeChunk->compact();
+        //_activeChunk->compact();
         _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
+        getChunk( _chunks.length()-1 );
         offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
         if ( offset<0 )
             crFatalError(1002, "Unexpected error while allocation of element");
@@ -1778,9 +1784,6 @@ lString8 ldomTextStorageChunk::getText( int offset )
     return lString8();
 }
 
-#define TEXT_COMPRESSION_LEVEL 3
-#define PACK_BUF_SIZE 0x10000
-#define UNPACK_BUF_SIZE 0x40000
 
 
 /// pack data from _buf to _compbuf
