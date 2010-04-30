@@ -5989,6 +5989,9 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     bool res = true;
     LVArray<css_style_ref_t> * list = _styles.getIndex();
+
+    LVHashTable<lUInt16, lUInt16> fontMap(113); // style index to font index
+
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
@@ -6003,15 +6006,23 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                 if ( enabled ) {
                     css_style_ref_t s = list->get( style );
                     if ( !s.isNull() ) {
-                        LVFontRef fnt = getFont( s.get() );
-                        if ( fnt.isNull() ) {
-                            CRLog::error("font not found for style!");
+                        lUInt16 fntIndex = fontMap.get( style );
+                        if ( fntIndex==0 ) {
+                            LVFontRef fnt = getFont( s.get() );
+                            fntIndex = _fonts.cache( fnt );
+                            if ( fnt.isNull() ) {
+                                CRLog::error("font not found for style!");
+                            } else {
+                                fontMap.set(style, fntIndex);
+                            }
                         } else {
-                            int fntindex = _fonts.cache( fnt );
-                            if ( fntindex<=0 )
-                                CRLog::error("font caching failed for style!");
-                            else
-                                buf[j]._data._pelem._fontIndex = fntindex;
+                            _fonts.addIndexRef( fntIndex );
+                        }
+                        if ( fntIndex<=0 ) {
+                            CRLog::error("font caching failed for style!");
+                            res = false;
+                        } else {
+                            buf[j]._data._pelem._fontIndex = fntIndex;
                         }
                     } else {
                         CRLog::error("Loaded style index not found in style collection");

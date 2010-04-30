@@ -245,6 +245,15 @@ public:
         }
     }
 
+    bool addIndexRef( lUInt16 n )
+    {
+        if ( n>0 && n<=nextindex && index[n].item ) {
+            index[n].refcount++;
+            return true;
+        } else
+            return false;
+    }
+
     // check whether equal object already exists if cache
     // if found, replace reference with cached value
     // returns index of item - use it to release reference
