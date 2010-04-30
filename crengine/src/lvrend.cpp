@@ -1951,14 +1951,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
 
     // set font
-    if ( isSameFontStyle( parent_style.get(), style.get() ) )
-    {
-        enode->setFont( parent_font );
-    }
-    else
-    {
-        enode->setFont( getFont(style.get()) );
-    }
+    enode->initNodeFont();
 }
 
 #define UNUSED(x)

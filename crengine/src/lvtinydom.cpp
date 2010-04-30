@@ -854,6 +854,7 @@ tinyNodeCollection::tinyNodeCollection()
 , _rectStorage(this, 'r', RECT_CACHE_UNPACKED_SPACE, RECT_CACHE_PACKED_SPACE, RECT_CACHE_CHUNK_SIZE ) // element render rect storage
 ,_docProps(LVCreatePropsContainer())
 ,_docFlags(DOC_FLAG_DEFAULTS)
+,_fontMap(113)
 {
     memset( _textList, 0, sizeof(_textList) );
     memset( _elemList, 0, sizeof(_elemList) );
@@ -880,6 +881,7 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 ,_docProps(LVCreatePropsContainer())
 ,_docFlags(v._docFlags)
 ,_stylesheet(v._stylesheet)
+,_fontMap(113)
 {
 }
 
@@ -5990,7 +5992,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
     bool res = true;
     LVArray<css_style_ref_t> * list = _styles.getIndex();
 
-    LVHashTable<lUInt16, lUInt16> fontMap(113); // style index to font index
+    _fontMap.clear(); // style index to font index
 
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
@@ -6006,14 +6008,14 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                 if ( enabled ) {
                     css_style_ref_t s = list->get( style );
                     if ( !s.isNull() ) {
-                        lUInt16 fntIndex = fontMap.get( style );
+                        lUInt16 fntIndex = _fontMap.get( style );
                         if ( fntIndex==0 ) {
                             LVFontRef fnt = getFont( s.get() );
                             fntIndex = _fonts.cache( fnt );
                             if ( fnt.isNull() ) {
                                 CRLog::error("font not found for style!");
                             } else {
-                                fontMap.set(style, fntIndex);
+                                _fontMap.set(style, fntIndex);
                             }
                         } else {
                             _fonts.addIndexRef( fntIndex );
@@ -7310,6 +7312,7 @@ static void updateStyleData( ldomNode * node )
 /// init render method for the whole subtree
 void ldomNode::initNodeStyleRecursive()
 {
+    _document->_fontMap.clear();
     recurseElements( updateStyleData );
 }
 
@@ -7505,6 +7508,46 @@ void ldomNode::setStyle( css_style_ref_t & style )
             _document->_styles.cache( _data._pelem._styleIndex, style );
         }
     }
+}
+
+bool ldomNode::initNodeFont()
+{
+    if ( !isElement() )
+        return false;
+    lUInt16 style;
+    lUInt16 * pfont;
+    if ( isPersistent() ) {
+        style = _data._pelem._styleIndex;
+        pfont = &_data._pelem._fontIndex;
+    } else {
+        style = _data._elem._styleIndex;
+        pfont = &_data._elem._fontIndex;
+    }
+    lUInt16 fntIndex = _document->_fontMap.get( style );
+    if ( fntIndex==0 ) {
+        css_style_ref_t s = _document->_styles.get( style );
+        LVFontRef fnt = ::getFont( s.get() );
+        fntIndex = _document->_fonts.cache( fnt );
+        if ( fnt.isNull() ) {
+            CRLog::error("font not found for style!");
+            return false;
+        } else {
+            _document->_fontMap.set(style, fntIndex);
+        }
+        if ( *pfont != 0 )
+            _document->_fonts.release(*pfont);
+        *pfont = 0;
+    } else {
+        if ( *pfont!=fntIndex )
+            _document->_fonts.addIndexRef( fntIndex );
+    }
+    if ( fntIndex<=0 ) {
+        CRLog::error("font caching failed for style!");
+        return false;;
+    } else {
+        *pfont = fntIndex;
+    }
+    return true;
 }
 
 void ldomNode::initNodeStyle()

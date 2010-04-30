@@ -330,6 +330,8 @@ protected:
 
     LVStyleSheet  _stylesheet;
 
+    LVHashTable<lUInt16, lUInt16> _fontMap; // style index to font index
+
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
@@ -519,6 +521,7 @@ private:
     void removeChildren( int startIndex, int endIndex );
 
 public:
+    bool initNodeFont();
     void initNodeStyle();
     /// init render method for this node only (children should already have rend method set)
     void initNodeRendMethod();
