@@ -624,7 +624,7 @@ LVTocItem * LVDocView::getToc()
     return m_doc->getToc();
 }
 
-lString16 getSectionHeader( ldomNode * section )
+static lString16 getSectionHeader( ldomNode * section )
 {
     lString16 header;
     if ( !section || section->getChildCount() == 0 )
@@ -1980,8 +1980,8 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
     #endif
         fontMan->gc();
         m_is_rendered = true;
-        CRLog::debug("Making TOC...");
-        makeToc();
+        //CRLog::debug("Making TOC...");
+        //makeToc();
         CRLog::debug("Updating selections...");
         updateSelections();
         CRLog::debug("Render is finished");

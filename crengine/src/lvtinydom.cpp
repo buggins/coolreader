@@ -2635,16 +2635,24 @@ bool IsEmptySpace( const lChar16 * text, int len )
 /////////////////////////////////////////////////////////////////
 /// lxmlElementWriter
 
+static bool IS_FIRST_BODY = false;
+
 ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent)
-    : _parent(parent), _document(document), _isBlock(true)
+    : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false)
 {
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
+    _isSection = (id==el_section);
     _allowText = _typeDef ? _typeDef->allow_text : (_parent?true:false);
     if (_parent)
         _element = _parent->getElement()->insertChildElement( (lUInt32)-1, nsid, id );
     else
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
+    if ( IS_FIRST_BODY && id==el_body ) {
+        _tocItem = _document->getToc();
+        _tocItem->clear();
+        IS_FIRST_BODY = false;
+    }
     //logfile << "}";
 }
 
@@ -2697,11 +2705,42 @@ static bool isInlineNode( ldomNode * node )
     return m==erm_inline || m==erm_runin;
 }
 
+static lString16 getSectionHeader( ldomNode * section )
+{
+    lString16 header;
+    if ( !section || section->getChildCount() == 0 )
+        return header;
+    ldomNode * child = section->getChildNode(0);
+    if ( !child->isElement() || child->getNodeName()!=L"title" )
+        return header;
+    header = child->getText(L' ');
+    return header;
+}
+
+void ldomElementWriter::updateTocItem()
+{
+    if ( !_isSection )
+        return;
+    // TODO: update item
+    if ( _parent && _parent->_tocItem ) {
+        lString16 title = getSectionHeader( _element );
+        //CRLog::trace("TOC ITEM: %s", LCSTR(title));
+        _tocItem = _parent->_tocItem->addChild(title, ldomXPointer(_element,0));
+    }
+    _isSection = false;
+}
+
 void ldomElementWriter::onBodyEnter()
 {
     if ( _document->isDefStyleSet() ) {
         _element->initNodeStyle();
         _isBlock = isBlockNode(_element);
+    }
+    if ( _isSection ) {
+        if ( _parent && _parent->_isSection ) {
+            _parent->updateTocItem();
+        }
+
     }
 }
 
@@ -3027,6 +3066,9 @@ void ldomNode::initNodeRendMethod()
 
 void ldomElementWriter::onBodyExit()
 {
+    if ( _isSection )
+        updateTocItem();
+
     if ( !_document->isDefStyleSet() )
         return;
     _element->initNodeRendMethod();
@@ -3219,6 +3261,7 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
     : _document(document), _currNode(NULL), _errFlag(false), _headerOnly(headerOnly), _flags(0)
 {
     _stopTagId = 0xFFFE;
+    IS_FIRST_BODY = true;
     //CRLog::trace("ldomDocumentWriter() headerOnly=%s", _headerOnly?"true":"false");
 }
 

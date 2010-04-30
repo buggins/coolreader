@@ -1729,10 +1729,13 @@ class ldomElementWriter
     ldomDocument * _document;
 
     ldomNode * _element;
+    LVTocItem * _tocItem;
     const css_elem_def_props_t * _typeDef;
     bool _allowText;
     bool _isBlock;
+    bool _isSection;
     lUInt32 getFlags();
+    void updateTocItem();
     void onBodyEnter();
     void onBodyExit();
     ldomNode * getElement()
