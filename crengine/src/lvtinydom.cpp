@@ -2395,11 +2395,11 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
     CRLog::trace("initializing default style...");
     //persist();
-    {
-        lUInt32 styleHash = calcStyleHash();
-        styleHash = styleHash * 31 + calcGlobalSettingsHash();
-        CRLog::debug("Style hash before setRenderProps: %x", styleHash);
-    }
+//    {
+//        lUInt32 styleHash = calcStyleHash();
+//        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+//        CRLog::debug("Style hash before setRenderProps: %x", styleHash);
+//    }
     bool propsChanged = setRenderProps( width, dy, showCover, y0, def_font, def_interline_space );
 
     // update styles
@@ -2431,10 +2431,11 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
 //        getRootNode()->setStyle( _def_style );
         updateRenderContext();
 
+        // DEBUG dump of render methods
         //dumpRendMethods( getRootNode(), lString16(" - ") );
-        lUInt32 styleHash = calcStyleHash();
-        styleHash = styleHash * 31 + calcGlobalSettingsHash();
-        CRLog::debug("Style hash: %x", styleHash);
+//        lUInt32 styleHash = calcStyleHash();
+//        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+//        CRLog::debug("Style hash: %x", styleHash);
 
         _rendered = false;
     }
@@ -5851,9 +5852,9 @@ bool ldomDocument::loadCacheFileContent()
     if ( loadStylesData() ) {
         CRLog::trace("ldomDocument::loadCacheFileContent() - using loaded styles");
         updateLoadedStyles( true );
-        lUInt32 styleHash = calcStyleHash();
-        styleHash = styleHash * 31 + calcGlobalSettingsHash();
-        CRLog::debug("Loaded style hash: %x", styleHash);
+//        lUInt32 styleHash = calcStyleHash();
+//        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+//        CRLog::debug("Loaded style hash: %x", styleHash);
 //        lUInt32 styleHash = calcStyleHash();
 //        CRLog::info("Loaded style hash = %08x", styleHash);
     } else {

@@ -3042,12 +3042,15 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
                             lString16 name = codeBase + spineItems[i]->href;
                             {
+                                CRLog::debug("Checking fragment: %s", LCSTR(name));
                                 LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                                 if ( !stream.isNull() ) {
                                     LVXMLParser parser(stream, &appender);
                                     if ( parser.CheckFormat() && parser.Parse() ) {
                                         // valid
                                         fragmentCount++;
+                                    } else {
+                                        CRLog::error("Document type is not XML/XHTML for fragment %s", LCSTR(name));
                                     }
                                 }
                             }
