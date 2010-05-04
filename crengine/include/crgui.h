@@ -1096,13 +1096,13 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         int _topItem;
         int _pageItems;
         int _helpHeight;
+        int _cmdToHighlight;
         CRMenuSkinRef _skin;// = _wm->getSkin()->getMenuSkin( path.c_str() );
         // override for CRGUIWindow method
         virtual void draw();
         virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
         //virtual void Draw( LVDrawBuf & buf, int x, int y );
-
-
+        virtual void highlightCommandItem( int cmd );
     public:
         /// returns index of selected item, -1 if no item selected
         virtual int getSelectedItemIndex();
@@ -1111,9 +1111,13 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         virtual int getScrollHeight();
         CRMenuSkinRef getSkin();
         CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL, int pageItems=8 )
-        : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(pageItems) { _fullscreen = false; _helpHeight=0; }
+        : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(pageItems),
+          _cmdToHighlight(-1)
+        { _fullscreen = false; _helpHeight=0; }
         CRMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL, int pageItems=8 )
-        : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(pageItems) { _fullscreen = false; _helpHeight=0; }
+        : CRGUIWindowBase( wm ), CRMenuItem( parentMenu, id, label, image, defFont ), _props(props), _propName(Utf8ToUnicode(lString8(propName))), _valueFont(valueFont), _topItem(0), _pageItems(pageItems),
+        _cmdToHighlight(-1)
+        { _fullscreen = false; _helpHeight=0; }
         virtual bool isSubmenu() const { return true; }
         LVPtrVector<CRMenuItem> & getItems() { return _items; }
         CRPropRef getProps() const { return _props; }

@@ -982,6 +982,16 @@ int CRMenu::getScrollHeight()
 /// returns index of selected item, -1 if no item selected
 int CRMenu::getSelectedItemIndex()
 {
+    if ( _cmdToHighlight>=0 ) {
+        // highlighted command
+        int res = -1;
+        for ( int i=0; i<_items.length(); i++ ) {
+            if ( _items[i]->getId()==_cmdToHighlight ) {
+                return i;
+            }
+        }
+        return -1;
+    }
     if ( getProps().isNull() )
         return -1;
     for ( int i=0; i<_items.length(); i++ ) {
@@ -992,6 +1002,15 @@ int CRMenu::getSelectedItemIndex()
             return i;
     }
     return -1;
+}
+
+void CRMenu::highlightCommandItem( int cmd )
+{
+    CRLog::debug("Highlighting menu item");
+    _cmdToHighlight = cmd;
+    setDirty();
+    _wm->updateWindow(this);
+    _cmdToHighlight = -1;
 }
 
 void CRMenu::drawClient()
@@ -1208,8 +1227,10 @@ bool CRMenu::onCommand( int command, int params )
         int command = getId();
         if ( _menu != NULL )
             closeMenu( 0 );
-        else
+        else {
+            highlightCommandItem( command );
             closeMenu( command ); // close, for root menu
+        }
         return true;
     }
 	
