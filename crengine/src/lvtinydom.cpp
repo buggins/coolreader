@@ -2272,7 +2272,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char * )
 ldomDocument::~ldomDocument()
 {
 #if BUILD_LITE!=1
-    //updateMap();
+    updateMap();
 #endif
 }
 

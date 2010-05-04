@@ -1228,7 +1228,6 @@ bool CRMenu::onCommand( int command, int params )
         if ( _menu != NULL )
             closeMenu( 0 );
         else {
-            highlightCommandItem( command );
             closeMenu( command ); // close, for root menu
         }
         return true;
@@ -1305,8 +1304,10 @@ bool CRMenu::onCommand( int command, int params )
         int command = item->getId();
         if ( _menu != NULL )
             closeMenu( 0 );
-        else
+        else {
+            highlightCommandItem( command );
             closeMenu( command, longPress ); // close, for root menu
+        }
         return true;
     }
     return false;
