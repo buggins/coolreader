@@ -1645,9 +1645,9 @@ public:
 
 #if BUILD_LITE!=1
     /// save document formatting parameters after render
-    void updateRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash );
+    void updateRenderContext();
     /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
-    bool checkRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash );
+    bool checkRenderContext();
 #endif
 
 #if BUILD_LITE!=1

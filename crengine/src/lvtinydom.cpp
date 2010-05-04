@@ -12,7 +12,7 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.07\n";
+                                       " File v3.02.08\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
 #define TEXT_COMPRESSION_LEVEL 1 //3
@@ -2296,6 +2296,7 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
     s->text_indent.value = 0;
     s->line_height.type = css_val_percent;
     s->line_height.value = def_interline_space;
+    lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     if ( calcHash(_def_style) != calcHash(s) ) {
         CRLog::trace("ldomDocument::setRenderProps() - style is changed");
         _def_style = s;
@@ -2316,6 +2317,8 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
         _page_width = width;
         changed = true;
     }
+    getRootNode()->setFont( _def_font );
+    getRootNode()->setStyle( _def_style );
     return changed;
 }
 
@@ -2371,7 +2374,6 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     //persist();
     bool propsChanged = setRenderProps( width, dy, showCover, y0, def_font, def_interline_space );
 
-    lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     // update styles
 //    if ( getRootNode()->getStyle().isNull() || getRootNode()->getFont().isNull()
 //        || _docFlags != _hdr.render_docflags
@@ -2382,7 +2384,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
 //        CRLog::trace("reusing existing format data...");
 //    }
 
-    if ( !checkRenderContext( pages, _page_width, _page_height, defStyleHash ) ) {
+    if ( !checkRenderContext() ) {
         CRLog::info("rendering context is changed - full render required...");
         CRLog::trace("init format data...");
         //CRLog::trace("validate 1...");
@@ -2421,12 +2423,20 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         gc();
         CRLog::trace("finalizing...");
         context.Finalize();
-        updateRenderContext( pages, width, dy, defStyleHash );
+        updateRenderContext();
+        _pagesData.reset();
+        pages->serialize( _pagesData );
+
         //persist();
         dumpStatistics();
         return height;
     } else {
         CRLog::info("rendering context is not changed - no render!");
+        if ( _pagesData.pos() ) {
+            _pagesData.setPos(0);
+            pages->deserialize( _pagesData );
+        }
+        CRLog::info("%d rendered pages found", pages->length() );
         return getFullHeight();
     }
 
@@ -3200,8 +3210,10 @@ ldomDocumentWriter::~ldomDocumentWriter()
 {
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
-    if ( _document->isDefStyleSet() && !_document->validateDocument() ) {
-        CRLog::error("*** document style validation failed!!!");
+    if ( _document->isDefStyleSet() ) {
+        if ( !_document->validateDocument() )
+            CRLog::error("*** document style validation failed!!!");
+        _document->updateRenderContext();
     }
 }
 
@@ -5669,6 +5681,7 @@ int tinyNodeCollection::getPersistenceFlags()
 void ldomDocument::clear()
 {
     clearRendBlockCache();
+    _rendered = false;
     //TODO: implement clear
     //_elemStorage.
 }
@@ -5738,7 +5751,8 @@ bool ldomDocument::loadCacheFileContent()
             CRLog::error("Page data deserialization is failed");
             return false;
         }
-        _pagesData.setPos( 0 );
+        CRLog::info("%d pages read from cache file", pages.length());
+        //_pagesData.setPos( 0 );
 
         DocFileHeader h;
         memset(&h, 0, sizeof(h));
@@ -5848,10 +5862,13 @@ bool ldomDocument::saveChanges()
     }
 
     if ( _pagesData.pos() ) {
+        CRLog::trace("ldomDocument::saveChanges() - page data");
         if ( !_cacheFile->write( CBT_PAGE_DATA, _pagesData ) ) {
             CRLog::error("Error while saving pages data");
             res = false;
         }
+    } else {
+        CRLog::trace("ldomDocument::saveChanges() - no page data");
     }
 
     CRLog::trace("ldomDocument::saveChanges() - node data");
@@ -6517,9 +6534,12 @@ lUInt32 calcGlobalSettingsHash()
 
 
 /// save document formatting parameters after render
-void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash )
+void ldomDocument::updateRenderContext()
 {
+    int dx = _page_width;
+    int dy = _page_height;
     lUInt32 styleHash = calcStyleHash();
+    lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
     _hdr.render_style_hash = styleHash;
@@ -6529,14 +6549,15 @@ void ldomDocument::updateRenderContext( LVRendPageList * pages, int dx, int dy, 
     _hdr.render_docflags = _docFlags;
     CRLog::info("Updating render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
                 _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
-    _pagesData.reset();
-    pages->serialize( _pagesData );
 }
 
 /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
-bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy, lUInt32 stylesheetHash )
+bool ldomDocument::checkRenderContext()
 {
+    int dx = _page_width;
+    int dy = _page_height;
     lUInt32 styleHash = calcStyleHash();
+    lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
     styleHash = styleHash * 31 + calcGlobalSettingsHash();
     bool res = true;
@@ -6559,8 +6580,8 @@ bool ldomDocument::checkRenderContext( LVRendPageList * pages, int dx, int dy, l
     if ( res ) {
 
         //if ( pages->length()==0 ) {
-            _pagesData.reset();
-            pages->deserialize( _pagesData );
+//            _pagesData.reset();
+//            pages->deserialize( _pagesData );
         //}
 
         return true;

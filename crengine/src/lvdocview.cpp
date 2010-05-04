@@ -2812,28 +2812,29 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
     writer.OnAttribute( NULL, L"version", L"1.0" );
     writer.OnAttribute( NULL, L"encoding", L"utf-8" );
     writer.OnEncoding( L"utf-8", NULL );
+    writer.OnTagBody();
     writer.OnTagClose( NULL, L"?xml" );
-    writer.OnTagOpen( NULL, L"FictionBook" );
+    writer.OnTagOpenNoAttr( NULL, L"FictionBook" );
       // DESCRIPTION
-      writer.OnTagOpen( NULL, L"description" );
-        writer.OnTagOpen( NULL, L"title-info" );
-          writer.OnTagOpen( NULL, L"book-title" );
+      writer.OnTagOpenNoAttr( NULL, L"description" );
+        writer.OnTagOpenNoAttr( NULL, L"title-info" );
+          writer.OnTagOpenNoAttr( NULL, L"book-title" );
             writer.OnText( title.c_str(), title.length(), 0 );
           writer.OnTagClose( NULL, L"book-title" );
-        writer.OnTagOpen( NULL, L"title-info" );
+        writer.OnTagOpenNoAttr( NULL, L"title-info" );
       writer.OnTagClose( NULL, L"description" );
       // BODY
-      writer.OnTagOpen( NULL, L"body" );
+      writer.OnTagOpenNoAttr( NULL, L"body" );
         //m_callback->OnTagOpen( NULL, L"section" );
           // process text
       if ( title.length() ) {
-          writer.OnTagOpen( NULL, L"title" );
-          writer.OnTagOpen( NULL, L"p" );
+          writer.OnTagOpenNoAttr( NULL, L"title" );
+          writer.OnTagOpenNoAttr( NULL, L"p" );
             writer.OnText( title.c_str(), title.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
           writer.OnTagClose( NULL, L"title" );
       }
-          writer.OnTagOpen( NULL, L"p" );
+          writer.OnTagOpenNoAttr( NULL, L"p" );
             writer.OnText( message.c_str(), message.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
         //m_callback->OnTagClose( NULL, L"section" );
@@ -3035,7 +3036,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     m_doc->setCodeBase( codeBase );
                     ldomDocumentFragmentWriter appender(&writer, lString16(L"body"));
                     writer.OnStart(NULL);
-                    writer.OnTagOpen(L"", L"body");
+                    writer.OnTagOpenNoAttr(L"", L"body");
                     int fragmentCount = 0;
                     for ( int i=0; i<spineItems.length(); i++ ) {
                         if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
@@ -3087,6 +3088,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
                         // DONE!
                         setDocFormat( doc_format_epub );
+                        setRenderProps( 0, 0 );
                         requestRender();
 						if ( m_callback ) {
 							m_callback->OnLoadFileEnd( );
@@ -3481,7 +3483,7 @@ bool LVDocView::ParseDocument( )
 		if ( m_callback ) {
 			m_callback->OnLoadFileFormatDetected( getDocFormat() );
 		}
-
+        setRenderProps( 0, 0 );
 
 		// set stylesheet
 		//m_doc->getStyleSheet()->clear();
