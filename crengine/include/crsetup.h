@@ -256,9 +256,9 @@
 #define DOCUMENT_CACHING_MAX_RAM_USAGE 0x800000 // 10Mb
 #endif
 
-/// max ram data block usage, after which swapping to disk should occur
+/// Document caching file size threshold (bytes). For longer documents, swapping to disk should occur
 #ifndef DOCUMENT_CACHING_SIZE_THRESHOLD
-#define DOCUMENT_CACHING_SIZE_THRESHOLD 0x600000 // 8Mb
+#define DOCUMENT_CACHING_SIZE_THRESHOLD 0x100000 // 1Mb
 #endif
 
 

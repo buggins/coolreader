@@ -90,6 +90,19 @@ static lUInt32 calcHash32( const lUInt8 * s, int len )
     return res;
 }
 
+#if BUILD_LITE!=1
+
+lUInt32 calcGlobalSettingsHash()
+{
+    lUInt32 hash = 0;
+    if ( fontMan->getKerning() )
+        hash += 127365;
+    if ( LVRendGetFontEmbolden() )
+        hash = hash * 75 + 2384761;
+    return hash;
+}
+#endif
+
 static void dumpRendMethods( ldomNode * node, lString16 prefix )
 {
     lString16 name = prefix;
@@ -408,7 +421,7 @@ CacheFileItem * CacheFile::allocBlock( lUInt16 type, lUInt16 index, int size )
     int bestSize = -1;
     int bestIndex = -1;
     for ( int i=0; i<_freeIndex.length(); i++ ) {
-        if ( (_freeIndex[i]->_blockSize>=size) && (bestSize==-1 || _freeIndex[i]->_blockSize<bestSize) ) {
+        if ( _freeIndex[i] && (_freeIndex[i]->_blockSize>=size) && (bestSize==-1 || _freeIndex[i]->_blockSize<bestSize) ) {
             bestSize = _freeIndex[i]->_blockSize;
             bestIndex = -1;
             existing = _freeIndex[i];
@@ -2317,8 +2330,18 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
         _page_width = width;
         changed = true;
     }
-    getRootNode()->setFont( _def_font );
-    getRootNode()->setStyle( _def_style );
+//    {
+//        lUInt32 styleHash = calcStyleHash();
+//        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+//        CRLog::debug("Style hash before set root style: %x", styleHash);
+//    }
+//    getRootNode()->setFont( _def_font );
+//    getRootNode()->setStyle( _def_style );
+//    {
+//        lUInt32 styleHash = calcStyleHash();
+//        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+//        CRLog::debug("Style hash after set root style: %x", styleHash);
+//    }
     return changed;
 }
 
@@ -2372,6 +2395,11 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
     CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
     CRLog::trace("initializing default style...");
     //persist();
+    {
+        lUInt32 styleHash = calcStyleHash();
+        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+        CRLog::debug("Style hash before setRenderProps: %x", styleHash);
+    }
     bool propsChanged = setRenderProps( width, dy, showCover, y0, def_font, def_interline_space );
 
     // update styles
@@ -2399,7 +2427,14 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         CRLog::trace("init render method...");
         getRootNode()->initNodeRendMethodRecursive();
 
+//        getRootNode()->setFont( _def_font );
+//        getRootNode()->setStyle( _def_style );
+        updateRenderContext();
+
         //dumpRendMethods( getRootNode(), lString16(" - ") );
+        lUInt32 styleHash = calcStyleHash();
+        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+        CRLog::debug("Style hash: %x", styleHash);
 
         _rendered = false;
     }
@@ -2426,6 +2461,8 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         updateRenderContext();
         _pagesData.reset();
         pages->serialize( _pagesData );
+
+        saveChanges();
 
         //persist();
         dumpStatistics();
@@ -3274,6 +3311,12 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
 {
     _stopTagId = 0xFFFE;
     IS_FIRST_BODY = true;
+
+    if ( _document->isDefStyleSet() ) {
+        _document->getRootNode()->initNodeStyle();
+        _document->getRootNode()->setRendMethod(erm_block);
+    }
+
     //CRLog::trace("ldomDocumentWriter() headerOnly=%s", _headerOnly?"true":"false");
 }
 
@@ -5808,6 +5851,9 @@ bool ldomDocument::loadCacheFileContent()
     if ( loadStylesData() ) {
         CRLog::trace("ldomDocument::loadCacheFileContent() - using loaded styles");
         updateLoadedStyles( true );
+        lUInt32 styleHash = calcStyleHash();
+        styleHash = styleHash * 31 + calcGlobalSettingsHash();
+        CRLog::debug("Loaded style hash: %x", styleHash);
 //        lUInt32 styleHash = calcStyleHash();
 //        CRLog::info("Loaded style hash = %08x", styleHash);
     } else {
@@ -5990,7 +6036,7 @@ lUInt32 tinyNodeCollection::calcStyleHash()
 {
 //    int maxlog = 30;
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
-    lUInt32 res = _elemCount;
+    lUInt32 res = 0; //_elemCount;
 //    CRLog::info("Calculating style hash...");
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
@@ -6137,6 +6183,8 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
     }
 #endif
     delete list;
+//    getRootNode()->setFont( _def_font );
+//    getRootNode()->setStyle( _def_style );
     return res;
 }
 
@@ -6520,18 +6568,8 @@ bool ldomDocCache::enabled()
 //    }
 //}
 
+
 #if BUILD_LITE!=1
-
-lUInt32 calcGlobalSettingsHash()
-{
-    lUInt32 hash = 0;
-    if ( fontMan->getKerning() )
-        hash += 127365;
-    if ( LVRendGetFontEmbolden() )
-        hash = hash * 75 + 2384761;
-    return hash;
-}
-
 
 /// save document formatting parameters after render
 void ldomDocument::updateRenderContext()
@@ -6539,9 +6577,9 @@ void ldomDocument::updateRenderContext()
     int dx = _page_width;
     int dy = _page_height;
     lUInt32 styleHash = calcStyleHash();
+    styleHash = styleHash * 31 + calcGlobalSettingsHash();
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
-    styleHash = styleHash * 31 + calcGlobalSettingsHash();
     _hdr.render_style_hash = styleHash;
     _hdr.stylesheet_hash = stylesheetHash;
     _hdr.render_dx = dx;
