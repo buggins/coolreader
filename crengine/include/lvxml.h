@@ -59,6 +59,7 @@ public:
     virtual void OnTagOpenAndClose( const lChar16 * nsname, const lChar16 * tagname)
     {
         OnTagOpen( nsname, tagname );
+        OnTagBody();
         OnTagClose( nsname, tagname );
     }
     /// called on tag close

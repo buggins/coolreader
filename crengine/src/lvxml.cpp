@@ -1664,7 +1664,7 @@ bool LVTextParser::Parse()
     m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
     m_callback->OnTagBody();
     m_callback->OnTagClose( NULL, L"?xml" );
-    m_callback->OnTagOpen( NULL, L"FictionBook" );
+    m_callback->OnTagOpenNoAttr( NULL, L"FictionBook" );
       // DESCRIPTION
       m_callback->OnTagOpenNoAttr( NULL, L"description" );
         m_callback->OnTagOpenNoAttr( NULL, L"title-info" );
