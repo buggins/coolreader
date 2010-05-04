@@ -1,7 +1,20 @@
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Release CACHE STRING
+    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+    FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
+IF (${CMAKE_BUILD_TYPE} STREQUAL Release)
+    ADD_DEFINITIONS( -DNDEBUG=1 )
+ELSE()
+    ADD_DEFINITIONS( -DDEBUG=1 )
+ENDIF(${CMAKE_BUILD_TYPE} STREQUAL Release)
+
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 SET (ANTIWORD_SOURCES 
-    main_u.c asc85enc.c blocklist.c chartrans.c datalist.c depot.c
+#    main_u.c 
+    asc85enc.c blocklist.c chartrans.c datalist.c depot.c
     dib2eps.c doclist.c fail.c finddata.c findtext.c fmt_text.c fontlist.c
     fonts.c fonts_u.c hdrftrlist.c imgexam.c imgtrans.c jpeg2eps.c
     listlist.c misc.c notes.c options.c out2window.c output.c pdf.c
