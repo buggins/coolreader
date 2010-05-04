@@ -489,7 +489,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     return true;
 }
 
-#define CACHE_FILE_WRITE_BLOCK_PADDING 0
+#define CACHE_FILE_WRITE_BLOCK_PADDING 1
 
 // writes block to file
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size )
@@ -519,8 +519,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     _stream->Write(buf, size, &bytesWritten );
     if ( bytesWritten!=size )
         return false;
-    _stream->Flush(true);
-#if CACHE_FILE_WRITE_BLOCK_PADDING
+#if CACHE_FILE_WRITE_BLOCK_PADDING==1
         int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
         LASSERT(size + paddingSize == block->_blockSize );
@@ -529,6 +528,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         _stream->Write(tmp, paddingSize, &bytesWritten );
     }
 #endif
+    _stream->Flush(true);
     // update CRC
     block->_dataCRC = newcrc;
     block->_dataHash = newhash;
@@ -5909,7 +5909,7 @@ bool ldomDocument::saveChanges()
     }
 
     if ( _pagesData.pos() ) {
-        CRLog::trace("ldomDocument::saveChanges() - page data");
+        CRLog::trace("ldomDocument::saveChanges() - page data (%d bytes)", _pagesData.pos());
         if ( !_cacheFile->write( CBT_PAGE_DATA, _pagesData ) ) {
             CRLog::error("Error while saving pages data");
             res = false;
