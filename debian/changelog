@@ -1,3 +1,182 @@
+cr3 (3.0.24-21) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * caching sizes fix
+  * create tinyNode stub
+  * tinyNode, part 2
+  * big
+  * bigfiles implementation
+  * tinynode implementation, unit tests added
+  * tinyNode implementation
+  * tinyNode implementation
+  * font and style caches for tinyNode
+  * unit tests for font and style caches
+  * replace DOM model with new one
+  * fix node::getText() for elements
+  * turn on persistent text nodes
+  * fix node id map issue
+  * force text data compression
+  * fix valgrind findings
+  * bigfiles
+  * add memory sizes debug dump
+  * persistent element nodes, incomplete
+  * compressed persistent elements implementation, continue
+  * persistent elements support, implemented
+  * enable element data compression, incomplete
+  * unit tests
+  * fixes, unit test improvements
+  * node rectangle access changes
+  * fix render rect bug
+  * remove unnecessary comment
+  * fix missing footnotes
+  * bigfiles fixes
+  * fix persistent node attributes issue
+  * separate node instance storages for text and elements
+  * packing of render rectangle data
+  * code cleanup
+  * fix cite stype for fb2
+  * code cleanup
+  * fix
+  * cache file implementation, part 1
+  * cache files, stage 2
+  * cache file, part 3
+  * fix pack buffer fix
+  * turn on swapping to file
+  * use named cache file for swapping
+  * fixed cache file access bug
+  * swap file improvements
+  * cache file support
+  * saving/updating of full document in cache file
+  * cache buffer size fixes
+  * cache file reading, incomplete
+  * cache file reading fixes
+  * fix valgrid finding
+  * cache file loading part2, unit test, unfinished
+  * doc cache file support fixes
+  * cache file support fixed
+  * move TOC to document
+  * cache file fixes
+  * cache performance fixes
+  * bigfiles fixes
+  * bigfiles fixes
+  * TOC serialization
+  * TOC saving optimization
+  * save styles to cache file
+  * bigfiles performance optimizations
+  * fixes
+  * style, render method initialization, autoboxing optimization
+  * render method init refactor, part 1
+  * stylel/render refactor, part 2
+  * fixing bugs in style initialization
+  * debug checks
+  * fix Win32 Qt build
+  * fix win32 build
+  * Fix Win32 install
+  * Update README.TXT with additional DLLs for Win32
+  * create tinyNode stub
+  * tinyNode, part 2
+  * big
+  * bigfiles implementation
+  * tinynode implementation, unit tests added
+  * tinyNode implementation
+  * tinyNode implementation
+  * font and style caches for tinyNode
+  * unit tests for font and style caches
+  * replace DOM model with new one
+  * fix node::getText() for elements
+  * turn on persistent text nodes
+  * fix node id map issue
+  * force text data compression
+  * fix valgrind findings
+  * bigfiles
+  * add memory sizes debug dump
+  * persistent element nodes, incomplete
+  * compressed persistent elements implementation, continue
+  * persistent elements support, implemented
+  * enable element data compression, incomplete
+  * unit tests
+  * fixes, unit test improvements
+  * node rectangle access changes
+  * fix render rect bug
+  * remove unnecessary comment
+  * fix missing footnotes
+  * bigfiles fixes
+  * fix persistent node attributes issue
+  * separate node instance storages for text and elements
+  * packing of render rectangle data
+  * code cleanup
+  * fix
+  * fix cite stype for fb2
+  * code cleanup
+  * fix
+  * cache file implementation, part 1
+  * cache files, stage 2
+  * cache file, part 3
+  * fix pack buffer fix
+  * turn on swapping to file
+  * use named cache file for swapping
+  * fixed cache file access bug
+  * swap file improvements
+  * cache file support
+  * saving/updating of full document in cache file
+  * cache buffer size fixes
+  * cache file reading, incomplete
+  * cache file reading fixes
+  * fix valgrid finding
+  * cache file loading part2, unit test, unfinished
+  * doc cache file support fixes
+  * cache file support fixed
+  * move TOC to document
+  * cache file fixes
+  * cache performance fixes
+  * bigfiles fixes
+  * bigfiles fixes
+  * TOC serialization
+  * TOC saving optimization
+  * save styles to cache file
+  * bigfiles performance optimizations
+  * fixes
+  * style, render method initialization, autoboxing optimization
+  * render method init refactor, part 1
+  * stylel/render refactor, part 2
+  * fixing bugs in style initialization
+  * debug checks
+  * fixed BIGFILES crash problem
+  * Fix fast loading from cache w/o render
+  * fix runin autoboxing
+  * Add V3+ build support
+  * fix About dialog crash
+  * fixes
+  * fix table rendering
+  * fixes
+  * fix TOC page numbers
+  * optimize style/font loading from cache file
+  * style/font initialization optimization, for initial document loading
+    or render
+  * optimize performance of short file loading: avoid unnecessary
+    compression
+  * fix images rendering
+  * optimize TOC creation
+  * optimize TOC generation
+  * fix RTF support
+  * fix TXT format support
+  * style initialization optimization
+  * fix big files support
+  * fix EPUB support
+  * minor fixes
+  * add Antiword sources to thirdparty
+  * add CMake buildfile for Antiword library
+  * add CHMLIB to thirdparty
+  * add CMake buildfile to CHMLIB
+  * highlight selected menu item
+  * fixes
+  * fix for cache files CRC error
+
+  [ Tomasz Długosz ]
+  * update polish translation
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Thu, 06 May 2010 08:55:46 +0200
+
 cr3 (3.0.24-20) zelazny; urgency=low
 
   [ Vadim Lopatin ]
