@@ -111,6 +111,7 @@ bool CRRecentBooksMenu::onCommand( int command, int params )
         }
         CRMenuItem * item = getItems()[index];
         int n = item->getId();
+        highlightCommandItem( n );
         closeMenu( MCMD_OPEN_RECENT_BOOK, n );
         return true;
     } else if ( command>=MCMD_SELECT_1_LONG && command<=MCMD_SELECT_9_LONG ) {

@@ -103,7 +103,7 @@ public:
         if ( tblState < state ) {
             for ( int i=tblState+1; i<=state; i++ ) {
                 if ( tags[i] )
-                    m_callback->OnTagOpen(NULL, tags[i]);
+                    m_callback->OnTagOpenNoAttr(NULL, tags[i]);
             }
         } else if ( tblState > state ) {
             for ( int i=tblState; i>state; i-- ) {
@@ -156,7 +156,7 @@ public:
         text = s.c_str();
         len = s.length();
         if ( !len ) {
-            m_callback->OnTagOpen(NULL, L"empty-line");
+            m_callback->OnTagOpenNoAttr(NULL, L"empty-line");
             m_callback->OnTagClose(NULL, L"empty-line");
             return;
         }
@@ -167,16 +167,16 @@ public:
             OnAction(RA_SECTION);
         }
         if ( !in_section ) {
-            m_callback->OnTagOpen(NULL, L"section");
+            m_callback->OnTagOpenNoAttr(NULL, L"section");
             in_section = true;
         }
         if ( !intbl ) {
             if ( !in_title && titleFlag ) {
                 if ( asteriskFlag ) {
-                    m_callback->OnTagOpen(NULL, L"subtitle");
+                    m_callback->OnTagOpenNoAttr(NULL, L"subtitle");
                     in_subtitle = true;
                 } else {
-                    m_callback->OnTagOpen(NULL, L"title");
+                    m_callback->OnTagOpenNoAttr(NULL, L"title");
                     in_subtitle = false;
                 }
                 in_title = true;
@@ -188,20 +188,20 @@ public:
         if ( !in_para ) {
             if ( !in_title )
                 last_notitle = true;
-            m_callback->OnTagOpen(NULL, L"p");
+            m_callback->OnTagOpenNoAttr(NULL, L"p");
             last_space = false;
             in_para = true;
         }
         if ( m_stack.getInt(pi_ch_bold) ) {
-            m_callback->OnTagOpen(NULL, L"strong");
+            m_callback->OnTagOpenNoAttr(NULL, L"strong");
         }
         if ( m_stack.getInt(pi_ch_italic) ) {
-            m_callback->OnTagOpen(NULL, L"emphasis");
+            m_callback->OnTagOpenNoAttr(NULL, L"emphasis");
         }
         if ( m_stack.getInt(pi_ch_sub) ) {
-            m_callback->OnTagOpen(NULL, L"sub");
+            m_callback->OnTagOpenNoAttr(NULL, L"sub");
         } else if ( m_stack.getInt(pi_ch_super) ) {
-            m_callback->OnTagOpen(NULL, L"sup");
+            m_callback->OnTagOpenNoAttr(NULL, L"sup");
         }
 
         m_callback->OnText( text, len, flags );
@@ -376,21 +376,22 @@ bool LVRtfParser::Parse()
     m_callback->OnAttribute( NULL, L"version", L"1.0" );
     m_callback->OnAttribute( NULL, L"encoding", L"utf-8" );
     //m_callback->OnEncoding( GetEncodingName().c_str(), GetCharsetTable( ) );
+    m_callback->OnTagBody();
     m_callback->OnTagClose( NULL, L"?xml" );
-    m_callback->OnTagOpen( NULL, L"FictionBook" );
+    m_callback->OnTagOpenNoAttr( NULL, L"FictionBook" );
       // DESCRIPTION
-      m_callback->OnTagOpen( NULL, L"description" );
-        m_callback->OnTagOpen( NULL, L"title-info" );
+      m_callback->OnTagOpenNoAttr( NULL, L"description" );
+        m_callback->OnTagOpenNoAttr( NULL, L"title-info" );
           //
             lString16 bookTitle = LVExtractFilenameWithoutExtension( getFileName() ); //m_stream->GetName();
-            m_callback->OnTagOpen( NULL, L"book-title" );
+            m_callback->OnTagOpenNoAttr( NULL, L"book-title" );
                 if ( !bookTitle.empty() )
                     m_callback->OnText( bookTitle.c_str(), bookTitle.length(), 0 );
           //queue.DetectBookDescription( m_callback );
-        m_callback->OnTagOpen( NULL, L"title-info" );
+        m_callback->OnTagOpenNoAttr( NULL, L"title-info" );
       m_callback->OnTagClose( NULL, L"description" );
       // BODY
-      m_callback->OnTagOpen( NULL, L"body" );
+      m_callback->OnTagOpenNoAttr( NULL, L"body" );
         //m_callback->OnTagOpen( NULL, L"section" );
           // process text
           //queue.DoTextImport( m_callback );

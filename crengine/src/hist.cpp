@@ -63,6 +63,10 @@ public:
     virtual void OnStop()
     {
     }
+    /// called on opening tag end
+    virtual void OnTagBody()
+    {
+    }
     /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
@@ -504,12 +508,12 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
     if ( ptr.isNull() )
         return;
 
-    CRLog::trace("CRBookmark::CRBookmark() started");
+    //CRLog::trace("CRBookmark::CRBookmark() started");
     lString16 path;
 
-    CRLog::trace("CRBookmark::CRBookmark() calling ptr.toPoint");
+    //CRLog::trace("CRBookmark::CRBookmark() calling ptr.toPoint");
     lvPoint pt = ptr.toPoint();
-    CRLog::trace("CRBookmark::CRBookmark() calculating percent");
+    //CRLog::trace("CRBookmark::CRBookmark() calculating percent");
     ldomDocument * doc = ptr.getNode()->getDocument();
     int h = doc->getFullHeight();
     if ( pt.y > 0 && h > 0 ) {
@@ -519,15 +523,15 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
             _percent = 10000;
         }
     }
-    CRLog::trace("CRBookmark::CRBookmark() calling getChaptername");
+    //CRLog::trace("CRBookmark::CRBookmark() calling getChaptername");
 	setTitleText( CRBookmark::getChapterName( ptr ) );
     _startpos = ptr.toString();
     _timestamp = (time_t)time(0);
     lvPoint endpt = pt;
     endpt.y += 100;
-    CRLog::trace("CRBookmark::CRBookmark() creating xpointer for endp");
+    //CRLog::trace("CRBookmark::CRBookmark() creating xpointer for endp");
     ldomXPointer endptr = doc->createXPointer( endpt );
-    CRLog::trace("CRBookmark::CRBookmark() finished");
+    //CRLog::trace("CRBookmark::CRBookmark() finished");
 }
 
 

@@ -214,3 +214,79 @@ lString8 joinPropertyValueList( const lString8Collection & list )
     res.pack();
     return res;
 }
+
+static const char * style_magic = "CR3STYLE";
+#define ST_PUT_ENUM(v) buf << (lUInt8)v
+#define ST_GET_ENUM(t,v) { lUInt8 tmp; buf >> tmp; v=(t)tmp; if (buf.error()) return false; }
+#define ST_PUT_LEN(v) buf << (lUInt8)v.type << (lInt32)v.value;
+#define ST_GET_LEN(v) { lUInt8 type; int value; buf >> type >> value; v.type = (css_value_type_t)type; v.value = value; if (buf.error()) return false; }
+#define ST_PUT_LEN4(v) ST_PUT_LEN(v[0]);ST_PUT_LEN(v[1]);ST_PUT_LEN(v[2]);ST_PUT_LEN(v[3]);
+#define ST_GET_LEN4(v) ST_GET_LEN(v[0]);ST_GET_LEN(v[1]);ST_GET_LEN(v[2]);ST_GET_LEN(v[3]);
+bool css_style_rec_t::serialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    buf.putMagic(style_magic);
+    ST_PUT_ENUM(display);           //    css_display_t        display;
+    ST_PUT_ENUM(white_space);       //    css_white_space_t    white_space;
+    ST_PUT_ENUM(text_align);        //    css_text_align_t     text_align;
+    ST_PUT_ENUM(text_decoration);   //    css_text_decoration_t text_decoration;
+    ST_PUT_ENUM(vertical_align);    //    css_vertical_align_t vertical_align;
+    ST_PUT_ENUM(font_family);       //    css_font_family_t    font_family;
+    buf << font_name;               //    lString8             font_name;
+    ST_PUT_LEN(font_size);          //    css_length_t         font_size;
+    ST_PUT_ENUM(font_style);        //    css_font_style_t     font_style;
+    ST_PUT_ENUM(font_weight);       //    css_font_weight_t    font_weight;
+    ST_PUT_LEN(text_indent);        //    css_length_t         text_indent;
+    ST_PUT_LEN(line_height);        //    css_length_t         line_height;
+    ST_PUT_LEN(width);              //    css_length_t         width;
+    ST_PUT_LEN(height);             //    css_length_t         height;
+    ST_PUT_LEN4(margin);            //    css_length_t         margin[4]; ///< margin-left, -right, -top, -bottom
+    ST_PUT_LEN4(padding);           //    css_length_t         padding[4]; ///< padding-left, -right, -top, -bottom
+    ST_PUT_LEN(color);              //    css_length_t         color;
+    ST_PUT_LEN(background_color);   //    css_length_t         background_color;
+    ST_PUT_LEN(letter_spacing);     //    css_length_t         letter_spacing;
+    ST_PUT_ENUM(page_break_before); //    css_page_break_t     page_break_before;
+    ST_PUT_ENUM(page_break_after);  //    css_page_break_t     page_break_after;
+    ST_PUT_ENUM(page_break_inside); //    css_page_break_t     page_break_inside;
+    ST_PUT_ENUM(hyphenate);         //    css_hyphenate_t      hyphenate;
+    lUInt32 hash = calcHash(*this);
+    buf << hash;
+    return !buf.error();
+}
+
+bool css_style_rec_t::deserialize( SerialBuf & buf )
+{
+    if ( buf.error() )
+        return false;
+    buf.putMagic(style_magic);
+    ST_GET_ENUM(css_display_t, display);                    //    css_display_t        display;
+    ST_GET_ENUM(css_white_space_t, white_space);            //    css_white_space_t    white_space;
+    ST_GET_ENUM(css_text_align_t, text_align);              //    css_text_align_t     text_align;
+    ST_GET_ENUM(css_text_decoration_t, text_decoration);    //    css_text_decoration_t text_decoration;
+    ST_GET_ENUM(css_vertical_align_t, vertical_align);      //    css_vertical_align_t vertical_align;
+    ST_GET_ENUM(css_font_family_t, font_family);            //    css_font_family_t    font_family;
+    buf >> font_name;                                       //    lString8             font_name;
+    ST_GET_LEN(font_size);                                  //    css_length_t         font_size;
+    ST_GET_ENUM(css_font_style_t, font_style);              //    css_font_style_t     font_style;
+    ST_GET_ENUM(css_font_weight_t, font_weight);            //    css_font_weight_t    font_weight;
+    ST_GET_LEN(text_indent);                                //    css_length_t         text_indent;
+    ST_GET_LEN(line_height);                                //    css_length_t         line_height;
+    ST_GET_LEN(width);                                      //    css_length_t         width;
+    ST_GET_LEN(height);                                     //    css_length_t         height;
+    ST_GET_LEN4(margin);                                    //    css_length_t         margin[4]; ///< margin-left, -right, -top, -bottom
+    ST_GET_LEN4(padding);                                   //    css_length_t         padding[4]; ///< padding-left, -right, -top, -bottom
+    ST_GET_LEN(color);                                      //    css_length_t         color;
+    ST_GET_LEN(background_color);                           //    css_length_t         background_color;
+    ST_GET_LEN(letter_spacing);                             //    css_length_t         letter_spacing;
+    ST_GET_ENUM(css_page_break_t, page_break_before);       //    css_page_break_t     page_break_before;
+    ST_GET_ENUM(css_page_break_t, page_break_after);        //    css_page_break_t     page_break_after;
+    ST_GET_ENUM(css_page_break_t, page_break_inside);       //    css_page_break_t     page_break_inside;
+    ST_GET_ENUM(css_hyphenate_t, hyphenate);                //    css_hyphenate_t        hyphenate;
+    lUInt32 hash = 0;
+    buf >> hash;
+    lUInt32 newhash = calcHash(*this);
+    if ( hash!=newhash )
+        buf.seterror();
+    return !buf.error();
+}

@@ -77,6 +77,8 @@ typedef struct css_style_rec_tag {
     void AddRef() { refCount++; }
     int Release() { return --refCount; }
     int getRefCount() { return refCount; }
+    bool serialize( SerialBuf & buf );
+    bool deserialize( SerialBuf & buf );
 } css_style_rec_t;
 
 /// style record reference type
@@ -103,6 +105,7 @@ enum lvdom_element_render_method
     erm_invisible = 0, ///< invisible: don't render
     erm_block,         ///< render as block element (render as containing other elements)
     erm_final,         ///< final element: render the whole it's content as single render block
+    erm_inline,        ///< inline element
     erm_mixed,         ///< block and inline elements are mixed: autobox inline portions of nodes; TODO
     erm_table,         ///< table element: render as table
     erm_table_row_group, ///< table row group
@@ -113,37 +116,35 @@ enum lvdom_element_render_method
     erm_table_column, ///< table column
     erm_table_cell, ///< table cell
     erm_table_caption, ///< table caption
+    erm_runin,         ///< run-in
 };
 
 /// node format record
 class lvdomElementFormatRec {
-private:
+protected:
     int  _x;
     int  _width;
     int  _y;
     int  _height;
 public:
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    static ldomMemManStorage * pmsHeap;
-    void * operator new( size_t )
-    {
-        if (pmsHeap == NULL)
-        {
-            pmsHeap = new ldomMemManStorage(sizeof(lvdomElementFormatRec));
-        }
-        return pmsHeap->alloc();
-    }
-    void operator delete( void * p )
-    {
-        pmsHeap->free((ldomMemBlock *)p);
-    }
-#endif
     lvdomElementFormatRec()
     : _x(0), _width(0), _y(0), _height(0)//, _formatter(NULL)
     {
     }
     ~lvdomElementFormatRec()
     {
+    }
+    void clear()
+    {
+        _x = _width = _y = _height = 0;
+    }
+    bool operator == ( lvdomElementFormatRec & v )
+    {
+        return (_height==v._height && _y==v._y && _width==v._width && _x==v._x );
+    }
+    bool operator != ( lvdomElementFormatRec & v )
+    {
+        return (_height!=v._height || _y!=v._y || _width!=v._width || _x!=v._x );
     }
     // Get/Set
     int getX() const { return _x; }
@@ -168,7 +169,7 @@ lUInt32 calcHash(css_style_rec_t & rec);
 /// calculate font instance record hash
 lUInt32 calcHash(font_ref_t & rec);
 /// calculate cache record hash
-inline lUInt32 calcHash(css_style_ref_t & rec) { return calcHash( *rec.get() ); }
+inline lUInt32 calcHash(css_style_ref_t & rec) { return rec.isNull() ? 0 : calcHash( *rec.get() ); }
 
 /// splits string like "Arial", Times New Roman, Courier;  into list
 // returns number of characters processed

@@ -159,26 +159,80 @@ public:
 
 class ldomTextStorageChunk;
 class ldomTextStorageChunkBuilder;
+struct ElementDataStorageItem;
+class CacheFile;
+class tinyNodeCollection;
 
-class ldomTextStorageManager
+class ldomDataStorageManager
 {
+    friend class ldomTextStorageChunk;
+protected:
+    tinyNodeCollection * _owner;
     LVPtrVector<ldomTextStorageChunk> _chunks;
-    ldomTextStorageChunkBuilder * _builder;
+    ldomTextStorageChunk * _activeChunk;
+    ldomTextStorageChunk * _recentChunk;
+    CacheFile * _cache;
+    int _compressedSize;
+    int _uncompressedSize;
+    int _maxUncompressedSize;
+    int _maxCompressedSize;
+    int _chunkSize;
+    char _type;       /// type, to show in log
+    ldomTextStorageChunk * getChunk( lUInt32 address );
+    /// checks buffer sizes, compacts most unused chunks
 public:
-    ldomTextStorageManager();
-    ~ldomTextStorageManager();
+    /// type
+    lUInt16 cacheType();
+    /// saves all unsaved chunks to cache file
+    bool save();
+    /// load chunk index from cache file
+    bool load();
+    /// sets cache file
+    void setCache( CacheFile * cache );
+    /// checks buffer sizes, compacts most unused chunks
+    void compact( int reservedSpace );
+    int getCompressedSize() { return _compressedSize; }
+    int getUncompressedSize() { return _uncompressedSize; }
+    /// allocates new text node, return its address inside storage
+    lUInt32 allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
+    /// allocates storage for new element, returns address address inside storage
+    lUInt32 allocElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount );
+    /// get text by address
+    lString8 getText( lUInt32 address );
+    /// get pointer to element data
+    ElementDataStorageItem * getElem( lUInt32 addr );
+    /// change node's parent
+    void setTextParent( lUInt32 address, lUInt32 parent );
+    /// free data item
+    void freeNode( lUInt32 addr );
+    /// call to invalidate chunk if content is modified
+    void modified( lUInt32 addr );
+
+    /// get or allocate space for rect data item
+    void getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst );
+    /// set rect data item
+    void setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src );
+
+    ldomDataStorageManager( tinyNodeCollection * owner, char type, int maxUnpackedSize, int maxPackedSize, int chunkSize );
+    ~ldomDataStorageManager();
 };
 
 /// class to store compressed/uncompressed text nodes chunk
 class ldomTextStorageChunk
 {
+    friend class ldomDataStorageManager;
+    ldomDataStorageManager * _manager;
     lUInt8 * _buf;     /// buffer for uncompressed data
     lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
-    lUInt32 _filepos;  /// position in swap file
+    //lUInt32 _filepos;  /// position in swap file
     lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
+    char _type;       /// type, to show in log
+    ldomTextStorageChunk * _nextRecent;
+    ldomTextStorageChunk * _prevRecent;
+    bool _saved;
 
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
     bool unpack() { return unpack(_compbuf, _compsize); } /// unpack data from compbuf to _buf
@@ -186,34 +240,183 @@ class ldomTextStorageChunk
     bool pack() { return pack(_buf, _bufsize); }   /// pack data from _buf[_bufsize] to _compbuf
     void setpacked( const lUInt8 * compbuf, int compsize );
     void setunpacked( const lUInt8 * buf, int bufsize );
+    /// change node's parent
+    void setTextParent( int offset, lUInt32 parent );
+    /// pack data, and remove unpacked
+    void compact();
+    /// pack data, and remove unpacked, put packed data to cache file
+    bool swapToCache( bool removeFromMemory );
+    /// read packed data from cache
+    bool restoreFromCache();
+    /// unpacks chunk, if packed; checks storage space, compact if necessary
+    void ensureUnpacked();
+    /// free data item
+    void freeNode( int offset );
+    /// saves data to cache file, if unsaved
+    bool save();
 public:
+    /// call to invalidate chunk if content is modified
+    void modified();
+    /// returns chunk index inside collection
+    int getIndex() { return _index; }
     /// returns free space in buffer
     int space();
-    /// adds new item to buffer, returns offset inside chunk of stored data
-    int add( const lUInt8 * data, int size );
-    ldomTextStorageChunk();
+    /// adds new text item to buffer, returns offset inside chunk of stored data
+    int addText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
+    /// adds new element item to buffer, returns offset inside chunk of stored data
+    int addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount );
+    /// get text item from buffer by offset
+    lString8 getText( int offset );
+    /// get pointer to element data
+    ElementDataStorageItem * getElem( int offset );
+    /// get raw data bytes
+    void getRaw( int offset, int size, lUInt8 * buf );
+    /// set raw data bytes
+    void setRaw( int offset, int size, const lUInt8 * buf );
+
+    /// create empty buffer
+    ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
+    /// create chunk to be read from cache file
+    ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize );
+    /// create with preallocated buffer, for raw access
+    ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index );
     ~ldomTextStorageChunk();
 };
 
 // forward declaration
-class tinyNode;
+class ldomNode;
 
-/// storage of tinyNode
+#define TNC_PART_COUNT 512
+#define TNC_PART_SHIFT 10
+#define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
+#define TNC_PART_LEN (1<<TNC_PART_SHIFT)
+#define TNC_PART_MASK (TNC_PART_LEN-1)
+/// storage of ldomNode
 class tinyNodeCollection
 {
-    friend class tinyNode;
+    friend class ldomNode;
+    friend class tinyElement;
 private:
-    int _size;
-    int _count;
-    lUInt32 _nextFree;
-    tinyNode * _list;
+    int _textCount;
+    lUInt32 _textNextFree;
+    ldomNode * _textList[TNC_PART_COUNT];
+    int _elemCount;
+    lUInt32 _elemNextFree;
+    ldomNode * _elemList[TNC_PART_COUNT];
+    LVIndexedRefCache<css_style_ref_t> _styles;
+    LVIndexedRefCache<font_ref_t> _fonts;
+    int _tinyElementCount;
+    int _itemCount;
+
+
+protected:
+#if BUILD_LITE!=1
+    /// final block cache
+    CVRendBlockCache _renderedBlockCache;
+    CacheFile * _cacheFile;
+    bool _mapped;
+    bool _maperror;
+#endif
+
+    int calcFinalBlocks();
+    void dropStyles();
+
+    ldomDataStorageManager _textStorage; // persistent text node data storage
+    ldomDataStorageManager _elemStorage; // persistent element data storage
+    ldomDataStorageManager _rectStorage; // element render rect storage
+
+    CRPropRef _docProps;
+    lUInt32 _docFlags; // document flags
+
+    LVStyleSheet  _stylesheet;
+
+    LVHashTable<lUInt16, lUInt16> _fontMap; // style index to font index
+
+    /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
+    int getPersistenceFlags();
+
+    bool saveStylesData();
+    bool loadStylesData();
+    bool updateLoadedStyles( bool enabled );
+    lUInt32 calcStyleHash();
+    bool saveNodeData();
+    bool saveNodeData( lUInt16 type, ldomNode ** list, int nodecount );
+    bool loadNodeData();
+    bool loadNodeData( lUInt16 type, ldomNode ** list, int nodecount );
+
+
+    bool openCacheFile();
+
+    tinyNodeCollection( tinyNodeCollection & v );
 public:
-    /// get tinyNode instance pointer
-    tinyNode * getTinyNode( lUInt32 index );
-    /// allocate new tinyNode
-    tinyNode * allocTinyNode( int type );
-    /// recycle tinyNode on node removing
+
+    /// called on document loading end
+    bool validateDocument();
+
+#if BUILD_LITE!=1
+    /// try opening from cache file, find by source file name (w/o path) and crc32
+    virtual bool openFromCache( ) = 0;
+    /// swap to cache file, find by source file name (w/o path) and crc32
+    virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
+    /// saves recent changes to mapped file
+    virtual bool updateMap() = 0;
+
+    bool swapToCacheIfNecessary();
+#endif
+
+
+    bool createCacheFile();
+
+    inline bool getDocFlag( lUInt32 mask )
+    {
+        return (_docFlags & mask) != 0;
+    }
+
+    inline void setDocFlag( lUInt32 mask, bool value )
+    {
+        if ( value )
+            _docFlags |= mask;
+        else
+            _docFlags &= ~mask;
+    }
+
+    inline lUInt32 getDocFlags()
+    {
+        return _docFlags;
+    }
+
+    inline void setDocFlags( lUInt32 value )
+    {
+        _docFlags = value;
+    }
+
+
+    /// returns doc properties collection
+    inline CRPropRef getProps() { return _docProps; }
+    /// returns doc properties collection
+    void setProps( CRPropRef props ) { _docProps = props; }
+
+
+    /// minimize memory consumption
+    void compact();
+    /// dumps memory usage statistics to debug log
+    void dumpStatistics();
+
+    /// get ldomNode instance pointer
+    ldomNode * getTinyNode( lUInt32 index );
+    /// allocate new ldomNode
+    ldomNode * allocTinyNode( int type );
+    /// allocate new tinyElement
+    ldomNode * allocTinyElement( ldomNode * parent, lUInt16 nsid, lUInt16 id );
+    /// recycle ldomNode on node removing
     void recycleTinyNode( lUInt32 index );
+
+
+#if BUILD_LITE!=1
+    /// put all object into persistent storage
+    virtual void persist();
+#endif
+
     /// creates empty collection
     tinyNodeCollection();
     /// destroys collection
@@ -221,15 +424,36 @@ public:
 };
 
 class ldomDocument;
-class ldomText;
-class ldomElement;
+class tinyElement;
 class lxmlAttribute;
+
+class RenderRectAccessor : public lvdomElementFormatRec
+{
+    ldomNode * _node;
+    bool _modified;
+    bool _dirty;
+public:
+    RenderRectAccessor & operator -> () { return *this; }
+    int getX();
+    int getY();
+    int getWidth();
+    int getHeight();
+    void getRect( lvRect & rc );
+    void setX( int x );
+    void setY( int y );
+    void setWidth( int w );
+    void setHeight( int h );
+    void push();
+    RenderRectAccessor( ldomNode * node );
+    ~RenderRectAccessor();
+};
 
 // no vtable, very small size (16 bytes)
 // optimized for 32 bit systems
-class tinyNode
+class ldomNode
 {
     friend class tinyNodeCollection;
+    friend class RenderRectAccessor;
 private:
     enum {
         NT_TEXT=0,       // mutable text node
@@ -246,52 +470,80 @@ private:
         struct {
             // common part - hold parent index
             lUInt32 _parentIndex; // just to avoid extra access to storage
-            union {
-                // just store utf8 string for dynamic
-                lChar8 * _str;
-                // persistent
-                struct {
-                    lUInt16 _chunk;       // text storage chunk index
-                    lUInt16 _offset;      // text storage offset inside chunk
-                } _persistent;
-            } _v;
+            lUInt32 _addr;        // text storage address: chunk+offset
+        } _ptext;
+        struct {
+            // common part - hold parent index
+            lUInt32 _parentIndex; // just to avoid extra access to storage
+            lChar8 * _str;        // actual zstring, utf-8
         } _text;
         struct {
             // common part for all elements
             lUInt16 _fontIndex;
             lUInt16 _styleIndex;
-            union {
-                // dynamic (RAM)
-                ldomElement * _dynamic;
-                // persistent
-                struct {
-                    lUInt16 _chunk;
-                    lUInt16 _offset;
-                } _persistent;
-            } _v;
+            tinyElement * _ptr;
         } _elem;
+        struct {
+            // common part for all elements
+            lUInt16 _fontIndex;
+            lUInt16 _styleIndex;
+            lUInt32 _addr;        // element storage address: chunk+offset
+        } _pelem;
         struct {
             lUInt32 _nextFreeIndex; // for removed items
         } _empty;
     } _data;                      // [12] 4 bytes (8 bytes on x64)
 #define TNTYPE  (_dataIndex&0x0F)
-#define TNINDEX (_dataIndex&(~0x0F))
+#define TNINDEX (_dataIndex&(~0x0E))
 #define TNCHUNK (_addr>>&(~0x0F))
     void onCollectionDestroy();
-    void onNodeDestroy();
-    inline tinyNode * getTinyNode( lUInt32 index ) const { return &((tinyNodeCollection*)_document)->_list[index>>4]; }
+    inline ldomNode * getTinyNode( lUInt32 index ) const { return ((tinyNodeCollection*)_document)->getTinyNode(index); }
+
+    void operator delete( void * p )
+    {
+        // Do nothing. Just to disable delete.
+    }
+
+    /// changes parent of item
+    void setParentNode( ldomNode * newParent );
+    /// add child
+    void addChild( lInt32 childNodeIndex );
+
+    /// call to invalidate cache if persistent node content is modified
+    void modified();
+
+    /// returns copy of render data structure
+    void getRenderData( lvdomElementFormatRec & dst);
+    /// sets new value for render data structure
+    void setRenderData( lvdomElementFormatRec & newData);
+
+    void autoboxChildren( int startIndex, int endIndex );
+    void removeChildren( int startIndex, int endIndex );
+
 public:
+    bool initNodeFont();
+    void initNodeStyle();
+    /// init render method for this node only (children should already have rend method set)
+    void initNodeRendMethod();
+    /// init render method for the whole subtree
+    void initNodeRendMethodRecursive();
+    /// init render method for the whole subtree
+    void initNodeStyleRecursive();
+
+
+    /// remove node, clear resources
+    void destroy();
 
     /// returns true for invalid/deleted node ot NULL this pointer
     inline bool isNull() const { return this == NULL || _dataIndex==0; }
     /// returns true if node is stored in persistent storage
-    inline bool isPersistent() const { return TNTYPE&2; }
+    inline bool isPersistent() const { return _dataIndex&2; }
     /// returns data index of node's registration in document data storage
     inline lInt32 getDataIndex() const { return TNINDEX; }
     /// returns pointer to document
     inline ldomDocument * getDocument() const { return _document; }
     /// returns pointer to parent node, NULL if node has no parent
-    tinyNode * getParentNode() const;
+    ldomNode * getParentNode() const;
     /// returns node type, either LXML_TEXT_NODE or LXML_ELEMENT_NODE
     inline lUInt8 getNodeType() const
     {
@@ -306,7 +558,7 @@ public:
     /// returns index of child node by dataIndex
     int getChildIndex( lUInt32 dataIndex ) const;
     /// returns true if node is document's root
-    inline bool isRoot() const { return getParentIndex() <= 0; }
+    bool isRoot() const;
     /// returns true if node is text
     inline bool isText() const { return _dataIndex && !(_dataIndex&1); }
     /// returns true if node is element
@@ -357,7 +609,7 @@ public:
     const lString16 & getNodeNsName() const;
 
     /// returns child node by index
-    tinyNode * getChildNode( lUInt32 index ) const;
+    ldomNode * getChildNode( lUInt32 index ) const;
 
     /// returns text node text as wide string
     lString16 getText( lChar16 blockDelimiter = 0 ) const;
@@ -371,26 +623,26 @@ public:
 
     /// returns node absolute rectangle
     void getAbsRect( lvRect & rect );
-    /// returns render data structure
-    lvdomElementFormatRec * getRenderData();
     /// sets node rendering structure pointer
     void clearRenderData();
     /// calls specified function recursively for all elements of DOM tree
-    void recurseElements( void (*pFun)( tinyNode * node ) );
+    void recurseElements( void (*pFun)( ldomNode * node ) );
+    /// calls specified function recursively for all elements of DOM tree, children before parent
+    void recurseElementsDeepFirst( void (*pFun)( ldomNode * node ) );
     /// calls specified function recursively for all nodes of DOM tree
-    void recurseNodes( void (*pFun)( tinyNode * node ) );
+    void recurseNodes( void (*pFun)( ldomNode * node ) );
 
 
     /// returns first text child element
-    tinyNode * getFirstTextChild();
+    ldomNode * getFirstTextChild();
     /// returns last text child element
-    tinyNode * getLastTextChild();
+    ldomNode * getLastTextChild();
 
 #if BUILD_LITE!=1
     /// find node by coordinates of point in formatted document
-    tinyNode * elementFromPoint( lvPoint pt );
+    ldomNode * elementFromPoint( lvPoint pt );
     /// find final node by coordinates of point in formatted document
-    tinyNode * finalBlockFromPoint( lvPoint pt );
+    ldomNode * finalBlockFromPoint( lvPoint pt );
 #endif
 
     // rich interface stubs for supporting Element operations
@@ -408,27 +660,27 @@ public:
     void setStyle( css_style_ref_t & );
 
     /// returns first child node
-    tinyNode * getFirstChild() const;
+    ldomNode * getFirstChild() const;
     /// returns last child node
-    tinyNode * getLastChild() const;
+    ldomNode * getLastChild() const;
     /// removes and deletes last child element
     void removeLastChild();
     /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    void moveItemsTo( tinyNode *, int , int );
+    void moveItemsTo( ldomNode *, int , int );
     /// find child element by tag id
-    tinyNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
+    ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
     /// find child element by id path
-    tinyNode * findChildElement( lUInt16 idPath[] );
+    ldomNode * findChildElement( lUInt16 idPath[] );
     /// inserts child element
-    tinyNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
+    ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id );
     /// inserts child element
-    tinyNode * insertChildElement( lUInt16 id );
+    ldomNode * insertChildElement( lUInt16 id );
     /// inserts child text
-    tinyNode * insertChildText( lUInt32 index, const lString16 & value );
+    ldomNode * insertChildText( lUInt32 index, const lString16 & value );
     /// inserts child text
-    tinyNode * insertChildText( const lString16 & value );
+    ldomNode * insertChildText( const lString16 & value );
     /// remove child
-    tinyNode * removeChild( lUInt32 index );
+    ldomNode * removeChild( lUInt32 index );
 
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
@@ -436,19 +688,17 @@ public:
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
     /// formats final block
-    int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
+    int renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor * fmt, int width );
     /// formats final block again after change, returns true if size of block is changed
     bool refreshFinalBlock();
 #endif
     /// replace node with r/o persistent implementation
-    tinyNode * persist();
+    ldomNode * persist();
     /// replace node with r/w implementation
-    tinyNode * modify();
-protected:
-    /// override to avoid deleting children while replacing
-    void prepareReplace();
-
+    ldomNode * modify();
 };
+
+typedef ldomNode ldomNode;
 
 
 // default: 512K
@@ -465,11 +715,8 @@ protected:
 */
 class lxmlDocBase : public tinyNodeCollection
 {
+    //friend class ldomNode;
     friend class ldomNode;
-    friend class ldomElement;
-    friend class ldomPersistentElement;
-    friend class ldomText;
-    friend class ldomPersistentText;
 	friend class ldomXPointer;
 public:
 
@@ -580,14 +827,9 @@ public:
     // debug dump
     void dumpUnknownEntities( const char * fname );
 
-    inline void cacheStyle(css_style_ref_t & styleref )
-    {
-        _styleCache.cacheIt( styleref );
-    }
     /// garbage collector
     virtual void gc()
     {
-        _styleCache.gc();
 #if BUILD_LITE!=1
         fontMan->gc();
 #endif
@@ -602,13 +844,12 @@ public:
         _stylesheet.apply( element, pstyle );
     }
 
-
     void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node );
 
     /// get element by id attribute value code
     inline ldomNode * getNodeById( lUInt16 attrValueId )
     {
-        return getNodeInstance( _idNodeMap.get( attrValueId ) );
+        return getTinyNode( _idNodeMap.get( attrValueId ) );
     }
 
     /// get element by id attribute value
@@ -618,14 +859,6 @@ public:
         ldomNode * node = getNodeById( attrValueId );
         return node;
     }
-    /// returns doc properties collection
-    inline CRPropRef getProps() { return _docProps; }
-    /// returns doc properties collection
-    void setProps( CRPropRef props ) { _docProps = props; }
-#if BUILD_LITE!=1
-    /// put all object into persistent storage
-    virtual void persist();
-#endif
     /// returns root element
     ldomNode * getRootNode();
 
@@ -641,171 +874,39 @@ public:
 #endif
 #endif
 
-    inline bool getDocFlag( lUInt32 mask )
-    {
-        return (_docFlags & mask) != 0;
-    }
 
-    inline void setDocFlag( lUInt32 mask, bool value )
-    {
-        if ( value )
-            _docFlags |= mask;
-        else
-            _docFlags &= ~mask;
-    }
-
-    inline lUInt32 getDocFlags()
-    {
-        return _docFlags;
-    }
-
-    inline void setDocFlags( lUInt32 value )
-    {
-        _docFlags = value;
-    }
-
-#if BUILD_LITE!=1
-    /// try opening from cache file, find by source file name (w/o path) and crc32
-    virtual bool openFromCache( ) = 0;
-    /// swap to cache file, find by source file name (w/o path) and crc32
-    virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
-    /// saves recent changes to mapped file
-    virtual bool updateMap() = 0;
-#endif
-    /// returns or creates object instance by index
-    inline ldomNode * getNodeInstance( lInt32 dataIndex )
-    {
-        return _instanceMap[ dataIndex ].instance;
-/*
-        ldomNode * item = _instanceMap[ dataIndex ].instance;
-        if ( item != NULL )
-            return item;
-        // TODO: try to create instance from data
-        CRLog::error("NULL instance for index %d", dataIndex);
-        return NULL;
-*/
-    }
-protected:
-
-#if BUILD_LITE!=1
-    virtual bool resizeMap( lvsize_t newSize ) = 0;
-#endif
-
-//=========================================
-//       NEW STORAGE MODEL METHODS
-//=========================================
-    struct NodeItem {
-        // object's RAM instance
-        ldomNode * instance;
-#if BUILD_LITE!=1
-        // object's data pointer
-        DataStorageItemHeader * data;
-#endif
-        // empty item constructor
-        NodeItem() : instance(NULL)
-#if BUILD_LITE!=1
-, data(NULL) 
-#endif
-{ }
-    };
-#if BUILD_LITE!=1
-	/// for persistent text node, return wide text by index, with caching (TODO)
-    lString16 getTextNodeValue( lInt32 dataIndex );
-	/// for persistent text node, return utf8 text by index, with caching (TODO)
-    lString8 getTextNodeValue8( lInt32 dataIndex );
-#endif
-    /// used by object constructor, to assign ID for created object
-    lInt32 registerNode( ldomNode * node );
-    /// used by object destructor, to remove RAM reference; leave data as is
-    void unregisterNode( ldomNode * node );
-#if BUILD_LITE!=1
-    /// used by persistance management constructors, to replace one instance with another, deleting old instance
-    ldomNode * replaceInstance( lInt32 dataIndex, ldomNode * newInstance );
-    /// used to create instances from mmapped file, returns passed node instance
-    ldomNode * setNode( lInt32 dataIndex, ldomNode * instance, DataStorageItemHeader * data );
-    /// used by object destructor, to remove RAM reference; mark data as deleted
-    void deleteNode( ldomNode * node );
-	/// returns pointer to node data block
-	inline DataStorageItemHeader * getNodeData( lInt32 dataIndex ) { return _instanceMap[ dataIndex ].data; }
-	/// returns pointer to text node data block
-	inline TextDataStorageItem * getTextNodeData( lInt32 dataIndex ) { return (TextDataStorageItem *)_instanceMap[ dataIndex ].data;  }
-	/// returns pointer to text node data block
-	inline ElementDataStorageItem * getElementNodeData( lInt32 dataIndex ) { return (ElementDataStorageItem *)_instanceMap[ dataIndex ].data;  }
-	/// allocate data block, return pointer to allocated block
-	DataStorageItemHeader * allocData( lInt32 dataIndex, int size );
-	/// allocate text block
-	TextDataStorageItem * allocText( lInt32 dataIndex, lInt32 parentIndex, const lChar8 * text, int charCount );
-	/// allocate element
-	ElementDataStorageItem * allocElement( lInt32 dataIndex, lInt32 parentIndex, int attrCount, int childCount );
-#endif
-    bool keepData() { return _keepData; }
 protected:
 #if BUILD_LITE!=1
     struct DocFileHeader {
-        //char magic[16]; //== doc_file_magic
-        lUInt32 src_file_size;
-        lUInt32 src_file_crc32;
-        lUInt32 props_offset;
-        lUInt32 props_size;
-        lUInt32 idtable_offset;
-        lUInt32 idtable_size;
-        lUInt32 pagetable_offset;
-        lUInt32 pagetable_size;
-        lUInt32 data_offset;
-        lUInt32 data_size;
-        lUInt32 data_crc32;
-        lUInt32 data_index_size;
-        lUInt32 file_size;
-
         lUInt32 render_dx;
         lUInt32 render_dy;
         lUInt32 render_docflags;
         lUInt32 render_style_hash;
-        //
-        lString16 src_file_name;
-
+        lUInt32 stylesheet_hash;
         bool serialize( SerialBuf & buf );
         bool deserialize( SerialBuf & buf );
         DocFileHeader()
-            : file_size(0), render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0)
+            : render_dx(0), render_dy(0), render_docflags(0), render_style_hash(0), stylesheet_hash(0)
         {
         }
     };
-    DocFileHeader hdr;
+    DocFileHeader _hdr;
 #endif
 
-#if BUILD_LITE!=1
-    LVPtrVector<DataBuffer> _dataBuffers; // node data buffers
-	DataBuffer * _currentBuffer;
-	int _dataBufferSize;       // single data buffer size
-#endif
-    NodeItem * _instanceMap;   // Id->Instance & Id->Data map
-    int _instanceMapSize;      //
-    int _instanceMapCount;     //
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map
     LDOMNameIdMap _attrNameTable;       // Attribute Name<->Id map
     LDOMNameIdMap _nsNameTable;          // Namespace Name<->Id map
     lUInt16       _nextUnknownElementId; // Next Id for unknown element
     lUInt16       _nextUnknownAttrId;    // Next Id for unknown attribute
     lUInt16       _nextUnknownNsId;      // Next Id for unknown namespace
-    lvdomStyleCache _styleCache;         // Style cache
-    LVStyleSheet  _stylesheet;
     lString16HashedCollection _attrValueTable;
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     lUInt16 _idAttrId; // Id for "id" attribute name
-    CRPropRef _docProps;
-    bool _keepData; // if true, node deletion will not change persistent data
-
-#if BUILD_LITE!=1
-    LVStreamRef _map; // memory mapped file
-    LVStreamBufferRef _mapbuf; // memory mapped file buffer
-    bool _mapped; // true if document is mapped to file
-#endif
-    lUInt32 _docFlags; // document flags
 
 #if BUILD_LITE!=1
     SerialBuf _pagesData;
 #endif
+
 };
 
 /*
@@ -840,224 +941,6 @@ class ldomDocument;
 
 #define LDOM_ALLOW_NODE_INDEX 0
 
-/// fastDOM NODE interface - base class for all text and element node implementations
-class ldomNode
-{
-    friend class ldomElement;
-    friend class lxmlDocBase;
-    // vtable                    0: [4]
-protected:
-    /// document which owns this node
-    ldomDocument * _document; // 4: [4]
-    /// data index of parent node
-    lInt32 _parentIndex;      // 8: [4]
-    /// data index of this node
-    lInt32 _dataIndex;        //12: [4]
-
-#if (LDOM_ALLOW_NODE_INDEX==1)
-	/// optional index of this node in parent's children collection
-    lUInt32 _index;
-#endif
-
-    virtual void addChild( lInt32 ) { }
-
-    ldomNode( const ldomNode * node )
-    : _document(node->_document), _parentIndex( node->_parentIndex ), _dataIndex( node->_dataIndex )
-#if (LDOM_ALLOW_NODE_INDEX==1)
-    , _index( node->getNodeIndex() )
-#endif
-    {
-	}
-
-    ldomNode( ldomDocument * document, lInt32 parentIndex, lInt32 dataIndex )
-        : _document( document ), _parentIndex( parentIndex ), _dataIndex( dataIndex )
-    {
-    }
-
-public:
-    ldomNode( ldomDocument * document, ldomNode * parent, lUInt32
-#if (LDOM_ALLOW_NODE_INDEX==1)
-              index
-#endif
-              )
-    : _document(document), _parentIndex( parent ? parent->getDataIndex() : 0 )
-#if (LDOM_ALLOW_NODE_INDEX==1)
-    , _index(index)
-#endif
-    {
-		_dataIndex  = ((lxmlDocBase*)document)->registerNode(this);
-	}
-	/// destructor
-    virtual ~ldomNode();
-    /// returns true if node is stored in persistent storage
-    virtual bool isPersistent() { return false; }
-
-    /// returns data index of node's registration in document data storage
-    inline lInt32 getDataIndex() { return _dataIndex; }
-    /// returns pointer to document
-    inline ldomDocument * getDocument() const { return _document; }
-	/// returns pointer to parent node, NULL if node has no parent
-    inline ldomNode * getParentNode() const { return _parentIndex > 0 ? ((lxmlDocBase*)_document)->getNodeInstance(_parentIndex) : NULL; }
-	/// returns node type, either LXML_TEXT_NODE or LXML_ELEMENT_NODE
-    virtual lUInt8 getNodeType() const = 0;
-	/// returns node level, 0 is root node
-    virtual lUInt8 getNodeLevel() const;
-    /// returns node index
-#if (LDOM_ALLOW_NODE_INDEX==1)
-    inline lUInt32 getNodeIndex() const { return _index; }
-#else
-    lUInt32 getNodeIndex() const;
-#endif
-	/// returns true if this pointer is NULL
-    inline bool isNull() const { return this == NULL; }
-	/// returns true if node is document's root
-    inline bool isRoot() const { return _parentIndex <= 0; }
-	/// returns true if node is text
-    inline bool isText() const { return getNodeType() == LXML_TEXT_NODE; }
-	/// returns true if node is element
-    inline bool isElement() const { return getNodeType() == LXML_ELEMENT_NODE; }
-    /// returns true if node is and element that has children
-    inline bool hasChildren() { return getChildCount()!=0; }
-    /// returns true if node is element has attributes
-    inline bool hasAttributes() const { return getAttrCount()!=0; }
-#if (LDOM_ALLOW_NODE_INDEX==1)
-    inline void setIndex( lUInt32 index ) { _index = index; }
-#endif
-
-    // virtual functions
-
-    /// returns element child count
-    virtual lUInt32 getChildCount() const = 0;
-    /// returns element attribute count
-    virtual lUInt32 getAttrCount() const = 0;
-    /// returns attribute value by attribute name id and namespace id
-    virtual const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const = 0;
-    /// returns attribute value by attribute name
-    inline const lString16 & getAttributeValue( const lChar16 * attrName ) const
-    {
-        return getAttributeValue( NULL, attrName );
-    }
-    /// returns attribute value by attribute name and namespace
-    virtual const lString16 & getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const;
-    /// returns attribute by index
-    virtual const lxmlAttribute * getAttribute( lUInt32 ) const = 0;
-    /// returns true if element node has attribute with specified name id and namespace id
-    virtual bool hasAttribute( lUInt16 nsId, lUInt16 attrId ) const = 0;
-    /// returns attribute name by index
-    virtual const lString16 & getAttributeName( lUInt32 ) const { return lString16::empty_str; }
-    /// sets attribute value
-    virtual void setAttributeValue( lUInt16 , lUInt16 , const lChar16 *  ) { }
-    /// returns element type structure pointer if it was set in document for this element name
-    virtual const css_elem_def_props_t * getElementTypePtr() = 0;
-    /// returns element name id
-    virtual lUInt16 getNodeId() const = 0;
-    /// returns element namespace id
-    virtual lUInt16 getNodeNsId() const = 0;
-    /// replace element name id with another value
-    virtual void setNodeId( lUInt16 ) { }
-    /// returns element name
-    virtual const lString16 & getNodeName() const = 0;
-    /// returns element namespace name
-    virtual const lString16 & getNodeNsName() const = 0;
-    /// returns text node text as wide string
-    virtual lString16 getText( lChar16 blockDelimiter = 0 ) const;
-    /// returns text node text as utf8 string
-    virtual lString8 getText8( lChar8 blockDelimiter = 0 ) const;
-    /// sets text node text as wide string
-    virtual void setText( lString16 ) { }
-    /// sets text node text as utf8 string
-    virtual void setText8( lString8 ) { }
-    /// returns child node by index
-    virtual ldomNode * getChildNode( lUInt32 index ) const = 0;
-    /// returns node absolute rectangle
-    virtual void getAbsRect( lvRect & rect );
-    /// returns render data structure
-    virtual lvdomElementFormatRec * getRenderData() { return NULL; }
-    /// sets node rendering structure pointer
-    virtual void clearRenderData() { }
-    /// calls specified function recursively for all elements of DOM tree
-    virtual void recurseElements( void (*pFun)( ldomNode * node ) );
-    /// calls specified function recursively for all nodes of DOM tree
-    virtual void recurseNodes( void (*pFun)( ldomNode * node ) );
-
-
-    // inline, dummy namespace
-
-    /// returns attribute value by attribute name id
-    inline const lString16 & getAttributeValue( lUInt16 id ) const
-    {
-        return getAttributeValue( LXML_NS_ANY, id );
-    }
-    /// returns true if element node has attribute with specified name id
-    inline bool hasAttribute( lUInt16 id ) const
-    {
-        return hasAttribute( LXML_NS_ANY, id );
-    }
-    /// returns first text child element
-    virtual ldomNode * getFirstTextChild();
-    /// returns last text child element
-    virtual ldomNode * getLastTextChild();
-#if BUILD_LITE!=1
-    /// find node by coordinates of point in formatted document
-    virtual ldomNode * elementFromPoint( lvPoint pt );
-    /// find final node by coordinates of point in formatted document
-    virtual ldomNode * finalBlockFromPoint( lvPoint pt );
-#endif
-
-    // rich interface stubs for supporting Element operations
-    /// returns rendering method
-    virtual lvdom_element_render_method getRendMethod() { return erm_invisible; }
-    /// sets rendering method
-    virtual void setRendMethod( lvdom_element_render_method ) { }
-    /// returns element style record
-    virtual css_style_ref_t getStyle() { return css_style_ref_t(); }
-    /// returns element font
-    virtual font_ref_t getFont() { return font_ref_t(); }
-    /// sets element font
-    virtual void setFont( font_ref_t ) { }
-    /// sets element style record
-    virtual void setStyle( css_style_ref_t & ) { }
-
-    /// returns first child node
-    virtual ldomNode * getFirstChild() const { return NULL; }
-    /// returns last child node
-    virtual ldomNode * getLastChild() const { return NULL; }
-    /// removes and deletes last child element
-    virtual void removeLastChild() { }
-    /// move range of children startChildIndex to endChildIndex inclusively to specified element
-    virtual void moveItemsTo( ldomNode *, int , int ) { }
-    /// find child element by tag id
-    ldomNode * findChildElement( lUInt16 nsid, lUInt16 id, int index );
-    /// find child element by id path
-    ldomNode * findChildElement( lUInt16 idPath[] );
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt32 index, lUInt16 nsid, lUInt16 id ) = 0;
-    /// inserts child element
-    virtual ldomNode * insertChildElement( lUInt16 id ) = 0;
-    /// inserts child text
-    virtual ldomNode * insertChildText( lUInt32 index, const lString16 & value ) = 0;
-    /// inserts child text
-    virtual ldomNode * insertChildText( const lString16 & value ) = 0;
-    /// remove child
-    virtual ldomNode * removeChild( lUInt32 index ) = 0;
-    /// creates stream to read base64 encoded data from element
-    LVStreamRef createBase64Stream();
-#if BUILD_LITE!=1
-    /// returns object image source
-    LVImageSourceRef getObjectImageSource();
-    /// formats final block
-    int renderFinalBlock(  LFormattedTextRef & frmtext, int width );
-    /// formats final block again after change, returns true if size of block is changed
-    bool refreshFinalBlock();
-#endif
-    /// replace node with r/o persistent implementation
-    virtual ldomNode * persist() { return this; }
-    /// replace node with r/w implementation
-    virtual ldomNode * modify() { return this; }
-protected:
-    /// override to avoid deleting children while replacing
-    virtual void prepareReplace() { }
-};
 
 class ldomDocument;
 
@@ -1081,7 +964,7 @@ protected:
 		// create empty
 		XPointerData() : _doc(NULL), _dataIndex(0), _offset(0), _refCount(1) { }
 		// create instance
-		XPointerData( ldomNode * node, int offset ) 
+        XPointerData( ldomNode * node, int offset )
 			: _doc(node?node->getDocument():NULL)
 			, _dataIndex(node?node->getDataIndex():0)
 			, _offset( offset )
@@ -1099,9 +982,9 @@ protected:
 			return _doc!=v._doc || _dataIndex != v._dataIndex || _offset != v._offset;
 		}
 		inline bool isNull() { return _dataIndex==0; }
-		inline ldomNode * getNode() { return _dataIndex>0 ? ((lxmlDocBase*)_doc)->getNodeInstance( _dataIndex ) : NULL; }
+        inline ldomNode * getNode() { return _dataIndex>0 ? ((lxmlDocBase*)_doc)->getTinyNode( _dataIndex ) : NULL; }
 		inline int getOffset() { return _offset; }
-		inline void setNode( ldomNode * node )
+        inline void setNode( ldomNode * node )
 		{
 			if ( node ) {
 				_doc = node->getDocument();
@@ -1116,7 +999,7 @@ protected:
         ~XPointerData() { }
 	};
 	/// node pointer
-	//ldomNode * _node;
+    //ldomNode * _node;
 	/// offset within node for pointer, -1 for xpath
 	//int _offset;
 	// cloning constructor
@@ -1131,7 +1014,7 @@ public:
     /// return document
 	inline ldomDocument * getDocument() { return _data->getDocument(); }
     /// returns node pointer
-	inline ldomNode * getNode() const { return _data->getNode(); }
+    inline ldomNode * getNode() const { return _data->getNode(); }
 #if BUILD_LITE!=1
     /// return parent final node, if found
     ldomNode * getFinalNode() const;
@@ -1139,7 +1022,7 @@ public:
     /// returns offset within node
 	inline int getOffset() const { return _data->getOffset(); }
 	/// set pointer node
-	inline void setNode( ldomNode * node ) { _data->setNode( node ); }
+    inline void setNode( ldomNode * node ) { _data->setNode( node ); }
 	/// set pointer offset within node
 	inline void setOffset( int offset ) { _data->setOffset( offset ); }
     /// default constructor makes NULL pointer
@@ -1166,7 +1049,7 @@ public:
         return *this;
 	}
     /// constructor
-	ldomXPointer( ldomNode * node, int offset )
+    ldomXPointer( ldomNode * node, int offset )
 		: _data( new XPointerData( node, offset ) )
 	{
 	}
@@ -1219,7 +1102,7 @@ public:
     /// returns XPath node text
     lString16 getText(  lChar16 blockDelimiter=0 )
     {
-		ldomNode * node = getNode();
+        ldomNode * node = getNode();
         if ( !node )
             return lString16();
         return node->getText( blockDelimiter );
@@ -1609,6 +1492,71 @@ public:
     ldomXRangeList() {};
 };
 
+class LVTocItem;
+class LVDocView;
+
+/// TOC item
+class LVTocItem
+{
+    friend class LVDocView;
+private:
+    LVTocItem *     _parent;
+    ldomDocument *  _doc;
+    int             _level;
+    int             _index;
+    int             _page;
+    int             _percent;
+    lString16       _name;
+    lString16       _path;
+    ldomXPointer    _position;
+    LVPtrVector<LVTocItem> _children;
+    //====================================================
+    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _path(pos.toString()), _position(pos) { }
+    void addChild( LVTocItem * item ) { item->_level=_level+1; item->_parent=this; item->_index=_children.length(), item->_doc=_doc; _children.add(item); }
+    //====================================================
+    void setPage( int n ) { _page = n; }
+    void setPercent( int n ) { _percent = n; }
+public:
+    /// serialize to byte array (pointer will be incremented by number of bytes written)
+    bool serialize( SerialBuf & buf );
+    /// deserialize from byte array (pointer will be incremented by number of bytes read)
+    bool deserialize( ldomDocument * doc, SerialBuf & buf );
+    /// get page number
+    int getPage() { return _page; }
+    /// get position percent * 100
+    int getPercent() { return _percent; }
+    /// returns parent node pointer
+    LVTocItem * getParent() const { return _parent; }
+    /// returns node level (0==root node, 1==top level)
+    int getLevel() const { return _level; }
+    /// returns node index
+    int getIndex() const { return _index; }
+    /// returns section title
+    lString16 getName() const { return _name; }
+    /// returns position pointer
+    ldomXPointer getXPointer();
+    /// returns position path
+    lString16 getPath();
+    /// returns Y position
+    int getY();
+    /// returns page number
+    //int getPageNum( LVRendPageList & pages );
+    /// returns child node count
+    int getChildCount() const { return _children.length(); }
+    /// returns child node by index
+    LVTocItem * getChild( int index ) const { return _children[index]; }
+    /// add child TOC node
+    LVTocItem * addChild( const lString16 & name, ldomXPointer ptr )
+    {
+        LVTocItem * item = new LVTocItem( ptr, name );
+        addChild( item );
+        return item;
+    }
+    void clear() { _children.clear(); }
+    // root node constructor
+    LVTocItem( ldomDocument * doc ) : _parent(NULL), _doc(doc), _level(0), _index(0) { }
+    ~LVTocItem() { clear(); }
+};
 
 
 class ldomNavigationHistory
@@ -1668,30 +1616,38 @@ private:
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
     int _page_height;
+    int _page_width;
+    bool _rendered;
     ldomXRangeList _selections;
 
-#if BUILD_LITE!=1
-    /// final block cache
-    CVRendBlockCache _renderedBlockCache;
-#endif
     LVContainerRef _container;
+
+    /// save changes to cache file
+    bool saveChanges();
+    /// load document cache file content
+    bool loadCacheFileContent();
+
 
 protected:
 
-    /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
-    int getPersistenceFlags();
+    LVTocItem m_toc;
 
-#if BUILD_LITE!=1
-    /// change size of memory mapped buffer
-    virtual bool resizeMap( lvsize_t newSize );
-#endif
 public:
+
+
+    bool isDefStyleSet()
+    {
+        return !_def_style.isNull();
+    }
+
+    /// returns pointer to TOC root node
+    LVTocItem * getToc() { return &m_toc; }
 
 #if BUILD_LITE!=1
     /// save document formatting parameters after render
-    void updateRenderContext( LVRendPageList * pages, int dx, int dy );
+    void updateRenderContext();
     /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
-    bool checkRenderContext( LVRendPageList * pages, int dx, int dy );
+    bool checkRenderContext();
 #endif
 
 #if BUILD_LITE!=1
@@ -1710,6 +1666,7 @@ public:
 #if BUILD_LITE!=1
     void clearRendBlockCache() { _renderedBlockCache.clear(); }
 #endif
+    void clear();
 
     ldomDocument();
     /// creates empty document which is ready to be copy target of doc partial contents
@@ -1732,6 +1689,8 @@ public:
 #if BUILD_LITE!=1
     /// renders (formats) document in memory
     virtual int render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space );
+    /// renders (formats) document in memory
+    virtual bool setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space );
 #endif
     /// create xpointer from pointer string
     ldomXPointer createXPointer( const lString16 & xPointerStr );
@@ -1770,10 +1729,15 @@ class ldomElementWriter
     ldomDocument * _document;
 
     ldomNode * _element;
+    LVTocItem * _tocItem;
     const css_elem_def_props_t * _typeDef;
     bool _allowText;
+    bool _isBlock;
+    bool _isSection;
     lUInt32 getFlags();
-    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
+    void updateTocItem();
+    void onBodyEnter();
+    void onBodyExit();
     ldomNode * getElement()
     {
         return _element;
@@ -1782,6 +1746,7 @@ class ldomElementWriter
     void addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value );
     //lxmlElementWriter * pop( lUInt16 id );
 
+    ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent);
     ~ldomElementWriter();
 
     friend class ldomDocumentWriter;
@@ -1822,6 +1787,8 @@ public:
     virtual void OnStop();
     /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody();
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on attribute
@@ -1857,6 +1824,8 @@ public:
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on opening tag
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody();
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on text
@@ -1901,6 +1870,13 @@ public:
         }
         if ( !insideTag && baseTag==tagname )
             insideTag = true;
+    }
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody()
+    {
+        if ( insideTag ) {
+            parent->OnTagBody();
+        }
     }
     /// called on closing tag
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
@@ -1961,5 +1937,8 @@ public:
     /// returns true if cache is enabled (successfully initialized)
     static bool enabled();
 };
+
+/// unit test for DOM
+void runTinyDomUnitTests();
 
 #endif

@@ -16,6 +16,10 @@
 #include "../include/lvstsheet.h"
 #include "../include/crtrace.h"
 
+// uncomment to trace skin XML access errors / not found elements
+//#define TRACE_SKIN_ERRORS
+
+
 class RecursionLimit
 {
 static int counter;
@@ -192,8 +196,10 @@ void CRIconSkin::draw( LVDrawBuf & buf, const lvRect & rc )
 
 void CRIconList::draw( LVDrawBuf & buf, const lvRect & rc )
 {
+    //CRLog::trace("enter CRIconList::draw(%d images)", _list.length());
     for ( int i=0; i<_list.length(); i++ )
         _list[i]->draw( buf, rc );
+    //CRLog::trace("exit CRIconList::draw()");
 }
 
 /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
@@ -668,14 +674,18 @@ LVImageSourceRef CRSkinContainer::readImage( const lChar16 * path, const lChar16
 {
     lString16 value = readString( path, attrname );
     if ( value.empty() ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "CRSkinContainer::readImage( " << path << ", " << attrname << ") - attribute or element not found";
+#endif
         return LVImageSourceRef();
     }
     LVImageSourceRef res = getImage( value );
     if ( res.isNull() ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "Image " << value << " cannot be read";
+#endif
 	} else {
 		if ( r )
 			*r = true;
@@ -698,8 +708,10 @@ CRIconListRef CRSkinContainer::readIcons( const lChar16 * path, bool * r )
         }
     }
     if ( list->length()==0 ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "CRSkinContainer::readIcons( " << path << ") - cannot read icon from specified path";
+#endif
         return CRIconListRef();
     }
     if ( r )
@@ -750,6 +762,7 @@ void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
     SAVE_DRAW_STATE( buf );
 	buf.SetBackgroundColor( getBackgroundColor() );
 	buf.SetTextColor( getTextColor() );
+    //CRLog::trace("CRSkinnedItem::draw before getBgIcons()");
     CRIconListRef bgimg = getBgIcons();
 	if ( bgimg.isNull() ) {
         //buf.FillRect( rc, getBackgroundColor() );
@@ -1315,8 +1328,10 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     lString16 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "Button skin by path " << p << " was not found";
+#endif
         return false;
     }
 
@@ -1334,8 +1349,10 @@ bool CRSkinContainer::readButtonSkin(  const lChar16 * path, CRButtonSkin * res 
     }
 
     if ( !flg ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "Button skin reading failed: " << path;
+#endif
     }
 
     return flg;
@@ -1356,8 +1373,10 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
     lString16 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "ScrollBar skin by path " << p << " was not found";
+#endif
         return false;
     }
 
@@ -1448,8 +1467,10 @@ bool CRSkinContainer::readIconSkin(  const lChar16 * path, CRIconSkin * res )
     lString16 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "Image skin by path " << p << " was not found";
+#endif
         return false;
     }
     LVImageSourceRef image = readImage( path, L"image", &flg );
@@ -1480,8 +1501,10 @@ bool CRSkinContainer::readRectSkin(  const lChar16 * path, CRRectSkin * res )
     lString16 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "Rect skin by path " << p << " was not found";
+#endif
         return false;
     }
 
@@ -1543,8 +1566,10 @@ bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res 
     lString16 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "Window skin by path " << p << " was not found";
+#endif
         return false;
     }
 
@@ -1603,8 +1628,10 @@ bool CRSkinContainer::readMenuSkin(  const lChar16 * path, CRMenuSkin * res )
     lString16 p( path );
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr ) {
+#ifdef TRACE_SKIN_ERRORS
         crtrace log;
         log << "Menu skin by path " << p << " was not found";
+#endif
         return false;
     }
 

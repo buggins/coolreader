@@ -22,9 +22,9 @@
 // define to non-zero (1..5) to see block bounds
 #define DEBUG_TREE_DRAW 0
 
-#ifdef _DEBUG
-//#define DEBUG_DUMP_ENABLED
-#endif
+//#ifdef _DEBUG
+#define DEBUG_DUMP_ENABLED
+//#endif
 
 #ifdef DEBUG_DUMP_ENABLED
 
@@ -52,7 +52,7 @@ public:
     simpleLogFile & operator << ( const lString16 &str ) { return operator << (str.c_str()); }
 };
 
-simpleLogFile logfile("logfile.log");
+simpleLogFile logfile("/tmp/logfile.log");
 
 #else
 
@@ -232,6 +232,7 @@ public:
                 // for each child element
                 ldomNode * item = el->getChildNode(i);
                 lvdom_element_render_method rendMethod = item->getRendMethod();
+                CRLog::trace("LookupElem[%d] (%s, %d) %d", i, LCSTR(item->getNodeName()), state, (int)item->getRendMethod() );
                 switch ( rendMethod ) {
                 case erm_invisible:  // invisible: don't render
                     // do nothing: invisible
@@ -565,9 +566,9 @@ public:
                     cell->width += cols[x0+x]->width;
                 }
                 // padding
-                lvdomElementFormatRec * fmt = cell->elem->getRenderData();
+                RenderRectAccessor fmt( cell->elem );
                 int em = cell->elem->getFont()->getHeight();
-                int width = fmt->getWidth();
+                int width = fmt.getWidth();
                 cell->padding_left = (short)lengthToPx( cell->elem->getStyle()->padding[0], width, em );
                 cell->padding_right = (short)lengthToPx( cell->elem->getStyle()->padding[1], width, em );
                 cell->padding_top = (short)lengthToPx( cell->elem->getStyle()->padding[2], width, em );
@@ -584,7 +585,7 @@ public:
     {
         // render caption
         if ( caption ) {
-            lvdomElementFormatRec * fmt = caption->getRenderData();
+            RenderRectAccessor fmt( caption );
             int em = caption->getFont()->getHeight();
             int w = width - TABLE_BORDER_WIDTH*2;
             int padding_left = lengthToPx( caption->getStyle()->padding[0], width, em );
@@ -592,11 +593,12 @@ public:
             int padding_top = lengthToPx( caption->getStyle()->padding[2], width, em );
             int padding_bottom = lengthToPx( caption->getStyle()->padding[3], width, em );
             LFormattedTextRef txform;
-            caption_h = caption->renderFinalBlock( txform, w - padding_left - padding_right ) + padding_top + padding_bottom;
-            fmt->setY( TABLE_BORDER_WIDTH ); //cell->padding_top ); //cell->row->y - cell->row->y );
-            fmt->setX( TABLE_BORDER_WIDTH ); // + cell->padding_left
-            fmt->setWidth( w ); //  - cell->padding_left - cell->padding_right
-            fmt->setHeight( caption_h ); // - cell->padding_top - cell->padding_bottom
+            caption_h = caption->renderFinalBlock( txform, &fmt, w - padding_left - padding_right ) + padding_top + padding_bottom;
+            fmt.setY( TABLE_BORDER_WIDTH ); //cell->padding_top ); //cell->row->y - cell->row->y );
+            fmt.setX( TABLE_BORDER_WIDTH ); // + cell->padding_left
+            fmt.setWidth( w ); //  - cell->padding_left - cell->padding_right
+            fmt.setHeight( caption_h ); // - cell->padding_top - cell->padding_bottom
+            fmt.push();
         }
         int i, j;
         // calc individual cells dimensions
@@ -609,23 +611,23 @@ public:
                 if ( i==y ) {
                     //upper left corner of cell
 
-                    lvdomElementFormatRec * fmt = cell->elem->getRenderData();
+                    RenderRectAccessor fmt( cell->elem );
                     if ( cell->elem->getRendMethod()==erm_final ) {
                         LFormattedTextRef txform;
-                        int h = cell->elem->renderFinalBlock( txform, cell->width - cell->padding_left - cell->padding_right );
+                        int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - cell->padding_left - cell->padding_right );
                         cell->height = h + cell->padding_top + cell->padding_bottom;
-                        fmt->setY( 0 ); //cell->padding_top ); //cell->row->y - cell->row->y );
-                        fmt->setX( cell->col->x ); // + cell->padding_left
-                        fmt->setWidth( cell->width ); //  - cell->padding_left - cell->padding_right
-                        fmt->setHeight( cell->height ); // - cell->padding_top - cell->padding_bottom
+                        fmt.setY( 0 ); //cell->padding_top ); //cell->row->y - cell->row->y );
+                        fmt.setX( cell->col->x ); // + cell->padding_left
+                        fmt.setWidth( cell->width ); //  - cell->padding_left - cell->padding_right
+                        fmt.setHeight( cell->height ); // - cell->padding_top - cell->padding_bottom
                     } else if ( cell->elem->getRendMethod()!=erm_invisible ) {
                         LVRendPageContext emptycontext( NULL, context.getPageHeight() );
                         int h = renderBlockElement( context, cell->elem, 0, 0, cell->width );
                         cell->height = h;
-                        fmt->setY( 0 ); //cell->row->y - cell->row->y );
-                        fmt->setX( cell->col->x );
-                        fmt->setWidth( cell->width );
-                        fmt->setHeight( cell->height );
+                        fmt.setY( 0 ); //cell->row->y - cell->row->y );
+                        fmt.setX( cell->col->x );
+                        fmt.setWidth( cell->width );
+                        fmt.setHeight( cell->height );
                     }
                     if ( cell->rowspan==1 ) {
                         if ( row->height < cell->height )
@@ -671,12 +673,12 @@ public:
             row->y = h;
             h += row->height;
 			if ( row->elem ) {
-				lvdomElementFormatRec * fmt = row->elem->getRenderData();
-				fmt->setX(TABLE_BORDER_WIDTH);
-				fmt->setY(row->y + TABLE_BORDER_WIDTH);
-				fmt->setWidth( width - TABLE_BORDER_WIDTH * 2);
-				fmt->setHeight( row->height );
-			}
+                RenderRectAccessor fmt( row->elem );
+                fmt.setX(TABLE_BORDER_WIDTH);
+                fmt.setY(row->y + TABLE_BORDER_WIDTH);
+                fmt.setWidth( width - TABLE_BORDER_WIDTH * 2);
+                fmt.setHeight( row->height );
+            }
         }
         // update cell Y relative to row element
         // calc individual cells dimensions
@@ -687,12 +689,11 @@ public:
                 //int x = cell->col->index;
                 int y = cell->row->index;
                 if ( i==y ) {
-                    lvdomElementFormatRec * fmt = cell->elem->getRenderData();
+                    RenderRectAccessor fmt( cell->elem );
                     //CCRTableCol * lastcol = cols[ cell->col->index + cell->colspan - 1 ];
                     //fmt->setWidth( lastcol->width + lastcol->x - cell->col->x - cell->padding_left - cell->padding_right );
                     CCRTableRow * lastrow = rows[ cell->row->index + cell->rowspan - 1 ];
-                    fmt->setHeight( lastrow->height + lastrow->y - cell->row->y ); // - cell->padding_top - cell->padding_bottom
-
+                    fmt.setHeight( lastrow->height + lastrow->y - cell->row->y ); // - cell->padding_top - cell->padding_bottom
                 }
             }
         }
@@ -747,18 +748,18 @@ public:
         // update row groups placement
         for ( int i=0; i<rowgroups.length(); i++ ) {
             CCRTableRowGroup * grp = rowgroups[i];
-            lvdomElementFormatRec * fmt = grp->elem->getRenderData();
             if ( grp->rows.length() > 0 ) {
                 int y0 = grp->rows.first()->y;
                 int y1 = grp->rows.last()->y + grp->rows.first()->height;
-                fmt->setY( y0 );
-                fmt->setHeight( y1 - y0 );
-                fmt->setX( 0 );
-                fmt->setWidth( width );
+                RenderRectAccessor fmt( grp->elem );
+                fmt.setY( y0 );
+                fmt.setHeight( y1 - y0 );
+                fmt.setX( 0 );
+                fmt.setWidth( width );
                 for ( int j=0; j<grp->rows.length(); j++ ) {
                     // make row Y position relative to group
-                    lvdomElementFormatRec * rowfmt = grp->rows[j]->elem->getRenderData();
-                    rowfmt->setY( rowfmt->getY() - y0 );
+                    RenderRectAccessor rowfmt( grp->rows[j]->elem );
+                    rowfmt.setY( rowfmt.getY() - y0 );
                 }
             }
         }
@@ -839,6 +840,7 @@ LVFontRef getFont( css_style_rec_t * style )
     return fnt;
 }
 
+#if 0
 void initFormatData( ldomNode * node )
 {
     //lvdomElementFormatRec * fmt = new lvdomElementFormatRec;
@@ -854,106 +856,17 @@ void initFormatData( ldomNode * node )
     {
         ldomNode * parent = node->getParentNode();
         //lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
+        css_style_ref_t style = parent->getStyle();
+        LVFontRef font = parent->getFont();
+        if ( style.isNull() ) {
+            // for debugging
+            style = parent->getStyle();
+        }
         setNodeStyle( node,
-            parent->getStyle(),
-            parent->getFont()
+            style,
+            font
             );
     }
-}
-
-// init table element render methods
-// states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
-// returns table cell count
-int initTableRendMethods( ldomNode * enode, int state )
-{
-    //main node: table
-    if ( state==0 && enode->getStyle()->display==css_d_table )
-        enode->setRendMethod( erm_table ); // for table
-    int cellCount = 0;
-    int cnt = enode->getChildCount();
-    int i;
-    for (i=0; i<cnt; i++)
-    {
-        ldomNode * child = enode->getChildNode( i );
-        if ( child->isElement() )
-        {
-            switch( child->getStyle()->display )
-            {
-            case css_d_table_caption:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_caption );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_inline:
-                {
-                }
-                break;
-            case css_d_table_row_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_row_group );
-                    cellCount += initTableRendMethods( child, 2 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_header_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_header_group );
-                    cellCount += initTableRendMethods( child, 2);
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_footer_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_footer_group );
-                    cellCount += initTableRendMethods( child, 2 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_row:
-                if ( state==0 || state==2 ) {
-                    child->setRendMethod( erm_table_row );
-                    cellCount += initTableRendMethods( child, 3 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_column_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_column_group );
-                    cellCount += initTableRendMethods( child, 1 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_column:
-                if ( state==0 || state==1 ) {
-                    child->setRendMethod( erm_table_column );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_cell:
-                if ( state==3 ) {
-                    child->setRendMethod( erm_table_cell );
-                    cellCount++;
-                    // will be translated to block or final below
-                    initRendMethod( child );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            default:
-                // ignore
-                break;
-            }
-        }
-    }
-    return cellCount;
 }
 
 bool isInvisibleItem( ldomNode * node )
@@ -992,9 +905,11 @@ bool isInlineItem( ldomNode * node )
     }
     return false;
 }
+#endif
 
+#if 0
 // init element render method
-int initRendMethod( ldomNode * enode )
+int initRendMethod( ldomNode * enode, bool recurseChildren, bool allowAutoboxing )
 {
     int res = 0;
     if ( enode->isElement() )
@@ -1022,9 +937,10 @@ int initRendMethod( ldomNode * enode )
             ldomNode * child = enode->getChildNode( i );
             if ( child->isElement() )
             {
-                res += initRendMethod( child );
+                if ( recurseChildren )
+                    res += initRendMethod( child, recurseChildren, allowAutoboxing );
                 // may be modified
-                child = enode->getChildNode( i );
+                //child = enode->getChildNode( i );
                 //lvdomElementFormatRec * childfmt = child->getRenderData();
                 switch( child->getStyle()->display )
                 {
@@ -1052,7 +968,7 @@ int initRendMethod( ldomNode * enode )
             }
         }
         //======= AUTOBOXING =================================================
-        if ( (textCount || inlineCount || runinCount) && blockCount ) {
+        if ( allowAutoboxing && (textCount || inlineCount || runinCount) && blockCount ) {
             // Mixed inline and block items! Autoboxing is necessary!
             int firstInline = -1;
             bool lastInline = false;
@@ -1062,7 +978,7 @@ int initRendMethod( ldomNode * enode )
                     lString16 s = child->getText();
                     if ( IsEmptySpace( s.c_str(), s.length() ) ) {
                         enode = enode->modify();
-                        delete enode->removeChild( i );
+                        enode->removeChild( i )->destroy();
                         cnt--;
                         textCount--;
                     }
@@ -1096,6 +1012,7 @@ int initRendMethod( ldomNode * enode )
                             if ( !enode->getDocument()->checkConsistency( false ) )
                                 CRLog::error("after insert child");
 #endif*/
+                            CRLog::trace("Autoboxing applied to node <%s>", LCSTR(enode->getNodeName()) );
                             enode->moveItemsTo( abox, lastInline+1, firstInline+1 );
                             setNodeStyle( abox,
                                 enode->getStyle(),
@@ -1117,13 +1034,13 @@ int initRendMethod( ldomNode * enode )
         }
 
 #ifdef DEBUG_DUMP_ENABLED
-      for (i=0; i<node->getNodeLevel(); i++)
+      for (i=0; i<enode->getNodeLevel(); i++)
         logfile << " . ";
 #endif
 #ifdef DEBUG_DUMP_ENABLED
         lvRect rect;
-        node->getAbsRect( rect );
-        logfile << "<" << node->getNodeName() << ">     text:"
+        enode->getAbsRect( rect );
+        logfile << "<" << enode->getNodeName() << ">     text:"
             << textCount << " inline: " << inlineCount
             << " block: " << blockCount << "   rendMethod: ";
 #endif
@@ -1132,6 +1049,16 @@ int initRendMethod( ldomNode * enode )
         if ( textCount || inlineCount || runinCount )
         {
             // if there are inline or text in block, make it final
+            if ( blockCount ) {
+                CRLog::warn("FINAL element <%s> contains %d text, %d inline, %d runin, %d blocks", LCSTR(enode->getNodeName()), textCount, inlineCount, runinCount, blockCount);
+                for ( int i=0; i<enode->getChildCount(); i++ )
+                    if ( enode->getChildNode(i)->isText() ) {
+                        lString16 s = enode->getChildNode(i)->getText();
+                        CRLog::warn("text: '%s' first ch=%04x", LCSTR(s), s[0]);
+                    }
+            } else {
+                CRLog::trace("FINAL element <%s> contains %d text, %d inline, %d runin", LCSTR(enode->getNodeName()), textCount, inlineCount, runinCount);
+            }
             enode->setRendMethod( erm_final );
             res++;
 #ifdef DEBUG_DUMP_ENABLED
@@ -1142,6 +1069,7 @@ int initRendMethod( ldomNode * enode )
         {
             // if there are blocks only inside element, treat it as block too
             enode->setRendMethod( erm_block );
+            CRLog::trace("BLOCK element <%s> contains %d blocks", LCSTR(enode->getNodeName()), blockCount);
 #ifdef DEBUG_DUMP_ENABLED
             logfile << "block";
 #endif
@@ -1186,6 +1114,7 @@ int initRendMethod( ldomNode * enode )
     }
     return res;
 }
+#endif
 
 int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags )
 {
@@ -1270,18 +1199,20 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
 //=======================================================================
 // Render final block
 //=======================================================================
-void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFormatRec * fmt, int & baseflags, int ident, int line_h )
+void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, int & baseflags, int ident, int line_h )
 {
     if ( enode->isElement() )
     {
-        fmt = enode->getRenderData();
         if ( enode->getRendMethod() == erm_invisible )
             return; // don't draw invisible
+        //RenderRectAccessor fmt2( enode );
+        //fmt = &fmt2;
         int flags = styleToTextFmtFlags( enode->getStyle(), baseflags );
         int width = fmt->getWidth();
+        css_style_rec_t * style = enode->getStyle().get();
         if (flags & LTEXT_FLAG_NEWLINE)
         {
-            css_length_t len = enode->getStyle()->text_indent;
+            css_length_t len = style->text_indent;
             switch( len.type )
             {
             case css_val_percent:
@@ -1297,7 +1228,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
                 ident = 0;
                 break;
             }
-            len = enode->getStyle()->line_height;
+            len = style->line_height;
             switch( len.type )
             {
             case css_val_percent:
@@ -1316,7 +1247,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
         // save flags
         int f = flags;
         // vertical alignment flags
-        switch (enode->getStyle()->vertical_align)
+        switch (style->vertical_align)
         {
         case css_va_sub:
             flags |= LTEXT_VALIGN_SUB;
@@ -1328,7 +1259,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
         default:
             break;
         }
-        switch ( enode->getStyle()->text_decoration ) {
+        switch ( style->text_decoration ) {
         case css_td_underline:
             flags |= LTEXT_TD_UNDERLINE;
             break;
@@ -1344,7 +1275,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
         default:
             break;
         }
-        switch ( enode->getStyle()->hyphenate ) {
+        switch ( style->hyphenate ) {
             case css_hyph_auto:
                 flags |= LTEXT_HYPHENATE;
                 break;
@@ -1352,6 +1283,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
                 break;
         }
         const css_elem_def_props_t * ntype = enode->getElementTypePtr();
+//        if ( ntype ) {
+//            CRLog::trace("Node %s is Object ?  %d", LCSTR(enode->getNodeName()), ntype->is_object );
+//        } else {
+//            CRLog::trace("Node %s (%d) has no css_elem_def_props_t", LCSTR(enode->getNodeName()), enode->getNodeId() );
+//        }
         if ( ntype && ntype->is_object )
         {
 #ifdef DEBUG_DUMP_ENABLED
@@ -1394,13 +1330,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
 
 
 #ifdef DEBUG_DUMP_ENABLED
-      for (int i=0; i<node->getNodeLevel(); i++)
+      for (int i=0; i<enode->getNodeLevel(); i++)
         logfile << " . ";
 #endif
 #ifdef DEBUG_DUMP_ENABLED
         lvRect rect;
-        node->getAbsRect( rect );
-        logfile << "<" << node->getNodeName() << ">     flags( "
+        enode->getAbsRect( rect );
+        logfile << "<" << enode->getNodeName() << ">     flags( "
             << baseflags << "-> " << flags << ")  rect( "
             << rect.left << rect.top << rect.right << rect.bottom << ")\n";
 #endif
@@ -1423,7 +1359,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, lvdomElementFo
         {
 
 #ifdef DEBUG_DUMP_ENABLED
-      for (int i=0; i<node->getNodeLevel(); i++)
+      for (int i=0; i<enode->getNodeLevel(); i++)
         logfile << " . ";
 #endif
 #ifdef DEBUG_DUMP_ENABLED
@@ -1516,9 +1452,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         }
 //        if ( isFootNoteBody )
 //            CRLog::trace("renderBlockElement() : Footnote body detected! %s", LCSTR(ldomXPointer(enode,0).toString()) );
-        lvdomElementFormatRec * fmt = enode->getRenderData();
-        if (!fmt)
-            crFatalError();
+        //if (!fmt)
+        //    crFatalError();
         if ( enode->getNodeId() == el_empty_line )
             x = x;
         int em = enode->getFont()->getHeight();
@@ -1538,142 +1473,157 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             x += margin_left;
         y += margin_top;
 
+        bool flgSplit = false;
         width -= margin_left + margin_right;
-        fmt->setX( x );
-        fmt->setY( y );
-        fmt->setWidth( width );
-        fmt->setHeight( 0 );
-
-
-        switch( enode->getRendMethod() )
+        int h = 0;
+        LFormattedTextRef txform;
         {
-        case erm_mixed:
+            //CRLog::trace("renderBlockElement - creating render accessor");
+            RenderRectAccessor fmt( enode );
+            fmt.setX( x );
+            fmt.setY( y );
+            fmt.setWidth( width );
+            fmt.setHeight( 0 );
+            fmt.push();
+
+            int m = enode->getRendMethod();
+            switch( m )
             {
-                // TODO: autoboxing not supported yet
-            }
-            break;
-        case erm_table:
-            {
-                // ??? not sure
-                if ( isFootNoteBody )
-                    context.enterFootNote( enode->getAttributeValue(attr_id) );
-                // recurse all sub-blocks for blocks
-                int y = 0;
-                int h = renderTable( context, enode, 0, y, width );
-                y += h;
-                int st_y = lengthToPx( enode->getStyle()->height, em, em );
-                if ( y < st_y )
-                    y = st_y;
-                fmt->setHeight( y ); //+ margin_top + margin_bottom ); //???
-                // ??? not sure
-                if ( isFootNoteBody )
-                    context.leaveFootNote();
-                return y + margin_top + margin_bottom; // return block height
-            }
-            break;
-        case erm_block:
-            {
-                if ( isFootNoteBody )
-                    context.enterFootNote( enode->getAttributeValue(attr_id) );
-                // recurse all sub-blocks for blocks
-                int y = padding_top;
-                int cnt = enode->getChildCount();
-                for (int i=0; i<cnt; i++)
+            case erm_mixed:
                 {
-                    ldomNode * child = enode->getChildNode( i );
-                    int h = renderBlockElement( context, child, padding_left, y,
-                        width - padding_left - padding_right );
-                    y += h;
+                    // TODO: autoboxing not supported yet
                 }
-                int st_y = lengthToPx( enode->getStyle()->height, em, em );
-                if ( y < st_y )
-                    y = st_y;
-                fmt->setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
-                if ( isFootNoteBody )
-                    context.leaveFootNote();
-                return y + margin_top + margin_bottom + padding_bottom; // return block height
-            }
-            break;
-        case erm_final:
-            {
-                if ( isFootNoteBody )
-                    context.enterFootNote( enode->getAttributeValue(attr_id) );
-                // render whole node content as single formatted object
-                LFormattedTextRef txform;
-                fmt->setWidth( width );
-                fmt->setX( fmt->getX() );
-                fmt->setY( fmt->getY() );
-                int h = enode->renderFinalBlock( txform, width - padding_left - padding_right );
-                context.updateRenderProgress(1);
-#ifdef DEBUG_DUMP_ENABLED
-                logfile << "\n";
-#endif
-                //int flags = styleToTextFmtFlags( fmt->getStyle(), 0 );
-                //renderFinalBlock( node, &txform, fmt, flags, 0, 16 );
-                //int h = txform.Format( width, context.getPageHeight() );
-                fmt->setHeight( h + padding_top + padding_bottom );
-                lvRect rect;
-                enode->getAbsRect(rect);
-                // split pages
-                if ( context.getPageList() != NULL ) {
-                    int break_before = CssPageBreak2Flags( enode->getStyle()->page_break_before );
-                    int break_after = CssPageBreak2Flags( enode->getStyle()->page_break_after );
-                    int break_inside = CssPageBreak2Flags( enode->getStyle()->page_break_inside );
-                    int count = txform->GetLineCount();
-                    for (int i=0; i<count; i++)
+                break;
+            case erm_table:
+                {
+                    // ??? not sure
+                    if ( isFootNoteBody )
+                        context.enterFootNote( enode->getAttributeValue(attr_id) );
+                    // recurse all sub-blocks for blocks
+                    int y = 0;
+                    int h = renderTable( context, enode, 0, y, width );
+                    y += h;
+                    int st_y = lengthToPx( enode->getStyle()->height, em, em );
+                    if ( y < st_y )
+                        y = st_y;
+                    fmt.setHeight( y ); //+ margin_top + margin_bottom ); //???
+                    // ??? not sure
+                    if ( isFootNoteBody )
+                        context.leaveFootNote();
+                    return y + margin_top + margin_bottom; // return block height
+                }
+                break;
+            case erm_block:
+                {
+                    if ( isFootNoteBody )
+                        context.enterFootNote( enode->getAttributeValue(attr_id) );
+                    // recurse all sub-blocks for blocks
+                    int y = padding_top;
+                    int cnt = enode->getChildCount();
+                    for (int i=0; i<cnt; i++)
                     {
-                        const formatted_line_t * line = txform->GetLineInfo(i);
-                        int line_flags = 0; //TODO
-                        if (i==0)
-                            line_flags |= break_before << RN_SPLIT_BEFORE;
-                        else
-                            line_flags |= break_inside << RN_SPLIT_BEFORE;
-                        if (i==count-1)
-                            line_flags |= break_after << RN_SPLIT_AFTER;
-                        else
-                            line_flags |= break_inside << RN_SPLIT_AFTER;
+                        ldomNode * child = enode->getChildNode( i );
+                        //fmt.push();
+                        int h = renderBlockElement( context, child, padding_left, y,
+                            width - padding_left - padding_right );
+                        y += h;
+                    }
+                    int st_y = lengthToPx( enode->getStyle()->height, em, em );
+                    if ( y < st_y )
+                        y = st_y;
+                    fmt.setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
+                    if ( isFootNoteBody )
+                        context.leaveFootNote();
+                    return y + margin_top + margin_bottom + padding_bottom; // return block height
+                }
+                break;
+            case erm_final:
+            case erm_table_cell:
+                {
+                    if ( isFootNoteBody )
+                        context.enterFootNote( enode->getAttributeValue(attr_id) );
+                    // render whole node content as single formatted object
+                    fmt.setWidth( width );
+                    fmt.setX( fmt.getX() );
+                    fmt.setY( fmt.getY() );
+                    fmt.push();
+                    h = enode->renderFinalBlock( txform, &fmt, width - padding_left - padding_right );
+                    context.updateRenderProgress(1);
+    #ifdef DEBUG_DUMP_ENABLED
+                    logfile << "\n";
+    #endif
+                    //int flags = styleToTextFmtFlags( fmt->getStyle(), 0 );
+                    //renderFinalBlock( node, &txform, fmt, flags, 0, 16 );
+                    //int h = txform.Format( width, context.getPageHeight() );
+                    fmt.push();
+                    fmt.setHeight( h + padding_top + padding_bottom );
+                    flgSplit = true;
+                }
+                break;
+            case erm_invisible:
+                // don't render invisible blocks
+                return 0;
+            default:
+                CRLog::error("Unsupported render method %d", m);
+                crFatalError(); // error
+            }
+        }
+        if ( flgSplit ) {
+            lvRect rect;
+            enode->getAbsRect(rect);
+            // split pages
+            if ( context.getPageList() != NULL ) {
+                int break_before = CssPageBreak2Flags( enode->getStyle()->page_break_before );
+                int break_after = CssPageBreak2Flags( enode->getStyle()->page_break_after );
+                int break_inside = CssPageBreak2Flags( enode->getStyle()->page_break_inside );
+                int count = txform->GetLineCount();
+                for (int i=0; i<count; i++)
+                {
+                    const formatted_line_t * line = txform->GetLineInfo(i);
+                    int line_flags = 0; //TODO
+                    if (i==0)
+                        line_flags |= break_before << RN_SPLIT_BEFORE;
+                    else
+                        line_flags |= break_inside << RN_SPLIT_BEFORE;
+                    if (i==count-1)
+                        line_flags |= break_after << RN_SPLIT_AFTER;
+                    else
+                        line_flags |= break_inside << RN_SPLIT_AFTER;
 
-                        context.AddLine(rect.top+line->y+padding_top, rect.top+line->y+line->height+padding_top, line_flags);
+                    context.AddLine(rect.top+line->y+padding_top, rect.top+line->y+line->height+padding_top, line_flags);
 
-                        // footnote links analysis
-                        if ( !isFootNoteBody && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
-                            for ( unsigned w=0; w<line->word_count; w++ ) {
-                                // check link start flag for every word
-                                if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
-                                    const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
-                                    if ( src && src->object ) {
-                                        ldomNode * node = (ldomNode*)src->object;
-                                        ldomNode * parent = node->getParentNode();
-                                        if ( parent->getNodeId()==el_a && parent->hasAttribute(LXML_NS_ANY, attr_href )
-                                                && parent->getAttributeValue(LXML_NS_ANY, attr_type )==L"note") {
-                                            lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
-                                            if ( href.length()>0 && href.at(0)=='#' ) {
-                                                href.erase(0,1);
-                                                context.addLink( href );
-                                            }
-
+                    // footnote links analysis
+                    if ( !isFootNoteBody && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
+                        for ( unsigned w=0; w<line->word_count; w++ ) {
+                            // check link start flag for every word
+                            if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
+                                const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
+                                if ( src && src->object ) {
+                                    ldomNode * node = (ldomNode*)src->object;
+                                    ldomNode * parent = node->getParentNode();
+                                    if ( parent->getNodeId()==el_a && parent->hasAttribute(LXML_NS_ANY, attr_href )
+                                            && parent->getAttributeValue(LXML_NS_ANY, attr_type )==L"note") {
+                                        lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
+                                        if ( href.length()>0 && href.at(0)=='#' ) {
+                                            href.erase(0,1);
+                                            context.addLink( href );
                                         }
+
                                     }
                                 }
                             }
                         }
                     }
-                } // has page list
-                if ( isFootNoteBody )
-                    context.leaveFootNote();
-                return h + margin_top + margin_bottom + padding_top + padding_bottom;
-            }
-            break;
-        case erm_invisible:
-            // don't render invisible blocks
-            return 0;
-        default:
-            crFatalError(); // error
+                }
+            } // has page list
+            if ( isFootNoteBody )
+                context.leaveFootNote();
+            return h + margin_top + margin_bottom + padding_top + padding_bottom;
         }
     }
     else
     {
-        crFatalError();
+        crFatalError(111, "Attempting to render Text node");
     }
     return 0;
 }
@@ -1682,14 +1632,12 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
 {
     if ( enode->isElement() )
     {
-        lvdomElementFormatRec * fmt = enode->getRenderData();
-        if (!fmt)
-            crFatalError();
-        doc_x += fmt->getX();
-        doc_y += fmt->getY();
+        RenderRectAccessor fmt( enode );
+        doc_x += fmt.getX();
+        doc_y += fmt.getY();
         int em = enode->getFont()->getHeight();
-        int width = fmt->getWidth();
-        int height = fmt->getHeight();
+        int width = fmt.getWidth();
+        int height = fmt.getHeight();
         bool draw_padding_bg = true; //( enode->getRendMethod()==erm_final );
         int padding_left = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[0], width, em ) + DEBUG_TREE_DRAW;
         int padding_right = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[1], width, em ) + DEBUG_TREE_DRAW;
@@ -1708,7 +1656,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         if ( bg.type==css_val_color ) {
             oldColor = drawbuf.GetBackgroundColor();
             drawbuf.SetBackgroundColor( bg.value );
-            drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt->getWidth(), y0+doc_y+fmt->getHeight(), bg.value );
+            drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt.getWidth(), y0+doc_y+fmt.getHeight(), bg.value );
         }
 #if (DEBUG_TREE_DRAW!=0)
         lUInt32 color;
@@ -1746,13 +1694,13 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 bool needBorder = enode->getRendMethod()==erm_table || enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
                     drawbuf.FillRect( doc_x+x0, doc_y+y0,
-                                      doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColor );
+                                      doc_x+x0+fmt.getWidth(), doc_y+y0+1, tableBorderColor );
                     drawbuf.FillRect( doc_x+x0, doc_y+y0,
-                                      doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColor );
-                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0,
-                                      doc_x+x0+fmt->getWidth(),   doc_y+y0+fmt->getHeight(), tableBorderColorDark );
-                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1,
-                                      doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColorDark );
+                                      doc_x+x0+1, doc_y+y0+fmt.getHeight(), tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0+fmt.getWidth()-1, doc_y+y0,
+                                      doc_x+x0+fmt.getWidth(),   doc_y+y0+fmt.getHeight(), tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1,
+                                      doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), tableBorderColorDark );
                 }
             }
             break;
@@ -1761,7 +1709,8 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             {
                 // draw whole node content as single formatted object
                 LFormattedTextRef txform;
-                enode->renderFinalBlock( txform, fmt->getWidth() - padding_left - padding_right );
+                enode->renderFinalBlock( txform, &fmt, fmt.getWidth() - padding_left - padding_right );
+                fmt.push();
                 {
                     if ( marks && marks->length() ) {
                         lvRect rc;
@@ -1788,13 +1737,13 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 bool needBorder = enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
                     drawbuf.FillRect( doc_x+x0, doc_y+y0,
-                                      doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColor );
+                                      doc_x+x0+fmt.getWidth(), doc_y+y0+1, tableBorderColor );
                     drawbuf.FillRect( doc_x+x0, doc_y+y0,
-                                      doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColor );
-                    drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0,
-                                      doc_x+x0+fmt->getWidth(),   doc_y+y0+fmt->getHeight(), tableBorderColorDark );
-                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1,
-                                      doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColorDark );
+                                      doc_x+x0+1, doc_y+y0+fmt.getHeight(), tableBorderColor );
+                    drawbuf.FillRect( doc_x+x0+fmt.getWidth()-1, doc_y+y0,
+                                      doc_x+x0+fmt.getWidth(),   doc_y+y0+fmt.getHeight(), tableBorderColorDark );
+                    drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1,
+                                      doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), tableBorderColorDark );
                     //drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+1, tableBorderColorDark );
                     //drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColorDark );
                     //drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
@@ -2003,16 +1952,12 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // set calculated style
     //node->getDocument()->cacheStyle( style );
     enode->setStyle( style );
+    if ( enode->getStyle().isNull() ) {
+        CRLog::error("NULL style set!!!");
+    }
 
     // set font
-    if ( isSameFontStyle( parent_style.get(), style.get() ) )
-    {
-        enode->setFont( parent_font );
-    }
-    else
-    {
-        enode->setFont( getFont(style.get()) );
-    }
+    enode->initNodeFont();
 }
 
 #define UNUSED(x)

@@ -3176,6 +3176,22 @@ void SerialBuf::putMagic( const char * s )
 	}
 }
 
+#define SWAPVARS(t,a) \
+{ \
+  t tmp; \
+  tmp = a; a = v.a; v.a = tmp; \
+}
+void SerialBuf::swap( SerialBuf & v )
+{
+    SWAPVARS(lUInt8 *, _buf)
+    SWAPVARS(bool, _ownbuf)
+    SWAPVARS(bool, _error)
+    SWAPVARS(bool, _autoresize)
+    SWAPVARS(int, _size)
+    SWAPVARS(int, _pos)
+}
+
+
 /// add contents of another buffer
 SerialBuf & SerialBuf::operator << ( const SerialBuf & v )
 {

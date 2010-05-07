@@ -382,7 +382,6 @@ void LVDocView::Clear()
             delete m_doc;
         m_doc = NULL;
         m_doc_props->clear();
-        m_toc.clear();
         if (!m_stream.isNull())
             m_stream.Clear();
         if ( !m_container.isNull() )
@@ -610,7 +609,22 @@ bool LVDocView::exportWolFile( const wchar_t * fname, bool flgGray, int levels )
 	return exportWolFile( stream.get(), flgGray, levels );
 }
 
-lString16 getSectionHeader( ldomNode * section )
+void dumpSection( ldomNode * elem )
+{
+    lvRect rc;
+    elem->getAbsRect(rc);
+    //fprintf( log.f, "rect(%d, %d, %d, %d)  ", rc.left, rc.top, rc.right, rc.bottom );
+}
+
+LVTocItem * LVDocView::getToc()
+{
+    if ( !m_doc )
+        return NULL;
+    updatePageNumbers( m_doc->getToc() );
+    return m_doc->getToc();
+}
+
+static lString16 getSectionHeader( ldomNode * section )
 {
     lString16 header;
     if ( !section || section->getChildCount() == 0 )
@@ -620,14 +634,6 @@ lString16 getSectionHeader( ldomNode * section )
         return header;
     header = child->getText(L' ');
     return header;
-}
-
-
-void dumpSection( ldomNode * elem )
-{
-    lvRect rc;
-    elem->getAbsRect(rc);
-    //fprintf( log.f, "rect(%d, %d, %d, %d)  ", rc.left, rc.top, rc.right, rc.bottom );
 }
 
 int getSectionPage( ldomNode * section, LVRendPageList & pages )
@@ -650,6 +656,7 @@ int getSectionPage( ldomNode * section, LVRendPageList & pages )
     return page;
 }
 
+
 static void addTocItems( ldomNode * basesection, LVTocItem * parent )
 {
     if ( !basesection || !parent )
@@ -659,61 +666,23 @@ static void addTocItems( ldomNode * basesection, LVTocItem * parent )
         return; // section without header
     ldomXPointer ptr( basesection, 0 );
     LVTocItem * item = parent->addChild( name, ptr );
-    for ( int i=0; ;i++ ) {
-        ldomNode * section = basesection->findChildElement( LXML_NS_ANY, el_section, i );
-        if ( !section )
-            break;
+    int cnt = basesection->getChildCount();
+    for ( int i=0; i<cnt; i++ ) {
+        ldomNode * section = basesection->getChildNode(i);
+        if ( section->getNodeId() != el_section  )
+            continue;
         addTocItems( section, item );
     }
 }
 
-/// returns Y position
-int LVTocItem::getY()
-{
-    return _position.toPoint().y;
-}
-
-/// returns page number
-int LVTocItem::getPageNum( LVRendPageList & pages )
-{
-    return getSectionPage( _position.getNode(), pages );
-}
-
-/// update page numbers for items
-void LVTocItem::updatePageNumbers( LVDocView * docview )
-{
-    if ( !_position.isNull() ) {
-        lvPoint p = _position.toPoint();
-        int y = p.y;
-        int h = docview->GetFullHeight();
-        int page = docview->getBookmarkPage( _position );
-        if ( page>=0 && page < docview->getPageCount() )
-            _page = page;
-        else
-            _page = -1;
-        if ( y >=0 && y < h && h > 0 )
-            _percent = (int) ( (lInt64)y * 10000 / h ); // % * 100
-        else
-            _percent = -1;
-    } else {
-        // unknown position
-        _page = -1;
-        _percent = -1;
-    }
-    for ( int i = 0; i<getChildCount(); i++ ) {
-        getChild(i)->updatePageNumbers( docview );
-    }
-}
-
-LVTocItem * LVDocView::getToc()
-{
-    m_toc.updatePageNumbers( this );
-    return &m_toc;
-}
-
 void LVDocView::makeToc()
 {
-    m_toc.clear();
+    LVTocItem * toc = m_doc->getToc();
+    if ( toc->getChildCount() ) {
+        return;
+    }
+    CRLog::info("LVDocView::makeToc()");
+    toc->clear();
     ldomNode * body = m_doc->getRootNode();
     if ( !body )
         return;
@@ -722,17 +691,47 @@ void LVDocView::makeToc()
 		body = body->findChildElement( LXML_NS_ANY, el_body, 0 );
     if ( !body )
         return;
-    for ( int i=0; ;i++ ) {
-        ldomNode * section = body->findChildElement( LXML_NS_ANY, el_section, i );
-        if ( !section )
-            break;
-        addTocItems( section, &m_toc );
+    int cnt = body->getChildCount();
+    for ( int i=0; i<cnt; i++ ) {
+        ldomNode * section = body->getChildNode(i);
+        if ( section->getNodeId()!=el_section )
+            continue;
+        addTocItems( section, toc );
     }
 }
+
+/// update page numbers for items
+void LVDocView::updatePageNumbers( LVTocItem * item )
+{
+    if ( !item->getXPointer().isNull() ) {
+        lvPoint p = item->getXPointer().toPoint();
+        int y = p.y;
+        int h = GetFullHeight();
+        int page = getBookmarkPage( item->_position );
+        if ( page>=0 && page < getPageCount() )
+            item->_page = page;
+        else
+            item->_page = -1;
+        if ( y >=0 && y < h && h > 0 )
+            item->_percent = (int) ( (lInt64)y * 10000 / h ); // % * 100
+        else
+            item->_percent = -1;
+    } else {
+        // unknown position
+        item->_page = -1;
+        item->_percent = -1;
+    }
+    for ( int i = 0; i<item->getChildCount(); i++ ) {
+        updatePageNumbers( item->getChild(i) );
+    }
+}
+
 
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
+    //CRLog::trace("LVDocView::getCoverPageImage()");
+    //m_doc->dumpStatistics();
     lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
     //lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
     ldomNode * cover_el = m_doc->getRootNode()->findChildElement( path );
@@ -990,8 +989,8 @@ int LVDocView::GetFullHeight()
 {
     LVLock lock(getMutex());
     checkRender();
-    lvdomElementFormatRec * rd = m_doc ? m_doc->getRootNode()->getRenderData() : NULL;
-    return ( rd ? rd->getHeight()+rd->getY() : m_dy );
+    RenderRectAccessor rd(m_doc->getRootNode());
+    return ( rd.getHeight()+rd.getY() );
 }
 
 #define HEADER_MARGIN 4
@@ -1646,6 +1645,10 @@ void LVDocView::goToPage( int page )
         }
     } else {
         int pc = getVisiblePageCount();
+        if ( page >= m_pages.length() )
+            page = m_pages.length()-1;
+        if ( page<0 )
+            page = 0;
         if ( pc==2 )
             page &= ~1;
         if ( page>=0 && page<m_pages.length() ) {
@@ -1919,29 +1922,49 @@ lString16 LVDocView::getPageText( bool , int pageIndex )
     return txt;
 }
 
+void LVDocView::setRenderProps( int dx, int dy )
+{
+    if ( !m_doc || m_doc->getRootNode()==NULL)
+        return;
+    updateLayout();
+    m_showCover = !getCoverPageImage().isNull();
+
+    if ( dx==0 )
+        dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
+    if ( dy==0 )
+        dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom - getPageHeaderHeight();
+
+    lString8 fontName = lString8(DEFAULT_FONT_NAME);
+    m_font = fontMan->GetFont( m_font_size, 400 + LVRendGetFontEmbolden(), false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
+    //m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
+    m_infoFont = fontMan->GetFont( m_status_font_size, 400, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
+    if ( !m_font || !m_infoFont )
+        return;
+    m_doc->setRenderProps( dx, dy, m_showCover, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
+}
+
 void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
 {
     LVLock lock(getMutex());
     {
         if ( !m_doc || m_doc->getRootNode()==NULL)
             return;
-        if ( pages==NULL )
-            pages = &m_pages;
-        updateLayout();
-        m_showCover = !getCoverPageImage().isNull();
-        lString8 fontName = lString8(DEFAULT_FONT_NAME);
 
-        m_font = fontMan->GetFont( m_font_size, 400 + LVRendGetFontEmbolden(), false, DEFAULT_FONT_FAMILY, m_defaultFontFace );
-        //m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
-        m_infoFont = fontMan->GetFont( m_status_font_size, 400, false, DEFAULT_FONT_FAMILY, m_statusFontFace );
-        if ( !m_font || !m_infoFont )
-            return;
         if ( dx==0 )
             dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
         if ( dy==0 )
             dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom - getPageHeaderHeight();
 
-        CRLog::debug("Render(width=%d, height=%d, font=%s(%d))", dx, dy, fontName.c_str(), m_font_size);
+        setRenderProps( dx, dy );
+
+        if ( pages==NULL )
+            pages = &m_pages;
+
+        if ( !m_font || !m_infoFont )
+            return;
+
+
+        CRLog::debug("Render(width=%d, height=%d, fontSize=%d)", dx, dy, m_font_size);
         //CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
         m_doc->render( pages, isDocumentOpened() ? m_callback : NULL, dx, dy, m_showCover, m_showCover ? dy + m_pageMargins.bottom*4 : 0, m_font, m_def_interline_space );
 
@@ -1957,10 +1980,20 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
     #endif
         fontMan->gc();
         m_is_rendered = true;
-
-        makeToc();
+        //CRLog::debug("Making TOC...");
+        //makeToc();
+        CRLog::debug("Updating selections...");
         updateSelections();
         CRLog::debug("Render is finished");
+
+        if ( !m_swapDone ) {
+            int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
+            int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD);
+            CRLog::info("Check whether to swap: file size = %d, min size to cache = %d", fs, mfs);
+            if ( fs>=mfs ) {
+                swapToCache();
+            }
+        }
     }
 }
 
@@ -2779,28 +2812,29 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
     writer.OnAttribute( NULL, L"version", L"1.0" );
     writer.OnAttribute( NULL, L"encoding", L"utf-8" );
     writer.OnEncoding( L"utf-8", NULL );
+    writer.OnTagBody();
     writer.OnTagClose( NULL, L"?xml" );
-    writer.OnTagOpen( NULL, L"FictionBook" );
+    writer.OnTagOpenNoAttr( NULL, L"FictionBook" );
       // DESCRIPTION
-      writer.OnTagOpen( NULL, L"description" );
-        writer.OnTagOpen( NULL, L"title-info" );
-          writer.OnTagOpen( NULL, L"book-title" );
+      writer.OnTagOpenNoAttr( NULL, L"description" );
+        writer.OnTagOpenNoAttr( NULL, L"title-info" );
+          writer.OnTagOpenNoAttr( NULL, L"book-title" );
             writer.OnText( title.c_str(), title.length(), 0 );
           writer.OnTagClose( NULL, L"book-title" );
-        writer.OnTagOpen( NULL, L"title-info" );
+        writer.OnTagOpenNoAttr( NULL, L"title-info" );
       writer.OnTagClose( NULL, L"description" );
       // BODY
-      writer.OnTagOpen( NULL, L"body" );
+      writer.OnTagOpenNoAttr( NULL, L"body" );
         //m_callback->OnTagOpen( NULL, L"section" );
           // process text
       if ( title.length() ) {
-          writer.OnTagOpen( NULL, L"title" );
-          writer.OnTagOpen( NULL, L"p" );
+          writer.OnTagOpenNoAttr( NULL, L"title" );
+          writer.OnTagOpenNoAttr( NULL, L"p" );
             writer.OnText( title.c_str(), title.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
           writer.OnTagClose( NULL, L"title" );
       }
-          writer.OnTagOpen( NULL, L"p" );
+          writer.OnTagOpenNoAttr( NULL, L"p" );
             writer.OnText( message.c_str(), message.length(), 0 );
           writer.OnTagClose( NULL, L"p" );
         //m_callback->OnTagClose( NULL, L"section" );
@@ -2856,6 +2890,9 @@ public:
 bool LVDocView::LoadDocument( LVStreamRef stream )
 {
     m_swapDone = false;
+
+    setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
+
     if ( m_callback ) {
             m_callback->OnLoadFileStart( m_doc_props->getStringDef( DOC_PROP_FILE_NAME, "" ) );
     }
@@ -2896,6 +2933,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     delete m_doc;
                 createEmptyDocument();
                 m_doc->setProps( m_doc_props );
+                setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
 
                 lString16 rootfilePath;
                 lString16 rootfileMediaType;
@@ -2998,18 +3036,21 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                     m_doc->setCodeBase( codeBase );
                     ldomDocumentFragmentWriter appender(&writer, lString16(L"body"));
                     writer.OnStart(NULL);
-                    writer.OnTagOpen(L"", L"body");
+                    writer.OnTagOpenNoAttr(L"", L"body");
                     int fragmentCount = 0;
                     for ( int i=0; i<spineItems.length(); i++ ) {
                         if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
                             lString16 name = codeBase + spineItems[i]->href;
                             {
+                                CRLog::debug("Checking fragment: %s", LCSTR(name));
                                 LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                                 if ( !stream.isNull() ) {
                                     LVXMLParser parser(stream, &appender);
                                     if ( parser.CheckFormat() && parser.Parse() ) {
                                         // valid
                                         fragmentCount++;
+                                    } else {
+                                        CRLog::error("Document type is not XML/XHTML for fragment %s", LCSTR(name));
                                     }
                                 }
                             }
@@ -3050,9 +3091,12 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
 
                         // DONE!
                         setDocFormat( doc_format_epub );
+                        setRenderProps( 0, 0 );
                         requestRender();
 						if ( m_callback ) {
 							m_callback->OnLoadFileEnd( );
+                            m_doc->compact();
+                            m_doc->dumpStatistics();
 						}
                         return true;
                     }
@@ -3316,7 +3360,7 @@ bool LVDocView::ParseDocument( )
 
     createEmptyDocument();
 
-    if ( m_stream->GetSize() > DOCUMENT_CACHING_SIZE_THRESHOLD ) {
+    if ( m_stream->GetSize() > DOCUMENT_CACHING_MIN_SIZE ) {
         // try loading from cache
 
         //lString16 fn( m_stream->GetName() );
@@ -3331,6 +3375,7 @@ bool LVDocView::ParseDocument( )
 	    //m_doc->getStyleSheet()->clear();
 	    //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
+        setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
         if ( m_doc->openFromCache( ) ) {
             CRLog::info("Document is found in cache, will reuse");
 
@@ -3441,7 +3486,7 @@ bool LVDocView::ParseDocument( )
 		if ( m_callback ) {
 			m_callback->OnLoadFileFormatDetected( getDocFormat() );
 		}
-
+        setRenderProps( 0, 0 );
 
 		// set stylesheet
 		//m_doc->getStyleSheet()->clear();
@@ -3462,11 +3507,9 @@ bool LVDocView::ParseDocument( )
         _pos = 0;
         _page = 0;
 
-        int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
-        int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD);
-        CRLog::info("File size = %d, min size to cache = %d", fs, mfs);
-        if ( fs>=mfs )
-            swapToCache();
+        m_doc->compact();
+        m_doc->dumpStatistics();
+
 
         if ( m_doc_format == doc_format_html ) {
             static lUInt16 path[] = { el_html, el_head, el_title, 0 };
@@ -3564,7 +3607,8 @@ void LVDocView::swapToCache()
         return;
     int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE,0);
     // minimum file size to swap, even if forced
-    int mfs = m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
+    // TODO
+    int mfs = 30000; //m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
 
     if ( fs < mfs )
         return;

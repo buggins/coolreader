@@ -15,6 +15,7 @@
 #ifndef __LVXML_H_INCLUDED__
 #define __LVXML_H_INCLUDED__
 
+#include <time.h>
 #include "lvstring.h"
 #include "lvstream.h"
 #include "crtxtenc.h"
@@ -26,8 +27,7 @@
 //class LVXMLParser;
 class LVFileFormatParser;
 
-class ldomElement;
-class ldomNode;
+class tinyNode;
 
 /// XML parser callback interface
 class LVXMLParserCallback
@@ -45,9 +45,24 @@ public:
     virtual void OnStart(LVFileFormatParser * parser) { _parser = parser; }
     /// called on parsing end
     virtual void OnStop() = 0;
-    /// called on opening tag
+    /// called on opening tag <
     virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) = 0;
-    /// called on closing
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody() = 0;
+    /// calls OnTagOpen & OnTagBody
+    virtual void OnTagOpenNoAttr( const lChar16 * nsname, const lChar16 * tagname)
+    {
+        OnTagOpen( nsname, tagname);
+        OnTagBody();
+    }
+    /// calls OnTagOpen & OnTagClose
+    virtual void OnTagOpenAndClose( const lChar16 * nsname, const lChar16 * tagname)
+    {
+        OnTagOpen( nsname, tagname );
+        OnTagBody();
+        OnTagClose( nsname, tagname );
+    }
+    /// called on tag close
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) = 0;
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) = 0;

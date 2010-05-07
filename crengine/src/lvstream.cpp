@@ -821,6 +821,10 @@ LVStreamRef LVMapFileStream( const lChar8 * pathname, lvopen_mode_t mode, lvsize
 }
 
 
+//#ifdef _LINUX
+#undef USE_ANSI_FILES
+//#endif
+
 #if (USE_ANSI_FILES==1)
 
 class LVFileStream : public LVNamedStream
@@ -888,6 +892,14 @@ public:
         }
         return LVERR_OK;
     }
+    /// flushes unsaved data from buffers to file, with optional flush of OS buffers
+    virtual lverror_t Flush( bool sync )
+    {
+        if ( !m_file )
+            return LVERR_FAIL;
+        fflush( m_file );
+        return LVERR_OK;
+    }
     virtual bool Eof()
     {
         return feof(m_file)!=0;
@@ -949,25 +961,43 @@ public:
 
 #else
 
+class LVDirectoryContainer;
 class LVFileStream : public LVNamedStream
 {
     friend class LVDirectoryContainer;
 protected:
-    HANDLE                 m_hFile;
-    LVDirectoryContainer * m_parent;
+#if defined(_WIN32)
+    HANDLE m_hFile;
+#else
+    int m_fd;
+#endif
+    //LVDirectoryContainer * m_parent;
     lvsize_t               m_size;
     lvpos_t                m_pos;
 public:
+    /// flushes unsaved data from buffers to file, with optional flush of OS buffers
+    virtual lverror_t Flush( bool sync )
+    {
+#ifdef _WIN32
+#else
+        if ( m_fd==-1 )
+            return LVERR_FAIL;
+        fsync( m_fd );
+#endif
+        return LVERR_OK;
+    }
+
     virtual bool Eof()
     {
         return m_size<=m_pos;
     }
-    virtual LVContainer * GetParentContainer()
-    {
-        return (LVContainer*)m_parent;
-    }
+//    virtual LVContainer * GetParentContainer()
+//    {
+//        return (LVContainer*)m_parent;
+//    }
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
     {
+#ifdef _WIN32
         //fprintf(stderr, "Read(%08x, %d)\n", buf, count);
 
         if (m_hFile == INVALID_HANDLE_VALUE || m_mode==LVOM_WRITE || m_mode==LVOM_APPEND )
@@ -983,11 +1013,30 @@ public:
         }
 
         return LVERR_OK;
+#else
+        if (m_fd == -1)
+            return LVERR_FAIL;
+        ssize_t res = read( m_fd, buf, count );
+        if ( res!=(ssize_t)-1 ) {
+            if (nBytesRead)
+                *nBytesRead = res;
+            m_pos += res;
+            return LVERR_OK;
+        }
+        if (nBytesRead)
+            *nBytesRead = 0;
+        return LVERR_FAIL;
+#endif
     }
     virtual lverror_t GetSize( lvsize_t * pSize )
     {
+#ifdef _WIN32
         if (m_hFile == INVALID_HANDLE_VALUE || !pSize)
             return LVERR_FAIL;
+#else
+        if (m_fd == -1)
+            return LVERR_FAIL;
+#endif
         if (m_size<m_pos)
             m_size = m_pos;
         *pSize = m_size;
@@ -995,14 +1044,23 @@ public:
     }
     virtual lvsize_t GetSize()
     {
+#ifdef _WIN32
         if (m_hFile == INVALID_HANDLE_VALUE)
             return 0;
         if (m_size<m_pos)
             m_size = m_pos;
         return m_size;
+#else
+        if (m_fd == -1)
+            return 0;
+        if (m_size<m_pos)
+            m_size = m_pos;
+        return m_size;
+#endif
     }
     virtual lverror_t SetSize( lvsize_t size )
     {
+#ifdef _WIN32
         //
         if (m_hFile == INVALID_HANDLE_VALUE || m_mode==LVOM_READ )
             return LVERR_FAIL;
@@ -1013,9 +1071,20 @@ public:
         SetEndOfFile( m_hFile);
         Seek(oldpos, LVSEEK_SET, NULL);
         return LVERR_OK;
+#else
+        if (m_fd == -1)
+            return LVERR_FAIL;
+        lvpos_t oldpos;
+        Tell(&oldpos);
+        if (!Seek(size, LVSEEK_SET, NULL))
+            return LVERR_FAIL;
+        Seek(oldpos, LVSEEK_SET, NULL);
+        return LVERR_OK;
+#endif
     }
     virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
     {
+#ifdef _WIN32
         if (m_hFile == INVALID_HANDLE_VALUE || m_mode==LVOM_READ )
             return LVERR_FAIL;
         //
@@ -1029,9 +1098,22 @@ public:
         }
 
         return LVERR_OK;
+#else
+        if (m_fd == -1)
+            return LVERR_FAIL;
+        ssize_t res = write( m_fd, buf, count );
+        if ( res!=(ssize_t)-1 ) {
+            if (nBytesWritten)
+                *nBytesWritten = res;
+            m_pos += res;
+            return LVERR_OK;
+        }
+        return LVERR_FAIL;
+#endif
     }
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
     {
+#ifdef _WIN32
         //fprintf(stderr, "Seek(%d,%d)\n", offset, origin);
         if (m_hFile == INVALID_HANDLE_VALUE)
             return LVERR_FAIL;
@@ -1066,13 +1148,47 @@ public:
         if (pNewPos)
             *pNewPos = m_pos;
         return LVERR_OK;
+#else
+        if (m_fd == -1)
+            return LVERR_FAIL;
+       //
+       int res = -1;
+       switch ( origin )
+       {
+       case LVSEEK_SET:
+           res = lseek( m_fd, offset, SEEK_SET );
+           break;
+       case LVSEEK_CUR:
+           res = lseek( m_fd, offset, SEEK_CUR );
+           break;
+       case LVSEEK_END:
+           res = lseek( m_fd, offset, SEEK_END );
+           break;
+       }
+       if (res!=(off_t)-1)
+       {
+           m_pos = res;
+           if ( pNewPos )
+               * pNewPos = res;
+           return LVERR_OK;
+       }
+       CRLog::error("error setting file position to %d (%d)", (int)offset, (int)origin );
+       return LVERR_FAIL;
+#endif
     }
     lverror_t Close()
     {
+#if defined(_WIN32)
         if (m_hFile == INVALID_HANDLE_VALUE)
             return LVERR_FAIL;
         CloseHandle( m_hFile );
         m_hFile = INVALID_HANDLE_VALUE;
+#else
+        if ( m_fd!= -1 ) {
+            close(m_fd);
+            m_fd = -1;
+        }
+#endif
         SetName(NULL);
         return LVERR_OK;
     }
@@ -1088,6 +1204,7 @@ public:
     }
     lverror_t OpenFile( lString16 fname, lvopen_mode_t mode )
     {
+#if defined(_WIN32)
         lUInt32 m = 0;
         lUInt32 s = 0;
         lUInt32 c = 0;
@@ -1146,16 +1263,41 @@ public:
         // move to end of file
         if (mode==LVOM_APPEND)
             Seek( 0, LVSEEK_END, NULL );
+#else
+        m_fd = -1;
+
+        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT;
+        lString8 fn8 = UnicodeToUtf8(fname);
+        m_fd = open( fn8.c_str(), flags, (mode_t)0666);
+        if (m_fd == -1) {
+            CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );
+            return LVERR_FAIL;
+        }
+        struct stat stat;
+        if ( fstat( m_fd, &stat ) ) {
+            CRLog::error( "Cannot get file size for %s", fn8.c_str() );
+            return LVERR_FAIL;
+        }
+        m_mode = mode;
+        m_size = (lvsize_t) stat.st_size;
+#endif
 
         return LVERR_OK;
     }
-    LVFileStream() : m_hFile(INVALID_HANDLE_VALUE), m_parent(NULL), m_size(0), m_pos(0)
+    LVFileStream() :
+#if defined(_WIN32)
+            m_hFile(INVALID_HANDLE_VALUE),
+#else
+            m_fd(-1),
+#endif
+            //m_parent(NULL),
+            m_size(0), m_pos(0)
     {
     }
     virtual ~LVFileStream()
     {
         Close();
-        m_parent = NULL;
+        //m_parent = NULL;
     }
 };
 #endif

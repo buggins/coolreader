@@ -495,12 +495,17 @@ void CRGUIWindowBase::drawStatusBar()
 // draws frame, title, status and client
 void CRGUIWindowBase::draw()
 {
+    CRLog::trace("enter CRGUIWindowBase::draw()");
     LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
+    CRLog::trace("getting skin at CRGUIWindowBase::draw()");
     CRWindowSkinRef skin( _wm->getSkin()->getWindowSkin(_skinName.c_str()) );
+    CRLog::trace("drawing window skin background at CRGUIWindowBase::draw()");
     skin->draw( buf, _rect );
+    CRLog::trace("start drawing at CRGUIWindowBase::draw()");
     drawTitleBar();
     drawStatusBar();
     drawClient();
+    CRLog::trace("exit CRGUIWindowBase::draw()");
 }
 
 /// draw title bar using current skin, with optional scroll/tab/page indicator
@@ -709,6 +714,7 @@ int CRMenu::getTopItem()
 
 void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
+    CRLog::trace("enter CRMenu::Draw()");
     CRMenuSkinRef menuSkin = _skin; //getSkin();
     //CRRectSkinRef valueSkin = menuSkin->getValueSkin();
 
@@ -757,6 +763,7 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
             valueSkin->drawText( buf, valueRect, s );
         }
     }
+    CRLog::trace("exit CRMenu::Draw()");
 }
 
 lvPoint CRMenuItem::getItemSize( CRRectSkinRef skin )
@@ -975,6 +982,16 @@ int CRMenu::getScrollHeight()
 /// returns index of selected item, -1 if no item selected
 int CRMenu::getSelectedItemIndex()
 {
+    if ( _cmdToHighlight>=0 ) {
+        // highlighted command
+        int res = -1;
+        for ( int i=0; i<_items.length(); i++ ) {
+            if ( _items[i]->getId()==_cmdToHighlight ) {
+                return i;
+            }
+        }
+        return -1;
+    }
     if ( getProps().isNull() )
         return -1;
     for ( int i=0; i<_items.length(); i++ ) {
@@ -987,8 +1004,18 @@ int CRMenu::getSelectedItemIndex()
     return -1;
 }
 
+void CRMenu::highlightCommandItem( int cmd )
+{
+    CRLog::debug("Highlighting menu item");
+    _cmdToHighlight = cmd;
+    setDirty();
+    _wm->updateWindow(this);
+    _cmdToHighlight = -1;
+}
+
 void CRMenu::drawClient()
 {
+    CRLog::trace("enter CRMenu::drawClient()");
     LVDrawBuf & buf = *_wm->getScreen()->getCanvas();
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef clientSkin = skin->getClientSkin();
@@ -1096,6 +1123,7 @@ void CRMenu::drawClient()
         }
         rc.top += itemSize.y + separatorHeight;
     }
+    CRLog::trace("exit CRMenu::drawClient()");
 }
 
 /// draw battery state to specified rectangle of screen
@@ -1199,8 +1227,9 @@ bool CRMenu::onCommand( int command, int params )
         int command = getId();
         if ( _menu != NULL )
             closeMenu( 0 );
-        else
+        else {
             closeMenu( command ); // close, for root menu
+        }
         return true;
     }
 	
@@ -1275,8 +1304,10 @@ bool CRMenu::onCommand( int command, int params )
         int command = item->getId();
         if ( _menu != NULL )
             closeMenu( 0 );
-        else
+        else {
+            highlightCommandItem( command );
             closeMenu( command, longPress ); // close, for root menu
+        }
         return true;
     }
     return false;
