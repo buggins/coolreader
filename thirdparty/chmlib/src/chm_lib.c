@@ -112,6 +112,10 @@
 #define CHM_RELEASE_LOCK(a) /* do nothing */
 #endif
 
+#ifdef CHM_EXTERNAL_STREAM_SUPPORT
+#define CHM_NULL_FD NULL
+#define CHM_CLOSE_FILE(fd) (fd)->close(fd)
+#else
 #ifdef WIN32
 #define CHM_NULL_FD (INVALID_HANDLE_VALUE)
 #define CHM_USE_WIN32IO 1
@@ -119,6 +123,7 @@
 #else
 #define CHM_NULL_FD (-1)
 #define CHM_CLOSE_FILE(fd) close((fd))
+#endif
 #endif
 
 /*
@@ -634,10 +639,14 @@ static int _unmarshal_lzxc_control_data(unsigned char **pData,
 /* the structure used for chm file handles */
 struct chmFile
 {
+#ifdef CHM_EXTERNAL_STREAM_SUPPORT
+    struct chmExternalFileStream * fd;
+#else
 #ifdef WIN32
     HANDLE              fd;
 #else
     int                 fd;
+#endif
 #endif
 
 #ifdef CHM_MT
@@ -695,6 +704,9 @@ static Int64 _chm_fetch_bytes(struct chmFile *h,
         return readLen;
 
     CHM_ACQUIRE_LOCK(h->mutex);
+#ifdef CHM_EXTERNAL_STREAM_SUPPORT
+    return h->fd->read(h->fd, buf, os, len);
+#else
 #ifdef CHM_USE_WIN32IO
     /* NOTE: this might be better done with CreateFileMapping, et cetera... */
     {
@@ -742,16 +754,21 @@ static Int64 _chm_fetch_bytes(struct chmFile *h,
 #endif
 #endif
 #endif
+#endif
     CHM_RELEASE_LOCK(h->mutex);
     return readLen;
 }
 
 /* open an ITS archive */
+#ifdef CHM_EXTERNAL_STREAM_SUPPORT
+struct chmFile* chm_open(struct chmExternalFileStream * stream)
+#else
 #ifdef PPC_BSTR
 /* RWE 6/12/2003 */
 struct chmFile *chm_open(BSTR filename)
 #else
 struct chmFile *chm_open(const char *filename)
+#endif
 #endif
 {
     unsigned char               sbuffer[256];
@@ -777,6 +794,10 @@ struct chmFile *chm_open(const char *filename)
     newHandle->cache_num_blocks = 0;
 
     /* open file */
+#ifdef CHM_EXTERNAL_STREAM_SUPPORT
+    newHandle->fd = stream;
+    stream->open( newHandle->fd );
+#else
 #ifdef WIN32
 #ifdef PPC_BSTR
     if ((newHandle->fd=CreateFile(filename,
@@ -809,6 +830,7 @@ struct chmFile *chm_open(const char *filename)
         free(newHandle);
         return NULL;
     }
+#endif
 #endif
 
     /* initialize mutexes, if needed */

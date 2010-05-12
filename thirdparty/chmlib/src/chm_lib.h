@@ -82,13 +82,31 @@ struct chmUnitInfo
     char               path[CHM_MAX_PATHLEN+1];
 };
 
+#define CHM_EXTERNAL_STREAM_SUPPORT 1
+
+#ifdef CHM_EXTERNAL_STREAM_SUPPORT
+/* external stream interface */
+struct chmExternalFileStream {
+    /** returns file size, in bytes, if opened successfully */
+    LONGUINT64 (*open)(struct chmExternalFileStream * instance);
+    /** reads bytes to buffer */
+    LONGINT64 (*read)( struct chmExternalFileStream * instance, unsigned char * buf, LONGUINT64 pos, LONGINT64 len );
+    /** closes file */
+    int (*close)(struct chmExternalFileStream * instance);
+};
+#endif /*CHM_EXTERNAL_STREAM_SUPPORT*/
+
 /* open an ITS archive */
+#ifdef CHM_EXTERNAL_STREAM_SUPPORT
+struct chmFile* chm_open(struct chmExternalFileStream * stream);
+#else /*CHM_EXTERNAL_STREAM_SUPPORT*/
 #ifdef PPC_BSTR
 /* RWE 6/12/2003 */
 struct chmFile* chm_open(BSTR filename);
 #else
 struct chmFile* chm_open(const char *filename);
 #endif
+#endif /*CHM_EXTERNAL_STREAM_SUPPORT*/
 
 /* close an ITS archive */
 void chm_close(struct chmFile *h);
