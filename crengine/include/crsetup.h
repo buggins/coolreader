@@ -196,6 +196,10 @@
 #endif
 
 
+#ifndef CHM_SUPPORT_ENABLED
+#define CHM_SUPPORT_ENABLED 1
+#endif
+
 #ifndef USE_FREETYPE
 #define USE_FREETYPE 0
 #endif

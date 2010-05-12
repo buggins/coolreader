@@ -57,6 +57,7 @@ enum CacheFileBlockType {
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
+#include "../include/chmfmt.h"
 #include <stddef.h>
 #include <zlib.h>
 
@@ -8394,8 +8395,7 @@ void runFileCacheTest()
     CRLog::info("====Cache test finished=====");
 }
 
-
-void runTinyDomUnitTests()
+void runBasicTinyDomUnitTests()
 {
     CRLog::info("==========================");
     CRLog::info("Starting tinyDOM unit test");
@@ -8672,6 +8672,43 @@ void runTinyDomUnitTests()
     delete doc;
 
     CRLog::info("Finished tinyDOM unit test");
+
+    CRLog::info("==========================");
+
+}
+
+void runCHMUnitTest()
+{
+    LVStreamRef stream = LVOpenFileStream("/home/lve/src/test/mysql.chm", LVOM_READ);
+    MYASSERT ( !stream.isNull(), "container stream opened" );
+    CRLog::trace("runCHMUnitTest() -- file stream opened ok");
+    LVContainerRef dir = LVOpenCHMContainer( stream );
+    MYASSERT ( !dir.isNull(), "container opened" );
+    CRLog::trace("runCHMUnitTest() -- container opened ok");
+    LVStreamRef s = dir->OpenStream(L"/index.html", LVOM_READ);
+    MYASSERT ( !s.isNull(), "item opened" );
+    CRLog::trace("runCHMUnitTest() -- index.html opened ok: size=%d", (int)s->GetSize());
+    lvsize_t bytesRead = 0;
+    char buf[1000];
+    MYASSERT( s->SetPos(100)==100, "SetPos()" );
+    MYASSERT( s->Read(buf, 1000, &bytesRead)==LVERR_OK, "Read()" );
+    MYASSERT( bytesRead==1000, "Read() -- bytesRead" );
+    buf[999] = 0;
+    CRLog::trace("CHM/index.html Contents 1000: %s", buf);
+
+    MYASSERT( s->SetPos(0)==0, "SetPos() 2" );
+    MYASSERT( s->Read(buf, 1000, &bytesRead)==LVERR_OK, "Read() 2" );
+    MYASSERT( bytesRead==1000, "Read() -- bytesRead 2" );
+    buf[999] = 0;
+    CRLog::trace("CHM/index.html Contents 0: %s", buf);
+}
+
+void runTinyDomUnitTests()
+{
+
+    runCHMUnitTest();
+
+    runBasicTinyDomUnitTests();
 
     CRLog::info("==========================");
     testCacheFile();
