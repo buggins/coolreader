@@ -262,5 +262,15 @@ LVContainerRef LVOpenCHMContainer( LVStreamRef stream )
     return LVContainerRef( chm );
 }
 
+bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback )
+{
+    stream->SetPos(0);
+    LVContainerRef cont = LVOpenCHMContainer( stream );
+    if ( cont.isNull() ) {
+        stream->SetPos(0);
+        return false;
+    }
+    return false;
+}
 
 #endif
