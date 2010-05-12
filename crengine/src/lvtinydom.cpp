@@ -12,7 +12,7 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.08\n";
+                                       " File v3.02.09\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
 #define TEXT_COMPRESSION_LEVEL 1 //3
@@ -21,17 +21,23 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 
 // cache memory sizes
 #define TEXT_CACHE_UNPACKED_SPACE 0x0C0000
-#define TEXT_CACHE_PACKED_SPACE   0x200000
-#define TEXT_CACHE_CHUNK_SIZE     0x00FFFF
-#define ELEM_CACHE_UNPACKED_SPACE 0x100000
-#define ELEM_CACHE_PACKED_SPACE   0x180000
-#define ELEM_CACHE_CHUNK_SIZE     0x00FFFF
-#define RECT_CACHE_UNPACKED_SPACE 0x080000
+#define TEXT_CACHE_PACKED_SPACE   0x390000
+#define TEXT_CACHE_CHUNK_SIZE     0x00C000
+#define ELEM_CACHE_UNPACKED_SPACE 0x0C0000
+#define ELEM_CACHE_PACKED_SPACE   0x0D0000
+#define ELEM_CACHE_CHUNK_SIZE     0x00C000
+#define RECT_CACHE_UNPACKED_SPACE 0x100000
 #define RECT_CACHE_PACKED_SPACE   0x080000
-#define RECT_CACHE_CHUNK_SIZE     0x00FFFF
+#define RECT_CACHE_CHUNK_SIZE     0x00C000
 
-#define STYLE_HASH_TABLE_SIZE     2048
-#define FONT_HASH_TABLE_SIZE      1024
+#define RECT_DATA_CHUNK_ITEMS_SHIFT 11
+#define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
+#define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
+#define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
+
+
+#define STYLE_HASH_TABLE_SIZE     512
+#define FONT_HASH_TABLE_SIZE      256
 
 enum CacheFileBlockType {
     CBT_FREE = 0,
@@ -1363,11 +1369,6 @@ lUInt16 ldomDataStorageManager::cacheType()
     return 0;
 }
 
-#define RECT_DATA_CHUNK_ITEMS_SHIFT 12
-#define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
-#define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
-#define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
-
 /// get or allocate space for rect data item
 void ldomDataStorageManager::getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst )
 {
@@ -1378,6 +1379,8 @@ void ldomDataStorageManager::getRendRectData( lUInt32 elemDataIndex, lvdomElemen
         //if ( _chunks.length()>0 )
         //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
+        getChunk( (_chunks.length()-1)<<16 );
+        compact( 0 );
     }
     ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
     int offsetIndex = index & RECT_DATA_CHUNK_MASK;
@@ -1394,6 +1397,7 @@ void ldomDataStorageManager::setRendRectData( lUInt32 elemDataIndex, const lvdom
         //if ( _chunks.length()>0 )
         //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
+        compact( 0 );
     }
     ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
     int offsetIndex = index & RECT_DATA_CHUNK_MASK;
@@ -1405,6 +1409,8 @@ lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentInde
     if ( !_activeChunk ) {
         _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
+        getChunk( (_chunks.length()-1)<<16 );
+        compact( 0 );
     }
     int offset = _activeChunk->addText( dataIndex, parentIndex, text );
     if ( offset<0 ) {
@@ -1412,7 +1418,8 @@ lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentInde
         //_activeChunk->compact();
         _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
-        getChunk( _chunks.length()-1 );
+        getChunk( (_chunks.length()-1)<<16 );
+        compact( 0 );
         offset = _activeChunk->addText( dataIndex, parentIndex, text );
         if ( offset<0 )
             crFatalError(1001, "Unexpected error while allocation of text");
@@ -1425,6 +1432,8 @@ lUInt32 ldomDataStorageManager::allocElem( lUInt32 dataIndex, lUInt32 parentInde
     if ( !_activeChunk ) {
         _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
+        getChunk( (_chunks.length()-1)<<16 );
+        compact( 0 );
     }
     int offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
     if ( offset<0 ) {
@@ -1432,7 +1441,8 @@ lUInt32 ldomDataStorageManager::allocElem( lUInt32 dataIndex, lUInt32 parentInde
         //_activeChunk->compact();
         _activeChunk = new ldomTextStorageChunk(this, _chunks.length());
         _chunks.add( _activeChunk );
-        getChunk( _chunks.length()-1 );
+        getChunk( (_chunks.length()-1)<<16 );
+        compact( 0 );
         offset = _activeChunk->addElem( dataIndex, parentIndex, childCount, attrCount );
         if ( offset<0 )
             crFatalError(1002, "Unexpected error while allocation of element");
@@ -1950,6 +1960,8 @@ void ldomTextStorageChunk::ensureUnpacked()
             }
             unpack();
         }
+    } else {
+        // compact
     }
 }
 
@@ -8361,7 +8373,7 @@ void testCacheFile()
     CRLog::info("Finished CacheFile unit test");
 }
 
-#define TEST_FN_TO_OPEN "/home/lve/src/test/example.fb2"
+#define TEST_FN_TO_OPEN "/home/lve/src/test/bibl.fb2.zip"
 
 void runFileCacheTest()
 {
@@ -8706,7 +8718,7 @@ void runCHMUnitTest()
 void runTinyDomUnitTests()
 {
 
-    runCHMUnitTest();
+    //runCHMUnitTest();
 
     runBasicTinyDomUnitTests();
 

@@ -121,7 +121,7 @@ int checkPowerState()
 
 const char *g_ImageResInfo[]=
 {
-    "logo",
+    "o",
 };
 
 
@@ -791,7 +791,7 @@ class CRJinkeScreen : public CRGUIScreenBase
             	full = true;
             else
             	full = false;
-			CRLog::debug("CRJinkeScreen::update( %d, %d, %d, %d, %s )", rc.left, rc.top, rc.right, rc.bottom, full ? "full" : "partial");
+            CRLog::debug("CRJinkeScreen::update( %d, %d, %d, %d, %s )", rc.left, rc.top, rc.right, rc.bottom, full ? "full" : "partial");
             //GR_BITMAP bmp;
             //GrBitmap(_wid, _gc, rc.left, rc.top, rc.width(), rc.height(), &bmp );
             int h = rc.height();
@@ -824,7 +824,7 @@ class CRJinkeScreen : public CRGUIScreenBase
                 }
             }
 #endif
-            CRLog::trace( "calling GrDrawImageBits wid=%08x, gc=%08x h=%d", (unsigned)_wid, (unsigned)_gc, h );
+            CRLog::trace( "calling GrPrint wid=%08x, gc=%08x h=%d", (unsigned)_wid, (unsigned)_gc, h );
             //GrDrawImageBits(_wid,_gc, 0, rc.top, &hdr);
             //GrBitmapEx(_wid,_gc, 0, rc.top, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top));
             //GR_BITMAP bmp;
@@ -866,6 +866,7 @@ class CRJinkeScreen : public CRGUIScreenBase
             else
                 GrPartialPrint(_wid, rc.left, rc.top, rc.width(), rc.height() );
         #endif
+            CRLog::trace( "GrPrint done" );
         }
     public:
         GR_WINDOW_ID getWID() { return _wid; }
@@ -1431,7 +1432,12 @@ int InitDoc(char *fileName)
     CRLog::setLogLevel(CRLog::LL_TRACE);
 #else
     //InitCREngineLog(NULL);
+#if 0
+    CRLog::setFileLogger("/root/abook/.cr3/cr3.log", true);
+    CRLog::setLogLevel(CRLog::LL_TRACE);
+#else
     InitCREngineLog("/root/abook/crengine/crlog.ini");
+#endif
 #endif
 
     CRLog::trace("creating window manager...");

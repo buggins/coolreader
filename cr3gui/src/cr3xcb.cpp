@@ -291,6 +291,7 @@ class CRXCBScreen : public CRGUIScreenBase
 
                 im = xcb_image_create_native (connection, _width, _height,
                         format, depth, NULL, ~0, NULL);
+                //format, depth, NULL, ~0, NULL);
                 assert(im);
 
                 shminfo.shmid = shmget (IPC_PRIVATE,
@@ -1318,7 +1319,7 @@ int main(int argc, char **argv)
         bmkdir = "/media/sd/bookmarks/";
     //TODO: remove hardcoded
 #ifdef __i386__
-        CRXCBWindowManager winman( 600, 730 );
+        CRXCBWindowManager winman( 600, 650 );
 #else
         CRXCBWindowManager winman( 600, 800 );
 

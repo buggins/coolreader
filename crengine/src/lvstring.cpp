@@ -20,6 +20,7 @@
 #include <time.h>
 #ifdef LINUX
 #include <sys/time.h>
+#include <malloc.h>
 #endif
 
 #if (USE_ZLIB==1)
@@ -3000,12 +3001,15 @@ protected:
         gettimeofday( &tval, NULL );
         int ms = tval.tv_usec;
         time_t t = tval.tv_sec;
+        struct mallinfo mi = mallinfo();
+        int memusage = mi.arena;
 #else
         time_t t = (time_t)time(0);
         int ms = 0;
+        int memusage = 0;
 #endif
         tm * bt = localtime(&t);
-        fprintf(f, "%04d/%02d/%02d %02d:%02d:%02d.%04d %s ", bt->tm_year+1900, bt->tm_mon+1, bt->tm_mday, bt->tm_hour, bt->tm_min, bt->tm_sec, ms/100, level);
+        fprintf(f, "%04d/%02d/%02d %02d:%02d:%02d.%04d [%d] %s ", bt->tm_year+1900, bt->tm_mon+1, bt->tm_mday, bt->tm_hour, bt->tm_min, bt->tm_sec, ms/100, memusage, level);
         vfprintf( f, msg, args );
         fprintf(f, "\n" );
         if ( autoFlush )

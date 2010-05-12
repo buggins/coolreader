@@ -387,8 +387,10 @@ void V3DocViewWin::OnLoadFileProgress( int percent )
 {
     CRLog::trace("OnLoadFileProgress(%d)", percent);
     time_t t = time((time_t)0);
-    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR )
+    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR ) {
         _wm->showProgress(lString16("cr3_wait_icon.png"), 10+percent/2);
+        _docview->getDocument()->dumpStatistics();
+    }
 }
 
 /// document formatting started
@@ -412,8 +414,10 @@ void V3DocViewWin::OnFormatProgress( int percent )
 {
     CRLog::trace("OnFormatProgress(%d)", percent);
     time_t t = time((time_t)0);
-    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR )
+    if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR ) {
         _wm->showProgress(lString16("cr3_wait_icon.png"), 60+percent*4/10);
+        _docview->getDocument()->dumpStatistics();
+    }
 }
 
 /// file load finiished with error
@@ -948,7 +952,7 @@ void V3DocViewWin::showAboutDialog()
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
     lString16 title = L"Cool Reader ";
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "3.0.26"
+#define PACKAGE_VERSION "3.0.29"
 #endif
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
 
