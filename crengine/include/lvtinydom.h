@@ -698,8 +698,6 @@ public:
     ldomNode * modify();
 };
 
-typedef ldomNode ldomNode;
-
 
 // default: 512K
 #define DEF_DOC_DATA_BUFFER_SIZE 0x80000

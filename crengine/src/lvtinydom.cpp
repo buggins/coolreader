@@ -529,10 +529,12 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
 #if CACHE_FILE_WRITE_BLOCK_PADDING==1
         int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
-        LASSERT(size + paddingSize == block->_blockSize );
-        lUInt8 tmp[paddingSize];
-        memset(tmp, 0xFF, paddingSize );
-        _stream->Write(tmp, paddingSize, &bytesWritten );
+        if ( block->_blockFilePos+block->_dataSize >= _stream->GetSize() - _sectorSize ) {
+            LASSERT(size + paddingSize == block->_blockSize );
+            lUInt8 tmp[paddingSize];
+            memset(tmp, 0xFF, paddingSize );
+            _stream->Write(tmp, paddingSize, &bytesWritten );
+        }
     }
 #endif
     _stream->Flush(true);
@@ -1493,7 +1495,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
         int sumpackedsize = 0;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
             if ( p->_bufsize >= 0 ) {
-                if ( p->_bufsize + sumsize < _maxUncompressedSize ) {
+                if ( p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
                     // fits
                     sumsize += p->_bufsize;
                 } else {
@@ -1501,7 +1503,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
                 }
             }
             if ( p->_compsize>=0 ) {
-                if ( p->_compsize + sumpackedsize < _maxCompressedSize ) {
+                if ( p->_compsize + sumpackedsize < _maxCompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF) ) {
                     // fits
                     sumpackedsize += p->_compsize;
                 } else {
