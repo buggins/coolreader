@@ -179,7 +179,7 @@ public:
             return;
         //if ( CRLog::isTraceEnabled() )
         //    CRLog::trace("AddToList(%d, %d) footnotes: %d", pagestart->start, pageend->end, footnotes.length());
-        LVRendPageInfo * page = new LVRendPageInfo(pagestart->start, pageend->end-pagestart->start, page_list->length());
+        LVRendPageInfo * page = new LVRendPageInfo(pagestart->getStart(), pageend->getEnd()-pagestart->getStart(), page_list->length());
         if ( footnotes.length()>0 ) {
             page->footnotes.add( footnotes );
             footnotes.clear();
@@ -191,7 +191,7 @@ public:
         if ( !footstart )
             return 0;
         int h = 0;
-        h = (footlast?footlast:footstart)->end - footstart->start;
+        h = (footlast?footlast:footstart)->getEnd() - footstart->getStart();
         return h;
     }
     int currentHeight( const LVRendLineInfo * line = NULL )
@@ -200,7 +200,7 @@ public:
             line = last;
         int h = 0;
         if ( line && pagestart )
-            h += line->end - pagestart->start;
+            h += line->getEnd() - pagestart->getStart();
         int footh = 0 /*currentFootnoteHeight()*/ + footheight;
         if ( footh )
             h += FOOTNOTE_MARGIN + footh;
@@ -214,7 +214,7 @@ public:
         }
         else 
         {
-            if (line->start<last->end)
+            if (line->getStart()<last->getEnd())
                 return; // for table cells
             unsigned flgSplit = CalcSplitFlag( last->getSplitAfter(), line->getSplitBefore() );
             bool flgFit = currentHeight( line ) <= page_h;
@@ -272,10 +272,10 @@ public:
         if ( footend==NULL )
             footend = footstart;
         //CRLog::trace("AddFootnoteFragmentToList(%d, %d)", footstart->start, footend->end );
-        int h = footend->end - footstart->start; // currentFootnoteHeight();
+        int h = footend->getEnd() - footstart->getStart(); // currentFootnoteHeight();
         if ( h>0 && h<page_h ) {
             footheight += h;
-            footnotes.add( LVPageFootNoteInfo( footstart->start, h ) );
+            footnotes.add( LVPageFootNoteInfo( footstart->getStart(), h ) );
         }
     }
     /// footnote is finished
@@ -288,8 +288,8 @@ public:
     }
     void AddFootnoteLine( LVRendLineInfo * line )
     {
-        int dh = line->end 
-            - (footstart ? footstart->end : line->start)
+        int dh = line->getEnd()
+            - (footstart ? footstart->getEnd() : line->getStart())
             + (footheight==0?FOOTNOTE_MARGIN:0);
         int h = currentHeight(next);
         //CRLog::trace("Add footnote line %d", line->start);

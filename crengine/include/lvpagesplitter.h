@@ -58,14 +58,145 @@ public:
     { }
 };
 
+template <typename T, int RESIZE_MULT, int RESIZE_ADD> class CompactArray
+{
+    struct Array {
+        T * _list;
+        int _size;
+        int _length;
+        Array()
+        : _list(NULL), _size(0), _length(0)
+        {
+        }
+        ~Array()
+        {
+            clear();
+        }
+        void add( T item )
+        {
+            if ( _size<=_length ) {
+                _size = _size*RESIZE_MULT + RESIZE_ADD;
+                _list = (T*)realloc( _list, sizeof(T)*_size );
+            }
+            _list[_length++] = item;
+        }
+        void add( T * items, int count )
+        {
+            if ( count<=0 )
+                return;
+            if ( _size<_length+count ) {
+                _size = _length+count;
+                _list = (T*)realloc( _list, sizeof(T)*_size );
+            }
+            for ( int i=0; i<count; i++ )
+                _list[_length+i] = items[i];
+            _length += count;
+        }
+        void reserve( int count )
+        {
+            if ( count<=0 )
+                return;
+            if ( _size<_length+count ) {
+                _size = _length+count;
+                _list = (T*)realloc( _list, sizeof(T)*_size );
+            }
+        }
+        void clear()
+        {
+            if ( _list ) {
+                free( _list );
+                _list = NULL;
+                _size = 0;
+                _length = 0;
+            }
+        }
+        int length() const
+        {
+            return _length;
+        }
+        T get( int index ) const
+        {
+            return _list[index];
+        }
+        const T & operator [] (int index) const
+        {
+            return _list[index];
+        }
+        T & operator [] (int index)
+        {
+            return _list[index];
+        }
+    };
+
+    Array * _data;
+public:
+    CompactArray()
+    : _data(NULL)
+    {
+    }
+    void add( T item )
+    {
+        if ( !_data )
+            _data = new Array();
+        _data->add(item);
+    }
+    void add( T * items, int count )
+    {
+        if ( !_data )
+            _data = new Array();
+        _data->add(items, count);
+    }
+    void add( LVArray<T> & items )
+    {
+        if ( items.length()<=0 )
+            return;
+        if ( !_data )
+            _data = new Array();
+        _data->add( &(items[0]), items.length() );
+    }
+    void reserve( int count )
+    {
+        if ( count<=0 )
+            return;
+        if ( !_data )
+            _data = new Array();
+        _data->reserve( count );
+    }
+    void clear()
+    {
+        if ( _data ) {
+            delete _data;
+            _data = NULL;
+        }
+    }
+    int length() const
+    {
+        return _data ? _data->length() : 0;
+    }
+    T get( int index ) const
+    {
+        return _data->get(index);
+    }
+    const T & operator [] (int index) const
+    {
+        return _data->operator [](index);
+    }
+    T & operator [] (int index)
+    {
+        return _data->operator [](index);
+    }
+    bool empty() { return !_data || _data->length()==0; }
+
+};
+
 /// rendered page splitting info
 class LVRendPageInfo {
 public:
     int start; /// start of page
-    int height; /// height of page, does not include footnotes
     int index;  /// index of page
-    int type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
-    LVArray<LVPageFootNoteInfo> footnotes; /// footnote fragment list for page
+    lInt16 height; /// height of page, does not include footnotes
+    lInt16 type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
+    CompactArray<LVPageFootNoteInfo, 1, 4> footnotes; /// footnote fragment list for page
     LVRendPageInfo( int pageStart, int pageHeight, int pageIndex )
     : start(pageStart), height(pageHeight), index(pageIndex), type(PAGE_TYPE_NORMAL) {}
     LVRendPageInfo( int coverHeight )
@@ -95,11 +226,11 @@ public:
 
 
 class LVRendLineInfo {
-    LVFootNoteList * links;
+    LVFootNoteList * links; // 4 bytes
+    int start;              // 4 bytes
+    lInt16 height;          // 2 bytes
 public:
-    int start;
-    int end;
-    int flags;
+    lInt16 flags;           // 2 bytes
     int getSplitBefore() const { return (flags>>RN_SPLIT_BEFORE)&7; }
     int getSplitAfter() const { return (flags>>RN_SPLIT_AFTER)&7; }
 /*
@@ -116,16 +247,20 @@ public:
     }
 
     void clear() { 
-        start = -1; end = -1; flags = 0; 
+        start = -1; height = 0; flags = 0;
         if ( links!=NULL ) {
             delete links; 
             links=NULL;
         } 
     }
 
-    LVRendLineInfo() : links(NULL), start(-1), end(-1), flags(0) { }
+    inline int getEnd() const { return start + height; }
+    inline int getStart() const { return start; }
+    inline int getHeight() const { return height; }
+
+    LVRendLineInfo() : links(NULL), start(-1), height(0), flags(0) { }
     LVRendLineInfo( int line_start, int line_end, int line_flags )
-    : links(NULL), start(line_start), end(line_end), flags(line_flags)
+    : links(NULL), start(line_start), height(line_end-line_start), flags(line_flags)
     {
     }
     LVFootNoteList * getLinks() { return links; }
@@ -147,7 +282,7 @@ typedef LVFastRef<LVFootNote> LVFootNoteRef;
 
 class LVFootNote : public LVRefCounter {
     lString16 id;
-    LVArray<LVRendLineInfo*> lines;
+    CompactArray<LVRendLineInfo*, 2, 4> lines;
 public:
     LVFootNote( lString16 noteId )
         : id(noteId)
@@ -157,7 +292,7 @@ public:
     {
         lines.add( line );
     }
-    LVArray<LVRendLineInfo*> & getLines() { return lines; }
+    CompactArray<LVRendLineInfo*, 2, 4> & getLines() { return lines; }
     bool empty() { return lines.empty(); }
     void clear() { lines.clear(); }
 };
