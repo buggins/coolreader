@@ -656,7 +656,7 @@ int getSectionPage( ldomNode * section, LVRendPageList & pages )
     return page;
 }
 
-
+/*
 static void addTocItems( ldomNode * basesection, LVTocItem * parent )
 {
     if ( !basesection || !parent )
@@ -699,6 +699,7 @@ void LVDocView::makeToc()
         addTocItems( section, toc );
     }
 }
+*/
 
 /// update page numbers for items
 void LVDocView::updatePageNumbers( LVTocItem * item )
@@ -1190,10 +1191,12 @@ LVArray<int> & LVDocView::getSectionBounds( )
     lUInt16 section_id = m_doc->getElementNameIndex( L"section" );
     int fh = GetFullHeight();
     if ( body && fh>0 ) {
-        for ( int l1=0; l1<1000; l1++) {
-            ldomNode * l1section = body->findChildElement(LXML_NS_ANY, section_id, l1);
-            if ( !l1section )
-                break;
+        int cnt = body->getChildCount();
+        for ( int i=0; i<cnt; i++ ) {
+
+            ldomNode * l1section = body->getChildNode( i );
+            if ( !l1section->isElement() || l1section->getNodeId()!=section_id )
+                continue;
             lvRect rc;
             l1section->getAbsRect( rc );
             int p = (int)(((lInt64)rc.top * 10000) / fh);

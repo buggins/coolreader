@@ -317,7 +317,7 @@ class CRXCBScreen : public CRGUIScreenBase
         virtual void update( const lvRect & a_rc, bool full )
         {
             lvRect rc(a_rc);
-            CRLog::debug("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d\n", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
+            CRLog::debug("update screen, bpp=%d width=%d, height=%d, rect={%d, %d, %d, %d} full=%d", (int)im->bpp,im->width,im->height, (int)rc.left, (int)rc.top, (int)rc.right, (int)rc.bottom, full?1:0 );
             if ( _forceNextUpdate && !_forceUpdateRect.isEmpty() ) {
                 if ( _mode==NormalMode ) {
                     if ( rc.isEmpty() ) {
@@ -358,7 +358,7 @@ class CRXCBScreen : public CRGUIScreenBase
                 printf("cannot get shm image\n");
                 return;
             }
-            CRLog::debug("update screen, bpp=%d\n", (int)im->bpp);
+            //CRLog::debug("update screen, bpp=%d", (int)im->bpp);
 
             if ( _mode==PrepareMode ) {
                 CRLog::debug("CRXCBScreen::update() : disabling autodraw for prepare mode");
@@ -462,11 +462,11 @@ class CRXCBScreen : public CRGUIScreenBase
                 }
                 break;
             default:
-                CRLog::error("unsupported bpp %d\n", im->bpp);
+                CRLog::error("unsupported bpp %d", im->bpp);
                 break;
             }
             //pContext.image = im;
-            CRLog::debug("updated\n");
+            //CRLog::debug("updated\n");
 
             //view()->paint();
 

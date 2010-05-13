@@ -682,6 +682,9 @@ public:
     /// remove child
     ldomNode * removeChild( lUInt32 index );
 
+    /// returns XPath segment for this element relative to parent element (e.g. "p[10]")
+    lString16 getXPathSegment();
+
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
 #if BUILD_LITE!=1
@@ -1509,7 +1512,8 @@ private:
     ldomXPointer    _position;
     LVPtrVector<LVTocItem> _children;
     //====================================================
-    LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _path(pos.toString()), _position(pos) { }
+    //LVTocItem( ldomXPointer pos, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _path(pos.toString()), _position(pos) { }
+    LVTocItem( ldomXPointer pos, lString16 path, const lString16 & name ) : _parent(NULL), _level(0), _index(0), _page(0), _percent(0), _name(name), _path(path), _position(pos) { }
     void addChild( LVTocItem * item ) { item->_level=_level+1; item->_parent=this; item->_index=_children.length(), item->_doc=_doc; _children.add(item); }
     //====================================================
     void setPage( int n ) { _page = n; }
@@ -1544,9 +1548,9 @@ public:
     /// returns child node by index
     LVTocItem * getChild( int index ) const { return _children[index]; }
     /// add child TOC node
-    LVTocItem * addChild( const lString16 & name, ldomXPointer ptr )
+    LVTocItem * addChild( const lString16 & name, ldomXPointer ptr, lString16 path )
     {
-        LVTocItem * item = new LVTocItem( ptr, name );
+        LVTocItem * item = new LVTocItem( ptr, path, name );
         addChild( item );
         return item;
     }
@@ -1728,6 +1732,7 @@ class ldomElementWriter
 
     ldomNode * _element;
     LVTocItem * _tocItem;
+    lString16 _path;
     const css_elem_def_props_t * _typeDef;
     bool _allowText;
     bool _isBlock;
@@ -1740,6 +1745,7 @@ class ldomElementWriter
     {
         return _element;
     }
+    lString16 getPath();
     void onText( const lChar16 * text, int len, lUInt32 flags );
     void addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value );
     //lxmlElementWriter * pop( lUInt16 id );

@@ -2780,6 +2780,14 @@ static lString16 getSectionHeader( ldomNode * section )
     return header;
 }
 
+lString16 ldomElementWriter::getPath()
+{
+    if ( !_path.empty() || _element->isRoot() )
+        return _path;
+    _path = _parent->getPath() + L"/" + _element->getXPathSegment();
+    return _path;
+}
+
 void ldomElementWriter::updateTocItem()
 {
     if ( !_isSection )
@@ -2788,7 +2796,7 @@ void ldomElementWriter::updateTocItem()
     if ( _parent && _parent->_tocItem ) {
         lString16 title = getSectionHeader( _element );
         //CRLog::trace("TOC ITEM: %s", LCSTR(title));
-        _tocItem = _parent->_tocItem->addChild(title, ldomXPointer(_element,0));
+        _tocItem = _parent->_tocItem->addChild(title, ldomXPointer(_element,0), getPath() );
     }
     _isSection = false;
 }
@@ -4026,6 +4034,37 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
         }
     }
     return ldomXPointer( currNode, -1 ); // XPath: index==-1
+}
+
+/// returns XPath segment for this element relative to parent element (e.g. "p[10]")
+lString16 ldomNode::getXPathSegment()
+{
+    if ( isNull() || isRoot() )
+        return lString16::empty_str;
+    ldomNode * parent = getParentNode();
+    int cnt = parent->getChildCount();
+    int index = 0;
+    if ( isElement() ) {
+        int id = getNodeId();
+        for ( int i=0; i<cnt; i++ ) {
+            ldomNode * node = parent->getChildNode(i);
+            if ( node == this ) {
+                return getNodeName() + L"[" + lString16::itoa(index) + L"]";
+            }
+            if ( node->isElement() && node->getNodeId()==id )
+                index++;
+        }
+    } else {
+        for ( int i=0; i<cnt; i++ ) {
+            ldomNode * node = parent->getChildNode(i);
+            if ( node == this ) {
+                return L"text()[" + lString16::itoa(index) + L"]";
+            }
+            if ( node->isText() )
+                index++;
+        }
+    }
+    return lString16::empty_str;
 }
 
 lString16 ldomXPointer::toString()
