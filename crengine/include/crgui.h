@@ -599,6 +599,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             delete window;
             for ( int i=0; i<_windows.length() && (index<0 || i<index); i++ )
                 _windows[i]->setDirty();
+            fontMan->gc();
         }
         /// redraw one window
         void updateWindow( CRGUIWindow * window )
@@ -1064,7 +1065,7 @@ class CRMenuItem
         /// item icon
         LVImageSourceRef getImage() { return _image; }
         /// item label font
-        LVFontRef getFont() { return _defFont; }
+        virtual LVFontRef getFont() { return _defFont; }
         /// constructor
         CRMenuItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, LVFontRef defFont, const lChar16 * propValue=NULL  )
     : _menu(menu), _id(id), _label(label), _image(image), _defFont(defFont), _propValue(propValue) { }

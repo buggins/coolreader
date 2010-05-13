@@ -2489,13 +2489,22 @@ void LVFontCache::update( const LVFontDef * def, LVFontRef ref )
 // garbage collector
 void LVFontCache::gc()
 {
+    int droppedCount = 0;
+    int usedCount = 0;
     for (int i=_instance_list.length()-1; i>=0; i--)
     {
-        if ( _instance_list[i]->_fnt.getRefCount()==1 )
+        if ( _instance_list[i]->_fnt.getRefCount()<=1 )
         {
+            if ( CRLog::isTraceEnabled() )
+                CRLog::trace("dropping font instance %s[%d] by gc()", _instance_list[i]->getDef()->getTypeFace().c_str(), _instance_list[i]->getDef()->getSize() );
             _instance_list.erase(i,1);
+            droppedCount++;
+        } else {
+            usedCount++;
         }
     }
+    if ( CRLog::isDebugEnabled() )
+        CRLog::debug("LVFontCache::gc() : %d fonts still used, %d fonts dropped", usedCount, droppedCount );
 }
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)

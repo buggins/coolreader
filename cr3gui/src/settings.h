@@ -80,6 +80,12 @@ class CRSettingsMenu : public CRFullScreenMenu
 #endif
         CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect & rc );
         virtual bool onCommand( int command, int params );
+        virtual ~CRSettingsMenu()
+        {
+            CRLog::trace("Calling fontMan->gc() on Settings menu destroy");
+            fontMan->gc();
+            CRLog::trace("Done fontMan->gc() on Settings menu destroy");
+        }
 };
 
 

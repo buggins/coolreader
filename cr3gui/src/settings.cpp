@@ -225,6 +225,31 @@ public:
     }
 };
 
+class OnDemandFontMenuItem : public CRMenuItem
+{
+    int _size;
+    int _weight;
+    bool _italic;
+    css_font_family_t _family;
+    lString8 _typeface;
+    public:
+    OnDemandFontMenuItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, const lChar16 * propValue,
+                          int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
+    : CRMenuItem(menu, id, LCSTR(label), image, LVFontRef(), propValue)
+    , _size(size), _weight(weight), _italic(italic), _family(family), _typeface(typeface)
+    {
+    }
+    /// item label font
+    virtual LVFontRef getFont()
+    {
+        if ( _defFont.isNull() ) {
+            CRLog::trace("Creating font %s[%d] on demand", _typeface.c_str(), _size);
+            _defFont = fontMan->GetFont( _size, _weight, _italic, _family, _typeface);
+        }
+        return _defFont;
+    }
+};
+
 CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props )
 {
     lString16Collection list;
@@ -239,9 +264,10 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
         char defvalue[400];
         //sprintf( name, "VIEWER_DLG_FONT_SIZE_%d", cr_font_sizes[i] );
         sprintf( defvalue, "%d %s", cr_font_sizes[i], _("The quick brown fox jumps over lazy dog") );
-        fontSizeMenu->addItem( new CRMenuItem( fontSizeMenu, 0,
+        fontSizeMenu->addItem( new OnDemandFontMenuItem( fontSizeMenu, 0,
                         lString16(defvalue),
-                        LVImageSourceRef(), fontMan->GetFont( cr_font_sizes[i], 400, false, css_ff_sans_serif, fontFace), lString16::itoa(cr_font_sizes[i]).c_str()  ) );
+                        LVImageSourceRef(), lString16::itoa(cr_font_sizes[i]).c_str(),
+                        cr_font_sizes[i], 400, false, css_ff_sans_serif, fontFace) );
     }
     fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu") );
     //fontSizeMenu->setAccelerators( _menuAccelerators );
@@ -401,9 +427,10 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         CRLog::trace("faces found: %d", list.length());
         int i;
         for ( i=0; i<(int)list.length(); i++ ) {
-            fontFaceMenu->addItem( new CRMenuItem( fontFaceMenu, i,
-                                    list[i], LVImageSourceRef(), fontMan->GetFont( MENU_FONT_FACE_SIZE, 400,
-									false, css_ff_sans_serif, UnicodeToUtf8(list[i])), list[i].c_str() ) );
+            fontFaceMenu->addItem( new OnDemandFontMenuItem( fontFaceMenu, i,
+                                    list[i], LVImageSourceRef(), list[i].c_str(),
+                                    MENU_FONT_FACE_SIZE, 400,
+                                    false, css_ff_sans_serif, UnicodeToUtf8(list[i])) );
             fontFaceMenu->setFullscreen( true );
         }
         fontFaceMenu->setAccelerators( _menuAccelerators );
