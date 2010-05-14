@@ -4049,7 +4049,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return getNodeName() + L"[" + lString16::itoa(index) + L"]";
+                return getNodeName() + L"[" + lString16::itoa(index+1) + L"]";
             }
             if ( node->isElement() && node->getNodeId()==id )
                 index++;
@@ -4058,7 +4058,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return L"text()[" + lString16::itoa(index) + L"]";
+                return L"text()[" + lString16::itoa(index+1) + L"]";
             }
             if ( node->isText() )
                 index++;

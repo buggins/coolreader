@@ -718,6 +718,7 @@ void LVDocView::updatePageNumbers( LVTocItem * item )
         else
             item->_percent = -1;
     } else {
+        //CRLog::error("Page position is not found for path %s", LCSTR(item->getPath()) );
         // unknown position
         item->_page = -1;
         item->_percent = -1;
