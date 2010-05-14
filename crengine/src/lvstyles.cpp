@@ -21,45 +21,46 @@ lUInt32 calcHash(font_ref_t & f)
 {
     if ( !f )
         return 14321;
-    lUInt32 v = 13;
-    v = v * 75 + (lUInt32)f->getFontFamily();
-    v = v * 75 + (lUInt32)f->getHeight();
-    v = v * 75 + (lUInt32)f->getWeight();
-    v = v * 75 + (lUInt32)f->getItalic();
-    v = v * 75 + (lUInt32)f->getKerning();
-    v = v * 75 + (lUInt32)f->getBitmapMode();
-    v = v * 75 + (lUInt32)f->getTypeFace().getHash();
-    v = v * 75 + (lUInt32)f->getBaseline();
+    lUInt32 v = 31;
+    v = v * 31 + (lUInt32)f->getFontFamily();
+    v = v * 31 + (lUInt32)f->getHeight();
+    v = v * 31 + (lUInt32)f->getWeight();
+    v = v * 31 + (lUInt32)f->getItalic();
+    v = v * 31 + (lUInt32)f->getKerning();
+    v = v * 31 + (lUInt32)f->getBitmapMode();
+    v = v * 31 + (lUInt32)f->getTypeFace().getHash();
+    v = v * 31 + (lUInt32)f->getBaseline();
     return v;
 }
 
 
 lUInt32 calcHash(css_style_rec_t & rec)
 {
-    return (((((((((((((((((((((((((lUInt32)rec.display * 11
-         + (lUInt32)rec.white_space) * 19
-         + (lUInt32)rec.text_align) * 37
-         + (lUInt32)rec.text_decoration) * 37
-         + (lUInt32)rec.hyphenate) * 37
-         + (lUInt32)rec.vertical_align) * 79
-         + (lUInt32)rec.font_size.type) * 13
-         + (lUInt32)rec.font_size.value) * 17
-         + (lUInt32)rec.font_style) * 29
+    return ((((((((((((((((((((((((((lUInt32)rec.display * 31
+         + (lUInt32)rec.white_space) * 31
+         + (lUInt32)rec.text_align) * 31
+         + (lUInt32)rec.text_decoration) * 31
+         + (lUInt32)rec.hyphenate) * 31
+         + (lUInt32)rec.vertical_align) * 31
+         + (lUInt32)rec.font_size.type) * 31
+         + (lUInt32)rec.font_size.value) * 31
+         + (lUInt32)rec.font_style) * 31
          + (lUInt32)rec.font_weight) * 31
          + (lUInt32)rec.line_height.pack()) * 31
-         + (lUInt32)rec.color.pack()) * 37
-         + (lUInt32)rec.background_color.pack()) * 37
-         + (lUInt32)rec.width.pack()) * 37
-         + (lUInt32)rec.height.pack()) * 79
-         + (lUInt32)rec.margin[0].pack()) * 13
-         + (lUInt32)rec.margin[1].pack()) * 17
-         + (lUInt32)rec.margin[2].pack()) * 23
-         + (lUInt32)rec.margin[3].pack()) * 11
-         + (lUInt32)rec.padding[0].pack()) * 13
-         + (lUInt32)rec.padding[1].pack()) * 17
-         + (lUInt32)rec.padding[2].pack()) * 23
-         + (lUInt32)rec.padding[3].pack()) * 11
-         + (lUInt32)rec.font_family) * 75
+         + (lUInt32)rec.color.pack()) * 31
+         + (lUInt32)rec.background_color.pack()) * 31
+         + (lUInt32)rec.width.pack()) * 31
+         + (lUInt32)rec.height.pack()) * 31
+         + (lUInt32)rec.text_indent.pack()) * 31
+         + (lUInt32)rec.margin[0].pack()) * 31
+         + (lUInt32)rec.margin[1].pack()) * 31
+         + (lUInt32)rec.margin[2].pack()) * 31
+         + (lUInt32)rec.margin[3].pack()) * 31
+         + (lUInt32)rec.padding[0].pack()) * 31
+         + (lUInt32)rec.padding[1].pack()) * 31
+         + (lUInt32)rec.padding[2].pack()) * 31
+         + (lUInt32)rec.padding[3].pack()) * 31
+         + (lUInt32)rec.font_family) * 31
          + (lUInt32)rec.font_name.getHash());
 }
 
@@ -77,6 +78,7 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.height == r2.height &&
            r1.color == r2.color &&
            r1.background_color == r2.background_color &&
+           r1.text_indent == r2.text_indent &&
            r1.margin[0] == r2.margin[0] &&
            r1.margin[1] == r2.margin[1] &&
            r1.margin[2] == r2.margin[2] &&
