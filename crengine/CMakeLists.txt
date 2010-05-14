@@ -12,6 +12,7 @@ src/lvtinydom.cpp
 src/lvstream.cpp  
 src/lvxml.cpp     
 src/chmfmt.cpp     
+src/epubfmt.cpp     
 src/lvstsheet.cpp 
 #src/xutils.cpp
 )

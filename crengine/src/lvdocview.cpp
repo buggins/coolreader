@@ -23,6 +23,8 @@
 #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"
 #include "../include/crtrace.h"
+#include "../include/epubfmt.h"
+#include "../include/chmfmt.h"
 
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
@@ -2858,37 +2860,6 @@ void LVDocView::createDefaultDocument( lString16 title, lString16 message )
     requestRender();
 }
 
-class EpubItem {
-public:
-    lString16 href;
-    lString16 mediaType;
-    lString16 id;
-    EpubItem()
-    { }
-    EpubItem( const EpubItem & v )
-        : href(v.href), mediaType(v.mediaType), id(v.id)
-    { }
-    EpubItem & operator = ( const EpubItem & v )
-    {
-        href = v.href;
-        mediaType = v.mediaType;
-        id = v.id;
-        return *this;
-    }
-};
-
-class EpubItems : public LVPtrVector<EpubItem> {
-public:
-    EpubItem * findById( const lString16 & id )
-    {
-        if ( id.empty() )
-            return NULL;
-        for ( int i=0; i<length(); i++ )
-            if ( get(i)->id == id )
-                return get(i);
-        return NULL;
-    }
-};
 
 /// load document from stream
 bool LVDocView::LoadDocument( LVStreamRef stream )
