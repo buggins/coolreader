@@ -48,7 +48,7 @@ LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight)
     }
 }
 
-void LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
+bool LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
 {
     renderedFinalBlocks += numFinalBlocksRendered;
     int percent = totalFinalBlocks>0 ? renderedFinalBlocks * 100 / totalFinalBlocks : 0;
@@ -61,8 +61,10 @@ void LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
         if ( t>lastSentProgress ) {
             callback->OnFormatProgress(percent);
             lastSentProgress = t;
+            return true;
         }
     }
+    return false;
 }
 
 /// append footnote link to last added line

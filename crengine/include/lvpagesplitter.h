@@ -344,7 +344,7 @@ public:
         callback = cb; totalFinalBlocks=_totalFinalBlocks;
         lastSentProgress = 0;
     }
-    void updateRenderProgress( int numFinalBlocksRendered );
+    bool updateRenderProgress( int numFinalBlocksRendered );
 
     /// append footnote link to last added line
     void addLink( lString16 id );
