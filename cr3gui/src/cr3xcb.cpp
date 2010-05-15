@@ -287,10 +287,36 @@ class CRXCBScreen : public CRGUIScreenBase
                         (rep_shm->major_version > 1 || rep_shm->minor_version > 0))
                     format = (xcb_image_format_t)rep_shm->pixmap_format;
                 else
-                    format = (xcb_image_format_t)0;
+                    format = XCB_IMAGE_FORMAT_Z_PIXMAP;
 
                 im = xcb_image_create_native (connection, _width, _height,
-                        format, depth, NULL, ~0, NULL);
+                     format, depth, NULL, ~0, NULL);
+#if 0
+                if ( !im ) {
+                    CRLog::trace("Failed image format %d %d", format, depth);
+                    int sz = _width*_height*4;
+                    lUInt8 * data = (lUInt8*)malloc(sz);
+                    int params[] = {
+                        XCB_IMAGE_FORMAT_XY_BITMAP, 24,
+                        XCB_IMAGE_FORMAT_XY_PIXMAP, 24,
+                        XCB_IMAGE_FORMAT_Z_PIXMAP, 24,
+                        XCB_IMAGE_FORMAT_XY_BITMAP, 32,
+                        XCB_IMAGE_FORMAT_XY_PIXMAP, 32,
+                        XCB_IMAGE_FORMAT_Z_PIXMAP, 32,
+                        0, 0,
+                    };
+                    for ( int i=0; params[i+1]; i+=2 ) {
+                        im = xcb_image_create_native (connection, _width, _height,
+                             (xcb_image_format_t)params[i], params[i+1], NULL, ~0, NULL);
+                        if ( im ) {
+                            CRLog::trace("Passed image format %d %d", params[i], params[i+1]);
+                            break;
+                        }
+                        CRLog::trace("Failed image format %d %d", params[i], params[i+1]);
+                    }
+                }
+#endif
+                //format, depth, NULL, ~0, NULL);
                 //format, depth, NULL, ~0, NULL);
                 assert(im);
 
@@ -572,7 +598,7 @@ class CRXCBScreen : public CRGUIScreenBase
                 XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
             depth = xcb_aux_get_depth (connection, screen);
-            printf("depth = %d, root depth = %d\n",depth, screen->root_depth);
+            CRLog::trace("depth = %d, root depth = %d\n",depth, screen->root_depth);
             xcb_aux_create_window(connection,
                     depth,
                     window, screen->root,
