@@ -1,3 +1,18 @@
+cr3 (3.0.24-22) zelazny; urgency=low
+
+  * CHMLIB patch to support external stream
+  * add CHM container support
+  * CHM support, part 2
+  * bigfiles support fix
+  * LIBCHM arm support
+  * optimize page splitter memory usage
+  * load/format performance optimization
+  * performance optimizations
+  * lazy font loading for GUI, font garbage collection
+  * memory buffer sizes tuning
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Thu, 13 May 2010 16:53:14 +0200
+
 cr3 (3.0.24-21) zelazny; urgency=low
 
   [ Vadim Lopatin ]
