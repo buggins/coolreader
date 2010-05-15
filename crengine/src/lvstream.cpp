@@ -4246,3 +4246,309 @@ bool LVDeleteFile( lString16 filename )
 #endif
 }
 
+class LVBlockWriteStream : public LVStreamProxy
+{
+    LVStreamRef _baseStream;
+    int _blockSize;
+    int _blockCount;
+    lvpos_t _pos;
+    lvpos_t _size;
+
+
+    struct Block
+    {
+        lvpos_t block_start;
+        lvpos_t block_end;
+        lvpos_t modified_start;
+        lvpos_t modified_end;
+        lUInt8 * buf;
+        int size;
+        Block * next;
+
+        Block( lvpos_t start, lvpos_t end, int block_size )
+            : block_start( start/block_size*block_size ), block_end( end )
+            , modified_start(-1), modified_end(-1)
+            , size( block_size ), next(NULL)
+        {
+            buf = (lUInt8*)malloc( size );
+
+        }
+        ~Block()
+        {
+            free(buf);
+        }
+
+        void save( const lUInt8 * ptr, lvpos_t pos, lvsize_t len )
+        {
+            int offset = (int)(pos - block_start);
+            for ( int i=0; i<len; i++ ) {
+                if ( pos+i>block_end || buf[offset+i]!=ptr[i] ) {
+                    buf[offset+i] = ptr[i];
+                    if ( modified_start==-1 )
+                        modified_start = modified_end = pos + i;
+                    else {
+                        if ( modified_start>pos+i )
+                            modified_start = pos+i;
+                        if ( modified_end<pos+i+1)
+                            modified_end = pos+i+1;
+                        if ( block_end<pos+i+1)
+                            block_end = pos+i+1;
+                    }
+                }
+            }
+
+        }
+
+        bool containsPos( lvpos_t pos )
+        {
+            return pos>=block_start && pos<block_end;
+        }
+    };
+
+    // list of blocks
+    Block * _firstBlock;
+    int _count;
+
+    /// fills block with data existing in file
+    lverror_t readBlock( Block * block )
+    {
+        lvpos_t start = block->block_start;
+        lvpos_t end = start + _blockSize;
+        lvpos_t ssize = 0;
+        lverror_t res = LVERR_OK;
+        res = _baseStream->GetSize( &ssize);
+        if ( res!=LVERR_OK )
+            return res;
+        if ( end>ssize )
+            end = ssize;
+        if ( end<=start )
+            return LVERR_OK;
+        _baseStream->SetPos( start );
+        lvsize_t bytesRead = 0;
+        block->block_end = end;
+        res = _baseStream->Read( block->buf, end-start, &bytesRead );
+        return res;
+    }
+
+    lverror_t writeBlock( Block * block )
+    {
+        if ( block->modified_start < block->modified_end ) {
+            _baseStream->SetPos( block->modified_start );
+            lvpos_t bytesWritten = 0;
+            lverror_t res = _baseStream->Write( block->buf + (block->modified_start-block->block_start), block->modified_end-block->modified_start, &bytesWritten );
+            if ( res==LVERR_OK ) {
+                if ( _size<block->modified_end )
+                    _size = block->modified_end;
+            }
+            block->modified_end = block->modified_start = -1;
+            return res;
+        } else
+            return LVERR_OK;
+    }
+
+    Block * newBlock( lvpos_t start, int len )
+    {
+        Block * b = new Block( start, start+len, _blockSize );
+    }
+
+    /// find block, move to top if found
+    Block * findBlock( lvpos_t pos )
+    {
+        for ( Block ** p = &_firstBlock; *p; p=&(*p)->next ) {
+            Block * item = *p;
+            if ( item->containsPos(pos) ) {
+                if ( item!=_firstBlock ) {
+                    *p = item->next;
+                    _firstBlock = item;
+                }
+                return item;
+            }
+        }
+        return NULL;
+    }
+
+    // try read block-aligned fragment from cache
+    bool readFromCache( void * buf, lvpos_t pos, lvsize_t count )
+    {
+        Block * p = findBlock( pos );
+        if ( p ) {
+            memcpy( buf, p->buf + (pos-p->block_start), count );
+            return true;
+        }
+        return false;
+    }
+
+    // write block-aligned fragment to cache
+    lverror_t writeToCache( const void * buf, lvpos_t pos, lvsize_t count )
+    {
+        Block * p = findBlock( pos );
+        if ( p ) {
+            p->save( (const lUInt8 *)buf, pos, count );
+            if ( pos + count > _size )
+                _size = pos + count;
+            return LVERR_OK;
+        }
+        if ( _count>=_blockCount-1 ) {
+            // remove last
+            for ( Block * p = _firstBlock; p; p=p->next ) {
+                if ( p->next && !p->next->next ) {
+                    writeBlock( p->next );
+                    delete p->next;
+                    _count--;
+                    p->next = NULL;
+                }
+            }
+        }
+        p = newBlock( pos, count );
+        if ( readBlock( p )!=LVERR_OK )
+            return LVERR_FAIL;
+        p->save( (const lUInt8 *)buf, pos, count );
+        p->next = _firstBlock;
+        _firstBlock = p;
+        _count++;
+        if ( pos + count > _size )
+            _size = pos + count;
+        return LVERR_OK;
+    }
+
+
+public:
+    /// flushes unsaved data from buffers to file, with optional flush of OS buffers
+    virtual lverror_t Flush( bool sync )
+    {
+        lverror_t res = LVERR_OK;
+        for ( Block * p; p; ) {
+            Block * tmp = p;
+            if ( writeBlock(p)!=LVERR_OK )
+                res = LVERR_FAIL;
+            p = p->next;
+            delete tmp;
+        }
+        _baseStream->Flush( sync );
+        return res;
+    }
+
+
+    virtual ~LVBlockWriteStream()
+    {
+        Flush( true );
+    }
+
+    LVBlockWriteStream( LVStreamRef baseStream, int blockSize, int blockCount )
+    : LVStreamProxy(baseStream.get()), _baseStream( baseStream ), _blockSize( blockSize ), _blockCount( blockCount ), _firstBlock(NULL)
+    {
+        _pos = _baseStream->GetPos();
+        _size = _baseStream->GetSize();
+    }
+    virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
+    {
+        lvpos_t newpos = 0;
+        lverror_t res = m_base_stream->Seek(offset, origin, &newpos);
+        if ( pNewPos && res==LVERR_OK ) {
+            *pNewPos = newpos;
+            _pos = newpos;
+        }
+        return res;
+    }
+    virtual lverror_t Tell( lvpos_t * pPos )
+    {
+        *pPos = _pos;
+        return LVERR_OK;
+    }
+    //virtual lverror_t   SetPos(lvpos_t p)
+    virtual lvpos_t   SetPos(lvpos_t p)
+            {
+                lvpos_t res = m_base_stream->SetPos(p);
+                _pos = m_base_stream->GetPos();
+                return res;
+            }
+    virtual lvpos_t   GetPos()
+            { return _pos; }
+    virtual lverror_t SetSize( lvsize_t size )
+    {
+        // TODO:
+        lverror_t res = m_base_stream->SetSize(size);
+        if ( res==LVERR_OK )
+            _size = size;
+        return res;
+    }
+
+    virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
+    {
+        // slice by block bounds
+        lvsize_t bytesRead = 0;
+        lverror_t res = LVERR_OK;
+        if ( _pos + count > _size )
+            count = _size - _pos;
+        while ( count>0 && res==LVERR_OK ) {
+            lvpos_t blockSpaceLeft = _blockSize - (_pos % _blockSize);
+            if ( blockSpaceLeft > count )
+                blockSpaceLeft = count;
+            lvsize_t blockBytesRead = 0;
+
+            // read from Write buffers if possible, otherwise - from base stream
+            if ( readFromCache( buf, _pos, blockSpaceLeft ) ) {
+                blockBytesRead = blockSpaceLeft;
+                res = LVERR_OK;
+            } else {
+                m_base_stream->SetPos(_pos);
+                res = m_base_stream->Read(buf, blockSpaceLeft, &blockBytesRead);
+            }
+            if ( res!=LVERR_OK )
+                break;
+
+            count -= blockBytesRead;
+            buf = ((char*)buf) + blockBytesRead;
+            _pos += blockBytesRead;
+            bytesRead += blockBytesRead;
+            if ( !blockBytesRead )
+                break;
+        }
+        if ( nBytesRead && res==LVERR_OK )
+            *nBytesRead = bytesRead;
+        return res;
+    }
+
+    virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
+    {
+        // slice by block bounds
+        lvsize_t bytesRead = 0;
+        lverror_t res = LVERR_OK;
+        //if ( _pos + count > _size )
+        //    count = _size - _pos;
+        while ( count>0 && res==LVERR_OK ) {
+            lvpos_t blockSpaceLeft = _blockSize - (_pos % _blockSize);
+            if ( blockSpaceLeft > count )
+                blockSpaceLeft = count;
+            lvsize_t blockBytesWritten = 0;
+
+            // read from Write buffers if possible, otherwise - from base stream
+            res = writeToCache(buf, _pos, blockSpaceLeft);
+            if ( res!=LVERR_OK )
+                break;
+
+            blockBytesWritten = blockSpaceLeft;
+
+            count -= blockBytesWritten;
+            buf = ((char*)buf) + blockBytesWritten;
+            _pos += blockBytesWritten;
+            bytesRead += blockBytesWritten;
+            if ( !blockBytesWritten )
+                break;
+        }
+        if ( nBytesWritten && res==LVERR_OK )
+            *nBytesWritten = bytesRead;
+        return res;
+    }
+    virtual bool Eof()
+    {
+        return _pos >= _size;
+    }
+};
+
+LVStreamRef LVCreateBlockWriteStream( LVStreamRef baseStream, int blockSize, int blockCount )
+{
+    if ( baseStream.isNull() || baseStream->GetMode()==LVOM_READ )
+        return baseStream;
+    return LVStreamRef( new LVBlockWriteStream(baseStream, blockSize, blockCount) );
+}
