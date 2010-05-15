@@ -3272,6 +3272,8 @@ ldomDocumentWriter::~ldomDocumentWriter()
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
     if ( _document->isDefStyleSet() ) {
+        _document->getRootNode()->initNodeStyle();
+        _document->getRootNode()->initNodeFont();
         if ( !_document->validateDocument() )
             CRLog::error("*** document style validation failed!!!");
         _document->updateRenderContext();
