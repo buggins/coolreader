@@ -27,6 +27,10 @@ cr3gui/nanoX: libnanoX
 cr3/Qt: qt4-core, qt4-gui
 cr3/wx: wxWidgets 2.8
 
+e.g., for Ubuntu you may use
+> sudo apt-get install git-core cmake libqt4-dev libpng12-dev libfreetype6-dev libjpeg62-dev libfontconfig1-dev zlib1g-dev
+
+
 
 Build instructions:
 
