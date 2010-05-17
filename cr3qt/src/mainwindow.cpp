@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
     addAction(ui->actionMinimize);
     addAction(ui->actionNextPage);
     addAction(ui->actionPrevPage);
+    addAction(ui->actionNextPage2);
+    addAction(ui->actionPrevPage2);
     addAction(ui->actionNextLine);
     addAction(ui->actionPrevLine);
     addAction(ui->actionFirstPage);
@@ -231,6 +233,16 @@ void MainWindow::on_actionNextPage_triggered()
 }
 
 void MainWindow::on_actionPrevPage_triggered()
+{
+    ui->view->prevPage();
+}
+
+void MainWindow::on_actionNextPage2_triggered()
+{
+    ui->view->nextPage();
+}
+
+void MainWindow::on_actionPrevPage2_triggered()
 {
     ui->view->prevPage();
 }

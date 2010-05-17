@@ -57,6 +57,8 @@ void on_actionFindText_triggered();
     void on_actionNextLine_triggered();
     void on_actionPrevPage_triggered();
     void on_actionNextPage_triggered();
+    void on_actionPrevPage2_triggered();
+    void on_actionNextPage2_triggered();
     void on_actionClose_triggered();
     void on_actionMinimize_triggered();
     void on_actionOpen_triggered();

@@ -544,6 +544,28 @@
     <string>Ctrl+S</string>
    </property>
   </action>
+  <action name="actionNextPage2">
+   <property name="text">
+    <string>Next Page</string>
+   </property>
+   <property name="toolTip">
+    <string>Next Page</string>
+   </property>
+   <property name="shortcut">
+    <string>Right</string>
+   </property>
+  </action>
+  <action name="actionPrevPage2">
+   <property name="text">
+    <string>Previous Page</string>
+   </property>
+   <property name="toolTip">
+    <string>Previous Page</string>
+   </property>
+   <property name="shortcut">
+    <string>Left</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
