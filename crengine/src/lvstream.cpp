@@ -1106,6 +1106,8 @@ public:
             if (nBytesWritten)
                 *nBytesWritten = res;
             m_pos += res;
+            if ( m_size < m_pos )
+                m_size = m_pos;
             return LVERR_OK;
         }
         return LVERR_FAIL;
@@ -4246,7 +4248,7 @@ bool LVDeleteFile( lString16 filename )
 #endif
 }
 
-#define TRACE_BLOCK_WRITE_STREAM 1
+#define TRACE_BLOCK_WRITE_STREAM 0
 
 class LVBlockWriteStream : public LVNamedStream
 {
@@ -4314,7 +4316,7 @@ class LVBlockWriteStream : public LVNamedStream
 
         bool containsPos( lvpos_t pos )
         {
-            return pos>=block_start && pos<block_end;
+            return pos>=block_start && pos<block_start+size;
         }
     };
 
@@ -4354,9 +4356,9 @@ class LVBlockWriteStream : public LVNamedStream
     lverror_t writeBlock( Block * block )
     {
         if ( block->modified_start < block->modified_end ) {
-#if TRACE_BLOCK_WRITE_STREAM
+//#if TRACE_BLOCK_WRITE_STREAM
             CRLog::trace("block %x write %x, %x", (int)block->block_start, (int)block->modified_start, (int)(block->modified_end-block->modified_start));
-#endif
+//#endif
             _baseStream->SetPos( block->modified_start );
             lvpos_t bytesWritten = 0;
             lverror_t res = _baseStream->Write( block->buf + (block->modified_start-block->block_start), block->modified_end-block->modified_start, &bytesWritten );
@@ -4427,6 +4429,9 @@ class LVBlockWriteStream : public LVNamedStream
                 _size = pos + count;
             return LVERR_OK;
         }
+#if TRACE_BLOCK_WRITE_STREAM
+        CRLog::trace("Block %x not found in cache", pos);
+#endif
         if ( _count>=_blockCount-1 ) {
             // remove last
             for ( Block * p = _firstBlock; p; p=p->next ) {
@@ -4480,6 +4485,7 @@ public:
             p = p->next;
             delete tmp;
         }
+        _firstBlock = NULL;
         _baseStream->Flush( sync );
         return res;
     }
@@ -4501,16 +4507,34 @@ public:
         _pos = _baseStream->GetPos();
         _size = _baseStream->GetSize();
     }
+
+    virtual lvpos_t GetSize()
+    {
+        return _size;
+    }
+
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
     {
+        if ( origin==LVSEEK_CUR ) {
+            origin = LVSEEK_SET;
+            offset = _pos + offset;
+        } else if ( origin==LVSEEK_END ) {
+            origin = LVSEEK_SET;
+            offset = _size + offset;
+        }
+
         lvpos_t newpos = 0;
         lverror_t res = _baseStream->Seek(offset, origin, &newpos);
-        if ( pNewPos && res==LVERR_OK ) {
-            *pNewPos = newpos;
+        if ( res==LVERR_OK ) {
+            if ( pNewPos )
+                *pNewPos = newpos;
             _pos = newpos;
+        } else {
+            CRLog::error("baseStream->Seek(%d,%x) failed: %d", (int)origin, (int)offset, (int)res);
         }
         return res;
     }
+
     virtual lverror_t Tell( lvpos_t * pPos )
     {
         *pPos = _pos;
@@ -4518,13 +4542,17 @@ public:
     }
     //virtual lverror_t   SetPos(lvpos_t p)
     virtual lvpos_t   SetPos(lvpos_t p)
-            {
-                lvpos_t res = _baseStream->SetPos(p);
-                _pos = _baseStream->GetPos();
-                return res;
-            }
+    {
+        lvpos_t res = _baseStream->SetPos(p);
+        _pos = _baseStream->GetPos();
+//                if ( _size<_pos )
+//                    _size = _pos;
+        return res;
+    }
     virtual lvpos_t   GetPos()
-            { return _pos; }
+    {
+        return _pos;
+    }
     virtual lverror_t SetSize( lvsize_t size )
     {
         // TODO:
@@ -4555,8 +4583,8 @@ public:
         lvsize_t bytesRead = 0;
         lverror_t res = LVERR_OK;
         if ( _pos + count > _size )
-            count = _size - _pos;
-        while ( count>0 && res==LVERR_OK ) {
+            count = (int)(_size - _pos);
+        while ( (int)count>0 && res==LVERR_OK ) {
             lvpos_t blockSpaceLeft = _blockSize - (_pos % _blockSize);
             if ( blockSpaceLeft > count )
                 blockSpaceLeft = count;
@@ -4614,6 +4642,8 @@ public:
             buf = ((char*)buf) + blockBytesWritten;
             _pos += blockBytesWritten;
             bytesRead += blockBytesWritten;
+            if ( _pos>_size )
+                _size = _pos;
             if ( !blockBytesWritten )
                 break;
         }

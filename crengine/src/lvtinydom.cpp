@@ -12,10 +12,10 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.09\n";
+                                       " File v3.02.13\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
-#define TEXT_COMPRESSION_LEVEL 3 // 1, 3
+#define TEXT_COMPRESSION_LEVEL 1 // 1, 3
 #define PACK_BUF_SIZE 0x10000
 #define UNPACK_BUF_SIZE 0x40000
 
@@ -35,6 +35,7 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
 
+#define TEST_BLOCK_STREAM 0
 
 #define STYLE_HASH_TABLE_SIZE     512
 #define FONT_HASH_TABLE_SIZE      256
@@ -156,6 +157,14 @@ public:
                 lverror_t res1 = m_base_stream1->Seek(offset, origin, &bw1);
                 lverror_t res2 = m_base_stream2->Seek(offset, origin, &bw2);
                 MYASSERT( res1==res2, "seek, res");
+                if ( bw1!=bw2 ) {
+                    CRLog::error("Result position after Seek(%d, %x) doesn't match: %x / %x   getpos1=%x, getpos2=%x",
+                                 (int)origin, (int)offset,
+                                 (int)bw1, (int)bw2,
+                                 (int)m_base_stream1->GetPos(), (int)m_base_stream2->GetPos() );
+                    res1 = m_base_stream1->Seek(offset, origin, &bw1);
+                    res2 = m_base_stream2->Seek(offset, origin, &bw2);
+                }
                 MYASSERT( bw1==bw2, "seek, bw");
                 MYASSERT( m_base_stream1->GetPos()==m_base_stream2->GetPos(), "seek, pos");
                 MYASSERT( m_base_stream1->Eof()==m_base_stream2->Eof(), "seek, eof");
@@ -182,9 +191,14 @@ public:
                 MYASSERT( res1==res2, "setPos, res");
                 MYASSERT( m_base_stream1->GetPos()==m_base_stream2->GetPos(), "setpos, pos");
                 bool eof1 = m_base_stream1->Eof();
-                bool eof2=m_base_stream2->Eof();
+                bool eof2 = m_base_stream2->Eof();
                 if ( eof1!=eof2 ) {
-                    CRLog::error("EOF doesn't match: %d / %d", (int)eof1, (int)eof2);
+                    CRLog::error("EOF after SetPos(%x) don't match: %x / %x   getpos1=%x, getpos2=%x, size1=%x, size2=%x",
+                                 (int)p,
+                                 (int)eof1, (int)eof2,
+                                 (int)m_base_stream1->GetPos(), (int)m_base_stream2->GetPos(),
+                                 (int)m_base_stream1->GetSize(), (int)m_base_stream2->GetSize()
+                                 );
                 }
                 MYASSERT( eof1==eof2, "setpos, eof");
                 return res1;
@@ -213,9 +227,27 @@ public:
                 lverror_t res1 = m_base_stream1->Read(buf, count, &bw1);
                 lverror_t res2 = m_base_stream2->Read(buf2, count, &bw2);
                 MYASSERT( res1==res2, "read, res");
+                if ( bw1!=bw2 ) {
+                    CRLog::error("BytesRead after Read(%d) don't match: %x / %x   getpos1=%x, getpos2=%x   getsize1=%x, getsize2=%x",
+                                 (int)count,
+                                 (int)bw1, (int)bw2,
+                                 (int)m_base_stream1->GetPos(), (int)m_base_stream2->GetPos(),
+                                 (int)m_base_stream1->GetSize(), (int)m_base_stream2->GetSize()
+                                 );
+                }
                 MYASSERT( bw1==bw2, "read, bw");
                 MYASSERT( m_base_stream1->GetPos()==m_base_stream2->GetPos(), "read, pos");
-                MYASSERT( m_base_stream1->Eof()==m_base_stream2->Eof(), "read, eof");
+                bool eof1 = m_base_stream1->Eof();
+                bool eof2 = m_base_stream2->Eof();
+                if ( eof1!=eof2 ) {
+                    CRLog::error("EOF after Read(%d) don't match: %x / %x   getpos1=%x, getpos2=%x, size1=%x, size2=%x",
+                                 (int)count,
+                                 (int)eof1, (int)eof2,
+                                 (int)m_base_stream1->GetPos(), (int)m_base_stream2->GetPos(),
+                                 (int)m_base_stream1->GetSize(), (int)m_base_stream2->GetSize()
+                                 );
+                }
+                MYASSERT( eof1==eof2, "read, eof");
                 for ( int i=0; i<count; i++ ) {
                     if ( buf1[i]!=buf2[i] ) {
                         CRLog::error("read, different data by offset %x", i);
@@ -224,7 +256,7 @@ public:
                 }
                 if ( nBytesRead )
                     *nBytesRead = bw1;
-                delete buf2;
+                delete[] buf2;
                 return res1;
             }
     virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
@@ -392,9 +424,12 @@ public:
     }
 };
 
+#define CACHE_FILE_SECTOR_SIZE 1024
+//#define CACHE_FILE_SECTOR_SIZE 4096
+
 // create uninitialized cache file, call open or create to initialize
 CacheFile::CacheFile()
-: _sectorSize( 4096 ), _size(0), _indexChanged(false), _map(1024)
+: _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _map(1024)
 {
 }
 
@@ -6638,7 +6673,6 @@ public:
         return filename + lString16( s ); //_cacheDir + 
     }
 
-#define TEST_BLOCK_STREAM 0
 
     /// open existing cache file stream
     LVStreamRef openExisting( lString16 filename, lUInt32 crc, lUInt32 docFlags )
@@ -6655,9 +6689,10 @@ public:
             return res;
         }
 
-#if TEST_BLOCK_STREAM
         res = LVCreateBlockWriteStream( res, 0x10000, 16 );
-        LVStreamRef stream2 = LVOpenFileStream( (pathname+L"_c").c_str(), LVOM_APPEND );
+#if TEST_BLOCK_STREAM
+
+        LVStreamRef stream2 = LVOpenFileStream( (_cacheDir+fn+L"_c").c_str(), LVOM_APPEND );
         if ( !stream2 ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return stream2;
@@ -6687,8 +6722,8 @@ public:
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return res;
         }
-#if TEST_BLOCK_STREAM
         res = LVCreateBlockWriteStream( res, 0x10000, 16 );
+#if TEST_BLOCK_STREAM
         LVStreamRef stream2 = LVOpenFileStream( (pathname+L"_c").c_str(), LVOM_APPEND );
         if ( !stream2 ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
@@ -8935,8 +8970,8 @@ void runBlockWriteCacheTest()
     int sz = 2000000;
     const char * fn1 = "/tmp/tf1.dat";
     const char * fn2 = "/tmp/tf2.dat";
-    makeTestFile( fn1, sz );
-    makeTestFile( fn2, sz );
+    //makeTestFile( fn1, sz );
+    //makeTestFile( fn2, sz );
 
     CRLog::debug("BlockCache test started");
 
@@ -8946,7 +8981,18 @@ void runBlockWriteCacheTest()
     MYASSERT(! s2.isNull(), "s2");
     LVStreamRef ss( new LVCompareTestStream(s1, s2) );
     lUInt8 buf[0x100000];
-    memset( buf, 0xAD, 1000000 );
+    for ( int i=0; i<sizeof(buf); i++ ) {
+        buf[i] = (lUInt8)(random() & 0xFF);
+    }
+    //memset( buf, 0xAD, 1000000 );
+    ss->SetPos( 0 );
+    ss->Write( buf, 150, NULL );
+    ss->SetPos( 0 );
+    ss->Write( buf, 150, NULL );
+    ss->SetPos( 0 );
+    ss->Write( buf, 150, NULL );
+
+
     ss->SetPos( 1000 );
     ss->Read( buf, 5000, NULL );
     ss->SetPos( 100000 );
@@ -8957,6 +9003,13 @@ void runBlockWriteCacheTest()
     ss->SetPos( 1000 );
     ss->Read( buf+100000, 15000, NULL );
     ss->Read( buf, 1000000, NULL );
+
+
+    ss->SetPos( 1000 );
+    ss->Write( buf, 15000, NULL );
+    ss->Write( buf, 15000, NULL );
+    ss->Write( buf, 15000, NULL );
+    ss->Write( buf, 15000, NULL );
 
 
     ss->SetPos( 100000 );
@@ -8973,7 +9026,7 @@ void runBlockWriteCacheTest()
     ss->Read( buf, 50000, NULL );
     ss->SetPos( 1000000 );
     ss->Write( buf, 500000, NULL );
-    for ( int i=0; i<100; i++ )
+    for ( int i=0; i<10; i++ )
         ss->Write( buf, 5000, NULL );
     ss->Read( buf, 50000, NULL );
 
@@ -8982,7 +9035,7 @@ void runBlockWriteCacheTest()
     ss->SetPos( 4800000 );
     ss->Read( buf, 500000, NULL );
 
-    for ( int i=0; i<2000; i++ ) {
+    for ( int i=0; i<20; i++ ) {
         int op = (random() & 15) < 5;
         long offset = (random()&0x7FFFF);
         long foffset = (random()&0x3FFFFF);
