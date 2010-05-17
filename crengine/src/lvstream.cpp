@@ -4246,7 +4246,9 @@ bool LVDeleteFile( lString16 filename )
 #endif
 }
 
-class LVBlockWriteStream : public LVStreamProxy
+#define TRACE_BLOCK_WRITE_STREAM 1
+
+class LVBlockWriteStream : public LVNamedStream
 {
     LVStreamRef _baseStream;
     int _blockSize;
@@ -4271,7 +4273,10 @@ class LVBlockWriteStream : public LVStreamProxy
             , size( block_size ), next(NULL)
         {
             buf = (lUInt8*)malloc( size );
-
+            if ( !buf ) {
+                CRLog::error("buffer allocation failed");
+            }
+            memset(buf, 0, size);
         }
         ~Block()
         {
@@ -4280,9 +4285,17 @@ class LVBlockWriteStream : public LVStreamProxy
 
         void save( const lUInt8 * ptr, lvpos_t pos, lvsize_t len )
         {
+#if TRACE_BLOCK_WRITE_STREAM
+            CRLog::trace("block %x save %x, %x", (int)block_start, (int)pos, (int)len);
+#endif
             int offset = (int)(pos - block_start);
+            if ( offset>size || offset<0 || len > size || offset+len > size ) {
+                CRLog::error("Unaligned access to block %x", (int)block_start);
+            }
             for ( int i=0; i<len; i++ ) {
-                if ( pos+i>block_end || buf[offset+i]!=ptr[i] ) {
+                lUInt8 ch1 = buf[offset+i];
+                lUInt8 ch2 = ptr[i];
+                if ( pos+i>block_end || ch1!=ch2 ) {
                     buf[offset+i] = ptr[i];
                     if ( modified_start==-1 )
                         modified_start = modified_end = pos + i;
@@ -4312,6 +4325,9 @@ class LVBlockWriteStream : public LVStreamProxy
     /// fills block with data existing in file
     lverror_t readBlock( Block * block )
     {
+        if ( !block->size ) {
+            CRLog::error("Invalid block size");
+        }
         lvpos_t start = block->block_start;
         lvpos_t end = start + _blockSize;
         lvpos_t ssize = 0;
@@ -4326,13 +4342,21 @@ class LVBlockWriteStream : public LVStreamProxy
         _baseStream->SetPos( start );
         lvsize_t bytesRead = 0;
         block->block_end = end;
+#if TRACE_BLOCK_WRITE_STREAM
+        CRLog::trace("block %x filling from stream %x, %x", (int)block->block_start, (int)block->block_start, (int)(block->block_end-block->block_start));
+#endif
         res = _baseStream->Read( block->buf, end-start, &bytesRead );
+        if ( res!=LVERR_OK )
+            CRLog::error("Error while reading block %x from file of size %x", block->block_start, ssize);
         return res;
     }
 
     lverror_t writeBlock( Block * block )
     {
         if ( block->modified_start < block->modified_end ) {
+#if TRACE_BLOCK_WRITE_STREAM
+            CRLog::trace("block %x write %x, %x", (int)block->block_start, (int)block->modified_start, (int)(block->modified_end-block->modified_start));
+#endif
             _baseStream->SetPos( block->modified_start );
             lvpos_t bytesWritten = 0;
             lverror_t res = _baseStream->Write( block->buf + (block->modified_start-block->block_start), block->modified_end-block->modified_start, &bytesWritten );
@@ -4349,6 +4373,7 @@ class LVBlockWriteStream : public LVStreamProxy
     Block * newBlock( lvpos_t start, int len )
     {
         Block * b = new Block( start, start+len, _blockSize );
+        return b;
     }
 
     /// find block, move to top if found
@@ -4358,8 +4383,16 @@ class LVBlockWriteStream : public LVStreamProxy
             Block * item = *p;
             if ( item->containsPos(pos) ) {
                 if ( item!=_firstBlock ) {
+#if TRACE_BLOCK_WRITE_STREAM
+                    dumpBlocks("before reorder");
+#endif
                     *p = item->next;
+                    item->next = _firstBlock;
                     _firstBlock = item;
+#if TRACE_BLOCK_WRITE_STREAM
+                    dumpBlocks("after reorder");
+                    CRLog::trace("found block %x (%x, %x)", (int)item->block_start, (int)item->modified_start, (int)(item->modified_end-item->modified_start));
+#endif
                 }
                 return item;
             }
@@ -4372,6 +4405,9 @@ class LVBlockWriteStream : public LVStreamProxy
     {
         Block * p = findBlock( pos );
         if ( p ) {
+#if TRACE_BLOCK_WRITE_STREAM
+            CRLog::trace("read from cache block %x (%x, %x)", (int)p->block_start, (int)pos, (int)(count));
+#endif
             memcpy( buf, p->buf + (pos-p->block_start), count );
             return true;
         }
@@ -4383,6 +4419,9 @@ class LVBlockWriteStream : public LVStreamProxy
     {
         Block * p = findBlock( pos );
         if ( p ) {
+#if TRACE_BLOCK_WRITE_STREAM
+            CRLog::trace("saving data to existing block %x (%x, %x)", (int)p->block_start, (int)pos, (int)count);
+#endif
             p->save( (const lUInt8 *)buf, pos, count );
             if ( pos + count > _size )
                 _size = pos + count;
@@ -4392,16 +4431,30 @@ class LVBlockWriteStream : public LVStreamProxy
             // remove last
             for ( Block * p = _firstBlock; p; p=p->next ) {
                 if ( p->next && !p->next->next ) {
+#if TRACE_BLOCK_WRITE_STREAM
+                    dumpBlocks("before remove last");
+                    CRLog::trace("dropping block %x (%x, %x)", (int)p->next->block_start, (int)p->next->modified_start, (int)(p->next->modified_end-p->next->modified_start));
+#endif
                     writeBlock( p->next );
                     delete p->next;
                     _count--;
                     p->next = NULL;
+#if TRACE_BLOCK_WRITE_STREAM
+                    dumpBlocks("after remove last");
+#endif
                 }
             }
         }
         p = newBlock( pos, count );
-        if ( readBlock( p )!=LVERR_OK )
+#if TRACE_BLOCK_WRITE_STREAM
+        CRLog::trace("creating block %x", (int)p->block_start);
+#endif
+        if ( readBlock( p )!=LVERR_OK ) {
             return LVERR_FAIL;
+        }
+#if TRACE_BLOCK_WRITE_STREAM
+        CRLog::trace("saving data to new block %x (%x, %x)", (int)p->block_start, (int)pos, (int)count);
+#endif
         p->save( (const lUInt8 *)buf, pos, count );
         p->next = _firstBlock;
         _firstBlock = p;
@@ -4416,8 +4469,11 @@ public:
     /// flushes unsaved data from buffers to file, with optional flush of OS buffers
     virtual lverror_t Flush( bool sync )
     {
+#if TRACE_BLOCK_WRITE_STREAM
+        CRLog::trace("flushing unsaved blocks");
+#endif
         lverror_t res = LVERR_OK;
-        for ( Block * p; p; ) {
+        for ( Block * p = _firstBlock; p; ) {
             Block * tmp = p;
             if ( writeBlock(p)!=LVERR_OK )
                 res = LVERR_FAIL;
@@ -4434,8 +4490,13 @@ public:
         Flush( true );
     }
 
+    virtual const lChar16 * GetName()
+            { return _baseStream->GetName(); }
+    virtual lvopen_mode_t GetMode()
+            { return _baseStream->GetMode(); }
+
     LVBlockWriteStream( LVStreamRef baseStream, int blockSize, int blockCount )
-    : LVStreamProxy(baseStream.get()), _baseStream( baseStream ), _blockSize( blockSize ), _blockCount( blockCount ), _firstBlock(NULL)
+    : _baseStream( baseStream ), _blockSize( blockSize ), _blockCount( blockCount ), _firstBlock(NULL), _count(0)
     {
         _pos = _baseStream->GetPos();
         _size = _baseStream->GetSize();
@@ -4443,7 +4504,7 @@ public:
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos )
     {
         lvpos_t newpos = 0;
-        lverror_t res = m_base_stream->Seek(offset, origin, &newpos);
+        lverror_t res = _baseStream->Seek(offset, origin, &newpos);
         if ( pNewPos && res==LVERR_OK ) {
             *pNewPos = newpos;
             _pos = newpos;
@@ -4458,8 +4519,8 @@ public:
     //virtual lverror_t   SetPos(lvpos_t p)
     virtual lvpos_t   SetPos(lvpos_t p)
             {
-                lvpos_t res = m_base_stream->SetPos(p);
-                _pos = m_base_stream->GetPos();
+                lvpos_t res = _baseStream->SetPos(p);
+                _pos = _baseStream->GetPos();
                 return res;
             }
     virtual lvpos_t   GetPos()
@@ -4467,14 +4528,29 @@ public:
     virtual lverror_t SetSize( lvsize_t size )
     {
         // TODO:
-        lverror_t res = m_base_stream->SetSize(size);
+        lverror_t res = _baseStream->SetSize(size);
         if ( res==LVERR_OK )
             _size = size;
         return res;
     }
 
+    void dumpBlocks( const char * context)
+    {
+        lString8 buf;
+        for ( Block * p = _firstBlock; p; p = p->next ) {
+            char s[1000];
+            sprintf(s, "%x ", (int)p->block_start);
+            buf << s;
+        }
+        CRLog::trace("BLOCKS (%s): %s   count=%d", context, buf.c_str(), _count);
+    }
+
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
     {
+#if TRACE_BLOCK_WRITE_STREAM
+        CRLog::trace("stream::Read(%x, %x)", (int)_pos, (int)count);
+        dumpBlocks("before read");
+#endif
         // slice by block bounds
         lvsize_t bytesRead = 0;
         lverror_t res = LVERR_OK;
@@ -4491,8 +4567,9 @@ public:
                 blockBytesRead = blockSpaceLeft;
                 res = LVERR_OK;
             } else {
-                m_base_stream->SetPos(_pos);
-                res = m_base_stream->Read(buf, blockSpaceLeft, &blockBytesRead);
+                CRLog::trace("direct reading from stream (%x, %x)", (int)_pos, (int)blockSpaceLeft);
+                _baseStream->SetPos(_pos);
+                res = _baseStream->Read(buf, blockSpaceLeft, &blockBytesRead);
             }
             if ( res!=LVERR_OK )
                 break;
@@ -4511,6 +4588,10 @@ public:
 
     virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
     {
+#if TRACE_BLOCK_WRITE_STREAM
+        CRLog::trace("stream::Write(%x, %x)", (int)_pos, (int)count);
+        dumpBlocks("before write");
+#endif
         // slice by block bounds
         lvsize_t bytesRead = 0;
         lverror_t res = LVERR_OK;
@@ -4538,6 +4619,9 @@ public:
         }
         if ( nBytesWritten && res==LVERR_OK )
             *nBytesWritten = bytesRead;
+#if TRACE_BLOCK_WRITE_STREAM
+        dumpBlocks("after write");
+#endif
         return res;
     }
     virtual bool Eof()

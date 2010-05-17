@@ -2986,6 +2986,8 @@ CRLog::~CRLog()
 {
 }
 
+#define LOG_HEAP_USAGE 0
+
 class CRFileLogger : public CRLog
 {
 protected:
@@ -3001,15 +3003,23 @@ protected:
         gettimeofday( &tval, NULL );
         int ms = tval.tv_usec;
         time_t t = tval.tv_sec;
+#if LOG_HEAP_USAGE
         struct mallinfo mi = mallinfo();
         int memusage = mi.arena;
+#endif
 #else
         time_t t = (time_t)time(0);
         int ms = 0;
+#if LOG_HEAP_USAGE
         int memusage = 0;
 #endif
+#endif
         tm * bt = localtime(&t);
+#if LOG_HEAP_USAGE
         fprintf(f, "%04d/%02d/%02d %02d:%02d:%02d.%04d [%d] %s ", bt->tm_year+1900, bt->tm_mon+1, bt->tm_mday, bt->tm_hour, bt->tm_min, bt->tm_sec, ms/100, memusage, level);
+#else
+        fprintf(f, "%04d/%02d/%02d %02d:%02d:%02d.%04d %s ", bt->tm_year+1900, bt->tm_mon+1, bt->tm_mday, bt->tm_hour, bt->tm_min, bt->tm_sec, ms/100, level);
+#endif
         vfprintf( f, msg, args );
         fprintf(f, "\n" );
         if ( autoFlush )
