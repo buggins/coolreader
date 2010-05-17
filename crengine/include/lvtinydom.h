@@ -902,6 +902,7 @@ protected:
     lUInt16       _nextUnknownNsId;      // Next Id for unknown namespace
     lString16HashedCollection _attrValueTable;
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
+    LVHashTable<lString16,LVImageSourceRef> _urlImageMap; // url to image source map
     lUInt16 _idAttrId; // Id for "id" attribute name
 
 #if BUILD_LITE!=1

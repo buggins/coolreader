@@ -2986,7 +2986,7 @@ CRLog::~CRLog()
 {
 }
 
-#define LOG_HEAP_USAGE 0
+#define LOG_HEAP_USAGE 1
 
 class CRFileLogger : public CRLog
 {

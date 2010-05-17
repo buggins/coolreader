@@ -104,7 +104,9 @@ make
 # Building Jinke/LBook V5 viewer app (cr3):
 mkdir v5build
 cd v5build
-cmake -D DEVICE_NAME=v5 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D GRAY_BACKBUFFER_BITS=3 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
+cmake -D DEVICE_NAME=v5 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D GRAY_BACKBUFFER_BITS=3 -D CMAKE_BUILD_TYPE=MinSizeRel -D CMAKE_INSTALL_PREFIX=dest ..
+#cmake -D DEVICE_NAME=v5 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D GRAY_BACKBUFFER_BITS=3 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest ..
+
 make
 
 # Building Jinke/LBook V3+ viewer app (cr3):

@@ -174,6 +174,20 @@ public:
         }
         return valueT();
     }
+    bool get( keyT key, valueT & res )
+    {
+        lUInt32 index = getHash( key ) & ( _size-1 );
+        pair * p = _table[index];
+        for ( ;p ;p = p->next )
+        {
+            if ( p->key == key )
+            {
+                res = p->value;
+                return true;
+            }
+        }
+        return false;
+    }
 private:
     int _size;
     int _count;

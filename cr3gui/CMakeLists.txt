@@ -92,6 +92,9 @@ elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3nanox.cpp)
     SET (EXTRA_LIBS nano-X pthread ${DBUS_LIBRARIES} )
+    if (ENABLE_DBUS_VIEWER_EVENTS)
+        SET (EXTRA_LIBS ${EXTRA_LIBS} ${DBUS_LIBRARIES} )
+    endif(ENABLE_DBUS_VIEWER_EVENTS)
 
     INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
     INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph

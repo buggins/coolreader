@@ -1204,8 +1204,10 @@ public:
             return NULL;
         }
     }
-    lverror_t OpenFile( lString16 fname, lvopen_mode_t mode )
+    lverror_t OpenFile( lString16 fname, int mode )
     {
+        bool use_sync = (mode & LVOM_FLAG_SYNC)!=0;
+        mode = mode & LVOM_MASK;
 #if defined(_WIN32)
         lUInt32 m = 0;
         lUInt32 s = 0;
@@ -1268,7 +1270,7 @@ public:
 #else
         m_fd = -1;
 
-        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT;
+        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT | (use_sync ? O_SYNC : 0);
         lString8 fn8 = UnicodeToUtf8(fname);
         m_fd = open( fn8.c_str(), flags, (mode_t)0666);
         if (m_fd == -1) {
@@ -1280,7 +1282,7 @@ public:
             CRLog::error( "Cannot get file size for %s", fn8.c_str() );
             return LVERR_FAIL;
         }
-        m_mode = mode;
+        m_mode = (lvopen_mode_t)mode;
         m_size = (lvsize_t) stat.st_size;
 #endif
 
@@ -1305,7 +1307,7 @@ public:
 #endif
 
 // facility functions
-LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode )
+LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 {
     lString16 fn(pathname);
 #if 0
@@ -1320,7 +1322,7 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode )
     }
 #endif
 
-    LVFileStream * stream = LVFileStream::CreateFileStream( fn, mode );
+    LVFileStream * stream = LVFileStream::CreateFileStream( fn, (lvopen_mode_t)mode );
     if ( stream!=NULL )
     {
         return LVStreamRef( stream );
@@ -1328,7 +1330,7 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode )
     return LVStreamRef();
 }
 
-LVStreamRef LVOpenFileStream( const lChar8 * pathname, lvopen_mode_t mode )
+LVStreamRef LVOpenFileStream( const lChar8 * pathname, int mode )
 {
     lString16 fn = LocalToUnicode(lString8(pathname));
     return LVOpenFileStream( fn.c_str(), mode );

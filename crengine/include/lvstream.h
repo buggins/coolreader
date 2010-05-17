@@ -71,6 +71,9 @@ enum lvopen_mode_t {
     LVOM_READWRITE      ///< readwrite mode
 };
 
+#define LVOM_MASK 7
+#define LVOM_FLAG_SYNC 0x10
+
 class LVContainer;
 class LVStream;
 
@@ -347,7 +350,7 @@ public:
     /// returns open mode
     virtual lvopen_mode_t GetMode()
     {
-        return m_mode;
+        return (lvopen_mode_t)(m_mode & LVOM_MASK);
     }
     /// calculate crc32 code for stream, if possible
     virtual lverror_t crc32( lUInt32 & dst );
@@ -642,7 +645,7 @@ typedef LVFastRef<LVContainer> LVContainerRef;
     \param mode is mode file should be opened in
     \return reference to opened stream if success, NULL if error
 */
-LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode );
+LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode );
 
 /// Open file stream
 /**
@@ -650,7 +653,7 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, lvopen_mode_t mode );
     \param mode is mode file should be opened in
     \return reference to opened stream if success, NULL if error
 */
-LVStreamRef LVOpenFileStream( const lChar8 * pathname, lvopen_mode_t mode );
+LVStreamRef LVOpenFileStream( const lChar8 * pathname, int mode );
 
 /// Open memory mapped file
 /**

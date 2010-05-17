@@ -12,30 +12,37 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.13\n";
+                                       " File v3.02.14\n";
 #define CACHE_FILE_MAGIC_SIZE 32
 
-#define TEXT_COMPRESSION_LEVEL 1 // 1, 3
+#define TEXT_COMPRESSION_LEVEL 5 // 1, 3
 #define PACK_BUF_SIZE 0x10000
 #define UNPACK_BUF_SIZE 0x40000
 
 // cache memory sizes
 #define TEXT_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
-#define TEXT_CACHE_PACKED_SPACE   0x1C0000 // 3.5Mb
-#define TEXT_CACHE_CHUNK_SIZE     0x010000 // 64K
-#define ELEM_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
-#define ELEM_CACHE_PACKED_SPACE   0x0C0000 // 768K
-#define ELEM_CACHE_CHUNK_SIZE     0x00C000 // 48K
+#define TEXT_CACHE_PACKED_SPACE   0x100000 // 3.5Mb
+#define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
+#define ELEM_CACHE_UNPACKED_SPACE 0x080000 // 768K
+#define ELEM_CACHE_PACKED_SPACE   0x080000 // 768K
+#define ELEM_CACHE_CHUNK_SIZE     0x004000 // 48K
 #define RECT_CACHE_UNPACKED_SPACE 0x080000 // 512K
-#define RECT_CACHE_PACKED_SPACE   0x020000 // 128K
+#define RECT_CACHE_PACKED_SPACE   0x030000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
+
+#define WRITE_CACHE_BLOCK_SIZE 0x8000
+#define WRITE_CACHE_BLOCK_COUNT 8
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 11
 #define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
 #define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
 
+#define ENABLED_BLOCK_WRITE_CACHE 0
 #define TEST_BLOCK_STREAM 0
+
+//#define CACHE_FILE_SECTOR_SIZE 1024
+#define CACHE_FILE_SECTOR_SIZE 4096
 
 #define STYLE_HASH_TABLE_SIZE     512
 #define FONT_HASH_TABLE_SIZE      256
@@ -424,8 +431,6 @@ public:
     }
 };
 
-#define CACHE_FILE_SECTOR_SIZE 1024
-//#define CACHE_FILE_SECTOR_SIZE 4096
 
 // create uninitialized cache file, call open or create to initialize
 CacheFile::CacheFile()
@@ -665,7 +670,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     return true;
 }
 
-#define CACHE_FILE_WRITE_BLOCK_PADDING 1
+#define CACHE_FILE_WRITE_BLOCK_PADDING 0
 
 // writes block to file
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size )
@@ -2260,6 +2265,7 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 , _nextUnknownNsId(UNKNOWN_NAMESPACE_TYPE_ID)
 , _attrValueTable( DOC_STRING_HASH_SIZE )
 ,_idNodeMap(1024)
+,_urlImageMap(1024)
 ,_idAttrId(0)
 #if BUILD_LITE!=1
 //,_keepData(false)
@@ -2345,6 +2351,7 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
     //lvdomStyleCache _styleCache;         // Style cache
 ,   _attrValueTable(doc._attrValueTable)
 ,   _idNodeMap(doc._idNodeMap)
+,   _urlImageMap(1024)
 ,   _idAttrId(doc._idAttrId) // Id for "id" attribute name
 //,   _docFlags(doc._docFlags)
 #if BUILD_LITE!=1
@@ -5950,6 +5957,7 @@ int tinyNodeCollection::getPersistenceFlags()
 void ldomDocument::clear()
 {
     clearRendBlockCache();
+    _urlImageMap.clear();
     _rendered = false;
     //TODO: implement clear
     //_elemStorage.
@@ -6673,6 +6681,8 @@ public:
         return filename + lString16( s ); //_cacheDir + 
     }
 
+#define WRITE_CACHE_BLOCK_SIZE 0x8000
+#define WRITE_CACHE_BLOCK_COUNT 8
 
     /// open existing cache file stream
     LVStreamRef openExisting( lString16 filename, lUInt32 crc, lUInt32 docFlags )
@@ -6683,13 +6693,14 @@ public:
             CRLog::error( "ldomDocCache::openExisting - File %s is not found in cache index", UnicodeToUtf8(fn).c_str() );
             return res;
         }
-        res = LVOpenFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND );
+        res = LVOpenFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND|LVOM_FLAG_SYNC );
         if ( !res ) {
             CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn).c_str() );
             return res;
         }
 
-        res = LVCreateBlockWriteStream( res, 0x10000, 16 );
+#if ENABLED_BLOCK_WRITE_CACHE
+        res = LVCreateBlockWriteStream( res, WRITE_CACHE_BLOCK_SIZE, WRITE_CACHE_BLOCK_COUNT );
 #if TEST_BLOCK_STREAM
 
         LVStreamRef stream2 = LVOpenFileStream( (_cacheDir+fn+L"_c").c_str(), LVOM_APPEND );
@@ -6699,9 +6710,9 @@ public:
         }
         res = LVStreamRef( new LVCompareTestStream(res, stream2) );
 #endif
+#endif
 
         lUInt32 fileSize = (lUInt32) res->GetSize();
-        res = LVCreateBlockWriteStream( res, 0x10000, 16 );
         moveFileToTop( fn, fileSize );
         return res;
     }
@@ -6717,12 +6728,13 @@ public:
         //res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, fileSize );
         lString16 pathname( _cacheDir+fn );
         LVDeleteFile( pathname ); // try to delete, ignore errors
-        res = LVOpenFileStream( pathname.c_str(), LVOM_APPEND );
+        res = LVOpenFileStream( pathname.c_str(), LVOM_APPEND|LVOM_FLAG_SYNC );
         if ( !res ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return res;
         }
-        res = LVCreateBlockWriteStream( res, 0x10000, 16 );
+#if ENABLED_BLOCK_WRITE_CACHE
+        res = LVCreateBlockWriteStream( res, WRITE_CACHE_BLOCK_SIZE, WRITE_CACHE_BLOCK_COUNT );
 #if TEST_BLOCK_STREAM
         LVStreamRef stream2 = LVOpenFileStream( (pathname+L"_c").c_str(), LVOM_APPEND );
         if ( !stream2 ) {
@@ -6730,6 +6742,7 @@ public:
             return stream2;
         }
         res = LVStreamRef( new LVCompareTestStream(res, stream2) );
+#endif
 #endif
         moveFileToTop( fn, fileSize );
         return res;
@@ -8274,6 +8287,8 @@ LVImageSourceRef ldomNode::getObjectImageSource()
         refName = getAttributeValue( LXML_NS_NONE, srcId );
     if ( refName.length()<2 )
         return ref;
+    if (_document->_urlImageMap.get( refName, ref ) )
+        return ref; // found in cache
     if ( refName[0]!='#' ) {
         if ( !getDocument()->getContainer().isNull() ) {
             lString16 name = refName;
@@ -8283,11 +8298,14 @@ LVImageSourceRef ldomNode::getObjectImageSource()
             if ( !stream.isNull() )
                 ref = LVCreateStreamImageSource( stream );
         }
+        _document->_urlImageMap.set( refName, ref );
         return ref;
     }
     lUInt16 refValueId = _document->findAttrValueIndex( refName.c_str() + 1 );
-    if ( refValueId == (lUInt16)-1 )
+    if ( refValueId == (lUInt16)-1 ) {
+        _document->_urlImageMap.set( refName, ref );
         return ref;
+    }
     //printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
     ldomNode * objnode = _document->getNodeById( refValueId );
     if ( !objnode ) {
@@ -8296,6 +8314,7 @@ LVImageSourceRef ldomNode::getObjectImageSource()
     }
     //printf(" (found) ");
     ref = LVCreateNodeImageSource( objnode );
+    _document->_urlImageMap.set( refName, ref );
     return ref;
 }
 
