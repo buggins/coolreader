@@ -129,7 +129,7 @@ void ShutdownCREngine()
     ShutdownFontManager();
     CRLog::setLogger( NULL );
 #if LDOM_USE_OWN_MEM_MAN == 1
-    ldomFreeStorage();
+//    ldomFreeStorage();
 #endif
 }
 
