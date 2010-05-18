@@ -3168,6 +3168,7 @@ bool SerialBuf::check( int reserved )
         if ( _autoresize ) {
             _size = (_size>16384 ? _size*2 : 16384) + reserved;
             _buf = (lUInt8*)realloc(_buf, _size );
+            memset( _buf+_pos, 0, _size-_pos );
             return false;
         } else {
 		    _error = true;

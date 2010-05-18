@@ -12,26 +12,41 @@
 *******************************************************/
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.14\n";
-#define CACHE_FILE_MAGIC_SIZE 32
+                                       " File v3.02.14-"
+#if TEXT_COMPRESSION_LEVEL!=0
+                                       "c1"
+#else
+                                       "c0"
+#endif
+                                       "\n";
+#define CACHE_FILE_MAGIC_SIZE 35
 
-#define TEXT_COMPRESSION_LEVEL 5 // 1, 3
 #define PACK_BUF_SIZE 0x10000
 #define UNPACK_BUF_SIZE 0x40000
 
+#if TEXT_COMPRESSION_LEVEL!=0
 // cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
+#define TEXT_CACHE_UNPACKED_SPACE 0x1C0000 // 768K
 #define TEXT_CACHE_PACKED_SPACE   0x100000 // 3.5Mb
 #define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
-#define ELEM_CACHE_UNPACKED_SPACE 0x080000 // 768K
+#define ELEM_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
 #define ELEM_CACHE_PACKED_SPACE   0x080000 // 768K
 #define ELEM_CACHE_CHUNK_SIZE     0x004000 // 48K
-#define RECT_CACHE_UNPACKED_SPACE 0x080000 // 512K
-#define RECT_CACHE_PACKED_SPACE   0x030000 // 128K
+#define RECT_CACHE_UNPACKED_SPACE 0x0C0000 // 512K
+#define RECT_CACHE_PACKED_SPACE   0x1C0000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#else
+#define TEXT_CACHE_UNPACKED_SPACE 0x2C0000 // 768K
+#define TEXT_CACHE_PACKED_SPACE   0x000000 // 3.5Mb
+#define TEXT_CACHE_CHUNK_SIZE     0x010000 // 64K
+#define ELEM_CACHE_UNPACKED_SPACE 0x120000 // 768K
+#define ELEM_CACHE_PACKED_SPACE   0x000000 // 768K
+#define ELEM_CACHE_CHUNK_SIZE     0x008000 // 48K
+#define RECT_CACHE_UNPACKED_SPACE 0x120000 // 512K
+#define RECT_CACHE_PACKED_SPACE   0x000000 // 128K
+#define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#endif
 
-#define WRITE_CACHE_BLOCK_SIZE 0x8000
-#define WRITE_CACHE_BLOCK_COUNT 8
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 11
 #define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
@@ -39,6 +54,8 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
 
 #define ENABLED_BLOCK_WRITE_CACHE 0
+#define WRITE_CACHE_BLOCK_SIZE 0x8000
+#define WRITE_CACHE_BLOCK_COUNT 16
 #define TEST_BLOCK_STREAM 0
 
 //#define CACHE_FILE_SECTOR_SIZE 1024
@@ -356,6 +373,7 @@ struct CacheFileHeader
     CacheFileHeader( CacheFileItem * indexRec, int fsize )
     : _indexBlock(0,0)
     {
+        memset( _magic, 0, sizeof(_magic));
         memcpy( _magic, CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE );
         if ( indexRec )
             memcpy( &_indexBlock, indexRec, sizeof(CacheFileItem));
@@ -535,6 +553,7 @@ bool CacheFile::writeIndex()
         allocBlock( CBT_INDEX, 0, sizeof(CacheFileItem)*count );
     }
     CacheFileItem * index = new CacheFileItem[_index.length()];
+    memset( index, 0, sizeof(CacheFileItem)*_index.length());
     for ( int i=0; i<_index.length(); i++ ) {
         memcpy( &index[i], _index[i], sizeof(CacheFileItem) );
     }
@@ -1177,6 +1196,7 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
             sz = nodecount - offs;
         }
 
+#if TEXT_COMPRESSION_LEVEL!=0
         lUInt8 * packed = NULL;
         int packedsize = 0;
         if ( !_cacheFile->read( type, i, packed, packedsize ) )
@@ -1189,6 +1209,13 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
         }
         ldomNode * buf = (ldomNode *)p;
         free( packed );
+#else
+        lUInt8 * p;
+        int buflen;
+        if ( !_cacheFile->read( type, i, p, buflen ) )
+            return false;
+        ldomNode * buf = (ldomNode *)p;
+#endif
         if ( !buf || buflen != sizeof(ldomNode)*sz )
             return false;
         list[i] = buf;
@@ -1219,6 +1246,7 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
         memcpy( buf, list[i], sizeof(ldomNode)*sz );
         for ( int j=0; j<sz; j++ )
             buf[j]._document = NULL;
+#if TEXT_COMPRESSION_LEVEL!=0
         lUInt8 * packed = NULL;
         lUInt32 packedsize = 0;
         if ( !ldomPack( (lUInt8*)buf, sizeof(ldomNode)*sz, packed, packedsize ) )
@@ -1226,6 +1254,10 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
         if ( !_cacheFile->write( type, i, packed, packedsize ) )
             crFatalError(-1, "Cannot write node data");
         free( packed );
+#else
+        if ( !_cacheFile->write( type, i, (lUInt8*)buf, sizeof(ldomNode)*sz ) )
+            crFatalError(-1, "Cannot write node data");
+#endif
     }
     return true;
 }
@@ -1470,7 +1502,11 @@ bool ldomDataStorageManager::save()
     SerialBuf buf(n*4+4, true);
     buf << n;
     for ( int i=0; i<n; i++ ) {
-        buf << _chunks[i]->_compsize << _chunks[i]->_bufpos;
+        buf <<
+#if TEXT_COMPRESSION_LEVEL!=0
+                _chunks[i]->_compsize <<
+#endif
+                _chunks[i]->_bufpos;
     }
     res = _cache->write( cacheType(), 0xFFFF, buf );
     if ( !res ) {
@@ -1666,8 +1702,11 @@ void ldomDataStorageManager::compact( int reservedSpace )
     if ( _uncompressedSize + reservedSpace > _maxUncompressedSize ) {
         // do compacting
         int sumsize = reservedSpace;
+#if TEXT_COMPRESSION_LEVEL!=0
         int sumpackedsize = 0;
+#endif
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
+#if TEXT_COMPRESSION_LEVEL!=0
             if ( p->_bufsize >= 0 ) {
                 if ( p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
                     // fits
@@ -1690,6 +1729,23 @@ void ldomDataStorageManager::compact( int reservedSpace )
                     }
                 }
             }
+#else
+            if ( p->_bufsize >= 0 ) {
+                if ( p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
+                    // fits
+                    sumsize += p->_bufsize;
+                } else {
+                    if ( !_cache )
+                        _owner->createCacheFile();
+                    if ( _cache ) {
+                        if ( !p->swapToCache(true) ) {
+                            crFatalError(111, "Swap file writing error!");
+                        }
+                    }
+                }
+            }
+#endif
+
         }
 
     }
@@ -1702,10 +1758,14 @@ ldomDataStorageManager::ldomDataStorageManager( tinyNodeCollection * owner, char
 , _activeChunk(NULL)
 , _recentChunk(NULL)
 , _cache(NULL)
+#if TEXT_COMPRESSION_LEVEL!=0
 , _compressedSize(0)
+#endif
 , _uncompressedSize(0)
 , _maxUncompressedSize(maxUnpackedSize)
+#if TEXT_COMPRESSION_LEVEL!=0
 , _maxCompressedSize(maxPackedSize)
+#endif
 , _chunkSize(chunkSize)
 , _type(type)
 {
@@ -1719,8 +1779,10 @@ ldomDataStorageManager::~ldomDataStorageManager()
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize )
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
+#if TEXT_COMPRESSION_LEVEL!=0
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _compsize(compsize)   /// _compbuf (compressed) area size (in file or compbuffer)
+#endif
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
@@ -1734,8 +1796,10 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
+#if TEXT_COMPRESSION_LEVEL!=0
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
+#endif
 , _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
 , _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
@@ -1752,8 +1816,10 @@ ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageMan
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
+#if TEXT_COMPRESSION_LEVEL!=0
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
+#endif
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
@@ -1774,7 +1840,9 @@ bool ldomTextStorageChunk::save()
 
 ldomTextStorageChunk::~ldomTextStorageChunk()
 {
+#if TEXT_COMPRESSION_LEVEL!=0
     setpacked(NULL, 0);
+#endif
     setunpacked(NULL, 0);
 }
 
@@ -1783,6 +1851,7 @@ static int dummy1_valgrind_test = 0;
 /// pack data, and remove unpacked, put packed data to cache file
 bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 {
+#if TEXT_COMPRESSION_LEVEL!=0
     if ( removeFromMemory )
         compact();
     else {
@@ -1791,13 +1860,13 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
             CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %c%d", _bufpos, _compsize, 100*_compsize/_bufpos, _type, _index);
         }
     }
+#endif
     if ( !_manager->_cache )
         return true;
+#if TEXT_COMPRESSION_LEVEL!=0
     if ( _compbuf ) {
         if ( !_saved && _manager->_cache) {
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
-            if ( _compbuf[_compsize-1] )
-                dummy1_valgrind_test++; // valgrind test
             if ( !_manager->_cache->write( _manager->cacheType(), _index, _compbuf, _compsize ) ) {
                 CRLog::error("Error while swapping of chunk %c%d to cache file", _type, _index);
                 crFatalError(-1, "Error while swapping of chunk to cache file");
@@ -1809,22 +1878,52 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
     if ( removeFromMemory ) {
         setpacked(NULL, 0);
     }
+#else
+    if ( _buf ) {
+        if ( !_saved && _manager->_cache) {
+            CRLog::debug("Writing %d bytes of chunk %c%d to cache", _bufpos, _type, _index);
+            if ( !_manager->_cache->write( _manager->cacheType(), _index, _buf, _bufpos ) ) {
+                CRLog::error("Error while swapping of chunk %c%d to cache file", _type, _index);
+                crFatalError(-1, "Error while swapping of chunk to cache file");
+                return false;
+            }
+            _saved = true;
+        }
+    }
+    if ( removeFromMemory ) {
+        setunpacked(NULL, 0);
+    }
+#endif
     return true;
 }
 
 /// read packed data from cache
 bool ldomTextStorageChunk::restoreFromCache()
 {
+#if TEXT_COMPRESSION_LEVEL!=0
     if ( _compbuf )
         return true;
+#else
+    if ( _buf )
+        return true;
+#endif
     if ( !_saved )
         return false;
+#if TEXT_COMPRESSION_LEVEL!=0
     int compsize;
     if ( !_manager->_cache->read( _manager->cacheType(), _index, _compbuf, compsize ) )
         return false;
     _compsize = compsize;
     _manager->_compressedSize += _compsize;
     CRLog::debug("Read %d bytes of chunk %c%d from cache", _compsize, _type, _index);
+#else
+    int size;
+    if ( !_manager->_cache->read( _manager->cacheType(), _index, _buf, size ) )
+        return false;
+    _bufsize = size;
+    _manager->_uncompressedSize += _bufsize;
+    CRLog::debug("Read %d bytes of chunk %c%d from cache", _bufsize, _type, _index);
+#endif
     return true;
 }
 
@@ -1888,6 +1987,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
 int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
 {
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
+#if TEXT_COMPRESSION_LEVEL!=0
     if ( _compbuf!=NULL ) {
         CRLog::debug("Adding new item of size %d to compressed block %c%d of size %d", itemsize, _type, _index, _bufpos);
         if ( !_buf ) {
@@ -1895,6 +1995,7 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
         }
         modified();
     }
+#endif
     if ( !_buf ) {
         // create new buffer, if necessary
         _bufsize = _manager->_chunkSize > itemsize ? _manager->_chunkSize : itemsize;
@@ -1936,6 +2037,7 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 /// call to invalidate chunk if content is modified
 void ldomTextStorageChunk::modified()
 {
+#if TEXT_COMPRESSION_LEVEL!=0
     if ( _compbuf ) {
         if ( _type=='t' ) {
             CRLog::warn("ldomTextStorageChunk::modified() called for text node %c%d", _type, _index);
@@ -1944,6 +2046,9 @@ void ldomTextStorageChunk::modified()
         setpacked(NULL, 0);
         _saved = false;
     }
+#else
+    _saved = false;
+#endif
 }
 
 /// free data item
@@ -1985,6 +2090,7 @@ lString8 ldomTextStorageChunk::getText( int offset )
 }
 
 
+#if TEXT_COMPRESSION_LEVEL!=0
 
 /// pack data from _buf to _compbuf
 bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
@@ -2092,6 +2198,7 @@ void ldomTextStorageChunk::setpacked( const lUInt8 * compbuf, int compsize )
         memcpy( _compbuf, compbuf, compsize );
     }
 }
+#endif
 
 void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
 {
@@ -2110,6 +2217,7 @@ void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
     }
 }
 
+#if TEXT_COMPRESSION_LEVEL!=0
 /// pack data, and remove unpacked
 void ldomTextStorageChunk::compact()
 {
@@ -2120,21 +2228,27 @@ void ldomTextStorageChunk::compact()
     if ( _buf )
         setunpacked(NULL, 0);
 }
+#endif
 
 /// unpacks chunk, if packed; checks storage space, compact if necessary
 void ldomTextStorageChunk::ensureUnpacked()
 {
     if ( !_buf ) {
+#if TEXT_COMPRESSION_LEVEL!=0
         if (_compbuf) {
             _manager->compact( _bufpos );
             unpack();
-        } else if ( _saved ) {
+        } else
+#endif
+            if ( _saved ) {
             _manager->compact( _bufpos );
             if ( !restoreFromCache() ) {
                 CRLog::error( "restoreFromCache() failed for chunk %c%d", _type, _index);
                 crFatalError( 111, "restoreFromCache() failed for chunk");
             }
+#if TEXT_COMPRESSION_LEVEL!=0
             unpack();
+#endif
         }
     } else {
         // compact
@@ -6681,9 +6795,6 @@ public:
         return filename + lString16( s ); //_cacheDir + 
     }
 
-#define WRITE_CACHE_BLOCK_SIZE 0x8000
-#define WRITE_CACHE_BLOCK_COUNT 8
-
     /// open existing cache file stream
     LVStreamRef openExisting( lString16 filename, lUInt32 crc, lUInt32 docFlags )
     {
@@ -8450,15 +8561,36 @@ void tinyNodeCollection::dumpStatistics()
 {
     CRLog::info("*** Document memory usage: "
                 "elements:%d, textNodes:%d, "
-                "ptext=(%d compressed, %d uncompressed), "
-                "ptelems=(%d compressed, %d uncompressed), "
-                "rects=(%d compressed, %d uncompressed), "
+                "ptext=("
+#if TEXT_COMPRESSION_LEVEL!=0
+                "%d compressed, "
+#endif
+                "%d uncompressed), "
+                "ptelems=("
+#if TEXT_COMPRESSION_LEVEL!=0
+                "%d compressed, "
+#endif
+                "%d uncompressed), "
+                "rects=("
+#if TEXT_COMPRESSION_LEVEL!=0
+                "%d compressed, "
+#endif
+                "%d uncompressed), "
                 "styles:%d, fonts:%d, renderedNodes:%d, "
                 "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
                 _elemCount, _textCount,
-                _textStorage.getCompressedSize(), _textStorage.getUncompressedSize(),
-                _elemStorage.getCompressedSize(), _elemStorage.getUncompressedSize(),
-                _rectStorage.getCompressedSize(), _rectStorage.getUncompressedSize(),
+#if TEXT_COMPRESSION_LEVEL!=0
+                _textStorage.getCompressedSize(),
+#endif
+                _textStorage.getUncompressedSize(),
+#if TEXT_COMPRESSION_LEVEL!=0
+                _elemStorage.getCompressedSize(),
+#endif
+                _elemStorage.getUncompressedSize(),
+#if TEXT_COMPRESSION_LEVEL!=0
+                _rectStorage.getCompressedSize(),
+#endif
+                _rectStorage.getUncompressedSize(),
                 _styles.length(), _fonts.length(),
 #if BUILD_LITE!=1
                 ((ldomDocument*)this)->_renderedBlockCache.length(),

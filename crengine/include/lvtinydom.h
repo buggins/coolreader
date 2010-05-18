@@ -46,6 +46,8 @@
 //#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
 
+#define TEXT_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
+
 /// docFlag mask, enable internal stylesheet of document and style attribute of elements
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
 /// docFlag mask, enable paperbook-like footnotes
@@ -172,10 +174,14 @@ protected:
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
     CacheFile * _cache;
+#if TEXT_COMPRESSION_LEVEL!=0
     int _compressedSize;
+#endif
     int _uncompressedSize;
     int _maxUncompressedSize;
+#if TEXT_COMPRESSION_LEVEL!=0
     int _maxCompressedSize;
+#endif
     int _chunkSize;
     char _type;       /// type, to show in log
     ldomTextStorageChunk * getChunk( lUInt32 address );
@@ -191,7 +197,9 @@ public:
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
+#if TEXT_COMPRESSION_LEVEL!=0
     int getCompressedSize() { return _compressedSize; }
+#endif
     int getUncompressedSize() { return _uncompressedSize; }
     /// allocates new text node, return its address inside storage
     lUInt32 allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
@@ -223,9 +231,13 @@ class ldomTextStorageChunk
     friend class ldomDataStorageManager;
     ldomDataStorageManager * _manager;
     lUInt8 * _buf;     /// buffer for uncompressed data
+#if TEXT_COMPRESSION_LEVEL!=0
     lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
+#endif
     //lUInt32 _filepos;  /// position in swap file
+#if TEXT_COMPRESSION_LEVEL!=0
     lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
+#endif
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
@@ -234,11 +246,13 @@ class ldomTextStorageChunk
     ldomTextStorageChunk * _prevRecent;
     bool _saved;
 
+#if TEXT_COMPRESSION_LEVEL!=0
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
     bool unpack() { return unpack(_compbuf, _compsize); } /// unpack data from compbuf to _buf
     bool pack( const lUInt8 * buf, int bufsize );   /// pack data from buf[bufsize] to _compbuf
     bool pack() { return pack(_buf, _bufsize); }   /// pack data from _buf[_bufsize] to _compbuf
     void setpacked( const lUInt8 * compbuf, int compsize );
+#endif
     void setunpacked( const lUInt8 * buf, int bufsize );
     /// change node's parent
     void setTextParent( int offset, lUInt32 parent );
