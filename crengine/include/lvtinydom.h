@@ -46,7 +46,7 @@
 //#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
 
-#define TEXT_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
+#define RAM_COMPRESSED_BUFFER_ENABLED 0 // (0=no compression, 1=enabled compression in RAM)
 
 /// docFlag mask, enable internal stylesheet of document and style attribute of elements
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
@@ -174,12 +174,12 @@ protected:
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
     CacheFile * _cache;
-#if TEXT_COMPRESSION_LEVEL!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
     int _compressedSize;
 #endif
     int _uncompressedSize;
     int _maxUncompressedSize;
-#if TEXT_COMPRESSION_LEVEL!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
     int _maxCompressedSize;
 #endif
     int _chunkSize;
@@ -197,7 +197,7 @@ public:
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
-#if TEXT_COMPRESSION_LEVEL!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
     int getCompressedSize() { return _compressedSize; }
 #endif
     int getUncompressedSize() { return _uncompressedSize; }
@@ -231,11 +231,11 @@ class ldomTextStorageChunk
     friend class ldomDataStorageManager;
     ldomDataStorageManager * _manager;
     lUInt8 * _buf;     /// buffer for uncompressed data
-#if TEXT_COMPRESSION_LEVEL!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
     lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
 #endif
     //lUInt32 _filepos;  /// position in swap file
-#if TEXT_COMPRESSION_LEVEL!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
     lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
 #endif
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
@@ -245,8 +245,9 @@ class ldomTextStorageChunk
     ldomTextStorageChunk * _nextRecent;
     ldomTextStorageChunk * _prevRecent;
     bool _saved;
+    bool _compressed;
 
-#if TEXT_COMPRESSION_LEVEL!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
     bool unpack() { return unpack(_compbuf, _compsize); } /// unpack data from compbuf to _buf
     bool pack( const lUInt8 * buf, int bufsize );   /// pack data from buf[bufsize] to _compbuf

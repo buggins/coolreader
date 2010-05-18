@@ -1997,7 +1997,7 @@ void LVDocView::Render( int dx, int dy, LVRendPageList * pages )
             int mfs = m_props->getIntDef(PROP_MIN_FILE_SIZE_TO_CACHE, DOCUMENT_CACHING_SIZE_THRESHOLD);
             CRLog::info("Check whether to swap: file size = %d, min size to cache = %d", fs, mfs);
             if ( fs>=mfs ) {
-                swapToCache();
+                //swapToCache();
             }
         }
     }
