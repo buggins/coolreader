@@ -3070,7 +3070,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                         requestRender();
 						if ( m_callback ) {
 							m_callback->OnLoadFileEnd( );
-                            m_doc->compact();
+                            //m_doc->compact();
                             m_doc->dumpStatistics();
 						}
                         return true;
@@ -3482,7 +3482,7 @@ bool LVDocView::ParseDocument( )
         _pos = 0;
         _page = 0;
 
-        m_doc->compact();
+        //m_doc->compact();
         m_doc->dumpStatistics();
 
 

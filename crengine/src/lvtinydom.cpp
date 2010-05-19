@@ -29,23 +29,23 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
 // cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x1C0000 // 768K
-#define TEXT_CACHE_PACKED_SPACE   0x100000 // 3.5Mb
+#define TEXT_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
+#define TEXT_CACHE_PACKED_SPACE   0x3В0000 // 3.5Mb
 #define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
 #define ELEM_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
-#define ELEM_CACHE_PACKED_SPACE   0x080000 // 768K
+#define ELEM_CACHE_PACKED_SPACE   0x180000 // 768K
 #define ELEM_CACHE_CHUNK_SIZE     0x004000 // 48K
 #define RECT_CACHE_UNPACKED_SPACE 0x0C0000 // 512K
-#define RECT_CACHE_PACKED_SPACE   0x1C0000 // 128K
+#define RECT_CACHE_PACKED_SPACE   0x0C0000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
 #else
-#define TEXT_CACHE_UNPACKED_SPACE 0x100000 // 768K
+#define TEXT_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
 #define TEXT_CACHE_PACKED_SPACE   0x000000 // 3.5Mb
 #define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
-#define ELEM_CACHE_UNPACKED_SPACE 0x300000 // 768K
+#define ELEM_CACHE_UNPACKED_SPACE 0x100000 // 768K
 #define ELEM_CACHE_PACKED_SPACE   0x000000 // 768K
 #define ELEM_CACHE_CHUNK_SIZE     0x008000 // 48K
-#define RECT_CACHE_UNPACKED_SPACE 0x180000 // 512K
+#define RECT_CACHE_UNPACKED_SPACE 0x080000 // 512K
 #define RECT_CACHE_PACKED_SPACE   0x000000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
 #endif
@@ -58,7 +58,7 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 
 #define ENABLED_BLOCK_WRITE_CACHE 1
 #define WRITE_CACHE_BLOCK_SIZE 0x8000
-#define WRITE_CACHE_BLOCK_COUNT 16
+#define WRITE_CACHE_BLOCK_COUNT 32
 #define TEST_BLOCK_STREAM 0
 
 //#define CACHE_FILE_SECTOR_SIZE 4096
@@ -1857,7 +1857,6 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _nextRecent(NULL)
 , _prevRecent(NULL)
 , _saved(true)
-, _compressed(false)
 {
 }
 
@@ -1875,7 +1874,6 @@ ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageMan
 , _nextRecent(NULL)
 , _prevRecent(NULL)
 , _saved(false)
-, _compressed(false)
 {
     _buf = (lUInt8*)malloc(preAllocSize);
     memset(_buf, 0, preAllocSize);
@@ -1896,7 +1894,6 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 , _nextRecent(NULL)
 , _prevRecent(NULL)
 , _saved(false)
-, _compressed(false)
 {
 }
 
@@ -1937,7 +1934,7 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
     if ( _compbuf ) {
         if ( !_saved && _manager->_cache) {
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
-            if ( !_manager->_cache->write( _manager->cacheType(), _index, _compbuf, _compsize ) ) {
+            if ( !_manager->_cache->write( _manager->cacheType(), _index, _compbuf, _compsize, false ) ) {
                 CRLog::error("Error while swapping of chunk %c%d to cache file", _type, _index);
                 crFatalError(-1, "Error while swapping of chunk to cache file");
                 return false;

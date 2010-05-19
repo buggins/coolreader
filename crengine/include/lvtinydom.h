@@ -46,7 +46,7 @@
 //#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
 
-#define RAM_COMPRESSED_BUFFER_ENABLED 0 // (0=no compression, 1=enabled compression in RAM)
+#define RAM_COMPRESSED_BUFFER_ENABLED 1 // (0=no compression, 1=enabled compression in RAM)
 
 /// docFlag mask, enable internal stylesheet of document and style attribute of elements
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
@@ -245,7 +245,6 @@ class ldomTextStorageChunk
     ldomTextStorageChunk * _nextRecent;
     ldomTextStorageChunk * _prevRecent;
     bool _saved;
-    bool _compressed;
 
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
