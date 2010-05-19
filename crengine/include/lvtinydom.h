@@ -471,6 +471,8 @@ struct ldomNodeHandle {
 /// max number which could be stored in ldomNodeHandle._docIndex
 #define MAX_DOCUMENT_INSTANCE_COUNT 256
 
+
+class ldomTextNode;
 // no vtable, very small size (16 bytes)
 // optimized for 32 bit systems
 class ldomNode
@@ -513,11 +515,12 @@ private:
             lUInt32 _parentIndex; // just to avoid extra access to storage
             lUInt32 _addr;        // text storage address: chunk+offset
         } _ptext;
-        struct {
-            // common part - hold parent index
-            lUInt32 _parentIndex; // just to avoid extra access to storage
-            lChar8 * _str;        // actual zstring, utf-8
-        } _text;
+//        struct {
+//            // common part - hold parent index
+//            lUInt32 _parentIndex; // just to avoid extra access to storage
+//            lChar8 * _str;        // actual zstring, utf-8
+//        }
+        ldomTextNode * _text;
         struct {
             // common part for all elements
             lUInt16 _fontIndex;

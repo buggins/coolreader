@@ -138,6 +138,47 @@ void ldomNode::unregisterDocument( ldomDocument * doc )
     }
 }
 
+class ldomTextNode
+{
+    lUInt32 _parentIndex;
+    lString8 _text;
+public:
+
+    lUInt32 getParentIndex()
+    {
+        return _parentIndex;
+    }
+
+    void setParentIndex( lUInt32 n )
+    {
+        _parentIndex = n;
+    }
+
+    ldomTextNode( lUInt32 parentIndex, const lString8 & text )
+    : _parentIndex(parentIndex), _text(text)
+    {
+    }
+
+    lString8 getText()
+    {
+        return _text;
+    }
+
+    lString16 getText16()
+    {
+        return Utf8ToUnicode(_text);
+    }
+
+    void setText( const lString8 & s )
+    {
+        _text = s;
+    }
+
+    void setText( const lString16 & s )
+    {
+        _text = UnicodeToUtf8(s);
+    }
+};
 
 #define LASSERT(x) \
     if (!(x)) crFatalError(1111, "assertion failed: " #x)
@@ -7211,8 +7252,8 @@ void ldomNode::onCollectionDestroy()
     //CRLog::trace("ldomNode::onCollectionDestroy(%d) type=%d", this->_handle._dataIndex, TNTYPE);
     switch ( TNTYPE ) {
     case NT_TEXT:
-        free(NPTEXT);
-        NPTEXT = NULL;
+        delete _data._text;
+        _data._text = NULL;
         break;
     case NT_ELEMENT:
         getDocument()->_styles.release( _data._elem._styleIndex );
@@ -7238,7 +7279,7 @@ void ldomNode::destroy()
     //CRLog::trace("ldomNode::destroy(%d) type=%d", this->_handle._dataIndex, TNTYPE);
     switch ( TNTYPE ) {
     case NT_TEXT:
-        free(NPTEXT);
+        delete _data._text;
         break;
     case NT_ELEMENT:
         {
@@ -7342,7 +7383,7 @@ bool ldomNode::isRoot() const
     case NT_PTEXT:      // immutable (persistent) text node
         return _data._ptext._parentIndex==0;
     case NT_TEXT:
-        return _data._text._parentIndex==0;
+        return _data._text->getParentIndex()==0;
     }
     return false;
 }
@@ -7389,7 +7430,7 @@ void ldomNode::setParentNode( ldomNode * parent )
     case NT_TEXT:
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
-            _data._text._parentIndex = parentIndex;
+            _data._text->setParentIndex( parentIndex );
         }
         break;
     }
@@ -7412,7 +7453,7 @@ int ldomNode::getParentIndex() const
     case NT_PTEXT:      // immutable (persistent) text node
         return _data._ptext._parentIndex;
     case NT_TEXT:
-        return _data._text._parentIndex;
+        return _data._text->getParentIndex();
     }
     return 0;
 }
@@ -7435,7 +7476,7 @@ ldomNode * ldomNode::getParentNode() const
         parentIndex = _data._ptext._parentIndex;
         break;
     case NT_TEXT:
-        parentIndex = _data._text._parentIndex;
+        parentIndex = _data._text->getParentIndex();
         break;
     }
     return parentIndex ? getTinyNode(parentIndex) : NULL;
@@ -7737,7 +7778,7 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
     case NT_PTEXT:
         return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext._addr ));
     case NT_TEXT:
-        return lString16(_data._text._str);
+        return _data._text->getText16();
     }
     return lString16::empty_str;
 }
@@ -7768,7 +7809,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
     case NT_PTEXT:
         return getDocument()->_textStorage.getText( _data._ptext._addr );
     case NT_TEXT:
-        return lString8(_data._text._str);
+        return _data._text->getText();
     }
     return lString8::empty_str;
 }
@@ -7787,20 +7828,16 @@ void ldomNode::setText( lString16 str )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
+            lUInt32 parentIndex = _data._ptext._parentIndex;
             getDocument()->_textStorage.freeNode( _data._ptext._addr );
-            lString8 utf8 = UnicodeToUtf8(str);
-            _data._text._str = (lChar8*)malloc(utf8.length()+1);
-            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            _data._text = new ldomTextNode( parentIndex, UnicodeToUtf8(str) );
             // change type from PTEXT to TEXT
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
         break;
     case NT_TEXT:
         {
-            free(_data._text._str);
-            lString8 utf8 = UnicodeToUtf8(str);
-            _data._text._str = (lChar8*)malloc(utf8.length()+1);
-            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            _data._text->setText( str );
         }
         break;
     }
@@ -7820,18 +7857,16 @@ void ldomNode::setText8( lString8 utf8 )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
+            lUInt32 parentIndex = _data._ptext._parentIndex;
             getDocument()->_textStorage.freeNode( _data._ptext._addr );
-            _data._text._str = (lChar8*)malloc(utf8.length()+1);
-            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            _data._text = new ldomTextNode( parentIndex, utf8 );
             // change type from PTEXT to TEXT
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
         break;
     case NT_TEXT:
         {
-            free(_data._text._str);
-            _data._text._str = (lChar8*)malloc(utf8.length()+1);
-            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            _data._text->setText( utf8 );
         }
         break;
     }
@@ -8622,10 +8657,11 @@ ldomNode * ldomNode::persist()
             delete elem;
         } else {
             // TEXT->PTEXT
-            lString8 utf8(_data._text._str);
-            free(_data._text._str);
+            lString8 utf8 = _data._text->getText();
+            delete _data._text;
+            lUInt32 parentIndex = _data._text->getParentIndex();
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_PTEXT;
-            _data._ptext._addr = getDocument()->_textStorage.allocText(_handle._dataIndex, _data._text._parentIndex, utf8 );
+            _data._ptext._addr = getDocument()->_textStorage.allocText(_handle._dataIndex, parentIndex, utf8 );
             // change type
         }
     }
@@ -8653,9 +8689,9 @@ ldomNode * ldomNode::modify()
             // PTEXT->TEXT
             // convert persistent text to mutable
             lString8 utf8 = getDocument()->_textStorage.getText(_data._ptext._addr);
+            lUInt32 parentIndex = _data._ptext._parentIndex;
             getDocument()->_textStorage.freeNode( _data._ptext._addr );
-            _data._text._str = (lChar8*)malloc(utf8.length()+1);
-            memcpy(_data._text._str, utf8.c_str(), utf8.length()+1);
+            _data._text = new ldomTextNode( parentIndex, utf8 );
             // change type
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
