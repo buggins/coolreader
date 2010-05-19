@@ -138,6 +138,7 @@ void ldomNode::unregisterDocument( ldomDocument * doc )
     }
 }
 
+/// mutable text node
 class ldomTextNode
 {
     lUInt32 _parentIndex;
@@ -1814,10 +1815,10 @@ void ldomDataStorageManager::modified( lUInt32 addr )
 }
 
 /// change node's parent
-void ldomDataStorageManager::setTextParent( lUInt32 address, lUInt32 parent )
+bool ldomDataStorageManager::setParent( lUInt32 address, lUInt32 parent )
 {
     ldomTextStorageChunk * chunk = getChunk(address);
-    return chunk->setTextParent(address&0xFFFF, parent);
+    return chunk->setParent(address&0xFFFF, parent);
 }
 
 /// free data item
@@ -1839,6 +1840,13 @@ ElementDataStorageItem * ldomDataStorageManager::getElem( lUInt32 addr )
 {
     ldomTextStorageChunk * chunk = getChunk(addr);
     return chunk->getElem(addr&0xFFFF);
+}
+
+/// returns node's parent by address
+lUInt32 ldomDataStorageManager::getParent( lUInt32 addr )
+{
+    ldomTextStorageChunk * chunk = getChunk(addr);
+    return chunk->getElem(addr&0xFFFF)->parentIndex;
 }
 
 void ldomDataStorageManager::compact( int reservedSpace )
@@ -2165,6 +2173,36 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
     return res;
 }
 
+/// set node parent by offset
+bool ldomTextStorageChunk::setParent( int offset, lUInt32 parentIndex )
+{
+    offset <<= 4;
+    if ( offset>=0 && offset<_bufpos ) {
+        TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
+        if ( parentIndex!=item->parentIndex ) {
+            item->parentIndex = parentIndex;
+            modified();
+            return true;
+        } else
+            return false;
+    }
+    CRLog::error("Offset %d is out of bounds (%d) for storage chunk %c%d, chunkCount=%d", offset, this->_bufpos, this->_type, this->_index, _manager->_chunks.length() );
+    return false;
+}
+
+
+/// get text node parent by offset
+lUInt32 ldomTextStorageChunk::getParent( int offset )
+{
+    offset <<= 4;
+    if ( offset>=0 && offset<_bufpos ) {
+        TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
+        return item->parentIndex;
+    }
+    CRLog::error("Offset %d is out of bounds (%d) for storage chunk %c%d, chunkCount=%d", offset, this->_bufpos, this->_type, this->_index, _manager->_chunks.length() );
+    return NULL;
+}
+
 /// get pointer to element data
 ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 {
@@ -2204,19 +2242,6 @@ void ldomTextStorageChunk::freeNode( int offset )
         if ( (item->type==LXML_TEXT_NODE || item->type==LXML_ELEMENT_NODE) && item->dataIndex ) {
             item->type = LXML_NO_DATA;
             item->dataIndex = 0;
-            modified();
-        }
-    }
-}
-
-/// change node's parent
-void ldomTextStorageChunk::setTextParent( int offset, lUInt32 parent )
-{
-    offset <<= 4;
-    if ( offset>=0 && offset<_bufpos ) {
-        TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
-        if ( item->parentIndex != parent ) {
-            item->parentIndex = parent;
             modified();
         }
     }
@@ -7381,7 +7406,9 @@ bool ldomNode::isRoot() const
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
-        return _data._ptext._parentIndex==0;
+        {
+            return getDocument()->_textStorage.getParent( _data._ptext._addr )==0;
+        }
     case NT_TEXT:
         return _data._text->getParentIndex()==0;
     }
@@ -7423,7 +7450,8 @@ void ldomNode::setParentNode( ldomNode * parent )
     case NT_PTEXT:      // immutable (persistent) text node
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
-            _data._ptext._parentIndex = parentIndex;
+            getDocument()->_textStorage.setParent(_data._ptext._addr, parentIndex);
+            //_data._ptext._parentIndex = parentIndex;
             //_document->_textStorage.setTextParent( _data._ptext._addr, parentIndex );
         }
         break;
@@ -7451,7 +7479,7 @@ int ldomNode::getParentIndex() const
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
-        return _data._ptext._parentIndex;
+        return getDocument()->_textStorage.getParent(_data._ptext._addr);
     case NT_TEXT:
         return _data._text->getParentIndex();
     }
@@ -7473,7 +7501,7 @@ ldomNode * ldomNode::getParentNode() const
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
-        parentIndex = _data._ptext._parentIndex;
+        parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
         break;
     case NT_TEXT:
         parentIndex = _data._text->getParentIndex();
@@ -7828,7 +7856,7 @@ void ldomNode::setText( lString16 str )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
-            lUInt32 parentIndex = _data._ptext._parentIndex;
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
             getDocument()->_textStorage.freeNode( _data._ptext._addr );
             _data._text = new ldomTextNode( parentIndex, UnicodeToUtf8(str) );
             // change type from PTEXT to TEXT
@@ -7857,7 +7885,7 @@ void ldomNode::setText8( lString8 utf8 )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
-            lUInt32 parentIndex = _data._ptext._parentIndex;
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
             getDocument()->_textStorage.freeNode( _data._ptext._addr );
             _data._text = new ldomTextNode( parentIndex, utf8 );
             // change type from PTEXT to TEXT
@@ -8432,9 +8460,9 @@ ldomNode * ldomNode::insertChildText( lUInt32 index, const lString16 & value )
         memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
-        node->_data._ptext._parentIndex = _handle._dataIndex;
+        //node->_data._ptext._parentIndex = _handle._dataIndex;
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._ptext._addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, node->_data._ptext._parentIndex, s8 );
+        node->_data._ptext._addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
         me->_children.insert( index, node->getDataIndex() );
         return node;
@@ -8459,9 +8487,8 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
         memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
-        node->_data._ptext._parentIndex = _handle._dataIndex;
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._ptext._addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, node->_data._ptext._parentIndex, s8 );
+        node->_data._ptext._addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
         me->_children.insert( me->_children.length(), node->getDataIndex() );
         return node;
@@ -8689,7 +8716,7 @@ ldomNode * ldomNode::modify()
             // PTEXT->TEXT
             // convert persistent text to mutable
             lString8 utf8 = getDocument()->_textStorage.getText(_data._ptext._addr);
-            lUInt32 parentIndex = _data._ptext._parentIndex;
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
             getDocument()->_textStorage.freeNode( _data._ptext._addr );
             _data._text = new ldomTextNode( parentIndex, utf8 );
             // change type

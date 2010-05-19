@@ -207,10 +207,14 @@ public:
     lUInt32 allocElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount );
     /// get text by address
     lString8 getText( lUInt32 address );
+    /// get pointer to text data
+    TextDataStorageItem * getTextItem( lUInt32 addr );
     /// get pointer to element data
     ElementDataStorageItem * getElem( lUInt32 addr );
-    /// change node's parent
-    void setTextParent( lUInt32 address, lUInt32 parent );
+    /// change node's parent, returns true if modified
+    bool setParent( lUInt32 address, lUInt32 parent );
+    /// returns node's parent by address
+    lUInt32 getParent( lUInt32 address );
     /// free data item
     void freeNode( lUInt32 addr );
     /// call to invalidate chunk if content is modified
@@ -254,8 +258,6 @@ class ldomTextStorageChunk
     void setpacked( const lUInt8 * compbuf, int compsize );
 #endif
     void setunpacked( const lUInt8 * buf, int bufsize );
-    /// change node's parent
-    void setTextParent( int offset, lUInt32 parent );
     /// pack data, and remove unpacked
     void compact();
     /// pack data, and remove unpacked, put packed data to cache file
@@ -281,6 +283,10 @@ public:
     int addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount );
     /// get text item from buffer by offset
     lString8 getText( int offset );
+    /// get node parent by offset
+    lUInt32 getParent( int offset );
+    /// set node parent by offset
+    bool setParent( int offset, lUInt32 parentIndex );
     /// get pointer to element data
     ElementDataStorageItem * getElem( int offset );
     /// get raw data bytes
@@ -512,7 +518,7 @@ private:
     union {                    // [8] 8 bytes (16 bytes on x64)
         struct {
             // common part - hold parent index
-            lUInt32 _parentIndex; // just to avoid extra access to storage
+            //lUInt32 _parentIndex; // just to avoid extra access to storage
             lUInt32 _addr;        // text storage address: chunk+offset
         } _ptext;
 //        struct {
@@ -520,7 +526,7 @@ private:
 //            lUInt32 _parentIndex; // just to avoid extra access to storage
 //            lChar8 * _str;        // actual zstring, utf-8
 //        }
-        ldomTextNode * _text;
+        ldomTextNode * _text; // mutable text node
         struct {
             // common part for all elements
             lUInt16 _fontIndex;
