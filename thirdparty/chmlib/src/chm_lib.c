@@ -189,8 +189,9 @@ typedef unsigned long           UInt64;
 #define memcmp __builtin_memcmp
 #define memcpy __builtin_memcpy
 #define strlen __builtin_strlen
+#endif
 
-#elif defined(WIN32)
+#if defined(WIN32)
 static int ffs(unsigned int val)
 {
     int bit=1, idx=1;
@@ -204,7 +205,6 @@ static int ffs(unsigned int val)
     else
         return idx;
 }
-
 #endif
 
 /* utilities for unmarshalling data */
