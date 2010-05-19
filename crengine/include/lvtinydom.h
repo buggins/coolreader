@@ -526,48 +526,25 @@ private:
         NT_PELEMENT=3,   // immutable (persistent) element node
     };
 
-    /// packed 32bit data field
+    /// 0: packed 32bit data field
     ldomNodeHandle _handle; // _docIndex, _dataIndex, _type
+
+    /// 4: misc data 4 bytes (8 bytes on x64)
+    union {                    // [8] 8 bytes (16 bytes on x64)
+        ldomTextNode * _text_ptr;   // NT_TEXT: mutable text node pointer
+        tinyElement * _elem_ptr;    // NT_ELEMENT: mutable element pointer
+        lUInt32 _pelem_addr;        // NT_PELEMENT: element storage address: chunk+offset
+        lUInt32 _ptext_addr;        // NT_PTEXT: persistent text storage address: chunk+offset
+        lUInt32 _nextFreeIndex;     // NULL for removed items
+    } _data;
+
 
     /// sets document for node
     inline void setDocumentIndex( int index ) { _handle._docIndex = index; }
     void setStyleIndexInternal( lUInt16 index );
     void setFontIndexInternal( lUInt16 index );
 
-    /// document which owns this node
-    //ldomDocument * _document;  // [0] 4 bytes (8 bytes on x64)
-    /// data index of this node and its type
-    //lUInt32 _dataIndex;        // [4] 4 bytes
-    /// misc data
-    union {                    // [8] 8 bytes (16 bytes on x64)
-//        struct {
-//            // common part - hold parent index
-//            //lUInt32 _parentIndex; // just to avoid extra access to storage
-//            lUInt32 _addr;        // text storage address: chunk+offset
-//        } _ptext;
-        lUInt32 _ptext;  // persistent text storage address: chunk+offset
-//        struct {
-//            // common part - hold parent index
-//            lUInt32 _parentIndex; // just to avoid extra access to storage
-//            lChar8 * _str;        // actual zstring, utf-8
-//        }
-        ldomTextNode * _text; // mutable text node
-        struct {
-            // common part for all elements
-            //lUInt16 _fontIndex;
-            //lUInt16 _styleIndex;
-            tinyElement * _ptr;
-        } _elem;
-        struct {
-            // common part for all elements
-            //lUInt16 _fontIndex;
-            //lUInt16 _styleIndex;
-            lUInt32 _addr;        // element storage address: chunk+offset
-        } _pelem;
-        struct {
-            lUInt32 _nextFreeIndex; // for removed items
-        } _empty;
-    } _data;                      // [12] 4 bytes (8 bytes on x64)
+
 #define TNTYPE  (_handle._dataIndex&0x0F)
 #define TNINDEX (_handle._dataIndex&(~0x0E))
 #define TNCHUNK (_addr>>&(~0x0F))

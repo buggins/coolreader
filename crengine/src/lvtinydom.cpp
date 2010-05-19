@@ -13,16 +13,6 @@
 
 #define TEXT_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
 
-static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.15-"
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
-                                       "c1"
-#else
-                                       "c0"
-#endif
-                                       "\n";
-
-#define CACHE_FILE_MAGIC_SIZE 35
 
 #define PACK_BUF_SIZE 0x10000
 #define UNPACK_BUF_SIZE 0x40000
@@ -38,8 +28,8 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define RECT_CACHE_UNPACKED_SPACE 0x040000 // 512K
 #define RECT_CACHE_PACKED_SPACE   0x020000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x004000 // 32K
-#define STYLE_CACHE_UNPACKED_SPACE 0x040000 // 512K
-#define STYLE_CACHE_PACKED_SPACE   0x020000 // 128K
+#define STYLE_CACHE_UNPACKED_SPACE 0x010000 // 512K
+#define STYLE_CACHE_PACKED_SPACE   0x008000 // 128K
 #define STYLE_CACHE_CHUNK_SIZE     0x004000 // 32K
 #else
 #define TEXT_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
@@ -51,9 +41,9 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define RECT_CACHE_UNPACKED_SPACE 0x080000 // 512K
 #define RECT_CACHE_PACKED_SPACE   0x000000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
-#define STYLE_CACHE_UNPACKED_SPACE 0x080000 // 512K
+#define STYLE_CACHE_UNPACKED_SPACE 0x040000 // 512K
 #define STYLE_CACHE_PACKED_SPACE   0x000000 // 128K
-#define STYLE_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define STYLE_CACHE_CHUNK_SIZE     0x004000 // 32K
 #endif
 
 
@@ -69,7 +59,7 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 
 #define ENABLED_BLOCK_WRITE_CACHE 1
 #define WRITE_CACHE_BLOCK_SIZE 0x4000
-#define WRITE_CACHE_BLOCK_COUNT 24
+#define WRITE_CACHE_BLOCK_COUNT 16
 #define TEST_BLOCK_STREAM 0
 
 //#define CACHE_FILE_SECTOR_SIZE 4096
@@ -85,6 +75,23 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 
 #define STYLE_HASH_TABLE_SIZE     512
 #define FONT_HASH_TABLE_SIZE      256
+
+
+static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
+                                       " File v3.02.15: "
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+                                       "c1"
+#else
+                                       "c0"
+#endif
+#if TEXT_COMPRESSION_LEVEL==0
+                                       "m0"
+#else
+                                       "m1"
+#endif
+                                        "\n";
+
+#define CACHE_FILE_MAGIC_SIZE 38
 
 enum CacheFileBlockType {
     CBT_FREE = 0,
@@ -1573,7 +1580,7 @@ ldomNode * tinyNodeCollection::allocTinyNode( int type )
             int index = (_elemNextFree << 4) | type;
             res = getTinyNode(index);
             res->_handle._dataIndex = index;
-            _elemNextFree = res->_data._empty._nextFreeIndex;
+            _elemNextFree = res->_data._nextFreeIndex;
         } else {
             // create new item
             _elemCount++;
@@ -1595,7 +1602,7 @@ ldomNode * tinyNodeCollection::allocTinyNode( int type )
             int index = (_textNextFree << 4) | type;
             res = getTinyNode(index);
             res->_handle._dataIndex = index;
-            _textNextFree = res->_data._empty._nextFreeIndex;
+            _textNextFree = res->_data._nextFreeIndex;
         } else {
             // create new item
             _textCount++;
@@ -1622,7 +1629,7 @@ void tinyNodeCollection::recycleTinyNode( lUInt32 index )
         ldomNode * part = _elemList[index >> TNC_PART_SHIFT];
         ldomNode * p = &part[index & TNC_PART_MASK];
         p->_handle._dataIndex = 0; // indicates NULL node
-        p->_data._empty._nextFreeIndex = _elemNextFree;
+        p->_data._nextFreeIndex = _elemNextFree;
         _elemNextFree = index;
         _itemCount--;
     } else {
@@ -1631,7 +1638,7 @@ void tinyNodeCollection::recycleTinyNode( lUInt32 index )
         ldomNode * part = _textList[index >> TNC_PART_SHIFT];
         ldomNode * p = &part[index & TNC_PART_MASK];
         p->_handle._dataIndex = 0; // indicates NULL node
-        p->_data._empty._nextFreeIndex = _textNextFree;
+        p->_data._nextFreeIndex = _textNextFree;
         _textNextFree = index;
         _itemCount--;
     }
@@ -1812,6 +1819,8 @@ lUInt16 ldomDataStorageManager::cacheType()
         return CBT_ELEM_DATA;
     case 'r':
         return CBT_RECT_DATA;
+    case 's':
+        return CBT_ELEM_STYLE_DATA;
     }
     return 0;
 }
@@ -2962,7 +2971,7 @@ void tinyNodeCollection::dropStyles()
         ldomNode * buf = _elemList[i];
         for ( int j=0; j<sz; j++ ) {
             if ( buf[j].isElement() ) {
-                setNodeStyleIndex( buf[i]._handle._dataIndex, 0 );
+                setNodeStyleIndex( buf[j]._handle._dataIndex, 0 );
             }
         }
     }
@@ -3018,10 +3027,12 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         //CRLog::trace("validate 1...");
         //validateDocument();
         CRLog::trace("Dropping existing styles...");
+        //CRLog::debug( "root style before drop style %d", getNodeStyleIndex(getRootNode()->getDataIndex()));
         dropStyles();
+        //CRLog::debug( "root style after drop style %d", getNodeStyleIndex(getRootNode()->getDataIndex()));
 
-        ldomNode * root = getRootNode();
-        css_style_ref_t roots = root->getStyle();
+        //ldomNode * root = getRootNode();
+        //css_style_ref_t roots = root->getStyle();
         //CRLog::trace("validate 2...");
         //validateDocument();
         CRLog::trace("Init node styles...");
@@ -7364,8 +7375,8 @@ public:
 };
 
 
-#define NPELEM _data._elem._ptr
-#define NPTEXT _data._text._str
+#define NPELEM _data._elem_ptr
+#define NPTEXT _data._text_ptr._str
 
 //=====================================================
 
@@ -7419,8 +7430,8 @@ void ldomNode::onCollectionDestroy()
     //CRLog::trace("ldomNode::onCollectionDestroy(%d) type=%d", this->_handle._dataIndex, TNTYPE);
     switch ( TNTYPE ) {
     case NT_TEXT:
-        delete _data._text;
-        _data._text = NULL;
+        delete _data._text_ptr;
+        _data._text_ptr = NULL;
         break;
     case NT_ELEMENT:
         // ???
@@ -7444,7 +7455,7 @@ void ldomNode::destroy()
     //CRLog::trace("ldomNode::destroy(%d) type=%d", this->_handle._dataIndex, TNTYPE);
     switch ( TNTYPE ) {
     case NT_TEXT:
-        delete _data._text;
+        delete _data._text_ptr;
         break;
     case NT_ELEMENT:
         {
@@ -7463,11 +7474,11 @@ void ldomNode::destroy()
         break;
     case NT_PTEXT:
         // disable removing from storage: to minimize modifications
-        //_document->_textStorage.freeNode( _data._ptext._addr );
+        //_document->_textStorage.freeNode( _data._ptext_addr._addr );
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
         {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             for ( int i=0; i<me->childCount; i++ )
                 getDocument()->getTinyNode( me->children[i] )->destroy();
             getDocument()->clearNodeStyle( _handle._dataIndex );
@@ -7475,7 +7486,7 @@ void ldomNode::destroy()
 //            getDocument()->_fonts.release( _data._pelem._fontIndex );
 //            _data._pelem._styleIndex = 0;
 //            _data._pelem._fontIndex = 0;
-            getDocument()->_elemStorage.freeNode( _data._pelem._addr );
+            getDocument()->_elemStorage.freeNode( _data._pelem_addr );
         }
         break;
     }
@@ -7503,7 +7514,7 @@ int ldomNode::getChildIndex( lUInt32 dataIndex ) const
         break;
     case NT_PELEMENT:
         {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             for ( int i=0; i<me->childCount; i++ ) {
                 if ( (me->children[i] & 0xFFFFFFF0) == dataIndex ) {
                     // found
@@ -7539,16 +7550,16 @@ bool ldomNode::isRoot() const
         return !NPELEM->_parentNode;
     case NT_PELEMENT:   // immutable (persistent) element node
         {
-             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
              return me->parentIndex==0;
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         {
-            return getDocument()->_textStorage.getParent( _data._ptext )==0;
+            return getDocument()->_textStorage.getParent( _data._ptext_addr )==0;
         }
     case NT_TEXT:
-        return _data._text->getParentIndex()==0;
+        return _data._text_ptr->getParentIndex()==0;
     }
     return false;
 }
@@ -7558,9 +7569,9 @@ void ldomNode::modified()
 {
     if ( isPersistent() ) {
         if ( isElement() )
-            getDocument()->_elemStorage.modified( _data._pelem._addr );
+            getDocument()->_elemStorage.modified( _data._pelem_addr );
         else
-            getDocument()->_textStorage.modified( _data._ptext );
+            getDocument()->_textStorage.modified( _data._ptext_addr );
     }
 }
 
@@ -7578,7 +7589,7 @@ void ldomNode::setParentNode( ldomNode * parent )
     case NT_PELEMENT:   // immutable (persistent) element node
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->parentIndex != parentIndex ) {
                 me->parentIndex = parentIndex;
                 modified();
@@ -7588,15 +7599,15 @@ void ldomNode::setParentNode( ldomNode * parent )
     case NT_PTEXT:      // immutable (persistent) text node
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
-            getDocument()->_textStorage.setParent(_data._ptext, parentIndex);
-            //_data._ptext._parentIndex = parentIndex;
-            //_document->_textStorage.setTextParent( _data._ptext._addr, parentIndex );
+            getDocument()->_textStorage.setParent(_data._ptext_addr, parentIndex);
+            //_data._ptext_addr._parentIndex = parentIndex;
+            //_document->_textStorage.setTextParent( _data._ptext_addr._addr, parentIndex );
         }
         break;
     case NT_TEXT:
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
-            _data._text->setParentIndex( parentIndex );
+            _data._text_ptr->setParentIndex( parentIndex );
         }
         break;
     }
@@ -7612,14 +7623,14 @@ int ldomNode::getParentIndex() const
         return NPELEM->_parentNode ? NPELEM->_parentNode->getDataIndex() : 0;
     case NT_PELEMENT:   // immutable (persistent) element node
         {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             return me->parentIndex;
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
-        return getDocument()->_textStorage.getParent(_data._ptext);
+        return getDocument()->_textStorage.getParent(_data._ptext_addr);
     case NT_TEXT:
-        return _data._text->getParentIndex();
+        return _data._text_ptr->getParentIndex();
     }
     return 0;
 }
@@ -7634,15 +7645,15 @@ ldomNode * ldomNode::getParentNode() const
         return NPELEM->_parentNode;
     case NT_PELEMENT:   // immutable (persistent) element node
         {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             parentIndex = me->parentIndex;
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
-        parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
+        parentIndex = getDocument()->_textStorage.getParent(_data._ptext_addr);
         break;
     case NT_TEXT:
-        parentIndex = _data._text->getParentIndex();
+        parentIndex = _data._text_ptr->getParentIndex();
         break;
     }
     return parentIndex ? getTinyNode(parentIndex) : NULL;
@@ -7658,7 +7669,7 @@ ldomNode * ldomNode::getChildNode( lUInt32 index ) const
         return getTinyNode( me->_children[index] );
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return getTinyNode( me->children[index] );
     }
 }
@@ -7677,9 +7688,9 @@ lUInt32 ldomNode::getChildCount() const
         // persistent element
         // persistent element
         {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
 //            if ( me==NULL ) { // DEBUG
-//                me = _document->_elemStorage.getElem( _data._pelem._addr );
+//                me = _document->_elemStorage.getElem( _data._pelem_addr );
 //            }
             return me->childCount;
         }
@@ -7700,7 +7711,7 @@ lUInt32 ldomNode::getAttrCount() const
     } else {
         // persistent element
         {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             return me->attrCount;
         }
     }
@@ -7722,7 +7733,7 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
         return getDocument()->getAttrValue(valueId);
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         lUInt16 valueId = me->getAttrValueId( nsid, id );
         if ( valueId==LXML_ATTR_VALUE_NONE )
             return lString16::empty_str;
@@ -7752,7 +7763,7 @@ const lxmlAttribute * ldomNode::getAttribute( lUInt32 index ) const
         return me->_attrs[index];
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return me->attr( index );
     }
 }
@@ -7770,7 +7781,7 @@ bool ldomNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
         return ( valueId!=LXML_ATTR_VALUE_NONE );
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return (me->findAttr( nsid, id ) != NULL);
     }
 }
@@ -7794,7 +7805,7 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
     int valueIndex = getDocument()->getAttrValueIndex(value);
     if ( isPersistent() ) {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         lxmlAttribute * attr = me->findAttr( nsid, id );
         if ( attr ) {
             attr->index = valueIndex;
@@ -7826,7 +7837,7 @@ const css_elem_def_props_t * ldomNode::getElementTypePtr()
         return res;
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         const css_elem_def_props_t * res = getDocument()->getElementTypePtr(me->id);
 //        if ( res && res->is_object ) {
 //            CRLog::trace("Object found");
@@ -7846,7 +7857,7 @@ lUInt16 ldomNode::getNodeId() const
         return NPELEM->_id;
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return me->id;
     }
 }
@@ -7862,7 +7873,7 @@ lUInt16 ldomNode::getNodeNsId() const
         return NPELEM->_nsid;
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return me->nsid;
     }
 }
@@ -7878,7 +7889,7 @@ void ldomNode::setNodeId( lUInt16 id )
         NPELEM->_id = id;
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         me->id = id;
         modified();
     }
@@ -7895,7 +7906,7 @@ const lString16 & ldomNode::getNodeName() const
         return getDocument()->getElementName(NPELEM->_id);
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return getDocument()->getElementName(me->id);
     }
 }
@@ -7911,7 +7922,7 @@ const lString16 & ldomNode::getNodeNsName() const
         return getDocument()->getNsName(NPELEM->_nsid);
     } else {
         // persistent element
-        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return getDocument()->getNsName(me->nsid);
     }
 }
@@ -7942,9 +7953,9 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
         }
         break;
     case NT_PTEXT:
-        return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext ));
+        return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext_addr ));
     case NT_TEXT:
-        return _data._text->getText16();
+        return _data._text_ptr->getText16();
     }
     return lString16::empty_str;
 }
@@ -7973,9 +7984,9 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
         }
         break;
     case NT_PTEXT:
-        return getDocument()->_textStorage.getText( _data._ptext );
+        return getDocument()->_textStorage.getText( _data._ptext_addr );
     case NT_TEXT:
-        return _data._text->getText();
+        return _data._text_ptr->getText();
     }
     return lString8::empty_str;
 }
@@ -7994,16 +8005,16 @@ void ldomNode::setText( lString16 str )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
-            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
-            getDocument()->_textStorage.freeNode( _data._ptext );
-            _data._text = new ldomTextNode( parentIndex, UnicodeToUtf8(str) );
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext_addr);
+            getDocument()->_textStorage.freeNode( _data._ptext_addr );
+            _data._text_ptr = new ldomTextNode( parentIndex, UnicodeToUtf8(str) );
             // change type from PTEXT to TEXT
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
         break;
     case NT_TEXT:
         {
-            _data._text->setText( str );
+            _data._text_ptr->setText( str );
         }
         break;
     }
@@ -8023,16 +8034,16 @@ void ldomNode::setText8( lString8 utf8 )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
-            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
-            getDocument()->_textStorage.freeNode( _data._ptext );
-            _data._text = new ldomTextNode( parentIndex, utf8 );
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext_addr);
+            getDocument()->_textStorage.freeNode( _data._ptext_addr );
+            _data._text_ptr = new ldomTextNode( parentIndex, utf8 );
             // change type from PTEXT to TEXT
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
         break;
     case NT_TEXT:
         {
-            _data._text->setText( utf8 );
+            _data._text_ptr->setText( utf8 );
         }
         break;
     }
@@ -8245,7 +8256,7 @@ lvdom_element_render_method ldomNode::getRendMethod()
         if ( !isPersistent() ) {
             return NPELEM->_rendMethod;
         } else {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             return (lvdom_element_render_method)me->rendMethod;
         }
     }
@@ -8260,7 +8271,7 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
         if ( !isPersistent() ) {
             NPELEM->_rendMethod = method;
         } else {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->rendMethod != method ) {
                 me->rendMethod = method;
                 modified();
@@ -8406,7 +8417,7 @@ ldomNode * ldomNode::getFirstChild() const
             if ( me->_children.length() )
                 return getDocument()->getTinyNode(me->_children[0]);
         } else {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->childCount )
                 return getDocument()->getTinyNode(me->children[0]);
         }
@@ -8424,7 +8435,7 @@ ldomNode * ldomNode::getLastChild() const
             if ( me->_children.length() )
                 return getDocument()->getTinyNode(me->_children[me->_children.length()-1]);
         } else {
-            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
+            ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->childCount )
                 return getDocument()->getTinyNode(me->children[me->childCount-1]);
         }
@@ -8577,14 +8588,14 @@ ldomNode * ldomNode::insertChildText( lUInt32 index, const lString16 & value )
 #ifndef USE_PERSISTENT_TEXT
         ldomNode * node = getDocument()->allocTinyNode( NT_TEXT );
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._text._parentIndex = _handle._dataIndex;
+        node->_data._text_ptr._parentIndex = _handle._dataIndex;
         node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
         memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
-        //node->_data._ptext._parentIndex = _handle._dataIndex;
+        //node->_data._ptext_addr._parentIndex = _handle._dataIndex;
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._ptext = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
+        node->_data._ptext_addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
         me->_children.insert( index, node->getDataIndex() );
         return node;
@@ -8604,13 +8615,13 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
 #ifndef USE_PERSISTENT_TEXT
         ldomNode * node = getDocument()->allocTinyNode( NT_TEXT );
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._text._parentIndex = _handle._dataIndex;
+        node->_data._text_ptr._parentIndex = _handle._dataIndex;
         node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
         memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._ptext = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
+        node->_data._ptext_addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
         me->_children.insert( me->_children.length(), node->getDataIndex() );
         return node;
@@ -8787,8 +8798,8 @@ ldomNode * ldomNode::persist()
             int attrCount = elem->_attrs.length();
             int childCount = elem->_children.length();
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_PELEMENT;
-            _data._pelem._addr = getDocument()->_elemStorage.allocElem(_handle._dataIndex, elem->_parentNode ? elem->_parentNode->_handle._dataIndex : 0, elem->_children.length(), elem->_attrs.length() );
-            ElementDataStorageItem * data = getDocument()->_elemStorage.getElem(_data._pelem._addr);
+            _data._pelem_addr = getDocument()->_elemStorage.allocElem(_handle._dataIndex, elem->_parentNode ? elem->_parentNode->_handle._dataIndex : 0, elem->_children.length(), elem->_attrs.length() );
+            ElementDataStorageItem * data = getDocument()->_elemStorage.getElem(_data._pelem_addr);
             data->nsid = elem->_nsid;
             data->id = elem->_id;
             lUInt16 * attrs = data->attrs();
@@ -8806,11 +8817,11 @@ ldomNode * ldomNode::persist()
             delete elem;
         } else {
             // TEXT->PTEXT
-            lString8 utf8 = _data._text->getText();
-            delete _data._text;
-            lUInt32 parentIndex = _data._text->getParentIndex();
+            lString8 utf8 = _data._text_ptr->getText();
+            delete _data._text_ptr;
+            lUInt32 parentIndex = _data._text_ptr->getParentIndex();
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_PTEXT;
-            _data._ptext = getDocument()->_textStorage.allocText(_handle._dataIndex, parentIndex, utf8 );
+            _data._ptext_addr = getDocument()->_textStorage.allocText(_handle._dataIndex, parentIndex, utf8 );
             // change type
         }
     }
@@ -8824,7 +8835,7 @@ ldomNode * ldomNode::modify()
     if ( isPersistent() ) {
         if ( isElement() ) {
             // PELEM->ELEM
-            ElementDataStorageItem * data = getDocument()->_elemStorage.getElem(_data._pelem._addr);
+            ElementDataStorageItem * data = getDocument()->_elemStorage.getElem(_data._pelem_addr);
             tinyElement * elem = new tinyElement(getDocument(), getParentNode(), data->nsid, data->id );
             for ( int i=0; i<data->childCount; i++ )
                 elem->_children.add( data->children[i] );
@@ -8832,15 +8843,15 @@ ldomNode * ldomNode::modify()
                 elem->_attrs.add( data->attr(i) );
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_ELEMENT;
             elem->_rendMethod = (lvdom_element_render_method)data->rendMethod;
-            getDocument()->_elemStorage.freeNode( _data._pelem._addr );
+            getDocument()->_elemStorage.freeNode( _data._pelem_addr );
             NPELEM = elem;
         } else {
             // PTEXT->TEXT
             // convert persistent text to mutable
-            lString8 utf8 = getDocument()->_textStorage.getText(_data._ptext);
-            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
-            getDocument()->_textStorage.freeNode( _data._ptext );
-            _data._text = new ldomTextNode( parentIndex, utf8 );
+            lString8 utf8 = getDocument()->_textStorage.getText(_data._ptext_addr);
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext_addr);
+            getDocument()->_textStorage.freeNode( _data._ptext_addr );
+            _data._text_ptr = new ldomTextNode( parentIndex, utf8 );
             // change type
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
