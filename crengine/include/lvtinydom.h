@@ -1518,10 +1518,10 @@ class LVTocItem
 private:
     LVTocItem *     _parent;
     ldomDocument *  _doc;
-    int             _level;
-    int             _index;
-    int             _page;
-    int             _percent;
+    lInt32          _level;
+    lInt32          _index;
+    lInt32          _page;
+    lInt32          _percent;
     lString16       _name;
     lString16       _path;
     ldomXPointer    _position;

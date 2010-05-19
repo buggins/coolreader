@@ -855,10 +855,6 @@ public:
 
     SerialBuf & operator >> ( lInt32 & n );
 
-    SerialBuf & operator >> ( int & n );
-
-    SerialBuf & operator >> ( unsigned int & n );
-
 	SerialBuf & operator >> ( lString8 & s8 );
 
 	SerialBuf & operator >> ( lString16 & s );

@@ -1590,13 +1590,13 @@ bool ldomDataStorageManager::load()
         CRLog::error("ldomDataStorageManager::load() - Cannot read chunk index");
         return false;
     }
-    int n;
+    lUInt32 n;
     buf >> n;
     if ( n<0 || n > 10000 )
         return false; // invalid
     _chunks.clear();
-    int compsize;
-    int uncompsize = 0;
+    lUInt32 compsize;
+    lUInt32 uncompsize = 0;
     for ( int i=0; i<n; i++ ) {
         buf >>
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
@@ -6417,7 +6417,7 @@ bool tinyNodeCollection::loadStylesData()
         return false;
     }
     lUInt32 stHash = 0;
-    int len = 0;
+    lInt32 len = 0;
     lUInt32 myHash = _stylesheet.getHash();
 
     //LVArray<css_style_ref_t> * list = _styles.getIndex();
@@ -6432,7 +6432,7 @@ bool tinyNodeCollection::loadStylesData()
         return false;
     LVArray<css_style_ref_t> list(len, css_style_ref_t());
     for ( int i=0; i<list.length(); i++ ) {
-        int index = 0;
+        lUInt32 index = 0;
         stylebuf >> index; // index
         if ( index<=0 || index>=len || stylebuf.error() )
             break;
@@ -8725,7 +8725,7 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
 {
     if ( buf.error() )
         return false;
-    int childCount = 0;
+    lInt32 childCount = 0;
     buf >> _level >> _index >> _page >> _percent >> childCount >> _name >> _path;
 //    CRLog::trace("[%d] %05d  %s  %s", _level, _page, LCSTR(_name), LCSTR(_path));
     if ( buf.error() )
