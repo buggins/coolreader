@@ -19,31 +19,31 @@
 
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
 // cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x040000 // 768K
-#define TEXT_CACHE_PACKED_SPACE   0x040000 // 3.5Mb
+#define TEXT_CACHE_UNPACKED_SPACE 0x080000 // 768K
+#define TEXT_CACHE_PACKED_SPACE   0x080000 // 3.5Mb
 #define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
-#define ELEM_CACHE_UNPACKED_SPACE 0x060000 // 768K
-#define ELEM_CACHE_PACKED_SPACE   0x040000 // 768K
-#define ELEM_CACHE_CHUNK_SIZE     0x004000 // 48K
-#define RECT_CACHE_UNPACKED_SPACE 0x040000 // 512K
-#define RECT_CACHE_PACKED_SPACE   0x020000 // 128K
-#define RECT_CACHE_CHUNK_SIZE     0x004000 // 32K
-#define STYLE_CACHE_UNPACKED_SPACE 0x010000 // 512K
-#define STYLE_CACHE_PACKED_SPACE   0x008000 // 128K
-#define STYLE_CACHE_CHUNK_SIZE     0x004000 // 32K
-#else
-#define TEXT_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
-#define TEXT_CACHE_PACKED_SPACE   0x000000 // 3.5Mb
-#define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
-#define ELEM_CACHE_UNPACKED_SPACE 0x100000 // 768K
-#define ELEM_CACHE_PACKED_SPACE   0x000000 // 768K
+#define ELEM_CACHE_UNPACKED_SPACE 0x080000 // 768K
+#define ELEM_CACHE_PACKED_SPACE   0x0C0000 // 768K
 #define ELEM_CACHE_CHUNK_SIZE     0x008000 // 48K
 #define RECT_CACHE_UNPACKED_SPACE 0x080000 // 512K
+#define RECT_CACHE_PACKED_SPACE   0x020000 // 128K
+#define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define STYLE_CACHE_UNPACKED_SPACE 0x020000 // 512K
+#define STYLE_CACHE_PACKED_SPACE   0x010000 // 128K
+#define STYLE_CACHE_CHUNK_SIZE     0x008000 // 32K
+#else
+#define TEXT_CACHE_UNPACKED_SPACE 0x100000 // 768K
+#define TEXT_CACHE_PACKED_SPACE   0x000000 // 3.5Mb
+#define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
+#define ELEM_CACHE_UNPACKED_SPACE 0x140000 // 768K
+#define ELEM_CACHE_PACKED_SPACE   0x000000 // 768K
+#define ELEM_CACHE_CHUNK_SIZE     0x008000 // 48K
+#define RECT_CACHE_UNPACKED_SPACE 0x100000 // 512K
 #define RECT_CACHE_PACKED_SPACE   0x000000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
-#define STYLE_CACHE_UNPACKED_SPACE 0x040000 // 512K
+#define STYLE_CACHE_UNPACKED_SPACE 0x060000 // 512K
 #define STYLE_CACHE_PACKED_SPACE   0x000000 // 128K
-#define STYLE_CACHE_CHUNK_SIZE     0x004000 // 32K
+#define STYLE_CACHE_CHUNK_SIZE     0x00C000 // 32K
 #endif
 
 
@@ -52,14 +52,14 @@
 #define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
 
-#define STYLE_DATA_CHUNK_ITEMS_SHIFT 10
+#define STYLE_DATA_CHUNK_ITEMS_SHIFT 11
 #define STYLE_DATA_CHUNK_ITEMS (1<<STYLE_DATA_CHUNK_ITEMS_SHIFT)
 #define STYLE_DATA_CHUNK_SIZE (STYLE_DATA_CHUNK_ITEMS*sizeof(ldomNodeStyleInfo))
 #define STYLE_DATA_CHUNK_MASK (STYLE_DATA_CHUNK_ITEMS-1)
 
 #define ENABLED_BLOCK_WRITE_CACHE 1
 #define WRITE_CACHE_BLOCK_SIZE 0x4000
-#define WRITE_CACHE_BLOCK_COUNT 16
+#define WRITE_CACHE_BLOCK_COUNT 24
 #define TEST_BLOCK_STREAM 0
 
 //#define CACHE_FILE_SECTOR_SIZE 4096
@@ -6825,7 +6825,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                             //buf[j]._data._pelem._fontIndex = fntIndex;
                         }
                     } else {
-                        CRLog::error("Loaded style index not found in style collection");
+                        CRLog::error("Loaded style index %s not found in style collection");
                         setNodeFontIndex( buf[j]._handle._dataIndex, 0 );
                         setNodeStyleIndex( buf[j]._handle._dataIndex, 0 );
 //                        buf[j]._data._pelem._styleIndex = 0;
@@ -6865,8 +6865,9 @@ bool ldomDocument::swapToCache( lUInt32 reservedSize )
 {
     if ( _maperror )
         return false;
-    if ( _mapped )
+    if ( _mapped ) {
         return true;
+    }
     if ( !createCacheFile() ) {
         CRLog::error("ldomDocument::swapToCache: failed: cannot create cache file");
         _maperror = true;
@@ -8678,6 +8679,45 @@ LVStreamRef ldomNode::createBase64Stream()
 }
 
 #if BUILD_LITE!=1
+
+class NodeImageProxy : public LVImageSource
+{
+    ldomNode * _node;
+    lString16 _refName;
+    int _dx;
+    int _dy;
+public:
+    NodeImageProxy( ldomNode * node, lString16 refName, int dx, int dy )
+        : _node(node), _refName(refName), _dx(dx), _dy(dy)
+    {
+
+    }
+
+    virtual ldomNode * GetSourceNode()
+    {
+        return NULL;
+    }
+    virtual LVStream * GetSourceStream()
+    {
+        return NULL;
+    }
+
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _dx; }
+    virtual int    GetHeight() { return _dy; }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        LVImageSourceRef img = _node->getDocument()->getObjectImageSource(_refName);
+        if ( img.isNull() )
+            return false;
+        return img->Decode(callback);
+    }
+    virtual ~NodeImageProxy()
+    {
+
+    }
+};
+
 /// returns object image source
 LVImageSourceRef ldomNode::getObjectImageSource()
 {
@@ -8702,32 +8742,45 @@ LVImageSourceRef ldomNode::getObjectImageSource()
         return ref;
     if (getDocument()->_urlImageMap.get( refName, ref ) )
         return ref; // found in cache
+
+    ref = getDocument()->getObjectImageSource( refName );
+    if ( !ref.isNull() ) {
+        int dx = ref->GetWidth();
+        int dy = ref->GetHeight();
+        ref = LVImageSourceRef( new NodeImageProxy(this, refName, dx, dy) );
+    }
+
+    getDocument()->_urlImageMap.set( refName, ref );
+    return ref;
+}
+
+/// returns object image source
+LVImageSourceRef ldomDocument::getObjectImageSource( lString16 refName )
+{
+    LVImageSourceRef ref;
     if ( refName[0]!='#' ) {
-        if ( !getDocument()->getContainer().isNull() ) {
+        if ( !getContainer().isNull() ) {
             lString16 name = refName;
-            if ( !getDocument()->getCodeBase().empty() )
-                name = getDocument()->getCodeBase() + refName;
-            LVStreamRef stream = getDocument()->getContainer()->OpenStream(name.c_str(), LVOM_READ);
+            if ( !getCodeBase().empty() )
+                name = getCodeBase() + refName;
+            LVStreamRef stream = getContainer()->OpenStream(name.c_str(), LVOM_READ);
             if ( !stream.isNull() )
                 ref = LVCreateStreamImageSource( stream );
         }
-        getDocument()->_urlImageMap.set( refName, ref );
         return ref;
     }
-    lUInt16 refValueId = getDocument()->findAttrValueIndex( refName.c_str() + 1 );
+    lUInt16 refValueId = findAttrValueIndex( refName.c_str() + 1 );
     if ( refValueId == (lUInt16)-1 ) {
-        getDocument()->_urlImageMap.set( refName, ref );
         return ref;
     }
     //printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
-    ldomNode * objnode = getDocument()->getNodeById( refValueId );
+    ldomNode * objnode = getNodeById( refValueId );
     if ( !objnode ) {
         //printf("no OBJ node found!!!\n" );
         return ref;
     }
     //printf(" (found) ");
     ref = LVCreateNodeImageSource( objnode );
-    getDocument()->_urlImageMap.set( refName, ref );
     return ref;
 }
 

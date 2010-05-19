@@ -46,7 +46,7 @@
 //#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
 
-#define RAM_COMPRESSED_BUFFER_ENABLED 1 // (0=no compression, 1=enabled compression in RAM)
+#define RAM_COMPRESSED_BUFFER_ENABLED 0 // (0=no compression, 1=enabled compression in RAM)
 
 /// docFlag mask, enable internal stylesheet of document and style attribute of elements
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
@@ -459,6 +459,8 @@ public:
     virtual void persist();
 #endif
 
+
+
     /// creates empty collection
     tinyNodeCollection();
     /// destroys collection
@@ -507,7 +509,7 @@ class ldomNode
 {
     friend class tinyNodeCollection;
     friend class RenderRectAccessor;
-
+    friend class NodeImageProxy;
 
 private:
 
@@ -773,6 +775,7 @@ class lxmlDocBase : public tinyNodeCollection
 	friend class ldomXPointer;
 public:
 
+
     /// Default constructor
     lxmlDocBase( int dataBufSize = DEF_DOC_DATA_BUFFER_SIZE );
     /// Copy constructor - copies ID tables contents
@@ -785,6 +788,7 @@ public:
 	void serializeMaps( SerialBuf & buf );
 	/// deserialize from byte array (pointer will be incremented by number of bytes read)
 	bool deserializeMaps( SerialBuf & buf );
+
 #endif
 
     //======================================================================
@@ -1677,11 +1681,11 @@ private:
 
     LVContainerRef _container;
 
-    /// save changes to cache file
-    bool saveChanges();
     /// load document cache file content
     bool loadCacheFileContent();
 
+    /// save changes to cache file
+    bool saveChanges();
 
 protected:
 
@@ -1689,6 +1693,10 @@ protected:
 
 public:
 
+#if BUILD_LITE!=1
+    /// returns object image source
+    LVImageSourceRef getObjectImageSource( lString16 refName );
+#endif
 
     bool isDefStyleSet()
     {

@@ -1550,7 +1550,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     //if ( CRLog::isTraceEnabled() )
                     //    CRLog::trace("rendering final node: %s %d %s", LCSTR(enode->getNodeName()), enode->getDataIndex(), LCSTR(ldomXPointer(enode,0).toString()) );
                     h = enode->renderFinalBlock( txform, &fmt, width - padding_left - padding_right );
-                    //if ( context.updateRenderProgress(1) )
+                    context.updateRenderProgress(1);
+                    // if ( context.updateRenderProgress(1) )
                     //    CRLog::trace("last rendered node: %s %d", LCSTR(enode->getNodeName()), enode->getDataIndex());
     #ifdef DEBUG_DUMP_ENABLED
                     logfile << "\n";

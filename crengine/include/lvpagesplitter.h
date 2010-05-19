@@ -308,6 +308,7 @@ class LVRendPageContext
     int totalFinalBlocks;
     int renderedFinalBlocks;
     time_t lastSentProgress;
+    int lastPercent;
     
 
     // page start line
