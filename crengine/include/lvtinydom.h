@@ -321,7 +321,7 @@ private:
     LVIndexedRefCache<font_ref_t> _fonts;
     int _tinyElementCount;
     int _itemCount;
-
+    int _docIndex;
 
 protected:
 #if BUILD_LITE!=1
@@ -462,23 +462,50 @@ public:
     ~RenderRectAccessor();
 };
 
+/// compact 32bit value for node
+struct ldomNodeHandle {
+    unsigned _docIndex:8;   // index in ldomNode::_documentInstances[MAX_DOCUMENT_INSTANCE_COUNT];
+    unsigned _dataIndex:24; // index of node in document's storage and type
+};
+
+/// max number which could be stored in ldomNodeHandle._docIndex
+#define MAX_DOCUMENT_INSTANCE_COUNT 256
+
 // no vtable, very small size (16 bytes)
 // optimized for 32 bit systems
 class ldomNode
 {
     friend class tinyNodeCollection;
     friend class RenderRectAccessor;
+
+
 private:
+
+    static ldomDocument * _documentInstances[MAX_DOCUMENT_INSTANCE_COUNT];
+
+    /// adds document to list, returns ID of allocated document, -1 if no space in instance array
+    static int registerDocument( ldomDocument * doc );
+    /// removes document from list
+    static void unregisterDocument( ldomDocument * doc );
+
+    // types for _handle._type
     enum {
         NT_TEXT=0,       // mutable text node
         NT_ELEMENT=1,    // mutable element node
         NT_PTEXT=2,      // immutable (persistent) text node
         NT_PELEMENT=3,   // immutable (persistent) element node
     };
+
+    /// packed 32bit data field
+    ldomNodeHandle _handle; // _docIndex, _dataIndex, _type
+
+    /// sets document for node
+    inline void setDocumentIndex( int index ) { _handle._docIndex = index; }
+
     /// document which owns this node
-    ldomDocument * _document;  // [0] 4 bytes (8 bytes on x64)
+    //ldomDocument * _document;  // [0] 4 bytes (8 bytes on x64)
     /// data index of this node and its type
-    lUInt32 _dataIndex;        // [4] 4 bytes
+    //lUInt32 _dataIndex;        // [4] 4 bytes
     /// misc data
     union {                    // [8] 8 bytes (16 bytes on x64)
         struct {
@@ -507,11 +534,11 @@ private:
             lUInt32 _nextFreeIndex; // for removed items
         } _empty;
     } _data;                      // [12] 4 bytes (8 bytes on x64)
-#define TNTYPE  (_dataIndex&0x0F)
-#define TNINDEX (_dataIndex&(~0x0E))
+#define TNTYPE  (_handle._dataIndex&0x0F)
+#define TNINDEX (_handle._dataIndex&(~0x0E))
 #define TNCHUNK (_addr>>&(~0x0F))
     void onCollectionDestroy();
-    inline ldomNode * getTinyNode( lUInt32 index ) const { return ((tinyNodeCollection*)_document)->getTinyNode(index); }
+    inline ldomNode * getTinyNode( lUInt32 index ) const { return ((tinyNodeCollection*)getDocument())->getTinyNode(index); }
 
     void operator delete( void * p )
     {
@@ -549,19 +576,19 @@ public:
     void destroy();
 
     /// returns true for invalid/deleted node ot NULL this pointer
-    inline bool isNull() const { return this == NULL || _dataIndex==0; }
+    inline bool isNull() const { return this == NULL || _handle._dataIndex==0; }
     /// returns true if node is stored in persistent storage
-    inline bool isPersistent() const { return _dataIndex&2; }
+    inline bool isPersistent() const { return _handle._dataIndex&2; }
     /// returns data index of node's registration in document data storage
     inline lInt32 getDataIndex() const { return TNINDEX; }
     /// returns pointer to document
-    inline ldomDocument * getDocument() const { return _document; }
+    inline ldomDocument * getDocument() const { return _documentInstances[_handle._docIndex]; }
     /// returns pointer to parent node, NULL if node has no parent
     ldomNode * getParentNode() const;
     /// returns node type, either LXML_TEXT_NODE or LXML_ELEMENT_NODE
     inline lUInt8 getNodeType() const
     {
-        return (_dataIndex & 1) ? LXML_ELEMENT_NODE : LXML_TEXT_NODE;
+        return (_handle._dataIndex & 1) ? LXML_ELEMENT_NODE : LXML_TEXT_NODE;
     }
     /// returns node level, 0 is root node
     lUInt8 getNodeLevel() const;
@@ -574,9 +601,9 @@ public:
     /// returns true if node is document's root
     bool isRoot() const;
     /// returns true if node is text
-    inline bool isText() const { return _dataIndex && !(_dataIndex&1); }
+    inline bool isText() const { return _handle._dataIndex && !(_handle._dataIndex&1); }
     /// returns true if node is element
-    inline bool isElement() const { return _dataIndex && (_dataIndex&1); }
+    inline bool isElement() const { return _handle._dataIndex && (_handle._dataIndex&1); }
     /// returns true if node is and element that has children
     inline bool hasChildren() { return getChildCount()!=0; }
     /// returns true if node is element has attributes
