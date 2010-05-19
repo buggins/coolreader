@@ -8507,6 +8507,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return 0;
+    //CRLog::trace("renderFinalBlock()");
     CVRendBlockCache & cache = getDocument()->getRendBlockCache();
     LFormattedTextRef f;
     if ( cache.get( this, f ) ) {

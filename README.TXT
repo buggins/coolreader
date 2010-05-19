@@ -134,7 +134,7 @@ Run Qt SDK / Qt Command Prompt. Execute:
 > cd cr3
 > mkdir qtbuild
 > cd qtbuild
-> cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" CMAKE_INSTALL_PREFIX=dist ..
+> cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "MSYS Makefiles" -D CMAKE_INSTALL_PREFIX=dist ..
 > make
 > make install
 
