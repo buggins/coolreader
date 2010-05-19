@@ -38,6 +38,9 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define RECT_CACHE_UNPACKED_SPACE 0x040000 // 512K
 #define RECT_CACHE_PACKED_SPACE   0x020000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x004000 // 32K
+#define STYLE_CACHE_UNPACKED_SPACE 0x040000 // 512K
+#define STYLE_CACHE_PACKED_SPACE   0x020000 // 128K
+#define STYLE_CACHE_CHUNK_SIZE     0x004000 // 32K
 #else
 #define TEXT_CACHE_UNPACKED_SPACE 0x0C0000 // 768K
 #define TEXT_CACHE_PACKED_SPACE   0x000000 // 3.5Mb
@@ -48,6 +51,9 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define RECT_CACHE_UNPACKED_SPACE 0x080000 // 512K
 #define RECT_CACHE_PACKED_SPACE   0x000000 // 128K
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define STYLE_CACHE_UNPACKED_SPACE 0x080000 // 512K
+#define STYLE_CACHE_PACKED_SPACE   0x000000 // 128K
+#define STYLE_CACHE_CHUNK_SIZE     0x008000 // 32K
 #endif
 
 
@@ -55,6 +61,11 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
 #define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
 #define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
+
+#define STYLE_DATA_CHUNK_ITEMS_SHIFT 10
+#define STYLE_DATA_CHUNK_ITEMS (1<<STYLE_DATA_CHUNK_ITEMS_SHIFT)
+#define STYLE_DATA_CHUNK_SIZE (STYLE_DATA_CHUNK_ITEMS*sizeof(ldomNodeStyleInfo))
+#define STYLE_DATA_CHUNK_MASK (STYLE_DATA_CHUNK_ITEMS-1)
 
 #define ENABLED_BLOCK_WRITE_CACHE 1
 #define WRITE_CACHE_BLOCK_SIZE 0x4000
@@ -81,6 +92,7 @@ enum CacheFileBlockType {
     CBT_TEXT_DATA,
     CBT_ELEM_DATA,
     CBT_RECT_DATA,
+    CBT_ELEM_STYLE_DATA,
     CBT_MAPS_DATA,
     CBT_PAGE_DATA,
     CBT_PROP_DATA,
@@ -1206,6 +1218,7 @@ tinyNodeCollection::tinyNodeCollection()
 , _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_PACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_PACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
 , _rectStorage(this, 'r', RECT_CACHE_UNPACKED_SPACE, RECT_CACHE_PACKED_SPACE, RECT_CACHE_CHUNK_SIZE ) // element render rect storage
+, _styleStorage(this, 's', STYLE_CACHE_UNPACKED_SPACE, STYLE_CACHE_PACKED_SPACE, STYLE_CACHE_CHUNK_SIZE ) // element style info storage
 ,_docProps(LVCreatePropsContainer())
 ,_docFlags(DOC_FLAG_DEFAULTS)
 ,_fontMap(113)
@@ -1233,6 +1246,7 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 , _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_PACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_PACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
 , _rectStorage(this, 'r', RECT_CACHE_UNPACKED_SPACE, RECT_CACHE_PACKED_SPACE, RECT_CACHE_CHUNK_SIZE ) // element render rect storage
+, _styleStorage(this, 's', STYLE_CACHE_UNPACKED_SPACE, STYLE_CACHE_PACKED_SPACE, STYLE_CACHE_CHUNK_SIZE ) // element style info storage
 ,_docProps(LVCreatePropsContainer())
 ,_docFlags(v._docFlags)
 ,_stylesheet(v._stylesheet)
@@ -1277,6 +1291,7 @@ bool tinyNodeCollection::openCacheFile()
     _textStorage.setCache( f );
     _elemStorage.setCache( f );
     _rectStorage.setCache( f );
+    _styleStorage.setCache( f );
     return true;
 }
 
@@ -1321,6 +1336,7 @@ bool tinyNodeCollection::createCacheFile()
     _textStorage.setCache( f );
     _elemStorage.setCache( f );
     _rectStorage.setCache( f );
+    _styleStorage.setCache( f );
     return true;
 }
 
@@ -1725,6 +1741,42 @@ lUInt16 ldomDataStorageManager::cacheType()
     }
     return 0;
 }
+
+/// get or allocate space for element style data item
+void ldomDataStorageManager::getStyleData( lUInt32 elemDataIndex, ldomNodeStyleInfo * dst )
+{
+    // assume storage has raw data chunks
+    int index = elemDataIndex>>4; // element sequential index
+    int chunkIndex = index >> STYLE_DATA_CHUNK_ITEMS_SHIFT;
+    while ( _chunks.length() <= chunkIndex ) {
+        //if ( _chunks.length()>0 )
+        //    _chunks[_chunks.length()-1]->compact();
+        _chunks.add( new ldomTextStorageChunk(STYLE_DATA_CHUNK_SIZE, this, _chunks.length()) );
+        getChunk( (_chunks.length()-1)<<16 );
+        compact( 0 );
+    }
+    ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
+    int offsetIndex = index & STYLE_DATA_CHUNK_MASK;
+    chunk->getRaw( offsetIndex * sizeof(ldomNodeStyleInfo), sizeof(ldomNodeStyleInfo), (lUInt8 *)dst );
+}
+
+/// set element style data item
+void ldomDataStorageManager::setStyleData( lUInt32 elemDataIndex, const ldomNodeStyleInfo * src )
+{
+    // assume storage has raw data chunks
+    int index = elemDataIndex>>4; // element sequential index
+    int chunkIndex = index >> STYLE_DATA_CHUNK_ITEMS_SHIFT;
+    while ( _chunks.length() < chunkIndex ) {
+        //if ( _chunks.length()>0 )
+        //    _chunks[_chunks.length()-1]->compact();
+        _chunks.add( new ldomTextStorageChunk(STYLE_DATA_CHUNK_SIZE, this, _chunks.length()) );
+        compact( 0 );
+    }
+    ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
+    int offsetIndex = index & STYLE_DATA_CHUNK_MASK;
+    chunk->setRaw( offsetIndex * sizeof(ldomNodeStyleInfo), sizeof(ldomNodeStyleInfo), (const lUInt8 *)src );
+}
+
 
 /// get or allocate space for rect data item
 void ldomDataStorageManager::getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst )
@@ -6354,6 +6406,11 @@ bool ldomDocument::loadCacheFileContent()
         CRLog::error("Error while loading rect data");
         return false;
     }
+    CRLog::trace("ldomDocument::loadCacheFileContent() - node style storage");
+    if ( !_styleStorage.load() ) {
+        CRLog::error("Error while loading node style data");
+        return false;
+    }
 
     CRLog::trace("ldomDocument::loadCacheFileContent() - TOC");
     {
@@ -6408,6 +6465,11 @@ bool ldomDocument::saveChanges()
     CRLog::trace("ldomDocument::saveChanges() - rect storage");
     if ( !_rectStorage.save() ) {
         CRLog::error("Error while saving rect data");
+        res = false;
+    }
+    CRLog::trace("ldomDocument::saveChanges() - node style storage");
+    if ( !_styleStorage.save() ) {
+        CRLog::error("Error while saving node style data");
         res = false;
     }
 
@@ -7233,6 +7295,7 @@ void tinyNodeCollection::compact()
     _textStorage.compact(0xFFFFFF);
     _elemStorage.compact(0xFFFFFF);
     _rectStorage.compact(0xFFFFFF);
+    _styleStorage.compact(0xFFFFFF);
 }
 
 /// allocate new tinyElement
@@ -7407,7 +7470,7 @@ bool ldomNode::isRoot() const
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         {
-            return getDocument()->_textStorage.getParent( _data._ptext._addr )==0;
+            return getDocument()->_textStorage.getParent( _data._ptext )==0;
         }
     case NT_TEXT:
         return _data._text->getParentIndex()==0;
@@ -7422,7 +7485,7 @@ void ldomNode::modified()
         if ( isElement() )
             getDocument()->_elemStorage.modified( _data._pelem._addr );
         else
-            getDocument()->_textStorage.modified( _data._ptext._addr );
+            getDocument()->_textStorage.modified( _data._ptext );
     }
 }
 
@@ -7450,7 +7513,7 @@ void ldomNode::setParentNode( ldomNode * parent )
     case NT_PTEXT:      // immutable (persistent) text node
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
-            getDocument()->_textStorage.setParent(_data._ptext._addr, parentIndex);
+            getDocument()->_textStorage.setParent(_data._ptext, parentIndex);
             //_data._ptext._parentIndex = parentIndex;
             //_document->_textStorage.setTextParent( _data._ptext._addr, parentIndex );
         }
@@ -7479,7 +7542,7 @@ int ldomNode::getParentIndex() const
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
-        return getDocument()->_textStorage.getParent(_data._ptext._addr);
+        return getDocument()->_textStorage.getParent(_data._ptext);
     case NT_TEXT:
         return _data._text->getParentIndex();
     }
@@ -7501,7 +7564,7 @@ ldomNode * ldomNode::getParentNode() const
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
-        parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
+        parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
         break;
     case NT_TEXT:
         parentIndex = _data._text->getParentIndex();
@@ -7804,7 +7867,7 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
         }
         break;
     case NT_PTEXT:
-        return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext._addr ));
+        return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext ));
     case NT_TEXT:
         return _data._text->getText16();
     }
@@ -7835,7 +7898,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
         }
         break;
     case NT_PTEXT:
-        return getDocument()->_textStorage.getText( _data._ptext._addr );
+        return getDocument()->_textStorage.getText( _data._ptext );
     case NT_TEXT:
         return _data._text->getText();
     }
@@ -7856,8 +7919,8 @@ void ldomNode::setText( lString16 str )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
-            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
-            getDocument()->_textStorage.freeNode( _data._ptext._addr );
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
+            getDocument()->_textStorage.freeNode( _data._ptext );
             _data._text = new ldomTextNode( parentIndex, UnicodeToUtf8(str) );
             // change type from PTEXT to TEXT
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
@@ -7885,8 +7948,8 @@ void ldomNode::setText8( lString8 utf8 )
     case NT_PTEXT:
         {
             // convert persistent text to mutable
-            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
-            getDocument()->_textStorage.freeNode( _data._ptext._addr );
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
+            getDocument()->_textStorage.freeNode( _data._ptext );
             _data._text = new ldomTextNode( parentIndex, utf8 );
             // change type from PTEXT to TEXT
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
@@ -8462,7 +8525,7 @@ ldomNode * ldomNode::insertChildText( lUInt32 index, const lString16 & value )
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         //node->_data._ptext._parentIndex = _handle._dataIndex;
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._ptext._addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
+        node->_data._ptext = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
         me->_children.insert( index, node->getDataIndex() );
         return node;
@@ -8488,7 +8551,7 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._ptext._addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
+        node->_data._ptext = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
         me->_children.insert( me->_children.length(), node->getDataIndex() );
         return node;
@@ -8688,7 +8751,7 @@ ldomNode * ldomNode::persist()
             delete _data._text;
             lUInt32 parentIndex = _data._text->getParentIndex();
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_PTEXT;
-            _data._ptext._addr = getDocument()->_textStorage.allocText(_handle._dataIndex, parentIndex, utf8 );
+            _data._ptext = getDocument()->_textStorage.allocText(_handle._dataIndex, parentIndex, utf8 );
             // change type
         }
     }
@@ -8715,9 +8778,9 @@ ldomNode * ldomNode::modify()
         } else {
             // PTEXT->TEXT
             // convert persistent text to mutable
-            lString8 utf8 = getDocument()->_textStorage.getText(_data._ptext._addr);
-            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext._addr);
-            getDocument()->_textStorage.freeNode( _data._ptext._addr );
+            lString8 utf8 = getDocument()->_textStorage.getText(_data._ptext);
+            lUInt32 parentIndex = getDocument()->_textStorage.getParent(_data._ptext);
+            getDocument()->_textStorage.freeNode( _data._ptext );
             _data._text = new ldomTextNode( parentIndex, utf8 );
             // change type
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
@@ -8747,6 +8810,11 @@ void tinyNodeCollection::dumpStatistics()
                 "%d compressed, "
 #endif
                 "%d uncompressed), "
+                "nodestyles=("
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+                "%d compressed, "
+#endif
+                "%d uncompressed), "
                 "styles:%d, fonts:%d, renderedNodes:%d, "
                 "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
                 _elemCount, _textCount,
@@ -8762,6 +8830,10 @@ void tinyNodeCollection::dumpStatistics()
                 _rectStorage.getCompressedSize(),
 #endif
                 _rectStorage.getUncompressedSize(),
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+                _styleStorage.getCompressedSize(),
+#endif
+                _styleStorage.getUncompressedSize(),
                 _styles.length(), _fonts.length(),
 #if BUILD_LITE!=1
                 ((ldomDocument*)this)->_renderedBlockCache.length(),

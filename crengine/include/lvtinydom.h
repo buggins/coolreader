@@ -165,6 +165,12 @@ struct ElementDataStorageItem;
 class CacheFile;
 class tinyNodeCollection;
 
+struct ldomNodeStyleInfo
+{
+    lUInt16 _fontIndex;
+    lUInt16 _styleIndex;
+};
+
 class ldomDataStorageManager
 {
     friend class ldomTextStorageChunk;
@@ -224,6 +230,11 @@ public:
     void getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst );
     /// set rect data item
     void setRendRectData( lUInt32 elemDataIndex, const lvdomElementFormatRec * src );
+
+    /// get or allocate space for element style data item
+    void getStyleData( lUInt32 elemDataIndex, ldomNodeStyleInfo * dst );
+    /// set element style data item
+    void setStyleData( lUInt32 elemDataIndex, const ldomNodeStyleInfo * src );
 
     ldomDataStorageManager( tinyNodeCollection * owner, char type, int maxUnpackedSize, int maxPackedSize, int chunkSize );
     ~ldomDataStorageManager();
@@ -293,7 +304,6 @@ public:
     void getRaw( int offset, int size, lUInt8 * buf );
     /// set raw data bytes
     void setRaw( int offset, int size, const lUInt8 * buf );
-
     /// create empty buffer
     ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
     /// create chunk to be read from cache file
@@ -344,6 +354,7 @@ protected:
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
     ldomDataStorageManager _rectStorage; // element render rect storage
+    ldomDataStorageManager _styleStorage;// element style storage (font & style indexes ldomNodeStyleInfo)
 
     CRPropRef _docProps;
     lUInt32 _docFlags; // document flags
@@ -516,11 +527,12 @@ private:
     //lUInt32 _dataIndex;        // [4] 4 bytes
     /// misc data
     union {                    // [8] 8 bytes (16 bytes on x64)
-        struct {
-            // common part - hold parent index
-            //lUInt32 _parentIndex; // just to avoid extra access to storage
-            lUInt32 _addr;        // text storage address: chunk+offset
-        } _ptext;
+//        struct {
+//            // common part - hold parent index
+//            //lUInt32 _parentIndex; // just to avoid extra access to storage
+//            lUInt32 _addr;        // text storage address: chunk+offset
+//        } _ptext;
+        lUInt32 _ptext;  // persistent text storage address: chunk+offset
 //        struct {
 //            // common part - hold parent index
 //            lUInt32 _parentIndex; // just to avoid extra access to storage
