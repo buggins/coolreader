@@ -3366,6 +3366,28 @@ SerialBuf & SerialBuf::operator >> ( lInt32 & n )
 	return *this;
 }
 
+SerialBuf & SerialBuf::operator >> ( int & n )
+{
+	if ( check(4) )
+		return *this;
+	n = _buf[_pos++];
+    n |= (((lUInt32)_buf[_pos++]) << 8);
+    n |= (((lUInt32)_buf[_pos++]) << 16);
+    n |= (((lUInt32)_buf[_pos++]) << 24);
+	return *this;
+}
+
+SerialBuf & SerialBuf::operator >> ( unsigned int & n )
+{
+	if ( check(4) )
+		return *this;
+	n = (lInt32)(_buf[_pos++]);
+    n |= (((lUInt32)_buf[_pos++]) << 8);
+    n |= (((lUInt32)_buf[_pos++]) << 16);
+    n |= (((lUInt32)_buf[_pos++]) << 24);
+	return *this;
+}
+
 SerialBuf & SerialBuf::operator >> ( lString8 & s8 )
 {
 	if ( check(2) )

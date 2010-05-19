@@ -840,10 +840,10 @@ public:
 
     SerialBuf & operator << ( const lString8 & s8 );
 
-	// read methods
-	SerialBuf & operator >> ( lUInt8 & n );
+    // read methods
+    SerialBuf & operator >> ( lUInt8 & n );
 
-	SerialBuf & operator >> ( char & n );
+    SerialBuf & operator >> ( char & n );
 
 	SerialBuf & operator >> ( bool & n );
 
@@ -851,9 +851,13 @@ public:
 
 	SerialBuf & operator >> ( lInt16 & n );
 
-	SerialBuf & operator >> ( lUInt32 & n );
+    SerialBuf & operator >> ( lUInt32 & n );
 
     SerialBuf & operator >> ( lInt32 & n );
+
+    SerialBuf & operator >> ( int & n );
+
+    SerialBuf & operator >> ( unsigned int & n );
 
 	SerialBuf & operator >> ( lString8 & s8 );
 

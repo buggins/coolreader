@@ -221,7 +221,7 @@ static const char * style_magic = "CR3STYLE";
 #define ST_PUT_ENUM(v) buf << (lUInt8)v
 #define ST_GET_ENUM(t,v) { lUInt8 tmp; buf >> tmp; v=(t)tmp; if (buf.error()) return false; }
 #define ST_PUT_LEN(v) buf << (lUInt8)v.type << (lInt32)v.value;
-#define ST_GET_LEN(v) { lUInt8 type; int value; buf >> type >> value; v.type = (css_value_type_t)type; v.value = value; if (buf.error()) return false; }
+#define ST_GET_LEN(v) { lUInt8 t; buf >> t; lInt32 val; buf >> val; v.type = (css_value_type_t)t; v.value = val; if (buf.error()) return false; }
 #define ST_PUT_LEN4(v) ST_PUT_LEN(v[0]);ST_PUT_LEN(v[1]);ST_PUT_LEN(v[2]);ST_PUT_LEN(v[3]);
 #define ST_GET_LEN4(v) ST_GET_LEN(v[0]);ST_GET_LEN(v[1]);ST_GET_LEN(v[2]);ST_GET_LEN(v[3]);
 bool css_style_rec_t::serialize( SerialBuf & buf )

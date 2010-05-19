@@ -1252,7 +1252,7 @@ public:
         }
 
         // set file size and position
-        m_mode = mode;
+        m_mode = (lvopen_mode_t)mode;
         lUInt32 hw=0;
         m_size = GetFileSize( m_hFile, &hw );
 #if LVLONG_FILE_SUPPORT
@@ -4273,7 +4273,7 @@ class LVBlockWriteStream : public LVNamedStream
 
         Block( lvpos_t start, lvpos_t end, int block_size )
             : block_start( start/block_size*block_size ), block_end( end )
-            , modified_start(-1), modified_end(-1)
+            , modified_start((lvpos_t)-1), modified_end((lvpos_t)-1)
             , size( block_size ), next(NULL)
         {
             buf = (lUInt8*)malloc( size );
@@ -4368,7 +4368,7 @@ class LVBlockWriteStream : public LVNamedStream
                 if ( _size<block->modified_end )
                     _size = block->modified_end;
             }
-            block->modified_end = block->modified_start = -1;
+            block->modified_end = block->modified_start = (lvpos_t)-1;
             return res;
         } else
             return LVERR_OK;

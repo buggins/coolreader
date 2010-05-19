@@ -101,6 +101,7 @@ enum CacheFileBlockType {
 #include "../include/lvrend.h"
 #include "../include/chmfmt.h"
 #include <stddef.h>
+#include <math.h>
 #include <zlib.h>
 
 // define to store new text nodes as persistent text, instead of mutable
@@ -1328,7 +1329,7 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
 bool tinyNodeCollection::saveNodeData()
 {
     SerialBuf buf(12, true);
-    buf << (lUInt32)NODE_INDEX_MAGIC << _elemCount << _textCount;
+    buf << (lUInt32)NODE_INDEX_MAGIC << (lUInt32)_elemCount << (lUInt32)_textCount;
     if ( !saveNodeData( CBT_ELEM_NODE, _elemList, _elemCount+1 ) )
         return false;
     if ( !saveNodeData( CBT_TEXT_NODE, _textList, _textCount+1 ) )
@@ -1343,9 +1344,9 @@ bool tinyNodeCollection::loadNodeData()
     SerialBuf buf(0, true);
     if ( !_cacheFile->read((lUInt16)CBT_NODE_INDEX, buf) )
         return false;
-    int magic;
-    int elemcount;
-    int textcount;
+    lUInt32 magic;
+    lInt32 elemcount;
+    lInt32 textcount;
     buf >> magic >> elemcount >> textcount;
     if ( magic != NODE_INDEX_MAGIC ) {
         return false;
@@ -1563,13 +1564,13 @@ bool ldomDataStorageManager::save()
     // save chunk index
     int n = _chunks.length();
     SerialBuf buf(n*4+4, true);
-    buf << n;
+    buf << (lUInt32)n;
     for ( int i=0; i<n; i++ ) {
         buf <<
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
-                _chunks[i]->_compsize <<
+                (lUInt32)_chunks[i]->_compsize <<
 #endif
-                _chunks[i]->_bufpos;
+                (lUInt32)_chunks[i]->_bufpos;
     }
     res = _cache->write( cacheType(), 0xFFFF, buf, COMPRESS_NODE_STORAGE_DATA );
     if ( !res ) {
@@ -6388,15 +6389,15 @@ bool tinyNodeCollection::saveStylesData()
     LVArray<css_style_ref_t> * list = _styles.getIndex();
     stylebuf.putMagic(styles_magic);
     stylebuf << stHash;
-    stylebuf << list->length(); // index
+    stylebuf << (lUInt32)list->length(); // index
     for ( int i=0; i<list->length(); i++ ) {
         css_style_ref_t rec = list->get(i);
         if ( !rec.isNull() ) {
-            stylebuf << i; // index
+            stylebuf << (lUInt32)i; // index
             rec->serialize( stylebuf ); // style
         }
     }
-    stylebuf << (int)0; // index=0 is end list mark
+    stylebuf << (lUInt32)0; // index=0 is end list mark
     stylebuf.putMagic(styles_magic);
     delete list;
     if ( stylebuf.error() )
@@ -8707,7 +8708,7 @@ bool LVTocItem::serialize( SerialBuf & buf )
 //    ldomXPointer    _position;
 //    LVPtrVector<LVTocItem> _children;
 
-    buf << _level << _index << _page << _percent << _children.length() << _name << getPath();
+    buf << (lUInt32)_level << (lUInt32)_index << (lUInt32)_page << (lUInt32)_percent << (lUInt32)_children.length() << _name << getPath();
     if ( buf.error() )
         return false;
     for ( int i=0; i<_children.length(); i++ ) {
@@ -9204,7 +9205,7 @@ void runBlockWriteCacheTest()
     LVStreamRef ss( new LVCompareTestStream(s1, s2) );
     lUInt8 buf[0x100000];
     for ( int i=0; i<sizeof(buf); i++ ) {
-        buf[i] = (lUInt8)(random() & 0xFF);
+        buf[i] = (lUInt8)(rand() & 0xFF);
     }
     //memset( buf, 0xAD, 1000000 );
     ss->SetPos( 0 );
@@ -9258,10 +9259,10 @@ void runBlockWriteCacheTest()
     ss->Read( buf, 500000, NULL );
 
     for ( int i=0; i<20; i++ ) {
-        int op = (random() & 15) < 5;
-        long offset = (random()&0x7FFFF);
-        long foffset = (random()&0x3FFFFF);
-        long size = (random()&0x3FFFF);
+        int op = (rand() & 15) < 5;
+        long offset = (rand()&0x7FFFF);
+        long foffset = (rand()&0x3FFFFF);
+        long size = (rand()&0x3FFFF);
         ss->SetPos(foffset);
         if ( op==0 ) {
             // read
