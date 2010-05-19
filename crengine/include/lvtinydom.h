@@ -378,6 +378,16 @@ protected:
 
     bool openCacheFile();
 
+    void setNodeStyleIndex( lUInt32 dataIndex, lUInt16 index );
+    void setNodeFontIndex( lUInt32 dataIndex, lUInt16 index );
+    lUInt16 getNodeStyleIndex( lUInt32 dataIndex );
+    lUInt16 getNodeFontIndex( lUInt32 dataIndex );
+    css_style_ref_t getNodeStyle( lUInt32 dataIndex );
+    font_ref_t getNodeFont( lUInt32 dataIndex );
+    void setNodeStyle( lUInt32 dataIndex, css_style_ref_t & v );
+    void setNodeFont( lUInt32 dataIndex, font_ref_t & v  );
+    void clearNodeStyle( lUInt32 dataIndex );
+
     tinyNodeCollection( tinyNodeCollection & v );
 public:
 
@@ -441,6 +451,7 @@ public:
     ldomNode * allocTinyElement( ldomNode * parent, lUInt16 nsid, lUInt16 id );
     /// recycle ldomNode on node removing
     void recycleTinyNode( lUInt32 index );
+
 
 
 #if BUILD_LITE!=1
@@ -520,6 +531,8 @@ private:
 
     /// sets document for node
     inline void setDocumentIndex( int index ) { _handle._docIndex = index; }
+    void setStyleIndexInternal( lUInt16 index );
+    void setFontIndexInternal( lUInt16 index );
 
     /// document which owns this node
     //ldomDocument * _document;  // [0] 4 bytes (8 bytes on x64)
@@ -541,14 +554,14 @@ private:
         ldomTextNode * _text; // mutable text node
         struct {
             // common part for all elements
-            lUInt16 _fontIndex;
-            lUInt16 _styleIndex;
+            //lUInt16 _fontIndex;
+            //lUInt16 _styleIndex;
             tinyElement * _ptr;
         } _elem;
         struct {
             // common part for all elements
-            lUInt16 _fontIndex;
-            lUInt16 _styleIndex;
+            //lUInt16 _fontIndex;
+            //lUInt16 _styleIndex;
             lUInt32 _addr;        // element storage address: chunk+offset
         } _pelem;
         struct {

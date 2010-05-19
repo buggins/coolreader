@@ -1340,6 +1340,79 @@ bool tinyNodeCollection::createCacheFile()
     return true;
 }
 
+void tinyNodeCollection::clearNodeStyle( lUInt32 dataIndex )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    _styles.release( info._styleIndex );
+    _fonts.release( info._fontIndex );
+    info._fontIndex = info._styleIndex = 0;
+    _styleStorage.setStyleData( dataIndex, &info );
+}
+
+void tinyNodeCollection::setNodeStyleIndex( lUInt32 dataIndex, lUInt16 index )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    if ( info._styleIndex!=index ) {
+        info._styleIndex = index;
+        _styleStorage.setStyleData( dataIndex, &info );
+    }
+}
+
+void tinyNodeCollection::setNodeFontIndex( lUInt32 dataIndex, lUInt16 index )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    if ( info._fontIndex!=index ) {
+        info._fontIndex = index;
+        _styleStorage.setStyleData( dataIndex, &info );
+    }
+}
+
+lUInt16 tinyNodeCollection::getNodeStyleIndex( lUInt32 dataIndex )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    return info._styleIndex;
+}
+
+css_style_ref_t tinyNodeCollection::getNodeStyle( lUInt32 dataIndex )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    return _styles.get( info._styleIndex );
+}
+
+font_ref_t tinyNodeCollection::getNodeFont( lUInt32 dataIndex )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    return _fonts.get( info._fontIndex );
+}
+
+void tinyNodeCollection::setNodeStyle( lUInt32 dataIndex, css_style_ref_t & v )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    _styles.cache( info._styleIndex, v );
+    _styleStorage.setStyleData( dataIndex, &info );
+}
+
+void tinyNodeCollection::setNodeFont( lUInt32 dataIndex, font_ref_t & v )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    _fonts.cache( info._fontIndex, v );
+    _styleStorage.setStyleData( dataIndex, &info );
+}
+
+lUInt16 tinyNodeCollection::getNodeFontIndex( lUInt32 dataIndex )
+{
+    ldomNodeStyleInfo info;
+    _styleStorage.getStyleData( dataIndex, &info );
+    return info._fontIndex;
+}
 
 bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodecount )
 {
@@ -1379,7 +1452,8 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
             if ( buf[j].isElement() ) {
                 // will be set by loadStyles/updateStyles
                 //buf[j]._data._pelem._styleIndex = 0;
-                buf[j]._data._pelem._fontIndex = 0;
+                setNodeFontIndex( buf[j]._handle._dataIndex, 0 );
+                //buf[j]._data._pelem._fontIndex = 0;
             }
         }
     }
@@ -1770,6 +1844,7 @@ void ldomDataStorageManager::setStyleData( lUInt32 elemDataIndex, const ldomNode
         //if ( _chunks.length()>0 )
         //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(STYLE_DATA_CHUNK_SIZE, this, _chunks.length()) );
+        getChunk( (_chunks.length()-1)<<16 );
         compact( 0 );
     }
     ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
@@ -1806,6 +1881,7 @@ void ldomDataStorageManager::setRendRectData( lUInt32 elemDataIndex, const lvdom
         //if ( _chunks.length()>0 )
         //    _chunks[_chunks.length()-1]->compact();
         _chunks.add( new ldomTextStorageChunk(RECT_DATA_CHUNK_SIZE, this, _chunks.length()) );
+        getChunk( (_chunks.length()-1)<<16 );
         compact( 0 );
     }
     ldomTextStorageChunk * chunk = getChunk( chunkIndex<<16 );
@@ -2886,10 +2962,7 @@ void tinyNodeCollection::dropStyles()
         ldomNode * buf = _elemList[i];
         for ( int j=0; j<sz; j++ ) {
             if ( buf[j].isElement() ) {
-                if ( buf[j].isPersistent() )
-                    buf[j]._data._pelem._styleIndex = 0;
-                else
-                    buf[j]._data._elem._styleIndex = 0;
+                setNodeStyleIndex( buf[i]._handle._dataIndex, 0 );
             }
         }
     }
@@ -2947,6 +3020,8 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         CRLog::trace("Dropping existing styles...");
         dropStyles();
 
+        ldomNode * root = getRootNode();
+        css_style_ref_t roots = root->getStyle();
         //CRLog::trace("validate 2...");
         //validateDocument();
         CRLog::trace("Init node styles...");
@@ -6671,8 +6746,8 @@ bool tinyNodeCollection::validateDocument()
         for ( int j=0; j<sz; j++ ) {
             buf[j].setDocumentIndex( _docIndex );
             if ( buf[j].isElement() ) {
-                lUInt16 style = buf[j]._data._pelem._styleIndex;
-                lUInt16 font = buf[j]._data._pelem._fontIndex;
+                lUInt16 style = getNodeStyleIndex( buf[j]._handle._dataIndex );
+                lUInt16 font = getNodeFontIndex( buf[j]._handle._dataIndex );;
                 if ( !style ) {
                     if ( !buf[j].isRoot() ) {
                         CRLog::error("styleId=0 for node <%s> %d", LCSTR(buf[j].getNodeName()), buf[j].getDataIndex());
@@ -6715,7 +6790,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
         for ( int j=0; j<sz; j++ ) {
             buf[j].setDocumentIndex( _docIndex );
             if ( buf[j].isElement() ) {
-                lUInt16 style = buf[j]._data._pelem._styleIndex;
+                lUInt16 style = getNodeStyleIndex( buf[j]._handle._dataIndex );
                 if ( enabled ) {
                     css_style_ref_t s = list->get( style );
                     if ( !s.isNull() ) {
@@ -6735,17 +6810,22 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                             CRLog::error("font caching failed for style!");
                             res = false;
                         } else {
-                            buf[j]._data._pelem._fontIndex = fntIndex;
+                            setNodeFontIndex( buf[j]._handle._dataIndex, fntIndex );
+                            //buf[j]._data._pelem._fontIndex = fntIndex;
                         }
                     } else {
                         CRLog::error("Loaded style index not found in style collection");
-                        buf[j]._data._pelem._styleIndex = 0;
-                        buf[j]._data._pelem._fontIndex = 0;
+                        setNodeFontIndex( buf[j]._handle._dataIndex, 0 );
+                        setNodeStyleIndex( buf[j]._handle._dataIndex, 0 );
+//                        buf[j]._data._pelem._styleIndex = 0;
+//                        buf[j]._data._pelem._fontIndex = 0;
                         res = false;
                     }
                 } else {
-                    buf[j]._data._pelem._styleIndex = 0;
-                    buf[j]._data._pelem._fontIndex = 0;
+                    setNodeFontIndex( buf[j]._handle._dataIndex, 0 );
+                    setNodeStyleIndex( buf[j]._handle._dataIndex, 0 );
+//                    buf[j]._data._pelem._styleIndex = 0;
+//                    buf[j]._data._pelem._fontIndex = 0;
                 }
             }
         }
@@ -7303,7 +7383,6 @@ ldomNode * tinyNodeCollection::allocTinyElement( ldomNode * parent, lUInt16 nsid
 {
     ldomNode * node = allocTinyNode( ldomNode::NT_ELEMENT );
     tinyElement * elem = new tinyElement( (ldomDocument*)this, parent, nsid, id );
-    node->_data._elem._fontIndex = node->_data._elem._styleIndex = 0;
     node->NPELEM = elem;
     return node;
 }
@@ -7344,10 +7423,8 @@ void ldomNode::onCollectionDestroy()
         _data._text = NULL;
         break;
     case NT_ELEMENT:
-        getDocument()->_styles.release( _data._elem._styleIndex );
-        getDocument()->_fonts.release( _data._elem._fontIndex );
-        _data._elem._styleIndex = 0;
-        _data._elem._fontIndex = 0;
+        // ???
+        getDocument()->clearNodeStyle( _handle._dataIndex );
         delete NPELEM;
         NPELEM = NULL;
         break;
@@ -7371,10 +7448,7 @@ void ldomNode::destroy()
         break;
     case NT_ELEMENT:
         {
-            getDocument()->_styles.release( _data._elem._styleIndex );
-            getDocument()->_fonts.release( _data._elem._fontIndex );
-            _data._elem._styleIndex = 0;
-            _data._elem._fontIndex = 0;
+            getDocument()->clearNodeStyle(_handle._dataIndex);
             tinyElement * me = NPELEM;
             // delete children
             for ( int i=0; i<me->_children.length(); i++ ) {
@@ -7396,10 +7470,11 @@ void ldomNode::destroy()
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem._addr );
             for ( int i=0; i<me->childCount; i++ )
                 getDocument()->getTinyNode( me->children[i] )->destroy();
-            getDocument()->_styles.release( _data._pelem._styleIndex );
-            getDocument()->_fonts.release( _data._pelem._fontIndex );
-            _data._pelem._styleIndex = 0;
-            _data._pelem._fontIndex = 0;
+            getDocument()->clearNodeStyle( _handle._dataIndex );
+//            getDocument()->_styles.release( _data._pelem._styleIndex );
+//            getDocument()->_fonts.release( _data._pelem._fontIndex );
+//            _data._pelem._styleIndex = 0;
+//            _data._pelem._fontIndex = 0;
             getDocument()->_elemStorage.freeNode( _data._pelem._addr );
         }
         break;
@@ -8200,13 +8275,8 @@ css_style_ref_t ldomNode::getStyle()
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return css_style_ref_t();
-    if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            return getDocument()->_styles.get( _data._elem._styleIndex );
-        } else {
-            return getDocument()->_styles.get( _data._pelem._styleIndex );
-        }
-    }
+    css_style_ref_t res = getDocument()->getNodeStyle( _handle._dataIndex );
+    return res;
 }
 
 /// returns element font
@@ -8216,10 +8286,7 @@ font_ref_t ldomNode::getFont()
     if ( !isElement() )
         return font_ref_t();
     if  ( isElement() ) {
-        if ( !isPersistent() )
-            return getDocument()->_fonts.get( _data._elem._fontIndex );
-        else
-            return getDocument()->_fonts.get( _data._pelem._fontIndex );
+        return getDocument()->getNodeFont( _handle._dataIndex );
     }
 }
 
@@ -8228,11 +8295,7 @@ void ldomNode::setFont( font_ref_t font )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            getDocument()->_fonts.cache( _data._elem._fontIndex, font );
-        } else {
-            getDocument()->_fonts.cache( _data._pelem._fontIndex, font );
-        }
+        getDocument()->setNodeFont( _handle._dataIndex, font );
     }
 }
 
@@ -8241,11 +8304,7 @@ void ldomNode::setStyle( css_style_ref_t & style )
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
-        if ( !isPersistent() ) {
-            getDocument()->_styles.cache( _data._elem._styleIndex, style );
-        } else {
-            getDocument()->_styles.cache( _data._pelem._styleIndex, style );
-        }
+        getDocument()->setNodeStyle( _handle._dataIndex, style );
     }
 }
 
@@ -8253,18 +8312,15 @@ bool ldomNode::initNodeFont()
 {
     if ( !isElement() )
         return false;
-    lUInt16 style;
-    lUInt16 * pfont;
-    if ( isPersistent() ) {
-        style = _data._pelem._styleIndex;
-        pfont = &_data._pelem._fontIndex;
-    } else {
-        style = _data._elem._styleIndex;
-        pfont = &_data._elem._fontIndex;
-    }
+    lUInt16 style = getDocument()->getNodeStyleIndex( _handle._dataIndex );
+    lUInt16 font = getDocument()->getNodeFontIndex( _handle._dataIndex );
     lUInt16 fntIndex = getDocument()->_fontMap.get( style );
     if ( fntIndex==0 ) {
         css_style_ref_t s = getDocument()->_styles.get( style );
+        if ( s.isNull() ) {
+            CRLog::error("style not found for index %d", style);
+            s = getDocument()->_styles.get( style );
+        }
         LVFontRef fnt = ::getFont( s.get() );
         fntIndex = getDocument()->_fonts.cache( fnt );
         if ( fnt.isNull() ) {
@@ -8273,18 +8329,21 @@ bool ldomNode::initNodeFont()
         } else {
             getDocument()->_fontMap.set(style, fntIndex);
         }
-        if ( *pfont != 0 )
-            getDocument()->_fonts.release(*pfont);
-        *pfont = 0;
+        if ( font != 0 ) {
+            if ( font!=fntIndex ) // ???
+                getDocument()->_fonts.release(font);
+        }
+        getDocument()->setNodeFontIndex( _handle._dataIndex, fntIndex);
+        return true;
     } else {
-        if ( *pfont!=fntIndex )
+        if ( font!=fntIndex )
             getDocument()->_fonts.addIndexRef( fntIndex );
     }
     if ( fntIndex<=0 ) {
         CRLog::error("font caching failed for style!");
         return false;;
     } else {
-        *pfont = fntIndex;
+        getDocument()->setNodeFontIndex( _handle._dataIndex, fntIndex);
     }
     return true;
 }
@@ -9216,7 +9275,8 @@ void runBasicTinyDomUnitTests()
         style3->line_height.value = 100;
 
         el1->setStyle(style1);
-        MYASSERT(!el1->getStyle().isNull(), "style is set");
+        css_style_ref_t s1 = el1->getStyle();
+        MYASSERT(!s1.isNull(), "style is set");
         el2->setStyle(style2);
         MYASSERT(*style1==*style2, "identical styles : == is true");
         MYASSERT(calcHash(*style1)==calcHash(*style2), "identical styles have the same hashes");

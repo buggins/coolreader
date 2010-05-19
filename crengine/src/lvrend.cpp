@@ -1957,6 +1957,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     enode->setStyle( style );
     if ( enode->getStyle().isNull() ) {
         CRLog::error("NULL style set!!!");
+        enode->setStyle( style );
     }
 
     // set font
