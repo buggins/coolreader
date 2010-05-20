@@ -2337,7 +2337,7 @@ lUInt32 ldomTextStorageChunk::getParent( int offset )
         return item->parentIndex;
     }
     CRLog::error("Offset %d is out of bounds (%d) for storage chunk %c%d, chunkCount=%d", offset, this->_bufpos, this->_type, this->_index, _manager->_chunks.length() );
-    return NULL;
+    return 0;
 }
 
 /// get pointer to element data
