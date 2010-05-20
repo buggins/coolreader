@@ -47,7 +47,7 @@
 
 
 #ifndef RAM_COMPRESSED_BUFFER_ENABLED
-#define RAM_COMPRESSED_BUFFER_ENABLED 0 // (0=no compression, 1=enabled compression in RAM)
+#define RAM_COMPRESSED_BUFFER_ENABLED 1 // (0=no compression, 1=enabled compression in RAM)
 #endif
 
 /// docFlag mask, enable internal stylesheet of document and style attribute of elements
@@ -265,9 +265,9 @@ class ldomTextStorageChunk
 
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
-    bool unpack() { return unpack(_compbuf, _compsize); } /// unpack data from compbuf to _buf
     bool pack( const lUInt8 * buf, int bufsize );   /// pack data from buf[bufsize] to _compbuf
-    bool pack() { return pack(_buf, _bufsize); }   /// pack data from _buf[_bufsize] to _compbuf
+    bool unpack();                                  /// unpack data from compbuf to _buf
+    bool pack();                                    /// pack data from _buf[_bufsize] to _compbuf
     void setpacked( const lUInt8 * compbuf, int compsize );
 #endif
     void setunpacked( const lUInt8 * buf, int bufsize );

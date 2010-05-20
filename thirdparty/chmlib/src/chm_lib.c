@@ -158,7 +158,7 @@ typedef unsigned __int64        UInt64;
 /* Sparc        */
 /* MIPS         */
 /* PPC          */
-#elif __i386__ || __sun || __sgi || __ppc__ || __arm__
+#elif __i386__ || __sun || __sgi || __ppc__ || __arm__ || __mips__
 typedef unsigned char           UChar;
 typedef short                   Int16;
 typedef unsigned short          UInt16;
