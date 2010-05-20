@@ -46,7 +46,9 @@
 //#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
 
+#ifndef RAM_COMPRESSED_BUFFER_ENABLED
 #define RAM_COMPRESSED_BUFFER_ENABLED 0 // (0=no compression, 1=enabled compression in RAM)
+#endif
 
 /// docFlag mask, enable internal stylesheet of document and style attribute of elements
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1

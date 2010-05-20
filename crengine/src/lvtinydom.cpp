@@ -11,59 +11,63 @@
 
 *******************************************************/
 
-#define TEXT_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
-
-
-#define PACK_BUF_SIZE 0x10000
-#define UNPACK_BUF_SIZE 0x40000
-
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
-// cache memory sizes
-#define TEXT_CACHE_UNPACKED_SPACE 0x080000 // 768K
-#define TEXT_CACHE_PACKED_SPACE   0x080000 // 3.5Mb
-#define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
-#define ELEM_CACHE_UNPACKED_SPACE 0x080000 // 768K
-#define ELEM_CACHE_PACKED_SPACE   0x0C0000 // 768K
-#define ELEM_CACHE_CHUNK_SIZE     0x008000 // 48K
-#define RECT_CACHE_UNPACKED_SPACE 0x080000 // 512K
-#define RECT_CACHE_PACKED_SPACE   0x020000 // 128K
-#define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
-#define STYLE_CACHE_UNPACKED_SPACE 0x020000 // 512K
-#define STYLE_CACHE_PACKED_SPACE   0x010000 // 128K
-#define STYLE_CACHE_CHUNK_SIZE     0x008000 // 32K
-#else
-#define TEXT_CACHE_UNPACKED_SPACE 0x100000 // 768K
-#define TEXT_CACHE_PACKED_SPACE   0x000000 // 3.5Mb
-#define TEXT_CACHE_CHUNK_SIZE     0x008000 // 64K
-#define ELEM_CACHE_UNPACKED_SPACE 0x140000 // 768K
-#define ELEM_CACHE_PACKED_SPACE   0x000000 // 768K
-#define ELEM_CACHE_CHUNK_SIZE     0x008000 // 48K
-#define RECT_CACHE_UNPACKED_SPACE 0x100000 // 512K
-#define RECT_CACHE_PACKED_SPACE   0x000000 // 128K
-#define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
-#define STYLE_CACHE_UNPACKED_SPACE 0x060000 // 512K
-#define STYLE_CACHE_PACKED_SPACE   0x000000 // 128K
-#define STYLE_CACHE_CHUNK_SIZE     0x00C000 // 32K
+#ifndef DOC_DATA_COMPRESSION_LEVEL
+/// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
+#define DOC_DATA_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
 #endif
 
+//=====================================================
+// Document data caching parameters
+//=====================================================
 
-#define RECT_DATA_CHUNK_ITEMS_SHIFT 11
-#define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
-#define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
-#define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
+#ifndef DOC_BUFFER_SIZE
+#define DOC_BUFFER_SIZE 0x400000 // default buffer size
+#endif
 
-#define STYLE_DATA_CHUNK_ITEMS_SHIFT 11
-#define STYLE_DATA_CHUNK_ITEMS (1<<STYLE_DATA_CHUNK_ITEMS_SHIFT)
-#define STYLE_DATA_CHUNK_SIZE (STYLE_DATA_CHUNK_ITEMS*sizeof(ldomNodeStyleInfo))
-#define STYLE_DATA_CHUNK_MASK (STYLE_DATA_CHUNK_ITEMS-1)
+//--------------------------------------------------------
+// cache memory sizes
+//--------------------------------------------------------
+#if RAM_COMPRESSED_BUFFER_ENABLED!=0
 
+// allowed compressed data buffers in RAM
 #define ENABLED_BLOCK_WRITE_CACHE 1
-#define WRITE_CACHE_BLOCK_SIZE 0x4000
-#define WRITE_CACHE_BLOCK_COUNT 24
-#define TEST_BLOCK_STREAM 0
+#define WRITE_CACHE_TOTAL_SIZE    (10*DOC_BUFFER_SIZE/100)
 
-//#define CACHE_FILE_SECTOR_SIZE 4096
-#define CACHE_FILE_SECTOR_SIZE 1024
+#define TEXT_CACHE_UNPACKED_SPACE (14*DOC_BUFFER_SIZE/100)
+#define TEXT_CACHE_PACKED_SPACE   (14*DOC_BUFFER_SIZE/100)
+#define TEXT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define ELEM_CACHE_UNPACKED_SPACE (15*DOC_BUFFER_SIZE/100)
+#define ELEM_CACHE_PACKED_SPACE   (15*DOC_BUFFER_SIZE/100)
+#define ELEM_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define RECT_CACHE_UNPACKED_SPACE (12*DOC_BUFFER_SIZE/100)
+#define RECT_CACHE_PACKED_SPACE   (12*DOC_BUFFER_SIZE/100)
+#define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define STYLE_CACHE_UNPACKED_SPACE (4*DOC_BUFFER_SIZE/100)
+#define STYLE_CACHE_PACKED_SPACE   (4*DOC_BUFFER_SIZE/100)
+#define STYLE_CACHE_CHUNK_SIZE    0x008000 // 32K
+
+#else
+
+// disabled compressed data buffers in RAM
+#define ENABLED_BLOCK_WRITE_CACHE 1
+#define WRITE_CACHE_TOTAL_SIZE    (10*DOC_BUFFER_SIZE/100)
+
+#define TEXT_CACHE_UNPACKED_SPACE (25*DOC_BUFFER_SIZE/100)
+#define TEXT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define ELEM_CACHE_UNPACKED_SPACE (40*DOC_BUFFER_SIZE/100)
+#define ELEM_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define RECT_CACHE_UNPACKED_SPACE (15*DOC_BUFFER_SIZE/100)
+#define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define STYLE_CACHE_UNPACKED_SPACE (10*DOC_BUFFER_SIZE/100)
+#define STYLE_CACHE_CHUNK_SIZE    0x00C000 // 48K
+// no packed data
+#define TEXT_CACHE_PACKED_SPACE   0x000000 // 3.5Mb
+#define ELEM_CACHE_PACKED_SPACE   0x000000 // 768K
+#define RECT_CACHE_PACKED_SPACE   0x000000 // 128K
+#define STYLE_CACHE_PACKED_SPACE  0x000000 // 128K
+#endif
+//--------------------------------------------------------
+
 
 #define COMPRESS_NODE_DATA          true
 #define COMPRESS_NODE_STORAGE_DATA  true
@@ -71,6 +75,28 @@
 #define COMPRESS_PAGES_DATA         true
 #define COMPRESS_TOC_DATA           true
 #define COMPRESS_STYLE_DATA         true
+
+//#define CACHE_FILE_SECTOR_SIZE 4096
+#define CACHE_FILE_SECTOR_SIZE 1024
+
+#define RECT_DATA_CHUNK_ITEMS_SHIFT 11
+#define STYLE_DATA_CHUNK_ITEMS_SHIFT 12
+
+// calculated parameters
+#define WRITE_CACHE_BLOCK_SIZE 0x4000
+#define WRITE_CACHE_BLOCK_COUNT (WRITE_CACHE_TOTAL_SIZE/WRITE_CACHE_BLOCK_SIZE)
+#define TEST_BLOCK_STREAM 0
+
+#define PACK_BUF_SIZE 0x10000
+#define UNPACK_BUF_SIZE 0x40000
+
+#define RECT_DATA_CHUNK_ITEMS (1<<RECT_DATA_CHUNK_ITEMS_SHIFT)
+#define RECT_DATA_CHUNK_SIZE (RECT_DATA_CHUNK_ITEMS*sizeof(lvdomElementFormatRec))
+#define RECT_DATA_CHUNK_MASK (RECT_DATA_CHUNK_ITEMS-1)
+
+#define STYLE_DATA_CHUNK_ITEMS (1<<STYLE_DATA_CHUNK_ITEMS_SHIFT)
+#define STYLE_DATA_CHUNK_SIZE (STYLE_DATA_CHUNK_ITEMS*sizeof(ldomNodeStyleInfo))
+#define STYLE_DATA_CHUNK_MASK (STYLE_DATA_CHUNK_ITEMS-1)
 
 
 #define STYLE_HASH_TABLE_SIZE     512
@@ -84,7 +110,7 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #else
                                        "c0"
 #endif
-#if TEXT_COMPRESSION_LEVEL==0
+#if DOC_DATA_COMPRESSION_LEVEL==0
                                        "m0"
 #else
                                        "m1"
@@ -835,7 +861,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     }
 
     lUInt32 uncompressedSize = 0;
-#if TEXT_COMPRESSION_LEVEL==0
+#if DOC_DATA_COMPRESSION_LEVEL==0
     compress = false;
 #else
     if ( compress ) {
@@ -882,7 +908,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     block->_dataHash = newhash;
     block->_uncompressedSize = uncompressedSize;
 
-#if TEXT_COMPRESSION_LEVEL!=0
+#if DOC_DATA_COMPRESSION_LEVEL!=0
     if ( compress ) {
         free( (void*)buf );
     }
@@ -2406,7 +2432,7 @@ bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dsts
     z.zalloc = Z_NULL;
     z.zfree = Z_NULL;
     z.opaque = Z_NULL;
-    ret = deflateInit( &z, TEXT_COMPRESSION_LEVEL );
+    ret = deflateInit( &z, DOC_DATA_COMPRESSION_LEVEL );
     if ( ret != Z_OK )
         return false;
     z.avail_in = bufsize;
