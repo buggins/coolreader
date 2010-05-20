@@ -11,6 +11,9 @@
 
 *******************************************************/
 
+/// change in case of incompatible changes in swap/cache file format
+#define CACHE_FILE_FORMAT_VERSION "3.02.15"
+
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
 #define DOC_DATA_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
@@ -40,10 +43,10 @@
 #define ELEM_CACHE_PACKED_SPACE   (15*DOC_BUFFER_SIZE/100)
 #define ELEM_CACHE_CHUNK_SIZE     0x008000 // 32K
 #define RECT_CACHE_UNPACKED_SPACE (12*DOC_BUFFER_SIZE/100)
-#define RECT_CACHE_PACKED_SPACE   (12*DOC_BUFFER_SIZE/100)
+#define RECT_CACHE_PACKED_SPACE   (10*DOC_BUFFER_SIZE/100)
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
 #define STYLE_CACHE_UNPACKED_SPACE (4*DOC_BUFFER_SIZE/100)
-#define STYLE_CACHE_PACKED_SPACE   (4*DOC_BUFFER_SIZE/100)
+#define STYLE_CACHE_PACKED_SPACE   (6*DOC_BUFFER_SIZE/100)
 #define STYLE_CACHE_CHUNK_SIZE    0x008000 // 32K
 
 #else
@@ -104,7 +107,7 @@
 
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
-                                       " File v3.02.15: "
+                                       " File v" CACHE_FILE_FORMAT_VERSION ": "
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
                                        "c1"
 #else
@@ -2014,7 +2017,7 @@ lUInt32 ldomDataStorageManager::getParent( lUInt32 addr )
 
 void ldomDataStorageManager::compact( int reservedSpace )
 {
-    if ( _uncompressedSize + reservedSpace > _maxUncompressedSize ) {
+    if ( _uncompressedSize + reservedSpace > _maxUncompressedSize + _maxUncompressedSize/10 ) { // allow +10% overflow
         // do compacting
         int sumsize = reservedSpace;
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
@@ -2167,12 +2170,15 @@ static int dummy1_valgrind_test = 0;
 bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 {
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
-    if ( removeFromMemory )
+    bool dropPacked = false;
+    if ( removeFromMemory ) {
         compact();
-    else {
+        dropPacked = true;
+    } else {
         if ( !_compbuf && _buf && _bufpos) {
             pack(_buf, _bufpos);
             CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %c%d", _bufpos, _compsize, 100*_compsize/_bufpos, _type, _index);
+            dropPacked = true;
         }
     }
 #endif
@@ -2190,7 +2196,7 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
             _saved = true;
         }
     }
-    if ( removeFromMemory ) {
+    if ( dropPacked ) {
         setpacked(NULL, 0);
     }
 #else
@@ -2216,7 +2222,7 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 bool ldomTextStorageChunk::restoreFromCache()
 {
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
-    if ( _compbuf )
+    if ( _compbuf || _buf)
         return true;
 #else
     if ( _buf )
@@ -2382,6 +2388,9 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 /// call to invalidate chunk if content is modified
 void ldomTextStorageChunk::modified()
 {
+    if ( !_buf ) {
+        CRLog::error("Modified is called for node which is not in memory");
+    }
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
     if ( _compbuf ) {
         if ( _type=='t' ) {
@@ -2389,11 +2398,9 @@ void ldomTextStorageChunk::modified()
         }
         CRLog::debug("Dropping compressed data of chunk %c%d due to modification", _type, _index);
         setpacked(NULL, 0);
-        _saved = false;
     }
-#else
-    _saved = false;
 #endif
+    _saved = false;
 }
 
 /// free data item
@@ -2485,6 +2492,25 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
 
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
 
+/// unpack data from compbuf to _buf
+bool ldomTextStorageChunk::unpack()
+{
+    bool res = unpack(_compbuf, _compsize);
+    if ( res ) {
+        setpacked(NULL, 0);
+    }
+}
+
+/// pack data from _buf[_bufsize] to _compbuf
+bool ldomTextStorageChunk::pack()
+{
+    bool res =  pack(_buf, _bufsize);
+    if ( res ) {
+        setunpacked(NULL, 0);
+    }
+    return res;
+}
+
 /// pack data from _buf to _compbuf
 bool ldomTextStorageChunk::pack( const lUInt8 * buf, int bufsize )
 {
@@ -2569,16 +2595,16 @@ void ldomTextStorageChunk::ensureUnpacked()
     if ( !_buf ) {
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
         if (_compbuf) {
-            _manager->compact( _bufpos );
             unpack();
+            _manager->compact( 0 );
         } else
 #endif
-            if ( _saved ) {
-            _manager->compact( _bufpos );
+        if ( _saved ) {
             if ( !restoreFromCache() ) {
                 CRLog::error( "restoreFromCache() failed for chunk %c%d", _type, _index);
                 crFatalError( 111, "restoreFromCache() failed for chunk");
             }
+            _manager->compact( 0 );
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
             unpack();
 #endif
