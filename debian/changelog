@@ -1,3 +1,32 @@
+cr3 (3.0.24-23) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * fix TOC issue for documents opened from cache
+  * fix text-indent CSS property bug
+  * moving epub support to separate files, part 1
+  * fixes
+  * fix crash oon some documents opening
+  * fix xcb_create_image_native call
+  * big block write cache, part 1
+  * block write cache, part 2
+  * fix block writer
+  * fix QT build
+  * fix debug logging
+  * README: list of required packages for Ubuntu
+  * QT: add scrolling by left/right arrows
+  * performance tuning
+  * uncompressed mode, part 1
+  * cache access rework
+  * postpone cache flush until document close
+  * performance tunung
+  * fix win32/msys build
+  * fix CHMLIB build for win32/msys
+  * fix win32/qt/msys build
+  * fix win32/linux builds
+  * min mem settings
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Thu, 20 May 2010 09:24:45 +0200
+
 cr3 (3.0.24-22) zelazny; urgency=low
 
   * CHMLIB patch to support external stream
