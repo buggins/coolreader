@@ -471,7 +471,7 @@ public:
 
 class ldomDocument;
 class tinyElement;
-class lxmlAttribute;
+struct lxmlAttribute;
 
 class RenderRectAccessor : public lvdomElementFormatRec
 {
@@ -479,7 +479,7 @@ class RenderRectAccessor : public lvdomElementFormatRec
     bool _modified;
     bool _dirty;
 public:
-    RenderRectAccessor & operator -> () { return *this; }
+    //RenderRectAccessor & operator -> () { return *this; }
     int getX();
     int getY();
     int getWidth();
@@ -593,7 +593,7 @@ public:
     /// returns true for invalid/deleted node ot NULL this pointer
     inline bool isNull() const { return this == NULL || _handle._dataIndex==0; }
     /// returns true if node is stored in persistent storage
-    inline bool isPersistent() const { return _handle._dataIndex&2; }
+    inline bool isPersistent() const { return (_handle._dataIndex&2)!=0; }
     /// returns data index of node's registration in document data storage
     inline lInt32 getDataIndex() const { return TNINDEX; }
     /// returns pointer to document

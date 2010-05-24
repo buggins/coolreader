@@ -31,6 +31,7 @@ struct crChmExternalFileStream : public chmExternalFileStream {
     static int cr_close( chmExternalFileStream * instance )
     {
         ((crChmExternalFileStream*)instance)->stream.Clear();
+		return 0;
     }
     crChmExternalFileStream( LVStreamRef s )
     : stream(s)

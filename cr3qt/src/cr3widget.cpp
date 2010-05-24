@@ -932,7 +932,8 @@ void CR3View::OnFormatProgress( int percent )
 /// first page is loaded from file an can be formatted for preview
 void CR3View::OnLoadFileFirstPagesReady()
 {
-    if ( !_data->_props->getBoolDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 ) ) {
+#if 0 // disabled
+	if ( !_data->_props->getBoolDef( PROP_PROGRESS_SHOW_FIRST_PAGE, 1 ) ) {
         CRLog::info( "OnLoadFileFirstPagesReady() - don't paint first page because " PROP_PROGRESS_SHOW_FIRST_PAGE " setting is 0" );
         return;
     }
@@ -945,4 +946,5 @@ void CR3View::OnLoadFileFirstPagesReady()
     _docview->requestRender();
     // TODO: remove debug sleep
     //sleep(5);
+#endif
 }
