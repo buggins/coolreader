@@ -2417,6 +2417,8 @@ public:
         );
         if (!stream.isNull()) {
             stream->SetName(m_list[found_index]->GetName());
+            // Use buffering?
+            //return stream;
             return LVCreateBufferedStream( stream, ZIP_STREAM_BUFFER_SIZE );
         }
         return stream;

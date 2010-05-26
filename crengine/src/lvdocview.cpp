@@ -2882,8 +2882,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         if ( DetectEpubFormat( m_stream ) ) {
             // EPUB
             CRLog::info("EPUB format detected");
-            if ( m_doc )
-                delete m_doc;
+//            if ( m_doc )
+//                delete m_doc;
+//            m_doc = NULL;
             createEmptyDocument();
             m_doc->setProps( m_doc_props );
             setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading

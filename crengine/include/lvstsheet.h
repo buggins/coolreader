@@ -175,7 +175,39 @@ public:
 class LVStyleSheet {
     lxmlDocBase * _doc;
     LVPtrVector <LVCssSelector> _selectors;
+
+    LVPtrVector <LVPtrVector <LVCssSelector> > _stack;
+    LVPtrVector <LVCssSelector> * dup()
+    {
+        LVPtrVector <LVCssSelector> * res = new LVPtrVector <LVCssSelector>();
+        for ( int i=0; i<_selectors.length(); i++ ) {
+            LVCssSelector * selector = _selectors[i];
+            if ( selector )
+                res->add( new LVCssSelector(*selector) );
+        }
+        return res;
+    }
+
+    void set(LVPtrVector<LVCssSelector> & v );
 public:
+
+
+    // save current state of stylesheet
+    void push()
+    {
+        _stack.add( dup() );
+    }
+    // restore previously saved state
+    bool pop()
+    {
+        if ( _stack.length()==0 )
+            return false;
+        LVPtrVector <LVCssSelector> * v = _stack.remove(_stack.length()-1);
+        set( *v );
+        delete v;
+        return true;
+    }
+
     /// remove all rules from stylesheet
     void clear() { _selectors.clear(); }
     /// set document to retrieve ID values from

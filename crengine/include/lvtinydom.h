@@ -577,6 +577,9 @@ private:
     void removeChildren( int startIndex, int endIndex );
 
 public:
+    /// if stylesheet file name is set, and file is found, set stylesheet to its value
+    bool applyNodeStylesheet();
+
     bool initNodeFont();
     void initNodeStyle();
     /// init render method for this node only (children should already have rend method set)
@@ -894,7 +897,7 @@ public:
 #endif
     }
 
-    //inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
+    inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
     /// sets style sheet, clears old content of css if arg replace is true
     void setStyleSheet( const char * css, bool replace );
     /// apply document's stylesheet to element node
@@ -1800,6 +1803,7 @@ class ldomElementWriter
     bool _allowText;
     bool _isBlock;
     bool _isSection;
+    bool _stylesheetIsSet;
     lUInt32 getFlags();
     void updateTocItem();
     void onBodyEnter();
