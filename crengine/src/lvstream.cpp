@@ -1719,10 +1719,11 @@ private:
     /// read item content from base stream
     bool fillItem( BufItem * item )
     {
-        if ( m_stream->SetPos( item->start )==(lvpos_t)(~0) )
+        //if ( m_stream->SetPos( item->start )==(lvpos_t)(~0) )
+        if ( m_stream->SetPos( item->start )!=(lvpos_t)item->start )
             return false;
 
-        lvsize_t bytesRead;
+        lvsize_t bytesRead = 0;
         if ( m_stream->Read( item->buf, item->size, &bytesRead )!=LVERR_OK || bytesRead!=item->size )
             return false;
         return true;
@@ -2180,25 +2181,33 @@ private:
         if (in_bytes<0)
             return -1;
         // reserve space for output
-        if (m_zstream.avail_out < ARC_OUTBUF_SIZE / 4 && m_outbytesleft > 0)
+        if (m_decodedpos > ARC_OUTBUF_SIZE/2 || m_zstream.avail_out < ARC_OUTBUF_SIZE / 4 && m_outbytesleft > 0)
         {
 
             int outpos = m_zstream.next_out - m_outbuf;
-            if ( outpos > ARC_OUTBUF_SIZE*3/4 )
+            if ( m_decodedpos > ARC_OUTBUF_SIZE/2 || outpos > ARC_OUTBUF_SIZE*2/4 || m_zstream.avail_out==0 || m_inbytesleft==0 )
             {
                 // move rest of data to beginning of buffer
                 for ( int i=(int)m_decodedpos; i<outpos; i++)
-                    m_inbuf[i - m_decodedpos] = m_inbuf[ i ];
+                    m_outbuf[i - m_decodedpos] = m_outbuf[ i ];
+                //m_inbuf[i - m_decodedpos] = m_inbuf[ i ];
                 m_zstream.next_out -= m_decodedpos;
                 outpos -= m_decodedpos;
                 m_decodedpos = 0;
                 m_zstream.avail_out = ARC_OUTBUF_SIZE - outpos;
             }
         }
-        int res = inflate( &m_zstream, m_inbytesleft > 0 ? Z_NO_FLUSH : Z_FINISH );
+        int decoded = m_zstream.avail_out;
+        int res = inflate( &m_zstream, m_inbytesleft > 0 ? Z_NO_FLUSH : Z_FINISH ); //m_inbytesleft | m_zstream.avail_in
+        decoded -= m_zstream.avail_out;
         if (res == Z_STREAM_ERROR)
         {
             return -1;
+        }
+        if (res == Z_BUF_ERROR)
+        {
+            //return -1;
+            res = 0; // DEBUG
         }
         avail = getAvailBytes();
         return avail;
@@ -2245,6 +2254,7 @@ private:
             }
             else if (avail==0)
             {
+                avail = decodeNext();
                 return bytesRead;
             }
 
@@ -2332,6 +2342,9 @@ public:
         int readBytes = read( (lUInt8 *)buf, (int)count );
         if ( readBytes<0 )
             return LVERR_FAIL;
+        if ( readBytes!=count ) {
+            CRLog::trace("ZIP stream: %d bytes read instead of %d", (int)readBytes, (int)count);
+        }
         if (bytesRead)
             *bytesRead = (lvsize_t)readBytes;
         return LVERR_OK;

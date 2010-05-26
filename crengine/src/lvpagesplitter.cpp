@@ -389,6 +389,7 @@ bool LVRendPageList::serialize( SerialBuf & buf )
     for ( int i=0; i<length(); i++ ) {
         get(i)->serialize( buf );
     }
+    buf.putMagic( pagelist_magic );
     buf.putCRC( buf.pos() - pos );
     return !buf.error();
 }
@@ -411,6 +412,8 @@ bool LVRendPageList::deserialize( SerialBuf & buf )
         item->index = i;
         add( item );
     }
+    if ( !buf.checkMagic( pagelist_magic ) )
+        return false;
     buf.checkCRC( buf.pos() - pos );
     return !buf.error();
 }
@@ -451,6 +454,8 @@ bool LVRendPageInfo::deserialize( SerialBuf & buf )
     if ( len ) {
         footnotes.reserve(len);
         for ( int i=0; i<len; i++ ) {
+            lUInt32 n1;
+            lUInt32 n2;
             buf >> n1;
             buf >> n2;
             footnotes.add( LVPageFootNoteInfo( n1, n2 ) );
