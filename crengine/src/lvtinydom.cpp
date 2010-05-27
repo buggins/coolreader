@@ -3352,7 +3352,7 @@ bool IsEmptySpace( const lChar16 * text, int len )
 static bool IS_FIRST_BODY = false;
 
 ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent)
-    : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false)
+    : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false), _stylesheetIsSet(false)
 {
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
@@ -3794,6 +3794,9 @@ void ldomElementWriter::onBodyExit()
     if ( !_document->isDefStyleSet() )
         return;
     _element->initNodeRendMethod();
+
+    if ( _stylesheetIsSet )
+        _document->getStyleSheet()->pop();
 }
 
 void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
@@ -3811,9 +3814,35 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     //logfile << "}";
 }
 
+/// if stylesheet file name is set, and file is found, set stylesheet to its value
+bool ldomNode::applyNodeStylesheet()
+{
+    if ( getNodeId()!=el_DocFragment || !hasAttribute(attr_StyleSheet) )
+        return false;
+    lString16 v = getAttributeValue(attr_StyleSheet);
+    if ( v.empty() )
+        return false;
+    if ( getDocument()->getContainer().isNull() )
+        return false;
+    LVStreamRef cssStream = getDocument()->getContainer()->OpenStream(v.c_str(), LVOM_READ);
+    if ( !cssStream.isNull() ) {
+        lString16 css;
+        css << LVReadTextFile( cssStream );
+        if ( !css.empty() ) {
+            getDocument()->_stylesheet.push();
+            getDocument()->_stylesheet.parse(UnicodeToUtf8(css).c_str());
+            return true;
+        }
+    }
+    return false;
+}
+
 void ldomElementWriter::addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value )
 {
     getElement()->setAttributeValue(nsid, id, value);
+    if ( id==attr_StyleSheet ) {
+        _stylesheetIsSet = _element->applyNodeStylesheet();
+    }
 }
 
 ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id )
@@ -3901,7 +3930,7 @@ void ldomDocumentWriter::OnTagBody()
     }
 }
 
-void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+ldomNode * ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     //CRLog::trace("OnTagOpen(%s)", UnicodeToUtf8(lString16(tagname)).c_str());
@@ -3916,6 +3945,7 @@ void ldomDocumentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagn
     _flags = _currNode->getFlags();
     //logfile << " !o!\n";
     //return _currNode->getElement();
+    return _currNode->getElement();
 }
 
 ldomDocumentWriter::~ldomDocumentWriter()
@@ -6099,6 +6129,144 @@ ldomDocument * LVParseXMLStream( LVStreamRef stream,
 }
 
 
+static lString16 escapeDocPath( lString16 path )
+{
+    for ( int i=0; i<path.length(); i++ ) {
+        lChar16 ch = path[i];
+        if ( ch=='/' || ch=='\\')
+            path[i] = '_';
+    }
+    return path;
+}
+
+lString16 ldomDocumentFragmentWriter::convertId( lString16 id )
+{
+    if ( !codeBasePrefix.empty() ) {
+        return codeBasePrefix + id;
+    }
+    return id;
+}
+
+lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
+{
+    if ( href.pos(L"://")>=0 )
+        return href; // fully qualified href: no conversion
+
+    href = LVCombinePaths(codeBase, href);
+
+
+    if ( codeBasePrefix.empty() )
+        return href;
+
+
+    // resolve relative links
+    lString16 p, id;
+    if ( !href.split2(lString16("#"), p, id) )
+        p = href;
+    if ( p.empty() )
+        p = codeBasePrefix;
+    else {
+        lString16 replacement = pathSubstitutions.get(p);
+        if ( !replacement.empty() )
+            p = replacement;
+        else
+            return href;
+        //else
+        //    p = codeBasePrefix;
+        //p = LVCombinePaths( codeBase, p ); // relative to absolute path
+    }
+    if ( !id.empty() )
+        p = p + L"_" + id;
+
+    p = lString16("#") + p;
+
+    CRLog::debug("converted href=%s to %s", LCSTR(href), LCSTR(p) );
+
+    return p;
+}
+
+void ldomDocumentFragmentWriter::setCodeBase( lString16 fileName )
+{
+    filePathName = fileName;
+    codeBasePrefix = pathSubstitutions.get(fileName);
+    codeBase = LVExtractPath(filePathName);
+    stylesheetFile.clear();
+}
+
+/// called on attribute
+void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+{
+    if ( insideTag ) {
+        if ( !lStr_cmp(attrname, L"href") || !lStr_cmp(attrname, L"src") ) {
+            parent->OnAttribute(nsname, attrname, convertHref(lString16(attrvalue)).c_str() );
+        } else if ( !lStr_cmp(attrname, L"id") ) {
+            parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
+        } else {
+            parent->OnAttribute(nsname, attrname, attrvalue);
+        }
+    } else {
+        if ( styleDetectionState == 1 && !lStr_cmp(attrname, L"rel") && !lStr_cmp(attrvalue, L"stylesheet") )
+            styleDetectionState = 2;
+        else if ( styleDetectionState == 2 && !lStr_cmp(attrname, L"type") && !lStr_cmp(attrvalue, L"text/css") )
+            styleDetectionState = 3;
+        else if ( styleDetectionState == 3 && !lStr_cmp(attrname, L"href") ) {
+            lString16 href = attrvalue;
+            stylesheetFile = LVCombinePaths( codeBase, href );
+            styleDetectionState = 0;
+        }
+    }
+}
+
+/// called on opening tag
+ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+{
+    if ( insideTag ) {
+        return parent->OnTagOpen(nsname, tagname);
+    } else {
+        if ( !lStr_cmp(tagname, L"link") )
+            styleDetectionState = 1;
+    }
+    if ( !insideTag && baseTag==tagname ) {
+        insideTag = true;
+        if ( !baseTagReplacement.empty() ) {
+            baseElement = parent->OnTagOpen(L"", baseTagReplacement.c_str());
+            if ( !stylesheetFile.empty() ) {
+                parent->OnAttribute(L"", L"StyleSheet", stylesheetFile.c_str() );
+                CRLog::debug("Setting StyleSheet attribute to %s for document fragment", LCSTR(stylesheetFile) );
+            }
+            if ( !codeBasePrefix.empty() )
+                parent->OnAttribute(L"", L"id", codeBasePrefix.c_str() );
+            parent->OnTagBody();
+            return baseElement;
+        }
+    }
+    return NULL;
+}
+
+/// called on closing tag
+void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+{
+    styleDetectionState = 0;
+    if ( insideTag && baseTag==tagname ) {
+        insideTag = false;
+        if ( !baseTagReplacement.empty() ) {
+            parent->OnTagClose(L"", baseTagReplacement.c_str());
+        }
+        baseElement = NULL;
+    }
+    if ( insideTag )
+        parent->OnTagClose(nsname, tagname);
+}
+
+/// called after > of opening tag (when entering tag body)
+void ldomDocumentFragmentWriter::OnTagBody()
+{
+    if ( insideTag ) {
+        parent->OnTagBody();
+    }
+    styleDetectionState = 0;
+}
+
 
 
 /** \brief callback object to fill DOM tree
@@ -6144,15 +6312,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
     }
 }
 
-/// called after > of opening tag (when entering tag body)
-void ldomDocumentWriterFilter::OnTagBody()
-{
-    if ( _currNode ) {
-        _currNode->onBodyEnter();
-    }
-}
-
-void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
+ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
     if ( nsname && nsname[0] )
@@ -6177,6 +6337,14 @@ void ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 
         _flags |= TXTFLG_PRE_PARA_SPLITTING | TXTFLG_TRIM; // convert preformatted text into paragraphs
     //logfile << " !o!\n";
     //return _currNode->getElement();
+    return _currNode->getElement();
+}
+
+void ldomDocumentWriterFilter::OnTagBody()
+{
+    if ( _currNode ) {
+        _currNode->onBodyEnter();
+    }
 }
 
 void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
@@ -8186,14 +8354,35 @@ void ldomNode::initNodeRendMethodRecursive()
 
 static void updateStyleData( ldomNode * node )
 {
+    if ( node->getNodeId()==el_DocFragment )
+        node->applyNodeStylesheet();
     node->initNodeStyle();
+}
+
+static void updateStyleDataRecursive( ldomNode * node )
+{
+    if ( !node->isElement() )
+        return;
+    bool styleSheetChanged = false;
+    if ( node->getNodeId()==el_DocFragment )
+        styleSheetChanged = node->applyNodeStylesheet();
+    node->initNodeStyle();
+    int n = node->getChildCount();
+    for ( int i=0; i<n; i++ ) {
+        ldomNode * child = node->getChildNode(i);
+        if ( child->isElement() )
+            updateStyleDataRecursive( child );
+    }
+    if ( styleSheetChanged )
+        node->getDocument()->getStyleSheet()->pop();
 }
 
 /// init render method for the whole subtree
 void ldomNode::initNodeStyleRecursive()
 {
     getDocument()->_fontMap.clear();
-    recurseElements( updateStyleData );
+    updateStyleDataRecursive( this );
+    //recurseElements( updateStyleData );
 }
 
 /// calls specified function recursively for all elements of DOM tree

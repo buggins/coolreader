@@ -28,6 +28,7 @@
 class LVFileFormatParser;
 
 class tinyNode;
+class ldomNode;
 
 /// XML parser callback interface
 class LVXMLParserCallback
@@ -46,7 +47,7 @@ public:
     /// called on parsing end
     virtual void OnStop() = 0;
     /// called on opening tag <
-    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) = 0;
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) = 0;
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody() = 0;
     /// calls OnTagOpen & OnTagBody

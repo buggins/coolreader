@@ -577,6 +577,9 @@ private:
     void removeChildren( int startIndex, int endIndex );
 
 public:
+    /// if stylesheet file name is set, and file is found, set stylesheet to its value
+    bool applyNodeStylesheet();
+
     bool initNodeFont();
     void initNodeStyle();
     /// init render method for this node only (children should already have rend method set)
@@ -894,7 +897,7 @@ public:
 #endif
     }
 
-    //inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
+    inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
     /// sets style sheet, clears old content of css if arg replace is true
     void setStyleSheet( const char * css, bool replace );
     /// apply document's stylesheet to element node
@@ -1800,6 +1803,7 @@ class ldomElementWriter
     bool _allowText;
     bool _isBlock;
     bool _isSection;
+    bool _stylesheetIsSet;
     lUInt32 getFlags();
     void updateTocItem();
     void onBodyEnter();
@@ -1853,7 +1857,7 @@ public:
     /// called on parsing end
     virtual void OnStop();
     /// called on opening tag
-    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
@@ -1890,7 +1894,7 @@ public:
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on opening tag
-    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
     /// called after > of opening tag (when entering tag body)
     virtual void OnTagBody();
     /// called on closing tag
@@ -1909,8 +1913,27 @@ private:
     //============================
     LVXMLParserCallback * parent;
     lString16 baseTag;
+    lString16 baseTagReplacement;
+    lString16 codeBase;
+    lString16 filePathName;
+    lString16 codeBasePrefix;
+    lString16 stylesheetFile;
     bool insideTag;
+    int styleDetectionState;
+    LVHashTable<lString16, lString16> pathSubstitutions;
+
+    ldomNode * baseElement;
+
+    lString16 convertId( lString16 id );
+    lString16 convertHref( lString16 href );
+
 public:
+    void addPathSubstitution( lString16 key, lString16 value )
+    {
+        pathSubstitutions.set(key, value);
+    }
+
+    virtual void setCodeBase( lString16 filePath );
     /// returns flags
     virtual lUInt32 getFlags() { return parent->getFlags(); }
     /// sets flags
@@ -1930,35 +1953,13 @@ public:
         insideTag = false;
     }
     /// called on opening tag
-    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
-    {
-        if ( insideTag ) {
-            parent->OnTagOpen(nsname, tagname);
-        }
-        if ( !insideTag && baseTag==tagname )
-            insideTag = true;
-    }
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname );
     /// called after > of opening tag (when entering tag body)
-    virtual void OnTagBody()
-    {
-        if ( insideTag ) {
-            parent->OnTagBody();
-        }
-    }
+    virtual void OnTagBody();
     /// called on closing tag
-    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
-    {
-        if ( insideTag && baseTag==tagname )
-            insideTag = false;
-        if ( insideTag )
-            parent->OnTagClose(nsname, tagname);
-    }
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname );
     /// called on attribute
-    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
-    {
-        if ( insideTag )
-            parent->OnAttribute(nsname, attrname, attrvalue);
-    }
+    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
     {
@@ -1966,9 +1967,11 @@ public:
             parent->OnText( text, len, flags );
     }
     /// constructor
-    ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString16 baseTagName )
-    : parent(parentWriter), baseTag(baseTagName), insideTag(false)
+    ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString16 baseTagName, lString16 baseTagReplacementName, lString16 fragmentFilePath )
+    : parent(parentWriter), baseTag(baseTagName), baseTagReplacement(baseTagReplacementName),
+    insideTag(false), styleDetectionState(0), pathSubstitutions(100), baseElement(NULL)
     {
+        setCodeBase( fragmentFilePath );
     }
     /// destructor
     virtual ~ldomDocumentFragmentWriter() { }

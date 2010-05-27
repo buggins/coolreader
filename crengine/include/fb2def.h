@@ -146,6 +146,7 @@ XS_TAG1T( isbn )
 XS_TAG1T( nickname )
 XS_TAG1T( keywords )
 
+XS_TAG1( DocFragment )
 
 XS_END_TAGS
 
@@ -184,6 +185,7 @@ XS_ATTR( schemaLocation )
 XS_ATTR( include )
 XS_ATTR2( include_all, "include-all" )
 XS_ATTR2( content_type, "content-type" )
+XS_ATTR( StyleSheet )
 
 XS_END_ATTRS
 

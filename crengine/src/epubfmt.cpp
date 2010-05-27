@@ -1,6 +1,40 @@
 #include "../include/epubfmt.h"
 
 
+class EpubItem {
+public:
+    lString16 href;
+    lString16 mediaType;
+    lString16 id;
+    EpubItem()
+    { }
+    EpubItem( const EpubItem & v )
+        : href(v.href), mediaType(v.mediaType), id(v.id)
+    { }
+    EpubItem & operator = ( const EpubItem & v )
+    {
+        href = v.href;
+        mediaType = v.mediaType;
+        id = v.id;
+        return *this;
+    }
+};
+
+class EpubItems : public LVPtrVector<EpubItem> {
+public:
+    EpubItem * findById( const lString16 & id )
+    {
+        if ( id.empty() )
+            return NULL;
+        for ( int i=0; i<length(); i++ )
+            if ( get(i)->id == id )
+                return get(i);
+        return NULL;
+    }
+};
+
+
+
 bool DetectEpubFormat( LVStreamRef stream )
 {
 
@@ -159,10 +193,16 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 #endif
     m_doc->setCodeBase( codeBase );
 
-    ldomDocumentFragmentWriter appender(&writer, lString16(L"body"));
+    ldomDocumentFragmentWriter appender(&writer, lString16(L"body"), lString16(L"DocFragment"), lString16::empty_str );
     writer.OnStart(NULL);
     writer.OnTagOpenNoAttr(L"", L"body");
     int fragmentCount = 0;
+    for ( int i=0; i<spineItems.length(); i++ ) {
+        if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
+            lString16 name = codeBase + spineItems[i]->href;
+            appender.addPathSubstitution( name, lString16(L"_doc_fragment_") + lString16::itoa(i) );
+        }
+    }
     for ( int i=0; i<spineItems.length(); i++ ) {
         if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
             lString16 name = codeBase + spineItems[i]->href;
@@ -170,6 +210,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 CRLog::debug("Checking fragment: %s", LCSTR(name));
                 LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                 if ( !stream.isNull() ) {
+                    appender.setCodeBase( name );
                     LVXMLParser parser(stream, &appender);
                     if ( parser.CheckFormat() && parser.Parse() ) {
                         // valid
@@ -188,6 +229,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     if ( fragmentCount==0 )
         return false;
 
+#if 0
     // set stylesheet
     //m_doc->getStyleSheet()->clear();
     m_doc->setStyleSheet( NULL, true );
@@ -210,6 +252,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
         //m_doc->setStyleSheet( m_stylesheet.c_str(), false );
     }
+#endif
 #if 0
     LVStreamRef out = LVOpenFileStream( L"c:\\doc.xml" , LVOM_WRITE );
     if ( !out.isNull() )

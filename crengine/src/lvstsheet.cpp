@@ -1113,7 +1113,7 @@ LVCssSelectorRule::LVCssSelectorRule( LVCssSelectorRule & v )
 , _value( v._value )
 {
     if ( v._next )
-        _next = new LVCssSelectorRule( *_next );
+        _next = new LVCssSelectorRule( *v._next );
 }
 
 LVCssSelector::LVCssSelector( LVCssSelector & v )
@@ -1125,15 +1125,21 @@ LVCssSelector::LVCssSelector( LVCssSelector & v )
         _rules = new LVCssSelectorRule( *v._rules );
 }
 
-LVStyleSheet::LVStyleSheet( LVStyleSheet & sheet )
-:   _doc( sheet._doc )
+void LVStyleSheet::set(LVPtrVector<LVCssSelector> & v  )
 {
-    _selectors.reserve( sheet._selectors.size() );
-    for ( int i=0; i<sheet._selectors.size(); i++ ) {
-        LVCssSelector * selector = sheet._selectors[i];
+    _selectors.clear();
+    _selectors.reserve( v.size() );
+    for ( int i=0; i<v.size(); i++ ) {
+        LVCssSelector * selector = v[i];
         if ( selector )
             _selectors[i] = new LVCssSelector( *selector );
     }
+}
+
+LVStyleSheet::LVStyleSheet( LVStyleSheet & sheet )
+:   _doc( sheet._doc )
+{
+    set( sheet._selectors );
 }
 
 void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )

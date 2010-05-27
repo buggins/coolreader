@@ -384,11 +384,12 @@ public:
     /// called on opening tag end
     virtual void OnTagBody() {}
     /// called on opening tag
-    virtual void OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
         if ( !lStr_cmp(tagname, L"pattern") ) {
             insidePatternTag = true;
         }
+        return NULL;
     }
     /// called on closing
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )

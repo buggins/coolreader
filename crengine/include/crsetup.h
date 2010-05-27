@@ -166,7 +166,7 @@
 
 /// zlib stream decode cache size, used to avoid restart of decoding from beginning to move back
 #ifndef ZIP_STREAM_BUFFER_SIZE
-#define ZIP_STREAM_BUFFER_SIZE 0x40000
+#define ZIP_STREAM_BUFFER_SIZE 0x10000
 #endif
 
 /// document stream buffer size
