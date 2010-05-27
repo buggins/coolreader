@@ -945,7 +945,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
             text = s2;
         }
         crlines.add( text );
-        for ( int i=0; i<crlines.length(); i++ ) {
+        for ( unsigned i=0; i<crlines.length(); i++ ) {
             wrapLine( lines, crlines[i], rc.width(), font );
         }
     } else {
@@ -974,7 +974,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     else if ( valign == SKIN_VALIGN_BOTTOM )
         y += dy;
 
-    for ( int i=0; i<lines.length(); i++ ) {
+    for ( unsigned i=0; i<lines.length(); i++ ) {
         lString16 s = lines[i];
         int tw = font->getTextWidth( s.c_str(), s.length() );
         int x = txtrc.left;

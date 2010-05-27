@@ -138,6 +138,9 @@ Run Qt SDK / Qt Command Prompt. Execute:
 > make
 > make install
 
+cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 9 2008" -D USE_QT_ZLIB -D CMAKE_INSTALL_PREFIX=dist ..
+
+
 It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
 You need also add following DLLs to this directory in order to get cr3.exe working:
 - mingwm10.dll

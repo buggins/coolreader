@@ -33,6 +33,7 @@ bool AboutDialog::showDlg( QWidget * parent )
     dlg->show();
     dlg->raise();
     dlg->activateWindow();
+	return true;
 }
 
 

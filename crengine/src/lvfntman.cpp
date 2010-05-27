@@ -1138,9 +1138,9 @@ public:
         int dy = oldy + _vShift;
         if ( !oldx || !oldy )
             return true;
-        lUInt8 tmp[oldx*oldy];
+        LVAutoPtr<lUInt8> tmp( new lUInt8[oldx*oldy] );
         memset(buf, 0, dx*dy);
-        bool res = _baseFont->getGlyphImage( code, tmp );
+		bool res = _baseFont->getGlyphImage( code, tmp.get() );
         for ( int y=0; y<dy; y++ ) {
             lUInt8 * dst = buf + y*dx;
             for ( int x=0; x<dx; x++ ) {
@@ -1149,7 +1149,7 @@ public:
                     int srcy = y+yy;
                     if ( srcy<0 || srcy>=oldy )
                         continue;
-                    lUInt8 * src = tmp + srcy*oldx;
+                    lUInt8 * src = tmp.get() + srcy*oldx;
                     for ( int xx=-_hShift; xx<=0; xx++ ) {
                         int srcx = x+xx;
                         if ( srcx>=0 && srcx<oldx && src[srcx] > s )
@@ -1244,11 +1244,11 @@ public:
             // avoid soft hyphens inside text string
             int w = glyph.width;
             if ( glyph.blackBoxX && glyph.blackBoxY && (!isHyphen || i>=len-1) ) {
-                lUInt8 bmp[glyph.blackBoxX * glyph.blackBoxY];
-                if ( getGlyphImage( ch, bmp ) ) {
+                LVAutoPtr<lUInt8> bmp( new lUInt8[glyph.blackBoxX * glyph.blackBoxY] );
+                if ( getGlyphImage( ch, bmp.get() ) ) {
                     buf->Draw( x + glyph.originX,
                         y + _baseline - glyph.originY,
-                        bmp,
+                        bmp.get(),
                         glyph.blackBoxX,
                         glyph.blackBoxY,
                         palette);

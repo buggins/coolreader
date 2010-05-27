@@ -420,7 +420,7 @@ bool LVRendPageInfo::serialize( SerialBuf & buf )
     if ( buf.error() )
         return false;
     buf << (lUInt32)start; /// start of page
-    buf << (lUInt32)height; /// height of page, does not include footnotes
+    buf << (lUInt16)height; /// height of page, does not include footnotes
     buf << (lUInt8) type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
     lUInt16 len = footnotes.length();
     buf << len;
@@ -435,7 +435,8 @@ bool LVRendPageInfo::deserialize( SerialBuf & buf )
 {
     if ( buf.error() )
         return false;
-    lUInt32 n1, n2;
+    lUInt32 n1;
+	lUInt16 n2;
     lUInt8 n3;
 
     buf >> n1 >> n2 >> n3; /// start of page

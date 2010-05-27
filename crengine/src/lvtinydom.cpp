@@ -277,7 +277,7 @@ static void dumpRendMethods( ldomNode * node, lString16 prefix )
     else
         name << L"<" << node->getNodeName() << L">   " << lString16::itoa(node->getRendMethod());
     CRLog::trace( "%s ",LCSTR(name) );
-    for ( int i=0; i<node->getChildCount(); i++ ) {
+    for ( unsigned i=0; i<node->getChildCount(); i++ ) {
         dumpRendMethods( node->getChildNode(i), prefix + L"   ");
     }
 }
@@ -406,7 +406,7 @@ public:
                                  );
                 }
                 MYASSERT( eof1==eof2, "read, eof");
-                for ( int i=0; i<count; i++ ) {
+                for ( unsigned i=0; i<count; i++ ) {
                     if ( buf1[i]!=buf2[i] ) {
                         CRLog::error("read, different data by offset %x", i);
                         MYASSERT( 0, "read, equal data");
@@ -618,13 +618,13 @@ bool CacheFile::readIndex()
         return false;
     if ( !hdr.validate() )
         return false;
-    if ( hdr._fsize > _size + 4096-1 ) {
+    if ( (int)hdr._fsize > _size + 4096-1 ) {
         CRLog::error("CacheFile::readIndex: file size doesn't match with header");
         return false;
     }
     if ( !hdr._indexBlock._blockFilePos )
         return true; // empty index is ok
-    if ( hdr._indexBlock._blockFilePos>=hdr._fsize || hdr._indexBlock._blockFilePos+hdr._indexBlock._blockSize>hdr._fsize+4096-1 ) {
+    if ( hdr._indexBlock._blockFilePos>=(int)hdr._fsize || hdr._indexBlock._blockFilePos+hdr._indexBlock._blockSize>(int)hdr._fsize+4096-1 ) {
         CRLog::error("CacheFile::readIndex: Wrong index file position specified in header");
         return false;
     }
@@ -981,10 +981,10 @@ bool CacheFile::create( LVStreamRef stream )
     }
 
     _size = _sectorSize;
-    lUInt8 sector0[_sectorSize];
-    memset(sector0, 0, _sectorSize);
+    LVAutoPtr<lUInt8> sector0( new lUInt8[_sectorSize] );
+    memset(sector0.get(), 0, _sectorSize);
     lvsize_t bytesWritten = 0;
-    _stream->Write(sector0, _sectorSize, &bytesWritten );
+    _stream->Write(sector0.get(), _sectorSize, &bytesWritten );
     if ( bytesWritten!=_sectorSize ) {
         _stream.Clear();
         return false;
@@ -1800,7 +1800,7 @@ bool ldomDataStorageManager::load()
     _chunks.clear();
     lUInt32 compsize;
     lUInt32 uncompsize = 0;
-    for ( int i=0; i<n; i++ ) {
+    for ( unsigned i=0; i<n; i++ ) {
         buf >>
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
                 compsize >>
@@ -2026,7 +2026,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
 #if RAM_COMPRESSED_BUFFER_ENABLED!=0
             if ( p->_bufsize >= 0 ) {
-                if ( p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
+                if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
                     // fits
                     sumsize += p->_bufsize;
                 } else {
@@ -2034,7 +2034,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
                 }
             }
             if ( p->_compsize>=0 ) {
-                if ( p->_compsize + sumpackedsize < _maxCompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF) ) {
+                if ( (int)p->_compsize + sumpackedsize < _maxCompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF) ) {
                     // fits
                     sumpackedsize += p->_compsize;
                 } else {
@@ -2252,7 +2252,7 @@ bool ldomTextStorageChunk::restoreFromCache()
 void ldomTextStorageChunk::getRaw( int offset, int size, lUInt8 * buf )
 {
 #ifdef _DEBUG
-    if ( !_buf || offset+size>_bufpos || offset+size>_bufsize )
+    if ( !_buf || offset+size>(int)_bufpos || offset+size>(int)_bufsize )
         crFatalError(123, "ldomTextStorageChunk: Invalid raw data buffer position");
 #endif
     memcpy( buf, _buf+offset, size );
@@ -2262,7 +2262,7 @@ void ldomTextStorageChunk::getRaw( int offset, int size, lUInt8 * buf )
 void ldomTextStorageChunk::setRaw( int offset, int size, const lUInt8 * buf )
 {
 #ifdef _DEBUG
-    if ( !_buf || offset+size>_bufpos || offset+size>_bufsize )
+    if ( !_buf || offset+size>(int)_bufpos || offset+size>(int)_bufsize )
         crFatalError(123, "ldomTextStorageChunk: Invalid raw data buffer position");
 #endif
     if ( memcmp( _buf+offset, buf, size ) ) {
@@ -2290,7 +2290,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
         _bufpos = 0;
         _manager->_uncompressedSize += _bufsize;
     }
-    if ( _bufsize - _bufpos < itemsize )
+    if ( (int)_bufsize - (int)_bufpos < itemsize )
         return -1;
     TextDataStorageItem * p = (TextDataStorageItem*)(_buf + _bufpos);
     p->sizeDiv16 = itemsize>>4;
@@ -2325,7 +2325,7 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
         _bufpos = 0;
         _manager->_uncompressedSize += _bufsize;
     }
-    if ( _bufsize - _bufpos < itemsize )
+    if ( _bufsize - _bufpos < (unsigned)itemsize )
         return -1;
     ElementDataStorageItem *item = (ElementDataStorageItem *)(_buf + _bufpos);
     if ( item ) {
@@ -2346,7 +2346,7 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
 bool ldomTextStorageChunk::setParent( int offset, lUInt32 parentIndex )
 {
     offset <<= 4;
-    if ( offset>=0 && offset<_bufpos ) {
+    if ( offset>=0 && offset<(int)_bufpos ) {
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         if ( parentIndex!=item->parentIndex ) {
             item->parentIndex = parentIndex;
@@ -2364,7 +2364,7 @@ bool ldomTextStorageChunk::setParent( int offset, lUInt32 parentIndex )
 lUInt32 ldomTextStorageChunk::getParent( int offset )
 {
     offset <<= 4;
-    if ( offset>=0 && offset<_bufpos ) {
+    if ( offset>=0 && offset<(int)_bufpos ) {
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         return item->parentIndex;
     }
@@ -2376,7 +2376,7 @@ lUInt32 ldomTextStorageChunk::getParent( int offset )
 ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
 {
     offset <<= 4;
-    if ( offset>=0 && offset<_bufpos ) {
+    if ( offset>=0 && offset<(int)_bufpos ) {
         ElementDataStorageItem * item = (ElementDataStorageItem *)(_buf+offset);
         return item;
     }
@@ -2407,7 +2407,7 @@ void ldomTextStorageChunk::modified()
 void ldomTextStorageChunk::freeNode( int offset )
 {
     offset <<= 4;
-    if ( offset>=0 && offset<_bufpos ) {
+    if ( offset>=0 && offset<(int)_bufpos ) {
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         if ( (item->type==LXML_TEXT_NODE || item->type==LXML_ELEMENT_NODE) && item->dataIndex ) {
             item->type = LXML_NO_DATA;
@@ -2421,7 +2421,7 @@ void ldomTextStorageChunk::freeNode( int offset )
 lString8 ldomTextStorageChunk::getText( int offset )
 {
     offset <<= 4;
-    if ( offset>=0 && offset<_bufpos ) {
+    if ( offset>=0 && offset<(int)_bufpos ) {
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         return item->getText8();
     }
@@ -2434,7 +2434,7 @@ lString8 ldomTextStorageChunk::getText( int offset )
 bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
 {
     lUInt8 tmp[PACK_BUF_SIZE]; // 64K buffer for compressed data
-    int ret, flush;
+    int ret;
     z_stream z;
     z.zalloc = Z_NULL;
     z.zfree = Z_NULL;
@@ -2464,7 +2464,7 @@ bool ldomPack( const lUInt8 * buf, int bufsize, lUInt8 * &dstbuf, lUInt32 & dsts
 bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
 {
     lUInt8 tmp[UNPACK_BUF_SIZE]; // 64K buffer for compressed data
-    int ret, flush;
+    int ret;
     z_stream z;
     memset( &z, 0, sizeof(z) );
     z.zalloc = Z_NULL;
@@ -2499,6 +2499,7 @@ bool ldomTextStorageChunk::unpack()
     if ( res ) {
         setpacked(NULL, 0);
     }
+	return res;
 }
 
 /// pack data from _buf[_bufsize] to _compbuf
@@ -3756,7 +3757,7 @@ void ldomNode::initNodeRendMethod()
                         }
                         j++;
                         // j..i are inline
-                        if ( j>0 || i<getChildCount()-1 )
+                        if ( j>0 || i<(int)getChildCount()-1 )
                             autoboxChildren( j, i );
                         i = j;
                     } else if ( i>0 ) {
@@ -6735,7 +6736,7 @@ bool tinyNodeCollection::loadStylesData()
     for ( int i=0; i<list.length(); i++ ) {
         lUInt32 index = 0;
         stylebuf >> index; // index
-        if ( index<=0 || index>=len || stylebuf.error() )
+        if ( index<=0 || (int)index>=len || stylebuf.error() )
             break;
         css_style_ref_t rec( new css_style_rec_t() );
         if ( !rec->deserialize(stylebuf) )
@@ -7461,7 +7462,8 @@ static void readOnlyError()
 // shortcut for dynamic element accessor
 #ifdef _DEBUG
   #define ASSERT_NODE_NOT_NULL \
-    crFatalError( 1313, "Access to null node" )
+    if ( isNull() ) \
+		crFatalError( 1313, "Access to null node" )
 #else
   #define ASSERT_NODE_NOT_NULL
 #endif
@@ -7991,7 +7993,7 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
     case NT_ELEMENT:
         {
             lString16 txt;
-            int cc = getChildCount();
+            unsigned cc = getChildCount();
             for ( unsigned i=0; i<cc; i++ ) {
                 txt += getChildNode(i)->getText(blockDelimiter);
                 ldomNode * child = getChildNode(i);
@@ -8022,7 +8024,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
     case NT_PELEMENT:
         {
             lString8 txt;
-            int cc = getChildCount();
+            unsigned cc = getChildCount();
             for ( unsigned i=0; i<cc; i++ ) {
                 txt += getChildNode(i)->getText8(blockDelimiter);
                 ldomNode * child = getChildNode(i);
@@ -8349,9 +8351,7 @@ font_ref_t ldomNode::getFont()
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return font_ref_t();
-    if  ( isElement() ) {
-        return getDocument()->getNodeFont( _handle._dataIndex );
-    }
+    return getDocument()->getNodeFont( _handle._dataIndex );
 }
 
 /// sets element font
