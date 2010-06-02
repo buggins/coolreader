@@ -380,7 +380,18 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 	};
 
 	item_def_t page_margins[] = {
-		{"0", "0"},
+#if BIG_PAGE_MARGINS==1
+    //static int def_margin[] = { 8, 0, 5, 10, 20, 30, 50, 60 };
+    {"0", "0"},
+    {"5", "5"},
+    {"8", "8"},
+    {"10", "10"},
+    {"20", "20"},
+    {"30", "30"},
+    {"50", "50"},
+    {"60", "60"},
+#else
+        {"0", "0"},
 		{"5", "5"},
 		{"8", "8"},
 		{"10", "10"},
@@ -388,6 +399,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 		{"20", "20"},
 		{"25", "25"},
 		{"30", "30"},
+#endif
 		{NULL, NULL},
 	};
 
