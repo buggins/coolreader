@@ -328,6 +328,7 @@ class tinyNodeCollection
 {
     friend class ldomNode;
     friend class tinyElement;
+    friend class ldomDocument;
 private:
     int _textCount;
     lUInt32 _textNextFree;

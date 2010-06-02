@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.15"
+#define CACHE_FILE_FORMAT_VERSION "3.02.16"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -3013,6 +3013,7 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
 void tinyNodeCollection::dropStyles()
 {
     _styles.clear(-1);
+    _fonts.clear(-1);
     int cnt = 0;
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     for ( int i=0; i<count; i++ ) {
@@ -3025,6 +3026,7 @@ void tinyNodeCollection::dropStyles()
         for ( int j=0; j<sz; j++ ) {
             if ( buf[j].isElement() ) {
                 setNodeStyleIndex( buf[j]._handle._dataIndex, 0 );
+                setNodeFontIndex( buf[j]._handle._dataIndex, 0 );
             }
         }
     }
@@ -3123,7 +3125,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         saveToStream( ostream, "utf-16" );
     #endif
         gc();
-        CRLog::trace("finalizing...");
+        CRLog::trace("finalizing... fonts.length=%d", _fonts.length());
         context.Finalize();
         updateRenderContext();
         _pagesData.reset();

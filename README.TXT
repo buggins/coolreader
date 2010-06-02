@@ -30,7 +30,7 @@ cr3/wx: wxWidgets 2.8
 e.g., for Ubuntu you may use
 > sudo apt-get install git-core cmake libqt4-dev libpng12-dev libfreetype6-dev libjpeg62-dev libfontconfig1-dev zlib1g-dev
 
--D RAM_COMPRESSED_BUFFER_ENABLED=1 -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x500000
+-D RAM_COMPRESSED_BUFFER_ENABLED=0 -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x500000
 
 Build instructions:
 
@@ -58,7 +58,7 @@ make
 # Building i386 version (for OpenInkpot), V3 simulation:
 mkdir xcb-v3
 cd xcb-v3
-cmake -D DEVICE_NAME=v3 -D CMAKE_BUILD_TYPE=Debug -D USE_STATIC_ZLIB=1 -Wdev -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB -D RAM_COMPRESSED_BUFFER_ENABLED=1 -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x500000 ..
+cmake -D DEVICE_NAME=v3 -D CMAKE_BUILD_TYPE=Debug -D USE_STATIC_ZLIB=1 -Wdev -D CMAKE_INSTALL_PREFIX=/usr -D GUI=CRGUI_XCB -D RAM_COMPRESSED_BUFFER_ENABLED=0 -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x500000 ..
 make
 
 # Building i386 version (for OpenInkpot), n516/azbooka simulation:
