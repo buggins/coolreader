@@ -350,14 +350,27 @@ public:
 
     bool init( LVContainerRef cont )
     {
-        LVStreamRef tocStream = cont->OpenStream(L"toc.hhc", LVOM_READ);
+        lString16 hhcName;
+        for ( int i=0; i<cont->GetObjectCount(); i++ ) {
+            const LVContainerItemInfo * item = cont->GetObjectInfo(i);
+            if ( !item->IsContainer() ) {
+                lString16 name = item->GetName();
+                if ( name.endsWith(L".hhc") ) {
+                    hhcName = name;
+                    break;
+                }
+            }
+        }
+        if ( hhcName.empty() )
+            return false;
+        LVStreamRef tocStream = cont->OpenStream(hhcName.c_str(), LVOM_READ);
         if ( tocStream.isNull() ) {
-            CRLog::error("CHM: Cannot open toc.hhc");
+            CRLog::error("CHM: Cannot open .hhc");
             return false;
         }
         ldomDocument * doc = LVParseHTMLStream( tocStream );
         if ( !doc ) {
-            CRLog::error("CHM: Cannot parse toc.hhc");
+            CRLog::error("CHM: Cannot parse .hhc");
             return false;
         }
         ldomXPointer body = doc->createXPointer(lString16("/html[1]/body[1]"));

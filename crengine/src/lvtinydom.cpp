@@ -6442,9 +6442,9 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
 void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
 {
     //logfile << "ldomDocumentWriter::OnAttribute() [" << nsname << ":" << attrname << "]";
-    if ( nsname && nsname[0] )
-        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
-    lStr_lowercase( const_cast<lChar16 *>(attrname), lStr_len(attrname) );
+    //if ( nsname && nsname[0] )
+    //    lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
+    //lStr_lowercase( const_cast<lChar16 *>(attrname), lStr_len(attrname) );
 
     lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;
     lUInt16 attr_id = (attrname && attrname[0]) ? _document->getAttrNameIndex( attrname ) : 0;

@@ -2055,6 +2055,10 @@ bool LVXMLParser::Parse()
                             break;
                     }
                 }
+                if ( m_citags ) {
+                    attrns.lowercase();
+                    attrname.lowercase();
+                }
                 m_callback->OnAttribute( attrns.c_str(), attrname.c_str(), attrvalue.c_str());
                 if (inXmlTag && attrname==L"encoding")
                 {
