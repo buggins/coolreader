@@ -8991,6 +8991,8 @@ LVImageSourceRef ldomNode::getObjectImageSource()
         int dx = ref->GetWidth();
         int dy = ref->GetHeight();
         ref = LVImageSourceRef( new NodeImageProxy(this, refName, dx, dy) );
+    } else {
+        CRLog::error("ObjectImageSource cannot be opened by name %s", LCSTR(refName));
     }
 
     getDocument()->_urlImageMap.set( refName, ref );
@@ -9009,6 +9011,8 @@ LVImageSourceRef ldomDocument::getObjectImageSource( lString16 refName )
             LVStreamRef stream = getContainer()->OpenStream(name.c_str(), LVOM_READ);
             if ( !stream.isNull() )
                 ref = LVCreateStreamImageSource( stream );
+            else
+                CRLog::error("Cannot open stream by name %s", LCSTR(name));
         }
         return ref;
     }

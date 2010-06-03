@@ -191,7 +191,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     m_doc->setAttributeTypes( fb2_attr_table );
     m_doc->setNameSpaceTypes( fb2_ns_table );
 #endif
-    m_doc->setCodeBase( codeBase );
+    //m_doc->setCodeBase( codeBase );
 
     ldomDocumentFragmentWriter appender(&writer, lString16(L"body"), lString16(L"DocFragment"), lString16::empty_str );
     writer.OnStart(NULL);
