@@ -6392,9 +6392,9 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
-    if ( nsname && nsname[0] )
-        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
-    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
+//    if ( nsname && nsname[0] )
+//        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
+//    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
 
     // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
     if ( tagname[0]=='b' && tagname[1]=='r' && tagname[2]==0 ) {
@@ -6478,9 +6478,9 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
 {
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
-    if ( nsname && nsname[0] )
-        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
-    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
+//    if ( nsname && nsname[0] )
+//        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
+//    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
     if (!_currNode)
     {
         _errFlag = true;

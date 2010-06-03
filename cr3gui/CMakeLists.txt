@@ -43,7 +43,7 @@ SET (CR3_SOURCES
 )
 
 SET (CR3_STYLES
-  data/epub.css  data/fb2.css  data/htm.css  data/rtf.css  data/txt.css
+  data/epub.css  data/fb2.css  data/htm.css  data/rtf.css  data/txt.css data/chm.css
 )
 
 #   

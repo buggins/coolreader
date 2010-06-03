@@ -379,6 +379,8 @@ public:
             // body element
             recurseToc( body, 0 );
             res = _fileList.length()>0;
+            while ( _toc && _toc->getParent() )
+                _toc = _toc->getParent();
             if ( res && _toc->getChildCount()>0 ) {
                 lString16 name = _toc->getChild(0)->getName();
                 CRPropRef m_doc_props = _doc->getProps();
@@ -422,6 +424,15 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
         stream->SetPos(0);
         return false;
     }
+    doc->setContainer(cont);
+
+    if ( doc->openFromCache() ) {
+        if ( progressCallback ) {
+            progressCallback->OnLoadFileEnd( );
+        }
+        return true;
+    }
+
     int fragmentCount = 0;
     ldomDocumentWriterFilter writer(doc, false, HTML_AUTOCLOSE_TABLE);
     //ldomDocumentWriter writer(doc);

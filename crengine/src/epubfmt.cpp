@@ -99,6 +99,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     if ( rootfilePath.empty() || rootfileMediaType!=L"application/oebps-package+xml" )
         return false;
 
+    m_doc->setContainer(m_arc);
 
     // read content.opf
     EpubItems epubItems;

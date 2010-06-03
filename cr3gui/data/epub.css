@@ -1,6 +1,8 @@
 body { text-align: left; text-indent: 0px }
 p { text-align: justify; text-indent: 2em; margin-top:0em; margin-bottom: 0em }
 
+DocFragment { page-break-before: always }
+
 empty-line { height: 1em }
 
 hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em }

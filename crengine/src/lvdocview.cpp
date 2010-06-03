@@ -2888,6 +2888,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
             setDocFormat( doc_format_epub );
             if ( m_callback )
                 m_callback->OnLoadFileFormatDetected(doc_format_epub);
+            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
             bool res = ImportEpubDocument( m_stream, m_doc, m_callback );
             if ( !res ) {
                 setDocFormat( doc_format_none );
@@ -2910,14 +2911,15 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         }
 
         if ( DetectCHMFormat( m_stream ) ) {
-            // EPUB
+            // CHM
             CRLog::info("CHM format detected");
             createEmptyDocument();
             m_doc->setProps( m_doc_props );
             setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
             setDocFormat( doc_format_chm );
             if ( m_callback )
-                m_callback->OnLoadFileFormatDetected(doc_format_chm);
+                    m_callback->OnLoadFileFormatDetected(doc_format_chm);
+            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
             bool res = ImportCHMDocument( m_stream, m_doc, m_callback );
             if ( !res ) {
                 setDocFormat( doc_format_none );
@@ -3274,12 +3276,13 @@ bool LVDocView::ParseDocument( )
 		if ( m_callback ) {
 			m_callback->OnLoadFileFormatDetected( getDocFormat() );
 		}
+        m_doc->setStyleSheet(m_stylesheet.c_str(), true);
         setRenderProps( 0, 0 );
 
 		// set stylesheet
 		//m_doc->getStyleSheet()->clear();
 		//m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
-        m_doc->setStyleSheet( m_stylesheet.c_str(), true );
+        //m_doc->setStyleSheet( m_stylesheet.c_str(), true );
 
         // parse
         parser->setProgressCallback( m_callback );
