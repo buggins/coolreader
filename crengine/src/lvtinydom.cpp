@@ -2741,6 +2741,7 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 ,_idNodeMap(1024)
 ,_urlImageMap(1024)
 ,_idAttrId(0)
+,_nameAttrId(0)
 #if BUILD_LITE!=1
 //,_keepData(false)
 //,_mapped(false)
@@ -2762,9 +2763,13 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
 {
     if ( _idAttrId==0 )
         _idAttrId = _attrNameTable.idByName("id");
-    if (attrId == _idAttrId)
-    {
+    if ( _nameAttrId==0 )
+        _nameAttrId = _attrNameTable.idByName("name");
+    if (attrId == _idAttrId) {
         _idNodeMap.set( valueId, node->getDataIndex() );
+    } else if ( attrId==_nameAttrId ) {
+        if ( node->getNodeName()==L"a" )
+            _idNodeMap.set( valueId, node->getDataIndex() );
     }
 }
 
@@ -4390,6 +4395,18 @@ ldomXPointer ldomXPointer::relative( lString16 relativePath )
 /// create xpointer from pointer string
 ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
 {
+    if ( xPointerStr[0]=='#' ) {
+        lString16 id = xPointerStr.substr(1);
+        lUInt16 idid = getAttrValueIndex(id.c_str());
+        int nodeIndex;
+        if ( _idNodeMap.get(idid, nodeIndex) ) {
+            ldomNode * node = getTinyNode(nodeIndex);
+            if ( node && node->isElement() ) {
+                return ldomXPointer(node, -1);
+            }
+        }
+        return ldomXPointer();
+    }
     return createXPointer( getRootNode(), xPointerStr );
 }
 
@@ -4658,7 +4675,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
                 int foundCount = 0;
                 for (unsigned i=0; i<currNode->getChildCount(); i++) {
                     ldomNode * p = currNode->getChildNode(i);
-                    //CRLog::trace( "        node[%d] = %d", i, p->getNodeId() );
+                    //CRLog::trace( "        node[%d] = %d %s", i, p->getNodeId(), LCSTR(p->getNodeName()) );
                     if ( p && p->isElement() && p->getNodeId()==id ) {
                         foundCount++;
                         if ( foundCount==index || index==-1 ) {
@@ -6117,6 +6134,38 @@ ldomDocument * LVParseXMLStream( LVStreamRef stream,
 
     /// FB2 format
     LVFileFormatParser * parser = new LVXMLParser(stream, &writer);
+    if ( parser->CheckFormat() ) {
+        if ( parser->Parse() ) {
+            error = false;
+        }
+    }
+    delete parser;
+    if ( error ) {
+        delete doc;
+        doc = NULL;
+    }
+    return doc;
+}
+
+ldomDocument * LVParseHTMLStream( LVStreamRef stream,
+                              const elem_def_t * elem_table,
+                              const attr_def_t * attr_table,
+                              const ns_def_t * ns_table )
+{
+    if ( stream.isNull() )
+        return NULL;
+    bool error = true;
+    ldomDocument * doc;
+    doc = new ldomDocument();
+    doc->setDocFlags( 0 );
+
+    ldomDocumentWriterFilter writerFilter(doc, false, HTML_AUTOCLOSE_TABLE);
+    doc->setNodeTypes( elem_table );
+    doc->setAttributeTypes( attr_table );
+    doc->setNameSpaceTypes( ns_table );
+
+    /// FB2 format
+    LVFileFormatParser * parser = new LVHTMLParser(stream, &writerFilter);
     if ( parser->CheckFormat() ) {
         if ( parser->Parse() ) {
             error = false;

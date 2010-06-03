@@ -179,7 +179,10 @@ public:
             return stream;
 
         LVCHMStream * p = new LVCHMStream(_file);
-        if ( !p->open( UnicodeToUtf8(lString16(fname)).c_str() )) {
+        lString16 fn(fname);
+        if ( fn[0]!='/' )
+            fn = lString16("/") + fn;
+        if ( !p->open( UnicodeToUtf8(lString16(fn)).c_str() )) {
             delete p;
             return stream;
         }
@@ -263,6 +266,133 @@ LVContainerRef LVOpenCHMContainer( LVStreamRef stream )
     return LVContainerRef( chm );
 }
 
+bool DetectCHMFormat( LVStreamRef stream )
+{
+    stream->SetPos(0);
+    LVContainerRef cont = LVOpenCHMContainer( stream );
+    if ( !cont.isNull() ) {
+        return true;
+    }
+    return false;
+}
+
+class CHMTOCReader {
+    LVContainerRef _cont;
+    ldomDocumentFragmentWriter * _appender;
+    ldomDocument * _doc;
+    LVTocItem * _toc;
+    lString16Collection _fileList;
+    lString16 lastFile;
+public:
+    CHMTOCReader( LVContainerRef cont, ldomDocument * doc, ldomDocumentFragmentWriter * appender )
+        : _cont(cont), _appender(appender), _doc(doc)
+    {
+        _toc = _doc->getToc();
+    }
+    void addTocItem( lString16 name, lString16 url, int level )
+    {
+        CRLog::trace("CHM toc level %d: '%s' : %s", level, LCSTR(name), LCSTR(url) );
+        lString16 v1, v2;
+        if ( !url.split2(lString16("#"), v1, v2) )
+            v1 = url;
+        if ( v1!=lastFile ) {
+            CRLog::trace("New source file: %s", LCSTR(v1) );
+            _fileList.add(v1);
+            lastFile = v1;
+            _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + lString16::itoa(_fileList.length()) );
+            _appender->setCodeBase( v1 );
+        }
+        lString16 url2 = _appender->convertHref(url);
+        CRLog::trace("new url: %s", LCSTR(url2) );
+        while ( _toc->getLevel()>level )
+            _toc = _toc->getParent();
+        _toc->addChild(name, ldomXPointer(), url2);
+    }
+
+    void recurseToc( ldomNode * node, int level )
+    {
+        lString16 nodeName = node->getNodeName();
+        if ( nodeName==L"object" ) {
+            if ( level>0 ) {
+                // process object
+                if ( node->getAttributeValue(L"type")==L"text/sitemap" ) {
+                    lString16 name, local;
+                    int cnt = node->getChildCount();
+                    for ( int i=0; i<cnt; i++ ) {
+                        ldomNode * child = node->getChildNode(i);
+                        if ( child->isElement() && child->getNodeName()==L"param" ) {
+                            lString16 paramName = child->getAttributeValue(L"name");
+                            lString16 paramValue = child->getAttributeValue(L"value");
+                            if ( paramName==L"Name" )
+                                name = paramValue;
+                            else if ( paramName==L"Local" )
+                                local = paramValue;
+                        }
+                    }
+                    if ( !local.empty() && !name.empty() ) {
+                        // found!
+                        addTocItem( name, local, level );
+                    }
+                }
+            }
+            return;
+        }
+        if ( nodeName==L"ul" )
+            level++;
+        int cnt = node->getChildCount();
+        for ( int i=0; i<cnt; i++ ) {
+            ldomNode * child = node->getChildNode(i);
+            if ( child->isElement() ) {
+                recurseToc( child, level );
+            }
+        }
+    }
+
+    bool init( LVContainerRef cont )
+    {
+        LVStreamRef tocStream = cont->OpenStream(L"toc.hhc", LVOM_READ);
+        if ( tocStream.isNull() ) {
+            CRLog::error("CHM: Cannot open toc.hhc");
+            return false;
+        }
+        ldomDocument * doc = LVParseHTMLStream( tocStream );
+        if ( !doc ) {
+            CRLog::error("CHM: Cannot parse toc.hhc");
+            return false;
+        }
+        ldomXPointer body = doc->createXPointer(lString16("/html[1]/body[1]"));
+        bool res = false;
+        if ( body.isElement() ) {
+            // body element
+            recurseToc( body.getNode(), 0 );
+            res = _fileList.length()>0;
+        }
+        delete doc;
+        return res;
+    }
+    int appendFragments()
+    {
+        int appendedFragments = 0;
+        for ( int i=0; i<_fileList.length(); i++ ) {
+            lString16 fname = _fileList[i];
+            CRLog::trace("Import file %s", LCSTR(fname));
+            LVStreamRef stream = _cont->OpenStream(fname.c_str(), LVOM_READ);
+            if ( stream.isNull() )
+                continue;
+            _appender->setCodeBase(fname);
+            LVHTMLParser parser(stream, _appender);
+            if ( parser.CheckFormat() && parser.Parse() ) {
+                // valid
+                appendedFragments++;
+            } else {
+                CRLog::error("Document type is not HTML for fragment %s", LCSTR(fname));
+            }
+            appendedFragments++;
+        }
+        return appendedFragments;
+    }
+};
+
 bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback )
 {
     stream->SetPos(0);
@@ -271,7 +401,20 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
         stream->SetPos(0);
         return false;
     }
-    return false;
+    int fragmentCount = 0;
+    ldomDocumentWriterFilter writer(doc, false, HTML_AUTOCLOSE_TABLE);
+    //ldomDocumentWriter writer(doc);
+    writer.OnStart(NULL);
+    writer.OnTagOpenNoAttr(L"", L"body");
+    ldomDocumentFragmentWriter appender(&writer, lString16(L"body"), lString16(L"DocFragment"), lString16::empty_str );
+    CHMTOCReader tocReader(cont, doc, &appender);
+    if ( !tocReader.init(cont) )
+        return false;
+    fragmentCount = tocReader.appendFragments();
+    writer.OnTagClose(L"", L"body");
+    writer.OnStop();
+    CRLog::debug("CHM: %d documents merged", fragmentCount);
+    return fragmentCount>0;
 }
 
 #endif

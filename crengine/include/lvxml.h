@@ -376,6 +376,8 @@ private:
     bool SkipTillChar( lChar16 ch );
     bool ReadIdent( lString16 & ns, lString16 & str );
     bool ReadText();
+protected:
+    bool m_citags;
 public:
     /// returns true if format is recognized by parser
     virtual bool CheckFormat();
@@ -394,6 +396,8 @@ public:
     /// destructor
     virtual ~LVXMLParser();
 };
+
+extern const char * * HTML_AUTOCLOSE_TABLE[];
 
 /// HTML parser
 class LVHTMLParser : public LVXMLParser

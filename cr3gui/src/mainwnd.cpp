@@ -367,6 +367,9 @@ void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
         case doc_format_html:
             filename = L"htm.css";
             break;
+        case doc_format_chm:
+            filename = L"chm.css";
+            break;
         default:
             // do nothing
             ;

@@ -127,6 +127,7 @@ typedef enum {
     doc_format_epub,
     doc_format_html,
     doc_format_txt_bookmark, // coolreader TXT format bookmark
+    doc_format_chm,
     // don't forget update getDocFormatName() when changing this enum
 } doc_format_t;
 
@@ -966,6 +967,7 @@ protected:
     LVHashTable<lUInt16,lInt32> _idNodeMap; // id to data index map
     LVHashTable<lString16,LVImageSourceRef> _urlImageMap; // url to image source map
     lUInt16 _idAttrId; // Id for "id" attribute name
+    lUInt16 _nameAttrId; // Id for "name" attribute name
 
 #if BUILD_LITE!=1
     SerialBuf _pagesData;
@@ -1925,10 +1927,12 @@ private:
 
     ldomNode * baseElement;
 
+
+public:
+
     lString16 convertId( lString16 id );
     lString16 convertHref( lString16 href );
 
-public:
     void addPathSubstitution( lString16 key, lString16 value )
     {
         pathSubstitutions.set(key, value);
@@ -1987,6 +1991,12 @@ bool IsEmptySpace( const lChar16 * text, int len );
 
 /// parse XML document from stream, returns NULL if failed
 ldomDocument * LVParseXMLStream( LVStreamRef stream,
+                              const elem_def_t * elem_table=NULL,
+                              const attr_def_t * attr_table=NULL,
+                              const ns_def_t * ns_table=NULL );
+
+/// parse XML document from stream, returns NULL if failed
+ldomDocument * LVParseHTMLStream( LVStreamRef stream,
                               const elem_def_t * elem_table=NULL,
                               const attr_def_t * attr_table=NULL,
                               const ns_def_t * ns_table=NULL );

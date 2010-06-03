@@ -1817,6 +1817,8 @@ LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback )
     , m_callback(callback)
     , m_trimspaces(true)
     , m_state(0)
+    , m_citags(false)
+
 {
     m_firstPageTextCounter = 2000;
 }
@@ -1955,7 +1957,10 @@ bool LVXMLParser::Parse()
                     }
                     break;
                 }
-
+                if ( m_citags ) {
+                    tagns.lowercase();
+                    tagname.lowercase();
+                }
                 if (closeFlag)
                 {
 //                    if ( tagname==L"body" ) {
@@ -2737,6 +2742,7 @@ bool LVHTMLParser::CheckFormat()
 LVHTMLParser::LVHTMLParser( LVStreamRef stream, LVXMLParserCallback * callback )
 : LVXMLParser( stream, callback )
 {
+    m_citags = true;
 }
 
 /// destructor
@@ -2778,4 +2784,56 @@ lString16 LVReadTextFile( LVStreamRef stream )
     }
     return buf;
 }
+
+
+static const char * AC_P[]  = {"p", "p", "hr", NULL};
+static const char * AC_COL[] = {"col", NULL};
+static const char * AC_LI[] = {"li", "li", "p", NULL};
+static const char * AC_UL[] = {"ul", "li", "p", NULL};
+static const char * AC_OL[] = {"ol", "li", "p", NULL};
+static const char * AC_DD[] = {"dd", "dd", "p", NULL};
+static const char * AC_DL[] = {"dl", "dt", "p", NULL};
+static const char * AC_DT[] = {"dt", "dt", "dd", "p", NULL};
+static const char * AC_BR[] = {"br", NULL};
+static const char * AC_HR[] = {"hr", NULL};
+static const char * AC_PARAM[] = {"param", NULL};
+static const char * AC_IMG[]= {"img", NULL};
+static const char * AC_TD[] = {"td", "td", "th", NULL};
+static const char * AC_TH[] = {"th", "th", "td", NULL};
+static const char * AC_TR[] = {"tr", "tr", "thead", "tfoot", "tbody", NULL};
+static const char * AC_DIV[] = {"div", "p", NULL};
+static const char * AC_TABLE[] = {"table", "p", NULL};
+static const char * AC_THEAD[] = {"thead", "tr", "thead", "tfoot", "tbody", NULL};
+static const char * AC_TFOOT[] = {"tfoot", "tr", "thead", "tfoot", "tbody", NULL};
+static const char * AC_TBODY[] = {"tbody", "tr", "thead", "tfoot", "tbody", NULL};
+static const char * AC_OPTION[] = {"option", "option", NULL};
+static const char * AC_PRE[] = {"pre", "pre", NULL};
+static const char * AC_INPUT[] = {"input", NULL};
+const char * *
+HTML_AUTOCLOSE_TABLE[] = {
+    AC_INPUT,
+    AC_OPTION,
+    AC_PRE,
+    AC_P,
+    AC_LI,
+    AC_UL,
+    AC_OL,
+    AC_TD,
+    AC_TH,
+    AC_DD,
+    AC_DL,
+    AC_DT,
+    AC_TR,
+    AC_COL,
+    AC_BR,
+    AC_HR,
+    AC_PARAM,
+    AC_IMG,
+    AC_DIV,
+    AC_THEAD,
+    AC_TFOOT,
+    AC_TBODY,
+    AC_TABLE,
+    NULL
+};
 

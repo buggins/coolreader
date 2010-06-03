@@ -2882,9 +2882,6 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
         if ( DetectEpubFormat( m_stream ) ) {
             // EPUB
             CRLog::info("EPUB format detected");
-//            if ( m_doc )
-//                delete m_doc;
-//            m_doc = NULL;
             createEmptyDocument();
             m_doc->setProps( m_doc_props );
             setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
@@ -2897,6 +2894,36 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
                 createDefaultDocument( lString16(L"ERROR: Error reading EPUB format"), lString16(L"Cannot open document") );
                 if ( m_callback ) {
                     m_callback->OnLoadFileError( lString16("Error reading EPUB document") );
+                }
+                return false;
+            } else {
+                setRenderProps( 0, 0 );
+                requestRender();
+                if ( m_callback ) {
+                    m_callback->OnLoadFileEnd( );
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                m_arc = m_doc->getContainer();
+                return true;
+            }
+        }
+
+        if ( DetectCHMFormat( m_stream ) ) {
+            // EPUB
+            CRLog::info("CHM format detected");
+            createEmptyDocument();
+            m_doc->setProps( m_doc_props );
+            setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
+            setDocFormat( doc_format_chm );
+            if ( m_callback )
+                m_callback->OnLoadFileFormatDetected(doc_format_chm);
+            bool res = ImportCHMDocument( m_stream, m_doc, m_callback );
+            if ( !res ) {
+                setDocFormat( doc_format_none );
+                createDefaultDocument( lString16(L"ERROR: Error reading CHM format"), lString16(L"Cannot open document") );
+                if ( m_callback ) {
+                    m_callback->OnLoadFileError( lString16("Error reading CHM document") );
                 }
                 return false;
             } else {
@@ -3052,55 +3079,6 @@ bool LVDocView::LoadDocument( LVStreamRef stream )
     }
 }
 
-static const char * AC_P[]  = {"p", "p", "hr", NULL};
-static const char * AC_COL[] = {"col", NULL};
-static const char * AC_LI[] = {"li", "li", "p", NULL};
-static const char * AC_UL[] = {"ul", "li", "p", NULL};
-static const char * AC_OL[] = {"ol", "li", "p", NULL};
-static const char * AC_DD[] = {"dd", "dd", "p", NULL};
-static const char * AC_DL[] = {"dl", "dt", "p", NULL};
-static const char * AC_DT[] = {"dt", "dt", "dd", "p", NULL};
-static const char * AC_BR[] = {"br", NULL};
-static const char * AC_HR[] = {"hr", NULL};
-static const char * AC_IMG[]= {"img", NULL};
-static const char * AC_TD[] = {"td", "td", "th", NULL};
-static const char * AC_TH[] = {"th", "th", "td", NULL};
-static const char * AC_TR[] = {"tr", "tr", "thead", "tfoot", "tbody", NULL};
-static const char * AC_DIV[] = {"div", "p", NULL};
-static const char * AC_TABLE[] = {"table", "p", NULL};
-static const char * AC_THEAD[] = {"thead", "tr", "thead", "tfoot", "tbody", NULL};
-static const char * AC_TFOOT[] = {"tfoot", "tr", "thead", "tfoot", "tbody", NULL};
-static const char * AC_TBODY[] = {"tbody", "tr", "thead", "tfoot", "tbody", NULL};
-static const char * AC_OPTION[] = {"option", "option", NULL};
-static const char * AC_PRE[] = {"pre", "pre", NULL};
-static const char * AC_INPUT[] = {"input", NULL};
-static const char * *
-HTML_AUTOCLOSE_TABLE[] = {
-    AC_INPUT,
-    AC_OPTION,
-    AC_PRE,
-    AC_P,
-    AC_LI,
-    AC_UL,
-    AC_OL,
-    AC_TD,
-    AC_TH,
-    AC_DD,
-    AC_DL,
-    AC_DT,
-    AC_TR,
-    AC_COL,
-    AC_BR,
-    AC_HR,
-    AC_IMG,
-    AC_DIV,
-    AC_THEAD,
-    AC_TFOOT,
-    AC_TBODY,
-    AC_TABLE,
-    NULL
-};
-
 const lChar16 * getDocFormatName( doc_format_t fmt )
 {
     switch (fmt) {
@@ -3112,6 +3090,8 @@ const lChar16 * getDocFormatName( doc_format_t fmt )
         return L"Rich text (RTF)";
     case doc_format_epub:
         return L"EPUB";
+    case doc_format_chm:
+        return L"CHM";
     case doc_format_html:
         return L"HTML";
     case doc_format_txt_bookmark:
