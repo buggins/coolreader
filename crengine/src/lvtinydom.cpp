@@ -2852,12 +2852,20 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 {
 }
 
-static void writeNode( LVStream * stream, ldomNode * node )
+static void writeNode( LVStream * stream, ldomNode * node, bool treeLayout )
 {
+    int level = 0;
+    if ( treeLayout ) {
+        level = node->getNodeLevel();
+        for (int i=0; i<level; i++ )
+            *stream << "  ";
+    }
     if ( node->isText() )
     {
         lString8 txt = node->getText8();
         *stream << txt;
+        if ( treeLayout )
+            *stream << "\n";
     }
     else if (  node->isElement() )
     {
@@ -2916,27 +2924,37 @@ static void writeNode( LVStream * stream, ldomNode * node )
                 else
                     *stream << "/>";
             }
+            if ( treeLayout )
+                *stream << "\n";
         } else {
             if (!elemName.empty())
                 *stream << ">";
+            if ( treeLayout )
+                *stream << "\n";
             for (i=0; i<(int)node->getChildCount(); i++)
             {
-                writeNode( stream, node->getChildNode(i) );
+                writeNode( stream, node->getChildNode(i), treeLayout );
+            }
+            if ( treeLayout ) {
+                for (int i=0; i<level; i++ )
+                    *stream << "  ";
             }
             if (!elemName.empty())
                 *stream << "</" << elemName << ">";
+            if ( treeLayout )
+                *stream << "\n";
         }
     }
 }
 
-bool ldomDocument::saveToStream( LVStreamRef stream, const char * )
+bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayout )
 {
     //CRLog::trace("ldomDocument::saveToStream()");
     if (!stream || !getRootNode()->getChildCount())
         return false;
 
     *stream.get() << UnicodeToLocal(lString16(L"\xFEFF"));
-    writeNode( stream.get(), getRootNode() );
+    writeNode( stream.get(), getRootNode(), treeLayout );
     return true;
 }
 

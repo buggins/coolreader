@@ -187,7 +187,7 @@ public:
             return stream;
         }
         stream = p;
-        SetName( fname );
+        stream->SetName( fname );
         return stream;
     }
     virtual LVContainer * GetParentContainer()
@@ -304,9 +304,9 @@ public:
         }
         lString16 url2 = _appender->convertHref(url);
         //CRLog::trace("new url: %s", LCSTR(url2) );
-        while ( _toc->getLevel()>level )
+        while ( _toc->getLevel()>level+1 )
             _toc = _toc->getParent();
-        _toc->addChild(name, ldomXPointer(), url2);
+        _toc = _toc->addChild(name, ldomXPointer(), url2);
     }
 
     void recurseToc( ldomNode * node, int level )
@@ -373,12 +373,17 @@ public:
             CRLog::error("CHM: Cannot parse .hhc");
             return false;
         }
-        ldomXPointer body = doc->createXPointer(lString16("/html[1]/body[1]"));
+        ldomNode * body = doc->getRootNode(); //doc->createXPointer(lString16("/html[1]/body[1]"));
         bool res = false;
-        if ( body.isElement() ) {
+        if ( body->isElement() ) {
             // body element
-            recurseToc( body.getNode(), 0 );
+            recurseToc( body, 0 );
             res = _fileList.length()>0;
+            if ( res && _toc->getChildCount()>0 ) {
+                lString16 name = _toc->getChild(0)->getName();
+                CRPropRef m_doc_props = _doc->getProps();
+                m_doc_props->setString(DOC_PROP_TITLE, name);
+            }
         }
         delete doc;
         return res;
@@ -430,10 +435,10 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     writer.OnTagClose(L"", L"body");
     writer.OnStop();
     CRLog::debug("CHM: %d documents merged", fragmentCount);
-#if 0
+#if 1
     LVStreamRef out = LVOpenFileStream(L"/tmp/chm.html", LVOM_WRITE);
     if ( !out.isNull() )
-        doc->saveToStream( out, NULL );
+        doc->saveToStream( out, NULL, true );
 #endif
 
     return fragmentCount>0;

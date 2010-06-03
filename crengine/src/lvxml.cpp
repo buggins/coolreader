@@ -2730,6 +2730,14 @@ bool LVHTMLParser::CheckFormat()
         s.lowercase();
         if ( s.pos(L"<html") >=0 && ( s.pos(L"<head") >= 0 || s.pos(L"<body") >=0 ) ) //&& s.pos(L"<FictionBook") >= 0
             res = true;
+        lString16 name=m_stream->GetName();
+        name.lowercase();
+        bool html_ext = name.endsWith(lString16(".htm")) || name.endsWith(lString16(".html"))
+                        || name.endsWith(lString16(".hhc"))
+                        || name.endsWith(lString16(".xhtml"));
+        if ( html_ext && (s.pos(L"<!--")>=0 || s.pos(L"UL")>=0
+                           || s.pos(L"<p>")>=0 || s.pos(L"ul")>=0) )
+            res = true;
         lString16 enc = htmlCharset( s );
         if ( !enc.empty() )
             SetCharset( enc.c_str() );

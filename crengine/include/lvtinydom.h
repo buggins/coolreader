@@ -1750,7 +1750,7 @@ public:
     /// returns page height setting
     int getPageHeight() { return _page_height; }
     /// saves document contents as XML to stream with specified encoding
-    bool saveToStream( LVStreamRef stream, const char * codepage );
+    bool saveToStream( LVStreamRef stream, const char * codepage, bool treeLayout=false );
     /// get default font reference
     font_ref_t getDefaultFont() { return _def_font; }
     /// get default style reference

@@ -131,7 +131,7 @@ struct ns_def_t {
 #define XS_TAG1T(itm) \
         { el_ ## itm, #itm, {true, false, css_d_block, css_ws_normal} },
 #define XS_TAG1OBJ(itm) \
-        { el_ ## itm, #itm, {false, true, css_d_block, css_ws_normal} },
+        { el_ ## itm, #itm, {false, true, css_d_inline, css_ws_normal} },
 #define XS_TAG2T(itm, name) \
         { el_ ## itm, name, {true, false, css_d_block, css_ws_normal} },
 #define XS_TAG1I(itm) \
