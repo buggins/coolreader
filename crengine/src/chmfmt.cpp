@@ -5,6 +5,8 @@
 #include "../include/chmfmt.h"
 #include <../../thirdparty/chmlib/src/chm_lib.h>
 
+#define DUMP_CHM_DOC 0
+
 struct crChmExternalFileStream : public chmExternalFileStream {
     /** returns file size, in bytes, if opened successfully */
     //LONGUINT64 (open)( chmExternalFileStream * instance );
@@ -276,6 +278,7 @@ bool DetectCHMFormat( LVStreamRef stream )
     return false;
 }
 
+
 class CHMTOCReader {
     LVContainerRef _cont;
     ldomDocumentFragmentWriter * _appender;
@@ -304,7 +307,7 @@ public:
         }
         lString16 url2 = _appender->convertHref(url);
         //CRLog::trace("new url: %s", LCSTR(url2) );
-        while ( _toc->getLevel()>level+1 )
+        while ( _toc->getLevel()>level && _toc->getParent() )
             _toc = _toc->getParent();
         _toc = _toc->addChild(name, ldomXPointer(), url2);
     }
@@ -373,6 +376,13 @@ public:
             CRLog::error("CHM: Cannot parse .hhc");
             return false;
         }
+
+#if DUMP_CHM_DOC==1
+    LVStreamRef out = LVOpenFileStream(L"/tmp/chm-toc.html", LVOM_WRITE);
+    if ( !out.isNull() )
+        doc->saveToStream( out, NULL, true );
+#endif
+
         ldomNode * body = doc->getRootNode(); //doc->createXPointer(lString16("/html[1]/body[1]"));
         bool res = false;
         if ( body->isElement() ) {
@@ -446,7 +456,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     writer.OnTagClose(L"", L"body");
     writer.OnStop();
     CRLog::debug("CHM: %d documents merged", fragmentCount);
-#if 1
+#if DUMP_CHM_DOC==1
     LVStreamRef out = LVOpenFileStream(L"/tmp/chm.html", LVOM_WRITE);
     if ( !out.isNull() )
         doc->saveToStream( out, NULL, true );

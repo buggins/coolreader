@@ -2738,7 +2738,7 @@ lxmlDocBase::lxmlDocBase( int dataBufSize )
 , _nextUnknownAttrId(UNKNOWN_ATTRIBUTE_TYPE_ID)
 , _nextUnknownNsId(UNKNOWN_NAMESPACE_TYPE_ID)
 , _attrValueTable( DOC_STRING_HASH_SIZE )
-,_idNodeMap(1024)
+,_idNodeMap(8192)
 ,_urlImageMap(1024)
 ,_idAttrId(0)
 ,_nameAttrId(0)
@@ -3390,7 +3390,7 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
     if ( IS_FIRST_BODY && id==el_body ) {
         _tocItem = _document->getToc();
-        _tocItem->clear();
+        //_tocItem->clear();
         IS_FIRST_BODY = false;
     }
     //logfile << "}";
@@ -6250,7 +6250,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
 
     p = lString16("#") + p;
 
-    CRLog::debug("converted href=%s to %s", LCSTR(href), LCSTR(p) );
+    //CRLog::debug("converted href=%s to %s", LCSTR(href), LCSTR(p) );
 
     return p;
 }
@@ -6276,7 +6276,7 @@ void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lCha
         } else if ( !lStr_cmp(attrname, L"id") ) {
             parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
         } else if ( !lStr_cmp(attrname, L"name") ) {
-            CRLog::trace("name attribute = %s", LCSTR(lString16(attrvalue)));
+            //CRLog::trace("name attribute = %s", LCSTR(lString16(attrvalue)));
             parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
         } else {
             parent->OnAttribute(nsname, attrname, attrvalue);
