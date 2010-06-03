@@ -113,10 +113,13 @@ public:
         for ( int i=0; i<_size; i++ )
         {
             pair * p = _table[i];
-            for ( ;p ;p = p->next )
+            while ( p  )
             {
                 lUInt32 index = getHash( p->key ) & ( nsize-1 );
                 new_table[index] = new pair( p->key, p->value, new_table[index] );
+                pair * tmp = p;
+                p = p->next;
+                delete tmp;
             }
         }
         if (_table)
@@ -141,6 +144,9 @@ public:
             resize( _size * 2 );
             index = getHash( key ) & ( _size-1 );
             p = &_table[index];
+            for ( ;*p ;p = &(*p)->next )
+            {
+            }
         }
         *p = new pair( key, value, NULL );
         _count++;

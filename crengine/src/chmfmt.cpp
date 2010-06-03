@@ -226,7 +226,7 @@ public:
     {
         LVCommonContainerItemInfo * item = new LVCommonContainerItemInfo();
         item->SetItemInfo( lString16(filename), len, 0, false );
-        CRLog::trace("CHM file item: %s [%d]", filename, (int)len);
+        //CRLog::trace("CHM file item: %s [%d]", filename, (int)len);
         Add(item);
     }
 
@@ -291,7 +291,7 @@ public:
     }
     void addTocItem( lString16 name, lString16 url, int level )
     {
-        CRLog::trace("CHM toc level %d: '%s' : %s", level, LCSTR(name), LCSTR(url) );
+        //CRLog::trace("CHM toc level %d: '%s' : %s", level, LCSTR(name), LCSTR(url) );
         lString16 v1, v2;
         if ( !url.split2(lString16("#"), v1, v2) )
             v1 = url;
@@ -370,10 +370,13 @@ public:
         delete doc;
         return res;
     }
-    int appendFragments()
+    int appendFragments( LVDocViewCallback * progressCallback )
     {
         int appendedFragments = 0;
-        for ( int i=0; i<_fileList.length(); i++ ) {
+        int cnt = _fileList.length();
+        for ( int i=0; i<cnt; i++ ) {
+            if ( progressCallback )
+                progressCallback->OnLoadFileProgress( i * 100 / cnt );
             lString16 fname = _fileList[i];
             CRLog::trace("Import file %s", LCSTR(fname));
             LVStreamRef stream = _cont->OpenStream(fname.c_str(), LVOM_READ);
@@ -410,10 +413,16 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     CHMTOCReader tocReader(cont, doc, &appender);
     if ( !tocReader.init(cont) )
         return false;
-    fragmentCount = tocReader.appendFragments();
+    fragmentCount = tocReader.appendFragments( progressCallback );
     writer.OnTagClose(L"", L"body");
     writer.OnStop();
     CRLog::debug("CHM: %d documents merged", fragmentCount);
+#if 0
+    LVStreamRef out = LVOpenFileStream(L"/tmp/chm.html", LVOM_WRITE);
+    if ( !out.isNull() )
+        doc->saveToStream( out, NULL );
+#endif
+
     return fragmentCount>0;
 }
 

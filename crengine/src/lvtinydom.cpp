@@ -6241,6 +6241,10 @@ void ldomDocumentFragmentWriter::setCodeBase( lString16 fileName )
     filePathName = fileName;
     codeBasePrefix = pathSubstitutions.get(fileName);
     codeBase = LVExtractPath(filePathName);
+    if ( codeBasePrefix.empty() ) {
+        CRLog::trace("codeBasePrefix is empty for path %s", LCSTR(fileName));
+        codeBasePrefix = pathSubstitutions.get(fileName);
+    }
     stylesheetFile.clear();
 }
 
@@ -6251,6 +6255,9 @@ void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lCha
         if ( !lStr_cmp(attrname, L"href") || !lStr_cmp(attrname, L"src") ) {
             parent->OnAttribute(nsname, attrname, convertHref(lString16(attrvalue)).c_str() );
         } else if ( !lStr_cmp(attrname, L"id") ) {
+            parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
+        } else if ( !lStr_cmp(attrname, L"name") ) {
+            CRLog::trace("name attribute = %s", LCSTR(lString16(attrvalue)));
             parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
         } else {
             parent->OnAttribute(nsname, attrname, attrvalue);
@@ -9267,8 +9274,14 @@ void tinyNodeCollection::dumpStatistics()
 /// returns position pointer
 ldomXPointer LVTocItem::getXPointer()
 {
-    if ( _position.isNull() && !_path.empty() )
+    if ( _position.isNull() && !_path.empty() ) {
         _position = _doc->createXPointer( _path );
+        if ( _position.isNull() ) {
+            CRLog::trace("TOC node is not found for path %s", LCSTR(_path) );
+        } else {
+            CRLog::trace("TOC node is found for path %s", LCSTR(_path) );
+        }
+    }
     return _position;
 }
 
