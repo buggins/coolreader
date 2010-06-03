@@ -2768,7 +2768,8 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
     if (attrId == _idAttrId) {
         _idNodeMap.set( valueId, node->getDataIndex() );
     } else if ( attrId==_nameAttrId ) {
-        if ( node->getNodeName()==L"a" )
+        lString16 nodeName = node->getNodeName();
+        if ( nodeName==L"a" )
             _idNodeMap.set( valueId, node->getDataIndex() );
     }
 }
@@ -6193,7 +6194,7 @@ static lString16 escapeDocPath( lString16 path )
 lString16 ldomDocumentFragmentWriter::convertId( lString16 id )
 {
     if ( !codeBasePrefix.empty() ) {
-        return codeBasePrefix + id;
+        return codeBasePrefix + L"_" + id;
     }
     return id;
 }
@@ -6445,6 +6446,8 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
     //if ( nsname && nsname[0] )
     //    lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
     //lStr_lowercase( const_cast<lChar16 *>(attrname), lStr_len(attrname) );
+
+    //CRLog::trace("OnAttribute(%s, %s)", LCSTR(lString16(attrname)), LCSTR(lString16(attrvalue)));
 
     lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;
     lUInt16 attr_id = (attrname && attrname[0]) ? _document->getAttrNameIndex( attrname ) : 0;

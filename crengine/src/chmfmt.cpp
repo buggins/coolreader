@@ -303,7 +303,7 @@ public:
             _appender->setCodeBase( v1 );
         }
         lString16 url2 = _appender->convertHref(url);
-        CRLog::trace("new url: %s", LCSTR(url2) );
+        //CRLog::trace("new url: %s", LCSTR(url2) );
         while ( _toc->getLevel()>level )
             _toc = _toc->getParent();
         _toc->addChild(name, ldomXPointer(), url2);

@@ -115,7 +115,7 @@ public:
             pair * p = _table[i];
             while ( p  )
             {
-                lUInt32 index = getHash( p->key ) & ( nsize-1 );
+                lUInt32 index = getHash( p->key ) % ( nsize );
                 new_table[index] = new pair( p->key, p->value, new_table[index] );
                 pair * tmp = p;
                 p = p->next;
@@ -130,7 +130,7 @@ public:
     }
     void set( keyT key, valueT value )
     {
-        lUInt32 index = getHash( key ) & ( _size-1 );
+        lUInt32 index = getHash( key ) % ( _size );
         pair ** p = &_table[index];
         for ( ;*p ;p = &(*p)->next )
         {
@@ -142,7 +142,7 @@ public:
         }
         if ( _count >= _size ) {
             resize( _size * 2 );
-            index = getHash( key ) & ( _size-1 );
+            index = getHash( key ) % ( _size );
             p = &_table[index];
             for ( ;*p ;p = &(*p)->next )
             {
@@ -153,7 +153,7 @@ public:
     }
     void remove( keyT key )
     {
-        lUInt32 index = getHash( key ) & ( _size-1 );
+        lUInt32 index = getHash( key ) % ( _size );
         pair ** p = &_table[index];
         for ( ;*p ;p = &(*p)->next )
         {
@@ -169,7 +169,7 @@ public:
     }
     valueT get( keyT key )
     {
-        lUInt32 index = getHash( key ) & ( _size-1 );
+        lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];
         for ( ;p ;p = p->next )
         {
@@ -182,7 +182,7 @@ public:
     }
     bool get( keyT key, valueT & res )
     {
-        lUInt32 index = getHash( key ) & ( _size-1 );
+        lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];
         for ( ;p ;p = p->next )
         {
