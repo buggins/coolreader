@@ -303,6 +303,21 @@ public:
                 case erm_table_cell:    // table cell
                     {
                         // <th> or <td> inside <tr>
+
+                        if ( rows.length()==0 ) {
+                            CCRTableRow * row = new CCRTableRow;
+                            row->elem = item;
+                            if ( item==NULL )
+                                item = item;
+                            if ( currentRowGroup ) {
+                                // add row to group
+                                row->rowgroup = currentRowGroup;
+                                currentRowGroup->rows.add( row );
+                            }
+                            rows.add( row );
+                        }
+
+
                         CCRTableCell * cell = new CCRTableCell;
                         cell->elem = item;
                         lString16 w = item->getAttributeValue(attr_width);

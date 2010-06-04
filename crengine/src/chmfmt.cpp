@@ -295,9 +295,12 @@ public:
     void addTocItem( lString16 name, lString16 url, int level )
     {
         //CRLog::trace("CHM toc level %d: '%s' : %s", level, LCSTR(name), LCSTR(url) );
+        if ( url.startsWith(lString16(L"..")) )
+            url = LVExtractFilename( url );
         lString16 v1, v2;
         if ( !url.split2(lString16("#"), v1, v2) )
             v1 = url;
+        PreProcessXmlString( name, 0 );
         if ( v1!=lastFile ) {
             CRLog::trace("New source file: %s", LCSTR(v1) );
             _fileList.add(v1);
@@ -358,7 +361,10 @@ public:
             const LVContainerItemInfo * item = cont->GetObjectInfo(i);
             if ( !item->IsContainer() ) {
                 lString16 name = item->GetName();
-                if ( name.endsWith(L".hhc") ) {
+                //CRLog::trace("CHM item: %s", LCSTR(name));
+                lString16 lname = name;
+                lname.lowercase();
+                if ( lname.endsWith(L".hhc") ) {
                     hhcName = name;
                     break;
                 }

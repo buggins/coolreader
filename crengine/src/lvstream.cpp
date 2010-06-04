@@ -4083,7 +4083,7 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
     do {
         changed = false;
         int lastElementStart = 0;
-        for ( int i=0; i<s.length()-pattern.length(); i++ ) {
+        for ( int i=0; i<(int)(s.length()-pattern.length()); i++ ) {
             if ( s[i]==separator && s[i+1]!='.' )
                 lastElementStart = i + 1;
             else if ( s[i]==separator && s[i+1]=='.' && s[i+2]=='.' && s[i+3]==separator ) {
@@ -4098,7 +4098,7 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
                 }
             }
         }
-    } while ( changed );
+    } while ( changed && s.length()>=pattern.length() );
     // "./"
     if ( s.length()>2 && s[0]=='.' && s[1]==separator )
         s.erase(0, 2);
