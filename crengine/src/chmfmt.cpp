@@ -305,7 +305,7 @@ public:
             CRLog::trace("New source file: %s", LCSTR(v1) );
             _fileList.add(v1);
             lastFile = v1;
-            _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + lString16::itoa(_fileList.length()) );
+            _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + lString16::itoa((int)_fileList.length()) );
             _appender->setCodeBase( v1 );
         }
         lString16 url2 = _appender->convertHref(url);
