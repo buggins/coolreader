@@ -13,6 +13,7 @@ src/lvstream.cpp
 src/lvxml.cpp     
 src/chmfmt.cpp     
 src/epubfmt.cpp     
+src/wordfmt.cpp     
 src/lvstsheet.cpp 
 #src/xutils.cpp
 )
