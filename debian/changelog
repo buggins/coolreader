@@ -1,3 +1,34 @@
+cr3 (3.0.24-24) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * mem buffer settings
+  * big files, data size optimization, part 1
+  * big files: rework mutable text node
+  * remove parent index from text ldomNode
+  * add storage for element style and font indexes
+  * move style and font indexes to separate storage
+  * node memory size optimization, part 2
+  * memory sizes optimizations
+  * adding configurable document cache options
+  * LIBCHM fix for MIPS
+  * RAM usage optimizations
+  * fix warning
+  * qt/win32/msvc build fixes
+  * EPUB support improvements: hrefs, images
+  * epub fixes
+  * increase page margins
+  * fix font cache memory leak
+  * fix epub images
+  * add cache file support for EPUB
+  * fix N516 key mapping for 0-HELP
+  * chm support
+  * add chm.css
+  * chm, epub, html support improvements
+  * add CHM mime type
+  * fix fb2.css image alignment
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Fri, 04 Jun 2010 22:51:18 +0200
+
 cr3 (3.0.24-23) zelazny; urgency=low
 
   [ Vadim Lopatin ]
