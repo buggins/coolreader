@@ -691,7 +691,11 @@ bool CRGUIWindowBase::onKeyPressed( int key, int flags )
 		if ( cmd == GCMD_PASS_TO_PARENT ) {
 			return false;
 		}
-        return onCommand( cmd, param );
+        CRGUIEvent * event = new CRGUICommandEvent( cmd, param );
+        event->setTargetWindow(this);
+        _wm->postEvent( event );
+        return true;
+        //return onCommand( cmd, param );
     } else {
         CRLog::trace("Accelerator not found for key %d(%d)", key, flags );
         _acceleratorTable->dump();
@@ -1784,4 +1788,31 @@ bool CRDocViewWindow::onCommand( int command, int params )
         return true;
     }
     return !_passCommandsToParent;
+}
+
+
+bool CRGUIKeyDownEvent::handle( CRGUIWindow * window )
+{
+    if ( _targetWindow!=NULL ) {
+        if ( window!=_targetWindow )
+            return false;
+    }
+    CRGUIWindowManager * wm = window->getWindowManager();
+    bool res = window->onKeyPressed( _param1, _param2 );
+    if ( res )
+        wm->postEvent( new CRGUIUpdateEvent(false) );
+    return res;
+}
+
+bool CRGUICommandEvent::handle( CRGUIWindow * window )
+{
+    if ( _targetWindow!=NULL ) {
+        if ( window!=_targetWindow )
+            return false;
+    }
+    CRGUIWindowManager * wm = window->getWindowManager();
+    bool res = window->onCommand( _param1, _param2 );
+    if ( res )
+        wm->postEvent( new CRGUIUpdateEvent(false) );
+    return res;
 }

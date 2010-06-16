@@ -348,6 +348,7 @@ public:
     virtual bool handle( CRGUIWindowManager * wm ) { return false; }
     CRGUIEvent & setParam1( int v ) { _param1=v; return *this; }
     CRGUIEvent & setParam2( int v ) { _param2=v; return *this; }
+    CRGUIEvent & setTargetWindow( CRGUIWindow * targetWindow ) { _targetWindow = targetWindow; return *this; }
     int getParam1() { return _param1; }
     int getParam2() { return _param2; }
     CRGUIEvent( int type ) : _type(type), _targetWindow(NULL)
@@ -1279,18 +1280,7 @@ public:
         _param1 = key;
         _param2 = params;
     }
-    virtual bool handle( CRGUIWindow * window )
-    {
-        if ( _targetWindow!=NULL ) {
-            if ( window!=_targetWindow )
-                return false;
-        }
-        CRGUIWindowManager * wm = window->getWindowManager();
-        bool res = window->onKeyPressed( _param1, _param2 );
-        if ( res )
-            wm->postEvent( new CRGUIUpdateEvent(false) );
-        return res;
-    }
+    virtual bool handle( CRGUIWindow * window );
     virtual bool handle( CRGUIWindowManager * wm ) { return false; }
 };
 
@@ -1303,17 +1293,7 @@ public:
         _param1 = cmd;
         _param2 = params;
     }
-    virtual bool handle( CRGUIWindow * window )
-    {
-        if ( _targetWindow!=NULL ) {
-            if ( window!=_targetWindow )
-                return false;
-        }
-        bool res = window->onCommand( _param1, _param2 );
-        if ( res )
-            window->getWindowManager()->postEvent( new CRGUIUpdateEvent(false) );
-        return res;
-    }
+    virtual bool handle( CRGUIWindow * window );
     virtual bool handle( CRGUIWindowManager * wm ) { return false; }
 };
 

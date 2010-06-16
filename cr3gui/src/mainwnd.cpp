@@ -964,7 +964,7 @@ void V3DocViewWin::showAboutDialog()
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
     lString16 title = L"Cool Reader ";
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "3.0.31"
+#define PACKAGE_VERSION "3.0.32"
 #endif
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
 

@@ -905,7 +905,7 @@ public:
     virtual bool getBatteryStatus( int & percent, bool & charging );
 
     /// idle actions
-    void idle();
+    virtual void idle();
     // runs event loop
     virtual int runEventLoop();
     /// forward events from system queue to application queue

@@ -62,7 +62,7 @@ status_info_t lastState = {0,0,0};
 static char last_bookmark[2048]= {0};
 static int last_bookmark_page = 0;
 
-static bool shuttingDown = false;
+//static bool shuttingDown = false;
 
 #define USE_JINKE_USER_DATA 0
 #define USE_OWN_BATTERY_TEST 0
@@ -1063,16 +1063,35 @@ public:
     }
 #endif
 
-    // runs event loop
-    virtual int runEventLoop()
+    /// idle actions
+    virtual void idle()
     {
-        GR_EVENT event;
-        while( !shuttingDown )
-        {
+        if ( !_stopFlag && getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
+            CRLog::debug("Last command is page down: preparing next page for fast navigation");
+            main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
             main_win->unsetLastNavigationDirection();
+        }
+    }
 
-            GrGetNextEvent(&event);
-            switch(event.type) 
+    /// forward events from system queue to application queue
+    virtual void forwardSystemEvents( bool waitForEvent )
+    {
+        if ( _stopFlag )
+            waitForEvent = false;
+        GR_EVENT event;
+        for(;;)
+        {
+            //main_win->unsetLastNavigationDirection();
+            if ( waitForEvent ) {
+                GrGetNextEvent(&event);
+            } else {
+                if (!GrPeekEvent(&event))
+                    break;
+                GrGetNextEvent( &event );
+            }
+            waitForEvent = false;
+
+            switch(event.type)
             {
                 case GR_EVENT_TYPE_ERROR:
                     CRLog::debug("GR_EVENT_TYPE_ERROR");
@@ -1082,6 +1101,7 @@ public:
                     break;
                 case GR_EVENT_TYPE_EXPOSURE:
                     CRLog::debug("GR_EVENT_TYPE_EXPOSURE");
+                    postEvent( new CRGUIUpdateEvent(true) );
 /*
                     m_images->printImage("logo",0,0);
                     GrSetFontSize(m_state->fontid,32);
@@ -1089,24 +1109,24 @@ public:
                     GrText(m_state->wid,m_state->gc,100,720,(char *)"This is only an example",-1,\
                         GR_TFASCII|GR_TFTOP);
 */
-                    postLeds( true );
-                    update(true);
+                    //postLeds( true );
+                    //update(true);
                     if ( firstDocUpdate ) {
                         //main_win->getDocView()->swapToCache();
                         firstDocUpdate = false;
                     }
-                    postLeds( false );
+                    //postLeds( false );
                     break;
             case GR_EVENT_TYPE_BUTTON_DOWN:
                 {
                     CRLog::debug("GR_EVENT_TYPE_BUTTON_DOWN");
 /*
-                char buf[128]={0};   
+                char buf[128]={0};
                 GrClearArea(m_state->wid,10,770,400,28,0);
                 GrSetFontSize(m_state->fontid,24);
                 sprintf(buf,"mouse down: x=%d y=%d",event.mouse.x,event.mouse.y);
                 GrText(m_state->wid,m_state->gc,10,770,(char *)buf,-1,GR_TFASCII|GR_TFTOP);
-                GrPartialPrint(m_state->wid,10,770,400,28);  
+                GrPartialPrint(m_state->wid,10,770,400,28);
 */
                 }
                 break;
@@ -1115,11 +1135,11 @@ public:
                     CRLog::debug("GR_EVENT_TYPE_BUTTON_UP");
 /*
                 char buf[128]={0};
-                GrClearArea(m_state->wid,10,770,400,28,0);   
+                GrClearArea(m_state->wid,10,770,400,28,0);
                 GrSetFontSize(m_state->fontid,24);
                 sprintf(buf,"mouse up: x=%d y=%d",event.mouse.x,event.mouse.y);
                 GrText(m_state->wid,m_state->gc,10,770,(char *)buf,-1,GR_TFASCII|GR_TFTOP);
-                    GrPartialPrint(m_state->wid,10,770,400,28);    
+                    GrPartialPrint(m_state->wid,10,770,400,28);
 */
                     }
                 break;
@@ -1132,7 +1152,7 @@ public:
                 GrSetFontSize(m_state->fontid,24);
                 sprintf(buf,"mouse move: x=%d y=%d",event.mouse.x,event.mouse.y);
                 GrText(m_state->wid,m_state->gc,10,770,(char *)buf,-1,GR_TFASCII|GR_TFTOP);
-                    GrPartialPrint(m_state->wid,10,770,400,28);    
+                    GrPartialPrint(m_state->wid,10,770,400,28);
 
 */
                     }
@@ -1202,17 +1222,10 @@ public:
                             CRLog::debug( "Unknown key code in OnKeyPressed() : %d (%04x)", keyId, keyId );
                             break;
                         }
-                        bool needUpdate = CRJinkeWindowManager::instance->onKeyPressed( code, flags );
-                        needUpdate = CRJinkeWindowManager::instance->processPostedEvents() || needUpdate;
-                        if ( needUpdate ) {
-                            postLeds( true );
-                            CRLog::trace("Updating screen after keypress...");
-                            CRJinkeWindowManager::instance->update( false );
-                            postLeds( false );
-                        }
+                        postEvent( new CRGUIKeyDownEvent(code, flags) );
 
                         if ( CRJinkeWindowManager::instance->getWindowCount()==0 ) {
-                            shuttingDown = true;
+                            _stopFlag = true;
                             // QUIT
                             CRLog::trace("windowCount==0, quitting");
                         }
@@ -1225,19 +1238,13 @@ public:
                     CRLog::debug( "unknown event %d", (int)event.type );
                     break;
             }
-            if ( !shuttingDown && getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
-                CRLog::debug("Last command is page up/down: preparing next page for fast navigation");
-                main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
-            }
         }
-        do {
-            GrPeekEvent(&event);
-            if(event.type == GR_EVENT_TYPE_KEY_DOWN) {
-                GrCheckNextEvent( &event );
-            } else
-                break;
-        } while(1);
-        return 1;
+    }
+
+    // runs event loop
+    virtual int runEventLoop()
+    {
+        return CRGUIWindowManager::runEventLoop();
     }
 #if 0
     bool doCommand( int cmd, int params )

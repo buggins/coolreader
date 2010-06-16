@@ -1432,7 +1432,7 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
             if ( !title.empty() )
                  titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
         }
-        if ( phi & PGHDR_AUTHOR && !!authors.empty() ) {
+        if ( phi & PGHDR_AUTHOR && !authors.empty() ) {
             if ( !title.empty() )
                 authors += L'.';
             authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
