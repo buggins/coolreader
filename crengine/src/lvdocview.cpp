@@ -1419,22 +1419,23 @@ void LVDocView::drawPageHeader( LVDrawBuf * drawbuf, const lvRect & headerRc, in
                 clock.c_str(), clock.length(), L' ', NULL, false);
             info.right -= w + info.height()/2;
         }
+        int authorsw = 0;
+        lString16 authors;
+        if ( phi & PGHDR_AUTHOR )
+            authors = getAuthors();
         int titlew = 0;
         lString16 title;
         if ( phi & PGHDR_TITLE ) {
             title = getTitle();
+            if ( title.empty() && authors.empty() )
+                title = m_doc_props->getStringDef(DOC_PROP_FILE_NAME);
             if ( !title.empty() )
                  titlew = m_infoFont->getTextWidth( title.c_str(), title.length() );
         }
-        int authorsw = 0;
-        lString16 authors;
-        if ( phi & PGHDR_AUTHOR ) {
-            authors = getAuthors();
-            if ( !authors.empty() ) {
-                if ( !title.empty() )
-                    authors += L'.';
-                authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
-            }
+        if ( phi & PGHDR_AUTHOR && !!authors.empty() ) {
+            if ( !title.empty() )
+                authors += L'.';
+            authorsw = m_infoFont->getTextWidth( authors.c_str(), authors.length() );
         }
         int w = info.width() - 10;
         if ( authorsw + titlew + 10 > w ) {
