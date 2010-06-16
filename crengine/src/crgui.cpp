@@ -221,6 +221,8 @@ void CRGUIWindowManager::postEvent( CRGUIEvent * event )
         for ( int i=_events.length()-1; i>=0; i-- ) {
             int t = _events[i]->getType();
             if ( t==evt || t==CREV_UPDATE ) { // UPDATE is invalidated by Resize
+                if ( t==CREV_UPDATE && evt==CREV_UPDATE && _events[i]->getParam1()!=0 )
+                    event->setParam1(1); // don't miss fullScreen flag from removed events
                 // remove duplicates
                 delete _events.remove(i);
             }
