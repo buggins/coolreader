@@ -551,27 +551,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         /// returns count of windows
         virtual int getWindowCount() { return _windows.length(); }
         /// changes screen size and orientation
-        virtual void reconfigure( int dx, int dy, cr_rotate_angle_t orientation )
-        {
-            CRLog::info("CRGuiWindowManager::reconfigure( dx=%d, dy=%d, angle=%d", dx, dy, (int)orientation);
-            int flags = 0;
-            lvRect fullRect = _screen->getRect();
-            if ( fullRect.width()!=dx || fullRect.height()!=dy )
-                flags |= CRGUI_CONFIGURE_FLAG_SCREEN_SIZE;
-            if ( orientation!=_orientation ) {
-                flags |= CRGUI_CONFIGURE_FLAG_SCREEN_ORIENTATION;
-                _orientation = orientation;
-            }
-            if ( !flags )
-                return;
-            if ( _screen->setSize( dx, dy ) ) {
-                fullRect = _screen->getRect();
-                for ( int i=_windows.length()-1; i>=0; i-- ) {
-                    _windows[i]->reconfigure( flags );
-                }
-                update( true );
-            }
-        }
+        virtual void reconfigure( int dx, int dy, cr_rotate_angle_t orientation );
         /// adds command to message queue
         virtual void postCommand( int command, int params = 0 );
         /// runs posted events (commands)
@@ -632,99 +612,13 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             }
         }
         /// activates window, brings it on top; add to stack if not added
-        void activateWindow( CRGUIWindow * window )
-        {
-            int index = _windows.indexOf( window );
-            CRGUIWindow * lostFocus = getTopVisibleWindow();
-            window->setVisible( true );
-            if ( index < 0 ) {
-                _windows.push( window );
-            } else if ( index < _windows.length() - 1 ) {
-                _windows.push( _windows.remove( index ) );
-            }
-            if ( window != lostFocus )
-            {
-                if ( lostFocus )
-                    lostFocus->covered();
-                window->activated();
-            }
-        }
+        void activateWindow( CRGUIWindow * window );
         /// closes window, removes from stack, destroys object
-        void closeWindow( CRGUIWindow * window )
-        {
-            int index = _windows.indexOf( window );
-            if ( index >= 0 ) {
-                if ( window == _windows.peek() )
-                    window->covered(); // send cover before close
-                _windows.remove( index );
-            }
-            window->closing();
-            delete window;
-            for ( int i=0; i<_windows.length() && (index<0 || i<index); i++ )
-                _windows[i]->setDirty();
-            fontMan->gc();
-        }
+        void closeWindow( CRGUIWindow * window );
         /// redraw one window
-        void updateWindow( CRGUIWindow * window )
-        {
-            int index = _windows.indexOf( window );
-            if ( index < 0 )
-                return;
-            lvRect coverBox;
-            if  ( _windows.empty() )
-                return;
-            LVPtrVector<CRGUIWindow, false> drawList;
-            for ( int i=_windows.length()-1; i>=index; i-- ) {
-                if ( !_windows[i]->isVisible() )
-                    continue;
-                lvRect rc = _windows[i]->getRect();
-                if ( coverBox.isRectInside( rc ) )
-                    continue; // fully covered by top window
-                if ( !rc.isEmpty() )
-                    drawList.add( _windows[i] );
-                if ( !rc.isRectInside( coverBox ) )
-                    coverBox = rc;
-            }
-            while ( !drawList.empty()  ) {
-                CRGUIWindow * w = drawList.pop();
-                if ( w->isDirty() ) {
-                    if ( w->isVisible() )
-                        w->flush();
-                    _screen->invalidateRect( w->getRect() );
-                }
-            }
-        /// invalidates rectangle: add it to bounding box of next partial update
-            _screen->flush( false );
-        }
+        virtual void updateWindow( CRGUIWindow * window );
         /// full redraw of all windows
-        void update( bool fullScreenUpdate )
-        {
-            lvRect coverBox;
-            if  ( _windows.empty() )
-                return;
-            LVPtrVector<CRGUIWindow, false> drawList;
-            for ( int i=_windows.length()-1; i>=0; i-- ) {
-                if ( !_windows[i]->isVisible() )
-                    continue;
-                lvRect rc = _windows[i]->getRect();
-                if ( coverBox.isRectInside( rc ) )
-                    continue; // fully covered by top window
-                if ( !rc.isEmpty() )
-                    drawList.add( _windows[i] );
-                if ( !rc.isRectInside( coverBox ) )
-                    coverBox = rc;
-            }
-            while ( !drawList.empty()  ) {
-                CRGUIWindow * w = drawList.pop();
-                if ( w->isDirty() || fullScreenUpdate ) {
-                    if ( w->isVisible() )
-                        w->flush();
-                    _screen->invalidateRect( w->getRect() );
-                }
-            }
-            _screen->flush( fullScreenUpdate );
-            _lastProgressPercent = -1;
-        }
+        void update( bool fullScreenUpdate );
         /// returns screen associated with window manager
         virtual CRGUIScreen * getScreen()
         {

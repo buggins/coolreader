@@ -373,6 +373,9 @@ class CRXCBScreen : public CRGUIScreenBase
             if ( rc.isEmpty() )
                 return;
 
+#if 0
+            sleep(1);
+#endif
 
             //if (
             int i;
