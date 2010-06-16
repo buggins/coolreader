@@ -476,6 +476,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
 		CRKeyboardLayoutList _kbLayouts;
         cr_rotate_angle_t _orientation;
         LVRefVec<LVImageSource> m_batteryIcons;
+        bool _stopFlag;
     public:
         /// forward events from system queue to application queue
         virtual void forwardSystemEvents( bool waitForEvent ) { }
@@ -497,6 +498,9 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         virtual bool handleAllEvents( bool waitForEvent );
         /// override to handle
         virtual bool handleEvent( CRGUIEvent * event );
+        /// called when message queue is empty and application is going to wait for event
+        virtual void idle() { }
+
         /// returns list of battery icons
         virtual LVRefVec<LVImageSource> & getBatteryIcons() { return m_batteryIcons; }
         /// set list of battery icons to display battery state
@@ -726,7 +730,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             return _screen;
         }
         /// runs event loop
-        virtual int runEventLoop() { return 0; }
+        virtual int runEventLoop();
         /// constructor
         CRGUIWindowManager(CRGUIScreen * screen)
         : _screen( screen ), _ownScreen(false)
@@ -735,6 +739,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         ,_lastProgressUpdate(0)
         ,_lastProgressPercent(-1)
         ,_orientation(CR_ROTATE_ANGLE_0)
+        ,_stopFlag(false)
         {
         }
         virtual void closeAllWindows()
@@ -1223,47 +1228,6 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         virtual void destroyMenu();
 };
 
-class CRGUIKeyDownEvent : public CRGUIEvent
-{
-public:
-    virtual bool isForVisibleOnly() { return true; }
-    CRGUIKeyDownEvent( int key, int params )
-    : CRGUIEvent( CREV_KEYDOWN )
-    {
-        _param1 = key;
-        _param2 = params;
-    }
-    virtual bool handle( CRGUIWindow * window )
-    {
-        if ( _targetWindow!=NULL ) {
-            if ( window!=_targetWindow )
-                return false;
-        }
-        return window->onKeyPressed( _param1, _param2 );
-    }
-    virtual bool handle( CRGUIWindowManager * wm ) { return false; }
-};
-
-class CRGUICommandEvent : public CRGUIEvent
-{
-public:
-    CRGUICommandEvent( int cmd, int params )
-    : CRGUIEvent( CREV_COMMAND )
-    {
-        _param1 = cmd;
-        _param2 = params;
-    }
-    virtual bool handle( CRGUIWindow * window )
-    {
-        if ( _targetWindow!=NULL ) {
-            if ( window!=_targetWindow )
-                return false;
-        }
-        return window->onCommand( _param1, _param2 );
-    }
-    virtual bool handle( CRGUIWindowManager * wm ) { return false; }
-};
-
 class CRGUIUpdateEvent : public CRGUIEvent
 {
 public:
@@ -1303,6 +1267,54 @@ public:
         wm->reconfigure(_param1, _param2, _angle);
         return true;
     }
+};
+
+class CRGUIKeyDownEvent : public CRGUIEvent
+{
+public:
+    virtual bool isForVisibleOnly() { return true; }
+    CRGUIKeyDownEvent( int key, int params )
+    : CRGUIEvent( CREV_KEYDOWN )
+    {
+        _param1 = key;
+        _param2 = params;
+    }
+    virtual bool handle( CRGUIWindow * window )
+    {
+        if ( _targetWindow!=NULL ) {
+            if ( window!=_targetWindow )
+                return false;
+        }
+        CRGUIWindowManager * wm = window->getWindowManager();
+        bool res = window->onKeyPressed( _param1, _param2 );
+        if ( res )
+            wm->postEvent( new CRGUIUpdateEvent(false) );
+        return res;
+    }
+    virtual bool handle( CRGUIWindowManager * wm ) { return false; }
+};
+
+class CRGUICommandEvent : public CRGUIEvent
+{
+public:
+    CRGUICommandEvent( int cmd, int params )
+    : CRGUIEvent( CREV_COMMAND )
+    {
+        _param1 = cmd;
+        _param2 = params;
+    }
+    virtual bool handle( CRGUIWindow * window )
+    {
+        if ( _targetWindow!=NULL ) {
+            if ( window!=_targetWindow )
+                return false;
+        }
+        bool res = window->onCommand( _param1, _param2 );
+        if ( res )
+            window->getWindowManager()->postEvent( new CRGUIUpdateEvent(false) );
+        return res;
+    }
+    virtual bool handle( CRGUIWindowManager * wm ) { return false; }
 };
 
 

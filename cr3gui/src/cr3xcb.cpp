@@ -730,6 +730,9 @@ cr_rotate_angle_t readXCBScreenRotationAngle()
 class CRXCBWindowManager : public CRGUIWindowManager
 {
 protected:
+    xcb_atom_t wm_protocols_atom, wm_delete_window_atom;
+    xcb_key_symbols_t * keysyms;
+    xcb_visibility_t visibility;
     //xcb_connection_t * _connection;
 
     void init_properties()
@@ -862,7 +865,7 @@ public:
 
 
     CRXCBWindowManager( int dx, int dy )
-    : CRGUIWindowManager(NULL)
+    : CRGUIWindowManager(NULL), keysyms(NULL)
     {
         CRXCBScreen * s = new CRXCBScreen( dx, dy );
         _screen = s;
@@ -901,8 +904,12 @@ public:
 
     virtual bool getBatteryStatus( int & percent, bool & charging );
 
+    /// idle actions
+    void idle();
     // runs event loop
     virtual int runEventLoop();
+    /// forward events from system queue to application queue
+    virtual void forwardSystemEvents( bool waitForEvent );
 };
 
 class XCBDocViewWin : public V3DocViewWin 
@@ -1041,61 +1048,32 @@ void sigalrm_handler(int)
 {
 }
 
-// runs event loop
-int CRXCBWindowManager::runEventLoop()
+/// forward events from system queue to application queue
+void CRXCBWindowManager::forwardSystemEvents( bool waitForEvent )
 {
-    struct sigaction act;
-    act.sa_handler = sigint_handler;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-    sigaction(SIGINT, &act, NULL);
-
-    act.sa_handler = sigusr1_handler;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-    sigaction(SIGUSR1, &act, NULL);
-    
-
-    
-    xcb_visibility_t visibility;
-
-    xcb_intern_atom_cookie_t cookie;
-    xcb_intern_atom_reply_t *reply = NULL;
-
-    xcb_atom_t wm_protocols_atom, wm_delete_window_atom;
-
-    cookie = xcb_intern_atom_unchecked(connection, 0, strlen("WM_DELETE_WINDOW"), "WM_DELETE_WINDOW");
-    reply = xcb_intern_atom_reply(connection, cookie, NULL);
-    wm_delete_window_atom = reply->atom;
-    free(reply);
-
-    cookie = xcb_intern_atom_unchecked(connection, 0, strlen("WM_PROTOCOLS"), "WM_PROTOCOLS");
-    reply = xcb_intern_atom_reply(connection, cookie, NULL);
-    wm_protocols_atom = reply->atom;
-    free(reply);
-
-    static bool alt_pressed = false;
-
-    CRLog::trace("CRXCBWindowManager::runEventLoop()");
-    xcb_key_symbols_t * keysyms = xcb_key_symbols_alloc( connection );
-
-    xcb_generic_event_t *event;
-    bool stop = false;
-    while (!stop && (event = xcb_wait_for_event (connection)) ) {
+    if ( _stopFlag )
+        waitForEvent = false;
+    xcb_generic_event_t *event = NULL;
+    for (;;) {
+        if ( waitForEvent )
+            event = xcb_wait_for_event (connection);
+        else
+            event = xcb_poll_for_event (connection);
+        waitForEvent = false;
+        if ( !event )
+            break;
         if(xcb_connection_has_error(connection)) {
             CRLog::error("Connection to server closed\n");
             break;
         }
-        main_win->unsetLastNavigationDirection();
-        bool needUpdate = false;
-        //processPostedEvents();
+
         switch (event->response_type & ~0x80) {
         case XCB_EXPOSE:
             // draw buffer
             {
                 if ( visibility != XCB_VISIBILITY_FULLY_OBSCURED ) {
                     printf("EXPOSE\n");
-                    update(true);
+                    postEvent( new CRGUIUpdateEvent(true) );
                 }
             }
             break;
@@ -1115,8 +1093,7 @@ int CRXCBWindowManager::runEventLoop()
                 if (_screen->getWidth() != conf->width || _screen->getHeight() != conf->height) {
                     cr_rotate_angle_t angle = readXCBScreenRotationAngle();
                     CRLog::info("Setting new window size: %d x %d, angle: %d", conf->width, conf->height, (int)angle );
-                    reconfigure( conf->width, conf->height, angle );
-                    needUpdate = true;
+                    postEvent( new CRGUIResizeEvent(conf->width, conf->height, angle) );
                 }
 
                 break;
@@ -1127,7 +1104,7 @@ int CRXCBWindowManager::runEventLoop()
                 if((msg->type == wm_protocols_atom) &&
                         (msg->format == 32) &&
                         (msg->data.data32[0] == (uint32_t)wm_delete_window_atom)) {
-                    stop = true;
+                    _stopFlag = true;
                 }
             }
         case XCB_KEY_RELEASE:
@@ -1140,9 +1117,8 @@ int CRXCBWindowManager::runEventLoop()
                                         key,
                                         XCB_LOOKUP_CHARS_T); //xcb_lookup_key_sym_t xcb_lookup_chars_t
                 printf("Key released keycode=%d char=%04x state=%d\n", (int)key, (int)sym, state );
-                onKeyPressed( sym, state );
+                postEvent( new CRGUIKeyDownEvent( sym, state ) );
                 //printf("page number = %d\n", main_win->getDocView()->getCurPage());
-                needUpdate = true;
             }
             break;
         case XCB_BUTTON_PRESS:
@@ -1157,24 +1133,61 @@ int CRXCBWindowManager::runEventLoop()
 
         free (event);
 
-        if ( (processPostedEvents() || needUpdate ) && getWindowCount() ) {
-            updatePositionProperty();
-            update(false);
-        }
-        // stop loop if all windows are closed
-        if ( !getWindowCount() )
-            stop = true;
-
-        if ( !stop && getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
-            CRLog::debug("Last command is page down: preparing next page for fast navigation");
-            main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
-            main_win->unsetLastNavigationDirection();
-        }
     }
+}
+
+/// called when message queue is empty and application is going to wait for event
+void CRXCBWindowManager::idle()
+{
+    if ( !_stopFlag && getWindowCount() )
+        updatePositionProperty();
+    if ( !_stopFlag && getWindowCount()==1 && (main_win->getLastNavigationDirection()==1 || main_win->getLastNavigationDirection()==-1)) {
+        CRLog::debug("Last command is page down: preparing next page for fast navigation");
+        main_win->prepareNextPageImage( main_win->getLastNavigationDirection() );
+        main_win->unsetLastNavigationDirection();
+    }
+}
+
+// runs event loop
+int CRXCBWindowManager::runEventLoop()
+{
+    struct sigaction act;
+    act.sa_handler = sigint_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction(SIGINT, &act, NULL);
+
+    act.sa_handler = sigusr1_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction(SIGUSR1, &act, NULL);
+    
+
+    
+    xcb_intern_atom_cookie_t cookie;
+    xcb_intern_atom_reply_t *reply = NULL;
+
+
+    cookie = xcb_intern_atom_unchecked(connection, 0, strlen("WM_DELETE_WINDOW"), "WM_DELETE_WINDOW");
+    reply = xcb_intern_atom_reply(connection, cookie, NULL);
+    wm_delete_window_atom = reply->atom;
+    free(reply);
+
+    cookie = xcb_intern_atom_unchecked(connection, 0, strlen("WM_PROTOCOLS"), "WM_PROTOCOLS");
+    reply = xcb_intern_atom_reply(connection, cookie, NULL);
+    wm_protocols_atom = reply->atom;
+    free(reply);
+
+    static bool alt_pressed = false;
+
+    CRLog::trace("CRXCBWindowManager::runEventLoop()");
+    keysyms = xcb_key_symbols_alloc( connection );
+
+    int res = CRGUIWindowManager::runEventLoop();
 
     delete_properties();
     xcb_key_symbols_free( keysyms );
-    return 0;
+    return res;
 }
 
 int main(int argc, char **argv)

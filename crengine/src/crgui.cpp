@@ -171,12 +171,26 @@ void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
 	}
 }
 
+/// runs event loop
+int CRGUIWindowManager::runEventLoop()
+{
+    while ( !_stopFlag ) {
+        if ( !getWindowCount() )
+            _stopFlag = true;
+        handleAllEvents(!_stopFlag);
+    }
+    return 0;
+}
+
+
 /// handle all events from queue
 bool CRGUIWindowManager::handleAllEvents( bool waitForEvent )
 {
     bool handled = false;
-    if ( _events.empty() && waitForEvent )
+    if ( _events.empty() && waitForEvent ) {
+        idle();
         forwardSystemEvents( true );
+    }
     for (CRGUIEvent * event=getEvent(); event; event=getEvent() ) {
         handleEvent( event );
         delete event;
