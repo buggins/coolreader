@@ -204,10 +204,22 @@ public:
             return NULL;
         return remove( length() - 1 );
     }
+    /// stack-like interface: pop top item from stack
+    T * popHead()
+    {
+        if ( empty() )
+            return NULL;
+        return remove( 0 );
+    }
     /// stack-like interface: push item to stack
     void push( T * item )
     {
         add( item );
+    }
+    /// stack-like interface: push item to stack
+    void pushHead( T * item )
+    {
+        insert( 0, item );
     }
     /// stack-like interface: get top item w/o removing from stack
     T * peek()
@@ -215,6 +227,13 @@ public:
         if ( empty() )
             return NULL;
         return get( length() - 1 );
+    }
+    /// stack-like interface: get top item w/o removing from stack
+    T * peekHead()
+    {
+        if ( empty() )
+            return NULL;
+        return get( 0 );
     }
     /// destructor
     ~LVPtrVector() { clear(); }

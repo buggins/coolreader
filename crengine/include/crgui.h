@@ -317,6 +317,46 @@ public:
     virtual ~CRGUIStringTranslator() { }
 };
 
+enum CRGUIEventType {
+    CREV_WINDOW_EVENTS_START=1,
+    CREV_KEYDOWN = 1,
+    CREV_KEYUP,
+    CREV_COMMAND,
+
+    CREV_WM_EVENTS_START=100,
+    CREV_UPDATE = 100,
+    CREV_RESIZE,
+
+};
+
+class CRGUIWindow;
+class CRGUIWindowManager;
+
+class CRGUIEvent
+{
+protected:
+    int _type;
+    CRGUIWindow * _targetWindow;
+    int _param1;
+    int _param2;
+public:
+    virtual bool isForVisibleOnly() { return false; }
+    virtual bool isWindowEvent() { return _type<CREV_WM_EVENTS_START; }
+    virtual bool isWMEvent() { return _type>=CREV_WM_EVENTS_START; }
+    int getType() { return _type; }
+    virtual bool handle( CRGUIWindow * window ) { return false; }
+    virtual bool handle( CRGUIWindowManager * wm ) { return false; }
+    CRGUIEvent & setParam1( int v ) { _param1=v; return *this; }
+    CRGUIEvent & setParam2( int v ) { _param2=v; return *this; }
+    int getParam1() { return _param1; }
+    int getParam2() { return _param2; }
+    CRGUIEvent( int type ) : _type(type), _targetWindow(NULL)
+    {
+
+    }
+    virtual ~CRGUIEvent() { }
+};
+
 
 /// Screen object - provides canvas and interface to device screen
 class CRGUIScreen
@@ -363,6 +403,14 @@ class CRGUIScreen
 class CRGUIWindow
 {
     public:
+        /// override to handle
+        virtual bool handleEvent( CRGUIEvent * event )
+        {
+            if ( !event->isWindowEvent() )
+                return false;
+            // by default, allow event to do something with window
+            return event->handle( this );
+        }
         /// sets scroll label (e.g. "Page $1 of $2" or "$1 / $2")
         virtual void setScrollLabelTemplate( lString16 text ) = 0;
         /// returns scroll label (e.g. "$1 of $2")
@@ -414,6 +462,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
 {
     protected:
         LVPtrVector<CRGUIWindow, true> _windows;
+        LVPtrVector<CRGUIEvent, true> _events;
         CRGUIScreen * _screen;
         /// if true, we should delete screen in destructor
         bool _ownScreen;
@@ -428,6 +477,26 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         cr_rotate_angle_t _orientation;
         LVRefVec<LVImageSource> m_batteryIcons;
     public:
+        /// forward events from system queue to application queue
+        virtual void forwardSystemEvents( bool waitForEvent ) { }
+        /// post application event to message queue
+        virtual void postEvent( CRGUIEvent * event );
+        /// peeks head of application message queue, w/o removing from queue (returns NULL if no events in queue)
+        virtual CRGUIEvent * peekEvent()
+        {
+            forwardSystemEvents( false );
+            return _events.peekHead();
+        }
+        /// returns head of application message queue, removing from queue (returns NULL if no events in queue)
+        virtual CRGUIEvent * getEvent()
+        {
+            forwardSystemEvents( false );
+            return _events.popHead();
+        }
+        /// handle all events from queue
+        virtual bool handleAllEvents( bool waitForEvent );
+        /// override to handle
+        virtual bool handleEvent( CRGUIEvent * event );
         /// returns list of battery icons
         virtual LVRefVec<LVImageSource> & getBatteryIcons() { return m_batteryIcons; }
         /// set list of battery icons to display battery state
@@ -499,22 +568,11 @@ class CRGUIWindowManager : public CRGUIStringTranslator
             }
         }
         /// adds command to message queue
-        virtual void postCommand( int command, int params = 0 )
-        {
-            _postedCommand = command;
-            _postedCommandParam = params;
-        }
+        virtual void postCommand( int command, int params = 0 );
         /// runs posted events (commands)
         virtual bool processPostedEvents()
         {
-            // TODO: support posted event queue
-            bool res = false;
-            if ( !_postedCommand )
-                return res;
-            res = onCommand( _postedCommand, _postedCommandParam );
-            _postedCommand = 0;
-            _postedCommandParam = 0;
-            return res;
+            handleAllEvents( false );
         }
         /// returns true if command is processed
         virtual bool onCommand( int command, int params = 0 )
@@ -1163,6 +1221,88 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         virtual void closeAllMenu( int command, int params = 0 );
         /// closes menu and its submenus
         virtual void destroyMenu();
+};
+
+class CRGUIKeyDownEvent : public CRGUIEvent
+{
+public:
+    virtual bool isForVisibleOnly() { return true; }
+    CRGUIKeyDownEvent( int key, int params )
+    : CRGUIEvent( CREV_KEYDOWN )
+    {
+        _param1 = key;
+        _param2 = params;
+    }
+    virtual bool handle( CRGUIWindow * window )
+    {
+        if ( _targetWindow!=NULL ) {
+            if ( window!=_targetWindow )
+                return false;
+        }
+        return window->onKeyPressed( _param1, _param2 );
+    }
+    virtual bool handle( CRGUIWindowManager * wm ) { return false; }
+};
+
+class CRGUICommandEvent : public CRGUIEvent
+{
+public:
+    CRGUICommandEvent( int cmd, int params )
+    : CRGUIEvent( CREV_COMMAND )
+    {
+        _param1 = cmd;
+        _param2 = params;
+    }
+    virtual bool handle( CRGUIWindow * window )
+    {
+        if ( _targetWindow!=NULL ) {
+            if ( window!=_targetWindow )
+                return false;
+        }
+        return window->onCommand( _param1, _param2 );
+    }
+    virtual bool handle( CRGUIWindowManager * wm ) { return false; }
+};
+
+class CRGUIUpdateEvent : public CRGUIEvent
+{
+public:
+    CRGUIUpdateEvent( bool fullScreen=false )
+    : CRGUIEvent( CREV_UPDATE )
+    {
+        _param1 = fullScreen ? 1 : 0;
+    }
+    virtual bool handle( CRGUIWindow * window )
+    {
+        return false;
+    }
+    virtual bool handle( CRGUIWindowManager * wm )
+    {
+        wm->update( _param1!=0 );
+        return true;
+    }
+};
+
+class CRGUIResizeEvent : public CRGUIEvent
+{
+    cr_rotate_angle_t _angle;
+public:
+    CRGUIResizeEvent( int dx, int dy, cr_rotate_angle_t angle )
+    : CRGUIEvent( CREV_RESIZE )
+    {
+        _param1 = dx;
+        _param2 = dy;
+        _angle = angle;
+    }
+    virtual bool handle( CRGUIWindow * window )
+    {
+        return false;
+    }
+    virtual bool handle( CRGUIWindowManager * wm )
+    {
+        wm->reconfigure(_param1, _param2, _angle);
+        return true;
+    }
 };
 
 

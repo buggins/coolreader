@@ -171,6 +171,77 @@ void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
 	}
 }
 
+/// handle all events from queue
+bool CRGUIWindowManager::handleAllEvents( bool waitForEvent )
+{
+    bool handled = false;
+    if ( _events.empty() && waitForEvent )
+        forwardSystemEvents( true );
+    for (CRGUIEvent * event=getEvent(); event; event=getEvent() ) {
+        handleEvent( event );
+        delete event;
+        handled = true;
+    }
+    return handled;
+}
+
+void CRGUIWindowManager::postCommand( int command, int params )
+{
+    postEvent(new CRGUICommandEvent(command, params) );
+}
+
+void CRGUIWindowManager::postEvent( CRGUIEvent * event )
+{
+    int evt = event->getType();
+    if ( evt==CREV_KEYDOWN || evt==CREV_KEYUP || evt==CREV_COMMAND ) {
+        // for window events, like keyPress or Command, post them before Update/Resize
+        int i=_events.length()-1;
+        for ( ; i>=0; i-- ) {
+            int t = _events[i]->getType();
+            if ( t!=CREV_UPDATE && t!=CREV_RESIZE )
+                break;
+        }
+        _events.insert(i, event);
+        return;
+    } else if ( evt==CREV_UPDATE || evt==CREV_RESIZE ) {
+        for ( int i=_events.length()-1; i>=0; i-- ) {
+            int t = _events[i]->getType();
+            if ( t==evt || t==CREV_UPDATE ) { // UPDATE is invalidated by Resize
+                // remove duplicates
+                delete _events.remove(i);
+            }
+        }
+        _events.push(event);
+        return;
+    }
+    _events.push(event);
+}
+
+/// override to handle
+bool CRGUIWindowManager::handleEvent( CRGUIEvent * event )
+{
+    // by default, allow event to do something with window
+    if ( event->isWMEvent() )
+        return event->handle( this );
+    if ( event->isWindowEvent() ) {
+        CRLog::trace("CRGUIWindowManager::handleEvent( %d, %d, %d)", event->getType(), event->getParam1(), event->getParam2() );
+        for ( int i=_windows.length()-1; i>=0; i-- ) {
+            if ( !event->isForVisibleOnly() || _windows[i]->isVisible() ) {
+                if ( _windows[i]->handleEvent(event) ) {
+                    CRLog::trace("CRGUIWindowManager::handleEvent() -- window %d has processed event, exiting", i );
+                    return true;
+                } else {
+                    CRLog::trace("CRGUIWindowManager::handleEvent() -- window %d cannot process event, continue", i );
+                }
+            } else {
+                CRLog::trace("CRGUIWindowManager::handleEvent() -- window %d is invisible, continue", i );
+            }
+        }
+        return false;
+    }
+}
+
+
 static bool firstWaitUpdate = true;
 
 /// draws icon at center of screen
