@@ -619,7 +619,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>(c) 1998-2009 Vadim Lopatin</source>
-        <translation>© 1998-2009 Вадім Лопатін</translation>
+        <translation>© 1998-2010 Вадім Лопатін</translation>
     </message>
     <message>
         <source>About</source>
@@ -798,18 +798,18 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Loading: please wait...</source>
-        <translation type="unfinished"></translation>
+        <translation>Відкривається. Зачекайте...</translation>
     </message>
 </context>
 <context>
     <name>ExportProgressDlg</name>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished">Діалог</translation>
+        <translation>Діалог</translation>
     </message>
     <message>
         <source>Export is in progress...</source>
-        <translation type="unfinished"></translation>
+        <translation>Триває експортування...</translation>
     </message>
 </context>
 <context>
@@ -991,15 +991,15 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Export document to</source>
-        <translation type="unfinished"></translation>
+        <translation>Експорт документу до</translation>
     </message>
     <message>
         <source>WOL book (*.wol)</source>
-        <translation type="unfinished"></translation>
+        <translation>Книга WOL (*.wol)</translation>
     </message>
     <message>
         <source>Export to WOL format</source>
-        <translation type="unfinished"></translation>
+        <translation>Експорт у формат WOL</translation>
     </message>
 </context>
 <context>
@@ -1346,27 +1346,27 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Export</source>
-        <translation type="unfinished"></translation>
+        <translation>Експорт</translation>
     </message>
     <message>
         <source>Export document</source>
-        <translation type="unfinished"></translation>
+        <translation>Експорт документу</translation>
     </message>
     <message>
         <source>Ctrl+S</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+S</translation>
     </message>
     <message>
         <source>Toggle Edit Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Перемкнути режим редагування</translation>
     </message>
     <message>
         <source>Toggle edit mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Перемкнути режим редагування</translation>
     </message>
     <message>
         <source>Ctrl+E</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+E</translation>
     </message>
 </context>
 <context>
@@ -1638,27 +1638,27 @@ p, li { white-space: pre-wrap; }
     <name>WolExportDlg</name>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished">Діалог</translation>
+        <translation>Діалог</translation>
     </message>
     <message>
         <source>Bits per pixel</source>
-        <translation type="unfinished"></translation>
+        <translation>Бітів на піксель</translation>
     </message>
     <message>
         <source>1</source>
-        <translation type="unfinished">1</translation>
+        <translation>1</translation>
     </message>
     <message>
         <source>2</source>
-        <translation type="unfinished"></translation>
+        <translation>2</translation>
     </message>
     <message>
         <source>Table of Contents levels</source>
-        <translation type="unfinished"></translation>
+        <translation>Рівені змісту</translation>
     </message>
     <message>
         <source>3</source>
-        <translation type="unfinished"></translation>
+        <translation>3</translation>
     </message>
 </context>
 </TS>
