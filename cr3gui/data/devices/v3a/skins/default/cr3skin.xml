@@ -82,7 +82,7 @@
         <title base="#title-main" size="100%,40">
             <background color="#555555"/>
             <background color="#FFFFFF" pos="0,-4" size="100%,2"/>
-            <background color="#CCCCCC" pos="0,-2" size="100%,2"/>
+            <background color="#FFFFFF" pos="0,-2" size="100%,2"/>
         </title>
         <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="24" bold="true" italic="false" valign="center" halign="center"/>
         <background image="cr3_settings_menu.png" color="#AAAAAA"/>
@@ -98,13 +98,13 @@
         <title base="#title-main" size="100%,40">
             <background color="#555555"/>
             <background color="#FFFFFF" pos="0,-4" size="100%,2"/>
-            <background color="#CCCCCC" pos="0,-2" size="100%,2"/>
+            <background color="#FFFFFF" pos="0,-2" size="100%,2"/>
         </title>
         <status>
             <border widths="4,4,4,4"/>
             <size minvalue="20,51" maxvalue="0,0"/>
             <background color="#555555"/>
-            <background color="#CCCCCC" pos="0,0" size="100%,2"/>
+            <background color="#FFFFFF" pos="0,0" size="100%,2"/>
             <background color="#FFFFFF" pos="0,2" size="100%,2"/>
             <text color="#FFFFFF" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="20" bold="true" italic="false" valign="center" halign="right" wordwrap="true"/>
         </status>
@@ -153,7 +153,7 @@
         <item>
           <size minvalue="32,32" maxvalue="0,0"/>
           <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="30" bold="true" italic="false" valign="center" halign="center"/>
-          <background color="#cccccc"/>
+          <background color="#FFFFFF"/>
           <border widths="1,2,4,2"/>
           <!--icon image="filename" valign="" halign=""-->
         </item>
@@ -192,16 +192,16 @@
             <text color="#FFFFFF" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="38" bold="true" italic="false" valign="center" halign="left"/>
             <background color="#555555"/>
             <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
-            <background color="#CCCCCC" pos="0,-5" size="100%,5"/>
+            <background color="#FFFFFF" pos="0,-5" size="100%,5"/>
             <background color="#999999" pos="-4,-5" size="4,5"/>
             <background color="#FFFFFF" pos="65,-5" size="6,5"/>
             <border widths="16,4,16,11"/>
             <icon image="cr-white.png" valign="center" halign="left">
         </title>
         <client>
-            <background color="#cccccc" />
+            <background color="#FFFFFF" />
             <background image="sheet-h79.png" pos="45,0" size="0,100%" htransform="none" vtransform="tile" />
-            <background color="#999999" pos="-4,0" size="4,100%"/>
+            <background color="#FFFFFF" pos="-4,0" size="4,100%"/>
         </client>
         <separator>
             <background color="#FFFFFF" image="separator-h16.png" pos="86,0" size="-102,0" vtransform="none" htransform="tile" />
