@@ -88,7 +88,7 @@ int checkPowerState()
         FILE * f = fopen( "/dev/misc/s3c2410_batt", "rb" );
         if ( !f ) {
 #endif
-            batteryState = -1;
+            batteryState = 100;
             CRLog::debug("cannot read battery state");
 #if USE_OWN_BATTERY_TEST==1
         } else {
@@ -1158,6 +1158,7 @@ public:
                     }
                     break;
             case GR_EVENT_TYPE_KEY_DOWN:
+            //case GR_EVENT_TYPE_KEY_UP:
                     CRLog::debug("GR_EVENT_TYPE_KEY_DOWN %d", (int)event.keystroke.ch );
                     {
                         static int convert_table[] = {
