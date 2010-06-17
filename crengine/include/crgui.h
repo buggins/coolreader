@@ -618,7 +618,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         /// redraw one window
         virtual void updateWindow( CRGUIWindow * window );
         /// full redraw of all windows
-        void update( bool fullScreenUpdate );
+        void update( bool fullScreenUpdate, bool forceFlushScreen=true );
         /// returns screen associated with window manager
         virtual CRGUIScreen * getScreen()
         {
@@ -1137,7 +1137,7 @@ public:
     }
     virtual bool handle( CRGUIWindowManager * wm )
     {
-        wm->update( _param1!=0 );
+        wm->update( _param1!=0, false );
         return true;
     }
 };

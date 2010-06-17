@@ -11,6 +11,7 @@
 *******************************************************/
 
 #include <stdlib.h>
+//include <unistd.h>      /* pause() */
 #include "../include/crgui.h"
 #include "../include/crtrace.h"
 
@@ -227,7 +228,7 @@ void CRGUIWindowManager::updateWindow( CRGUIWindow * window )
     _screen->flush( false );
 }
 
-void CRGUIWindowManager::update( bool fullScreenUpdate )
+void CRGUIWindowManager::update( bool fullScreenUpdate, bool forceFlushScreen )
 {
     lvRect coverBox;
     if  ( _windows.empty() )
@@ -252,8 +253,20 @@ void CRGUIWindowManager::update( bool fullScreenUpdate )
             _screen->invalidateRect( w->getRect() );
         }
     }
-    _screen->flush( fullScreenUpdate );
     _lastProgressPercent = -1;
+    if ( !forceFlushScreen ) {
+#if 0
+        // simulate slow rendering
+        sleep(1);
+#endif
+        forwardSystemEvents(false);
+        if ( !_events.empty() ) {
+            // postpone screen update
+            postEvent( new CRGUIUpdateEvent(fullScreenUpdate) );
+            return;
+        }
+    }
+    _screen->flush( fullScreenUpdate );
 }
 
 /// closes window, removes from stack, destroys object

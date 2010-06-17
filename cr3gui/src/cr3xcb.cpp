@@ -374,6 +374,7 @@ class CRXCBScreen : public CRGUIScreenBase
                 return;
 
 #if 0
+            // simulate slow e-ink update
             sleep(1);
 #endif
 
