@@ -283,8 +283,10 @@ static void putBookmark( LVStream * stream, CRBookmark * bmk )
     putTag(stream, 3, "/bookmark");
 }
 
-bool CRFileHist::saveToStream( LVStream * stream )
+bool CRFileHist::saveToStream( LVStream * targetStream )
 {
+    LVStreamRef streamref = LVCreateMemoryStream(NULL, 0, false, LVOM_WRITE);
+    LVStream * stream = streamref.get();
     const char * xml_hdr = "\xef\xbb\xbf<?xml version=\"1.0\" enconding=\"utf-8\"?>\r\n<FictionBookMarks>\r\n";
     const char * xml_ftr = "</FictionBookMarks>\r\n";
     //const char * crlf = "\r\n";
@@ -310,6 +312,7 @@ bool CRFileHist::saveToStream( LVStream * stream )
         putTag( stream, 1, "/file" );
     }
     *stream << xml_ftr;
+    LVPumpStream( targetStream, stream );
     return true;
 }
 

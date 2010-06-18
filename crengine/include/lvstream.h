@@ -713,6 +713,8 @@ bool LVDeleteFile( lString16 filename );
 
 /// copies content of in stream to out stream
 lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in );
+/// copies content of in stream to out stream
+lvsize_t LVPumpStream( LVStream * out, LVStream * in );
 
 /// creates buffered stream object for stream
 LVStreamRef LVCreateBufferedStream( LVStreamRef stream, int bufSize );

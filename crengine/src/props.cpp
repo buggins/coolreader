@@ -593,14 +593,18 @@ bool CRPropAccessor::loadFromStream( LVStream * stream )
 }
 
 /// save to stream
-bool CRPropAccessor::saveToStream( LVStream * stream )
+bool CRPropAccessor::saveToStream( LVStream * targetStream )
 {
-    if ( !stream || stream->GetMode()!=LVOM_WRITE )
+    if ( !targetStream || targetStream->GetMode()!=LVOM_WRITE )
         return false;
+    LVStreamRef streamref = LVCreateMemoryStream(NULL, 0, false, LVOM_WRITE);
+    LVStream * stream = streamref.get();
+
     *stream << "\xEF\xBB\xBF";
     for ( int i=0; i<getCount(); i++ ) {
         *stream << getPath() << getName(i) << "=" << addBackslashChars(UnicodeToUtf8(getValue(i))) << "\r\n";
     }
+    LVPumpStream( targetStream, stream );
     return true;
 }
 

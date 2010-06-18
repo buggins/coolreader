@@ -3606,6 +3606,11 @@ LVStreamRef LVCreateBufferedStream( LVStreamRef stream, int bufSize )
 
 lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in )
 {
+    return LVPumpStream( out.get(), in.get() );
+}
+
+lvsize_t LVPumpStream( LVStream * out, LVStream * in )
+{
     char buf[4096];
     lvsize_t totalBytesRead = 0;
     lvsize_t bytesRead = 0;
