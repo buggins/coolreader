@@ -1,3 +1,27 @@
+cr3 (3.0.24-25) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * AntiWord Support, part 1
+  * antiword support, part 2
+  * Show filename at page header
+  * application event queue, part 1
+  * use application message queue for XCB
+  * retain fullScreen flag while removing duplicate Update events
+  * fixes for application message queue
+  * message queue fixes
+  * fixes
+  * fix event handling
+  * update Ukrainian translation
+  * update skin
+  * history and settings saving optimization
+  * V3 skin fixes, font setting fixes
+  * save cache file changes on render instead of exit
+  * use external dictionary edict for OpenInkpot
+  * enable edict for OI builds
+  * update README.TXT build commandline for OI
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Mon, 21 Jun 2010 10:11:25 +0200
+
 cr3 (3.0.24-24) zelazny; urgency=low
 
   [ Vadim Lopatin ]
