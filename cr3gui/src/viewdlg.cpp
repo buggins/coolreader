@@ -210,6 +210,14 @@ void CRViewDialog::showSearchDialog()
 
 bool CRViewDialog::findInDictionary( lString16 pattern )
 {
+#if USE_EXTERNAL_EDICT_DICTIONARY==1
+    // external dictionary
+    lString8 cmd = "edict \"";
+    cmd << UnicodeToUtf8(pattern);
+    cmd << "\" &";
+    int res = system(cmd.c_str());
+    return res!=-1;
+#else
     if ( _dict.isNull() ) {
         showWaitIcon();
         _dict = LVRef<CRDictionary>( new CRTinyDict( Utf8ToUnicode(lString8(DICTD_CONF)) ) );
@@ -219,6 +227,7 @@ bool CRViewDialog::findInDictionary( lString16 pattern )
     CRViewDialog * dlg = new CRViewDialog( _wm, pattern, txt, lvRect(), true, true );
     _wm->activateWindow( dlg );
 	return true;
+#endif
 }
 
 bool CRViewDialog::findText( lString16 pattern )

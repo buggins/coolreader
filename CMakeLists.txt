@@ -18,6 +18,18 @@ else ()
   message("Using GUI frontend ${GUI}")
 endif (NOT DEFINED GUI)
 
+
+
+# Determines whether to use external app EDICT for dictionary
+if (NOT DEFINED USE_EXTERNAL_EDICT_DICTIONARY)
+  SET(USE_EXTERNAL_EDICT_DICTIONARY 0)
+else()
+  SET(USE_EXTERNAL_EDICT_DICTIONARY ${USE_EXTERNAL_EDICT_DICTIONARY})
+endif (NOT DEFINED USE_EXTERNAL_EDICT_DICTIONARY)
+message("using USE_EXTERNAL_EDICT_DICTIONARY=${USE_EXTERNAL_EDICT_DICTIONARY}")
+ADD_DEFINITIONS( -DUSE_EXTERNAL_EDICT_DICTIONARY=${USE_EXTERNAL_EDICT_DICTIONARY} )
+
+
 # Document buffer cache / compression settings
 # whether to store compressed data in RAM (or in cache file only)
 if (NOT DEFINED RAM_COMPRESSED_BUFFER_ENABLED)
