@@ -70,7 +70,7 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
 
     INSTALL( FILES ${CR3_STYLES} DESTINATION share/cr3)
     INSTALL( FILES data/desktop/cr3.desktop DESTINATION share/applications)
-    INSTALL( FILES data/desktop/cr3.png DESTINATION share/app-install/icons)
+#    INSTALL( FILES data/desktop/cr3.png DESTINATION share/app-install/icons)
     INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
       FILES_MATCHING PATTERN "*.pdb" )
     INSTALL( DIRECTORY data/hyph/ DESTINATION share/cr3/hyph
