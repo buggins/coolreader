@@ -212,9 +212,11 @@ bool CRViewDialog::findInDictionary( lString16 pattern )
 {
 #if USE_EXTERNAL_EDICT_DICTIONARY==1
     // external dictionary
-    lString8 cmd = "edict \"";
+    lString8 cmd;
+    cmd << "edict \"";
     cmd << UnicodeToUtf8(pattern);
     cmd << "\" &";
+    CRLog::info("Calling system %s", cmd.c_str());
     int res = system(cmd.c_str());
     return res!=-1;
 #else
