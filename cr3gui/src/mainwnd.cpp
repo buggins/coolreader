@@ -514,8 +514,8 @@ void V3DocViewWin::closing()
 {
     if ( !_docview->getDocument() )
         return;
-    _docview->getDocument()->swapToCacheIfNecessary();
-    _docview->getDocument()->updateMap();
+    //_docview->getDocument()->swapToCacheIfNecessary();
+    //_docview->getDocument()->updateMap();
 
 
 	CRLog::trace("V3DocViewWin::closing(), before docview->savePosition()");

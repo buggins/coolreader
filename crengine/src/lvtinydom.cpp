@@ -3155,7 +3155,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         _pagesData.reset();
         pages->serialize( _pagesData );
 
-        //saveChanges();
+        saveChanges();
 
         //persist();
         dumpStatistics();
