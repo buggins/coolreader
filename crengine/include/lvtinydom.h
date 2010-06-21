@@ -701,7 +701,7 @@ public:
 
 #if BUILD_LITE!=1
     /// find node by coordinates of point in formatted document
-    ldomNode * elementFromPoint( lvPoint pt );
+    ldomNode * elementFromPoint( lvPoint pt, int direction );
     /// find final node by coordinates of point in formatted document
     ldomNode * finalBlockFromPoint( lvPoint pt );
 #endif
@@ -1469,7 +1469,7 @@ public:
     ldomNode * getNearestCommonParent();
 
     /// searches for specified text inside range
-    bool findText( lString16 pattern, bool caseInsensitive, LVArray<ldomWord> & words, int maxCount );
+    bool findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight );
 };
 
 class ldomMarkedText
@@ -1783,11 +1783,11 @@ public:
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
 #if BUILD_LITE!=1
     /// create xpointer from doc point
-    ldomXPointer createXPointer( lvPoint pt );
+    ldomXPointer createXPointer( lvPoint pt, int direction=0 );
     /// get rendered block cache object
     CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
 
-    bool findText( lString16 pattern, bool caseInsensitive, int minY, int maxY, LVArray<ldomWord> & words, int maxCount );
+    bool findText( lString16 pattern, bool caseInsensitive, bool reverse, int minY, int maxY, LVArray<ldomWord> & words, int maxCount, int maxHeight );
 #endif
 };
 

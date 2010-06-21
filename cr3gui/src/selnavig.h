@@ -18,11 +18,11 @@
 class CRSelNavigationDialog : public BackgroundFitWindow
 {
 protected:
-    LVArray<int> _selPages;
-    int _curIndex;
+    CRViewDialog * _mainwin;
+    lString16 _pattern;
     void moveBy( int delta );
 public:
-    CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin );
+    CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin, lString16 pattern );
 
     /// returns true if command is processed
     virtual bool onCommand( int command, int params );

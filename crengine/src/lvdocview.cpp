@@ -1578,6 +1578,20 @@ int LVDocView::getPageCount()
 // Navigation code
 //============================================================================
 
+/// get position of view inside document
+void LVDocView::GetPos( lvRect & rc )
+{
+    rc.left = 0;
+    rc.right = GetWidth();
+    if ( isPageMode() && _page>=0 && _page<m_pages.length() ) {
+        rc.top = m_pages[_page]->start;
+        rc.bottom = rc.top + m_pages[_page]->height;
+    } else {
+        rc.top = _pos;
+        rc.bottom = _pos + GetHeight();
+    }
+}
+
 /// get vertical position of view inside document
 int LVDocView::GetPos()
 {

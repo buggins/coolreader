@@ -4446,13 +4446,13 @@ ldomNode * ldomXPointer::getFinalNode() const
 #endif
 
 /// create xpointer from doc point
-ldomXPointer ldomDocument::createXPointer( lvPoint pt )
+ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
 {
     //
     ldomXPointer ptr;
     if ( !getRootNode() )
         return ptr;
-    ldomNode * finalNode = getRootNode()->elementFromPoint( pt );
+    ldomNode * finalNode = getRootNode()->elementFromPoint( pt, direction );
     if ( !finalNode ) {
         if ( pt.y >= getFullHeight()) {
             ldomNode * node = getRootNode()->getLastTextChild();
@@ -4540,6 +4540,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
     if ( isNull() )
         return false;
     ldomNode * p = isElement() ? getNode() : getNode()->getParentNode();
+    ldomNode * p0 = p;
     ldomNode * finalNode = NULL;
     if ( !p ) {
         //CRLog::trace("ldomXPointer::getRect() - p==NULL");
@@ -4558,6 +4559,14 @@ bool ldomXPointer::getRect(lvRect & rect) const
         if ( p==mainNode )
             break;
     }
+
+    if ( finalNode==NULL ) {
+        lvRect rc;
+        p0->getAbsRect( rc );
+        CRLog::debug("node w/o final parent: %d..%d", rc.top, rc.bottom);
+
+    }
+
     if ( finalNode!=NULL ) {
         lvRect rc;
         finalNode->getAbsRect( rc );
@@ -5207,19 +5216,32 @@ void ldomXRangeList::split( ldomXRange * r )
 
 #if BUILD_LITE!=1
 
-bool ldomDocument::findText( lString16 pattern, bool caseInsensitive, int minY, int maxY, LVArray<ldomWord> & words, int maxCount )
+bool ldomDocument::findText( lString16 pattern, bool caseInsensitive, bool reverse, int minY, int maxY, LVArray<ldomWord> & words, int maxCount, int maxHeight )
 {
     if ( minY<0 )
         minY = 0;
     int fh = getFullHeight();
     if ( maxY<=0 || maxY>fh )
         maxY = fh;
-    ldomXPointer start = createXPointer( lvPoint(minY, 0) );
-    ldomXPointer end = createXPointer( lvPoint(maxY, 10000) );
+    ldomXPointer start = createXPointer( lvPoint(0, minY), reverse?-1:1 );
+    ldomXPointer end = createXPointer( lvPoint(10000, maxY), reverse?-1:1 );
     if ( start.isNull() || end.isNull() )
         return false;
     ldomXRange range( start, end );
-    return range.findText( pattern, caseInsensitive, words, maxCount );
+    CRLog::debug("ldomDocument::findText() for Y %d..%d, range %d..%d", minY, maxY, start.toPoint().y, end.toPoint().y);
+    if ( range.getStart().toPoint().y==-1 ) {
+        range.getStart().nextVisibleText();
+        CRLog::debug("ldomDocument::findText() updated range %d..%d", range.getStart().toPoint().y, range.getEnd().toPoint().y);
+    }
+    if ( range.getEnd().toPoint().y==-1 ) {
+        range.getEnd().prevVisibleText();
+        CRLog::debug("ldomDocument::findText() updated range %d..%d", range.getStart().toPoint().y, range.getEnd().toPoint().y);
+    }
+    if ( range.isNull() ) {
+        CRLog::debug("No text found: Range is empty");
+        return false;
+    }
+    return range.findText( pattern, caseInsensitive, reverse, words, maxCount, maxHeight );
 }
 
 static bool findText( const lString16 & str, int & pos, const lString16 & pattern )
@@ -5246,30 +5268,110 @@ static bool findText( const lString16 & str, int & pos, const lString16 & patter
     return false;
 }
 
+static bool findTextRev( const lString16 & str, int & pos, const lString16 & pattern )
+{
+    int len = pattern.length();
+    if ( pos+len>str.length() )
+        pos = str.length()-len;
+    if ( pos < 0 )
+        return false;
+    const lChar16 * s1 = str.c_str() + pos;
+    const lChar16 * s2 = pattern.c_str();
+    int nlen = pos - len;
+    for ( int j=nlen-1; j>=0; j-- ) {
+        bool matched = true;
+        for ( int i=0; i<len; i++ ) {
+            if ( s1[i] != s2[i] ) {
+                matched = false;
+                break;
+            }
+        }
+        if ( matched )
+            return true;
+        s1--;
+        pos--;
+    }
+    return false;
+}
+
 /// searches for specified text inside range
-bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, LVArray<ldomWord> & words, int maxCount )
+bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight )
 {
     if ( caseInsensitive )
         pattern.lowercase();
     words.clear();
     if ( pattern.empty() )
         return false;
-    if ( !_start.isText() )
-        _start.nextVisibleText();
-    while ( !isNull() ) {
-        int offs = _start.getOffset();
-        lString16 txt = _start.getNode()->getText();
-        if ( caseInsensitive )
-            txt.lowercase();
-
-        while ( ::findText( txt, offs, pattern ) ) {
-            words.add( ldomWord(_start.getNode(), offs, offs + pattern.length() ) );
-            offs++;
+    if ( reverse ) {
+        // reverse search
+        if ( !_end.isText() ) {
+            _end.prevVisibleText();
+            lString16 txt = _end.getNode()->getText();
+            _end.setOffset(txt.length());
         }
-        if ( !_start.nextVisibleText() )
-            break;
-        if ( words.length() >= maxCount )
-            break;
+        int firstFoundTextY = -1;
+        while ( !isNull() ) {
+
+            lString16 txt = _end.getNode()->getText();
+            int offs = _end.getOffset();
+
+            if ( firstFoundTextY!=-1 && maxHeight>0 ) {
+                ldomXPointer p( _start.getNode(), offs );
+                int currentTextY = p.toPoint().y;
+                if ( currentTextY<firstFoundTextY-maxHeight )
+                    return words.length()>0;
+            }
+
+            if ( caseInsensitive )
+                txt.lowercase();
+
+            while ( ::findTextRev( txt, offs, pattern ) ) {
+                if ( !words.length() && maxHeight>0 ) {
+                    ldomXPointer p( _end.getNode(), offs );
+                    firstFoundTextY = p.toPoint().y;
+                }
+                words.add( ldomWord(_end.getNode(), offs, offs + pattern.length() ) );
+                offs--;
+            }
+            if ( !_end.prevVisibleText() )
+                break;
+            txt = _end.getNode()->getText();
+            _end.setOffset(txt.length());
+            if ( words.length() >= maxCount )
+                break;
+        }
+    } else {
+        // direct search
+        if ( !_start.isText() )
+            _start.nextVisibleText();
+        int firstFoundTextY = -1;
+        while ( !isNull() ) {
+            int offs = _start.getOffset();
+
+            if ( firstFoundTextY!=-1 && maxHeight>0 ) {
+                ldomXPointer p( _start.getNode(), offs );
+                int currentTextY = p.toPoint().y;
+                if ( currentTextY>firstFoundTextY+maxHeight )
+                    return words.length()>0;
+            }
+
+            lString16 txt = _start.getNode()->getText();
+            if ( caseInsensitive )
+                txt.lowercase();
+
+            while ( ::findText( txt, offs, pattern ) ) {
+                if ( !words.length() && maxHeight>0 ) {
+                    ldomXPointer p( _start.getNode(), offs );
+                    firstFoundTextY = p.toPoint().y;
+                }
+                words.add( ldomWord(_start.getNode(), offs, offs + pattern.length() ) );
+                offs++;
+            }
+            if ( !_start.nextVisibleText() )
+                break;
+            if ( words.length() >= maxCount )
+                break;
+        }
     }
     return words.length() > 0;
 }
@@ -8534,7 +8636,7 @@ ldomNode * ldomNode::getLastTextChild()
 
 #if BUILD_LITE!=1
 /// find node by coordinates of point in formatted document
-ldomNode * ldomNode::elementFromPoint( lvPoint pt )
+ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -8544,20 +8646,36 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt )
     if ( enode->getRendMethod() == erm_invisible ) {
         return NULL;
     }
-    if ( pt.y < fmt.getY() )
+    if ( pt.y < fmt.getY() ) {
+        if ( direction>0 && enode->getRendMethod() == erm_final )
+            return this;
         return NULL;
-    if ( pt.y >= fmt.getY() + fmt.getHeight() )
+    }
+    if ( pt.y >= fmt.getY() + fmt.getHeight() ) {
+        if ( direction<0 && enode->getRendMethod() == erm_final )
+            return this;
         return NULL;
+    }
     if ( enode->getRendMethod() == erm_final ) {
         return this;
     }
     int count = getChildCount();
-    for ( int i=0; i<count; i++ ) {
-        ldomNode * p = getChildNode( i );
-        ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt.getX(),
-                pt.y - fmt.getY() ) );
-        if ( e )
-            return e;
+    if ( direction>=0 ) {
+        for ( int i=0; i<count; i++ ) {
+            ldomNode * p = getChildNode( i );
+            ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt.getX(),
+                    pt.y - fmt.getY() ), direction );
+            if ( e )
+                return e;
+        }
+    } else {
+        for ( int i=count-1; i>=0; i-- ) {
+            ldomNode * p = getChildNode( i );
+            ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt.getX(),
+                    pt.y - fmt.getY() ), direction );
+            if ( e )
+                return e;
+        }
     }
     return this;
 }
@@ -8566,7 +8684,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt )
 ldomNode * ldomNode::finalBlockFromPoint( lvPoint pt )
 {
     ASSERT_NODE_NOT_NULL;
-    ldomNode * elem = elementFromPoint( pt );
+    ldomNode * elem = elementFromPoint( pt, 0 );
     if ( elem && elem->getRendMethod() == erm_final )
         return elem;
     return NULL;

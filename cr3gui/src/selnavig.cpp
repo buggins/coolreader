@@ -14,46 +14,33 @@
 
 void CRSelNavigationDialog::moveBy( int delta )
 {
-    int newIndex = _curIndex + delta;
-    if ( newIndex < 0 )
-        newIndex = _selPages.length() - 1;
-    if ( newIndex >= _selPages.length() || newIndex < 0 )
-        newIndex = 0;
-    _curIndex = newIndex;
-    if ( _curIndex < _selPages.length() ) {
-        _mainwin->getDocView()->goToPage( _selPages[_curIndex] );
-        setDirty();
-        _mainwin->setDirty();
+    if ( delta==1 ) {
+        // forward
+        if ( !_mainwin->findText(_pattern, 1, 1) )
+            _mainwin->findText(_pattern, -1, 1);
+    } else if ( delta==-1 ) {
+        // backward
+        if ( !_mainwin->findText(_pattern, 1, -1) )
+            _mainwin->findText(_pattern, -1, -1);
     }
+    ldomMarkedRangeList * ranges = _mainwin->getDocView()->getMarkedRanges();
+    if ( ranges ) {
+        if ( ranges->length()>0 ) {
+            int pos = ranges->get(0)->start.y;
+            _mainwin->getDocView()->SetPos(pos);
+        }
+    }
+    setDirty();
+    _mainwin->setDirty();
 }
 
-CRSelNavigationDialog::CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin )
-: BackgroundFitWindow(  wm, mainwin )
+CRSelNavigationDialog::CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin, lString16 pattern )
+: BackgroundFitWindow(  wm, mainwin ), _mainwin(mainwin), _pattern(pattern)
 {
     _rect = _wm->getScreen()->getRect();
     _rect.top = _rect.bottom; // null height
     setAccelerators( _wm->getAccTables().get("dialog") );
-
-    ldomMarkedRangeList * marks = _mainwin->getDocView()->getMarkedRanges();
-    LVRendPageList * pages = _mainwin->getDocView()->getPageList();
-
-    int lastPage = -1;
-    _curIndex = -1;
-    int cp = _mainwin->getDocView()->getCurPage();
-    for ( int i=0; i<marks->length(); i++ ) {
-        //
-        ldomMarkedRange * mark = marks->get( i );
-        int p = pages->FindNearestPage( mark->start.y, 0 );
-        if ( p>=0 && lastPage!=p ) {
-            _selPages.add( p );
-            lastPage = p;
-            if ( _curIndex==-1 && p>=cp )
-                _curIndex = _selPages.length()-1;
-        }
-    }
-    if ( _curIndex<0 )
-        _curIndex = 0;
-    moveBy( 0 );
+    moveBy(0);
 }
 
 

@@ -761,6 +761,8 @@ public:
 
     /// get vertical position of view inside document
     int GetPos();
+    /// get position of view inside document
+    void GetPos( lvRect & rc );
     /// set vertical position of view inside document
     void SetPos( int pos, bool savePos=true );
 
