@@ -114,6 +114,7 @@ CRViewDialog::CRViewDialog(CRGUIWindowManager * wm, lString16 title, lString8 te
     } else {
         _fullscreen = (rect == fsRect);
     }
+    getDocView()->setDrawBufferBits(_wm->getScreen()->getCanvas()->GetBitsPerPixel());
     getDocView()->setStyleSheet( lString8(def_view_css) );
     getDocView()->setBackgroundColor(0xFFFFFF);
     getDocView()->setTextColor(0x000000);

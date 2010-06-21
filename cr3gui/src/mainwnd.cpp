@@ -498,7 +498,7 @@ bool V3DocViewWin::saveHistory( LVStreamRef stream )
         CRLog::error("Cannot open history file for write" );
         return false;
     }
-    _docview->getHistory()->limit( 50 );
+    _docview->getHistory()->limit( 32 );
     return _docview->getHistory()->saveToStream( stream.get() );
 }
 
@@ -686,7 +686,7 @@ void V3DocViewWin::showFontSizeMenu()
     _newProps = LVClonePropsContainer( _props );
     lvRect rc = _wm->getScreen()->getRect();
     CRSettingsMenu * mainMenu = new CRSettingsMenu( _wm, _newProps, MCMD_SETTINGS_APPLY, menuFont, getMenuAccelerators(), rc );
-    CRMenu * menu = mainMenu->createFontSizeMenu( NULL, _newProps );
+    CRMenu * menu = mainMenu->createFontSizeMenu( _wm, NULL, _newProps );
     _wm->activateWindow( menu );
 }
 

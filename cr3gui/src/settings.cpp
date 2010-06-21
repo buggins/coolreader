@@ -232,11 +232,12 @@ class OnDemandFontMenuItem : public CRMenuItem
     bool _italic;
     css_font_family_t _family;
     lString8 _typeface;
+    lString8 _deftypeface;
     public:
     OnDemandFontMenuItem( CRMenu * menu, int id, lString16 label, LVImageSourceRef image, const lChar16 * propValue,
-                          int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
+                          int size, int weight, bool italic, css_font_family_t family, lString8 typeface, lString8 deftypeface )
     : CRMenuItem(menu, id, LCSTR(label), image, LVFontRef(), propValue)
-    , _size(size), _weight(weight), _italic(italic), _family(family), _typeface(typeface)
+    , _size(size), _weight(weight), _italic(italic), _family(family), _typeface(typeface), _deftypeface(deftypeface)
     {
     }
     /// item label font
@@ -245,18 +246,23 @@ class OnDemandFontMenuItem : public CRMenuItem
         if ( _defFont.isNull() ) {
             CRLog::trace("Creating font %s[%d] on demand", _typeface.c_str(), _size);
             _defFont = fontMan->GetFont( _size, _weight, _italic, _family, _typeface);
+            LVFont::glyph_info_t glyph;
+            if ( !_defFont->getGlyphInfo('A', &glyph) ) {
+                _defFont = fontMan->GetFont( _size, _weight, _italic, _family, _deftypeface);
+            }
         }
         return _defFont;
     }
 };
 
-CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props )
+CRMenu * CRSettingsMenu::createFontSizeMenu( CRGUIWindowManager * wm, CRMenu * mainMenu, CRPropRef props )
 {
     lString16Collection list;
     fontMan->getFaceList( list );
     lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
     //LVFontRef menuFont( fontMan->GetFont( MENU_FONT_SIZE, 600, false, css_ff_sans_serif, lString8("Arial")) );
-    LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
+    CRMenuSkinRef skin = wm->getSkin()->getMenuSkin(L"#settings");
+    LVFontRef valueFont = skin->getValueSkin()->getFont();//( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
     CRMenu * fontSizeMenu;
     fontSizeMenu = new FontSizeMenu(_wm, mainMenu, valueFont, props );
     for ( unsigned i=0; i<sizeof(cr_font_sizes)/sizeof(int); i++ ) {
@@ -267,7 +273,7 @@ CRMenu * CRSettingsMenu::createFontSizeMenu( CRMenu * mainMenu, CRPropRef props 
         fontSizeMenu->addItem( new OnDemandFontMenuItem( fontSizeMenu, 0,
                         lString16(defvalue),
                         LVImageSourceRef(), lString16::itoa(cr_font_sizes[i]).c_str(),
-                        cr_font_sizes[i], 400, false, css_ff_sans_serif, fontFace) );
+                        cr_font_sizes[i], 400, false, css_ff_sans_serif, fontFace, UnicodeToUtf8(skin->getItemSkin()->getFontFace())) );
     }
     fontSizeMenu->setAccelerators( _wm->getAccTables().get("menu") );
     //fontSizeMenu->setAccelerators( _menuAccelerators );
@@ -438,11 +444,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         fontMan->getFaceList( list );
         CRLog::trace("faces found: %d", list.length());
         int i;
+        lString8 defFont = UnicodeToUtf8(getSkin()->getItemSkin()->getFontFace());//( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
         for ( i=0; i<(int)list.length(); i++ ) {
             fontFaceMenu->addItem( new OnDemandFontMenuItem( fontFaceMenu, i,
                                     list[i], LVImageSourceRef(), list[i].c_str(),
                                     MENU_FONT_FACE_SIZE, 400,
-                                    false, css_ff_sans_serif, UnicodeToUtf8(list[i])) );
+                                    false, css_ff_sans_serif, UnicodeToUtf8(list[i]), defFont) );
             fontFaceMenu->setFullscreen( true );
         }
         fontFaceMenu->setAccelerators( _menuAccelerators );
@@ -451,7 +458,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         //lString8 fontFace = UnicodeToUtf8(props->getStringDef( PROP_FONT_FACE, UnicodeToUtf8(list[0]).c_str() ));
         mainMenu->addItem( fontFaceMenu );
 
-        CRMenu * fontSizeMenu = createFontSizeMenu( mainMenu, props );
+        CRMenu * fontSizeMenu = createFontSizeMenu( _wm, mainMenu, props );
         mainMenu->addItem( fontSizeMenu );
 
         CRMenu * emboldenModeMenu = new CRMenu(_wm, mainMenu, mm_Embolden,

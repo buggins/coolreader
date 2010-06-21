@@ -74,7 +74,7 @@ class CRSettingsMenu : public CRFullScreenMenu
         void addMenuItems( CRMenu * menu, item_def_t values[] );
         lString16 getStatusText();
     public:
-        CRMenu * createFontSizeMenu( CRMenu * mainMenu, CRPropRef props );
+        CRMenu * createFontSizeMenu( CRGUIWindowManager * wm, CRMenu * mainMenu, CRPropRef props );
 #if CR_INTERNAL_PAGE_ORIENTATION==1
         CRMenu * createOrientationMenu( CRMenu * mainMenu, CRPropRef props );
 #endif

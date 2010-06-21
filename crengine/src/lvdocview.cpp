@@ -137,6 +137,7 @@ LVDocView::LVDocView( int bitsPerPixel)
 , m_doc_format(doc_format_none)
 , m_callback(NULL)
 , m_swapDone(false)
+, m_drawBufferBits(GRAY_BACKBUFFER_BITS)
 {
 #if (COLOR_BACKBUFFER==1)
     m_backgroundColor = 0xFFFFE0;
@@ -580,7 +581,7 @@ void LVDocView::cachePageImage( int delta )
     #if (COLOR_BACKBUFFER==1)
         buf = new LVColorDrawBuf( m_dx, m_dy );
     #else
-        buf = new LVGrayDrawBuf( m_dx, m_dy, GRAY_BACKBUFFER_BITS );
+        buf = new LVGrayDrawBuf( m_dx, m_dy, m_drawBufferBits );
     #endif
     } else {
         if ( m_bitsPerPixel==32 ) {

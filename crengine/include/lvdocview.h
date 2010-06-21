@@ -378,7 +378,7 @@ private:
 
     lString16 m_pageHeaderOverride;
 
-
+    int m_drawBufferBits;
 
     /// sets current document format
     void setDocFormat( doc_format_t fmt );
@@ -422,6 +422,8 @@ protected:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+    /// set buffer format
+    int setDrawBufferBits( int bits ) { m_drawBufferBits = bits; }
     /// substitute page header with custom text (e.g. to be used while loading)
     void setPageHeaderOverride( lString16 s );
     /// get screen rectangle for current cursor position, returns false if not visible
