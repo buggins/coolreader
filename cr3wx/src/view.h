@@ -45,7 +45,7 @@ cr3view : public wxPanel, public LVDocViewCallback
         lString16 GetHistoryFileName();
         lString16 GetLastRecentFileName();
         // LVDocViewCallback override
-        virtual void OnExternalLink( lString16 url, ldomElement * node );
+        virtual void OnExternalLink( lString16 url, ldomNode * node );
     protected:
 
         void Paint();

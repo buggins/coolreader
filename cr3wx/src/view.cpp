@@ -786,7 +786,7 @@ void cr3view::OnSize(wxSizeEvent& event)
 
 
 // LVDocViewCallback override
-void cr3view::OnExternalLink( lString16 url, ldomElement * node )
+void cr3view::OnExternalLink( lString16 url, ldomNode * node )
 {
     ::wxLaunchDefaultBrowser( wxString(url.c_str()) );
 }

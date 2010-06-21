@@ -512,7 +512,7 @@ int cr3app::OnExit()
     delete resources;
     HyphMan::uninit();
 #if LDOM_USE_OWN_MEM_MAN == 1
-    ldomFreeStorage();
+    //ldomFreeStorage();
 #endif
     return 0;
 }
@@ -700,9 +700,9 @@ cr3app::OnInit()
         fonts.add( sysFontDir + lString16(msfonts[fi]) );
 #endif
 #ifdef _LINUX
-    fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
+    fontDirs.add( lString16(L"/usr/local/share/cr3/fonts") );
     fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-    fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
+    fontDirs.add( lString16(L"/usr/share/cr3/fonts") );
     fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
     //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
     for ( int fi=0; msfonts[fi]; fi++ )
@@ -756,7 +756,7 @@ cr3app::OnInit()
     sprintf(hyphfn, "Russian_EnUS_hyphen_(Alan).pdb" );
     if ( !initHyph( (UnicodeToLocal(appPath) + hyphfn).c_str() ) ) {
 #ifdef _LINUX
-        initHyph( "/usr/share/crengine/hyph/Russian_EnUS_hyphen_(Alan).pdb" );
+        initHyph( "/usr/share/cr3/hyph/Russian_EnUS_hyphen_(Alan).pdb" );
 #endif
     }
 
@@ -1130,10 +1130,10 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     LVLoadStylesheetFile( _appDir + L"fb2.css", css );
 #ifdef _LINUX
     if ( css.empty() )
-        LVLoadStylesheetFile( L"/usr/share/crengine/fb2.css", css );
+        LVLoadStylesheetFile( L"/usr/share/cr3/fb2.css", css );
         //css = readFileToString( "/usr/share/crengine/fb2.css" );
     if ( css.empty() )
-        LVLoadStylesheetFile( L"/usr/local/share/crengine/fb2.css", css );
+        LVLoadStylesheetFile( L"/usr/local/share/cr3/fb2.css", css );
         //css = readFileToString( "/usr/local/share/crengine/fb2.css" );
 #endif
     if (css.length() > 0)
