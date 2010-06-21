@@ -52,7 +52,7 @@ make
 # Building ARM version on OpenInkpot:
 mkdir armbuild
 cd armbuild
-cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-oi.cmake -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_XCB ..
+cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-oi.cmake -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_XCB -D USE_EXTERNAL_EDICT_DICTIONARY=1 ..
 make
 
 # Building i386 version (for OpenInkpot), V3 simulation:
