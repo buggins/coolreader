@@ -444,7 +444,7 @@ bool CRPropAccessor::getBoolDef( const char * propName, bool defValue ) const
 
 void CRPropAccessor::setBool( const char * propName, bool value )
 {
-    setString( propName, lString16( value ? L"true" : L"false" ) );
+    setString( propName, lString16( value ? L"1" : L"0" ) );
 }
 
 bool CRPropAccessor::getInt64( const char * propName, lInt64 &result ) const

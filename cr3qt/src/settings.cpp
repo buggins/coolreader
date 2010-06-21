@@ -83,9 +83,24 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         sizeList.append( QString("%1").arg(sizes[i]) );
     m_ui->cbTextFontSize->addItems( sizeList );
     m_ui->cbTitleFontSize->addItems( sizeList );
+    
+    const char * defFontFace = "DejaVu Sans";
+    static const char * goodFonts[] = {
+        "DejaVu Sans",
+        "FreeSans",
+        "Liberation Sans",
+        "Arial",
+        NULL
+    };
+    for ( int i=0; goodFonts[i]; i++ ) {
+	if ( faceList.indexOf(QString(goodFonts[i]))>=0 ) {
+	    defFontFace = goodFonts[i];
+	    break;
+	}
+    }
 
-    fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize );
-    fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize );
+    fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize, defFontFace );
+    fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize, defFontFace );
 
 //		{_("90%"), "90"},
 //		{_("100%"), "100"},
@@ -377,10 +392,10 @@ void SettingsDlg::on_cbTextFontSize_currentIndexChanged(QString s)
     updateStyleSample();
 }
 
-void SettingsDlg::fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo )
+void SettingsDlg::fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo, const char * defFontFace )
 {
-    QString faceName =  m_props->getStringDef( faceOptionName, faceCombo->itemText(0).toUtf8().data() );
-    QString sizeName =  m_props->getStringDef( sizeOptionName, sizeCombo->itemText(0).toUtf8().data() );
+    QString faceName =  m_props->getStringDef( faceOptionName, defFontFace );
+    QString sizeName =  m_props->getStringDef( sizeOptionName, sizeCombo->itemText(4).toUtf8().data() );
     int faceIndex = faceCombo->findText( faceName );
     if ( faceIndex>=0 )
         faceCombo->setCurrentIndex( faceIndex );

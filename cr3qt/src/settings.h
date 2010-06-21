@@ -43,7 +43,7 @@ protected:
     void optionToUi( const char * optionName, QCheckBox * cb );
     void setCheckInversed( const char * optionName, int checkState );
     void optionToUiInversed( const char * optionName, QCheckBox * cb );
-    void fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo );
+    void fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo, const char * defFontFace );
 
     QColor getColor( const char * optionName, unsigned def );
     void setColor( const char * optionName, QColor cl );

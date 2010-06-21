@@ -4281,7 +4281,25 @@ void LVDocView::propsUpdateDefaults( CRPropRef props )
     props->setIntDef( PROP_AUTOSAVE_BOOKMARKS, 1 );
     props->setIntDef( PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1 );
     props->setIntDef( PROP_DISPLAY_TURBO_UPDATE_MODE, 0 );
-    lString8 defFontFace(DEFAULT_FONT_NAME);
+
+    lString8 defFontFace;
+    static const char * goodFonts[] = {
+         "DejaVu Sans",
+         "FreeSans",
+         "Liberation Sans",
+         "Arial",
+         "Verdana",
+         NULL
+    };
+    for ( int i=0; goodFonts[i]; i++ ) {
+         if ( list.contains(lString16(goodFonts[i])) ) {
+             defFontFace = lString8(goodFonts[i]);
+             break;
+         }
+    }
+    if ( defFontFace.empty() )
+        defFontFace = UnicodeToUtf8(list[0]);
+
     lString8 defStatusFontFace(DEFAULT_STATUS_FONT_NAME);
     props->setStringDef( PROP_FONT_FACE, defFontFace.c_str() );
     props->setStringDef( PROP_STATUS_FONT_FACE, defStatusFontFace.c_str() );
