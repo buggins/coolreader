@@ -6121,6 +6121,8 @@ lString16 ldomXPointer::getHRef()
     if ( !node )
         return lString16();
     lString16 ref = node->getAttributeValue( LXML_NS_ANY, attr_href );
+    if ( !ref.empty() && ref[0]!='#' )
+        ref = DecodeHTMLUrlString(ref);
     return ref;
 }
 
@@ -9060,6 +9062,7 @@ LVImageSourceRef ldomNode::getObjectImageSource()
         refName = getAttributeValue( LXML_NS_NONE, srcId );
     if ( refName.length()<2 )
         return ref;
+    refName = DecodeHTMLUrlString(refName);
     if (getDocument()->_urlImageMap.get( refName, ref ) )
         return ref; // found in cache
 

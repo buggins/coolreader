@@ -764,6 +764,8 @@ lString16 Utf8ToUnicode( const lString8 & str );
 lString16 Utf8ToUnicode( const char * s );
 /// converts utf-8 string fragment to wide unicode string
 lString16 Utf8ToUnicode( const char * s, int sz );
+/// decodes path like "file%20name" to "file name"
+lString16 DecodeHTMLUrlString( lString16 s );
 
 #define LCSTR(x) (UnicodeToUtf8(x).c_str())
 bool splitIntegerList( lString16 s, lString16 delim, int & value1, int & value2 );
