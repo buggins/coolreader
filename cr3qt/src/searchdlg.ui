@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>166</height>
+    <height>214</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,6 +19,9 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QFormLayout" name="formLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
@@ -48,7 +51,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="edPattern"/>
      </item>
     </layout>
    </item>
@@ -88,6 +91,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>edPattern</tabstop>
+  <tabstop>cbCaseSensitive</tabstop>
+  <tabstop>rbForward</tabstop>
+  <tabstop>rbBackward</tabstop>
+  <tabstop>btnFindNext</tabstop>
+  <tabstop>btnClose</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
