@@ -208,12 +208,15 @@ void CRViewDialog::showSearchDialog()
     _wm->activateWindow( dlg );
 }
 
+#define EXTERNAL_DICTIONARY_EXECUTABLE_NAME "edict_launcher"
+
 bool CRViewDialog::findInDictionary( lString16 pattern )
 {
 #if USE_EXTERNAL_EDICT_DICTIONARY==1
     // external dictionary
     lString8 cmd;
-    cmd << "edict \"";
+    cmd << EXTERNAL_DICTIONARY_EXECUTABLE_NAME;
+    cmd << " \"";
     cmd << UnicodeToUtf8(pattern);
     cmd << "\" &";
     CRLog::info("Calling system %s", cmd.c_str());
