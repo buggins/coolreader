@@ -16,6 +16,7 @@
 #include "crqtutil.h"
 #include "wolexportdlg.h"
 #include "exportprogressdlg.h"
+#include "searchdlg.h"
 #include "../crengine/include/lvtinydom.h"
 
 #define DOC_CACHE_SIZE 128 * 0x100000
@@ -466,8 +467,9 @@ void MainWindow::on_actionFileProperties_triggered()
 
 void MainWindow::on_actionFindText_triggered()
 {
-    QMessageBox * mb = new QMessageBox( QMessageBox::Information, tr("Not implemented"), tr("Search is not implemented yet"), QMessageBox::Close, this );
-    mb->exec();
+    SearchDialog::showDlg(this, ui->view);
+//    QMessageBox * mb = new QMessageBox( QMessageBox::Information, tr("Not implemented"), tr("Search is not implemented yet"), QMessageBox::Close, this );
+//    mb->exec();
 }
 
 void MainWindow::on_actionRotate_triggered()

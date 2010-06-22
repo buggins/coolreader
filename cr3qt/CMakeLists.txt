@@ -4,7 +4,7 @@ INCLUDE(${QT_USE_FILE})
 SET(CR3_UIS
   src/aboutdlg.ui        src/bookmarklistdlg.ui  src/mainwindow.ui  src/settings.ui
   src/addbookmarkdlg.ui  src/filepropsdlg.ui     src/recentdlg.ui   src/tocdlg.ui
-  src/wolexportdlg.ui    src/exportprogressdlg.ui
+  src/wolexportdlg.ui    src/exportprogressdlg.ui src/searchdlg.ui
 )
 
 SET(CR3_MOC_HDRS
@@ -19,6 +19,7 @@ SET(CR3_MOC_HDRS
   src/wolexportdlg.h
   src/exportprogressdlg.h
   src/tocdlg.h
+  src/searchdlg.h
 )
 
 SET (CR3_SOURCES 
@@ -35,6 +36,7 @@ SET (CR3_SOURCES
   src/settings.cpp
   src/wolexportdlg.cpp
   src/exportprogressdlg.cpp
+  src/searchdlg.cpp
 )
 
 IF (UNIX)
