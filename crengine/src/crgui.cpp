@@ -381,6 +381,8 @@ bool CRGUIWindowManager::handleEvent( CRGUIEvent * event )
                     return true;
                 } else {
                     CRLog::trace("CRGUIWindowManager::handleEvent() -- window %d cannot process event, continue", i );
+                    if ( event->isForModalOnly() )
+                        return false;
                 }
             } else {
                 CRLog::trace("CRGUIWindowManager::handleEvent() -- window %d is invisible, continue", i );

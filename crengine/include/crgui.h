@@ -341,6 +341,7 @@ protected:
     int _param2;
 public:
     virtual bool isForVisibleOnly() { return false; }
+    virtual bool isForModalOnly() { return false; }
     virtual bool isWindowEvent() { return _type<CREV_WM_EVENTS_START; }
     virtual bool isWMEvent() { return _type>=CREV_WM_EVENTS_START; }
     int getType() { return _type; }
@@ -1168,6 +1169,7 @@ class CRGUIKeyDownEvent : public CRGUIEvent
 {
 public:
     virtual bool isForVisibleOnly() { return true; }
+    virtual bool isForModalOnly() { return true; }
     CRGUIKeyDownEvent( int key, int params )
     : CRGUIEvent( CREV_KEYDOWN )
     {
@@ -1189,6 +1191,8 @@ public:
     }
     virtual bool handle( CRGUIWindow * window );
     virtual bool handle( CRGUIWindowManager * wm ) { return false; }
+    virtual bool isForModalOnly() { return false; }
+    virtual bool isForVisibleOnly() { return true; }
 };
 
 
