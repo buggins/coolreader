@@ -10,6 +10,7 @@
 #include "optdlg.h"
 #include "rescont.h"
 #include "cr3.xpm"
+#include <cr3version.h>
 
 //scan directory
 //scan file

@@ -17,6 +17,7 @@
 #include <crgui.h>
 #include "cr3main.h"
 #include "mainwnd.h"
+#include <cr3version.h>
 
 // uncomment following line to allow running executables named .exe.txt
 #define ALLOW_RUN_EXE 1

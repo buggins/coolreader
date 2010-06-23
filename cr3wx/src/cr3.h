@@ -11,7 +11,8 @@
  * @version 3.0.16
  */
 
-#define CR3_VERSION "3.0.18"
+#include <cr3version.h>
+#define CR3_VERSION CR_ENGINE_VERSION
 
 class 
 cr3app : public wxApp

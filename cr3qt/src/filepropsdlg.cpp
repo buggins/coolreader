@@ -2,6 +2,7 @@
 #include "ui_filepropsdlg.h"
 #include "cr3widget.h"
 #include "../crengine/include/lvdocview.h"
+#include <cr3version.h>
 
 FilePropsDialog::FilePropsDialog(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
@@ -154,7 +155,7 @@ void FilePropsDialog::fillItems()
 
     lString16 title = L"Cool Reader ";
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "3.0"
+#define PACKAGE_VERSION CR_ENGINE_VERSION
 #endif
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
 

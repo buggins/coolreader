@@ -27,6 +27,7 @@
 
 
 #include <cri18n.h>
+#include <cr3version.h>
 
 #ifdef WITH_DICT
 #include "dictdlg.h"
@@ -964,7 +965,7 @@ void V3DocViewWin::showAboutDialog()
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
     lString16 title = L"Cool Reader ";
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "3.0.32"
+#define PACKAGE_VERSION CR_ENGINE_VERSION
 #endif
     title << Utf8ToUnicode(lString8(PACKAGE_VERSION));
 
