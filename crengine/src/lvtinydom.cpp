@@ -4417,7 +4417,7 @@ ldomXPointer ldomDocument::createXPointer( const lString16 & xPointerStr )
     if ( xPointerStr[0]=='#' ) {
         lString16 id = xPointerStr.substr(1);
         lUInt16 idid = getAttrValueIndex(id.c_str());
-        int nodeIndex;
+        lInt32 nodeIndex;
         if ( _idNodeMap.get(idid, nodeIndex) ) {
             ldomNode * node = getTinyNode(nodeIndex);
             if ( node && node->isElement() ) {
