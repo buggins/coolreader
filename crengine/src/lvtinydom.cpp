@@ -5271,7 +5271,7 @@ static bool findText( const lString16 & str, int & pos, const lString16 & patter
 static bool findTextRev( const lString16 & str, int & pos, const lString16 & pattern )
 {
     int len = pattern.length();
-    if ( pos+len>str.length() )
+    if ( pos+len>(int)str.length() )
         pos = str.length()-len;
     if ( pos < 0 )
         return false;
@@ -6305,7 +6305,7 @@ ldomDocument * LVParseHTMLStream( LVStreamRef stream,
 
 static lString16 escapeDocPath( lString16 path )
 {
-    for ( int i=0; i<path.length(); i++ ) {
+    for ( unsigned i=0; i<path.length(); i++ ) {
         lChar16 ch = path[i];
         if ( ch=='/' || ch=='\\')
             path[i] = '_';

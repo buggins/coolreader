@@ -23,9 +23,9 @@ struct crChmExternalFileStream : public chmExternalFileStream {
     static LONGINT64 cr_read( chmExternalFileStream * instance, unsigned char * buf, LONGUINT64 pos, LONGINT64 len )
     {
         lvsize_t bytesRead = 0;
-        if ( ((crChmExternalFileStream*)instance)->stream->SetPos( pos )!= pos )
+        if ( ((crChmExternalFileStream*)instance)->stream->SetPos( (lvpos_t)pos )!= pos )
             return 0;
-        if ( ((crChmExternalFileStream*)instance)->stream->Read( buf, len, &bytesRead ) != LVERR_OK )
+        if ( ((crChmExternalFileStream*)instance)->stream->Read( buf, (lvsize_t)len, &bytesRead ) != LVERR_OK )
             return false;
         return bytesRead;
     }
@@ -59,7 +59,7 @@ public:
     bool open( const char * name )
     {
         if ( CHM_RESOLVE_SUCCESS==chm_resolve_object(_file, name, &m_ui ) ) {
-            m_size = m_ui.length;
+            m_size = (lvpos_t)m_ui.length;
             return true;
         }
         return false;
@@ -141,9 +141,9 @@ public:
         if ( cnt <= 0 )
             return LVERR_FAIL;
         LONGINT64 gotBytes = chm_retrieve_object(_file, &m_ui, (unsigned char *)buf, m_pos, cnt );
-        m_pos += gotBytes;
+        m_pos += (lvpos_t)gotBytes;
         if (nBytesRead)
-            *nBytesRead = gotBytes;
+            *nBytesRead = (lvsize_t)gotBytes;
         return LVERR_OK;
     }
 
@@ -227,7 +227,7 @@ public:
     void addFileItem( const char * filename, LONGUINT64 len )
     {
         LVCommonContainerItemInfo * item = new LVCommonContainerItemInfo();
-        item->SetItemInfo( lString16(filename), len, 0, false );
+        item->SetItemInfo( lString16(filename), (lvsize_t)len, 0, false );
         //CRLog::trace("CHM file item: %s [%d]", filename, (int)len);
         Add(item);
     }

@@ -3412,7 +3412,7 @@ bool lString16::split2( const lString16 & delim, lString16 & value1, lString16 &
 {
     if ( empty() )
         return false;
-    int p = pos(delim);
+    unsigned p = pos(delim);
     if ( p<=0 || p>=length()-delim.length() )
         return false;
     value1 = substr(0, p);
