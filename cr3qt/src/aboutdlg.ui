@@ -30,21 +30,21 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="lblVersion">
          <property name="font">
           <font>
            <pointsize>16</pointsize>
           </font>
          </property>
          <property name="text">
-          <string>Cool Reader 3.0.22</string>
+          <string notr="true">Cool Reader 3.0.22</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="lblDate">
          <property name="text">
-          <string>20-09-2009</string>
+          <string notr="true">28-06-2010</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -56,7 +56,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>(c) 1998-2009 Vadim Lopatin</string>
+        <string notr="true">(c) 1998-2010 Vadim Lopatin</string>
        </property>
       </widget>
      </item>
@@ -417,13 +417,14 @@ POSSIBILITY OF SUCH DAMAGES.
             <bool>true</bool>
            </property>
            <property name="plainText">
-            <string>Source code may be downloaded from sourceforge crengine project page.
+            <string>Source code may be downloaded from sourceforge crengine project page:
+http://sourceforge.net/projects/crengine/
 
-Latest source code is available from CVS:
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
-cd cr3qt
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</string>
+Latest source code is available from GIT repository:
+&gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+See README.TXT at root directory of project for build instructions.
+</string>
            </property>
           </widget>
          </item>

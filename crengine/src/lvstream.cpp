@@ -4062,14 +4062,14 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
     if ( newPath[0]=='/' || newPath[0]=='\\' || (newPath.length()>0 && newPath[1]==':' && newPath[2]=='\\') )
         return newPath; // absolute path
     lChar16 separator = 0;
-    for ( int i=0; i<basePath.length(); i++ ) {
+    for ( unsigned i=0; i<basePath.length(); i++ ) {
         if ( basePath[i]=='/' || basePath[i]=='\\' ) {
             separator = basePath[i];
             break;
         }
     }
     if ( separator == 0 )
-        for ( int i=0; i<newPath.length(); i++ ) {
+        for ( unsigned i=0; i<newPath.length(); i++ ) {
             if ( newPath[i]=='/' || newPath[i]=='\\' ) {
                 separator = newPath[i];
                 break;
@@ -4315,11 +4315,11 @@ class LVBlockWriteStream : public LVNamedStream
 #if TRACE_BLOCK_WRITE_STREAM
             CRLog::trace("block %x save %x, %x", (int)block_start, (int)pos, (int)len);
 #endif
-            int offset = (int)(pos - block_start);
-            if ( offset>size || offset<0 || len > size || offset+len > size ) {
+            lvpos_t offset = (int)(pos - block_start);
+            if ( offset>(lvpos_t)size || offset<0 || len > (lvpos_t)size || offset+len > (lvpos_t)size ) {
                 CRLog::error("Unaligned access to block %x", (int)block_start);
             }
-            for ( int i=0; i<len; i++ ) {
+            for ( unsigned i=0; i<len; i++ ) {
                 lUInt8 ch1 = buf[offset+i];
                 lUInt8 ch2 = ptr[i];
                 if ( pos+i>block_end || ch1!=ch2 ) {

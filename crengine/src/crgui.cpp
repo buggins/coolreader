@@ -390,6 +390,7 @@ bool CRGUIWindowManager::handleEvent( CRGUIEvent * event )
         }
         return false;
     }
+	return false;
 }
 
 

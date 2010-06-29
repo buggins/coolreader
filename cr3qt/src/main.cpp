@@ -91,6 +91,33 @@ int main(int argc, char *argv[])
     return res;
 }
 
+#ifdef _WIN32
+int WINAPI WinMain( HINSTANCE hInstance,
+    HINSTANCE hPrevInstance,
+    LPSTR lpCmdLine,
+    int nCmdShow
+	)
+{
+	wchar_t buf0[MAX_PATH];
+	GetModuleFileNameW(NULL, buf0, MAX_PATH-1);
+	lString16 str016(buf0);
+#ifdef _UNICODE
+	lString16 str116(lpCmdLine);
+#else
+	lString8 str18(lpCmdLine);
+	lString16 str116 = LocalToUnicode(str18);
+#endif
+	lString8 str0 = UnicodeToUtf8(str016);
+	lString8 str1 = UnicodeToUtf8(str116);
+	char * argv[2];
+	argv[0] = str0.modify();
+	argv[1] = str1.modify();
+	int argc = str1.empty() ? 1 : 2;
+	return main(argc, argv);
+}
+#endif
+
+
 /*
 bool initHyph(const char * fname)
 {

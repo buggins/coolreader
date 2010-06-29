@@ -1214,7 +1214,7 @@ public:
         if ( y + _size < clip.top || y >= clip.bottom )
             return;
 
-        int error;
+        //int error;
 
         int i;
 
