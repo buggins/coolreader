@@ -565,7 +565,7 @@ void LVGrayDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color32 )
         y1 = _clip.bottom;
     if (x0>=x1 || y0>=y1)
         return;
-    lUInt8 color = rgbToGrayMask( color, _bpp );
+    lUInt8 color = rgbToGrayMask( color32, _bpp );
 #if (GRAY_INVERSE==1)
     color ^= 0xFF;
 #endif
@@ -606,8 +606,8 @@ void LVGrayDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 col
         y1 = _clip.bottom;
     if (x0>=x1 || y0>=y1)
         return;
-    lUInt8 color0 = rgbToGrayMask( color0, _bpp );
-    lUInt8 color1 = rgbToGrayMask( color1, _bpp );
+    lUInt8 color0 = rgbToGrayMask( color032, _bpp );
+    lUInt8 color1 = rgbToGrayMask( color132, _bpp );
     lUInt8 * line = GetScanLine(y0);
     for (int y=y0; y<y1; y++)
     {

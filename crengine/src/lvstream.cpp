@@ -4315,8 +4315,8 @@ class LVBlockWriteStream : public LVNamedStream
 #if TRACE_BLOCK_WRITE_STREAM
             CRLog::trace("block %x save %x, %x", (int)block_start, (int)pos, (int)len);
 #endif
-            unsigned offset = (int)(pos - block_start);
-            if ( offset>size || offset<0 || len > size || offset+len > size ) {
+            lvpos_t offset = (int)(pos - block_start);
+            if ( offset>(lvpos_t)size || offset<0 || len > (lvpos_t)size || offset+len > (lvpos_t)size ) {
                 CRLog::error("Unaligned access to block %x", (int)block_start);
             }
             for ( unsigned i=0; i<len; i++ ) {

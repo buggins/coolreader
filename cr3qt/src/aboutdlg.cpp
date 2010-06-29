@@ -1,5 +1,6 @@
 #include "aboutdlg.h"
 #include "ui_aboutdlg.h"
+#include <cr3version.h>
 #include <QDesktopServices>
 
 AboutDialog::AboutDialog(QWidget *parent) :
@@ -7,6 +8,8 @@ AboutDialog::AboutDialog(QWidget *parent) :
     m_ui(new Ui::AboutDialog)
 {
     m_ui->setupUi(this);
+	m_ui->lblVersion->setText(QString("Cool Reader v") + QString(CR_ENGINE_VERSION));
+	m_ui->lblDate->setText(QString(CR_ENGINE_BUILD_DATE));
 }
 
 AboutDialog::~AboutDialog()
