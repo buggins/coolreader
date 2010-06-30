@@ -1,3 +1,26 @@
+cr3 (3.0.24-26) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * remove cr3.png from OI installation
+  * fix HTML encoded (like 'file%20name') links support
+  * fix wxWidgets build
+  * fix QT build - font and fullscreen settings
+  * rework Search feature
+  * add Search dialog to Qt version
+  * implemented Search feature in Qt version
+  * fix controls setting bug
+  * fix OI external dictionary command name
+  * move CR3 version to cr3version.h
+  * fix install of cr3.png
+  * fix win32/mingw/qt build
+  * win32/qt/msvc fixes, fix warnings
+  * EOL changes
+  * Qt app fixes
+  * qt/win32 fixes
+  * win32 stream fixes
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Wed, 30 Jun 2010 12:23:58 +0200
+
 cr3 (3.0.24-25) zelazny; urgency=low
 
   [ Vadim Lopatin ]
