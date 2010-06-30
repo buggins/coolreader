@@ -258,13 +258,15 @@ msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
 msgstr ""
+"Krótkie wciśnięcie $1 - idź do zakładki,\n"
+"$2 - przejdź do trybu dodawania zakładek"
 
 #: ../src/bmkdlg.cpp:73
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
 msgstr ""
-"Krótkie wciśnięcie $1 - idź do zakładek,\n"
+"Krótkie wciśnięcie $1 - idź do zakładki,\n"
 "przytrzymanie - dodanie zakładki"
 
 #: ../src/bmkdlg.cpp:76
@@ -276,13 +278,16 @@ msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
 msgstr ""
+"$1 - dodaj zakładkę,\n"
+"$2 - przejdź do trybu wybierania zakładek"
 
 #: ../src/bmkdlg.cpp:81
-#, fuzzy
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
-msgstr "Przytrzymaj 1..8 aby ustawić, wciśnij aby przejść"
+msgstr ""
+"Krótkie wciśnięcie $1 - ustaw zakładkę,\n"
+"przytrzymanie - idź do zakładki"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -302,7 +307,7 @@ msgstr "Sterowanie"
 
 #: ../src/settings.cpp:168
 msgid "[Command is not assigned]"
-msgstr ""
+msgstr "[Brak przypisania komendy]"
 
 #: ../src/settings.cpp:189
 msgid "0` (Portrait)"
@@ -448,9 +453,8 @@ msgid "Default font face"
 msgstr "Domyślna czcionka"
 
 #: ../src/settings.cpp:419
-#, fuzzy
 msgid "Font weight"
-msgstr "Kerning czcionek"
+msgstr "Waga czcionki"
 
 #: ../src/settings.cpp:425
 msgid "Font antialiasing"
@@ -576,43 +580,43 @@ msgstr "Znajdź w słowniku"
 
 #: ../src/viewdlg.cpp:313
 msgid "M"
-msgstr ""
+msgstr "M"
 
 #: ../src/viewdlg.cpp:315
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 #: ../src/viewdlg.cpp:317
 msgid "Up"
-msgstr ""
+msgstr "do góry"
 
 #: ../src/viewdlg.cpp:319
 msgid "Down"
-msgstr ""
+msgstr "w dół"
 
 #: ../src/viewdlg.cpp:321
 msgid "C"
-msgstr ""
+msgstr "C"
 
 #: ../src/viewdlg.cpp:323
 msgid "Left"
-msgstr ""
+msgstr "w lewo"
 
 #: ../src/viewdlg.cpp:325
 msgid "Right"
-msgstr ""
+msgstr "w prawo"
 
 #: ../src/viewdlg.cpp:327
 msgid "Side Up"
-msgstr ""
+msgstr "boczny do góry"
 
 #: ../src/viewdlg.cpp:329
 msgid "Side Down"
-msgstr ""
+msgstr "boczny w dół"
 
 #: ../src/viewdlg.cpp:331
 msgid "Side Press"
-msgstr ""
+msgstr "wciśnij "
 
 #: ../src/viewdlg.cpp:333
 msgid "Menu"
@@ -858,8 +862,3 @@ msgstr "Klawisz"
 msgid "Assigned function"
 msgstr "Przypisana funkcja"
 
-#~ msgid "Enter page number to go: "
-#~ msgstr "Podaj numer strony docelowej:"
-
-#~ msgid "About..."
-#~ msgstr "O programie..."
