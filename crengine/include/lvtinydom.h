@@ -183,12 +183,12 @@ protected:
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
     CacheFile * _cache;
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     int _compressedSize;
 #endif
     int _uncompressedSize;
     int _maxUncompressedSize;
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     int _maxCompressedSize;
 #endif
     int _chunkSize;
@@ -206,7 +206,7 @@ public:
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     int getCompressedSize() { return _compressedSize; }
 #endif
     int getUncompressedSize() { return _uncompressedSize; }
@@ -249,11 +249,11 @@ class ldomTextStorageChunk
     friend class ldomDataStorageManager;
     ldomDataStorageManager * _manager;
     lUInt8 * _buf;     /// buffer for uncompressed data
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
 #endif
     //lUInt32 _filepos;  /// position in swap file
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
 #endif
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
@@ -264,7 +264,7 @@ class ldomTextStorageChunk
     ldomTextStorageChunk * _prevRecent;
     bool _saved;
 
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
     bool pack( const lUInt8 * buf, int bufsize );   /// pack data from buf[bufsize] to _compbuf
     bool unpack();                                  /// unpack data from compbuf to _buf

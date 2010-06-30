@@ -140,7 +140,7 @@ Run Qt SDK / Qt Command Prompt. Execute:
 > make
 > make install
 
-cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 9 2008" -D USE_QT_ZLIB=1 -D CMAKE_INSTALL_PREFIX=dist ..
+cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 9 2008" -D USE_QT_ZLIB=1 -D RAM_COMPRESSED_BUFFER_ENABLED=0 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1500000 -D CMAKE_INSTALL_PREFIX=dist ..
 
 
 It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.

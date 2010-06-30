@@ -30,7 +30,7 @@
 //--------------------------------------------------------
 // cache memory sizes
 //--------------------------------------------------------
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 
 // allowed compressed data buffers in RAM
 #define ENABLED_BLOCK_WRITE_CACHE 1
@@ -108,7 +108,7 @@
 
 static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
                                        " File v" CACHE_FILE_FORMAT_VERSION ": "
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                                        "c1"
 #else
                                        "c0"
@@ -1460,7 +1460,7 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
             sz = nodecount - offs;
         }
 
-#if 0 //RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if 0 //RAM_COMPRESSED_BUFFER_ENABLED==1
         lUInt8 * packed = NULL;
         int packedsize = 0;
         if ( !_cacheFile->read( type, i, packed, packedsize ) )
@@ -1511,7 +1511,7 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
         memcpy( buf, list[i], sizeof(ldomNode)*sz );
         for ( int j=0; j<sz; j++ )
             buf[j].setDocumentIndex( _docIndex );
-#if 0 //RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if 0 //RAM_COMPRESSED_BUFFER_ENABLED==1
         lUInt8 * packed = NULL;
         lUInt32 packedsize = 0;
         if ( !ldomPack( (lUInt8*)buf, sizeof(ldomNode)*sz, packed, packedsize ) )
@@ -1770,7 +1770,7 @@ bool ldomDataStorageManager::save()
     buf << (lUInt32)n;
     for ( int i=0; i<n; i++ ) {
         buf <<
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 (lUInt32)_chunks[i]->_compsize <<
 #endif
                 (lUInt32)_chunks[i]->_bufpos;
@@ -1802,7 +1802,7 @@ bool ldomDataStorageManager::load()
     lUInt32 uncompsize = 0;
     for ( unsigned i=0; i<n; i++ ) {
         buf >>
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 compsize >>
 #endif
                 uncompsize;
@@ -2020,11 +2020,11 @@ void ldomDataStorageManager::compact( int reservedSpace )
     if ( _uncompressedSize + reservedSpace > _maxUncompressedSize + _maxUncompressedSize/10 ) { // allow +10% overflow
         // do compacting
         int sumsize = reservedSpace;
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
         int sumpackedsize = 0;
 #endif
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
             if ( p->_bufsize >= 0 ) {
                 if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
                     // fits
@@ -2076,12 +2076,12 @@ ldomDataStorageManager::ldomDataStorageManager( tinyNodeCollection * owner, char
 , _activeChunk(NULL)
 , _recentChunk(NULL)
 , _cache(NULL)
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 , _compressedSize(0)
 #endif
 , _uncompressedSize(0)
 , _maxUncompressedSize(maxUnpackedSize)
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 , _maxCompressedSize(maxPackedSize)
 #endif
 , _chunkSize(chunkSize)
@@ -2097,7 +2097,7 @@ ldomDataStorageManager::~ldomDataStorageManager()
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize )
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _compsize(compsize)   /// _compbuf (compressed) area size (in file or compbuffer)
 #endif
@@ -2114,7 +2114,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
 #endif
@@ -2134,7 +2134,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageMan
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
 : _manager(manager)
 , _buf(NULL)   /// buffer for uncompressed data
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 , _compbuf(NULL) /// buffer for compressed data, NULL if can be read from file
 , _compsize(0)   /// _compbuf (compressed) area size (in file or compbuffer)
 #endif
@@ -2158,7 +2158,7 @@ bool ldomTextStorageChunk::save()
 
 ldomTextStorageChunk::~ldomTextStorageChunk()
 {
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     setpacked(NULL, 0);
 #endif
     setunpacked(NULL, 0);
@@ -2169,7 +2169,7 @@ static int dummy1_valgrind_test = 0;
 /// pack data, and remove unpacked, put packed data to cache file
 bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 {
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     bool dropPacked = false;
     if ( removeFromMemory ) {
         compact();
@@ -2184,7 +2184,7 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 #endif
     if ( !_manager->_cache )
         return true;
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     if ( _compbuf ) {
         if ( !_saved && _manager->_cache) {
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
@@ -2221,7 +2221,7 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 /// read packed data from cache
 bool ldomTextStorageChunk::restoreFromCache()
 {
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     if ( _compbuf || _buf)
         return true;
 #else
@@ -2230,7 +2230,7 @@ bool ldomTextStorageChunk::restoreFromCache()
 #endif
     if ( !_saved )
         return false;
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     int compsize;
     if ( !_manager->_cache->read( _manager->cacheType(), _index, _compbuf, compsize ) )
         return false;
@@ -2308,7 +2308,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
 int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
 {
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     if ( _compbuf!=NULL ) {
         CRLog::debug("Adding new item of size %d to compressed block %c%d of size %d", itemsize, _type, _index, _bufpos);
         if ( !_buf ) {
@@ -2391,7 +2391,7 @@ void ldomTextStorageChunk::modified()
     if ( !_buf ) {
         CRLog::error("Modified is called for node which is not in memory");
     }
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
     if ( _compbuf ) {
         if ( _type=='t' ) {
             CRLog::warn("ldomTextStorageChunk::modified() called for text node %c%d", _type, _index);
@@ -2490,7 +2490,7 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
     return true;
 }
 
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 
 /// unpack data from compbuf to _buf
 bool ldomTextStorageChunk::unpack()
@@ -2577,7 +2577,7 @@ void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
     }
 }
 
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
 /// pack data, and remove unpacked
 void ldomTextStorageChunk::compact()
 {
@@ -2594,7 +2594,7 @@ void ldomTextStorageChunk::compact()
 void ldomTextStorageChunk::ensureUnpacked()
 {
     if ( !_buf ) {
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
         if (_compbuf) {
             unpack();
             _manager->compact( 0 );
@@ -2606,7 +2606,7 @@ void ldomTextStorageChunk::ensureUnpacked()
                 crFatalError( 111, "restoreFromCache() failed for chunk");
             }
             _manager->compact( 0 );
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
             unpack();
 #endif
         }
@@ -9364,41 +9364,41 @@ void tinyNodeCollection::dumpStatistics()
     CRLog::info("*** Document memory usage: "
                 "elements:%d, textNodes:%d, "
                 "ptext=("
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 "%d compressed, "
 #endif
                 "%d uncompressed), "
                 "ptelems=("
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 "%d compressed, "
 #endif
                 "%d uncompressed), "
                 "rects=("
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 "%d compressed, "
 #endif
                 "%d uncompressed), "
                 "nodestyles=("
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 "%d compressed, "
 #endif
                 "%d uncompressed), "
                 "styles:%d, fonts:%d, renderedNodes:%d, "
                 "totalNodes:%d(%dKb), mutableElements:%d(~%dKb)",
                 _elemCount, _textCount,
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 _textStorage.getCompressedSize(),
 #endif
                 _textStorage.getUncompressedSize(),
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 _elemStorage.getCompressedSize(),
 #endif
                 _elemStorage.getUncompressedSize(),
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 _rectStorage.getCompressedSize(),
 #endif
                 _rectStorage.getUncompressedSize(),
-#if RAM_COMPRESSED_BUFFER_ENABLED!=0
+#if RAM_COMPRESSED_BUFFER_ENABLED==1
                 _styleStorage.getCompressedSize(),
 #endif
                 _styleStorage.getUncompressedSize(),
@@ -9574,7 +9574,11 @@ void testCacheFile()
     CRLog::info("Finished CacheFile unit test");
 }
 
+#ifdef _WIN32
+#define TEST_FN_TO_OPEN "/projects/test/bibl.fb2.zip"
+#else
 #define TEST_FN_TO_OPEN "/home/lve/src/test/bibl.fb2.zip"
+#endif
 
 void runFileCacheTest()
 {
