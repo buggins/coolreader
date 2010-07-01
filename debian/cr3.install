@@ -1,5 +1,4 @@
 usr/bin/*
-usr/share/app-install/*
 usr/share/applications/*
 usr/share/locale/*
 usr/share/cr3/hyph/*
