@@ -407,6 +407,20 @@ public:
                     lUInt32 alpha = (cl >> 24)&0xFF;
                     if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
                         continue;
+                    if ( alpha ) {
+                        lUInt32 origColor = row[x];
+                        if ( bpp==3 ) {
+                            origColor = origColor & 0xE0;
+                            origColor = origColor | (origColor>>3) | (origColor>>6);
+                        } else {
+                            origColor = origColor & 0xF0;
+                            origColor = origColor | (origColor>>4);
+                        }
+                        origColor = origColor | (origColor<<8) | (origColor<<16);
+                        ApplyAlphaRGB( origColor, cl, alpha );
+                        cl = origColor;
+                    }
+
                     lUInt8 dcl;
                     if ( dither ) {
 #if (GRAY_INVERSE==1)
@@ -417,11 +431,8 @@ public:
                     } else {
                         dcl = rgbToGray( cl, bpp );
                     }
-                    // TODO: implement alpha
-                    if ( !alpha )
-                        row[ x ] = dcl;
-                    else
-                        ApplyAlphaGray( row[x], dcl, alpha, bpp );
+                    row[ x ] = dcl;
+                    // ApplyAlphaGray( row[x], dcl, alpha, bpp );
                 }
             }
             else if ( bpp == 2 )
@@ -434,8 +445,20 @@ public:
                     lUInt32 cl = data[xmap ? xmap[x] : x];
                     int xx = x + dst_x;
                     lUInt32 alpha = (cl >> 24)&0xFF;
-                    if ( xx<clip.left || xx>=clip.right || alpha&0x80 )
+                    if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
                         continue;
+
+                    int byteindex = (xx >> 2);
+                    int bitindex = (3-(xx & 3))<<1;
+                    lUInt8 mask = 0xC0 >> (6 - bitindex);
+
+                    if ( alpha ) {
+                        lUInt32 origColor = (row[ byteindex ] & mask)>>bitindex;
+                        origColor = origColor | (origColor>>2) | (origColor>>4) | (origColor>>6);
+                        ApplyAlphaRGB( origColor, cl, alpha );
+                        cl = origColor;
+                    }
+
                     lUInt32 dcl = 0;
                     if ( dither ) {
 #if (GRAY_INVERSE==1)
@@ -446,9 +469,6 @@ public:
                     } else {
                         dcl = rgbToGrayMask( cl, 2 ) & 3;
                     }
-                    int byteindex = (xx >> 2);
-                    int bitindex = (3-(xx & 3))<<1;
-                    lUInt8 mask = 0xC0 >> (6 - bitindex);
                     dcl = dcl << bitindex;
                     row[ byteindex ] = (lUInt8)((row[ byteindex ] & (~mask)) | dcl);
                 }
