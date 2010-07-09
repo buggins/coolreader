@@ -861,6 +861,8 @@ public:
 
             int width = m_pbuffer->width;
             int delta = width - frmline->width - frmline->x;
+            if ( delta<0 )
+                delta = 0;
 
             // horizontal alignment
             if (nalign == LTEXT_ALIGN_CENTER)
