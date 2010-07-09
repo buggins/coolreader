@@ -184,6 +184,8 @@ class LVStyleSheet {
             LVCssSelector * selector = _selectors[i];
             if ( selector )
                 res->add( new LVCssSelector(*selector) );
+            else
+                res->add(NULL);
         }
         return res;
     }
@@ -200,9 +202,9 @@ public:
     // restore previously saved state
     bool pop()
     {
-        if ( _stack.length()==0 )
+        LVPtrVector <LVCssSelector> * v = _stack.pop();
+        if ( !v )
             return false;
-        LVPtrVector <LVCssSelector> * v = _stack.remove(_stack.length()-1);
         set( *v );
         delete v;
         return true;

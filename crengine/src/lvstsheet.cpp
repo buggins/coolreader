@@ -1128,11 +1128,15 @@ LVCssSelector::LVCssSelector( LVCssSelector & v )
 void LVStyleSheet::set(LVPtrVector<LVCssSelector> & v  )
 {
     _selectors.clear();
+    if ( !v.size() )
+        return;
     _selectors.reserve( v.size() );
     for ( int i=0; i<v.size(); i++ ) {
         LVCssSelector * selector = v[i];
         if ( selector )
-            _selectors[i] = new LVCssSelector( *selector );
+            _selectors.add( new LVCssSelector( *selector ) );
+        else
+            _selectors.add( NULL );
     }
 }
 

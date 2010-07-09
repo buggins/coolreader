@@ -2810,6 +2810,7 @@ ldomNode * lxmlDocBase::getRootNode()
 
 ldomDocument::ldomDocument()
 : m_toc(this)
+, _last_docflags(0)
 , _page_height(0)
 , _page_width(0)
 , _rendered(false)
@@ -2845,6 +2846,7 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 : lxmlDocBase(doc)
 , _def_font(doc._def_font) // default font
 , _def_style(doc._def_style)
+, _last_docflags(doc._last_docflags)
 , _page_height(doc._page_height)
 , _page_width(doc._page_width)
 , _container(doc._container)
@@ -2998,7 +3000,13 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
     s->text_indent.value = 0;
     s->line_height.type = css_val_percent;
     s->line_height.value = def_interline_space;
-    lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
+    //lUInt32 defStyleHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
+    //defStyleHash = defStyleHash * 31 + getDocFlags();
+    if ( _last_docflags != getDocFlags() ) {
+        CRLog::trace("ldomDocument::setRenderProps() - doc flags changed");
+        _last_docflags = getDocFlags();
+        changed = true;
+    }
     if ( calcHash(_def_style) != calcHash(s) ) {
         CRLog::trace("ldomDocument::setRenderProps() - style is changed");
         _def_style = s;
@@ -3078,6 +3086,23 @@ int tinyNodeCollection::calcFinalBlocks()
     return cnt;
 }
 
+void ldomDocument::applyDocumentStyleSheet()
+{
+    if ( !getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+        CRLog::trace("applyDocumentStyleSheet() : DOC_FLAG_ENABLE_INTERNAL_STYLES is disabled");
+        return;
+    }
+    ldomXPointer ss = createXPointer(lString16(L"/FictionBook/stylesheet"));
+    if ( !ss.isNull() ) {
+        lString16 css = ss.getText('\n');
+        if ( !css.empty() ) {
+            CRLog::debug("Using internal FB2 document stylesheet:\n%s", LCSTR(css));
+            _stylesheet.parse(LCSTR(css));
+        }
+    }
+}
+
+
 int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
 {
     CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
@@ -3114,8 +3139,15 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         //css_style_ref_t roots = root->getStyle();
         //CRLog::trace("validate 2...");
         //validateDocument();
+
+        CRLog::trace("Save stylesheet...");
+        _stylesheet.push();
         CRLog::trace("Init node styles...");
+        applyDocumentStyleSheet();
         getRootNode()->initNodeStyleRecursive();
+        CRLog::trace("Restoring stylesheet...");
+        _stylesheet.pop();
+
         CRLog::trace("init render method...");
         getRootNode()->initNodeRendMethodRecursive();
 
@@ -3979,6 +4011,8 @@ ldomDocumentWriter::~ldomDocumentWriter()
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
     if ( _document->isDefStyleSet() ) {
+        if ( _popStyleOnFinish )
+            _document->getStyleSheet()->pop();
         _document->getRootNode()->initNodeStyle();
         _document->getRootNode()->initNodeFont();
         //if ( !_document->validateDocument() )
@@ -4008,6 +4042,12 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
     if ( id==_stopTagId ) {
         //CRLog::trace("stop tag found, stopping...");
         _parser->Stop();
+    }
+
+    if ( !_popStyleOnFinish && !lStr_cmp(tagname, L"stylesheet") ) {
+        _document->getStyleSheet()->push();
+        _popStyleOnFinish = true;
+        _document->applyDocumentStyleSheet();
     }
     //logfile << " !c!\n";
 }
@@ -7681,7 +7721,7 @@ void ldomDocument::updateRenderContext()
     int dx = _page_width;
     int dy = _page_height;
     lUInt32 styleHash = calcStyleHash();
-    styleHash = styleHash * 31 + calcGlobalSettingsHash();
+    styleHash = (styleHash * 31 + calcGlobalSettingsHash()) * 31 + getDocFlags();
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
     _hdr.render_style_hash = styleHash;
@@ -7701,7 +7741,7 @@ bool ldomDocument::checkRenderContext()
     lUInt32 styleHash = calcStyleHash();
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
-    styleHash = styleHash * 31 + calcGlobalSettingsHash();
+    styleHash = (styleHash * 31 + calcGlobalSettingsHash()) * 31 + getDocFlags();
     bool res = true;
     if ( styleHash != _hdr.render_style_hash ) {
         CRLog::info("checkRenderContext: Style hash doesn't match %x!=%x", styleHash, _hdr.render_style_hash);

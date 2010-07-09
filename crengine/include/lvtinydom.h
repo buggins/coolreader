@@ -1682,6 +1682,7 @@ class ldomDocument : public lxmlDocBase
 private:
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
+    int _last_docflags;
     int _page_height;
     int _page_width;
     bool _rendered;
@@ -1698,6 +1699,8 @@ private:
 protected:
 
     LVTocItem m_toc;
+
+    void applyDocumentStyleSheet();
 
 public:
 
@@ -1843,6 +1846,7 @@ protected:
     ldomElementWriter * _currNode;
     bool _errFlag;
     bool _headerOnly;
+    bool _popStyleOnFinish;
     lUInt16 _stopTagId;
     //============================
     lUInt32 _flags;

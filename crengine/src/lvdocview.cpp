@@ -3202,11 +3202,11 @@ bool LVDocView::ParseDocument( )
 		    // set stylesheet
             m_doc->setStyleSheet( m_stylesheet.c_str(), true );
 
-            lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
-            if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
-                //m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
-                m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
-            }
+//            lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
+//            if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+//                //m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+//                m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
+//            }
 
             m_showCover = !getCoverPageImage().isNull();
 
@@ -3329,11 +3329,11 @@ bool LVDocView::ParseDocument( )
             }
         }
 
-        lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
-        if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
-            //m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
-            m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
-        }
+//        lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
+//        if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {
+//            //m_doc->getStyleSheet()->parse(UnicodeToUtf8(docstyle).c_str());
+//            m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
+//        }
 
     #if 0 //def _DEBUG
             LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
