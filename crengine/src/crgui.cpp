@@ -172,6 +172,45 @@ void CRGUIAcceleratorTableList::addAll( const CRGUIAcceleratorTableList & v )
 	}
 }
 
+/// returns true if key is processed
+bool CRGUIWindowManager::onKeyPressed( int key, int flags )
+{
+    // orientation related key substitution
+    const char * orientation_mapping_name = NULL;
+    if ( _orientation==CR_ROTATE_ANGLE_90 )
+        orientation_mapping_name = "key-substitution-90";
+    else if ( _orientation==CR_ROTATE_ANGLE_180 )
+        orientation_mapping_name = "key-substitution-180";
+    else if ( _orientation==CR_ROTATE_ANGLE_270 )
+        orientation_mapping_name = "key-substitution-270";
+    if ( orientation_mapping_name ) {
+        CRGUIAcceleratorTableRef subst = _accTables.get(orientation_mapping_name);
+        if ( !subst.isNull() ) {
+            const CRGUIAccelerator * acc = subst->findKeyAccelerator(key, flags);
+            if ( acc ) {
+                CRLog::debug("Translation using %s : %d, %d -> %d, %d", orientation_mapping_name,
+                             acc->keyCode, acc->keyFlags, acc->commandId, acc->commandParam);
+                key = acc->commandId;
+                flags = acc->commandParam;
+            }
+        }
+    }
+    CRLog::trace("CRGUIWindowManager::onKeyPressed( %d, %d)", key, flags );
+    for ( int i=_windows.length()-1; i>=0; i-- ) {
+        if ( _windows[i]->isVisible() ) {
+            if ( _windows[i]->onKeyPressed( key, flags ) ) {
+                CRLog::trace("CRGUIWindowManager::onKeyPressed() -- window %d has processed key, exiting", i );
+                return true;
+            } else {
+                CRLog::trace("CRGUIWindowManager::onKeyPressed() -- window %d cannot process key, continue", i );
+            }
+        } else {
+            CRLog::trace("CRGUIWindowManager::onKeyPressed() -- window %d is invisible, continue", i );
+        }
+    }
+    return false;
+}
+
 /// changes screen size and orientation
 void CRGUIWindowManager::reconfigure( int dx, int dy, cr_rotate_angle_t orientation )
 {
