@@ -1,3 +1,12 @@
+cr3 (3.0.24-27) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * Fix invisible title bug
+  * fix fb2 internal stylesheet usage
+  * fix rendering of semitransparent images with low pixel depth modes
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Sat, 10 Jul 2010 21:52:56 +0200
+
 cr3 (3.0.24-26) zelazny; urgency=low
 
   [ Vadim Lopatin ]
