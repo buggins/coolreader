@@ -113,164 +113,11 @@ int checkPowerState()
 #define VIEWER_WINDOW_WIDTH    600
 #define VIEWER_WINDOW_HEIGHT   800
 
-#if 0
-#define COLOR_LEVEL         4 //4 bit bitmap
-#define BMP_PANEL_NUBS   (1<<COLOR_LEVEL)//Palette numbers
-
-
-
-const char *g_ImageResInfo[]=
-{
-    "o",
-};
-
-
-
-//Only  support 16 degree bitmap
-const unsigned long DegreePanel[16]={0x00000000,0x00505050,0x00808080,0x00ffffff,0x00ffffff,
-                                     0x00ffffff,0x00ffffff,0x00ffffff,0x00ffffff,0x00ffffff,
-                                     0x00ffffff,0x00ffffff,0x00ffffff,0x00ffffff,0x00ffffff,
-                                     0x00ffffff};
-typedef struct
-{
-    unsigned short int  bfType;
-    unsigned long bfSize;
-    unsigned short int  bfReserved1;
-    unsigned short int  bfReserved2;
-    unsigned long bfOffBits;
-}BITMAPFILEHEADER;
-
-#define BITMAPFILEHEADER_SIZE 14
-
-typedef struct
-{
-    unsigned long biSize;
-    long biWidth;
-    long biHeight;
-    unsigned short int biPlanes;
-    unsigned short int biBitCount;
-    unsigned long biCompression;
-    unsigned long biSizeImage;
-    long biXPelsPerMeter;
-    long biYPelsPerMeter;
-    unsigned long biClrUsed;
-    unsigned long biClrImportant;
-}BITMAPINFOHEADER;
-#define BITMAPINFOHEADER_SIZE sizeof(BITMAPINFOHEADER)
-
-typedef struct
-{
-    BITMAPFILEHEADER FileHeader;
-    BITMAPINFOHEADER BmpInfo;
-    MWPALENTRY   BmpPanel[BMP_PANEL_NUBS]; 
-}BMPHEADER_16;
-
-
-//Change 2 bit bitmap data to 4 bit bimmap picture and draw it
-int GrBitmapEx(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int height,GR_CHAR *imagebits)
-{
-    BMPHEADER_16  lpHeader;
-    int i;
-    int Lines;
-    int BmpBufBytsPerLine,BytesPerLine;
-    unsigned char char1,char2,char3,char4,BmpChar1;
-    unsigned char *Screen_Buf=NULL,*BufPtr,*BmpFileBuf,*HeaderBuf;
-    int Bmpheadersize;
-    GR_IMAGE_ID ImageId;
-
-    //start
-    Bmpheadersize=BITMAPFILEHEADER_SIZE+BITMAPINFOHEADER_SIZE+sizeof(MWPALENTRY)*BMP_PANEL_NUBS;
-    BytesPerLine=(((width*4+7)/8+3)/4)*4;
-    BmpBufBytsPerLine=((height*2+7)/8);
-    
-    BmpFileBuf=(unsigned char*)malloc(height*BytesPerLine+Bmpheadersize);
-    if(!BmpFileBuf)
-    {
-        return 0;
-    }
-    memset(BmpFileBuf,0,height*BytesPerLine);
-    HeaderBuf=BmpFileBuf;
-    Screen_Buf=BmpFileBuf+Bmpheadersize;
-    //Set Panel
-   for(i=0;i<BMP_PANEL_NUBS;i++)
-    {
-        memcpy((unsigned char*)&lpHeader.BmpPanel[i],(unsigned char*)&DegreePanel[i],\
-                sizeof(MWPALENTRY));
-    }
-    
-    memcpy((unsigned char *)&lpHeader.FileHeader.bfType,"BM",2);
-    lpHeader.FileHeader.bfSize=height*BytesPerLine+Bmpheadersize;
-    lpHeader.FileHeader.bfReserved1=0;
-    lpHeader.FileHeader.bfReserved2=0;
-    lpHeader.FileHeader.bfOffBits=Bmpheadersize;
-    lpHeader.BmpInfo.biSize=BITMAPINFOHEADER_SIZE;
-    lpHeader.BmpInfo.biWidth=width;
-    lpHeader.BmpInfo.biHeight=height;
-    lpHeader.BmpInfo.biPlanes=1;
-    lpHeader.BmpInfo.biBitCount=COLOR_LEVEL;
-    lpHeader.BmpInfo.biCompression=0;
-    lpHeader.BmpInfo.biSizeImage=height*BytesPerLine;
-    lpHeader.BmpInfo.biXPelsPerMeter=0xEC4;
-    lpHeader.BmpInfo.biYPelsPerMeter=0xEC4;
-    lpHeader.BmpInfo.biClrUsed=0;
-    lpHeader.BmpInfo.biClrImportant=0;
-
-    memcpy(HeaderBuf,(char *)&lpHeader.FileHeader.bfType,2);
-    memcpy(&HeaderBuf[2],(char *)&lpHeader.FileHeader.bfSize,4);
-    memcpy(&HeaderBuf[6],(char *)&lpHeader.FileHeader.bfReserved1,2);
-    memcpy(&HeaderBuf[8],(char *)&lpHeader.FileHeader.bfReserved2,2);
-    memcpy(&HeaderBuf[10],(char *)&lpHeader.FileHeader.bfOffBits,4);
-    HeaderBuf+=BITMAPFILEHEADER_SIZE;
-    memcpy(HeaderBuf,(unsigned char *)&lpHeader.BmpInfo,BITMAPINFOHEADER_SIZE);
-    HeaderBuf+=BITMAPINFOHEADER_SIZE;
-    memcpy(HeaderBuf,(unsigned char *)lpHeader.BmpPanel,sizeof(MWPALENTRY)*BMP_PANEL_NUBS);
-    HeaderBuf=BmpFileBuf;   
-                
-    Lines=0;
-    //4 color degress change to 16 color degress,mainframe_img_bits is 4 color degress
-    for(Lines=0;Lines<height;Lines++)
-    {
-        
-        char1=0;
-        char2=0;
-        char3=0;
-        char4=0;
-        BufPtr=(unsigned char *)&Screen_Buf[(height-1-Lines)*BytesPerLine];
-        for(i=0;i<BmpBufBytsPerLine;i++)
-        {
-
-            BmpChar1=imagebits[i+Lines*BmpBufBytsPerLine];
-            char1=BmpChar1&0xc0;
-            char1>>=6;
-            char2=BmpChar1&0x30;
-            char2>>=4;
-            char1=(char1<<4)|char2;
-            *BufPtr=char1;
-            BufPtr++;
-
-            char3=BmpChar1&0x0c;
-            char3>>=2;
-            char4=BmpChar1&0x03;
-            char3=(char3<<4)|char4;
-            *BufPtr=char3;
-            BufPtr++;
-        }
-    }
-    CRLog::trace("GrLoadImageFromBuffer");
-    ImageId=GrLoadImageFromBuffer(BmpFileBuf,lpHeader.FileHeader.bfSize,GR_BACKGROUND_TOPLEFT);
-    CRLog::trace("GrDrawImageToFit");
-    GrDrawImageToFit(id,gc,x,y,width,height,ImageId);
-    free(BmpFileBuf);
-    return 0;
-}
-
-#endif
-
 #ifndef USE_OLD_NANOX
 
-#define COLOR_LEVEL     4 //图像转换成16级徽度的图形
-#define BMPBUFGRAYLEVEL 2 //原是图形数据是4级徽度的图形
-#define BMP_PANEL_NUBS   (1<<COLOR_LEVEL)//调色版颜色个数
+#define COLOR_LEVEL     4 //
+#define BMPBUFGRAYLEVEL 2 //
+#define BMP_PANEL_NUBS   (1<<COLOR_LEVEL)//
 
 const  unsigned long  panel256[]={
 0X00000000,0X00010101,0X00020202,0X00030303,0X00040404,0X00050505,0X00060606,0X00070707,
@@ -344,27 +191,27 @@ const unsigned long panel16[256]={
 
 typedef struct
 {
-    unsigned short int  bfType;//文件类型
-    unsigned long bfSize;//文件大小
-    unsigned short int  bfReserved1;//保留
-    unsigned short int  bfReserved2;//保留
-    unsigned long bfOffBits;//图片数据位置
+    unsigned short int  bfType;
+    unsigned long bfSize;
+    unsigned short int  bfReserved1;
+    unsigned short int  bfReserved2;
+    unsigned long bfOffBits;
 }BITMAPFILEHEADER;
 #define BITMAPFILEHEADER_SIZE 14
 
 typedef struct
 {
-    unsigned long biSize;//BMP 信息结构的大小
-    long biWidth;//BMP宽度    
-    long biHeight;//BMP 高度
-    unsigned short int biPlanes;//保留(1) 
-    unsigned short int biBitCount;//BMP 灰度等级
-    unsigned long biCompression;//压缩类型
-    unsigned long biSizeImage;//图片数据大小
-    long biXPelsPerMeter;//X每英尺像素个数(固定)
-    long biYPelsPerMeter;//Y每英尺像素个数(固定)
-    unsigned long biClrUsed;//0表示调色版中的颜色值是最大的
-    unsigned long biClrImportant;//0表示所有颜色都需要去调色版中查询
+    unsigned long biSize;
+    long biWidth;
+    long biHeight;
+    unsigned short int biPlanes;
+    unsigned short int biBitCount;
+    unsigned long biCompression;
+    unsigned long biSizeImage;
+    long biXPelsPerMeter;
+    long biYPelsPerMeter;
+    unsigned long biClrUsed;
+    unsigned long biClrImportant;
 }BITMAPINFOHEADER;
 #define BITMAPINFOHEADER_SIZE sizeof(BITMAPINFOHEADER)
 
@@ -461,12 +308,12 @@ int GrBitmapEx_Apollo_FOUR(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int
         char2=0;
         char3=0;
         char4=0;
-        //倒像数据
+        //
         BufPtr=(unsigned char *)&Screen_Buf[(BmpHeight-1-Lines)*BytesPerLine];
         for(i=0;i<(BmpWidth*2+7)/8;i++)
         {
             BmpChar1=imagebits[i+(Lines+src_y)*BmpBufBytsPerLine+src_x/4];
-            //一个字节转换成2个字节
+            //
             char1=BmpChar1&0xc0;
             char1>>=6;
             *BufPtr=char1;
@@ -514,28 +361,28 @@ int GrBitmapEx_Apollo_NEW(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int 
 
     PixesPerByte=8/GrayLevel;
     BmpPanelNumbers=1<<GrayLevel;
-    BytesPerLine=(BmpWidth*GrayLevel+31)/32*4;//��Ҫ4�ֽڶ���ÿ��
+    BytesPerLine=(BmpWidth*GrayLevel+31)/32*4;//
     BmpBufBytsPerLine=(((src_width*GrayLevel+7)/8+3)/4)*4;
 
 
     i=sizeof(BMPHEADER_256);
     HeaderLen=BITMAPFILEHEADER_SIZE+sizeof(BITMAPINFOHEADER)+sizeof(MWPALENTRY)*BmpPanelNumbers;
-    memcpy((unsigned char *)&lpHeader.FileHeader.bfType,"BM",2);//�ļ�����
-    lpHeader.FileHeader.bfSize=(BmpHeight*BytesPerLine)/PixesPerByte+HeaderLen; //�ļ���С
-    lpHeader.FileHeader.bfReserved1=0;//����
-    lpHeader.FileHeader.bfReserved2=0;//����
-    lpHeader.FileHeader.bfOffBits=HeaderLen;//ͼƬ����λ��
-    lpHeader.BmpInfo.biSize=sizeof(BITMAPINFOHEADER);//BMP ��Ϣ�ṹ�Ĵ�С
-    lpHeader.BmpInfo.biWidth=BmpWidth;//BMP���� 
-    lpHeader.BmpInfo.biHeight=BmpHeight;//BMP �߶�
-    lpHeader.BmpInfo.biPlanes=1;//����(1)   
-    lpHeader.BmpInfo.biBitCount=GrayLevel;//BMP �Ҷȵȼ�
-    lpHeader.BmpInfo.biCompression=0;//ѹ������
-    lpHeader.BmpInfo.biSizeImage=lpHeader.FileHeader.bfSize-HeaderLen;//ͼƬ���ݴ�С
-    lpHeader.BmpInfo.biXPelsPerMeter=0x257E;//XÿӢ�����ظ���(�̶�)
-    lpHeader.BmpInfo.biYPelsPerMeter=0x257E;//YÿӢ�����ظ���(�̶�)
-    lpHeader.BmpInfo.biClrUsed=0;//0��ʾ��ɫ���е���ɫֵ��������
-    lpHeader.BmpInfo.biClrImportant=0;//0��ʾ������ɫ����Ҫȥ��ɫ���в�ѯ
+    memcpy((unsigned char *)&lpHeader.FileHeader.bfType,"BM",2);//
+    lpHeader.FileHeader.bfSize=(BmpHeight*BytesPerLine)/PixesPerByte+HeaderLen; //
+    lpHeader.FileHeader.bfReserved1=0;//
+    lpHeader.FileHeader.bfReserved2=0;//
+    lpHeader.FileHeader.bfOffBits=HeaderLen;//
+    lpHeader.BmpInfo.biSize=sizeof(BITMAPINFOHEADER);//BMP
+    lpHeader.BmpInfo.biWidth=BmpWidth;//
+    lpHeader.BmpInfo.biHeight=BmpHeight;//
+    lpHeader.BmpInfo.biPlanes=1;//
+    lpHeader.BmpInfo.biBitCount=GrayLevel;//
+    lpHeader.BmpInfo.biCompression=0;
+    lpHeader.BmpInfo.biSizeImage=lpHeader.FileHeader.bfSize-HeaderLen;
+    lpHeader.BmpInfo.biXPelsPerMeter=0x257E;
+    lpHeader.BmpInfo.biYPelsPerMeter=0x257E;
+    lpHeader.BmpInfo.biClrUsed=0;
+    lpHeader.BmpInfo.biClrImportant=0;
     
     Bmpheadersize=HeaderLen;
     BmpFileBuf=new unsigned char[BmpHeight*BytesPerLine+Bmpheadersize];
@@ -796,66 +643,8 @@ class CRJinkeScreen : public CRGUIScreenBase
             //GrBitmap(_wid, _gc, rc.left, rc.top, rc.width(), rc.height(), &bmp );
             int h = rc.height();
 
-#if 0
-            GR_IMAGE_HDR hdr;
-            lUInt8 * buf = new lUInt8[600 * 800 * 4];
-            static MWPALENTRY pal4[256] = { {0,0,0}, {0x55, 0x55, 0x55}, {0xAA, 0xAA, 0xAA}, {0xFF, 0xFF, 0xFF} };
-            int palsize = 256;
-            MWPALENTRY * pal = pal4;
-            hdr.width = 600;          /* image width in pixels*/
-            hdr.height = 800;         /* image height in pixels*/
-            hdr.planes = 1;         /* # image planes*/
-            hdr.bpp = 8;            /* bits per pixel (1, 4 or 8)*/
-            hdr.pitch = 600;          /* bytes per line*/
-            hdr.bytesperpixel = 1;  /* bytes per pixel*/
-            hdr.compression = 0;    /* compression algorithm*/
-            hdr.palsize = palsize;        /* palette size*/
-            hdr.transcolor = -1;     /* transparent color or -1 if none*/
-            hdr.palette = pal;        /* palette*/
-            hdr.imagebits = (MWUCHAR*)buf;      /* image bits (dword right aligned)  MWUCHAR*/
-            for ( int y=0; y<h; y++ ) {
-                lUInt8 * line = _front->GetScanLine( y + rc.top );
-                lUInt8 * dst = buf + y*600;
-                for ( int x=0; x<600; x++ ) {
-                    lUInt8 pixel = line[x>>2];
-                    pixel >>= (3-(x&3))*2;
-                    pixel &= 3;
-                    dst[x] = pixel;
-                }
-            }
-#endif
             CRLog::trace( "calling GrPrint wid=%08x, gc=%08x h=%d", (unsigned)_wid, (unsigned)_gc, h );
-            //GrDrawImageBits(_wid,_gc, 0, rc.top, &hdr);
-            //GrBitmapEx(_wid,_gc, 0, rc.top, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top));
-            //GR_BITMAP bmp;
-            //GrBitmap(_wid, _gc, 0, rc.top, 600, h, (GR_BITMAP*)buf );
-            //GrBitmap(_wid, _gc, 0, rc.top, 600, h, (GR_BITMAP*)_front->GetScanLine(0) );
-            
-            
-            
-      //      delete buf;
 
-//            typedef struct {
-//        int             width;          /* image width in pixels*/
-//        int             height;         /* image height in pixels*/
-//        int             planes;         /* # image planes*/
-//        int             bpp;            /* bits per pixel (1, 4 or 8)*/
-//        int             pitch;          /* bytes per line*/
-//        int             bytesperpixel;  /* bytes per pixel*/
-//        int             compression;    /* compression algorithm*/
-//        int             palsize;        /* palette size*/
-//        long            transcolor;     /* transparent color or -1 if none*/
-//        MWPALENTRY *    palette;        /* palette*/
-//        MWUCHAR *       imagebits;      /* image bits (dword right aligned)*/
-//} MWIMAGEHDR, *PMWIMAGEHDR;
-
-        #ifdef USE_OLD_NANOX
-            GrBitmapEx_Apollo (_wid,_gc,0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top));
-            if ( full )
-                GrPrint_Apollo();
-            else
-                GrPartialPrint_Apollo(rc.left, rc.top, rc.width(), rc.height() );
-        #else
             int bpp=_front->GetBitsPerPixel();
             if ( bpp>=3 && bpp<=8 )
                 GrBitmapEx_Apollo_NEW(_wid,_gc, 0, rc.top, 600, h, 0, 0, 600, h, (GR_CHAR*)_front->GetScanLine(rc.top) );
@@ -865,7 +654,6 @@ class CRJinkeScreen : public CRGUIScreenBase
                 GrPrint(_wid);
             else
                 GrPartialPrint(_wid, rc.left, rc.top, rc.width(), rc.height() );
-        #endif
             CRLog::trace( "GrPrint done" );
         }
     public:
@@ -920,22 +708,11 @@ class CRJinkeScreen : public CRGUIScreenBase
             //GR_SCREEN_INFO si;
             //GrGetScreenInfo(&si);
     
-        #ifdef USE_OLD_NANOX
-            //GrSetBitmapExDepth_Apollo( 2 );
-            _gc = GrNewGC();
-            GrSetGCForeground(_gc, GR_COLOR_BLACK);
-            GrSetGCBackground(_gc, GR_COLOR_WHITE);
-            _wid = GrNewWindow(GR_ROOT_WINDOW_ID,VIEWER_WINDOW_X,VIEWER_WINDOW_Y,
-            VIEWER_WINDOW_WIDTH,VIEWER_WINDOW_HEIGHT, 0, GR_COLOR_WHITE, 0);
-            //_wid = GrNewWindow_Apollo(GR_APOLLO_ROOT_WINDOW_ID,VIEWER_WINDOW_X,VIEWER_WINDOW_Y,
-            //VIEWER_WINDOW_WIDTH,VIEWER_WINDOW_HEIGHT, 0, GR_COLOR_WHITE, 0);
-        #else
             _wid = GrNewWindow(GR_ROOT_WINDOW_ID,VIEWER_WINDOW_X,VIEWER_WINDOW_Y,
             VIEWER_WINDOW_WIDTH,VIEWER_WINDOW_HEIGHT, 0, GR_COLOR_WHITE, 0);
             _gc = GrNewGC();
             GrSetGCForeground(_gc, GR_COLOR_BLACK);
             GrSetGCBackground(_gc, GR_COLOR_WHITE);
-        #endif
         
             GrSelectEvents(_wid, GR_EVENT_MASK_BUTTON_DOWN | \
                 GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_MOUSE_POSITION |\
@@ -1354,11 +1131,15 @@ int main( int argc, const char * argv[] )
     signal(SIGINT,QuitSignalCount);
     signal(SIGTERM,QuitSignalCount);
 
+#ifdef ENABLE_LEDS
     initLeds();
+#endif
     //signal(SIGCHLD,WaitSignalChildExit);
 
     {
+#ifdef ENABLE_LEDS
         postLeds( true );
+#endif
         int res = InitDoc( (char *)argv[1] );
 
         if ( !res ) {
@@ -1366,7 +1147,9 @@ int main( int argc, const char * argv[] )
             closeLeds();
             return 2;
         }
+#ifdef ENABLE_LEDS
         postLeds( false );
+#endif
     }
 
    if(g_QuitSignalCounter)
@@ -1374,7 +1157,9 @@ int main( int argc, const char * argv[] )
       g_QuitSignalCounter=0;
       GrClose();
       printf("INT signal \n");
+#ifdef ENABLE_LEDS
       closeLeds();
+#endif
       return 0;
    }
 
@@ -1385,7 +1170,9 @@ int main( int argc, const char * argv[] )
     CRJinkeWindowManager::instance->runEventLoop();
     CRLog::info("Exiting event loop");
 
+#ifdef ENABLE_LEDS
     closeLeds();
+#endif
 
     HyphMan::uninit();
     ldomDocCache::close();
@@ -1637,15 +1424,9 @@ int InitDoc(char *fileName)
             delete wm;
             return 0;
         } else {
+#ifdef ENABLE_LEDS
             postLeds( true );
-     #ifdef USE_OLD_NANOX
-                    wm->update(true);
-                    if ( firstDocUpdate ) {
-                        //main_win->getDocView()->swapToCache();
-                        firstDocUpdate = false;
-                    }
-                    postLeds( false );
-     #endif
+#endif
         }
     }
 
