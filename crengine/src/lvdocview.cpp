@@ -1524,11 +1524,12 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
         } else {
             // draw main page text
             //CRLog::trace("Entering DrawDocument()");
-            DrawDocument( *drawbuf, m_doc->getRootNode(), pageRect->left + m_pageMargins.left, clip.top, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
+            if ( page.height )
+                DrawDocument( *drawbuf, m_doc->getRootNode(), pageRect->left + m_pageMargins.left, clip.top, pageRect->width() - m_pageMargins.left - m_pageMargins.right, height, 0, -start+offset, m_dy, &m_markRanges );
             //CRLog::trace("Done DrawDocument() for main text");
             // draw footnotes
 #define FOOTNOTE_MARGIN 8
-            int fny = clip.top + page.height + FOOTNOTE_MARGIN;
+            int fny = clip.top + (page.height ? page.height + FOOTNOTE_MARGIN: FOOTNOTE_MARGIN);
             int fy = fny;
             bool footnoteDrawed = false;
             for ( int fn=0; fn<page.footnotes.length(); fn++ ) {
@@ -1543,7 +1544,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page, lvRect * 
                 footnoteDrawed = true;
                 fy += fheight;
             }
-            if ( footnoteDrawed ) {
+            if ( footnoteDrawed) {  // && page.height
                 fny -= FOOTNOTE_MARGIN / 2;
                 drawbuf->SetClipRect(NULL);
                 drawbuf->FillRect( pageRect->left + m_pageMargins.left, fny, pageRect->right - m_pageMargins.right, fny + 1, 0xAAAAAA );

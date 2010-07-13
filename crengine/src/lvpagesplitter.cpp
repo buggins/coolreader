@@ -137,6 +137,7 @@ public:
     const LVRendLineInfo * footend;
     const LVRendLineInfo * footlast;
     LVArray<LVPageFootNoteInfo> footnotes;
+    int lastpageend;
 
     PageSplitState(LVRendPageList * pl, int pageHeight)
         : page_h(pageHeight)
@@ -150,6 +151,7 @@ public:
         , footstart(NULL)
         , footend(NULL)
         , footlast(NULL)
+        , lastpageend(0)
     {
     }
 
@@ -164,30 +166,40 @@ public:
 
     void StartPage( const LVRendLineInfo * line )
     {
-        //if ( !line ) {
-        //    CRLog::trace("StartPage(NULL)");
-        //}
-        //if ( CRLog::isTraceEnabled() )
-        //    CRLog::trace("StartPage(%d)", line ? line->start : -111111111);
+#ifdef DEBUG_FOOTNOTES
+        if ( !line ) {
+            CRLog::trace("StartPage(NULL)");
+        }
+        if ( CRLog::isTraceEnabled() )
+            CRLog::trace("StartPage(%d)", line ? line->start : -111111111);
+#endif
         last = pagestart = line;
         pageend = NULL;
         next = NULL;
-        footheight = 0;
-        if ( !footnotes.empty() )
-            footnotes.clear();
     }
     void AddToList()
     {
+        bool hasFootnotes = footnotes.length() > 0;
         if ( !pageend )
             pageend = pagestart;
-        if ( !pagestart )
+        if ( !pagestart && !hasFootnotes )
             return;
-        //if ( CRLog::isTraceEnabled() )
-        //    CRLog::trace("AddToList(%d, %d) footnotes: %d", pagestart->start, pageend->end, footnotes.length());
-        LVRendPageInfo * page = new LVRendPageInfo(pagestart->getStart(), pageend->getEnd()-pagestart->getStart(), page_list->length());
+        int start = (pagestart && pageend) ? pagestart->getStart() : lastpageend;
+        int h = (pagestart && pageend) ? pageend->getEnd()-pagestart->getStart() : 0;
+#ifdef DEBUG_FOOTNOTES
+        if ( CRLog::isTraceEnabled() ) {
+            if ( pagestart && pageend )
+                CRLog::trace("AddToList(%d, %d) footnotes: %d  pageHeight=%d", pagestart->start, pageend->start+pageend->height, footnotes.length(), h);
+            else
+                CRLog::trace("AddToList(Only footnote: %d) footnotes: %d  pageHeight=%d", lastpageend, footnotes.length(), h);
+        }
+#endif
+        LVRendPageInfo * page = new LVRendPageInfo(start, h, page_list->length());
+        lastpageend = start + h;
         if ( footnotes.length()>0 ) {
             page->footnotes.add( footnotes );
             footnotes.clear();
+            footheight = 0;
         }
         page_list->add(page);
     }
@@ -213,7 +225,7 @@ public:
     }
     void AddLine( LVRendLineInfo * line )
     {
-        if (pagestart==NULL)
+        if (pagestart==NULL )
         {
             StartPage( line );
         }
@@ -262,12 +274,14 @@ public:
     }
     void StartFootNote( LVFootNote * note )
     {
-        //CRLog::trace( "StartFootNote(%d)", note->getLines().length() );
+#ifdef DEBUG_FOOTNOTES
+        CRLog::trace( "StartFootNote(%d)", note->getLines().length() );
+#endif
         if ( !note || note->getLines().length()==0 )
             return;
         footnote = note;
-        footstart = footnote->getLines()[0];
-        footlast = footnote->getLines()[0];
+        //footstart = footnote->getLines()[0];
+        //footlast = footnote->getLines()[0];
         footend = NULL;
     }
     void AddFootnoteFragmentToList()
@@ -280,12 +294,17 @@ public:
         int h = footend->getEnd() - footstart->getStart(); // currentFootnoteHeight();
         if ( h>0 && h<page_h ) {
             footheight += h;
+            CRLog::trace("AddFootnoteFragmentToList(%d, %d)", footstart->getStart(), h);
             footnotes.add( LVPageFootNoteInfo( footstart->getStart(), h ) );
         }
+        footstart = footend = NULL;
     }
     /// footnote is finished
     void EndFootNote()
     {
+#ifdef DEBUG_FOOTNOTES
+        CRLog::trace("EndFootNote()");
+#endif
         footend = footlast;
         AddFootnoteFragmentToList();
         footnote = NULL;
@@ -294,14 +313,22 @@ public:
     void AddFootnoteLine( LVRendLineInfo * line )
     {
         int dh = line->getEnd()
-            - (footstart ? footstart->getEnd() : line->getStart())
+            - (footstart ? footstart->getStart() : line->getStart())
             + (footheight==0?FOOTNOTE_MARGIN:0);
-        int h = currentHeight(next);
-        //CRLog::trace("Add footnote line %d", line->start);
+        int h = currentHeight(NULL); //next
+#ifdef DEBUG_FOOTNOTES
+        CRLog::trace("Add footnote line %d  footheight=%d  h=%d  dh=%d  page_h=%d", line->start, footheight, h, dh, page_h);
+#endif
         if ( h + dh > page_h ) {
+#ifdef DEBUG_FOOTNOTES
+            CRLog::trace("No current page space for this line, %s", (footstart?"footstart is not null":"footstart is null"));
+#endif
             if ( footstart==NULL ) {
+                //CRLog::trace("Starting new footnote fragment");
                 // no footnote lines fit
+                //pageend = last;
                 AddToList();
+                //StartPage( last );
                 StartPage( last );
             } else {
                 AddFootnoteFragmentToList();
@@ -311,7 +338,8 @@ public:
                 //if ( next != NULL ) {
                     pageend = last;
                     AddToList();
-                    StartPage( next );
+                    StartPage( NULL );
+                    //StartPage( next );
                 //}
             }
             footstart = footlast = line;
