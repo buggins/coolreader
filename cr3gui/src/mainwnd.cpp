@@ -1014,6 +1014,7 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( docInfo, _("Document source URL"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-url", " " ) );
     addPropLine( docInfo, _("OCR by"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-ocr", " " ) );
     addPropLine( docInfo, _("Document version"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/version", " " ) );
+    addPropLine( docInfo, _("Change history"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/history", " " ) );
     addInfoSection( txt, docInfo, _("Document info") );
 
     lString8 pubInfo;

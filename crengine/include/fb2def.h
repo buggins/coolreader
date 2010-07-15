@@ -126,7 +126,7 @@ XS_TAG2( title_info, "title-info" )
 XS_TAG2( src_title_info, "src-title-info" )
 XS_TAG2( document_info, "document-info" )
 XS_TAG2( publish_info, "publish-info" )
-XS_TAG2( custom_info, "custom-info" )
+XS_TAG2T( custom_info, "custom-info" )
 
 // type="xs:string"
 XS_TAG2T( home_page, "home-page" )
