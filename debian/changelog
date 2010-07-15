@@ -1,3 +1,14 @@
+cr3 (3.0.34-1) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * change key mapping according to screen orientation -- N516
+  * arrow keys remapping according to screen orientation, V3/Openinkpot
+  * Jinke/Nano-X code cleanup
+  * fix footnotes bugs
+  * update version
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 13 Jul 2010 17:53:35 +0200
+
 cr3 (3.0.24-27) zelazny; urgency=low
 
   [ Vadim Lopatin ]
