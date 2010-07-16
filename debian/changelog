@@ -1,3 +1,10 @@
+cr3 (3.0.34-2) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * add history and custom-info to About/FileInfo
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Fri, 16 Jul 2010 15:37:13 +0200
+
 cr3 (3.0.34-1) zelazny; urgency=low
 
   [ Vadim Lopatin ]
