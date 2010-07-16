@@ -1101,18 +1101,18 @@ public:
         int scale_mul = 1;
         int div_x = (srcline->o.width / m_pbuffer->width) + 1;
         int div_y = (srcline->o.height / m_pbuffer->page_height) + 1;
-#if (MAX_IMAGE_SCALE_MUL==3)
-        if ( srcline->o.height*3 < m_pbuffer->page_height-20
-                && srcline->o.width*3 < m_pbuffer->width - 20 )
-            scale_mul = 3;
-        else
-#endif
-#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
-            if ( srcline->o.height*2 < m_pbuffer->page_height-20
-                && srcline->o.width*2 < m_pbuffer->width - 20 )
-            scale_mul = 2;
-        else
-#endif
+//#if (MAX_IMAGE_SCALE_MUL==3)
+//        if ( srcline->o.height*3 < m_pbuffer->page_height-20
+//                && srcline->o.width*3 < m_pbuffer->width - 20 )
+//            scale_mul = 3;
+//        else
+//#endif
+//#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
+//            if ( srcline->o.height*2 < m_pbuffer->page_height-20
+//                && srcline->o.width*2 < m_pbuffer->width - 20 )
+//            scale_mul = 2;
+//        else
+//#endif
         if (div_x>1 || div_y>1) {
             if (div_x>div_y)
                 scale_div = div_x;
@@ -1121,8 +1121,11 @@ public:
         }
         word->o.height = srcline->o.height * scale_mul / scale_div;
         word->width = srcline->o.width * scale_mul / scale_div;
+        word->inline_width = srcline->o.width * scale_mul / scale_div;
         word->flags |= LTEXT_WORD_IS_OBJECT;
         word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
+        if ( srcIndex==m_pbuffer->srctextlen-1 || (m_pbuffer->srctext[srcIndex+1].flags&LTEXT_FLAG_NEWLINE) )
+            word->flags |= LTEXT_WORD_MUST_BREAK_LINE_AFTER;
         word->y = 0;
 
         frmline->width += word->width;
@@ -1148,12 +1151,15 @@ public:
         while ( srcline ) { //&& srcIndex < (int)m_pbuffer->srctextlen
             if ( flgObject ) {
                 // try to insert object
-                addObject();
+                formatted_word_t * w = addObject();
                 int space_left = spaceLeft();
-                if ( space_left<=0 )
+                if ( space_left<=0 ) {
                     commit( frmline->word_count-1 );
-                else
+                } else if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER ) {
+                    commit();
+                } else {
                     setSrcLine( srcIndex+1, 0 );
+                }
             } else {
                 // try to insert text
                 int space_left = spaceLeft();

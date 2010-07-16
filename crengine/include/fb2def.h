@@ -187,6 +187,9 @@ XS_ATTR( include )
 XS_ATTR2( include_all, "include-all" )
 XS_ATTR2( content_type, "content-type" )
 XS_ATTR( StyleSheet )
+XS_ATTR( title )
+XS_ATTR( subtitle )
+XS_ATTR( suptitle )
 
 XS_END_ATTRS
 

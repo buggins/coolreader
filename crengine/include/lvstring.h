@@ -541,6 +541,8 @@ public:
     { }
     /// parse delimiter-separated string
     void parse( lString16 string, lChar16 delimiter, bool flgTrim );
+    /// parse delimiter-separated string
+    void parse( lString16 string, lString16 delimiter, bool flgTrim );
     void reserve( size_t space );
     size_t add( const lString16 & str );
     void addAll( const lString16Collection & v )

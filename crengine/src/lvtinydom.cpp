@@ -4540,6 +4540,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
                 //CRLog::debug(" word found [%d]: x=%d..%d, start=%d, len=%d  %08X", w, word->x, word->x + word->width, word->t.start, word->t.len, src->object);
                 // found word, searching for letters
                 ldomNode * node = (ldomNode *)src->object;
+                if ( !node )
+                    continue;
                 if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object (image)
                     return ldomXPointer( node->getParentNode(),

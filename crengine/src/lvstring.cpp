@@ -1875,6 +1875,36 @@ void lString16Collection::parse( lString16 string, lChar16 delimiter, bool flgTr
     }
 }
 
+void lString16Collection::parse( lString16 string, lString16 delimiter, bool flgTrim )
+{
+    if ( delimiter.empty() || string.pos(delimiter)<0 ) {
+        lString16 s( string );
+        if ( flgTrim )
+            s.trimDoubleSpaces(false, false, false);
+        add(s);
+        return;
+    }
+    int wstart=0;
+    for ( unsigned i=0; i<=string.length(); i++ ) {
+        bool matched = true;
+        for ( unsigned j=0; j<delimiter.length() && i+j<string.length(); j++ ) {
+            if ( string[i+j]!=delimiter[j] ) {
+                matched = false;
+                break;
+            }
+        }
+        if ( matched ) {
+            lString16 s( string.substr( wstart, i-wstart) );
+            if ( flgTrim )
+                s.trimDoubleSpaces(false, false, false);
+            if ( !flgTrim || !s.empty() )
+                add( s );
+            wstart = i+delimiter.length();
+            i+= delimiter.length()-1;
+        }
+    }
+}
+
 lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
 {
     if ( empty() )
