@@ -1923,7 +1923,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( text_align, css_ta_inherit );
     UPDATE_STYLE_FIELD( text_decoration, css_td_inherit );
     UPDATE_STYLE_FIELD( hyphenate, css_hyph_inherit );
-
+    UPDATE_STYLE_FIELD( list_style_type, css_lst_inherit );
+    UPDATE_STYLE_FIELD( list_style_position, css_lsp_inherit );
     UPDATE_STYLE_FIELD( page_break_before, css_pb_inherit );
     UPDATE_STYLE_FIELD( page_break_after, css_pb_inherit );
     UPDATE_STYLE_FIELD( page_break_inside, css_pb_inherit );

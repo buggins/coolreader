@@ -36,11 +36,13 @@ lUInt32 calcHash(font_ref_t & f)
 
 lUInt32 calcHash(css_style_rec_t & rec)
 {
-    return ((((((((((((((((((((((((((lUInt32)rec.display * 31
+    return ((((((((((((((((((((((((((((lUInt32)rec.display * 31
          + (lUInt32)rec.white_space) * 31
          + (lUInt32)rec.text_align) * 31
          + (lUInt32)rec.text_decoration) * 31
          + (lUInt32)rec.hyphenate) * 31
+         + (lUInt32)rec.list_style_type) * 31
+         + (lUInt32)rec.list_style_position) * 31
          + (lUInt32)rec.vertical_align) * 31
          + (lUInt32)rec.font_size.type) * 31
          + (lUInt32)rec.font_size.value) * 31
@@ -71,6 +73,8 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.white_space == r2.white_space &&
            r1.text_align == r2.text_align &&
            r1.text_decoration == r2.text_decoration &&
+           r1.list_style_type == r2.list_style_type &&
+           r1.list_style_position == r2.list_style_position &&
            r1.hyphenate == r2.hyphenate &&
            r1.vertical_align == r2.vertical_align &&
            r1.line_height == r2.line_height &&

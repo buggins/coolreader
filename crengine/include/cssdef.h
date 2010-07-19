@@ -136,6 +136,26 @@ enum css_page_break_t {
     css_pb_right,
 };
 
+/// list-style-type property values
+enum css_list_style_type_t {
+    css_lst_inherit,
+    css_lst_disc,
+    css_lst_circle,
+    css_lst_square,
+    css_lst_decimal,
+    css_lst_lower_roman,
+    css_lst_upper_roman,
+    css_lst_lower_alpha,
+    css_lst_upper_alpha,
+    css_lst_none,
+};
+
+/// list-style-position property values
+enum css_list_style_position_t {
+    css_lsp_inherit,
+    css_lsp_inside,
+    css_lsp_outside,
+};
 
 /// css length value types
 enum css_value_type_t {

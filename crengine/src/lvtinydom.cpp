@@ -2989,6 +2989,8 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
     s->page_break_before = css_pb_auto;
     s->page_break_after = css_pb_auto;
     s->page_break_inside = css_pb_auto;
+    s->list_style_type = css_lst_disc;
+    s->list_style_position = css_lsp_outside;
     s->vertical_align = css_va_baseline;
     s->font_family = def_font->getFontFamily();
     s->font_size.type = css_val_px;

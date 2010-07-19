@@ -52,6 +52,10 @@ enum css_decl_code {
     cssd_page_break_before,
     cssd_page_break_after,
     cssd_page_break_inside,
+    cssd_list_style,
+    cssd_list_style_type,
+    cssd_list_style_position,
+    cssd_list_style_image,
     cssd_stop,
 };
 
@@ -88,6 +92,10 @@ static const char * css_decl_name[] = {
     "page-break-before:",
     "page-break-after:",
     "page-break-inside:",
+    "list-style:",
+    "list-style-type:",
+    "list-style-position:",
+    "list-style-image:",
     NULL
 };
 
@@ -451,6 +459,29 @@ static const char * css_ff_names[] =
     NULL
 };
 
+static const char * css_lst_names[] =
+{
+    "inherit",
+    "disc",
+    "circle",
+    "square",
+    "decimal",
+    "lower-roman",
+    "upper-roman",
+    "lower-alpha",
+    "upper-alpha",
+    "none",
+    NULL
+};
+
+static const char * css_lsp_names[] =
+{
+    "inherit",
+    "inside",
+    "outside",
+    NULL
+};
+
 bool LVCssDeclaration::parse( const char * &decl )
 {
     #define MAX_DECL_SIZE 512
@@ -498,6 +529,12 @@ bool LVCssDeclaration::parse( const char * &decl )
                 break;
             case cssd_page_break_after:
                 n = parse_name( decl, css_pb_names, -1 );
+                break;
+            case cssd_list_style_type:
+                n = parse_name( decl, css_lst_names, -1 );
+                break;
+            case cssd_list_style_position:
+                n = parse_name( decl, css_lsp_names, -1 );
                 break;
             case cssd_vertical_align:
                 n = parse_name( decl, css_va_names, -1 );
@@ -653,6 +690,12 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_hyphenate:
             style->hyphenate = (css_hyphenate_t) *p++;
+            break;
+        case cssd_list_style_type:
+            style->list_style_type = (css_list_style_type_t) *p++;
+            break;
+        case cssd_list_style_position:
+            style->list_style_position = (css_list_style_position_t) *p++;
             break;
         case cssd_page_break_before:
             style->page_break_before = (css_page_break_t) *p++;
