@@ -68,20 +68,19 @@ ul, ol, dl {
    margin-left: 1em; 
    margin-top:0.3em; 
    margin-bottom: 0.3em; 
-/*   background-color: #808080; */ 
    } 
 
 li { 
-   display: block; 
+   display: list-item; 
    margin-top: 0.3em; 
    margin-bottom: 0.3em; 
-   background-color: #EFEFEF; 
+   text-indent: 0em;
    } 
 
 
 dl { margin-left: 0em; } 
 dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 
-dd { display: block; } 
+dd { display: list-item; text-indent: 0em; } 
 
 a { display:inline; text-decoration: underline;  } 
 

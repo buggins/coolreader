@@ -58,7 +58,7 @@ extern "C" {
 typedef struct
 {
     void *          object;   /**< \brief pointer to object which represents source */
-    lUInt16         margin;   /**< \brief first line margin */
+    lInt16          margin;   /**< \brief first line margin */
     lUInt8          interval; /**< \brief line interval, *16 (16=normal, 32=double) */
     lInt8           letter_spacing; /**< \brief additional letter spacing, pixels */
     lUInt32         color;    /**< \brief color */

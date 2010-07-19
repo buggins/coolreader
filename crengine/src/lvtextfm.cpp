@@ -371,7 +371,10 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 int line_x;
                 if ( wrapNextLine ) {
                     curr_x = 0;
-                    line_x = isParaStart ? srcline->margin : 0;
+                    if ( srcline->margin<0 )
+                        line_x = isParaStart ? 0 : -srcline->margin;
+                    else
+                        line_x = isParaStart ? srcline->margin : 0;
                 } else {
                     line_x = (frmline?frmline->x:0);
                 }
@@ -407,7 +410,10 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                             frmline = lvtextAddFormattedLine( pbuffer );
                         }
                         curr_x = 0;
-                        frmline->x = isParaStart ? srcline->margin : 0;
+                        if ( srcline->margin<0 )
+                            frmline->x = isParaStart ? 0 : -srcline->margin;
+                        else
+                            frmline->x = isParaStart ? srcline->margin : 0;
                         space_left = pbuffer->width - curr_x - frmline->x;
                         if ( chars_left && textWrapped )
                         {
@@ -816,6 +822,9 @@ public:
             }
             frmline->word_count = wordCount;
             frmline->width = 0;
+            if ( srcline && srcline->margin<0 ) { //LVE???
+                frmline->x = -srcline->margin;
+            }
             int i;
             for ( i=0; i<wordCount; i++ ) {
                 formatted_word_t * word = &frmline->words[i];
@@ -905,6 +914,8 @@ public:
 
             if ( createNewLine ) {
                 newline->y = frmline->y + frmline->height;
+                if ( first_para_line->margin<0 )
+                    newline->x = -first_para_line->margin;
             }
             // go to new line
             frmline = newline;
@@ -921,7 +932,7 @@ public:
         //
         if ( frmline->word_count == 0 ) {
             // set margin
-            frmline->x = first_para_line->margin;
+            frmline->x = first_para_line->margin>0?first_para_line->margin:0;
         }
     }
 
@@ -1067,10 +1078,21 @@ public:
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
         }
         bool visualAlignmentEnabled = true;
-        if (lastchar & LCHAR_IS_SPACE) {
+        if ( lastc=='\t' ) {
+            // tab
+            if ( frmline->word_count==1 && frmline->x==0 && first_para_line->margin<0 ) {
+                if ( word->width<-first_para_line->margin ) {
+                    word->width = -first_para_line->margin;
+                    word->inline_width = -first_para_line->margin;
+                }
+            }
+            if ( word->t.len>0 )
+                word->t.len--;
+        } else if (lastchar & LCHAR_IS_SPACE) {
             flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-            if ( firstch<lastch )
+            if ( firstch<lastch ) {
                 word->width = widths_buf[lastch-1] - wpos;
+            }
             if ( lastch>firstch )
                 lastc = srcline->t.text[text_offset+lastch-1];
         }

@@ -15,6 +15,9 @@ a[type="note"] { vertical-align: super; font-size: 70%; text-decoration: none }
 
 image { text-align: center; text-indent: 0px; display: block }
 p image { display: inline }
+li { display: list-item; text-indent: 0em;  }
+ul { display: block; list-style-type: disc; margin-left: 1em }
+ol { display: block; list-style-type: decimal; margin-left: 1em }
 
 title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { text-align: center; text-indent: 0px }
 cite p, epigraph p { text-align: left; text-indent: 0px }
@@ -123,22 +126,6 @@ h3 { font-size: 125% }
 h4 { font-size: 125%; font-style: italic; } 
 h5 { font-size: 115%; font-style: italic; } 
 h6 { font-size: 105%; font-style: italic; } 
-
-ul, ol, dl { 
-   display: block; 
-   margin-left: 1em; 
-   margin-top:0.3em; 
-   margin-bottom: 0.3em; 
-/*   background-color: #808080; */ 
-   } 
-
-li { 
-   display: block; 
-   margin-top: 0.3em; 
-   margin-bottom: 0.3em; 
-   background-color: #EFEFEF; 
-   } 
-
 
 dl { margin-left: 0em; } 
 dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 

@@ -297,6 +297,7 @@ public:
                         colindex++;
                     }
                     break;
+                case erm_list_item:
                 case erm_block:         // render as block element (render as containing other elements)
                 case erm_final:         // final element: render the whole it's content as single render block
                 case erm_mixed:         // block and inline elements are mixed: autobox inline portions of nodes; TODO
@@ -1218,7 +1219,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 {
     if ( enode->isElement() )
     {
-        if ( enode->getRendMethod() == erm_invisible )
+        lvdom_element_render_method rm = enode->getRendMethod();
+        if ( rm == erm_invisible )
             return; // don't draw invisible
         //RenderRectAccessor fmt2( enode );
         //fmt = &fmt2;
@@ -1297,6 +1299,47 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             default:
                 break;
         }
+
+        if ( rm==erm_list_item ) {
+            // put item number/marker to list
+            lString16 marker;
+            int marker_width = 0;
+
+            ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( enode->getParentNode()->getDataIndex() );
+            if ( listProps.isNull() ) {
+                int counterValue = 0;
+                ldomNode * parent = enode->getParentNode();
+                int maxWidth = 0;
+                for ( int i=0; i<parent->getChildCount(); i++ ) {
+                    lString16 marker;
+                    int markerWidth = 0;
+                    ldomNode * child = parent->getChildNode(i);
+                    if ( child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
+                        if ( markerWidth>maxWidth )
+                            maxWidth = markerWidth;
+                    }
+                }
+                listProps = ListNumberingPropsRef( new ListNumberingProps(counterValue, maxWidth) );
+                enode->getDocument()->setNodeNumberingProps( enode->getParentNode()->getDataIndex(), listProps );
+            }
+            int counterValue = 0;
+            if ( enode->getNodeListMarker( counterValue, marker, marker_width ) ) {
+                if ( !listProps.isNull() )
+                    marker_width = listProps->maxWidth;
+                css_list_style_position_t sp = style->list_style_position;
+                LVFont * font = enode->getFont().get();
+                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
+                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+                int margin = 0;
+                if ( sp==css_lsp_outside )
+                    margin = -marker_width;
+                marker += L"\t";
+                txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h,
+                                        margin, NULL );
+                flags &= ~LTEXT_FLAG_NEWLINE;
+            }
+        }
+
         const css_elem_def_props_t * ntype = enode->getElementTypePtr();
 //        if ( ntype ) {
 //            CRLog::trace("Node %s is Object ?  %d", LCSTR(enode->getNodeName()), ntype->is_object );
@@ -1569,6 +1612,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                 {
                     if ( isFootNoteBody )
                         context.enterFootNote( enode->getAttributeValue(attr_id) );
+
+
                     // recurse all sub-blocks for blocks
                     int y = padding_top;
                     int cnt = enode->getChildCount();
@@ -1589,6 +1634,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
                 }
                 break;
+            case erm_list_item:
             case erm_final:
             case erm_table_cell:
                 {
@@ -1760,6 +1806,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 }
             }
             break;
+        case erm_list_item:
         case erm_final:
         case erm_table_caption:
             {

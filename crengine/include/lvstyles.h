@@ -111,6 +111,7 @@ enum lvdom_element_render_method
     erm_final,         ///< final element: render the whole it's content as single render block
     erm_inline,        ///< inline element
     erm_mixed,         ///< block and inline elements are mixed: autobox inline portions of nodes; TODO
+    erm_list_item,     ///< render as block element as list item
     erm_table,         ///< table element: render as table
     erm_table_row_group, ///< table row group
     erm_table_header_group, ///< table header group

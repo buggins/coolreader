@@ -393,6 +393,9 @@ protected:
     void clearNodeStyle( lUInt32 dataIndex );
 
     tinyNodeCollection( tinyNodeCollection & v );
+
+    virtual void resetNodeNumberingProps() { }
+
 public:
 
     /// called on document loading end
@@ -760,6 +763,9 @@ public:
     ldomNode * persist();
     /// replace node with r/w implementation
     ldomNode * modify();
+
+    /// for display:list-item node, get marker
+    bool getNodeListMarker( int & counterValue, lString16 & marker, int & markerWidth );
 };
 
 
@@ -1676,6 +1682,18 @@ class ldomNavigationHistory
         }
 };
 
+class ListNumberingProps
+{
+public:
+    int maxCounter;
+    int maxWidth;
+    ListNumberingProps( int c, int w )
+        : maxCounter(c), maxWidth(w)
+    {
+    }
+};
+typedef LVRef<ListNumberingProps> ListNumberingPropsRef;
+
 class ldomDocument : public lxmlDocBase
 {
     friend class ldomDocumentWriter;
@@ -1690,6 +1708,9 @@ private:
 
     LVContainerRef _container;
 
+    LVHashTable<lUInt32, ListNumberingPropsRef> lists;
+
+
     /// load document cache file content
     bool loadCacheFileContent();
 
@@ -1703,6 +1724,10 @@ protected:
     void applyDocumentStyleSheet();
 
 public:
+
+    ListNumberingPropsRef getNodeNumberingProps( lUInt32 nodeDataIndex );
+    void setNodeNumberingProps( lUInt32 nodeDataIndex, ListNumberingPropsRef v );
+    virtual void resetNodeNumberingProps();
 
 #if BUILD_LITE!=1
     /// returns object image source

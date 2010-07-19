@@ -342,6 +342,7 @@ class LVRendPageContext
     void split();
 public:
 
+
     void setCallback(LVDocViewCallback * cb, int _totalFinalBlocks) {
         callback = cb; totalFinalBlocks=_totalFinalBlocks;
         lastSentProgress = 0;
