@@ -420,23 +420,14 @@ public:
         return (_docFlags & mask) != 0;
     }
 
-    inline void setDocFlag( lUInt32 mask, bool value )
-    {
-        if ( value )
-            _docFlags |= mask;
-        else
-            _docFlags &= ~mask;
-    }
+    void setDocFlag( lUInt32 mask, bool value );
 
     inline lUInt32 getDocFlags()
     {
         return _docFlags;
     }
 
-    inline void setDocFlags( lUInt32 value )
-    {
-        _docFlags = value;
-    }
+    void setDocFlags( lUInt32 value );
 
 
     /// returns doc properties collection

@@ -3101,9 +3101,13 @@ void ldomDocument::applyDocumentStyleSheet()
     if ( !ss.isNull() ) {
         lString16 css = ss.getText('\n');
         if ( !css.empty() ) {
-            CRLog::debug("Using internal FB2 document stylesheet:\n%s", LCSTR(css));
+            CRLog::debug("applyDocumentStyleSheet() : Using internal FB2 document stylesheet:\n%s", LCSTR(css));
             _stylesheet.parse(LCSTR(css));
+        } else {
+            CRLog::trace("applyDocumentStyleSheet() : stylesheet under /FictionBook/stylesheet is empty");
         }
+    } else {
+        CRLog::trace("applyDocumentStyleSheet() : No internal FB2 stylesheet found under /FictionBook/stylesheet");
     }
 }
 
@@ -4053,10 +4057,14 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         _parser->Stop();
     }
 
-    if ( !_popStyleOnFinish && !lStr_cmp(tagname, L"stylesheet") ) {
-        _document->getStyleSheet()->push();
-        _popStyleOnFinish = true;
-        _document->applyDocumentStyleSheet();
+    if ( !lStr_cmp(tagname, L"stylesheet") ) {
+        //CRLog::trace("</stylesheet> found");
+        if ( !_popStyleOnFinish ) {
+            //CRLog::trace("saving current stylesheet before applying of document stylesheet");
+            _document->getStyleSheet()->push();
+            _popStyleOnFinish = true;
+            _document->applyDocumentStyleSheet();
+        }
     }
     //logfile << " !c!\n";
 }
@@ -4090,7 +4098,7 @@ void ldomDocumentWriter::OnEncoding( const lChar16 *, const lChar16 *)
 }
 
 ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
-    : _document(document), _currNode(NULL), _errFlag(false), _headerOnly(headerOnly), _flags(0)
+    : _document(document), _currNode(NULL), _errFlag(false), _headerOnly(headerOnly), _popStyleOnFinish(false), _flags(0)
 {
     _stopTagId = 0xFFFE;
     IS_FIRST_BODY = true;
@@ -6824,6 +6832,21 @@ bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
     return true;
 }
 #endif
+
+void tinyNodeCollection::setDocFlag( lUInt32 mask, bool value )
+{
+    CRLog::debug("setDocFlag(%04x, %s)", mask, value?"true":"false");
+    if ( value )
+        _docFlags |= mask;
+    else
+        _docFlags &= ~mask;
+}
+
+void tinyNodeCollection::setDocFlags( lUInt32 value )
+{
+    CRLog::debug("setDocFlags(%04x)", value);
+    _docFlags = value;
+}
 
 int tinyNodeCollection::getPersistenceFlags()
 {

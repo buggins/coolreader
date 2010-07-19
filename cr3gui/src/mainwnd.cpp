@@ -353,6 +353,7 @@ void V3DocViewWin::OnLoadFileStart( lString16 filename )
 /// format detection finished
 void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
 {
+    CRLog::trace("OnLoadFileFormatDetected(%d)", (int)fileFormat);
     lString16 filename = L"fb2.css";
     if ( _cssDir.length() > 0 ) {
         switch ( fileFormat ) {
