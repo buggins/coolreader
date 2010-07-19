@@ -668,7 +668,7 @@ class CRXCBScreen : public CRGUIScreenBase
             // substitute GRAY_BACKBUFFER_BITS with depth of screen
             int d = im->depth;
             if ( d==32 || d==24 )
-                d = 3; // 8 colors for desktop simulation
+                d = GRAY_BACKBUFFER_BITS; // 8 colors for desktop simulation
             if ( d<2 )
                 d = 2;
             if ( d>4 )

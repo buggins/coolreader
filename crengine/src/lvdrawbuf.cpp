@@ -454,7 +454,9 @@ public:
 
                     if ( alpha ) {
                         lUInt32 origColor = (row[ byteindex ] & mask)>>bitindex;
-                        origColor = origColor | (origColor>>2) | (origColor>>4) | (origColor>>6);
+                        origColor = origColor | (origColor<<2);
+                        origColor = origColor | (origColor<<4);
+                        origColor = origColor | (origColor<<8) | (origColor<<16);
                         ApplyAlphaRGB( origColor, cl, alpha );
                         cl = origColor;
                     }
