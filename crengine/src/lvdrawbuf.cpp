@@ -794,7 +794,8 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
     shift = shift0;
 
 
-    bool white = (rgbToGray( _textColor ) & 0x80) ?
+    lUInt8 color = rgbToGrayMask(GetTextColor(), _bpp);
+    bool white = (color & 0x80) ?
 #if (GRAY_INVERSE==1)
             false : true;
 #else
@@ -805,12 +806,26 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
         src = bitmap;
 
         if ( _bpp==2 ) {
+            // foreground color
+            lUInt8 cl = rgbToGray(GetTextColor()) >> 6; // 0..3
+            //cl ^= 0x03;
             for (xx = width; xx>0; --xx)
             {
-                if ( white )
-                    *dst |= (( (*src++) & 0xC0 ) >> ( shift << 1 ));
-                else
-                    *dst &= ~(( ((*src++) & 0xC0) ) >> ( shift << 1 ));
+                lUInt8 opaque = (*src >> 4) & 0x0F; // 0..15
+                if ( opaque>0x3 ) {
+                    int shift2 = shift<<1;
+                    int shift2i = 6-shift2;
+                    lUInt8 mask = 0xC0 >> shift2;
+                    lUInt8 dstcolor;
+                    if ( opaque>=0xC ) {
+                        dstcolor = cl;
+                    } else {
+                        lUInt8 bgcolor = ((*dst)>>shift2i)&3; // 0..3
+                        dstcolor = ((opaque*cl + (15-opaque)*bgcolor)>>4)&3;
+                    }
+                    *dst = (*dst & ~mask) | (dstcolor<<shift2i);
+                }
+                src++;
                 /* next pixel */
                 if (!(++shift & 3))
                 {
@@ -835,7 +850,6 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
             }
         } else { // 3,4,8
             int mask = ((1<<_bpp)-1)<<(8-_bpp);
-            lUInt8 color = rgbToGrayMask(GetTextColor(), _bpp);
             for (xx = width; xx>0; --xx)
             {
                 lUInt8 b = (*src++);
