@@ -1,3 +1,16 @@
+cr3 (3.0.35-1) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * implement image titles, fix inline images
+  * increment version
+  * fix 2-bit gray buffer semi-transparent PNG support
+  * add list-style-type and list-style-position CSS properties
+  * implement CSS lists support
+  * fix internal document styles
+  * disable heap size logging by default
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Tue, 20 Jul 2010 19:46:01 +0200
+
 cr3 (3.0.34-2) zelazny; urgency=low
 
   [ Vadim Lopatin ]
