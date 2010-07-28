@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.19"
+#define CACHE_FILE_FORMAT_VERSION "3.02.20"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -2980,6 +2980,7 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
     s->display = css_d_block;
     s->white_space = css_ws_normal;
     s->text_align = css_ta_left;
+    s->text_align_last = css_ta_left;
     s->text_decoration = css_td_none;
     s->hyphenate = css_hyph_auto;
     s->color.type = css_val_unspecified;
@@ -9906,6 +9907,7 @@ void runBasicTinyDomUnitTests()
         style1->display = css_d_block;
         style1->white_space = css_ws_normal;
         style1->text_align = css_ta_left;
+        style1->text_align_last = css_ta_left;
         style1->text_decoration = css_td_none;
         style1->hyphenate = css_hyph_auto;
         style1->color.type = css_val_unspecified;
@@ -9932,6 +9934,7 @@ void runBasicTinyDomUnitTests()
         style2->display = css_d_block;
         style2->white_space = css_ws_normal;
         style2->text_align = css_ta_left;
+        style2->text_align_last = css_ta_left;
         style2->text_decoration = css_td_none;
         style2->hyphenate = css_hyph_auto;
         style2->color.type = css_val_unspecified;
@@ -9958,6 +9961,7 @@ void runBasicTinyDomUnitTests()
         style3->display = css_d_block;
         style3->white_space = css_ws_normal;
         style3->text_align = css_ta_right;
+        style3->text_align_last = css_ta_left;
         style3->text_decoration = css_td_none;
         style3->hyphenate = css_hyph_auto;
         style3->color.type = css_val_unspecified;

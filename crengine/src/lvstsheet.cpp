@@ -24,6 +24,7 @@ enum css_decl_code {
     cssd_display,
     cssd_white_space,
     cssd_text_align,
+    cssd_text_align_last,
     cssd_text_decoration,
     cssd_hyphenate,
     cssd_color,
@@ -64,6 +65,7 @@ static const char * css_decl_name[] = {
     "display:",
     "white-space:",
     "text-align:",
+    "text-align-last:",
     "text-decoration:",
     "hyphenate:",
     "color:",
@@ -708,6 +710,9 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_text_align:
             style->text_align = (css_text_align_t) *p++;
+            break;
+        case cssd_text_align_last:
+            style->text_align_last = (css_text_align_t) *p++;
             break;
         case cssd_text_decoration:
             style->text_decoration = (css_text_decoration_t) *p++;

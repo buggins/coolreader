@@ -1158,6 +1158,23 @@ int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags )
             case css_ta_inherit:
                 break;
             }
+            switch (style->text_align_last)
+            {
+            case css_ta_left:
+                flg |= LTEXT_LAST_LINE_ALIGN_LEFT;
+                break;
+            case css_ta_right:
+                flg |= LTEXT_LAST_LINE_ALIGN_RIGHT;
+                break;
+            case css_ta_center:
+                flg |= LTEXT_LAST_LINE_ALIGN_CENTER;
+                break;
+            case css_ta_justify:
+                flg |= LTEXT_LAST_LINE_ALIGN_LEFT;
+                break;
+            case css_ta_inherit:
+                break;
+            }
         }
     }
     if ( style->white_space == css_ws_pre )
