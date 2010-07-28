@@ -660,7 +660,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         _height = 0;
         if (png_ptr)
         {
-            png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
+            png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         }
         if ( row )
             delete row;
@@ -702,7 +702,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
             png_set_palette_to_rgb(png_ptr);
 
         if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-            png_set_gray_1_2_4_to_8(png_ptr);
+            png_set_expand_gray_1_2_4_to_8(png_ptr);
 
         if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
             png_set_tRNS_to_alpha(png_ptr);
@@ -737,7 +737,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         {
                 for (lUInt32 y = 0; y < height; y++)
             {
-                png_read_rows(png_ptr, (unsigned char **)&row, png_bytepp_NULL, 1);
+                png_read_rows(png_ptr, (unsigned char **)&row, NULL, 1);
                 callback->OnLineDecoded( this, y, row );
             }
         }
@@ -746,7 +746,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
 
         callback->OnEndDecode(this, false);
     }
-    png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
+    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
     delete [] row;
     return true;
