@@ -448,7 +448,13 @@ static const char * css_va_names[] =
     NULL
 };
 
-static const char * css_ff_names[] = 
+static const char * css_ti_attribute_names[] =
+{
+    "hanging",
+    NULL
+};
+
+static const char * css_ff_names[] =
 {
     "inherit",
     "serif",
@@ -572,6 +578,24 @@ bool LVCssDeclaration::parse( const char * &decl )
                 n = parse_name( decl, css_fw_names, -1 );
                 break;
             case cssd_text_indent:
+                {
+                    // read length
+                    css_length_t len;
+                    if ( parse_number_value( decl, len ) )
+                    {
+                        // read optional "hanging" flag
+                        skip_spaces( decl );
+                        int attr = parse_name( decl, css_ti_attribute_names, -1 );
+                        if ( attr==0 ) {
+                            len.value = -len.value;
+                        }
+                        // save result
+                        buf[ buf_pos++ ] = prop_code;
+                        buf[ buf_pos++ ] = len.type;
+                        buf[ buf_pos++ ] = len.value;
+                    }
+                }
+                break;
             case cssd_line_height:
             case cssd_letter_spacing:
             case cssd_font_size:

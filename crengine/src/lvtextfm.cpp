@@ -823,7 +823,7 @@ public:
             frmline->word_count = wordCount;
             frmline->width = 0;
             if ( srcline && srcline->margin<0 ) { //LVE???
-                frmline->x = -srcline->margin;
+                //frmline->x = -srcline->margin;
             }
             int i;
             for ( i=0; i<wordCount; i++ ) {
