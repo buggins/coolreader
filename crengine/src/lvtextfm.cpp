@@ -1400,7 +1400,36 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             // process background
 
             lUInt32 bgcl = buf->GetBackgroundColor();
-            buf->FillRect( x+frmline->x, y + frmline->y, x+frmline->x + frmline->width, y + frmline->y + frmline->height, bgcl );
+            //buf->FillRect( x+frmline->x, y + frmline->y, x+frmline->x + frmline->width, y + frmline->y + frmline->height, bgcl );
+
+            // draw background for each word
+            lUInt32 lastWordColor = 0xFFFFFFFF;
+            int lastWordStart = -1;
+            int lastWordEnd = -1;
+            for (j=0; j<frmline->word_count; j++)
+            {
+                word = &frmline->words[j];
+                srcline = &m_pbuffer->srctext[word->src_text_index];
+                if (word->flags & LTEXT_WORD_IS_OBJECT)
+                {
+                    // no background, TODO
+                }
+                else
+                {
+                    lUInt32 bgcl = srcline->bgcolor;
+                    if ( lastWordColor!=bgcl || lastWordStart==-1 ) {
+                        if ( lastWordStart!=-1 )
+                            if ( ((lastWordColor>>24) & 0xFF) < 128 )
+                                buf->FillRect( lastWordStart, y + frmline->y, lastWordEnd, y + frmline->y + frmline->height, lastWordColor );
+                        lastWordColor=bgcl;
+                        lastWordStart = x+frmline->x+word->x;
+                    }
+                    lastWordEnd = x+frmline->x+word->x+word->width;
+                }
+            }
+            if ( lastWordStart!=-1 )
+                if ( ((lastWordColor>>24) & 0xFF) < 128 )
+                    buf->FillRect( lastWordStart, y + frmline->y, lastWordEnd, y + frmline->y + frmline->height, lastWordColor );
 
             // process marks
             if ( marks!=NULL && marks->length()>0 ) {
