@@ -523,6 +523,9 @@ bool LVCssDeclaration::parse( const char * &decl )
             case cssd_text_align:
                 n = parse_name( decl, css_ta_names, -1 );
                 break;
+            case cssd_text_align_last:
+                n = parse_name( decl, css_ta_names, -1 );
+                break;
             case cssd_text_decoration:
                 n = parse_name( decl, css_td_names, -1 );
                 break;

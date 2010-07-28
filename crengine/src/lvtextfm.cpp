@@ -727,6 +727,7 @@ public:
     int vertical_align;
     int frmline_wrap_pos;
     int align;
+    int align_last;
     lInt8 letter_spacing;
     bool flgLastParaLine;
     bool flgCanBreakBeforeNextLine;
@@ -866,7 +867,7 @@ public:
             // don't spread last line of paragraph
             int nalign = align;
             if ( nalign==LTEXT_ALIGN_WIDTH && ((!extraWords && srcFinished) || eol) )
-                nalign = LTEXT_ALIGN_LEFT;
+                nalign = align_last; //LTEXT_ALIGN_LEFT
 
             int width = m_pbuffer->width;
             int delta = width - frmline->width - frmline->x;
@@ -928,6 +929,10 @@ public:
         align = (lUInt8)(first_para_line->flags & LTEXT_FLAG_NEWLINE);
         if ( !align )
             align = LTEXT_ALIGN_LEFT;
+        align_last = (lUInt8)((first_para_line->flags >> 16) & LTEXT_FLAG_NEWLINE);
+        if ( align!=LTEXT_ALIGN_WIDTH && !align_last )
+            align_last = align;
+
         interval = first_para_line->interval;
         //
         if ( frmline->word_count == 0 ) {
