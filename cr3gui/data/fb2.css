@@ -21,7 +21,7 @@ ol { display: block; list-style-type: decimal; margin-left: 1em }
 
 title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { text-align: center; text-indent: 0px }
 cite p, epigraph p { text-align: left; text-indent: 0px }
-v { text-align: left; text-indent: 0px }
+v { text-align: justify; text-align-last: right; text-indent: 2em hanging }
 
 stanza + stanza { margin-top: 1em; }
 stanza { margin-left: 30%; text-align: left; font-style: italic  }
