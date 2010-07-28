@@ -13,7 +13,7 @@ class TocItem : public QTreeWidgetItem
         TocItem( LVTocItem * item, int currPage, int & nearestPage, TocItem * & nearestItem )
                 : QTreeWidgetItem( QStringList()
                                    << (item ? cr2qt( item->getName() ) : "No TOC items" )
-                                   << ( item ? cr2qt(lString16::itoa(item->getPage())) : "")
+                                   << ( item ? cr2qt(lString16::itoa(item->getPage()+1)) : "")
                                    )
                 , _item( item )
         {
