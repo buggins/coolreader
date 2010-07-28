@@ -14,6 +14,7 @@
 #define __LV_TEXT_VIEW_H_INCLUDED__
 
 #include "crsetup.h"
+#include "crskin.h"
 #include "lvtinydom.h"
 #include "lvpagesplitter.h"
 #include "lvdrawbuf.h"
@@ -380,6 +381,8 @@ private:
 
     int m_drawBufferBits;
 
+    CRPageSkinRef _pageSkin;
+
     /// sets current document format
     void setDocFormat( doc_format_t fmt );
 
@@ -659,6 +662,9 @@ public:
         m_textColor = cl;
         m_imageCache.clear();
     }
+
+    CRPageSkinRef getPageSkin();
+    void setPageSkin( CRPageSkinRef skin );
 
     /// returns xpointer for specified window point
     ldomXPointer getNodeByPoint( lvPoint pt );

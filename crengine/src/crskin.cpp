@@ -90,6 +90,31 @@ int toSkinPercent( const lString16 & value, int defValue, bool * res )
     return defValue;
 }
 
+CRPageSkin::CRPageSkin()
+: _scrollSkin(new CRRectSkin())
+, _leftPageSkin(new CRRectSkin())
+, _rightPageSkin(new CRRectSkin())
+, _singlePageSkin(new CRRectSkin())
+{
+
+}
+
+CRRectSkinRef CRPageSkin::getSkin( page_skin_type_t type )
+{
+    switch ( type ) {
+    case PAGE_SKIN_SCROLL:
+        return _scrollSkin;
+    case PAGE_SKIN_LEFT_PAGE:
+        return _leftPageSkin;
+    case PAGE_SKIN_RIGHT_PAGE:
+        return _rightPageSkin;
+    case PAGE_SKIN_SINGLE_PAGE:
+        return _singlePageSkin;
+    default:
+        return _scrollSkin;
+    }
+}
+
 
 CRIconSkin::CRIconSkin()
 : _bgcolor(0xFF000000) // transparent
@@ -231,6 +256,7 @@ protected:
     LVCacheMap<lString16,CRScrollSkinRef> _scrollCache;
     LVCacheMap<lString16,CRWindowSkinRef> _windowCache;
     LVCacheMap<lString16,CRMenuSkinRef> _menuCache;
+    LVCacheMap<lString16,CRPageSkinRef> _pageCache;
 public:
     /// returns scroll skin by path or #id
     virtual CRScrollSkinRef getScrollSkin( const lChar16 * path );
@@ -240,6 +266,8 @@ public:
     virtual CRWindowSkinRef getWindowSkin( const lChar16 * path );
     /// returns menu skin by path or #id
     virtual CRMenuSkinRef getMenuSkin( const lChar16 * path );
+    /// returns book page skin by path or #id
+    virtual CRPageSkinRef getPageSkin( const lChar16 * path );
     /// get DOM path by id
     virtual lString16 pathById( const lChar16 * id );
     /// gets image from container
@@ -252,7 +280,7 @@ public:
         _imageCache.clear();
     }
     /// constructor does nothing
-    CRSkinImpl()  : _imageCache(8), _rectCache(8), _scrollCache(1), _windowCache(8), _menuCache(8) { }
+    CRSkinImpl()  : _imageCache(8), _rectCache(8), _scrollCache(1), _windowCache(8), _menuCache(8), _pageCache(8) { }
     virtual ~CRSkinImpl(){ }
     // open from container
     virtual bool open( LVContainerRef container );
@@ -1552,6 +1580,40 @@ lvPoint CRWindowSkin::getTitleSize()
     return minsize;
 }
 
+bool CRSkinContainer::readPageSkin(  const lChar16 * path, CRPageSkin * res )
+{
+    bool flg = false;
+
+    lString16 base = getBasePath( path );
+    RecursionLimit limit;
+    if ( !base.empty() && limit.test() ) {
+        // read base skin first
+        flg = readPageSkin( base.c_str(), res ) || flg;
+    }
+
+    lString16 p( path );
+    ldomXPointer ptr = getXPointer( path );
+    if ( !ptr ) {
+#ifdef TRACE_SKIN_ERRORS
+        crtrace log;
+        log << "Book page skin by path " << p << " was not found";
+#endif
+        return false;
+    }
+
+    flg = readRectSkin( (p + L"scroll-skin").c_str(),  res->getSkin( PAGE_SKIN_SCROLL ).get() ) || res;
+    flg = readRectSkin( (p + L"left-page-skin").c_str(),  res->getSkin( PAGE_SKIN_LEFT_PAGE ).get() ) || flg;
+    flg = readRectSkin( (p + L"right-page-skin").c_str(),  res->getSkin( PAGE_SKIN_RIGHT_PAGE ).get() ) || flg;
+    flg = readRectSkin( (p + L"single-page-skin").c_str(),  res->getSkin( PAGE_SKIN_SINGLE_PAGE ).get() ) || flg;
+
+    if ( !flg ) {
+        crtrace log;
+        log << "Book page skin reading failed: " << path;
+    }
+
+    return flg;
+}
+
 bool CRSkinContainer::readWindowSkin(  const lChar16 * path, CRWindowSkin * res )
 {
     bool flg = false;
@@ -1742,6 +1804,24 @@ CRScrollSkinRef CRSkinImpl::getScrollSkin( const lChar16 * path )
     res = CRScrollSkinRef( new CRScrollSkin() );
     readScrollSkin( p.c_str(), res.get() );
     _scrollCache.set( lString16(path), res );
+    return res;
+}
+
+/// returns book page skin by path or #id
+CRPageSkinRef CRSkinImpl::getPageSkin( const lChar16 * path )
+{
+    lString16 p(path);
+    CRPageSkinRef res;
+    if ( _pageCache.get( p, res ) )
+        return res; // found in cache
+    if ( *path == '#' ) {
+        // find by id
+        p = pathById( path+1 );
+    }
+    // create new one
+    res = CRPageSkinRef( new CRPageSkin() );
+    readPageSkin( p.c_str(), res.get() );
+    _pageCache.set( lString16(path), res );
     return res;
 }
 

@@ -173,6 +173,16 @@ LVDocView::~LVDocView()
     Clear();
 }
 
+CRPageSkinRef LVDocView::getPageSkin()
+{
+    return _pageSkin;
+}
+
+void LVDocView::setPageSkin( CRPageSkinRef skin )
+{
+    _pageSkin = skin;
+}
+
 /// get text format options
 txt_format_t LVDocView::getTextFormatOptions()
 {

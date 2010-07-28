@@ -22,8 +22,10 @@
 
 #include "lvtypes.h"
 #include "lvptrvec.h"
+#include "lvref.h"
+#include "lvfntman.h"
 #include "lvdrawbuf.h"
-#include "lvdocview.h"
+#include "lvtinydom.h"
 
 
 // Vertical alignment flags
@@ -246,6 +248,26 @@ public:
 typedef LVFastRef<CRRectSkin> CRRectSkinRef;
 
 
+enum page_skin_type_t {
+    PAGE_SKIN_SCROLL,
+    PAGE_SKIN_LEFT_PAGE,
+    PAGE_SKIN_RIGHT_PAGE,
+    PAGE_SKIN_SINGLE_PAGE,
+};
+
+class CRPageSkin : public CRSkinnedItem
+{
+    CRRectSkinRef _scrollSkin;
+    CRRectSkinRef _leftPageSkin;
+    CRRectSkinRef _rightPageSkin;
+    CRRectSkinRef _singlePageSkin;
+public:
+    CRPageSkin();
+    CRRectSkinRef getSkin( page_skin_type_t type );
+};
+typedef LVFastRef<CRPageSkin> CRPageSkinRef;
+
+
 class CRButtonSkin : public CRRectSkin
 {
 protected:
@@ -431,6 +453,7 @@ protected:
     virtual bool readButtonSkin(  const lChar16 * path, CRButtonSkin * res );
     virtual bool readScrollSkin(  const lChar16 * path, CRScrollSkin * res );
     virtual bool readWindowSkin(  const lChar16 * path, CRWindowSkin * res );
+    virtual bool readPageSkin(  const lChar16 * path, CRPageSkin * res );
     virtual bool readMenuSkin(  const lChar16 * path, CRMenuSkin * res );
 public:
     /// retuns path to base definition, if attribute base="#nodeid" is specified for element of path
@@ -480,6 +503,8 @@ public:
     virtual CRWindowSkinRef getWindowSkin( const lChar16 * path ) = 0;
     /// returns menu skin by path or #id
     virtual CRMenuSkinRef getMenuSkin( const lChar16 * path ) = 0;
+    /// returns book page skin by path or #id
+    virtual CRPageSkinRef getPageSkin( const lChar16 * path ) = 0;
 
     /// garbage collection
     virtual void gc() { }
