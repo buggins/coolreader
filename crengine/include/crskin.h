@@ -23,6 +23,7 @@
 #include "lvtypes.h"
 #include "lvptrvec.h"
 #include "lvref.h"
+#include "lvstring.h"
 #include "lvfntman.h"
 #include "lvdrawbuf.h"
 #include "lvtinydom.h"
@@ -261,12 +262,21 @@ class CRPageSkin : public CRSkinnedItem
     CRRectSkinRef _leftPageSkin;
     CRRectSkinRef _rightPageSkin;
     CRRectSkinRef _singlePageSkin;
+    lString16     _name;
 public:
+    const lString16 & getName() { return _name; }
+    void setName( const lString16 & newName ) { _name = newName; }
     CRPageSkin();
     CRRectSkinRef getSkin( page_skin_type_t type );
 };
 typedef LVFastRef<CRPageSkin> CRPageSkinRef;
 
+class CRPageSkinList : public LVArray<CRPageSkinRef>
+{
+public:
+    CRPageSkinRef findByName( const lString16 & name );
+};
+typedef LVRef<CRPageSkinList> CRPageSkinListRef;
 
 class CRButtonSkin : public CRRectSkin
 {
@@ -505,6 +515,8 @@ public:
     virtual CRMenuSkinRef getMenuSkin( const lChar16 * path ) = 0;
     /// returns book page skin by path or #id
     virtual CRPageSkinRef getPageSkin( const lChar16 * path ) = 0;
+    /// returns book page skin list
+    virtual CRPageSkinListRef getPageSkinList() = 0;
 
     /// garbage collection
     virtual void gc() { }

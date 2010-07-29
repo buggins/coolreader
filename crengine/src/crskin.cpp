@@ -90,11 +90,21 @@ int toSkinPercent( const lString16 & value, int defValue, bool * res )
     return defValue;
 }
 
+CRPageSkinRef CRPageSkinList::findByName( const lString16 & name )
+{
+    for ( int i=0; i<length(); i++ ) {
+        if ( get(i)->getName()==name )
+            return get(i);
+    }
+    return CRPageSkinRef();
+}
+
 CRPageSkin::CRPageSkin()
 : _scrollSkin(new CRRectSkin())
 , _leftPageSkin(new CRRectSkin())
 , _rightPageSkin(new CRRectSkin())
 , _singlePageSkin(new CRRectSkin())
+, _name(L"Default")
 {
 
 }
@@ -257,6 +267,7 @@ protected:
     LVCacheMap<lString16,CRWindowSkinRef> _windowCache;
     LVCacheMap<lString16,CRMenuSkinRef> _menuCache;
     LVCacheMap<lString16,CRPageSkinRef> _pageCache;
+    CRPageSkinListRef _pageSkinList;
 public:
     /// returns scroll skin by path or #id
     virtual CRScrollSkinRef getScrollSkin( const lChar16 * path );
@@ -268,6 +279,8 @@ public:
     virtual CRMenuSkinRef getMenuSkin( const lChar16 * path );
     /// returns book page skin by path or #id
     virtual CRPageSkinRef getPageSkin( const lChar16 * path );
+    /// returns book page skin list
+    virtual CRPageSkinListRef getPageSkinList();
     /// get DOM path by id
     virtual lString16 pathById( const lChar16 * id );
     /// gets image from container
@@ -1601,6 +1614,10 @@ bool CRSkinContainer::readPageSkin(  const lChar16 * path, CRPageSkin * res )
         return false;
     }
 
+    lString16 name = ptr.getNode()->getAttributeValue(ptr.getNode()->getDocument()->getAttrNameIndex(L"name"));
+    if ( !name.empty() )
+        res->setName(name);
+
     flg = readRectSkin( (p + L"scroll-skin").c_str(),  res->getSkin( PAGE_SKIN_SCROLL ).get() ) || res;
     flg = readRectSkin( (p + L"left-page-skin").c_str(),  res->getSkin( PAGE_SKIN_LEFT_PAGE ).get() ) || flg;
     flg = readRectSkin( (p + L"right-page-skin").c_str(),  res->getSkin( PAGE_SKIN_RIGHT_PAGE ).get() ) || flg;
@@ -1805,6 +1822,25 @@ CRScrollSkinRef CRSkinImpl::getScrollSkin( const lChar16 * path )
     readScrollSkin( p.c_str(), res.get() );
     _scrollCache.set( lString16(path), res );
     return res;
+}
+
+/// returns book page skin list
+CRPageSkinListRef CRSkinImpl::getPageSkinList()
+{
+    if ( _pageSkinList.isNull() ) {
+        _pageSkinList = CRPageSkinListRef( new CRPageSkinList() );
+        for ( int i=0; i<32; i++ ) {
+            lString16 path = L"/CR3Skin/page-skins/page-skin[";
+            path << (i+1) << L"]";
+            CRPageSkinRef skin = CRPageSkinRef( new CRPageSkin() );
+            if ( readPageSkin(path.c_str(), skin.get() ) ) {
+                _pageSkinList->add( skin );
+            } else {
+                break;
+            }
+        }
+    }
+    return _pageSkinList;
 }
 
 /// returns book page skin by path or #id
