@@ -9346,9 +9346,9 @@ LVImageSourceRef ldomNode::getObjectImageSource()
     if ( refName.empty() )
         refName = getAttributeValue( getDocument()->getNsNameIndex(L"l"), hrefId );
     if ( refName.empty() )
-        refName = getAttributeValue( LXML_NS_NONE, hrefId );
+        refName = getAttributeValue( LXML_NS_ANY, hrefId ); //LXML_NS_NONE
     if ( refName.empty() )
-        refName = getAttributeValue( LXML_NS_NONE, srcId );
+        refName = getAttributeValue( LXML_NS_ANY, srcId ); //LXML_NS_NONE
     if ( refName.length()<2 )
         return ref;
     refName = DecodeHTMLUrlString(refName);
