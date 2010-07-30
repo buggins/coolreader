@@ -62,42 +62,42 @@ enum css_decl_code {
 
 static const char * css_decl_name[] = {
     "",
-    "display:",
-    "white-space:",
-    "text-align:",
-    "text-align-last:",
-    "text-decoration:",
-    "hyphenate:",
-    "color:",
-    "background-color:",
-    "vertical-align:",
-    "font-family:",
-    "$dummy-for-font-names$:",
-    "font-size:",
-    "font-style:",
-    "font-weight:",
-    "text-indent:",
-    "line-height:",
-    "letter-spacing:",
-    "width:",
-    "height:",
-    "margin-left:",
-    "margin-right:",
-    "margin-top:",
-    "margin-bottom:",
-    "margin:",
-    "padding-left:",
-    "padding-right:",
-    "padding-top:",
-    "padding-bottom:",
-    "padding:",
-    "page-break-before:",
-    "page-break-after:",
-    "page-break-inside:",
-    "list-style:",
-    "list-style-type:",
-    "list-style-position:",
-    "list-style-image:",
+    "display",
+    "white-space",
+    "text-align",
+    "text-align-last",
+    "text-decoration",
+    "hyphenate",
+    "color",
+    "background-color",
+    "vertical-align",
+    "font-family",
+    "$dummy-for-font-names$",
+    "font-size",
+    "font-style",
+    "font-weight",
+    "text-indent",
+    "line-height",
+    "letter-spacing",
+    "width",
+    "height",
+    "margin-left",
+    "margin-right",
+    "margin-top",
+    "margin-bottom",
+    "margin",
+    "padding-left",
+    "padding-right",
+    "padding-top",
+    "padding-bottom",
+    "padding",
+    "page-break-before",
+    "page-break-after",
+    "page-break-inside",
+    "list-style",
+    "list-style-type",
+    "list-style-position",
+    "list-style-image",
     NULL
 };
 
@@ -154,14 +154,32 @@ static int substr_icompare( const char * sub, const char * & str )
     return 0;
 }
 
-static css_decl_code parse_property_name( const char * & str )
+static bool skip_spaces( const char * & str )
 {
+    while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
+        str++;
+    if ( *str=='/' && str[1]=='*' ) {
+        // comment found
+        while ( *str && str[1] && (str[0]!='*' || str[1]!='/') )
+            str++;
+    }
+    return *str != 0;
+}
+
+static css_decl_code parse_property_name( const char * & res )
+{
+    const char * str = res;
     for (int i=1; css_decl_name[i]; i++)
     {
         if (substr_compare( css_decl_name[i], str ))
         {
             // found!
-            return (css_decl_code)i;
+            skip_spaces(str);
+            if ( substr_compare( ":", str )) {
+                skip_spaces(str);
+                res = str;
+                return (css_decl_code)i;
+            }
         }
     }
     return cssd_unknown;
@@ -178,18 +196,6 @@ static int parse_name( const char * & str, const char * * names, int def_value )
         }
     }
     return def_value;
-}
-
-static bool skip_spaces( const char * & str )
-{
-    while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
-        str++;
-    if ( *str=='/' && str[1]=='*' ) {
-        // comment found
-        while ( *str && str[1] && (str[0]!='*' || str[1]!='/') )
-            str++;
-    }
-    return *str != 0;
 }
 
 static bool next_property( const char * & str )
