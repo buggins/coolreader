@@ -976,7 +976,7 @@ void V3DocViewWin::showAboutDialog()
     CRPropRef props = _docview->getDocProps();
 
     lString8 statusInfo;
-	addPropLine( statusInfo, _("Current page"), lString16::itoa(_docview->getCurPage()) );
+	addPropLine( statusInfo, _("Current page"), lString16::itoa(_docview->getCurPage()+1) );
 	addPropLine( statusInfo, _("Total pages"), lString16::itoa(_docview->getPageCount()) );
     addPropLine( statusInfo, _("Battery state"), _docview->getBatteryState()==-1 ? lString16(_("charging...")) : lString16::itoa(_docview->getBatteryState()) + L"%" );
 	addPropLine( statusInfo, _("Current Time"), _docview->getTimeString() );
