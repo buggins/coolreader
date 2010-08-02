@@ -145,7 +145,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     updateStyleSample();
     initDone = true;
 
-
+    m_ui->cbPageSkin->addItem(QString("[None]"), QVariant());
 }
 
 SettingsDlg::~SettingsDlg()

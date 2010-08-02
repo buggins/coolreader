@@ -528,9 +528,34 @@ public:
 /// skin reference
 typedef LVFastRef<CRSkinContainer> CRSkinRef;
 
+class CRSkinListItem
+{
+    lString16 _name;
+    lString16 _baseDir;
+    lString16 _fileName;
+    lString16Collection _pageSkinList;
+    CRSkinListItem() { }
+public:
+    lString16 getName() { return _name; }
+    lString16 getFileName() { return _fileName; }
+    lString16 getDirName() { return _baseDir; }
+    lString16Collection & getPageSkinList() { return _pageSkinList; }
+    static CRSkinListItem * init( lString16 baseDir, lString16 fileName );
+    CRSkinRef getSkin();
+    virtual ~CRSkinListItem() { }
+};
+class CRSkinList : public LVPtrVector<CRSkinListItem>
+{
+public:
+    CRSkinListItem * findByName(const lString16 & name);
+};
+
+
 /// opens skin from directory or .zip file
 CRSkinRef LVOpenSkin( const lString16 & pathname );
 /// open simple skin, without image files, from string
 CRSkinRef LVOpenSimpleSkin( const lString8 & xml );
+
+
 
 #endif// CR_SKIN_INCLUDED

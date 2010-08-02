@@ -1896,3 +1896,32 @@ CRMenuSkinRef CRSkinImpl::getMenuSkin( const lChar16 * path )
     _menuCache.set( lString16(path), res );
     return res;
 }
+
+CRSkinListItem * CRSkinList::findByName( const lString16 & name )
+{
+    for ( int i=0; i<length(); i++ )
+        if ( get(i)->getName()==name )
+            return get(i);
+    return NULL;
+}
+
+CRSkinListItem * CRSkinListItem::init( lString16 baseDir, lString16 fileName )
+{
+    CRSkinRef skin = LVOpenSkin( baseDir + fileName );
+    if ( skin.isNull() )
+        return NULL;
+    CRSkinListItem * item = new CRSkinListItem();
+    item->_baseDir = baseDir;
+    item->_fileName = fileName;
+    //item->_name = skin->get
+}
+
+CRSkinRef CRSkinListItem::getSkin()
+{
+    return LVOpenSkin( getDirName() + getFileName() );
+}
+
+bool CRLoadSkinList( lString16 baseDir, CRSkinList & list )
+{
+    return false;
+}
