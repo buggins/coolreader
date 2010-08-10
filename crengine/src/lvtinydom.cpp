@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.20"
+#define CACHE_FILE_FORMAT_VERSION "3.02.21"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -459,6 +459,8 @@ struct CacheFileItem
     int _dataSize;     // used data size inside block (<= block size)
     lUInt32 _dataCRC;  // crc of data
     lUInt32 _dataHash; // additional hash of data
+    lUInt32 _packedCRC;  // crc of packed data
+    lUInt32 _packedHash; // additional hash of packed data
     lUInt32 _uncompressedSize;   // size of uncompressed block, if compression is applied, 0 if no compression
     bool validate( int fsize )
     {
@@ -484,6 +486,8 @@ struct CacheFileItem
     , _blockSize(0)         // size of block within file
     , _dataSize(0)          // used data size inside block (<= block size)
     , _dataCRC(0)           // crc of data
+    , _packedCRC(0)  // crc of packed data
+    , _packedHash(0) // additional hash of packed data
     , _dataHash(0)          // hash of data
     , _uncompressedSize(0)  // size of uncompressed block, if compression is applied, 0 if no compression
     {
@@ -543,6 +547,8 @@ class CacheFile
     bool writeIndex();
     // reads index from file
     bool readIndex();
+    // reads all blocks of index and checks CRCs
+    bool validateContents();
 public:
     // return current file size
     int getSize() { return _size; }
@@ -562,6 +568,8 @@ public:
     bool write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress );
     /// reads and allocates block in memory
     bool read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size );
+    /// reads and validates block
+    bool validate( CacheFileItem * block );
     /// writes content of serial buffer
     bool write( lUInt16 type, lUInt16 index, SerialBuf & buf, bool compress );
     /// reads content of serial buffer
@@ -605,6 +613,21 @@ bool CacheFile::flush( bool sync )
     if ( !writeIndex() )
         return false;
     return _stream->Flush( sync )==LVERR_OK;
+}
+
+// reads all blocks of index and checks CRCs
+bool CacheFile::validateContents()
+{
+    LVHashTable<lUInt32, CacheFileItem*>::pair * pair;
+    for ( LVHashTable<lUInt32, CacheFileItem*>::iterator p = _map.forwardIterator(); (pair=p.next())!=NULL; ) {
+        if ( pair->value->_dataType==CBT_INDEX )
+            continue;
+        if ( !validate(pair->value) ) {
+            CRLog::error("Contents validation is failed for block type=%d index=%d", (int)pair->value->_dataType, pair->value->_dataIndex );
+            return false;
+        }
+    }
+    return true;
 }
 
 // reads index from file
@@ -786,6 +809,39 @@ CacheFileItem * CacheFile::allocBlock( lUInt16 type, lUInt16 index, int size )
     return block;
 }
 
+/// reads and validates block
+bool CacheFile::validate( CacheFileItem * block )
+{
+    lUInt8 * buf = NULL;
+    int size = 0;
+
+    if ( _stream->SetPos( block->_blockFilePos )!=block->_blockFilePos ) {
+        CRLog::error("CacheFile::validate: Cannot set position for block %d:%d of size %d", block->_dataType, block->_dataIndex, (int)size);
+        return false;
+    }
+
+    // read block from file
+    size = block->_dataSize;
+    buf = (lUInt8 *)malloc(size);
+    lvsize_t bytesRead = 0;
+    _stream->Read(buf, size, &bytesRead );
+    if ( bytesRead!=size ) {
+        CRLog::error("CacheFile::validate: Cannot read block %d:%d of size %d", block->_dataType, block->_dataIndex, (int)size);
+        free(buf);
+        return false;
+    }
+
+    // check CRC for file block
+    lUInt32 packedcrc = lStr_crc32(0,  buf, size );
+    lUInt32 packedhash = calcHash32( buf, size );
+    if ( packedcrc!=block->_packedCRC || packedhash!=block->_packedHash ) {
+        CRLog::error("CacheFile::validate: packed data CRC doesn't match for block %d:%d of size %d (crc=%08x, expected=%08x)", block->_dataType, block->_dataIndex, (int)size, packedcrc, block->_packedCRC);
+        free(buf);
+        return false;
+    }
+    return true;
+}
+
 // reads and allocates block in memory
 bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size )
 {
@@ -799,6 +855,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     if ( _stream->SetPos( block->_blockFilePos )!=block->_blockFilePos )
         return false;
 
+    // read block from file
     size = block->_dataSize;
     buf = (lUInt8 *)malloc(size);
     lvsize_t bytesRead = 0;
@@ -812,7 +869,22 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     }
 
     bool compress = block->_uncompressedSize!=0;
+
     if ( compress ) {
+        // block is compressed
+
+        // check crc separately only for compressed data
+        lUInt32 packedcrc = lStr_crc32(0,  buf, size );
+        lUInt32 packedhash = calcHash32( buf, size );
+        if ( packedcrc!=block->_packedCRC || packedhash!=block->_packedHash ) {
+            CRLog::error("CacheFile::read: packed data CRC doesn't match for block %d:%d of size %d (crc=%08x, expected=%08x)", type, dataIndex, (int)size, packedcrc, block->_packedCRC);
+            free(buf);
+            buf = NULL;
+            size = 0;
+            return false;
+        }
+
+        // uncompress block data
         lUInt8 * uncomp_buf = NULL;
         lUInt32 uncomp_size = 0;
         if ( ldomUnpack(buf, size, uncomp_buf, uncomp_size) && uncomp_size==block->_uncompressedSize ) {
@@ -864,6 +936,8 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     }
 
     lUInt32 uncompressedSize = 0;
+    lUInt32 newpackedcrc = newcrc;
+    lUInt32 newpackedhash = newhash;
 #if DOC_DATA_COMPRESSION_LEVEL==0
     compress = false;
 #else
@@ -877,6 +951,8 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
             uncompressedSize = size;
             size = dstsize;
             buf = dstbuf;
+            newpackedcrc = lStr_crc32(0,  buf, size );
+            newpackedhash = calcHash32( buf, size );
             CRLog::trace("packed block %d:%d : %d to %d bytes (%d%%)", type, dataIndex, srcsize, dstsize, srcsize>0?(100*dstsize/srcsize):0 );
         }
     }
@@ -909,6 +985,8 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     // update CRC
     block->_dataCRC = newcrc;
     block->_dataHash = newhash;
+    block->_packedCRC = newpackedcrc;
+    block->_packedHash = newpackedhash;
     block->_uncompressedSize = uncompressedSize;
 
 #if DOC_DATA_COMPRESSION_LEVEL!=0
@@ -958,7 +1036,15 @@ bool CacheFile::open( LVStreamRef stream )
     _stream = stream;
     _size = _stream->GetSize();
 
-    return readIndex();
+    if ( !readIndex() ) {
+        CRLog::error("CacheFile::open : cannot read index from file");
+        return false;
+    }
+    if ( !validateContents() ) {
+        CRLog::error("CacheFile::open : file contents validation failed");
+        return false;
+    }
+    return true;
 }
 
 bool CacheFile::create( lString16 filename )
@@ -7639,11 +7725,11 @@ public:
     {
         lString16 fn = makeFileName( filename, crc, docFlags );
         LVStreamRef res;
-        if ( findFileIndex( fn ) >= 0 )
-            LVDeleteFile( fn );
+        lString16 pathname( _cacheDir+fn );
+        if ( findFileIndex( pathname ) >= 0 )
+            LVDeleteFile( pathname );
         reserve( fileSize );
         //res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, fileSize );
-        lString16 pathname( _cacheDir+fn );
         LVDeleteFile( pathname ); // try to delete, ignore errors
         res = LVOpenFileStream( pathname.c_str(), LVOM_APPEND|LVOM_FLAG_SYNC );
         if ( !res ) {
