@@ -924,7 +924,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     lUInt32 newcrc = lStr_crc32(0,  buf, size );
     lUInt32 newhash = calcHash32( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
-    if ( existingblock && existingblock->_dataSize==size && existingblock->_dataCRC==newcrc ) {
+    if ( existingblock && existingblock->_uncompressedSize==size && existingblock->_dataCRC==newcrc ) {
         // data not changed: don't write again
         // TODO:
         if ( existingblock->_dataHash==newhash ) {
