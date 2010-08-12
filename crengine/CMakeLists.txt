@@ -15,6 +15,7 @@ src/chmfmt.cpp
 src/epubfmt.cpp     
 src/wordfmt.cpp     
 src/lvstsheet.cpp 
+src/txtselector.cpp
 #src/xutils.cpp
 )
 

@@ -2039,6 +2039,7 @@ public:
     static bool enabled();
 };
 
+
 /// unit test for DOM
 void runTinyDomUnitTests();
 
