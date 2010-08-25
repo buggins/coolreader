@@ -8,6 +8,7 @@
 #include <crengine.h>
 #include <crgui.h>
 #include <crtrace.h>
+#include <crtest.h>
 
 
 #include "cr3main.h"
@@ -1351,7 +1352,7 @@ int main(int argc, char **argv)
     const char * bmkdir = NULL;
 
     if ( !strcmp(fname, "unittest") ) {
-        runTinyDomUnitTests();
+        runCRUnitTests();
         return 0;
     }
 

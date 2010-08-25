@@ -1,3 +1,17 @@
+/** \file txtselector.h
+    \brief DOM document selection navigator
+
+   CoolReader Engine
+
+   (c) Vadim Lopatin, 2000-2010
+
+   This source code is distributed under the terms of
+   GNU General Public License.
+
+   See LICENSE file for details.
+
+*/
+
 #ifndef TXTSELECTOR_H
 #define TXTSELECTOR_H
 
@@ -89,6 +103,5 @@ public:
     /// moves selection, returns true if selection is moved, and it's necessary to ensure positionToShow is visible on screen
     bool doCommand( int cmd, int param, ldomXPointer &positionToShow );
 };
-
 
 #endif // TXTSELECTOR_H

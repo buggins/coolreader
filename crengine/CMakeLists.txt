@@ -17,6 +17,7 @@ src/wordfmt.cpp
 src/lvstsheet.cpp 
 src/txtselector.cpp
 #src/xutils.cpp
+src/crtest.cpp
 )
 
 if ( NOT ${GUI} STREQUAL FB2PROPS )

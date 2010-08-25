@@ -1,3 +1,16 @@
+/*******************************************************
+
+   CoolReader Engine
+
+   txtselector.cpp:  DOM document selection navigator
+
+   (c) Vadim Lopatin, 2000-2010
+   This source code is distributed under the terms of
+   GNU General Public License
+   See LICENSE file for details
+
+*******************************************************/
+
 #include "../include/txtselector.h"
 
 /// create selection tool for specified initial range (usually current page)
@@ -128,4 +141,8 @@ bool ldomTextSelectionTool::doCommand( int cmd, int param, ldomXPointer &positio
     return false;
 }
 
+void testTxtSelector()
+{
+    CRLog::info("testTxtSelector()");
 
+}
