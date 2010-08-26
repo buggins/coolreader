@@ -294,7 +294,9 @@ public:
         int h = footend->getEnd() - footstart->getStart(); // currentFootnoteHeight();
         if ( h>0 && h<page_h ) {
             footheight += h;
+#ifdef DEBUG_FOOTNOTES
             CRLog::trace("AddFootnoteFragmentToList(%d, %d)", footstart->getStart(), h);
+#endif
             footnotes.add( LVPageFootNoteInfo( footstart->getStart(), h ) );
         }
         footstart = footend = NULL;

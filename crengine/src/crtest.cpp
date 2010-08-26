@@ -2,6 +2,8 @@
 #include "../include/lvtinydom.h"
 #include "../include/chmfmt.h"
 
+#ifdef _DEBUG
+
 class LVCompareTestStream : public LVNamedStream
 {
 protected:
@@ -165,6 +167,7 @@ LVStreamRef LVCreateCompareTestStream( LVStreamRef stream1, LVStreamRef stream2 
 {
     return LVStreamRef( new LVCompareTestStream(stream1, stream2) );
 }
+#endif
 
 // external tests declarations
 void testTxtSelector();
@@ -172,7 +175,9 @@ void testTxtSelector();
 
 void runCRUnitTests()
 {
+#ifdef _DEBUG
     //runCHMUnitTest();
     runTinyDomUnitTests();
     testTxtSelector();
+#endif
 }

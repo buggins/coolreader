@@ -4394,9 +4394,9 @@ class LVBlockWriteStream : public LVNamedStream
     lverror_t writeBlock( Block * block )
     {
         if ( block->modified_start < block->modified_end ) {
-//#if TRACE_BLOCK_WRITE_STREAM
+#if TRACE_BLOCK_WRITE_STREAM
             CRLog::trace("WRITE BLOCK %x (%x, %x)", (int)block->block_start, (int)block->modified_start, (int)(block->modified_end-block->modified_start));
-//#endif
+#endif
             _baseStream->SetPos( block->modified_start );
             lvpos_t bytesWritten = 0;
             lverror_t res = _baseStream->Write( block->buf + (block->modified_start-block->block_start), block->modified_end-block->modified_start, &bytesWritten );
@@ -4502,8 +4502,11 @@ class LVBlockWriteStream : public LVNamedStream
         p->next = _firstBlock;
         _firstBlock = p;
         _count++;
-        if ( pos + count > _size )
+        if ( pos + count > _size ) {
             _size = pos + count;
+            p->modified_start = p->block_start;
+            p->modified_end = p->block_end;
+        }
         return LVERR_OK;
     }
 

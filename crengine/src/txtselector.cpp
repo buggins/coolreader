@@ -141,8 +141,10 @@ bool ldomTextSelectionTool::doCommand( int cmd, int param, ldomXPointer &positio
     return false;
 }
 
+#ifdef _DEBUG
 void testTxtSelector()
 {
     CRLog::info("testTxtSelector()");
 
 }
+#endif

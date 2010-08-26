@@ -311,11 +311,19 @@ public:
         setIndex(list);
     }
 
+    int nearestPowerOf2( int n )
+    {
+        int res;
+        for ( res = 1; res<n; res<<=1 )
+            ;
+        return res;
+    }
+
     /// init from index array
     void setIndex( LVArray<ref_t> &list )
     {
         clear();
-        size = list.length()>0 ? list.length()*4 : 32;
+        size = nearestPowerOf2(list.length()>0 ? list.length()*4 : 32);
         table = new LVRefCacheRec * [ size ];
         for( int i=0; i<size; i++ )
             table[i] = NULL;
@@ -323,6 +331,8 @@ public:
         nextindex = indexsize > 0 ? indexsize-1 : 0;
         if ( indexsize ) {
             index = (LVRefCacheIndexRec*)realloc( index, sizeof(LVRefCacheIndexRec)*indexsize );
+            index[0].item = NULL;
+            index[0].refcount=0;
             for ( int i=1; i<indexsize; i++ ) {
                 if ( list[i].isNull() ) {
                     // add free node

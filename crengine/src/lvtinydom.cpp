@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.21"
+#define CACHE_FILE_FORMAT_VERSION "3.02.24"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -81,6 +81,12 @@
 
 //#define CACHE_FILE_SECTOR_SIZE 4096
 #define CACHE_FILE_SECTOR_SIZE 1024
+#define CACHE_FILE_WRITE_BLOCK_PADDING 1
+
+/// set t 1 to log storage reads/writes
+#define DEBUG_DOM_STORAGE 0
+//#define DEBUG_DOM_STORAGE 1
+
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 11
 #define STYLE_DATA_CHUNK_ITEMS_SHIFT 12
@@ -458,6 +464,7 @@ bool CacheFile::flush( bool sync )
 // reads all blocks of index and checks CRCs
 bool CacheFile::validateContents()
 {
+    CRLog::info("Started validation of cache file contents");
     LVHashTable<lUInt32, CacheFileItem*>::pair * pair;
     for ( LVHashTable<lUInt32, CacheFileItem*>::iterator p = _map.forwardIterator(); (pair=p.next())!=NULL; ) {
         if ( pair->value->_dataType==CBT_INDEX )
@@ -467,6 +474,7 @@ bool CacheFile::validateContents()
             return false;
         }
     }
+    CRLog::info("Finished validation of cache file contents -- successful");
     return true;
 }
 
@@ -755,8 +763,6 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     return true;
 }
 
-#define CACHE_FILE_WRITE_BLOCK_PADDING 0
-
 // writes block to file
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress )
 {
@@ -793,12 +799,23 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
             buf = dstbuf;
             newpackedcrc = lStr_crc32(0,  buf, size );
             newpackedhash = calcHash32( buf, size );
+#if DEBUG_DOM_STORAGE==1
             CRLog::trace("packed block %d:%d : %d to %d bytes (%d%%)", type, dataIndex, srcsize, dstsize, srcsize>0?(100*dstsize/srcsize):0 );
+#endif
         }
     }
 #endif
 
-    CacheFileItem * block = allocBlock( type, dataIndex, size );
+    CacheFileItem * block = NULL;
+    if ( existingblock && existingblock->_dataSize>=size ) {
+        // reuse existing block
+        block = existingblock;
+    } else {
+        // allocate new block
+        if ( existingblock )
+            freeBlock( existingblock );
+        block = allocBlock( type, dataIndex, size );
+    }
     if ( !block )
         return false;
     if ( _stream->SetPos( block->_blockFilePos )!=block->_blockFilePos )
@@ -811,7 +828,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     if ( bytesWritten!=size )
         return false;
 #if CACHE_FILE_WRITE_BLOCK_PADDING==1
-        int paddingSize = block->_blockSize - size; //roundSector( size ) - size
+    int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
         if ( block->_blockFilePos+block->_dataSize >= _stream->GetSize() - _sectorSize ) {
             LASSERT(size + paddingSize == block->_blockSize );
@@ -1343,7 +1360,11 @@ css_style_ref_t tinyNodeCollection::getNodeStyle( lUInt32 dataIndex )
 {
     ldomNodeStyleInfo info;
     _styleStorage.getStyleData( dataIndex, &info );
-    return _styles.get( info._styleIndex );
+    css_style_ref_t res =  _styles.get( info._styleIndex );
+    if ( res.isNull() && info._styleIndex!=0 ) {
+        CRLog::error("Null style returned for index %d", (int)info._styleIndex);
+    }
+    return res;
 }
 
 font_ref_t tinyNodeCollection::getNodeFont( lUInt32 dataIndex )
@@ -1358,6 +1379,9 @@ void tinyNodeCollection::setNodeStyle( lUInt32 dataIndex, css_style_ref_t & v )
     ldomNodeStyleInfo info;
     _styleStorage.getStyleData( dataIndex, &info );
     _styles.cache( info._styleIndex, v );
+    if ( info._styleIndex==0 ) {
+        CRLog::error("tinyNodeCollection::setNodeStyle() styleIndex is 0 after caching");
+    }
     _styleStorage.setStyleData( dataIndex, &info );
 }
 
@@ -2103,7 +2127,9 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
     } else {
         if ( !_compbuf && _buf && _bufpos) {
             pack(_buf, _bufpos);
+#if DEBUG_DOM_STORAGE==1
             CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %c%d", _bufpos, _compsize, 100*_compsize/_bufpos, _type, _index);
+#endif
             dropPacked = true;
         }
     }
@@ -2113,7 +2139,9 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 #if RAM_COMPRESSED_BUFFER_ENABLED==1
     if ( _compbuf ) {
         if ( !_saved && _manager->_cache) {
+#if DEBUG_DOM_STORAGE==1
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _compsize, _type, _index);
+#endif
             if ( !_manager->_cache->write( _manager->cacheType(), _index, _compbuf, _compsize, false ) ) {
                 CRLog::error("Error while swapping of chunk %c%d to cache file", _type, _index);
                 crFatalError(-1, "Error while swapping of chunk to cache file");
@@ -2128,7 +2156,9 @@ bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 #else
     if ( _buf ) {
         if ( !_saved && _manager->_cache) {
+#if DEBUG_DOM_STORAGE==1
             CRLog::debug("Writing %d bytes of chunk %c%d to cache", _bufpos, _type, _index);
+#endif
             if ( !_manager->_cache->write( _manager->cacheType(), _index, _buf, _bufpos, COMPRESS_NODE_STORAGE_DATA) ) {
                 CRLog::error("Error while swapping of chunk %c%d to cache file", _type, _index);
                 crFatalError(-1, "Error while swapping of chunk to cache file");
@@ -2162,14 +2192,18 @@ bool ldomTextStorageChunk::restoreFromCache()
         return false;
     _compsize = compsize;
     _manager->_compressedSize += _compsize;
+#if DEBUG_DOM_STORAGE==1
     CRLog::debug("Read %d bytes of chunk %c%d from cache", _compsize, _type, _index);
+#endif
 #else
     int size;
     if ( !_manager->_cache->read( _manager->cacheType(), _index, _buf, size ) )
         return false;
     _bufsize = size;
     _manager->_uncompressedSize += _bufsize;
+#if DEBUG_DOM_STORAGE==1
     CRLog::debug("Read %d bytes of chunk %c%d from cache", _bufsize, _type, _index);
+#endif
 #endif
     return true;
 }
@@ -2236,7 +2270,9 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
 #if RAM_COMPRESSED_BUFFER_ENABLED==1
     if ( _compbuf!=NULL ) {
+#if DEBUG_DOM_STORAGE==1
         CRLog::debug("Adding new item of size %d to compressed block %c%d of size %d", itemsize, _type, _index, _bufpos);
+#endif
         if ( !_buf ) {
             unpack();
         }
@@ -2322,7 +2358,9 @@ void ldomTextStorageChunk::modified()
         if ( _type=='t' ) {
             CRLog::warn("ldomTextStorageChunk::modified() called for text node %c%d", _type, _index);
         }
+#if DEBUG_DOM_STORAGE==1
         CRLog::debug("Dropping compressed data of chunk %c%d due to modification", _type, _index);
+#endif
         setpacked(NULL, 0);
     }
 #endif
@@ -2509,7 +2547,9 @@ void ldomTextStorageChunk::compact()
 {
     if ( !_compbuf && _buf && _bufpos) {
         pack(_buf, _bufpos);
+#if DEBUG_DOM_STORAGE==1
         CRLog::debug("Packed %d bytes to %d bytes (rate %d%%) of chunk %c%d", _bufpos, _compsize, 100*_compsize/_bufpos, _type, _index);
+#endif
     }
     if ( _buf )
         setunpacked(NULL, 0);
@@ -7207,7 +7247,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
             buf[j].setDocumentIndex( _docIndex );
             if ( buf[j].isElement() ) {
                 lUInt16 style = getNodeStyleIndex( buf[j]._handle._dataIndex );
-                if ( enabled ) {
+                if ( enabled && style!=0 ) {
                     css_style_ref_t s = list->get( style );
                     if ( !s.isNull() ) {
                         lUInt16 fntIndex = _fontMap.get( style );
@@ -7230,7 +7270,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                             //buf[j]._data._pelem._fontIndex = fntIndex;
                         }
                     } else {
-                        CRLog::error("Loaded style index %s not found in style collection");
+                        CRLog::error("Loaded style index %d not found in style collection", (int)style);
                         setNodeFontIndex( buf[j]._handle._dataIndex, 0 );
                         setNodeStyleIndex( buf[j]._handle._dataIndex, 0 );
 //                        buf[j]._data._pelem._styleIndex = 0;
@@ -9619,6 +9659,7 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
 
 
 
+#ifdef _DEBUG
 
 #define TEST_FILE_NAME "/tmp/test-cache-file.dat"
 
@@ -10158,3 +10199,4 @@ void runTinyDomUnitTests()
 
 }
 
+#endif
