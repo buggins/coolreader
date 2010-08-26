@@ -1361,9 +1361,11 @@ css_style_ref_t tinyNodeCollection::getNodeStyle( lUInt32 dataIndex )
     ldomNodeStyleInfo info;
     _styleStorage.getStyleData( dataIndex, &info );
     css_style_ref_t res =  _styles.get( info._styleIndex );
+#if DEBUG_DOM_STORAGE==1
     if ( res.isNull() && info._styleIndex!=0 ) {
         CRLog::error("Null style returned for index %d", (int)info._styleIndex);
     }
+#endif
     return res;
 }
 
@@ -1379,9 +1381,11 @@ void tinyNodeCollection::setNodeStyle( lUInt32 dataIndex, css_style_ref_t & v )
     ldomNodeStyleInfo info;
     _styleStorage.getStyleData( dataIndex, &info );
     _styles.cache( info._styleIndex, v );
+#if DEBUG_DOM_STORAGE==1
     if ( info._styleIndex==0 ) {
         CRLog::error("tinyNodeCollection::setNodeStyle() styleIndex is 0 after caching");
     }
+#endif
     _styleStorage.setStyleData( dataIndex, &info );
 }
 
@@ -8867,6 +8871,7 @@ void ldomNode::initNodeStyle()
             //lvdomElementFormatRec * parent_fmt = node->getParentNode()->getRenderData();
             css_style_ref_t style = parent->getStyle();
             LVFontRef font = parent->getFont();
+#if DEBUG_DOM_STORAGE==1
             if ( style.isNull() ) {
                 // for debugging
                 CRLog::error("NULL style is returned for node <%s> %d level=%d  "
@@ -8877,14 +8882,17 @@ void ldomNode::initNodeStyle()
 
                 style = parent->getStyle();
             }
+#endif
             setNodeStyle( this,
                 style,
                 font
                 );
+#if DEBUG_DOM_STORAGE==1
             if ( this->getStyle().isNull() ) {
                 CRLog::error("NULL style is set for <%s>", LCSTR(getNodeName()) );
                 style = this->getStyle();
             }
+#endif
         }
     }
 }
