@@ -85,7 +85,6 @@
 
 /// set t 1 to log storage reads/writes
 #define DEBUG_DOM_STORAGE 0
-//#define DEBUG_DOM_STORAGE 1
 
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 11
@@ -112,7 +111,7 @@
 #define FONT_HASH_TABLE_SIZE      256
 
 
-static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
+static const char CACHE_FILE_MAGIC[] = "CoolReader 3 Cache"
                                        " File v" CACHE_FILE_FORMAT_VERSION ": "
 #if RAM_COMPRESSED_BUFFER_ENABLED==1
                                        "c1"
@@ -126,7 +125,7 @@ static const char CACHE_FILE_MAGIC[] = "CoolReader Cache"
 #endif
                                         "\n";
 
-#define CACHE_FILE_MAGIC_SIZE 38
+#define CACHE_FILE_MAGIC_SIZE 40
 
 enum CacheFileBlockType {
     CBT_FREE = 0,
@@ -687,6 +686,7 @@ bool CacheFile::validate( CacheFileItem * block )
         free(buf);
         return false;
     }
+    free(buf);
     return true;
 }
 
@@ -1751,6 +1751,7 @@ bool ldomDataStorageManager::load()
     buf >> n;
     if ( n<0 || n > 10000 )
         return false; // invalid
+    _recentChunk = NULL;
     _chunks.clear();
     lUInt32 compsize;
     lUInt32 uncompsize = 0;
@@ -7299,7 +7300,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
             if ( !list->get(i).isNull() ) {
                 // decrease reference counter
                 // TODO:
-                _styles.release( list->get(i) );
+                //_styles.release( list->get(i) );
             }
         }
     }

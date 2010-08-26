@@ -237,6 +237,7 @@ public:
         int newindex = cache( style );
         bool res = indexholder != newindex;
         if ( indexholder != newindex ) {
+            release( indexholder );
             indexholder = (lUInt16)newindex;
             return true;
         } else {
@@ -392,6 +393,8 @@ public:
         numitems = 0;
         if ( sz ) {
             size = sz;
+            if ( table )
+                delete[] table;
             table = new LVRefCacheRec * [ sz ];
             for( int i=0; i<sz; i++ )
                 table[i] = NULL;

@@ -134,6 +134,11 @@ public:
     : _data(NULL)
     {
     }
+    ~CompactArray()
+    {
+        if ( _data )
+            delete _data;
+    }
     void add( T item )
     {
         if ( !_data )
