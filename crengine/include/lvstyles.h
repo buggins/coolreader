@@ -27,6 +27,7 @@
 */
 typedef struct css_style_rec_tag {
     int                  refCount; // for reference counting
+    lUInt32              hash; // cache calculated hash value here
     css_display_t        display;
     css_white_space_t    white_space;
     css_text_align_t     text_align;
@@ -55,6 +56,7 @@ typedef struct css_style_rec_tag {
     css_list_style_position_t list_style_position;
     css_style_rec_tag()
     : refCount(0)
+    , hash(0)
     , display( css_d_inherit )
     , white_space(css_ws_inherit)
     , text_align(css_ta_inherit)

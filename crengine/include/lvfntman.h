@@ -42,6 +42,7 @@ class LVFont : public LVRefCounter
 protected:
     int _visual_alignment_width;
 public:
+    lUInt32 _hash;
     /// glyph properties structure
     struct glyph_info_t {
         lUInt8  blackBoxX;   ///< 0: width of glyph
@@ -121,7 +122,7 @@ public:
                        lChar16 def_char, lUInt32 * palette = NULL, bool addHyphen = false,
                        lUInt32 flags=0, int letter_spacing=0 ) = 0;
     /// constructor
-    LVFont() : _visual_alignment_width(-1) { }
+    LVFont() : _visual_alignment_width(-1), _hash(0) { }
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() { return false; }

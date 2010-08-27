@@ -21,6 +21,8 @@ lUInt32 calcHash(font_ref_t & f)
 {
     if ( !f )
         return 14321;
+    if ( f->_hash )
+        return f->_hash;
     lUInt32 v = 31;
     v = v * 31 + (lUInt32)f->getFontFamily();
     v = v * 31 + (lUInt32)f->getHeight();
@@ -30,13 +32,15 @@ lUInt32 calcHash(font_ref_t & f)
     v = v * 31 + (lUInt32)f->getBitmapMode();
     v = v * 31 + (lUInt32)f->getTypeFace().getHash();
     v = v * 31 + (lUInt32)f->getBaseline();
+    f->_hash = v;
     return v;
 }
 
 
 lUInt32 calcHash(css_style_rec_t & rec)
 {
-    return (((((((((((((((((((((((((((((lUInt32)rec.display * 31
+    if ( !rec.hash )
+        rec.hash = (((((((((((((((((((((((((((((lUInt32)rec.display * 31
          + (lUInt32)rec.white_space) * 31
          + (lUInt32)rec.text_align) * 31
          + (lUInt32)rec.text_align_last) * 31
@@ -65,6 +69,7 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.padding[3].pack()) * 31
          + (lUInt32)rec.font_family) * 31
          + (lUInt32)rec.font_name.getHash());
+    return rec.hash;
 }
 
 bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
