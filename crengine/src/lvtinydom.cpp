@@ -85,7 +85,8 @@
 
 /// set t 1 to log storage reads/writes
 #define DEBUG_DOM_STORAGE 0
-
+/// set to 1 to enable crc check of all blocks of cache file on open
+#define ENABLE_CACHE_FILE_CONTENTS_VALIDATION 0
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 11
 #define STYLE_DATA_CHUNK_ITEMS_SHIFT 12
@@ -897,10 +898,12 @@ bool CacheFile::open( LVStreamRef stream )
         CRLog::error("CacheFile::open : cannot read index from file");
         return false;
     }
+#if ENABLE_CACHE_FILE_CONTENTS_VALIDATION==1
     if ( !validateContents() ) {
         CRLog::error("CacheFile::open : file contents validation failed");
         return false;
     }
+#endif
     return true;
 }
 
