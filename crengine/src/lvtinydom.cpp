@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.24"
+#define CACHE_FILE_FORMAT_VERSION "3.02.25"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -253,17 +253,37 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
 
 #if BUILD_LITE!=1
 
-static lUInt32 calcHash32( const lUInt8 * s, int len )
-{
-    lUInt32 res = 0;
-    for ( int i=0; i<len; i++ ) {
-        // res*31 + s
-        res = (((((((res<<1)+res)<<1)+res)<<1)+res)<<1)+res + s[i];
-    }
-    return res;
-}
+//static lUInt32 calcHash32( const lUInt8 * s, int len )
+//{
+//    lUInt32 res = 0;
+//    for ( int i=0; i<len; i++ ) {
+//        // res*31 + s
+//        res = (((((((res<<1)+res)<<1)+res)<<1)+res)<<1)+res + s[i];
+//    }
+//    return res;
+//}
 
-#if BUILD_LITE!=1
+// FNV 64bit hash function
+// from http://isthe.com/chongo/tech/comp/fnv/#gcc-O3
+
+#define NO_FNV_GCC_OPTIMIZATION
+#define FNV_64_PRIME ((lUInt64)0x100000001b3ULL)
+static lUInt64 calcHash64( const lUInt8 * s, int len )
+{
+    const lUInt8 * endp = s + len;
+    // 64 bit FNV hash function
+    lUInt64 hval = 14695981039346656037ULL;
+    for ( ; s<endp; s++ ) {
+#if defined(NO_FNV_GCC_OPTIMIZATION)
+        hval *= FNV_64_PRIME;
+#else /* NO_FNV_GCC_OPTIMIZATION */
+        hval += (hval << 1) + (hval << 4) + (hval << 5) +
+            (hval << 7) + (hval << 8) + (hval << 40);
+#endif /* NO_FNV_GCC_OPTIMIZATION */
+        hval ^= *s;
+    }
+    return hval;
+}
 
 lUInt32 calcGlobalSettingsHash()
 {
@@ -274,7 +294,6 @@ lUInt32 calcGlobalSettingsHash()
         hash = hash * 75 + 2384761;
     return hash;
 }
-#endif
 
 static void dumpRendMethods( ldomNode * node, lString16 prefix )
 {
@@ -303,10 +322,8 @@ struct CacheFileItem
     int _blockFilePos; // start of block
     int _blockSize;    // size of block within file
     int _dataSize;     // used data size inside block (<= block size)
-    lUInt32 _dataCRC;  // crc of data
-    lUInt32 _dataHash; // additional hash of data
-    lUInt32 _packedCRC;  // crc of packed data
-    lUInt32 _packedHash; // additional hash of packed data
+    lUInt64 _dataHash; // additional hash of data
+    lUInt64 _packedHash; // additional hash of packed data
     lUInt32 _uncompressedSize;   // size of uncompressed block, if compression is applied, 0 if no compression
     bool validate( int fsize )
     {
@@ -331,8 +348,6 @@ struct CacheFileItem
     , _blockFilePos(0)      // start of block
     , _blockSize(0)         // size of block within file
     , _dataSize(0)          // used data size inside block (<= block size)
-    , _dataCRC(0)           // crc of data
-    , _packedCRC(0)  // crc of packed data
     , _packedHash(0) // additional hash of packed data
     , _dataHash(0)          // hash of data
     , _uncompressedSize(0)  // size of uncompressed block, if compression is applied, 0 if no compression
@@ -515,9 +530,8 @@ bool CacheFile::readIndex()
     if ( bytesRead!=sz )
         return false;
     // check CRC
-    lUInt32 crc = lStr_crc32(0,  index, sz );
-    lUInt32 hash = calcHash32( (lUInt8*)index, sz );
-    if ( hdr._indexBlock._dataCRC!=crc || hdr._indexBlock._dataHash!=hash ) {
+    lUInt64 hash = calcHash64( (lUInt8*)index, sz );
+    if ( hdr._indexBlock._dataHash!=hash ) {
         CRLog::error("CacheFile::readIndex: CRC doesn't match");
         delete[] index;
         return false;
@@ -680,10 +694,9 @@ bool CacheFile::validate( CacheFileItem * block )
     }
 
     // check CRC for file block
-    lUInt32 packedcrc = lStr_crc32(0,  buf, size );
-    lUInt32 packedhash = calcHash32( buf, size );
-    if ( packedcrc!=block->_packedCRC || packedhash!=block->_packedHash ) {
-        CRLog::error("CacheFile::validate: packed data CRC doesn't match for block %d:%d of size %d (crc=%08x, expected=%08x)", block->_dataType, block->_dataIndex, (int)size, packedcrc, block->_packedCRC);
+    lUInt64 packedhash = calcHash64( buf, size );
+    if ( packedhash!=block->_packedHash ) {
+        CRLog::error("CacheFile::validate: packed data CRC doesn't match for block %d:%d of size %d", block->_dataType, block->_dataIndex, (int)size);
         free(buf);
         return false;
     }
@@ -723,10 +736,9 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
         // block is compressed
 
         // check crc separately only for compressed data
-        lUInt32 packedcrc = lStr_crc32(0,  buf, size );
-        lUInt32 packedhash = calcHash32( buf, size );
-        if ( packedcrc!=block->_packedCRC || packedhash!=block->_packedHash ) {
-            CRLog::error("CacheFile::read: packed data CRC doesn't match for block %d:%d of size %d (crc=%08x, expected=%08x)", type, dataIndex, (int)size, packedcrc, block->_packedCRC);
+        lUInt64 packedhash = calcHash64( buf, size );
+        if ( packedhash!=block->_packedHash ) {
+            CRLog::error("CacheFile::read: packed data CRC doesn't match for block %d:%d of size %d", type, dataIndex, (int)size);
             free(buf);
             buf = NULL;
             size = 0;
@@ -750,11 +762,9 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     }
 
     // check CRC
-    lUInt32 crc = lStr_crc32(0,  buf, size );
-    lUInt32 hash = calcHash32( buf, size );
-    //CRLog::error("CacheFile::read: block %d:%d (pos %ds, size %ds) is read (crc=%08x)", type, dataIndex, (int)block->_blockFilePos/_sectorSize, (int)(block->_dataSize+_sectorSize-1)/_sectorSize, crc);
-    if ( crc!=block->_dataCRC || hash!=block->_dataHash ) {
-        CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d (crc=%08x, expected=%08x)", type, dataIndex, (int)size, crc, block->_dataCRC);
+    lUInt64 hash = calcHash64( buf, size );
+    if ( hash!=block->_dataHash ) {
+        CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d", type, dataIndex, (int)size);
         free(buf);
         buf = NULL;
         size = 0;
@@ -768,23 +778,14 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress )
 {
     // check whether data is changed
-    lUInt32 newcrc = lStr_crc32(0,  buf, size );
-    lUInt32 newhash = calcHash32( buf, size );
+    lUInt64 newhash = calcHash64( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
-    if ( existingblock && existingblock->_uncompressedSize==size && existingblock->_dataCRC==newcrc ) {
-        // data not changed: don't write again
-        // TODO:
-        if ( existingblock->_dataHash==newhash ) {
-            //CRLog::debug("Found existing block %d:%d with CRC matched %08x - may skip writing", type, dataIndex, existingblock->_dataCRC );
-            return true;
-        } else {
-            //CRLog::debug("Found existing block %d:%d with CRC matched - but with different hash %08x!!!", type, dataIndex, existingblock->_dataHash );
-        }
+    if ( existingblock && existingblock->_uncompressedSize==size && existingblock->_dataHash==newhash ) {
+        return true;
     }
 
     lUInt32 uncompressedSize = 0;
-    lUInt32 newpackedcrc = newcrc;
-    lUInt32 newpackedhash = newhash;
+    lUInt64 newpackedhash = newhash;
 #if DOC_DATA_COMPRESSION_LEVEL==0
     compress = false;
 #else
@@ -798,8 +799,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
             uncompressedSize = size;
             size = dstsize;
             buf = dstbuf;
-            newpackedcrc = lStr_crc32(0,  buf, size );
-            newpackedhash = calcHash32( buf, size );
+            newpackedhash = calcHash64( buf, size );
 #if DEBUG_DOM_STORAGE==1
             CRLog::trace("packed block %d:%d : %d to %d bytes (%d%%)", type, dataIndex, srcsize, dstsize, srcsize>0?(100*dstsize/srcsize):0 );
 #endif
@@ -841,9 +841,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
 #endif
     //_stream->Flush(true);
     // update CRC
-    block->_dataCRC = newcrc;
     block->_dataHash = newhash;
-    block->_packedCRC = newpackedcrc;
     block->_packedHash = newpackedhash;
     block->_uncompressedSize = uncompressedSize;
 
