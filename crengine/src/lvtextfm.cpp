@@ -1359,6 +1359,231 @@ public:
     }
 };
 
+class LVFormatter {
+public:
+    //LVArray<lUInt16>  widths_buf;
+    //LVArray<lUInt8>   flags_buf;
+    formatted_text_fragment_t * m_pbuffer;
+    int       m_length;
+    bool      m_staticBufs;
+    lChar16 * m_text;
+    lUInt8 *  m_flags;
+    src_text_fragment_t * * m_srcs;
+    lUInt16 * m_charindex;
+    int *     m_widths;
+
+#define OBJECT_CHAR_INDEX ((lUInt16)0xFFFF)
+
+    LVFormatter(formatted_text_fragment_t * pbuffer)
+    : m_pbuffer(pbuffer), m_length(0), m_staticBufs(true)
+    {
+    }
+
+    ~LVFormatter()
+    {
+    }
+
+    void allocate()
+    {
+        int pos = 0;
+        int i;
+        // PASS 1: calculate total length (characters + objects)
+        for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
+            src_text_fragment_t * src = &m_pbuffer->srctext[i];
+            if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
+                pos++;
+            } else {
+                pos += src->t.len;
+            }
+        }
+
+        // allocate buffers
+        m_length = pos;
+#define STATIC_BUFS_SIZE 16384
+        if ( m_length>STATIC_BUFS_SIZE-1 ) {
+            m_text = new lChar16[m_length+1];
+            m_flags = new lUInt8[m_length+1];
+            m_charindex = new lUInt16[m_length];
+            m_srcs = new src_text_fragment_t * [m_length];
+            m_widths = new int[m_length];
+            m_staticBufs = false;
+        } else {
+            // static buffer space
+            static lChar16 m_static_text[STATIC_BUFS_SIZE];
+            static lUInt8 m_static_flags[STATIC_BUFS_SIZE];
+            static src_text_fragment_t * m_static_srcs[STATIC_BUFS_SIZE];
+            static lUInt16 m_static_charindex[STATIC_BUFS_SIZE];
+            static int m_static_widths[STATIC_BUFS_SIZE];
+            m_text = m_static_text;
+            m_flags = m_static_flags;
+            m_charindex = m_static_charindex;
+            m_srcs = m_static_srcs;
+            m_widths = m_static_widths;
+            m_staticBufs = true;
+        }
+        memset( m_flags, 0, sizeof(lUInt8)*m_length );
+        pos = 0;
+    }
+
+    void copyText()
+    {
+        int pos = 0;
+        int i;
+        for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
+            src_text_fragment_t * src = &m_pbuffer->srctext[i];
+            if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
+                m_text[pos] = 0;
+                m_flags[pos] = LCHAR_IS_OBJECT | LCHAR_ALLOW_WRAP_AFTER;
+                m_srcs[pos] = src;
+                m_charindex[pos] = OBJECT_CHAR_INDEX; //0xFFFF;
+                pos++;
+            } else {
+                int len = src->t.len;
+                lStr_ncpy( m_text+pos, src->t.text, len );
+                if ( i==0 || (src->flags & LTEXT_FLAG_NEWLINE) )
+                    m_flags[pos] = LCHAR_MANDATORY_NEWLINE;
+                for ( int k=0; k<len; k++ ) {
+                    m_charindex[pos] = k;
+                    m_srcs[pos++] = src;
+                }
+            }
+        }
+    }
+
+    void measureText()
+    {
+        int i;
+        LVFont * lastFont = NULL;
+        src_text_fragment_t * lastSrc = NULL;
+        int start = 0;
+        int lastWidth = 0;
+#define MAX_TEXT_CHUNK_SIZE 4096
+        static lUInt16 widths[MAX_TEXT_CHUNK_SIZE+1];
+        static lUInt8 flags[MAX_TEXT_CHUNK_SIZE+1];
+        for ( i=0; i<=m_length; i++ ) {
+            LVFont * newFont = NULL;
+            src_text_fragment_t * newSrc = NULL;
+            bool isObject = false;
+            if ( i<m_length ) {
+                newSrc = m_srcs[i];
+                isObject = m_charindex[i]!=OBJECT_CHAR_INDEX;
+                if ( isObject ) {
+                    newFont = (LVFont *)newSrc->t.font;
+                }
+            }
+            if ( i>start && (newFont!=lastFont || isObject || i>=start+MAX_TEXT_CHUNK_SIZE || (m_flags[i]&LCHAR_MANDATORY_NEWLINE)) ) {
+                // measure start..i-1 chars
+                if ( m_charindex[i-1]!=OBJECT_CHAR_INDEX ) {
+                    // measure text
+                    int len = i - start;
+                    int chars_measured = lastFont->measureText(
+                            m_text + start,
+                            len,
+                            widths, flags,
+                            0x7FFF, //pbuffer->width,
+                            '?',
+                            0,
+                            false);
+                    if ( chars_measured<len ) {
+                        // too long line
+                        int newlen = chars_measured; // TODO: find best wrap position
+                        i = start + newlen;
+                        len = newlen;
+                    }
+                    for ( int k=0; k<len; k++ ) {
+                        m_widths[start + k] = lastWidth + widths[k];
+                        m_flags[start + k] |= flags[k];
+                    }
+                    lastWidth += widths[len];
+                    m_flags[len] = 0;
+                    // TODO: letter spacing letter_spacing
+                } else {
+                    // measure object
+                    // assume i==start+1
+                    int objectWidth = 50; // TODO: real object width
+                    lastWidth += objectWidth;
+                    m_widths[start] = lastWidth;
+                }
+                start = i;
+            }
+
+            //
+            lastFont = newFont;
+            lastSrc = newSrc;
+            //if ( i==m_length || )
+        }
+    }
+
+    void processParagraph( int start, int end )
+    {
+        src_text_fragment_t * paraStartSrc = m_srcs[start];
+        // TODO: split paragraph into lines, export lines
+    }
+
+    void splitParagraphs()
+    {
+        int start = 0;
+        for ( int i=0; i<=m_length; i++ ) {
+            if ( i>start && ((m_flags[i] & LCHAR_MANDATORY_NEWLINE) || i==m_length) ) {
+                processParagraph( start, i );
+                start = i;
+            }
+        }
+    }
+
+    void dealloc()
+    {
+        if ( !m_staticBufs ) {
+            delete m_text;
+            delete m_flags;
+            delete m_srcs;
+            delete m_charindex;
+            delete m_widths;
+        }
+    }
+
+    int format()
+    {
+        // PASS 1: calculate total length (characters + objects), allocate buffers
+        allocate();
+        // PASS 2: copy text and fill char indexes
+        copyText();
+        // PASS 3: measure text
+        measureText();
+        // PASS 4: split/export paragraphs
+        splitParagraphs();
+
+        // cleanup
+        dealloc();
+
+        return 0;
+    }
+};
+
+// experimental formatter
+lUInt32 LFormattedText::FormatNew2(lUInt16 width, lUInt16 page_height)
+{
+    // clear existing formatted data, if any
+    if (m_pbuffer->frmlines)
+    {
+        for (lUInt32 i=0; i<m_pbuffer->frmlinecount; i++)
+        {
+            lvtextFreeFormattedLine( m_pbuffer->frmlines[i] );
+        }
+        free( m_pbuffer->frmlines );
+    }
+    m_pbuffer->frmlines = NULL;
+    m_pbuffer->frmlinecount = 0;
+    // setup new page size
+    m_pbuffer->width = width;
+    m_pbuffer->height = 0;
+    m_pbuffer->page_height = page_height;
+    // format text
+    LVFormatter formatter( m_pbuffer );
+
+    return formatter.format();
+}
+
 lUInt32 LFormattedText::FormatNew(lUInt16 width, lUInt16 page_height)
 {
     // clear existing formatted data, if any

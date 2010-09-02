@@ -83,7 +83,8 @@ public:
                         lUInt8 * flags,
                         int max_width,
                         lChar16 def_char,
-                        int letter_spacing=0
+                        int letter_spacing=0,
+                        bool allow_hyphenation=true
                      ) = 0;
     /** \brief measure text
         \param text is text string pointer
@@ -343,7 +344,8 @@ public:
                         lUInt8 * flags,
                         int max_width,
                         lChar16 def_char,
-                        int letter_spacing=0
+                        int letter_spacing=0,
+                        bool allow_hyphenation=true
                      );
     /** \brief measure text
         \param text is text string pointer
@@ -517,7 +519,8 @@ public:
                         lUInt8 * flags,
                         int max_width,
                         lChar16 def_char,
-                        int letter_spacing=0
+                        int letter_spacing=0,
+                        bool allow_hyphenation=true
                      );
     /** \brief measure text
         \param text is text string pointer

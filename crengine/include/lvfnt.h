@@ -220,6 +220,8 @@ lUInt16 lvfontMeasureText( const lvfont_handle pfont,
 #define LCHAR_DEPRECATED_WRAP_AFTER 4 ///< flag: line break after this char is possible but deprecated
 #define LCHAR_ALLOW_HYPH_WRAP_AFTER 8 ///< flag: line break after this char is allowed with addition of hyphen
 #define LCHAR_IS_EOL               16 ///< flag: this char is CR or LF
+#define LCHAR_IS_OBJECT            32 ///< flag: this char is object or image
+#define LCHAR_MANDATORY_NEWLINE    64 ///< flag: this char must start with new line
 
 /** \brief returns true if character is unicode space 
     \param code is character

@@ -659,7 +659,8 @@ public:
                         lUInt8 * flags,
                         int max_width,
                         lChar16 def_char,
-                        int letter_spacing
+                        int letter_spacing = 0,
+                        bool allow_hyphenation = true
                      )
     {
         LVLock lock(_mutex);
@@ -744,15 +745,17 @@ public:
 
         //maxFit = nchars;
 
-        if ( !_hyphen_width )
-            _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
 
         // find last word
-        if ( lastFitChar > 3 ) {
-            int hwStart, hwEnd;
-            lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd );
-            if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 )
-                HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+        if ( allow_hyphenation ) {
+            if ( !_hyphen_width )
+                _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
+            if ( lastFitChar > 3 ) {
+                int hwStart, hwEnd;
+                lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd );
+                if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 )
+                    HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+            }
         }
         return lastFitChar; //nchars;
     }
@@ -1075,7 +1078,8 @@ public:
                         lUInt8 * flags,
                         int max_width,
                         lChar16 def_char,
-                        int letter_spacing=0
+                        int letter_spacing=0,
+                        bool allow_hyphenation=true
                      )
     {
         lUInt16 res = _baseFont->measureText(
@@ -2324,7 +2328,8 @@ lUInt16 LBitmapFont::measureText(
                     lUInt8 * flags,
                     int max_width,
                     lChar16 def_char,
-                    int letter_spacing
+                    int letter_spacing,
+                    bool allow_hyphenation
                  )
 {
     return lvfontMeasureText( m_font, text, len, widths, flags, max_width, def_char );
@@ -3039,7 +3044,8 @@ lUInt16 LVWin32Font::measureText(
                     lUInt8 * flags,
                     int max_width,
                     lChar16 def_char,
-                    int letter_spacing
+                    int letter_spacing,
+                    bool allow_hyphenation
                  )
 {
     if (_hfont==NULL)
