@@ -1514,10 +1514,104 @@ public:
         }
     }
 
+#define MIN_WORD_LEN_TO_HYPHENATE 4
+#define MAX_WORD_SIZE 64
+    void hyphenateWord( int wordPos, int minPos, int maxPos, int &wrapPos )
+    {
+        // wordPos is last fit character
+        int start, end;
+        lStr_findWordBounds( m_text, m_length, wordPos+1, start, end );
+        if ( start<end && start<maxPos && end<minPos && end-start>MIN_WORD_LEN_TO_HYPHENATE ) {
+            int len = end-start;
+            static lUInt8 flags[MAX_WORD_SIZE];
+            static lUInt16 widths[MAX_WORD_SIZE];
+            //HyphMan::hyphenate(m_text+start, len, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+        }
+    }
+
+    void addLine( int start, int end, int x, src_text_fragment_t * para, bool first, bool last )
+    {
+        int maxWidth = m_pbuffer->width;
+        int w0 = start>0 ? m_widths[start-1] : 0;
+        int align = para->flags & LTEXT_FLAG_NEWLINE;
+        bool addHyph = m_flags[end] & LCHAR_ALLOW_HYPH_WRAP_AFTER;
+        int hyphWidth = 0;
+        if ( addHyph )
+            hyphWidth = ((LVFont*)m_srcs[end]->t.font)->getCharWidth(UNICODE_SOFT_HYPHEN_CODE);
+        if ( !align )
+            align = LTEXT_ALIGN_LEFT;
+        if ( last && !first ) {
+            int last_align = (para->flags>>16) & LTEXT_FLAG_NEWLINE;
+            if ( last_align )
+                align = last_align;
+        }
+        int width = m_widths[end] - w0 + hyphWidth;
+        int addSpacePoints = 0;
+        int addSpaceDiv = 0;
+        int addSpaceMod = 0;
+        int extraSpace = maxWidth - width;
+        if ( align==LTEXT_ALIGN_WIDTH && extraSpace>0 ) {
+            for ( int i=start; i<end; i++ ) {
+                if ( m_flags[i] & LCHAR_IS_SPACE )
+                    addSpacePoints++;
+            }
+            if ( addSpacePoints>0 ) {
+                addSpaceMod = extraSpace % addSpacePoints;
+                addSpaceDiv = extraSpace / addSpacePoints;
+            }
+        }
+
+    }
+
     void processParagraph( int start, int end )
     {
         src_text_fragment_t * paraStartSrc = m_srcs[start];
         // TODO: split paragraph into lines, export lines
+        int pos = start;
+        int maxWidth = m_pbuffer->width;
+        int indent = paraStartSrc->margin;
+        int x = indent >=0 ? indent : 0;
+        int w0 = pos>0 ? m_widths[pos-1] : 0;
+        int i;
+        int lastNormalWrap = -1;
+        int lastHyphWrap = -1;
+        for ( i=pos; i<end; i++ ) {
+            if ( x + m_widths[i]-w0 > maxWidth )
+                break;
+            lUInt8 flags = m_flags[i];
+            if ( flags & LCHAR_ALLOW_WRAP_AFTER )
+                lastNormalWrap = i;
+            else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
+                lastHyphWrap = i;
+        }
+        if ( i<=pos )
+            i = pos + 1; // allow at least one character to be shown on line
+        int wordpos = i-1;
+        int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
+        int unusedSpace = maxWidth - normalWrapWidth;
+        if ( unusedSpace > (maxWidth>>4) && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
+            // hyphenate word
+            int start, end;
+            lStr_findWordBounds( m_text, m_length, pos+1, start, end );
+            int len = end-start;
+            if ( start<end && start<wordpos && end>i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
+                if ( len > MAX_WORD_SIZE )
+                    len = MAX_WORD_SIZE;
+                lUInt8 * flags = m_flags + start;
+                static lUInt16 widths[MAX_WORD_SIZE];
+                //HyphMan::hyphenate(m_text+start, len, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+                //TODO: add hyphenation
+            }
+        }
+        int wrapPos = lastHyphWrap;
+        if ( wrapPos<lastNormalWrap )
+            wrapPos = lastNormalWrap;
+        if ( wrapPos<0 ) {
+            wrapPos = i-1;
+        }
+        formatted_line_t * frmline =  lvtextAddFormattedLine( m_pbuffer );
+        frmline->x = x;
+
     }
 
     void splitParagraphs()

@@ -2863,7 +2863,6 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     for (hwStart=pos-1; hwStart>0; hwStart--)
     {
         lChar16 ch = str[hwStart];
-        int lastAlpha = -1;
         if ( ch<(int)maxchar ) {
             lUInt16 props = char_props[ch];
             if ( !(props & (CH_PROP_PUNCT|CH_PROP_DIGIT)) )
