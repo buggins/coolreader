@@ -1531,6 +1531,7 @@ public:
 
     void addLine( int start, int end, int x, src_text_fragment_t * para, bool first, bool last )
     {
+        // setup line properties
         int maxWidth = m_pbuffer->width;
         int w0 = start>0 ? m_widths[start-1] : 0;
         int align = para->flags & LTEXT_FLAG_NEWLINE;
@@ -1550,17 +1551,43 @@ public:
         int addSpaceDiv = 0;
         int addSpaceMod = 0;
         int extraSpace = maxWidth - width;
+        int lastnonspace = 0;
+        bool addSpace = false;
+        // justify alignment calculations
         if ( align==LTEXT_ALIGN_WIDTH && extraSpace>0 ) {
             for ( int i=start; i<end; i++ ) {
-                if ( m_flags[i] & LCHAR_IS_SPACE )
+                if ( (m_flags[i] & LCHAR_IS_SPACE) && !(m_flags[i] & LCHAR_IS_OBJECT) )
                     addSpacePoints++;
+                else
+                    lastnonspace = i;
             }
             if ( addSpacePoints>0 ) {
                 addSpaceMod = extraSpace % addSpacePoints;
                 addSpaceDiv = extraSpace / addSpacePoints;
+                addSpace = true;
             }
         }
-
+        formatted_line_t * frmline =  lvtextAddFormattedLine( m_pbuffer );
+        frmline->x = x;
+        src_text_fragment_t * lastSrc = m_srcs[start];
+        int wstart = start;
+        for ( int i=start+1; i<=end; i++ ) {
+            src_text_fragment_t * newSrc = i<end ? m_srcs[start] : 0;
+            bool isObject = (m_flags[i] & LCHAR_IS_OBJECT);
+            bool space = addSpace && i<end && (m_flags[i] & LCHAR_IS_SPACE) && i<lastnonspace;
+            if ( i>wstart && (newSrc!=lastSrc || space) ) {
+                formatted_word_t * word = lvtextAddFormattedWord(frmline);
+                if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
+                    // object
+                    word->flags = LTEXT_WORD_IS_OBJECT;
+                } else {
+                    // word
+                    word->flags = 0;
+                }
+                lastSrc = newSrc;
+                wstart = i;
+            }
+        }
     }
 
     void processParagraph( int start, int end )
@@ -1609,8 +1636,6 @@ public:
         if ( wrapPos<0 ) {
             wrapPos = i-1;
         }
-        formatted_line_t * frmline =  lvtextAddFormattedLine( m_pbuffer );
-        frmline->x = x;
 
     }
 
@@ -1654,8 +1679,7 @@ public:
     }
 };
 
-// experimental formatter
-lUInt32 LFormattedText::FormatNew2(lUInt16 width, lUInt16 page_height)
+static void freeFrmLines( formatted_text_fragment_t * m_pbuffer )
 {
     // clear existing formatted data, if any
     if (m_pbuffer->frmlines)
@@ -1668,6 +1692,13 @@ lUInt32 LFormattedText::FormatNew2(lUInt16 width, lUInt16 page_height)
     }
     m_pbuffer->frmlines = NULL;
     m_pbuffer->frmlinecount = 0;
+}
+
+// experimental formatter
+lUInt32 LFormattedText::FormatNew2(lUInt16 width, lUInt16 page_height)
+{
+    // clear existing formatted data, if any
+    freeFrmLines( m_pbuffer );
     // setup new page size
     m_pbuffer->width = width;
     m_pbuffer->height = 0;
@@ -1681,16 +1712,7 @@ lUInt32 LFormattedText::FormatNew2(lUInt16 width, lUInt16 page_height)
 lUInt32 LFormattedText::FormatNew(lUInt16 width, lUInt16 page_height)
 {
     // clear existing formatted data, if any
-    if (m_pbuffer->frmlines)
-    {
-        for (lUInt32 i=0; i<m_pbuffer->frmlinecount; i++)
-        {
-            lvtextFreeFormattedLine( m_pbuffer->frmlines[i] );
-        }
-        free( m_pbuffer->frmlines );
-    }
-    m_pbuffer->frmlines = NULL;
-    m_pbuffer->frmlinecount = 0;
+    freeFrmLines( m_pbuffer );
     // setup new page size
     m_pbuffer->width = width;
     m_pbuffer->height = 0;
