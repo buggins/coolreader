@@ -1579,7 +1579,6 @@ public:
         bool isSpace = false;
         bool nextIsSpace = false;
         bool space = false;
-        bool lastWord = false;
         for ( int i=start+1; i<=end; i++ ) {
             src_text_fragment_t * newSrc = i<end ? m_srcs[start] : 0;
             if ( i<end ) {
