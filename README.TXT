@@ -30,7 +30,14 @@ cr3/wx: wxWidgets 2.8
 e.g., for Ubuntu you may use
 > sudo apt-get install git-core cmake libqt4-dev libpng12-dev libfreetype6-dev libjpeg62-dev libfontconfig1-dev zlib1g-dev
 
--D RAM_COMPRESSED_BUFFER_ENABLED=0 -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x500000
+Packaging:
+
+packages/ubuntu -- debian package for Ubuntu
+packages/openinkpot -- debian package for OpenInkpot
+
+To build package, make symlink:
+ln -s packages/ubuntu/debian debian
+
 
 Build instructions:
 
