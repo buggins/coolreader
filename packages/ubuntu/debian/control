@@ -1,14 +1,19 @@
 Source: cr3
-Section: unknown
-Priority: extra
+Section: gui
+Priority: optional
 Maintainer: Vadim Lopatin <buggins@fromru.com>
-Build-Depends: debhelper (>= 7), cmake, zlib1g, libpng12-0-dev, libjpeg62-dev, libfreetype6-dev, libfontconfig1-dev, libqt4-dev
+Build-Depends: debhelper (>= 7), cmake, zlib1g, libpng12-0-dev, libjpeg62-dev, libfreetype6-dev, libfontconfig1-dev, libqt4-dev, cdbs
 Standards-Version: 3.8.3
 Homepage: http://sourceforge.net/projects/crengine/
 
 Package: cr3
 Architecture: any
 Depends: zlib1g, libpng12-0, libjpeg62, libfreetype6, libfontconfig1, libqtcore4, libqtgui4, ${shlibs:Depends}, ${misc:Depends}
-Description: CR3 is e-book reader
- CoolReader3 is multiplatform e-book viewer with support of TXT, FB2, HTML, RTF, CHM, EPUB, TRC files.
- Supports tables, footnotes, CSS based formatting.
+Description: e-book reader
+ Cool Reader 3 is multiplatform e-book viewer
+ with support of TXT, FB2, HTML, RTF, CHM, EPUB, TRC file formats.
+ Fully supports FB2 format: tables, footnotes, CSS based formatting.
+ Autodetects TXT file format and encoding, and reflows it for easy reading.
+ Supports table of contents, search, bookmarks.
+ Supports window and fullscreen modes, paperbook-like pages or scroll view.
+ Book formatting is customizable using CSS files.
