@@ -1,3 +1,39 @@
+cr3 (3.0.35-2) zelazny; urgency=low
+
+  [ Vadim Lopatin ]
+  * fix font colors in 2bit mode
+  * fix libpng support
+  * background-color support for inline elements
+  * CSS: add hanging attribute support to text-indent property
+  * CSS: add text-align-last property support to css parser
+  * CSS: implement text-align-last property support
+  * fix style for FB2 <v> element
+  * fix page numbers in Qt TOC
+  * page skin implementation
+  * page skin list implementation
+  * CSS: allow space-separated : after style property name
+  * allow any namespace for reference to image using href or src
+    attributes
+  * fix current page number +1 for cr3gui/about dialog
+  * page skin settings, in progress...
+  * Add cache file contents CRC validation
+  * avoid writing unchanged data blocks to cache file
+  * text selection rework, part 1
+  * move unit tests to separate source file
+  * DOM cache file storage bugs fixed
+  * put extra debug checks under conditional compilation
+  * fix Valgrind findings
+  * disable cache file validation
+  * performance optimizations: style and font hash calculation
+  * use FNV-1 64bit hash
+  * add support of old libpng
+  * new formatter, part 1
+  * new formatter, part 2
+  * new formatter, part 3
+  * fix qt build
+
+ -- Alexander Kerner <lunohod@openinkpot.org>  Mon, 06 Sep 2010 21:58:28 +0200
+
 cr3 (3.0.35-1) zelazny; urgency=low
 
   [ Vadim Lopatin ]
