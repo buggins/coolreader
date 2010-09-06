@@ -309,7 +309,7 @@ struct LVFontGlyphCacheItem
             lUInt8 mask = 0x80;
             const lUInt8 * ptr = (const lUInt8 *)bitmap->buffer;
             lUInt8 * dst = item->bmp;
-            int rowsize = ((w + 15) / 16) * 2;
+            //int rowsize = ((w + 15) / 16) * 2;
             for ( int y=0; y<h; y++ ) {
                 const lUInt8 * row = ptr;
                 mask = 0x80;

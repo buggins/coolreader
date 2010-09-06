@@ -3145,7 +3145,7 @@ void LVDocView::createEmptyDocument()
     _posIsSet = false;
     m_swapDone = false;
     _posBookmark = ldomXPointer();
-    lUInt32 saveFlags = 0;
+    //lUInt32 saveFlags = 0;
 
     //m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
     m_is_rendered = false;

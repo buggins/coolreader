@@ -795,12 +795,12 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
 
 
     lUInt8 color = rgbToGrayMask(GetTextColor(), _bpp);
-    bool white = (color & 0x80) ?
-#if (GRAY_INVERSE==1)
-            false : true;
-#else
-            true : false;
-#endif
+//    bool white = (color & 0x80) ?
+//#if (GRAY_INVERSE==1)
+//            false : true;
+//#else
+//            true : false;
+//#endif
     for (;height;height--)
     {
         src = bitmap;

@@ -132,8 +132,8 @@ class LVDocViewImageCache
         {
             for ( int i=0; i<2; i++ ) {
                 if ( _items[i]._valid &&
-                     (_items[i]._offset == offset && offset!=-1
-                      || _items[i]._page==page && page!=-1) ) {
+                     ( (_items[i]._offset == offset && offset!=-1)
+                      || (_items[i]._page==page && page!=-1)) ) {
                     if ( !_items[i]._ready ) {
                         _items[i]._thread->join();
                         _items[i]._thread = NULL;
@@ -158,8 +158,8 @@ class LVDocViewImageCache
         {
             _mutex.lock();
             for ( int i=0; i<2; i++ ) {
-                if ( _items[i]._valid && (_items[i]._offset == offset && offset!=-1
-                      || _items[i]._page==page && page!=-1) ) {
+                if ( _items[i]._valid && ( (_items[i]._offset == offset && offset!=-1)
+                      || (_items[i]._page==page && page!=-1)) ) {
                     return true;
                 }
             }
@@ -426,7 +426,7 @@ protected:
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
     /// set buffer format
-    int setDrawBufferBits( int bits ) { m_drawBufferBits = bits; }
+    void setDrawBufferBits( int bits ) { m_drawBufferBits = bits; }
     /// substitute page header with custom text (e.g. to be used while loading)
     void setPageHeaderOverride( lString16 s );
     /// get screen rectangle for current cursor position, returns false if not visible

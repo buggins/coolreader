@@ -248,7 +248,7 @@ public:
         _file = chm_open( &_stream );
         if ( !_file )
             return false;
-        int res = chm_enumerate( _file,
+        chm_enumerate( _file,
                   CHM_ENUMERATE_ALL,
                   CHM_ENUMERATOR_CALLBACK,
                   this);

@@ -235,7 +235,6 @@ public:
     bool cache( lUInt16 &indexholder, ref_t & style)
     {
         int newindex = cache( style );
-        bool res = indexholder != newindex;
         if ( indexholder != newindex ) {
             release( indexholder );
             indexholder = (lUInt16)newindex;

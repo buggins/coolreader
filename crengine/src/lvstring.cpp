@@ -132,7 +132,8 @@ lstring_chunk_t * lstring_chunk_t::alloc()
     // alloc new slice
     if (slices_count >= MAX_SLICE_COUNT)
         crFatalError();
-    slices[slices_count++] = new lstring_chunk_slice_t( FIRST_SLICE_SIZE << (slices_count+1) );
+    lstring_chunk_slice_t * new_slice = new lstring_chunk_slice_t( FIRST_SLICE_SIZE << (slices_count+1) );
+    slices[slices_count++] = new_slice;
     return slices[slices_count-1]->alloc_chunk();
 }
 
@@ -1103,7 +1104,7 @@ bool lString16HashedCollection::deserialize( SerialBuf & buf )
     clear();
     int start = buf.pos();
     buf.putMagic( str_hash_magic );
-    lUInt32 count;
+    lUInt32 count = 0;
     buf >> count;
     for ( unsigned i=0; i<count; i++ ) {
         lString16 s;
@@ -3401,14 +3402,14 @@ SerialBuf & SerialBuf::operator >> ( lString8 & s8 )
 {
 	if ( check(2) )
 		return *this;
-	lUInt16 len;
+    lUInt16 len = 0;
 	(*this) >> len;
 	s8.clear();
 	s8.reserve(len);
 	for ( int i=0; i<len; i++ ) {
 		if ( check(1) )
 			return *this;
-		lUInt8 c;
+        lUInt8 c = 0;
 		(*this) >> c;
 		s8.append(1, c);
 	}

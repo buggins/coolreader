@@ -1209,7 +1209,6 @@ public:
     /// one line per paragraph
     bool DoParaPerLineImport(LVXMLParserCallback * callback)
     {
-        int firstPageTextCounter = 0;
         CRLog::debug("DoParaPerLineImport()");
         do {
             for ( int i=0; i<length(); i++ ) {
@@ -1318,7 +1317,6 @@ public:
     bool DoPreFormattedImport(LVXMLParserCallback * callback)
     {
         CRLog::debug("DoPreFormattedImport()");
-        int firstPageTextCounter = 0;
         do {
             for ( int i=0; i<length(); i++ ) {
                 LVTextFileLine * item = get(i);
@@ -1850,7 +1848,7 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        if ( s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6 ||
+        if ( (s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6) ||
              s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"")>=0 ) {
             //&& s.pos(L"<FictionBook") >= 0
             res = true;

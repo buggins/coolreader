@@ -558,7 +558,7 @@ class CRGUIWindowManager : public CRGUIStringTranslator
         /// runs posted events (commands)
         virtual bool processPostedEvents()
         {
-            handleAllEvents( false );
+            return handleAllEvents( false );
         }
         /// returns true if command is processed
         virtual bool onCommand( int command, int params = 0 )

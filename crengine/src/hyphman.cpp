@@ -465,7 +465,6 @@ bool TexHyph::load( LVStreamRef stream )
             if ( stream->Seek( hyph.len, LVSEEK_CUR, &newPos )!=LVERR_OK )
                 return false;
 
-            unsigned char ch = hyph.al;
             cnv.msf( hyph.wl );
             cnv.msf( hyph.wu );
             charMap[ (unsigned char)hyph.al ] = hyph.wl;

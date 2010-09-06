@@ -835,7 +835,7 @@ void CRGUIWindowBase::reconfigure( int flags )
     } else {
         lvRect rc = getRect();
         int dx = fs.width();
-        int dy = fs.height();
+        //int dy = fs.height();
         if ( rc.right > dx ) {
             rc.left -= rc.right - dx;
             rc.right = dx;
@@ -1110,11 +1110,11 @@ int CRMenu::getItemHeight()
         h = minsize.y;
     if ( _fullscreen ) {
         int nItems = _pageItems; // _items.length();
-        int scrollHeight = 0;
+        //int scrollHeight = 0;
         //lvRect statusRect;
         //if ( getStatusRect(  statusRect ) )
         //    scrollHeight = statusRect.height();
-        lvRect rc(0,0,_wm->getScreen()->getWidth(), _wm->getScreen()->getHeight() );
+        //lvRect rc(0,0,_wm->getScreen()->getWidth(), _wm->getScreen()->getHeight() );
         lvRect client;
         getClientRect( client );
         h = client.height() - separatorHeight*(nItems-1);
@@ -1215,6 +1215,7 @@ void CRMenu::toggleSubmenuValue()
     }
 }
 
+#if 0
 static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl, int direction )
 {
     int x0 = x + dx/2;
@@ -1229,6 +1230,7 @@ static void DrawArrow( LVDrawBuf & buf, int x, int y, int dx, int dy, lvColor cl
         buf.FillRect( x0+k*deltax, y0-k, x0+k*deltax+1, y0+k+1, cl );
     }
 }
+#endif
 
 int CRMenu::getScrollHeight()
 {
@@ -1250,7 +1252,6 @@ int CRMenu::getSelectedItemIndex()
 {
     if ( _cmdToHighlight>=0 ) {
         // highlighted command
-        int res = -1;
         for ( int i=0; i<_items.length(); i++ ) {
             if ( _items[i]->getId()==_cmdToHighlight ) {
                 return i;

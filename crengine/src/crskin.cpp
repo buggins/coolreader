@@ -1262,8 +1262,8 @@ void CRScrollSkin::drawGauge( LVDrawBuf & buf, const lvRect & rect, int percent 
 
 CRRectSkin::CRRectSkin()
 : _margins( 0, 0, 0, 0 )
-, _pos(0, 0)
 , _size(toSkinPercent( 10000 ), toSkinPercent( 10000 )) // 100% x 100%
+, _pos(0, 0)
 , _align(SKIN_VALIGN_TOP|SKIN_HALIGN_LEFT) // relative to top left
 {
 }
@@ -1914,6 +1914,7 @@ CRSkinListItem * CRSkinListItem::init( lString16 baseDir, lString16 fileName )
     item->_baseDir = baseDir;
     item->_fileName = fileName;
     //item->_name = skin->get
+    return item;
 }
 
 CRSkinRef CRSkinListItem::getSkin()

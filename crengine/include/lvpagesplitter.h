@@ -203,11 +203,11 @@ public:
     lInt16 type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
     CompactArray<LVPageFootNoteInfo, 1, 4> footnotes; /// footnote fragment list for page
     LVRendPageInfo( int pageStart, int pageHeight, int pageIndex )
-    : start(pageStart), height(pageHeight), index(pageIndex), type(PAGE_TYPE_NORMAL) {}
+    : start(pageStart), index(pageIndex), height(pageHeight), type(PAGE_TYPE_NORMAL) {}
     LVRendPageInfo( int coverHeight )
-    : start(0), height(coverHeight), index(0), type(PAGE_TYPE_COVER) {}
+    : start(0), index(0), height(coverHeight), type(PAGE_TYPE_COVER) {}
     LVRendPageInfo() 
-    : start(0), height(0), index(0), type(PAGE_TYPE_NORMAL) { }
+    : start(0), index(0), height(0), type(PAGE_TYPE_NORMAL) { }
     bool serialize( SerialBuf & buf );
     bool deserialize( SerialBuf & buf );
 };

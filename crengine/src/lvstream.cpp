@@ -675,12 +675,12 @@ public:
         return LVERR_OK;
     }
 	
-	lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = -1 )
+    lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = (lvsize_t)-1 )
     {
         m_mode = mode;
         if ( mode!=LVOM_READ && mode!=LVOM_APPEND )
             return LVERR_FAIL; // not supported
-        if ( minSize==-1 ) {
+        if ( minSize==(lvsize_t)-1 ) {
             if ( !LVFileExists(fname) )
                 return LVERR_FAIL;
         }
@@ -2194,7 +2194,7 @@ private:
         if (in_bytes<0)
             return -1;
         // reserve space for output
-        if (m_decodedpos > ARC_OUTBUF_SIZE/2 || m_zstream.avail_out < ARC_OUTBUF_SIZE / 4 && m_outbytesleft > 0)
+        if (m_decodedpos > ARC_OUTBUF_SIZE/2 || (m_zstream.avail_out < ARC_OUTBUF_SIZE / 4 && m_outbytesleft > 0) )
         {
 
             int outpos = m_zstream.next_out - m_outbuf;
@@ -2355,7 +2355,7 @@ public:
         int readBytes = read( (lUInt8 *)buf, (int)count );
         if ( readBytes<0 )
             return LVERR_FAIL;
-        if ( readBytes!=count ) {
+        if ( readBytes!=(int)count ) {
             CRLog::trace("ZIP stream: %d bytes read instead of %d", (int)readBytes, (int)count);
         }
         if (bytesRead)
@@ -4337,7 +4337,7 @@ class LVBlockWriteStream : public LVNamedStream
                 lUInt8 ch2 = ptr[i];
                 if ( pos+i>block_end || ch1!=ch2 ) {
                     buf[offset+i] = ptr[i];
-                    if ( modified_start==-1 )
+                    if ( modified_start==(lvpos_t)-1 )
                         modified_start = modified_end = pos + i;
                     else {
                         if ( modified_start>pos+i )
