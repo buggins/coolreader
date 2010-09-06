@@ -8,6 +8,7 @@
 
 class V3DocViewWin;
 
+
 extern void
 activate_cite(CRGUIWindowManager *wm, V3DocViewWin * mainwin);
 

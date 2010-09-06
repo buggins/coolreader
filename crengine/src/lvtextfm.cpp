@@ -167,6 +167,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     {
         pline->t.text = text;
     }
+    pline->index = pbuffer->srctextlen-1;
     pline->object = object;
     pline->t.len = (lUInt16)len;
     pline->margin = margin;
@@ -196,6 +197,7 @@ void lvtextAddSourceObject(
         pbuffer->srctext = (src_text_fragment_t*)realloc( pbuffer->srctext, sizeof(src_text_fragment_t)*(srctextsize) );
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
+    pline->index = pbuffer->srctextlen-1;
     pline->o.width = width;
     pline->o.height = height;
     pline->object = object;
@@ -1571,11 +1573,25 @@ public:
         frmline->x = x;
         src_text_fragment_t * lastSrc = m_srcs[start];
         int wstart = start;
+        bool lastIsSpace = false;
+        bool lastWord = false;
+        bool isObject = false;
+        bool isSpace = false;
+        bool nextIsSpace = false;
+        bool space = false;
+        bool lastWord = false;
         for ( int i=start+1; i<=end; i++ ) {
             src_text_fragment_t * newSrc = i<end ? m_srcs[start] : 0;
-            bool isObject = (m_flags[i] & LCHAR_IS_OBJECT);
-            bool space = addSpace && i<end && (m_flags[i] & LCHAR_IS_SPACE) && i<lastnonspace;
-            if ( i>wstart && (newSrc!=lastSrc || space) ) {
+            if ( i<end ) {
+                isObject = (m_flags[i] & LCHAR_IS_OBJECT);
+                isSpace = (m_flags[i] & LCHAR_IS_SPACE);
+                nextIsSpace = i<end-1 && (m_flags[i+1] & LCHAR_IS_SPACE);
+                space = addSpace && lastIsSpace && !isSpace && i<lastnonspace;
+            } else {
+                lastWord = true;
+            }
+            if ( i>wstart && (newSrc!=lastSrc || space || lastWord) ) {
+                // create and add new word
                 formatted_word_t * word = lvtextAddFormattedWord(frmline);
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object
@@ -1587,6 +1603,7 @@ public:
                 lastSrc = newSrc;
                 wstart = i;
             }
+            lastIsSpace = isSpace;
         }
     }
 
