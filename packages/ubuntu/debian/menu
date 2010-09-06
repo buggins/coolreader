@@ -1,2 +1,4 @@
-?package(cr3):needs="X11|text|vc|wm" section="Applications/see-menu-manual"\
-  title="cr3" command="/usr/bin/cr3"
+?package(cr3):needs="X11|text|vc|wm" section="Applications/Viewers"\
+  title="Cool Reader 3" command="/usr/bin/cr3" \
+  hints="Viewers" \
+  icon="/usr/share/pixmaps/cr3.xpm"
