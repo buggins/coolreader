@@ -1,0 +1,19 @@
+[Desktop Entry]
+Name=CoolReader3
+GenericName=E-book reader
+GenericName[bg]=Четене на електронни книги
+GenericName[cs]=Čtečka e-knih
+GenericName[de]=E-Book lesen
+GenericName[hu]=E-könyv olvasó
+GenericName[pl]=Czytnik e-booków
+GenericName[ru]=Чтение электронных книг
+GenericName[zh]=电子书阅读器
+GenericName[de]=E-Book lesen
+TryExec=cr3
+Exec=cr3 %F
+StartupNotify=true
+Terminal=false
+Type=Application
+Icon=cr3.png
+Categories=Office;Viewer;Literature;
+MimeType=application/epub+zip;application/x-fictionbook+xml;application/x-zip-compressed-fb2;text/html;application/xhtml+xml;text/plain;application/x-psion-compressed-text;application/rtf;application/zip;application/x-chm;
