@@ -112,6 +112,7 @@ INSTALL( DIRECTORY data/skins DESTINATION share/cr3/skins )
 INSTALL( FILES ${QM_FILES} DESTINATION share/cr3/i18n )
 INSTALL( FILES src/desktop/cr3.desktop DESTINATION share/applications )
 INSTALL( FILES src/desktop/cr3.png DESTINATION share/pixmaps )
+INSTALL( FILES src/desktop/cr3.xpm DESTINATION share/pixmaps )
 
 ELSE()
 
