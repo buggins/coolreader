@@ -1,0 +1,2 @@
+?package(cr3):needs="X11|text|vc|wm" section="Applications/see-menu-manual"\
+  title="cr3" command="/usr/bin/cr3"

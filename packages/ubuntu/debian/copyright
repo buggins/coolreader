@@ -1,0 +1,25 @@
+This work was packaged for Debian by:
+
+    Vadim Lopatin <buggins@fromru.com> on Mon, 06 Sep 2010 11:04:49 +0400
+
+It was downloaded from http://sourceforge.net/projects/crengine/
+
+Upstream Author(s):
+
+    Vadim Lopatin <buggins@fromru.com>
+
+Copyright:
+
+    Copyright (C) 2010 Vadim Lopatin <buggins@fromru.com>
+
+License:
+
+    GPL2
+
+The Debian packaging is:
+
+    Copyright (C) 2010 Vadim Lopatin <buggins@fromru.com>
+
+and is licensed under the GPL version 3, 
+see `/usr/share/common-licenses/GPL-3'.
+
