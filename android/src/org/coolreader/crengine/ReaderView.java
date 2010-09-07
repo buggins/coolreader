@@ -22,31 +22,31 @@ import android.view.View;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
-class ReaderView extends View {
+public class ReaderView extends View {
     private Bitmap mBitmap;
 
     /* implementend by libcr3engine.so */
-    private static native void getPageImage(Bitmap bitmap);
+    //private static native void getPageImage(Bitmap bitmap);
 
-    public PlasmaView(Context context) {
+    public ReaderView(Context context) {
         super(context);
 
         final int W = 200;
         final int H = 200;
 
-        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.RGBA_8888);
-        mStartTime = System.currentTimeMillis();
+        
+        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
     }
 
     @Override protected void onDraw(Canvas canvas) {
-        //canvas.drawColor(0xFFCCCCCC);
-        getPageImage(mBitmap, System.currentTimeMillis() - mStartTime);
+        //getPageImage(mBitmap);
+        
         canvas.drawBitmap(mBitmap, 0, 0, null);
-        // force a redraw, with a different time-based pattern.
+
         invalidate();
     }
     /* load our native library */
     static {
-        System.loadLibrary("cr3engine");
+        //System.loadLibrary("cr3engine");
     }
 }
