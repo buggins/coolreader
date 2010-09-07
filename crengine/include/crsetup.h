@@ -64,7 +64,9 @@
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
 #define USE_FREETYPE                         1
+#ifndef ANDROID
 #define USE_FONTCONFIG						 1
+#endif
 #define ALLOW_KERNING                        1
 #define GLYPH_CACHE_SIZE                     0x40000
 #define ZIP_STREAM_BUFFER_SIZE               0x40000

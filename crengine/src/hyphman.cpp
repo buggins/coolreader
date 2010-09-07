@@ -33,7 +33,18 @@
 #include "../include/hyphman.h"
 #include "../include/lvfnt.h"
 #include "../include/lvstring.h"
+
+
+#ifdef ANDROID
+
+#define _16(x) lString16(x)
+
+#else
+
 #include "../include/cri18n.h"
+
+#endif
+
 
 HyphDictionary * HyphMan::_selectedDictionary = NULL;
 

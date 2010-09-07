@@ -31,9 +31,15 @@
 
 //#include <ft2build.h>
 
+#ifdef ANDROID
+#include "freetype/config/ftheader.h"
+#include "freetype/freetype.h"
+#else
+
 #include <freetype/config/ftheader.h>
 //#include FT_FREETYPE_H
 #include <freetype/freetype.h>
+#endif
 
 #if (USE_FONTCONFIG==1)
     #include <fontconfig/fontconfig.h>
