@@ -32,12 +32,13 @@ e.g., for Ubuntu you may use
 
 Packaging:
 
-packages/ubuntu -- debian package for Ubuntu
-packages/openinkpot -- debian package for OpenInkpot
+Debian based packages included to project:
+packages/ubuntu -- debian package for Ubuntu, with Qt frontend
+packages/openinkpot -- debian package for OpenInkpot, with XCB frontend
 
-To build package, make symlink:
-ln -s packages/ubuntu/debian debian
-
+To build debian package, copy one of package descriptions from packages directory:
+cp -r packages/ubuntu/debian debian
+Then, package can be built using `debuild` command.
 
 Build instructions:
 
