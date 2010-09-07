@@ -13,7 +13,7 @@
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_CRView_renderPlasma(JNIEnv * env, jobject  obj, jobject bitmap,  jlong  time_ms)
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_CRView_getPageImage(JNIEnv * env, jobject  obj, jobject bitmap)
 {
     AndroidBitmapInfo  info;
     void*              pixels;
