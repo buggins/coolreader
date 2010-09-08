@@ -24,7 +24,7 @@ public class ReaderView extends View {
     private Bitmap mBitmap;
 
     /* implementend by libcr3engine.so */
-    //private static native void getPageImage(Bitmap bitmap);
+    private static native void getPageImage(Bitmap bitmap);
 
     public ReaderView(Context context) {
         super(context);
