@@ -19,6 +19,7 @@ import android.content.Context;
 import android.view.View;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 
 public class ReaderView extends View {
     private Bitmap mBitmap;
@@ -34,10 +35,11 @@ public class ReaderView extends View {
 
         
         mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
+        mBitmap.eraseColor(Color.BLUE);
     }
 
     @Override protected void onDraw(Canvas canvas) {
-        //getPageImage(mBitmap);
+        getPageImage(mBitmap);
         
         canvas.drawBitmap(mBitmap, 0, 0, null);
 

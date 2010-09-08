@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.coolreader.crengine.ReaderView;
@@ -22,12 +23,13 @@ public class CoolReader extends Activity
 	{
 		File sopath = getDir("libs", Context.MODE_PRIVATE);
 		File soname = new File(sopath, "libcr3engine.so");
-		if ( !soname.exists() ) {
-			try {
-				sopath.mkdirs();
-		    	File zip = new File(getPackageCodePath());
-		    	ZipFile zipfile = new ZipFile(zip);
-		    	InputStream is = zipfile.getInputStream(zipfile.getEntry("lib/armeabi/libcr3engine.so"));
+		try {
+			sopath.mkdirs();
+	    	File zip = new File(getPackageCodePath());
+	    	ZipFile zipfile = new ZipFile(zip);
+	    	ZipEntry zipentry = zipfile.getEntry("lib/armeabi/libcr3engine.so");
+	    	if ( !soname.exists() || zipentry.getSize()!=soname.length() ) {
+		    	InputStream is = zipfile.getInputStream(zipentry);
 				OutputStream os = new FileOutputStream(soname);
 				final int BUF_SIZE = 0x10000;
 				byte[] buf = new byte[BUF_SIZE];
@@ -36,9 +38,9 @@ public class CoolReader extends Activity
 				    os.write(buf, 0, n);
 		        is.close();
 		        os.close();
-			} catch ( IOException e ) {
-		        Log.e("cr3", "exception", e);
-			}
+	    	}
+		} catch ( IOException e ) {
+	        Log.e("cr3", "cannot install cr3engine library", e);
 		}
 		System.load(soname.getAbsolutePath());
 	}

@@ -12,6 +12,7 @@
 #define  LOG_TAG    "libcr3engine"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#define  LOGV(...)  __android_log_print(ANDROID_LOG_VERBOSE,LOG_TAG,__VA_ARGS__)
 
 //====================================================================
 // libjnigraphics replacement for pre-2.2 SDKs 
@@ -91,7 +92,12 @@ int myAndroidBitmap_unlockPixels(JNIEnv* env, jobject jbitmap)
 
 
 
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_CRView_getPageImage(JNIEnv * env, jobject  obj, jobject bitmap)
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getPageImage
+ * Signature: (Landroid/graphics/Bitmap;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImage(JNIEnv * env, jobject  obj, jobject bitmap)
 {
     myAndroidBitmapInfo  info;
     void*              pixels;
@@ -112,9 +118,54 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_CRView_getPageImage(JNIEnv *
         return;
     }
 
-    if ((ret = myAndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
-        LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
-    }
+//    if ((ret = myAndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
+//        LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
+//    }
 
-    myAndroidBitmap_unlockPixels(env, bitmap);
+//    myAndroidBitmap_unlockPixels(env, bitmap);
 }
+
+#if 1
+
+/*
+ * Register native JNI-callable methods.
+ *
+ * "className" looks like "java/lang/String".
+ */
+static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
+    const JNINativeMethod* gMethods, int numMethods)
+{
+    jclass clazz;
+
+    LOGV("Registering %s natives\n", className);
+    clazz = env->FindClass(className);
+    if (clazz == NULL) {
+        LOGE("Native registration unable to find class '%s'\n", className);
+        return -1;
+    }
+    if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
+        LOGE("RegisterNatives failed for '%s'\n", className);
+        return -1;
+    }
+    return 0;
+}
+
+
+static  JNINativeMethod sMethods[] = {
+  /* name, signature, funcPtr */
+  {"getPageImage", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_ReaderView_getPageImage},
+};
+ 
+jint JNI_OnLoad(JavaVM* vm, void* reserved)
+{
+   JNIEnv* env = NULL;
+   jint result = -1;
+ 
+   if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+      return result;
+   }
+ 
+   jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sMethods, 1);
+   return JNI_VERSION_1_4;
+}
+#endif
