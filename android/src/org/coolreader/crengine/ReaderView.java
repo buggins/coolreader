@@ -15,11 +15,14 @@
  */
 package org.coolreader.crengine;
 
+import java.nio.IntBuffer;
+
 import android.content.Context;
-import android.view.View;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.util.Log;
+import android.view.View;
 
 public class ReaderView extends View {
     private Bitmap mBitmap;
@@ -39,9 +42,19 @@ public class ReaderView extends View {
     }
 
     @Override protected void onDraw(Canvas canvas) {
-        getPageImage(mBitmap);
-        
-        canvas.drawBitmap(mBitmap, 0, 0, null);
+    	try {
+	        getPageImage(mBitmap);
+	        int[] pixels = new int[mBitmap.getRowBytes()*mBitmap.getHeight()/4];
+	        for ( int i=0; i<pixels.length; i++ ) {
+	        	pixels[i] = 0xFF000000 + i;
+	        }
+	        //{Color.RED, Color.CYAN};
+	        IntBuffer testBuf = IntBuffer.wrap(pixels);
+	        mBitmap.copyPixelsFromBuffer(testBuf);
+	        canvas.drawBitmap(mBitmap, 0, 0, null);
+    	} catch ( Exception e ) {
+    		Log.e("cr3", "exception while drawing", e);
+    	}
 
         invalidate();
     }

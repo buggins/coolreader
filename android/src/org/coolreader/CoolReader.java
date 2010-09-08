@@ -3,6 +3,7 @@ package org.coolreader;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,6 +15,7 @@ import org.coolreader.crengine.ReaderView;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 
 public class CoolReader extends Activity
@@ -43,6 +45,14 @@ public class CoolReader extends Activity
 	        Log.e("cr3", "cannot install cr3engine library", e);
 		}
 		System.load(soname.getAbsolutePath());
+		String[] fileList = new File( Environment.getRootDirectory(), "fonts").list(
+				new FilenameFilter()
+		{ public boolean  accept(File  dir, String  filename)
+			{
+				return true; //filename.endsWith(".ttf");
+			}
+			});
+		System.out.println(fileList);
 	}
 	
     /** Called when the activity is first created. */
