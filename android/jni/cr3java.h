@@ -13,10 +13,11 @@ private:
 	JNIEnv * env;
 public:
     CRJNIEnv(JNIEnv * pEnv) : env(pEnv) { }
+    JNIEnv * operator -> () { return env; }
 	lString16 fromJavaString( jstring str );
 	jstring toJavaString( const lString16 & str );
-	void fromJavaStringArray( jarray array, lString16Collection & dst );
-	jarray toJavaStringArray( lString16Collection & dst );
+	void fromJavaStringArray( jobjectArray array, lString16Collection & dst );
+	jobjectArray toJavaStringArray( lString16Collection & dst );
 };
 
 #endif

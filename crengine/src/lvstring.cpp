@@ -2929,7 +2929,7 @@ void CRLog::setLogLevel( CRLog::log_level level )
 {
     if ( !CRLOG )
         return;
-    warn( "Changing log level from %d to %d", CRLOG->curr_level, level );
+    warn( "Changing log level from %d to %d", (int)CRLOG->curr_level, (int)level );
     CRLOG->curr_level = level;
 }
 

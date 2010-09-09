@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import java.io.IOException;
+
 /**
  * CoolReader Engine class.
  *
@@ -10,15 +12,27 @@ public class Engine {
 	/**
 	 * Initialize CoolReader Engine
 	 * @param fontList is array of .ttf font pathnames to load
-	 * @param hyphDir is directory containing hyphenation data
 	 */
-	public Engine( String[] fontList, String hyphDir )
+	public Engine( String[] fontList ) throws IOException
 	{
 		if ( initialized )
 			throw new IllegalStateException("Already initialized");
+		if ( !initInternal( fontList ) )
+			throw new IOException("Cannot initialize CREngine JNI");
 		initialized = true;
 	}
 
+	private native boolean initInternal( String[] fontList );
+	private native void uninitInternal();
+	private native String[] getFontFaceListInternal();
+	
+	public String[] getFontFaceList()
+	{
+		if ( !initialized )
+			throw new IllegalStateException("CREngine is not initialized");
+		return getFontFaceListInternal();
+	}
+	
 	/**
 	 * Uninitialize engine.
 	 */
@@ -26,15 +40,16 @@ public class Engine {
 	{
 		if ( !initialized )
 			throw new IllegalStateException("Not initialized");
+		uninitInternal();
 		initialized = false;
 	}
-	
-	static private boolean initialized = false;
 	
 	protected void finalize() throws Throwable
 	{
 		if ( initialized )
 			uninit();
 	}
+	
+	static private boolean initialized = false;
 	
 }

@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.ReaderView;
 
 import android.app.Activity;
@@ -33,6 +34,7 @@ public class CoolReader extends Activity
 	    	if ( !soname.exists() || zipentry.getSize()!=soname.length() ) {
 		    	InputStream is = zipfile.getInputStream(zipentry);
 				OutputStream os = new FileOutputStream(soname);
+		        Log.i("cr3", "Installing JNI library " + soname.getAbsolutePath());
 				final int BUF_SIZE = 0x10000;
 				byte[] buf = new byte[BUF_SIZE];
 				int n;
@@ -40,26 +42,53 @@ public class CoolReader extends Activity
 				    os.write(buf, 0, n);
 		        is.close();
 		        os.close();
+	    	} else {
+		        Log.i("cr3", "JNI library " + soname.getAbsolutePath() + " is up to date");
 	    	}
-		} catch ( IOException e ) {
+			System.load(soname.getAbsolutePath());
+		} catch ( Exception e ) {
 	        Log.e("cr3", "cannot install cr3engine library", e);
 		}
-		System.load(soname.getAbsolutePath());
-		String[] fileList = new File( Environment.getRootDirectory(), "fonts").list(
+	}
+	
+	private String[] findFonts()
+	{
+		File fontDir = new File( Environment.getRootDirectory(), "fonts");
+		// get font names
+		String[] fileList = fontDir.list(
 				new FilenameFilter()
 		{ public boolean  accept(File  dir, String  filename)
 			{
-				return true; //filename.endsWith(".ttf");
+				return filename.endsWith(".ttf");
 			}
 			});
-		System.out.println(fileList);
+		// append path
+		for ( int i=0; i<fileList.length; i++ ) {
+			fileList[i] = new File(fontDir, fileList[i]).getAbsolutePath();
+			Log.v("cr3", "found font: " + fileList[i]);
+		}
+		return fileList;
 	}
+	
+	Engine engine;
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
     	installLibrary();
+    	String[] fonts = findFonts();
+    	try {
+    		Log.v("cr3", "Creating engine");
+    		engine = new Engine( fonts );
+    		Log.v("cr3", "Requesting font face list");
+    		String[] faces = engine.getFontFaceList();
+    		Log.v("cr3", "Font face list: " + faces);
+    	} catch ( IOException e ) {
+    		Log.e("cr3", "CREngine init failed", e);
+    		
+    		throw new RuntimeException("CREngine init failed");
+    	}
         super.onCreate(savedInstanceState);
         setContentView(new ReaderView(this));
     }
