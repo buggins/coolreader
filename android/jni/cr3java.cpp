@@ -5,8 +5,6 @@ lString16 CRJNIEnv::fromJavaString( jstring str )
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars( str, &iscopy );
 	lString16 res(s);
-	CRLog::trace("fromJavaString() = %s", s);
-	CRLog::trace("fromJavaString2() = %s", LCSTR(res));
 	env->ReleaseStringUTFChars(str, s);
 	return res;
 }

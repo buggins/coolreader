@@ -59,7 +59,7 @@ public class CoolReader extends Activity
 				new FilenameFilter()
 		{ public boolean  accept(File  dir, String  filename)
 			{
-				return filename.endsWith(".ttf");
+				return filename.endsWith(".ttf") && !filename.endsWith("Fallback.ttf");
 			}
 			});
 		// append path
@@ -83,7 +83,8 @@ public class CoolReader extends Activity
     		engine = new Engine( fonts );
     		Log.v("cr3", "Requesting font face list");
     		String[] faces = engine.getFontFaceList();
-    		Log.v("cr3", "Font face list: " + faces);
+    		for ( String face : faces )
+    			Log.v("cr3", "* font face: " + face);
     	} catch ( IOException e ) {
     		Log.e("cr3", "CREngine init failed", e);
     		

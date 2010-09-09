@@ -4,7 +4,10 @@
 #include <jni.h>
 #include <time.h>
 #include <android/log.h>
-//#include <android/bitmap.h>
+
+#ifdef USE_JNIGRAPHICS
+#include <android/bitmap.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +25,7 @@
 #define  LOGV(...)  __android_log_print(ANDROID_LOG_VERBOSE,LOG_TAG,__VA_ARGS__)
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
 
+#ifndef USE_JNIGRAPHICS
 //====================================================================
 // libjnigraphics replacement for pre-2.2 SDKs 
 #define ANDROID_BITMAP_RESUT_SUCCESS            0
@@ -43,30 +47,38 @@ typedef struct {
     uint32_t    stride;
     int32_t     format;
 //    uint32_t    flags;      // 0 for now
-} myAndroidBitmapInfo;
+} AndroidBitmapInfo;
 
 /**
  * Given a java bitmap object, fill out the AndroidBitmap struct for it.
  * If the call fails, the info parameter will be ignored
  */
-int myAndroidBitmap_getInfo(JNIEnv* env, jobject jbitmap,
-                          myAndroidBitmapInfo* info)
+int AndroidBitmap_getInfo(JNIEnv* env, jobject jbitmap,
+                          AndroidBitmapInfo* info)
 {
 	jclass cls = env->GetObjectClass(jbitmap);
 	jmethodID mid;
 	mid = env->GetMethodID(cls,	"getHeight", "()I");
 	info->height = env->CallIntMethod(jbitmap, mid);	
+	CRLog::debug("Bitmap height: %d", info->height);
 	mid = env->GetMethodID(cls,	"getWidth", "()I");
 	info->width = env->CallIntMethod(jbitmap, mid);	
+	CRLog::debug("Bitmap width: %d", info->width);
 	mid = env->GetMethodID(cls,	"getRowBytes", "()I");
 	info->stride = env->CallIntMethod(jbitmap, mid);	
+	CRLog::debug("Bitmap stride: %d", info->stride);
 	mid = env->GetMethodID(cls,	"getConfig", "()Landroid/graphics/Bitmap$Config;");
 	jobject configObj = env->CallObjectMethod(jbitmap, mid);	
 	jclass configCls = env->GetObjectClass(configObj);
-	mid = env->GetMethodID(configCls, "ordinal", "()I");
-	info->width = env->CallIntMethod(configObj, mid);
+	//mid = env->GetMethodID(configCls, "ordinal", "()I");
+	//info->format = env->CallIntMethod(configObj, mid);
+	jfieldID fid;
+	fid = env->GetFieldId(configCls, "nativeInt", "I");
+	info->format = env->GetIntField(env, configObj, fid)
+	CRLog::debug("Bitmap format: %d", info->format);
 	return ANDROID_BITMAP_RESUT_SUCCESS;	
 }
+#endif
 
 /**
  * Given a java bitmap object, attempt to lock the pixel address.
@@ -144,7 +156,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 	CRLog::setLogger( new JNICDRLogger() );
 	CRLog::setLogLevel( CRLog::LL_TRACE );
 	CRLog::info("CREngine log redirected");
-	LOGI("creating font manager");
+	CRLog::info("creating font manager");
 	InitFontManager(lString8());
 	CRLog::debug("converting fonts array: %d items", (int)env->GetArrayLength(fontArray));
 	lString16Collection fonts;
@@ -155,9 +167,9 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 		lString8 fontName = UnicodeToUtf8(fonts[i]);
 		CRLog::debug("registering font %s", fontName.c_str());
 		if ( !fontMan->RegisterFont( fontName ) )
-			LOGE("cannot load font %s", fontName.c_str());
+			CRLog::error("cannot load font %s", fontName.c_str());
 	}
-	LOGI("%d fonts registered", (int)fontMan->GetFontCount());
+	CRLog::info("%d fonts registered", (int)fontMan->GetFontCount());
 	return fontMan->GetFontCount() ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -198,7 +210,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImage
   (JNIEnv * env, jclass cls, jobject bitmap)
 {
-    myAndroidBitmapInfo  info;
+    AndroidBitmapInfo  info;
     void*              pixels;
     int                ret;
     static int         init;
@@ -207,13 +219,13 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImage
         init = 1;
     }
 
-    if ((ret = myAndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
-        LOGE("AndroidBitmap_getInfo() failed ! error=%d", ret);
+    if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+        CRLog::error("AndroidBitmap_getInfo() failed ! error=%d", ret);
         return;
     }
 
     if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
-        LOGE("Bitmap format is not RGBA_8888, it's %d !", info.format);
+        CRLog::error("Bitmap format is not RGBA_8888, it's %d !", info.format);
         return;
     }
 

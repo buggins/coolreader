@@ -56,7 +56,7 @@ public class ReaderView extends View {
     		Log.e("cr3", "exception while drawing", e);
     	}
 
-        invalidate();
+        //invalidate();
     }
     /* load our native library */
     static {
