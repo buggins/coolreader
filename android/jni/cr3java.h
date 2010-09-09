@@ -15,6 +15,7 @@
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
 
 #include "lvstring.h"
+#include "lvdrawbuf.h"
 
 //====================================================================
 #ifdef USE_JNIGRAPHICS
@@ -55,8 +56,12 @@ private:
     jintArray array; 
 #endif
 public:
-    void setRowRGB( int y, lUInt32 * rgb, int dx ); 
-    void setRowGray( int y, lUInt8 * gray, int dx, int bpp ); 
+	int getWidth() { return width; }
+	int getHeight() { return height; }
+	int getFormat() { return format; }
+    void draw(LVDrawBuf * buf, int x, int y); 
+    void setRowRGB( int x, int y, lUInt32 * rgb, int dx ); 
+    void setRowGray( int x, int y, lUInt8 * gray, int dx, int bpp ); 
 	bool isOk();
 	BitmapAccessor( JNIEnv * pEnv, jobject bmp );
 	~BitmapAccessor();

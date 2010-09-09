@@ -93,4 +93,15 @@ public class CoolReader extends Activity
         super.onCreate(savedInstanceState);
         setContentView(new ReaderView(this));
     }
+
+	@Override
+	protected void onDestroy() {
+		if ( engine!=null ) {
+			engine.uninit();
+			engine = null;
+		}
+			
+		// TODO Auto-generated method stub
+		super.onDestroy();
+	}
 }

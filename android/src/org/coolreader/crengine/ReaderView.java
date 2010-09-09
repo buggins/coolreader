@@ -44,18 +44,17 @@ public class ReaderView extends View {
     @Override protected void onDraw(Canvas canvas) {
     	try {
 	        getPageImage(mBitmap);
-	        int[] pixels = new int[mBitmap.getRowBytes()*mBitmap.getHeight()/4];
-	        for ( int i=0; i<pixels.length; i++ ) {
-	        	pixels[i] = 0xFF000000 + i;
-	        }
-	        //{Color.RED, Color.CYAN};
-	        IntBuffer testBuf = IntBuffer.wrap(pixels);
-	        mBitmap.copyPixelsFromBuffer(testBuf);
+//	        int[] pixels = new int[mBitmap.getRowBytes()*mBitmap.getHeight()/4];
+//	        for ( int i=0; i<pixels.length; i++ ) {
+//	        	pixels[i] = 0xFF000000 + i;
+//	        }
+//	        //{Color.RED, Color.CYAN};
+//	        IntBuffer testBuf = IntBuffer.wrap(pixels);
+//	        mBitmap.copyPixelsFromBuffer(testBuf);
 	        canvas.drawBitmap(mBitmap, 0, 0, null);
     	} catch ( Exception e ) {
     		Log.e("cr3", "exception while drawing", e);
     	}
-
         //invalidate();
     }
     /* load our native library */
