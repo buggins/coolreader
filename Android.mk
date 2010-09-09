@@ -10,6 +10,7 @@ LOCAL_MODULE    := cr3engine
 CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH -DFT2_BUILD_LIBRARY=1
 
 LOCAL_C_INCLUDES := \
+    -I $(LOCAL_PATH)/crengine/include \
     -I $(LOCAL_PATH)/thirdparty/libpng \
     -I $(LOCAL_PATH)/thirdparty/freetype/include \
     -I $(LOCAL_PATH)/thirdparty/libjpeg \
@@ -161,7 +162,8 @@ CHM_SRC_FILES := \
     thirdparty/chmlib/src/lzx.c 
 
 JNI_SRC_FILES := \
-    android/jni/cr3engine.cpp
+    android/jni/cr3engine.cpp \
+    android/jni/cr3java.cpp
 
 LOCAL_SRC_FILES := \
     $(JNI_SRC_FILES) \
