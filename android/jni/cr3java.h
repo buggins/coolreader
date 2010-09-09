@@ -6,10 +6,33 @@
 #define CR3_JAVA_H
 
 #include <jni.h>
+#include <android/log.h>
+
+#define  LOG_TAG    "cr3eng"
+#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#define  LOGV(...)  __android_log_print(ANDROID_LOG_VERBOSE,LOG_TAG,__VA_ARGS__)
+#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
+
 #include "lvstring.h"
 
+//====================================================================
+#ifdef USE_JNIGRAPHICS
+#include <android/bitmap.h>
+#else
+// libjnigraphics replacement for pre-2.2 SDKs 
+enum AndroidBitmapFormat {
+    ANDROID_BITMAP_FORMAT_NONE      = 0,
+    ANDROID_BITMAP_FORMAT_RGBA_8888 = 1,
+    ANDROID_BITMAP_FORMAT_RGB_565   = 4,
+    ANDROID_BITMAP_FORMAT_RGBA_4444 = 7,
+    ANDROID_BITMAP_FORMAT_A_8       = 8,
+};
+#endif
+//====================================================================
+
 class CRJNIEnv {
-private:
+protected:
 	JNIEnv * env;
 public:
     CRJNIEnv(JNIEnv * pEnv) : env(pEnv) { }
@@ -18,6 +41,25 @@ public:
 	jstring toJavaString( const lString16 & str );
 	void fromJavaStringArray( jobjectArray array, lString16Collection & dst );
 	jobjectArray toJavaStringArray( lString16Collection & dst );
+};
+
+class BitmapAccessor : public CRJNIEnv {
+private:
+    jobject bitmap;
+	int width;
+	int height;
+	int format;
+	int stride;
+	lUInt8 * pixels;
+#ifndef USE_JNIGRAPHICS
+    jintArray array; 
+#endif
+public:
+    void setRowRGB( int y, lUInt32 * rgb, int dx ); 
+    void setRowGray( int y, lUInt8 * gray, int dx, int bpp ); 
+	bool isOk();
+	BitmapAccessor( JNIEnv * pEnv, jobject bmp );
+	~BitmapAccessor();
 };
 
 #endif
