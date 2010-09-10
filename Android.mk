@@ -163,7 +163,8 @@ CHM_SRC_FILES := \
 
 JNI_SRC_FILES := \
     android/jni/cr3engine.cpp \
-    android/jni/cr3java.cpp
+    android/jni/cr3java.cpp \
+    android/jni/readerview.cpp
 
 LOCAL_SRC_FILES := \
     $(JNI_SRC_FILES) \

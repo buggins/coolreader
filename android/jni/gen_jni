@@ -1,0 +1,4 @@
+cd ../bin
+javah -d ../jni org.coolreader.crengine.Engine
+javah -d ../jni org.coolreader.crengine.ReaderView
+

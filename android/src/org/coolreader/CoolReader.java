@@ -91,7 +91,7 @@ public class CoolReader extends Activity
     		throw new RuntimeException("CREngine init failed");
     	}
         super.onCreate(savedInstanceState);
-        setContentView(new ReaderView(this));
+        setContentView(new ReaderView(this, engine));
     }
 
 	@Override
