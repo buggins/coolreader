@@ -25,74 +25,74 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_createInternal
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    loadDocument
+ * Method:    loadDocumentInternal
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocument
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentInternal
   (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    getSettings
+ * Method:    getSettingsInternal
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_getSettings
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
   (JNIEnv *, jobject);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    applySettings
+ * Method:    applySettingsInternal
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettingsInternal
   (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    readHistory
+ * Method:    readHistoryInternal
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistory
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistoryInternal
   (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    writeHistory
+ * Method:    writeHistoryInternal
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistory
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryInternal
   (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    setStylesheet
+ * Method:    setStylesheetInternal
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheet
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInternal
   (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    resize
+ * Method:    resizeInternal
  * Signature: (II)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resize
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
   (JNIEnv *, jobject, jint, jint);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    doCommand
+ * Method:    doCommandInternal
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommand
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInternal
   (JNIEnv *, jobject, jint);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    getState
+ * Method:    getStateInternal
  * Signature: ()Lorg/coolreader/crengine/ReaderView/DocumentInfo;
  */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getState
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getStateInternal
   (JNIEnv *, jobject);
 
 #ifdef __cplusplus

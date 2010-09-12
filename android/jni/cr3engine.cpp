@@ -122,18 +122,17 @@ static JNINativeMethod sEngineMethods[] = {
 
 static JNINativeMethod sReaderViewMethods[] = {
   /* name, signature, funcPtr */
-  {"getPageImage", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_ReaderView_getPageImage},
   {"createInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_createInternal},
   {"getPageImage", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_ReaderView_getPageImage},
-  {"loadDocument", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_loadDocument},
-  {"getSettings", "()Ljava/lang/String;", (void*)Java_org_coolreader_crengine_ReaderView_getSettings},
-  {"applySettings", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_applySettings},
-  {"readHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_readHistory},
-  {"writeHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_writeHistory},
-  {"setStylesheet", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_ReaderView_setStylesheet},
-  {"resize", "(II)V", (void*)Java_org_coolreader_crengine_ReaderView_resize},
-  {"doCommand", "(I)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommand},
-  {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getState},
+  {"loadDocument", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_loadDocumentInternal},
+  {"getSettings", "()Ljava/lang/String;", (void*)Java_org_coolreader_crengine_ReaderView_getSettingsInternal},
+  {"applySettings", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_applySettingsInternal},
+  {"readHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_readHistoryInternal},
+  {"writeHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_writeHistoryInternal},
+  {"setStylesheet", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_ReaderView_setStylesheetInternal},
+  {"resize", "(II)V", (void*)Java_org_coolreader_crengine_ReaderView_resizeInternal},
+  {"doCommand", "(I)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommandInternal},
+  {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getStateInternal},
 };
  
 /*

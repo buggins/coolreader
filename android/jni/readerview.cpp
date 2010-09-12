@@ -71,7 +71,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImage
  * Method:    loadDocument
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocument
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentInternal
   (JNIEnv * _env, jobject _this, jstring s)
 {
 	CRJNIEnv env(_env);
@@ -86,7 +86,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocument
  * Method:    getSettings
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_getSettings
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
   (JNIEnv *, jobject)
 {
     return NULL;
@@ -97,7 +97,7 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_getSettings
  * Method:    applySettings
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettingsInternal
   (JNIEnv *, jobject, jstring)
 {
     return false;
@@ -108,7 +108,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
  * Method:    readHistory
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistory
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistoryInternal
   (JNIEnv *, jobject, jstring)
 {
     return false;
@@ -119,7 +119,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistory
  * Method:    writeHistory
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistory
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryInternal
   (JNIEnv *, jobject, jstring)
 {
     return false;
@@ -130,7 +130,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistory
  * Method:    setStylesheet
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheet
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInternal
   (JNIEnv *, jobject, jstring)
 {
 }
@@ -140,9 +140,11 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheet
  * Method:    resize
  * Signature: (II)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resize
-  (JNIEnv *, jobject, jint, jint)
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
+  (JNIEnv * _env, jobject _this, jint dx, jint dy)
 {
+    ReaderViewNative * p = getNative(_env, _this);
+    p->_docview->Resize(dx, dy);
 }  
   
 
@@ -151,10 +153,12 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resize
  * Method:    doCommand
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommand
-  (JNIEnv *, jobject, jint)
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInternal
+  (JNIEnv * _env, jobject _this, jint cmd)
 {
-    return false;
+    ReaderViewNative * p = getNative(_env, _this);
+    p->_docview->doCommand((LVDocCmd)cmd, 0);
+    return true;
 }
 
 /*
@@ -162,7 +166,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommand
  * Method:    getState
  * Signature: ()Lorg/coolreader/crengine/ReaderView/DocumentInfo;
  */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getState
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getStateInternal
   (JNIEnv *, jobject)
 {
     return NULL;
