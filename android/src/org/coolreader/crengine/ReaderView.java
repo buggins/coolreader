@@ -24,7 +24,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Environment;
-import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -128,13 +127,6 @@ public class ReaderView extends View {
     
     private final Engine engine;
 
-    
-    
-    @Override
-	public boolean dispatchKeyEvent(KeyEvent event) {
-		// TODO Auto-generated method stub
-		return super.dispatchKeyEvent(event);
-	}
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
@@ -171,7 +163,7 @@ public class ReaderView extends View {
 			public void run() {
 				boolean res = doCommandInternal(cmd.nativeId, param);
 				if ( res )
-					handler.post(new Runnable() {
+					post(new Runnable() {
 						public void run() {
 							drawPage();
 						}
@@ -182,7 +174,6 @@ public class ReaderView extends View {
 	}
 	
 	ExecutorService executor = Executors.newFixedThreadPool(1);
-	Handler handler = new Handler();
 	boolean initialized = false;
 	boolean opened = false;
 	
@@ -231,9 +222,9 @@ public class ReaderView extends View {
 				engine.init();
 				createInternal();
 				doCommandInternal(ReaderCommand.DCMD_ZOOM_OUT.nativeId, 5);
-				handler.post(new InitializationFinishedEvent());
+				post(new InitializationFinishedEvent());
 			} catch ( Exception e ) {
-				handler.post(new FatalErrorEvent("Error while initialization of CoolReader engine"));
+				post(new FatalErrorEvent("Error while initialization of CoolReader engine"));
 			}
 		}
 	}
@@ -259,7 +250,7 @@ public class ReaderView extends View {
 			final Bitmap bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
 	        bitmap.eraseColor(Color.BLUE);
 	        getPageImage(bitmap);
-	        handler.post(new Runnable() {
+	        post(new Runnable() {
 	        	public void run() {
 					Log.e("cr3", "drawPage : replacing bitmap");
 	        		mBitmap = bitmap;
@@ -319,7 +310,7 @@ public class ReaderView extends View {
 	        } else {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
 	        }
-	        handler.post(new LoadFinishedEvent(success));
+	        post(new LoadFinishedEvent(success));
 		}
 	}
 	
@@ -340,6 +331,8 @@ public class ReaderView extends View {
     {
         super(context);
         this.engine = engine;
+        setFocusable(true);
+        setFocusableInTouchMode(true);
         executor.execute(new InitEngineTask());
     }
 
