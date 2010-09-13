@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -177,6 +178,29 @@ public class ReaderView extends View {
 	boolean initialized = false;
 	boolean opened = false;
 	
+	ProgressDialog progressDlg;
+	void setProgress( int progress )
+	{
+		if ( progress==10000 ) {
+			if ( progressDlg!=null )
+				progressDlg.dismiss();
+			progressDlg = null;
+		} else if ( progress>=0 && progress<10000 ) {
+			if ( progressDlg==null )
+				progressDlg = ProgressDialog.show(getContext(), "Please wait", "Initializing engine");
+			progressDlg.setProgress(progress);
+		}
+	}
+
+	void postProgress( final int progress )
+	{
+		post( new Runnable() {
+			public void run() {
+				setProgress(progress);
+			}
+		});
+	}
+	
 	
 	class InitializationFinishedEvent implements Runnable
 	{
@@ -254,6 +278,7 @@ public class ReaderView extends View {
 	        	public void run() {
 					Log.e("cr3", "drawPage : replacing bitmap");
 	        		mBitmap = bitmap;
+	        		setProgress(10000);
 	        		invalidate();
 	        	}
 	        });
@@ -303,6 +328,7 @@ public class ReaderView extends View {
 
 		public void run() {
 			Log.i("cr3", "Loading document " + filename);
+			postProgress(1000);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
@@ -311,6 +337,7 @@ public class ReaderView extends View {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
 	        }
 	        post(new LoadFinishedEvent(success));
+			postProgress(5000);
 		}
 	}
 	
@@ -333,6 +360,7 @@ public class ReaderView extends View {
         this.engine = engine;
         setFocusable(true);
         setFocusableInTouchMode(true);
+        setProgress(0);
         executor.execute(new InitEngineTask());
     }
 
