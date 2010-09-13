@@ -151,13 +151,13 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    doCommand
- * Signature: (I)Z
+ * Signature: (II)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInternal
-  (JNIEnv * _env, jobject _this, jint cmd)
+  (JNIEnv * _env, jobject _this, jint cmd, jint param)
 {
     ReaderViewNative * p = getNative(_env, _this);
-    p->_docview->doCommand((LVDocCmd)cmd, 0);
+    p->_docview->doCommand((LVDocCmd)cmd, param);
     return true;
 }
 

@@ -131,7 +131,7 @@ static JNINativeMethod sReaderViewMethods[] = {
   {"writeHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_writeHistoryInternal},
   {"setStylesheet", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_ReaderView_setStylesheetInternal},
   {"resize", "(II)V", (void*)Java_org_coolreader_crengine_ReaderView_resizeInternal},
-  {"doCommand", "(I)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommandInternal},
+  {"doCommand", "(II)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommandInternal},
   {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getStateInternal},
 };
  

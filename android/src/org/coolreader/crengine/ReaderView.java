@@ -16,13 +16,15 @@
 package org.coolreader.crengine;
 
 import java.io.File;
-import java.nio.IntBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -119,7 +121,7 @@ public class ReaderView extends View {
     private native boolean writeHistoryInternal( String filename );
     private native void setStylesheetInternal( String stylesheet );
     private native void resizeInternal( int dx, int dy );
-    private native boolean doCommandInternal( int command );
+    private native boolean doCommandInternal( int command, int param );
     private native DocumentInfo getStateInternal();
     
     private int mNativeObject;
@@ -136,13 +138,13 @@ public class ReaderView extends View {
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-        resizeInternal(w, h);
-        mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        mBitmap.eraseColor(Color.BLUE);
+		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
+		executor.execute(new ResizeTask(w,h));
 	}
     
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
 		switch ( keyCode ) {
 		case KeyEvent.KEYCODE_DPAD_DOWN:
 			doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
@@ -162,50 +164,183 @@ public class ReaderView extends View {
 		return true;
 	}
 
-	public boolean doCommand( ReaderCommand cmd, int param )
+	public void doCommand( final ReaderCommand cmd, final int param )
 	{
-		doCommandInternal(cmd.nativeId);
+		Log.d("cr3", "doCommand("+cmd + ", " + param +")");
+		executor.execute(new Runnable() {
+			public void run() {
+				boolean res = doCommandInternal(cmd.nativeId, param);
+				if ( res )
+					handler.post(new Runnable() {
+						public void run() {
+							drawPage();
+						}
+					});
+			}
+		});
 		invalidate();
-		return true;
 	}
 	
+	ExecutorService executor = Executors.newFixedThreadPool(1);
+	Handler handler = new Handler();
+	boolean initialized = false;
+	boolean opened = false;
+	
+	
+	class InitializationFinishedEvent implements Runnable
+	{
+		public void run() {
+			Log.d("cr3", "InitializationFinishedEvent");
+	        File sddir = Environment.getExternalStorageDirectory();
+	        File booksdir = new File( sddir, "books");
+	        File exampleFile = new File( booksdir, "example.fb2");
+			executor.execute(new LoadDocumentTask(exampleFile.getAbsolutePath()));
+			initialized = true;
+		}
+	}
+	
+	class LoadFinishedEvent implements Runnable
+	{
+		boolean success;
+		LoadFinishedEvent( boolean success )
+		{
+			this.success = success;
+		}
+		public void run() {
+			Log.d("cr3", "LoadFinishedEvent");
+			drawPage();
+		}
+	}
+	
+	class FatalErrorEvent implements Runnable
+	{
+		String msg;
+		public FatalErrorEvent( String msg ) {
+			this.msg = msg;
+		}
+		public void run() {
+			Log.e("cr3", "Fatal Error: " + msg);
+			// TODO: close application
+		}
+	}
+	
+	class InitEngineTask implements Runnable
+	{
+		public void run() {
+			try { 
+				engine.init();
+				createInternal();
+				doCommandInternal(ReaderCommand.DCMD_ZOOM_OUT.nativeId, 5);
+				handler.post(new InitializationFinishedEvent());
+			} catch ( Exception e ) {
+				handler.post(new FatalErrorEvent("Error while initialization of CoolReader engine"));
+			}
+		}
+	}
+
+	private int lastDrawTaskId = 0;
+	private class DrawPageTask implements Runnable {
+		final int id;
+		DrawPageTask()
+		{
+			this.id = ++lastDrawTaskId;
+		}
+		public void run() {
+			if ( this.id!=lastDrawTaskId ) {
+				Log.d("cr3", "skipping duplicate drawPage request");
+				return;
+			}
+			Log.e("cr3", "drawPage.run()");
+			if ( internalDX==0 || internalDY==0 ) {
+				internalDX=200;
+				internalDY=200;
+		        resizeInternal(internalDX, internalDY);
+			}
+			final Bitmap bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
+	        bitmap.eraseColor(Color.BLUE);
+	        getPageImage(bitmap);
+	        handler.post(new Runnable() {
+	        	public void run() {
+					Log.e("cr3", "drawPage : replacing bitmap");
+	        		mBitmap = bitmap;
+	        		invalidate();
+	        	}
+	        });
+		}
+	}; 
+	
+	private void drawPage()
+	{
+		if ( !initialized )
+			return;
+		executor.execute( new DrawPageTask() );
+	}
+	
+	private int internalDX = 0;
+	private int internalDY = 0;
+	private int lastResizeTaskId = 0;
+	private class ResizeTask implements Runnable
+	{
+		final int id;
+		final int dx;
+		final int dy;
+		ResizeTask( int dx, int dy )
+		{
+			this.dx = dx;
+			this.dy = dy;
+			this.id = ++lastResizeTaskId; 
+		}
+		public void run() {
+			if ( this.id != lastResizeTaskId ) {
+				Log.d("cr3", "skipping duplicate resize request");
+				return;
+			}
+	        resizeInternal(dx, dy);
+	        internalDX = dx;
+	        internalDY = dy;
+	        drawPage();
+		}
+	}
+	
+	private class LoadDocumentTask implements Runnable
+	{
+		String filename;
+		LoadDocumentTask( String filename )
+		{
+			this.filename = filename;
+		}
+
+		public void run() {
+			Log.i("cr3", "Loading document " + filename);
+	        boolean success = loadDocumentInternal(filename);
+	        if ( success ) {
+				Log.i("cr3", "Document " + filename + " is loaded successfully");
+	        	doCommandInternal(ReaderCommand.DCMD_PAGEDOWN.nativeId, 2);
+	        } else {
+				Log.e("cr3", "Error occured while trying to load document " + filename);
+	        }
+	        handler.post(new LoadFinishedEvent(success));
+		}
+	}
+	
+    @Override 
+    protected void onDraw(Canvas canvas) {
+    	try {
+    		Log.d("cr3", "onDraw() called");
+    		if ( initialized && mBitmap!=null ) {
+        		Log.d("cr3", "onDraw() -- drawing page image");
+    			canvas.drawBitmap(mBitmap, 0, 0, null);
+    		}
+    	} catch ( Exception e ) {
+    		Log.e("cr3", "exception while drawing", e);
+    	}
+    }
+
 	public ReaderView(Context context, Engine engine) 
     {
         super(context);
         this.engine = engine;
-        createInternal();
-       
-        
-        File sddir = Environment.getExternalStorageDirectory();
-        File booksdir = new File( sddir, "books");
-        File exampleFile = new File( booksdir, "example.fb2");
-        loadDocumentInternal(exampleFile.getAbsolutePath());
-        int W = 200;
-        int H = 200;
-        resizeInternal(W, H);
-        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
-        mBitmap.eraseColor(Color.BLUE);
-        doCommand( ReaderCommand.DCMD_PAGEDOWN, 0 );
-        doCommand( ReaderCommand.DCMD_PAGEDOWN, 0 );
-        doCommand( ReaderCommand.DCMD_PAGEDOWN, 0 );
-        doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1 );
-        doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1 );
-        doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1 );
-        doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1 );
-        //doCommand( ReaderCommand.DCMD_PAGEDOWN, 0 );
+        executor.execute(new InitEngineTask());
     }
 
-    @Override protected void onDraw(Canvas canvas) {
-    	try {
-	        getPageImage(mBitmap);
-	        canvas.drawBitmap(mBitmap, 0, 0, null);
-    	} catch ( Exception e ) {
-    		Log.e("cr3", "exception while drawing", e);
-    	}
-        //invalidate();
-    }
-    /* load our native library */
-    static {
-        //System.loadLibrary("cr3engine");
-    }
 }
