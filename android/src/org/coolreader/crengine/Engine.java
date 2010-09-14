@@ -127,6 +127,9 @@ public class Engine {
 	private native boolean initInternal( String[] fontList );
 	private native void uninitInternal();
 	private native String[] getFontFaceListInternal();
+	private native boolean setCacheDirectoryInternal( String dir, int size  );
+	private native boolean setHyphenationDirectoryInternal( String dir);
+	private native String[] getHyphenationDictionaryListInternal();
 	
 	public String[] getFontFaceList()
 	{
@@ -134,6 +137,8 @@ public class Engine {
 			throw new IllegalStateException("CREngine is not initialized");
 		return getFontFaceListInternal();
 	}
+	
+	final int CACHE_DIR_SIZE = 50000000;
 	
 	public void init() throws IOException
 	{
@@ -143,6 +148,8 @@ public class Engine {
     	String[] fonts = findFonts();
 		if ( !initInternal( fonts ) )
 			throw new IOException("Cannot initialize CREngine JNI");
+		File cacheDir = activity.getDir("cache", Context.MODE_PRIVATE);
+		setCacheDirectoryInternal(cacheDir.getAbsolutePath(), CACHE_DIR_SIZE);
 		initialized = true;
 	}
 	

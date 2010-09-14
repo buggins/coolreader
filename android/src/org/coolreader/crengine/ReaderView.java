@@ -16,6 +16,8 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -30,6 +32,7 @@ import android.view.View;
 public class ReaderView extends View {
     private Bitmap mBitmap;
 
+    
     public enum ReaderCommand
     {
     	//definitions from lvdocview.h
@@ -67,27 +70,6 @@ public class ReaderView extends View {
     	}
     }
     
-    public enum DocumentFormat {
-    	/// lvtinydom.h: source document formats
-    	//typedef enum {
-    	NONE,// doc_format_none,
-    	FB2, // doc_format_fb2,
-    	TXT, // doc_format_txt,
-    	RTF, // doc_format_rtf,
-    	EPUB,// doc_format_epub,
-    	HTML,// doc_format_html,
-    	TXT_BOOKMARK, // doc_format_txt_bookmark, // coolreader TXT format bookmark
-    	CHM; //  doc_format_chm,
-  	    // don't forget update getDocFormatName() when changing this enum
-    	//} doc_format_t;
-    	DocumentFormat byId( int i )
-    	{
-    		if ( i>=0 && i<=CHM.ordinal() )
-    			return values()[i];
-    		return null;
-    	}
-    }
-
     private void execute( Engine.EngineTask task )
     {
     	engine.execute(task, this);
@@ -109,6 +91,27 @@ public class ReaderView extends View {
 			// override to do custom action
 			Log.e("cr3", "Task " + this.getClass().getSimpleName() + " is failed with exception " + e.getMessage(), e);
 		}
+    }
+    
+    private void executeSync( final Runnable task )
+    {
+    	final FutureTask<Object> future = new FutureTask<Object>(task, null);  
+    	post( new Runnable() {
+    		public void run() {
+    			try {
+    				task.run();
+    				future.run();
+    			} catch ( Exception e ) {
+    			}
+    		}
+    	});
+    	try { 
+    		future.get();
+    	} catch ( InterruptedException e ) {
+    		//
+    	} catch ( ExecutionException e ) {
+    		//
+    	}
     }
     
     public static class DocumentInfo
@@ -291,7 +294,7 @@ public class ReaderView extends View {
 		LoadDocumentTask( String filename )
 		{
 			this.filename = filename;
-	        showProgress( 1000, "Loading " + filename );
+	        showProgress( 1000, "Loading..." );
 		}
 
 		public void work() {
@@ -306,7 +309,7 @@ public class ReaderView extends View {
 		public void done()
 		{
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
-	        showProgress( 5000, "Formatting" );
+	        showProgress( 5000, "Formatting..." );
 	        opened = true;
 	        drawPage();
 		}
@@ -331,6 +334,7 @@ public class ReaderView extends View {
 			// show progress
 			if ( progress==null ) {
 				progress = ProgressDialog.show(activity, "Please Wait", msg);
+				progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 			} else {
 				if ( progress.getProgress()!=p )
 					progress.setProgress(p);
@@ -352,7 +356,62 @@ public class ReaderView extends View {
     	}
     }
 
-    Activity activity;
+    
+    ReaderCallback readerCallback = new ReaderCallback() {
+    
+	    public boolean OnExportProgress(int percent) {
+	    	Log.v("cr3", "readerCallback.OnExportProgress " + percent);
+			return true;
+		}
+		public void OnExternalLink(String url, String nodeXPath) {
+		}
+		public void OnFormatEnd() {
+	    	Log.v("cr3", "readerCallback.OnFormatEnd");
+		}
+		public boolean OnFormatProgress(final int percent) {
+			executeSync( new Runnable() {
+				public void run() {
+			    	Log.v("cr3", "readerCallback.OnFormatProgress " + percent);
+			    	showProgress( percent*4/10 + 5000, "Formatting...");
+				}
+			});
+			return true;
+		}
+		public void OnFormatStart() {
+	    	Log.v("cr3", "readerCallback.OnFormatStart");
+		}
+		public void OnLoadFileEnd() {
+	    	Log.v("cr3", "readerCallback.OnLoadFileEnd");
+		}
+		public void OnLoadFileError(String message) {
+	    	Log.v("cr3", "readerCallback.OnLoadFileError(" + message + ")");
+		}
+		public void OnLoadFileFirstPagesReady() {
+	    	Log.v("cr3", "readerCallback.OnLoadFileFirstPagesReady");
+		}
+		public String OnLoadFileFormatDetected(final DocumentFormat fileFormat) {
+			executeSync( new Runnable() {
+				public void run() {
+					Log.v("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
+				}
+			});
+			return null;
+		}
+		public boolean OnLoadFileProgress(final int percent) {
+			executeSync( new Runnable() {
+				public void run() {
+			    	Log.v("cr3", "readerCallback.OnLoadFileProgress " + percent);
+			    	showProgress( percent*4/10 + 1000, "Loading...");
+				}
+			});
+			return true;
+		}
+		public void OnLoadFileStart(String filename) {
+	    	Log.v("cr3", "readerCallback.OnLoadFileStart " + filename);
+		}
+    };
+
+	Activity activity;
 	public ReaderView(Activity activity, Engine engine) 
     {
         super(activity);
