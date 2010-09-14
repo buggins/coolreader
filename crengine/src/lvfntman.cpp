@@ -2690,7 +2690,8 @@ lUInt16 LVWin32DrawFont::measureText(
                     lUInt8 * flags,
                     int max_width,
                     lChar16 def_char,
-                    int letter_spacing
+                    int letter_spacing,
+					bool allow_hyphenation
                  )
 {
     if (_hfont==NULL)

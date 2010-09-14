@@ -832,7 +832,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
     if ( paddingSize ) {
         if ( block->_blockFilePos+block->_dataSize >= (int)_stream->GetSize() - _sectorSize ) {
             LASSERT(size + paddingSize == block->_blockSize );
-            lUInt8 tmp[paddingSize];
+            lUInt8 tmp[16384];//paddingSize];
             memset(tmp, 0xFF, paddingSize );
             _stream->Write(tmp, paddingSize, &bytesWritten );
         }

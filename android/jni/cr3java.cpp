@@ -34,6 +34,17 @@ jobjectArray CRJNIEnv::toJavaStringArray( lString16Collection & src )
 	return array;
 }
 
+jobject CRJNIEnv::enumByNativeId( const char * classname, int id )
+{
+	jclass cl = env->FindClass(classname);
+	if ( cl ) {
+		jmethodID method = env->GetStaticMethodID(cl, "byId", "(I)Lorg/coolreader/crengine/DocumentFormat;");
+		if ( method ) {
+			return env->CallStaticObjectMethod(cl, method, (jint)id);
+		}
+	}
+	return NULL;
+} 
 
 
 #ifndef USE_JNIGRAPHICS

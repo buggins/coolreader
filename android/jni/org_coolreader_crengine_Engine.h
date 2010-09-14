@@ -31,6 +31,30 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_uninitInternal
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceListInternal
   (JNIEnv *, jobject);
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setCacheDirectoryInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal
+  (JNIEnv *, jobject, jstring, jint);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setHyphenationDirectoryInternal
+ * Signature: (Ljava/lang/String;I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getHyphenationDictionaryListInternal
+ * Signature: ()[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif

@@ -16,10 +16,9 @@ public class CoolReader extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-		engine = new Engine(this);
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        requestWindowFeature(Window.FEATURE_PROGRESS);
+		engine = new Engine(this);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(new ReaderView(this, engine));
     }
 

@@ -109,6 +109,52 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 	return env.toJavaStringArray(list);
 }
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setCacheDirectoryInternal
+ * Signature: (Ljava/lang/String;I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal
+  (JNIEnv * penv, jobject obj, jstring dir, jint size)
+{
+	CRJNIEnv env(penv);
+	bool res = ldomDocCache::init(env.fromJavaString(dir), size ); 
+	return res ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setHyphenationDirectoryInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal
+  (JNIEnv * penv, jobject obj, jstring dir)
+{
+	CRJNIEnv env(penv);
+	bool res = HyphMan::initDictionaries(env.fromJavaString(dir)); 
+	return res ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getHyphenationDictionaryListInternal
+ * Signature: ()[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal
+  (JNIEnv * penv, jobject obj)
+{
+	LOGI("getHyphenationDictionaryListInternal called");
+	CRJNIEnv env(penv);
+	HyphDictionaryList * plist = HyphMan::getDictList();
+	lString16Collection list;
+	if ( plist ) {
+		for ( int i=0; i<plist->length(); i++ ) {
+			HyphDictionary * dict = plist->get(i);
+			list.add( dict->getTitle() );
+		}
+	}
+	return env.toJavaStringArray(list);
+}
 
 
 //=====================================================================
@@ -117,6 +163,9 @@ static JNINativeMethod sEngineMethods[] = {
   {"initInternal", "([Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_initInternal},
   {"uninitInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_uninitInternal},
   {"getFontFaceListInternal", "()[Ljava/lang/String", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
+  {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
+  {"setHyphenationDirectoryInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal},
+  {"getHyphenationDictionaryListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal},
 };
 
 

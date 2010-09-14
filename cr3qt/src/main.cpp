@@ -233,6 +233,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     lString16 datadir = lString16(CR3_DATA_DIR);
 #endif
     lString16 fontDir = datadir + L"fonts";
+	lString8 fontDir8_ = UnicodeToUtf8(fontDir);
 
     fontDirs.add( fontDir );
 
@@ -305,7 +306,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 
     // load fonts from file
     CRLog::debug("%d font files found", fonts.length());
-    if (!fontMan->GetFontCount()) {
+    //if (!fontMan->GetFontCount()) {
 	for ( unsigned fi=0; fi<fonts.length(); fi++ ) {
 	    lString8 fn = UnicodeToLocal(fonts[fi]);
 	    CRLog::trace("loading font: %s", fn.c_str());
@@ -313,7 +314,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 		CRLog::trace("    failed\n");
 	    }
 	}
-    }
+    //}
 
     // init hyphenation manager
     //char hyphfn[1024];
