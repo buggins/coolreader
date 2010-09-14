@@ -16,8 +16,8 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -93,25 +93,45 @@ public class ReaderView extends View {
 		}
     }
     
-    private void executeSync( final Runnable task )
+	static class Sync<T> extends Object {
+		private T result = null;
+		private boolean completed = false;
+		public synchronized void set( T res )
+		{
+			result = res;
+			completed = true;
+			notify();
+		}
+		public synchronized T get()
+		{
+			while ( !completed ) {
+    			try {
+    				wait();
+    			} catch (Exception e) {
+    				// ignore
+    			}
+			}
+			return result;
+		}
+	}
+
+    private <T> T executeSync( final Callable<T> task )
     {
-    	final FutureTask<Object> future = new FutureTask<Object>(task, null);  
+    	Log.d("cr3", "executeSync called");
+    	
+    	
+    	final Sync<T> sync = new Sync<T>();
     	post( new Runnable() {
     		public void run() {
     			try {
-    				task.run();
-    				future.run();
+    				sync.set( task.call() );
     			} catch ( Exception e ) {
     			}
     		}
     	});
-    	try { 
-    		future.get();
-    	} catch ( InterruptedException e ) {
-    		//
-    	} catch ( ExecutionException e ) {
-    		//
-    	}
+    	T res = sync.get();
+    	Log.d("cr3", "executeSync done");
+    	return res;
     }
     
     public static class DocumentInfo
@@ -322,6 +342,14 @@ public class ReaderView extends View {
 	}
 	
 	private ProgressDialog progress;
+	void postProgress( final int p, final String msg )
+	{
+		post( new Runnable() {
+			public void run() {
+				showProgress( p, msg );
+			}
+		});
+	}
 	void showProgress( int p, String msg )
 	{
 		if ( p==10000 ) {
@@ -333,11 +361,19 @@ public class ReaderView extends View {
 		} else {
 			// show progress
 			if ( progress==null ) {
-				progress = ProgressDialog.show(activity, "Please Wait", msg);
+				progress = new ProgressDialog(activity);
+				//progress = ProgressDialog.show(activity, "Please Wait", msg);
 				progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			} else {
-				if ( progress.getProgress()!=p )
-					progress.setProgress(p);
+				progress.setMax(10000);
+				progress.setCancelable(false);
+				progress.setProgress(p);
+				progress.setTitle("Please wait");
+				progress.setMessage(msg);
+				//progress.setOwnerActivity(activity);
+				progress.show();
+			} else { 
+				//if ( progress.getProgress()!=p )
+				progress.setProgress(p);
 				progress.setMessage(msg);
 			}
 		}
@@ -369,10 +405,11 @@ public class ReaderView extends View {
 	    	Log.v("cr3", "readerCallback.OnFormatEnd");
 		}
 		public boolean OnFormatProgress(final int percent) {
-			executeSync( new Runnable() {
-				public void run() {
+			executeSync( new Callable<Object>() {
+				public Object call() {
 			    	Log.v("cr3", "readerCallback.OnFormatProgress " + percent);
 			    	showProgress( percent*4/10 + 5000, "Formatting...");
+			    	return null;
 				}
 			});
 			return true;
@@ -390,18 +427,19 @@ public class ReaderView extends View {
 	    	Log.v("cr3", "readerCallback.OnLoadFileFirstPagesReady");
 		}
 		public String OnLoadFileFormatDetected(final DocumentFormat fileFormat) {
-			executeSync( new Runnable() {
-				public void run() {
-					Log.v("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
-				}
-			});
+//			executeSync( new Runnable() {
+//				public void run() {
+//					//Log.v("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
+//				}
+//			});
 			return null;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
-			executeSync( new Runnable() {
-				public void run() {
+			executeSync( new Callable<Object>() {
+				public Object call() {
 			    	Log.v("cr3", "readerCallback.OnLoadFileProgress " + percent);
 			    	showProgress( percent*4/10 + 1000, "Loading...");
+			    	return null;
 				}
 			});
 			return true;
@@ -419,7 +457,7 @@ public class ReaderView extends View {
         this.engine = engine;
         setFocusable(true);
         setFocusableInTouchMode(true);
-        showProgress( 0, "Startig Cool Reader" );
+        showProgress( 0, "Starting Cool Reader" );
         execute(new InitEngineTask());
     }
 
