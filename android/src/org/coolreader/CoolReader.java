@@ -6,6 +6,7 @@ import org.coolreader.crengine.ReaderView;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.Window;
 
 public class CoolReader extends Activity
 {
@@ -15,8 +16,9 @@ public class CoolReader extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-		engine = new Engine(this);
         super.onCreate(savedInstanceState);
+		engine = new Engine(this);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(new ReaderView(this, engine));
     }
 

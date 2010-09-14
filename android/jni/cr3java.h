@@ -42,6 +42,7 @@ public:
 	jstring toJavaString( const lString16 & str );
 	void fromJavaStringArray( jobjectArray array, lString16Collection & dst );
 	jobjectArray toJavaStringArray( lString16Collection & dst );
+	jobject enumByNativeId( const char * classname, int id ); 
 };
 
 class BitmapAccessor : public CRJNIEnv {
