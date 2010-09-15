@@ -63,7 +63,7 @@ public:
     virtual void OnLoadFileFormatDetected( doc_format_t fileFormat )
     {
 		CRLog::trace("DocViewCallback::OnLoadFileFormatDetected() called");
-    	jobject e = _env.enumByNativeId("org/coolreader/engine/DocumentFormat", (int)fileFormat);
+    	jobject e = _env.enumByNativeId("org/coolreader/crengine/DocumentFormat", (int)fileFormat);
     	jstring css = (jstring)_env->CallObjectMethod(_obj, _OnLoadFileFormatDetected, e);
     	if ( css ) {
     		lString16 s = _env.fromJavaString(css);
@@ -205,7 +205,9 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
 {
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
-	//DocViewCallback callback( _env, p->_docview, _this );	
+    CRLog::debug("loadDocumentInternal: Before callback instantiate");
+	DocViewCallback callback( _env, p->_docview, _this );	
+    CRLog::debug("loadDocumentInternal: After callback instantiate");
     lString16 str = env.fromJavaString(s);
 	CRLog::info("Loading document %s", LCSTR(str));
     return p->_docview->LoadDocument(str.c_str());

@@ -361,16 +361,21 @@ public class ReaderView extends View {
 		} else {
 			// show progress
 			if ( progress==null ) {
-				progress = new ProgressDialog(activity);
-				//progress = ProgressDialog.show(activity, "Please Wait", msg);
-				progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-				progress.setMax(10000);
-				progress.setCancelable(false);
-				progress.setProgress(p);
-				progress.setTitle("Please wait");
-				progress.setMessage(msg);
-				//progress.setOwnerActivity(activity);
-				progress.show();
+				if ( false ) {
+					progress = new ProgressDialog(activity);
+					progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+					progress.setMax(10000);
+					progress.setCancelable(false);
+					progress.setProgress(p);
+					progress.setTitle("Please wait");
+					progress.setMessage(msg);
+					//progress.setOwnerActivity(activity);
+					progress.show();
+				} else {
+					progress = ProgressDialog.show(activity, "Please Wait", msg);
+					progress.setCancelable(false);
+					progress.setProgress(p);
+				}
 			} else { 
 				//if ( progress.getProgress()!=p )
 				progress.setProgress(p);
