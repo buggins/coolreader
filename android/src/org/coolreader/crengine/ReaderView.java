@@ -230,7 +230,10 @@ public class ReaderView extends View {
 			Log.d("cr3", "InitializationFinishedEvent");
 	        File sddir = Environment.getExternalStorageDirectory();
 	        File booksdir = new File( sddir, "books");
-	        File exampleFile = new File( booksdir, "bibl.fb2.zip");
+	        //File exampleFile = new File( booksdir, "bibl.fb2.zip");
+	        File exampleFile = new File( booksdir, "drabkin.fb2.zip");
+	        //File exampleFile = new File( booksdir, "BurglarsTrip.fb2.zip");
+	        //File exampleFile = new File( booksdir, "kalma.fb2.zip");
 	        //File exampleFile = new File( booksdir, "example.fb2");
 			initialized = true;
 			execute(new LoadDocumentTask(exampleFile.getAbsolutePath()));
@@ -368,12 +371,14 @@ public class ReaderView extends View {
 					progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 					progress.setMax(10000);
 					progress.setCancelable(false);
+					progress.setProgress(p);
 					progress.setTitle("Please wait");
 					progress.setMessage(msg);
 					//progress.setOwnerActivity(activity);
 					progress.show();
 				} else {
 					progress = ProgressDialog.show(activity, "Please Wait", msg);
+					progress.setCancelable(false);
 					progress.setProgress(p);
 				}
 			} else { 
@@ -397,22 +402,23 @@ public class ReaderView extends View {
     	}
     }
 
-    
+    boolean enable_progress_callback = true;
     ReaderCallback readerCallback = new ReaderCallback() {
     
 	    public boolean OnExportProgress(int percent) {
-	    	Log.v("cr3", "readerCallback.OnExportProgress " + percent);
+	    	Log.d("cr3", "readerCallback.OnExportProgress " + percent);
 			return true;
 		}
 		public void OnExternalLink(String url, String nodeXPath) {
 		}
 		public void OnFormatEnd() {
-	    	Log.v("cr3", "readerCallback.OnFormatEnd");
+	    	Log.d("cr3", "readerCallback.OnFormatEnd");
 		}
 		public boolean OnFormatProgress(final int percent) {
+			if ( enable_progress_callback )
 			executeSync( new Callable<Object>() {
 				public Object call() {
-			    	Log.v("cr3", "readerCallback.OnFormatProgress " + percent);
+			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
 			    	showProgress( percent*4/10 + 5000, "Formatting...");
 			    	return null;
 				}
@@ -420,16 +426,16 @@ public class ReaderView extends View {
 			return true;
 		}
 		public void OnFormatStart() {
-	    	Log.v("cr3", "readerCallback.OnFormatStart");
+	    	Log.d("cr3", "readerCallback.OnFormatStart");
 		}
 		public void OnLoadFileEnd() {
-	    	Log.v("cr3", "readerCallback.OnLoadFileEnd");
+	    	Log.d("cr3", "readerCallback.OnLoadFileEnd");
 		}
 		public void OnLoadFileError(String message) {
-	    	Log.v("cr3", "readerCallback.OnLoadFileError(" + message + ")");
+	    	Log.d("cr3", "readerCallback.OnLoadFileError(" + message + ")");
 		}
 		public void OnLoadFileFirstPagesReady() {
-	    	Log.v("cr3", "readerCallback.OnLoadFileFirstPagesReady");
+	    	Log.d("cr3", "readerCallback.OnLoadFileFirstPagesReady");
 		}
 		public String OnLoadFileFormatDetected(final DocumentFormat fileFormat) {
 //			executeSync( new Runnable() {
@@ -440,9 +446,10 @@ public class ReaderView extends View {
 			return null;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
+			if ( enable_progress_callback )
 			executeSync( new Callable<Object>() {
 				public Object call() {
-			    	Log.v("cr3", "readerCallback.OnLoadFileProgress " + percent);
+			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
 			    	showProgress( percent*4/10 + 1000, "Loading...");
 			    	return null;
 				}
@@ -450,7 +457,7 @@ public class ReaderView extends View {
 			return true;
 		}
 		public void OnLoadFileStart(String filename) {
-	    	Log.v("cr3", "readerCallback.OnLoadFileStart " + filename);
+	    	Log.d("cr3", "readerCallback.OnLoadFileStart " + filename);
 		}
     };
 

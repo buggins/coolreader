@@ -13,7 +13,7 @@ public enum DocumentFormat {
 	CHM; //  doc_format_chm,
 	    // don't forget update getDocFormatName() when changing this enum
 	//} doc_format_t;
-	DocumentFormat byId( int i )
+	static DocumentFormat byId( int i )
 	{
 		if ( i>=0 && i<=CHM.ordinal() )
 			return values()[i];

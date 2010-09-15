@@ -17,7 +17,7 @@
     </message>
     <message>
         <source>(c) 1998-2009 Vadim Lopatin</source>
-        <translation type="unfinished">(c) 1998-2009 Вадим Лопатин</translation>
+        <translation type="obsolete">(c) 1998-2009 Вадим Лопатин</translation>
     </message>
     <message>
         <source>About</source>
@@ -33,14 +33,6 @@
     </message>
     <message>
         <source>...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Cool Reader 3.0.22</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>20-09-2009</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -347,13 +339,14 @@ POSSIBILITY OF SUCH DAMAGES.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Source code may be downloaded from sourceforge crengine project page.
+        <source>Source code may be downloaded from sourceforge crengine project page:
+http://sourceforge.net/projects/crengine/
 
-Latest source code is available from CVS:
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
-cd cr3qt
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</source>
+Latest source code is available from GIT repository:
+&gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+See README.TXT at root directory of project for build instructions.
+</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -672,11 +665,11 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Not implemented</source>
-        <translation type="unfinished">Функция недоступна</translation>
+        <translation type="obsolete">Функция недоступна</translation>
     </message>
     <message>
         <source>Search is not implemented yet</source>
-        <translation type="unfinished">Извините, поиск по тексту пока не реализован.</translation>
+        <translation type="obsolete">Извините, поиск по тексту пока не реализован.</translation>
     </message>
     <message>
         <source>Export document to</source>
@@ -1057,6 +1050,22 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <source>Ctrl+S</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Next Page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Previous Page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>RecentBooksDlg</name>
@@ -1098,6 +1107,53 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Del</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SearchDialog</name>
+    <message>
+        <source>Search</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text</source>
+        <translation type="unfinished">Текст</translation>
+    </message>
+    <message>
+        <source>Search forward</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search backward</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Find Next</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation type="unfinished">Закрыть</translation>
+    </message>
+    <message>
+        <source>Case Sensitive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not implemented</source>
+        <translation type="obsolete">Функция недоступна</translation>
+    </message>
+    <message>
+        <source>Search is not implemented yet</source>
+        <translation type="obsolete">Извините, поиск по тексту пока не реализован.</translation>
+    </message>
+    <message>
+        <source>Not found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search pattern is not found in document</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

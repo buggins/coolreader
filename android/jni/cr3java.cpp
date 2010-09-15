@@ -74,13 +74,13 @@ int AndroidBitmap_getInfo(JNIEnv* env, jobject jbitmap,
 	jmethodID mid;
 	mid = env->GetMethodID(cls,	"getHeight", "()I");
 	info->height = env->CallIntMethod(jbitmap, mid);	
-	CRLog::debug("Bitmap height: %d", info->height);
+	//CRLog::debug("Bitmap height: %d", info->height);
 	mid = env->GetMethodID(cls,	"getWidth", "()I");
 	info->width = env->CallIntMethod(jbitmap, mid);
-	CRLog::debug("Bitmap width: %d", info->width);
+	//CRLog::debug("Bitmap width: %d", info->width);
 	mid = env->GetMethodID(cls,	"getRowBytes", "()I");
 	info->stride = env->CallIntMethod(jbitmap, mid);	
-	CRLog::debug("Bitmap stride: %d", info->stride);
+	//CRLog::debug("Bitmap stride: %d", info->stride);
 	mid = env->GetMethodID(cls,	"getConfig", "()Landroid/graphics/Bitmap$Config;");
 	jobject configObj = env->CallObjectMethod(jbitmap, mid);	
 	jclass configCls = env->GetObjectClass(configObj);
@@ -107,7 +107,7 @@ int AndroidBitmap_getInfo(JNIEnv* env, jobject jbitmap,
 	fid = env->GetFieldID(configCls, "nativeInt", "I");
 	//info->format 
 	int ni = env->GetIntField(configObj, fid);
-	CRLog::debug("Bitmap format: %d (ord=%d, nativeInt=%d)", info->format, ord, ni);
+	//CRLog::debug("Bitmap format: %d (ord=%d, nativeInt=%d)", info->format, ord, ni);
 	return ANDROID_BITMAP_RESUT_SUCCESS;	
 }
 #endif
@@ -179,7 +179,7 @@ void BitmapAccessor::draw(LVDrawBuf * buf, int x, int y)
 	int w = width - x;
 	if ( w > buf->GetWidth() )
 	    w = buf->GetWidth();
-	CRLog::debug("copy drawbuf image %d x %d", w, h);
+	//CRLog::debug("copy drawbuf image %d x %d", w, h);
 	for ( int yy=0; yy<h; yy++ ) {
 		switch ( buf->GetBitsPerPixel() ) {
 		case 32:
