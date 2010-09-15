@@ -230,8 +230,8 @@ public class ReaderView extends View {
 			Log.d("cr3", "InitializationFinishedEvent");
 	        File sddir = Environment.getExternalStorageDirectory();
 	        File booksdir = new File( sddir, "books");
-	        //File exampleFile = new File( booksdir, "bibl.fb2.zip");
-	        File exampleFile = new File( booksdir, "example.fb2");
+	        File exampleFile = new File( booksdir, "bibl.fb2.zip");
+	        //File exampleFile = new File( booksdir, "example.fb2");
 			initialized = true;
 			execute(new LoadDocumentTask(exampleFile.getAbsolutePath()));
 		}
@@ -350,6 +350,8 @@ public class ReaderView extends View {
 			}
 		});
 	}
+	//private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
+	private static int PROGRESS_STYLE = ProgressDialog.STYLE_SPINNER;
 	void showProgress( int p, String msg )
 	{
 		if ( p==10000 ) {
@@ -361,16 +363,19 @@ public class ReaderView extends View {
 		} else {
 			// show progress
 			if ( progress==null ) {
-				progress = new ProgressDialog(activity);
-				//progress = ProgressDialog.show(activity, "Please Wait", msg);
-				progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-				progress.setMax(10000);
-				progress.setCancelable(false);
-				progress.setProgress(p);
-				progress.setTitle("Please wait");
-				progress.setMessage(msg);
-				//progress.setOwnerActivity(activity);
-				progress.show();
+				if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
+					progress = new ProgressDialog(activity);
+					progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+					progress.setMax(10000);
+					progress.setCancelable(false);
+					progress.setTitle("Please wait");
+					progress.setMessage(msg);
+					//progress.setOwnerActivity(activity);
+					progress.show();
+				} else {
+					progress = ProgressDialog.show(activity, "Please Wait", msg);
+					progress.setProgress(p);
+				}
 			} else { 
 				//if ( progress.getProgress()!=p )
 				progress.setProgress(p);
