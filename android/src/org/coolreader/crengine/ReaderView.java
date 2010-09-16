@@ -18,7 +18,10 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+import org.coolreader.R;
+
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -156,6 +159,7 @@ public class ReaderView extends View {
     private native void getPageImage(Bitmap bitmap);
     // constructor's native part
     private native void createInternal();
+    private native void destroyInternal();
     private native boolean loadDocumentInternal( String fileName );
     private native String getSettingsInternal();
     private native boolean applySettingsInternal( String settings );
@@ -217,11 +221,18 @@ public class ReaderView extends View {
 	boolean initialized = false;
 	boolean opened = false;
 	
+	private File historyFile;
+	
 	class InitEngineTask extends Task
 	{
 		public void work() throws Exception {
 			engine.init();
 			createInternal();
+			File historyFile = new File(activity.getDir("settings", Context.MODE_PRIVATE), "cr3hist.ini");
+			if ( historyFile.exists() ) {
+				Log.d("cr3", "Reading history from file " + historyFile.getAbsolutePath());
+				readHistoryInternal(historyFile.getAbsolutePath());
+			}
 			doCommandInternal(ReaderCommand.DCMD_ZOOM_OUT.nativeId, 5);
 		}
 		public void done() {
@@ -322,6 +333,9 @@ public class ReaderView extends View {
 		}
 
 		public void work() {
+			if ( opened && historyFile!=null ) {
+				writeHistoryInternal(historyFile.getAbsolutePath());
+			}
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
@@ -403,6 +417,37 @@ public class ReaderView extends View {
     	}
     }
 
+    public void close()
+    {
+    	execute( new Task() {
+    		public void work() {
+    			if ( opened && historyFile!=null ) {
+    				writeHistoryInternal(historyFile.getAbsolutePath());
+    			}
+    		}
+    		public void done() {
+    			opened = false;
+    			mBitmap = null;
+    		}
+    	});
+    }
+
+    public void destroy()
+    {
+    	if ( initialized ) {
+        	close();
+        	execute( new Task() {
+        		public void work() {
+        	    	if ( initialized ) {
+        	    		destroyInternal();
+        	    		initialized = false;
+        	    	}
+        		}
+        	});
+    		engine.waitTasksCompletion();
+    	}
+    }
+    
     boolean enable_progress_callback = true;
     ReaderCallback readerCallback = new ReaderCallback() {
     
@@ -468,6 +513,23 @@ public class ReaderView extends View {
 		}
     };
 
+    public void setStyleSheet( final String css )
+    {
+        if ( css!=null && css.length()>0 ) {
+        	execute(new Task() {
+        		public void work() {
+        			setStylesheetInternal(css);
+        		}
+        	});
+        }
+    }
+    
+    @Override
+    public void finalize()
+    {
+    	destroyInternal();
+    }
+    
 	Activity activity;
 	public ReaderView(Activity activity, Engine engine) 
     {
@@ -478,6 +540,8 @@ public class ReaderView extends View {
         setFocusableInTouchMode(true);
         showProgress( 0, 0, "Starting Cool Reader" );
         execute(new InitEngineTask());
+        String css = engine.loadResourceUtf8(R.raw.fb2);
+        setStyleSheet( css );
     }
 
 }

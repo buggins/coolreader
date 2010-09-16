@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -187,6 +188,15 @@ public class Engine {
 		initialized = true;
 	}
 	
+	public void waitTasksCompletion()
+	{
+		try {
+			executor.awaitTermination(0, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			// ignore
+		}
+	}
+	
 	/**
 	 * Uninitialize engine.
 	 */
@@ -211,12 +221,12 @@ public class Engine {
 		File fontDir = new File( Environment.getRootDirectory(), "fonts");
 		// get font names
 		String[] fileList = fontDir.list(
-				new FilenameFilter()
-		{ public boolean  accept(File  dir, String  filename)
-			{
-				return filename.endsWith(".ttf") && !filename.endsWith("Fallback.ttf");
-			}
-			});
+				new FilenameFilter() { 
+					public boolean  accept(File  dir, String  filename)
+					{
+						return filename.endsWith(".ttf") && !filename.endsWith("Fallback.ttf");
+					}
+				});
 		// append path
 		for ( int i=0; i<fileList.length; i++ ) {
 			fileList[i] = new File(fontDir, fileList[i]).getAbsolutePath();
@@ -225,7 +235,7 @@ public class Engine {
 		return fileList;
 	}
 	
-	boolean force_install_library = true;
+	private boolean force_install_library = false;
 	private void installLibrary()
 	{
 		try {

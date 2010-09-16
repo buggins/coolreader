@@ -153,7 +153,28 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_createInternal
     jclass rvClass = env->FindClass("org/coolreader/crengine/ReaderView");
     gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
     ReaderViewNative * obj = new ReaderViewNative();
-    env->SetIntField(_this, gNativeObjectID, (jint)obj); 
+    env->SetIntField(_this, gNativeObjectID, (jint)obj);
+    obj->_docview->setFontSize(24); 
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    destroyInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_destroyInternal
+  (JNIEnv * env, jobject view)
+{
+    ReaderViewNative * p = getNative(env, view);
+    if ( p!=NULL ) {
+		CRLog::info("Destroying RenderView");
+    	delete p;
+	    jclass rvClass = env->FindClass("org/coolreader/crengine/ReaderView");
+	    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
+	    env->SetIntField(view, gNativeObjectID, 0);
+	} else {
+		CRLog::error("RenderView is already destroyed");
+	}
 }
 
 /*
@@ -216,6 +237,8 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
 		res = p->_docview->LoadDocument(str.c_str());
 		CRLog::info("Document %s is loaded %s", LCSTR(str), (res?"successfully":"with error"));
     }
+    if ( p->_docview->isDocumentOpened() )
+    	p->_docview->restorePosition();
     return res ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -247,9 +270,17 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
  * Signature: (Ljava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistoryInternal
-  (JNIEnv *, jobject, jstring)
+  (JNIEnv * _env, jobject _this, jstring jFilename)
 {
-    return false;
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    CRFileHist * hist = p->_docview->getHistory();
+    lString16 filename = env.fromJavaString(jFilename);
+    LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_READ);
+    if ( stream.isNull() )
+    	return JNI_FALSE;
+    bool res = hist->loadFromStream( stream );
+    return res?JNI_TRUE:JNI_FALSE;
 }
 
 /*
@@ -258,9 +289,19 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistoryIn
  * Signature: (Ljava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryInternal
-  (JNIEnv *, jobject, jstring)
+  (JNIEnv * _env, jobject _this, jstring jFilename)
 {
-    return false;
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    CRFileHist * hist = p->_docview->getHistory();
+    lString16 filename = env.fromJavaString(jFilename);
+    LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_WRITE);
+    if ( stream.isNull() )
+    	return JNI_FALSE;
+    if ( p->_docview->isDocumentOpened() )
+    	p->_docview->savePosition();
+    bool res = hist->saveToStream( stream.get() );
+    return res?JNI_TRUE:JNI_FALSE;
 }
 
 /*
@@ -269,8 +310,12 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryI
  * Signature: (Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInternal
-  (JNIEnv *, jobject, jstring)
+  (JNIEnv * _env, jobject _view, jstring jcss)
 {
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _view);
+    lString8 css8 = UnicodeToUtf8(env.fromJavaString(jcss));
+    p->_docview->setStyleSheet(css8);
 }
 
 /*

@@ -34,7 +34,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    setCacheDirectoryInternal
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal
   (JNIEnv *, jobject, jstring, jint);
@@ -42,7 +42,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    setHyphenationDirectoryInternal
- * Signature: (Ljava/lang/String;I)Z
+ * Signature: (Ljava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal
   (JNIEnv *, jobject, jstring);

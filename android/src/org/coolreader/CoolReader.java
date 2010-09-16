@@ -12,6 +12,7 @@ import android.view.WindowManager;
 public class CoolReader extends Activity
 {
 	Engine engine;
+	ReaderView readerView;
 	
     /** Called when the activity is first created. */
     @Override
@@ -21,12 +22,17 @@ public class CoolReader extends Activity
 		engine = new Engine(this);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-               WindowManager.LayoutParams.FLAG_FULLSCREEN );        
-		setContentView(new ReaderView(this, engine));
+               WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		readerView = new ReaderView(this, engine);
+		setContentView( readerView );
     }
 
 	@Override
 	protected void onDestroy() {
+		if ( readerView!=null ) {
+			readerView.destroy();
+			readerView = null;
+		}
 		if ( engine!=null ) {
 			engine.uninit();
 			engine = null;
