@@ -17,10 +17,8 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -230,8 +228,11 @@ public class ReaderView extends View {
 			Log.d("cr3", "InitializationFinishedEvent");
 	        File sddir = Environment.getExternalStorageDirectory();
 	        File booksdir = new File( sddir, "books");
+	        File exampleFile = new File( booksdir, "volkov.fb2");
+	        //File exampleFile = new File( booksdir, "naslednik.fb2.zip");
+	        //File exampleFile = new File( booksdir, "krisis.fb2.zip");
 	        //File exampleFile = new File( booksdir, "bibl.fb2.zip");
-	        File exampleFile = new File( booksdir, "drabkin.fb2.zip");
+	        //File exampleFile = new File( booksdir, "drabkin.fb2.zip");
 	        //File exampleFile = new File( booksdir, "BurglarsTrip.fb2.zip");
 	        //File exampleFile = new File( booksdir, "kalma.fb2.zip");
 	        //File exampleFile = new File( booksdir, "example.fb2");
@@ -273,7 +274,7 @@ public class ReaderView extends View {
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
     		mBitmap = bitmap;
     		if ( progress!=null )
-    	        showProgress( 10000, "Done" );
+    	        showProgress( 10000, 10000, "Done" );
     		invalidate();
 		}
 	}; 
@@ -317,7 +318,7 @@ public class ReaderView extends View {
 		LoadDocumentTask( String filename )
 		{
 			this.filename = filename;
-	        showProgress( 1000, "Loading..." );
+	        showProgress( 1000, 0, "Loading..." );
 		}
 
 		public void work() {
@@ -332,7 +333,7 @@ public class ReaderView extends View {
 		public void done()
 		{
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
-	        showProgress( 5000, "Formatting..." );
+	        showProgress( 5000, 0, "Formatting..." );
 	        opened = true;
 	        drawPage();
 		}
@@ -345,47 +346,47 @@ public class ReaderView extends View {
 	}
 	
 	private ProgressDialog progress;
-	void postProgress( final int p, final String msg )
+	private boolean enable_progress = true; 
+	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
+	//private static int PROGRESS_STYLE = ProgressDialog.STYLE_SPINNER;
+	void showProgress( final int mainProgress, final int secondaryProgress, final String msg )
 	{
-		post( new Runnable() {
-			public void run() {
-				showProgress( p, msg );
-			}
-		});
-	}
-	//private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
-	private static int PROGRESS_STYLE = ProgressDialog.STYLE_SPINNER;
-	void showProgress( int p, String msg )
-	{
-		if ( p==10000 ) {
-			// hide progress
-			if ( progress!=null ) {
-				progress.dismiss();
-				progress = null;
-			}
-		} else {
-			// show progress
-			if ( progress==null ) {
-				if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
-					progress = new ProgressDialog(activity);
-					progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-					progress.setMax(10000);
-					progress.setCancelable(false);
-					progress.setProgress(p);
-					progress.setTitle("Please wait");
-					progress.setMessage(msg);
-					//progress.setOwnerActivity(activity);
-					progress.show();
-				} else {
-					progress = ProgressDialog.show(activity, "Please Wait", msg);
-					progress.setCancelable(false);
-					progress.setProgress(p);
+		if ( enable_progress ) {
+			post( new Runnable() {
+				public void run() {
+					if ( mainProgress==10000 ) {
+						// hide progress
+						if ( progress!=null ) {
+							progress.dismiss();
+							progress = null;
+						}
+					} else {
+						// show progress
+						if ( progress==null ) {
+							if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
+								progress = new ProgressDialog(activity);
+								progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+								progress.setMax(10000);
+								progress.setCancelable(false);
+								progress.setProgress(mainProgress);
+								//progress.setSecondaryProgress(secondaryProgress);
+								progress.setTitle("Please wait");
+								progress.setMessage(msg);
+								progress.show();
+							} else {
+								progress = ProgressDialog.show(activity, "Please Wait", msg);
+								progress.setCancelable(false);
+								progress.setProgress(mainProgress);
+								//progress.setSecondaryProgress(secondaryProgress);
+							}
+						} else { 
+							progress.setProgress(mainProgress);
+							//progress.setSecondaryProgress(secondaryProgress);
+							progress.setMessage(msg);
+						}
+					}
 				}
-			} else { 
-				//if ( progress.getProgress()!=p )
-				progress.setProgress(p);
-				progress.setMessage(msg);
-			}
+			});
 		}
 	}
 	
@@ -419,7 +420,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
-			    	showProgress( percent*4/10 + 5000, "Formatting...");
+			    	showProgress( percent*4/10 + 5000, percent, "Formatting...");
 			    	return null;
 				}
 			});
@@ -450,7 +451,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
-			    	showProgress( percent*4/10 + 1000, "Loading...");
+			    	showProgress( percent*4/10 + 1000, percent, "Loading...");
 			    	return null;
 				}
 			});
@@ -469,7 +470,7 @@ public class ReaderView extends View {
         this.engine = engine;
         setFocusable(true);
         setFocusableInTouchMode(true);
-        showProgress( 0, "Starting Cool Reader" );
+        showProgress( 0, 0, "Starting Cool Reader" );
         execute(new InitEngineTask());
     }
 

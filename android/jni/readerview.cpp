@@ -209,7 +209,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
     bool res;
     {
         //CRLog::debug("loadDocumentInternal: Before callback instantiate");
-		//DocViewCallback callback( _env, p->_docview, _this );
+		DocViewCallback callback( _env, p->_docview, _this );
 		//CRLog::debug("loadDocumentInternal: After callback instantiate");
 		lString16 str = env.fromJavaString(s);
 		CRLog::info("Loading document %s", LCSTR(str));
