@@ -333,7 +333,7 @@ public class ReaderView extends View {
 		public void done()
 		{
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
-	        showProgress( 5000, 0, "Formatting..." );
+	        //showProgress( 5000, 0, "Formatting..." );
 	        opened = true;
 	        drawPage();
 		}
@@ -439,12 +439,18 @@ public class ReaderView extends View {
 	    	Log.d("cr3", "readerCallback.OnLoadFileFirstPagesReady");
 		}
 		public String OnLoadFileFormatDetected(final DocumentFormat fileFormat) {
-//			executeSync( new Runnable() {
-//				public void run() {
-//					//Log.v("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
-//				}
-//			});
-			return null;
+			String res = executeSync( new Callable<String>() {
+				public String call() {
+					Log.i("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
+					if ( fileFormat!=null ) {
+						String s = engine.loadResourceUtf8(fileFormat.getResourceId());
+						Log.i("cr3", "setting .css for file format " + fileFormat + " from resource " + (fileFormat!=null?fileFormat.getCssName():"[NONE]"));
+						return s;
+					}
+			    	return null;
+				}
+			});
+			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
 			if ( enable_progress_callback )
