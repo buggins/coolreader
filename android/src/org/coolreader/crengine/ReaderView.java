@@ -422,12 +422,15 @@ public class ReaderView extends View {
     	execute( new Task() {
     		public void work() {
     			if ( opened && historyFile!=null ) {
+    				Log.i("cr3", "ReaderView().close() : saving history");
     				writeHistoryInternal(historyFile.getAbsolutePath());
     			}
     		}
     		public void done() {
-    			opened = false;
-    			mBitmap = null;
+    			if ( opened ) {
+	    			opened = false;
+	    			mBitmap = null;
+    			}
     		}
     	});
     }
@@ -447,8 +450,17 @@ public class ReaderView extends View {
     		engine.waitTasksCompletion();
     	}
     }
+
     
-    boolean enable_progress_callback = true;
+    
+    @Override
+	protected void onDetachedFromWindow() {
+		// TODO Auto-generated method stub
+		super.onDetachedFromWindow();
+		Log.d("cr3", "View.onDetachedFromWindow() is called");
+	}
+
+	boolean enable_progress_callback = true;
     ReaderCallback readerCallback = new ReaderCallback() {
     
 	    public boolean OnExportProgress(int percent) {
