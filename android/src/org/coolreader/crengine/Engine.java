@@ -119,6 +119,35 @@ public class Engine {
 		activity.finish();
 	}
 	
+	public String loadResourceUtf8( int id )
+	{
+		try {
+			InputStream is = this.activity.getResources().openRawResource( id );
+			return loadResourceUtf8(is);
+		} catch ( Exception e ) {
+			Log.e("cr3", "cannot load resource");
+			return null;
+		}
+	}
+	
+	public String loadResourceUtf8( InputStream is )
+	{
+		try {
+			int available = is.available();
+			if ( available<=0 )
+				return null;
+			byte buf[] = new byte[available];
+			if ( is.read(buf)!=available )
+				throw new IOException("Resource not read fully");
+			is.close();
+			String utf8 = new String(buf, 0, available, "UTF8");
+			return utf8;
+		} catch ( Exception e ) {
+			Log.e("cr3", "cannot load resource");
+			return null;
+		}
+	}
+	
 	/**
 	 * Initialize CoolReader Engine
 	 * @param fontList is array of .ttf font pathnames to load

@@ -49,6 +49,19 @@ protected:
 	}
 };
 
+//typedef void (lv_FatalErrorHandler_t)(int errorCode, const char * errorText );
+
+void cr3androidFatalErrorHandler(int errorCode, const char * errorText )
+{
+	static char str[1001];
+	snprintf(str, 1000, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	LOGE(str);
+	LOGASSERTFAILED(errorText, str);
+}
+
+/// set fatal error handler
+void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
+
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    initInternal
@@ -57,13 +70,17 @@ protected:
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
   (JNIEnv * penv, jobject obj, jobjectArray fontArray)
 {
-	LOGI("initInternal called");
 	CRJNIEnv env(penv);
+	
+	LOGI("initInternal called");
+	// set fatal error handler
+	crSetFatalErrorHandler( &cr3androidFatalErrorHandler );
 	LOGD("Redirecting CDRLog to Android");
 	CRLog::setLogger( new JNICDRLogger() );
 	CRLog::setLogLevel( CRLog::LL_TRACE );
 	CRLog::info("CREngine log redirected");
 	CRLog::info("creating font manager");
+	
 	InitFontManager(lString8());
 	CRLog::debug("converting fonts array: %d items", (int)env->GetArrayLength(fontArray));
 	lString16Collection fonts;
