@@ -60,11 +60,14 @@ public class Engine {
 		}
 		public void run() {
 			try {
+				Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
 				// run task
 				task.work();
+				Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
 				// post success callback
 				view.post(new Runnable() {
 					public void run() {
+						Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
 						task.done();
 					}
 				});
@@ -89,6 +92,7 @@ public class Engine {
 				// post error callback
 				view.post(new Runnable() {
 					public void run() {
+						Log.i("cr3", "running task.fail("+e.getMessage()+") " + task.getClass().getSimpleName() + " in gui thread ");
 						task.fail(e);
 					}
 				});
@@ -149,6 +153,7 @@ public class Engine {
 		if ( !initInternal( fonts ) )
 			throw new IOException("Cannot initialize CREngine JNI");
 		File cacheDir = activity.getDir("cache", Context.MODE_PRIVATE);
+		cacheDir.mkdirs();
 		setCacheDirectoryInternal(cacheDir.getAbsolutePath(), CACHE_DIR_SIZE);
 		initialized = true;
 	}
@@ -191,9 +196,12 @@ public class Engine {
 		return fileList;
 	}
 	
+	boolean force_install_library = true;
 	private void installLibrary()
 	{
 		try {
+			if ( force_install_library )
+				throw new Exception("forcing install");
 			// try loading library w/o manual installation
 			Log.i("cr3", "trying to load library cr3engine w/o installation");
 			System.loadLibrary("cr3engine");

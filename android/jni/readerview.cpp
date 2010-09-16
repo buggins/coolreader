@@ -25,16 +25,16 @@ public:
 	{
 		CRLog::info("DocViewCallback() getting object class");
 		jclass objclass = _env->GetObjectClass(obj);
-		CRLog::trace("DocViewCallback() getting object readerCallback field");
+		//CRLog::trace("DocViewCallback() getting object readerCallback field");
 		jfieldID fid = _env->GetFieldID(objclass, "readerCallback", "Lorg/coolreader/crengine/ReaderCallback;");
-		CRLog::trace("DocViewCallback() getting readerCallback field value");
+		//CRLog::trace("DocViewCallback() getting readerCallback field value");
 		_obj = _env->GetObjectField(obj, fid); 
 		//_class = _env->FindClass("org/coolreader/engine/ReaderCallback");
-		CRLog::trace("DocViewCallback() getting readerCallback field class");
+		//CRLog::trace("DocViewCallback() getting readerCallback field class");
 		_class = _env->GetObjectClass(_obj);
 		#define GET_METHOD(n,sign) \
 		     _ ## n = _env->GetMethodID(_class, # n, sign)   
-		CRLog::trace("DocViewCallback() getting interface methods");
+		//CRLog::trace("DocViewCallback() getting interface methods");
 		GET_METHOD(OnLoadFileStart,"(Ljava/lang/String;)V");
 	    GET_METHOD(OnLoadFileFormatDetected,"(Lorg/coolreader/crengine/DocumentFormat;)Ljava/lang/String;");
 	    GET_METHOD(OnLoadFileEnd,"()V");
@@ -46,7 +46,7 @@ public:
 	    GET_METHOD(OnExportProgress,"(I)Z");
 	    GET_METHOD(OnLoadFileError,"(Ljava/lang/String;)V");
 	    GET_METHOD(OnExternalLink,"(Ljava/lang/String;Ljava/lang/String;)V");
-		CRLog::info("DocViewCallback() setting callback");
+		//CRLog::info("DocViewCallback() setting callback");
 		_docview->setCallback( this );
 	}
 	virtual ~DocViewCallback()
@@ -56,13 +56,13 @@ public:
     /// on starting file loading
     virtual void OnLoadFileStart( lString16 filename )
     {
-		CRLog::trace("DocViewCallback::OnLoadFileStart() called");
+		CRLog::info("DocViewCallback::OnLoadFileStart() called");
     	_env->CallVoidMethod(_obj, _OnLoadFileStart, _env.toJavaString(filename));
     }
     /// format detection finished
     virtual void OnLoadFileFormatDetected( doc_format_t fileFormat )
     {
-		CRLog::trace("DocViewCallback::OnLoadFileFormatDetected() called");
+		CRLog::info("DocViewCallback::OnLoadFileFormatDetected() called");
     	jobject e = _env.enumByNativeId("org/coolreader/crengine/DocumentFormat", (int)fileFormat);
     	jstring css = (jstring)_env->CallObjectMethod(_obj, _OnLoadFileFormatDetected, e);
     	if ( css ) {
@@ -74,55 +74,55 @@ public:
     /// file loading is finished successfully - drawCoveTo() may be called there
     virtual void OnLoadFileEnd()
     {
-		CRLog::trace("DocViewCallback::OnLoadFileEnd() called");
+		CRLog::info("DocViewCallback::OnLoadFileEnd() called");
     	_env->CallVoidMethod(_obj, _OnLoadFileEnd);
     }
     /// first page is loaded from file an can be formatted for preview
     virtual void OnLoadFileFirstPagesReady()
     {
-		CRLog::trace("DocViewCallback::OnLoadFileFirstPagesReady() called");
+		CRLog::info("DocViewCallback::OnLoadFileFirstPagesReady() called");
     	_env->CallVoidMethod(_obj, _OnLoadFileFirstPagesReady);
     }
     /// file progress indicator, called with values 0..100
     virtual void OnLoadFileProgress( int percent )
     {
-		CRLog::trace("DocViewCallback::OnLoadFileProgress() called");
+		CRLog::info("DocViewCallback::OnLoadFileProgress() called");
     	jboolean res = _env->CallBooleanMethod(_obj, _OnLoadFileProgress, (jint)(percent*100));
     }
     /// document formatting started
     virtual void OnFormatStart()
     {
-		CRLog::trace("DocViewCallback::OnFormatStart() called");
+		CRLog::info("DocViewCallback::OnFormatStart() called");
     	_env->CallVoidMethod(_obj, _OnFormatStart);
     }
     /// document formatting finished
     virtual void OnFormatEnd()
     {
-		CRLog::trace("DocViewCallback::OnFormatEnd() called");
+		CRLog::info("DocViewCallback::OnFormatEnd() called");
     	_env->CallVoidMethod(_obj, _OnFormatEnd);
     }
     /// format progress, called with values 0..100
     virtual void OnFormatProgress( int percent )
     {
-		CRLog::trace("DocViewCallback::OnFormatProgress() called");
+		CRLog::info("DocViewCallback::OnFormatProgress() called");
     	jboolean res = _env->CallBooleanMethod(_obj, _OnFormatProgress, (jint)(percent*100));
     }
     /// format progress, called with values 0..100
     virtual void OnExportProgress( int percent )
     {
-		CRLog::trace("DocViewCallback::OnExportProgress() called");
+		CRLog::info("DocViewCallback::OnExportProgress() called");
     	jboolean res = _env->CallBooleanMethod(_obj, _OnExportProgress, (jint)(percent*100));
     }
     /// file load finiished with error
     virtual void OnLoadFileError( lString16 message )
     {
-		CRLog::trace("DocViewCallback::OnLoadFileError() called");
+		CRLog::info("DocViewCallback::OnLoadFileError() called");
     	_env->CallVoidMethod(_obj, _OnLoadFileError, _env.toJavaString(message));
     }
     /// Override to handle external links
     virtual void OnExternalLink( lString16 url, ldomNode * node )
     {
-		CRLog::trace("DocViewCallback::OnExternalLink() called");
+		CRLog::info("DocViewCallback::OnExternalLink() called");
     	lString16 path = ldomXPointer(node,0).toString();
     	_env->CallVoidMethod(_obj, _OnExternalLink, _env.toJavaString(url), _env.toJavaString(path));
     }
@@ -132,6 +132,7 @@ public:
 ReaderViewNative::ReaderViewNative()
 {
 	_docview = new LVDocView(32); //32bpp
+	_docview->setFontSize(24);
 	_docview->createDefaultDocument(lString16("Welcome to CoolReader"), lString16("Please select file to open"));
 }
 
@@ -164,9 +165,9 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImage
   (JNIEnv * env, jobject view, jobject bitmap)
 {
     ReaderViewNative * p = getNative(env, view);
-    CRLog::info("Initialize callback");
+    //CRLog::info("Initialize callback");
 	DocViewCallback callback( env, p->_docview, view );	
-    CRLog::info("Initialized callback");
+    //CRLog::info("Initialized callback");
 	BitmapAccessor bmp(env,bitmap);
 	if ( bmp.isOk() ) {
 	    LVDocImageRef img = p->_docview->getPageImage(0);
@@ -205,12 +206,17 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
 {
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
-    CRLog::debug("loadDocumentInternal: Before callback instantiate");
-	DocViewCallback callback( _env, p->_docview, _this );	
-    CRLog::debug("loadDocumentInternal: After callback instantiate");
-    lString16 str = env.fromJavaString(s);
-	CRLog::info("Loading document %s", LCSTR(str));
-    return p->_docview->LoadDocument(str.c_str());
+    bool res;
+    {
+        //CRLog::debug("loadDocumentInternal: Before callback instantiate");
+		//DocViewCallback callback( _env, p->_docview, _this );
+		//CRLog::debug("loadDocumentInternal: After callback instantiate");
+		lString16 str = env.fromJavaString(s);
+		CRLog::info("Loading document %s", LCSTR(str));
+		res = p->_docview->LoadDocument(str.c_str());
+		CRLog::info("Document %s is loaded %s", LCSTR(str), (res?"successfully":"with error"));
+    }
+    return res ? JNI_TRUE : JNI_FALSE;
 }
 
 /*
