@@ -16,6 +16,7 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import org.coolreader.R;
@@ -36,7 +37,7 @@ public class ReaderView extends View {
     
     public enum ReaderCommand
     {
-    	//definitions from lvdocview.h
+    	//definitions from crengine/include/lvdocview.h
     	DCMD_BEGIN(100),
     	DCMD_LINEUP(101),
     	DCMD_PAGEUP(102),
@@ -63,7 +64,14 @@ public class ReaderView extends View {
     	DCMD_ROTATE_SET(123),
     	DCMD_SAVE_HISTORY(124),
     	DCMD_SAVE_TO_CACHE(125),
-    	DCMD_TOGGLE_BOLD(126);
+    	DCMD_TOGGLE_BOLD(126),
+
+    	// definitions from android/jni/readerview.h
+    	DCMD_OPEN_RECENT_BOOK(2000),
+    	DCMD_CLOSE_BOOK(2001),
+    	DCMD_RESTORE_POSITION(2002),
+    	;
+    	
     	private final int nativeId;
     	private ReaderCommand( int nativeId )
     	{
@@ -118,7 +126,7 @@ public class ReaderView extends View {
 
     private <T> T executeSync( final Callable<T> task )
     {
-    	Log.d("cr3", "executeSync called");
+    	//Log.d("cr3", "executeSync called");
     	
     	
     	final Sync<T> sync = new Sync<T>();
@@ -131,7 +139,7 @@ public class ReaderView extends View {
     		}
     	});
     	T res = sync.get();
-    	Log.d("cr3", "executeSync done");
+    	//Log.d("cr3", "executeSync done");
     	return res;
     }
     
@@ -221,40 +229,61 @@ public class ReaderView extends View {
 	boolean initialized = false;
 	boolean opened = false;
 	
-	private File historyFile;
+	//private File historyFile;
 	
-	class InitEngineTask extends Task
+	class CreateViewTask extends Task
 	{
 		public void work() throws Exception {
-			engine.init();
 			createInternal();
-			File historyFile = new File(activity.getDir("settings", Context.MODE_PRIVATE), "cr3hist.ini");
-			if ( historyFile.exists() ) {
-				Log.d("cr3", "Reading history from file " + historyFile.getAbsolutePath());
-				readHistoryInternal(historyFile.getAbsolutePath());
-			}
-			doCommandInternal(ReaderCommand.DCMD_ZOOM_OUT.nativeId, 5);
+			File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
+			historyDir.mkdirs();
+			File historyFile = new File(historyDir, "cr3hist.ini");
+			
+			//File historyFile = new File(activity.getDir("settings", Context.MODE_PRIVATE), "cr3hist.ini");
+			//if ( historyFile.exists() ) {
+			Log.d("cr3", "Reading history from file " + historyFile.getAbsolutePath());
+			readHistoryInternal(historyFile.getAbsolutePath());
+			//}
+	        String css = engine.loadResourceUtf8(R.raw.fb2);
+	        if ( css!=null && css.length()>0 )
+       			setStylesheetInternal(css);
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
-	        File sddir = Environment.getExternalStorageDirectory();
-	        File booksdir = new File( sddir, "books");
-	        File exampleFile = new File( booksdir, "volkov.fb2");
-	        //File exampleFile = new File( booksdir, "naslednik.fb2.zip");
-	        //File exampleFile = new File( booksdir, "krisis.fb2.zip");
-	        //File exampleFile = new File( booksdir, "bibl.fb2.zip");
-	        //File exampleFile = new File( booksdir, "drabkin.fb2.zip");
-	        //File exampleFile = new File( booksdir, "BurglarsTrip.fb2.zip");
-	        //File exampleFile = new File( booksdir, "kalma.fb2.zip");
-	        //File exampleFile = new File( booksdir, "example.fb2");
 			initialized = true;
-			execute(new LoadDocumentTask(exampleFile.getAbsolutePath()));
 		}
 		public void fail( Exception e )
 		{
 			Log.e("cr3", "CoolReader engine initialization failed. Exiting.", e);
 			engine.fatalError("Failed to init CoolReader engine");
 		}
+	}
+	
+	public void loadDocument( final String filename )
+	{
+		execute(new LoadDocumentTask(filename));
+	}
+
+	public void loadLastDocument( final Runnable errorHandler )
+	{
+		execute( new Task() {
+			public void work() throws Exception {
+				if ( !initialized )
+					throw new IllegalStateException("ReaderView is not initialized");
+				boolean res = doCommandInternal(ReaderCommand.DCMD_OPEN_RECENT_BOOK.nativeId, 0);
+				if ( !res )
+					throw new IOException("Cannot open recent book");
+			}
+			public void done()
+			{
+		        opened = true;
+		        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
+		        drawPage();
+			}
+			public void fail( Exception e ) {
+				errorHandler.run();
+			}
+		});
 	}
 	
 	private int lastDrawTaskId = 0;
@@ -332,9 +361,6 @@ public class ReaderView extends View {
 		}
 
 		public void work() {
-			if ( opened && historyFile!=null ) {
-				writeHistoryInternal(historyFile.getAbsolutePath());
-			}
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
@@ -375,9 +401,9 @@ public class ReaderView extends View {
     {
     	execute( new Task() {
     		public void work() {
-    			if ( opened && historyFile!=null ) {
-    				Log.i("cr3", "ReaderView().close() : saving history");
-    				writeHistoryInternal(historyFile.getAbsolutePath());
+    			if ( opened ) {
+					Log.i("cr3", "ReaderView().close() : closing current document");
+					doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}
     		public void done() {
@@ -505,10 +531,7 @@ public class ReaderView extends View {
         engine.registerView(this);
         setFocusable(true);
         setFocusableInTouchMode(true);
-        engine.showProgress( 0, "Starting Cool Reader" );
-        execute(new InitEngineTask());
-        String css = engine.loadResourceUtf8(R.raw.fb2);
-        setStyleSheet( css );
+        execute(new CreateViewTask());
     }
 
 }

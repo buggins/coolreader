@@ -23,18 +23,12 @@ public:
 	DocViewCallback( JNIEnv * env, LVDocView * docview, jobject obj )
 	: _env(env), _docview(docview)
 	{
-		CRLog::info("DocViewCallback() getting object class");
 		jclass objclass = _env->GetObjectClass(obj);
-		//CRLog::trace("DocViewCallback() getting object readerCallback field");
 		jfieldID fid = _env->GetFieldID(objclass, "readerCallback", "Lorg/coolreader/crengine/ReaderCallback;");
-		//CRLog::trace("DocViewCallback() getting readerCallback field value");
 		_obj = _env->GetObjectField(obj, fid); 
-		//_class = _env->FindClass("org/coolreader/engine/ReaderCallback");
-		//CRLog::trace("DocViewCallback() getting readerCallback field class");
 		_class = _env->GetObjectClass(_obj);
 		#define GET_METHOD(n,sign) \
 		     _ ## n = _env->GetMethodID(_class, # n, sign)   
-		//CRLog::trace("DocViewCallback() getting interface methods");
 		GET_METHOD(OnLoadFileStart,"(Ljava/lang/String;)V");
 	    GET_METHOD(OnLoadFileFormatDetected,"(Lorg/coolreader/crengine/DocumentFormat;)Ljava/lang/String;");
 	    GET_METHOD(OnLoadFileEnd,"()V");
@@ -46,7 +40,6 @@ public:
 	    GET_METHOD(OnExportProgress,"(I)Z");
 	    GET_METHOD(OnLoadFileError,"(Ljava/lang/String;)V");
 	    GET_METHOD(OnExternalLink,"(Ljava/lang/String;Ljava/lang/String;)V");
-		//CRLog::info("DocViewCallback() setting callback");
 		_docview->setCallback( this );
 	}
 	virtual ~DocViewCallback()
@@ -141,6 +134,114 @@ static ReaderViewNative * getNative(JNIEnv * env, jobject _this)
     return (ReaderViewNative *)env->GetIntField(_this, gNativeObjectID); 
 }
 
+bool ReaderViewNative::loadDocument( lString16 filename )
+{
+	CRLog::info("Loading document %s", LCSTR(filename));
+	bool res = _docview->LoadDocument(filename.c_str());
+	CRLog::info("Document %s is loaded %s", LCSTR(filename), (res?"successfully":"with error"));
+    return res;
+}
+
+bool ReaderViewNative::openRecentBook()
+{
+	CRLog::debug("ReaderViewNative::openRecentBook()");
+	int index = 0;
+	if ( _docview->isDocumentOpened() ) {
+		closeBook();
+		CRLog::debug("ReaderViewNative::openRecentBook() : saving previous document state");
+		_docview->swapToCache();
+        _docview->getDocument()->updateMap();
+	    _docview->savePosition();
+	    index = 1;
+	}
+    LVPtrVector<CRFileHistRecord> & files = _docview->getHistory()->getRecords();
+    if ( index < files.length() ) {
+        CRFileHistRecord * file = files.get( index );
+        lString16 fn = file->getFilePathName();
+        CRLog::info("ReaderViewNative::openRecentBook() : checking file %s", LCSTR(fn));
+        // TODO: check error
+        if ( LVFileExists(fn) ) {
+            return loadDocument( fn );
+        } else {
+        	CRLog::error("file %s doesn't exist", LCSTR(fn));
+        	return false;
+        }
+        //_docview->swapToCache();
+    } else {
+        CRLog::info("ReaderViewNative::openRecentBook() : no recent book found in history");
+    }
+    return false;
+}
+
+bool ReaderViewNative::closeBook()
+{
+	if ( _docview->isDocumentOpened() ) {
+	    _docview->savePosition();
+        _docview->getDocument()->updateMap();
+	    saveHistory(lString16());
+	    _docview->close();
+	    return true;
+	}
+	return false;
+}
+
+bool ReaderViewNative::loadHistory( lString16 filename )
+{
+    CRFileHist * hist = _docview->getHistory();
+	if ( !filename.empty() )
+		historyFileName = filename;
+    historyFileName = filename;
+    if ( historyFileName.empty() )
+    	return false;
+    LVStreamRef stream = LVOpenFileStream(historyFileName.c_str(), LVOM_READ);
+    if ( stream.isNull() )
+    	return false;
+    return hist->loadFromStream( stream );
+
+}
+
+bool ReaderViewNative::saveHistory( lString16 filename )
+{
+	if ( !filename.empty() )
+		historyFileName = filename;
+    if ( historyFileName.empty() )
+    	return false;
+    CRFileHist * hist = _docview->getHistory();
+    LVStreamRef stream = LVOpenFileStream(historyFileName.c_str(), LVOM_WRITE);
+    if ( stream.isNull() )
+    	return false;
+    if ( _docview->isDocumentOpened() )
+    	_docview->savePosition();
+    return hist->saveToStream( stream.get() );
+}
+
+int ReaderViewNative::doCommand( int cmd, int param )
+{
+	switch (cmd) {
+    case DCMD_OPEN_RECENT_BOOK:
+    	{
+    		return openRecentBook();
+    	}
+    	break;
+    case DCMD_CLOSE_BOOK:
+    	{
+    		return closeBook();
+    	}
+    	break;
+    case DCMD_RESTORE_POSITION:
+	    {
+    		if ( _docview->isDocumentOpened() ) {
+		        _docview->restorePosition();
+    		}
+	    }
+	    break;
+    default:
+    	return 0;
+   	}
+   	return 1;
+}
+
+
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    createInternal
@@ -227,18 +328,9 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
 {
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
-    bool res;
-    {
-        //CRLog::debug("loadDocumentInternal: Before callback instantiate");
-		DocViewCallback callback( _env, p->_docview, _this );
-		//CRLog::debug("loadDocumentInternal: After callback instantiate");
-		lString16 str = env.fromJavaString(s);
-		CRLog::info("Loading document %s", LCSTR(str));
-		res = p->_docview->LoadDocument(str.c_str());
-		CRLog::info("Document %s is loaded %s", LCSTR(str), (res?"successfully":"with error"));
-    }
-    if ( p->_docview->isDocumentOpened() )
-    	p->_docview->restorePosition();
+	DocViewCallback callback( _env, p->_docview, _this );
+	lString16 str = env.fromJavaString(s);
+    bool res = p->loadDocument(str);
     return res ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -274,12 +366,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistoryIn
 {
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
-    CRFileHist * hist = p->_docview->getHistory();
-    lString16 filename = env.fromJavaString(jFilename);
-    LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_READ);
-    if ( stream.isNull() )
-    	return JNI_FALSE;
-    bool res = hist->loadFromStream( stream );
+    bool res = p->loadHistory( env.fromJavaString(jFilename) );
     return res?JNI_TRUE:JNI_FALSE;
 }
 
@@ -293,14 +380,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryI
 {
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
-    CRFileHist * hist = p->_docview->getHistory();
-    lString16 filename = env.fromJavaString(jFilename);
-    LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_WRITE);
-    if ( stream.isNull() )
-    	return JNI_FALSE;
-    if ( p->_docview->isDocumentOpened() )
-    	p->_docview->savePosition();
-    bool res = hist->saveToStream( stream.get() );
+    bool res = p->saveHistory( env.fromJavaString(jFilename) );
     return res?JNI_TRUE:JNI_FALSE;
 }
 
@@ -340,8 +420,13 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInte
   (JNIEnv * _env, jobject _this, jint cmd, jint param)
 {
     ReaderViewNative * p = getNative(_env, _this);
+	DocViewCallback callback( _env, p->_docview, _this );	
+    if ( cmd>=READERVIEW_DCMD_START && cmd<=READERVIEW_DCMD_END) {
+    	return p->doCommand(cmd, param)?JNI_TRUE:JNI_FALSE;
+    }
+    
     p->_docview->doCommand((LVDocCmd)cmd, param);
-    return true;
+    return JNI_TRUE;
 }
 
 /*

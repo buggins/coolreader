@@ -2829,6 +2829,11 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
     return false;
 }
 
+void LVDocView::close()
+{
+    createDefaultDocument(lString16(L""), lString16(L""));
+}
+
 void LVDocView::createDefaultDocument( lString16 title, lString16 message )
 {
     Clear();

@@ -425,6 +425,8 @@ protected:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+    /// close document
+    void close();
     /// set buffer format
     void setDrawBufferBits( int bits ) { m_drawBufferBits = bits; }
     /// substitute page header with custom text (e.g. to be used while loading)

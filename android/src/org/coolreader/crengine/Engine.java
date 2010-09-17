@@ -74,14 +74,16 @@ public class Engine {
 		}
 		public void run() {
 			try {
-				Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
+				//Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
+				if ( !initialized )
+					throw new IllegalStateException("Engine not initialized");
 				// run task
 				task.work();
-				Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
+				//Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
 				// post success callback
 				view.post(new Runnable() {
 					public void run() {
-						Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
+						//Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
 						task.done();
 					}
 				});
@@ -106,7 +108,7 @@ public class Engine {
 				// post error callback
 				view.post(new Runnable() {
 					public void run() {
-						Log.i("cr3", "running task.fail("+e.getMessage()+") " + task.getClass().getSimpleName() + " in gui thread ");
+						Log.e("cr3", "running task.fail("+e.getMessage()+") " + task.getClass().getSimpleName() + " in gui thread ");
 						task.fail(e);
 					}
 				});
@@ -116,7 +118,7 @@ public class Engine {
 	
 	public void execute( final EngineTask task, final View view )
 	{
-		Log.d("cr3", "executing task " + task.getClass().getSimpleName());
+		//Log.d("cr3", "executing task " + task.getClass().getSimpleName());
 		TaskHandler taskHandler = new TaskHandler( task, view );
 		executor.execute( taskHandler );
 	}
@@ -136,21 +138,23 @@ public class Engine {
 	private ProgressDialog progress;
 	private boolean enable_progress = true; 
 	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
-	private Handler handler;
+//	private Handler handler;
 	//private static int PROGRESS_STYLE = ProgressDialog.STYLE_SPINNER;
 	public void showProgress( final int mainProgress, final String msg )
 	{
-		if ( handler==null )
-			handler = new Handler();
+//		if ( handler==null ) {
+//			Looper.prepare();
+//			handler = new Handler();
+//		}
 		if ( mainProgress==10000 ) {
 			hideProgress();
 			return;
 		}
-//		if ( views.size()==0 )
-//			return;
-//		ReaderView view = views.get(0);
+		if ( views.size()==0 )
+			return;
+		ReaderView view = views.get(0);
 		if ( enable_progress ) {
-			handler.post( new Runnable() {
+			view.post( new Runnable() {
 				public void run() {
 					// show progress
 					if ( progress==null ) {
@@ -179,7 +183,10 @@ public class Engine {
 	
 	public void hideProgress()
 	{
-		handler.post( new Runnable() {
+		if ( views.size()==0 )
+			return;
+		ReaderView view = views.get(0);
+		view.post( new Runnable() {
 			public void run() {
 				// hide progress
 				if ( progress!=null ) {
@@ -226,6 +233,28 @@ public class Engine {
 	public Engine( Activity activity )
 	{
 		this.activity = activity;
+		Log.i("cr3", "Engine() : scheduling init task");
+		executor.execute( new Runnable() {
+			public void run()
+			{
+				try {
+					Log.i("cr3", "Engine() : running init() in engine thread");
+					init();
+//					android.view.ViewRoot.getRunQueue().post(new Runnable() {
+//						public void run() {
+//							
+//						}
+//					});
+				} catch ( final Exception e ) {
+					Log.e("cr3", "Exception while initializing Engine", e);
+//					handler.post(new Runnable() {
+//						public void run() {
+//							// TODO: fatal error
+//						}
+//					});
+				}
+			}
+		});			
 	}
 
 	private native boolean initInternal( String[] fontList );
@@ -244,7 +273,7 @@ public class Engine {
 	
 	final int CACHE_DIR_SIZE = 50000000;
 	
-	public void init() throws IOException
+	private void init() throws IOException
 	{
 		if ( initialized )
 			throw new IllegalStateException("Already initialized");
@@ -272,10 +301,15 @@ public class Engine {
 	 */
 	public void uninit()
 	{
-		if ( !initialized )
-			throw new IllegalStateException("Not initialized");
-		uninitInternal();
-		initialized = false;
+		executor.execute(new Runnable() {
+			public void run() {
+				if ( initialized ) {
+					uninitInternal();
+					initialized = false;
+				}
+			}
+		});
+		waitTasksCompletion();
 	}
 	
 	protected void finalize() throws Throwable
