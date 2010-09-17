@@ -284,8 +284,7 @@ public class ReaderView extends View {
 		{
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
     		mBitmap = bitmap;
-    		if ( progress!=null )
-    	        showProgress( 10000, 10000, "Done" );
+    	    engine.hideProgress();
     		invalidate();
 		}
 	}; 
@@ -329,7 +328,7 @@ public class ReaderView extends View {
 		LoadDocumentTask( String filename )
 		{
 			this.filename = filename;
-	        showProgress( 1000, 0, "Loading..." );
+	        engine.showProgress( 1000, "Loading..." );
 		}
 
 		public void work() {
@@ -356,51 +355,6 @@ public class ReaderView extends View {
 			Log.d("cr3", "LoadDocumentTask is finished with exception " + e.getMessage());
 	        opened = true;
 			drawPage();
-		}
-	}
-	
-	private ProgressDialog progress;
-	private boolean enable_progress = true; 
-	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
-	//private static int PROGRESS_STYLE = ProgressDialog.STYLE_SPINNER;
-	void showProgress( final int mainProgress, final int secondaryProgress, final String msg )
-	{
-		if ( enable_progress ) {
-			post( new Runnable() {
-				public void run() {
-					if ( mainProgress==10000 ) {
-						// hide progress
-						if ( progress!=null ) {
-							progress.dismiss();
-							progress = null;
-						}
-					} else {
-						// show progress
-						if ( progress==null ) {
-							if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
-								progress = new ProgressDialog(activity);
-								progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-								progress.setMax(10000);
-								progress.setCancelable(false);
-								progress.setProgress(mainProgress);
-								//progress.setSecondaryProgress(secondaryProgress);
-								progress.setTitle("Please wait");
-								progress.setMessage(msg);
-								progress.show();
-							} else {
-								progress = ProgressDialog.show(activity, "Please Wait", msg);
-								progress.setCancelable(false);
-								progress.setProgress(mainProgress);
-								//progress.setSecondaryProgress(secondaryProgress);
-							}
-						} else { 
-							progress.setProgress(mainProgress);
-							//progress.setSecondaryProgress(secondaryProgress);
-							progress.setMessage(msg);
-						}
-					}
-				}
-			});
 		}
 	}
 	
@@ -448,10 +402,9 @@ public class ReaderView extends View {
         		}
         	});
     		engine.waitTasksCompletion();
+        	engine.unregisterView(this);
     	}
     }
-
-    
     
     @Override
 	protected void onDetachedFromWindow() {
@@ -477,7 +430,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
-			    	showProgress( percent*4/10 + 5000, percent, "Formatting...");
+			    	engine.showProgress( percent*4/10 + 5000, "Formatting...");
 			    	return null;
 				}
 			});
@@ -514,7 +467,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
-			    	showProgress( percent*4/10 + 1000, percent, "Loading...");
+			    	engine.showProgress( percent*4/10 + 1000, "Loading...");
 			    	return null;
 				}
 			});
@@ -539,6 +492,7 @@ public class ReaderView extends View {
     @Override
     public void finalize()
     {
+        engine.unregisterView(this);
     	destroyInternal();
     }
     
@@ -548,9 +502,10 @@ public class ReaderView extends View {
         super(activity);
         this.activity = activity;
         this.engine = engine;
+        engine.registerView(this);
         setFocusable(true);
         setFocusableInTouchMode(true);
-        showProgress( 0, 0, "Starting Cool Reader" );
+        engine.showProgress( 0, "Starting Cool Reader" );
         execute(new InitEngineTask());
         String css = engine.loadResourceUtf8(R.raw.fb2);
         setStyleSheet( css );

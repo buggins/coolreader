@@ -6,6 +6,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +30,17 @@ import android.view.View;
 public class Engine {
 	
 	private final Activity activity;
+	private final List<ReaderView> views = new ArrayList<ReaderView>();
+
+	void registerView( ReaderView view )
+	{
+		views.add(view);
+	}
+	
+	void unregisterView( ReaderView view )
+	{
+		views.remove(view);
+	}
 	
 	public interface EngineTask {
 		public void work() throws Exception;
@@ -118,6 +131,63 @@ public class Engine {
 		}
 		dlg.dismiss();
 		activity.finish();
+	}
+	
+	private ProgressDialog progress;
+	private boolean enable_progress = true; 
+	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
+	private Handler handler;
+	//private static int PROGRESS_STYLE = ProgressDialog.STYLE_SPINNER;
+	public void showProgress( final int mainProgress, final String msg )
+	{
+		if ( handler==null )
+			handler = new Handler();
+		if ( mainProgress==10000 ) {
+			hideProgress();
+			return;
+		}
+//		if ( views.size()==0 )
+//			return;
+//		ReaderView view = views.get(0);
+		if ( enable_progress ) {
+			handler.post( new Runnable() {
+				public void run() {
+					// show progress
+					if ( progress==null ) {
+						if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
+							progress = new ProgressDialog(activity);
+							progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+							progress.setMax(10000);
+							progress.setCancelable(false);
+							progress.setProgress(mainProgress);
+							progress.setTitle("Please wait");
+							progress.setMessage(msg);
+							progress.show();
+						} else {
+							progress = ProgressDialog.show(activity, "Please Wait", msg);
+							progress.setCancelable(false);
+							progress.setProgress(mainProgress);
+						}
+					} else { 
+						progress.setProgress(mainProgress);
+						progress.setMessage(msg);
+					}
+				}
+			});
+		}
+	}
+	
+	public void hideProgress()
+	{
+		handler.post( new Runnable() {
+			public void run() {
+				// hide progress
+				if ( progress!=null ) {
+					progress.dismiss();
+					progress = null;
+				}
+			}
+		});
 	}
 	
 	public String loadResourceUtf8( int id )
