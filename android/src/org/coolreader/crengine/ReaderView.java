@@ -17,12 +17,12 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import org.coolreader.R;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -264,6 +264,31 @@ public class ReaderView extends View {
 		execute(new LoadDocumentTask(filename));
 	}
 
+	public void showFileSelector()
+	{
+		engine.showProgress(10, "Scanning directories...");
+		final ArrayList<Scanner.FileInfo> files = new ArrayList<Scanner.FileInfo>();
+		execute( new Task() {
+			public void work() throws Exception {
+				if ( !initialized )
+					throw new IllegalStateException("ReaderView is not initialized");
+				Scanner.scanDirectories(Environment.getExternalStorageDirectory(), files);
+			}
+			public void done()
+			{
+				for ( Scanner.FileInfo item : files ) {
+					Log.d("cr3", "File found: " + item.pathname);
+				}
+				if ( files.size()>0 ) {
+					Log.i("cr3", "Loading first book from SD card");
+					loadDocument(files.get(0).pathname);
+				}
+			}
+			public void fail( Exception e ) {
+			}
+		});
+	}
+	
 	public void loadLastDocument( final Runnable errorHandler )
 	{
 		execute( new Task() {

@@ -109,7 +109,8 @@ public class CoolReader extends Activity
 		        //File exampleFile = new File( booksdir, "BurglarsTrip.fb2.zip");
 		        //File exampleFile = new File( booksdir, "kalma.fb2.zip");
 		        //File exampleFile = new File( booksdir, "example.fb2");
-		        readerView.loadDocument(exampleFile.getAbsolutePath());
+		        //readerView.loadDocument(exampleFile.getAbsolutePath());
+		        readerView.showFileSelector();
 			}
 		});
 	}
