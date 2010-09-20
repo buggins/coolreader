@@ -25,6 +25,8 @@ public class FileBrowser extends ListView {
 		this.activity = activity;
 		this.engine = engine;
 		this.scanner = scanner;
+        setFocusable(true);
+        setFocusableInTouchMode(true);
 		setChoiceMode(CHOICE_MODE_SINGLE);
 		showDirectory( null );
 	}
@@ -184,7 +186,7 @@ public class FileBrowser extends ListView {
 
 	private void execute( Engine.EngineTask task )
     {
-    	engine.execute(task, this);
+    	engine.execute(task);
     }
 
     private abstract class Task implements Engine.EngineTask {

@@ -31,18 +31,8 @@ import android.view.View;
 public class Engine {
 	
 	private final Activity activity;
-	private final List<ReaderView> views = new ArrayList<ReaderView>();
+	private final View mainView;
 
-	void registerView( ReaderView view )
-	{
-		views.add(view);
-	}
-	
-	void unregisterView( ReaderView view )
-	{
-		views.remove(view);
-	}
-	
 	public interface EngineTask {
 		public void work() throws Exception;
 		public void done();
@@ -117,59 +107,12 @@ public class Engine {
 		}
 	}
 	
-	private class Task implements Runnable {
-		final EngineTask task;
-		public Task( EngineTask task )
-		{
-			this.task = task;
-		}
-		public void run() {
-			try {
-				Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
-				if ( !initialized )
-					throw new IllegalStateException("Engine not initialized");
-				// run task
-				task.work();
-				Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
-				// post success callback
-				handler.post(new Runnable() {
-					public void run() {
-						Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
-						task.done();
-					}
-				});
-			} catch ( final FatalError e ) {
-				Handler h = handler;
-				
-				h.postAtFrontOfQueue(new Runnable() {
-					public void run() {
-						e.handle();
-					}
-				});
-			} catch ( final Exception e ) {
-				// post error callback
-				handler.post(new Runnable() {
-					public void run() {
-						Log.e("cr3", "running task.fail("+e.getMessage()+") " + task.getClass().getSimpleName() + " in gui thread ");
-						task.fail(e);
-					}
-				});
-			}
-		}
-	}
-	
-	Handler handler;
-	public void execute( final EngineTask task, final View view )
+	public void execute( final EngineTask task )
 	{
-		if ( handler==null ) {
-			//Looper.prepareMainLooper();
-			handler = new Handler();
-		}
 		
 		Log.d("cr3", "executing task " + task.getClass().getSimpleName());
-//		TaskHandler taskHandler = new TaskHandler( task, view );
-//		executor.execute( taskHandler );
-		executor.execute( new Task(task) );
+		TaskHandler taskHandler = new TaskHandler( task, mainView );
+		executor.execute( taskHandler );
 	}
 
 	public void fatalError( String msg)
@@ -199,11 +142,11 @@ public class Engine {
 			hideProgress();
 			return;
 		}
-		if ( views.size()==0 )
-			return;
-		ReaderView view = views.get(0);
+		//if ( views.size()==0 )
+		//	return;
+		//ReaderView view = views.get(0);
 		if ( enable_progress ) {
-			view.post( new Runnable() {
+			mainView.post( new Runnable() {
 				public void run() {
 					// show progress
 					if ( progress==null ) {
@@ -232,10 +175,7 @@ public class Engine {
 	
 	public void hideProgress()
 	{
-		if ( views.size()==0 )
-			return;
-		ReaderView view = views.get(0);
-		view.post( new Runnable() {
+		mainView.post( new Runnable() {
 			public void run() {
 				// hide progress
 				if ( progress!=null ) {
@@ -279,9 +219,10 @@ public class Engine {
 	 * Initialize CoolReader Engine
 	 * @param fontList is array of .ttf font pathnames to load
 	 */
-	public Engine( Activity activity )
+	public Engine( Activity activity, View mainView )
 	{
 		this.activity = activity;
+		this.mainView = mainView;
 		Log.i("cr3", "Engine() : scheduling init task");
 		executor.execute( new Runnable() {
 			public void run()

@@ -1,27 +1,12 @@
-/*
- * Copyright (C) 2010 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.coolreader.crengine;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -80,7 +65,7 @@ public class ReaderView extends View {
     
     private void execute( Engine.EngineTask task )
     {
-    	engine.execute(task, this);
+    	engine.execute(task);
     }
     
     private abstract class Task implements Engine.EngineTask {
@@ -204,6 +189,9 @@ public class ReaderView extends View {
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
 			doCommand( ReaderCommand.DCMD_PAGEDOWN, 10);
 			break;
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+			activity.showBrowser();
+			break;
 		default:
 			return super.onKeyDown(keyCode, event);
 		}
@@ -278,7 +266,6 @@ public class ReaderView extends View {
 				throw new IOException("Cannot open recent book");
 			else
 				Log.i("cr3", "Last document is opened successfully");
-			engine.hideProgress();
 		}
 		public void done()
 		{
@@ -326,7 +313,8 @@ public class ReaderView extends View {
 		{
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
     		mBitmap = bitmap;
-    	    engine.hideProgress();
+    		if (opened)
+    			engine.hideProgress();
     		invalidate();
 		}
 	}; 
@@ -387,6 +375,8 @@ public class ReaderView extends View {
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
 	        //showProgress( 5000, 0, "Formatting..." );
 	        opened = true;
+	        //engine.hideProgress();
+	        activity.showReader();
 	        drawPage();
 		}
 		public void fail( Exception e )
@@ -441,7 +431,6 @@ public class ReaderView extends View {
         		}
         	});
     		engine.waitTasksCompletion();
-        	engine.unregisterView(this);
     	}
     }
     
@@ -531,20 +520,25 @@ public class ReaderView extends View {
     @Override
     public void finalize()
     {
-        engine.unregisterView(this);
     	destroyInternal();
     }
+
+    private boolean initStarted = false;
+    public void init()
+    {
+    	if ( initStarted )
+    		return;
+   		execute(new CreateViewTask());
+    }
     
-	Activity activity;
-	public ReaderView(Activity activity, Engine engine) 
+	CoolReader activity;
+	public ReaderView(CoolReader activity, Engine engine) 
     {
         super(activity);
         this.activity = activity;
         this.engine = engine;
-        engine.registerView(this);
         setFocusable(true);
         setFocusableInTouchMode(true);
-        execute(new CreateViewTask());
     }
 
 }
