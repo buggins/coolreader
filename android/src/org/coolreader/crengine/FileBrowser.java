@@ -54,7 +54,7 @@ public class FileBrowser extends ListView {
 	public void start()
 	{
 		if ( started ) {
-			showDirectory( scanner.root );
+			//showDirectory( scanner.root );
 			return;
 		}
 		engine.showProgress(20, "Scanning directories...");

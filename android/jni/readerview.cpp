@@ -147,14 +147,15 @@ bool ReaderViewNative::openRecentBook()
 	CRLog::debug("ReaderViewNative::openRecentBook()");
 	int index = 0;
 	if ( _docview->isDocumentOpened() ) {
-		closeBook();
 		CRLog::debug("ReaderViewNative::openRecentBook() : saving previous document state");
 		_docview->swapToCache();
         _docview->getDocument()->updateMap();
 	    _docview->savePosition();
+		closeBook();
 	    index = 1;
 	}
     LVPtrVector<CRFileHistRecord> & files = _docview->getHistory()->getRecords();
+    CRLog::info("ReaderViewNative::openRecentBook() : %d files found in history, startIndex=%d", files.length(), index);
     if ( index < files.length() ) {
         CRFileHistRecord * file = files.get( index );
         lString16 fn = file->getFilePathName();
@@ -191,12 +192,22 @@ bool ReaderViewNative::loadHistory( lString16 filename )
 	if ( !filename.empty() )
 		historyFileName = filename;
     historyFileName = filename;
-    if ( historyFileName.empty() )
+    if ( historyFileName.empty() ) {
+    	CRLog::error("No history file name specified");
     	return false;
+    }
+	CRLog::info("Trying to load history from file %s", LCSTR(historyFileName));
     LVStreamRef stream = LVOpenFileStream(historyFileName.c_str(), LVOM_READ);
-    if ( stream.isNull() )
+    if ( stream.isNull() ) {
+    	CRLog::error("Cannot open file %s", LCSTR(historyFileName));
     	return false;
-    return hist->loadFromStream( stream );
+    }
+    bool res = hist->loadFromStream( stream );
+    if ( res )
+    	CRLog::info("%d items found", hist->getRecords().length());
+    else
+    	CRLog::error("Cannot read history file content");
+    return res;
 }
 
 bool ReaderViewNative::saveHistory( lString16 filename )
@@ -205,10 +216,17 @@ bool ReaderViewNative::saveHistory( lString16 filename )
 		historyFileName = filename;
     if ( historyFileName.empty() )
     	return false;
+	if ( _docview->isDocumentOpened() ) {
+		CRLog::debug("ReaderViewNative::saveHistory() : saving position");
+	    _docview->savePosition();
+	}
+	CRLog::info("Trying to save history to file %s", LCSTR(historyFileName));
     CRFileHist * hist = _docview->getHistory();
     LVStreamRef stream = LVOpenFileStream(historyFileName.c_str(), LVOM_WRITE);
-    if ( stream.isNull() )
+    if ( stream.isNull() ) {
+    	CRLog::error("Cannot create file %s for writing", LCSTR(historyFileName));
     	return false;
+    }
     if ( _docview->isDocumentOpened() )
     	_docview->savePosition();
     return hist->saveToStream( stream.get() );

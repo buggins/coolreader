@@ -111,7 +111,7 @@ public class CoolReader extends Activity
 		super.onSaveInstanceState(outState);
 	}
 
-	static final boolean LOAD_LAST_DOCUMENT_ON_START = false; 
+	static final boolean LOAD_LAST_DOCUMENT_ON_START = true; 
 	
 	@Override
 	protected void onStart() {

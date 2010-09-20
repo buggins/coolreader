@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -222,7 +223,8 @@ public class ReaderView extends View {
 	{
 		public void work() throws Exception {
 			createInternal();
-			File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
+			File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
+			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
 			historyDir.mkdirs();
 			File historyFile = new File(historyDir, "cr3hist.ini");
 			
@@ -234,10 +236,10 @@ public class ReaderView extends View {
 	        String css = engine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
+			initialized = true;
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
-			initialized = true;
 		}
 		public void fail( Exception e )
 		{
@@ -272,6 +274,7 @@ public class ReaderView extends View {
 	        opened = true;
 			Log.i("cr3", "Last document is opened. Restoring position...");
 	        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
+			activity.showReader();
 	        drawPage();
 		}
 		public void fail( Exception e ) {
@@ -283,6 +286,7 @@ public class ReaderView extends View {
 	public void loadLastDocument( final Runnable errorHandler )
 	{
 		Log.i("cr3", "Submitting LastDocumentLoadTask");
+		init();
 		execute( new LastDocumentLoadTask(errorHandler));
 	}
 	
@@ -365,6 +369,7 @@ public class ReaderView extends View {
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
+		        writeHistoryInternal(null);
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
 	        } else {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
@@ -376,7 +381,8 @@ public class ReaderView extends View {
 	        //showProgress( 5000, 0, "Formatting..." );
 	        opened = true;
 	        //engine.hideProgress();
-	        activity.showReader();
+	        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
+			activity.showReader();
 	        drawPage();
 		}
 		public void fail( Exception e )
