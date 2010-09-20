@@ -1,10 +1,11 @@
 // Main Class
 package org.coolreader;
 
-import java.io.File;
-
 import org.coolreader.crengine.Engine;
+import org.coolreader.crengine.FileBrowser;
+import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.ReaderView;
+import org.coolreader.crengine.Scanner;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -17,6 +18,8 @@ public class CoolReader extends Activity
 {
 	Engine engine;
 	ReaderView readerView;
+	Scanner scanner;
+	FileBrowser browser;
 	
     /** Called when the activity is first created. */
     @Override
@@ -29,6 +32,8 @@ public class CoolReader extends Activity
 		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		readerView = new ReaderView(this, engine);
+		scanner = new Scanner(Environment.getExternalStorageDirectory(), "SD");
+		browser = new FileBrowser(this, engine, scanner);
 		setContentView( readerView );
         engine.showProgress( 5, "Starting Cool Reader..." );
     }
@@ -91,28 +96,23 @@ public class CoolReader extends Activity
 		super.onSaveInstanceState(outState);
 	}
 
+	static final boolean LOAD_LAST_DOCUMENT_ON_START = false; 
+	
 	@Override
 	protected void onStart() {
 		Log.i("cr3", "CoolReader.onStart()");
 		super.onStart();
-		readerView.loadLastDocument(new Runnable() {
-			public void run() {
-				// cannot open recent book: load another one
-				// TODO:
-		        File sddir = Environment.getExternalStorageDirectory();
-		        File booksdir = new File( sddir, "books");
-		        File exampleFile = new File( booksdir, "volkov.fb2");
-		        //File exampleFile = new File( booksdir, "naslednik.fb2.zip");
-		        //File exampleFile = new File( booksdir, "krisis.fb2.zip");
-		        //File exampleFile = new File( booksdir, "bibl.fb2.zip");
-		        //File exampleFile = new File( booksdir, "drabkin.fb2.zip");
-		        //File exampleFile = new File( booksdir, "BurglarsTrip.fb2.zip");
-		        //File exampleFile = new File( booksdir, "kalma.fb2.zip");
-		        //File exampleFile = new File( booksdir, "example.fb2");
-		        //readerView.loadDocument(exampleFile.getAbsolutePath());
-		        readerView.showFileSelector();
-			}
-		});
+		if ( LOAD_LAST_DOCUMENT_ON_START ) {
+			readerView.loadLastDocument(new Runnable() {
+				public void run() {
+					// cannot open recent book: load another one
+					Log.e("cr3", "Cannot open last document, starting file browser");
+					showBrowser();
+				}
+			});
+		} else {
+			showBrowser();
+		}
 	}
 
 	@Override
@@ -121,5 +121,16 @@ public class CoolReader extends Activity
 		super.onStop();
 	}
 	
+	public void loadDocument( FileInfo item )
+	{
+		setContentView(readerView);
+		readerView.loadDocument(item.getPathName());
+	}
+	
+	public void showBrowser()
+	{
+		setContentView(browser);
+		browser.start();
+	}
 	
 }

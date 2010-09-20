@@ -197,7 +197,6 @@ bool ReaderViewNative::loadHistory( lString16 filename )
     if ( stream.isNull() )
     	return false;
     return hist->loadFromStream( stream );
-
 }
 
 bool ReaderViewNative::saveHistory( lString16 filename )

@@ -7,15 +7,6 @@ import java.util.List;
 import android.util.Log;
 
 public class Scanner {
-	static class FileInfo {
-		String path;
-		String filename;
-		String pathname;
-		String extension;
-		int size;
-		boolean isArchive;
-		ArrayList<FileInfo> subitems; // ZIP archive items
-	}
 	final static String[] supportedExtensions = new String[] {
 		".fb2",
 		".txt",
@@ -26,9 +17,14 @@ public class Scanner {
 		".epub",
 		".zip",
 	};
-	static void scanDirectories( File dir, List<FileInfo> list )
+	
+	List<FileInfo> fileList = new ArrayList<FileInfo>();
+	FileInfo root;
+
+	private boolean scanDirectories( FileInfo baseDir )
 	{
-		try { 
+		try {
+			File dir = new File(baseDir.pathname);
 			File[] items = dir.listFiles();
 			// process normal files
 			for ( File f : items ) {
@@ -40,18 +36,51 @@ public class Scanner {
 							item.filename = f.getName();
 							item.path = f.getPath();
 							item.pathname = f.getAbsolutePath();
-							list.add(item);
+							item.parent = baseDir;
+							baseDir.addFile(item);
+							fileList.add(item);
 						}
 					}
 				}
 			}
-			// process directories files
+			// process directories 
 			for ( File f : items ) {
-				if ( f.isDirectory() )
-					scanDirectories(f, list);
+				if ( f.isDirectory() ) {
+					FileInfo item = new FileInfo();
+					item.filename = f.getName();
+					item.path = f.getPath();
+					item.pathname = f.getAbsolutePath();
+					item.isDirectory = true;
+					item.parent = baseDir;
+					scanDirectories(item);
+					if ( !item.isEmpty() ) {
+						baseDir.addDir(item);					
+					}
+				}
 			}
+			return !baseDir.isEmpty();
 		} catch ( Exception e ) {
-			Log.e("cr3", "Exception while scanning directory " + dir.getAbsolutePath(), e);
+			Log.e("cr3", "Exception while scanning directory " + baseDir.pathname, e);
+			return false;
 		}
+	}
+	
+	public boolean scan()
+	{
+		Log.i("cr3", "Started scanning");
+		long start = System.currentTimeMillis();
+		fileList.clear();
+		root.clear();
+		boolean res = scanDirectories( root );
+		Log.i("cr3", "Finished scanning (" + (System.currentTimeMillis()-start)+ " ms)");
+		return res;
+	}
+	
+	public Scanner( File rootDir, String description )
+	{
+		root = new FileInfo();
+		root.path = rootDir.getPath();	
+		root.filename = rootDir.getName();	
+		root.pathname = rootDir.getAbsolutePath();
 	}
 }

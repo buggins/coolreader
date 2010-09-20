@@ -17,7 +17,6 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import org.coolreader.R;
@@ -264,51 +263,40 @@ public class ReaderView extends View {
 		execute(new LoadDocumentTask(filename));
 	}
 
-	public void showFileSelector()
-	{
-		engine.showProgress(10, "Scanning directories...");
-		final ArrayList<Scanner.FileInfo> files = new ArrayList<Scanner.FileInfo>();
-		execute( new Task() {
-			public void work() throws Exception {
-				if ( !initialized )
-					throw new IllegalStateException("ReaderView is not initialized");
-				Scanner.scanDirectories(Environment.getExternalStorageDirectory(), files);
-			}
-			public void done()
-			{
-				for ( Scanner.FileInfo item : files ) {
-					Log.d("cr3", "File found: " + item.pathname);
-				}
-				if ( files.size()>0 ) {
-					Log.i("cr3", "Loading first book from SD card");
-					loadDocument(files.get(0).pathname);
-				}
-			}
-			public void fail( Exception e ) {
-			}
-		});
+	class LastDocumentLoadTask extends Task {
+		Runnable errorHandler;
+		LastDocumentLoadTask( Runnable errorHandler )
+		{
+			this.errorHandler = errorHandler;
+		}
+		public void work() throws Exception {
+			if ( !initialized )
+				throw new IllegalStateException("ReaderView is not initialized");
+			Log.i("cr3", "Trying to load last document");
+			boolean res = doCommandInternal(ReaderCommand.DCMD_OPEN_RECENT_BOOK.nativeId, 0);
+			if ( !res )
+				throw new IOException("Cannot open recent book");
+			else
+				Log.i("cr3", "Last document is opened successfully");
+			engine.hideProgress();
+		}
+		public void done()
+		{
+	        opened = true;
+			Log.i("cr3", "Last document is opened. Restoring position...");
+	        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
+	        drawPage();
+		}
+		public void fail( Exception e ) {
+			Log.i("cr3", "Last document loading is failed");
+			errorHandler.run();
+		}
 	}
 	
 	public void loadLastDocument( final Runnable errorHandler )
 	{
-		execute( new Task() {
-			public void work() throws Exception {
-				if ( !initialized )
-					throw new IllegalStateException("ReaderView is not initialized");
-				boolean res = doCommandInternal(ReaderCommand.DCMD_OPEN_RECENT_BOOK.nativeId, 0);
-				if ( !res )
-					throw new IOException("Cannot open recent book");
-			}
-			public void done()
-			{
-		        opened = true;
-		        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
-		        drawPage();
-			}
-			public void fail( Exception e ) {
-				errorHandler.run();
-			}
-		});
+		Log.i("cr3", "Submitting LastDocumentLoadTask");
+		execute( new LastDocumentLoadTask(errorHandler));
 	}
 	
 	private int lastDrawTaskId = 0;

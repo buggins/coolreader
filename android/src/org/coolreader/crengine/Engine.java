@@ -19,6 +19,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
@@ -74,16 +75,16 @@ public class Engine {
 		}
 		public void run() {
 			try {
-				//Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
+				Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
 				if ( !initialized )
 					throw new IllegalStateException("Engine not initialized");
 				// run task
 				task.work();
-				//Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
+				Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
 				// post success callback
 				view.post(new Runnable() {
 					public void run() {
-						//Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
+						Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
 						task.done();
 					}
 				});
@@ -116,11 +117,59 @@ public class Engine {
 		}
 	}
 	
+	private class Task implements Runnable {
+		final EngineTask task;
+		public Task( EngineTask task )
+		{
+			this.task = task;
+		}
+		public void run() {
+			try {
+				Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
+				if ( !initialized )
+					throw new IllegalStateException("Engine not initialized");
+				// run task
+				task.work();
+				Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
+				// post success callback
+				handler.post(new Runnable() {
+					public void run() {
+						Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
+						task.done();
+					}
+				});
+			} catch ( final FatalError e ) {
+				Handler h = handler;
+				
+				h.postAtFrontOfQueue(new Runnable() {
+					public void run() {
+						e.handle();
+					}
+				});
+			} catch ( final Exception e ) {
+				// post error callback
+				handler.post(new Runnable() {
+					public void run() {
+						Log.e("cr3", "running task.fail("+e.getMessage()+") " + task.getClass().getSimpleName() + " in gui thread ");
+						task.fail(e);
+					}
+				});
+			}
+		}
+	}
+	
+	Handler handler;
 	public void execute( final EngineTask task, final View view )
 	{
-		//Log.d("cr3", "executing task " + task.getClass().getSimpleName());
-		TaskHandler taskHandler = new TaskHandler( task, view );
-		executor.execute( taskHandler );
+		if ( handler==null ) {
+			//Looper.prepareMainLooper();
+			handler = new Handler();
+		}
+		
+		Log.d("cr3", "executing task " + task.getClass().getSimpleName());
+//		TaskHandler taskHandler = new TaskHandler( task, view );
+//		executor.execute( taskHandler );
+		executor.execute( new Task(task) );
 	}
 
 	public void fatalError( String msg)
