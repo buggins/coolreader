@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 
 public class ReaderView extends View {
@@ -202,6 +203,29 @@ public class ReaderView extends View {
 			return super.onKeyDown(keyCode, event);
 		}
 		return true;
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
+			int x = (int)event.getX();
+			int y = (int)event.getY();
+			if ( x>getWidth()*2/3 || y>getHeight()*2/3 ) {
+				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+				return true;
+			} else if ( x<getWidth()/3 || y<getHeight()/3 ) {
+				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+				return true;
+			}
+		}
+		return super.onTouchEvent(event);
+	}
+
+	@Override
+	public boolean onTrackballEvent(MotionEvent event) {
+		// TODO Auto-generated method stub
+		Log.d("cr3", "onTrackballEvent(" + event + ")");
+		return super.onTrackballEvent(event);
 	}
 
 	public void doCommand( final ReaderCommand cmd, final int param )
@@ -492,7 +516,7 @@ public class ReaderView extends View {
 				public String call() {
 					Log.i("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
 					if ( fileFormat!=null ) {
-						String s = engine.loadResourceUtf8(fileFormat.getResourceId());
+						String s = engine.loadResourceUtf8(fileFormat.getCSSResourceId());
 						Log.i("cr3", "setting .css for file format " + fileFormat + " from resource " + (fileFormat!=null?fileFormat.getCssName():"[NONE]"));
 						return s;
 					}

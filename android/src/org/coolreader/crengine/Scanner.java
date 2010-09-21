@@ -29,17 +29,16 @@ public class Scanner {
 			// process normal files
 			for ( File f : items ) {
 				if ( !f.isDirectory() ) {
-					String fname = f.getName().toLowerCase();
-					for ( String ext : supportedExtensions ) {
-						if ( fname.endsWith(ext) ) {
-							FileInfo item = new FileInfo();
-							item.filename = f.getName();
-							item.path = f.getPath();
-							item.pathname = f.getAbsolutePath();
-							item.parent = baseDir;
-							baseDir.addFile(item);
-							fileList.add(item);
-						}
+					DocumentFormat fmt = DocumentFormat.byExtension(f.getName());
+					if ( fmt!=null ) {
+						FileInfo item = new FileInfo();
+						item.filename = f.getName();
+						item.path = f.getPath();
+						item.pathname = f.getAbsolutePath();
+						item.parent = baseDir;
+						item.format = fmt;
+						baseDir.addFile(item);
+						fileList.add(item);
 					}
 				}
 			}

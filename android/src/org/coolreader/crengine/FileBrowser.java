@@ -190,7 +190,7 @@ public class FileBrowser extends ListView {
 						field1.setText("books: " + String.valueOf(item.fileCount()));
 						field2.setText("folders: " + String.valueOf(item.dirCount()));
 					} else {
-						image.setImageResource(R.drawable.cr3_browser_book);
+						image.setImageResource(item.format.getIconResourceId());
 						author.setVisibility(VISIBLE);
 						author.setText("Sample Author");
 						series.setVisibility(VISIBLE);

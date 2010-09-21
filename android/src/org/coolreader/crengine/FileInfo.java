@@ -9,6 +9,7 @@ public class FileInfo {
 	String filename;
 	String pathname;
 	String extension;
+	DocumentFormat format;
 	int size;
 	boolean isArchive;
 	boolean isDirectory;
