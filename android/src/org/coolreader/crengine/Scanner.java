@@ -37,6 +37,11 @@ public class Scanner {
 						item.pathname = f.getAbsolutePath();
 						item.parent = baseDir;
 						item.format = fmt;
+						
+						if ( item.format==DocumentFormat.FB2 ) {
+							engine.scanBookProperties(item);
+						}
+						
 						baseDir.addFile(item);
 						fileList.add(item);
 					}
@@ -75,11 +80,14 @@ public class Scanner {
 		return res;
 	}
 	
-	public Scanner( File rootDir, String description )
+	public Scanner( Engine engine, File rootDir, String description )
 	{
+		this.engine = engine;
 		root = new FileInfo();
 		root.path = rootDir.getPath();	
 		root.filename = rootDir.getName();	
 		root.pathname = rootDir.getAbsolutePath();
 	}
+
+	private final Engine engine;
 }

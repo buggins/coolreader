@@ -44,7 +44,7 @@ public class CoolReader extends Activity
 		};
 		startupView.setBackgroundColor(Color.BLACK);
 		readerView = new ReaderView(this, engine);
-		scanner = new Scanner(Environment.getExternalStorageDirectory(), "SD");
+		scanner = new Scanner(engine, Environment.getExternalStorageDirectory(), "SD");
 		browser = new FileBrowser(this, engine, scanner);
 		frame.addView(readerView);
 		frame.addView(browser);

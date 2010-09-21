@@ -167,6 +167,15 @@ public class FileBrowser extends ListView {
 				TextView field1;
 				TextView field2;
 				TextView field3;
+				void setText( TextView view, String text )
+				{
+					if ( text!=null && text.length()>0 ) {
+						view.setText(text);
+						view.setVisibility(VISIBLE);
+					} else {
+						view.setVisibility(INVISIBLE);
+					}
+				}
 				void setItem(FileInfo item)
 				{
 					if ( item==null ) {
@@ -183,6 +192,7 @@ public class FileBrowser extends ListView {
 						image.setImageResource(R.drawable.cr3_browser_folder);
 						author.setVisibility(INVISIBLE);
 						series.setVisibility(INVISIBLE);
+						name.setText(item.filename);
 
 						field1.setVisibility(VISIBLE);
 						field2.setVisibility(VISIBLE);
@@ -191,10 +201,12 @@ public class FileBrowser extends ListView {
 						field2.setText("folders: " + String.valueOf(item.dirCount()));
 					} else {
 						image.setImageResource(item.format.getIconResourceId());
-						author.setVisibility(VISIBLE);
-						author.setText("Sample Author");
-						series.setVisibility(VISIBLE);
-						series.setText("(sample series #1)");
+						setText( author, item.authors );
+						setText( series, item.series );
+						String title = item.title;
+						if ( title==null || title.length()==0 )
+							title = item.filename;
+						setText( name, title );
 
 						field1.setVisibility(VISIBLE);
 						field2.setVisibility(VISIBLE);
@@ -204,7 +216,6 @@ public class FileBrowser extends ListView {
 						field3.setText("25%");
 						
 					}
-					name.setText(item.filename);
 				}
 			}
 			

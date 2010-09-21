@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import android.util.Log;
 
 public class FileInfo {
+	String title;
+	String authors;
+	String series;
+	int seriesNumber;
 	String path;
 	String filename;
 	String pathname;

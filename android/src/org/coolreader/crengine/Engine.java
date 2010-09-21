@@ -253,6 +253,14 @@ public class Engine {
 	private native boolean setCacheDirectoryInternal( String dir, int size  );
 	private native boolean setHyphenationDirectoryInternal( String dir);
 	private native String[] getHyphenationDictionaryListInternal();
+    private native boolean scanBookPropertiesInternal( FileInfo info );
+    
+    public boolean scanBookProperties(FileInfo info)
+    {
+		if ( !initialized )
+			throw new IllegalStateException("CREngine is not initialized");
+    	return scanBookPropertiesInternal( info );
+    }
 	
 	public String[] getFontFaceList()
 	{

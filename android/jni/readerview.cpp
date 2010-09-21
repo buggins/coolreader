@@ -1,6 +1,8 @@
 #include "readerview.h"
 #include "lvdocview.h"
 
+
+
 static jfieldID gNativeObjectID = 0;
 
 class DocViewCallback : public LVDocViewCallback {
