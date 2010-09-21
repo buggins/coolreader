@@ -155,6 +155,11 @@ public class CoolReader extends Activity
 		showView(readerView);
 	}
 	
+	public boolean isBookOpened()
+	{
+		return readerView.isBookLoaded();
+	}
+	
 	public void loadDocument( FileInfo item )
 	{
 		showView(readerView);

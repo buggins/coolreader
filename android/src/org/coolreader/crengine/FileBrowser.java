@@ -7,6 +7,7 @@ import org.coolreader.CoolReader;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
@@ -50,6 +51,16 @@ public class FileBrowser extends ListView {
 		return true;
 	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		if ( keyCode==KeyEvent.KEYCODE_BACK && activity.isBookOpened() ) {
+			activity.showReader();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
 	private boolean started = false;
 	public void start()
 	{
@@ -64,6 +75,7 @@ public class FileBrowser extends ListView {
 			}
 			public void done() {
 				Log.e("cr3", "Directory scan is finished. " + scanner.fileList.size() + " files found" + ", root item count is " + scanner.root.size());
+				started = true;
 				engine.hideProgress();
 				showDirectory( scanner.root );
 				setSelection(0);

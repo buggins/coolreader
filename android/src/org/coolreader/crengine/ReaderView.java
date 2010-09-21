@@ -173,6 +173,11 @@ public class ReaderView extends View {
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
 		execute(new ResizeTask(w,h));
 	}
+	
+	public boolean isBookLoaded()
+	{
+		return opened;
+	}
     
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
