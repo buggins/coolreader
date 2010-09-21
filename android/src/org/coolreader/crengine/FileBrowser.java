@@ -3,14 +3,18 @@ package org.coolreader.crengine;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
+import org.coolreader.R;
 
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -21,11 +25,13 @@ public class FileBrowser extends ListView {
 	Engine engine;
 	Scanner scanner;
 	CoolReader activity;
+	LayoutInflater inflater;
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner) {
 		super(activity);
 		this.activity = activity;
 		this.engine = engine;
 		this.scanner = scanner;
+		this.inflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
         setFocusable(true);
         setFocusableInTouchMode(true);
 		setChoiceMode(CHOICE_MODE_SINGLE);
@@ -97,6 +103,7 @@ public class FileBrowser extends ListView {
 	public void showDirectory( final FileInfo dir )
 	{
 		currDirectory = dir;
+		final ListView thisView = this;
 		if ( dir!=null )
 			Log.i("cr3", "Showing directory " + dir);
 		this.setAdapter(new ListAdapter() {
@@ -152,16 +159,80 @@ public class FileBrowser extends ListView {
 				return Adapter.IGNORE_ITEM_VIEW_TYPE;
 			}
 
+			class ViewHolder {
+				ImageView image;
+				TextView name;
+				TextView author;
+				TextView series;
+				TextView field1;
+				TextView field2;
+				TextView field3;
+				void setItem(FileInfo item)
+				{
+					if ( item==null ) {
+						image.setImageResource(R.drawable.cr3_browser_back);
+						name.setText("..");
+						author.setVisibility(INVISIBLE);
+						series.setVisibility(INVISIBLE);
+						field1.setVisibility(INVISIBLE);
+						field2.setVisibility(INVISIBLE);
+						field3.setVisibility(INVISIBLE);
+						return;
+					}
+					if ( item.isDirectory ) {
+						image.setImageResource(R.drawable.cr3_browser_folder);
+						author.setVisibility(INVISIBLE);
+						series.setVisibility(INVISIBLE);
+
+						field1.setVisibility(VISIBLE);
+						field2.setVisibility(VISIBLE);
+						field3.setVisibility(INVISIBLE);
+						field1.setText("books: " + String.valueOf(item.fileCount()));
+						field2.setText("folders: " + String.valueOf(item.dirCount()));
+					} else {
+						image.setImageResource(R.drawable.cr3_browser_book);
+						author.setVisibility(VISIBLE);
+						author.setText("Sample Author");
+						series.setVisibility(VISIBLE);
+						series.setText("(sample series #1)");
+
+						field1.setVisibility(VISIBLE);
+						field2.setVisibility(VISIBLE);
+						field3.setVisibility(VISIBLE);
+						field1.setText(String.valueOf(item.size/1024) + "K");
+						field2.setText("01/02/2010");
+						field3.setText("25%");
+						
+					}
+					name.setText(item.filename);
+				}
+			}
+			
 			public View getView(int position, View convertView, ViewGroup parent) {
 				if ( dir==null )
 					return null;
-				SimpleItemView view;
+				View view;
+				ViewHolder holder;
 				if ( convertView==null ) {
-					view = new SimpleItemView(getContext(), (FileInfo)getItem(position));					
+					view = inflater.inflate(R.layout.browser_item_book, null);
+					holder = new ViewHolder();
+					holder.image = (ImageView)view.findViewById(R.id.book_icon);
+					holder.name = (TextView)view.findViewById(R.id.book_name);
+					holder.author = (TextView)view.findViewById(R.id.book_author);
+					holder.series = (TextView)view.findViewById(R.id.book_series);
+					holder.field1 = (TextView)view.findViewById(R.id.browser_item_field1);
+					holder.field2 = (TextView)view.findViewById(R.id.browser_item_field2);
+					holder.field3 = (TextView)view.findViewById(R.id.browser_item_field3);
+					view.setTag(holder);
 				} else {
-					view = (SimpleItemView)convertView;
-					view.setItem((FileInfo)getItem(position));
+					view = convertView;
+					holder = (ViewHolder)view.getTag();
 				}
+				int type = getItemViewType(position);
+				FileInfo item = (FileInfo)getItem(position);
+				if ( type == VIEW_TYPE_LEVEL_UP )
+					item = null;
+				holder.setItem(item);
 				return view;
 			}
 
@@ -214,23 +285,23 @@ public class FileBrowser extends ListView {
 		}
     }
     
-    private class SimpleItemView extends LinearLayout {
-    	public SimpleItemView( Context context, FileInfo item )
-    	{
-    		super(context);
-    		this.setOrientation(VERTICAL);
-    		mTitle = new TextView(context);
-    		setItem( item );
-    		addView( mTitle, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-    	}
-    	public void setItem( FileInfo item )
-    	{
-    		if ( item==null ) {
-        		mTitle.setText("..");
-    		} else {
-        		mTitle.setText(item.filename);
-    		}
-    	}
-    	private TextView mTitle;
-    }
+//    private class SimpleItemView extends View {
+//    	public SimpleItemView( Context context, FileInfo item )
+//    	{
+//    		super(context);
+//    		mTitle = new TextView(context);
+//    		setItem( item );
+//    		addView( mTitle, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+//    	}
+//    	
+//    	public void setItem( FileInfo item )
+//    	{
+//    		if ( item==null ) {
+//        		mTitle.setText("..");
+//    		} else {
+//        		mTitle.setText(item.filename);
+//    		}
+//    	}
+//    	private TextView mTitle;
+//    }
 }
