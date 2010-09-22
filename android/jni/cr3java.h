@@ -34,9 +34,8 @@ enum AndroidBitmapFormat {
 //====================================================================
 
 class CRJNIEnv {
-protected:
-	JNIEnv * env;
 public:
+	JNIEnv * env;
     CRJNIEnv(JNIEnv * pEnv) : env(pEnv) { }
     JNIEnv * operator -> () { return env; }
 	lString16 fromJavaString( jstring str );
@@ -45,6 +44,64 @@ public:
 	jobjectArray toJavaStringArray( lString16Collection & dst );
 	LVStreamRef jbyteArrayToStream( jbyteArray array ); 
 	jobject enumByNativeId( const char * classname, int id ); 
+};
+
+class CRClassAccessor : public CRJNIEnv {
+protected:
+	jclass cls;
+public:
+	jclass getClass() { return cls; }
+    CRClassAccessor(JNIEnv * pEnv, jclass _class) : CRJNIEnv(pEnv)
+    {
+    	cls = _class;
+    }
+    CRClassAccessor(JNIEnv * pEnv, const char * className) : CRJNIEnv(pEnv)
+    {
+    	cls = env->FindClass(className);
+    }
+};
+
+class CRObjectAccessor : public CRClassAccessor {
+	jobject obj;
+public:
+	jobject getObject() { return obj; }
+	CRObjectAccessor(JNIEnv * pEnv, jobject _obj)
+    : CRClassAccessor(pEnv, pEnv->GetObjectClass(_obj))
+    {
+    	obj = _obj;
+    }
+};
+
+class CRFieldAccessor {
+protected:
+	CRObjectAccessor & objacc;
+	jfieldID fieldid;
+public:
+	CRFieldAccessor( CRObjectAccessor & acc, const char * fieldName, const char * fieldType )
+	: objacc(acc)
+	{
+		fieldid = objacc->GetFieldID( objacc.getClass(), fieldName, fieldType );
+	}
+};
+
+class CRStringField : public CRFieldAccessor {
+public:
+	CRStringField( CRObjectAccessor & acc, const char * fieldName )
+	: CRFieldAccessor( acc, fieldName, "java/lang/String" ) 
+	{
+	}
+	lString16 get() { return objacc.fromJavaString((jstring)objacc->GetObjectField(objacc.getObject(), fieldid)); } 
+	void set( const lString16& str) { objacc->SetObjectField(objacc.getObject(), fieldid, objacc.toJavaString(str)); } 
+};
+
+class CRIntField : public CRFieldAccessor {
+public:
+	CRIntField( CRObjectAccessor & acc, const char * fieldName )
+	: CRFieldAccessor( acc, fieldName, "I" ) 
+	{
+	}
+	int get() { return objacc->GetIntField(objacc.getObject(), fieldid); } 
+	void set(int v) { objacc->SetIntField(objacc.getObject(), fieldid, v); } 
 };
 
 class BitmapAccessor : public CRJNIEnv {

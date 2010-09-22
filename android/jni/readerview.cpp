@@ -495,7 +495,19 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPage
         percent = 10000;
     bm.setPercent( percent );
     bm.setCommentText( comment );
-	return NULL;
+    jclass cls = _env->FindClass("org/coolreader/engine/Bookmark");
+    jmethodID mid = _env->GetMethodID(cls, "<init>", "()V");
+    jobject obj = _env->NewObject(cls, mid);
+    CRObjectAccessor acc(_env, obj);
+    CRStringField(acc,"startPos").set(bm.getStartPos());
+    CRStringField(acc,"endPos").set(bm.getEndPos());
+    CRStringField(acc,"titleText").set(bm.getTitleText());
+    CRStringField(acc,"posText").set(bm.getPosText());
+    CRStringField(acc,"commentText").set(bm.getCommentText());
+    CRIntField(acc,"percent").set(bm.getPercent());
+    //CRIntField(acc,"page").set(bm.getPageNum());
+    CRIntField(acc,"type").set(bm.getType());
+	return obj;
 }
 
 /*
