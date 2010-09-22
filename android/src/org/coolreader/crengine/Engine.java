@@ -6,20 +6,19 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.coolreader.R;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
@@ -215,6 +214,34 @@ public class Engine {
 		}
 	}
 	
+	public byte[] loadResourceBytes( int id )
+	{
+		try {
+			InputStream is = this.activity.getResources().openRawResource( id );
+			return loadResourceBytes(is);
+		} catch ( Exception e ) {
+			Log.e("cr3", "cannot load resource");
+			return null;
+		}
+	}
+	
+	public byte[] loadResourceBytes( InputStream is )
+	{
+		try {
+			int available = is.available();
+			if ( available<=0 )
+				return null;
+			byte buf[] = new byte[available];
+			if ( is.read(buf)!=available )
+				throw new IOException("Resource not read fully");
+			is.close();
+			return buf;
+		} catch ( Exception e ) {
+			Log.e("cr3", "cannot load resource");
+			return null;
+		}
+	}
+	
 	/**
 	 * Initialize CoolReader Engine
 	 * @param fontList is array of .ttf font pathnames to load
@@ -254,6 +281,53 @@ public class Engine {
 	private native boolean setHyphenationDirectoryInternal( String dir);
 	private native String[] getHyphenationDictionaryListInternal();
     private native boolean scanBookPropertiesInternal( FileInfo info );
+    private static final int HYPH_NONE = 0; 
+    private static final int HYPH_ALGO = 1; 
+    private static final int HYPH_DICT = 2; 
+    private native boolean setHyphenationMethod( int type, byte[] dictData );
+    
+    public enum HyphDict {
+    	NONE(HYPH_NONE, 0, "[None]"),
+    	ALGORITHM(HYPH_ALGO,0, "[Algorythmic]"),
+    	RUSSIAN(HYPH_DICT,R.raw.russian_enus_hyphen, "Russian"),
+    	ENGLISH(HYPH_DICT,R.raw.english_us_hyphen, "English US"),
+    	GERMAN(HYPH_DICT,R.raw.german_hyphen, "German"),
+    	UKRAINIAN(HYPH_DICT,R.raw.ukrain_hyphen, "Ukrainian"),
+    	SPANISH(HYPH_DICT,R.raw.spanish_hyphen, "Spanish"),
+    	FRENCH(HYPH_DICT,R.raw.french_hyphen, "French"),
+    	BULGARIAN(HYPH_DICT,R.raw.bulgarian_hyphen, "Bulgarian"),
+    	;
+    	public final int type;
+    	public final int resource;
+    	public final String name;
+    	private HyphDict( int type, int resource, String name ) {
+    		this.type = type;
+    		this.resource = resource;
+    		this.name = name;
+    	}
+    };
+    
+    public void setHyphenationDictionary( final HyphDict dict )
+    {
+    	execute( new EngineTask() {
+
+			public void done() {
+				//
+			}
+
+			public void fail(Exception e) {
+				//
+			}
+
+			public void work() throws Exception {
+				byte[] data = null;
+				if ( dict.type==HYPH_DICT && dict.resource!=0 ) {
+					data = loadResourceBytes( dict.resource );
+				}
+				setHyphenationMethod(dict.type, data);
+			}
+    	});
+    }
     
     public boolean scanBookProperties(FileInfo info)
     {

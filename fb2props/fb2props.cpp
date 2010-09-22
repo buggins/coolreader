@@ -66,6 +66,16 @@ lString16 extractDocSeriesReverse( ldomDocument * doc )
     return res;
 }
 
+class BookProperties
+{
+public:
+    lString16 title;
+    lString16 author;
+    lString16 series;
+    int filesize;
+    lString16 fileDate;
+    int seriesNumber;
+};
 
 int GetBookProperties(char *name,  struct BookProperties* pBookProps, int localLanguage)
 {
@@ -171,11 +181,9 @@ int GetBookProperties(char *name,  struct BookProperties* pBookProps, int localL
     if ( !series.empty() )
     	authors << L"    " << series;
 #endif
-    SetFieldValue( pBookProps->name, title );
-    if ( !authors.empty() )
-        SetFieldValue( pBookProps->author, authors );
-    if ( !series.empty() )
-        SetFieldValue( pBookProps->series, series );
+    pBookProps->title = title;
+    pBookProps->author = authors;
+    pBookProps->series = series;
     pBookProps->filesize = (long)stream->GetSize();
     strncpy( pBookProps->filename, name, MAX_PROPERTY_LEN-1 );
     struct stat fs;
@@ -185,7 +193,7 @@ int GetBookProperties(char *name,  struct BookProperties* pBookProps, int localL
     } else {
         t = fs.st_mtime;
     }
-    SetFieldValue( pBookProps->filedate, getDateTimeString( t, localLanguage ) );
+    pBookProps->filedate = getDateTimeString( t, localLanguage );
     return 1;
 }
 

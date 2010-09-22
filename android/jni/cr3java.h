@@ -43,6 +43,7 @@ public:
 	jstring toJavaString( const lString16 & str );
 	void fromJavaStringArray( jobjectArray array, lString16Collection & dst );
 	jobjectArray toJavaStringArray( lString16Collection & dst );
+	LVStreamRef jbyteArrayToStream( jbyteArray array ); 
 	jobject enumByNativeId( const char * classname, int id ); 
 };
 

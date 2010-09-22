@@ -118,6 +118,33 @@ void HyphMan::uninit()
     _method = &NO_HYPH;
 }
 
+bool HyphMan::activateDictionaryFromStream( LVStreamRef stream )
+{
+    if ( stream.isNull() )
+        return false;
+    CRLog::trace("remove old hyphenation method");
+    if ( HyphMan::_method != &NO_HYPH && HyphMan::_method != &ALGO_HYPH && HyphMan::_method ) {
+        delete HyphMan::_method;
+        HyphMan::_method = &NO_HYPH;
+    }
+    CRLog::trace("creating new TexHyph method");
+    TexHyph * method = new TexHyph();
+    CRLog::trace("loading from file");
+    if ( !method->load( stream ) ) {
+		CRLog::error("HyphMan::activateDictionaryFromStream: Cannot open hyphenation dictionary from stream" );
+        delete method;
+        return false;
+    }
+    CRLog::debug("Dictionary is loaded successfully. Activating.");
+    HyphMan::_method = method;
+    if ( HyphMan::_dictList->find(lString16(HYPH_DICT_ID_DICTIONARY))==NULL ) {
+        HyphDictionary * dict = new HyphDictionary( HDT_DICT_ALAN, lString16("Dictionary"), lString16(HYPH_DICT_ID_DICTIONARY), lString16() );
+        HyphMan::_dictList->add(dict);
+    	HyphMan::_selectedDictionary = dict;
+    }
+    CRLog::trace("Activation is done");
+    return true;
+}
 
 bool HyphMan::initDictionaries( lString16 dir )
 {
@@ -206,6 +233,8 @@ bool HyphDictionaryList::open( lString16 hyphDirectory )
     CRLog::info("HyphDictionaryList::open(%s)", LCSTR(hyphDirectory) );
     _list.clear();
     addDefault();
+    if ( hyphDirectory.empty() )
+	return true;
     //LVAppendPathDelimiter( hyphDirectory );
     LVContainerRef container;
     LVStreamRef stream;

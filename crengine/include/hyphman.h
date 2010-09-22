@@ -56,6 +56,7 @@ public:
 
 #define HYPH_DICT_ID_NONE L"@none"
 #define HYPH_DICT_ID_ALGORITHM L"@algorithm"
+#define HYPH_DICT_ID_DICTIONARY L"@dictionary"
 
 
 class HyphDictionaryList
@@ -63,6 +64,7 @@ class HyphDictionaryList
 	LVPtrVector<HyphDictionary> _list;
 	void addDefault();
 public:
+    void add(HyphDictionary * dict) { _list.add(dict); }
 	int length() { return _list.length(); }
 	HyphDictionary * get( int index ) { return (index>=0 && index<+_list.length()) ? _list[index] : NULL; }
 	HyphDictionaryList() { addDefault(); }
@@ -86,7 +88,9 @@ class HyphMan
 	static HyphDictionaryList * _dictList;
 public:
 	static void uninit();
+    static bool activateDictionaryFromStream( LVStreamRef stream );
 	static HyphDictionaryList * getDictList() { return _dictList; }
+    static bool activateDictionary( lString16 id ) { return _dictList->activate(id); }
 	static bool initDictionaries( lString16 dir );
 	static HyphDictionary * getSelectedDictionary() { return _selectedDictionary; }
 

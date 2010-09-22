@@ -202,7 +202,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
  * Signature: (Lorg/coolreader/crengine/FileInfo;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal
-  (JNIEnv * _env, jobject _view, jobject _fileInfo)
+  (JNIEnv * _env, jobject _engine, jobject _fileInfo)
 {
 	CRJNIEnv env(_env);
 	jclass objclass = env->GetObjectClass(_fileInfo);
@@ -235,6 +235,34 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 	return JNI_TRUE;
 }
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setHyphenationMethod
+ * Signature: (I[B)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
+  (JNIEnv * _env, jobject _engine, jint method, jbyteArray data)
+{
+	CRJNIEnv env(_env);
+	if ( method==0 ) {
+		CRLog::info("Selecting hyphenation method: Disabled");
+		return HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
+	} else if ( method==1 ) {
+		CRLog::info("Selecting hyphenation method: Algoryphmic");
+		return HyphMan::activateDictionary(lString16(HYPH_DICT_ID_ALGORITHM));
+	} else {
+		CRLog::info("Selecting hyphenation method: Dictionary");
+		LVStreamRef stream = env.jbyteArrayToStream( data );
+		CRLog::debug("Stream is created from byte array, length=%d", (int)(stream.isNull()?0:stream->GetSize()));
+		bool res = HyphMan::activateDictionaryFromStream(stream);
+		if ( !res ) {
+			CRLog::error("Dictionary activation is failed: disabling hyphenation");
+			HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
+			return false;
+		}
+		return true;
+	}
+}
 
 
 class JNICDRLogger : public CRLog
@@ -301,6 +329,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 	CRLog::info("CREngine log redirected");
 	CRLog::info("creating font manager");
 	
+	HyphMan::initDictionaries(lString16()); //don't look for dictionaries
 	InitFontManager(lString8());
 	CRLog::debug("converting fonts array: %d items", (int)env->GetArrayLength(fontArray));
 	lString16Collection fonts;
@@ -404,6 +433,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"setHyphenationDirectoryInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal},
   {"getHyphenationDictionaryListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
+  {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
 };
 
 

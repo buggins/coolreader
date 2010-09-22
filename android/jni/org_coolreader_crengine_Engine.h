@@ -63,6 +63,14 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getHyphenatio
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal
   (JNIEnv *, jobject, jobject);
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setHyphenationMethod
+ * Signature: (I[B)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
+  (JNIEnv *, jobject, jint, jbyteArray);
+
 #ifdef __cplusplus
 }
 #endif

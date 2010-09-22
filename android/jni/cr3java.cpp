@@ -48,6 +48,19 @@ jobject CRJNIEnv::enumByNativeId( const char * classname, int id )
 	return NULL;
 } 
 
+LVStreamRef CRJNIEnv::jbyteArrayToStream( jbyteArray array )
+{
+	if ( !array )
+		return LVStreamRef();
+	int len = env->GetArrayLength(array);
+	if ( !len )
+		return LVStreamRef();
+    lUInt8 * data = (lUInt8 *)env->GetByteArrayElements(array, 0);
+    LVStreamRef res = LVCreateMemoryStream(data, len, true, LVOM_READ);
+    env->ReleaseByteArrayElements(array, (jbyte*)data, 0);
+    return res;
+} 
+
 
 #ifndef USE_JNIGRAPHICS
 //====================================================================

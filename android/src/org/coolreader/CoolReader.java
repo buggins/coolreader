@@ -6,6 +6,7 @@ import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
+import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -119,6 +120,7 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		Log.i("cr3", "CoolReader.onStart()");
 		super.onStart();
+		engine.setHyphenationDictionary( HyphDict.RUSSIAN );
         engine.showProgress( 5, "Starting Cool Reader..." );
         readerView.init();
 		if ( LOAD_LAST_DOCUMENT_ON_START ) {
