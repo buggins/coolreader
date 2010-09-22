@@ -199,6 +199,9 @@ public class ReaderView extends View {
 		case KeyEvent.KEYCODE_DPAD_CENTER:
 			activity.showBrowser();
 			break;
+		case KeyEvent.KEYCODE_MENU:
+			activity.openOptionsMenu();
+			break;
 		default:
 			return super.onKeyDown(keyCode, event);
 		}
@@ -210,12 +213,19 @@ public class ReaderView extends View {
 		if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
 			int x = (int)event.getX();
 			int y = (int)event.getY();
-			if ( x>getWidth()*2/3 || y>getHeight()*2/3 ) {
+			int dx = getWidth();
+			int dy = getHeight();
+			boolean fwd = x>dx*3/4 || y>dy*3/4; 
+			boolean back = x<dx/4 || y<dy/4;
+			boolean center = x>dx/3 && x<dx*2/3 && y>dy/3 && y<dy*2/3;
+			if ( fwd && !back ) {
 				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
 				return true;
-			} else if ( x<getWidth()/3 || y<getHeight()/3 ) {
+			} else if ( back ) {
 				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
 				return true;
+			} else if ( center ) {
+				activity.openOptionsMenu();
 			}
 		}
 		return super.onTouchEvent(event);

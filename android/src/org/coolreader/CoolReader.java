@@ -8,16 +8,18 @@ import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 
 import android.app.Activity;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 public class CoolReader extends Activity
 {
@@ -173,5 +175,55 @@ public class CoolReader extends Activity
 		//setContentView(browser);
 		browser.start();
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		//if ( currentView!=readerView )
+		//	return false;
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.cr3_reader_menu, menu);
+	    return true;
+	}
+
+	public void showToast( String msg )
+	{
+		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+		toast.show();
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch ( item.getItemId() ) {
+		case R.id.cr3_mi_toc:
+			Log.i("cr3", "TOC menu item selected");
+			showToast("TOC feature is not implemented");
+			break;
+		case R.id.cr3_mi_gotopage:
+			Log.i("cr3", "gotopage menu item selected");
+			showToast("Goto Page feature is not implemented");
+			break;
+		case R.id.cr3_mi_options:
+			Log.i("cr3", "options menu item selected");
+			showToast("Options feature is not implemented");
+			break;
+		case R.id.cr3_mi_bookmarks:
+			Log.i("cr3", "Bookmarks menu item selected");
+			showToast("Bookmarks feature is not implemented");
+			break;
+		case R.id.cr3_mi_search:
+			Log.i("cr3", "Search menu item selected");
+			showToast("Search feature is not implemented");
+			break;
+		case R.id.cr3_mi_exit:
+			Log.i("cr3", "exit menu item selected");
+			finish();
+			break;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+		return true;
+	}
+	
+	
 	
 }
