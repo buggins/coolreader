@@ -459,3 +459,90 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getStateIntern
     return NULL;
 }
   
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getCurrentPageBookmarkInternal
+ * Signature: ()Lorg/coolreader/crengine/Bookmark;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal
+  (JNIEnv *_env, jobject _this)
+{
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+	if ( !p->_docview->isDocumentOpened() )
+		return NULL;
+	
+	ldomXPointer ptr = p->_docview->getBookmark();
+	if ( ptr.isNull() )
+		return JNI_FALSE;
+	CRBookmark bm(ptr);
+	lString16 comment;
+    lString16 titleText;
+    lString16 posText;
+    bm.setType( bmkt_pos );
+    if ( p->_docview->getBookmarkPosText( ptr, titleText, posText ) ) {
+         bm.setTitleText( titleText );
+         bm.setPosText( posText );
+    }
+    bm.setStartPos( ptr.toString() );
+    int pos = ptr.toPoint().y;
+    int fh = p->_docview->getDocument()->getFullHeight();
+    int percent = fh > 0 ? (int)(pos * (lInt64)10000 / fh) : 0;
+    if ( percent<0 )
+        percent = 0;
+    if ( percent>10000 )
+        percent = 10000;
+    bm.setPercent( percent );
+    bm.setCommentText( comment );
+	return NULL;
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    goToPositionInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionInternal
+  (JNIEnv * _env, jobject _this, jstring jstr)
+{
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+	if ( !p->_docview->isDocumentOpened() )
+		return JNI_FALSE;
+	lString16 str = env.fromJavaString(jstr);
+	ldomXPointer bm = p->_docview->getDocument()->createXPointer(str);
+	if ( bm.isNull() )
+		return JNI_FALSE;
+	p->_docview->goToBookmark(bm); 
+	return JNI_TRUE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getPositionPercentInternal
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPercentInternal
+  (JNIEnv *_env, jobject _this, jstring)
+{
+    ReaderViewNative * p = getNative(_env, _this);
+	if ( !p->_docview->isDocumentOpened() )
+		return -1;
+	return -1;
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getPositionPageInternal
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPageInternal
+  (JNIEnv *_env, jobject _this, jstring)
+{
+    ReaderViewNative * p = getNative(_env, _this);
+	if ( !p->_docview->isDocumentOpened() )
+		return -1;
+	return -1;
+}
+  

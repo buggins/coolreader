@@ -278,8 +278,6 @@ public class Engine {
 	private native void uninitInternal();
 	private native String[] getFontFaceListInternal();
 	private native boolean setCacheDirectoryInternal( String dir, int size  );
-	private native boolean setHyphenationDirectoryInternal( String dir);
-	private native String[] getHyphenationDictionaryListInternal();
     private native boolean scanBookPropertiesInternal( FileInfo info );
     private static final int HYPH_NONE = 0; 
     private static final int HYPH_ALGO = 1; 

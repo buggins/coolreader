@@ -163,6 +163,10 @@ public class ReaderView extends View {
     private native void resizeInternal( int dx, int dy );
     private native boolean doCommandInternal( int command, int param );
     private native DocumentInfo getStateInternal();
+    private native Bookmark getCurrentPageBookmarkInternal();
+    private native boolean goToPositionInternal(String xPath);
+    private native int getPositionPercentInternal(String xPath);
+    private native int getPositionPageInternal(String xPath);
     
     private int mNativeObject;
     

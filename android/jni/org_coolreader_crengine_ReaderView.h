@@ -103,6 +103,38 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInte
 JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getStateInternal
   (JNIEnv *, jobject);
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getCurrentPageBookmarkInternal
+ * Signature: ()Lorg/coolreader/crengine/Bookmark;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    goToPositionInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getPositionPercentInternal
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPercentInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getPositionPageInternal
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPageInternal
+  (JNIEnv *, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif

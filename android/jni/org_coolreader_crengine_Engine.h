@@ -7,6 +7,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef org_coolreader_crengine_Engine_HYPH_NONE
+#define org_coolreader_crengine_Engine_HYPH_NONE 0L
+#undef org_coolreader_crengine_Engine_HYPH_ALGO
+#define org_coolreader_crengine_Engine_HYPH_ALGO 1L
+#undef org_coolreader_crengine_Engine_HYPH_DICT
+#define org_coolreader_crengine_Engine_HYPH_DICT 2L
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    initInternal
@@ -38,22 +44,6 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal
   (JNIEnv *, jobject, jstring, jint);
-
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    setHyphenationDirectoryInternal
- * Signature: (Ljava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal
-  (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    getHyphenationDictionaryListInternal
- * Signature: ()[Ljava/lang/String;
- */
-JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal
-  (JNIEnv *, jobject);
 
 /*
  * Class:     org_coolreader_crengine_Engine

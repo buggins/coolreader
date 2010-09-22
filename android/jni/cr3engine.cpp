@@ -388,6 +388,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 	return res ? JNI_TRUE : JNI_FALSE;
 }
 
+#if 0
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    setHyphenationDirectoryInternal
@@ -421,7 +422,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getHyphenatio
 	}
 	return env.toJavaStringArray(list);
 }
-
+#endif
 
 //=====================================================================
 
@@ -430,8 +431,8 @@ static JNINativeMethod sEngineMethods[] = {
   {"uninitInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_uninitInternal},
   {"getFontFaceListInternal", "()[Ljava/lang/String", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
-  {"setHyphenationDirectoryInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal},
-  {"getHyphenationDictionaryListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal},
+//  {"setHyphenationDirectoryInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal},
+//  {"getHyphenationDictionaryListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
   {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
 };
@@ -451,6 +452,10 @@ static JNINativeMethod sReaderViewMethods[] = {
   {"resize", "(II)V", (void*)Java_org_coolreader_crengine_ReaderView_resizeInternal},
   {"doCommand", "(II)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommandInternal},
   {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getStateInternal},
+  {"getCurrentPageBookmarkInternal", "()Lorg/coolreader/crengine/Bookmark;", (void*)Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal},
+  {"goToPositionInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_goToPositionInternal},
+  {"getPositionPercentInternal", "(Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPercentInternal},
+  {"getPositionPageInternal", "(Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPageInternal},
 };
  
 /*
