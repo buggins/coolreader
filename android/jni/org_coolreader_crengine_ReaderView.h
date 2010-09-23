@@ -57,22 +57,6 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    readHistoryInternal
- * Signature: (Ljava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistoryInternal
-  (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     org_coolreader_crengine_ReaderView
- * Method:    writeHistoryInternal
- * Signature: (Ljava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryInternal
-  (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     org_coolreader_crengine_ReaderView
  * Method:    setStylesheetInternal
  * Signature: (Ljava/lang/String;)V
  */
@@ -94,14 +78,6 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInternal
   (JNIEnv *, jobject, jint, jint);
-
-/*
- * Class:     org_coolreader_crengine_ReaderView
- * Method:    getStateInternal
- * Signature: ()Lorg/coolreader/crengine/ReaderView/DocumentInfo;
- */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getStateInternal
-  (JNIEnv *, jobject);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
@@ -134,6 +110,14 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPercen
  */
 JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPageInternal
   (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    updateBookInfoInternal
+ * Signature: (Lorg/coolreader/crengine/BookInfo;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal
+  (JNIEnv *, jobject, jobject);
 
 #ifdef __cplusplus
 }

@@ -29,14 +29,9 @@ public class Scanner {
 			// process normal files
 			for ( File f : items ) {
 				if ( !f.isDirectory() ) {
-					DocumentFormat fmt = DocumentFormat.byExtension(f.getName());
-					if ( fmt!=null ) {
-						FileInfo item = new FileInfo();
-						item.filename = f.getName();
-						item.path = f.getPath();
-						item.pathname = f.getAbsolutePath();
+					FileInfo item = new FileInfo( f );
+					if ( item.format!=null ) {
 						item.parent = baseDir;
-						item.format = fmt;
 						
 						if ( item.format==DocumentFormat.FB2 ) {
 							engine.scanBookProperties(item);
@@ -50,11 +45,7 @@ public class Scanner {
 			// process directories 
 			for ( File f : items ) {
 				if ( f.isDirectory() ) {
-					FileInfo item = new FileInfo();
-					item.filename = f.getName();
-					item.path = f.getPath();
-					item.pathname = f.getAbsolutePath();
-					item.isDirectory = true;
+					FileInfo item = new FileInfo( f );
 					item.parent = baseDir;
 					scanDirectories(item);
 					if ( !item.isEmpty() ) {

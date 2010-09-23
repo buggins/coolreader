@@ -374,7 +374,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 {
     return false;
 }
-
+#if 0
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    readHistory
@@ -402,6 +402,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryI
     bool res = p->saveHistory( env.fromJavaString(jFilename) );
     return res?JNI_TRUE:JNI_FALSE;
 }
+#endif
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
@@ -450,18 +451,6 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInte
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    getState
- * Signature: ()Lorg/coolreader/crengine/ReaderView/DocumentInfo;
- */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getStateInternal
-  (JNIEnv *, jobject)
-{
-    return NULL;
-}
-  
-
-/*
- * Class:     org_coolreader_crengine_ReaderView
  * Method:    getCurrentPageBookmarkInternal
  * Signature: ()Lorg/coolreader/crengine/Bookmark;
  */
@@ -495,7 +484,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPage
         percent = 10000;
     bm.setPercent( percent );
     bm.setCommentText( comment );
-    jclass cls = _env->FindClass("org/coolreader/engine/Bookmark");
+    jclass cls = _env->FindClass("org/coolreader/crengine/Bookmark");
     jmethodID mid = _env->GetMethodID(cls, "<init>", "()V");
     jobject obj = _env->NewObject(cls, mid);
     CRObjectAccessor acc(_env, obj);
@@ -507,7 +496,27 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPage
     CRIntField(acc,"percent").set(bm.getPercent());
     //CRIntField(acc,"page").set(bm.getPageNum());
     CRIntField(acc,"type").set(bm.getType());
+    CRLongField(acc,"timeStamp").set((lInt64)bm.getTimestamp()*1000);
 	return obj;
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    updateBookInfoInternal
+ * Signature: (Lorg/coolreader/crengine/BookInfo;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal
+  (JNIEnv * _env, jobject _this, jobject _info)
+{
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+	if ( !p->_docview->isDocumentOpened() )
+		return;
+    CRObjectAccessor bookinfo(_env, _info);
+    CRObjectAccessor fileinfo(_env, CRFieldAccessor(bookinfo, "fileInfo", "Lorg/coolreader/crengine/FileInfo;").getObject() );
+    CRStringField(fileinfo,"title").set(p->_docview->getTitle());
+    CRStringField(fileinfo,"authors").set(p->_docview->getAuthors());
+    CRStringField(fileinfo,"series").set(p->_docview->getSeries());
 }
 
 /*

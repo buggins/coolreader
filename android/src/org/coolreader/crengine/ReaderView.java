@@ -157,25 +157,28 @@ public class ReaderView extends View {
     private native boolean loadDocumentInternal( String fileName );
     private native String getSettingsInternal();
     private native boolean applySettingsInternal( String settings );
-    private native boolean readHistoryInternal( String filename );
-    private native boolean writeHistoryInternal( String filename );
+    //private native boolean readHistoryInternal( String filename );
+    //private native boolean writeHistoryInternal( String filename );
     private native void setStylesheetInternal( String stylesheet );
     private native void resizeInternal( int dx, int dy );
     private native boolean doCommandInternal( int command, int param );
-    private native DocumentInfo getStateInternal();
     private native Bookmark getCurrentPageBookmarkInternal();
     private native boolean goToPositionInternal(String xPath);
     private native int getPositionPercentInternal(String xPath);
     private native int getPositionPageInternal(String xPath);
+    private native void updateBookInfoInternal( BookInfo info );
     
     private int mNativeObject;
     
     private final Engine engine;
+    
+    private BookInfo bookInfo;
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
+		init();
 		execute(new ResizeTask(w,h));
 	}
 	
@@ -262,6 +265,12 @@ public class ReaderView extends View {
 	
 	//private File historyFile;
 	
+	private void updateLoadedBookInfo()
+	{
+		// get title, authors, etc.
+		updateBookInfoInternal( bookInfo );
+	}
+	
 	class CreateViewTask extends Task
 	{
 		public void work() throws Exception {
@@ -269,12 +278,12 @@ public class ReaderView extends View {
 			File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
 			historyDir.mkdirs();
-			File historyFile = new File(historyDir, "cr3hist.ini");
+			//File historyFile = new File(historyDir, "cr3hist.ini");
 			
 			//File historyFile = new File(activity.getDir("settings", Context.MODE_PRIVATE), "cr3hist.ini");
 			//if ( historyFile.exists() ) {
-			Log.d("cr3", "Reading history from file " + historyFile.getAbsolutePath());
-			readHistoryInternal(historyFile.getAbsolutePath());
+			//Log.d("cr3", "Reading history from file " + historyFile.getAbsolutePath());
+			//readHistoryInternal(historyFile.getAbsolutePath());
 			//}
 	        String css = engine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
@@ -293,45 +302,52 @@ public class ReaderView extends View {
 	
 	public void loadDocument( final String filename )
 	{
-		execute(new LoadDocumentTask(filename));
+		execute(new LoadDocumentTask(filename, null));
 	}
 
-	class LastDocumentLoadTask extends Task {
-		Runnable errorHandler;
-		LastDocumentLoadTask( Runnable errorHandler )
-		{
-			this.errorHandler = errorHandler;
-		}
-		public void work() throws Exception {
-			if ( !initialized )
-				throw new IllegalStateException("ReaderView is not initialized");
-			Log.i("cr3", "Trying to load last document");
-			boolean res = doCommandInternal(ReaderCommand.DCMD_OPEN_RECENT_BOOK.nativeId, 0);
-			if ( !res )
-				throw new IOException("Cannot open recent book");
-			else
-				Log.i("cr3", "Last document is opened successfully");
-		}
-		public void done()
-		{
-	        opened = true;
-			Log.i("cr3", "Last document is opened. Restoring position...");
-	        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
-			activity.showReader();
-	        drawPage();
-		}
-		public void fail( Exception e ) {
-			Log.i("cr3", "Last document loading is failed");
-			errorHandler.run();
-		}
-	}
-	
-	public void loadLastDocument( final Runnable errorHandler )
+	public boolean loadLastDocument( final Runnable errorHandler )
 	{
 		Log.i("cr3", "Submitting LastDocumentLoadTask");
 		init();
-		execute( new LastDocumentLoadTask(errorHandler));
+		BookInfo book = activity.getHistory().getLastBook();
+		if ( book==null ) {
+			errorHandler.run();
+			return false;
+		}
+		execute( new LoadDocumentTask(book.getFileInfo().getPathName(), errorHandler) );
+		return true;
 	}
+	
+	
+//	class LastDocumentLoadTask extends Task {
+//		Runnable errorHandler;
+//		LastDocumentLoadTask( Runnable errorHandler )
+//		{
+//			this.errorHandler = errorHandler;
+//		}
+//		public void work() throws Exception {
+//			if ( !initialized )
+//				throw new IllegalStateException("ReaderView is not initialized");
+//			Log.i("cr3", "Trying to load last document");
+//			boolean res = doCommandInternal(ReaderCommand.DCMD_OPEN_RECENT_BOOK.nativeId, 0);
+//			if ( !res )
+//				throw new IOException("Cannot open recent book");
+//			else
+//				Log.i("cr3", "Last document is opened successfully");
+//		}
+//		public void done()
+//		{
+//	        opened = true;
+//			Log.i("cr3", "Last document is opened. Restoring position...");
+//	        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
+//			activity.showReader();
+//	        drawPage();
+//		}
+//		public void fail( Exception e ) {
+//			Log.i("cr3", "Last document loading is failed");
+//			errorHandler.run();
+//		}
+//	}
 	
 	private int lastDrawTaskId = 0;
 	private class DrawPageTask extends Task {
@@ -355,6 +371,8 @@ public class ReaderView extends View {
 			bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
 	        bitmap.eraseColor(Color.BLUE);
 	        getPageImage(bitmap);
+	        Bookmark bm = getCurrentPageBookmarkInternal();
+	        Log.d("cr3", "Current position: " + bm.getPercent() + "% " + bm.getStartPos());
 		}
 		public void done()
 		{
@@ -402,17 +420,23 @@ public class ReaderView extends View {
 	private class LoadDocumentTask extends Task
 	{
 		String filename;
-		LoadDocumentTask( String filename )
+		Runnable errorHandler;
+		LoadDocumentTask( String filename, Runnable errorHandler )
 		{
 			this.filename = filename;
+			this.errorHandler = errorHandler;
+			FileInfo fileInfo = new FileInfo(filename);
+			bookInfo = activity.getHistory().getOrCreateBookInfo( fileInfo );
 	        engine.showProgress( 1000, "Loading..." );
+	        init();
 		}
 
 		public void work() {
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
-		        writeHistoryInternal(null);
+		        //writeHistoryInternal(null);
+	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
 	        } else {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
@@ -422,17 +446,23 @@ public class ReaderView extends View {
 		{
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
 	        //showProgress( 5000, 0, "Formatting..." );
+	        restorePosition();
 	        opened = true;
 	        //engine.hideProgress();
-	        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
+	        //doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
 			activity.showReader();
 	        drawPage();
 		}
 		public void fail( Exception e )
 		{
+			activity.getHistory().removeBookInfo( bookInfo );
+			bookInfo = null;
 			Log.d("cr3", "LoadDocumentTask is finished with exception " + e.getMessage());
 	        opened = true;
 			drawPage();
+			if ( errorHandler!=null ) {
+				errorHandler.run();
+			}
 		}
 	}
 	
@@ -449,12 +479,35 @@ public class ReaderView extends View {
     	}
     }
 
+    private void restorePosition()
+    {
+    	if ( bookInfo!=null && bookInfo.getLastPosition()!=null ) {
+    		final String pos = bookInfo.getLastPosition().getStartPos();
+    		execute( new Task() {
+    			public void work() {
+    	    		goToPositionInternal( pos );
+    			}
+    		});
+    		activity.getHistory().updateBookAccess(bookInfo);
+    	}
+    }
+    
+    private void savePosition()
+    {
+    	Bookmark bmk = getCurrentPageBookmarkInternal();
+    	if ( bmk!=null && bookInfo!=null ) {
+    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
+    		bookInfo.setLastPosition(bmk);
+    	}
+    }
+    
     public void close()
     {
     	execute( new Task() {
     		public void work() {
     			if ( opened ) {
 					Log.i("cr3", "ReaderView().close() : closing current document");
+					savePosition();
 					doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}

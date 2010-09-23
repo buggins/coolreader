@@ -82,12 +82,20 @@ public:
 	{
 		fieldid = objacc->GetFieldID( objacc.getClass(), fieldName, fieldType );
 	}
+	jobject getObject()
+	{
+		 return objacc->GetObjectField(objacc.getObject(), fieldid); 
+	}
+	void setObject( jobject obj )
+	{
+		 return objacc->SetObjectField(objacc.getObject(), fieldid, obj); 
+	}
 };
 
 class CRStringField : public CRFieldAccessor {
 public:
 	CRStringField( CRObjectAccessor & acc, const char * fieldName )
-	: CRFieldAccessor( acc, fieldName, "java/lang/String" ) 
+	: CRFieldAccessor( acc, fieldName, "Ljava/lang/String;" ) 
 	{
 	}
 	lString16 get() { return objacc.fromJavaString((jstring)objacc->GetObjectField(objacc.getObject(), fieldid)); } 
@@ -102,6 +110,16 @@ public:
 	}
 	int get() { return objacc->GetIntField(objacc.getObject(), fieldid); } 
 	void set(int v) { objacc->SetIntField(objacc.getObject(), fieldid, v); } 
+};
+
+class CRLongField : public CRFieldAccessor {
+public:
+	CRLongField( CRObjectAccessor & acc, const char * fieldName )
+	: CRFieldAccessor( acc, fieldName, "J" ) 
+	{
+	}
+	lInt64 get() { return objacc->GetLongField(objacc.getObject(), fieldid); } 
+	void set(lInt64 v) { objacc->SetLongField(objacc.getObject(), fieldid, v); } 
 };
 
 class BitmapAccessor : public CRJNIEnv {

@@ -446,16 +446,17 @@ static JNINativeMethod sReaderViewMethods[] = {
   {"loadDocument", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_loadDocumentInternal},
   {"getSettings", "()Ljava/lang/String;", (void*)Java_org_coolreader_crengine_ReaderView_getSettingsInternal},
   {"applySettings", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_applySettingsInternal},
-  {"readHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_readHistoryInternal},
-  {"writeHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_writeHistoryInternal},
+//  {"readHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_readHistoryInternal},
+//  {"writeHistory", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_writeHistoryInternal},
   {"setStylesheet", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_ReaderView_setStylesheetInternal},
   {"resize", "(II)V", (void*)Java_org_coolreader_crengine_ReaderView_resizeInternal},
   {"doCommand", "(II)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommandInternal},
-  {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getStateInternal},
+//  {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getStateInternal},
   {"getCurrentPageBookmarkInternal", "()Lorg/coolreader/crengine/Bookmark;", (void*)Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal},
   {"goToPositionInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_goToPositionInternal},
   {"getPositionPercentInternal", "(Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPercentInternal},
   {"getPositionPageInternal", "(Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPageInternal},
+  {"updateBookInfoInternal", "(Lorg/coolreader/crengine/BookInfo;)V", (void*)Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal},
 };
  
 /*
@@ -491,8 +492,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
       return result;
    }
  
-   jniRegisterNativeMethods(env, "org/coolreader/crengine/Engine", sEngineMethods, 1);
-   jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sReaderViewMethods, 1);
+   jniRegisterNativeMethods(env, "org/coolreader/crengine/Engine", sEngineMethods, sizeof(sEngineMethods)/sizeof(JNINativeMethod));
+   jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sReaderViewMethods, sizeof(sReaderViewMethods)/sizeof(JNINativeMethod));
    
    return JNI_VERSION_1_4;
 }

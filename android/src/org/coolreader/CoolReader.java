@@ -4,6 +4,7 @@ package org.coolreader;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
+import org.coolreader.crengine.History;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Engine.HyphDict;
@@ -30,14 +31,27 @@ public class CoolReader extends Activity
 	FileBrowser browser;
 	FrameLayout frame;
 	View startupView;
+	History history;
 	
+	public History getHistory() 
+	{
+		return history;
+	}
 	
+	private static final String BUNDLE_KEY_HISTORY = "cr3.history";
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
 		Log.i("cr3", "CoolReader.onCreate()");
         super.onCreate(savedInstanceState);
+        try {
+        	history = savedInstanceState.getParcelable(BUNDLE_KEY_HISTORY);
+        } catch ( Exception e ) {
+        	//ignore: use empty history
+        }
+        if ( history==null )
+        	history = new History();
 		frame = new FrameLayout(this);
 		engine = new Engine(this, frame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -112,6 +126,7 @@ public class CoolReader extends Activity
 	protected void onSaveInstanceState(Bundle outState) {
 		Log.i("cr3", "CoolReader.onSaveInstanceState()");
 		super.onSaveInstanceState(outState);
+		outState.putParcelable(BUNDLE_KEY_HISTORY, history);
 	}
 
 	static final boolean LOAD_LAST_DOCUMENT_ON_START = true; 
