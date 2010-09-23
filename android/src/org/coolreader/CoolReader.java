@@ -1,6 +1,9 @@
 // Main Class
 package org.coolreader;
 
+import java.io.File;
+
+import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
@@ -10,6 +13,8 @@ import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
@@ -32,10 +37,16 @@ public class CoolReader extends Activity
 	FrameLayout frame;
 	View startupView;
 	History history;
+	CRDB db;
 	
 	public History getHistory() 
 	{
 		return history;
+	}
+	
+	public CRDB getDB()
+	{
+		return db;
 	}
 	
 	private static final String BUNDLE_KEY_HISTORY = "cr3.history";
@@ -61,7 +72,11 @@ public class CoolReader extends Activity
 		};
 		startupView.setBackgroundColor(Color.BLACK);
 		readerView = new ReaderView(this, engine);
-		scanner = new Scanner(engine, Environment.getExternalStorageDirectory(), "SD");
+		File dbdir = getDir("db", Context.MODE_PRIVATE);
+		dbdir.mkdirs();
+		File dbfile = new File(dbdir, "cr3db.sqlite");
+		db = new CRDB(dbfile);
+		scanner = new Scanner(db, engine, Environment.getExternalStorageDirectory(), "SD");
 		browser = new FileBrowser(this, engine, scanner);
 		frame.addView(readerView);
 		frame.addView(browser);
@@ -80,6 +95,10 @@ public class CoolReader extends Activity
 		if ( engine!=null ) {
 			engine.uninit();
 			engine = null;
+		}
+		if ( db!=null ) {
+			db.close();
+			db = null;
 		}
 			
 		// TODO Auto-generated method stub

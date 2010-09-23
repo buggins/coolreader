@@ -8,16 +8,18 @@ import android.os.Parcelable;
 import android.util.Log;
 
 public class FileInfo implements Parcelable {
-	String title;
-	String authors;
-	String series;
-	int seriesNumber;
-	String path;
-	String filename;
-	String pathname;
-	String arcname;
+	Long id; // db id
+	String title; // book title
+	String authors; // authors, delimited with '|'
+	String series; // series name w/o number
+	int seriesNumber; // number of book inside series
+	String path; // path to directory where file or archive is located
+	String filename; // file name w/o path for normal file, with optional path for file inside archive 
+	String pathname; // full path+arcname+filename
+	String arcname; // archive file name w/o path
 	DocumentFormat format;
 	int size;
+	int arcsize;
 	boolean isArchive;
 	boolean isDirectory;
 	private ArrayList<FileInfo> files;// files
