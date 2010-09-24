@@ -426,6 +426,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInte
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
   (JNIEnv * _env, jobject _this, jint dx, jint dy)
 {
+	CRLog::debug("resizeInternal(%d, %d)", dx, dy);
     ReaderViewNative * p = getNative(_env, _this);
     p->_docview->Resize(dx, dy);
 }  

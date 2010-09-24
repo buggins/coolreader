@@ -2639,20 +2639,24 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 void LVDocView::Resize( int dx, int dy )
 {
     //LVCHECKPOINT("Resize");
+    CRLog::trace("LVDocView:Resize(%dx%d)", dx, dy);
     if (dx<80 || dx>3000)
         dx = 80;
     if (dy<80 || dy>3000)
         dy = 80;
 #if CR_INTERNAL_PAGE_ORIENTATION==1
     if ( m_rotateAngle==CR_ROTATE_ANGLE_90 || m_rotateAngle==CR_ROTATE_ANGLE_270 ) {
+        CRLog::trace("Screen is rotated, swapping dimensions");
         int tmp = dx;
         dx = dy;
         dy = tmp;
     }
 #endif
 
-    if (dx==m_dx && dy==m_dy)
+    if (dx==m_dx && dy==m_dy) {
+        CRLog::trace("Size is not changed: %dx%d", dx, dy);
         return;
+    }
 
     m_imageCache.clear();
     //m_drawbuf.Resize(dx, dy);
@@ -2663,6 +2667,7 @@ void LVDocView::Resize( int dx, int dy )
         {
             m_dx = dx;
             m_dy = dy;
+            CRLog::trace("LVDocView:Resize() :  new size: %dx%d", dx, dy);
             updateLayout();
             requestRender();
         }

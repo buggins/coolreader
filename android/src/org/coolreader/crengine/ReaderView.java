@@ -176,8 +176,8 @@ public class ReaderView extends View {
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		super.onSizeChanged(w, h, oldw, oldh);
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
+		super.onSizeChanged(w, h, oldw, oldh);
 		init();
 		execute(new ResizeTask(w,h));
 	}
@@ -362,17 +362,17 @@ public class ReaderView extends View {
 				Log.d("cr3", "skipping duplicate drawPage request");
 				return;
 			}
-			Log.e("cr3", "drawPage.run()");
+			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
 			if ( internalDX==0 || internalDY==0 ) {
 				internalDX=200;
-				internalDY=200;
+				internalDY=300;
 		        resizeInternal(internalDX, internalDY);
 			}
 			bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
 	        bitmap.eraseColor(Color.BLUE);
 	        getPageImage(bitmap);
-	        Bookmark bm = getCurrentPageBookmarkInternal();
-	        Log.d("cr3", "Current position: " + bm.getPercent() + "% " + bm.getStartPos());
+	        //Bookmark bm = getCurrentPageBookmarkInternal();
+	        //Log.d("cr3", "Current position: " + bm.getPercent() + "% " + bm.getStartPos());
 		}
 		public void done()
 		{
@@ -404,14 +404,15 @@ public class ReaderView extends View {
 			this.dx = dx;
 			this.dy = dy;
 			this.id = ++lastResizeTaskId; 
-	        internalDX = dx;
-	        internalDY = dy;
 		}
 		public void work() {
 			if ( this.id != lastResizeTaskId ) {
 				Log.d("cr3", "skipping duplicate resize request");
 				return;
 			}
+	        internalDX = dx;
+	        internalDY = dy;
+			Log.d("cr3", "ResizeTask: resizeInternal("+dx+","+dy+")");
 	        resizeInternal(dx, dy);
 	        drawPage();
 		}
@@ -630,6 +631,7 @@ public class ReaderView extends View {
     {
     	if ( initStarted )
     		return;
+    	initStarted = true;
    		execute(new CreateViewTask());
     }
     
