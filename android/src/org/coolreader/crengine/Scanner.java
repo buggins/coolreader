@@ -18,7 +18,7 @@ public class Scanner {
 		".zip",
 	};
 	
-	List<FileInfo> fileList = new ArrayList<FileInfo>();
+	ArrayList<FileInfo> fileList = new ArrayList<FileInfo>();
 	FileInfo root;
 
 	private boolean scanDirectories( FileInfo baseDir )

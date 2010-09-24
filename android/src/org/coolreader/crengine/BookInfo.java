@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class BookInfo implements Parcelable {
+public class BookInfo {
 	private FileInfo fileInfo;
 	private Bookmark lastPosition;
 	private ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
@@ -27,7 +27,12 @@ public class BookInfo implements Parcelable {
 	
 	public void setLastPosition( Bookmark position )
 	{
-		
+		if ( lastPosition!=null )
+			position.setId(lastPosition.getId());
+		lastPosition = position;
+		lastPosition.setModified(true);
+		fileInfo.lastAccessTime = lastPosition.getTimeStamp();
+		fileInfo.setModified(true);
 	}
 	
 	public FileInfo getFileInfo()
@@ -54,52 +59,16 @@ public class BookInfo implements Parcelable {
 	{
 		bookmarks.remove(index);
 	}
-
-
-
-	public final static Parcelable.Creator<BookInfo> CREATOR = new Parcelable.Creator<BookInfo>() {
-
-		public BookInfo createFromParcel(Parcel source) {
-			try {
-				BookInfo res = new BookInfo(source);
-				return res;
-			} catch ( Exception e ) {
-				return null;
+	
+	void setBookmarks(ArrayList<Bookmark> list)
+	{
+		if ( list.size()>0 ) {
+			if ( list.get(0).getType()==0 ) {
+				lastPosition = list.remove(0); 
 			}
 		}
-
-		public BookInfo[] newArray(int size) {
-			return new BookInfo[size];
-		}
-	};
-	
-	public int describeContents() {
-		return 0;
-	}
-
-	private static final int FORMAT_VERSION = 1;
-	private BookInfo(Parcel source) throws Exception
-	{
-		if (source.readInt()!=FORMAT_VERSION)
-			throw new Exception("Invalid FileInfo format");
-		int count = source.readInt();
-		fileInfo = FileInfo.CREATOR.createFromParcel(source);
-		if ( count!=0 )
-			lastPosition = Bookmark.CREATOR.createFromParcel(source);
-		for ( int i=1; i<count; i++ ) {
-			bookmarks.add(Bookmark.CREATOR.createFromParcel(source));
-		}
-	}
-	
-	public void writeToParcel(Parcel dest, int flags) {
-		int count = bookmarks.size();
-		if ( lastPosition!=null )
-			count++;
-		dest.writeInt(count);
-		if ( lastPosition!=null )
-			dest.writeParcelable(lastPosition, 0);
-		for ( int i=1; i<count; i++ ) {
-			dest.writeParcelable(bookmarks.get(i), 0);
+		if ( list.size()>0 ) {
+			bookmarks = list;
 		}
 	}
 

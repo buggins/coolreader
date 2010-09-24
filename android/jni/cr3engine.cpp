@@ -38,6 +38,7 @@ static lString16 getDateTimeString( time_t t )
     return Utf8ToUnicode( lString8( str ) );
 }
 
+#if 0
 static lString16 extractDocSeriesReverse( ldomDocument * doc, int & seriesNumber )
 {
 	seriesNumber = 0;
@@ -61,6 +62,7 @@ static lString16 extractDocSeriesReverse( ldomDocument * doc, int & seriesNumber
     }
     return res;
 }
+#endif
 
 class BookProperties
 {
@@ -170,9 +172,9 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
         LVStreamRef out = LVOpenFileStream(ofname, LVOM_WRITE);
         doc.saveToStream(out, "utf16");
     #endif
-    lString16 authors = extractDocAuthors( &doc );
+    lString16 authors = extractDocAuthors( &doc, lString16(L"|"), false );
     lString16 title = extractDocTitle( &doc );
-    lString16 series = extractDocSeriesReverse( &doc, pBookProps->seriesNumber );
+    lString16 series = extractDocSeries( &doc, &pBookProps->seriesNumber );
 #if SERIES_IN_AUTHORS==1
     if ( !series.empty() )
     	authors << L"    " << series;

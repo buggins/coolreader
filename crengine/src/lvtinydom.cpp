@@ -4895,8 +4895,10 @@ int ldomDocument::getFullHeight()
 
 
 
-lString16 extractDocAuthors( ldomDocument * doc )
+lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool shortMiddleName )
 {
+    if ( delimiter.empty() )
+        delimiter = L", ";
     lString16 authors;
     for ( int i=0; i<16; i++) {
         lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
@@ -4912,10 +4914,12 @@ lString16 extractDocAuthors( ldomDocument * doc )
         if ( !author.empty() )
             author += L" ";
         if ( !middleName.empty() )
-            author += lString16(middleName, 0, 1) + L". ";
+            author += shortMiddleName ? lString16(middleName, 0, 1) + L"." : middleName;
+        if ( !lastName.empty() && !author.empty() )
+            author += L" ";
         author += lastName;
         if ( !authors.empty() )
-            authors += L", ";
+            authors += delimiter;
         authors += author;
     }
     return authors;
@@ -4926,7 +4930,7 @@ lString16 extractDocTitle( ldomDocument * doc )
     return doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText();
 }
 
-lString16 extractDocSeries( ldomDocument * doc )
+lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
 {
     lString16 res;
     ldomNode * series = doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
@@ -4934,9 +4938,14 @@ lString16 extractDocSeries( ldomDocument * doc )
         lString16 sname = series->getAttributeValue( attr_name );
         lString16 snumber = series->getAttributeValue( attr_number );
         if ( !sname.empty() ) {
-            res << L"(" << sname;
-            if ( !snumber.empty() )
-                res << L" #" << snumber << L")";
+            if ( pSeriesNumber ) {
+                *pSeriesNumber = snumber.atoi();
+                res = sname;
+            } else {
+                res << L"(" << sname;
+                if ( !snumber.empty() )
+                    res << L" #" << snumber << L")";
+            }
         }
     }
     return res;

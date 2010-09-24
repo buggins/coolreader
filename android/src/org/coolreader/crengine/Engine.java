@@ -359,6 +359,7 @@ public class Engine {
 	
 	public void waitTasksCompletion()
 	{
+        Log.i("cr3", "waiting for engine tasks completion");
 		try {
 			executor.awaitTermination(0, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {

@@ -2,6 +2,8 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import android.database.Cursor;
@@ -23,7 +25,7 @@ public class CRDB {
 	protected void dropTables()
 	{
 		String[] tableNames = new String[] {
-			"bookmark", "book", "series", "author"	
+			"bookmark", "book", "series", "author", "folder"	
 		};
 		for ( String name : tableNames )
 			db.execSQL("DROP TABLE IF EXISTS " + name);
@@ -36,14 +38,24 @@ public class CRDB {
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
+		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+                "author_name_index ON author (name) ");
 		db.execSQL("CREATE TABLE IF NOT EXISTS series (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
+		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		        "series_name_index ON series (name) ");
+		db.execSQL("CREATE TABLE IF NOT EXISTS folder (" +
+				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"name VARCHAR NOT NULL" +
+				")");
+		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+				"folder_name_index ON folder (name) ");
 		db.execSQL("CREATE TABLE IF NOT EXISTS book (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"pathname VARCHAR NOT NULL," +
-				"path VARCHAR NOT NULL," +
+				"folder_fk INTEGER REFERENCES folder (id)," +
 				"filename VARCHAR NOT NULL," +
 				"arcname VARCHAR," +
 				"title VARCHAR," +
@@ -51,16 +63,20 @@ public class CRDB {
 				"series_number INTEGER," +
 				"format INTEGER," +
 				"filesize INTEGER," +
-				"arcsize INTEGER" +
+				"arcsize INTEGER," +
+				"create_time INTEGER," +
+				"last_access_time INTEGER" +
 				")");
 		db.execSQL("CREATE INDEX IF NOT EXISTS " +
-				"book_path_index ON book (path) ");
+				"book_folder_index ON book (folder_fk) ");
 		db.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_pathname_index ON book (pathname) ");
 		db.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_filename_index ON book (filename) ");
 		db.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_title_index ON book (title) ");
+		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+				"book_last_access_time_index ON book (last_access_time) ");
 		db.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_title_index ON book (title) ");
 		db.execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
@@ -75,7 +91,6 @@ public class CRDB {
 				"book_fk INTEGER REFERENCES book (id)," +
 				"type INTEGER NOT NULL," +
 				"percent INTEGER," +
-				"page INTEGER," +
 				"time_stamp INTEGER," +
 				"start_pos VARCHAR NOT NULL," +
 				"end_pos VARCHAR," +
@@ -103,6 +118,90 @@ public class CRDB {
 		return findBy( fileInfo, "pathname", fileInfo.pathname);
 	}
 
+	private static final String READ_BOOKMARK_SQL = 
+		"SELECT " +
+		"id, type, percent, time_stamp, " + 
+		"start_pos, end_pos, title_text, pos_text, comment_text " +
+		"FROM bookmark b ";
+	private void readBookmarkFromCursor( Bookmark v, Cursor rs )
+	{
+		int i=0;
+		v.setId( rs.getLong(i++) );
+		v.setType( (int)rs.getLong(i++) );
+		v.setPercent( (int)rs.getLong(i++) );
+		v.setTimeStamp( rs.getLong(i++) );
+		v.setStartPos( rs.getString(i++) );
+		v.setEndPos( rs.getString(i++) );
+		v.setTitleText( rs.getString(i++) );
+		v.setPosText( rs.getString(i++) );
+		v.setCommentText( rs.getString(i++) );
+		v.setModified(false);
+	}
+	synchronized public boolean findBy( Bookmark v, String condition )
+	{
+		condition = " WHERE " + condition;
+		Cursor rs = db.rawQuery(READ_BOOKMARK_SQL +
+				condition, null);
+		boolean found = false;
+		if ( rs.moveToFirst() ) {
+			readBookmarkFromCursor( v, rs );
+			found = true;
+		}
+		rs.close();
+		return found;
+	}
+
+	synchronized public boolean load( ArrayList<Bookmark> list, String condition )
+	{
+		condition = " WHERE " + condition;
+		Cursor rs = db.rawQuery(READ_BOOKMARK_SQL +
+				condition, null);
+		boolean found = false;
+		if ( rs.moveToFirst() ) {
+			do {
+				Bookmark v = new Bookmark();
+				readBookmarkFromCursor( v, rs );
+				list.add(v);
+				found = true;
+			} while ( rs.moveToNext() );
+		}
+		rs.close();
+		return found;
+	}
+
+	private static final String READ_FILEINFO_SQL = 
+		"SELECT " +
+		"b.id AS id, pathname," +
+		"f.name as path, " +
+		"filename, arcname, title, " +
+		"(SELECT GROUP_CONCAT(a.name,'|') FROM author a JOIN book_author ba ON a.id=ba.author_fk WHERE ba.book_fk=b.id) as authors, " +
+		"s.name as series_name, " +
+		"series_number, " +
+		"format, filesize, arcsize, " +
+		"create_time, last_access_time " +
+		"FROM book b " +
+		"LEFT JOIN series s ON s.id=b.series_fk " +
+		"LEFT JOIN folder f ON f.id=b.folder_fk ";
+	private void readFileInfoFromCursor( FileInfo fileInfo, Cursor rs )
+	{
+		int i=0;
+		fileInfo.id = rs.getLong(i++);
+		fileInfo.pathname = rs.getString(i++);
+		fileInfo.path = rs.getString(i++);
+		fileInfo.filename = rs.getString(i++);
+		fileInfo.arcname = rs.getString(i++);
+		fileInfo.title = rs.getString(i++);
+		fileInfo.authors = rs.getString(i++);
+		fileInfo.series = rs.getString(i++);
+		fileInfo.seriesNumber = rs.getInt(i++);
+		fileInfo.format = DocumentFormat.byId(rs.getInt(i++));
+		fileInfo.size = rs.getInt(i++);
+		fileInfo.arcsize = rs.getInt(i++);
+		fileInfo.createTime = rs.getInt(i++);
+		fileInfo.lastAccessTime = rs.getInt(i++);
+	}
+	
+	
 	synchronized public boolean findBy( FileInfo fileInfo, String fieldName, Object fieldValue )
 	{
 		String condition;
@@ -116,31 +215,11 @@ public class CRDB {
 			buf.append(" ");
 		}
 		condition = buf.toString();
-		Cursor rs = db.rawQuery("SELECT " +
-				"b.id AS id, pathname, path, " +
-				"filename, arcname, title, " +
-				"(SELECT GROUP_CONCAT(a.name,'|') FROM author a JOIN book_author ba ON a.id=ba.author_fk WHERE ba.book_fk=b.id) as authors, " +
-				"s.name as series_name, " +
-				"series_number, " +
-				"format, filesize, arcsize " +
-				"FROM book b " +
-				"LEFT JOIN series s ON s.id=b.series_fk " +
+		Cursor rs = db.rawQuery(READ_FILEINFO_SQL +
 				condition, null);
 		boolean found = false;
 		if ( rs.moveToFirst() ) {
-			int i=0;
-			fileInfo.id = rs.getLong(i++);
-			fileInfo.pathname = rs.getString(i++);
-			fileInfo.path = rs.getString(i++);
-			fileInfo.filename = rs.getString(i++);
-			fileInfo.arcname = rs.getString(i++);
-			fileInfo.title = rs.getString(i++);
-			fileInfo.authors = rs.getString(i++);
-			fileInfo.series = rs.getString(i++);
-			fileInfo.seriesNumber = rs.getInt(i++);
-			fileInfo.format = DocumentFormat.byId(rs.getInt(i++));
-			fileInfo.size = rs.getInt(i++);
-			fileInfo.arcsize = rs.getInt(i++);
+			readFileInfoFromCursor( fileInfo, rs );
 			found = true;
 		}
 		rs.close();
@@ -187,6 +266,32 @@ public class CRDB {
 		seriesStmt.bindString(1, seriesName);
 		id = seriesStmt.executeInsert();
 		seriesCache.put( seriesName, id );
+		return id;
+	}
+	
+	private SQLiteStatement folderStmt;
+	private SQLiteStatement folderSelectStmt;
+	private HashMap<String,Long> folderCache = new HashMap<String,Long>();
+	synchronized public Long getFolderId( String folderName )
+	{
+		if ( folderName==null || folderName.trim().length()==0 )
+			return null;
+		Long id = folderCache.get(folderName); 
+		if ( id!=null )
+			return id;
+		if ( folderSelectStmt==null )
+			folderSelectStmt = db.compileStatement("SELECT id FROM folder WHERE name=?");
+		try {
+			folderSelectStmt.bindString(1, folderName);
+			return folderSelectStmt.simpleQueryForLong();
+		} catch ( Exception e ) {
+			// not found
+		}
+		if ( folderStmt==null )
+			folderStmt = db.compileStatement("INSERT INTO folder (id, name) VALUES (NULL,?)");
+		folderStmt.bindString(1, folderName);
+		id = folderStmt.executeInsert();
+		folderCache.put( folderName, id );
 		return id;
 	}
 	
@@ -267,6 +372,14 @@ public class CRDB {
 		}
 		ArrayList<String> fields = new ArrayList<String>(); 
 		ArrayList<Object> values = new ArrayList<Object>();
+		QueryHelper add(String fieldName, int value, int oldValue )
+		{
+			if ( value!=oldValue ) {
+				fields.add(fieldName);
+				values.add(Long.valueOf(value));
+			}
+			return this;
+		}
 		QueryHelper add(String fieldName, Long value, Long oldValue )
 		{
 			if ( value!=null && (oldValue==null || !oldValue.equals(value))) {
@@ -362,7 +475,7 @@ public class CRDB {
 		{
 			this("book");
 			add("pathname", newValue.pathname, oldValue.pathname);
-			add("path", newValue.path, oldValue.path);
+			add("folder_fk", getFolderId(newValue.path), getFolderId(oldValue.path));
 			add("filename", newValue.filename, oldValue.filename);
 			add("arcname", newValue.arcname, oldValue.arcname);
 			add("title", newValue.title, oldValue.title);
@@ -371,8 +484,94 @@ public class CRDB {
 			add("format", fromFormat(newValue.format), fromFormat(oldValue.format));
 			add("filesize", (long)newValue.size, (long)oldValue.size);
 			add("arcsize", (long)newValue.arcsize, (long)oldValue.arcsize);
+			add("last_access_time", (long)newValue.lastAccessTime, (long)oldValue.lastAccessTime);
+			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 		}
-		
+		QueryHelper( Bookmark newValue, Bookmark oldValue, long bookId )
+		{
+			this("bookmark");
+			add("book_fk", bookId, oldValue.getId()!=null ? bookId : null);
+			add("type", newValue.getType(), oldValue.getType());
+			add("percent", newValue.getPercent(), oldValue.getPercent());
+			add("shortcut", newValue.getShortcut(), oldValue.getShortcut());
+			add("start_pos", newValue.getStartPos(), oldValue.getStartPos());
+			add("end_pos", newValue.getEndPos(), oldValue.getEndPos());
+			add("title_text", newValue.getTitleText(), oldValue.getTitleText());
+			add("pos_text", newValue.getPosText(), oldValue.getPosText());
+			add("comment_text", newValue.getCommentText(), oldValue.getCommentText());
+			add("time_stamp", newValue.getTimeStamp(), oldValue.getTimeStamp());
+		}
+	}
+
+	public ArrayList<BookInfo> loadRecentBooks( ArrayList<FileInfo> fileList, int maxCount )
+	{
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>(fileList.size());
+		for ( FileInfo item : fileList )
+			if ( item.lastAccessTime!=0 && item.id!=null )
+				list.add(item);
+		// sort by access time, most recent at beginning
+		Collections.sort(list, new Comparator<FileInfo>() {
+			public int compare(FileInfo v1, FileInfo v2) {
+				if ( v1.lastAccessTime>v2.lastAccessTime )
+					return -1;
+				else if ( v1.lastAccessTime<v2.lastAccessTime )
+					return 1;
+				return 0;
+			}
+		});
+		// remove tail
+		for ( int i=list.size()-1; i>=maxCount; i-- )
+			list.remove(i);
+		//
+		ArrayList<BookInfo> res = new ArrayList<BookInfo>(list.size());
+		for ( FileInfo file : list ) {
+			BookInfo item = new BookInfo( file );
+			Bookmark lastPosition = new Bookmark();
+			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
+			if ( load( bookmarks, "book_fk=" + file.id + " ORDER BY type" ) ) {
+				item.setBookmarks(bookmarks);
+			}
+		}
+		return res;
+	}
+
+	synchronized public boolean save( BookInfo bookInfo )
+	{
+		boolean res = save(bookInfo.getFileInfo());
+		for ( int i=0; i<bookInfo.getBookmarkCount(); i++ ) {
+			 Bookmark bmk  = bookInfo.getBookmark(i);
+			 if (bmk.isModified())
+			 	res = save(bmk, bookInfo.getFileInfo().id) || res;
+		}
+		if ( bookInfo.getLastPosition()!=null && bookInfo.getLastPosition().isModified() )
+			res = save(bookInfo.getLastPosition(), bookInfo.getFileInfo().id) || res;
+		return res;
+	}
+
+	private boolean save( Bookmark v, long bookId )
+	{
+		if ( !v.isModified() )
+			return false;
+		if ( v.getId()!=null ) {
+			// update
+			Bookmark oldValue = new Bookmark();
+			oldValue.setId(v.getId());
+			if ( findBy(oldValue, "book_fk=" + bookId + " AND id=" + v.getId()) ) {
+				// found, updating
+				QueryHelper h = new QueryHelper(v, oldValue, bookId);
+				h.update(v.getId());
+			} else {
+				oldValue = new Bookmark();
+				QueryHelper h = new QueryHelper(v, oldValue, bookId);
+				v.setId( h.insert() );
+			}
+		} else {
+			Bookmark oldValue = new Bookmark();
+			QueryHelper h = new QueryHelper(v, oldValue, bookId);
+			v.setId( h.insert() );
+		}
+		v.setModified(false);
+		return true;
 	}
 	
 	synchronized public boolean save( FileInfo fileInfo )
@@ -397,6 +596,7 @@ public class CRDB {
 			QueryHelper h = new QueryHelper(fileInfo, oldValue);
 			fileInfo.id = h.insert();
 		}
+		fileInfo.setModified(false);
 		if ( fileInfo.id!=null ) {
 			if ( authorsChanged ) {
 				Long[] authorIds = getAuthorIds(fileInfo.authors);

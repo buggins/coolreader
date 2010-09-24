@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class History implements Parcelable {
+public class History {
 	private ArrayList<BookInfo> books = new ArrayList<BookInfo>();
+	private final CRDB db;
 	
-	public History()
+	public History(CRDB db)
 	{
+		this.db = db;
 	}
 	
 	public BookInfo getLastBook()
@@ -78,42 +80,17 @@ public class History implements Parcelable {
 		return findBookInfo( file.getPathName() );
 	}
 	
-	public final static Parcelable.Creator<History> CREATOR = new Parcelable.Creator<History>() {
-
-		public History createFromParcel(Parcel source) {
-			try {
-				History res = new History(source);
-				return res;
-			} catch ( Exception e ) {
-				return null;
-			}
-		}
-
-		public History[] newArray(int size) {
-			return new History[size];
-		}
-	};
-	
-	public int describeContents() {
-		return 0;
-	}
-
-	private static final int FORMAT_VERSION = 1;
-	private History(Parcel source) throws Exception
+	public boolean loadFromDB( ArrayList<FileInfo> fileList, int maxItems )
 	{
-		if (source.readInt()!=FORMAT_VERSION)
-			throw new Exception("Invalid FileInfo format");
-		int count = source.readInt();
-		for ( int i=0; i<count; i++ ) {
-			books.add(BookInfo.CREATOR.createFromParcel(source));
-		}
+		books = db.loadRecentBooks(fileList, maxItems);
+		return true;
 	}
-	
-	public void writeToParcel(Parcel dest, int flags) {
-		int count = books.size();
-		dest.writeInt(count);
-		for ( int i=0; i<count; i++ ) {
-			dest.writeParcelable(books.get(i), 0);
-		}
+
+	public boolean saveToDB( )
+	{
+		for ( BookInfo book : books )
+			db.save(book);
+		return true;
 	}
+
 }

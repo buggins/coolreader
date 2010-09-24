@@ -7,7 +7,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
-public class FileInfo implements Parcelable {
+public class FileInfo {
 	Long id; // db id
 	String title; // book title
 	String authors; // authors, delimited with '|'
@@ -20,8 +20,11 @@ public class FileInfo implements Parcelable {
 	DocumentFormat format;
 	int size;
 	int arcsize;
+	long createTime;
+	long lastAccessTime;
 	boolean isArchive;
 	boolean isDirectory;
+	boolean isModified;
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
 	FileInfo parent; // parent item
@@ -36,72 +39,19 @@ public class FileInfo implements Parcelable {
 		if ( !f.isDirectory() ) {
 			DocumentFormat fmt = DocumentFormat.byExtension(f.getName());
 			filename = f.getName();
-			path = f.getPath();
+			path = f.getParent();
 			pathname = f.getAbsolutePath();
 			format = fmt;
+			createTime = f.lastModified();
+			size = (int)f.length();
 		} else {
 			filename = f.getName();
-			path = f.getPath();
+			path = f.getParent();
 			pathname = f.getAbsolutePath();
 			isDirectory = true;
 		}
 	}
 	
-	public final static Parcelable.Creator<FileInfo> CREATOR = new Parcelable.Creator<FileInfo>() {
-
-		public FileInfo createFromParcel(Parcel source) {
-			try {
-				FileInfo res = new FileInfo(source);
-				return res;
-			} catch ( Exception e ) {
-				return null;
-			}
-		}
-
-		public FileInfo[] newArray(int size) {
-			return new FileInfo[size];
-		}
-	};
-	
-	public int describeContents() {
-		return 0;
-	}
-
-	private static final int FORMAT_VERSION = 1;
-	private FileInfo(Parcel source) throws Exception
-	{
-		if (source.readInt()!=FORMAT_VERSION)
-			throw new Exception("Invalid FileInfo format");
-		title = source.readString();
-		authors = source.readString();
-		series = source.readString();
-		seriesNumber = source.readInt();
-		path = source.readString();
-		filename = source.readString();
-		pathname = source.readString();
-		arcname = source.readString();
-		format = (DocumentFormat)source.readSerializable();
-		size = source.readInt();
-		isArchive = source.readInt()!=0;
-		isDirectory = source.readInt()!=0;
-	}
-	
-	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeInt(FORMAT_VERSION);
-		dest.writeString(title);
-		dest.writeString(authors);
-		dest.writeString(series);
-		dest.writeInt(seriesNumber);
-		dest.writeString(path);
-		dest.writeString(filename);
-		dest.writeString(pathname);
-		dest.writeString(arcname);
-		dest.writeSerializable(format);
-		dest.writeInt(size);
-		dest.writeInt(isArchive?1:0);
-		dest.writeInt(isDirectory?1:0);
-	}
-
 	public FileInfo()
 	{
 	}
@@ -119,8 +69,11 @@ public class FileInfo implements Parcelable {
 		arcname = v.arcname;
 		format = v.format;
 		size = v.size;
+		arcsize = v.arcsize;
 		isArchive = v.isArchive;
 		isDirectory = v.isDirectory;
+		createTime = v.createTime;
+		lastAccessTime = v.lastAccessTime;
 	}
 	
 	public String getPathName()
@@ -184,6 +137,22 @@ public class FileInfo implements Parcelable {
 			return files.get(index);
 		throw new IndexOutOfBoundsException();
 	}
+
+	public boolean fileExists()
+	{
+		if (isDirectory)
+			return false;
+		return new File(pathname).exists();
+	}
+	
+	public boolean isModified() {
+		return isModified || id==null;
+	}
+
+	public void setModified(boolean isModified) {
+		this.isModified = isModified;
+	}
+
 	public void clear()
 	{
 		dirs = null;

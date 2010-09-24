@@ -56,13 +56,6 @@ public class CoolReader extends Activity
     {
 		Log.i("cr3", "CoolReader.onCreate()");
         super.onCreate(savedInstanceState);
-        try {
-        	history = savedInstanceState.getParcelable(BUNDLE_KEY_HISTORY);
-        } catch ( Exception e ) {
-        	//ignore: use empty history
-        }
-        if ( history==null )
-        	history = new History();
 		frame = new FrameLayout(this);
 		engine = new Engine(this, frame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -76,8 +69,9 @@ public class CoolReader extends Activity
 		dbdir.mkdirs();
 		File dbfile = new File(dbdir, "cr3db.sqlite");
 		db = new CRDB(dbfile);
+       	history = new History(db);
 		scanner = new Scanner(db, engine, Environment.getExternalStorageDirectory(), "SD");
-		browser = new FileBrowser(this, engine, scanner);
+		browser = new FileBrowser(this, engine, scanner, history);
 		frame.addView(readerView);
 		frame.addView(browser);
 		frame.addView(startupView);
@@ -88,6 +82,9 @@ public class CoolReader extends Activity
 	@Override
 	protected void onDestroy() {
 		Log.i("cr3", "CoolReader.onDestroy()");
+		if ( history!=null && db!=null ) {
+			history.saveToDB();
+		}
 		if ( readerView!=null ) {
 			readerView.destroy();
 			readerView = null;
@@ -145,7 +142,6 @@ public class CoolReader extends Activity
 	protected void onSaveInstanceState(Bundle outState) {
 		Log.i("cr3", "CoolReader.onSaveInstanceState()");
 		super.onSaveInstanceState(outState);
-		outState.putParcelable(BUNDLE_KEY_HISTORY, history);
 	}
 
 	static final boolean LOAD_LAST_DOCUMENT_ON_START = true; 
@@ -156,7 +152,13 @@ public class CoolReader extends Activity
 		super.onStart();
 		engine.setHyphenationDictionary( HyphDict.RUSSIAN );
         engine.showProgress( 5, "Starting Cool Reader..." );
+        Log.i("cr3", "initializing browser");
+        browser.init();
+        Log.i("cr3", "initializing reader");
         readerView.init();
+        Log.i("cr3", "waiting for engine tasks completion");
+        engine.waitTasksCompletion();
+        Log.i("cr3", "trying to load last document");
 		if ( LOAD_LAST_DOCUMENT_ON_START ) {
 			readerView.loadLastDocument(new Runnable() {
 				public void run() {
@@ -209,7 +211,7 @@ public class CoolReader extends Activity
 	{
 		showView(browser);
 		//setContentView(browser);
-		browser.start();
+		//browser.start();
 	}
 
 	@Override
@@ -259,7 +261,4 @@ public class CoolReader extends Activity
 		}
 		return true;
 	}
-	
-	
-	
 }

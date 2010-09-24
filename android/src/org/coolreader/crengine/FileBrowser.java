@@ -1,11 +1,13 @@
 package org.coolreader.crengine;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -13,9 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,12 +26,15 @@ public class FileBrowser extends ListView {
 	Scanner scanner;
 	CoolReader activity;
 	LayoutInflater inflater;
-	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner) {
+	History history;
+	
+	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
 		this.activity = activity;
 		this.engine = engine;
 		this.scanner = scanner;
 		this.inflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
+		this.history = history;
         setFocusable(true);
         setFocusableInTouchMode(true);
 		setChoiceMode(CHOICE_MODE_SINGLE);
@@ -67,21 +70,22 @@ public class FileBrowser extends ListView {
 		return super.onKeyDown(keyCode, event);
 	}
 
-	private boolean started = false;
-	public void start()
+	boolean initStarted = false;
+	boolean initialized = false;
+	public void init()
 	{
-		if ( started ) {
-			//showDirectory( scanner.root );
+		if ( initStarted )
 			return;
-		}
+		initStarted = true;
 		engine.showProgress(20, "Scanning directories...");
 		execute( new Task() {
 			public void work() {
 				scanner.scan();
+				history.loadFromDB(scanner.fileList, 1000);
 			}
 			public void done() {
 				Log.e("cr3", "Directory scan is finished. " + scanner.fileList.size() + " files found" + ", root item count is " + scanner.root.size());
-				started = true;
+				initialized = true;
 				engine.hideProgress();
 				showDirectory( scanner.root );
 				setSelection(0);
@@ -93,10 +97,56 @@ public class FileBrowser extends ListView {
 			}
 		});
 	}
-
+	
 	@Override
 	public void setSelection(int position) {
 		super.setSelection(position);
+	}
+	
+	public static String formatAuthors( String authors ) {
+		if ( authors==null || authors.length()==0 )
+			return null;
+		String[] list = authors.split("\\|");
+		StringBuilder buf = new StringBuilder(authors.length());
+		for ( String a : list ) {
+			if ( buf.length()>0 )
+				buf.append(", ");
+			String[] items = a.split(" ");
+			if ( items.length==3 && items[1]!=null && items[1].length()>=1 )
+				buf.append(items[0] + " " + items[1].charAt(0) + ". " + items[2]);
+			else
+				buf.append(a);
+		}
+		return buf.toString();
+	}
+	
+	public static String formatSize( int size )
+	{
+		if ( size<10000 )
+			return String.valueOf(size);
+		else if ( size<1000000 )
+			return String.valueOf(size/1000) + "K";
+		else if ( size<10000000 )
+			return String.valueOf(size/1000000) + "." + String.valueOf(size%1000000/100000) + "M";
+		else
+			return String.valueOf(size/1000000) + "M";
+	}
+
+	public static String formatSeries( String name, int number )
+	{
+		if ( name==null || name.length()==0 )
+			return null;
+		if ( number>0 )
+			return "(#" + number + " " + name +  ")";
+		else
+			return "(" + name + ")";
+	}
+	
+	public static String formatDate( long timeStamp )
+	{
+		SimpleDateFormat format = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
+		format.setTimeZone(java.util.TimeZone.getDefault());
+		return format.format(new Date(timeStamp));
 	}
 
 	private FileInfo currDirectory;
@@ -201,8 +251,8 @@ public class FileBrowser extends ListView {
 						field2.setText("folders: " + String.valueOf(item.dirCount()));
 					} else {
 						image.setImageResource(item.format.getIconResourceId());
-						setText( author, item.authors );
-						setText( series, item.series );
+						setText( author, formatAuthors(item.authors) );
+						setText( series, formatSeries(item.series, item.seriesNumber) );
 						String title = item.title;
 						if ( title==null || title.length()==0 )
 							title = item.filename;
@@ -211,8 +261,8 @@ public class FileBrowser extends ListView {
 						field1.setVisibility(VISIBLE);
 						field2.setVisibility(VISIBLE);
 						field3.setVisibility(VISIBLE);
-						field1.setText(String.valueOf(item.size/1024) + "K");
-						field2.setText("01/02/2010");
+						field1.setText(formatSize(item.size));
+						field2.setText(formatDate(item.createTime));
 						field3.setText("25%");
 						
 					}

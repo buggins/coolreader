@@ -2003,9 +2003,11 @@ public:
 };
 
 //utils
-lString16 extractDocAuthors( ldomDocument * doc );
+/// extract authors from FB2 document, delimiter is lString16 by default
+lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter=lString16(), bool shortMiddleName=true );
 lString16 extractDocTitle( ldomDocument * doc );
-lString16 extractDocSeries( ldomDocument * doc );
+/// returns "(Series Name #number)" if pSeriesNumber is NULL, separate name and number otherwise
+lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber=NULL );
 
 bool IsEmptySpace( const lChar16 * text, int len );
 

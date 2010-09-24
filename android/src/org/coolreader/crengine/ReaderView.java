@@ -490,15 +490,18 @@ public class ReaderView extends View {
     			}
     		});
     		activity.getHistory().updateBookAccess(bookInfo);
+    		activity.getHistory().saveToDB();
     	}
     }
     
     private void savePosition()
     {
     	Bookmark bmk = getCurrentPageBookmarkInternal();
+    	bmk.setTimeStamp(System.currentTimeMillis());
     	if ( bmk!=null && bookInfo!=null ) {
     		bmk.setType(Bookmark.TYPE_LAST_POSITION);
     		bookInfo.setLastPosition(bmk);
+    		activity.getHistory().saveToDB();
     	}
     }
     
