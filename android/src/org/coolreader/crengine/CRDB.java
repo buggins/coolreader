@@ -89,9 +89,9 @@ public class CRDB {
 		db.execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"book_fk INTEGER REFERENCES book (id)," +
-				"type INTEGER NOT NULL," +
-				"percent INTEGER," +
-				"time_stamp INTEGER," +
+				"type INTEGER NOT NULL DEFAULT 0," +
+				"percent INTEGER DEFAULT 0," +
+				"time_stamp INTEGER DEFAULT 0," +
 				"start_pos VARCHAR NOT NULL," +
 				"end_pos VARCHAR," +
 				"title_text VARCHAR," +
@@ -115,7 +115,7 @@ public class CRDB {
 
 	public boolean findById( FileInfo fileInfo )
 	{
-		return findBy( fileInfo, "pathname", fileInfo.pathname);
+		return findBy( fileInfo, "b.id", fileInfo.id);
 	}
 
 	private static final String READ_BOOKMARK_SQL = 
@@ -240,7 +240,10 @@ public class CRDB {
 	{
 		Log.i("cr3db", "DB: " + longQuery("SELECT count(*) FROM author") + " authors, "
 				 + longQuery("SELECT count(*) FROM series") + " series, "
-				 + longQuery("SELECT count(*) FROM book") + " books");
+				 + longQuery("SELECT count(*) FROM book") + " books, "
+				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks"
+				 + longQuery("SELECT count(*) FROM folder") + " folders"
+				 );
 	}
 
 	private SQLiteStatement seriesStmt;
@@ -526,17 +529,18 @@ public class CRDB {
 		ArrayList<BookInfo> res = new ArrayList<BookInfo>(list.size());
 		for ( FileInfo file : list ) {
 			BookInfo item = new BookInfo( file );
-			Bookmark lastPosition = new Bookmark();
 			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
 			if ( load( bookmarks, "book_fk=" + file.id + " ORDER BY type" ) ) {
 				item.setBookmarks(bookmarks);
 			}
+			res.add(item);
 		}
 		return res;
 	}
 
 	synchronized public boolean save( BookInfo bookInfo )
 	{
+		Log.d("cr3db", "saving Book info id=" + bookInfo.getFileInfo().id);
 		boolean res = save(bookInfo.getFileInfo());
 		for ( int i=0; i<bookInfo.getBookmarkCount(); i++ ) {
 			 Bookmark bmk  = bookInfo.getBookmark(i);
@@ -552,6 +556,7 @@ public class CRDB {
 	{
 		if ( !v.isModified() )
 			return false;
+		Log.d("cr3db", "saving bookmark id=" + v.getId() + ", bookId=" + bookId + ", pos=" + v.getStartPos());
 		if ( v.getId()!=null ) {
 			// update
 			Bookmark oldValue = new Bookmark();

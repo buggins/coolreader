@@ -14,7 +14,6 @@ import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
@@ -83,7 +82,7 @@ public class CoolReader extends Activity
 	protected void onDestroy() {
 		Log.i("cr3", "CoolReader.onDestroy()");
 		if ( history!=null && db!=null ) {
-			history.saveToDB();
+			//history.saveToDB();
 		}
 		if ( readerView!=null ) {
 			readerView.destroy();
@@ -157,19 +156,35 @@ public class CoolReader extends Activity
         Log.i("cr3", "initializing reader");
         readerView.init();
         Log.i("cr3", "waiting for engine tasks completion");
-        engine.waitTasksCompletion();
-        Log.i("cr3", "trying to load last document");
-		if ( LOAD_LAST_DOCUMENT_ON_START ) {
-			readerView.loadLastDocument(new Runnable() {
-				public void run() {
-					// cannot open recent book: load another one
-					Log.e("cr3", "Cannot open last document, starting file browser");
+        //engine.waitTasksCompletion();
+        engine.execute(new Engine.EngineTask() {
+
+			@Override
+			public void done() {
+		        Log.i("cr3", "trying to load last document");
+				if ( LOAD_LAST_DOCUMENT_ON_START ) {
+					readerView.loadLastDocument(new Runnable() {
+						public void run() {
+							// cannot open recent book: load another one
+							Log.e("cr3", "Cannot open last document, starting file browser");
+							showBrowser();
+						}
+					});
+				} else {
 					showBrowser();
 				}
-			});
-		} else {
-			showBrowser();
-		}
+			}
+
+			@Override
+			public void fail(Exception e) {
+			}
+
+			@Override
+			public void work() throws Exception {
+				// do nothing
+			}
+        	
+        });
 	}
 
 	@Override
@@ -202,13 +217,14 @@ public class CoolReader extends Activity
 	
 	public void loadDocument( FileInfo item )
 	{
-		showView(readerView);
+		//showView(readerView);
 		//setContentView(readerView);
-		readerView.loadDocument(item.getPathName());
+		readerView.loadDocument(item);
 	}
 	
 	public void showBrowser()
 	{
+		readerView.save();
 		showView(browser);
 		//setContentView(browser);
 		//browser.start();

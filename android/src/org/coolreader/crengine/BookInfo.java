@@ -17,7 +17,7 @@ public class BookInfo {
 	
 	public BookInfo( FileInfo fileInfo )
 	{
-		this.fileInfo = new FileInfo(fileInfo);
+		this.fileInfo = fileInfo; //new FileInfo(fileInfo);
 	}
 	
 	public Bookmark getLastPosition()

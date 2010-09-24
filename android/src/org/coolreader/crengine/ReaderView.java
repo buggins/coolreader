@@ -300,9 +300,9 @@ public class ReaderView extends View {
 		}
 	}
 	
-	public void loadDocument( final String filename )
+	public void loadDocument( final FileInfo fileInfo )
 	{
-		execute(new LoadDocumentTask(filename, null));
+		execute(new LoadDocumentTask(fileInfo, null));
 	}
 
 	public boolean loadLastDocument( final Runnable errorHandler )
@@ -314,7 +314,7 @@ public class ReaderView extends View {
 			errorHandler.run();
 			return false;
 		}
-		execute( new LoadDocumentTask(book.getFileInfo().getPathName(), errorHandler) );
+		execute( new LoadDocumentTask(book.getFileInfo(), errorHandler) );
 		return true;
 	}
 	
@@ -422,11 +422,11 @@ public class ReaderView extends View {
 	{
 		String filename;
 		Runnable errorHandler;
-		LoadDocumentTask( String filename, Runnable errorHandler )
+		LoadDocumentTask( FileInfo fileInfo, Runnable errorHandler )
 		{
-			this.filename = filename;
+			this.filename = fileInfo.pathname;
 			this.errorHandler = errorHandler;
-			FileInfo fileInfo = new FileInfo(filename);
+			//FileInfo fileInfo = new FileInfo(filename);
 			bookInfo = activity.getHistory().getOrCreateBookInfo( fileInfo );
 	        engine.showProgress( 1000, "Loading..." );
 	        init();
@@ -496,13 +496,30 @@ public class ReaderView extends View {
     
     private void savePosition()
     {
+    	if ( !opened )
+    		return;
     	Bookmark bmk = getCurrentPageBookmarkInternal();
-    	bmk.setTimeStamp(System.currentTimeMillis());
+    	if ( bmk!=null )
+    		Log.d("cr3", "saving position, bmk=" + bmk.getStartPos());
+    	else
+    		Log.d("cr3", "saving position: no current page bookmark obtained");
     	if ( bmk!=null && bookInfo!=null ) {
+        	bmk.setTimeStamp(System.currentTimeMillis());
     		bmk.setType(Bookmark.TYPE_LAST_POSITION);
     		bookInfo.setLastPosition(bmk);
     		activity.getHistory().saveToDB();
     	}
+    }
+
+    public void save()
+    {
+    	execute( new Task() {
+    		public void work() {
+    			if ( opened ) {
+					savePosition();
+    			}
+    		}
+    	});
     }
     
     public void close()

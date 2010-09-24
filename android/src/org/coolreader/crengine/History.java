@@ -2,8 +2,7 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.util.Log;
 
 public class History {
 	private ArrayList<BookInfo> books = new ArrayList<BookInfo>();
@@ -56,6 +55,7 @@ public class History {
 	
 	public void updateBookAccess( BookInfo bookInfo )
 	{
+		Log.v("cr3", "History.updateBookAccess() for " + bookInfo.getFileInfo().getPathName());
 		int index = findBookInfo(bookInfo.getFileInfo());
 		if ( index>=0 ) {
 			BookInfo info = books.get(index);
@@ -88,9 +88,15 @@ public class History {
 
 	public boolean saveToDB( )
 	{
-		for ( BookInfo book : books )
-			db.save(book);
-		return true;
+		Log.v("cr3", "History.saveToDB()");
+		try {
+			for ( BookInfo book : books )
+				db.save(book);
+			return true;
+		} catch ( Exception e ) {
+			Log.e("cr3", "error while saving file history " + e.getMessage(), e);
+			return false;
+		}
 	}
 
 }
