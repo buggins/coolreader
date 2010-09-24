@@ -404,6 +404,8 @@ public class ReaderView extends View {
 			this.dx = dx;
 			this.dy = dy;
 			this.id = ++lastResizeTaskId; 
+	        internalDX = dx;
+	        internalDY = dy;
 		}
 		public void work() {
 			if ( this.id != lastResizeTaskId ) {
@@ -411,8 +413,6 @@ public class ReaderView extends View {
 				return;
 			}
 	        resizeInternal(dx, dy);
-	        internalDX = dx;
-	        internalDY = dy;
 	        drawPage();
 		}
 	}

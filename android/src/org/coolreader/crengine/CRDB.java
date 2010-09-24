@@ -19,8 +19,19 @@ public class CRDB {
 		this.dbfile = dbfile;
 		return true;
 	}
+	static boolean DROP_TABLES = false;
+	protected void dropTables()
+	{
+		String[] tableNames = new String[] {
+			"bookmark", "book", "series", "author"	
+		};
+		for ( String name : tableNames )
+			db.execSQL("DROP TABLE IF EXISTS " + name);
+	}
 	protected boolean updateSchema()
 	{
+		if (DROP_TABLES)
+			dropTables();
 		db.execSQL("CREATE TABLE IF NOT EXISTS author (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
@@ -34,8 +45,8 @@ public class CRDB {
 				"pathname VARCHAR NOT NULL," +
 				"path VARCHAR NOT NULL," +
 				"filename VARCHAR NOT NULL," +
-				"arcname VARCHAR NOT NULL," +
-				"title VARCHAR NOT NULL," +
+				"arcname VARCHAR," +
+				"title VARCHAR," +
 				"series_fk INTEGER REFERENCES series (id)," +
 				"series_number INTEGER," +
 				"format INTEGER," +
@@ -79,6 +90,7 @@ public class CRDB {
 	{
 		open(dbfile);
 		updateSchema();
+		dumpStatistics();
 	}
 	
 	public boolean findByPathname( FileInfo fileInfo )
@@ -133,6 +145,23 @@ public class CRDB {
 		}
 		rs.close();
 		return found;
+	}
+	
+	private Long longQuery( String sql )
+	{
+		SQLiteStatement stmt = db.compileStatement(sql);
+		try {
+			return stmt.simpleQueryForLong();
+		} catch ( Exception e ) {
+			// not found or error
+			return null;
+		}
+	}
+	public void dumpStatistics()
+	{
+		Log.i("cr3db", "DB: " + longQuery("SELECT count(*) FROM author") + " authors, "
+				 + longQuery("SELECT count(*) FROM series") + " series, "
+				 + longQuery("SELECT count(*) FROM book") + " books");
 	}
 
 	private SQLiteStatement seriesStmt;
@@ -266,36 +295,43 @@ public class CRDB {
 		{
 			if ( fields.size()==0 )
 				return null;
-			StringBuilder buf = new StringBuilder("INSERT OR IGNORE INTO ");
-			buf.append(tableName);
-			buf.append(" (id");
-			for ( String field : fields ) {
-				buf.append(",");
-				buf.append(field);
+			try {
+				String ignoreOption = ""; //"OR IGNORE ";
+				StringBuilder buf = new StringBuilder("INSERT " + ignoreOption + " INTO ");
+				buf.append(tableName);
+				buf.append(" (id");
+				for ( String field : fields ) {
+					buf.append(",");
+					buf.append(field);
+				}
+				buf.append(") VALUES (NULL");
+				for ( String field : fields ) {
+					buf.append(",");
+					buf.append("?");
+				}
+				buf.append(")");
+				String sql = buf.toString();
+				Log.d("cr3db", "going to execute " + sql);
+				SQLiteStatement stmt = db.compileStatement(sql);
+				for ( int i=1; i<=values.size(); i++ ) {
+					Object v = values.get(i-1);
+					if ( v==null )
+						stmt.bindNull(i);
+					else if (v instanceof String)
+						stmt.bindString(i, (String)v);
+					else if (v instanceof Long)
+						stmt.bindLong(i, (Long)v);
+					else if (v instanceof Double)
+						stmt.bindDouble(i, (Double)v);
+				}
+				Long id = stmt.executeInsert();
+				Log.d("cr3db", "added book, id=" + id + ", query=" + sql);
+				stmt.close();
+				return id;
+			} catch ( Exception e ) {
+				Log.e("cr3db", "insert failed: " + e.getMessage());
+				return null;
 			}
-			buf.append(") VALUES (NULL");
-			for ( String field : fields ) {
-				buf.append(",");
-				buf.append("?");
-			}
-			buf.append(")");
-			String sql = buf.toString();
-			Log.d("cr3db", "going to execute " + sql);
-			SQLiteStatement stmt = db.compileStatement(sql);
-			for ( int i=1; i<=values.size(); i++ ) {
-				Object v = values.get(i-1);
-				if ( v==null )
-					stmt.bindNull(i);
-				else if (v instanceof String)
-					stmt.bindString(i, (String)v);
-				else if (v instanceof Long)
-					stmt.bindLong(i, (Long)v);
-				else if (v instanceof Double)
-					stmt.bindDouble(i, (Double)v);
-			}
-			Long id = stmt.executeInsert();
-			stmt.close();
-			return id;
 		}
 		boolean update( Long id )
 		{
