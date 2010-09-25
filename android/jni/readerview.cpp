@@ -380,6 +380,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
 	CRPropRef props = env.fromJavaProperties(_props);
+	p->_docview->propsUpdateDefaults( props );
 	p->_docview->propsApply( props );
     return JNI_TRUE;
 }

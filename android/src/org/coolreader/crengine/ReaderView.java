@@ -1,6 +1,9 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 
@@ -211,6 +214,8 @@ public class ReaderView extends View {
     private final Engine engine;
     
     private BookInfo bookInfo;
+    
+    private Properties settings = new Properties();
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -244,12 +249,26 @@ public class ReaderView extends View {
 		case KeyEvent.KEYCODE_DPAD_CENTER:
 			activity.showBrowser();
 			break;
+		case KeyEvent.KEYCODE_VOLUME_UP:
+			doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+			syncViewSettings();
+			break;
+		case KeyEvent.KEYCODE_VOLUME_DOWN:
+			doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+			syncViewSettings();
+			break;
+		case KeyEvent.KEYCODE_SEARCH:
+			activity.showToast("Search is not yet implemented...");
+			break;
 		case KeyEvent.KEYCODE_MENU:
 			activity.openOptionsMenu();
 			break;
 		case KeyEvent.KEYCODE_HOME:
 			activity.showBrowser();
 			break;
+		case KeyEvent.KEYCODE_BACK:
+			saveSettings();
+			return super.onKeyDown(keyCode, event);
 		default:
 			return super.onKeyDown(keyCode, event);
 		}
@@ -312,13 +331,63 @@ public class ReaderView extends View {
 		updateBookInfoInternal( bookInfo );
 	}
 	
+	private void applySettings( Properties props )
+	{
+        applySettingsInternal(props);
+        syncViewSettings();
+	}
+	
+	File propsFile;
+	private void saveSettings()
+	{
+		try {
+    		FileOutputStream os = new FileOutputStream(propsFile);
+    		settings.store(os, "Cool Reader 3 settings");
+		} catch ( Exception e ) {
+			Log.e("cr3", "exception while saving settings", e);
+		}
+	}
+
+	public static boolean eq(Object obj1, Object obj2)
+	{
+		if ( obj1==null && obj2==null )
+			return true;
+		if ( obj1==null || obj2==null )
+			return false;
+		return obj1.equals(obj2);
+	}
+
+	/**
+	 * Read JNI view settings, update and save if changed 
+	 */
+	private void syncViewSettings()
+	{
+		execute( new Task() {
+			Properties props;
+			public void work() {
+				props = getSettingsInternal();
+			}
+			public void done() {
+				boolean changed = false;
+		        for ( Map.Entry<Object, Object> entry : props.entrySet() ) {
+		        	if ( !settings.containsKey(entry.getKey()) || !eq(entry.getValue(), settings.get(entry.getKey()))) {
+		        		settings.setProperty((String)entry.getKey(), (String)entry.getValue());
+		        		changed = true;
+		        	}
+		        }
+		        if ( changed )
+		        	saveSettings();
+			}
+		});
+	}
+	
 	class CreateViewTask extends Task
 	{
 		public void work() throws Exception {
 			createInternal();
-			File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
+			//File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
-			historyDir.mkdirs();
+			//historyDir.mkdirs();
 			//File historyFile = new File(historyDir, "cr3hist.ini");
 			
 			//File historyFile = new File(activity.getDir("settings", Context.MODE_PRIVATE), "cr3hist.ini");
@@ -329,12 +398,22 @@ public class ReaderView extends View {
 	        String css = engine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
-	        Properties props = new Properties();
-	        props.setProperty(PROP_STATUS_FONT_SIZE, "12");
-	        props.setProperty(PROP_FONT_SIZE, "18");
-	        applySettingsInternal(props);
-	        Properties props2 = getSettingsInternal();
-	        Log.v("cr3", "props: " + props2);
+			File propsDir = activity.getDir("settings", Context.MODE_PRIVATE);
+			propsDir.mkdirs();
+			propsFile = new File( propsDir, "cr3.ini");
+	        //Properties props = new Properties();
+	        if ( propsFile.exists() ) {
+	        	try {
+	        		FileInputStream is = new FileInputStream(propsFile);
+	        		settings.load(is);
+	        	} catch ( Exception e ) {
+	        		Log.e("cr3", "error while reading settings");
+	        	}
+	        } else {
+		        settings.setProperty(PROP_STATUS_FONT_SIZE, "12");
+		        settings.setProperty(PROP_FONT_SIZE, "18");
+	        }
+	        applySettings(settings);
 			initialized = true;
 		}
 		public void done() {
@@ -560,6 +639,7 @@ public class ReaderView extends View {
     		bmk.setType(Bookmark.TYPE_LAST_POSITION);
     		bookInfo.setLastPosition(bmk);
     		activity.getHistory().saveToDB();
+    		saveSettings();
     	}
     }
 
