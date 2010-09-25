@@ -73,6 +73,12 @@ public class Scanner {
 		long start = System.currentTimeMillis();
 		fileList.clear();
 		root.clear();
+		FileInfo recentDir = new FileInfo();
+		recentDir.isDirectory = true;
+		recentDir.pathname = "@recent";
+		recentDir.filename = "Recent Books";
+		root.addDir(recentDir);
+		recentDir.parent = root;
 		boolean res = scanDirectories( root );
 		Log.i("cr3", "Finished scanning (" + (System.currentTimeMillis()-start)+ " ms)");
 		return res;

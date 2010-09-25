@@ -410,7 +410,7 @@ public class Engine {
 		return fileList;
 	}
 	
-	private boolean force_install_library = true;
+	private boolean force_install_library = false;
 	private void installLibrary()
 	{
 		try {

@@ -513,6 +513,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInt
     ReaderViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return;
+	DocViewCallback callback( _env, p->_docview, _this );
     CRObjectAccessor bookinfo(_env, _info);
     CRObjectAccessor fileinfo(_env, CRFieldAccessor(bookinfo, "fileInfo", "Lorg/coolreader/crengine/FileInfo;").getObject() );
     CRStringField(fileinfo,"title").set(p->_docview->getTitle());

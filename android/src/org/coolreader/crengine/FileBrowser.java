@@ -81,7 +81,7 @@ public class FileBrowser extends ListView {
 		execute( new Task() {
 			public void work() {
 				scanner.scan();
-				history.loadFromDB(scanner.fileList, 1000);
+				history.loadFromDB(scanner, 1000);
 			}
 			public void done() {
 				Log.e("cr3", "Directory scan is finished. " + scanner.fileList.size() + " files found" + ", root item count is " + scanner.root.size());
@@ -147,6 +147,13 @@ public class FileBrowser extends ListView {
 		SimpleDateFormat format = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
 		format.setTimeZone(java.util.TimeZone.getDefault());
 		return format.format(new Date(timeStamp));
+	}
+
+	public static String formatPercent( int percent )
+	{
+		if ( percent<=0 )
+			return null;
+		return String.valueOf(percent/100) + "." + String.valueOf(percent/10%10) + "%";
 	}
 
 	private FileInfo currDirectory;
@@ -223,6 +230,7 @@ public class FileBrowser extends ListView {
 						view.setText(text);
 						view.setVisibility(VISIBLE);
 					} else {
+						view.setText(null);
 						view.setVisibility(INVISIBLE);
 					}
 				}
@@ -240,15 +248,13 @@ public class FileBrowser extends ListView {
 					}
 					if ( item.isDirectory ) {
 						image.setImageResource(R.drawable.cr3_browser_folder);
-						author.setVisibility(INVISIBLE);
-						series.setVisibility(INVISIBLE);
-						name.setText(item.filename);
+						setText(name, item.filename);
+						setText(author, null);
+						setText(series, null);
 
-						field1.setVisibility(VISIBLE);
-						field2.setVisibility(VISIBLE);
-						field3.setVisibility(INVISIBLE);
-						field1.setText("books: " + String.valueOf(item.fileCount()));
-						field2.setText("folders: " + String.valueOf(item.dirCount()));
+						setText(field1, "books: " + String.valueOf(item.fileCount()));
+						setText(field2, "folders: " + String.valueOf(item.dirCount()));
+						setText(field3, null);
 					} else {
 						image.setImageResource(item.format.getIconResourceId());
 						setText( author, formatAuthors(item.authors) );
@@ -262,8 +268,9 @@ public class FileBrowser extends ListView {
 						field2.setVisibility(VISIBLE);
 						field3.setVisibility(VISIBLE);
 						field1.setText(formatSize(item.size));
-						field2.setText(formatDate(item.createTime));
-						field3.setText("25%");
+						Bookmark pos = history.getLastPos(item);
+						field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
+						field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
 						
 					}
 				}

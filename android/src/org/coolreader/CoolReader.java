@@ -76,6 +76,10 @@ public class CoolReader extends Activity
 		frame.addView(startupView);
 		setContentView( frame );
 		showView(startupView);
+        Log.i("cr3", "initializing browser");
+        browser.init();
+        Log.i("cr3", "initializing reader");
+        readerView.init();
     }
 
 	@Override
@@ -151,10 +155,6 @@ public class CoolReader extends Activity
 		super.onStart();
 		engine.setHyphenationDictionary( HyphDict.RUSSIAN );
         engine.showProgress( 5, "Starting Cool Reader..." );
-        Log.i("cr3", "initializing browser");
-        browser.init();
-        Log.i("cr3", "initializing reader");
-        readerView.init();
         Log.i("cr3", "waiting for engine tasks completion");
         //engine.waitTasksCompletion();
         engine.execute(new Engine.EngineTask() {

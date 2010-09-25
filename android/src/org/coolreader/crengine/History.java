@@ -7,6 +7,7 @@ import android.util.Log;
 public class History {
 	private ArrayList<BookInfo> books = new ArrayList<BookInfo>();
 	private final CRDB db;
+	private FileInfo recentBooksFolder;
 	
 	public History(CRDB db)
 	{
@@ -64,6 +65,7 @@ public class History {
 				books.add(0, info);
 			}
 			info.updateAccess();
+			updateRecentDir();
 		}
 	}
 	
@@ -80,9 +82,24 @@ public class History {
 		return findBookInfo( file.getPathName() );
 	}
 	
-	public boolean loadFromDB( ArrayList<FileInfo> fileList, int maxItems )
+	public Bookmark getLastPos( FileInfo file )
 	{
-		books = db.loadRecentBooks(fileList, maxItems);
+		int index = findBookInfo(file);
+		if ( index<0 )
+			return null;
+		return books.get(index).getLastPosition();
+	}
+	protected void updateRecentDir()
+	{
+		recentBooksFolder.clear();
+		for ( BookInfo book : books )
+			recentBooksFolder.addFile(book.getFileInfo());
+	}
+	public boolean loadFromDB( Scanner scanner, int maxItems )
+	{
+		books = db.loadRecentBooks(scanner.fileList, maxItems);
+		recentBooksFolder = scanner.root.getDir(0);
+		updateRecentDir();
 		return true;
 	}
 

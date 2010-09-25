@@ -302,6 +302,11 @@ public class ReaderView extends View {
 	
 	public void loadDocument( final FileInfo fileInfo )
 	{
+		if ( this.bookInfo!=null && this.bookInfo.getFileInfo().pathname.equals(fileInfo.pathname)) {
+			Log.d("cr3", "trying to load already opened document");
+			activity.showReader();
+			return;
+		}
 		execute(new LoadDocumentTask(fileInfo, null));
 	}
 
@@ -429,7 +434,7 @@ public class ReaderView extends View {
 			//FileInfo fileInfo = new FileInfo(filename);
 			bookInfo = activity.getHistory().getOrCreateBookInfo( fileInfo );
 	        engine.showProgress( 1000, "Loading..." );
-	        init();
+	        //init();
 		}
 
 		public void work() {
@@ -553,7 +558,7 @@ public class ReaderView extends View {
         	    	}
         		}
         	});
-    		engine.waitTasksCompletion();
+    		//engine.waitTasksCompletion();
     	}
     }
     
