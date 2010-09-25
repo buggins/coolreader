@@ -247,6 +247,9 @@ public class ReaderView extends View {
 		case KeyEvent.KEYCODE_MENU:
 			activity.openOptionsMenu();
 			break;
+		case KeyEvent.KEYCODE_HOME:
+			activity.showBrowser();
+			break;
 		default:
 			return super.onKeyDown(keyCode, event);
 		}

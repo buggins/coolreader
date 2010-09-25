@@ -241,16 +241,17 @@ public class CoolReader extends Activity
 
 	public void showToast( String msg )
 	{
-		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
 		toast.show();
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch ( item.getItemId() ) {
-		case R.id.cr3_mi_toc:
-			Log.i("cr3", "TOC menu item selected");
-			showToast("TOC feature is not implemented");
+		case R.id.cr3_mi_open_file:
+			Log.i("cr3", "Open File menu selected");
+			showBrowser();
+			//showToast("TOC feature is not implemented");
 			break;
 		case R.id.cr3_mi_gotopage:
 			Log.i("cr3", "gotopage menu item selected");
