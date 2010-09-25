@@ -17,6 +17,7 @@
 
 #include "lvstring.h"
 #include "lvdrawbuf.h"
+#include "props.h"
 
 //====================================================================
 #ifdef USE_JNIGRAPHICS
@@ -44,6 +45,8 @@ public:
 	jobjectArray toJavaStringArray( lString16Collection & dst );
 	LVStreamRef jbyteArrayToStream( jbyteArray array ); 
 	jobject enumByNativeId( const char * classname, int id ); 
+	CRPropRef fromJavaProperties( jobject jprops );
+	jobject toJavaProperties( CRPropRef props );
 };
 
 class CRClassAccessor : public CRJNIEnv {
@@ -89,6 +92,38 @@ public:
 	void setObject( jobject obj )
 	{
 		 return objacc->SetObjectField(objacc.getObject(), fieldid, obj); 
+	}
+};
+
+class CRMethodAccessor {
+protected:
+	CRObjectAccessor & objacc;
+	jmethodID methodid;
+public:
+	CRMethodAccessor( CRObjectAccessor & acc, const char * methodName, const char * signature )
+	: objacc(acc)
+	{
+		methodid = objacc->GetMethodID( objacc.getClass(), methodName, signature );
+	}
+	jobject callObj()
+	{
+		return objacc->CallObjectMethod( objacc.getObject(), methodid ); 
+	}
+	jobject callObj(jobject obj)
+	{
+		return objacc->CallObjectMethod( objacc.getObject(), methodid, obj ); 
+	}
+	jobject callObj(jobject obj1, jobject obj2)
+	{
+		return objacc->CallObjectMethod( objacc.getObject(), methodid, obj1, obj2 ); 
+	}
+	jboolean callBool()
+	{
+		return objacc->CallBooleanMethod( objacc.getObject(), methodid ); 
+	}
+	jint callInt()
+	{
+		return objacc->CallIntMethod( objacc.getObject(), methodid ); 
 	}
 };
 

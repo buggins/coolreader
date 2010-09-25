@@ -1,7 +1,7 @@
 package org.coolreader.crengine;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
@@ -11,7 +11,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -20,6 +19,45 @@ import android.view.View;
 public class ReaderView extends View {
     private Bitmap mBitmap;
 
+    public static final String PROP_FONT_ANTIALIASING       ="font.antialiasing.mode";
+    public static final String PROP_FONT_COLOR              ="font.color.default";
+    public static final String PROP_FONT_FACE               ="font.face.default";
+    public static final String PROP_FONT_WEIGHT_EMBOLDEN    ="font.face.weight.embolden";
+    public static final String PROP_BACKGROUND_COLOR        ="background.color.default";
+    public static final String PROP_TXT_OPTION_PREFORMATTED ="crengine.file.txt.preformatted";
+    public static final String PROP_LOG_FILENAME            ="crengine.log.filename";
+    public static final String PROP_LOG_LEVEL               ="crengine.log.level";
+    public static final String PROP_LOG_AUTOFLUSH           ="crengine.log.autoflush";
+    public static final String PROP_FONT_SIZE               ="crengine.font.size";
+    public static final String PROP_STATUS_FONT_COLOR       ="crengine.page.header.font.color";
+    public static final String PROP_STATUS_FONT_FACE        ="crengine.page.header.font.face";
+    public static final String PROP_STATUS_FONT_SIZE        ="crengine.page.header.font.size";
+    public static final String PROP_PAGE_MARGIN_TOP         ="crengine.page.margin.top";
+    public static final String PROP_PAGE_MARGIN_BOTTOM      ="crengine.page.margin.bottom";
+    public static final String PROP_PAGE_MARGIN_LEFT        ="crengine.page.margin.left";
+    public static final String PROP_PAGE_MARGIN_RIGHT       ="crengine.page.margin.right";
+    public static final String PROP_PAGE_VIEW_MODE          ="crengine.page.view.mode"; // pages/scroll
+    public static final String PROP_INTERLINE_SPACE         ="crengine.interline.space";
+    public static final String PROP_ROTATE_ANGLE            ="window.rotate.angle";
+    public static final String PROP_EMBEDDED_STYLES         ="crengine.doc.embedded.styles.enabled";
+    public static final String PROP_DISPLAY_INVERSE         ="crengine.display.inverse";
+    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
+    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
+    public static final String PROP_STATUS_LINE             ="window.status.line";
+    public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";
+    public static final String PROP_FOOTNOTES               ="crengine.footnotes";
+    public static final String PROP_SHOW_TIME               ="window.status.clock";
+    public static final String PROP_SHOW_TITLE              ="window.status.title";
+    public static final String PROP_SHOW_BATTERY            ="window.status.battery";
+    public static final String PROP_SHOW_BATTERY_PERCENT    ="window.status.battery.percent";
+    public static final String PROP_FONT_KERNING_ENABLED    ="font.kerning.enabled";
+    public static final String PROP_LANDSCAPE_PAGES         ="window.landscape.pages";
+    public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.directory";
+    public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
+
+    public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
+    public static final String PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.forced.filesize.min";
+    public static final String PROP_PROGRESS_SHOW_FIRST_PAGE  ="crengine.progress.show.first.page";
     
     public enum ReaderCommand
     {
@@ -155,8 +193,8 @@ public class ReaderView extends View {
     private native void createInternal();
     private native void destroyInternal();
     private native boolean loadDocumentInternal( String fileName );
-    private native String getSettingsInternal();
-    private native boolean applySettingsInternal( String settings );
+    private native Properties getSettingsInternal();
+    private native boolean applySettingsInternal( Properties settings );
     //private native boolean readHistoryInternal( String filename );
     //private native boolean writeHistoryInternal( String filename );
     private native void setStylesheetInternal( String stylesheet );
@@ -288,6 +326,12 @@ public class ReaderView extends View {
 	        String css = engine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
+	        Properties props = new Properties();
+	        props.setProperty(PROP_STATUS_FONT_SIZE, "12");
+	        props.setProperty(PROP_FONT_SIZE, "18");
+	        applySettingsInternal(props);
+	        Properties props2 = getSettingsInternal();
+	        Log.v("cr3", "props: " + props2);
 			initialized = true;
 		}
 		public void done() {

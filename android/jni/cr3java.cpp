@@ -36,6 +36,38 @@ jobjectArray CRJNIEnv::toJavaStringArray( lString16Collection & src )
 	return array;
 }
 
+CRPropRef CRJNIEnv::fromJavaProperties( jobject jprops )
+{
+	CRPropRef props = LVCreatePropsContainer();
+    CRObjectAccessor jp(env, jprops);
+    CRMethodAccessor p_getProperty(jp, "getProperty", "(Ljava/lang/String;)Ljava/lang/String;");
+    jobject en = CRMethodAccessor( jp, "propertyNames", "()Ljava/util/Enumeration;").callObj();
+    CRObjectAccessor jen(env, en);
+    CRMethodAccessor jen_hasMoreElements(jen, "hasMoreElements", "()Z");
+    CRMethodAccessor jen_nextElement(jen, "nextElement", "()Ljava/lang/Object;");
+    while ( jen_hasMoreElements.callBool() ) {
+    	jstring key = (jstring)jen_nextElement.callObj();
+    	jstring value = (jstring)p_getProperty.callObj(key);
+    	props->setString(LCSTR(fromJavaString(key)),LCSTR(fromJavaString(value)));  
+    }
+	return props;
+}
+
+jobject CRJNIEnv::toJavaProperties( CRPropRef props )
+{
+    jclass cls = env->FindClass("java/util/Properties");
+    jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+    jobject obj = env->NewObject(cls, mid);
+    CRObjectAccessor jp(env, obj);
+    CRMethodAccessor p_setProperty(jp, "setProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+    for ( int i=0; i<props->getCount(); i++ ) {
+    	jstring key = toJavaString(lString16(props->getName(i)));
+    	jstring value = toJavaString(lString16(props->getValue(i)));
+    	p_setProperty.callObj(key, value);
+    }
+	return obj;
+}
+
 jobject CRJNIEnv::enumByNativeId( const char * classname, int id )
 {
 	jclass cl = env->FindClass(classname);

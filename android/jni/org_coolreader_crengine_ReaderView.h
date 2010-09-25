@@ -42,18 +42,18 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    getSettingsInternal
- * Signature: ()Ljava/lang/String;
+ * Signature: ()Ljava/util/Properties;
  */
-JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
   (JNIEnv *, jobject);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    applySettingsInternal
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (Ljava/util/Properties;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettingsInternal
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jobject, jobject);
 
 /*
  * Class:     org_coolreader_crengine_ReaderView

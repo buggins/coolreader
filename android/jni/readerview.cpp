@@ -356,23 +356,32 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    getSettings
- * Signature: ()Ljava/lang/String;
+ * Signature: ()Ljava/util/Properties;
  */
-JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
-  (JNIEnv *, jobject)
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
+  (JNIEnv * _env, jobject _this)
 {
-    return NULL;
+	CRLog::trace("ReaderView_getSettingsInternal");
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+	CRPropRef props = p->_docview->propsGetCurrent();
+    return env.toJavaProperties(props);
 }
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    applySettings
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (Ljava/util/Properties;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettingsInternal
-  (JNIEnv *, jobject, jstring)
+  (JNIEnv * _env, jobject _this, jobject _props)
 {
-    return false;
+	CRLog::trace("ReaderView_applySettingsInternal");
+	CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+	CRPropRef props = env.fromJavaProperties(_props);
+	p->_docview->propsApply( props );
+    return JNI_TRUE;
 }
 #if 0
 /*
