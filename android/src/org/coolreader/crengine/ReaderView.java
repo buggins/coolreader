@@ -772,6 +772,11 @@ public class ReaderView extends View {
         }
     }
     
+    public void goToPercent( int percent )
+    {
+    	
+    }
+    
     @Override
     public void finalize()
     {

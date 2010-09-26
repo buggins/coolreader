@@ -13,10 +13,14 @@ import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.InputFilter;
+import android.text.method.DigitsKeyListener;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -244,6 +249,47 @@ public class CoolReader extends Activity
 		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
 		toast.show();
 	}
+
+	public interface InputHandler {
+		boolean validate( String s ) throws Exception;
+		void onOk( String s ) throws Exception;
+		void onCancel();
+	};
+	
+	public void showInputDialog( final String title, boolean isNumberEdit, final InputHandler handler )
+	{
+        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        final EditText input = new EditText(this);
+        if ( isNumberEdit )
+	        input.getText().setFilters(new InputFilter[] {
+	        	new DigitsKeyListener()        
+	        });
+        alert.setTitle(title);
+        alert.setView(input);
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String value = input.getText().toString().trim();
+                try {
+                	if ( handler.validate(value) )
+                		handler.onOk(value);
+                	else
+                		handler.onCancel();
+                } catch ( Exception e ) {
+                	handler.onCancel();
+                }
+                dialog.cancel();
+            }
+        });
+ 
+        alert.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.cancel();
+                        handler.onCancel();
+                    }
+                });
+        alert.show();
+	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -272,6 +318,40 @@ public class CoolReader extends Activity
 		case R.id.cr3_mi_exit:
 			Log.i("cr3", "exit menu item selected");
 			finish();
+			break;
+		case R.id.cr3_mi_go_page:
+			showInputDialog("Enter page number", true, new InputHandler() {
+				int pageNumber = 0;
+				@Override
+				public boolean validate(String s) {
+					pageNumber = Integer.valueOf(s); 
+					return pageNumber>0;
+				}
+				@Override
+				public void onOk(String s) {
+					readerView.doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
+				}
+				@Override
+				public void onCancel() {
+				}
+			});
+			break;
+		case R.id.cr3_mi_go_percent:
+			showInputDialog("Enter position %", true, new InputHandler() {
+				int percent = 0;
+				@Override
+				public boolean validate(String s) {
+					percent = Integer.valueOf(s); 
+					return percent>=0 && percent<=100;
+				}
+				@Override
+				public void onOk(String s) {
+					readerView.goToPercent(percent);
+				}
+				@Override
+				public void onCancel() {
+				}
+			});
 			break;
 		default:
 			return super.onOptionsItemSelected(item);
