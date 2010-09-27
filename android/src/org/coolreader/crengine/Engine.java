@@ -19,8 +19,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
@@ -32,8 +30,9 @@ import android.view.View;
 public class Engine {
 	
 	private final Activity mActivity;
-	private final View mMainView;
-	private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
+	private final BackgroundThread mBackgroundThread;
+	//private final View mMainView;
+	//private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
 	
 
 	public interface EngineTask {
@@ -57,13 +56,11 @@ public class Engine {
 	}
 	
 
-	private static class TaskHandler implements Runnable {
+	private class TaskHandler implements Runnable {
 		final EngineTask task;
-		final View view;
-		public TaskHandler( EngineTask task, View view )
+		public TaskHandler( EngineTask task )
 		{
 			this.task = task;
-			this.view = view;
 		}
 		public void run() {
 			try {
@@ -74,32 +71,33 @@ public class Engine {
 				task.work();
 				Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
 				// post success callback
-				view.post(new Runnable() {
+				mBackgroundThread.postGUI(new Runnable() {
 					public void run() {
 						Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
 						task.done();
 					}
 				});
 			} catch ( final FatalError e ) {
-				Handler h = view.getHandler();
-				
-				if ( h==null ) {
-					View root = view.getRootView();
-					h = root.getHandler();
-				}
-				if ( h==null ) {
-					//
-					e.handle();
-				} else {
-					h.postAtFrontOfQueue(new Runnable() {
-						public void run() {
-							e.handle();
-						}
-					});
-				}
+				//TODO:
+//				Handler h = view.getHandler();
+//				
+//				if ( h==null ) {
+//					View root = view.getRootView();
+//					h = root.getHandler();
+//				}
+//				if ( h==null ) {
+//					//
+//					e.handle();
+//				} else {
+//					h.postAtFrontOfQueue(new Runnable() {
+//						public void run() {
+//							e.handle();
+//						}
+//					});
+//				}
 			} catch ( final Exception e ) {
 				// post error callback
-				view.post(new Runnable() {
+				mBackgroundThread.postGUI(new Runnable() {
 					public void run() {
 						Log.e("cr3", "running task.fail("+e.getMessage()+") " + task.getClass().getSimpleName() + " in gui thread ");
 						task.fail(e);
@@ -117,8 +115,8 @@ public class Engine {
 	{
 		
 		Log.d("cr3", "executing task " + task.getClass().getSimpleName());
-		TaskHandler taskHandler = new TaskHandler( task, mMainView );
-		mExecutor.execute( taskHandler );
+		TaskHandler taskHandler = new TaskHandler( task );
+		mBackgroundThread.executeBackground( taskHandler );
 	}
 	
 	/**
@@ -130,7 +128,7 @@ public class Engine {
 		execute( new EngineTask() {
 
 			public void done() {
-				mMainView.post(task);
+				mBackgroundThread.postGUI(task);
 			}
 
 			public void fail(Exception e) {
@@ -174,7 +172,7 @@ public class Engine {
 		//	return;
 		//ReaderView view = views.get(0);
 		if ( enable_progress ) {
-			mMainView.post( new Runnable() {
+			mBackgroundThread.postGUI( new Runnable() {
 				public void run() {
 					// show progress
 					if ( mProgress==null ) {
@@ -203,7 +201,7 @@ public class Engine {
 	
 	public void hideProgress()
 	{
-		mMainView.post( new Runnable() {
+		mBackgroundThread.postGUI( new Runnable() {
 			public void run() {
 				// hide progress
 				if ( mProgress!=null ) {
@@ -275,12 +273,13 @@ public class Engine {
 	 * Initialize CoolReader Engine
 	 * @param fontList is array of .ttf font pathnames to load
 	 */
-	public Engine( Activity activity, View mainView )
+	public Engine( Activity activity, BackgroundThread backgroundThread )
 	{
 		this.mActivity = activity;
-		this.mMainView = mainView;
+		this.mBackgroundThread = backgroundThread;
+		//this.mMainView = mainView;
 		Log.i("cr3", "Engine() : scheduling init task");
-		mExecutor.execute( new Runnable() {
+		mBackgroundThread.executeBackground( new Runnable() {
 			public void run()
 			{
 				try {
@@ -386,22 +385,22 @@ public class Engine {
 		initialized = true;
 	}
 	
-	public void waitTasksCompletion()
-	{
-        Log.i("cr3", "waiting for engine tasks completion");
-		try {
-			mExecutor.awaitTermination(0, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			// ignore
-		}
-	}
+//	public void waitTasksCompletion()
+//	{
+//        Log.i("cr3", "waiting for engine tasks completion");
+//		try {
+//			mExecutor.awaitTermination(0, TimeUnit.SECONDS);
+//		} catch (InterruptedException e) {
+//			// ignore
+//		}
+//	}
 	
 	/**
 	 * Uninitialize engine.
 	 */
 	public void uninit()
 	{
-		mExecutor.execute(new Runnable() {
+		mBackgroundThread.executeBackground(new Runnable() {
 			public void run() {
 				if ( initialized ) {
 					uninitInternal();
@@ -409,7 +408,8 @@ public class Engine {
 				}
 			}
 		});
-		waitTasksCompletion();
+		//TODO:
+		//waitTasksCompletion();
 	}
 	
 	protected void finalize() throws Throwable

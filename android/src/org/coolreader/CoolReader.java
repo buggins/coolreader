@@ -3,6 +3,7 @@ package org.coolreader;
 
 import java.io.File;
 
+import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.FileBrowser;
@@ -19,9 +20,6 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.util.Log;
@@ -37,23 +35,24 @@ import android.widget.Toast;
 
 public class CoolReader extends Activity
 {
-	Engine engine;
-	ReaderView readerView;
-	Scanner scanner;
-	FileBrowser browser;
-	FrameLayout frame;
+	Engine mEngine;
+	ReaderView mReaderView;
+	Scanner mScanner;
+	FileBrowser mBrowser;
+	FrameLayout mFrame;
 	View startupView;
-	History history;
-	CRDB db;
+	History mHistory;
+	CRDB mDB;
+	private BackgroundThread mBackgroundThread;
 	
 	public History getHistory() 
 	{
-		return history;
+		return mHistory;
 	}
 	
 	public CRDB getDB()
 	{
-		return db;
+		return mDB;
 	}
 	
     /** Called when the activity is first created. */
@@ -62,50 +61,57 @@ public class CoolReader extends Activity
     {
 		Log.i("cr3", "CoolReader.onCreate()");
         super.onCreate(savedInstanceState);
-		frame = new FrameLayout(this);
-		engine = new Engine(this, frame);
+        // testing background thread
+    	mBackgroundThread = new BackgroundThread();
+		mFrame = new FrameLayout(this);
+		mEngine = new Engine(this, mBackgroundThread);
+		mBackgroundThread.setGUI(mFrame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		startupView = new View(this) {
 		};
 		startupView.setBackgroundColor(Color.BLACK);
-		readerView = new ReaderView(this, engine);
+		mReaderView = new ReaderView(this, mEngine);
 		File dbdir = getDir("db", Context.MODE_PRIVATE);
 		dbdir.mkdirs();
 		File dbfile = new File(dbdir, "cr3db.sqlite");
-		db = new CRDB(dbfile);
-       	history = new History(db);
-		scanner = new Scanner(db, engine, Environment.getExternalStorageDirectory(), "SD");
-		browser = new FileBrowser(this, engine, scanner, history);
-		frame.addView(readerView);
-		frame.addView(browser);
-		frame.addView(startupView);
-		setContentView( frame );
+		mDB = new CRDB(dbfile);
+       	mHistory = new History(mDB);
+		mScanner = new Scanner(mDB, mEngine, Environment.getExternalStorageDirectory(), "SD");
+		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
+		mFrame.addView(mReaderView);
+		mFrame.addView(mBrowser);
+		mFrame.addView(startupView);
+		setContentView( mFrame );
 		showView(startupView);
         Log.i("cr3", "initializing browser");
-        browser.init();
+        mBrowser.init();
         Log.i("cr3", "initializing reader");
-        readerView.init();
+        mReaderView.init();
     }
 
 	@Override
 	protected void onDestroy() {
 		Log.i("cr3", "CoolReader.onDestroy()");
-		if ( history!=null && db!=null ) {
+		if ( mHistory!=null && mDB!=null ) {
 			//history.saveToDB();
 		}
-		if ( readerView!=null ) {
-			readerView.destroy();
-			readerView = null;
+		if ( mReaderView!=null ) {
+			mReaderView.destroy();
+			mReaderView = null;
 		}
-		if ( engine!=null ) {
-			engine.uninit();
-			engine = null;
+		if ( mEngine!=null ) {
+			mEngine.uninit();
+			mEngine = null;
 		}
-		if ( db!=null ) {
-			db.close();
-			db = null;
+		if ( mDB!=null ) {
+			mDB.close();
+			mDB = null;
+		}
+		if ( mBackgroundThread!=null ) {
+			mBackgroundThread.quit();
+			mBackgroundThread = null;
 		}
 			
 		// TODO Auto-generated method stub
@@ -160,16 +166,16 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		Log.i("cr3", "CoolReader.onStart()");
 		super.onStart();
-		engine.setHyphenationDictionary( HyphDict.RUSSIAN );
-        engine.showProgress( 5, "Starting Cool Reader..." );
+		mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
+        mEngine.showProgress( 5, "Starting Cool Reader..." );
         Log.i("cr3", "waiting for engine tasks completion");
         //engine.waitTasksCompletion();
-        engine.execute(new Engine.EngineTask() {
+        mEngine.execute(new Engine.EngineTask() {
 
 			public void done() {
 		        Log.i("cr3", "trying to load last document");
 				if ( LOAD_LAST_DOCUMENT_ON_START ) {
-					readerView.loadLastDocument(new Runnable() {
+					mReaderView.loadLastDocument(new Runnable() {
 						public void run() {
 							// cannot open recent book: load another one
 							Log.e("cr3", "Cannot open last document, starting file browser");
@@ -193,7 +199,7 @@ public class CoolReader extends Activity
 
 	@Override
 	protected void onStop() {
-		readerView.close();
+		mReaderView.close();
 		super.onStop();
 	}
 
@@ -202,37 +208,37 @@ public class CoolReader extends Activity
 	{
 		if ( currentView==view )
 			return;
-		frame.bringChildToFront(view);
-		for ( int i=0; i<frame.getChildCount(); i++ ) {
-			View v = frame.getChildAt(i);
+		mFrame.bringChildToFront(view);
+		for ( int i=0; i<mFrame.getChildCount(); i++ ) {
+			View v = mFrame.getChildAt(i);
 			v.setVisibility(view==v?View.VISIBLE:View.INVISIBLE);
 		}
 	}
 	
 	public void showReader()
 	{
-		showView(readerView);
+		showView(mReaderView);
 	}
 	
 	public boolean isBookOpened()
 	{
-		return readerView.isBookLoaded();
+		return mReaderView.isBookLoaded();
 	}
 	
 	public void loadDocument( FileInfo item )
 	{
 		//showView(readerView);
 		//setContentView(readerView);
-		readerView.loadDocument(item);
+		mReaderView.loadDocument(item);
 	}
 	
 	public void showBrowser()
 	{
-		readerView.save();
-		engine.runInGUI( new Runnable() {
+		mReaderView.save();
+		mEngine.runInGUI( new Runnable() {
 			public void run() {
-				showView(browser);
-		        engine.hideProgress();
+				showView(mBrowser);
+		        mEngine.hideProgress();
 			}
 		});
 	}
@@ -329,7 +335,7 @@ public class CoolReader extends Activity
 					return pageNumber>0;
 				}
 				public void onOk(String s) {
-					readerView.doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
+					mReaderView.doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
 				}
 				public void onCancel() {
 				}
@@ -343,7 +349,7 @@ public class CoolReader extends Activity
 					return percent>=0 && percent<=100;
 				}
 				public void onOk(String s) {
-					readerView.goToPercent(percent);
+					mReaderView.goToPercent(percent);
 				}
 				public void onCancel() {
 				}
@@ -355,37 +361,5 @@ public class CoolReader extends Activity
 		return true;
 	}
 
-	class BackgroundThread extends Thread {
-		private Handler handler;
-		public void run() {
-			Looper.prepare();
-			handler = new Handler() {
-				public void handleMessage( Message message )
-				{
-				}
-			};
-			Looper.loop();
-		}
-		public void post( Runnable task )
-		{
-			handler.post(task);
-		}
-		/**
-		 * Run task instantly if called from the same thread, or post it through message queue otherwise.
-		 * @param task is task to execute
-		 */
-		public void run( Runnable task )
-		{
-			handler.post(task);
-		}
-		public void requestStop()
-		{
-			run( new Runnable() {
-				public void run() {
-					Looper.myLooper().quit();
-				}
-			});
-		}
-	}
 
 }
