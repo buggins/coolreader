@@ -19,6 +19,9 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.util.Log;
@@ -351,4 +354,38 @@ public class CoolReader extends Activity
 		}
 		return true;
 	}
+
+	class BackgroundThread extends Thread {
+		private Handler handler;
+		public void run() {
+			Looper.prepare();
+			handler = new Handler() {
+				public void handleMessage( Message message )
+				{
+				}
+			};
+			Looper.loop();
+		}
+		public void post( Runnable task )
+		{
+			handler.post(task);
+		}
+		/**
+		 * Run task instantly if called from the same thread, or post it through message queue otherwise.
+		 * @param task is task to execute
+		 */
+		public void run( Runnable task )
+		{
+			handler.post(task);
+		}
+		public void requestStop()
+		{
+			run( new Runnable() {
+				public void run() {
+					Looper.myLooper().quit();
+				}
+			});
+		}
+	}
+
 }

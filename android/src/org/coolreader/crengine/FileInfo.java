@@ -3,8 +3,6 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.util.ArrayList;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
 public class FileInfo {

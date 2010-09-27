@@ -159,7 +159,6 @@ public class FileBrowser extends ListView {
 	public void showDirectory( final FileInfo dir )
 	{
 		currDirectory = dir;
-		final ListView thisView = this;
 		if ( dir!=null )
 			Log.i("cr3", "Showing directory " + dir);
 		this.setAdapter(new ListAdapter() {

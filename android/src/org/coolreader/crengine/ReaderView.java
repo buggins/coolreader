@@ -22,6 +22,14 @@ import android.view.View;
 public class ReaderView extends View {
     private Bitmap mBitmap;
 
+    // additional key codes for Nook
+    public static final int NOOK_KEY_PREV_LEFT = 96;
+    public static final int NOOK_KEY_PREV_RIGHT = 98;
+    public static final int NOOK_KEY_NEXT_LEFT = 95;
+    public static final int NOOK_KEY_NEXT_RIGHT = 97;    
+    public static final int NOOK_KEY_SHIFT_UP = 101;
+    public static final int NOOK_KEY_SHIFT_DOWN = 100;
+    
     public static final String PROP_FONT_ANTIALIASING       ="font.antialiasing.mode";
     public static final String PROP_FONT_COLOR              ="font.color.default";
     public static final String PROP_FONT_FACE               ="font.face.default";
@@ -113,11 +121,6 @@ public class ReaderView extends View {
     
     private abstract class Task implements Engine.EngineTask {
     	
-    	public void post()
-    	{
-    		execute(this);
-    	}
-
 		public void done() {
 			// override to do something useful
 		}
@@ -190,7 +193,7 @@ public class ReaderView extends View {
     private native int getPositionPageInternal(String xPath);
     private native void updateBookInfoInternal( BookInfo info );
     
-    private int mNativeObject; // used from JNI
+    protected int mNativeObject; // used from JNI
     
 	private final CoolReader mActivity;
     private final Engine mEngine;
@@ -216,9 +219,15 @@ public class ReaderView extends View {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
 		switch ( keyCode ) {
+		case NOOK_KEY_NEXT_LEFT:
+		case NOOK_KEY_NEXT_RIGHT:    
+		case NOOK_KEY_SHIFT_DOWN:
 		case KeyEvent.KEYCODE_DPAD_DOWN:
 			doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
 			break;
+		case NOOK_KEY_PREV_LEFT:
+		case NOOK_KEY_PREV_RIGHT:
+		case NOOK_KEY_SHIFT_UP:
 		case KeyEvent.KEYCODE_DPAD_UP:
 			doCommand( ReaderCommand.DCMD_PAGEUP, 1);
 			break;

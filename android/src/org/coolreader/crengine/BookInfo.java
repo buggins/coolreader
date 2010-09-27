@@ -2,9 +2,6 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 public class BookInfo {
 	private FileInfo fileInfo;
 	private Bookmark lastPosition;

@@ -19,6 +19,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
@@ -32,6 +34,7 @@ public class Engine {
 	private final Activity mActivity;
 	private final View mMainView;
 	private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
+	
 
 	public interface EngineTask {
 		public void work() throws Exception;
