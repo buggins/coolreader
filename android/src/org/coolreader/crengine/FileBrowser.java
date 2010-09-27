@@ -22,19 +22,19 @@ import android.widget.TextView;
 
 public class FileBrowser extends ListView {
 
-	Engine engine;
-	Scanner scanner;
-	CoolReader activity;
-	LayoutInflater inflater;
-	History history;
+	Engine mEngine;
+	Scanner mScanner;
+	CoolReader mActivity;
+	LayoutInflater mInflater;
+	History mHistory;
 	
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
-		this.activity = activity;
-		this.engine = engine;
-		this.scanner = scanner;
-		this.inflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
-		this.history = history;
+		this.mActivity = activity;
+		this.mEngine = engine;
+		this.mScanner = scanner;
+		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
+		this.mHistory = history;
         setFocusable(true);
         setFocusableInTouchMode(true);
 		setChoiceMode(CHOICE_MODE_SINGLE);
@@ -56,43 +56,42 @@ public class FileBrowser extends ListView {
 			showDirectory(item);
 			return true;
 		}
-		activity.loadDocument(item);
+		mActivity.loadDocument(item);
 		return true;
 	}
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
-		if ( keyCode==KeyEvent.KEYCODE_BACK && activity.isBookOpened() ) {
-			activity.showReader();
+		if ( keyCode==KeyEvent.KEYCODE_BACK && mActivity.isBookOpened() ) {
+			mActivity.showReader();
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
 	}
 
-	boolean initStarted = false;
-	boolean initialized = false;
+	boolean mInitStarted = false;
+	boolean mInitialized = false;
 	public void init()
 	{
-		if ( initStarted )
+		if ( mInitStarted )
 			return;
-		initStarted = true;
-		engine.showProgress(20, "Scanning directories...");
+		mInitStarted = true;
+		mEngine.showProgress(20, "Scanning directories...");
 		execute( new Task() {
 			public void work() {
-				scanner.scan();
-				history.loadFromDB(scanner, 1000);
+				mScanner.scan();
+				mHistory.loadFromDB(mScanner, 1000);
 			}
 			public void done() {
-				Log.e("cr3", "Directory scan is finished. " + scanner.fileList.size() + " files found" + ", root item count is " + scanner.root.size());
-				initialized = true;
-				engine.hideProgress();
-				showDirectory( scanner.root );
+				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.size());
+				mInitialized = true;
+				mEngine.hideProgress();
+				showDirectory( mScanner.mRoot );
 				setSelection(0);
 			}
 			public void fail(Exception e )
 			{
-				engine.showProgress(9000, "Scan is failed");
+				mEngine.showProgress(9000, "Scan is failed");
 				Log.e("cr3", "Exception while scanning directories", e);
 			}
 		});
@@ -268,7 +267,7 @@ public class FileBrowser extends ListView {
 						field2.setVisibility(VISIBLE);
 						field3.setVisibility(VISIBLE);
 						field1.setText(formatSize(item.size));
-						Bookmark pos = history.getLastPos(item);
+						Bookmark pos = mHistory.getLastPos(item);
 						field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 						field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
 						
@@ -282,7 +281,7 @@ public class FileBrowser extends ListView {
 				View view;
 				ViewHolder holder;
 				if ( convertView==null ) {
-					view = inflater.inflate(R.layout.browser_item_book, null);
+					view = mInflater.inflate(R.layout.browser_item_book, null);
 					holder = new ViewHolder();
 					holder.image = (ImageView)view.findViewById(R.id.book_icon);
 					holder.name = (TextView)view.findViewById(R.id.book_name);
@@ -317,7 +316,7 @@ public class FileBrowser extends ListView {
 			public boolean isEmpty() {
 				if ( dir==null )
 					return true;
-				return scanner.fileList.size()==0;
+				return mScanner.mFileList.size()==0;
 			}
 
 			private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();
@@ -337,7 +336,7 @@ public class FileBrowser extends ListView {
 
 	private void execute( Engine.EngineTask task )
     {
-    	engine.execute(task);
+    	mEngine.execute(task);
     }
 
     private abstract class Task implements Engine.EngineTask {
@@ -353,23 +352,4 @@ public class FileBrowser extends ListView {
 		}
     }
     
-//    private class SimpleItemView extends View {
-//    	public SimpleItemView( Context context, FileInfo item )
-//    	{
-//    		super(context);
-//    		mTitle = new TextView(context);
-//    		setItem( item );
-//    		addView( mTitle, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-//    	}
-//    	
-//    	public void setItem( FileInfo item )
-//    	{
-//    		if ( item==null ) {
-//        		mTitle.setText("..");
-//    		} else {
-//        		mTitle.setText(item.filename);
-//    		}
-//    	}
-//    	private TextView mTitle;
-//    }
 }

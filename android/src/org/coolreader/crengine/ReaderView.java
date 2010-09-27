@@ -108,7 +108,7 @@ public class ReaderView extends View {
     
     private void execute( Engine.EngineTask task )
     {
-    	engine.execute(task);
+    	mEngine.execute(task);
     }
     
     private abstract class Task implements Engine.EngineTask {
@@ -170,26 +170,9 @@ public class ReaderView extends View {
     	return res;
     }
     
-    public static class DocumentInfo
-    {
-    	boolean opened;
-    	int width;
-    	int height;
-    	String fileName;
-    	String filePath;
-    	int    fileSize;
-    	int    arcSize;
-    	String arcName;
-    	String arcPath;
-    	String title;
-    	String author;
-    	String seriesName;
-    	int seriesNumber;
-    	DocumentFormat docFormat;
-    	int curPage;
-    	int pageCount;
-    }
+    // Native functions
     /* implementend by libcr3engine.so */
+    
     // get current page image
     private native void getPageImage(Bitmap bitmap);
     // constructor's native part
@@ -198,8 +181,6 @@ public class ReaderView extends View {
     private native boolean loadDocumentInternal( String fileName );
     private native Properties getSettingsInternal();
     private native boolean applySettingsInternal( Properties settings );
-    //private native boolean readHistoryInternal( String filename );
-    //private native boolean writeHistoryInternal( String filename );
     private native void setStylesheetInternal( String stylesheet );
     private native void resizeInternal( int dx, int dy );
     private native boolean doCommandInternal( int command, int param );
@@ -209,13 +190,14 @@ public class ReaderView extends View {
     private native int getPositionPageInternal(String xPath);
     private native void updateBookInfoInternal( BookInfo info );
     
-    private int mNativeObject;
+    private int mNativeObject; // used from JNI
     
-    private final Engine engine;
+	private final CoolReader mActivity;
+    private final Engine mEngine;
     
-    private BookInfo bookInfo;
+    private BookInfo mBookInfo;
     
-    private Properties settings = new Properties();
+    private Properties mSettings = new Properties();
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -227,7 +209,7 @@ public class ReaderView extends View {
 	
 	public boolean isBookLoaded()
 	{
-		return opened;
+		return mOpened;
 	}
     
 	@Override
@@ -247,7 +229,7 @@ public class ReaderView extends View {
 			doCommand( ReaderCommand.DCMD_PAGEDOWN, 10);
 			break;
 		case KeyEvent.KEYCODE_DPAD_CENTER:
-			activity.showBrowser();
+			mActivity.showBrowser();
 			break;
 		case KeyEvent.KEYCODE_VOLUME_UP:
 			doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
@@ -258,13 +240,13 @@ public class ReaderView extends View {
 			syncViewSettings();
 			break;
 		case KeyEvent.KEYCODE_SEARCH:
-			activity.showToast("Search is not yet implemented...");
+			mActivity.showToast("Search is not yet implemented...");
 			break;
 		case KeyEvent.KEYCODE_MENU:
-			activity.openOptionsMenu();
+			mActivity.openOptionsMenu();
 			break;
 		case KeyEvent.KEYCODE_HOME:
-			activity.showBrowser();
+			mActivity.showBrowser();
 			break;
 		case KeyEvent.KEYCODE_BACK:
 			saveSettings();
@@ -292,7 +274,7 @@ public class ReaderView extends View {
 				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
 				return true;
 			} else if ( center ) {
-				activity.openOptionsMenu();
+				mActivity.openOptionsMenu();
 			}
 		}
 		return super.onTouchEvent(event);
@@ -320,15 +302,15 @@ public class ReaderView extends View {
 		});
 	}
 	
-	boolean initialized = false;
-	boolean opened = false;
+	private boolean mInitialized = false;
+	private boolean mOpened = false;
 	
 	//private File historyFile;
 	
 	private void updateLoadedBookInfo()
 	{
 		// get title, authors, etc.
-		updateBookInfoInternal( bookInfo );
+		updateBookInfoInternal( mBookInfo );
 	}
 	
 	private void applySettings( Properties props )
@@ -342,7 +324,7 @@ public class ReaderView extends View {
 	{
 		try {
     		FileOutputStream os = new FileOutputStream(propsFile);
-    		settings.store(os, "Cool Reader 3 settings");
+    		mSettings.store(os, "Cool Reader 3 settings");
 		} catch ( Exception e ) {
 			Log.e("cr3", "exception while saving settings", e);
 		}
@@ -370,8 +352,8 @@ public class ReaderView extends View {
 			public void done() {
 				boolean changed = false;
 		        for ( Map.Entry<Object, Object> entry : props.entrySet() ) {
-		        	if ( !settings.containsKey(entry.getKey()) || !eq(entry.getValue(), settings.get(entry.getKey()))) {
-		        		settings.setProperty((String)entry.getKey(), (String)entry.getValue());
+		        	if ( !mSettings.containsKey(entry.getKey()) || !eq(entry.getValue(), mSettings.get(entry.getKey()))) {
+		        		mSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
 		        		changed = true;
 		        	}
 		        }
@@ -395,26 +377,26 @@ public class ReaderView extends View {
 			//Log.d("cr3", "Reading history from file " + historyFile.getAbsolutePath());
 			//readHistoryInternal(historyFile.getAbsolutePath());
 			//}
-	        String css = engine.loadResourceUtf8(R.raw.fb2);
+	        String css = mEngine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
-			File propsDir = activity.getDir("settings", Context.MODE_PRIVATE);
+			File propsDir = mActivity.getDir("settings", Context.MODE_PRIVATE);
 			propsDir.mkdirs();
 			propsFile = new File( propsDir, "cr3.ini");
 	        //Properties props = new Properties();
 	        if ( propsFile.exists() ) {
 	        	try {
 	        		FileInputStream is = new FileInputStream(propsFile);
-	        		settings.load(is);
+	        		mSettings.load(is);
 	        	} catch ( Exception e ) {
 	        		Log.e("cr3", "error while reading settings");
 	        	}
 	        } else {
-		        settings.setProperty(PROP_STATUS_FONT_SIZE, "12");
-		        settings.setProperty(PROP_FONT_SIZE, "18");
+		        mSettings.setProperty(PROP_STATUS_FONT_SIZE, "12");
+		        mSettings.setProperty(PROP_FONT_SIZE, "18");
 	        }
-	        applySettings(settings);
-			initialized = true;
+	        applySettings(mSettings);
+			mInitialized = true;
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
@@ -422,15 +404,15 @@ public class ReaderView extends View {
 		public void fail( Exception e )
 		{
 			Log.e("cr3", "CoolReader engine initialization failed. Exiting.", e);
-			engine.fatalError("Failed to init CoolReader engine");
+			mEngine.fatalError("Failed to init CoolReader engine");
 		}
 	}
 	
 	public void loadDocument( final FileInfo fileInfo )
 	{
-		if ( this.bookInfo!=null && this.bookInfo.getFileInfo().pathname.equals(fileInfo.pathname)) {
+		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname)) {
 			Log.d("cr3", "trying to load already opened document");
-			activity.showReader();
+			mActivity.showReader();
 			return;
 		}
 		execute(new LoadDocumentTask(fileInfo, null));
@@ -440,7 +422,7 @@ public class ReaderView extends View {
 	{
 		Log.i("cr3", "Submitting LastDocumentLoadTask");
 		init();
-		BookInfo book = activity.getHistory().getLastBook();
+		BookInfo book = mActivity.getHistory().getLastBook();
 		if ( book==null ) {
 			errorHandler.run();
 			return false;
@@ -502,6 +484,7 @@ public class ReaderView extends View {
 			bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
 	        bitmap.eraseColor(Color.BLUE);
 	        getPageImage(bitmap);
+	        mEngine.hideProgress();
 	        //Bookmark bm = getCurrentPageBookmarkInternal();
 	        //Log.d("cr3", "Current position: " + bm.getPercent() + "% " + bm.getStartPos());
 		}
@@ -509,15 +492,15 @@ public class ReaderView extends View {
 		{
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
     		mBitmap = bitmap;
-    		if (opened)
-    			engine.hideProgress();
+    		if (mOpened)
+    			mEngine.hideProgress();
     		invalidate();
 		}
 	}; 
 	
 	private void drawPage()
 	{
-		if ( !initialized || !opened )
+		if ( !mInitialized || !mOpened )
 			return;
 		execute( new DrawPageTask() );
 	}
@@ -558,8 +541,8 @@ public class ReaderView extends View {
 			this.filename = fileInfo.pathname;
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
-			bookInfo = activity.getHistory().getOrCreateBookInfo( fileInfo );
-	        engine.showProgress( 1000, "Loading..." );
+			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
+	        mEngine.showProgress( 1000, "Loading..." );
 	        //init();
 		}
 
@@ -579,18 +562,18 @@ public class ReaderView extends View {
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
 	        //showProgress( 5000, 0, "Formatting..." );
 	        restorePosition();
-	        opened = true;
+	        mOpened = true;
 	        //engine.hideProgress();
 	        //doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
-			activity.showReader();
+			mActivity.showReader();
 	        drawPage();
 		}
 		public void fail( Exception e )
 		{
-			activity.getHistory().removeBookInfo( bookInfo );
-			bookInfo = null;
+			mActivity.getHistory().removeBookInfo( mBookInfo );
+			mBookInfo = null;
 			Log.d("cr3", "LoadDocumentTask is finished with exception " + e.getMessage());
-	        opened = true;
+	        mOpened = true;
 			drawPage();
 			if ( errorHandler!=null ) {
 				errorHandler.run();
@@ -602,7 +585,7 @@ public class ReaderView extends View {
     protected void onDraw(Canvas canvas) {
     	try {
     		Log.d("cr3", "onDraw() called");
-    		if ( initialized && mBitmap!=null ) {
+    		if ( mInitialized && mBitmap!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
     			canvas.drawBitmap(mBitmap, 0, 0, null);
     		}
@@ -613,32 +596,33 @@ public class ReaderView extends View {
 
     private void restorePosition()
     {
-    	if ( bookInfo!=null && bookInfo.getLastPosition()!=null ) {
-    		final String pos = bookInfo.getLastPosition().getStartPos();
+    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null ) {
+    		final String pos = mBookInfo.getLastPosition().getStartPos();
     		execute( new Task() {
     			public void work() {
     	    		goToPositionInternal( pos );
     			}
     		});
-    		activity.getHistory().updateBookAccess(bookInfo);
-    		activity.getHistory().saveToDB();
+    		mActivity.getHistory().updateBookAccess(mBookInfo);
+    		mActivity.getHistory().saveToDB();
     	}
     }
     
     private void savePosition()
     {
-    	if ( !opened )
+    	if ( !mOpened )
     		return;
     	Bookmark bmk = getCurrentPageBookmarkInternal();
     	if ( bmk!=null )
     		Log.d("cr3", "saving position, bmk=" + bmk.getStartPos());
     	else
     		Log.d("cr3", "saving position: no current page bookmark obtained");
-    	if ( bmk!=null && bookInfo!=null ) {
+    	if ( bmk!=null && mBookInfo!=null ) {
         	bmk.setTimeStamp(System.currentTimeMillis());
     		bmk.setType(Bookmark.TYPE_LAST_POSITION);
-    		bookInfo.setLastPosition(bmk);
-    		activity.getHistory().saveToDB();
+    		mBookInfo.setLastPosition(bmk);
+    		mActivity.getHistory().updateRecentDir();
+    		mActivity.getHistory().saveToDB();
     		saveSettings();
     	}
     }
@@ -647,7 +631,7 @@ public class ReaderView extends View {
     {
     	execute( new Task() {
     		public void work() {
-    			if ( opened ) {
+    			if ( mOpened ) {
 					savePosition();
     			}
     		}
@@ -658,15 +642,15 @@ public class ReaderView extends View {
     {
     	execute( new Task() {
     		public void work() {
-    			if ( opened ) {
+    			if ( mOpened ) {
 					Log.i("cr3", "ReaderView().close() : closing current document");
 					savePosition();
 					doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}
     		public void done() {
-    			if ( opened ) {
-	    			opened = false;
+    			if ( mOpened ) {
+	    			mOpened = false;
 	    			mBitmap = null;
     			}
     		}
@@ -675,13 +659,13 @@ public class ReaderView extends View {
 
     public void destroy()
     {
-    	if ( initialized ) {
+    	if ( mInitialized ) {
         	close();
         	execute( new Task() {
         		public void work() {
-        	    	if ( initialized ) {
+        	    	if ( mInitialized ) {
         	    		destroyInternal();
-        	    		initialized = false;
+        	    		mInitialized = false;
         	    	}
         		}
         	});
@@ -713,7 +697,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
-			    	engine.showProgress( percent*4/10 + 5000, "Formatting...");
+			    	mEngine.showProgress( percent*4/10 + 5000, "Formatting...");
 			    	return null;
 				}
 			});
@@ -736,7 +720,7 @@ public class ReaderView extends View {
 				public String call() {
 					Log.i("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
 					if ( fileFormat!=null ) {
-						String s = engine.loadResourceUtf8(fileFormat.getCSSResourceId());
+						String s = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
 						Log.i("cr3", "setting .css for file format " + fileFormat + " from resource " + (fileFormat!=null?fileFormat.getCssName():"[NONE]"));
 						return s;
 					}
@@ -750,7 +734,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
-			    	engine.showProgress( percent*4/10 + 1000, "Loading...");
+			    	mEngine.showProgress( percent*4/10 + 1000, "Loading...");
 			    	return null;
 				}
 			});
@@ -792,12 +776,11 @@ public class ReaderView extends View {
    		execute(new CreateViewTask());
     }
     
-	CoolReader activity;
 	public ReaderView(CoolReader activity, Engine engine) 
     {
         super(activity);
-        this.activity = activity;
-        this.engine = engine;
+        this.mActivity = activity;
+        this.mEngine = engine;
         setFocusable(true);
         setFocusableInTouchMode(true);
     }

@@ -3,7 +3,7 @@
       package="org.coolreader"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:label="@string/app_name" android:debuggable="true">
+    <application android:label="@string/app_name" android:icon="@drawable/cr3_logo" android:debuggable="true">
         <activity android:name=".CoolReader"
                   android:label="@string/app_name">
             <intent-filter>
@@ -12,5 +12,5 @@
             </intent-filter>
         </activity>
     </application>
-    <uses-sdk android:minSdkVersion="7"/>
+    <uses-sdk android:minSdkVersion="3"/>
 </manifest> 

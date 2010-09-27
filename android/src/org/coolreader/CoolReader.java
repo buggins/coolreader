@@ -53,7 +53,6 @@ public class CoolReader extends Activity
 		return db;
 	}
 	
-	private static final String BUNDLE_KEY_HISTORY = "cr3.history";
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -164,7 +163,6 @@ public class CoolReader extends Activity
         //engine.waitTasksCompletion();
         engine.execute(new Engine.EngineTask() {
 
-			@Override
 			public void done() {
 		        Log.i("cr3", "trying to load last document");
 				if ( LOAD_LAST_DOCUMENT_ON_START ) {
@@ -180,11 +178,9 @@ public class CoolReader extends Activity
 				}
 			}
 
-			@Override
 			public void fail(Exception e) {
 			}
 
-			@Override
 			public void work() throws Exception {
 				// do nothing
 			}
@@ -230,9 +226,12 @@ public class CoolReader extends Activity
 	public void showBrowser()
 	{
 		readerView.save();
-		showView(browser);
-		//setContentView(browser);
-		//browser.start();
+		engine.runInGUI( new Runnable() {
+			public void run() {
+				showView(browser);
+		        engine.hideProgress();
+			}
+		});
 	}
 
 	@Override
@@ -322,16 +321,13 @@ public class CoolReader extends Activity
 		case R.id.cr3_mi_go_page:
 			showInputDialog("Enter page number", true, new InputHandler() {
 				int pageNumber = 0;
-				@Override
 				public boolean validate(String s) {
 					pageNumber = Integer.valueOf(s); 
 					return pageNumber>0;
 				}
-				@Override
 				public void onOk(String s) {
 					readerView.doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
 				}
-				@Override
 				public void onCancel() {
 				}
 			});
@@ -339,16 +335,13 @@ public class CoolReader extends Activity
 		case R.id.cr3_mi_go_percent:
 			showInputDialog("Enter position %", true, new InputHandler() {
 				int percent = 0;
-				@Override
 				public boolean validate(String s) {
 					percent = Integer.valueOf(s); 
 					return percent>=0 && percent<=100;
 				}
-				@Override
 				public void onOk(String s) {
 					readerView.goToPercent(percent);
 				}
-				@Override
 				public void onCancel() {
 				}
 			});

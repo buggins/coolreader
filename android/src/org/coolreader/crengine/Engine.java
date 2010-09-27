@@ -29,8 +29,9 @@ import android.view.View;
  */
 public class Engine {
 	
-	private final Activity activity;
-	private final View mainView;
+	private final Activity mActivity;
+	private final View mMainView;
+	private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
 
 	public interface EngineTask {
 		public void work() throws Exception;
@@ -52,7 +53,6 @@ public class Engine {
 		}
 	}
 	
-	private ExecutorService executor = Executors.newFixedThreadPool(1);
 
 	private static class TaskHandler implements Runnable {
 		final EngineTask task;
@@ -105,28 +105,54 @@ public class Engine {
 			}
 		}
 	}
-	
+
+	/**
+	 * Execute task in Engine thread
+	 * @param task is task to execute
+	 */
 	public void execute( final EngineTask task )
 	{
 		
 		Log.d("cr3", "executing task " + task.getClass().getSimpleName());
-		TaskHandler taskHandler = new TaskHandler( task, mainView );
-		executor.execute( taskHandler );
+		TaskHandler taskHandler = new TaskHandler( task, mMainView );
+		mExecutor.execute( taskHandler );
+	}
+	
+	/**
+	 * Schedule Runnable for execution in GUI thread after all current Engine queue tasks done.  
+	 * @param task
+	 */
+	public void runInGUI( final Runnable task )
+	{
+		execute( new EngineTask() {
+
+			public void done() {
+				mMainView.post(task);
+			}
+
+			public void fail(Exception e) {
+				// do nothing
+			}
+
+			public void work() throws Exception {
+				// do nothing
+			}
+		});
 	}
 
 	public void fatalError( String msg)
 	{
-		AlertDialog dlg = new AlertDialog.Builder(activity).setMessage(msg).setTitle("CoolReader fatal error").show();
+		AlertDialog dlg = new AlertDialog.Builder(mActivity).setMessage(msg).setTitle("CoolReader fatal error").show();
 		try {
 			Thread.sleep(10);
 		} catch ( InterruptedException e ) {
 			// do nothing
 		}
 		dlg.dismiss();
-		activity.finish();
+		mActivity.finish();
 	}
 	
-	private ProgressDialog progress;
+	private ProgressDialog mProgress;
 	private boolean enable_progress = true; 
 	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
 //	private Handler handler;
@@ -145,27 +171,27 @@ public class Engine {
 		//	return;
 		//ReaderView view = views.get(0);
 		if ( enable_progress ) {
-			mainView.post( new Runnable() {
+			mMainView.post( new Runnable() {
 				public void run() {
 					// show progress
-					if ( progress==null ) {
+					if ( mProgress==null ) {
 						if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
-							progress = new ProgressDialog(activity);
-							progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-							progress.setMax(10000);
-							progress.setCancelable(false);
-							progress.setProgress(mainProgress);
-							progress.setTitle("Please wait");
-							progress.setMessage(msg);
-							progress.show();
+							mProgress = new ProgressDialog(mActivity);
+							mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+							mProgress.setMax(10000);
+							mProgress.setCancelable(false);
+							mProgress.setProgress(mainProgress);
+							mProgress.setTitle("Please wait");
+							mProgress.setMessage(msg);
+							mProgress.show();
 						} else {
-							progress = ProgressDialog.show(activity, "Please Wait", msg);
-							progress.setCancelable(false);
-							progress.setProgress(mainProgress);
+							mProgress = ProgressDialog.show(mActivity, "Please Wait", msg);
+							mProgress.setCancelable(false);
+							mProgress.setProgress(mainProgress);
 						}
 					} else { 
-						progress.setProgress(mainProgress);
-						progress.setMessage(msg);
+						mProgress.setProgress(mainProgress);
+						mProgress.setMessage(msg);
 					}
 				}
 			});
@@ -174,12 +200,12 @@ public class Engine {
 	
 	public void hideProgress()
 	{
-		mainView.post( new Runnable() {
+		mMainView.post( new Runnable() {
 			public void run() {
 				// hide progress
-				if ( progress!=null ) {
-					progress.dismiss();
-					progress = null;
+				if ( mProgress!=null ) {
+					mProgress.dismiss();
+					mProgress = null;
 				}
 			}
 		});
@@ -188,7 +214,7 @@ public class Engine {
 	public String loadResourceUtf8( int id )
 	{
 		try {
-			InputStream is = this.activity.getResources().openRawResource( id );
+			InputStream is = this.mActivity.getResources().openRawResource( id );
 			return loadResourceUtf8(is);
 		} catch ( Exception e ) {
 			Log.e("cr3", "cannot load resource");
@@ -217,7 +243,7 @@ public class Engine {
 	public byte[] loadResourceBytes( int id )
 	{
 		try {
-			InputStream is = this.activity.getResources().openRawResource( id );
+			InputStream is = this.mActivity.getResources().openRawResource( id );
 			return loadResourceBytes(is);
 		} catch ( Exception e ) {
 			Log.e("cr3", "cannot load resource");
@@ -248,10 +274,10 @@ public class Engine {
 	 */
 	public Engine( Activity activity, View mainView )
 	{
-		this.activity = activity;
-		this.mainView = mainView;
+		this.mActivity = activity;
+		this.mMainView = mainView;
 		Log.i("cr3", "Engine() : scheduling init task");
-		executor.execute( new Runnable() {
+		mExecutor.execute( new Runnable() {
 			public void run()
 			{
 				try {
@@ -351,7 +377,7 @@ public class Engine {
     	String[] fonts = findFonts();
 		if ( !initInternal( fonts ) )
 			throw new IOException("Cannot initialize CREngine JNI");
-		File cacheDir = activity.getDir("cache", Context.MODE_PRIVATE);
+		File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
 		cacheDir.mkdirs();
 		setCacheDirectoryInternal(cacheDir.getAbsolutePath(), CACHE_DIR_SIZE);
 		initialized = true;
@@ -361,7 +387,7 @@ public class Engine {
 	{
         Log.i("cr3", "waiting for engine tasks completion");
 		try {
-			executor.awaitTermination(0, TimeUnit.SECONDS);
+			mExecutor.awaitTermination(0, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			// ignore
 		}
@@ -372,7 +398,7 @@ public class Engine {
 	 */
 	public void uninit()
 	{
-		executor.execute(new Runnable() {
+		mExecutor.execute(new Runnable() {
 			public void run() {
 				if ( initialized ) {
 					uninitInternal();
@@ -422,11 +448,11 @@ public class Engine {
 			Log.i("cr3", "cr3engine loaded successfully");
 		} catch ( Exception ee ) {
 			Log.i("cr3", "cr3engine not found using standard paths, will install manually");
-			File sopath = activity.getDir("libs", Context.MODE_PRIVATE);
+			File sopath = mActivity.getDir("libs", Context.MODE_PRIVATE);
 			File soname = new File(sopath, "libcr3engine.so");
 			try {
 				sopath.mkdirs();
-		    	File zip = new File(activity.getPackageCodePath());
+		    	File zip = new File(mActivity.getPackageCodePath());
 		    	ZipFile zipfile = new ZipFile(zip);
 		    	ZipEntry zipentry = zipfile.getEntry("lib/armeabi/libcr3engine.so");
 		    	if ( !soname.exists() || zipentry.getSize()!=soname.length() ) {

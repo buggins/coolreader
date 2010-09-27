@@ -13,12 +13,12 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 public class CRDB {
-	SQLiteDatabase db;
-	File dbfile;
+	SQLiteDatabase mDB;
+	File mDBFile;
 	protected boolean open( File dbfile )
 	{
-		db = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
-		this.dbfile = dbfile;
+		mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+		this.mDBFile = dbfile;
 		return true;
 	}
 	static boolean DROP_TABLES = false;
@@ -28,31 +28,31 @@ public class CRDB {
 			"bookmark", "book", "series", "author", "folder"	
 		};
 		for ( String name : tableNames )
-			db.execSQL("DROP TABLE IF EXISTS " + name);
+			mDB.execSQL("DROP TABLE IF EXISTS " + name);
 	}
 	protected boolean updateSchema()
 	{
 		if (DROP_TABLES)
 			dropTables();
-		db.execSQL("CREATE TABLE IF NOT EXISTS author (" +
+		mDB.execSQL("CREATE TABLE IF NOT EXISTS author (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
                 "author_name_index ON author (name) ");
-		db.execSQL("CREATE TABLE IF NOT EXISTS series (" +
+		mDB.execSQL("CREATE TABLE IF NOT EXISTS series (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 		        "series_name_index ON series (name) ");
-		db.execSQL("CREATE TABLE IF NOT EXISTS folder (" +
+		mDB.execSQL("CREATE TABLE IF NOT EXISTS folder (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"folder_name_index ON folder (name) ");
-		db.execSQL("CREATE TABLE IF NOT EXISTS book (" +
+		mDB.execSQL("CREATE TABLE IF NOT EXISTS book (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"pathname VARCHAR NOT NULL," +
 				"folder_fk INTEGER REFERENCES folder (id)," +
@@ -67,26 +67,26 @@ public class CRDB {
 				"create_time INTEGER," +
 				"last_access_time INTEGER" +
 				")");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_folder_index ON book (folder_fk) ");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_pathname_index ON book (pathname) ");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_filename_index ON book (filename) ");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_title_index ON book (title) ");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_last_access_time_index ON book (last_access_time) ");
-		db.execSQL("CREATE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_title_index ON book (title) ");
-		db.execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
+		mDB.execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
 				"book_fk INTEGER NOT NULL REFERENCES book (id)," +
 				"author_fk INTEGER NOT NULL REFERENCES author (id)," +
 				"PRIMARY KEY (book_fk, author_fk)" +
 				")");
-		db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
+		mDB.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
 				"author_book_index ON book_author (author_fk, book_fk) ");
-		db.execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
+		mDB.execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"book_fk INTEGER REFERENCES book (id)," +
 				"type INTEGER NOT NULL DEFAULT 0," +
@@ -140,7 +140,7 @@ public class CRDB {
 	synchronized public boolean findBy( Bookmark v, String condition )
 	{
 		condition = " WHERE " + condition;
-		Cursor rs = db.rawQuery(READ_BOOKMARK_SQL +
+		Cursor rs = mDB.rawQuery(READ_BOOKMARK_SQL +
 				condition, null);
 		boolean found = false;
 		if ( rs.moveToFirst() ) {
@@ -154,7 +154,7 @@ public class CRDB {
 	synchronized public boolean load( ArrayList<Bookmark> list, String condition )
 	{
 		condition = " WHERE " + condition;
-		Cursor rs = db.rawQuery(READ_BOOKMARK_SQL +
+		Cursor rs = mDB.rawQuery(READ_BOOKMARK_SQL +
 				condition, null);
 		boolean found = false;
 		if ( rs.moveToFirst() ) {
@@ -215,7 +215,7 @@ public class CRDB {
 			buf.append(" ");
 		}
 		condition = buf.toString();
-		Cursor rs = db.rawQuery(READ_FILEINFO_SQL +
+		Cursor rs = mDB.rawQuery(READ_FILEINFO_SQL +
 				condition, null);
 		boolean found = false;
 		if ( rs.moveToFirst() ) {
@@ -228,7 +228,7 @@ public class CRDB {
 	
 	private Long longQuery( String sql )
 	{
-		SQLiteStatement stmt = db.compileStatement(sql);
+		SQLiteStatement stmt = mDB.compileStatement(sql);
 		try {
 			return stmt.simpleQueryForLong();
 		} catch ( Exception e ) {
@@ -257,7 +257,7 @@ public class CRDB {
 		if ( id!=null )
 			return id;
 		if ( seriesSelectStmt==null )
-			seriesSelectStmt = db.compileStatement("SELECT id FROM series WHERE name=?");
+			seriesSelectStmt = mDB.compileStatement("SELECT id FROM series WHERE name=?");
 		try {
 			seriesSelectStmt.bindString(1, seriesName);
 			return seriesSelectStmt.simpleQueryForLong();
@@ -265,7 +265,7 @@ public class CRDB {
 			// not found
 		}
 		if ( seriesStmt==null )
-			seriesStmt = db.compileStatement("INSERT INTO series (id, name) VALUES (NULL,?)");
+			seriesStmt = mDB.compileStatement("INSERT INTO series (id, name) VALUES (NULL,?)");
 		seriesStmt.bindString(1, seriesName);
 		id = seriesStmt.executeInsert();
 		seriesCache.put( seriesName, id );
@@ -283,7 +283,7 @@ public class CRDB {
 		if ( id!=null )
 			return id;
 		if ( folderSelectStmt==null )
-			folderSelectStmt = db.compileStatement("SELECT id FROM folder WHERE name=?");
+			folderSelectStmt = mDB.compileStatement("SELECT id FROM folder WHERE name=?");
 		try {
 			folderSelectStmt.bindString(1, folderName);
 			return folderSelectStmt.simpleQueryForLong();
@@ -291,7 +291,7 @@ public class CRDB {
 			// not found
 		}
 		if ( folderStmt==null )
-			folderStmt = db.compileStatement("INSERT INTO folder (id, name) VALUES (NULL,?)");
+			folderStmt = mDB.compileStatement("INSERT INTO folder (id, name) VALUES (NULL,?)");
 		folderStmt.bindString(1, folderName);
 		id = folderStmt.executeInsert();
 		folderCache.put( folderName, id );
@@ -309,7 +309,7 @@ public class CRDB {
 		if ( id!=null )
 			return id;
 		if ( authorSelectStmt==null )
-			authorSelectStmt = db.compileStatement("SELECT id FROM author WHERE name=?");
+			authorSelectStmt = mDB.compileStatement("SELECT id FROM author WHERE name=?");
 		try {
 			authorSelectStmt.bindString(1, authorName);
 			return authorSelectStmt.simpleQueryForLong();
@@ -317,7 +317,7 @@ public class CRDB {
 			// not found
 		}
 		if ( authorStmt==null )
-			authorStmt = db.compileStatement("INSERT INTO author (id, name) VALUES (NULL,?)");
+			authorStmt = mDB.compileStatement("INSERT INTO author (id, name) VALUES (NULL,?)");
 		authorStmt.bindString(1, authorName);
 		id = authorStmt.executeInsert();
 		authorCache.put( authorName, id );
@@ -357,7 +357,7 @@ public class CRDB {
 			query.append(")");
 			first = false;
 		}
-		db.execSQL(query.toString());
+		mDB.execSQL(query.toString());
 	}
 
 	public static boolean eq(String s1, String s2)
@@ -428,7 +428,7 @@ public class CRDB {
 				buf.append(")");
 				String sql = buf.toString();
 				Log.d("cr3db", "going to execute " + sql);
-				SQLiteStatement stmt = db.compileStatement(sql);
+				SQLiteStatement stmt = mDB.compileStatement(sql);
 				for ( int i=1; i<=values.size(); i++ ) {
 					Object v = values.get(i-1);
 					if ( v==null )
@@ -465,7 +465,7 @@ public class CRDB {
 				first = false;
 			}
 			buf.append(" WHERE id=" + id );
-			db.execSQL(buf.toString(), values.toArray());
+			mDB.execSQL(buf.toString(), values.toArray());
 			return true;
 		}
 		Long fromFormat( DocumentFormat f )
@@ -630,9 +630,9 @@ public class CRDB {
 			authorSelectStmt.close();
 			authorSelectStmt = null;
 		}
-		if ( db!=null && db.isOpen() ) {
-			db.close();
-			db = null;
+		if ( mDB!=null && mDB.isOpen() ) {
+			mDB.close();
+			mDB = null;
 		}
 		
 	}

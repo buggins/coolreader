@@ -5,20 +5,20 @@ import java.util.ArrayList;
 import android.util.Log;
 
 public class History {
-	private ArrayList<BookInfo> books = new ArrayList<BookInfo>();
-	private final CRDB db;
-	private FileInfo recentBooksFolder;
+	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
+	private final CRDB mDB;
+	private FileInfo mRecentBooksFolder;
 	
 	public History(CRDB db)
 	{
-		this.db = db;
+		this.mDB = db;
 	}
 	
 	public BookInfo getLastBook()
 	{
-		if ( books.size()==0 )
+		if ( mBooks.size()==0 )
 			return null;
-		return books.get(0);
+		return mBooks.get(0);
 	}
 
 	public BookInfo getOrCreateBookInfo( FileInfo file )
@@ -26,7 +26,7 @@ public class History {
 		BookInfo res = getBookInfo(file);
 		if ( res==null ) {
 			res = new BookInfo( file );
-			books.add(0, res);
+			mBooks.add(0, res);
 		}
 		return res;
 	}
@@ -35,7 +35,7 @@ public class History {
 	{
 		int index = findBookInfo( file );
 		if ( index>=0 )
-			return books.get(index);
+			return mBooks.get(index);
 		return null;
 	}
 
@@ -43,7 +43,7 @@ public class History {
 	{
 		int index = findBookInfo( pathname );
 		if ( index>=0 )
-			return books.get(index);
+			return mBooks.get(index);
 		return null;
 	}
 	
@@ -51,7 +51,7 @@ public class History {
 	{
 		int index = findBookInfo(bookInfo.getFileInfo());
 		if ( index>=0 )
-			books.remove(index);
+			mBooks.remove(index);
 	}
 	
 	public void updateBookAccess( BookInfo bookInfo )
@@ -59,10 +59,10 @@ public class History {
 		Log.v("cr3", "History.updateBookAccess() for " + bookInfo.getFileInfo().getPathName());
 		int index = findBookInfo(bookInfo.getFileInfo());
 		if ( index>=0 ) {
-			BookInfo info = books.get(index);
+			BookInfo info = mBooks.get(index);
 			if ( index>0 ) {
-				books.remove(index);
-				books.add(0, info);
+				mBooks.remove(index);
+				mBooks.add(0, info);
 			}
 			info.updateAccess();
 			updateRecentDir();
@@ -71,8 +71,8 @@ public class History {
 	
 	public int findBookInfo( String pathname )
 	{
-		for ( int i=0; i<books.size(); i++ )
-			if ( pathname.equals(books.get(i).getFileInfo().getPathName()) )
+		for ( int i=0; i<mBooks.size(); i++ )
+			if ( pathname.equals(mBooks.get(i).getFileInfo().getPathName()) )
 				return i;
 		return -1;
 	}
@@ -87,18 +87,18 @@ public class History {
 		int index = findBookInfo(file);
 		if ( index<0 )
 			return null;
-		return books.get(index).getLastPosition();
+		return mBooks.get(index).getLastPosition();
 	}
 	protected void updateRecentDir()
 	{
-		recentBooksFolder.clear();
-		for ( BookInfo book : books )
-			recentBooksFolder.addFile(book.getFileInfo());
+		mRecentBooksFolder.clear();
+		for ( BookInfo book : mBooks )
+			mRecentBooksFolder.addFile(book.getFileInfo());
 	}
 	public boolean loadFromDB( Scanner scanner, int maxItems )
 	{
-		books = db.loadRecentBooks(scanner.fileList, maxItems);
-		recentBooksFolder = scanner.root.getDir(0);
+		mBooks = mDB.loadRecentBooks(scanner.mFileList, maxItems);
+		mRecentBooksFolder = scanner.mRoot.getDir(0);
 		updateRecentDir();
 		return true;
 	}
@@ -107,8 +107,8 @@ public class History {
 	{
 		Log.v("cr3", "History.saveToDB()");
 		try {
-			for ( BookInfo book : books )
-				db.save(book);
+			for ( BookInfo book : mBooks )
+				mDB.save(book);
 			return true;
 		} catch ( Exception e ) {
 			Log.e("cr3", "error while saving file history " + e.getMessage(), e);

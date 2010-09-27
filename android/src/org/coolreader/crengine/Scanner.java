@@ -6,19 +6,9 @@ import java.util.ArrayList;
 import android.util.Log;
 
 public class Scanner {
-	final static String[] supportedExtensions = new String[] {
-		".fb2",
-		".txt",
-		".tcr",
-		".htm",
-		".html",
-		".rtf",
-		".epub",
-		".zip",
-	};
 	
-	ArrayList<FileInfo> fileList = new ArrayList<FileInfo>();
-	FileInfo root;
+	ArrayList<FileInfo> mFileList = new ArrayList<FileInfo>();
+	FileInfo mRoot;
 
 	private boolean scanDirectories( FileInfo baseDir )
 	{
@@ -45,7 +35,7 @@ public class Scanner {
 						}
 						
 						baseDir.addFile(item);
-						fileList.add(item);
+						mFileList.add(item);
 					}
 				}
 			}
@@ -71,15 +61,15 @@ public class Scanner {
 	{
 		Log.i("cr3", "Started scanning");
 		long start = System.currentTimeMillis();
-		fileList.clear();
-		root.clear();
+		mFileList.clear();
+		mRoot.clear();
 		FileInfo recentDir = new FileInfo();
 		recentDir.isDirectory = true;
 		recentDir.pathname = "@recent";
 		recentDir.filename = "Recent Books";
-		root.addDir(recentDir);
-		recentDir.parent = root;
-		boolean res = scanDirectories( root );
+		mRoot.addDir(recentDir);
+		recentDir.parent = mRoot;
+		boolean res = scanDirectories( mRoot );
 		Log.i("cr3", "Finished scanning (" + (System.currentTimeMillis()-start)+ " ms)");
 		return res;
 	}
@@ -88,10 +78,10 @@ public class Scanner {
 	{
 		this.engine = engine;
 		this.db = db;
-		root = new FileInfo();
-		root.path = rootDir.getPath();	
-		root.filename = rootDir.getName();	
-		root.pathname = rootDir.getAbsolutePath();
+		mRoot = new FileInfo();
+		mRoot.path = rootDir.getPath();	
+		mRoot.filename = rootDir.getName();	
+		mRoot.pathname = rootDir.getAbsolutePath();
 	}
 
 	private final Engine engine;
