@@ -544,7 +544,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionI
 	if ( !p->_docview->isDocumentOpened() )
 		return JNI_FALSE;
 	lString16 str = env.fromJavaString(jstr);
-	ldomXPointer bm = p->_docview->getDocument()->createXPointer(str);
+    ldomXPointer bm = p->_docview->getDocument()->createXPointer(str);
 	if ( bm.isNull() )
 		return JNI_FALSE;
 	p->_docview->goToBookmark(bm); 
@@ -553,29 +553,36 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionI
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    getPositionPercentInternal
- * Signature: (Ljava/lang/String;)I
+ * Method:    getPositionPropsInternal
+ * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/ReaderView/PositionProperties;
  */
-JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPercentInternal
-  (JNIEnv *_env, jobject _this, jstring)
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal
+    (JNIEnv * _env, jobject _this, jstring _path)
 {
+    CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
-		return -1;
-	return -1;
+		return NULL;
+    lString16 str = env.fromJavaString(_path);
+    ldomXPointer bm;
+    if ( !str.empty() ) {
+        bm = p->_docview->getDocument()->createXPointer(str);
+    } else
+        bm = p->_docview->getBookmark();
+    if ( bm.isNull() )
+        return NULL;
+    jclass cls = _env->FindClass("org/coolreader/crengine/PositionProperties");
+    jmethodID mid = _env->GetMethodID(cls, "<init>", "()V");
+    jobject obj = _env->NewObject(cls, mid);
+    CRObjectAccessor v(_env, obj);
+    lvPoint pt = bm.toPoint();
+    CRIntField(v,"x").set(pt.x);
+    CRIntField(v,"y").set(pt.y);
+    CRIntField(v,"fullHeight").set(p->_docview->GetFullHeight());
+    CRIntField(v,"pageHeight").set(p->_docview->GetHeight());
+    CRIntField(v,"pageWidth").set(p->_docview->GetWidth());
+    CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
+    CRIntField(v,"pageCount").set(p->_docview->getPageCount());
+	return obj;
 }
 
-/*
- * Class:     org_coolreader_crengine_ReaderView
- * Method:    getPositionPageInternal
- * Signature: (Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPageInternal
-  (JNIEnv *_env, jobject _this, jstring)
-{
-    ReaderViewNative * p = getNative(_env, _this);
-	if ( !p->_docview->isDocumentOpened() )
-		return -1;
-	return -1;
-}
-  

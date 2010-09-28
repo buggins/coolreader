@@ -189,9 +189,9 @@ public class ReaderView extends View {
     private native boolean doCommandInternal( int command, int param );
     private native Bookmark getCurrentPageBookmarkInternal();
     private native boolean goToPositionInternal(String xPath);
-    private native int getPositionPercentInternal(String xPath);
-    private native int getPositionPageInternal(String xPath);
+    private native PositionProperties getPositionPropsInternal(String xPath);
     private native void updateBookInfoInternal( BookInfo info );
+    
     
     protected int mNativeObject; // used from JNI
     
@@ -765,9 +765,18 @@ public class ReaderView extends View {
         }
     }
     
-    public void goToPercent( int percent )
+    public void goToPercent( final int percent )
     {
-    	
+    	if ( percent>=0 && percent<=100 )
+	    	execute( new Task() {
+	    		public void work() {
+	    			PositionProperties pos = getPositionPropsInternal(null);
+	    			if ( pos!=null && pos.pageCount>0) {
+	    				int pageNumber = pos.pageCount * percent / 100; 
+						doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
+	    			}
+	    		}
+	    	});
     }
     
     @Override

@@ -7,6 +7,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef org_coolreader_crengine_ReaderView_NOOK_KEY_PREV_LEFT
+#define org_coolreader_crengine_ReaderView_NOOK_KEY_PREV_LEFT 96L
+#undef org_coolreader_crengine_ReaderView_NOOK_KEY_PREV_RIGHT
+#define org_coolreader_crengine_ReaderView_NOOK_KEY_PREV_RIGHT 98L
+#undef org_coolreader_crengine_ReaderView_NOOK_KEY_NEXT_LEFT
+#define org_coolreader_crengine_ReaderView_NOOK_KEY_NEXT_LEFT 95L
+#undef org_coolreader_crengine_ReaderView_NOOK_KEY_NEXT_RIGHT
+#define org_coolreader_crengine_ReaderView_NOOK_KEY_NEXT_RIGHT 97L
+#undef org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_UP
+#define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_UP 101L
+#undef org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN
+#define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN 100L
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    getPageImage
@@ -97,18 +109,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionI
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    getPositionPercentInternal
- * Signature: (Ljava/lang/String;)I
+ * Method:    getPositionPropsInternal
+ * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/ReaderView/PositionProperties;
  */
-JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPercentInternal
-  (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     org_coolreader_crengine_ReaderView
- * Method:    getPositionPageInternal
- * Signature: (Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPageInternal
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal
   (JNIEnv *, jobject, jstring);
 
 /*

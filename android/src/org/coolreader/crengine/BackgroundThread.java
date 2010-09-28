@@ -43,12 +43,12 @@ public class BackgroundThread extends Thread {
 	}
 	public void postBackground( Runnable task )
 	{
-		if ( handler!=null)
-			handler.post(task);
-		else {
+		if ( handler==null ) {
 			synchronized(posted) {
 				posted.add(task);
 			}
+		} else {
+			handler.post(task);
 		}
 	}
 	public void postGUI( Runnable task )
@@ -57,8 +57,9 @@ public class BackgroundThread extends Thread {
 			synchronized( postedGUI ) {
 				postedGUI.add(task);
 			}
-		} else
+		} else {
 			guiTarget.post(task);
+		}
 	}
 	/**
 	 * Run task instantly if called from the same thread, or post it through message queue otherwise.
@@ -68,8 +69,8 @@ public class BackgroundThread extends Thread {
 	{
 		if ( Thread.currentThread()==this )
 			task.run(); // run in this thread
-		else
-			handler.post(task); // post
+		else 
+			postBackground(task); // post
 	}
 	public void executeGUI( Runnable task )
 	{
@@ -77,7 +78,7 @@ public class BackgroundThread extends Thread {
 		if ( guiHandler!=null && guiHandler.getLooper().getThread()==Thread.currentThread() )
 			task.run(); // run in this thread
 		else
-			guiTarget.post(task);
+			postGUI(task);
 	}
 	public void quit()
 	{
