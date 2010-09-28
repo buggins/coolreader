@@ -197,6 +197,7 @@ public class ReaderView extends View {
     
 	private final CoolReader mActivity;
     private final Engine mEngine;
+    private final BackgroundThread mBackThread;
     
     private BookInfo mBookInfo;
     
@@ -215,9 +216,39 @@ public class ReaderView extends View {
 		return mOpened;
 	}
     
+	private int lastDigitKeycode = 0;
+	private long lastDigitKeyDownTime = 0;
+	
+	public final int LONG_KEYPRESS_TIME = 2000;
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+			// goto/set shortcut bookmark
+			int shortcut = keyCode - KeyEvent.KEYCODE_0;
+			char label = (char)('0' + shortcut);
+			if ( shortcut==0 )
+				shortcut = 10;
+			boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
+			boolean added = true;
+			if ( isLongPress )
+				addBookmark(shortcut);
+			else
+				added = goToBookmark(shortcut);
+			if ( added ) {
+				mActivity.showToast("Bookmark " + label + " is set.");
+			}
+			return true;
+		} else
+		return super.onKeyUp(keyCode, event);
+	}
+
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+			// will process in keyup handler
+			return true;
+		} else
 		switch ( keyCode ) {
 		case NOOK_KEY_NEXT_LEFT:
 		case NOOK_KEY_NEXT_RIGHT:    
@@ -296,6 +327,53 @@ public class ReaderView extends View {
 		return super.onTrackballEvent(event);
 	}
 
+	public void goToBookmark( Bookmark bm )
+	{
+		final String pos = bm.getStartPos();
+		mEngine.execute(new Task() {
+			public void work() {
+				goToPositionInternal(pos);
+			}
+			public void done() {
+				drawPage();
+			}
+		});
+	}
+	
+	public boolean goToBookmark( final int shortcut )
+	{
+		if ( mBookInfo!=null ) {
+			Bookmark bm = mBookInfo.findShortcutBookmark(shortcut);
+			if ( bm==null ) {
+				addBookmark(shortcut);
+				return true;
+			} else {
+				// go to bookmark
+				goToBookmark( bm );
+				return false;
+			}
+		}
+		return false;
+	}
+	
+	public void addBookmark( final int shortcut )
+	{
+		// set bookmark instead
+		mEngine.execute(new Task() {
+			Bookmark bm;
+			public void work() {
+				if ( mBookInfo!=null ) {
+					bm = getCurrentPageBookmarkInternal();
+					bm.setShortcut(shortcut);
+				}
+			}
+			public void done() {
+				if ( mBookInfo!=null && bm!=null )
+					mBookInfo.setShortcutBookmark(shortcut, bm);
+			}
+		});
+	}
+	
 	public void doCommand( final ReaderCommand cmd, final int param )
 	{
 		Log.d("cr3", "doCommand("+cmd + ", " + param +")");
@@ -794,11 +872,12 @@ public class ReaderView extends View {
    		execute(new CreateViewTask());
     }
     
-	public ReaderView(CoolReader activity, Engine engine) 
+	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread) 
     {
         super(activity);
         this.mActivity = activity;
         this.mEngine = engine;
+        this.mBackThread = backThread;
         setFocusable(true);
         setFocusableInTouchMode(true);
     }

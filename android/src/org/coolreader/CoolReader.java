@@ -72,7 +72,7 @@ public class CoolReader extends Activity
 		startupView = new View(this) {
 		};
 		startupView.setBackgroundColor(Color.BLACK);
-		mReaderView = new ReaderView(this, mEngine);
+		mReaderView = new ReaderView(this, mEngine, mBackgroundThread);
 		File dbdir = getDir("db", Context.MODE_PRIVATE);
 		dbdir.mkdirs();
 		File dbfile = new File(dbdir, "cr3db.sqlite");

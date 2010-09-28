@@ -68,7 +68,7 @@ public class History {
 			updateRecentDir();
 		}
 	}
-	
+
 	public int findBookInfo( String pathname )
 	{
 		for ( int i=0; i<mBooks.size(); i++ )

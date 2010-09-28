@@ -7,6 +7,27 @@ public class BookInfo {
 	private Bookmark lastPosition;
 	private ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
 
+	synchronized public void setShortcutBookmark(int shortcut, Bookmark bookmark)
+	{
+		bookmark.setShortcut(shortcut);
+		for ( int i=0; i<bookmarks.size(); i++ ) {
+			Bookmark bm = bookmarks.get(i);
+			if ( bm.getType()==Bookmark.TYPE_POSITION && bm.getShortcut()==shortcut ) {
+				bookmark.setId(bm.getId());
+				bookmarks.set(i, bookmark);
+			}
+		}
+		bookmarks.add(bookmark);
+	}
+	
+	synchronized public Bookmark findShortcutBookmark( int shortcut )
+	{
+		for ( Bookmark bm : bookmarks )
+			if ( bm.getType()==Bookmark.TYPE_POSITION && bm.getShortcut()==shortcut )
+				return bm;
+		return null;
+	}
+	
 	public void updateAccess()
 	{
 		// TODO:
@@ -22,7 +43,7 @@ public class BookInfo {
 		return lastPosition;
 	}
 	
-	public void setLastPosition( Bookmark position )
+	synchronized public void setLastPosition( Bookmark position )
 	{
 		if ( lastPosition!=null )
 			position.setId(lastPosition.getId());
@@ -37,27 +58,27 @@ public class BookInfo {
 		return fileInfo;
 	}
 	
-	public void addBookmark( Bookmark bm )
+	synchronized public void addBookmark( Bookmark bm )
 	{
 		bookmarks.add(bm);
 	}
 
-	public int getBookmarkCount()
+	synchronized public int getBookmarkCount()
 	{
 		return bookmarks.size();
 	}
 
-	public Bookmark getBookmark( int index )
+	synchronized public Bookmark getBookmark( int index )
 	{
 		return bookmarks.get(index);
 	}
 
-	public void removeBookmark( int index )
+	synchronized public void removeBookmark( int index )
 	{
 		bookmarks.remove(index);
 	}
 	
-	void setBookmarks(ArrayList<Bookmark> list)
+	synchronized void setBookmarks(ArrayList<Bookmark> list)
 	{
 		if ( list.size()>0 ) {
 			if ( list.get(0).getType()==0 ) {
