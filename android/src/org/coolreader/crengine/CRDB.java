@@ -25,7 +25,7 @@ public class CRDB {
 	protected void dropTables()
 	{
 		String[] tableNames = new String[] {
-			"bookmark", "book", "series", "author", "folder"	
+			"book_author", "bookmark", "book", "series", "author", "folder"	
 		};
 		for ( String name : tableNames )
 			mDB.execSQL("DROP TABLE IF EXISTS " + name);

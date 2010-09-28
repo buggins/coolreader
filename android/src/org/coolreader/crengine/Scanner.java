@@ -8,6 +8,7 @@ import android.util.Log;
 public class Scanner {
 	
 	ArrayList<FileInfo> mFileList = new ArrayList<FileInfo>();
+	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
 	FileInfo mRoot;
 
 	private boolean scanDirectories( FileInfo baseDir )
@@ -19,21 +20,8 @@ public class Scanner {
 			for ( File f : items ) {
 				if ( !f.isDirectory() ) {
 					FileInfo item = new FileInfo( f );
-					boolean found = db.findByPathname(item);
-					if ( found )
-						Log.v("cr3db", "File " + item.pathname + " is found in DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 					if ( item.format!=null ) {
 						item.parent = baseDir;
-						
-						if ( !found && item.format==DocumentFormat.FB2 ) {
-							engine.scanBookProperties(item);
-						}
-
-						if ( !found ) {
-							db.save(item);
-							Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
-						}
-						
 						baseDir.addFile(item);
 						mFileList.add(item);
 					}
@@ -56,20 +44,77 @@ public class Scanner {
 			return false;
 		}
 	}
+
+	private int lastPercent = 0;
+	private long lastProgressUpdate = 0;
+	private final int PROGRESS_UPDATE_INTERVAL = 2000; // 2 seconds
+	private void updateProgress( int percent )
+	{
+		long ts = System.currentTimeMillis();
+		if ( percent!=lastPercent && ts>lastProgressUpdate+PROGRESS_UPDATE_INTERVAL ) {
+			engine.showProgress(percent, "Scanning directories...");
+			lastPercent = percent;
+			lastProgressUpdate = ts;
+		}
+	}
+	
+	private void lookupDB()
+	{
+		int count = mFileList.size();
+		for ( int i=0; i<count; i++ ) {
+			FileInfo item = mFileList.get(i);
+			boolean found = db.findByPathname(item);
+			if ( found )
+				Log.v("cr3db", "File " + item.pathname + " is found in DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
+
+			boolean saveToDB = true;
+			if ( !found && item.format==DocumentFormat.FB2 ) {
+				mFilesForParsing.add(item);
+				saveToDB = false;
+			}
+
+			if ( !found && saveToDB ) {
+				db.save(item);
+				Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
+			}
+			updateProgress( 1000 + 4000 * i / count );
+		}
+	}
+	
+	private void parseBookProperties()
+	{
+		int count = mFilesForParsing.size();
+		for ( int i=0; i<count; i++ ) {
+			FileInfo item = mFilesForParsing.get(i);
+			engine.scanBookProperties(item);
+			db.save(item);
+			Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
+			updateProgress( 5000 + 5000 * i / count );
+		}
+	}
 	
 	public boolean scan()
 	{
 		Log.i("cr3", "Started scanning");
 		long start = System.currentTimeMillis();
 		mFileList.clear();
+		mFilesForParsing.clear();
 		mRoot.clear();
+		// create recent books dir
 		FileInfo recentDir = new FileInfo();
 		recentDir.isDirectory = true;
 		recentDir.pathname = "@recent";
 		recentDir.filename = "Recent Books";
 		mRoot.addDir(recentDir);
 		recentDir.parent = mRoot;
+		// scan directories
+		lastPercent = -1;
+		lastProgressUpdate = System.currentTimeMillis() - 500;
 		boolean res = scanDirectories( mRoot );
+		// process found files
+		lookupDB();
+		parseBookProperties();
+		updateProgress(9999);
 		Log.i("cr3", "Finished scanning (" + (System.currentTimeMillis()-start)+ " ms)");
 		return res;
 	}

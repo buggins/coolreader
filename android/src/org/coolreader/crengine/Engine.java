@@ -6,9 +6,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -18,9 +15,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Environment;
-import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 
 /**
  * CoolReader Engine class.
@@ -172,7 +167,7 @@ public class Engine {
 		//	return;
 		//ReaderView view = views.get(0);
 		if ( enable_progress ) {
-			mBackgroundThread.postGUI( new Runnable() {
+			mBackgroundThread.executeGUI( new Runnable() {
 				public void run() {
 					// show progress
 					if ( mProgress==null ) {
@@ -201,7 +196,7 @@ public class Engine {
 	
 	public void hideProgress()
 	{
-		mBackgroundThread.postGUI( new Runnable() {
+		mBackgroundThread.executeGUI( new Runnable() {
 			public void run() {
 				// hide progress
 				if ( mProgress!=null ) {
