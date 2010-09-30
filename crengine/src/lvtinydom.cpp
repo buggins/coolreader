@@ -7638,7 +7638,7 @@ public:
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return stream2;
         }
-        res = LVCreateCompareTestStream(res, stream2) );
+        res = LVCreateCompareTestStream(res, stream2);
 #endif
 #endif
         moveFileToTop( fn, fileSize );
