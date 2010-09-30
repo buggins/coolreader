@@ -150,30 +150,26 @@ public class Engine {
 	
 	private ProgressDialog mProgress;
 	private boolean enable_progress = true; 
+	private boolean progressShown = false;
 	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
-//	private Handler handler;
-	//private static int PROGRESS_STYLE = ProgressDialog.STYLE_SPINNER;
 	public void showProgress( final int mainProgress, final String msg )
 	{
-//		if ( handler==null ) {
-//			Looper.prepare();
-//			handler = new Handler();
-//		}
 		if ( mainProgress==10000 ) {
+			Log.v("cr3", "mainProgress==10000 : calling hideProgress");
 			hideProgress();
 			return;
 		}
-		//if ( views.size()==0 )
-		//	return;
-		//ReaderView view = views.get(0);
+		Log.v("cr3", "showProgress(" + mainProgress + ", \"" + msg + "\") is called");
 		if ( enable_progress ) {
 			mBackgroundThread.executeGUI( new Runnable() {
 				public void run() {
 					// show progress
+					Log.v("cr3", "showProgress() - in GUI thread");
 					if ( mProgress==null ) {
 						if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
 							mProgress = new ProgressDialog(mActivity);
 							mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+							mProgress.setIcon(R.drawable.cr3_logo);
 							mProgress.setMax(10000);
 							mProgress.setCancelable(false);
 							mProgress.setProgress(mainProgress);
@@ -185,9 +181,13 @@ public class Engine {
 							mProgress.setCancelable(false);
 							mProgress.setProgress(mainProgress);
 						}
-					} else { 
+					} else {
 						mProgress.setProgress(mainProgress);
 						mProgress.setMessage(msg);
+						if ( !mProgress.isShowing() ) {
+							mProgress.show();
+							progressShown = true;
+						}
 					}
 				}
 			});
@@ -196,15 +196,25 @@ public class Engine {
 	
 	public void hideProgress()
 	{
+		Log.v("cr3", "hideProgress() is called");
 		mBackgroundThread.executeGUI( new Runnable() {
 			public void run() {
 				// hide progress
 				if ( mProgress!=null ) {
+//					if ( mProgress.isShowing() )
+//						mProgress.hide();
+					progressShown = false;
 					mProgress.dismiss();
 					mProgress = null;
+					Log.v("cr3", "hideProgress() - in GUI thread");
 				}
 			}
 		});
+	}
+	
+	public boolean isProgressShown()
+	{
+		return progressShown;
 	}
 	
 	public String loadResourceUtf8( int id )

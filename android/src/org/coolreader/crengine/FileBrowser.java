@@ -85,7 +85,7 @@ public class FileBrowser extends ListView {
 			public void done() {
 				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.size());
 				mInitialized = true;
-				mEngine.hideProgress();
+				//mEngine.hideProgress();
 				showDirectory( mScanner.mRoot );
 				setSelection(0);
 			}

@@ -217,6 +217,7 @@ public class CoolReader extends Activity
 	
 	public void showReader()
 	{
+		Log.v("cr3", "showReader() is called");
 		showView(mReaderView);
 	}
 	
@@ -234,6 +235,7 @@ public class CoolReader extends Activity
 	
 	public void showBrowser()
 	{
+		Log.v("cr3", "showBrowser() is called");
 		mReaderView.save();
 		mEngine.runInGUI( new Runnable() {
 			public void run() {

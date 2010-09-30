@@ -579,8 +579,8 @@ public class ReaderView extends View {
 		{
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
     		mBitmap = bitmap;
-    		if (mOpened)
-    			mEngine.hideProgress();
+//    		if (mOpened)
+//    			mEngine.hideProgress();
     		invalidate();
 		}
 	}; 
@@ -629,6 +629,7 @@ public class ReaderView extends View {
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
+    		mBitmap = null;
 	        mEngine.showProgress( 1000, "Loading..." );
 	        //init();
 		}
@@ -652,6 +653,7 @@ public class ReaderView extends View {
 	        mOpened = true;
 	        //engine.hideProgress();
 	        //doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
+			mEngine.hideProgress();
 			mActivity.showReader();
 	        drawPage();
 		}
@@ -662,6 +664,8 @@ public class ReaderView extends View {
 			Log.d("cr3", "LoadDocumentTask is finished with exception " + e.getMessage());
 	        mOpened = true;
 			drawPage();
+			mEngine.hideProgress();
+			mActivity.showToast("Error while loading document");
 			if ( errorHandler!=null ) {
 				errorHandler.run();
 			}

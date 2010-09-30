@@ -43,6 +43,11 @@ public class BackgroundThread extends Thread {
 	}
 	public void postBackground( Runnable task )
 	{
+		if ( mStopped ) {
+			Log.i("cr3", "Posting task " + task + " to GUI queue since background thread is stopped");
+			postGUI( task );
+			return;
+		}
 		if ( handler==null ) {
 			synchronized(posted) {
 				posted.add(task);
@@ -67,23 +72,35 @@ public class BackgroundThread extends Thread {
 	 */
 	public void executeBackground( Runnable task )
 	{
-		if ( Thread.currentThread()==this )
+		if ( isBackgroundThread() || mStopped )
 			task.run(); // run in this thread
 		else 
 			postBackground(task); // post
 	}
+	// assume there are only two threads: main GUI and background
+	public boolean isGUIThread()
+	{
+		return !isBackgroundThread();
+	}
+	public boolean isBackgroundThread()
+	{
+		return ( Thread.currentThread()==this );
+	}
 	public void executeGUI( Runnable task )
 	{
-		Handler guiHandler = guiTarget.getHandler();
-		if ( guiHandler!=null && guiHandler.getLooper().getThread()==Thread.currentThread() )
+		//Handler guiHandler = guiTarget.getHandler();
+		//if ( guiHandler!=null && guiHandler.getLooper().getThread()==Thread.currentThread() )
+		if ( isGUIThread() )
 			task.run(); // run in this thread
 		else
 			postGUI(task);
 	}
+	private boolean mStopped = false;
 	public void quit()
 	{
 		executeBackground( new Runnable() {
 			public void run() {
+				mStopped = true;
 				Looper.myLooper().quit();
 			}
 		});
