@@ -11,14 +11,16 @@ import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TabHost;
+import android.widget.TextView;
 import android.widget.TabHost.TabContentFactory;
 
-public class OptionsDialog  extends AlertDialog {
+public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 
 	TabHost mTabs;
 	OptionsListView mOptionsView;
@@ -27,14 +29,36 @@ public class OptionsDialog  extends AlertDialog {
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
 	
+	class OptionBase {
+		public String label;
+		public String property;
+		public String getValueLabel() { return mProperties.getProperty(property); }
+		public void onSelect() { }
+	}
+	
+	class BoolOption {
+		public String label;
+		public String property;
+		public String getValueLabel() { return "".equals(mProperties.getProperty(property)) ? "on" : "off"; }
+		public void onSelect() { 
+			mProperties.setProperty(property, "".equals(mProperties.getProperty(property)) ? "0" : "1");
+		}
+	}
+	
 	public OptionsDialog( Context context )
 	{
 		super(context);
 	}
 	
 	class OptionsListView extends ListView {
+		private ArrayList<OptionBase> mOptions = new ArrayList<OptionBase>();
+		public OptionsListView add( OptionBase option ) {
+			mOptions.add(option);
+			return this;
+		}
 		public OptionsListView( Context context )
 		{
+			
 			super(context);
 			setAdapter( new ListAdapter() {
 				public boolean areAllItemsEnabled() {
@@ -46,11 +70,11 @@ public class OptionsDialog  extends AlertDialog {
 				}
 
 				public int getCount() {
-					return 0;
+					return mOptions.size();
 				}
 
 				public Object getItem(int position) {
-					return null;
+					return mOptions.get(position);
 				}
 
 				public long getItemId(int position) {
@@ -63,7 +87,14 @@ public class OptionsDialog  extends AlertDialog {
 
 				
 				public View getView(int position, View convertView, ViewGroup parent) {
-					return null;
+					TextView view;
+					if ( convertView==null ) {
+						view = new TextView(getContext());
+					} else {
+						view = (TextView)convertView;
+					}
+					view.setText(mOptions.get(position).label);
+					return view;
 				}
 
 				public int getViewTypeCount() {
@@ -75,7 +106,7 @@ public class OptionsDialog  extends AlertDialog {
 				}
 
 				public boolean isEmpty() {
-					return true;
+					return mOptions.size()==0;
 				}
 
 				private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();
@@ -97,39 +128,46 @@ public class OptionsDialog  extends AlertDialog {
 		return super.getListView();
 	}
 
+	public View createTabContent(String tag) {
+		if ( "App".equals(tag) )
+			return mOptionsApplication;
+		else if ( "Styles".equals(tag) )
+			return mOptionsStyles;
+		else if ( "Controls".equals(tag) )
+			return mOptionsControls;
+		return null;
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating OptionsDialog");
+		super.onCreate(savedInstanceState);
+		
+		setTitle("Options");
+        setCancelable(true);
+		
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        mTabs = (TabHost)inflater.inflate(R.layout.options, null);
 		// setup tabs
-		setContentView(R.layout.options);
-		mTabs = (TabHost)findViewById(android.R.id.tabhost); 
+		//setView(R.layout.options);
+		//setContentView(R.layout.options);
+		//mTabs = (TabHost)findViewById(android.R.id.tabhost); 
+		mTabs.setup();
 		//new TabHost(getContext());
 		mOptionsStyles = new OptionsListView(getContext());
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsControls = new OptionsListView(getContext());
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
 		tsStyles.setIndicator("Styles");
-		tsStyles.setContent(new TabContentFactory() {
-			public View createTabContent(String arg0) {
-				return mOptionsStyles;
-			}
-		});
+		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
 		tsApp.setIndicator("App");
-		tsApp.setContent(new TabContentFactory() {
-			public View createTabContent(String arg0) {
-				return mOptionsApplication;
-			}
-		});
+		tsApp.setContent(this);
 		mTabs.addTab(tsApp);
 		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
 		tsControls.setIndicator("Controls");
-		tsControls.setContent(new TabContentFactory() {
-			public View createTabContent(String arg0) {
-				return mOptionsControls;
-			}
-		});
+		tsControls.setContent(this);
 		mTabs.addTab(tsControls);
 
 		setView(mTabs);
@@ -150,7 +188,6 @@ public class OptionsDialog  extends AlertDialog {
                 }
             });
 		
-		super.onCreate(savedInstanceState);
 		Log.v("cr3", "OptionsDialog is created");
 	}
 

@@ -316,7 +316,7 @@ public class CoolReader extends Activity
 			break;
 		case R.id.cr3_mi_options:
 			Log.i("cr3", "options menu item selected");
-			OptionsDialog dlg = new OptionsDialog(getApplicationContext());
+			OptionsDialog dlg = new OptionsDialog(this);
 			dlg.show();
 			//showToast("Options feature is not implemented");
 			break;

@@ -653,7 +653,7 @@ public class ReaderView extends View {
 	        mOpened = true;
 	        //engine.hideProgress();
 	        //doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
-			mEngine.hideProgress();
+			//mEngine.hideProgress();
 			mActivity.showReader();
 	        drawPage();
 		}
