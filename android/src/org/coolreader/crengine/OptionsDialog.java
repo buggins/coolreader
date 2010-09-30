@@ -32,13 +32,18 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 	class OptionBase {
 		public String label;
 		public String property;
+		public OptionBase( String label, String property ) {
+			this.label = label;
+			this.property = property;
+		}
 		public String getValueLabel() { return mProperties.getProperty(property); }
 		public void onSelect() { }
 	}
 	
-	class BoolOption {
-		public String label;
-		public String property;
+	class BoolOption extends OptionBase {
+		public BoolOption( String label, String property ) {
+			super(label, property);
+		}
 		public String getValueLabel() { return "".equals(mProperties.getProperty(property)) ? "on" : "off"; }
 		public void onSelect() { 
 			mProperties.setProperty(property, "".equals(mProperties.getProperty(property)) ? "0" : "1");
@@ -141,7 +146,6 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating OptionsDialog");
-		super.onCreate(savedInstanceState);
 		
 		setTitle("Options");
         setCancelable(true);
@@ -155,6 +159,8 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 		mTabs.setup();
 		//new TabHost(getContext());
 		mOptionsStyles = new OptionsListView(getContext());
+		mOptionsStyles.add(new BoolOption("Embolden font", ReaderView.PROP_FONT_WEIGHT_EMBOLDEN));
+		mOptionsStyles.add(new BoolOption("Inverse view", ReaderView.PROP_DISPLAY_INVERSE));
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsControls = new OptionsListView(getContext());
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
@@ -188,6 +194,7 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
                 }
             });
 		
+		super.onCreate(savedInstanceState);
 		Log.v("cr3", "OptionsDialog is created");
 	}
 
