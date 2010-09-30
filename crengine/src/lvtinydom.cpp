@@ -1753,7 +1753,7 @@ bool ldomDataStorageManager::load()
         return false; // invalid
     _recentChunk = NULL;
     _chunks.clear();
-    lUInt32 compsize;
+    lUInt32 compsize = 0;
     lUInt32 uncompsize = 0;
     for ( unsigned i=0; i<n; i++ ) {
         buf >>
@@ -7605,7 +7605,7 @@ public:
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return stream2;
         }
-        res = LVStreamRef( new LVCompareTestStream(res, stream2) );
+        res = LVCreateCompareTestStream(res, stream2);
 #endif
 #endif
 
@@ -7638,7 +7638,7 @@ public:
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return stream2;
         }
-        res = LVStreamRef( new LVCompareTestStream(res, stream2) );
+        res = LVCreateCompareTestStream(res, stream2) );
 #endif
 #endif
         moveFileToTop( fn, fileSize );
