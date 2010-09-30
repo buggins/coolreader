@@ -23,8 +23,9 @@ import android.widget.TabHost.TabContentFactory;
 public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 
 	TabHost mTabs;
+	LayoutInflater mInflater;
 	OptionsListView mOptionsView;
-	Properties mProperties;
+	Properties mProperties = new Properties();
 	OptionsListView mOptionsStyles;
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
@@ -92,13 +93,17 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 
 				
 				public View getView(int position, View convertView, ViewGroup parent) {
-					TextView view;
+					View view;
 					if ( convertView==null ) {
 						view = new TextView(getContext());
+						view = mInflater.inflate(R.layout.option_item, null);
 					} else {
-						view = (TextView)convertView;
+						view = (View)convertView;
 					}
-					view.setText(mOptions.get(position).label);
+					TextView labelView = (TextView)view.findViewById(R.id.option_label);
+					TextView valueView = (TextView)view.findViewById(R.id.option_value);
+					labelView.setText(mOptions.get(position).label);
+					valueView.setText(mOptions.get(position).getValueLabel());
 					return view;
 				}
 
@@ -147,11 +152,11 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating OptionsDialog");
 		
-		setTitle("Options");
+		//setTitle("Options");
         setCancelable(true);
 		
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        mTabs = (TabHost)inflater.inflate(R.layout.options, null);
+        mInflater = LayoutInflater.from(getContext());
+        mTabs = (TabHost)mInflater.inflate(R.layout.options, null);
 		// setup tabs
 		//setView(R.layout.options);
 		//setContentView(R.layout.options);
@@ -159,10 +164,14 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 		mTabs.setup();
 		//new TabHost(getContext());
 		mOptionsStyles = new OptionsListView(getContext());
+		mOptionsStyles.add(new OptionBase("Font face", ReaderView.PROP_FONT_FACE));
+		mOptionsStyles.add(new OptionBase("Font size", ReaderView.PROP_FONT_SIZE));
 		mOptionsStyles.add(new BoolOption("Embolden font", ReaderView.PROP_FONT_WEIGHT_EMBOLDEN));
 		mOptionsStyles.add(new BoolOption("Inverse view", ReaderView.PROP_DISPLAY_INVERSE));
 		mOptionsApplication = new OptionsListView(getContext());
+		mOptionsApplication.add(new BoolOption("Full screen", "app.fullscreen"));
 		mOptionsControls = new OptionsListView(getContext());
+		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
 		tsStyles.setIndicator("Styles");
 		tsStyles.setContent(this);
