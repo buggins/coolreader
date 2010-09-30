@@ -9,6 +9,7 @@ import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
+import org.coolreader.crengine.OptionsDialog;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Engine.HyphDict;
@@ -315,7 +316,9 @@ public class CoolReader extends Activity
 			break;
 		case R.id.cr3_mi_options:
 			Log.i("cr3", "options menu item selected");
-			showToast("Options feature is not implemented");
+			OptionsDialog dlg = new OptionsDialog(getApplicationContext());
+			dlg.show();
+			//showToast("Options feature is not implemented");
 			break;
 		case R.id.cr3_mi_bookmarks:
 			Log.i("cr3", "Bookmarks menu item selected");
