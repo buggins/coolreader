@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -404,6 +405,7 @@ public class ReaderView extends View {
 	{
         applySettingsInternal(props);
         syncViewSettings();
+        drawPage();
 	}
 	
 	File propsFile;
@@ -448,6 +450,29 @@ public class ReaderView extends View {
 		        	saveSettings();
 			}
 		});
+	}
+	
+	public Properties getSettings()
+	{
+		return new Properties(mSettings);
+	}
+	
+	public void setSettings(Properties newSettings)
+	{
+		boolean changed = false;
+        for ( Map.Entry<Object, Object> entry : newSettings.entrySet() ) {
+        	if ( !mSettings.containsKey(entry.getKey()) || !eq(entry.getValue(), mSettings.get(entry.getKey()))) {
+        		mSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
+        		changed = true;
+        	}
+        }
+        if ( changed ) {
+        	mBackThread.executeBackground(new Runnable() {
+        		public void run() {
+        			applySettings(new Properties(mSettings));
+        		}
+        	});
+        }
 	}
 	
 	class CreateViewTask extends Task
@@ -549,6 +574,20 @@ public class ReaderView extends View {
 //		}
 //	}
 	
+	private Bitmap preparePageImage()
+	{
+		Bitmap bitmap;
+		if ( internalDX==0 || internalDY==0 ) {
+			internalDX=200;
+			internalDY=300;
+	        resizeInternal(internalDX, internalDY);
+		}
+		bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
+        bitmap.eraseColor(Color.BLUE);
+        getPageImage(bitmap);
+        return bitmap;
+	}
+	
 	private int lastDrawTaskId = 0;
 	private class DrawPageTask extends Task {
 		final int id;
@@ -563,17 +602,8 @@ public class ReaderView extends View {
 				return;
 			}
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
-			if ( internalDX==0 || internalDY==0 ) {
-				internalDX=200;
-				internalDY=300;
-		        resizeInternal(internalDX, internalDY);
-			}
-			bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
-	        bitmap.eraseColor(Color.BLUE);
-	        getPageImage(bitmap);
+			bitmap = preparePageImage();
 	        mEngine.hideProgress();
-	        //Bookmark bm = getCurrentPageBookmarkInternal();
-	        //Log.d("cr3", "Current position: " + bm.getPercent() + "% " + bm.getStartPos());
 		}
 		public void done()
 		{
@@ -634,26 +664,23 @@ public class ReaderView extends View {
 	        //init();
 		}
 
-		public void work() {
+		public void work() throws IOException {
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
-		        //writeHistoryInternal(null);
+	        	preparePageImage();
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
 	        } else {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
+				throw new IOException("Cannot read document");
 	        }
 		}
 		public void done()
 		{
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
-	        //showProgress( 5000, 0, "Formatting..." );
 	        restorePosition();
 	        mOpened = true;
-	        //engine.hideProgress();
-	        //doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
-			//mEngine.hideProgress();
 			mActivity.showReader();
 	        drawPage();
 		}

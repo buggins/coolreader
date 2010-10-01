@@ -123,10 +123,18 @@ public:
     }
 };
 
+#define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
+ { 16, 18, 20, 22, 24, 26, 28, 30, \
+   32, 34, 36, 38, 40, 42, 48, 56 }
+
+DECL_DEF_CR_FONT_SIZES;
 
 ReaderViewNative::ReaderViewNative()
 {
 	_docview = new LVDocView(32); //32bpp
+    LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
+    _docview->setShowCover( true );
+    _docview->setFontSizes( sizes, true );
 	_docview->setFontSize(24);
 	_docview->createDefaultDocument(lString16("Welcome to CoolReader"), lString16("Please select file to open"));
 }
