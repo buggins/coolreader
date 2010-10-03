@@ -12,7 +12,7 @@
     android:layout_marginTop="5dip"
     android:layout_marginBottom="5dip"
     android:layout_marginLeft="2dip"
-    android:layout_marginRight="8dip"
+    android:layout_marginRight="2dip"
     >
 
     <ImageView android:id="@+id/option_icon"
@@ -29,6 +29,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_gravity="center_vertical|fill_horizontal"
+        android:layout_marginLeft="2dip"
+        android:layout_marginRight="8dip"
         android:baselineAligned="false">
 
 
