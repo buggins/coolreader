@@ -30,10 +30,17 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 		16, 18, 20, 22, 24, 26, 28, 30,
 		32, 34, 36, 38, 40, 42, 48, 56
 	};
+	int[] mInterlineSpaces = new int[] {
+			80, 90, 100, 110, 120, 130, 140, 150
+		};
+	int[] mMargins = new int[] {
+			0, 3, 5, 10, 15, 20, 25
+		};
 	TabHost mTabs;
 	LayoutInflater mInflater;
 	Properties mProperties;
 	OptionsListView mOptionsStyles;
+	OptionsListView mOptionsPage;
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
 	
@@ -93,6 +100,13 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 			for ( int item : values ) {
 				String s = String.valueOf(item); 
 				add(s, s);
+			}
+			return this;
+		}
+		public ListOption addPercents(int[]values) {
+			for ( int item : values ) {
+				String s = String.valueOf(item); 
+				add(s, s + "%");
 			}
 			return this;
 		}
@@ -330,6 +344,8 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 			return mOptionsStyles;
 		else if ( "Controls".equals(tag) )
 			return mOptionsControls;
+		else if ( "Page".equals(tag))
+			return mOptionsPage;
 		return null;
 	}
 	
@@ -351,16 +367,28 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 		mOptionsStyles = new OptionsListView(getContext());
 		mOptionsStyles.add(new ListOption("Font face", ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]));
 		mOptionsStyles.add(new ListOption("Font size", ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24"));
-		mOptionsStyles.add(new BoolOption("Embolden font", ReaderView.PROP_FONT_WEIGHT_EMBOLDEN));
-		mOptionsStyles.add(new BoolOption("Inverse view", ReaderView.PROP_DISPLAY_INVERSE));
+		mOptionsStyles.add(new BoolOption("Embolden font", ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0"));
+		mOptionsStyles.add(new BoolOption("Inverse view", ReaderView.PROP_DISPLAY_INVERSE).setDefaultValue("0"));
+		mOptionsStyles.add(new ListOption("Interline space", ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
+		mOptionsPage = new OptionsListView(getContext());
+		mOptionsPage.add(new BoolOption("Show title bar", ReaderView.PROP_STATUS_LINE).setDefaultValue("1"));
+		mOptionsPage.add(new BoolOption("Footnotes", ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption("Left margin", ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption("Right margin", ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption("Top margin", ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption("Bottom margin", ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsApplication.add(new BoolOption("Full screen", "app.fullscreen"));
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
-		tsStyles.setIndicator("Styles");
+		tsStyles.setIndicator("Styles"); // , R.drawable.cr3_option_style
 		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
+		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
+		tsPage.setIndicator("Page"); //, R.drawable.cr3_option_page
+		tsPage.setContent(this);
+		mTabs.addTab(tsPage);
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
 		tsApp.setIndicator("App");
 		tsApp.setContent(this);
