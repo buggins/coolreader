@@ -152,7 +152,8 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 						ViewGroup parent) {
 					TextView view;
 					if ( convertView==null ) {
-						view = new TextView(getContext());
+						view = (TextView)mInflater.inflate(R.layout.option_value, null);
+						//view = new TextView(getContext());
 					} else {
 						view = (TextView)convertView;
 					}
