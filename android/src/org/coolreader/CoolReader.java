@@ -301,7 +301,9 @@ public class CoolReader extends Activity
                 });
         alert.show();
 	}
+
 	
+	String[] mFontFaces;
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch ( item.getItemId() ) {
@@ -316,8 +318,18 @@ public class CoolReader extends Activity
 			break;
 		case R.id.cr3_mi_options:
 			Log.i("cr3", "options menu item selected");
-			OptionsDialog dlg = new OptionsDialog(this);
-			dlg.show();
+			final CoolReader _this = this;
+			mBackgroundThread.executeBackground(new Runnable() {
+				public void run() {
+					mFontFaces = mEngine.getFontFaceList();
+					mBackgroundThread.executeGUI(new Runnable() {
+						public void run() {
+							OptionsDialog dlg = new OptionsDialog(_this, mReaderView, mFontFaces);
+							dlg.show();
+						}
+					});
+				}
+			});
 			//showToast("Options feature is not implemented");
 			break;
 		case R.id.cr3_mi_bookmarks:

@@ -22,6 +22,8 @@ import android.widget.TabHost.TabContentFactory;
 
 public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 
+	ReaderView mReaderView;
+	String[] mFontFaces;
 	TabHost mTabs;
 	LayoutInflater mInflater;
 	OptionsListView mOptionsView;
@@ -33,9 +35,14 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 	class OptionBase {
 		public String label;
 		public String property;
+		public String defaultValue;
 		public OptionBase( String label, String property ) {
 			this.label = label;
 			this.property = property;
+		}
+		public OptionBase setDefaultValue(String value) {
+			this.defaultValue = value;
+			return this;
 		}
 		public String getValueLabel() { return mProperties.getProperty(property); }
 		public void onSelect() { }
@@ -51,9 +58,61 @@ public class OptionsDialog  extends AlertDialog implements TabContentFactory {
 		}
 	}
 	
-	public OptionsDialog( Context context )
+	class Pair {
+		public String value;
+		public String label;
+		public Pair(String value, String label) {
+			this.value = value;
+			this.label = label;
+		}
+	}
+	class ListOption extends OptionBase {
+		private ArrayList<Pair> list = new ArrayList<Pair>();
+		public ListOption( String label, String property ) {
+			super(label, property);
+		}
+		public void add(String value, String label) {
+			list.add( new Pair(value, label) );
+		}
+		public void add(String[]values) {
+			for ( String item : values ) {
+				add(item, item);
+			}
+		}
+		public String findValueLabel( String value ) {
+			for ( Pair pair : list ) {
+				if ( value.equals(pair.value) )
+					return pair.label;
+			}
+			return null;
+		}
+		public int findValue( String value ) {
+			for ( int i=0; i<list.size(); i++ ) {
+				if ( value.equals(list.get(i).value) )
+					return i;
+			}
+			return -1;
+		}
+		public String getValueLabel() { return findValueLabel(mProperties.getProperty(property)); }
+		public void onSelect() {
+			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
+			dlg.setTitle(label);
+			dlg.setPositiveButton("Ok", new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO: select item
+					dismiss();
+				}
+			});
+			mProperties.setProperty(property, "".equals(mProperties.getProperty(property)) ? "0" : "1");
+		}
+	}
+	
+	public OptionsDialog( Context context, ReaderView readerView, String[] fontFaces )
 	{
 		super(context);
+		mReaderView = readerView;
+		mFontFaces = fontFaces;
 	}
 	
 	class OptionsListView extends ListView {
