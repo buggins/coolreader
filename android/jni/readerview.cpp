@@ -387,6 +387,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 	CRLog::trace("ReaderView_applySettingsInternal");
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
+	DocViewCallback callback( _env, p->_docview, _this );
 	CRPropRef props = env.fromJavaProperties(_props);
 	p->_docview->propsUpdateDefaults( props );
 	p->_docview->propsApply( props );
@@ -432,6 +433,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInte
 {
 	CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _view);
+	DocViewCallback callback( _env, p->_docview, _view );
     lString8 css8 = UnicodeToUtf8(env.fromJavaString(jcss));
     p->_docview->setStyleSheet(css8);
 }
@@ -444,8 +446,10 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInte
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
   (JNIEnv * _env, jobject _this, jint dx, jint dy)
 {
+	CRJNIEnv env(_env);
 	CRLog::debug("resizeInternal(%d, %d)", dx, dy);
     ReaderViewNative * p = getNative(_env, _this);
+	DocViewCallback callback( _env, p->_docview, _this );
     p->_docview->Resize(dx, dy);
 }  
   
@@ -480,6 +484,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPage
     ReaderViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return NULL;
+	DocViewCallback callback( _env, p->_docview, _this );
 	
 	ldomXPointer ptr = p->_docview->getBookmark();
 	if ( ptr.isNull() )
@@ -551,6 +556,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionI
     ReaderViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return JNI_FALSE;
+	DocViewCallback callback( _env, p->_docview, _this );
 	lString16 str = env.fromJavaString(jstr);
     ldomXPointer bm = p->_docview->getDocument()->createXPointer(str);
 	if ( bm.isNull() )
@@ -571,6 +577,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
     ReaderViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return NULL;
+	DocViewCallback callback( _env, p->_docview, _this );
     lString16 str = env.fromJavaString(_path);
     ldomXPointer bm;
     if ( !str.empty() ) {
