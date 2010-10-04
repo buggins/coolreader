@@ -18,6 +18,7 @@
 #include "lvstring.h"
 #include "lvdrawbuf.h"
 #include "props.h"
+#include "lvtinydom.h"
 
 //====================================================================
 #ifdef USE_JNIGRAPHICS
@@ -47,6 +48,7 @@ public:
 	jobject enumByNativeId( const char * classname, int id ); 
 	CRPropRef fromJavaProperties( jobject jprops );
 	jobject toJavaProperties( CRPropRef props );
+	jobject toJavaTOCItem( LVTocItem * toc );
 };
 
 class CRClassAccessor : public CRJNIEnv {

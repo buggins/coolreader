@@ -68,6 +68,59 @@ jobject CRJNIEnv::toJavaProperties( CRPropRef props )
 	return obj;
 }
 
+class TOCItemAccessor {
+	CRJNIEnv & _env;
+	jclass _cls;
+	jmethodID _constructor;
+	jmethodID _addChild;
+	jfieldID _level;
+	jfieldID _page;
+	jfieldID _percent;
+	jfieldID _name;
+	jfieldID _path;
+public:
+	TOCItemAccessor( CRJNIEnv & env )
+	: _env(env), _cls(env->FindClass("org/coolreader/crengine/TOCItem"))
+	{
+		_constructor = _env->GetMethodID(_cls, "<init>", "()V");
+		_addChild = _env->GetMethodID(_cls, "addChild", "()Lorg/coolreader/crengine/TOCItem;");
+		_level = _env->GetFieldID(_cls, "mLevel", "I");
+		_page = _env->GetFieldID(_cls, "mPage", "I");
+		_percent = _env->GetFieldID(_cls, "mPercent", "I");
+		_name = _env->GetFieldID(_cls, "mName", "Ljava/lang/String;");
+		_path = _env->GetFieldID(_cls, "mPath", "Ljava/lang/String;");
+	}
+	void set( jobject obj, LVTocItem * item )
+	{
+		_env->SetIntField(obj, _level, item->getLevel() );
+		_env->SetIntField(obj, _page, item->getPage() );
+		_env->SetIntField(obj, _percent, item->getPercent() );
+		_env->SetObjectField(obj, _name, _env.toJavaString( item->getName() ) );
+		_env->SetObjectField(obj, _path, _env.toJavaString( item->getPath() ) );
+	}
+	void add( jobject obj, LVTocItem * child )
+	{
+		jobject jchild = _env->CallObjectMethod(obj, _addChild);
+		set( jchild, child );
+		for ( int i=0; i<child->getChildCount(); i++ ) {
+			add( jchild, child->getChild(i) );
+		}
+	}
+	jobject toJava(LVTocItem * root)
+	{
+		jobject jroot = _env->NewObject(_cls, _constructor);
+		for ( int i=0; i<root->getChildCount(); i++ ) {
+			add( jroot, root->getChild(i) );
+		}
+	} 
+};
+
+jobject CRJNIEnv::toJavaTOCItem( LVTocItem * toc )
+{
+	TOCItemAccessor acc(*this);
+	return acc.toJava( toc );
+}
+
 jobject CRJNIEnv::enumByNativeId( const char * classname, int id )
 {
 	jclass cl = env->FindClass(classname);
