@@ -69,8 +69,8 @@ public class CoolReader extends Activity
 		mEngine = new Engine(this, mBackgroundThread);
 		mBackgroundThread.setGUI(mFrame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-               WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		//this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+        //       WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		startupView = new View(this) {
 		};
 		startupView.setBackgroundColor(Color.BLACK);
@@ -305,6 +305,7 @@ public class CoolReader extends Activity
 
 	
 	String[] mFontFaces;
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch ( item.getItemId() ) {
@@ -375,7 +376,8 @@ public class CoolReader extends Activity
 			});
 			break;
 		default:
-			return super.onOptionsItemSelected(item);
+			return false;
+			//return super.onOptionsItemSelected(item);
 		}
 		return true;
 	}

@@ -17,9 +17,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class BookmarksDlg  extends AlertDialog {
 	CoolReader mCoolReader;
@@ -27,12 +29,14 @@ public class BookmarksDlg  extends AlertDialog {
 	private LayoutInflater mInflater;
 	BookInfo mBookInfo;
 	BookmarkList mList;
+	BookmarksDlg mThis;
 	
 	final int SHORTCUT_COUNT = 10;
 	class BookmarkList extends ListView {
 		private ListAdapter mAdapter;
 		public BookmarkList( Context context ) {
 			super(context);
+			//final BookmarkList mThisList = this;
 			mAdapter = new ListAdapter() {
 				public boolean areAllItemsEnabled() {
 					return true;
@@ -68,19 +72,32 @@ public class BookmarksDlg  extends AlertDialog {
 						view = (View)convertView;
 					}
 					TextView labelView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_shortcut);
-					TextView percentView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_percent);
+					//TextView percentView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_percent);
 					TextView posTextView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_pos_text);
 					TextView titleTextView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_title);
 					Bookmark b = mBookInfo.findShortcutBookmark(position+1);
 					labelView.setText(String.valueOf(position+1));
 					if ( b!=null ) {
-						percentView.setText(String.valueOf(b.getPercent()) + "%");
-						posTextView.setText(b.getPosText());
-						titleTextView.setText(b.getTitleText());
+						String percentString = FileBrowser.formatPercent(b.getPercent());
+						String s1 = b.getTitleText();
+						String s2 = b.getPosText();
+						if ( s1!=null && s2!=null ) {
+							s1 = percentString + "   " + s1;
+						} else if ( s1!=null ) {
+							s2 = s1;
+							s1 = percentString;  
+						} else if ( s2!=null ) {
+							s1 = percentString;
+						} else {
+							s1 = s2 = "";
+						}
+						//percentView.setText(FileBrowser.formatPercent(b.getPercent()));
+						titleTextView.setText(s1);
+						posTextView.setText(s2);
 					} else {
-						percentView.setText("");
-						posTextView.setText("[no bookmark]");
+						//percentView.setText("");
 						titleTextView.setText("");
+						posTextView.setText("");
 					}
 					return view;
 				}
@@ -114,23 +131,25 @@ public class BookmarksDlg  extends AlertDialog {
 			Bookmark b = mBookInfo.findShortcutBookmark(position+1);
 			if ( b==null ) {
 				mReaderView.addBookmark(position+1);
-				dismiss();
+				mThis.dismiss();
 				return true;
 			}
-			showContextMenu();
+			selectedItem = position;
+			openContextMenu(this);
+//			showContextMenu();
 			return true;
 		}
-		
 		
 	}
 	
 	public BookmarksDlg( CoolReader activity, ReaderView readerView )
 	{
 		super(activity);
+		mThis = this; // for inner classes
 		mCoolReader = activity;
 		mReaderView = readerView;
 		mBookInfo = mReaderView.getBookInfo();
-		mList = new BookmarkList(activity); 
+		mList = new BookmarkList(activity);
 		setView(mList);
 	}
 	@Override
@@ -139,13 +158,14 @@ public class BookmarksDlg  extends AlertDialog {
 		setTitle("Bookmarks");
         setCancelable(true);
         mInflater = LayoutInflater.from(getContext());
-		
 		super.onCreate(savedInstanceState);
+		registerForContextMenu(mList);
+		//mList.
 	}
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		
-		int shortcut = mList.getSelectedItemPosition();
+		int shortcut = selectedItem; //mList.getSelectedItemPosition();
 		if ( shortcut>=0 && shortcut<SHORTCUT_COUNT )
 		switch (item.getItemId()) {
 		case R.id.bookmark_shortcut_add:
@@ -159,12 +179,25 @@ public class BookmarksDlg  extends AlertDialog {
 		}
 		return super.onContextItemSelected(item);
 	}
+	
+	private int selectedItem;
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 	    MenuInflater inflater = mCoolReader.getMenuInflater();
 	    inflater.inflate(R.menu.cr3_bookmark_shortcut_context_menu, menu);
-		//super.onCreateContextMenu(menu, v, menuInfo);
+	    AdapterContextMenuInfo mi = (AdapterContextMenuInfo)menuInfo;
+	    if ( mi!=null )
+	    	selectedItem = mi.position;
+	    menu.setHeaderTitle("Bookmark");
+	    for ( int i=0; i<menu.size(); i++ ) {
+	    	menu.getItem(i).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					onContextItemSelected(item);
+					return true;
+				}
+			});
+	    }
 	}
 	
 

@@ -226,18 +226,13 @@ public class ReaderView extends View {
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// goto/set shortcut bookmark
 			int shortcut = keyCode - KeyEvent.KEYCODE_0;
-			char label = (char)('0' + shortcut);
 			if ( shortcut==0 )
 				shortcut = 10;
 			boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
-			boolean added = true;
 			if ( isLongPress )
 				addBookmark(shortcut);
 			else
-				added = goToBookmark(shortcut);
-			if ( added ) {
-				mActivity.showToast("Bookmark " + label + " is set.");
-			}
+				goToBookmark(shortcut);
 			return true;
 		} else
 		return super.onKeyUp(keyCode, event);
@@ -369,8 +364,10 @@ public class ReaderView extends View {
 				}
 			}
 			public void done() {
-				if ( mBookInfo!=null && bm!=null )
+				if ( mBookInfo!=null && bm!=null ) {
 					mBookInfo.setShortcutBookmark(shortcut, bm);
+					mActivity.showToast("Bookmark " + (shortcut==10?0:shortcut) + " is set.");
+				}
 			}
 		});
 	}
