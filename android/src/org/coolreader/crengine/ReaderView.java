@@ -660,7 +660,7 @@ public class ReaderView extends View {
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
-    		mBitmap = null;
+    		//mBitmap = null;
 	        mEngine.showProgress( 1000, "Loading..." );
 	        //init();
 		}
@@ -707,6 +707,8 @@ public class ReaderView extends View {
     		if ( mInitialized && mBitmap!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
     			canvas.drawBitmap(mBitmap, 0, 0, null);
+    		} else {
+    			canvas.drawColor(Color.rgb(255, 255, 255));
     		}
     	} catch ( Exception e ) {
     		Log.e("cr3", "exception while drawing", e);
