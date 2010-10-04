@@ -4,6 +4,7 @@ package org.coolreader;
 import java.io.File;
 
 import org.coolreader.crengine.BackgroundThread;
+import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.FileBrowser;
@@ -334,7 +335,8 @@ public class CoolReader extends Activity
 			break;
 		case R.id.cr3_mi_bookmarks:
 			Log.i("cr3", "Bookmarks menu item selected");
-			showToast("Bookmarks feature is not implemented");
+			BookmarksDlg dlg = new BookmarksDlg(this, mReaderView);
+			dlg.show();
 			break;
 		case R.id.cr3_mi_search:
 			Log.i("cr3", "Search menu item selected");

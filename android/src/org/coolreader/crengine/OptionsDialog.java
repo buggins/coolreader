@@ -22,7 +22,7 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.TabContentFactory;
 
-public class OptionsDialog  extends AlertDialog implements TabContentFactory {
+public class OptionsDialog extends AlertDialog implements TabContentFactory {
 
 	ReaderView mReaderView;
 	String[] mFontFaces;

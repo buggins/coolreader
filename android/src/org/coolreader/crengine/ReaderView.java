@@ -543,6 +543,10 @@ public class ReaderView extends View {
 		return true;
 	}
 	
+	public BookInfo getBookInfo() {
+		return mBookInfo;
+	}
+	
 	
 //	class LastDocumentLoadTask extends Task {
 //		Runnable errorHandler;
