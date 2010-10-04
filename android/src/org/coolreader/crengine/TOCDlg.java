@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,6 +21,8 @@ public class TOCDlg extends AlertDialog {
 	ReaderView mReaderView;
 	TOCItem mTOC;
 	ListView mListView;
+	int mCurrentPage;
+	TOCItem mCurrentPageItem;
 	ArrayList<TOCItem> mItems = new ArrayList<TOCItem>(); 
 	private LayoutInflater mInflater;
 	
@@ -27,6 +30,8 @@ public class TOCDlg extends AlertDialog {
 	{
 		for ( int i=0; i<toc.getChildCount(); i++ ) {
 			TOCItem child = toc.getChild(i);
+			if ( child.getPage()<=mCurrentPage )
+				mCurrentPageItem = child;
 			if ( expanded ) {
 				child.setGlobalIndex(mItems.size());
 				mItems.add(child);
@@ -38,18 +43,28 @@ public class TOCDlg extends AlertDialog {
 	}
 	private void initItems()
 	{
+		mCurrentPageItem = null;
 		mItems.clear();
 		initItems(mTOC, true);
 	}
 	
 	private void expand( TOCItem item )
 	{
+		if ( item==null )
+			return;
 		item.setExpanded(true);
 		// expand all parents
 		for ( TOCItem p = item.getParent(); p!=null; p = p.getParent() )
 			p.setExpanded(true);
 		initItems();
 		refreshList();
+		if ( mItems.size()>0 ) {
+			if ( item.getGlobalIndex()>=0 ) {
+				mListView.setSelection(item.getGlobalIndex());
+				mListView.setSelectionFromTop(item.getGlobalIndex(), mListView.getHeight()/2);
+			} else
+				mListView.setSelection(0);
+		}
 	}
 	
 	private void collapse( TOCItem item )
@@ -97,19 +112,24 @@ public class TOCDlg extends AlertDialog {
 				}
 				TextView pageTextView = (TextView)view.findViewById(R.id.toc_page);
 				TextView titleTextView = (TextView)view.findViewById(R.id.toc_title);
+				TextView marginTextView = (TextView)view.findViewById(R.id.toc_level_margin);
+				ImageView expandImageView = (ImageView)view.findViewById(R.id.toc_expand_icon);
 				TOCItem item = mItems.get(position);
 				StringBuilder buf = new StringBuilder(item.getLevel()*2);
-				for ( int i=0; i<item.getLevel(); i++ )
+				for ( int i=1; i<item.getLevel(); i++ )
 					buf.append("  ");
 				if ( item.getChildCount()>0 ) {
-					if ( item.getExpanded() )
-						buf.append("- ");
-					else
-						buf.append("+ ");
+					if ( item.getExpanded() ) {
+						expandImageView.setImageResource(R.drawable.cr3_toc_item_expanded);
+					} else {
+						expandImageView.setImageResource(R.drawable.cr3_toc_item_collapsed);
+					}
+				} else {
+					expandImageView.setImageResource(R.drawable.cr3_toc_item_normal);
 				}
-				buf.append(item.getName());
-				titleTextView.setText(buf.toString());
-				pageTextView.setText(String.valueOf(item.getPage()));
+				marginTextView.setText(buf.toString());
+				titleTextView.setText(item.getName());
+				pageTextView.setText(String.valueOf(item.getPage()+1));
 				return view;
 			}
 
@@ -137,14 +157,30 @@ public class TOCDlg extends AlertDialog {
 		});
 	}
 
-	public TOCDlg( CoolReader coolReader, ReaderView readerView, TOCItem toc )
+	public TOCDlg( CoolReader coolReader, ReaderView readerView, TOCItem toc, int currentPage )
 	{
 		super(coolReader);
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
 		this.mTOC = toc;
-		this.mListView = new ListView(mCoolReader);
+		this.mCurrentPage = currentPage;
+		this.mListView = new ListView(mCoolReader) {
+
+			@Override
+			public boolean performItemClick(View view, int position, long id) {
+				TOCItem item = mItems.get(position);
+				if ( item.getChildCount()==0 || item.getExpanded() ) {
+					mReaderView.goToPage(item.getPage()+1);
+					dismiss();
+				} else {
+					expand(item);
+				}
+				return true;
+			}
+			
+		};
+		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		setTitle("Table of Contents");
 		setView(mListView);
 	}
@@ -154,6 +190,7 @@ public class TOCDlg extends AlertDialog {
         mInflater = LayoutInflater.from(getContext());
 		super.onCreate(savedInstanceState);
 		expand( mTOC );
+		expand( mCurrentPageItem );
 	}
 	
 	

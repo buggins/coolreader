@@ -364,7 +364,7 @@ public class CoolReader extends Activity
 					return pageNumber>0;
 				}
 				public void onOk(String s) {
-					mReaderView.doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
+					mReaderView.goToPage(pageNumber);
 				}
 				public void onCancel() {
 				}

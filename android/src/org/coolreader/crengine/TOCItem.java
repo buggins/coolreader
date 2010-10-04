@@ -6,7 +6,7 @@ public class TOCItem {
 	private TOCItem mParent;
 	private int mLevel;
 	private int mIndex;
-	private int mGlobalIndex;
+	private int mGlobalIndex=-1;
 	private int mPage;
 	private int mPercent;
 	private boolean mExpanded;

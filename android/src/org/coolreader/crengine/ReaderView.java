@@ -329,13 +329,17 @@ public class ReaderView extends View {
 		final ReaderView view = this; 
 		mEngine.execute(new Task() {
 			TOCItem toc;
+			PositionProperties pos;
 			public void work() {
 				toc = getTOCInternal();
+				pos = getPositionPropsInternal(null);
 			}
 			public void done() {
-				if ( toc!=null ) {
-					TOCDlg dlg = new TOCDlg(mActivity, view, toc);
+				if ( toc!=null && pos!=null ) {
+					TOCDlg dlg = new TOCDlg(mActivity, view, toc, pos.pageNumber);
 					dlg.show();
+				} else {
+					mActivity.showToast("No Table of Contents found");
 				}
 			}
 		});
@@ -893,6 +897,11 @@ public class ReaderView extends View {
         		}
         	});
         }
+    }
+    
+    public void goToPage( int pageNumber )
+    {
+		doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
     }
     
     public void goToPercent( final int percent )

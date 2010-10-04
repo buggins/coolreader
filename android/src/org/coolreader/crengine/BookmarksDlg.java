@@ -124,6 +124,7 @@ public class BookmarksDlg  extends AlertDialog {
 					observers.remove(observer);
 				}
 			};
+			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setAdapter(mAdapter);
 		}
 		@Override
