@@ -110,7 +110,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionI
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    getPositionPropsInternal
- * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/ReaderView/PositionProperties;
+ * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/PositionProperties;
  */
 JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal
   (JNIEnv *, jobject, jstring);
@@ -122,6 +122,14 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal
   (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getTOCInternal
+ * Signature: ()Lorg/coolreader/crengine/TOCItem;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getTOCInternal
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

@@ -601,3 +601,20 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
 	return obj;
 }
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getTOCInternal
+ * Signature: ()Lorg/coolreader/crengine/TOCItem;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getTOCInternal
+  (JNIEnv * _env, jobject _this)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+	if ( !p->_docview->isDocumentOpened() )
+		return NULL;
+	DocViewCallback callback( _env, p->_docview, _this );
+	LVTocItem * toc = p->_docview->getToc();
+	return env.toJavaTOCItem(toc);
+}
+

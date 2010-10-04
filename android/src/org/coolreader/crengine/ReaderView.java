@@ -192,6 +192,7 @@ public class ReaderView extends View {
     private native boolean goToPositionInternal(String xPath);
     private native PositionProperties getPositionPropsInternal(String xPath);
     private native void updateBookInfoInternal( BookInfo info );
+    private native TOCItem getTOCInternal();
     
     
     protected int mNativeObject; // used from JNI
@@ -321,6 +322,23 @@ public class ReaderView extends View {
 		// TODO Auto-generated method stub
 		Log.d("cr3", "onTrackballEvent(" + event + ")");
 		return super.onTrackballEvent(event);
+	}
+	
+	public void showTOC()
+	{
+		final ReaderView view = this; 
+		mEngine.execute(new Task() {
+			TOCItem toc;
+			public void work() {
+				toc = getTOCInternal();
+			}
+			public void done() {
+				if ( toc!=null ) {
+					TOCDlg dlg = new TOCDlg(mActivity, view, toc);
+					dlg.show();
+				}
+			}
+		});
 	}
 
 	public void goToBookmark( Bookmark bm )

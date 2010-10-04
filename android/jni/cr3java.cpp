@@ -95,8 +95,12 @@ public:
 		_env->SetIntField(obj, _level, item->getLevel() );
 		_env->SetIntField(obj, _page, item->getPage() );
 		_env->SetIntField(obj, _percent, item->getPercent() );
-		_env->SetObjectField(obj, _name, _env.toJavaString( item->getName() ) );
-		_env->SetObjectField(obj, _path, _env.toJavaString( item->getPath() ) );
+		jstring str1 = _env.toJavaString( item->getName() );
+		_env->SetObjectField(obj, _name, str1 );
+		_env->DeleteLocalRef(str1);
+		jstring str2 = _env.toJavaString( item->getPath() );
+		_env->SetObjectField(obj, _path, str2 );
+		_env->DeleteLocalRef(str2);
 	}
 	void add( jobject obj, LVTocItem * child )
 	{
@@ -105,6 +109,7 @@ public:
 		for ( int i=0; i<child->getChildCount(); i++ ) {
 			add( jchild, child->getChild(i) );
 		}
+		_env->DeleteLocalRef(jchild);
 	}
 	jobject toJava(LVTocItem * root)
 	{

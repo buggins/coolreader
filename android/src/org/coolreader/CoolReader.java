@@ -31,7 +31,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -321,6 +320,9 @@ public class CoolReader extends Activity
 			Log.i("cr3", "Open File menu selected");
 			showBrowser();
 			//showToast("TOC feature is not implemented");
+			break;
+		case R.id.cr3_go_toc:
+			mReaderView.showTOC();
 			break;
 		case R.id.cr3_mi_gotopage:
 			Log.i("cr3", "gotopage menu item selected");
