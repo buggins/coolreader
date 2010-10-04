@@ -326,7 +326,6 @@ public class CoolReader extends Activity
 			break;
 		case R.id.cr3_mi_gotopage:
 			Log.i("cr3", "gotopage menu item selected");
-			showToast("Goto Page feature is not implemented");
 			break;
 		case R.id.cr3_mi_options:
 			Log.i("cr3", "options menu item selected");

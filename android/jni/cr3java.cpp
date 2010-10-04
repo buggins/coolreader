@@ -117,6 +117,7 @@ public:
 		for ( int i=0; i<root->getChildCount(); i++ ) {
 			add( jroot, root->getChild(i) );
 		}
+		return jroot;
 	} 
 };
 

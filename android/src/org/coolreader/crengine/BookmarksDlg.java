@@ -152,6 +152,7 @@ public class BookmarksDlg  extends AlertDialog {
 		mList = new BookmarkList(activity);
 		setView(mList);
 	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating OptionsDialog");
