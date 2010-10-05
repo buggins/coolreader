@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -279,8 +280,8 @@ public class ReaderView extends View {
 			syncViewSettings();
 			break;
 		case KeyEvent.KEYCODE_SEARCH:
-			mActivity.showToast("Search is not yet implemented...");
-			break;
+			showSearchDialog();
+			return true;
 		case KeyEvent.KEYCODE_MENU:
 			mActivity.openOptionsMenu();
 			break;
@@ -355,6 +356,31 @@ public class ReaderView extends View {
 
     public void findText( final String pattern, final boolean reverse, final boolean caseInsensitive )
     {
+		final ReaderView view = this; 
+		mEngine.execute(new Task() {
+			public void work() throws Exception {
+				boolean res = findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
+				if ( !res )
+					res = findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
+				if ( !res ) {
+					clearSelectionInternal();
+					throw new Exception("pattern not found");
+				}
+			}
+			public void done() {
+				drawPage();
+				FindNextDlg dlg = new FindNextDlg( mActivity, view, pattern, caseInsensitive );
+				dlg.showAtLocation(view, Gravity.NO_GRAVITY, 0, 0);
+			}
+			public void fail(Exception e) {
+				mActivity.showToast("Pattern not found");
+			}
+			
+		});
+    }
+    
+    public void findNext( final String pattern, final boolean reverse, final boolean caseInsensitive )
+    {
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
 				boolean res = findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
@@ -368,10 +394,18 @@ public class ReaderView extends View {
 			public void done() {
 				drawPage();
 			}
-			public void fail(Exception e) {
-				mActivity.showToast("Pattern not found");
+		});
+    }
+    
+    public void clearSelection()
+    {
+		mEngine.execute(new Task() {
+			public void work() throws Exception {
+				clearSelectionInternal();
 			}
-			
+			public void done() {
+				drawPage();
+			}
 		});
     }
 
