@@ -196,6 +196,70 @@ bool ReaderViewNative::closeBook()
 	return false;
 }
 
+void ReaderViewNative::clearSelection()
+{
+    _docview->clearSelection();
+}
+
+bool ReaderViewNative::findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive )
+{
+    if ( pattern.empty() )
+        return false;
+    if ( pattern!=_lastPattern && origin==1 )
+        origin = 0;
+    _lastPattern = pattern;
+    LVArray<ldomWord> words;
+    lvRect rc;
+    _docview->GetPos( rc );
+    int pageHeight = rc.height();
+    int start = -1;
+    int end = -1;
+    if ( reverse ) {
+        // reverse
+        if ( origin == 0 ) {
+            // from end current page to first page
+            end = rc.bottom;
+        } else if ( origin == -1 ) {
+            // from last page to end of current page
+            start = rc.bottom;
+        } else { // origin == 1
+            // from prev page to first page
+            end = rc.top;
+        }
+    } else {
+        // forward
+        if ( origin == 0 ) {
+            // from current page to last page
+            start = rc.top;
+        } else if ( origin == -1 ) {
+            // from first page to current page
+            end = rc.top;
+        } else { // origin == 1
+            // from next page to last
+            start = rc.bottom;
+        }
+    }
+    CRLog::debug("CRViewDialog::findText: Current page: %d .. %d", rc.top, rc.bottom);
+    CRLog::debug("CRViewDialog::findText: searching for text '%s' from %d to %d origin %d", LCSTR(pattern), start, end, origin );
+    if ( _docview->getDocument()->findText( pattern, caseInsensitive, reverse, start, end, words, 200, pageHeight ) ) {
+        CRLog::debug("CRViewDialog::findText: pattern found");
+        _docview->clearSelection();
+        _docview->selectWords( words );
+        ldomMarkedRangeList * ranges = _docview->getMarkedRanges();
+        if ( ranges ) {
+            if ( ranges->length()>0 ) {
+                int pos = ranges->get(0)->start.y;
+                _docview->SetPos(pos);
+            }
+        }
+        return true;
+    }
+    CRLog::debug("CRViewDialog::findText: pattern not found");
+    return false;
+}
+
+
+
 bool ReaderViewNative::loadHistory( lString16 filename )
 {
     CRFileHist * hist = _docview->getHistory();
@@ -618,3 +682,32 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getTOCInternal
 	return env.toJavaTOCItem(toc);
 }
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    clearSelectionInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_clearSelectionInternal
+  (JNIEnv * _env, jobject _this)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    if ( !p->_docview->isDocumentOpened() )
+        return;
+    p->clearSelection();
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    findTextInternal
+ * Signature: (Ljava/lang/String;III)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_findTextInternal
+  (JNIEnv * _env, jobject _this, jstring jpattern, jint origin, jint reverse, jint caseInsensitive)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    if ( !p->_docview->isDocumentOpened() )
+        return JNI_FALSE;
+    return p->findText(env.fromJavaString(jpattern), origin, reverse, caseInsensitive);
+}

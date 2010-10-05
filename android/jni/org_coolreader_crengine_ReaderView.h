@@ -131,6 +131,22 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInt
 JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getTOCInternal
   (JNIEnv *, jobject);
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    clearSelectionInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_clearSelectionInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    findTextInternal
+ * Signature: (Ljava/lang/String;III)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_findTextInternal
+  (JNIEnv *, jobject, jstring, jint, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif

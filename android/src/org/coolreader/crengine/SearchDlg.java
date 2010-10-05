@@ -37,9 +37,12 @@ public class SearchDlg  extends AlertDialog {
         setButton(AlertDialog.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 //cancel();
-    			mCoolReader.showToast("Search feature is not yet implemented");
+            	String pattern = mEditView.getText().toString();
+            	if ( pattern==null || pattern.length()==0 ) 
+            		mCoolReader.showToast("No pattern specified");
+            	else
+            		mReaderView.findText( mEditView.getText().toString(), mReverse.isChecked(), !mCaseSensitive.isChecked() );
                 dialog.cancel();
-                //TODO:
             }
         });
  

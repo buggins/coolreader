@@ -193,6 +193,8 @@ public class ReaderView extends View {
     private native PositionProperties getPositionPropsInternal(String xPath);
     private native void updateBookInfoInternal( BookInfo info );
     private native TOCItem getTOCInternal();
+    private native void clearSelectionInternal();
+    private native boolean findTextInternal( String pattern, int origin, int reverse, int caseInsensitive );
     
     
     protected int mNativeObject; // used from JNI
@@ -351,7 +353,29 @@ public class ReaderView extends View {
 		dlg.show();
 	}
 
-	public void goToBookmark( Bookmark bm )
+    public void findText( final String pattern, final boolean reverse, final boolean caseInsensitive )
+    {
+		mEngine.execute(new Task() {
+			public void work() throws Exception {
+				boolean res = findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
+				if ( !res )
+					res = findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
+				if ( !res ) {
+					clearSelectionInternal();
+					throw new Exception("pattern not found");
+				}
+			}
+			public void done() {
+				drawPage();
+			}
+			public void fail(Exception e) {
+				mActivity.showToast("Pattern not found");
+			}
+			
+		});
+    }
+
+    public void goToBookmark( Bookmark bm )
 	{
 		final String pos = bm.getStartPos();
 		mEngine.execute(new Task() {

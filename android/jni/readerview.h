@@ -15,6 +15,7 @@
 
 class ReaderViewNative {
 	lString16 historyFileName;
+	lString16 _lastPattern;
 public:
 	LVDocView * _docview;
 	ReaderViewNative();
@@ -24,6 +25,8 @@ public:
 	bool saveHistory( lString16 filename );
 	bool loadDocument( lString16 filename );
 	int doCommand( int cmd, int param );
+    bool findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive );
+    void clearSelection();
 };
 
 #endif
