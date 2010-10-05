@@ -23,6 +23,8 @@ public class FileInfo {
 	boolean isArchive;
 	boolean isDirectory;
 	boolean isModified;
+	boolean isListed;
+	boolean isScanned;
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
 	FileInfo parent; // parent item

@@ -456,7 +456,7 @@ static JNINativeMethod sReaderViewMethods[] = {
 //  {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getStateInternal},
   {"getCurrentPageBookmarkInternal", "()Lorg/coolreader/crengine/Bookmark;", (void*)Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal},
   {"goToPositionInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_goToPositionInternal},
-  {"getPositionPropsInternal", "(Ljava/lang/String;)Lorg/coolreader/crengine/ReaderView/PositionProperties;", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal},
+  {"getPositionPropsInternal", "(Ljava/lang/String;)Lorg/coolreader/crengine/PositionProperties;", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal},
   {"updateBookInfoInternal", "(Lorg/coolreader/crengine/BookInfo;)V", (void*)Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal},
   {"getTOCInternal", "()Lorg/coolreader/crengine/TOCItem;", (void*)Java_org_coolreader_crengine_ReaderView_getTOCInternal},
   {"clearSelectionInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_clearSelectionInternal},

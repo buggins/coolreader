@@ -79,8 +79,7 @@ public class FileBrowser extends ListView {
 		mEngine.showProgress(20, "Scanning directories...");
 		execute( new Task() {
 			public void work() {
-				mScanner.scan();
-				mHistory.loadFromDB(mScanner, 1000);
+				mHistory.loadFromDB(mScanner, 100);
 			}
 			public void done() {
 				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.size());
@@ -157,6 +156,17 @@ public class FileBrowser extends ListView {
 
 	private FileInfo currDirectory;
 	public void showDirectory( final FileInfo dir )
+	{
+		if ( dir!=null )
+			mScanner.scanDirectory(dir, new Runnable() {
+				public void run() {
+					showDirectoryInternal(dir);
+				}
+			});
+		else
+			showDirectoryInternal(dir);
+	}
+	private void showDirectoryInternal( final FileInfo dir )
 	{
 		currDirectory = dir;
 		if ( dir!=null )

@@ -226,6 +226,27 @@ public class CRDB {
 		return found;
 	}
 	
+	synchronized public boolean findRecentBooks( ArrayList<FileInfo> list, int maxCount, int limit )
+	{
+		String sql = READ_FILEINFO_SQL + " WHERE last_access_time>0 ORDER BY last_access_time DESC LIMIT " + limit;
+		Cursor rs = mDB.rawQuery(sql, null);
+		boolean found = false;
+		if ( rs.moveToFirst() ) {
+			do {
+				FileInfo fileInfo = new FileInfo();
+				readFileInfoFromCursor( fileInfo, rs );
+				if ( !fileInfo.fileExists() )
+					continue;
+				list.add(fileInfo);
+				found = true;
+				if ( list.size()>maxCount )
+					break;
+			} while (rs.moveToNext());
+		}
+		rs.close();
+		return found;
+	}
+	
 	private Long longQuery( String sql )
 	{
 		SQLiteStatement stmt = mDB.compileStatement(sql);
@@ -506,28 +527,18 @@ public class CRDB {
 		}
 	}
 
-	public ArrayList<BookInfo> loadRecentBooks( ArrayList<FileInfo> fileList, int maxCount )
+	/**
+	 * @param fileList
+	 * @param maxCount
+	 * @return
+	 */
+	public ArrayList<BookInfo> loadRecentBooks( HashMap<String, FileInfo> fileList, int maxCount )
 	{
-		ArrayList<FileInfo> list = new ArrayList<FileInfo>(fileList.size());
-		for ( FileInfo item : fileList )
-			if ( item.lastAccessTime!=0 && item.id!=null )
-				list.add(item);
-		// sort by access time, most recent at beginning
-		Collections.sort(list, new Comparator<FileInfo>() {
-			public int compare(FileInfo v1, FileInfo v2) {
-				if ( v1.lastAccessTime>v2.lastAccessTime )
-					return -1;
-				else if ( v1.lastAccessTime<v2.lastAccessTime )
-					return 1;
-				return 0;
-			}
-		});
-		// remove tail
-		for ( int i=list.size()-1; i>=maxCount; i-- )
-			list.remove(i);
-		//
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		findRecentBooks( list, maxCount, maxCount*10 );
 		ArrayList<BookInfo> res = new ArrayList<BookInfo>(list.size());
 		for ( FileInfo file : list ) {
+			fileList.put(file.pathname, file);
 			BookInfo item = new BookInfo( file );
 			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
 			if ( load( bookmarks, "book_fk=" + file.id + " ORDER BY type" ) ) {
