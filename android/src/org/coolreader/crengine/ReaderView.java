@@ -344,6 +344,12 @@ public class ReaderView extends View {
 			}
 		});
 	}
+	
+	public void showSearchDialog()
+	{
+		SearchDlg dlg = new SearchDlg( mActivity, this );
+		dlg.show();
+	}
 
 	public void goToBookmark( Bookmark bm )
 	{

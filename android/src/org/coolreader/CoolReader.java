@@ -350,7 +350,7 @@ public class CoolReader extends Activity
 			break;
 		case R.id.cr3_mi_search:
 			Log.i("cr3", "Search menu item selected");
-			showToast("Search feature is not implemented");
+			mReaderView.showSearchDialog();
 			break;
 		case R.id.cr3_mi_exit:
 			Log.i("cr3", "exit menu item selected");
