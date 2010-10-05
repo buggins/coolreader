@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content">
+<EditText 
+    android:id="@+id/search_text" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+	android:text="" 
+    style="@android:style/TextAppearance.Widget.EditText"
+	android:editable="true" android:hint="Type search pattern here" android:singleLine="true"
+/>
+<CheckBox android:text="Case insensitive" android:id="@+id/search_case_insensitive" android:layout_width="fill_parent" android:layout_height="wrap_content"></CheckBox>
+<CheckBox android:text="Search back" android:id="@+id/search_reverse" android:layout_width="fill_parent" android:layout_height="wrap_content"></CheckBox>
+
+</LinearLayout>

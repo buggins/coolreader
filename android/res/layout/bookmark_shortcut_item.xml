@@ -29,6 +29,7 @@
 
 	    <TextView android:id="@+id/shortcut_bookmark_item_shortcut"
 	        style="@android:style/TextAppearance.Medium"
+			android:text="1" 
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:singleLine="true"
@@ -45,6 +46,7 @@
 
         <TextView android:id="@+id/shortcut_bookmark_item_title"
             style="@android:style/TextAppearance.Small"
+			android:text="10% Title Text" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:singleLine="true"
@@ -54,6 +56,7 @@
             style="@android:style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+			android:text="Position text bla bla bla bla bla..." 
             android:singleLine="true"
             android:ellipsize="end"
             android:layout_gravity="left" />
