@@ -15,25 +15,18 @@
         style="@android:style/TextAppearance.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:singleLine="true"
         android:src="@drawable/cr3_find_prev"
         android:background="#f000"
-        android:layout_gravity="left" android:ellipsize="none"/>
+        />
     <ImageButton android:id="@+id/search_btn_next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|left"
-        android:layout_marginRight="0dip"
-        android:layout_marginLeft="0dip"
         android:background="#f000"
         android:src="@drawable/cr3_find_next"
         />
     <ImageButton android:id="@+id/search_btn_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|left"
-        android:layout_marginRight="0dip"
-        android:layout_marginLeft="0dip"
         android:background="#f000"
         android:src="@drawable/cr3_find_close"
         />

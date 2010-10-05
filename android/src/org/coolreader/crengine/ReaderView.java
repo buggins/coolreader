@@ -370,7 +370,8 @@ public class ReaderView extends View {
 			public void done() {
 				drawPage();
 				FindNextDlg dlg = new FindNextDlg( mActivity, view, pattern, caseInsensitive );
-				dlg.showAtLocation(view, Gravity.NO_GRAVITY, 0, 0);
+				// TODO: remove hardcoded position
+				dlg.showAtLocation(view, Gravity.NO_GRAVITY, 0, 30);
 			}
 			public void fail(Exception e) {
 				mActivity.showToast("Pattern not found");

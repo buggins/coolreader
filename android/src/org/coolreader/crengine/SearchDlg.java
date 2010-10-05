@@ -29,7 +29,7 @@ public class SearchDlg  extends AlertDialog {
         mInflater = LayoutInflater.from(getContext());
         mDialogView = mInflater.inflate(R.layout.search_dialog, null);
     	mEditView = (EditText)mDialogView.findViewById(R.id.search_text);
-    	mCaseSensitive = (CheckBox)mDialogView.findViewById(R.id.search_case_insensitive);
+    	mCaseSensitive = (CheckBox)mDialogView.findViewById(R.id.search_case_sensitive);
     	mReverse = (CheckBox)mDialogView.findViewById(R.id.search_reverse);
 		setTitle("Search");
 		setView(mDialogView);

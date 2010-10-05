@@ -34,7 +34,7 @@ public class FindNextDlg extends PopupWindow {
 		});
 		mPanel.findViewById(R.id.search_btn_next).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				mReaderView.findNext(pattern, true, caseInsensitive);
+				mReaderView.findNext(pattern, false, caseInsensitive);
 			}
 		});
 		mPanel.findViewById(R.id.search_btn_close).setOnClickListener(new OnClickListener() {
@@ -43,6 +43,7 @@ public class FindNextDlg extends PopupWindow {
 				dismiss();
 			}
 		});
+		mPanel.setFocusable(true);
 		mPanel.setOnKeyListener( new OnKeyListener() {
 
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
