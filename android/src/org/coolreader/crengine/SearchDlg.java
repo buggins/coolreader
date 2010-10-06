@@ -31,7 +31,7 @@ public class SearchDlg  extends AlertDialog {
     	mEditView = (EditText)mDialogView.findViewById(R.id.search_text);
     	mCaseSensitive = (CheckBox)mDialogView.findViewById(R.id.search_case_sensitive);
     	mReverse = (CheckBox)mDialogView.findViewById(R.id.search_reverse);
-		setTitle("Search");
+		setTitle(mCoolReader.getResources().getString(R.string.win_title_search));
 		setView(mDialogView);
 		// setup buttons
         setButton(AlertDialog.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {

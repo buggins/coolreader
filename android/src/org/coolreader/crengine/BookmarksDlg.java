@@ -156,8 +156,8 @@ public class BookmarksDlg  extends AlertDialog {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.v("cr3", "creating OptionsDialog");
-		setTitle("Bookmarks");
+		Log.v("cr3", "creating BookmarksDlg");
+		setTitle(mCoolReader.getResources().getString(R.string.win_title_bookmarks));
         setCancelable(true);
         mInflater = LayoutInflater.from(getContext());
 		super.onCreate(savedInstanceState);

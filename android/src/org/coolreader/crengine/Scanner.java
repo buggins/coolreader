@@ -229,6 +229,10 @@ public class Scanner {
 //		}
 //	}
 	
+	private boolean addRoot( String pathname, int resourceId, boolean listIt)
+	{
+		return addRoot( pathname, coolReader.getResources().getString(resourceId), listIt);
+	}
 	private boolean addRoot( String pathname, String filename, boolean listIt)
 	{
 		FileInfo dir = new FileInfo();
@@ -250,10 +254,10 @@ public class Scanner {
 	{
 		mRoot.clear();
 		// create recent books dir
-		addRoot( "@recent", "Recent Books", false);
-		addRoot( Environment.getExternalStorageDirectory().getAbsolutePath(), "SD card", true);
+		addRoot( "@recent", R.string.dir_recent_books, false);
+		addRoot( Environment.getExternalStorageDirectory().getAbsolutePath(), R.string.dir_sd_card, true);
 		// internal SD card on Nook
-		addRoot( "/system/media/sdcard", "Internal SD card", true);
+		addRoot( "/system/media/sdcard", R.string.dir_internal_sd_card, true);
 	}
 	
 //	public boolean scan()

@@ -348,6 +348,11 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 			return mOptionsPage;
 		return null;
 	}
+
+	private String getString( int resourceId )
+	{
+		return getContext().getResources().getString(resourceId); 
+	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -355,7 +360,6 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 		
 		//setTitle("Options");
         setCancelable(true);
-		
         mInflater = LayoutInflater.from(getContext());
         mTabs = (TabHost)mInflater.inflate(R.layout.options, null);
 		// setup tabs
@@ -365,36 +369,36 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 		mTabs.setup();
 		//new TabHost(getContext());
 		mOptionsStyles = new OptionsListView(getContext());
-		mOptionsStyles.add(new ListOption("Font face", ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]));
-		mOptionsStyles.add(new ListOption("Font size", ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24"));
-		mOptionsStyles.add(new BoolOption("Embolden font", ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0"));
-		mOptionsStyles.add(new BoolOption("Inverse view", ReaderView.PROP_DISPLAY_INVERSE).setDefaultValue("0"));
-		mOptionsStyles.add(new ListOption("Interline space", ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
+		mOptionsStyles.add(new ListOption(getString(R.string.options_font_face), ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]));
+		mOptionsStyles.add(new ListOption(getString(R.string.options_font_size), ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24"));
+		mOptionsStyles.add(new BoolOption(getString(R.string.options_font_embolden), ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0"));
+		mOptionsStyles.add(new BoolOption(getString(R.string.options_inverse_view), ReaderView.PROP_DISPLAY_INVERSE).setDefaultValue("0"));
+		mOptionsStyles.add(new ListOption(getString(R.string.options_interline_space), ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
 		mOptionsPage = new OptionsListView(getContext());
-		mOptionsPage.add(new BoolOption("Show title bar", ReaderView.PROP_STATUS_LINE).setDefaultValue("1"));
-		mOptionsPage.add(new BoolOption("Footnotes", ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
-		mOptionsPage.add(new ListOption("Left margin", ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption("Right margin", ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption("Top margin", ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption("Bottom margin", ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setDefaultValue("1"));
+		mOptionsPage.add(new BoolOption(getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_top), ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_bottom), ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsApplication.add(new BoolOption("Full screen", "app.fullscreen"));
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
-		tsStyles.setIndicator("Styles"); // , R.drawable.cr3_option_style
+		tsStyles.setIndicator(getContext().getResources().getString(R.string.tab_options_styles)); // , R.drawable.cr3_option_style
 		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
 		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
-		tsPage.setIndicator("Page"); //, R.drawable.cr3_option_page
+		tsPage.setIndicator(getContext().getResources().getString(R.string.tab_options_page)); //, R.drawable.cr3_option_page
 		tsPage.setContent(this);
 		mTabs.addTab(tsPage);
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
-		tsApp.setIndicator("App");
+		tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app));
 		tsApp.setContent(this);
 		mTabs.addTab(tsApp);
 		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
-		tsControls.setIndicator("Controls");
+		tsControls.setIndicator(getContext().getResources().getString(R.string.tab_options_controls));
 		tsControls.setContent(this);
 		mTabs.addTab(tsControls);
 

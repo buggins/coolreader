@@ -181,7 +181,7 @@ public class TOCDlg extends AlertDialog {
 			
 		};
 		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-		setTitle("Table of Contents");
+		setTitle(mCoolReader.getResources().getString(R.string.win_title_toc));
 		setView(mListView);
 	}
 
