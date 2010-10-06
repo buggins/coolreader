@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.coolreader.CoolReader;
+import org.coolreader.R;
 import org.coolreader.crengine.Engine.EngineTask;
 
 import android.os.Environment;
@@ -63,29 +64,31 @@ public class Scanner {
 			File dir = new File(baseDir.pathname);
 			File[] items = dir.listFiles();
 			// process normal files
-			for ( File f : items ) {
-				if ( !f.isDirectory() ) {
-					String pathName = f.getAbsolutePath();
-					FileInfo item = mFileList.get(pathName);
-					boolean isNew = false;
-					if ( item==null ) {
-						item = new FileInfo( f );
-						isNew = true;
-					}
-					if ( item.format!=null ) {
-						item.parent = baseDir;
-						baseDir.addFile(item);
-						if ( isNew )
-							mFileList.put(pathName, item);
+			if ( items!=null ) {
+				for ( File f : items ) {
+					if ( !f.isDirectory() ) {
+						String pathName = f.getAbsolutePath();
+						FileInfo item = mFileList.get(pathName);
+						boolean isNew = false;
+						if ( item==null ) {
+							item = new FileInfo( f );
+							isNew = true;
+						}
+						if ( item.format!=null ) {
+							item.parent = baseDir;
+							baseDir.addFile(item);
+							if ( isNew )
+								mFileList.put(pathName, item);
+						}
 					}
 				}
-			}
-			// process directories 
-			for ( File f : items ) {
-				if ( f.isDirectory() ) {
-					FileInfo item = new FileInfo( f );
-					item.parent = baseDir;
-					baseDir.addDir(item);					
+				// process directories 
+				for ( File f : items ) {
+					if ( f.isDirectory() ) {
+						FileInfo item = new FileInfo( f );
+						item.parent = baseDir;
+						baseDir.addDir(item);					
+					}
 				}
 			}
 			baseDir.isListed = true;
@@ -117,7 +120,7 @@ public class Scanner {
 			{
 				long ts = System.currentTimeMillis();
 				if ( ts>=nextProgressTime ) {
-					engine.showProgress(percent, "Scanning directory");
+					engine.showProgress(percent, R.string.progress_scanning);
 					nextProgressTime = ts + 1500;
 					progressShown = true;
 				}
@@ -236,6 +239,10 @@ public class Scanner {
 			return false;
 		mRoot.addDir(dir);
 		dir.parent = mRoot;
+		if ( !listIt ) {
+			dir.isListed = true;
+			dir.isScanned = true;
+		}
 		return true;
 	}
 	
@@ -289,6 +296,8 @@ public class Scanner {
 		mRoot.path = "@root";	
 		mRoot.filename = "File Manager";	
 		mRoot.pathname = "@root";
+		mRoot.isListed = true;
+		mRoot.isScanned = true;
 	}
 
 	private final Engine engine;

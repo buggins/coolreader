@@ -1,6 +1,9 @@
 package org.coolreader.crengine;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
+
+import org.coolreader.crengine.ReaderView.Sync;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -95,13 +98,63 @@ public class BackgroundThread extends Thread {
 		else
 			postGUI(task);
 	}
+
+    public <T> T callBackground( final Callable<T> task )
+    {
+    	if ( isBackgroundThread() ) {
+    		try {
+    			return task.call();
+    		} catch ( Exception e ) {
+    			return null;
+    		}
+    	}
+    	//Log.d("cr3", "executeSync called");
+    	final Sync<T> sync = new Sync<T>();
+    	postBackground( new Runnable() {
+    		public void run() {
+    			try {
+    				sync.set( task.call() );
+    			} catch ( Exception e ) {
+    				sync.set( null );
+    			}
+    		}
+    	});
+    	T res = sync.get();
+    	//Log.d("cr3", "executeSync done");
+    	return res;
+    }
+	
+    public <T> T callGUI( final Callable<T> task )
+    {
+    	if ( isGUIThread() ) {
+    		try {
+    			return task.call();
+    		} catch ( Exception e ) {
+    			return null;
+    		}
+    	}
+    	//Log.d("cr3", "executeSync called");
+    	final Sync<T> sync = new Sync<T>();
+    	postBackground( new Runnable() {
+    		public void run() {
+    			try {
+    				sync.set( task.call() );
+    			} catch ( Exception e ) {
+    			}
+    		}
+    	});
+    	T res = sync.get();
+    	return res;
+    }
+	
 	private boolean mStopped = false;
 	public void quit()
 	{
-		executeBackground( new Runnable() {
-			public void run() {
+		callBackground(new Callable<Object>() {
+			public Object call() {
 				mStopped = true;
 				Looper.myLooper().quit();
+				return null;
 			}
 		});
 	}

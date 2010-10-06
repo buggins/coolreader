@@ -152,7 +152,11 @@ public class Engine {
 	private boolean enable_progress = true; 
 	private boolean progressShown = false;
 	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
-	public void showProgress( final int mainProgress, final String msg )
+	public void showProgress( final int mainProgress, final int resourceId )
+	{
+		showProgress( mainProgress, mActivity.getResources().getString(resourceId) );
+	}
+	private void showProgress( final int mainProgress, final String msg )
 	{
 		if ( mainProgress==10000 ) {
 			Log.v("cr3", "mainProgress==10000 : calling hideProgress");
@@ -173,7 +177,7 @@ public class Engine {
 							mProgress.setMax(10000);
 							mProgress.setCancelable(false);
 							mProgress.setProgress(mainProgress);
-							mProgress.setTitle("Please wait");
+							mProgress.setTitle(mActivity.getResources().getString(R.string.progress_please_wait));
 							mProgress.setMessage(msg);
 							mProgress.show();
 						} else {
@@ -405,8 +409,10 @@ public class Engine {
 	 */
 	public void uninit()
 	{
+		Log.i("cr3", "Engine.uninit() is called");
 		mBackgroundThread.executeBackground(new Runnable() {
 			public void run() {
+				Log.i("cr3", "Engine.uninit() : in background thread");
 				if ( initialized ) {
 					uninitInternal();
 					initialized = false;
@@ -419,8 +425,10 @@ public class Engine {
 	
 	protected void finalize() throws Throwable
 	{
-		if ( initialized )
-			uninit();
+		if ( initialized ) {
+			uninitInternal();
+			initialized = false;
+		}
 	}
 	
 	static private boolean initialized = false;

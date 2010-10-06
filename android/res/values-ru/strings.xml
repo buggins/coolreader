@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cool Reader 3</string>
+<string name="mi_search">Найти</string>
+<string name="mi_exit">Закрыть</string>
+<string name="mi_goto">Перейти</string>
+<string name="mi_bookmarks">Закладки</string>
+<string name="mi_file_open">Открыть файл</string>
+<string name="mi_options">Настройки</string>
+<string name="progress_please_wait">Подождите, пожалуйста</string>
+<string name="progress_starting_cool_reader">Запускается Cool Reader</string>
+<string name="progress_loading">Загрузка книги</string>
+<string name="progress_formatting">Форматирование книги</string>
+<string name="progress_scanning">Сканирование директории</string>
+<string name="mi_bookmark_set">Установить закладку</string>
+<string name="mi_bookmark_goto">Перейти на закладку</string>
+<string name="mi_goto_page">На страницу №</string>
+<string name="mi_goto_percent">На позицию %</string>
+<string name="mi_goto_toc">Содержание</string>
+</resources>

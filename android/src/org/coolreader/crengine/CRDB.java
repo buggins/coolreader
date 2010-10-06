@@ -88,7 +88,7 @@ public class CRDB {
 				"author_book_index ON book_author (author_fk, book_fk) ");
 		mDB.execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"book_fk INTEGER REFERENCES book (id)," +
+				"book_fk INTEGER NOT NULL REFERENCES book (id)," +
 				"type INTEGER NOT NULL DEFAULT 0," +
 				"percent INTEGER DEFAULT 0," +
 				"time_stamp INTEGER DEFAULT 0," +
@@ -98,6 +98,8 @@ public class CRDB {
 				"pos_text VARCHAR," +
 				"comment_text VARCHAR" +
 				")");
+		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		"bookmark_book_index ON bookmark (book_fk) ");
 		return true;
 	}
 	
@@ -432,6 +434,7 @@ public class CRDB {
 		{
 			if ( fields.size()==0 )
 				return null;
+			StringBuilder valueBuf = new StringBuilder();
 			try {
 				String ignoreOption = ""; //"OR IGNORE ";
 				StringBuilder buf = new StringBuilder("INSERT " + ignoreOption + " INTO ");
@@ -452,6 +455,8 @@ public class CRDB {
 				SQLiteStatement stmt = mDB.compileStatement(sql);
 				for ( int i=1; i<=values.size(); i++ ) {
 					Object v = values.get(i-1);
+					valueBuf.append(v!=null ? v.toString() : "null");
+					valueBuf.append(",");
 					if ( v==null )
 						stmt.bindNull(i);
 					else if (v instanceof String)
@@ -467,6 +472,7 @@ public class CRDB {
 				return id;
 			} catch ( Exception e ) {
 				Log.e("cr3db", "insert failed: " + e.getMessage());
+				Log.e("cr3db", "values: " + valueBuf.toString());
 				return null;
 			}
 		}
@@ -552,6 +558,10 @@ public class CRDB {
 	synchronized public boolean save( BookInfo bookInfo )
 	{
 		Log.d("cr3db", "saving Book info id=" + bookInfo.getFileInfo().id);
+		if ( mDB==null ) {
+			Log.e("cr3db", "cannot save book info : DB is closed");
+			return false;
+		}
 		boolean res = save(bookInfo.getFileInfo());
 		for ( int i=0; i<bookInfo.getBookmarkCount(); i++ ) {
 			 Bookmark bmk  = bookInfo.getBookmark(i);
@@ -625,6 +635,7 @@ public class CRDB {
 
 	public void close()
 	{
+		Log.i("cr3db", "Closing DB");
 		if ( seriesStmt!=null) {
 			seriesStmt.close();
 			seriesStmt = null;

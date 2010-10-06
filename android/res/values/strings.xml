@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Cool Reader 3</string>
+<string name="mi_search">Search</string>
+<string name="mi_exit">Exit</string>
+<string name="mi_goto">Go to</string>
+<string name="mi_bookmarks">Bookmarks</string>
+<string name="mi_file_open">Open file</string>
+<string name="mi_options">Options</string>
+<string name="progress_please_wait">Please wait</string>
+<string name="progress_starting_cool_reader">Starting Cool Reader</string>
+<string name="progress_loading">Loading document</string>
+<string name="progress_formatting">Formatting document</string>
+<string name="progress_scanning">Scanning directory</string>
+<string name="mi_bookmark_set">Set bookmark</string>
+<string name="mi_bookmark_goto">Go to bookmark</string>
+<string name="mi_goto_page">Go to page #</string>
+<string name="mi_goto_percent">Go to position %</string>
+<string name="mi_goto_toc">Table of Contents</string>
 </resources>

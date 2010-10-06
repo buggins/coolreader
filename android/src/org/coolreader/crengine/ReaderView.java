@@ -748,7 +748,7 @@ public class ReaderView extends View {
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
     		//mBitmap = null;
-	        mEngine.showProgress( 1000, "Loading..." );
+	        mEngine.showProgress( 1000, R.string.progress_loading );
 	        //init();
 		}
 
@@ -848,11 +848,11 @@ public class ReaderView extends View {
     
     public void close()
     {
+		save();
     	execute( new Task() {
     		public void work() {
     			if ( mOpened ) {
 					Log.i("cr3", "ReaderView().close() : closing current document");
-					savePosition();
 					doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}
@@ -905,7 +905,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
-			    	mEngine.showProgress( percent*4/10 + 5000, "Formatting...");
+			    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
 			    	return null;
 				}
 			});
@@ -942,7 +942,7 @@ public class ReaderView extends View {
 			executeSync( new Callable<Object>() {
 				public Object call() {
 			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
-			    	mEngine.showProgress( percent*4/10 + 1000, "Loading...");
+			    	mEngine.showProgress( percent*4/10 + 1000, R.string.progress_loading);
 			    	return null;
 				}
 			});

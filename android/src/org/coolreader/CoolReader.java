@@ -97,34 +97,39 @@ public class CoolReader extends Activity
 
 	@Override
 	protected void onDestroy() {
-		Log.i("cr3", "CoolReader.onDestroy()");
+		Log.i("cr3", "CoolReader.onDestroy() entered");
 		if ( mHistory!=null && mDB!=null ) {
 			//history.saveToDB();
 		}
 		if ( mReaderView!=null ) {
 			mReaderView.destroy();
-			mReaderView = null;
 		}
 		if ( mEngine!=null ) {
 			mEngine.uninit();
-			mEngine = null;
 		}
 		if ( mDB!=null ) {
-			mDB.close();
-			mDB = null;
+			mBackgroundThread.executeBackground(new Runnable() {
+				public void run() {
+					mDB.close();
+				}
+			});
 		}
 		if ( mBackgroundThread!=null ) {
 			mBackgroundThread.quit();
-			mBackgroundThread = null;
 		}
 			
-		// TODO Auto-generated method stub
+		mDB = null;
+		mReaderView = null;
+		mEngine = null;
+		mBackgroundThread = null;
+		Log.i("cr3", "CoolReader.onDestroy() exiting");
 		super.onDestroy();
 	}
 
 	@Override
 	protected void onPause() {
-		Log.i("cr3", "CoolReader.onPause()");
+		Log.i("cr3", "CoolReader.onPause() : saving reader state");
+		mReaderView.save();
 		super.onPause();
 	}
 
@@ -171,7 +176,7 @@ public class CoolReader extends Activity
 		Log.i("cr3", "CoolReader.onStart()");
 		super.onStart();
 		mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
-        mEngine.showProgress( 5, "Starting Cool Reader..." );
+        mEngine.showProgress( 5, R.string.progress_starting_cool_reader );
         Log.i("cr3", "waiting for engine tasks completion");
         //engine.waitTasksCompletion();
         mEngine.execute(new Engine.EngineTask() {
@@ -245,6 +250,7 @@ public class CoolReader extends Activity
 			public void run() {
 				showView(mBrowser);
 		        mEngine.hideProgress();
+		        mBrowser.showLastDirectory();
 			}
 		});
 	}

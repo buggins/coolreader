@@ -76,7 +76,7 @@ public class FileBrowser extends ListView {
 		if ( mInitStarted )
 			return;
 		mInitStarted = true;
-		mEngine.showProgress(20, "Scanning directories...");
+		mEngine.showProgress(1000, R.string.progress_scanning);
 		execute( new Task() {
 			public void work() {
 				mHistory.loadFromDB(mScanner, 100);
@@ -90,7 +90,9 @@ public class FileBrowser extends ListView {
 			}
 			public void fail(Exception e )
 			{
-				mEngine.showProgress(9000, "Scan is failed");
+				//mEngine.showProgress(9000, "Scan is failed");
+				mEngine.hideProgress();
+				mActivity.showToast("Scan is failed");
 				Log.e("cr3", "Exception while scanning directories", e);
 			}
 		});
@@ -155,6 +157,10 @@ public class FileBrowser extends ListView {
 	}
 
 	private FileInfo currDirectory;
+	public void showLastDirectory()
+	{
+		showDirectory(currDirectory);
+	}
 	public void showDirectory( final FileInfo dir )
 	{
 		if ( dir!=null )

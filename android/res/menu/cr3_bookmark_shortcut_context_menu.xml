@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:title="Set bookmark" android:titleCondensed="Set" android:id="@+id/bookmark_shortcut_add"></item>
-<item android:title="Go to bookmark" android:titleCondensed="Go to" android:id="@+id/bookmark_shortcut_goto"></item>
+<item android:title="@string/mi_bookmark_set" android:titleCondensed="@string/mi_bookmark_set" android:id="@+id/bookmark_shortcut_add"></item>
+<item android:title="@string/mi_bookmark_goto" android:titleCondensed="@string/mi_bookmark_goto" android:id="@+id/bookmark_shortcut_goto"></item>
 </menu>
