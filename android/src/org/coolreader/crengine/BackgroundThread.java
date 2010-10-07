@@ -12,6 +12,9 @@ import android.util.Log;
 import android.view.View;
 
 public class BackgroundThread extends Thread {
+	
+	public final static Object LOCK = new Object(); 
+	
 	private Handler handler;
 	private View guiTarget;
 	private ArrayList<Runnable> posted = new ArrayList<Runnable>();
@@ -44,6 +47,16 @@ public class BackgroundThread extends Thread {
 		}
 		Looper.loop();
 	}
+	private Runnable guard( final Runnable r )
+	{
+		return new Runnable() {
+			public void run() {
+				synchronized (LOCK) {
+					r.run();
+				}
+			}
+		};
+	}
 	public void postBackground( Runnable task )
 	{
 		if ( mStopped ) {
@@ -51,6 +64,7 @@ public class BackgroundThread extends Thread {
 			postGUI( task );
 			return;
 		}
+		task = guard(task);
 		if ( handler==null ) {
 			synchronized(posted) {
 				posted.add(task);
@@ -75,6 +89,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public void executeBackground( Runnable task )
 	{
+		task = guard(task);
 		if ( isBackgroundThread() || mStopped )
 			task.run(); // run in this thread
 		else 
@@ -99,8 +114,18 @@ public class BackgroundThread extends Thread {
 			postGUI(task);
 	}
 
-    public <T> T callBackground( final Callable<T> task )
+    public <T> Callable<T> guard( final Callable<T> task )
     {
+    	return new Callable<T>() {
+    		public T call() throws Exception {
+    			return task.call();
+    		}
+    	};
+    }
+	
+    public <T> T callBackground( final Callable<T> srcTask )
+    {
+    	final Callable<T> task = guard(srcTask);
     	if ( isBackgroundThread() ) {
     		try {
     			return task.call();
@@ -148,6 +173,16 @@ public class BackgroundThread extends Thread {
     }
 	
 	private boolean mStopped = false;
+	
+	public void waitForBackgroundCompletion()
+	{
+		callBackground(new Callable<Object>() {
+			public Object call() {
+				return null;
+			}
+		});
+	}
+	
 	public void quit()
 	{
 		callBackground(new Callable<Object>() {

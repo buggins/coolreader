@@ -157,9 +157,20 @@ public class FileBrowser extends ListView {
 	}
 
 	private FileInfo currDirectory;
+	public void showRecentBooks()
+	{
+		if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
+			showDirectory(mScanner.getRoot().getDir(0));
+		} else {
+			showDirectory(mScanner.getRoot());
+		}
+	}
 	public void showLastDirectory()
 	{
-		showDirectory(currDirectory);
+		if ( currDirectory==null || currDirectory==mScanner.getRoot() )
+			showRecentBooks();
+		else
+			showDirectory(currDirectory);
 	}
 	public void showDirectory( final FileInfo dir )
 	{

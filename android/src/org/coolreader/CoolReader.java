@@ -114,7 +114,11 @@ public class CoolReader extends Activity
 
 	@Override
 	protected void onDestroy() {
+
 		Log.i("cr3", "CoolReader.onDestroy() entered");
+		if ( mReaderView!=null )
+			mReaderView.close();
+		
 		if ( mHistory!=null && mDB!=null ) {
 			//history.saveToDB();
 		}
@@ -146,7 +150,8 @@ public class CoolReader extends Activity
 	@Override
 	protected void onPause() {
 		Log.i("cr3", "CoolReader.onPause() : saving reader state");
-		wl.release();
+		if ( wl.isHeld() )
+			wl.release();
 		mReaderView.save();
 		super.onPause();
 	}
@@ -189,7 +194,7 @@ public class CoolReader extends Activity
 		super.onSaveInstanceState(outState);
 	}
 
-	static final boolean LOAD_LAST_DOCUMENT_ON_START = true; 
+	static final boolean LOAD_LAST_DOCUMENT_ON_START = false; 
 	
 	@Override
 	protected void onStart() {
@@ -198,7 +203,8 @@ public class CoolReader extends Activity
 		
 		wl.acquire();
 		
-		if ( restarted && !stopped ) {
+		//!stopped && 
+		if ( restarted && mReaderView!=null && mReaderView.isBookLoaded() ) {
 	        restarted = false;
 	        return;
 		}
@@ -242,7 +248,8 @@ public class CoolReader extends Activity
 	protected void onStop() {
 		Log.i("cr3", "CoolReader.onStop()");
 		stopped = true;
-		mReaderView.close();
+		// will close book at onDestroy()
+		//mReaderView.close();
 		super.onStop();
 	}
 

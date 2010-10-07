@@ -242,6 +242,8 @@ public class ReaderView extends View {
 		return super.onKeyUp(keyCode, event);
 	}
 
+	boolean VOLUME_KEYS_ZOOM = false;
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
@@ -272,12 +274,18 @@ public class ReaderView extends View {
 			mActivity.showBrowser();
 			break;
 		case KeyEvent.KEYCODE_VOLUME_UP:
-			doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
-			syncViewSettings();
+			if ( VOLUME_KEYS_ZOOM ) {
+				doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+				syncViewSettings();
+			} else
+				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
 			break;
 		case KeyEvent.KEYCODE_VOLUME_DOWN:
-			doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
-			syncViewSettings();
+			if ( VOLUME_KEYS_ZOOM ) {
+				doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+				syncViewSettings();
+			} else
+				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
 			break;
 		case KeyEvent.KEYCODE_SEARCH:
 			showSearchDialog();
