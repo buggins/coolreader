@@ -848,6 +848,7 @@ public class ReaderView extends View {
     
     public void close()
     {
+    	Log.i("cr3", "ReaderView.close() is called");
 		save();
     	execute( new Task() {
     		public void work() {

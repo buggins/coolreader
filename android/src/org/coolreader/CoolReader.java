@@ -22,7 +22,7 @@ import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.PowerManager;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.util.Log;
@@ -31,6 +31,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager.LayoutParams;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -57,12 +58,21 @@ public class CoolReader extends Activity
 		return mDB;
 	}
 	
-    /** Called when the activity is first created. */
+	PowerManager.WakeLock wl = null;
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
 		Log.i("cr3", "CoolReader.onCreate()");
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
+		
+		PowerManager pm = (PowerManager)getSystemService(
+	            Context.POWER_SERVICE);
+		wl = pm.newWakeLock(
+	        PowerManager.SCREEN_BRIGHT_WAKE_LOCK
+	        | PowerManager.ON_AFTER_RELEASE,
+	        "cr3");
+		
         // testing background thread
     	mBackgroundThread = new BackgroundThread();
 		mFrame = new FrameLayout(this);
@@ -93,6 +103,13 @@ public class CoolReader extends Activity
         mScanner.initRoots();
         mReaderView.init();
         mBrowser.showDirectory(mScanner.getRoot());
+//        Window wnd = getWindow();
+//        if ( wnd!=null ) {
+//        	LayoutParams attrs =  wnd.getAttributes();
+//        	attrs.screenBrightness = 0.7f;
+//        	wnd.setAttributes(attrs);
+//        	//attrs.screenOrientation = LayoutParams.SCREEN_;
+//        }
     }
 
 	@Override
@@ -129,6 +146,7 @@ public class CoolReader extends Activity
 	@Override
 	protected void onPause() {
 		Log.i("cr3", "CoolReader.onPause() : saving reader state");
+		wl.release();
 		mReaderView.save();
 		super.onPause();
 	}
@@ -145,9 +163,11 @@ public class CoolReader extends Activity
 		super.onPostResume();
 	}
 
+	private boolean restarted = false;
 	@Override
 	protected void onRestart() {
 		Log.i("cr3", "CoolReader.onRestart()");
+		restarted = true;
 		super.onRestart();
 	}
 
@@ -175,10 +195,20 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		Log.i("cr3", "CoolReader.onStart()");
 		super.onStart();
-		mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
+		
+		wl.acquire();
+		
+		if ( restarted && !stopped ) {
+	        restarted = false;
+	        return;
+		}
+		if ( !stopped )
+			mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
         mEngine.showProgress( 5, R.string.progress_starting_cool_reader );
         Log.i("cr3", "waiting for engine tasks completion");
         //engine.waitTasksCompletion();
+		restarted = false;
+		stopped = false;
         mEngine.execute(new Engine.EngineTask() {
 
 			public void done() {
@@ -206,8 +236,11 @@ public class CoolReader extends Activity
         });
 	}
 
+	private boolean stopped = false;
 	@Override
 	protected void onStop() {
+		Log.i("cr3", "CoolReader.onStop()");
+		stopped = true;
 		mReaderView.close();
 		super.onStop();
 	}
