@@ -11,6 +11,9 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
+/**
+ * Allows running tasks either in background thread or in GUI thread.
+ */
 public class BackgroundThread extends Thread {
 	
 	public final static Object LOCK = new Object(); 

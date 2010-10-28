@@ -332,11 +332,6 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 		
 	}
 	
-	@Override
-	public ListView getListView() {
-		return super.getListView();
-	}
-
 	public View createTabContent(String tag) {
 		if ( "App".equals(tag) )
 			return mOptionsApplication;

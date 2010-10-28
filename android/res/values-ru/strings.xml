@@ -42,4 +42,7 @@
 <string name="dlg_search_case_sensitive">Учитывать регистр</string>
 <string name="dlg_search_reverse">Искать назад</string>
 <string name="dlg_search_hint">Введите строку для поиска</string>
+<string name="dlg_button_ok">Ok</string>
+<string name="dlg_button_cancel">Отмена</string>
+<string name="dlg_button_find">Найти</string>
 </resources>

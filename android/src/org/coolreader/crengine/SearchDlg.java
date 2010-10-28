@@ -11,7 +11,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
-public class SearchDlg  extends AlertDialog {
+public class SearchDlg  extends BaseDialog {
 	CoolReader mCoolReader;
 	ReaderView mReaderView;
 	private LayoutInflater mInflater;
@@ -20,9 +20,29 @@ public class SearchDlg  extends AlertDialog {
 	CheckBox mCaseSensitive;
 	CheckBox mReverse;
 	
+	@Override
+	protected void onPositiveButtonClick()
+	{
+		// override it
+    	String pattern = mEditView.getText().toString();
+    	if ( pattern==null || pattern.length()==0 ) 
+    		mCoolReader.showToast("No pattern specified");
+    	else
+    		mReaderView.findText( mEditView.getText().toString(), mReverse.isChecked(), !mCaseSensitive.isChecked() );
+        cancel();
+	}
+	
+	@Override
+	protected void onNegativeButtonClick()
+	{
+		// override it
+        cancel();
+	}
+
+	
 	public SearchDlg( CoolReader coolReader, ReaderView readerView )
 	{
-		super(coolReader);
+		super(coolReader, R.string.dlg_button_find, R.string.dlg_button_cancel);
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
@@ -34,32 +54,10 @@ public class SearchDlg  extends AlertDialog {
 		setTitle(mCoolReader.getResources().getString(R.string.win_title_search));
 		setView(mDialogView);
 		// setup buttons
-        setButton(AlertDialog.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                //cancel();
-            	String pattern = mEditView.getText().toString();
-            	if ( pattern==null || pattern.length()==0 ) 
-            		mCoolReader.showToast("No pattern specified");
-            	else
-            		mReaderView.findText( mEditView.getText().toString(), mReverse.isChecked(), !mCaseSensitive.isChecked() );
-                dialog.cancel();
-            }
-        });
- 
-        setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel",
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    dialog.cancel();
-                }
-            });
-		
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 	}
-	
-	
-
 }
