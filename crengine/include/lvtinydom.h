@@ -92,11 +92,11 @@
 #define DOC_PROP_FILE_CRC32      "doc.file.crc32"
 #define DOC_PROP_CODE_BASE       "doc.file.code.base"
 
-#if BUILD_LITE!=1
+//#if BUILD_LITE!=1
 /// final block cache
 typedef LVRef<LFormattedText> LFormattedTextRef;
 typedef LVCacheMap< ldomNode *, LFormattedTextRef> CVRendBlockCache;
-#endif
+//#endif
 
 
 //#define LDOM_USE_OWN_MEM_MAN 0
@@ -110,13 +110,13 @@ typedef enum {
 } xpath_step_t;
 xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index );
 
-#if BUILD_LITE!=1
+//#if BUILD_LITE!=1
 struct DataStorageItemHeader;
 struct TextDataStorageItem;
 struct ElementDataStorageItem;
 struct NodeItem;
 class DataBuffer;
-#endif
+//#endif
 
 /// source document formats
 typedef enum {
@@ -210,6 +210,7 @@ public:
     int getCompressedSize() { return _compressedSize; }
 #endif
     int getUncompressedSize() { return _uncompressedSize; }
+#if BUILD_LITE!=1
     /// allocates new text node, return its address inside storage
     lUInt32 allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
     /// allocates storage for new element, returns address address inside storage
@@ -228,7 +229,8 @@ public:
     void freeNode( lUInt32 addr );
     /// call to invalidate chunk if content is modified
     void modified( lUInt32 addr );
-
+#endif
+    
     /// get or allocate space for rect data item
     void getRendRectData( lUInt32 elemDataIndex, lvdomElementFormatRec * dst );
     /// set rect data item
@@ -274,16 +276,20 @@ class ldomTextStorageChunk
     void setunpacked( const lUInt8 * buf, int bufsize );
     /// pack data, and remove unpacked
     void compact();
+#if BUILD_LITE!=1
     /// pack data, and remove unpacked, put packed data to cache file
     bool swapToCache( bool removeFromMemory );
     /// read packed data from cache
     bool restoreFromCache();
+#endif
     /// unpacks chunk, if packed; checks storage space, compact if necessary
     void ensureUnpacked();
+#if BUILD_LITE!=1
     /// free data item
     void freeNode( int offset );
     /// saves data to cache file, if unsaved
     bool save();
+#endif
 public:
     /// call to invalidate chunk if content is modified
     void modified();
@@ -350,10 +356,10 @@ protected:
     CacheFile * _cacheFile;
     bool _mapped;
     bool _maperror;
-#endif
 
     int calcFinalBlocks();
     void dropStyles();
+#endif
 
     ldomDataStorageManager _textStorage; // persistent text node data storage
     ldomDataStorageManager _elemStorage; // persistent element data storage
@@ -370,6 +376,7 @@ protected:
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
+#if BUILD_LITE!=1
     bool saveStylesData();
     bool loadStylesData();
     bool updateLoadedStyles( bool enabled );
@@ -391,10 +398,11 @@ protected:
     void setNodeStyle( lUInt32 dataIndex, css_style_ref_t & v );
     void setNodeFont( lUInt32 dataIndex, font_ref_t & v  );
     void clearNodeStyle( lUInt32 dataIndex );
+    virtual void resetNodeNumberingProps() { }
+#endif
 
     tinyNodeCollection( tinyNodeCollection & v );
 
-    virtual void resetNodeNumberingProps() { }
 
 public:
 
@@ -410,10 +418,10 @@ public:
     virtual bool updateMap() = 0;
 
     bool swapToCacheIfNecessary();
-#endif
 
 
     bool createCacheFile();
+#endif
 
     inline bool getDocFlag( lUInt32 mask )
     {
@@ -469,6 +477,7 @@ class ldomDocument;
 class tinyElement;
 struct lxmlAttribute;
 
+#if BUILD_LITE!=1
 class RenderRectAccessor : public lvdomElementFormatRec
 {
     ldomNode * _node;
@@ -489,6 +498,7 @@ public:
     RenderRectAccessor( ldomNode * node );
     ~RenderRectAccessor();
 };
+#endif
 
 /// compact 32bit value for node
 struct ldomNodeHandle {
@@ -522,8 +532,10 @@ private:
     enum {
         NT_TEXT=0,       // mutable text node
         NT_ELEMENT=1,    // mutable element node
+#if BUILD_LITE!=1
         NT_PTEXT=2,      // immutable (persistent) text node
         NT_PELEMENT=3,   // immutable (persistent) element node
+#endif
     };
 
     /// 0: packed 32bit data field
@@ -533,8 +545,10 @@ private:
     union {                    // [8] 8 bytes (16 bytes on x64)
         ldomTextNode * _text_ptr;   // NT_TEXT: mutable text node pointer
         tinyElement * _elem_ptr;    // NT_ELEMENT: mutable element pointer
+#if BUILD_LITE!=1
         lUInt32 _pelem_addr;        // NT_PELEMENT: element storage address: chunk+offset
         lUInt32 _ptext_addr;        // NT_PTEXT: persistent text storage address: chunk+offset
+#endif
         lUInt32 _nextFreeIndex;     // NULL for removed items
     } _data;
 
@@ -573,6 +587,7 @@ private:
     void removeChildren( int startIndex, int endIndex );
 
 public:
+#if BUILD_LITE!=1
     /// if stylesheet file name is set, and file is found, set stylesheet to its value
     bool applyNodeStylesheet();
 
@@ -584,6 +599,7 @@ public:
     void initNodeRendMethodRecursive();
     /// init render method for the whole subtree
     void initNodeStyleRecursive();
+#endif
 
 
     /// remove node, clear resources
@@ -705,6 +721,7 @@ public:
     lvdom_element_render_method getRendMethod();
     /// sets rendering method
     void setRendMethod( lvdom_element_render_method );
+#if BUILD_LITE!=1
     /// returns element style record
     css_style_ref_t getStyle();
     /// returns element font
@@ -713,7 +730,7 @@ public:
     void setFont( font_ref_t );
     /// sets element style record
     void setStyle( css_style_ref_t & );
-
+#endif
     /// returns first child node
     ldomNode * getFirstChild() const;
     /// returns last child node
@@ -899,11 +916,14 @@ public:
     inline LVStyleSheet * getStyleSheet() { return &_stylesheet; }
     /// sets style sheet, clears old content of css if arg replace is true
     void setStyleSheet( const char * css, bool replace );
+
+#if BUILD_LITE!=1
     /// apply document's stylesheet to element node
     inline void applyStyle( ldomNode * element, css_style_rec_t * pstyle)
     {
         _stylesheet.apply( element, pstyle );
     }
+#endif
 
     void onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * node );
 
@@ -1689,6 +1709,7 @@ class ldomDocument : public lxmlDocBase
 {
     friend class ldomDocumentWriter;
 private:
+#if BUILD_LITE!=1
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
     int _last_docflags;
@@ -1696,39 +1717,46 @@ private:
     int _page_width;
     bool _rendered;
     ldomXRangeList _selections;
+#endif
 
     LVContainerRef _container;
 
     LVHashTable<lUInt32, ListNumberingPropsRef> lists;
 
 
+#if BUILD_LITE!=1
     /// load document cache file content
     bool loadCacheFileContent();
 
     /// save changes to cache file
     bool saveChanges();
+#endif
 
 protected:
 
     LVTocItem m_toc;
 
+#if BUILD_LITE!=1
     void applyDocumentStyleSheet();
+#endif
 
 public:
 
+#if BUILD_LITE!=1
     ListNumberingPropsRef getNodeNumberingProps( lUInt32 nodeDataIndex );
     void setNodeNumberingProps( lUInt32 nodeDataIndex, ListNumberingPropsRef v );
-    virtual void resetNodeNumberingProps();
+    void resetNodeNumberingProps();
+#endif
 
 #if BUILD_LITE!=1
     /// returns object image source
     LVImageSourceRef getObjectImageSource( lString16 refName );
-#endif
 
     bool isDefStyleSet()
     {
         return !_def_style.isNull();
     }
+#endif
 
     /// returns pointer to TOC root node
     LVTocItem * getToc() { return &m_toc; }
@@ -1762,18 +1790,23 @@ public:
     /// creates empty document which is ready to be copy target of doc partial contents
     ldomDocument( ldomDocument & doc );
 
+#if BUILD_LITE!=1
     /// return selections collection
     ldomXRangeList & getSelections() { return _selections; }
+    
     /// get full document height
     int getFullHeight();
     /// returns page height setting
     int getPageHeight() { return _page_height; }
+#endif
     /// saves document contents as XML to stream with specified encoding
     bool saveToStream( LVStreamRef stream, const char * codepage, bool treeLayout=false );
+#if BUILD_LITE!=1
     /// get default font reference
     font_ref_t getDefaultFont() { return _def_font; }
     /// get default style reference
     css_style_ref_t getDefaultStyle() { return _def_style; }
+#endif
     /// destructor
     virtual ~ldomDocument();
 #if BUILD_LITE!=1

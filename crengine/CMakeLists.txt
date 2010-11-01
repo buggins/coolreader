@@ -11,9 +11,6 @@ src/crtxtenc.cpp
 src/lvtinydom.cpp 
 src/lvstream.cpp  
 src/lvxml.cpp     
-src/chmfmt.cpp     
-src/epubfmt.cpp     
-src/wordfmt.cpp     
 src/lvstsheet.cpp 
 src/txtselector.cpp
 #src/xutils.cpp
@@ -36,6 +33,9 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
     src/lvrend.cpp
     src/wolutil.cpp
     src/hist.cpp      
+    src/chmfmt.cpp     
+    src/epubfmt.cpp     
+    src/wordfmt.cpp     
     #src/xutils.cpp
     )
 endif (NOT ${GUI} STREQUAL FB2PROPS)

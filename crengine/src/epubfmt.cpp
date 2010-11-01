@@ -182,12 +182,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     if ( spineItems.length()==0 )
         return false;
 
+#if BUILD_LITE!=1
     if ( m_doc->openFromCache() ) {
         if ( progressCallback ) {
             progressCallback->OnLoadFileEnd( );
         }
         return true;
     }
+#endif
 
     lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
     m_doc->setDocFlags( saveFlags );

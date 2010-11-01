@@ -152,8 +152,10 @@ enum CacheFileBlockType {
 #include "../include/lvstring.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
+#if BUILD_LITE!=1
 #include "../include/lvrend.h"
 #include "../include/chmfmt.h"
+#endif
 #include "../include/crtest.h"
 #include <stddef.h>
 #include <math.h>
@@ -939,7 +941,7 @@ bool CacheFile::create( LVStreamRef stream )
     return true;
 }
 
-
+#if BUILD_LITE!=1
 //#define DEBUG_RENDER_RECT_ACCESS
 #ifdef DEBUG_RENDER_RECT_ACCESS
   static signed char render_rect_flags[200000]={0};
@@ -1107,6 +1109,7 @@ void RenderRectAccessor::getRect( lvRect & rc )
     rc.right = _x + _width;
     rc.bottom = _y + _height;
 }
+#endif
 
 
 class ldomPersistentText;
@@ -1236,6 +1239,7 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 
 
 
+#if BUILD_LITE!=1
 bool tinyNodeCollection::openCacheFile()
 {
     if ( _cacheFile )
@@ -1539,7 +1543,7 @@ bool tinyNodeCollection::loadNodeData()
     _textCount = textcount;
     return true;
 }
-
+#endif
 
 /// get ldomNode instance pointer
 ldomNode * tinyNodeCollection::getTinyNode( lUInt32 index )
@@ -1629,8 +1633,10 @@ void tinyNodeCollection::recycleTinyNode( lUInt32 index )
 
 tinyNodeCollection::~tinyNodeCollection()
 {
+#if BUILD_LITE!=1
     if ( _cacheFile )
         delete _cacheFile;
+#endif
     // clear all elem parts
     for ( int partindex = 0; partindex<=(_elemCount>>TNC_PART_SHIFT); partindex++ ) {
         ldomNode * part = _elemList[partindex];
@@ -1710,9 +1716,10 @@ void tinyNodeCollection::persist()
 /// saves all unsaved chunks to cache file
 bool ldomDataStorageManager::save()
 {
+    bool res = true;
+#if BUILD_LITE!=1
     if ( !_cache )
         return true;
-    bool res = true;
     for ( int i=0; i<_chunks.length(); i++ )
         if ( !_chunks[i]->save() )
             res = false;
@@ -1733,12 +1740,14 @@ bool ldomDataStorageManager::save()
     if ( !res ) {
         CRLog::error("ldomDataStorageManager::save() - Cannot write chunk index");
     }
+#endif
     return res;
 }
 
 /// load chunk index from cache file
 bool ldomDataStorageManager::load()
 {
+#if BUILD_LITE!=1
     if ( !_cache )
         return false;
     //load chunk index
@@ -1768,6 +1777,9 @@ bool ldomDataStorageManager::load()
         _chunks.add( new ldomTextStorageChunk( this, i,compsize, uncompsize ) );
     }
     return true;
+#else
+    return false;
+#endif
 }
 
 /// get chunk pointer and update usage data
@@ -1882,6 +1894,7 @@ void ldomDataStorageManager::setRendRectData( lUInt32 elemDataIndex, const lvdom
     chunk->setRaw( offsetIndex * sizeof(lvdomElementFormatRec), sizeof(lvdomElementFormatRec), (const lUInt8 *)src );
 }
 
+#if BUILD_LITE!=1
 lUInt32 ldomDataStorageManager::allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
 {
     if ( !_activeChunk ) {
@@ -1969,9 +1982,11 @@ lUInt32 ldomDataStorageManager::getParent( lUInt32 addr )
     ldomTextStorageChunk * chunk = getChunk(addr);
     return chunk->getElem(addr&0xFFFF)->parentIndex;
 }
+#endif
 
 void ldomDataStorageManager::compact( int reservedSpace )
 {
+#if BUILD_LITE!=1
     if ( _uncompressedSize + reservedSpace > _maxUncompressedSize + _maxUncompressedSize/10 ) { // allow +10% overflow
         // do compacting
         int sumsize = reservedSpace;
@@ -2022,6 +2037,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
         }
 
     }
+#endif
 }
 
 // max 512K of uncompressed data (~8 chunks)
@@ -2103,6 +2119,7 @@ ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, in
 {
 }
 
+#if BUILD_LITE!=1
 /// saves data to cache file, if unsaved
 bool ldomTextStorageChunk::save()
 {
@@ -2110,6 +2127,7 @@ bool ldomTextStorageChunk::save()
         return swapToCache(false);
     return true;
 }
+#endif
 
 ldomTextStorageChunk::~ldomTextStorageChunk()
 {
@@ -2120,6 +2138,7 @@ ldomTextStorageChunk::~ldomTextStorageChunk()
 }
 
 
+#if BUILD_LITE!=1
 /// pack data, and remove unpacked, put packed data to cache file
 bool ldomTextStorageChunk::swapToCache( bool removeFromMemory )
 {
@@ -2211,6 +2230,7 @@ bool ldomTextStorageChunk::restoreFromCache()
 #endif
     return true;
 }
+#endif
 
 /// get raw data bytes
 void ldomTextStorageChunk::getRaw( int offset, int size, lUInt8 * buf )
@@ -2242,6 +2262,7 @@ int ldomTextStorageChunk::space()
     return _bufsize - _bufpos;
 }
 
+#if BUILD_LITE!=1
 /// returns free space in buffer
 int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text )
 {
@@ -2307,7 +2328,9 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
     _bufpos += itemsize;
     return res;
 }
+#endif
 
+#if BUILD_LITE!=1
 /// set node parent by offset
 bool ldomTextStorageChunk::setParent( int offset, lUInt32 parentIndex )
 {
@@ -2349,6 +2372,7 @@ ElementDataStorageItem * ldomTextStorageChunk::getElem( int offset  )
     CRLog::error("Offset %d is out of bounds (%d) for storage chunk %c%d, chunkCount=%d", offset, this->_bufpos, this->_type, this->_index, _manager->_chunks.length() );
     return NULL;
 }
+#endif
 
 
 /// call to invalidate chunk if content is modified
@@ -2371,6 +2395,7 @@ void ldomTextStorageChunk::modified()
     _saved = false;
 }
 
+#if BUILD_LITE!=1
 /// free data item
 void ldomTextStorageChunk::freeNode( int offset )
 {
@@ -2395,7 +2420,7 @@ lString8 ldomTextStorageChunk::getText( int offset )
     }
     return lString8();
 }
-
+#endif
 
 
 /// pack data from _buf to _compbuf
@@ -2563,6 +2588,7 @@ void ldomTextStorageChunk::compact()
 /// unpacks chunk, if packed; checks storage space, compact if necessary
 void ldomTextStorageChunk::ensureUnpacked()
 {
+#if BUILD_LITE!=1
     if ( !_buf ) {
 #if RAM_COMPRESSED_BUFFER_ENABLED==1
         if (_compbuf) {
@@ -2583,6 +2609,7 @@ void ldomTextStorageChunk::ensureUnpacked()
     } else {
         // compact
     }
+#endif
 }
 
 
@@ -2780,10 +2807,12 @@ ldomNode * lxmlDocBase::getRootNode()
 
 ldomDocument::ldomDocument()
 : m_toc(this)
+#if BUILD_LITE!=1
 , _last_docflags(0)
 , _page_height(0)
 , _page_width(0)
 , _rendered(false)
+#endif
 , lists(100)
 {
     allocTinyElement(NULL, 0, 0);
@@ -2815,11 +2844,13 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 /// creates empty document which is ready to be copy target of doc partial contents
 ldomDocument::ldomDocument( ldomDocument & doc )
 : lxmlDocBase(doc)
+#if BUILD_LITE!=1
 , _def_font(doc._def_font) // default font
 , _def_style(doc._def_style)
 , _last_docflags(doc._last_docflags)
 , _page_height(doc._page_height)
 , _page_width(doc._page_width)
+#endif
 , _container(doc._container)
 , lists(100)
 , m_toc(this)
@@ -3420,6 +3451,7 @@ static bool isBlockNode( ldomNode * node )
 {
     if ( !node->isElement() )
         return false;
+#if BUILD_LITE!=1
     switch ( node->getStyle()->display )
     {
     case css_d_block:
@@ -3445,6 +3477,9 @@ static bool isBlockNode( ldomNode * node )
         break;
     }
     return false;
+#else
+    return true;
+#endif
 }
 
 static bool isInlineNode( ldomNode * node )
@@ -3492,6 +3527,7 @@ void ldomElementWriter::updateTocItem()
 
 void ldomElementWriter::onBodyEnter()
 {
+#if BUILD_LITE!=1
     if ( _document->isDefStyleSet() ) {
         _element->initNodeStyle();
         _isBlock = isBlockNode(_element);
@@ -3502,6 +3538,7 @@ void ldomElementWriter::onBodyEnter()
         }
 
     }
+#endif
 }
 
 void ldomNode::removeChildren( int startIndex, int endIndex )
@@ -3513,6 +3550,7 @@ void ldomNode::removeChildren( int startIndex, int endIndex )
 
 void ldomNode::autoboxChildren( int startIndex, int endIndex )
 {
+#if BUILD_LITE!=1
     if ( !isElement() )
         return;
     int firstNonEmpty = startIndex;
@@ -3562,8 +3600,10 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
         // only empty items: remove them instead of autoboxing
         removeChildren(startIndex, endIndex);
     }
+#endif
 }
 
+#if BUILD_LITE!=1
 static void resetRendMethodToInline( ldomNode * node )
 {
     node->setRendMethod(erm_inline);
@@ -3827,18 +3867,21 @@ void ldomNode::initNodeRendMethod()
         }
     }
 }
+#endif
 
 void ldomElementWriter::onBodyExit()
 {
     if ( _isSection )
         updateTocItem();
 
+#if BUILD_LITE!=1
     if ( !_document->isDefStyleSet() )
         return;
     _element->initNodeRendMethod();
 
     if ( _stylesheetIsSet )
         _document->getStyleSheet()->pop();
+#endif
 }
 
 void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
@@ -3856,6 +3899,7 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     //logfile << "}";
 }
 
+#if BUILD_LITE!=1
 /// if stylesheet file name is set, and file is found, set stylesheet to its value
 bool ldomNode::applyNodeStylesheet()
 {
@@ -3878,13 +3922,16 @@ bool ldomNode::applyNodeStylesheet()
     }
     return false;
 }
+#endif
 
 void ldomElementWriter::addAttribute( lUInt16 nsid, lUInt16 id, const wchar_t * value )
 {
     getElement()->setAttributeValue(nsid, id, value);
+#if BUILD_LITE!=1
     if ( id==attr_StyleSheet ) {
         _stylesheetIsSet = _element->applyNodeStylesheet();
     }
+#endif
 }
 
 ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id )
@@ -3994,6 +4041,7 @@ ldomDocumentWriter::~ldomDocumentWriter()
 {
     while (_currNode)
         _currNode = pop( _currNode, _currNode->getElement()->getNodeId() );
+#if BUILD_LITE!=1
     if ( _document->isDefStyleSet() ) {
         if ( _popStyleOnFinish )
             _document->getStyleSheet()->pop();
@@ -4004,6 +4052,7 @@ ldomDocumentWriter::~ldomDocumentWriter()
         _document->updateRenderContext();
         _document->dumpStatistics();
     }
+#endif
 }
 
 void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
@@ -4030,12 +4079,14 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
 
     if ( !lStr_cmp(tagname, L"stylesheet") ) {
         //CRLog::trace("</stylesheet> found");
+#if BUILD_LITE!=1
         if ( !_popStyleOnFinish ) {
             //CRLog::trace("saving current stylesheet before applying of document stylesheet");
             _document->getStyleSheet()->push();
             _popStyleOnFinish = true;
             _document->applyDocumentStyleSheet();
         }
+#endif
     }
     //logfile << " !c!\n";
 }
@@ -4074,10 +4125,12 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
     _stopTagId = 0xFFFE;
     IS_FIRST_BODY = true;
 
+#if BUILD_LITE!=1
     if ( _document->isDefStyleSet() ) {
         _document->getRootNode()->initNodeStyle();
         _document->getRootNode()->setRendMethod(erm_block);
     }
+#endif
 
     //CRLog::trace("ldomDocumentWriter() headerOnly=%s", _headerOnly?"true":"false");
 }
@@ -4471,7 +4524,6 @@ ldomNode * ldomXPointer::getFinalNode() const
         node = node->getParentNode();
     }
 }
-#endif
 
 /// create xpointer from doc point
 ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
@@ -4701,6 +4753,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
         //return rc.bottomRight();
     }
 }
+#endif
 
 /// create xpointer from relative pointer string
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
@@ -4886,11 +4939,13 @@ lString16 ldomXPointer::toString()
     return path;
 }
 
+#if BUILD_LITE!=1
 int ldomDocument::getFullHeight()
 {
     RenderRectAccessor rd( this->getRootNode() );
     return rd.getHeight() + rd.getY();
 }
+#endif
 
 
 
@@ -6205,6 +6260,7 @@ public:
     /// called for each found node in range
     virtual bool onElement( ldomXPointerEx * ptr )
     {
+#if BUILD_LITE!=1
         ldomNode * elem = (ldomNode *)ptr->getNode();
         if ( elem->getRendMethod()==erm_invisible )
             return false;
@@ -6236,6 +6292,10 @@ public:
             newBlock = false;
             return true;
         }
+#else
+        newBlock = true;
+        return true;
+#endif
     }
     /// get collected text
     lString16 getText() { return text; }
@@ -6771,7 +6831,7 @@ ldomDocumentWriterFilter::~ldomDocumentWriterFilter()
 static const char * doc_file_magic = "CR3\n";
 
 
-bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
+bool lxmlDocBase::DocFileHeader::serialize( SerialBuf & hdrbuf )
 {
     int start = hdrbuf.pos();
     hdrbuf.putMagic( doc_file_magic );
@@ -6795,7 +6855,7 @@ bool ldomDocument::DocFileHeader::serialize( SerialBuf & hdrbuf )
     return !hdrbuf.error();
 }
 
-bool ldomDocument::DocFileHeader::deserialize( SerialBuf & hdrbuf )
+bool lxmlDocBase::DocFileHeader::deserialize( SerialBuf & hdrbuf )
 {
     int start = hdrbuf.pos();
     hdrbuf.checkMagic( doc_file_magic );
@@ -6838,9 +6898,11 @@ int tinyNodeCollection::getPersistenceFlags()
 
 void ldomDocument::clear()
 {
+#if BUILD_LITE!=1
     clearRendBlockCache();
-    _urlImageMap.clear();
     _rendered = false;
+    _urlImageMap.clear();
+#endif
     //TODO: implement clear
     //_elemStorage.
 }
@@ -7896,16 +7958,20 @@ void ldomNode::onCollectionDestroy()
         break;
     case NT_ELEMENT:
         // ???
+#if BUILD_LITE!=1
         getDocument()->clearNodeStyle( _handle._dataIndex );
+#endif
         delete NPELEM;
         NPELEM = NULL;
         break;
+#if BUILD_LITE!=1
     case NT_PTEXT:      // immutable (persistent) text node
         // do nothing
         break;
     case NT_PELEMENT:   // immutable (persistent) element node
         // do nothing
         break;
+#endif
     }
 }
 
@@ -7920,7 +7986,9 @@ void ldomNode::destroy()
         break;
     case NT_ELEMENT:
         {
+#if BUILD_LITE!=1
             getDocument()->clearNodeStyle(_handle._dataIndex);
+#endif
             tinyElement * me = NPELEM;
             // delete children
             for ( int i=0; i<me->_children.length(); i++ ) {
@@ -7933,6 +8001,7 @@ void ldomNode::destroy()
         }
         delete NPELEM;
         break;
+#if BUILD_LITE!=1
     case NT_PTEXT:
         // disable removing from storage: to minimize modifications
         //_document->_textStorage.freeNode( _data._ptext_addr._addr );
@@ -7950,6 +8019,7 @@ void ldomNode::destroy()
             getDocument()->_elemStorage.freeNode( _data._pelem_addr );
         }
         break;
+#endif
     }
     getDocument()->recycleTinyNode( _handle._dataIndex );
 }
@@ -7973,6 +8043,7 @@ int ldomNode::getChildIndex( lUInt32 dataIndex ) const
             }
         }
         break;
+#if BUILD_LITE!=1
     case NT_PELEMENT:
         {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
@@ -7986,6 +8057,7 @@ int ldomNode::getChildIndex( lUInt32 dataIndex ) const
         }
         break;
     case NT_PTEXT:      // immutable (persistent) text node
+#endif
     case NT_TEXT:
         break;
     }
@@ -8009,6 +8081,7 @@ bool ldomNode::isRoot() const
     switch ( TNTYPE ) {
     case NT_ELEMENT:
         return !NPELEM->_parentNode;
+#if BUILD_LITE!=1
     case NT_PELEMENT:   // immutable (persistent) element node
         {
              ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
@@ -8019,6 +8092,7 @@ bool ldomNode::isRoot() const
         {
             return getDocument()->_textStorage.getParent( _data._ptext_addr )==0;
         }
+#endif
     case NT_TEXT:
         return _data._text_ptr->getParentIndex()==0;
     }
@@ -8028,12 +8102,14 @@ bool ldomNode::isRoot() const
 /// call to invalidate cache if persistent node content is modified
 void ldomNode::modified()
 {
+#if BUILD_LITE!=1
     if ( isPersistent() ) {
         if ( isElement() )
             getDocument()->_elemStorage.modified( _data._pelem_addr );
         else
             getDocument()->_textStorage.modified( _data._ptext_addr );
     }
+#endif
 }
 
 /// changes parent of item
@@ -8046,6 +8122,7 @@ void ldomNode::setParentNode( ldomNode * parent )
     case NT_ELEMENT:
         NPELEM->_parentNode = parent;
         break;
+#if BUILD_LITE!=1
     case NT_PELEMENT:   // immutable (persistent) element node
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
@@ -8064,6 +8141,7 @@ void ldomNode::setParentNode( ldomNode * parent )
             //_document->_textStorage.setTextParent( _data._ptext_addr._addr, parentIndex );
         }
         break;
+#endif
     case NT_TEXT:
         {
             lUInt32 parentIndex = parent->_handle._dataIndex;
@@ -8081,6 +8159,7 @@ int ldomNode::getParentIndex() const
     switch ( TNTYPE ) {
     case NT_ELEMENT:
         return NPELEM->_parentNode ? NPELEM->_parentNode->getDataIndex() : 0;
+#if BUILD_LITE!=1
     case NT_PELEMENT:   // immutable (persistent) element node
         {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
@@ -8089,6 +8168,7 @@ int ldomNode::getParentIndex() const
         break;
     case NT_PTEXT:      // immutable (persistent) text node
         return getDocument()->_textStorage.getParent(_data._ptext_addr);
+#endif
     case NT_TEXT:
         return _data._text_ptr->getParentIndex();
     }
@@ -8103,6 +8183,7 @@ ldomNode * ldomNode::getParentNode() const
     switch ( TNTYPE ) {
     case NT_ELEMENT:
         return NPELEM->_parentNode;
+#if BUILD_LITE!=1
     case NT_PELEMENT:   // immutable (persistent) element node
         {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
@@ -8112,6 +8193,7 @@ ldomNode * ldomNode::getParentNode() const
     case NT_PTEXT:      // immutable (persistent) text node
         parentIndex = getDocument()->_textStorage.getParent(_data._ptext_addr);
         break;
+#endif
     case NT_TEXT:
         parentIndex = _data._text_ptr->getParentIndex();
         break;
@@ -8123,15 +8205,19 @@ ldomNode * ldomNode::getParentNode() const
 ldomNode * ldomNode::getChildNode( lUInt32 index ) const
 {
     ASSERT_NODE_NOT_NULL;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         tinyElement * me = NPELEM;
         return getTinyNode( me->_children[index] );
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return getTinyNode( me->children[index] );
     }
+#endif
 }
 
 /// returns element child count
@@ -8140,10 +8226,13 @@ lUInt32 ldomNode::getChildCount() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return 0;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         tinyElement * me = NPELEM;
         return me->_children.length();
+#if BUILD_LITE!=1
     } else {
         // persistent element
         // persistent element
@@ -8156,6 +8245,7 @@ lUInt32 ldomNode::getChildCount() const
         }
     }
     return 0; // TODO
+#endif
 }
 
 /// returns element attribute count
@@ -8164,10 +8254,13 @@ lUInt32 ldomNode::getAttrCount() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return 0;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         tinyElement * me = NPELEM;
         return me->_attrs.length();
+#if BUILD_LITE!=1
     } else {
         // persistent element
         {
@@ -8176,6 +8269,7 @@ lUInt32 ldomNode::getAttrCount() const
         }
     }
     return 0;
+#endif
 }
 
 /// returns attribute value by attribute name id and namespace id
@@ -8184,13 +8278,16 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return lString16::empty_str;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         tinyElement * me = NPELEM;
         lUInt16 valueId = me->_attrs.get( nsid, id );
         if ( valueId==LXML_ATTR_VALUE_NONE )
             return lString16::empty_str;
         return getDocument()->getAttrValue(valueId);
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
@@ -8200,6 +8297,7 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
         return getDocument()->getAttrValue(valueId);
     }
     return lString16::empty_str;
+#endif
 }
 
 /// returns attribute value by attribute name and namespace
@@ -8217,15 +8315,19 @@ const lxmlAttribute * ldomNode::getAttribute( lUInt32 index ) const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return NULL;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         tinyElement * me = NPELEM;
         return me->_attrs[index];
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return me->attr( index );
     }
+#endif
 }
 
 /// returns true if element node has attribute with specified name id and namespace id
@@ -8234,16 +8336,20 @@ bool ldomNode::hasAttribute( lUInt16 nsid, lUInt16 id ) const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return false;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         tinyElement * me = NPELEM;
         lUInt16 valueId = me->_attrs.get( nsid, id );
         return ( valueId!=LXML_ATTR_VALUE_NONE );
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return (me->findAttr( nsid, id ) != NULL);
     }
+#endif
 }
 
 /// returns attribute name by index
@@ -8263,6 +8369,7 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
     if ( !isElement() )
         return;
     int valueIndex = getDocument()->getAttrValueIndex(value);
+#if BUILD_LITE!=1
     if ( isPersistent() ) {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
@@ -8275,6 +8382,7 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
         // else: convert to modifable and continue as non-persistent
         modify();
     }
+#endif
     // element
     tinyElement * me = NPELEM;
     me->_attrs.set(nsid, id, valueIndex);
@@ -8288,13 +8396,16 @@ const css_elem_def_props_t * ldomNode::getElementTypePtr()
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return NULL;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         const css_elem_def_props_t * res = getDocument()->getElementTypePtr(NPELEM->_id);
 //        if ( res && res->is_object ) {
 //            CRLog::trace("Object found");
 //        }
         return res;
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
@@ -8304,6 +8415,7 @@ const css_elem_def_props_t * ldomNode::getElementTypePtr()
 //        }
         return res;
     }
+#endif
 }
 
 /// returns element name id
@@ -8312,14 +8424,18 @@ lUInt16 ldomNode::getNodeId() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return 0;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
         // element
+#endif
         return NPELEM->_id;
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return me->id;
     }
+#endif
 }
 
 /// returns element namespace id
@@ -8328,14 +8444,18 @@ lUInt16 ldomNode::getNodeNsId() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return 0;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
         // element
+#endif
         return NPELEM->_nsid;
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return me->nsid;
     }
+#endif
 }
 
 /// replace element name id with another value
@@ -8344,15 +8464,19 @@ void ldomNode::setNodeId( lUInt16 id )
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
         // element
+#endif
         NPELEM->_id = id;
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         me->id = id;
         modified();
     }
+#endif
 }
 
 /// returns element name
@@ -8361,14 +8485,18 @@ const lString16 & ldomNode::getNodeName() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return lString16::empty_str;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
         // element
+#endif
         return getDocument()->getElementName(NPELEM->_id);
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return getDocument()->getElementName(me->id);
     }
+#endif
 }
 
 /// returns element namespace name
@@ -8377,14 +8505,18 @@ const lString16 & ldomNode::getNodeNsName() const
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return lString16::empty_str;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
+#endif
         // element
         return getDocument()->getNsName(NPELEM->_nsid);
+#if BUILD_LITE!=1
     } else {
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return getDocument()->getNsName(me->nsid);
     }
+#endif
 }
 
 
@@ -8394,7 +8526,9 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
+#if BUILD_LITE!=1
     case NT_PELEMENT:
+#endif
     case NT_ELEMENT:
         {
             lString16 txt;
@@ -8404,16 +8538,22 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
                 ldomNode * child = getChildNode(i);
                 if ( i>=getChildCount()-1 )
                     break;
+#if BUILD_LITE!=1
                 if ( blockDelimiter && child->isElement() ) {
                     if ( child->getStyle()->display == css_d_block )
+#endif
                         txt << blockDelimiter;
+#if BUILD_LITE!=1
                 }
+#endif
             }
             return txt;
         }
         break;
+#if BUILD_LITE!=1
     case NT_PTEXT:
         return Utf8ToUnicode(getDocument()->_textStorage.getText( _data._ptext_addr ));
+#endif
     case NT_TEXT:
         return _data._text_ptr->getText16();
     }
@@ -8426,6 +8566,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
     case NT_ELEMENT:
+#if BUILD_LITE!=1
     case NT_PELEMENT:
         {
             lString8 txt;
@@ -8445,6 +8586,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
         break;
     case NT_PTEXT:
         return getDocument()->_textStorage.getText( _data._ptext_addr );
+#endif
     case NT_TEXT:
         return _data._text_ptr->getText();
     }
@@ -8459,6 +8601,7 @@ void ldomNode::setText( lString16 str )
     case NT_ELEMENT:
         readOnlyError();
         break;
+#if BUILD_LITE!=1
     case NT_PELEMENT:
         readOnlyError();
         break;
@@ -8472,6 +8615,7 @@ void ldomNode::setText( lString16 str )
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
         break;
+#endif
     case NT_TEXT:
         {
             _data._text_ptr->setText( str );
@@ -8488,6 +8632,7 @@ void ldomNode::setText8( lString8 utf8 )
     case NT_ELEMENT:
         readOnlyError();
         break;
+#if BUILD_LITE!=1
     case NT_PELEMENT:
         readOnlyError();
         break;
@@ -8501,6 +8646,7 @@ void ldomNode::setText8( lString8 utf8 )
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
         break;
+#endif
     case NT_TEXT:
         {
             _data._text_ptr->setText( utf8 );
@@ -8509,6 +8655,7 @@ void ldomNode::setText8( lString8 utf8 )
     }
 }
 
+#if BUILD_LITE!=1
 /// returns node absolute rectangle
 void ldomNode::getAbsRect( lvRect & rect )
 {
@@ -8559,6 +8706,7 @@ void ldomNode::clearRenderData()
     lvdomElementFormatRec rec;
     getDocument()->_rectStorage.setRendRectData(_handle._dataIndex, &rec);
 }
+#endif
 
 /// calls specified function recursively for all elements of DOM tree, children before parent
 void ldomNode::recurseElementsDeepFirst( void (*pFun)( ldomNode * node ) )
@@ -8578,6 +8726,7 @@ void ldomNode::recurseElementsDeepFirst( void (*pFun)( ldomNode * node ) )
     pFun( this );
 }
 
+#if BUILD_LITE!=1
 static void updateRendMethod( ldomNode * node )
 {
     node->initNodeRendMethod();
@@ -8588,6 +8737,7 @@ void ldomNode::initNodeRendMethodRecursive()
 {
     recurseElementsDeepFirst( updateRendMethod );
 }
+#endif
 
 #if 0
 static void updateStyleData( ldomNode * node )
@@ -8598,6 +8748,7 @@ static void updateStyleData( ldomNode * node )
 }
 #endif
 
+#if BUILD_LITE!=1
 static void updateStyleDataRecursive( ldomNode * node )
 {
     if ( !node->isElement() )
@@ -8623,6 +8774,7 @@ void ldomNode::initNodeStyleRecursive()
     updateStyleDataRecursive( this );
     //recurseElements( updateStyleData );
 }
+#endif
 
 /// calls specified function recursively for all elements of DOM tree
 void ldomNode::recurseElements( void (*pFun)( ldomNode * node ) )
@@ -8752,12 +8904,16 @@ lvdom_element_render_method ldomNode::getRendMethod()
 {
     ASSERT_NODE_NOT_NULL;
     if ( isElement() ) {
+#if BUILD_LITE!=1
         if ( !isPersistent() ) {
+#endif
             return NPELEM->_rendMethod;
+#if BUILD_LITE!=1
         } else {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             return (lvdom_element_render_method)me->rendMethod;
         }
+#endif
     }
     return erm_invisible;
 }
@@ -8767,8 +8923,11 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
 {
     ASSERT_NODE_NOT_NULL;
     if ( isElement() ) {
+#if BUILD_LITE!=1
         if ( !isPersistent() ) {
+#endif
             NPELEM->_rendMethod = method;
+#if BUILD_LITE!=1
         } else {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->rendMethod != method ) {
@@ -8776,9 +8935,11 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
                 modified();
             }
         }
+#endif
     }
 }
 
+#if BUILD_LITE!=1
 /// returns element style record
 css_style_ref_t ldomNode::getStyle()
 {
@@ -8907,10 +9068,12 @@ void ldomNode::initNodeStyle()
         }
     }
 }
+#endif
 
 /// for display:list-item node, get marker
 bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & markerWidth )
 {
+#if BUILD_LITE!=1
     css_style_ref_t s = getStyle();
     marker.clear();
     markerWidth = 0;
@@ -9009,6 +9172,10 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
         }
     }
     return res;
+#else
+    marker = lString16("*");
+    return true;
+#endif
 }
 
 
@@ -9017,15 +9184,19 @@ ldomNode * ldomNode::getFirstChild() const
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
+#if BUILD_LITE!=1
         if ( !isPersistent() ) {
+#endif
             tinyElement * me = NPELEM;
             if ( me->_children.length() )
                 return getDocument()->getTinyNode(me->_children[0]);
+#if BUILD_LITE!=1
         } else {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->childCount )
                 return getDocument()->getTinyNode(me->children[0]);
         }
+#endif
     }
     return NULL;
 }
@@ -9035,15 +9206,19 @@ ldomNode * ldomNode::getLastChild() const
 {
     ASSERT_NODE_NOT_NULL;
     if  ( isElement() ) {
+#if BUILD_LITE!=1
         if ( !isPersistent() ) {
+#endif
             tinyElement * me = NPELEM;
             if ( me->_children.length() )
                 return getDocument()->getTinyNode(me->_children[me->_children.length()-1]);
+#if BUILD_LITE!=1
         } else {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->childCount )
                 return getDocument()->getTinyNode(me->children[me->childCount-1]);
         }
+#endif
     }
     return NULL;
 }
@@ -9190,12 +9365,10 @@ ldomNode * ldomNode::insertChildText( lUInt32 index, const lString16 & value )
         tinyElement * me = NPELEM;
         if (index>(lUInt32)me->_children.length())
             index = me->_children.length();
-#ifndef USE_PERSISTENT_TEXT
+#if !defined(USE_PERSISTENT_TEXT) || BUILD_LITE==1
         ldomNode * node = getDocument()->allocTinyNode( NT_TEXT );
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._text_ptr._parentIndex = _handle._dataIndex;
-        node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
-        memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
+        node->_data._text_ptr = new ldomTextNode(_handle._dataIndex, s8);
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         //node->_data._ptext_addr._parentIndex = _handle._dataIndex;
@@ -9217,12 +9390,10 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
         if ( isPersistent() )
             modify();
         tinyElement * me = NPELEM;
-#ifndef USE_PERSISTENT_TEXT
+#if !defined(USE_PERSISTENT_TEXT) || BUILD_LITE==1
         ldomNode * node = getDocument()->allocTinyNode( NT_TEXT );
         lString8 s8 = UnicodeToUtf8(value);
-        node->_data._text_ptr._parentIndex = _handle._dataIndex;
-        node->NPTEXT = (lChar8*)malloc( s8.length()+1 );
-        memcpy( node->NPTEXT, s8.c_str(), s8.length()+1 );
+        node->_data._text_ptr = new ldomTextNode(_handle._dataIndex, s8);
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         lString8 s8 = UnicodeToUtf8(value);
@@ -9469,6 +9640,7 @@ bool ldomNode::refreshFinalBlock()
 ldomNode * ldomNode::persist()
 {
     ASSERT_NODE_NOT_NULL;
+#if BUILD_LITE!=1
     if ( !isPersistent() ) {
         if ( isElement() ) {
             // ELEM->PELEM
@@ -9503,6 +9675,7 @@ ldomNode * ldomNode::persist()
             // change type
         }
     }
+#endif
     return this;
 }
 
@@ -9510,6 +9683,7 @@ ldomNode * ldomNode::persist()
 ldomNode * ldomNode::modify()
 {
     ASSERT_NODE_NOT_NULL;
+#if BUILD_LITE!=1
     if ( isPersistent() ) {
         if ( isElement() ) {
             // PELEM->ELEM
@@ -9534,6 +9708,7 @@ ldomNode * ldomNode::modify()
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_TEXT;
         }
     }
+#endif
     return this;
 }
 
@@ -9618,7 +9793,11 @@ lString16 LVTocItem::getPath()
 /// returns Y position
 int LVTocItem::getY()
 {
+#if BUILD_LITE!=1
     return getXPointer().toPoint().y;
+#else
+    return 0;
+#endif
 }
 
 /// serialize to byte array (pointer will be incremented by number of bytes written)
@@ -9686,7 +9865,7 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
 
 
 
-#ifdef _DEBUG
+#if defined(_DEBUG) 
 
 #define TEST_FILE_NAME "/tmp/test-cache-file.dat"
 
@@ -9694,6 +9873,7 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
 
 void testCacheFile()
 {
+#if BUILD_LITE!=1
     CRLog::info("Starting CacheFile unit test");
     lUInt8 data1[] = {'T', 'e', 's', 't', 'd', 'a', 't', 'a', 1, 2, 3, 4, 5, 6, 7};
     lUInt8 data2[] = {'T', 'e', 's', 't', 'd', 'a', 't', 'a', '2', 1, 2, 3, 4, 5, 6, 7};
@@ -9754,6 +9934,7 @@ void testCacheFile()
     }
 
     CRLog::info("Finished CacheFile unit test");
+#endif
 }
 
 #ifdef _WIN32
@@ -9764,6 +9945,7 @@ void testCacheFile()
 
 void runFileCacheTest()
 {
+#if BUILD_LITE!=1
     CRLog::info("====Cache test started =====");
 
     // init and clear cache
@@ -9792,6 +9974,7 @@ void runFileCacheTest()
         view.getPageImage(0);
     }
     CRLog::info("====Cache test finished=====");
+#endif
 }
 
 void runBasicTinyDomUnitTests()
@@ -9895,6 +10078,7 @@ void runBasicTinyDomUnitTests()
     MYASSERT(el1->getLastTextChild()==text1, "lastTextNode");
     MYASSERT(el21->getLastTextChild()==NULL, "lastTextNode NULL");
 
+#if BUILD_LITE!=1
     CRLog::info("* style cache");
     {
         css_style_ref_t style1;
@@ -10071,8 +10255,10 @@ void runBasicTinyDomUnitTests()
     CRLog::info("* compacting");
     doc->compact();
     doc->dumpStatistics();
-
+#endif
+    
     delete doc;
+    
 
     CRLog::info("Finished tinyDOM unit test");
 
@@ -10082,6 +10268,7 @@ void runBasicTinyDomUnitTests()
 
 void runCHMUnitTest()
 {
+#if BUILD_LITE!=1
     LVStreamRef stream = LVOpenFileStream("/home/lve/src/test/mysql.chm", LVOM_READ);
     MYASSERT ( !stream.isNull(), "container stream opened" );
     CRLog::trace("runCHMUnitTest() -- file stream opened ok");
@@ -10104,6 +10291,7 @@ void runCHMUnitTest()
     MYASSERT( bytesRead==1000, "Read() -- bytesRead 2" );
     buf[999] = 0;
     CRLog::trace("CHM/index.html Contents 0: %s", buf);
+#endif
 }
 
 static void makeTestFile( const char * fname, int size )

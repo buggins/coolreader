@@ -442,12 +442,14 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     }
     doc->setContainer(cont);
 
+#if BUILD_LITE!=1
     if ( doc->openFromCache() ) {
         if ( progressCallback ) {
             progressCallback->OnLoadFileEnd( );
         }
         return true;
     }
+#endif
 
     int fragmentCount = 0;
     ldomDocumentWriterFilter writer(doc, false, HTML_AUTOCLOSE_TABLE);

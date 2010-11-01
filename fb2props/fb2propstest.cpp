@@ -36,6 +36,6 @@ int main( int argc, char * argv[] )
     printf("Book name: %s\n", props.name);
     printf("Book author: %s\n", props.author);
     printf("Book series: %s\n", props.series);
-    getchar();
+    //getchar();
     return 0;
 }
