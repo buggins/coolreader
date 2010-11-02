@@ -46,10 +46,6 @@
 //#define LXML_COMMENT_NODE  4 ///< comment node (not implemented)
 
 
-#ifndef RAM_COMPRESSED_BUFFER_ENABLED
-#define RAM_COMPRESSED_BUFFER_ENABLED 1 // (0=no compression, 1=enabled compression in RAM)
-#endif
-
 /// docFlag mask, enable internal stylesheet of document and style attribute of elements
 #define DOC_FLAG_ENABLE_INTERNAL_STYLES 1
 /// docFlag mask, enable paperbook-like footnotes
@@ -183,14 +179,8 @@ protected:
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
     CacheFile * _cache;
-#if RAM_COMPRESSED_BUFFER_ENABLED==1
-    int _compressedSize;
-#endif
     int _uncompressedSize;
     int _maxUncompressedSize;
-#if RAM_COMPRESSED_BUFFER_ENABLED==1
-    int _maxCompressedSize;
-#endif
     int _chunkSize;
     char _type;       /// type, to show in log
     ldomTextStorageChunk * getChunk( lUInt32 address );
@@ -206,9 +196,6 @@ public:
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
-#if RAM_COMPRESSED_BUFFER_ENABLED==1
-    int getCompressedSize() { return _compressedSize; }
-#endif
     int getUncompressedSize() { return _uncompressedSize; }
 #if BUILD_LITE!=1
     /// allocates new text node, return its address inside storage
@@ -251,13 +238,6 @@ class ldomTextStorageChunk
     friend class ldomDataStorageManager;
     ldomDataStorageManager * _manager;
     lUInt8 * _buf;     /// buffer for uncompressed data
-#if RAM_COMPRESSED_BUFFER_ENABLED==1
-    lUInt8 * _compbuf; /// buffer for compressed data, NULL if can be read from file
-#endif
-    //lUInt32 _filepos;  /// position in swap file
-#if RAM_COMPRESSED_BUFFER_ENABLED==1
-    lUInt32 _compsize; /// _compbuf (compressed) area size (in file or compbuffer)
-#endif
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
@@ -266,13 +246,6 @@ class ldomTextStorageChunk
     ldomTextStorageChunk * _prevRecent;
     bool _saved;
 
-#if RAM_COMPRESSED_BUFFER_ENABLED==1
-    bool unpack( const lUInt8 * compbuf, int compsize ); /// unpack data from _compbuf to _buf
-    bool pack( const lUInt8 * buf, int bufsize );   /// pack data from buf[bufsize] to _compbuf
-    bool unpack();                                  /// unpack data from compbuf to _buf
-    bool pack();                                    /// pack data from _buf[_bufsize] to _compbuf
-    void setpacked( const lUInt8 * compbuf, int compsize );
-#endif
     void setunpacked( const lUInt8 * buf, int bufsize );
     /// pack data, and remove unpacked
     void compact();
