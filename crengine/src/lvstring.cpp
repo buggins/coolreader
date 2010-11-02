@@ -35,6 +35,15 @@ extern "C" {
 
 #define LS_DEBUG_CHECK
 
+#if defined(_DEBUG) && BUILD_LITE==1
+    int STARTUP_FLAG = 1;
+#define CHECK_STARTUP_STAGE \
+    if ( STARTUP_FLAG ) \
+        crFatalError(-123, "Cannot create global or static CREngine object")
+#else
+#define CHECK_STARTUP_STAGE
+#endif
+
 
 // memory allocation slice
 struct lstring_chunk_slice_t {
@@ -399,6 +408,9 @@ int lStr_cmp(const lChar8 * dst, const lChar16 * src)
 
 void lString16::free()
 {
+    if ( pchunk==EMPTY_STR_16 )
+        return;
+    CHECK_STARTUP_STAGE;
     //assert(pchunk->buf16[pchunk->len]==0);
     ::free(pchunk->buf16);
 #if (LDOM_USE_OWN_MEM_MAN == 1)
@@ -428,6 +440,7 @@ void lString16::alloc(size_t sz)
 
 lString16::lString16(const lChar16 * str)
 {
+    CHECK_STARTUP_STAGE;
     if (!str || !(*str))
     {
         pchunk = EMPTY_STR_16;
@@ -442,6 +455,7 @@ lString16::lString16(const lChar16 * str)
 
 lString16::lString16(const lChar8 * str)
 {
+    CHECK_STARTUP_STAGE;
     if (!str || !(*str))
     {
         pchunk = EMPTY_STR_16;
@@ -456,6 +470,7 @@ lString16::lString16(const lChar8 * str)
 /// constructor from utf8 character array fragment
 lString16::lString16(const lChar8 * str, size_type count)
 {
+    CHECK_STARTUP_STAGE;
     if (!str || !(*str))
     {
         pchunk = EMPTY_STR_16;
@@ -470,6 +485,7 @@ lString16::lString16(const lChar8 * str, size_type count)
 
 lString16::lString16(const value_type * str, size_type count)
 {
+    CHECK_STARTUP_STAGE;
     if ( !str || !(*str) || count<=0 )
     {
         pchunk = EMPTY_STR_16; addref();
@@ -485,6 +501,7 @@ lString16::lString16(const value_type * str, size_type count)
 
 lString16::lString16(const lString16 & str, size_type offset, size_type count)
 {
+    CHECK_STARTUP_STAGE;
     if ( count > str.length() - offset )
         count = str.length() - offset;
     if (count<=0)
@@ -1252,6 +1269,9 @@ const lString16 lString16::empty_str;
 
 void lString8::free()
 {
+    if ( pchunk==EMPTY_STR_8 )
+        return;
+    CHECK_STARTUP_STAGE;
     ::free(pchunk->buf8);
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     for (int i=slices_count-1; i>=0; --i)
@@ -1280,6 +1300,7 @@ void lString8::alloc(size_t sz)
 
 lString8::lString8(const lChar8 * str)
 {
+    CHECK_STARTUP_STAGE;
     if (!str || !(*str))
     {
         pchunk = EMPTY_STR_8;
@@ -1294,6 +1315,7 @@ lString8::lString8(const lChar8 * str)
 
 lString8::lString8(const lChar16 * str)
 {
+    CHECK_STARTUP_STAGE;
     if (!str || !(*str))
     {
         pchunk = EMPTY_STR_8;
@@ -1323,6 +1345,7 @@ lString8::lString8(const value_type * str, size_type count)
 
 lString8::lString8(const lString8 & str, size_type offset, size_type count)
 {
+    CHECK_STARTUP_STAGE;
     if ( count > str.length() - offset )
         count = str.length() - offset;
     if (count<=0)

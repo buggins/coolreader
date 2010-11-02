@@ -116,6 +116,7 @@ if (NOT ZLIB_FOUND)
 endif (NOT ZLIB_FOUND)
 endif(DEFINED USE_QT_ZLIB)
 
+if ( NOT ${GUI} STREQUAL FB2PROPS )
 if (NOT WIN32)
 FIND_PACKAGE(PNG)
 endif (NOT WIN32)
@@ -166,6 +167,7 @@ INCLUDE_DIRECTORIES( ${ANTIWORD_INCLUDE_DIR} )
 else()
 ADD_DEFINITIONS(-DENABLE_ANTIWORD=0)
 endif(ENABLE_ANTIWORD)
+endif ( NOT ${GUI} STREQUAL FB2PROPS )
 
 
 INCLUDE_DIRECTORIES( 
@@ -175,6 +177,12 @@ INCLUDE_DIRECTORIES(
   ${FREETYPE_INCLUDE_DIRS}
   ${CHM_INCLUDE_DIRS}
 )
+
+if ( ${GUI} STREQUAL FB2PROPS )
+SET(STD_LIBS 
+  ${ZLIB_LIBRARIES} 
+)
+else()
 SET(STD_LIBS 
   ${JPEG_LIBRARIES} 
   ${FREETYPE_LIBRARIES} 
@@ -182,13 +190,16 @@ SET(STD_LIBS
   ${ZLIB_LIBRARIES} 
   ${CHM_LIBRARIES}
 )
+include_directories(${FT_INCLUDE_PATH})
+endif ( ${GUI} STREQUAL FB2PROPS )
 
 include_directories(crengine/include)
-include_directories(tinydict)
-include_directories(${FT_INCLUDE_PATH})
 
+if ( NOT ${GUI} STREQUAL FB2PROPS )
+include_directories(tinydict)
 message("Will make tinydict library - .dict format support")
 ADD_SUBDIRECTORY(tinydict)
+endif ( NOT ${GUI} STREQUAL FB2PROPS )
 
 
 include(FindPkgConfig)
