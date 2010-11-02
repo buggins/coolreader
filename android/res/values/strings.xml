@@ -31,10 +31,16 @@
 <string name="options_font_size">Font size</string>
 <string name="options_font_face">Font face</string>
 <string name="options_font_embolden">Embolden font</string>
+<string name="options_font_antialias">Font antialiasing</string>
 <string name="options_interline_space">Interline space</string>
 <string name="options_inverse_view">Inverse view</string>
 <string name="options_page_show_titlebar">Show title bar</string>
 <string name="options_page_footnotes">Footnotes</string>
+<string name="options_page_orientation">Orientation</string>
+<string name="options_page_orientation_0">Portrait</string>
+<string name="options_page_orientation_90">Landscape</string>
+<string name="options_page_orientation_180">Portrait (180)</string>
+<string name="options_page_orientation_270">Landscape (270)</string>
 <string name="options_page_margin_left">Left margin</string>
 <string name="options_page_margin_right">Right margin</string>
 <string name="options_page_margin_top">Top margin</string>

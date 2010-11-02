@@ -31,10 +31,16 @@
 <string name="options_font_size">Размер шрифта</string>
 <string name="options_font_face">Шрифт</string>
 <string name="options_font_embolden">Жирность</string>
+<string name="options_font_antialias">Сглаживание шрифта</string>
 <string name="options_interline_space">Межстрочный интервал</string>
 <string name="options_inverse_view">Ночной режим</string>
 <string name="options_page_show_titlebar">Колонтитул</string>
 <string name="options_page_footnotes">Сноски внизу страницы</string>
+<string name="options_page_orientation">Ориентация страницы</string>
+<string name="options_page_orientation_0">Книжная</string>
+<string name="options_page_orientation_90">Альбомная</string>
+<string name="options_page_orientation_180">Книжная (180)</string>
+<string name="options_page_orientation_270">Альбомная (270)</string>
 <string name="options_page_margin_left">Левый отступ</string>
 <string name="options_page_margin_right">Правый отступ</string>
 <string name="options_page_margin_top">Верхний отступ</string>
