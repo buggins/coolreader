@@ -52,12 +52,12 @@ public class SearchDlg  extends BaseDialog {
     	mCaseSensitive = (CheckBox)mDialogView.findViewById(R.id.search_case_sensitive);
     	mReverse = (CheckBox)mDialogView.findViewById(R.id.search_reverse);
 		setTitle(mCoolReader.getResources().getString(R.string.win_title_search));
-		setView(mDialogView);
 		// setup buttons
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setView(mDialogView);
 	}
 }

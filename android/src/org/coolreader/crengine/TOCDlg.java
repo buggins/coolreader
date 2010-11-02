@@ -16,7 +16,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class TOCDlg extends AlertDialog {
+public class TOCDlg extends BaseDialog {
 	CoolReader mCoolReader;
 	ReaderView mReaderView;
 	TOCItem mTOC;
@@ -159,7 +159,7 @@ public class TOCDlg extends AlertDialog {
 
 	public TOCDlg( CoolReader coolReader, ReaderView readerView, TOCItem toc, int currentPage )
 	{
-		super(coolReader);
+		super(coolReader, 0, 0);
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;

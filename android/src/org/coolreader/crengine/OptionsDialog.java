@@ -5,16 +5,18 @@ import java.util.Properties;
 
 import org.coolreader.R;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TabHost;
@@ -22,7 +24,7 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.TabContentFactory;
 
-public class OptionsDialog extends AlertDialog implements TabContentFactory {
+public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
 	ReaderView mReaderView;
 	String[] mFontFaces;
@@ -48,10 +50,15 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 		public String label;
 		public String property;
 		public String defaultValue;
+		public int iconId;
 		public OptionsListView optionsListView;
 		public OptionBase( String label, String property ) {
 			this.label = label;
 			this.property = property;
+		}
+		public OptionBase setIconId(int id) {
+			this.iconId = id;
+			return this;
 		}
 		public OptionBase setDefaultValue(String value) {
 			this.defaultValue = value;
@@ -234,9 +241,9 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 		}
 	}
 	
-	public OptionsDialog( Context context, ReaderView readerView, String[] fontFaces )
+	public OptionsDialog( Activity activity, ReaderView readerView, String[] fontFaces )
 	{
-		super(context);
+		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel);
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
 		mProperties = readerView.getSettings();
@@ -297,6 +304,8 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 					TextView valueView = (TextView)view.findViewById(R.id.option_value);
 					labelView.setText(mOptions.get(position).label);
 					valueView.setText(mOptions.get(position).getValueLabel());
+					ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+					icon.setImageResource(mOptions.get(position).iconId);
 					return view;
 				}
 
@@ -353,7 +362,7 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating OptionsDialog");
 		
-		//setTitle("Options");
+		setTitle(null);
         setCancelable(true);
         mInflater = LayoutInflater.from(getContext());
         mTabs = (TabHost)mInflater.inflate(R.layout.options, null);
@@ -364,9 +373,9 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 		mTabs.setup();
 		//new TabHost(getContext());
 		mOptionsStyles = new OptionsListView(getContext());
-		mOptionsStyles.add(new ListOption(getString(R.string.options_font_face), ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]));
-		mOptionsStyles.add(new ListOption(getString(R.string.options_font_size), ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24"));
-		mOptionsStyles.add(new BoolOption(getString(R.string.options_font_embolden), ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0"));
+		mOptionsStyles.add(new ListOption(getString(R.string.options_font_face), ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+		mOptionsStyles.add(new ListOption(getString(R.string.options_font_size), ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
+		mOptionsStyles.add(new BoolOption(getString(R.string.options_font_embolden), ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		mOptionsStyles.add(new BoolOption(getString(R.string.options_inverse_view), ReaderView.PROP_DISPLAY_INVERSE).setDefaultValue("0"));
 		mOptionsStyles.add(new ListOption(getString(R.string.options_interline_space), ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
 		mOptionsPage = new OptionsListView(getContext());
@@ -381,42 +390,35 @@ public class OptionsDialog extends AlertDialog implements TabContentFactory {
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
+		tsStyles.setIndicator(null, getContext().getResources().getDrawable(R.drawable.cr3_option_style));
 		tsStyles.setIndicator(getContext().getResources().getString(R.string.tab_options_styles)); // , R.drawable.cr3_option_style
 		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
 		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
+		tsPage.setIndicator(null, getContext().getResources().getDrawable(R.drawable.cr3_option_page));
 		tsPage.setIndicator(getContext().getResources().getString(R.string.tab_options_page)); //, R.drawable.cr3_option_page
 		tsPage.setContent(this);
 		mTabs.addTab(tsPage);
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
-		tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app));
+		//tsApp.setIndicator(null, getContext().getResources().getDrawable(R.drawable.cr3_option_));
+		//tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app));
 		tsApp.setContent(this);
-		mTabs.addTab(tsApp);
+		//mTabs.addTab(tsApp);
 		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
 		tsControls.setIndicator(getContext().getResources().getString(R.string.tab_options_controls));
 		tsControls.setContent(this);
-		mTabs.addTab(tsControls);
+		//mTabs.addTab(tsControls);
 
 		setView(mTabs);
 		
-		// setup buttons
-        setButton(AlertDialog.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                //cancel();
-                dialog.cancel();
-                mReaderView.setSettings(mProperties);
-            }
-        });
- 
-        setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel",
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    dialog.cancel();
-                }
-            });
-		
 		super.onCreate(savedInstanceState);
 		Log.v("cr3", "OptionsDialog is created");
+	}
+
+	@Override
+	protected void onPositiveButtonClick() {
+        mReaderView.setSettings(mProperties);
+        super.onPositiveButtonClick();
 	}
 
 }

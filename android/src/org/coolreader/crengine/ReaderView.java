@@ -221,9 +221,6 @@ public class ReaderView extends View {
 		return mOpened;
 	}
     
-	private int lastDigitKeycode = 0;
-	private long lastDigitKeyDownTime = 0;
-	
 	public final int LONG_KEYPRESS_TIME = 2000;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.os.Bundle;
@@ -23,7 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
-public class BookmarksDlg  extends AlertDialog {
+public class BookmarksDlg  extends BaseDialog {
 	CoolReader mCoolReader;
 	ReaderView mReaderView;
 	private LayoutInflater mInflater;
@@ -145,7 +144,7 @@ public class BookmarksDlg  extends AlertDialog {
 	
 	public BookmarksDlg( CoolReader activity, ReaderView readerView )
 	{
-		super(activity);
+		super(activity, 0, 0);
 		mThis = this; // for inner classes
 		mCoolReader = activity;
 		mReaderView = readerView;
