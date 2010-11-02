@@ -287,7 +287,7 @@ bool CRFileHist::saveToStream( LVStream * targetStream )
 {
     LVStreamRef streamref = LVCreateMemoryStream(NULL, 0, false, LVOM_WRITE);
     LVStream * stream = streamref.get();
-    const char * xml_hdr = "\xef\xbb\xbf<?xml version=\"1.0\" enconding=\"utf-8\"?>\r\n<FictionBookMarks>\r\n";
+    const char * xml_hdr = "\xef\xbb\xbf<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<FictionBookMarks>\r\n";
     const char * xml_ftr = "</FictionBookMarks>\r\n";
     //const char * crlf = "\r\n";
     *stream << xml_hdr;
