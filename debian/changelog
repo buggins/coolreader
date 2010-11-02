@@ -1,3 +1,9 @@
+cr3 (3.0.35-3) zelazny; urgency=low
+
+  * Typo in bookmark xml markup
+
+ -- Alexander V. Nikolaev <avn@daemon.hole.ru>  Tue, 02 Nov 2010 23:54:30 +0200
+
 cr3 (3.0.35-2) zelazny; urgency=low
 
   [ Vadim Lopatin ]
