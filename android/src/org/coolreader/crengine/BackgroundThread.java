@@ -120,8 +120,11 @@ public class BackgroundThread extends Thread {
 		Log.i("cr3", "Exiting background thread");
 	}
 
+	private final static boolean USE_LOCK = false;
 	private Runnable guard( final Runnable r )
 	{
+		if ( !USE_LOCK )
+			return r;
 		return new Runnable() {
 			public void run() {
 				synchronized (LOCK) {
