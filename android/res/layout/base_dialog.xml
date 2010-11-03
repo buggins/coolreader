@@ -4,16 +4,15 @@
     android:id="@+id/base_dialog" 
     android:orientation="vertical"
     android:layout_width="fill_parent"
+    android:minWidth="600dip"
     android:layout_height="fill_parent">
     <FrameLayout android:id="@+id/base_dialog_content_view"
-        android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="10"
         android:layout_gravity="center_vertical|fill_horizontal"
         android:layout_marginLeft="2dip"
-        android:layout_marginRight="8dip"
-        android:baselineAligned="false">
+        android:layout_marginRight="2dip">
     </FrameLayout>
     <LinearLayout android:id="@+id/base_dialog_buttons_view"
         android:orientation="horizontal"
@@ -23,8 +22,7 @@
         android:layout_marginLeft="2dip"
         android:layout_marginRight="2dip"
         android:layout_marginTop="2dip"
-        android:layout_marginBottom="2dip"
-        android:baselineAligned="true">
+        android:layout_marginBottom="2dip">
         <Button
 	        android:id="@+id/base_dlg_btn_positive"
 	        android:text="@string/dlg_button_ok" 

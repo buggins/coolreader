@@ -34,6 +34,11 @@
 <string name="options_font_antialias">Font antialiasing</string>
 <string name="options_interline_space">Interline space</string>
 <string name="options_inverse_view">Inverse view</string>
+<string name="options_color_text">Text color</string>
+<string name="options_color_background">Background color</string>
+<string name="options_color_hue">Hue</string>
+<string name="options_color_saturation">Saturation</string>
+<string name="options_color_brightness">Brightness</string>
 <string name="options_page_show_titlebar">Show title bar</string>
 <string name="options_page_footnotes">Footnotes</string>
 <string name="options_page_orientation">Orientation</string>

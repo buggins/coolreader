@@ -1,9 +1,10 @@
 package org.coolreader.crengine;
 
 import java.util.ArrayList;
-import java.util.Properties;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -75,6 +76,25 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public void onSelect() { }
 	}
 	
+	class ColorOption extends OptionBase {
+		final int defColor;
+		public ColorOption( String label, String property, int defColor ) {
+			super(label, property);
+			this.defColor = defColor;
+		}
+		public String getValueLabel() { return mProperties.getProperty(property); }
+		public void onSelect()
+		{ 
+			ColorPickerDialog dlg = new ColorPickerDialog(getOwnerActivity(), new OnColorChangedListener() {
+				public void colorChanged(int color) {
+					mProperties.setColor(property, color);
+					optionsListView.refresh();
+				}
+			}, mProperties.getColor(property, defColor), label);
+			dlg.show();
+		}
+	}
+	
 	class BoolOption extends OptionBase {
 		public BoolOption( String label, String property ) {
 			super(label, property);
@@ -82,6 +102,41 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ? "on" : "off"; }
 		public void onSelect() { 
 			mProperties.setProperty(property, "1".equals(mProperties.getProperty(property)) ? "0" : "1");
+			optionsListView.refresh();
+		}
+	}
+
+	public void saveColor( boolean night )
+	{
+		if ( night ) {
+			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0x000000));
+			mProperties.setColor(ReaderView.PROP_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0xFFFFFF));
+		} else {
+			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
+			mProperties.setColor(ReaderView.PROP_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0x000000));
+		}
+	}
+	public void restoreColor( boolean night )
+	{
+		if ( night ) {
+			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, 0x000000));
+			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_NIGHT, 0xFFFFFF));
+		} else {
+			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, 0xFFFFFF));
+			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_DAY, 0x000000));
+		}
+	}
+	class NightModeOption extends OptionBase {
+		public NightModeOption( String label, String property ) {
+			super(label, property);
+		}
+		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ? "on" : "off"; }
+		public void onSelect() { 
+			boolean oldMode = mProperties.getBool(property, false);
+			saveColor(oldMode);
+			boolean newMode = !oldMode;
+			restoreColor(newMode);
+			mProperties.setBool(property, newMode);
 			optionsListView.refresh();
 		}
 	}
@@ -94,6 +149,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			this.label = label;
 		}
 	}
+
 	class ListOption extends OptionBase {
 		private ArrayList<Pair> list = new ArrayList<Pair>();
 		public ListOption( String label, String property ) {
@@ -117,9 +173,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 		public ListOption add(int[]values, int[]labelIDs) {
 			for ( int i=0; i<values.length; i++ ) {
-				int item = values[i];
-				String s = getContext().getString(labelIDs[i]); 
-				add(s, s);
+				String value = String.valueOf(values[i]); 
+				String label = getContext().getString(labelIDs[i]); 
+				add(value, label);
 			}
 			return this;
 		}
@@ -390,8 +446,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsStyles.add(new ListOption(getString(R.string.options_font_size), ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
 		mOptionsStyles.add(new BoolOption(getString(R.string.options_font_embolden), ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), ReaderView.PROP_FONT_ANTIALIASING).setDefaultValue("0"));
-		mOptionsStyles.add(new BoolOption(getString(R.string.options_inverse_view), ReaderView.PROP_DISPLAY_INVERSE).setDefaultValue("0"));
 		mOptionsStyles.add(new ListOption(getString(R.string.options_interline_space), ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
+		mOptionsStyles.add(new NightModeOption(getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
+		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
+		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
 		mOptionsPage = new OptionsListView(getContext());
 		mOptionsPage.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setDefaultValue("1"));
 		mOptionsPage.add(new BoolOption(getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));

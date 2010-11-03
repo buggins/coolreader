@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content"
+	android:layout_height="fill_parent"
+>
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:orientation="horizontal"
+	>
+		<View
+			android:layout_width="48dip"
+			android:layout_height="fill_parent"
+            android:layout_weight="1"
+			android:layout_marginLeft="8dip"
+			android:layout_marginTop="8dip"
+			android:layout_marginBottom="8dip"
+			android:id="@+id/preview"
+		/>
+		<LinearLayout 
+            android:minWidth="300dip"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+            android:layout_weight="10"
+			android:padding="8dip"
+		>
+			<SeekBar
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/hue"
+				android:max="119"
+				android:padding="4dip"
+			/>
+			<SeekBar
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/saturation"
+				android:max="63"
+				android:padding="4dip"
+			/>
+			<SeekBar
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/value"
+				android:max="63"
+				android:padding="4dip"
+			/>
+		</LinearLayout>
+	</LinearLayout>
+</ScrollView>

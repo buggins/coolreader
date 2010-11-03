@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
@@ -32,11 +31,16 @@ public class ReaderView extends View {
     public static final int NOOK_KEY_SHIFT_UP = 101;
     public static final int NOOK_KEY_SHIFT_DOWN = 100;
     
-    public static final String PROP_FONT_ANTIALIASING       ="font.antialiasing.mode";
+    public static final String PROP_NIGHT_MODE              ="crengine.night.mode";
+    public static final String PROP_FONT_COLOR_DAY          ="font.color.day";
+    public static final String PROP_BACKGROUND_COLOR_DAY    ="background.color.day";
+    public static final String PROP_FONT_COLOR_NIGHT        ="font.color.night";
+    public static final String PROP_BACKGROUND_COLOR_NIGHT  ="background.color.night";
     public static final String PROP_FONT_COLOR              ="font.color.default";
+    public static final String PROP_BACKGROUND_COLOR        ="background.color.default";
+    public static final String PROP_FONT_ANTIALIASING       ="font.antialiasing.mode";
     public static final String PROP_FONT_FACE               ="font.face.default";
     public static final String PROP_FONT_WEIGHT_EMBOLDEN    ="font.face.weight.embolden";
-    public static final String PROP_BACKGROUND_COLOR        ="background.color.default";
     public static final String PROP_TXT_OPTION_PREFORMATTED ="crengine.file.txt.preformatted";
     public static final String PROP_LOG_FILENAME            ="crengine.log.filename";
     public static final String PROP_LOG_LEVEL               ="crengine.log.level";
@@ -184,8 +188,8 @@ public class ReaderView extends View {
     private native void createInternal();
     private native void destroyInternal();
     private native boolean loadDocumentInternal( String fileName );
-    private native Properties getSettingsInternal();
-    private native boolean applySettingsInternal( Properties settings );
+    private native java.util.Properties getSettingsInternal();
+    private native boolean applySettingsInternal( java.util.Properties settings );
     private native void setStylesheetInternal( String stylesheet );
     private native void resizeInternal( int dx, int dy );
     private native boolean doCommandInternal( int command, int param );
@@ -548,7 +552,7 @@ public class ReaderView extends View {
 	private void syncViewSettings()
 	{
 		execute( new Task() {
-			Properties props;
+			java.util.Properties props;
 			public void work() {
 				BackgroundThread.ensureBackground();
 				props = getSettingsInternal();
@@ -590,6 +594,7 @@ public class ReaderView extends View {
         }
 	}
 	
+	private static boolean DEBUG_RESET_OPTIONS = false;
 	class CreateViewTask extends Task
 	{
 		public void work() throws Exception {
@@ -612,7 +617,7 @@ public class ReaderView extends View {
 			propsDir.mkdirs();
 			propsFile = new File( propsDir, "cr3.ini");
 	        //Properties props = new Properties();
-	        if ( propsFile.exists() ) {
+	        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
 	        	try {
 	        		FileInputStream is = new FileInputStream(propsFile);
 	        		mSettings.load(is);
@@ -622,6 +627,8 @@ public class ReaderView extends View {
 	        } else {
 		        mSettings.setProperty(PROP_STATUS_FONT_SIZE, "12");
 		        mSettings.setProperty(PROP_FONT_SIZE, "18");
+		        mSettings.setProperty(PROP_FONT_FACE, "Droid Sans");
+		        mSettings.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
 	        }
 	        applySettings(mSettings);
 			mInitialized = true;

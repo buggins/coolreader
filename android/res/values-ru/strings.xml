@@ -34,6 +34,11 @@
 <string name="options_font_antialias">Сглаживание шрифта</string>
 <string name="options_interline_space">Межстрочный интервал</string>
 <string name="options_inverse_view">Ночной режим</string>
+<string name="options_color_text">Цвет текста</string>
+<string name="options_color_background">Цвет фона</string>
+<string name="options_color_hue">Оттенок</string>
+<string name="options_color_saturation">Насыщенность</string>
+<string name="options_color_brightness">Яркость</string>
 <string name="options_page_show_titlebar">Колонтитул</string>
 <string name="options_page_footnotes">Сноски внизу страницы</string>
 <string name="options_page_orientation">Ориентация страницы</string>
