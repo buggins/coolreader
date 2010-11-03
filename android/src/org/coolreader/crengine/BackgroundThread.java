@@ -273,14 +273,14 @@ public class BackgroundThread extends Thread {
 		});
 	}
 	
-	public void quit()
-	{
-		callBackground(new Callable<Object>() {
-			public Object call() {
-				mStopped = true;
-				Looper.myLooper().quit();
-				return null;
-			}
-		});
-	}
+//	public void quit()
+//	{
+//		callBackground(new Callable<Object>() {
+//			public Object call() {
+//				mStopped = true;
+//				Looper.myLooper().quit();
+//				return null;
+//			}
+//		});
+//	}
 }

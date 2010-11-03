@@ -867,37 +867,60 @@ public class ReaderView extends View {
     	}
     }
     
-    private void savePosition()
-    {
-		BackgroundThread.ensureGUI();
-    	if ( !mOpened )
-    		return;
-    	Bookmark bmk = getCurrentPageBookmarkInternal();
-    	if ( bmk!=null )
-    		Log.d("cr3", "saving position, bmk=" + bmk.getStartPos());
-    	else
-    		Log.d("cr3", "saving position: no current page bookmark obtained");
-    	if ( bmk!=null && mBookInfo!=null ) {
-        	bmk.setTimeStamp(System.currentTimeMillis());
-    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
-    		mBookInfo.setLastPosition(bmk);
-    		mActivity.getHistory().updateRecentDir();
-    		mActivity.getHistory().saveToDB();
-    		saveSettings();
-    	}
+//    private void savePosition()
+//    {
+//		BackgroundThread.ensureBackground();
+//    	if ( !mOpened )
+//    		return;
+//    	Bookmark bmk = getCurrentPageBookmarkInternal();
+//    	if ( bmk!=null )
+//    		Log.d("cr3", "saving position, bmk=" + bmk.getStartPos());
+//    	else
+//    		Log.d("cr3", "saving position: no current page bookmark obtained");
+//    	if ( bmk!=null && mBookInfo!=null ) {
+//        	bmk.setTimeStamp(System.currentTimeMillis());
+//    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
+//    		mBookInfo.setLastPosition(bmk);
+//    		mActivity.getHistory().updateRecentDir();
+//    		mActivity.getHistory().saveToDB();
+//    		saveSettings();
+//    	}
+//    }
+    
+    private class SavePositionTask extends Task {
+
+    	Bookmark bmk;
+    	
+		@Override
+		public void done() {
+	    	if ( bmk!=null && mBookInfo!=null ) {
+	        	bmk.setTimeStamp(System.currentTimeMillis());
+	    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
+	    		mBookInfo.setLastPosition(bmk);
+	    		mActivity.getHistory().updateRecentDir();
+	    		mActivity.getHistory().saveToDB();
+	    		saveSettings();
+	    	}
+		}
+
+		@Override
+		public void work() throws Exception {
+			BackgroundThread.ensureBackground();
+	    	if ( !mOpened )
+	    		return;
+	    	bmk = getCurrentPageBookmarkInternal();
+	    	if ( bmk!=null )
+	    		Log.d("cr3", "saving position, bmk=" + bmk.getStartPos());
+	    	else
+	    		Log.d("cr3", "saving position: no current page bookmark obtained");
+		}
+    	
     }
 
     public void save()
     {
 		BackgroundThread.ensureGUI();
-    	execute( new Task() {
-    		public void work() {
-    			BackgroundThread.ensureBackground();
-    			if ( mOpened ) {
-					savePosition();
-    			}
-    		}
-    	});
+    	execute( new SavePositionTask() );
     }
     
     public void close()

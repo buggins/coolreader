@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 

@@ -130,13 +130,14 @@ public class CoolReader extends Activity
 		if ( mDB!=null ) {
 			mBackgroundThread.executeBackground(new Runnable() {
 				public void run() {
-					mDB.close();
+					if ( mDB!=null )
+						mDB.close();
 				}
 			});
 		}
-		if ( mBackgroundThread!=null ) {
-			mBackgroundThread.quit();
-		}
+//		if ( mBackgroundThread!=null ) {
+//			mBackgroundThread.quit();
+//		}
 			
 		mDB = null;
 		mReaderView = null;
