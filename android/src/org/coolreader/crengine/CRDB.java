@@ -2,8 +2,6 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 
 import android.database.Cursor;

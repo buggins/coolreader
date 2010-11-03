@@ -36,19 +36,19 @@ public class Engine {
 		public void fail( Exception e );
 	}
 	
-	public static class FatalError extends RuntimeException {
-		private Engine engine;
-		private String msg;
-		public FatalError( Engine engine, String msg )
-		{
-			this.engine = engine;
-			this.msg = msg;
-		}
-		public void handle()
-		{
-			engine.fatalError(msg);
-		}
-	}
+//	public static class FatalError extends RuntimeException {
+//		private Engine engine;
+//		private String msg;
+//		public FatalError( Engine engine, String msg )
+//		{
+//			this.engine = engine;
+//			this.msg = msg;
+//		}
+//		public void handle()
+//		{
+//			engine.fatalError(msg);
+//		}
+//	}
 	
 
 	private class TaskHandler implements Runnable {
@@ -72,7 +72,7 @@ public class Engine {
 						task.done();
 					}
 				});
-			} catch ( final FatalError e ) {
+//			} catch ( final FatalError e ) {
 				//TODO:
 //				Handler h = view.getHandler();
 //				
@@ -378,7 +378,54 @@ public class Engine {
 		return getFontFaceListInternal();
 	}
 	
-	final int CACHE_DIR_SIZE = 50000000;
+	final int CACHE_DIR_SIZE = 32000000;
+	
+	private String createCacheDir( File baseDir, String subDir )
+	{
+		String cacheDirName = null;
+		if ( baseDir.isDirectory() ) {
+			if ( baseDir.canWrite() ) {
+				if ( subDir!=null ) {
+					baseDir = new File(baseDir, subDir);
+					baseDir.mkdir();
+				}
+				if ( baseDir.exists() && baseDir.canWrite() ) {
+					File cacheDir = new File(baseDir, ".cache");
+					if ( cacheDir.exists() || cacheDir.mkdirs() ) {
+						if ( cacheDir.canWrite() ) {
+							cacheDirName = cacheDir.getAbsolutePath();
+						}
+					}
+				}
+			} else {
+				Log.i("cr3", baseDir.toString() + " is read only");
+			}
+		} else {
+			Log.i("cr3", baseDir.toString() + " is not found");
+		}
+		return cacheDirName;
+	}
+	
+	private void initCacheDirectory()
+	{
+		String cacheDirName = null;
+		// SD card
+		cacheDirName = createCacheDir( Environment.getExternalStorageDirectory(), "Books" );
+		// internal SD card on Nook
+		if ( cacheDirName==null )
+			cacheDirName = createCacheDir( new File("/system/media/sdcard"), "Books" );
+		// internal flash
+		if ( cacheDirName==null ) {
+			File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
+			if ( cacheDir.isDirectory() && cacheDir.canWrite() )
+				cacheDirName = cacheDir.getAbsolutePath();
+		}
+		// set cache directory for engine
+		if ( cacheDirName!=null ) {
+			Log.i("cr3", cacheDirName + " will be used for cache, maxCacheSize=" + CACHE_DIR_SIZE);
+			setCacheDirectoryInternal(cacheDirName, CACHE_DIR_SIZE);
+		}
+	}
 	
 	private void init() throws IOException
 	{
@@ -388,9 +435,8 @@ public class Engine {
     	String[] fonts = findFonts();
 		if ( !initInternal( fonts ) )
 			throw new IOException("Cannot initialize CREngine JNI");
-		File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
-		cacheDir.mkdirs();
-		setCacheDirectoryInternal(cacheDir.getAbsolutePath(), CACHE_DIR_SIZE);
+		// Initialization of cache directory
+		initCacheDirectory();
 		initialized = true;
 	}
 	

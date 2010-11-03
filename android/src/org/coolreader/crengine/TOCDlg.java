@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.app.AlertDialog;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.view.LayoutInflater;
