@@ -50,7 +50,7 @@ public class Properties extends java.util.Properties {
 		if ( value.equals("1") || value.equals("true") || value.equals("yes") )
 			return true;
 		if ( value.equals("0") || value.equals("false") || value.equals("no") )
-			return true;
+			return false;
 		return defaultValue;
 	}
 }
