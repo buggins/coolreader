@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 
 import org.coolreader.crengine.ReaderView.Sync;
 
@@ -16,25 +17,91 @@ import android.view.View;
  */
 public class BackgroundThread extends Thread {
 	
-	public final static Object LOCK = new Object(); 
+	private final static Object LOCK = new Object(); 
+
+	private static BackgroundThread instance;
 	
-	private Handler handler;
-	private View guiTarget;
-	private ArrayList<Runnable> posted = new ArrayList<Runnable>();
-	private ArrayList<Runnable> postedGUI = new ArrayList<Runnable>();
-	public void setGUI(  View guiTarget ) {
-		this.guiTarget = guiTarget;
-		synchronized(postedGUI) {
-			for ( Runnable task : postedGUI )
-				guiTarget.post( task );
+	// singleton
+	public static BackgroundThread instance()
+	{
+		if ( instance==null ) {
+			synchronized( LOCK ) {
+				if ( instance==null )
+					instance = new BackgroundThread(); 
+			}
+		}
+		return instance;
+	}
+
+	public final static Executor backgroundExecutor = new Executor() {
+		public void execute(Runnable task) {
+			instance().postBackground(task);
+		}
+	};
+	
+	public final static Executor guiExecutor = new Executor() {
+		public void execute(Runnable task) {
+			instance().postGUI(task);
+		}
+	};
+	
+	public final static boolean CHECK_THREAD_CONTEXT = true; 
+
+	/**
+	 * Throws exception if not in background thread.
+	 */
+	public final static void ensureBackground()
+	{
+		if ( CHECK_THREAD_CONTEXT && !instance().isBackgroundThread() ) {
+			Log.e("cr3", "not in background thread", new Exception("ensureInBackgroundThread() is failed"));
+			throw new RuntimeException("ensureInBackgroundThread() is failed");
 		}
 	}
-	public BackgroundThread() {
+	
+	/**
+	 * Throws exception if not in GUI thread.
+	 */
+	public final static void ensureGUI()
+	{
+		if ( CHECK_THREAD_CONTEXT && instance().isBackgroundThread() ) {
+			Log.e("cr3", "not in GUI thread", new Exception("ensureGUI() is failed"));
+			throw new RuntimeException("ensureGUI() is failed");
+		}
+	}
+	
+	// 
+	private Handler handler;
+	private ArrayList<Runnable> posted = new ArrayList<Runnable>();
+	private View guiTarget;
+	private ArrayList<Runnable> postedGUI = new ArrayList<Runnable>();
+
+	/**
+	 * Set view to post GUI tasks to.
+	 * @param guiTarget is view to post GUI tasks to.
+	 */
+	public void setGUI( View guiTarget ) {
+		this.guiTarget = guiTarget;
+		if ( guiTarget!=null ) {
+			// forward already posted events
+			synchronized(postedGUI) {
+				for ( Runnable task : postedGUI )
+					guiTarget.post( task );
+			}
+		}
+	}
+
+	/**
+	 * Create background thread executor.
+	 */
+	private BackgroundThread() {
 		super();
 		setName("BackgroundThread" + Integer.toHexString(hashCode()));
 		start();
 	}
+
+	@Override
 	public void run() {
+		Log.i("cr3", "Entering background thread");
 		Looper.prepare();
 		handler = new Handler() {
 			public void handleMessage( Message message )
@@ -49,7 +116,10 @@ public class BackgroundThread extends Thread {
 			posted.clear();
 		}
 		Looper.loop();
+		handler = null;
+		Log.i("cr3", "Exiting background thread");
 	}
+
 	private Runnable guard( final Runnable r )
 	{
 		return new Runnable() {
@@ -60,6 +130,11 @@ public class BackgroundThread extends Thread {
 			}
 		};
 	}
+
+	/**
+	 * Post runnable to be executed in background thread.
+	 * @param task is runnable to execute in background thread.
+	 */
 	public void postBackground( Runnable task )
 	{
 		if ( mStopped ) {
@@ -76,6 +151,11 @@ public class BackgroundThread extends Thread {
 			handler.post(task);
 		}
 	}
+
+	/**
+	 * Post runnable to be executed in GUI thread
+	 * @param task is runnable to execute in GUI thread
+	 */
 	public void postGUI( Runnable task )
 	{
 		if ( guiTarget==null ) {
@@ -86,6 +166,7 @@ public class BackgroundThread extends Thread {
 			guiTarget.post(task);
 		}
 	}
+
 	/**
 	 * Run task instantly if called from the same thread, or post it through message queue otherwise.
 	 * @param task is task to execute
@@ -98,15 +179,18 @@ public class BackgroundThread extends Thread {
 		else 
 			postBackground(task); // post
 	}
+
 	// assume there are only two threads: main GUI and background
 	public boolean isGUIThread()
 	{
 		return !isBackgroundThread();
 	}
+
 	public boolean isBackgroundThread()
 	{
 		return ( Thread.currentThread()==this );
 	}
+
 	public void executeGUI( Runnable task )
 	{
 		//Handler guiHandler = guiTarget.getHandler();

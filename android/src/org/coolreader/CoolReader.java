@@ -73,7 +73,7 @@ public class CoolReader extends Activity
 	        "cr3");
 		
         // testing background thread
-    	mBackgroundThread = new BackgroundThread();
+    	mBackgroundThread = BackgroundThread.instance();
 		mFrame = new FrameLayout(this);
 		mEngine = new Engine(this, mBackgroundThread);
 		mBackgroundThread.setGUI(mFrame);

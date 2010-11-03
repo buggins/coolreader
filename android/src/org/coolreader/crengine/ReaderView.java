@@ -218,6 +218,7 @@ public class ReaderView extends View {
 	
 	public boolean isBookLoaded()
 	{
+		BackgroundThread.ensureGUI();
 		return mOpened;
 	}
     
@@ -334,15 +335,18 @@ public class ReaderView extends View {
 	
 	public void showTOC()
 	{
+		BackgroundThread.ensureGUI();
 		final ReaderView view = this; 
 		mEngine.execute(new Task() {
 			TOCItem toc;
 			PositionProperties pos;
 			public void work() {
+				BackgroundThread.ensureBackground();
 				toc = getTOCInternal();
 				pos = getPositionPropsInternal(null);
 			}
 			public void done() {
+				BackgroundThread.ensureGUI();
 				if ( toc!=null && pos!=null ) {
 					TOCDlg dlg = new TOCDlg(mActivity, view, toc, pos.pageNumber);
 					dlg.show();
@@ -355,15 +359,18 @@ public class ReaderView extends View {
 	
 	public void showSearchDialog()
 	{
+		BackgroundThread.ensureGUI();
 		SearchDlg dlg = new SearchDlg( mActivity, this );
 		dlg.show();
 	}
 
     public void findText( final String pattern, final boolean reverse, final boolean caseInsensitive )
     {
+		BackgroundThread.ensureGUI();
 		final ReaderView view = this; 
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
+				BackgroundThread.ensureBackground();
 				boolean res = findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res )
 					res = findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
@@ -373,12 +380,14 @@ public class ReaderView extends View {
 				}
 			}
 			public void done() {
+				BackgroundThread.ensureGUI();
 				drawPage();
 				FindNextDlg dlg = new FindNextDlg( mActivity, view, pattern, caseInsensitive );
 				// TODO: remove hardcoded position
 				dlg.showAtLocation(view, Gravity.NO_GRAVITY, 0, 30);
 			}
 			public void fail(Exception e) {
+				BackgroundThread.ensureGUI();
 				mActivity.showToast("Pattern not found");
 			}
 			
@@ -387,8 +396,10 @@ public class ReaderView extends View {
     
     public void findNext( final String pattern, final boolean reverse, final boolean caseInsensitive )
     {
+		BackgroundThread.ensureGUI();
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
+				BackgroundThread.ensureBackground();
 				boolean res = findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res )
 					res = findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
@@ -398,6 +409,7 @@ public class ReaderView extends View {
 				}
 			}
 			public void done() {
+				BackgroundThread.ensureGUI();
 				drawPage();
 			}
 		});
@@ -405,11 +417,14 @@ public class ReaderView extends View {
     
     public void clearSelection()
     {
+		BackgroundThread.ensureGUI();
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
+				BackgroundThread.ensureBackground();
 				clearSelectionInternal();
 			}
 			public void done() {
+				BackgroundThread.ensureGUI();
 				drawPage();
 			}
 		});
@@ -417,12 +432,15 @@ public class ReaderView extends View {
 
     public void goToBookmark( Bookmark bm )
 	{
+		BackgroundThread.ensureGUI();
 		final String pos = bm.getStartPos();
 		mEngine.execute(new Task() {
 			public void work() {
+				BackgroundThread.ensureBackground();
 				goToPositionInternal(pos);
 			}
 			public void done() {
+				BackgroundThread.ensureBackground();
 				drawPage();
 			}
 		});
@@ -430,6 +448,7 @@ public class ReaderView extends View {
 	
 	public boolean goToBookmark( final int shortcut )
 	{
+		BackgroundThread.ensureGUI();
 		if ( mBookInfo!=null ) {
 			Bookmark bm = mBookInfo.findShortcutBookmark(shortcut);
 			if ( bm==null ) {
@@ -446,10 +465,12 @@ public class ReaderView extends View {
 	
 	public void addBookmark( final int shortcut )
 	{
+		BackgroundThread.ensureGUI();
 		// set bookmark instead
 		mEngine.execute(new Task() {
 			Bookmark bm;
 			public void work() {
+				BackgroundThread.ensureBackground();
 				if ( mBookInfo!=null ) {
 					bm = getCurrentPageBookmarkInternal();
 					bm.setShortcut(shortcut);
@@ -466,10 +487,12 @@ public class ReaderView extends View {
 	
 	public void doCommand( final ReaderCommand cmd, final int param )
 	{
+		BackgroundThread.ensureGUI();
 		Log.d("cr3", "doCommand("+cmd + ", " + param +")");
 		execute(new Task() {
 			boolean res;
 			public void work() {
+				BackgroundThread.ensureBackground();
 				res = doCommandInternal(cmd.nativeId, param);
 			}
 			public void done() {
@@ -486,12 +509,14 @@ public class ReaderView extends View {
 	
 	private void updateLoadedBookInfo()
 	{
+		BackgroundThread.ensureBackground();
 		// get title, authors, etc.
 		updateBookInfoInternal( mBookInfo );
 	}
 	
 	private void applySettings( Properties props )
 	{
+		BackgroundThread.ensureBackground();
         applySettingsInternal(props);
         syncViewSettings();
         drawPage();
@@ -525,6 +550,7 @@ public class ReaderView extends View {
 		execute( new Task() {
 			Properties props;
 			public void work() {
+				BackgroundThread.ensureBackground();
 				props = getSettingsInternal();
 			}
 			public void done() {
@@ -567,6 +593,7 @@ public class ReaderView extends View {
 	class CreateViewTask extends Task
 	{
 		public void work() throws Exception {
+			BackgroundThread.ensureBackground();
 			createInternal();
 			//File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
@@ -621,6 +648,7 @@ public class ReaderView extends View {
 
 	public boolean loadLastDocument( final Runnable errorHandler )
 	{
+		BackgroundThread.ensureGUI();
 		Log.i("cr3", "Submitting LastDocumentLoadTask");
 		init();
 		BookInfo book = mActivity.getHistory().getLastBook();
@@ -633,6 +661,7 @@ public class ReaderView extends View {
 	}
 	
 	public BookInfo getBookInfo() {
+		BackgroundThread.ensureGUI();
 		return mBookInfo;
 	}
 	
@@ -669,6 +698,7 @@ public class ReaderView extends View {
 	
 	private Bitmap preparePageImage()
 	{
+		BackgroundThread.ensureBackground();
 		Bitmap bitmap;
 		if ( internalDX==0 || internalDY==0 ) {
 			internalDX=200;
@@ -690,6 +720,7 @@ public class ReaderView extends View {
 			this.id = ++lastDrawTaskId;
 		}
 		public void work() {
+			BackgroundThread.ensureBackground();
 			if ( this.id!=lastDrawTaskId ) {
 				Log.d("cr3", "skipping duplicate drawPage request");
 				return;
@@ -700,6 +731,7 @@ public class ReaderView extends View {
 		}
 		public void done()
 		{
+			BackgroundThread.ensureGUI();
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
     		mBitmap = bitmap;
 //    		if (mOpened)
@@ -730,6 +762,7 @@ public class ReaderView extends View {
 			this.id = ++lastResizeTaskId; 
 		}
 		public void work() {
+			BackgroundThread.ensureBackground();
 			if ( this.id != lastResizeTaskId ) {
 				Log.d("cr3", "skipping duplicate resize request");
 				return;
@@ -748,6 +781,7 @@ public class ReaderView extends View {
 		Runnable errorHandler;
 		LoadDocumentTask( FileInfo fileInfo, Runnable errorHandler )
 		{
+			BackgroundThread.ensureGUI();
 			this.filename = fileInfo.pathname;
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
@@ -758,6 +792,7 @@ public class ReaderView extends View {
 		}
 
 		public void work() throws IOException {
+			BackgroundThread.ensureBackground();
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
@@ -771,6 +806,7 @@ public class ReaderView extends View {
 		}
 		public void done()
 		{
+			BackgroundThread.ensureGUI();
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
 	        restorePosition();
 	        mOpened = true;
@@ -779,6 +815,7 @@ public class ReaderView extends View {
 		}
 		public void fail( Exception e )
 		{
+			BackgroundThread.ensureGUI();
 			mActivity.getHistory().removeBookInfo( mBookInfo );
 			mBookInfo = null;
 			Log.d("cr3", "LoadDocumentTask is finished with exception " + e.getMessage());
@@ -809,10 +846,12 @@ public class ReaderView extends View {
 
     private void restorePosition()
     {
+		BackgroundThread.ensureGUI();
     	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null ) {
     		final String pos = mBookInfo.getLastPosition().getStartPos();
     		execute( new Task() {
     			public void work() {
+    				BackgroundThread.ensureBackground();
     	    		goToPositionInternal( pos );
     			}
     		});
@@ -823,6 +862,7 @@ public class ReaderView extends View {
     
     private void savePosition()
     {
+		BackgroundThread.ensureGUI();
     	if ( !mOpened )
     		return;
     	Bookmark bmk = getCurrentPageBookmarkInternal();
@@ -842,8 +882,10 @@ public class ReaderView extends View {
 
     public void save()
     {
+		BackgroundThread.ensureGUI();
     	execute( new Task() {
     		public void work() {
+    			BackgroundThread.ensureBackground();
     			if ( mOpened ) {
 					savePosition();
     			}
@@ -853,16 +895,19 @@ public class ReaderView extends View {
     
     public void close()
     {
+		BackgroundThread.ensureGUI();
     	Log.i("cr3", "ReaderView.close() is called");
 		save();
     	execute( new Task() {
     		public void work() {
+    			BackgroundThread.ensureBackground();
     			if ( mOpened ) {
 					Log.i("cr3", "ReaderView().close() : closing current document");
 					doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}
     		public void done() {
+    			BackgroundThread.ensureGUI();
     			if ( mOpened ) {
 	    			mOpened = false;
 	    			mBitmap = null;
@@ -873,10 +918,12 @@ public class ReaderView extends View {
 
     public void destroy()
     {
+		BackgroundThread.ensureGUI();
     	if ( mInitialized ) {
         	close();
         	execute( new Task() {
         		public void work() {
+        			BackgroundThread.ensureBackground();
         	    	if ( mInitialized ) {
         	    		destroyInternal();
         	    		mInitialized = false;
@@ -898,18 +945,23 @@ public class ReaderView extends View {
     ReaderCallback readerCallback = new ReaderCallback() {
     
 	    public boolean OnExportProgress(int percent) {
+			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnExportProgress " + percent);
 			return true;
 		}
 		public void OnExternalLink(String url, String nodeXPath) {
+			BackgroundThread.ensureBackground();
 		}
 		public void OnFormatEnd() {
+			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnFormatEnd");
 		}
 		public boolean OnFormatProgress(final int percent) {
+			BackgroundThread.ensureBackground();
 			if ( enable_progress_callback )
 			executeSync( new Callable<Object>() {
 				public Object call() {
+					BackgroundThread.ensureGUI();
 			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
 			    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
 			    	return null;
@@ -918,20 +970,26 @@ public class ReaderView extends View {
 			return true;
 		}
 		public void OnFormatStart() {
+			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnFormatStart");
 		}
 		public void OnLoadFileEnd() {
+			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnLoadFileEnd");
 		}
 		public void OnLoadFileError(String message) {
+			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnLoadFileError(" + message + ")");
 		}
 		public void OnLoadFileFirstPagesReady() {
+			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnLoadFileFirstPagesReady");
 		}
 		public String OnLoadFileFormatDetected(final DocumentFormat fileFormat) {
+			BackgroundThread.ensureBackground();
 			String res = executeSync( new Callable<String>() {
 				public String call() {
+					BackgroundThread.ensureGUI();
 					Log.i("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
 					if ( fileFormat!=null ) {
 						String s = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
@@ -944,9 +1002,11 @@ public class ReaderView extends View {
 			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
+			BackgroundThread.ensureBackground();
 			if ( enable_progress_callback )
 			executeSync( new Callable<Object>() {
 				public Object call() {
+					BackgroundThread.ensureGUI();
 			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
 			    	mEngine.showProgress( percent*4/10 + 1000, R.string.progress_loading);
 			    	return null;
@@ -955,12 +1015,14 @@ public class ReaderView extends View {
 			return true;
 		}
 		public void OnLoadFileStart(String filename) {
+			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnLoadFileStart " + filename);
 		}
     };
 
     public void setStyleSheet( final String css )
     {
+		BackgroundThread.ensureGUI();
         if ( css!=null && css.length()>0 ) {
         	execute(new Task() {
         		public void work() {
@@ -972,11 +1034,13 @@ public class ReaderView extends View {
     
     public void goToPage( int pageNumber )
     {
+		BackgroundThread.ensureGUI();
 		doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
     }
     
     public void goToPercent( final int percent )
     {
+		BackgroundThread.ensureGUI();
     	if ( percent>=0 && percent<=100 )
 	    	execute( new Task() {
 	    		public void work() {
@@ -1007,6 +1071,7 @@ public class ReaderView extends View {
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread) 
     {
         super(activity);
+		BackgroundThread.ensureGUI();
         this.mActivity = activity;
         this.mEngine = engine;
         this.mBackThread = backThread;
