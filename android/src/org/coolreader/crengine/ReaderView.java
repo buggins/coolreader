@@ -240,7 +240,9 @@ public class ReaderView extends View {
 			else
 				goToBookmark(shortcut);
 			return true;
-		} else
+		} else if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
+			return true;
+		
 		return super.onKeyUp(keyCode, event);
 	}
 
