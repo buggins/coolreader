@@ -75,6 +75,7 @@ public class FileBrowser extends ListView {
 	{
 		if ( mInitStarted )
 			return;
+		Log.e("cr3", "FileBrowser.init() called");
 		mInitStarted = true;
 		mEngine.showProgress(1000, R.string.progress_scanning);
 		execute( new Task() {

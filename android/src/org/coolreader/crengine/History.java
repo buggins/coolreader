@@ -91,14 +91,22 @@ public class History {
 	}
 	protected void updateRecentDir()
 	{
-		mRecentBooksFolder.clear();
-		for ( BookInfo book : mBooks )
-			mRecentBooksFolder.addFile(book.getFileInfo());
+		Log.v("cr3", "History.updateRecentDir()");
+		if ( mRecentBooksFolder!=null ) { 
+			mRecentBooksFolder.clear();
+			for ( BookInfo book : mBooks )
+				mRecentBooksFolder.addFile(book.getFileInfo());
+		} else {
+			Log.v("cr3", "History.updateRecentDir() : mRecentBooksFolder is null");
+		}
 	}
 	public boolean loadFromDB( Scanner scanner, int maxItems )
 	{
+		Log.v("cr3", "History.loadFromDB()");
 		mBooks = mDB.loadRecentBooks(scanner.mFileList, maxItems);
 		mRecentBooksFolder = scanner.mRoot.getDir(0);
+		if ( mRecentBooksFolder==null )
+			Log.v("cr3", "History.loadFromDB() : mRecentBooksFolder is null");
 		updateRecentDir();
 		return true;
 	}
