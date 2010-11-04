@@ -96,10 +96,11 @@ public class CoolReader extends Activity
 		mFrame.addView(startupView);
 		setContentView( mFrame );
 		showView(startupView);
+        Log.i("cr3", "initializing scanner");
+        mScanner.initRoots();
         Log.i("cr3", "initializing browser");
         mBrowser.init();
         Log.i("cr3", "initializing reader");
-        mScanner.initRoots();
         mReaderView.init();
         mBrowser.showDirectory(mScanner.getRoot());
 //        Window wnd = getWindow();
