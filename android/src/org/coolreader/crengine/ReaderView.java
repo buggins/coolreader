@@ -929,7 +929,9 @@ public class ReaderView extends View {
     {
 		BackgroundThread.ensureGUI();
     	Log.i("cr3", "ReaderView.close() is called");
-		save();
+    	if ( !mOpened )
+    		return;
+		//save();
     	execute( new Task() {
     		public void work() {
     			BackgroundThread.ensureBackground();
@@ -950,11 +952,12 @@ public class ReaderView extends View {
 
     public void destroy()
     {
+    	Log.i("cr3", "ReaderView.destroy() is called");
 		BackgroundThread.ensureGUI();
     	if ( mInitialized ) {
-        	close();
-        	execute( new Task() {
-        		public void work() {
+        	//close();
+        	BackgroundThread.backgroundExecutor.execute( new Runnable() {
+        		public void run() {
         			BackgroundThread.ensureBackground();
         	    	if ( mInitialized ) {
         	    		destroyInternal();

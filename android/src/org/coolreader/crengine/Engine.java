@@ -456,7 +456,7 @@ public class Engine {
 	public void uninit()
 	{
 		Log.i("cr3", "Engine.uninit() is called");
-		mBackgroundThread.executeBackground(new Runnable() {
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			public void run() {
 				Log.i("cr3", "Engine.uninit() : in background thread");
 				if ( initialized ) {

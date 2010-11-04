@@ -62,7 +62,7 @@ public class CoolReader extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-		Log.i("cr3", "CoolReader.onCreate()");
+		Log.i("cr3", "CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 		
 		PowerManager pm = (PowerManager)getSystemService(
@@ -109,18 +109,19 @@ public class CoolReader extends Activity
 //        	wnd.setAttributes(attrs);
 //        	//attrs.screenOrientation = LayoutParams.SCREEN_;
 //        }
+		Log.i("cr3", "CoolReader.onCreate() exiting");
     }
 
 	@Override
 	protected void onDestroy() {
 
 		Log.i("cr3", "CoolReader.onDestroy() entered");
-		if ( mReaderView!=null )
-			mReaderView.close();
+		//if ( mReaderView!=null )
+		//	mReaderView.close();
 		
-		if ( mHistory!=null && mDB!=null ) {
+		//if ( mHistory!=null && mDB!=null ) {
 			//history.saveToDB();
-		}
+		//}
 		if ( mReaderView!=null ) {
 			mReaderView.destroy();
 		}
@@ -128,10 +129,10 @@ public class CoolReader extends Activity
 			mEngine.uninit();
 		}
 		if ( mDB!=null ) {
+			final CRDB db = mDB;
 			mBackgroundThread.executeBackground(new Runnable() {
 				public void run() {
-					if ( mDB!=null )
-						mDB.close();
+					db.close();
 				}
 			});
 		}
@@ -246,11 +247,12 @@ public class CoolReader extends Activity
 	private boolean stopped = false;
 	@Override
 	protected void onStop() {
-		Log.i("cr3", "CoolReader.onStop()");
+		Log.i("cr3", "CoolReader.onStop() entering");
 		stopped = true;
 		// will close book at onDestroy()
-		//mReaderView.close();
+		mReaderView.close();
 		super.onStop();
+		Log.i("cr3", "CoolReader.onStop() exiting");
 	}
 
 	private View currentView;
