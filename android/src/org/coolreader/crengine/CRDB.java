@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
@@ -28,6 +29,18 @@ public class CRDB {
 		for ( String name : tableNames )
 			mDB.execSQL("DROP TABLE IF EXISTS " + name);
 	}
+	
+	private void execSQLIgnoreErrors( String sql )
+	{
+		try { 
+			mDB.execSQL(sql);
+		} catch ( SQLException e ) {
+			// ignore
+			Log.w("cr3", "query failed, ignoring: " + sql);
+		}
+	}
+	
+	public final int DB_VERSION = 2;
 	protected boolean updateSchema()
 	{
 		if (DROP_TABLES)
@@ -89,6 +102,7 @@ public class CRDB {
 				"book_fk INTEGER NOT NULL REFERENCES book (id)," +
 				"type INTEGER NOT NULL DEFAULT 0," +
 				"percent INTEGER DEFAULT 0," +
+				"shortcut INTEGER DEFAULT 0," +
 				"time_stamp INTEGER DEFAULT 0," +
 				"start_pos VARCHAR NOT NULL," +
 				"end_pos VARCHAR," +
@@ -98,6 +112,15 @@ public class CRDB {
 				")");
 		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
 		"bookmark_book_index ON bookmark (book_fk) ");
+		int currentVersion = mDB.getVersion();
+		// version 1 updates ====================================================================
+		if ( currentVersion<1 )
+			execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
+		// version 2 updates ====================================================================
+		// TODO: add more updates here
+		// set current version
+		if ( currentVersion<DB_VERSION )
+			mDB.setVersion(DB_VERSION);
 		return true;
 	}
 	
@@ -120,7 +143,7 @@ public class CRDB {
 
 	private static final String READ_BOOKMARK_SQL = 
 		"SELECT " +
-		"id, type, percent, time_stamp, " + 
+		"id, type, percent, shortcut, time_stamp, " + 
 		"start_pos, end_pos, title_text, pos_text, comment_text " +
 		"FROM bookmark b ";
 	private void readBookmarkFromCursor( Bookmark v, Cursor rs )
@@ -129,6 +152,7 @@ public class CRDB {
 		v.setId( rs.getLong(i++) );
 		v.setType( (int)rs.getLong(i++) );
 		v.setPercent( (int)rs.getLong(i++) );
+		v.setShortcut( (int)rs.getLong(i++) );
 		v.setTimeStamp( rs.getLong(i++) );
 		v.setStartPos( rs.getString(i++) );
 		v.setEndPos( rs.getString(i++) );

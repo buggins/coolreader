@@ -589,6 +589,7 @@ public class ReaderView extends View {
         	}
         }
         if ( changed ) {
+        	saveSettings();
         	mBackThread.executeBackground(new Runnable() {
         		public void run() {
         			applySettings(new Properties(mSettings));
