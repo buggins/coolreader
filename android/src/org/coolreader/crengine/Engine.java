@@ -6,6 +6,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -481,21 +482,32 @@ public class Engine {
 
 	private String[] findFonts()
 	{
-		File fontDir = new File( Environment.getRootDirectory(), "fonts");
-		// get font names
-		String[] fileList = fontDir.list(
-				new FilenameFilter() { 
-					public boolean  accept(File  dir, String  filename)
-					{
-						return filename.endsWith(".ttf") && !filename.endsWith("Fallback.ttf");
-					}
-				});
-		// append path
-		for ( int i=0; i<fileList.length; i++ ) {
-			fileList[i] = new File(fontDir, fileList[i]).getAbsolutePath();
-			Log.v("cr3", "found font: " + fileList[i]);
+		File[] fontDirs = {
+				new File( Environment.getRootDirectory(), "fonts"),
+				new File( Environment.getExternalStorageDirectory(), "fonts"),
+				new File( new File("/system/media/sdcard"), "fonts") //Nook internal SD
+		};
+		ArrayList<String> fontPaths = new ArrayList<String>(); 
+		for ( File fontDir : fontDirs ) {
+			if ( fontDir.isDirectory() ) {
+				Log.v("cr3", "Scanning directory " + fontDir.getAbsolutePath() + " for font files");
+				// get font names
+				String[] fileList = fontDir.list(
+						new FilenameFilter() { 
+							public boolean  accept(File  dir, String  filename)
+							{
+								return filename.endsWith(".ttf") && !filename.endsWith("Fallback.ttf");
+							}
+						});
+				// append path
+				for ( int i=0; i<fileList.length; i++ ) {
+					String pathName = new File(fontDir, fileList[i]).getAbsolutePath();
+					fontPaths.add( pathName );
+					Log.v("cr3", "found font: " + pathName);
+				}
+			}
 		}
-		return fileList;
+		return fontPaths.toArray(new String[] {});
 	}
 	
 	private boolean force_install_library = false;
