@@ -10,11 +10,13 @@ public class BookInfo {
 	synchronized public void setShortcutBookmark(int shortcut, Bookmark bookmark)
 	{
 		bookmark.setShortcut(shortcut);
+		bookmark.setModified(true);
 		for ( int i=0; i<bookmarks.size(); i++ ) {
 			Bookmark bm = bookmarks.get(i);
 			if ( bm.getType()==Bookmark.TYPE_POSITION && bm.getShortcut()==shortcut ) {
 				bookmark.setId(bm.getId());
 				bookmarks.set(i, bookmark);
+				return;
 			}
 		}
 		bookmarks.add(bookmark);

@@ -446,7 +446,7 @@ public class ReaderView extends View {
 				goToPositionInternal(pos);
 			}
 			public void done() {
-				BackgroundThread.ensureBackground();
+				BackgroundThread.ensureGUI();
 				drawPage();
 			}
 		});
@@ -485,6 +485,7 @@ public class ReaderView extends View {
 			public void done() {
 				if ( mBookInfo!=null && bm!=null ) {
 					mBookInfo.setShortcutBookmark(shortcut, bm);
+					mActivity.getDB().save(mBookInfo);
 					mActivity.showToast("Bookmark " + (shortcut==10?0:shortcut) + " is set.");
 				}
 			}
@@ -905,7 +906,6 @@ public class ReaderView extends View {
 	    	}
 		}
 
-		@Override
 		public void work() throws Exception {
 			BackgroundThread.ensureBackground();
 	    	if ( !mOpened )
