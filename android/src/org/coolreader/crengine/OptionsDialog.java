@@ -458,7 +458,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_top), ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_bottom), ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
 		mOptionsApplication = new OptionsListView(getContext());
-		mOptionsApplication.add(new BoolOption("Full screen", "app.fullscreen"));
+		mOptionsApplication.add(new BoolOption("Full screen", ReaderView.PROP_APP_FULLSCREEN));
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
@@ -472,9 +472,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mTabs.addTab(tsPage);
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
 		//tsApp.setIndicator(null, getContext().getResources().getDrawable(R.drawable.cr3_option_));
-		//tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app));
+		tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app));
 		tsApp.setContent(this);
-		//mTabs.addTab(tsApp);
+		mTabs.addTab(tsApp);
+		
 		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
 		tsControls.setIndicator(getContext().getResources().getString(R.string.tab_options_controls));
 		tsControls.setContent(this);

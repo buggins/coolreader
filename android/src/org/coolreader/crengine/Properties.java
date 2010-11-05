@@ -53,4 +53,9 @@ public class Properties extends java.util.Properties {
 			return false;
 		return defaultValue;
 	}
+	public void applyDefault( String prop, String defValue )
+	{
+		if ( getProperty(prop)==null )
+			setProperty(prop, defValue);
+	}
 }

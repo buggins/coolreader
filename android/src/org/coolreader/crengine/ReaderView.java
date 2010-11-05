@@ -19,6 +19,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 
 public class ReaderView extends View {
     private Bitmap mBitmap;
@@ -74,7 +75,9 @@ public class ReaderView extends View {
 
     public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
     public static final String PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.forced.filesize.min";
-    public static final String PROP_PROGRESS_SHOW_FIRST_PAGE  ="crengine.progress.show.first.page";
+    public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
+
+    public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
     
     public enum ReaderCommand
     {
@@ -579,12 +582,29 @@ public class ReaderView extends View {
 		return new Properties(mSettings);
 	}
 	
+	public void applyAppSetting( String key, String value )
+	{
+        if ( key.equals(PROP_APP_FULLSCREEN) ) {
+			if ( "1".equals(value) ) {
+				//mActivity.getWindow().requestFeature(Window.)
+				mActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+				        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+			} else {
+				mActivity.getWindow().setFlags(0, 
+				        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+			}
+        }
+	}
+	
 	public void setSettings(Properties newSettings)
 	{
 		boolean changed = false;
         for ( Map.Entry<Object, Object> entry : newSettings.entrySet() ) {
         	if ( !mSettings.containsKey(entry.getKey()) || !eq(entry.getValue(), mSettings.get(entry.getKey()))) {
-        		mSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
+        		String key = (String)entry.getKey();
+        		String value = (String)entry.getValue();
+        		mSettings.setProperty(key, value);
+        		applyAppSetting( key, value );
         		changed = true;
         	}
         }
@@ -601,6 +621,7 @@ public class ReaderView extends View {
 	private static boolean DEBUG_RESET_OPTIONS = false;
 	class CreateViewTask extends Task
 	{
+        Properties props = new Properties();
 		public void work() throws Exception {
 			BackgroundThread.ensureBackground();
 			createInternal();
@@ -620,25 +641,24 @@ public class ReaderView extends View {
 			File propsDir = mActivity.getDir("settings", Context.MODE_PRIVATE);
 			propsDir.mkdirs();
 			propsFile = new File( propsDir, "cr3.ini");
-	        //Properties props = new Properties();
 	        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
 	        	try {
 	        		FileInputStream is = new FileInputStream(propsFile);
-	        		mSettings.load(is);
+	        		props.load(is);
 	        	} catch ( Exception e ) {
 	        		Log.e("cr3", "error while reading settings");
 	        	}
-	        } else {
-		        mSettings.setProperty(PROP_STATUS_FONT_SIZE, "12");
-		        mSettings.setProperty(PROP_FONT_SIZE, "18");
-		        mSettings.setProperty(PROP_FONT_FACE, "Droid Sans");
-		        mSettings.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
 	        }
-	        applySettings(mSettings);
+	        props.applyDefault(PROP_STATUS_FONT_SIZE, "12");
+	        props.applyDefault(PROP_FONT_SIZE, "18");
+	        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
+	        props.applyDefault(PROP_STATUS_FONT_FACE, "Droid Sans");
+	        props.applyDefault(PROP_APP_FULLSCREEN, "0");
 			mInitialized = true;
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
+	        setSettings(props);
 		}
 		public void fail( Exception e )
 		{
