@@ -112,7 +112,7 @@ FT_BEGIN_HEADER
   /*         file `ftconfig.h' either statically or through the            */
   /*         `configure' script on supported platforms.                    */
   /*                                                                       */
-#undef  FT_CONFIG_OPTION_FORCE_INT64
+#define  FT_CONFIG_OPTION_FORCE_INT64
 
 
   /*************************************************************************/
@@ -163,7 +163,7 @@ FT_BEGIN_HEADER
   /*   Do not #undef this macro here since the build system might define   */
   /*   it for certain configurations only.                                 */
   /*                                                                       */
-/* #define  FT_CONFIG_OPTION_SYSTEM_ZLIB */
+#define  FT_CONFIG_OPTION_SYSTEM_ZLIB
 
 
   /*************************************************************************/
@@ -306,7 +306,7 @@ FT_BEGIN_HEADER
   /* glyphs; otherwise, you may set it to zero to avoid unnecessary        */
   /* allocation of the render pool.                                        */
   /*                                                                       */
-#define FT_RENDER_POOL_SIZE  16384L
+#define FT_RENDER_POOL_SIZE  65536L
 
 
   /*************************************************************************/
@@ -391,7 +391,7 @@ FT_BEGIN_HEADER
   /* embedded bitmaps in all formats using the SFNT module (namely         */
   /* TrueType & OpenType).                                                 */
   /*                                                                       */
-#define TT_CONFIG_OPTION_EMBEDDED_BITMAPS
+/*#define TT_CONFIG_OPTION_EMBEDDED_BITMAPS*/
 
 
   /*************************************************************************/
@@ -506,7 +506,7 @@ FT_BEGIN_HEADER
   /*     ...                                                               */
   /*   }                                                                   */
   /*                                                                       */
-#define TT_CONFIG_OPTION_UNPATENTED_HINTING
+#undef TT_CONFIG_OPTION_UNPATENTED_HINTING
 
 
   /*************************************************************************/
@@ -556,7 +556,7 @@ FT_BEGIN_HEADER
   /* Define TT_CONFIG_OPTION_BDF if you want to include support for        */
   /* an embedded `BDF ' table within SFNT-based bitmap formats.            */
   /*                                                                       */
-#define TT_CONFIG_OPTION_BDF
+#undef TT_CONFIG_OPTION_BDF
 
 
   /*************************************************************************/
@@ -649,7 +649,7 @@ FT_BEGIN_HEADER
    * is recommended to disable the macro since it reduces the library's code
    * size and activates a few memory-saving optimizations as well.
    */
-#define FT_CONFIG_OPTION_OLD_INTERNALS
+/* #define FT_CONFIG_OPTION_OLD_INTERNALS */
 
 
   /*
