@@ -233,12 +233,12 @@ public class ReaderView extends View {
 	public final int LONG_KEYPRESS_TIME = 2000;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// goto/set shortcut bookmark
 			int shortcut = keyCode - KeyEvent.KEYCODE_0;
 			if ( shortcut==0 )
 				shortcut = 10;
-			boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
 			if ( isLongPress )
 				addBookmark(shortcut);
 			else
@@ -246,15 +246,7 @@ public class ReaderView extends View {
 			return true;
 		} else if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
 			return true;
-		
-		return super.onKeyUp(keyCode, event);
-	}
 
-	boolean VOLUME_KEYS_ZOOM = false;
-	
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// will process in keyup handler
 			return true;
@@ -299,23 +291,94 @@ public class ReaderView extends View {
 			showSearchDialog();
 			return true;
 		case KeyEvent.KEYCODE_MENU:
-			mActivity.openOptionsMenu();
+			if ( isLongPress ) {
+				mActivity.showOptionsDialog();
+			} else {
+				mActivity.openOptionsMenu();
+			}
+			
 			break;
 		case KeyEvent.KEYCODE_HOME:
 			mActivity.showBrowser();
 			break;
 		case KeyEvent.KEYCODE_BACK:
-			saveSettings();
-			return super.onKeyDown(keyCode, event);
+			//saveSettings();
+			return super.onKeyUp(keyCode, event);
 		default:
-			return super.onKeyDown(keyCode, event);
+			return super.onKeyUp(keyCode, event);
 		}
-		return true;
+		
+		return super.onKeyUp(keyCode, event);
+	}
+
+	boolean VOLUME_KEYS_ZOOM = false;
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+//		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+//			// will process in keyup handler
+//			return true;
+//		} else
+//		switch ( keyCode ) {
+//		case NOOK_KEY_NEXT_LEFT:
+//		case NOOK_KEY_NEXT_RIGHT:    
+//		case NOOK_KEY_SHIFT_DOWN:
+//		case KeyEvent.KEYCODE_DPAD_DOWN:
+//			doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+//			break;
+//		case NOOK_KEY_PREV_LEFT:
+//		case NOOK_KEY_PREV_RIGHT:
+//		case NOOK_KEY_SHIFT_UP:
+//		case KeyEvent.KEYCODE_DPAD_UP:
+//			doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+//			break;
+//		case KeyEvent.KEYCODE_DPAD_LEFT:
+//			doCommand( ReaderCommand.DCMD_PAGEUP, 10);
+//			break;
+//		case KeyEvent.KEYCODE_DPAD_RIGHT:
+//			doCommand( ReaderCommand.DCMD_PAGEDOWN, 10);
+//			break;
+//		case KeyEvent.KEYCODE_DPAD_CENTER:
+//			mActivity.showBrowser();
+//			break;
+//		case KeyEvent.KEYCODE_VOLUME_UP:
+//			if ( VOLUME_KEYS_ZOOM ) {
+//				doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+//				syncViewSettings();
+//			} else
+//				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+//			break;
+//		case KeyEvent.KEYCODE_VOLUME_DOWN:
+//			if ( VOLUME_KEYS_ZOOM ) {
+//				doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+//				syncViewSettings();
+//			} else
+//				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+//			break;
+//		case KeyEvent.KEYCODE_SEARCH:
+//			showSearchDialog();
+//			return true;
+//		case KeyEvent.KEYCODE_MENU:
+//			mActivity.openOptionsMenu();
+//			break;
+//		case KeyEvent.KEYCODE_HOME:
+//			mActivity.showBrowser();
+//			break;
+//		case KeyEvent.KEYCODE_BACK:
+//			saveSettings();
+//			return super.onKeyDown(keyCode, event);
+//		default:
+//			return super.onKeyDown(keyCode, event);
+//		}
+		return super.onKeyDown(keyCode, event);
+		//return true;
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
+		if ( event.getAction()==MotionEvent.ACTION_UP ) {
+			boolean isLongPress = event.getDownTime()>LONG_KEYPRESS_TIME;
 			int x = (int)event.getX();
 			int y = (int)event.getY();
 			int dx = getWidth();
@@ -330,8 +393,12 @@ public class ReaderView extends View {
 				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
 				return true;
 			} else if ( center ) {
-				mActivity.openOptionsMenu();
+				if ( isLongPress )
+					mActivity.showOptionsDialog();
+				else
+					mActivity.openOptionsMenu();
 			}
+			return true;
 		}
 		return super.onTouchEvent(event);
 	}
