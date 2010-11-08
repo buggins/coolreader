@@ -17,8 +17,11 @@ import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -64,6 +67,17 @@ public class CoolReader extends Activity
     {
 		Log.i("cr3", "CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		
+		registerReceiver(new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Log.i("cr3", "Battery state changed. Intent=" + intent);
+				int level = intent.getIntExtra("level", 0);
+				mReaderView.setBatteryState(level);
+			}
+			
+		}, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 		
 		PowerManager pm = (PowerManager)getSystemService(
 	            Context.POWER_SERVICE);

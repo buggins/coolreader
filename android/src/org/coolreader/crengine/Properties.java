@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import java.util.Map;
+
 public class Properties extends java.util.Properties {
 	public Properties()
 	{
@@ -57,5 +59,25 @@ public class Properties extends java.util.Properties {
 	{
 		if ( getProperty(prop)==null )
 			setProperty(prop, defValue);
+	}
+	
+	public static boolean eq(Object obj1, Object obj2)
+	{
+		if ( obj1==null && obj2==null )
+			return true;
+		if ( obj1==null || obj2==null )
+			return false;
+		return obj1.equals(obj2);
+	}
+
+	public Properties diff( Properties oldValue )
+	{
+		Properties res = new Properties();
+        for ( Map.Entry<Object, Object> entry : entrySet() ) {
+        	if ( !oldValue.containsKey(entry.getKey()) || !eq(entry.getValue(), oldValue.get(entry.getKey()))) {
+        		res.setProperty( (String)entry.getKey(), (String)entry.getValue() );
+        	}
+        }
+        return res;
 	}
 }

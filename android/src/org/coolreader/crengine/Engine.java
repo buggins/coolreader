@@ -496,7 +496,7 @@ public class Engine {
 						new FilenameFilter() { 
 							public boolean  accept(File  dir, String  filename)
 							{
-								return filename.endsWith(".ttf") && !filename.endsWith("Fallback.ttf");
+								return filename.toLowerCase().endsWith(".ttf") && !filename.endsWith("Fallback.ttf");
 							}
 						});
 				// append path

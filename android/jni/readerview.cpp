@@ -132,6 +132,226 @@ DECL_DEF_CR_FONT_SIZES;
 ReaderViewNative::ReaderViewNative()
 {
 	_docview = new LVDocView(32); //32bpp
+
+#define BATTERY_HEADER \
+        "28 14 5 1", \
+        "0 c #000000", \
+        "X c #000000", \
+        "o c #AAAAAA", \
+        ". c #FFFFFF", \
+        "  c None",
+
+
+    LVRefVec<LVImageSource> icons;
+    static const char * battery8[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0.XXXX.XXXX.XXXX.XXXX.0.",
+        "....0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0000.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
+        ".0000.XXXX.XXXX.XXXX.XXXX.0.",
+        "....0.XXXX.XXXX.XXXX.XXXX.0.",
+        "   .0.XXXX.XXXX.XXXX.XXXX.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery7[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0.oooo.XXXX.XXXX.XXXX.0.",
+        ".0000.oooo.XXXX.XXXX.XXXX.0.",
+        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
+        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
+        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
+        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
+        ".0000.oooo.XXXX.XXXX.XXXX.0.",
+        "   .0.oooo.XXXX.XXXX.XXXX.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery6[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "....0......XXXX.XXXX.XXXX.0.",
+        ".0000......XXXX.XXXX.XXXX.0.",
+        ".0..0......XXXX.XXXX.XXXX.0.",
+        ".0..0......XXXX.XXXX.XXXX.0.",
+        ".0..0......XXXX.XXXX.XXXX.0.",
+        ".0..0......XXXX.XXXX.XXXX.0.",
+        ".0000......XXXX.XXXX.XXXX.0.",
+        "   .0......XXXX.XXXX.XXXX.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery5[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0......oooo.XXXX.XXXX.0.",
+        ".0000......oooo.XXXX.XXXX.0.",
+        ".0..0......oooo.XXXX.XXXX.0.",
+        ".0..0......oooo.XXXX.XXXX.0.",
+        ".0..0......oooo.XXXX.XXXX.0.",
+        ".0..0......oooo.XXXX.XXXX.0.",
+        ".0000......oooo.XXXX.XXXX.0.",
+        "   .0......oooo.XXXX.XXXX.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery4[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0...........XXXX.XXXX.0.",
+        ".0000...........XXXX.XXXX.0.",
+        ".0..0...........XXXX.XXXX.0.",
+        ".0..0...........XXXX.XXXX.0.",
+        ".0..0...........XXXX.XXXX.0.",
+        ".0..0...........XXXX.XXXX.0.",
+        ".0000...........XXXX.XXXX.0.",
+        "   .0...........XXXX.XXXX.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery3[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0...........oooo.XXXX.0.",
+        ".0000...........oooo.XXXX.0.",
+        ".0..0...........oooo.XXXX.0.",
+        ".0..0...........oooo.XXXX.0.",
+        ".0..0...........oooo.XXXX.0.",
+        ".0..0...........oooo.XXXX.0.",
+        ".0000...........oooo.XXXX.0.",
+        "   .0...........oooo.XXXX.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery2[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0................XXXX.0.",
+        ".0000................XXXX.0.",
+        ".0..0................XXXX.0.",
+        ".0..0................XXXX.0.",
+        ".0..0................XXXX.0.",
+        ".0..0................XXXX.0.",
+        ".0000................XXXX.0.",
+        "   .0................XXXX.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery1[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0................oooo.0.",
+        ".0000................oooo.0.",
+        ".0..0................oooo.0.",
+        ".0..0................oooo.0.",
+        ".0..0................oooo.0.",
+        ".0..0................oooo.0.",
+        ".0000................oooo.0.",
+        "   .0................oooo.0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery0[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "   .0.....................0.",
+        ".0000.....................0.",
+        ".0..0.....................0.",
+        ".0..0.....................0.",
+        ".0..0.....................0.",
+        ".0..0.....................0.",
+        ".0000.....................0.",
+        "....0.....................0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery_charge[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "....0.....................0.",
+        ".0000............XX.......0.",
+        ".0..0...........XXXX......0.",
+        ".0..0..XX......XXXXXX.....0.",
+        ".0..0...XXXX..XXXX..XXX...0.",
+        ".0..0.....XXXXXXX.....XX..0.",
+        ".0000.......XXXX..........0.",
+        "....0........XX...........0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    static const char * battery_frame[] = {
+        BATTERY_HEADER
+        "   .........................",
+        "   .00000000000000000000000.",
+        "   .0.....................0.",
+        "....0.....................0.",
+        ".0000.....................0.",
+        ".0..0.....................0.",
+        ".0..0.....................0.",
+        ".0..0.....................0.",
+        ".0..0.....................0.",
+        ".0000.....................0.",
+        "....0.....................0.",
+        "   .0.....................0.",
+        "   .00000000000000000000000.",
+        "   .........................",
+    };
+    icons.add( LVCreateXPMImageSource( battery_charge ) );
+#ifdef NO_BATTERY_GAUGE
+    icons.add( LVCreateXPMImageSource( battery_frame ) );
+#else
+    icons.add( LVCreateXPMImageSource( battery0 ) );
+    icons.add( LVCreateXPMImageSource( battery1 ) );
+    icons.add( LVCreateXPMImageSource( battery2 ) );
+    icons.add( LVCreateXPMImageSource( battery3 ) );
+    icons.add( LVCreateXPMImageSource( battery4 ) );
+    icons.add( LVCreateXPMImageSource( battery5 ) );
+    icons.add( LVCreateXPMImageSource( battery6 ) );
+    icons.add( LVCreateXPMImageSource( battery7 ) );
+    icons.add( LVCreateXPMImageSource( battery8 ) );
+#endif
+    _docview->setBatteryIcons( icons );
+
+
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setShowCover( true );
     _docview->setFontSizes( sizes, true );
@@ -711,3 +931,17 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_findTextInter
         return JNI_FALSE;
     return p->findText(env.fromJavaString(jpattern), origin, reverse, caseInsensitive);
 }
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    setBatteryStateInternal
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal
+  (JNIEnv * _env, jobject _this, jint state)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    p->_docview->setBatteryState(state);
+}
+

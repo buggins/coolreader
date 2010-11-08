@@ -8,9 +8,11 @@ import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +48,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	TabHost mTabs;
 	LayoutInflater mInflater;
 	Properties mProperties;
+	Properties mOldProperties;
 	OptionsListView mOptionsStyles;
 	OptionsListView mOptionsPage;
 	OptionsListView mOptionsApplication;
@@ -95,14 +98,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	}
 	
 	class BoolOption extends OptionBase {
+		private boolean inverse = false;
 		public BoolOption( String label, String property ) {
 			super(label, property);
 		}
-		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ? "on" : "off"; }
+		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ^ inverse  ? "on" : "off"; }
 		public void onSelect() { 
-			mProperties.setProperty(property, "1".equals(mProperties.getProperty(property)) ? "0" : "1");
+			mProperties.setProperty(property, "1".equals(mProperties.getProperty(property)) ^ inverse ? "0" : "1");
 			optionsListView.refresh();
 		}
+		public BoolOption setInverse() { inverse = true; return this; }
 	}
 
 	public void saveColor( boolean night )
@@ -432,6 +437,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		
 		setTitle(null);
         setCancelable(true);
+        setCanceledOnTouchOutside(true);
         mInflater = LayoutInflater.from(getContext());
         mTabs = (TabHost)mInflater.inflate(R.layout.options, null);
 		// setup tabs
@@ -450,7 +456,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
 		mOptionsPage = new OptionsListView(getContext());
-		mOptionsPage.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setDefaultValue("1"));
+		mOptionsPage.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("1"));
 		mOptionsPage.add(new BoolOption(getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
@@ -483,10 +489,40 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
 		setView(mTabs);
 		
+		mOldProperties = new Properties(mProperties);
+		
+		setOnCancelListener(new OnCancelListener() {
+
+			public void onCancel(DialogInterface dialog) {
+				askApply();
+			}
+		});
+		
 		super.onCreate(savedInstanceState);
 		Log.v("cr3", "OptionsDialog is created");
 	}
 
+	private void askApply()
+	{
+		Properties diff = mProperties.diff(mOldProperties);
+		if ( diff.size()>0 ) {
+			Log.d("cr3", "Some properties were changed, ask user whether to apply");
+			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
+			dlg.setTitle(R.string.win_title_options_apply);
+			dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					onPositiveButtonClick();
+				}
+			});
+			dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					onNegativeButtonClick();
+				}
+			});
+			dlg.show();
+		}
+	}
+	
 	@Override
 	protected void onPositiveButtonClick() {
         mReaderView.setSettings(mProperties);

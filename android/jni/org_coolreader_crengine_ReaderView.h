@@ -147,6 +147,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_clearSelectionInt
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_findTextInternal
   (JNIEnv *, jobject, jstring, jint, jint, jint);
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    setBatteryStateInternal
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal
+  (JNIEnv *, jobject, jint);
+
 #ifdef __cplusplus
 }
 #endif

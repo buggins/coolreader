@@ -24,6 +24,7 @@
 <string name="win_title_toc">Table of Contents</string>
 <string name="win_title_options">Options</string>
 <string name="win_title_search">Search</string>
+<string name="win_title_options_apply">Apply changes?</string>
 <string name="tab_options_styles">Styles</string>
 <string name="tab_options_page">Page</string>
 <string name="tab_options_app">App</string>

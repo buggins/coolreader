@@ -203,6 +203,7 @@ public class ReaderView extends View {
     private native TOCItem getTOCInternal();
     private native void clearSelectionInternal();
     private native boolean findTextInternal( String pattern, int origin, int reverse, int caseInsensitive );
+    private native void setBatteryStateInternal( int state );
     
     
     protected int mNativeObject; // used from JNI
@@ -598,6 +599,7 @@ public class ReaderView extends View {
 	
 	public void setSettings(Properties newSettings)
 	{
+		BackgroundThread.ensureGUI();
 		boolean changed = false;
         for ( Map.Entry<Object, Object> entry : newSettings.entrySet() ) {
         	if ( !mSettings.containsKey(entry.getKey()) || !eq(entry.getValue(), mSettings.get(entry.getKey()))) {
@@ -605,10 +607,16 @@ public class ReaderView extends View {
         		String value = (String)entry.getValue();
         		mSettings.setProperty(key, value);
         		applyAppSetting( key, value );
+        		if ( PROP_APP_FULLSCREEN.equals(key) ) {
+        			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
+        			mSettings.setBool(PROP_SHOW_BATTERY, flg); 
+        			mSettings.setBool(PROP_SHOW_TIME, flg); 
+        		}
         		changed = true;
         	}
         }
         if ( changed ) {
+        	Log.d("cr3", "Some settings have been changed, applying...");
         	saveSettings();
         	mBackThread.executeBackground(new Runnable() {
         		public void run() {
@@ -658,6 +666,7 @@ public class ReaderView extends View {
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
+			BackgroundThread.ensureGUI();
 	        setSettings(props);
 		}
 		public void fail( Exception e )
@@ -726,7 +735,11 @@ public class ReaderView extends View {
 //			errorHandler.run();
 //		}
 //	}
-	
+	private int mBatteryState = 100;
+	public void setBatteryState( int state ) {
+		mBatteryState = state;
+		drawPage();
+	}
 	private Bitmap preparePageImage()
 	{
 		BackgroundThread.ensureBackground();
@@ -738,6 +751,7 @@ public class ReaderView extends View {
 		}
 		bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
         bitmap.eraseColor(Color.BLUE);
+        setBatteryStateInternal(mBatteryState);
         getPageImage(bitmap);
         return bitmap;
 	}

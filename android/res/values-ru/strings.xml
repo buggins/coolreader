@@ -24,6 +24,7 @@
 <string name="win_title_toc">Содержание</string>
 <string name="win_title_options">Настройки</string>
 <string name="win_title_search">Найти текст</string>
+<string name="win_title_options_apply">Применить новые настройки?</string>
 <string name="tab_options_styles">Стили</string>
 <string name="tab_options_page">Страница</string>
 <string name="tab_options_app">Программа</string>

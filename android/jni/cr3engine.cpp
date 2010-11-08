@@ -461,6 +461,7 @@ static JNINativeMethod sReaderViewMethods[] = {
   {"getTOCInternal", "()Lorg/coolreader/crengine/TOCItem;", (void*)Java_org_coolreader_crengine_ReaderView_getTOCInternal},
   {"clearSelectionInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_clearSelectionInternal},
   {"findTextInternal", "(Ljava/lang/String;III)Z", (void*)Java_org_coolreader_crengine_ReaderView_findTextInternal},
+  {"setBatteryStateInternal", "(I)V", (void*)Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal},
 };
  
 /*
