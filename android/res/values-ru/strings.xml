@@ -33,6 +33,9 @@
 <string name="options_font_face">Шрифт</string>
 <string name="options_font_embolden">Жирность</string>
 <string name="options_font_antialias">Сглаживание шрифта</string>
+<string name="options_font_antialias_off">Без сглаживания</string>
+<string name="options_font_antialias_on_for_big">Сглаживать большие шрифты</string>
+<string name="options_font_antialias_on_for_all">Сглаживать все шрифты</string>
 <string name="options_interline_space">Межстрочный интервал</string>
 <string name="options_inverse_view">Ночной режим</string>
 <string name="options_color_text">Цвет текста</string>

@@ -33,6 +33,9 @@
 <string name="options_font_face">Font face</string>
 <string name="options_font_embolden">Embolden font</string>
 <string name="options_font_antialias">Font antialiasing</string>
+<string name="options_font_antialias_off">No antialias</string>
+<string name="options_font_antialias_on_for_big">On for big fonts</string>
+<string name="options_font_antialias_on_for_all">On for all fonts</string>
 <string name="options_interline_space">Interline space</string>
 <string name="options_inverse_view">Inverse view</string>
 <string name="options_color_text">Text color</string>
