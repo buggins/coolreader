@@ -45,7 +45,7 @@ public class CoolReader extends Activity
 	Scanner mScanner;
 	FileBrowser mBrowser;
 	FrameLayout mFrame;
-	View startupView;
+	//View startupView;
 	History mHistory;
 	CRDB mDB;
 	private BackgroundThread mBackgroundThread;
@@ -94,9 +94,9 @@ public class CoolReader extends Activity
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		//this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
         //       WindowManager.LayoutParams.FLAG_FULLSCREEN );
-		startupView = new View(this) {
-		};
-		startupView.setBackgroundColor(Color.BLACK);
+//		startupView = new View(this) {
+//		};
+//		startupView.setBackgroundColor(Color.BLACK);
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread);
 		File dbdir = getDir("db", Context.MODE_PRIVATE);
 		dbdir.mkdirs();
@@ -107,9 +107,9 @@ public class CoolReader extends Activity
 		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
 		mFrame.addView(mReaderView);
 		mFrame.addView(mBrowser);
-		mFrame.addView(startupView);
+//		mFrame.addView(startupView);
 		setContentView( mFrame );
-		showView(startupView);
+		showView(mBrowser);
         Log.i("cr3", "initializing scanner");
         mScanner.initRoots();
         Log.i("cr3", "initializing browser");

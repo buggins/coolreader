@@ -230,7 +230,7 @@ public class ReaderView extends View {
 		return mOpened;
 	}
     
-	public final int LONG_KEYPRESS_TIME = 2000;
+	public final int LONG_KEYPRESS_TIME = 1200;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
@@ -256,13 +256,13 @@ public class ReaderView extends View {
 		case NOOK_KEY_NEXT_RIGHT:    
 		case NOOK_KEY_SHIFT_DOWN:
 		case KeyEvent.KEYCODE_DPAD_DOWN:
-			doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+			doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
 			break;
 		case NOOK_KEY_PREV_LEFT:
 		case NOOK_KEY_PREV_RIGHT:
 		case NOOK_KEY_SHIFT_UP:
 		case KeyEvent.KEYCODE_DPAD_UP:
-			doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+			doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
 			break;
 		case KeyEvent.KEYCODE_DPAD_LEFT:
 			doCommand( ReaderCommand.DCMD_PAGEUP, 10);
@@ -307,8 +307,8 @@ public class ReaderView extends View {
 		default:
 			return super.onKeyUp(keyCode, event);
 		}
-		
-		return super.onKeyUp(keyCode, event);
+		return true;
+		//return super.onKeyUp(keyCode, event);
 	}
 
 	boolean VOLUME_KEYS_ZOOM = false;
@@ -371,14 +371,17 @@ public class ReaderView extends View {
 //		default:
 //			return super.onKeyDown(keyCode, event);
 //		}
-		return super.onKeyDown(keyCode, event);
+		if ( keyCode==KeyEvent.KEYCODE_BACK )
+			return super.onKeyDown(keyCode, event);
+		return true;
+		//return super.onKeyDown(keyCode, event);
 		//return true;
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
-			boolean isLongPress = event.getDownTime()>LONG_KEYPRESS_TIME;
+			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
 			int x = (int)event.getX();
 			int y = (int)event.getY();
 			int dx = getWidth();
@@ -387,10 +390,10 @@ public class ReaderView extends View {
 			boolean back = x<dx/4 || y<dy/4;
 			boolean center = x>dx/3 && x<dx*2/3 && y>dy/3 && y<dy*2/3;
 			if ( fwd && !back ) {
-				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+				doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
 				return true;
 			} else if ( back ) {
-				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+				doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
 				return true;
 			} else if ( center ) {
 				if ( isLongPress )
@@ -400,7 +403,8 @@ public class ReaderView extends View {
 			}
 			return true;
 		}
-		return super.onTouchEvent(event);
+		return true;
+		//return super.onTouchEvent(event);
 	}
 
 	@Override
