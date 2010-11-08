@@ -230,7 +230,7 @@ public class ReaderView extends View {
 		return mOpened;
 	}
     
-	public final int LONG_KEYPRESS_TIME = 1200;
+	public final int LONG_KEYPRESS_TIME = 900;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
