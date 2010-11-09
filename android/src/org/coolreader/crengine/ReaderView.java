@@ -551,11 +551,12 @@ public class ReaderView extends View {
 	}
 	
 	File propsFile;
-	private void saveSettings()
+	private void saveSettings( Properties settings )
 	{
 		try {
     		FileOutputStream os = new FileOutputStream(propsFile);
-    		mSettings.store(os, "Cool Reader 3 settings");
+    		settings.store(os, "Cool Reader 3 settings");
+			Log.i("cr3", "Settings successfully saved to file " + propsFile.getAbsolutePath());
 		} catch ( Exception e ) {
 			Log.e("cr3", "exception while saving settings", e);
 		}
@@ -579,15 +580,16 @@ public class ReaderView extends View {
 			Properties props;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				props = new Properties(getSettingsInternal());
+				java.util.Properties internalProps = getSettingsInternal(); 
+				props = new Properties(internalProps);
 			}
 			public void done() {
 				Properties changedSettings = props.diff(currSettings);
 		        for ( Map.Entry<Object, Object> entry : changedSettings.entrySet() ) {
 	        		currSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
 		        }
-	        	mSettings = props;
-	        	saveSettings();
+	        	mSettings = currSettings;
+	        	saveSettings(currSettings);
 			}
 		});
 	}
@@ -667,14 +669,15 @@ public class ReaderView extends View {
 	        	try {
 	        		FileInputStream is = new FileInputStream(propsFile);
 	        		props.load(is);
+	        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
 	        	} catch ( Exception e ) {
 	        		Log.e("cr3", "error while reading settings");
 	        	}
 	        }
-	        props.applyDefault(PROP_STATUS_FONT_SIZE, "12");
 	        props.applyDefault(PROP_FONT_SIZE, "18");
 	        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
-	        props.applyDefault(PROP_STATUS_FONT_FACE, "Droid Sans");
+	        props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
+	        props.setProperty(PROP_STATUS_FONT_SIZE, "14");
 	        props.applyDefault(PROP_APP_FULLSCREEN, "0");
     		props.applyDefault(PROP_APP_FULLSCREEN, "0");
     		props.applyDefault(PROP_SHOW_BATTERY, "0"); 
@@ -956,7 +959,6 @@ public class ReaderView extends View {
 	    		mBookInfo.setLastPosition(bmk);
 	    		mActivity.getHistory().updateRecentDir();
 	    		mActivity.getHistory().saveToDB();
-	    		saveSettings();
 	    	}
 		}
 

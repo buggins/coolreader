@@ -114,7 +114,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public BoolOption( String label, String property ) {
 			super(label, property);
 		}
-		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ^ inverse  ? "on" : "off"; }
+		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ^ inverse  ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
 		public void onSelect() { 
 			mProperties.setProperty(property, "1".equals(mProperties.getProperty(property)) ? "0" : "1");
 			optionsListView.refresh();
@@ -146,7 +146,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public NightModeOption( String label, String property ) {
 			super(label, property);
 		}
-		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ? "on" : "off"; }
+		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
 		public void onSelect() { 
 			boolean oldMode = mProperties.getBool(property, false);
 			saveColor(oldMode);
@@ -256,16 +256,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
 				public View getView(int position, View convertView,
 						ViewGroup parent) {
+					ViewGroup layout;
 					TextView view;
 					if ( convertView==null ) {
-						view = (TextView)mInflater.inflate(R.layout.option_value, null);
+						layout = (ViewGroup)mInflater.inflate(R.layout.option_value, null);
 						//view = new TextView(getContext());
 					} else {
-						view = (TextView)convertView;
+						layout = (ViewGroup)convertView;
 					}
+					view = (TextView)layout.findViewById(R.id.option_value_text);
 					Pair item = list.get(position);
 					view.setText(item.label);
-					return view;
+					return layout;
 				}
 
 				public int getViewTypeCount() {
@@ -472,7 +474,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsPage.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
 		mOptionsPage.add(new BoolOption(getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
-		mOptionsStyles.add(new ListOption(getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_top), ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));

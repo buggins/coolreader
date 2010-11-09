@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  style="@android:style/TextAppearance.Medium"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-    android:layout_marginTop="15dip"
-    android:layout_marginBottom="15dip"
-    android:layout_marginLeft="10dip"
-    android:layout_marginRight="10dip">
-</TextView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    >
+
+	<TextView
+	  xmlns:android="http://schemas.android.com/apk/res/android"
+	  style="@android:style/TextAppearance.Medium"
+    android:id="@+id/option_value_text"
+	  android:layout_width="wrap_content"
+	  android:layout_height="wrap_content"
+	    android:layout_marginTop="15dip"
+	    android:layout_marginBottom="15dip"
+	    android:layout_marginLeft="10dip"
+	    android:layout_marginRight="10dip">
+	</TextView>
+</LinearLayout>
