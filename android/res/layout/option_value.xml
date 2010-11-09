@@ -4,8 +4,8 @@
   style="@android:style/TextAppearance.Medium"
   android:layout_width="wrap_content"
   android:layout_height="wrap_content"
-    android:layout_marginTop="5dip"
-    android:layout_marginBottom="5dip"
-    android:layout_marginLeft="2dip"
-    android:layout_marginRight="2dip">
+    android:layout_marginTop="15dip"
+    android:layout_marginBottom="15dip"
+    android:layout_marginLeft="10dip"
+    android:layout_marginRight="10dip">
 </TextView>

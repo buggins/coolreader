@@ -697,7 +697,7 @@ public class ReaderView extends View {
 	
 	public void loadDocument( final FileInfo fileInfo )
 	{
-		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname)) {
+		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
 			Log.d("cr3", "trying to load already opened document");
 			mActivity.showReader();
 			return;
@@ -990,16 +990,14 @@ public class ReaderView extends View {
     		public void work() {
     			BackgroundThread.ensureBackground();
     			if ( mOpened ) {
+	    			mOpened = false;
 					Log.i("cr3", "ReaderView().close() : closing current document");
 					doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}
     		public void done() {
     			BackgroundThread.ensureGUI();
-    			if ( mOpened ) {
-	    			mOpened = false;
-	    			mBitmap = null;
-    			}
+    			mBitmap = null;
     		}
     	});
     }
