@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -14,6 +15,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -682,6 +684,7 @@ public class ReaderView extends View {
     		props.applyDefault(PROP_APP_FULLSCREEN, "0");
     		props.applyDefault(PROP_SHOW_BATTERY, "0"); 
     		props.applyDefault(PROP_SHOW_TIME, "0");
+    		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
     		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
     		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
 			mInitialized = true;
@@ -762,6 +765,53 @@ public class ReaderView extends View {
 		mBatteryState = state;
 		drawPage();
 	}
+	
+	private static class BitmapFactory {
+		ArrayList<Bitmap> freeList = new ArrayList<Bitmap>(); 
+		ArrayList<Bitmap> usedList = new ArrayList<Bitmap>(); 
+		public synchronized Bitmap get( int dx, int dy ) {
+			for ( int i=0; i<freeList.size(); i++ ) {
+				Bitmap bmp = freeList.get(i);
+				if ( bmp.getWidth()==dx && bmp.getWidth()==dy ) {
+					// found bitmap of proper size
+					freeList.remove(i);
+					usedList.add(bmp);
+					return bmp;
+				}
+			}
+			for ( int i=freeList.size()-1; i>=0; i-- ) {
+				Bitmap bmp = freeList.remove(i);
+				bmp.recycle(); 
+			}
+			Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.ARGB_8888);
+			usedList.add(bmp);
+			return bmp;
+		}
+		public static final int MAX_FREE_LIST_SIZE=2;
+		public synchronized void compact() {
+			while ( freeList.size()>0 ) {
+				freeList.get(0).recycle();
+				freeList.remove(0);
+			}
+		}
+		public synchronized void release( Bitmap bmp ) {
+			for ( int i=0; i<usedList.size(); i++ ) {
+				if ( usedList.get(i)==bmp ) {
+					freeList.add(bmp);
+					usedList.remove(i);
+					while ( freeList.size()>MAX_FREE_LIST_SIZE ) {
+						freeList.get(0).recycle();
+						freeList.remove(0);
+					}
+					return;
+				}
+			}
+			// unknown bitmap, just recycle
+			bmp.recycle();
+		}
+	};
+	BitmapFactory factory = new BitmapFactory(); 
+	
 	private Bitmap preparePageImage()
 	{
 		BackgroundThread.ensureBackground();
@@ -771,8 +821,7 @@ public class ReaderView extends View {
 			internalDY=300;
 	        resizeInternal(internalDX, internalDY);
 		}
-		bitmap = Bitmap.createBitmap(internalDX, internalDY, Bitmap.Config.ARGB_8888);
-        bitmap.eraseColor(Color.BLUE);
+		bitmap = factory.get(internalDX, internalDY);
         setBatteryStateInternal(mBatteryState);
         getPageImage(bitmap);
         return bitmap;
@@ -800,12 +849,19 @@ public class ReaderView extends View {
 		{
 			BackgroundThread.ensureGUI();
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
-    		mBitmap = bitmap;
+			setBitmap( bitmap );
 //    		if (mOpened)
 //    			mEngine.hideProgress();
     		invalidate();
 		}
-	}; 
+	};
+	
+	private void setBitmap(Bitmap bmp)
+	{
+		if ( mBitmap!=null )
+			factory.release(mBitmap);
+		mBitmap = bmp;
+	} 
 	
 	private void drawPage()
 	{
@@ -902,9 +958,11 @@ public class ReaderView extends View {
     		Log.d("cr3", "onDraw() called");
     		if ( mInitialized && mBitmap!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
-    			canvas.drawBitmap(mBitmap, 0, 0, null);
+        		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
+    			canvas.drawBitmap(mBitmap, rc, rc, null);
     		} else {
-    			canvas.drawColor(Color.rgb(255, 255, 255));
+        		Log.d("cr3", "onDraw() -- drawing empty screen");
+    			canvas.drawColor(Color.rgb(192, 192, 192));
     		}
     	} catch ( Exception e ) {
     		Log.e("cr3", "exception while drawing", e);
@@ -999,6 +1057,8 @@ public class ReaderView extends View {
     		}
     		public void done() {
     			BackgroundThread.ensureGUI();
+    			setBitmap(null);
+    			factory.compact();
     			mBitmap = null;
     		}
     	});

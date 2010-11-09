@@ -57,6 +57,7 @@
 <string name="options_page_margin_right">Правый отступ</string>
 <string name="options_page_margin_top">Верхний отступ</string>
 <string name="options_page_margin_bottom">Нижний отступ</string>
+<string name="options_app_fullscreen">На полный экран</string>
 <string name="options_value_on">Вкл.</string>
 <string name="options_value_off">Выкл.</string>
 <string name="dlg_search_case_sensitive">Учитывать регистр</string>
