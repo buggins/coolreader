@@ -28,6 +28,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_gravity="center_vertical|fill_horizontal"
+        android:layout_marginTop="4dip"
+        android:layout_marginBottom="2dip"
         android:layout_marginLeft="2dip"
         android:layout_marginRight="8dip"
         android:baselineAligned="false">
@@ -38,8 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:singleLine="true"
-            android:ellipsize="end"
+            android:singleLine="false"
             android:layout_gravity="left" />
         <TextView android:id="@+id/option_value"
             style="@android:style/TextAppearance.Small"

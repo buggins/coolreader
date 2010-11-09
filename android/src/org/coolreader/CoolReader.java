@@ -23,7 +23,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.InputFilter;
@@ -60,6 +59,7 @@ public class CoolReader extends Activity
 		return mDB;
 	}
 	
+	BroadcastReceiver intentReceiver;
 	PowerManager.WakeLock wl = null;
 	/** Called when the activity is first created. */
     @Override
@@ -68,7 +68,7 @@ public class CoolReader extends Activity
 		Log.i("cr3", "CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 		
-		registerReceiver(new BroadcastReceiver() {
+		intentReceiver = new BroadcastReceiver() {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
@@ -77,7 +77,8 @@ public class CoolReader extends Activity
 				mReaderView.setBatteryState(level);
 			}
 			
-		}, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		};
+		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 		
 		PowerManager pm = (PowerManager)getSystemService(
 	            Context.POWER_SERVICE);
@@ -137,6 +138,11 @@ public class CoolReader extends Activity
 		//if ( mHistory!=null && mDB!=null ) {
 			//history.saveToDB();
 		//}
+		if ( intentReceiver!=null ) {
+			unregisterReceiver(intentReceiver);
+			intentReceiver = null;
+		}
+
 		if ( mReaderView!=null ) {
 			mReaderView.destroy();
 		}

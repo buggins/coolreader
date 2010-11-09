@@ -7,9 +7,15 @@ public class Properties extends java.util.Properties {
 	{
 		super();
 	}
+	public void setAll(java.util.Properties props)
+	{
+        for ( Map.Entry<Object, Object> entry : props.entrySet() ) {
+    		setProperty((String)entry.getKey(), (String)entry.getValue());
+        }
+	}
 	public Properties(java.util.Properties props)
 	{
-		super(props);
+		setAll(props);
 	}
 	private static int revBytes( int color )
 	{

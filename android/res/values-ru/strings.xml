@@ -50,10 +50,16 @@
 <string name="options_page_orientation_90">Альбомная</string>
 <string name="options_page_orientation_180">Книжная (180)</string>
 <string name="options_page_orientation_270">Альбомная (270)</string>
+<string name="options_page_landscape_pages">Страницы в альбомном режиме</string>
+<string name="options_page_landscape_pages_one">Одна страница</string>
+<string name="options_page_landscape_pages_two">Две страницы</string>
 <string name="options_page_margin_left">Левый отступ</string>
 <string name="options_page_margin_right">Правый отступ</string>
 <string name="options_page_margin_top">Верхний отступ</string>
 <string name="options_page_margin_bottom">Нижний отступ</string>
+<string name="options_app_fullscreen">На полный экран</string>
+<string name="options_value_on">Вкл.</string>
+<string name="options_value_off">Выкл.</string>
 <string name="dlg_search_case_sensitive">Учитывать регистр</string>
 <string name="dlg_search_reverse">Искать назад</string>
 <string name="dlg_search_hint">Введите строку для поиска</string>

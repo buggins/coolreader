@@ -50,10 +50,16 @@
 <string name="options_page_orientation_90">Landscape</string>
 <string name="options_page_orientation_180">Portrait (180)</string>
 <string name="options_page_orientation_270">Landscape (270)</string>
+<string name="options_page_landscape_pages">Landscape pages</string>
+<string name="options_page_landscape_pages_one">One page</string>
+<string name="options_page_landscape_pages_two">Two pages</string>
 <string name="options_page_margin_left">Left margin</string>
 <string name="options_page_margin_right">Right margin</string>
 <string name="options_page_margin_top">Top margin</string>
 <string name="options_page_margin_bottom">Bottom margin</string>
+<string name="options_app_fullscreen">Fullscreen mode</string>
+<string name="options_value_on">On</string>
+<string name="options_value_off">Off</string>
 <string name="dlg_search_case_sensitive">Case sensitive</string>
 <string name="dlg_search_reverse">Reverse</string>
 <string name="dlg_search_hint">Type text here</string>
