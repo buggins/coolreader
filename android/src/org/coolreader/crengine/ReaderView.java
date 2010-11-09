@@ -273,20 +273,6 @@ public class ReaderView extends View {
 		case KeyEvent.KEYCODE_DPAD_CENTER:
 			mActivity.showBrowser();
 			break;
-		case KeyEvent.KEYCODE_VOLUME_UP:
-			if ( VOLUME_KEYS_ZOOM ) {
-				doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
-				syncViewSettings();
-			} else
-				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
-			break;
-		case KeyEvent.KEYCODE_VOLUME_DOWN:
-			if ( VOLUME_KEYS_ZOOM ) {
-				doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
-				syncViewSettings();
-			} else
-				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
-			break;
 		case KeyEvent.KEYCODE_SEARCH:
 			showSearchDialog();
 			return true;
@@ -296,7 +282,6 @@ public class ReaderView extends View {
 			} else {
 				mActivity.openOptionsMenu();
 			}
-			
 			break;
 		case KeyEvent.KEYCODE_HOME:
 			mActivity.showBrowser();
@@ -316,61 +301,22 @@ public class ReaderView extends View {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
-//		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
-//			// will process in keyup handler
-//			return true;
-//		} else
-//		switch ( keyCode ) {
-//		case NOOK_KEY_NEXT_LEFT:
-//		case NOOK_KEY_NEXT_RIGHT:    
-//		case NOOK_KEY_SHIFT_DOWN:
-//		case KeyEvent.KEYCODE_DPAD_DOWN:
-//			doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
-//			break;
-//		case NOOK_KEY_PREV_LEFT:
-//		case NOOK_KEY_PREV_RIGHT:
-//		case NOOK_KEY_SHIFT_UP:
-//		case KeyEvent.KEYCODE_DPAD_UP:
-//			doCommand( ReaderCommand.DCMD_PAGEUP, 1);
-//			break;
-//		case KeyEvent.KEYCODE_DPAD_LEFT:
-//			doCommand( ReaderCommand.DCMD_PAGEUP, 10);
-//			break;
-//		case KeyEvent.KEYCODE_DPAD_RIGHT:
-//			doCommand( ReaderCommand.DCMD_PAGEDOWN, 10);
-//			break;
-//		case KeyEvent.KEYCODE_DPAD_CENTER:
-//			mActivity.showBrowser();
-//			break;
-//		case KeyEvent.KEYCODE_VOLUME_UP:
-//			if ( VOLUME_KEYS_ZOOM ) {
-//				doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
-//				syncViewSettings();
-//			} else
-//				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
-//			break;
-//		case KeyEvent.KEYCODE_VOLUME_DOWN:
-//			if ( VOLUME_KEYS_ZOOM ) {
-//				doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
-//				syncViewSettings();
-//			} else
-//				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
-//			break;
-//		case KeyEvent.KEYCODE_SEARCH:
-//			showSearchDialog();
-//			return true;
-//		case KeyEvent.KEYCODE_MENU:
-//			mActivity.openOptionsMenu();
-//			break;
-//		case KeyEvent.KEYCODE_HOME:
-//			mActivity.showBrowser();
-//			break;
-//		case KeyEvent.KEYCODE_BACK:
-//			saveSettings();
-//			return super.onKeyDown(keyCode, event);
-//		default:
-//			return super.onKeyDown(keyCode, event);
-//		}
+		switch ( keyCode ) {
+		case KeyEvent.KEYCODE_VOLUME_UP:
+			if ( VOLUME_KEYS_ZOOM ) {
+				doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+				syncViewSettings(getSettings());
+			} else
+				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+			return true;
+		case KeyEvent.KEYCODE_VOLUME_DOWN:
+			if ( VOLUME_KEYS_ZOOM ) {
+				doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+				syncViewSettings(getSettings());
+			} else
+				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+			return true;
+		}
 		if ( keyCode==KeyEvent.KEYCODE_BACK )
 			return super.onKeyDown(keyCode, event);
 		return true;
@@ -600,7 +546,7 @@ public class ReaderView extends View {
 	{
 		BackgroundThread.ensureBackground();
         applySettingsInternal(props);
-        syncViewSettings();
+        syncViewSettings(props);
         drawPage();
 	}
 	
@@ -627,24 +573,21 @@ public class ReaderView extends View {
 	/**
 	 * Read JNI view settings, update and save if changed 
 	 */
-	private void syncViewSettings()
+	private void syncViewSettings( final Properties currSettings )
 	{
 		execute( new Task() {
-			java.util.Properties props;
+			Properties props;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				props = getSettingsInternal();
+				props = new Properties(getSettingsInternal());
 			}
 			public void done() {
-				boolean changed = false;
-		        for ( Map.Entry<Object, Object> entry : props.entrySet() ) {
-		        	if ( !mSettings.containsKey(entry.getKey()) || !eq(entry.getValue(), mSettings.get(entry.getKey()))) {
-		        		mSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
-		        		changed = true;
-		        	}
+				Properties changedSettings = props.diff(currSettings);
+		        for ( Map.Entry<Object, Object> entry : changedSettings.entrySet() ) {
+	        		currSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
 		        }
-		        if ( changed )
-		        	saveSettings();
+	        	mSettings = props;
+	        	saveSettings();
 			}
 		});
 	}
@@ -671,30 +614,30 @@ public class ReaderView extends View {
 	public void setSettings(Properties newSettings)
 	{
 		BackgroundThread.ensureGUI();
-		boolean changed = false;
-        for ( Map.Entry<Object, Object> entry : newSettings.entrySet() ) {
-        	if ( !mSettings.containsKey(entry.getKey()) || !eq(entry.getValue(), mSettings.get(entry.getKey()))) {
-        		String key = (String)entry.getKey();
-        		String value = (String)entry.getValue();
-        		mSettings.setProperty(key, value);
-        		applyAppSetting( key, value );
-        		if ( PROP_APP_FULLSCREEN.equals(key) ) {
-        			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
-        			mSettings.setBool(PROP_SHOW_BATTERY, flg); 
-        			mSettings.setBool(PROP_SHOW_TIME, flg); 
-        		}
-        		changed = true;
-        	}
+		final Properties currSettings = new Properties(mSettings);
+		Properties changedSettings = newSettings.diff(currSettings);
+		//boolean changed = false;
+        for ( Map.Entry<Object, Object> entry : changedSettings.entrySet() ) {
+    		String key = (String)entry.getKey();
+    		String value = (String)entry.getValue();
+    		currSettings.setProperty(key, value);
+    		applyAppSetting( key, value );
+    		if ( PROP_APP_FULLSCREEN.equals(key) ) {
+    			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
+    			currSettings.setBool(PROP_SHOW_BATTERY, flg); 
+    			currSettings.setBool(PROP_SHOW_TIME, flg); 
+    		}
+    		//changed = true;
         }
-        if ( changed ) {
-        	Log.d("cr3", "Some settings have been changed, applying...");
-        	saveSettings();
-        	mBackThread.executeBackground(new Runnable() {
-        		public void run() {
-        			applySettings(new Properties(mSettings));
-        		}
-        	});
-        }
+//        if ( changed ) {
+    	Log.d("cr3", "Some settings have been changed, applying...");
+//    	saveSettings();
+    	mBackThread.executeBackground(new Runnable() {
+    		public void run() {
+    			applySettings(new Properties(currSettings));
+    		}
+    	});
+//        }
 	}
 	
 	private static boolean DEBUG_RESET_OPTIONS = false;
@@ -733,6 +676,11 @@ public class ReaderView extends View {
 	        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
 	        props.applyDefault(PROP_STATUS_FONT_FACE, "Droid Sans");
 	        props.applyDefault(PROP_APP_FULLSCREEN, "0");
+    		props.applyDefault(PROP_APP_FULLSCREEN, "0");
+    		props.applyDefault(PROP_SHOW_BATTERY, "0"); 
+    		props.applyDefault(PROP_SHOW_TIME, "0");
+    		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
+    		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
 			mInitialized = true;
 		}
 		public void done() {
