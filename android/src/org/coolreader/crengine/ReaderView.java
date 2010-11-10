@@ -547,6 +547,7 @@ public class ReaderView extends View {
 	private void applySettings( Properties props )
 	{
 		BackgroundThread.ensureBackground();
+		Log.v("cr3", "applySettings() " + props);
         applySettingsInternal(props);
         syncViewSettings(props);
         drawPage();
@@ -556,6 +557,7 @@ public class ReaderView extends View {
 	private void saveSettings( Properties settings )
 	{
 		try {
+			Log.v("cr3", "saveSettings() " + settings);
     		FileOutputStream os = new FileOutputStream(propsFile);
     		settings.store(os, "Cool Reader 3 settings");
 			Log.i("cr3", "Settings successfully saved to file " + propsFile.getAbsolutePath());
@@ -617,6 +619,7 @@ public class ReaderView extends View {
 	
 	public void setSettings(Properties newSettings)
 	{
+		Log.v("cr3", "setSettings() " + newSettings.toString());
 		BackgroundThread.ensureGUI();
 		final Properties currSettings = new Properties(mSettings);
 		Properties changedSettings = newSettings.diff(currSettings);
@@ -650,6 +653,7 @@ public class ReaderView extends View {
         Properties props = new Properties();
 		public void work() throws Exception {
 			BackgroundThread.ensureBackground();
+			Log.d("cr3", "CreateViewTask - in background thread");
 			createInternal();
 			//File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
