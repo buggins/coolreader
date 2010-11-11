@@ -391,7 +391,7 @@ FT_BEGIN_HEADER
   /* embedded bitmaps in all formats using the SFNT module (namely         */
   /* TrueType & OpenType).                                                 */
   /*                                                                       */
-/*#define TT_CONFIG_OPTION_EMBEDDED_BITMAPS*/
+#define TT_CONFIG_OPTION_EMBEDDED_BITMAPS
 
 
   /*************************************************************************/

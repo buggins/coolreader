@@ -541,7 +541,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	
 	@Override
 	protected void onPositiveButtonClick() {
-        mReaderView.setSettings(mProperties);
+        mReaderView.setSettings(mProperties, null);
         super.onPositiveButtonClick();
 	}
 

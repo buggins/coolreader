@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -30,7 +31,62 @@ public class Engine {
 	//private final View mMainView;
 	//private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
 	
+	/**
+	 * Get storage root directories.
+	 * @return array of r/w storage roots
+	 */
+	public static File[] getStorageDirectories() {
+		ArrayList<File> res = new ArrayList<File>(2);
+		File dir = Environment.getExternalStorageDirectory();
+		if ( dir.isDirectory() && dir.canWrite() )
+			res.add(dir);
+		File dir2 = new File("/system/media/sdcard");
+		if ( dir2.isDirectory() && dir2.canWrite())
+			res.add(dir2);
+		return res.toArray( new File[] {});
+	}
 
+	/**
+	 * Get or create writable subdirectory for specified base directory
+	 * @param dir is base directory
+	 * @param subdir is subdirectory name, null to use base directory
+	 * @param createIfNotExists is true to force directory creation
+	 * @return writable directory, null if not exist or not writable
+	 */
+	public static File getSubdir( File dir, String subdir, boolean createIfNotExists )
+	{
+		if ( dir==null )
+			return null;
+		File dataDir = dir;
+		if ( subdir!=null ) {
+			dataDir = new File( dataDir, subdir );
+			if ( !dataDir.isDirectory() && createIfNotExists )
+				dataDir.mkdir();
+		}
+		if ( dataDir.isDirectory() && dataDir.canWrite() )
+			return dataDir;
+		return null;
+	}
+	
+	/**
+	 * Returns array of writable data directories on external storage 
+	 * @param subdir
+	 * @param createIfNotExists
+	 * @return
+	 */
+	public static File[] getDataDirectories( String subdir, boolean createIfNotExists ) {
+		File[] roots = getStorageDirectories();
+		ArrayList<File> res = new ArrayList<File>(2);
+		for ( File dir : roots ) {
+			File dataDir = getSubdir( dir, ".cr3", createIfNotExists );
+			if ( subdir!=null )
+				dataDir = getSubdir( dataDir, subdir, createIfNotExists );
+			if ( dataDir!=null )
+				res.add(dataDir);
+		}
+		return res.toArray(new File[] {});
+	}
+	
 	public interface EngineTask {
 		public void work() throws Exception;
 		public void done();
@@ -222,13 +278,24 @@ public class Engine {
 		return progressShown;
 	}
 	
+	public String loadFileUtf8( File file )
+	{
+		try {
+			InputStream is = new FileInputStream(file);
+			return loadResourceUtf8(is);
+		} catch ( Exception e ) {
+			Log.e("cr3", "cannot load resource from file " + file);
+			return null;
+		}
+	}
+
 	public String loadResourceUtf8( int id )
 	{
 		try {
 			InputStream is = this.mActivity.getResources().openRawResource( id );
 			return loadResourceUtf8(is);
 		} catch ( Exception e ) {
-			Log.e("cr3", "cannot load resource");
+			Log.e("cr3", "cannot load resource " + id);
 			return null;
 		}
 	}

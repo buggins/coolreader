@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -617,11 +618,18 @@ public class ReaderView extends View {
         }
 	}
 	
-	public void setSettings(Properties newSettings)
+	/**
+     * Change settings.
+	 * @param newSettings are new settings
+	 * @param oldSettings are old settings, null to use mSettings
+	 */
+	public void setSettings(Properties newSettings, Properties oldSettings)
 	{
 		Log.v("cr3", "setSettings() " + newSettings.toString());
 		BackgroundThread.ensureGUI();
-		final Properties currSettings = new Properties(mSettings);
+		if ( oldSettings==null )
+			oldSettings = mSettings;
+		final Properties currSettings = new Properties(oldSettings);
 		Properties changedSettings = newSettings.diff(currSettings);
 		//boolean changed = false;
         for ( Map.Entry<Object, Object> entry : changedSettings.entrySet() ) {
@@ -646,11 +654,44 @@ public class ReaderView extends View {
     	});
 //        }
 	}
+
+	private Properties loadSettings()
+	{
+        Properties props = new Properties();
+		File propsDir = mActivity.getDir("settings", Context.MODE_PRIVATE);
+		propsDir.mkdirs();
+		propsFile = new File( propsDir, "cr3.ini");
+        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
+        	try {
+        		FileInputStream is = new FileInputStream(propsFile);
+        		props.load(is);
+        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
+        	} catch ( Exception e ) {
+        		Log.e("cr3", "error while reading settings");
+        	}
+        }
+        props.applyDefault(PROP_FONT_SIZE, "1208");
+        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
+        props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
+        props.setProperty(PROP_STATUS_FONT_SIZE, "14");
+        props.applyDefault(PROP_APP_FULLSCREEN, "0");
+		props.applyDefault(PROP_APP_FULLSCREEN, "0");
+		props.applyDefault(PROP_SHOW_BATTERY, "0"); 
+		props.applyDefault(PROP_SHOW_TIME, "0");
+		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
+		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
+		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
+		return props;
+	}
 	
 	private static boolean DEBUG_RESET_OPTIONS = false;
 	class CreateViewTask extends Task
 	{
         Properties props = new Properties();
+        public CreateViewTask() {
+       		props = loadSettings();
+       		mSettings = props;
+        }
 		public void work() throws Exception {
 			BackgroundThread.ensureBackground();
 			Log.d("cr3", "CreateViewTask - in background thread");
@@ -668,35 +709,13 @@ public class ReaderView extends View {
 	        String css = mEngine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
-			File propsDir = mActivity.getDir("settings", Context.MODE_PRIVATE);
-			propsDir.mkdirs();
-			propsFile = new File( propsDir, "cr3.ini");
-	        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
-	        	try {
-	        		FileInputStream is = new FileInputStream(propsFile);
-	        		props.load(is);
-	        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
-	        	} catch ( Exception e ) {
-	        		Log.e("cr3", "error while reading settings");
-	        	}
-	        }
-	        props.applyDefault(PROP_FONT_SIZE, "18");
-	        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
-	        props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
-	        props.setProperty(PROP_STATUS_FONT_SIZE, "14");
-	        props.applyDefault(PROP_APP_FULLSCREEN, "0");
-    		props.applyDefault(PROP_APP_FULLSCREEN, "0");
-    		props.applyDefault(PROP_SHOW_BATTERY, "0"); 
-    		props.applyDefault(PROP_SHOW_TIME, "0");
-    		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
-    		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
-    		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
+   			applySettings(props);
 			mInitialized = true;
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
 			BackgroundThread.ensureGUI();
-	        setSettings(props);
+	        setSettings(props, new Properties());
 		}
 		public void fail( Exception e )
 		{
@@ -771,6 +790,7 @@ public class ReaderView extends View {
 	}
 	
 	private static class BitmapFactory {
+		public static final int MAX_FREE_LIST_SIZE=1;
 		ArrayList<Bitmap> freeList = new ArrayList<Bitmap>(); 
 		ArrayList<Bitmap> usedList = new ArrayList<Bitmap>(); 
 		public synchronized Bitmap get( int dx, int dy ) {
@@ -791,7 +811,6 @@ public class ReaderView extends View {
 			usedList.add(bmp);
 			return bmp;
 		}
-		public static final int MAX_FREE_LIST_SIZE=2;
 		public synchronized void compact() {
 			while ( freeList.size()>0 ) {
 				freeList.get(0).recycle();
@@ -1094,6 +1113,23 @@ public class ReaderView extends View {
 		Log.d("cr3", "View.onDetachedFromWindow() is called");
 	}
 
+	private String getCSSForFormat( DocumentFormat fileFormat )
+	{
+		if ( fileFormat==null )
+			fileFormat = DocumentFormat.FB2;
+		File[] dataDirs = Engine.getDataDirectories(null, false);
+		for ( File dir : dataDirs ) {
+			File file = new File( dir, fileFormat.getCssName() );
+			if ( file.exists() ) {
+				String css = mEngine.loadFileUtf8(file);
+				if ( css!=null )
+					return css;
+			} 
+		}
+		String s = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
+		return s;
+	} 
+
 	boolean enable_progress_callback = true;
     ReaderCallback readerCallback = new ReaderCallback() {
     
@@ -1145,7 +1181,7 @@ public class ReaderView extends View {
 					BackgroundThread.ensureGUI();
 					Log.i("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
 					if ( fileFormat!=null ) {
-						String s = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
+						String s = getCSSForFormat(fileFormat);
 						Log.i("cr3", "setting .css for file format " + fileFormat + " from resource " + (fileFormat!=null?fileFormat.getCssName():"[NONE]"));
 						return s;
 					}
