@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.app.Activity;
@@ -86,8 +87,10 @@ public class BaseDialog extends Dialog {
 	public void setTitle(CharSequence title) {
 		if ( title!=null )
 			super.setTitle(title);
-		else
+		else {
 			getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+			((CoolReader)getOwnerActivity()).applyFullscreen( getWindow() );
+		}
 	}
 
 	protected View createLayout( View view )

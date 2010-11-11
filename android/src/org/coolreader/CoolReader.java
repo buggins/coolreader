@@ -33,6 +33,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -58,6 +59,30 @@ public class CoolReader extends Activity
 	{
 		return mDB;
 	}
+	
+	private boolean mFullscreen = false;
+	public boolean isFullscreen() {
+		return mFullscreen;
+	}
+	public void applyFullscreen( Window wnd )
+	{
+		if ( mFullscreen ) {
+			//mActivity.getWindow().requestFeature(Window.)
+			wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		} else {
+			wnd.setFlags(0, 
+			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		}
+	}
+	public void setFullscreen( boolean fullscreen )
+	{
+		if ( mFullscreen!=fullscreen ) {
+			mFullscreen = fullscreen;
+			applyFullscreen( getWindow() );
+		}
+	}
+	
 	
 	BroadcastReceiver intentReceiver;
 	PowerManager.WakeLock wl = null;

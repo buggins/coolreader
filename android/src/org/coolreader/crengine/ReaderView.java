@@ -621,14 +621,7 @@ public class ReaderView extends View {
 	public void applyAppSetting( String key, String value )
 	{
         if ( key.equals(PROP_APP_FULLSCREEN) ) {
-			if ( "1".equals(value) ) {
-				//mActivity.getWindow().requestFeature(Window.)
-				mActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-				        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-			} else {
-				mActivity.getWindow().setFlags(0, 
-				        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-			}
+			this.mActivity.setFullscreen( "1".equals(value) );
         }
 	}
 	
