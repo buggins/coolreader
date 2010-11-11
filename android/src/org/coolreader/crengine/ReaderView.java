@@ -842,6 +842,7 @@ public class ReaderView extends View {
 	};
 	BitmapFactory factory = new BitmapFactory(); 
 	
+	private static final boolean GC_PAGE_IMAGE = true;
 	private Bitmap preparePageImage()
 	{
 		BackgroundThread.ensureBackground();
@@ -854,6 +855,8 @@ public class ReaderView extends View {
 		bitmap = factory.get(internalDX, internalDY);
         setBatteryStateInternal(mBatteryState);
         getPageImage(bitmap);
+        if ( GC_PAGE_IMAGE )
+        	System.gc();
         return bitmap;
 	}
 	
