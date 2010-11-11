@@ -4,6 +4,7 @@ package org.coolreader;
 import java.io.File;
 
 import org.coolreader.crengine.BackgroundThread;
+import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.Engine;
@@ -16,7 +17,6 @@ import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -340,39 +340,45 @@ public class CoolReader extends Activity
 		void onCancel();
 	};
 	
+	public static class InputDialog extends BaseDialog {
+		private InputHandler handler;
+		private EditText input;
+		public InputDialog( Activity activity, final String title, boolean isNumberEdit, final InputHandler handler )
+		{
+			super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel );
+			this.handler = handler;
+			setTitle(title);
+	        input = new EditText(getContext());
+	        if ( isNumberEdit )
+		        input.getText().setFilters(new InputFilter[] {
+		        	new DigitsKeyListener()        
+		        });
+	        setView(input);
+		}
+		@Override
+		protected void onNegativeButtonClick() {
+            cancel();
+            handler.onCancel();
+		}
+		@Override
+		protected void onPositiveButtonClick() {
+            String value = input.getText().toString().trim();
+            try {
+            	if ( handler.validate(value) )
+            		handler.onOk(value);
+            	else
+            		handler.onCancel();
+            } catch ( Exception e ) {
+            	handler.onCancel();
+            }
+            cancel();
+		}
+	}
+	
 	public void showInputDialog( final String title, boolean isNumberEdit, final InputHandler handler )
 	{
-        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        final EditText input = new EditText(this);
-        if ( isNumberEdit )
-	        input.getText().setFilters(new InputFilter[] {
-	        	new DigitsKeyListener()        
-	        });
-        alert.setTitle(title);
-        alert.setView(input);
-        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                String value = input.getText().toString().trim();
-                try {
-                	if ( handler.validate(value) )
-                		handler.onOk(value);
-                	else
-                		handler.onCancel();
-                } catch ( Exception e ) {
-                	handler.onCancel();
-                }
-                dialog.cancel();
-            }
-        });
- 
-        alert.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        dialog.cancel();
-                        handler.onCancel();
-                    }
-                });
-        alert.show();
+        final InputDialog dlg = new InputDialog(this, title, isNumberEdit, handler);
+        dlg.show();
 	}
 
 	

@@ -533,6 +533,20 @@ public class ReaderView extends View {
 		});
 	}
 	
+	public void doCommandFromBackgroundThread( final ReaderCommand cmd, final int param )
+	{
+		Log.d("cr3", "doCommandFromBackgroundThread("+cmd + ", " + param +")");
+		BackgroundThread.ensureBackground();
+		boolean res = doCommandInternal(cmd.nativeId, param);
+		if ( res ) {
+			BackgroundThread.guiExecutor.execute(new Runnable() {
+				public void run() {
+					drawPage();
+				}
+			});
+		}
+	}
+	
 	private boolean mInitialized = false;
 	private boolean mOpened = false;
 	
@@ -1236,7 +1250,7 @@ public class ReaderView extends View {
 	    			PositionProperties pos = getPositionPropsInternal(null);
 	    			if ( pos!=null && pos.pageCount>0) {
 	    				int pageNumber = pos.pageCount * percent / 100; 
-						doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
+						doCommandFromBackgroundThread(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
 	    			}
 	    		}
 	    	});
