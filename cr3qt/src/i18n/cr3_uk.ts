@@ -676,7 +676,14 @@ Latest source code is available from GIT repository:
 
 See README.TXT at root directory of project for build instructions.
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Джерельний код можна завантажити з сторінки проекту на sourceforge crengine:
+http://sourceforge.net/projects/crengine/
+
+Останні версії сирців доступні у сховищі GIT:
+&gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+Інструкція щодо збирання є у кореневій теці проекту, в файлі README.TXT.
+</translation>
     </message>
 </context>
 <context>
@@ -1381,19 +1388,19 @@ See README.TXT at root directory of project for build instructions.
     </message>
     <message>
         <source>Next Page</source>
-        <translation type="unfinished"></translation>
+        <translation>Наступна сторінка</translation>
     </message>
     <message>
         <source>Right</source>
-        <translation type="unfinished"></translation>
+        <translation>Право</translation>
     </message>
     <message>
         <source>Previous Page</source>
-        <translation type="unfinished"></translation>
+        <translation>Попередня сторінка</translation>
     </message>
     <message>
         <source>Left</source>
-        <translation type="unfinished"></translation>
+        <translation>Ліво</translation>
     </message>
 </context>
 <context>
@@ -1443,31 +1450,31 @@ See README.TXT at root directory of project for build instructions.
     <name>SearchDialog</name>
     <message>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Пошук</translation>
     </message>
     <message>
         <source>Text</source>
-        <translation type="unfinished">Текст</translation>
+        <translation>Текст</translation>
     </message>
     <message>
         <source>Search forward</source>
-        <translation type="unfinished"></translation>
+        <translation>Знайти далі</translation>
     </message>
     <message>
         <source>Search backward</source>
-        <translation type="unfinished"></translation>
+        <translation>Знайти назад</translation>
     </message>
     <message>
         <source>Find Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Знайти наступне</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished">Закрити</translation>
+        <translation>Закрити</translation>
     </message>
     <message>
         <source>Case Sensitive</source>
-        <translation type="unfinished"></translation>
+        <translation>Враховувати регістр</translation>
     </message>
     <message>
         <source>Not implemented</source>
@@ -1479,11 +1486,11 @@ See README.TXT at root directory of project for build instructions.
     </message>
     <message>
         <source>Not found</source>
-        <translation type="unfinished"></translation>
+        <translation>Не знайдено</translation>
     </message>
     <message>
         <source>Search pattern is not found in document</source>
-        <translation type="unfinished"></translation>
+        <translation>За Вашим запитом нічого не знайдено</translation>
     </message>
 </context>
 <context>
