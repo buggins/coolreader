@@ -625,6 +625,25 @@ public class ReaderView extends View {
         }
 	}
 	
+	public void setAppSettings( Properties newSettings, Properties oldSettings )
+	{
+		Log.v("cr3", "setAppSettings() " + newSettings.toString());
+		BackgroundThread.ensureGUI();
+		if ( oldSettings==null )
+			oldSettings = mSettings;
+		Properties changedSettings = newSettings.diff(oldSettings);
+        for ( Map.Entry<Object, Object> entry : changedSettings.entrySet() ) {
+    		String key = (String)entry.getKey();
+    		String value = (String)entry.getValue();
+    		applyAppSetting( key, value );
+    		if ( PROP_APP_FULLSCREEN.equals(key) ) {
+    			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
+    			newSettings.setBool(PROP_SHOW_BATTERY, flg); 
+    			newSettings.setBool(PROP_SHOW_TIME, flg); 
+    		}
+        }
+	}
+	
 	/**
      * Change settings.
 	 * @param newSettings are new settings
@@ -637,26 +656,12 @@ public class ReaderView extends View {
 		if ( oldSettings==null )
 			oldSettings = mSettings;
 		final Properties currSettings = new Properties(oldSettings);
+		setAppSettings( newSettings, currSettings );
 		Properties changedSettings = newSettings.diff(currSettings);
-		//boolean changed = false;
-        for ( Map.Entry<Object, Object> entry : changedSettings.entrySet() ) {
-    		String key = (String)entry.getKey();
-    		String value = (String)entry.getValue();
-    		currSettings.setProperty(key, value);
-    		applyAppSetting( key, value );
-    		if ( PROP_APP_FULLSCREEN.equals(key) ) {
-    			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
-    			currSettings.setBool(PROP_SHOW_BATTERY, flg); 
-    			currSettings.setBool(PROP_SHOW_TIME, flg); 
-    		}
-    		//changed = true;
-        }
-//        if ( changed ) {
-    	Log.d("cr3", "Some settings have been changed, applying...");
-//    	saveSettings();
+		currSettings.setAll(changedSettings);
     	mBackThread.executeBackground(new Runnable() {
     		public void run() {
-    			applySettings(new Properties(currSettings));
+    			applySettings(currSettings);
     		}
     	});
 //        }
@@ -697,6 +702,9 @@ public class ReaderView extends View {
         Properties props = new Properties();
         public CreateViewTask() {
        		props = loadSettings();
+       		Properties oldSettings = new Properties(); // may be changed by setAppSettings 
+   			setAppSettings(props, oldSettings);
+   			props.setAll(oldSettings);
        		mSettings = props;
         }
 		public void work() throws Exception {
@@ -717,7 +725,7 @@ public class ReaderView extends View {
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
    			applySettings(props);
-			mInitialized = true;
+   			mInitialized = true;
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
