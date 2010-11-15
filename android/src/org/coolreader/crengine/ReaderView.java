@@ -62,8 +62,8 @@ public class ReaderView extends View {
     public static final String PROP_ROTATE_ANGLE            ="window.rotate.angle";
     public static final String PROP_EMBEDDED_STYLES         ="crengine.doc.embedded.styles.enabled";
     public static final String PROP_DISPLAY_INVERSE         ="crengine.display.inverse";
-    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
-    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
+//    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
+//    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
     public static final String PROP_STATUS_LINE             ="window.status.line";
     public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";
     public static final String PROP_FOOTNOTES               ="crengine.footnotes";
@@ -81,6 +81,14 @@ public class ReaderView extends View {
     public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
 
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
+    
+    public enum ViewMode
+    {
+    	PAGES,
+    	SCROLL
+    }
+    
+    private ViewMode viewMode = ViewMode.PAGES;
     
     public enum ReaderCommand
     {
@@ -640,8 +648,16 @@ public class ReaderView extends View {
     			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
     			newSettings.setBool(PROP_SHOW_BATTERY, flg); 
     			newSettings.setBool(PROP_SHOW_TIME, flg); 
+    		} else if ( PROP_PAGE_VIEW_MODE.equals(key) ) {
+    			boolean flg = "1".equals(value);
+    			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		}
         }
+	}
+	
+	public ViewMode getViewMode()
+	{
+		return viewMode;
 	}
 	
 	/**

@@ -57,6 +57,9 @@
 <string name="options_page_margin_right">Right margin</string>
 <string name="options_page_margin_top">Top margin</string>
 <string name="options_page_margin_bottom">Bottom margin</string>
+<string name="options_view_mode">View mode</string>
+<string name="options_view_mode_pages">Pages</string>
+<string name="options_view_mode_scroll">Scroll</string>
 <string name="options_app_fullscreen">Fullscreen mode</string>
 <string name="options_value_on">On</string>
 <string name="options_value_off">Off</string>

@@ -57,6 +57,9 @@
 <string name="options_page_margin_right">Відступ праворуч</string>
 <string name="options_page_margin_top">Відступ вгорі</string>
 <string name="options_page_margin_bottom">Відступ внизу</string>
+<string name="options_view_mode">Режим просмотра</string>
+<string name="options_view_mode_pages">Страницы</string>
+<string name="options_view_mode_scroll">Свиток</string>
 <string name="options_app_fullscreen">На весь екран</string>
 <string name="options_value_on">Увімк.</string>
 <string name="options_value_off">Вимк.</string>
