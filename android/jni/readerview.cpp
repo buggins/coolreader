@@ -864,17 +864,21 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
 	DocViewCallback callback( _env, p->_docview, _this );
     lString16 str = env.fromJavaString(_path);
     ldomXPointer bm;
+    bool useCurPos = false; // use current Y position for scroll view mode  
     if ( !str.empty() ) {
         bm = p->_docview->getDocument()->createXPointer(str);
-    } else
-        bm = p->_docview->getBookmark();
-    if ( bm.isNull() )
+    } else {
+        useCurPos = p->_docview->getViewMode()==DVM_SCROLL;
+        if ( !useCurPos )
+            bm = p->_docview->getBookmark();
+    }
+    if ( bm.isNull() && !useCurPos )
         return NULL;
     jclass cls = _env->FindClass("org/coolreader/crengine/PositionProperties");
     jmethodID mid = _env->GetMethodID(cls, "<init>", "()V");
     jobject obj = _env->NewObject(cls, mid);
     CRObjectAccessor v(_env, obj);
-    lvPoint pt = bm.toPoint();
+    lvPoint pt = useCurPos ? bm.toPoint() : lvPoint(0, p->_docview->GetPos());
     CRIntField(v,"x").set(pt.x);
     CRIntField(v,"y").set(pt.y);
     CRIntField(v,"fullHeight").set(p->_docview->GetFullHeight());

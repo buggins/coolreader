@@ -120,6 +120,7 @@ public class ReaderView extends View {
     	DCMD_SAVE_HISTORY(124),
     	DCMD_SAVE_TO_CACHE(125),
     	DCMD_TOGGLE_BOLD(126),
+    	DCMD_SCROLL_BY(127),
 
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
@@ -340,6 +341,13 @@ public class ReaderView extends View {
 		}
 	}
 
+	private boolean isManualScrollActive = false;
+	private int manualScrollStartPosX = 0;
+	private int manualScrollStartPosY = 0;
+	private int manualScrollLastMoveX = 0;
+	private int manualScrollLastMoveY = 0;
+	private final int START_DRAG_THRESHOLD = 10;
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
@@ -348,6 +356,10 @@ public class ReaderView extends View {
 			int y = (int)event.getY();
 			int dx = getWidth();
 			int dy = getHeight();
+			if ( isManualScrollActive ) {
+				isManualScrollActive = false;
+				return true;
+			}
 			boolean fwd = x>dx*3/4 || y>dy*3/4; 
 			boolean back = x<dx/4 || y<dy/4;
 			boolean center = x>dx/3 && x<dx*2/3 && y>dy/3 && y<dy*2/3;
@@ -364,6 +376,50 @@ public class ReaderView extends View {
 					mActivity.openOptionsMenu();
 			}
 			return true;
+		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
+			if ( viewMode==ViewMode.SCROLL ) {
+				manualScrollStartPosX = manualScrollLastMoveX = (int)event.getX();
+				manualScrollStartPosY = manualScrollLastMoveY = (int)event.getY();
+			}
+		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
+			int x = (int)event.getX();
+			int y = (int)event.getY();
+			if ( viewMode==ViewMode.SCROLL ) {
+				if ( !isManualScrollActive ) {
+					int deltax = manualScrollStartPosX - x; 
+					int deltay = manualScrollStartPosY - y;
+					deltax = deltax < 0 ? -deltax : deltax;
+					deltay = deltay < 0 ? -deltay : deltay;
+					if ( deltax + deltay > START_DRAG_THRESHOLD )
+						isManualScrollActive = true;
+				}
+			}
+			if ( !isManualScrollActive )
+				return false;
+			int orientation = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
+			int delta = 0;
+			switch ( orientation ) {
+			case 0:
+				delta = manualScrollLastMoveY - y;
+				manualScrollLastMoveY = y;
+				break;
+			case 1:
+				delta = manualScrollLastMoveX - x;
+				manualScrollLastMoveX = x;
+				break;
+			case 2:
+				delta = y - manualScrollLastMoveY;
+				manualScrollLastMoveY = y;
+				break;
+			case 3:
+				delta = x - manualScrollLastMoveX;
+				manualScrollLastMoveX = x;
+				break;
+			}
+			if ( delta!=0 )
+				moveBy( delta );
+		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
+			isManualScrollActive = false;
 		}
 		return true;
 		//return super.onTouchEvent(event);
@@ -650,7 +706,7 @@ public class ReaderView extends View {
     		String value = (String)entry.getValue();
     		applyAppSetting( key, value );
     		if ( PROP_APP_FULLSCREEN.equals(key) ) {
-    			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
+    			boolean flg = true; //mSettings.getBool(PROP_APP_FULLSCREEN, false);
     			newSettings.setBool(PROP_SHOW_BATTERY, flg); 
     			newSettings.setBool(PROP_SHOW_TIME, flg); 
     		} else if ( PROP_PAGE_VIEW_MODE.equals(key) ) {
@@ -708,9 +764,8 @@ public class ReaderView extends View {
         props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_SIZE, "14");
         props.applyDefault(PROP_APP_FULLSCREEN, "0");
-		props.applyDefault(PROP_APP_FULLSCREEN, "0");
-		props.applyDefault(PROP_SHOW_BATTERY, "0"); 
-		props.applyDefault(PROP_SHOW_TIME, "0");
+		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
+		props.applyDefault(PROP_SHOW_TIME, "1");
 		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
@@ -871,28 +926,41 @@ public class ReaderView extends View {
 	};
 	BitmapFactory factory = new BitmapFactory(); 
 	
+	class BitmapInfo {
+		Bitmap bitmap;
+		PositionProperties position;
+	}
+	
 	private static final boolean GC_PAGE_IMAGE = true;
-	private Bitmap preparePageImage()
+	private static final int GC_INTERVAL = 2;
+	private static int gcCounter = 0; 
+	private BitmapInfo preparePageImage()
 	{
 		BackgroundThread.ensureBackground();
-		Bitmap bitmap;
+		BitmapInfo bi = new BitmapInfo();
 		if ( internalDX==0 || internalDY==0 ) {
 			internalDX=200;
 			internalDY=300;
 	        resizeInternal(internalDX, internalDY);
 		}
-		bitmap = factory.get(internalDX, internalDY);
+		bi.bitmap = factory.get(internalDX, internalDY);
         setBatteryStateInternal(mBatteryState);
-        getPageImageInternal(bitmap);
-        if ( GC_PAGE_IMAGE )
-        	System.gc();
-        return bitmap;
+        getPageImageInternal(bi.bitmap);
+        bi.position = getPositionPropsInternal(null);
+        if ( GC_PAGE_IMAGE ) {
+        	gcCounter++;
+        	if ( gcCounter>=GC_INTERVAL ) {
+        		System.gc();
+        		gcCounter = 0;
+        	}
+        }
+        return bi;
 	}
 	
 	private int lastDrawTaskId = 0;
 	private class DrawPageTask extends Task {
 		final int id;
-		Bitmap bitmap;
+		BitmapInfo bi;
 		DrawPageTask()
 		{
 			this.id = ++lastDrawTaskId;
@@ -904,17 +972,19 @@ public class ReaderView extends View {
 				return;
 			}
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
-			bitmap = preparePageImage();
+			bi = preparePageImage();
 	        mEngine.hideProgress();
 		}
 		public void done()
 		{
 			BackgroundThread.ensureGUI();
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
-			setBitmap( bitmap );
+			if ( bi!=null ) {
+				setBitmap( bi.bitmap );
+				invalidate();
+			}
 //    		if (mOpened)
 //    			mEngine.hideProgress();
-    		invalidate();
 		}
 	};
 	
@@ -1258,6 +1328,27 @@ public class ReaderView extends View {
         		}
         	});
         }
+    }
+    
+    public void goToPosition( int position )
+    {
+		BackgroundThread.ensureGUI();
+		doCommand(ReaderView.ReaderCommand.DCMD_GO_POS, position);
+    }
+    
+    public void moveBy( final int delta )
+    {
+		BackgroundThread.ensureGUI();
+		Log.d("cr3", "moveBy(" + delta + ")");
+		execute(new Task() {
+			public void work() {
+				BackgroundThread.ensureBackground();
+				doCommandInternal(ReaderCommand.DCMD_SCROLL_BY.nativeId, delta);
+			}
+			public void done() {
+				drawPage();
+			}
+		});
     }
     
     public void goToPage( int pageNumber )
