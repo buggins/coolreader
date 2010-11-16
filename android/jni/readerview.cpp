@@ -591,10 +591,10 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_destroyInternal
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    getPageImage
+ * Method:    getPageImageInternal
  * Signature: (Landroid/graphics/Bitmap;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImage
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInternal
   (JNIEnv * env, jobject view, jobject bitmap)
 {
     ReaderViewNative * p = getNative(env, view);
@@ -882,6 +882,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
     CRIntField(v,"pageWidth").set(p->_docview->GetWidth());
     CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
     CRIntField(v,"pageCount").set(p->_docview->getPageCount());
+    CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? 1 : 0);
 	return obj;
 }
 

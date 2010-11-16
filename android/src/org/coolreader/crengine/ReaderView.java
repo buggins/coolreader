@@ -197,7 +197,7 @@ public class ReaderView extends View {
     /* implementend by libcr3engine.so */
     
     // get current page image
-    private native void getPageImage(Bitmap bitmap);
+    private native void getPageImageInternal(Bitmap bitmap);
     // constructor's native part
     private native void createInternal();
     private native void destroyInternal();
@@ -304,7 +304,6 @@ public class ReaderView extends View {
 			return super.onKeyUp(keyCode, event);
 		}
 		return true;
-		//return super.onKeyUp(keyCode, event);
 	}
 
 	boolean VOLUME_KEYS_ZOOM = false;
@@ -312,27 +311,33 @@ public class ReaderView extends View {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+			// will process in keyup handler
+			return true;
+		} else
 		switch ( keyCode ) {
+		case NOOK_KEY_NEXT_LEFT:
+		case NOOK_KEY_NEXT_RIGHT:    
+		case NOOK_KEY_SHIFT_DOWN:
+		case KeyEvent.KEYCODE_DPAD_DOWN:
+		case NOOK_KEY_PREV_LEFT:
+		case NOOK_KEY_PREV_RIGHT:
+		case NOOK_KEY_SHIFT_UP:
+		case KeyEvent.KEYCODE_DPAD_UP:
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_SEARCH:
+		case KeyEvent.KEYCODE_MENU:
+		case KeyEvent.KEYCODE_HOME:
 		case KeyEvent.KEYCODE_VOLUME_UP:
-			if ( VOLUME_KEYS_ZOOM ) {
-				doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
-				syncViewSettings(getSettings());
-			} else
-				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
-			return true;
 		case KeyEvent.KEYCODE_VOLUME_DOWN:
-			if ( VOLUME_KEYS_ZOOM ) {
-				doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
-				syncViewSettings(getSettings());
-			} else
-				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
 			return true;
-		}
-		if ( keyCode==KeyEvent.KEYCODE_BACK )
+		case KeyEvent.KEYCODE_BACK:
 			return super.onKeyDown(keyCode, event);
-		return true;
-		//return super.onKeyDown(keyCode, event);
-		//return true;
+		default:
+			return super.onKeyDown(keyCode, event);
+		}
 	}
 
 	@Override
@@ -878,7 +883,7 @@ public class ReaderView extends View {
 		}
 		bitmap = factory.get(internalDX, internalDY);
         setBatteryStateInternal(mBatteryState);
-        getPageImage(bitmap);
+        getPageImageInternal(bitmap);
         if ( GC_PAGE_IMAGE )
         	System.gc();
         return bitmap;
