@@ -830,7 +830,9 @@ public class ReaderView extends View {
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "Submitting LastDocumentLoadTask");
 		init();
-		BookInfo book = mActivity.getHistory().getLastBook();
+		//BookInfo book = mActivity.getHistory().getLastBook();
+		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
+		BookInfo book = lastBookName!=null ? mActivity.getHistory().getBookInfo(lastBookName) : null;
 		if ( book==null ) {
 			errorHandler.run();
 			return false;
@@ -1067,6 +1069,7 @@ public class ReaderView extends View {
 	        mOpened = true;
 			mActivity.showReader();
 	        drawPage();
+	        mActivity.setLastSuccessfullyOpenedBook(filename);
 		}
 		public void fail( Exception e )
 		{

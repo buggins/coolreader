@@ -19,9 +19,9 @@ import org.coolreader.crengine.Engine.HyphDict;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -60,10 +60,27 @@ public class CoolReader extends Activity
 		return mDB;
 	}
 	
+	private static String PREF_FILE = "CR3LastBook";
+	private static String PREF_LAST_BOOK = "LastBook";
+	public String getLastSuccessfullyOpenedBook()
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		String res = pref.getString(PREF_LAST_BOOK, null);
+		pref.edit().putString(PREF_LAST_BOOK, null).commit();
+		return res;
+	}
+	
+	public void setLastSuccessfullyOpenedBook( String filename )
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
+	}
+	
 	private boolean mFullscreen = false;
 	public boolean isFullscreen() {
 		return mFullscreen;
 	}
+
 	public void applyFullscreen( Window wnd )
 	{
 		if ( mFullscreen ) {
@@ -241,7 +258,7 @@ public class CoolReader extends Activity
 		super.onSaveInstanceState(outState);
 	}
 
-	static final boolean LOAD_LAST_DOCUMENT_ON_START = false; 
+	static final boolean LOAD_LAST_DOCUMENT_ON_START = true; 
 	
 	@Override
 	protected void onStart() {
