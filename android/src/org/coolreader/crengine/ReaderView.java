@@ -16,15 +16,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.WindowManager;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
-public class ReaderView extends View {
+public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback {
     private Bitmap mBitmap;
 
     // additional key codes for Nook
@@ -989,15 +988,19 @@ public class ReaderView extends View {
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
 			bi = preparePageImage();
 	        mEngine.hideProgress();
+			if ( bi!=null ) {
+				setBitmap( bi.bitmap );
+				draw();
+			}
 		}
 		public void done()
 		{
 			BackgroundThread.ensureGUI();
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
-			if ( bi!=null ) {
-				setBitmap( bi.bitmap );
-				invalidate();
-			}
+//			if ( bi!=null ) {
+//				setBitmap( bi.bitmap );
+//				invalidate();
+//			}
 //    		if (mOpened)
 //    			mEngine.hideProgress();
 		}
@@ -1009,6 +1012,53 @@ public class ReaderView extends View {
 			factory.release(mBitmap);
 		mBitmap = bmp;
 	} 
+
+	class ReaderSurfaceView extends SurfaceView {
+		public ReaderSurfaceView( Context context )
+		{
+			super(context);
+		}
+	}
+	
+	// SurfaceView callbacks
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
+		Log.i("cr3", "surfaceChanged(" + width + ", " + height + ")");
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		Log.i("cr3", "surfaceCreated()");
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		Log.i("cr3", "surfaceDestroyed()");
+	}
+	
+	enum AnimationType {
+		SCROLL, // for scroll mode
+		PAGE_SHIFT, // for simple page shift
+	}
+
+	class ViewAnimation {
+		AnimationType type;
+		BitmapInfo image1;
+		BitmapInfo image2;
+		int pointerStartPos;
+		int pointerCurrPos;
+		public void draw(Canvas c)
+		{
+			switch (type) {
+			case SCROLL:
+				break;
+			case PAGE_SHIFT:
+				// TODO
+				break;
+			}
+		}
+	}
 	
 	private void drawPage()
 	{
@@ -1099,11 +1149,11 @@ public class ReaderView extends View {
 			}
 		}
 	}
-	
-    @Override 
-    protected void onDraw(Canvas canvas) {
-    	try {
-    		Log.d("cr3", "onDraw() called");
+
+	protected void doDraw(Canvas canvas)
+	{
+       	try {
+    		Log.d("cr3", "doDraw() called");
     		if ( mInitialized && mBitmap!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
         		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
@@ -1112,6 +1162,36 @@ public class ReaderView extends View {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
     			canvas.drawColor(Color.rgb(192, 192, 192));
     		}
+    	} catch ( Exception e ) {
+    		Log.e("cr3", "exception while drawing", e);
+    	}
+	}
+	
+	protected void draw()
+	{
+		Canvas canvas = null;
+		try {
+			canvas = getHolder().lockCanvas(null);
+			doDraw(canvas);
+		} finally {
+			if ( canvas!=null )
+				getHolder().unlockCanvasAndPost(canvas);
+		}
+	}
+	
+    @Override 
+    protected void onDraw(Canvas canvas) {
+    	try {
+    		Log.d("cr3", "onDraw() called");
+    		draw();
+//    		if ( mInitialized && mBitmap!=null ) {
+//        		Log.d("cr3", "onDraw() -- drawing page image");
+//        		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
+//    			canvas.drawBitmap(mBitmap, rc, rc, null);
+//    		} else {
+//        		Log.d("cr3", "onDraw() -- drawing empty screen");
+//    			canvas.drawColor(Color.rgb(192, 192, 192));
+//    		}
     	} catch ( Exception e ) {
     		Log.e("cr3", "exception while drawing", e);
     	}
@@ -1406,6 +1486,9 @@ public class ReaderView extends View {
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread) 
     {
         super(activity);
+        SurfaceHolder holder = getHolder();
+        holder.addCallback(this);
+        
 		BackgroundThread.ensureGUI();
         this.mActivity = activity;
         this.mEngine = engine;
