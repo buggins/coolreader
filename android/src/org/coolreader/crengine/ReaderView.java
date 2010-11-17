@@ -331,12 +331,25 @@ public class ReaderView extends View {
 		case KeyEvent.KEYCODE_SEARCH:
 		case KeyEvent.KEYCODE_MENU:
 		case KeyEvent.KEYCODE_HOME:
-		case KeyEvent.KEYCODE_VOLUME_UP:
-		case KeyEvent.KEYCODE_VOLUME_DOWN:
 			return true;
 		case KeyEvent.KEYCODE_BACK:
 			return super.onKeyDown(keyCode, event);
-		default:
+        case KeyEvent.KEYCODE_VOLUME_UP:
+           if ( VOLUME_KEYS_ZOOM ) {
+               doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+               syncViewSettings(getSettings());
+           } else
+               doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+           return true;
+        case KeyEvent.KEYCODE_VOLUME_DOWN:
+           if ( VOLUME_KEYS_ZOOM ) {
+               doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+               syncViewSettings(getSettings());
+           } else
+               doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+           return true;
+        	
+       	default:
 			return super.onKeyDown(keyCode, event);
 		}
 	}
