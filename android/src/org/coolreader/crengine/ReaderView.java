@@ -832,6 +832,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
 			Log.d("cr3", "trying to load already opened document");
 			mActivity.showReader();
+			drawPage();
 			return;
 		}
 		execute(new LoadDocumentTask(fileInfo, null));
@@ -840,11 +841,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public boolean loadLastDocument( final Runnable errorHandler )
 	{
 		BackgroundThread.ensureGUI();
-		Log.i("cr3", "Submitting LastDocumentLoadTask");
+		Log.i("cr3", "loadLastDocument() is called");
 		init();
 		//BookInfo book = mActivity.getHistory().getLastBook();
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
-		BookInfo book = lastBookName!=null ? mActivity.getHistory().getBookInfo(lastBookName) : null;
+		return loadDocument( lastBookName, errorHandler );
+	}
+	
+	public boolean loadDocument( String fileName, final Runnable errorHandler )
+	{
+		BackgroundThread.ensureGUI();
+		Log.i("cr3", "Submitting LoadDocumentTask for " + fileName);
+		init();
+		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
 		if ( book==null ) {
 			errorHandler.run();
 			return false;

@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.InputFilter;
@@ -100,7 +101,7 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	
+	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
 	PowerManager.WakeLock wl = null;
 	/** Called when the activity is first created. */
@@ -167,7 +168,19 @@ public class CoolReader extends Activity
 //        	wnd.setAttributes(attrs);
 //        	//attrs.screenOrientation = LayoutParams.SCREEN_;
 //        }
-		Log.i("cr3", "CoolReader.onCreate() exiting");
+
+        
+        fileToLoadOnStart = null;
+		Intent intent = getIntent();
+		if ( intent!=null && Intent.ACTION_VIEW.equals(intent.getAction()) ) {
+			Uri uri = intent.getData();
+			if ( uri!=null ) {
+				fileToLoadOnStart = extractFileName(uri);
+			}
+			intent.setData(null);
+		}
+        
+        Log.i("cr3", "CoolReader.onCreate() exiting");
     }
 
 	@Override
@@ -209,6 +222,38 @@ public class CoolReader extends Activity
 		mBackgroundThread = null;
 		Log.i("cr3", "CoolReader.onDestroy() exiting");
 		super.onDestroy();
+	}
+
+	private String extractFileName( Uri uri )
+	{
+		if ( uri!=null ) {
+			if ( uri.equals(Uri.parse("file:///")) )
+				return null;
+			else
+				return uri.getPath();
+		}
+		return null;
+	}
+	
+	@Override
+	protected void onNewIntent(Intent intent) {
+		String fileToOpen = null;
+		if ( Intent.ACTION_VIEW.equals(intent.getAction()) ) {
+			Uri uri = intent.getData();
+			if ( uri!=null ) {
+				fileToOpen = extractFileName(uri);
+			}
+			intent.setData(null);
+		}
+		if ( fileToOpen!=null ) {
+			// load document
+			final String fn = fileToOpen;
+			mReaderView.loadDocument(fileToOpen, new Runnable() {
+				public void run() {
+					showToast("Error occured while loading " + fn);
+				}
+			});
+		}
 	}
 
 	@Override
@@ -284,17 +329,28 @@ public class CoolReader extends Activity
 
 			public void done() {
 		        Log.i("cr3", "trying to load last document");
-				if ( LOAD_LAST_DOCUMENT_ON_START ) {
-					mReaderView.loadLastDocument(new Runnable() {
-						public void run() {
-							// cannot open recent book: load another one
-							Log.e("cr3", "Cannot open last document, starting file browser");
-							showBrowser();
-						}
-					});
+				if ( fileToLoadOnStart!=null || LOAD_LAST_DOCUMENT_ON_START ) {
+					if ( fileToLoadOnStart!=null ) {
+						mReaderView.loadDocument(fileToLoadOnStart, new Runnable() {
+							public void run() {
+								// cannot open recent book: load another one
+								Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
+								showBrowser();
+							}
+						});
+					} else {
+						mReaderView.loadLastDocument(new Runnable() {
+							public void run() {
+								// cannot open recent book: load another one
+								Log.e("cr3", "Cannot open last document, starting file browser");
+								showBrowser();
+							}
+						});
+					}
 				} else {
 					showBrowser();
 				}
+				fileToLoadOnStart = null;
 			}
 
 			public void fail(Exception e) {
