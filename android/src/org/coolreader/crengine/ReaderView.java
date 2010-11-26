@@ -240,7 +240,35 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		return mOpened;
 	}
-    
+
+	private int overrideKey( int keyCode )
+	{
+		int angle = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
+		int[] subst = new int[] {
+			1, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_LEFT,
+			1, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT,
+			1, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_DOWN,
+			1, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP,
+			1, 	KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN,
+			1, 	KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP,
+			2, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
+			2, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP,
+			2, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+			2, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_LEFT,
+			2, 	KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN,
+			2, 	KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP,
+			3, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_RIGHT,
+			3, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT,
+			3, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_UP,
+			3, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_DOWN,
+		};
+		for ( int i=0; i<subst.length; i+=3 ) {
+			if ( angle==subst[i] && keyCode==subst[i+1] )
+				return subst[i+2];
+		}
+		return keyCode;
+	}
+	
 	public final int LONG_KEYPRESS_TIME = 900;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -258,6 +286,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		} else if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
 			return true;
 
+		keyCode = overrideKey( keyCode );
+		
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// will process in keyup handler
 			return true;
@@ -311,6 +341,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+		keyCode = overrideKey( keyCode );
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// will process in keyup handler
 			return true;
