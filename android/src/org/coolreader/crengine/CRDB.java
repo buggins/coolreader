@@ -621,6 +621,22 @@ public class CRDB {
 		v.setModified(false);
 		return true;
 	}
+
+	synchronized public void deleteRecentPosition( FileInfo fileInfo )
+	{
+		if ( fileInfo==null || fileInfo.id==0 )
+			return;
+		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + fileInfo.id + " AND type=0");
+		execSQLIgnoreErrors("UPDATE book SET last_access_time=0 WHERE id=" + fileInfo.id);
+	}
+	
+	synchronized public void deleteBook( FileInfo fileInfo )
+	{
+		if ( fileInfo==null || fileInfo.id==0 )
+			return;
+		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + fileInfo.id);
+		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + fileInfo.id);
+	}
 	
 	synchronized public boolean save( FileInfo fileInfo )
 	{

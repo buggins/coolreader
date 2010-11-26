@@ -56,6 +56,11 @@ public class CoolReader extends Activity
 		return mHistory;
 	}
 	
+	public ReaderView getReaderView() 
+	{
+		return mReaderView;
+	}
+	
 	public CRDB getDB()
 	{
 		return mDB;

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:title="@string/mi_book_open" android:titleCondensed="@string/mi_book_open" android:id="@+id/book_open"></item>
+<item android:title="@string/mi_book_recent_goto" android:titleCondensed="@string/mi_book_recent_goto" android:id="@+id/book_recent_goto"></item>
+<item android:title="@string/mi_book_recent_remove" android:titleCondensed="@string/mi_book_recent_remove" android:id="@+id/book_recent_remove"></item>
+</menu>

@@ -138,6 +138,29 @@ public class FileInfo {
 		throw new IndexOutOfBoundsException();
 	}
 
+	private void removeChild( FileInfo item )
+	{
+		int n = files.indexOf(item);
+		if ( n>=0 && n<files.size() )
+			files.remove(n);
+	}
+	
+	public boolean deleteFile()
+	{
+		if ( isDirectory )
+			return false;
+		if ( !fileExists() )
+			return false;
+		File f = new File(getPathName());
+		if ( f.delete() ) {
+			if ( parent!=null ) {
+				parent.removeChild(this);
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	public boolean fileExists()
 	{
 		if (isDirectory)

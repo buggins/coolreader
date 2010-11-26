@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -9,12 +10,18 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.database.DataSetObserver;
+import android.text.TextUtils.TruncateAt;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -37,10 +44,106 @@ public class FileBrowser extends ListView {
 		this.mHistory = history;
         setFocusable(true);
         setFocusableInTouchMode(true);
+        setLongClickable(true);
+        //registerForContextMenu(this);
+        //final FileBrowser _this = this;
+        setOnItemLongClickListener(new OnItemLongClickListener() {
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+					int position, long id) {
+				Log.d("cr3", "onItemLongClick("+position+")");
+				//return super.performItemClick(view, position, id);
+				if ( position==0 && currDirectory.parent!=null ) {
+					showDirectory(currDirectory.parent);
+					return true;
+				}
+				FileInfo item = (FileInfo) getAdapter().getItem(position);
+				if ( item==null )
+					return false;
+				if ( item.isDirectory ) {
+					showDirectory(item);
+					return true;
+				}
+				//openContextMenu(_this);
+				//mActivity.loadDocument(item);
+				selectedItem = item;
+				showContextMenu();
+				return true;
+			}
+		});
 		setChoiceMode(CHOICE_MODE_SINGLE);
 		showDirectory( null );
 	}
 	
+	FileInfo selectedItem = null;
+	
+	public boolean onContextItemSelected(MenuItem item) {
+		
+		if ( selectedItem==null || selectedItem.isDirectory )
+			return false;
+			
+		switch (item.getItemId()) {
+		case R.id.book_open:
+			Log.d("cr3", "book_open menu item selected");
+			mActivity.loadDocument(selectedItem);
+			return true;
+		case R.id.book_recent_books:
+			showRecentBooks();
+			return true;
+		case R.id.book_delete:
+			Log.d("cr3", "book_delete menu item selected");
+			mActivity.getReaderView().closeIfOpened(selectedItem);
+			mEngine.runInGUI( new Runnable() {
+				public void run () {
+					if ( selectedItem.deleteFile() ) {
+						mHistory.removeBookInfo(selectedItem, true, true);
+					}
+					showDirectory(currDirectory);
+				}
+			});
+			return true;
+		case R.id.book_recent_goto:
+			Log.d("cr3", "book_recent_goto menu item selected");
+			FileInfo parent = findParent(selectedItem, mScanner.getRoot());
+			if (parent!=null) {
+				showDirectory(parent);
+			}
+			return true;
+		case R.id.book_recent_remove:
+			Log.d("cr3", "book_recent_remove menu item selected");
+			mActivity.getHistory().removeBookInfo(selectedItem, true, false);
+			showRecentBooks();
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public void createContextMenu(ContextMenu menu) {
+		Log.d("cr3", "createContextMenu()");
+		menu.clear();
+	    MenuInflater inflater = mActivity.getMenuInflater();
+	    if ( isRecentDir() ) {
+		    inflater.inflate(R.menu.cr3_file_browser_recent_context_menu, menu);
+		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_recent_book));
+	    } else {
+		    inflater.inflate(R.menu.cr3_file_browser_context_menu, menu);
+		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
+	    }
+	    for ( int i=0; i<menu.size(); i++ ) {
+	    	menu.getItem(i).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					onContextItemSelected(item);
+					return true;
+				}
+			});
+	    }
+	    return;
+	}
+
+
+
 	@Override
 	public boolean performItemClick(View view, int position, long id) {
 		Log.d("cr3", "performItemClick("+position+")");
@@ -171,6 +274,10 @@ public class FileBrowser extends ListView {
 	{
 		return currDirectory == mScanner.getRoot();
 	}
+	public boolean isRecentDir()
+	{
+		return currDirectory!=null && "@recent".equals(currDirectory.getPathName());
+	}
 	public void showRecentBooks()
 	{
 		if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
@@ -197,6 +304,25 @@ public class FileBrowser extends ListView {
 		else
 			showDirectoryInternal(dir);
 	}
+	
+	private FileInfo findParent( FileInfo file, FileInfo root )
+	{
+		if ( root==null || file==null || "@recent".equals(root.getPathName()) )
+			return null;
+		if ( !"@root".equals(root.getPathName()) && !file.getPathName().startsWith( root.getPathName() ) )
+			return null;
+		for ( int i=0; i<root.dirCount(); i++ ) {
+			FileInfo found = findParent( file, root.getDir(i));
+			if ( found!=null )
+				return found;
+		}
+		for ( int i=0; i<root.fileCount(); i++ ) {
+			if ( root.getFile(i).getPathName().equals(file.getPathName()) )
+				return root;
+		}
+		return null;
+	}
+	
 	private void showDirectoryInternal( final FileInfo dir )
 	{
 		currDirectory = dir;
@@ -273,18 +399,34 @@ public class FileBrowser extends ListView {
 						view.setVisibility(INVISIBLE);
 					}
 				}
-				void setItem(FileInfo item)
+				void setItem(FileInfo item, FileInfo parentItem)
 				{
 					if ( item==null ) {
 						image.setImageResource(R.drawable.cr3_browser_back);
-						name.setText("..");
-						author.setVisibility(INVISIBLE);
+						String parentDir = "";
+						String thisDir = "";
+						if ( parentItem!=null ) {
+							if ( parentItem.pathname.startsWith("@") )
+								thisDir = "/" + parentItem.filename;
+							else
+								thisDir = parentItem.pathname;
+							//parentDir = parentItem.path;
+						}
+						//author.setVisibility(INVISIBLE);
+						//name.setText("..   " + thisDir);
+						name.setText(thisDir);
+//						name.setEllipsize(TruncateAt.START);
+//						name.setSingleLine(true);
+						author.setVisibility(VISIBLE);
+						author.setText(parentDir);
 						series.setVisibility(INVISIBLE);
 						field1.setVisibility(INVISIBLE);
 						field2.setVisibility(INVISIBLE);
 						field3.setVisibility(INVISIBLE);
 						return;
 					}
+//					name.setEllipsize(null);
+//					name.setSingleLine(true);
 					if ( item.isDirectory ) {
 						image.setImageResource(R.drawable.cr3_browser_folder);
 						setText(name, item.filename);
@@ -321,7 +463,11 @@ public class FileBrowser extends ListView {
 				View view;
 				ViewHolder holder;
 				if ( convertView==null ) {
-					view = mInflater.inflate(R.layout.browser_item_book, null);
+					int vt = getItemViewType(position);
+					if ( vt==VIEW_TYPE_LEVEL_UP )
+						view = mInflater.inflate(R.layout.browser_item_parent_dir, null);
+					else
+						view = mInflater.inflate(R.layout.browser_item_book, null);
 					holder = new ViewHolder();
 					holder.image = (ImageView)view.findViewById(R.id.book_icon);
 					holder.name = (TextView)view.findViewById(R.id.book_name);
@@ -337,9 +483,12 @@ public class FileBrowser extends ListView {
 				}
 				int type = getItemViewType(position);
 				FileInfo item = (FileInfo)getItem(position);
-				if ( type == VIEW_TYPE_LEVEL_UP )
+				FileInfo parentItem = null;//item!=null ? item.parent : null;
+				if ( type == VIEW_TYPE_LEVEL_UP ) {
 					item = null;
-				holder.setItem(item);
+					parentItem = currDirectory;
+				}
+				holder.setItem(item, parentItem);
 				return view;
 			}
 

@@ -47,11 +47,17 @@ public class History {
 		return null;
 	}
 	
-	public void removeBookInfo( BookInfo bookInfo )
+	public void removeBookInfo( FileInfo fileInfo, boolean removeRecentAccessFromDB, boolean removeBookFromDB )
 	{
-		int index = findBookInfo(bookInfo.getFileInfo());
+		int index = findBookInfo(fileInfo);
 		if ( index>=0 )
 			mBooks.remove(index);
+		if ( mDB.findByPathname(fileInfo) ) {
+			if ( removeBookFromDB )
+				mDB.deleteBook(fileInfo);
+			else if ( removeRecentAccessFromDB )
+				mDB.deleteRecentPosition(fileInfo);
+		}
 	}
 	
 	public void updateBookAccess( BookInfo bookInfo )

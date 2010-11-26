@@ -826,6 +826,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mEngine.fatalError("Failed to init CoolReader engine");
 		}
 	}
+
+	public void closeIfOpened( final FileInfo fileInfo )
+	{
+		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
+			close();
+		}
+	}
 	
 	public void loadDocument( final FileInfo fileInfo )
 	{
@@ -1151,7 +1158,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void fail( Exception e )
 		{
 			BackgroundThread.ensureGUI();
-			mActivity.getHistory().removeBookInfo( mBookInfo );
+			mActivity.getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
 			mBookInfo = null;
 			Log.d("cr3", "LoadDocumentTask is finished with exception " + e.getMessage());
 	        mOpened = true;

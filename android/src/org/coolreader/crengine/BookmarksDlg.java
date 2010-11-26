@@ -190,7 +190,7 @@ public class BookmarksDlg  extends BaseDialog {
 	    AdapterContextMenuInfo mi = (AdapterContextMenuInfo)menuInfo;
 	    if ( mi!=null )
 	    	selectedItem = mi.position;
-	    menu.setHeaderTitle("Bookmark");
+	    menu.setHeaderTitle(getContext().getString(R.string.context_menu_title_bookmark));
 	    for ( int i=0; i<menu.size(); i++ ) {
 	    	menu.getItem(i).setOnMenuItemClickListener(new OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {

@@ -12,6 +12,14 @@
 <string name="progress_loading">Loading document</string>
 <string name="progress_formatting">Formatting document</string>
 <string name="progress_scanning">Scanning directory</string>
+<string name="context_menu_title_bookmark">Bookmark</string>
+<string name="context_menu_title_book">Book</string>
+<string name="context_menu_title_recent_book">Recent book</string>
+<string name="mi_book_open">Open book</string>
+<string name="mi_book_recent_books">Show recent books</string>
+<string name="mi_book_file_remove">Delete book file</string>
+<string name="mi_book_recent_remove">Remove from list</string>
+<string name="mi_book_recent_goto">Go to directory</string>
 <string name="mi_bookmark_set">Set bookmark</string>
 <string name="mi_bookmark_goto">Go to bookmark</string>
 <string name="mi_goto_page">Go to page #</string>
