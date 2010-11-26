@@ -1034,16 +1034,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
 		Log.i("cr3", "surfaceChanged(" + width + ", " + height + ")");
+		drawPage();
 	}
 
+	boolean mSurfaceCreated = false;
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		Log.i("cr3", "surfaceCreated()");
+		mSurfaceCreated = true;
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		Log.i("cr3", "surfaceDestroyed()");
+		mSurfaceCreated = false;
 	}
 	
 	enum AnimationType {
@@ -1179,6 +1183,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	protected void draw()
 	{
+		if ( !mSurfaceCreated )
+			return;
 		Canvas canvas = null;
 		try {
 			canvas = getHolder().lockCanvas(null);
