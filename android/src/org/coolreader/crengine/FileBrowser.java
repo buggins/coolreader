@@ -257,6 +257,8 @@ public class FileBrowser extends ListView {
 	
 	public static String formatDate( long timeStamp )
 	{
+		if ( timeStamp<1000*60*60*24*1000 )
+			return "";
 		SimpleDateFormat format = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
 		format.setTimeZone(java.util.TimeZone.getDefault());
 		return format.format(new Date(timeStamp));
@@ -391,6 +393,8 @@ public class FileBrowser extends ListView {
 				TextView field3;
 				void setText( TextView view, String text )
 				{
+					if ( view==null )
+						return;
 					if ( text!=null && text.length()>0 ) {
 						view.setText(text);
 						view.setVisibility(VISIBLE);
@@ -403,7 +407,6 @@ public class FileBrowser extends ListView {
 				{
 					if ( item==null ) {
 						image.setImageResource(R.drawable.cr3_browser_back);
-						String parentDir = "";
 						String thisDir = "";
 						if ( parentItem!=null ) {
 							if ( parentItem.pathname.startsWith("@") )
@@ -412,30 +415,15 @@ public class FileBrowser extends ListView {
 								thisDir = parentItem.pathname;
 							//parentDir = parentItem.path;
 						}
-						//author.setVisibility(INVISIBLE);
-						//name.setText("..   " + thisDir);
 						name.setText(thisDir);
-//						name.setEllipsize(TruncateAt.START);
-//						name.setSingleLine(true);
-						author.setVisibility(VISIBLE);
-						author.setText(parentDir);
-						series.setVisibility(INVISIBLE);
-						field1.setVisibility(INVISIBLE);
-						field2.setVisibility(INVISIBLE);
-						field3.setVisibility(INVISIBLE);
 						return;
 					}
-//					name.setEllipsize(null);
-//					name.setSingleLine(true);
 					if ( item.isDirectory ) {
 						image.setImageResource(R.drawable.cr3_browser_folder);
 						setText(name, item.filename);
-						setText(author, null);
-						setText(series, null);
 
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
-						setText(field3, null);
 					} else {
 						image.setImageResource(item.format.getIconResourceId());
 						setText( author, formatAuthors(item.authors) );
@@ -466,6 +454,8 @@ public class FileBrowser extends ListView {
 					int vt = getItemViewType(position);
 					if ( vt==VIEW_TYPE_LEVEL_UP )
 						view = mInflater.inflate(R.layout.browser_item_parent_dir, null);
+					else if ( vt==VIEW_TYPE_DIRECTORY )
+						view = mInflater.inflate(R.layout.browser_item_folder, null);
 					else
 						view = mInflater.inflate(R.layout.browser_item_book, null);
 					holder = new ViewHolder();
