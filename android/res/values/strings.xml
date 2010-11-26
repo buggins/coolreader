@@ -20,6 +20,7 @@
 <string name="dir_recent_books">Recent Books</string>
 <string name="dir_sd_card">SD Card</string>
 <string name="dir_internal_sd_card">Internal SD Card</string>
+<string name="dir_internal_memory">Internal memory</string>
 <string name="win_title_bookmarks">Bookmarks</string>
 <string name="win_title_toc">Table of Contents</string>
 <string name="win_title_options">Options</string>

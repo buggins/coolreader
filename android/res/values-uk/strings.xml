@@ -20,6 +20,7 @@
 <string name="dir_recent_books">Останні книги</string>
 <string name="dir_sd_card">SD-картка</string>
 <string name="dir_internal_sd_card">Внутр. SD-картка</string>
+<string name="dir_internal_memory">Внутр. память</string>
 <string name="win_title_bookmarks">Закладки</string>
 <string name="win_title_toc">Зміст</string>
 <string name="win_title_options">Налаштування</string>

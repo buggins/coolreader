@@ -1047,6 +1047,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BitmapInfo image1;
 		BitmapInfo image2;
 		int pointerStartPos;
+		int pointerDestPos;
 		int pointerCurrPos;
 		public void draw(Canvas c)
 		{
