@@ -3501,12 +3501,12 @@ public:
 		m_bufsize = sz;
 		m_size = 0;
 		m_pos = 0;
-		m_pBuffer = new lUInt8[(int)m_bufsize];
+		m_pBuffer = (lUInt8*)malloc((int)m_bufsize);
 		if (m_pBuffer) {
             lvsize_t bytesRead = 0;
             srcStream->Read( m_pBuffer, m_bufsize, &bytesRead );
             if ( bytesRead!=m_bufsize ) {
-                delete m_pBuffer;
+                free(m_pBuffer);
                 m_pBuffer = 0;
                 m_size = 0;
                 m_pos = 0;
@@ -3526,7 +3526,7 @@ public:
 		Close();
 		m_bufsize = size;
 		m_pos = 0;
-		m_pBuffer = new lUInt8[(int)m_bufsize];
+		m_pBuffer = (lUInt8*) malloc((int)m_bufsize);
 		if (m_pBuffer) {
 			memcpy( m_pBuffer, pBuf, (int)size );
 		}
