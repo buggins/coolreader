@@ -14,6 +14,14 @@
 <string name="progress_scanning">Сканування теки</string>
 <string name="mi_bookmark_set">Додати закладку</string>
 <string name="mi_bookmark_goto">Відкрити закладку</string>
+<string name="context_menu_title_bookmark">Закладка</string>
+<string name="context_menu_title_book">Книга</string>
+<string name="context_menu_title_recent_book">Запись</string>
+<string name="mi_book_open">Открыть</string>
+<string name="mi_book_recent_books">Список последних книг</string>
+<string name="mi_book_file_remove">Удалить файл</string>
+<string name="mi_book_recent_remove">Удалить из списка</string>
+<string name="mi_book_recent_goto">Перейти в папку</string>
 <string name="mi_goto_page">До сторінки №</string>
 <string name="mi_goto_percent">До сторінки %</string>
 <string name="mi_goto_toc">Зміст</string>
