@@ -269,6 +269,102 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return keyCode;
 	}
 	
+	private int overrideTapZone( int zone )
+	{
+		int angle = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
+		//  1 2 3
+		//  4 5 6
+		//  7 8 9
+		int[] subst = new int[] {
+			// angle, from, to
+			1, 	1, 7,
+			1, 	2, 4,
+			1, 	3, 1,
+			1, 	4, 8,
+			1, 	6, 2,
+			1, 	7, 9,
+			1, 	8, 6,
+			1, 	9, 3,
+			2, 	1, 9,
+			2, 	2, 8,
+			2, 	3, 7,
+			2, 	4, 6,
+			2, 	6, 4,
+			2, 	7, 3,
+			2, 	8, 2,
+			2, 	9, 1,
+			3, 	1, 3,
+			3, 	2, 6,
+			3, 	3, 9,
+			3, 	4, 2,
+			3, 	6, 8,
+			3, 	7, 1,
+			3, 	8, 4,
+			3, 	9, 7,
+		};
+		for ( int i=0; i<subst.length; i+=3 ) {
+			if ( angle==subst[i] && zone==subst[i+1] )
+				return subst[i+2];
+		}
+		return zone;
+	}
+	
+	public int getTapZone( int x, int y )
+	{
+		int x1 = getWidth() / 3;
+		int x2 = getWidth() * 2 / 3;
+		int y1 = getHeight() / 3;
+		int y2 = getHeight() * 2 / 3;
+		int zone = 0;
+		if ( y<y1 ) {
+			if ( x<x1 )
+				zone = 1;
+			else if ( x<x2 )
+				zone = 2;
+			else
+				zone = 3;
+		} else if ( y<y2 ) {
+			if ( x<x1 )
+				zone = 4;
+			else if ( x<x2 )
+				zone = 5;
+			else
+				zone = 6;
+		} else {
+			if ( x<x1 )
+				zone = 7;
+			else if ( x<x2 )
+				zone = 8;
+			else
+				zone = 9;
+		}
+		return overrideTapZone( zone );
+	}
+	
+	public void onTapZone( int zone, boolean isLongPress )
+	{
+		switch ( zone ) {
+		case 3:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+			doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
+			break;
+		case 1:
+		case 2:
+		case 4:
+			doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
+			break;
+		case 5:
+			if ( isLongPress )
+				mActivity.showOptionsDialog();
+			else
+				mActivity.openOptionsMenu();
+			break;
+		}
+	}
+	
 	public final int LONG_KEYPRESS_TIME = 900;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -403,21 +499,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				isManualScrollActive = false;
 				return true;
 			}
-			boolean fwd = x>dx*3/4 || y>dy*3/4; 
-			boolean back = x<dx/4 || y<dy/4;
-			boolean center = x>dx/3 && x<dx*2/3 && y>dy/3 && y<dy*2/3;
-			if ( fwd && !back ) {
-				doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
-				return true;
-			} else if ( back ) {
-				doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
-				return true;
-			} else if ( center ) {
-				if ( isLongPress )
-					mActivity.showOptionsDialog();
-				else
-					mActivity.openOptionsMenu();
-			}
+			int zone = getTapZone(x, y);
+			onTapZone( zone, isLongPress );
 			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
 			if ( viewMode==ViewMode.SCROLL ) {
