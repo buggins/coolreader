@@ -560,7 +560,7 @@ bool CRPropAccessor::loadFromStream( LVStream * stream )
     char * buf = new char[sz + 3];
     lvsize_t bytesRead = 0;
     if ( stream->Read( buf, sz, &bytesRead )!=LVERR_OK ) {
-        delete buf;
+        delete[] buf;
         return false;
     }
     buf[sz] = 0;

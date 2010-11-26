@@ -400,7 +400,7 @@ public:
                 }
                 callback->OnLineDecoded(this, i, row);
             }
-            delete row;
+            delete[] row;
             callback->OnEndDecode(this, false);
         }
         return true;
@@ -872,7 +872,7 @@ public:
             }
             callback->OnLineDecoded( m_pImage, i, line );
         }
-        delete line;
+        delete[] line;
         callback->OnEndDecode( m_pImage, false );
     }
 };
@@ -967,14 +967,14 @@ void LVGifImageSource::Clear()
     m_version = 0;
     m_bpp = 0;
     if (m_global_color_table) {
-        delete m_global_color_table;
+        delete[] m_global_color_table;
         m_global_color_table = NULL;
     }
     if (m_frame_count) {
         for (int i=0; i<m_frame_count; i++) {
             delete m_frames[i];
         }
-        delete m_frames;
+        delete m_frames;//Looks like the delete[] operator should be used
         m_frames = NULL;
         m_frame_count = 0;
     }
@@ -1211,7 +1211,7 @@ bool LVGifImageSource::Decode( LVImageDecoderCallback * callback )
     if ( _stream->Read( buf, sz, &bytesRead )!=LVERR_OK || bytesRead!=sz )
         res = false;
     res = res && DecodeFromBuffer( buf, sz, callback );
-    delete buf;
+    delete[] buf;
     return res;
 }
 
@@ -1315,12 +1315,12 @@ int LVGifFrame::DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_
         res = 1;
     } else {
         // error
-        delete m_buffer;
+        delete[] m_buffer;
         m_buffer = NULL;
     }
 
     // cleanup
-    delete stream_buffer;
+    delete[] stream_buffer;
 
     return res; // OK
 }
@@ -1344,11 +1344,11 @@ LVGifFrame::~LVGifFrame()
 void LVGifFrame::Clear()
 {
     if (m_buffer) {
-        delete m_buffer;
+        delete[] m_buffer;
         m_buffer = NULL;
     }
     if (m_local_color_table) {
-        delete m_local_color_table;
+        delete[] m_local_color_table;
         m_local_color_table = NULL;
     }
 }

@@ -512,7 +512,7 @@ bool LVRtfParser::Parse()
         }
     }
     m_callback->OnStop();
-    delete txtbuf;
+    delete[] txtbuf;
     txtbuf = NULL;
 
     CommitText();

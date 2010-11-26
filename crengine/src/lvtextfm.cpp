@@ -1673,11 +1673,11 @@ public:
     void dealloc()
     {
         if ( !m_staticBufs ) {
-            delete m_text;
-            delete m_flags;
-            delete m_srcs;
-            delete m_charindex;
-            delete m_widths;
+            delete[] m_text;
+            delete[] m_flags;
+            delete[] m_srcs;
+            delete[] m_charindex;
+            delete[] m_widths;
         }
     }
 

@@ -413,7 +413,7 @@ bool LVTextFileBase::AutodetectEncoding()
     unsigned char * buf = new unsigned char[ sz ];
     lvsize_t bytesRead = 0;
     if ( m_stream->Read( buf, sz, &bytesRead )!=LVERR_OK ) {
-        delete buf;
+        delete[] buf;
         m_stream->SetPos( oldpos );
         return false;
     }
@@ -599,7 +599,7 @@ void LVTextFileBase::SetCharsetTable( const lChar16 * table )
     {
         if (m_conv_table)
         {
-            delete m_conv_table;
+            delete[] m_conv_table;
             m_conv_table = NULL;
         }
         return;

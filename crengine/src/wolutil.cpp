@@ -678,7 +678,7 @@ void WOLWriter::writeToc()
         *_stream << names;
         // SubcatalogSize = 26 + CountOfAllTOCItems * 80 + Length(NamesInAllTOCLevels)
         *_stream << "\x08</subcatalog>";
-        delete ( toc );
+        delete[] ( toc );
     }
     // finalize
     lUInt32 cat_end = (lUInt32) _stream->GetPos();
@@ -817,7 +817,7 @@ void WOLWriter::addImage(
     for(int i=0; i<decomp_len; i++) {
         assert(bitmap[i]==decomp[i]);
     }
-    delete decomp;
+    delete[] decomp;
 #endif
 
     _page_starts.add( (lUInt32)_stream->GetPos() );
@@ -842,7 +842,7 @@ void WOLWriter::addImage(
     *_stream << lString8("</img>");
   
     // cleanup
-    delete compressed;
+    delete[] compressed;
     //if (inversed)
     //     delete inversed;
 }
@@ -1007,7 +1007,7 @@ void WOLWriter::addCoverImage( LVGrayDrawBuf & image )
 
     compressed[ compressed_len++ ] = 0; // extra last dummy char
 
-    delete data;
+    delete[] data;
 
     _stream->Write( compressed, compressed_len, NULL );
     

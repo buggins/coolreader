@@ -2970,7 +2970,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
                &identity );
             if (res==GDI_ERROR)
             {
-                delete glyph;
+                delete[] glyph;
                 return NULL;
             }
 #ifdef USE_BITMAP_FONT
@@ -2997,7 +2997,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
                 src += glyph_row_size;
                 dst += p->gi.blackBoxX;
             }
-            delete glyph;
+            delete[] glyph;
             //*(dst-1) = 0xFF;
         }
         else

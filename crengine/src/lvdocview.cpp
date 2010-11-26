@@ -3182,7 +3182,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 					}
 				}
 			}
-			delete fullbuf;
+			delete[] fullbuf;
 #endif
 			LVStreamRef tcrDecoder = LVCreateTCRDecoderStream(m_stream);
 			if (!tcrDecoder.isNull())
