@@ -444,7 +444,7 @@ static JNINativeMethod sReaderViewMethods[] = {
   /* name, signature, funcPtr */
   {"createInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_createInternal},
   {"destroyInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_destroyInternal},
-  {"getPageImage", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_ReaderView_getPageImage},
+  {"getPageImageInternal", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_ReaderView_getPageImageInternal},
   {"loadDocumentInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_loadDocumentInternal},
   {"getSettingsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_ReaderView_getSettingsInternal},
   {"applySettingsInternal", "(Ljava/util/Properties;)Z", (void*)Java_org_coolreader_crengine_ReaderView_applySettingsInternal},

@@ -63,8 +63,17 @@ public class FileBrowser extends ListView {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if ( keyCode==KeyEvent.KEYCODE_BACK && mActivity.isBookOpened() ) {
-			mActivity.showReader();
-			return true;
+			if ( isRootDir() ) {
+				if ( mActivity.isBookOpened() ) {
+					mActivity.showReader();
+					return true;
+				} else
+					return super.onKeyDown(keyCode, event);
+			}
+			if ( currDirectory.parent!=null ) {
+				showDirectory(currDirectory.parent);
+				return true;
+			}
 		}
 		return super.onKeyDown(keyCode, event);
 	}
@@ -158,6 +167,10 @@ public class FileBrowser extends ListView {
 	}
 
 	private FileInfo currDirectory;
+	public boolean isRootDir()
+	{
+		return currDirectory == mScanner.getRoot();
+	}
 	public void showRecentBooks()
 	{
 		if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {

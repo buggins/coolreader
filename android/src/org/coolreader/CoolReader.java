@@ -4,6 +4,7 @@ package org.coolreader;
 import java.io.File;
 
 import org.coolreader.crengine.BackgroundThread;
+import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.Engine;
@@ -16,13 +17,13 @@ import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.InputFilter;
@@ -33,6 +34,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -59,6 +61,47 @@ public class CoolReader extends Activity
 		return mDB;
 	}
 	
+	private static String PREF_FILE = "CR3LastBook";
+	private static String PREF_LAST_BOOK = "LastBook";
+	public String getLastSuccessfullyOpenedBook()
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		String res = pref.getString(PREF_LAST_BOOK, null);
+		pref.edit().putString(PREF_LAST_BOOK, null).commit();
+		return res;
+	}
+	
+	public void setLastSuccessfullyOpenedBook( String filename )
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
+	}
+	
+	private boolean mFullscreen = false;
+	public boolean isFullscreen() {
+		return mFullscreen;
+	}
+
+	public void applyFullscreen( Window wnd )
+	{
+		if ( mFullscreen ) {
+			//mActivity.getWindow().requestFeature(Window.)
+			wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		} else {
+			wnd.setFlags(0, 
+			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		}
+	}
+	public void setFullscreen( boolean fullscreen )
+	{
+		if ( mFullscreen!=fullscreen ) {
+			mFullscreen = fullscreen;
+			applyFullscreen( getWindow() );
+		}
+	}
+	
+	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
 	PowerManager.WakeLock wl = null;
 	/** Called when the activity is first created. */
@@ -125,7 +168,19 @@ public class CoolReader extends Activity
 //        	wnd.setAttributes(attrs);
 //        	//attrs.screenOrientation = LayoutParams.SCREEN_;
 //        }
-		Log.i("cr3", "CoolReader.onCreate() exiting");
+
+        
+        fileToLoadOnStart = null;
+		Intent intent = getIntent();
+		if ( intent!=null && Intent.ACTION_VIEW.equals(intent.getAction()) ) {
+			Uri uri = intent.getData();
+			if ( uri!=null ) {
+				fileToLoadOnStart = extractFileName(uri);
+			}
+			intent.setData(null);
+		}
+        
+        Log.i("cr3", "CoolReader.onCreate() exiting");
     }
 
 	@Override
@@ -167,6 +222,38 @@ public class CoolReader extends Activity
 		mBackgroundThread = null;
 		Log.i("cr3", "CoolReader.onDestroy() exiting");
 		super.onDestroy();
+	}
+
+	private String extractFileName( Uri uri )
+	{
+		if ( uri!=null ) {
+			if ( uri.equals(Uri.parse("file:///")) )
+				return null;
+			else
+				return uri.getPath();
+		}
+		return null;
+	}
+	
+	@Override
+	protected void onNewIntent(Intent intent) {
+		String fileToOpen = null;
+		if ( Intent.ACTION_VIEW.equals(intent.getAction()) ) {
+			Uri uri = intent.getData();
+			if ( uri!=null ) {
+				fileToOpen = extractFileName(uri);
+			}
+			intent.setData(null);
+		}
+		if ( fileToOpen!=null ) {
+			// load document
+			final String fn = fileToOpen;
+			mReaderView.loadDocument(fileToOpen, new Runnable() {
+				public void run() {
+					showToast("Error occured while loading " + fn);
+				}
+			});
+		}
 	}
 
 	@Override
@@ -216,7 +303,7 @@ public class CoolReader extends Activity
 		super.onSaveInstanceState(outState);
 	}
 
-	static final boolean LOAD_LAST_DOCUMENT_ON_START = false; 
+	static final boolean LOAD_LAST_DOCUMENT_ON_START = true; 
 	
 	@Override
 	protected void onStart() {
@@ -242,17 +329,28 @@ public class CoolReader extends Activity
 
 			public void done() {
 		        Log.i("cr3", "trying to load last document");
-				if ( LOAD_LAST_DOCUMENT_ON_START ) {
-					mReaderView.loadLastDocument(new Runnable() {
-						public void run() {
-							// cannot open recent book: load another one
-							Log.e("cr3", "Cannot open last document, starting file browser");
-							showBrowser();
-						}
-					});
+				if ( fileToLoadOnStart!=null || LOAD_LAST_DOCUMENT_ON_START ) {
+					if ( fileToLoadOnStart!=null ) {
+						mReaderView.loadDocument(fileToLoadOnStart, new Runnable() {
+							public void run() {
+								// cannot open recent book: load another one
+								Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
+								showBrowser();
+							}
+						});
+					} else {
+						mReaderView.loadLastDocument(new Runnable() {
+							public void run() {
+								// cannot open recent book: load another one
+								Log.e("cr3", "Cannot open last document, starting file browser");
+								showBrowser();
+							}
+						});
+					}
 				} else {
 					showBrowser();
 				}
+				fileToLoadOnStart = null;
 			}
 
 			public void fail(Exception e) {
@@ -340,39 +438,45 @@ public class CoolReader extends Activity
 		void onCancel();
 	};
 	
+	public static class InputDialog extends BaseDialog {
+		private InputHandler handler;
+		private EditText input;
+		public InputDialog( Activity activity, final String title, boolean isNumberEdit, final InputHandler handler )
+		{
+			super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel );
+			this.handler = handler;
+			setTitle(title);
+	        input = new EditText(getContext());
+	        if ( isNumberEdit )
+		        input.getText().setFilters(new InputFilter[] {
+		        	new DigitsKeyListener()        
+		        });
+	        setView(input);
+		}
+		@Override
+		protected void onNegativeButtonClick() {
+            cancel();
+            handler.onCancel();
+		}
+		@Override
+		protected void onPositiveButtonClick() {
+            String value = input.getText().toString().trim();
+            try {
+            	if ( handler.validate(value) )
+            		handler.onOk(value);
+            	else
+            		handler.onCancel();
+            } catch ( Exception e ) {
+            	handler.onCancel();
+            }
+            cancel();
+		}
+	}
+	
 	public void showInputDialog( final String title, boolean isNumberEdit, final InputHandler handler )
 	{
-        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        final EditText input = new EditText(this);
-        if ( isNumberEdit )
-	        input.getText().setFilters(new InputFilter[] {
-	        	new DigitsKeyListener()        
-	        });
-        alert.setTitle(title);
-        alert.setView(input);
-        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                String value = input.getText().toString().trim();
-                try {
-                	if ( handler.validate(value) )
-                		handler.onOk(value);
-                	else
-                		handler.onCancel();
-                } catch ( Exception e ) {
-                	handler.onCancel();
-                }
-                dialog.cancel();
-            }
-        });
- 
-        alert.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        dialog.cancel();
-                        handler.onCancel();
-                    }
-                });
-        alert.show();
+        final InputDialog dlg = new InputDialog(this, title, isNumberEdit, handler);
+        dlg.show();
 	}
 
 	

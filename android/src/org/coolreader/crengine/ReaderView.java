@@ -20,10 +20,10 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.WindowManager;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
-public class ReaderView extends View {
+public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback {
     private Bitmap mBitmap;
 
     // additional key codes for Nook
@@ -61,8 +61,8 @@ public class ReaderView extends View {
     public static final String PROP_ROTATE_ANGLE            ="window.rotate.angle";
     public static final String PROP_EMBEDDED_STYLES         ="crengine.doc.embedded.styles.enabled";
     public static final String PROP_DISPLAY_INVERSE         ="crengine.display.inverse";
-    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
-    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
+//    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
+//    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
     public static final String PROP_STATUS_LINE             ="window.status.line";
     public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";
     public static final String PROP_FOOTNOTES               ="crengine.footnotes";
@@ -80,6 +80,14 @@ public class ReaderView extends View {
     public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
 
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
+    
+    public enum ViewMode
+    {
+    	PAGES,
+    	SCROLL
+    }
+    
+    private ViewMode viewMode = ViewMode.PAGES;
     
     public enum ReaderCommand
     {
@@ -111,6 +119,7 @@ public class ReaderView extends View {
     	DCMD_SAVE_HISTORY(124),
     	DCMD_SAVE_TO_CACHE(125),
     	DCMD_TOGGLE_BOLD(126),
+    	DCMD_SCROLL_BY(127),
 
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
@@ -188,7 +197,7 @@ public class ReaderView extends View {
     /* implementend by libcr3engine.so */
     
     // get current page image
-    private native void getPageImage(Bitmap bitmap);
+    private native void getPageImageInternal(Bitmap bitmap);
     // constructor's native part
     private native void createInternal();
     private native void destroyInternal();
@@ -295,7 +304,6 @@ public class ReaderView extends View {
 			return super.onKeyUp(keyCode, event);
 		}
 		return true;
-		//return super.onKeyUp(keyCode, event);
 	}
 
 	boolean VOLUME_KEYS_ZOOM = false;
@@ -303,29 +311,55 @@ public class ReaderView extends View {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+			// will process in keyup handler
+			return true;
+		} else
 		switch ( keyCode ) {
-		case KeyEvent.KEYCODE_VOLUME_UP:
-			if ( VOLUME_KEYS_ZOOM ) {
-				doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
-				syncViewSettings(getSettings());
-			} else
-				doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+		case NOOK_KEY_NEXT_LEFT:
+		case NOOK_KEY_NEXT_RIGHT:    
+		case NOOK_KEY_SHIFT_DOWN:
+		case KeyEvent.KEYCODE_DPAD_DOWN:
+		case NOOK_KEY_PREV_LEFT:
+		case NOOK_KEY_PREV_RIGHT:
+		case NOOK_KEY_SHIFT_UP:
+		case KeyEvent.KEYCODE_DPAD_UP:
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_SEARCH:
+		case KeyEvent.KEYCODE_MENU:
+		case KeyEvent.KEYCODE_HOME:
 			return true;
-		case KeyEvent.KEYCODE_VOLUME_DOWN:
-			if ( VOLUME_KEYS_ZOOM ) {
-				doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
-				syncViewSettings(getSettings());
-			} else
-				doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
-			return true;
-		}
-		if ( keyCode==KeyEvent.KEYCODE_BACK )
+		case KeyEvent.KEYCODE_BACK:
 			return super.onKeyDown(keyCode, event);
-		return true;
-		//return super.onKeyDown(keyCode, event);
-		//return true;
+        case KeyEvent.KEYCODE_VOLUME_UP:
+           if ( VOLUME_KEYS_ZOOM ) {
+               doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+               syncViewSettings(getSettings());
+           } else
+               doCommand( ReaderCommand.DCMD_PAGEUP, 1);
+           return true;
+        case KeyEvent.KEYCODE_VOLUME_DOWN:
+           if ( VOLUME_KEYS_ZOOM ) {
+               doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+               syncViewSettings(getSettings());
+           } else
+               doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
+           return true;
+        	
+       	default:
+			return super.onKeyDown(keyCode, event);
+		}
 	}
 
+	private boolean isManualScrollActive = false;
+	private int manualScrollStartPosX = 0;
+	private int manualScrollStartPosY = 0;
+	private int manualScrollLastMoveX = 0;
+	private int manualScrollLastMoveY = 0;
+	private final int START_DRAG_THRESHOLD = 10;
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
@@ -334,6 +368,10 @@ public class ReaderView extends View {
 			int y = (int)event.getY();
 			int dx = getWidth();
 			int dy = getHeight();
+			if ( isManualScrollActive ) {
+				isManualScrollActive = false;
+				return true;
+			}
 			boolean fwd = x>dx*3/4 || y>dy*3/4; 
 			boolean back = x<dx/4 || y<dy/4;
 			boolean center = x>dx/3 && x<dx*2/3 && y>dy/3 && y<dy*2/3;
@@ -350,6 +388,50 @@ public class ReaderView extends View {
 					mActivity.openOptionsMenu();
 			}
 			return true;
+		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
+			if ( viewMode==ViewMode.SCROLL ) {
+				manualScrollStartPosX = manualScrollLastMoveX = (int)event.getX();
+				manualScrollStartPosY = manualScrollLastMoveY = (int)event.getY();
+			}
+		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
+			int x = (int)event.getX();
+			int y = (int)event.getY();
+			if ( viewMode==ViewMode.SCROLL ) {
+				if ( !isManualScrollActive ) {
+					int deltax = manualScrollStartPosX - x; 
+					int deltay = manualScrollStartPosY - y;
+					deltax = deltax < 0 ? -deltax : deltax;
+					deltay = deltay < 0 ? -deltay : deltay;
+					if ( deltax + deltay > START_DRAG_THRESHOLD )
+						isManualScrollActive = true;
+				}
+			}
+			if ( !isManualScrollActive )
+				return false;
+			int orientation = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
+			int delta = 0;
+			switch ( orientation ) {
+			case 0:
+				delta = manualScrollLastMoveY - y;
+				manualScrollLastMoveY = y;
+				break;
+			case 1:
+				delta = manualScrollLastMoveX - x;
+				manualScrollLastMoveX = x;
+				break;
+			case 2:
+				delta = y - manualScrollLastMoveY;
+				manualScrollLastMoveY = y;
+				break;
+			case 3:
+				delta = x - manualScrollLastMoveX;
+				manualScrollLastMoveX = x;
+				break;
+			}
+			if ( delta!=0 )
+				moveBy( delta );
+		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
+			isManualScrollActive = false;
 		}
 		return true;
 		//return super.onTouchEvent(event);
@@ -532,6 +614,20 @@ public class ReaderView extends View {
 		});
 	}
 	
+	public void doCommandFromBackgroundThread( final ReaderCommand cmd, final int param )
+	{
+		Log.d("cr3", "doCommandFromBackgroundThread("+cmd + ", " + param +")");
+		BackgroundThread.ensureBackground();
+		boolean res = doCommandInternal(cmd.nativeId, param);
+		if ( res ) {
+			BackgroundThread.guiExecutor.execute(new Runnable() {
+				public void run() {
+					drawPage();
+				}
+			});
+		}
+	}
+	
 	private boolean mInitialized = false;
 	private boolean mOpened = false;
 	
@@ -547,6 +643,7 @@ public class ReaderView extends View {
 	private void applySettings( Properties props )
 	{
 		BackgroundThread.ensureBackground();
+		Log.v("cr3", "applySettings() " + props);
         applySettingsInternal(props);
         syncViewSettings(props);
         drawPage();
@@ -556,6 +653,7 @@ public class ReaderView extends View {
 	private void saveSettings( Properties settings )
 	{
 		try {
+			Log.v("cr3", "saveSettings() " + settings);
     		FileOutputStream os = new FileOutputStream(propsFile);
     		settings.store(os, "Cool Reader 3 settings");
 			Log.i("cr3", "Settings successfully saved to file " + propsFile.getAbsolutePath());
@@ -604,52 +702,102 @@ public class ReaderView extends View {
 	public void applyAppSetting( String key, String value )
 	{
         if ( key.equals(PROP_APP_FULLSCREEN) ) {
-			if ( "1".equals(value) ) {
-				//mActivity.getWindow().requestFeature(Window.)
-				mActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-				        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-			} else {
-				mActivity.getWindow().setFlags(0, 
-				        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-			}
+			this.mActivity.setFullscreen( "1".equals(value) );
         }
 	}
 	
-	public void setSettings(Properties newSettings)
+	public void setAppSettings( Properties newSettings, Properties oldSettings )
 	{
+		Log.v("cr3", "setAppSettings() " + newSettings.toString());
 		BackgroundThread.ensureGUI();
-		final Properties currSettings = new Properties(mSettings);
-		Properties changedSettings = newSettings.diff(currSettings);
-		//boolean changed = false;
+		if ( oldSettings==null )
+			oldSettings = mSettings;
+		Properties changedSettings = newSettings.diff(oldSettings);
         for ( Map.Entry<Object, Object> entry : changedSettings.entrySet() ) {
     		String key = (String)entry.getKey();
     		String value = (String)entry.getValue();
-    		currSettings.setProperty(key, value);
     		applyAppSetting( key, value );
     		if ( PROP_APP_FULLSCREEN.equals(key) ) {
-    			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
-    			currSettings.setBool(PROP_SHOW_BATTERY, flg); 
-    			currSettings.setBool(PROP_SHOW_TIME, flg); 
+    			boolean flg = true; //mSettings.getBool(PROP_APP_FULLSCREEN, false);
+    			newSettings.setBool(PROP_SHOW_BATTERY, flg); 
+    			newSettings.setBool(PROP_SHOW_TIME, flg); 
+    		} else if ( PROP_PAGE_VIEW_MODE.equals(key) ) {
+    			boolean flg = "1".equals(value);
+    			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		}
-    		//changed = true;
         }
-//        if ( changed ) {
-    	Log.d("cr3", "Some settings have been changed, applying...");
-//    	saveSettings();
+	}
+	
+	public ViewMode getViewMode()
+	{
+		return viewMode;
+	}
+	
+	/**
+     * Change settings.
+	 * @param newSettings are new settings
+	 * @param oldSettings are old settings, null to use mSettings
+	 */
+	public void setSettings(Properties newSettings, Properties oldSettings)
+	{
+		Log.v("cr3", "setSettings() " + newSettings.toString());
+		BackgroundThread.ensureGUI();
+		if ( oldSettings==null )
+			oldSettings = mSettings;
+		final Properties currSettings = new Properties(oldSettings);
+		setAppSettings( newSettings, currSettings );
+		Properties changedSettings = newSettings.diff(currSettings);
+		currSettings.setAll(changedSettings);
     	mBackThread.executeBackground(new Runnable() {
     		public void run() {
-    			applySettings(new Properties(currSettings));
+    			applySettings(currSettings);
     		}
     	});
 //        }
+	}
+
+	private Properties loadSettings()
+	{
+        Properties props = new Properties();
+		File propsDir = mActivity.getDir("settings", Context.MODE_PRIVATE);
+		propsDir.mkdirs();
+		propsFile = new File( propsDir, "cr3.ini");
+        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
+        	try {
+        		FileInputStream is = new FileInputStream(propsFile);
+        		props.load(is);
+        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
+        	} catch ( Exception e ) {
+        		Log.e("cr3", "error while reading settings");
+        	}
+        }
+        props.applyDefault(PROP_FONT_SIZE, "1208");
+        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
+        props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
+        props.setProperty(PROP_STATUS_FONT_SIZE, "14");
+        props.applyDefault(PROP_APP_FULLSCREEN, "0");
+		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
+		props.applyDefault(PROP_SHOW_TIME, "1");
+		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
+		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
+		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
+		return props;
 	}
 	
 	private static boolean DEBUG_RESET_OPTIONS = false;
 	class CreateViewTask extends Task
 	{
         Properties props = new Properties();
+        public CreateViewTask() {
+       		props = loadSettings();
+       		Properties oldSettings = new Properties(); // may be changed by setAppSettings 
+   			setAppSettings(props, oldSettings);
+   			props.setAll(oldSettings);
+       		mSettings = props;
+        }
 		public void work() throws Exception {
 			BackgroundThread.ensureBackground();
+			Log.d("cr3", "CreateViewTask - in background thread");
 			createInternal();
 			//File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
@@ -664,35 +812,13 @@ public class ReaderView extends View {
 	        String css = mEngine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
-			File propsDir = mActivity.getDir("settings", Context.MODE_PRIVATE);
-			propsDir.mkdirs();
-			propsFile = new File( propsDir, "cr3.ini");
-	        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
-	        	try {
-	        		FileInputStream is = new FileInputStream(propsFile);
-	        		props.load(is);
-	        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
-	        	} catch ( Exception e ) {
-	        		Log.e("cr3", "error while reading settings");
-	        	}
-	        }
-	        props.applyDefault(PROP_FONT_SIZE, "18");
-	        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
-	        props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
-	        props.setProperty(PROP_STATUS_FONT_SIZE, "14");
-	        props.applyDefault(PROP_APP_FULLSCREEN, "0");
-    		props.applyDefault(PROP_APP_FULLSCREEN, "0");
-    		props.applyDefault(PROP_SHOW_BATTERY, "0"); 
-    		props.applyDefault(PROP_SHOW_TIME, "0");
-    		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
-    		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
-    		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-			mInitialized = true;
+   			applySettings(props);
+   			mInitialized = true;
 		}
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
 			BackgroundThread.ensureGUI();
-	        setSettings(props);
+	        setSettings(props, new Properties());
 		}
 		public void fail( Exception e )
 		{
@@ -706,6 +832,7 @@ public class ReaderView extends View {
 		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
 			Log.d("cr3", "trying to load already opened document");
 			mActivity.showReader();
+			drawPage();
 			return;
 		}
 		execute(new LoadDocumentTask(fileInfo, null));
@@ -714,9 +841,19 @@ public class ReaderView extends View {
 	public boolean loadLastDocument( final Runnable errorHandler )
 	{
 		BackgroundThread.ensureGUI();
-		Log.i("cr3", "Submitting LastDocumentLoadTask");
+		Log.i("cr3", "loadLastDocument() is called");
 		init();
-		BookInfo book = mActivity.getHistory().getLastBook();
+		//BookInfo book = mActivity.getHistory().getLastBook();
+		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
+		return loadDocument( lastBookName, errorHandler );
+	}
+	
+	public boolean loadDocument( String fileName, final Runnable errorHandler )
+	{
+		BackgroundThread.ensureGUI();
+		Log.i("cr3", "Submitting LoadDocumentTask for " + fileName);
+		init();
+		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
 		if ( book==null ) {
 			errorHandler.run();
 			return false;
@@ -767,6 +904,7 @@ public class ReaderView extends View {
 	}
 	
 	private static class BitmapFactory {
+		public static final int MAX_FREE_LIST_SIZE=1;
 		ArrayList<Bitmap> freeList = new ArrayList<Bitmap>(); 
 		ArrayList<Bitmap> usedList = new ArrayList<Bitmap>(); 
 		public synchronized Bitmap get( int dx, int dy ) {
@@ -787,7 +925,6 @@ public class ReaderView extends View {
 			usedList.add(bmp);
 			return bmp;
 		}
-		public static final int MAX_FREE_LIST_SIZE=2;
 		public synchronized void compact() {
 			while ( freeList.size()>0 ) {
 				freeList.get(0).recycle();
@@ -812,25 +949,41 @@ public class ReaderView extends View {
 	};
 	BitmapFactory factory = new BitmapFactory(); 
 	
-	private Bitmap preparePageImage()
+	class BitmapInfo {
+		Bitmap bitmap;
+		PositionProperties position;
+	}
+	
+	private static final boolean GC_PAGE_IMAGE = true;
+	private static final int GC_INTERVAL = 2;
+	private static int gcCounter = 0; 
+	private BitmapInfo preparePageImage()
 	{
 		BackgroundThread.ensureBackground();
-		Bitmap bitmap;
+		BitmapInfo bi = new BitmapInfo();
 		if ( internalDX==0 || internalDY==0 ) {
 			internalDX=200;
 			internalDY=300;
 	        resizeInternal(internalDX, internalDY);
 		}
-		bitmap = factory.get(internalDX, internalDY);
+		bi.bitmap = factory.get(internalDX, internalDY);
         setBatteryStateInternal(mBatteryState);
-        getPageImage(bitmap);
-        return bitmap;
+        getPageImageInternal(bi.bitmap);
+        bi.position = getPositionPropsInternal(null);
+        if ( GC_PAGE_IMAGE ) {
+        	gcCounter++;
+        	if ( gcCounter>=GC_INTERVAL ) {
+        		System.gc();
+        		gcCounter = 0;
+        	}
+        }
+        return bi;
 	}
 	
 	private int lastDrawTaskId = 0;
 	private class DrawPageTask extends Task {
 		final int id;
-		Bitmap bitmap;
+		BitmapInfo bi;
 		DrawPageTask()
 		{
 			this.id = ++lastDrawTaskId;
@@ -842,17 +995,23 @@ public class ReaderView extends View {
 				return;
 			}
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
-			bitmap = preparePageImage();
+			bi = preparePageImage();
 	        mEngine.hideProgress();
+			if ( bi!=null ) {
+				setBitmap( bi.bitmap );
+				draw();
+			}
 		}
 		public void done()
 		{
 			BackgroundThread.ensureGUI();
 			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
-			setBitmap( bitmap );
+//			if ( bi!=null ) {
+//				setBitmap( bi.bitmap );
+//				invalidate();
+//			}
 //    		if (mOpened)
 //    			mEngine.hideProgress();
-    		invalidate();
 		}
 	};
 	
@@ -862,6 +1021,58 @@ public class ReaderView extends View {
 			factory.release(mBitmap);
 		mBitmap = bmp;
 	} 
+
+	class ReaderSurfaceView extends SurfaceView {
+		public ReaderSurfaceView( Context context )
+		{
+			super(context);
+		}
+	}
+	
+	// SurfaceView callbacks
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
+		Log.i("cr3", "surfaceChanged(" + width + ", " + height + ")");
+		drawPage();
+	}
+
+	boolean mSurfaceCreated = false;
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		Log.i("cr3", "surfaceCreated()");
+		mSurfaceCreated = true;
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		Log.i("cr3", "surfaceDestroyed()");
+		mSurfaceCreated = false;
+	}
+	
+	enum AnimationType {
+		SCROLL, // for scroll mode
+		PAGE_SHIFT, // for simple page shift
+	}
+
+	class ViewAnimation {
+		AnimationType type;
+		BitmapInfo image1;
+		BitmapInfo image2;
+		int pointerStartPos;
+		int pointerDestPos;
+		int pointerCurrPos;
+		public void draw(Canvas c)
+		{
+			switch (type) {
+			case SCROLL:
+				break;
+			case PAGE_SHIFT:
+				// TODO
+				break;
+			}
+		}
+	}
 	
 	private void drawPage()
 	{
@@ -935,6 +1146,7 @@ public class ReaderView extends View {
 	        mOpened = true;
 			mActivity.showReader();
 	        drawPage();
+	        mActivity.setLastSuccessfullyOpenedBook(filename);
 		}
 		public void fail( Exception e )
 		{
@@ -951,11 +1163,11 @@ public class ReaderView extends View {
 			}
 		}
 	}
-	
-    @Override 
-    protected void onDraw(Canvas canvas) {
-    	try {
-    		Log.d("cr3", "onDraw() called");
+
+	protected void doDraw(Canvas canvas)
+	{
+       	try {
+    		Log.d("cr3", "doDraw() called");
     		if ( mInitialized && mBitmap!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
         		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
@@ -964,6 +1176,38 @@ public class ReaderView extends View {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
     			canvas.drawColor(Color.rgb(192, 192, 192));
     		}
+    	} catch ( Exception e ) {
+    		Log.e("cr3", "exception while drawing", e);
+    	}
+	}
+	
+	protected void draw()
+	{
+		if ( !mSurfaceCreated )
+			return;
+		Canvas canvas = null;
+		try {
+			canvas = getHolder().lockCanvas(null);
+			doDraw(canvas);
+		} finally {
+			if ( canvas!=null )
+				getHolder().unlockCanvasAndPost(canvas);
+		}
+	}
+	
+    @Override 
+    protected void onDraw(Canvas canvas) {
+    	try {
+    		Log.d("cr3", "onDraw() called");
+    		draw();
+//    		if ( mInitialized && mBitmap!=null ) {
+//        		Log.d("cr3", "onDraw() -- drawing page image");
+//        		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
+//    			canvas.drawBitmap(mBitmap, rc, rc, null);
+//    		} else {
+//        		Log.d("cr3", "onDraw() -- drawing empty screen");
+//    			canvas.drawColor(Color.rgb(192, 192, 192));
+//    		}
     	} catch ( Exception e ) {
     		Log.e("cr3", "exception while drawing", e);
     	}
@@ -1090,6 +1334,23 @@ public class ReaderView extends View {
 		Log.d("cr3", "View.onDetachedFromWindow() is called");
 	}
 
+	private String getCSSForFormat( DocumentFormat fileFormat )
+	{
+		if ( fileFormat==null )
+			fileFormat = DocumentFormat.FB2;
+		File[] dataDirs = Engine.getDataDirectories(null, false);
+		for ( File dir : dataDirs ) {
+			File file = new File( dir, fileFormat.getCssName() );
+			if ( file.exists() ) {
+				String css = mEngine.loadFileUtf8(file);
+				if ( css!=null )
+					return css;
+			} 
+		}
+		String s = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
+		return s;
+	} 
+
 	boolean enable_progress_callback = true;
     ReaderCallback readerCallback = new ReaderCallback() {
     
@@ -1141,7 +1402,7 @@ public class ReaderView extends View {
 					BackgroundThread.ensureGUI();
 					Log.i("cr3", "readerCallback.OnLoadFileFormatDetected " + fileFormat);
 					if ( fileFormat!=null ) {
-						String s = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
+						String s = getCSSForFormat(fileFormat);
 						Log.i("cr3", "setting .css for file format " + fileFormat + " from resource " + (fileFormat!=null?fileFormat.getCssName():"[NONE]"));
 						return s;
 					}
@@ -1181,6 +1442,27 @@ public class ReaderView extends View {
         }
     }
     
+    public void goToPosition( int position )
+    {
+		BackgroundThread.ensureGUI();
+		doCommand(ReaderView.ReaderCommand.DCMD_GO_POS, position);
+    }
+    
+    public void moveBy( final int delta )
+    {
+		BackgroundThread.ensureGUI();
+		Log.d("cr3", "moveBy(" + delta + ")");
+		execute(new Task() {
+			public void work() {
+				BackgroundThread.ensureBackground();
+				doCommandInternal(ReaderCommand.DCMD_SCROLL_BY.nativeId, delta);
+			}
+			public void done() {
+				drawPage();
+			}
+		});
+    }
+    
     public void goToPage( int pageNumber )
     {
 		BackgroundThread.ensureGUI();
@@ -1196,7 +1478,7 @@ public class ReaderView extends View {
 	    			PositionProperties pos = getPositionPropsInternal(null);
 	    			if ( pos!=null && pos.pageCount>0) {
 	    				int pageNumber = pos.pageCount * percent / 100; 
-						doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
+						doCommandFromBackgroundThread(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
 	    			}
 	    		}
 	    	});
@@ -1220,6 +1502,9 @@ public class ReaderView extends View {
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread) 
     {
         super(activity);
+        SurfaceHolder holder = getHolder();
+        holder.addCallback(this);
+        
 		BackgroundThread.ensureGUI();
         this.mActivity = activity;
         this.mEngine = engine;

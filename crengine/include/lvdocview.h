@@ -222,6 +222,7 @@ enum LVDocCmd
     DCMD_SAVE_HISTORY, // save history and bookmarks
     DCMD_SAVE_TO_CACHE, // save document to cache for fast opening
     DCMD_TOGGLE_BOLD, // togle font bolder attribute
+    DCMD_SCROLL_BY, // scroll by N pixels, for Scroll view mode only
 
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,

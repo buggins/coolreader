@@ -19,12 +19,14 @@ extern "C" {
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_UP 101L
 #undef org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN 100L
+#undef org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE
+#define org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE 1L
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    getPageImage
+ * Method:    getPageImageInternal
  * Signature: (Landroid/graphics/Bitmap;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImage
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInternal
   (JNIEnv *, jobject, jobject);
 
 /*

@@ -20,6 +20,7 @@
 <string name="dir_recent_books">Recent Books</string>
 <string name="dir_sd_card">SD Card</string>
 <string name="dir_internal_sd_card">Internal SD Card</string>
+<string name="dir_internal_memory">Internal memory</string>
 <string name="win_title_bookmarks">Bookmarks</string>
 <string name="win_title_toc">Table of Contents</string>
 <string name="win_title_options">Options</string>
@@ -57,6 +58,9 @@
 <string name="options_page_margin_right">Right margin</string>
 <string name="options_page_margin_top">Top margin</string>
 <string name="options_page_margin_bottom">Bottom margin</string>
+<string name="options_view_mode">View mode</string>
+<string name="options_view_mode_pages">Pages</string>
+<string name="options_view_mode_scroll">Scroll</string>
 <string name="options_app_fullscreen">Fullscreen mode</string>
 <string name="options_value_on">On</string>
 <string name="options_value_off">Off</string>

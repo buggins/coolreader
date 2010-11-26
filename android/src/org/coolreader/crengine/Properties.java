@@ -46,6 +46,22 @@ public class Properties extends java.util.Properties {
 		}
 		return revBytes(defColor) | 0xFF000000;
 	}
+	public void setInt( String key, int v )
+	{
+		String value = String.valueOf(v);
+		setProperty(key, value);
+	}
+	public int getInt( String key, int def )
+	{
+		String value = getProperty(key);
+		int res = def;
+		try {
+			if ( value!=null )
+				res = Integer.valueOf(value);
+		} catch ( Exception e ) {
+		}
+		return res;
+	}
 	public void setBool( String key, boolean value )
 	{
 		setProperty( key, value ? "1" : "0" );

@@ -4243,6 +4243,14 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
             }
         }
         break;
+    case DCMD_SCROLL_BY:
+        {
+            if (m_view_mode==DVM_SCROLL)
+            {
+                SetPos( GetPos() + param );
+            }
+        }
+        break;
     case DCMD_GO_PAGE:
         {
             if ( getCurPage() != param ) {
