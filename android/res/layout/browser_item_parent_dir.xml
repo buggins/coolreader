@@ -29,6 +29,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_gravity="center_vertical|fill_horizontal"
+	    android:layout_marginTop="5dip"
+    	android:layout_marginBottom="5dip"
         android:baselineAligned="false">
 
 

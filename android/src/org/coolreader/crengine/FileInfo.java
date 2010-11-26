@@ -138,6 +138,15 @@ public class FileInfo {
 		throw new IndexOutOfBoundsException();
 	}
 
+	public void removeEmptyDirs()
+	{
+		if ( parent==null || pathname.startsWith("@") )
+			return;
+		for ( int i=dirs.size()-1; i>=0; i-- )
+			if ( dirs.get(i).dirCount()==0 && dirs.get(i).fileCount()==0 )
+				dirs.remove(i);
+	}
+	
 	private void removeChild( FileInfo item )
 	{
 		int n = files.indexOf(item);

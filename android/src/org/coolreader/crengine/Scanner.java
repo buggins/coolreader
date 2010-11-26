@@ -144,9 +144,9 @@ public class Scanner {
 			public void work() throws Exception {
 				// scan (list) directories
 				progress(1000);
-				for ( int i=0; i<baseDir.dirCount(); i++ ) {
+				for ( int i=baseDir.dirCount()-1; i>=0; i-- )
 					listDirectory(baseDir.getDir(i));
-				}
+				baseDir.removeEmptyDirs();
 				progress(2000);
 				ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
 				int count = baseDir.fileCount();
