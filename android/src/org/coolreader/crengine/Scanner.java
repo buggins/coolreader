@@ -67,6 +67,8 @@ public class Scanner {
 			if ( items!=null ) {
 				for ( File f : items ) {
 					if ( !f.isDirectory() ) {
+						if ( f.getName().startsWith(".") )
+							continue; // treat files beginning with '.' as hidden
 						String pathName = f.getAbsolutePath();
 						FileInfo item = mFileList.get(pathName);
 						boolean isNew = false;
@@ -85,6 +87,8 @@ public class Scanner {
 				// process directories 
 				for ( File f : items ) {
 					if ( f.isDirectory() ) {
+						if ( f.getName().startsWith(".") )
+							continue; // treat dirs beginning with '.' as hidden
 						FileInfo item = new FileInfo( f );
 						item.parent = baseDir;
 						baseDir.addDir(item);					
@@ -250,11 +254,99 @@ public class Scanner {
 		return true;
 	}
 	
+	/**
+	 * Lists all directories from root to directory of specified file, returns found directory.
+	 * @param file
+	 * @param root
+	 * @return
+	 */
+	private FileInfo findParentInternal( FileInfo file, FileInfo root )
+	{
+		if ( root==null || file==null || root.isRecentDir() )
+			return null;
+		if ( !root.isRootDir() && !file.getPathName().startsWith( root.getPathName() ) )
+			return null;
+		// to list all directories starting root dir
+		if ( root.isDirectory && !root.isSpecialDir() )
+				listDirectory(root);
+		for ( int i=0; i<root.dirCount(); i++ ) {
+			FileInfo found = findParentInternal( file, root.getDir(i));
+			if ( found!=null )
+				return found;
+		}
+		for ( int i=0; i<root.fileCount(); i++ ) {
+			if ( root.getFile(i).getPathName().equals(file.getPathName()) )
+				return root;
+		}
+		return null;
+	}
+	
+	public final static int MAX_DIR_LIST_TIME = 500; // 0.5 seconds
+	
+	/**
+	 * Lists all directories from root to directory of specified file, returns found directory.
+	 * @param file
+	 * @param root
+	 * @return
+	 */
+	public FileInfo findParent( FileInfo file, FileInfo root )
+	{
+		FileInfo parent = findParentInternal(file, root);
+		if ( parent==null )
+			return null;
+		long maxTs = android.os.SystemClock.uptimeMillis() + MAX_DIR_LIST_TIME;
+		listSubtrees(root, 5, maxTs);
+		return parent;
+	}
+	
+	/**
+	 * List directories in subtree, limited by runtime and depth; remove empty branches (w/o books).  
+	 * @param root is directory to start with
+	 * @param maxDepth is maximum depth
+	 * @param limitTs is limit for android.os.SystemClock.uptimeMillis()
+	 * @return true if completed, false if stopped by limit. 
+	 */
+	private boolean listSubtree( FileInfo root, int maxDepth, long limitTs )
+	{
+		long ts = android.os.SystemClock.uptimeMillis();
+		if ( ts>limitTs || maxDepth<=0 )
+			return false;
+		listDirectory(root);
+		for ( int i=root.dirCount()-1; i>=-0; i-- ) {
+			boolean res = listSubtree(root.getDir(i), maxDepth-1, limitTs);
+			if ( !res )
+				return false;
+		}
+		root.removeEmptyDirs();
+		return true;
+	}
+	
+	/**
+	 * List directories in subtree, limited by runtime and depth; remove empty branches (w/o books).  
+	 * @param root is directory to start with
+	 * @param maxDepth is maximum depth
+	 * @param limitTs is limit for android.os.SystemClock.uptimeMillis()
+	 * @return true if completed, false if stopped by limit. 
+	 */
+	public boolean listSubtrees( FileInfo root, int maxDepth, long limitTs )
+	{
+		for ( int depth = 1; depth<=maxDepth; depth++ ) {
+			boolean res = listSubtree( root, depth, limitTs );
+			if ( res )
+				return true;
+			long ts = android.os.SystemClock.uptimeMillis();
+			if ( ts>limitTs )
+				return false; // limited by time
+			// iterate deeper
+		}
+		return false; // limited by depth
+	}
+	
 	public void initRoots()
 	{
 		mRoot.clear();
 		// create recent books dir
-		addRoot( "@recent", R.string.dir_recent_books, false);
+		addRoot( FileInfo.RECENT_DIR_TAG, R.string.dir_recent_books, false);
 		addRoot( Environment.getExternalStorageDirectory().getAbsolutePath(), R.string.dir_sd_card, true);
 		// internal SD card on Nook
 		addRoot( "/system/media/sdcard", R.string.dir_internal_sd_card, true);
@@ -298,9 +390,9 @@ public class Scanner {
 		this.db = db;
 		this.coolReader = coolReader;
 		mRoot = new FileInfo();
-		mRoot.path = "@root";	
+		mRoot.path = FileInfo.ROOT_DIR_TAG;	
 		mRoot.filename = "File Manager";	
-		mRoot.pathname = "@root";
+		mRoot.pathname = FileInfo.ROOT_DIR_TAG;
 		mRoot.isListed = true;
 		mRoot.isScanned = true;
 	}

@@ -2,6 +2,7 @@
 package org.coolreader;
 
 import java.io.File;
+import java.lang.reflect.Field;
 
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseDialog;
@@ -35,6 +36,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -166,13 +168,22 @@ public class CoolReader extends Activity
         Log.i("cr3", "initializing reader");
         mReaderView.init();
         mBrowser.showDirectory(mScanner.getRoot());
-//        Window wnd = getWindow();
-//        if ( wnd!=null ) {
-//        	LayoutParams attrs =  wnd.getAttributes();
-//        	attrs.screenBrightness = 0.7f;
-//        	wnd.setAttributes(attrs);
-//        	//attrs.screenOrientation = LayoutParams.SCREEN_;
-//        }
+        Window wnd = getWindow();
+        if ( wnd!=null ) {
+        	LayoutParams attrs =  wnd.getAttributes();
+        	//attrs.screenBrightness = 0.7f;
+        	// hack to set buttonBrightness field
+        	try {
+	        	Field bb = attrs.getClass().getField("buttonBrightness");
+	        	if ( bb!=null )
+	        		bb.set(attrs, Float.valueOf(0.0f));
+        	} catch ( Exception e ) {
+        		Log.e("cr3", "WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
+        	}
+        	//attrs.buttonBrightness = 0;
+        	wnd.setAttributes(attrs);
+        	//attrs.screenOrientation = LayoutParams.SCREEN_;
+        }
 
         
         fileToLoadOnStart = null;
@@ -340,7 +351,7 @@ public class CoolReader extends Activity
 							public void run() {
 								// cannot open recent book: load another one
 								Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
-								showBrowser();
+								showBrowser(null);
 							}
 						});
 					} else {
@@ -348,12 +359,12 @@ public class CoolReader extends Activity
 							public void run() {
 								// cannot open recent book: load another one
 								Log.e("cr3", "Cannot open last document, starting file browser");
-								showBrowser();
+								showBrowser(null);
 							}
 						});
 					}
 				} else {
-					showBrowser();
+					showBrowser(null);
 				}
 				fileToLoadOnStart = null;
 			}
@@ -409,7 +420,7 @@ public class CoolReader extends Activity
 		mReaderView.loadDocument(item);
 	}
 	
-	public void showBrowser()
+	public void showBrowser( final FileInfo fileToShow )
 	{
 		Log.v("cr3", "showBrowser() is called");
 		mReaderView.save();
@@ -417,7 +428,10 @@ public class CoolReader extends Activity
 			public void run() {
 				showView(mBrowser);
 		        mEngine.hideProgress();
-		        mBrowser.showLastDirectory();
+		        if ( fileToShow==null )
+		        	mBrowser.showLastDirectory();
+		        else
+		        	mBrowser.showDirectory(fileToShow);
 			}
 		});
 	}
@@ -515,7 +529,7 @@ public class CoolReader extends Activity
 		switch ( item.getItemId() ) {
 		case R.id.cr3_mi_open_file:
 			Log.i("cr3", "Open File menu selected");
-			showBrowser();
+			showBrowser(mReaderView.getOpenedFileInfo());
 			//showToast("TOC feature is not implemented");
 			break;
 		case R.id.cr3_go_toc:

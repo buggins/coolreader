@@ -105,10 +105,7 @@ public class FileBrowser extends ListView {
 			return true;
 		case R.id.book_recent_goto:
 			Log.d("cr3", "book_recent_goto menu item selected");
-			FileInfo parent = findParent(selectedItem, mScanner.getRoot());
-			if (parent!=null) {
-				showDirectory(parent);
-			}
+			showDirectory(selectedItem);
 			return true;
 		case R.id.book_recent_remove:
 			Log.d("cr3", "book_recent_remove menu item selected");
@@ -295,37 +292,22 @@ public class FileBrowser extends ListView {
 		else
 			showDirectory(currDirectory);
 	}
-	public void showDirectory( final FileInfo dir )
+	public void showDirectory( final FileInfo fileOrDir )
 	{
-		if ( dir!=null )
+		final FileInfo file = fileOrDir.isDirectory ? null : fileOrDir;
+		final FileInfo dir = !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
+		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
-					showDirectoryInternal(dir);
+					dir.sort(FileInfo.DEF_SORT_ORDER);
+					showDirectoryInternal(dir, file);
 				}
 			});
-		else
-			showDirectoryInternal(dir);
+		} else
+			showDirectoryInternal(dir, file);
 	}
 	
-	private FileInfo findParent( FileInfo file, FileInfo root )
-	{
-		if ( root==null || file==null || "@recent".equals(root.getPathName()) )
-			return null;
-		if ( !"@root".equals(root.getPathName()) && !file.getPathName().startsWith( root.getPathName() ) )
-			return null;
-		for ( int i=0; i<root.dirCount(); i++ ) {
-			FileInfo found = findParent( file, root.getDir(i));
-			if ( found!=null )
-				return found;
-		}
-		for ( int i=0; i<root.fileCount(); i++ ) {
-			if ( root.getFile(i).getPathName().equals(file.getPathName()) )
-				return root;
-		}
-		return null;
-	}
-	
-	private void showDirectoryInternal( final FileInfo dir )
+	private void showDirectoryInternal( final FileInfo dir, final FileInfo file )
 	{
 		currDirectory = dir;
 		if ( dir!=null )

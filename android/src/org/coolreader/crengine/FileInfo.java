@@ -2,6 +2,8 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import android.util.Log;
 
@@ -74,6 +76,29 @@ public class FileInfo {
 		isDirectory = v.isDirectory;
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
+	}
+	
+	public final static String RECENT_DIR_TAG = "@recent";
+	public final static String ROOT_DIR_TAG = "@root";
+	
+	public boolean isRecentDir()
+	{
+		return RECENT_DIR_TAG.equals(pathname);
+	}
+	
+	public boolean isRootDir()
+	{
+		return ROOT_DIR_TAG.equals(pathname);
+	}
+	
+	public boolean isSpecialDir()
+	{
+		return pathname.startsWith("@");
+	}
+	
+	public boolean isHidden()
+	{
+		return pathname.startsWith(".");
 	}
 	
 	public String getPathName()
@@ -189,5 +214,116 @@ public class FileInfo {
 	{
 		dirs = null;
 		files = null;
+	}
+	
+	public static enum SortOrder {
+		FILENAME(new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return cmp(f1.filename, f2.filename);
+			}
+		}),
+		FILENAME_DESC(FILENAME),
+		TIMESTAMP(new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return firstNz( cmp(f1.createTime, f2.createTime), cmp(f1.filename, f2.filename) );
+			}
+		}),
+		TIMESTAMP_DESC(TIMESTAMP),
+		AUTHOR_TITLE(new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return firstNz(
+						cmp(f1.authors, f2.authors)
+						,cmp(f1.series, f2.series)
+						,cmp(f1.seriesNumber, f2.seriesNumber)
+						,cmp(f1.title, f2.title)
+						,cmp(f1.filename, f2.filename) 
+						);
+			}
+		}),
+		AUTHOR_TITLE_DESC(AUTHOR_TITLE),
+		TITLE_AUTHOR(new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return firstNz(
+						cmp(f1.series, f2.series)
+						,cmp(f1.seriesNumber, f2.seriesNumber)
+						,cmp(f1.title, f2.title)
+						,cmp(f1.authors, f2.authors)
+						,cmp(f1.filename, f2.filename) 
+						);
+			}
+		}),
+		TITLE_AUTHOR_DESC(TITLE_AUTHOR);
+		//================================================
+		private final Comparator<FileInfo> comparator;
+		private SortOrder( Comparator<FileInfo> comparator )
+		{
+			this.comparator = comparator;
+		}
+		private SortOrder( final SortOrder base )
+		{
+			this.comparator = new Comparator<FileInfo>() {
+				public int compare( FileInfo f1, FileInfo f2 )
+				{
+					return -base.comparator.compare(f1, f2);
+				}
+			};
+		}
+		
+		public final Comparator<FileInfo> getComparator()
+		{
+			return comparator;
+		}
+		
+		private static int cmp( String str1, String str2 )
+		{
+			if ( str1==null && str2==null )
+				return 0;
+			if ( str1==null )
+				return -1;
+			if ( str2==null )
+				return 1;
+			return str1.compareTo(str2);
+		}
+		
+		private static int cmp( long n1, long n2 )
+		{
+			if ( n1<n2 )
+				return -1;
+			if ( n1>n2 )
+				return 1;
+			return 0;
+		}
+		
+		private static int firstNz( int... v)
+		{
+			for ( int i=0; i<v.length; i++ ) {
+				if ( v[i]!=0 )
+					return v[i];
+			}
+			return 0;
+		}
+	}
+	public final static SortOrder DEF_SORT_ORDER = SortOrder.FILENAME; 
+		
+	public void sort( SortOrder SortOrder )
+	{
+		ArrayList<FileInfo> newDirs = new ArrayList<FileInfo>(dirs);
+		Collections.sort( newDirs, SortOrder.getComparator() );
+		dirs = newDirs;
+		ArrayList<FileInfo> newFiles = new ArrayList<FileInfo>(files);
+		Collections.sort( newFiles, SortOrder.getComparator() );
+		files = newFiles;
 	}
 }

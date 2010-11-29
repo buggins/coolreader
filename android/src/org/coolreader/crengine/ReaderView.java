@@ -365,6 +365,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
+	public FileInfo getOpenedFileInfo()
+	{
+		if ( isBookLoaded() && mBookInfo!=null )
+			return mBookInfo.getFileInfo();
+		return null;
+	}
+	
 	public final int LONG_KEYPRESS_TIME = 900;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -408,7 +415,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doCommand( ReaderCommand.DCMD_PAGEDOWN, 10);
 			break;
 		case KeyEvent.KEYCODE_DPAD_CENTER:
-			mActivity.showBrowser();
+			mActivity.showBrowser(getOpenedFileInfo());
 			break;
 		case KeyEvent.KEYCODE_SEARCH:
 			showSearchDialog();
@@ -420,9 +427,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				mActivity.openOptionsMenu();
 			}
 			break;
-		case KeyEvent.KEYCODE_HOME:
-			mActivity.showBrowser();
-			break;
+//		case KeyEvent.KEYCODE_HOME:
+//			mActivity.showBrowser();
+//			break;
 		case KeyEvent.KEYCODE_BACK:
 			//saveSettings();
 			return super.onKeyUp(keyCode, event);
