@@ -395,6 +395,7 @@ public class Scanner {
 		mRoot.pathname = FileInfo.ROOT_DIR_TAG;
 		mRoot.isListed = true;
 		mRoot.isScanned = true;
+		mRoot.isDirectory = true;
 	}
 
 	private final Engine engine;

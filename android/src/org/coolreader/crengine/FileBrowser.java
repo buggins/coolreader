@@ -88,6 +88,9 @@ public class FileBrowser extends ListView {
 			Log.d("cr3", "book_open menu item selected");
 			mActivity.loadDocument(selectedItem);
 			return true;
+		case R.id.book_sort_order:
+			mActivity.showToast("Sorry, sort order selection is not yet implemented");
+			return true;
 		case R.id.book_recent_books:
 			showRecentBooks();
 			return true;
@@ -203,6 +206,7 @@ public class FileBrowser extends ListView {
 				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.size());
 				mInitialized = true;
 				//mEngine.hideProgress();
+				mEngine.hideProgress();
 				showDirectory( mScanner.mRoot, null );
 				setSelection(0);
 			}
@@ -287,11 +291,7 @@ public class FileBrowser extends ListView {
 	}
 	public void showRecentBooks()
 	{
-		if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
-			showDirectory(mScanner.getRoot().getDir(0), mScanner.getRoot().getFile(0));
-		} else {
-			showDirectory(mScanner.getRoot(), mScanner.getRoot().getDir(1));
-		}
+		showDirectory(null, null);
 	}
 	public void showLastDirectory()
 	{
@@ -300,14 +300,24 @@ public class FileBrowser extends ListView {
 		else
 			showDirectory(currDirectory, null);
 	}
-	public void showDirectory( final FileInfo fileOrDir, final FileInfo itemToSelect )
+	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
+		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
+			if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
+				fileOrDir = mScanner.getRoot().getDir(0);
+				itemToSelect = mScanner.getRoot().getDir(0).getFile(0);
+			} else {
+				fileOrDir = mScanner.getRoot();
+				itemToSelect = mScanner.getRoot().getDir(1);
+			}
+		}
 		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
 		final FileInfo dir = fileOrDir!=null && !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
 		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
-					dir.sort(FileInfo.DEF_SORT_ORDER);
+					if ( !dir.isRootDir() )
+						dir.sort(FileInfo.DEF_SORT_ORDER);
 					showDirectoryInternal(dir, file);
 				}
 			});
@@ -506,6 +516,7 @@ public class FileBrowser extends ListView {
 		if ( dir!=null && !dir.isRootDir() )
 			index++;
 		setSelection(index);
+		setChoiceMode(CHOICE_MODE_SINGLE);
 		invalidate();
 	}
 

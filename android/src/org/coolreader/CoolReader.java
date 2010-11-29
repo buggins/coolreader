@@ -154,15 +154,17 @@ public class CoolReader extends Activity
 		File dbfile = new File(dbdir, "cr3db.sqlite");
 		mDB = new CRDB(dbfile);
        	mHistory = new History(mDB);
-		mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
+
+       	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
+		Log.i("cr3", "initializing scanner");
+        mScanner.initRoots();
+
 		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
 		mFrame.addView(mReaderView);
 		mFrame.addView(mBrowser);
 //		mFrame.addView(startupView);
 		setContentView( mFrame );
 		showView(mBrowser);
-        Log.i("cr3", "initializing scanner");
-        mScanner.initRoots();
         Log.i("cr3", "initializing browser");
         mBrowser.init();
         Log.i("cr3", "initializing reader");
