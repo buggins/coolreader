@@ -1083,7 +1083,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	private static final boolean GC_PAGE_IMAGE = true;
-	private static final int GC_INTERVAL = 2;
+	private static final int GC_INTERVAL = 1;
 	private static int gcCounter = 0; 
 	private BitmapInfo preparePageImage()
 	{
@@ -1123,6 +1123,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return;
 			}
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
+			setBitmap(null);
 			bi = preparePageImage();
 	        mEngine.hideProgress();
 			if ( bi!=null ) {
