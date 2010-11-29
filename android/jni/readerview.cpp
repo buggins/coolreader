@@ -878,7 +878,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
     jmethodID mid = _env->GetMethodID(cls, "<init>", "()V");
     jobject obj = _env->NewObject(cls, mid);
     CRObjectAccessor v(_env, obj);
-    lvPoint pt = useCurPos ? bm.toPoint() : lvPoint(0, p->_docview->GetPos());
+    lvPoint pt = !useCurPos ? bm.toPoint() : lvPoint(0, p->_docview->GetPos());
     CRIntField(v,"x").set(pt.x);
     CRIntField(v,"y").set(pt.y);
     CRIntField(v,"fullHeight").set(p->_docview->GetFullHeight());
@@ -886,7 +886,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
     CRIntField(v,"pageWidth").set(p->_docview->GetWidth());
     CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
     CRIntField(v,"pageCount").set(p->_docview->getPageCount());
-    CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? 1 : 0);
+    CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? 0 : 1);
 	return obj;
 }
 

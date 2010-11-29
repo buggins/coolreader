@@ -107,7 +107,7 @@ public class Engine {
 //		}
 //	}
 	
-
+	public final static boolean LOG_ENGINE_TASKS = false;
 	private class TaskHandler implements Runnable {
 		final EngineTask task;
 		public TaskHandler( EngineTask task )
@@ -116,16 +116,19 @@ public class Engine {
 		}
 		public void run() {
 			try {
-				Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
+				if ( LOG_ENGINE_TASKS )
+					Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
 				if ( !initialized )
 					throw new IllegalStateException("Engine not initialized");
 				// run task
 				task.work();
-				Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
+				if ( LOG_ENGINE_TASKS )
+					Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
 				// post success callback
 				mBackgroundThread.postGUI(new Runnable() {
 					public void run() {
-						Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
+						if ( LOG_ENGINE_TASKS )
+							Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
 						task.done();
 					}
 				});
@@ -165,8 +168,8 @@ public class Engine {
 	 */
 	public void execute( final EngineTask task )
 	{
-		
-		Log.d("cr3", "executing task " + task.getClass().getSimpleName());
+		if ( LOG_ENGINE_TASKS )
+			Log.d("cr3", "executing task " + task.getClass().getSimpleName());
 		TaskHandler taskHandler = new TaskHandler( task );
 		mBackgroundThread.executeBackground( taskHandler );
 	}
