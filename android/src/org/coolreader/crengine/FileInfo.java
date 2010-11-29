@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import org.coolreader.R;
+
 import android.util.Log;
 
 public class FileInfo {
@@ -217,7 +219,7 @@ public class FileInfo {
 	}
 	
 	public static enum SortOrder {
-		FILENAME(new Comparator<FileInfo>() {
+		FILENAME(R.string.mi_book_sort_order_filename, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
 			{
 				if ( f1==null || f2==null )
@@ -225,8 +227,8 @@ public class FileInfo {
 				return cmp(f1.filename, f2.filename);
 			}
 		}),
-		FILENAME_DESC(FILENAME),
-		TIMESTAMP(new Comparator<FileInfo>() {
+		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, FILENAME),
+		TIMESTAMP(R.string.mi_book_sort_order_timestamp, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
 			{
 				if ( f1==null || f2==null )
@@ -234,45 +236,48 @@ public class FileInfo {
 				return firstNz( cmp(f1.createTime, f2.createTime), cmp(f1.filename, f2.filename) );
 			}
 		}),
-		TIMESTAMP_DESC(TIMESTAMP),
-		AUTHOR_TITLE(new Comparator<FileInfo>() {
+		TIMESTAMP_DESC(R.string.mi_book_sort_order_timestamp_desc, TIMESTAMP),
+		AUTHOR_TITLE(R.string.mi_book_sort_order_author, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
 			{
 				if ( f1==null || f2==null )
 					return 0;
 				return firstNz(
-						cmp(f1.authors, f2.authors)
-						,cmp(f1.series, f2.series)
+						cmpNotNullFirst(f1.authors, f2.authors)
+						,cmpNotNullFirst(f1.series, f2.series)
 						,cmp(f1.seriesNumber, f2.seriesNumber)
-						,cmp(f1.title, f2.title)
+						,cmpNotNullFirst(f1.title, f2.title)
 						,cmp(f1.filename, f2.filename) 
 						);
 			}
 		}),
-		AUTHOR_TITLE_DESC(AUTHOR_TITLE),
-		TITLE_AUTHOR(new Comparator<FileInfo>() {
+		AUTHOR_TITLE_DESC(R.string.mi_book_sort_order_author_desc, AUTHOR_TITLE),
+		TITLE_AUTHOR(R.string.mi_book_sort_order_title, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
 			{
 				if ( f1==null || f2==null )
 					return 0;
 				return firstNz(
-						cmp(f1.series, f2.series)
+						cmpNotNullFirst(f1.series, f2.series)
 						,cmp(f1.seriesNumber, f2.seriesNumber)
-						,cmp(f1.title, f2.title)
-						,cmp(f1.authors, f2.authors)
+						,cmpNotNullFirst(f1.title, f2.title)
+						,cmpNotNullFirst(f1.authors, f2.authors)
 						,cmp(f1.filename, f2.filename) 
 						);
 			}
 		}),
-		TITLE_AUTHOR_DESC(TITLE_AUTHOR);
+		TITLE_AUTHOR_DESC(R.string.mi_book_sort_order_title_desc, TITLE_AUTHOR);
 		//================================================
 		private final Comparator<FileInfo> comparator;
-		private SortOrder( Comparator<FileInfo> comparator )
+		public final int resourceId;
+		private SortOrder( int resourceId, Comparator<FileInfo> comparator )
 		{
+			this.resourceId = resourceId;
 			this.comparator = comparator;
 		}
-		private SortOrder( final SortOrder base )
+		private SortOrder( int resourceId, final SortOrder base )
 		{
+			this.resourceId = resourceId;
 			this.comparator = new Comparator<FileInfo>() {
 				public int compare( FileInfo f1, FileInfo f2 )
 				{
@@ -286,6 +291,12 @@ public class FileInfo {
 			return comparator;
 		}
 		
+		/**
+		 * Compares two strings
+		 * @param str1
+		 * @param str2
+		 * @return
+		 */
 		private static int cmp( String str1, String str2 )
 		{
 			if ( str1==null && str2==null )
@@ -294,6 +305,23 @@ public class FileInfo {
 				return -1;
 			if ( str2==null )
 				return 1;
+			return str1.compareTo(str2);
+		}
+		
+		/**
+		 * Same as cmp, but not-null comes first
+		 * @param str1
+		 * @param str2
+		 * @return
+		 */
+		private static int cmpNotNullFirst( String str1, String str2 )
+		{
+			if ( str1==null && str2==null )
+				return 0;
+			if ( str1==null )
+				return 1;
+			if ( str2==null )
+				return -1;
 			return str1.compareTo(str2);
 		}
 		
@@ -315,7 +343,7 @@ public class FileInfo {
 			return 0;
 		}
 	}
-	public final static SortOrder DEF_SORT_ORDER = SortOrder.FILENAME; 
+	public final static SortOrder DEF_SORT_ORDER = SortOrder.AUTHOR_TITLE;
 		
 	public void sort( SortOrder SortOrder )
 	{

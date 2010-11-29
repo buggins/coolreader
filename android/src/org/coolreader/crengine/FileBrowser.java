@@ -124,6 +124,9 @@ public class FileBrowser extends ListView {
 	    if ( isRecentDir() ) {
 		    inflater.inflate(R.menu.cr3_file_browser_recent_context_menu, menu);
 		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_recent_book));
+	    } else if (selectedItem!=null && selectedItem.isDirectory) {
+		    inflater.inflate(R.menu.cr3_file_browser_folder_context_menu, menu);
+		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
 	    } else {
 		    inflater.inflate(R.menu.cr3_file_browser_context_menu, menu);
 		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
@@ -409,15 +412,18 @@ public class FileBrowser extends ListView {
 					} else {
 						image.setImageResource(item.format.getIconResourceId());
 						setText( author, formatAuthors(item.authors) );
-						setText( series, formatSeries(item.series, item.seriesNumber) );
+						String seriesName = formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
 						if ( title==null || title.length()==0 )
 							title = item.filename;
+						else if (seriesName==null) 
+							seriesName = item.filename;
 						setText( name, title );
+						setText( series, seriesName );
 
-						field1.setVisibility(VISIBLE);
-						field2.setVisibility(VISIBLE);
-						field3.setVisibility(VISIBLE);
+//						field1.setVisibility(VISIBLE);
+//						field2.setVisibility(VISIBLE);
+//						field3.setVisibility(VISIBLE);
 						field1.setText(formatSize(item.size));
 						Bookmark pos = mHistory.getLastPos(item);
 						field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));

@@ -22,6 +22,15 @@
 <string name="mi_book_file_remove">Удалить файл</string>
 <string name="mi_book_recent_remove">Удалить из списка</string>
 <string name="mi_book_recent_goto">Перейти в папку</string>
+<string name="mi_book_sort_order">Сортировать</string>
+<string name="mi_book_sort_order_filename">По имени файла</string>
+<string name="mi_book_sort_order_filename_desc">По имени файла (по убыв.)</string>
+<string name="mi_book_sort_order_timestamp">По времени файла</string>
+<string name="mi_book_sort_order_timestamp_desc">По времени файла (desc)</string>
+<string name="mi_book_sort_order_author">По автору</string>
+<string name="mi_book_sort_order_author_desc">По автору (desc)</string>
+<string name="mi_book_sort_order_title">По названию</string>
+<string name="mi_book_sort_order_title_desc">По названию (desc)</string>
 <string name="mi_goto_page">На страницу №</string>
 <string name="mi_goto_percent">На позицию %</string>
 <string name="mi_goto_toc">Содержание</string>

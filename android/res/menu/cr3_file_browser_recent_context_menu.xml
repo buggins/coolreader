@@ -4,4 +4,5 @@
 <item android:title="@string/mi_book_open" android:titleCondensed="@string/mi_book_open" android:id="@+id/book_open"></item>
 <item android:title="@string/mi_book_recent_goto" android:titleCondensed="@string/mi_book_recent_goto" android:id="@+id/book_recent_goto"></item>
 <item android:title="@string/mi_book_recent_remove" android:titleCondensed="@string/mi_book_recent_remove" android:id="@+id/book_recent_remove"></item>
+<item android:title="@string/mi_book_file_remove" android:titleCondensed="@string/mi_book_file_remove" android:id="@+id/book_delete"></item>
 </menu>

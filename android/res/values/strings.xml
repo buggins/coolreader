@@ -20,6 +20,15 @@
 <string name="mi_book_file_remove">Delete book file</string>
 <string name="mi_book_recent_remove">Remove from list</string>
 <string name="mi_book_recent_goto">Go to directory</string>
+<string name="mi_book_sort_order">Sorting order</string>
+<string name="mi_book_sort_order_filename">By filename</string>
+<string name="mi_book_sort_order_filename_desc">By filename (desc)</string>
+<string name="mi_book_sort_order_timestamp">By timestamp</string>
+<string name="mi_book_sort_order_timestamp_desc">By timestamp (desc)</string>
+<string name="mi_book_sort_order_author">By author</string>
+<string name="mi_book_sort_order_author_desc">By author (desc)</string>
+<string name="mi_book_sort_order_title">By title</string>
+<string name="mi_book_sort_order_title_desc">By title (desc)</string>
 <string name="mi_bookmark_set">Set bookmark</string>
 <string name="mi_bookmark_goto">Go to bookmark</string>
 <string name="mi_goto_page">Go to page #</string>
