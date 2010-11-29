@@ -167,7 +167,7 @@ public class CoolReader extends Activity
         mBrowser.init();
         Log.i("cr3", "initializing reader");
         mReaderView.init();
-        mBrowser.showDirectory(mScanner.getRoot());
+        mBrowser.showDirectory(mScanner.getRoot(), null);
         Window wnd = getWindow();
         if ( wnd!=null ) {
         	LayoutParams attrs =  wnd.getAttributes();
@@ -431,7 +431,7 @@ public class CoolReader extends Activity
 		        if ( fileToShow==null )
 		        	mBrowser.showLastDirectory();
 		        else
-		        	mBrowser.showDirectory(fileToShow);
+		        	mBrowser.showDirectory(fileToShow, fileToShow);
 			}
 		});
 	}

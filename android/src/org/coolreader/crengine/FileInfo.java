@@ -148,6 +148,21 @@ public class FileInfo {
 		//throw new IndexOutOfBoundsException();
 		return null;
 	}
+	public int getItemIndex( FileInfo item )
+	{
+		if ( item==null )
+			return -1;
+		for ( int i=0; i<dirCount(); i++ ) {
+			if ( item.pathname.equals(getDir(i).pathname) )
+				return i;
+		}
+		for ( int i=0; i<fileCount(); i++ ) {
+			if ( item.pathname.equals(getFile(i).pathname) )
+				return i + dirCount();
+		}
+		return -1;
+	}
+
 	public FileInfo getDir( int index )
 	{
 		if ( index<0 )
@@ -169,8 +184,8 @@ public class FileInfo {
 	{
 		if ( parent==null || pathname.startsWith("@") )
 			return;
-		for ( int i=dirs.size()-1; i>=0; i-- )
-			if ( dirs.get(i).dirCount()==0 && dirs.get(i).fileCount()==0 )
+		for ( int i=dirCount()-1; i>=0; i-- )
+			if ( getDir(i).dirCount()==0 && getDir(i).fileCount()==0 )
 				dirs.remove(i);
 	}
 	
@@ -347,11 +362,15 @@ public class FileInfo {
 		
 	public void sort( SortOrder SortOrder )
 	{
-		ArrayList<FileInfo> newDirs = new ArrayList<FileInfo>(dirs);
-		Collections.sort( newDirs, SortOrder.getComparator() );
-		dirs = newDirs;
-		ArrayList<FileInfo> newFiles = new ArrayList<FileInfo>(files);
-		Collections.sort( newFiles, SortOrder.getComparator() );
-		files = newFiles;
+		if ( dirs!=null ) {
+			ArrayList<FileInfo> newDirs = new ArrayList<FileInfo>(dirs);
+			Collections.sort( newDirs, SortOrder.getComparator() );
+			dirs = newDirs;
+		}
+		if ( files!=null ) {
+			ArrayList<FileInfo> newFiles = new ArrayList<FileInfo>(files);
+			Collections.sort( newFiles, SortOrder.getComparator() );
+			files = newFiles;
+		}
 	}
 }

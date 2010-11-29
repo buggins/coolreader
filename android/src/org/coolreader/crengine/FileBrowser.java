@@ -55,14 +55,14 @@ public class FileBrowser extends ListView {
 				Log.d("cr3", "onItemLongClick("+position+")");
 				//return super.performItemClick(view, position, id);
 				if ( position==0 && currDirectory.parent!=null ) {
-					showDirectory(currDirectory.parent);
+					showParentDirectory();
 					return true;
 				}
 				FileInfo item = (FileInfo) getAdapter().getItem(position);
 				if ( item==null )
 					return false;
 				if ( item.isDirectory ) {
-					showDirectory(item);
+					showDirectory(item, null);
 					return true;
 				}
 				//openContextMenu(_this);
@@ -73,7 +73,7 @@ public class FileBrowser extends ListView {
 			}
 		});
 		setChoiceMode(CHOICE_MODE_SINGLE);
-		showDirectory( null );
+		showDirectory( null, null );
 	}
 	
 	FileInfo selectedItem = null;
@@ -99,13 +99,13 @@ public class FileBrowser extends ListView {
 					if ( selectedItem.deleteFile() ) {
 						mHistory.removeBookInfo(selectedItem, true, true);
 					}
-					showDirectory(currDirectory);
+					showDirectory(currDirectory, null);
 				}
 			});
 			return true;
 		case R.id.book_recent_goto:
 			Log.d("cr3", "book_recent_goto menu item selected");
-			showDirectory(selectedItem);
+			showDirectory(selectedItem, selectedItem);
 			return true;
 		case R.id.book_recent_remove:
 			Log.d("cr3", "book_recent_remove menu item selected");
@@ -149,20 +149,27 @@ public class FileBrowser extends ListView {
 		Log.d("cr3", "performItemClick("+position+")");
 		//return super.performItemClick(view, position, id);
 		if ( position==0 && currDirectory.parent!=null ) {
-			showDirectory(currDirectory.parent);
+			showParentDirectory();
 			return true;
 		}
 		FileInfo item = (FileInfo) getAdapter().getItem(position);
 		if ( item==null )
 			return false;
 		if ( item.isDirectory ) {
-			showDirectory(item);
+			showDirectory(item, null);
 			return true;
 		}
 		mActivity.loadDocument(item);
 		return true;
 	}
 
+	protected void showParentDirectory()
+	{
+		if ( currDirectory.parent!=null ) {
+			showDirectory(currDirectory.parent, currDirectory);
+		}
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if ( keyCode==KeyEvent.KEYCODE_BACK && mActivity.isBookOpened() ) {
@@ -173,10 +180,8 @@ public class FileBrowser extends ListView {
 				} else
 					return super.onKeyDown(keyCode, event);
 			}
-			if ( currDirectory.parent!=null ) {
-				showDirectory(currDirectory.parent);
-				return true;
-			}
+			showParentDirectory();
+			return true;
 		}
 		return super.onKeyDown(keyCode, event);
 	}
@@ -198,7 +203,7 @@ public class FileBrowser extends ListView {
 				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.size());
 				mInitialized = true;
 				//mEngine.hideProgress();
-				showDirectory( mScanner.mRoot );
+				showDirectory( mScanner.mRoot, null );
 				setSelection(0);
 			}
 			public void fail(Exception e )
@@ -283,9 +288,9 @@ public class FileBrowser extends ListView {
 	public void showRecentBooks()
 	{
 		if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
-			showDirectory(mScanner.getRoot().getDir(0));
+			showDirectory(mScanner.getRoot().getDir(0), mScanner.getRoot().getFile(0));
 		} else {
-			showDirectory(mScanner.getRoot());
+			showDirectory(mScanner.getRoot(), mScanner.getRoot().getDir(1));
 		}
 	}
 	public void showLastDirectory()
@@ -293,12 +298,12 @@ public class FileBrowser extends ListView {
 		if ( currDirectory==null || currDirectory==mScanner.getRoot() )
 			showRecentBooks();
 		else
-			showDirectory(currDirectory);
+			showDirectory(currDirectory, null);
 	}
-	public void showDirectory( final FileInfo fileOrDir )
+	public void showDirectory( final FileInfo fileOrDir, final FileInfo itemToSelect )
 	{
-		final FileInfo file = fileOrDir.isDirectory ? null : fileOrDir;
-		final FileInfo dir = !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
+		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
+		final FileInfo dir = fileOrDir!=null && !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
 		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
@@ -309,7 +314,7 @@ public class FileBrowser extends ListView {
 		} else
 			showDirectoryInternal(dir, file);
 	}
-	
+
 	private void showDirectoryInternal( final FileInfo dir, final FileInfo file )
 	{
 		currDirectory = dir;
@@ -497,7 +502,10 @@ public class FileBrowser extends ListView {
 			}
 			
 		});
-		setSelection(0);
+		int index = dir!=null ? dir.getItemIndex(file) : -1;
+		if ( dir!=null && !dir.isRootDir() )
+			index++;
+		setSelection(index);
 		invalidate();
 	}
 
