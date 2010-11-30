@@ -115,7 +115,7 @@ public class CoolReader extends Activity
 		public ScreenBacklightControl()
 		{
 		}
-		public static final int SCREEN_BACKLIGHT_DURATION_STEPS = 10;
+		public static final int SCREEN_BACKLIGHT_DURATION_STEPS = 3;
 		public static final int SCREEN_BACKLIGHT_TIMER_STEP = 60*1000;
 		int backlightCountDown = 0; 
 		public void onUserActivity()

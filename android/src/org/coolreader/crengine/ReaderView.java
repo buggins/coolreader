@@ -1139,6 +1139,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceCreated(SurfaceHolder holder) {
 		Log.i("cr3", "surfaceCreated()");
 		mSurfaceCreated = true;
+		drawPage();
 	}
 
 	@Override
@@ -1156,9 +1157,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void startScrollAnimation( final int startX, final int startY, final int maxX, final int maxY )
 	{
 		Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
-		mEngine.execute(new Task() {
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
-			public void work() throws Exception {
+			public void run() {
 				BackgroundThread.ensureBackground();
 				PositionProperties currPos = getPositionPropsInternal(null);
 				if ( currPos.pageMode==0 ) {
@@ -1172,14 +1173,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 	
+	private int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
 	{
 		Log.d("cr3", "updateAnimation("+x + ", " + y+")");
-		mEngine.execute(new Task() {
+		final int serial = ++updateSerialNumber; 
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
-			public void work() throws Exception {
+			public void run() {
 				if ( currentAnimation!=null ) {
 					currentAnimation.update(x, y);
+					if ( serial==updateSerialNumber )
+						currentAnimation.animate();
 				}
 			}
 		});
@@ -1188,9 +1193,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void stopAnimation( final int x, final int y )
 	{
 		Log.d("cr3", "stopAnimation("+x+", "+y+")");
-		mEngine.execute(new Task() {
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
-			public void work() throws Exception {
+			public void run() {
 				if ( currentAnimation!=null ) {
 					currentAnimation.stop(x, y);
 				}
@@ -1198,11 +1203,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
 		});
 	}
+	private int animationSerialNumber = 0;
 	private void scheduleAnimation()
 	{
-		mEngine.execute(new Task() {
+		final int serial = ++animationSerialNumber; 
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
-			public void work() throws Exception {
+			public void run() {
+				if ( serial!=animationSerialNumber )
+					return;
 				if ( currentAnimation!=null ) {
 					currentAnimation.animate();
 				}
@@ -1291,12 +1300,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void update(int x, int y) {
 			int delta = startY - y;
 			pointerDestPos = pointerStartPos + delta;
-			scheduleAnimation();
 		}
 
 		public void animate()
 		{
-			Log.d("cr3", "animate() is called");
+			//Log.d("cr3", "animate() is called");
 			if ( pointerDestPos != pointerCurrPos ) {
 				// TODO
 				int delta = pointerCurrPos-pointerDestPos;
@@ -1326,7 +1334,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		Rect src2 = new Rect(0, 0, mBitmap.getWidth(), rowsFromImg2);
     		Rect dst2 = new Rect(0, rowsFromImg1, mBitmap.getWidth(), h);
 			canvas.drawBitmap(image2.bitmap, src2, dst2, null);
-			Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
+			//Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
 		}
 	}
 	
