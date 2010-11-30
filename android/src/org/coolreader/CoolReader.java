@@ -107,10 +107,57 @@ public class CoolReader extends Activity
 			applyFullscreen( getWindow() );
 		}
 	}
+
+	private Runnable backlightTimerTask = null; 
+	private class ScreenBacklightControl
+	{
+		PowerManager.WakeLock wl = null;
+		public ScreenBacklightControl()
+		{
+		}
+		public static final int SCREEN_BACKLIGHT_DURATION_STEPS = 10;
+		public static final int SCREEN_BACKLIGHT_TIMER_STEP = 60*1000;
+		int backlightCountDown = 0; 
+		public void onUserActivity()
+		{
+			if ( wl==null ) {
+				PowerManager pm = (PowerManager)getSystemService(
+			            Context.POWER_SERVICE);
+				wl = pm.newWakeLock(
+			        PowerManager.SCREEN_BRIGHT_WAKE_LOCK
+			        | PowerManager.ON_AFTER_RELEASE,
+			        "cr3");
+			}
+			if ( !wl.isHeld() )
+				wl.acquire();
+			backlightCountDown = SCREEN_BACKLIGHT_DURATION_STEPS;
+			if ( backlightTimerTask==null ) {
+				backlightTimerTask = new Runnable() {
+					public void run() {
+						if ( backlightTimerTask!=this )
+							return;
+						if ( backlightCountDown<=0 )
+							release();
+						else {
+							backlightCountDown--;
+							BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_STEP);
+						}
+					}
+				};
+				BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_STEP);
+			}
+		}
+		public void release()
+		{
+			if ( wl.isHeld() )
+				wl.release();
+			backlightTimerTask = null;
+		}
+	}
 	
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
-	PowerManager.WakeLock wl = null;
+	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -129,13 +176,6 @@ public class CoolReader extends Activity
 			
 		};
 		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-		
-		PowerManager pm = (PowerManager)getSystemService(
-	            Context.POWER_SERVICE);
-		wl = pm.newWakeLock(
-	        PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-	        | PowerManager.ON_AFTER_RELEASE,
-	        "cr3");
 		
         // testing background thread
     	mBackgroundThread = BackgroundThread.instance();
@@ -170,23 +210,6 @@ public class CoolReader extends Activity
         Log.i("cr3", "initializing reader");
         mReaderView.init();
         mBrowser.showDirectory(mScanner.getRoot(), null);
-        Window wnd = getWindow();
-        if ( wnd!=null ) {
-        	LayoutParams attrs =  wnd.getAttributes();
-        	//attrs.screenBrightness = 0.7f;
-        	// hack to set buttonBrightness field
-        	try {
-	        	Field bb = attrs.getClass().getField("buttonBrightness");
-	        	if ( bb!=null )
-	        		bb.set(attrs, Float.valueOf(0.0f));
-        	} catch ( Exception e ) {
-        		Log.e("cr3", "WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
-        	}
-        	//attrs.buttonBrightness = 0;
-        	wnd.setAttributes(attrs);
-        	//attrs.screenOrientation = LayoutParams.SCREEN_;
-        }
-
         
         fileToLoadOnStart = null;
 		Intent intent = getIntent();
@@ -200,11 +223,46 @@ public class CoolReader extends Activity
         
         Log.i("cr3", "CoolReader.onCreate() exiting");
     }
-
+    
+    public void onUserActivity()
+    {
+    	backlightControl.onUserActivity();
+    	// Hack
+    	BackgroundThread.guiExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+			        Window wnd = getWindow();
+			        if ( wnd!=null ) {
+			        	LayoutParams attrs =  wnd.getAttributes();
+			        	//attrs.screenBrightness = 0.7f;
+			        	// hack to set buttonBrightness field
+			        	try {
+				        	Field bb = attrs.getClass().getField("buttonBrightness");
+				        	if ( bb!=null )
+				        		bb.set(attrs, Float.valueOf(0.0f));
+			        	} catch ( Exception e ) {
+			        		Log.e("cr3", "WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
+			        	}
+			        	//attrs.buttonBrightness = 0;
+			        	wnd.setAttributes(attrs);
+			        	//attrs.screenOrientation = LayoutParams.SCREEN_;
+			        }
+				} catch ( Exception e ) {
+					// ignore
+				}
+			}
+    	});
+    }
+    
 	@Override
 	protected void onDestroy() {
 
 		Log.i("cr3", "CoolReader.onDestroy() entered");
+
+		if ( !CLOSE_BOOK_ON_STOP )
+			mReaderView.close();
+		
 		//if ( mReaderView!=null )
 		//	mReaderView.close();
 		
@@ -277,8 +335,7 @@ public class CoolReader extends Activity
 	@Override
 	protected void onPause() {
 		Log.i("cr3", "CoolReader.onPause() : saving reader state");
-		if ( wl.isHeld() )
-			wl.release();
+		backlightControl.release();
 		mReaderView.save();
 		super.onPause();
 	}
@@ -328,7 +385,12 @@ public class CoolReader extends Activity
 		Log.i("cr3", "CoolReader.onStart()");
 		super.onStart();
 		
-		wl.acquire();
+		backlightControl.onUserActivity();
+		
+		if ( mReaderView!=null && currentView==mReaderView && mReaderView.isBookLoaded() ) {
+			showReader();
+			return;
+		}
 		
 		//!stopped && 
 		if ( restarted && mReaderView!=null && mReaderView.isBookLoaded() ) {
@@ -381,13 +443,15 @@ public class CoolReader extends Activity
         });
 	}
 
+	public final static boolean CLOSE_BOOK_ON_STOP = false;
 	private boolean stopped = false;
 	@Override
 	protected void onStop() {
 		Log.i("cr3", "CoolReader.onStop() entering");
 		stopped = true;
 		// will close book at onDestroy()
-		mReaderView.close();
+		if ( CLOSE_BOOK_ON_STOP )
+			mReaderView.close();
 		super.onStop();
 		Log.i("cr3", "CoolReader.onStop() exiting");
 	}

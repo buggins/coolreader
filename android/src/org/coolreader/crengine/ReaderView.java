@@ -269,46 +269,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return keyCode;
 	}
 	
-	private int overrideTapZone( int zone )
-	{
-		int angle = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
-		//  1 2 3
-		//  4 5 6
-		//  7 8 9
-		int[] subst = new int[] {
-			// angle, from, to
-			1, 	1, 7,
-			1, 	2, 4,
-			1, 	3, 1,
-			1, 	4, 8,
-			1, 	6, 2,
-			1, 	7, 9,
-			1, 	8, 6,
-			1, 	9, 3,
-			2, 	1, 9,
-			2, 	2, 8,
-			2, 	3, 7,
-			2, 	4, 6,
-			2, 	6, 4,
-			2, 	7, 3,
-			2, 	8, 2,
-			2, 	9, 1,
-			3, 	1, 3,
-			3, 	2, 6,
-			3, 	3, 9,
-			3, 	4, 2,
-			3, 	6, 8,
-			3, 	7, 1,
-			3, 	8, 4,
-			3, 	9, 7,
-		};
-		for ( int i=0; i<subst.length; i+=3 ) {
-			if ( angle==subst[i] && zone==subst[i+1] )
-				return subst[i+2];
-		}
-		return zone;
-	}
-	
 	public int getTapZone( int x, int y )
 	{
 		int x1 = getWidth() / 3;
@@ -338,7 +298,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			else
 				zone = 9;
 		}
-		return overrideTapZone( zone );
+		return zone;
 	}
 	
 	public void onTapZone( int zone, boolean isLongPress )
@@ -375,6 +335,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public final int LONG_KEYPRESS_TIME = 900;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		mActivity.onUserActivity();
 		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// goto/set shortcut bookmark
@@ -444,6 +405,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+		mActivity.onUserActivity();
 		keyCode = overrideKey( keyCode );
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// will process in keyup handler
@@ -490,75 +452,69 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private boolean isManualScrollActive = false;
 	private int manualScrollStartPosX = 0;
 	private int manualScrollStartPosY = 0;
-	private int manualScrollLastMoveX = 0;
-	private int manualScrollLastMoveY = 0;
 	private final int START_DRAG_THRESHOLD = 10;
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+		int x = (int)event.getX();
+		int y = (int)event.getY();
+		int dx = getWidth();
+		int dy = getHeight();
+		int orientation = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
+		int convx = x; // rotated x
+		int convy = y; // rotated y
+		switch ( orientation ) {
+		case 1:
+			convx = y;
+			convy = dx - x;
+			break;
+		case 2:
+			convx = dx - x;
+			convy = dy - y;
+			break;
+		case 3:
+			convx = dy - y;
+			convy = x;
+			break;
+		}
+		
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
+			mActivity.onUserActivity();
 			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
-			int x = (int)event.getX();
-			int y = (int)event.getY();
-			int dx = getWidth();
-			int dy = getHeight();
 			if ( isManualScrollActive ) {
-				stopScrollAnimation(y);
+				stopAnimation(convx, convy);
 				isManualScrollActive = false;
 				return true;
 			}
-			int zone = getTapZone(x, y);
+			int zone = getTapZone(convx, convy);
 			onTapZone( zone, isLongPress );
 			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
 			if ( viewMode==ViewMode.SCROLL ) {
-				manualScrollStartPosX = manualScrollLastMoveX = (int)event.getX();
-				manualScrollStartPosY = manualScrollLastMoveY = (int)event.getY();
+				manualScrollStartPosX = convx;
+				manualScrollStartPosY = convy;
 			}
 		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
-			int x = (int)event.getX();
-			int y = (int)event.getY();
 			if ( viewMode==ViewMode.SCROLL ) {
 				if ( !isManualScrollActive ) {
-					int deltax = manualScrollStartPosX - x; 
-					int deltay = manualScrollStartPosY - y;
+					int deltax = manualScrollStartPosX - convx; 
+					int deltay = manualScrollStartPosY - convy;
 					deltax = deltax < 0 ? -deltax : deltax;
 					deltay = deltay < 0 ? -deltay : deltay;
 					if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 						isManualScrollActive = true;
-						startScrollAnimation(manualScrollStartPosY, getHeight());
-						updateScrollAnimation(y);
+						startScrollAnimation(manualScrollStartPosX, manualScrollStartPosY, getWidth(), getHeight());
+						updateAnimation(convx, convy);
 						return true;
 					}
 				}
 			}
 			if ( !isManualScrollActive )
 				return true;
-			int orientation = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
-			int delta = 0;
-			switch ( orientation ) {
-			case 0:
-				delta = manualScrollLastMoveY - y;
-				manualScrollLastMoveY = y;
-				break;
-			case 1:
-				delta = manualScrollLastMoveX - x;
-				manualScrollLastMoveX = x;
-				break;
-			case 2:
-				delta = y - manualScrollLastMoveY;
-				manualScrollLastMoveY = y;
-				break;
-			case 3:
-				delta = x - manualScrollLastMoveX;
-				manualScrollLastMoveX = x;
-				break;
-			}
-			if ( delta!=0 )
-				updateScrollAnimation(y);
-				//moveBy( delta );
+			updateAnimation(convx, convy);
 		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
 			isManualScrollActive = false;
+			stopAnimation(-1, -1);
 		}
 		return true;
 		//return super.onTouchEvent(event);
@@ -1196,13 +1152,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		PAGE_SHIFT, // for simple page shift
 	}
 
-	private ViewAnimation currentAnimation = null;
-	private void startScrollAnimation( final int startY, final int maxY )
+	private ViewAnimationControl currentAnimation = null;
+	private void startScrollAnimation( final int startX, final int startY, final int maxX, final int maxY )
 	{
-		Log.d("cr3", "startScrollAnimation("+startY+")");
-		final ViewAnimation res = new ViewAnimation(AnimationType.SCROLL);
-		res.startY = startY;
-		res.maxY = maxY;
+		Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
 		mEngine.execute(new Task() {
 			@Override
 			public void work() throws Exception {
@@ -1211,61 +1164,41 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( currPos.pageMode==0 ) {
 					currentAnimation = null;
 					return;
-				}
-				int pos = currPos.y;
-				int pos0 = pos - (maxY - startY);
-				if ( pos0<0 )
-					pos0 = 0;
-				res.pointerStartPos = pos;
-				res.pointerCurrPos = pos;
-				res.pointerDestPos = startY;
-				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
-				res.image1 = preparePageImage();
-				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + res.image1.position.pageHeight);
-				res.image2 = preparePageImage();
-				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
-				currentAnimation = res;
-			}
-			
-		});
-	}
-	
-	private void updateScrollAnimation( final int y )
-	{
-		Log.d("cr3", "updateScrollAnimation("+y+")");
-		mEngine.execute(new Task() {
-			@Override
-			public void work() throws Exception {
-				BackgroundThread.ensureBackground();
-				if ( currentAnimation!=null ) {
-					int delta = currentAnimation.startY - y;
-					currentAnimation.pointerDestPos = currentAnimation.pointerStartPos + delta;
-					scheduleAnimation();
-				}
-			}
-		});
-	}
-	
-	private void stopScrollAnimation( final int y )
-	{
-		Log.d("cr3", "stopScrollAnimation("+y+")");
-		mEngine.execute(new Task() {
-			@Override
-			public void work() throws Exception {
-				BackgroundThread.ensureBackground();
-				if ( currentAnimation!=null ) {
-					int delta = currentAnimation.startY - y;
-					currentAnimation.pointerCurrPos = currentAnimation.pointerStartPos + delta;
-					currentAnimation.pointerDestPos = currentAnimation.pointerStartPos + delta;
-					currentAnimation.draw();
-					doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, currentAnimation.pointerDestPos);
-					currentAnimation.close();
+				} else {
+					currentAnimation = new ScrollViewAnimation(startY, maxY);
 				}
 			}
 			
 		});
 	}
-	public void scheduleAnimation()
+	
+	private void updateAnimation( final int x, final int y )
+	{
+		Log.d("cr3", "updateAnimation("+x + ", " + y+")");
+		mEngine.execute(new Task() {
+			@Override
+			public void work() throws Exception {
+				if ( currentAnimation!=null ) {
+					currentAnimation.update(x, y);
+				}
+			}
+		});
+	}
+	
+	private void stopAnimation( final int x, final int y )
+	{
+		Log.d("cr3", "stopAnimation("+x+", "+y+")");
+		mEngine.execute(new Task() {
+			@Override
+			public void work() throws Exception {
+				if ( currentAnimation!=null ) {
+					currentAnimation.stop(x, y);
+				}
+			}
+			
+		});
+	}
+	private void scheduleAnimation()
 	{
 		mEngine.execute(new Task() {
 			@Override
@@ -1277,19 +1210,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 	
-	class ViewAnimation {
-		AnimationType type;
-		BitmapInfo image1;
-		BitmapInfo image2;
+	interface ViewAnimationControl
+	{
+		public void update( int x, int y );
+		public void stop( int x, int y );
+		public void animate();
+	}
+
+	abstract class ViewAnimationBase implements ViewAnimationControl {
 		int pointerStartPos;
 		int pointerDestPos;
 		int pointerCurrPos;
-		int startY;
-		int maxY;
+		BitmapInfo image1;
+		BitmapInfo image2;
 		long startTimeStamp;
-		ViewAnimation( AnimationType type )
+		ViewAnimationBase()
 		{
-			this.type = type;
 			startTimeStamp = android.os.SystemClock.uptimeMillis();
 		}
 		public void close()
@@ -1298,6 +1234,66 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			image2.recycle();
 			currentAnimation = null;
 		}
+		public void draw()
+		{
+			if ( !mSurfaceCreated )
+				return;
+			Canvas canvas = null;
+			try {
+				canvas = getHolder().lockCanvas(null);
+				draw(canvas);
+			} finally {
+				if ( canvas!=null )
+					getHolder().unlockCanvasAndPost(canvas);
+			}
+		}
+		abstract void draw( Canvas canvas );
+	}
+	
+	class ScrollViewAnimation extends ViewAnimationBase {
+		int startY;
+		int maxY;
+		ScrollViewAnimation( int startY, int maxY )
+		{
+			super();
+			this.startY = startY;
+			this.maxY = maxY;
+			PositionProperties currPos = getPositionPropsInternal(null);
+			int pos = currPos.y;
+			int pos0 = pos - (maxY - startY);
+			if ( pos0<0 )
+				pos0 = 0;
+			pointerStartPos = pos;
+			pointerCurrPos = pos;
+			pointerDestPos = startY;
+			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
+			image1 = preparePageImage();
+			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
+			image2 = preparePageImage();
+			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
+			currentAnimation = this;
+		}
+		
+		@Override
+		public void stop(int x, int y) {
+			if ( y!=-1 ) {
+				int delta = startY - y;
+				pointerCurrPos = pointerStartPos + delta;
+			}
+			pointerDestPos = pointerCurrPos;
+			draw();
+			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
+			close();
+			currentAnimation = null;
+		}
+
+		@Override
+		public void update(int x, int y) {
+			int delta = startY - y;
+			pointerDestPos = pointerStartPos + delta;
+			scheduleAnimation();
+		}
+
 		public void animate()
 		{
 			Log.d("cr3", "animate() is called");
@@ -1306,7 +1302,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				int delta = pointerCurrPos-pointerDestPos;
 				if ( delta<0 )
 					delta = -delta;
-				int step = delta<5 ? 1 : (delta<12 ? 2 : (delta<20 ? 3 : (delta<30 ? 5 : 10))); 
+				int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
 				if ( pointerCurrPos<pointerDestPos )
 					pointerCurrPos+=step;
 				else if ( pointerCurrPos>pointerDestPos )
@@ -1319,27 +1315,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 		}
 
-		public void draw()
-		{
-			if ( !mSurfaceCreated )
-				return;
-			Canvas canvas = null;
-			try {
-				canvas = getHolder().lockCanvas(null);
-				switch (type) {
-				case SCROLL:
-					drawScroll(canvas);
-					break;
-				case PAGE_SHIFT:
-					// TODO
-					break;
-				}
-			} finally {
-				if ( canvas!=null )
-					getHolder().unlockCanvasAndPost(canvas);
-			}
-		}
-		public void drawScroll(Canvas canvas)
+		public void draw(Canvas canvas)
 		{
 			int h = image1.position.pageHeight;
 			int rowsFromImg1 = image1.position.y + h - pointerCurrPos;

@@ -161,12 +161,25 @@ public class BackgroundThread extends Thread {
 	 */
 	public void postGUI( Runnable task )
 	{
+		postGUI(task, 0);
+	}
+
+	/**
+	 * Post runnable to be executed in GUI thread
+	 * @param task is runnable to execute in GUI thread
+	 * @param delay is delay before running task, in millis
+	 */
+	public void postGUI( Runnable task, long delay )
+	{
 		if ( guiTarget==null ) {
 			synchronized( postedGUI ) {
 				postedGUI.add(task);
 			}
 		} else {
-			guiTarget.post(task);
+			if ( delay>0 )
+				guiTarget.postDelayed(task, delay);
+			else
+				guiTarget.post(task);
 		}
 	}
 
