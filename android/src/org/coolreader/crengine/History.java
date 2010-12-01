@@ -106,6 +106,80 @@ public class History {
 			Log.v("cr3", "History.updateRecentDir() : mRecentBooksFolder is null");
 		}
 	}
+	static class ImageData {
+		long bookId;
+		byte[] data;
+	}
+	static class ImageDataCache {
+		private final int maxSize;
+		private int dataSize = 0;
+		private ArrayList<ImageData> list = new ArrayList<ImageData>();
+		public ImageDataCache( int maxSize ) {
+			this.maxSize = maxSize;
+		}
+		public byte[] get( long bookId ) {
+			for ( int i=0; i<list.size(); i++ )
+				if ( list.get(i).bookId==bookId )
+					return list.get(i).data;
+			return null;
+		}
+		public void put( long bookId, byte[] data ) {
+			boolean found = false;
+			for ( int i=0; i<list.size(); i++ )
+				if ( list.get(i).bookId==bookId ) {
+					dataSize -= list.get(i).data.length;  
+					dataSize += data.length;  
+					list.get(i).data = data;
+					if ( i>0 ) {
+						ImageData item = list.remove(i);
+						list.add(0, item);
+					}
+					found = true;
+					break;
+				}
+			if ( !found ) {
+				ImageData item = new ImageData();
+				item.bookId = bookId;
+				item.data = data;
+				list.add(0, item);
+				dataSize += data.length;
+			}
+			for ( int i=list.size()-1; i>0; i-- ) {
+				if ( dataSize>maxSize ) {
+					ImageData item = list.remove(i);
+					dataSize -= item.data.length;
+				} else
+					break;
+			}
+		}
+	}
+	public final static int COVERPAGE_IMAGE_CACHE_SIZE = 500000;
+	ImageDataCache coverPageCache = new ImageDataCache(COVERPAGE_IMAGE_CACHE_SIZE);
+	public void setBookCoverpageData(long bookId, byte[] coverpageData )
+	{
+		if ( bookId==0 )
+			return;
+		byte[] oldData = coverPageCache.get(bookId);
+		if ( coverpageData==null )
+			coverpageData = new byte[] {};
+		if ( oldData==null || oldData.length!=coverpageData.length ) { 
+			coverPageCache.put(bookId, coverpageData);
+			mDB.saveBookCoverpage(bookId, coverpageData);
+		}
+	}
+	public byte[] getBookCoverpageData(long bookId)
+	{
+		if ( bookId==0 )
+			return null;
+		byte[] data = coverPageCache.get(bookId);
+		if ( data==null ) {
+			data = mDB.loadBookCoverpage(bookId);
+			if ( data==null )
+				data = new byte[] {};
+			coverPageCache.put(bookId, data);
+		}
+		return data.length>0 ? data : null;
+	}
 	public boolean loadFromDB( Scanner scanner, int maxItems )
 	{
 		Log.v("cr3", "History.loadFromDB()");

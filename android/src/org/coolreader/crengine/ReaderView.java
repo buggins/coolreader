@@ -1425,6 +1425,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private byte[] coverPageBytes = null;
 	private BitmapDrawable coverPageDrawable = null;
+	private void findCoverPage()
+	{
+    	Log.d("cr3", "document is loaded succesfull, checking coverpage data");
+    	byte[] coverpageBytes = getCoverPageDataInternal();
+    	if ( coverpageBytes!=null ) {
+    		Log.d("cr3", "Found cover page: " + coverpageBytes.length + " bytes");
+    		try {
+    			ByteArrayInputStream is = new ByteArrayInputStream(coverpageBytes);
+    			BitmapDrawable drawable = new BitmapDrawable(getResources(), is);
+        		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
+    			coverPageBytes = coverpageBytes;
+    			coverPageDrawable = drawable;
+    			mEngine.setProgressDrawable(drawable);
+    		} catch ( Exception e ) {
+        		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
+    		}
+    	}
+	}
+	
 	private class LoadDocumentTask extends Task
 	{
 		String filename;
@@ -1448,21 +1467,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
-	        	Log.d("cr3", "document is loaded succesfull, checking coverpage data");
-	        	byte[] coverpageBytes = getCoverPageDataInternal();
-	        	if ( coverpageBytes!=null ) {
-	        		Log.d("cr3", "Found cover page: " + coverpageBytes.length + " bytes");
-	        		try {
-	        			ByteArrayInputStream is = new ByteArrayInputStream(coverpageBytes);
-	        			BitmapDrawable drawable = new BitmapDrawable(getResources(), is);
-		        		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
-		    			coverPageBytes = coverpageBytes;
-		    			coverPageDrawable = drawable;
-		    			mEngine.setProgressDrawable(drawable);
-	        		} catch ( Exception e ) {
-		        		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
-	        		}
-	        	}
+	        	findCoverPage();
 	        	preparePageImage();
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
@@ -1559,6 +1564,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		});
     		mActivity.getHistory().updateBookAccess(mBookInfo);
     		mActivity.getHistory().saveToDB();
+    		mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
     	}
     }
     

@@ -24,46 +24,68 @@ public class CRDB {
 	protected void dropTables()
 	{
 		String[] tableNames = new String[] {
-			"book_author", "bookmark", "book", "series", "author", "folder"	
+			"book_author", "bookmark", "book", "series", "author", "folder", "coverpage"	
 		};
 		for ( String name : tableNames )
 			mDB.execSQL("DROP TABLE IF EXISTS " + name);
 	}
 	
-	private void execSQLIgnoreErrors( String sql )
+	private void execSQLIgnoreErrors( String... sqls )
 	{
-		try { 
-			mDB.execSQL(sql);
-		} catch ( SQLException e ) {
-			// ignore
-			Log.w("cr3", "query failed, ignoring: " + sql);
+		for ( String sql : sqls ) {
+			try { 
+				mDB.execSQL(sql);
+			} catch ( SQLException e ) {
+				// ignore
+				Log.w("cr3", "query failed, ignoring: " + sql);
+			}
 		}
 	}
+
+	private void execSQL( String... sqls )
+	{
+		for ( String sql : sqls ) {
+			try { 
+				mDB.execSQL(sql);
+			} catch ( SQLException e ) {
+				// ignore
+				Log.w("cr3", "query failed: " + sql);
+				throw e;
+			}
+		}
+	}
+
+	private final static String[] COVERPAGE_SCHEMA = new String[] {
+		"CREATE TABLE IF NOT EXISTS coverpage (" +
+		"book_fk INTEGER NOT NULL REFERENCES book (id)," +
+		"imagedata BLOB NULL" +
+		")"
+	};
 	
-	public final int DB_VERSION = 2;
+	public final int DB_VERSION = 3;
 	protected boolean updateSchema()
 	{
 		if (DROP_TABLES)
 			dropTables();
-		mDB.execSQL("CREATE TABLE IF NOT EXISTS author (" +
+		execSQL("CREATE TABLE IF NOT EXISTS author (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
                 "author_name_index ON author (name) ");
-		mDB.execSQL("CREATE TABLE IF NOT EXISTS series (" +
+		execSQL("CREATE TABLE IF NOT EXISTS series (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 		        "series_name_index ON series (name) ");
-		mDB.execSQL("CREATE TABLE IF NOT EXISTS folder (" +
+		execSQL("CREATE TABLE IF NOT EXISTS folder (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR NOT NULL" +
 				")");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"folder_name_index ON folder (name) ");
-		mDB.execSQL("CREATE TABLE IF NOT EXISTS book (" +
+		execSQL("CREATE TABLE IF NOT EXISTS book (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"pathname VARCHAR NOT NULL," +
 				"folder_fk INTEGER REFERENCES folder (id)," +
@@ -78,26 +100,26 @@ public class CRDB {
 				"create_time INTEGER," +
 				"last_access_time INTEGER" +
 				")");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_folder_index ON book (folder_fk) ");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_pathname_index ON book (pathname) ");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_filename_index ON book (filename) ");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_title_index ON book (title) ");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_last_access_time_index ON book (last_access_time) ");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_title_index ON book (title) ");
-		mDB.execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
+		execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
 				"book_fk INTEGER NOT NULL REFERENCES book (id)," +
 				"author_fk INTEGER NOT NULL REFERENCES author (id)," +
 				"PRIMARY KEY (book_fk, author_fk)" +
 				")");
-		mDB.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
+		execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
 				"author_book_index ON book_author (author_fk, book_fk) ");
-		mDB.execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
+		execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"book_fk INTEGER NOT NULL REFERENCES book (id)," +
 				"type INTEGER NOT NULL DEFAULT 0," +
@@ -110,12 +132,15 @@ public class CRDB {
 				"pos_text VARCHAR," +
 				"comment_text VARCHAR" +
 				")");
-		mDB.execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE INDEX IF NOT EXISTS " +
 		"bookmark_book_index ON bookmark (book_fk) ");
+		execSQL(COVERPAGE_SCHEMA);
 		int currentVersion = mDB.getVersion();
 		// version 1 updates ====================================================================
 		if ( currentVersion<1 )
 			execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
+		if ( currentVersion<3 )
+			execSQLIgnoreErrors(COVERPAGE_SCHEMA);
 		// version 2 updates ====================================================================
 		// TODO: add more updates here
 		// set current version
@@ -281,6 +306,37 @@ public class CRDB {
 			return null;
 		}
 	}
+	
+	public void saveBookCoverpage( long bookId, byte[] data )
+	{
+		if ( data==null )
+			return;
+		try { 
+			Long existing = longQuery("SELECT book_fk FROM coverpage WHERE book_fk=" + bookId);
+			if ( existing==null ) {
+				SQLiteStatement stmt = mDB.compileStatement("UPDATE coverpage SET coverimage=? WHERE book_id=" + bookId);
+				stmt.bindBlob(1, data);
+				stmt.execute();
+				Log.v("cr3", "db: saved " + data.length + " bytes of cover page for book " + bookId);
+			}
+		} catch ( Exception e ) {
+			Log.e("cr3", "Exception while trying to save cover page to DB: " + e.getMessage() );
+		}
+	}
+	public byte[] loadBookCoverpage( long bookId )
+	{
+		try {
+			Cursor rs = mDB.rawQuery("SELECT coverimage FROM coverpage WHERE book_fk=" + bookId, null);
+			if ( rs.moveToFirst() ) {
+				return rs.getBlob(0);
+			}
+			return null;
+		} catch ( SQLException e ) {
+			Log.e("cr3", "error while reading coverpage for book " + bookId + ": " + e.getMessage());
+			return null;
+		}
+	}
+	
 	public void dumpStatistics()
 	{
 		Log.i("cr3db", "DB: " + longQuery("SELECT count(*) FROM author") + " authors, "
@@ -288,6 +344,7 @@ public class CRDB {
 				 + longQuery("SELECT count(*) FROM book") + " books, "
 				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks"
 				 + longQuery("SELECT count(*) FROM folder") + " folders"
+				 + longQuery("SELECT count(*) FROM coverpage") + " coverpages"
 				 );
 	}
 
@@ -635,6 +692,7 @@ public class CRDB {
 		if ( fileInfo==null || fileInfo.id==0 )
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + fileInfo.id);
+		execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + fileInfo.id);
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + fileInfo.id);
 	}
 	
