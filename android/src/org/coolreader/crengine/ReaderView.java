@@ -269,12 +269,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return keyCode;
 	}
 	
-	public int getTapZone( int x, int y )
+	public int getTapZone( int x, int y, int dx, int dy )
 	{
-		int x1 = getWidth() / 3;
-		int x2 = getWidth() * 2 / 3;
-		int y1 = getHeight() / 3;
-		int y2 = getHeight() * 2 / 3;
+		int x1 = dx / 3;
+		int x2 = dx * 2 / 3;
+		int y1 = dy / 3;
+		int y2 = dy * 2 / 3;
 		int zone = 0;
 		if ( y<y1 ) {
 			if ( x<x1 )
@@ -463,10 +463,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int orientation = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
 		int convx = x; // rotated x
 		int convy = y; // rotated y
+		int convdx = dx;
+		int convdy = dy;
 		switch ( orientation ) {
 		case 1:
 			convx = y;
 			convy = dx - x;
+			convdx = dy;
+			convdy = dx;
 			break;
 		case 2:
 			convx = dx - x;
@@ -475,6 +479,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case 3:
 			convx = dy - y;
 			convy = x;
+			convdx = dy;
+			convdy = dx;
 			break;
 		}
 		
@@ -486,7 +492,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				isManualScrollActive = false;
 				return true;
 			}
-			int zone = getTapZone(convx, convy);
+			int zone = getTapZone(convx, convy, convdx, convdy);
 			onTapZone( zone, isLongPress );
 			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
@@ -503,7 +509,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					deltay = deltay < 0 ? -deltay : deltay;
 					if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 						isManualScrollActive = true;
-						startScrollAnimation(manualScrollStartPosX, manualScrollStartPosY, getWidth(), getHeight());
+						startScrollAnimation(manualScrollStartPosX, manualScrollStartPosY, convdx, convdy);
 						updateAnimation(convx, convy);
 						return true;
 					}
@@ -942,13 +948,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "Submitting LoadDocumentTask for " + fileName);
-		init();
-		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
-		if ( book==null ) {
+		if ( fileName==null ) {
 			errorHandler.run();
 			return false;
 		}
-		execute( new LoadDocumentTask(book.getFileInfo(), errorHandler) );
+		init();
+		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
+		FileInfo fi = null;
+		if ( book==null ) {
+			FileInfo dir = mActivity.getScanner().findParent(new FileInfo(fileName), mActivity.getScanner().getRoot());
+			if ( dir!=null )
+				fi = dir.findItemByPathName(fileName);
+			if ( fi==null ) {
+				errorHandler.run();
+				return false;
+			}
+		} else {
+			fi = book.getFileInfo();
+		}
+		execute( new LoadDocumentTask(fi, errorHandler) );
 		return true;
 	}
 	
@@ -1249,8 +1267,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return;
 			Canvas canvas = null;
 			try {
+				long startTs = android.os.SystemClock.uptimeMillis();
 				canvas = getHolder().lockCanvas(null);
 				draw(canvas);
+				long endTs = android.os.SystemClock.uptimeMillis();
+				updateAnimationDurationStats(endTs - startTs);
 			} finally {
 				if ( canvas!=null )
 					getHolder().unlockCanvasAndPost(canvas);
@@ -1310,7 +1331,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				int delta = pointerCurrPos-pointerDestPos;
 				if ( delta<0 )
 					delta = -delta;
-				int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
+				long avgDraw = getAvgAnimationDrawDuration();
+				int maxStep = (int)(maxY * 1500 / avgDraw);
+				int step;
+				if ( delta > maxStep * 2 )
+					step = maxStep;
+				else
+					step = (delta + 3) / 4;
+				//int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
 				if ( pointerCurrPos<pointerDestPos )
 					pointerCurrPos+=step;
 				else if ( pointerCurrPos>pointerDestPos )
@@ -1335,6 +1363,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		Rect dst2 = new Rect(0, rowsFromImg1, mBitmap.getWidth(), h);
 			canvas.drawBitmap(image2.bitmap, src2, dst2, null);
 			//Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
+		}
+	}
+
+	private long sumAnimationDrawDuration = 1000;
+	private int drawAnimationCount = 10;
+	private long getAvgAnimationDrawDuration()
+	{
+		return sumAnimationDrawDuration / drawAnimationCount; 
+	}
+	private void updateAnimationDurationStats( long duration )
+	{
+		if ( duration<=0 )
+			duration = 1;
+		else if ( duration>1500 )
+			return;
+		sumAnimationDrawDuration += duration;
+		if ( ++drawAnimationCount>100 ) {
+			drawAnimationCount /= 2;
+			sumAnimationDrawDuration /= 2;
 		}
 	}
 	

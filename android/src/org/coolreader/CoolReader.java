@@ -53,6 +53,11 @@ public class CoolReader extends Activity
 	CRDB mDB;
 	private BackgroundThread mBackgroundThread;
 	
+	public Scanner getScanner()
+	{
+		return mScanner;
+	}
+	
 	public History getHistory() 
 	{
 		return mHistory;
@@ -224,10 +229,12 @@ public class CoolReader extends Activity
         Log.i("cr3", "CoolReader.onCreate() exiting");
     }
     
+    boolean brightnessHackError = false;
     public void onUserActivity()
     {
     	backlightControl.onUserActivity();
     	// Hack
+    	if ( !brightnessHackError )
     	BackgroundThread.guiExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -243,6 +250,7 @@ public class CoolReader extends Activity
 				        		bb.set(attrs, Float.valueOf(0.0f));
 			        	} catch ( Exception e ) {
 			        		Log.e("cr3", "WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
+			        		brightnessHackError = true;
 			        	}
 			        	//attrs.buttonBrightness = 0;
 			        	wnd.setAttributes(attrs);
@@ -255,11 +263,12 @@ public class CoolReader extends Activity
     	});
     }
     
+    boolean mDestroyed = false;
 	@Override
 	protected void onDestroy() {
 
 		Log.i("cr3", "CoolReader.onDestroy() entered");
-
+		mDestroyed = true;
 		if ( !CLOSE_BOOK_ON_STOP )
 			mReaderView.close();
 		
@@ -313,6 +322,11 @@ public class CoolReader extends Activity
 	
 	@Override
 	protected void onNewIntent(Intent intent) {
+		Log.i("cr3", "onNewIntent : " + intent);
+		if ( mDestroyed ) {
+			Log.e("cr3", "engine is already destroyed");
+			return;
+		}
 		String fileToOpen = null;
 		if ( Intent.ACTION_VIEW.equals(intent.getAction()) ) {
 			Uri uri = intent.getData();
@@ -405,13 +419,14 @@ public class CoolReader extends Activity
         //engine.waitTasksCompletion();
 		restarted = false;
 		stopped = false;
+		final String fileName = fileToLoadOnStart;
         mEngine.execute(new Engine.EngineTask() {
 
 			public void done() {
 		        Log.i("cr3", "trying to load last document");
-				if ( fileToLoadOnStart!=null || LOAD_LAST_DOCUMENT_ON_START ) {
-					if ( fileToLoadOnStart!=null ) {
-						mReaderView.loadDocument(fileToLoadOnStart, new Runnable() {
+				if ( fileName!=null || LOAD_LAST_DOCUMENT_ON_START ) {
+					if ( fileName!=null ) {
+						mReaderView.loadDocument(fileName, new Runnable() {
 							public void run() {
 								// cannot open recent book: load another one
 								Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");

@@ -148,6 +148,18 @@ public class FileInfo {
 		//throw new IndexOutOfBoundsException();
 		return null;
 	}
+	public FileInfo findItemByPathName( String pathName )
+	{
+		if ( dirs!=null )
+			for ( FileInfo dir : dirs )
+				if ( pathName.equals(dir.getPathName() ))
+					return dir;
+		if ( files!=null )
+			for ( FileInfo file : files )
+				if ( pathName.equals(file.getPathName() ))
+					return file;
+		return null;
+	}
 	public int getItemIndex( FileInfo item )
 	{
 		if ( item==null )
