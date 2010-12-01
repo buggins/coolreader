@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -215,6 +217,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native void clearSelectionInternal();
     private native boolean findTextInternal( String pattern, int origin, int reverse, int caseInsensitive );
     private native void setBatteryStateInternal( int state );
+    private native byte[] getCoverPageDataInternal();
     
     
     protected int mNativeObject; // used from JNI
@@ -1441,6 +1444,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
+	        	byte[] coverpageBytes = getCoverPageDataInternal();
+	        	if ( coverpageBytes!=null ) {
+	        		Log.d("cr3", "Found cover page: " + coverpageBytes.length + " bytes");
+	        		try {
+	        			ByteArrayInputStream is = new ByteArrayInputStream(coverpageBytes);
+	        			BitmapDrawable drawable = new BitmapDrawable(getResources(), is);
+		        		Log.d("cr3", "cover page format: " + drawable.getIntrinsicHeight() + "x" + drawable.getIntrinsicHeight());
+	        		} catch ( Exception e ) {
+		        		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
+	        		}
+	        	}
 	        	preparePageImage();
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");

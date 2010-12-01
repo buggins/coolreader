@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef org_coolreader_crengine_Engine_LOG_ENGINE_TASKS
+#define org_coolreader_crengine_Engine_LOG_ENGINE_TASKS 0L
 #undef org_coolreader_crengine_Engine_HYPH_NONE
 #define org_coolreader_crengine_Engine_HYPH_NONE 0L
 #undef org_coolreader_crengine_Engine_HYPH_ALGO

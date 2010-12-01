@@ -9210,16 +9210,15 @@ public:
     }
 };
 
-/// returns object image source
-LVImageSourceRef ldomNode::getObjectImageSource()
+/// returns object image ref name
+lString16 ldomNode::getObjectImageRefName()
 {
     if ( !this || !isElement() )
-        return LVImageSourceRef();
+        return lString16();
     //printf("ldomElement::getObjectImageSource() ... ");
-    LVImageSourceRef ref;
     const css_elem_def_props_t * et = getDocument()->getElementTypePtr(getNodeId());
     if (!et || !et->is_object)
-        return ref;
+        return lString16();
     lUInt16 hrefId = getDocument()->getAttrNameIndex(L"href");
     lUInt16 srcId = getDocument()->getAttrNameIndex(L"src");
     lString16 refName = getAttributeValue( getDocument()->getNsNameIndex(L"xlink"),
@@ -9231,11 +9230,23 @@ LVImageSourceRef ldomNode::getObjectImageSource()
     if ( refName.empty() )
         refName = getAttributeValue( LXML_NS_ANY, srcId ); //LXML_NS_NONE
     if ( refName.length()<2 )
-        return ref;
+        return lString16();
     refName = DecodeHTMLUrlString(refName);
-    if (getDocument()->_urlImageMap.get( refName, ref ) )
-        return ref; // found in cache
+    return refName;
+}
 
+
+/// returns object image stream
+LVStreamRef ldomNode::getObjectImageStream()
+{
+}
+
+
+/// returns object image source
+LVImageSourceRef ldomNode::getObjectImageSource()
+{
+    lString16 refName = getObjectImageRefName();
+    LVImageSourceRef ref;
     ref = getDocument()->getObjectImageSource( refName );
     if ( !ref.isNull() ) {
         int dx = ref->GetWidth();
@@ -9249,19 +9260,17 @@ LVImageSourceRef ldomNode::getObjectImageSource()
     return ref;
 }
 
-/// returns object image source
-LVImageSourceRef ldomDocument::getObjectImageSource( lString16 refName )
+/// returns object image stream
+LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
 {
-    LVImageSourceRef ref;
+    LVStreamRef ref;
     if ( refName[0]!='#' ) {
         if ( !getContainer().isNull() ) {
             lString16 name = refName;
             if ( !getCodeBase().empty() )
                 name = getCodeBase() + refName;
-            LVStreamRef stream = getContainer()->OpenStream(name.c_str(), LVOM_READ);
-            if ( !stream.isNull() )
-                ref = LVCreateStreamImageSource( stream );
-            else
+            ref = getContainer()->OpenStream(name.c_str(), LVOM_READ);
+            if ( ref.isNull() )
                 CRLog::error("Cannot open stream by name %s", LCSTR(name));
         }
         return ref;
@@ -9270,15 +9279,20 @@ LVImageSourceRef ldomDocument::getObjectImageSource( lString16 refName )
     if ( refValueId == (lUInt16)-1 ) {
         return ref;
     }
-    //printf(" refName=%s id=%d ", UnicodeToUtf8( refName ).c_str(), refValueId );
     ldomNode * objnode = getNodeById( refValueId );
-    if ( !objnode ) {
-        //printf("no OBJ node found!!!\n" );
+    if ( !objnode || !objnode->isElement())
         return ref;
-    }
-    //printf(" (found) ");
-    ref = LVCreateNodeImageSource( objnode );
+    ref = objnode->createBase64Stream();
     return ref;
+}
+
+/// returns object image source
+LVImageSourceRef ldomDocument::getObjectImageSource( lString16 refName )
+{
+    LVStreamRef stream = getObjectImageStream( refName );
+    if ( stream.isNull() )\
+         return LVImageSourceRef();
+    return LVCreateStreamImageSource( stream );
 }
 
 void ldomDocument::resetNodeNumberingProps()

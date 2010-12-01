@@ -45,6 +45,7 @@ public:
 	void fromJavaStringArray( jobjectArray array, lString16Collection & dst );
 	jobjectArray toJavaStringArray( lString16Collection & dst );
 	LVStreamRef jbyteArrayToStream( jbyteArray array ); 
+	jbyteArray streamToJByteArray( LVStreamRef stream ); 
 	jobject enumByNativeId( const char * classname, int id ); 
 	CRPropRef fromJavaProperties( jobject jprops );
 	jobject toJavaProperties( CRPropRef props );

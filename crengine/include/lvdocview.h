@@ -707,6 +707,8 @@ public:
     void drawCoverTo( LVDrawBuf * drawBuf, lvRect & rc );
     /// returns cover page image source, if any
     LVImageSourceRef getCoverPageImage();
+    /// returns cover page image stream, if any
+    LVStreamRef getCoverPageImageStream();
 
     /// returns bookmark
     ldomXPointer getBookmark();

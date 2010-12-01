@@ -21,6 +21,8 @@ extern "C" {
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN 100L
 #undef org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE
 #define org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE 1L
+#undef org_coolreader_crengine_ReaderView_GC_INTERVAL
+#define org_coolreader_crengine_ReaderView_GC_INTERVAL 1L
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    getPageImageInternal
@@ -156,6 +158,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_findTextInter
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal
   (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getCoverPageDataInternal
+ * Signature: ()[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPageDataInternal
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

@@ -124,8 +124,8 @@ public:
 };
 
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
- { 16, 18, 20, 22, 24, 26, 28, 30, \
-   32, 34, 36, 38, 40, 42, 48, 56 }
+ { 14, 16, 18, 20, 22, 24, 26, 28, 30, \
+   32, 34, 36, 38, 40, 42, 44, 48, 52, 56 }
 
 DECL_DEF_CR_FONT_SIZES;
 
@@ -149,7 +149,6 @@ ReaderViewNative::ReaderViewNative()
         "   .00000000000000000000000.",
         "   .0.....................0.",
         "   .0.XXXX.XXXX.XXXX.XXXX.0.",
-        "....0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0000.XXXX.XXXX.XXXX.XXXX.0.",
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
@@ -157,9 +156,7 @@ ReaderViewNative::ReaderViewNative()
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
         ".0000.XXXX.XXXX.XXXX.XXXX.0.",
-        "....0.XXXX.XXXX.XXXX.XXXX.0.",
         "   .0.XXXX.XXXX.XXXX.XXXX.0.",
         "   .0.....................0.",
         "   .00000000000000000000000.",
@@ -950,3 +947,21 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateIn
     p->_docview->setBatteryState(state);
 }
 
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getCoverPageDataInternal
+ * Signature: ()[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPageDataInternal
+  (JNIEnv * _env, jobject _this)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    LVStreamRef stream = p->_docview->getCoverPageImageStream();
+    jbyteArray array = env.streamToJByteArray(stream);
+    if ( array!=NULL )
+    	CRLog::debug("getCoverPageDataInternal() : returned cover page array");
+    else
+    	CRLog::debug("getCoverPageDataInternal() : cover page data not found");
+}

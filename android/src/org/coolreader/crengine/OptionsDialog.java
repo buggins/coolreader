@@ -30,8 +30,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	ReaderView mReaderView;
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
-		16, 18, 20, 22, 24, 26, 28, 30,
-		32, 34, 36, 38, 40, 42, 48, 56
+		14, 16, 18, 20, 22, 24, 26, 28, 30,
+		32, 34, 36, 38, 40, 42, 44, 48, 52, 56
 	};
 	int[] mInterlineSpaces = new int[] {
 			80, 90, 100, 110, 120, 130, 140, 150

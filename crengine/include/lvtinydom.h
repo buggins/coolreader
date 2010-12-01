@@ -735,6 +735,10 @@ public:
 #if BUILD_LITE!=1
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
+    /// returns object image ref name
+    lString16 getObjectImageRefName();
+    /// returns object image stream
+    LVStreamRef getObjectImageStream();
     /// formats final block
     int renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor * fmt, int width );
     /// formats final block again after change, returns true if size of block is changed
@@ -1722,6 +1726,8 @@ public:
 #endif
 
 #if BUILD_LITE!=1
+    /// returns object image stream
+    LVStreamRef getObjectImageStream( lString16 refName );
     /// returns object image source
     LVImageSourceRef getObjectImageSource( lString16 refName );
 

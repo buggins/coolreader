@@ -742,6 +742,28 @@ void LVDocView::updatePageNumbers( LVTocItem * item )
 }
 
 
+/// returns cover page image stream, if any
+LVStreamRef LVDocView::getCoverPageImageStream()
+{
+    //CRLog::trace("LVDocView::getCoverPageImage()");
+    //m_doc->dumpStatistics();
+    lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };
+    //lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
+    ldomNode * cover_el = m_doc->getRootNode()->findChildElement( path );
+    //ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
+
+    if ( cover_el )
+    {
+        ldomNode * cover_img_el = cover_el->findChildElement( LXML_NS_ANY, el_image, 0 );
+        if ( cover_img_el ) {
+            LVStreamRef imgsrc = cover_img_el->getObjectImageStream();
+            return imgsrc;
+        }
+    }
+    return LVStreamRef(); // not found: return NULL ref
+}
+
+
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
