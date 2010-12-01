@@ -767,6 +767,9 @@ LVStreamRef LVDocView::getCoverPageImageStream()
 /// returns cover page image source, if any
 LVImageSourceRef LVDocView::getCoverPageImage()
 {
+//    LVStreamRef stream = getCoverPageImageStream();
+//    if ( !stream.isNull() )
+//        CRLog::trace("Image stream size is %d", (int)stream->GetSize() );
     //CRLog::trace("LVDocView::getCoverPageImage()");
     //m_doc->dumpStatistics();
     lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, 0 };

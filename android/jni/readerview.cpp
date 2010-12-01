@@ -958,10 +958,13 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPag
 {
     CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
+//	CRLog::trace("getCoverPageDataInternal() : requesting cover image stream");
     LVStreamRef stream = p->_docview->getCoverPageImageStream();
+//	CRLog::trace("getCoverPageDataInternal() : converting stream to byte array");
     jbyteArray array = env.streamToJByteArray(stream);
     if ( array!=NULL )
     	CRLog::debug("getCoverPageDataInternal() : returned cover page array");
     else
     	CRLog::debug("getCoverPageDataInternal() : cover page data not found");
+    return array;
 }

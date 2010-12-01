@@ -1444,6 +1444,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
+	        	Log.d("cr3", "document is loaded succesfull, checking coverpage data");
 	        	byte[] coverpageBytes = getCoverPageDataInternal();
 	        	if ( coverpageBytes!=null ) {
 	        		Log.d("cr3", "Found cover page: " + coverpageBytes.length + " bytes");

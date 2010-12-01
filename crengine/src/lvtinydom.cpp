@@ -9239,6 +9239,10 @@ lString16 ldomNode::getObjectImageRefName()
 /// returns object image stream
 LVStreamRef ldomNode::getObjectImageStream()
 {
+    lString16 refName = getObjectImageRefName();
+    if ( refName.empty() )
+        return LVStreamRef();
+    return getDocument()->getObjectImageStream( refName );
 }
 
 
@@ -9247,6 +9251,8 @@ LVImageSourceRef ldomNode::getObjectImageSource()
 {
     lString16 refName = getObjectImageRefName();
     LVImageSourceRef ref;
+    if ( refName.empty() )
+        return ref;
     ref = getDocument()->getObjectImageSource( refName );
     if ( !ref.isNull() ) {
         int dx = ref->GetWidth();
