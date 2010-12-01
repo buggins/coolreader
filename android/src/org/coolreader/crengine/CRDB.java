@@ -314,7 +314,7 @@ public class CRDB {
 		try { 
 			Long existing = longQuery("SELECT book_fk FROM coverpage WHERE book_fk=" + bookId);
 			if ( existing==null ) {
-				SQLiteStatement stmt = mDB.compileStatement("UPDATE coverpage SET coverimage=? WHERE book_id=" + bookId);
+				SQLiteStatement stmt = mDB.compileStatement("UPDATE coverpage SET imagedata=? WHERE book_id=" + bookId);
 				stmt.bindBlob(1, data);
 				stmt.execute();
 				Log.v("cr3", "db: saved " + data.length + " bytes of cover page for book " + bookId);
@@ -326,7 +326,7 @@ public class CRDB {
 	public byte[] loadBookCoverpage( long bookId )
 	{
 		try {
-			Cursor rs = mDB.rawQuery("SELECT coverimage FROM coverpage WHERE book_fk=" + bookId, null);
+			Cursor rs = mDB.rawQuery("SELECT imagedata FROM coverpage WHERE book_fk=" + bookId, null);
 			if ( rs.moveToFirst() ) {
 				return rs.getBlob(0);
 			}

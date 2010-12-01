@@ -1554,15 +1554,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private void restorePosition()
     {
 		BackgroundThread.ensureGUI();
-    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null ) {
-    		final String pos = mBookInfo.getLastPosition().getStartPos();
-    		execute( new Task() {
-    			public void work() {
-    				BackgroundThread.ensureBackground();
-    	    		goToPositionInternal( pos );
-    			}
-    		});
-    		mActivity.getHistory().updateBookAccess(mBookInfo);
+    	if ( mBookInfo!=null ) {
+    		if ( mBookInfo.getLastPosition()!=null ) {
+	    		final String pos = mBookInfo.getLastPosition().getStartPos();
+	    		execute( new Task() {
+	    			public void work() {
+	    				BackgroundThread.ensureBackground();
+	    	    		goToPositionInternal( pos );
+	    			}
+	    		});
+	    		mActivity.getHistory().updateBookAccess(mBookInfo);
+    		}
     		mActivity.getHistory().saveToDB();
     		mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
     	}
