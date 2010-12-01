@@ -21,6 +21,9 @@
         android:layout_gravity="center_vertical|left"
         android:layout_marginRight="8dip"
         android:layout_marginLeft="4dip"
+        android:maxHeight="60px"
+        android:maxWidth="80px"
+        android:scaleType="fitCenter"
         />
 
     <LinearLayout android:id="@+id/browser_item_name_body"

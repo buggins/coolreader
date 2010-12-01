@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,7 +9,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.database.DataSetObserver;
-import android.text.TextUtils.TruncateAt;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -425,7 +424,20 @@ public class FileBrowser extends ListView {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {
-						image.setImageResource(item.format.getIconResourceId());
+						//byte[] coverpage = mHistory.getBookCoverpageData(item.id);
+						BitmapDrawable drawable = mHistory.getBookCoverpageImage(getResources(), item.id);
+						int dx = getWidth() / 5;
+						int dy = getHeight() / 5;
+						if ( dx>dy )
+							dx = dy;
+						dy = 6 * dx / 8;
+						image.setMaxHeight(dx);
+						image.setMaxHeight(dy);
+						if ( drawable!=null ) {
+							image.setImageDrawable(drawable);
+						} else {
+							image.setImageResource(item.format.getIconResourceId());
+						}
 						setText( author, formatAuthors(item.authors) );
 						String seriesName = formatSeries(item.series, item.seriesNumber);
 						String title = item.title;

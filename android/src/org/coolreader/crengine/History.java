@@ -1,7 +1,10 @@
 package org.coolreader.crengine;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 
+import android.content.res.Resources;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
 public class History {
@@ -179,6 +182,22 @@ public class History {
 			coverPageCache.put(bookId, data);
 		}
 		return data.length>0 ? data : null;
+	}
+	public BitmapDrawable getBookCoverpageImage(Resources resources, long bookId)
+	{
+		// TODO: caching 
+		byte[] data = getBookCoverpageData(bookId);
+		if ( data==null )
+			return null;
+		try {
+			ByteArrayInputStream is = new ByteArrayInputStream(data);
+			BitmapDrawable drawable = new BitmapDrawable(resources, is);
+    		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
+    		return drawable;
+		} catch ( Exception e ) {
+    		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
+    		return null;
+		}
 	}
 	public boolean loadFromDB( Scanner scanner, int maxItems )
 	{

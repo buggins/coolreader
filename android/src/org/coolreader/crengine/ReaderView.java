@@ -1437,7 +1437,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
     			coverPageBytes = coverpageBytes;
     			coverPageDrawable = drawable;
-    			mEngine.setProgressDrawable(drawable);
+    			//mEngine.setProgressDrawable(drawable);
     		} catch ( Exception e ) {
         		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
     		}
