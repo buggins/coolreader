@@ -16,6 +16,7 @@ import org.coolreader.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Environment;
 import android.util.Log;
 
@@ -212,6 +213,20 @@ public class Engine {
 	private boolean enable_progress = true; 
 	private boolean progressShown = false;
 	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
+	public void setProgressDrawable( final BitmapDrawable drawable )
+	{
+		if ( enable_progress ) {
+			mBackgroundThread.executeGUI( new Runnable() {
+				public void run() {
+					// show progress
+					Log.v("cr3", "showProgress() - in GUI thread");
+					if ( mProgress!=null && progressShown ) {
+						mProgress.setIcon(drawable);
+					}
+				}
+			});
+		}
+	}
 	public void showProgress( final int mainProgress, final int resourceId )
 	{
 		showProgress( mainProgress, mActivity.getResources().getString(resourceId) );

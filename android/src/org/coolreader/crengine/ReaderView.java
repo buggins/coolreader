@@ -1422,7 +1422,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        drawPage();
 		}
 	}
-	
+
+	private byte[] coverPageBytes = null;
+	private BitmapDrawable coverPageDrawable = null;
 	private class LoadDocumentTask extends Task
 	{
 		String filename;
@@ -1441,6 +1443,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void work() throws IOException {
 			BackgroundThread.ensureBackground();
+			coverPageBytes = null;
+			coverPageDrawable = null;
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
@@ -1451,7 +1455,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        		try {
 	        			ByteArrayInputStream is = new ByteArrayInputStream(coverpageBytes);
 	        			BitmapDrawable drawable = new BitmapDrawable(getResources(), is);
-		        		Log.d("cr3", "cover page format: " + drawable.getIntrinsicHeight() + "x" + drawable.getIntrinsicHeight());
+		        		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
+		    			coverPageBytes = coverpageBytes;
+		    			coverPageDrawable = drawable;
+		    			mEngine.setProgressDrawable(drawable);
 	        		} catch ( Exception e ) {
 		        		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
 	        		}
