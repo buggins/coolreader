@@ -235,6 +235,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
 		init();
+		mActivity.getHistory().updateCoverPageSize(w, h);
 		execute(new ResizeTask(w,h));
 	}
 	
@@ -1430,16 +1431,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	Log.d("cr3", "document is loaded succesfull, checking coverpage data");
     	byte[] coverpageBytes = getCoverPageDataInternal();
     	if ( coverpageBytes!=null ) {
-    		Log.d("cr3", "Found cover page: " + coverpageBytes.length + " bytes");
-    		try {
-    			ByteArrayInputStream is = new ByteArrayInputStream(coverpageBytes);
-    			BitmapDrawable drawable = new BitmapDrawable(getResources(), is);
-        		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
+    		Log.d("cr3", "Found cover page data: " + coverpageBytes.length + " bytes");
+    		BitmapDrawable drawable = mActivity.getHistory().decodeCoverPage(coverpageBytes);
+    		if ( drawable!=null ) {
     			coverPageBytes = coverpageBytes;
     			coverPageDrawable = drawable;
-    			//mEngine.setProgressDrawable(drawable);
-    		} catch ( Exception e ) {
-        		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
     		}
     	}
 	}

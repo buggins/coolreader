@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
@@ -112,21 +115,24 @@ public class History {
 	static class ImageData {
 		long bookId;
 		byte[] data;
+		BitmapDrawable drawable = null;
 	}
-	static class ImageDataCache {
+	class ImageDataCache {
 		private final int maxSize;
 		private int dataSize = 0;
+		private int maxCount = 15;
 		private ArrayList<ImageData> list = new ArrayList<ImageData>();
-		public ImageDataCache( int maxSize ) {
+		public ImageDataCache( int maxSize, int maxCount ) {
 			this.maxSize = maxSize;
+			this.maxCount = maxCount;
 		}
-		public byte[] get( long bookId ) {
+		synchronized public byte[] get( long bookId ) {
 			for ( int i=0; i<list.size(); i++ )
 				if ( list.get(i).bookId==bookId )
 					return list.get(i).data;
 			return null;
 		}
-		public void put( long bookId, byte[] data ) {
+		synchronized public void put( long bookId, byte[] data ) {
 			boolean found = false;
 			for ( int i=0; i<list.size(); i++ )
 				if ( list.get(i).bookId==bookId ) {
@@ -148,16 +154,67 @@ public class History {
 				dataSize += data.length;
 			}
 			for ( int i=list.size()-1; i>0; i-- ) {
-				if ( dataSize>maxSize ) {
+				if ( dataSize>maxSize || list.size()>maxCount ) {
 					ImageData item = list.remove(i);
 					dataSize -= item.data.length;
 				} else
 					break;
 			}
 		}
+		synchronized public BitmapDrawable getImage( long bookId )
+		{
+			ImageData item = null;
+			for ( int i=0; i<list.size(); i++ )
+				if ( list.get(i).bookId==bookId ) {
+					item = list.get(i);
+					break;
+				}
+			if ( item==null )
+				return null;
+			byte[] data = get(bookId);
+			if ( data==null || data.length==0 )
+				return null;
+			if ( item.drawable!=null )
+				return item.drawable;
+			// decode & resize
+			BitmapDrawable res = decodeCoverPage( data );
+			if ( res!=null ) {
+	    		item.drawable = res;
+			} else {
+	    		item.data = new byte[] {};
+			}
+			return res;
+		}
+		synchronized void invalidateImages()
+		{
+			for ( int i=0; i<list.size(); i++ )
+				list.get(i).drawable = null;
+		}
 	}
-	public final static int COVERPAGE_IMAGE_CACHE_SIZE = 500000;
-	ImageDataCache coverPageCache = new ImageDataCache(COVERPAGE_IMAGE_CACHE_SIZE);
+	
+	public BitmapDrawable decodeCoverPage( byte[] data )
+	{
+		try {
+			ByteArrayInputStream is = new ByteArrayInputStream(data);
+			BitmapDrawable drawable = new BitmapDrawable(null, is);
+			Bitmap bmp = Bitmap.createBitmap(coverPageWidth, coverPageHeight, Bitmap.Config.ARGB_8888);
+			Canvas canvas = new Canvas(bmp);
+			canvas.drawBitmap(drawable.getBitmap(), new Rect(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight()),
+					new Rect(0, 0, coverPageWidth, coverPageHeight), null);
+    		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
+    		BitmapDrawable res = new BitmapDrawable(bmp);
+    		return res;
+		} catch ( Exception e ) {
+    		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
+    		return null;
+		}
+	}
+	
+	public final static int COVERPAGE_IMAGE_CACHE_DATA_SIZE = 500000;
+	public final static int COVERPAGE_IMAGE_CACHE_MAX_COUNT = 20;
+	private ImageDataCache coverPageCache = new ImageDataCache(COVERPAGE_IMAGE_CACHE_DATA_SIZE, COVERPAGE_IMAGE_CACHE_MAX_COUNT);
+	private int coverPageWidth = 60;
+	private int coverPageHeight = 80;
 	public void setBookCoverpageData(long bookId, byte[] coverpageData )
 	{
 		if ( bookId==0 )
@@ -169,6 +226,13 @@ public class History {
 			coverPageCache.put(bookId, coverpageData);
 			mDB.saveBookCoverpage(bookId, coverpageData);
 		}
+	}
+	public void updateCoverPageSize( int screenDX, int screenDY )
+	{
+		int min = screenDX<screenDY ? screenDX : screenDY;
+		coverPageHeight = min / 4;
+		coverPageWidth = coverPageHeight * 3 / 4;
+		coverPageCache.invalidateImages();
 	}
 	public byte[] getBookCoverpageData(long bookId)
 	{
@@ -189,15 +253,7 @@ public class History {
 		byte[] data = getBookCoverpageData(bookId);
 		if ( data==null )
 			return null;
-		try {
-			ByteArrayInputStream is = new ByteArrayInputStream(data);
-			BitmapDrawable drawable = new BitmapDrawable(resources, is);
-    		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
-    		return drawable;
-		} catch ( Exception e ) {
-    		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
-    		return null;
-		}
+		return coverPageCache.getImage( bookId );
 	}
 	public boolean loadFromDB( Scanner scanner, int maxItems )
 	{
