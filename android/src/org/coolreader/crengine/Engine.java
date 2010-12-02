@@ -470,6 +470,7 @@ public class Engine {
 				if ( dict.type==HYPH_DICT && dict.resource!=0 ) {
 					data = loadResourceBytes( dict.resource );
 				}
+				Log.i("cr3", "Setting engine's hyphenation dictionary to " + dict);
 				setHyphenationMethod(dict.type, data);
 			}
     	});

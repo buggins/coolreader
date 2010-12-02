@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
-import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -369,8 +368,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 		public OptionsListView( Context context )
 		{
-			
 			super(context);
+			setFocusable(true);
+			setFocusableInTouchMode(true);
 			mAdapter = new ListAdapter() {
 				public boolean areAllItemsEnabled() {
 					return false;

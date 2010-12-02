@@ -826,7 +826,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
-    				doCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
+    				if ( isBookLoaded() )
+    					doCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
     			}
     		}
         }
@@ -885,6 +886,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
+		props.setProperty(PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 		return props;
 	}
 	
