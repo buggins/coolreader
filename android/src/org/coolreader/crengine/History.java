@@ -249,7 +249,6 @@ public class History {
 	}
 	public BitmapDrawable getBookCoverpageImage(Resources resources, long bookId)
 	{
-		// TODO: caching 
 		byte[] data = getBookCoverpageData(bookId);
 		if ( data==null )
 			return null;

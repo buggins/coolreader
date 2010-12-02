@@ -1477,6 +1477,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureGUI();
 			Log.d("cr3", "LoadDocumentTask is finished successfully");
 	        restorePosition();
+	        if ( coverPageBytes!=null && coverPageDrawable!=null ) {
+	        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
+	        	mEngine.setProgressDrawable(coverPageDrawable);
+	        }
 	        mOpened = true;
 			mActivity.showReader();
 	        drawPage();
@@ -1562,7 +1566,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		mActivity.getHistory().updateBookAccess(mBookInfo);
     		}
     		mActivity.getHistory().saveToDB();
-    		mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
     	}
     }
     

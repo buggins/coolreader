@@ -426,13 +426,13 @@ public class FileBrowser extends ListView {
 					} else {
 						//byte[] coverpage = mHistory.getBookCoverpageData(item.id);
 						BitmapDrawable drawable = mHistory.getBookCoverpageImage(getResources(), item.id);
-						int dx = getWidth() / 5;
-						int dy = getHeight() / 5;
-						if ( dx>dy )
-							dx = dy;
-						dy = 6 * dx / 8;
-						image.setMaxHeight(dx);
-						image.setMaxHeight(dy);
+//						int dx = getWidth() / 5;
+//						int dy = getHeight() / 5;
+//						if ( dx>dy )
+//							dx = dy;
+//						dy = 6 * dx / 8;
+//						image.setMaxHeight(dx);
+//						image.setMaxHeight(dy);
 						if ( drawable!=null ) {
 							image.setImageDrawable(drawable);
 						} else {

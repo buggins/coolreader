@@ -17,6 +17,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.util.Log;
 
@@ -213,6 +214,7 @@ public class Engine {
 	private boolean enable_progress = true; 
 	private boolean progressShown = false;
 	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
+	private Drawable progressIcon = null;
 	public void setProgressDrawable( final BitmapDrawable drawable )
 	{
 		if ( enable_progress ) {
@@ -221,7 +223,10 @@ public class Engine {
 					// show progress
 					Log.v("cr3", "showProgress() - in GUI thread");
 					if ( mProgress!=null && progressShown ) {
-						mProgress.setIcon(drawable);
+						hideProgress();
+						progressIcon = drawable;
+						showProgress(mProgressPos, mProgressMessage);
+						//mProgress.setIcon(drawable);
 					}
 				}
 			});
@@ -231,8 +236,13 @@ public class Engine {
 	{
 		showProgress( mainProgress, mActivity.getResources().getString(resourceId) );
 	}
+	private String mProgressMessage = null;
+	private int mProgressPos = 0;
+	
 	private void showProgress( final int mainProgress, final String msg )
 	{
+		mProgressMessage = msg;
+		mProgressPos = mainProgress;
 		if ( mainProgress==10000 ) {
 			Log.v("cr3", "mainProgress==10000 : calling hideProgress");
 			hideProgress();
@@ -248,7 +258,10 @@ public class Engine {
 						if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
 							mProgress = new ProgressDialog(mActivity);
 							mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-							mProgress.setIcon(R.drawable.cr3_logo);
+							if ( progressIcon!=null )
+								mProgress.setIcon(progressIcon);
+							else
+								mProgress.setIcon(R.drawable.cr3_logo);
 							mProgress.setMax(10000);
 							mProgress.setCancelable(false);
 							mProgress.setProgress(mainProgress);
@@ -283,6 +296,7 @@ public class Engine {
 //					if ( mProgress.isShowing() )
 //						mProgress.hide();
 					progressShown = false;
+					progressIcon = null;
 					mProgress.dismiss();
 					mProgress = null;
 					Log.v("cr3", "hideProgress() - in GUI thread");
