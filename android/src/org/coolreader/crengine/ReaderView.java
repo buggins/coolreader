@@ -887,7 +887,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-		props.setProperty(PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+		props.applyDefault(PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 		return props;
 	}
 	
