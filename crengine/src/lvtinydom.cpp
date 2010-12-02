@@ -261,6 +261,7 @@ lUInt32 calcGlobalSettingsHash()
         hash += 127365;
     if ( LVRendGetFontEmbolden() )
         hash = hash * 75 + 2384761;
+    hash = hash * 31 + (HyphMan::getSelectedDictionary()!=NULL ? HyphMan::getSelectedDictionary()->getHash() : 123 );
     return hash;
 }
 

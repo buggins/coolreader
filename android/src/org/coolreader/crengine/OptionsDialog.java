@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
+import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -12,7 +13,6 @@ import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +31,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		14, 16, 18, 20, 22, 24, 26, 28, 30,
-		32, 34, 36, 38, 40, 42, 44, 48, 52, 56
+		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60
 	};
 	int[] mInterlineSpaces = new int[] {
 			80, 90, 100, 110, 120, 130, 140, 150
@@ -334,6 +334,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
+	class HyphenationOptions extends ListOption
+	{
+		public HyphenationOptions( String label )
+		{
+			super( label, ReaderView.PROP_HYPHENATION_DICT );
+			setDefaultValue("RUSSIAN");
+			Engine.HyphDict[] dicts = Engine.HyphDict.values();
+			for ( Engine.HyphDict dict : dicts )
+				add( dict.toString(), dict.name );
+		}
+	}
+	
 	public OptionsDialog( Activity activity, ReaderView readerView, String[] fontFaces )
 	{
 		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel);
@@ -481,6 +493,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsStyles.add(new NightModeOption(getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
+		mOptionsStyles.add(new HyphenationOptions(getString(R.string.options_hyphenation_dictionary)));
+		//
 		mOptionsPage = new OptionsListView(getContext());
 		mOptionsPage.add(new ListOption(getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
 		mOptionsPage.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));

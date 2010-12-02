@@ -440,10 +440,21 @@ public class Engine {
     		this.resource = resource;
     		this.name = name;
     	}
+    	public static HyphDict byCode( String code )
+    	{
+    		for ( HyphDict dict : values() )
+    			if ( dict.toString().equals(code) )
+    				return dict;
+    		return NONE;
+    	}
     };
     
-    public void setHyphenationDictionary( final HyphDict dict )
+    private HyphDict currentHyphDict = HyphDict.NONE;
+    public boolean setHyphenationDictionary( final HyphDict dict )
     {
+    	if ( currentHyphDict==dict )
+    		return false;
+    	currentHyphDict = dict;
     	execute( new EngineTask() {
 
 			public void done() {
@@ -462,6 +473,7 @@ public class Engine {
 				setHyphenationMethod(dict.type, data);
 			}
     	});
+    	return true;
     }
     
     public boolean scanBookProperties(FileInfo info)

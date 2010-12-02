@@ -61,6 +61,7 @@
 <string name="options_color_hue">Оттенок</string>
 <string name="options_color_saturation">Насыщенность</string>
 <string name="options_color_brightness">Яркость</string>
+<string name="options_hyphenation_dictionary">Словарь переносов</string>
 <string name="options_page_show_titlebar">Колонтитул</string>
 <string name="options_page_footnotes">Сноски внизу страницы</string>
 <string name="options_page_orientation">Ориентация страницы</string>

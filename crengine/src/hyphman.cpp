@@ -56,6 +56,7 @@ class TexPattern;
 class TexHyph : public HyphMethod
 {
     TexPattern * table[PATTERN_HASH_SIZE];
+    lUInt32 _hash;
 public:
     bool match( const lChar16 * str, char * mask );
     virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth );
@@ -64,6 +65,7 @@ public:
     virtual ~TexHyph();
     bool load( LVStreamRef stream );
     bool load( lString16 fileName );
+    virtual lUInt32 getHash() { return _hash; }
 };
 
 class AlgoHyph : public HyphMethod
@@ -451,6 +453,7 @@ public:
 TexHyph::TexHyph()
 {
     memset( table, 0, sizeof(table) );
+    _hash = 123456;
 }
 
 TexHyph::~TexHyph()
@@ -480,6 +483,7 @@ bool TexHyph::load( LVStreamRef stream )
     int w = isCorrectHyphFile(stream.get());
     int patternCount = 0;
     if (w) {
+        _hash = stream->crc32();
         int        i;
         lvsize_t   dw;
 

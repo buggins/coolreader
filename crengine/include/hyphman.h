@@ -52,6 +52,7 @@ public:
 	lString16 getId() { return _id; }
 	lString16 getFilename() { return _filename; }
 	bool activate();
+	virtual lUInt32 getHash() { return getTitle().getHash(); }
 };
 
 #define HYPH_DICT_ID_NONE L"@none"

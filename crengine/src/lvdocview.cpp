@@ -4134,6 +4134,9 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
 {
     switch (cmd)
     {
+    case DCMD_REQUEST_RENDER:
+        requestRender();
+        break;
     case DCMD_TOGGLE_BOLD:
         {
             int b = m_props->getIntDef(PROP_FONT_WEIGHT_EMBOLDEN, 0)?0:1;

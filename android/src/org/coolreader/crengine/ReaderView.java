@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.Engine.HyphDict;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -74,7 +75,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_SHOW_BATTERY_PERCENT    ="window.status.battery.percent";
     public static final String PROP_FONT_KERNING_ENABLED    ="font.kerning.enabled";
     public static final String PROP_LANDSCAPE_PAGES         ="window.landscape.pages";
-    public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.directory";
+    public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
     public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
 
     public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
@@ -122,6 +123,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_SAVE_TO_CACHE(125),
     	DCMD_TOGGLE_BOLD(126),
     	DCMD_SCROLL_BY(127),
+    	DCMD_REQUEST_RENDER(128),
 
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
@@ -230,6 +232,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
     private Properties mSettings = new Properties();
 
+    public Engine getEngine()
+    {
+    	return mEngine;
+    }
+    
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
@@ -817,6 +824,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		} else if ( PROP_PAGE_VIEW_MODE.equals(key) ) {
     			boolean flg = "1".equals(value);
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
+    		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
+    			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
+    				doCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
+    			}
     		}
         }
 	}
