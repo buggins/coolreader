@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,7 +10,6 @@ import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
-import org.coolreader.crengine.Engine.HyphDict;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -826,9 +824,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
-    				if ( isBookLoaded() )
+    				if ( isBookLoaded() ) {
     					doCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
+    					//drawPage();
+    				}
     			}
+    			newSettings.setProperty(key, value);
     		}
         }
 	}
@@ -924,7 +925,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void done() {
 			Log.d("cr3", "InitializationFinishedEvent");
 			BackgroundThread.ensureGUI();
-	        setSettings(props, new Properties());
+	        //setSettings(props, new Properties());
 		}
 		public void fail( Exception e )
 		{

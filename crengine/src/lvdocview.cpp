@@ -4546,6 +4546,7 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
 				fontSize = 28;
             setStatusFontSize( fontSize );//cr_font_sizes
             value = lString16::itoa( fontSize );
+#if !defined(ANDROID)
 		} else if ( name==PROP_HYPHENATION_DICT ) {
 			// hyphenation dictionary
 			lString16 id = props->getStringDef( PROP_HYPHENATION_DICT, DEF_HYPHENATION_DICT );
@@ -4560,6 +4561,7 @@ CRPropRef LVDocView::propsApply( CRPropRef props )
                     requestRender();
 				}
 			}
+#endif
         } else if ( name==PROP_INTERLINE_SPACE ) {
             int interlineSpace = props->getIntDef( PROP_INTERLINE_SPACE,  cr_interline_spaces[0] );
             setDefaultInterlineSpace( interlineSpace );//cr_font_sizes

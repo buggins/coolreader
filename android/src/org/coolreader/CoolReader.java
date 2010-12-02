@@ -413,7 +413,7 @@ public class CoolReader extends Activity
 		}
 		if ( !stopped ) {
 	        mEngine.showProgress( 5, R.string.progress_starting_cool_reader );
-			mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
+			//mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
 		}
         //Log.i("cr3", "waiting for engine tasks completion");
         //engine.waitTasksCompletion();
