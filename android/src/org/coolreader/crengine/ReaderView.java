@@ -15,6 +15,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
@@ -505,12 +506,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			onTapZone( zone, isLongPress );
 			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
-			if ( viewMode==ViewMode.SCROLL ) {
+//			if ( viewMode==ViewMode.SCROLL ) {
 				manualScrollStartPosX = convx;
 				manualScrollStartPosY = convy;
-			}
+//			}
 		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
-			if ( viewMode==ViewMode.SCROLL ) {
+//			if ( viewMode==ViewMode.SCROLL ) {
 				if ( !isManualScrollActive ) {
 					int deltax = manualScrollStartPosX - convx; 
 					int deltay = manualScrollStartPosY - convy;
@@ -518,12 +519,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					deltay = deltay < 0 ? -deltay : deltay;
 					if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 						isManualScrollActive = true;
-						startScrollAnimation(manualScrollStartPosX, manualScrollStartPosY, convdx, convdy);
+						startAnimation(manualScrollStartPosX, manualScrollStartPosY, convdx, convdy, convx-manualScrollStartPosX, convy-manualScrollStartPosY);
 						updateAnimation(convx, convy);
 						return true;
 					}
 				}
-			}
+//			}
 			if ( !isManualScrollActive )
 				return true;
 			updateAnimation(convx, convy);
@@ -877,10 +878,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		Log.e("cr3", "error while reading settings");
         	}
         }
-        props.applyDefault(PROP_FONT_SIZE, "1208");
+        props.applyDefault(PROP_FONT_SIZE, "20");
         props.applyDefault(PROP_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
-        props.setProperty(PROP_STATUS_FONT_SIZE, "14");
+        props.setProperty(PROP_STATUS_FONT_SIZE, "16");
         props.applyDefault(PROP_APP_FULLSCREEN, "0");
 		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
 		props.applyDefault(PROP_SHOW_TIME, "1");
@@ -1190,7 +1191,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private ViewAnimationControl currentAnimation = null;
-	private void startScrollAnimation( final int startX, final int startY, final int maxX, final int maxY )
+	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int dx, final int dy )
 	{
 		Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
@@ -1199,10 +1200,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				BackgroundThread.ensureBackground();
 				PositionProperties currPos = getPositionPropsInternal(null);
 				if ( currPos.pageMode==0 ) {
-					currentAnimation = null;
-					return;
+					int dir = dx<0 ? 1 : -1;
+					new PageViewAnimation(startX, maxX, dir);
 				} else {
-					currentAnimation = new ScrollViewAnimation(startY, maxY);
+					new ScrollViewAnimation(startY, maxY);
 				}
 			}
 			
@@ -1263,9 +1264,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	abstract class ViewAnimationBase implements ViewAnimationControl {
-		int pointerStartPos;
-		int pointerDestPos;
-		int pointerCurrPos;
 		BitmapInfo image1;
 		BitmapInfo image2;
 		long startTimeStamp;
@@ -1301,6 +1299,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	class ScrollViewAnimation extends ViewAnimationBase {
 		int startY;
 		int maxY;
+		int pointerStartPos;
+		int pointerDestPos;
+		int pointerCurrPos;
 		ScrollViewAnimation( int startY, int maxY )
 		{
 			super();
@@ -1382,6 +1383,139 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			canvas.drawBitmap(image2.bitmap, src2, dst2, null);
 			//Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
 		}
+	}
+
+	class PageViewAnimation extends ViewAnimationBase {
+		int startX;
+		int maxX;
+		int page1;
+		int page2;
+		int direction;
+		int currShift;
+		int destShift;
+		PageViewAnimation( int startX, int maxX, int direction )
+		{
+			super();
+			this.startX = startX;
+			this.maxX = maxX;
+			this.direction = direction;
+			this.currShift = 0;
+			this.destShift = 0;
+			
+			PositionProperties currPos = getPositionPropsInternal(null);
+			page1 = currPos.pageNumber;
+			page2 = currPos.pageNumber + direction;
+			if ( page2<0 || page2>=currPos.pageCount) {
+				currentAnimation = null;
+				return;
+			}
+			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page2);
+			image2 = preparePageImage();
+			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page1);
+			image1 = preparePageImage();
+			currentAnimation = this;
+			divPaint = new Paint();
+			divPaint.setColor(Color.argb(128, 128, 128, 128));
+		}
+		
+		@Override
+		public void stop(int x, int y) {
+			boolean moved = false;
+			if ( direction>0 ) {
+				// |  <=====  |
+				int dx = startX - x; 
+				int threshold = startX / 4;
+				if ( dx>threshold )
+					moved = true;
+			} else {
+				// |  =====>  |
+				int dx = x - startX; 
+				int threshold = (maxX - startX) / 4;
+				if ( dx>threshold )
+					moved = true;
+			}
+			if ( moved )
+				destShift = maxX;
+			else
+				destShift = 0;
+			int steps = (int)(600 / getAvgAnimationDrawDuration()) + 2;
+			int x0 = currShift;
+			int x1 = destShift;
+			if ( (x0-x1)<10 && (x0-x1)<-10 )
+				steps = 2; // no animation
+			for ( int i=1; i<steps; i++ ) {
+				currShift = x0 + (x1-x0) * i / steps;
+				draw();
+			}
+			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, moved ? page2 : page1);
+			close();
+			currentAnimation = null;
+			drawPage();
+		}
+
+		@Override
+		public void update(int x, int y) {
+			int delta = direction>0 ? startX - x : x - startX;
+			if ( delta<=0 )
+				destShift = 0;
+			else if ( delta<maxX )
+				destShift = delta;
+			else
+				destShift = maxX;
+		}
+
+		public void animate()
+		{
+			//Log.d("cr3", "animate() is called");
+			if ( currShift != destShift ) {
+				int delta = currShift - destShift;
+				if ( delta<0 )
+					delta = -delta;
+				long avgDraw = getAvgAnimationDrawDuration();
+				int maxStep = (int)(maxX * 1500 / avgDraw);
+				int step;
+				if ( delta > maxStep * 2 )
+					step = maxStep;
+				else
+					step = (delta + 3) / 4;
+				//int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
+				if ( currShift < destShift )
+					currShift+=step;
+				else if ( currShift > destShift )
+					currShift-=step;
+				Log.d("cr3", "animate("+currShift + " => " + currShift + "  step=" + step + ")");
+				//pointerCurrPos = pointerDestPos;
+				draw();
+				if ( currShift != destShift )
+					scheduleAnimation();
+			}
+		}
+
+		public void draw(Canvas canvas)
+		{
+			int w = mBitmap.getWidth(); 
+			int h = mBitmap.getHeight();
+			int div;
+			if ( direction > 0 ) {
+				div = w-currShift;
+	    		Rect src1 = new Rect(currShift, 0, w, h);
+	    		Rect dst1 = new Rect(0, 0, w-currShift, h);
+				canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+	    		Rect src2 = new Rect(w-currShift, 0, w, h);
+	    		Rect dst2 = new Rect(w-currShift, 0, w, h);
+				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			} else {
+				div = currShift;
+	    		Rect src1 = new Rect(currShift, 0, w, h);
+	    		Rect dst1 = new Rect(currShift, 0, w, h);
+				canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+	    		Rect src2 = new Rect(w-currShift, 0, w, h);
+	    		Rect dst2 = new Rect(0, 0, currShift, h);
+				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			}
+			canvas.drawLine(div, 0, div, h, divPaint);
+		}
+		Paint divPaint;
 	}
 
 	private long sumAnimationDrawDuration = 1000;
