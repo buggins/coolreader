@@ -8,7 +8,6 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:baselineAligned="true"
-    android:background="#f000"
     >
 
     <ImageButton android:id="@+id/search_btn_prev"
@@ -16,18 +15,27 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/cr3_find_prev"
-        android:background="#f000"
+        android:layout_marginTop="2dip"
+        android:layout_marginBottom="2dip"
+        android:layout_marginLeft="2dip"
+        android:layout_marginRight="2dip"
         />
     <ImageButton android:id="@+id/search_btn_next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#f000"
+        android:layout_marginTop="2dip"
+        android:layout_marginBottom="2dip"
+        android:layout_marginLeft="2dip"
+        android:layout_marginRight="2dip"
         android:src="@drawable/cr3_find_next"
         />
     <ImageButton android:id="@+id/search_btn_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#f000"
+        android:layout_marginTop="2dip"
+        android:layout_marginBottom="2dip"
+        android:layout_marginLeft="2dip"
+        android:layout_marginRight="2dip"
         android:src="@drawable/cr3_find_close"
         />
 </LinearLayout>

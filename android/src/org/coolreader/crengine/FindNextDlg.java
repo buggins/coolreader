@@ -94,7 +94,7 @@ public class FindNextDlg {
 		});
 
 		
-		mWindow.setBackgroundDrawable(null);//new BitmapDrawable());
+		mWindow.setBackgroundDrawable(new BitmapDrawable());
 		//mWindow.setAnimationStyle(android.R.style.Animation_Toast);
 		mWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
 		mWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
@@ -105,6 +105,7 @@ public class FindNextDlg {
 		mWindow.setTouchable(true);
 		mWindow.setOutsideTouchable(true);
 		mWindow.setContentView(panel);
+		
 		
 		int [] location = new int[2];
 		mAnchor.getLocationOnScreen(location);
