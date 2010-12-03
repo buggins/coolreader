@@ -84,6 +84,7 @@ public class FindNextDlg {
 
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
 				if ( keyCode == KeyEvent.KEYCODE_BACK) {
+					mReaderView.clearSelection();
 					mWindow.dismiss();
 					return true;
 				}
@@ -93,8 +94,8 @@ public class FindNextDlg {
 		});
 
 		
-		mWindow.setBackgroundDrawable(new BitmapDrawable());
-		mWindow.setAnimationStyle(android.R.style.Animation_Toast);
+		mWindow.setBackgroundDrawable(null);//new BitmapDrawable());
+		//mWindow.setAnimationStyle(android.R.style.Animation_Toast);
 		mWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
 		mWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
 //		setWidth(panel.getWidth());
@@ -107,11 +108,13 @@ public class FindNextDlg {
 		
 		int [] location = new int[2];
 		mAnchor.getLocationOnScreen(location);
-		mWindow.update(location[0], location[1], mPanel.getWidth(), mPanel.getHeight() );
-		mWindow.setWidth(mPanel.getWidth());
-		mWindow.setHeight(mPanel.getHeight());
+		//mWindow.update(location[0], location[1], mPanel.getWidth(), mPanel.getHeight() );
+		//mWindow.setWidth(mPanel.getWidth());
+		//mWindow.setHeight(mPanel.getHeight());
 
-		mWindow.showAtLocation(mAnchor, Gravity.NO_GRAVITY, location[0], location[1]);
+		mWindow.showAtLocation(mAnchor, Gravity.TOP | Gravity.LEFT, location[0], location[1]);
+//		if ( mWindow.isShowing() )
+//			mWindow.update(mAnchor, 50, 50);
 		//dlg.mWindow.showAsDropDown(dlg.mAnchor);
 	
 	}
