@@ -16,10 +16,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -37,7 +37,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			80, 90, 100, 110, 120, 130, 140, 150
 		};
 	int[] mMargins = new int[] {
-			0, 1, 2, 3, 5, 10, 15, 20, 25
+			0, 1, 2, 3, 4, 5, 10, 15, 20, 25
 		};
 	int[] mOrientations = new int[] {
 			0, 1, 2, 3
@@ -234,6 +234,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public void onSelect() {
 			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
 			dlg.setTitle(label);
+
+			final ListView listView = new ListView(getContext()) {
+
+//				@Override
+//				public boolean performItemClick(View view, int position, long id) {
+//					Pair item = list.get(position);
+//					mProperties.setProperty(property, item.value);
+//					dismiss();
+//					mTabs.invalidate();
+//					return true;
+//				}
+				
+			};
+			
 			ListAdapter listAdapter = new ListAdapter() {
 
 				public boolean areAllItemsEnabled() {
@@ -260,11 +274,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					return 0;
 				}
 
-				public View getView(int position, View convertView,
+				public View getView(final int position, View convertView,
 						ViewGroup parent) {
 					ViewGroup layout;
 					TextView view;
-					CheckBox cb;
+					RadioButton cb;
 					if ( convertView==null ) {
 						layout = (ViewGroup)mInflater.inflate(R.layout.option_value, null);
 						//view = new TextView(getContext());
@@ -272,12 +286,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 						layout = (ViewGroup)convertView;
 					}
 					view = (TextView)layout.findViewById(R.id.option_value_text);
-					cb = (CheckBox)layout.findViewById(R.id.option_value_check);
-					Pair item = list.get(position);
+					cb = (RadioButton)layout.findViewById(R.id.option_value_check);
+					final Pair item = list.get(position);
 					view.setText(item.label);
 					boolean isSelected = getSelectedItemIndex()==position;
 					cb.setChecked(isSelected);
-					cb.setClickable(false);
+					cb.setOnClickListener(new View.OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							listView.getOnItemClickListener().onItemClick(listView, listView, position, 0);
+//							mProperties.setProperty(property, item.value);
+//							dismiss();
+//							optionsListView.refresh();
+						}
+					});
+					//cb.setClickable(false);
 //					cb.setOnClickListener(new View.OnClickListener() {
 //						@Override
 //						public void onClick(View v) {
@@ -313,18 +336,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			int selItem = getSelectedItemIndex();
 			if ( selItem<0 )
 				selItem = 0;
-			ListView listView = new ListView(getContext()) {
-
-//				@Override
-//				public boolean performItemClick(View view, int position, long id) {
-//					Pair item = list.get(position);
-//					mProperties.setProperty(property, item.value);
-//					dismiss();
-//					mTabs.invalidate();
-//					return true;
-//				}
-				
-			};
 			listView.setAdapter(listAdapter);
 			listView.setSelection(selItem);
 			dlg.setView(listView);

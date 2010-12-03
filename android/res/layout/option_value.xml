@@ -6,27 +6,27 @@
     android:baselineAligned="false"
     >
 
+	<RadioButton
+  	    android:id="@+id/option_value_check"
+		android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+   	    android:layout_weight="1"
+	    android:layout_marginTop="1dip"
+	    android:layout_marginBottom="1dip"
+	    android:layout_marginLeft="1dip"
+	    android:layout_marginRight="1dip"
+	    android:focusable="false"
+	    android:focusableInTouchMode="false"
+	/>
 	<TextView
 	  style="@android:style/TextAppearance.Medium"
 	  android:id="@+id/option_value_text"
 	  android:layout_width="wrap_content"
 	  android:layout_height="wrap_content"
+	  android:layout_weight="7"
 	    android:layout_marginTop="15dip"
 	    android:layout_marginBottom="15dip"
 	    android:layout_marginLeft="10dip"
 	    android:layout_marginRight="10dip">
 	</TextView>
-	<CheckBox
-  	    android:id="@+id/option_value_check"
-		android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_marginTop="1dip"
-	    android:layout_marginBottom="1dip"
-	    android:layout_marginLeft="1dip"
-	    android:layout_marginRight="1dip"
-	    android:clickable="false"
-	    android:focusable="false"
-	    android:focusableInTouchMode="false"
-	    android:background="@null"
-	/>
 </LinearLayout>
