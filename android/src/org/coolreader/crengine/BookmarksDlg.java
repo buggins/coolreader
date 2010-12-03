@@ -74,7 +74,7 @@ public class BookmarksDlg  extends BaseDialog {
 					//TextView percentView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_percent);
 					TextView posTextView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_pos_text);
 					TextView titleTextView = (TextView)view.findViewById(R.id.shortcut_bookmark_item_title);
-					Bookmark b = mBookInfo.findShortcutBookmark(position+1);
+					Bookmark b = mBookInfo!=null ? mBookInfo.findShortcutBookmark(position+1) : null;
 					labelView.setText(String.valueOf(position+1));
 					if ( b!=null ) {
 						String percentString = FileBrowser.formatPercent(b.getPercent());

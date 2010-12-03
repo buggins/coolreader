@@ -592,9 +592,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void done() {
 				BackgroundThread.ensureGUI();
 				drawPage();
-				FindNextDlg dlg = new FindNextDlg( mActivity, view, pattern, caseInsensitive );
-				// TODO: remove hardcoded position
-				dlg.showAtLocation(view, Gravity.NO_GRAVITY, 0, 30);
+				FindNextDlg.showDialog( mActivity, view, pattern, caseInsensitive );
 			}
 			public void fail(Exception e) {
 				BackgroundThread.ensureGUI();
@@ -1220,7 +1218,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void run() {
 				if ( currentAnimation!=null ) {
 					currentAnimation.update(x, y);
-					if ( serial==updateSerialNumber )
+					if ( serial==updateSerialNumber || serial==updateSerialNumber-1 )
 						currentAnimation.animate();
 				}
 			}

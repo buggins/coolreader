@@ -307,7 +307,7 @@ public class FileBrowser extends ListView {
 				itemToSelect = mScanner.getRoot().getDir(0).getFile(0);
 			} else {
 				fileOrDir = mScanner.getRoot();
-				itemToSelect = mScanner.getRoot().getDir(1);
+				itemToSelect = mScanner.getRoot().dirCount()>1 ? mScanner.getRoot().getDir(1) : null;
 			}
 		}
 		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
@@ -425,7 +425,7 @@ public class FileBrowser extends ListView {
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {
 						//byte[] coverpage = mHistory.getBookCoverpageData(item.id);
-						BitmapDrawable drawable = mHistory.getBookCoverpageImage(getResources(), item.id);
+						BitmapDrawable drawable = mHistory!=null ? mHistory.getBookCoverpageImage(getResources(), item.id) : null;
 //						int dx = getWidth() / 5;
 //						int dy = getHeight() / 5;
 //						if ( dx>dy )
