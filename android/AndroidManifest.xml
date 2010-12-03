@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
-      android:versionCode="4"
-      android:versionName="3.0.36-35">
+      android:versionCode="5"
+      android:versionName="3.0.36-36">
     <supports-screens
         android:largeScreens="true" 
         android:normalScreens="true" 
@@ -51,5 +51,5 @@
         </activity>
     </application>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-sdk android:minSdkVersion="3"/>
+    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="4" />
 </manifest> 

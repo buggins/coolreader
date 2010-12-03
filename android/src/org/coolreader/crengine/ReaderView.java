@@ -82,6 +82,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
 
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
+    public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
     
     public enum ViewMode
     {
@@ -462,7 +463,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private boolean isManualScrollActive = false;
 	private int manualScrollStartPosX = 0;
 	private int manualScrollStartPosY = 0;
-	private final int START_DRAG_THRESHOLD = 10;
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -475,6 +475,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int convy = y; // rotated y
 		int convdx = dx;
 		int convdy = dy;
+		int START_DRAG_THRESHOLD = dx / 8;
 		switch ( orientation ) {
 		case 1:
 			convx = y;
@@ -741,6 +742,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureBackground();
 		Log.v("cr3", "applySettings() " + props);
+		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false );
+		props.setBool(PROP_SHOW_BATTERY, isFullScreen); 
+		props.setBool(PROP_SHOW_TIME, isFullScreen); 
         applySettingsInternal(props);
         syncViewSettings(props);
         drawPage();
@@ -800,6 +804,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
         if ( key.equals(PROP_APP_FULLSCREEN) ) {
 			this.mActivity.setFullscreen( "1".equals(value) );
+        } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
+			boolean flg = "1".equals(value);
+			mActivity.getHistory().setCoverPagesEnabled(flg);
         }
 	}
 	
@@ -815,12 +822,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		String value = (String)entry.getValue();
     		applyAppSetting( key, value );
     		if ( PROP_APP_FULLSCREEN.equals(key) ) {
-    			boolean flg = true; //mSettings.getBool(PROP_APP_FULLSCREEN, false);
+    			boolean flg = mSettings.getBool(PROP_APP_FULLSCREEN, false);
     			newSettings.setBool(PROP_SHOW_BATTERY, flg); 
     			newSettings.setBool(PROP_SHOW_TIME, flg); 
     		} else if ( PROP_PAGE_VIEW_MODE.equals(key) ) {
     			boolean flg = "1".equals(value);
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
+    		} else if ( PROP_APP_SHOW_COVERPAGES.equals(key) ) {
+    			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
     				if ( isBookLoaded() ) {
@@ -884,6 +893,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
 		props.applyDefault(PROP_SHOW_TIME, "1");
 		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
+		props.applyDefault(PROP_APP_SHOW_COVERPAGES, "1");
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
 		props.applyDefault(PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
@@ -1047,6 +1057,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				bmp.recycle(); 
 			}
 			Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.ARGB_8888);
+			//bmp.setDensity(0);
 			usedList.add(bmp);
 			return bmp;
 		}
@@ -1432,16 +1443,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( dx>threshold )
 					moved = true;
 			}
-			if ( moved )
+			int duration;
+			if ( moved ) {
 				destShift = maxX;
-			else
+				duration = 500; // 500 ms forward
+			} else {
 				destShift = 0;
-			int steps = (int)(600 / getAvgAnimationDrawDuration()) + 2;
+				duration = 200; // 200 ms cancel
+			}
+			int steps = (int)(duration / getAvgAnimationDrawDuration()) + 2;
 			int x0 = currShift;
 			int x1 = destShift;
 			if ( (x0-x1)<10 && (x0-x1)<-10 )
 				steps = 2; // no animation
-			for ( int i=1; i<steps; i++ ) {
+			for ( int i=1; i<=steps; i++ ) {
 				currShift = x0 + (x1-x0) * i / steps;
 				draw();
 			}
@@ -1575,14 +1590,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void findCoverPage()
 	{
     	Log.d("cr3", "document is loaded succesfull, checking coverpage data");
-    	byte[] coverpageBytes = getCoverPageDataInternal();
-    	if ( coverpageBytes!=null ) {
-    		Log.d("cr3", "Found cover page data: " + coverpageBytes.length + " bytes");
-    		BitmapDrawable drawable = mActivity.getHistory().decodeCoverPage(coverpageBytes);
-    		if ( drawable!=null ) {
-    			coverPageBytes = coverpageBytes;
-    			coverPageDrawable = drawable;
-    		}
+    	if ( mActivity.getHistory().getCoverPagesEnabled() ) {
+	    	byte[] coverpageBytes = getCoverPageDataInternal();
+	    	if ( coverpageBytes!=null ) {
+	    		Log.d("cr3", "Found cover page data: " + coverpageBytes.length + " bytes");
+	    		BitmapDrawable drawable = mActivity.getHistory().decodeCoverPage(coverpageBytes);
+	    		if ( drawable!=null ) {
+	    			coverPageBytes = coverpageBytes;
+	    			coverPageDrawable = drawable;
+	    		}
+	    	}
     	}
 	}
 	
@@ -1655,7 +1672,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		if ( mInitialized && mBitmap!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
         		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
-    			canvas.drawBitmap(mBitmap, rc, rc, null);
+    			canvas.drawBitmap(mBitmap, null, rc, null);
     		} else {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
     			canvas.drawColor(Color.rgb(192, 192, 192));

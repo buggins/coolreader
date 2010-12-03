@@ -19,19 +19,30 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginLeft="2dip"
-        android:layout_marginRight="2dip"
-        android:layout_marginTop="2dip"
-        android:layout_marginBottom="2dip">
+        android:layout_marginLeft="3dip"
+        android:layout_marginRight="3dip"
+        android:layout_marginTop="3dip"
+        android:layout_marginBottom="3dip">
         <Button
 	        android:id="@+id/base_dlg_btn_positive"
 	        android:text="@string/dlg_button_ok" 
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"/>
+	        android:layout_weight="1"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"        
+	        android:layout_marginLeft="3dip"
+        	android:layout_marginRight="3dip"
+	        android:layout_marginTop="3dip"
+        	android:layout_marginBottom="3dip"
+        	/>
         <Button
             android:id="@+id/base_dlg_btn_negative"
             android:text="@string/dlg_button_cancel" 
-            android:layout_width="wrap_content"
+	        android:layout_weight="1"
+	        android:layout_marginLeft="3dip"
+        	android:layout_marginRight="3dip"
+	        android:layout_marginTop="3dip"
+        	android:layout_marginBottom="3dip"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>
 </LinearLayout>

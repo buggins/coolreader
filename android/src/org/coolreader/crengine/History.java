@@ -126,6 +126,9 @@ public class History {
 			this.maxSize = maxSize;
 			this.maxCount = maxCount;
 		}
+		synchronized public void clear() {
+			list.clear();
+		}
 		synchronized public byte[] get( long bookId ) {
 			for ( int i=0; i<list.size(); i++ )
 				if ( list.get(i).bookId==bookId )
@@ -196,7 +199,8 @@ public class History {
 	{
 		try {
 			ByteArrayInputStream is = new ByteArrayInputStream(data);
-			BitmapDrawable drawable = new BitmapDrawable(null, is);
+			BitmapDrawable drawable = new BitmapDrawable(is);
+			//BitmapDrawable drawable = new BitmapDrawable(null, is);
 			Bitmap bmp = Bitmap.createBitmap(coverPageWidth, coverPageHeight, Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(bmp);
 			canvas.drawBitmap(drawable.getBitmap(), new Rect(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight()),
@@ -207,6 +211,20 @@ public class History {
 		} catch ( Exception e ) {
     		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
     		return null;
+		}
+	}
+	
+	private boolean coverPagesEnabled = true;
+	public boolean getCoverPagesEnabled()
+	{
+		return coverPagesEnabled;
+	}
+	
+	public void setCoverPagesEnabled(boolean coverPagesEnabled)
+	{
+		this.coverPagesEnabled = coverPagesEnabled;
+		if ( !coverPagesEnabled ) {
+			coverPageCache.clear();
 		}
 	}
 	

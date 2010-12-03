@@ -16,6 +16,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 import android.widget.PopupWindow;
+import android.widget.PopupWindow.OnDismissListener;
 
 public class FindNextDlg {
 	PopupWindow mWindow;
@@ -83,9 +84,32 @@ public class FindNextDlg {
 		mPanel.setOnKeyListener( new OnKeyListener() {
 
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				if ( event.getAction()==KeyEvent.ACTION_UP ) {
+					switch ( keyCode ) {
+					case KeyEvent.KEYCODE_BACK:
+						mReaderView.clearSelection();
+						mWindow.dismiss();
+						return true;
+					case KeyEvent.KEYCODE_DPAD_LEFT:
+					case KeyEvent.KEYCODE_DPAD_UP:
+						mReaderView.findNext(pattern, true, caseInsensitive);
+						return true;
+					case KeyEvent.KEYCODE_DPAD_RIGHT:
+					case KeyEvent.KEYCODE_DPAD_DOWN:
+						mReaderView.findNext(pattern, false, caseInsensitive);
+						return true;
+					}
+				} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
+						switch ( keyCode ) {
+						case KeyEvent.KEYCODE_BACK:
+						case KeyEvent.KEYCODE_DPAD_LEFT:
+						case KeyEvent.KEYCODE_DPAD_UP:
+						case KeyEvent.KEYCODE_DPAD_RIGHT:
+						case KeyEvent.KEYCODE_DPAD_DOWN:
+							return true;
+						}
+					}
 				if ( keyCode == KeyEvent.KEYCODE_BACK) {
-					mReaderView.clearSelection();
-					mWindow.dismiss();
 					return true;
 				}
 				return false;
@@ -93,6 +117,12 @@ public class FindNextDlg {
 			
 		});
 
+		mWindow.setOnDismissListener(new OnDismissListener() {
+			@Override
+			public void onDismiss() {
+				mReaderView.clearSelection();
+			}
+		});
 		
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
 		//mWindow.setAnimationStyle(android.R.style.Animation_Toast);
@@ -113,7 +143,7 @@ public class FindNextDlg {
 		//mWindow.setWidth(mPanel.getWidth());
 		//mWindow.setHeight(mPanel.getHeight());
 
-		mWindow.showAtLocation(mAnchor, Gravity.TOP | Gravity.LEFT, location[0], location[1]);
+		mWindow.showAtLocation(mAnchor, Gravity.TOP | Gravity.CENTER_HORIZONTAL, location[0], location[1] + mAnchor.getHeight() - mPanel.getHeight());
 //		if ( mWindow.isShowing() )
 //			mWindow.update(mAnchor, 50, 50);
 		//dlg.mWindow.showAsDropDown(dlg.mAnchor);

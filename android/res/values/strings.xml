@@ -80,6 +80,7 @@
 <string name="options_view_mode_pages">Pages</string>
 <string name="options_view_mode_scroll">Scroll</string>
 <string name="options_app_fullscreen">Fullscreen mode</string>
+<string name="options_app_show_cover_pages">Cover pages in browser</string>
 <string name="options_value_on">On</string>
 <string name="options_value_off">Off</string>
 <string name="dlg_search_case_sensitive">Case sensitive</string>

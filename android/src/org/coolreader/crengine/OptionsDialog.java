@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -36,7 +37,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			80, 90, 100, 110, 120, 130, 140, 150
 		};
 	int[] mMargins = new int[] {
-			0, 3, 5, 10, 15, 20, 25
+			0, 1, 2, 3, 5, 10, 15, 20, 25
 		};
 	int[] mOrientations = new int[] {
 			0, 1, 2, 3
@@ -263,6 +264,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 						ViewGroup parent) {
 					ViewGroup layout;
 					TextView view;
+					CheckBox cb;
 					if ( convertView==null ) {
 						layout = (ViewGroup)mInflater.inflate(R.layout.option_value, null);
 						//view = new TextView(getContext());
@@ -270,8 +272,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 						layout = (ViewGroup)convertView;
 					}
 					view = (TextView)layout.findViewById(R.id.option_value_text);
+					cb = (CheckBox)layout.findViewById(R.id.option_value_check);
 					Pair item = list.get(position);
 					view.setText(item.label);
+					boolean isSelected = getSelectedItemIndex()==position;
+					cb.setChecked(isSelected);
+					cb.setClickable(false);
+//					cb.setOnClickListener(new View.OnClickListener() {
+//						@Override
+//						public void onClick(View v) {
+//							
+//						}
+//					});
 					return layout;
 				}
 
@@ -507,6 +519,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_bottom), ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_fullscreen), ReaderView.PROP_APP_FULLSCREEN));
+		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");

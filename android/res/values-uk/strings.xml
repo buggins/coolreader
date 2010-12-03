@@ -80,6 +80,7 @@
 <string name="options_view_mode_pages">Страницы</string>
 <string name="options_view_mode_scroll">Свиток</string>
 <string name="options_app_fullscreen">На весь екран</string>
+<string name="options_app_show_cover_pages">Обложки в списке книг</string>
 <string name="options_value_on">Увімк.</string>
 <string name="options_value_off">Вимк.</string>
 <string name="dlg_search_case_sensitive">Враховувати регістр</string>
