@@ -334,7 +334,7 @@ public class CRDB {
 		try { 
 			Long existing = longQuery("SELECT book_fk FROM coverpage WHERE book_fk=" + bookId);
 			if ( existing==null ) {
-				stmt = mDB.compileStatement("UPDATE coverpage SET imagedata=? WHERE book_id=" + bookId);
+				stmt = mDB.compileStatement("INSERT INTO coverpage (book_fk, imagedata) VALUES ("+bookId+", ?)");
 				stmt.bindBlob(1, data);
 				stmt.execute();
 				Log.v("cr3", "db: saved " + data.length + " bytes of cover page for book " + bookId);
@@ -474,19 +474,12 @@ public class CRDB {
 	{
 		if ( authors==null || authors.length==0 )
 			return;
-		StringBuilder query = new StringBuilder( "INSERT OR IGNORE INTO book_author (book_fk, author_fk) VALUES " );
-		boolean first = true;
+		String insertQuery = "INSERT OR IGNORE INTO book_author (book_fk,author_fk) VALUES ";
 		for ( Long id : authors ) {
-			if ( !first )
-				query.append(",");
-			query.append("(");
-			query.append(bookId);
-			query.append(",");
-			query.append(id);
-			query.append(")");
-			first = false;
+			String sql = insertQuery + "(" + bookId + "," + id + ")"; 
+			//Log.v("cr3", "executing: " + sql);
+			mDB.execSQL(sql);
 		}
-		mDB.execSQL(query.toString());
 	}
 
 	public static boolean eq(String s1, String s2)

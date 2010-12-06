@@ -385,4 +385,10 @@ public class FileInfo {
 			files = newFiles;
 		}
 	}
+	
+	@Override
+	public String toString()
+	{
+		return pathname;
+	}
 }
