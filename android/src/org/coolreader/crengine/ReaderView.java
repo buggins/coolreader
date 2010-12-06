@@ -471,7 +471,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int y = (int)event.getY();
 		int dx = getWidth();
 		int dy = getHeight();
-		int START_DRAG_THRESHOLD = dx / 8;
+		int START_DRAG_THRESHOLD = dx / 10;
 		
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
 			mActivity.onUserActivity();
@@ -1187,7 +1187,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private ViewAnimationControl currentAnimation = null;
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int dx, final int dy )
 	{
-		Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
+		if (DEBUG_ANIMATION) Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -1203,27 +1203,34 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
 		});
 	}
-	
+
+	private final static boolean DEBUG_ANIMATION = false;
 	private int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
 	{
-		Log.d("cr3", "updateAnimation("+x + ", " + y+")");
-		final int serial = ++updateSerialNumber; 
+		if (DEBUG_ANIMATION) Log.d("cr3", "updateAnimation("+x + ", " + y+")");
+		final int serial = ++updateSerialNumber;
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
 				if ( currentAnimation!=null ) {
 					currentAnimation.update(x, y);
-					if ( serial==updateSerialNumber || serial==updateSerialNumber-1 )
+					if ( serial==updateSerialNumber ) //|| serial==updateSerialNumber-1 
 						currentAnimation.animate();
 				}
 			}
 		});
+		try {
+			// give a chance to background thread to process event faster
+			Thread.sleep(0);
+		} catch ( InterruptedException e ) {
+			// ignore
+		}
 	}
 	
 	private void stopAnimation( final int x, final int y )
 	{
-		Log.d("cr3", "stopAnimation("+x+", "+y+")");
+		if (DEBUG_ANIMATION) Log.d("cr3", "stopAnimation("+x+", "+y+")");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -1234,6 +1241,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
 		});
 	}
+
 	private int animationSerialNumber = 0;
 	private void scheduleAnimation()
 	{
@@ -1396,6 +1404,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.currShift = 0;
 			this.destShift = 0;
 			
+			Log.v("cr3", "PageViewAnimation -- creating: drawing two pages to buffer");
+			
 			PositionProperties currPos = getPositionPropsInternal(null);
 			page1 = currPos.pageNumber;
 			page2 = currPos.pageNumber + direction;
@@ -1410,10 +1420,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currentAnimation = this;
 			divPaint = new Paint();
 			divPaint.setColor(Color.argb(128, 128, 128, 128));
+
+			Log.v("cr3", "PageViewAnimation -- created!");
 		}
 		
 		@Override
 		public void stop(int x, int y) {
+			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.stop(" + x + ", " + y + ")");
 			boolean moved = false;
 			if ( direction>0 ) {
 				// |  <=====  |
@@ -1453,6 +1466,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		@Override
 		public void update(int x, int y) {
+			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.update(" + x + ", " + y + ")");
 			int delta = direction>0 ? startX - x : x - startX;
 			if ( delta<=0 )
 				destShift = 0;
@@ -1464,6 +1478,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void animate()
 		{
+			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.animate("+currShift + " => " + currShift + ")");
 			//Log.d("cr3", "animate() is called");
 			if ( currShift != destShift ) {
 				int delta = currShift - destShift;
@@ -1481,7 +1496,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					currShift+=step;
 				else if ( currShift > destShift )
 					currShift-=step;
-				Log.d("cr3", "animate("+currShift + " => " + currShift + "  step=" + step + ")");
+				if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.animate("+currShift + " => " + destShift + "  step=" + step + ")");
 				//pointerCurrPos = pointerDestPos;
 				draw();
 				if ( currShift != destShift )
@@ -1491,6 +1506,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void draw(Canvas canvas)
 		{
+			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.draw("+currShift + ")");
 			int w = mBitmap.getWidth(); 
 			int h = mBitmap.getHeight();
 			int div;
@@ -1656,8 +1672,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		Log.d("cr3", "doDraw() called");
     		if ( mInitialized && mBitmap!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
-        		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
-    			canvas.drawBitmap(mBitmap, null, rc, null);
+        		
+        		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+        		Rect src = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
+    			canvas.drawBitmap(mBitmap, src, dst, null);
     		} else {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
     			canvas.drawColor(Color.rgb(192, 192, 192));

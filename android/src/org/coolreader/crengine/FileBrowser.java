@@ -9,7 +9,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.database.DataSetObserver;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -424,19 +424,23 @@ public class FileBrowser extends ListView {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {
-						//byte[] coverpage = mHistory.getBookCoverpageData(item.id);
-						BitmapDrawable drawable = mHistory!=null ? mHistory.getBookCoverpageImage(getResources(), item.id) : null;
-//						int dx = getWidth() / 5;
-//						int dy = getHeight() / 5;
-//						if ( dx>dy )
-//							dx = dy;
-//						dy = 6 * dx / 8;
-//						image.setMaxHeight(dx);
-//						image.setMaxHeight(dy);
-						if ( drawable!=null ) {
-							image.setImageDrawable(drawable);
-						} else {
-							image.setImageResource(item.format.getIconResourceId());
+						if ( image!=null ) {
+							//byte[] coverpage = mHistory.getBookCoverpageData(item.id);
+							Drawable drawable = null;
+							if ( mHistory!=null && item!=null )
+								drawable = mHistory.getBookCoverpageImage(null, item.id);
+	//						int dx = getWidth() / 5;
+	//						int dy = getHeight() / 5;
+	//						if ( dx>dy )
+	//							dx = dy;
+	//						dy = 6 * dx / 8;
+	//						image.setMaxHeight(dx);
+	//						image.setMaxHeight(dy);
+							if ( drawable!=null ) {
+								image.setImageDrawable(drawable);
+							} else {
+								image.setImageResource(item.format.getIconResourceId());
+							}
 						}
 						setText( author, formatAuthors(item.authors) );
 						String seriesName = formatSeries(item.series, item.seriesNumber);
