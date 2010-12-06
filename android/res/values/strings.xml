@@ -43,6 +43,7 @@
 <string name="win_title_options">Options</string>
 <string name="win_title_search">Search</string>
 <string name="win_title_options_apply">Apply changes?</string>
+<string name="win_title_screen_orientation_change_apply">Apply screen orientation change?</string>
 <string name="tab_options_styles">Styles</string>
 <string name="tab_options_page">Page</string>
 <string name="tab_options_app">App</string>
@@ -69,6 +70,7 @@
 <string name="options_page_orientation_90">Landscape</string>
 <string name="options_page_orientation_180">Portrait (180)</string>
 <string name="options_page_orientation_270">Landscape (270)</string>
+<string name="options_page_orientation_sensor">Sensor</string>
 <string name="options_page_landscape_pages">Landscape pages</string>
 <string name="options_page_landscape_pages_one">One page</string>
 <string name="options_page_landscape_pages_two">Two pages</string>

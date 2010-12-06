@@ -41,9 +41,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		};
 	int[] mOrientations = new int[] {
 			0, 1//, 2, 3
+			,4
 		};
 	int[] mOrientationsTitles = new int[] {
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90 //, R.string.options_page_orientation_180, R.string.options_page_orientation_270
+			,R.string.options_page_orientation_sensor
 		};
 	int[] mAntialias = new int[] {
 			0, 1, 2

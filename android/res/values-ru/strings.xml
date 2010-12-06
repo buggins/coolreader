@@ -43,6 +43,7 @@
 <string name="win_title_options">Настройки</string>
 <string name="win_title_search">Найти текст</string>
 <string name="win_title_options_apply">Применить новые настройки?</string>
+<string name="win_title_screen_orientation_change_apply">Изменить ориентацию экрана?</string>
 <string name="tab_options_styles">Стили</string>
 <string name="tab_options_page">Страница</string>
 <string name="tab_options_app">Программа</string>
@@ -69,6 +70,7 @@
 <string name="options_page_orientation_90">Альбомная</string>
 <string name="options_page_orientation_180">Книжная (180)</string>
 <string name="options_page_orientation_270">Альбомная (270)</string>
+<string name="options_page_orientation_sensor">Сенсор</string>
 <string name="options_page_landscape_pages">Страницы в альбомном режиме</string>
 <string name="options_page_landscape_pages_one">Одна страница</string>
 <string name="options_page_landscape_pages_two">Две страницы</string>

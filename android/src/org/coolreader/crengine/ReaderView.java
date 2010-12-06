@@ -786,7 +786,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			boolean flg = "1".equals(value);
 			mActivity.getHistory().setCoverPagesEnabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
-			int orientation = "1".equals(value) ? 1 : 0;
+			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
         }
 	}

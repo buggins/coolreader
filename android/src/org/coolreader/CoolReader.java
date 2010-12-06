@@ -13,17 +13,23 @@ import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
 import org.coolreader.crengine.OptionsDialog;
+import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.hardware.SensorListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -125,7 +131,9 @@ public class CoolReader extends Activity
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;
-		if ( (angle&1)!=0 )
+		if ( angle==4 )
+			newOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+		else if ( (angle&1)!=0 )
 			newOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 		else
 			newOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -602,11 +610,29 @@ public class CoolReader extends Activity
         dlg.show();
 	}
 
-	
-	
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		// pass
+//		final int orientation = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+//		if ( orientation!=screenOrientation ) {
+//			Log.d("cr3", "Screen orientation has been changed: ask for change");
+//			AlertDialog.Builder dlg = new AlertDialog.Builder(this);
+//			dlg.setTitle(R.string.win_title_screen_orientation_change_apply);//R.string.win_title_options_apply);
+//			dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
+//				public void onClick(DialogInterface arg0, int arg1) {
+//					//onPositiveButtonClick();
+//					Properties oldSettings = mReaderView.getSettings();
+//					Properties newSettings = new Properties(oldSettings);
+//					newSettings.setInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, orientation==ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE ? 1 : 0);
+//					mReaderView.setSettings(newSettings, oldSettings);
+//				}
+//			});
+//			dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
+//				public void onClick(DialogInterface arg0, int arg1) {
+//					//onNegativeButtonClick();
+//				}
+//			});
+//		}
 		super.onConfigurationChanged(newConfig);
 	}
 

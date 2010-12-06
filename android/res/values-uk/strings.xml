@@ -43,6 +43,7 @@
 <string name="win_title_options">Налаштування</string>
 <string name="win_title_search">Знайти текст</string>
 <string name="win_title_options_apply">Застосувати нові налаштування?</string>
+<string name="win_title_screen_orientation_change_apply">Изменить ориентацию экрана?</string>
 <string name="tab_options_styles">Стилі</string>
 <string name="tab_options_page">Сторінка</string>
 <string name="tab_options_app">Програма</string>
@@ -69,6 +70,7 @@
 <string name="options_page_orientation_90">Альбомна (90°)</string>
 <string name="options_page_orientation_180">Книжкова (180°)</string>
 <string name="options_page_orientation_270">Альбомна (270°)</string>
+<string name="options_page_orientation_sensor">Сенсор</string>
 <string name="options_page_landscape_pages">Колонок в альбомній сторінці</string>
 <string name="options_page_landscape_pages_one">Однка</string>
 <string name="options_page_landscape_pages_two">Дві</string>
