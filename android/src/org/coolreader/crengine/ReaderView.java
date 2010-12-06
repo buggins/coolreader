@@ -83,6 +83,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
     public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
+    public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
     
     public enum ViewMode
     {
@@ -254,7 +255,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private int overrideKey( int keyCode )
 	{
-		int angle = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
+		int angle = mSettings.getInt(PROP_APP_SCREEN_ORIENTATION, 0);
 		int[] subst = new int[] {
 			1, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_LEFT,
 			1, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT,
@@ -262,16 +263,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			1, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP,
 			1, 	KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN,
 			1, 	KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP,
-			2, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
-			2, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP,
-			2, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
-			2, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_LEFT,
-			2, 	KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN,
-			2, 	KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP,
-			3, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_RIGHT,
-			3, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT,
-			3, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_UP,
-			3, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_DOWN,
+//			2, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
+//			2, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP,
+//			2, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+//			2, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_LEFT,
+//			2, 	KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN,
+//			2, 	KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP,
+//			3, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_RIGHT,
+//			3, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT,
+//			3, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_UP,
+//			3, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_DOWN,
 		};
 		for ( int i=0; i<subst.length; i+=3 ) {
 			if ( angle==subst[i] && keyCode==subst[i+1] )
@@ -470,65 +471,42 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int y = (int)event.getY();
 		int dx = getWidth();
 		int dy = getHeight();
-		int orientation = mSettings.getInt(PROP_ROTATE_ANGLE, 0);
-		int convx = x; // rotated x
-		int convy = y; // rotated y
-		int convdx = dx;
-		int convdy = dy;
 		int START_DRAG_THRESHOLD = dx / 8;
-		switch ( orientation ) {
-		case 1:
-			convx = y;
-			convy = dx - x;
-			convdx = dy;
-			convdy = dx;
-			break;
-		case 2:
-			convx = dx - x;
-			convy = dy - y;
-			break;
-		case 3:
-			convx = dy - y;
-			convy = x;
-			convdx = dy;
-			convdy = dx;
-			break;
-		}
 		
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
 			mActivity.onUserActivity();
 			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
 			if ( isManualScrollActive ) {
-				stopAnimation(convx, convy);
+				stopAnimation(x, y);
 				isManualScrollActive = false;
 				return true;
 			}
-			int zone = getTapZone(convx, convy, convdx, convdy);
+			int zone = getTapZone(x, y, dx, dy);
 			onTapZone( zone, isLongPress );
 			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
 //			if ( viewMode==ViewMode.SCROLL ) {
-				manualScrollStartPosX = convx;
-				manualScrollStartPosY = convy;
+				manualScrollStartPosX = x;
+				manualScrollStartPosY = y;
 //			}
 		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
 //			if ( viewMode==ViewMode.SCROLL ) {
 				if ( !isManualScrollActive ) {
-					int deltax = manualScrollStartPosX - convx; 
-					int deltay = manualScrollStartPosY - convy;
+					int deltax = manualScrollStartPosX - x; 
+					int deltay = manualScrollStartPosY - y;
 					deltax = deltax < 0 ? -deltax : deltax;
 					deltay = deltay < 0 ? -deltay : deltay;
 					if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 						isManualScrollActive = true;
-						startAnimation(manualScrollStartPosX, manualScrollStartPosY, convdx, convdy, convx-manualScrollStartPosX, convy-manualScrollStartPosY);
-						updateAnimation(convx, convy);
+						startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy, x-manualScrollStartPosX, y-manualScrollStartPosY);
+						updateAnimation(x, y);
 						return true;
 					}
 				}
 //			}
 			if ( !isManualScrollActive )
 				return true;
-			updateAnimation(convx, convy);
+			updateAnimation(x, y);
 		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
 			isManualScrollActive = false;
 			stopAnimation(-1, -1);
@@ -807,6 +785,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
 			boolean flg = "1".equals(value);
 			mActivity.getHistory().setCoverPagesEnabled(flg);
+        } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
+			int orientation = "1".equals(value) ? 1 : 0;
+        	mActivity.setScreenOrientation(orientation);
         }
 	}
 	
@@ -829,6 +810,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			boolean flg = "1".equals(value);
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		} else if ( PROP_APP_SHOW_COVERPAGES.equals(key) ) {
+    			newSettings.setProperty(key, value);
+    		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) ) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
@@ -889,11 +872,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         props.applyDefault(PROP_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_SIZE, "16");
+        props.setProperty(PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
         props.applyDefault(PROP_APP_FULLSCREEN, "0");
 		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
 		props.applyDefault(PROP_SHOW_TIME, "1");
 		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(PROP_APP_SHOW_COVERPAGES, "1");
+		props.applyDefault(PROP_APP_SCREEN_ORIENTATION, "0");
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
 		props.applyDefault(PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());

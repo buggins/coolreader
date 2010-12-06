@@ -15,7 +15,6 @@ import org.coolreader.crengine.History;
 import org.coolreader.crengine.OptionsDialog;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
-import org.coolreader.crengine.Engine.HyphDict;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -23,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -110,6 +110,29 @@ public class CoolReader extends Activity
 		if ( mFullscreen!=fullscreen ) {
 			mFullscreen = fullscreen;
 			applyFullscreen( getWindow() );
+		}
+	}
+	
+	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+	public void applyScreenOrientation( Window wnd )
+	{
+		if ( wnd!=null ) {
+			WindowManager.LayoutParams attrs = wnd.getAttributes();
+			attrs.screenOrientation = screenOrientation;
+			wnd.setAttributes(attrs);
+		}
+	}
+	public void setScreenOrientation( int angle )
+	{
+		int newOrientation = screenOrientation;
+		if ( (angle&1)!=0 )
+			newOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+		else
+			newOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+		if ( newOrientation!=screenOrientation ) {
+			screenOrientation = newOrientation;
+			setRequestedOrientation(screenOrientation);
+			applyScreenOrientation(getWindow());
 		}
 	}
 
