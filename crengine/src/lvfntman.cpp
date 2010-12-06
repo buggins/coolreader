@@ -689,6 +689,8 @@ public:
         // measure character widths
         for ( nchars=0; nchars<len; nchars++) {
             lChar16 ch = text[nchars];
+            if ( ch=='\t' )
+                ch = ' ';
             bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
             FT_UInt ch_glyph_index = (FT_UInt)-1;
             int kerning = 0;
@@ -802,6 +804,8 @@ public:
     */
     virtual bool getGlyphImage(lUInt16 ch, lUInt8 * bmp)
     {
+        if ( ch=='\t' )
+            ch = ' ';
         FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, ch );
         if ( ch_glyph_index==0 )
             return false;
@@ -838,6 +842,8 @@ public:
     /// returns char width
     virtual int getCharWidth( lChar16 ch )
     {
+        if ( ch=='\t' )
+            ch = ' ';
         int w = _wcache.get(ch);
         if ( w==0xFF ) {
             int ch_glyph_index = FT_Get_Char_Index( _face, ch );
@@ -906,6 +912,8 @@ public:
                 break;
             if ( i<len ) {
                 ch = text[i];
+                if ( ch=='\t' )
+                    ch = ' ';
                 isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE) && (i<len-1);
             } else {
                 ch = UNICODE_SOFT_HYPHEN_CODE;

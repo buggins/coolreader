@@ -5,7 +5,7 @@
 #include "../include/chmfmt.h"
 #include "../../thirdparty/chmlib/src/chm_lib.h"
 
-#define DUMP_CHM_DOC 0
+#define DUMP_CHM_DOC 1
 
 struct crChmExternalFileStream : public chmExternalFileStream {
     /** returns file size, in bytes, if opened successfully */
@@ -278,6 +278,66 @@ bool DetectCHMFormat( LVStreamRef stream )
     return false;
 }
 
+ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream )
+{
+    if ( stream.isNull() )
+        return NULL;
+
+    // detect encondig
+    stream->SetPos(0);
+    ldomDocument * encDetectionDoc = LVParseHTMLStream( stream );
+    int encoding = 0;
+    if ( encDetectionDoc!=NULL ) {
+        ldomNode * node = encDetectionDoc->nodeFromXPath(L"/html/body/object[1]");
+        if ( node!=NULL ) {
+            for ( int i=0; i<node->getChildCount(); i++ ) {
+                ldomNode * child = node->getChildNode(i);
+                if ( child && child->isElement() && child->getNodeName()==L"param" && child->getAttributeValue(L"name")==L"Font") {
+                    lString16 s = child->getAttributeValue(L"value");
+                    lString16 lastDigits;
+                    for ( int i=s.length()-1; i>=0; i-- ) {
+                        lChar16 ch = s[i];
+                        if ( ch>='0' && ch<='9' )
+                            lastDigits.insert(0, 1, ch);
+                        else
+                            break;
+                    }
+                    encoding = lastDigits.atoi();
+                    CRLog::debug("LVParseCHMHTMLStream: encoding detected: %d", encoding);
+                }
+            }
+        }
+        delete encDetectionDoc;
+    }
+    const lChar16 * enc = L"cp1252";
+    if ( encoding==1 ) {
+        enc = L"cp1251";
+    }
+
+    stream->SetPos(0);
+    bool error = true;
+    ldomDocument * doc;
+    doc = new ldomDocument();
+    doc->setDocFlags( 0 );
+
+    ldomDocumentWriterFilter writerFilter(doc, false, HTML_AUTOCLOSE_TABLE);
+
+    /// FB2 format
+    LVFileFormatParser * parser = new LVHTMLParser(stream, &writerFilter);
+    if ( parser->CheckFormat() ) {
+        parser->SetCharset(enc);
+        if ( parser->Parse() ) {
+            error = false;
+        }
+    }
+    delete parser;
+    if ( error ) {
+        delete doc;
+        doc = NULL;
+    }
+    return doc;
+}
+
 
 class CHMTOCReader {
     LVContainerRef _cont;
@@ -377,7 +437,7 @@ public:
             CRLog::error("CHM: Cannot open .hhc");
             return false;
         }
-        ldomDocument * doc = LVParseHTMLStream( tocStream );
+        ldomDocument * doc = LVParseCHMHTMLStream( tocStream );
         if ( !doc ) {
             CRLog::error("CHM: Cannot parse .hhc");
             return false;

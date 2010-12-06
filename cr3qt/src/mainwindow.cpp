@@ -208,7 +208,7 @@ void MainWindow::on_actionOpen_triggered()
     }
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open book file"),
          lastPath,
-         tr("All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)"));
+         tr("All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.chm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;CHM files (*.chm);;ZIP archives (*.zip)"));
     if ( fileName.length()==0 )
         return;
     if ( !ui->view->loadDocument( fileName ) ) {

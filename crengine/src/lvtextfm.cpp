@@ -1093,8 +1093,8 @@ public:
                     word->inline_width = -first_para_line->margin;
                 }
             }
-            if ( word->t.len>0 )
-                word->t.len--;
+            //if ( word->t.len>0 )
+            //    word->t.len--;
         } else if (lastchar & LCHAR_IS_SPACE) {
             flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
             if ( firstch<lastch ) {
@@ -1114,6 +1114,10 @@ public:
 
         word->flags = flags;
         frmline->width += word->inline_width; //!!!
+        if ( word->t.len==0 ) {
+            //
+            CRLog::error("Added word of length 0!!!");
+        }
         return word;
     }
 

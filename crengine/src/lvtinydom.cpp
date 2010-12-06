@@ -4504,7 +4504,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
                 int foundCount = 0;
                 for (unsigned i=0; i<currNode->getChildCount(); i++) {
                     ldomNode * p = currNode->getChildNode(i);
-                    //CRLog::trace( "        node[%d] = %d %s", i, p->getNodeId(), LCSTR(p->getNodeName()) );
+                    CRLog::trace( "        node[%d] = %d %s", i, p->getNodeId(), LCSTR(p->getNodeName()) );
                     if ( p && p->isElement() && p->getNodeId()==id ) {
                         foundCount++;
                         if ( foundCount==index || index==-1 ) {
