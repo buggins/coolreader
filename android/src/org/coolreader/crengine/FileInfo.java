@@ -210,6 +210,21 @@ public class FileInfo {
 	
 	public boolean deleteFile()
 	{
+		if ( isArchive ) {
+			File f = new File(arcname);
+			if ( f.exists() && !f.isDirectory() ) {
+				if ( !f.delete() )
+					return false;
+				if ( parent!=null ) {
+					if ( parent.isArchive ) {
+						// remove all files belonging to this archive
+					} else {
+						parent.removeChild(this);
+					}
+				}
+				return true;
+			}
+		}
 		if ( isDirectory )
 			return false;
 		if ( !fileExists() )
@@ -228,6 +243,8 @@ public class FileInfo {
 	{
 		if (isDirectory)
 			return false;
+		if ( isArchive && arcname!=null )
+			return new File(arcname).exists();
 		return new File(pathname).exists();
 	}
 	

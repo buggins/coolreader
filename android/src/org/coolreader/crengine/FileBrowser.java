@@ -96,14 +96,10 @@ public class FileBrowser extends ListView {
 		case R.id.book_delete:
 			Log.d("cr3", "book_delete menu item selected");
 			mActivity.getReaderView().closeIfOpened(selectedItem);
-			mEngine.runInGUI( new Runnable() {
-				public void run () {
-					if ( selectedItem.deleteFile() ) {
-						mHistory.removeBookInfo(selectedItem, true, true);
-					}
-					showDirectory(currDirectory, null);
-				}
-			});
+			if ( selectedItem.deleteFile() ) {
+				mHistory.removeBookInfo(selectedItem, true, true);
+			}
+			showDirectory(currDirectory, null);
 			return true;
 		case R.id.book_recent_goto:
 			Log.d("cr3", "book_recent_goto menu item selected");
@@ -315,7 +311,7 @@ public class FileBrowser extends ListView {
 		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
-					if ( !dir.isRootDir() )
+					if ( !dir.isRootDir() && FileInfo.RECENT_DIR_TAG.equals(dir.getPathName()) )
 						dir.sort(FileInfo.DEF_SORT_ORDER);
 					showDirectoryInternal(dir, file);
 				}

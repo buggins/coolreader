@@ -1,8 +1,12 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -51,6 +55,51 @@ public class Scanner {
 //		}
 //	}
 	
+	private FileInfo scanZip( FileInfo zip )
+	{
+		try {
+			ZipFile file = new ZipFile(new File(zip.pathname));
+			ArrayList<FileInfo> items = new ArrayList<FileInfo>(); 
+			for ( Enumeration<?> e = file.entries(); e.hasMoreElements(); ) {
+				ZipEntry entry = (ZipEntry)e.nextElement();
+				String name = entry.getName();
+				FileInfo item = new FileInfo();
+				item.format = DocumentFormat.byExtension(entry.getName());
+				if ( item.format==null )
+					continue;
+				File f = new File(entry.getName());
+				item.filename = f.getName();
+				item.path = f.getPath();
+				item.pathname = entry.getName();
+				item.size = (int)entry.getSize();
+				item.createTime = entry.getTime();
+				item.arcname = zip.pathname;
+				item.arcsize = (int)entry.getCompressedSize();
+				items.add(item);
+			}
+			if ( items.size()==0 ) {
+				Log.i("cr3", "Supported files not found in " + zip.pathname);
+				return null;
+			} else if ( items.size()==1 ) {
+				// single supported file in archive
+				FileInfo item = items.get(0);
+				item.isArchive = true;
+				zip.isDirectory = false;
+			} else {
+				zip.isArchive = true;
+				zip.isDirectory = true;
+				zip.isListed = true;
+				for ( FileInfo item : items ) {
+					item.parent = zip;
+					zip.addFile(item);
+				}
+			}
+		} catch ( Exception e ) {
+			Log.e("cr3", "IOException while opening " + zip.pathname + " " + e.getMessage());
+		}
+		return null;
+	}
+	
 	/**
 	 * Adds dir and file children to directory FileInfo item.
 	 * @param baseDir is directory to list files and dirs for
@@ -70,10 +119,30 @@ public class Scanner {
 						if ( f.getName().startsWith(".") )
 							continue; // treat files beginning with '.' as hidden
 						String pathName = f.getAbsolutePath();
+						boolean isZip = pathName.toLowerCase().endsWith(".zip");
 						FileInfo item = mFileList.get(pathName);
 						boolean isNew = false;
 						if ( item==null ) {
 							item = new FileInfo( f );
+							if ( isZip ) {
+								item = scanZip( item );
+								if ( item==null )
+									continue;
+								if ( item.isDirectory ) {
+									// many supported files in ZIP
+									item.parent = baseDir;
+									baseDir.addDir(item);
+									for ( int i=0; i<item.fileCount(); i++ ) {
+										FileInfo file = item.getFile(i);
+										mFileList.put(file.getPathName(), file);
+									}
+								} else {
+									item.parent = baseDir;
+									baseDir.addFile(item);
+									mFileList.put(pathName, item);
+								}
+								continue;
+							}
 							isNew = true;
 						}
 						if ( item.format!=null ) {
