@@ -188,33 +188,43 @@ public class CRDB {
 	}
 	synchronized public boolean findBy( Bookmark v, String condition )
 	{
-		condition = " WHERE " + condition;
-		Cursor rs = mDB.rawQuery(READ_BOOKMARK_SQL +
-				condition, null);
 		boolean found = false;
-		if ( rs.moveToFirst() ) {
-			readBookmarkFromCursor( v, rs );
-			found = true;
+		Cursor rs = null;
+		try {
+			condition = " WHERE " + condition;
+			rs = mDB.rawQuery(READ_BOOKMARK_SQL +
+					condition, null);
+			if ( rs.moveToFirst() ) {
+				readBookmarkFromCursor( v, rs );
+				found = true;
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
 		}
-		rs.close();
 		return found;
 	}
 
 	synchronized public boolean load( ArrayList<Bookmark> list, String condition )
 	{
-		condition = " WHERE " + condition;
-		Cursor rs = mDB.rawQuery(READ_BOOKMARK_SQL +
-				condition, null);
 		boolean found = false;
-		if ( rs.moveToFirst() ) {
-			do {
-				Bookmark v = new Bookmark();
-				readBookmarkFromCursor( v, rs );
-				list.add(v);
-				found = true;
-			} while ( rs.moveToNext() );
+		Cursor rs = null;
+		try {
+			condition = " WHERE " + condition;
+			rs = mDB.rawQuery(READ_BOOKMARK_SQL +
+					condition, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					Bookmark v = new Bookmark();
+					readBookmarkFromCursor( v, rs );
+					list.add(v);
+					found = true;
+				} while ( rs.moveToNext() );
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
 		}
-		rs.close();
 		return found;
 	}
 
@@ -264,35 +274,44 @@ public class CRDB {
 			buf.append(" ");
 		}
 		condition = buf.toString();
-		Cursor rs = mDB.rawQuery(READ_FILEINFO_SQL +
-				condition, null);
 		boolean found = false;
-		if ( rs.moveToFirst() ) {
-			readFileInfoFromCursor( fileInfo, rs );
-			found = true;
+		Cursor rs = null;
+		try { 
+			rs = mDB.rawQuery(READ_FILEINFO_SQL +
+					condition, null);
+			if ( rs.moveToFirst() ) {
+				readFileInfoFromCursor( fileInfo, rs );
+				found = true;
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
 		}
-		rs.close();
 		return found;
 	}
 	
 	synchronized public boolean findRecentBooks( ArrayList<FileInfo> list, int maxCount, int limit )
 	{
 		String sql = READ_FILEINFO_SQL + " WHERE last_access_time>0 ORDER BY last_access_time DESC LIMIT " + limit;
-		Cursor rs = mDB.rawQuery(sql, null);
+		Cursor rs = null;
 		boolean found = false;
-		if ( rs.moveToFirst() ) {
-			do {
-				FileInfo fileInfo = new FileInfo();
-				readFileInfoFromCursor( fileInfo, rs );
-				if ( !fileInfo.fileExists() )
-					continue;
-				list.add(fileInfo);
-				found = true;
-				if ( list.size()>maxCount )
-					break;
-			} while (rs.moveToNext());
+		try {
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					FileInfo fileInfo = new FileInfo();
+					readFileInfoFromCursor( fileInfo, rs );
+					if ( !fileInfo.fileExists() )
+						continue;
+					list.add(fileInfo);
+					found = true;
+					if ( list.size()>maxCount )
+						break;
+				} while (rs.moveToNext());
+			}
+		} finally {
+			rs.close();
 		}
-		rs.close();
 		return found;
 	}
 	
@@ -311,22 +330,27 @@ public class CRDB {
 	{
 		if ( data==null )
 			return;
+		SQLiteStatement stmt = null;
 		try { 
 			Long existing = longQuery("SELECT book_fk FROM coverpage WHERE book_fk=" + bookId);
 			if ( existing==null ) {
-				SQLiteStatement stmt = mDB.compileStatement("UPDATE coverpage SET imagedata=? WHERE book_id=" + bookId);
+				stmt = mDB.compileStatement("UPDATE coverpage SET imagedata=? WHERE book_id=" + bookId);
 				stmt.bindBlob(1, data);
 				stmt.execute();
 				Log.v("cr3", "db: saved " + data.length + " bytes of cover page for book " + bookId);
 			}
 		} catch ( Exception e ) {
 			Log.e("cr3", "Exception while trying to save cover page to DB: " + e.getMessage() );
+		} finally {
+			if ( stmt!=null )
+				stmt.close();
 		}
 	}
 	public byte[] loadBookCoverpage( long bookId )
 	{
+		Cursor rs = null;
 		try {
-			Cursor rs = mDB.rawQuery("SELECT imagedata FROM coverpage WHERE book_fk=" + bookId, null);
+			rs = mDB.rawQuery("SELECT imagedata FROM coverpage WHERE book_fk=" + bookId, null);
 			if ( rs.moveToFirst() ) {
 				return rs.getBlob(0);
 			}
@@ -334,6 +358,9 @@ public class CRDB {
 		} catch ( SQLException e ) {
 			Log.e("cr3", "error while reading coverpage for book " + bookId + ": " + e.getMessage());
 			return null;
+		} finally {
+			if ( rs!=null )
+				rs.close();
 		}
 	}
 	
@@ -531,23 +558,29 @@ public class CRDB {
 				buf.append(")");
 				String sql = buf.toString();
 				Log.d("cr3db", "going to execute " + sql);
-				SQLiteStatement stmt = mDB.compileStatement(sql);
-				for ( int i=1; i<=values.size(); i++ ) {
-					Object v = values.get(i-1);
-					valueBuf.append(v!=null ? v.toString() : "null");
-					valueBuf.append(",");
-					if ( v==null )
-						stmt.bindNull(i);
-					else if (v instanceof String)
-						stmt.bindString(i, (String)v);
-					else if (v instanceof Long)
-						stmt.bindLong(i, (Long)v);
-					else if (v instanceof Double)
-						stmt.bindDouble(i, (Double)v);
+				SQLiteStatement stmt = null;
+				Long id = null;
+				try {
+					stmt = mDB.compileStatement(sql);
+					for ( int i=1; i<=values.size(); i++ ) {
+						Object v = values.get(i-1);
+						valueBuf.append(v!=null ? v.toString() : "null");
+						valueBuf.append(",");
+						if ( v==null )
+							stmt.bindNull(i);
+						else if (v instanceof String)
+							stmt.bindString(i, (String)v);
+						else if (v instanceof Long)
+							stmt.bindLong(i, (Long)v);
+						else if (v instanceof Double)
+							stmt.bindDouble(i, (Double)v);
+					}
+					id = stmt.executeInsert();
+					Log.d("cr3db", "added book, id=" + id + ", query=" + sql);
+				} finally {
+					if ( stmt!=null )
+						stmt.close();
 				}
-				Long id = stmt.executeInsert();
-				Log.d("cr3db", "added book, id=" + id + ", query=" + sql);
-				stmt.close();
 				return id;
 			} catch ( Exception e ) {
 				Log.e("cr3db", "insert failed: " + e.getMessage());
