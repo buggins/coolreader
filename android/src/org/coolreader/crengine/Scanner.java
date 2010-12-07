@@ -64,10 +64,10 @@ public class Scanner {
 				ZipEntry entry = (ZipEntry)e.nextElement();
 				String name = entry.getName();
 				FileInfo item = new FileInfo();
-				item.format = DocumentFormat.byExtension(entry.getName());
+				item.format = DocumentFormat.byExtension(name);
 				if ( item.format==null )
 					continue;
-				File f = new File(entry.getName());
+				File f = new File(name);
 				item.filename = f.getName();
 				item.path = f.getPath();
 				item.pathname = entry.getName();
@@ -84,7 +84,8 @@ public class Scanner {
 				// single supported file in archive
 				FileInfo item = items.get(0);
 				item.isArchive = true;
-				zip.isDirectory = false;
+				item.isDirectory = false;
+				return item;
 			} else {
 				zip.isArchive = true;
 				zip.isDirectory = true;
@@ -93,6 +94,7 @@ public class Scanner {
 					item.parent = zip;
 					zip.addFile(item);
 				}
+				return zip;
 			}
 		} catch ( Exception e ) {
 			Log.e("cr3", "IOException while opening " + zip.pathname + " " + e.getMessage());
