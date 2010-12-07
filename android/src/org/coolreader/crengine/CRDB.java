@@ -12,7 +12,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 public class CRDB {
-	static final boolean DROP_TABLES = false; // for debug purposes
+	static final boolean DROP_TABLES = true; // for debug purposes
 	SQLiteDatabase mDB;
 	File mDBFile;
 	protected boolean open( File dbfile )

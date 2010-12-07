@@ -13,7 +13,7 @@ hr {
    margin-bottom: 0.5em; 
    } 
 
-b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
+b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code,font { 
    display: inline; 
    } 
 

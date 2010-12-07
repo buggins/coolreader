@@ -19,7 +19,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -238,13 +237,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return mEngine;
     }
     
+	private int lastResizeTaskId = 0;
 	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
 		init();
+		final int thisId = ++lastResizeTaskId;
 		mActivity.getHistory().updateCoverPageSize(w, h);
-		execute(new ResizeTask(w,h));
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+			public void run() {
+				BackgroundThread.ensureBackground();
+				if ( thisId != lastResizeTaskId ) {
+					Log.d("cr3", "skipping duplicate resize request");
+					return;
+				}
+		        internalDX = w;
+		        internalDY = h;
+				Log.d("cr3", "ResizeTask: resizeInternal("+w+","+h+")");
+		        resizeInternal(w, h);
+				Log.d("cr3", "ResizeTask: done, drawing page");
+		        drawPage();
+			}
+		});
 	}
 	
 	public boolean isBookLoaded()
@@ -1561,32 +1576,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private int internalDX = 0;
 	private int internalDY = 0;
-	private int lastResizeTaskId = 0;
-	private class ResizeTask extends Task
-	{
-		final int id;
-		final int dx;
-		final int dy;
-		ResizeTask( int dx, int dy )
-		{
-			this.dx = dx;
-			this.dy = dy;
-			this.id = ++lastResizeTaskId; 
-		}
-		public void work() {
-			BackgroundThread.ensureBackground();
-			if ( this.id != lastResizeTaskId ) {
-				Log.d("cr3", "skipping duplicate resize request");
-				return;
-			}
-	        internalDX = dx;
-	        internalDY = dy;
-			Log.d("cr3", "ResizeTask: resizeInternal("+dx+","+dy+")");
-	        resizeInternal(dx, dy);
-			Log.d("cr3", "ResizeTask: done, drawing page");
-	        drawPage();
-		}
-	}
 
 	private byte[] coverPageBytes = null;
 	private BitmapDrawable coverPageDrawable = null;

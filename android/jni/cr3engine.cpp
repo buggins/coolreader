@@ -80,17 +80,19 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
 {
     CRLog::trace("GetBookProperties( %s )", name);
 
-    // open stream
-    LVStreamRef stream = LVOpenFileStream(name, LVOM_READ);
-    if (!stream) {
-        CRLog::error("cannot open file %s", name);
-        return false;
-    }
-    time_t t = (time_t)time(0);
     // check archieve
     lString16 arcPathName;
     lString16 arcItemPathName;
     bool isArchiveFile = LVSplitArcName( lString16(name), arcPathName, arcItemPathName );
+
+    // open stream
+    LVStreamRef stream = LVOpenFileStream( (isArchiveFile ? arcPathName : Utf8ToUnicode(lString8(name))).c_str() , LVOM_READ);
+    if (!stream) {
+        CRLog::error("cannot open file %s", name);
+        return false;
+    }
+
+    time_t t = (time_t)time(0);
     if ( isArchiveFile ) {
         int arcsize = (int)stream->GetSize();
         LVContainerRef container = LVOpenArchieve(stream);

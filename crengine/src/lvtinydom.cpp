@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.25"
+#define CACHE_FILE_FORMAT_VERSION "3.02.26"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -6276,6 +6276,20 @@ void ldomDocumentFragmentWriter::OnTagBody()
 
     Autoclose HTML tags.
 */
+
+void ldomDocumentWriterFilter::appendStyle( const lChar16 * style )
+{
+    ldomNode * node = _currNode->_element;\
+    if ( _styleAttrId==0 ) {
+        _styleAttrId = _document->getAttrNameIndex(L"style");
+    }
+    lString16 oldStyle = node->getAttributeValue(_styleAttrId);
+    if ( !oldStyle.empty() && oldStyle.at(oldStyle.length()-1)!=';' )
+        oldStyle << L"; ";
+    oldStyle << style;
+    node->setAttributeValue(LXML_NS_NONE, _styleAttrId, oldStyle.c_str());
+}
+
 void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 {
     lUInt16 * rule = _rules[tag_id];
@@ -6390,8 +6404,20 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 
     //CRLog::trace("OnAttribute(%s, %s)", LCSTR(lString16(attrname)), LCSTR(lString16(attrvalue)));
 
+    if ( !lStr_cmp(attrname, L"align") ) {
+        if ( !lStr_cmp(attrvalue, L"justify") )
+            appendStyle( L"text-align: justify" );
+        else if ( !lStr_cmp(attrvalue, L"left") )
+            appendStyle( L"text-align: left" );
+        else if ( !lStr_cmp(attrvalue, L"right") )
+            appendStyle( L"text-align: right" );
+        else if ( !lStr_cmp(attrvalue, L"center") )
+            appendStyle( L"text-align: center" );
+       return;
+    }
     lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;
     lUInt16 attr_id = (attrname && attrname[0]) ? _document->getAttrNameIndex( attrname ) : 0;
+
     _currNode->addAttribute( attr_ns, attr_id, attrvalue );
 
     //logfile << " !a!\n";
@@ -6462,13 +6488,18 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
         bool autoPara = _libRuDocumentDetected && (flags & TXTFLG_PRE);
         if (_currNode->_allowText) {
             if ( _libRuParagraphStart ) {
+                bool cleaned = false;
                 while ( *text==160 && len > 0 ) {
+                    cleaned = true;
                     text++;
                     len--;
                     while ( *text==' ' && len > 0 ) {
                         text++;
                         len--;
                     }
+                }
+                if ( cleaned ) {
+                    appendStyle(L"text-indent: 1.3em; text-align: justify");
                 }
                 _libRuParagraphStart = false;
             }
@@ -6516,6 +6547,7 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
 : ldomDocumentWriter( document, headerOnly )
 , _libRuDocumentDetected(false)
 , _libRuParagraphStart(false)
+, _styleAttrId(0)
 {
     lUInt16 i;
     for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )

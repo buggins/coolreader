@@ -1922,9 +1922,11 @@ class ldomDocumentWriterFilter : public ldomDocumentWriter
 protected:
     bool _libRuDocumentDetected;
     bool _libRuParagraphStart;
+    lUInt16 _styleAttrId;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
     virtual void AutoClose( lUInt16 tag_id, bool open );
     virtual void ElementCloseHandler( ldomNode * elem );
+    virtual void appendStyle( const lChar16 * style );
 public:
     /// called on attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue );
