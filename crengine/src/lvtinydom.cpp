@@ -6319,7 +6319,8 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
 //    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
 
     // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
-    if ( tagname[0]=='b' && tagname[1]=='r' && tagname[2]==0 ) {
+    if ( (tagname[0]=='b' && tagname[1]=='r' && tagname[2]==0)
+        || tagname[0]=='d' && tagname[1]=='d' && tagname[2]==0 ) {
         // substitute to P
         tagname = L"p";
         _libRuParagraphStart = true; // to trim leading &nbsp;
@@ -6469,6 +6470,7 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                         len--;
                     }
                 }
+                _libRuParagraphStart = false;
             }
             int leftSpace = 0;
             const lChar16 * paraTag = NULL;

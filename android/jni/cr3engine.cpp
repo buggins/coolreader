@@ -165,9 +165,12 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 	jclass objclass = env->GetObjectClass(_fileInfo);
 	jfieldID fid = env->GetFieldID(objclass, "pathname", "Ljava/lang/String;");
 	lString16 filename = env.fromJavaString( (jstring)env->GetObjectField(_fileInfo, fid) );
-
+    fid = env->GetFieldID(objclass, "arcname", "Ljava/lang/String;");
+    lString16 arcname = env.fromJavaString( (jstring)env->GetObjectField(_fileInfo, fid) );
 	if ( filename.empty() )
 		return JNI_FALSE;
+	if ( !arcname.empty() )
+	   filename = arcname + L"@/" + filename;
 
 	BookProperties props;
 	CRLog::debug("Looking for properties of file %s", LCSTR(filename));

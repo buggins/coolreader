@@ -260,6 +260,7 @@ public class CRDB {
 		fileInfo.arcsize = rs.getInt(i++);
 		fileInfo.createTime = rs.getInt(i++);
 		fileInfo.lastAccessTime = rs.getInt(i++);
+		fileInfo.isArchive = fileInfo.arcname!=null; 
 	}
 	
 	

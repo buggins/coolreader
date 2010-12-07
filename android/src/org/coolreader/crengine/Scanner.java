@@ -77,6 +77,7 @@ public class Scanner {
 				item.createTime = entry.getTime();
 				item.arcname = zip.pathname;
 				item.arcsize = (int)entry.getCompressedSize();
+				item.isArchive = true;
 				items.add(item);
 			}
 			if ( items.size()==0 ) {
