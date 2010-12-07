@@ -1133,13 +1133,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void done()
 		{
 			BackgroundThread.ensureGUI();
-			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
+//			Log.d("cr3", "drawPage : bitmap is ready, invalidating view to draw new bitmap");
 //			if ( bi!=null ) {
 //				setBitmap( bi.bitmap );
 //				invalidate();
 //			}
 //    		if (mOpened)
-//    			mEngine.hideProgress();
+   			mEngine.hideProgress();
 		}
 	};
 	
@@ -1555,6 +1555,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		if ( !mInitialized || !mOpened )
 			return;
+		Log.v("cr3", "drawPage() : submitting DrawPageTask");
 		execute( new DrawPageTask() );
 	}
 	
@@ -1582,6 +1583,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        internalDY = dy;
 			Log.d("cr3", "ResizeTask: resizeInternal("+dx+","+dy+")");
 	        resizeInternal(dx, dy);
+			Log.d("cr3", "ResizeTask: done, drawing page");
 	        drawPage();
 		}
 	}

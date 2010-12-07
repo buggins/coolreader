@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 public class CRDB {
+	static final boolean DROP_TABLES = false; // for debug purposes
 	SQLiteDatabase mDB;
 	File mDBFile;
 	protected boolean open( File dbfile )
@@ -20,7 +21,6 @@ public class CRDB {
 		this.mDBFile = dbfile;
 		return true;
 	}
-	static boolean DROP_TABLES = false;
 	protected void dropTables()
 	{
 		String[] tableNames = new String[] {

@@ -728,10 +728,11 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
   (JNIEnv * _env, jobject _this, jint dx, jint dy)
 {
 	CRJNIEnv env(_env);
-	CRLog::debug("resizeInternal(%d, %d)", dx, dy);
+	CRLog::debug("resizeInternal(%d, %d) is called", dx, dy);
     ReaderViewNative * p = getNative(_env, _this);
 	DocViewCallback callback( _env, p->_docview, _this );
     p->_docview->Resize(dx, dy);
+    CRLog::trace("resizeInternal() is finished");
 }  
   
 

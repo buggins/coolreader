@@ -438,6 +438,7 @@ void LVDocView::checkRender()
         m_imageCache.clear();
         m_is_rendered = true;
         _posIsSet = false;
+        CRLog::trace("LVDocView::checkRender() compeleted");
     }
 }
 
