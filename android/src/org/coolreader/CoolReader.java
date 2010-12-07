@@ -119,7 +119,7 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
 	public void applyScreenOrientation( Window wnd )
 	{
 		if ( wnd!=null ) {
@@ -128,6 +128,7 @@ public class CoolReader extends Activity
 			wnd.setAttributes(attrs);
 		}
 	}
+
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;

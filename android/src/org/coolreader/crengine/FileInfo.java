@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.coolreader.R;
 
@@ -33,12 +36,47 @@ public class FileInfo {
 	private ArrayList<FileInfo> dirs; // directories
 	FileInfo parent; // parent item
 
-	public FileInfo( String path )
+	/**
+	 * To separate archive name from file name inside archive.
+	 */
+	public static String ARC_SEPARATOR = "@/";
+	
+	public FileInfo( String pathName )
 	{
-		this(new File(path));
+		int arcSeparatorPos = pathName.indexOf(ARC_SEPARATOR);
+		if ( arcSeparatorPos>=0 ) {
+			// from archive
+			isArchive = true;
+			arcname = pathName.substring(0, arcSeparatorPos);
+			pathname = pathName.substring(arcSeparatorPos + ARC_SEPARATOR.length());
+			File f = new File(pathname);
+			filename = f.getName();
+			path = f.getPath();
+			File arc = new File(arcname);
+			if ( arc.isFile() && arc.exists() ) {
+				arcsize = (int)arc.length();
+				try {
+					ZipFile zip = new ZipFile(new File(arcname));
+					for ( Enumeration<?> e = zip.entries(); e.hasMoreElements(); ) {
+						ZipEntry entry = (ZipEntry)e.nextElement();
+						
+						String name = entry.getName();
+						if ( !entry.isDirectory() && !pathname.equals(name) ) {
+							format = DocumentFormat.byExtension(name);
+							size = (int)entry.getSize(); 
+							break;
+						}
+					}
+				} catch ( Exception e ) {
+					Log.e("cr3", "error while reading contents of " + arcname);
+				}
+			}
+		} else {
+			fromFile(new File(pathName));
+		}
 	}
 	
-	public FileInfo( File f )
+	private void fromFile( File f )
 	{
 		if ( !f.isDirectory() ) {
 			DocumentFormat fmt = DocumentFormat.byExtension(f.getName());
@@ -54,6 +92,11 @@ public class FileInfo {
 			pathname = f.getAbsolutePath();
 			isDirectory = true;
 		}
+	}
+	
+	public FileInfo( File f )
+	{
+		fromFile(f);
 	}
 	
 	public FileInfo()
@@ -80,6 +123,24 @@ public class FileInfo {
 		lastAccessTime = v.lastAccessTime;
 	}
 	
+	/**
+	 * @return archive file path and name, null if this object is neither archive nor a file inside archive
+	 */
+	public String getArchiveName()
+	{
+		return arcname;
+	}
+	
+	/**
+	 * @return file name inside archive, null if this object is not a file inside archive
+	 */
+	public String getArchiveItemName()
+	{
+		if ( isArchive && !isDirectory && pathname!=null )
+			return pathname;
+		return null;
+	}
+	
 	public final static String RECENT_DIR_TAG = "@recent";
 	public final static String ROOT_DIR_TAG = "@root";
 	
@@ -103,22 +164,32 @@ public class FileInfo {
 		return pathname.startsWith(".");
 	}
 	
+	/**
+	 * Get absolute path to file.
+	 * For plain files, returns /abs_path_to_file/filename.ext
+	 * For archives, returns /abs_path_to_archive/arc_file_name.zip@/filename_inside_archive.ext
+	 * @return full path + filename
+	 */
 	public String getPathName()
 	{
 		return pathname;
 	}
+
 	public int dirCount()
 	{
 		return dirs!=null ? dirs.size() : 0;
 	}
+
 	public int fileCount()
 	{
 		return files!=null ? files.size() : 0;
 	}
-	public int size()
+
+	public int itemCount()
 	{
 		return dirCount() + fileCount();
 	}
+
 	public void addDir( FileInfo dir )
 	{
 		if ( dirs==null )

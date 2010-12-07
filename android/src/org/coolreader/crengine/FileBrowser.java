@@ -198,7 +198,7 @@ public class FileBrowser extends ListView {
 				mHistory.loadFromDB(mScanner, 100);
 			}
 			public void done() {
-				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.size());
+				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
 				mInitialized = true;
 				//mEngine.hideProgress();
 				mEngine.hideProgress();
@@ -276,18 +276,22 @@ public class FileBrowser extends ListView {
 	}
 
 	private FileInfo currDirectory;
+
 	public boolean isRootDir()
 	{
 		return currDirectory == mScanner.getRoot();
 	}
+
 	public boolean isRecentDir()
 	{
-		return currDirectory!=null && "@recent".equals(currDirectory.getPathName());
+		return currDirectory!=null && currDirectory.isRecentDir();
 	}
+
 	public void showRecentBooks()
 	{
 		showDirectory(null, null);
 	}
+
 	public void showLastDirectory()
 	{
 		if ( currDirectory==null || currDirectory==mScanner.getRoot() )
@@ -295,6 +299,7 @@ public class FileBrowser extends ListView {
 		else
 			showDirectory(currDirectory, null);
 	}
+
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {

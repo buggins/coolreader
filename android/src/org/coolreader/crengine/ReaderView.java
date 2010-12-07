@@ -1611,7 +1611,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		LoadDocumentTask( FileInfo fileInfo, Runnable errorHandler )
 		{
 			BackgroundThread.ensureGUI();
-			this.filename = fileInfo.pathname;
+			this.filename = fileInfo.getPathName();
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );

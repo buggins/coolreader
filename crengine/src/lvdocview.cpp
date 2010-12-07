@@ -2814,6 +2814,51 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
 
     // split file path and name
     lString16 filename16( fname );
+
+    lString16 arcPathName;
+    lString16 arcItemPathName;
+    bool isArchiveFile = LVSplitArcName( filename16, arcPathName, arcItemPathName );
+    if ( isArchiveFile ) {
+        // load from archive, using @/ separated arhive/file pathname
+        CRLog::info( "Loading document %s from archive %s", LCSTR(arcItemPathName), LCSTR(arcPathName) );
+        LVStreamRef stream = LVOpenFileStream(arcPathName.c_str(), LVOM_READ);
+        int arcsize = 0;
+        if ( stream.isNull() ) {
+            CRLog::error( "Cannot open archive file %s", LCSTR(arcPathName) );
+            return false;
+        }
+        arcsize = (int)stream->GetSize();
+        stream.Clear();
+        m_container = LVOpenArchieve(stream);
+        if ( m_container.isNull() ) {
+            CRLog::error( "Cannot read archive contents from %s", LCSTR(arcPathName) );
+            return false;
+        }
+        stream = m_container->OpenStream(arcItemPathName.c_str(), LVOM_READ);
+        if ( stream.isNull() ) {
+            CRLog::error( "Cannot open archive file item stream %s", LCSTR(filename16) );
+            return false;
+        }
+
+        lString16 fn = LVExtractFilename( arcPathName );
+        lString16 dir = LVExtractPath( arcPathName );
+
+        m_doc_props->setString(DOC_PROP_ARC_NAME, fn );
+        m_doc_props->setString(DOC_PROP_ARC_PATH, dir );
+        m_doc_props->setString(DOC_PROP_ARC_SIZE, lString16::itoa(arcsize) );
+        m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa((int)stream->GetSize()));
+        m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName );
+        m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->crc32());
+        // loading document
+        if ( LoadDocument( stream ) ) {
+            m_filename = lString16(fname);
+            m_stream.Clear();
+            return true;
+        }
+        m_stream.Clear();
+        return false;
+    }
+
     lString16 fn = LVExtractFilename( filename16 );
     lString16 dir = LVExtractPath( filename16 );
 

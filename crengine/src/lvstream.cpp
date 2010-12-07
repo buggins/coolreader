@@ -1321,6 +1321,19 @@ public:
 };
 #endif
 
+/// tries to split full path name into archive name and file name inside archive using separator "@/" or "@\"
+bool LVSplitArcName( lString16 fullPathName, lString16 & arcPathName, lString16 & arcItemPathName )
+{
+    int p = fullPathName.pos(lString16("@/"));
+    if ( p<0 )
+        p = fullPathName.pos(lString16("@\\"));
+    if ( p<0 )
+        return false;
+    arcPathName = fullPathName.substr(0, p);
+    arcItemPathName = fullPathName.substr(p + 2);
+    return !arcPathName.empty() && !arcItemPathName.empty();
+}
+
 // facility functions
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 {

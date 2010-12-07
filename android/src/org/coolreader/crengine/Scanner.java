@@ -62,6 +62,8 @@ public class Scanner {
 			ArrayList<FileInfo> items = new ArrayList<FileInfo>(); 
 			for ( Enumeration<?> e = file.entries(); e.hasMoreElements(); ) {
 				ZipEntry entry = (ZipEntry)e.nextElement();
+				if ( entry.isDirectory() )
+					continue;
 				String name = entry.getName();
 				FileInfo item = new FileInfo();
 				item.format = DocumentFormat.byExtension(name);

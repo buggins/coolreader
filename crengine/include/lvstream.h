@@ -746,6 +746,9 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName );
 // resolve relative links
 lString16 LVCombinePaths( lString16 basePath, lString16 newPath );
 
+/// tries to split full path name into archive name and file name inside archive using separator "@/" or "@\"
+bool LVSplitArcName( lString16 fullPathName, lString16 & arcPathName, lString16 & arcItemPathName );
+
 /// returns true if specified file exists
 bool LVFileExists( lString16 pathName );
 /// returns true if specified directory exists
