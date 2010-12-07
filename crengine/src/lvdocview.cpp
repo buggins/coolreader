@@ -2828,7 +2828,6 @@ bool LVDocView::LoadDocument( const lChar16 * fname )
             return false;
         }
         arcsize = (int)stream->GetSize();
-        stream.Clear();
         m_container = LVOpenArchieve(stream);
         if ( m_container.isNull() ) {
             CRLog::error( "Cannot read archive contents from %s", LCSTR(arcPathName) );

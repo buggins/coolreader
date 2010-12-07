@@ -86,64 +86,28 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
         CRLog::error("cannot open file %s", name);
         return false;
     }
+    time_t t = (time_t)time(0);
     // check archieve
-#ifdef USE_ZLIB
-    LVContainerRef arc;
-    //printf("start opening arc\n");
-    //for ( int i=0; i<1000; i++ )
-    //for ( int kk=0; kk<1000; kk++) 
-    {
-        arc = LVOpenArchieve( stream );
-    //printf("end opening arc\n");
-    if (!arc.isNull())
-    {
-        CRLog::trace("%s is archive with %d items", name, arc->GetObjectCount());
-        // archieve
-        const LVContainerItemInfo * bestitem = NULL;
-        const LVContainerItemInfo * fb2item = NULL;
-        const LVContainerItemInfo * fbditem = NULL;
-        for (int i=0; i<arc->GetObjectCount(); i++)
-        {
-            const LVContainerItemInfo * item = arc->GetObjectInfo(i);
-            if (item)
-            {
-                if ( !item->IsContainer() )
-                {
-                    lString16 name( item->GetName() );
-                    if ( name.length() > 5 )
-                    {
-                        name.lowercase();
-                        const lChar16 * pext = name.c_str() + name.length() - 4;
-                        if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='2') {
-                            fb2item = item;
-                        } else if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='d') {
-                            fbditem = item;
-                        }
-                    }
-                }
-            }
+    lString16 arcPathName;
+    lString16 arcItemPathName;
+    bool isArchiveFile = LVSplitArcName( lString16(name), arcPathName, arcItemPathName );
+    if ( isArchiveFile ) {
+        int arcsize = (int)stream->GetSize();
+        LVContainerRef container = LVOpenArchieve(stream);
+        if ( container.isNull() ) {
+            CRLog::error( "Cannot read archive contents from %s", LCSTR(arcPathName) );
+            return false;
         }
-        bestitem = fb2item;
-        if ( fbditem )
-            bestitem = fbditem;
-        if ( !bestitem )
+        stream = container->OpenStream(arcItemPathName.c_str(), LVOM_READ);
+        if ( stream.isNull() ) {
+            CRLog::error( "Cannot open archive file item stream %s", LCSTR(lString16(name)) );
             return false;
-        CRLog::trace( "opening item %s from archive", UnicodeToUtf8(bestitem->GetName()).c_str() );
-        //printf("start opening stream\n");
-        //for ( int k=0; k<1000; k++ ) {
-            stream = arc->OpenStream( bestitem->GetName(), LVOM_READ );
-            char buf[8192];
-            stream->Read(buf, 8192, NULL );
-        //}
-        //printf("end opening stream\n");
-        if ( stream.isNull() )
-            return false;
-        CRLog::trace( "stream created" );
-        // opened archieve stream
+        }
     }
+    struct stat fs;
+    if ( !stat( name, &fs ) ) {
+        t = fs.st_mtime;
     }
-
-#endif //USE_ZLIB
 
     // read document
 #if COMPACT_DOM==1
@@ -184,18 +148,9 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     pBookProps->series = series;
     pBookProps->filesize = (long)stream->GetSize();
     pBookProps->filename = lString16(name);
-    struct stat fs;
-    time_t t;
-    if ( stat( name, &fs ) ) {
-        t = (time_t)time(0);
-    } else {
-        t = fs.st_mtime;
-    }
     pBookProps->filedate = getDateTimeString( t );
     return true;
 }
-
-
 
 
 /*
