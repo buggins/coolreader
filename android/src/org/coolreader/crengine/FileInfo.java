@@ -82,7 +82,8 @@ public class FileInfo {
 						String name = entry.getName();
 						if ( !entry.isDirectory() && !pathname.equals(name) ) {
 							format = DocumentFormat.byExtension(name);
-							size = (int)entry.getSize(); 
+							size = (int)entry.getSize();
+							createTime = entry.getTime();
 							break;
 						}
 					}

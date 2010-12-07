@@ -39,16 +39,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="3"
+	        android:layout_marginLeft="4dip"
+	        android:layout_marginRight="4dip"
             android:singleLine="false"
+            android:maxLines="3"
             android:layout_gravity="left" />
-    </LinearLayout>
-           
-           
-    <LinearLayout android:id="@+id/browser_item_misc_body"
-        android:orientation="vertical"
+            
+            
+        <LinearLayout android:id="@+id/browser_item_misc_body"
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|right"
+        android:layout_gravity="center_vertical|left"
         android:layout_marginLeft="4dip"
         android:layout_marginRight="4dip"
         android:baselineAligned="false">
@@ -58,15 +60,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+	        android:layout_marginRight="8dip"
             android:singleLine="true"
             android:layout_gravity="right" />
         <TextView android:id="@+id/browser_item_field2"
             style="@android:style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+	        android:layout_marginRight="8dip"
             android:layout_weight="1"
             android:singleLine="true"
             android:layout_gravity="right" />
     </LinearLayout>
+            
+            
+    </LinearLayout>
+           
+           
 
 </LinearLayout>

@@ -2,8 +2,9 @@ package org.coolreader.crengine;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -254,18 +255,32 @@ public class FileBrowser extends ListView {
 		if ( name==null || name.length()==0 )
 			return null;
 		if ( number>0 )
-			return "(#" + number + " " + name +  ")";
+			return "#" + number + " " + name;
 		else
-			return "(" + name + ")";
+			return name;
 	}
 	
+	static private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
+	static private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 	public static String formatDate( long timeStamp )
 	{
-		if ( timeStamp<1000*60*60*24*1000 )
+		if ( timeStamp<5000*60*60*24*1000 )
 			return "";
-		SimpleDateFormat format = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
-		format.setTimeZone(java.util.TimeZone.getDefault());
-		return format.format(new Date(timeStamp));
+		TimeZone tz = java.util.TimeZone.getDefault();
+		Calendar now = Calendar.getInstance(tz);
+		Calendar c = Calendar.getInstance(tz);
+		c.setTimeInMillis(timeStamp);
+		if ( c.get(Calendar.YEAR)<1980 )
+			return "";
+		if ( c.get(Calendar.YEAR)==now.get(Calendar.YEAR)
+				&& c.get(Calendar.MONTH)==now.get(Calendar.MONTH)
+				&& c.get(Calendar.DAY_OF_MONTH)==now.get(Calendar.DAY_OF_MONTH)) {
+			timeFormat.setTimeZone(tz);
+			return timeFormat.format(c.getTime());
+		} else {
+			dateFormat.setTimeZone(tz);
+			return dateFormat.format(c.getTime());
+		}
 	}
 
 	public static String formatPercent( int percent )
@@ -411,8 +426,8 @@ public class FileBrowser extends ListView {
 						if ( parentItem!=null ) {
 							if ( parentItem.pathname.startsWith("@") )
 								thisDir = "/" + parentItem.filename;
-							else if ( parentItem.isArchive )
-								thisDir = parentItem.arcname;
+//							else if ( parentItem.isArchive )
+//								thisDir = parentItem.arcname;
 							else
 								thisDir = parentItem.pathname;
 							//parentDir = parentItem.path;
@@ -421,7 +436,12 @@ public class FileBrowser extends ListView {
 						return;
 					}
 					if ( item.isDirectory ) {
-						image.setImageResource(R.drawable.cr3_browser_folder);
+						if ( item.isRecentDir() )
+							image.setImageResource(R.drawable.cr3_browser_folder_recent);
+						else if ( item.isArchive )
+							image.setImageResource(R.drawable.cr3_browser_folder_zip);
+						else
+							image.setImageResource(R.drawable.cr3_browser_folder);
 						setText(name, item.filename);
 
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
