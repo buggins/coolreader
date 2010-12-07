@@ -316,7 +316,7 @@ public class FileBrowser extends ListView {
 		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
-					if ( !dir.isRootDir() && FileInfo.RECENT_DIR_TAG.equals(dir.getPathName()) )
+					if ( !dir.isRootDir() && !dir.isRecentDir() )
 						dir.sort(FileInfo.DEF_SORT_ORDER);
 					showDirectoryInternal(dir, file);
 				}
@@ -411,6 +411,8 @@ public class FileBrowser extends ListView {
 						if ( parentItem!=null ) {
 							if ( parentItem.pathname.startsWith("@") )
 								thisDir = "/" + parentItem.filename;
+							else if ( parentItem.isArchive )
+								thisDir = parentItem.arcname;
 							else
 								thisDir = parentItem.pathname;
 							//parentDir = parentItem.path;

@@ -158,7 +158,7 @@ public class CRDB {
 	
 	public boolean findByPathname( FileInfo fileInfo )
 	{
-		return findBy( fileInfo, "pathname", fileInfo.pathname);
+		return findBy( fileInfo, "pathname", fileInfo.getPathName());
 	}
 
 	public boolean findById( FileInfo fileInfo )
@@ -245,7 +245,9 @@ public class CRDB {
 	{
 		int i=0;
 		fileInfo.id = rs.getLong(i++);
-		fileInfo.pathname = rs.getString(i++);
+		String pathName = rs.getString(i++);
+		String[] parts = FileInfo.splitArcName(pathName);
+		fileInfo.pathname = parts[0];
 		fileInfo.path = rs.getString(i++);
 		fileInfo.filename = rs.getString(i++);
 		fileInfo.arcname = rs.getString(i++);
@@ -609,7 +611,7 @@ public class CRDB {
 		QueryHelper( FileInfo newValue, FileInfo oldValue )
 		{
 			this("book");
-			add("pathname", newValue.pathname, oldValue.pathname);
+			add("pathname", newValue.getPathName(), oldValue.getPathName());
 			add("folder_fk", getFolderId(newValue.path), getFolderId(oldValue.path));
 			add("filename", newValue.filename, oldValue.filename);
 			add("arcname", newValue.arcname, oldValue.arcname);
@@ -649,7 +651,7 @@ public class CRDB {
 		findRecentBooks( list, maxCount, maxCount*10 );
 		ArrayList<BookInfo> res = new ArrayList<BookInfo>(list.size());
 		for ( FileInfo file : list ) {
-			fileList.put(file.pathname, file);
+			fileList.put(file.getPathName(), file);
 			BookInfo item = new BookInfo( file );
 			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
 			if ( load( bookmarks, "book_fk=" + file.id + " ORDER BY type" ) ) {

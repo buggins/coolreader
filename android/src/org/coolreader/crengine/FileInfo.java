@@ -41,14 +41,33 @@ public class FileInfo {
 	 */
 	public static String ARC_SEPARATOR = "@/";
 	
-	public FileInfo( String pathName )
+	/**
+	 * Split archive + file path name by ARC_SEPARATOR
+	 * @param pathName is pathname like /arc_file_path@/filepath_inside_arc or /file_path 
+	 * @return item[0] is pathname, item[1] is archive name (null if no archive)
+	 */
+	public static String[] splitArcName( String pathName )
 	{
+		String[] res = new String[2];
 		int arcSeparatorPos = pathName.indexOf(ARC_SEPARATOR);
 		if ( arcSeparatorPos>=0 ) {
 			// from archive
+			res[1] = pathName.substring(0, arcSeparatorPos);
+			res[0] = pathName.substring(arcSeparatorPos + ARC_SEPARATOR.length());
+		} else {
+			res[0] = pathName;
+		}
+		return res;
+	}
+	
+	public FileInfo( String pathName )
+	{
+		String[] parts = splitArcName( pathName );
+		if ( parts[1]!=null ) {
+			// from archive
 			isArchive = true;
-			arcname = pathName.substring(0, arcSeparatorPos);
-			pathname = pathName.substring(arcSeparatorPos + ARC_SEPARATOR.length());
+			arcname = parts[1];
+			pathname = parts[0];
 			File f = new File(pathname);
 			filename = f.getName();
 			path = f.getPath();
@@ -172,6 +191,8 @@ public class FileInfo {
 	 */
 	public String getPathName()
 	{
+		if ( arcname!=null )
+			return arcname + ARC_SEPARATOR + pathname;
 		return pathname;
 	}
 
@@ -236,11 +257,11 @@ public class FileInfo {
 		if ( item==null )
 			return -1;
 		for ( int i=0; i<dirCount(); i++ ) {
-			if ( item.pathname.equals(getDir(i).pathname) )
+			if ( item.getPathName().equals(getDir(i).getPathName()) )
 				return i;
 		}
 		for ( int i=0; i<fileCount(); i++ ) {
-			if ( item.pathname.equals(getFile(i).pathname) )
+			if ( item.getPathName().equals(getFile(i).getPathName()) )
 				return i + dirCount();
 		}
 		return -1;
@@ -282,6 +303,8 @@ public class FileInfo {
 	public boolean deleteFile()
 	{
 		if ( isArchive ) {
+			if ( isDirectory )
+				return false;
 			File f = new File(arcname);
 			if ( f.exists() && !f.isDirectory() ) {
 				if ( !f.delete() )
@@ -300,7 +323,7 @@ public class FileInfo {
 			return false;
 		if ( !fileExists() )
 			return false;
-		File f = new File(getPathName());
+		File f = new File(pathname);
 		if ( f.delete() ) {
 			if ( parent!=null ) {
 				parent.removeChild(this);
@@ -314,8 +337,11 @@ public class FileInfo {
 	{
 		if (isDirectory)
 			return false;
-		if ( isArchive && arcname!=null )
-			return new File(arcname).exists();
+		if ( isArchive ) {
+			if ( arcname!=null )
+				return new File(arcname).exists();
+			return false;
+		}
 		return new File(pathname).exists();
 	}
 	
