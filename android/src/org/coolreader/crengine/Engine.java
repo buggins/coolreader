@@ -37,19 +37,19 @@ public class Engine {
 	 * Get storage root directories.
 	 * @return array of r/w storage roots
 	 */
-	public static File[] getStorageDirectories() {
+	public static File[] getStorageDirectories( boolean writableOnly ) {
 		ArrayList<File> res = new ArrayList<File>(2);
 		File dir = Environment.getExternalStorageDirectory();
-		if ( dir.isDirectory() && dir.canWrite() )
+		if ( dir.isDirectory() && (!writableOnly || dir.canWrite()) )
 			res.add(dir);
 		File dir2 = new File("/system/media/sdcard");
-		if ( dir2.isDirectory() && dir2.canWrite())
+		if ( dir2.isDirectory() && (!writableOnly || dir2.canWrite()))
 			res.add(dir2);
 		File dir3 = new File("/nand");
-		if ( dir3.isDirectory() && dir3.canWrite())
+		if ( dir3.isDirectory() && (!writableOnly || dir3.canWrite()))
 			res.add(dir3);
 		File dir4 = new File("/PocketBook701");
-		if ( dir4.isDirectory() && dir4.canWrite())
+		if ( dir4.isDirectory() && (!writableOnly || dir4.canWrite()))
 			res.add(dir4);
 		return res.toArray( new File[] {});
 	}
@@ -61,7 +61,7 @@ public class Engine {
 	 * @param createIfNotExists is true to force directory creation
 	 * @return writable directory, null if not exist or not writable
 	 */
-	public static File getSubdir( File dir, String subdir, boolean createIfNotExists )
+	public static File getSubdir( File dir, String subdir, boolean createIfNotExists, boolean writableOnly )
 	{
 		if ( dir==null )
 			return null;
@@ -71,7 +71,7 @@ public class Engine {
 			if ( !dataDir.isDirectory() && createIfNotExists )
 				dataDir.mkdir();
 		}
-		if ( dataDir.isDirectory() && dataDir.canWrite() )
+		if ( dataDir.isDirectory() && (!writableOnly || dataDir.canWrite()) )
 			return dataDir;
 		return null;
 	}
@@ -82,13 +82,13 @@ public class Engine {
 	 * @param createIfNotExists
 	 * @return
 	 */
-	public static File[] getDataDirectories( String subdir, boolean createIfNotExists ) {
-		File[] roots = getStorageDirectories();
+	public static File[] getDataDirectories( String subdir, boolean createIfNotExists, boolean writableOnly  ) {
+		File[] roots = getStorageDirectories(writableOnly);
 		ArrayList<File> res = new ArrayList<File>(roots.length);
 		for ( File dir : roots ) {
-			File dataDir = getSubdir( dir, ".cr3", createIfNotExists );
+			File dataDir = getSubdir( dir, ".cr3", createIfNotExists, writableOnly );
 			if ( subdir!=null )
-				dataDir = getSubdir( dataDir, subdir, createIfNotExists );
+				dataDir = getSubdir( dataDir, subdir, createIfNotExists, writableOnly );
 			if ( dataDir!=null )
 				res.add(dataDir);
 		}
