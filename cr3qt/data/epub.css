@@ -135,10 +135,9 @@ ul, ol, dl {
    } 
 
 li { 
-   display: block; 
+   display: list-item; 
    margin-top: 0.3em; 
    margin-bottom: 0.3em; 
-   background-color: #EFEFEF; 
    } 
 
 

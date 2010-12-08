@@ -15,7 +15,7 @@ hr {
    margin-bottom: 0.5em; 
    } 
 
-b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
+b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code,font { 
    display: inline; 
    } 
 
@@ -80,7 +80,7 @@ li {
 
 dl { margin-left: 0em; } 
 dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 
-dd { display: list-item; text-indent: 0em; } 
+dd { display: block; text-indent: 1.3em; } 
 
 a { display:inline; text-decoration: underline;  } 
 
