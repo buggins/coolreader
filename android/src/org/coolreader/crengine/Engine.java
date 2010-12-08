@@ -45,6 +45,12 @@ public class Engine {
 		File dir2 = new File("/system/media/sdcard");
 		if ( dir2.isDirectory() && dir2.canWrite())
 			res.add(dir2);
+		File dir3 = new File("/nand");
+		if ( dir3.isDirectory() && dir3.canWrite())
+			res.add(dir3);
+		File dir4 = new File("/PocketBook701");
+		if ( dir4.isDirectory() && dir4.canWrite())
+			res.add(dir4);
 		return res.toArray( new File[] {});
 	}
 
@@ -78,7 +84,7 @@ public class Engine {
 	 */
 	public static File[] getDataDirectories( String subdir, boolean createIfNotExists ) {
 		File[] roots = getStorageDirectories();
-		ArrayList<File> res = new ArrayList<File>(2);
+		ArrayList<File> res = new ArrayList<File>(roots.length);
 		for ( File dir : roots ) {
 			File dataDir = getSubdir( dir, ".cr3", createIfNotExists );
 			if ( subdir!=null )
