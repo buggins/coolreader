@@ -520,7 +520,10 @@ public class Engine {
 			cacheDirName = createCacheDir( new File("/system/media/sdcard"), "Books" );
 		// internal flash
 		if ( cacheDirName==null ) {
-			File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
+			File cacheDir = mActivity.getCacheDir();
+			if ( !cacheDir.isDirectory() )
+				cacheDir.mkdir();
+			//File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
 			if ( cacheDir.isDirectory() && cacheDir.canWrite() )
 				cacheDirName = cacheDir.getAbsolutePath();
 		}

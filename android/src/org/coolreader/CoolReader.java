@@ -192,6 +192,7 @@ public class CoolReader extends Activity
 		}
 	}
 	
+	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
 	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
@@ -208,7 +209,10 @@ public class CoolReader extends Activity
 			public void onReceive(Context context, Intent intent) {
 				Log.i("cr3", "Battery state changed. Intent=" + intent);
 				int level = intent.getIntExtra("level", 0);
-				mReaderView.setBatteryState(level);
+				if ( mReaderView!=null )
+					mReaderView.setBatteryState(level);
+				else
+					initialBatteryState = level;
 			}
 			
 		};
@@ -257,6 +261,8 @@ public class CoolReader extends Activity
 			}
 			intent.setData(null);
 		}
+		if ( initialBatteryState>=0 )
+			mReaderView.setBatteryState(initialBatteryState);
         
         Log.i("cr3", "CoolReader.onCreate() exiting");
     }
