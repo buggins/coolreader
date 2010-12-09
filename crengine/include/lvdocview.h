@@ -403,6 +403,7 @@ protected:
     /// draw to specified buffer by either Y pos or page number (unused param should be -1)
     void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate );
 
+
     virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
 
     virtual void getNavigationBarRectangle( lvRect & rc );
@@ -427,6 +428,10 @@ protected:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+
+    /// draw current page to specified buffer
+    void Draw( LVDrawBuf & drawbuf );
+    
     /// close document
     void close();
     /// set buffer format

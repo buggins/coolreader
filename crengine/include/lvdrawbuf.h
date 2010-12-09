@@ -293,7 +293,7 @@ private:
     HDC _drawdc;
     HBITMAP _drawbmp;
 #endif
-
+    bool _ownData;
 public:
     /// rotates buffer contents by specified angle
     virtual void Rotate( cr_rotate_angle_t angle );
@@ -327,8 +327,11 @@ public:
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette );
     /// returns scanline pointer
     virtual lUInt8 * GetScanLine( int y );
-    /// constructor
+
+    /// create own draw buffer
     LVColorDrawBuf(int dx, int dy);
+    /// creates wrapper around external RGBA buffer
+    LVColorDrawBuf(int dx, int dy, lUInt8 * externalBuffer );
     /// destructor
     virtual ~LVColorDrawBuf();
     /// convert to 1-bit bitmap

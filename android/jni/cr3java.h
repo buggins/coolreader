@@ -21,9 +21,6 @@
 #include "lvtinydom.h"
 
 //====================================================================
-#ifdef USE_JNIGRAPHICS
-#include <android/bitmap.h>
-#else
 // libjnigraphics replacement for pre-2.2 SDKs 
 enum AndroidBitmapFormat {
     ANDROID_BITMAP_FORMAT_NONE      = 0,
@@ -32,7 +29,28 @@ enum AndroidBitmapFormat {
     ANDROID_BITMAP_FORMAT_RGBA_4444 = 7,
     ANDROID_BITMAP_FORMAT_A_8       = 8,
 };
-#endif
+//====================================================================
+#define ANDROID_BITMAP_RESUT_SUCCESS            0
+#define ANDROID_BITMAP_RESULT_BAD_PARAMETER     -1
+#define ANDROID_BITMAP_RESULT_JNI_EXCEPTION     -2
+#define ANDROID_BITMAP_RESULT_ALLOCATION_FAILED -3
+
+typedef struct {
+    uint32_t    width;
+    uint32_t    height;
+    uint32_t    stride;
+    int32_t     format;
+//    uint32_t    flags;      // 0 for now
+} AndroidBitmapInfo;
+
+class BitmapAccessorInterface {
+public:
+    virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) = 0;
+    virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) = 0;
+	static BitmapAccessorInterface * getInstance(); 
+};
+
+
 //====================================================================
 
 class CRJNIEnv {

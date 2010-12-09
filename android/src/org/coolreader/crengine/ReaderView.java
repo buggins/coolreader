@@ -25,7 +25,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback {
-    private Bitmap mBitmap;
+    private BitmapInfo mBitmap;
 
     // additional key codes for Nook
     public static final int NOOK_KEY_PREV_LEFT = 96;
@@ -491,8 +491,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
 			mActivity.onUserActivity();
 			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
+			stopAnimation(x, y);
 			if ( isManualScrollActive ) {
-				stopAnimation(x, y);
 				isManualScrollActive = false;
 				return true;
 			}
@@ -513,7 +513,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					deltay = deltay < 0 ? -deltay : deltay;
 					if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 						isManualScrollActive = true;
-						startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy, x-manualScrollStartPosX, y-manualScrollStartPosY);
+						startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
 						updateAnimation(x, y);
 						return true;
 					}
@@ -1039,7 +1039,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	private static class BitmapFactory {
-		public static final int MAX_FREE_LIST_SIZE=1;
+		public static final int MAX_FREE_LIST_SIZE=2;
 		ArrayList<Bitmap> freeList = new ArrayList<Bitmap>(); 
 		ArrayList<Bitmap> usedList = new ArrayList<Bitmap>(); 
 		public synchronized Bitmap get( int dx, int dy ) {
@@ -1096,7 +1096,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	private static final boolean GC_PAGE_IMAGE = true;
+	private static final boolean GC_PAGE_IMAGE = false;
 	private static final int GC_INTERVAL = 1;
 	private static int gcCounter = 0; 
 	private BitmapInfo preparePageImage()
@@ -1141,7 +1141,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			bi = preparePageImage();
 	        mEngine.hideProgress();
 			if ( bi!=null ) {
-				setBitmap( bi.bitmap );
+				setBitmap( bi );
 				draw();
 			}
 		}
@@ -1158,10 +1158,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	};
 	
-	private void setBitmap(Bitmap bmp)
+	private void setBitmap(BitmapInfo bmp)
 	{
-		if ( mBitmap!=null )
-			factory.release(mBitmap);
+		if ( mBitmap!=null && mBitmap!=bmp )
+			mBitmap.recycle();
 		mBitmap = bmp;
 	} 
 
@@ -1200,7 +1200,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private ViewAnimationControl currentAnimation = null;
-	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int dx, final int dy )
+	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY )
 	{
 		if (DEBUG_ANIMATION) Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
@@ -1209,7 +1209,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				BackgroundThread.ensureBackground();
 				PositionProperties currPos = getPositionPropsInternal(null);
 				if ( currPos.pageMode==0 ) {
-					int dir = dx<0 ? 1 : -1;
+					int dir = startX > maxX/2 ? 1 : -1;
 					new PageViewAnimation(startX, maxX, dir);
 				} else {
 					new ScrollViewAnimation(startY, maxY);
@@ -1278,19 +1278,27 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void update( int x, int y );
 		public void stop( int x, int y );
 		public void animate();
+		public boolean isStarted();
 	}
 
 	abstract class ViewAnimationBase implements ViewAnimationControl {
 		BitmapInfo image1;
 		BitmapInfo image2;
+		boolean ownImage1 = true;
 		long startTimeStamp;
+		boolean started;
+		public boolean isStarted()
+		{
+			return started;
+		}
 		ViewAnimationBase()
 		{
 			startTimeStamp = android.os.SystemClock.uptimeMillis();
 		}
 		public void close()
 		{
-			image1.recycle();
+			if ( ownImage1 )
+				image1.recycle();
 			image2.recycle();
 			currentAnimation = null;
 		}
@@ -1342,15 +1350,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		@Override
 		public void stop(int x, int y) {
-			if ( y!=-1 ) {
-				int delta = startY - y;
-				pointerCurrPos = pointerStartPos + delta;
+			if ( started ) {
+				if ( y!=-1 ) {
+					int delta = startY - y;
+					pointerCurrPos = pointerStartPos + delta;
+				}
+				pointerDestPos = pointerCurrPos;
+				draw();
+				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
 			}
-			pointerDestPos = pointerCurrPos;
-			draw();
-			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
 			close();
-			currentAnimation = null;
 		}
 
 		@Override
@@ -1363,6 +1372,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			//Log.d("cr3", "animate() is called");
 			if ( pointerDestPos != pointerCurrPos ) {
+				if ( !started )
+					started = true;
 				// TODO
 				int delta = pointerCurrPos-pointerDestPos;
 				if ( delta<0 )
@@ -1392,11 +1403,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int h = image1.position.pageHeight;
 			int rowsFromImg1 = image1.position.y + h - pointerCurrPos;
 			int rowsFromImg2 = h - rowsFromImg1;
-    		Rect src1 = new Rect(0, h-rowsFromImg1, mBitmap.getWidth(), h);
-    		Rect dst1 = new Rect(0, 0, mBitmap.getWidth(), rowsFromImg1);
+    		Rect src1 = new Rect(0, h-rowsFromImg1, mBitmap.bitmap.getWidth(), h);
+    		Rect dst1 = new Rect(0, 0, mBitmap.bitmap.getWidth(), rowsFromImg1);
 			canvas.drawBitmap(image1.bitmap, src1, dst1, null);
-    		Rect src2 = new Rect(0, 0, mBitmap.getWidth(), rowsFromImg2);
-    		Rect dst2 = new Rect(0, rowsFromImg1, mBitmap.getWidth(), h);
+    		Rect src2 = new Rect(0, 0, mBitmap.bitmap.getWidth(), rowsFromImg2);
+    		Rect dst2 = new Rect(0, rowsFromImg1, mBitmap.bitmap.getWidth(), h);
 			canvas.drawBitmap(image2.bitmap, src2, dst2, null);
 			//Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
 		}
@@ -1431,7 +1442,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page2);
 			image2 = preparePageImage();
 			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page1);
-			image1 = preparePageImage();
+			if ( mBitmap.position.equals(currPos) ) {
+				image1 = mBitmap;
+				ownImage1 = false;
+			} else {
+				image1 = preparePageImage();
+			}
 			currentAnimation = this;
 			divPaint = new Paint();
 			divPaint.setColor(Color.argb(128, 128, 128, 128));
@@ -1442,41 +1458,43 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		@Override
 		public void stop(int x, int y) {
 			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.stop(" + x + ", " + y + ")");
-			boolean moved = false;
-			if ( direction>0 ) {
-				// |  <=====  |
-				int dx = startX - x; 
-				int threshold = startX / 4;
-				if ( dx>threshold )
-					moved = true;
-			} else {
-				// |  =====>  |
-				int dx = x - startX; 
-				int threshold = (maxX - startX) / 4;
-				if ( dx>threshold )
-					moved = true;
+			if ( started ) {
+				boolean moved = false;
+				if ( direction>0 ) {
+					// |  <=====  |
+					int dx = startX - x; 
+					int threshold = startX / 4;
+					if ( dx>threshold )
+						moved = true;
+				} else {
+					// |  =====>  |
+					int dx = x - startX; 
+					int threshold = (maxX - startX) / 4;
+					if ( dx>threshold )
+						moved = true;
+				}
+				int duration;
+				if ( moved ) {
+					destShift = maxX;
+					duration = 500; // 500 ms forward
+				} else {
+					destShift = 0;
+					duration = 200; // 200 ms cancel
+				}
+				int steps = (int)(duration / getAvgAnimationDrawDuration()) + 2;
+				int x0 = currShift;
+				int x1 = destShift;
+				if ( (x0-x1)<10 && (x0-x1)<-10 )
+					steps = 2; // no animation
+				for ( int i=1; i<=steps; i++ ) {
+					currShift = x0 + (x1-x0) * i / steps;
+					draw();
+				}
+				doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, moved ? page2 : page1);
 			}
-			int duration;
-			if ( moved ) {
-				destShift = maxX;
-				duration = 500; // 500 ms forward
-			} else {
-				destShift = 0;
-				duration = 200; // 200 ms cancel
-			}
-			int steps = (int)(duration / getAvgAnimationDrawDuration()) + 2;
-			int x0 = currShift;
-			int x1 = destShift;
-			if ( (x0-x1)<10 && (x0-x1)<-10 )
-				steps = 2; // no animation
-			for ( int i=1; i<=steps; i++ ) {
-				currShift = x0 + (x1-x0) * i / steps;
-				draw();
-			}
-			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, moved ? page2 : page1);
 			close();
-			currentAnimation = null;
-			drawPage();
+			if ( started )
+				drawPage();
 		}
 
 		@Override
@@ -1496,6 +1514,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.animate("+currShift + " => " + currShift + ")");
 			//Log.d("cr3", "animate() is called");
 			if ( currShift != destShift ) {
+				started = true;
 				int delta = currShift - destShift;
 				if ( delta<0 )
 					delta = -delta;
@@ -1522,8 +1541,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void draw(Canvas canvas)
 		{
 			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.draw("+currShift + ")");
-			int w = mBitmap.getWidth(); 
-			int h = mBitmap.getHeight();
+			int w = mBitmap.bitmap.getWidth(); 
+			int h = mBitmap.bitmap.getHeight();
 			int div;
 			if ( direction > 0 ) {
 				div = w-currShift;
@@ -1665,8 +1684,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		Log.d("cr3", "onDraw() -- drawing page image");
         		
         		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-        		Rect src = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
-    			canvas.drawBitmap(mBitmap, src, dst, null);
+        		Rect src = new Rect(0, 0, mBitmap.bitmap.getWidth(), mBitmap.bitmap.getHeight());
+    			canvas.drawBitmap(mBitmap.bitmap, src, dst, null);
     		} else {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
     			canvas.drawColor(Color.rgb(192, 192, 192));

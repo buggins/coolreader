@@ -561,6 +561,22 @@ public:
         //_drawbuf->Rotate( _view->GetRotateAngle() );
     }
 };
+
+/// draw current page to specified buffer
+void LVDocView::Draw( LVDrawBuf & drawbuf )
+{
+    int offset = -1;
+    int p = -1;
+    if ( isPageMode() ) {
+        p = _page;
+        if ( p<0 || p>=m_pages.length() )
+            return;
+    } else {
+        offset = _pos;
+    }
+    Draw( drawbuf, offset, p, false);
+}
+
 /// cache page image (render in background if necessary)
 void LVDocView::cachePageImage( int delta )
 {

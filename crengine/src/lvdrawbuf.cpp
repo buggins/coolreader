@@ -1423,13 +1423,32 @@ LVColorDrawBuf::LVColorDrawBuf(int dx, int dy)
     ,_drawdc(NULL)
     ,_drawbmp(NULL)
 #endif
+	,_ownData(true)
 {
     Resize( dx, dy );
+}
+
+/// creates wrapper around external RGBA buffer
+LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, lUInt8 * externalBuffer )
+:     LVBaseDrawBuf()
+#if !defined(__SYMBIAN32__) && defined(_WIN32)
+    ,_drawdc(NULL)
+    ,_drawbmp(NULL)
+#endif
+	,_ownData(false)
+{
+    _dx = dx;
+    _dy = dy;
+    _rowsize = dx*4;
+    _data = externalBuffer;
+    SetClipRect( NULL );
 }
 
 /// destructor
 LVColorDrawBuf::~LVColorDrawBuf()
 {
+	if ( !_ownData )
+		return;
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     if (_drawdc)
         DeleteDC(_drawdc);

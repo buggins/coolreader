@@ -1,5 +1,7 @@
 #include "cr3java.h"
 
+#include <dlfcn.h>
+
 lString16 CRJNIEnv::fromJavaString( jstring str )
 {
 	if ( !str )
@@ -169,180 +171,221 @@ jbyteArray CRJNIEnv::streamToJByteArray( LVStreamRef stream )
     return array; 
 }
 
-#ifndef USE_JNIGRAPHICS
-//====================================================================
-// libjnigraphics replacement for pre-2.2 SDKs 
-#define ANDROID_BITMAP_RESUT_SUCCESS            0
-#define ANDROID_BITMAP_RESULT_BAD_PARAMETER     -1
-#define ANDROID_BITMAP_RESULT_JNI_EXCEPTION     -2
-#define ANDROID_BITMAP_RESULT_ALLOCATION_FAILED -3
-
-typedef struct {
-    uint32_t    width;
-    uint32_t    height;
-    uint32_t    stride;
-    int32_t     format;
-//    uint32_t    flags;      // 0 for now
-} AndroidBitmapInfo;
-
-/**
- * Given a java bitmap object, fill out the AndroidBitmap struct for it.
- * If the call fails, the info parameter will be ignored
- */
-int AndroidBitmap_getInfo(JNIEnv* env, jobject jbitmap,
-                          AndroidBitmapInfo* info)
+static void ConvertCRColorsToAndroid( lUInt8 * buf, int dx, int dy )
 {
-	jclass cls = env->GetObjectClass(jbitmap);
-	jmethodID mid;
-	mid = env->GetMethodID(cls,	"getHeight", "()I");
-	info->height = env->CallIntMethod(jbitmap, mid);	
-	//CRLog::debug("Bitmap height: %d", info->height);
-	mid = env->GetMethodID(cls,	"getWidth", "()I");
-	info->width = env->CallIntMethod(jbitmap, mid);
-	//CRLog::debug("Bitmap width: %d", info->width);
-	mid = env->GetMethodID(cls,	"getRowBytes", "()I");
-	info->stride = env->CallIntMethod(jbitmap, mid);	
-	//CRLog::debug("Bitmap stride: %d", info->stride);
-	mid = env->GetMethodID(cls,	"getConfig", "()Landroid/graphics/Bitmap$Config;");
-	jobject configObj = env->CallObjectMethod(jbitmap, mid);	
-	jclass configCls = env->GetObjectClass(configObj);
-	mid = env->GetMethodID(configCls, "ordinal", "()I");
-	int ord = env->CallIntMethod(configObj, mid);
-	switch ( ord ) {
-	case 1:
-		info->format = ANDROID_BITMAP_FORMAT_A_8;
-		break; 
-	case 2:
-		info->format = ANDROID_BITMAP_FORMAT_RGBA_4444;
-		break; 
-	case 3:
-		info->format = ANDROID_BITMAP_FORMAT_RGBA_8888;
-		break; 
-	case 4:
-		info->format = ANDROID_BITMAP_FORMAT_RGB_565;
-		break;
-	default:
-		info->format = ANDROID_BITMAP_FORMAT_NONE;
-		break; 
-	}
-	jfieldID fid;
-	fid = env->GetFieldID(configCls, "nativeInt", "I");
-	//info->format 
-	int ni = env->GetIntField(configObj, fid);
-	//CRLog::debug("Bitmap format: %d (ord=%d, nativeInt=%d)", info->format, ord, ni);
-	return ANDROID_BITMAP_RESUT_SUCCESS;	
-}
-#endif
-
-bool BitmapAccessor::isOk()
-{
-	return pixels!=NULL;
-}
-
-BitmapAccessor::BitmapAccessor( JNIEnv * pEnv, jobject bmp )
-: CRJNIEnv(pEnv), bitmap(bmp), width(0), height(0), format(0), stride(0), pixels(NULL)
-{
-	AndroidBitmapInfo info;
-	if ( ANDROID_BITMAP_RESUT_SUCCESS==AndroidBitmap_getInfo(env, bitmap, &info) ) {
-		width = info.width;
-		height = info.height;
-		stride = info.stride;
-		format = info.format;
-	}
-	if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 ) {
-		CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
-		return;
-	}
-	
-#ifdef USE_JNIGRAPHICS
-	if ( ANDROID_BITMAP_RESUT_SUCCESS!=AndroidBitmap_lockPixels(env, bitmap, &pixels) ) {
-        CRLog::error("AndroidBitmap_lockPixels failed");
-	    pixels = NULL;
-	}
-#else
-	int size = stride * height;
-    array = env->NewIntArray((size+3)/4); 
-    pixels = (lUInt8 *)env->GetIntArrayElements(array, 0);
-#endif
-}
-
-BitmapAccessor::~BitmapAccessor()
-{
-#ifdef USE_JNIGRAPHICS
-	if ( pixels!=NULL ) {
-		if ( ANDROID_BITMAP_RESUT_SUCCESS!=AndroidBitmap_unlockPixels(env, bitmap) ) {
-		    CRLog::error("AndroidBitmap_unlockPixels failed");
-		}
-        pixels = NULL;
-	}
-#else
-    if ( pixels!=NULL ) {
-    	env->ReleaseIntArrayElements(array, (jint*)pixels, 0);
-        // IntBuffer testBuf = IntBuffer.wrap(pixels);
-        jclass cls = env->FindClass("java/nio/IntBuffer");
-		jmethodID mid = env->GetStaticMethodID(cls, "wrap", "([I)Ljava/nio/IntBuffer;");
-        jobject jbuf = env->CallStaticObjectMethod(cls, mid, array);
-        // mBitmap.copyPixelsFromBuffer(testBuf);
-		cls = env->GetObjectClass(bitmap);
-		mid = env->GetMethodID(cls,	"copyPixelsFromBuffer", "(Ljava/nio/Buffer;)V");
-		env->CallVoidMethod(bitmap, mid, jbuf);
-		env->DeleteLocalRef(jbuf);
-		env->DeleteLocalRef(array);
-    	pixels = NULL;
-    }
-#endif
-}
-
-void BitmapAccessor::draw(LVDrawBuf * buf, int x, int y)
-{
-	int h = height - y;
-	if ( h > buf->GetHeight() )
-	    h = buf->GetHeight();
-	int w = width - x;
-	if ( w > buf->GetWidth() )
-	    w = buf->GetWidth();
-	//CRLog::debug("copy drawbuf image %d x %d", w, h);
-	for ( int yy=0; yy<h; yy++ ) {
-		switch ( buf->GetBitsPerPixel() ) {
-		case 32:
-			{
-				lUInt32 * row = (lUInt32 *)buf->GetScanLine(yy);
-				setRowRGB( x, y+yy, row, w );
-			}
-		    break;
-		default:
-			// only color buffer supported now
-			// TODO:
-			break;
-		} 
+	int sz = dx * dy;
+	for ( lUInt8 * p = buf; --sz>=0; p+=4 ) {
+		// invert A
+		p[3] ^= 0xFF; 
+		// swap R and B
+		lUInt8 c = p[0];
+		p[0] = p[2];
+		p[2] = c;
 	}
 } 
 
-void BitmapAccessor::setRowRGB( int x, int y, lUInt32 * rgb, int dx )
+class JNIGraphicsLib : public BitmapAccessorInterface
 {
-	if ( !pixels )
-		return;
-	switch ( format ) {
-	case ANDROID_BITMAP_FORMAT_RGBA_8888:
-	    {
-			if ( x + dx > width )
-				dx = width - x;
-			lUInt32 * row = (lUInt32 *)(pixels + stride * y);
-			for ( int x=0; x<dx; x++ ) {
-				lUInt32 cl = rgb[x];
-				cl ^= 0xFF000000; 
-				cl = (cl&0xFF000000)|((cl&0x00FF0000)>>16)|((cl&0x0000FF00))|((cl&0x000000FF)<<16);
-				row[x] = cl;
-			}
+    void * _lib;
+
+	int (*AndroidBitmap_getInfo)(JNIEnv* env, jobject jbitmap, AndroidBitmapInfo* info);
+	int (*AndroidBitmap_lockPixels)(JNIEnv* env, jobject jbitmap, void** addrPtr);
+	int (*AndroidBitmap_unlockPixels)(JNIEnv* env, jobject jbitmap);
+public:
+    class LVColorDrawBufEx : public LVColorDrawBuf {
+    public:
+	    void convert() {
+			ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );		    	
+	    }
+    	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels)
+    	: LVColorDrawBuf( dx, dy, pixels ) {
+    	}
+    };
+    virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) {
+	    CRLog::trace("JNIGraphicsLib::lock entered");
+		AndroidBitmapInfo info;
+		if ( ANDROID_BITMAP_RESUT_SUCCESS!=AndroidBitmap_getInfo(env, jbitmap, &info) ) {
+			CRLog::error("BitmapAccessor : cannot get bitmap info");
+			return NULL;
 		}
-		break;
-	default:
-		CRLog::error("BitmapAccessor::setRowRGB : bitmap format %d is not yet supported", format);
-		break;
-	} 
-}
- 
-void BitmapAccessor::setRowGray( int x, int y, lUInt8 * gray, int dx, int bpp )
+		int width = info.width;
+		int height = info.height;
+		int stride = info.stride;
+		int format = info.format;
+		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 ) {
+			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
+			return NULL;
+		}
+	    CRLog::trace("JNIGraphicsLib::lock info: %d (%d) x %d", width, stride, height);
+		lUInt8 * pixels = NULL; 
+		if ( ANDROID_BITMAP_RESUT_SUCCESS!=AndroidBitmap_lockPixels(env, jbitmap, (void**)&pixels) ) {
+	        CRLog::error("AndroidBitmap_lockPixels failed");
+		    pixels = NULL;
+		}
+	    CRLog::trace("JNIGraphicsLib::lock pixels locked!" );
+		return new LVColorDrawBufEx( width, height, pixels );
+    } 
+    virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) {
+    	LVColorDrawBufEx * bmp = (LVColorDrawBufEx*)buf;
+    	bmp->convert();
+    	AndroidBitmap_unlockPixels(env, jbitmap);
+    	delete buf;
+    } 
+
+    void * getProc( const char * procName )
+    {
+        return dlsym( _lib, procName );
+    }
+    bool load( const char * libName )
+    {
+        if ( !_lib ) {
+            _lib = dlopen( libName, RTLD_NOW | RTLD_LOCAL );
+        }
+        if ( _lib ) {
+        	AndroidBitmap_getInfo = (int (*)(JNIEnv* env, jobject jbitmap, AndroidBitmapInfo* info))
+                 getProc( "AndroidBitmap_getInfo" );
+            AndroidBitmap_lockPixels = (int (*)(JNIEnv* env, jobject jbitmap, void** addrPtr))
+                 getProc( "AndroidBitmap_lockPixels" );
+            AndroidBitmap_unlockPixels = (int (*)(JNIEnv* env, jobject jbitmap))
+	             getProc( "AndroidBitmap_unlockPixels");
+            if ( !AndroidBitmap_getInfo || !AndroidBitmap_lockPixels || !AndroidBitmap_unlockPixels )
+                unload(); // not all functions found in library, fail
+        }
+        return ( _lib!=NULL );
+    }
+    bool unload()
+    {
+        bool res = false;
+        if ( _lib ) {
+            dlclose( _lib );
+            res = true;
+        }
+        _lib = NULL;
+        return res;
+    }
+    JNIGraphicsLib()
+    : _lib(NULL) {
+    }
+    ~JNIGraphicsLib() {
+        unload();
+    }
+};
+
+class JNIGraphicsReplacement : public BitmapAccessorInterface
 {
-	CRLog::error("TODO: BitmapAccessor::setRowGray() is not yet implemented");
+public:
+	virtual int getInfo(JNIEnv* env, jobject jbitmap, AndroidBitmapInfo* info) {
+		jclass cls = env->GetObjectClass(jbitmap);
+		jmethodID mid;
+		mid = env->GetMethodID(cls,	"getHeight", "()I");
+		info->height = env->CallIntMethod(jbitmap, mid);	
+		//CRLog::debug("Bitmap height: %d", info->height);
+		mid = env->GetMethodID(cls,	"getWidth", "()I");
+		info->width = env->CallIntMethod(jbitmap, mid);
+		//CRLog::debug("Bitmap width: %d", info->width);
+		mid = env->GetMethodID(cls,	"getRowBytes", "()I");
+		info->stride = env->CallIntMethod(jbitmap, mid);	
+		//CRLog::debug("Bitmap stride: %d", info->stride);
+		mid = env->GetMethodID(cls,	"getConfig", "()Landroid/graphics/Bitmap$Config;");
+		jobject configObj = env->CallObjectMethod(jbitmap, mid);	
+		jclass configCls = env->GetObjectClass(configObj);
+		mid = env->GetMethodID(configCls, "ordinal", "()I");
+		int ord = env->CallIntMethod(configObj, mid);
+		switch ( ord ) {
+		case 1:
+			info->format = ANDROID_BITMAP_FORMAT_A_8;
+			break; 
+		case 2:
+			info->format = ANDROID_BITMAP_FORMAT_RGBA_4444;
+			break; 
+		case 3:
+			info->format = ANDROID_BITMAP_FORMAT_RGBA_8888;
+			break; 
+		case 4:
+			info->format = ANDROID_BITMAP_FORMAT_RGB_565;
+			break;
+		default:
+			info->format = ANDROID_BITMAP_FORMAT_NONE;
+			break; 
+		}
+		jfieldID fid;
+		fid = env->GetFieldID(configCls, "nativeInt", "I");
+		//info->format 
+		int ni = env->GetIntField(configObj, fid);
+		//CRLog::debug("Bitmap format: %d (ord=%d, nativeInt=%d)", info->format, ord, ni);
+		return ANDROID_BITMAP_RESUT_SUCCESS;	
+    }
+    class LVColorDrawBufEx : public LVColorDrawBuf {
+	    jintArray _array;
+    public:
+	    jintArray getArray() { return _array; }
+	    lUInt8 * getData() { return _data; }
+	    void convert() {
+			ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );		    	
+	    }
+    	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels, jintArray array)
+    	: LVColorDrawBuf( dx, dy, pixels ),
+    	_array(array) {
+    	}
+    };
+    virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) {
+	    CRLog::trace("JNIGraphicsReplacement::lock entered");
+		AndroidBitmapInfo info;
+		if ( ANDROID_BITMAP_RESUT_SUCCESS!=getInfo(env, jbitmap, &info) )
+			return NULL;
+		int width = info.width;
+		int height = info.height;
+		int stride = info.stride;
+		int format = info.format;
+	    CRLog::trace("JNIGraphicsReplacement::lock info: %d (%d) x %d", width, stride, height);
+		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 ) {
+			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
+			return NULL;
+		}
+		int size = stride * height;
+	    jintArray array = env->NewIntArray((size+3)/4);
+	    lUInt8 * pixels = (lUInt8 *)env->GetIntArrayElements(array, 0);
+	    CRLog::trace("JNIGraphicsReplacement::lock exiting");
+		return new LVColorDrawBufEx(stride/4, height, pixels, array);
+    }
+    virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) {
+	    CRLog::trace("JNIGraphicsReplacement::unlock entering");
+    	if ( !buf)
+    		return;
+    	LVColorDrawBufEx * bmp = (LVColorDrawBufEx*)buf;
+    	bmp->convert();
+    	lUInt8 * pixels = bmp->getData();
+    	env->ReleaseIntArrayElements(bmp->getArray(), (jint*)pixels, 0);
+        // IntBuffer testBuf = IntBuffer.wrap(pixels);
+        jclass cls = env->FindClass("java/nio/IntBuffer");
+		jmethodID mid = env->GetStaticMethodID(cls, "wrap", "([I)Ljava/nio/IntBuffer;");
+        jobject jbuf = env->CallStaticObjectMethod(cls, mid, bmp->getArray());
+        // mBitmap.copyPixelsFromBuffer(testBuf);
+		cls = env->GetObjectClass(jbitmap);
+		mid = env->GetMethodID(cls,	"copyPixelsFromBuffer", "(Ljava/nio/Buffer;)V");
+		env->CallVoidMethod(jbitmap, mid, jbuf);
+		env->DeleteLocalRef(jbuf);
+		env->DeleteLocalRef(bmp->getArray());
+		delete buf;
+    }
+    JNIGraphicsReplacement() {
+    }
+    ~JNIGraphicsReplacement() {
+    }
+};
+
+static BitmapAccessorInterface * _bitmapAccessorInstance = NULL; 
+BitmapAccessorInterface * BitmapAccessorInterface::getInstance()
+{
+	if ( _bitmapAccessorInstance==NULL ) {
+		JNIGraphicsLib * lib = new JNIGraphicsLib();
+		if ( !lib->load("libjnigraphics.so") ) {
+			delete lib;
+			CRLog::error("Cannot load libjnigraphics.so : will use slower replacement instead");
+			_bitmapAccessorInstance = new JNIGraphicsReplacement(); 
+		} else {
+			_bitmapAccessorInstance = lib;
+		}
+	}
+	return _bitmapAccessorInstance;
 } 

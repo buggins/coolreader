@@ -175,7 +175,7 @@ LOCAL_SRC_FILES := \
     $(JPEG_SRC_FILES) \
     $(CHM_SRC_FILES)
 
-LOCAL_LDLIBS    := -lm -llog -lz 
+LOCAL_LDLIBS    := -lm -llog -lz -ldl
 #-ljnigraphics
 
 include $(BUILD_SHARED_LIBRARY)
