@@ -43,7 +43,6 @@ CRENGINE_SRC_FILES := \
     crengine/src/lvfnt.cpp \
     crengine/src/hyphman.cpp \
     crengine/src/lvfntman.cpp \
-    crengine/src/crgui.cpp \
     crengine/src/lvimg.cpp \
     crengine/src/crskin.cpp \
     crengine/src/lvdrawbuf.cpp \
@@ -54,6 +53,7 @@ CRENGINE_SRC_FILES := \
     crengine/src/wolutil.cpp \
     crengine/src/hist.cpp
 #    crengine/src/cri18n.cpp
+#    crengine/src/crgui.cpp \
 
 PNG_SRC_FILES := \
     thirdparty/libpng/pngerror.c  \

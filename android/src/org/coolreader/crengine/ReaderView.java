@@ -1332,6 +1332,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			super();
 			this.startY = startY;
 			this.maxY = maxY;
+			long start = android.os.SystemClock.uptimeMillis();
+			Log.v("cr3", "ScrollViewAnimation -- creating: drawing two pages to buffer");
 			PositionProperties currPos = getPositionPropsInternal(null);
 			int pos = currPos.y;
 			int pos0 = pos - (maxY - startY);
@@ -1345,6 +1347,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
 			image2 = preparePageImage();
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
+			long duration = android.os.SystemClock.uptimeMillis() - start;
+			Log.v("cr3", "ScrollViewAnimation -- created in " + duration + " millis");
 			currentAnimation = this;
 		}
 		
@@ -1430,18 +1434,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.currShift = 0;
 			this.destShift = 0;
 			
+			long start = android.os.SystemClock.uptimeMillis();
 			Log.v("cr3", "PageViewAnimation -- creating: drawing two pages to buffer");
 			
-			PositionProperties currPos = getPositionPropsInternal(null);
+			PositionProperties currPos = mBitmap.position;
+			if ( currPos==null )
+				currPos = getPositionPropsInternal(null);
 			page1 = currPos.pageNumber;
 			page2 = currPos.pageNumber + direction;
 			if ( page2<0 || page2>=currPos.pageCount) {
 				currentAnimation = null;
 				return;
 			}
-			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page2);
+			int cmd1 = direction > 0 ? ReaderCommand.DCMD_PAGEDOWN.nativeId : ReaderCommand.DCMD_PAGEUP.nativeId;
+			int cmd2 = direction > 0 ? ReaderCommand.DCMD_PAGEUP.nativeId : ReaderCommand.DCMD_PAGEDOWN.nativeId;
+			//doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page2);
+			doCommandInternal(cmd1, 1);
 			image2 = preparePageImage();
-			doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page1);
+			doCommandInternal(cmd2, 1);
+			//doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page1);
 			if ( mBitmap.position.equals(currPos) ) {
 				image1 = mBitmap;
 				ownImage1 = false;
@@ -1452,7 +1463,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			divPaint = new Paint();
 			divPaint.setColor(Color.argb(128, 128, 128, 128));
 
-			Log.v("cr3", "PageViewAnimation -- created!");
+			long duration = android.os.SystemClock.uptimeMillis() - start;
+			Log.v("cr3", "PageViewAnimation -- created in " + duration + " millis");
 		}
 		
 		@Override

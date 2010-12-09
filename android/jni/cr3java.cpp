@@ -202,7 +202,7 @@ public:
     	}
     };
     virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) {
-	    CRLog::trace("JNIGraphicsLib::lock entered");
+	    //CRLog::trace("JNIGraphicsLib::lock entered");
 		AndroidBitmapInfo info;
 		if ( ANDROID_BITMAP_RESUT_SUCCESS!=AndroidBitmap_getInfo(env, jbitmap, &info) ) {
 			CRLog::error("BitmapAccessor : cannot get bitmap info");
@@ -222,7 +222,7 @@ public:
 	        CRLog::error("AndroidBitmap_lockPixels failed");
 		    pixels = NULL;
 		}
-	    CRLog::trace("JNIGraphicsLib::lock pixels locked!" );
+	    //CRLog::trace("JNIGraphicsLib::lock pixels locked!" );
 		return new LVColorDrawBufEx( width, height, pixels );
     } 
     virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) {
@@ -275,6 +275,7 @@ class JNIGraphicsReplacement : public BitmapAccessorInterface
 {
 public:
 	virtual int getInfo(JNIEnv* env, jobject jbitmap, AndroidBitmapInfo* info) {
+	    CRLog::trace("JNIGraphicsReplacement::getInfo entered");
 		jclass cls = env->GetObjectClass(jbitmap);
 		jmethodID mid;
 		mid = env->GetMethodID(cls,	"getHeight", "()I");
@@ -366,6 +367,7 @@ public:
 		env->CallVoidMethod(jbitmap, mid, jbuf);
 		env->DeleteLocalRef(jbuf);
 		env->DeleteLocalRef(bmp->getArray());
+	    CRLog::trace("JNIGraphicsReplacement::unlock exiting");
 		delete buf;
     }
     JNIGraphicsReplacement() {

@@ -411,14 +411,16 @@ void LVDocView::Clear()
         m_filename.clear();
         m_section_bounds_valid = false;
     }
-    m_imageCache.clear();
+    clearImageCache();
     _navigationHistory.clear();
 }
 
 /// invalidate image cache, request redraw
 void LVDocView::clearImageCache()
 {
+#if CR_ENABLE_PAGE_IMAGE_CACHE==1
     m_imageCache.clear();
+#endif
 }
 
 /// invalidate formatted data, request render
@@ -435,7 +437,7 @@ void LVDocView::checkRender()
     if ( !m_is_rendered ) {
         LVLock lock(getMutex());
         Render();
-        m_imageCache.clear();
+        clearImageCache();
         m_is_rendered = true;
         _posIsSet = false;
         CRLog::trace("LVDocView::checkRender() compeleted");
@@ -468,6 +470,7 @@ void LVDocView::checkPos()
     }
 }
 
+#if CR_ENABLE_PAGE_IMAGE_CACHE==1
 /// returns true if current page image is ready
 bool LVDocView::IsDrawed()
 {
@@ -561,6 +564,7 @@ public:
         //_drawbuf->Rotate( _view->GetRotateAngle() );
     }
 };
+#endif
 
 /// draw current page to specified buffer
 void LVDocView::Draw( LVDrawBuf & drawbuf )
@@ -577,6 +581,7 @@ void LVDocView::Draw( LVDrawBuf & drawbuf )
     Draw( drawbuf, offset, p, false);
 }
 
+#if CR_ENABLE_PAGE_IMAGE_CACHE==1
 /// cache page image (render in background if necessary)
 void LVDocView::cachePageImage( int delta )
 {
@@ -622,6 +627,7 @@ void LVDocView::cachePageImage( int delta )
     m_imageCache.set( offset, p, drawbuf, thread );
     //CRLog::trace("cachePageImage: caching page [%d] is finished", offset);
 }
+#endif
 
 bool LVDocView::exportWolFile( const char * fname, bool flgGray, int levels )
 {
@@ -1745,7 +1751,7 @@ bool LVDocView::isTimeChanged()
     if ( m_pageHeaderInfo & PGHDR_CLOCK ) {
         bool res = (m_last_clock != getTimeString());
         if ( res )
-            m_imageCache.clear();
+            clearImageCache();
         return res;
     }
     return false;
@@ -2452,7 +2458,7 @@ bool LVDocView::goForward()
 void LVDocView::updateSelections()
 {
     checkRender();
-    m_imageCache.clear();
+    clearImageCache();
     LVLock lock(getMutex());
     ldomXRangeList ranges( m_doc->getSelections(), true );
     ranges.getRanges( m_markRanges );
@@ -2471,7 +2477,7 @@ void LVDocView::setViewMode( LVDocViewMode view_mode, int visiblePageCount )
 {
     if ( m_view_mode==view_mode && (visiblePageCount==m_pagesVisible || visiblePageCount<1) )
         return;
-    m_imageCache.clear();
+    clearImageCache();
     LVLock lock(getMutex());
     m_view_mode = view_mode;
     m_props->setInt( PROP_PAGE_VIEW_MODE, m_view_mode == DVM_PAGES ? 1 : 0 );
@@ -2507,7 +2513,7 @@ int LVDocView::getVisiblePageCount()
 /// set window visible page count (1 or 2)
 void LVDocView::setVisiblePageCount( int n )
 {
-    m_imageCache.clear();
+    clearImageCache();
     LVLock lock(getMutex());
     if ( n == 2 )
         m_pagesVisible = 2;
@@ -2665,7 +2671,7 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
     if ( m_rotateAngle==angle )
         return;
     m_props->setInt( PROP_ROTATE_ANGLE, ((int)angle) & 3 );
-    m_imageCache.clear();
+    clearImageCache();
     LVLock lock(getMutex());
     if ( (m_rotateAngle & 1) == (angle & 1) ) {
         m_rotateAngle = angle;
@@ -2700,7 +2706,7 @@ void LVDocView::Resize( int dx, int dy )
         return;
     }
 
-    m_imageCache.clear();
+    clearImageCache();
     //m_drawbuf.Resize(dx, dy);
     if (m_doc)
     {

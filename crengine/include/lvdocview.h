@@ -73,7 +73,15 @@ typedef enum {
     txt_format_auto  // autodetect format
 } txt_format_t;
 
+#ifndef CR_ENABLE_PAGE_IMAGE_CACHE
+#ifdef ANDROID
+#define CR_ENABLE_PAGE_IMAGE_CACHE 0
+#else
+#define CR_ENABLE_PAGE_IMAGE_CACHE 1
+#endif
+#endif//#ifndef CR_ENABLE_PAGE_IMAGE_CACHE
 
+#if CR_ENABLE_PAGE_IMAGE_CACHE==1
 /// Page imege holder which allows to unlock mutex after destruction
 class LVDocImageHolder
 {
@@ -190,6 +198,7 @@ class LVDocViewImageCache
             clear();
         }
 };
+#endif
 
 #define LVDOCVIEW_COMMANDS_START 100
 /// LVDocView commands
@@ -358,7 +367,9 @@ private:
     bool m_section_bounds_valid;
 
     LVMutex _mutex;
+#if CR_ENABLE_PAGE_IMAGE_CACHE==1
     LVDocViewImageCache m_imageCache;
+#endif
 
 
     lString8 m_defaultFontFace;
@@ -481,9 +492,9 @@ public:
     bool removeBookmark( CRBookmark * bm );
     /// restores page using bookmark by numbered shortcut
 	bool goToPageShortcutBookmark( int number );
-    /// returns true if page image is available (0=current, -1=prev, 1=next)
+    /// returns true if coverpage display is on
     bool getShowCover() { return  m_showCover; }
-    /// returns true if page image is available (0=current, -1=prev, 1=next)
+    /// sets coverpage display flag
     void setShowCover( bool show ) { m_showCover = show; }
     /// returns true if page image is available (0=current, -1=prev, 1=next)
     bool isPageImageReady( int delta );
@@ -563,12 +574,14 @@ public:
     void requestReload();
     /// invalidate image cache, request redraw
     void clearImageCache();
+#if CR_ENABLE_PAGE_IMAGE_CACHE==1
     /// get page image (0=current, -1=prev, 1=next)
     LVDocImageRef getPageImage( int delta );
     /// returns true if current page image is ready
     bool IsDrawed();
     /// cache page image (render in background if necessary) (0=current, -1=prev, 1=next)
     void cachePageImage( int delta );
+#endif
     /// return view mutex
     LVMutex & getMutex() { return _mutex; }
     /// update selection ranges
@@ -658,7 +671,7 @@ public:
     void setBackgroundColor( lUInt32 cl )
     {
         m_backgroundColor = cl;
-        m_imageCache.clear();
+        clearImageCache();
     }
     /// returns text color
     lUInt32 getTextColor()
@@ -669,7 +682,7 @@ public:
     void setTextColor( lUInt32 cl )
     {
         m_textColor = cl;
-        m_imageCache.clear();
+        clearImageCache();
     }
 
     CRPageSkinRef getPageSkin();
