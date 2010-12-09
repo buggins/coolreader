@@ -420,12 +420,27 @@ public class Engine {
 	private native boolean initInternal( String[] fontList );
 	private native void uninitInternal();
 	private native String[] getFontFaceListInternal();
+	private native String[] getArchiveItemsInternal( String arcName ); // pairs: pathname, size
 	private native boolean setCacheDirectoryInternal( String dir, int size  );
     private native boolean scanBookPropertiesInternal( FileInfo info );
     private static final int HYPH_NONE = 0; 
     private static final int HYPH_ALGO = 1; 
     private static final int HYPH_DICT = 2; 
     private native boolean setHyphenationMethod( int type, byte[] dictData );
+    
+    public ArrayList<ZipEntry> getArchiveItems( String zipFileName )
+    {
+    	final int itemsPerEntry = 2;
+    	String[] in = getArchiveItemsInternal( zipFileName );
+    	ArrayList<ZipEntry> list = new ArrayList<ZipEntry>();
+    	for ( int i=0; i<=in.length-itemsPerEntry; i+=itemsPerEntry ) {
+    		ZipEntry e = new ZipEntry(in[i]);
+    		e.setSize(Integer.valueOf(in[i+1])); 
+    		e.setCompressedSize(Integer.valueOf(in[i+1])); 
+    		list.add(e);
+    	}
+    	return list;
+    }
     
     public enum HyphDict {
     	NONE(HYPH_NONE, 0, "[None]"),

@@ -370,7 +370,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public final int LONG_KEYPRESS_TIME = 900;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		if ( keyCode== KeyEvent.KEYCODE_POWER ) {
+		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			return false;
 		}
@@ -444,7 +444,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
-		if ( keyCode== KeyEvent.KEYCODE_POWER ) {
+		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			return false;
 		}

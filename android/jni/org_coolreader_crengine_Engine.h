@@ -41,6 +41,14 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    getArchiveItemsInternal
+ * Signature: (Ljava/lang/String;)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveItemsInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    setCacheDirectoryInternal
  * Signature: (Ljava/lang/String;I)Z
  */

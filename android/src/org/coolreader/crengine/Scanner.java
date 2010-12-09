@@ -58,10 +58,12 @@ public class Scanner {
 	private FileInfo scanZip( FileInfo zip )
 	{
 		try {
-			ZipFile file = new ZipFile(new File(zip.pathname));
-			ArrayList<FileInfo> items = new ArrayList<FileInfo>(); 
-			for ( Enumeration<?> e = file.entries(); e.hasMoreElements(); ) {
-				ZipEntry entry = (ZipEntry)e.nextElement();
+			File zf = new File(zip.pathname);
+			//ZipFile file = new ZipFile(zf);
+			ArrayList<ZipEntry> entries = engine.getArchiveItems(zip.pathname);
+			ArrayList<FileInfo> items = new ArrayList<FileInfo>();
+			//for ( Enumeration<?> e = file.entries(); e.hasMoreElements(); ) {
+			for ( ZipEntry entry : entries ) {
 				if ( entry.isDirectory() )
 					continue;
 				String name = entry.getName();
@@ -74,9 +76,10 @@ public class Scanner {
 				item.path = f.getPath();
 				item.pathname = entry.getName();
 				item.size = (int)entry.getSize();
-				item.createTime = entry.getTime();
+				//item.createTime = entry.getTime();
+				item.createTime = zf.lastModified();
 				item.arcname = zip.pathname;
-				item.arcsize = (int)entry.getCompressedSize();
+				item.arcsize = (int)entry.getSize(); //getCompressedSize();
 				item.isArchive = true;
 				items.add(item);
 			}

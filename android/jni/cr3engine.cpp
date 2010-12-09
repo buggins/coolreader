@@ -14,6 +14,7 @@
 #include "cr3java.h"
 #include "readerview.h"
 #include "crengine.h"
+#include "lvstream.h"
 
 
 #include <fb2def.h>
@@ -196,6 +197,36 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 	
 	return JNI_TRUE;
 }
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getArchiveItemsInternal
+ * Signature: (Ljava/lang/String;)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveItemsInternal
+  (JNIEnv * _env, jobject, jstring jarcName)
+{
+    CRJNIEnv env(_env);
+    lString16 arcName = env.fromJavaString(jarcName);
+    lString16Collection list;
+    //fontMan->getFaceList(list);
+    LVStreamRef stream = LVOpenFileStream( arcName.c_str(), LVOM_READ );
+    if ( !stream.isNull() ) {
+        LVContainerRef arc = LVOpenArchieve(stream);
+        if ( !arc.isNull() ) {
+            // convert
+            for ( int i=0; i<arc->GetObjectCount(); i++ ) {
+                const LVContainerItemInfo * item = arc->GetObjectInfo(i);
+                if ( item->IsContainer())
+                    continue;
+                list.add( item->GetName() );
+                list.add( lString16::itoa(item->GetSize()) );
+            }
+        }
+    }
+    return env.toJavaStringArray(list);
+}
+
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -397,6 +428,7 @@ static JNINativeMethod sEngineMethods[] = {
 //  {"getHyphenationDictionaryListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
   {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
+  {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
 };
 
 
