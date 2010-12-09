@@ -184,6 +184,17 @@ static void ConvertCRColorsToAndroid( lUInt8 * buf, int dx, int dy )
 	}
 } 
 
+class LVColorDrawBufEx : public LVColorDrawBuf {
+public:
+    lUInt8 * getData() { return _data; }
+    void convert() {
+		ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );		    	
+    }
+	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels)
+	: LVColorDrawBuf( dx, dy, pixels ) {
+	}
+};
+
 class JNIGraphicsLib : public BitmapAccessorInterface
 {
     void * _lib;
@@ -192,15 +203,6 @@ class JNIGraphicsLib : public BitmapAccessorInterface
 	int (*AndroidBitmap_lockPixels)(JNIEnv* env, jobject jbitmap, void** addrPtr);
 	int (*AndroidBitmap_unlockPixels)(JNIEnv* env, jobject jbitmap);
 public:
-    class LVColorDrawBufEx : public LVColorDrawBuf {
-    public:
-	    void convert() {
-			ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );		    	
-	    }
-    	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels)
-    	: LVColorDrawBuf( dx, dy, pixels ) {
-    	}
-    };
     virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) {
 	    //CRLog::trace("JNIGraphicsLib::lock entered");
 		AndroidBitmapInfo info;
@@ -273,9 +275,10 @@ public:
 
 class JNIGraphicsReplacement : public BitmapAccessorInterface
 {
+    jintArray _array;
 public:
 	virtual int getInfo(JNIEnv* env, jobject jbitmap, AndroidBitmapInfo* info) {
-	    CRLog::trace("JNIGraphicsReplacement::getInfo entered");
+	    //CRLog::trace("JNIGraphicsReplacement::getInfo entered");
 		jclass cls = env->GetObjectClass(jbitmap);
 		jmethodID mid;
 		mid = env->GetMethodID(cls,	"getHeight", "()I");
@@ -316,21 +319,8 @@ public:
 		//CRLog::debug("Bitmap format: %d (ord=%d, nativeInt=%d)", info->format, ord, ni);
 		return ANDROID_BITMAP_RESUT_SUCCESS;	
     }
-    class LVColorDrawBufEx : public LVColorDrawBuf {
-	    jintArray _array;
-    public:
-	    jintArray getArray() { return _array; }
-	    lUInt8 * getData() { return _data; }
-	    void convert() {
-			ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );		    	
-	    }
-    	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels, jintArray array)
-    	: LVColorDrawBuf( dx, dy, pixels ),
-    	_array(array) {
-    	}
-    };
     virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) {
-	    CRLog::trace("JNIGraphicsReplacement::lock entered");
+	    //CRLog::trace("JNIGraphicsReplacement::lock entered");
 		AndroidBitmapInfo info;
 		if ( ANDROID_BITMAP_RESUT_SUCCESS!=getInfo(env, jbitmap, &info) )
 			return NULL;
@@ -338,39 +328,54 @@ public:
 		int height = info.height;
 		int stride = info.stride;
 		int format = info.format;
-	    CRLog::trace("JNIGraphicsReplacement::lock info: %d (%d) x %d", width, stride, height);
+	    //CRLog::trace("JNIGraphicsReplacement::lock info: %d (%d) x %d", width, stride, height);
 		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 ) {
 			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
 			return NULL;
 		}
 		int size = stride * height;
-	    jintArray array = env->NewIntArray((size+3)/4);
-	    lUInt8 * pixels = (lUInt8 *)env->GetIntArrayElements(array, 0);
-	    CRLog::trace("JNIGraphicsReplacement::lock exiting");
-		return new LVColorDrawBufEx(width, height, pixels, array);
+		reallocArray( env, (size+3)/4 );
+	    //CRLog::trace("JNIGraphicsReplacement::lock getting pixels");
+	    lUInt8 * pixels = (lUInt8 *)env->GetIntArrayElements(_array, 0);
+	    //CRLog::trace("JNIGraphicsReplacement::lock exiting");
+		return new LVColorDrawBufEx(width, height, pixels);
+    }
+    void reallocArray(JNIEnv* env, int len )
+    {
+    	if ( _array==NULL || env->GetArrayLength(_array)<len ) {
+    		CRLog::trace("JNIGraphicsReplacement::reallocArray( %d )", len);
+	    	freeArray(env);
+		    _array = (jintArray)env->NewGlobalRef( env->NewIntArray(len) );
+		}
+    }
+    void freeArray(JNIEnv* env)
+    {
+	    if ( _array!=NULL ) {
+			env->DeleteGlobalRef(_array);
+			_array = NULL;
+		}
     }
     virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) {
-	    CRLog::trace("JNIGraphicsReplacement::unlock entering");
+	    //CRLog::trace("JNIGraphicsReplacement::unlock entering");
     	if ( !buf)
     		return;
     	LVColorDrawBufEx * bmp = (LVColorDrawBufEx*)buf;
     	bmp->convert();
     	lUInt8 * pixels = bmp->getData();
-    	env->ReleaseIntArrayElements(bmp->getArray(), (jint*)pixels, 0);
+    	env->ReleaseIntArrayElements(_array, (jint*)pixels, 0);
         // IntBuffer testBuf = IntBuffer.wrap(pixels);
         jclass cls = env->FindClass("java/nio/IntBuffer");
 		jmethodID mid = env->GetStaticMethodID(cls, "wrap", "([I)Ljava/nio/IntBuffer;");
-        jobject jbuf = env->CallStaticObjectMethod(cls, mid, bmp->getArray());
+        jobject jbuf = env->CallStaticObjectMethod(cls, mid, _array);
         // mBitmap.copyPixelsFromBuffer(testBuf);
 		cls = env->GetObjectClass(jbitmap);
 		mid = env->GetMethodID(cls,	"copyPixelsFromBuffer", "(Ljava/nio/Buffer;)V");
 		env->CallVoidMethod(jbitmap, mid, jbuf);
 		env->DeleteLocalRef(jbuf);
-		env->DeleteLocalRef(bmp->getArray());
-	    CRLog::trace("JNIGraphicsReplacement::unlock exiting");
+	    //CRLog::trace("JNIGraphicsReplacement::unlock exiting");
 		delete buf;
     }
-    JNIGraphicsReplacement() {
+    JNIGraphicsReplacement() : _array(NULL) {
     }
     ~JNIGraphicsReplacement() {
     }
