@@ -622,10 +622,17 @@ public class CoolReader extends Activity
         dlg.show();
 	}
 
+	private int orientationFromSensor = 0;
+	public int getOrientationFromSensor()
+	{
+		return orientationFromSensor;
+	}
+	
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		// pass
-//		final int orientation = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+		orientationFromSensor = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? 1 : 0;
+		//final int orientation = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 //		if ( orientation!=screenOrientation ) {
 //			Log.d("cr3", "Screen orientation has been changed: ask for change");
 //			AlertDialog.Builder dlg = new AlertDialog.Builder(this);

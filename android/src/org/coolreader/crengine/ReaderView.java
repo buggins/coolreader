@@ -267,10 +267,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		return mOpened;
 	}
+	
+	public int getOrientation()
+	{
+		int angle = mSettings.getInt(PROP_APP_SCREEN_ORIENTATION, 0);
+		if ( angle==4 )
+			angle = mActivity.getOrientationFromSensor();
+		return angle;
+	}
 
 	private int overrideKey( int keyCode )
 	{
-		int angle = mSettings.getInt(PROP_APP_SCREEN_ORIENTATION, 0);
+		int angle = getOrientation();
 		int[] subst = new int[] {
 			1, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_LEFT,
 			1, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT,
