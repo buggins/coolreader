@@ -347,7 +347,7 @@ public:
 	    jintArray array = env->NewIntArray((size+3)/4);
 	    lUInt8 * pixels = (lUInt8 *)env->GetIntArrayElements(array, 0);
 	    CRLog::trace("JNIGraphicsReplacement::lock exiting");
-		return new LVColorDrawBufEx(stride/4, height, pixels, array);
+		return new LVColorDrawBufEx(width, height, pixels, array);
     }
     virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) {
 	    CRLog::trace("JNIGraphicsReplacement::unlock entering");
