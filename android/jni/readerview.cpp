@@ -129,6 +129,8 @@ public:
 
 DECL_DEF_CR_FONT_SIZES;
 
+#define NO_BATTERY_GAUGE 1
+
 ReaderViewNative::ReaderViewNative()
 {
 	_docview = new LVDocView(32); //32bpp
@@ -137,12 +139,17 @@ ReaderViewNative::ReaderViewNative()
         "28 14 5 1", \
         "0 c #000000", \
         "X c #000000", \
-        "o c #AAAAAA", \
-        ". c #FFFFFF", \
+        "o c #555555", \
+        ". c #AAAAAA", \
         "  c None",
 
+//        "o c #AAAAAA", 
+//        ". c #FFFFFF", 
 
     LVRefVec<LVImageSource> icons;
+
+#ifndef NO_BATTERY_GAUGE
+
     static const char * battery8[] = {
         BATTERY_HEADER
         "   .........................",
@@ -298,6 +305,7 @@ ReaderViewNative::ReaderViewNative()
         "   .00000000000000000000000.",
         "   .........................",
     };
+#endif
     static const char * battery_charge[] = {
         BATTERY_HEADER
         "   .........................",
@@ -353,6 +361,8 @@ ReaderViewNative::ReaderViewNative()
     _docview->setShowCover( true );
     _docview->setFontSizes( sizes, true );
 	_docview->setFontSize(24);
+	_docview->setBatteryFont( fontMan->GetFont( 16, 600, false, css_ff_sans_serif, lString8("Droid Sans") ));
+	
 	_docview->createDefaultDocument(lString16("Welcome to CoolReader"), lString16("Please select file to open"));
 }
 

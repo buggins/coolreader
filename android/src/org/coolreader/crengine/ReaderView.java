@@ -362,6 +362,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public final int LONG_KEYPRESS_TIME = 900;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if ( keyCode== KeyEvent.KEYCODE_POWER ) {
+			mActivity.releaseBacklightControl();
+			return false;
+		}
 		mActivity.onUserActivity();
 		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
@@ -432,6 +436,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+		if ( keyCode== KeyEvent.KEYCODE_POWER ) {
+			mActivity.releaseBacklightControl();
+			return false;
+		}
 		mActivity.onUserActivity();
 		keyCode = overrideKey( keyCode );
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
@@ -1134,6 +1142,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 			if ( this.id!=lastDrawTaskId ) {
 				Log.d("cr3", "skipping duplicate drawPage request");
+				return;
+			}
+			if ( currentAnimation!=null ) {
+				Log.d("cr3", "skipping drawPage request while scroll animation is in progress");
 				return;
 			}
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");

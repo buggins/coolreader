@@ -387,9 +387,14 @@ public class CoolReader extends Activity
 	@Override
 	protected void onPause() {
 		Log.i("cr3", "CoolReader.onPause() : saving reader state");
-		backlightControl.release();
+		releaseBacklightControl();
 		mReaderView.save();
 		super.onPause();
+	}
+	
+	public void releaseBacklightControl()
+	{
+		backlightControl.release();
 	}
 
 	@Override

@@ -439,6 +439,8 @@ protected:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+    LVFontRef getBatteryFont() { return m_batteryFont; }
+    void setBatteryFont( LVFontRef font ) { m_batteryFont=font; }
 
     /// draw current page to specified buffer
     void Draw( LVDrawBuf & drawbuf );
