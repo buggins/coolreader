@@ -21,6 +21,7 @@ class DocViewCallback : public LVDocViewCallback {
     jmethodID _OnExportProgress;
     jmethodID _OnLoadFileError;
     jmethodID _OnExternalLink;
+    jmethodID _OnImageCacheClear;
 public:
 	DocViewCallback( JNIEnv * env, LVDocView * docview, jobject obj )
 	: _env(env), _docview(docview)
@@ -42,6 +43,7 @@ public:
 	    GET_METHOD(OnExportProgress,"(I)Z");
 	    GET_METHOD(OnLoadFileError,"(Ljava/lang/String;)V");
 	    GET_METHOD(OnExternalLink,"(Ljava/lang/String;Ljava/lang/String;)V");
+	    GET_METHOD(OnImageCacheClear,"()V");
 		_docview->setCallback( this );
 	}
 	virtual ~DocViewCallback()
@@ -120,6 +122,11 @@ public:
 		CRLog::info("DocViewCallback::OnExternalLink() called");
     	lString16 path = ldomXPointer(node,0).toString();
     	_env->CallVoidMethod(_obj, _OnExternalLink, _env.toJavaString(url), _env.toJavaString(path));
+    }
+    virtual void OnImageCacheClear()
+    {
+		CRLog::info("DocViewCallback::OnImageCacheClear() called");
+    	_env->CallVoidMethod(_obj, _OnImageCacheClear);
     }
 };
 
@@ -746,8 +753,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInte
     	return p->doCommand(cmd, param)?JNI_TRUE:JNI_FALSE;
     }
     CRLog::trace("doCommandInternal(%d, %d) -- passing to LVDocView", cmd, param);
-    p->_docview->doCommand((LVDocCmd)cmd, param);
-    return JNI_TRUE;
+    return p->_docview->doCommand((LVDocCmd)cmd, param) ? JNI_TRUE : JNI_FALSE;
 }
 
 /*

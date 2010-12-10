@@ -33,7 +33,9 @@ jobjectArray CRJNIEnv::toJavaStringArray( lString16Collection & src )
     int len = src.length();
 	jobjectArray array = env->NewObjectArray(len, env->FindClass("java/lang/String"), env->NewStringUTF(""));
 	for ( int i=0; i<len; i++ ) {
-		env->SetObjectArrayElement(array, i, toJavaString(src[i]));
+		jstring local = toJavaString(src[i]); 
+		env->SetObjectArrayElement(array, i, local);
+		env->DeleteLocalRef(local);
 	}
 	return array;
 }
@@ -50,7 +52,9 @@ CRPropRef CRJNIEnv::fromJavaProperties( jobject jprops )
     while ( jen_hasMoreElements.callBool() ) {
     	jstring key = (jstring)jen_nextElement.callObj();
     	jstring value = (jstring)p_getProperty.callObj(key);
-    	props->setString(LCSTR(fromJavaString(key)),LCSTR(fromJavaString(value)));  
+    	props->setString(LCSTR(fromJavaString(key)),LCSTR(fromJavaString(value))); 
+    	env->DeleteLocalRef(key); 
+    	env->DeleteLocalRef(value); 
     }
 	return props;
 }

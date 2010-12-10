@@ -25,7 +25,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback {
-    private BitmapInfo mBitmap;
 
     // additional key codes for Nook
     public static final int NOOK_KEY_PREV_LEFT = 96;
@@ -1112,30 +1111,133 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	private static final boolean GC_PAGE_IMAGE = false;
-	private static final int GC_INTERVAL = 1;
-	private static int gcCounter = 0; 
-	private BitmapInfo preparePageImage()
+    private BitmapInfo mCurrentPageInfo;
+    private BitmapInfo mNextPageInfo;
+	/**
+	 * Prepare and cache page image.
+	 * Cache is represented by two slots: mCurrentPageInfo and mNextPageInfo.  
+	 * If page already exists in cache, returns it (if current page requested, 
+	 *  ensures that it became stored as mCurrentPageInfo; if another page requested, 
+	 *  no mCurrentPageInfo/mNextPageInfo reordering made).
+	 * @param offset is kind of page: 0==current, -1=previous, 1=next page
+	 * @return page image and properties, null if requested page is unavailable (e.g. requested next/prev page is out of document range)
+	 */
+	private BitmapInfo preparePageImage( int offset )
 	{
 		BackgroundThread.ensureBackground();
-		BitmapInfo bi = new BitmapInfo();
+		if ( invalidImages ) {
+			if ( mCurrentPageInfo!=null )
+				mCurrentPageInfo.recycle();
+			mCurrentPageInfo = null;
+			if ( mNextPageInfo!=null )
+				mNextPageInfo.recycle();
+			mNextPageInfo = null;
+		}
+
 		if ( internalDX==0 || internalDY==0 ) {
 			internalDX=200;
 			internalDY=300;
 	        resizeInternal(internalDX, internalDY);
 		}
-		bi.bitmap = factory.get(internalDX, internalDY);
-        setBatteryStateInternal(mBatteryState);
-        getPageImageInternal(bi.bitmap);
-        bi.position = getPositionPropsInternal(null);
-        if ( GC_PAGE_IMAGE ) {
-        	gcCounter++;
-        	if ( gcCounter>=GC_INTERVAL ) {
-        		System.gc();
-        		gcCounter = 0;
-        	}
-        }
-        return bi;
+		
+		PositionProperties currpos = getPositionPropsInternal(null);
+		
+		boolean isPageView = currpos.pageMode==1;
+		
+		BitmapInfo currposBitmap = null;
+		if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(currpos) )
+			currposBitmap = mCurrentPageInfo;
+		else if ( mNextPageInfo!=null && mNextPageInfo.position.equals(currpos) )
+			currposBitmap = mNextPageInfo;
+		if ( offset==0 ) {
+			// Current page requested
+			if ( currposBitmap!=null ) {
+				if ( mNextPageInfo==currposBitmap ) {
+					// reorder pages
+					BitmapInfo tmp = mNextPageInfo;
+					mNextPageInfo = mCurrentPageInfo;
+					mCurrentPageInfo = tmp;
+				}
+				// found ready page image
+				return mCurrentPageInfo;
+			}
+			if ( mCurrentPageInfo!=null ) {
+				mCurrentPageInfo.recycle();
+				mCurrentPageInfo = null;
+			}
+			BitmapInfo bi = new BitmapInfo();
+	        bi.position = currpos;
+			bi.bitmap = factory.get(internalDX, internalDY);
+	        setBatteryStateInternal(mBatteryState);
+	        getPageImageInternal(bi.bitmap);
+	        mCurrentPageInfo = bi;
+	        return mCurrentPageInfo;
+		}
+		if ( isPageView ) {
+			// PAGES: one of next or prev pages requested, offset is specified as param 
+			int cmd1 = offset > 0 ? ReaderCommand.DCMD_PAGEDOWN.nativeId : ReaderCommand.DCMD_PAGEUP.nativeId;
+			int cmd2 = offset > 0 ? ReaderCommand.DCMD_PAGEUP.nativeId : ReaderCommand.DCMD_PAGEDOWN.nativeId;
+			if ( offset<0 )
+				offset = 0;
+			if ( doCommandInternal(cmd1, offset) ) {
+				// can move to next page
+				PositionProperties nextpos = getPositionPropsInternal(null);
+				BitmapInfo nextposBitmap = null;
+				if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(nextpos) )
+					nextposBitmap = mCurrentPageInfo;
+				else if ( mNextPageInfo!=null && mNextPageInfo.position.equals(nextpos) )
+					nextposBitmap = mNextPageInfo;
+				if ( nextposBitmap==null ) {
+					// existing image not found in cache, overriding mNextPageInfo
+					if ( mNextPageInfo!=null )
+						mNextPageInfo.recycle();
+					mNextPageInfo = null;
+					BitmapInfo bi = new BitmapInfo();
+			        bi.position = nextpos;
+					bi.bitmap = factory.get(internalDX, internalDY);
+			        setBatteryStateInternal(mBatteryState);
+			        getPageImageInternal(bi.bitmap);
+			        mNextPageInfo = bi;
+			        nextposBitmap = bi;
+				}
+				// return back to previous page
+				doCommandInternal(cmd2, offset);
+				return nextposBitmap;
+			} else {
+				// cannot move to page: out of document range
+				return null;
+			}
+		} else {
+			// SCROLL next or prev page requested, with pixel offset specified
+			int y = currpos.y + offset;
+			if ( doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, y) ) {
+				PositionProperties nextpos = getPositionPropsInternal(null);
+				BitmapInfo nextposBitmap = null;
+				if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(nextpos) )
+					nextposBitmap = mCurrentPageInfo;
+				else if ( mNextPageInfo!=null && mNextPageInfo.position.equals(nextpos) )
+					nextposBitmap = mNextPageInfo;
+				if ( nextposBitmap==null ) {
+					// existing image not found in cache, overriding mNextPageInfo
+					if ( mNextPageInfo!=null )
+						mNextPageInfo.recycle();
+					mNextPageInfo = null;
+					BitmapInfo bi = new BitmapInfo();
+			        bi.position = nextpos;
+					bi.bitmap = factory.get(internalDX, internalDY);
+			        setBatteryStateInternal(mBatteryState);
+			        getPageImageInternal(bi.bitmap);
+			        mNextPageInfo = bi;
+			        nextposBitmap = bi;
+				}
+				// return back to prev position
+				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, currpos.y);
+				return nextposBitmap;
+			} else {
+				return null;
+			}
+		}
+		
 	}
 	
 	private int lastDrawTaskId = 0;
@@ -1157,11 +1259,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return;
 			}
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
-			setBitmap(null);
-			bi = preparePageImage();
+			bi = preparePageImage(0);
 	        mEngine.hideProgress();
 			if ( bi!=null ) {
-				setBitmap( bi );
 				draw();
 			}
 		}
@@ -1178,13 +1278,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	};
 	
-	private void setBitmap(BitmapInfo bmp)
-	{
-		if ( mBitmap!=null && mBitmap!=bmp )
-			mBitmap.recycle();
-		mBitmap = bmp;
-	} 
-
 	class ReaderSurfaceView extends SurfaceView {
 		public ReaderSurfaceView( Context context )
 		{
@@ -1363,9 +1456,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pointerCurrPos = pos;
 			pointerDestPos = startY;
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
-			image1 = preparePageImage();
+			image1 = preparePageImage(0);
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
-			image2 = preparePageImage();
+			image2 = preparePageImage(0);
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
 			long duration = android.os.SystemClock.uptimeMillis() - start;
 			Log.v("cr3", "ScrollViewAnimation -- created in " + duration + " millis");
@@ -1427,11 +1520,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int h = image1.position.pageHeight;
 			int rowsFromImg1 = image1.position.y + h - pointerCurrPos;
 			int rowsFromImg2 = h - rowsFromImg1;
-    		Rect src1 = new Rect(0, h-rowsFromImg1, mBitmap.bitmap.getWidth(), h);
-    		Rect dst1 = new Rect(0, 0, mBitmap.bitmap.getWidth(), rowsFromImg1);
+    		Rect src1 = new Rect(0, h-rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
+    		Rect dst1 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg1);
 			canvas.drawBitmap(image1.bitmap, src1, dst1, null);
-    		Rect src2 = new Rect(0, 0, mBitmap.bitmap.getWidth(), rowsFromImg2);
-    		Rect dst2 = new Rect(0, rowsFromImg1, mBitmap.bitmap.getWidth(), h);
+    		Rect src2 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg2);
+    		Rect dst2 = new Rect(0, rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
 			canvas.drawBitmap(image2.bitmap, src2, dst2, null);
 			//Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
 		}
@@ -1457,7 +1550,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			long start = android.os.SystemClock.uptimeMillis();
 			Log.v("cr3", "PageViewAnimation -- creating: drawing two pages to buffer");
 			
-			PositionProperties currPos = mBitmap.position;
+			PositionProperties currPos = mCurrentPageInfo.position;
 			if ( currPos==null )
 				currPos = getPositionPropsInternal(null);
 			page1 = currPos.pageNumber;
@@ -1470,14 +1563,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int cmd2 = direction > 0 ? ReaderCommand.DCMD_PAGEUP.nativeId : ReaderCommand.DCMD_PAGEDOWN.nativeId;
 			//doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page2);
 			doCommandInternal(cmd1, 1);
-			image2 = preparePageImage();
+			image2 = preparePageImage(0);
 			doCommandInternal(cmd2, 1);
 			//doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page1);
-			if ( mBitmap.position.equals(currPos) ) {
-				image1 = mBitmap;
+			if ( mCurrentPageInfo.position.equals(currPos) ) {
+				image1 = mCurrentPageInfo;
 				ownImage1 = false;
 			} else {
-				image1 = preparePageImage();
+				image1 = preparePageImage(0);
 			}
 			currentAnimation = this;
 			divPaint = new Paint();
@@ -1573,8 +1666,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void draw(Canvas canvas)
 		{
 			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.draw("+currShift + ")");
-			int w = mBitmap.bitmap.getWidth(); 
-			int h = mBitmap.bitmap.getHeight();
+			int w = mCurrentPageInfo.bitmap.getWidth(); 
+			int h = mCurrentPageInfo.bitmap.getHeight();
 			int div;
 			if ( direction > 0 ) {
 				div = w-currShift;
@@ -1670,7 +1763,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
 	        	findCoverPage();
-	        	preparePageImage();
+	        	preparePageImage(0);
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
 	        } else {
@@ -1712,12 +1805,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
        	try {
     		Log.d("cr3", "doDraw() called");
-    		if ( mInitialized && mBitmap!=null ) {
+    		if ( mInitialized && mCurrentPageInfo!=null ) {
         		Log.d("cr3", "onDraw() -- drawing page image");
         		
         		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-        		Rect src = new Rect(0, 0, mBitmap.bitmap.getWidth(), mBitmap.bitmap.getHeight());
-    			canvas.drawBitmap(mBitmap.bitmap, src, dst, null);
+        		Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
+    			canvas.drawBitmap(mCurrentPageInfo.bitmap, src, dst, null);
     		} else {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
     			canvas.drawColor(Color.rgb(192, 192, 192));
@@ -1849,9 +1942,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		}
     		public void done() {
     			BackgroundThread.ensureGUI();
-    			setBitmap(null);
+    			if ( currentAnimation==null ) {
+	    			if (  mCurrentPageInfo!=null ) {
+	    				mCurrentPageInfo.recycle();
+	    				mCurrentPageInfo = null;
+	    			}
+	    			if (  mNextPageInfo!=null ) {
+	    				mNextPageInfo.recycle();
+	    				mNextPageInfo = null;
+	    			}
+    			} else
+        	    	invalidImages = true;
     			factory.compact();
-    			mBitmap = null;
+    			mCurrentPageInfo = null;
     		}
     	});
     }
@@ -1976,7 +2079,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnLoadFileStart " + filename);
 		}
+	    /// Override to handle external links
+	    public void OnImageCacheClear() {
+	    	Log.d("cr3", "readerCallback.OnImageCacheClear");
+	    	clearImageCache();
+	    }
     };
+    
+    private boolean invalidImages = true;
+    private void clearImageCache()
+    {
+    	BackgroundThread.instance().executeBackground( new Runnable() {
+    		public void run() {
+    	    	invalidImages = true;
+    		}
+    	});
+    }
 
     public void setStyleSheet( final String css )
     {
