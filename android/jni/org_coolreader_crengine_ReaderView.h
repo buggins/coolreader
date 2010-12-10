@@ -21,6 +21,150 @@ extern "C" {
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN 100L
 #undef org_coolreader_crengine_ReaderView_DEBUG_ANIMATION
 #define org_coolreader_crengine_ReaderView_DEBUG_ANIMATION 0L
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getPageImageInternal
+ * Signature: (Landroid/graphics/Bitmap;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInternal
+  (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    createInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_createInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    destroyInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_destroyInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    loadDocumentInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getSettingsInternal
+ * Signature: ()Ljava/util/Properties;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    applySettingsInternal
+ * Signature: (Ljava/util/Properties;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettingsInternal
+  (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    setStylesheetInternal
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    resizeInternal
+ * Signature: (II)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    doCommandInternal
+ * Signature: (II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInternal
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getCurrentPageBookmarkInternal
+ * Signature: ()Lorg/coolreader/crengine/Bookmark;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    goToPositionInternal
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getPositionPropsInternal
+ * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/PositionProperties;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    updateBookInfoInternal
+ * Signature: (Lorg/coolreader/crengine/BookInfo;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal
+  (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getTOCInternal
+ * Signature: ()Lorg/coolreader/crengine/TOCItem;
+ */
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getTOCInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    clearSelectionInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_clearSelectionInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    findTextInternal
+ * Signature: (Ljava/lang/String;III)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_findTextInternal
+  (JNIEnv *, jobject, jstring, jint, jint, jint);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    setBatteryStateInternal
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    getCoverPageDataInternal
+ * Signature: ()[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPageDataInternal
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif
