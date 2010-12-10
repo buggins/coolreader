@@ -209,6 +209,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveIte
     CRJNIEnv env(_env);
     lString16 arcName = env.fromJavaString(jarcName);
     lString16Collection list;
+    
     //fontMan->getFaceList(list);
     LVStreamRef stream = LVOpenFileStream( arcName.c_str(), LVOM_READ );
     if ( !stream.isNull() ) {

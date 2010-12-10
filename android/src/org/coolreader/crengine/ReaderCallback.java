@@ -23,4 +23,6 @@ public interface ReaderCallback {
     void OnLoadFileError( String message );
     /// Override to handle external links
     void OnExternalLink( String url, String nodeXPath );
+    /// Override to handle external links
+    void OnImageCacheClear();
 }

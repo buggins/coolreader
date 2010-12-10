@@ -421,6 +421,8 @@ void LVDocView::clearImageCache()
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
     m_imageCache.clear();
 #endif
+	if ( m_callback!=NULL )
+		m_callback->OnImageCacheClear();
 }
 
 /// invalidate formatted data, request render
@@ -1659,7 +1661,7 @@ int LVDocView::GetPos()
     return _pos;
 }
 
-void LVDocView::SetPos( int pos, bool savePos )
+int LVDocView::SetPos( int pos, bool savePos )
 {
     LVLock lock(getMutex());
     _posIsSet = true;
@@ -1697,6 +1699,7 @@ void LVDocView::SetPos( int pos, bool savePos )
         _posBookmark = getBookmark();
     _posIsSet = true;
     updateScroll();
+    return 1;
     //Draw();
 }
 
@@ -1709,27 +1712,32 @@ int LVDocView::getCurPage()
     return m_pages.FindNearestPage(_pos, 0);
 }
 
-void LVDocView::goToPage( int page )
+bool LVDocView::goToPage( int page )
 {
     LVLock lock(getMutex());
     checkRender();
     if (!m_pages.length())
-        return;
-
+        return false;
+    bool res = true;
     if ( isScrollMode() ) {
         if (page>=0 && page<m_pages.length() ) {
             _pos = m_pages[page]->start;
             _page = page;
         } else {
+            res = false;
             _pos = 0;
             _page = 0;
         }
     } else {
         int pc = getVisiblePageCount();
-        if ( page >= m_pages.length() )
+        if ( page >= m_pages.length() ) {
             page = m_pages.length()-1;
-        if ( page<0 )
+            res = false;
+        }
+        if ( page<0 ) {
             page = 0;
+            res = false;
+        }
         if ( pc==2 )
             page &= ~1;
         if ( page>=0 && page<m_pages.length() ) {
@@ -1738,11 +1746,13 @@ void LVDocView::goToPage( int page )
         } else {
             _pos = 0;
             _page = 0;
+            res = false;
         }
     }
     _posBookmark = getBookmark();
     _posIsSet = true;
     updateScroll();
+    return res;
 }
 
 /// returns true if time changed since clock has been last drawed
@@ -4197,7 +4207,7 @@ bool LVDocView::goToPageShortcutBookmark( int number )
 }
 
 // execute command
-void LVDocView::doCommand( LVDocCmd cmd, int param )
+int LVDocView::doCommand( LVDocCmd cmd, int param )
 {
     switch (cmd)
     {
@@ -4219,14 +4229,14 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         break;
     case DCMD_GO_SCROLL_POS:
         {
-            goToScrollPos( param );
+        	return goToScrollPos( param );
         }
         break;
     case DCMD_BEGIN:
         {
             if ( getCurPage() > 0 ) {
                 savePosToNavigationHistory();
-                SetPos(0);
+                return SetPos(0);
             }
         }
         break;
@@ -4234,12 +4244,12 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if (m_view_mode==DVM_SCROLL)
             {
-                SetPos( GetPos() - param*(m_font_size*3/2));
+                return SetPos( GetPos() - param*(m_font_size*3/2));
             }
             else
             {
                 int p = getCurPage();
-                goToPage( p - getVisiblePageCount() );
+                return goToPage( p - getVisiblePageCount() );
                 //goToPage( m_pages.FindNearestPage(m_pos, -1));
             }
         }
@@ -4248,14 +4258,14 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if ( param < 1 )
                 param = 1;
-			moveByPage( -param );
+            return moveByPage( -param );
         }
         break;
     case DCMD_PAGEDOWN:
         {
             if ( param < 1 )
                 param = 1;
-			moveByPage( param );
+            return moveByPage( param );
         }
         break;
     case DCMD_LINK_NEXT:
@@ -4308,12 +4318,12 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if (m_view_mode==DVM_SCROLL)
             {
-                SetPos( GetPos() + param*(m_font_size*3/2));
+                return SetPos( GetPos() + param*(m_font_size*3/2));
             }
             else
             {
                 int p = getCurPage();
-                goToPage( p + getVisiblePageCount() );
+                return goToPage( p + getVisiblePageCount() );
                 //goToPage( m_pages.FindNearestPage(m_pos, +1));
             }
         }
@@ -4322,7 +4332,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if ( getCurPage() < getPageCount() - getVisiblePageCount() ) {
                 savePosToNavigationHistory();
-                SetPos(GetFullHeight());
+                return SetPos(GetFullHeight());
             }
         }
         break;
@@ -4330,11 +4340,11 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if (m_view_mode==DVM_SCROLL)
             {
-                SetPos( param );
+                return SetPos( param );
             }
             else
             {
-                goToPage( m_pages.FindNearestPage(param, 0) );
+                return goToPage( m_pages.FindNearestPage(param, 0) );
             }
         }
         break;
@@ -4342,7 +4352,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if (m_view_mode==DVM_SCROLL)
             {
-                SetPos( GetPos() + param );
+                return SetPos( GetPos() + param );
             }
         }
         break;
@@ -4350,7 +4360,7 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
         {
             if ( getCurPage() != param ) {
                 savePosToNavigationHistory();
-                goToPage( param );
+                return goToPage( param );
             }
         }
         break;
@@ -4389,13 +4399,14 @@ void LVDocView::doCommand( LVDocCmd cmd, int param )
 		break;
 	case DCMD_MOVE_BY_CHAPTER:
 		{
-			moveByChapter( param );
+			return moveByChapter( param );
 		}
 		break;
     default:
         // DO NOTHING
         break;
     }
+    return 1;
 }
 
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };

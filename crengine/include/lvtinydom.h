@@ -153,6 +153,8 @@ public:
     virtual void OnLoadFileError( lString16 message ) { }
     /// Override to handle external links
     virtual void OnExternalLink( lString16 url, ldomNode * node ) { }
+    /// Called when page images should be invalidated (clearImageCache() called in LVDocView)
+    virtual void OnImageCacheClear() { }
     /// destructor
     virtual ~LVDocViewCallback() { }
 };

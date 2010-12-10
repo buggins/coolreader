@@ -19,10 +19,6 @@ extern "C" {
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_UP 101L
 #undef org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN 100L
-#undef org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE
-#define org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE 0L
-#undef org_coolreader_crengine_ReaderView_GC_INTERVAL
-#define org_coolreader_crengine_ReaderView_GC_INTERVAL 1L
 #undef org_coolreader_crengine_ReaderView_DEBUG_ANIMATION
 #define org_coolreader_crengine_ReaderView_DEBUG_ANIMATION 0L
 /*

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
-      android:versionCode="13"
-      android:versionName="3.0.38-4">
+      android:versionCode="15"
+      android:versionName="3.0.38-7"
+      >
+    <!-- android:installLocation="preferExternal"  -->  
     <supports-screens
         android:largeScreens="true" 
         android:normalScreens="true" 

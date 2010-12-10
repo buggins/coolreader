@@ -754,7 +754,7 @@ public:
     int getPosPercent();
 
     /// execute command
-    void doCommand( LVDocCmd cmd, int param=0 );
+    int doCommand( LVDocCmd cmd, int param=0 );
 
     /// set document stylesheet text
     void setStyleSheet( lString8 css_text );
@@ -796,12 +796,12 @@ public:
     /// get position of view inside document
     void GetPos( lvRect & rc );
     /// set vertical position of view inside document
-    void SetPos( int pos, bool savePos=true );
+    int SetPos( int pos, bool savePos=true );
 
     /// get number of current page
     int getCurPage();
     /// move to specified page
-    void goToPage( int page );
+    bool goToPage( int page );
     /// returns page count
     int getPageCount();
 
