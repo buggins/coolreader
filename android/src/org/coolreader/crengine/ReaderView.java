@@ -1395,9 +1395,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	abstract class ViewAnimationBase implements ViewAnimationControl {
-		BitmapInfo image1;
-		BitmapInfo image2;
-		boolean ownImage1 = true;
 		long startTimeStamp;
 		boolean started;
 		public boolean isStarted()
@@ -1410,9 +1407,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		public void close()
 		{
-			if ( ownImage1 )
-				image1.recycle();
-			image2.recycle();
 			currentAnimation = null;
 		}
 		public void draw()
@@ -1427,7 +1421,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				long endTs = android.os.SystemClock.uptimeMillis();
 				updateAnimationDurationStats(endTs - startTs);
 			} finally {
-				if ( canvas!=null )
+				if ( canvas!=null && getHolder()!=null )
 					getHolder().unlockCanvasAndPost(canvas);
 			}
 		}
@@ -1455,11 +1449,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pointerStartPos = pos;
 			pointerCurrPos = pos;
 			pointerDestPos = startY;
+			BitmapInfo image1;
+			BitmapInfo image2;
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
 			image1 = preparePageImage(0);
-			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
-			image2 = preparePageImage(0);
+			image2 = preparePageImage(image1.position.pageHeight);
+//			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
+//			image2 = preparePageImage(0);
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
+			if ( image1==null || image2==null ) {
+				Log.v("cr3", "ScrollViewAnimation -- not started: image is null");
+				return;
+			}
 			long duration = android.os.SystemClock.uptimeMillis() - start;
 			Log.v("cr3", "ScrollViewAnimation -- created in " + duration + " millis");
 			currentAnimation = this;
@@ -1517,15 +1518,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void draw(Canvas canvas)
 		{
+			BitmapInfo image1 = mCurrentPageInfo;
+			BitmapInfo image2 = mNextPageInfo;
 			int h = image1.position.pageHeight;
 			int rowsFromImg1 = image1.position.y + h - pointerCurrPos;
 			int rowsFromImg2 = h - rowsFromImg1;
     		Rect src1 = new Rect(0, h-rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
     		Rect dst1 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg1);
 			canvas.drawBitmap(image1.bitmap, src1, dst1, null);
-    		Rect src2 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg2);
-    		Rect dst2 = new Rect(0, rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
-			canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			if (image2!=null) {
+	    		Rect src2 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg2);
+	    		Rect dst2 = new Rect(0, rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
+				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			}
 			//Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
 		}
 	}
@@ -1559,18 +1564,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				currentAnimation = null;
 				return;
 			}
-			int cmd1 = direction > 0 ? ReaderCommand.DCMD_PAGEDOWN.nativeId : ReaderCommand.DCMD_PAGEUP.nativeId;
-			int cmd2 = direction > 0 ? ReaderCommand.DCMD_PAGEUP.nativeId : ReaderCommand.DCMD_PAGEDOWN.nativeId;
-			//doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page2);
-			doCommandInternal(cmd1, 1);
-			image2 = preparePageImage(0);
-			doCommandInternal(cmd2, 1);
-			//doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, page1);
-			if ( mCurrentPageInfo.position.equals(currPos) ) {
-				image1 = mCurrentPageInfo;
-				ownImage1 = false;
-			} else {
-				image1 = preparePageImage(0);
+			BitmapInfo image1 = preparePageImage(0);
+			BitmapInfo image2 = preparePageImage(direction);
+			if ( image1==null || image2==null ) {
+				Log.v("cr3", "PageViewAnimation -- cannot start animation: page image is null");
+				return;
 			}
 			currentAnimation = this;
 			divPaint = new Paint();
@@ -1666,8 +1664,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void draw(Canvas canvas)
 		{
 			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.draw("+currShift + ")");
-			int w = mCurrentPageInfo.bitmap.getWidth(); 
-			int h = mCurrentPageInfo.bitmap.getHeight();
+			BitmapInfo image1 = mCurrentPageInfo;
+			BitmapInfo image2 = mNextPageInfo;
+			int w = image1.bitmap.getWidth(); 
+			int h = image1.bitmap.getHeight();
 			int div;
 			if ( direction > 0 ) {
 				div = w-currShift;
