@@ -80,6 +80,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.forced.filesize.min";
     public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
 
+    public static final String PROP_CONTROLS_ENABLE_VOLUME_KEYS ="app.controls.volume.keys.enabled";
+    
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
     public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
     public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
@@ -393,7 +395,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				goToBookmark(shortcut);
 			return true;
 		} else if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
-			return true;
+			return enableVolumeKeys;
 
 		keyCode = overrideKey( keyCode );
 		
@@ -485,6 +487,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case KeyEvent.KEYCODE_BACK:
 			return super.onKeyDown(keyCode, event);
         case KeyEvent.KEYCODE_VOLUME_UP:
+        	if ( !enableVolumeKeys )
+        		return false;
            if ( VOLUME_KEYS_ZOOM ) {
                doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
                syncViewSettings(getSettings());
@@ -492,6 +496,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                doCommand( ReaderCommand.DCMD_PAGEUP, 1);
            return true;
         case KeyEvent.KEYCODE_VOLUME_DOWN:
+        	if ( !enableVolumeKeys )
+        		return false;
            if ( VOLUME_KEYS_ZOOM ) {
                doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
                syncViewSettings(getSettings());
@@ -821,21 +827,24 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return new Properties(mSettings);
 	}
 	
+	private boolean enableVolumeKeys = true; 
 	static private final int DEF_PAGE_FLIP_MS = 500; 
 	public void applyAppSetting( String key, String value )
 	{
+		boolean flg = "1".equals(value);
         if ( key.equals(PROP_APP_FULLSCREEN) ) {
 			this.mActivity.setFullscreen( "1".equals(value) );
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
-			boolean flg = "1".equals(value);
 			mActivity.getHistory().setCoverPagesEnabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
         } else if ( PROP_PAGE_ANIMATION.equals(key) ) {
-			boolean flg = "1".equals(value);
 			pageFlipAnimationSpeedMs = flg ? DEF_PAGE_FLIP_MS : 0; 
+        } else if ( PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) ) {
+        	enableVolumeKeys = flg;
         }
+        
 	}
 	
 	public void setAppSettings( Properties newSettings, Properties oldSettings )
@@ -856,9 +865,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		} else if ( PROP_PAGE_VIEW_MODE.equals(key) ) {
     			boolean flg = "1".equals(value);
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
-    		} else if ( PROP_APP_SHOW_COVERPAGES.equals(key) ) {
-    			newSettings.setProperty(key, value);
-    		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) || PROP_PAGE_ANIMATION.equals(key)) {
+    		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) || PROP_PAGE_ANIMATION.equals(key)
+    				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) || PROP_APP_SHOW_COVERPAGES.equals(key) ) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
@@ -927,6 +935,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.applyDefault(PROP_APP_SHOW_COVERPAGES, "1");
 		props.applyDefault(PROP_APP_SCREEN_ORIENTATION, "0");
 		props.applyDefault(PROP_PAGE_ANIMATION, "1");
+		props.applyDefault(PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
+		
 		
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");

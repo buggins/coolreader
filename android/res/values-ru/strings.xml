@@ -92,4 +92,5 @@
 <string name="dlg_button_cancel">Отмена</string>
 <string name="dlg_button_find">Найти</string>
 <string name="options_page_animation">Анимация листания</string>
+<string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
 </resources>
