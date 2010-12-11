@@ -337,7 +337,9 @@ public:
 			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
 			return NULL;
 		}
-		int size = stride * height;
+		//int size = stride * height;
+		CRLog::trace("lock: %d x %d stride = %d, width*4 = %d", width, height, stride, width*4 );
+		int size = width * height;
 		reallocArray( env, (size+3)/4 );
 	    //CRLog::trace("JNIGraphicsReplacement::lock getting pixels");
 	    lUInt8 * pixels = (lUInt8 *)env->GetIntArrayElements(_array, 0);
@@ -349,7 +351,9 @@ public:
     	if ( _array==NULL || env->GetArrayLength(_array)<len ) {
     		CRLog::trace("JNIGraphicsReplacement::reallocArray( %d )", len);
 	    	freeArray(env);
-		    _array = (jintArray)env->NewGlobalRef( env->NewIntArray(len) );
+	    	jobject lref = env->NewIntArray(len);
+		    _array = (jintArray)env->NewGlobalRef( lref );
+		    env->DeleteLocalRef(lref);
 		}
     }
     void freeArray(JNIEnv* env)

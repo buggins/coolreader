@@ -9,6 +9,16 @@ public class PositionProperties {
 	public int pageNumber;
 	public int pageCount;
 	public int pageMode; // 1 for page mode, 0 for scroll mode
+	
+	
+	
+	@Override
+	public String toString() {
+		return "PositionProperties [pageMode=" + pageMode + ", pageNumber="
+				+ pageNumber + ", pageCount=" + pageCount + ", x=" + x + ", y="
+				+ y + ", pageHeight=" + pageHeight + ", pageWidth=" + pageWidth
+				+ ", fullHeight=" + fullHeight + "]";
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;

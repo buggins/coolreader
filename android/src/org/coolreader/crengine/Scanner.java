@@ -1,12 +1,9 @@
 package org.coolreader.crengine;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;

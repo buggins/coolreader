@@ -1109,6 +1109,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			bitmap = null;
 			position = null;
 		}
+		@Override
+		public String toString() {
+			return "BitmapInfo [position=" + position + "]";
+		}
+		
 	}
 	
     private BitmapInfo mCurrentPageInfo;
@@ -1125,6 +1130,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private BitmapInfo preparePageImage( int offset )
 	{
 		BackgroundThread.ensureBackground();
+		Log.v("cr3", "preparePageImage( "+offset+")");
 		if ( invalidImages ) {
 			if ( mCurrentPageInfo!=null )
 				mCurrentPageInfo.recycle();
@@ -1132,6 +1138,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( mNextPageInfo!=null )
 				mNextPageInfo.recycle();
 			mNextPageInfo = null;
+			invalidImages = false;
 		}
 
 		if ( internalDX==0 || internalDY==0 ) {
@@ -1142,7 +1149,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		PositionProperties currpos = getPositionPropsInternal(null);
 		
-		boolean isPageView = currpos.pageMode==1;
+		boolean isPageView = currpos.pageMode==0;
 		
 		BitmapInfo currposBitmap = null;
 		if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(currpos) )
@@ -1171,6 +1178,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        setBatteryStateInternal(mBatteryState);
 	        getPageImageInternal(bi.bitmap);
 	        mCurrentPageInfo = bi;
+	        //Log.v("cr3", "Prepared new current page image " + mCurrentPageInfo);
 	        return mCurrentPageInfo;
 		}
 		if ( isPageView ) {
@@ -1199,6 +1207,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			        getPageImageInternal(bi.bitmap);
 			        mNextPageInfo = bi;
 			        nextposBitmap = bi;
+			        //Log.v("cr3", "Prepared new current page image " + mNextPageInfo);
 				}
 				// return back to previous page
 				doCommandInternal(cmd2, offset);
@@ -1394,6 +1403,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public boolean isStarted();
 	}
 
+	private Object surfaceLock = new Object(); 
+
 	abstract class ViewAnimationBase implements ViewAnimationControl {
 		long startTimeStamp;
 		boolean started;
@@ -1413,17 +1424,34 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			if ( !mSurfaceCreated )
 				return;
-			Canvas canvas = null;
-			try {
-				long startTs = android.os.SystemClock.uptimeMillis();
-				canvas = getHolder().lockCanvas(null);
-				draw(canvas);
-				long endTs = android.os.SystemClock.uptimeMillis();
-				updateAnimationDurationStats(endTs - startTs);
-			} finally {
-				if ( canvas!=null && getHolder()!=null )
-					getHolder().unlockCanvasAndPost(canvas);
+			//synchronized(surfaceLock) { }
+			//Log.v("cr3", "draw() - in thread " + Thread.currentThread().getName());
+			final SurfaceHolder holder = getHolder();
+			//Log.v("cr3", "before synchronized(surfaceLock)");
+			if ( holder!=null )
+			//synchronized(surfaceLock) 
+			{
+				Canvas canvas = null;
+				try {
+					long startTs = android.os.SystemClock.uptimeMillis();
+					canvas = holder.lockCanvas(null);
+					//Log.v("cr3", "before draw(canvas)");
+					if ( canvas!=null )
+						draw(canvas);
+					//Log.v("cr3", "after draw(canvas)");
+					long endTs = android.os.SystemClock.uptimeMillis();
+					updateAnimationDurationStats(endTs - startTs);
+				} finally {
+					//Log.v("cr3", "exiting finally");
+					if ( canvas!=null && getHolder()!=null ) {
+						//Log.v("cr3", "before unlockCanvasAndPost");
+						if ( canvas!=null && holder!=null )
+							holder.unlockCanvasAndPost(canvas);
+						//Log.v("cr3", "after unlockCanvasAndPost");
+					}
+				}
 			}
+			//Log.v("cr3", "exiting draw()");
 		}
 		abstract void draw( Canvas canvas );
 	}
@@ -1673,9 +1701,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				div = w-currShift;
 	    		Rect src1 = new Rect(currShift, 0, w, h);
 	    		Rect dst1 = new Rect(0, 0, w-currShift, h);
+	    		//Log.v("cr3", "drawing " + image1);
 				canvas.drawBitmap(image1.bitmap, src1, dst1, null);
 	    		Rect src2 = new Rect(w-currShift, 0, w, h);
 	    		Rect dst2 = new Rect(w-currShift, 0, w, h);
+	    		//Log.v("cr3", "drawing " + image1);
 				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
 			} else {
 				div = currShift;
@@ -1825,12 +1855,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( !mSurfaceCreated )
 			return;
 		Canvas canvas = null;
-		try {
-			canvas = getHolder().lockCanvas(null);
-			doDraw(canvas);
-		} finally {
-			if ( canvas!=null )
-				getHolder().unlockCanvasAndPost(canvas);
+		final SurfaceHolder holder = getHolder();
+		if ( holder!=null )
+		synchronized(surfaceLock) {
+			try {
+				canvas = holder.lockCanvas(null);
+				doDraw(canvas);
+			} finally {
+				if ( canvas!=null )
+					holder.unlockCanvasAndPost(canvas);
+			}
 		}
 	}
 	
