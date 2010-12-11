@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader 3</string>
 <string name="mi_search">Найти</string>
@@ -91,4 +91,5 @@
 <string name="dlg_button_ok">Ok</string>
 <string name="dlg_button_cancel">Отмена</string>
 <string name="dlg_button_find">Найти</string>
+<string name="options_page_animation">Анимация листания</string>
 </resources>

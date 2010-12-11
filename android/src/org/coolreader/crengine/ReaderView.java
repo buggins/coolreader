@@ -57,6 +57,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_PAGE_MARGIN_LEFT        ="crengine.page.margin.left";
     public static final String PROP_PAGE_MARGIN_RIGHT       ="crengine.page.margin.right";
     public static final String PROP_PAGE_VIEW_MODE          ="crengine.page.view.mode"; // pages/scroll
+    public static final String PROP_PAGE_ANIMATION          ="crengine.page.animation";
     public static final String PROP_INTERLINE_SPACE         ="crengine.interline.space";
     public static final String PROP_ROTATE_ANGLE            ="window.rotate.angle";
     public static final String PROP_EMBEDDED_STYLES         ="crengine.doc.embedded.styles.enabled";
@@ -343,12 +344,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case 7:
 		case 8:
 		case 9:
-			doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
+			if ( isLongPress )
+				doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
+			else
+				animatePageFlip(1);
 			break;
 		case 1:
 		case 2:
 		case 4:
-			doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
+			if ( isLongPress )
+				doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
+			else
+				animatePageFlip(-1);
 			break;
 		case 5:
 			if ( isLongPress )
@@ -399,13 +406,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case NOOK_KEY_NEXT_RIGHT:    
 		case NOOK_KEY_SHIFT_DOWN:
 		case KeyEvent.KEYCODE_DPAD_DOWN:
-			doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
+			if ( isLongPress )
+				doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
+			else
+				animatePageFlip(1);
 			break;
 		case NOOK_KEY_PREV_LEFT:
 		case NOOK_KEY_PREV_RIGHT:
 		case NOOK_KEY_SHIFT_UP:
 		case KeyEvent.KEYCODE_DPAD_UP:
-			doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
+			if ( isLongPress )
+				doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
+			else
+				animatePageFlip(-1);
 			break;
 		case KeyEvent.KEYCODE_DPAD_LEFT:
 			doCommand( ReaderCommand.DCMD_PAGEUP, 10);
@@ -808,6 +821,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return new Properties(mSettings);
 	}
 	
+	static private final int DEF_PAGE_FLIP_MS = 500; 
 	public void applyAppSetting( String key, String value )
 	{
         if ( key.equals(PROP_APP_FULLSCREEN) ) {
@@ -818,6 +832,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
+        } else if ( PROP_PAGE_ANIMATION.equals(key) ) {
+			boolean flg = "1".equals(value);
+			pageFlipAnimationSpeedMs = flg ? DEF_PAGE_FLIP_MS : 0; 
         }
 	}
 	
@@ -841,7 +858,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		} else if ( PROP_APP_SHOW_COVERPAGES.equals(key) ) {
     			newSettings.setProperty(key, value);
-    		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) ) {
+    		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) || PROP_PAGE_ANIMATION.equals(key)) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
@@ -909,6 +926,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(PROP_APP_SHOW_COVERPAGES, "1");
 		props.applyDefault(PROP_APP_SCREEN_ORIENTATION, "0");
+		props.applyDefault(PROP_PAGE_ANIMATION, "1");
+		
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
 		props.applyDefault(PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
@@ -1322,6 +1341,45 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private ViewAnimationControl currentAnimation = null;
+
+	private int pageFlipAnimationSpeedMs = 500; // if 0 : no animation
+	private void animatePageFlip( final int dir )
+	{
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				BackgroundThread.ensureBackground();
+				if ( currentAnimation==null ) {
+					PositionProperties currPos = getPositionPropsInternal(null);
+					if ( currPos==null )
+						return;
+					int w = currPos.pageWidth;
+					int h = currPos.pageHeight;
+					if ( currPos.pageMode==0 ) {
+						int fromX = dir>0 ? w : 0;
+						int toX = dir>0 ? 0 : w;
+						new PageViewAnimation(fromX, w, dir);
+						if ( currentAnimation!=null ) {
+							currentAnimation.update(toX, h/2);
+							currentAnimation.move(pageFlipAnimationSpeedMs, true);
+							currentAnimation.stop(-1, -1);
+						}
+					} else {
+						//new ScrollViewAnimation(startY, maxY);
+						int fromY = dir>0 ? h*7/8 : 0;
+						int toY = dir>0 ? 0 : h*7/8;
+						new ScrollViewAnimation(fromY, h);
+						if ( currentAnimation!=null ) {
+							currentAnimation.update(w/2, toY);
+							currentAnimation.move(pageFlipAnimationSpeedMs, true);
+							currentAnimation.stop(-1, -1);
+						}
+					}
+				}
+			}
+		});
+	}
+	
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY )
 	{
 		if (DEBUG_ANIMATION) Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
@@ -1332,7 +1390,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				PositionProperties currPos = getPositionPropsInternal(null);
 				if ( currPos.pageMode==0 ) {
 					int dir = startX > maxX/2 ? 1 : -1;
-					new PageViewAnimation(startX, maxX, dir);
+					int sx = startX;
+					if ( dir==-1 )
+						sx = 0;
+					new PageViewAnimation(sx, maxX, dir);
 				} else {
 					new ScrollViewAnimation(startY, maxY);
 				}
@@ -1341,6 +1402,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
+	
 	private final static boolean DEBUG_ANIMATION = false;
 	private int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
@@ -1400,10 +1462,32 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void update( int x, int y );
 		public void stop( int x, int y );
 		public void animate();
+		public void move( int duration, boolean accelerated );
 		public boolean isStarted();
 	}
 
 	private Object surfaceLock = new Object(); 
+
+	private static final int[] accelerationShape = new int[] {
+		0, 6, 24, 54, 95, 146, 206, 273, 345, 421, 500, 578, 654, 726, 793, 853, 904, 945, 975, 993, 1000  
+	};
+	static public int accelerate( int x0, int x1, int x )
+	{
+		if ( x<x0 )
+			x = x0;
+		if (x>x1)
+			x = x1;
+		int intervals = accelerationShape.length - 1;
+		int pos = 100 * intervals * (x - x0) / (x1-x0);
+		int interval = pos / 100;
+		int part = pos % 100;
+		if ( interval<0 )
+			interval = 0;
+		else if ( interval>intervals )
+			interval = intervals;
+		int y = interval==intervals ? 100000 : accelerationShape[interval]*100 + (accelerationShape[interval+1]-accelerationShape[interval]) * part;
+		return x0 + (x1 - x0) * y / 100000;
+	}
 
 	abstract class ViewAnimationBase implements ViewAnimationControl {
 		long startTimeStamp;
@@ -1420,6 +1504,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			currentAnimation = null;
 		}
+
+		
+
 		public void draw()
 		{
 			if ( !mSurfaceCreated )
@@ -1496,7 +1583,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		@Override
 		public void stop(int x, int y) {
-			if ( started ) {
+			//if ( started ) {
 				if ( y!=-1 ) {
 					int delta = startY - y;
 					pointerCurrPos = pointerStartPos + delta;
@@ -1504,8 +1591,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				pointerDestPos = pointerCurrPos;
 				draw();
 				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
-			}
+			//}
 			close();
+		}
+
+		@Override
+		public void move( int duration, boolean accelerated  ) {
+			if ( duration>0 ) {
+				int steps = (int)(duration / getAvgAnimationDrawDuration()) + 2;
+				int x0 = pointerCurrPos;
+				int x1 = pointerDestPos;
+				if ( (x0-x1)<10 && (x0-x1)>-10 )
+					steps = 2;
+				for ( int i=1; i<steps; i++ ) {
+					int x = x0 + (x1-x0) * i / steps;
+					pointerCurrPos = accelerated ? accelerate( x0, x1, x ) : x; 
+					draw();
+				}
+			}
+			pointerCurrPos = pointerDestPos; 
+			draw();
 		}
 
 		@Override
@@ -1603,49 +1708,66 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			divPaint.setColor(Color.argb(128, 128, 128, 128));
 
 			long duration = android.os.SystemClock.uptimeMillis() - start;
-			Log.v("cr3", "PageViewAnimation -- created in " + duration + " millis");
+			Log.d("cr3", "PageViewAnimation -- created in " + duration + " millis");
 		}
 		
 		@Override
-		public void stop(int x, int y) {
-			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.stop(" + x + ", " + y + ")");
-			if ( started ) {
-				boolean moved = false;
-				if ( direction>0 ) {
-					// |  <=====  |
-					int dx = startX - x; 
-					int threshold = startX / 4;
-					if ( dx>threshold )
-						moved = true;
-				} else {
-					// |  =====>  |
-					int dx = x - startX; 
-					int threshold = (maxX - startX) / 4;
-					if ( dx>threshold )
-						moved = true;
-				}
-				int duration;
-				if ( moved ) {
-					destShift = maxX;
-					duration = 500; // 500 ms forward
-				} else {
-					destShift = 0;
-					duration = 200; // 200 ms cancel
-				}
+		public void move( int duration, boolean accelerated ) {
+			if ( duration > 0 ) {
 				int steps = (int)(duration / getAvgAnimationDrawDuration()) + 2;
 				int x0 = currShift;
 				int x1 = destShift;
-				if ( (x0-x1)<10 && (x0-x1)<-10 )
-					steps = 2; // no animation
-				for ( int i=1; i<=steps; i++ ) {
-					currShift = x0 + (x1-x0) * i / steps;
+				if ( (x0-x1)<10 && (x0-x1)>-10 )
+					steps = 2;
+				for ( int i=1; i<steps; i++ ) {
+					int x = x0 + (x1-x0) * i / steps;
+					currShift = accelerated ? accelerate( x0, x1, x ) : x;
 					draw();
 				}
-				doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, moved ? page2 : page1);
 			}
+			currShift = destShift;
+			draw();
+		}
+
+		@Override
+		public void stop(int x, int y) {
+			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.stop(" + x + ", " + y + ")");
+			//if ( started ) {
+				boolean moved = false;
+				if ( x!=-1 ) {
+					if ( direction>0 ) {
+						// |  <=====  |
+						int dx = startX - x; 
+						int threshold = startX / 4;
+						if ( dx>threshold )
+							moved = true;
+					} else {
+						// |  =====>  |
+						int dx = x - startX; 
+						int threshold = (maxX - startX) / 4;
+						if ( dx>threshold )
+							moved = true;
+					}
+					int duration;
+					if ( moved ) {
+						destShift = maxX;
+						duration = 500; // 500 ms forward
+					} else {
+						destShift = 0;
+						duration = 200; // 200 ms cancel
+					}
+					move( duration, false );
+				} else {
+					moved = true;
+				}
+				doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, moved ? page2 : page1);
+			//}
 			close();
-			if ( started )
-				drawPage();
+			// preparing images for next page flip
+			preparePageImage(0);
+			preparePageImage(direction);
+			//if ( started )
+			//	drawPage();
 		}
 
 		@Override
@@ -1857,7 +1979,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Canvas canvas = null;
 		final SurfaceHolder holder = getHolder();
 		if ( holder!=null )
-		synchronized(surfaceLock) {
+		//synchronized(surfaceLock)
+		{
 			try {
 				canvas = holder.lockCanvas(null);
 				doDraw(canvas);
