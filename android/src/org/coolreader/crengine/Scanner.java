@@ -427,6 +427,8 @@ public class Scanner {
 		// internal SD card on PocketBook 701 IQ
 		addRoot( "/PocketBook701", R.string.dir_internal_sd_card, true);
 		addRoot( "/nand", R.string.dir_internal_memory, true);
+		// external SD card Huawei S7
+		addRoot( "/sdcard2", R.string.dir_sd_card_2, true);
 	}
 	
 //	public boolean scan()

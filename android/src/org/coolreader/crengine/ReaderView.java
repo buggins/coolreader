@@ -1858,7 +1858,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		Rect dst2 = new Rect(0, 0, currShift, h);
 				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
 			}
-			canvas.drawLine(div, 0, div, h, divPaint);
+			if ( div>0 && div<w )
+				canvas.drawLine(div, 0, div, h, divPaint);
 		}
 		Paint divPaint;
 	}

@@ -94,4 +94,5 @@
 <string name="options_page_animation">Page animation</string>
 <string name="options_controls_enable_volume_keys">Use volume keys for navigation</string>
 <string name="options_app_backlight_screen">Screen backlight brightness</string>
+<string name="dir_sd_card_2">SD Card 2</string>
 </resources>

@@ -94,4 +94,5 @@
 <string name="options_page_animation">Анимация листания</string>
 <string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
 <string name="options_app_backlight_screen">Яркость подсветки экрана</string>
+<string name="dir_sd_card_2">SD-картка 2</string>
 </resources>
