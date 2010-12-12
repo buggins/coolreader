@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.26"
+#define CACHE_FILE_FORMAT_VERSION "3.02.27"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -6277,9 +6277,20 @@ void ldomDocumentFragmentWriter::OnTagBody()
     Autoclose HTML tags.
 */
 
+void ldomDocumentWriterFilter::setClass( const lChar16 * className, bool overrideExisting )
+{
+    ldomNode * node = _currNode->_element;
+    if ( _classAttrId==0 ) {
+        _classAttrId = _document->getAttrNameIndex(L"class");
+    }
+    if ( overrideExisting || !node->hasAttribute(_classAttrId) ) {
+        node->setAttributeValue(LXML_NS_NONE, _classAttrId, className);
+    }
+}
+
 void ldomDocumentWriterFilter::appendStyle( const lChar16 * style )
 {
-    ldomNode * node = _currNode->_element;\
+    ldomNode * node = _currNode->_element;
     if ( _styleAttrId==0 ) {
         _styleAttrId = _document->getAttrNameIndex(L"style");
     }
@@ -6499,7 +6510,8 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
                     }
                 }
                 if ( cleaned ) {
-                    appendStyle(L"text-indent: 1.3em; text-align: justify");
+                    setClass(L"justindent");
+                    //appendStyle(L"text-indent: 1.3em; text-align: justify");
                 }
                 _libRuParagraphStart = false;
             }
@@ -6548,6 +6560,7 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
 , _libRuDocumentDetected(false)
 , _libRuParagraphStart(false)
 , _styleAttrId(0)
+, _classAttrId(0)
 {
     lUInt16 i;
     for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )

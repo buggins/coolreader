@@ -28,6 +28,9 @@
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
 
+/// uncomment to save copy of loaded document to file
+#define SAVE_COPY_OF_LOADED_DOCUMENT
+
 /// to avoid showing title/author if coverpage image present
 #define NO_TEXT_IN_COVERPAGE
 
@@ -3011,6 +3014,12 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 					m_doc->dumpStatistics();
 				}
 				m_arc = m_doc->getContainer();
+
+#ifdef SAVE_COPY_OF_LOADED_DOCUMENT //def _DEBUG
+        LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
+        m_doc->saveToStream( ostream, "utf-16" );
+#endif
+
 				return true;
 			}
 		}
@@ -3430,7 +3439,7 @@ bool LVDocView::ParseDocument() {
 		//            m_doc->setStyleSheet( UnicodeToUtf8(docstyle).c_str(), false );
 		//        }
 
-#if 0 //def _DEBUG
+#ifdef SAVE_COPY_OF_LOADED_DOCUMENT //def _DEBUG
 		LVStreamRef ostream = LVOpenFileStream( "test_save_source.xml", LVOM_WRITE );
 		m_doc->saveToStream( ostream, "utf-16" );
 #endif

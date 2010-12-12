@@ -1,5 +1,6 @@
 body { text-align: left; text-indent: 0px }
-p { text-align: justify; text-indent: 2em; margin-top:0em; margin-bottom: 0em }
+p { text-align: justify; text-indent: 1.3em; margin-top:0em; margin-bottom: 0em }
+*.justindent { text-align: justify; text-indent: 1.3em; margin-top:0em; margin-bottom: 0em }
 
 DocFragment { page-break-before: always }
 

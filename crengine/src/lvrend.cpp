@@ -1519,8 +1519,20 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             } else {
             }
             */
-            txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags,
-                line_h, ident, enode, 0, letter_spacing );
+            int offs = 0;
+            if ( txform->GetLineCount()==0 && style->white_space!=css_ws_pre ) {
+                // clear leading spaces for first text of paragraph
+                int i=0;
+                for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
+                    ;
+                if ( i>0 ) {
+                    txt.erase(0, i);
+                    offs = i;
+                }
+            }
+            if ( txt.length()>0 )
+                txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags,
+                    line_h, ident, enode, 0, letter_spacing );
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
     }

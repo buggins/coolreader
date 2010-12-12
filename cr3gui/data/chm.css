@@ -4,7 +4,8 @@ body { margin: 0; text-align: justify; }
 
 DocFragment { page-break-before: always }
 
-p { margin-top: 0.3em; margin-bottom:0.3em; text-indent: 0em; } 
+p { text-align: left; margin-top: 0.1em; margin-bottom:0.1em; text-indent: 0em; } 
+*.justindent { text-align: justify; text-indent: 1.3em; margin-top:0em; margin-bottom: 0em }
 
 empty-line { height: 0.2em; } 
 
