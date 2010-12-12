@@ -485,6 +485,7 @@ public class CoolReader extends Activity
 			public void done() {
 		        Log.i("cr3", "trying to load last document");
 				if ( fileName!=null || LOAD_LAST_DOCUMENT_ON_START ) {
+					//currentView=mReaderView;
 					if ( fileName!=null ) {
 						mReaderView.loadDocument(fileName, new Runnable() {
 							public void run() {
@@ -541,6 +542,7 @@ public class CoolReader extends Activity
 			View v = mFrame.getChildAt(i);
 			v.setVisibility(view==v?View.VISIBLE:View.INVISIBLE);
 		}
+		currentView = view;
 	}
 	
 	public void showReader()
@@ -564,7 +566,8 @@ public class CoolReader extends Activity
 	public void showBrowser( final FileInfo fileToShow )
 	{
 		Log.v("cr3", "showBrowser() is called");
-		mReaderView.save();
+		if ( currentView == mReaderView )
+			mReaderView.save();
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
 				showView(mBrowser);
@@ -579,8 +582,9 @@ public class CoolReader extends Activity
 
 	public void showBrowserRecentBooks()
 	{
-		Log.v("cr3", "showBrowser() is called");
-		mReaderView.save();
+		Log.v("cr3", "showBrowserRecentBooks() is called");
+		if ( currentView == mReaderView )
+			mReaderView.save();
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
 				showView(mBrowser);
@@ -590,12 +594,44 @@ public class CoolReader extends Activity
 		});
 	}
 
+	public void showBrowserRoot()
+	{
+		Log.v("cr3", "showBrowserRoot() is called");
+		if ( currentView == mReaderView )
+			mReaderView.save();
+		mEngine.runInGUI( new Runnable() {
+			public void run() {
+				showView(mBrowser);
+		        mEngine.hideProgress();
+	        	mBrowser.showRootDirectory();
+			}
+		});
+	}
+
+	private void fillMenu(Menu menu) {
+		menu.clear();
+	    MenuInflater inflater = getMenuInflater();
+	    if ( currentView==mReaderView )
+	    	inflater.inflate(R.menu.cr3_reader_menu, menu);
+	    else {
+	    	inflater.inflate(R.menu.cr3_browser_menu, menu);
+	    	if ( !isBookOpened() ) {
+	    		MenuItem item = menu.findItem(R.id.book_back_to_reading);
+	    		if ( item!=null )
+	    			item.setEnabled(false);
+	    	}
+	    }
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		//if ( currentView!=readerView )
-		//	return false;
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.cr3_reader_menu, menu);
+		fillMenu(menu);
+	    return true;
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		fillMenu(menu);
 	    return true;
 	}
 
@@ -736,6 +772,21 @@ public class CoolReader extends Activity
 			Log.i("cr3", "Search menu item selected");
 			mReaderView.showSearchDialog();
 			break;
+		case R.id.book_sort_order:
+			showToast("Sorry, this option is not yet supported");
+			break;
+		case R.id.book_recent_books:
+			mBrowser.showRecentBooks();
+			return true;
+		case R.id.book_root:
+			mBrowser.showRootDirectory();
+			return true;
+		case R.id.book_back_to_reading:
+			if ( isBookOpened() )
+				showReader();
+			else
+				showToast("No book opened");
+			return true;
 		case R.id.cr3_mi_exit:
 			Log.i("cr3", "exit menu item selected");
 			finish();

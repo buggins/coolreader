@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:title="@string/mi_book_root" android:titleCondensed="@null" android:id="@+id/book_root" android:icon="@drawable/cr3_browser_folder_root"></item>
+<item android:title="@string/mi_book_recent_books" android:titleCondensed="@null" android:id="@+id/book_recent_books" android:icon="@drawable/cr3_browser_folder_recent"></item>
+<item android:title="@string/mi_book_back_to_reading" android:titleCondensed="@null" android:id="@+id/book_back_to_reading" android:icon="@drawable/cr3_browser_back_to_reading"></item>
+<item android:title="@string/mi_exit" android:titleCondensed="@null" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="6" android:numericShortcut="6"></item>
+</menu>

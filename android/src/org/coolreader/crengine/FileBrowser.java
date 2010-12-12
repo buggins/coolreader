@@ -94,6 +94,15 @@ public class FileBrowser extends ListView {
 		case R.id.book_recent_books:
 			showRecentBooks();
 			return true;
+		case R.id.book_root:
+			showRootDirectory();
+			return true;
+		case R.id.book_back_to_reading:
+			if ( mActivity.isBookOpened() )
+				mActivity.showReader();
+			else
+				mActivity.showToast("No book opened");
+			return true;
 		case R.id.book_delete:
 			Log.d("cr3", "book_delete menu item selected");
 			mActivity.getReaderView().closeIfOpened(selectedItem);
@@ -313,6 +322,11 @@ public class FileBrowser extends ListView {
 			showRecentBooks();
 		else
 			showDirectory(currDirectory, null);
+	}
+
+	public void showRootDirectory()
+	{
+		showDirectory(mScanner.getRoot(), null);
 	}
 
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )

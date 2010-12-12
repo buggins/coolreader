@@ -18,7 +18,7 @@
 <string name="context_menu_title_book">Книга</string>
 <string name="context_menu_title_recent_book">Запись</string>
 <string name="mi_book_open">Открыть</string>
-<string name="mi_book_recent_books">Список последних книг</string>
+<string name="mi_book_recent_books">Последние</string>
 <string name="mi_book_file_remove">Удалить файл</string>
 <string name="mi_book_recent_remove">Удалить из списка</string>
 <string name="mi_book_recent_goto">Перейти в папку</string>
@@ -95,4 +95,6 @@
 <string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
 <string name="options_app_backlight_screen">Яркость подсветки экрана</string>
 <string name="dir_sd_card_2">SD-картка 2</string>
+<string name="mi_book_root">В корневую директорию</string>
+    <string name="mi_book_back_to_reading">Вернуться к чтению</string>
 </resources>

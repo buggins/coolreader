@@ -16,7 +16,7 @@
 <string name="context_menu_title_book">Book</string>
 <string name="context_menu_title_recent_book">Recent book</string>
 <string name="mi_book_open">Open book</string>
-<string name="mi_book_recent_books">Show recent books</string>
+<string name="mi_book_recent_books">Recent books</string>
 <string name="mi_book_file_remove">Delete book file</string>
 <string name="mi_book_recent_remove">Remove from list</string>
 <string name="mi_book_recent_goto">Go to directory</string>
@@ -95,4 +95,6 @@
 <string name="options_controls_enable_volume_keys">Use volume keys for navigation</string>
 <string name="options_app_backlight_screen">Screen backlight brightness</string>
 <string name="dir_sd_card_2">SD Card 2</string>
+<string name="mi_book_back_to_reading">Back to reading</string>
+    <string name="mi_book_root">Show root directory</string>
 </resources>
