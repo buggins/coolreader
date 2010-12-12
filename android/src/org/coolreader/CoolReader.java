@@ -577,6 +577,19 @@ public class CoolReader extends Activity
 		});
 	}
 
+	public void showBrowserRecentBooks()
+	{
+		Log.v("cr3", "showBrowser() is called");
+		mReaderView.save();
+		mEngine.runInGUI( new Runnable() {
+			public void run() {
+				showView(mBrowser);
+		        mEngine.hideProgress();
+	        	mBrowser.showRecentBooks();
+			}
+		});
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		//if ( currentView!=readerView )
@@ -690,6 +703,12 @@ public class CoolReader extends Activity
 		});
 	}
 	
+	public void showBookmarksDialog()
+	{
+		BookmarksDlg dlg = new BookmarksDlg(this, mReaderView);
+		dlg.show();
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch ( item.getItemId() ) {
@@ -711,8 +730,7 @@ public class CoolReader extends Activity
 			break;
 		case R.id.cr3_mi_bookmarks:
 			Log.i("cr3", "Bookmarks menu item selected");
-			BookmarksDlg dlg = new BookmarksDlg(this, mReaderView);
-			dlg.show();
+			showBookmarksDialog();
 			break;
 		case R.id.cr3_mi_search:
 			Log.i("cr3", "Search menu item selected");

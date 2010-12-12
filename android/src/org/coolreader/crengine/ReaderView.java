@@ -432,7 +432,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doCommand( ReaderCommand.DCMD_PAGEDOWN, 10);
 			break;
 		case KeyEvent.KEYCODE_DPAD_CENTER:
-			mActivity.showBrowser(getOpenedFileInfo());
+			if ( !isLongPress )
+				mActivity.showBrowserRecentBooks();
+			else
+				mActivity.showBookmarksDialog();
 			break;
 		case KeyEvent.KEYCODE_SEARCH:
 			showSearchDialog();
@@ -449,17 +452,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			break;
 		case KeyEvent.KEYCODE_BACK:
 			//saveSettings();
-			return super.onKeyUp(keyCode, event);
+			if ( !backKeyDownHere )
+				return true;
+			if ( isLongPress )
+				mActivity.finish();
+			else
+				mActivity.showBrowser(null);
 		default:
 			return super.onKeyUp(keyCode, event);
 		}
+		backKeyDownHere = false;
 		return true;
 	}
 
 	boolean VOLUME_KEYS_ZOOM = false;
 	
+	private boolean backKeyDownHere = false;
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		backKeyDownHere = false;
 		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
@@ -488,7 +500,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case KeyEvent.KEYCODE_HOME:
 			return true;
 		case KeyEvent.KEYCODE_BACK:
-			return super.onKeyDown(keyCode, event);
+			backKeyDownHere = true;
+			return true;
+			//return super.onKeyDown(keyCode, event);
         case KeyEvent.KEYCODE_VOLUME_UP:
         	if ( !enableVolumeKeys )
         		return false;
