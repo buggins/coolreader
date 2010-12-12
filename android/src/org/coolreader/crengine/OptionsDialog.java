@@ -33,6 +33,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		14, 16, 18, 20, 22, 24, 26, 28, 30,
 		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60
 	};
+	int[] mBacklightLevels = new int[] {
+		10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+	};
 	int[] mInterlineSpaces = new int[] {
 			80, 90, 100, 110, 120, 130, 140, 150
 		};
@@ -135,9 +138,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		if ( night ) {
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0x000000));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0xFFFFFF));
+			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, 70));
 		} else {
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0x000000));
+			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, 80));
 		}
 	}
 	public void restoreColor( boolean night )
@@ -145,9 +150,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		if ( night ) {
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, 0x000000));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_NIGHT, 0xFFFFFF));
+			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, 70));
 		} else {
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_DAY, 0x000000));
+			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
 		}
 	}
 	class NightModeOption extends OptionBase {
@@ -518,6 +525,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsStyles.add(new NightModeOption(getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
+		mOptionsStyles.add(new ListOption(getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).addPercents(mBacklightLevels).setDefaultValue("80"));
+		//
 		mOptionsStyles.add(new HyphenationOptions(getString(R.string.options_hyphenation_dictionary)));
 		//
 		mOptionsPage = new OptionsListView(getContext());

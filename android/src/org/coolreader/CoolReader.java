@@ -178,6 +178,10 @@ public class CoolReader extends Activity
 				BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_STEP);
 			}
 		}
+		public boolean isHeld()
+		{
+			return wl!=null && wl.isHeld();
+		}
 		public void release()
 		{
 			if ( wl.isHeld() )
@@ -261,12 +265,25 @@ public class CoolReader extends Activity
         Log.i("cr3", "CoolReader.onCreate() exiting");
     }
     
-    boolean brightnessHackError = false;
+    public void setScreenBacklightLevel( int percent )
+    {
+    	if ( percent<10 )
+    		percent = 10;
+    	else if ( percent>100 )
+    		percent = 100;
+    	screenBacklightBrightness = percent;
+    	onUserActivity();
+    }
+    
+    private int screenBacklightBrightness = 80; // 80%
+    private boolean brightnessHackError = false;
     public void onUserActivity()
     {
+    	if ( backlightControl==null )
+    		return;
     	backlightControl.onUserActivity();
     	// Hack
-    	if ( !brightnessHackError )
+    	if ( backlightControl.isHeld() )
     	BackgroundThread.guiExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -274,8 +291,14 @@ public class CoolReader extends Activity
 			        Window wnd = getWindow();
 			        if ( wnd!=null ) {
 			        	LayoutParams attrs =  wnd.getAttributes();
-			        	//attrs.screenBrightness = 0.7f;
+			        	float b = screenBacklightBrightness / 100.0f;
+			        	if ( b<0.1f )
+			        		b = 0.1f;
+			        	else if ( b>1.0f )
+			        		b = 1.0f;
+			        	attrs.screenBrightness = b;
 			        	// hack to set buttonBrightness field
+			        	if ( !brightnessHackError )
 			        	try {
 				        	Field bb = attrs.getClass().getField("buttonBrightness");
 				        	if ( bb!=null )

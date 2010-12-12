@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
-    <string name="app_name">Cool Reader 3</string>
+    <string name="app_name">Cool Reader</string>
 <string name="mi_search">Найти</string>
 <string name="mi_exit">Закрыть</string>
 <string name="mi_goto">Перейти</string>
@@ -93,4 +93,5 @@
 <string name="dlg_button_find">Найти</string>
 <string name="options_page_animation">Анимация листания</string>
 <string name="options_controls_enable_volume_keys">Листание кнопками громкости</string>
+<string name="options_app_backlight_screen">Яркость подсветки экрана</string>
 </resources>

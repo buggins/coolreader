@@ -85,6 +85,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
     public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
     public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
+    public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
+    public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
+    public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
     
     public enum ViewMode
     {
@@ -843,8 +846,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pageFlipAnimationSpeedMs = flg ? DEF_PAGE_FLIP_MS : 0; 
         } else if ( PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) ) {
         	enableVolumeKeys = flg;
+        } else if ( PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
+        	try {
+        		int n = Integer.valueOf(value);
+        		mActivity.setScreenBacklightLevel(n);
+        	} catch ( Exception e ) {
+        		// ignore
+        	}
         }
-        
 	}
 	
 	public void setAppSettings( Properties newSettings, Properties oldSettings )
@@ -866,7 +875,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			boolean flg = "1".equals(value);
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) || PROP_PAGE_ANIMATION.equals(key)
-    				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) || PROP_APP_SHOW_COVERPAGES.equals(key) ) {
+    				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) || PROP_APP_SHOW_COVERPAGES.equals(key) 
+    				|| PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
