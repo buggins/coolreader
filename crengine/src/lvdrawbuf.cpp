@@ -1048,8 +1048,15 @@ void LVColorDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 co
 /// sets new size
 void LVColorDrawBuf::Resize( int dx, int dy )
 {
-    if ( !_ownData )
+    if ( dx==_dx && dy==_dy ) {
+    	//CRLog::trace("LVColorDrawBuf::Resize : no resize, not changed");
+    	return;
+    }
+    if ( !_ownData ) {
+    	//CRLog::trace("LVColorDrawBuf::Resize : no resize, own data");
         return;
+    }
+	CRLog::trace("LVColorDrawBuf::Resize : resizing %d x %d to %d x %d", _dx, _dy, dx, dy);
     // delete old bitmap
     if ( _dx>0 && _dy>0 && _data )
     {

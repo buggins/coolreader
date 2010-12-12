@@ -616,18 +616,18 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInter
     //CRLog::info("Initialize callback");
 	DocViewCallback callback( env, p->_docview, view );	
     //CRLog::info("Initialized callback");
-    CRLog::trace("getPageImageInternal calling bitmap->lock");
+    //CRLog::trace("getPageImageInternal calling bitmap->lock");
 	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(env, bitmap);
 	if ( drawbuf!=NULL ) {
 
-	    CRLog::trace("getPageImageInternal calling Draw  drawbuf width=%d height=%d", drawbuf->GetWidth(), drawbuf->GetHeight());
+	    //CRLog::trace("getPageImageInternal calling Draw  drawbuf width=%d height=%d", drawbuf->GetWidth(), drawbuf->GetHeight());
 		p->_docview->Draw( *drawbuf );
-	    CRLog::trace("getPageImageInternal calling bitmap->unlock");
+	    //CRLog::trace("getPageImageInternal calling bitmap->unlock");
 		BitmapAccessorInterface::getInstance()->unlock(env, bitmap, drawbuf);
 	} else {
 		CRLog::error("bitmap accessor is invalid");
 	}
-    CRLog::trace("getPageImageInternal exiting");
+    //CRLog::trace("getPageImageInternal exiting");
 }
 
 /*

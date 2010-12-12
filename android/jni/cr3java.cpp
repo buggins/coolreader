@@ -194,6 +194,7 @@ public:
     void convert() {
 		ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );		    	
     }
+    
 	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels)
 	: LVColorDrawBuf( dx, dy, pixels ) {
 	}
@@ -340,11 +341,17 @@ public:
 		//int size = stride * height;
 		CRLog::trace("lock: %d x %d stride = %d, width*4 = %d", width, height, stride, width*4 );
 		int size = width * height;
-		reallocArray( env, (size+3)/4 );
+		reallocArray( env, size );
 	    //CRLog::trace("JNIGraphicsReplacement::lock getting pixels");
 	    lUInt8 * pixels = (lUInt8 *)env->GetIntArrayElements(_array, 0);
+	    CRLog::trace("Pixels address %08x", (int)(pixels));
 	    //CRLog::trace("JNIGraphicsReplacement::lock exiting");
-		return new LVColorDrawBufEx(width, height, pixels);
+		LVDrawBuf * buf = new LVColorDrawBufEx(width, height, pixels);
+	    CRLog::trace("Last row address %08x", (int)buf->GetScanLine(height-1));
+	    pixels[0] = 0x12;
+	    pixels[width*height*4-1] = 0x34;
+	    CRLog::trace("Write access ok");
+		return buf;
     }
     void reallocArray(JNIEnv* env, int len )
     {
