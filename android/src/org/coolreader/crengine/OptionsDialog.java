@@ -140,7 +140,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public BoolOption setInverse() { inverse = true; return this; }
 	}
 
-	public void saveColor( boolean night )
+	static public void saveColor( Properties mProperties, boolean night )
 	{
 		if ( night ) {
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0x000000));
@@ -152,7 +152,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
 		}
 	}
-	public void restoreColor( boolean night )
+	static public void restoreColor( Properties mProperties,  boolean night )
 	{
 		if ( night ) {
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, 0x000000));
@@ -164,6 +164,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
 		}
 	}
+	static public void toggleDayNightMode( Properties mProperties ) {
+		boolean oldMode = mProperties.getBool(ReaderView.PROP_DISPLAY_INVERSE, false);
+		saveColor(mProperties, oldMode);
+		boolean newMode = !oldMode;
+		restoreColor(mProperties, newMode);
+		mProperties.setBool(ReaderView.PROP_DISPLAY_INVERSE, newMode);
+	}
 	class NightModeOption extends OptionBase {
 		public NightModeOption( String label, String property ) {
 			super(label, property);
@@ -171,9 +178,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
 		public void onSelect() { 
 			boolean oldMode = mProperties.getBool(property, false);
-			saveColor(oldMode);
+			saveColor(mProperties, oldMode);
 			boolean newMode = !oldMode;
-			restoreColor(newMode);
+			restoreColor(mProperties, newMode);
 			mProperties.setBool(property, newMode);
 			optionsListView.refresh();
 		}
@@ -184,7 +191,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			super(label, property);
 			ReaderAction[] actions = ReaderAction.AVAILABLE_ACTIONS;
 			for ( ReaderAction a : actions )
-				add(getString(a.nameId), a.id);
+				add(a.id, getString(a.nameId));
 		}
 	}
 	

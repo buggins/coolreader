@@ -106,4 +106,16 @@
 <string name="action_search">Search</string>
 <string name="action_recent_books_list">Recent books</string>
 <string name="action_exit">Exit</string>
+<string name="action_pageup_10">Back by 10 pages</string>
+    <string name="action_bookmarks">Bookmarks</string>
+    <string name="action_pagedown_10">Forward by 10 pages</string>
+    <string name="action_toc">Table of Contents</string>
+    <string name="action_go_percent">Go to Percent</string>
+    <string name="action_go_page">Go to Page</string>
+    <string name="action_go_first_page">Last page</string>
+    <string name="action_go_last_page">First page</string>
+    <string name="action_file_browser">Open file</string>
+    <string name="action_options">Options</string>
+    <string name="action_toggle_day_night">Toggle day / night profiles</string>
+    <string name="action_reader_menu">Reader Menu</string>
 </resources>

@@ -763,37 +763,14 @@ public class CoolReader extends Activity
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch ( item.getItemId() ) {
-		case R.id.cr3_mi_open_file:
-			Log.i("cr3", "Open File menu selected");
-			showBrowser(mReaderView.getOpenedFileInfo());
-			//showToast("TOC feature is not implemented");
-			break;
-		case R.id.cr3_go_toc:
-			mReaderView.showTOC();
-			break;
-		case R.id.cr3_mi_gotopage:
-			Log.i("cr3", "gotopage menu item selected");
-			break;
-		case R.id.cr3_mi_options:
-			Log.i("cr3", "options menu item selected");
-			showOptionsDialog();
-			//showToast("Options feature is not implemented");
-			break;
-		case R.id.cr3_mi_bookmarks:
-			Log.i("cr3", "Bookmarks menu item selected");
-			showBookmarksDialog();
-			break;
-		case R.id.cr3_mi_search:
-			Log.i("cr3", "Search menu item selected");
-			mReaderView.showSearchDialog();
-			break;
+		int itemId = item.getItemId();
+		if ( mReaderView.onMenuItem(itemId))
+			return true; // processed by ReaderView
+		// other commands
+		switch ( itemId ) {
 		case R.id.book_sort_order:
 			showToast("Sorry, this option is not yet supported");
 			break;
-		case R.id.book_recent_books:
-			mBrowser.showRecentBooks();
-			return true;
 		case R.id.book_root:
 			mBrowser.showRootDirectory();
 			return true;
@@ -803,43 +780,40 @@ public class CoolReader extends Activity
 			else
 				showToast("No book opened");
 			return true;
-		case R.id.cr3_mi_exit:
-			Log.i("cr3", "exit menu item selected");
-			finish();
-			break;
-		case R.id.cr3_mi_go_page:
-			showInputDialog("Enter page number", true, new InputHandler() {
-				int pageNumber = 0;
-				public boolean validate(String s) {
-					pageNumber = Integer.valueOf(s); 
-					return pageNumber>0;
-				}
-				public void onOk(String s) {
-					mReaderView.goToPage(pageNumber);
-				}
-				public void onCancel() {
-				}
-			});
-			break;
-		case R.id.cr3_mi_go_percent:
-			showInputDialog("Enter position %", true, new InputHandler() {
-				int percent = 0;
-				public boolean validate(String s) {
-					percent = Integer.valueOf(s); 
-					return percent>=0 && percent<=100;
-				}
-				public void onOk(String s) {
-					mReaderView.goToPercent(percent);
-				}
-				public void onCancel() {
-				}
-			});
-			break;
 		default:
 			return false;
 			//return super.onOptionsItemSelected(item);
 		}
 		return true;
+	}
+	
+	public void showGoToPageDialog() {
+		showInputDialog("Enter page number", true, new InputHandler() {
+			int pageNumber = 0;
+			public boolean validate(String s) {
+				pageNumber = Integer.valueOf(s); 
+				return pageNumber>0;
+			}
+			public void onOk(String s) {
+				mReaderView.goToPage(pageNumber);
+			}
+			public void onCancel() {
+			}
+		});
+	}
+	public void showGoToPercentDialog() {
+		showInputDialog("Enter position %", true, new InputHandler() {
+			int percent = 0;
+			public boolean validate(String s) {
+				percent = Integer.valueOf(s); 
+				return percent>=0 && percent<=100;
+			}
+			public void onOk(String s) {
+				mReaderView.goToPercent(percent);
+			}
+			public void onCancel() {
+			}
+		});
 	}
 
 

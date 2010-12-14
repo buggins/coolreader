@@ -90,6 +90,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
     public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
     public static final String PROP_APP_TAP_ZONE_ACTIONS_LONGTAP ="app.tapzone.action.longtap";
+    public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";
+    public static final String PROP_APP_KEY_ACTIONS_LONGPRESS ="app.key.action.longpress";
     
     public enum ViewMode
     {
@@ -137,9 +139,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_OPEN_RECENT_BOOK(2000),
     	DCMD_CLOSE_BOOK(2001),
     	DCMD_RESTORE_POSITION(2002),
+
+    	// application actions
     	DCMD_RECENT_BOOKS_LIST(2003),
     	DCMD_SEARCH(2004),
     	DCMD_EXIT(2005),
+    	DCMD_BOOKMARKS(2005),
+    	DCMD_GO_PERCENT_DIALOG(2006),
+    	DCMD_GO_PAGE_DIALOG(2007),
+    	DCMD_TOC_DIALOG(2008),
+    	DCMD_FILE_BROWSER(2009),
+    	DCMD_OPTIONS_DIALOG(2010),
+    	DCMD_TOGGLE_DAY_NIGHT_MODE(2011),
+    	DCMD_READER_MENU(2012),
     	;
     	
     	private final int nativeId;
@@ -349,32 +361,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void onTapZone( int zone, boolean isLongPress )
 	{
-		switch ( zone ) {
-		case 3:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-			if ( isLongPress )
-				doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
-			else
-				animatePageFlip(1);
-			break;
-		case 1:
-		case 2:
-		case 4:
-			if ( isLongPress )
-				doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
-			else
-				animatePageFlip(-1);
-			break;
-		case 5:
-			if ( isLongPress )
-				mActivity.showOptionsDialog();
-			else
-				mActivity.openOptionsMenu();
-			break;
-		}
+		ReaderAction action;
+		if ( isLongPress )
+			action = ReaderAction.findForTap(zone, mSettings);
+		else
+			action = ReaderAction.findForLongTap(zone, mSettings);
+		if ( action.isNone() )
+			return;
+		Log.d("cr3", "onTapZone : action " + action.id + " is found for tap zone " + zone + (isLongPress ? " (long)":""));
+		onAction( action );
 	}
 	
 	public FileInfo getOpenedFileInfo()
@@ -394,7 +389,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return false;
 		}
 		mActivity.onUserActivity();
+
+		if ( keyCode==KeyEvent.KEYCODE_BACK && !backKeyDownHere )
+			return true;
+		backKeyDownHere = false;
+		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
+			if ( !enableVolumeKeys )
+				return super.onKeyUp(keyCode, event);
+		
+		// apply orientation
+		keyCode = overrideKey( keyCode );
+		
 		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
+		ReaderAction action;
+		if ( isLongPress )
+			action = ReaderAction.findForLongKey( keyCode, mSettings );
+		else
+			action = ReaderAction.findForKey( keyCode, mSettings );
+		if ( !action.isNone() ) {
+			Log.d("cr3", "onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
+			onAction( action );
+			return true;
+		}
+		
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// goto/set shortcut bookmark
 			int shortcut = keyCode - KeyEvent.KEYCODE_0;
@@ -408,70 +425,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		} else if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
 			return enableVolumeKeys;
 
-		keyCode = overrideKey( keyCode );
-		
-		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
-			// will process in keyup handler
-			return true;
-		} else
-		switch ( keyCode ) {
-		case NOOK_KEY_NEXT_LEFT:
-		case NOOK_KEY_NEXT_RIGHT:    
-		case NOOK_KEY_SHIFT_DOWN:
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			if ( isLongPress )
-				doCommand( ReaderCommand.DCMD_PAGEDOWN, isLongPress ? 10 : 1);
-			else
-				animatePageFlip(1);
-			break;
-		case NOOK_KEY_PREV_LEFT:
-		case NOOK_KEY_PREV_RIGHT:
-		case NOOK_KEY_SHIFT_UP:
-		case KeyEvent.KEYCODE_DPAD_UP:
-			if ( isLongPress )
-				doCommand( ReaderCommand.DCMD_PAGEUP, isLongPress ? 10 : 1);
-			else
-				animatePageFlip(-1);
-			break;
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-			doCommand( ReaderCommand.DCMD_PAGEUP, 10);
-			break;
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			doCommand( ReaderCommand.DCMD_PAGEDOWN, 10);
-			break;
-		case KeyEvent.KEYCODE_DPAD_CENTER:
-			if ( !isLongPress )
-				mActivity.showBrowserRecentBooks();
-			else
-				mActivity.showBookmarksDialog();
-			break;
-		case KeyEvent.KEYCODE_SEARCH:
-			showSearchDialog();
-			return true;
-		case KeyEvent.KEYCODE_MENU:
-			if ( isLongPress ) {
-				mActivity.showOptionsDialog();
-			} else {
-				mActivity.openOptionsMenu();
-			}
-			break;
-//		case KeyEvent.KEYCODE_HOME:
-//			mActivity.showBrowser();
-//			break;
-		case KeyEvent.KEYCODE_BACK:
-			//saveSettings();
-			if ( !backKeyDownHere )
-				return true;
-			if ( isLongPress )
-				mActivity.finish();
-			else
-				mActivity.showBrowser(null);
-			backKeyDownHere = false;
-		default:
-			return super.onKeyUp(keyCode, event);
-		}
-		backKeyDownHere = false;
-		return true;
+		// not processed
+		return super.onKeyUp(keyCode, event);
 	}
 
 	boolean VOLUME_KEYS_ZOOM = false;
@@ -491,49 +446,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// will process in keyup handler
 			return true;
-		} else
-		switch ( keyCode ) {
-		case NOOK_KEY_NEXT_LEFT:
-		case NOOK_KEY_NEXT_RIGHT:    
-		case NOOK_KEY_SHIFT_DOWN:
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-		case NOOK_KEY_PREV_LEFT:
-		case NOOK_KEY_PREV_RIGHT:
-		case NOOK_KEY_SHIFT_UP:
-		case KeyEvent.KEYCODE_DPAD_UP:
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-		case KeyEvent.KEYCODE_DPAD_CENTER:
-		case KeyEvent.KEYCODE_SEARCH:
-		case KeyEvent.KEYCODE_MENU:
-		case KeyEvent.KEYCODE_HOME:
-			return true;
-		case KeyEvent.KEYCODE_BACK:
-			backKeyDownHere = true;
-			return true;
-			//return super.onKeyDown(keyCode, event);
-        case KeyEvent.KEYCODE_VOLUME_UP:
-        	if ( !enableVolumeKeys )
-        		return false;
-           if ( VOLUME_KEYS_ZOOM ) {
-               doCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
-               syncViewSettings(getSettings());
-           } else
-               doCommand( ReaderCommand.DCMD_PAGEUP, 1);
-           return true;
-        case KeyEvent.KEYCODE_VOLUME_DOWN:
-        	if ( !enableVolumeKeys )
-        		return false;
-           if ( VOLUME_KEYS_ZOOM ) {
-               doCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
-               syncViewSettings(getSettings());
-           } else
-               doCommand( ReaderCommand.DCMD_PAGEDOWN, 1);
-           return true;
-        	
-       	default:
-			return super.onKeyDown(keyCode, event);
 		}
+
+		if ( keyCode==KeyEvent.KEYCODE_BACK )
+			backKeyDownHere = true;
+    	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN )
+    		if (!enableVolumeKeys)
+    			return super.onKeyDown(keyCode, event);
+		
+		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
+		if ( !action.isNone() ) {
+			// will process in onKeyUp
+			return true;
+		}
+		
+		return super.onKeyDown(keyCode, event);
 	}
 
 	private boolean isManualScrollActive = false;
@@ -748,7 +675,96 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 	
-	public void doCommand( final ReaderCommand cmd, final int param )
+	public boolean onMenuItem( final int itemId )
+	{
+		BackgroundThread.ensureGUI();
+		ReaderAction action = ReaderAction.findByMenuId(itemId);
+		if ( action.isNone() )
+			return false;
+		onAction(action);
+		return true;
+	}
+	
+	public void onAction( final ReaderAction action )
+	{
+		BackgroundThread.ensureGUI();
+		if ( action.cmd!=ReaderCommand.DCMD_NONE )
+			onCommand( action.cmd, action.param );
+	}
+	
+	public void toggleDayNightMode()
+	{
+		Properties settings = getSettings();
+		OptionsDialog.toggleDayNightMode(settings);
+		setSettings(settings, null);
+	}
+	
+	public void onCommand( final ReaderCommand cmd, final int param )
+	{
+		BackgroundThread.ensureGUI();
+		Log.i("cr3", "On command " + cmd + (param!=0?" ("+param+")":" "));
+		switch ( cmd ) {
+		case DCMD_ZOOM_OUT:
+            doEngineCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+            syncViewSettings(getSettings());
+            break;
+		case DCMD_ZOOM_IN:
+            doEngineCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+            syncViewSettings(getSettings());
+            break;
+		case DCMD_PAGEDOWN:
+			if ( param==1 )
+				animatePageFlip(1);
+			else
+				doEngineCommand(cmd, param);
+			break;
+		case DCMD_PAGEUP:
+			if ( param==1 )
+				animatePageFlip(-1);
+			else
+				doEngineCommand(cmd, param);
+			break;
+		case DCMD_BEGIN:
+		case DCMD_END:
+			doEngineCommand(cmd, param);
+			break;
+		case DCMD_RECENT_BOOKS_LIST:
+			mActivity.showBrowserRecentBooks();
+			break;
+		case DCMD_SEARCH:
+			mActivity.showOptionsDialog();
+			break;
+		case DCMD_EXIT:
+			mActivity.finish();
+			break;
+		case DCMD_BOOKMARKS:
+			mActivity.showBookmarksDialog();
+			break;
+		case DCMD_GO_PERCENT_DIALOG:
+			mActivity.showGoToPercentDialog();
+			break;
+		case DCMD_GO_PAGE_DIALOG:
+			mActivity.showGoToPageDialog();
+			break;
+		case DCMD_TOC_DIALOG:
+			showTOC();
+			break;
+		case DCMD_FILE_BROWSER:
+			mActivity.showBrowser(getOpenedFileInfo());
+			break;
+		case DCMD_OPTIONS_DIALOG:
+			mActivity.showOptionsDialog();
+			break;
+		case DCMD_READER_MENU:
+			mActivity.openOptionsMenu();
+			break;
+		case DCMD_TOGGLE_DAY_NIGHT_MODE:
+			toggleDayNightMode();
+			break;
+		}
+	}
+	
+	public void doEngineCommand( final ReaderCommand cmd, final int param )
 	{
 		BackgroundThread.ensureGUI();
 		Log.d("cr3", "doCommand("+cmd + ", " + param +")");
@@ -904,7 +920,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
     				if ( isBookLoaded() ) {
-    					doCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
+    					doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
     					//drawPage();
     				}
     			}
@@ -941,6 +957,72 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //        }
 	}
 
+	private static class DefKeyAction {
+		public int keyCode;
+		public boolean longPress;
+		public ReaderAction action;
+		public DefKeyAction(int keyCode, boolean longPress, ReaderAction action) {
+			this.keyCode = keyCode;
+			this.longPress = longPress;
+			this.action = action;
+		}
+	}
+	private static class DefTapAction {
+		public int zone;
+		public boolean longPress;
+		public ReaderAction action;
+		public DefTapAction(int zone, boolean longPress, ReaderAction action) {
+			this.zone = zone;
+			this.longPress = longPress;
+			this.action = action;
+		}
+	}
+	private static DefKeyAction[] DEF_KEY_ACTIONS = {
+		new DefKeyAction(KeyEvent.KEYCODE_BACK, false, ReaderAction.FILE_BROWSER),
+		new DefKeyAction(KeyEvent.KEYCODE_BACK, true, ReaderAction.EXIT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, false, ReaderAction.RECENT_BOOKS),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, true, ReaderAction.BOOKMARKS),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, true, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, true, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, false, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, false, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, true, ReaderAction.FIRST_PAGE),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, true, ReaderAction.LAST_PAGE),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, true, ReaderAction.SEARCH),
+		new DefKeyAction(KeyEvent.KEYCODE_MENU, false, ReaderAction.READER_MENU),
+		new DefKeyAction(KeyEvent.KEYCODE_MENU, true, ReaderAction.OPTIONS),
+		new DefKeyAction(NOOK_KEY_NEXT_LEFT, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(NOOK_KEY_NEXT_RIGHT, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(NOOK_KEY_SHIFT_DOWN, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(NOOK_KEY_PREV_LEFT, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(NOOK_KEY_PREV_RIGHT, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(NOOK_KEY_SHIFT_UP, false, ReaderAction.PAGE_UP),
+	};
+	private static DefTapAction[] DEF_TAP_ACTIONS = {
+		new DefTapAction(1, false, ReaderAction.PAGE_UP),
+		new DefTapAction(2, false, ReaderAction.PAGE_UP),
+		new DefTapAction(4, false, ReaderAction.PAGE_UP),
+		new DefTapAction(1, true, ReaderAction.PAGE_UP_10),
+		new DefTapAction(2, true, ReaderAction.PAGE_UP_10),
+		new DefTapAction(4, true, ReaderAction.PAGE_UP_10),
+		new DefTapAction(3, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(6, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(7, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(8, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(8, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(3, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(6, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(7, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(5, false, ReaderAction.READER_MENU),
+		new DefTapAction(5, true, ReaderAction.OPTIONS),
+	};
+	
 	private Properties loadSettings()
 	{
         Properties props = new Properties();
@@ -956,6 +1038,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		Log.e("cr3", "error while reading settings");
         	}
         }
+        
+        // default key actions
+        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
+        	if ( ka.longPress )
+        		props.applyDefault(PROP_APP_KEY_ACTIONS_LONGPRESS + "." + ka.keyCode, ka.action.id);
+        	else
+        		props.applyDefault(PROP_APP_KEY_ACTIONS_PRESS + "." + ka.keyCode, ka.action.id);
+        }
+        // default tap zone actions
+        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
+        	if ( ka.longPress )
+        		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_LONGTAP + "." + ka.zone, ka.action.id);
+        	else
+        		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
+        }
+        
         props.applyDefault(PROP_FONT_SIZE, "20");
         props.applyDefault(PROP_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
@@ -2313,7 +2411,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void goToPosition( int position )
     {
 		BackgroundThread.ensureGUI();
-		doCommand(ReaderView.ReaderCommand.DCMD_GO_POS, position);
+		doEngineCommand(ReaderView.ReaderCommand.DCMD_GO_POS, position);
     }
     
     public void moveBy( final int delta )
@@ -2334,7 +2432,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void goToPage( int pageNumber )
     {
 		BackgroundThread.ensureGUI();
-		doCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
+		doEngineCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
     }
     
     public void goToPercent( final int percent )
