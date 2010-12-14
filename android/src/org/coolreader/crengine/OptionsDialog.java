@@ -86,6 +86,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String defaultValue;
 		public int iconId = R.drawable.cr3_option_other;
 		public OptionsListView optionsListView;
+		protected Runnable onChangeHandler;
 		public OptionBase( String label, String property ) {
 			this.label = label;
 			this.property = property;
@@ -99,6 +100,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			if ( mProperties.getProperty(property)==null )
 				mProperties.setProperty(property, value);
 			return this;
+		}
+		public void setOnChangeHandler( Runnable handler ) {
+			onChangeHandler = handler;
 		}
 		public String getValueLabel() { return mProperties.getProperty(property); }
 		public void onSelect() { }
@@ -193,17 +197,25 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		{
 			if ( view==null )
 				return;
-			TextView text = (TextView)view;
-			String action = mProperties.getProperty(property + "." + tapZoneId); 
-			text.setText(action==null ? "NO ACTION" : action);
+			final TextView text = (TextView)view;
+			final String propName = property + "." + tapZoneId;
+			ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
+			text.setText(getString(action.nameId));
 			text.setOnClickListener(new View.OnClickListener () {
 				@Override
 				public void onClick(View v) {
-					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " action", property + "." + tapZoneId);
+					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " action", propName);
+					option.setOnChangeHandler(new Runnable() {
+						public void run() {
+							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
+							text.setText(getString(action.nameId));
+						}
+					});
 					option.onSelect();
 				}
 			});
 		}
+
 		public String getValueLabel() { return "1"; }
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
@@ -415,6 +427,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					Pair item = list.get(position);
 					mProperties.setProperty(property, item.value);
 					d.dismiss();
+					if ( onChangeHandler!=null )
+						onChangeHandler.run();
 					if ( optionsListView!=null )
 						optionsListView.refresh();
 				}

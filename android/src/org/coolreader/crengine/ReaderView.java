@@ -101,6 +101,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
     public enum ReaderCommand
     {
+    	DCMD_NONE(0),
     	//definitions from crengine/include/lvdocview.h
     	DCMD_BEGIN(100),
     	DCMD_LINEUP(101),
@@ -136,6 +137,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_OPEN_RECENT_BOOK(2000),
     	DCMD_CLOSE_BOOK(2001),
     	DCMD_RESTORE_POSITION(2002),
+    	DCMD_RECENT_BOOKS_LIST(2003),
+    	DCMD_SEARCH(2004),
+    	DCMD_EXIT(2005),
     	;
     	
     	private final int nativeId;

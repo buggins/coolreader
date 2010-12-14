@@ -100,6 +100,10 @@
 <string name="dir_sd_card_2">SD Card 2</string>
 <string name="mi_book_back_to_reading">Back to reading</string>
     <string name="mi_book_root">Show root directory</string>
+<string name="action_none">(No action)</string>
 <string name="action_pagedown">Next page</string>
 <string name="action_pageup">Previous page</string>
+<string name="action_search">Search</string>
+<string name="action_recent_books_list">Recent books</string>
+<string name="action_exit">Exit</string>
 </resources>
