@@ -18,6 +18,7 @@ cr3wx      - CR3 with wxWidgets based GUI
 thirdparty - third party libraries, to use if not found in system (zlib, libpng, libjpeg, freetype)
 tinydict   - small library for .dict file format support
 tools      - miscellaneous configuration files
+android    - Android port
 
 External dependencies: 
 

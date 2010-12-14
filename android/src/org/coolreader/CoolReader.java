@@ -291,6 +291,7 @@ public class CoolReader extends Activity
 			        Window wnd = getWindow();
 			        if ( wnd!=null ) {
 			        	LayoutParams attrs =  wnd.getAttributes();
+			        	boolean changed = false;
 			        	float b;
 			        	if ( screenBacklightBrightness>=0 ) {
 			        		b = screenBacklightBrightness / 100.0f;
@@ -300,19 +301,30 @@ public class CoolReader extends Activity
 				        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
 			        	} else
 			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
-			        	attrs.screenBrightness = b;
+			        	if ( attrs.screenBrightness != b ) {
+			        		attrs.screenBrightness = b;
+			        		changed = true;
+			        	}
 			        	// hack to set buttonBrightness field
 			        	if ( !brightnessHackError )
 			        	try {
 				        	Field bb = attrs.getClass().getField("buttonBrightness");
-				        	if ( bb!=null )
-				        		bb.set(attrs, Float.valueOf(0.0f));
+				        	if ( bb!=null ) {
+				        		Float oldValue = (Float)bb.get(attrs);
+				        		if ( oldValue==null || oldValue.floatValue()!=0 ) {
+				        			bb.set(attrs, Float.valueOf(0.0f));
+					        		changed = true;
+				        		}
+				        	}
 			        	} catch ( Exception e ) {
 			        		Log.e("cr3", "WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
 			        		brightnessHackError = true;
 			        	}
 			        	//attrs.buttonBrightness = 0;
-			        	wnd.setAttributes(attrs);
+			        	if ( changed ) {
+			        		Log.d("cr3", "Window attribute changed: " + attrs);
+			        		wnd.setAttributes(attrs);
+			        	}
 			        	//attrs.screenOrientation = LayoutParams.SCREEN_;
 			        }
 				} catch ( Exception e ) {

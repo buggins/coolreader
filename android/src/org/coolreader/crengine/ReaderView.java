@@ -1775,13 +1775,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					if ( direction>0 ) {
 						// |  <=====  |
 						int dx = startX - x; 
-						int threshold = startX / 4;
+						int threshold = maxX / 6;
 						if ( dx>threshold )
 							moved = true;
 					} else {
 						// |  =====>  |
 						int dx = x - startX; 
-						int threshold = (maxX - startX) / 4;
+						int threshold = maxX / 6;
 						if ( dx>threshold )
 							moved = true;
 					}

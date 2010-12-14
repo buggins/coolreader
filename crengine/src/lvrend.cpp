@@ -1520,7 +1520,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
             */
             int offs = 0;
-            if ( txform->GetLineCount()==0 && style->white_space!=css_ws_pre ) {
+            if ( txform->GetSrcCount()==0 && style->white_space!=css_ws_pre ) {
                 // clear leading spaces for first text of paragraph
                 int i=0;
                 for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
