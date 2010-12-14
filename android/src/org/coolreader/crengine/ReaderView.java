@@ -88,6 +88,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
     public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
     public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
+    public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
+    public static final String PROP_APP_TAP_ZONE_ACTIONS_LONGTAP ="app.tapzone.action.longtap";
     
     public enum ViewMode
     {

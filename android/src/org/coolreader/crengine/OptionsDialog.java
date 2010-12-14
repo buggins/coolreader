@@ -16,14 +16,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TabHost;
-import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.TabContentFactory;
+import android.widget.TextView;
 
 public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
@@ -172,6 +172,54 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			restoreColor(newMode);
 			mProperties.setBool(property, newMode);
 			optionsListView.refresh();
+		}
+	}
+	
+	class ActionOption extends ListOption {
+		public ActionOption( String label, String property ) {
+			super(label, property);
+			ReaderAction[] actions = ReaderAction.AVAILABLE_ACTIONS;
+			for ( ReaderAction a : actions )
+				add(getString(a.nameId), a.id);
+		}
+	}
+	
+	class TapZoneOption extends OptionBase {
+		public TapZoneOption( String label, String property ) {
+			super(label, property);
+		}
+		View grid;
+		private void initTapZone( View view, final int tapZoneId )
+		{
+			if ( view==null )
+				return;
+			TextView text = (TextView)view;
+			String action = mProperties.getProperty(property + "." + tapZoneId); 
+			text.setText(action==null ? "NO ACTION" : action);
+			text.setOnClickListener(new View.OnClickListener () {
+				@Override
+				public void onClick(View v) {
+					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " action", property + "." + tapZoneId);
+					option.onSelect();
+				}
+			});
+		}
+		public String getValueLabel() { return "1"; }
+		public void onSelect() {
+			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
+			grid = (View)mInflater.inflate(R.layout.options_tap_zone_grid, null);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text1), 1);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text2), 2);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text3), 3);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text4), 4);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text5), 5);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text6), 6);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text7), 7);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text8), 8);
+			initTapZone(grid.findViewById(R.id.tap_zone_action_text9), 9);
+			dlg.setTitle(label);
+			dlg.setView(grid);
+			dlg.show();
 		}
 	}
 	
@@ -367,7 +415,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					Pair item = list.get(position);
 					mProperties.setProperty(property, item.value);
 					d.dismiss();
-					optionsListView.refresh();
+					if ( optionsListView!=null )
+						optionsListView.refresh();
 				}
 			});
 
@@ -559,6 +608,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_fullscreen), ReaderView.PROP_APP_FULLSCREEN));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
+		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
+		
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");

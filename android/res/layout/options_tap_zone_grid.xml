@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/base_dialog" 
+    android:orientation="vertical"
+    android:minHeight="1600dip"
+    android:minWidth="1600dip"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <TableLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="10"
+        android:layout_gravity="fill_vertical|fill_horizontal"
+        android:layout_marginLeft="3dip"
+        android:layout_marginRight="3dip"
+        >
+        <TableRow android:layout_weight="1">
+             <TextView
+                android:id="@+id/tap_zone_action_text1"
+                android:text="1"
+                style="@style/TapZoneGridItem"
+             />
+             <TextView
+                android:id="@+id/tap_zone_action_text2"
+                android:text="2"
+                style="@style/TapZoneGridItem"
+             />
+             <TextView
+                android:id="@+id/tap_zone_action_text3"
+                android:text="3"
+                style="@style/TapZoneGridItem"
+             />
+        </TableRow>
+        <TableRow android:layout_weight="1">
+             <TextView
+                android:id="@+id/tap_zone_action_text4"
+                android:text="4"
+                style="@style/TapZoneGridItem"
+             />
+             <TextView
+                android:id="@+id/tap_zone_action_text5"
+                android:text="5"
+                style="@style/TapZoneGridItem"
+             />
+             <TextView
+                android:id="@+id/tap_zone_action_text6"
+                android:text="6"
+                style="@style/TapZoneGridItem"
+             />
+        </TableRow>
+        <TableRow android:layout_weight="1">
+             <TextView
+                android:id="@+id/tap_zone_action_text7"
+                android:text="7"
+                style="@style/TapZoneGridItem"
+             />
+             <TextView
+                android:id="@+id/tap_zone_action_text8"
+                android:text="8"
+                style="@style/TapZoneGridItem"
+             />
+             <TextView
+                android:id="@+id/tap_zone_action_text9"
+                android:text="9"
+                style="@style/TapZoneGridItem"
+             />
+        </TableRow>
+    </TableLayout>
+</LinearLayout>

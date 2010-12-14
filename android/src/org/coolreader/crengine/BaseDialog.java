@@ -68,18 +68,22 @@ public class BaseDialog extends Dialog {
 				}
 			});
 		}
-		if ( mNegativeButtonText!=0 ) {
-			Button negativeButton = (Button)layout.findViewById(R.id.base_dlg_btn_negative);
-			if ( negativeButton==null ) {
-				negativeButton = new Button(getContext());
-				layout.addView(negativeButton);
+		Button negativeButton = (Button)layout.findViewById(R.id.base_dlg_btn_negative);
+		if ( negativeButton==null && mNegativeButtonText!=0 ) {
+			negativeButton = new Button(getContext());
+			layout.addView(negativeButton);
+		}
+		if ( negativeButton!=null ) {
+			if ( mNegativeButtonText!=0 ) {
+				negativeButton.setText(mNegativeButtonText);
+				negativeButton.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						onNegativeButtonClick();
+					}
+				});
+			} else {
+				negativeButton.setVisibility(View.INVISIBLE);
 			}
-			negativeButton.setText(mNegativeButtonText);
-			negativeButton.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					onNegativeButtonClick();
-				}
-			});
 		}
 	}
 
