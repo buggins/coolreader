@@ -732,7 +732,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.showBrowserRecentBooks();
 			break;
 		case DCMD_SEARCH:
-			mActivity.showOptionsDialog();
+			showSearchDialog();
 			break;
 		case DCMD_EXIT:
 			mActivity.finish();
