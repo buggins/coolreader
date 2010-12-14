@@ -267,15 +267,15 @@ public class CoolReader extends Activity
     
     public void setScreenBacklightLevel( int percent )
     {
-    	if ( percent<10 )
-    		percent = 10;
+    	if ( percent<-1 )
+    		percent = -1;
     	else if ( percent>100 )
-    		percent = 100;
+    		percent = -1;
     	screenBacklightBrightness = percent;
     	onUserActivity();
     }
     
-    private int screenBacklightBrightness = 80; // 80%
+    private int screenBacklightBrightness = -1; // use default
     private boolean brightnessHackError = false;
     public void onUserActivity()
     {
@@ -291,11 +291,15 @@ public class CoolReader extends Activity
 			        Window wnd = getWindow();
 			        if ( wnd!=null ) {
 			        	LayoutParams attrs =  wnd.getAttributes();
-			        	float b = screenBacklightBrightness / 100.0f;
-			        	if ( b<0.1f )
-			        		b = 0.1f;
-			        	else if ( b>1.0f )
-			        		b = 1.0f;
+			        	float b;
+			        	if ( screenBacklightBrightness>=0 ) {
+			        		b = screenBacklightBrightness / 100.0f;
+				        	if ( b<0.0f ) // BRIGHTNESS_OVERRIDE_OFF
+				        		b = 0.0f;
+				        	else if ( b>1.0f )
+				        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
+			        	} else
+			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
 			        	attrs.screenBrightness = b;
 			        	// hack to set buttonBrightness field
 			        	if ( !brightnessHackError )

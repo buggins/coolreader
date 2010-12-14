@@ -34,7 +34,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60
 	};
 	int[] mBacklightLevels = new int[] {
-		10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+		-1, 0, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 100
+	};
+	String[] mBacklightLevelsTitles = new String[] {
+			"Default", "0%", "5%", "10%", "15%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "100%",
 	};
 	int[] mInterlineSpaces = new int[] {
 			80, 90, 100, 110, 120, 130, 140, 150
@@ -206,6 +209,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			for ( int i=0; i<values.length; i++ ) {
 				String value = String.valueOf(values[i]); 
 				String label = getContext().getString(labelIDs[i]); 
+				add(value, label);
+			}
+			return this;
+		}
+		public ListOption add(int[]values, String[]labels) {
+			for ( int i=0; i<values.length; i++ ) {
+				String value = String.valueOf(values[i]); 
+				String label = labels[i]; 
 				add(value, label);
 			}
 			return this;
@@ -525,7 +536,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsStyles.add(new NightModeOption(getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
-		mOptionsStyles.add(new ListOption(getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).addPercents(mBacklightLevels).setDefaultValue("80"));
+		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
+		mOptionsStyles.add(new ListOption(getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("70"));
 		//
 		mOptionsStyles.add(new HyphenationOptions(getString(R.string.options_hyphenation_dictionary)));
 		//
