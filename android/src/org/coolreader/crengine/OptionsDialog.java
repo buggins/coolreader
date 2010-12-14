@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -194,6 +195,54 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				add(a.id, getString(a.nameId));
 		}
 	}
+
+	class KeyMapOption extends ListOption {
+		public KeyMapOption( String label, String property ) {
+			super(label, property);
+			addKey(KeyEvent.KEYCODE_DPAD_CENTER, "Center");
+			addKey(KeyEvent.KEYCODE_DPAD_LEFT, "Left");
+			addKey(KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
+			addKey(KeyEvent.KEYCODE_DPAD_UP, "Up");
+			addKey(KeyEvent.KEYCODE_DPAD_DOWN, "Down");
+		}
+		View grid;
+		private void addKey( int keyCode, String keyName )
+		{
+			final String propName = property + "." + keyCode;
+			add( keyName, propName );
+//			ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
+//			add( getString(action.nameId), keyName );
+//			text.setText(getString(action.nameId));
+//			text.setOnClickListener(new View.OnClickListener () {
+//				@Override
+//				public void onClick(View v) {
+//					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " action", propName);
+//					option.setOnChangeHandler(new Runnable() {
+//						public void run() {
+//							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
+//							text.setText(getString(action.nameId));
+//						}
+//					});
+//					option.onSelect();
+//				}
+//			});
+		}
+
+		public String getValueLabel() { return ">"; }
+
+		public void onClick( final Pair item ) {
+			ActionOption option = new ActionOption(item.label + " action", item.value);
+			option.setOnChangeHandler(new Runnable() {
+				public void run() {
+					ReaderAction action = ReaderAction.findById( mProperties.getProperty(item.value) );
+					//KeyMapOption.
+					// TODO:
+				}
+			});
+			option.onSelect();
+		}
+		
+	}
 	
 	class TapZoneOption extends OptionBase {
 		public TapZoneOption( String label, String property ) {
@@ -223,7 +272,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			});
 		}
 
-		public String getValueLabel() { return "1"; }
+		public String getValueLabel() { return ">"; }
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
 			grid = (View)mInflater.inflate(R.layout.options_tap_zone_grid, null);
@@ -432,17 +481,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				public void onItemClick(AdapterView<?> adapter, View listview,
 						int position, long id) {
 					Pair item = list.get(position);
-					mProperties.setProperty(property, item.value);
+					onClick(item);
 					d.dismiss();
-					if ( onChangeHandler!=null )
-						onChangeHandler.run();
-					if ( optionsListView!=null )
-						optionsListView.refresh();
 				}
 			});
 
 			
 			d.show();
+		}
+		
+		public void onClick( Pair item ) {
+			mProperties.setProperty(property, item.value);
+			if ( onChangeHandler!=null )
+				onChangeHandler.run();
+			if ( optionsListView!=null )
+				optionsListView.refresh();
 		}
 	}
 	
@@ -630,6 +683,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
+		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_long), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_LONGTAP));
 		
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));

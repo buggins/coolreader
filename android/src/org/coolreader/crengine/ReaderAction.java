@@ -65,6 +65,7 @@ public class ReaderAction {
 		TOGGLE_DAY_NIGHT,
 		RECENT_BOOKS,
 		FILE_BROWSER,
+		READER_MENU,
 		EXIT,
 	};
 	public boolean isNone() {

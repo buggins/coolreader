@@ -116,6 +116,6 @@
     <string name="action_go_last_page">First page</string>
     <string name="action_file_browser">Open file</string>
     <string name="action_options">Options</string>
-    <string name="action_toggle_day_night">Toggle day / night profiles</string>
+    <string name="action_toggle_day_night">Day / night</string>
     <string name="action_reader_menu">Reader Menu</string>
 </resources>

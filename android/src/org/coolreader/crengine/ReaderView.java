@@ -362,7 +362,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void onTapZone( int zone, boolean isLongPress )
 	{
 		ReaderAction action;
-		if ( isLongPress )
+		if ( !isLongPress )
 			action = ReaderAction.findForTap(zone, mSettings);
 		else
 			action = ReaderAction.findForLongTap(zone, mSettings);
@@ -990,8 +990,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, false, ReaderAction.PAGE_DOWN_10),
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, true, ReaderAction.FIRST_PAGE),
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, true, ReaderAction.LAST_PAGE),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.PAGE_UP),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.PAGE_DOWN_10),
 		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, true, ReaderAction.SEARCH),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, false, ReaderAction.READER_MENU),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, true, ReaderAction.OPTIONS),
@@ -1013,7 +1015,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		new DefTapAction(6, false, ReaderAction.PAGE_DOWN),
 		new DefTapAction(7, false, ReaderAction.PAGE_DOWN),
 		new DefTapAction(8, false, ReaderAction.PAGE_DOWN),
-		new DefTapAction(8, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(9, false, ReaderAction.PAGE_DOWN),
 		new DefTapAction(3, true, ReaderAction.PAGE_DOWN_10),
 		new DefTapAction(6, true, ReaderAction.PAGE_DOWN_10),
 		new DefTapAction(7, true, ReaderAction.PAGE_DOWN_10),
