@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:versionCode="19"
-      android:versionName="3.0.38-11"
+      android:versionName="3.0.38-12"
       >
     <!-- android:installLocation="preferExternal"  -->  
     <supports-screens

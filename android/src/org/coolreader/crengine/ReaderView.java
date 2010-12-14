@@ -956,6 +956,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         props.setProperty(PROP_STATUS_FONT_SIZE, "16");
         props.setProperty(PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
         props.applyDefault(PROP_APP_FULLSCREEN, "0");
+        props.applyDefault(PROP_APP_SCREEN_BACKLIGHT, "-1");
 		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
 		props.applyDefault(PROP_SHOW_TIME, "1");
 		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
