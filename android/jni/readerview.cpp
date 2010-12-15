@@ -143,20 +143,20 @@ static LVRefVec<LVImageSource> getBatteryIcons( bool nightMode )
 	if ( !nightMode ) {
 		#define BATTERY_HEADER \
 				"28 15 5 1", \
-				"0 c #50000000", \
-				"X c #50000000", \
-				"o c #50AAAAAA", \
-				". c #50FFFFFF", \
+				"0 c #40000000", \
+				"X c #40000000", \
+				"o c #40AAAAAA", \
+				". c #40FFFFFF", \
 				"  c None",
 		#include "battery_icons.h"
 	} else {
 		#undef BATTERY_HEADER
 		#define BATTERY_HEADER \
 				"28 15 5 1", \
-				"0 c #50000000", \
-				"X c #50000000", \
-				"o c #50888888", \
-				". c #50C0C0C0", \
+				"0 c #80000000", \
+				"X c #80000000", \
+				"o c #80888888", \
+				". c #80C0C0C0", \
 				"  c None",
 		#include "battery_icons.h"
 	}
