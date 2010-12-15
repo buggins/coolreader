@@ -238,12 +238,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		{
 			if ( view==null )
 				return;
-			final TextView text = (TextView)view;
+			final TextView text = (TextView)view.findViewById(R.id.tap_zone_action_text_short);
+			final TextView longtext = (TextView)view.findViewById(R.id.tap_zone_action_text_long);
 			final String propName = property + "." + tapZoneId;
 			final String longPropName = property + ".long." + tapZoneId;
 			ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
 			ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
-			text.setText(getString(action.nameId) + " / " + getString(longAction.nameId));
+			text.setText(getString(action.nameId));
+			longtext.setText(getString(longAction.nameId));
 			text.setLongClickable(true);
 			text.setOnClickListener(new View.OnClickListener () {
 				@Override
@@ -253,8 +255,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
-							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
-							text.setText(getString(action.nameId) + " / " + getString(longAction.nameId));
+							text.setText(getString(action.nameId));
 						}
 					});
 					option.onSelect();
@@ -267,9 +268,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " long tap action", propName);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
-							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
 							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
-							text.setText(getString(action.nameId) + " / " + getString(longAction.nameId));
+							longtext.setText(getString(longAction.nameId));
 						}
 					});
 					option.onSelect();
@@ -282,15 +282,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
 			grid = (View)mInflater.inflate(R.layout.options_tap_zone_grid, null);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text1), 1);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text2), 2);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text3), 3);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text4), 4);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text5), 5);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text6), 6);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text7), 7);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text8), 8);
-			initTapZone(grid.findViewById(R.id.tap_zone_action_text9), 9);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell1), 1);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell2), 2);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell3), 3);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell4), 4);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell5), 5);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell6), 6);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell7), 7);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell8), 8);
+			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell9), 9);
 			dlg.setTitle(label);
 			dlg.setView(grid);
 			dlg.show();

@@ -17,84 +17,144 @@
         >
         <TableRow android:layout_weight="1">
 			<LinearLayout
-			    android:id="@+id/tap_zone_grid_cell" 
+			    android:id="@+id/tap_zone_grid_cell1" 
                 style="@style/TapZoneGridCell"
 			    android:orientation="vertical">
 	             <TextView
-	                android:id="@+id/tap_zone_action_text1"
-	                android:text="Sample Action 1"
+	                android:id="@+id/tap_zone_action_text_short"
+	                android:text="(No action)"
                     style="@style/TapZoneGridCellText"
 	             />
                  <TextView
-                    android:id="@+id/tap_zone_action_text22223"
-                    android:text="second line action 1"
-                    style="@style/TapZoneGridCellText"
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
                  />
              </LinearLayout>
             <LinearLayout
-                android:id="@+id/tap_zone_grid_cell" 
+                android:id="@+id/tap_zone_grid_cell2" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
                  <TextView
-                    android:id="@+id/tap_zone_action_text2"
-                    android:text="sample 2"
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
                  />
                  <TextView
-                    android:id="@+id/tap_zone_action_text22223"
-                    android:text="second line 2"
-                    style="@style/TapZoneGridCellText"
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
                  />
              </LinearLayout>
             <LinearLayout
-                android:id="@+id/tap_zone_grid_cell" 
+                android:id="@+id/tap_zone_grid_cell3" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
                  <TextView
-                    android:id="@+id/tap_zone_action_text3"
-                    android:text="sample 3"
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
                  />
                  <TextView
-                    android:id="@+id/tap_zone_action_text22224"
-                    android:text="second line 3"
-                    style="@style/TapZoneGridCellText"
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
                  />
              </LinearLayout>
         </TableRow>
         <TableRow android:layout_weight="1">
-             <TextView
-                android:id="@+id/tap_zone_action_text4"
-                android:text="4"
-                style="@style/TapZoneGridItem"
-             />
-             <TextView
-                android:id="@+id/tap_zone_action_text5"
-                android:text="5"
-                style="@style/TapZoneGridItem"
-             />
-             <TextView
-                android:id="@+id/tap_zone_action_text6"
-                android:text="6"
-                style="@style/TapZoneGridItem"
-             />
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell4" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
+                 />
+             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell5" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
+                 />
+             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell6" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
+                 />
+             </LinearLayout>
         </TableRow>
         <TableRow android:layout_weight="1">
-             <TextView
-                android:id="@+id/tap_zone_action_text7"
-                android:text="7"
-                style="@style/TapZoneGridItem"
-             />
-             <TextView
-                android:id="@+id/tap_zone_action_text8"
-                android:text="8"
-                style="@style/TapZoneGridItem"
-             />
-             <TextView
-                android:id="@+id/tap_zone_action_text9"
-                android:text="9"
-                style="@style/TapZoneGridItem"
-             />
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell7" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
+                 />
+             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell8" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
+                 />
+             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell9" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_short"
+                    android:text="(No action)"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text_long"
+                    android:text="2"
+                    style="@style/TapZoneGridCellTextSecond"
+                 />
+             </LinearLayout>
         </TableRow>
     </TableLayout>
 </LinearLayout>
