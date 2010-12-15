@@ -193,55 +193,40 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			ReaderAction[] actions = ReaderAction.AVAILABLE_ACTIONS;
 			for ( ReaderAction a : actions )
 				add(a.id, getString(a.nameId));
+			if ( mProperties.getProperty(property)==null )
+				mProperties.setProperty(property, ReaderAction.NONE.id);
 		}
 	}
 
 	class KeyMapOption extends ListOption {
-		public KeyMapOption( String label, String property ) {
-			super(label, property);
-			addKey(KeyEvent.KEYCODE_DPAD_CENTER, "Center");
-			addKey(KeyEvent.KEYCODE_DPAD_LEFT, "Left");
-			addKey(KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
-			addKey(KeyEvent.KEYCODE_DPAD_UP, "Up");
-			addKey(KeyEvent.KEYCODE_DPAD_DOWN, "Down");
+		public KeyMapOption( String label ) {
+			super(label, ReaderView.PROP_APP_KEY_ACTIONS_PRESS);
 		}
-		View grid;
-		private void addKey( int keyCode, String keyName )
-		{
+		private void addKey( OptionsListView list, int keyCode, String keyName ) {
 			final String propName = property + "." + keyCode;
-			add( keyName, propName );
-//			ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
-//			add( getString(action.nameId), keyName );
-//			text.setText(getString(action.nameId));
-//			text.setOnClickListener(new View.OnClickListener () {
-//				@Override
-//				public void onClick(View v) {
-//					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " action", propName);
-//					option.setOnChangeHandler(new Runnable() {
-//						public void run() {
-//							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
-//							text.setText(getString(action.nameId));
-//						}
-//					});
-//					option.onSelect();
-//				}
-//			});
+			final String longPropName = property + ".long." + keyCode;
+			list.add(new ActionOption(keyName, propName));
+			list.add(new ActionOption(keyName + " (long press)", longPropName));
+		}
+		public void onSelect() {
+			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
+			OptionsListView listView = new OptionsListView(getContext());
+			addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
+			addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
+			addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Up");
+			addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Down");
+			addKey(listView, KeyEvent.KEYCODE_DPAD_CENTER, "Center");
+			addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
+			addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
+			addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
+			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
+			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
+			dlg.setTitle(label);
+			dlg.setView(listView);
+			dlg.show();
 		}
 
 		public String getValueLabel() { return ">"; }
-
-		public void onClick( final Pair item ) {
-			ActionOption option = new ActionOption(item.label + " action", item.value);
-			option.setOnChangeHandler(new Runnable() {
-				public void run() {
-					ReaderAction action = ReaderAction.findById( mProperties.getProperty(item.value) );
-					//KeyMapOption.
-					// TODO:
-				}
-			});
-			option.onSelect();
-		}
-		
 	}
 	
 	class TapZoneOption extends OptionBase {
@@ -255,19 +240,40 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				return;
 			final TextView text = (TextView)view;
 			final String propName = property + "." + tapZoneId;
+			final String longPropName = property + ".long." + tapZoneId;
 			ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
-			text.setText(getString(action.nameId));
+			ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
+			text.setText(getString(action.nameId) + " / " + getString(longAction.nameId));
+			text.setLongClickable(true);
 			text.setOnClickListener(new View.OnClickListener () {
 				@Override
 				public void onClick(View v) {
-					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " action", propName);
+					// TODO: i18n
+					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " tap action", propName);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
-							text.setText(getString(action.nameId));
+							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
+							text.setText(getString(action.nameId) + " / " + getString(longAction.nameId));
 						}
 					});
 					option.onSelect();
+				}
+			});
+			text.setOnLongClickListener(new View.OnLongClickListener () {
+				@Override
+				public boolean onLongClick(View v) {
+					// TODO: i18n
+					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " long tap action", propName);
+					option.setOnChangeHandler(new Runnable() {
+						public void run() {
+							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
+							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
+							text.setText(getString(action.nameId) + " / " + getString(longAction.nameId));
+						}
+					});
+					option.onSelect();
+					return true;
 				}
 			});
 		}
@@ -346,7 +352,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 		public String findValueLabel( String value ) {
 			for ( Pair pair : list ) {
-				if ( value.equals(pair.value) )
+				if ( value!=null && pair.value.equals(value) )
 					return pair.label;
 			}
 			return null;
@@ -683,7 +689,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
-		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_long), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_LONGTAP));
+		mOptionsApplication.add(new KeyMapOption(getString(R.string.options_app_key_actions)));
+
+		//mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_long), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_LONGTAP));
 		
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));

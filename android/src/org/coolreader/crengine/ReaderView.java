@@ -89,9 +89,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
     public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
     public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
-    public static final String PROP_APP_TAP_ZONE_ACTIONS_LONGTAP ="app.tapzone.action.longtap";
     public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";
-    public static final String PROP_APP_KEY_ACTIONS_LONGPRESS ="app.key.action.longpress";
     
     public enum ViewMode
     {
@@ -1044,14 +1042,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         // default key actions
         for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
         	if ( ka.longPress )
-        		props.applyDefault(PROP_APP_KEY_ACTIONS_LONGPRESS + "." + ka.keyCode, ka.action.id);
+        		props.applyDefault(PROP_APP_KEY_ACTIONS_PRESS + ".long." + ka.keyCode, ka.action.id);
         	else
         		props.applyDefault(PROP_APP_KEY_ACTIONS_PRESS + "." + ka.keyCode, ka.action.id);
         }
         // default tap zone actions
         for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
         	if ( ka.longPress )
-        		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_LONGTAP + "." + ka.zone, ka.action.id);
+        		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone, ka.action.id);
         	else
         		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
         }

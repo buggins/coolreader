@@ -95,7 +95,7 @@ public class ReaderAction {
 		return findById(id);
 	}
 	public static ReaderAction findForLongTap( int tapZoneNumber, Properties settings ) {
-		String id = settings.getProperty( ReaderView.PROP_APP_TAP_ZONE_ACTIONS_LONGTAP + "." + tapZoneNumber );
+		String id = settings.getProperty( ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + tapZoneNumber );
 		return findById(id);
 	}
 	public static ReaderAction findForKey( int keyCode, Properties settings ) {
@@ -103,7 +103,7 @@ public class ReaderAction {
 		return findById(id);
 	}
 	public static ReaderAction findForLongKey( int keyCode, Properties settings ) {
-		String id = settings.getProperty( ReaderView.PROP_APP_KEY_ACTIONS_LONGPRESS + "." + keyCode );
+		String id = settings.getProperty( ReaderView.PROP_APP_KEY_ACTIONS_PRESS + ".long." + keyCode );
 		return findById(id);
 	}
 }

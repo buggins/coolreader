@@ -16,21 +16,51 @@
         android:layout_marginRight="3dip"
         >
         <TableRow android:layout_weight="1">
-             <TextView
-                android:id="@+id/tap_zone_action_text1"
-                android:text="1"
-                style="@style/TapZoneGridItem"
-             />
-             <TextView
-                android:id="@+id/tap_zone_action_text2"
-                android:text="2"
-                style="@style/TapZoneGridItem"
-             />
-             <TextView
-                android:id="@+id/tap_zone_action_text3"
-                android:text="3"
-                style="@style/TapZoneGridItem"
-             />
+			<LinearLayout
+			    android:id="@+id/tap_zone_grid_cell" 
+                style="@style/TapZoneGridCell"
+			    android:orientation="vertical">
+	             <TextView
+	                android:id="@+id/tap_zone_action_text1"
+	                android:text="Sample Action 1"
+                    style="@style/TapZoneGridCellText"
+	             />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text22223"
+                    android:text="second line action 1"
+                    style="@style/TapZoneGridCellText"
+                 />
+             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text2"
+                    android:text="sample 2"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text22223"
+                    android:text="second line 2"
+                    style="@style/TapZoneGridCellText"
+                 />
+             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/tap_zone_grid_cell" 
+                style="@style/TapZoneGridCell"
+                android:orientation="vertical">
+                 <TextView
+                    android:id="@+id/tap_zone_action_text3"
+                    android:text="sample 3"
+                    style="@style/TapZoneGridCellText"
+                 />
+                 <TextView
+                    android:id="@+id/tap_zone_action_text22224"
+                    android:text="second line 3"
+                    style="@style/TapZoneGridCellText"
+                 />
+             </LinearLayout>
         </TableRow>
         <TableRow android:layout_weight="1">
              <TextView
