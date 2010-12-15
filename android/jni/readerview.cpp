@@ -138,231 +138,36 @@ DECL_DEF_CR_FONT_SIZES;
 
 #define NO_BATTERY_GAUGE 1
 
+static LVRefVec<LVImageSource> getBatteryIcons( bool nightMode )
+{
+	if ( !nightMode ) {
+		#define BATTERY_HEADER \
+				"28 15 5 1", \
+				"0 c #C0000000", \
+				"X c #C0000000", \
+				"o c #C0AAAAAA", \
+				". c #C0FFFFFF", \
+				"  c None",
+		#include "battery_icons.h"
+	} else {
+		#undef BATTERY_HEADER
+		#define BATTERY_HEADER \
+				"28 15 5 1", \
+				"0 c #C0000000", \
+				"X c #C0000000", \
+				"o c #C0888888", \
+				". c #C0C0C0C0", \
+				"  c None",
+		#include "battery_icons.h"
+	}
+}
+
 ReaderViewNative::ReaderViewNative()
 {
 	_docview = new LVDocView(32); //32bpp
 
-#define BATTERY_HEADER \
-        "28 14 5 1", \
-        "0 c #000000", \
-        "X c #000000", \
-        "o c #555555", \
-        ". c #AAAAAA", \
-        "  c None",
-
-//        "o c #AAAAAA", 
-//        ". c #FFFFFF", 
-
-    LVRefVec<LVImageSource> icons;
-
-#ifndef NO_BATTERY_GAUGE
-
-    static const char * battery8[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0000.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0..0.XXXX.XXXX.XXXX.XXXX.0.",
-        ".0000.XXXX.XXXX.XXXX.XXXX.0.",
-        "   .0.XXXX.XXXX.XXXX.XXXX.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery7[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0.oooo.XXXX.XXXX.XXXX.0.",
-        ".0000.oooo.XXXX.XXXX.XXXX.0.",
-        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
-        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
-        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
-        ".0..0.oooo.XXXX.XXXX.XXXX.0.",
-        ".0000.oooo.XXXX.XXXX.XXXX.0.",
-        "   .0.oooo.XXXX.XXXX.XXXX.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery6[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "....0......XXXX.XXXX.XXXX.0.",
-        ".0000......XXXX.XXXX.XXXX.0.",
-        ".0..0......XXXX.XXXX.XXXX.0.",
-        ".0..0......XXXX.XXXX.XXXX.0.",
-        ".0..0......XXXX.XXXX.XXXX.0.",
-        ".0..0......XXXX.XXXX.XXXX.0.",
-        ".0000......XXXX.XXXX.XXXX.0.",
-        "   .0......XXXX.XXXX.XXXX.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery5[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0......oooo.XXXX.XXXX.0.",
-        ".0000......oooo.XXXX.XXXX.0.",
-        ".0..0......oooo.XXXX.XXXX.0.",
-        ".0..0......oooo.XXXX.XXXX.0.",
-        ".0..0......oooo.XXXX.XXXX.0.",
-        ".0..0......oooo.XXXX.XXXX.0.",
-        ".0000......oooo.XXXX.XXXX.0.",
-        "   .0......oooo.XXXX.XXXX.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery4[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0...........XXXX.XXXX.0.",
-        ".0000...........XXXX.XXXX.0.",
-        ".0..0...........XXXX.XXXX.0.",
-        ".0..0...........XXXX.XXXX.0.",
-        ".0..0...........XXXX.XXXX.0.",
-        ".0..0...........XXXX.XXXX.0.",
-        ".0000...........XXXX.XXXX.0.",
-        "   .0...........XXXX.XXXX.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery3[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0...........oooo.XXXX.0.",
-        ".0000...........oooo.XXXX.0.",
-        ".0..0...........oooo.XXXX.0.",
-        ".0..0...........oooo.XXXX.0.",
-        ".0..0...........oooo.XXXX.0.",
-        ".0..0...........oooo.XXXX.0.",
-        ".0000...........oooo.XXXX.0.",
-        "   .0...........oooo.XXXX.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery2[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0................XXXX.0.",
-        ".0000................XXXX.0.",
-        ".0..0................XXXX.0.",
-        ".0..0................XXXX.0.",
-        ".0..0................XXXX.0.",
-        ".0..0................XXXX.0.",
-        ".0000................XXXX.0.",
-        "   .0................XXXX.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery1[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0................oooo.0.",
-        ".0000................oooo.0.",
-        ".0..0................oooo.0.",
-        ".0..0................oooo.0.",
-        ".0..0................oooo.0.",
-        ".0..0................oooo.0.",
-        ".0000................oooo.0.",
-        "   .0................oooo.0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery0[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "   .0.....................0.",
-        ".0000.....................0.",
-        ".0..0.....................0.",
-        ".0..0.....................0.",
-        ".0..0.....................0.",
-        ".0..0.....................0.",
-        ".0000.....................0.",
-        "....0.....................0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-#endif
-    static const char * battery_charge[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "....0.....................0.",
-        ".0000............XX.......0.",
-        ".0..0...........XXXX......0.",
-        ".0..0..XX......XXXXXX.....0.",
-        ".0..0...XXXX..XXXX..XXX...0.",
-        ".0..0.....XXXXXXX.....XX..0.",
-        ".0000.......XXXX..........0.",
-        "....0........XX...........0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    static const char * battery_frame[] = {
-        BATTERY_HEADER
-        "   .........................",
-        "   .00000000000000000000000.",
-        "   .0.....................0.",
-        "....0.....................0.",
-        ".0000.....................0.",
-        ".0..0.....................0.",
-        ".0..0.....................0.",
-        ".0..0.....................0.",
-        ".0..0.....................0.",
-        ".0000.....................0.",
-        "....0.....................0.",
-        "   .0.....................0.",
-        "   .00000000000000000000000.",
-        "   .........................",
-    };
-    icons.add( LVCreateXPMImageSource( battery_charge ) );
-#ifdef NO_BATTERY_GAUGE
-    icons.add( LVCreateXPMImageSource( battery_frame ) );
-#else
-    icons.add( LVCreateXPMImageSource( battery0 ) );
-    icons.add( LVCreateXPMImageSource( battery1 ) );
-    icons.add( LVCreateXPMImageSource( battery2 ) );
-    icons.add( LVCreateXPMImageSource( battery3 ) );
-    icons.add( LVCreateXPMImageSource( battery4 ) );
-    icons.add( LVCreateXPMImageSource( battery5 ) );
-    icons.add( LVCreateXPMImageSource( battery6 ) );
-    icons.add( LVCreateXPMImageSource( battery7 ) );
-    icons.add( LVCreateXPMImageSource( battery8 ) );
-#endif
+    LVRefVec<LVImageSource> icons = getBatteryIcons( false );
     _docview->setBatteryIcons( icons );
-
 
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setShowCover( true );
@@ -661,6 +466,8 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInt
     return env.toJavaProperties(props);
 }
 
+#define PROP_NIGHT_MODE "crengine.night.mode"
+
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    applySettings
@@ -674,7 +481,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
     ReaderViewNative * p = getNative(_env, _this);
 	DocViewCallback callback( _env, p->_docview, _this );
 	CRPropRef props = env.fromJavaProperties(_props);
+	CRPropRef oldProps = p->_docview->propsGetCurrent();
 	p->_docview->propsUpdateDefaults( props );
+	bool oldNightMode = oldProps->getBoolDef(PROP_NIGHT_MODE, false);
+	bool newNightMode = props->getBoolDef(PROP_NIGHT_MODE, false);
+	if ( oldNightMode!=newNightMode ) {
+	    LVRefVec<LVImageSource> icons = getBatteryIcons( newNightMode );
+	    p->_docview->setBatteryIcons( icons );
+	}
 	p->_docview->propsApply( props );
     return JNI_TRUE;
 }
@@ -887,7 +701,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
     CRIntField(v,"pageWidth").set(p->_docview->GetWidth());
     CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
     CRIntField(v,"pageCount").set(p->_docview->getPageCount());
-    CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? 0 : 1);
+    CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? p->_docview->getVisiblePageCount() : 0);
 	return obj;
 }
 

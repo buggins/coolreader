@@ -8,7 +8,7 @@ public class PositionProperties {
 	public int pageWidth;
 	public int pageNumber;
 	public int pageCount;
-	public int pageMode; // 1 for page mode, 0 for scroll mode
+	public int pageMode; // 1, 2 for page mode, 0 for scroll mode
 	
 	
 	

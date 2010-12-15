@@ -166,11 +166,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	static public void toggleDayNightMode( Properties mProperties ) {
-		boolean oldMode = mProperties.getBool(ReaderView.PROP_DISPLAY_INVERSE, false);
+		boolean oldMode = mProperties.getBool(ReaderView.PROP_NIGHT_MODE, false);
 		saveColor(mProperties, oldMode);
 		boolean newMode = !oldMode;
 		restoreColor(mProperties, newMode);
-		mProperties.setBool(ReaderView.PROP_DISPLAY_INVERSE, newMode);
+		mProperties.setBool(ReaderView.PROP_NIGHT_MODE, newMode);
 	}
 	class NightModeOption extends OptionBase {
 		public NightModeOption( String label, String property ) {
@@ -246,12 +246,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
 			text.setText(getString(action.nameId));
 			longtext.setText(getString(longAction.nameId));
-			text.setLongClickable(true);
-			text.setOnClickListener(new View.OnClickListener () {
+			view.setLongClickable(true);
+			view.setOnClickListener(new View.OnClickListener () {
 				@Override
 				public void onClick(View v) {
 					// TODO: i18n
-					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " tap action", propName);
+					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_short), propName);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
@@ -261,11 +261,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					option.onSelect();
 				}
 			});
-			text.setOnLongClickListener(new View.OnLongClickListener () {
+			view.setOnLongClickListener(new View.OnLongClickListener () {
 				@Override
 				public boolean onLongClick(View v) {
 					// TODO: i18n
-					ActionOption option = new ActionOption("Tap Zone " + tapZoneId + " long tap action", propName);
+					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_long), longPropName);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );

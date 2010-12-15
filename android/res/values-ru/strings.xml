@@ -98,4 +98,26 @@
 <string name="dir_sd_card_2">SD карта 2</string>
 <string name="mi_book_back_to_reading">Вернуться к чтению</string>
     <string name="mi_book_root">В корневую директорию</string>
+<string name="action_search">Найти</string>
+    <string name="action_toggle_day_night">День / ночь</string>
+    <string name="action_toc">Содержание</string>
+    <string name="action_file_browser">Открыть книгу</string>
+    <string name="action_pageup_10">Назад на 10 страниц</string>
+    <string name="action_go_first_page">На последнюю страницу</string>
+    <string name="options_app_tap_action_short">Короткое нажатие</string>
+    <string name="options_app_tap_action_long">Длинное нажатие</string>
+    <string name="action_go_percent">Перейти на %</string>
+    <string name="action_recent_books_list">Последние книги</string>
+    <string name="action_none">(нет действия)</string>
+    <string name="action_go_page">Перейти на страницу</string>
+    <string name="action_reader_menu">Меню чтения</string>
+    <string name="options_app_key_actions">Кнопки</string>
+    <string name="action_bookmarks">Закладки</string>
+    <string name="action_exit">Выход</string>
+    <string name="action_go_last_page">На первую страницу</string>
+    <string name="action_options">Настройки</string>
+    <string name="action_pagedown_10">Вперед на 10 страниц</string>
+    <string name="options_app_tapzones_normal">Сенсорный экран</string>
+    <string name="action_pagedown">Следующая страница</string>
+    <string name="action_pageup">Предыдущая страница</string>
 </resources>

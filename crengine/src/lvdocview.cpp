@@ -1086,8 +1086,10 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 	if (m_battery_state == -2)
 		return;
 	LVDrawStateSaver saver(*drawbuf);
-	drawbuf->SetTextColor(0xFFFFFF);
-	drawbuf->SetBackgroundColor(0x000000);
+	int textColor = drawbuf->GetBackgroundColor();
+	int bgColor = drawbuf->GetTextColor();
+	drawbuf->SetTextColor(bgColor);
+	drawbuf->SetBackgroundColor(textColor);
 	bool drawPercent = m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true);
 	LVDrawBatteryIcon(drawbuf, batteryRc, m_battery_state, m_battery_state
 			== -1, m_batteryIcons, drawPercent ? m_batteryFont.get() : NULL);
@@ -1430,7 +1432,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			//    brc.left = brc.right - brc.height()/2;
 			//else
 			brc.left = brc.right - batteryIconWidth - 2;
-			brc.bottom -= 4;
+			brc.bottom -= 5;
 			drawBatteryState(drawbuf, brc, isVertical);
 			info.right = brc.left - info.height() / 2;
 		}

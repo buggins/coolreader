@@ -98,4 +98,8 @@
 <string name="dir_sd_card_2">SD-картка 2</string>
 <string name="mi_book_root">В корневую директорию</string>
     <string name="mi_book_back_to_reading">Вернуться к чтению</string>
+<string name="options_app_tap_action_short">Короткое нажатие</string>
+    <string name="options_app_tap_action_long">Длинное нажатие</string>
+    <string name="options_app_key_actions">Кнопки</string>
+    <string name="options_app_tapzones_normal">Сенсорный экран</string>
 </resources>

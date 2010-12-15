@@ -1059,6 +1059,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_SIZE, "16");
         props.setProperty(PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
+        props.setProperty(PROP_DISPLAY_INVERSE, "0");
         props.applyDefault(PROP_APP_FULLSCREEN, "0");
         props.applyDefault(PROP_APP_SCREEN_BACKLIGHT, "-1");
 		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
@@ -1310,7 +1311,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		PositionProperties currpos = getPositionPropsInternal(null);
 		
-		boolean isPageView = currpos.pageMode==0;
+		boolean isPageView = currpos.pageMode!=0;
 		
 		BitmapInfo currposBitmap = null;
 		if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(currpos) )
@@ -1347,7 +1348,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int cmd1 = offset > 0 ? ReaderCommand.DCMD_PAGEDOWN.nativeId : ReaderCommand.DCMD_PAGEUP.nativeId;
 			int cmd2 = offset > 0 ? ReaderCommand.DCMD_PAGEUP.nativeId : ReaderCommand.DCMD_PAGEDOWN.nativeId;
 			if ( offset<0 )
-				offset = 0;
+				offset = -offset;
 			if ( doCommandInternal(cmd1, offset) ) {
 				// can move to next page
 				PositionProperties nextpos = getPositionPropsInternal(null);
@@ -1497,10 +1498,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						return;
 					int w = currPos.pageWidth;
 					int h = currPos.pageHeight;
-					if ( currPos.pageMode==0 ) {
-						int fromX = dir>0 ? w : 0;
-						int toX = dir>0 ? 0 : w;
-						new PageViewAnimation(fromX, w, dir);
+					int dir2 = dir;
+					if ( currPos.pageMode==2 )
+						if ( dir2==1 )
+							dir2 = 2;
+						else if ( dir2==-1 ) 
+							dir2 = -2;
+					if ( currPos.pageMode!=0 ) {
+						int fromX = dir2>0 ? w : 0;
+						int toX = dir2>0 ? 0 : w;
+						new PageViewAnimation(fromX, w, dir2);
 						if ( currentAnimation!=null ) {
 							currentAnimation.update(toX, h/2);
 							currentAnimation.move(pageFlipAnimationSpeedMs, true);
@@ -1530,10 +1537,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void run() {
 				BackgroundThread.ensureBackground();
 				PositionProperties currPos = getPositionPropsInternal(null);
-				if ( currPos.pageMode==0 ) {
-					int dir = startX > maxX/2 ? 1 : -1;
+				if ( currPos.pageMode!=0 ) {
+					int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
 					int sx = startX;
-					if ( dir==-1 )
+					if ( dir<0 )
 						sx = 0;
 					new PageViewAnimation(sx, maxX, dir);
 				} else {
