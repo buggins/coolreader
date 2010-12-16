@@ -1750,6 +1750,26 @@ bool LVDocView::isTimeChanged() {
 	return false;
 }
 
+/// clears page background
+void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY )
+{
+    drawbuf.SetBackgroundColor(m_backgroundColor);
+    if ( !m_backgroundImage.isNull() ) {
+        // texture
+        LVImageSourceRef tile = LVCreateTileTransform( m_backgroundImage, drawbuf.GetWidth(), drawbuf.GetHeight(), offsetX, offsetY );
+        drawbuf.Draw(tile, 0, 0, drawbuf.GetWidth(), drawbuf.GetHeight());
+    } else {
+        // solid color
+        drawbuf.Clear(m_backgroundColor);
+    }
+    if (drawbuf.GetBitsPerPixel() == 32 && getVisiblePageCount() == 2) {
+        int x = drawbuf.GetWidth() / 2;
+        lUInt32 cl = m_backgroundColor;
+        cl = ((cl & 0xFCFCFC) + 0x404040) >> 1;
+        drawbuf.FillRect(x, 0, x + 1, drawbuf.GetHeight(), cl);
+    }
+}
+
 /// draw to specified buffer
 void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 	LVLock lock(getMutex());
@@ -1760,13 +1780,6 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 	drawbuf.SetBackgroundColor(m_backgroundColor);
 	drawbuf.SetTextColor(m_textColor);
 	//CRLog::trace("Draw() : calling clear()", m_dx, m_dy);
-	drawbuf.Clear(m_backgroundColor);
-	if (drawbuf.GetBitsPerPixel() == 32 && getVisiblePageCount() == 2) {
-		int x = drawbuf.GetWidth() / 2;
-		lUInt32 cl = m_backgroundColor;
-		cl = ((cl & 0xFCFCFC) + 0x404040) >> 1;
-		drawbuf.FillRect(x, 0, x + 1, drawbuf.GetHeight(), cl);
-	}
 
 	if (!m_is_rendered)
 		return;
@@ -1776,7 +1789,8 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 		return;
 	if (isScrollMode()) {
 		drawbuf.SetClipRect(NULL);
-		int cover_height = 0;
+        drawPageBackground(drawbuf, 0, position);
+        int cover_height = 0;
 		if (m_pages.length() > 0 && m_pages[0]->type == PAGE_TYPE_COVER)
 			cover_height = m_pages[0]->height;
 		if (position < cover_height) {
@@ -1799,7 +1813,10 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 		if (page == -1)
 			page = m_pages.FindNearestPage(position, 0);
 		CRLog::trace("found page #%d", page);
-		if (page >= 0 && page < m_pages.length())
+
+        drawPageBackground(drawbuf, (page * 1356) & 0xFFF, 0x1000 - (page * 1356) & 0xFFF);
+
+        if (page >= 0 && page < m_pages.length())
 			drawPageTo(&drawbuf, *m_pages[page], &m_pageRects[0],
 					m_pages.length(), 1);
 		if (pc == 2 && page >= 0 && page + 1 < m_pages.length())

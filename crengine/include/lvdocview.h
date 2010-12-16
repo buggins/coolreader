@@ -338,6 +338,8 @@ private:
     LVRendPageList m_pages;
     LVScrollInfo m_scrollinfo;
     LVImageSourceRef m_defaultCover;
+    LVImageSourceRef m_backgroundImage;
+
 
 protected:
     lString16 m_last_clock;
@@ -513,6 +515,13 @@ public:
     LVImageSourceRef getDefaultCover() const { return m_defaultCover; }
     /// set default cover image (for books w/o cover)
     void setDefaultCover(LVImageSourceRef cover) { m_defaultCover = cover; clearImageCache(); }
+
+    /// get background image
+    LVImageSourceRef getBackgroundImage() const { return m_backgroundImage; }
+    /// set background image
+    void setBackgroundImage(LVImageSourceRef bgImage) { m_backgroundImage = bgImage; clearImageCache(); }
+    /// clears page background
+    void drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY );
 
     // callback functions
     /// set callback

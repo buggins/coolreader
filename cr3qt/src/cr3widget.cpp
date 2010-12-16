@@ -155,6 +155,14 @@ CR3View::CR3View( QWidget *parent)
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
     _docview->setBatteryState( -1 );
+    LVStreamRef stream = LVOpenFileStream("/home/lve/.cr3/textures/fabric.png", LVOM_READ);
+    if ( !stream.isNull() ) {
+        LVImageSourceRef img = LVCreateStreamCopyImageSource(stream);
+        if ( !img.isNull() ) {
+            img = LVCreateUnpackedImageSource(img, 256*256*4, false);
+            _docview->setBackgroundImage(img);
+        }
+    }
     updateDefProps();
     setMouseTracking(true);
 }

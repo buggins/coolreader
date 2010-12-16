@@ -1470,7 +1470,13 @@ public:
 		, _split_x( splitX )
 		, _split_y( splitY )
 	{
-		if ( _split_x<0 || _split_x>=_src_dx )
+        if ( _hTransform == IMG_TRANSFORM_TILE )
+            if ( _split_x>=_src_dx )
+                _split_x %=_src_dx;
+        if ( _vTransform == IMG_TRANSFORM_TILE )
+            if ( _split_y>=_src_dy )
+                _split_y %=_src_dy;
+        if ( _split_x<0 || _split_x>=_src_dx )
 			_split_x = _src_dx / 2;
 		if ( _split_y<0 || _split_y>=_src_dy )
 			_split_y = _src_dy / 2;
@@ -1536,7 +1542,7 @@ bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * da
     case IMG_TRANSFORM_TILE:
         {
             for ( int x=0; x<_dst_dx; x++ )
-                _line[x] = data[x % _src_dx];
+                _line[x] = data[ (x + _src_dx - _split_x) % _src_dx];
         }
         break;
     }
@@ -1573,7 +1579,8 @@ bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * da
         break;
     case IMG_TRANSFORM_TILE:
         {
-            for ( int yy=y; yy<_dst_dy; yy+=_src_dy ) {
+            int y0 = (y + _src_dy - _split_y) % _src_dy;
+            for ( int yy=y0; yy<_dst_dy; yy+=_src_dy ) {
                 res = _callback->OnLineDecoded( obj, yy, _line.get() );
             }
         }
@@ -1589,6 +1596,15 @@ LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWi
 	if ( src.isNull() )
 		return LVImageSourceRef();
     return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, hTransform, vTransform, splitX, splitY ) );
+}
+
+/// creates image which fills area with tiled copy
+LVImageSourceRef LVCreateTileTransform( LVImageSourceRef src, int newWidth, int newHeight, int offsetX, int offsetY )
+{
+    if ( src.isNull() )
+        return LVImageSourceRef();
+    return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, IMG_TRANSFORM_TILE, IMG_TRANSFORM_TILE,
+                                                     offsetX, offsetY ) );
 }
 
 class LVUnpackedImgSource : public LVImageSource, public LVImageDecoderCallback
