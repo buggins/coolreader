@@ -34,6 +34,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int NOOK_KEY_SHIFT_UP = 101;
     public static final int NOOK_KEY_SHIFT_DOWN = 100;
     
+    public static final String PROP_PAGE_BACKGROUND_IMAGE       ="background.image";
+    public static final String PROP_PAGE_BACKGROUND_IMAGE_DAY   ="background.image.day";
+    public static final String PROP_PAGE_BACKGROUND_IMAGE_NIGHT ="background.image.night";
     public static final String PROP_NIGHT_MODE              ="crengine.night.mode";
     public static final String PROP_FONT_COLOR_DAY          ="font.color.day";
     public static final String PROP_BACKGROUND_COLOR_DAY    ="background.color.day";
@@ -242,6 +245,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native boolean findTextInternal( String pattern, int origin, int reverse, int caseInsensitive );
     private native void setBatteryStateInternal( int state );
     private native byte[] getCoverPageDataInternal();
+    private native void setPageBackgroundTextureInternal( byte[] imageBytes );
     
     
     protected int mNativeObject; // used from JNI
@@ -815,7 +819,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Log.v("cr3", "applySettings() " + props);
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false );
 		props.setBool(PROP_SHOW_BATTERY, isFullScreen); 
-		props.setBool(PROP_SHOW_TIME, isFullScreen); 
+		props.setBool(PROP_SHOW_TIME, isFullScreen);
+		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
+		if ( backgroundImageId!=null )
+			setBackgroundTexture(backgroundImageId);
         applySettingsInternal(props);
         syncViewSettings(props);
         drawPage();
@@ -1057,6 +1064,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	else
         		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
         }
+
+        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE, "tx_fabric");
+        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_DAY, "tx_fabric");
+        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "tx_fabric_dark");
         
         props.applyDefault(PROP_FONT_SIZE, "20");
         props.applyDefault(PROP_FONT_FACE, "Droid Sans");
@@ -1081,7 +1092,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return props;
 	}
 	
+	private void setBackgroundTexture( String textureId ) {
+		BackgroundTextureInfo[] textures = mEngine.getAvailableTextures();
+		for ( BackgroundTextureInfo item : textures ) {
+			if ( item.id.equals(textureId) ) {
+				setBackgroundTexture( item );
+			}
+		}
+		setBackgroundTexture( Engine.NO_TEXTURE );
+	}
+
+	private void setBackgroundTexture( BackgroundTextureInfo texture ) {
+		if ( !currentBackgroundTexture.equals(texture) ) {
+			byte[] data = mEngine.getImageData(currentBackgroundTexture);
+			setPageBackgroundTextureInternal(data);
+		}
+	}
+	
 	private static boolean DEBUG_RESET_OPTIONS = false;
+	BackgroundTextureInfo currentBackgroundTexture = Engine.NO_TEXTURE;
 	class CreateViewTask extends Task
 	{
         Properties props = new Properties();
@@ -1096,6 +1125,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 			Log.d("cr3", "CreateViewTask - in background thread");
 			createInternal();
+//			BackgroundTextureInfo[] textures = mEngine.getAvailableTextures();
+//			byte[] data = mEngine.getImageData(textures[3]);
+			byte[] data = mEngine.getImageData(currentBackgroundTexture);
+			setPageBackgroundTextureInternal(data);
+			
 			//File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
 			//historyDir.mkdirs();

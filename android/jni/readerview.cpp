@@ -786,3 +786,27 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPag
     	CRLog::debug("getCoverPageDataInternal() : cover page data not found");
     return array;
 }
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    setPageBackgroundTextureInternal
+ * Signature: ([B)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal
+  (JNIEnv * _env, jobject _this, jbyteArray jdata)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    LVImageSourceRef img;
+    if ( jdata!=NULL ) {
+        LVStreamRef stream = env.jbyteArrayToStream( jdata );
+        if ( !stream.isNull() ) {
+            img = LVCreateStreamCopyImageSource(stream);
+            if ( !img.isNull() ) {
+                img = LVCreateUnpackedImageSource(img, 256*256*4, false);
+                p->_docview->setBackgroundImage(img);
+            }
+        }
+    }
+}
+

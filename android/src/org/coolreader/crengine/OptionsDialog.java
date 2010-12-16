@@ -216,6 +216,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			myView = view;
 			TextView labelView = (TextView)view.findViewById(R.id.option_label);
 			CheckBox valueView = (CheckBox)view.findViewById(R.id.option_value_cb);
+			valueView.setFocusable(false);
 			valueView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 					@Override
 					public void onCheckedChanged(CompoundButton arg0,
@@ -234,10 +235,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	static public void saveColor( Properties mProperties, boolean night )
 	{
 		if ( night ) {
+			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0x000000));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0xFFFFFF));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
 		} else {
+			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0x000000));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
@@ -246,15 +249,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	static public void restoreColor( Properties mProperties,  boolean night )
 	{
 		if ( night ) {
+			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, 0x000000));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_NIGHT, 0xFFFFFF));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, 70));
 		} else {
+			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_DAY, 0x000000));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
 		}
 	}
+
 	static public void toggleDayNightMode( Properties mProperties ) {
 		boolean oldMode = mProperties.getBool(ReaderView.PROP_NIGHT_MODE, false);
 		saveColor(mProperties, oldMode);
@@ -262,6 +268,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		restoreColor(mProperties, newMode);
 		mProperties.setBool(ReaderView.PROP_NIGHT_MODE, newMode);
 	}
+
 	class NightModeOption extends BoolOption {
 		public NightModeOption( String label, String property ) {
 			super(label, property);
@@ -602,6 +609,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
+	class TextureOptions extends ListOption
+	{
+		public TextureOptions( String label )
+		{
+			super( label, ReaderView.PROP_PAGE_BACKGROUND_IMAGE );
+			setDefaultValue("(NONE)");
+			BackgroundTextureInfo[] textures = mReaderView.getEngine().getAvailableTextures();
+			for ( BackgroundTextureInfo item : textures )
+				add( item.id, item.name );
+		}
+	}
+	
 	public OptionsDialog( Activity activity, ReaderView readerView, String[] fontFaces )
 	{
 		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel);
@@ -741,6 +760,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsStyles.add(new NightModeOption(getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
 		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
+		mOptionsStyles.add(new TextureOptions(getString(R.string.options_background_texture)));
+
 		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 		mOptionsStyles.add(new ListOption(getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
 		//

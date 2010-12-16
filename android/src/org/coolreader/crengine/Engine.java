@@ -367,7 +367,7 @@ public class Engine {
 		}
 	}
 	
-	public byte[] loadResourceBytes( InputStream is )
+	public static byte[] loadResourceBytes( InputStream is )
 	{
 		try {
 			int available = is.available();
@@ -476,6 +476,7 @@ public class Engine {
     	if ( currentHyphDict==dict )
     		return false;
     	currentHyphDict = dict;
+    	//byte[] image = loadResourceBytes(R.drawable.tx_old_book);
     	BackgroundThread.backgroundExecutor.execute( new Runnable() {
     		public void run() {
 				byte[] data = null;
@@ -676,5 +677,26 @@ public class Engine {
 			}
 		}
 	}
+
+	public static final BackgroundTextureInfo NO_TEXTURE = new BackgroundTextureInfo("(NONE)", "No texture", 0); 
+	private static final BackgroundTextureInfo[] internalTextures = {
+		NO_TEXTURE,		
+		new BackgroundTextureInfo("tx_fabric", "Fabric", R.drawable.tx_fabric),		
+		new BackgroundTextureInfo("tx_fabric_dark", "Fabric (dark)", R.drawable.tx_fabric_dark),		
+		new BackgroundTextureInfo("tx_fabric_indigo_fibre", "Fabric fibre", R.drawable.tx_fabric_indigo_fibre),		
+		new BackgroundTextureInfo("tx_fabric_indigo_fibre_dark", "Fabric fibre (dark)", R.drawable.tx_fabric_indigo_fibre_dark),		
+	};
 	
+	public BackgroundTextureInfo[] getAvailableTextures() {
+		return internalTextures;
+	}
+
+	public byte[] getImageData( BackgroundTextureInfo texture ) {
+		if ( texture.resourceId!=0 ) {
+			byte[] data = loadResourceBytes(texture.resourceId);
+			return data;
+		}
+		return null;
+	}
+
 }

@@ -62,6 +62,7 @@
 <string name="options_color_hue">Hue</string>
 <string name="options_color_saturation">Saturation</string>
 <string name="options_color_brightness">Brightness</string>
+<string name="options_background_texture">Background texture</string>
 <string name="options_hyphenation_dictionary">Hyphenation dictionary</string>
 <string name="options_page_show_titlebar">Show title bar</string>
 <string name="options_page_footnotes">Footnotes</string>

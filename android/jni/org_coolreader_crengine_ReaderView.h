@@ -19,10 +19,8 @@ extern "C" {
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_UP 101L
 #undef org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN 100L
-#undef org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE
-#define org_coolreader_crengine_ReaderView_GC_PAGE_IMAGE 0L
-#undef org_coolreader_crengine_ReaderView_GC_INTERVAL
-#define org_coolreader_crengine_ReaderView_GC_INTERVAL 1L
+#undef org_coolreader_crengine_ReaderView_DEF_PAGE_FLIP_MS
+#define org_coolreader_crengine_ReaderView_DEF_PAGE_FLIP_MS 500L
 #undef org_coolreader_crengine_ReaderView_DEBUG_ANIMATION
 #define org_coolreader_crengine_ReaderView_DEBUG_ANIMATION 0L
 /*
@@ -168,6 +166,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateIn
  */
 JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPageDataInternal
   (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    setPageBackgroundTextureInternal
+ * Signature: ([B)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal
+  (JNIEnv *, jobject, jbyteArray);
 
 #ifdef __cplusplus
 }
