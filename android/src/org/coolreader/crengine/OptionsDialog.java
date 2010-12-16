@@ -225,6 +225,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			TextView labelView = (TextView)view.findViewById(R.id.option_label);
 			CheckBox valueView = (CheckBox)view.findViewById(R.id.option_value_cb);
 			valueView.setFocusable(false);
+			labelView.setText(label);
+			valueView.setChecked(getValueBoolean());
 			valueView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 					@Override
 					public void onCheckedChanged(CompoundButton arg0,
@@ -232,8 +234,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 						onSelect();
 					}
 				});
-			labelView.setText(label);
-			valueView.setChecked(getValueBoolean());
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
 			icon.setImageResource(iconId);
 			return view;
