@@ -804,9 +804,9 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackground
             img = LVCreateStreamCopyImageSource(stream);
             if ( !img.isNull() ) {
                 img = LVCreateUnpackedImageSource(img, 256*256*4, false);
-                p->_docview->setBackgroundImage(img);
             }
         }
     }
+    p->_docview->setBackgroundImage(img);
 }
 

@@ -100,10 +100,15 @@ public class BaseDialog extends Dialog {
 	protected View createLayout( View view )
 	{
         LayoutInflater mInflater = LayoutInflater.from(getContext());
-        View layout = mInflater.inflate(R.layout.base_dialog, null);
+        ViewGroup layout = (ViewGroup)mInflater.inflate(R.layout.base_dialog, null);
         buttonsLayout = (ViewGroup)layout.findViewById(R.id.base_dialog_buttons_view);
-        if ( buttonsLayout!=null )
-        	createButtonsPane(buttonsLayout);
+        if ( buttonsLayout!=null ) {
+            if ( mPositiveButtonText!=0 || mNegativeButtonText!=0 ) {
+            	createButtonsPane(buttonsLayout);
+            } else {
+            	layout.removeView(buttonsLayout);
+            }
+        }
         contentsLayout =  (ViewGroup)layout.findViewById(R.id.base_dialog_content_view);
         contentsLayout.addView(view);
 		return layout;

@@ -435,6 +435,36 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	boolean VOLUME_KEYS_ZOOM = false;
 	
 	private boolean backKeyDownHere = false;
+
+	
+	
+	@Override
+	protected void onFocusChanged(boolean gainFocus, int direction,
+			Rect previouslyFocusedRect) {
+		trackedKeyEvent = null;
+		super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
+	}
+	
+	private boolean startTrackingKey( KeyEvent event ) {
+		if ( event.getRepeatCount()==0 ) {
+			trackedKeyEvent = event;
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isTracked( KeyEvent event ) {
+		return trackedKeyEvent == event;
+	}
+
+	@Override
+	public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
+		Log.v("cr3", "onKeyMultiple( keyCode=" + keyCode + ", repeatCount=" + repeatCount + ", event=" + event);
+		return super.onKeyMultiple(keyCode, repeatCount, event);
+	}
+
+
+	private KeyEvent trackedKeyEvent = null; 
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -1065,10 +1095,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
         }
 
-        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE, "tx_fabric");
-        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_DAY, "tx_fabric");
-        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "tx_metall_old_blue_dark");
-        
         props.applyDefault(PROP_FONT_SIZE, "20");
         props.applyDefault(PROP_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
@@ -1084,7 +1110,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.applyDefault(PROP_APP_SCREEN_ORIENTATION, "0");
 		props.applyDefault(PROP_PAGE_ANIMATION, "1");
 		props.applyDefault(PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
-		
+
+        props.applyDefault(PROP_NIGHT_MODE, "0");
+        if ( props.getBool(PROP_NIGHT_MODE, false) )
+        	props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
+        else
+        	props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
+        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
+        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
+        
 		
 		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
@@ -1097,6 +1131,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		for ( BackgroundTextureInfo item : textures ) {
 			if ( item.id.equals(textureId) ) {
 				setBackgroundTexture( item );
+				return;
 			}
 		}
 		setBackgroundTexture( Engine.NO_TEXTURE );
@@ -1104,6 +1139,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void setBackgroundTexture( BackgroundTextureInfo texture ) {
 		if ( !currentBackgroundTexture.equals(texture) ) {
+		Log.d("cr3", "setBackgroundTexture( " + texture + " )");
 			currentBackgroundTexture = texture;
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
 			setPageBackgroundTextureInternal(data);
@@ -2323,6 +2359,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	    	if ( mInitialized ) {
         	    		destroyInternal();
         	    		mInitialized = false;
+        	    		currentBackgroundTexture = Engine.NO_TEXTURE;
         	    	}
         		}
         	});

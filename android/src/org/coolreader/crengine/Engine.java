@@ -681,6 +681,8 @@ public class Engine {
 	public static final BackgroundTextureInfo NO_TEXTURE = new BackgroundTextureInfo("(NONE)", "No texture", 0); 
 	private static final BackgroundTextureInfo[] internalTextures = {
 		NO_TEXTURE,		
+		new BackgroundTextureInfo("tx_wood", "Wood", R.drawable.tx_wood),		
+		new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)", R.drawable.tx_wood_dark),		
 		new BackgroundTextureInfo("tx_fabric", "Fabric", R.drawable.tx_fabric),		
 		new BackgroundTextureInfo("tx_fabric_dark", "Fabric (dark)", R.drawable.tx_fabric_dark),		
 		new BackgroundTextureInfo("tx_fabric_indigo_fibre", "Fabric fibre", R.drawable.tx_fabric_indigo_fibre),		
@@ -707,9 +709,9 @@ public class Engine {
 		new BackgroundTextureInfo("tx_sand_dark", "Sand (dark)", R.drawable.tx_sand_dark),		
 		new BackgroundTextureInfo("tx_stones", "Stones", R.drawable.tx_stones),		
 		new BackgroundTextureInfo("tx_stones_dark", "Stones (dark)", R.drawable.tx_stones_dark),		
-		new BackgroundTextureInfo("tx_wood", "Wood", R.drawable.tx_wood),		
-		new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)", R.drawable.tx_wood_dark),		
 	};
+	public static final String DEF_DAY_BACKGROUND_TEXTURE = "tx_fabric";
+	public static final String DEF_NIGHT_BACKGROUND_TEXTURE = "tx_metall_old_blue_dark";
 	
 	public BackgroundTextureInfo[] getAvailableTextures() {
 		return internalTextures;
