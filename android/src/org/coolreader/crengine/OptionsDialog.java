@@ -122,7 +122,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		protected void refreshItem()
 		{
 			getView(null, null).invalidate();
-			optionsListView.refresh();
+			if ( optionsListView!=null )
+				optionsListView.refresh();
 		}
 
 		public View getView(View convertView, ViewGroup parent) {
@@ -221,7 +222,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					@Override
 					public void onCheckedChanged(CompoundButton arg0,
 							boolean checked) {
-						onSelect();
+						//onSelect();
 					}
 				});
 			labelView.setText(label);
@@ -635,6 +636,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public void refresh()
 		{
 			//setAdapter(mAdapter);
+			for ( OptionBase item : mOptions ) {
+				item.refreshItem();
+			}
 			invalidate();
 		}
 		public OptionsListView add( OptionBase option ) {
@@ -788,6 +792,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(getString(R.string.options_app_key_actions)));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
+		
+		mOptionsStyles.refresh();
+		mOptionsPage.refresh();
+		mOptionsApplication.refresh();
 		
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));

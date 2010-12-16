@@ -1067,7 +1067,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
         props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE, "tx_fabric");
         props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_DAY, "tx_fabric");
-        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "tx_fabric_dark");
+        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "tx_metall_old_blue_dark");
         
         props.applyDefault(PROP_FONT_SIZE, "20");
         props.applyDefault(PROP_FONT_FACE, "Droid Sans");
@@ -1104,6 +1104,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void setBackgroundTexture( BackgroundTextureInfo texture ) {
 		if ( !currentBackgroundTexture.equals(texture) ) {
+			currentBackgroundTexture = texture;
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
 			setPageBackgroundTextureInternal(data);
 		}
