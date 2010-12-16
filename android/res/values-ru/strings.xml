@@ -118,6 +118,7 @@
     <string name="action_options">Настройки</string>
     <string name="action_pagedown_10">Вперед на 10 страниц</string>
     <string name="options_app_tapzones_normal">Сенсорный экран</string>
+    <string name="options_app_trackball_disable">Отключить трэкболл</string>
     <string name="action_pagedown">Следующая страница</string>
     <string name="action_pageup">Предыдущая страница</string>
 </resources>

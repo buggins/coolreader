@@ -57,7 +57,9 @@
 /// set t 1 to log storage reads/writes
 #define DEBUG_DOM_STORAGE 0
 /// set to 1 to enable crc check of all blocks of cache file on open
+#ifndef ENABLE_CACHE_FILE_CONTENTS_VALIDATION
 #define ENABLE_CACHE_FILE_CONTENTS_VALIDATION 0
+#endif
 
 #define RECT_DATA_CHUNK_ITEMS_SHIFT 11
 #define STYLE_DATA_CHUNK_ITEMS_SHIFT 12

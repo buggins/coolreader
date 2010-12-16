@@ -90,6 +90,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
     public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
     public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";
+    public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
     
     public enum ViewMode
     {
@@ -519,6 +520,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public boolean onTrackballEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
 		Log.d("cr3", "onTrackballEvent(" + event + ")");
+		if ( !mSettings.getBool(PROP_APP_TRACKBALL_DISABLED, false) ) {
+			Log.d("cr3", "trackball is disabled in settings");
+			return true;
+		}
 		return super.onTrackballEvent(event);
 	}
 	

@@ -97,6 +97,7 @@
 <string name="options_app_backlight_screen_default">Default</string>
 <string name="options_app_tapzones_normal">Tap zone actions</string>
 <string name="options_app_key_actions">Key actions</string>
+<string name="options_app_trackball_disable">Disable trackball</string>
 <string name="dir_sd_card_2">SD Card 2</string>
 <string name="mi_book_back_to_reading">Back to reading</string>
     <string name="mi_book_root">Show root directory</string>
