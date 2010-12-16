@@ -122,6 +122,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		protected void refreshItem()
 		{
 			getView(null, null).invalidate();
+			//if ( optionsListView!=null )
+			//	optionsListView.refresh();
+		}
+
+		protected void refreshList()
+		{
+			getView(null, null).invalidate();
 			if ( optionsListView!=null )
 				optionsListView.refresh();
 		}
@@ -146,7 +153,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 
 		public String getValueLabel() { return mProperties.getProperty(property); }
-		public void onSelect() { refreshItem(); }
+		public void onSelect() { refreshList(); }
 	}
 	
 	class ColorOption extends OptionBase {
@@ -161,7 +168,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			ColorPickerDialog dlg = new ColorPickerDialog(getOwnerActivity(), new OnColorChangedListener() {
 				public void colorChanged(int color) {
 					mProperties.setColor(property, color);
-					refreshItem();
+					refreshList();
 				}
 			}, mProperties.getColor(property, defColor), label);
 			dlg.show();
@@ -199,7 +206,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String getValueLabel() { return getValueBoolean()  ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
 		public void onSelect() { 
 			mProperties.setProperty(property, "1".equals(mProperties.getProperty(property)) ? "0" : "1");
-			refreshItem();
+			refreshList();
 		}
 		public BoolOption setInverse() { inverse = true; return this; }
 		public int getItemViewType() {
@@ -222,7 +229,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					@Override
 					public void onCheckedChanged(CompoundButton arg0,
 							boolean checked) {
-						//onSelect();
+						onSelect();
 					}
 				});
 			labelView.setText(label);
@@ -276,7 +283,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 		public void onSelect() { 
 			toggleDayNightMode(mProperties);
-			refreshItem();
+			refreshList();
 		}
 	}
 	
@@ -590,7 +597,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		
 		public void onClick( Pair item ) {
 			mProperties.setProperty(property, item.value);
-			refreshItem();
+			refreshList();
 			if ( onChangeHandler!=null )
 				onChangeHandler.run();
 			if ( optionsListView!=null )
