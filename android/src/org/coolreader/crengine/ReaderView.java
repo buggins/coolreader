@@ -518,9 +518,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	@Override
 	public boolean onTrackballEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
 		Log.d("cr3", "onTrackballEvent(" + event + ")");
-		if ( !mSettings.getBool(PROP_APP_TRACKBALL_DISABLED, false) ) {
+		if ( mSettings.getBool(PROP_APP_TRACKBALL_DISABLED, false) ) {
 			Log.d("cr3", "trackball is disabled in settings");
 			return true;
 		}

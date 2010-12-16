@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|left"
         android:layout_marginRight="8dip"
-        android:layout_marginLeft="4dip"
+        android:layout_marginLeft="2dip"
         />
 
     <LinearLayout android:id="@+id/option_item_text_body"

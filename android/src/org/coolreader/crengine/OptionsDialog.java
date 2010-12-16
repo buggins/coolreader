@@ -18,6 +18,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -80,8 +83,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	OptionsListView mOptionsPage;
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
+
+	private final int OPTION_VIEW_TYPE_NORMAL = 0;
+	private final int OPTION_VIEW_TYPE_BOOLEAN = 1;
+	private final int OPTION_VIEW_TYPE_COLOR = 2;
+	private final int OPTION_VIEW_TYPE_COUNT = 3;
 	
 	class OptionBase {
+		protected View myView;
 		public String label;
 		public String property;
 		public String defaultValue;
@@ -105,8 +114,38 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public void setOnChangeHandler( Runnable handler ) {
 			onChangeHandler = handler;
 		}
+
+		public int getItemViewType() {
+			return OPTION_VIEW_TYPE_NORMAL;
+		}
+
+		protected void refreshItem()
+		{
+			getView(null, null).invalidate();
+			optionsListView.refresh();
+		}
+
+		public View getView(View convertView, ViewGroup parent) {
+			View view;
+			convertView = myView;
+			if ( convertView==null ) {
+				//view = new TextView(getContext());
+				view = mInflater.inflate(R.layout.option_item, null);
+			} else {
+				view = (View)convertView;
+			}
+			myView = view;
+			TextView labelView = (TextView)view.findViewById(R.id.option_label);
+			TextView valueView = (TextView)view.findViewById(R.id.option_value);
+			labelView.setText(label);
+			valueView.setText(getValueLabel());
+			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+			icon.setImageResource(iconId);
+			return view;
+		}
+
 		public String getValueLabel() { return mProperties.getProperty(property); }
-		public void onSelect() { }
+		public void onSelect() { refreshItem(); }
 	}
 	
 	class ColorOption extends OptionBase {
@@ -121,10 +160,32 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			ColorPickerDialog dlg = new ColorPickerDialog(getOwnerActivity(), new OnColorChangedListener() {
 				public void colorChanged(int color) {
 					mProperties.setColor(property, color);
-					optionsListView.refresh();
+					refreshItem();
 				}
 			}, mProperties.getColor(property, defColor), label);
 			dlg.show();
+		}
+		public int getItemViewType() {
+			return OPTION_VIEW_TYPE_COLOR;
+		}
+		public View getView(View convertView, ViewGroup parent) {
+			View view;
+			convertView = myView;
+			if ( convertView==null ) {
+				//view = new TextView(getContext());
+				view = mInflater.inflate(R.layout.option_item_color, null);
+			} else {
+				view = (View)convertView;
+			}
+			myView = view;
+			TextView labelView = (TextView)view.findViewById(R.id.option_label);
+			ImageView valueView = (ImageView)view.findViewById(R.id.option_value_color);
+			labelView.setText(label);
+			int cl = mProperties.getColor(property, defColor);
+			valueView.setBackgroundColor(cl);
+			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+			icon.setImageResource(iconId);
+			return view;
 		}
 	}
 	
@@ -133,12 +194,41 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public BoolOption( String label, String property ) {
 			super(label, property);
 		}
-		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ^ inverse  ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
+		private boolean getValueBoolean() { return "1".equals(mProperties.getProperty(property)) ^ inverse; }
+		public String getValueLabel() { return getValueBoolean()  ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
 		public void onSelect() { 
 			mProperties.setProperty(property, "1".equals(mProperties.getProperty(property)) ? "0" : "1");
-			optionsListView.refresh();
+			refreshItem();
 		}
 		public BoolOption setInverse() { inverse = true; return this; }
+		public int getItemViewType() {
+			return OPTION_VIEW_TYPE_BOOLEAN;
+		}
+		public View getView(View convertView, ViewGroup parent) {
+			View view;
+			convertView = myView;
+			if ( convertView==null ) {
+				//view = new TextView(getContext());
+				view = mInflater.inflate(R.layout.option_item_boolean, null);
+			} else {
+				view = (View)convertView;
+			}
+			myView = view;
+			TextView labelView = (TextView)view.findViewById(R.id.option_label);
+			CheckBox valueView = (CheckBox)view.findViewById(R.id.option_value_cb);
+			valueView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+					@Override
+					public void onCheckedChanged(CompoundButton arg0,
+							boolean checked) {
+						onSelect();
+					}
+				});
+			labelView.setText(label);
+			valueView.setChecked(getValueBoolean());
+			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+			icon.setImageResource(iconId);
+			return view;
+		}
 	}
 
 	static public void saveColor( Properties mProperties, boolean night )
@@ -172,18 +262,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		restoreColor(mProperties, newMode);
 		mProperties.setBool(ReaderView.PROP_NIGHT_MODE, newMode);
 	}
-	class NightModeOption extends OptionBase {
+	class NightModeOption extends BoolOption {
 		public NightModeOption( String label, String property ) {
 			super(label, property);
 		}
-		public String getValueLabel() { return "1".equals(mProperties.getProperty(property)) ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
 		public void onSelect() { 
-			boolean oldMode = mProperties.getBool(property, false);
-			saveColor(mProperties, oldMode);
-			boolean newMode = !oldMode;
-			restoreColor(mProperties, newMode);
-			mProperties.setBool(property, newMode);
-			optionsListView.refresh();
+			toggleDayNightMode(mProperties);
+			refreshItem();
 		}
 	}
 	
@@ -374,7 +459,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String getValueLabel() { return findValueLabel(mProperties.getProperty(property)); }
 		
 		public void onSelect() {
-			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
+			final BaseDialog dlg = new BaseDialog(getOwnerActivity(), 0, 0);
+			//AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
 			dlg.setTitle(label);
 
 			final ListView listView = new ListView(getContext()) {
@@ -481,23 +567,22 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			listView.setAdapter(listAdapter);
 			listView.setSelection(selItem);
 			dlg.setView(listView);
-			final AlertDialog d = dlg.create();
+			//final AlertDialog d = dlg.create();
 			listView.setOnItemClickListener(new OnItemClickListener() {
 
 				public void onItemClick(AdapterView<?> adapter, View listview,
 						int position, long id) {
 					Pair item = list.get(position);
 					onClick(item);
-					d.dismiss();
+					dlg.dismiss();
 				}
 			});
-
-			
-			d.show();
+			dlg.show();
 		}
 		
 		public void onClick( Pair item ) {
 			mProperties.setProperty(property, item.value);
+			refreshItem();
 			if ( onChangeHandler!=null )
 				onChangeHandler.run();
 			if ( optionsListView!=null )
@@ -530,7 +615,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		private ListAdapter mAdapter;
 		public void refresh()
 		{
-			setAdapter(mAdapter);
+			//setAdapter(mAdapter);
 			invalidate();
 		}
 		public OptionsListView add( OptionBase option ) {
@@ -570,29 +655,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				}
 
 				public int getItemViewType(int position) {
-					return 0;
+//					OptionBase item = mOptions.get(position);
+//					return item.getItemViewType();
+					return position;
 				}
 
 				
 				public View getView(int position, View convertView, ViewGroup parent) {
-					View view;
-					if ( convertView==null ) {
-						//view = new TextView(getContext());
-						view = mInflater.inflate(R.layout.option_item, null);
-					} else {
-						view = (View)convertView;
-					}
-					TextView labelView = (TextView)view.findViewById(R.id.option_label);
-					TextView valueView = (TextView)view.findViewById(R.id.option_value);
-					labelView.setText(mOptions.get(position).label);
-					valueView.setText(mOptions.get(position).getValueLabel());
-					ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-					icon.setImageResource(mOptions.get(position).iconId);
-					return view;
+					OptionBase item = mOptions.get(position);
+					return item.getView(convertView, parent);
 				}
 
 				public int getViewTypeCount() {
-					return 1;
+					//return OPTION_VIEW_TYPE_COUNT;
+					return mOptions.size() > 0 ? mOptions.size() : 1;
 				}
 
 				public boolean hasStableIds() {
