@@ -122,4 +122,8 @@
     <string name="action_reader_menu">Reader Menu</string>
     <string name="options_app_tap_action_short">Tap action</string>
     <string name="options_app_tap_action_long">Long tap action</string>
+<string name="action_touch_screen_toggle_lock">Lock/unlock touch screen</string>
+    <string name="action_touch_screen_disabled_toast">Touch screen is locked</string>
+    <string name="action_touch_screen_enabled_toast">Touch screen is unlocked</string>
+    <string name="action_repeat">(autorepeat)</string>
 </resources>

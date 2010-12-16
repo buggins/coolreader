@@ -294,7 +294,7 @@ public class Engine {
 	
 	public void hideProgress()
 	{
-		Log.v("cr3", "hideProgress() is called");
+		//Log.v("cr3", "hideProgress() is called");
 		mBackgroundThread.executeGUI( new Runnable() {
 			public void run() {
 				// hide progress
@@ -305,7 +305,7 @@ public class Engine {
 					progressIcon = null;
 					mProgress.dismiss();
 					mProgress = null;
-					Log.v("cr3", "hideProgress() - in GUI thread");
+					//Log.v("cr3", "hideProgress() - in GUI thread");
 				}
 			}
 		});

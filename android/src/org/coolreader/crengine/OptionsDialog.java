@@ -292,11 +292,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	}
 	
 	class ActionOption extends ListOption {
-		public ActionOption( String label, String property ) {
+		public ActionOption( String label, String property, boolean isTap, boolean allowRepeat ) {
 			super(label, property);
 			ReaderAction[] actions = ReaderAction.AVAILABLE_ACTIONS;
 			for ( ReaderAction a : actions )
-				add(a.id, getString(a.nameId));
+				if ( !isTap || a.mayAssignOnTap() )
+					add(a.id, getString(a.nameId));
+			if ( allowRepeat )
+				add(ReaderAction.REPEAT.id, getString(ReaderAction.REPEAT.nameId));
 			if ( mProperties.getProperty(property)==null )
 				mProperties.setProperty(property, ReaderAction.NONE.id);
 		}
@@ -309,8 +312,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		private void addKey( OptionsListView list, int keyCode, String keyName ) {
 			final String propName = property + "." + keyCode;
 			final String longPropName = property + ".long." + keyCode;
-			list.add(new ActionOption(keyName, propName));
-			list.add(new ActionOption(keyName + " (long press)", longPropName));
+			list.add(new ActionOption(keyName, propName, false, false));
+			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
 		}
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
@@ -355,7 +358,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				@Override
 				public void onClick(View v) {
 					// TODO: i18n
-					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_short), propName);
+					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_short), propName, true, false);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
@@ -369,7 +372,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				@Override
 				public boolean onLongClick(View v) {
 					// TODO: i18n
-					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_long), longPropName);
+					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_long), longPropName, true, true);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );

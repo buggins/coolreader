@@ -651,6 +651,12 @@ public class CoolReader extends Activity
 	    return true;
 	}
 
+	public void showToast( int stringResourceId )
+	{
+		String s = getString(stringResourceId);
+		if ( s!=null )
+			showToast(s);
+	}
 	public void showToast( String msg )
 	{
 		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);

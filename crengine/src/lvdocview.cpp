@@ -433,7 +433,7 @@ void LVDocView::checkRender() {
 		clearImageCache();
 		m_is_rendered = true;
 		_posIsSet = false;
-		CRLog::trace("LVDocView::checkRender() compeleted");
+		//CRLog::trace("LVDocView::checkRender() compeleted");
 	}
 }
 
@@ -1809,10 +1809,10 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 				m_dy, &m_markRanges);
 	} else {
 		int pc = getVisiblePageCount();
-		CRLog::trace("searching for page with offset=%d", position);
+		//CRLog::trace("searching for page with offset=%d", position);
 		if (page == -1)
 			page = m_pages.FindNearestPage(position, 0);
-		CRLog::trace("found page #%d", page);
+		//CRLog::trace("found page #%d", page);
 
         drawPageBackground(drawbuf, (page * 1356) & 0xFFF, 0x1000 - (page * 1356) & 0xFFF);
 

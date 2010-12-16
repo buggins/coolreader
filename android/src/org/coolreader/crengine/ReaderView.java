@@ -106,6 +106,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public enum ReaderCommand
     {
     	DCMD_NONE(0),
+    	DCMD_REPEAT(1), // repeat last action
+    	
     	//definitions from crengine/include/lvdocview.h
     	DCMD_BEGIN(100),
     	DCMD_LINEUP(101),
@@ -154,6 +156,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_OPTIONS_DIALOG(2010),
     	DCMD_TOGGLE_DAY_NIGHT_MODE(2011),
     	DCMD_READER_MENU(2012),
+    	DCMD_TOGGLE_TOUCH_SCREEN_LOCK(2013),
     	;
     	
     	private final int nativeId;
@@ -383,39 +386,33 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	public final int LONG_KEYPRESS_TIME = 900;
+	public final int AUTOREPEAT_KEYPRESS_TIME = 700;
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		if ( keyCode!=KeyEvent.KEYCODE_BACK )
-			backKeyDownHere = false;
+		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
+			if ( !enableVolumeKeys )
+				return super.onKeyUp(keyCode, event);
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			return false;
 		}
+		boolean tracked = isTracked(event);
+		if ( keyCode!=KeyEvent.KEYCODE_BACK )
+			backKeyDownHere = false;
 		mActivity.onUserActivity();
 
-		if ( keyCode==KeyEvent.KEYCODE_BACK && !backKeyDownHere )
+		if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
 			return true;
 		backKeyDownHere = false;
-		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
-			if ( !enableVolumeKeys )
-				return super.onKeyUp(keyCode, event);
 		
 		// apply orientation
 		keyCode = overrideKey( keyCode );
-		
 		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
-		ReaderAction action;
-		if ( isLongPress )
-			action = ReaderAction.findForLongKey( keyCode, mSettings );
-		else
-			action = ReaderAction.findForKey( keyCode, mSettings );
-		if ( !action.isNone() ) {
-			Log.d("cr3", "onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
-			onAction( action );
-			return true;
-		}
-		
-		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
+		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+		stopTracking();
+
+		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
 			// goto/set shortcut bookmark
 			int shortcut = keyCode - KeyEvent.KEYCODE_0;
 			if ( shortcut==0 )
@@ -427,6 +424,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return true;
 		} else if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
 			return enableVolumeKeys;
+		if ( action.isNone() || !tracked ) {
+			return super.onKeyUp(keyCode, event);
+		}
+		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
+			// already processed by onKeyDown()
+			return true;
+		}
+		
+		if ( isLongPress )
+			action = longAction;
+		if ( !action.isNone() ) {
+			Log.d("cr3", "onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
+			onAction( action );
+			return true;
+		}
+		
 
 		// not processed
 		return super.onKeyUp(keyCode, event);
@@ -441,20 +454,30 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	@Override
 	protected void onFocusChanged(boolean gainFocus, int direction,
 			Rect previouslyFocusedRect) {
-		trackedKeyEvent = null;
+		stopTracking();
 		super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
 	}
 	
 	private boolean startTrackingKey( KeyEvent event ) {
 		if ( event.getRepeatCount()==0 ) {
+			stopTracking();
 			trackedKeyEvent = event;
 			return true;
 		}
 		return false;
 	}
+	
+	private void stopTracking() {
+		trackedKeyEvent = null;
+		actionToRepeat = null;
+		repeatActionActive = false;
+	}
 
 	private boolean isTracked( KeyEvent event ) {
-		return trackedKeyEvent == event;
+		if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime() == event.getDownTime() )
+			return true;
+		stopTracking();
+		return false;
 	}
 
 	@Override
@@ -465,43 +488,90 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 
 	private KeyEvent trackedKeyEvent = null; 
+	private ReaderAction actionToRepeat = null;
+	private boolean repeatActionActive = false;
 	
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	public boolean onKeyDown(int keyCode, final KeyEvent event) {
 		backKeyDownHere = false;
-		Log.d("cr3", "onKeyDown("+keyCode + ", " + event +")");
+		if ( event.getRepeatCount()==0 )
+			Log.v("cr3", "onKeyDown("+keyCode + ", " + event +")");
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			return false;
 		}
 		mActivity.onUserActivity();
-		keyCode = overrideKey( keyCode );
-		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
-			// will process in keyup handler
-			return true;
-		}
 
-		if ( keyCode==KeyEvent.KEYCODE_BACK )
-			backKeyDownHere = true;
     	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN )
     		if (!enableVolumeKeys)
     			return super.onKeyDown(keyCode, event);
-		
+    	
+		keyCode = overrideKey( keyCode );
 		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
-		if ( !action.isNone() ) {
-			// will process in onKeyUp
+		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+
+    	if ( event.getRepeatCount()>0 ) {
+    		if ( !isTracked(event) )
+    			return true; // ignore
+    		// repeating key down
+    		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=AUTOREPEAT_KEYPRESS_TIME;
+    		if ( !repeatActionActive && isLongPress && actionToRepeat!=null ) {
+    			Log.v("cr3", "autorepeating action : " + actionToRepeat );
+    			repeatActionActive = true;
+    			onAction(actionToRepeat, new Runnable() {
+    				public void run() {
+    					if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime()==event.getDownTime() ) {
+    						Log.v("cr3", "action is completed : " + actionToRepeat );
+    						repeatActionActive = false;
+    					}
+    				}
+    			});
+    		}
+    		return true;
+    	}
+		
+		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
+			// start tracking repeat
+			startTrackingKey(event);
+			actionToRepeat = action;
+			Log.v("cr3", "running action with scheduled autorepeat : " + actionToRepeat );
+			repeatActionActive = true;
+			onAction(actionToRepeat, new Runnable() {
+				public void run() {
+					if ( trackedKeyEvent==event ) {
+						Log.v("cr3", "action is completed : " + actionToRepeat );
+						repeatActionActive = false;
+					}
+				}
+			});
 			return true;
+		} else {
+			actionToRepeat = null;
 		}
 		
-		return super.onKeyDown(keyCode, event);
+		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+			// will process in keyup handler
+			startTrackingKey(event);
+			return true;
+		}
+		if ( action.isNone() && longAction.isNone() )
+			return super.onKeyDown(keyCode, event);
+		startTrackingKey(event);
+		return true;
 	}
 
+	private boolean isTouchScreenEnabled = true;
 	private boolean isManualScrollActive = false;
 	private int manualScrollStartPosX = 0;
 	private int manualScrollStartPosY = 0;
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+		
+		if ( !isTouchScreenEnabled ) {
+			return true;
+		}
+		
 		int x = (int)event.getX();
 		int y = (int)event.getY();
 		int dx = getWidth();
@@ -723,9 +793,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void onAction( final ReaderAction action )
 	{
+		onAction(action, null);
+	}
+	public void onAction( final ReaderAction action, final Runnable onFinishHandler )
+	{
 		BackgroundThread.ensureGUI();
 		if ( action.cmd!=ReaderCommand.DCMD_NONE )
-			onCommand( action.cmd, action.param );
+			onCommand( action.cmd, action.param, onFinishHandler );
 	}
 	
 	public void toggleDayNightMode()
@@ -737,9 +811,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
+		onCommand( cmd, param, null );
+	}
+
+	public void onCommand( final ReaderCommand cmd, final int param, final Runnable onFinishHandler )
+	{
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
+		case DCMD_TOGGLE_TOUCH_SCREEN_LOCK:
+			isTouchScreenEnabled = !isTouchScreenEnabled;
+			if ( isTouchScreenEnabled )
+				mActivity.showToast(R.string.action_touch_screen_enabled_toast);
+			else
+				mActivity.showToast(R.string.action_touch_screen_disabled_toast);
+			break;
 		case DCMD_ZOOM_OUT:
             doEngineCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
             syncViewSettings(getSettings());
@@ -750,15 +836,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             break;
 		case DCMD_PAGEDOWN:
 			if ( param==1 )
-				animatePageFlip(1);
+				animatePageFlip(1, onFinishHandler);
 			else
-				doEngineCommand(cmd, param);
+				doEngineCommand(cmd, param, onFinishHandler);
 			break;
 		case DCMD_PAGEUP:
 			if ( param==1 )
-				animatePageFlip(-1);
+				animatePageFlip(-1, onFinishHandler);
 			else
-				doEngineCommand(cmd, param);
+				doEngineCommand(cmd, param, onFinishHandler);
 			break;
 		case DCMD_BEGIN:
 		case DCMD_END:
@@ -802,6 +888,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void doEngineCommand( final ReaderCommand cmd, final int param )
 	{
+		doEngineCommand( cmd, param, null );
+	}
+	public void doEngineCommand( final ReaderCommand cmd, final int param, final Runnable doneHandler )
+	{
 		BackgroundThread.ensureGUI();
 		Log.d("cr3", "doCommand("+cmd + ", " + param +")");
 		execute(new Task() {
@@ -812,7 +902,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			public void done() {
 				if ( res )
-					drawPage();
+					drawPage( doneHandler );
 			}
 		});
 	}
@@ -909,7 +999,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	private boolean enableVolumeKeys = true; 
-	static private final int DEF_PAGE_FLIP_MS = 500; 
+	static private final int DEF_PAGE_FLIP_MS = 300; 
 	public void applyAppSetting( String key, String value )
 	{
 		boolean flg = "1".equals(value);
@@ -1023,16 +1113,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, true, ReaderAction.BOOKMARKS),
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, false, ReaderAction.PAGE_UP),
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, true, ReaderAction.PAGE_UP_10),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, true, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, true, ReaderAction.REPEAT),
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, false, ReaderAction.PAGE_UP_10),
 		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, false, ReaderAction.PAGE_DOWN_10),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, true, ReaderAction.FIRST_PAGE),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, true, ReaderAction.LAST_PAGE),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, true, ReaderAction.REPEAT),
 		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, false, ReaderAction.PAGE_UP),
 		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.PAGE_UP_10),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.REPEAT),
 		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, true, ReaderAction.SEARCH),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, false, ReaderAction.READER_MENU),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, true, ReaderAction.OPTIONS),
@@ -1490,9 +1580,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private class DrawPageTask extends Task {
 		final int id;
 		BitmapInfo bi;
-		DrawPageTask()
+		Runnable doneHandler;
+		DrawPageTask(Runnable doneHandler)
 		{
 			this.id = ++lastDrawTaskId;
+			this.doneHandler = doneHandler;
 		}
 		public void work() {
 			BackgroundThread.ensureBackground();
@@ -1521,6 +1613,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			}
 //    		if (mOpened)
    			mEngine.hideProgress();
+   			if ( doneHandler!=null )
+   				doneHandler.run();
 		}
 	};
 	
@@ -1560,8 +1654,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private ViewAnimationControl currentAnimation = null;
 
-	private int pageFlipAnimationSpeedMs = 500; // if 0 : no animation
-	private void animatePageFlip( final int dir )
+	private int pageFlipAnimationSpeedMs = 300; // if 0 : no animation
+	private void animatePageFlip( final int dir ) {
+		animatePageFlip(dir, null);
+	}
+	private void animatePageFlip( final int dir, final Runnable onFinishHandler )
 	{
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
@@ -1587,6 +1684,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							currentAnimation.update(toX, h/2);
 							currentAnimation.move(pageFlipAnimationSpeedMs, true);
 							currentAnimation.stop(-1, -1);
+							if ( onFinishHandler!=null )
+								BackgroundThread.guiExecutor.execute(onFinishHandler);
 						}
 					} else {
 						//new ScrollViewAnimation(startY, maxY);
@@ -1597,6 +1696,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							currentAnimation.update(w/2, toY);
 							currentAnimation.move(pageFlipAnimationSpeedMs, true);
 							currentAnimation.stop(-1, -1);
+							if ( onFinishHandler!=null )
+								BackgroundThread.guiExecutor.execute(onFinishHandler);
 						}
 					}
 				}
@@ -2095,10 +2196,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private void drawPage()
 	{
+		drawPage(null);
+	}
+	private void drawPage( Runnable doneHandler )
+	{
 		if ( !mInitialized || !mOpened )
 			return;
 		Log.v("cr3", "drawPage() : submitting DrawPageTask");
-		execute( new DrawPageTask() );
+		execute( new DrawPageTask(doneHandler) );
 	}
 	
 	private int internalDX = 0;

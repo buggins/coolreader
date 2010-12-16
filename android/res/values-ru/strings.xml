@@ -122,4 +122,8 @@
     <string name="options_app_trackball_disable">Отключить трэкболл</string>
     <string name="action_pagedown">Следующая страница</string>
     <string name="action_pageup">Предыдущая страница</string>
+<string name="action_touch_screen_toggle_lock">Блокировка сенсорного экрана</string>
+    <string name="action_touch_screen_disabled_toast">Сенсорный экран включен</string>
+    <string name="action_touch_screen_enabled_toast">Сенсорный экран отключен</string>
+    <string name="action_repeat">(автоповтор)</string>
 </resources>
