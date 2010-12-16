@@ -156,7 +156,7 @@ static LVRefVec<LVImageSource> getBatteryIcons( bool nightMode )
 				"0 c #80000000", \
 				"X c #80000000", \
 				"o c #80888888", \
-				". c #80C0C0C0", \
+				". c #80AAAAAA", \
 				"  c None",
 		#include "battery_icons.h"
 	}

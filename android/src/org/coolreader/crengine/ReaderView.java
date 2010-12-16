@@ -1499,11 +1499,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					int w = currPos.pageWidth;
 					int h = currPos.pageHeight;
 					int dir2 = dir;
-					if ( currPos.pageMode==2 )
-						if ( dir2==1 )
-							dir2 = 2;
-						else if ( dir2==-1 ) 
-							dir2 = -2;
+//					if ( currPos.pageMode==2 )
+//						if ( dir2==1 )
+//							dir2 = 2;
+//						else if ( dir2==-1 ) 
+//							dir2 = -2;
 					if ( currPos.pageMode!=0 ) {
 						int fromX = dir2>0 ? w : 0;
 						int toX = dir2>0 ? 0 : w;
@@ -1538,7 +1538,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				BackgroundThread.ensureBackground();
 				PositionProperties currPos = getPositionPropsInternal(null);
 				if ( currPos.pageMode!=0 ) {
-					int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
+					//int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
+					int dir = startX > maxX/2 ? 1 : -1;
 					int sx = startX;
 					if ( dir<0 )
 						sx = 0;
@@ -1852,6 +1853,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				Log.v("cr3", "PageViewAnimation -- cannot start animation: page image is null");
 				return;
 			}
+			if ( page1==page2 ) {
+				Log.v("cr3", "PageViewAnimation -- cannot start animation: not moved");
+				return;
+			}
+			page2 = image2.position.pageNumber;
 			currentAnimation = this;
 			divPaint = new Paint();
 			divPaint.setColor(Color.argb(128, 128, 128, 128));

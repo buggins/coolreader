@@ -311,10 +311,10 @@ public class CoolReader extends Activity
 				        	Field bb = attrs.getClass().getField("buttonBrightness");
 				        	if ( bb!=null ) {
 				        		Float oldValue = (Float)bb.get(attrs);
-				        		if ( oldValue==null || oldValue.floatValue()!=0 ) {
+				        		//if ( oldValue==null || oldValue.floatValue()!=0 ) {
 				        			bb.set(attrs, Float.valueOf(0.0f));
 					        		changed = true;
-				        		}
+				        		//}
 				        	}
 			        	} catch ( Exception e ) {
 			        		Log.e("cr3", "WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
