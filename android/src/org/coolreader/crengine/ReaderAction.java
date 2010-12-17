@@ -11,8 +11,8 @@ public class ReaderAction {
 	final public int param;
 	final public int menuItemId;
 	private boolean canRepeat = false;
-	private boolean mayAssignOnKey = false;
-	private boolean mayAssignOnTap = false;
+	private boolean mayAssignOnKey = true;
+	private boolean mayAssignOnTap = true;
 	private ReaderAction setCanRepeat() { canRepeat=true; return this; }
 	//private ReaderAction dontAssignOnKey() { mayAssignOnKey=false; return this; }
 	private ReaderAction dontAssignOnTap() { mayAssignOnTap=false; return this; }
@@ -56,7 +56,7 @@ public class ReaderAction {
 	public final static ReaderAction TOGGLE_DAY_NIGHT = new ReaderAction("TOGGLE_DAY_NIGHT", R.string.action_toggle_day_night, ReaderCommand.DCMD_TOGGLE_DAY_NIGHT_MODE, 0 );
 	public final static ReaderAction RECENT_BOOKS = new ReaderAction("RECENT_BOOKS", R.string.action_recent_books_list, ReaderCommand.DCMD_RECENT_BOOKS_LIST, 0 );
 	public final static ReaderAction FILE_BROWSER = new ReaderAction("FILE_BROWSER", R.string.action_file_browser, ReaderCommand.DCMD_FILE_BROWSER, 0, R.id.cr3_mi_open_file );
-	public final static ReaderAction TOGGLE_TOUCH_SCREEN_LOCK = new ReaderAction("FILE_BROWSER", R.string.action_touch_screen_toggle_lock, ReaderCommand.DCMD_TOGGLE_TOUCH_SCREEN_LOCK, 0 ).dontAssignOnTap();
+	public final static ReaderAction TOGGLE_TOUCH_SCREEN_LOCK = new ReaderAction("TOGGLE_TOUCH_SCREEN_LOCK", R.string.action_touch_screen_toggle_lock, ReaderCommand.DCMD_TOGGLE_TOUCH_SCREEN_LOCK, 0 ).dontAssignOnTap();
 	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit );
 	
 	
