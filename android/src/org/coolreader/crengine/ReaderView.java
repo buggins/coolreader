@@ -999,7 +999,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	private boolean enableVolumeKeys = true; 
-	static private final int DEF_PAGE_FLIP_MS = 300; 
+	static private final int DEF_PAGE_FLIP_MS = 500; 
 	public void applyAppSetting( String key, String value )
 	{
 		boolean flg = "1".equals(value);
@@ -1654,7 +1654,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private ViewAnimationControl currentAnimation = null;
 
-	private int pageFlipAnimationSpeedMs = 300; // if 0 : no animation
+	private int pageFlipAnimationSpeedMs = DEF_PAGE_FLIP_MS; // if 0 : no animation
 	private void animatePageFlip( final int dir ) {
 		animatePageFlip(dir, null);
 	}
@@ -1676,13 +1676,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //							dir2 = 2;
 //						else if ( dir2==-1 ) 
 //							dir2 = -2;
+					int speed = pageFlipAnimationSpeedMs;
+					if ( onFinishHandler!=null )
+						speed = pageFlipAnimationSpeedMs / 2;
 					if ( currPos.pageMode!=0 ) {
 						int fromX = dir2>0 ? w : 0;
 						int toX = dir2>0 ? 0 : w;
 						new PageViewAnimation(fromX, w, dir2);
 						if ( currentAnimation!=null ) {
 							currentAnimation.update(toX, h/2);
-							currentAnimation.move(pageFlipAnimationSpeedMs, true);
+							currentAnimation.move(speed, true);
 							currentAnimation.stop(-1, -1);
 							if ( onFinishHandler!=null )
 								BackgroundThread.guiExecutor.execute(onFinishHandler);
@@ -1694,7 +1697,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						new ScrollViewAnimation(fromY, h);
 						if ( currentAnimation!=null ) {
 							currentAnimation.update(w/2, toY);
-							currentAnimation.move(pageFlipAnimationSpeedMs, true);
+							currentAnimation.move(speed, true);
 							currentAnimation.stop(-1, -1);
 							if ( onFinishHandler!=null )
 								BackgroundThread.guiExecutor.execute(onFinishHandler);

@@ -168,6 +168,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			ColorPickerDialog dlg = new ColorPickerDialog(getOwnerActivity(), new OnColorChangedListener() {
 				public void colorChanged(int color) {
 					mProperties.setColor(property, color);
+					String texture = mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+					if ( texture!=null && !texture.equals(Engine.NO_TEXTURE.id) ) {
+						// reset background image
+						mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+						// TODO: show notification?
+					}
 					refreshList();
 				}
 			}, mProperties.getColor(property, defColor), label);
