@@ -29,7 +29,7 @@
 //#define SHOW_PAGE_RECT
 
 /// uncomment to save copy of loaded document to file
-#define SAVE_COPY_OF_LOADED_DOCUMENT
+//#define SAVE_COPY_OF_LOADED_DOCUMENT
 
 /// to avoid showing title/author if coverpage image present
 #define NO_TEXT_IN_COVERPAGE
