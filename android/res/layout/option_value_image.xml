@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    >
+
+	<RadioButton
+  	    android:id="@+id/option_value_check"
+		android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+   	    android:layout_weight="1"
+	    android:layout_marginTop="1dip"
+	    android:layout_marginBottom="1dip"
+	    android:layout_marginLeft="1dip"
+	    android:layout_marginRight="1dip"
+	    android:focusable="false"
+	    android:focusableInTouchMode="false"
+	/>
+
+	<TextView
+	  style="@android:style/TextAppearance.Medium"
+	  android:id="@+id/option_value_text"
+	  android:layout_width="wrap_content"
+	  android:layout_height="wrap_content"
+	  android:layout_weight="7"
+	    android:layout_marginTop="15dip"
+	    android:layout_marginBottom="15dip"
+	    android:layout_marginLeft="10dip"
+	    android:layout_marginRight="10dip">
+	</TextView>
+
+    <ImageView android:id="@+id/option_value_image"
+        android:layout_width="64dip"
+        android:layout_height="64dip"
+        android:layout_gravity="center_vertical|right"
+        android:layout_margin="4dip"
+        />
+</LinearLayout>
