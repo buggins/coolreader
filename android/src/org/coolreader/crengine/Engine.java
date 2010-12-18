@@ -756,6 +756,10 @@ public class Engine {
 	{
 		for ( File d : getStorageDirectories(false) ) {
 			File base = new File(d, ".cr3");
+			if ( !base.isDirectory() )
+				base = new File(d, "cr3");
+			if ( !base.isDirectory() )
+				continue;
 			File subdirTextures = new File(base, "textures");
 			File subdirBackgrounds = new File(base, "backgrounds");
 			if ( subdirTextures.isDirectory() )
