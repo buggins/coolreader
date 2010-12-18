@@ -790,10 +790,10 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPag
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    setPageBackgroundTextureInternal
- * Signature: ([B)V
+ * Signature: ([BI)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal
-  (JNIEnv * _env, jobject _this, jbyteArray jdata)
+  (JNIEnv * _env, jobject _this, jbyteArray jdata, jint tileFlags )
 {
     CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
@@ -803,10 +803,12 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackground
         if ( !stream.isNull() ) {
             img = LVCreateStreamCopyImageSource(stream);
             if ( !img.isNull() ) {
-                img = LVCreateUnpackedImageSource(img, 256*256*4, false);
+                LVImageSourceRef copy = LVCreateUnpackedImageSource(img, 1256*1256*4, false);
+                if ( !copy.isNull() )
+                	img = copy;
             }
         }
     }
-    p->_docview->setBackgroundImage(img);
+    p->_docview->setBackgroundImage(img, tileFlags!=0);
 }
 

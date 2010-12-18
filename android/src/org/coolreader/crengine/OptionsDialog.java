@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import org.coolreader.R;
@@ -10,6 +11,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.DataSetObserver;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -38,10 +43,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60
 	};
 	int[] mBacklightLevels = new int[] {
-		-1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 100
+		-1, 1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 100
 	};
 	String[] mBacklightLevelsTitles = new String[] {
-			"Default", "5%", "10%", "15%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "100%",
+			"Default", "1%", "5%", "10%", "15%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "100%",
 	};
 	int[] mInterlineSpaces = new int[] {
 			80, 90, 100, 110, 120, 130, 140, 150
@@ -168,6 +173,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			ColorPickerDialog dlg = new ColorPickerDialog(getOwnerActivity(), new OnColorChangedListener() {
 				public void colorChanged(int color) {
 					mProperties.setColor(property, color);
+					String texture = mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+					if ( texture!=null && !texture.equals(Engine.NO_TEXTURE.id) ) {
+						// reset background image
+						mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+						// TODO: show notification?
+					}
 					refreshList();
 				}
 			}, mProperties.getColor(property, defColor), label);
@@ -477,6 +488,34 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public int getSelectedItemIndex() {
 			return findValue(mProperties.getProperty(property));
 		}
+
+		protected void closed() {
+			
+		}
+		
+		protected int getItemLayoutId() {
+			return R.layout.option_value; 
+		}
+		
+		protected void updateItemContents( final View layout, final Pair item, final ListView listView, final int position ) {
+			TextView view;
+			RadioButton cb;
+			view = (TextView)layout.findViewById(R.id.option_value_text);
+			cb = (RadioButton)layout.findViewById(R.id.option_value_check);
+			view.setText(item.label);
+			String currValue = mProperties.getProperty(property);
+			boolean isSelected = item.value!=null && currValue!=null && item.value.equals(currValue) ;//getSelectedItemIndex()==position;
+			cb.setChecked(isSelected);
+			cb.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					listView.getOnItemClickListener().onItemClick(listView, listView, position, 0);
+//					mProperties.setProperty(property, item.value);
+//					dismiss();
+//					optionsListView.refresh();
+				}
+			});
+		}
 		
 		public String getValueLabel() { return findValueLabel(mProperties.getProperty(property)); }
 		
@@ -497,6 +536,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 //				}
 				
 			};
+			
 			
 			ListAdapter listAdapter = new ListAdapter() {
 
@@ -527,29 +567,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				public View getView(final int position, View convertView,
 						ViewGroup parent) {
 					ViewGroup layout;
-					TextView view;
-					RadioButton cb;
 					if ( convertView==null ) {
-						layout = (ViewGroup)mInflater.inflate(R.layout.option_value, null);
+						layout = (ViewGroup)mInflater.inflate(getItemLayoutId(), null);
 						//view = new TextView(getContext());
 					} else {
 						layout = (ViewGroup)convertView;
 					}
-					view = (TextView)layout.findViewById(R.id.option_value_text);
-					cb = (RadioButton)layout.findViewById(R.id.option_value_check);
 					final Pair item = list.get(position);
-					view.setText(item.label);
-					boolean isSelected = getSelectedItemIndex()==position;
-					cb.setChecked(isSelected);
-					cb.setOnClickListener(new View.OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							listView.getOnItemClickListener().onItemClick(listView, listView, position, 0);
-//							mProperties.setProperty(property, item.value);
-//							dismiss();
-//							optionsListView.refresh();
-						}
-					});
+					updateItemContents( layout, item, listView, position );
 					//cb.setClickable(false);
 //					cb.setOnClickListener(new View.OnClickListener() {
 //						@Override
@@ -597,6 +622,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 					Pair item = list.get(position);
 					onClick(item);
 					dlg.dismiss();
+					closed();
 				}
 			});
 			dlg.show();
@@ -624,6 +650,66 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
+	static class ThumbnailCache {
+		final int maxcount;
+		final int dx;
+		final int dy;
+		class Item {
+			Drawable drawable;
+			String path;
+		}
+		ArrayList<Item> list = new ArrayList<Item>(); 
+		public ThumbnailCache( int dx, int dy, int maxcount ) {
+			this.dx = dx;
+			this.dy = dy;
+			this.maxcount = maxcount;
+		}
+		private void remove( int maxsize ) {
+			while ( list.size()>maxcount ) {
+				Item item = list.remove(0);
+				// TODO: cleanup
+			}
+		}
+		private Drawable createDrawable( String path ) {
+			File f = new File(path);
+			if ( !f.isFile() || !f.exists() )
+				return null;
+			try { 
+				Drawable drawable = BitmapDrawable.createFromPath(path);
+				if ( drawable==null )
+					return null;
+//				Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.ARGB_8888 );
+//				BitmapDrawable res = new BitmapDrawable(bmp);
+				Item item = new Item();
+				item.path = path;
+				item.drawable = drawable;
+				list.add(item);
+				remove(maxcount);
+				return drawable;
+			} catch ( Exception e ) {
+				return null;
+			}
+		}
+		public Drawable getImage( String path ) {
+			if ( path==null || !path.startsWith("/"))
+				return null;
+			// find existing
+			for ( int i=0; i<list.size(); i++ ) {
+				if ( list.get(i).path.equals(path) ) {
+					Item item = list.remove(i);
+					list.add(item);
+					return item.drawable;
+				}
+			}
+			return createDrawable( path ); 
+		}
+		public void clear() {
+			remove(0);
+		}
+	}
+	
+	ThumbnailCache textureSampleCache = new ThumbnailCache(64, 64, 10);
+	
 	class TextureOptions extends ListOption
 	{
 		public TextureOptions( String label )
@@ -633,6 +719,32 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			BackgroundTextureInfo[] textures = mReaderView.getEngine().getAvailableTextures();
 			for ( BackgroundTextureInfo item : textures )
 				add( item.id, item.name );
+		}
+
+		protected void closed() {
+			textureSampleCache.clear();
+		}
+
+		protected int getItemLayoutId() {
+			return R.layout.option_value_image; 
+		}
+		
+		protected void updateItemContents( final View layout, final Pair item, final ListView listView, final int position ) {
+			super.updateItemContents(layout, item, listView, position);
+			ImageView img = (ImageView)layout.findViewById(R.id.option_value_image);
+			int cl = mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, Color.WHITE);
+			img.setBackgroundColor(cl);
+			BackgroundTextureInfo texture = mReaderView.getEngine().getTextureInfoById(item.value);
+			if ( texture.resourceId!=0 )
+				img.setImageResource(texture.resourceId);
+			else {
+				// load image from file
+				Drawable drawable = textureSampleCache.getImage(texture.id);
+				if ( drawable!=null )
+					img.setImageDrawable(drawable);
+				else
+					img.setImageResource(0);
+			}
 		}
 	}
 	

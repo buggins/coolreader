@@ -579,6 +579,7 @@ public:
 
             if ( callback )
             {
+                callback->OnStartDecode(this);
                 /* Step 4: set parameters for decompression */
 
                 /* In this example, we don't need to change any of the defaults set by
@@ -616,6 +617,7 @@ public:
                     }
                     callback->OnLineDecoded( this, y, row );
                 }
+                callback->OnEndDecode(this, true);
             }
 
         if ( buffer )
@@ -1484,12 +1486,14 @@ public:
     virtual void OnStartDecode( LVImageSource * )
 	{
 		_line.reserve( _dst_dx );
+        _callback->OnStartDecode(this);
 	}
     virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data );
-    virtual void OnEndDecode( LVImageSource *, bool )
+    virtual void OnEndDecode( LVImageSource *, bool res)
 	{
 		_line.clear();
-	}
+        _callback->OnEndDecode(this, res);
+    }
 	virtual ldomNode * GetSourceNode() { return NULL; }
 	virtual LVStream * GetSourceStream() { return NULL; }
 	virtual void   Compact() { }
@@ -1541,8 +1545,9 @@ bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * da
         break;
     case IMG_TRANSFORM_TILE:
         {
+            int offset = _src_dx - _split_x;
             for ( int x=0; x<_dst_dx; x++ )
-                _line[x] = data[ (x + _src_dx - _split_x) % _src_dx];
+                _line[x] = data[ (x + offset) % _src_dx];
         }
         break;
     }
@@ -1579,7 +1584,8 @@ bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * da
         break;
     case IMG_TRANSFORM_TILE:
         {
-            int y0 = (y + _src_dy - _split_y) % _src_dy;
+            int offset = _src_dy - _split_y;
+            int y0 = (y + offset) % _src_dy;
             for ( int yy=y0; yy<_dst_dy; yy+=_src_dy ) {
                 res = _callback->OnLineDecoded( obj, yy, _line.get() );
             }
@@ -1718,9 +1724,9 @@ LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int max
     int sz = dx*dy * (gray?1:4);
     if ( sz>maxSize )
         return srcImage;
-    //CRLog::trace("Unpacking image %dx%d (%d)", dx, dy, sz);
+    CRLog::trace("Unpacking image %dx%d (%d)", dx, dy, sz);
     LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, gray );
-    //CRLog::trace("Unpacking done");
+    CRLog::trace("Unpacking done");
     return LVImageSourceRef( img );
 }
 

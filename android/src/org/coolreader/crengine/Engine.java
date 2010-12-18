@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -367,6 +369,20 @@ public class Engine {
 		}
 	}
 	
+	public static byte[] loadResourceBytes( File f )
+	{
+		if ( f==null || !f.isFile() || !f.exists() )
+			return null;
+		FileInputStream is = null;
+		try {
+			is = new FileInputStream(f);
+			byte[] res = loadResourceBytes( is );
+			return res;
+		} catch ( IOException e ) {
+			Log.e("cr3", "Cannot open file " + f);
+		}
+		return null;
+	}
 	public static byte[] loadResourceBytes( InputStream is )
 	{
 		try {
@@ -678,7 +694,7 @@ public class Engine {
 		}
 	}
 
-	public static final BackgroundTextureInfo NO_TEXTURE = new BackgroundTextureInfo("(NONE)", "No texture", 0); 
+	public static final BackgroundTextureInfo NO_TEXTURE = new BackgroundTextureInfo(BackgroundTextureInfo.NO_TEXTURE_ID, "(SOLID COLOR)", 0); 
 	private static final BackgroundTextureInfo[] internalTextures = {
 		NO_TEXTURE,		
 		new BackgroundTextureInfo("tx_wood", "Wood", R.drawable.tx_wood),		
@@ -714,15 +730,65 @@ public class Engine {
 	public static final String DEF_NIGHT_BACKGROUND_TEXTURE = "tx_metall_old_blue_dark";
 	
 	public BackgroundTextureInfo[] getAvailableTextures() {
-		return internalTextures;
+		ArrayList<BackgroundTextureInfo> list = new ArrayList<BackgroundTextureInfo>(internalTextures.length);
+		list.add(NO_TEXTURE);
+		findExternalTextures( list );
+		for ( int i=1; i<internalTextures.length; i++ )
+			list.add(internalTextures[i]);
+		return list.toArray( new BackgroundTextureInfo[] {});
+	}
+
+	public void findTexturesFromDirectory( File dir, Collection<BackgroundTextureInfo> listToAppend )
+	{
+		for ( File f : dir.listFiles() ) {
+			if ( !f.isDirectory() ) {
+				BackgroundTextureInfo item = BackgroundTextureInfo.fromFile(f.getAbsolutePath());
+				if (item!=null )
+					listToAppend.add(item);
+			}
+		}
+	}
+	
+	public void findExternalTextures( Collection<BackgroundTextureInfo> listToAppend )
+	{
+		for ( File d : getStorageDirectories(false) ) {
+			File base = new File(d, ".cr3");
+			File subdirTextures = new File(base, "textures");
+			File subdirBackgrounds = new File(base, "backgrounds");
+			if ( subdirTextures.isDirectory() )
+				findTexturesFromDirectory( subdirTextures, listToAppend );
+			if ( subdirBackgrounds.isDirectory() )
+				findTexturesFromDirectory( subdirBackgrounds, listToAppend );
+		}
 	}
 
 	public byte[] getImageData( BackgroundTextureInfo texture ) {
+		if ( texture.isNone() )
+			return null;
 		if ( texture.resourceId!=0 ) {
 			byte[] data = loadResourceBytes(texture.resourceId);
+			return data;
+		} else if (texture.id!=null && texture.id.startsWith("/") ) {
+			File f = new File(texture.id);
+			byte[] data = loadResourceBytes(f);
 			return data;
 		}
 		return null;
 	}
 
+	public BackgroundTextureInfo getTextureInfoById( String id ) {
+		if ( id==null )
+			return NO_TEXTURE;
+		if ( id.startsWith("/") ) {
+			BackgroundTextureInfo item = BackgroundTextureInfo.fromFile(id);
+			if ( item!=null )
+				return item;
+		} else {
+			for ( BackgroundTextureInfo item : internalTextures )
+				if ( item.id.equals(id))
+					return item;
+		}
+		return NO_TEXTURE;
+	}
+	
 }

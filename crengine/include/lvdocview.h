@@ -339,6 +339,7 @@ private:
     LVScrollInfo m_scrollinfo;
     LVImageSourceRef m_defaultCover;
     LVImageSourceRef m_backgroundImage;
+    bool m_backgroundTiled;
 
 
 protected:
@@ -519,7 +520,7 @@ public:
     /// get background image
     LVImageSourceRef getBackgroundImage() const { return m_backgroundImage; }
     /// set background image
-    void setBackgroundImage(LVImageSourceRef bgImage) { m_backgroundImage = bgImage; clearImageCache(); }
+    void setBackgroundImage(LVImageSourceRef bgImage, bool tiled=true) { m_backgroundImage = bgImage; m_backgroundTiled=tiled; clearImageCache(); }
     /// clears page background
     void drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY );
 

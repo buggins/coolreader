@@ -120,6 +120,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 			 )
 			 */
 			, m_stream(NULL), m_doc(NULL), m_stylesheet(def_stylesheet),
+            m_backgroundTiled(true),
 			m_pageMargins(DEFAULT_PAGE_MARGIN,
 					DEFAULT_PAGE_MARGIN / 2 /*+ INFO_FONT_SIZE + 4 */,
 					DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN / 2),
@@ -1753,11 +1754,40 @@ bool LVDocView::isTimeChanged() {
 /// clears page background
 void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY )
 {
+	CRLog::trace("drawPageBackground() called");
     drawbuf.SetBackgroundColor(m_backgroundColor);
     if ( !m_backgroundImage.isNull() ) {
         // texture
-        LVImageSourceRef tile = LVCreateTileTransform( m_backgroundImage, drawbuf.GetWidth(), drawbuf.GetHeight(), offsetX, offsetY );
-        drawbuf.Draw(tile, 0, 0, drawbuf.GetWidth(), drawbuf.GetHeight());
+        if ( m_backgroundTiled ) {
+            //CRLog::trace("drawPageBackground() using texture %d x %d", m_backgroundImage->GetWidth(), m_backgroundImage->GetHeight());
+            LVImageSourceRef tile = LVCreateTileTransform( m_backgroundImage, drawbuf.GetWidth(), drawbuf.GetHeight(), offsetX, offsetY );
+            //CRLog::trace("created tile image, drawing");
+            drawbuf.Draw(tile, 0, 0, drawbuf.GetWidth(), drawbuf.GetHeight());
+            //CRLog::trace("draw completed");
+        } else {
+            bool twoPages = getVisiblePageCount() == 2;
+            if ( !twoPages ) {
+                // single page or scroll
+                bool isScroll = getViewMode()==DVM_SCROLL;
+                LVImageSourceRef resized = LVCreateStretchFilledTransform(m_backgroundImage, drawbuf.GetWidth(), drawbuf.GetHeight(),
+                                                                          IMG_TRANSFORM_STRETCH,
+                                                                          !isScroll ? IMG_TRANSFORM_STRETCH : IMG_TRANSFORM_TILE,
+                                                                          offsetX, offsetY);
+                drawbuf.Draw(resized, 0, 0, drawbuf.GetWidth(), drawbuf.GetHeight());
+            } else {
+                // two pages
+                LVImageSourceRef resized = LVCreateStretchFilledTransform(m_backgroundImage, drawbuf.GetWidth()/2, drawbuf.GetHeight(),
+                                                                          IMG_TRANSFORM_STRETCH,
+                                                                          IMG_TRANSFORM_STRETCH,
+                                                                          offsetX, offsetY);
+                drawbuf.Draw(resized, 0, 0, drawbuf.GetWidth()/2, drawbuf.GetHeight());
+                resized = LVCreateStretchFilledTransform(m_backgroundImage, drawbuf.GetWidth() - drawbuf.GetWidth()/2, drawbuf.GetHeight(),
+                                                                          IMG_TRANSFORM_STRETCH,
+                                                                          IMG_TRANSFORM_STRETCH,
+                                                                          offsetX, offsetY);
+                drawbuf.Draw(resized, drawbuf.GetWidth()/2, 0, drawbuf.GetWidth() - drawbuf.GetWidth()/2, drawbuf.GetHeight());
+            }
+        }
     } else {
         // solid color
         drawbuf.Clear(m_backgroundColor);

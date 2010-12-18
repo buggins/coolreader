@@ -170,10 +170,10 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPag
 /*
  * Class:     org_coolreader_crengine_ReaderView
  * Method:    setPageBackgroundTextureInternal
- * Signature: ([B)V
+ * Signature: ([BI)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal
-  (JNIEnv *, jobject, jbyteArray);
+  (JNIEnv *, jobject, jbyteArray, jint);
 
 #ifdef __cplusplus
 }

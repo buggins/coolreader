@@ -1,21 +1,38 @@
 package org.coolreader.crengine;
 
+import java.io.File;
+
 public class BackgroundTextureInfo {
-	public String id;
+	public String id; // filepath for external image or unique symbolic name for resource
 	public String name;
 	public int resourceId;
-	public String filepath;
+	public boolean tiled;
 	public BackgroundTextureInfo(String id, String name, int resourceId) {
 		this.id = id;
 		this.name = name;
 		this.resourceId = resourceId;
+		this.tiled = id.startsWith("tx_") || id.indexOf("/textures/")>0;
 	}
+
+	public static BackgroundTextureInfo fromFile( String filename ) {
+		if ( filename==null )
+			return null;
+		File f = new File(filename);
+		if ( !f.isFile() || !f.exists() )
+			return null;
+		String nm = new File(filename).getName();
+		String fnlc = nm.toLowerCase();
+		if ( fnlc.endsWith(".png") || fnlc.endsWith(".jpg") || fnlc.endsWith(".jpeg") || fnlc.endsWith(".gif") ) {
+			return new BackgroundTextureInfo(filename, nm.substring(0, nm.lastIndexOf('.')), 0);
+		}
+		return null;
+	}
+
+	public static final String NO_TEXTURE_ID = "(NONE)";
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((filepath == null) ? 0 : filepath.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + resourceId;
@@ -30,11 +47,6 @@ public class BackgroundTextureInfo {
 		if (getClass() != obj.getClass())
 			return false;
 		BackgroundTextureInfo other = (BackgroundTextureInfo) obj;
-		if (filepath == null) {
-			if (other.filepath != null)
-				return false;
-		} else if (!filepath.equals(other.filepath))
-			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
@@ -53,5 +65,7 @@ public class BackgroundTextureInfo {
 	public String toString() {
 		return "BackgroundTextureInfo [id=" + id + ", name=" + name + "]";
 	}
-	
+	public boolean isNone() {
+		return id==null || id.equals(NO_TEXTURE_ID);
+	}
 }
