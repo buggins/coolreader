@@ -697,6 +697,9 @@ public class Engine {
 	public static final BackgroundTextureInfo NO_TEXTURE = new BackgroundTextureInfo(BackgroundTextureInfo.NO_TEXTURE_ID, "(SOLID COLOR)", 0); 
 	private static final BackgroundTextureInfo[] internalTextures = {
 		NO_TEXTURE,		
+		new BackgroundTextureInfo("bg_paper1", "Paper 1", R.drawable.bg_paper1),		
+		new BackgroundTextureInfo("bg_paper1_dark", "Paper 1 (dark)", R.drawable.bg_paper1_dark),		
+		new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)", R.drawable.tx_wood_dark),		
 		new BackgroundTextureInfo("tx_wood", "Wood", R.drawable.tx_wood),		
 		new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)", R.drawable.tx_wood_dark),		
 		new BackgroundTextureInfo("tx_fabric", "Fabric", R.drawable.tx_fabric),		
