@@ -739,7 +739,7 @@ public:
     }
 };
 
-#define MAX_HEADING_CHARS 50
+#define MAX_HEADING_CHARS 48
 #define MAX_PARA_LINES 30
 #define MAX_BUF_LINES  200
 #define MIN_MULTILINE_PARA_WIDTH 45
@@ -776,6 +776,7 @@ private:
         tftEmptyLineDelimHeaders = 16,
         tftFormatted = 32, // text lines are wrapped and formatted
         tftJustified = 64, // right bound is justified
+        tftDoubleEmptyLineBeforeHeaders = 128,
         tftPreFormatted = 256
     } formatFlags_t;
 public:
@@ -890,7 +891,7 @@ public:
         avg_left = 0;
         avg_right = 0;
         int i;
-#define MAX_PRE_STATS 256
+#define MAX_PRE_STATS 1000
         int left_stats[MAX_PRE_STATS];
         int right_stats[MAX_PRE_STATS];
         for ( i=0; i<MAX_PRE_STATS; i++ )
@@ -967,8 +968,14 @@ public:
         for ( i=0; i<length(); i++ ) {
             get(i)->align = getFormat( get(i) );
         }
-        if ( avg_right >= 80 )
+        if ( avg_right >= 80 ) {
+            if ( empty_lines>non_empty_lines && empty_lines<non_empty_lines*110/100 ) {
+                formatFlags = tftParaPerLine | tftDoubleEmptyLineBeforeHeaders; // default format
+                return;
+            }
+            //tftDoubleEmptyLineBeforeHeaders
             return;
+        }
         formatFlags = 0;
         int ident_lines_percent = ident_lines * 100 / length();
         int center_lines_percent = center_lines * 100 / length();
@@ -1154,24 +1161,39 @@ public:
             str += item->text + L"\n";
         }
         bool singleLineFollowedByEmpty = false;
+        bool singleLineFollowedByTwoEmpty = false;
         if ( startline==endline && endline<length()-1 ) {
             if ( !(formatFlags & tftParaIdents) || get(startline)->lpos>0 )
-                if ( get(endline+1)->rpos==0 && (startline==0 || get(startline-1)->rpos==0) )
-                    singleLineFollowedByEmpty = get(startline)->text.length()<70;
+                if ( get(endline+1)->rpos==0 && (startline==0 || get(startline-1)->rpos==0) ) {
+                    singleLineFollowedByEmpty = get(startline)->text.length()<MAX_HEADING_CHARS;
+                    if ( (startline<=1 || get(startline-2)->rpos==0) )
+                        singleLineFollowedByTwoEmpty = get(startline)->text.length()<MAX_HEADING_CHARS;
+                }
         }
         str.trimDoubleSpaces(false, false, true);
         bool isHeader = false;
-        if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 && startline<length()-1 && get(startline+1)->rpos==0 ) )
-            isHeader = true;
-        if ( startline==endline && get(startline)->isHeading() )
-            isHeader = true;
-        if ( startline==endline && (formatFlags & tftCenteredHeaders) && startline==endline && isCentered( get(startline) ) )
-            isHeader = true;
-        int hlevel = DetectHeadingLevelByText( str );
-        if ( hlevel>0 )
-            isHeader = true;
-        if ( singleLineFollowedByEmpty )
-            isHeader = true;
+        if ( formatFlags & tftDoubleEmptyLineBeforeHeaders ) {
+            isHeader = singleLineFollowedByTwoEmpty;
+            if ( singleLineFollowedByEmpty && startline<3 && str.length()<MAX_HEADING_CHARS )
+                isHeader = true;
+            else if ( startline<2 && str.length()<MAX_HEADING_CHARS )
+                isHeader = true;
+            if ( str.length()==0 )
+                return; // no empty lines
+        } else {
+
+            if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 && startline<length()-1 && get(startline+1)->rpos==0 ) )
+                isHeader = true;
+            if ( startline==endline && get(startline)->isHeading() )
+                isHeader = true;
+            if ( startline==endline && (formatFlags & tftCenteredHeaders) && startline==endline && isCentered( get(startline) ) )
+                isHeader = true;
+            int hlevel = DetectHeadingLevelByText( str );
+            if ( hlevel>0 )
+                isHeader = true;
+            if ( singleLineFollowedByEmpty )
+                isHeader = true;
+        }
         if ( str.length() > MAX_HEADING_CHARS )
             isHeader = false;
         if ( !str.empty() ) {
@@ -1210,12 +1232,20 @@ public:
     bool DoParaPerLineImport(LVXMLParserCallback * callback)
     {
         CRLog::debug("DoParaPerLineImport()");
+        int remainingLines = 0;
         do {
-            for ( int i=0; i<length(); i++ ) {
-                AddPara( i, i, callback );
+            for ( int i=remainingLines; i<length(); i++ ) {
+                if ( formatFlags & tftDoubleEmptyLineBeforeHeaders ) {
+                    LVTextFileLine * item = get(i);
+                    if ( !item->empty() )
+                        AddPara( i, i, callback );
+                } else {
+                    AddPara( i, i, callback );
+                }
                 file->updateProgress();
             }
-            RemoveLines( length() );
+            RemoveLines( length()-3 );
+            remainingLines = 3;
         } while ( ReadLines( 100 ) );
         if ( inSubSection )
             callback->OnTagClose( NULL, L"section" );
@@ -1317,8 +1347,9 @@ public:
     bool DoPreFormattedImport(LVXMLParserCallback * callback)
     {
         CRLog::debug("DoPreFormattedImport()");
+        int remainingLines = 0;
         do {
-            for ( int i=0; i<length(); i++ ) {
+            for ( int i=remainingLines; i<length(); i++ ) {
                 LVTextFileLine * item = get(i);
                 if ( item->rpos > item->lpos ) {
                     callback->OnTagOpenNoAttr( NULL, L"pre" );
@@ -1330,7 +1361,8 @@ public:
                     callback->OnTagOpenAndClose( NULL, L"empty-line" );
                 }
            }
-            RemoveLines( length() );
+            RemoveLines( length()-3 );
+            remainingLines = 3;
         } while ( ReadLines( 100 ) );
         if ( inSubSection )
             callback->OnTagClose( NULL, L"section" );
@@ -2707,6 +2739,8 @@ lString16 htmlCharset( lString16 htmlHeader )
         else
             break;
     }
+    if ( enc==L"utf-16" )
+        return lString16();
     return enc;
 }
 
