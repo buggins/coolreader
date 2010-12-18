@@ -1964,9 +1964,11 @@ private:
     LVHashTable<lString16, lString16> pathSubstitutions;
 
     ldomNode * baseElement;
+    ldomNode * lastBaseElement;
 
 
 public:
+    ldomNode * getBaseElement() { return lastBaseElement; }
 
     lString16 convertId( lString16 id );
     lString16 convertHref( lString16 href );
@@ -2012,7 +2014,7 @@ public:
     /// constructor
     ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString16 baseTagName, lString16 baseTagReplacementName, lString16 fragmentFilePath )
     : parent(parentWriter), baseTag(baseTagName), baseTagReplacement(baseTagReplacementName),
-    insideTag(false), styleDetectionState(0), pathSubstitutions(100), baseElement(NULL)
+    insideTag(false), styleDetectionState(0), pathSubstitutions(100), baseElement(NULL), lastBaseElement(NULL)
     {
         setCodeBase( fragmentFilePath );
     }

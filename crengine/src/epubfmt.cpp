@@ -6,6 +6,7 @@ public:
     lString16 href;
     lString16 mediaType;
     lString16 id;
+    lString16 title;
     EpubItem()
     { }
     EpubItem( const EpubItem & v )
@@ -125,6 +126,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     // reading content stream
     {
         ldomDocument * doc = LVParseXMLStream( content_stream );
+        ldomDocument * ncxdoc = NULL;
         if ( !doc )
             return false;
 
@@ -163,7 +165,34 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             if ( spine ) {
 
 
-                //EpubItem * epubToc = epubItems.findById( spine->getAttributeValue(L"toc") ); //TODO
+                EpubItem * ncx = epubItems.findById( spine->getAttributeValue(L"toc") ); //TODO
+                //EpubItem * ncx = epubItems.findById(lString16("ncx"));
+                if ( ncx!=NULL ) {
+                    lString16 name = codeBase + ncx->href;
+                    LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
+                    if ( !stream.isNull() ) {
+                        ldomDocument * ncxdoc = LVParseXMLStream( stream );
+                        if ( ncxdoc!=NULL ) {
+                            for ( int i=1; i<5000; i++ ) {
+                                ldomNode * item = ncxdoc->nodeFromXPath( lString16(L"ncx/navMap/navPoint[") + lString16::itoa(i) + L"]" );
+                                if ( !item )
+                                    break;
+                                lString16 id = item->getAttributeValue(L"id");
+                                EpubItem * epubItem = epubItems.findById( id );
+                                if ( epubItem!=NULL ) {
+                                    ldomNode * text = ncxdoc->nodeFromXPath( lString16(L"ncx/navMap/navPoint[") + lString16::itoa(i) + L"]/navLabel/text" );
+                                    if ( text!=NULL ) {
+                                        lString16 title = text->getText(' ');
+                                        title.trimDoubleSpaces(false, false, false);
+                                        if ( !title.empty() )
+                                            epubItem->title = title;
+                                    }
+                                }
+                            }
+                            delete ncxdoc;
+                        }
+                    }
+                }
                 for ( int i=1; i<50000; i++ ) {
                     ldomNode * item = doc->nodeFromXPath( lString16(L"package/spine/itemref[") + lString16::itoa(i) + L"]" );
                     if ( !item )
@@ -225,6 +254,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     if ( parser.CheckFormat() && parser.Parse() ) {
                         // valid
                         fragmentCount++;
+                        lString16 title = spineItems[i]->title;
+                        if ( !title.empty() ) {
+                            ldomNode * base = appender.getBaseElement();
+                            if ( base!=NULL ) {
+                                m_doc->getToc()->addChild(title, ldomXPointer(base, 0), lString16());
+                            }
+                        }
                     } else {
                         CRLog::error("Document type is not XML/XHTML for fragment %s", LCSTR(name));
                     }

@@ -1880,7 +1880,7 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        if ( (s.pos(L"<?xml") >=0 && s.pos(L"version=") >= 6) ||
+        if ( ( (s.pos(L"<?xml") >=0 || s.pos(L" xmlns=")>0 )&& s.pos(L"version=") >= 6) ||
              s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"")>=0 ) {
             //&& s.pos(L"<FictionBook") >= 0
             res = true;

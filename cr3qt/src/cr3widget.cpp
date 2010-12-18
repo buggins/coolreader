@@ -302,6 +302,10 @@ void CR3View::paintEvent ( QPaintEvent * event )
     QPainter painter(this);
     QRect rc = rect();
     LVDocImageRef ref = _docview->getPageImage(0);
+    if ( ref.isNull() ) {
+        //painter.fillRect();
+        return;
+    }
     LVDrawBuf * buf = ref->getDrawBuf();
     int dx = buf->GetWidth();
     int dy = buf->GetHeight();

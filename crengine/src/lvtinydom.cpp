@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.02.27"
+#define CACHE_FILE_FORMAT_VERSION "3.02.28"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -6231,6 +6231,7 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
         insideTag = true;
         if ( !baseTagReplacement.empty() ) {
             baseElement = parent->OnTagOpen(L"", baseTagReplacement.c_str());
+            lastBaseElement = baseElement;
             if ( !stylesheetFile.empty() ) {
                 parent->OnAttribute(L"", L"StyleSheet", stylesheetFile.c_str() );
                 CRLog::debug("Setting StyleSheet attribute to %s for document fragment", LCSTR(stylesheetFile) );
