@@ -412,6 +412,7 @@ public class CoolReader extends Activity
 			mReaderView.loadDocument(fileToOpen, new Runnable() {
 				public void run() {
 					showToast("Error occured while loading " + fn);
+					mEngine.hideProgress();
 				}
 			});
 		}
@@ -507,6 +508,7 @@ public class CoolReader extends Activity
 							public void run() {
 								// cannot open recent book: load another one
 								Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
+								mEngine.hideProgress();
 								showBrowser(null);
 							}
 						});
@@ -515,6 +517,7 @@ public class CoolReader extends Activity
 							public void run() {
 								// cannot open recent book: load another one
 								Log.e("cr3", "Cannot open last document, starting file browser");
+								mEngine.hideProgress();
 								showBrowser(null);
 							}
 						});
@@ -657,6 +660,7 @@ public class CoolReader extends Activity
 		if ( s!=null )
 			showToast(s);
 	}
+
 	public void showToast( String msg )
 	{
 		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);

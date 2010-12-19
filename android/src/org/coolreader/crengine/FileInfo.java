@@ -248,9 +248,12 @@ public class FileInfo {
 				if ( pathName.equals(dir.getPathName() ))
 					return dir;
 		if ( files!=null )
-			for ( FileInfo file : files )
+			for ( FileInfo file : files ) {
 				if ( pathName.equals(file.getPathName() ))
 					return file;
+				if ( file.getPathName().startsWith(pathName+"@/" ))
+					return file;
+			}
 		return null;
 	}
 	public int getItemIndex( FileInfo item )

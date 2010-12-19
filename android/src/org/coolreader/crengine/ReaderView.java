@@ -1332,6 +1332,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				errorHandler.run();
 				return false;
 			}
+			if ( fi.isDirectory ) {
+				mActivity.showBrowser(fi);
+				return true;
+			}
 		} else {
 			fi = book.getFileInfo();
 		}

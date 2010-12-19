@@ -351,6 +351,8 @@ public class Scanner {
 		for ( int i=0; i<root.fileCount(); i++ ) {
 			if ( root.getFile(i).getPathName().equals(file.getPathName()) )
 				return root;
+			if ( root.getFile(i).getPathName().startsWith(file.getPathName() + "@/") )
+				return root;
 		}
 		return null;
 	}
