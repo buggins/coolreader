@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -677,14 +678,17 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			if ( !f.isFile() || !f.exists() )
 				return null;
 			try { 
-				Drawable drawable = BitmapDrawable.createFromPath(path);
+				BitmapDrawable drawable = (BitmapDrawable)BitmapDrawable.createFromPath(path);
 				if ( drawable==null )
 					return null;
-//				Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.ARGB_8888 );
-//				BitmapDrawable res = new BitmapDrawable(bmp);
+				Bitmap src = drawable.getBitmap();
+				Bitmap bmp = Bitmap.createScaledBitmap(src, dx, dy, true);
+				//Canvas canvas = new Canvas(bmp);
+				BitmapDrawable res = new BitmapDrawable(bmp);
+				
 				Item item = new Item();
 				item.path = path;
-				item.drawable = drawable;
+				item.drawable = res; //drawable;
 				list.add(item);
 				remove(maxcount);
 				return drawable;
@@ -710,7 +714,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
-	ThumbnailCache textureSampleCache = new ThumbnailCache(64, 64, 10);
+	ThumbnailCache textureSampleCache = new ThumbnailCache(64, 64, 12);
 	
 	class TextureOptions extends ListOption
 	{
@@ -735,17 +739,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			super.updateItemContents(layout, item, listView, position);
 			ImageView img = (ImageView)layout.findViewById(R.id.option_value_image);
 			int cl = mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, Color.WHITE);
-			img.setBackgroundColor(cl);
 			BackgroundTextureInfo texture = mReaderView.getEngine().getTextureInfoById(item.value);
-			if ( texture.resourceId!=0 )
+			img.setBackgroundColor(cl);
+			if ( texture.resourceId!=0 ) {
+				img.setImageDrawable(null);
 				img.setImageResource(texture.resourceId);
-			else {
+				img.setBackgroundColor(Color.TRANSPARENT);
+			} else {
 				// load image from file
 				Drawable drawable = textureSampleCache.getImage(texture.id);
-				if ( drawable!=null )
-					img.setImageDrawable(drawable);
-				else
+				if ( drawable!=null ) {
 					img.setImageResource(0);
+					img.setImageDrawable(drawable);
+					img.setBackgroundColor(Color.TRANSPARENT);
+				} else {
+					img.setBackgroundColor(cl);
+					img.setImageResource(0);
+					img.setImageDrawable(null);
+				}
 			}
 		}
 	}
