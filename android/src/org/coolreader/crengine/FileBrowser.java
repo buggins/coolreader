@@ -343,13 +343,19 @@ public class FileBrowser extends ListView {
 		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
 		final FileInfo dir = fileOrDir!=null && !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
 		if ( dir!=null ) {
-			mScanner.scanDirectory(dir, new Runnable() {
-				public void run() {
-					if ( !dir.isRootDir() && !dir.isRecentDir() )
-						dir.sort(FileInfo.DEF_SORT_ORDER);
-					showDirectoryInternal(dir, file);
-				}
-			});
+			if ( mScanner.getDirScanEnabled() ) {
+				mScanner.scanDirectory(dir, new Runnable() {
+					public void run() {
+						if ( !dir.isRootDir() && !dir.isRecentDir() )
+							dir.sort(FileInfo.DEF_SORT_ORDER);
+						showDirectoryInternal(dir, file);
+					}
+				});
+			} else {
+				if ( !dir.isRootDir() && !dir.isRecentDir() )
+					dir.sort(FileInfo.DEF_SORT_ORDER);
+				showDirectoryInternal(dir, file);
+			}
 		} else
 			showDirectoryInternal(dir, file);
 	}

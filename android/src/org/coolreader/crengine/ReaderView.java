@@ -86,6 +86,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_CONTROLS_ENABLE_VOLUME_KEYS ="app.controls.volume.keys.enabled";
     
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
+    public static final String PROP_APP_BOOK_PROPERTY_SCAN_ENABLED ="app.browser.fileprops.scan.enabled";
     public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
     public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
     public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
@@ -1007,6 +1008,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.mActivity.setFullscreen( "1".equals(value) );
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
 			mActivity.getHistory().setCoverPagesEnabled(flg);
+        } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
+			mActivity.getScanner().setDirScanEnabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
@@ -1044,7 +1047,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) || PROP_PAGE_ANIMATION.equals(key)
     				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) || PROP_APP_SHOW_COVERPAGES.equals(key) 
-    				|| PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
+    				|| PROP_APP_SCREEN_BACKLIGHT.equals(key) 
+    				|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
@@ -1184,7 +1188,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	else
         		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
         }
-
+        props.applyDefault(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
         props.applyDefault(PROP_FONT_SIZE, "20");
         props.applyDefault(PROP_FONT_FACE, "Droid Sans");
         props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");

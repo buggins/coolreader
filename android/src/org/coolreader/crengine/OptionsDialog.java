@@ -931,6 +931,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(getString(R.string.options_app_key_actions)));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
+		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
+		
 		
 		mOptionsStyles.refresh();
 		mOptionsPage.refresh();

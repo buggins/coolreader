@@ -52,6 +52,17 @@ public class Scanner {
 //		}
 //	}
 	
+	private boolean dirScanEnabled = true;
+	public boolean getDirScanEnabled()
+	{
+		return dirScanEnabled;
+	}
+	
+	public void setDirScanEnabled(boolean dirScanEnabled)
+	{
+		this.dirScanEnabled = dirScanEnabled;
+	}
+	
 	private FileInfo scanZip( FileInfo zip )
 	{
 		try {
