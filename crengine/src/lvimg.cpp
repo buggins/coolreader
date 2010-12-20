@@ -1714,6 +1714,43 @@ public:
     }
 };
 
+class LVDrawBufImgSource : public LVImageSource
+{
+protected:
+    LVColorDrawBuf * _buf;
+    bool _own;
+    int _dx;
+    int _dy;
+public:
+    LVDrawBufImgSource( LVColorDrawBuf * buf, bool own )
+        : _buf(buf)
+        , _own(own)
+        , _dx( buf->GetWidth() )
+        , _dy( buf->GetHeight() )
+    {
+    }
+    virtual ldomNode * GetSourceNode() { return NULL; }
+    virtual LVStream * GetSourceStream() { return NULL; }
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _dx; }
+    virtual int    GetHeight() { return _dy; }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        callback->OnStartDecode( this );
+        bool res = false;
+        for ( int y=0; y<_dy; y++ ) {
+            res = callback->OnLineDecoded( this, y, (lUInt32 *)_buf->GetScanLine(y) );
+        }
+        callback->OnEndDecode( this, false );
+        return true;
+    }
+    virtual ~LVDrawBufImgSource()
+    {
+        if ( _own )
+            delete _buf;
+    }
+};
+
 /// creates decoded memory copy of image, if it's unpacked size is less than maxSize
 LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize, bool gray )
 {
@@ -1728,6 +1765,11 @@ LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int max
     LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, gray );
     CRLog::trace("Unpacking done");
     return LVImageSourceRef( img );
+}
+
+LVImageSourceRef LVCreateDrawBufImageSource( LVColorDrawBuf * buf, bool own )
+{
+    return LVImageSourceRef( new LVDrawBufImgSource( buf, own ) );
 }
 
 

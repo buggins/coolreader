@@ -339,6 +339,7 @@ private:
     LVScrollInfo m_scrollinfo;
     LVImageSourceRef m_defaultCover;
     LVImageSourceRef m_backgroundImage;
+    LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
 
 
@@ -520,7 +521,7 @@ public:
     /// get background image
     LVImageSourceRef getBackgroundImage() const { return m_backgroundImage; }
     /// set background image
-    void setBackgroundImage(LVImageSourceRef bgImage, bool tiled=true) { m_backgroundImage = bgImage; m_backgroundTiled=tiled; clearImageCache(); }
+    void setBackgroundImage(LVImageSourceRef bgImage, bool tiled=true) { m_backgroundImage = bgImage; m_backgroundTiled=tiled; m_backgroundImageScaled.Clear(); clearImageCache(); }
     /// clears page background
     void drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY );
 

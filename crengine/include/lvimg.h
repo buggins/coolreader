@@ -20,6 +20,7 @@
 
 class LVImageSource;
 class ldomNode;
+class LVColorDrawBuf;
 
 /// image decoding callback interface
 class LVImageDecoderCallback
@@ -69,6 +70,8 @@ LVImageSourceRef LVCreateFileCopyImageSource( lString16 fname );
 LVImageSourceRef LVCreateStreamCopyImageSource( LVStreamRef stream );
 /// creates decoded memory copy of image, if it's unpacked size is less than maxSize
 LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize = MAX_SKIN_IMAGE_CACHE_ITEM_UNPACKED_SIZE, bool gray=false );
+/// creates image source based on draw buffer
+LVImageSourceRef LVCreateDrawBufImageSource( LVColorDrawBuf * buf, bool own );
 
 
 class LVFont;
