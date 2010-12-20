@@ -801,12 +801,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackground
     if ( jdata!=NULL ) {
         LVStreamRef stream = env.jbyteArrayToStream( jdata );
         if ( !stream.isNull() ) {
-            img = LVCreateStreamCopyImageSource(stream);
-            if ( !img.isNull() ) {
-                LVImageSourceRef copy = LVCreateUnpackedImageSource(img, 1256*1256*4, false);
-                if ( !copy.isNull() )
-                	img = copy;
-            }
+            img = LVCreateStreamImageSource(stream);
         }
     }
     p->_docview->setBackgroundImage(img, tileFlags!=0);

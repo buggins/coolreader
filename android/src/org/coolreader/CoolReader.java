@@ -2,6 +2,8 @@
 package org.coolreader;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 
 import org.coolreader.crengine.BackgroundThread;
@@ -13,6 +15,8 @@ import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
 import org.coolreader.crengine.OptionsDialog;
+import org.coolreader.crengine.Properties;
+import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 
@@ -30,6 +34,7 @@ import android.os.PowerManager;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -113,6 +118,22 @@ public class CoolReader extends Activity
 		}
 	}
 	
+	private boolean mWakeLockEnabled = false;
+	public boolean isWakeLockEnabled() {
+		return mWakeLockEnabled;
+	}
+
+	public void setWakeLockEnabled( boolean wakeLockEnabled )
+	{
+		if ( mWakeLockEnabled != wakeLockEnabled ) {
+			mWakeLockEnabled = wakeLockEnabled;
+			if ( !mWakeLockEnabled )
+				backlightControl.release();
+			else
+				backlightControl.onUserActivity();
+		}
+	}
+	
 	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
 	public void applyScreenOrientation( Window wnd )
 	{
@@ -151,6 +172,8 @@ public class CoolReader extends Activity
 		int backlightCountDown = 0; 
 		public void onUserActivity()
 		{
+			if ( !isWakeLockEnabled() )
+				return;
 			if ( wl==null ) {
 				PowerManager pm = (PowerManager)getSystemService(
 			            Context.POWER_SERVICE);
@@ -184,22 +207,25 @@ public class CoolReader extends Activity
 		}
 		public void release()
 		{
-			if ( wl.isHeld() )
+			if ( wl!=null && wl.isHeld() )
 				wl.release();
 			backlightTimerTask = null;
 		}
 	}
+	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
 	
 	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
-	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
 		Log.i("cr3", "CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		
+		// load settings
+		Properties props = loadSettings();
 		
 		intentReceiver = new BroadcastReceiver() {
 
@@ -216,7 +242,19 @@ public class CoolReader extends Activity
 		};
 		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 		
-        // testing background thread
+		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, false) );
+		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4);
+		if ( orientation!=1 && orientation!=4 )
+			orientation = 0;
+		setScreenOrientation(orientation);
+		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
+		if ( backlight<-1 || backlight>100 )
+			backlight = -1;
+		setScreenBacklightLevel(backlight);
+		
+
+		
+		// testing background thread
     	mBackgroundThread = BackgroundThread.instance();
 		mFrame = new FrameLayout(this);
 		mEngine = new Engine(this, mBackgroundThread);
@@ -227,14 +265,19 @@ public class CoolReader extends Activity
 //		startupView = new View(this) {
 //		};
 //		startupView.setBackgroundColor(Color.BLACK);
+		setWakeLockEnabled(props.getBool(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, true));
+		
+		
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread);
 		File dbdir = getDir("db", Context.MODE_PRIVATE);
 		dbdir.mkdirs();
 		File dbfile = new File(dbdir, "cr3db.sqlite");
 		mDB = new CRDB(dbfile);
        	mHistory = new History(mDB);
+		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
        	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
+		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		Log.i("cr3", "initializing scanner");
         mScanner.initRoots();
 
@@ -247,7 +290,7 @@ public class CoolReader extends Activity
         Log.i("cr3", "initializing browser");
         mBrowser.init();
         Log.i("cr3", "initializing reader");
-        mReaderView.init();
+        mReaderView.init( props );
         mBrowser.showDirectory(mScanner.getRoot(), null);
         
         fileToLoadOnStart = null;
@@ -826,5 +869,149 @@ public class CoolReader extends Activity
 		});
 	}
 
+	private static class DefKeyAction {
+		public int keyCode;
+		public boolean longPress;
+		public ReaderAction action;
+		public DefKeyAction(int keyCode, boolean longPress, ReaderAction action) {
+			this.keyCode = keyCode;
+			this.longPress = longPress;
+			this.action = action;
+		}
+	}
+	private static class DefTapAction {
+		public int zone;
+		public boolean longPress;
+		public ReaderAction action;
+		public DefTapAction(int zone, boolean longPress, ReaderAction action) {
+			this.zone = zone;
+			this.longPress = longPress;
+			this.action = action;
+		}
+	}
+	private static DefKeyAction[] DEF_KEY_ACTIONS = {
+		new DefKeyAction(KeyEvent.KEYCODE_BACK, false, ReaderAction.FILE_BROWSER),
+		new DefKeyAction(KeyEvent.KEYCODE_BACK, true, ReaderAction.EXIT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, false, ReaderAction.RECENT_BOOKS),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, true, ReaderAction.BOOKMARKS),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, false, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, false, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, true, ReaderAction.SEARCH),
+		new DefKeyAction(KeyEvent.KEYCODE_MENU, false, ReaderAction.READER_MENU),
+		new DefKeyAction(KeyEvent.KEYCODE_MENU, true, ReaderAction.OPTIONS),
+		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_LEFT, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, false, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, false, ReaderAction.PAGE_UP),
+	};
+	private static DefTapAction[] DEF_TAP_ACTIONS = {
+		new DefTapAction(1, false, ReaderAction.PAGE_UP),
+		new DefTapAction(2, false, ReaderAction.PAGE_UP),
+		new DefTapAction(4, false, ReaderAction.PAGE_UP),
+		new DefTapAction(1, true, ReaderAction.PAGE_UP_10),
+		new DefTapAction(2, true, ReaderAction.PAGE_UP_10),
+		new DefTapAction(4, true, ReaderAction.PAGE_UP_10),
+		new DefTapAction(3, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(6, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(7, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(8, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(9, false, ReaderAction.PAGE_DOWN),
+		new DefTapAction(3, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(6, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(7, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(5, false, ReaderAction.READER_MENU),
+		new DefTapAction(5, true, ReaderAction.OPTIONS),
+	};
+	File propsFile;
+	private static boolean DEBUG_RESET_OPTIONS = false;
+	private Properties loadSettings()
+	{
+        Properties props = new Properties();
+		File propsDir = getDir("settings", Context.MODE_PRIVATE);
+		propsDir.mkdirs();
+		propsFile = new File( propsDir, "cr3.ini");
+        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
+        	try {
+        		FileInputStream is = new FileInputStream(propsFile);
+        		props.load(is);
+        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
+        	} catch ( Exception e ) {
+        		Log.e("cr3", "error while reading settings");
+        	}
+        }
+        
+        // default key actions
+        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
+        	if ( ka.longPress )
+        		props.applyDefault(ReaderView.PROP_APP_KEY_ACTIONS_PRESS + ".long." + ka.keyCode, ka.action.id);
+        	else
+        		props.applyDefault(ReaderView.PROP_APP_KEY_ACTIONS_PRESS + "." + ka.keyCode, ka.action.id);
+        }
+        // default tap zone actions
+        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
+        	if ( ka.longPress )
+        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone, ka.action.id);
+        	else
+        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
+        }
+        
+        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "1");
+        props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
+        props.applyDefault(ReaderView.PROP_FONT_SIZE, "20");
+        props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
+        props.setProperty(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
+        props.setProperty(ReaderView.PROP_STATUS_FONT_SIZE, "16");
+        props.setProperty(ReaderView.PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
+        props.setProperty(ReaderView.PROP_DISPLAY_INVERSE, "0");
+        props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
+        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT, "-1");
+		props.applyDefault(ReaderView.PROP_SHOW_BATTERY, "1"); 
+		props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
+		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
+		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
+		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "0");
+		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, "1");
+		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
+
+        props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
+        if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
+        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
+        else
+        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
+        props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
+        props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
+        
+		
+		props.setProperty(ReaderView.PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
+		props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
+		props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+		return props;
+	}
+	
+	public void saveSettings( Properties settings )
+	{
+		try {
+			Log.v("cr3", "saveSettings() " + settings);
+    		FileOutputStream os = new FileOutputStream(propsFile);
+    		settings.store(os, "Cool Reader 3 settings");
+			Log.i("cr3", "Settings successfully saved to file " + propsFile.getAbsolutePath());
+		} catch ( Exception e ) {
+			Log.e("cr3", "exception while saving settings", e);
+		}
+	}
 
 }

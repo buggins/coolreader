@@ -95,6 +95,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
     public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";
     public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
+    public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
     
     public enum ViewMode
     {
@@ -272,7 +273,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
-		init();
+		init(new Properties(mSettings));
 		final int thisId = ++lastResizeTaskId;
 		mActivity.getHistory().updateCoverPageSize(w, h);
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
@@ -949,19 +950,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         drawPage();
 	}
 	
-	File propsFile;
-	private void saveSettings( Properties settings )
-	{
-		try {
-			Log.v("cr3", "saveSettings() " + settings);
-    		FileOutputStream os = new FileOutputStream(propsFile);
-    		settings.store(os, "Cool Reader 3 settings");
-			Log.i("cr3", "Settings successfully saved to file " + propsFile.getAbsolutePath());
-		} catch ( Exception e ) {
-			Log.e("cr3", "exception while saving settings", e);
-		}
-	}
-
 	public static boolean eq(Object obj1, Object obj2)
 	{
 		if ( obj1==null && obj2==null )
@@ -971,6 +959,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return obj1.equals(obj2);
 	}
 
+	public void saveSettings( Properties settings )
+	{
+		mActivity.saveSettings(settings);
+	}
+	
 	/**
 	 * Read JNI view settings, update and save if changed 
 	 */
@@ -1010,6 +1003,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.getHistory().setCoverPagesEnabled(flg);
         } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
 			mActivity.getScanner().setDirScanEnabled(flg);
+        } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
+			mActivity.setWakeLockEnabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
@@ -1090,136 +1085,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //        }
 	}
 
-	private static class DefKeyAction {
-		public int keyCode;
-		public boolean longPress;
-		public ReaderAction action;
-		public DefKeyAction(int keyCode, boolean longPress, ReaderAction action) {
-			this.keyCode = keyCode;
-			this.longPress = longPress;
-			this.action = action;
-		}
-	}
-	private static class DefTapAction {
-		public int zone;
-		public boolean longPress;
-		public ReaderAction action;
-		public DefTapAction(int zone, boolean longPress, ReaderAction action) {
-			this.zone = zone;
-			this.longPress = longPress;
-			this.action = action;
-		}
-	}
-	private static DefKeyAction[] DEF_KEY_ACTIONS = {
-		new DefKeyAction(KeyEvent.KEYCODE_BACK, false, ReaderAction.FILE_BROWSER),
-		new DefKeyAction(KeyEvent.KEYCODE_BACK, true, ReaderAction.EXIT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, false, ReaderAction.RECENT_BOOKS),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, true, ReaderAction.BOOKMARKS),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, false, ReaderAction.PAGE_UP_10),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, false, ReaderAction.PAGE_DOWN_10),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, true, ReaderAction.SEARCH),
-		new DefKeyAction(KeyEvent.KEYCODE_MENU, false, ReaderAction.READER_MENU),
-		new DefKeyAction(KeyEvent.KEYCODE_MENU, true, ReaderAction.OPTIONS),
-		new DefKeyAction(NOOK_KEY_NEXT_LEFT, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(NOOK_KEY_NEXT_RIGHT, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(NOOK_KEY_SHIFT_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(NOOK_KEY_PREV_LEFT, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(NOOK_KEY_PREV_RIGHT, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(NOOK_KEY_SHIFT_UP, false, ReaderAction.PAGE_UP),
-	};
-	private static DefTapAction[] DEF_TAP_ACTIONS = {
-		new DefTapAction(1, false, ReaderAction.PAGE_UP),
-		new DefTapAction(2, false, ReaderAction.PAGE_UP),
-		new DefTapAction(4, false, ReaderAction.PAGE_UP),
-		new DefTapAction(1, true, ReaderAction.PAGE_UP_10),
-		new DefTapAction(2, true, ReaderAction.PAGE_UP_10),
-		new DefTapAction(4, true, ReaderAction.PAGE_UP_10),
-		new DefTapAction(3, false, ReaderAction.PAGE_DOWN),
-		new DefTapAction(6, false, ReaderAction.PAGE_DOWN),
-		new DefTapAction(7, false, ReaderAction.PAGE_DOWN),
-		new DefTapAction(8, false, ReaderAction.PAGE_DOWN),
-		new DefTapAction(9, false, ReaderAction.PAGE_DOWN),
-		new DefTapAction(3, true, ReaderAction.PAGE_DOWN_10),
-		new DefTapAction(6, true, ReaderAction.PAGE_DOWN_10),
-		new DefTapAction(7, true, ReaderAction.PAGE_DOWN_10),
-		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
-		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
-		new DefTapAction(5, false, ReaderAction.READER_MENU),
-		new DefTapAction(5, true, ReaderAction.OPTIONS),
-	};
-	
-	private Properties loadSettings()
-	{
-        Properties props = new Properties();
-		File propsDir = mActivity.getDir("settings", Context.MODE_PRIVATE);
-		propsDir.mkdirs();
-		propsFile = new File( propsDir, "cr3.ini");
-        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
-        	try {
-        		FileInputStream is = new FileInputStream(propsFile);
-        		props.load(is);
-        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
-        	} catch ( Exception e ) {
-        		Log.e("cr3", "error while reading settings");
-        	}
-        }
-        
-        // default key actions
-        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
-        	if ( ka.longPress )
-        		props.applyDefault(PROP_APP_KEY_ACTIONS_PRESS + ".long." + ka.keyCode, ka.action.id);
-        	else
-        		props.applyDefault(PROP_APP_KEY_ACTIONS_PRESS + "." + ka.keyCode, ka.action.id);
-        }
-        // default tap zone actions
-        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
-        	if ( ka.longPress )
-        		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone, ka.action.id);
-        	else
-        		props.applyDefault(PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
-        }
-        props.applyDefault(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
-        props.applyDefault(PROP_FONT_SIZE, "20");
-        props.applyDefault(PROP_FONT_FACE, "Droid Sans");
-        props.setProperty(PROP_STATUS_FONT_FACE, "Droid Sans");
-        props.setProperty(PROP_STATUS_FONT_SIZE, "16");
-        props.setProperty(PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
-        props.setProperty(PROP_DISPLAY_INVERSE, "0");
-        props.applyDefault(PROP_APP_FULLSCREEN, "0");
-        props.applyDefault(PROP_APP_SCREEN_BACKLIGHT, "-1");
-		props.applyDefault(PROP_SHOW_BATTERY, "1"); 
-		props.applyDefault(PROP_SHOW_TIME, "1");
-		props.applyDefault(PROP_FONT_ANTIALIASING, "2");
-		props.applyDefault(PROP_APP_SHOW_COVERPAGES, "1");
-		props.applyDefault(PROP_APP_SCREEN_ORIENTATION, "0");
-		props.applyDefault(PROP_PAGE_ANIMATION, "1");
-		props.applyDefault(PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
-
-        props.applyDefault(PROP_NIGHT_MODE, "0");
-        if ( props.getBool(PROP_NIGHT_MODE, false) )
-        	props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
-        else
-        	props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
-        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
-        props.applyDefault(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
-        
-		
-		props.setProperty(PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
-		props.setProperty(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-		props.applyDefault(PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
-		return props;
-	}
-	
 	private void setBackgroundTexture( String textureId ) {
 		BackgroundTextureInfo[] textures = mEngine.getAvailableTextures();
 		for ( BackgroundTextureInfo item : textures ) {
@@ -1240,13 +1105,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	private static boolean DEBUG_RESET_OPTIONS = false;
 	BackgroundTextureInfo currentBackgroundTexture = Engine.NO_TEXTURE;
 	class CreateViewTask extends Task
 	{
         Properties props = new Properties();
-        public CreateViewTask() {
-       		props = loadSettings();
+        public CreateViewTask( Properties props ) {
+       		this.props = props;
        		Properties oldSettings = new Properties(); // may be changed by setAppSettings 
    			setAppSettings(props, oldSettings);
    			props.setAll(oldSettings);
@@ -1311,7 +1175,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "loadLastDocument() is called");
-		init();
+		init(new Properties(mSettings));
 		//BookInfo book = mActivity.getHistory().getLastBook();
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
 		return loadDocument( lastBookName, errorHandler );
@@ -1325,7 +1189,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			errorHandler.run();
 			return false;
 		}
-		init();
+		init(new Properties(mSettings));
 		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
 		FileInfo fi = null;
 		if ( book==null ) {
@@ -2662,12 +2526,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
 
     private boolean initStarted = false;
-    public void init()
+    public void init( Properties props )
     {
     	if ( initStarted )
     		return;
     	initStarted = true;
-   		execute(new CreateViewTask());
+   		execute(new CreateViewTask( props ));
     }
     
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread) 
