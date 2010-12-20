@@ -449,11 +449,13 @@ public class CoolReader extends Activity
 			}
 			intent.setData(null);
 		}
+		Log.v("cr3", "onNewIntent, fileToOpen=" + fileToOpen);
 		if ( fileToOpen!=null ) {
 			// load document
 			final String fn = fileToOpen;
 			mReaderView.loadDocument(fileToOpen, new Runnable() {
 				public void run() {
+					Log.v("cr3", "onNewIntent, loadDocument error handler called");
 					showToast("Error occured while loading " + fn);
 					mEngine.hideProgress();
 				}
@@ -516,20 +518,22 @@ public class CoolReader extends Activity
 	
 	@Override
 	protected void onStart() {
-		Log.i("cr3", "CoolReader.onStart()");
+		Log.i("cr3", "CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
 		
 		backlightControl.onUserActivity();
-		
-		if ( mReaderView!=null && currentView==mReaderView && mReaderView.isBookLoaded() ) {
-			showReader();
-			return;
-		}
-		
-		//!stopped && 
-		if ( restarted && mReaderView!=null && mReaderView.isBookLoaded() ) {
-	        restarted = false;
-	        return;
+
+		if ( fileToLoadOnStart==null ) {
+			if ( mReaderView!=null && currentView==mReaderView && mReaderView.isBookLoaded() ) {
+				showReader();
+				return;
+			}
+			
+			//!stopped && 
+			if ( restarted && mReaderView!=null && mReaderView.isBookLoaded() ) {
+		        restarted = false;
+		        return;
+			}
 		}
 		if ( !stopped ) {
 	        mEngine.showProgress( 5, R.string.progress_starting_cool_reader );
@@ -543,10 +547,11 @@ public class CoolReader extends Activity
         mEngine.execute(new Engine.EngineTask() {
 
 			public void done() {
-		        Log.i("cr3", "trying to load last document");
+		        Log.i("cr3", "trying to load last document " + fileToLoadOnStart);
 				if ( fileName!=null || LOAD_LAST_DOCUMENT_ON_START ) {
 					//currentView=mReaderView;
 					if ( fileName!=null ) {
+						Log.v("cr3", "onStart() : loading " + fileName);
 						mReaderView.loadDocument(fileName, new Runnable() {
 							public void run() {
 								// cannot open recent book: load another one
@@ -556,6 +561,7 @@ public class CoolReader extends Activity
 							}
 						});
 					} else {
+						Log.v("cr3", "onStart() : loading last document");
 						mReaderView.loadLastDocument(new Runnable() {
 							public void run() {
 								// cannot open recent book: load another one
@@ -597,8 +603,11 @@ public class CoolReader extends Activity
 	private View currentView;
 	public void showView( View view )
 	{
-		if ( currentView==view )
+		if ( currentView==view ) {
+			Log.v("cr3", "showView : view " + view.getClass().getSimpleName() + " is already shown");
 			return;
+		}
+		Log.v("cr3", "showView : showing view " + view.getClass().getSimpleName());
 		mFrame.bringChildToFront(view);
 		for ( int i=0; i<mFrame.getChildCount(); i++ ) {
 			View v = mFrame.getChildAt(i);
@@ -706,6 +715,7 @@ public class CoolReader extends Activity
 
 	public void showToast( String msg )
 	{
+		Log.v("cr3", "showing toast: " + msg);
 		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
 		toast.show();
 	}

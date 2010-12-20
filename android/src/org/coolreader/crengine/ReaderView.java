@@ -1186,26 +1186,36 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "Submitting LoadDocumentTask for " + fileName);
 		if ( fileName==null ) {
+			Log.v("cr3", "loadDocument() : no filename specified");
 			errorHandler.run();
 			return false;
 		}
 		init(new Properties(mSettings));
 		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
+		if ( book!=null )
+			Log.v("cr3", "loadDocument() : found book in history : " + book);
 		FileInfo fi = null;
 		if ( book==null ) {
+			Log.v("cr3", "loadDocument() : book not found in history, looking for location directory");
 			FileInfo dir = mActivity.getScanner().findParent(new FileInfo(fileName), mActivity.getScanner().getRoot());
-			if ( dir!=null )
+			if ( dir!=null ) {
+				Log.v("cr3", "loadDocument() : document location found : " + dir);
 				fi = dir.findItemByPathName(fileName);
+				Log.v("cr3", "loadDocument() : item inside location : " + fi);
+			}
 			if ( fi==null ) {
+				Log.v("cr3", "loadDocument() : no file item " + fileName + " found inside " + dir);
 				errorHandler.run();
 				return false;
 			}
 			if ( fi.isDirectory ) {
+				Log.v("cr3", "loadDocument() : is a directory, opening browser");
 				mActivity.showBrowser(fi);
 				return true;
 			}
 		} else {
 			fi = book.getFileInfo();
+			Log.v("cr3", "loadDocument() : item from history : " + fi);
 		}
 		execute( new LoadDocumentTask(fi, errorHandler) );
 		return true;
@@ -2108,11 +2118,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Runnable errorHandler;
 		LoadDocumentTask( FileInfo fileInfo, Runnable errorHandler )
 		{
+			Log.v("cr3", "LoadDocumentTask for " + fileInfo);
 			BackgroundThread.ensureGUI();
 			this.filename = fileInfo.getPathName();
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
+			Log.v("cr3", "LoadDocumentTask : book info " + mBookInfo);
     		//mBitmap = null;
 	        mEngine.showProgress( 1000, R.string.progress_loading );
 	        //init();
@@ -2125,8 +2137,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Log.i("cr3", "Loading document " + filename);
 	        boolean success = loadDocumentInternal(filename);
 	        if ( success ) {
+				Log.v("cr3", "loadDocumentInternal completed successfully");
 	        	findCoverPage();
+				Log.v("cr3", "requesting page image, to render");
 	        	preparePageImage(0);
+				Log.v("cr3", "updating loaded book info");
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
 	        } else {
@@ -2137,7 +2152,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void done()
 		{
 			BackgroundThread.ensureGUI();
-			Log.d("cr3", "LoadDocumentTask is finished successfully");
+			Log.d("cr3", "LoadDocumentTask, GUI thread is finished successfully");
 	        restorePosition();
 	        if ( coverPageBytes!=null && coverPageDrawable!=null ) {
 	        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
@@ -2151,14 +2166,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void fail( Exception e )
 		{
 			BackgroundThread.ensureGUI();
+			Log.e("cr3", "LoadDocumentTask failed for " + mBookInfo);
 			mActivity.getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
 			mBookInfo = null;
 			Log.d("cr3", "LoadDocumentTask is finished with exception " + e.getMessage());
-	        mOpened = true;
+	        mOpened = false;
 			drawPage();
 			mEngine.hideProgress();
 			mActivity.showToast("Error while loading document");
 			if ( errorHandler!=null ) {
+				Log.e("cr3", "LoadDocumentTask: Calling error handler");
 				errorHandler.run();
 			}
 		}

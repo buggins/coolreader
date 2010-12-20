@@ -92,4 +92,12 @@ public class BookInfo {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "BookInfo [fileInfo=" + fileInfo + ", lastPosition="
+				+ lastPosition + "]";
+	}
+
+	
+	
 }
