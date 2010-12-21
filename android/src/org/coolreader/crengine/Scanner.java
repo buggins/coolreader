@@ -196,12 +196,13 @@ public class Scanner {
 	 */
 	public void scanDirectory( final FileInfo baseDir, final Runnable readyCallback )
 	{
-		if ( baseDir.isScanned ) {
+		final long startTime = System.currentTimeMillis();
+		listDirectory(baseDir);
+		listSubtree( baseDir, 2, 2000 );
+		if ( !getDirScanEnabled() || baseDir.isScanned ) {
 			readyCallback.run();
 			return;
 		}
-		final long startTime = System.currentTimeMillis(); 
-		listDirectory(baseDir);
 		engine.execute(new EngineTask() {
 			long nextProgressTime = startTime + 2000;
 			boolean progressShown = false;

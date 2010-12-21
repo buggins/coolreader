@@ -1043,7 +1043,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) || PROP_PAGE_ANIMATION.equals(key)
     				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) || PROP_APP_SHOW_COVERPAGES.equals(key) 
     				|| PROP_APP_SCREEN_BACKLIGHT.equals(key) 
-    				|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)) {
+    				|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)
+    				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {

@@ -342,6 +342,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
+			addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();

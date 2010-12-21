@@ -11,6 +11,7 @@ import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.Engine;
+import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
@@ -260,6 +261,9 @@ public class CoolReader extends Activity
 		mEngine = new Engine(this, mBackgroundThread);
 		mBackgroundThread.setGUI(mFrame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
+		mEngine.setHyphenationDictionary(HyphDict.byCode(props.getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString())));
+		
 		//this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
         //       WindowManager.LayoutParams.FLAG_FULLSCREEN );
 //		startupView = new View(this) {
@@ -919,6 +923,8 @@ public class CoolReader extends Activity
 		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, true, ReaderAction.SEARCH),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, false, ReaderAction.READER_MENU),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, true, ReaderAction.OPTIONS),
+		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, false, ReaderAction.NONE),
+		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, true, ReaderAction.NONE),
 		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_LEFT, false, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, false, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, false, ReaderAction.PAGE_DOWN),
