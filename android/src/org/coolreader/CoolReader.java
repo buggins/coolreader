@@ -560,7 +560,6 @@ public class CoolReader extends Activity
 							public void run() {
 								// cannot open recent book: load another one
 								Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
-								mEngine.hideProgress();
 								showBrowser(null);
 							}
 						});
@@ -570,7 +569,6 @@ public class CoolReader extends Activity
 							public void run() {
 								// cannot open recent book: load another one
 								Log.e("cr3", "Cannot open last document, starting file browser");
-								mEngine.hideProgress();
 								showBrowser(null);
 							}
 						});
@@ -643,6 +641,7 @@ public class CoolReader extends Activity
 		Log.v("cr3", "showBrowser() is called");
 		if ( currentView == mReaderView )
 			mReaderView.save();
+		mEngine.hideProgress();
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
 				showView(mBrowser);

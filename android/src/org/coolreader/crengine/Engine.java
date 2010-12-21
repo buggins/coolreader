@@ -261,7 +261,7 @@ public class Engine {
 			mBackgroundThread.executeGUI( new Runnable() {
 				public void run() {
 					// show progress
-					Log.v("cr3", "showProgress() - in GUI thread");
+					//Log.v("cr3", "showProgress() - in GUI thread");
 					if ( mProgress==null ) {
 						if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
 							mProgress = new ProgressDialog(mActivity);

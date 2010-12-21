@@ -41,7 +41,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		14, 16, 18, 20, 22, 24, 26, 28, 30,
-		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60
+		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68
 	};
 	int[] mBacklightLevels = new int[] {
 		-1, 1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 100

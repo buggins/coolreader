@@ -223,7 +223,7 @@ public:
 			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
 			return NULL;
 		}
-	    CRLog::trace("JNIGraphicsLib::lock info: %d (%d) x %d", width, stride, height);
+	    //CRLog::trace("JNIGraphicsLib::lock info: %d (%d) x %d", width, stride, height);
 		lUInt8 * pixels = NULL; 
 		if ( ANDROID_BITMAP_RESUT_SUCCESS!=AndroidBitmap_lockPixels(env, jbitmap, (void**)&pixels) ) {
 	        CRLog::error("AndroidBitmap_lockPixels failed");
@@ -356,7 +356,7 @@ public:
     void reallocArray(JNIEnv* env, int len )
     {
     	if ( _array==NULL || env->GetArrayLength(_array)<len ) {
-    		CRLog::trace("JNIGraphicsReplacement::reallocArray( %d )", len);
+    		//CRLog::trace("JNIGraphicsReplacement::reallocArray( %d )", len);
 	    	freeArray(env);
 	    	jobject lref = env->NewIntArray(len);
 		    _array = (jintArray)env->NewGlobalRef( lref );

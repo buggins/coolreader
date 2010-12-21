@@ -198,7 +198,7 @@ public class Scanner {
 	{
 		final long startTime = System.currentTimeMillis();
 		listDirectory(baseDir);
-		listSubtree( baseDir, 2, 2000 );
+		listSubtree( baseDir, 2, android.os.SystemClock.uptimeMillis() + 700 );
 		if ( !getDirScanEnabled() || baseDir.isScanned ) {
 			readyCallback.run();
 			return;
