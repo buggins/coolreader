@@ -2468,7 +2468,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	    /// Override to handle external links
 	    public void OnImageCacheClear() {
-	    	Log.d("cr3", "readerCallback.OnImageCacheClear");
+	    	//Log.d("cr3", "readerCallback.OnImageCacheClear");
 	    	clearImageCache();
 	    }
     };

@@ -125,7 +125,7 @@ public:
     }
     virtual void OnImageCacheClear()
     {
-		CRLog::info("DocViewCallback::OnImageCacheClear() called");
+		//CRLog::info("DocViewCallback::OnImageCacheClear() called");
     	_env->CallVoidMethod(_obj, _OnImageCacheClear);
     }
 };

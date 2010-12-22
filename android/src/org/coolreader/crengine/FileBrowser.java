@@ -476,7 +476,8 @@ public class FileBrowser extends ListView {
 						String seriesName = formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
 						String filename1 = item.filename;
-						String filename2 = item.isArchive && !item.isDirectory ? new File(item.arcname).getName() : null;
+						String filename2 = item.isArchive /*&& !item.isDirectory */
+								? new File(item.arcname).getName() : null;
 						if ( title==null || title.length()==0 ) {
 							title = filename1;
 							if (seriesName==null) 
