@@ -49,6 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="2dip"
             android:focusable="false"
+            android:clickable="false"
             android:layout_gravity="right|center_vertical" 
             />
     </LinearLayout>
