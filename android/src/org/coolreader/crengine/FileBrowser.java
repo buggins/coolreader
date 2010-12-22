@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,9 +18,9 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -474,10 +475,14 @@ public class FileBrowser extends ListView {
 						setText( author, formatAuthors(item.authors) );
 						String seriesName = formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
-						if ( title==null || title.length()==0 )
-							title = item.filename;
-						else if (seriesName==null) 
-							seriesName = item.filename;
+						String filename1 = item.filename;
+						String filename2 = item.isArchive && !item.isDirectory ? new File(item.arcname).getName() : null;
+						if ( title==null || title.length()==0 ) {
+							title = filename1;
+							if (seriesName==null) 
+								seriesName = filename2;
+						} else if (seriesName==null) 
+							seriesName = filename1;
 						setText( name, title );
 						setText( series, seriesName );
 
