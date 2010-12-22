@@ -952,13 +952,28 @@ public class CoolReader extends Activity
 		new DefTapAction(5, true, ReaderAction.OPTIONS),
 	};
 	File propsFile;
+	private static final String SETTINGS_FILE_NAME = "cr3.ini";
 	private static boolean DEBUG_RESET_OPTIONS = false;
 	private Properties loadSettings()
 	{
         Properties props = new Properties();
-		File propsDir = getDir("settings", Context.MODE_PRIVATE);
-		propsDir.mkdirs();
-		propsFile = new File( propsDir, "cr3.ini");
+
+		File[] dataDirs = Engine.getDataDirectories(null, false, true);
+		File existingFile = null;
+		for ( File dir : dataDirs ) {
+			File f = new File(dir, SETTINGS_FILE_NAME);
+			if ( f.exists() && f.isFile() ) {
+				existingFile = f;
+				break;
+			}
+		}
+        if ( existingFile!=null )
+        	propsFile = existingFile;
+        else {
+	        File propsDir = getDir("settings", Context.MODE_PRIVATE);
+			propsDir.mkdirs();
+			propsFile = new File( propsDir, "cr3.ini");
+        }
         if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
         	try {
         		FileInputStream is = new FileInputStream(propsFile);

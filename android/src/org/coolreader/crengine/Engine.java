@@ -47,6 +47,9 @@ public class Engine {
 		File dir2 = new File("/system/media/sdcard");
 		if ( dir2.isDirectory() && (!writableOnly || dir2.canWrite()))
 			res.add(dir2);
+		File dir22 = new File("/sdcard2");
+		if ( dir22.isDirectory() && (!writableOnly || dir22.canWrite()))
+			res.add(dir22);
 		File dir3 = new File("/nand");
 		if ( dir3.isDirectory() && (!writableOnly || dir3.canWrite()))
 			res.add(dir3);
@@ -626,13 +629,15 @@ public class Engine {
 
 	private String[] findFonts()
 	{
-		File[] fontDirs = {
-				new File( Environment.getRootDirectory(), "fonts"),
-				new File( Environment.getExternalStorageDirectory(), "fonts"),
-				new File( new File("/system/media/sdcard"), "fonts") //Nook internal SD
-		};
+		ArrayList<File> dirs = new ArrayList<File>(); 
+		File[] dataDirs = getDataDirectories("fonts", false, false);
+		for ( File dir : dataDirs )
+			dirs.add(dir);
+		File[] rootDirs = getStorageDirectories(false);
+		for ( File dir : rootDirs )
+			dirs.add(new File(dir, "fonts") );
 		ArrayList<String> fontPaths = new ArrayList<String>(); 
-		for ( File fontDir : fontDirs ) {
+		for ( File fontDir : dirs ) {
 			if ( fontDir.isDirectory() ) {
 				Log.v("cr3", "Scanning directory " + fontDir.getAbsolutePath() + " for font files");
 				// get font names
