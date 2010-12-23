@@ -312,7 +312,7 @@ public class Engine {
 	public void hideProgress()
 	{
 		//Log.v("cr3", "hideProgress() is called");
-		mBackgroundThread.executeGUI( new Runnable() {
+		mBackgroundThread.postGUI( new Runnable() {
 			public void run() {
 				// hide progress
 				if ( mProgress!=null ) {

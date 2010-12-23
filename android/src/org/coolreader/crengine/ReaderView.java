@@ -1491,11 +1491,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			Log.e("cr3", "DrawPageTask.work("+internalDX+","+internalDY+")");
 			bi = preparePageImage(0);
-	        mEngine.hideProgress();
 			if ( bi!=null ) {
 				draw();
 			}
 		}
+		@Override
 		public void done()
 		{
 			BackgroundThread.ensureGUI();
@@ -1508,6 +1508,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
    			mEngine.hideProgress();
    			if ( doneHandler!=null )
    				doneHandler.run();
+		}
+		@Override
+		public void fail(Exception e) {
+   			mEngine.hideProgress();
 		}
 	};
 	
@@ -2099,7 +2103,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( !mInitialized || !mOpened )
 			return;
 		Log.v("cr3", "drawPage() : submitting DrawPageTask");
-		execute( new DrawPageTask(doneHandler) );
+		post( new DrawPageTask(doneHandler) );
 	}
 	
 	private int internalDX = 0;
