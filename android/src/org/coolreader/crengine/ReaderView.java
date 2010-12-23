@@ -1,8 +1,6 @@
 package org.coolreader.crengine;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -10,6 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.Engine.EngineTask;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -173,6 +172,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	mEngine.execute(task);
     }
     
+    private void post( Engine.EngineTask task )
+    {
+    	mEngine.post(task);
+    }
+    
     private abstract class Task implements Engine.EngineTask {
     	
 		public void done() {
@@ -276,8 +280,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		init(new Properties(mSettings));
 		final int thisId = ++lastResizeTaskId;
 		mActivity.getHistory().updateCoverPageSize(w, h);
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
-			public void run() {
+		post(new Task() {
+			public void work() {
 				BackgroundThread.ensureBackground();
 				if ( thisId != lastResizeTaskId ) {
 					Log.d("cr3", "skipping duplicate resize request");
@@ -287,8 +291,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        internalDY = h;
 				Log.d("cr3", "ResizeTask: resizeInternal("+w+","+h+")");
 		        resizeInternal(w, h);
-				Log.d("cr3", "ResizeTask: done, drawing page");
-		        drawPage();
+//		        if ( mOpened ) {
+//					Log.d("cr3", "ResizeTask: done, drawing page");
+//			        drawPage();
+//		        }
+			}
+			public void done() {
+				invalidate();
 			}
 		});
 	}
@@ -2403,6 +2412,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void OnFormatEnd() {
 			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnFormatEnd");
+			mEngine.hideProgress();
+			drawPage();
 		}
 		public boolean OnFormatProgress(final int percent) {
 			BackgroundThread.ensureBackground();
@@ -2549,7 +2560,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	if ( initStarted )
     		return;
     	initStarted = true;
-   		execute(new CreateViewTask( props ));
+   		post(new CreateViewTask( props ));
     }
     
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread) 

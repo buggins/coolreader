@@ -178,7 +178,7 @@ LOCAL_SRC_FILES := \
     $(JPEG_SRC_FILES) \
     $(CHM_SRC_FILES)
 
-LOCAL_LDLIBS    := -lm -llog -lz -ldl
+LOCAL_LDLIBS    := -lm -llog -lz -ldl -Wl,-Map=cr3engine.map
 #-ljnigraphics
 
 include $(BUILD_SHARED_LIBRARY)

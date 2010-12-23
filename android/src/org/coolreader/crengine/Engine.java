@@ -188,6 +188,18 @@ public class Engine {
 	}
 	
 	/**
+	 * Schedule task for execution in Engine thread
+	 * @param task is task to execute
+	 */
+	public void post( final EngineTask task )
+	{
+		if ( LOG_ENGINE_TASKS )
+			Log.d("cr3", "executing task " + task.getClass().getSimpleName());
+		TaskHandler taskHandler = new TaskHandler( task );
+		mBackgroundThread.postBackground( taskHandler );
+	}
+	
+	/**
 	 * Schedule Runnable for execution in GUI thread after all current Engine queue tasks done.  
 	 * @param task
 	 */
