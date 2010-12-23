@@ -332,7 +332,7 @@ public class CoolReader extends Activity
     		return;
     	backlightControl.onUserActivity();
     	// Hack
-    	if ( backlightControl.isHeld() )
+    	//if ( backlightControl.isHeld() )
     	BackgroundThread.guiExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
