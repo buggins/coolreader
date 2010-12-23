@@ -648,6 +648,7 @@ public class Engine {
 		File[] rootDirs = getStorageDirectories(false);
 		for ( File dir : rootDirs )
 			dirs.add(new File(dir, "fonts") );
+		dirs.add(new File( Environment.getRootDirectory(), "fonts"));
 		ArrayList<String> fontPaths = new ArrayList<String>(); 
 		for ( File fontDir : dirs ) {
 			if ( fontDir.isDirectory() ) {

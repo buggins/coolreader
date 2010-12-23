@@ -277,7 +277,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
 		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
-		init(new Properties(mSettings));
 		final int thisId = ++lastResizeTaskId;
 		mActivity.getHistory().updateCoverPageSize(w, h);
 		post(new Task() {
@@ -297,6 +296,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //		        }
 			}
 			public void done() {
+				clearImageCache();
 				invalidate();
 			}
 		});
@@ -318,6 +318,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private int overrideKey( int keyCode )
 	{
+		return keyCode;
+/*		
+		
 		int angle = getOrientation();
 		int[] subst = new int[] {
 			1, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_LEFT,
@@ -342,6 +345,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return subst[i+2];
 		}
 		return keyCode;
+*/
 	}
 	
 	public int getTapZone( int x, int y, int dx, int dy )
@@ -932,8 +936,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	private boolean mInitialized = false;
-	private boolean mOpened = false;
+	volatile private boolean mInitialized = false;
+	volatile private boolean mOpened = false;
 	
 	//private File historyFile;
 	
@@ -1129,7 +1133,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void work() throws Exception {
 			BackgroundThread.ensureBackground();
 			Log.d("cr3", "CreateViewTask - in background thread");
-			createInternal();
 //			BackgroundTextureInfo[] textures = mEngine.getAvailableTextures();
 //			byte[] data = mEngine.getImageData(textures[3]);
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
@@ -1185,7 +1188,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "loadLastDocument() is called");
-		init(new Properties(mSettings));
 		//BookInfo book = mActivity.getHistory().getLastBook();
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
 		return loadDocument( lastBookName, errorHandler );
@@ -1200,7 +1202,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			errorHandler.run();
 			return false;
 		}
-		init(new Properties(mSettings));
 		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
 		if ( book!=null )
 			Log.v("cr3", "loadDocument() : found book in history : " + book);
@@ -2554,16 +2555,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	destroyInternal();
     }
 
-    private boolean initStarted = false;
-    public void init( Properties props )
-    {
-    	if ( initStarted )
-    		return;
-    	initStarted = true;
-   		post(new CreateViewTask( props ));
-    }
-    
-	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread) 
+	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread, Properties props ) 
     {
         super(activity);
         SurfaceHolder holder = getHolder();
@@ -2575,6 +2567,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         this.mBackThread = backThread;
         setFocusable(true);
         setFocusableInTouchMode(true);
+        
+        mBackThread.postBackground(new Runnable() {
+
+			@Override
+			public void run() {
+				Log.d("cr3", "ReaderView - in background thread: calling createInternal()");
+				createInternal();
+				mInitialized = true;
+			}
+        	
+        });
+
+        post(new CreateViewTask( props ));
+
     }
 
 }

@@ -270,17 +270,18 @@ public class CoolReader extends Activity
 //		};
 //		startupView.setBackgroundColor(Color.BLACK);
 		setWakeLockEnabled(props.getBool(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, true));
-		
-		
-		mReaderView = new ReaderView(this, mEngine, mBackgroundThread);
+
 		File dbdir = getDir("db", Context.MODE_PRIVATE);
 		dbdir.mkdirs();
 		File dbfile = new File(dbdir, "cr3db.sqlite");
 		mDB = new CRDB(dbfile);
+		
+       	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
        	mHistory = new History(mDB);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
-       	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
+		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
+		
 		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		Log.i("cr3", "initializing scanner");
         mScanner.initRoots();
@@ -294,7 +295,6 @@ public class CoolReader extends Activity
         Log.i("cr3", "initializing browser");
         mBrowser.init();
         Log.i("cr3", "initializing reader");
-        mReaderView.init( props );
         mBrowser.showDirectory(mScanner.getRoot(), null);
         
         fileToLoadOnStart = null;
