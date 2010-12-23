@@ -84,6 +84,7 @@ public class BackgroundThread extends Thread {
 		if ( guiTarget!=null ) {
 			// forward already posted events
 			synchronized(postedGUI) {
+				Log.d("cr3", "Engine.setGUI: " + postedGUI.size() + " posted tasks to copy");
 				for ( Runnable task : postedGUI )
 					guiTarget.post( task );
 			}
@@ -109,8 +110,10 @@ public class BackgroundThread extends Thread {
 				Log.d("cr3", "message: " + message);
 			}
 		};
+		Log.i("cr3", "Background thread handler is created");
 		synchronized(posted) {
 			for ( Runnable task : posted ) {
+				Log.i("cr3", "Copying posted bg task to handler : " + task);
 				handler.post(task);
 			}
 			posted.clear();
@@ -148,6 +151,7 @@ public class BackgroundThread extends Thread {
 		task = guard(task);
 		if ( handler==null ) {
 			synchronized(posted) {
+				Log.i("cr3", "Adding task " + task + " to posted list since handler is not yet created");
 				posted.add(task);
 			}
 		} else {

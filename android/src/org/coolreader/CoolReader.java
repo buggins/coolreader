@@ -262,6 +262,8 @@ public class CoolReader extends Activity
 		mBackgroundThread.setGUI(mFrame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
+        mEngine.showProgress( 0, R.string.progress_starting_cool_reader );
+		
 		mEngine.setHyphenationDictionary(HyphDict.byCode(props.getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString())));
 		
 		//this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
@@ -291,9 +293,9 @@ public class CoolReader extends Activity
 		mFrame.addView(mBrowser);
 //		mFrame.addView(startupView);
 		setContentView( mFrame );
-		showView(mBrowser);
         Log.i("cr3", "initializing browser");
         mBrowser.init();
+		showView(mBrowser, false);
         Log.i("cr3", "initializing reader");
         mBrowser.showDirectory(mScanner.getRoot(), null);
         
@@ -529,18 +531,20 @@ public class CoolReader extends Activity
 
 		if ( fileToLoadOnStart==null ) {
 			if ( mReaderView!=null && currentView==mReaderView && mReaderView.isBookLoaded() ) {
+				Log.v("cr3", "Book is already opened, showing ReaderView");
 				showReader();
 				return;
 			}
 			
 			//!stopped && 
-			if ( restarted && mReaderView!=null && mReaderView.isBookLoaded() ) {
-		        restarted = false;
-		        return;
-			}
+//			if ( restarted && mReaderView!=null && mReaderView.isBookLoaded() ) {
+//				Log.v("cr3", "Book is already opened, showing ReaderView");
+//		        restarted = false;
+//		        return;
+//			}
 		}
 		if ( !stopped ) {
-	        //mEngine.showProgress( 5, R.string.progress_starting_cool_reader );
+	        mEngine.showProgress( 500, R.string.progress_starting_cool_reader );
 			//mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
 		}
         //Log.i("cr3", "waiting for engine tasks completion");
@@ -548,46 +552,61 @@ public class CoolReader extends Activity
 		restarted = false;
 		stopped = false;
 		final String fileName = fileToLoadOnStart;
-        mEngine.execute(new Engine.EngineTask() {
-
-			public void done() {
-		        Log.i("cr3", "trying to load last document " + fileToLoadOnStart);
-				if ( fileName!=null || LOAD_LAST_DOCUMENT_ON_START ) {
-					//currentView=mReaderView;
-					if ( fileName!=null ) {
-						Log.v("cr3", "onStart() : loading " + fileName);
-						mReaderView.loadDocument(fileName, new Runnable() {
-							public void run() {
-								// cannot open recent book: load another one
-								Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
-								showBrowser(null);
-							}
-						});
-					} else {
-						Log.v("cr3", "onStart() : loading last document");
-						mReaderView.loadLastDocument(new Runnable() {
-							public void run() {
-								// cannot open recent book: load another one
-								Log.e("cr3", "Cannot open last document, starting file browser");
-								showBrowser(null);
-							}
-						});
-					}
-				} else {
-					showBrowser(null);
-				}
-				fileToLoadOnStart = null;
+		mBackgroundThread.postGUI(new Runnable() {
+			public void run() {
+		        Log.i("cr3", "onStart, scheduled runnable: submitting task");
+		        mEngine.execute(new LoadLastDocumentTask(fileName));
 			}
-
-			public void fail(Exception e) {
-			}
-
-			public void work() throws Exception {
-				// do nothing
-			}
-        	
-        });
+		});
+		Log.i("cr3", "CoolReader.onStart() exiting");
 	}
+	
+	class LoadLastDocumentTask implements Engine.EngineTask {
+
+		final String fileName;
+		public LoadLastDocumentTask( String fileName ) {
+			super();
+			this.fileName = fileName;
+		}
+		
+		public void done() {
+	        Log.i("cr3", "onStart, scheduled task: trying to load " + fileToLoadOnStart);
+			if ( fileName!=null || LOAD_LAST_DOCUMENT_ON_START ) {
+				//currentView=mReaderView;
+				if ( fileName!=null ) {
+					Log.v("cr3", "onStart() : loading " + fileName);
+					mReaderView.loadDocument(fileName, new Runnable() {
+						public void run() {
+							// cannot open recent book: load another one
+							Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
+							showBrowser(null);
+						}
+					});
+				} else {
+					Log.v("cr3", "onStart() : loading last document");
+					mReaderView.loadLastDocument(new Runnable() {
+						public void run() {
+							// cannot open recent book: load another one
+							Log.e("cr3", "Cannot open last document, starting file browser");
+							showBrowser(null);
+						}
+					});
+				}
+			} else {
+				showBrowser(null);
+			}
+			fileToLoadOnStart = null;
+		}
+
+		public void fail(Exception e) {
+	        Log.e("cr3", "onStart, scheduled task failed", e);
+		}
+
+		public void work() throws Exception {
+	        Log.v("cr3", "onStart, scheduled task work()");
+		}
+    }
+ 
 
 	public final static boolean CLOSE_BOOK_ON_STOP = false;
 	private boolean stopped = false;
@@ -605,6 +624,15 @@ public class CoolReader extends Activity
 	private View currentView;
 	public void showView( View view )
 	{
+		showView( view, true );
+	}
+	public void showView( View view, boolean hideProgress )
+	{
+		mBackgroundThread.postGUI(new Runnable() {
+			public void run() {
+				mEngine.hideProgress();
+			}
+		});
 		if ( currentView==view ) {
 			Log.v("cr3", "showView : view " + view.getClass().getSimpleName() + " is already shown");
 			return;
@@ -641,11 +669,9 @@ public class CoolReader extends Activity
 		Log.v("cr3", "showBrowser() is called");
 		if ( currentView == mReaderView )
 			mReaderView.save();
-		mEngine.hideProgress();
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
 				showView(mBrowser);
-		        mEngine.hideProgress();
 		        if ( fileToShow==null )
 		        	mBrowser.showLastDirectory();
 		        else
@@ -662,7 +688,6 @@ public class CoolReader extends Activity
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
 				showView(mBrowser);
-		        mEngine.hideProgress();
 	        	mBrowser.showRecentBooks();
 			}
 		});
@@ -676,7 +701,6 @@ public class CoolReader extends Activity
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
 				showView(mBrowser);
-		        mEngine.hideProgress();
 	        	mBrowser.showRootDirectory();
 			}
 		});

@@ -1187,16 +1187,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public boolean loadLastDocument( final Runnable errorHandler )
 	{
 		BackgroundThread.ensureGUI();
-		Log.i("cr3", "loadLastDocument() is called");
 		//BookInfo book = mActivity.getHistory().getLastBook();
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
+		Log.i("cr3", "loadLastDocument() is called, lastBookName = " + lastBookName);
 		return loadDocument( lastBookName, errorHandler );
 	}
 	
 	public boolean loadDocument( String fileName, final Runnable errorHandler )
 	{
 		BackgroundThread.ensureGUI();
-		Log.i("cr3", "Submitting LoadDocumentTask for " + fileName);
+		Log.i("cr3", "loadDocument(" + fileName + ")");
 		if ( fileName==null ) {
 			Log.v("cr3", "loadDocument() : no filename specified");
 			errorHandler.run();
@@ -1229,6 +1229,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Log.v("cr3", "loadDocument() : item from history : " + fi);
 		}
 		post( new LoadDocumentTask(fi, errorHandler) );
+		Log.v("cr3", "loadDocument: LoadDocumentTask(" + fi + ") is posted");
 		return true;
 	}
 	
@@ -2174,8 +2175,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        	//mEngine.setProgressDrawable(coverPageDrawable);
 	        }
 	        mOpened = true;
-			mActivity.showReader();
 	        drawPage();
+	        mBackThread.postGUI(new Runnable() {
+	        	public void run() {
+	    			mActivity.showReader();
+	        	}
+	        });
 	        mActivity.setLastSuccessfullyOpenedBook(filename);
 		}
 		public void fail( Exception e )

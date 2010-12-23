@@ -127,21 +127,24 @@ public class Engine {
 		{
 			this.task = task;
 		}
+		public String toString() {
+			return "[handler for " + this.task.toString() + "]";
+		}
 		public void run() {
 			try {
 				if ( LOG_ENGINE_TASKS )
-					Log.i("cr3", "running task " + task.getClass().getSimpleName() + " in engine thread");
+					Log.i("cr3", "running task.work() " + task.getClass().getName());
 				if ( !initialized )
 					throw new IllegalStateException("Engine not initialized");
 				// run task
 				task.work();
 				if ( LOG_ENGINE_TASKS )
-					Log.i("cr3", "exited task.work() " + task.getClass().getSimpleName() + " in engine thread");
+					Log.i("cr3", "exited task.work() " + task.getClass().getName());
 				// post success callback
 				mBackgroundThread.postGUI(new Runnable() {
 					public void run() {
 						if ( LOG_ENGINE_TASKS )
-							Log.i("cr3", "running task.done() " + task.getClass().getSimpleName() + " in gui thread");
+							Log.i("cr3", "running task.done() " + task.getClass().getName() + " in gui thread");
 						task.done();
 					}
 				});
@@ -164,6 +167,7 @@ public class Engine {
 //					});
 //				}
 			} catch ( final Exception e ) {
+				Log.e("cr3", "exception while running task " + task.getClass().getName(), e);
 				// post error callback
 				mBackgroundThread.postGUI(new Runnable() {
 					public void run() {
@@ -325,7 +329,7 @@ public class Engine {
 		mBackgroundThread.executeGUI( new Runnable() {
 			public void run() {
 				// hide progress
-				Log.v("cr3", "showProgress() - in GUI thread");
+				Log.v("cr3", "hideProgress() - in GUI thread");
 				if ( progressId!= nextProgressId ) {
 					Log.v("cr3", "hideProgress() - skipping duplicate progress event");
 					return;
