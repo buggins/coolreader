@@ -238,23 +238,23 @@ public class Engine {
 	private boolean progressShown = false;
 	private static int PROGRESS_STYLE = ProgressDialog.STYLE_HORIZONTAL;
 	private Drawable progressIcon = null;
-	public void setProgressDrawable( final BitmapDrawable drawable )
-	{
-		if ( enable_progress ) {
-			mBackgroundThread.executeGUI( new Runnable() {
-				public void run() {
-					// show progress
-					Log.v("cr3", "showProgress() - in GUI thread");
-					if ( mProgress!=null && progressShown ) {
-						hideProgress();
-						progressIcon = drawable;
-						showProgress(mProgressPos, mProgressMessage);
-						//mProgress.setIcon(drawable);
-					}
-				}
-			});
-		}
-	}
+//	public void setProgressDrawable( final BitmapDrawable drawable )
+//	{
+//		if ( enable_progress ) {
+//			mBackgroundThread.executeGUI( new Runnable() {
+//				public void run() {
+//					// show progress
+//					Log.v("cr3", "showProgress() - in GUI thread");
+//					if ( mProgress!=null && progressShown ) {
+//						hideProgress();
+//						progressIcon = drawable;
+//						showProgress(mProgressPos, mProgressMessage);
+//						//mProgress.setIcon(drawable);
+//					}
+//				}
+//			});
+//		}
+//	}
 	public void showProgress( final int mainProgress, final int resourceId )
 	{
 		showProgress( mainProgress, mActivity.getResources().getString(resourceId) );
@@ -262,8 +262,10 @@ public class Engine {
 	private String mProgressMessage = null;
 	private int mProgressPos = 0;
 	
+	private volatile int nextProgressId = 0; 
 	private void showProgress( final int mainProgress, final String msg )
 	{
+		final int progressId = ++nextProgressId;
 		mProgressMessage = msg;
 		mProgressPos = mainProgress;
 		if ( mainProgress==10000 ) {
@@ -271,13 +273,18 @@ public class Engine {
 			hideProgress();
 			return;
 		}
-		Log.v("cr3", "showProgress(" + mainProgress + ", \"" + msg + "\") is called");
+		Log.v("cr3", "showProgress(" + mainProgress + ", \"" + msg + "\") is called : " + Thread.currentThread().getName());
 		if ( enable_progress ) {
 			mBackgroundThread.executeGUI( new Runnable() {
 				public void run() {
 					// show progress
-					//Log.v("cr3", "showProgress() - in GUI thread");
+					Log.v("cr3", "showProgress() - in GUI thread");
+					if ( progressId!= nextProgressId ) {
+						Log.v("cr3", "showProgress() - skipping duplicate progress event");
+						return;
+					}
 					if ( mProgress==null ) {
+						Log.v("cr3", "showProgress() - in GUI thread : creating progress window");
 						if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
 							mProgress = new ProgressDialog(mActivity);
 							mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -296,6 +303,7 @@ public class Engine {
 							mProgress.setCancelable(false);
 							mProgress.setProgress(mainProgress);
 						}
+						progressShown = true;
 					} else {
 						mProgress.setProgress(mainProgress);
 						mProgress.setMessage(msg);
@@ -311,10 +319,17 @@ public class Engine {
 	
 	public void hideProgress()
 	{
+		final int progressId = ++nextProgressId;
+		Log.v("cr3", "hideProgress() - is called : " + Thread.currentThread().getName());
 		//Log.v("cr3", "hideProgress() is called");
-		mBackgroundThread.postGUI( new Runnable() {
+		mBackgroundThread.executeGUI( new Runnable() {
 			public void run() {
 				// hide progress
+				Log.v("cr3", "showProgress() - in GUI thread");
+				if ( progressId!= nextProgressId ) {
+					Log.v("cr3", "hideProgress() - skipping duplicate progress event");
+					return;
+				}
 				if ( mProgress!=null ) {
 //					if ( mProgress.isShowing() )
 //						mProgress.hide();
@@ -322,7 +337,7 @@ public class Engine {
 					progressIcon = null;
 					mProgress.dismiss();
 					mProgress = null;
-					//Log.v("cr3", "hideProgress() - in GUI thread");
+					Log.v("cr3", "hideProgress() - in GUI thread, finished");
 				}
 			}
 		});

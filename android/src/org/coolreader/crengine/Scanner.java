@@ -233,6 +233,7 @@ public class Scanner {
 
 			public void work() throws Exception {
 				// scan (list) directories
+				nextProgressTime = System.currentTimeMillis() + 2000;
 				progress(1000);
 				for ( int i=baseDir.dirCount()-1; i>=0; i-- )
 					listDirectory(baseDir.getDir(i));

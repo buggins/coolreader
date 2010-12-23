@@ -649,7 +649,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureGUI();
 		final ReaderView view = this; 
-		mEngine.execute(new Task() {
+		mEngine.post(new Task() {
 			TOCItem toc;
 			PositionProperties pos;
 			public void work() {
@@ -728,7 +728,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void clearSelection()
     {
 		BackgroundThread.ensureGUI();
-		mEngine.execute(new Task() {
+		mEngine.post(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
 				clearSelectionInternal();
@@ -909,7 +909,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureGUI();
 		Log.d("cr3", "doCommand("+cmd + ", " + param +")");
-		execute(new Task() {
+		post(new Task() {
 			boolean res;
 			public void work() {
 				BackgroundThread.ensureBackground();
@@ -982,7 +982,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	 */
 	private void syncViewSettings( final Properties currSettings )
 	{
-		execute( new Task() {
+		post( new Task() {
 			Properties props;
 			public void work() {
 				BackgroundThread.ensureBackground();
@@ -1181,7 +1181,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			drawPage();
 			return;
 		}
-		execute(new LoadDocumentTask(fileInfo, null));
+		post(new LoadDocumentTask(fileInfo, null));
 	}
 
 	public boolean loadLastDocument( final Runnable errorHandler )
@@ -1228,7 +1228,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			fi = book.getFileInfo();
 			Log.v("cr3", "loadDocument() : item from history : " + fi);
 		}
-		execute( new LoadDocumentTask(fi, errorHandler) );
+		post( new LoadDocumentTask(fi, errorHandler) );
 		return true;
 	}
 	
@@ -2171,7 +2171,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        restorePosition();
 	        if ( coverPageBytes!=null && coverPageDrawable!=null ) {
 	        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
-	        	mEngine.setProgressDrawable(coverPageDrawable);
+	        	//mEngine.setProgressDrawable(coverPageDrawable);
 	        }
 	        mOpened = true;
 			mActivity.showReader();
@@ -2258,7 +2258,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	if ( mBookInfo!=null ) {
     		if ( mBookInfo.getLastPosition()!=null ) {
 	    		final String pos = mBookInfo.getLastPosition().getStartPos();
-	    		execute( new Task() {
+	    		post( new Task() {
 	    			public void work() {
 	    				BackgroundThread.ensureBackground();
 	    	    		goToPositionInternal( pos );
@@ -2321,7 +2321,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void save()
     {
 		BackgroundThread.ensureGUI();
-    	execute( new SavePositionTask() );
+    	post( new SavePositionTask() );
     }
     
     public void close()
@@ -2331,7 +2331,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	if ( !mOpened )
     		return;
 		//save();
-    	execute( new Task() {
+    	post( new Task() {
     		public void work() {
     			BackgroundThread.ensureBackground();
     			if ( mOpened ) {
@@ -2422,15 +2422,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		public boolean OnFormatProgress(final int percent) {
 			BackgroundThread.ensureBackground();
-			if ( enable_progress_callback )
-			executeSync( new Callable<Object>() {
-				public Object call() {
-					BackgroundThread.ensureGUI();
-			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
-			    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
-			    	return null;
-				}
-			});
+			if ( enable_progress_callback ) {
+		    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
+		    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
+			}
+//			executeSync( new Callable<Object>() {
+//				public Object call() {
+//					BackgroundThread.ensureGUI();
+//			    	Log.d("cr3", "readerCallback.OnFormatProgress " + percent);
+//			    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
+//			    	return null;
+//				}
+//			});
 			return true;
 		}
 		public void OnFormatStart() {
@@ -2467,15 +2470,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		public boolean OnLoadFileProgress(final int percent) {
 			BackgroundThread.ensureBackground();
-			if ( enable_progress_callback )
-			executeSync( new Callable<Object>() {
-				public Object call() {
-					BackgroundThread.ensureGUI();
-			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
-			    	mEngine.showProgress( percent*4/10 + 1000, R.string.progress_loading);
-			    	return null;
-				}
-			});
+			if ( enable_progress_callback ) {
+		    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
+		    	mEngine.showProgress( percent*4/10 + 1000, R.string.progress_loading);
+			}
+//			executeSync( new Callable<Object>() {
+//				public Object call() {
+//					BackgroundThread.ensureGUI();
+//			    	Log.d("cr3", "readerCallback.OnLoadFileProgress " + percent);
+//			    	mEngine.showProgress( percent*4/10 + 1000, R.string.progress_loading);
+//			    	return null;
+//				}
+//			});
 			return true;
 		}
 		public void OnLoadFileStart(String filename) {
@@ -2492,7 +2498,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private boolean invalidImages = true;
     private void clearImageCache()
     {
-    	BackgroundThread.instance().executeBackground( new Runnable() {
+    	BackgroundThread.instance().postBackground( new Runnable() {
     		public void run() {
     	    	invalidImages = true;
     		}
@@ -2503,7 +2509,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     {
 		BackgroundThread.ensureGUI();
         if ( css!=null && css.length()>0 ) {
-        	execute(new Task() {
+        	post(new Task() {
         		public void work() {
         			setStylesheetInternal(css);
         		}
@@ -2521,7 +2527,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     {
 		BackgroundThread.ensureGUI();
 		Log.d("cr3", "moveBy(" + delta + ")");
-		execute(new Task() {
+		post(new Task() {
 			public void work() {
 				BackgroundThread.ensureBackground();
 				doCommandInternal(ReaderCommand.DCMD_SCROLL_BY.nativeId, delta);
@@ -2542,7 +2548,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     {
 		BackgroundThread.ensureGUI();
     	if ( percent>=0 && percent<=100 )
-	    	execute( new Task() {
+	    	post( new Task() {
 	    		public void work() {
 	    			PositionProperties pos = getPositionPropsInternal(null);
 	    			if ( pos!=null && pos.pageCount>0) {
