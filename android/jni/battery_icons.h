@@ -1,4 +1,4 @@
-#ifndef NO_BATTERY_GAUGE
+//#ifndef NO_BATTERY_GAUGE
 
     static const char * battery8[] = {
         BATTERY_HEADER
@@ -164,7 +164,7 @@
         "   .00000000000000000000000.",
         "   .........................",
     };
-#endif
+//#endif
 
     static const char * battery_charge[] = {
         BATTERY_HEADER
@@ -206,9 +206,7 @@
     LVRefVec<LVImageSource> icons;
 
     icons.add( LVCreateXPMImageSource( battery_charge ) );
-#ifdef NO_BATTERY_GAUGE
-    icons.add( LVCreateXPMImageSource( battery_frame ) );
-#else
+
     icons.add( LVCreateXPMImageSource( battery0 ) );
     icons.add( LVCreateXPMImageSource( battery1 ) );
     icons.add( LVCreateXPMImageSource( battery2 ) );
@@ -218,5 +216,7 @@
     icons.add( LVCreateXPMImageSource( battery6 ) );
     icons.add( LVCreateXPMImageSource( battery7 ) );
     icons.add( LVCreateXPMImageSource( battery8 ) );
-#endif
+
+    icons.add( LVCreateXPMImageSource( battery_frame ) );
+
     return icons;

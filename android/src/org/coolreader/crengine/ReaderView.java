@@ -52,8 +52,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_LOG_AUTOFLUSH           ="crengine.log.autoflush";
     public static final String PROP_FONT_SIZE               ="crengine.font.size";
     public static final String PROP_STATUS_FONT_COLOR       ="crengine.page.header.font.color";
+    public static final String PROP_STATUS_FONT_COLOR_DAY   ="crengine.page.header.font.color.day";
+    public static final String PROP_STATUS_FONT_COLOR_NIGHT ="crengine.page.header.font.color.night";
     public static final String PROP_STATUS_FONT_FACE        ="crengine.page.header.font.face";
     public static final String PROP_STATUS_FONT_SIZE        ="crengine.page.header.font.size";
+    public static final String PROP_STATUS_CHAPTER_MARKS    ="crengine.page.header.chapter.marks";
     public static final String PROP_PAGE_MARGIN_TOP         ="crengine.page.margin.top";
     public static final String PROP_PAGE_MARGIN_BOTTOM      ="crengine.page.margin.bottom";
     public static final String PROP_PAGE_MARGIN_LEFT        ="crengine.page.margin.left";
@@ -95,6 +98,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";
     public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
     public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
+    public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
     
     public enum ViewMode
     {
@@ -609,7 +613,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			if ( viewMode==ViewMode.SCROLL ) {
 				manualScrollStartPosX = x;
 				manualScrollStartPosY = y;
-				hiliteTapZone( true, x, y, dx, dy ); 
+				if ( hiliteTapZoneOnTap )
+					hiliteTapZone( true, x, y, dx, dy ); 
 				scheduleUnhilite( LONG_KEYPRESS_TIME );
 //			}
 		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
@@ -1008,7 +1013,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		return new Properties(mSettings);
 	}
-	
+
+	private boolean hiliteTapZoneOnTap = true;
 	private boolean enableVolumeKeys = true; 
 	static private final int DEF_PAGE_FLIP_MS = 500; 
 	public void applyAppSetting( String key, String value )
@@ -1022,6 +1028,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.getScanner().setDirScanEnabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
 			mActivity.setWakeLockEnabled(flg);
+        } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
+        	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
@@ -1061,7 +1069,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) || PROP_APP_SHOW_COVERPAGES.equals(key) 
     				|| PROP_APP_SCREEN_BACKLIGHT.equals(key) 
     				|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)
-    				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)) {
+    				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)
+    				|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
+    				) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
@@ -1671,7 +1681,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				    			if ( hilite ) {
 					    			Paint p = new Paint();
 					    			p.setColor(color);
-					    			canvas.drawRect(rc, p);
+					    			if ( true ) {
+					    				canvas.drawRect(new Rect(rc.left, rc.top, rc.right-2, rc.top+2), p);
+					    				canvas.drawRect(new Rect(rc.left, rc.top+2, rc.left+2, rc.bottom-2), p);
+					    				canvas.drawRect(new Rect(rc.right-2-2, rc.top+2, rc.right-2, rc.bottom-2), p);
+					    				canvas.drawRect(new Rect(rc.left+2, rc.bottom-2-2, rc.right-2-2, rc.bottom-2), p);
+					    			} else {
+					    				canvas.drawRect(rc, p);
+					    			}
 				    			}
 				    		}
 						}

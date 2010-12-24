@@ -53,6 +53,7 @@
 #define PROP_FOOTNOTES               "crengine.footnotes"
 #define PROP_SHOW_TIME               "window.status.clock"
 #define PROP_SHOW_TITLE              "window.status.title"
+#define PROP_STATUS_CHAPTER_MARKS    "crengine.page.header.chapter.marks"
 #define PROP_SHOW_BATTERY            "window.status.battery"
 #define PROP_SHOW_BATTERY_PERCENT    "window.status.battery.percent"
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
@@ -279,6 +280,7 @@ enum {
     PGHDR_TITLE=8,
     PGHDR_CLOCK=16,
     PGHDR_BATTERY=32,
+    PGHDR_CHAPTER_MARKS=64,
 };
 
 
@@ -327,6 +329,7 @@ private:
     */
     lUInt32 m_backgroundColor;
     lUInt32 m_textColor;
+    lUInt32 m_statusColor;
     font_ref_t     m_font;
     font_ref_t     m_infoFont;
     LVFontRef      m_batteryFont;
@@ -435,7 +438,7 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
     /// set status bar and clock mode
-    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery );
+    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks );
     /// create document and set flags
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible

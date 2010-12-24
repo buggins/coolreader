@@ -43,6 +43,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		14, 16, 18, 20, 22, 24, 26, 28, 30,
 		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68
 	};
+	int[] mStatusFontSizes = new int[] {
+			14, 16, 18, 20, 22, 24, 26, 28, 30,
+			32
+		};
 	int[] mBacklightLevels = new int[] {
 		-1, 1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 100
 	};
@@ -264,11 +268,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0x000000));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0xFFFFFF));
+			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR, 0xFFFFFF));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
 		} else {
 			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0x000000));
+			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
 		}
 	}
@@ -278,11 +284,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, 0x000000));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_NIGHT, 0xFFFFFF));
+			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, 0xFFFFFF));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, 70));
 		} else {
 			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_DAY, 0x000000));
+			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR_DAY, 0x000000));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
 		}
 	}
@@ -343,6 +351,34 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
 			addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
+			dlg.setTitle(label);
+			dlg.setView(listView);
+			dlg.show();
+		}
+
+		public String getValueLabel() { return ">"; }
+	}
+	
+	class StatusBarOption extends ListOption {
+		public StatusBarOption( String label ) {
+			super(label, ReaderView.PROP_SHOW_TITLE);
+		}
+//		private void addKey( OptionsListView list, int keyCode, String keyName ) {
+//			final String propName = property + "." + keyCode;
+//			final String longPropName = property + ".long." + keyCode;
+//			list.add(new ActionOption(keyName, propName, false, false));
+//			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
+//		}
+		public void onSelect() {
+			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
+			OptionsListView listView = new OptionsListView(getContext());
+			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
+			listView.add(new ListOption(getString(R.string.options_page_titlebar_font_face), ReaderView.PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+			listView.add(new ListOption(getString(R.string.options_page_titlebar_font_size), ReaderView.PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
+			listView.add(new ColorOption(getString(R.string.options_page_titlebar_font_color), ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
+			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar_title), ReaderView.PROP_SHOW_TITLE).setDefaultValue("1"));
+			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar_chapter_marks), ReaderView.PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
+			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar_battery_percent), ReaderView.PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -913,7 +949,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		//
 		mOptionsPage = new OptionsListView(getContext());
 		mOptionsPage.add(new ListOption(getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
-		mOptionsPage.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
+		mOptionsPage.add( new StatusBarOption(getString(R.string.options_page_titlebar)));
 		mOptionsPage.add(new BoolOption(getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
@@ -931,6 +967,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(getString(R.string.options_app_key_actions)));
+		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("1"));

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Найти</string>
@@ -128,4 +128,12 @@
     <string name="action_repeat">(автоповтор)</string>
     <string name="options_app_scan_book_props">Сканировать свойства книг в директории</string>
     <string name="options_app_backlight_lock_enabled">Увеличить длительность подсветки</string>
+<string name="options_page_titlebar">Настройки колонтитула</string>
+    <string name="options_page_show_titlebar_chapter_marks">Метки глав</string>
+    <string name="options_page_show_titlebar_battery_percent">Заряд батареи в %</string>
+    <string name="options_page_titlebar_font_size">Размер шрифта</string>
+    <string name="options_page_titlebar_font_face">Шрифт</string>
+    <string name="options_page_titlebar_font_color">Цвет текста</string>
+    <string name="options_page_show_titlebar_title">Название книги</string>
+    <string name="options_app_tapzone_hilite">Подсвечивать зону экрана при нажатии</string>
 </resources>

@@ -148,6 +148,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 	m_textColor = 0;
 #endif
 #endif
+	m_statusColor = 0xFF000000;
 	m_defaultFontFace = lString8(DEFAULT_FONT_NAME);
 	m_statusFontFace = lString8(DEFAULT_STATUS_FONT_NAME);
 	m_props = LVCreatePropsContainer();
@@ -1091,9 +1092,22 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 	int bgColor = drawbuf->GetTextColor();
 	drawbuf->SetTextColor(bgColor);
 	drawbuf->SetBackgroundColor(textColor);
-	bool drawPercent = m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true);
+	LVRefVec<LVImageSource> icons;
+	bool drawPercent = m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true) || m_batteryIcons.size()<=2;
+	if ( m_batteryIcons.size()>1 ) {
+		icons.add(m_batteryIcons[0]);
+		if ( drawPercent ) {
+			icons.add(m_batteryIcons[m_batteryIcons.length()-1]);
+		} else {
+			for ( int i=1; i<m_batteryIcons.length()-1; i++ )
+				icons.add(m_batteryIcons[i]);
+		}
+	} else {
+		if ( m_batteryIcons.size()==1 )
+			icons.add(m_batteryIcons[0]);
+	}
 	LVDrawBatteryIcon(drawbuf, batteryRc, m_battery_state, m_battery_state
-			== -1, m_batteryIcons, drawPercent ? m_batteryFont.get() : NULL);
+			== -1, icons, drawPercent ? m_batteryFont.get() : NULL);
 #if 0
 	if ( m_batteryIcons.length()>1 ) {
 		int iconIndex = ((m_batteryIcons.length() - 1 ) * m_battery_state + (100/m_batteryIcons.length()/2) )/ 100;
@@ -1353,7 +1367,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	drawbuf->SetClipRect(&hrc);
 	bool drawGauge = true;
 	lvRect info = headerRc;
-	lUInt32 cl1 = getTextColor();
+	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
 	lUInt32 cl2 = getBackgroundColor();
 	lUInt32 cl3 = 0xD0D0D0;
 	lUInt32 cl4 = 0xC0C0C0;
@@ -1397,8 +1411,8 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 					gpos - 1 + 1, cl1);
 		}
 
-		// disable section marks
-		if (!leftPage) {
+		// disable section marks for left page, and for too many marks
+		if (!leftPage && (phi & PGHDR_CHAPTER_MARKS) && sbounds.length()<info.width()/5 ) {
 			for (int i = 0; i < sbounds.length(); i++) {
 				int x = info.left + sbounds[i] * (info.width() - 1) / 10000;
 				lUInt32 c = x < info.left + percent_pos ? cl2 : cl1;
@@ -4435,6 +4449,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 			sizeof(def_aa_props) / sizeof(int));
 	props->setHexDef(PROP_FONT_COLOR, 0x000000);
 	props->setHexDef(PROP_BACKGROUND_COLOR, 0xFFFFFF);
+	props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
 	props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
 	props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
 	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1);
@@ -4517,16 +4532,17 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setStringDef(PROP_SHOW_TIME, "1");
 	props->setStringDef(PROP_SHOW_BATTERY, "1");
 	props->setStringDef(PROP_SHOW_BATTERY_PERCENT, "1");
+	props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
 }
 
 #define H_MARGIN 8
 #define V_MARGIN 8
 #define ALLOW_BOTTOM_STATUSBAR 0
 void LVDocView::setStatusMode(int newMode, bool showClock, bool showTitle,
-		bool showBattery) {
-	CRLog::debug("LVDocView::setStatusMode(%d, %s %s %s)", newMode,
+		bool showBattery, bool showChapterMarks) {
+	CRLog::debug("LVDocView::setStatusMode(%d, %s %s %s %s)", newMode,
 			showClock ? "clock" : "", showTitle ? "title" : "",
-			showBattery ? "battery" : "");
+			showBattery ? "battery" : "", showChapterMarks ? "marks" : "");
 #if ALLOW_BOTTOM_STATUSBAR==1
 	lvRect margins( H_MARGIN, V_MARGIN, H_MARGIN, V_MARGIN/2 );
 	lvRect oldMargins = _docview->getPageMargins( );
@@ -4538,6 +4554,7 @@ void LVDocView::setStatusMode(int newMode, bool showClock, bool showTitle,
 				| (showBattery ? PGHDR_BATTERY : 0) | PGHDR_PAGE_COUNT
 				| (showTitle ? PGHDR_AUTHOR : 0)
 				| (showTitle ? PGHDR_TITLE : 0)
+				| (showChapterMarks ? PGHDR_CHAPTER_MARKS : 0)
 		//| PGHDR_CLOCK
 		);
 	else
@@ -4581,22 +4598,26 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			setTextFormatOptions(preformatted ? txt_format_pre
 					: txt_format_auto);
 		} else if (name == PROP_FONT_COLOR || name == PROP_BACKGROUND_COLOR
-				|| name == PROP_DISPLAY_INVERSE) {
+				|| name == PROP_DISPLAY_INVERSE || name==PROP_STATUS_FONT_COLOR) {
 			// update current value in properties
 			m_props->setString(name.c_str(), value);
 			lUInt32 textColor = m_props->getIntDef(PROP_FONT_COLOR, 0x000000);
 			lUInt32 backColor = m_props->getIntDef(PROP_BACKGROUND_COLOR,
 					0xFFFFFF);
+			lUInt32 statusColor = m_props->getIntDef(PROP_STATUS_FONT_COLOR,
+					0xFF000000);
 			bool inverse = m_props->getBoolDef(PROP_DISPLAY_INVERSE, false);
 			if (inverse) {
 				CRLog::trace("Setting inverse colors");
 				setBackgroundColor(textColor);
 				setTextColor(backColor);
+				m_statusColor = backColor;
 				requestRender(); // TODO: only colors to be changed
 			} else {
 				CRLog::trace("Setting normal colors");
 				setBackgroundColor(backColor);
 				setTextColor(textColor);
+				m_statusColor = statusColor;
 				requestRender(); // TODO: only colors to be changed
 			}
 		} else if (name == PROP_PAGE_MARGIN_TOP || name
@@ -4619,13 +4640,15 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			setDefaultFontFace(UnicodeToUtf8(value));
 		} else if (name == PROP_STATUS_FONT_FACE) {
 			setStatusFontFace(UnicodeToUtf8(value));
-		} else if (name == PROP_STATUS_LINE || name == PROP_SHOW_TIME || name
-				== PROP_SHOW_TITLE || name == PROP_SHOW_BATTERY) {
+		} else if (name == PROP_STATUS_LINE || name == PROP_SHOW_TIME
+				|| name	== PROP_SHOW_TITLE || name == PROP_SHOW_BATTERY
+				|| name == PROP_SHOW_BATTERY || name == PROP_STATUS_CHAPTER_MARKS) {
 			m_props->setString(name.c_str(), value);
 			setStatusMode(m_props->getIntDef(PROP_STATUS_LINE, 0),
 					m_props->getBoolDef(PROP_SHOW_TIME, false),
 					m_props->getBoolDef(PROP_SHOW_TITLE, true),
-					m_props->getBoolDef(PROP_SHOW_BATTERY, true));
+					m_props->getBoolDef(PROP_SHOW_BATTERY, true),
+					m_props->getBoolDef(PROP_STATUS_CHAPTER_MARKS, true));
 			//} else if ( name==PROP_BOOKMARK_ICONS ) {
 			//    enableBookmarkIcons( value==L"1" );
 		} else if (name == PROP_FONT_SIZE) {

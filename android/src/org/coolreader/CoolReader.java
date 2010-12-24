@@ -1027,8 +1027,11 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
         props.applyDefault(ReaderView.PROP_FONT_SIZE, "20");
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
-        props.setProperty(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
-        props.setProperty(ReaderView.PROP_STATUS_FONT_SIZE, "16");
+        props.applyDefault(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
+        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, "16");
+        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR, "#FF000000"); // don't use separate color
+        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_DAY, "#FF000000"); // don't use separate color
+        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, "#FF000000"); // don't use separate color
         props.setProperty(ReaderView.PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
         props.setProperty(ReaderView.PROP_DISPLAY_INVERSE, "0");
         props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
