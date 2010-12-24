@@ -1550,6 +1550,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		PAGE_SHIFT, // for simple page shift
 	}
 
+	
+	
 	private ViewAnimationControl currentAnimation = null;
 
 	private int pageFlipAnimationSpeedMs = DEF_PAGE_FLIP_MS; // if 0 : no animation
@@ -1603,6 +1605,67 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					}
 				}
 			}
+		});
+	}
+	
+	static private Rect tapZoneBounds( int startX, int startY, int maxX, int maxY ) {
+		if ( startX<0 )
+			startX=0;
+		if ( startY<0 )
+			startY = 0;
+		if ( startX>maxX )
+			startX = maxX;
+		if ( startY>maxY)
+			startY = maxY;
+		int dx = (maxX + 2) / 3;
+		int dy = (maxY + 2) / 3;
+		int x0 = startX / dx * dx; 
+		int y0 = startY / dy * dy;
+		return new Rect(x0, y0, x0+dx, y0+dy);
+	}
+	
+	volatile private int nextHiliteId = 0;
+	private Rect hiliteRect = null;
+	private void hiliteTapZone( final boolean hilite, final int startX, final int startY, final int maxX, final int maxY )
+	{
+		if (DEBUG_ANIMATION) Log.d("cr3", "highliteTapZone("+startX + ", " + startY+")");
+		final int myHiliteId = ++nextHiliteId;
+		int txcolor = mSettings.getColor(PROP_FONT_COLOR, Color.BLACK);
+		final int alpha = 50;
+		final int color = (txcolor & 0xFFFFFF) | (alpha<<24);
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				if ( myHiliteId != nextHiliteId )
+					return;
+				BackgroundThread.ensureBackground();
+				final BitmapInfo pageImage = preparePageImage(0);
+				if ( pageImage!=null && pageImage.bitmap!=null && pageImage.position!=null ) {
+					//PositionProperties currPos = pageImage.position;
+					final Rect rc = hilite ? tapZoneBounds( startX, startY, maxX, maxY ) : hiliteRect;
+					if ( hilite )
+						hiliteRect = rc;
+					else
+						hiliteRect = null;
+					if ( rc!=null )
+					drawCallback( new DrawCanvasCallback() {
+						@Override
+						public void drawTo(Canvas canvas) {
+				    		if ( mInitialized && mCurrentPageInfo!=null ) {
+				        		Log.d("cr3", "onDraw() -- drawing page image");
+				    			canvas.drawBitmap(mCurrentPageInfo.bitmap, rc, rc, null);
+				    			if ( hilite ) {
+					    			Paint p = new Paint();
+					    			p.setColor(color);
+					    			canvas.drawRect(rc, p);
+				    			}
+				    		}
+						}
+						
+					}, rc);
+				}
+			}
+			
 		});
 	}
 	
@@ -1716,6 +1779,45 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return x0 + (x1 - x0) * y / 100000;
 	}
 
+	private interface DrawCanvasCallback {
+		public void drawTo( Canvas c );
+	}
+	private void drawCallback( DrawCanvasCallback callback, Rect rc )
+	{
+		if ( !mSurfaceCreated )
+			return;
+		//synchronized(surfaceLock) { }
+		//Log.v("cr3", "draw() - in thread " + Thread.currentThread().getName());
+		final SurfaceHolder holder = getHolder();
+		//Log.v("cr3", "before synchronized(surfaceLock)");
+		if ( holder!=null )
+		//synchronized(surfaceLock) 
+		{
+			Canvas canvas = null;
+			try {
+				long startTs = android.os.SystemClock.uptimeMillis();
+				canvas = holder.lockCanvas(rc);
+				//Log.v("cr3", "before draw(canvas)");
+				if ( canvas!=null ) {
+					callback.drawTo(canvas);
+					if ( rc==null ) {
+						long endTs = android.os.SystemClock.uptimeMillis();
+						updateAnimationDurationStats(endTs - startTs);
+					}
+				}
+			} finally {
+				//Log.v("cr3", "exiting finally");
+				if ( canvas!=null && getHolder()!=null ) {
+					//Log.v("cr3", "before unlockCanvasAndPost");
+					if ( canvas!=null && holder!=null )
+						holder.unlockCanvasAndPost(canvas);
+					//Log.v("cr3", "after unlockCanvasAndPost");
+				}
+			}
+		}
+		//Log.v("cr3", "exiting draw()");
+	}
+	
 	abstract class ViewAnimationBase implements ViewAnimationControl {
 		long startTimeStamp;
 		boolean started;
@@ -1736,36 +1838,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void draw()
 		{
-			if ( !mSurfaceCreated )
-				return;
-			//synchronized(surfaceLock) { }
-			//Log.v("cr3", "draw() - in thread " + Thread.currentThread().getName());
-			final SurfaceHolder holder = getHolder();
-			//Log.v("cr3", "before synchronized(surfaceLock)");
-			if ( holder!=null )
-			//synchronized(surfaceLock) 
-			{
-				Canvas canvas = null;
-				try {
-					long startTs = android.os.SystemClock.uptimeMillis();
-					canvas = holder.lockCanvas(null);
-					//Log.v("cr3", "before draw(canvas)");
-					if ( canvas!=null )
-						draw(canvas);
-					//Log.v("cr3", "after draw(canvas)");
-					long endTs = android.os.SystemClock.uptimeMillis();
-					updateAnimationDurationStats(endTs - startTs);
-				} finally {
-					//Log.v("cr3", "exiting finally");
-					if ( canvas!=null && getHolder()!=null ) {
-						//Log.v("cr3", "before unlockCanvasAndPost");
-						if ( canvas!=null && holder!=null )
-							holder.unlockCanvasAndPost(canvas);
-						//Log.v("cr3", "after unlockCanvasAndPost");
-					}
+			drawCallback( new DrawCanvasCallback() {
+				@Override
+				public void drawTo(Canvas c) {
+					draw(c);
 				}
-			}
-			//Log.v("cr3", "exiting draw()");
+				
+			}, null);
 		}
 		abstract void draw( Canvas canvas );
 	}
@@ -2222,21 +2301,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	protected void draw()
 	{
-		if ( !mSurfaceCreated )
-			return;
-		Canvas canvas = null;
-		final SurfaceHolder holder = getHolder();
-		if ( holder!=null )
-		//synchronized(surfaceLock)
-		{
-			try {
-				canvas = holder.lockCanvas(null);
-				doDraw(canvas);
-			} finally {
-				if ( canvas!=null )
-					holder.unlockCanvasAndPost(canvas);
+		drawCallback(new DrawCanvasCallback() {
+			@Override
+			public void drawTo(Canvas c) {
+				doDraw(c);
 			}
-		}
+		}, null);
 	}
 	
     @Override 
