@@ -595,6 +595,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
 			mActivity.onUserActivity();
+			hiliteTapZone( false, x, y, dx, dy ); 
 			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
 			stopAnimation(x, y);
 			if ( isManualScrollActive ) {
@@ -608,6 +609,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			if ( viewMode==ViewMode.SCROLL ) {
 				manualScrollStartPosX = x;
 				manualScrollStartPosY = y;
+				hiliteTapZone( true, x, y, dx, dy ); 
+				scheduleUnhilite( LONG_KEYPRESS_TIME );
 //			}
 		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
 //			if ( viewMode==ViewMode.SCROLL ) {
@@ -630,6 +633,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
 			isManualScrollActive = false;
 			stopAnimation(-1, -1);
+			hiliteTapZone( false, x, y, dx, dy ); 
 		}
 		return true;
 		//return super.onTouchEvent(event);
@@ -1486,6 +1490,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				Log.d("cr3", "skipping duplicate drawPage request");
 				return;
 			}
+			nextHiliteId++;
 			if ( currentAnimation!=null ) {
 				Log.d("cr3", "skipping drawPage request while scroll animation is in progress");
 				return;
@@ -1584,6 +1589,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						int toX = dir2>0 ? 0 : w;
 						new PageViewAnimation(fromX, w, dir2);
 						if ( currentAnimation!=null ) {
+							if ( currentAnimation!=null ) {
+								nextHiliteId++;
+								hiliteRect = null;
+							}
 							currentAnimation.update(toX, h/2);
 							currentAnimation.move(speed, true);
 							currentAnimation.stop(-1, -1);
@@ -1596,6 +1605,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						int toY = dir>0 ? 0 : h*7/8;
 						new ScrollViewAnimation(fromY, h);
 						if ( currentAnimation!=null ) {
+							if ( currentAnimation!=null ) {
+								nextHiliteId++;
+								hiliteRect = null;
+								
+							}
 							currentAnimation.update(w/2, toY);
 							currentAnimation.move(speed, true);
 							currentAnimation.stop(-1, -1);
@@ -1625,14 +1639,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	volatile private int nextHiliteId = 0;
+	private final static int HILITE_RECT_ALPHA = 32;
 	private Rect hiliteRect = null;
 	private void hiliteTapZone( final boolean hilite, final int startX, final int startY, final int maxX, final int maxY )
 	{
 		if (DEBUG_ANIMATION) Log.d("cr3", "highliteTapZone("+startX + ", " + startY+")");
 		final int myHiliteId = ++nextHiliteId;
 		int txcolor = mSettings.getColor(PROP_FONT_COLOR, Color.BLACK);
-		final int alpha = 50;
-		final int color = (txcolor & 0xFFFFFF) | (alpha<<24);
+		final int color = (txcolor & 0xFFFFFF) | (HILITE_RECT_ALPHA<<24);
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -1668,6 +1682,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
 		});
 	}
+	private void scheduleUnhilite( int delay ) {
+		final int myHiliteId = nextHiliteId;
+		mBackThread.postGUI(new Runnable() {
+			@Override
+			public void run() {
+				if ( myHiliteId == nextHiliteId && hiliteRect!=null )
+					hiliteTapZone(false, 0, 0, getWidth(), getHeight());
+			}
+		}, delay);
+	}
 	
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY )
 	{
@@ -1686,6 +1710,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					new PageViewAnimation(sx, maxX, dir);
 				} else {
 					new ScrollViewAnimation(startY, maxY);
+				}
+				if ( currentAnimation!=null ) {
+					nextHiliteId++;
+					hiliteRect = null;
 				}
 			}
 			
