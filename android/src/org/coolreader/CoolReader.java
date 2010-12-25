@@ -1059,6 +1059,11 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, "2");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, "2");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, "2");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, "2");
+		
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
         if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
         	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
