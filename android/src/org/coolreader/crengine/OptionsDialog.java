@@ -67,6 +67,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90 //, R.string.options_page_orientation_180, R.string.options_page_orientation_270
 			,R.string.options_page_orientation_sensor
 		};
+	int[] mAnimation = new int[] {
+			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, 
+			ReaderView.PAGE_ANIMATION_PAPER
+		};
+	int[] mAnimationTitles = new int[] {
+			R.string.options_page_animation_none, R.string.options_page_animation_slide,
+			R.string.options_page_animation_paperbook
+		};
 	int[] mAntialias = new int[] {
 			0, 1, 2
 		};
@@ -954,8 +962,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
-		mOptionsPage.add(new BoolOption(getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).setDefaultValue("1"));
-		
+		mOptionsPage.add(new ListOption(getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
 		
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));

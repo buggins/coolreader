@@ -136,4 +136,7 @@
     <string name="options_page_titlebar_font_color">Цвет текста</string>
     <string name="options_page_show_titlebar_title">Название книги</string>
     <string name="options_app_tapzone_hilite">Подсвечивать зону экрана при нажатии</string>
+<string name="options_page_animation_paperbook">Листание</string>
+    <string name="options_page_animation_none">Без анимации</string>
+    <string name="options_page_animation_slide">Сдвиг</string>
 </resources>

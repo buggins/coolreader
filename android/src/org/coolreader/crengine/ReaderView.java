@@ -99,6 +99,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
     public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
     public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
+
+    public static final int PAGE_ANIMATION_NONE = 0;
+    public static final int PAGE_ANIMATION_PAPER = 1;
+    public static final int PAGE_ANIMATION_SLIDE = 2;
     
     public enum ViewMode
     {
@@ -1059,7 +1063,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
         } else if ( PROP_PAGE_ANIMATION.equals(key) ) {
-			pageFlipAnimationSpeedMs = flg ? DEF_PAGE_FLIP_MS : 0; 
+        	try {
+        		int n = Integer.valueOf(value);
+        		if ( n<0 || n>2 )
+        			n = 1;
+        		pageFlipAnimationMode = n;
+        	} catch ( Exception e ) {
+        		// ignore
+        	}
+			pageFlipAnimationSpeedMs = pageFlipAnimationMode!=PAGE_ANIMATION_NONE ? DEF_PAGE_FLIP_MS : 0; 
         } else if ( PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) ) {
         	enableVolumeKeys = flg;
         } else if ( PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
@@ -1595,6 +1607,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private ViewAnimationControl currentAnimation = null;
 
 	private int pageFlipAnimationSpeedMs = DEF_PAGE_FLIP_MS; // if 0 : no animation
+	private int pageFlipAnimationMode = PAGE_ANIMATION_PAPER; // if 0 : no animation
 	private void animatePageFlip( final int dir ) {
 		animatePageFlip(dir, null);
 	}
@@ -2056,6 +2069,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int currShift;
 		int destShift;
 		int pageCount;
+		private final boolean naturalPageFlip; 
 		PageViewAnimation( int startX, int maxX, int direction )
 		{
 			super();
@@ -2064,6 +2078,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.direction = direction;
 			this.currShift = 0;
 			this.destShift = 0;
+			this.naturalPageFlip = (pageFlipAnimationMode==PAGE_ANIMATION_PAPER);
 			
 			long start = android.os.SystemClock.uptimeMillis();
 			Log.v("cr3", "PageViewAnimation -- creating: drawing two pages to buffer");
@@ -2196,7 +2211,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 		}
 
-		private boolean NATURAL_PAGE_FLIP = true; 
 		public void draw(Canvas canvas)
 		{
 			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.draw("+currShift + ")");
@@ -2208,7 +2222,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( direction > 0 ) {
 				// FORWARD
 				div = w-currShift;
-				if ( NATURAL_PAGE_FLIP ) {
+				if ( naturalPageFlip ) {
 					if ( this.pageCount==2 ) {
 						int w2 = w/2;
 						if ( div<w2 ) {
@@ -2261,7 +2275,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			} else {
 				// BACK
 				div = currShift;
-				if ( NATURAL_PAGE_FLIP ) {
+				if ( naturalPageFlip ) {
 					if ( this.pageCount==2 ) {
 						int w2 = w/2;
 						if ( div<w2 ) {
