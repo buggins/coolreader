@@ -212,14 +212,14 @@ public class FileBrowser extends ListView {
 				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
 				mInitialized = true;
 				//mEngine.hideProgress();
-				mEngine.hideProgress();
+				//mEngine.hideProgress();
 				showDirectory( mScanner.mRoot, null );
 				setSelection(0);
 			}
 			public void fail(Exception e )
 			{
 				//mEngine.showProgress(9000, "Scan is failed");
-				mEngine.hideProgress();
+				//mEngine.hideProgress();
 				mActivity.showToast("Scan is failed");
 				Log.e("cr3", "Exception while scanning directories", e);
 			}

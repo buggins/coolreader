@@ -34,7 +34,9 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -215,6 +217,12 @@ public class CoolReader extends Activity
 	}
 	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
 	
+	public int getPalmTipPixels()
+	{
+		return densityDpi / 3; // 1/3"
+	}
+	
+	private int densityDpi = 160;
 	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
@@ -224,6 +232,11 @@ public class CoolReader extends Activity
     {
 		Log.i("cr3", "CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		
+		Display d = getWindowManager().getDefaultDisplay();
+		DisplayMetrics m = new DisplayMetrics(); 
+		d.getMetrics(m);
+		densityDpi = m.densityDpi;
 		
 		// load settings
 		Properties props = loadSettings();
@@ -628,6 +641,7 @@ public class CoolReader extends Activity
 	}
 	public void showView( View view, boolean hideProgress )
 	{
+		if ( hideProgress )
 		mBackgroundThread.postGUI(new Runnable() {
 			public void run() {
 				mEngine.hideProgress();
@@ -1040,9 +1054,10 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
-		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "0");
+		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "4");
 		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, "1");
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
+		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
         if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )

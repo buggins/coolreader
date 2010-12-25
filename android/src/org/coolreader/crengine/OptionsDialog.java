@@ -967,7 +967,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(getString(R.string.options_app_key_actions)));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("1"));
+		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("1"));

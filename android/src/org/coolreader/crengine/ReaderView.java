@@ -595,7 +595,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int y = (int)event.getY();
 		int dx = getWidth();
 		int dy = getHeight();
-		int START_DRAG_THRESHOLD = dx / 10;
+		int START_DRAG_THRESHOLD = mActivity.getPalmTipPixels();
 		
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
 			mActivity.onUserActivity();
@@ -1014,7 +1014,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return new Properties(mSettings);
 	}
 
-	private boolean hiliteTapZoneOnTap = true;
+	private boolean hiliteTapZoneOnTap = false;
 	private boolean enableVolumeKeys = true; 
 	static private final int DEF_PAGE_FLIP_MS = 500; 
 	public void applyAppSetting( String key, String value )
@@ -1660,7 +1660,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				if ( myHiliteId != nextHiliteId )
+				if ( myHiliteId != nextHiliteId || (!hilite && hiliteRect==null) )
 					return;
 				BackgroundThread.ensureBackground();
 				final BitmapInfo pageImage = preparePageImage(0);
@@ -2256,6 +2256,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		String filename;
 		Runnable errorHandler;
+		String pos;
 		LoadDocumentTask( FileInfo fileInfo, Runnable errorHandler )
 		{
 			Log.v("cr3", "LoadDocumentTask for " + fileInfo);
@@ -2264,6 +2265,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
+	    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null )
+	    		pos = mBookInfo.getLastPosition().getStartPos();
 			Log.v("cr3", "LoadDocumentTask : book info " + mBookInfo);
     		//mBitmap = null;
 	        mEngine.showProgress( 1000, R.string.progress_loading );
@@ -2284,6 +2287,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				Log.v("cr3", "updating loaded book info");
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
+				restorePositionBackground(pos);
 	        } else {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
 				throw new IOException("Cannot read document");
@@ -2293,7 +2297,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			BackgroundThread.ensureGUI();
 			Log.d("cr3", "LoadDocumentTask, GUI thread is finished successfully");
-	        restorePosition();
+    		mActivity.getHistory().updateBookAccess(mBookInfo);
+    		mActivity.getHistory().saveToDB();
 	        if ( coverPageBytes!=null && coverPageDrawable!=null ) {
 	        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
 	        	//mEngine.setProgressDrawable(coverPageDrawable);
@@ -2372,23 +2377,34 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	}
     }
 
-    private void restorePosition()
+    private void restorePositionBackground( String pos )
     {
-		BackgroundThread.ensureGUI();
-    	if ( mBookInfo!=null ) {
-    		if ( mBookInfo.getLastPosition()!=null ) {
-	    		final String pos = mBookInfo.getLastPosition().getStartPos();
-	    		post( new Task() {
-	    			public void work() {
-	    				BackgroundThread.ensureBackground();
-	    	    		goToPositionInternal( pos );
-	    			}
-	    		});
-	    		mActivity.getHistory().updateBookAccess(mBookInfo);
-    		}
-    		mActivity.getHistory().saveToDB();
+		BackgroundThread.ensureBackground();
+    	if ( pos!=null ) {
+			BackgroundThread.ensureBackground();
+    		goToPositionInternal( pos );
+    		preparePageImage(0);
     	}
     }
+    
+//    private void restorePosition()
+//    {
+//		BackgroundThread.ensureGUI();
+//    	if ( mBookInfo!=null ) {
+//    		if ( mBookInfo.getLastPosition()!=null ) {
+//	    		final String pos = mBookInfo.getLastPosition().getStartPos();
+//	    		post( new Task() {
+//	    			public void work() {
+//	    				BackgroundThread.ensureBackground();
+//	    	    		goToPositionInternal( pos );
+//	    	    		preparePageImage(0);
+//	    			}
+//	    		});
+//	    		mActivity.getHistory().updateBookAccess(mBookInfo);
+//    		}
+//    		mActivity.getHistory().saveToDB();
+//    	}
+//    }
     
 //    private void savePosition()
 //    {
@@ -2537,7 +2553,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void OnFormatEnd() {
 			BackgroundThread.ensureBackground();
 	    	Log.d("cr3", "readerCallback.OnFormatEnd");
-			mEngine.hideProgress();
+			//mEngine.hideProgress();
 			drawPage();
 		}
 		public boolean OnFormatProgress(final int percent) {
