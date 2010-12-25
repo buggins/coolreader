@@ -2055,6 +2055,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int direction;
 		int currShift;
 		int destShift;
+		int pageCount;
 		PageViewAnimation( int startX, int maxX, int direction )
 		{
 			super();
@@ -2076,6 +2077,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				currentAnimation = null;
 				return;
 			}
+			this.pageCount = currPos.pageMode;
 			BitmapInfo image1 = preparePageImage(0);
 			BitmapInfo image2 = preparePageImage(direction);
 			if ( image1==null || image2==null ) {
@@ -2119,16 +2121,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			//if ( started ) {
 				boolean moved = false;
 				if ( x!=-1 ) {
+					int threshold = mActivity.getPalmTipPixels() * 7/8;
 					if ( direction>0 ) {
 						// |  <=====  |
 						int dx = startX - x; 
-						int threshold = maxX / 6;
 						if ( dx>threshold )
 							moved = true;
 					} else {
 						// |  =====>  |
 						int dx = x - startX; 
-						int threshold = maxX / 6;
 						if ( dx>threshold )
 							moved = true;
 					}
@@ -2195,6 +2196,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 		}
 
+		private boolean NATURAL_PAGE_FLIP = true; 
 		public void draw(Canvas canvas)
 		{
 			if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.draw("+currShift + ")");
@@ -2204,23 +2206,107 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int h = image1.bitmap.getHeight();
 			int div;
 			if ( direction > 0 ) {
+				// FORWARD
 				div = w-currShift;
-	    		Rect src1 = new Rect(currShift, 0, w, h);
-	    		Rect dst1 = new Rect(0, 0, w-currShift, h);
-	    		//Log.v("cr3", "drawing " + image1);
-				canvas.drawBitmap(image1.bitmap, src1, dst1, null);
-	    		Rect src2 = new Rect(w-currShift, 0, w, h);
-	    		Rect dst2 = new Rect(w-currShift, 0, w, h);
-	    		//Log.v("cr3", "drawing " + image1);
-				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+				if ( NATURAL_PAGE_FLIP ) {
+					if ( this.pageCount==2 ) {
+						int w2 = w/2;
+						if ( div<w2 ) {
+							// left - part of old page
+				    		Rect src1 = new Rect(0, 0, div, h);
+				    		Rect dst1 = new Rect(0, 0, div, h);
+							canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+							// left, resized part of new page
+				    		Rect src2 = new Rect(0, 0, w2, h);
+				    		Rect dst2 = new Rect(div, 0, w2, h);
+				    		canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+							// right, new page
+				    		Rect src3 = new Rect(w2, 0, w, h);
+				    		Rect dst3 = new Rect(w2, 0, w, h);
+				    		canvas.drawBitmap(image2.bitmap, src3, dst3, null);
+						} else {
+							// left - old page
+				    		Rect src1 = new Rect(0, 0, w2, h);
+				    		Rect dst1 = new Rect(0, 0, w2, h);
+							canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+							// right, resized old page
+				    		Rect src2 = new Rect(w2, 0, w, h);
+				    		Rect dst2 = new Rect(w2, 0, div, h);
+				    		canvas.drawBitmap(image1.bitmap, src2, dst2, null);
+							// right, new page
+				    		Rect src3 = new Rect(div, 0, w, h);
+				    		Rect dst3 = new Rect(div, 0, w, h);
+				    		canvas.drawBitmap(image2.bitmap, src3, dst3, null);
+						}
+					} else {
+			    		Rect src1 = new Rect(0, 0, w, h);
+			    		Rect dst1 = new Rect(0, 0, w-currShift, h);
+			    		//Log.v("cr3", "drawing " + image1);
+						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		Rect src2 = new Rect(w-currShift, 0, w, h);
+			    		Rect dst2 = new Rect(w-currShift, 0, w, h);
+			    		//Log.v("cr3", "drawing " + image1);
+			    		canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					}
+				} else {
+		    		Rect src1 = new Rect(currShift, 0, w, h);
+		    		Rect dst1 = new Rect(0, 0, w-currShift, h);
+		    		//Log.v("cr3", "drawing " + image1);
+					canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+		    		Rect src2 = new Rect(w-currShift, 0, w, h);
+		    		Rect dst2 = new Rect(w-currShift, 0, w, h);
+		    		//Log.v("cr3", "drawing " + image1);
+					canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+				}
 			} else {
+				// BACK
 				div = currShift;
-	    		Rect src1 = new Rect(currShift, 0, w, h);
-	    		Rect dst1 = new Rect(currShift, 0, w, h);
-				canvas.drawBitmap(image1.bitmap, src1, dst1, null);
-	    		Rect src2 = new Rect(w-currShift, 0, w, h);
-	    		Rect dst2 = new Rect(0, 0, currShift, h);
-				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+				if ( NATURAL_PAGE_FLIP ) {
+					if ( this.pageCount==2 ) {
+						int w2 = w/2;
+						if ( div<w2 ) {
+							// left - part of old page
+				    		Rect src1 = new Rect(0, 0, div, h);
+				    		Rect dst1 = new Rect(0, 0, div, h);
+							canvas.drawBitmap(image2.bitmap, src1, dst1, null);
+							// left, resized part of new page
+				    		Rect src2 = new Rect(0, 0, w2, h);
+				    		Rect dst2 = new Rect(div, 0, w2, h);
+				    		canvas.drawBitmap(image1.bitmap, src2, dst2, null);
+							// right, new page
+				    		Rect src3 = new Rect(w2, 0, w, h);
+				    		Rect dst3 = new Rect(w2, 0, w, h);
+				    		canvas.drawBitmap(image1.bitmap, src3, dst3, null);
+						} else {
+							// left - old page
+				    		Rect src1 = new Rect(0, 0, w2, h);
+				    		Rect dst1 = new Rect(0, 0, w2, h);
+							canvas.drawBitmap(image2.bitmap, src1, dst1, null);
+							// right, resized old page
+				    		Rect src2 = new Rect(w2, 0, w, h);
+				    		Rect dst2 = new Rect(w2, 0, div, h);
+				    		canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+							// right, new page
+				    		Rect src3 = new Rect(div, 0, w, h);
+				    		Rect dst3 = new Rect(div, 0, w, h);
+				    		canvas.drawBitmap(image1.bitmap, src3, dst3, null);
+						}
+					} else {
+			    		Rect src1 = new Rect(currShift, 0, w, h);
+			    		Rect dst1 = new Rect(currShift, 0, w, h);
+						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		Rect src2 = new Rect(0, 0, w, h);
+			    		Rect dst2 = new Rect(0, 0, currShift, h);
+						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					}
+				} else {
+		    		Rect src1 = new Rect(currShift, 0, w, h);
+		    		Rect dst1 = new Rect(currShift, 0, w, h);
+					canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+		    		Rect src2 = new Rect(w-currShift, 0, w, h);
+		    		Rect dst2 = new Rect(0, 0, currShift, h);
+					canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+				}
 			}
 			if ( div>0 && div<w )
 				canvas.drawLine(div, 0, div, h, divPaint);
