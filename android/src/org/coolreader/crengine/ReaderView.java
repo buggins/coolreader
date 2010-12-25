@@ -534,17 +534,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			return true; // ignore
     		// repeating key down
     		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=AUTOREPEAT_KEYPRESS_TIME;
-    		if ( !repeatActionActive && isLongPress && actionToRepeat!=null ) {
-    			Log.v("cr3", "autorepeating action : " + actionToRepeat );
-    			repeatActionActive = true;
-    			onAction(actionToRepeat, new Runnable() {
-    				public void run() {
-    					if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime()==event.getDownTime() ) {
-    						Log.v("cr3", "action is completed : " + actionToRepeat );
-    						repeatActionActive = false;
-    					}
-    				}
-    			});
+    		if ( isLongPress ) {
+	    		if ( !repeatActionActive && actionToRepeat!=null ) {
+	    			Log.v("cr3", "autorepeating action : " + actionToRepeat );
+	    			repeatActionActive = true;
+	    			onAction(actionToRepeat, new Runnable() {
+	    				public void run() {
+	    					if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime()==event.getDownTime() ) {
+	    						Log.v("cr3", "action is completed : " + actionToRepeat );
+	    						repeatActionActive = false;
+	    					}
+	    				}
+	    			});
+	    		} else {
+	    			stopTracking();
+	    			Log.v("cr3", "executing action on long press : " + longAction );
+	    			onAction(longAction);
+	    		}
     		}
     		return true;
     	}
@@ -583,6 +589,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private boolean isManualScrollActive = false;
 	private int manualScrollStartPosX = 0;
 	private int manualScrollStartPosY = 0;
+	private boolean touchEventIgnoreNextUp = false;
+	volatile private int longTouchId = 0;
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -596,26 +604,42 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int dx = getWidth();
 		int dy = getHeight();
 		int START_DRAG_THRESHOLD = mActivity.getPalmTipPixels();
+		final int zone = getTapZone(x, y, dx, dy);
 		
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
+			longTouchId++;
+			if ( touchEventIgnoreNextUp )
+				return true;
 			mActivity.onUserActivity();
-			hiliteTapZone( false, x, y, dx, dy ); 
+			unhiliteTapZone(); 
 			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
 			stopAnimation(x, y);
 			if ( isManualScrollActive ) {
 				isManualScrollActive = false;
 				return true;
 			}
-			int zone = getTapZone(x, y, dx, dy);
 			onTapZone( zone, isLongPress );
 			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
 //			if ( viewMode==ViewMode.SCROLL ) {
+				touchEventIgnoreNextUp = false;
 				manualScrollStartPosX = x;
 				manualScrollStartPosY = y;
-				if ( hiliteTapZoneOnTap )
-					hiliteTapZone( true, x, y, dx, dy ); 
-				scheduleUnhilite( LONG_KEYPRESS_TIME );
+				if ( hiliteTapZoneOnTap ) {
+					hiliteTapZone( true, x, y, dx, dy );
+					scheduleUnhilite( LONG_KEYPRESS_TIME );
+				}
+				final int myId = ++longTouchId;
+				mBackThread.postGUI( new Runnable() {
+					@Override
+					public void run() {
+						if ( myId==longTouchId ) {
+							touchEventIgnoreNextUp = true;
+							onTapZone( zone, true );
+						}
+					}
+					
+				}, LONG_KEYPRESS_TIME);
 //			}
 		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
 //			if ( viewMode==ViewMode.SCROLL ) {
@@ -625,6 +649,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					deltax = deltax < 0 ? -deltax : deltax;
 					deltay = deltay < 0 ? -deltay : deltay;
 					if ( deltax + deltay > START_DRAG_THRESHOLD ) {
+						longTouchId++;
 						isManualScrollActive = true;
 						startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
 						updateAnimation(x, y);
@@ -1651,6 +1676,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	volatile private int nextHiliteId = 0;
 	private final static int HILITE_RECT_ALPHA = 32;
 	private Rect hiliteRect = null;
+	private void unhiliteTapZone() {
+		hiliteTapZone( false, 0, 0, getWidth(), getHeight() );
+	}
 	private void hiliteTapZone( final boolean hilite, final int startX, final int startY, final int maxX, final int maxY )
 	{
 		if (DEBUG_ANIMATION) Log.d("cr3", "highliteTapZone("+startX + ", " + startY+")");
@@ -1705,7 +1733,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			@Override
 			public void run() {
 				if ( myHiliteId == nextHiliteId && hiliteRect!=null )
-					hiliteTapZone(false, 0, 0, getWidth(), getHeight());
+					unhiliteTapZone(); 
 			}
 		}, delay);
 	}
