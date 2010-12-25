@@ -739,6 +739,21 @@ public:
     }
 };
 
+// returns char like '*' in "* * *"
+lChar16 getSingleLineChar( const lString16 & s) {
+    lChar16 nonSpace = 0;
+    for ( const lChar16 * p = s.c_str(); *p; p++ ) {
+        lChar16 ch = *p;
+        if ( ch!=' ' && ch!='\t' && ch!='\r' && ch!='\n' ) {
+            if ( nonSpace==0 )
+                nonSpace = ch;
+            else if ( nonSpace!=ch )
+                return 0;
+        }
+    }
+    return nonSpace;
+}
+
 #define MAX_HEADING_CHARS 48
 #define MAX_PARA_LINES 30
 #define MAX_BUF_LINES  200
@@ -825,7 +840,7 @@ public:
         }
         return true;
     }
-    inline int absCompare( int v1, int v2 )
+    inline static int absCompare( int v1, int v2 )
     {
         if ( v1<0 )
             v1 = -v1;
@@ -844,7 +859,7 @@ public:
             return la_empty;
         int center_dist = (line->rpos + line->lpos) / 2 - avg_center;
         int right_dist = line->rpos - avg_right;
-        int left_dist = line->lpos - avg_left;
+        int left_dist = line->lpos - max_left_stats_pos;
         if ( (formatFlags & tftJustified) || (formatFlags & tftFormatted) ) {
             if ( line->lpos==min_left && line->rpos==max_right )
                 return la_width;
@@ -870,7 +885,7 @@ public:
                 return la_indent;
         }
     }
-    bool isCentered( LVTextFileLine * line )
+    static bool isCentered( LVTextFileLine * line )
     {
         return line->align == la_centered;
     }
@@ -942,8 +957,8 @@ public:
         int non_empty_lines = length() - empty_lines;
         if ( non_empty_lines < 10 )
             return;
-        avg_left /= length();
-        avg_right /= length();
+        avg_left /= non_empty_lines;
+        avg_right /= non_empty_lines;
         avg_center = (avg_left + avg_right) / 2;
 
         //int best_left_align_percent = max_left_stats * 100 / length();
@@ -951,17 +966,21 @@ public:
         //int best_left_second_align_percent = max_left_second_stats * 100 / length();
 
 
+        int fw = max_right_stats_pos - max_left_stats_pos;
         for ( i=0; i<length(); i++ ) {
             LVTextFileLine * line = get(i);
             //CRLog::debug("    line(%d, %d)", line->lpos, line->rpos);
+            int lw = line->rpos - line->lpos;
             if ( line->lpos > min_left+1 ) {
                 int center_dist = (line->rpos + line->lpos) / 2 - avg_center;
                 //int right_dist = line->rpos - avg_right;
-                int left_dist = line->lpos - avg_left;
+                int left_dist = line->lpos - max_left_stats_pos;
                 //if ( absCompare( center_dist, right_dist )<0 )
-                if ( absCompare( center_dist, left_dist )<0 )
-                    center_lines++;
-                else
+                if ( absCompare( center_dist, left_dist )<0 ) {
+                    if ( line->lpos > min_left+fw/10 && line->lpos < max_right-fw/10 && lw < 9*fw/10 ) {
+                        center_lines++;
+                    }
+                } else
                     ident_lines++;
             }
         }
@@ -973,16 +992,20 @@ public:
                 formatFlags = tftParaPerLine | tftDoubleEmptyLineBeforeHeaders; // default format
                 return;
             }
+            if ( empty_lines>non_empty_lines*2/3 ) {
+                formatFlags = tftEmptyLineDelimPara; // default format
+                return;
+            }
             //tftDoubleEmptyLineBeforeHeaders
             return;
         }
         formatFlags = 0;
-        int ident_lines_percent = ident_lines * 100 / length();
-        int center_lines_percent = center_lines * 100 / length();
+        int ident_lines_percent = ident_lines * 100 / non_empty_lines;
+        int center_lines_percent = center_lines * 100 / non_empty_lines;
         int empty_lines_precent = empty_lines * 100 / length();
         if ( empty_lines_precent > 5 )
             formatFlags |= tftEmptyLineDelimPara;
-        if ( ident_lines_percent > 5 )
+        if ( ident_lines_percent > 5 && ident_lines_percent<40 )
             formatFlags |= tftParaIdents;
         if ( center_lines_percent > 1 )
             formatFlags |= tftCenteredHeaders;
@@ -1171,7 +1194,10 @@ public:
                 }
         }
         str.trimDoubleSpaces(false, false, true);
-        bool isHeader = false;
+        lChar16 singleChar = getSingleLineChar( str );
+        if ( singleChar!=0 && singleChar>='A' )
+            singleChar = 0;
+        bool isHeader = singleChar!=0;
         if ( formatFlags & tftDoubleEmptyLineBeforeHeaders ) {
             isHeader = singleLineFollowedByTwoEmpty;
             if ( singleLineFollowedByEmpty && startline<3 && str.length()<MAX_HEADING_CHARS )
@@ -1182,7 +1208,7 @@ public:
                 return; // no empty lines
         } else {
 
-            if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && endline<3 && startline<length()-1 && get(startline+1)->rpos==0 ) )
+            if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && startline<length()-1 && get(startline+1)->rpos==0 ) ) //endline<3 &&
                 isHeader = true;
             if ( startline==endline && get(startline)->isHeading() )
                 isHeader = true;
@@ -1191,7 +1217,7 @@ public:
             int hlevel = DetectHeadingLevelByText( str );
             if ( hlevel>0 )
                 isHeader = true;
-            if ( singleLineFollowedByEmpty )
+            if ( singleLineFollowedByEmpty && !(formatFlags & tftEmptyLineDelimPara) )
                 isHeader = true;
         }
         if ( str.length() > MAX_HEADING_CHARS )
@@ -1199,7 +1225,7 @@ public:
         if ( !str.empty() ) {
             const lChar16 * title_tag = L"title";
             if ( isHeader ) {
-                if ( str.compare(L"* * *")==0 ) {
+                if ( singleChar ) { //str.compare(L"* * *")==0 ) {
                     title_tag = L"subtitle";
                     lastParaWasTitle = false;
                 } else {
@@ -1307,6 +1333,13 @@ public:
             }
             if ( pos>=length() )
                 break;
+            // skip starting empty lines
+            while ( pos<length() ) {
+                LVTextFileLine * item = get(pos);
+                if ( item->lpos!=item->rpos )
+                    break;
+                pos++;
+            }
             int i=pos;
             if ( pos>=length() || DetectHeadingLevelByText( get(pos)->text )==0 ) {
                 for ( ; i<length() && i<pos+MAX_PARA_LINES; i++ ) {
