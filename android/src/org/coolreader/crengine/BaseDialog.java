@@ -28,7 +28,8 @@ public class BaseDialog extends Dialog {
 	public BaseDialog( Activity activity, int positiveButtonText, int negativeButtonText, boolean fullscreen )
 	{
 		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : R.style.Dialog_Normal);
-		super(activity, fullscreen ? R.style.Dialog_Fullscreen : android.R.style.Theme_Dialog);
+		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : android.R.style.Theme_Dialog);
+		super(activity, fullscreen ? R.style.Dialog_Fullscreen : R.style.Dialog_Fullscreen);
 		setOwnerActivity(activity);
 		this.mPositiveButtonText = positiveButtonText;
 		this.mNegativeButtonText = negativeButtonText;
