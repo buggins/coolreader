@@ -698,13 +698,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
-	static class ThumbnailCache {
+	class ThumbnailCache {
 		final int maxcount;
 		final int dx;
 		final int dy;
 		class Item {
 			Drawable drawable;
 			String path;
+			int id;
 		}
 		ArrayList<Item> list = new ArrayList<Item>(); 
 		public ThumbnailCache( int dx, int dy, int maxcount ) {
@@ -741,6 +742,26 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				return null;
 			}
 		}
+		private Drawable createDrawable( int resourceId ) {
+			try { 
+				Drawable drawable = mReaderView.getActivity().getResources().getDrawable(resourceId);
+				if ( drawable==null )
+					return null;
+				Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.RGB_565);
+				Canvas canvas = new Canvas(bmp);
+				drawable.draw(canvas);
+				BitmapDrawable res = new BitmapDrawable(bmp);
+				
+				Item item = new Item();
+				item.id = resourceId;
+				item.drawable = res;
+				list.add(item);
+				remove(maxcount);
+				return drawable;
+			} catch ( Exception e ) {
+				return null;
+			}
+		}
 		public Drawable getImage( String path ) {
 			if ( path==null || !path.startsWith("/"))
 				return null;
@@ -753,6 +774,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				}
 			}
 			return createDrawable( path ); 
+		}
+		public Drawable getImage( int resourceId ) {
+			if ( resourceId==0 )
+				return null;
+			// find existing
+			for ( int i=0; i<list.size(); i++ ) {
+				if ( list.get(i).id == resourceId ) {
+					Item item = list.remove(i);
+					list.add(item);
+					return item.drawable;
+				}
+			}
+			return createDrawable( resourceId ); 
 		}
 		public void clear() {
 			remove(0);
@@ -787,9 +821,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			BackgroundTextureInfo texture = mReaderView.getEngine().getTextureInfoById(item.value);
 			img.setBackgroundColor(cl);
 			if ( texture.resourceId!=0 ) {
-				img.setImageDrawable(null);
-				img.setImageResource(texture.resourceId);
-				img.setBackgroundColor(Color.TRANSPARENT);
+//				img.setImageDrawable(null);
+//				img.setImageResource(texture.resourceId);
+//				img.setBackgroundColor(Color.TRANSPARENT);
+				Drawable drawable = textureSampleCache.getImage(texture.resourceId);
+				if ( drawable!=null ) {
+					img.setImageResource(0);
+					img.setImageDrawable(drawable);
+					img.setBackgroundColor(Color.TRANSPARENT);
+				} else {
+					img.setBackgroundColor(cl);
+					img.setImageResource(0);
+					img.setImageDrawable(null);
+				}
 			} else {
 				// load image from file
 				Drawable drawable = textureSampleCache.getImage(texture.id);
