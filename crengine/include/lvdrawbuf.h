@@ -285,6 +285,14 @@ inline lUInt32 RevRGB( lUInt32 cl )
     return ((cl>>16)&255) | ((cl<<16)&0xFF0000) | (cl&0x00FF00);
 }
 
+inline lUInt32 rgb565to888(lUInt32 cl ) {
+    return ((cl & 0xF800)<<8) | ((cl & 0x07E0)<<5) | ((cl & 0x001F)<<3);
+}
+
+inline lUInt16 rgb888to565(lUInt32 cl ) {
+    return (lUInt16)(((cl <<8)& 0xF800) | ((cl>>5 )& 0x07E0) | ((cl>>3 )& 0x001F));
+}
+
 /// 32-bit RGB buffer
 class LVColorDrawBuf : public LVBaseDrawBuf
 {
@@ -293,6 +301,7 @@ private:
     HDC _drawdc;
     HBITMAP _drawbmp;
 #endif
+    int _bpp;
     bool _ownData;
 public:
     /// rotates buffer contents by specified angle
@@ -329,9 +338,9 @@ public:
     virtual lUInt8 * GetScanLine( int y );
 
     /// create own draw buffer
-    LVColorDrawBuf(int dx, int dy);
+    LVColorDrawBuf(int dx, int dy, int bpp=32);
     /// creates wrapper around external RGBA buffer
-    LVColorDrawBuf(int dx, int dy, lUInt8 * externalBuffer );
+    LVColorDrawBuf(int dx, int dy, lUInt8 * externalBuffer, int bpp=32 );
     /// destructor
     virtual ~LVColorDrawBuf();
     /// convert to 1-bit bitmap
