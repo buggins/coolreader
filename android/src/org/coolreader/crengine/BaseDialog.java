@@ -5,10 +5,15 @@ import org.coolreader.R;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.graphics.PixelFormat;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.LayoutAnimationController;
+import android.view.animation.LayoutAnimationController.AnimationParameters;
 import android.widget.Button;
 
 public class BaseDialog extends Dialog {
@@ -18,10 +23,29 @@ public class BaseDialog extends Dialog {
 	ViewGroup contentsLayout;
 	public BaseDialog( Activity activity, int positiveButtonText, int negativeButtonText )
 	{
-		super(activity);
+		this( activity, positiveButtonText, negativeButtonText, false );
+	}
+	public BaseDialog( Activity activity, int positiveButtonText, int negativeButtonText, boolean fullscreen )
+	{
+		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : R.style.Dialog_Normal);
+		super(activity, fullscreen ? R.style.Dialog_Fullscreen : android.R.style.Theme_Dialog);
 		setOwnerActivity(activity);
 		this.mPositiveButtonText = positiveButtonText;
 		this.mNegativeButtonText = negativeButtonText;
+//		requestWindowFeature(Window.FEATURE_OPTIONS_PANEL);
+		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+		lp.alpha = 1.0f;
+		lp.dimAmount = 0.0f;
+		lp.format = PixelFormat.RGB_565;
+		lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+		lp.horizontalMargin = 0;
+		lp.verticalMargin = 0;
+		lp.windowAnimations = 0;
+		lp.layoutAnimationParameters = null;
+		getWindow().setAttributes(lp);
+		if ( fullscreen ) {
+			//this.getWindow().set
+		}
         setCancelable(true);
 	}
 

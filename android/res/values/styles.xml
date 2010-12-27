@@ -38,4 +38,14 @@
         <item name="android:padding">2dip</item>
         <item name="android:layout_margin">2dip</item>
     </style>
+    <style name="Dialog_Fullscreen">
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Dialog_Normal" parent="@android:style/Theme.Dialog">
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
 </resources>

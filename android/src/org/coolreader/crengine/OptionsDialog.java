@@ -346,7 +346,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
 		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
+			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0, true);
 			OptionsListView listView = new OptionsListView(getContext());
 			addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
 			addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
@@ -378,7 +378,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 //			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
 //		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
+			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0, true);
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
 			listView.add(new ListOption(getString(R.string.options_page_titlebar_font_face), ReaderView.PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
@@ -446,7 +446,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
 		public String getValueLabel() { return ">"; }
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0);
+			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0, true);
 			grid = (View)mInflater.inflate(R.layout.options_tap_zone_grid, null);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell1), 1);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell2), 2);
@@ -852,7 +852,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	
 	public OptionsDialog( Activity activity, ReaderView readerView, String[] fontFaces )
 	{
-		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel);
+		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, true);
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
 		mProperties = readerView.getSettings();
