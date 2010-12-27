@@ -1617,20 +1617,26 @@ class LVUnpackedImgSource : public LVImageSource, public LVImageDecoderCallback
 {
 protected:
     bool _isGray;
+    int _bpp;
     lUInt8 * _grayImage;
     lUInt32 * _colorImage;
+    lUInt16 * _colorImage16;
     int _dx;
     int _dy;
 public:
-    LVUnpackedImgSource( LVImageSourceRef src, bool storeGray )
-        : _isGray(storeGray)
+    LVUnpackedImgSource( LVImageSourceRef src, int bpp )
+        : _isGray(bpp<=8)
+        , _bpp(bpp)
         , _grayImage(NULL)
         , _colorImage(NULL)
+        , _colorImage16(NULL)
         , _dx( src->GetWidth() )
         , _dy( src->GetHeight() )
     {
-        if ( _isGray ) {
+        if ( bpp<=8  ) {
             _grayImage = (lUInt8*)malloc( _dx * _dy * sizeof(lUInt8) );
+        } else if ( bpp==16 ) {
+            _colorImage16 = (lUInt16*)malloc( _dx * _dy * sizeof(lUInt16) );
         } else {
             _colorImage = (lUInt32*)malloc( _dx * _dy * sizeof(lUInt32) );
         }
@@ -1665,6 +1671,11 @@ public:
             for ( int x=0; x<_dx; x++ ) {
                 dst[x] = grayPack( data[x] );
             }
+        } else if ( _bpp==16 ) {
+            lUInt16 * dst = _colorImage16 + _dx * y;
+            for ( int x=0; x<_dx; x++ ) {
+                dst[x] = rgb888to565( data[x] );
+            }
         } else {
             lUInt32 * dst = _colorImage + _dx * y;
             memcpy( dst, data, sizeof(lUInt32) * _dx );
@@ -1696,6 +1707,18 @@ public:
                 callback->OnLineDecoded( this, y, dst );
             }
             line.clear();
+        } else if ( _bpp==16 ) {
+            // 16bit
+            LVArray<lUInt32> line;
+            line.reserve( _dx );
+            for ( int y=0; y<_dy; y++ ) {
+                lUInt16 * src = _colorImage16 + _dx * y;
+                lUInt32 * dst = line.ptr();
+                for ( int x=0; x<_dx; x++ )
+                    dst[x] = rgb565to888( src[x] );
+                callback->OnLineDecoded( this, y, dst );
+            }
+            line.clear();
         } else {
             // color
             for ( int y=0; y<_dy; y++ ) {
@@ -1711,6 +1734,8 @@ public:
             free( _grayImage );
         if ( _colorImage )
             free( _colorImage );
+        if ( _colorImage )
+            free( _colorImage16 );
     }
 };
 
@@ -1738,8 +1763,21 @@ public:
     {
         callback->OnStartDecode( this );
         bool res = false;
-        for ( int y=0; y<_dy; y++ ) {
-            res = callback->OnLineDecoded( this, y, (lUInt32 *)_buf->GetScanLine(y) );
+        if ( _buf->GetBitsPerPixel()==32 ) {
+            // 32 bpp
+            for ( int y=0; y<_dy; y++ ) {
+                res = callback->OnLineDecoded( this, y, (lUInt32 *)_buf->GetScanLine(y) );
+            }
+        } else {
+            // 16 bpp
+            lUInt32 * row = new lUInt32[_dx];
+            for ( int y=0; y<_dy; y++ ) {
+                lUInt16 * src = (lUInt16 *)_buf->GetScanLine(y);
+                for ( int x=0; x<_dx; x++ )
+                    row[x] = rgb565to888(src[x]);
+                res = callback->OnLineDecoded( this, y, row );
+            }
+            delete row;
         }
         callback->OnEndDecode( this, false );
         return true;
@@ -1762,7 +1800,23 @@ LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int max
     if ( sz>maxSize )
         return srcImage;
     CRLog::trace("Unpacking image %dx%d (%d)", dx, dy, sz);
-    LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, gray );
+    LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, gray ? 8 : 32 );
+    CRLog::trace("Unpacking done");
+    return LVImageSourceRef( img );
+}
+
+/// creates decoded memory copy of image, if it's unpacked size is less than maxSize
+LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize, int bpp )
+{
+    if ( srcImage.isNull() )
+        return srcImage;
+    int dx = srcImage->GetWidth();
+    int dy = srcImage->GetHeight();
+    int sz = dx*dy * (bpp>>3);
+    if ( sz>maxSize )
+        return srcImage;
+    CRLog::trace("Unpacking image %dx%d (%d)", dx, dy, sz);
+    LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, bpp );
     CRLog::trace("Unpacking done");
     return LVImageSourceRef( img );
 }

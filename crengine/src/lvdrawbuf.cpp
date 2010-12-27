@@ -262,52 +262,101 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
 {
     if ( angle==CR_ROTATE_ANGLE_0 )
         return;
-    int sz = (_dx * _dy);
-    if ( angle==CR_ROTATE_ANGLE_180 ) {
-        lUInt32 * buf = (lUInt32 *) _data;
-        for ( int i=sz/2-1; i>=0; i-- ) {
-            lUInt32 tmp = buf[i];
-            buf[i] = buf[sz-i-1];
-            buf[sz-i-1] = tmp;
-        }
-        return;
-    }
-    int newrowsize = _dy * 4;
-    sz = (_dx * newrowsize);
-    lUInt32 * dst = (lUInt32*) malloc( sz );
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
-    bool cw = angle!=CR_ROTATE_ANGLE_90;
-#else
-    bool cw = angle==CR_ROTATE_ANGLE_90;
-#endif
-    for ( int y=0; y<_dy; y++ ) {
-        lUInt32 * src = (lUInt32*)_data + _dx*y;
-        int nx, ny;
-        if ( cw ) {
-            nx = _dy - 1 - y;
-        } else {
-            nx = y;
-        }
-        for ( int x=0; x<_dx; x++ ) {
-            if ( cw ) {
-                ny = x;
-            } else {
-                ny = _dx - 1 - x;
+    if ( _bpp==16 ) {
+        int sz = (_dx * _dy);
+        if ( angle==CR_ROTATE_ANGLE_180 ) {
+            lUInt16 * buf = (lUInt16 *) _data;
+            for ( int i=sz/2-1; i>=0; i-- ) {
+                lUInt16 tmp = buf[i];
+                buf[i] = buf[sz-i-1];
+                buf[sz-i-1] = tmp;
             }
-            dst[ _dy*ny + nx ] = src[ x ];
+            return;
         }
+        int newrowsize = _dy * 2;
+        sz = (_dx * newrowsize);
+        lUInt16 * dst = (lUInt16*) malloc( sz );
+    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+        bool cw = angle!=CR_ROTATE_ANGLE_90;
+    #else
+        bool cw = angle==CR_ROTATE_ANGLE_90;
+    #endif
+        for ( int y=0; y<_dy; y++ ) {
+            lUInt16 * src = (lUInt16*)_data + _dx*y;
+            int nx, ny;
+            if ( cw ) {
+                nx = _dy - 1 - y;
+            } else {
+                nx = y;
+            }
+            for ( int x=0; x<_dx; x++ ) {
+                if ( cw ) {
+                    ny = x;
+                } else {
+                    ny = _dx - 1 - x;
+                }
+                dst[ _dy*ny + nx ] = src[ x ];
+            }
+        }
+    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+        memcpy( _data, dst, sz );
+        free( dst );
+    #else
+        free( _data );
+        _data = (lUInt8*)dst;
+    #endif
+        int tmp = _dx;
+        _dx = _dy;
+        _dy = tmp;
+        _rowsize = newrowsize;
+    } else {
+        int sz = (_dx * _dy);
+        if ( angle==CR_ROTATE_ANGLE_180 ) {
+            lUInt32 * buf = (lUInt32 *) _data;
+            for ( int i=sz/2-1; i>=0; i-- ) {
+                lUInt32 tmp = buf[i];
+                buf[i] = buf[sz-i-1];
+                buf[sz-i-1] = tmp;
+            }
+            return;
+        }
+        int newrowsize = _dy * 4;
+        sz = (_dx * newrowsize);
+        lUInt32 * dst = (lUInt32*) malloc( sz );
+    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+        bool cw = angle!=CR_ROTATE_ANGLE_90;
+    #else
+        bool cw = angle==CR_ROTATE_ANGLE_90;
+    #endif
+        for ( int y=0; y<_dy; y++ ) {
+            lUInt32 * src = (lUInt32*)_data + _dx*y;
+            int nx, ny;
+            if ( cw ) {
+                nx = _dy - 1 - y;
+            } else {
+                nx = y;
+            }
+            for ( int x=0; x<_dx; x++ ) {
+                if ( cw ) {
+                    ny = x;
+                } else {
+                    ny = _dx - 1 - x;
+                }
+                dst[ _dy*ny + nx ] = src[ x ];
+            }
+        }
+    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+        memcpy( _data, dst, sz );
+        free( dst );
+    #else
+        free( _data );
+        _data = (lUInt8*)dst;
+    #endif
+        int tmp = _dx;
+        _dx = _dy;
+        _dy = tmp;
+        _rowsize = newrowsize;
     }
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
-    memcpy( _data, dst, sz );
-    free( dst );
-#else
-    free( _data );
-    _data = (lUInt8*)dst;
-#endif
-    int tmp = _dx;
-    _dx = _dy;
-    _dy = tmp;
-    _rowsize = newrowsize;
 }
 
 class LVImageScaledDrawCallback : public LVImageDecoderCallback
@@ -394,6 +443,26 @@ public:
                         row[ x ] = cl;
                     else
                         ApplyAlphaRGB( row[x], cl, alpha );
+                }
+            }
+            else if ( bpp == 16 )
+            {
+                lUInt16 * row = (lUInt16 *)dst->GetScanLine( yy + dst_y );
+                row += dst_x;
+                for (int x=0; x<dst_dx; x++)
+                {
+                    lUInt32 cl = data[xmap ? xmap[x] : x];
+                    int xx = x + dst_x;
+                    lUInt32 alpha = (cl >> 24)&0xFF;
+                    if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
+                        continue;
+                    if ( alpha<16 ) {
+                        row[ x ] = rgb888to565( cl );
+                    } else if (alpha<0xF0) {
+                        lUInt32 v = rgb565to888(row[x]);
+                        ApplyAlphaRGB( v, cl, alpha );
+                        row[x] = rgb888to565(v);
+                    }
                 }
             }
             else if ( bpp > 2 ) // 3,4,8 bpp
@@ -1212,11 +1281,11 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
             {
                 lUInt32 opaque = ((*(src++))>>4)&0x0F;
                 if ( opaque>=0xF )
-                    *dst = bmpcl;
+                    *dst = bmpcl16;
                 else if ( opaque>0 ) {
-                    lUInt32 alpha = 0x7F-opaque;
-                    lUInt16 cl1 = (lUInt16)(((alpha*((*dst)&0xF81F) + opaque*(bmpcl&0xF81F))>>3) & 0xF81F);
-                    lUInt16 cl2 = (lUInt16)(((alpha*((*dst)&0x07E0) + opaque*(bmpcl&0x07E0))>>3) & 0x07E0);
+                    lUInt32 alpha = 0xF-opaque;
+                    lUInt16 cl1 = (lUInt16)(((alpha*((*dst)&0xF81F) + opaque*(bmpcl16&0xF81F))>>4) & 0xF81F);
+                    lUInt16 cl2 = (lUInt16)(((alpha*((*dst)&0x07E0) + opaque*(bmpcl16&0x07E0))>>4) & 0x07E0);
                     *dst = cl1 | cl2;
                 }
                 /* next pixel */

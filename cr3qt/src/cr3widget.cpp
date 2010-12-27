@@ -156,7 +156,8 @@ CR3View::CR3View( QWidget *parent)
     _docview->setBatteryIcons( icons );
     _docview->setBatteryState( -1 );
     LVStreamRef stream;
-    stream = LVOpenFileStream("/home/lve/.cr3/textures/tx_wood.jpg", LVOM_READ);
+    stream = LVOpenFileStream("/home/lve/.cr3/textures/old_paper.png", LVOM_READ);
+    //stream = LVOpenFileStream("/home/lve/.cr3/textures/tx_wood.jpg", LVOM_READ);
     //stream = LVOpenFileStream("/home/lve/.cr3/backgrounds/Background1.jpg", LVOM_READ);
     if ( !stream.isNull() ) {
         LVImageSourceRef img = LVCreateStreamCopyImageSource(stream);
@@ -309,19 +310,35 @@ void CR3View::paintEvent ( QPaintEvent * event )
     LVDrawBuf * buf = ref->getDrawBuf();
     int dx = buf->GetWidth();
     int dy = buf->GetHeight();
-    QImage img(dx, dy, QImage::Format_RGB32 );
-    for ( int i=0; i<dy; i++ ) {
-        unsigned char * dst = img.scanLine( i );
-        unsigned char * src = buf->GetScanLine(i);
-        for ( int x=0; x<dx; x++ ) {
-            *dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = *src++;
-            *dst++ = 0xFF;
-            src++;
+    if ( buf->GetBitsPerPixel()==16 ) {
+        QImage img(dx, dy, QImage::Format_RGB16 );
+        for ( int i=0; i<dy; i++ ) {
+            unsigned char * dst = img.scanLine( i );
+            unsigned char * src = buf->GetScanLine(i);
+            for ( int x=0; x<dx; x++ ) {
+                *dst++ = *src++;
+                *dst++ = *src++;
+//                *dst++ = *src++;
+//                *dst++ = 0xFF;
+//                src++;
+            }
         }
+        painter.drawImage( rc, img );
+    } else if ( buf->GetBitsPerPixel()==32 ) {
+        QImage img(dx, dy, QImage::Format_RGB32 );
+        for ( int i=0; i<dy; i++ ) {
+            unsigned char * dst = img.scanLine( i );
+            unsigned char * src = buf->GetScanLine(i);
+            for ( int x=0; x<dx; x++ ) {
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = 0xFF;
+                src++;
+            }
+        }
+        painter.drawImage( rc, img );
     }
-    painter.drawImage( rc, img );
     if ( _editMode ) {
         // draw caret
         lvRect cursorRc;

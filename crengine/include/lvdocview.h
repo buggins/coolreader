@@ -287,6 +287,8 @@ enum {
 //typedef lUInt64 LVPosBookmark;
 
 
+#define DEF_COLOR_BUFFER_BPP 32
+
 /**
     \brief XML document view
 

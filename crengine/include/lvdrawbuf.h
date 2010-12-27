@@ -221,6 +221,7 @@ enum DrawBufPixelFormat
     DRAW_BUF_3_BPP = 3, /// 3 bpp, 1 pixel per byte, higher 3 bits are significant
     DRAW_BUF_4_BPP = 4, /// 4 bpp, 1 pixel per byte, higher 4 bits are significant
     DRAW_BUF_8_BPP = 8, /// 8 bpp, 1 pixel per byte, all 8 bits are significant
+    DRAW_BUF_16_BPP = 16, /// color 16bit RGB 565
     DRAW_BUF_32_BPP = 32, /// color 32bit RGB 888
 };
 
@@ -290,7 +291,7 @@ inline lUInt32 rgb565to888(lUInt32 cl ) {
 }
 
 inline lUInt16 rgb888to565(lUInt32 cl ) {
-    return (lUInt16)(((cl <<8)& 0xF800) | ((cl>>5 )& 0x07E0) | ((cl>>3 )& 0x001F));
+    return (lUInt16)(((cl>>8)& 0xF800) | ((cl>>5 )& 0x07E0) | ((cl>>3 )& 0x001F));
 }
 
 /// 32-bit RGB buffer

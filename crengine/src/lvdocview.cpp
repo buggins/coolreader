@@ -606,13 +606,13 @@ void LVDocView::cachePageImage( int delta )
 	LVDrawBuf * buf = NULL;
 	if ( m_bitsPerPixel==-1 ) {
 #if (COLOR_BACKBUFFER==1)
-		buf = new LVColorDrawBuf( m_dx, m_dy );
+        buf = new LVColorDrawBuf( m_dx, m_dy, DEF_COLOR_BUFFER_BPP );
 #else
 		buf = new LVGrayDrawBuf( m_dx, m_dy, m_drawBufferBits );
 #endif
 	} else {
-		if ( m_bitsPerPixel==32 ) {
-			buf = new LVColorDrawBuf( m_dx, m_dy );
+        if ( m_bitsPerPixel==32 || m_bitsPerPixel==16 ) {
+            buf = new LVColorDrawBuf( m_dx, m_dy, m_bitsPerPixel );
 		} else {
 			buf = new LVGrayDrawBuf( m_dx, m_dy, m_bitsPerPixel );
 		}
@@ -1769,7 +1769,7 @@ bool LVDocView::isTimeChanged() {
 static bool checkBufferSize( LVRef<LVColorDrawBuf> & buf, int dx, int dy ) {
     if ( buf.isNull() || buf->GetWidth()!=dx || buf->GetHeight()!=dy ) {
         buf.Clear();
-        buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(dx, dy) );
+        buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(dx, dy, 16) );
         return false; // need redraw
     } else
         return true;
