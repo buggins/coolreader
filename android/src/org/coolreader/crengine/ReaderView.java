@@ -280,6 +280,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return mEngine;
     }
     
+    public CoolReader getActivity()
+    {
+    	return mActivity;
+    }
+    
 	private int lastResizeTaskId = 0;
 	@Override
 	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
@@ -1343,7 +1348,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				Bitmap bmp = freeList.remove(i);
 				bmp.recycle(); 
 			}
-			Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.ARGB_8888);
+			Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.RGB_565);
 			//bmp.setDensity(0);
 			usedList.add(bmp);
 			return bmp;

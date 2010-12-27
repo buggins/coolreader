@@ -192,11 +192,12 @@ class LVColorDrawBufEx : public LVColorDrawBuf {
 public:
     lUInt8 * getData() { return _data; }
     void convert() {
-		ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );		    	
+    	if ( GetBitsPerPixel()==32 )
+    		ConvertCRColorsToAndroid( _data, GetWidth(), GetHeight() );
     }
     
-	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels)
-	: LVColorDrawBuf( dx, dy, pixels ) {
+	LVColorDrawBufEx(int dx, int dy, lUInt8 * pixels, int bpp)
+	: LVColorDrawBuf( dx, dy, pixels, bpp ) {
 	}
 };
 
@@ -219,10 +220,11 @@ public:
 		int height = info.height;
 		int stride = info.stride;
 		int format = info.format;
-		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 ) {
+		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 && format!=ANDROID_BITMAP_FORMAT_RGB_565  && format!=8 ) {
 			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
 			return NULL;
 		}
+		int bpp = (format==ANDROID_BITMAP_FORMAT_RGBA_8888) ? 32 : 16;
 	    //CRLog::trace("JNIGraphicsLib::lock info: %d (%d) x %d", width, stride, height);
 		lUInt8 * pixels = NULL; 
 		if ( ANDROID_BITMAP_RESUT_SUCCESS!=AndroidBitmap_lockPixels(env, jbitmap, (void**)&pixels) ) {
@@ -230,7 +232,7 @@ public:
 		    pixels = NULL;
 		}
 	    //CRLog::trace("JNIGraphicsLib::lock pixels locked!" );
-		return new LVColorDrawBufEx( width, height, pixels );
+		return new LVColorDrawBufEx( width, height, pixels, bpp );
     } 
     virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) {
     	LVColorDrawBufEx * bmp = (LVColorDrawBufEx*)buf;
@@ -311,6 +313,7 @@ public:
 			info->format = ANDROID_BITMAP_FORMAT_RGBA_8888;
 			break; 
 		case 4:
+		case 8:
 			info->format = ANDROID_BITMAP_FORMAT_RGB_565;
 			break;
 		default:
@@ -334,19 +337,22 @@ public:
 		int stride = info.stride;
 		int format = info.format;
 	    //CRLog::trace("JNIGraphicsReplacement::lock info: %d (%d) x %d", width, stride, height);
-		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 ) {
+		if ( format!=ANDROID_BITMAP_FORMAT_RGBA_8888 && format!=ANDROID_BITMAP_FORMAT_RGB_565  && format!=8  ) {
 			CRLog::error("BitmapAccessor : bitmap format %d is not yet supported", format);
 			return NULL;
 		}
+		int bpp = (format==ANDROID_BITMAP_FORMAT_RGBA_8888) ? 32 : 16;
 		//int size = stride * height;
 		//CRLog::trace("lock: %d x %d stride = %d, width*4 = %d", width, height, stride, width*4 );
 		int size = width * height;
+		if ( bpp==16 )
+			size = (size + 1) >> 1;
 		reallocArray( env, size );
 	    //CRLog::trace("JNIGraphicsReplacement::lock getting pixels");
 	    lUInt8 * pixels = (lUInt8 *)env->GetIntArrayElements(_array, 0);
 	    //CRLog::trace("Pixels address %08x", (int)(pixels));
 	    //CRLog::trace("JNIGraphicsReplacement::lock exiting");
-		LVDrawBuf * buf = new LVColorDrawBufEx(width, height, pixels);
+		LVDrawBuf * buf = new LVColorDrawBufEx(width, height, pixels, bpp);
 	    //CRLog::trace("Last row address %08x", (int)buf->GetScanLine(height-1));
 	    //pixels[0] = 0x12;
 	    //pixels[width*height*4-1] = 0x34;

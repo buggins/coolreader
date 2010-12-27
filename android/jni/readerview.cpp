@@ -164,7 +164,7 @@ static LVRefVec<LVImageSource> getBatteryIcons( bool nightMode )
 
 ReaderViewNative::ReaderViewNative()
 {
-	_docview = new LVDocView(32); //32bpp
+	_docview = new LVDocView(16); //16bpp
 
     LVRefVec<LVImageSource> icons = getBatteryIcons( false );
     _docview->setBatteryIcons( icons );

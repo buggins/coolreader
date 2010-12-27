@@ -236,7 +236,18 @@ public class CoolReader extends Activity
 		Display d = getWindowManager().getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics(); 
 		d.getMetrics(m);
-		densityDpi = m.densityDpi;
+		try {
+			Field fld = d.getClass().getField("densityDpi");
+			if ( fld!=null ) {
+				Object v = fld.get(m);
+				if ( v!=null && v instanceof Integer ) {
+					densityDpi = ((Integer)v).intValue();
+					Log.i("cr3", "Screen density detected: " + densityDpi + "DPI");
+				}
+			}
+		} catch ( Exception e ) {
+			Log.e("cr3", "Cannot find field densityDpi, using default value");
+		}
 		
 		// load settings
 		Properties props = loadSettings();
