@@ -31,6 +31,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.PowerManager;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
@@ -896,6 +897,9 @@ public class CoolReader extends Activity
 		case R.id.book_root:
 			mBrowser.showRootDirectory();
 			return true;
+		case R.id.book_recent_books:
+			mBrowser.showRecentBooks();
+			return true;
 		case R.id.book_back_to_reading:
 			if ( isBookOpened() )
 				showReader();
@@ -1109,4 +1113,25 @@ public class CoolReader extends Activity
 		}
 	}
 
+	private static Debug.MemoryInfo info = new Debug.MemoryInfo();
+	private static Field[] infoFields = Debug.MemoryInfo.class.getFields();
+	private static String dumpFields( Field[] fields, Object obj) {
+		StringBuilder buf = new StringBuilder();
+		try {
+			for ( Field f : fields ) {
+				if ( buf.length()>0 )
+					buf.append(", ");
+				buf.append(f.getName());
+				buf.append("=");
+				buf.append(f.get(obj));
+			}
+		} catch ( Exception e ) {
+			
+		}
+		return buf.toString();
+	}
+	public static void dumpHeapAllocation() {
+		Debug.getMemoryInfo(info);
+		Log.d("cr3", "nativeHeapAlloc=" + Debug.getNativeHeapAllocatedSize() + ", nativeHeapSize=" + Debug.getNativeHeapSize() + ", info: " + dumpFields(infoFields, info));
+	}
 }

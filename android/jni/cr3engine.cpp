@@ -321,9 +321,11 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 	CRLog::setLogger( new JNICDRLogger() );
 	CRLog::setLogLevel( CRLog::LL_TRACE );
 	CRLog::info("CREngine log redirected");
-	CRLog::info("creating font manager");
 	
+	CRLog::info("initializing hyphenation manager");
 	HyphMan::initDictionaries(lString16()); //don't look for dictionaries
+	HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
+	CRLog::info("creating font manager");
 	InitFontManager(lString8());
 	CRLog::debug("converting fonts array: %d items", (int)env->GetArrayLength(fontArray));
 	lString16Collection fonts;
@@ -382,51 +384,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 	return res ? JNI_TRUE : JNI_FALSE;
 }
 
-#if 0
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    setHyphenationDirectoryInternal
- * Signature: (Ljava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal
-  (JNIEnv * penv, jobject obj, jstring dir)
-{
-	CRJNIEnv env(penv);
-	bool res = HyphMan::initDictionaries(env.fromJavaString(dir)); 
-	return res ? JNI_TRUE : JNI_FALSE;
-}
-
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    getHyphenationDictionaryListInternal
- * Signature: ()[Ljava/lang/String;
- */
-JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal
-  (JNIEnv * penv, jobject obj)
-{
-	LOGI("getHyphenationDictionaryListInternal called");
-	CRJNIEnv env(penv);
-	HyphDictionaryList * plist = HyphMan::getDictList();
-	lString16Collection list;
-	if ( plist ) {
-		for ( int i=0; i<plist->length(); i++ ) {
-			HyphDictionary * dict = plist->get(i);
-			list.add( dict->getTitle() );
-		}
-	}
-	return env.toJavaStringArray(list);
-}
-#endif
-
 //=====================================================================
 
 static JNINativeMethod sEngineMethods[] = {
+  /* name, signature, funcPtr */
   {"initInternal", "([Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_initInternal},
   {"uninitInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_uninitInternal},
   {"getFontFaceListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},
-//  {"setHyphenationDirectoryInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationDirectoryInternal},
-//  {"getHyphenationDictionaryListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getHyphenationDictionaryListInternal},
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
   {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
@@ -441,12 +406,9 @@ static JNINativeMethod sReaderViewMethods[] = {
   {"loadDocumentInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_loadDocumentInternal},
   {"getSettingsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_ReaderView_getSettingsInternal},
   {"applySettingsInternal", "(Ljava/util/Properties;)Z", (void*)Java_org_coolreader_crengine_ReaderView_applySettingsInternal},
-//  {"readHistoryInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_readHistoryInternal},
-//  {"writeHistoryInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_writeHistoryInternal},
   {"setStylesheetInternal", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_ReaderView_setStylesheetInternal},
   {"resizeInternal", "(II)V", (void*)Java_org_coolreader_crengine_ReaderView_resizeInternal},
   {"doCommandInternal", "(II)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommandInternal},
-//  {"getState", "()Lorg/coolreader/crengine/ReaderView/DocumentInfo;", (void*)Java_org_coolreader_crengine_ReaderView_getStateInternal},
   {"getCurrentPageBookmarkInternal", "()Lorg/coolreader/crengine/Bookmark;", (void*)Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal},
   {"goToPositionInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_goToPositionInternal},
   {"getPositionPropsInternal", "(Ljava/lang/String;)Lorg/coolreader/crengine/PositionProperties;", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal},

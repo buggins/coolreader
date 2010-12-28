@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
-import org.coolreader.crengine.Engine.EngineTask;
+import org.coolreader.crengine.Engine.HyphDict;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -1118,7 +1118,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
-    			if ( mEngine.setHyphenationDictionary(Engine.HyphDict.byCode(value)) ) {
+    			Engine.HyphDict dict = HyphDict.byCode(value);
+    			//mEngine.setHyphenationDictionary();
+    			if ( mEngine.setHyphenationDictionary(dict) ) {
     				if ( isBookLoaded() ) {
     					doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
     					//drawPage();
@@ -1297,35 +1299,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	
-//	class LastDocumentLoadTask extends Task {
-//		Runnable errorHandler;
-//		LastDocumentLoadTask( Runnable errorHandler )
-//		{
-//			this.errorHandler = errorHandler;
-//		}
-//		public void work() throws Exception {
-//			if ( !initialized )
-//				throw new IllegalStateException("ReaderView is not initialized");
-//			Log.i("cr3", "Trying to load last document");
-//			boolean res = doCommandInternal(ReaderCommand.DCMD_OPEN_RECENT_BOOK.nativeId, 0);
-//			if ( !res )
-//				throw new IOException("Cannot open recent book");
-//			else
-//				Log.i("cr3", "Last document is opened successfully");
-//		}
-//		public void done()
-//		{
-//	        opened = true;
-//			Log.i("cr3", "Last document is opened. Restoring position...");
-//	        doCommand(ReaderCommand.DCMD_RESTORE_POSITION, 0);
-//			activity.showReader();
-//	        drawPage();
-//		}
-//		public void fail( Exception e ) {
-//			Log.i("cr3", "Last document loading is failed");
-//			errorHandler.run();
-//		}
-//	}
 	private int mBatteryState = 100;
 	public void setBatteryState( int state ) {
 		mBatteryState = state;
@@ -1339,20 +1312,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public synchronized Bitmap get( int dx, int dy ) {
 			for ( int i=0; i<freeList.size(); i++ ) {
 				Bitmap bmp = freeList.get(i);
-				if ( bmp.getWidth()==dx && bmp.getWidth()==dy ) {
+				if ( bmp.getWidth()==dx && bmp.getHeight()==dy ) {
 					// found bitmap of proper size
 					freeList.remove(i);
 					usedList.add(bmp);
+					//Log.d("cr3", "BitmapFactory: reused free bitmap, used list = " + usedList.size() + ", free list=" + freeList.size());
 					return bmp;
 				}
 			}
 			for ( int i=freeList.size()-1; i>=0; i-- ) {
 				Bitmap bmp = freeList.remove(i);
+				//Log.d("cr3", "Recycling free bitmap "+bmp.getWidth()+"x"+bmp.getHeight());
 				bmp.recycle(); 
 			}
 			Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.RGB_565);
 			//bmp.setDensity(0);
 			usedList.add(bmp);
+			//Log.d("cr3", "Created new bitmap "+dx+"x"+dy+". New bitmap list size = " + usedList.size());
 			return bmp;
 		}
 		public synchronized void compact() {
@@ -1370,6 +1346,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						freeList.get(0).recycle();
 						freeList.remove(0);
 					}
+					Log.d("cr3", "BitmapFactory: bitmap released, used size = " + usedList.size() + ", free size=" + freeList.size());
 					return;
 				}
 			}
@@ -1384,7 +1361,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		PositionProperties position;
 		void recycle()
 		{
-			bitmap.recycle();
+			factory.release(bitmap);
 			bitmap = null;
 			position = null;
 		}
@@ -2423,6 +2400,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
 				restorePositionBackground(pos);
+				CoolReader.dumpHeapAllocation();
 	        } else {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
 				throw new IOException("Cannot read document");

@@ -4519,14 +4519,16 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
 	lString16 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
 			DEF_HYPHENATION_DICT);
+#if !defined(ANDROID)
 	HyphDictionaryList * dictlist = HyphMan::getDictList();
 	if (dictlist) {
 		if (dictlist->find(hyph))
-			props->setString(PROP_HYPHENATION_DICT, hyph);
+			props->setStringDef(PROP_HYPHENATION_DICT, hyph);
 		else
-			props->setString(PROP_HYPHENATION_DICT, lString16(
+			props->setStringDef(PROP_HYPHENATION_DICT, lString16(
 					HYPH_DICT_ID_ALGORITHM));
 	}
+#endif
 	props->setStringDef(PROP_STATUS_LINE, "0");
 	props->setStringDef(PROP_SHOW_TITLE, "1");
 	props->setStringDef(PROP_SHOW_TIME, "1");

@@ -17,6 +17,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Debug;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -705,8 +706,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		final int dy;
 		class Item {
 			Drawable drawable;
+			Bitmap bmp;
 			String path;
 			int id;
+			public void clear() {
+				if ( bmp!=null ) {
+					drawable = null;
+					bmp.recycle();
+					bmp = null;
+				}
+			}
 		}
 		ArrayList<Item> list = new ArrayList<Item>(); 
 		public ThumbnailCache( int dx, int dy, int maxcount ) {
@@ -717,7 +726,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		private void remove( int maxsize ) {
 			while ( list.size()>maxcount ) {
 				Item item = list.remove(0);
-				// TODO: cleanup
+				item.clear();
 			}
 		}
 		private Drawable createDrawable( String path ) {
@@ -732,10 +741,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				Bitmap bmp = Bitmap.createScaledBitmap(src, dx, dy, true);
 				//Canvas canvas = new Canvas(bmp);
 				BitmapDrawable res = new BitmapDrawable(bmp);
-				
+				src.recycle();
 				Item item = new Item();
 				item.path = path;
 				item.drawable = res; //drawable;
+				item.bmp = bmp;
 				list.add(item);
 				remove(maxcount);
 				return drawable;
@@ -756,6 +766,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				Item item = new Item();
 				item.id = resourceId;
 				item.drawable = res;
+				item.bmp = bmp;
 				list.add(item);
 				remove(maxcount);
 				return drawable;
@@ -972,7 +983,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating OptionsDialog");
-		
+		CoolReader.dumpHeapAllocation();
+		Log.v("cr3", "calling gc");
+		System.gc();
+		CoolReader.dumpHeapAllocation();
+		Log.v("cr3", "creating options dialog");
 		setTitle(null);
         setCancelable(true);
         setCanceledOnTouchOutside(true);
@@ -1094,5 +1109,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
         dismiss();
         //super.onPositiveButtonClick();
 	}
+	@Override
+	protected void onStop() {
+		Log.d("cr3", "OptionsDialog.onStop() : calling gc()");
+		System.gc();
+		super.onStop();
+	}
 
+	
 }

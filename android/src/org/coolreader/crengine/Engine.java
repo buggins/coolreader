@@ -523,6 +523,7 @@ public class Engine {
     private HyphDict currentHyphDict = HyphDict.NONE;
     public boolean setHyphenationDictionary( final HyphDict dict )
     {
+		Log.i("cr3", "setHyphenationDictionary( " + dict + " ) is called");
     	if ( currentHyphDict==dict )
     		return false;
     	currentHyphDict = dict;
