@@ -179,6 +179,8 @@ public class TOCDlg extends BaseDialog {
 			}
 			
 		};
+		mListView.setFocusable(true);
+		mListView.setFocusableInTouchMode(true);
 		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		setTitle(mCoolReader.getResources().getString(R.string.win_title_toc));
 		setView(mListView);

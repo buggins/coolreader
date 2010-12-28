@@ -1371,6 +1371,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	lUInt32 cl2 = getBackgroundColor();
 	lUInt32 cl3 = 0xD0D0D0;
 	lUInt32 cl4 = 0xC0C0C0;
+	drawbuf->SetTextColor(cl1);
 	//lUInt32 pal[4];
 	int percent = getPosPercent();
 	bool leftPage = (getVisiblePageCount() == 2 && !(pageIndex & 1));

@@ -3,17 +3,15 @@ package org.coolreader.crengine;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.PixelFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.LayoutAnimationController;
-import android.view.animation.LayoutAnimationController.AnimationParameters;
 import android.widget.Button;
 
 public class BaseDialog extends Dialog {
@@ -46,10 +44,9 @@ public class BaseDialog extends Dialog {
 		lp.verticalMargin = 0;
 		lp.windowAnimations = 0;
 		lp.layoutAnimationParameters = null;
+		//lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_PUSH_BUFFERS;
 		getWindow().setAttributes(lp);
-		if ( fullscreen ) {
-			//this.getWindow().set
-		}
+		Log.i("cr3", "BaseDialog.window=" + getWindow());
         setCancelable(true);
 	}
 
@@ -121,7 +118,7 @@ public class BaseDialog extends Dialog {
 			super.setTitle(title);
 		else {
 			getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-			((CoolReader)getOwnerActivity()).applyFullscreen( getWindow() );
+			//((CoolReader)getOwnerActivity()).applyFullscreen( getWindow() );
 		}
 	}
 

@@ -29,6 +29,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
@@ -38,6 +39,7 @@ import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -240,6 +242,7 @@ public class CoolReader extends Activity
     {
 		Log.i("cr3", "CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+
 		
 		Display d = getWindowManager().getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics(); 
@@ -274,6 +277,21 @@ public class CoolReader extends Activity
 			
 		};
 		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+
+		Log.i("cr3", "CoolReader.window=" + getWindow());
+		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+		lp.alpha = 1.0f;
+		lp.dimAmount = 0.0f;
+		lp.format = PixelFormat.RGB_565;
+		lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+		lp.horizontalMargin = 0;
+		lp.verticalMargin = 0;
+		lp.windowAnimations = 0;
+		lp.layoutAnimationParameters = null;
+		lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
+		getWindow().setAttributes(lp);
+		
 		
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, false) );
 		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4);
