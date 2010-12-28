@@ -3,10 +3,10 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.util.ArrayList;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -38,6 +38,7 @@ import android.widget.TextView;
 public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
 	ReaderView mReaderView;
+	CoolReader mActivity;
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		14, 16, 18, 20, 22, 24, 26, 28, 30,
@@ -183,7 +184,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String getValueLabel() { return mProperties.getProperty(property); }
 		public void onSelect()
 		{ 
-			ColorPickerDialog dlg = new ColorPickerDialog(getOwnerActivity(), new OnColorChangedListener() {
+			ColorPickerDialog dlg = new ColorPickerDialog(mActivity, new OnColorChangedListener() {
 				public void colorChanged(int color) {
 					mProperties.setColor(property, color);
 					if ( property.equals(ReaderView.PROP_BACKGROUND_COLOR) ) {
@@ -346,7 +347,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
 		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0, true);
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0);
 			OptionsListView listView = new OptionsListView(getContext());
 			addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
 			addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
@@ -378,7 +379,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 //			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
 //		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0, true);
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0);
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
 			listView.add(new ListOption(getString(R.string.options_page_titlebar_font_face), ReaderView.PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
@@ -446,7 +447,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
 		public String getValueLabel() { return ">"; }
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(getOwnerActivity(), R.string.dlg_button_ok, 0, true);
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0);
 			grid = (View)mInflater.inflate(R.layout.options_tap_zone_grid, null);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell1), 1);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell2), 2);
@@ -568,7 +569,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String getValueLabel() { return findValueLabel(mProperties.getProperty(property)); }
 		
 		public void onSelect() {
-			final BaseDialog dlg = new BaseDialog(getOwnerActivity(), 0, 0);
+			final BaseDialog dlg = new BaseDialog(mActivity, 0, 0);
 			//AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
 			dlg.setTitle(label);
 
@@ -767,7 +768,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				return null;
 			// find existing
 			for ( int i=0; i<list.size(); i++ ) {
-				if ( list.get(i).path.equals(path) ) {
+				if ( list.get(i).path!=null && path.equals(list.get(i).path) ) {
 					Item item = list.remove(i);
 					list.add(item);
 					return item.drawable;
@@ -850,9 +851,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
-	public OptionsDialog( Activity activity, ReaderView readerView, String[] fontFaces )
+	public OptionsDialog( CoolReader activity, ReaderView readerView, String[] fontFaces )
 	{
-		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, true);
+		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel);
+		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
 		mProperties = readerView.getSettings();
@@ -1032,21 +1034,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
 		tsStyles.setIndicator(getContext().getResources().getString(R.string.tab_options_styles), 
-				getContext().getResources().getDrawable(R.drawable.cr3_option_style));
+				getContext().getResources().getDrawable(android.R.drawable.ic_menu_view)); //R.drawable.cr3_option_style
 		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
 		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
-		tsPage.setIndicator(getContext().getResources().getString(R.string.tab_options_page), getContext().getResources().getDrawable(R.drawable.cr3_option_page));
+		tsPage.setIndicator(getContext().getResources().getString(R.string.tab_options_page), getContext().getResources().getDrawable(android.R.drawable.ic_menu_crop)); //R.drawable.cr3_option_page
 		tsPage.setContent(this);
 		mTabs.addTab(tsPage);
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
 		//tsApp.setIndicator(null, getContext().getResources().getDrawable(R.drawable.cr3_option_));
-		tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app));
+		tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app), getContext().getResources().getDrawable(android.R.drawable.ic_menu_manage));
 		tsApp.setContent(this);
 		mTabs.addTab(tsApp);
 		
 		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
-		tsControls.setIndicator(getContext().getResources().getString(R.string.tab_options_controls));
+		tsControls.setIndicator(getContext().getResources().getString(R.string.tab_options_controls), getContext().getResources().getDrawable(android.R.drawable.ic_menu_manage));
 		tsControls.setContent(this);
 		//mTabs.addTab(tsControls);
 

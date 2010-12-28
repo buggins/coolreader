@@ -97,6 +97,13 @@ public class CoolReader extends Activity
 		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
 	}
 	
+	private boolean mNightMode = false;
+	public boolean isNightMode() {
+		return mNightMode;
+	}
+	public void setNightMode( boolean nightMode ) {
+		mNightMode = nightMode;
+	}
 	private boolean mFullscreen = false;
 	public boolean isFullscreen() {
 		return mFullscreen;
@@ -781,7 +788,7 @@ public class CoolReader extends Activity
 	public static class InputDialog extends BaseDialog {
 		private InputHandler handler;
 		private EditText input;
-		public InputDialog( Activity activity, final String title, boolean isNumberEdit, final InputHandler handler )
+		public InputDialog( CoolReader activity, final String title, boolean isNumberEdit, final InputHandler handler )
 		{
 			super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel );
 			this.handler = handler;

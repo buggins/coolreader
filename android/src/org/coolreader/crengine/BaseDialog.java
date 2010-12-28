@@ -21,15 +21,18 @@ public class BaseDialog extends Dialog {
 	View layoutView;
 	ViewGroup buttonsLayout;
 	ViewGroup contentsLayout;
-	public BaseDialog( Activity activity, int positiveButtonText, int negativeButtonText )
+	public BaseDialog( CoolReader activity, int positiveButtonText, int negativeButtonText )
 	{
-		this( activity, positiveButtonText, negativeButtonText, false );
+		this( activity, positiveButtonText, negativeButtonText, activity.isFullscreen(), activity.isNightMode() );
 	}
-	public BaseDialog( Activity activity, int positiveButtonText, int negativeButtonText, boolean fullscreen )
+	public BaseDialog( CoolReader activity, int positiveButtonText, int negativeButtonText, boolean fullscreen, boolean dark )
 	{
 		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : R.style.Dialog_Normal);
-		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : android.R.style.Theme_Dialog);
-		super(activity, fullscreen ? R.style.Dialog_Fullscreen : R.style.Dialog_Fullscreen);
+		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : android.R.style.Theme_Dialog); //android.R.style.Theme_Light_NoTitleBar_Fullscreen : android.R.style.Theme_Light
+		super(activity, fullscreen
+				? (	dark ? R.style.Dialog_Fullscreen_Night : R.style.Dialog_Fullscreen_Day )
+				: (	dark ? R.style.Dialog_Normal_Night : R.style.Dialog_Normal_Day )
+				);
 		setOwnerActivity(activity);
 		this.mPositiveButtonText = positiveButtonText;
 		this.mNegativeButtonText = negativeButtonText;

@@ -144,7 +144,7 @@ public class BookmarksDlg  extends BaseDialog {
 	
 	public BookmarksDlg( CoolReader activity, ReaderView readerView )
 	{
-		super(activity, 0, 0, true);
+		super(activity, 0, 0);
 		mThis = this; // for inner classes
 		mCoolReader = activity;
 		mReaderView = readerView;

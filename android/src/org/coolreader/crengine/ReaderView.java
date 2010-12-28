@@ -1062,6 +1062,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.getScanner().setDirScanEnabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
 			mActivity.setWakeLockEnabled(flg);
+        } else if ( key.equals(PROP_NIGHT_MODE) ) {
+			mActivity.setNightMode(flg);
         } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {

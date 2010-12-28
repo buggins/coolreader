@@ -3,25 +3,25 @@ package org.coolreader.crengine;
 // based on color picker from 
 // http://www.anddev.org/announce_color_picker_dialog-t10771.html
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.app.Activity;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.BlurMaskFilter;
+import android.graphics.BlurMaskFilter.Blur;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.graphics.Bitmap.Config;
-import android.graphics.BlurMaskFilter.Blur;
-import android.graphics.Paint.Style;
-import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
@@ -49,8 +49,8 @@ public class ColorPickerDialog extends BaseDialog implements OnSeekBarChangeList
 	private int mColor;
 	private GradientDrawable mPreviewDrawable;
 
-	public ColorPickerDialog(Activity activity, OnColorChangedListener listener, int color, String title) {
-		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, true);
+	public ColorPickerDialog(CoolReader activity, OnColorChangedListener listener, int color, String title) {
+		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel);
 		mListener = listener;
 
 		Resources res = activity.getResources();

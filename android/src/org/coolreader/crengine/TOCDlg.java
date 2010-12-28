@@ -158,7 +158,7 @@ public class TOCDlg extends BaseDialog {
 
 	public TOCDlg( CoolReader coolReader, ReaderView readerView, TOCItem toc, int currentPage )
 	{
-		super(coolReader, 0, 0, true);
+		super(coolReader, 0, 0);
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
