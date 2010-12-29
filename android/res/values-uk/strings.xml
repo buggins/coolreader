@@ -139,4 +139,6 @@
 <string name="options_page_animation_paperbook">Листание</string>
     <string name="options_page_animation_none">Без анимации</string>
     <string name="options_page_animation_slide">Сдвиг</string>
+<string name="options_app_key_long_press">(длинное нажатие)</string>
+    <string name="options_app_key_double_press">(двойное нажатие)</string>
 </resources>

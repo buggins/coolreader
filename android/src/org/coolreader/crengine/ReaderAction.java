@@ -110,20 +110,47 @@ public class ReaderAction {
 		}
 		return NONE;
 	}
+	public final static String NORMAL_PROP = ".";
+	public final static String LONG_PROP = ".long.";
+	public final static String DOUBLECLICK_PROP = ".dbl.";
+	
+	public final static int NORMAL = 0;
+	public final static int LONG = 1;
+	public final static int DOUBLE = 2;
+	public final static String[] TYPE_PROP_SUBPATH = new String[] {NORMAL_PROP, LONG_PROP, DOUBLECLICK_PROP};
+
+	public static String getTypeString( int type ) {
+		return TYPE_PROP_SUBPATH[type];
+	}
+	
+	public static String getTapZoneProp( int tapZoneNumber, int type ) {
+		return ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + getTypeString(type) + tapZoneNumber;
+	}
+	public static String getKeyProp( int keyCode, int type ) {
+		return ReaderView.PROP_APP_KEY_ACTIONS_PRESS + getTypeString(type) + keyCode;
+	}
 	public static ReaderAction findForTap( int tapZoneNumber, Properties settings ) {
-		String id = settings.getProperty( ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + tapZoneNumber );
+		String id = settings.getProperty( getTapZoneProp( tapZoneNumber, NORMAL ) );
 		return findById(id);
 	}
 	public static ReaderAction findForLongTap( int tapZoneNumber, Properties settings ) {
-		String id = settings.getProperty( ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + tapZoneNumber );
+		String id = settings.getProperty( getTapZoneProp( tapZoneNumber, LONG ) );
+		return findById(id);
+	}
+	public static ReaderAction findForDoubleTap( int tapZoneNumber, Properties settings ) {
+		String id = settings.getProperty( getTapZoneProp( tapZoneNumber, DOUBLE ) );
 		return findById(id);
 	}
 	public static ReaderAction findForKey( int keyCode, Properties settings ) {
-		String id = settings.getProperty( ReaderView.PROP_APP_KEY_ACTIONS_PRESS + "." + keyCode );
+		String id = settings.getProperty( getKeyProp( keyCode, NORMAL ) );
 		return findById(id);
 	}
 	public static ReaderAction findForLongKey( int keyCode, Properties settings ) {
-		String id = settings.getProperty( ReaderView.PROP_APP_KEY_ACTIONS_PRESS + ".long." + keyCode );
+		String id = settings.getProperty( getKeyProp( keyCode, LONG ) );
+		return findById(id);
+	}
+	public static ReaderAction findForDoubleKey( int keyCode, Properties settings ) {
+		String id = settings.getProperty( getKeyProp( keyCode, DOUBLE ) );
 		return findById(id);
 	}
 }

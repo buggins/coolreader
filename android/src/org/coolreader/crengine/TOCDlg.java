@@ -10,6 +10,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -158,16 +161,18 @@ public class TOCDlg extends BaseDialog {
 
 	public TOCDlg( CoolReader coolReader, ReaderView readerView, TOCItem toc, int currentPage )
 	{
-		super(coolReader, 0, 0);
+		super(coolReader, 0, 0, false);
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
 		this.mTOC = toc;
 		this.mCurrentPage = currentPage;
-		this.mListView = new ListView(mCoolReader) {
+		this.mListView = new ListView(getContext());
+		mListView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public boolean performItemClick(View view, int position, long id) {
+			public void onItemClick(AdapterView<?> listview, View view,
+					int position, long id) {
 				TOCItem item = mItems.get(position);
 				if ( item.getChildCount()==0 || item.getExpanded() ) {
 					mReaderView.goToPage(item.getPage()+1);
@@ -175,10 +180,28 @@ public class TOCDlg extends BaseDialog {
 				} else {
 					expand(item);
 				}
+			}
+		});
+		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> listview, View view,
+					int position, long id) {
+				TOCItem item = mItems.get(position);
+				if ( item.getChildCount()==0 ) {
+					mReaderView.goToPage(item.getPage()+1);
+					dismiss();
+				} else {
+					if ( item.getExpanded() )
+						collapse(item);
+					else
+						expand(item);
+				}
 				return true;
 			}
-			
-		};
+		});
+		mListView.setLongClickable(true);
+		mListView.setClickable(true);
 		mListView.setFocusable(true);
 		mListView.setFocusableInTouchMode(true);
 		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);

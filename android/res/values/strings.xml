@@ -139,4 +139,6 @@
 <string name="options_page_animation_paperbook">Paperbook</string>
     <string name="options_page_animation_none">No animation</string>
     <string name="options_page_animation_slide">Slide</string>
+<string name="options_app_key_long_press">(long press)</string>
+    <string name="options_app_key_double_press">(double press)</string>
 </resources>

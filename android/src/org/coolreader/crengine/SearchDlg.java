@@ -40,7 +40,7 @@ public class SearchDlg  extends BaseDialog {
 	
 	public SearchDlg( CoolReader coolReader, ReaderView readerView )
 	{
-		super(coolReader, R.string.dlg_button_find, R.string.dlg_button_cancel);
+		super(coolReader, R.string.dlg_button_find, R.string.dlg_button_cancel, false);
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;

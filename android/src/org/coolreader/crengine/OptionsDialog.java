@@ -342,13 +342,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			super(label, ReaderView.PROP_APP_KEY_ACTIONS_PRESS);
 		}
 		private void addKey( OptionsListView list, int keyCode, String keyName ) {
-			final String propName = property + "." + keyCode;
-			final String longPropName = property + ".long." + keyCode;
+			final String propName = ReaderAction.getKeyProp(keyCode, ReaderAction.NORMAL);
+			final String longPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.LONG);
+			final String dblPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.DOUBLE);
 			list.add(new ActionOption(keyName, propName, false, false));
-			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
+			list.add(new ActionOption(keyName + " " + getContext().getString(R.string.options_app_key_long_press), longPropName, false, true));
+			list.add(new ActionOption(keyName + " " + getContext().getString(R.string.options_app_key_double_press), dblPropName, false, false));
 		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0);
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
 			addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
@@ -373,14 +375,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public StatusBarOption( String label ) {
 			super(label, ReaderView.PROP_SHOW_TITLE);
 		}
-//		private void addKey( OptionsListView list, int keyCode, String keyName ) {
-//			final String propName = property + "." + keyCode;
-//			final String longPropName = property + ".long." + keyCode;
-//			list.add(new ActionOption(keyName, propName, false, false));
-//			list.add(new ActionOption(keyName + " (long press)", longPropName, false, true));
-//		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0);
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
 			listView.add(new ListOption(getString(R.string.options_page_titlebar_font_face), ReaderView.PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
@@ -448,7 +444,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 
 		public String getValueLabel() { return ">"; }
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0);
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			grid = (View)mInflater.inflate(R.layout.options_tap_zone_grid, null);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell1), 1);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell2), 2);
@@ -570,22 +566,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public String getValueLabel() { return findValueLabel(mProperties.getProperty(property)); }
 		
 		public void onSelect() {
-			final BaseDialog dlg = new BaseDialog(mActivity, 0, 0);
+			final BaseDialog dlg = new BaseDialog(mActivity, 0, 0, false);
 			//AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
 			dlg.setTitle(label);
 
-			final ListView listView = new ListView(getContext()) {
-
-//				@Override
-//				public boolean performItemClick(View view, int position, long id) {
-//					Pair item = list.get(position);
-//					mProperties.setProperty(property, item.value);
-//					dismiss();
-//					mTabs.invalidate();
-//					return true;
-//				}
-				
-			};
+			final ListView listView = new ListView(getContext());
 			
 			
 			ListAdapter listAdapter = new ListAdapter() {
@@ -711,10 +696,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			int id;
 			public void clear() {
 				if ( bmp!=null ) {
-					drawable = null;
 					bmp.recycle();
 					bmp = null;
 				}
+				if ( drawable!=null )
+					drawable = null;
 			}
 		}
 		ArrayList<Item> list = new ArrayList<Item>(); 
@@ -758,18 +744,27 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				Drawable drawable = mReaderView.getActivity().getResources().getDrawable(resourceId);
 				if ( drawable==null )
 					return null;
-				Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.RGB_565);
-				Canvas canvas = new Canvas(bmp);
-				drawable.draw(canvas);
-				BitmapDrawable res = new BitmapDrawable(bmp);
-				
 				Item item = new Item();
 				item.id = resourceId;
-				item.drawable = res;
-				item.bmp = bmp;
-				list.add(item);
-				remove(maxcount);
-				return drawable;
+				int sz = drawable.getIntrinsicHeight() * drawable.getIntrinsicWidth();
+				if ( sz > 128*128 ) {
+					Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.RGB_565);
+					Canvas canvas = new Canvas(bmp);
+					drawable.draw(canvas);
+					BitmapDrawable res = new BitmapDrawable(bmp);
+					
+					item.drawable = res;
+					item.bmp = bmp;
+					list.add(item);
+					remove(maxcount);
+					return res;
+				} else {
+					item.drawable = drawable;
+					item.bmp = null;
+					list.add(item);
+					remove(maxcount);
+					return drawable;
+				}
 			} catch ( Exception e ) {
 				return null;
 			}
@@ -805,7 +800,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
-	ThumbnailCache textureSampleCache = new ThumbnailCache(64, 64, 12);
+	ThumbnailCache textureSampleCache = new ThumbnailCache(64, 64, 100);
 	
 	class TextureOptions extends ListOption
 	{
@@ -862,13 +857,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
+	//byte[] fakeLongArrayForDebug;
+	
 	public OptionsDialog( CoolReader activity, ReaderView readerView, String[] fontFaces )
 	{
-		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel);
+		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, false);
+		
 		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
 		mProperties = readerView.getSettings();
+
+		//fakeLongArrayForDebug = new byte[2000000]; // 2M
+		//CoolReader.dumpHeapAllocation();
 	}
 	
 	class OptionsListView extends ListView {
@@ -1048,17 +1049,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
-		tsStyles.setIndicator(getContext().getResources().getString(R.string.tab_options_styles), 
+		tsStyles.setIndicator("", //getContext().getResources().getString(R.string.tab_options_styles) 
 				getContext().getResources().getDrawable(android.R.drawable.ic_menu_view)); //R.drawable.cr3_option_style
 		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
 		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
-		tsPage.setIndicator(getContext().getResources().getString(R.string.tab_options_page), getContext().getResources().getDrawable(android.R.drawable.ic_menu_crop)); //R.drawable.cr3_option_page
+		//getContext().getResources().getString(R.string.tab_options_page)
+		tsPage.setIndicator("", getContext().getResources().getDrawable(android.R.drawable.ic_menu_crop)); //R.drawable.cr3_option_page
 		tsPage.setContent(this);
 		mTabs.addTab(tsPage);
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
 		//tsApp.setIndicator(null, getContext().getResources().getDrawable(R.drawable.cr3_option_));
-		tsApp.setIndicator(getContext().getResources().getString(R.string.tab_options_app), getContext().getResources().getDrawable(android.R.drawable.ic_menu_manage));
+		tsApp.setIndicator("", //getContext().getResources().getString(R.string.tab_options_app), 
+				getContext().getResources().getDrawable(android.R.drawable.ic_menu_manage));
 		tsApp.setContent(this);
 		mTabs.addTab(tsApp);
 		

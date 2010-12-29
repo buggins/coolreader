@@ -809,7 +809,7 @@ public class CoolReader extends Activity
 		private EditText input;
 		public InputDialog( CoolReader activity, final String title, boolean isNumberEdit, final InputHandler handler )
 		{
-			super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel );
+			super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, true);
 			this.handler = handler;
 			setTitle(title);
 	        input = new EditText(getContext());
@@ -962,12 +962,15 @@ public class CoolReader extends Activity
 
 	private static class DefKeyAction {
 		public int keyCode;
-		public boolean longPress;
+		public int type;
 		public ReaderAction action;
-		public DefKeyAction(int keyCode, boolean longPress, ReaderAction action) {
+		public DefKeyAction(int keyCode, int type, ReaderAction action) {
 			this.keyCode = keyCode;
-			this.longPress = longPress;
+			this.type = type;
 			this.action = action;
+		}
+		public String getProp() {
+			return ReaderView.PROP_APP_KEY_ACTIONS_PRESS + ReaderAction.getTypeString(type) + keyCode;			
 		}
 	}
 	private static class DefTapAction {
@@ -981,33 +984,34 @@ public class CoolReader extends Activity
 		}
 	}
 	private static DefKeyAction[] DEF_KEY_ACTIONS = {
-		new DefKeyAction(KeyEvent.KEYCODE_BACK, false, ReaderAction.FILE_BROWSER),
-		new DefKeyAction(KeyEvent.KEYCODE_BACK, true, ReaderAction.EXIT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, false, ReaderAction.RECENT_BOOKS),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, true, ReaderAction.BOOKMARKS),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, false, ReaderAction.PAGE_UP_10),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, false, ReaderAction.PAGE_DOWN_10),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, true, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, true, ReaderAction.SEARCH),
-		new DefKeyAction(KeyEvent.KEYCODE_MENU, false, ReaderAction.READER_MENU),
-		new DefKeyAction(KeyEvent.KEYCODE_MENU, true, ReaderAction.OPTIONS),
-		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, false, ReaderAction.NONE),
-		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, true, ReaderAction.NONE),
-		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_LEFT, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, false, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, false, ReaderAction.PAGE_UP),
-		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, false, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_BACK, ReaderAction.NORMAL, ReaderAction.FILE_BROWSER),
+		new DefKeyAction(KeyEvent.KEYCODE_BACK, ReaderAction.LONG, ReaderAction.EXIT),
+		new DefKeyAction(KeyEvent.KEYCODE_BACK, ReaderAction.DOUBLE, ReaderAction.EXIT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, ReaderAction.NORMAL, ReaderAction.RECENT_BOOKS),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_CENTER, ReaderAction.LONG, ReaderAction.BOOKMARKS),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_UP, ReaderAction.LONG, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_DOWN, ReaderAction.LONG, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_LEFT, ReaderAction.LONG, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_DPAD_RIGHT, ReaderAction.LONG, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, ReaderAction.LONG, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, ReaderAction.LONG, ReaderAction.REPEAT),
+		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.LONG, ReaderAction.SEARCH),
+		new DefKeyAction(KeyEvent.KEYCODE_MENU, ReaderAction.NORMAL, ReaderAction.READER_MENU),
+		new DefKeyAction(KeyEvent.KEYCODE_MENU, ReaderAction.LONG, ReaderAction.OPTIONS),
+		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, ReaderAction.NORMAL, ReaderAction.NONE),
+		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, ReaderAction.LONG, ReaderAction.NONE),
+		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 	};
 	private static DefTapAction[] DEF_TAP_ACTIONS = {
 		new DefTapAction(1, false, ReaderAction.PAGE_UP),
@@ -1064,10 +1068,7 @@ public class CoolReader extends Activity
         
         // default key actions
         for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
-        	if ( ka.longPress )
-        		props.applyDefault(ReaderView.PROP_APP_KEY_ACTIONS_PRESS + ".long." + ka.keyCode, ka.action.id);
-        	else
-        		props.applyDefault(ReaderView.PROP_APP_KEY_ACTIONS_PRESS + "." + ka.keyCode, ka.action.id);
+        		props.applyDefault(ka.getProp(), ka.action.id);
         }
         // default tap zone actions
         for ( DefTapAction ka : DEF_TAP_ACTIONS ) {

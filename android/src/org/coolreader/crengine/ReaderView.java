@@ -415,8 +415,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public final int LONG_KEYPRESS_TIME = 900;
 	public final int AUTOREPEAT_KEYPRESS_TIME = 700;
+	public final int DOUBLE_CLICK_INTERVAL = 250;
+	private ReaderAction currentDoubleClickAction = null;
+	private ReaderAction currentSingleClickAction = null;
+	private long currentDoubleClickActionStart = 0;
+	private int currentDoubleClickActionKeyCode = 0;
 	@Override
-	public boolean onKeyUp(int keyCode, KeyEvent event) {
+	public boolean onKeyUp(int keyCode, final KeyEvent event) {
 		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
 			if ( !enableVolumeKeys )
 				return super.onKeyUp(keyCode, event);
@@ -438,6 +443,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
 		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
 		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
 		stopTracking();
 
 		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
@@ -460,8 +466,32 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return true;
 		}
 		
-		if ( isLongPress )
+		if ( isLongPress ) {
 			action = longAction;
+		} else {
+			if ( !dblAction.isNone() ) {
+				// wait for possible double click
+				currentDoubleClickActionStart = android.os.SystemClock.uptimeMillis();
+				currentDoubleClickAction = dblAction;
+				currentSingleClickAction = action;
+				currentDoubleClickActionKeyCode = keyCode;
+				final int myKeyCode = keyCode;
+				BackgroundThread.instance().postGUI(new Runnable() {
+					public void run() {
+						if ( currentSingleClickAction!=null && currentDoubleClickActionKeyCode==myKeyCode ) {
+							Log.d("cr3", "onKeyUp: single click action " + currentSingleClickAction.id + " found for key " + myKeyCode + " single click");
+							onAction( currentSingleClickAction );
+						}
+						currentDoubleClickActionStart = 0;
+						currentDoubleClickActionKeyCode = 0;
+						currentDoubleClickAction = null;
+						currentSingleClickAction = null;
+					}
+				}, DOUBLE_CLICK_INTERVAL);
+				// posted
+				return true;
+			}
+		}
 		if ( !action.isNone() ) {
 			Log.d("cr3", "onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
 			onAction( action );
@@ -537,7 +567,31 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		keyCode = overrideKey( keyCode );
 		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
 		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
 
+		if ( event.getRepeatCount()==0 ) {
+			if ( keyCode==currentDoubleClickActionKeyCode && currentDoubleClickActionStart + DOUBLE_CLICK_INTERVAL < android.os.SystemClock.uptimeMillis() ) {
+				if ( currentDoubleClickAction!=null ) {
+					onAction(currentDoubleClickAction);
+				}
+				currentDoubleClickActionStart = 0;
+				currentDoubleClickActionKeyCode = 0;
+				currentDoubleClickAction = null;
+				currentSingleClickAction = null;
+				return true;
+			} else {
+				if ( currentSingleClickAction!=null ) {
+					onAction(currentSingleClickAction);
+				}
+				currentDoubleClickActionStart = 0;
+				currentDoubleClickActionKeyCode = 0;
+				currentDoubleClickAction = null;
+				currentSingleClickAction = null;
+			}
+			
+		}
+		
+		
     	if ( event.getRepeatCount()>0 ) {
     		if ( !isTracked(event) )
     			return true; // ignore
