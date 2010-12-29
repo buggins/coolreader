@@ -415,7 +415,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public final int LONG_KEYPRESS_TIME = 900;
 	public final int AUTOREPEAT_KEYPRESS_TIME = 700;
-	public final int DOUBLE_CLICK_INTERVAL = 250;
+	public final int DOUBLE_CLICK_INTERVAL = 400;
 	private ReaderAction currentDoubleClickAction = null;
 	private ReaderAction currentSingleClickAction = null;
 	private long currentDoubleClickActionStart = 0;
@@ -570,8 +570,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
 
 		if ( event.getRepeatCount()==0 ) {
-			if ( keyCode==currentDoubleClickActionKeyCode && currentDoubleClickActionStart + DOUBLE_CLICK_INTERVAL < android.os.SystemClock.uptimeMillis() ) {
+			if ( keyCode==currentDoubleClickActionKeyCode && currentDoubleClickActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
 				if ( currentDoubleClickAction!=null ) {
+					Log.d("cr3", "executing doubleclick action " + currentDoubleClickAction);
 					onAction(currentDoubleClickAction);
 				}
 				currentDoubleClickActionStart = 0;

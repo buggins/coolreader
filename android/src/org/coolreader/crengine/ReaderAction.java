@@ -19,6 +19,7 @@ public class ReaderAction {
 	public boolean canRepeat() { return canRepeat; }
 	public boolean mayAssignOnKey() { return mayAssignOnKey; }
 	public boolean mayAssignOnTap() { return mayAssignOnTap; }
+
 	public ReaderAction(String id, int nameId, ReaderCommand cmd, int param) {
 		super();
 		this.id = id;
@@ -28,6 +29,7 @@ public class ReaderAction {
 		this.menuItemId = 0;
 		this.iconId = 0;
 	}
+
 	public ReaderAction(String id, int nameId, ReaderCommand cmd, int param, int menuItemId) {
 		super();
 		this.id = id;
@@ -38,6 +40,10 @@ public class ReaderAction {
 		this.iconId = 0;
 	}
 
+	public String toString() {
+		return id;
+	}
+	
 	public final static ReaderAction NONE = new ReaderAction("NONE", R.string.action_none, ReaderCommand.DCMD_NONE, 0 );
 	public final static ReaderAction REPEAT = new ReaderAction("REPEAT", R.string.action_repeat, ReaderCommand.DCMD_REPEAT, 0 );
 	public final static ReaderAction PAGE_DOWN = new ReaderAction("PAGE_DOWN", R.string.action_pagedown, ReaderCommand.DCMD_PAGEDOWN, 1 ).setCanRepeat();

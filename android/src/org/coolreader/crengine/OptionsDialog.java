@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
@@ -17,7 +18,6 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Debug;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -710,7 +710,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			this.maxcount = maxcount;
 		}
 		private void remove( int maxsize ) {
-			while ( list.size()>maxcount ) {
+			while ( list.size()>maxsize ) {
 				Item item = list.remove(0);
 				item.clear();
 			}
@@ -727,7 +727,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				Bitmap bmp = Bitmap.createScaledBitmap(src, dx, dy, true);
 				//Canvas canvas = new Canvas(bmp);
 				BitmapDrawable res = new BitmapDrawable(bmp);
-				src.recycle();
+				//src.recycle();
 				Item item = new Item();
 				item.path = path;
 				item.drawable = res; //drawable;
@@ -741,30 +741,22 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 		private Drawable createDrawable( int resourceId ) {
 			try { 
-				Drawable drawable = mReaderView.getActivity().getResources().getDrawable(resourceId);
-				if ( drawable==null )
+				//Drawable drawable = mReaderView.getActivity().getResources().getDrawable(resourceId);
+				InputStream is = getContext().getResources().openRawResource(resourceId);
+				if ( is==null )
+					return null;
+				BitmapDrawable src = new BitmapDrawable(is);
+				if ( src==null )
 					return null;
 				Item item = new Item();
 				item.id = resourceId;
-				int sz = drawable.getIntrinsicHeight() * drawable.getIntrinsicWidth();
-				if ( sz > 128*128 ) {
-					Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.RGB_565);
-					Canvas canvas = new Canvas(bmp);
-					drawable.draw(canvas);
-					BitmapDrawable res = new BitmapDrawable(bmp);
-					
-					item.drawable = res;
-					item.bmp = bmp;
-					list.add(item);
-					remove(maxcount);
-					return res;
-				} else {
-					item.drawable = drawable;
-					item.bmp = null;
-					list.add(item);
-					remove(maxcount);
-					return drawable;
-				}
+				Bitmap bmp = Bitmap.createScaledBitmap(src.getBitmap(), dx, dy, true);
+				BitmapDrawable res = new BitmapDrawable(bmp);
+				item.drawable = res;
+				item.bmp = bmp;
+				list.add(item);
+				remove(maxcount);
+				return res;
 			} catch ( Exception e ) {
 				return null;
 			}
