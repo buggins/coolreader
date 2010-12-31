@@ -2673,6 +2673,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		public void run() {
         			BackgroundThread.ensureBackground();
         	    	if ( mInitialized ) {
+        	        	Log.i("cr3", "ReaderView.destroyInternal() calling");
         	    		destroyInternal();
         	    		mInitialized = false;
         	    		currentBackgroundTexture = Engine.NO_TEXTURE;
@@ -2866,7 +2867,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     @Override
     public void finalize()
     {
-    	destroyInternal();
+    	Log.w("cr3", "ReaderView.finalize() is called");
+    	//destroyInternal();
     }
 
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread, Properties props ) 

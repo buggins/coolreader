@@ -651,10 +651,11 @@ public class Engine {
 	
 	protected void finalize() throws Throwable
 	{
-		if ( initialized ) {
-			uninitInternal();
-			initialized = false;
-		}
+		Log.i("cr3", "Engine.finalize() is called");
+//		if ( initialized ) {
+//			//uninitInternal();
+//			initialized = false;
+//		}
 	}
 	
 	static private boolean initialized = false;

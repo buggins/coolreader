@@ -380,7 +380,7 @@ int ReaderViewNative::doCommand( int cmd, int param )
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_createInternal
   (JNIEnv * env, jobject _this)
 {
-	CRLog::info("Creating new RenderView");
+	CRLog::info("createInternal: Creating new RenderView");
     jclass rvClass = env->FindClass("org/coolreader/crengine/ReaderView");
     gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
     ReaderViewNative * obj = new ReaderViewNative();
