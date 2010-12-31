@@ -1002,11 +1002,14 @@ public:
         formatFlags = 0;
         int ident_lines_percent = ident_lines * 100 / non_empty_lines;
         int center_lines_percent = center_lines * 100 / non_empty_lines;
-        int empty_lines_precent = empty_lines * 100 / length();
-        if ( empty_lines_precent > 5 )
+        int empty_lines_percent = empty_lines * 100 / length();
+        if ( empty_lines_percent > 5 )
             formatFlags |= tftEmptyLineDelimPara;
-        if ( ident_lines_percent > 5 && ident_lines_percent<40 )
+        if ( ident_lines_percent > 5 && ident_lines_percent<55 ) {
             formatFlags |= tftParaIdents;
+            if ( empty_lines_percent<7 )
+                formatFlags |= tftEmptyLineDelimHeaders;
+        }
         if ( center_lines_percent > 1 )
             formatFlags |= tftCenteredHeaders;
 
@@ -1016,7 +1019,7 @@ public:
            formatFlags |= tftJustified; // right bound is justified
 
         CRLog::debug("detectFormatFlags() min_left=%d, max_right=%d, ident=%d, empty=%d, flags=%d",
-            min_left, max_right, ident_lines_percent, empty_lines_precent, formatFlags );
+            min_left, max_right, ident_lines_percent, empty_lines_percent, formatFlags );
 
         if ( !formatFlags ) {
             formatFlags = tftParaPerLine | tftEmptyLineDelimHeaders; // default format
@@ -1208,7 +1211,7 @@ public:
                 return; // no empty lines
         } else {
 
-            if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && startline<length()-1 && get(startline+1)->rpos==0 ) ) //endline<3 &&
+            if ( ( startline==endline && str.length()<4) || (paraCount<2 && str.length()<50 && startline<length()-2 && (get(startline+1)->rpos==0||get(startline+2)->rpos==0) ) ) //endline<3 &&
                 isHeader = true;
             if ( startline==endline && get(startline)->isHeading() )
                 isHeader = true;
