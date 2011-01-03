@@ -19,8 +19,16 @@ extern "C" {
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_UP 101L
 #undef org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN
 #define org_coolreader_crengine_ReaderView_NOOK_KEY_SHIFT_DOWN 100L
+#undef org_coolreader_crengine_ReaderView_PAGE_ANIMATION_NONE
+#define org_coolreader_crengine_ReaderView_PAGE_ANIMATION_NONE 0L
+#undef org_coolreader_crengine_ReaderView_PAGE_ANIMATION_PAPER
+#define org_coolreader_crengine_ReaderView_PAGE_ANIMATION_PAPER 1L
+#undef org_coolreader_crengine_ReaderView_PAGE_ANIMATION_SLIDE
+#define org_coolreader_crengine_ReaderView_PAGE_ANIMATION_SLIDE 2L
 #undef org_coolreader_crengine_ReaderView_DEF_PAGE_FLIP_MS
 #define org_coolreader_crengine_ReaderView_DEF_PAGE_FLIP_MS 500L
+#undef org_coolreader_crengine_ReaderView_HILITE_RECT_ALPHA
+#define org_coolreader_crengine_ReaderView_HILITE_RECT_ALPHA 32L
 #undef org_coolreader_crengine_ReaderView_DEBUG_ANIMATION
 #define org_coolreader_crengine_ReaderView_DEBUG_ANIMATION 0L
 /*
@@ -174,6 +182,14 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPag
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal
   (JNIEnv *, jobject, jbyteArray, jint);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    updateSelectionInternal
+ * Signature: (Lorg/coolreader/crengine/Selection;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionInternal
+  (JNIEnv *, jobject, jobject);
 
 #ifdef __cplusplus
 }

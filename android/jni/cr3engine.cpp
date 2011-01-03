@@ -419,6 +419,7 @@ static JNINativeMethod sReaderViewMethods[] = {
   {"setBatteryStateInternal", "(I)V", (void*)Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal},
   {"getCoverPageDataInternal", "()[B", (void*)Java_org_coolreader_crengine_ReaderView_getCoverPageDataInternal},
   {"setPageBackgroundTextureInternal", "([BI)V", (void*)Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal},
+  {"updateSelectionInternal", "(Lorg/coolreader/crengine/Selection;)V", (void*)Java_org_coolreader_crengine_ReaderView_updateSelectionInternal},
 };
  
 /*

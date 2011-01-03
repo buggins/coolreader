@@ -17,6 +17,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.text.ClipboardManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -263,6 +264,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native void setBatteryStateInternal( int state );
     private native byte[] getCoverPageDataInternal();
     private native void setPageBackgroundTextureInternal( byte[] imageBytes, int tileFlags );
+    private native void updateSelectionInternal( Selection sel );
     
     
     protected int mNativeObject; // used from JNI
@@ -648,13 +650,64 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		startTrackingKey(event);
 		return true;
 	}
+	
+	private int nextUpdateId = 0;
+	private void updateSelection(int startX, int startY, int endX, int endY, final boolean isUpdateEnd ) {
+		final Selection sel = new Selection();
+		final int myId = ++nextUpdateId;
+		sel.startX = startX;
+		sel.startY = startY;
+		sel.endX = endX;
+		sel.endY = endY;
+		mEngine.execute(new Task() {
+			@Override
+			public void work() throws Exception {
+				if ( myId != nextUpdateId && !isUpdateEnd )
+					return;
+				updateSelectionInternal(sel);
+				if ( !sel.isEmpty() ) {
+					invalidImages = true;
+					BitmapInfo bi = preparePageImage(0);
+					if ( bi!=null ) {
+						draw();
+					}
+				}
+			}
+
+			@Override
+			public void done() {
+				if ( isUpdateEnd ) {
+					String text = sel.text;
+					if ( text!=null && text.length()>0 ) {
+						ClipboardManager cm = mActivity.getClipboardmanager();
+						cm.setText(text);
+						Log.i("cr3", "Setting clipboard text: " + text);
+						mActivity.showToast("Selection text copied to clipboard");
+					}
+					clearSelection();
+				}
+			}
+		});
+	}
+	
+	private void cancelSelection() {
+		//
+		selectionInProgress = false;
+		clearSelection();
+	}
 
 	private boolean isTouchScreenEnabled = true;
 	private boolean isManualScrollActive = false;
 	private int manualScrollStartPosX = 0;
 	private int manualScrollStartPosY = 0;
-	private boolean touchEventIgnoreNextUp = false;
+	volatile private boolean touchEventIgnoreNextUp = false;
 	volatile private int longTouchId = 0;
+	volatile private long currentDoubleTapActionStart = 0;
+	private boolean selectionInProgress = false;
+	private int selectionStartX = 0;
+	private int selectionStartY = 0;
+	private int selectionEndX = 0;
+	private int selectionEndY = 0;
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -672,6 +725,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		if ( event.getAction()==MotionEvent.ACTION_UP ) {
 			longTouchId++;
+			if ( selectionInProgress ) {
+				Log.v("cr3", "touch ACTION_UP: selection finished");
+				selectionEndX = x;
+				selectionEndY = y;
+				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, true );
+				selectionInProgress = false;
+				return true;
+			}
 			if ( touchEventIgnoreNextUp )
 				return true;
 			mActivity.onUserActivity();
@@ -682,30 +743,65 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				isManualScrollActive = false;
 				return true;
 			}
-			onTapZone( zone, isLongPress );
-			return true;
-		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
-//			if ( viewMode==ViewMode.SCROLL ) {
-				touchEventIgnoreNextUp = false;
-				manualScrollStartPosX = x;
-				manualScrollStartPosY = y;
-				if ( hiliteTapZoneOnTap ) {
-					hiliteTapZone( true, x, y, dx, dy );
-					scheduleUnhilite( LONG_KEYPRESS_TIME );
-				}
-				final int myId = ++longTouchId;
-				mBackThread.postGUI( new Runnable() {
+			if ( isLongPress ) {
+				onTapZone( zone, isLongPress );
+				currentDoubleTapActionStart = 0;
+			} else {
+				currentDoubleTapActionStart = android.os.SystemClock.uptimeMillis();
+				final long myStart = currentDoubleTapActionStart;
+				BackgroundThread.instance().postGUI(new Runnable() {
 					@Override
 					public void run() {
-						if ( myId==longTouchId ) {
-							touchEventIgnoreNextUp = true;
-							onTapZone( zone, true );
+						if ( currentDoubleTapActionStart != myStart ) {
+							onTapZone( zone, false );
 						}
+						currentDoubleTapActionStart = 0;
 					}
-					
-				}, LONG_KEYPRESS_TIME);
-//			}
+				}, DOUBLE_CLICK_INTERVAL);
+			}
+			return true;
+		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
+			touchEventIgnoreNextUp = false;
+			if ( currentDoubleTapActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
+				Log.v("cr3", "touch ACTION_DOWN: double tap: starting selection");
+				// double tap started
+				selectionInProgress = true;
+				longTouchId++;
+				selectionStartX = x;
+				selectionStartY = y;
+				selectionEndX = x;
+				selectionEndY = y;
+				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
+				return true;
+			}
+			selectionInProgress = false;
+			manualScrollStartPosX = x;
+			manualScrollStartPosY = y;
+			currentDoubleTapActionStart = 0;
+			if ( hiliteTapZoneOnTap ) {
+				hiliteTapZone( true, x, y, dx, dy );
+				scheduleUnhilite( LONG_KEYPRESS_TIME );
+			}
+			final int myId = ++longTouchId;
+			mBackThread.postGUI( new Runnable() {
+				@Override
+				public void run() {
+					if ( myId==longTouchId ) {
+						touchEventIgnoreNextUp = true;
+						onTapZone( zone, true );
+					}
+				}
+				
+			}, LONG_KEYPRESS_TIME);
+			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
+			if ( selectionInProgress ) {
+				Log.v("cr3", "touch ACTION_MOVE: updating selection");
+				selectionEndX = x;
+				selectionEndY = y;
+				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
+				return true;
+			}
 //			if ( viewMode==ViewMode.SCROLL ) {
 				if ( !isManualScrollActive ) {
 					int deltax = manualScrollStartPosX - x; 
@@ -725,7 +821,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return true;
 			updateAnimation(x, y);
 		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
+			if ( selectionInProgress ) {
+				// cancel selection
+				cancelSelection();
+			}
 			isManualScrollActive = false;
+			currentDoubleTapActionStart = 0;
+			longTouchId++;
 			stopAnimation(-1, -1);
 			hiliteTapZone( false, x, y, dx, dy ); 
 		}
@@ -830,6 +932,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
 				clearSelectionInternal();
+				invalidImages = true;
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();

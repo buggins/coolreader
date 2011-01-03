@@ -807,3 +807,49 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackground
     p->_docview->setBackgroundImage(img, tileFlags!=0);
 }
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    updateSelectionInternal
+ * Signature: (Lorg/coolreader/crengine/Selection;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionInternal
+  (JNIEnv * _env, jobject _this, jobject _sel)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    CRObjectAccessor sel(_env, _sel);
+    CRStringField sel_startPos(sel, "startPos");
+    CRStringField sel_endPos(sel, "endPos");
+    CRStringField sel_text(sel, "text");
+    CRIntField sel_startX(sel, "startX");
+    CRIntField sel_startY(sel, "startY");
+    CRIntField sel_endX(sel, "endX");
+    CRIntField sel_endY(sel, "endY");
+    CRIntField sel_percent(sel, "percent");
+    lvPoint startpt ( sel_startX.get(), sel_startY.get() );
+    lvPoint endpt ( sel_endX.get(), sel_endY.get() );
+	ldomXPointer startp = p->_docview->getNodeByPoint( startpt );
+	ldomXPointer endp = p->_docview->getNodeByPoint( endpt );
+    if ( !startp.isNull() && !endp.isNull() ) {
+        ldomXRange r( startp, endp );
+        if ( r.getStart().isNull() || r.getEnd().isNull() )
+            return;
+        r.sort();
+		if ( !r.getStart().isVisibleWordStart() )
+			r.getStart().prevVisibleWordStart();
+		//lString16 start = r.getStart().toString();
+		if ( !r.getEnd().isVisibleWordEnd() )
+			r.getEnd().nextVisibleWordEnd();
+        if ( r.isNull() )
+            return;
+        //lString16 end = r.getEnd().toString();
+        //CRLog::debug("Range: %s - %s", UnicodeToUtf8(start).c_str(), UnicodeToUtf8(end).c_str());
+        r.setFlags(1);
+        p->_docview->selectRange( r );
+        lString16 selText = r.getRangeText( '\n', 10000 );
+    	sel_startPos.set( startp.toString() );
+    	sel_endPos.set( endp.toString() );
+    	sel_text.set(selText);
+    }
+
+}

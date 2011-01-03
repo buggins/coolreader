@@ -34,6 +34,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.PowerManager;
+import android.text.ClipboardManager;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
@@ -362,6 +363,10 @@ public class CoolReader extends Activity
 			mReaderView.setBatteryState(initialBatteryState);
         
         Log.i("cr3", "CoolReader.onCreate() exiting");
+    }
+    
+    public ClipboardManager getClipboardmanager() {
+    	return (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
     }
     
     public void setScreenBacklightLevel( int percent )
