@@ -752,7 +752,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				BackgroundThread.instance().postGUI(new Runnable() {
 					@Override
 					public void run() {
-						if ( currentDoubleTapActionStart != myStart ) {
+						if ( currentDoubleTapActionStart == myStart ) {
 							onTapZone( zone, false );
 						}
 						currentDoubleTapActionStart = 0;
@@ -771,9 +771,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				selectionStartY = y;
 				selectionEndX = x;
 				selectionEndY = y;
+				currentDoubleTapActionStart = 0;
 				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
 				return true;
 			}
+			currentDoubleTapActionStart = 0;
 			selectionInProgress = false;
 			manualScrollStartPosX = x;
 			manualScrollStartPosY = y;
