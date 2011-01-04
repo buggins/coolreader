@@ -7000,12 +7000,12 @@ bool tinyNodeCollection::loadStylesData()
 
 lUInt32 tinyNodeCollection::calcStyleHash()
 {
-    int maxlog = 20;
+//    int maxlog = 20;
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     lUInt32 res = 0; //_elemCount;
     lUInt32 globalHash = calcGlobalSettingsHash();
     lUInt32 docFlags = getDocFlags();
-    CRLog::info("Calculating style hash...  elemCount=%d, globalHash=%08x, docFlags=%08x", _elemCount, globalHash, docFlags);
+//    CRLog::info("Calculating style hash...  elemCount=%d, globalHash=%08x, docFlags=%08x", _elemCount, globalHash, docFlags);
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
@@ -7021,16 +7021,16 @@ lUInt32 tinyNodeCollection::calcStyleHash()
                 LVFontRef font = buf[j].getFont();
                 lUInt32 fh = calcHash( font );
                 res = res * 31 + fh;
-                if ( maxlog>0 && sh==0 ) {
-                    style = buf[j].getStyle();
-                    CRLog::trace("[%06d] : s=%08x f=%08x  res=%08x", offs+j, sh, fh, res);
-                    maxlog--;
-                }
+//                if ( maxlog>0 && sh==0 ) {
+//                    style = buf[j].getStyle();
+//                    CRLog::trace("[%06d] : s=%08x f=%08x  res=%08x", offs+j, sh, fh, res);
+//                    maxlog--;
+//                }
             }
         }
     }
     res = (res * 31 + globalHash) * 31 + docFlags;
-    CRLog::info("Calculated style hash = %08x", res);
+//    CRLog::info("Calculated style hash = %08x", res);
     return res;
 }
 
