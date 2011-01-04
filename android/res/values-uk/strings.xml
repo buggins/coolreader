@@ -141,4 +141,9 @@
     <string name="options_page_animation_slide">Сдвиг</string>
 <string name="options_app_key_long_press">(длинное нажатие)</string>
     <string name="options_app_key_double_press">(двойное нажатие)</string>
+<string name="options_app_double_tap_selection">Выделение текста по двойному щелчку</string>
+    <string name="mi_select_text">Выделить текст</string>
+    <string name="action_toggle_selection_mode">Режим выделения текста</string>
+    <string name="action_toggle_selection_mode_off">Режим выделения текста отключен</string>
+    <string name="action_toggle_selection_mode_on">Режим выделения текста. Выделите текст, используя сенсорный экран.</string>
 </resources>

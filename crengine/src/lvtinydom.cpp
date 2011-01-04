@@ -35,8 +35,8 @@
 
 #define TEXT_CACHE_UNPACKED_SPACE (25*DOC_BUFFER_SIZE/100)
 #define TEXT_CACHE_CHUNK_SIZE     0x008000 // 32K
-#define ELEM_CACHE_UNPACKED_SPACE (40*DOC_BUFFER_SIZE/100)
-#define ELEM_CACHE_CHUNK_SIZE     0x008000 // 32K
+#define ELEM_CACHE_UNPACKED_SPACE (45*DOC_BUFFER_SIZE/100)
+#define ELEM_CACHE_CHUNK_SIZE     0x004000 // 16K
 #define RECT_CACHE_UNPACKED_SPACE (15*DOC_BUFFER_SIZE/100)
 #define RECT_CACHE_CHUNK_SIZE     0x008000 // 32K
 #define STYLE_CACHE_UNPACKED_SPACE (10*DOC_BUFFER_SIZE/100)
@@ -7464,7 +7464,7 @@ public:
         lString16 pathname( _cacheDir+fn );
         if ( findFileIndex( pathname ) >= 0 )
             LVDeleteFile( pathname );
-        reserve( fileSize );
+        reserve( fileSize/10 );
         //res = LVMapFileStream( (_cacheDir+fn).c_str(), LVOM_APPEND, fileSize );
         LVDeleteFile( pathname ); // try to delete, ignore errors
         res = LVOpenFileStream( pathname.c_str(), LVOM_APPEND|LVOM_FLAG_SYNC );

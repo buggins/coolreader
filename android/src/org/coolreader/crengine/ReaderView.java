@@ -95,6 +95,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
     public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
     public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
+    public static final String PROP_APP_DOUBLE_TAP_SELECTION     ="app.controls.doubletap.selection";
     public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
     public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";
     public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
@@ -167,6 +168,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_DAY_NIGHT_MODE(2011),
     	DCMD_READER_MENU(2012),
     	DCMD_TOGGLE_TOUCH_SCREEN_LOCK(2013),
+    	DCMD_TOGGLE_SELECTION_MODE(2014),
     	;
     	
     	private final int nativeId;
@@ -708,6 +710,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int selectionStartY = 0;
 	private int selectionEndX = 0;
 	private int selectionEndY = 0;
+	private boolean doubleTapSelectionEnabled = false;
+	private boolean selectionModeActive = false;
+	
+	public void toggleSelectionMode() {
+		selectionModeActive = !selectionModeActive;
+		mActivity.showToast( selectionModeActive ? R.string.action_toggle_selection_mode_on : R.string.action_toggle_selection_mode_off);
+	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -731,6 +740,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				selectionEndY = y;
 				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, true );
 				selectionInProgress = false;
+				selectionModeActive = false; // TODO: multiple selection mode
 				return true;
 			}
 			if ( touchEventIgnoreNextUp )
@@ -743,7 +753,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				isManualScrollActive = false;
 				return true;
 			}
-			if ( isLongPress ) {
+			if ( isLongPress || !doubleTapSelectionEnabled ) {
 				onTapZone( zone, isLongPress );
 				currentDoubleTapActionStart = 0;
 			} else {
@@ -762,7 +772,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
 			touchEventIgnoreNextUp = false;
-			if ( currentDoubleTapActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
+			if ( selectionModeActive || currentDoubleTapActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
 				Log.v("cr3", "touch ACTION_DOWN: double tap: starting selection");
 				// double tap started
 				selectionInProgress = true;
@@ -828,6 +838,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				cancelSelection();
 			}
 			isManualScrollActive = false;
+			selectionModeActive = false;
 			currentDoubleTapActionStart = 0;
 			longTouchId++;
 			stopAnimation(-1, -1);
@@ -1037,6 +1048,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
+		case DCMD_TOGGLE_SELECTION_MODE:
+			toggleSelectionMode();
+			break;
 		case DCMD_TOGGLE_TOUCH_SCREEN_LOCK:
 			isTouchScreenEnabled = !isTouchScreenEnabled;
 			if ( isTouchScreenEnabled )
@@ -1226,6 +1240,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.setNightMode(flg);
         } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
+        } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
+        	doubleTapSelectionEnabled = flg;
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
@@ -1275,6 +1291,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)
     				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)
     				|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
+    				|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
     				) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {

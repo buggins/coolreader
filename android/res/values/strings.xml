@@ -141,4 +141,9 @@
     <string name="options_page_animation_slide">Slide</string>
 <string name="options_app_key_long_press">(long press)</string>
     <string name="options_app_key_double_press">(double press)</string>
+<string name="options_app_double_tap_selection">Text selection with double tap</string>
+<string name="mi_select_text">Select text</string>
+    <string name="action_toggle_selection_mode">Toggle selection mode</string>
+    <string name="action_toggle_selection_mode_off">Selection mode is off</string>
+    <string name="action_toggle_selection_mode_on">Selection mode is on. Select text using touch screen.</string>
 </resources>
