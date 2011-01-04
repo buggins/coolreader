@@ -109,7 +109,7 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
     }
 }
 
-bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback )
+bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
 {
     LVContainerRef m_arc = LVOpenArchieve( stream );
     if ( m_arc.isNull() )
@@ -228,7 +228,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
 
 #if BUILD_LITE!=1
-    if ( m_doc->openFromCache() ) {
+    if ( m_doc->openFromCache(formatCallback) ) {
         if ( progressCallback ) {
             progressCallback->OnLoadFileEnd( );
         }

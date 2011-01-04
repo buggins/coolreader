@@ -6,7 +6,7 @@
 
 
 bool DetectEpubFormat( LVStreamRef stream );
-bool ImportEpubDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback );
+bool ImportEpubDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback );
 
 
 #endif // EPUBFMT_H

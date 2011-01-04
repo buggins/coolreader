@@ -3099,7 +3099,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			if ( m_callback )
 			m_callback->OnLoadFileFormatDetected(doc_format_epub);
 			m_doc->setStyleSheet(m_stylesheet.c_str(), true);
-			bool res = ImportEpubDocument( m_stream, m_doc, m_callback );
+            bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
 				createDefaultDocument( lString16(L"ERROR: Error reading EPUB format"), lString16(L"Cannot open document") );
@@ -3136,7 +3136,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			if ( m_callback )
 			m_callback->OnLoadFileFormatDetected(doc_format_chm);
 			m_doc->setStyleSheet(m_stylesheet.c_str(), true);
-			bool res = ImportCHMDocument( m_stream, m_doc, m_callback );
+            bool res = ImportCHMDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
 				createDefaultDocument( lString16(L"ERROR: Error reading CHM format"), lString16(L"Cannot open document") );
@@ -3360,6 +3360,19 @@ void LVDocView::createEmptyDocument() {
 	m_doc->setNameSpaceTypes(fb2_ns_table);
 }
 
+/// format of document from cache is known
+void LVDocView::OnCacheFileFormatDetected( doc_format_t fmt )
+{
+    // update document format id
+    m_doc_format = fmt;
+    // notify about format detection, to allow setting format-specific CSS
+    if (m_callback) {
+        m_callback->OnLoadFileFormatDetected(getDocFormat());
+    }
+    // set stylesheet
+    m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+}
+
 bool LVDocView::ParseDocument() {
 
 	createEmptyDocument();
@@ -3382,26 +3395,9 @@ bool LVDocView::ParseDocument() {
 		//m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
 		setRenderProps(0, 0); // to allow apply styles and rend method while loading
-		if (m_doc->openFromCache()) {
+        if (m_doc->openFromCache(this)) {
 			CRLog::info("Document is found in cache, will reuse");
 
-			// update document format id
-			int fmt = m_doc_props->getIntDef(DOC_PROP_FILE_FORMAT_ID,
-					doc_format_fb2);
-			if (fmt < doc_format_fb2 || fmt > doc_format_txt_bookmark)
-				fmt = doc_format_fb2;
-			m_doc_format = (doc_format_t) fmt;
-			// notify about format detection, to allow setting format-specific CSS
-			if (m_callback) {
-				m_callback->OnLoadFileFormatDetected(getDocFormat());
-			}
-
-			// TODO: init doc format
-			//m_doc_format = fmt;
-
-
-			// set stylesheet
-			m_doc->setStyleSheet(m_stylesheet.c_str(), true);
 
 			//            lString16 docstyle = m_doc->createXPointer(L"/FictionBook/stylesheet").getText();
 			//            if ( !docstyle.empty() && m_doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ) {

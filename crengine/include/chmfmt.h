@@ -7,7 +7,7 @@
 #if CHM_SUPPORT_ENABLED==1
 
 bool DetectCHMFormat( LVStreamRef stream );
-bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback );
+bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback );
 
 /// opens CHM container
 LVContainerRef LVOpenCHMContainer( LVStreamRef stream );

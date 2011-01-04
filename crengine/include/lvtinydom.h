@@ -159,6 +159,13 @@ public:
     virtual ~LVDocViewCallback() { }
 };
 
+class CacheLoadingCallback
+{
+public:
+    /// called when format of document being loaded from cache became known
+    virtual void OnCacheFileFormatDetected( doc_format_t ) = 0;
+};
+
 
 class ldomTextStorageChunk;
 class ldomTextStorageChunkBuilder;
@@ -386,7 +393,7 @@ public:
 
 #if BUILD_LITE!=1
     /// try opening from cache file, find by source file name (w/o path) and crc32
-    virtual bool openFromCache( ) = 0;
+    virtual bool openFromCache( CacheLoadingCallback * formatCallback ) = 0;
     /// swap to cache file, find by source file name (w/o path) and crc32
     virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
     /// saves recent changes to mapped file
@@ -1705,7 +1712,7 @@ private:
 
 #if BUILD_LITE!=1
     /// load document cache file content
-    bool loadCacheFileContent();
+    bool loadCacheFileContent(CacheLoadingCallback * formatCallback);
 
     /// save changes to cache file
     bool saveChanges();
@@ -1751,7 +1758,7 @@ public:
 
 #if BUILD_LITE!=1
     /// try opening from cache file, find by source file name (w/o path) and crc32
-    virtual bool openFromCache( );
+    virtual bool openFromCache( CacheLoadingCallback * formatCallback );
     /// swap to cache file, find by source file name (w/o path) and crc32
     virtual bool swapToCache( lUInt32 reservedDataSize=0 );
     /// saves recent changes to mapped file

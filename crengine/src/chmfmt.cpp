@@ -492,7 +492,7 @@ public:
     }
 };
 
-bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback )
+bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
 {
     stream->SetPos(0);
     LVContainerRef cont = LVOpenCHMContainer( stream );
@@ -503,7 +503,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     doc->setContainer(cont);
 
 #if BUILD_LITE!=1
-    if ( doc->openFromCache() ) {
+    if ( doc->openFromCache(formatCallback) ) {
         if ( progressCallback ) {
             progressCallback->OnLoadFileEnd( );
         }

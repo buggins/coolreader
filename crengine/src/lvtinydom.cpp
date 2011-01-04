@@ -6676,14 +6676,14 @@ void ldomDocument::clear()
 }
 
 #if BUILD_LITE!=1
-bool ldomDocument::openFromCache( )
+bool ldomDocument::openFromCache( CacheLoadingCallback * formatCallback )
 {
     if ( !openCacheFile() ) {
         CRLog::info("Cannot open document from cache. Need to read fully");
         clear();
         return false;
     }
-    if ( !loadCacheFileContent() ) {
+    if ( !loadCacheFileContent(formatCallback) ) {
         CRLog::info("Error while loading document content from cache file.");
         clear();
         return false;
@@ -6699,7 +6699,7 @@ bool ldomDocument::openFromCache( )
 }
 
 /// load document cache file content, @see saveChanges()
-bool ldomDocument::loadCacheFileContent()
+bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
 {
 
     CRLog::trace("ldomDocument::loadCacheFileContent()");
@@ -6713,6 +6713,15 @@ bool ldomDocument::loadCacheFileContent()
         if ( propsbuf.error() ) {
             CRLog::error("Cannot decode property table for document");
             return false;
+        }
+
+        if ( formatCallback ) {
+            int fmt = getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID,
+                    doc_format_fb2);
+            if (fmt < doc_format_fb2 || fmt > doc_format_txt_bookmark)
+                fmt = doc_format_fb2;
+            // notify about format detection, to allow setting format-specific CSS
+            formatCallback->OnCacheFileFormatDetected((doc_format_t)fmt);
         }
 
         SerialBuf idbuf(0, true);
@@ -6991,10 +7000,12 @@ bool tinyNodeCollection::loadStylesData()
 
 lUInt32 tinyNodeCollection::calcStyleHash()
 {
-//    int maxlog = 30;
+    int maxlog = 20;
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     lUInt32 res = 0; //_elemCount;
-//    CRLog::info("Calculating style hash...");
+    lUInt32 globalHash = calcGlobalSettingsHash();
+    lUInt32 docFlags = getDocFlags();
+    CRLog::info("Calculating style hash...  elemCount=%d, globalHash=%08x, docFlags=%08x", _elemCount, globalHash, docFlags);
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
@@ -7010,15 +7021,16 @@ lUInt32 tinyNodeCollection::calcStyleHash()
                 LVFontRef font = buf[j].getFont();
                 lUInt32 fh = calcHash( font );
                 res = res * 31 + fh;
-//                if ( maxlog>0 && sh==0 ) {
-//                    style = buf[j].getStyle();
-//                    CRLog::trace("[%06d] : s=%08x f=%08x  res=%08x", offs+j, sh, fh, res);
-//                    maxlog--;
-//                }
+                if ( maxlog>0 && sh==0 ) {
+                    style = buf[j].getStyle();
+                    CRLog::trace("[%06d] : s=%08x f=%08x  res=%08x", offs+j, sh, fh, res);
+                    maxlog--;
+                }
             }
         }
     }
-//    CRLog::info("Calculated style hash = %08x", res);
+    res = (res * 31 + globalHash) * 31 + docFlags;
+    CRLog::info("Calculated style hash = %08x", res);
     return res;
 }
 
@@ -7566,7 +7578,6 @@ void ldomDocument::updateRenderContext()
     int dx = _page_width;
     int dy = _page_height;
     lUInt32 styleHash = calcStyleHash();
-    styleHash = (styleHash * 31 + calcGlobalSettingsHash()) * 31 + getDocFlags();
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
     _hdr.render_style_hash = styleHash;
@@ -7586,7 +7597,6 @@ bool ldomDocument::checkRenderContext()
     lUInt32 styleHash = calcStyleHash();
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
-    styleHash = (styleHash * 31 + calcGlobalSettingsHash()) * 31 + getDocFlags();
     bool res = true;
     if ( styleHash != _hdr.render_style_hash ) {
         CRLog::info("checkRenderContext: Style hash doesn't match %x!=%x", styleHash, _hdr.render_style_hash);

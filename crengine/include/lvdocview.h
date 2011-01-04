@@ -296,7 +296,7 @@ enum {
 
     Supports scroll view of document.
 */
-class LVDocView
+class LVDocView : public CacheLoadingCallback
 {
     friend class LVDrawThread;
 private:
@@ -417,7 +417,8 @@ private:
     void updateLayout();
     /// parse document from m_stream
     bool ParseDocument( );
-
+    /// format of document from cache is known
+    virtual void OnCacheFileFormatDetected( doc_format_t fmt );
 
 protected:
     /// draw to specified buffer by either Y pos or page number (unused param should be -1)
