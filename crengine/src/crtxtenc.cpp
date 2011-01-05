@@ -857,6 +857,29 @@ const lChar16 * GetCharsetByte2UnicodeTable( int codepage )
     }
 }
 
+const lChar16 * GetCharsetName( int codepage )
+{
+    switch ( codepage )
+    {
+    case 1251:
+        return L"cp1251";
+    case 1257:
+        return L"cp1257";
+    case 204:
+        return L"cp1251";
+    case 1252:
+        return L"cp1252";
+    case 1253:
+        return L"cp1253";
+    case 737:
+        return L"cp737";
+    case 1250: return L"cp1250";
+    case 866:  return L"cp866";
+    case 850:  return L"cp850";
+    default:   return L"cp1252";
+    }
+}
+
 static unsigned char cp1252_page00[256] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, /* 0x00-0x07 */
 	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, /* 0x08-0x0f */

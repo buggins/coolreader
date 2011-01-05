@@ -53,6 +53,8 @@ const lChar16 * GetCharsetByte2UnicodeTableById( int id );
 const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * encoding_name );
 /// get conversion table for upper 128 characters of codepage, by codepage number
 const lChar16 * GetCharsetByte2UnicodeTable( int codepage );
+/// returns "cp1251" for 1251, etc. for supported codepages
+const lChar16 * GetCharsetName( int codepage );
 /// convert language id to codepage number (MS)
 int langToCodepage( int lang );
 

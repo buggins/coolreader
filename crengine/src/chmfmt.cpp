@@ -5,7 +5,7 @@
 #include "../include/chmfmt.h"
 #include "../../thirdparty/chmlib/src/chm_lib.h"
 
-#define DUMP_CHM_DOC 1
+//#define DUMP_CHM_DOC 1
 
 struct crChmExternalFileStream : public chmExternalFileStream {
     /** returns file size, in bytes, if opened successfully */
@@ -291,28 +291,24 @@ public:
     }
 
     lUInt32 readInt32( bool & error ) {
-        lUInt32 res = 0;
-        for ( int i=0; i<4; i++ ) {
-            int b = _stream->ReadByte();
-            if ( b==-1 ) {
-                error = true;
-                return 0;
-            }
-            res = (res << 8) | (b & 0xFF);
+        int b1 = _stream->ReadByte();
+        int b2 = _stream->ReadByte();
+        int b3 = _stream->ReadByte();
+        int b4 = _stream->ReadByte();
+        if ( b1==-1 || b2==-1  || b3==-1  || b4==-1 ) {
+            error = true;
+            return 0;
         }
-        return res;
+        return (lUInt32)(b1 | (b2<<8) | (b3<<16) | (b4<<24));
     }
     lUInt16 readInt16( bool & error ) {
-        lUInt16 res = 0;
-        for ( int i=0; i<2; i++ ) {
-            int b = _stream->ReadByte();
-            if ( b==-1 ) {
-                error = true;
-                return 0;
-            }
-            res = (res << 8) | (b & 0xFF);
+        int b1 = _stream->ReadByte();
+        int b2 = _stream->ReadByte();
+        if ( b1==-1 || b2==-1 ) {
+            error = true;
+            return 0;
         }
-        return res;
+        return (lUInt16)(b1 | (b2<<8));
     }
     lUInt8 readInt8( bool & error ) {
         int b = _stream->ReadByte();
@@ -322,6 +318,10 @@ public:
         }
         return (lUInt8)(b & 0xFF);
     }
+    int bytesLeft() {
+        return (int)(_stream->GetSize() - _stream->GetPos());
+    }
+
     bool readBytes( LVArray<lUInt8> & bytes, int offset, int length ) {
         bytes.clear();
         bytes.reserve(length);
@@ -391,6 +391,94 @@ public:
     }
 };
 
+class CHMUrlStrEntry {
+public:
+    lUInt32 offset;
+    lString8 url;
+};
+
+const int URLSTR_BLOCK_SIZE = 0x1000;
+class CHMUrlStr {
+    LVContainerRef _container;
+    CHMBinaryReader _reader;
+    LVPtrVector<CHMUrlStrEntry> _table;
+
+    CHMUrlStr( LVContainerRef container, LVStreamRef stream ) : _container(container), _reader(stream)
+    {
+
+    }
+    lUInt32 readInt32( const lUInt8 * & data ) {
+        lUInt32 res = 0;
+        res = *(data++);
+        res = res | (((lUInt32)(*(data++))) << 8);
+        res = res | (((lUInt32)(*(data++))) << 16);
+        res = res | (((lUInt32)(*(data++))) << 24);
+        return res;
+    }
+    lString8 readString( const lUInt8 * & data, int maxlen ) {
+        lString8 res;
+        for ( int i=0; i<maxlen; i++ ) {
+            lUInt8 b = *data++;
+            if ( b==0 )
+                break;
+            res.append(1, b);
+        }
+        return res;
+    }
+
+
+    bool decodeBlock( const lUInt8 * ptr, lUInt32 blockOffset ) {
+        const lUInt8 * data = ptr;
+        const lUInt8 * maxdata = ptr + URLSTR_BLOCK_SIZE;
+        while ( data + 8 < maxdata ) {
+            lUInt32 offset = blockOffset + (data - ptr);
+            lUInt32 urlOffset = readInt32(data);
+            lUInt32 frameOffset = readInt32(data);
+            if ( urlOffset > offset ) {
+                CHMUrlStrEntry * item = new CHMUrlStrEntry();
+                item->offset = offset;
+                item->url = readString(data, maxdata - data);
+                _table.add( item );
+            }
+        }
+        return true;
+    }
+
+    bool read() {
+        bool err = false;
+        LVArray<lUInt8> bytes;
+        lUInt32 offset = 0;
+        while ( !_reader.eof() && !err ) {
+            err = !_reader.readBytes(bytes, -1, URLSTR_BLOCK_SIZE) || err;
+            if ( err )
+                break;
+            err = !decodeBlock( bytes.get(), offset ) || err;
+            offset += URLSTR_BLOCK_SIZE;
+        }
+        return !err;
+    }
+public:
+    static CHMUrlStr * open( LVContainerRef container ) {
+        LVStreamRef stream = container->OpenStream(L"#URLSTR", LVOM_READ);
+        if ( stream.isNull() )
+            return NULL;
+        CHMUrlStr * res = new CHMUrlStr( container, stream );
+        if ( !res->read() ) {
+            delete res;
+            return NULL;
+        }
+        CRLog::info("CHM URLSTR: %d entries read", res->_table.length());
+        return res;
+    }
+    lString8 findByOffset( lUInt32 offset ) {
+        for ( int i=0; i<_table.length(); i++ ) {
+            if ( _table[i]->offset==offset )
+                return _table[i]->url;
+        }
+        return lString8::empty_str;
+    }
+};
+
 class CHMUrlTableEntry {
 public:
     lUInt32 offset;
@@ -413,9 +501,10 @@ class CHMUrlTable {
     LVContainerRef _container;
     CHMBinaryReader _reader;
     LVPtrVector<CHMUrlTableEntry> _table;
+    CHMUrlStr * _strings;
 
 
-    CHMUrlTable( LVContainerRef container, LVStreamRef stream ) : _container(container), _reader(stream)
+    CHMUrlTable( LVContainerRef container, LVStreamRef stream ) : _container(container), _reader(stream), _strings(NULL)
     {
 
     }
@@ -428,15 +517,16 @@ class CHMUrlTable {
         return res;
     }
 
-    bool decodeBlock( const lUInt8 * data, lUInt32 offset ) {
-        for ( int i=0; i<URLTBL_BLOCK_RECORD_COUNT; i++ ) {
+    bool decodeBlock( const lUInt8 * data, lUInt32 offset, int size ) {
+        for ( int i=0; i<URLTBL_BLOCK_RECORD_COUNT && size>0; i++ ) {
             CHMUrlTableEntry * item = new CHMUrlTableEntry();
             item->offset = offset;
             item->id = readInt32(data);
             item->topicsIndex = readInt32(data);
             item->urlStrOffset = readInt32(data);
-            offset += 4*3;
             _table.add( item );
+            offset += 4*3;
+            size -= 4*3;
         }
         return true;
     }
@@ -446,15 +536,27 @@ class CHMUrlTable {
         LVArray<lUInt8> bytes;
         lUInt32 offset = 0;
         while ( !_reader.eof() && !err ) {
-            err = _reader.readBytes(bytes, -1, URLTBL_BLOCK_SIZE) || err;
+            int sz = _reader.bytesLeft();
+            if ( sz>URLTBL_BLOCK_SIZE )
+                sz = URLTBL_BLOCK_SIZE;
+            err = !_reader.readBytes(bytes, -1, sz) || err;
             if ( err )
                 break;
-            err = decodeBlock( bytes.get(), offset ) || err;
+            err = !decodeBlock( bytes.get(), offset, sz ) || err;
             offset += URLTBL_BLOCK_SIZE;
+        }
+        _strings = CHMUrlStr::open(_container);
+        if ( !_strings ) {
+            CRLog::warn("CHM: cannot read #URLSTR");
         }
         return !err;
     }
 public:
+    ~CHMUrlTable() {
+        if ( _strings )
+            delete _strings;
+    }
+
     static CHMUrlTable * open( LVContainerRef container ) {
         LVStreamRef stream = container->OpenStream(L"#URLTBL", LVOM_READ);
         if ( stream.isNull() )
@@ -467,6 +569,17 @@ public:
         CRLog::info("CHM URLTBL: %d entries read", res->_table.length());
         return res;
     }
+
+    lString8 urlById( lUInt32 id ) {
+        if ( !_strings )
+            return lString8::empty_str;
+        for ( int i=0; i<_table.length(); i++ ) {
+            if ( _table[i]->id==id )
+                return _strings->findByOffset( _table[i]->urlStrOffset );
+        }
+        return lString8::empty_str;
+    }
+
     CHMUrlTableEntry * findById( lUInt32 id ) {
         for ( int i=0; i<_table.length(); i++ ) {
             if ( _table[i]->id==id )
@@ -542,12 +655,12 @@ class CHMSystem {
             {
                 _lcid = _reader.readInt32(err);
                 int codepage = langToCodepage( _lcid );
-                const char * enc_name = CREncodingIdToName( codepage );
+                const lChar16 * enc_name = GetCharsetName( codepage );
                 const lChar16 * table = GetCharsetByte2UnicodeTable( codepage );
                 if ( enc_name!=NULL ) {
-                    CRLog::info("CHM LCID: %08x, charset=%s", _lcid, enc_name);
                     _enc_table = table;
                     _enc_name = lString16(enc_name);
+                    CRLog::info("CHM LCID: %08x, charset=%s", _lcid, LCSTR(_enc_name));
                 } else {
                     CRLog::info("CHM LCID: %08x -- cannot find charset encoding table", _lcid);
                 }
@@ -555,20 +668,20 @@ class CHMSystem {
                 _fullTextSearch = _reader.readInt32(err)==1;
                 _hasKLinks = _reader.readInt32(err)==1;
                 _hasALinks = _reader.readInt32(err)==1;
-                err = _reader.readBytes(bytes, -1, length - (5*4)) || err;
+                err = !_reader.readBytes(bytes, -1, length - (5*4)) || err;
             }
             break;
         case 7:
             if ( _fileVersion>2 )
                 _binaryIndexURLTableId = _reader.readInt32(err);
             else
-                err = _reader.readBytes(bytes, -1, length) || err;
+                err = !_reader.readBytes(bytes, -1, length) || err;
             break;
         case 11:
             if ( _fileVersion>2 )
                 _binaryTOCURLTableId = _reader.readInt32(err);
             else
-                err = _reader.readBytes(bytes, -1, length) || err;
+                err = !_reader.readBytes(bytes, -1, length) || err;
             break;
         case 16:
             _defaultFont = _reader.readString(-1, length);
@@ -601,7 +714,7 @@ class CHMSystem {
             }
             break;
         default:
-            err = _reader.readBytes(bytes, -1, length) || err;
+            err = !_reader.readBytes(bytes, -1, length) || err;
             break;
         }
         return !err;
@@ -618,7 +731,7 @@ class CHMSystem {
             _enc_name = lString16("windows-1252");
         }
         _urlTable = CHMUrlTable::open(_container);
-        return err;
+        return !err;
     }
 
 public:
@@ -651,15 +764,49 @@ public:
         return _enc_name;
     }
 
+    lString16 getContentsFileName() {
+        if ( _binaryTOCURLTableId!=0 ) {
+            lString8 url = _urlTable->urlById(_binaryTOCURLTableId);
+            if ( url.empty() )
+                return lString16::empty_str;
+            return decodeString(url);
+        } else {
+            if ( _contentsFile.empty() ) {
+                lString16 hhcName;
+                int bestSize = 0;
+                for ( int i=0; i<_container->GetObjectCount(); i++ ) {
+                    const LVContainerItemInfo * item = _container->GetObjectInfo(i);
+                    if ( !item->IsContainer() ) {
+                        lString16 name = item->GetName();
+                        int sz = item->GetSize();
+                        //CRLog::trace("CHM item: %s", LCSTR(name));
+                        lString16 lname = name;
+                        lname.lowercase();
+                        if ( lname.endsWith(L".hhc") ) {
+                            if ( sz > bestSize ) {
+                                hhcName = name;
+                                bestSize = sz;
+                            }
+                        }
+                    }
+                }
+                if ( !hhcName.empty() )
+                    return hhcName;
+            }
+            return decodeString(_contentsFile);
+        }
+    }
 };
 
-ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream )
+ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString16 defEncodingName )
 {
     if ( stream.isNull() )
         return NULL;
 
     // detect encondig
     stream->SetPos(0);
+
+#if 0
     ldomDocument * encDetectionDoc = LVParseHTMLStream( stream );
     int encoding = 0;
     if ( encDetectionDoc!=NULL ) {
@@ -688,6 +835,7 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream )
     if ( encoding==1 ) {
         enc = L"cp1251";
     }
+#endif
 
     stream->SetPos(0);
     bool error = true;
@@ -700,7 +848,7 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream )
     /// FB2 format
     LVFileFormatParser * parser = new LVHTMLParser(stream, &writerFilter);
     if ( parser->CheckFormat() ) {
-        parser->SetCharset(enc);
+        parser->SetCharset(defEncodingName.c_str());
         if ( parser->Parse() ) {
             error = false;
         }
@@ -721,6 +869,7 @@ class CHMTOCReader {
     LVTocItem * _toc;
     lString16Collection _fileList;
     lString16 lastFile;
+    lString16 _defEncodingName;
 public:
     CHMTOCReader( LVContainerRef cont, ldomDocument * doc, ldomDocumentFragmentWriter * appender )
         : _cont(cont), _appender(appender), _doc(doc)
@@ -789,34 +938,17 @@ public:
         }
     }
 
-    bool init( LVContainerRef cont )
+    bool init( LVContainerRef cont, lString16 hhcName, lString16 defEncodingName )
     {
-        lString16 hhcName;
-        int bestSize = 0;
-        for ( int i=0; i<cont->GetObjectCount(); i++ ) {
-            const LVContainerItemInfo * item = cont->GetObjectInfo(i);
-            if ( !item->IsContainer() ) {
-                lString16 name = item->GetName();
-                int sz = item->GetSize();
-                //CRLog::trace("CHM item: %s", LCSTR(name));
-                lString16 lname = name;
-                lname.lowercase();
-                if ( lname.endsWith(L".hhc") ) {
-                    if ( sz > bestSize ) {
-                        hhcName = name;
-                        bestSize = sz;
-                    }
-                }
-            }
-        }
         if ( hhcName.empty() )
             return false;
+        _defEncodingName = defEncodingName;
         LVStreamRef tocStream = cont->OpenStream(hhcName.c_str(), LVOM_READ);
         if ( tocStream.isNull() ) {
             CRLog::error("CHM: Cannot open .hhc");
             return false;
         }
-        ldomDocument * doc = LVParseCHMHTMLStream( tocStream );
+        ldomDocument * doc = LVParseCHMHTMLStream( tocStream, defEncodingName );
         if ( !doc ) {
             CRLog::error("CHM: Cannot parse .hhc");
             return false;
@@ -859,6 +991,7 @@ public:
                 continue;
             _appender->setCodeBase(fname);
             LVHTMLParser parser(stream, _appender);
+            parser.SetCharset(_defEncodingName.c_str());
             if ( parser.CheckFormat() && parser.Parse() ) {
                 // valid
                 appendedFragments++;
@@ -890,6 +1023,16 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     }
 #endif
 
+    CHMSystem * chm = CHMSystem::open(cont);
+    if ( !chm )
+        return false;
+    lString16 tocFileName = chm->getContentsFileName();
+    lString16 defEncodingName = chm->getEncodingName();
+    lString16 title = chm->getTitle();
+    CRLog::info("CHM: toc=%s, enc=%s, title=%s", LCSTR(tocFileName), LCSTR(defEncodingName), LCSTR(title));
+    //
+    delete chm;
+
     int fragmentCount = 0;
     ldomDocumentWriterFilter writer(doc, false, HTML_AUTOCLOSE_TABLE);
     //ldomDocumentWriter writer(doc);
@@ -897,7 +1040,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     writer.OnTagOpenNoAttr(L"", L"body");
     ldomDocumentFragmentWriter appender(&writer, lString16(L"body"), lString16(L"DocFragment"), lString16::empty_str );
     CHMTOCReader tocReader(cont, doc, &appender);
-    if ( !tocReader.init(cont) )
+    if ( !tocReader.init(cont, tocFileName, defEncodingName) )
         return false;
     fragmentCount = tocReader.appendFragments( progressCallback );
     writer.OnTagClose(L"", L"body");
