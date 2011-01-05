@@ -427,14 +427,14 @@ class CHMUrlStr {
     }
 
 
-    bool decodeBlock( const lUInt8 * ptr, lUInt32 blockOffset ) {
+    bool decodeBlock( const lUInt8 * ptr, lUInt32 blockOffset, int size ) {
         const lUInt8 * data = ptr;
-        const lUInt8 * maxdata = ptr + URLSTR_BLOCK_SIZE;
+        const lUInt8 * maxdata = ptr + size;
         while ( data + 8 < maxdata ) {
             lUInt32 offset = blockOffset + (data - ptr);
             lUInt32 urlOffset = readInt32(data);
             lUInt32 frameOffset = readInt32(data);
-            if ( urlOffset > offset ) {
+            if ( data < maxdata ) { //urlOffset > offset ) {
                 CHMUrlStrEntry * item = new CHMUrlStrEntry();
                 item->offset = offset;
                 item->url = readString(data, maxdata - data);
@@ -447,13 +447,17 @@ class CHMUrlStr {
     bool read() {
         bool err = false;
         LVArray<lUInt8> bytes;
-        lUInt32 offset = 0;
+        _reader.readInt8(err);
+        lUInt32 offset = 1;
         while ( !_reader.eof() && !err ) {
-            err = !_reader.readBytes(bytes, -1, URLSTR_BLOCK_SIZE) || err;
+            int sz = _reader.bytesLeft();
+            if ( sz>URLSTR_BLOCK_SIZE )
+                sz = URLSTR_BLOCK_SIZE;
+            err = !_reader.readBytes(bytes, -1, sz) || err;
             if ( err )
                 break;
-            err = !decodeBlock( bytes.get(), offset ) || err;
-            offset += URLSTR_BLOCK_SIZE;
+            err = !decodeBlock( bytes.get(), offset, sz ) || err;
+            offset += sz;
         }
         return !err;
     }
@@ -476,6 +480,14 @@ public:
                 return _table[i]->url;
         }
         return lString8::empty_str;
+    }
+    void getUrlList( lString16Collection & urlList ) {
+        for ( int i=0; i<_table.length(); i++ ) {
+            lString8 s = _table[i]->url;
+            if ( !s.empty() ) {
+                urlList.add(Utf8ToUnicode(s));
+            }
+        }
     }
 };
 
@@ -543,7 +555,7 @@ class CHMUrlTable {
             if ( err )
                 break;
             err = !decodeBlock( bytes.get(), offset, sz ) || err;
-            offset += URLTBL_BLOCK_SIZE;
+            offset += sz;
         }
         _strings = CHMUrlStr::open(_container);
         if ( !_strings ) {
@@ -593,6 +605,18 @@ public:
                 return _table[i];
         }
         return NULL;
+    }
+
+    void getUrlList( lString16Collection & urlList ) {
+        if ( !_strings )
+            return;
+        _strings->getUrlList( urlList );
+//        for ( int i=0; i<_table.length(); i++ ) {
+//            lString8 s = _strings->findByOffset( _table[i]->urlStrOffset );
+//            if ( !s.empty() ) {
+//                urlList.add(Utf8ToUnicode(s));
+//            }
+//        }
     }
 };
 
@@ -796,6 +820,11 @@ public:
             return decodeString(_contentsFile);
         }
     }
+    void getUrlList( lString16Collection & urlList ) {
+        if ( !_urlTable )
+            return;
+        _urlTable->getUrlList(urlList);
+    }
 };
 
 ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString16 defEncodingName )
@@ -870,6 +899,7 @@ class CHMTOCReader {
     lString16Collection _fileList;
     lString16 lastFile;
     lString16 _defEncodingName;
+    bool _fakeToc;
 public:
     CHMTOCReader( LVContainerRef cont, ldomDocument * doc, ldomDocumentFragmentWriter * appender )
         : _cont(cont), _appender(appender), _doc(doc)
@@ -938,44 +968,60 @@ public:
         }
     }
 
-    bool init( LVContainerRef cont, lString16 hhcName, lString16 defEncodingName )
+    bool init( LVContainerRef cont, lString16 hhcName, lString16 defEncodingName, lString16Collection & urlList )
     {
-        if ( hhcName.empty() )
+        if ( hhcName.empty() && urlList.length()==0 )
             return false;
         _defEncodingName = defEncodingName;
-        LVStreamRef tocStream = cont->OpenStream(hhcName.c_str(), LVOM_READ);
-        if ( tocStream.isNull() ) {
-            CRLog::error("CHM: Cannot open .hhc");
-            return false;
-        }
-        ldomDocument * doc = LVParseCHMHTMLStream( tocStream, defEncodingName );
-        if ( !doc ) {
-            CRLog::error("CHM: Cannot parse .hhc");
-            return false;
-        }
 
-#if DUMP_CHM_DOC==1
-    LVStreamRef out = LVOpenFileStream(L"/tmp/chm-toc.html", LVOM_WRITE);
-    if ( !out.isNull() )
-        doc->saveToStream( out, NULL, true );
-#endif
-
-        ldomNode * body = doc->getRootNode(); //doc->createXPointer(lString16("/html[1]/body[1]"));
-        bool res = false;
-        if ( body->isElement() ) {
-            // body element
-            recurseToc( body, 0 );
-            res = _fileList.length()>0;
-            while ( _toc && _toc->getParent() )
-                _toc = _toc->getParent();
-            if ( res && _toc->getChildCount()>0 ) {
-                lString16 name = _toc->getChild(0)->getName();
-                CRPropRef m_doc_props = _doc->getProps();
-                m_doc_props->setString(DOC_PROP_TITLE, name);
+        if ( hhcName.empty() ) {
+            _fakeToc = true;
+            for ( int i=0; i<urlList.length(); i++ ) {
+                //lString16 name = lString16::itoa(i+1);
+                lString16 name = urlList[i];
+                if ( name.endsWith(lString16(L".htm")) )
+                    name = name.substr(0, name.length()-4);
+                else if ( name.endsWith(lString16(L".html")) )
+                    name = name.substr(0, name.length()-5);
+                addTocItem( name, urlList[i], 0 );
             }
+            return true;
+        } else {
+            _fakeToc = false;
+            LVStreamRef tocStream = cont->OpenStream(hhcName.c_str(), LVOM_READ);
+            if ( tocStream.isNull() ) {
+                CRLog::error("CHM: Cannot open .hhc");
+                return false;
+            }
+            ldomDocument * doc = LVParseCHMHTMLStream( tocStream, defEncodingName );
+            if ( !doc ) {
+                CRLog::error("CHM: Cannot parse .hhc");
+                return false;
+            }
+
+    #if DUMP_CHM_DOC==1
+        LVStreamRef out = LVOpenFileStream(L"/tmp/chm-toc.html", LVOM_WRITE);
+        if ( !out.isNull() )
+            doc->saveToStream( out, NULL, true );
+    #endif
+
+            ldomNode * body = doc->getRootNode(); //doc->createXPointer(lString16("/html[1]/body[1]"));
+            bool res = false;
+            if ( body->isElement() ) {
+                // body element
+                recurseToc( body, 0 );
+                res = _fileList.length()>0;
+                while ( _toc && _toc->getParent() )
+                    _toc = _toc->getParent();
+                if ( res && _toc->getChildCount()>0 ) {
+                    lString16 name = _toc->getChild(0)->getName();
+                    CRPropRef m_doc_props = _doc->getProps();
+                    m_doc_props->setString(DOC_PROP_TITLE, name);
+                }
+            }
+            delete doc;
+            return res;
         }
-        delete doc;
-        return res;
     }
     int appendFragments( LVDocViewCallback * progressCallback )
     {
@@ -1031,6 +1077,8 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     lString16 title = chm->getTitle();
     CRLog::info("CHM: toc=%s, enc=%s, title=%s", LCSTR(tocFileName), LCSTR(defEncodingName), LCSTR(title));
     //
+    lString16Collection urlList;
+    chm->getUrlList(urlList);
     delete chm;
 
     int fragmentCount = 0;
@@ -1040,8 +1088,12 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     writer.OnTagOpenNoAttr(L"", L"body");
     ldomDocumentFragmentWriter appender(&writer, lString16(L"body"), lString16(L"DocFragment"), lString16::empty_str );
     CHMTOCReader tocReader(cont, doc, &appender);
-    if ( !tocReader.init(cont, tocFileName, defEncodingName) )
+    if ( !tocReader.init(cont, tocFileName, defEncodingName, urlList) )
         return false;
+
+    if ( !title.empty() )
+        doc->getProps()->setString(DOC_PROP_TITLE, title);
+
     fragmentCount = tocReader.appendFragments( progressCallback );
     writer.OnTagClose(L"", L"body");
     writer.OnStop();
