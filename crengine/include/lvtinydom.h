@@ -687,7 +687,7 @@ public:
 
 
     /// returns first text child element
-    ldomNode * getFirstTextChild();
+    ldomNode * getFirstTextChild( bool skipEmpty=false );
     /// returns last text child element
     ldomNode * getLastTextChild();
 

@@ -5,6 +5,8 @@
 <item android:numericShortcut="1" android:id="@+id/cr3_mi_go_page" android:title="@string/mi_goto_page" android:titleCondensed="@string/mi_goto_page"></item>
 <item android:numericShortcut="2" android:id="@+id/cr3_mi_go_percent" android:title="@string/mi_goto_percent" android:titleCondensed="@string/mi_goto_percent"></item>
 <item android:numericShortcut="3" android:id="@+id/cr3_go_toc" android:title="@string/mi_goto_toc" android:titleCondensed="@string/mi_goto_toc"></item>
+<item android:numericShortcut="4" android:id="@+id/cr3_go_back" android:title="@string/action_go_back" android:titleCondensed="@string/action_go_back"></item>
+<item android:numericShortcut="5" android:id="@+id/cr3_go_forward" android:title="@string/action_go_forward" android:titleCondensed="@string/action_go_forward"></item>
 </menu>
 </item>
 <item android:title="@string/mi_bookmarks" android:id="@+id/cr3_mi_bookmarks" android:numericShortcut="3" android:orderInCategory="3" android:icon="@drawable/cr3_viewer_bookmarks"></item>

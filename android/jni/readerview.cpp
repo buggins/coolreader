@@ -853,3 +853,74 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionIn
     }
 
 }
+
+lString16 ReaderViewNative::getLink( int x, int y, int r )
+{
+	int step = 5;
+	int n = r / step;
+	r = n * step;
+	if ( r==0 )
+		return getLink(x, y);
+	lString16 link;
+	for ( int xx = -r; xx<=r; xx+=step ) {
+		link = getLink( x+xx, y-r );
+		if ( !link.empty() )
+			return link;
+		link = getLink( x+xx, y+r );
+		if ( !link.empty() )
+			return link;
+	}
+	for ( int yy = -r + step; yy<=r - step; yy+=step ) {
+		link = getLink( x+r, y+yy );
+		if ( !link.empty() )
+			return link;
+		link = getLink( x-r, y+yy );
+		if ( !link.empty() )
+			return link;
+	}
+	return lString16::empty_str;
+}
+
+lString16 ReaderViewNative::getLink( int x, int y )
+{
+	ldomXPointer p = _docview->getNodeByPoint( lvPoint(x, y) );
+	if ( p.isNull() )
+		return lString16::empty_str;
+	lString16 href = p.getHRef();
+	return href;
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    checkLinkInternal
+ * Signature: (III)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_checkLinkInternal
+  (JNIEnv * _env, jobject _this, jint x, jint y, jint delta)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    lString16 link;
+    for ( int r=0; r<=delta; r+=5 ) {
+    	link = p->getLink(x, y, r);
+    	if ( !link.empty() )
+    		return env.toJavaString(link);
+    }
+    return NULL;
+}
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    goLinkInternal
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_goLinkInternal
+  (JNIEnv * _env, jobject _this, jstring _link)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    lString16 link = env.fromJavaString(_link);
+    bool res = p->_docview->goLink( link, true );
+    return res ? 1 : 0;
+}
+

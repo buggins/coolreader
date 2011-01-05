@@ -267,6 +267,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native byte[] getCoverPageDataInternal();
     private native void setPageBackgroundTextureInternal( byte[] imageBytes, int tileFlags );
     private native void updateSelectionInternal( Selection sel );
+    private native String checkLinkInternal( int x, int y, int delta );
+    private native int goLinkInternal( String link );
     
     
     protected int mNativeObject; // used from JNI
@@ -718,6 +720,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.showToast( selectionModeActive ? R.string.action_toggle_selection_mode_on : R.string.action_toggle_selection_mode_off);
 	}
 	
+	public void onLongTap( final int x, final int y, final int zone ) {
+		mEngine.execute(new Task() {
+			String link;
+			public void work() {
+				link = checkLinkInternal(x, y, mActivity.getPalmTipPixels() / 2 );
+				if ( link!=null ) {
+					if ( link.startsWith("#") ) {
+						Log.d("cr3", "go to " + link);
+						goLinkInternal(link);
+						drawPage();
+					}
+				}
+			}
+			public void done() {
+				if ( link==null )
+					onTapZone( zone, true );
+				else if (!link.startsWith("#")) {
+					mActivity.showToast("External links are not yet supported");
+				}
+			}
+		});
+	}
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		
@@ -754,8 +779,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return true;
 			}
 			if ( isLongPress || !doubleTapSelectionEnabled ) {
-				onTapZone( zone, isLongPress );
 				currentDoubleTapActionStart = 0;
+				if ( !isLongPress )
+					onTapZone( zone, isLongPress );
+				else {
+					onLongTap( x, y, zone );
+				}
 			} else {
 				currentDoubleTapActionStart = android.os.SystemClock.uptimeMillis();
 				final long myStart = currentDoubleTapActionStart;
@@ -800,7 +829,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				public void run() {
 					if ( myId==longTouchId ) {
 						touchEventIgnoreNextUp = true;
-						onTapZone( zone, true );
+						onLongTap( manualScrollStartPosX, manualScrollStartPosY, zone );
 					}
 				}
 				

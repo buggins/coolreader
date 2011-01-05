@@ -191,6 +191,22 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackground
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionInternal
   (JNIEnv *, jobject, jobject);
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    checkLinkInternal
+ * Signature: (III)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_checkLinkInternal
+  (JNIEnv *, jobject, jint, jint, jint);
+
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    goLinkInternal
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_goLinkInternal
+  (JNIEnv *, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif

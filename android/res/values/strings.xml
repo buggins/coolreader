@@ -146,4 +146,6 @@
     <string name="action_toggle_selection_mode">Toggle selection mode</string>
     <string name="action_toggle_selection_mode_off">Selection mode is off</string>
     <string name="action_toggle_selection_mode_on">Selection mode is on. Select text using touch screen.</string>
+<string name="action_go_forward">Forward</string>
+    <string name="action_go_back">Back</string>
 </resources>

@@ -27,6 +27,8 @@ public:
 	int doCommand( int cmd, int param );
     bool findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive );
     void clearSelection();
+    lString16 getLink( int x, int y );
+    lString16 getLink( int x, int y, int r );
 };
 
 #endif

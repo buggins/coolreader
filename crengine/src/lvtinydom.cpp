@@ -4392,9 +4392,11 @@ bool ldomXPointer::getRect(lvRect & rect) const
                 } else {
                     for ( int ci=offset; ci<(int)node->getChildCount(); ci++ ) {
                         ldomNode * child = node->getChildNode( offset );
-                        ldomNode * txt = child->getFirstTextChild();
+                        ldomNode * txt = txt = child->getFirstTextChild( true );
                         if ( txt ) {
                             node = txt;
+//                            lString16 s = txt->getText();
+//                            CRLog::debug("text: [%d] '%s'", s.length(), LCSTR(s));
                             break;
                         }
                     }
@@ -8589,17 +8591,29 @@ void ldomNode::recurseNodes( void (*pFun)( ldomNode * node ) )
 }
 
 /// returns first text child element
-ldomNode * ldomNode::getFirstTextChild()
+ldomNode * ldomNode::getFirstTextChild(bool skipEmpty)
 {
     ASSERT_NODE_NOT_NULL;
-    if ( isText() )
-        return this;
-    else {
-        for ( int i=0; i<(int)getChildCount(); i++ ) {
-            ldomNode * p = getChildNode(i)->getFirstTextChild();
-            if (p)
-                return p;
+    if ( isText() ) {
+        if ( !skipEmpty )
+            return this;
+        lString16 txt = getText();
+        bool nonSpaceFound = false;
+        for ( int i=0; i<txt.length(); i++ ) {
+            lChar16 ch = txt[i];
+            if ( ch!=' ' && ch!='\t' && ch!='\r' && ch!='\n' ) {
+                nonSpaceFound = true;
+                break;
+            }
         }
+        if ( nonSpaceFound )
+            return this;
+        return NULL;
+    }
+    for ( int i=0; i<(int)getChildCount(); i++ ) {
+        ldomNode * p = getChildNode(i)->getFirstTextChild(skipEmpty);
+        if (p)
+            return p;
     }
     return NULL;
 }
