@@ -149,7 +149,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_BOLD(126),
     	DCMD_SCROLL_BY(127),
     	DCMD_REQUEST_RENDER(128),
-
+    	DCMD_GO_PAGE_DONT_SAVE_HISTORY(129),
+    	
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
     	DCMD_CLOSE_BOOK(2001),
@@ -1087,6 +1088,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			else
 				mActivity.showToast(R.string.action_touch_screen_disabled_toast);
 			break;
+		case DCMD_LINK_BACK:
+		case DCMD_LINK_FORWARD:
+            doEngineCommand( cmd, 0);
+            drawPage();
+            break;
 		case DCMD_ZOOM_OUT:
             doEngineCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
             syncViewSettings(getSettings());
@@ -2350,7 +2356,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				} else {
 					moved = true;
 				}
-				doCommandInternal(ReaderCommand.DCMD_GO_PAGE.nativeId, moved ? page2 : page1);
+				doCommandInternal(ReaderCommand.DCMD_GO_PAGE_DONT_SAVE_HISTORY.nativeId, moved ? page2 : page1);
 			//}
 			close();
 			// preparing images for next page flip

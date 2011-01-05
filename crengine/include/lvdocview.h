@@ -234,6 +234,7 @@ enum LVDocCmd
     DCMD_TOGGLE_BOLD, // togle font bolder attribute
     DCMD_SCROLL_BY, // scroll by N pixels, for Scroll view mode only
     DCMD_REQUEST_RENDER, // invalidate rendered data
+    DCMD_GO_PAGE_DONT_SAVE_HISTORY,
 
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,

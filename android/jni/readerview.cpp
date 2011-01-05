@@ -556,7 +556,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    doCommand
+ * Method:    doCommandInternal
  * Signature: (II)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInternal

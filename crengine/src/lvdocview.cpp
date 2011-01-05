@@ -4388,6 +4388,12 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 		}
 	}
 		break;
+    case DCMD_GO_PAGE_DONT_SAVE_HISTORY: {
+            if (getCurPage() != param) {
+                return goToPage(param);
+            }
+        }
+        break;
 	case DCMD_ZOOM_IN: {
 		ZoomFont(+1);
 	}
