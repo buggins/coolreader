@@ -524,9 +524,15 @@ public class CoolReader extends Activity
 		}
 	}
 
+	private boolean mPaused = false; 
+	public boolean isPaused() {
+		return mPaused;
+	}
+	
 	@Override
 	protected void onPause() {
 		Log.i("cr3", "CoolReader.onPause() : saving reader state");
+		mPaused = true;
 		releaseBacklightControl();
 		mReaderView.save();
 		super.onPause();
@@ -566,6 +572,7 @@ public class CoolReader extends Activity
 	@Override
 	protected void onResume() {
 		Log.i("cr3", "CoolReader.onResume()");
+		mPaused = false;
 		super.onResume();
 	}
 
@@ -581,6 +588,8 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		Log.i("cr3", "CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
+		
+		mPaused = false;
 		
 		backlightControl.onUserActivity();
 
@@ -669,6 +678,7 @@ public class CoolReader extends Activity
 	protected void onStop() {
 		Log.i("cr3", "CoolReader.onStop() entering");
 		stopped = true;
+		mPaused = false;
 		// will close book at onDestroy()
 		if ( CLOSE_BOOK_ON_STOP )
 			mReaderView.close();

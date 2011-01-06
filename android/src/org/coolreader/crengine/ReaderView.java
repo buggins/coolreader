@@ -295,9 +295,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int lastResizeTaskId = 0;
 	@Override
 	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
-		Log.d("cr3", "onSizeChanged("+w + ", " + h +")");
+		Log.i("cr3", "onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
 		final int thisId = ++lastResizeTaskId;
+		if ( mActivity.isPaused() ) {
+			Log.i("cr3", "ignoring size change since activity is paused");
+			return;
+		}
 		mActivity.getHistory().updateCoverPageSize(w, h);
 		post(new Task() {
 			public void work() {

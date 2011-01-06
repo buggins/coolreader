@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:numericShortcut="1" android:orderInCategory="1" android:title="@string/mi_file_open" android:id="@+id/cr3_mi_open_file" android:icon="@drawable/cr3_viewer_fileopen" android:titleCondensed="@string/mi_file_open"></item>
-<item android:id="@+id/cr3_mi_gotopage" android:numericShortcut="2" android:titleCondensed="@string/mi_goto" android:orderInCategory="2" android:icon="@drawable/cr3_viewer_goto" android:title="@string/mi_goto">
+<item android:numericShortcut="1" android:orderInCategory="1" android:title="@string/mi_file_open" android:id="@+id/cr3_mi_open_file" android:icon="@drawable/ic_menu_archive" android:titleCondensed="@string/mi_file_open"></item>
+<item android:id="@+id/cr3_mi_gotopage" android:numericShortcut="2" android:titleCondensed="@string/mi_goto" android:orderInCategory="2" android:icon="@drawable/ic_menu_goto" android:title="@string/mi_goto">
 <menu>
 <item android:numericShortcut="1" android:id="@+id/cr3_mi_go_page" android:title="@string/mi_goto_page" android:titleCondensed="@string/mi_goto_page"></item>
 <item android:numericShortcut="2" android:id="@+id/cr3_mi_go_percent" android:title="@string/mi_goto_percent" android:titleCondensed="@string/mi_goto_percent"></item>
@@ -9,9 +9,9 @@
 <item android:numericShortcut="5" android:id="@+id/cr3_go_forward" android:title="@string/action_go_forward" android:titleCondensed="@string/action_go_forward"></item>
 </menu>
 </item>
-<item android:title="@string/mi_bookmarks" android:id="@+id/cr3_mi_bookmarks" android:numericShortcut="3" android:orderInCategory="3" android:icon="@drawable/cr3_viewer_bookmarks"></item>
-<item android:title="@string/mi_search" android:id="@+id/cr3_mi_search" android:numericShortcut="4" android:titleCondensed="@string/mi_search" android:orderInCategory="4" android:icon="@drawable/cr3_viewer_find"></item>
-<item android:title="@string/mi_options" android:id="@+id/cr3_mi_options" android:numericShortcut="5" android:titleCondensed="@string/mi_options" android:orderInCategory="5" android:icon="@drawable/cr3_viewer_settings"></item>
+<item android:title="@string/mi_bookmarks" android:id="@+id/cr3_mi_bookmarks" android:numericShortcut="3" android:orderInCategory="3" android:icon="@drawable/ic_menu_mark"></item>
+<item android:title="@string/mi_search" android:id="@+id/cr3_mi_search" android:numericShortcut="4" android:titleCondensed="@string/mi_search" android:orderInCategory="4" android:icon="@android:drawable/ic_menu_search"></item>
+<item android:title="@string/mi_options" android:id="@+id/cr3_mi_options" android:numericShortcut="5" android:titleCondensed="@string/mi_options" android:orderInCategory="5" android:icon="@android:drawable/ic_menu_preferences"></item>
 <item android:title="@string/mi_select_text" android:id="@+id/cr3_mi_select_text" android:numericShortcut="6" android:titleCondensed="@string/mi_select_text" android:orderInCategory="6" android:icon="@android:drawable/ic_menu_edit"></item>
 <item android:title="@string/action_toggle_day_night" android:id="@+id/cr3_mi_toggle_day_night" android:numericShortcut="6" android:titleCondensed="@string/action_toggle_day_night" android:orderInCategory="7" android:icon="@android:drawable/ic_menu_view"></item>
 <item android:title="@string/mi_exit" android:titleCondensed="@string/mi_exit" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="8" android:numericShortcut="8"></item>
