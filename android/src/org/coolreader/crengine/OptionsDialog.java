@@ -696,7 +696,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			int id;
 			public void clear() {
 				if ( bmp!=null ) {
-					bmp.recycle();
+					//bmp.recycle();
 					bmp = null;
 				}
 				if ( drawable!=null )
