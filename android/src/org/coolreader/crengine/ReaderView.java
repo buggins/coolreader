@@ -2357,6 +2357,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			page2 = image2.position.pageNumber;
 			currentAnimation = this;
 			divPaint = new Paint();
+			divPaint.setStyle(Paint.Style.FILL);
 			divPaint.setColor(Color.argb(128, 128, 128, 128));
 			final int numPaints = 16;
 			shadePaints = new Paint[numPaints];
@@ -2368,10 +2369,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				shadePaints[i].setStyle(Paint.Style.FILL);
 				if ( mActivity.isNightMode() ) {
 					shadePaints[i].setColor(Color.argb((i+1)*128 / numPaints, 0, 0, 0));
-					hilitePaints[i].setColor(Color.argb((i+1)*192 / numPaints, 128, 128, 128));
+					hilitePaints[i].setColor(Color.argb((i+1)*128 / numPaints, 128, 128, 128));
 				} else {
 					shadePaints[i].setColor(Color.argb((i+1)*128 / numPaints, 0, 0, 0));
-					hilitePaints[i].setColor(Color.argb((i+1)*192 / numPaints, 255, 255, 255));
+					hilitePaints[i].setColor(Color.argb((i+1)*128 / numPaints, 255, 255, 255));
 				}
 			}
 
@@ -2397,16 +2398,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 		}
 		
+		private final int DISTORT_PART_PERCENT = 30;
 		private void drawDistorted( Canvas canvas, Bitmap bmp, Rect src, Rect dst, int dir) {
 			int srcdx = src.width();
 			int dstdx = dst.width();
 			int dx = srcdx - dstdx;
-			int maxdistortdx = srcdx / 4;
+			int maxdistortdx = srcdx * DISTORT_PART_PERCENT / 100;
 			int maxdx = maxdistortdx * (PI_DIV_2 - SIN_TABLE_SCALE) / SIN_TABLE_SCALE;
 			int maxdistortsrc = maxdistortdx * PI_DIV_2 / SIN_TABLE_SCALE;
 			
 			int distortdx = dx < maxdistortdx ? dx : maxdistortdx;
-//			int distortsrc = distortdx<maxdistortdx ? ASIN_TABLE[ SIN_TABLE_SIZE * distortdx / maxdistortdx ] * maxdistortsrc / SIN_TABLE_SCALE : maxdistortsrc;
 			int distortsrcstart = -1;
 			int distortsrcend = -1;
 			int distortdststart = -1;
@@ -2455,39 +2456,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				distortanglestart = ASIN_TABLE[SIN_TABLE_SIZE * (maxdistortdx - distortdx)/maxdistortdx ];
 			}
 			
-//			if ( dstdx<maxdistortdx ) {
-//				// last phase of flipping: very narrow
-//				normalsrcstart = normaldststart = normalsrcend = normaldstend = -1;
-//				distortsrc = ASIN_TABLE[SIN_TABLE_SIZE * (maxdistortdx - distortdx)/maxdistortdx ] * maxdistortsrc / SIN_TABLE_SCALE;
-//				distortdx = dstdx;
-//				distortsrcstart = 0;
-//				distortsrcend = distortsrc;
-//				distortdststart = 0;
-//				distortdstend = dstdx;
-//				distortangleend = PI_DIV_2; 
-//				distortanglestart = ASIN_TABLE[SIN_TABLE_SIZE * (maxdistortdx - distortdx)/maxdistortdx ];
-//			} else if ( distortdx==maxdistortdx ) {
-//				// middle phase: while distortion area inside page
-//				distortdststart = distortsrcstart = dstdx - maxdistortdx;
-//				distortsrcend = distortsrcstart + maxdistortsrc;
-//				distortdstend = dstdx;
-//				normalsrcstart = normaldststart = 0;
-//				normalsrcend = distortsrcstart;
-//				normaldstend = distortdststart;
-//				distortanglestart = 0;
-//				distortangleend = PI_DIV_2;
-//			} else {
-//				// first phase, distortion is not full
-//				distortdststart = dstdx - distortdx; 
-//				distortsrcstart = srcdx - distortsrc;
-//				distortsrcend = srcdx;
-//				distortdstend = dstdx;
-//				normalsrcstart = normaldststart = 0;
-//				normalsrcend = distortsrcstart;
-//				normaldstend = distortdststart;
-//				distortanglestart = 0;
-//				distortangleend = distortsrc * PI_DIV_2 / maxdistortsrc;
-//			}
 			Rect srcrc = new Rect(src);
 			Rect dstrc = new Rect(dst);
 			if ( normalsrcstart<normalsrcend ) {
@@ -2499,22 +2467,38 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			if ( distortdststart<distortdstend ) {
 				int n = distortdx / 8 + 1;
-				int dst0 = dst.left + distortdststart - SIN_TABLE[distortanglestart * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE; 
-				int src0 = src.left + distortsrcstart - distortanglestart * maxdistortdx / SIN_TABLE_SCALE; // PI_DIV_2  (distortsrcend-distortsrcstart)
-				for ( int i=0; i<n; i++ ) {
-					int angledelta = distortangleend - distortanglestart;
-					int startangle = distortanglestart + i * angledelta / n;
-					int endangle = distortanglestart + (i+1) * angledelta / n;
-					dstrc.left = dst0 + SIN_TABLE[startangle * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE; 
-					dstrc.right = dst0 + SIN_TABLE[endangle * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE;
-					srcrc.left = src0 + startangle * maxdistortdx / SIN_TABLE_SCALE; // PI_DIV_2  (distortsrcend-distortsrcstart)
-					srcrc.right = src0 + endangle * maxdistortdx / SIN_TABLE_SCALE; //PI_DIV_2  (distortsrcend-distortsrcstart)
-					canvas.drawBitmap(bmp, srcrc, dstrc, null);
-					int hiliteIndex = startangle * hilitePaints.length / PI_DIV_2;
-					canvas.drawRect(dstrc, hilitePaints[hiliteIndex]);
-					
-					//int dstx1 = distortdststart + 
-					//dstrc.left = dst.left 
+				if ( dir>0 ) {
+					// right page
+					int dst0 = dst.left + distortdststart - SIN_TABLE[distortanglestart * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE; 
+					int src0 = src.left + distortsrcstart - distortanglestart * maxdistortdx / SIN_TABLE_SCALE; // PI_DIV_2  (distortsrcend-distortsrcstart)
+					for ( int i=0; i<n; i++ ) {
+						int angledelta = distortangleend - distortanglestart;
+						int startangle = distortanglestart + i * angledelta / n;
+						int endangle = distortanglestart + (i+1) * angledelta / n;
+						dstrc.left = dst0 + SIN_TABLE[startangle * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE; 
+						dstrc.right = dst0 + SIN_TABLE[endangle * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE;
+						srcrc.left = src0 + startangle * maxdistortdx / SIN_TABLE_SCALE; // PI_DIV_2  (distortsrcend-distortsrcstart)
+						srcrc.right = src0 + endangle * maxdistortdx / SIN_TABLE_SCALE; //PI_DIV_2  (distortsrcend-distortsrcstart)
+						canvas.drawBitmap(bmp, srcrc, dstrc, null);
+						int hiliteIndex = startangle * hilitePaints.length / PI_DIV_2;
+						canvas.drawRect(dstrc, hilitePaints[hiliteIndex]);
+					}
+				} else {
+					// left page
+					int dst0 = distortdststart - SIN_TABLE[distortanglestart * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE; 
+					int src0 = distortsrcstart - distortanglestart * maxdistortdx / SIN_TABLE_SCALE; // PI_DIV_2  (distortsrcend-distortsrcstart)
+					for ( int i=0; i<n; i++ ) {
+						int angledelta = distortangleend - distortanglestart;
+						int startangle = distortanglestart + i * angledelta / n;
+						int endangle = distortanglestart + (i+1) * angledelta / n;
+						dstrc.right = dst.right - (SIN_TABLE[startangle * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE + dst0); 
+						dstrc.left = dst.right - (SIN_TABLE[endangle * SIN_TABLE_SIZE / PI_DIV_2] * maxdistortdx / SIN_TABLE_SCALE + dst0);
+						srcrc.right = src.right - (startangle * maxdistortdx / SIN_TABLE_SCALE + src0); // PI_DIV_2  (distortsrcend-distortsrcstart)
+						srcrc.left = src.right - (endangle * maxdistortdx / SIN_TABLE_SCALE + src0); //PI_DIV_2  (distortsrcend-distortsrcstart)
+						canvas.drawBitmap(bmp, srcrc, dstrc, null);
+						int hiliteIndex = startangle * shadePaints.length / PI_DIV_2;
+						canvas.drawRect(dstrc, shadePaints[hiliteIndex]);
+					}
 				}
 			}
 		}
@@ -2640,11 +2624,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// left, resized part of new page
 				    		Rect src2 = new Rect(0, 0, w2, h);
 				    		Rect dst2 = new Rect(div, 0, w2, h);
-				    		canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+				    		//canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+							drawDistorted(canvas, image2.bitmap, src2, dst2, -1);
 							// right, new page
 				    		Rect src3 = new Rect(w2, 0, w, h);
 				    		Rect dst3 = new Rect(w2, 0, w, h);
 				    		canvas.drawBitmap(image2.bitmap, src3, dst3, null);
+
 						} else {
 							// left - old page
 				    		Rect src1 = new Rect(0, 0, w2, h);
@@ -2653,11 +2639,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// right, resized old page
 				    		Rect src2 = new Rect(w2, 0, w, h);
 				    		Rect dst2 = new Rect(w2, 0, div, h);
-				    		canvas.drawBitmap(image1.bitmap, src2, dst2, null);
+				    		//canvas.drawBitmap(image1.bitmap, src2, dst2, null);
+							drawDistorted(canvas, image1.bitmap, src2, dst2, 1);
 							// right, new page
 				    		Rect src3 = new Rect(div, 0, w, h);
 				    		Rect dst3 = new Rect(div, 0, w, h);
 				    		canvas.drawBitmap(image2.bitmap, src3, dst3, null);
+
+							canvas.drawRect(new Rect(div, 0, div+5, h), shadePaints[shadePaints.length/2]);
 						}
 					} else {
 			    		Rect src1 = new Rect(0, 0, w, h);
@@ -2669,6 +2658,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    		Rect dst2 = new Rect(w-currShift, 0, w, h);
 			    		//Log.v("cr3", "drawing " + image1);
 			    		canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+
+			    		canvas.drawRect(new Rect(div, 0, div+5, h), shadePaints[shadePaints.length/2]);
 					}
 				} else {
 		    		Rect src1 = new Rect(currShift, 0, w, h);
@@ -2694,7 +2685,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// left, resized part of new page
 				    		Rect src2 = new Rect(0, 0, w2, h);
 				    		Rect dst2 = new Rect(div, 0, w2, h);
-				    		canvas.drawBitmap(image1.bitmap, src2, dst2, null);
+				    		//canvas.drawBitmap(image1.bitmap, src2, dst2, null);
+							drawDistorted(canvas, image1.bitmap, src2, dst2, -1);
 							// right, new page
 				    		Rect src3 = new Rect(w2, 0, w, h);
 				    		Rect dst3 = new Rect(w2, 0, w, h);
@@ -2707,7 +2699,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// right, resized old page
 				    		Rect src2 = new Rect(w2, 0, w, h);
 				    		Rect dst2 = new Rect(w2, 0, div, h);
-				    		canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+				    		//canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+							drawDistorted(canvas, image2.bitmap, src2, dst2, 1);
 							// right, new page
 				    		Rect src3 = new Rect(div, 0, w, h);
 				    		Rect dst3 = new Rect(div, 0, w, h);
@@ -2719,7 +2712,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
 			    		Rect src2 = new Rect(0, 0, w, h);
 			    		Rect dst2 = new Rect(0, 0, currShift, h);
-						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+						//canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+						drawDistorted(canvas, image2.bitmap, src2, dst2, 1);
 					}
 				} else {
 		    		Rect src1 = new Rect(currShift, 0, w, h);
@@ -2730,8 +2724,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					canvas.drawBitmap(image2.bitmap, src2, dst2, null);
 				}
 			}
-			if ( div>0 && div<w )
+			if ( div>0 && div<w ) {
 				canvas.drawLine(div, 0, div, h, divPaint);
+			}
 		}
 	}
 
