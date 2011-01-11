@@ -132,7 +132,7 @@ public:
 
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
  { 14, 16, 18, 20, 22, 24, 26, 28, 30, \
-   32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68 }
+   32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72 }
 
 DECL_DEF_CR_FONT_SIZES;
 

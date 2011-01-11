@@ -43,7 +43,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		14, 16, 18, 20, 22, 24, 26, 28, 30,
-		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68
+		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72
 	};
 	int[] mStatusFontSizes = new int[] {
 			14, 16, 18, 20, 22, 24, 26, 28, 30,
@@ -59,7 +59,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			80, 90, 100, 110, 120, 130, 140, 150
 		};
 	int[] mMargins = new int[] {
-			0, 1, 2, 3, 4, 5, 10, 15, 20, 25
+			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30
 		};
 	int[] mOrientations = new int[] {
 			0, 1//, 2, 3
