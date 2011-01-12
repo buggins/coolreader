@@ -49,10 +49,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			14, 16, 18, 20, 22, 24, 26, 28, 30,
 			32
 		};
-	int[] mBacklightLevels = new int[] {
+	public static int findBacklightSettingIndex( int value ) {
+		int bestIndex = 0;
+		int bestDiff = -1;
+		for ( int i=0; i<mBacklightLevels.length; i++ ) {
+			int diff = mBacklightLevels[i] - value;
+			if (diff<0)
+				diff = -diff;
+			if ( bestDiff==-1 || diff < bestDiff ) {
+				bestDiff = diff;
+				bestIndex = i;
+			}
+		}
+		return bestIndex;
+	}
+	public static final int[] mBacklightLevels = new int[] {
 		-1, 1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 100
 	};
-	String[] mBacklightLevelsTitles = new String[] {
+	public static final String[] mBacklightLevelsTitles = new String[] {
 			"Default", "1%", "5%", "10%", "15%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "100%",
 	};
 	int[] mInterlineSpaces = new int[] {

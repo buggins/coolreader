@@ -714,8 +714,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private boolean isTouchScreenEnabled = true;
 	private boolean isManualScrollActive = false;
-	private int manualScrollStartPosX = 0;
-	private int manualScrollStartPosY = 0;
+	private boolean isBrightnessControlActive = false;
+	private int manualScrollStartPosX = -1;
+	private int manualScrollStartPosY = -1;
 	volatile private boolean touchEventIgnoreNextUp = false;
 	volatile private int longTouchId = 0;
 	volatile private long currentDoubleTapActionStart = 0;
@@ -786,8 +787,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			unhiliteTapZone(); 
 			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
 			stopAnimation(x, y);
-			if ( isManualScrollActive ) {
+			stopBrightnessControl(x, y);
+			if ( isManualScrollActive || isBrightnessControlActive ) {
 				isManualScrollActive = false;
+				isBrightnessControlActive = false;
+				manualScrollStartPosX = manualScrollStartPosY = -1;
 				return true;
 			}
 			if ( isLongPress || !doubleTapSelectionEnabled ) {
@@ -839,8 +843,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mBackThread.postGUI( new Runnable() {
 				@Override
 				public void run() {
+					Log.v("cr3", "onTouchEvent: long tap delayed event myId=" + myId + ", currentId=" + longTouchId);
 					if ( myId==longTouchId ) {
 						touchEventIgnoreNextUp = true;
+						isBrightnessControlActive = false;
+						isManualScrollActive = false;
+						manualScrollStartPosX = manualScrollStartPosY = -1;
 						onLongTap( manualScrollStartPosX, manualScrollStartPosY, zone );
 					}
 				}
@@ -855,34 +863,45 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
 				return true;
 			}
-//			if ( viewMode==ViewMode.SCROLL ) {
-				if ( !isManualScrollActive ) {
-					int deltax = manualScrollStartPosX - x; 
-					int deltay = manualScrollStartPosY - y;
-					deltax = deltax < 0 ? -deltax : deltax;
-					deltay = deltay < 0 ? -deltay : deltay;
-					if ( deltax + deltay > START_DRAG_THRESHOLD ) {
-						longTouchId++;
+			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
+				int deltax = manualScrollStartPosX - x; 
+				int deltay = manualScrollStartPosY - y;
+				deltax = deltax < 0 ? -deltax : deltax;
+				deltay = deltay < 0 ? -deltay : deltay;
+				if ( deltax + deltay > START_DRAG_THRESHOLD ) {
+					Log.v("cr3", "onTouchEvent: move threshold reached");
+					longTouchId++;
+					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax ) {
+						// brightness
+						isBrightnessControlActive = true;
+						startBrightnessControl(x, y);
+						return true;
+					} else {
+						// scroll
 						isManualScrollActive = true;
 						startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
 						updateAnimation(x, y);
 						return true;
 					}
 				}
-//			}
-			if ( !isManualScrollActive )
-				return true;
-			updateAnimation(x, y);
+			}
+			if ( isManualScrollActive )
+				updateAnimation(x, y);
+			else if ( isBrightnessControlActive ) 
+				updateBrightnessControl(x, y);
+			return true;
 		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
 			if ( selectionInProgress ) {
 				// cancel selection
 				cancelSelection();
 			}
 			isManualScrollActive = false;
+			isBrightnessControlActive = false;
 			selectionModeActive = false;
 			currentDoubleTapActionStart = 0;
 			longTouchId++;
 			stopAnimation(-1, -1);
+			stopBrightnessControl(-1, -1);
 			hiliteTapZone( false, x, y, dx, dy ); 
 		}
 		return true;
@@ -1958,6 +1977,40 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}, delay);
 	}
 	
+	int currentBrightnessValueIndex = -1;
+	private void startBrightnessControl(final int startX, final int startY)
+	{
+		currentBrightnessValueIndex = -1;
+		updateBrightnessControl(startX, startY);
+	}
+	private void updateBrightnessControl(final int x, final int y) {
+		int n = OptionsDialog.mBacklightLevels.length;
+		int index = n - 1 - y * n / getHeight();
+		if ( index<0 )
+			index = 0;
+		else if ( index>=n )
+			index = n;
+		if ( index != currentBrightnessValueIndex ) {
+			currentBrightnessValueIndex = index;
+			int newValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]; 
+			mActivity.setScreenBacklightLevel(newValue);
+		}
+		
+	}
+	private void stopBrightnessControl(final int x, final int y) {
+		if ( currentBrightnessValueIndex>=0 ) {
+			if ( x>=0 && y>=0 ) {
+				updateBrightnessControl(x, y);
+			}
+			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]);
+			String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
+			mActivity.showToast(s);
+			mActivity.saveSettings(mSettings);
+			currentBrightnessValueIndex = -1;
+		}
+	}
+
+
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY )
 	{
 		if (DEBUG_ANIMATION) Log.d("cr3", "startAnimation("+startX + ", " + startY+")");
