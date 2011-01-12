@@ -2,6 +2,6 @@
 <item android:title="@string/mi_book_root" android:titleCondensed="@null" android:id="@+id/book_root" android:icon="@drawable/ic_menu_home"></item>
 <item android:title="@string/mi_book_recent_books" android:titleCondensed="@null" android:id="@+id/book_recent_books" android:icon="@drawable/ic_menu_star"></item>
 <item android:title="@string/mi_book_back_to_reading" android:titleCondensed="@null" android:id="@+id/book_back_to_reading" android:icon="@android:drawable/ic_menu_view"></item>
-<item android:title="@string/mi_book_sort_order" android:titleCondensed="@null" android:id="@+id/cr3_mi_book_sort_order" android:icon="@android:drawable/ic_menu_sort_alphabetically"></item>
+<item android:title="@string/mi_book_sort_order" android:titleCondensed="@null" android:id="@+id/book_sort_order" android:icon="@android:drawable/ic_menu_sort_alphabetically"></item>
 <item android:title="@string/mi_exit" android:titleCondensed="@null" android:id="@+id/cr3_mi_exit" android:icon="@android:drawable/ic_menu_close_clear_cancel" android:orderInCategory="6" android:numericShortcut="6"></item>
 </menu>

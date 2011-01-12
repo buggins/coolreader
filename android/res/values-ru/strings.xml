@@ -100,8 +100,8 @@
     <string name="options_app_key_actions">Кнопки</string>
     <string name="options_app_trackball_disable">Отключить трэкболл</string>
     <string name="dir_sd_card_2">SD карта 2</string>
-    <string name="mi_book_back_to_reading">Вернуться к чтению</string>
-    <string name="mi_book_root">В корневую директорию</string>
+    <string name="mi_book_back_to_reading">Открытая книга</string>
+    <string name="mi_book_root">В корень</string>
     <string name="action_none">(нет действия)</string>
     <string name="action_pagedown">Следующая страница</string>
     <string name="action_pageup">Предыдущая страница</string>

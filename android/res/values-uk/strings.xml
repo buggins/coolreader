@@ -101,7 +101,7 @@
     <string name="options_app_trackball_disable">Вимкнути трекболл</string>
     <string name="dir_sd_card_2">SD картка 2</string>
     <string name="mi_book_back_to_reading">Повернутися до читання</string>
-    <string name="mi_book_root">У кореневу директорію</string>
+    <string name="mi_book_root">У корень</string>
     <string name="action_none">(немає дії)</string>
     <string name="action_pagedown">Наступна сторінка</string>
     <string name="action_pageup">Попередня сторінка</string>

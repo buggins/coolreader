@@ -332,9 +332,14 @@ public class FileBrowser extends ListView {
 
 	private FileInfo.SortOrder mSortOrder = FileInfo.DEF_SORT_ORDER; 
 	public void setSortOrder(FileInfo.SortOrder order) {
+		if ( mSortOrder == order )
+			return;
 		mSortOrder = order!=null ? order : FileInfo.DEF_SORT_ORDER;
-		if ( currDirectory!=null && !currDirectory.isRootDir() && !currDirectory.isRecentDir() )
+		if ( currDirectory!=null && !currDirectory.isRootDir() && !currDirectory.isRecentDir() ) {
 			currDirectory.sort(mSortOrder);
+			showDirectory(currDirectory, null);
+			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
+		}
 	}
 	public void setSortOrder(String orderName) {
 		setSortOrder(FileInfo.SortOrder.fromName(orderName));

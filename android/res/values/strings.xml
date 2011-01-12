@@ -100,8 +100,8 @@
 <string name="options_app_key_actions">Key actions</string>
 <string name="options_app_trackball_disable">Disable trackball</string>
 <string name="dir_sd_card_2">SD Card 2</string>
-<string name="mi_book_back_to_reading">Back to reading</string>
-    <string name="mi_book_root">Show root directory</string>
+<string name="mi_book_back_to_reading">Current book</string>
+    <string name="mi_book_root">Root</string>
 <string name="action_none">(No action)</string>
 <string name="action_pagedown">Next page</string>
 <string name="action_pageup">Previous page</string>
