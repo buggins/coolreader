@@ -158,6 +158,18 @@ public class CoolReader extends Activity
 		}
 	}
 
+	public int getScreenOrientation()
+	{
+		switch ( screenOrientation ) {
+		case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
+			return 0;
+		case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
+			return 1;
+		default:
+			return orientationFromSensor;
+		}
+	}
+
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;

@@ -148,4 +148,6 @@
     <string name="action_toggle_selection_mode_on">Selection mode is on. Select text using touch screen.</string>
 <string name="action_go_forward">Forward</string>
     <string name="action_go_back">Back</string>
+<string name="options_controls_enable_left_scren_edge_brightness_control">Screen left edge brightness control</string>
+    <string name="action_toggle_screen_orientation">Toggle screen orientation</string>
 </resources>

@@ -101,6 +101,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
     public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
     public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
+    public static final String PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE = "app.screen.backlight.control.left.edge.enabled";
 
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
@@ -170,6 +171,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_READER_MENU(2012),
     	DCMD_TOGGLE_TOUCH_SCREEN_LOCK(2013),
     	DCMD_TOGGLE_SELECTION_MODE(2014),
+    	DCMD_TOGGLE_ORIENTATION(2015),
     	;
     	
     	private final int nativeId;
@@ -298,32 +300,41 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Log.i("cr3", "onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
 		final int thisId = ++lastResizeTaskId;
-		if ( mActivity.isPaused() ) {
-			Log.i("cr3", "ignoring size change since activity is paused");
-			return;
-		}
-		mActivity.getHistory().updateCoverPageSize(w, h);
-		post(new Task() {
-			public void work() {
-				BackgroundThread.ensureBackground();
-				if ( thisId != lastResizeTaskId ) {
-					Log.d("cr3", "skipping duplicate resize request");
-					return;
-				}
-		        internalDX = w;
-		        internalDY = h;
-				Log.d("cr3", "ResizeTask: resizeInternal("+w+","+h+")");
-		        resizeInternal(w, h);
-//		        if ( mOpened ) {
-//					Log.d("cr3", "ResizeTask: done, drawing page");
-//			        drawPage();
-//		        }
-			}
-			public void done() {
-				clearImageCache();
-				invalidate();
-			}
-		});
+//		if ( mActivity.isPaused() ) {
+//			Log.i("cr3", "ignoring size change since activity is paused");
+//			return;
+//		}
+		// update size with delay: chance to avoid extra unnecessary resizing
+	    BackgroundThread.instance().postGUI( new Runnable() {
+	    	public void run() {
+	    		if ( thisId != lastResizeTaskId ) {
+					Log.d("cr3", "skipping duplicate resize request in GUI thread");
+	    			return;
+	    		}
+	    		mActivity.getHistory().updateCoverPageSize(w, h);
+	    		post(new Task() {
+	    			public void work() {
+	    				BackgroundThread.ensureBackground();
+	    				if ( thisId != lastResizeTaskId ) {
+	    					Log.d("cr3", "skipping duplicate resize request");
+	    					return;
+	    				}
+	    		        internalDX = w;
+	    		        internalDY = h;
+	    				Log.d("cr3", "ResizeTask: resizeInternal("+w+","+h+")");
+	    		        resizeInternal(w, h);
+//	    		        if ( mOpened ) {
+//	    					Log.d("cr3", "ResizeTask: done, drawing page");
+//	    			        drawPage();
+//	    		        }
+	    			}
+	    			public void done() {
+	    				clearImageCache();
+	    				invalidate();
+	    			}
+	    		});
+	    	}
+	    }, mOpened ? 1000 : 50);
 	}
 	
 	public boolean isBookLoaded()
@@ -712,6 +723,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		clearSelection();
 	}
 
+	private boolean isBacklightControlWithLeftScreenEdgeEnabled = true;
 	private boolean isTouchScreenEnabled = true;
 	private boolean isManualScrollActive = false;
 	private boolean isBrightnessControlActive = false;
@@ -864,14 +876,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return true;
 			}
 			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
-				int deltax = manualScrollStartPosX - x; 
+				int deltax = manualScrollStartPosX - x;
 				int deltay = manualScrollStartPosY - y;
 				deltax = deltax < 0 ? -deltax : deltax;
 				deltay = deltay < 0 ? -deltay : deltay;
 				if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 					Log.v("cr3", "onTouchEvent: move threshold reached");
 					longTouchId++;
-					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax ) {
+					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlWithLeftScreenEdgeEnabled ) {
 						// brightness
 						isBrightnessControlActive = true;
 						startBrightnessControl(x, y);
@@ -1097,6 +1109,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		OptionsDialog.toggleDayNightMode(settings);
 		setSettings(settings, null);
 	}
+
+	public void toggleScreenOrientation()
+	{
+		int orientation = mActivity.getScreenOrientation();
+		orientation = ( orientation==0 )? 1 : 0;
+		mSettings.setInt(PROP_APP_SCREEN_ORIENTATION, orientation);
+		mActivity.saveSettings(mSettings);
+		mActivity.setScreenOrientation(orientation);
+	}
 	
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
@@ -1108,6 +1129,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
+		case DCMD_TOGGLE_ORIENTATION:
+			toggleScreenOrientation();
+			break;
 		case DCMD_TOGGLE_SELECTION_MODE:
 			toggleSelectionMode();
 			break;
@@ -1307,6 +1331,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
+        } else if ( key.equals(PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE) ) {
+        	isBacklightControlWithLeftScreenEdgeEnabled = flg;
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
@@ -1357,6 +1383,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)
     				|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
     				|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
+    				|| PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE.equals(key)
     				) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
@@ -2003,6 +2030,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				updateBrightnessControl(x, y);
 			}
 			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]);
+			OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
 			String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 			mActivity.showToast(s);
 			mActivity.saveSettings(mSettings);
