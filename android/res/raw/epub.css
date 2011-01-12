@@ -54,7 +54,7 @@ body[name="notes"] section title p { display: inline }
 
 description { display: block; }
 title-info { display: block; }
-annotation { margin-left: 5%; margin-right: 5%; font-size: 80%; font-style: italic; text-align: justify; text-indent: 2em }
+annotation { margin-left: 5%; margin-right: 5%; font-size: 80%; font-style: italic; text-align: justify; text-indent: 1.2em }
 date { display: block; font-size: 80%; font-style: italic; text-align: center }
 genre { display: none; }
 author { display: none; }
