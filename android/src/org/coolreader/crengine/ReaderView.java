@@ -102,7 +102,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
     public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
     public static final String PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE = "app.screen.backlight.control.left.edge.enabled";
-
+    public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
+    
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
     public static final int PAGE_ANIMATION_SLIDE = 2;
@@ -1110,12 +1111,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		setSettings(settings, null);
 	}
 
+	public String getSetting( String name ) {
+		return mSettings.getProperty(name);
+	}
+	public void saveSetting( String name, String value ) {
+		mSettings.setProperty(name, value);
+		mActivity.saveSettings(mSettings);
+	}
+	
 	public void toggleScreenOrientation()
 	{
 		int orientation = mActivity.getScreenOrientation();
 		orientation = ( orientation==0 )? 1 : 0;
-		mSettings.setInt(PROP_APP_SCREEN_ORIENTATION, orientation);
-		mActivity.saveSettings(mSettings);
+		saveSetting(PROP_APP_SCREEN_ORIENTATION, String.valueOf(orientation));
 		mActivity.setScreenOrientation(orientation);
 	}
 	

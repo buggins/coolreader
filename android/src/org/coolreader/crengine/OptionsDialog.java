@@ -8,12 +8,13 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -36,7 +37,7 @@ import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 
-public class OptionsDialog extends BaseDialog implements TabContentFactory {
+public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner {
 
 	ReaderView mReaderView;
 	CoolReader mActivity;
@@ -118,20 +119,32 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
 
-	private final int OPTION_VIEW_TYPE_NORMAL = 0;
-	private final int OPTION_VIEW_TYPE_BOOLEAN = 1;
-	private final int OPTION_VIEW_TYPE_COLOR = 2;
-	private final int OPTION_VIEW_TYPE_COUNT = 3;
+	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
+	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
+	public final static int OPTION_VIEW_TYPE_COLOR = 2;
+	//public final static int OPTION_VIEW_TYPE_COUNT = 3;
+
+	public CoolReader getActivity() { return mActivity; }
+	public Properties getProperties() { return mProperties; }
+	public LayoutInflater getInflater() { return mInflater; }
 	
-	class OptionBase {
+	public static class OptionBase {
 		protected View myView;
+		Properties mProperties;
+		CoolReader mActivity;
+		OptionOwner mOwner;
+		LayoutInflater mInflater;
 		public String label;
 		public String property;
 		public String defaultValue;
 		public int iconId = R.drawable.cr3_option_other;
 		public OptionsListView optionsListView;
 		protected Runnable onChangeHandler;
-		public OptionBase( String label, String property ) {
+		public OptionBase( OptionOwner owner, String label, String property ) {
+			this.mOwner = owner;
+			this.mActivity = owner.getActivity();
+			this.mInflater = owner.getInflater();
+			this.mProperties = owner.getProperties();
 			this.label = label;
 			this.property = property;
 		}
@@ -192,8 +205,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	
 	class ColorOption extends OptionBase {
 		final int defColor;
-		public ColorOption( String label, String property, int defColor ) {
-			super(label, property);
+		public ColorOption( OptionOwner owner, String label, String property, int defColor ) {
+			super(owner, label, property);
 			this.defColor = defColor;
 		}
 		public String getValueLabel() { return mProperties.getProperty(property); }
@@ -241,8 +254,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	
 	class BoolOption extends OptionBase {
 		private boolean inverse = false;
-		public BoolOption( String label, String property ) {
-			super(label, property);
+		public BoolOption( OptionOwner owner, String label, String property ) {
+			super(owner, label, property);
 		}
 		private boolean getValueBoolean() { return "1".equals(mProperties.getProperty(property)) ^ inverse; }
 		public String getValueLabel() { return getValueBoolean()  ? getString(R.string.options_value_on) : getString(R.string.options_value_off); }
@@ -328,8 +341,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	}
 
 	class NightModeOption extends BoolOption {
-		public NightModeOption( String label, String property ) {
-			super(label, property);
+		public NightModeOption( OptionOwner owner, String label, String property ) {
+			super(owner, label, property);
 		}
 		public void onSelect() { 
 			toggleDayNightMode(mProperties);
@@ -338,8 +351,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	}
 	
 	class ActionOption extends ListOption {
-		public ActionOption( String label, String property, boolean isTap, boolean allowRepeat ) {
-			super(label, property);
+		public ActionOption( OptionOwner owner, String label, String property, boolean isTap, boolean allowRepeat ) {
+			super(owner, label, property);
 			ReaderAction[] actions = ReaderAction.AVAILABLE_ACTIONS;
 			for ( ReaderAction a : actions )
 				if ( !isTap || a.mayAssignOnTap() )
@@ -352,16 +365,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	}
 
 	class KeyMapOption extends ListOption {
-		public KeyMapOption( String label ) {
-			super(label, ReaderView.PROP_APP_KEY_ACTIONS_PRESS);
+		public KeyMapOption( OptionOwner owner, String label ) {
+			super(owner, label, ReaderView.PROP_APP_KEY_ACTIONS_PRESS);
 		}
 		private void addKey( OptionsListView list, int keyCode, String keyName ) {
 			final String propName = ReaderAction.getKeyProp(keyCode, ReaderAction.NORMAL);
 			final String longPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.LONG);
 			final String dblPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.DOUBLE);
-			list.add(new ActionOption(keyName, propName, false, false));
-			list.add(new ActionOption(keyName + " " + getContext().getString(R.string.options_app_key_long_press), longPropName, false, true));
-			list.add(new ActionOption(keyName + " " + getContext().getString(R.string.options_app_key_double_press), dblPropName, false, false));
+			list.add(new ActionOption(mOwner, keyName, propName, false, false));
+			list.add(new ActionOption(mOwner, keyName + " " + getContext().getString(R.string.options_app_key_long_press), longPropName, false, true));
+			list.add(new ActionOption(mOwner, keyName + " " + getContext().getString(R.string.options_app_key_double_press), dblPropName, false, false));
 		}
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
@@ -386,19 +399,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	}
 	
 	class StatusBarOption extends ListOption {
-		public StatusBarOption( String label ) {
-			super(label, ReaderView.PROP_SHOW_TITLE);
+		public StatusBarOption( OptionOwner owner, String label ) {
+			super(owner, label, ReaderView.PROP_SHOW_TITLE);
 		}
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
-			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
-			listView.add(new ListOption(getString(R.string.options_page_titlebar_font_face), ReaderView.PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-			listView.add(new ListOption(getString(R.string.options_page_titlebar_font_size), ReaderView.PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
-			listView.add(new ColorOption(getString(R.string.options_page_titlebar_font_color), ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
-			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar_title), ReaderView.PROP_SHOW_TITLE).setDefaultValue("1"));
-			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar_chapter_marks), ReaderView.PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
-			listView.add(new BoolOption(getString(R.string.options_page_show_titlebar_battery_percent), ReaderView.PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), ReaderView.PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), ReaderView.PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
+			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), ReaderView.PROP_SHOW_TITLE).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_chapter_marks), ReaderView.PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_battery_percent), ReaderView.PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -408,8 +421,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	}
 	
 	class TapZoneOption extends OptionBase {
-		public TapZoneOption( String label, String property ) {
-			super(label, property);
+		public TapZoneOption( OptionOwner owner, String label, String property ) {
+			super( owner, label, property);
 		}
 		View grid;
 		private void initTapZone( View view, final int tapZoneId )
@@ -429,7 +442,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				@Override
 				public void onClick(View v) {
 					// TODO: i18n
-					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_short), propName, true, false);
+					ActionOption option = new ActionOption(mOwner, getString(R.string.options_app_tap_action_short), propName, true, false);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction action = ReaderAction.findById( mProperties.getProperty(propName) );
@@ -443,7 +456,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 				@Override
 				public boolean onLongClick(View v) {
 					// TODO: i18n
-					ActionOption option = new ActionOption(getString(R.string.options_app_tap_action_long), longPropName, true, true);
+					ActionOption option = new ActionOption(mOwner, getString(R.string.options_app_tap_action_long), longPropName, true, true);
 					option.setOnChangeHandler(new Runnable() {
 						public void run() {
 							ReaderAction longAction = ReaderAction.findById( mProperties.getProperty(longPropName) );
@@ -475,7 +488,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
-	class Pair {
+	public static class Pair {
 		public String value;
 		public String label;
 		public Pair(String value, String label) {
@@ -484,10 +497,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 
-	class ListOption extends OptionBase {
+	public static class ListOption extends OptionBase {
 		private ArrayList<Pair> list = new ArrayList<Pair>();
-		public ListOption( String label, String property ) {
-			super(label, property);
+		public ListOption( OptionOwner owner, String label, String property ) {
+			super(owner, label, property);
 		}
 		public void add(String value, String label) {
 			list.add( new Pair(value, label) );
@@ -508,7 +521,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		public ListOption add(int[]values, int[]labelIDs) {
 			for ( int i=0; i<values.length; i++ ) {
 				String value = String.valueOf(values[i]); 
-				String label = getContext().getString(labelIDs[i]); 
+				String label = mActivity.getString(labelIDs[i]); 
+				add(value, label);
+			}
+			return this;
+		}
+		public ListOption add(String[]values, int[]labelIDs) {
+			for ( int i=0; i<values.length; i++ ) {
+				String value = values[i]; 
+				String label = mActivity.getString(labelIDs[i]); 
 				add(value, label);
 			}
 			return this;
@@ -584,7 +605,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 			//AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
 			dlg.setTitle(label);
 
-			final ListView listView = new ListView(getContext());
+			final ListView listView = new ListView(mActivity);
 			
 			
 			ListAdapter listAdapter = new ListAdapter() {
@@ -689,9 +710,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	
 	class HyphenationOptions extends ListOption
 	{
-		public HyphenationOptions( String label )
+		public HyphenationOptions( OptionOwner owner, String label )
 		{
-			super( label, ReaderView.PROP_HYPHENATION_DICT );
+			super( owner, label, ReaderView.PROP_HYPHENATION_DICT );
 			setDefaultValue("RUSSIAN");
 			Engine.HyphDict[] dicts = Engine.HyphDict.values();
 			for ( Engine.HyphDict dict : dicts )
@@ -810,9 +831,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 	
 	class TextureOptions extends ListOption
 	{
-		public TextureOptions( String label )
+		public TextureOptions( OptionOwner owner, String label )
 		{
-			super( label, ReaderView.PROP_PAGE_BACKGROUND_IMAGE );
+			super( owner, label, ReaderView.PROP_PAGE_BACKGROUND_IMAGE );
 			setDefaultValue("(NONE)");
 			BackgroundTextureInfo[] textures = mReaderView.getEngine().getAvailableTextures();
 			for ( BackgroundTextureInfo item : textures )
@@ -1007,55 +1028,55 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory {
 		mTabs.setup();
 		//new TabHost(getContext());
 		mOptionsStyles = new OptionsListView(getContext());
-		mOptionsStyles.add(new ListOption(getString(R.string.options_font_face), ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-		mOptionsStyles.add(new ListOption(getString(R.string.options_font_size), ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
-		mOptionsStyles.add(new BoolOption(getString(R.string.options_font_embolden), ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
+		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), ReaderView.PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
-		mOptionsStyles.add(new ListOption(getString(R.string.options_font_antialias), ReaderView.PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2"));
-		mOptionsStyles.add(new ListOption(getString(R.string.options_interline_space), ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
-		mOptionsStyles.add(new NightModeOption(getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
-		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
-		mOptionsStyles.add(new ColorOption(getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
-		mOptionsStyles.add(new TextureOptions(getString(R.string.options_background_texture)));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), ReaderView.PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
+		mOptionsStyles.add(new NightModeOption(this, getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
+		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
+		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
+		mOptionsStyles.add(new TextureOptions(this, getString(R.string.options_background_texture)));
 
 		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
-		mOptionsStyles.add(new ListOption(getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
 		//
-		mOptionsStyles.add(new HyphenationOptions(getString(R.string.options_hyphenation_dictionary)));
+		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)));
 		//
 		mOptionsPage = new OptionsListView(getContext());
-		mOptionsPage.add(new ListOption(getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
-		mOptionsPage.add( new StatusBarOption(getString(R.string.options_page_titlebar)));
-		mOptionsPage.add(new BoolOption(getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
+		mOptionsPage.add( new StatusBarOption(this, getString(R.string.options_page_titlebar)));
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
-		mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
-		mOptionsPage.add(new ListOption(getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
-		mOptionsPage.add(new ListOption(getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
 		
-		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_top), ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption(getString(R.string.options_page_margin_bottom), ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
 		mOptionsApplication = new OptionsListView(getContext());
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_fullscreen), ReaderView.PROP_APP_FULLSCREEN));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
-		mOptionsApplication.add(new TapZoneOption(getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
-		mOptionsApplication.add(new KeyMapOption(getString(R.string.options_app_key_actions)));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_double_tap_selection), ReaderView.PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(getString(R.string.options_controls_enable_left_scren_edge_brightness_control), ReaderView.PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE).setDefaultValue("1"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_fullscreen), ReaderView.PROP_APP_FULLSCREEN));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
+		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
+		mOptionsApplication.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), ReaderView.PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("1"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_left_scren_edge_brightness_control), ReaderView.PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE).setDefaultValue("1"));
 		
 		
 		mOptionsStyles.refresh();
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
 		
-		mOptionsControls = new OptionsListView(getContext());
-		mOptionsControls.add(new BoolOption("Sample option", "controls.sample"));
+//		mOptionsControls = new OptionsListView(getContext());
+//		mOptionsControls.add(new BoolOption(mProperties, "Sample option", "controls.sample"));
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
 		tsStyles.setIndicator("", //getContext().getResources().getString(R.string.tab_options_styles) 
 				getContext().getResources().getDrawable(android.R.drawable.ic_menu_view)); //R.drawable.cr3_option_style

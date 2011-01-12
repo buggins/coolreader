@@ -352,6 +352,8 @@ public class CoolReader extends Activity
         mScanner.initRoots();
 
 		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
+
+		
 		mFrame.addView(mReaderView);
 		mFrame.addView(mBrowser);
 //		mFrame.addView(startupView);
@@ -360,6 +362,7 @@ public class CoolReader extends Activity
         mBrowser.init();
 		showView(mBrowser, false);
         Log.i("cr3", "initializing reader");
+        mBrowser.setSortOrder( props.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER));
         mBrowser.showDirectory(mScanner.getRoot(), null);
         
         fileToLoadOnStart = null;
@@ -923,6 +926,13 @@ public class CoolReader extends Activity
 		});
 	}
 	
+	public void saveSetting( String name, String value ) {
+		mReaderView.saveSetting(name, value);
+	}
+	public String getSetting( String name ) {
+		return mReaderView.getSetting(name);
+	}
+	
 	public void showBookmarksDialog()
 	{
 		BookmarksDlg dlg = new BookmarksDlg(this, mReaderView);
@@ -937,8 +947,8 @@ public class CoolReader extends Activity
 		// other commands
 		switch ( itemId ) {
 		case R.id.book_sort_order:
-			showToast("Sorry, this option is not yet supported");
-			break;
+			mBrowser.showSortOrderMenu();
+			return true;
 		case R.id.book_root:
 			mBrowser.showRootDirectory();
 			return true;
@@ -955,7 +965,6 @@ public class CoolReader extends Activity
 			return false;
 			//return super.onOptionsItemSelected(item);
 		}
-		return true;
 	}
 	
 	public void showGoToPageDialog() {
@@ -1128,7 +1137,8 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, "1");
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
-
+		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
+		
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, "2");

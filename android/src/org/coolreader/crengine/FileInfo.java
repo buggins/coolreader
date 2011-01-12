@@ -487,6 +487,13 @@ public class FileInfo {
 			}
 			return 0;
 		}
+		public static SortOrder fromName( String name ) {
+			if ( name!=null )
+				for ( SortOrder order : values() )
+					if ( order.name().equals(name) )
+						return order;
+			return DEF_SORT_ORDER;
+		}
 	}
 	public final static SortOrder DEF_SORT_ORDER = SortOrder.AUTHOR_TITLE;
 		

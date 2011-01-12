@@ -330,6 +330,59 @@ public class FileBrowser extends ListView {
 		showDirectory(mScanner.getRoot(), null);
 	}
 
+	private FileInfo.SortOrder mSortOrder = FileInfo.DEF_SORT_ORDER; 
+	public void setSortOrder(FileInfo.SortOrder order) {
+		mSortOrder = order!=null ? order : FileInfo.DEF_SORT_ORDER;
+		if ( currDirectory!=null && !currDirectory.isRootDir() && !currDirectory.isRecentDir() )
+			currDirectory.sort(mSortOrder);
+	}
+	public void setSortOrder(String orderName) {
+		setSortOrder(FileInfo.SortOrder.fromName(orderName));
+	}
+	public void showSortOrderMenu() {
+		final Properties properties = new Properties();
+		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+		int[] optionLabels = {
+			FileInfo.SortOrder.FILENAME.resourceId,	
+			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
+			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
+			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
+			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
+			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
+			FileInfo.SortOrder.TIMESTAMP.resourceId,	
+			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
+		};
+		String[] optionValues = {
+			FileInfo.SortOrder.FILENAME.name(),	
+			FileInfo.SortOrder.FILENAME_DESC.name(),	
+			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
+			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),	
+			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
+			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
+			FileInfo.SortOrder.TIMESTAMP.name(),	
+			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
+		};
+		OptionsDialog.ListOption dlg = new OptionsDialog.ListOption(
+			new OptionOwner() {
+				public CoolReader getActivity() { return mActivity; }
+				public Properties getProperties() { return properties; }
+				public LayoutInflater getInflater() { return mInflater; }
+			}, 
+			mActivity.getString(R.string.mi_book_sort_order), 
+			ReaderView.PROP_APP_BOOK_SORT_ORDER).add(optionValues, optionLabels); 
+		dlg.setOnChangeHandler(new Runnable() {
+			public void run() {
+				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
+					Log.d("cr3", "New sort order: " + newValue);
+					setSortOrder(newValue);
+				}
+			}
+		});
+		dlg.onSelect();
+	}
+	
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
@@ -347,7 +400,7 @@ public class FileBrowser extends ListView {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
 					if ( !dir.isRootDir() && !dir.isRecentDir() )
-						dir.sort(FileInfo.DEF_SORT_ORDER);
+						dir.sort(mSortOrder);
 					showDirectoryInternal(dir, file);
 				}
 			});
