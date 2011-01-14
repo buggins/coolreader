@@ -673,9 +673,9 @@ public:
     ldomNode * getChildElementNode( lUInt32 index, const lChar16 * nodeTag ) const;
 
     /// returns text node text as wide string
-    lString16 getText( lChar16 blockDelimiter = 0 ) const;
+    lString16 getText( lChar16 blockDelimiter = 0, int maxSize=0 ) const;
     /// returns text node text as utf8 string
-    lString8 getText8( lChar8 blockDelimiter = 0 ) const;
+    lString8 getText8( lChar8 blockDelimiter = 0, int maxSize=0 ) const;
     /// sets text node text as wide string
     void setText( lString16 );
     /// sets text node text as utf8 string

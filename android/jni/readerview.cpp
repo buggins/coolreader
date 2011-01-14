@@ -585,6 +585,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPage
 		return NULL;
 	DocViewCallback callback( _env, p->_docview, _this );
 	
+	CRLog::trace("getCurrentPageBookmarkInternal: calling getBookmark()");
 	ldomXPointer ptr = p->_docview->getBookmark();
 	if ( ptr.isNull() )
 		return JNI_FALSE;
@@ -846,7 +847,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionIn
         //CRLog::debug("Range: %s - %s", UnicodeToUtf8(start).c_str(), UnicodeToUtf8(end).c_str());
         r.setFlags(1);
         p->_docview->selectRange( r );
-        lString16 selText = r.getRangeText( '\n', 10000 );
+        lString16 selText = r.getRangeText( '\r\n', 8192 );
     	sel_startPos.set( startp.toString() );
     	sel_endPos.set( endp.toString() );
     	sel_text.set(selText);

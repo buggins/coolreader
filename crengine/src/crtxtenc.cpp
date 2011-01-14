@@ -1476,7 +1476,7 @@ typedef struct {
 // EXTERNAL DEFINE
 extern cp_stat_t cp_stat_table[];
 
-int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name )
+int AutodetectCodePageUtf( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name )
 {
     // checking byte order signatures
     if ( buf[0]==0xEF && buf[1]==0xBB && buf[2]==0xBF ) {
@@ -1505,6 +1505,14 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
         strcpy( lang_name, "en" );
         return 1;
     }
+   return 0;
+}
+
+int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name )
+{
+    int res = AutodetectCodePageUtf( buf, buf_size, cp_name, lang_name );
+    if ( res )
+        return res;
     // use character statistics
    short char_stat[256];
    dbl_char_stat_t dbl_char_stat[DBL_CHAR_STAT_SIZE];

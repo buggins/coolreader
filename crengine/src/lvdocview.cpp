@@ -655,11 +655,10 @@ static lString16 getSectionHeader(ldomNode * section) {
 	lString16 header;
 	if (!section || section->getChildCount() == 0)
 		return header;
-    lUInt16 titleElementId = section->getDocument()->getElementNameIndex(L"title");
-    ldomNode * child = section->getChildElementNode(0, titleElementId);
-    if (child)
+    ldomNode * child = section->getChildElementNode(0, L"title");
+    if (!child)
 		return header;
-	header = child->getText(L' ');
+	header = child->getText(L' ', 1024);
 	return header;
 }
 
@@ -1368,6 +1367,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	drawbuf->SetClipRect(&hrc);
 	bool drawGauge = true;
 	lvRect info = headerRc;
+    if ( m_statusColor!=0xFF000000 ) {
+        CRLog::trace("Status color = %06x, textColor=%06x", m_statusColor, getTextColor());
+    }
 	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
 	lUInt32 cl2 = getBackgroundColor();
 	lUInt32 cl3 = 0xD0D0D0;
@@ -1384,8 +1386,6 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	lvRect navBar;
 	getNavigationBarRectangle(pageIndex, navBar);
 	int gpos = info.bottom;
-	cl1 = getTextColor();
-	drawbuf->SetTextColor(cl1);
 	if (drawbuf->GetBitsPerPixel() <= 2) {
 		// gray
 		cl3 = 1;
@@ -1527,7 +1527,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	int start = page.start;
 	int height = page.height;
 	int headerHeight = getPageHeaderHeight();
-	CRLog::trace("drawPageTo(%d,%d)", start, height);
+	//CRLog::trace("drawPageTo(%d,%d)", start, height);
 	lvRect fullRect(0, 0, drawbuf->GetWidth(), drawbuf->GetHeight());
 	if (!pageRect)
 		pageRect = &fullRect;
@@ -1898,7 +1898,8 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 			page = m_pages.FindNearestPage(position, 0);
 		//CRLog::trace("found page #%d", page);
 
-        drawPageBackground(drawbuf, (page * 1356) & 0xFFF, 0x1000 - (page * 1356) & 0xFFF);
+        //drawPageBackground(drawbuf, (page * 1356) & 0xFFF, 0x1000 - (page * 1356) & 0xFFF);
+        drawPageBackground(drawbuf, 0, 0);
 
         if (page >= 0 && page < m_pages.length())
 			drawPageTo(&drawbuf, *m_pages[page], &m_pageRects[0],
@@ -3525,7 +3526,7 @@ bool LVDocView::ParseDocument() {
 			static lUInt16 path[] = { el_html, el_head, el_title, 0 };
 			ldomNode * el = m_doc->getRootNode()->findChildElement(path);
 			if (el != NULL) {
-				lString16 s = el->getText();
+                lString16 s = el->getText(L' ', 1024);
 				if (!s.empty()) {
 					m_doc_props->setString(DOC_PROP_TITLE, s);
 				}
@@ -3711,22 +3712,6 @@ ldomXPointer LVDocView::getPageBookmark(int page) {
 	return ptr;
 }
 
-void limitStringSize(lString16 & str, int maxSize) {
-	if ((int) str.length() < maxSize)
-		return;
-	int lastSpace = -1;
-	for (int i = str.length() - 1; i > 0; i--)
-		if (str[i] == ' ') {
-			while (i > 0 && str[i - 1] == ' ')
-				i--;
-			lastSpace = i;
-			break;
-		}
-	int split = lastSpace > 0 ? lastSpace : maxSize;
-	str = str.substr(0, split);
-	str += L"...";
-}
-
 /// get bookmark position text
 bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 		lString16 & posText) {
@@ -3736,20 +3721,21 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 	if (bm.isNull())
 		return false;
 	ldomNode * el = bm.getNode();
+	CRLog::trace("getBookmarkPosText() : getting position text");
 	if (el->isText()) {
-		lString16 txt = bm.getNode()->getText();
+        lString16 txt = bm.getNode()->getText();
 		int startPos = bm.getOffset();
 		int len = txt.length() - startPos;
 		if (len > 0)
 			txt = txt.substr(startPos, len);
 		if (startPos > 0)
 			posText = L"...";
-		posText = txt;
+        posText += txt;
 		el = el->getParentNode();
 	} else {
-		posText = el->getText();
+        posText = el->getText(L' ', 1024);
 	}
-	bool inTitle = false;
+    bool inTitle = false;
 	do {
 		while (el && el->getNodeId() != el_section && el->getNodeId()
 				!= el_body) {
@@ -3762,7 +3748,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 				posText.clear();
 				if (el->getChildCount() > 1) {
 					ldomNode * node = el->getChildNode(1);
-					posText = node->getText(' ');
+                    posText = node->getText(' ', 8192);
 				}
 				inTitle = false;
 			}
@@ -3781,7 +3767,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 		if (titleText.length() > 50)
 			break;
 	} while (el);
-	limitStringSize(titleText, 70);
+    limitStringSize(titleText, 70);
 	limitStringSize(posText, 120);
 	return true;
 }

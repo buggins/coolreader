@@ -3220,7 +3220,7 @@ static lString16 getSectionHeader( ldomNode * section )
     ldomNode * child = section->getChildElementNode(0, L"title");
     if ( !child )
         return header;
-    header = child->getText(L' ');
+    header = child->getText(L' ', 1024);
     return header;
 }
 
@@ -8384,7 +8384,7 @@ const lString16 & ldomNode::getNodeNsName() const
 
 
 /// returns text node text as wide string
-lString16 ldomNode::getText( lChar16 blockDelimiter ) const
+lString16 ldomNode::getText( lChar16 blockDelimiter, int maxSize ) const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
@@ -8396,16 +8396,16 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
             lString16 txt;
             unsigned cc = getChildCount();
             for ( unsigned i=0; i<cc; i++ ) {
-                txt += getChildNode(i)->getText(blockDelimiter);
                 ldomNode * child = getChildNode(i);
-                if ( i>=getChildCount()-1 )
+                txt += child->getText(blockDelimiter, maxSize);
+                if ( maxSize!=0 && txt.length()>maxSize )
+                    break;
+                if ( i>=cc-1 )
                     break;
 #if BUILD_LITE!=1
                 if ( blockDelimiter && child->isElement() ) {
                     if ( child->getStyle()->display == css_d_block )
-#endif
                         txt << blockDelimiter;
-#if BUILD_LITE!=1
                 }
 #endif
             }
@@ -8423,7 +8423,7 @@ lString16 ldomNode::getText( lChar16 blockDelimiter ) const
 }
 
 /// returns text node text as utf8 string
-lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
+lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
@@ -8434,8 +8434,10 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter ) const
             lString8 txt;
             unsigned cc = getChildCount();
             for ( unsigned i=0; i<cc; i++ ) {
-                txt += getChildNode(i)->getText8(blockDelimiter);
                 ldomNode * child = getChildNode(i);
+                txt += child->getText8(blockDelimiter, maxSize);
+                if ( maxSize!=0 && txt.length()>maxSize )
+                    break;
                 if ( i>=getChildCount()-1 )
                     break;
                 if ( blockDelimiter && child->isElement() ) {

@@ -667,7 +667,7 @@ class CHMSystem {
         bool err = false;
         int code = _reader.readInt16(err);
         int length = _reader.readInt16(err);
-        //CRLog::trace("CHM binary item code=%d, length=%d, bytesLeft=%d", code, length, _reader.bytesLeft());
+        CRLog::trace("CHM binary item code=%d, length=%d, bytesLeft=%d", code, length, _reader.bytesLeft());
         if ( err )
             return false;
         LVArray<lUInt8> bytes;

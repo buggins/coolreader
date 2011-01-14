@@ -3582,3 +3582,20 @@ lString16 DecodeHTMLUrlString( lString16 s )
     }
     return s;
 }
+
+void limitStringSize(lString16 & str, int maxSize) {
+	if ((int) str.length() < maxSize)
+		return;
+	int lastSpace = -1;
+	for (int i = str.length() - 1; i > 0; i--)
+		if (str[i] == ' ') {
+			while (i > 0 && str[i - 1] == ' ')
+				i--;
+			lastSpace = i;
+			break;
+		}
+	int split = lastSpace > 0 ? lastSpace : maxSize;
+	str = str.substr(0, split);
+	str += L"...";
+}
+

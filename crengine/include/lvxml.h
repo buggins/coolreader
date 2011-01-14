@@ -264,7 +264,7 @@ public:
     virtual bool Eof() { return m_eof; /* m_buf_fpos + m_buf_pos >= m_stream_size;*/ }
     virtual void Reset();
     /// tries to autodetect text encoding
-    bool AutodetectEncoding();
+    bool AutodetectEncoding( bool utfOnly=false );
     /// reads next text line, tells file position and size of line, sets EOL flag
     lString16 ReadLine( int maxLineSize, lUInt32 & flags );
     //lString16 ReadLine( int maxLineSize, lvpos_t & fpos, lvsize_t & fsize, lUInt32 & flags );

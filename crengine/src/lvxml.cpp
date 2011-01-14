@@ -399,7 +399,7 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
 }
 
 /// tries to autodetect text encoding
-bool LVTextFileBase::AutodetectEncoding()
+bool LVTextFileBase::AutodetectEncoding( bool utfOnly )
 {
     char enc_name[32];
     char lang_name[32];
@@ -418,7 +418,13 @@ bool LVTextFileBase::AutodetectEncoding()
         return false;
     }
 
-    AutodetectCodePage( buf, sz, enc_name, lang_name );
+    int res = 0;
+    if ( utfOnly )
+        res = AutodetectCodePageUtf( buf, sz, enc_name, lang_name );
+    else
+        res = AutodetectCodePage( buf, sz, enc_name, lang_name );
+    if ( !res )
+        return false;
     //CRLog::debug("Code page decoding results: encoding=%s, lang=%s", enc_name, lang_name);
     m_lang_name = lString16( lang_name );
     SetCharset( lString16( enc_name ).c_str() );
@@ -2795,7 +2801,7 @@ bool LVHTMLParser::CheckFormat()
 {
     Reset();
     // encoding test
-    if ( this->m_encoding_name.empty() && !AutodetectEncoding() )
+    if ( !AutodetectEncoding(!this->m_encoding_name.empty()) )
         return false;
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
     FillBuffer( XML_PARSER_DETECT_SIZE );
