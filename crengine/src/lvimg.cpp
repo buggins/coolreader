@@ -1777,7 +1777,7 @@ public:
                     row[x] = rgb565to888(src[x]);
                 res = callback->OnLineDecoded( this, y, row );
             }
-            delete row;
+            delete[] row;
         }
         callback->OnEndDecode( this, false );
         return true;

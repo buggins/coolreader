@@ -1260,7 +1260,7 @@ LVArray<int> & LVDocView::getSectionBounds() {
 		for (int i = 0; i < cnt; i++) {
 
             ldomNode * l1section = body->getChildElementNode(i, section_id);
-            if (l1section)
+            if (!l1section)
 				continue;
 			lvRect rc;
 			l1section->getAbsRect(rc);

@@ -58,6 +58,7 @@ public:
     }
     bool open( const char * name )
     {
+        memset(&m_ui, 0, sizeof(m_ui));
         if ( CHM_RESOLVE_SUCCESS==chm_resolve_object(_file, name, &m_ui ) ) {
             m_size = (lvpos_t)m_ui.length;
             return true;
@@ -347,8 +348,13 @@ public:
         lString8 res;
         if ( length>0 )
             res.reserve(length);
+        bool zfound = false;
         for ( int i=0; i<length || length==-1; i++ ) {
             int b = _stream->ReadByte();
+            if ( zfound || b==0 && length>=0 ) {
+                zfound = true;
+                continue;
+            }
             if ( b==-1 || b==0 )
                 break;
             res.append(1, (lUInt8)b);
@@ -661,6 +667,7 @@ class CHMSystem {
         bool err = false;
         int code = _reader.readInt16(err);
         int length = _reader.readInt16(err);
+        //CRLog::trace("CHM binary item code=%d, length=%d, bytesLeft=%d", code, length, _reader.bytesLeft());
         if ( err )
             return false;
         LVArray<lUInt8> bytes;
@@ -749,8 +756,16 @@ class CHMSystem {
     bool read() {
         bool err = false;
         _fileVersion = _reader.readInt32(err);
+        int count = 0;
         while ( !_reader.eof() && !err ) {
             err = !decodeEntry() || err;
+            if ( !err )
+                count++;
+        }
+
+        if ( err ) {
+            CRLog::error("CHM decoding error: %d blocks decoded, stream bytes left=%d", count, _reader.bytesLeft() );
+            return false;
         }
         if ( _enc_table==NULL ) {
             _enc_table = GetCharsetByte2UnicodeTable( 1252 );
@@ -784,6 +799,10 @@ public:
 
     lString16 getTitle() {
         return decodeString(_title);
+    }
+
+    lString16 getDefaultTopic() {
+        return decodeString(_defaultTopic);
     }
 
     lString16 getEncodingName() {
@@ -897,16 +916,26 @@ class CHMTOCReader {
     ldomDocumentFragmentWriter * _appender;
     ldomDocument * _doc;
     LVTocItem * _toc;
-    lString16Collection _fileList;
+    lString16HashedCollection _fileList;
     lString16 lastFile;
     lString16 _defEncodingName;
     bool _fakeToc;
 public:
     CHMTOCReader( LVContainerRef cont, ldomDocument * doc, ldomDocumentFragmentWriter * appender )
-        : _cont(cont), _appender(appender), _doc(doc)
+        : _cont(cont), _appender(appender), _doc(doc), _fileList(1024)
     {
         _toc = _doc->getToc();
     }
+    void addFile( const lString16 & v1 ) {
+        int index = _fileList.find(v1.c_str());
+        if ( index>=0 )
+            return; // already added
+        _fileList.add(v1.c_str());
+        CRLog::trace("New source file: %s", LCSTR(v1) );
+        _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + lString16::itoa((int)_fileList.length()) );
+        _appender->setCodeBase( v1 );
+    }
+
     void addTocItem( lString16 name, lString16 url, int level )
     {
         //CRLog::trace("CHM toc level %d: '%s' : %s", level, LCSTR(name), LCSTR(url) );
@@ -916,13 +945,7 @@ public:
         if ( !url.split2(lString16("#"), v1, v2) )
             v1 = url;
         PreProcessXmlString( name, 0 );
-        if ( v1!=lastFile ) {
-            CRLog::trace("New source file: %s", LCSTR(v1) );
-            _fileList.add(v1);
-            lastFile = v1;
-            _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + lString16::itoa((int)_fileList.length()) );
-            _appender->setCodeBase( v1 );
-        }
+        addFile(v1);
         lString16 url2 = _appender->convertHref(url);
         //CRLog::trace("new url: %s", LCSTR(url2) );
         while ( _toc->getLevel()>level && _toc->getParent() )
@@ -970,11 +993,14 @@ public:
         }
     }
 
-    bool init( LVContainerRef cont, lString16 hhcName, lString16 defEncodingName, lString16Collection & urlList )
+    bool init( LVContainerRef cont, lString16 hhcName, lString16 defEncodingName, lString16Collection & urlList, lString16 mainPageName )
     {
         if ( hhcName.empty() && urlList.length()==0 )
             return false;
         _defEncodingName = defEncodingName;
+
+        if ( !mainPageName.empty() )
+            addFile(mainPageName);
 
         if ( hhcName.empty() ) {
             _fakeToc = true;
@@ -1012,6 +1038,13 @@ public:
             if ( body->isElement() ) {
                 // body element
                 recurseToc( body, 0 );
+                // add rest of pages
+                for ( int i=0; i<urlList.length(); i++ ) {
+                    lString16 name = urlList[i];
+                    if ( name.endsWith(lString16(L".htm")) || name.endsWith(lString16(L".html")) )
+                        addFile(name);
+                }
+
                 res = _fileList.length()>0;
                 while ( _toc && _toc->getParent() )
                     _toc = _toc->getParent();
@@ -1028,10 +1061,19 @@ public:
     int appendFragments( LVDocViewCallback * progressCallback )
     {
         int appendedFragments = 0;
+        time_t lastProgressTime = (time_t)time(0);
+        int lastProgressPercent = -1;
         int cnt = _fileList.length();
         for ( int i=0; i<cnt; i++ ) {
-            if ( progressCallback )
-                progressCallback->OnLoadFileProgress( i * 100 / cnt );
+            if ( progressCallback ) {
+                int percent = i * 100 / cnt;
+                time_t ts = (time_t)time(0);
+                if ( ts>lastProgressTime && percent>lastProgressPercent ) {
+                    progressCallback->OnLoadFileProgress( percent );
+                    lastProgressTime = ts;
+                    lastProgressPercent = percent;
+                }
+            }
             lString16 fname = _fileList[i];
             CRLog::trace("Import file %s", LCSTR(fname));
             LVStreamRef stream = _cont->OpenStream(fname.c_str(), LVOM_READ);
@@ -1076,6 +1118,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
         return false;
     lString16 tocFileName = chm->getContentsFileName();
     lString16 defEncodingName = chm->getEncodingName();
+    lString16 mainPageName = chm->getDefaultTopic();
     lString16 title = chm->getTitle();
     CRLog::info("CHM: toc=%s, enc=%s, title=%s", LCSTR(tocFileName), LCSTR(defEncodingName), LCSTR(title));
     //
@@ -1090,7 +1133,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     writer.OnTagOpenNoAttr(L"", L"body");
     ldomDocumentFragmentWriter appender(&writer, lString16(L"body"), lString16(L"DocFragment"), lString16::empty_str );
     CHMTOCReader tocReader(cont, doc, &appender);
-    if ( !tocReader.init(cont, tocFileName, defEncodingName, urlList) )
+    if ( !tocReader.init(cont, tocFileName, defEncodingName, urlList, mainPageName) )
         return false;
 
     if ( !title.empty() )

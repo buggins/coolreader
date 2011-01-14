@@ -232,7 +232,7 @@ public:
             if ( item ) {
                 // for each child element
                 lvdom_element_render_method rendMethod = item->getRendMethod();
-                CRLog::trace("LookupElem[%d] (%s, %d) %d", i, LCSTR(item->getNodeName()), state, (int)item->getRendMethod() );
+                //CRLog::trace("LookupElem[%d] (%s, %d) %d", i, LCSTR(item->getNodeName()), state, (int)item->getRendMethod() );
                 switch ( rendMethod ) {
                 case erm_invisible:  // invisible: don't render
                     // do nothing: invisible

@@ -690,6 +690,8 @@ void lvtextDraw( formatted_text_fragment_t * text, draw_buf_t * buf, int x, int 
 
 #ifdef __cplusplus
 
+#define DUMMY_IMAGE_SIZE 16
+
 void LFormattedText::AddSourceObject(
             lUInt16         flags,    /* flags */
             lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
@@ -701,7 +703,7 @@ void LFormattedText::AddSourceObject(
     ldomNode * node = (ldomNode*)object;
     LVImageSourceRef img = node->getObjectImageSource();
     if ( img.isNull() )
-        img = LVCreateDummyImageSource( node, 50, 50 );
+        img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
     lUInt16 width = (lUInt16)img->GetWidth();
     lUInt16 height = (lUInt16)img->GetHeight();
     lvtextAddSourceObject(m_pbuffer,
@@ -1506,7 +1508,7 @@ public:
                 } else {
                     // measure object
                     // assume i==start+1
-                    int objectWidth = 50; // TODO: real object width
+                    int objectWidth = DUMMY_IMAGE_SIZE; // TODO: real object width
                     lastWidth += objectWidth;
                     m_widths[start] = lastWidth;
                 }
