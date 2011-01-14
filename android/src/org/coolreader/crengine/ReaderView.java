@@ -173,6 +173,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_TOUCH_SCREEN_LOCK(2013),
     	DCMD_TOGGLE_SELECTION_MODE(2014),
     	DCMD_TOGGLE_ORIENTATION(2015),
+    	DCMD_TOGGLE_FULLSCREEN(2016),
     	;
     	
     	private final int nativeId;
@@ -1127,6 +1128,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.setScreenOrientation(orientation);
 	}
 	
+	public void toggleFullscreen()
+	{
+		boolean newBool = !mActivity.isFullscreen();
+		String newValue = newBool ? "1" : "0";
+		saveSetting(PROP_APP_SCREEN_ORIENTATION, newValue);
+		mActivity.setFullscreen(newBool);
+	}
+	
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
 		onCommand( cmd, param, null );
@@ -1139,6 +1148,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		switch ( cmd ) {
 		case DCMD_TOGGLE_ORIENTATION:
 			toggleScreenOrientation();
+			break;
+		case DCMD_TOGGLE_FULLSCREEN:
+			toggleFullscreen();
 			break;
 		case DCMD_TOGGLE_SELECTION_MODE:
 			toggleSelectionMode();
