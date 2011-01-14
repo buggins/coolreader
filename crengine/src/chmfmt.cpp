@@ -873,6 +873,7 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString16 defEncodingNa
     doc->setDocFlags( 0 );
 
     ldomDocumentWriterFilter writerFilter(doc, false, HTML_AUTOCLOSE_TABLE);
+    writerFilter.setFlags(writerFilter.getFlags() | TXTFLG_CONVERT_8BIT_ENTITY_ENCODING);
 
     /// FB2 format
     LVFileFormatParser * parser = new LVHTMLParser(stream, &writerFilter);

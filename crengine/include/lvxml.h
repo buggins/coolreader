@@ -86,9 +86,10 @@ public:
 #define TXTFLG_PRE_PARA_SPLITTING           128
 #define TXTFLG_ENCODING_MASK                0xFF00
 #define TXTFLG_ENCODING_SHIFT               8
+#define TXTFLG_CONVERT_8BIT_ENTITY_ENCODING 0x10000
 
 /// converts XML text: decode character entities, convert space chars
-void PreProcessXmlString( lString16 & s, lUInt32 flags );
+void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_table=NULL );
 
 #define MAX_PERSISTENT_BUF_SIZE 16384
 

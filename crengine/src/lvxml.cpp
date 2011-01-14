@@ -2429,7 +2429,7 @@ static const ent_def_t def_entity_table[] = {
 };
 
 // returns new length
-void PreProcessXmlString( lString16 & s, lUInt32 flags )
+void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_table )
 {
     lChar16 * str = s.modify();
     int len = s.length();
@@ -2504,6 +2504,8 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags )
                 if ( code ) {
                     i=k;
                     state = 0;
+                    if ( enc_table && code<256 && code>=128 )
+                        code = enc_table[code - 128];
                     str[j++] = code;
                     nsp = 0;
                 } else {
@@ -2645,7 +2647,10 @@ bool LVXMLParser::ReadText()
             //=====================================================
             lString16 nextText = m_txt_buf.substr( last_split_txtlen );
             m_txt_buf.limit( last_split_txtlen );
-            PreProcessXmlString( m_txt_buf, flags );
+            const lChar16 enc_table = NULL;
+            if ( flags & TXTFLG_CONVERT_8BIT_ENTITY_ENCODING )
+                enc_table = this->m_conv_table;
+            PreProcessXmlString( m_txt_buf, flags, enc_table );
             if ( (flags & TXTFLG_TRIM) && (!(flags & TXTFLG_PRE) || (flags & TXTFLG_PRE_PARA_SPLITTING)) ) {
                 m_txt_buf.trimDoubleSpaces(
                     ((flags & TXTFLG_TRIM_ALLOW_START_SPACE) || pre_para_splitting)?true:false,
