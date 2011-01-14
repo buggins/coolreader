@@ -655,8 +655,9 @@ static lString16 getSectionHeader(ldomNode * section) {
 	lString16 header;
 	if (!section || section->getChildCount() == 0)
 		return header;
-	ldomNode * child = section->getChildNode(0);
-	if (!child->isElement() || child->getNodeName() != L"title")
+    lUInt16 titleElementId = section->getDocument()->getElementNameIndex(L"title");
+    ldomNode * child = section->getChildElementNode(0, titleElementId);
+    if (child)
 		return header;
 	header = child->getText(L' ');
 	return header;
@@ -1258,8 +1259,8 @@ LVArray<int> & LVDocView::getSectionBounds() {
 		int cnt = body->getChildCount();
 		for (int i = 0; i < cnt; i++) {
 
-			ldomNode * l1section = body->getChildNode(i);
-			if (!l1section->isElement() || l1section->getNodeId() != section_id)
+            ldomNode * l1section = body->getChildElementNode(i, section_id);
+            if (l1section)
 				continue;
 			lvRect rc;
 			l1section->getAbsRect(rc);

@@ -663,6 +663,14 @@ public:
 
     /// returns child node by index
     ldomNode * getChildNode( lUInt32 index ) const;
+    /// returns true child node is element
+    bool isChildNodeElement( lUInt32 index ) const;
+    /// returns true child node is text
+    bool isChildNodeText( lUInt32 index ) const;
+    /// returns child node by index, NULL if node with this index is not element or nodeId!=0 and element node id!=nodeId
+    ldomNode * getChildElementNode( lUInt32 index, lUInt16 nodeId=0 ) const;
+    /// returns child node by index, NULL if node with this index is not element or nodeTag!=0 and element node name!=nodeTag
+    ldomNode * getChildElementNode( lUInt32 index, const lChar16 * nodeTag ) const;
 
     /// returns text node text as wide string
     lString16 getText( lChar16 blockDelimiter = 0 ) const;

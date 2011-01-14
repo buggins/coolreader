@@ -438,6 +438,7 @@ class CHMUrlStr {
                 CHMUrlStrEntry * item = new CHMUrlStrEntry();
                 item->offset = offset;
                 item->url = readString(data, maxdata - data);
+                //CRLog::trace("urlstr[offs=%x, url=%s]", item->offset, item->url.c_str());
                 _table.add( item );
             }
         }
@@ -536,6 +537,7 @@ class CHMUrlTable {
             item->id = readInt32(data);
             item->topicsIndex = readInt32(data);
             item->urlStrOffset = readInt32(data);
+            //CRLog::trace("urltbl[offs=%x, id=%x, ti=%x, urloffs=%x]", item->offset, item->id, item->topicsIndex, item->urlStrOffset);
             _table.add( item );
             offset += 4*3;
             size -= 4*3;
@@ -791,34 +793,32 @@ public:
     lString16 getContentsFileName() {
         if ( _binaryTOCURLTableId!=0 ) {
             lString8 url = _urlTable->urlById(_binaryTOCURLTableId);
-            if ( url.empty() )
-                return lString16::empty_str;
-            return decodeString(url);
-        } else {
-            if ( _contentsFile.empty() ) {
-                lString16 hhcName;
-                int bestSize = 0;
-                for ( int i=0; i<_container->GetObjectCount(); i++ ) {
-                    const LVContainerItemInfo * item = _container->GetObjectInfo(i);
-                    if ( !item->IsContainer() ) {
-                        lString16 name = item->GetName();
-                        int sz = item->GetSize();
-                        //CRLog::trace("CHM item: %s", LCSTR(name));
-                        lString16 lname = name;
-                        lname.lowercase();
-                        if ( lname.endsWith(L".hhc") ) {
-                            if ( sz > bestSize ) {
-                                hhcName = name;
-                                bestSize = sz;
-                            }
+            if ( !url.empty() )
+                return decodeString(url);
+        }
+        if ( _contentsFile.empty() ) {
+            lString16 hhcName;
+            int bestSize = 0;
+            for ( int i=0; i<_container->GetObjectCount(); i++ ) {
+                const LVContainerItemInfo * item = _container->GetObjectInfo(i);
+                if ( !item->IsContainer() ) {
+                    lString16 name = item->GetName();
+                    int sz = item->GetSize();
+                    //CRLog::trace("CHM item: %s", LCSTR(name));
+                    lString16 lname = name;
+                    lname.lowercase();
+                    if ( lname.endsWith(L".hhc") ) {
+                        if ( sz > bestSize ) {
+                            hhcName = name;
+                            bestSize = sz;
                         }
                     }
                 }
-                if ( !hhcName.empty() )
-                    return hhcName;
             }
-            return decodeString(_contentsFile);
+            if ( !hhcName.empty() )
+                return hhcName;
         }
+        return decodeString(_contentsFile);
     }
     void getUrlList( lString16Collection & urlList ) {
         if ( !_urlTable )
@@ -933,6 +933,7 @@ public:
     void recurseToc( ldomNode * node, int level )
     {
         lString16 nodeName = node->getNodeName();
+        lUInt16 paramElemId = node->getDocument()->getElementNameIndex(L"param");
         if ( nodeName==L"object" ) {
             if ( level>0 ) {
                 // process object
@@ -940,8 +941,8 @@ public:
                     lString16 name, local;
                     int cnt = node->getChildCount();
                     for ( int i=0; i<cnt; i++ ) {
-                        ldomNode * child = node->getChildNode(i);
-                        if ( child->isElement() && child->getNodeName()==L"param" ) {
+                        ldomNode * child = node->getChildElementNode(i, paramElemId);
+                        if ( child ) {
                             lString16 paramName = child->getAttributeValue(L"name");
                             lString16 paramValue = child->getAttributeValue(L"value");
                             if ( paramName==L"Name" )
@@ -962,8 +963,8 @@ public:
             level++;
         int cnt = node->getChildCount();
         for ( int i=0; i<cnt; i++ ) {
-            ldomNode * child = node->getChildNode(i);
-            if ( child->isElement() ) {
+            ldomNode * child = node->getChildElementNode(i);
+            if ( child ) {
                 recurseToc( child, level );
             }
         }

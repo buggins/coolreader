@@ -1958,6 +1958,7 @@ bool LVXMLParser::Parse()
     lString16 attrns;
     lString16 attrvalue;
     bool errorFlag = false;
+    int flags = m_callback->getFlags();
     for (;!m_eof && !errorFlag;)
     {
         if ( m_stopped )
@@ -2124,6 +2125,9 @@ bool LVXMLParser::Parse()
                 if ( m_citags ) {
                     attrns.lowercase();
                     attrname.lowercase();
+                }
+                if ( (flags & TXTFLG_CONVERT_8BIT_ENTITY_ENCODING) && m_conv_table ) {
+                    PreProcessXmlString( attrvalue, 0, m_conv_table );
                 }
                 m_callback->OnAttribute( attrns.c_str(), attrname.c_str(), attrvalue.c_str());
                 if (inXmlTag && attrname==L"encoding")
@@ -2647,7 +2651,7 @@ bool LVXMLParser::ReadText()
             //=====================================================
             lString16 nextText = m_txt_buf.substr( last_split_txtlen );
             m_txt_buf.limit( last_split_txtlen );
-            const lChar16 enc_table = NULL;
+            const lChar16 * enc_table = NULL;
             if ( flags & TXTFLG_CONVERT_8BIT_ENTITY_ENCODING )
                 enc_table = this->m_conv_table;
             PreProcessXmlString( m_txt_buf, flags, enc_table );

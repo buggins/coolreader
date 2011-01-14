@@ -228,9 +228,9 @@ public:
         int colindex = 0;
         int tdindex = 0;
         for (unsigned i=0; i<el->getChildCount(); i++) {
-            if (el->getChildNode(i)->isElement() ) {
+            ldomNode * item = el->getChildElementNode(i);
+            if ( item ) {
                 // for each child element
-                ldomNode * item = el->getChildNode(i);
                 lvdom_element_render_method rendMethod = item->getRendMethod();
                 CRLog::trace("LookupElem[%d] (%s, %d) %d", i, LCSTR(item->getNodeName()), state, (int)item->getRendMethod() );
                 switch ( rendMethod ) {
@@ -1330,8 +1330,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 for ( int i=0; i<parent->getChildCount(); i++ ) {
                     lString16 marker;
                     int markerWidth = 0;
-                    ldomNode * child = parent->getChildNode(i);
-                    if ( child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
+                    ldomNode * child = parent->getChildElementNode(i);
+                    if ( child && child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
                         if ( markerWidth>maxWidth )
                             maxWidth = markerWidth;
                     }

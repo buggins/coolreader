@@ -23,7 +23,7 @@ class TocItem : public QTreeWidgetItem
                 nearestPage = page;
             }
 
-            setData( 0, Qt::UserRole, QVariant( cr2qt(item->getXPointer().toString()) ) );
+            setData( 0, Qt::UserRole, QVariant( cr2qt(item->getPath()) ) );
             for ( int i=0; i<item->getChildCount(); i++ ) {
                 addChild( new TocItem( item->getChild(i), currPage, nearestPage, nearestItem ) );
             }

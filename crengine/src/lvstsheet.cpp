@@ -875,10 +875,13 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         //
         {
             int index = node->getNodeIndex();
-            if (index<=0)
-                return false;
-            node = node->getParentNode()->getChildNode(index-1);
-            return (node->getNodeId()==_id);
+            while (index>0) {
+                ldomNode * elem = node->getParentNode()->getChildElementNode(index-1, _id);
+                if ( elem )
+                    return true;
+                index--;
+            }
+            return false;
         }
         break;
     case cssrt_attrset:       // E[foo]

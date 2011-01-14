@@ -3217,8 +3217,8 @@ static lString16 getSectionHeader( ldomNode * section )
     lString16 header;
     if ( !section || section->getChildCount() == 0 )
         return header;
-    ldomNode * child = section->getChildNode(0);
-    if ( !child->isElement() || child->getNodeName()!=L"title" )
+    ldomNode * child = section->getChildElementNode(0, L"title");
+    if ( !child )
         return header;
     header = child->getText(L' ');
     return header;
@@ -4626,8 +4626,8 @@ lString16 ldomXPointer::toString()
             int index = -1;
             int count = 0;
             for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
-                ldomNode * node = parent->getChildNode( i );
-                if ( node->isElement() && node->getNodeId()==id ) {
+                ldomNode * node = parent->getChildElementNode( i, id );
+                if ( node ) {
                     count++;
                     if ( node==p )
                         index = count;
@@ -7979,6 +7979,84 @@ ldomNode * ldomNode::getParentNode() const
         break;
     }
     return parentIndex ? getTinyNode(parentIndex) : NULL;
+}
+
+/// returns true child node is element
+bool ldomNode::isChildNodeElement( lUInt32 index ) const
+{
+    ASSERT_NODE_NOT_NULL;
+#if BUILD_LITE!=1
+    if ( !isPersistent() ) {
+#endif
+        // element
+        tinyElement * me = NPELEM;
+        int n = me->_children[index];
+        return ( (n & 1)==1 );
+#if BUILD_LITE!=1
+    } else {
+        // persistent element
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
+        int n = me->children[index];
+        return ( (n & 1)==1 );
+    }
+#endif
+}
+
+/// returns true child node is text
+bool ldomNode::isChildNodeText( lUInt32 index ) const
+{
+    ASSERT_NODE_NOT_NULL;
+#if BUILD_LITE!=1
+    if ( !isPersistent() ) {
+#endif
+        // element
+        tinyElement * me = NPELEM;
+        int n = me->_children[index];
+        return ( (n & 1)==0 );
+#if BUILD_LITE!=1
+    } else {
+        // persistent element
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
+        int n = me->children[index];
+        return ( (n & 1)==0 );
+    }
+#endif
+}
+
+/// returns child node by index, NULL if node with this index is not element or nodeTag!=0 and element node name!=nodeTag
+ldomNode * ldomNode::getChildElementNode( lUInt32 index, const lChar16 * nodeTag ) const
+{
+    lUInt16 nodeId = getDocument()->getElementNameIndex(nodeTag);
+    return getChildElementNode( index, nodeId );
+}
+
+/// returns child node by index, NULL if node with this index is not element or nodeId!=0 and element node id!=nodeId
+ldomNode * ldomNode::getChildElementNode( lUInt32 index, lUInt16 nodeId ) const
+{
+    ASSERT_NODE_NOT_NULL;
+    ldomNode * res = NULL;
+#if BUILD_LITE!=1
+    if ( !isPersistent() ) {
+#endif
+        // element
+        tinyElement * me = NPELEM;
+        int n = me->_children[index];
+        if ( (n & 1)==0 ) // not element
+            return NULL;
+        res = getTinyNode( n );
+#if BUILD_LITE!=1
+    } else {
+        // persistent element
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
+        int n = me->children[index];
+        if ( (n & 1)==0 ) // not element
+            return NULL;
+        res = getTinyNode( n );
+    }
+#endif
+    if ( res && nodeId!=0 && res->getNodeId()!=nodeId )
+        res = NULL;
+    return res;
 }
 
 /// returns child node by index
