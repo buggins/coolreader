@@ -307,7 +307,7 @@ public:
 // forward declaration
 class ldomNode;
 
-#define TNC_PART_COUNT 512
+#define TNC_PART_COUNT 1024
 #define TNC_PART_SHIFT 10
 #define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
 #define TNC_PART_LEN (1<<TNC_PART_SHIFT)

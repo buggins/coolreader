@@ -896,8 +896,9 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString16 defEncodingNa
 
     /// FB2 format
     LVFileFormatParser * parser = new LVHTMLParser(stream, &writerFilter);
-    if ( parser->CheckFormat() ) {
+    if ( !defEncodingName.empty() )
         parser->SetCharset(defEncodingName.c_str());
+    if ( parser->CheckFormat() ) {
         if ( parser->Parse() ) {
             error = false;
         }

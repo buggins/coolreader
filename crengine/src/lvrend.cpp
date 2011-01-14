@@ -395,7 +395,7 @@ public:
                 CCRTableCell * cell = rows[i]->cells[j];
                 int cs = cell->colspan;
                 //int rs = cell->rowspan;
-                while (cols[x]->nrows>i) { // find free cell position
+                while (x<cols.length() && cols[x]->nrows>i) { // find free cell position
                     x++;
                     ExtendCols(x); // update col count
                 }

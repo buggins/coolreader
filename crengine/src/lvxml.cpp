@@ -419,7 +419,7 @@ bool LVTextFileBase::AutodetectEncoding()
     }
 
     AutodetectCodePage( buf, sz, enc_name, lang_name );
-    CRLog::info("Code page decoding results: encoding=%s, lang=%s", enc_name, lang_name);
+    //CRLog::debug("Code page decoding results: encoding=%s, lang=%s", enc_name, lang_name);
     m_lang_name = lString16( lang_name );
     SetCharset( lString16( enc_name ).c_str() );
 
@@ -2795,7 +2795,7 @@ bool LVHTMLParser::CheckFormat()
 {
     Reset();
     // encoding test
-    if ( !AutodetectEncoding() )
+    if ( this->m_encoding_name.empty() && !AutodetectEncoding() )
         return false;
     lChar16 * chbuf = new lChar16[XML_PARSER_DETECT_SIZE];
     FillBuffer( XML_PARSER_DETECT_SIZE );

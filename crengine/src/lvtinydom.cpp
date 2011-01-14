@@ -3297,6 +3297,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
 
     if ( hasInline ) { //&& firstNonEmpty<=lastNonEmpty
 
+#ifdef TRACE_AUTOBOX
         CRLog::trace("Autobox children %d..%d of node <%s>  childCount=%d", firstNonEmpty, lastNonEmpty, LCSTR(getNodeName()), getChildCount());
 
         for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
@@ -3306,6 +3307,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
             else
                 CRLog::trace("    elem: %d <%s> rendMode=%d  display=%d", node->getDataIndex(), LCSTR(node->getNodeName()), node->getRendMethod(), node->getStyle()->display);
         }
+#endif
         // remove starting empty
         removeChildren(lastNonEmpty+1, endIndex);
 
@@ -7896,8 +7898,10 @@ void ldomNode::modified()
 void ldomNode::setParentNode( ldomNode * parent )
 {
     ASSERT_NODE_NOT_NULL;
+#ifdef TRACE_AUTOBOX
     if ( getParentNode()!=NULL && parent != NULL )
         CRLog::trace("Changing parent of %d from %d to %d", getDataIndex(), getParentNode()->getDataIndex(), parent->getDataIndex());
+#endif
     switch ( TNTYPE ) {
     case NT_ELEMENT:
         NPELEM->_parentNode = parent;
@@ -9124,7 +9128,9 @@ void ldomNode::moveItemsTo( ldomNode * destination, int startChildIndex, int end
     if ( isPersistent() )
         modify();
 
-    CRLog::warn( "moveItemsTo() invoked from %d to %d", getDataIndex(), destination->getDataIndex() );
+#ifdef TRACE_AUTOBOX
+    CRLog::debug( "moveItemsTo() invoked from %d to %d", getDataIndex(), destination->getDataIndex() );
+#endif
     //if ( getDataIndex()==INDEX2 || getDataIndex()==INDEX1) {
     //    CRLog::trace("nodes from element %d are being moved", getDataIndex());
     //}
