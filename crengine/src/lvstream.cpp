@@ -2382,7 +2382,7 @@ public:
         }
         if (bytesRead)
             *bytesRead = (lvsize_t)readBytes;
-        CRLog::trace("%d bytes requested, %d bytes read, %d bytes left", count, readBytes, m_outbytesleft);
+        //CRLog::trace("%d bytes requested, %d bytes read, %d bytes left", count, readBytes, m_outbytesleft);
         return LVERR_OK;
     }
     virtual lverror_t SetSize(lvsize_t)
@@ -2636,7 +2636,7 @@ public:
             item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
             item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
 
-#define DUMP_ZIP_HEADERS
+//#define DUMP_ZIP_HEADERS
 #ifdef DUMP_ZIP_HEADERS
             CRLog::trace("ZIP entry '%s' unpSz=%d, pSz=%d, m=%x, offs=%x, zAttr=%x, flg=%x", LCSTR(fName), (int)ZipHeader.UnpSize, (int)ZipHeader.PackSize, (int)ZipHeader.Method, (int)ZipHeader.getOffset(), (int)ZipHeader.getZIPAttr(), (int)ZipHeader.getAttr());
             //, addL=%d, commL=%d, dn=%d

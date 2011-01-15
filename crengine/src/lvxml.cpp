@@ -2490,7 +2490,11 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_tabl
         }
         else
         {
-            if (state == 2 && ch>='0' && ch<='9')
+            if (state == 2 && ch=='x')
+                state = 22;
+            else if (state == 22 && hexDigit(ch)>=0)
+                nch = (nch << 4) | hexDigit(ch);
+            else if (state == 2 && ch>='0' && ch<='9')
                 nch = nch * 10 + (ch - '0');
             else if (ch=='#' && state==1)
                 state = 2;

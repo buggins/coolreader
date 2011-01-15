@@ -1367,11 +1367,11 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	drawbuf->SetClipRect(&hrc);
 	bool drawGauge = true;
 	lvRect info = headerRc;
-    if ( m_statusColor!=0xFF000000 ) {
-        CRLog::trace("Status color = %06x, textColor=%06x", m_statusColor, getTextColor());
-    } else {
-        CRLog::trace("Status color = TRANSPARENT, textColor=%06x", getTextColor());
-    }
+//    if ( m_statusColor!=0xFF000000 ) {
+//        CRLog::trace("Status color = %06x, textColor=%06x", m_statusColor, getTextColor());
+//    } else {
+//        CRLog::trace("Status color = TRANSPARENT, textColor=%06x", getTextColor());
+//    }
 	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
 	lUInt32 cl2 = getBackgroundColor();
 	lUInt32 cl3 = 0xD0D0D0;

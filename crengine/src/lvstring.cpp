@@ -847,7 +847,7 @@ int lString16::atoi() const
     return n;
 }
 
-static int hexDigit( int c )
+int hexDigit( int c )
 {
     if ( c>='0' && c<='9')
         return c-'0';

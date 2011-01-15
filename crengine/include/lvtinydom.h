@@ -1855,6 +1855,7 @@ class ldomElementWriter
     bool _isBlock;
     bool _isSection;
     bool _stylesheetIsSet;
+    bool _bodyEnterCalled;
     lUInt32 getFlags();
     void updateTocItem();
     void onBodyEnter();
@@ -1942,6 +1943,7 @@ protected:
     lUInt16 _styleAttrId;
     lUInt16 _classAttrId;
     lUInt16 * _rules[MAX_ELEMENT_TYPE_ID];
+    bool _tagBodyCalled;
     virtual void AutoClose( lUInt16 tag_id, bool open );
     virtual void ElementCloseHandler( ldomNode * elem );
     virtual void appendStyle( const lChar16 * style );
@@ -2010,6 +2012,14 @@ public:
     /// called on parsing end
     virtual void OnStop()
     {
+        if ( insideTag ) {
+            insideTag = false;
+            if ( !baseTagReplacement.empty() ) {
+                parent->OnTagClose(L"", baseTagReplacement.c_str());
+            }
+            baseElement = NULL;
+            return;
+        }
         insideTag = false;
     }
     /// called on opening tag

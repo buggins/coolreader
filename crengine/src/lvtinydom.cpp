@@ -56,6 +56,7 @@
 
 /// set t 1 to log storage reads/writes
 #define DEBUG_DOM_STORAGE 0
+//#define TRACE_AUTOBOX
 /// set to 1 to enable crc check of all blocks of cache file on open
 #ifndef ENABLE_CACHE_FILE_CONTENTS_VALIDATION
 #define ENABLE_CACHE_FILE_CONTENTS_VALIDATION 0
@@ -772,7 +773,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
             buf = dstbuf;
             newpackedhash = calcHash64( buf, size );
 #if DEBUG_DOM_STORAGE==1
-            CRLog::trace("packed block %d:%d : %d to %d bytes (%d%%)", type, dataIndex, srcsize, dstsize, srcsize>0?(100*dstsize/srcsize):0 );
+            //CRLog::trace("packed block %d:%d : %d to %d bytes (%d%%)", type, dataIndex, srcsize, dstsize, srcsize>0?(100*dstsize/srcsize):0 );
 #endif
         }
     }
@@ -3141,7 +3142,7 @@ bool IsEmptySpace( const lChar16 * text, int len )
 static bool IS_FIRST_BODY = false;
 
 ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUInt16 id, ldomElementWriter * parent)
-    : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false), _stylesheetIsSet(false)
+    : _parent(parent), _document(document), _tocItem(NULL), _isBlock(true), _isSection(false), _stylesheetIsSet(false), _bodyEnterCalled(false)
 {
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
@@ -3151,6 +3152,7 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
         _element = _parent->getElement()->insertChildElement( (lUInt32)-1, nsid, id );
     else
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
+    //CRLog::trace("ldomElementWriter created for element 0x%04x %s", _element->getDataIndex(), LCSTR(_element->getNodeName()));
     if ( IS_FIRST_BODY && id==el_body ) {
         _tocItem = _document->getToc();
         //_tocItem->clear();
@@ -3247,10 +3249,17 @@ void ldomElementWriter::updateTocItem()
 
 void ldomElementWriter::onBodyEnter()
 {
+    _bodyEnterCalled = true;
 #if BUILD_LITE!=1
+    //CRLog::trace("onBodyEnter() for node %04x %s", _element->getDataIndex(), LCSTR(_element->getNodeName()));
     if ( _document->isDefStyleSet() ) {
         _element->initNodeStyle();
+//        if ( _element->getStyle().isNull() ) {
+//            CRLog::error("error while style initialization of element %x %s", _element->getNodeIndex(), LCSTR(_element->getNodeName()) );
+//            crFatalError();
+//        }
         _isBlock = isBlockNode(_element);
+    } else {
     }
     if ( _isSection ) {
         if ( _parent && _parent->_isSection ) {
@@ -3599,6 +3608,19 @@ void ldomElementWriter::onBodyExit()
 #if BUILD_LITE!=1
     if ( !_document->isDefStyleSet() )
         return;
+    if ( !_bodyEnterCalled ) {
+        onBodyEnter();
+    }
+//    if ( _element->getStyle().isNull() ) {
+//        lString16 path;
+//        ldomNode * p = _element->getParentNode();
+//        while (p) {
+//            path = p->getNodeName() + L"/" + path;
+//            p = p->getParentNode();
+//        }
+//        //CRLog::error("style not initialized for element 0x%04x %s path %s", _element->getDataIndex(), LCSTR(_element->getNodeName()), LCSTR(path));
+//        crFatalError();
+//    }
     _element->initNodeRendMethod();
 
     if ( _stylesheetIsSet )
@@ -3662,8 +3684,6 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
     ldomElementWriter * tmp = obj;
     for ( ; tmp; tmp = tmp->_parent )
     {
-        tmp->getElement()->persist();
-
         //logfile << "-";
         if (tmp->getElement()->getNodeId() == id)
             break;
@@ -3680,10 +3700,12 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
     {
         //logfile << "-";
         tmp2 = tmp->_parent;
-        if (tmp->getElement()->getNodeId() == id)
-            break;
+        bool stop = (tmp->getElement()->getNodeId() == id);
         ElementCloseHandler( tmp->getElement() );
+        tmp->getElement()->persist();
         delete tmp;
+        if ( stop )
+            return tmp2;
     }
     /*
     logfile << "3 * ";
@@ -3691,14 +3713,13 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
     logfile << (int)tmp->getElement()->childCount << " - "
             << (int)tmp2->getElement()->childCount;
     */
-    ElementCloseHandler( tmp->getElement() );
-    delete tmp;
     //logfile << "}";
     return tmp2;
 }
 
 ldomElementWriter::~ldomElementWriter()
 {
+    //CRLog::trace("~ldomElementWriter for element 0x%04x %s", _element->getDataIndex(), LCSTR(_element->getNodeName()));
     //getElement()->persist();
     onBodyExit();
 }
@@ -6259,6 +6280,7 @@ void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar
             parent->OnTagClose(L"", baseTagReplacement.c_str());
         }
         baseElement = NULL;
+        return;
     }
     if ( insideTag )
         parent->OnTagClose(nsname, tagname);
@@ -6345,6 +6367,11 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 
 ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
+    if ( !_tagBodyCalled ) {
+        CRLog::error("OnTagOpen w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
+        crFatalError();
+    }
+    _tagBodyCalled = false;
     //logfile << "lxmlDocumentWriter::OnTagOpen() [" << nsname << ":" << tagname << "]";
 //    if ( nsname && nsname[0] )
 //        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
@@ -6374,6 +6401,7 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
 
 void ldomDocumentWriterFilter::OnTagBody()
 {
+    _tagBodyCalled = true;
     if ( _currNode ) {
         _currNode->onBodyEnter();
     }
@@ -6444,6 +6472,10 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 /// called on closing tag
 void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
 {
+    if ( !_tagBodyCalled ) {
+        CRLog::error("OnTagClose w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
+        crFatalError();
+    }
     //logfile << "ldomDocumentWriter::OnTagClose() [" << nsname << ":" << tagname << "]";
 //    if ( nsname && nsname[0] )
 //        lStr_lowercase( const_cast<lChar16 *>(nsname), lStr_len(nsname) );
@@ -6568,6 +6600,7 @@ ldomDocumentWriterFilter::ldomDocumentWriterFilter(ldomDocument * document, bool
 , _libRuParagraphStart(false)
 , _styleAttrId(0)
 , _classAttrId(0)
+, _tagBodyCalled(true)
 {
     lUInt16 i;
     for ( i=0; i<MAX_ELEMENT_TYPE_ID; i++ )

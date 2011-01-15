@@ -1938,6 +1938,10 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
 
+    if ( parent_style.isNull() ) {
+        CRLog::error("parent style is null!!!");
+    }
+
     // init default style attribute values
     const css_elem_def_props_t * type_ptr = enode->getElementTypePtr();
     if (type_ptr)

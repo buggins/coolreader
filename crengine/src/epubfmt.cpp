@@ -63,7 +63,7 @@ bool DetectEpubFormat( LVStreamRef stream )
     if ( m_arc.isNull() )
         return false; // not a ZIP archive
 
-    dumpZip( m_arc );
+    //dumpZip( m_arc );
 
     // read "mimetype" file contents from root of archive
     lString16 mimeType;
@@ -187,9 +187,12 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         if ( !doc )
             return false;
 
-        CRPropRef m_doc_props = doc->getProps();
-        m_doc_props->setString(DOC_PROP_TITLE, doc->textFromXPath( lString16(L"package/metadata/title") ));
-        m_doc_props->setString(DOC_PROP_AUTHORS, doc->textFromXPath( lString16(L"package/metadata/creator") ));
+        CRPropRef m_doc_props = m_doc->getProps();
+        lString16 author = doc->textFromXPath( lString16(L"package/metadata/creator"));
+        lString16 title = doc->textFromXPath( lString16(L"package/metadata/title"));
+        m_doc_props->setString(DOC_PROP_TITLE, title);
+        m_doc_props->setString(DOC_PROP_AUTHORS, author );
+        CRLog::info("Author: %s Title: %s", LCSTR(author), LCSTR(title));
 
         // items
         for ( int i=1; i<50000; i++ ) {

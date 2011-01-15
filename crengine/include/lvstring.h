@@ -67,6 +67,10 @@ void lStr_lowercase( lChar16 * str, int len );
 /// calculates CRC32 for buffer contents
 lUInt32 lStr_crc32( lUInt32 prevValue, const void * buf, int size );
 
+// returns 0..15 if c is hex digit, -1 otherwise
+int hexDigit( int c );
+
+
 #define CH_PROP_UPPER       0x0001 ///< uppercase alpha character flag
 #define CH_PROP_LOWER       0x0002 ///< lowercase alpha character flag
 #define CH_PROP_ALPHA       0x0003 ///< alpha flag is combination of uppercase and lowercase flags
