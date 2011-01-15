@@ -78,6 +78,49 @@ int LVFont::getVisualAligmentWidth()
     return _visual_alignment_width;
 }
 
+static lChar16 getReplacementChar( lUInt16 code ) {
+    switch (code) {
+    case UNICODE_SOFT_HYPHEN_CODE:
+        return '-';
+    case 0x0401: // CYRILLIC CAPITAL LETTER IO
+        return 0x0415; //CYRILLIC CAPITAL LETTER IE
+    case 0x0451: // CYRILLIC SMALL LETTER IO
+        return 0x0435; // CYRILLIC SMALL LETTER IE
+    case UNICODE_NO_BREAK_SPACE:
+        return ' ';
+    case 0x2010:
+    case 0x2011:
+    case 0x2012:
+    case 0x2013:
+    case 0x2014:
+    case 0x2015:
+        return '-';
+    case 0x2018:
+    case 0x2019:
+    case 0x201a:
+    case 0x201b:
+        return '\'';
+    case 0x201c:
+    case 0x201d:
+    case 0x201e:
+    case 0x201f:
+        return '\"';
+    case 0x2039:
+        return '<';
+    case 0x203A:
+        return '>';
+    case 0x2044:
+        return '/';
+    case 0x25CF: // css_lst_disc:
+        return 'o';
+    case 0x25CB: // css_lst_circle:
+        return '*';
+    case 0x25A0: // css_lst_square:
+        return '-';
+    }
+    return 0;
+}
+
 
 
 /**
@@ -612,14 +655,27 @@ public:
         return true;
     }
 
+
+    FT_UInt getCharIndex( lChar16 code, lChar16 def_char ) {
+        FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, code );
+        if ( ch_glyph_index==0 && def_char ) {
+            lUInt16 replacement = getReplacementChar( code );
+            if ( replacement )
+                ch_glyph_index = FT_Get_Char_Index( _face, replacement );
+            if ( ch_glyph_index==0 )
+                ch_glyph_index = FT_Get_Char_Index( _face, def_char );
+        }
+        return ch_glyph_index;
+    }
+
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
+    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
     {
         LVLock lock(_mutex);
-        int glyph_index = FT_Get_Char_Index( _face, code );
+        int glyph_index = getCharIndex( code, def_char );
         if ( glyph_index==0 )
             return false;
         int error = FT_Load_Glyph(
@@ -696,11 +752,8 @@ public:
             int kerning = 0;
 #if (ALLOW_KERNING==1)
             if ( use_kerning && previous ) {
-                if ( ch_glyph_index==(FT_UInt)-1 ){
-                    ch_glyph_index = FT_Get_Char_Index( _face, ch );
-                    if ( ch_glyph_index==0 )
-                        ch_glyph_index = FT_Get_Char_Index( _face, def_char );
-                }
+                if ( ch_glyph_index==(FT_UInt)-1 )
+                    ch_glyph_index = getCharIndex( ch, def_char );
                 if ( ch_glyph_index != 0 ) {
                     FT_Vector delta;
                     error = FT_Get_Kerning( _face,          /* handle to face object */
@@ -719,11 +772,8 @@ public:
             /* load glyph image into the slot (erase previous one) */
             int w = _wcache.get(ch);
             if ( w==0xFF ) {
-                if ( ch_glyph_index==(FT_UInt)-1 ){
-                    ch_glyph_index = FT_Get_Char_Index( _face, ch );
-                    if ( ch_glyph_index==0 )
-                        ch_glyph_index = FT_Get_Char_Index( _face, def_char );
-                }
+                if ( ch_glyph_index==(FT_UInt)-1 )
+                    ch_glyph_index = getCharIndex( ch, def_char );
                 error = FT_Load_Glyph( _face,          /* handle to face object */
                         ch_glyph_index,                /* glyph index           */
                         FT_LOAD_DEFAULT );             /* load flags, see below */
@@ -802,12 +852,12 @@ public:
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found 
     */
-    virtual bool getGlyphImage(lUInt16 ch, lUInt8 * bmp)
+    virtual bool getGlyphImage(lUInt16 ch, lUInt8 * bmp, lChar16 def_char=0)
     {
         if ( ch=='\t' )
             ch = ' ';
-        FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, ch );
-        if ( ch_glyph_index==0 )
+        FT_UInt ch_glyph_index = getCharIndex( ch, def_char );
+        if ( !ch_glyph_index )
             return false;
         LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
         if ( !item ) {
@@ -840,16 +890,15 @@ public:
     }
 
     /// returns char width
-    virtual int getCharWidth( lChar16 ch )
+    virtual int getCharWidth( lChar16 ch, lChar16 def_char='?' )
     {
         if ( ch=='\t' )
             ch = ' ';
         int w = _wcache.get(ch);
         if ( w==0xFF ) {
-            int ch_glyph_index = FT_Get_Char_Index( _face, ch );
-            if ( ch_glyph_index==0 )
-                ch_glyph_index = FT_Get_Char_Index( _face, '?' );
-            int error = FT_Load_Glyph( _face,          /* handle to face object */
+            int ch_glyph_index = getCharIndex( ch, def_char );
+            int error = (ch_glyph_index==0)
+                        || FT_Load_Glyph( _face,          /* handle to face object */
                     ch_glyph_index,                /* glyph index           */
                     FT_LOAD_DEFAULT );             /* load flags, see below */
             if ( error )
@@ -919,9 +968,7 @@ public:
                 ch = UNICODE_SOFT_HYPHEN_CODE;
                 isHyphen = 0;
             }
-            FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, ch );
-            if ( ch_glyph_index==0 )
-                ch_glyph_index = FT_Get_Char_Index( _face, def_char );
+            FT_UInt ch_glyph_index = getCharIndex( ch, def_char );
             int kerning = 0;
 #if (ALLOW_KERNING==1)
             if ( use_kerning && previous && ch_glyph_index ) {
@@ -1066,9 +1113,9 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
+    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0  )
     {
-        bool res = _baseFont->getGlyphInfo( code, glyph );
+        bool res = _baseFont->getGlyphInfo( code, glyph, def_char );
         if ( !res )
             return res;
         glyph->blackBoxX += glyph->blackBoxX>0 ? _hShift : 0;
@@ -1145,10 +1192,10 @@ public:
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found
     */
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf)
+    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0 )
     {
         glyph_info_t glyph;
-        if ( !_baseFont->getGlyphInfo( code, &glyph ) )
+        if ( !_baseFont->getGlyphInfo( code, &glyph, def_char ) )
             return 0;
         int oldx = glyph.blackBoxX;
         int oldy = glyph.blackBoxY;
@@ -1158,7 +1205,7 @@ public:
             return true;
         LVAutoPtr<lUInt8> tmp( new lUInt8[oldx*oldy] );
         memset(buf, 0, dx*dy);
-		bool res = _baseFont->getGlyphImage( code, tmp.get() );
+        bool res = _baseFont->getGlyphImage( code, tmp.get(), def_char );
         for ( int y=0; y<dy; y++ ) {
             lUInt8 * dst = buf + y*dx;
             for ( int x=0; x<dx; x++ ) {
@@ -1193,9 +1240,9 @@ public:
     }
 
     /// returns char width
-    virtual int getCharWidth( lChar16 ch )
+    virtual int getCharWidth( lChar16 ch, lChar16 def_char=0 )
     {
-        int w = _baseFont->getCharWidth( ch ) + _hShift;
+        int w = _baseFont->getCharWidth( ch, def_char ) + _hShift;
         return w;
     }
 
@@ -1253,9 +1300,9 @@ public:
             }
 
             glyph_info_t glyph;
-            if ( !getGlyphInfo( ch, &glyph ) ) {
+            if ( !getGlyphInfo( ch, &glyph, def_char ) ) {
                 ch = def_char;
-                if ( !getGlyphInfo( ch, &glyph ) ) {
+                if ( !getGlyphInfo( ch, &glyph, def_char ) ) {
                     glyph.blackBoxX = glyph.blackBoxY = 0;
                 }
             }
@@ -1263,7 +1310,7 @@ public:
             int w = glyph.width;
             if ( glyph.blackBoxX && glyph.blackBoxY && (!isHyphen || i>=len-1) ) {
                 LVAutoPtr<lUInt8> bmp( new lUInt8[glyph.blackBoxX * glyph.blackBoxY] );
-                if ( getGlyphImage( ch, bmp.get() ) ) {
+                if ( getGlyphImage( ch, bmp.get(), def_char ) ) {
                     buf->Draw( x + glyph.originX,
                         y + _baseline - glyph.originY,
                         bmp.get(),
@@ -2183,7 +2230,7 @@ int CALLBACK LVWin32FontEnumFontFamExProc(
             for (int i=0; chars[i]; i++)
             {
                 LVFont::glyph_info_t glyph;
-                if (!fnt.getGlyphInfo( chars[i], &glyph ))
+                if (!fnt.getGlyphInfo( chars[i], &glyph, def_char ))
                     return 1;
             }
             fontman->RegisterFont( lf ); //&lpelfe->elfLogFont
@@ -2293,13 +2340,13 @@ void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
       if (len<=1 || *text != UNICODE_SOFT_HYPHEN_CODE)
       {
           lChar16 ch = ((len==0)?UNICODE_SOFT_HYPHEN_CODE:*text);
-          if ( !getGlyphInfo( ch, &info ) )
+          if ( !getGlyphInfo( ch, &info, def_char ) )
           {
               ch = def_char;
-              if ( !getGlyphInfo( ch, &info ) )
+              if ( !getGlyphInfo( ch, &info, def_char ) )
                   ch = 0;
           }
-          if (ch && getGlyphImage( ch, glyph_buf ))
+          if (ch && getGlyphImage( ch, glyph_buf, def_char ))
           {
               if (info.blackBoxX && info.blackBoxY)
               {
@@ -2323,7 +2370,7 @@ void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
 }
 
 #if (USE_BITMAP_FONTS==1)
-bool LBitmapFont::getGlyphInfo( lUInt16 code, LVFont::glyph_info_t * glyph )
+bool LBitmapFont::getGlyphInfo( lUInt16 code, LVFont::glyph_info_t * glyph, lChar16 def_char=0 )
 {
     const lvfont_glyph_t * ptr = lvfontGetGlyph( m_font, code );
     if (!ptr)
@@ -2382,7 +2429,7 @@ int LBitmapFont::getHeight() const
     const lvfont_header_t * hdr = lvfontGetHeader( m_font );
     return hdr->fontHeight;
 }
-bool LBitmapFont::getGlyphImage(lUInt16 code, lUInt8 * buf)
+bool LBitmapFont::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0)
 {
     const lvfont_glyph_t * ptr = lvfontGetGlyph( m_font, code );
     if (!ptr)
@@ -2628,13 +2675,13 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32DrawFont::getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
+bool LVWin32DrawFont::getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
 {
     return false;
 }
 
 /// returns char width
-int LVWin32DrawFont::getCharWidth( lChar16 ch )
+int LVWin32DrawFont::getCharWidth( lChar16 ch, lChar16 def_char=0 )
 {
     if (_hfont==NULL)
         return 0;
@@ -2868,7 +2915,7 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
     \param buf is buffer [width*height] to place glyph data
     \return true if glyph was found 
 */
-bool LVWin32DrawFont::getGlyphImage(lUInt16 code, lUInt8 * buf)
+bool LVWin32DrawFont::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0)
 {
     return false;
 }
@@ -3017,7 +3064,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32Font::getGlyphInfo( lUInt16 code, glyph_info_t * glyph )
+bool LVWin32Font::getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
 {
     if (_hfont==NULL)
         return false;
@@ -3130,7 +3177,7 @@ lUInt16 LVWin32Font::measureText(
     \param buf is buffer [width*height] to place glyph data
     \return true if glyph was found 
 */
-bool LVWin32Font::getGlyphImage(lUInt16 code, lUInt8 * buf)
+bool LVWin32Font::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0)
 {
     if (_hfont==NULL)
         return false;
