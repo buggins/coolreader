@@ -1369,6 +1369,8 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	lvRect info = headerRc;
     if ( m_statusColor!=0xFF000000 ) {
         CRLog::trace("Status color = %06x, textColor=%06x", m_statusColor, getTextColor());
+    } else {
+        CRLog::trace("Status color = TRANSPARENT, textColor=%06x", getTextColor());
     }
 	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
 	lUInt32 cl2 = getBackgroundColor();
@@ -4603,13 +4605,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 				CRLog::trace("Setting inverse colors");
 				setBackgroundColor(textColor);
 				setTextColor(backColor);
-				m_statusColor = backColor;
+				setStatusColor(backColor);
 				requestRender(); // TODO: only colors to be changed
 			} else {
 				CRLog::trace("Setting normal colors");
 				setBackgroundColor(backColor);
 				setTextColor(textColor);
-				m_statusColor = statusColor;
+				setStatusColor(statusColor);
 				requestRender(); // TODO: only colors to be changed
 			}
 		} else if (name == PROP_PAGE_MARGIN_TOP || name

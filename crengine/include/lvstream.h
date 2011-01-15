@@ -607,7 +607,13 @@ public:
 
     virtual lverror_t Seek(lvoffset_t pos, lvseek_origin_t origin, lvpos_t* newPos)
     {
-        lverror_t res = m_stream->Seek( m_start + pos, origin, &m_pos );
+        if ( origin==LVSEEK_SET )
+            pos += m_start;
+        else if ( origin==LVSEEK_END ) {
+            origin = LVSEEK_SET;
+            pos = m_start + m_size;
+        }
+        lverror_t res = m_stream->Seek( pos, origin, &m_pos );
         if (res == LVERR_OK)
             m_pos -= m_start;
         if (newPos)

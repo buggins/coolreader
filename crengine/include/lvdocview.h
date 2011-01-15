@@ -705,6 +705,18 @@ public:
         clearImageCache();
     }
 
+    /// returns text color
+    lUInt32 getStatusColor()
+    {
+        return m_statusColor;
+    }
+    /// sets text color
+    void setStatusColor( lUInt32 cl )
+    {
+        m_statusColor = cl;
+        clearImageCache();
+    }
+
     CRPageSkinRef getPageSkin();
     void setPageSkin( CRPageSkinRef skin );
 

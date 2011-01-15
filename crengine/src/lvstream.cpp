@@ -1750,7 +1750,7 @@ private:
         //if ( m_stream->SetPos( item->start )==(lvpos_t)(~0) )
         if ( m_stream->SetPos( item->start )!=(lvpos_t)item->start )
             return false;
-
+        int streamSize=m_stream->GetSize(); int bytesLeft = m_stream->GetSize() - m_stream->GetPos();
         lvsize_t bytesRead = 0;
         if ( m_stream->Read( item->buf, item->size, &bytesRead )!=LVERR_OK || bytesRead!=item->size )
             return false;
@@ -2070,8 +2070,10 @@ struct ZipHd2
 };
 #pragma pack(pop)
 
-#define ARC_INBUF_SIZE  8192
-#define ARC_OUTBUF_SIZE 16384
+//#define ARC_INBUF_SIZE  4096
+//#define ARC_OUTBUF_SIZE 16384
+#define ARC_INBUF_SIZE  5000
+#define ARC_OUTBUF_SIZE 10000
 
 #if (USE_ZLIB==1)
 
@@ -2161,8 +2163,10 @@ private:
             else
             {
                 //check CRC
-                if ( m_CRC != m_originalCRC )
+                if ( m_CRC != m_originalCRC ) {
+                    CRLog::error("ZIP stream '%s': CRC doesn't match", LCSTR(lString16(GetName())) );
                     return -1; // CRC error
+                }
             }
         }
         return m_zstream.avail_in;
@@ -2179,6 +2183,7 @@ private:
         // inbuf
         m_inbytesleft = m_packsize;
         m_zstream.next_in = m_inbuf;
+        m_zstream.avail_in = 0;
         fillInBuf();
         // outbuf
         m_zstream.next_out = m_outbuf;
@@ -2286,18 +2291,20 @@ private:
                 return bytesRead;
             }
 
-            if (avail >= bytesToRead)
-                avail = bytesToRead;
+            int delta = avail;
+            if (delta > bytesToRead)
+                delta = bytesToRead;
+
 
             // copy data
             lUInt8 * src = m_outbuf + m_decodedpos;
-            for (int i=avail; i>0; --i)
+            for (int i=delta; i>0; --i)
                 *buf++ = *src++;
 
-            m_decodedpos += avail;
-            m_outbytesleft -= avail;
-            bytesRead += avail;
-            bytesToRead -= avail;
+            m_decodedpos += delta;
+            m_outbytesleft -= delta;
+            bytesRead += delta;
+            bytesToRead -= delta;
         }
         return bytesRead;
     }
@@ -2375,6 +2382,7 @@ public:
         }
         if (bytesRead)
             *bytesRead = (lvsize_t)readBytes;
+        CRLog::trace("%d bytes requested, %d bytes read, %d bytes left", count, readBytes, m_outbytesleft);
         return LVERR_OK;
     }
     virtual lverror_t SetSize(lvsize_t)
@@ -2460,7 +2468,8 @@ public:
             stream->SetName(m_list[found_index]->GetName());
             // Use buffering?
             //return stream;
-            return LVCreateBufferedStream( stream, ZIP_STREAM_BUFFER_SIZE );
+            return stream;
+            //return LVCreateBufferedStream( stream, ZIP_STREAM_BUFFER_SIZE );
         }
         return stream;
     }
@@ -2626,6 +2635,14 @@ public:
 
             item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
             item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
+
+#define DUMP_ZIP_HEADERS
+#ifdef DUMP_ZIP_HEADERS
+            CRLog::trace("ZIP entry '%s' unpSz=%d, pSz=%d, m=%x, offs=%x, zAttr=%x, flg=%x", LCSTR(fName), (int)ZipHeader.UnpSize, (int)ZipHeader.PackSize, (int)ZipHeader.Method, (int)ZipHeader.getOffset(), (int)ZipHeader.getZIPAttr(), (int)ZipHeader.getAttr());
+            //, addL=%d, commL=%d, dn=%d
+            //, (int)ZipHeader.AddLen, (int)ZipHeader.CommLen, (int)ZipHeader.DiskNum
+#endif
+
             m_list.add(item);
         }
         int sz2 = m_list.length();
@@ -3639,14 +3656,24 @@ lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in )
 
 lvsize_t LVPumpStream( LVStream * out, LVStream * in )
 {
-    char buf[4096];
+    char buf[5000];
     lvsize_t totalBytesRead = 0;
     lvsize_t bytesRead = 0;
     in->SetPos(0);
-    while ( in->Read( buf, 4096, &bytesRead )==LVERR_OK && bytesRead>0 )
+    lvsize_t bytesToRead = in->GetSize();
+    while ( bytesRead>0 )
     {
+        int blockSize = 5000;
+        if (blockSize > bytesToRead)
+            blockSize = bytesToRead;
+        bytesRead = 0;
+        if ( in->Read( buf, blockSize, &bytesRead )!=LVERR_OK )
+            break;
+        if ( !bytesRead )
+            break;
         out->Write( buf, bytesRead, NULL );
         totalBytesRead += bytesRead;
+        bytesToRead -= bytesRead;
     }
     return totalBytesRead;
 }

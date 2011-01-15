@@ -423,16 +423,16 @@ bool LVTextFileBase::AutodetectEncoding( bool utfOnly )
         res = AutodetectCodePageUtf( buf, sz, enc_name, lang_name );
     else
         res = AutodetectCodePage( buf, sz, enc_name, lang_name );
-    if ( !res )
-        return false;
-    //CRLog::debug("Code page decoding results: encoding=%s, lang=%s", enc_name, lang_name);
-    m_lang_name = lString16( lang_name );
-    SetCharset( lString16( enc_name ).c_str() );
-
-    // restore state
     delete[] buf;
     m_stream->SetPos( oldpos );
-    return true;
+    if ( res) {
+        //CRLog::debug("Code page decoding results: encoding=%s, lang=%s", enc_name, lang_name);
+        m_lang_name = lString16( lang_name );
+        SetCharset( lString16( enc_name ).c_str() );
+    }
+
+    // restore state
+    return res!=0  || utfOnly;
 }
 
 /// seek to specified stream position

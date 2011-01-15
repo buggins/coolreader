@@ -34,18 +34,36 @@ public:
     }
 };
 
-
+static void dumpZip( LVContainerRef arc ) {
+    lString16 arcName = LVExtractFilenameWithoutExtension( arc->GetName() );
+    if ( arcName.empty() )
+        arcName = L"unziparc";
+    lString16 outDir = lString16("/tmp/") + arcName;
+    LVCreateDirectory(outDir);
+    for ( int i=0; i<arc->GetObjectCount(); i++ ) {
+        const LVContainerItemInfo * info = arc->GetObjectInfo(i);
+        if ( !info->IsContainer() ) {
+            lString16 outFileName = outDir + L"/" + info->GetName();
+            LVCreateDirectory(LVExtractPath(outFileName));
+            LVStreamRef in = arc->OpenStream(info->GetName(), LVOM_READ);
+            LVStreamRef out = LVOpenFileStream(outFileName.c_str(), LVOM_WRITE);
+            if ( !in.isNull() && !out.isNull() ) {
+                CRLog::trace("Writing %s", LCSTR(outFileName));
+                LVPumpStream(out.get(), in.get());
+            }
+        }
+    }
+}
 
 bool DetectEpubFormat( LVStreamRef stream )
 {
 
 
-
-
-
     LVContainerRef m_arc = LVOpenArchieve( stream );
     if ( m_arc.isNull() )
         return false; // not a ZIP archive
+
+    dumpZip( m_arc );
 
     // read "mimetype" file contents from root of archive
     lString16 mimeType;
