@@ -336,7 +336,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    			}
 	    		});
 	    	}
-	    }, mOpened ? 1000 : 50);
+	    }, mOpened ? 2200 : 500);
 	}
 	
 	public boolean isBookLoaded()
