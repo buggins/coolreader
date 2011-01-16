@@ -2820,17 +2820,33 @@ void ldomDocument::applyDocumentStyleSheet()
         CRLog::trace("applyDocumentStyleSheet() : DOC_FLAG_ENABLE_INTERNAL_STYLES is disabled");
         return;
     }
-    ldomXPointer ss = createXPointer(lString16(L"/FictionBook/stylesheet"));
-    if ( !ss.isNull() ) {
-        lString16 css = ss.getText('\n');
-        if ( !css.empty() ) {
-            CRLog::debug("applyDocumentStyleSheet() : Using internal FB2 document stylesheet:\n%s", LCSTR(css));
-            _stylesheet.parse(LCSTR(css));
-        } else {
-            CRLog::trace("applyDocumentStyleSheet() : stylesheet under /FictionBook/stylesheet is empty");
+    if ( !_docStylesheetFileName.empty() ) {
+        if ( getContainer().isNull() )
+            return;
+        LVStreamRef cssStream = getContainer()->OpenStream(_docStylesheetFileName.c_str(), LVOM_READ);
+        if ( !cssStream.isNull() ) {
+            lString16 css;
+            css << LVReadTextFile( cssStream );
+            if ( !css.empty() ) {
+                CRLog::debug("applyDocumentStyleSheet() : Using document stylesheet from link/stylesheet from %s", LCSTR(_docStylesheetFileName));
+                _stylesheet.parse(LCSTR(css));
+                return;
+            }
         }
+        CRLog::error("applyDocumentStyleSheet() : cannot load link/stylesheet from %s", LCSTR(_docStylesheetFileName));
     } else {
-        CRLog::trace("applyDocumentStyleSheet() : No internal FB2 stylesheet found under /FictionBook/stylesheet");
+        ldomXPointer ss = createXPointer(lString16(L"/FictionBook/stylesheet"));
+        if ( !ss.isNull() ) {
+            lString16 css = ss.getText('\n');
+            if ( !css.empty() ) {
+                CRLog::debug("applyDocumentStyleSheet() : Using internal FB2 document stylesheet:\n%s", LCSTR(css));
+                _stylesheet.parse(LCSTR(css));
+            } else {
+                CRLog::trace("applyDocumentStyleSheet() : stylesheet under /FictionBook/stylesheet is empty");
+            }
+        } else {
+            CRLog::trace("applyDocumentStyleSheet() : No internal FB2 stylesheet found under /FictionBook/stylesheet");
+        }
     }
 }
 
@@ -3643,10 +3659,12 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     //logfile << "}";
 }
 
+//#define DISABLE_STYLESHEET_REL
 #if BUILD_LITE!=1
 /// if stylesheet file name is set, and file is found, set stylesheet to its value
 bool ldomNode::applyNodeStylesheet()
 {
+#ifndef DISABLE_STYLESHEET_REL
     if ( getNodeId()!=el_DocFragment || !hasAttribute(attr_StyleSheet) )
         return false;
     lString16 v = getAttributeValue(attr_StyleSheet);
@@ -3664,6 +3682,7 @@ bool ldomNode::applyNodeStylesheet()
             return true;
         }
     }
+#endif
     return false;
 }
 #endif
@@ -3806,6 +3825,17 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         _errFlag = true;
         //logfile << " !c-err!\n";
         return;
+    }
+    if ( tagname[0]=='l' && _currNode && !lStr_cmp(tagname, L"link") ) {
+        // link node
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName()==L"link" &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName()==L"head" &&
+             _currNode->getElement()->getAttributeValue(L"rel")==L"stylesheet" &&
+             _currNode->getElement()->getAttributeValue(L"type")==L"text/css" ) {
+            lString16 href = _currNode->getElement()->getAttributeValue(L"href");
+            lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
+            CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
+        }
     }
     lUInt16 id = _document->getElementNameIndex(tagname);
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;

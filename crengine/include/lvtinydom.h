@@ -1713,6 +1713,8 @@ private:
     ldomXRangeList _selections;
 #endif
 
+    lString16 _docStylesheetFileName;
+
     LVContainerRef _container;
 
     LVHashTable<lUInt32, ListNumberingPropsRef> lists;
@@ -1781,6 +1783,8 @@ public:
     void clearRendBlockCache() { _renderedBlockCache.clear(); }
 #endif
     void clear();
+    lString16 getDocStylesheetFileName() { return _docStylesheetFileName; }
+    void setDocStylesheetFileName(lString16 fileName) { _docStylesheetFileName = fileName; }
 
     ldomDocument();
     /// creates empty document which is ready to be copy target of doc partial contents

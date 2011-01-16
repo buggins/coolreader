@@ -629,7 +629,11 @@ public:
     virtual lverror_t Read(void* buf, lvsize_t size, lvsize_t* pBytesRead)
     {
         lvsize_t bytesRead = 0;
-        lverror_t res = m_stream->Read( buf, size, &bytesRead );
+        lvpos_t p;
+        lverror_t res = m_stream->Seek( m_pos+m_start, LVSEEK_SET, &p );
+        if ( res!=LVERR_OK )
+            return res;
+        res = m_stream->Read( buf, size, &bytesRead );
         if (res == LVERR_OK)
             m_pos += bytesRead;
         if (pBytesRead)

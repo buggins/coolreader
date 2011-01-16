@@ -162,7 +162,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     //EpubItem * epubToc = NULL; //TODO
     LVArray<EpubItem*> spineItems;
     lString16 codeBase;
-    lString16 css;
+    //lString16 css;
 
     //
     {
@@ -209,14 +209,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 epubItem->mediaType = mediaType;
                 epubItems.add( epubItem );
             }
-            if ( mediaType==L"text/css" ) {
-                lString16 name = codeBase + href;
-                LVStreamRef cssStream = m_arc->OpenStream(name.c_str(), LVOM_READ);
-                if ( !cssStream.isNull() ) {
-                    css << L"\n";
-                    css << LVReadTextFile( cssStream );
-                }
-            }
+//            if ( mediaType==L"text/css" ) {
+//                lString16 name = codeBase + href;
+//                LVStreamRef cssStream = m_arc->OpenStream(name.c_str(), LVOM_READ);
+//                if ( !cssStream.isNull() ) {
+//                    css << L"\n";
+//                    css << LVReadTextFile( cssStream );
+//                }
+//            }
         }
 
         // spine == itemrefs
