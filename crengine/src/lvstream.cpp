@@ -2603,16 +2603,22 @@ public:
                 break; //(GETARC_EOF);
             }
 
-            const int NM = 513;
+            //const int NM = 513;
+            const int NM = 4096;
+            if ( ZipHeader.NameLen>NM ) {
+                CRLog::error("ZIP entry name length is too big: %d", (int)ZipHeader.NameLen);
+                return 0;
+            }
             lUInt32 SizeToRead=(ZipHeader.NameLen<NM) ? ZipHeader.NameLen : NM;
-            char fnbuf[1025];
+            char fnbuf[NM+1];
             m_stream->Read( fnbuf, SizeToRead, &ReadSize);
 
             if (ReadSize!=SizeToRead) {
+                CRLog::error("error while reading zip entry name");
                 return 0;
             }
 
-            fnbuf[ZipHeader.NameLen]=0;
+            fnbuf[SizeToRead]=0;
 
             long SeekLen=ZipHeader.AddLen+ZipHeader.CommLen;
 
