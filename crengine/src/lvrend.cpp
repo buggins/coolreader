@@ -836,8 +836,8 @@ LVFontRef getFont( css_style_rec_t * style )
         sz >>= 8;
     if ( sz < 8 )
         sz = 8;
-    if ( sz > 50 )
-        sz = 50;
+    if ( sz > 72 )
+        sz = 72;
     int fw;
     if (style->font_weight>=css_fw_100 && style->font_weight<=css_fw_900)
         fw = ((style->font_weight - css_fw_100)+1) * 100;

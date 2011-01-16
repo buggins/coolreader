@@ -159,7 +159,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 	createDefaultDocument(lString16(L"No document"), lString16(
 			L"Welcome to CoolReader! Please select file to open"));
 
-	m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
+    m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
 			m_defaultFontFace);
 	m_infoFont = fontMan->GetFont(m_status_font_size, 700, false,
 			DEFAULT_FONT_FAMILY, m_statusFontFace);
