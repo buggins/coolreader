@@ -30,7 +30,7 @@ text-author { font-weight: bold; font-style: italic; margin-left: 5%}
 epigraph { margin-left: 25%; margin-right: 1em; text-align: left; text-indent: 1px; font-style: italic; margin-top: 15px; margin-bottom: 25px }
 cite { font-style: italic; margin-left: 5%; margin-right: 5%; text-align: justyfy; margin-top: 20px; margin-bottom: 20px }
 
-title, h1, h2 { text-align: center; text-indent: 0px; font-weight: bold; hyphenate: none; page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }
+title, h1, h2 { text-align: center; text-indent: 0px; font-weight: bold; hyphenate: none; page-break-before: auto; page-break-inside: avoid; page-break-after: avoid; }
 subtitle, h3, h4, h5, h6 { text-align: center; text-indent: 0px; font-weight: bold; hyphenate: none; page-break-inside: avoid; page-break-after: avoid; }
 title { font-size: 110%; margin-top: 0.7em; margin-bottom: 0.5em }
 subtitle { font-style: italic; margin-top: 0.3em; margin-bottom: 0.3em }

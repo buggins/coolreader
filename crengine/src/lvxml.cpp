@@ -1884,12 +1884,14 @@ void LVXMLParser::Reset()
     m_state = ps_bof;
 }
 
-LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback )
+LVXMLParser::LVXMLParser( LVStreamRef stream, LVXMLParserCallback * callback, bool allowHtml, bool fb2Only )
     : LVTextFileBase(stream)
     , m_callback(callback)
     , m_trimspaces(true)
     , m_state(0)
     , m_citags(false)
+    , m_allowHtml(allowHtml)
+    , m_fb2Only(fb2Only)
 
 {
     m_firstPageTextCounter = 2000;
@@ -1922,8 +1924,9 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        if ( ( (s.pos(L"<?xml") >=0 || s.pos(L" xmlns=")>0 )&& s.pos(L"version=") >= 6) ||
-             s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"")>=0 ) {
+        bool flg = !m_fb2Only || s.pos(L"<FictionBook") >= 0;
+        if ( flg && (( (s.pos(L"<?xml") >=0 || s.pos(L" xmlns=")>0 )&& s.pos(L"version=") >= 6) ||
+             m_allowHtml && s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"")>=0 )) {
             //&& s.pos(L"<FictionBook") >= 0
             res = true;
             int encpos=s.pos(L"encoding=\"");

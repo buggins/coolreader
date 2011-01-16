@@ -1702,6 +1702,7 @@ typedef LVRef<ListNumberingProps> ListNumberingPropsRef;
 class ldomDocument : public lxmlDocBase
 {
     friend class ldomDocumentWriter;
+    friend class ldomDocumentWriterFilter;
 private:
 #if BUILD_LITE!=1
     font_ref_t _def_font; // default font
@@ -1980,6 +1981,7 @@ private:
     lString16 filePathName;
     lString16 codeBasePrefix;
     lString16 stylesheetFile;
+    lString16 tmpStylesheetFile;
     bool insideTag;
     int styleDetectionState;
     LVHashTable<lString16, lString16> pathSubstitutions;

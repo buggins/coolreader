@@ -3429,7 +3429,7 @@ bool LVDocView::ParseDocument() {
 
 		/// FB2 format
 		setDocFormat( doc_format_fb2);
-		LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer);
+        LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer, false, true);
 		if (!parser->CheckFormat()) {
 			delete parser;
 			parser = NULL;

@@ -1559,6 +1559,116 @@ int CssPageBreak2Flags( css_page_break_t prop )
     }
 }
 
+bool isFirstBlockChild( ldomNode * parent, ldomNode * child ) {
+    int count = parent->getChildCount();
+    for ( int i=0; i<count; i++ ) {
+        ldomNode * el = parent->getChildNode(i);
+        if ( el==child )
+            return true;
+        if ( el->isElement() ) {
+            lvdom_element_render_method rm = el->getRendMethod();
+            if ( rm==erm_final || rm==erm_block ) {
+                RenderRectAccessor acc(el);
+                if ( acc.getHeight()>5 )
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+css_page_break_t getPageBreakBefore( ldomNode * el ) {
+    if ( el->isText() )
+        el = el->getParentNode();
+    css_page_break_t before = css_pb_auto;
+    while (el) {
+        css_style_ref_t style = el->getStyle();
+        if ( style.isNull() )
+            return before;
+        before = style->page_break_before;
+        if ( before!=css_pb_auto )
+            return before;
+        ldomNode * parent = el->getParentNode();
+        if ( !parent )
+            return before;
+        if ( !isFirstBlockChild(parent, el) )
+            return before;
+        el = parent;
+    }
+    return before;
+}
+
+css_page_break_t getPageBreakAfter( ldomNode * el ) {
+    if ( el->isText() )
+        el = el->getParentNode();
+    css_page_break_t after = css_pb_auto;
+    bool lastChild = true;
+    while (el) {
+        css_style_ref_t style = el->getStyle();
+        if ( style.isNull() )
+            return after;
+        if ( lastChild && after==css_pb_auto )
+            after = style->page_break_after;
+        if ( !lastChild || after!=css_pb_auto )
+            return after;
+        ldomNode * parent = el->getParentNode();
+        if ( !parent )
+            return after;
+        lastChild = ( lastChild && parent->getLastChild()==el );
+        el = parent;
+    }
+    return after;
+}
+
+css_page_break_t getPageBreakInside( ldomNode * el ) {
+    if ( el->isText() )
+        el = el->getParentNode();
+    css_page_break_t inside = css_pb_auto;
+    while (el) {
+        css_style_ref_t style = el->getStyle();
+        if ( style.isNull() )
+            return inside;
+        if ( inside==css_pb_auto )
+            inside = style->page_break_inside;
+        if ( inside!=css_pb_auto )
+            return inside;
+        ldomNode * parent = el->getParentNode();
+        if ( !parent )
+            return inside;
+        el = parent;
+    }
+    return inside;
+}
+
+void getPageBreakStyle( ldomNode * el, css_page_break_t &before, css_page_break_t &inside, css_page_break_t &after ) {
+    bool firstChild = true;
+    bool lastChild = true;
+    before = inside = after = css_pb_auto;
+    while (el) {
+        css_style_ref_t style = el->getStyle();
+        if ( style.isNull() )
+            return;
+        if ( firstChild && before==css_pb_auto ) {
+            before = style->page_break_before;
+        }
+        if ( lastChild && after==css_pb_auto ) {
+            after = style->page_break_after;
+        }
+        if ( inside==css_pb_auto ) {
+            inside = style->page_break_inside;
+        }
+        if ( (!firstChild || before!=css_pb_auto) && (!lastChild || after!=css_pb_auto)
+            && inside!=css_pb_auto)
+            return;
+        ldomNode * parent = el->getParentNode();
+        if ( !parent )
+            return;
+        firstChild = ( firstChild && parent->getFirstChild()==el );
+        lastChild = ( lastChild && parent->getLastChild()==el );
+        el = parent;
+    }
+}
+
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width )
 {
     if ( enode->isElement() )
@@ -1704,9 +1814,21 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             enode->getAbsRect(rect);
             // split pages
             if ( context.getPageList() != NULL ) {
-                int break_before = CssPageBreak2Flags( enode->getStyle()->page_break_before );
-                int break_after = CssPageBreak2Flags( enode->getStyle()->page_break_after );
-                int break_inside = CssPageBreak2Flags( enode->getStyle()->page_break_inside );
+
+                css_page_break_t before, inside, after;
+                before = inside = after = css_pb_auto;
+                before = getPageBreakBefore( enode );
+                after = getPageBreakAfter( enode );
+                inside = getPageBreakInside( enode );
+
+//                if (before!=css_pb_auto) {
+//                    CRLog::trace("page break before node %s class=%s text=%s", LCSTR(enode->getNodeName()), LCSTR(enode->getAttributeValue(L"class")), LCSTR(enode->getText(' ', 120) ));
+//                }
+
+                //getPageBreakStyle( enode, before, inside, after );
+                int break_before = CssPageBreak2Flags( before );
+                int break_after = CssPageBreak2Flags( after );
+                int break_inside = CssPageBreak2Flags( inside );
                 int count = txform->GetLineCount();
                 for (int i=0; i<count; i++)
                 {
@@ -1938,9 +2060,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
 
-    if ( parent_style.isNull() ) {
-        CRLog::error("parent style is null!!!");
-    }
+//    if ( parent_style.isNull() ) {
+//        CRLog::error("parent style is null!!!");
+//    }
 
     // init default style attribute values
     const css_elem_def_props_t * type_ptr = enode->getElementTypePtr();

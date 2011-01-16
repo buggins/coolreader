@@ -3835,6 +3835,8 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
             lString16 href = _currNode->getElement()->getAttributeValue(L"href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
+            _document->setDocStylesheetFileName(stylesheetFile);
+            _document->applyDocumentStyleSheet();
         }
     }
     lUInt16 id = _document->getElementNameIndex(tagname);
@@ -6261,14 +6263,21 @@ void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lCha
             parent->OnAttribute(nsname, attrname, attrvalue);
         }
     } else {
-        if ( styleDetectionState == 1 && !lStr_cmp(attrname, L"rel") && !lStr_cmp(attrvalue, L"stylesheet") )
-            styleDetectionState = 2;
-        else if ( styleDetectionState == 2 && !lStr_cmp(attrname, L"type") && !lStr_cmp(attrvalue, L"text/css") )
-            styleDetectionState = 3;
-        else if ( styleDetectionState == 3 && !lStr_cmp(attrname, L"href") ) {
-            lString16 href = attrvalue;
-            stylesheetFile = LVCombinePaths( codeBase, href );
-            styleDetectionState = 0;
+        if ( styleDetectionState ) {
+            if ( !lStr_cmp(attrname, L"rel") && !lStr_cmp(attrvalue, L"stylesheet") )
+                styleDetectionState |= 2;
+            else if ( !lStr_cmp(attrname, L"type") && !lStr_cmp(attrvalue, L"text/css") )
+                styleDetectionState |= 4;
+            else if ( !lStr_cmp(attrname, L"href") ) {
+                styleDetectionState |= 8;
+                lString16 href = attrvalue;
+                tmpStylesheetFile = LVCombinePaths( codeBase, href );
+            }
+            if ( styleDetectionState==15 ) {
+                stylesheetFile = tmpStylesheetFile;
+                styleDetectionState = 0;
+                CRLog::trace("CSS file href: %s", LCSTR(stylesheetFile));
+            }
         }
     }
 }
@@ -6516,6 +6525,22 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
         //logfile << " !c-err!\n";
         return;
     }
+
+
+    if ( tagname[0]=='l' && _currNode && !lStr_cmp(tagname, L"link") ) {
+        // link node
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName()==L"link" &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName()==L"head" &&
+             _currNode->getElement()->getAttributeValue(L"rel")==L"stylesheet" &&
+             _currNode->getElement()->getAttributeValue(L"type")==L"text/css" ) {
+            lString16 href = _currNode->getElement()->getAttributeValue(L"href");
+            lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
+            CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
+            _document->setDocStylesheetFileName(stylesheetFile);
+            _document->applyDocumentStyleSheet();
+        }
+    }
+
     lUInt16 id = _document->getElementNameIndex(tagname);
 
     // HTML title detection

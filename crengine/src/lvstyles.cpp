@@ -40,14 +40,16 @@ lUInt32 calcHash(font_ref_t & f)
 lUInt32 calcHash(css_style_rec_t & rec)
 {
     if ( !rec.hash )
-        rec.hash = (((((((((((((((((((((((((((((lUInt32)rec.display * 31
+        rec.hash = (((((((((((((((((((((((((((((((lUInt32)rec.display * 31
          + (lUInt32)rec.white_space) * 31
          + (lUInt32)rec.text_align) * 31
          + (lUInt32)rec.text_align_last) * 31
          + (lUInt32)rec.text_decoration) * 31
          + (lUInt32)rec.hyphenate) * 31
          + (lUInt32)rec.list_style_type) * 31
+         + (lUInt32)rec.letter_spacing.pack()) * 31
          + (lUInt32)rec.list_style_position) * 31
+         + (lUInt32)(rec.page_break_before | (rec.page_break_before<<4) | (rec.page_break_before<<8))) * 31
          + (lUInt32)rec.vertical_align) * 31
          + (lUInt32)rec.font_size.type) * 31
          + (lUInt32)rec.font_size.value) * 31
