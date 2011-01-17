@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType renderer modules public interface (specification).          */
 /*                                                                         */
-/*  Copyright 1996-2001, 2005, 2006 by                                     */
+/*  Copyright 1996-2001, 2005, 2006, 2010 by                               */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -141,10 +141,6 @@ FT_BEGIN_HEADER
   /*    raster_class    :: For @FT_GLYPH_FORMAT_OUTLINE renderers only.    */
   /*                       This is a pointer to its raster's class.        */
   /*                                                                       */
-  /*    raster          :: For @FT_GLYPH_FORMAT_OUTLINE renderers only.    */
-  /*                       This is a pointer to the corresponding raster   */
-  /*                       object, if any.                                 */
-  /*                                                                       */
   typedef struct  FT_Renderer_Class_
   {
     FT_Module_Class            root;
@@ -167,7 +163,7 @@ FT_BEGIN_HEADER
   /*    FT_Get_Renderer                                                    */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    Retrieves the current renderer for a given glyph format.           */
+  /*    Retrieve the current renderer for a given glyph format.            */
   /*                                                                       */
   /* <Input>                                                               */
   /*    library :: A handle to the library object.                         */
@@ -175,7 +171,7 @@ FT_BEGIN_HEADER
   /*    format  :: The glyph format.                                       */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    A renderer handle.  0 if none found.                               */
+  /*    A renderer handle.  0~if none found.                               */
   /*                                                                       */
   /* <Note>                                                                */
   /*    An error will be returned if a module already exists by that name, */
@@ -195,7 +191,7 @@ FT_BEGIN_HEADER
   /*    FT_Set_Renderer                                                    */
   /*                                                                       */
   /* <Description>                                                         */
-  /*    Sets the current renderer to use, and set additional mode.         */
+  /*    Set the current renderer to use, and set additional mode.          */
   /*                                                                       */
   /* <InOut>                                                               */
   /*    library    :: A handle to the library object.                      */
@@ -208,7 +204,7 @@ FT_BEGIN_HEADER
   /*    parameters :: Additional parameters.                               */
   /*                                                                       */
   /* <Return>                                                              */
-  /*    FreeType error code.  0 means success.                             */
+  /*    FreeType error code.  0~means success.                             */
   /*                                                                       */
   /* <Note>                                                                */
   /*    In case of success, the renderer will be used to convert glyph     */

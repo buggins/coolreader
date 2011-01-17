@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>FreeType-2.3.6 API Reference</title>
+<title>FreeType-2.4.4 API Reference</title>
 <style type="text/css">
   body { font-family: Verdana, Geneva, Arial, Helvetica, serif;
          color: #000000;
@@ -31,7 +31,11 @@
 </style>
 </head>
 <body>
-<center><h1>FreeType-2.3.6 API Reference</h1></center>
+
+<table align=center><tr><td><font size=-1>[<a href="ft2-index.html">Index</a>]</font></td>
+<td width="100%"></td>
+<td><font size=-1>[<a href="ft2-toc.html">TOC</a>]</font></td></tr></table>
+<center><h1>FreeType-2.4.4 API Reference</h1></center>
 
 <center><h1>
 Basic Data Types
@@ -55,7 +59,7 @@ Basic Data Types
 </table><br><br>
 
 <table align=center width="87%"><tr><td>
-<p>This section contains the basic data types defined by FreeType 2, ranging from simple scalar types to bitmap descriptors. More font-specific structures are defined in a different section.</p>
+<p>This section contains the basic data types defined by FreeType&nbsp;2, ranging from simple scalar types to bitmap descriptors. More font-specific structures are defined in a different section.</p>
 </td></tr></table><br>
 <table align=center width="75%"><tr><td>
 <h4><a name="FT_Byte">FT_Byte</a></h4>
@@ -312,7 +316,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>A typedef of unsigned char, used for simple booleans. As usual, values 1 and 0 represent true and false, respectively.</p>
+<p>A typedef of unsigned char, used for simple booleans. As usual, values 1 and&nbsp;0 represent true and false, respectively.</p>
 </td></tr></table><br>
 </td></tr></table>
 <hr width="75%">
@@ -331,7 +335,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>This is equivalent to the ANSI C &lsquo;size_t&rsquo; type, i.e., the largest <i>unsigned</i> integer type used to express a file size or position, or a memory block size.</p>
+<p>This is equivalent to the ANSI&nbsp;C &lsquo;size_t&rsquo; type, i.e., the largest <i>unsigned</i> integer type used to express a file size or position, or a memory block size.</p>
 </td></tr></table><br>
 </td></tr></table>
 <hr width="75%">
@@ -350,7 +354,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>This is equivalent to the ANSI C &lsquo;ptrdiff_t&rsquo; type, i.e., the largest <i>signed</i> integer type used to express the distance between two pointers.</p>
+<p>This is equivalent to the ANSI&nbsp;C &lsquo;ptrdiff_t&rsquo; type, i.e., the largest <i>signed</i> integer type used to express the distance between two pointers.</p>
 </td></tr></table><br>
 </td></tr></table>
 <hr width="75%">
@@ -388,7 +392,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>A typedef for 32bit tags (as used in the SFNT format).</p>
+<p>A typedef for 32-bit tags (as used in the SFNT format).</p>
 </td></tr></table><br>
 </td></tr></table>
 <hr width="75%">
@@ -407,7 +411,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>The FreeType error code type. A value of 0 is always interpreted as a successful operation.</p>
+<p>The FreeType error code type. A value of&nbsp;0 is always interpreted as a successful operation.</p>
 </td></tr></table><br>
 </td></tr></table>
 <hr width="75%">
@@ -464,7 +468,7 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>The type FT_Pos is a 32-bit integer used to store vectorial coordinates. Depending on the context, these can represent distances in integer font units, or 16,16, or 26.6 fixed float pixel coordinates.</p>
+<p>The type FT_Pos is used to store vectorial coordinates. Depending on the context, these can represent distances in integer font units, or 16.16, or 26.6 fixed float pixel coordinates.</p>
 </td></tr></table><br>
 </td></tr></table>
 <hr width="75%">
@@ -541,6 +545,11 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 <p>The vertical maximum (top-most).</p>
 </td></tr>
 </table>
+</td></tr></table>
+<table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>note</b></em></td></tr><tr><td>
+<p>The bounding box is specified with the coordinates of the lower left and the upper right corner. In PostScript, those values are often called (llx,lly) and (urx,ury), respectively.</p>
+<p>If &lsquo;yMin&rsquo; is negative, this value gives the glyph's descender. Otherwise, the glyph doesn't descend below the baseline. Similarly, if &lsquo;ymax&rsquo; is positive, this value gives the glyph's ascender.</p>
+<p>&lsquo;xMin&rsquo; gives the horizontal distance from the glyph's origin to the left edge of the glyph's bounding box. If &lsquo;xMin&rsquo; is negative, the glyph extends to the left of the origin.</p>
 </td></tr></table>
 </td></tr></table>
 <hr width="75%">
@@ -733,25 +742,25 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 <p></p>
 <table cellpadding=3 border=0>
 <tr valign=top><td><b>FT_PIXEL_MODE_NONE</b></td><td>
-<p>Value 0 is reserved.</p>
+<p>Value&nbsp;0 is reserved.</p>
 </td></tr>
 <tr valign=top><td><b>FT_PIXEL_MODE_MONO</b></td><td>
-<p>A monochrome bitmap, using 1 bit per pixel. Note that pixels are stored in most-significant order (MSB), which means that the left-most pixel in a byte has value 128.</p>
+<p>A monochrome bitmap, using 1&nbsp;bit per pixel. Note that pixels are stored in most-significant order (MSB), which means that the left-most pixel in a byte has value 128.</p>
 </td></tr>
 <tr valign=top><td><b>FT_PIXEL_MODE_GRAY</b></td><td>
-<p>An 8-bit bitmap, generally used to represent anti-aliased glyph images. Each pixel is stored in one byte. Note that the number of value &lsquo;gray&rsquo; levels is stored in the &lsquo;num_bytes&rsquo; field of the <a href="ft2-basic_types.html#FT_Bitmap">FT_Bitmap</a> structure (it generally is 256).</p>
+<p>An 8-bit bitmap, generally used to represent anti-aliased glyph images. Each pixel is stored in one byte. Note that the number of &lsquo;gray&rsquo; levels is stored in the &lsquo;num_grays&rsquo; field of the <a href="ft2-basic_types.html#FT_Bitmap">FT_Bitmap</a> structure (it generally is 256).</p>
 </td></tr>
 <tr valign=top><td><b>FT_PIXEL_MODE_GRAY2</b></td><td>
-<p>A 2-bit/pixel bitmap, used to represent embedded anti-aliased bitmaps in font files according to the OpenType specification. We haven't found a single font using this format, however.</p>
+<p>A 2-bit per pixel bitmap, used to represent embedded anti-aliased bitmaps in font files according to the OpenType specification. We haven't found a single font using this format, however.</p>
 </td></tr>
 <tr valign=top><td><b>FT_PIXEL_MODE_GRAY4</b></td><td>
-<p>A 4-bit/pixel bitmap, used to represent embedded anti-aliased bitmaps in font files according to the OpenType specification. We haven't found a single font using this format, however.</p>
+<p>A 4-bit per pixel bitmap, representing embedded anti-aliased bitmaps in font files according to the OpenType specification. We haven't found a single font using this format, however.</p>
 </td></tr>
 <tr valign=top><td><b>FT_PIXEL_MODE_LCD</b></td><td>
-<p>An 8-bit bitmap, used to represent RGB or BGR decimated glyph images used for display on LCD displays; the bitmap is three times wider than the original glyph image. See also <a href="ft2-base_interface.html#FT_Render_Mode">FT_RENDER_MODE_LCD</a>.</p>
+<p>An 8-bit bitmap, representing RGB or BGR decimated glyph images used for display on LCD displays; the bitmap is three times wider than the original glyph image. See also <a href="ft2-base_interface.html#FT_Render_Mode">FT_RENDER_MODE_LCD</a>.</p>
 </td></tr>
 <tr valign=top><td><b>FT_PIXEL_MODE_LCD_V</b></td><td>
-<p>An 8-bit bitmap, used to represent RGB or BGR decimated glyph images used for display on rotated LCD displays; the bitmap is three times taller than the original glyph image. See also <a href="ft2-base_interface.html#FT_Render_Mode">FT_RENDER_MODE_LCD_V</a>.</p>
+<p>An 8-bit bitmap, representing RGB or BGR decimated glyph images used for display on rotated LCD displays; the bitmap is three times taller than the original glyph image. See also <a href="ft2-base_interface.html#FT_Render_Mode">FT_RENDER_MODE_LCD_V</a>.</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -829,10 +838,10 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 <p></p>
 <table cellpadding=3 border=0>
 <tr valign=top><td><b>ft_palette_mode_rgb</b></td><td>
-<p>The palette is an array of 3-bytes RGB records.</p>
+<p>The palette is an array of 3-byte RGB records.</p>
 </td></tr>
 <tr valign=top><td><b>ft_palette_mode_rgba</b></td><td>
-<p>The palette is an array of 4-bytes RGBA records.</p>
+<p>The palette is an array of 4-byte RGBA records.</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -880,6 +889,9 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 </td></tr>
 <tr valign=top><td><b>pitch</b></td><td>
 <p>The pitch's absolute value is the number of bytes taken by one bitmap row, including padding. However, the pitch is positive when the bitmap has a &lsquo;down&rsquo; flow, and negative when it has an &lsquo;up&rsquo; flow. In all cases, the pitch is an offset to add to a bitmap pointer in order to go down one row.</p>
+<p>Note that &lsquo;padding&rsquo; means the alignment of a bitmap to a byte border, and FreeType functions normally align to the smallest possible integer value.</p>
+<p>For the B/W rasterizer, &lsquo;pitch&rsquo; is always an even number.</p>
+<p>To change the pitch of a bitmap (say, to make it a multiple of 4), use <a href="ft2-bitmap_handling.html#FT_Bitmap_Convert">FT_Bitmap_Convert</a>. Alternatively, you might use callback functions to directly render to the application's surface; see the file &lsquo;example2.cpp&rsquo; in the tutorial for a demonstration.</p>
 </td></tr>
 <tr valign=top><td><b>buffer</b></td><td>
 <p>A typeless pointer to the bitmap buffer. This value should be aligned on 32-bit boundaries in most cases.</p>
@@ -927,7 +939,7 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 <p>This macro converts four-letter tags to an unsigned long type.</p>
 </td></tr></table><br>
 <table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>note</b></em></td></tr><tr><td>
-<p>Since many 16bit compilers don't like 32bit enumerations, you should redefine this macro in case of problems to something like this:</p>
+<p>Since many 16-bit compilers don't like 32-bit enumerations, you should redefine this macro in case of problems to something like this:</p>
 <pre class="colored">
   #define FT_IMAGE_TAG( value, _x1, _x2, _x3, _x4 )  value         
 </pre>
@@ -965,7 +977,7 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 <p></p>
 <table cellpadding=3 border=0>
 <tr valign=top><td><b>FT_GLYPH_FORMAT_NONE</b></td><td>
-<p>The value 0 is reserved.</p>
+<p>The value&nbsp;0 is reserved.</p>
 </td></tr>
 <tr valign=top><td colspan=0><b>FT_GLYPH_FORMAT_COMPOSITE</b></td></tr>
 <tr valign=top><td></td><td>
@@ -980,7 +992,7 @@ Defined in FT_IMAGE_H (freetype/ftimage.h).
 </td></tr>
 <tr valign=top><td colspan=0><b>FT_GLYPH_FORMAT_PLOTTER</b></td></tr>
 <tr valign=top><td></td><td>
-<p>The glyph image is a vectorial path with no inside and outside contours. Some Type 1 fonts, like those in the Hershey family, contain glyphs in this format. These are described as <a href="ft2-outline_processing.html#FT_Outline">FT_Outline</a>, but FreeType isn't currently capable of rendering them correctly.</p>
+<p>The glyph image is a vectorial path with no inside and outside contours. Some Type&nbsp;1 fonts, like those in the Hershey family, contain glyphs in this format. These are described as <a href="ft2-outline_processing.html#FT_Outline">FT_Outline</a>, but FreeType isn't currently capable of rendering them correctly.</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -1082,7 +1094,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>Describes a function used to destroy the &lsquo;client&rsquo; data of any FreeType object. See the description of the <a href="ft2-basic_types.html#FT_Generic">FT_Generic</a> type for details of usage.</p>
+<p>Describe a function used to destroy the &lsquo;client&rsquo; data of any FreeType object. See the description of the <a href="ft2-basic_types.html#FT_Generic">FT_Generic</a> type for details of usage.</p>
 </td></tr></table><br>
 <table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>input</b></em></td></tr><tr><td>
 <p>The address of the FreeType object which is under finalization. Its client data is accessed through its &lsquo;generic&rsquo; field.</p>
@@ -1138,6 +1150,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 <table align=center width="87%"><tr bgcolor="#D6E8FF"><td><pre>
 
 #define <b>FT_MAKE_TAG</b>( _x1, _x2, _x3, _x4 ) \
+          (<a href="ft2-basic_types.html#FT_Tag">FT_Tag</a>)                        \
           ( ( (<a href="ft2-basic_types.html#FT_ULong">FT_ULong</a>)_x1 &lt;&lt; 24 ) |     \
             ( (<a href="ft2-basic_types.html#FT_ULong">FT_ULong</a>)_x2 &lt;&lt; 16 ) |     \
             ( (<a href="ft2-basic_types.html#FT_ULong">FT_ULong</a>)_x3 &lt;&lt;  8 ) |     \
@@ -1148,7 +1161,7 @@ Defined in FT_TYPES_H (freetype/fttypes.h).
 <p>This macro converts four-letter tags which are used to label TrueType tables into an unsigned long to be used within FreeType.</p>
 </td></tr></table><br>
 <table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>note</b></em></td></tr><tr><td>
-<p>The produced values <b>must</b> be 32bit integers. Don't redefine this macro.</p>
+<p>The produced values <b>must</b> be 32-bit integers. Don't redefine this macro.</p>
 </td></tr></table>
 </td></tr></table>
 <hr width="75%">

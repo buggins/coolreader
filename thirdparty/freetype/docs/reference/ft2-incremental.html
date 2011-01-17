@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>FreeType-2.3.6 API Reference</title>
+<title>FreeType-2.4.4 API Reference</title>
 <style type="text/css">
   body { font-family: Verdana, Geneva, Arial, Helvetica, serif;
          color: #000000;
@@ -31,7 +31,11 @@
 </style>
 </head>
 <body>
-<center><h1>FreeType-2.3.6 API Reference</h1></center>
+
+<table align=center><tr><td><font size=-1>[<a href="ft2-index.html">Index</a>]</font></td>
+<td width="100%"></td>
+<td><font size=-1>[<a href="ft2-toc.html">TOC</a>]</font></td></tr></table>
+<center><h1>FreeType-2.4.4 API Reference</h1></center>
 
 <center><h1>
 Incremental Loading
@@ -47,7 +51,7 @@ Incremental Loading
 
 <table align=center width="87%"><tr><td>
 <p>This section contains various functions used to perform so-called &lsquo;incremental&rsquo; glyph loading. This is a mode where all glyphs loaded from a given <a href="ft2-base_interface.html#FT_Face">FT_Face</a> are provided by the client application,</p>
-<p>Apart from that, all other tables are loaded normally from the font file. This mode is useful when FreeType is used within another engine, e.g., a Postscript Imaging Processor.</p>
+<p>Apart from that, all other tables are loaded normally from the font file. This mode is useful when FreeType is used within another engine, e.g., a PostScript Imaging Processor.</p>
 <p>To enable this mode, you must use <a href="ft2-base_interface.html#FT_Open_Face">FT_Open_Face</a>, passing an <a href="ft2-base_interface.html#FT_Parameter">FT_Parameter</a> with the <a href="ft2-incremental.html#FT_PARAM_TAG_INCREMENTAL">FT_PARAM_TAG_INCREMENTAL</a> tag and an <a href="ft2-incremental.html#FT_Incremental_Interface">FT_Incremental_Interface</a> value. See the comments for <a href="ft2-incremental.html#FT_Incremental_InterfaceRec">FT_Incremental_InterfaceRec</a> for an example.</p>
 </td></tr></table><br>
 <table align=center width="75%"><tr><td>
@@ -61,7 +65,7 @@ Defined in FT_INCREMENTAL_H (freetype/ftincrem.h).
 
 </pre></table><br>
 <table align=center width="87%"><tr><td>
-<p>An opaque type describing a user-provided object used to implement &lsquo;incremental&rsquo; glyph loading within FreeType. This is used to support embedded fonts in certain environments (e.g., Postscript interpreters), where the glyph data isn't in the font file, or must be overridden by different values.</p>
+<p>An opaque type describing a user-provided object used to implement &lsquo;incremental&rsquo; glyph loading within FreeType. This is used to support embedded fonts in certain environments (e.g., PostScript interpreters), where the glyph data isn't in the font file, or must be overridden by different values.</p>
 </td></tr></table><br>
 <table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>note</b></em></td></tr><tr><td>
 <p>It is up to client applications to create and implement <a href="ft2-incremental.html#FT_Incremental">FT_Incremental</a> objects, as long as they provide implementations for the methods <a href="ft2-incremental.html#FT_Incremental_GetGlyphDataFunc">FT_Incremental_GetGlyphDataFunc</a>, <a href="ft2-incremental.html#FT_Incremental_FreeGlyphDataFunc">FT_Incremental_FreeGlyphDataFunc</a> and <a href="ft2-incremental.html#FT_Incremental_GetGlyphMetricsFunc">FT_Incremental_GetGlyphMetricsFunc</a>.</p>
@@ -85,6 +89,7 @@ Defined in FT_INCREMENTAL_H (freetype/ftincrem.h).
     <a href="ft2-basic_types.html#FT_Long">FT_Long</a>  bearing_x;
     <a href="ft2-basic_types.html#FT_Long">FT_Long</a>  bearing_y;
     <a href="ft2-basic_types.html#FT_Long">FT_Long</a>  advance;
+    <a href="ft2-basic_types.html#FT_Long">FT_Long</a>  advance_v;     /* since 2.3.12 */
 
   } <b>FT_Incremental_MetricsRec</b>;
 
@@ -102,7 +107,10 @@ Defined in FT_INCREMENTAL_H (freetype/ftincrem.h).
 <p>Top bearing, in font units.</p>
 </td></tr>
 <tr valign=top><td><b>advance</b></td><td>
-<p>Glyph advance, in font units.</p>
+<p>Horizontal component of glyph advance, in font units.</p>
+</td></tr>
+<tr valign=top><td><b>advance_v</b></td><td>
+<p>Vertical component of glyph advance, in font units.</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -149,7 +157,7 @@ Defined in FT_INCREMENTAL_H (freetype/ftincrem.h).
 </pre></table><br>
 <table align=center width="87%"><tr><td>
 <p>A function called by FreeType to access a given glyph's data bytes during <a href="ft2-base_interface.html#FT_Load_Glyph">FT_Load_Glyph</a> or <a href="ft2-base_interface.html#FT_Load_Char">FT_Load_Char</a> if incremental loading is enabled.</p>
-<p>Note that the format of the glyph's data bytes depends on the font file format. For TrueType, it must correspond to the raw bytes within the &lsquo;glyf&rsquo; table. For Postscript formats, it must correspond to the <b>unencrypted</b> charstring bytes, without any &lsquo;lenIV&rsquo; header. It is undefined for any other format.</p>
+<p>Note that the format of the glyph's data bytes depends on the font file format. For TrueType, it must correspond to the raw bytes within the &lsquo;glyf&rsquo; table. For PostScript formats, it must correspond to the <b>unencrypted</b> charstring bytes, without any &lsquo;lenIV&rsquo; header. It is undefined for any other format.</p>
 </td></tr></table><br>
 <table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>input</b></em></td></tr><tr><td>
 <p></p>
@@ -171,7 +179,7 @@ Defined in FT_INCREMENTAL_H (freetype/ftincrem.h).
 </table>
 </td></tr></table>
 <table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>return</b></em></td></tr><tr><td>
-<p>FreeType error code. 0 means success.</p>
+<p>FreeType error code. 0&nbsp;means success.</p>
 </td></tr></table>
 <table align=center width="87%" cellpadding=5><tr bgcolor="#EEEEFF"><td><em><b>note</b></em></td></tr><tr><td>
 <p>If this function returns successfully the method <a href="ft2-incremental.html#FT_Incremental_FreeGlyphDataFunc">FT_Incremental_FreeGlyphDataFunc</a> will be called later to release the data bytes.</p>
