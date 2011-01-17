@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType sbits manager (body).                                       */
 /*                                                                         */
-/*  Copyright 2000-2001, 2002, 2003, 2004, 2005, 2006 by                   */
+/*  Copyright 2000-2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010 by       */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -25,6 +25,9 @@
 
 #include "ftccback.h"
 #include "ftcerror.h"
+
+#undef  FT_COMPONENT
+#define FT_COMPONENT  trace_cache
 
 
   /*************************************************************************/
@@ -129,13 +132,13 @@
       FT_Int        temp;
       FT_GlyphSlot  slot   = face->glyph;
       FT_Bitmap*    bitmap = &slot->bitmap;
-      FT_Int        xadvance, yadvance;
+      FT_Pos        xadvance, yadvance; /* FT_GlyphSlot->advance.{x|y} */
 
 
       if ( slot->format != FT_GLYPH_FORMAT_BITMAP )
       {
-        FT_ERROR(( "%s: glyph loaded didn't return a bitmap!\n",
-                   "ftc_snode_load" ));
+        FT_TRACE0(( "ftc_snode_load:"
+                    " glyph loaded didn't return a bitmap\n" ));
         goto BadGlyph;
       }
 
@@ -157,7 +160,11 @@
            !CHECK_CHAR( slot->bitmap_top  ) ||
            !CHECK_CHAR( xadvance )          ||
            !CHECK_CHAR( yadvance )          )
+      {
+        FT_TRACE2(( "ftc_snode_load:"
+                    " glyph too large for small bitmap cache\n"));
         goto BadGlyph;
+      }
 
       sbit->width     = (FT_Byte)bitmap->width;
       sbit->height    = (FT_Byte)bitmap->rows;
@@ -188,7 +195,7 @@
       sbit->width  = 255;
       sbit->height = 0;
       sbit->buffer = NULL;
-      error        = 0;
+      error        = FTC_Err_Ok;
       if ( asize )
         *asize = 0;
     }
@@ -215,7 +222,7 @@
     total = clazz->family_get_count( family, cache->manager );
     if ( total == 0 || gindex >= total )
     {
-      error = FT_Err_Invalid_Argument;
+      error = FTC_Err_Invalid_Argument;
       goto Exit;
     }
 
@@ -263,7 +270,7 @@
   }
 
 
-  FT_LOCAL_DEF( FT_ULong )
+  FT_LOCAL_DEF( FT_Offset )
   ftc_snode_weight( FTC_Node   ftcsnode,
                     FTC_Cache  cache )
   {
@@ -271,7 +278,7 @@
     FT_UInt    count = snode->count;
     FTC_SBit   sbit  = snode->sbits;
     FT_Int     pitch;
-    FT_ULong   size;
+    FT_Offset  size;
 
     FT_UNUSED( cache );
 
@@ -300,7 +307,7 @@
 
 #if 0
 
-  FT_LOCAL_DEF( FT_ULong )
+  FT_LOCAL_DEF( FT_Offset )
   FTC_SNode_Weight( FTC_SNode  snode )
   {
     return ftc_snode_weight( FTC_NODE( snode ), NULL );

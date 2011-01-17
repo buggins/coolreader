@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    The FreeType internal cache interface (body).                        */
 /*                                                                         */
-/*  Copyright 2000-2001, 2002, 2003, 2004, 2005, 2006, 2007 by             */
+/*  Copyright 2000-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009, 2010 by */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -23,6 +23,9 @@
 
 #include "ftccback.h"
 #include "ftcerror.h"
+
+#undef  FT_COMPONENT
+#define FT_COMPONENT  trace_cache
 
 
 #define FTC_HASH_MAX_LOAD  2
@@ -93,9 +96,9 @@
     for (;;)
     {
       FTC_Node  node, *pnode;
-      FT_UInt   p      = cache->p;
-      FT_UInt   mask   = cache->mask;
-      FT_UInt   count  = mask + p + 1;    /* number of buckets */
+      FT_UFast  p      = cache->p;
+      FT_UFast  mask   = cache->mask;
+      FT_UFast  count  = mask + p + 1;    /* number of buckets */
 
 
       /* do we need to shrink the buckets array? */
@@ -153,7 +156,7 @@
       /* do we need to expand the buckets array? */
       else if ( cache->slack > (FT_Long)count * FTC_HASH_SUB_LOAD )
       {
-        FT_UInt    old_index = p + mask;
+        FT_UFast   old_index = p + mask;
         FTC_Node*  pold;
 
 
@@ -216,7 +219,7 @@
 
       if ( node == NULL )
       {
-        FT_ERROR(( "ftc_node_hash_unlink: unknown node!\n" ));
+        FT_TRACE0(( "ftc_node_hash_unlink: unknown node\n" ));
         return;
       }
 
@@ -273,7 +276,7 @@
     /* find node's cache */
     if ( node->cache_index >= manager->num_caches )
     {
-      FT_ERROR(( "ftc_node_destroy: invalid node handle\n" ));
+      FT_TRACE0(( "ftc_node_destroy: invalid node handle\n" ));
       return;
     }
 #endif
@@ -283,7 +286,7 @@
 #ifdef FT_DEBUG_ERROR
     if ( cache == NULL )
     {
-      FT_ERROR(( "ftc_node_destroy: invalid node handle\n" ));
+      FT_TRACE0(( "ftc_node_destroy: invalid node handle\n" ));
       return;
     }
 #endif
@@ -302,7 +305,7 @@
 #if 0
     /* check, just in case of general corruption :-) */
     if ( manager->num_nodes == 0 )
-      FT_ERROR(( "ftc_node_destroy: invalid cache node count! = %d\n",
+      FT_TRACE0(( "ftc_node_destroy: invalid cache node count (%d)\n",
                   manager->num_nodes ));
 #endif
   }
@@ -343,11 +346,11 @@
   static void
   FTC_Cache_Clear( FTC_Cache  cache )
   {
-    if ( cache )
+    if ( cache && cache->buckets )
     {
       FTC_Manager  manager = cache->manager;
       FT_UFast     i;
-      FT_UInt      count;
+      FT_UFast     count;
 
 
       count = cache->p + cache->mask + 1;
@@ -407,7 +410,7 @@
 
   static void
   ftc_cache_add( FTC_Cache  cache,
-                 FT_UInt32  hash,
+                 FT_PtrDist hash,
                  FTC_Node   node )
   {
     node->hash = hash;
@@ -435,7 +438,7 @@
 
   FT_LOCAL_DEF( FT_Error )
   FTC_Cache_NewNode( FTC_Cache   cache,
-                     FT_UInt32   hash,
+                     FT_PtrDist  hash,
                      FT_Pointer  query,
                      FTC_Node   *anode )
   {
@@ -474,7 +477,7 @@
 
   FT_LOCAL_DEF( FT_Error )
   FTC_Cache_Lookup( FTC_Cache   cache,
-                    FT_UInt32   hash,
+                    FT_PtrDist  hash,
                     FT_Pointer  query,
                     FTC_Node   *anode )
   {
@@ -482,13 +485,13 @@
     FTC_Node*  bucket;
     FTC_Node*  pnode;
     FTC_Node   node;
-    FT_Error   error = 0;
+    FT_Error   error = FTC_Err_Ok;
 
     FTC_Node_CompareFunc  compare = cache->clazz.node_compare;
 
 
     if ( cache == NULL || anode == NULL )
-      return FT_Err_Invalid_Argument;
+      return FTC_Err_Invalid_Argument;
 
     idx = hash & cache->mask;
     if ( idx < cache->p )

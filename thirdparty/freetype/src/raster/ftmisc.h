@@ -5,7 +5,7 @@
 /*    Miscellaneous macros for stand-alone rasterizer (specification       */
 /*    only).                                                               */
 /*                                                                         */
-/*  Copyright 2005 by                                                      */
+/*  Copyright 2005, 2009, 2010 by                                          */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used        */
@@ -27,12 +27,15 @@
 #ifndef __FTMISC_H__
 #define __FTMISC_H__
 
-#include <string.h> /* memset */
+
+  /* memset */
+#include FT_CONFIG_STANDARD_LIBRARY_H
 
 #define FT_BEGIN_HEADER
 #define FT_END_HEADER
 
 #define FT_LOCAL_DEF( x )   static x
+
 
   /* from include/freetype2/fttypes.h */
 
@@ -51,11 +54,46 @@
               (FT_ULong)_x4         )
 
 
+  /* from include/freetype2/ftsystem.h */
+
+  typedef struct FT_MemoryRec_*  FT_Memory;
+
+  typedef void* (*FT_Alloc_Func)( FT_Memory  memory,
+                                  long       size );
+
+  typedef void (*FT_Free_Func)( FT_Memory  memory,
+                                void*      block );
+
+  typedef void* (*FT_Realloc_Func)( FT_Memory  memory,
+                                    long       cur_size,
+                                    long       new_size,
+                                    void*      block );
+
+  typedef struct FT_MemoryRec_
+  {
+    void*            user;
+
+    FT_Alloc_Func    alloc;
+    FT_Free_Func     free;
+    FT_Realloc_Func  realloc;
+
+  } FT_MemoryRec;
+
+
   /* from src/ftcalc.c */
 
-#include <inttypes.h>
+#if ( defined _WIN32 || defined _WIN64 )
+
+  typedef __int64  FT_Int64;
+
+#else
+
+#include "inttypes.h"
 
   typedef int64_t  FT_Int64;
+
+#endif
+
 
   static FT_Long
   FT_MulDiv( FT_Long  a,

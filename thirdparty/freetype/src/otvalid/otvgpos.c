@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    OpenType GPOS table validation (body).                               */
 /*                                                                         */
-/*  Copyright 2002, 2004, 2005, 2006, 2007 by                              */
+/*  Copyright 2002, 2004, 2005, 2006, 2007, 2008 by                        */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -209,7 +209,7 @@
     {
       if ( format & 1 )
       {
-        FT_UInt   table_size;
+        FT_PtrDist  table_size;
 
         OTV_OPTIONAL_TABLE( device );
 
@@ -644,7 +644,10 @@
   /*************************************************************************/
   /*************************************************************************/
 
-  /* sets valid->extra2 (0) */
+  /* UNDOCUMENTED (in OpenType 1.5):              */
+  /* BaseRecord tables can contain NULL pointers. */
+
+  /* sets valid->extra2 (1) */
 
   static void
   otv_MarkBasePos_validate( FT_Bytes       table,
@@ -664,7 +667,7 @@
     switch ( PosFormat )
     {
     case 1:
-      valid->extra2 = 0;
+      valid->extra2 = 1;
       OTV_NEST2( MarkBasePosFormat1, BaseArray );
       OTV_RUN( table, valid );
       break;
@@ -908,7 +911,8 @@
     {
     case 1:     /* ExtensionPosFormat1 */
       {
-        FT_UInt            ExtensionLookupType, ExtensionOffset;
+        FT_UInt            ExtensionLookupType;
+        FT_ULong           ExtensionOffset;
         OTV_Validate_Func  validate;
 
 

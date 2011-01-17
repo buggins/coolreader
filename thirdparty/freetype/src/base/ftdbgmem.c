@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Memory debugger (body).                                              */
 /*                                                                         */
-/*  Copyright 2001, 2002, 2003, 2004, 2005, 2006 by                        */
+/*  Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2009 by                  */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -33,8 +33,7 @@
                     * memory, however.
                     */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include FT_CONFIG_STANDARD_LIBRARY_H
 
   FT_BASE_DEF( const char* )  _ft_debug_file   = 0;
   FT_BASE_DEF( long )         _ft_debug_lineno = 0;
@@ -48,7 +47,7 @@
   typedef struct FT_MemTableRec_*   FT_MemTable;
 
 
-#define FT_MEM_VAL( addr )  ((FT_ULong)(FT_Pointer)( addr ))
+#define FT_MEM_VAL( addr )  ((FT_PtrDist)(FT_Pointer)( addr ))
 
   /*
    *  This structure holds statistics for a single allocation/release
@@ -276,7 +275,7 @@
       for ( i = 0; i < table->size; i++ )
       {
         FT_MemNode  node, next, *pnode;
-        FT_ULong    hash;
+        FT_PtrDist  hash;
 
 
         node = table->buckets[i];
@@ -422,7 +421,7 @@
           "FreeType: %ld bytes of memory leaked in %ld blocks\n",
           leaks, leak_count );
 
-      printf( "FreeType: No memory leaks detected!\n" );
+      printf( "FreeType: no memory leaks detected\n" );
     }
   }
 
@@ -431,7 +430,7 @@
   ft_mem_table_get_nodep( FT_MemTable  table,
                           FT_Byte*     address )
   {
-    FT_ULong     hash;
+    FT_PtrDist   hash;
     FT_MemNode  *pnode, node;
 
 
@@ -990,7 +989,7 @@
 #else  /* !FT_DEBUG_MEMORY */
 
   /* ANSI C doesn't like empty source files */
-  const FT_Byte  _debug_mem_dummy = 0;
+  typedef int  _debug_mem_dummy;
 
 #endif /* !FT_DEBUG_MEMORY */
 

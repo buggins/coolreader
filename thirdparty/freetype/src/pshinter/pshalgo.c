@@ -4,7 +4,8 @@
 /*                                                                         */
 /*    PostScript hinting algorithm (body).                                 */
 /*                                                                         */
-/*  Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 by            */
+/*  Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010   */
+/*            by                                                           */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used        */
@@ -103,7 +104,7 @@
 
     if ( idx >= table->max_hints )
     {
-      FT_ERROR(( "psh_hint_table_record: invalid hint index %d\n", idx ));
+      FT_TRACE0(( "psh_hint_table_record: invalid hint index %d\n", idx ));
       return;
     }
 
@@ -137,7 +138,7 @@
     if ( table->num_hints < table->max_hints )
       table->sort_global[table->num_hints++] = hint;
     else
-      FT_ERROR(( "psh_hint_table_record: too many sorted hints!  BUG!\n" ));
+      FT_TRACE0(( "psh_hint_table_record: too many sorted hints!  BUG!\n" ));
   }
 
 
@@ -230,7 +231,7 @@
       FT_UInt  idx;
 
 
-      FT_ERROR(( "psh_hint_table_init: missing/incorrect hint masks!\n" ));
+      FT_TRACE0(( "psh_hint_table_init: missing/incorrect hint masks\n" ));
 
       count = table->max_hints;
       for ( idx = 0; idx < count; idx++ )
@@ -282,8 +283,8 @@
           {
             hint2 = sort[0];
             if ( psh_hint_overlap( hint, hint2 ) )
-              FT_ERROR(( "psh_hint_table_activate_mask:"
-                         " found overlapping hints\n" ))
+              FT_TRACE0(( "psh_hint_table_activate_mask:"
+                          " found overlapping hints\n" ))
           }
 #else
           count2 = 0;
@@ -295,8 +296,8 @@
             if ( count < table->max_hints )
               table->sort[count++] = hint;
             else
-              FT_ERROR(( "psh_hint_tableactivate_mask:"
-                         " too many active hints\n" ));
+              FT_TRACE0(( "psh_hint_tableactivate_mask:"
+                          " too many active hints\n" ));
           }
         }
       }
@@ -898,7 +899,7 @@
 
 #ifdef DEBUG_ZONES
 
-#include <stdio.h>
+#include FT_CONFIG_STANDARD_LIBRARY_H
 
   static void
   psh_print_zone( PSH_Zone  zone )
@@ -1690,7 +1691,10 @@
     /* process secondary hints to `selected' points */
     if ( num_masks > 1 && glyph->num_points > 0 )
     {
-      first = mask->end_point;
+      /* the `endchar' op can reduce the number of points */
+      first = mask->end_point > glyph->num_points
+                ? glyph->num_points
+                : mask->end_point;
       mask++;
       for ( ; num_masks > 1; num_masks--, mask++ )
       {
@@ -1698,7 +1702,9 @@
         FT_Int   count;
 
 
-        next  = mask->end_point;
+        next  = mask->end_point > glyph->num_points
+                  ? glyph->num_points
+                  : mask->end_point;
         count = next - first;
         if ( count > 0 )
         {
@@ -1856,12 +1862,10 @@
             point->cur_u = hint->cur_pos + hint->cur_len +
                              FT_MulFix( delta - hint->org_len, scale );
 
-          else if ( hint->org_len > 0 )
+          else /* hint->org_len > 0 */
             point->cur_u = hint->cur_pos +
                              FT_MulDiv( delta, hint->cur_len,
                                         hint->org_len );
-          else
-            point->cur_u = hint->cur_pos;
         }
         psh_point_set_fitted( point );
       }

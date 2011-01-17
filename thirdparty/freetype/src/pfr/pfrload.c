@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType PFR loader (body).                                          */
 /*                                                                         */
-/*  Copyright 2002, 2003, 2004, 2005, 2007 by                              */
+/*  Copyright 2002, 2003, 2004, 2005, 2007, 2009, 2010 by                  */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -49,7 +49,7 @@
                          PFR_ExtraItem   item_list,
                          FT_Pointer      item_data )
   {
-    FT_Error  error = 0;
+    FT_Error  error = PFR_Err_Ok;
     FT_Byte*  p     = *pp;
     FT_UInt   num_items, item_type, item_size;
 
@@ -353,7 +353,7 @@
     PFR_Strike  strike;
     FT_UInt     flags0;
     FT_UInt     n, count, size1;
-    FT_Error    error = 0;
+    FT_Error    error = PFR_Err_Ok;
 
 
     PFR_CHECK( 5 );
@@ -428,7 +428,8 @@
 
   Too_Short:
     error = PFR_Err_Invalid_Table;
-    FT_ERROR(( "pfr_extra_item_load_bitmap_info: invalid bitmap info table\n" ));
+    FT_ERROR(( "pfr_extra_item_load_bitmap_info:"
+               " invalid bitmap info table\n" ));
     goto Exit;
   }
 
@@ -448,7 +449,7 @@
                                FT_Byte*     limit,
                                PFR_PhyFont  phy_font )
   {
-    FT_Error    error  = 0;
+    FT_Error    error  = PFR_Err_Ok;
     FT_Memory   memory = phy_font->memory;
     FT_PtrDist  len    = limit - p;
 
@@ -476,7 +477,7 @@
   {
     FT_UInt    count, num_vert, num_horz;
     FT_Int*    snaps;
-    FT_Error   error  = 0;
+    FT_Error   error  = PFR_Err_Ok;
     FT_Memory  memory = phy_font->memory;
 
 
@@ -506,7 +507,8 @@
 
   Too_Short:
     error = PFR_Err_Invalid_Table;
-    FT_ERROR(( "pfr_exta_item_load_stem_snaps: invalid stem snaps table\n" ));
+    FT_ERROR(( "pfr_exta_item_load_stem_snaps:"
+               " invalid stem snaps table\n" ));
     goto Exit;
   }
 
@@ -518,8 +520,8 @@
                                      FT_Byte*     limit,
                                      PFR_PhyFont  phy_font )
   {
-    PFR_KernItem  item;
-    FT_Error      error  = 0;
+    PFR_KernItem  item   = NULL;
+    FT_Error      error  = PFR_Err_Ok;
     FT_Memory     memory = phy_font->memory;
 
 
@@ -603,8 +605,8 @@
     FT_FREE( item );
 
     error = PFR_Err_Invalid_Table;
-    FT_ERROR(( "pfr_extra_item_load_kerning_pairs: "
-               "invalid kerning pairs table\n" ));
+    FT_ERROR(( "pfr_extra_item_load_kerning_pairs:"
+               " invalid kerning pairs table\n" ));
     goto Exit;
   }
 
@@ -629,7 +631,7 @@
                      FT_Memory    memory,
                      FT_String*  *astring )
   {
-    FT_Error    error = 0;
+    FT_Error    error = PFR_Err_Ok;
     FT_String*  result = NULL;
     FT_UInt     n, ok;
 
@@ -714,7 +716,8 @@
   {
     FT_Error   error;
     FT_Memory  memory = stream->memory;
-    FT_UInt    flags, num_aux;
+    FT_UInt    flags;
+    FT_ULong   num_aux;
     FT_Byte*   p;
     FT_Byte*   limit;
 
