@@ -152,4 +152,7 @@
     <string name="action_toggle_screen_orientation">Toggle screen orientation</string>
 <string name="action_toggle_fullscreen">Toggle fullscreen</string>
 <string name="action_exit_home_screen">Home screen</string>
+<string name="options_color_r">Red</string>
+    <string name="options_color_g">Green</string>
+    <string name="options_color_b">Blue</string>
 </resources>

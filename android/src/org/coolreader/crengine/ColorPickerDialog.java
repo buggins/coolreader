@@ -35,6 +35,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Transformation;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 
 public class ColorPickerDialog extends BaseDialog implements OnSeekBarChangeListener {
 
@@ -42,9 +43,13 @@ public class ColorPickerDialog extends BaseDialog implements OnSeekBarChangeList
         public void colorChanged(int color);
     }
 
+	private SeekBar mR;
+	private SeekBar mG;
+	private SeekBar mB;
 	private SeekBar mHue;
 	private SeekBar mSaturation;
 	private SeekBar mValue;
+	private TextView mLabel;
 	private OnColorChangedListener mListener;
 	private int mColor;
 	private GradientDrawable mPreviewDrawable;
@@ -69,16 +74,26 @@ public class ColorPickerDialog extends BaseDialog implements OnSeekBarChangeList
 		};
 		preview.setBackgroundDrawable(new LayerDrawable(layers));
 		
+		mR = (SeekBar) root.findViewById(R.id.r);
+		mG = (SeekBar) root.findViewById(R.id.g);
+		mB = (SeekBar) root.findViewById(R.id.b);
 		mHue = (SeekBar) root.findViewById(R.id.hue);
 		mSaturation = (SeekBar) root.findViewById(R.id.saturation);
 		mValue = (SeekBar) root.findViewById(R.id.value);
+		mLabel = (TextView) root.findViewById(R.id.value_label);
 		
 		mColor = color;
+		int r = Color.red(mColor);
+		int g = Color.green(mColor);
+		int b = Color.blue(mColor);
 		float[] hsv = new float[3];
 		Color.colorToHSV(color, hsv);
 		int h = (int) (hsv[0] * mHue.getMax() / 360);
 		int s = (int) (hsv[1] * mSaturation.getMax());
 		int v = (int) (hsv[2] * mValue.getMax());
+		setupSeekBar(mR, R.string.options_color_r, r, res);
+		setupSeekBar(mG, R.string.options_color_g, g, res);
+		setupSeekBar(mB, R.string.options_color_b, b, res);
 		setupSeekBar(mHue, R.string.options_color_hue, h, res);
 		setupSeekBar(mSaturation, R.string.options_color_saturation, s, res);
 		setupSeekBar(mValue, R.string.options_color_brightness, v, res);
@@ -92,23 +107,56 @@ public class ColorPickerDialog extends BaseDialog implements OnSeekBarChangeList
 		seekBar.setOnSeekBarChangeListener(this);
 	}
 
-	private void update() {
+	private void updateHSV() {
 		float[] hsv = {
 			360 * mHue.getProgress() / (float) mHue.getMax(),
 			mSaturation.getProgress() / (float) mSaturation.getMax(),
 			mValue.getProgress() / (float) mValue.getMax(),
 		};
 		mColor = Color.HSVToColor(hsv);
+		mR.setProgress(Color.red(mColor));
+		mG.setProgress(Color.green(mColor));
+		mB.setProgress(Color.blue(mColor));
 		updatePreview(mColor);
 	}
 	
+	private void updateRGB() {
+		mColor = Color.rgb(mR.getProgress(), mG.getProgress(), mB.getProgress());
+		float[] hsv = new float[3];
+		Color.colorToHSV(mColor, hsv);
+		int h = (int) (hsv[0] * mHue.getMax() / 360);
+		int s = (int) (hsv[1] * mSaturation.getMax());
+		int v = (int) (hsv[2] * mValue.getMax());
+		mHue.setProgress(h);
+		mSaturation.setProgress(s);
+		mValue.setProgress(v);
+		updatePreview(mColor);
+	}
+	
+	private static String byteToHex(int n) {
+		String s = Integer.toHexString(n & 255);
+		if (s.length()<2)
+			s = "0" + s;
+		return s;
+	}
+	private static String colorToHex(int n) {
+		return ("#" + byteToHex(Color.red(n))
+			 + byteToHex(Color.green(n))
+			 + byteToHex(Color.blue(n))).toUpperCase();
+	}
 	private void updatePreview(int color) {
 		mPreviewDrawable.setColor(color);
 		mPreviewDrawable.invalidateSelf();
+		mLabel.setText(colorToHex(mColor));
 	}
 
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-		update();
+		if ( fromUser ) {
+			if ( seekBar==mR || seekBar==mG || seekBar==mB )
+				updateRGB();
+			else
+				updateHSV();
+		}
 	}
 
 	public void onStartTrackingTouch(SeekBar seekBar) {

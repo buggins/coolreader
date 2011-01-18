@@ -9,23 +9,63 @@
 		android:layout_height="fill_parent"
 		android:orientation="horizontal"
 	>
-		<View
-			android:layout_width="48dip"
-			android:layout_height="fill_parent"
-            android:layout_weight="1"
-			android:layout_marginLeft="8dip"
-			android:layout_marginTop="8dip"
-			android:layout_marginBottom="8dip"
-			android:id="@+id/preview"
-		/>
 		<LinearLayout 
-            android:minWidth="300dip"
+			android:layout_width="wrap_content"
+			android:layout_height="fill_parent"
+			android:orientation="vertical"
+			android:padding="4dip">
+			<View
+				android:layout_width="58dip"
+	            android:layout_weight="8"
+				android:layout_height="fill_parent"
+				android:layout_marginLeft="6dip"
+				android:layout_marginTop="8dip"
+				android:layout_marginBottom="8dip"
+				android:id="@+id/preview"
+			/>
+  	       <TextView android:id="@+id/value_label"
+    	        style="@android:style/TextAppearance.Small"
+	            android:layout_width="wrap_content"
+	            android:layout_weight="2"
+	            android:layout_height="wrap_content"
+	            android:singleLine="true"
+	            android:layout_gravity="bottom" />
+  		</LinearLayout>
+		<LinearLayout 
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:orientation="vertical"
-            android:layout_weight="10"
 			android:padding="8dip"
 		>
+			<SeekBar
+	            android:minWidth="200dip"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/r"
+				android:max="255"
+				android:padding="4dip"
+			/>
+			<SeekBar
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/g"
+				android:max="255"
+				android:padding="4dip"
+			/>
+			<SeekBar
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/b"
+				android:max="255"
+				android:padding="4dip"
+			/>
+			<SeekBar
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/value"
+				android:max="63"
+				android:padding="4dip"
+			/>
 			<SeekBar
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
@@ -37,13 +77,6 @@
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
 				android:id="@+id/saturation"
-				android:max="63"
-				android:padding="4dip"
-			/>
-			<SeekBar
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				android:id="@+id/value"
 				android:max="63"
 				android:padding="4dip"
 			/>

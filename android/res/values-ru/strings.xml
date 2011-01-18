@@ -152,4 +152,7 @@
     <string name="action_toggle_screen_orientation">Переключить ориентацию экрана</string>
 <string name="action_toggle_fullscreen">Переключить полноэкранный режим</string>
 <string name="action_exit_home_screen">Home screen</string>
+<string name="options_color_r">Красный</string>
+    <string name="options_color_g">Зеленый</string>
+    <string name="options_color_b">Синий</string>
 </resources>
