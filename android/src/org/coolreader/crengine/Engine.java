@@ -503,6 +503,7 @@ public class Engine {
     	FRENCH(HYPH_DICT,R.raw.french_hyphen, "French"),
     	BULGARIAN(HYPH_DICT,R.raw.bulgarian_hyphen, "Bulgarian"),
     	SWEDISH(HYPH_DICT,R.raw.swedish_hyphen, "Swedish"),
+    	POLISH(HYPH_DICT,R.raw.polish_hyphen, "Polish"),
     	;
     	public final int type;
     	public final int resource;
