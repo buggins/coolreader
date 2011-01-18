@@ -151,4 +151,5 @@
 <string name="options_controls_enable_left_scren_edge_brightness_control">Управление яркостью левой границей экрана</string>
     <string name="action_toggle_screen_orientation">Переключить ориентацию экрана</string>
 <string name="action_toggle_fullscreen">Переключить полноэкранный режим</string>
+<string name="action_exit_home_screen">Home screen</string>
 </resources>

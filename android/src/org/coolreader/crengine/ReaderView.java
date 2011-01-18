@@ -174,6 +174,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_SELECTION_MODE(2014),
     	DCMD_TOGGLE_ORIENTATION(2015),
     	DCMD_TOGGLE_FULLSCREEN(2016),
+    	DCMD_SHOW_HOME_SCREEN(2017), // home screen activity
     	;
     	
     	private final int nativeId;
@@ -307,7 +308,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			return;
 //		}
 		// update size with delay: chance to avoid extra unnecessary resizing
-	    BackgroundThread.instance().postGUI( new Runnable() {
+	    Runnable task = new Runnable() {
 	    	public void run() {
 	    		if ( thisId != lastResizeTaskId ) {
 					Log.d("cr3", "skipping duplicate resize request in GUI thread");
@@ -336,7 +337,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    			}
 	    		});
 	    	}
-	    }, mOpened ? 2200 : 500);
+	    };
+	    if ( mOpened ) {
+	    	Log.d("cr3", "scheduling delayed resize task id="+thisId);
+	    	BackgroundThread.instance().postGUI( task, 2200);
+	    } else {
+	    	Log.d("cr3", "executing resize without delay");
+	    	task.run();
+	    }
+	    
 	}
 	
 	public boolean isBookLoaded()
@@ -480,8 +489,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			else
 				goToBookmark(shortcut);
 			return true;
-		} else if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
-			return enableVolumeKeys;
+		}
 		if ( action.isNone() || !tracked ) {
 			return super.onKeyUp(keyCode, event);
 		}
