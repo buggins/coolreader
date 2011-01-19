@@ -243,7 +243,10 @@ bool CRFileHist::loadFromStream( LVStreamRef stream )
 {
     CRHistoryFileParserCallback cb(this);
     LVXMLParser parser( stream, &cb );
-    parser.Parse();
+    if ( !parser.CheckFormat() )
+        return false;
+    if ( !parser.Parse() )
+        return false;
     return true;
 }
 

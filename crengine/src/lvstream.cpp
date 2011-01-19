@@ -1283,7 +1283,7 @@ public:
 #else
         m_fd = -1;
 
-        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT | (use_sync ? O_SYNC : 0);
+        int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT | (use_sync ? O_SYNC : 0) | (mode==LVOM_WRITE ? O_TRUNC : 0);
         lString8 fn8 = UnicodeToUtf8(fname);
         m_fd = open( fn8.c_str(), flags, (mode_t)0666);
         if (m_fd == -1) {
@@ -3414,7 +3414,16 @@ public:
 		}
 		return LVERR_OK;
 	}
-	virtual lverror_t GetSize( lvsize_t * pSize )
+    virtual lvsize_t  GetSize()
+    {
+        if (!m_pBuffer)
+            return (lvsize_t)(-1);
+        if (m_size<m_pos)
+            m_size = m_pos;
+        return m_size;
+    }
+
+    virtual lverror_t GetSize( lvsize_t * pSize )
 	{
 		if (!m_pBuffer || !pSize)
 			return LVERR_FAIL;
@@ -3667,7 +3676,7 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in )
     lvsize_t bytesRead = 0;
     in->SetPos(0);
     lvsize_t bytesToRead = in->GetSize();
-    while ( bytesRead>0 )
+    while ( bytesToRead>0 )
     {
         int blockSize = 5000;
         if (blockSize > bytesToRead)
