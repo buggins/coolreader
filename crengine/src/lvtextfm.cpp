@@ -527,14 +527,14 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 int div_x = (srcline->o.width / pbuffer->width) + 1;
                 int div_y = (srcline->o.height / pbuffer->page_height) + 1;
 #if (MAX_IMAGE_SCALE_MUL==3)
-                if ( srcline->o.height*3 < pbuffer->page_height-20
-                        && srcline->o.width*3 < pbuffer->width - 20 )
+                if ( srcline->o.height*3 <= pbuffer->page_height
+                        && srcline->o.width*3 <= pbuffer->width )
                     scale_mul = 3;
                 else
 #endif
 #if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
-                    if ( srcline->o.height*2 < pbuffer->page_height-20
-                        && srcline->o.width*2 < pbuffer->width - 20 )
+                    if ( srcline->o.height*2 <= pbuffer->page_height
+                        && srcline->o.width*2 <= pbuffer->width )
                     scale_mul = 2;
                 else
 #endif
@@ -1136,18 +1136,18 @@ public:
         int scale_mul = 1;
         int div_x = (srcline->o.width / m_pbuffer->width) + 1;
         int div_y = (srcline->o.height / m_pbuffer->page_height) + 1;
-//#if (MAX_IMAGE_SCALE_MUL==3)
-//        if ( srcline->o.height*3 < m_pbuffer->page_height-20
-//                && srcline->o.width*3 < m_pbuffer->width - 20 )
-//            scale_mul = 3;
-//        else
-//#endif
-//#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
-//            if ( srcline->o.height*2 < m_pbuffer->page_height-20
-//                && srcline->o.width*2 < m_pbuffer->width - 20 )
-//            scale_mul = 2;
-//        else
-//#endif
+#if (MAX_IMAGE_SCALE_MUL==3)
+        if ( srcline->o.height*3 < m_pbuffer->page_height-20
+                && srcline->o.width*3 < m_pbuffer->width - 20 )
+            scale_mul = 3;
+        else
+#endif
+#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
+            if ( srcline->o.height*2 < m_pbuffer->page_height-20
+                && srcline->o.width*2 < m_pbuffer->width - 20 )
+            scale_mul = 2;
+        else
+#endif
         if (div_x>1 || div_y>1) {
             if (div_x>div_y)
                 scale_div = div_x;
