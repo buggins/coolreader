@@ -1154,6 +1154,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
+		case DCMD_SHOW_HOME_SCREEN:
+			mActivity.showHomeScreen();
+			break;
 		case DCMD_TOGGLE_ORIENTATION:
 			toggleScreenOrientation();
 			break;
