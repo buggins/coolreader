@@ -155,4 +155,6 @@
 <string name="options_color_r">Красный</string>
     <string name="options_color_g">Зеленый</string>
     <string name="options_color_b">Синий</string>
+    <string name="options_page_show_titlebar_percent">Процент прочитанного</string>
+    <string name="options_page_show_titlebar_page_count">Всего страниц</string>
 </resources>

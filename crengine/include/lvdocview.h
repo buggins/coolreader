@@ -55,6 +55,8 @@
 #define PROP_SHOW_TITLE              "window.status.title"
 #define PROP_STATUS_CHAPTER_MARKS    "crengine.page.header.chapter.marks"
 #define PROP_SHOW_BATTERY            "window.status.battery"
+#define PROP_SHOW_POS_PERCENT        "window.status.pos.percent"
+#define PROP_SHOW_PAGE_COUNT         "window.status.pos.page.count"
 #define PROP_SHOW_BATTERY_PERCENT    "window.status.battery.percent"
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
@@ -282,6 +284,7 @@ enum {
     PGHDR_CLOCK=16,
     PGHDR_BATTERY=32,
     PGHDR_CHAPTER_MARKS=64,
+    PGHDR_PERCENT=128,
 };
 
 
@@ -442,7 +445,7 @@ protected:
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
     /// set status bar and clock mode
-    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks );
+    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks, bool showPercent, bool showPageCount );
     /// create document and set flags
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible

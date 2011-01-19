@@ -1136,6 +1136,8 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
         props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT, "-1");
 		props.applyDefault(ReaderView.PROP_SHOW_BATTERY, "1"); 
+		props.applyDefault(ReaderView.PROP_SHOW_POS_PERCENT, "0"); 
+		props.applyDefault(ReaderView.PROP_SHOW_PAGE_COUNT, "1"); 
 		props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");

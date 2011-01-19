@@ -155,4 +155,6 @@
 <string name="options_color_r">Red</string>
     <string name="options_color_g">Green</string>
     <string name="options_color_b">Blue</string>
+    <string name="options_page_show_titlebar_percent">Show position percent</string>
+    <string name="options_page_show_titlebar_page_count">Page count</string>
 </resources>

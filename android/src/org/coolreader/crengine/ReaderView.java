@@ -77,6 +77,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_SHOW_TITLE              ="window.status.title";
     public static final String PROP_SHOW_BATTERY            ="window.status.battery";
     public static final String PROP_SHOW_BATTERY_PERCENT    ="window.status.battery.percent";
+    public static final String PROP_SHOW_POS_PERCENT        ="window.status.pos.percent";
+    public static final String PROP_SHOW_PAGE_COUNT         ="window.status.pos.page.count";
     public static final String PROP_FONT_KERNING_ENABLED    ="font.kerning.enabled";
     public static final String PROP_LANDSCAPE_PAGES         ="window.landscape.pages";
     public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
