@@ -872,8 +872,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						touchEventIgnoreNextUp = true;
 						isBrightnessControlActive = false;
 						isManualScrollActive = false;
-						manualScrollStartPosX = manualScrollStartPosY = -1;
 						onLongTap( manualScrollStartPosX, manualScrollStartPosY, zone );
+						manualScrollStartPosX = manualScrollStartPosY = -1;
 					}
 				}
 				
