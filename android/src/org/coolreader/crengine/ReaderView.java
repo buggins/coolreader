@@ -2049,7 +2049,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( index<0 )
 			index = 0;
 		else if ( index>=n )
-			index = n;
+			index = n-1;
 		if ( index != currentBrightnessValueIndex ) {
 			currentBrightnessValueIndex = index;
 			int newValue = OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]; 
