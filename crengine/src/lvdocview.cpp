@@ -1097,7 +1097,9 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 	if ( m_batteryIcons.size()>1 ) {
 		icons.add(m_batteryIcons[0]);
 		if ( drawPercent ) {
-			icons.add(m_batteryIcons[m_batteryIcons.length()-1]);
+            m_batteryFont = fontMan->GetFont(m_batteryIcons[0]->GetHeight()-1, 900, false,
+                    DEFAULT_FONT_FAMILY, m_statusFontFace);
+            icons.add(m_batteryIcons[m_batteryIcons.length()-1]);
 		} else {
 			for ( int i=1; i<m_batteryIcons.length()-1; i++ )
 				icons.add(m_batteryIcons[i]);
@@ -1459,10 +1461,11 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		if (pageCount > 0) {
 			if (phi & PGHDR_PAGE_NUMBER)
 				pageinfo += lString16::itoa(pageIndex + 1);
-			if (phi & PGHDR_PAGE_COUNT)
+            if (phi & PGHDR_PAGE_COUNT) {
                 if ( !pageinfo.empty() )
                     pageinfo += L" / ";
                 pageinfo += lString16::itoa(pageCount);
+            }
             if (phi & PGHDR_PERCENT) {
                 if ( !pageinfo.empty() )
                     pageinfo += L"  ";
@@ -1561,11 +1564,11 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 			if (page.index & 1) {
 				// right
 				phi &= ~PGHDR_AUTHOR;
-                phi &= ~PGHDR_PERCENT;
             } else {
 				// left
 				phi &= ~PGHDR_TITLE;
-				phi &= ~PGHDR_PAGE_NUMBER;
+                phi &= ~PGHDR_PERCENT;
+                phi &= ~PGHDR_PAGE_NUMBER;
 				phi &= ~PGHDR_PAGE_COUNT;
 				phi &= ~PGHDR_BATTERY;
 				phi &= ~PGHDR_CLOCK;
@@ -4533,8 +4536,9 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setStringDef(PROP_SHOW_TITLE, "1");
 	props->setStringDef(PROP_SHOW_TIME, "1");
 	props->setStringDef(PROP_SHOW_BATTERY, "1");
-	props->setStringDef(PROP_SHOW_BATTERY_PERCENT, "1");
+    props->setStringDef(PROP_SHOW_BATTERY_PERCENT, "0");
     props->setStringDef(PROP_SHOW_PAGE_COUNT, "1");
+    props->setStringDef(PROP_SHOW_PAGE_NUMBER, "1");
     props->setStringDef(PROP_SHOW_POS_PERCENT, "0");
     props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
 
@@ -4544,7 +4548,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 #define V_MARGIN 8
 #define ALLOW_BOTTOM_STATUSBAR 0
 void LVDocView::setStatusMode(int newMode, bool showClock, bool showTitle,
-        bool showBattery, bool showChapterMarks, bool showPercent, bool showPageCount) {
+        bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount) {
 	CRLog::debug("LVDocView::setStatusMode(%d, %s %s %s %s)", newMode,
 			showClock ? "clock" : "", showTitle ? "title" : "",
 			showBattery ? "battery" : "", showChapterMarks ? "marks" : "");
@@ -4555,7 +4559,9 @@ void LVDocView::setStatusMode(int newMode, bool showClock, bool showTitle,
 	margins.bottom = STANDARD_STATUSBAR_HEIGHT + V_MARGIN/4;
 #endif
 	if (newMode == 0)
-		setPageHeaderInfo(PGHDR_PAGE_NUMBER | (showClock ? PGHDR_CLOCK : 0)
+        setPageHeaderInfo(
+                  (showPageNumber ? PGHDR_PAGE_NUMBER : 0)
+                | (showClock ? PGHDR_CLOCK : 0)
                 | (showBattery ? PGHDR_BATTERY : 0)
                 | (showPageCount ? PGHDR_PAGE_COUNT : 0)
 				| (showTitle ? PGHDR_AUTHOR : 0)
@@ -4650,15 +4656,17 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else if (name == PROP_STATUS_LINE || name == PROP_SHOW_TIME
 				|| name	== PROP_SHOW_TITLE || name == PROP_SHOW_BATTERY
                 || name == PROP_SHOW_BATTERY || name == PROP_STATUS_CHAPTER_MARKS || name == PROP_SHOW_POS_PERCENT
-                || name == PROP_SHOW_PAGE_COUNT) {
+                || name == PROP_SHOW_PAGE_COUNT || name == PROP_SHOW_PAGE_NUMBER) {
 			m_props->setString(name.c_str(), value);
 			setStatusMode(m_props->getIntDef(PROP_STATUS_LINE, 0),
 					m_props->getBoolDef(PROP_SHOW_TIME, false),
 					m_props->getBoolDef(PROP_SHOW_TITLE, true),
 					m_props->getBoolDef(PROP_SHOW_BATTERY, true),
                     m_props->getBoolDef(PROP_STATUS_CHAPTER_MARKS, true),
-                    m_props->getBoolDef(PROP_SHOW_POS_PERCENT, true),
-                    m_props->getBoolDef(PROP_SHOW_PAGE_COUNT, true));
+                    m_props->getBoolDef(PROP_SHOW_POS_PERCENT, false),
+                    m_props->getBoolDef(PROP_SHOW_PAGE_NUMBER, true),
+                    m_props->getBoolDef(PROP_SHOW_PAGE_COUNT, true)
+                    );
 			//} else if ( name==PROP_BOOKMARK_ICONS ) {
 			//    enableBookmarkIcons( value==L"1" );
 		} else if (name == PROP_FONT_SIZE) {

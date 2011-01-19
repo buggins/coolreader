@@ -326,9 +326,9 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
         "   .................................",
     };
     icons.add( LVCreateXPMImageSource( battery_charge ) );
-#ifdef NO_BATTERY_GAUGE
-    icons.add( LVCreateXPMImageSource( battery_frame ) );
-#else
+//#ifdef NO_BATTERY_GAUGE
+//    icons.add( LVCreateXPMImageSource( battery_frame ) );
+//#else
     icons.add( LVCreateXPMImageSource( battery0 ) );
     icons.add( LVCreateXPMImageSource( battery1 ) );
     icons.add( LVCreateXPMImageSource( battery2 ) );
@@ -338,7 +338,8 @@ V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
     icons.add( LVCreateXPMImageSource( battery6 ) );
     icons.add( LVCreateXPMImageSource( battery7 ) );
     icons.add( LVCreateXPMImageSource( battery8 ) );
-#endif
+//#endif
+    icons.add( LVCreateXPMImageSource( battery_frame ) );
     _docview->setBatteryIcons( icons );
     _wm->setBatteryIcons(icons);
     setAccelerators( _wm->getAccTables().get("main") );
