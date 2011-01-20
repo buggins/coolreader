@@ -148,7 +148,7 @@
     <string name="action_toggle_selection_mode_on">Режим выделения текста. Выделите текст, используя сенсорный экран.</string>
 <string name="action_go_forward">Вперед</string>
     <string name="action_go_back">Назад</string>
-<string name="options_controls_enable_left_scren_edge_brightness_control">Управление яркостью левой границей экрана</string>
+
     <string name="action_toggle_screen_orientation">Переключить ориентацию экрана</string>
 <string name="action_toggle_fullscreen">Переключить полноэкранный режим</string>
 <string name="action_exit_home_screen">Home screen</string>
@@ -157,4 +157,10 @@
     <string name="options_color_b">Синий</string>
     <string name="options_page_show_titlebar_percent">Процент прочитанного</string>
     <string name="options_page_show_titlebar_page_count">Всего страниц</string>
+<string name="options_show_titlebar_page_number">Номер страницы</string>
+    <string name="options_controls_flick_brightness">Управление яркостью скольжением по экрану</string>
+    <string name="options_controls_flick_brightness_right">Правый край</string>
+    <string name="options_controls_flick_brightness_left">Левый край</string>
+    <string name="options_controls_flick_brightness_none">Отключено</string>
+    <string name="options_page_show_titlebar_page_number">Номер страницы</string>
 </resources>

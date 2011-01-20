@@ -79,6 +79,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_SHOW_BATTERY_PERCENT    ="window.status.battery.percent";
     public static final String PROP_SHOW_POS_PERCENT        ="window.status.pos.percent";
     public static final String PROP_SHOW_PAGE_COUNT         ="window.status.pos.page.count";
+    public static final String PROP_SHOW_PAGE_NUMBER        ="window.status.pos.page.number";
     public static final String PROP_FONT_KERNING_ENABLED    ="font.kerning.enabled";
     public static final String PROP_LANDSCAPE_PAGES         ="window.landscape.pages";
     public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
@@ -103,7 +104,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
     public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
     public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
-    public static final String PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE = "app.screen.backlight.control.left.edge.enabled";
+    public static final String PROP_APP_FLICK_BACKLIGHT_CONTROL = "app.screen.backlight.control.flick";
     public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
     
     public static final int PAGE_ANIMATION_NONE = 0;
@@ -735,7 +736,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		clearSelection();
 	}
 
-	private boolean isBacklightControlWithLeftScreenEdgeEnabled = true;
+	private int isBacklightControlFlick = 1;
 	private boolean isTouchScreenEnabled = true;
 	private boolean isManualScrollActive = false;
 	private boolean isBrightnessControlActive = false;
@@ -895,11 +896,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 					Log.v("cr3", "onTouchEvent: move threshold reached");
 					longTouchId++;
-					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlWithLeftScreenEdgeEnabled ) {
+					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==1 ) {
 						// brightness
 						isBrightnessControlActive = true;
 						startBrightnessControl(x, y);
 						return true;
+					} else if ( manualScrollStartPosX > dx - START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==2 ) {
+							// brightness
+							isBrightnessControlActive = true;
+							startBrightnessControl(x, y);
+							return true;
 					} else {
 						// scroll
 						isManualScrollActive = true;
@@ -1364,8 +1370,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
-        } else if ( key.equals(PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE) ) {
-        	isBacklightControlWithLeftScreenEdgeEnabled = flg;
+        } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
+        	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
 			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
         	mActivity.setScreenOrientation(orientation);
@@ -1416,7 +1422,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)
     				|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
     				|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
-    				|| PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE.equals(key)
+    				|| PROP_APP_FLICK_BACKLIGHT_CONTROL.equals(key)
     				) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {

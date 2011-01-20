@@ -148,7 +148,7 @@
     <string name="action_toggle_selection_mode_on">Selection mode is on. Select text using touch screen.</string>
 <string name="action_go_forward">Forward</string>
     <string name="action_go_back">Back</string>
-<string name="options_controls_enable_left_scren_edge_brightness_control">Screen left edge brightness control</string>
+
     <string name="action_toggle_screen_orientation">Toggle screen orientation</string>
 <string name="action_toggle_fullscreen">Toggle fullscreen</string>
 <string name="action_exit_home_screen">Home screen</string>
@@ -157,4 +157,10 @@
     <string name="options_color_b">Blue</string>
     <string name="options_page_show_titlebar_percent">Show position percent</string>
     <string name="options_page_show_titlebar_page_count">Page count</string>
+<string name="options_show_titlebar_page_number">Page number</string>
+    <string name="options_controls_flick_brightness">Brightness control by flick</string>
+    <string name="options_controls_flick_brightness_right">Right edge</string>
+    <string name="options_controls_flick_brightness_left">Left edge</string>
+    <string name="options_controls_flick_brightness_none">Disabled</string>
+    <string name="options_page_show_titlebar_page_number">Page number</string>
 </resources>

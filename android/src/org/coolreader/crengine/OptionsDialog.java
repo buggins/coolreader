@@ -84,6 +84,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90 //, R.string.options_page_orientation_180, R.string.options_page_orientation_270
 			,R.string.options_page_orientation_sensor
 		};
+	int[] mFlickBrightness = new int[] {
+			0, 1, 2
+		};
+	int[] mFlickBrightnessTitles = new int[] {
+			R.string.options_controls_flick_brightness_none, R.string.options_controls_flick_brightness_left, R.string.options_controls_flick_brightness_right
+		};
 	int[] mAnimation = new int[] {
 			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, 
 			ReaderView.PAGE_ANIMATION_PAPER
@@ -410,6 +416,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), ReaderView.PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
 			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), ReaderView.PROP_SHOW_TITLE).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_number), ReaderView.PROP_SHOW_PAGE_NUMBER).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_count), ReaderView.PROP_SHOW_PAGE_COUNT).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_percent), ReaderView.PROP_SHOW_POS_PERCENT).setDefaultValue("0"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_chapter_marks), ReaderView.PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
@@ -1070,7 +1077,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_left_scren_edge_brightness_control), ReaderView.PROP_APP_BACKLIGHT_CONTROL_SCREEN_LEFT_EDGE).setDefaultValue("1"));
+		mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), ReaderView.PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
 		
 		
 		mOptionsStyles.refresh();
