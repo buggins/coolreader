@@ -22,7 +22,10 @@ import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 
 import android.app.Activity;
+import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -1146,6 +1149,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
+		props.applyDefault(ReaderView.PROP_APP_DICTIONARY, dicts[0].id);
 		
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, "2");
@@ -1165,6 +1169,66 @@ public class CoolReader extends Activity
 		props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
 		props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 		return props;
+	}
+
+	public static class DictInfo {
+		public final String id; 
+		public final String name;
+		public final String packageName;
+		public final String className;
+		public final String action;
+		public DictInfo ( String id, String name, String packageName, String className, String action ) {
+			this.id = id;
+			this.name = name;
+			this.packageName = packageName;
+			this.className = className;
+			this.action = action;
+		}
+	}
+	private static final DictInfo dicts[] = {
+		new DictInfo("Fora", "Fora Dictionary", "com.ngc.fora", "com.ngc.fora.ForaDictionary", Intent.ACTION_SEARCH),	
+		new DictInfo("ColorDict", "ColorDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH),	
+	};
+
+	public DictInfo[] getDictList() {
+		return dicts;
+	}
+	
+	private DictInfo currentDict = dicts[0];
+	
+	public void setDict( String id ) {
+		for ( DictInfo d : dicts ) {
+			if ( d.id.equals(id) ) {
+				currentDict = d;
+				return;
+			}
+		}
+	}
+	
+	public void findInDictionary( String s ) {
+		if ( s!=null && s.length()!=0 ) {
+			s = s.trim();
+			for ( ;s.length()>0; ) {
+				char ch = s.charAt(s.length()-1);
+				if ( ch>=128 )
+					break;
+				if ( ch>='0' && ch<='9' || ch>='A' && ch<='Z' || ch>='a' && ch<='z' )
+					break;
+				s = s.substring(0, s.length()-1);
+			}
+			if ( s.length()>0 ) {
+				//
+				Intent intent = new Intent(currentDict.action).setComponent(new ComponentName(
+						currentDict.packageName, currentDict.className
+						)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				intent.putExtra(SearchManager.QUERY, s);
+				try {
+					startActivity( intent );
+				} catch ( ActivityNotFoundException e ) {
+					showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+				}
+			}
+		}
 	}
 	
 	public void saveSettings( Properties settings )

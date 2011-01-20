@@ -163,4 +163,5 @@
     <string name="options_controls_flick_brightness_left">Left edge</string>
     <string name="options_controls_flick_brightness_none">Disabled</string>
     <string name="options_page_show_titlebar_page_number">Page number</string>
+<string name="options_app_dictionary">Dictionary</string>
 </resources>

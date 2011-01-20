@@ -717,6 +717,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 	}
 	
+	class DictOptions extends ListOption
+	{
+		public DictOptions( OptionOwner owner, String label )
+		{
+			super( owner, label, ReaderView.PROP_APP_DICTIONARY );
+			CoolReader.DictInfo[] dicts = mActivity.getDictList();
+			setDefaultValue(dicts[0].id);
+			for ( CoolReader.DictInfo dict : dicts )
+				add( dict.id, dict.name );
+		}
+	} 
+	
 	class HyphenationOptions extends ListOption
 	{
 		public HyphenationOptions( OptionOwner owner, String label )
@@ -1052,6 +1064,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
 		//
 		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)));
+		
 		//
 		mOptionsPage = new OptionsListView(getContext());
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
@@ -1068,10 +1081,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_fullscreen), ReaderView.PROP_APP_FULLSCREEN));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
+		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)));
 		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), ReaderView.PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));

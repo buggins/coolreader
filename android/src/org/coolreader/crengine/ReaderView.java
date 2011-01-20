@@ -106,6 +106,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
     public static final String PROP_APP_FLICK_BACKLIGHT_CONTROL = "app.screen.backlight.control.flick";
     public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
+    public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
     
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
@@ -719,15 +720,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( isUpdateEnd ) {
 					String text = sel.text;
 					if ( text!=null && text.length()>0 ) {
-						ClipboardManager cm = mActivity.getClipboardmanager();
-						cm.setText(text);
-						Log.i("cr3", "Setting clipboard text: " + text);
-						mActivity.showToast("Selection text copied to clipboard");
+						SelectionToolbarDlg.showDialog(mActivity, ReaderView.this, sel);
+					} else {
+						clearSelection();
 					}
-					clearSelection();
 				}
 			}
 		});
+	}
+	
+	public void copyToClipboard( String text ) {
+		if ( text!=null && text.length()>0 ) {
+			ClipboardManager cm = mActivity.getClipboardmanager();
+			cm.setText(text);
+			Log.i("cr3", "Setting clipboard text: " + text);
+			mActivity.showToast("Selection text copied to clipboard");
+		}
 	}
 	
 	private void cancelSelection() {
@@ -1368,6 +1376,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.setNightMode(flg);
         } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
+        } else if ( key.equals(PROP_APP_DICTIONARY) ) {
+        	mActivity.setDict(value);
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
@@ -1421,6 +1431,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)
     				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)
     				|| PROP_APP_TAP_ZONE_HILIGHT.equals(key)
+    				|| PROP_APP_DICTIONARY.equals(key)
     				|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
     				|| PROP_APP_FLICK_BACKLIGHT_CONTROL.equals(key)
     				) {
