@@ -114,8 +114,8 @@
     <string name="action_toc">Зміст</string>
     <string name="action_go_percent">Перейти на %</string>
     <string name="action_go_page">Перейти на сторінку</string>
-    <string name="action_go_first_page">На останню сторінку</string>
-    <string name="action_go_last_page">На першу сторінку</string>
+    
+    <string name="action_go_last_page">На останню сторінку</string>
     <string name="action_file_browser">Відкрити книгу</string>
     <string name="action_options">Настройки</string>
     <string name="action_toggle_day_night">День / ніч</string>
@@ -163,4 +163,5 @@
     <string name="options_controls_flick_brightness_left">Левый край</string>
     <string name="options_controls_flick_brightness_none">Отключено</string>
     <string name="options_page_show_titlebar_page_number">Номер страницы</string>
+<string name="action_go_first_page">На першу сторінку</string>
 </resources>

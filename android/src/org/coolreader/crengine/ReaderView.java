@@ -1148,7 +1148,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		boolean newBool = !mActivity.isFullscreen();
 		String newValue = newBool ? "1" : "0";
-		saveSetting(PROP_APP_SCREEN_ORIENTATION, newValue);
+		saveSetting(PROP_APP_FULLSCREEN, newValue);
 		mActivity.setFullscreen(newBool);
 	}
 	

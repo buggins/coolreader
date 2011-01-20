@@ -114,8 +114,8 @@
     <string name="action_toc">Содержание</string>
     <string name="action_go_percent">Перейти на %</string>
     <string name="action_go_page">Перейти на страницу</string>
-    <string name="action_go_first_page">На последнюю страницу</string>
-    <string name="action_go_last_page">На первую страницу</string>
+    <string name="action_go_first_page">На первую страницу</string>
+    <string name="action_go_last_page">На последнюю страницу</string>
     <string name="action_file_browser">Открыть книгу</string>
     <string name="action_options">Настройки</string>
     <string name="action_toggle_day_night">День / ночь</string>

@@ -1122,7 +1122,7 @@ public class CoolReader extends Activity
         		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
         }
         
-        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "1");
+        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "0");
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
         props.applyDefault(ReaderView.PROP_FONT_SIZE, "20");
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
