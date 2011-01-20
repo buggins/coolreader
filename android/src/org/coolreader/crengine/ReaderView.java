@@ -2071,11 +2071,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]);
 			OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
 			String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
-			mActivity.showToast(s);
+			if ( showBrightnessFlickToast )
+				mActivity.showToast(s);
 			mActivity.saveSettings(mSettings);
 			currentBrightnessValueIndex = -1;
 		}
 	}
+	private static final boolean showBrightnessFlickToast = false;
 
 
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY )

@@ -295,7 +295,7 @@ public class Engine {
 							if ( progressIcon!=null )
 								mProgress.setIcon(progressIcon);
 							else
-								mProgress.setIcon(R.drawable.cr3_logo);
+								mProgress.setIcon(R.drawable.cr3_logo_small);
 							mProgress.setMax(10000);
 							mProgress.setCancelable(false);
 							mProgress.setProgress(mainProgress);
