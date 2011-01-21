@@ -89,6 +89,9 @@ enum CRMainMenuCmd
     MCMD_NEXT_MODE,
     MCMD_PREV_MODE,
     MCMD_BOOKMARK_LIST_GO_MODE,
+
+    MCMD_GO_PERCENT,
+    MCMD_GO_PERCENT_APPLY,
 };
 
 #define PROP_FILE_PROPS_FONT_SIZE "cr3.dlg.fileprops.font.size"

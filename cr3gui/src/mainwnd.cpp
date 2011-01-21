@@ -1085,6 +1085,9 @@ bool V3DocViewWin::onCommand( int command, int params )
     case MCMD_GO_PAGE_APPLY:
         _docview->doCommand( DCMD_GO_PAGE, params-1 );
         return true;
+    case MCMD_GO_PERCENT_APPLY:
+        _docview->doCommand( DCMD_GO_POS, params * _docview->GetFullHeight() / 100 );
+        return true;
     case MCMD_SETTINGS_APPLY:
 #if CR_INTERNAL_PAGE_ORIENTATION==1
     case mm_Orientation:

@@ -49,6 +49,8 @@ public:
 
     void showGoToPageDialog();
 
+    void showGoToPercentDialog();
+
     bool showLinksDialog();
     /// returns true if dictionaries found, shows warning window otherwise
     bool hasDictionaries();

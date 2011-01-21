@@ -184,6 +184,18 @@ void CRViewDialog::showGoToPageDialog()
     _wm->activateWindow( dlg );
 }
 
+void CRViewDialog::showGoToPercentDialog()
+{
+    LVTocItem * toc = _docview->getToc();
+    CRNumberEditDialog * dlg;
+    dlg = new CRNumberEditDialog( _wm,
+        lString16( _("Enter position percent") ),
+        lString16(),
+        MCMD_GO_PERCENT_APPLY, 0, 100 );
+    dlg->setAccelerators( getDialogAccelerators() );
+    _wm->activateWindow( dlg );
+}
+
 bool CRViewDialog::showLinksDialog()
 {
     CRLinksDialog * dlg = CRLinksDialog::create( _wm, this );
@@ -335,6 +347,9 @@ bool CRViewDialog::onCommand( int command, int params )
         case MCMD_GO_PAGE:
             showGoToPageDialog();
             return true;
+        case MCMD_GO_PERCENT:
+            showGoToPercentDialog();
+            return true;
         case MCMD_GO_LINK:
             showLinksDialog();
             return true;
@@ -458,6 +473,7 @@ static const char * getCommandName( int command )
 	case MCMD_KBD_PREVLAYOUT: return _("Previous keyboard layout");
 	case MCMD_HELP: return _("Show manual");
 	case MCMD_HELP_KEYS: return _("Show key mapping");
+    case MCMD_GO_PERCENT: return _("Go to percent...");
     default: return _("Unknown command");
 	}
 }
