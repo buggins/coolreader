@@ -5636,9 +5636,23 @@ bool ldomXPointerEx::prevVisibleText()
 }
 
 // TODO: implement better behavior
-static bool IsUnicodeSpace( lChar16 ch )
+inline bool IsUnicodeSpace( lChar16 ch )
 {
     return ch==' ';
+}
+
+// TODO: implement better behavior
+inline bool IsUnicodeSpaceOrNull( lChar16 ch )
+{
+    return ch==0 || ch==' ';
+}
+
+inline bool canWrapWordBefore( lChar16 ch ) {
+    return ch>=0x2e80 && ch<0xa640;
+}
+
+inline bool canWrapWordAfter( lChar16 ch ) {
+    return ch>=0x2e80 && ch<0xa640;
 }
 
 /// move to previous visible word beginning
@@ -5848,7 +5862,9 @@ bool ldomXPointerEx::isVisibleWordStart()
     lString16 text = node->getText();
     int textLen = text.length();
     int i = _data->getOffset();
-    if ( (i==0 && i<textLen && !IsUnicodeSpace(text[i])) || (i<textLen && IsUnicodeSpace(text[i-1]) && !IsUnicodeSpace(text[i]) ) )
+    lChar16 currCh = i<textLen ? text[i] : 0;
+    lChar16 prevCh = i<textLen && i>0 ? text[i-1] : 0;
+    if ( canWrapWordBefore(currCh) || IsUnicodeSpaceOrNull(prevCh) && !IsUnicodeSpace(currCh) )
         return true;
     return false;
  }
@@ -5864,8 +5880,9 @@ bool ldomXPointerEx::isVisibleWordEnd()
     lString16 text = node->getText();
     int textLen = text.length();
     int i = _data->getOffset();
-    if ( (i==textLen && i>0 && !IsUnicodeSpace(text[i-1]))
-        || (i>0 && !IsUnicodeSpace(text[i-1]) && IsUnicodeSpace(text[i]) ) )
+    lChar16 currCh = i<textLen ? text[i] : 0;
+    lChar16 nextCh = i<textLen-1 ? text[i+1] : 0;
+    if ( canWrapWordAfter(currCh) || !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh) )
         return true;
     return false;
 }
