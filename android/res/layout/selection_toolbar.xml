@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Option item layout for CR3 options dialog
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/toc_item_body"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="true"
+    >
+
+    <ImageButton android:id="@+id/selection_copy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/cr3_menu_copy"
+        android:layout_marginTop="2dip"
+        android:layout_marginBottom="2dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        />
+    <ImageButton android:id="@+id/selection_dict"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dip"
+        android:layout_marginBottom="2dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:src="@drawable/cr3_menu_dict"
+        />
+    <ImageButton android:id="@+id/selection_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dip"
+        android:layout_marginBottom="2dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        />
+</LinearLayout>
