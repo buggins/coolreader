@@ -1357,6 +1357,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				BackgroundThread.ensureBackground();
 				java.util.Properties internalProps = getSettingsInternal(); 
 				props = new Properties(internalProps);
+				props.remove(PROP_EMBEDDED_STYLES);
 			}
 			public void done() {
 				Properties changedSettings = props.diff(currSettings);
