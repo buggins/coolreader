@@ -81,6 +81,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_SHOW_PAGE_COUNT         ="window.status.pos.page.count";
     public static final String PROP_SHOW_PAGE_NUMBER        ="window.status.pos.page.number";
     public static final String PROP_FONT_KERNING_ENABLED    ="font.kerning.enabled";
+    public static final String PROP_FLOATING_PUNCTUATION    ="crengine.style.floating.punctuation.enabled";
     public static final String PROP_LANDSCAPE_PAGES         ="window.landscape.pages";
     public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
     public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
@@ -107,7 +108,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_FLICK_BACKLIGHT_CONTROL = "app.screen.backlight.control.flick";
     public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
     public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
-    
+
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
     public static final int PAGE_ANIMATION_SLIDE = 2;
@@ -179,6 +180,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_ORIENTATION(2015),
     	DCMD_TOGGLE_FULLSCREEN(2016),
     	DCMD_SHOW_HOME_SCREEN(2017), // home screen activity
+    	DCMD_TOGGLE_DOCUMENT_STYLES(2018),
     	;
     	
     	private final int nativeId;
@@ -1160,6 +1162,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.setFullscreen(newBool);
 	}
 	
+	public void toggleDocumentStyles()
+	{
+		if ( mOpened && mBookInfo!=null ) {
+			Log.d("cr3", "toggleDocumentStyles()");
+			boolean flg = !mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
+			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, flg);
+            doEngineCommand( ReaderCommand.DCMD_TOGGLE_DOCUMENT_STYLES, 0);
+		}
+	}
+	
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
 		onCommand( cmd, param, null );
@@ -1170,6 +1182,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
+		case DCMD_TOGGLE_DOCUMENT_STYLES:
+			toggleDocumentStyles();
+			break;
 		case DCMD_SHOW_HOME_SCREEN:
 			mActivity.showHomeScreen();
 			break;
@@ -1195,11 +1210,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             drawPage();
             break;
 		case DCMD_ZOOM_OUT:
-            doEngineCommand( ReaderCommand.DCMD_ZOOM_OUT, 1);
+            doEngineCommand( ReaderCommand.DCMD_ZOOM_OUT, param);
             syncViewSettings(getSettings());
             break;
 		case DCMD_ZOOM_IN:
-            doEngineCommand( ReaderCommand.DCMD_ZOOM_IN, 1);
+            doEngineCommand( ReaderCommand.DCMD_ZOOM_IN, param);
             syncViewSettings(getSettings());
             break;
 		case DCMD_PAGEDOWN:
@@ -1311,6 +1326,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
 		if ( backgroundImageId!=null )
 			setBackgroundTexture(backgroundImageId);
+		props.remove(PROP_EMBEDDED_STYLES);
         applySettingsInternal(props);
         syncViewSettings(props);
         drawPage();
@@ -3285,6 +3301,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    	return null;
 				}
 			});
+			Properties p = new Properties(); 
+			p.setProperty(PROP_EMBEDDED_STYLES, mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG)? "0" : "1");
+			applySettingsInternal(p);
 			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {

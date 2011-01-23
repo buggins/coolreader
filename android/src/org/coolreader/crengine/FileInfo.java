@@ -27,6 +27,7 @@ public class FileInfo {
 	int arcsize;
 	long createTime;
 	long lastAccessTime;
+	int flags;
 	boolean isArchive;
 	boolean isDirectory;
 	boolean isModified;
@@ -35,11 +36,22 @@ public class FileInfo {
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
 	FileInfo parent; // parent item
+	
+	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 
 	/**
 	 * To separate archive name from file name inside archive.
 	 */
-	public static String ARC_SEPARATOR = "@/";
+	public static final String ARC_SEPARATOR = "@/";
+	
+	
+	public void setFlag( int flag, boolean value ) {
+		flags = flags & (~flag) | (value? flag : 0);
+	}
+	
+	public boolean getFlag( int flag ) {
+		return (flags & flag)!=0;
+	}
 	
 	/**
 	 * Split archive + file path name by ARC_SEPARATOR

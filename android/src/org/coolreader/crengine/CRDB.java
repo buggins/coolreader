@@ -62,7 +62,7 @@ public class CRDB {
 		")"
 	};
 	
-	public final int DB_VERSION = 3;
+	public final int DB_VERSION = 4;
 	protected boolean updateSchema()
 	{
 		if (DROP_TABLES)
@@ -98,7 +98,8 @@ public class CRDB {
 				"filesize INTEGER," +
 				"arcsize INTEGER," +
 				"create_time INTEGER," +
-				"last_access_time INTEGER" +
+				"last_access_time INTEGER, " +
+				"flags INTEGER DEFAULT 0" +
 				")");
 		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_folder_index ON book (folder_fk) ");
@@ -141,6 +142,8 @@ public class CRDB {
 			execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
 		if ( currentVersion<3 )
 			execSQLIgnoreErrors(COVERPAGE_SCHEMA);
+		if ( currentVersion<4 )
+			execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN flags INTEGER DEFAULT 0");
 		// version 2 updates ====================================================================
 		// TODO: add more updates here
 		// set current version
@@ -237,7 +240,7 @@ public class CRDB {
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
-		"create_time, last_access_time " +
+		"create_time, last_access_time, flags " +
 		"FROM book b " +
 		"LEFT JOIN series s ON s.id=b.series_fk " +
 		"LEFT JOIN folder f ON f.id=b.folder_fk ";
@@ -260,6 +263,7 @@ public class CRDB {
 		fileInfo.arcsize = rs.getInt(i++);
 		fileInfo.createTime = rs.getInt(i++);
 		fileInfo.lastAccessTime = rs.getInt(i++);
+		fileInfo.flags = rs.getInt(i++);
 		fileInfo.isArchive = fileInfo.arcname!=null; 
 	}
 	
@@ -624,6 +628,7 @@ public class CRDB {
 			add("arcsize", (long)newValue.arcsize, (long)oldValue.arcsize);
 			add("last_access_time", (long)newValue.lastAccessTime, (long)oldValue.lastAccessTime);
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
+			add("flags", (long)newValue.flags, (long)oldValue.flags);
 		}
 		QueryHelper( Bookmark newValue, Bookmark oldValue, long bookId )
 		{
