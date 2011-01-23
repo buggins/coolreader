@@ -4499,7 +4499,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
 	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
 	props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
-	static int def_status_line[] = { 0, 1, 2 };
+    props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
+    static int def_status_line[] = { 0, 1, 2 };
 	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
 	props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
 			2);
@@ -4541,7 +4542,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setStringDef(PROP_SHOW_PAGE_NUMBER, "1");
     props->setStringDef(PROP_SHOW_POS_PERCENT, "0");
     props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
-
 }
 
 #define H_MARGIN 8
@@ -4718,7 +4718,13 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			bool value = props->getBoolDef(PROP_FOOTNOTES, true);
 			getDocument()->setDocFlag(DOC_FLAG_ENABLE_FOOTNOTES, value);
 			requestRender();
-		} else if (name == PROP_PAGE_VIEW_MODE) {
+        } else if (name == PROP_FLOATING_PUNCTUATION) {
+            bool value = props->getBoolDef(PROP_FLOATING_PUNCTUATION, true);
+            if ( gFlgFloatingPunctuationEnabled != value ) {
+                gFlgFloatingPunctuationEnabled = value;
+                requestRender();
+            }
+        } else if (name == PROP_PAGE_VIEW_MODE) {
 			LVDocViewMode m =
 					props->getIntDef(PROP_PAGE_VIEW_MODE, 1) ? DVM_PAGES
 							: DVM_SCROLL;

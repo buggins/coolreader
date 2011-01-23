@@ -692,6 +692,8 @@ void lvtextDraw( formatted_text_fragment_t * text, draw_buf_t * buf, int x, int 
 
 #define DUMMY_IMAGE_SIZE 16
 
+int gFlgFloatingPunctuationEnabled = 1;
+
 void LFormattedText::AddSourceObject(
             lUInt16         flags,    /* flags */
             lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
@@ -1086,7 +1088,7 @@ public:
             /* last char of src fragment */
             flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
         }
-        bool visualAlignmentEnabled = true;
+        bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
         if ( lastc=='\t' ) {
             // tab
             if ( frmline->word_count==1 && frmline->x==0 && first_para_line->margin<0 ) {
