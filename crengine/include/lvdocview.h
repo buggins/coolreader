@@ -241,6 +241,7 @@ enum LVDocCmd
     DCMD_SCROLL_BY, // scroll by N pixels, for Scroll view mode only
     DCMD_REQUEST_RENDER, // invalidate rendered data
     DCMD_GO_PAGE_DONT_SAVE_HISTORY,
+    DCMD_SET_INTERNAL_STYLES, // set internal styles option
 
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,

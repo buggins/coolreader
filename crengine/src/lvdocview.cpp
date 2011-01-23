@@ -4262,7 +4262,11 @@ bool LVDocView::goToPageShortcutBookmark(int number) {
 // execute command
 int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	switch (cmd) {
-	case DCMD_REQUEST_RENDER:
+    case DCMD_SET_INTERNAL_STYLES:
+        m_props->setBool(PROP_EMBEDDED_STYLES, (param&1)!=0);
+        getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, param);
+        break;
+    case DCMD_REQUEST_RENDER:
 		requestRender();
 		break;
 	case DCMD_TOGGLE_BOLD: {
@@ -4492,14 +4496,13 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_FONT_WEIGHT_EMBOLDEN, bool_options_def_false, 2);
 	static int int_options_1_2[] = { 1, 2 };
 	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
-	props->limitValueList(PROP_EMBEDDED_STYLES, bool_options_def_true, 2);
 	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
 	props->limitValueList(PROP_FOOTNOTES, bool_options_def_true, 2);
 	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
 	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
 	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
 	props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
-    props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
+    //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
     static int def_status_line[] = { 0, 1, 2 };
 	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
 	props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
@@ -4542,6 +4545,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setStringDef(PROP_SHOW_PAGE_NUMBER, "1");
     props->setStringDef(PROP_SHOW_POS_PERCENT, "0");
     props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
+    props->setStringDef(PROP_EMBEDDED_STYLES, "1");
+    props->setStringDef(PROP_FLOATING_PUNCTUATION, "1");
 }
 
 #define H_MARGIN 8

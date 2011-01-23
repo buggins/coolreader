@@ -157,6 +157,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_SCROLL_BY(127),
     	DCMD_REQUEST_RENDER(128),
     	DCMD_GO_PAGE_DONT_SAVE_HISTORY(129),
+    	DCMD_SET_INTERNAL_STYLES(130),
     	
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
@@ -1168,7 +1169,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Log.d("cr3", "toggleDocumentStyles()");
 			boolean flg = !mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
 			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, flg);
-            doEngineCommand( ReaderCommand.DCMD_TOGGLE_DOCUMENT_STYLES, 0);
+            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, flg ? 0 : 1);
+            doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
 		}
 	}
 	
@@ -3302,9 +3304,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    	return null;
 				}
 			});
-			Properties p = new Properties(); 
-			p.setProperty(PROP_EMBEDDED_STYLES, mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG)? "0" : "1");
-			applySettingsInternal(p);
+			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG)? 0 : 1; 
+			Log.d("cr3", "internalStyles: " + internalStyles);
+			doCommandInternal(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles);
 			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {

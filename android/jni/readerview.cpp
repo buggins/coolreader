@@ -470,7 +470,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInt
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
- * Method:    applySettings
+ * Method:    applySettingsInternal
  * Signature: (Ljava/util/Properties;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettingsInternal

@@ -1154,8 +1154,9 @@ public:
         int pscale_x = 1000 * m_pbuffer->width / srcline->o.width;
         int pscale_y = 1000 * m_pbuffer->page_height / srcline->o.height;
         int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
-        if ( MAX_IMAGE_SCALE_MUL>0 && pscale>MAX_IMAGE_SCALE_MUL*1000 )
-            pscale = MAX_IMAGE_SCALE_MUL*1000;
+        int maxscale = (MAX_IMAGE_SCALE_MUL>0 ? MAX_IMAGE_SCALE_MUL>0 : 1) * 1000;
+        if ( pscale>maxscale )
+            pscale = maxscale;
         word->o.height = srcline->o.height * pscale / 1000;
         word->width = srcline->o.width * pscale / 1000;
         word->inline_width = srcline->o.width * pscale / 1000;
