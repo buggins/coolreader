@@ -64,6 +64,10 @@
 #define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
 #define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
 
+#define PROP_FLOATING_PUNCTUATION    "crengine.style.floating.punctuation.enabled"
+#define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
+
+
 #define PROP_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.filesize.min"
 #define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"

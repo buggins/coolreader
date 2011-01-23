@@ -310,4 +310,6 @@ public:
 
 #endif
 
+extern int gFlgFloatingPunctuationEnabled;
+
 #endif
