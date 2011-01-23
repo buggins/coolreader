@@ -23,6 +23,12 @@
 #include "../include/lvtinydom.h"
 #endif
 
+#define ARBITRARY_IMAGE_SCALE_ENABLED 1
+
+#ifndef MAX_IMAGE_SCALE_MUL
+#define MAX_IMAGE_SCALE_MUL 2
+#endif
+
 #define FRM_ALLOC_SIZE 16
 
 formatted_line_t * lvtextAllocFormattedLine( )
@@ -522,6 +528,15 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 // object
                 word = lvtextAddFormattedWord( frmline );
                 word->src_text_index = i;
+#if ARBITRARY_IMAGE_SCALE_ENABLED==1
+                int pscale_x = 1000 * pbuffer->width / srcline->o.width;
+                int pscale_y = 1000 * pbuffer->height / pbuffer->page_height;
+                int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
+                if ( pscale>MAX_IMAGE_SCALE_MUL*1000 )
+                    pscale = MAX_IMAGE_SCALE_MUL*1000;
+                word->o.height = srcline->o.height * pscale / 1000;
+                word->width = srcline->o.width * pscale / 1000;
+#else
                 int scale_div = 1;
                 int scale_mul = 1;
                 int div_x = (srcline->o.width / pbuffer->width) + 1;
@@ -546,6 +561,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 }
                 word->o.height = srcline->o.height * scale_mul / scale_div;
                 word->width = srcline->o.width * scale_mul / scale_div;
+#endif// ARBITRARY_IMAGE_SCALE_ENABLED==1
                 word->flags = LTEXT_WORD_IS_OBJECT;
                 word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                 word->y = 0;
@@ -1134,6 +1150,16 @@ public:
         formatted_word_t * word = lvtextAddFormattedWord( frmline );
         word->flags = 0;
         word->src_text_index = srcIndex;
+#if ARBITRARY_IMAGE_SCALE_ENABLED==1
+        int pscale_x = 1000 * m_pbuffer->width / srcline->o.width;
+        int pscale_y = 1000 * m_pbuffer->page_height / srcline->o.height;
+        int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
+        if ( MAX_IMAGE_SCALE_MUL>0 && pscale>MAX_IMAGE_SCALE_MUL*1000 )
+            pscale = MAX_IMAGE_SCALE_MUL*1000;
+        word->o.height = srcline->o.height * pscale / 1000;
+        word->width = srcline->o.width * pscale / 1000;
+        word->inline_width = srcline->o.width * pscale / 1000;
+#else
         int scale_div = 1;
         int scale_mul = 1;
         int div_x = (srcline->o.width / m_pbuffer->width) + 1;
@@ -1159,6 +1185,7 @@ public:
         word->o.height = srcline->o.height * scale_mul / scale_div;
         word->width = srcline->o.width * scale_mul / scale_div;
         word->inline_width = srcline->o.width * scale_mul / scale_div;
+#endif
         word->flags |= LTEXT_WORD_IS_OBJECT;
         word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
         if ( srcIndex==m_pbuffer->srctextlen-1 || (m_pbuffer->srctext[srcIndex+1].flags&LTEXT_FLAG_NEWLINE) )
