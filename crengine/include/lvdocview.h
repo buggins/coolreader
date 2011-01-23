@@ -65,7 +65,6 @@
 #define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
 
 #define PROP_FLOATING_PUNCTUATION    "crengine.style.floating.punctuation.enabled"
-#define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
 
 
 #define PROP_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.filesize.min"
