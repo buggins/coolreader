@@ -1469,7 +1469,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
             if (phi & PGHDR_PERCENT) {
                 if ( !pageinfo.empty() )
                     pageinfo += L"  ";
-                pageinfo += lString16::itoa(percent/100)+L"."+lString16::itoa(percent/10%10)+L"%";
+                pageinfo += lString16::itoa(percent/100); //+L"."+lString16::itoa(percent/10%10)+L"%";
             }
 		}
 		int piw = 0;
