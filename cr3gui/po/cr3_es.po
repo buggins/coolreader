@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Spanish Translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-01-24 14:19+0300\n"
+"POT-Creation-Date: 2011-01-25 01:56+0300\n"
 "PO-Revision-Date: 2010-03-02 19:35+0100\n"
 "Last-Translator: \n"
 "Language-Team: jotas\n"
@@ -79,6 +79,15 @@ msgstr "Ajustes"
 #: ../src/mainwnd.cpp:869 ../src/viewdlg.cpp:531
 msgid "Keyboard layout"
 msgstr "Uso y disposición de las teclas"
+
+#: ../src/mainwnd.cpp:876
+#, fuzzy
+msgid ""
+"$1 - choose command\n"
+"$2, $3 - close"
+msgstr ""
+"$1 - abrir libro\n"
+"$2, $3 - cerrar"
 
 #: ../src/mainwnd.cpp:980
 msgid "Current page"

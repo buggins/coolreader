@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-01-24 14:19+0300\n"
+"POT-Creation-Date: 2011-01-25 01:56+0300\n"
 "PO-Revision-Date: 2010-03-04 10:07+0200\n"
 "Last-Translator: Zlatko Petkov <zlpetkov@gmail.com>\n"
 "Language-Team: Bulgarian\n"
@@ -74,6 +74,15 @@ msgstr "Настройки"
 #: ../src/mainwnd.cpp:869 ../src/viewdlg.cpp:531
 msgid "Keyboard layout"
 msgstr "Функции на клавишите"
+
+#: ../src/mainwnd.cpp:876
+#, fuzzy
+msgid ""
+"$1 - choose command\n"
+"$2, $3 - close"
+msgstr ""
+"$1 - отваряне на книга\n"
+"$2, $3 - отказ"
 
 #: ../src/mainwnd.cpp:980
 msgid "Current page"

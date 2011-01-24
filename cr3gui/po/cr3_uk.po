@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-01-24 14:19+0300\n"
+"POT-Creation-Date: 2011-01-25 01:56+0300\n"
 "PO-Revision-Date: 2010-06-17 11:48+0200\n"
 "Last-Translator: Vitaliy Stopchans'kyy <stopchan DOG gmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -76,6 +76,14 @@ msgstr "Налаштування"
 #: ../src/mainwnd.cpp:869 ../src/viewdlg.cpp:531
 msgid "Keyboard layout"
 msgstr "Призначення кнопок"
+
+#: ../src/mainwnd.cpp:876
+msgid ""
+"$1 - choose command\n"
+"$2, $3 - close"
+msgstr ""
+"$1 — выберите команду\n"
+"$2, $3 — закрити"
 
 #: ../src/mainwnd.cpp:980
 msgid "Current page"

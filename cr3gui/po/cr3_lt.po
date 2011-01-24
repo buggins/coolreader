@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-01-24 14:19+0300\n"
+"POT-Creation-Date: 2011-01-25 01:56+0300\n"
 "PO-Revision-Date: 2010-02-24 21:50+0300\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -75,6 +75,12 @@ msgstr ""
 
 #: ../src/mainwnd.cpp:869 ../src/viewdlg.cpp:531
 msgid "Keyboard layout"
+msgstr ""
+
+#: ../src/mainwnd.cpp:876
+msgid ""
+"$1 - choose command\n"
+"$2, $3 - close"
 msgstr ""
 
 #: ../src/mainwnd.cpp:980

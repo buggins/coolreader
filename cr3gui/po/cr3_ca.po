@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Catalan translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-01-24 14:19+0300\n"
+"POT-Creation-Date: 2011-01-25 01:56+0300\n"
 "PO-Revision-Date: 2010-10-21 23:16+0100\n"
 "Last-Translator: Ferri64\n"
 "Language-Team: Catalan LoCo Team\n"
@@ -77,6 +77,15 @@ msgstr "Paràmetres"
 #: ../src/mainwnd.cpp:869 ../src/viewdlg.cpp:531
 msgid "Keyboard layout"
 msgstr "Dsiposició de teclat"
+
+#: ../src/mainwnd.cpp:876
+#, fuzzy
+msgid ""
+"$1 - choose command\n"
+"$2, $3 - close"
+msgstr ""
+"$1 - obre el llibre\n"
+"$2, $3 - tanca"
 
 #: ../src/mainwnd.cpp:980
 msgid "Current page"
