@@ -873,7 +873,7 @@ VIEWER_MENU_4ABOUT=About...
 
     menu_win->setAccelerators( getMenuAccelerators() );
 
-    lString16 s("$1 - choose command\n$2, $3 - close");
+    lString16 s(_("$1 - choose command\n$2, $3 - close"));
     s.replaceParam(1, menu_win->getItemNumberKeysName());
     s.replaceParam(2, menu_win->getCommandKeyName(MCMD_OK) );
     s.replaceParam(3, menu_win->getCommandKeyName(MCMD_CANCEL) );

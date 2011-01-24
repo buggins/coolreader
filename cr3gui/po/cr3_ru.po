@@ -587,7 +587,7 @@ msgstr "Введите номер страницы"
 
 #: ../src/viewdlg.cpp:192
 msgid "Enter position percent"
-msgstr "Введите позицию (процент)"
+msgstr "Введите позицию (%)"
 
 #: ../src/viewdlg.cpp:309
 msgid "Find in dictionary"
@@ -823,7 +823,7 @@ msgstr "Назначение клавиш"
 
 #: ../src/viewdlg.cpp:476
 msgid "Go to percent..."
-msgstr "Перейти на процент..."
+msgstr "Перейти на позицию (%)..."
 
 #: ../src/viewdlg.cpp:477
 msgid "Unknown command"

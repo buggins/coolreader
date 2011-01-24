@@ -91,7 +91,7 @@ msgstr "Заряд батареї"
 
 #: ../src/mainwnd.cpp:982
 msgid "charging..."
-msgstr "Заряджається.."
+msgstr "Заряджається..."
 
 #: ../src/mainwnd.cpp:983
 msgid "Current Time"
@@ -191,7 +191,7 @@ msgstr "Версія документу"
 
 #: ../src/mainwnd.cpp:1019
 msgid "Change history"
-msgstr "История изменений"
+msgstr "Iсторiя змiн"
 
 #: ../src/mainwnd.cpp:1020
 msgid "Document info"
@@ -283,7 +283,7 @@ msgid ""
 "$2 - switch to GO mode"
 msgstr ""
 "$1 — додати закладку,\n"
-"$2 — режим відривання закладок"
+"$2 — режим відкривання закладок"
 
 #: ../src/bmkdlg.cpp:81
 msgid ""
@@ -587,7 +587,7 @@ msgstr "Вкажіть номер сторінки"
 
 #: ../src/viewdlg.cpp:192
 msgid "Enter position percent"
-msgstr "Введите позицию (процент)"
+msgstr "Введiть позицiю (%)"
 
 #: ../src/viewdlg.cpp:309
 msgid "Find in dictionary"
@@ -823,7 +823,7 @@ msgstr "Призначення кнопок"
 
 #: ../src/viewdlg.cpp:476
 msgid "Go to percent..."
-msgstr "Перейти на процент"
+msgstr "Перейти на позицiю (%)"
 
 #: ../src/viewdlg.cpp:477
 msgid "Unknown command"
