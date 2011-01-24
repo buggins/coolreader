@@ -29,7 +29,7 @@ msgstr "1..8"
 
 #: ../src/mainwnd.cpp:755
 msgid "No manual currently available for this language, sorry!"
-msgstr ""
+msgstr "Няма ръководство за този език, съжаляваме!"
 
 #: ../src/mainwnd.cpp:766 ../src/mainwnd.cpp:865
 msgid "Help"
@@ -251,7 +251,7 @@ msgstr "(Празно)"
 
 #: ../src/bmkdlg.cpp:49
 msgid "Page $1 ($2%)"
-msgstr ""
+msgstr "Страница $1 ($2%)"
 
 #: ../src/bmkdlg.cpp:68
 msgid "Go to bookmark"
@@ -527,7 +527,7 @@ msgstr "Пренасяне"
 
 #: ../src/settings.cpp:593
 msgid "Floating punctuation"
-msgstr ""
+msgstr "Висяща пунктуация"
 
 #: ../src/settings.cpp:601
 msgid "Page margins"
@@ -587,7 +587,7 @@ msgstr "Въведете номер на страница"
 
 #: ../src/viewdlg.cpp:192
 msgid "Enter position percent"
-msgstr ""
+msgstr "Въведете позиция в проценти"
 
 #: ../src/viewdlg.cpp:309
 msgid "Find in dictionary"
@@ -825,7 +825,7 @@ msgstr "Функции на бутоните"
 #: ../src/viewdlg.cpp:476
 #, fuzzy
 msgid "Go to percent..."
-msgstr "Преход към страница"
+msgstr "Преход към позиция (процент)"
 
 #: ../src/viewdlg.cpp:477
 msgid "Unknown command"
