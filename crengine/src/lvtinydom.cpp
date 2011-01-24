@@ -4437,12 +4437,12 @@ bool ldomXPointer::getRect(lvRect & rect) const
 
         ldomNode * node = getNode();
         int offset = getOffset();
-        ldomXPointerEx xp(node, offset);
-        //if ( !xp.isVisible() ) {
+        if ( !node->isText() ) {
+        	ldomXPointerEx xp(node, offset);
             xp.nextVisibleText();
             node = xp.getNode();
             offset = xp.getOffset();
-        //}
+        }
         if ( node->isElement() ) {
             if ( offset>=0 ) {
                 //

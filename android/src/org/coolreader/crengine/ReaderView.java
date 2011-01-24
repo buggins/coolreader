@@ -2968,6 +2968,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null )
 	    		pos = mBookInfo.getLastPosition().getStartPos();
 			Log.v("cr3", "LoadDocumentTask : book info " + mBookInfo);
+			Log.v("cr3", "LoadDocumentTask : last position = " + pos);
     		//mBitmap = null;
 	        mEngine.showProgress( 1000, R.string.progress_loading );
 	        //init();
@@ -2987,7 +2988,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				Log.v("cr3", "updating loaded book info");
 	        	updateLoadedBookInfo();
 				Log.i("cr3", "Document " + filename + " is loaded successfully");
-				restorePositionBackground(pos);
+				if ( pos!=null ) {
+					Log.i("cr3", "Restoring position : " + pos);
+					restorePositionBackground(pos);
+				}
 				CoolReader.dumpHeapAllocation();
 	        } else {
 				Log.e("cr3", "Error occured while trying to load document " + filename);
