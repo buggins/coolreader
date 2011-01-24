@@ -53,6 +53,7 @@ enum MainMenuItems_t {
     mm_Embolden,
     mm_FastUpdates,
     mm_TurboUpdateMode,
+    mm_FloatingPunctuation,
 };
 
 

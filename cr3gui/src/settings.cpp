@@ -330,7 +330,13 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 		{NULL, NULL},
 	};
 
-	item_def_t footnotes[] = {
+    item_def_t floating_punctuation_options[] = {
+        {_("On"), "1"},
+        {_("Off"), "0"},
+        {NULL, NULL},
+    };
+
+    item_def_t footnotes[] = {
 		{_("On"), "1"},
 		{_("Off"), "0"},
 		{NULL, NULL},
@@ -562,7 +568,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( kerningMenu, kerning_options );
         mainMenu->addItem( kerningMenu );
 
-		//====== Hyphenation ==========
+        //====== Hyphenation ==========
 		if ( HyphMan::getDictList() ) {
             // strings from CREngine - just to catch by gettext tools
             _("[No Hyphenation]");
@@ -582,6 +588,14 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
             hyphMenu->reconfigure( 0 );
             mainMenu->addItem( hyphMenu );
 		}
+
+        CRMenu * floatingPunctuationMenu = new CRMenu(_wm, mainMenu, mm_FloatingPunctuation,
+                _("Floating punctuation"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FLOATING_PUNCTUATION );
+        addMenuItems( floatingPunctuationMenu, floating_punctuation_options );
+        mainMenu->addItem( floatingPunctuationMenu );
+
+
         //====== Margins ==============
         CRMenu * marginsMenu = new CRMenu(_wm, mainMenu, mm_PageMargins,
                 _("Page margins"),
