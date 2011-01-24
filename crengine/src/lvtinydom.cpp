@@ -4437,6 +4437,12 @@ bool ldomXPointer::getRect(lvRect & rect) const
 
         ldomNode * node = getNode();
         int offset = getOffset();
+        ldomXPointerEx xp(node, offset);
+        //if ( !xp.isVisible() ) {
+            xp.nextVisibleText();
+            node = xp.getNode();
+            offset = xp.getOffset();
+        //}
         if ( node->isElement() ) {
             if ( offset>=0 ) {
                 //
@@ -6224,18 +6230,15 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
 
     href = LVCombinePaths(codeBase, href);
 
-
-    if ( codeBasePrefix.empty() )
-        return href;
-
-
     // resolve relative links
     lString16 p, id;
     if ( !href.split2(lString16("#"), p, id) )
         p = href;
-    if ( p.empty() )
+    if ( p.empty() ) {
+        if ( codeBasePrefix.empty() )
+            return href;
         p = codeBasePrefix;
-    else {
+    } else {
         lString16 replacement = pathSubstitutions.get(p);
         if ( !replacement.empty() )
             p = replacement;

@@ -115,7 +115,9 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
         title.trimDoubleSpaces(false, false, false);
         if ( href.empty() || title.empty() )
             continue;
+        //CRLog::trace("TOC href before convert: %s", LCSTR(href));
         href = appender.convertHref(href);
+        //CRLog::trace("TOC href after convert: %s", LCSTR(href));
         if ( href.empty() || href[0]!='#' )
             continue;
         ldomNode * target = doc->getNodeById(doc->getAttrValueIndex(href.substr(1).c_str()));
@@ -302,6 +304,10 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     ldomDocument * ncxdoc = NULL;
     if ( !ncxHref.empty() ) {
         LVStreamRef stream = m_arc->OpenStream(ncxHref.c_str(), LVOM_READ);
+        lString16 codeBase = LVExtractPath( ncxHref );
+        if ( codeBase.length()>0 && codeBase.lastChar()!='/' )
+            codeBase.append(1, L'/');
+        appender.setCodeBase(codeBase);
         if ( !stream.isNull() ) {
             ldomDocument * ncxdoc = LVParseXMLStream( stream );
             if ( ncxdoc!=NULL ) {
