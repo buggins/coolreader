@@ -76,12 +76,11 @@ msgid "Keyboard layout"
 msgstr "Функции на клавишите"
 
 #: ../src/mainwnd.cpp:876
-#, fuzzy
 msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
 msgstr ""
-"$1 - отваряне на книга\n"
+"$1 - изберете команда\n"
 "$2, $3 - отказ"
 
 #: ../src/mainwnd.cpp:980
