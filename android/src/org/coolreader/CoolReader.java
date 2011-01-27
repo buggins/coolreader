@@ -1151,7 +1151,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
 		props.applyDefault(ReaderView.PROP_APP_DICTIONARY, dicts[0].id);
 		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
-		
+		props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 		
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, "2");

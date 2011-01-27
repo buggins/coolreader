@@ -98,6 +98,17 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_page_animation_none, R.string.options_page_animation_slide,
 			R.string.options_page_animation_paperbook
 		};
+	int[] mSelectionAction = new int[] {
+			ReaderView.SELECTION_ACTION_TOOLBAR, ReaderView.SELECTION_ACTION_COPY, 
+			ReaderView.SELECTION_ACTION_DICTIONARY,
+//			ReaderView.SELECTION_ACTION_BOOKMARK
+		};
+	int[] mSelectionActionTitles = new int[] {
+			R.string.options_selection_action_toolbar, 
+			R.string.options_selection_action_copy, 
+			R.string.options_selection_action_dictionary, 
+//			R.string.options_selection_action_bookmark, 
+		};
 	int[] mAntialias = new int[] {
 			0, 1, 2
 		};
@@ -1076,6 +1087,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_selection_action), ReaderView.PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
