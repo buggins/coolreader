@@ -211,8 +211,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			TextView valueView = (TextView)view.findViewById(R.id.option_value);
 			labelView.setText(label);
 			valueView.setText(getValueLabel());
-			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			icon.setImageResource(iconId);
+//			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+//			icon.setImageResource(iconId);
 			return view;
 		}
 
@@ -263,8 +263,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			labelView.setText(label);
 			int cl = mProperties.getColor(property, defColor);
 			valueView.setBackgroundColor(cl);
-			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			icon.setImageResource(iconId);
+//			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+//			icon.setImageResource(iconId);
 			return view;
 		}
 	}
@@ -308,8 +308,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //						refreshList();
 					}
 				});
-			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			icon.setImageResource(iconId);
+//			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+//			icon.setImageResource(iconId);
 //			view.setClickable(true);
 //			view.setFocusable(true);
 			return view;

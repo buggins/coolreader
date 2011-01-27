@@ -3,13 +3,26 @@
 	<LinearLayout android:layout_width="match_parent" android:id="@+id/LinearLayout02" android:layout_height="wrap_content">
 		<ImageView android:layout_width="wrap_content" android:layout_height="wrap_content" 
 	        android:layout_margin="4dip"
-			android:id="@+id/logo" android:drawable="@drawable/cr3_logo">
+			android:id="@+id/logo" 
+			android:src="@drawable/cr3_logo" android:layout_gravity="center_vertical|left">
 		</ImageView>
 		<TextView android:text="Cool Reader 3.0" android:id="@+id/version" android:layout_width="fill_parent" 
+            style="@android:style/TextAppearance.Medium"
+	        android:gravity="center_vertical|left"
 	        android:layout_margin="4dip"
 			android:layout_height="wrap_content">
 		</TextView>
 	</LinearLayout>
-	<TextView android:text="Vadim Lopatin, 2011" android:id="@+id/copyright" android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="buggins@fromru.com" android:id="@+id/email" android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<TextView android:text="(c) Vadim Lopatin, 2011" android:id="@+id/copyright" 
+            style="@android:style/TextAppearance.Medium"
+			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<TextView android:text="buggins@fromru.com" android:id="@+id/email" 
+            style="@android:style/TextAppearance.Medium"
+			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
+	<TextView android:text="http://www.coolreader.org/" android:id="@+id/www" 
+            style="@android:style/TextAppearance.Medium"
+			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+	<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge" 
+            style="@android:style/TextAppearance.Medium"
+			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
 </LinearLayout>

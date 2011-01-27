@@ -10,9 +10,9 @@
 </menu>
 </item>
 <item android:title="@string/mi_bookmarks" android:id="@+id/cr3_mi_bookmarks" android:numericShortcut="3" android:orderInCategory="3" android:icon="@drawable/ic_menu_mark"></item>
-<item android:title="@string/mi_select_text" android:id="@+id/cr3_mi_select_text" android:numericShortcut="6" android:titleCondensed="@string/mi_select_text" android:orderInCategory="6" android:icon="@android:drawable/ic_menu_edit"></item>
+<item android:title="@string/mi_select_text" android:id="@+id/cr3_mi_select_text" android:numericShortcut="4" android:titleCondensed="@string/mi_select_text" android:orderInCategory="6" android:icon="@android:drawable/ic_menu_edit"></item>
 <item android:title="@string/mi_options" android:id="@+id/cr3_mi_options" android:numericShortcut="5" android:titleCondensed="@string/mi_options" android:orderInCategory="5" android:icon="@android:drawable/ic_menu_preferences"></item>
-<item android:title="@string/mi_search" android:id="@+id/cr3_mi_search" android:numericShortcut="4" android:titleCondensed="@string/mi_search" android:orderInCategory="4" android:icon="@android:drawable/ic_menu_search"></item>
+<item android:title="@string/mi_search" android:id="@+id/cr3_mi_search" android:numericShortcut="6" android:titleCondensed="@string/mi_search" android:orderInCategory="4" android:icon="@android:drawable/ic_menu_search"></item>
 <item android:title="@string/action_toggle_day_night" android:id="@+id/cr3_mi_toggle_day_night" android:numericShortcut="6" android:titleCondensed="@string/action_toggle_day_night" android:orderInCategory="7" android:icon="@android:drawable/ic_menu_view"></item>
 <item android:title="@string/action_toggle_document_styles" android:id="@+id/cr3_mi_toggle_document_styles" android:numericShortcut="6" android:titleCondensed="@string/action_toggle_document_styles" android:orderInCategory="9"></item>
 <item android:title="@string/dlg_about" android:id="@+id/cr3_mi_about" android:numericShortcut="6" android:titleCondensed="@string/dlg_about" android:orderInCategory="10"></item>
