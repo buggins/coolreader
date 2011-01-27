@@ -220,7 +220,8 @@ void LVDocView::requestReload() {
 		CRFileHist * hist = getHistory();
 		if (!hist || hist->getRecords().length() <= 0)
 			return;
-		lString16 fn = hist->getRecords()[0]->getFilePathName();
+        //lString16 fn = hist->getRecords()[0]->getFilePathName();
+        lString16 fn = m_filename;
 		bool res = LoadDocument(fn.c_str());
 		if (res) {
 			//swapToCache();

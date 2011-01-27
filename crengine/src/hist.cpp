@@ -189,6 +189,8 @@ public:
             for ( ; attrvalue[i]>='0' && attrvalue[i]<='9'; i++)
                 n1 = n1*10 + (attrvalue[i]-'0');
             _curr_bookmark->setTimestamp( n1 );
+        } else if (lStr_cmp(attrname, L"page")==0 && state==in_bm) {
+            _curr_bookmark->setBookmarkPage(lString16( attrvalue ).atoi());
         }
     }
     /// called on text
@@ -276,7 +278,8 @@ static void putBookmark( LVStream * stream, CRBookmark * bmk )
     char percent[32];
     sprintf( percent, "%d.%02d%%", bmk->getPercent()/100, bmk->getPercent()%100 );
     char bmktag[255];
-    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\" shortcut=\"%d\"", tname, percent, (int)bmk->getTimestamp(), bmk->getShortcut() );
+    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\" shortcut=\"%d\" page=\"%d\"", tname, percent,
+            (int)bmk->getTimestamp(), bmk->getShortcut(), bmk->getBookmarkPage() );
     putTag(stream, 3, bmktag);
     putTagValue( stream, 4, "start-point", bmk->getStartPos() );
     putTagValue( stream, 4, "end-point", bmk->getEndPos() );

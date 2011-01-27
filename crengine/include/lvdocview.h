@@ -871,7 +871,6 @@ public:
     void setMinFileSizeToCache( int size ) {
         m_props->setInt(PROP_MIN_FILE_SIZE_TO_CACHE, size);
     }
-
 #endif
 
     /// render (format) document
