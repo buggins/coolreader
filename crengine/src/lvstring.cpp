@@ -1809,7 +1809,7 @@ lString16 lString16::itoa( int n )
 // constructs string representation of integer
 lString16 lString16::itoa( lInt64 n )
 {
-    lChar16 buf[16];
+    lChar16 buf[32];
     int i=0;
     int negative = 0;
     if (n==0)
@@ -1819,7 +1819,7 @@ lString16 lString16::itoa( lInt64 n )
         negative = 1;
         n = -n;
     }
-    for ( ; n; n/=10 )
+    for ( ; n && i<30; n/=10 )
     {
         buf[i++] = (lChar16)('0' + (n%10));
     }
