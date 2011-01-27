@@ -436,7 +436,10 @@ public class Scanner {
 		mRoot.clear();
 		// create recent books dir
 		addRoot( FileInfo.RECENT_DIR_TAG, R.string.dir_recent_books, false);
-		addRoot( Environment.getExternalStorageDirectory().getAbsolutePath(), R.string.dir_sd_card, true);
+		String sdpath = Environment.getExternalStorageDirectory().getAbsolutePath();
+		if ( "/nand".equals(sdpath) && new File("/sdcard").isDirectory() )
+			sdpath = "/sdcard";
+		addRoot( sdpath, R.string.dir_sd_card, true);
 		// internal SD card on Nook
 		addRoot( "/system/media/sdcard", R.string.dir_internal_sd_card, true);
 		// internal SD card on PocketBook 701 IQ
