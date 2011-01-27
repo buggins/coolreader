@@ -177,4 +177,6 @@
     <string name="options_selection_action_dictionary">Найти в словаре</string>
     <string name="options_selection_action_copy">Копировать</string>
     <string name="options_app_browser_hide_empty_dirs">Прятать директории без книг</string>
+<string name="dlg_about">О программе</string>
+    <string name="dlg_book_info">О книге</string>
 </resources>

@@ -15,5 +15,7 @@
 <item android:title="@string/mi_search" android:id="@+id/cr3_mi_search" android:numericShortcut="4" android:titleCondensed="@string/mi_search" android:orderInCategory="4" android:icon="@android:drawable/ic_menu_search"></item>
 <item android:title="@string/action_toggle_day_night" android:id="@+id/cr3_mi_toggle_day_night" android:numericShortcut="6" android:titleCondensed="@string/action_toggle_day_night" android:orderInCategory="7" android:icon="@android:drawable/ic_menu_view"></item>
 <item android:title="@string/action_toggle_document_styles" android:id="@+id/cr3_mi_toggle_document_styles" android:numericShortcut="6" android:titleCondensed="@string/action_toggle_document_styles" android:orderInCategory="9"></item>
-<item android:title="@string/mi_exit" android:titleCondensed="@string/mi_exit" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="8" android:numericShortcut="8"></item>
+<item android:title="@string/dlg_about" android:id="@+id/cr3_mi_about" android:numericShortcut="6" android:titleCondensed="@string/dlg_about" android:orderInCategory="10"></item>
+<item android:title="@string/dlg_book_info" android:id="@+id/cr3_mi_book_info" android:numericShortcut="6" android:titleCondensed="@string/dlg_book_info" android:orderInCategory="11"></item>
+<item android:title="@string/mi_exit" android:titleCondensed="@string/mi_exit" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="12" android:numericShortcut="8"></item>
 </menu>

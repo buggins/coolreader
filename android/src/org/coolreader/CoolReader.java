@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 
+import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookmarksDlg;
@@ -31,6 +32,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.net.Uri;
@@ -76,6 +79,10 @@ public class CoolReader extends Activity
 	public History getHistory() 
 	{
 		return mHistory;
+	}
+	
+	public Engine getEngine() {
+		return mEngine;
 	}
 	
 	public ReaderView getReaderView() 
@@ -252,6 +259,13 @@ public class CoolReader extends Activity
 	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
+	
+	private String mVersion = "3.0";
+	
+	public String getVersion() {
+		return mVersion;
+	}
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -259,6 +273,13 @@ public class CoolReader extends Activity
 		Log.i("cr3", "CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
+		try {
+			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+			mVersion = pi.versionName;
+		} catch ( NameNotFoundException e ) {
+			// ignore
+		}
+		Log.i("cr3", "CoolReader version : " + getVersion());
 		
 		Display d = getWindowManager().getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics(); 
@@ -1265,5 +1286,10 @@ public class CoolReader extends Activity
 	public static void dumpHeapAllocation() {
 		Debug.getMemoryInfo(info);
 		Log.d("cr3", "nativeHeapAlloc=" + Debug.getNativeHeapAllocatedSize() + ", nativeHeapSize=" + Debug.getNativeHeapSize() + ", info: " + dumpFields(infoFields, info));
+	}
+	
+	public void showAboutDialog() {
+		AboutDialog dlg = new AboutDialog(this);
+		dlg.show();
 	}
 }

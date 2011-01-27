@@ -190,6 +190,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_FULLSCREEN(2016),
     	DCMD_SHOW_HOME_SCREEN(2017), // home screen activity
     	DCMD_TOGGLE_DOCUMENT_STYLES(2018),
+    	DCMD_ABOUT(2019),
+    	DCMD_BOOK_INFO(2020),
     	;
     	
     	private final int nativeId;
@@ -1207,16 +1209,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
+	public void showBookInfo() {
+		mActivity.showToast("Not yet implemented");
+	}
+	
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
 		onCommand( cmd, param, null );
 	}
-
+	
 	public void onCommand( final ReaderCommand cmd, final int param, final Runnable onFinishHandler )
 	{
 		BackgroundThread.ensureGUI();
 		Log.i("cr3", "On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
+		case DCMD_ABOUT:
+			mActivity.showAboutDialog();
+			break;
+		case DCMD_BOOK_INFO:
+			showBookInfo();
+			break;
 		case DCMD_TOGGLE_DOCUMENT_STYLES:
 			toggleDocumentStyles();
 			break;

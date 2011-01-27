@@ -176,4 +176,6 @@
     <string name="options_selection_action_dictionary">Find in dictionary</string>
     <string name="options_selection_action_copy">Copy to clipboard</string>
     <string name="options_app_browser_hide_empty_dirs">Hide directories without books</string>
+<string name="dlg_about">About CoolReader</string>
+    <string name="dlg_book_info">About book</string>
 </resources>
