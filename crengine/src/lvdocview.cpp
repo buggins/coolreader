@@ -2871,8 +2871,13 @@ CRFileHistRecord * LVDocView::getCurrentFileHistRecord() {
 	lString16 series = getSeries();
 	CRLog::trace("get bookmark");
 	ldomXPointer bmk = getBookmark();
-	CRLog::debug("m_hist.savePosition(%s, %d)", LCSTR(m_filename), m_filesize);
-	CRFileHistRecord * res = m_hist.savePosition(m_filename, m_filesize, title,
+    lString16 fn = m_filename;
+#ifdef ORIGINAL_FILENAME_PATCH
+    if ( !m_originalFilename.empty() )
+        fn = m_originalFilename;
+#endif
+    CRLog::debug("m_hist.savePosition(%s, %d)", LCSTR(fn), m_filesize);
+    CRFileHistRecord * res = m_hist.savePosition(fn, m_filesize, title,
 			authors, series, bmk);
 	CRLog::trace("savePosition() returned");
 	return res;
@@ -2890,9 +2895,14 @@ void LVDocView::restorePosition() {
 		return;
 	LVLock lock(getMutex());
 	//checkRender();
-	CRLog::debug("m_hist.restorePosition(%s, %d)", LCSTR(m_filename),
+    lString16 fn = m_filename;
+#ifdef ORIGINAL_FILENAME_PATCH
+    if ( !m_originalFilename.empty() )
+        fn = m_originalFilename;
+#endif
+    CRLog::debug("m_hist.restorePosition(%s, %d)", LCSTR(fn),
 			m_filesize);
-	ldomXPointer pos = m_hist.restorePosition(m_doc, m_filename, m_filesize);
+    ldomXPointer pos = m_hist.restorePosition(m_doc, fn, m_filesize);
 	if (!pos.isNull()) {
 		//goToBookmark( pos );
 		CRLog::info("LVDocView::restorePosition() - last position is found");
