@@ -171,4 +171,10 @@
     <string name="options_style_floating_punctuation">Висячая пунктуация</string>
     <string name="options_style_document_embedded_styles">Внутренние стили документа</string>
     <string name="action_toggle_document_styles">Включить/выключить стили документа</string>
+<string name="options_selection_action_toolbar">Панель инструментов</string>
+    <string name="options_selection_action">Действие для выделения</string>
+    <string name="options_selection_action_bookmark">Добавить закладку</string>
+    <string name="options_selection_action_dictionary">Найти в словаре</string>
+    <string name="options_selection_action_copy">Копировать</string>
+    <string name="options_app_browser_hide_empty_dirs">Прятать директории без книг</string>
 </resources>

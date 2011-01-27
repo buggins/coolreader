@@ -17,6 +17,12 @@ public class Scanner {
 	HashMap<String, FileInfo> mFileList = new HashMap<String, FileInfo>();
 	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
 	FileInfo mRoot;
+	
+	boolean mHideEmptyDirs = true;
+	
+	void setHideEmptyDirs( boolean flgHide ) {
+		mHideEmptyDirs = flgHide;
+	}
 
 //	private boolean scanDirectories( FileInfo baseDir )
 //	{
@@ -237,7 +243,8 @@ public class Scanner {
 				progress(1000);
 				for ( int i=baseDir.dirCount()-1; i>=0; i-- )
 					listDirectory(baseDir.getDir(i));
-				baseDir.removeEmptyDirs();
+				if ( mHideEmptyDirs )
+					baseDir.removeEmptyDirs();
 				progress(2000);
 				ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
 				int count = baseDir.fileCount();
@@ -384,7 +391,7 @@ public class Scanner {
 		if ( parent==null )
 			return null;
 		long maxTs = android.os.SystemClock.uptimeMillis() + MAX_DIR_LIST_TIME;
-		listSubtrees(root, 5, maxTs);
+		listSubtrees(root, mHideEmptyDirs ? 5 : 1, maxTs);
 		return parent;
 	}
 	
@@ -406,7 +413,8 @@ public class Scanner {
 			if ( !res )
 				return false;
 		}
-		root.removeEmptyDirs();
+		if ( mHideEmptyDirs )
+			root.removeEmptyDirs();
 		return true;
 	}
 	
