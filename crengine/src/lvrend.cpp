@@ -2209,7 +2209,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     spreadParent( pstyle->background_color, parent_style->background_color );
 
     // set calculated style
-    //node->getDocument()->cacheStyle( style );
+    //enode->getDocument()->cacheStyle( style );
     enode->setStyle( style );
     if ( enode->getStyle().isNull() ) {
         CRLog::error("NULL style set!!!");

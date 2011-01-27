@@ -881,11 +881,15 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         //
         {
             int index = node->getNodeIndex();
-            while (index>0) {
+            // while
+            if (index>0) {
                 ldomNode * elem = node->getParentNode()->getChildElementNode(index-1, _id);
-                if ( elem )
+                if ( elem ) {
+                    node = elem;
+                    //CRLog::trace("+ selector: found pred element");
                     return true;
-                index--;
+                }
+                //index--;
             }
             return false;
         }
@@ -903,6 +907,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
             bool res = (val == _value);
             //if ( res )
             //    return true;
+            //CRLog::trace("attreq: %s %s", LCSTR(val), LCSTR(_value) );
             return res;
         }
         break;
@@ -945,6 +950,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
             val.lowercase();
 //            if ( val.length() != _value.length() )
 //                return false;
+            //CRLog::trace("attr_class: %s %s", LCSTR(val), LCSTR(_value) );
             return val == _value;
         }
         break;

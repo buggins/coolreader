@@ -108,10 +108,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_FLICK_BACKLIGHT_CONTROL = "app.screen.backlight.control.flick";
     public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
     public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
+    public static final String PROP_APP_SELECTION_ACTION = "app.selection.action";
+    public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
 
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
     public static final int PAGE_ANIMATION_SLIDE = 2;
+    
+    public static final int SELECTION_ACTION_TOOLBAR = 0;
+    public static final int SELECTION_ACTION_COPY = 1;
+    public static final int SELECTION_ACTION_DICTIONARY = 2;
+    public static final int SELECTION_ACTION_BOOKMARK = 3;
+    
     
     public enum ViewMode
     {
@@ -723,13 +731,38 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( isUpdateEnd ) {
 					String text = sel.text;
 					if ( text!=null && text.length()>0 ) {
-						SelectionToolbarDlg.showDialog(mActivity, ReaderView.this, sel);
+						onSelectionComplete( sel );
 					} else {
 						clearSelection();
 					}
 				}
 			}
 		});
+	}
+
+	private int mSelectionAction = SELECTION_ACTION_TOOLBAR;
+	private void onSelectionComplete( Selection sel ) {
+		switch ( mSelectionAction ) {
+		case SELECTION_ACTION_TOOLBAR:
+			SelectionToolbarDlg.showDialog(mActivity, ReaderView.this, sel);
+			break;
+		case SELECTION_ACTION_COPY:
+			copyToClipboard(sel.text);
+			clearSelection();
+			break;
+		case SELECTION_ACTION_DICTIONARY:
+			mActivity.findInDictionary( sel.text );
+			clearSelection();
+			break;
+		case SELECTION_ACTION_BOOKMARK:
+			// TODO: implement bookmarks
+			clearSelection();
+			break;
+		default:
+			clearSelection();
+			break;
+		}
+		
 	}
 	
 	public void copyToClipboard( String text ) {
@@ -1399,6 +1432,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	mActivity.setDict(value);
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
+        } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
+        	mActivity.getScanner().setHideEmptyDirs(flg);
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
         	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
@@ -1423,7 +1458,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	} catch ( Exception e ) {
         		// ignore
         	}
+        } else if ( PROP_APP_SELECTION_ACTION.equals(key) ) {
+        	try {
+        		int n = Integer.valueOf(value);
+        		mSelectionAction = n;
+        	} catch ( Exception e ) {
+        		// ignore
+        	}
         }
+        //
 	}
 	
 	public void setAppSettings( Properties newSettings, Properties oldSettings )
@@ -1453,6 +1496,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_APP_DICTIONARY.equals(key)
     				|| PROP_APP_DOUBLE_TAP_SELECTION.equals(key)
     				|| PROP_APP_FLICK_BACKLIGHT_CONTROL.equals(key)
+    				|| PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS.equals(key)
+    				|| PROP_APP_SELECTION_ACTION.equals(key)
     				) {
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
