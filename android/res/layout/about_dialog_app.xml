@@ -1,21 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:id="@+id/LinearLayout01" android:layout_height="fill_parent" android:layout_width="fill_parent">
-	<LinearLayout android:layout_width="match_parent" android:id="@+id/LinearLayout02" android:layout_height="wrap_content">
+	<LinearLayout android:layout_width="match_parent" android:id="@+id/LinearLayout02" 
+	    android:layout_margin="4dip"
+		android:layout_height="wrap_content">
 		<ImageView android:layout_width="wrap_content" android:layout_height="wrap_content" 
-	        android:layout_margin="4dip"
+	        android:layout_margin="8dip"
 			android:id="@+id/logo" 
 			android:src="@drawable/cr3_logo" android:layout_gravity="center_vertical|left">
 		</ImageView>
-		<TextView android:text="Cool Reader 3.0" android:id="@+id/version" android:layout_width="fill_parent" 
-            style="@android:style/TextAppearance.Medium"
-	        android:gravity="center_vertical|left"
-	        android:layout_margin="4dip"
-			android:layout_height="wrap_content">
-		</TextView>
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:id="@+id/LinearLayout01" android:layout_height="fill_parent" android:layout_width="fill_parent">
+			<TextView android:text="Cool Reader 3.0" android:id="@+id/version" android:layout_width="fill_parent" 
+	            style="@android:style/TextAppearance.Medium"
+		        android:gravity="center_vertical|left"
+		        android:layout_margin="4dip"
+				android:layout_height="wrap_content">
+			</TextView>
+			<TextView android:text="(c) Vadim Lopatin, 2011" android:id="@+id/copyright" 
+		            style="@android:style/TextAppearance.Medium"
+					android:layout_margin="4dip" 
+					android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+		</LinearLayout>
 	</LinearLayout>
-	<TextView android:text="(c) Vadim Lopatin, 2011" android:id="@+id/copyright" 
-            style="@android:style/TextAppearance.Medium"
-			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 	<TextView android:text="buggins@fromru.com" android:id="@+id/email" 
             style="@android:style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
@@ -25,4 +30,8 @@
 	<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge" 
             style="@android:style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+	<TextView android:text="Third party components used: zlib, libpng, libjpeg, freetype, chmlib" 
+			android:id="@+id/thirdparty" 
+            style="@android:style/TextAppearance.Small"
+			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 </LinearLayout>

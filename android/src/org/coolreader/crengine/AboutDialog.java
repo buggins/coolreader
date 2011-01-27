@@ -29,14 +29,14 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
 		tabs.setup();
 		TabHost.TabSpec tsApp = tabs.newTabSpec("App");
-		tsApp.setIndicator("CoolReader", 
-				null);
+		tsApp.setIndicator("", 
+				getContext().getResources().getDrawable(R.drawable.cr3_menu_link));
 		tsApp.setContent(this);
 		tabs.addTab(tsApp);
 
 		TabHost.TabSpec tsLicense = tabs.newTabSpec("License");
-		tsLicense.setIndicator("License", 
-				null);
+		tsLicense.setIndicator("", 
+				getContext().getResources().getDrawable(R.drawable.ic_menu_star));
 		tsLicense.setContent(this);
 		tabs.addTab(tsLicense);
 		
