@@ -3106,6 +3106,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private final static boolean dontStretchWhileDrawing = true;
+	private final static boolean centerPageInsteadOfResizing = true;
 	
 	protected void doDraw(Canvas canvas)
 	{
@@ -3125,6 +3126,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        			src.right = dst.right;
 	        		if ( src.bottom>dst.bottom )
 	        			src.bottom = dst.bottom;
+	        		if ( centerPageInsteadOfResizing ) {
+		        		int ddx = (canvas.getWidth() - dst.width()) / 2;
+		        		int ddy = (canvas.getHeight() - dst.height()) / 2;
+		        		dst.left += ddx; 
+		        		dst.right += ddx; 
+		        		dst.top += ddy; 
+		        		dst.bottom += ddy; 
+	        		}
         		}
     			canvas.drawBitmap(mCurrentPageInfo.bitmap, src, dst, null);
     		} else {
