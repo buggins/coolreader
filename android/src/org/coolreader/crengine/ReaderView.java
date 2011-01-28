@@ -1224,8 +1224,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void showBookInfo() {
 		ArrayList<String> items = new ArrayList<String>();
-		BookInfoDialog dlg = new BookInfoDialog(mActivity, items); 
-		mActivity.showToast("Not yet implemented");
+		items.add("section=section.file");
+		items.add("file.name=filename.ext");
+		items.add("file.path=/sdcard/some/path");
+		items.add("file.size=10023");
+		items.add("section=section.position");
+		items.add("position.page=25");
+		items.add("position.percent=68%");
+		items.add("section=section.book");
+		items.add("book.title=Title");
+		items.add("book.authors=Author 1, Author 2");
+		BookInfoDialog dlg = new BookInfoDialog(mActivity, items);
+		dlg.show();
 	}
 	
 	public void onCommand( final ReaderCommand cmd, final int param )

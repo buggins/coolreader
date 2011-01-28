@@ -17,14 +17,19 @@ import android.widget.TextView;
 
 public class BookInfoDialog extends BaseDialog {
 	private final CoolReader mCoolReader;
-	private final LayoutInflater mIflater; 
-	private Collection<String> mItems;
+	private final LayoutInflater mInflater; 
 	private Map<String, Integer> mLabelMap;
 	private void fillMap() {
 		mLabelMap = new HashMap<String, Integer>();
 		mLabelMap.put("section.file", R.string.book_info_section_file_properties);
+		mLabelMap.put("file.name", R.string.book_info_file_name);
+		mLabelMap.put("file.path", R.string.book_info_file_path);
+		mLabelMap.put("file.arcname", R.string.book_info_file_arcname);
+		mLabelMap.put("file.arcpath", R.string.book_info_file_arcpath);
+		mLabelMap.put("file.size", R.string.book_info_file_size);
 		mLabelMap.put("section.book", R.string.book_info_section_book_properties);
 		mLabelMap.put("section.position", R.string.book_info_section_current_position);
+		mLabelMap.put("book.authors", R.string.book_info_book_authors);
 	}
 	
 	private void addItem(TableLayout table, String item) {
@@ -35,6 +40,7 @@ public class BookInfoDialog extends BaseDialog {
 		String value = item.substring(p+1).trim();
 		if ( name.length()==0 || value.length()==0 )
 			return;
+		boolean isSection = false;
 		if ( "section".equals(name) ) {
 			name = "";
 			Integer id = mLabelMap.get(value);
@@ -43,6 +49,7 @@ public class BookInfoDialog extends BaseDialog {
 			String section = getContext().getString(id);
 			if ( section!=null )
 				value = section;
+			isSection = true;
 		} else {
 			Integer id = mLabelMap.get(name);
 			if ( id==null )
@@ -51,10 +58,12 @@ public class BookInfoDialog extends BaseDialog {
 			if ( title!=null )
 				name = title;
 		}
-		TableRow tableRow = new TableRow(mCoolReader);
-		LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		tableRow.setLayoutParams(params);
-		TextView nameView = new TextView(mCoolReader);
+		TableRow tableRow = (TableRow)mInflater.inflate(isSection ? R.layout.book_info_section : R.layout.book_info_item, null);
+		TextView nameView = (TextView)tableRow.findViewById(R.id.name);
+		TextView valueView = (TextView)tableRow.findViewById(R.id.value);
+		nameView.setText(name);
+		valueView.setText(value);
+		table.addView(tableRow);
 	}
 	
 	public BookInfoDialog( CoolReader activity, Collection<String> items)
@@ -63,9 +72,12 @@ public class BookInfoDialog extends BaseDialog {
 		mCoolReader = activity;
 		setTitle(mCoolReader.getString(R.string.dlg_book_info));
 		fillMap();
-		mIflater = LayoutInflater.from(getContext());
-		View view = mIflater.inflate(R.layout.book_info_dialog, null);
+		mInflater = LayoutInflater.from(getContext());
+		View view = mInflater.inflate(R.layout.book_info_dialog, null);
 		TableLayout table = (TableLayout)view.findViewById(R.id.table);
+		for ( String item : items ) {
+			addItem(table, item);
+		}
 		setView( view );
 	}
 
