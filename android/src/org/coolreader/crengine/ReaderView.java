@@ -325,7 +325,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		final int thisId = ++lastResizeTaskId;
 	    if ( w<h && mActivity.isLandscape() ) {
 	    	Log.i("cr3", "ignoring size change to portrait since landscape is set");
-	    	//return;
+	    	return;
 	    }
 //		if ( mActivity.isPaused() ) {
 //			Log.i("cr3", "ignoring size change since activity is paused");
