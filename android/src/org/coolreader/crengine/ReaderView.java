@@ -1223,6 +1223,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	public void showBookInfo() {
+		ArrayList<String> items = new ArrayList<String>();
+		BookInfoDialog dlg = new BookInfoDialog(mActivity, items); 
 		mActivity.showToast("Not yet implemented");
 	}
 	

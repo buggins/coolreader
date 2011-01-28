@@ -15,9 +15,6 @@
     android:layout_marginRight="2dip"
     >
 
-
-
-
     <LinearLayout android:id="@+id/browser_item_name_body"
         android:orientation="vertical"
         android:layout_width="fill_parent"

@@ -182,4 +182,16 @@
     <string name="mi_book_styles_disable">Disable document internal styles</string>
     <string name="mi_night_mode_disable">Day mode</string>
     <string name="mi_night_mode_enable">Night mode</string>
+    <string name="book_info_file_format">Format</string>
+    <string name="book_info_section_book_properties">Book properties</string>
+    <string name="book_info_book_authors">Authors</string>
+    <string name="book_info_file_path">File path</string>
+    <string name="book_info_section_file_properties">File properties</string>
+    <string name="book_info_book_series_name">Series</string>
+    <string name="book_info_file_arcpath">Archive path</string>
+    <string name="book_info_book_title">Title</string>
+    <string name="book_info_file_name">File name</string>
+    <string name="book_info_file_arcname">Archive name</string>
+    <string name="book_info_section_current_position">Reading position</string>
+    <string name="book_info_file_size">File size</string>
 </resources>

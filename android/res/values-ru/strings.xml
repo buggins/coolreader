@@ -182,4 +182,16 @@
     <string name="mi_book_styles_disable">Запретить встроенные стили документа</string>
     <string name="mi_night_mode_disable">Дневной режим</string>
     <string name="mi_night_mode_enable">Ночной режим</string>
+    <string name="book_info_file_format">Формат</string>
+    <string name="book_info_section_book_properties">Свойства книги</string>
+    <string name="book_info_book_authors">Автор(ы)</string>
+    <string name="book_info_file_path">Путь к файлу</string>
+    <string name="book_info_section_file_properties">Свойства файла</string>
+    <string name="book_info_book_series_name">Серия</string>
+    <string name="book_info_file_arcpath">Путь к архиву</string>
+    <string name="book_info_book_title">Название</string>
+    <string name="book_info_file_name">Имя файла</string>
+    <string name="book_info_file_arcname">Имя архива</string>
+    <string name="book_info_section_current_position">Позиция чтения</string>
+    <string name="book_info_file_size">Размер файла</string>
 </resources>
