@@ -178,4 +178,8 @@
     <string name="options_app_browser_hide_empty_dirs">Прятать директории без книг</string>
 <string name="dlg_about">О программе</string>
     <string name="dlg_book_info">О книге</string>
+    <string name="mi_book_styles_enable">Разрешить встроенные стили документа</string>
+    <string name="mi_book_styles_disable">Запретить встроенные стили документа</string>
+    <string name="mi_night_mode_disable">Дневной режим</string>
+    <string name="mi_night_mode_enable">Ночной режим</string>
 </resources>

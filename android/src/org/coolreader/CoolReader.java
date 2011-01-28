@@ -820,9 +820,15 @@ public class CoolReader extends Activity
 	private void fillMenu(Menu menu) {
 		menu.clear();
 	    MenuInflater inflater = getMenuInflater();
-	    if ( currentView==mReaderView )
+	    if ( currentView==mReaderView ) {
 	    	inflater.inflate(R.menu.cr3_reader_menu, menu);
-	    else {
+	    	MenuItem item = menu.findItem(R.id.cr3_mi_toggle_document_styles);
+	    	if ( item!=null )
+	    		item.setTitle(mReaderView.getDocumentStylesEnabled() ? R.string.mi_book_styles_disable : R.string.mi_book_styles_enable);
+	    	item = menu.findItem(R.id.cr3_mi_toggle_day_night);
+	    	if ( item!=null )
+	    		item.setTitle(mReaderView.isNightMode() ? R.string.mi_night_mode_disable : R.string.mi_night_mode_enable);
+	    } else {
 	    	inflater.inflate(R.menu.cr3_browser_menu, menu);
 	    	if ( !isBookOpened() ) {
 	    		MenuItem item = menu.findItem(R.id.book_back_to_reading);

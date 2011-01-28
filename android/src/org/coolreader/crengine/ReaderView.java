@@ -1172,6 +1172,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Properties settings = getSettings();
 		OptionsDialog.toggleDayNightMode(settings);
 		setSettings(settings, null);
+		invalidImages = true;
+	}
+	
+	public boolean isNightMode() {
+		return mSettings.getBool(PROP_NIGHT_MODE, false);
 	}
 
 	public String getSetting( String name ) {
@@ -1207,6 +1212,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, flg ? 0 : 1);
             doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
 		}
+	}
+	
+	public boolean getDocumentStylesEnabled() {
+		if ( mOpened && mBookInfo!=null ) {
+			boolean flg = !mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
+			return flg;
+		}
+		return true;
 	}
 	
 	public void showBookInfo() {

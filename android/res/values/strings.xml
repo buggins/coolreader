@@ -178,4 +178,8 @@
     <string name="options_app_browser_hide_empty_dirs">Hide directories without books</string>
 <string name="dlg_about">About CoolReader</string>
     <string name="dlg_book_info">About book</string>
+    <string name="mi_book_styles_enable">Enable document internal styles</string>
+    <string name="mi_book_styles_disable">Disable document internal styles</string>
+    <string name="mi_night_mode_disable">Day mode</string>
+    <string name="mi_night_mode_enable">Night mode</string>
 </resources>
