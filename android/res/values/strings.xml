@@ -177,7 +177,7 @@
     <string name="options_selection_action_copy">Copy to clipboard</string>
     <string name="options_app_browser_hide_empty_dirs">Hide directories without books</string>
 <string name="dlg_about">About CoolReader</string>
-    <string name="dlg_book_info">About book</string>
+    <string name="dlg_book_info">Book Info</string>
     <string name="mi_book_styles_enable">Enable document internal styles</string>
     <string name="mi_book_styles_disable">Disable document internal styles</string>
     <string name="mi_night_mode_disable">Day mode</string>
@@ -194,4 +194,12 @@
     <string name="book_info_file_arcname">Archive name</string>
     <string name="book_info_section_current_position">Reading position</string>
     <string name="book_info_file_size">File size</string>
+<string name="book_info_section_system">System</string>
+    <string name="book_info_file_arcsize">Archive size</string>
+    <string name="book_info_system_version">Version</string>
+    <string name="book_info_system_battery">Battery</string>
+    <string name="book_info_system_time">Time</string>
+    <string name="book_info_position_chapter">Chapter</string>
+    <string name="book_info_position_page">Page</string>
+    <string name="book_info_position_percent">Percent</string>
 </resources>

@@ -194,4 +194,12 @@
     <string name="book_info_file_arcname">Имя архива</string>
     <string name="book_info_section_current_position">Позиция чтения</string>
     <string name="book_info_file_size">Размер файла</string>
+<string name="book_info_section_system">Система</string>
+    <string name="book_info_file_arcsize">Размер архива</string>
+    <string name="book_info_system_version">Версия</string>
+    <string name="book_info_system_battery">Батарея</string>
+    <string name="book_info_system_time">Время</string>
+    <string name="book_info_position_chapter">Глава</string>
+    <string name="book_info_position_page">Страница</string>
+    <string name="book_info_position_percent">Процент</string>
 </resources>

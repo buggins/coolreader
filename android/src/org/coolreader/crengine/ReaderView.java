@@ -2,7 +2,10 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -320,11 +323,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Log.i("cr3", "onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
 		final int thisId = ++lastResizeTaskId;
+	    if ( w<h && mActivity.isLandscape() ) {
+	    	Log.i("cr3", "ignoring size change to portrait since landscape is set");
+	    	//return;
+	    }
 //		if ( mActivity.isPaused() ) {
 //			Log.i("cr3", "ignoring size change since activity is paused");
 //			return;
 //		}
 		// update size with delay: chance to avoid extra unnecessary resizing
+		
 	    Runnable task = new Runnable() {
 	    	public void run() {
 	    		if ( thisId != lastResizeTaskId ) {
@@ -357,7 +365,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    };
 	    if ( mOpened ) {
 	    	Log.d("cr3", "scheduling delayed resize task id="+thisId);
-	    	BackgroundThread.instance().postGUI( task, 2200);
+	    	BackgroundThread.instance().postGUI( task, 1500);
 	    } else {
 	    	Log.d("cr3", "executing resize without delay");
 	    	task.run();
@@ -1222,20 +1230,66 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return true;
 	}
 	
+	static private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 	public void showBookInfo() {
-		ArrayList<String> items = new ArrayList<String>();
-		items.add("section=section.file");
-		items.add("file.name=filename.ext");
-		items.add("file.path=/sdcard/some/path");
-		items.add("file.size=10023");
-		items.add("section=section.position");
-		items.add("position.page=25");
-		items.add("position.percent=68%");
-		items.add("section=section.book");
-		items.add("book.title=Title");
-		items.add("book.authors=Author 1, Author 2");
-		BookInfoDialog dlg = new BookInfoDialog(mActivity, items);
-		dlg.show();
+		final ArrayList<String> items = new ArrayList<String>();
+		items.add("section=section.system");
+		items.add("system.version=Cool Reader " + mActivity.getVersion());
+		items.add("system.battery=" + mBatteryState + "%");
+		items.add("system.time=" + timeFormat.format(new Date()));
+		final BookInfo bi = mBookInfo;
+		if ( bi!=null ) {
+			FileInfo fi = bi.getFileInfo();
+			items.add("section=section.file");
+			String fname = new File(fi.pathname).getName();
+			items.add("file.name=" + fname);
+			if ( new File(fi.pathname).getParent()!=null )
+				items.add("file.path=" + new File(fi.pathname).getParent());
+			items.add("file.size=" + fi.size);
+			if ( fi.arcname!=null ) {
+				items.add("file.arcname=" + new File(fi.arcname).getName());
+				if ( new File(fi.arcname).getParent()!=null )
+					items.add("file.arcpath=" + new File(fi.arcname).getParent());
+				items.add("file.arcsize=" + fi.arcsize);
+			}
+			items.add("file.format=" + fi.format.name());
+		}
+		execute( new Task() {
+			Bookmark bm;
+			@Override
+			public void work() {
+				bm = getCurrentPageBookmarkInternal();
+				if ( bm!=null ) {
+					PositionProperties prop = getPositionPropsInternal(bm.getStartPos());
+					items.add("section=section.position");
+					if ( prop.pageMode!=0 ) {
+						items.add("position.page=" + (prop.pageNumber+1) + " / " + prop.pageCount);
+					}
+					int percent = (int)(10000 * (long)prop.y / prop.fullHeight);
+					items.add("position.percent=" + (percent/100) + "." + (percent%100) + "%" );
+					String chapter = bm.getTitleText();
+					if ( chapter!=null && chapter.length()>100 )
+						chapter = chapter.substring(0, 100) + "...";
+					items.add("position.chapter=" + chapter);
+				}
+			}
+			public void done() {
+				FileInfo fi = bi.getFileInfo();
+				items.add("section=section.book");
+				if ( fi.authors!=null || fi.title!=null || fi.series!=null) { 
+					items.add("book.authors=" + fi.authors);
+					items.add("book.title=" + fi.title);
+					if ( fi.series!=null ) {
+						String s = fi.series;
+						if ( fi.seriesNumber>0 )
+							s = s + " #" + fi.seriesNumber; 
+						items.add("book.series=" + s);
+					}
+				}
+				BookInfoDialog dlg = new BookInfoDialog(mActivity, items);
+				dlg.show();
+			}
+		});
 	}
 	
 	public void onCommand( final ReaderCommand cmd, final int param )
@@ -3147,10 +3201,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        		dst.bottom += ddy; 
 	        		}
         		}
+        		if ( dst.width()!=canvas.getWidth() || dst.height()!=canvas.getHeight() )
+        			canvas.drawColor(Color.rgb(64, 64, 64));
     			canvas.drawBitmap(mCurrentPageInfo.bitmap, src, dst, null);
     		} else {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
-    			canvas.drawColor(Color.rgb(192, 192, 192));
+    			canvas.drawColor(Color.rgb(64, 64, 64));
     		}
     	} catch ( Exception e ) {
     		Log.e("cr3", "exception while drawing", e);

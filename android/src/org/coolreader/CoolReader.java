@@ -180,6 +180,11 @@ public class CoolReader extends Activity
 		}
 	}
 
+	public boolean isLandscape()
+	{
+		return screenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+	}
+
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;

@@ -21,15 +21,26 @@ public class BookInfoDialog extends BaseDialog {
 	private Map<String, Integer> mLabelMap;
 	private void fillMap() {
 		mLabelMap = new HashMap<String, Integer>();
+		mLabelMap.put("section.system", R.string.book_info_section_system);
+		mLabelMap.put("system.version", R.string.book_info_system_version);
+		mLabelMap.put("system.battery", R.string.book_info_system_battery);
+		mLabelMap.put("system.time", R.string.book_info_system_time);
 		mLabelMap.put("section.file", R.string.book_info_section_file_properties);
 		mLabelMap.put("file.name", R.string.book_info_file_name);
 		mLabelMap.put("file.path", R.string.book_info_file_path);
 		mLabelMap.put("file.arcname", R.string.book_info_file_arcname);
 		mLabelMap.put("file.arcpath", R.string.book_info_file_arcpath);
+		mLabelMap.put("file.arcsize", R.string.book_info_file_arcsize);
 		mLabelMap.put("file.size", R.string.book_info_file_size);
-		mLabelMap.put("section.book", R.string.book_info_section_book_properties);
+		mLabelMap.put("file.format", R.string.book_info_file_format);
 		mLabelMap.put("section.position", R.string.book_info_section_current_position);
+		mLabelMap.put("position.percent", R.string.book_info_position_percent);
+		mLabelMap.put("position.page", R.string.book_info_position_page);
+		mLabelMap.put("position.chapter", R.string.book_info_position_chapter);
+		mLabelMap.put("section.book", R.string.book_info_section_book_properties);
 		mLabelMap.put("book.authors", R.string.book_info_book_authors);
+		mLabelMap.put("book.title", R.string.book_info_book_title);
+		mLabelMap.put("book.series", R.string.book_info_book_series_name);
 	}
 	
 	private void addItem(TableLayout table, String item) {
@@ -52,9 +63,7 @@ public class BookInfoDialog extends BaseDialog {
 			isSection = true;
 		} else {
 			Integer id = mLabelMap.get(name);
-			if ( id==null )
-				return;
-			String title = getContext().getString(id);
+			String title = id!=null ? getContext().getString(id) : name;
 			if ( title!=null )
 				name = title;
 		}
