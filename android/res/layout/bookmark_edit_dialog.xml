@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollBox
+  xmlns:android="http://schemas.android.com/apk/res/android"
+>
+<LinearLayout
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content">
+<TextView 
+    android:id="@+id/lbl_position"
+       style="@android:style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+	android:text="Page 34/1024 (25%) Chapter 1" 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>
+<RadioGroup 
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:id="@+id/rg_type">
+  <RadioButton android:checked="true"
+     android:id="@+id/rb_comment" android:text="@string/dlg_bookmark_type_comment"/>
+  <RadioButton android:checked="false"
+    android:id="@+id/rb_correction" android:text="@string/dlg_bookmark_type_correction"/>
+</RadioGroup>
+<TextView 
+    android:id="@+id/lbl_selection_text"
+       style="@android:style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+	android:text="@string/dlg_bookmark_edit_range_text" 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>
+<EditText 
+    android:id="@+id/position_text" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+	android:text="position text" 
+    style="@android:style/TextAppearance.Widget.EditText"
+	android:editable="false" android:singleLine="false"
+/>
+<TextView 
+    android:id="@+id/lbl_comment_text"
+       style="@android:style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+	android:text="@string/dlg_bookmark_edit_comment" 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>
+<EditText 
+    android:id="@+id/comment_edit" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+	android:text="comment text" 
+    style="@android:style/TextAppearance.Widget.EditText"
+	android:editable="true" android:singleLine="false"
+/>
+</LinearLayout>
+</ScrollBox>

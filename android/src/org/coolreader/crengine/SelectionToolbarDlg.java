@@ -10,11 +10,11 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
 
@@ -73,6 +73,22 @@ public class SelectionToolbarDlg {
 			public void onClick(View v) {
 				//mReaderView.findNext(pattern, false, caseInsensitive);
 				mCoolReader.findInDictionary( sel.text );
+				mReaderView.clearSelection();
+				mWindow.dismiss();
+			}
+		});
+		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				//mReaderView.findNext(pattern, false, caseInsensitive);
+				Bookmark bmk = new Bookmark();
+				bmk.setType(Bookmark.TYPE_COMMENT);
+				bmk.setPosText(sel.text);
+				bmk.setStartPos(sel.startPos);
+				bmk.setEndPos(sel.endPos);
+				bmk.setPercent(sel.percent);
+				BookmarkEditDialog dlg = new BookmarkEditDialog(mCoolReader, mReaderView, bmk, true);
+				dlg.show();
+				
 				mReaderView.clearSelection();
 				mWindow.dismiss();
 			}

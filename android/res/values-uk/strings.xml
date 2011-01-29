@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader 3</string>
     <string name="mi_search">Знайти</string>
@@ -201,4 +201,11 @@
     <string name="book_info_position_chapter">Глава</string>
     <string name="book_info_position_page">Сторінка</string>
     <string name="book_info_position_percent">Відсоток</string>
+<string name="dlg_bookmark_edit_correction">Исправленный текст</string>
+    <string name="dlg_bookmark_edit_comment">Комментарий</string>
+    <string name="dlg_bookmark_type_correction">Исправление</string>
+    <string name="dlg_bookmark_create">Новая закладка</string>
+    <string name="dlg_bookmark_edit">Редактирование закладки</string>
+    <string name="dlg_bookmark_edit_range_text">Выделенный текст</string>
+    <string name="dlg_bookmark_type_comment">Комментарий</string>
 </resources>

@@ -202,4 +202,11 @@
     <string name="book_info_position_chapter">Chapter</string>
     <string name="book_info_position_page">Page</string>
     <string name="book_info_position_percent">Percent</string>
+<string name="dlg_bookmark_edit_correction">Corrected text</string>
+    <string name="dlg_bookmark_edit_comment">Comment</string>
+    <string name="dlg_bookmark_type_correction">Correction</string>
+    <string name="dlg_bookmark_create">New bookmark</string>
+    <string name="dlg_bookmark_edit">Edit bookmark</string>
+    <string name="dlg_bookmark_edit_range_text">Selection text</string>
+    <string name="dlg_bookmark_type_comment">Comment</string>
 </resources>
