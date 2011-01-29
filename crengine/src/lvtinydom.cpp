@@ -4815,6 +4815,7 @@ bool ldomXPointerEx::sibling( int index )
     if ( !p || index < 0 || index >= (int)p->getChildCount() )
         return false;
     setNode( p->getChildNode( index ) );
+    setOffset(0);
     _indexes[ _level-1 ] = index;
     return true;
 }
@@ -4865,6 +4866,7 @@ bool ldomXPointerEx::parent()
     if ( _level<=1 )
         return false;
     setNode( getNode()->getParentNode() );
+    setOffset(0);
     _level--;
     return true;
 }
@@ -4879,6 +4881,7 @@ bool ldomXPointerEx::child( int index )
         return false;
     _indexes[ _level++ ] = index;
     setNode( getNode()->getChildNode( index ) );
+    setOffset(0);
     return true;
 }
 
@@ -4893,11 +4896,12 @@ int ldomXPointerEx::compare( const ldomXPointerEx& v ) const
             return 1;
     }
     if ( _level < v._level ) {
-        if ( getOffset() < v._indexes[i] )
-            return -1;
-        if ( getOffset() > v._indexes[i] )
-            return 1;
         return -1;
+//        if ( getOffset() < v._indexes[i] )
+//            return -1;
+//        if ( getOffset() > v._indexes[i] )
+//            return 1;
+//        return -1;
     }
     if ( _level > v._level ) {
         if ( _indexes[i] < v.getOffset() )
@@ -5976,7 +5980,7 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
         // move to next item
         bool stop = false;
         if ( !allowGoRecurse || !pos._start.child(0) ) {
-            while ( !pos._start.nextSibling() ) {
+             while ( !pos._start.nextSibling() ) {
                 if ( !pos._start.parent() ) {
                     stop = true;
                     break;

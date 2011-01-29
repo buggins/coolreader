@@ -736,7 +736,7 @@ bool CR3View::updateSelection( ldomXPointer p )
     //CRLog::debug("Range: %s - %s", UnicodeToUtf8(start).c_str(), UnicodeToUtf8(end).c_str());
     r.setFlags(1);
     _docview->selectRange( r );
-    _selText = cr2qt( r.getRangeText( '\n', 100000 ) );
+    _selText = cr2qt( r.getRangeText( '\n', 10000 ) );
     _selected = true;
     _selRange = r;
     update();
