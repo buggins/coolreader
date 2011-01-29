@@ -824,6 +824,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionIn
     CRStringField sel_startPos(sel, "startPos");
     CRStringField sel_endPos(sel, "endPos");
     CRStringField sel_text(sel, "text");
+    CRStringField sel_chapter(sel, "chapter");
     CRIntField sel_startX(sel, "startX");
     CRIntField sel_startY(sel, "startY");
     CRIntField sel_endX(sel, "endX");
@@ -849,10 +850,20 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionIn
         //CRLog::debug("Range: %s - %s", UnicodeToUtf8(start).c_str(), UnicodeToUtf8(end).c_str());
         r.setFlags(1);
         p->_docview->selectRange( r );
+        int page = p->_docview->getBookmarkPage(startp);
+        int pages = p->_docview->getPageCount();
+        lString16 titleText;
+        lString16 posText;
+        p->_docview->getBookmarkPosText(startp, titleText, posText);
+        int percent = 0;
+        if ( pages>1 )
+        	percent = 10000 * page/(pages-1);
         lString16 selText = r.getRangeText( '\n', 8192 );
+        sel_percent.set(percent);
     	sel_startPos.set( startp.toString() );
     	sel_endPos.set( endp.toString() );
     	sel_text.set(selText);
+    	sel_chapter.set(titleText);
     }
 
 }

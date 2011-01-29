@@ -7,6 +7,22 @@ public class Bookmark {
 	{
 	}
 	
+	public Bookmark( Bookmark v )
+	{
+		id=v.id;
+		type=v.type;
+		percent=v.percent;
+		shortcut=v.shortcut;
+		startPos=v.startPos;
+		endPos=v.endPos;
+		titleText=v.titleText;
+		posText=v.posText;
+		commentText=v.commentText;
+		timeStamp=v.timeStamp;
+		modified=v.modified;
+	}
+	
+	
 	public int getType() {
 		return type;
 	}
@@ -38,9 +54,19 @@ public class Bookmark {
 	public String getCommentText() {
 		return commentText;
 	}
-	public void setCommentText(String commentText) {
+	private boolean changed( String v1, String v2 ) {
+		if ( v1==null && v2==null )
+			return false;
+		if ( v1==null || v2==null )
+			return true;
+		return !v1.equals(v2);
+	}
+	public boolean setCommentText(String commentText) {
+		if ( !changed(this.commentText, commentText) )
+			return false;
 		this.commentText = commentText;
 		modified = true;
+		return true;
 	}
 	public String getTitleText() {
 		return titleText;
@@ -68,6 +94,8 @@ public class Bookmark {
 		return timeStamp;
 	}
 	public void setTimeStamp(long timeStamp) {
+		if ( this.timeStamp == timeStamp )
+			return;
 		this.timeStamp = timeStamp;
 		modified = true;
 	}
@@ -99,7 +127,7 @@ public class Bookmark {
 	private String titleText;
 	private String posText;
 	private String commentText;
-	private long timeStamp; // UTC timestamp
+	private long timeStamp = System.currentTimeMillis(); // UTC timestamp
 	private boolean modified;
 	
 }

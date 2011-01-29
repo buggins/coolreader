@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollBox
+<ScrollView
   xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
 >
 <LinearLayout
   android:orientation="vertical"
@@ -11,13 +12,14 @@
        style="@android:style/TextAppearance.Medium"
        android:singleLine="false"
        android:maxLines="3"
+	android:layout_margin="5dip"
 	android:text="Page 34/1024 (25%) Chapter 1" 
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"/>
 <RadioGroup 
   android:layout_width="fill_parent"
   android:layout_height="wrap_content"
-  android:orientation="vertical"
+  android:orientation="horizontal"
   android:id="@+id/rg_type">
   <RadioButton android:checked="true"
      android:id="@+id/rb_comment" android:text="@string/dlg_bookmark_type_comment"/>
@@ -57,4 +59,4 @@
 	android:editable="true" android:singleLine="false"
 />
 </LinearLayout>
-</ScrollBox>
+</ScrollView>

@@ -765,14 +765,28 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			clearSelection();
 			break;
 		case SELECTION_ACTION_BOOKMARK:
-			// TODO: implement bookmarks
 			clearSelection();
+			showNewBookmarkDialog( sel );
 			break;
 		default:
 			clearSelection();
 			break;
 		}
 		
+	}
+	
+	public void showNewBookmarkDialog( Selection sel ) {
+		if ( mBookInfo==null )
+			return;
+		Bookmark bmk = new Bookmark();
+		bmk.setType(Bookmark.TYPE_COMMENT);
+		bmk.setPosText(sel.text);
+		bmk.setStartPos(sel.startPos);
+		bmk.setEndPos(sel.endPos);
+		bmk.setPercent(sel.percent);
+		bmk.setTitleText(sel.chapter);
+		BookmarkEditDialog dlg = new BookmarkEditDialog(mActivity, this, mBookInfo, bmk, true);
+		dlg.show();
 	}
 	
 	public void copyToClipboard( String text ) {

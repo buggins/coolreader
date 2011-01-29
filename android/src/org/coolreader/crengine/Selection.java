@@ -10,6 +10,7 @@ public class Selection {
 	public String startPos; 
 	public String endPos;
 	public String text;
+	public String chapter;
 	public int percent;
 	
 	boolean isEmpty() { return startPos==null || endPos==null; }

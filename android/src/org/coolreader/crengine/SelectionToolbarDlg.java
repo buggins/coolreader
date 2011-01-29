@@ -80,16 +80,7 @@ public class SelectionToolbarDlg {
 		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				//mReaderView.findNext(pattern, false, caseInsensitive);
-				Bookmark bmk = new Bookmark();
-				bmk.setType(Bookmark.TYPE_COMMENT);
-				bmk.setPosText(sel.text);
-				bmk.setStartPos(sel.startPos);
-				bmk.setEndPos(sel.endPos);
-				bmk.setPercent(sel.percent);
-				BookmarkEditDialog dlg = new BookmarkEditDialog(mCoolReader, mReaderView, bmk, true);
-				dlg.show();
-				
-				mReaderView.clearSelection();
+				mReaderView.showNewBookmarkDialog(sel);
 				mWindow.dismiss();
 			}
 		});
