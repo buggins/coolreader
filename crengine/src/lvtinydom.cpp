@@ -4437,12 +4437,13 @@ bool ldomXPointer::getRect(lvRect & rect) const
 
         ldomNode * node = getNode();
         int offset = getOffset();
-        if ( !node->isText() ) {
-        	ldomXPointerEx xp(node, offset);
-            xp.nextVisibleText();
-            node = xp.getNode();
-            offset = xp.getOffset();
-        }
+//        ldomXPointerEx xp(node, offset);
+//        if ( !node->isText() ) {
+//            //ldomXPointerEx xp(node, offset);
+//            xp.nextVisibleText();
+//            node = xp.getNode();
+//            offset = xp.getOffset();
+//        }
         if ( node->isElement() ) {
             if ( offset>=0 ) {
                 //
@@ -4473,16 +4474,36 @@ bool ldomXPointer::getRect(lvRect & rect) const
         // text node
         int srcIndex = -1;
         int srcLen = -1;
+        int lastIndex = -1;
+        int lastLen = -1;
+        int lastOffset = -1;
+        ldomXPointerEx xp(node, offset);
         for ( int i=0; i<txtform->GetSrcCount(); i++ ) {
             const src_text_fragment_t * src = txtform->GetSrcInfo(i);
+            bool isObject = src->flags&LTEXT_SRC_IS_OBJECT;
             if ( src->object == node ) {
                 srcIndex = i;
-                srcLen = src->t.len;
+                srcLen = isObject ? 0 : src->t.len;
+                break;
+            }
+            lastIndex = i;
+            lastLen =  isObject ? 0 : src->t.len;
+            lastOffset = isObject ? 0 : src->t.offset;
+            ldomXPointerEx xp2((ldomNode*)src->object, lastOffset);
+            if ( xp2.compare(xp)>0 ) {
+                srcIndex = i;
+                srcLen = lastLen;
+                offset = lastOffset;
                 break;
             }
         }
-        if ( srcIndex == -1 )
-            return false;
+        if ( srcIndex == -1 ) {
+            if ( lastIndex<0 )
+                return false;
+            srcIndex = lastIndex;
+            srcLen = lastLen;
+            offset = lastOffset;
+        }
         for ( int l = 0; l<txtform->GetLineCount(); l++ ) {
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {

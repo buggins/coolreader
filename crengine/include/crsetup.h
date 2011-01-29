@@ -240,7 +240,7 @@
 
 /// maximum picture zoom (1, 2, 3)
 #ifndef MAX_IMAGE_SCALE_MUL
-#define MAX_IMAGE_SCALE_MUL 1
+#define MAX_IMAGE_SCALE_MUL 2
 #endif
 
 // max unpacked size of skin image to hold in cache unpacked

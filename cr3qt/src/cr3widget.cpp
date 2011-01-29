@@ -754,6 +754,7 @@ void CR3View::mousePressEvent ( QMouseEvent * event )
     lString16 href;
     if ( !p.isNull() ) {
         path = p.toString();
+        CRLog::debug("mousePressEvent(%s)", LCSTR(path));
         bool ctrlPressed = (event->modifiers() & Qt::ControlModifier)!=0;
         if ( ctrlPressed || !_editMode )
             href = p.getHRef();
