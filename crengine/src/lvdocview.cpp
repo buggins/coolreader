@@ -1470,7 +1470,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
             if (phi & PGHDR_PERCENT) {
                 if ( !pageinfo.empty() )
                     pageinfo += L"  ";
-                pageinfo += lString16::itoa(percent/100); //+L"."+lString16::itoa(percent/10%10)+L"%";
+                pageinfo += lString16::itoa(percent/100)+L"%"; //+L"."+lString16::itoa(percent/10%10)+L"%";
             }
 		}
 		int piw = 0;
@@ -3579,9 +3579,11 @@ bool LVDocView::ParseDocument() {
 		if (m_doc_props->getStringDef(DOC_PROP_TITLE, "").empty()) {
 			m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors(m_doc));
 			m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle(m_doc));
-			m_doc_props->setString(DOC_PROP_SERIES_NAME,
-					extractDocSeries(m_doc));
-		}
+            int seriesNumber = -1;
+            lString16 seriesName = extractDocSeries(m_doc, &seriesNumber);
+            m_doc_props->setString(DOC_PROP_SERIES_NAME, seriesName);
+            m_doc_props->setString(DOC_PROP_SERIES_NUMBER, seriesNumber>0 ? lString16::itoa(seriesNumber) :lString16::empty_str);
+        }
 	}
 	//m_doc->persist();
 
