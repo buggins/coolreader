@@ -2091,6 +2091,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
 
     // update inherited style attributes
+//  #define UPDATE_STYLE_FIELD(fld,inherit_value) \
+//  if (pstyle->fld == inherit_value) \
+//      pstyle->fld = parent_style->fld
     #define UPDATE_STYLE_FIELD(fld,inherit_value) \
         if (pstyle->fld == inherit_value) \
             pstyle->fld = parent_style->fld

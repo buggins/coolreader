@@ -239,8 +239,10 @@ public:
             {
             // doesn't fit
             // split
-                next = line;
-                pageend = last;
+                if ( !next || !pageend) {
+                    next = line;
+                    pageend = last;
+                }
                 AddToList();
                 StartPage(next);
             }
