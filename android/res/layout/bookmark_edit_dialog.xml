@@ -19,7 +19,7 @@
 <RadioGroup 
   android:layout_width="fill_parent"
   android:layout_height="wrap_content"
-  android:orientation="horizontal"
+  android:orientation="vertical"
   android:id="@+id/rg_type">
   <RadioButton android:checked="true"
      android:id="@+id/rb_comment" android:text="@string/dlg_bookmark_type_comment"/>
