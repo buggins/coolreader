@@ -1629,9 +1629,11 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 			if (footnoteDrawed) { // && page.height
 				fny -= FOOTNOTE_MARGIN / 2;
 				drawbuf->SetClipRect(NULL);
+                lUInt32 cl = drawbuf->GetTextColor();
+                cl = (cl & 0xFFFFFF) | (0x55000000);
 				drawbuf->FillRect(pageRect->left + m_pageMargins.left, fny,
 						pageRect->right - m_pageMargins.right, fny + 1,
-						0xAAAAAA);
+                        cl);
 			}
 		}
 	}
