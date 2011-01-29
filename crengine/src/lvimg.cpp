@@ -1880,8 +1880,8 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
         int y = (rc.top + rc.bottom - h)/2+1;
         lUInt32 bgcolor = drawbuf->GetBackgroundColor();
         lUInt32 textcolor = drawbuf->GetTextColor();
-        drawbuf->SetBackgroundColor( bgcolor );
-        drawbuf->SetTextColor( textcolor );
+        drawbuf->SetBackgroundColor( textcolor );
+        drawbuf->SetTextColor( bgcolor );
         font->DrawTextString(drawbuf, x-1, y, txt.c_str(), txt.length(), '?', NULL);
         font->DrawTextString(drawbuf, x+1, y, txt.c_str(), txt.length(), '?', NULL);
 //        font->DrawTextString(drawbuf, x-1, y+1, txt.c_str(), txt.length(), '?', NULL);
