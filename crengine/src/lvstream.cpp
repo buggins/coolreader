@@ -4028,7 +4028,7 @@ LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream )
 }
 
 /// returns path part of pathname (appended with / or \ delimiter)
-lString16 LVExtractPath( lString16 pathName )
+lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
 {
     int last_delim_pos = -1;
     for ( unsigned i=0; i<pathName.length(); i++ )
@@ -4036,9 +4036,9 @@ lString16 LVExtractPath( lString16 pathName )
             last_delim_pos = i;
     if ( last_delim_pos==-1 )
 #ifdef _LINUX
-        return lString16(L"./");
+        return lString16(appendEmptyPath ? L"./" : L"");
 #else
-        return lString16(L".\\");
+        return lString16(appendEmptyPath ? L".\\" : L"");
 #endif
     return pathName.substr( 0, last_delim_pos+1 );
 }

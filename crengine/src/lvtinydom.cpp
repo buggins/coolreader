@@ -4328,7 +4328,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
     pt.y -= rc.top;
     //if ( !r )
     //    return ptr;
-    if ( finalNode->getRendMethod() != erm_final ) {
+    if ( finalNode->getRendMethod() != erm_final && finalNode->getRendMethod() !=  erm_list_item) {
         // not final, use as is
         if ( pt.y < (rc.bottom + rc.top) / 2 )
             return ldomXPointer( finalNode, 0 );

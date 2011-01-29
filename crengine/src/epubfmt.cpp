@@ -168,12 +168,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
     //
     {
-        int lastSlash = -1;
-        for ( int i=0; i<(int)rootfilePath.length(); i++ )
-            if ( rootfilePath[i]=='/' )
-                lastSlash = i;
-        if ( lastSlash>0 )
-            codeBase = lString16( rootfilePath.c_str(), lastSlash + 1);
+        codeBase=LVExtractPath(rootfilePath, false);
+        CRLog::trace("codeBase=%s", LCSTR(codeBase));
     }
 
     LVStreamRef content_stream = m_arc->OpenStream(rootfilePath.c_str(), LVOM_READ);
@@ -289,7 +285,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                 if ( !stream.isNull() ) {
                     appender.setCodeBase( name );
-                    LVXMLParser parser(stream, &appender);
+                    //LVXMLParser
+                    LVHTMLParser parser(stream, &appender);
                     if ( parser.CheckFormat() && parser.Parse() ) {
                         // valid
                         fragmentCount++;

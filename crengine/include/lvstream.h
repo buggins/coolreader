@@ -732,7 +732,7 @@ LVStreamRef LVCreateBufferedStream( LVStreamRef stream, int bufSize );
 LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream );
 
 /// returns path part of pathname (appended with / or \ delimiter)
-lString16 LVExtractPath( lString16 pathName );
+lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath=true );
 /// removes first path part from pathname and returns it
 lString16 LVExtractFirstPathElement( lString16 & pathName );
 /// removes last path part from pathname and returns it
