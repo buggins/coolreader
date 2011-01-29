@@ -57,8 +57,10 @@ private:
     CR3View * m_docview;
     PropsRef m_props;
     QString m_oldHyph;
+    QStringList m_backgroundFiles;
 
 private slots:
+    void on_cbPageSkin_currentIndexChanged(int index);
     void on_cbTxtPreFormatted_stateChanged(int );
     void on_cbTxtPreFormatted_toggled(bool checked);
     void on_cbStartupAction_currentIndexChanged(int index);

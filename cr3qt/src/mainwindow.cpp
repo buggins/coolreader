@@ -347,6 +347,20 @@ void MainWindow::onPropsChange( PropsRef props )
         if ( name == PROP_WINDOW_SHOW_SCROLLBAR ) {
             ui->scroll->setVisible( v );
         }
+        if ( name == PROP_BACKGROUND_IMAGE ) {
+            lString16 fn = qt2cr(value);
+            LVImageSourceRef img;
+            if ( !fn.empty() && fn[0]!='[' ) {
+                CRLog::debug("Background image file: %s", LCSTR(fn));
+                LVStreamRef stream = LVOpenFileStream(fn.c_str(), LVOM_READ);
+                if ( !stream.isNull() ) {
+                    img = LVCreateStreamImageSource(stream);
+                }
+            }
+            fn.lowercase();
+            bool tiled = ( fn.pos(lString16("\\textures\\"))>=0 || fn.pos(lString16("/textures/"))>=0);
+            ui->view->getDocView()->setBackgroundImage(img, tiled);
+        }
         if ( name == PROP_WINDOW_TOOLBAR_SIZE ) {
             ui->mainToolBar->setVisible( v );
         }

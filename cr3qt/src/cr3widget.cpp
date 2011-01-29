@@ -155,17 +155,17 @@ CR3View::CR3View( QWidget *parent)
     icons.add( LVCreateXPMImageSource( battery4 ) );
     _docview->setBatteryIcons( icons );
     _docview->setBatteryState( -1 );
-    LVStreamRef stream;
-    stream = LVOpenFileStream("/home/lve/.cr3/textures/old_paper.png", LVOM_READ);
+//    LVStreamRef stream;
+//    stream = LVOpenFileStream("/home/lve/.cr3/textures/old_paper.png", LVOM_READ);
     //stream = LVOpenFileStream("/home/lve/.cr3/textures/tx_wood.jpg", LVOM_READ);
     //stream = LVOpenFileStream("/home/lve/.cr3/backgrounds/Background1.jpg", LVOM_READ);
-    if ( !stream.isNull() ) {
-        LVImageSourceRef img = LVCreateStreamCopyImageSource(stream);
-        if ( !img.isNull() ) {
-            //img = LVCreateUnpackedImageSource(img, 1256*1256*4, false);
-            _docview->setBackgroundImage(img, true);
-        }
-    }
+//    if ( !stream.isNull() ) {
+//        LVImageSourceRef img = LVCreateStreamCopyImageSource(stream);
+//        if ( !img.isNull() ) {
+//            //img = LVCreateUnpackedImageSource(img, 1256*1256*4, false);
+//            _docview->setBackgroundImage(img, true);
+//        }
+//    }
     updateDefProps();
     setMouseTracking(true);
 }

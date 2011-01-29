@@ -4,6 +4,7 @@
 #include "crqtutil.h"
 #include <QtGui/QColorDialog>
 #include <QtGui/QStyleFactory>
+#include <QDir>
 
 static int def_margins[] = { 0, 5, 8, 10, 15, 20, 25, 30 };
 #define MAX_MARGIN_INDEX (sizeof(def_margins)/sizeof(int))
@@ -12,16 +13,90 @@ DECL_DEF_CR_FONT_SIZES;
 
 static bool initDone = false;
 
+
+static void findImagesFromDirectory( lString16 dir, lString16Collection & files ) {
+    LVAppendPathDelimiter(dir);
+    if ( !LVDirectoryExists(dir) )
+        return;
+    LVContainerRef cont = LVOpenDirectory(dir.c_str());
+    if ( !cont.isNull() ) {
+        for ( int i=0; i<cont->GetObjectCount(); i++ ) {
+            const LVContainerItemInfo * item  = cont->GetObjectInfo(i);
+            if ( !item->IsContainer() ) {
+                lString16 name = item->GetName();
+                name.lowercase();
+                if ( name.endsWith(lString16(L".png")) || name.endsWith(lString16(L".jpg")) || name.endsWith(lString16(L".gif"))
+                    || name.endsWith(lString16(L".jpeg")) ) {
+                    files.add(dir + item->GetName());
+                }
+            }
+        }
+    }
+}
+
+static void findBackgrounds( lString16Collection & baseDirs, lString16Collection & files ) {
+    for ( int i=0; i<baseDirs.length(); i++ ) {
+        lString16 baseDir = baseDirs[i];
+        LVAppendPathDelimiter(baseDir);
+        findImagesFromDirectory( baseDir + L"backgrounds", files );
+    }
+    for ( int i=0; i<baseDirs.length(); i++ ) {
+        lString16 baseDir = baseDirs[i];
+        LVAppendPathDelimiter(baseDir);
+        findImagesFromDirectory( baseDir + L"textures", files );
+    }
+}
+
+
 SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
     m_ui(new Ui::SettingsDlg),
     m_docview( docView )
 {
     initDone = false;
-    m_oldHyph = cr2qt(HyphMan::getSelectedDictionary()->getId());
 
     m_ui->setupUi(this);
     m_props = m_docview->getOptions();
+
+    m_oldHyph = cr2qt(HyphMan::getSelectedDictionary()->getId());
+
+#ifdef _LINUX
+    QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
+#else
+    QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
+#endif
+#ifdef _LINUX
+    QString exeDir = QString(CR3_DATA_DIR);
+#else
+    QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
+#endif
+
+    lString16Collection baseDirs;
+    baseDirs.add(qt2cr(homeDir));
+    baseDirs.add(qt2cr(exeDir));
+#ifdef _LINUX
+    baseDirs.add(lString16("/usr/local/share/cr3/"));
+#endif
+    lString16Collection bgFiles;
+    QStringList bgFileLabels;
+    findBackgrounds( baseDirs, bgFiles );
+    int bgIndex = 0;
+    m_backgroundFiles.append("[NONE]");
+    bgFileLabels.append("[NONE]");
+    QString bgFile = m_props->getStringDef(PROP_BACKGROUND_IMAGE, "");
+    for ( int i=0; i<bgFiles.length(); i++ ) {
+        lString16 fn = bgFiles[i];
+        QString f = cr2qt(fn);
+        if ( f==bgFile )
+            bgIndex = i;
+        m_backgroundFiles.append(f);
+        fn = LVExtractFilenameWithoutExtension(fn);
+        bgFileLabels.append(cr2qt(fn));
+    }
+    m_ui->cbPageSkin->clear();
+    m_ui->cbPageSkin->addItems( bgFileLabels );
+    m_ui->cbPageSkin->setCurrentIndex(bgIndex);
+
     optionToUi( PROP_WINDOW_FULLSCREEN, m_ui->cbWindowFullscreen );
     optionToUi( PROP_WINDOW_SHOW_MENU, m_ui->cbWindowShowMenu );
     optionToUi( PROP_WINDOW_SHOW_SCROLLBAR, m_ui->cbWindowShowScrollbar );
@@ -145,7 +220,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     updateStyleSample();
     initDone = true;
 
-    m_ui->cbPageSkin->addItem(QString("[None]"), QVariant());
+    //m_ui->cbPageSkin->addItem(QString("[None]"), QVariant());
 }
 
 SettingsDlg::~SettingsDlg()
@@ -435,3 +510,12 @@ void SettingsDlg::on_cbTxtPreFormatted_stateChanged(int s)
 {
     setCheck( PROP_TXT_OPTION_PREFORMATTED, s );
 }
+
+void SettingsDlg::on_cbPageSkin_currentIndexChanged(int index)
+{
+    if ( !initDone )
+        return;
+    if ( index>=0 && index<m_backgroundFiles.length() )
+        m_props->setString( PROP_BACKGROUND_IMAGE, m_backgroundFiles[index] );
+}
+
