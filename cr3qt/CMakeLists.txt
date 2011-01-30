@@ -144,6 +144,8 @@ INSTALL( DIRECTORY data/hyph DESTINATION share/cr3
 INSTALL( DIRECTORY data/hyph DESTINATION share/cr3 
    FILES_MATCHING PATTERN "*.pattern" )
 INSTALL( DIRECTORY data/skins DESTINATION share/cr3/skins )
+INSTALL( DIRECTORY data/textures DESTINATION share/cr3/textures )
+INSTALL( DIRECTORY data/backgrounds DESTINATION share/cr3/backgrounds )
 INSTALL( FILES ${QM_FILES} DESTINATION share/cr3/i18n )
 INSTALL( FILES src/desktop/cr3.desktop DESTINATION share/applications )
 INSTALL( FILES src/desktop/cr3.png DESTINATION share/pixmaps )
