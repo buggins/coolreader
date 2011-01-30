@@ -1,3 +1,10 @@
+cr3 (3.0.43-2) zelazny; urgency=low
+
+  * CSS support fixes
+  * EPUB, CHM, HTML support fixes
+
+ -- Vadim Lopatin <buggins@fromru.com>  Sat, 30 Jan 2011 10:01:30 +0400
+
 cr3 (3.0.35-3) zelazny; urgency=low
 
   * Typo in bookmark xml markup

@@ -1,3 +1,11 @@
+cr3 (3.0.43-2) lucid; urgency=low
+
+  * CSS support fixes
+  * EPUB, CHM, HTML support fixes
+  * Background image support added
+
+ -- Vadim Lopatin <buggins@fromru.com>  Sun, 30 Jan 2011 10:01:49 +0400
+ 
 cr3 (3.0.36-1) lucid; urgency=low
 
   * Initial release
