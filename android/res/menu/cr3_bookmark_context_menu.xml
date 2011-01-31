@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:title="@string/mi_bookmark_goto" android:titleCondensed="@string/mi_bookmark_goto" android:id="@+id/bookmark_goto"></item>
+<item android:title="@string/mi_bookmark_add" android:titleCondensed="@string/mi_bookmark_add" android:id="@+id/bookmark_add"></item>
+<item android:title="@string/mi_bookmark_edit" android:titleCondensed="@string/mi_bookmark_edit" android:id="@+id/bookmark_edit"></item>
+<item android:title="@string/mi_bookmark_delete" android:titleCondensed="@string/mi_bookmark_delete" android:id="@+id/bookmark_delete"></item>
+</menu>

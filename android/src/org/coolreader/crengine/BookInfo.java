@@ -2,6 +2,8 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
+import android.util.Log;
+
 public class BookInfo {
 	private FileInfo fileInfo;
 	private Bookmark lastPosition;
@@ -75,9 +77,31 @@ public class BookInfo {
 		return bookmarks.get(index);
 	}
 
-	synchronized public void removeBookmark( int index )
+	synchronized public Bookmark removeBookmark( Bookmark bm )
 	{
-		bookmarks.remove(index);
+		if ( bm==null )
+			return null;
+		int index = -1;
+		for ( int i=0; i<bookmarks.size(); i++ ) {
+			if ( bm.getShortcut()>0 && bookmarks.get(0).getShortcut()==bm.getShortcut() ) {
+				index = i;
+				break;
+			}
+			if ( bm.getStartPos()!=null && bm.getStartPos().equals(bookmarks.get(i).getStartPos())) {
+				index = i;
+				break;
+			}
+		}
+		if ( index<0 ) {
+			Log.e("cr3", "cannot find bookmark " + bm);
+			return null;
+		}
+		return bookmarks.remove(index);
+	}
+	
+	synchronized public Bookmark removeBookmark( int index )
+	{
+		return bookmarks.remove(index);
 	}
 	
 	synchronized void setBookmarks(ArrayList<Bookmark> list)

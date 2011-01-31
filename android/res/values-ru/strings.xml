@@ -211,4 +211,7 @@
     <string name="dlg_bookmark_type_comment">Комментарий</string>
 <string name="toast_shortcut_bookmark_is_set">Установлена закладка $1</string>
     <string name="toast_position_bookmark_is_set">Добавлена закладка для страницы</string>
+    <string name="mi_bookmark_add">Добавить закладку</string>
+    <string name="mi_bookmark_delete">Удалить закладку</string>
+    <string name="mi_bookmark_edit">Редактировать закладку</string>
 </resources>

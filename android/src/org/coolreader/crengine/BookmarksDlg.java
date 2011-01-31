@@ -12,12 +12,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ImageButton;
 import android.widget.ListAdapter;
@@ -202,21 +204,43 @@ public class BookmarksDlg  extends BaseDialog {
 			super(context);
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setShortcutMode(shortcutMode);
+			setLongClickable(true);
+			setOnItemLongClickListener(new OnItemLongClickListener() {
+				@Override
+				public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+						int position, long arg3) {
+					selectedItem = position;
+					openContextMenu(BookmarkList.this);
+					return true;
+				}
+			});
 		}
 
+		public Bookmark getSelectedBookmark() {
+			return (Bookmark)mAdapter.getItem(selectedItem);
+		}
+		
 		@Override
 		public boolean performItemClick(View view, int position, long id) {
-			Bookmark b = mBookInfo.findShortcutBookmark(position+1);
-			if ( b==null ) {
-				mReaderView.addBookmark(position+1);
-				mThis.dismiss();
-				return true;
+			if ( mShortcutMode ) {
+				Bookmark b = mBookInfo.findShortcutBookmark(position+1);
+				if ( b==null ) {
+					mReaderView.addBookmark(position+1);
+					mThis.dismiss();
+					return true;
+				}
+				selectedItem = position;
+				openContextMenu(this);
+			} else {
+				Bookmark bm = (Bookmark)mAdapter.getItem(position);
+				if ( bm!=null ) {
+					mReaderView.goToBookmark(bm);
+					dismiss();
+				}
 			}
-			selectedItem = position;
-			openContextMenu(this);
-//			showContextMenu();
 			return true;
 		}
+		
 		
 	}
 	
@@ -246,7 +270,7 @@ public class BookmarksDlg  extends BaseDialog {
 				mReaderView.addBookmark(0);
 			}
 		});
-		ScrollView body = (ScrollView)frame.findViewById(R.id.bookmark_list);
+		ViewGroup body = (ViewGroup)frame.findViewById(R.id.bookmark_list);
 		mList = new BookmarkList(activity, false);
 		body.addView(mList);
 		setView(frame);
@@ -265,14 +289,50 @@ public class BookmarksDlg  extends BaseDialog {
 	public boolean onContextItemSelected(MenuItem item) {
 		
 		int shortcut = selectedItem; //mList.getSelectedItemPosition();
-		if ( shortcut>=0 && shortcut<SHORTCUT_COUNT )
+		Bookmark bm = mList.getSelectedBookmark();
+		if ( mList.isShortcutMode() ) {
+			if ( shortcut>=0 && shortcut<SHORTCUT_COUNT ) {
+				switch (item.getItemId()) {
+				case R.id.bookmark_shortcut_add:
+					mReaderView.addBookmark(shortcut+1);
+					dismiss();
+					return true;
+				case R.id.bookmark_delete:
+					Bookmark removed = mBookInfo.removeBookmark(bm);
+					if ( removed.getId()!=null ) {
+						mCoolReader.getDB().deleteBookmark(removed);
+						mList.setShortcutMode(mList.isShortcutMode());
+					}
+					return true;
+				case R.id.bookmark_shortcut_goto:
+					mReaderView.goToBookmark(shortcut+1);
+					dismiss();
+					return true;
+				}
+			}
+			return super.onContextItemSelected(item);
+		}
 		switch (item.getItemId()) {
-		case R.id.bookmark_shortcut_add:
-			mReaderView.addBookmark(shortcut+1);
+		case R.id.bookmark_add:
+			mReaderView.addBookmark(0);
 			dismiss();
 			return true;
-		case R.id.bookmark_shortcut_goto:
-			mReaderView.goToBookmark(shortcut+1);
+		case R.id.bookmark_delete:
+			Bookmark removed = mBookInfo.removeBookmark(bm);
+			if ( removed.getId()!=null ) {
+				mCoolReader.getDB().deleteBookmark(removed);
+				mList.setShortcutMode(mList.isShortcutMode());
+			}
+			return true;
+		case R.id.bookmark_goto:
+			if ( bm!=null )
+				mReaderView.goToBookmark(bm);
+			dismiss();
+			return true;
+		case R.id.bookmark_edit:
+			if ( bm!=null ) {
+				BookmarkEditDialog dlg = new BookmarkEditDialog(mCoolReader, mReaderView, mBookInfo, bm, false);
+			}
 			dismiss();
 			return true;
 		}
@@ -284,13 +344,19 @@ public class BookmarksDlg  extends BaseDialog {
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 	    MenuInflater inflater = mCoolReader.getMenuInflater();
-	    inflater.inflate(R.menu.cr3_bookmark_shortcut_context_menu, menu);
+	    menu.clear();
+	    inflater.inflate(mList.isShortcutMode() ? R.menu.cr3_bookmark_shortcut_context_menu : R.menu.cr3_bookmark_context_menu, menu);
 	    AdapterContextMenuInfo mi = (AdapterContextMenuInfo)menuInfo;
 	    if ( mi!=null )
 	    	selectedItem = mi.position;
+		Bookmark bm = mList.getSelectedBookmark();
 	    menu.setHeaderTitle(getContext().getString(R.string.context_menu_title_bookmark));
 	    for ( int i=0; i<menu.size(); i++ ) {
-	    	menu.getItem(i).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+	    	MenuItem menuItem = menu.getItem(i);
+	    	if ( menuItem.getItemId()==R.id.bookmark_shortcut_goto || menuItem.getItemId()==R.id.bookmark_edit ||
+	    			menuItem.getItemId()==R.id.bookmark_delete )
+	    		menuItem.setEnabled(bm!=null);
+	    	menuItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {
 					onContextItemSelected(item);
 					return true;
@@ -298,6 +364,16 @@ public class BookmarksDlg  extends BaseDialog {
 			});
 	    }
 	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if ( keyCode==KeyEvent.KEYCODE_MENU ) {
+			openContextMenu(mList);
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	
 	
 
 }
