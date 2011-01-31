@@ -4,7 +4,7 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/shortcut_bookmark_item_body"
+    android:id="@+id/bookmark_item_body"
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
         android:baselineAligned="false">
 
 
-	    <TextView android:id="@+id/shortcut_bookmark_item_shortcut"
+	    <TextView android:id="@+id/bookmark_item_shortcut"
 	        style="@android:style/TextAppearance.Medium"
 			android:text="1" 
 	        android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
 	        android:layout_gravity="left" />
     </LinearLayout>
 
-    <LinearLayout android:id="@+id/shortcut_bookmark_item_text"
+    <LinearLayout android:id="@+id/bookmark_item_text"
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
         android:baselineAligned="false">
 
 
-        <TextView android:id="@+id/shortcut_bookmark_item_title"
+        <TextView android:id="@+id/bookmark_item_title"
             style="@android:style/TextAppearance.Small"
 			android:text="10% Title Text" 
             android:layout_width="wrap_content"
@@ -52,7 +52,7 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:layout_gravity="left" />
-        <TextView android:id="@+id/shortcut_bookmark_item_pos_text"
+        <TextView android:id="@+id/bookmark_item_pos_text"
             style="@android:style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
