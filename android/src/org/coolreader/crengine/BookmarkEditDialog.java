@@ -20,6 +20,7 @@ public class BookmarkEditDialog extends BaseDialog {
 	private final Bookmark mBookmark;
 	private final boolean mIsNew;
 	private final BookInfo mBookInfo;
+	final EditText commentEdit;
 	
 	public BookmarkEditDialog( CoolReader activity, ReaderView readerView, BookInfo bookInfo, Bookmark bookmark, boolean isNew)
 	{
@@ -42,7 +43,7 @@ public class BookmarkEditDialog extends BaseDialog {
 		final TextView posLabel = (TextView)view.findViewById(R.id.lbl_position); 
 		final TextView commentLabel = (TextView)view.findViewById(R.id.lbl_comment_text); 
 		final EditText posEdit = (EditText)view.findViewById(R.id.position_text); 
-		final EditText commentEdit = (EditText)view.findViewById(R.id.comment_edit);
+		commentEdit = (EditText)view.findViewById(R.id.comment_edit);
 		String postext = mBookmark.getPercent()/100 + "%";
 		if ( mBookmark.getTitleText()!=null )
 			postext = postext + "  " + mBookmark.getTitleText();
@@ -83,9 +84,10 @@ public class BookmarkEditDialog extends BaseDialog {
 
 	@Override
 	protected void onPositiveButtonClick() {
-		if ( mIsNew )
+		if ( mIsNew ) {
+			mBookmark.setCommentText( commentEdit.getText().toString() );
 			mBookInfo.addBookmark(mBookmark);
-		else {
+		} else {
 			if ( mOriginalBookmark.setCommentText(mBookmark.getCommentText()) )
 				mOriginalBookmark.setTimeStamp(System.currentTimeMillis());
 		}

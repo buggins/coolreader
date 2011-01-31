@@ -7,20 +7,23 @@ import org.coolreader.R;
 
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuItem.OnMenuItemClickListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class BookmarksDlg  extends BaseDialog {
 	CoolReader mCoolReader;
@@ -83,9 +86,9 @@ public class BookmarksDlg  extends BaseDialog {
 		
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View view;
+			int type = getItemViewType(position);
 			if ( convertView==null ) {
 				//view = new TextView(getContext());
-				int type = getItemViewType(position);
 				int res = R.layout.bookmark_position_item;
 				switch ( type ) {
 				case ITEM_COMMENT:
@@ -106,6 +109,9 @@ public class BookmarksDlg  extends BaseDialog {
 			TextView posTextView = (TextView)view.findViewById(R.id.bookmark_item_pos_text);
 			TextView titleTextView = (TextView)view.findViewById(R.id.bookmark_item_title);
 			TextView commentTextView = (TextView)view.findViewById(R.id.bookmark_item_comment_text);
+			if ( type==ITEM_CORRECTION && posTextView!=null )
+				posTextView.setPaintFlags(posTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG );
+				
 			Bookmark b = (Bookmark)getItem(position);
 			if ( labelView!=null ) {
 				if ( b!=null && b.getShortcut()>0 )
@@ -220,11 +226,30 @@ public class BookmarksDlg  extends BaseDialog {
 	{
 		super(activity, 0, 0, false);
 		mThis = this; // for inner classes
+        mInflater = LayoutInflater.from(getContext());
 		mCoolReader = activity;
 		mReaderView = readerView;
 		mBookInfo = mReaderView.getBookInfo();
+		View frame = mInflater.inflate(R.layout.bookmark_list_dialog, null);
+		ImageButton btnClose = (ImageButton)frame.findViewById(R.id.bookmark_close);
+		btnClose.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				BookmarksDlg.this.dismiss();
+			}
+		});
+		ImageButton btnAdd = (ImageButton)frame.findViewById(R.id.bookmark_add);
+		btnAdd.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				BookmarksDlg.this.dismiss();
+				mReaderView.addBookmark(0);
+			}
+		});
+		ScrollView body = (ScrollView)frame.findViewById(R.id.bookmark_list);
 		mList = new BookmarkList(activity, false);
-		setView(mList);
+		body.addView(mList);
+		setView(frame);
 	}
 
 	@Override
@@ -232,7 +257,6 @@ public class BookmarksDlg  extends BaseDialog {
 		Log.v("cr3", "creating BookmarksDlg");
 		setTitle(mCoolReader.getResources().getString(R.string.win_title_bookmarks));
         setCancelable(true);
-        mInflater = LayoutInflater.from(getContext());
 		super.onCreate(savedInstanceState);
 		registerForContextMenu(mList);
 		//mList.

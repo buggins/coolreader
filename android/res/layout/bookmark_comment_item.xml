@@ -4,6 +4,26 @@
 -->
 
  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bookmark_item_body"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:layout_marginTop="3dip"
+    android:layout_marginBottom="3dip"
+    android:layout_marginLeft="2dip"
+    android:layout_marginRight="2dip"
+    >
+
+    <ImageView android:id="@+id/book_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|left"
+        android:layout_marginRight="4dip"
+        android:src="@drawable/ic_menu_compose"
+        />
+
+ <LinearLayout 
      android:id="@+id/shortcut_bookmark_item_text"
      android:orientation="vertical"
      android:layout_width="fill_parent"
@@ -24,8 +44,10 @@
          style="@android:style/TextAppearance.Small"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:text="Position text bla bla bla bla bla..." 
-         android:singleLine="true"
+         android:text="Position text bla bla bla bla bla more llines more more more lines" 
+         android:singleLine="false"
+         android:maxLines="3"
+		 android:textStyle="bold" 
          android:ellipsize="end"
          android:layout_gravity="left" />
      <TextView android:id="@+id/bookmark_item_comment_text"
@@ -33,7 +55,9 @@
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
 		 android:text="Position text bla bla bla bla bla..." 
-         android:singleLine="true"
+         android:singleLine="false"
+         android:maxLines="3"
          android:ellipsize="end"
          android:layout_gravity="left" />
+</LinearLayout>
 </LinearLayout>

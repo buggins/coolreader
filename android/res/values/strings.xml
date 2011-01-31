@@ -209,4 +209,6 @@
     <string name="dlg_bookmark_edit">Edit bookmark</string>
     <string name="dlg_bookmark_edit_range_text">Selection text</string>
     <string name="dlg_bookmark_type_comment">Comment</string>
+<string name="toast_shortcut_bookmark_is_set">Bookmark $1 is set</string>
+    <string name="toast_position_bookmark_is_set">Added bookmark for page</string>
 </resources>
