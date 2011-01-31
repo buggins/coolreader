@@ -214,4 +214,7 @@
     <string name="mi_bookmark_add">Добавить закладку</string>
     <string name="mi_bookmark_delete">Удалить закладку</string>
     <string name="mi_bookmark_edit">Редактировать закладку</string>
+    <string name="mi_bookmark_export">Экспортировать закладки в файл</string>
+    <string name="toast_bookmark_export_ok">Закладки сохранены в </string>
+    <string name="toast_bookmark_export_failed">Ошибка сохранения закладок в </string>
 </resources>

@@ -1,6 +1,12 @@
 package org.coolreader.crengine;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import android.util.Log;
 
@@ -98,6 +104,59 @@ public class BookInfo {
 		}
 		return bookmarks.remove(index);
 	}
+
+	synchronized public void sortBookmarks() {
+		Collections.sort(bookmarks, new Comparator<Bookmark>() {
+			@Override
+			public int compare(Bookmark bm1, Bookmark bm2) {
+				if ( bm1.getPercent() < bm2.getPercent() )
+					return -1;
+				if ( bm1.getPercent() > bm2.getPercent() )
+					return 1;
+				return 0;
+			}
+		});
+	}
+	
+	synchronized public boolean exportBookmarks( String fileName ) {
+		Log.i("cr3", "Exporting bookmarks to file " + fileName);
+		try { 
+			FileOutputStream stream = new FileOutputStream(new File(fileName));
+			OutputStreamWriter writer = new OutputStreamWriter(stream, "UTF-8"); 
+			writer.write(0xfeff);
+			writer.write("# Cool Reader 3 - exported bookmarks\r\n");
+			File pathname = new File(fileInfo.getPathName());
+			writer.write("# file name: " + pathname.getName() + "\r\n");
+			writer.write("# file path: " + pathname.getParent() + "\r\n");
+			writer.write("# book title: " + fileInfo.title + "\r\n");
+			writer.write("# author: " + fileInfo.authors + "\r\n");
+			writer.write("# series: " + fileInfo.series + "\r\n");
+			writer.write("\r\n");
+			for ( Bookmark bm : bookmarks ) {
+				if ( bm.getType()!=Bookmark.TYPE_COMMENT && bm.getType()!=Bookmark.TYPE_CORRECTION )
+					continue;
+				int percent = bm.getPercent();
+				String ps = String.valueOf(percent%100);
+				if ( ps.length()<2 )
+					ps = "0" + ps;
+				ps = String.valueOf(percent/100) + "." + ps  + "%";
+				writer.write("## " + ps + " - " + (bm.getType()!=Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\r\n");
+				if ( bm.getTitleText()!=null )
+					writer.write("## " + bm.getTitleText() + "\r\n");
+				if ( bm.getPosText()!=null )
+					writer.write("<< " + bm.getPosText() + "\r\n");
+				if ( bm.getCommentText()!=null )
+					writer.write(">> " + bm.getCommentText() + "\r\n");
+				writer.write("\r\n");
+			}
+			writer.close();
+			return true;
+		} catch ( IOException e ) {
+			Log.e("cr3", "Cannot write bookmark file " + fileName);
+			return false;
+		}
+	}
+	
 	
 	synchronized public Bookmark removeBookmark( int index )
 	{

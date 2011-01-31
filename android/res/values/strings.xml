@@ -214,4 +214,7 @@
     <string name="mi_bookmark_add">Add</string>
     <string name="mi_bookmark_delete">Delete</string>
     <string name="mi_bookmark_edit">Edit</string>
+    <string name="mi_bookmark_export">Export bookmarks</string>
+    <string name="toast_bookmark_export_ok">Bookmarks were saved to </string>
+    <string name="toast_bookmark_export_failed">Error while saving bookmarks to </string>
 </resources>

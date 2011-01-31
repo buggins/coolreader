@@ -194,6 +194,8 @@ public class BookmarksDlg  extends BaseDialog {
 			return mShortcutMode;
 		}
 		public void setShortcutMode( boolean shortcutMode ) {
+			if ( !shortcutMode )
+				mBookInfo.sortBookmarks();
 			updateAdapter( shortcutMode ? new ShortcutBookmarkListAdapter() : new BookmarkListAdapter() );
 		}
 		public void updateAdapter( BookmarkListAdapter adapter ) {
@@ -254,6 +256,7 @@ public class BookmarksDlg  extends BaseDialog {
 		mCoolReader = activity;
 		mReaderView = readerView;
 		mBookInfo = mReaderView.getBookInfo();
+		setTitle(null);
 		View frame = mInflater.inflate(R.layout.bookmark_list_dialog, null);
 		ImageButton btnClose = (ImageButton)frame.findViewById(R.id.bookmark_close);
 		btnClose.setOnClickListener(new View.OnClickListener() {
@@ -279,11 +282,10 @@ public class BookmarksDlg  extends BaseDialog {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating BookmarksDlg");
-		setTitle(mCoolReader.getResources().getString(R.string.win_title_bookmarks));
+		//setTitle(mCoolReader.getResources().getString(R.string.win_title_bookmarks));
         setCancelable(true);
 		super.onCreate(savedInstanceState);
 		registerForContextMenu(mList);
-		//mList.
 	}
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
@@ -330,8 +332,22 @@ public class BookmarksDlg  extends BaseDialog {
 			dismiss();
 			return true;
 		case R.id.bookmark_edit:
-			if ( bm!=null ) {
+			if ( bm!=null && (bm.getType()==Bookmark.TYPE_COMMENT || bm.getType()==Bookmark.TYPE_CORRECTION)) {
 				BookmarkEditDialog dlg = new BookmarkEditDialog(mCoolReader, mReaderView, mBookInfo, bm, false);
+				dlg.show();
+			}
+			dismiss();
+			return true;
+		case R.id.bookmark_export:
+			if ( mBookInfo.getBookmarkCount()>0 ) {
+				FileInfo fi = mBookInfo.getFileInfo();
+				String s = fi.getPathName();
+				s = s.replace(FileInfo.ARC_SEPARATOR, "_");
+				s = s + ".bmk.txt";
+				if ( mBookInfo.exportBookmarks(s) )
+					mCoolReader.showToast( getContext().getString(R.string.toast_bookmark_export_ok) + " " + s);
+				else
+					mCoolReader.showToast(getContext().getString(R.string.toast_bookmark_export_failed) + " " + s);
 			}
 			dismiss();
 			return true;
@@ -356,6 +372,8 @@ public class BookmarksDlg  extends BaseDialog {
 	    	if ( menuItem.getItemId()==R.id.bookmark_shortcut_goto || menuItem.getItemId()==R.id.bookmark_edit ||
 	    			menuItem.getItemId()==R.id.bookmark_delete )
 	    		menuItem.setEnabled(bm!=null);
+	    	if ( menuItem.getItemId()==R.id.bookmark_edit )
+	    		menuItem.setEnabled(bm!=null && (bm.getType()==Bookmark.TYPE_COMMENT || bm.getType()==Bookmark.TYPE_CORRECTION));
 	    	menuItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {
 					onContextItemSelected(item);
