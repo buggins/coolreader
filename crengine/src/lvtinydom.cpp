@@ -8539,7 +8539,7 @@ lString16 ldomNode::getText( lChar16 blockDelimiter, int maxSize ) const
                     break;
 #if BUILD_LITE!=1
                 if ( blockDelimiter && child->isElement() ) {
-                    if ( child->getStyle()->display == css_d_block )
+                    if ( !child->getStyle().isNull() && child->getStyle()->display == css_d_block )
                         txt << blockDelimiter;
                 }
 #endif
