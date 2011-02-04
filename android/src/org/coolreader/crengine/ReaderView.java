@@ -1568,8 +1568,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	enableVolumeKeys = flg;
         } else if ( PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
         	try {
-        		int n = Integer.valueOf(value);
-        		mActivity.setScreenBacklightLevel(n);
+        		final int n = Integer.valueOf(value);
+        		// delay before setting brightness
+        		mBackThread.postGUI(new Runnable() {
+        			public void run() {
+        				execute( new Task() {
+
+							@Override
+							public void work() throws Exception {
+								// do nothing
+							}
+
+							@Override
+							public void done() {
+				        		mActivity.setScreenBacklightLevel(n);
+								super.done();
+							}
+        					
+        				});
+        			}
+        		}, 100);
         	} catch ( Exception e ) {
         		// ignore
         	}
