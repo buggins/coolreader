@@ -1403,10 +1403,28 @@ void CRGUIWindowManager::drawBattery( LVDrawBuf & buf, const lvRect & rc )
     LVDrawStateSaver saver( buf );
     buf.SetTextColor(0xFFFFFF);
     buf.SetBackgroundColor(0x000000);
+
+    LVRefVec<LVImageSource> icons;
+    bool drawPercent = false; //m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true) || m_batteryIcons.size()<=2;
+    if ( m_batteryIcons.size()>1 ) {
+        icons.add(getBatteryIcons()[0]);
+        if ( drawPercent ) {
+//            m_batteryFont = fontMan->GetFont(getBatteryIcons()[0]->GetHeight()-1, 900, false,
+//                    DEFAULT_FONT_FAMILY, m_statusFontFace);
+            icons.add(getBatteryIcons()[getBatteryIcons().length()-1]);
+        } else {
+            for ( int i=1; i<getBatteryIcons().length()-1; i++ )
+                icons.add(getBatteryIcons()[i]);
+        }
+    } else {
+        if ( m_batteryIcons.size()==1 )
+            icons.add(getBatteryIcons()[0]);
+    }
+
     //bool drawPercent = m_props->getBoolDef( PROP_SHOW_BATTERY_PERCENT, true );
     LVDrawBatteryIcon( &buf, rc,
                        percent, charge,
-                       getBatteryIcons(),
+                       icons,
                        NULL );
 }
 

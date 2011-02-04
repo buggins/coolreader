@@ -948,10 +948,10 @@ bool CRXCBWindowManager::getBatteryStatus( int & percent, bool & charging )
         percent = info.charge;
         return true;
     } else {
-#if 0
+#if 1
         //debug
         charging = false;
-        percent = 50;
+        percent = 100;
         return true;
 #else
         // implementation
