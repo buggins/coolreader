@@ -234,15 +234,16 @@ public:
             if (line->getStart()<last->getEnd())
                 return; // for table cells
             unsigned flgSplit = CalcSplitFlag( last->getSplitAfter(), line->getSplitBefore() );
-            bool flgFit = currentHeight( next ? next : line ) <= page_h;
+            //bool flgFit = currentHeight( next ? next : line ) <= page_h;
+            bool flgFit = currentHeight( line ) <= page_h;
             if (!flgFit)
             {
             // doesn't fit
             // split
-                if ( !next || !pageend) {
+//                if ( !next || !pageend) {
                     next = line;
                     pageend = last;
-                }
+//                }
                 AddToList();
                 StartPage(next);
             }
