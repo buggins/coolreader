@@ -363,7 +363,7 @@ public class CoolReader extends Activity
 //		startupView = new View(this) {
 //		};
 //		startupView.setBackgroundColor(Color.BLACK);
-		setWakeLockEnabled(props.getBool(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, true));
+		setWakeLockEnabled(props.getBool(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, false));
 
 		File dbdir = getDir("db", Context.MODE_PRIVATE);
 		dbdir.mkdirs();
