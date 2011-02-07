@@ -3154,6 +3154,32 @@ bool lString8::startsWith( const lString8 & substring ) const
 }
 
 /// returns true if string ends with specified substring
+bool lString8::endsWith( const lChar8 * substring ) const
+{
+	if ( !substring || !*substring )
+		return true;
+	unsigned len = strlen(substring);
+    if ( length() < len )
+        return false;
+    const lChar8 * s1 = c_str() + (length()-len);
+    const lChar8 * s2 = substring;
+	return lStr_cmp( s1, s2 )==0;
+}
+
+/// returns true if string ends with specified substring
+bool lString16::endsWith( const lChar16 * substring ) const
+{
+	if ( !substring || !*substring )
+		return true;
+	unsigned len = lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str() + (length()-len);
+    const lChar16 * s2 = substring;
+	return lStr_cmp( s1, s2 )==0;
+}
+
+/// returns true if string ends with specified substring
 bool lString16::endsWith ( const lString16 & substring ) const
 {
     if ( substring.empty() )

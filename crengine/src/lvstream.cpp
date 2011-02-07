@@ -4251,7 +4251,7 @@ void LVRemovePathDelimiter( lString16 & pathName )
 
 
 /// returns true if specified file exists
-bool LVFileExists( lString16 pathName )
+bool LVFileExists( const lString16 & pathName )
 {
 #ifdef _WIN32
 	LVStreamRef stream = LVOpenFileStream( pathName.c_str(), LVOM_READ );
@@ -4267,7 +4267,7 @@ bool LVFileExists( lString16 pathName )
 }
 
 /// returns true if specified directory exists
-bool LVDirectoryExists( lString16 pathName )
+bool LVDirectoryExists( const lString16 & pathName )
 {
 	// TODO: optimize
     LVContainerRef dir = LVOpenDirectory( pathName.c_str() );

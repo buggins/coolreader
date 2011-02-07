@@ -158,7 +158,7 @@ void ShutdownCREngine()
 }
 
 #if (USE_FREETYPE==1)
-bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16Collection & fonts, bool absPath )
+bool getDirectoryFonts( lString16Collection & pathList, lString16Collection & ext, lString16Collection & fonts, bool absPath )
 {
     int foundCount = 0;
     lString16 path;
@@ -172,7 +172,18 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
                 lString16 fileName = item->GetName();
                 lString8 fn = UnicodeToLocal(fileName);
                     //printf(" test(%s) ", fn.c_str() );
-                if ( !item->IsContainer() && fileName.length()>4 && lString16(fileName, fileName.length()-4, 4)==ext ) {
+                if ( !item->IsContainer() ) {
+                    bool found = false;
+                    lString16 lc = fileName;
+                    lc.lowercase();
+                    for ( int j=0; j<ext.length(); j++ ) {
+                        if ( lc.endsWith(ext[j]) ) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if ( !found )
+                        continue;
                     lString16 fn;
                     if ( absPath ) {
                         fn = path;
@@ -223,10 +234,14 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     if (!fontMan->GetFontCount()) {
 
+    lString16Collection fontExt;
     #if (USE_FREETYPE==1)
-        lString16 fontExt = L".ttf";
+        fontExt.add(lString16(L".ttf"));
+        fontExt.add(lString16(L".otf"));
+        fontExt.add(lString16(L".pfa"));
+        fontExt.add(lString16(L".pfb"));
     #else
-        lString16 fontExt = L".lbf";
+        fontExt.add(lString16(L".lbf"));
     #endif
     #if (USE_FREETYPE==1)
         lString16Collection fonts;

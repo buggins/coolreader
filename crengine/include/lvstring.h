@@ -304,6 +304,9 @@ public:
     /// append single character
     lString8 & operator += ( value_type ch ) { return append(1, ch); }
 
+    /// returns true if string ends with specified substring
+    bool endsWith( const lChar8 * substring ) const;
+
     /// constructs string representation of integer
     static lString8 itoa( int i );
     /// constructs string representation of unsigned integer
@@ -438,6 +441,8 @@ public:
 
     /// returns true if string starts with specified substring
     bool startsWith ( const lString16 & substring ) const;
+    /// returns true if string ends with specified substring
+    bool endsWith( const lChar16 * substring ) const;
     /// returns true if string ends with specified substring
     bool endsWith ( const lString16 & substring ) const;
     /// returns true if string starts with specified substring, case insensitive

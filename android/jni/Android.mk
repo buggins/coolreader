@@ -141,6 +141,7 @@ FREETYPE_SRC_FILES := \
     ../../thirdparty/freetype/src/base/ftinit.c \
     ../../thirdparty/freetype/src/lzw/ftlzw.c \
     ../../thirdparty/freetype/src/base/ftmm.c \
+    ../../thirdparty/freetype/src/base/ftpatent.c \
     ../../thirdparty/freetype/src/base/ftotval.c \
     ../../thirdparty/freetype/src/base/ftpfr.c \
     ../../thirdparty/freetype/src/base/ftstroke.c \

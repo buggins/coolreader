@@ -25,7 +25,7 @@
 #include "../include/lvthread.h"
 
 // define to filter out all fonts except .ttf
-#define LOAD_TTF_FONTS_ONLY
+//#define LOAD_TTF_FONTS_ONLY
 
 #if (USE_FREETYPE==1)
 
@@ -621,6 +621,19 @@ public:
         int error = FT_New_Face( _library, _fileName.c_str(), index, &_face ); /* create face object */
         if (error)
             return false;
+        if ( _fileName.endsWith(".pfb") || _fileName.endsWith(".pfa") ) {
+        	lString8 kernFile = _fileName.substr(0, _fileName.length()-4);
+        	if ( LVFileExists(lString16(kernFile.c_str())+L".afm" ) ) {
+        		kernFile += ".afm";
+        	} else if ( LVFileExists(lString16(kernFile.c_str())+L".pfm" ) ) {
+        		kernFile += ".pfm";
+        	} else {
+        		kernFile.clear();
+        	}
+        	if ( !kernFile.empty() )
+        		error = FT_Attach_File( _face, kernFile.c_str() );
+        }
+        FT_Face_SetUnpatentedHinting( _face, 1 );
         _slot = _face->glyph;
         _faceName = familyName(_face);
         CRLog::debug("Loaded font %s [%d]: faceName=%s, ", _fileName.c_str(), index, _faceName.c_str() );
@@ -1504,7 +1517,7 @@ public:
                 lString8 fn( (const char *)s );
                 lString16 fn16( fn.c_str() );
                 fn16.lowercase();
-                if ( !fn16.endsWith(L".ttf") ) {
+                if ( !fn16.endsWith(L".ttf") && !fn16.endsWith(L".odf") && !fn16.endsWith(L".pfb") && !fn16.endsWith(L".pfa")  ) {
                     continue;
                 }
                 int weight = FC_WEIGHT_MEDIUM;
