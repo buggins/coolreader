@@ -633,7 +633,7 @@ public:
         	if ( !kernFile.empty() )
         		error = FT_Attach_File( _face, kernFile.c_str() );
         }
-        FT_Face_SetUnpatentedHinting( _face, 1 );
+        //FT_Face_SetUnpatentedHinting( _face, 1 );
         _slot = _face->glyph;
         _faceName = familyName(_face);
         CRLog::debug("Loaded font %s [%d]: faceName=%s, ", _fileName.c_str(), index, _faceName.c_str() );
