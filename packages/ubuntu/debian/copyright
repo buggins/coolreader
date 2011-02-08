@@ -20,3 +20,13 @@ License: GPL-2
 Files: thirdparty/chmlib/*
 Copyright: Jed Wing <jedwin@ugcs.caltech.edu>
 License: LGPL-2
+
+
+License: GPL-2
+    /usr/share/common-licenses/GPL-2
+
+License: GPL-3+
+    /usr/share/common-licenses/GPL-3
+
+License: LGPL-2
+    /usr/share/common-licenses/LGPL-2
