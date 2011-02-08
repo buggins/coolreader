@@ -12,3 +12,11 @@ License: GPL-2
 Files: debian/*
 Copyright: 2009-2011, Vadim Lopatin <buggins@fromru.com>
 License: GPL-3+
+
+Files: thirdparty/antiword/*
+Copyright: 2005, Adri van Os
+License: GPL-2
+
+Files: thirdparty/chmlib/*
+Copyright: Jed Wing <jedwin@ugcs.caltech.edu>
+License: LGPL-2
