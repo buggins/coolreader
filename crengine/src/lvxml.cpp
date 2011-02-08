@@ -593,6 +593,7 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
         SetCharsetTable( NULL );
     } else {
         m_enc_type = ce_8bit_cp;
+        //CRLog::trace("charset: %s", LCSTR(lString16(name)));
         const lChar16 * table = GetCharsetByte2UnicodeTable( name );
         if ( table )
             SetCharsetTable( table );
@@ -2504,13 +2505,13 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_tabl
             else if (state==1 && ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z')) ) {
                 int k;
                 lChar16 entname[16];
-                for ( k=i; str[k] && str[k]!=';' && k-i<12; k++ )
+                for ( k=i; str[k] && str[k]!=';'  && str[k]!=' ' && k-i<16; k++ )
                     entname[k-i] = str[k];
                 entname[k-i] = 0;
                 int n;
                 lChar16 code = 0;
                 // TODO: optimize search
-                if ( str[k]==';' ) {
+                if ( str[k]==';' || str[k]==' ' ) {
                     for ( n=0; def_entity_table[n].name; n++ ) {
                         if ( !lStr_cmp( def_entity_table[n].name, entname ) ) {
                             code = def_entity_table[n].code;
@@ -2775,6 +2776,7 @@ void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )
 lString16 htmlCharset( lString16 htmlHeader )
 {
     // META HTTP-EQUIV
+    htmlHeader.lowercase();
     lString16 meta(L"meta http-equiv=\"content-type\"");
     int p = htmlHeader.pos( meta );
     if ( p<0 )
