@@ -3,7 +3,7 @@ Section: text
 Priority: optional
 Maintainer: Vadim Lopatin <buggins@fromru.com>
 Build-Depends: debhelper (>= 7), cmake, zlib1g, libpng12-0-dev, libjpeg62-dev, libfreetype6-dev, libfontconfig1-dev, libqt4-dev, cdbs
-Standards-Version: 3.8.4
+Standards-Version: 3.9.1
 Homepage: http://sourceforge.net/projects/crengine/
 
 Package: cr3
