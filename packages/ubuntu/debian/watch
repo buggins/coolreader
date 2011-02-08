@@ -6,4 +6,5 @@
 # Compulsory line, this is a version 3 file
 version=3
 
-http://downloads.sourceforge.net/crengine/cr3-(.*)\.src\.tar\.gz
+#Using SF redirector
+http://sf.net/crengine/cr3-(.*)\.src\.tar\.gz
