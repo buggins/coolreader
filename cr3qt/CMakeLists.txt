@@ -92,14 +92,14 @@ SET (man ${CMAKE_CURRENT_SOURCE_DIR}/data/docs/cr3.1)
 SET (man_gz ${CMAKE_BINARY_DIR}/cr3.1.gz)
 
 ADD_CUSTOM_COMMAND(OUTPUT ${man_gz}
-   COMMAND ${GZIP_TOOL} -c ${man} > ${man_gz}
+   COMMAND ${GZIP_TOOL} -9 -c ${man} > ${man_gz}
    DEPENDS ${man}
    COMMENT "Building ${man_gz}")
 
 SET (changelog ${CMAKE_CURRENT_SOURCE_DIR}/../changelog)
 SET (changelog_gz ${CMAKE_BINARY_DIR}/changelog.gz)
 ADD_CUSTOM_COMMAND(OUTPUT ${changelog_gz}
-   COMMAND ${GZIP_TOOL} -c ${changelog} > ${changelog_gz}
+   COMMAND ${GZIP_TOOL} -9 -c ${changelog} > ${changelog_gz}
    DEPENDS ${changelog}
    COMMENT "Building ${changelog_gz}")
 
