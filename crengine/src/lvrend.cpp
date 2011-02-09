@@ -1272,7 +1272,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 line_h = len.value * 16 / enode->getFont()->getHeight();
                 break;
             case css_val_em:
-                line_h = len.value * 16;
+                line_h = len.value * 16 / 256;
                 break;
             default:
                 break;
