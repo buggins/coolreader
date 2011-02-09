@@ -8,6 +8,7 @@
 
 #include <QtGui/QApplication>
 #include "../crengine/include/crengine.h"
+#include "../crengine/include/cr3version.h"
 #include "mainwindow.h"
 #include <QTranslator>
 #include <QLibraryInfo>
@@ -23,19 +24,70 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16Collection & ex
 #endif
 
 
+static void printHelp() {
+    printf("usage: cr3 [options] [filename]\n"
+           "Options:\n"
+           "  -h or --help: this message\n"
+           "  -v or --version: print program version\n"
+           "  --loglevel=ERROR|WARN|INFO|DEBUG|TRACE: set logging level\n"
+           "  --logfile=<filename>|stdout|stderr: set log file\n"
+           );
+}
+
+static void printVersion() {
+    printf("Cool Reader " CR_ENGINE_VERSION " " CR_ENGINE_BUILD_DATE "\n");
+}
+
 int main(int argc, char *argv[])
 {
     int res = 0;
     {
-        CRLog::setStdoutLogger();
-    #ifdef __i386__
-        CRLog::setLogLevel( CRLog::LL_TRACE );
-    #else
-        CRLog::setLogLevel( CRLog::LL_ERROR );
-    #endif
+#ifdef DEBUG
+        lString8 loglevel("TRACE");
+#else
+        lString8 loglevel("ERROR");
+#endif
+        lString8 logfile("stderr");
+        for ( int i=1; i<argc; i++ ) {
+            if ( !strcmp("-h", argv[i]) || !strcmp("-?", argv[i]) || !strcmp("/?", argv[i]) || !strcmp("--help", argv[i]) ) {
+                printHelp();
+                return 0;
+            }
+            if ( !strcmp("-v", argv[i]) || !strcmp("/v", argv[i]) || !strcmp("--version", argv[i]) ) {
+                printVersion();
+                return 0;
+            }
+            lString8 s(argv[i]);
+            if ( s.startsWith(lString8("--loglevel=")) ) {
+                loglevel = s.substr(11, s.length()-11);
+            } else if ( s.startsWith(lString8("--logfile=")) ) {
+                logfile = s.substr(10, s.length()-10);
+            }
+        }
+
+        // set logger
+        if ( logfile=="stdout" )
+            CRLog::setStdoutLogger();
+        else if ( logfile=="stderr" )
+                CRLog::setStderrLogger();
+        else if ( !logfile.empty() )
+                CRLog::setFileLogger(logfile.c_str());
+        if ( loglevel=="TRACE" )
+            CRLog::setLogLevel(CRLog::LL_TRACE);
+        else if ( loglevel=="DEBUG" )
+            CRLog::setLogLevel(CRLog::LL_DEBUG);
+        else if ( loglevel=="INFO" )
+            CRLog::setLogLevel(CRLog::LL_INFO);
+        else if ( loglevel=="WARN" )
+            CRLog::setLogLevel(CRLog::LL_WARN);
+        else if ( loglevel=="ERROR" )
+            CRLog::setLogLevel(CRLog::LL_ERROR);
+        else
+            CRLog::setLogLevel(CRLog::LL_FATAL);
+
         lString16 exename = LocalToUnicode( lString8(argv[0]) );
         lString16 exedir = LVExtractPath(exename);
-	lString16 datadir = lString16(CR3_DATA_DIR);
+        lString16 datadir = lString16(CR3_DATA_DIR);
         LVAppendPathDelimiter(exedir);
         LVAppendPathDelimiter(datadir);
         lString16 exefontpath = exedir + L"fonts";
