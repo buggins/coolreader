@@ -255,7 +255,7 @@ public class Scanner {
 						Log.v("cr3db", "File " + item.pathname + " is found in DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 
 					boolean saveToDB = true;
-					if ( !found && item.format==DocumentFormat.FB2 ) {
+					if ( !found && item.format.canParseProperties() ) {
 						filesForParsing.add(item);
 						saveToDB = false;
 					}

@@ -129,12 +129,8 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
     }
 }
 
-bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
+lString16 EpubGetRootFilePath( LVContainerRef m_arc )
 {
-    LVContainerRef m_arc = LVOpenArchieve( stream );
-    if ( m_arc.isNull() )
-        return false; // not a ZIP archive
-
     // check root media type
     lString16 rootfilePath;
     lString16 rootfileMediaType;
@@ -155,7 +151,20 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     }
 
     if ( rootfilePath.empty() || rootfileMediaType!=L"application/oebps-package+xml" )
-        return false;
+        return lString16::empty_str;
+    return rootfilePath;
+}
+
+bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
+{
+    LVContainerRef m_arc = LVOpenArchieve( stream );
+    if ( m_arc.isNull() )
+        return false; // not a ZIP archive
+
+    // check root media type
+    lString16 rootfilePath = EpubGetRootFilePath(m_arc);
+    if ( rootfilePath.empty() )
+    	return false;
 
     m_doc->setContainer(m_arc);
 
@@ -197,8 +206,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             if ( !item )
                 break;
             lString16 name = item->getAttributeValue(L"name");
-            if ( !name.empty() )
-                coverId = item->getAttributeValue(L"content");
+            lString16 content = item->getAttributeValue(L"content");
+            if ( name == L"cover" )
+                coverId = content;
+            else if ( name==L"calibre:series" )
+                m_doc_props->setString(DOC_PROP_SERIES_NAME, content );
+            else if ( name==L"calibre:series_index" )
+                m_doc_props->setInt(DOC_PROP_SERIES_NUMBER, content.atoi() );
         }
 
         // items

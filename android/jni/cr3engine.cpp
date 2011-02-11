@@ -14,6 +14,7 @@
 #include "cr3java.h"
 #include "readerview.h"
 #include "crengine.h"
+#include "epubfmt.h"
 #include "lvstream.h"
 
 
@@ -77,6 +78,61 @@ public:
     int seriesNumber;
 };
 
+static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProperties * pBookProps)
+{
+    LVContainerRef m_arc = LVOpenArchieve( stream );
+    if ( m_arc.isNull() )
+        return false; // not a ZIP archive
+
+    // check root media type
+    lString16 rootfilePath = EpubGetRootFilePath(m_arc);
+    if ( rootfilePath.empty() )
+    	return false;
+
+    lString16 codeBase;
+    codeBase=LVExtractPath(rootfilePath, false);
+
+    LVStreamRef content_stream = m_arc->OpenStream(rootfilePath.c_str(), LVOM_READ);
+    if ( content_stream.isNull() )
+        return false;
+
+    ldomDocument * doc = LVParseXMLStream( content_stream );
+    if ( !doc )
+        return false;
+
+    time_t t = (time_t)time(0);
+    struct stat fs;
+    if ( !stat( name, &fs ) ) {
+        t = fs.st_mtime;
+    }
+
+    lString16 author = doc->textFromXPath( lString16(L"package/metadata/creator"));
+    lString16 title = doc->textFromXPath( lString16(L"package/metadata/title"));
+
+    pBookProps->author = author;
+    pBookProps->title = title;
+
+    for ( int i=1; i<20; i++ ) {
+        ldomNode * item = doc->nodeFromXPath( lString16(L"package/metadata/meta[") + lString16::itoa(i) + L"]" );
+        if ( !item )
+            break;
+        lString16 name = item->getAttributeValue(L"name");
+        lString16 content = item->getAttributeValue(L"content");
+        if ( name==L"calibre:series" )
+        	pBookProps->series = content;
+        else if ( name==L"calibre:series_index" )
+        	pBookProps->seriesNumber = content.atoi();
+    }
+
+    pBookProps->filesize = (long)stream->GetSize();
+    pBookProps->filename = lString16(name);
+    pBookProps->filedate = getDateTimeString( t );
+
+    delete doc;
+
+    return true;
+}
+
 static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
 {
     CRLog::trace("GetBookProperties( %s )", name);
@@ -93,7 +149,14 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
         return false;
     }
 
+
+    if ( DetectEpubFormat( stream ) ) {
+        CRLog::trace("GetBookProperties() : epub format detected");
+    	return GetEPUBBookProperties( name, stream, pBookProps );
+    }
+
     time_t t = (time_t)time(0);
+
     if ( isArchiveFile ) {
         int arcsize = (int)stream->GetSize();
         LVContainerRef container = LVOpenArchieve(stream);
