@@ -329,7 +329,20 @@ public class FileBrowser extends ListView {
 
 	public void showFindBookDialog()
 	{
-		BookSearchDialog dlg = new BookSearchDialog( mActivity );
+		BookSearchDialog dlg = new BookSearchDialog( mActivity, new BookSearchDialog.SearchCallback() {
+			@Override
+			public void done(FileInfo[] results) {
+				if ( results!=null ) {
+					if ( results.length==0 ) {
+						mActivity.showToast(R.string.dlg_book_search_not_found);
+					} else {
+						// show results
+						// TODO:
+						mActivity.showToast("books found: " + results.length);
+					}
+				}
+			}
+		});
 		dlg.show();
 	}
 

@@ -69,13 +69,13 @@ public class CRDB {
 			dropTables();
 		execSQL("CREATE TABLE IF NOT EXISTS author (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"name VARCHAR NOT NULL" +
+				"name VARCHAR NOT NULL COLLATE NOCASE" +
 				")");
 		execSQL("CREATE INDEX IF NOT EXISTS " +
                 "author_name_index ON author (name) ");
 		execSQL("CREATE TABLE IF NOT EXISTS series (" +
 				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"name VARCHAR NOT NULL" +
+				"name VARCHAR NOT NULL COLLATE NOCASE" +
 				")");
 		execSQL("CREATE INDEX IF NOT EXISTS " +
 		        "series_name_index ON series (name) ");
@@ -91,7 +91,7 @@ public class CRDB {
 				"folder_fk INTEGER REFERENCES folder (id)," +
 				"filename VARCHAR NOT NULL," +
 				"arcname VARCHAR," +
-				"title VARCHAR," +
+				"title VARCHAR COLLATE NOCASE," +
 				"series_fk INTEGER REFERENCES series (id)," +
 				"series_number INTEGER," +
 				"format INTEGER," +
@@ -231,8 +231,7 @@ public class CRDB {
 		return found;
 	}
 
-	private static final String READ_FILEINFO_SQL = 
-		"SELECT " +
+	private static final String READ_FILEINFO_FIELDS = 
 		"b.id AS id, pathname," +
 		"f.name as path, " +
 		"filename, arcname, title, " +
@@ -240,7 +239,11 @@ public class CRDB {
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
-		"create_time, last_access_time, flags " +
+		"create_time, last_access_time, flags ";
+	
+	private static final String READ_FILEINFO_SQL = 
+		"SELECT " +
+		READ_FILEINFO_FIELDS +
 		"FROM book b " +
 		"LEFT JOIN series s ON s.id=b.series_fk " +
 		"LEFT JOIN folder f ON f.id=b.folder_fk ";
@@ -295,6 +298,66 @@ public class CRDB {
 				rs.close();
 		}
 		return found;
+	}
+
+	synchronized public FileInfo[] findByPatterns( int maxCount, String author, String title, String series, String filename )
+	{
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		
+		StringBuilder buf = new StringBuilder();
+		if ( author!=null && author.length()>0 ) {
+			if ( buf.length()>0 )
+				buf.append(" AND ");
+			buf.append(" b.id IN (SELECT ba.book_fk FROM author a JOIN book_author ba ON a.id=ba.author_fk WHERE a.name LIKE ");
+			DatabaseUtils.appendValueToSql(buf, author);
+			buf.append(") ");
+		}
+		if ( series!=null && series.length()>0 ) {
+			if ( buf.length()>0 )
+				buf.append(" AND ");
+			buf.append(" b.series_fk IN (SELECT s.name FROM series s WHERE s.name LIKE ");
+			DatabaseUtils.appendValueToSql(buf, series);
+			buf.append(") ");
+		}
+		if ( title!=null && title.length()>0 ) {
+			if ( buf.length()>0 )
+				buf.append(" AND ");
+			buf.append(" b.title LIKE ");
+			DatabaseUtils.appendValueToSql(buf, title);
+			buf.append(" ");
+		}
+		if ( filename!=null && filename.length()>0 ) {
+			if ( buf.length()>0 )
+				buf.append(" AND ");
+			buf.append(" b.filename LIKE ");
+			DatabaseUtils.appendValueToSql(buf, filename);
+			buf.append(" ");
+		}
+		if ( buf.length()==0 )
+			return new FileInfo[0];
+		
+		String condition = " WHERE " + buf.toString();
+		String sql = READ_FILEINFO_SQL + condition;
+		Log.d("cr3", "sql: " + sql );
+		if ( condition.length()==0 )
+			return new FileInfo[] { };
+		Cursor rs = null;
+		try { 
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				int count = 0;
+				do {
+					FileInfo fi = new FileInfo(); 
+					readFileInfoFromCursor( fi, rs );
+					list.add(fi);
+					count++;
+				} while ( count<maxCount && rs.moveToNext() );
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return list.toArray(new FileInfo[list.size()]);
 	}
 	
 	synchronized public boolean findRecentBooks( ArrayList<FileInfo> list, int maxCount, int limit )

@@ -227,4 +227,5 @@
     <string name="dlg_book_search_found">Найдено книг:</string>
     <string name="dlg_book_search_prompt">Задайте параметры поиска:</string>
     <string name="mi_book_search">Найти книгу</string>
+    <string name="dlg_book_search_not_found">Книги не найдены</string>
 </resources>
