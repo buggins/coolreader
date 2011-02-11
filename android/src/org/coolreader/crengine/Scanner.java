@@ -215,7 +215,7 @@ public class Scanner {
 		final long startTime = System.currentTimeMillis();
 		listDirectory(baseDir);
 		listSubtree( baseDir, 2, android.os.SystemClock.uptimeMillis() + 700 );
-		if ( (!getDirScanEnabled() && !recursiveScan) || baseDir.isScanned ) {
+		if ( (!getDirScanEnabled() || baseDir.isScanned) && !recursiveScan ) {
 			readyCallback.run();
 			return;
 		}
