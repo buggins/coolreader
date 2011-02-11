@@ -216,4 +216,7 @@
     <string name="mi_bookmark_export">Экспортировать закладки в файл</string>
     <string name="toast_bookmark_export_ok">Закладки сохранены в </string>
     <string name="toast_bookmark_export_failed">Ошибка сохранения закладок в </string>
+<string name="mi_book_scan_recursive">Сканировать книги в директории</string>
+    <string name="dlg_scan_title">Сканирование директорий</string>
+    <string name="dlg_scan_message">Это может занять несколько минут...</string>
 </resources>

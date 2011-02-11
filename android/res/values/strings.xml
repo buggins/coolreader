@@ -217,4 +217,7 @@
     <string name="mi_bookmark_export">Export bookmarks</string>
     <string name="toast_bookmark_export_ok">Bookmarks were saved to </string>
     <string name="toast_bookmark_export_failed">Error while saving bookmarks to </string>
+<string name="mi_book_scan_recursive">Scan books in directory</string>
+    <string name="dlg_scan_title">Scanning directories</string>
+    <string name="dlg_scan_message">It may take several minutes to finish</string>
 </resources>

@@ -250,6 +250,8 @@ public class Scanner {
 			}
 
 			public void scan( FileInfo baseDir ) {
+				if ( baseDir.isRecentDir() )
+					return;
 				//listDirectory(baseDir);
 				progress(1000);
 				if ( scanControl.isStopped() )

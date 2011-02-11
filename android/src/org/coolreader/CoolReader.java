@@ -996,6 +996,9 @@ public class CoolReader extends Activity
 		case R.id.book_recent_books:
 			mBrowser.showRecentBooks();
 			return true;
+		case R.id.book_scan_recursive:
+			mBrowser.scanCurrentDirectoryRecursive();
+			return true;
 		case R.id.book_back_to_reading:
 			if ( isBookOpened() )
 				showReader();
