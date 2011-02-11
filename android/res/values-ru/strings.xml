@@ -220,4 +220,12 @@
 <string name="mi_book_scan_recursive">Сканировать книги в директории</string>
     <string name="dlg_scan_title">Сканирование директорий</string>
     <string name="dlg_scan_message">Это может занять несколько минут...</string>
+    <string name="dlg_book_search">Поиск книги</string>
+    <string name="dlg_book_search_title">Название</string>
+    <string name="dlg_book_search_series">Серия</string>
+    <string name="dlg_book_search_filename">Имя файла</string>
+    <string name="dlg_book_search_author">Автор</string>
+    <string name="dlg_book_search_found">Найдено книг:</string>
+    <string name="dlg_book_search_prompt">Задайте параметры поиска:</string>
+    <string name="mi_book_search">Найти книгу</string>
 </resources>

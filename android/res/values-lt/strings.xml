@@ -219,4 +219,12 @@
 <string name="mi_book_scan_recursive">Scan books in directory</string>
     <string name="dlg_scan_title">Scanning directories</string>
     <string name="dlg_scan_message">It may take several minutes to finish</string>
+    <string name="dlg_book_search">Find book</string>
+    <string name="dlg_book_search_title">Title</string>
+    <string name="dlg_book_search_series">Series</string>
+    <string name="dlg_book_search_filename">Filename</string>
+    <string name="dlg_book_search_author">Author</string>
+    <string name="dlg_book_search_found">Books found:</string>
+    <string name="dlg_book_search_prompt">Enter search pattern:</string>
+    <string name="mi_book_search">Find book</string>
 </resources>

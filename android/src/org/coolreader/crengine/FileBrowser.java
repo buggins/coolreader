@@ -327,6 +327,12 @@ public class FileBrowser extends ListView {
 			showDirectory(currDirectory, null);
 	}
 
+	public void showFindBookDialog()
+	{
+		BookSearchDialog dlg = new BookSearchDialog( mActivity );
+		dlg.show();
+	}
+
 	public void showRootDirectory()
 	{
 		showDirectory(mScanner.getRoot(), null);
