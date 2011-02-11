@@ -327,6 +327,11 @@ public class FileBrowser extends ListView {
 			showDirectory(currDirectory, null);
 	}
 
+	public void showSearchResult( FileInfo[] books ) {
+		FileInfo dir = mScanner.setSearchResults( books );
+		showDirectory(dir, null);
+	}
+	
 	public void showFindBookDialog()
 	{
 		BookSearchDialog dlg = new BookSearchDialog( mActivity, new BookSearchDialog.SearchCallback() {
@@ -336,9 +341,7 @@ public class FileBrowser extends ListView {
 					if ( results.length==0 ) {
 						mActivity.showToast(R.string.dlg_book_search_not_found);
 					} else {
-						// show results
-						// TODO:
-						mActivity.showToast("books found: " + results.length);
+						showSearchResult( results );
 					}
 				}
 			}

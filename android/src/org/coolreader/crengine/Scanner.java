@@ -473,6 +473,32 @@ public class Scanner {
 		return false; // limited by depth
 	}
 	
+	public FileInfo setSearchResults( FileInfo[] results ) {
+		FileInfo existingResults = null;
+		for ( int i=0; i<mRoot.dirCount(); i++ ) {
+			FileInfo dir = mRoot.getDir(i);
+			if ( dir.isSearchDir() ) {
+				existingResults = dir;
+				dir.clear();
+				break;
+			}
+		}
+		if ( existingResults==null ) {
+			FileInfo dir = new FileInfo();
+			dir.isDirectory = true;
+			dir.pathname = FileInfo.SEARCH_RESULT_DIR_TAG;
+			dir.filename = coolReader.getResources().getString(R.string.dir_search_results);
+			dir.parent = mRoot;
+			dir.isListed = true;
+			dir.isScanned = true;
+			mRoot.addDir(dir);
+			existingResults = dir;
+		}
+		for ( FileInfo item : results )
+			existingResults.addFile(item);
+		return existingResults;
+	}
+	
 	public void initRoots()
 	{
 		mRoot.clear();

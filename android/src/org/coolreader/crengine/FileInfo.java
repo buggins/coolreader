@@ -174,11 +174,17 @@ public class FileInfo {
 	}
 	
 	public final static String RECENT_DIR_TAG = "@recent";
+	public final static String SEARCH_RESULT_DIR_TAG = "@search";
 	public final static String ROOT_DIR_TAG = "@root";
 	
 	public boolean isRecentDir()
 	{
 		return RECENT_DIR_TAG.equals(pathname);
+	}
+	
+	public boolean isSearchDir()
+	{
+		return SEARCH_RESULT_DIR_TAG.equals(pathname);
 	}
 	
 	public boolean isRootDir()

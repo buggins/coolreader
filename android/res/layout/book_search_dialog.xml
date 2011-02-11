@@ -10,11 +10,28 @@
   >
        <TextView
          android:id="@+id/search_status" 
-         android:layout_width="wrap_content" 
+         android:layout_width="fill_parent" 
          android:layout_height="wrap_content"
          style="@android:style/TextAppearance.Small"
          android:text="@string/dlg_book_search_prompt" 
        />
+      <TableRow>
+          <TextView
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"
+            style="@android:style/TextAppearance.Small"
+            android:text="@string/dlg_book_search_filename" 
+            android:layout_marginRight="8dip"
+          />
+          <EditText 
+            android:id="@+id/search_text_filename" 
+            android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:text="" 
+            style="@android:style/TextAppearance.Widget.EditText"
+            android:editable="true" android:hint="@string/dlg_search_hint" android:singleLine="true"
+          />
+      </TableRow>
 	  <TableRow>
 		  <TextView
 		    android:layout_width="wrap_content" 
@@ -59,23 +76,6 @@
           />
           <EditText 
             android:id="@+id/search_text_series" 
-            android:layout_width="fill_parent" 
-            android:layout_height="wrap_content"
-            android:text="" 
-            style="@android:style/TextAppearance.Widget.EditText"
-            android:editable="true" android:hint="@string/dlg_search_hint" android:singleLine="true"
-          />
-      </TableRow>
-      <TableRow>
-          <TextView
-            android:layout_width="wrap_content" 
-            android:layout_height="wrap_content"
-            style="@android:style/TextAppearance.Small"
-            android:text="@string/dlg_book_search_filename" 
-            android:layout_marginRight="8dip"
-          />
-          <EditText 
-            android:id="@+id/search_text_filename" 
             android:layout_width="fill_parent" 
             android:layout_height="wrap_content"
             android:text="" 
