@@ -755,6 +755,15 @@ void LVDocView::updatePageNumbers(LVTocItem * item) {
 
 /// returns cover page image stream, if any
 LVStreamRef LVDocView::getCoverPageImageStream() {
+    lString16 fileName;
+    if ( m_doc_props->getString(DOC_PROP_COVER_FILE, fileName) && !fileName.empty() ) {
+        LVStreamRef stream = m_container->OpenStream(fileName.c_str(), LVOM_READ);
+        if ( stream.isNull() )
+            CRLog::error("Cannot open coverpate image from %s", LCSTR(fileName));
+        return stream;
+    }
+
+    // FB2 coverpage
 	//CRLog::trace("LVDocView::getCoverPageImage()");
 	//m_doc->dumpStatistics();
 	lUInt16 path[] = { el_FictionBook, el_description, el_title_info,
@@ -3434,6 +3443,9 @@ bool LVDocView::ParseDocument() {
 			//            }
 
 			m_showCover = !getCoverPageImage().isNull();
+
+            if ( m_callback )
+                m_callback->OnLoadFileEnd( );
 
 			return true;
 		}
