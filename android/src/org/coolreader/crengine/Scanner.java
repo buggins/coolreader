@@ -195,17 +195,27 @@ public class Scanner {
 		}
 	}
 	
+	public static class ScanControl {
+		volatile private boolean stopped = false;
+		public boolean isStopped() {
+			return stopped;
+		}
+		public void stop() {
+			stopped = true;
+		}
+	}
+	
 	/**
 	 * Scan single directory for dir and file properties in background thread.
 	 * @param baseDir is directory to scan
 	 * @param readyCallback is called on completion
 	 */
-	public void scanDirectory( final FileInfo baseDir, final Runnable readyCallback )
+	public void scanDirectory( final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl )
 	{
 		final long startTime = System.currentTimeMillis();
 		listDirectory(baseDir);
 		listSubtree( baseDir, 2, android.os.SystemClock.uptimeMillis() + 700 );
-		if ( !getDirScanEnabled() || baseDir.isScanned ) {
+		if ( (!getDirScanEnabled() && !recursiveScan) || baseDir.isScanned ) {
 			readyCallback.run();
 			return;
 		}
@@ -214,6 +224,8 @@ public class Scanner {
 			boolean progressShown = false;
 			void progress( int percent )
 			{
+				if ( recursiveScan )
+					return; // no progress dialog for recursive scan
 				long ts = System.currentTimeMillis();
 				if ( ts>=nextProgressTime ) {
 					engine.showProgress(percent, R.string.progress_scanning);
@@ -237,15 +249,21 @@ public class Scanner {
 				readyCallback.run();
 			}
 
-			public void work() throws Exception {
-				// scan (list) directories
-				nextProgressTime = System.currentTimeMillis() + 2000;
+			public void scan( FileInfo baseDir ) {
+				//listDirectory(baseDir);
 				progress(1000);
-				for ( int i=baseDir.dirCount()-1; i>=0; i-- )
+				if ( scanControl.isStopped() )
+					return;
+				for ( int i=baseDir.dirCount()-1; i>=0; i-- ) {
+					if ( scanControl.isStopped() )
+						return;
 					listDirectory(baseDir.getDir(i));
+				}
+				progress(2000);
 				if ( mHideEmptyDirs )
 					baseDir.removeEmptyDirs();
-				progress(2000);
+				if ( scanControl.isStopped() )
+					return;
 				ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
 				int count = baseDir.fileCount();
 				for ( int i=0; i<count; i++ ) {
@@ -269,12 +287,26 @@ public class Scanner {
 				// db lookup files
 				count = filesForParsing.size();
 				for ( int i=0; i<count; i++ ) {
+					if ( scanControl.isStopped() )
+						return;
 					FileInfo item = filesForParsing.get(i);
 					engine.scanBookProperties(item);
 					db.save(item);
 					Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 					progress( 5000 + 5000 * i / count );
 				}
+				if ( recursiveScan ) {
+					if ( scanControl.isStopped() )
+						return;
+					for ( int i=baseDir.dirCount()-1; i>=0; i-- )
+						scan(baseDir.getDir(i));
+				}
+			}
+			
+			public void work() throws Exception {
+				// scan (list) directories
+				nextProgressTime = startTime + 1500;
+				scan( baseDir );
 			}
 		});
 	}

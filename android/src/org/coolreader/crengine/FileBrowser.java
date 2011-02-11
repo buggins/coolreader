@@ -408,7 +408,7 @@ public class FileBrowser extends ListView {
 						dir.sort(mSortOrder);
 					showDirectoryInternal(dir, file);
 				}
-			});
+			}, false, new Scanner.ScanControl() );
 		} else
 			showDirectoryInternal(dir, file);
 	}
