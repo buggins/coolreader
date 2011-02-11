@@ -804,7 +804,23 @@ public:
         CRPropRef props = doc_view->getDocProps();
         lString16 series = props->getStringDef(DOC_PROP_SERIES_NUMBER);
         int seriesNumber = series.empty() ? 0 : series.atoi();
-        lString8 cover_image_file;
+        LVArray<lChar8> cover_image_file;
+        {
+            LVStreamRef coverStream = doc_view->getCoverPageImageStream();
+            if ( !coverStream.isNull() ) {
+                //LVStreamRef out = LVOpenFileStream(COVER_FILE_NAME, LVOM_WRITE);
+                int size = coverStream->GetSize();
+                if ( size>0 && size<1000000 ) {
+                    cover_image_file.addSpace(size);
+                    lvsize_t bytesRead = 0;
+                    coverStream->Read( cover_image_file.get(), size, &bytesRead );
+                    if ( bytesRead!=size ) {
+                        CRLog::error("Error while reading coverpage image");
+                        cover_image_file.clear();
+                    }
+                }
+            }
+        }
         set_prop_str(1, UnicodeToUtf8(props->getStringDef(DOC_PROP_AUTHORS)).c_str());
         set_prop_str(2, UnicodeToUtf8(props->getStringDef(DOC_PROP_TITLE)).c_str());
         set_prop_str(3, UnicodeToUtf8(props->getStringDef(DOC_PROP_FILE_NAME)).c_str());
@@ -849,7 +865,7 @@ public:
                 STRING,
                 8,
                 cover_image_file.length(),
-                cover_image_file.c_str());
+                cover_image_file.get());
 
         xcb_flush(connection);
 
