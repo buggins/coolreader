@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:id="@+id/LinearLayout01" android:layout_height="fill_parent" android:layout_width="fill_parent">
+	<TextView android:text="@string/dlg_about_donation" 
+            style="@android:style/TextAppearance.Small"
+			android:maxLines="6" 
+			android:layout_margin="4dip" 
+			android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<LinearLayout android:orientation="horizontal" android:layout_height="wrap_content" android:layout_width="fill_parent">
+		<ImageView 
+			android:layout_width="wrap_content" android:layout_height="wrap_content" 
+	        android:layout_margin="2dip"
+			android:layout_weight="1" 
+			android:src="@drawable/cr3_coin_gold" 
+			android:layout_gravity="center_vertical|left"
+			/>
+		<Button android:id="@+id/btn_about_donation_install_gold" 
+				android:text="@string/dlg_about_donation_gold"
+				android:layout_weight="2" 
+				android:layout_gravity="center_vertical|right"
+				android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+		/>
+	</LinearLayout>
+	<LinearLayout android:orientation="horizontal" android:layout_height="wrap_content" android:layout_width="fill_parent">
+		<ImageView 
+			android:layout_width="wrap_content" android:layout_height="wrap_content" 
+	        android:layout_margin="2dip"
+			android:layout_weight="1" 
+			android:src="@drawable/cr3_coin_silver" 
+			android:layout_gravity="center_vertical|left"
+			/>
+		<Button android:id="@+id/btn_about_donation_install_silver" 
+				android:text="@string/dlg_about_donation_silver"
+				android:layout_weight="2" 
+				android:layout_gravity="center_vertical|right"
+				android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+		/>
+	</LinearLayout>
+	<LinearLayout android:orientation="horizontal" android:layout_height="wrap_content" android:layout_width="fill_parent">
+		<ImageView 
+			android:layout_width="wrap_content" android:layout_height="wrap_content" 
+	        android:layout_margin="2dip"
+			android:layout_weight="1" 
+			android:src="@drawable/cr3_coin_bronze" 
+			android:layout_gravity="center_vertical|left"
+			/>
+		<Button android:id="@+id/btn_about_donation_install_bronze" 
+				android:text="@string/dlg_about_donation_bronze"
+				android:layout_weight="2" 
+				android:layout_gravity="center_vertical|right"
+				android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+		/>
+	</LinearLayout>
+</LinearLayout>
