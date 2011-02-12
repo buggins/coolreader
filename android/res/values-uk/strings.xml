@@ -231,7 +231,7 @@
     <string name="dir_search_results">Результаты поиска</string>
 <string name="dlg_about_donation_bronze">$1: купить Бронзовую монетку Cool Reader</string>
     <string name="dlg_about_donation_silver">$3: купить Серебряную монетку Cool Reader</string>
-    <string name="dlg_about_donation">Cool Reader - бесплатная свободная программа, и всегда будет оставаться таким. Вы можете поддержать развитие проекта, купив пакет-монетку в Android Market.</string>
+    <string name="dlg_about_donation">Cool Reader - бесплатная свободная программа, и всегда будет оставаться такой. Вы можете поддержать развитие проекта, купив пакет-монетку в Android Market.</string>
     <string name="dlg_about_donation_gold">$10: купить Золотую монетку Cool Reader</string>
     <string name="dlg_about_donation_installed">Установлено</string>
 </resources>
