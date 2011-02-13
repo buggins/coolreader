@@ -229,4 +229,9 @@
     <string name="mi_book_search">Find book</string>
     <string name="dlg_book_search_not_found">No books found</string>
     <string name="dir_search_results">Search results</string>
+<string name="dlg_about_donation_bronze">$1: buy Cool Reader Bronze Donation</string>
+    <string name="dlg_about_donation_silver">$3: buy Cool Reader Silver Donation</string>
+    <string name="dlg_about_donation">Cool Reader is free and will always be free. If you want to support development of this project, you can buy donation package from Android Market.</string>
+    <string name="dlg_about_donation_gold">$10: buy Cool Reader Gold Donation</string>
+    <string name="dlg_about_donation_installed">Installed</string>
 </resources>
