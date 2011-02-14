@@ -32,8 +32,8 @@ inline void crFatalError() { crFatalError( -1, "Unknown fatal error" ); }
 void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
 
 /// typed realloc with result check (size is counted in T), fatal error if failed
-template <type T> T * cr_realloc( T * ptr, size_t newSize ) {
-    T * newptr = (T*)realloc(ptr, sizeof(T)*newSize);
+template <typename T> T * cr_realloc( T * ptr, size_t newSize ) {
+    T * newptr = reinterpret_cast<T*>(realloc(ptr, sizeof(T)*newSize));
     if ( newptr )
         return newptr;
     free(ptr); // to bypass cppcheck warning
