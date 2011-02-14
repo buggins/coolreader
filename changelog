@@ -1,3 +1,10 @@
+cr3 (3.0.44-05) unstable; urgency=low
+
+  * TOC navigation fixed
+  * Hyperlink navigation fixed
+
+ -- Vadim Lopatin <buggins@fromru.com>  Mon, 14 Feb 2011 10:15:49 +0300
+ 
 cr3 (3.0.43-11) unstable; urgency=low
 
   * hyphenation fixes

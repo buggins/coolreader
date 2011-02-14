@@ -1,3 +1,9 @@
+cr3 (3.0.44-05) unstable; urgency=low
+
+  * merge upstream changes
+
+ -- Vadim Lopatin <buggins@fromru.com>  Mon, 14 Feb 2011 10:25:49 +0300
+
 cr3 (3.0.43-12) unstable; urgency=low
 
   * create debian package
