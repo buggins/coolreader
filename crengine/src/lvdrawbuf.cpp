@@ -1167,7 +1167,7 @@ void LVColorDrawBuf::Resize( int dx, int dy )
     	//CRLog::trace("LVColorDrawBuf::Resize : no resize, own data");
         return;
     }
-	CRLog::trace("LVColorDrawBuf::Resize : resizing %d x %d to %d x %d", _dx, _dy, dx, dy);
+    //CRLog::trace("LVColorDrawBuf::Resize : resizing %d x %d to %d x %d", _dx, _dy, dx, dy);
     // delete old bitmap
     if ( _dx>0 && _dy>0 && _data )
     {

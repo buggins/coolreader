@@ -638,7 +638,7 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     if ( !found )
         return false;
 
-#define DUMP_HYPHENATION_WORDS 1
+#define DUMP_HYPHENATION_WORDS 0
 #if DUMP_HYPHENATION_WORDS==1
     lString16 buf;
     lString16 buf2;
