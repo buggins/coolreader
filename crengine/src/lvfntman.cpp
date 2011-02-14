@@ -824,8 +824,10 @@ public:
             if ( lastFitChar > 3 ) {
                 int hwStart, hwEnd;
                 lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd );
-                if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 )
+                if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 ) {
+                    //int maxw = max_width - (hwStart>0 ? widths[hwStart-1] : 0);
                     HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+                }
             }
         }
         return lastFitChar; //nchars;

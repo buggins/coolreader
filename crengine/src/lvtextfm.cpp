@@ -1239,6 +1239,7 @@ public:
                         space_left, //pbuffer->width,
                         '?',
                         letter_spacing);
+//                CRLog::trace("measure text: %d chars measured", chars_measured);
                 int j;
                 int last_fit = -1;
                 int last_hyph = -1;
@@ -1249,15 +1250,23 @@ public:
                         flags_buf[chars_left-1] |= LCHAR_ALLOW_WRAP_AFTER;
                 for (j = 0; j<chars_left && j<chars_measured; j++)
                 {
-                    if (widths_buf[j] > space_left)
+                    if (widths_buf[j] > space_left) {
+//                        if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
+//                            CRLog::trace("Hyphenation char doesn't fit!");
+//                        }
+//                        CRLog::("Break on char %d, chars_measured=%d, width=%d, space_left=%d", j, chars_measured, widths_buf[j], space_left);
                         break;
+                    }
                     if (flags_buf[j] & LCHAR_ALLOW_WRAP_AFTER) {
                         last_fit = j;
                         if ( flags_buf[j] & LCHAR_IS_EOL )
                             break;
                     }
-                    if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER)
+                    if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
                         last_hyph = j;
+//                        if ( widths_buf[j]>space_left)
+//                            CRLog::trace("Hyphenation outside line bounds!");
+                    }
                 }
 
                 if ( last_hyph!=-1 ) {
@@ -1265,7 +1274,16 @@ public:
                         last_fit = last_hyph; // always hyphenate if enabled
                     else if ( last_fit==-1 && !frmline->word_count )
                         last_fit = last_hyph; // try to hyphenate if single word only
+                    {
+                        lString16 s;
+                        for ( int i=0; i<=last_hyph; i++ )
+                            s += srcline->t.text[ text_offset + i];
+                        s << L"-";
+//                        CRLog::trace("%s  width=%d space_left=%d", LCSTR(s), widths_buf[last_hyph], space_left);
+                    }
                 }
+
+//                CRLog::trace("lastFit=%d, lastHyph=%d", last_fit, last_hyph);
 
                 if ( last_fit==-1 ) {
 
@@ -1307,6 +1325,8 @@ public:
                             setSrcLine( srcIndex+1, 0 );
                     }
                 } else {
+//                    if ( last_hyph!=-1 && last_fit !=last_hyph )
+//                        CRLog::trace("Hyphenation not used");
                     // add words
                     if ( align == LTEXT_ALIGN_WIDTH ) {
                         //
@@ -1317,7 +1337,12 @@ public:
                             if (flags_buf[j] & LCHAR_IS_SPACE || j==last_fit) /* LCHAR_ALLOW_WRAP_AFTER */
                             {
                                 formatted_word_t * w = addWord( wstart, j );
-                                if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER ) {
+//                                if ( j==last_fit && j>0 && j<chars_left) {
+//                                    commit();
+//                                    eol = true;
+//                                    break;
+//                                }
+                                if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER) {
                                     commit();
                                     eol = true;
                                     break;

@@ -361,14 +361,16 @@ public:
         bool found = false;
         while ( p ) {
             bool res = true;
-            for ( int i=0; p->word[i]; i++ )
+            for ( int i=2; p->word[i]; i++ )
                 if ( p->word[i]!=s[i] ) {
                     res = false;
                     break;
                 }
             if ( res ) {
-                apply(mask);
-                found = true;
+                if ( p->word[0]==s[0] && p->word[1]==s[1] ) {
+                    p->apply(mask);
+                    found = true;
+                }
             }
             p = p->next;
         }
@@ -631,12 +633,12 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     mask[len+3] = 0;
     bool found = false;
     for ( int i=0; i<len-1; i++ ) {
-        found = match( word + i, mask + i ) | found;
+        found = match( word + i, mask + i ) || found;
     }
     if ( !found )
         return false;
 
-#define DUMP_HYPHENATION_WORDS 0
+#define DUMP_HYPHENATION_WORDS 1
 #if DUMP_HYPHENATION_WORDS==1
     lString16 buf;
     lString16 buf2;
@@ -669,19 +671,19 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
         //00010030100
         int nw = widths[p]+hyphCharWidth;
         if ( (mask[p+2]&1) && nw <= maxWidth ) {
-            if ( bestp<0 || mask[p+2]>bestm ) {
-                if ( checkHyphenRules( word+1, len, p ) ) {
+            if ( checkHyphenRules( word+1, len, p ) ) {
+                widths[p] += hyphCharWidth;
+                flags[p] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+                if ( bestp<0 || mask[p+2]>bestm ) {
                     bestp = p;
                     bestm = mask[p+2];
-                } else {
-                    //CRLog::trace("checkHyphenRules() failed for position %d", p);
                 }
             }
         }
     }
     if ( bestp>=0 ) {
-        widths[bestp] += hyphCharWidth;
-        flags[bestp] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+//        widths[bestp] += hyphCharWidth;
+//        flags[bestp] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
         return true;
     }
     return false;
