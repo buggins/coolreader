@@ -4546,8 +4546,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7 };
 	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 8);
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
-    if (fs < 12)
-        fs = 12;
+    if (fs < 10)
+        fs = 10;
 	else if (fs > 28)
         fs = 32;
 	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);

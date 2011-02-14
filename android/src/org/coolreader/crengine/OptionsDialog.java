@@ -47,7 +47,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72
 	};
 	int[] mStatusFontSizes = new int[] {
-			12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 26, 28, 30,
+			10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 26, 28, 30,
 			32
 		};
 	public static int findBacklightSettingIndex( int value ) {
