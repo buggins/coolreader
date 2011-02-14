@@ -223,8 +223,9 @@ LVTocItem * CR3View::getToc()
 void CR3View::goToXPointer(QString xPointer)
 {
     ldomXPointer p = _docview->getDocument()->createXPointer(qt2cr(xPointer));
+    _docview->savePosToNavigationHistory();
     //if ( _docview->getViewMode() == DVM_SCROLL ) {
-        doCommand( DCMD_GO_POS, p.toPoint().y );
+    doCommand( DCMD_GO_POS, p.toPoint().y );
     //} else {
     //    doCommand( DCMD_GO_PAGE, item->getPage() );
     //}

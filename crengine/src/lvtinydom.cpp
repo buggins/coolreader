@@ -4437,39 +4437,39 @@ bool ldomXPointer::getRect(lvRect & rect) const
 
         ldomNode * node = getNode();
         int offset = getOffset();
-//        ldomXPointerEx xp(node, offset);
-//        if ( !node->isText() ) {
-//            //ldomXPointerEx xp(node, offset);
-//            xp.nextVisibleText();
-//            node = xp.getNode();
-//            offset = xp.getOffset();
+////        ldomXPointerEx xp(node, offset);
+////        if ( !node->isText() ) {
+////            //ldomXPointerEx xp(node, offset);
+////            xp.nextVisibleText();
+////            node = xp.getNode();
+////            offset = xp.getOffset();
+////        }
+//        if ( node->isElement() ) {
+//            if ( offset>=0 ) {
+//                //
+//                if ( offset>= (int)node->getChildCount() ) {
+//                    node = node->getLastTextChild();
+//                    if ( node )
+//                        offset = node->getText().length();
+//                    else
+//                        return false;
+//                } else {
+//                    for ( int ci=offset; ci<(int)node->getChildCount(); ci++ ) {
+//                        ldomNode * child = node->getChildNode( offset );
+//                        ldomNode * txt = txt = child->getFirstTextChild( true );
+//                        if ( txt ) {
+//                            node = txt;
+////                            lString16 s = txt->getText();
+////                            CRLog::debug("text: [%d] '%s'", s.length(), LCSTR(s));
+//                            break;
+//                        }
+//                    }
+//                    if ( !node->isText() )
+//                        return false;
+//                    offset = 0;
+//                }
+//            }
 //        }
-        if ( node->isElement() ) {
-            if ( offset>=0 ) {
-                //
-                if ( offset>= (int)node->getChildCount() ) {
-                    node = node->getLastTextChild();
-                    if ( node )
-                        offset = node->getText().length();
-                    else
-                        return false;
-                } else {
-                    for ( int ci=offset; ci<(int)node->getChildCount(); ci++ ) {
-                        ldomNode * child = node->getChildNode( offset );
-                        ldomNode * txt = txt = child->getFirstTextChild( true );
-                        if ( txt ) {
-                            node = txt;
-//                            lString16 s = txt->getText();
-//                            CRLog::debug("text: [%d] '%s'", s.length(), LCSTR(s));
-                            break;
-                        }
-                    }
-                    if ( !node->isText() )
-                        return false;
-                    offset = 0;
-                }
-            }
-        }
 
         // text node
         int srcIndex = -1;
@@ -4508,9 +4508,9 @@ bool ldomXPointer::getRect(lvRect & rect) const
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
-                if ( word->src_text_index==srcIndex ) {
+                if ( word->src_text_index>=srcIndex || (l==txtform->GetLineCount()-1 && w==frmline->word_count-1) ) {
                     // found word from same src line
-                    if ( offset<=word->t.start ) {
+                    if ( word->src_text_index>srcIndex || offset<=word->t.start ) {
                         // before this word
                         rect.left = word->x + rc.left + frmline->x;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
@@ -4532,9 +4532,15 @@ bool ldomXPointer::getRect(lvRect & rect) const
                         rect.right = rect.left + 1;
                         rect.bottom = rect.top + frmline->height;
                         return true;
+                    } else {
+                        // after last word
+                        rect.left = word->x + rc.left + frmline->x + word->width;
+                        //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
+                        rect.top = rc.top + frmline->y;
+                        rect.right = rect.left + 1;
+                        rect.bottom = rect.top + frmline->height;
+                        return true;
                     }
-                } else if ( word->src_text_index>srcIndex ) {
-                    return false;
                 }
             }
         }
