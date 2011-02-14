@@ -2391,7 +2391,7 @@ public:
         if (_len>=_size)
         {
             _size += 4;
-            _list = (lxmlAttribute*) realloc( _list, _size*sizeof(lxmlAttribute) );
+            _list = cr_realloc( _list, _size );
         }
         _list[ _len++ ].setData(nsId, attrId, valueIndex);
     }
@@ -2401,7 +2401,7 @@ public:
         if (_len>=_size)
         {
             _size += 4;
-            _list = (lxmlAttribute*) realloc( _list, _size*sizeof(lxmlAttribute) );
+            _list = cr_realloc( _list, _size );
         }
         _list[ _len++ ].setData(nsId, attrId, valueIndex);
     }
@@ -2411,7 +2411,7 @@ public:
         if (_len>=_size)
         {
             _size += 4;
-            _list = (lxmlAttribute*) realloc( _list, _size*sizeof(lxmlAttribute) );
+            _list = cr_realloc( _list, _size );
         }
         _list[ _len++ ] = *v;
     }
@@ -10314,7 +10314,7 @@ static void makeTestFile( const char * fname, int size )
         seed = seed * 31 + 14323;
     }
     MYASSERT( s->Write(buf, size, NULL)==LVERR_OK, "makeTestFile write" );
-    delete buf;
+    delete[] buf;
 }
 
 void runBlockWriteCacheTest()

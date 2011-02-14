@@ -351,8 +351,8 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
         if (!flgObject && (int)widths_buf_size < (int)srcline->t.len + 64) //
         {
             widths_buf_size = srcline->t.len + 64;
-            widths_buf = (lUInt16 *) realloc( widths_buf, widths_buf_size * sizeof(lUInt16) );
-            flags_buf  = (lUInt8 *) realloc( flags_buf, widths_buf_size * sizeof(lUInt8) );
+            widths_buf = cr_realloc( widths_buf, widths_buf_size );
+            flags_buf  = cr_realloc( flags_buf, widths_buf_size );
         }
 
         int textWrapped = 0;

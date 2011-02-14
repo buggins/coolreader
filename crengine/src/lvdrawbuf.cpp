@@ -741,7 +741,7 @@ void LVGrayDrawBuf::Resize( int dx, int dy )
     }
     if ( dx && dy )
     {
-        _data = (lUInt8 *) realloc(_data, _rowsize * _dy);
+        _data = cr_realloc(_data, _rowsize * _dy);
     }
     else if (_data)
     {

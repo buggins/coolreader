@@ -334,7 +334,7 @@ int GrBitmapEx_Apollo_FOUR(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int
     ImageId=GrLoadImageFromBuffer(BmpFileBuf,lpHeader.FileHeader.bfSize,GR_BACKGROUND_TOPLEFT);
     GrDrawImageToFit(id,gc,x,y,BmpWidth,BmpHeight,ImageId);
     GrFreeImage(ImageId);
-    free(BmpFileBuf);
+    delete[] BmpFileBuf;
     return 0;
 }
 
@@ -429,7 +429,7 @@ int GrBitmapEx_Apollo_NEW(GR_WINDOW_ID id,GR_GC_ID gc,int x,int y,int width,int 
     printf("x=%d,y=%d,BmpWidth=%d,BmpHeight=%d\n",x,y,BmpWidth,BmpHeight);
     GrFreeImage(ImageId);
 
-    delete(BmpFileBuf);
+    delete[] BmpFileBuf;
     return 0;
 }
 

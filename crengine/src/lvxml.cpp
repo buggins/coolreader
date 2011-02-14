@@ -451,7 +451,7 @@ bool LVFileParserBase::Seek( lvpos_t pos, int bytesToPrefetch )
         bytesToRead = (m_stream_size - pos);
     if ( (unsigned)m_buf_size < bytesToRead ) {
         m_buf_size = bytesToRead;
-        m_buf = (lUInt8 *)realloc( m_buf, m_buf_size );
+        m_buf = cr_realloc( m_buf, m_buf_size );
     }
     m_buf_fpos = pos;
     m_buf_pos = 0;
@@ -530,7 +530,7 @@ bool LVFileParserBase::FillBuffer( int bytesToRead )
         if (space < bytesToRead)
         {
             m_buf_size = m_buf_size + (bytesToRead - space + BUF_SIZE_INCREMENT);
-            m_buf = (lUInt8 *)realloc( m_buf, m_buf_size );
+            m_buf = cr_realloc( m_buf, m_buf_size );
         }
     }
     lvsize_t n = 0;

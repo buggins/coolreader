@@ -1584,6 +1584,6 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    sprintf(str, "{ch_stat_%s_%s%d,dbl_ch_stat_%s_%s%d,\"%s\",\"%s\"}, \n", cp_name, lang_name, index, cp_name, lang_name, index, cp_name, lang_name );
    list += str;
    fprintf(f, "};\n\n" );
-   delete buf;
+   delete [] buf;
    fclose(in);
 }

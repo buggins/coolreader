@@ -241,7 +241,13 @@ class TinyDictDataFile : public TinyDictFileBase
     void reserve( int sz )
     {
         if ( buf_size < sz ) {
+            char * oldptr = buf;
             buf = (char*) realloc( buf, sizeof(char) * sz );
+            if ( !buf) {
+                free(oldptr);
+                fprintf(stderr, "out of memory\n");
+                exit(-2);
+            }
             buf_size = sz;
         }
     }

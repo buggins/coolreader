@@ -3443,7 +3443,7 @@ public:
 			return LVERR_FAIL; // cannot resize foreign buffer
 		//
 		int newbufsize = (int)(new_size * 2 + 4096);
-		m_pBuffer = (lUInt8*) realloc( m_pBuffer, newbufsize );
+        m_pBuffer = cr_realloc( m_pBuffer, newbufsize );
 		m_bufsize = newbufsize;
 		return LVERR_OK;
 	}
@@ -3776,7 +3776,7 @@ class LVTCRStream : public LVNamedStream
                 _decoded[_decodedLen++] = item->str[j];
             if ( _decodedLen >= _decodedSize - 256 ) {
                 _decodedSize += TCR_READ_BUF_SIZE / 2;
-                _decoded = (lUInt8*)realloc( _decoded, _decodedSize );
+                _decoded = cr_realloc( _decoded, _decodedSize );
             }
         }
         _decodedStart = _index[index];

@@ -76,7 +76,7 @@ template <typename T, int RESIZE_MULT, int RESIZE_ADD> class CompactArray
         {
             if ( _size<=_length ) {
                 _size = _size*RESIZE_MULT + RESIZE_ADD;
-                _list = (T*)realloc( _list, sizeof(T)*_size );
+                _list = cr_realloc( _list, _size );
             }
             _list[_length++] = item;
         }
@@ -86,7 +86,7 @@ template <typename T, int RESIZE_MULT, int RESIZE_ADD> class CompactArray
                 return;
             if ( _size<_length+count ) {
                 _size = _length+count;
-                _list = (T*)realloc( _list, sizeof(T)*_size );
+                _list = cr_realloc( _list, _size );
             }
             for ( int i=0; i<count; i++ )
                 _list[_length+i] = items[i];
@@ -98,7 +98,7 @@ template <typename T, int RESIZE_MULT, int RESIZE_ADD> class CompactArray
                 return;
             if ( _size<_length+count ) {
                 _size = _length+count;
-                _list = (T*)realloc( _list, sizeof(T)*_size );
+                _list = cr_realloc( _list, _size );
             }
         }
         void clear()
