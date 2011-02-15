@@ -4548,7 +4548,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
     if (fs < 10)
         fs = 10;
-	else if (fs > 28)
+    else if (fs > 32)
         fs = 32;
 	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
 	lString16 hyph = props->getStringDef(PROP_HYPHENATION_DICT,

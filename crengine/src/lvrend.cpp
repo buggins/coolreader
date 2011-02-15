@@ -2072,6 +2072,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->white_space = type_ptr->white_space;
     }
 
+    int baseFontSize = enode->getDocument()->getDefaultFont()->getHeight();
+
     //////////////////////////////////////////////////////
     // apply style sheet
     //////////////////////////////////////////////////////
@@ -2106,6 +2108,14 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         case css_val_percent: \
             pstyle->fld.type = parent_style->fld.type; \
             pstyle->fld.value = parent_style->fld.value * pstyle->fld.value / 100; \
+            break; \
+        case css_val_px: \
+            pstyle->fld.type = css_val_px; \
+            pstyle->fld.value = baseFontSize * pstyle->fld.value / 12; \
+            break; \
+        case css_val_pt: \
+            pstyle->fld.type = css_val_px; \
+            pstyle->fld.value = baseFontSize * pstyle->fld.value / 10; \
             break; \
         case css_val_em: \
             pstyle->fld.type = css_val_px; \
