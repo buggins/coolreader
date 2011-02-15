@@ -2111,11 +2111,11 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             break; \
         case css_val_px: \
             pstyle->fld.type = css_val_px; \
-            pstyle->fld.value = baseFontSize * pstyle->fld.value / 12; \
+            pstyle->fld.value = pstyle->fld.value * baseFontSize / (256 * 18); \
             break; \
         case css_val_pt: \
             pstyle->fld.type = css_val_px; \
-            pstyle->fld.value = baseFontSize * pstyle->fld.value / 10; \
+            pstyle->fld.value = pstyle->fld.value * baseFontSize / (256 * 12); \
             break; \
         case css_val_em: \
             pstyle->fld.type = css_val_px; \
