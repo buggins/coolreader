@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Book item layout for CR3 file browser
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/browser_item_body"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:layout_marginTop="5dip"
+    android:layout_marginBottom="5dip"
+    android:layout_marginLeft="2dip"
+    android:layout_marginRight="2dip"
+    >
+
+    <ImageView android:id="@+id/book_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+	    android:layout_marginTop="5dip"
+	    android:layout_marginBottom="5dip"
+        android:layout_marginRight="4dip"
+        android:layout_marginLeft="2dip"
+        android:layout_weight="1"
+        />
+
+    <TextView android:id="@+id/book_filename"
+        style="@android:style/TextAppearance.Medium"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="5"
+    	android:layout_marginTop="5dip"
+    	android:layout_marginBottom="5dip"
+        android:layout_marginRight="2dip"
+        android:layout_marginLeft="2dip"
+		android:singleLine="false"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_gravity="left" />
+
+</LinearLayout>

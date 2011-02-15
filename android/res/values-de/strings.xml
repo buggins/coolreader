@@ -235,4 +235,5 @@
     <string name="dlg_about_donation">Cool Reader ist kostenlos und wird immer kostenlos bleiben. Wenn Sie die Entwicklung dieses Projekts unterstützen wollen, können Sie das Spendepaket aus dem Android Market kaufen.</string>
     <string name="dlg_about_donation_gold">$10: Gold Spende für Cool Reader kaufen</string>
     <string name="dlg_about_donation_installed">Installiert</string>
-	</resources>
+	<string name="mi_book_browser_normal_mode">Normal mode</string>
+</resources>

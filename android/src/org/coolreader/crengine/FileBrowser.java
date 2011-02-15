@@ -462,6 +462,23 @@ public class FileBrowser extends ListView {
 		}, true, control); 
 	}
 
+
+	public boolean isSimpleViewMode() {
+		return isSimpleViewMode;
+	}
+
+	public void setSimpleViewMode( boolean isSimple ) {
+		if ( isSimpleViewMode!=isSimple ) {
+			isSimpleViewMode = isSimple;
+			mSortOrder = FileInfo.SortOrder.FILENAME;
+			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
+			if ( isShown() && currDirectory!=null ) {
+				showDirectory(currDirectory, null);
+			}
+		}
+	}
+	private boolean isSimpleViewMode = true;
+
 	private void showDirectoryInternal( final FileInfo dir, final FileInfo file )
 	{
 		currDirectory = dir;
@@ -503,6 +520,8 @@ public class FileBrowser extends ListView {
 			public final int VIEW_TYPE_LEVEL_UP = 0;
 			public final int VIEW_TYPE_DIRECTORY = 1;
 			public final int VIEW_TYPE_FILE = 2;
+			public final int VIEW_TYPE_FILE_SIMPLE = 3;
+			public final int VIEW_TYPE_COUNT = 4;
 			public int getItemViewType(int position) {
 				if ( dir==null )
 					return 0;
@@ -516,15 +535,17 @@ public class FileBrowser extends ListView {
 				start += dir.dirCount();
 				position -= start;
 				if ( position<dir.fileCount() )
-					return VIEW_TYPE_FILE;
+					return isSimpleViewMode ? VIEW_TYPE_FILE_SIMPLE : VIEW_TYPE_FILE;
 				return Adapter.IGNORE_ITEM_VIEW_TYPE;
 			}
 
 			class ViewHolder {
+				int viewType;
 				ImageView image;
 				TextView name;
 				TextView author;
 				TextView series;
+				TextView filename;
 				TextView field1;
 				TextView field2;
 				TextView field3;
@@ -569,38 +590,47 @@ public class FileBrowser extends ListView {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {
+						boolean isSimple = (viewType == VIEW_TYPE_FILE_SIMPLE);
 						if ( image!=null ) {
-							Drawable drawable = null;
-							if ( item.id!=null )
-								drawable = mHistory.getBookCoverpageImage(null, item.id);
-							if ( drawable!=null ) {
-								image.setImageDrawable(drawable);
-							} else {
+							if ( isSimple ) {
 								image.setImageResource(item.format.getIconResourceId());
+							} else {
+								Drawable drawable = null;
+								if ( item.id!=null )
+									drawable = mHistory.getBookCoverpageImage(null, item.id);
+								if ( drawable!=null ) {
+									image.setImageDrawable(drawable);
+								} else {
+									image.setImageResource(item.format.getIconResourceId());
+								}
 							}
 						}
-						setText( author, formatAuthors(item.authors) );
-						String seriesName = formatSeries(item.series, item.seriesNumber);
-						String title = item.title;
-						String filename1 = item.filename;
-						String filename2 = item.isArchive /*&& !item.isDirectory */
-								? new File(item.arcname).getName() : null;
-						if ( title==null || title.length()==0 ) {
-							title = filename1;
-							if (seriesName==null) 
-								seriesName = filename2;
-						} else if (seriesName==null) 
-							seriesName = filename1;
-						setText( name, title );
-						setText( series, seriesName );
-
-//						field1.setVisibility(VISIBLE);
-//						field2.setVisibility(VISIBLE);
-//						field3.setVisibility(VISIBLE);
-						field1.setText(formatSize(item.size));
-						Bookmark pos = mHistory.getLastPos(item);
-						field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
-						field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
+						if ( isSimple ) {
+							setText( filename, item.filename );
+						} else {
+							setText( author, formatAuthors(item.authors) );
+							String seriesName = formatSeries(item.series, item.seriesNumber);
+							String title = item.title;
+							String filename1 = item.filename;
+							String filename2 = item.isArchive /*&& !item.isDirectory */
+									? new File(item.arcname).getName() : null;
+							if ( title==null || title.length()==0 ) {
+								title = filename1;
+								if (seriesName==null) 
+									seriesName = filename2;
+							} else if (seriesName==null) 
+								seriesName = filename1;
+							setText( name, title );
+							setText( series, seriesName );
+	
+	//						field1.setVisibility(VISIBLE);
+	//						field2.setVisibility(VISIBLE);
+	//						field3.setVisibility(VISIBLE);
+							field1.setText(formatSize(item.size));
+							Bookmark pos = mHistory.getLastPos(item);
+							field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
+							field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
+						} 
 						
 					}
 				}
@@ -611,12 +641,14 @@ public class FileBrowser extends ListView {
 					return null;
 				View view;
 				ViewHolder holder;
+				int vt = getItemViewType(position);
 				if ( convertView==null ) {
-					int vt = getItemViewType(position);
 					if ( vt==VIEW_TYPE_LEVEL_UP )
 						view = mInflater.inflate(R.layout.browser_item_parent_dir, null);
 					else if ( vt==VIEW_TYPE_DIRECTORY )
 						view = mInflater.inflate(R.layout.browser_item_folder, null);
+					else if ( vt==VIEW_TYPE_FILE_SIMPLE )
+						view = mInflater.inflate(R.layout.browser_item_book_simple, null);
 					else
 						view = mInflater.inflate(R.layout.browser_item_book, null);
 					holder = new ViewHolder();
@@ -624,6 +656,7 @@ public class FileBrowser extends ListView {
 					holder.name = (TextView)view.findViewById(R.id.book_name);
 					holder.author = (TextView)view.findViewById(R.id.book_author);
 					holder.series = (TextView)view.findViewById(R.id.book_series);
+					holder.filename = (TextView)view.findViewById(R.id.book_filename);
 					holder.field1 = (TextView)view.findViewById(R.id.browser_item_field1);
 					holder.field2 = (TextView)view.findViewById(R.id.browser_item_field2);
 					holder.field3 = (TextView)view.findViewById(R.id.browser_item_field3);
@@ -632,10 +665,10 @@ public class FileBrowser extends ListView {
 					view = convertView;
 					holder = (ViewHolder)view.getTag();
 				}
-				int type = getItemViewType(position);
+				holder.viewType = vt;
 				FileInfo item = (FileInfo)getItem(position);
 				FileInfo parentItem = null;//item!=null ? item.parent : null;
-				if ( type == VIEW_TYPE_LEVEL_UP ) {
+				if ( vt == VIEW_TYPE_LEVEL_UP ) {
 					item = null;
 					parentItem = currDirectory;
 				}
@@ -646,7 +679,7 @@ public class FileBrowser extends ListView {
 			public int getViewTypeCount() {
 				if ( dir==null )
 					return 1;
-				return 3;
+				return VIEW_TYPE_COUNT;
 			}
 
 			public boolean hasStableIds() {
