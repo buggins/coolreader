@@ -605,8 +605,11 @@ public class FileBrowser extends ListView {
 								}
 							}
 						}
+						boolean isSingleFileArchive = (item.isArchive && item.parent!=null && !item.parent.isArchive); 
 						if ( isSimple ) {
-							setText( filename, item.filename );
+							String fn = isSingleFileArchive
+								? new File(item.arcname).getName() : item.filename;
+							setText( filename, fn );
 						} else {
 							setText( author, formatAuthors(item.authors) );
 							String seriesName = formatSeries(item.series, item.seriesNumber);
