@@ -44,10 +44,11 @@ int main(int argc, char *argv[])
     {
 #ifdef DEBUG
         lString8 loglevel("TRACE");
+        lString8 logfile("stdout");
 #else
         lString8 loglevel("ERROR");
-#endif
         lString8 logfile("stderr");
+#endif
         for ( int i=1; i<argc; i++ ) {
             if ( !strcmp("-h", argv[i]) || !strcmp("-?", argv[i]) || !strcmp("/?", argv[i]) || !strcmp("--help", argv[i]) ) {
                 printHelp();

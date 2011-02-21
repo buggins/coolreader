@@ -4508,7 +4508,8 @@ bool ldomXPointer::getRect(lvRect & rect) const
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
-                if ( word->src_text_index>=srcIndex || (l==txtform->GetLineCount()-1 && w==frmline->word_count-1) ) {
+                bool lastWord = (l==txtform->GetLineCount()-1 && w==frmline->word_count-1);
+                if ( word->src_text_index>=srcIndex || lastWord ) {
                     // found word from same src line
                     if ( word->src_text_index>srcIndex || offset<=word->t.start ) {
                         // before this word
@@ -4532,7 +4533,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
                         rect.right = rect.left + 1;
                         rect.bottom = rect.top + frmline->height;
                         return true;
-                    } else {
+                    } else if (lastWord) {
                         // after last word
                         rect.left = word->x + rc.left + frmline->x + word->width;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
@@ -5294,7 +5295,11 @@ void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
         return;
     for ( int i=0; i<length(); i++ ) {
         ldomXRange * range = get(i);
-        ldomMarkedRange * item = new ldomMarkedRange( range->getStart().toPoint(), range->getEnd().toPoint(), range->getFlags() );
+        lvPoint ptStart = range->getStart().toPoint();
+        lvPoint ptEnd = range->getEnd().toPoint();
+//        // LVE:DEBUG
+//        CRLog::trace("selectRange( %d,%d : %d,%d : %s, %s )", ptStart.x, ptStart.y, ptEnd.x, ptEnd.y, LCSTR(range->getStart().toString()), LCSTR(range->getEnd().toString()) );
+        ldomMarkedRange * item = new ldomMarkedRange( ptStart, ptEnd, range->getFlags() );
         if ( !item->empty() )
             dst.add( item );
         else

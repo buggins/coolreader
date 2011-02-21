@@ -1607,6 +1607,8 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 			drawCoverTo(drawbuf, rc);
 		} else {
 			// draw main page text
+            if ( m_markRanges.length() )
+                CRLog::trace("Entering DrawDocument() : %d ranges", m_markRanges.length());
 			//CRLog::trace("Entering DrawDocument()");
 			if (page.height)
 				DrawDocument(*drawbuf, m_doc->getRootNode(), pageRect->left
@@ -2222,6 +2224,9 @@ void LVDocView::selectWords(const LVArray<ldomWord> & words) {
 
 /// sets selection for range, clears previous selection
 void LVDocView::selectRange(const ldomXRange & range) {
+    // LVE:DEBUG
+//    ldomXRange range2(range);
+//    CRLog::trace("selectRange( %s, %s )", LCSTR(range2.getStart().toString()), LCSTR(range2.getEnd().toString()) );
 	ldomXRangeList & sel = getDocument()->getSelections();
 	if (sel.length() == 1) {
 		if (range == *sel[0])
@@ -2582,6 +2587,7 @@ void LVDocView::updateSelections() {
 	clearImageCache();
 	LVLock lock(getMutex());
 	ldomXRangeList ranges(m_doc->getSelections(), true);
+    CRLog::trace("updateSelections() : selection count = %d", m_doc->getSelections().length());
 	ranges.getRanges(m_markRanges);
 	if (m_markRanges.length() > 0) {
 		crtrace trace;
