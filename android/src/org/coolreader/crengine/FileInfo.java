@@ -108,6 +108,12 @@ public class FileInfo {
 		}
 	}
 	
+	public String getFileNameToDisplay() {
+		boolean isSingleFileArchive = (isArchive && parent!=null && !parent.isArchive);
+		return isSingleFileArchive
+			? new File(arcname).getName() : filename;
+	}
+	
 	private void fromFile( File f )
 	{
 		if ( !f.isDirectory() ) {
@@ -387,7 +393,7 @@ public class FileInfo {
 			{
 				if ( f1==null || f2==null )
 					return 0;
-				return cmp(f1.filename, f2.filename);
+				return cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
 			}
 		}),
 		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, FILENAME),
