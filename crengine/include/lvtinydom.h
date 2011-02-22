@@ -125,6 +125,7 @@ typedef enum {
     doc_format_html,
     doc_format_txt_bookmark, // coolreader TXT format bookmark
     doc_format_chm,
+    doc_format_doc,
     // don't forget update getDocFormatName() when changing this enum
 } doc_format_t;
 

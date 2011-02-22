@@ -24,6 +24,7 @@
 #include "../include/crtrace.h"
 #include "../include/epubfmt.h"
 #include "../include/chmfmt.h"
+#include "../include/wordfmt.h"
 
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
@@ -3200,7 +3201,40 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			}
 		}
 
-		m_arc = LVOpenArchieve( m_stream );
+#if ENABLE_ANTIWORD==1
+        if ( DetectWordFormat( m_stream ) ) {
+            // DOC
+            CRLog::info("Word format detected");
+            createEmptyDocument();
+            m_doc->setProps( m_doc_props );
+            setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
+            setDocFormat( doc_format_doc );
+            if ( m_callback )
+                m_callback->OnLoadFileFormatDetected(doc_format_doc);
+            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+            bool res = ImportWordDocument( m_stream, m_doc, m_callback, this );
+            if ( !res ) {
+                setDocFormat( doc_format_none );
+                createDefaultDocument( lString16(L"ERROR: Error reading DOC format"), lString16(L"Cannot open document") );
+                if ( m_callback ) {
+                    m_callback->OnLoadFileError( lString16("Error reading DOC document") );
+                }
+                return false;
+            } else {
+                setRenderProps( 0, 0 );
+                requestRender();
+                if ( m_callback ) {
+                    m_callback->OnLoadFileEnd( );
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                m_arc = m_doc->getContainer();
+                return true;
+            }
+        }
+#endif
+
+        m_arc = LVOpenArchieve( m_stream );
 		if (!m_arc.isNull())
 		{
 			m_container = m_arc;
@@ -3355,7 +3389,9 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 		return L"HTML";
 	case doc_format_txt_bookmark:
 		return L"CR3 TXT Bookmark";
-	default:
+    case doc_format_doc:
+        return L"DOC";
+    default:
 		return L"Unknown format";
 	}
 }

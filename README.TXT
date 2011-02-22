@@ -58,6 +58,13 @@ cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Debug -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_C
 make
 sudo make install
 
+# Building QT version, in DEBUG mode, ANTIWORD development
+mkdir qtbuild
+cd qtbuild
+cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Debug -D ENABLE_ANTIWORD=1 -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=/usr ..
+make
+sudo make install
+
 # Building wxWidgets version
 # libwxgtk2.8-dev should be installed
 mkdir wxbuild
