@@ -109,7 +109,7 @@ public class FileInfo {
 	}
 	
 	public String getFileNameToDisplay() {
-		boolean isSingleFileArchive = (isArchive && parent!=null && !parent.isArchive);
+		boolean isSingleFileArchive = (isArchive && parent!=null && !parent.isArchive && arcname!=null);
 		return isSingleFileArchive
 			? new File(arcname).getName() : filename;
 	}
