@@ -6,4 +6,8 @@ wxbuild
 qtbuild
 qt-build
 qtcreator-build
+pocketbookbuild
+cmake_run
+crengine.kdev4
+crengine/doxygen/html
 *~
