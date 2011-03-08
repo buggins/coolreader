@@ -113,6 +113,20 @@ elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 #      FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION root)
 
+elseif ( ${GUI} STREQUAL CRGUI_INKVIEW )
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3inkview.cpp)
+    SET (EXTRA_LIBS inkview freetype )
+    INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins DESTINATION root/crengine )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps DESTINATION root/crengine )
+    INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
+
+    SET (CR3_BIN_DESTINATION root)
+
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3jinke.cpp)
