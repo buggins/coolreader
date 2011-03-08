@@ -13,10 +13,10 @@
 #ifndef FSMENU_H_INCLUDED
 #define FSMENU_H_INCLUDED
 
-#include <crgui.h>
+#include "crmenu2.h"
 
 
-class CRFullScreenMenu : public CRMenu
+class CRFullScreenMenu : public CRMenu2
 {
 public:
     CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lString16 & caption, int numItems, lvRect & rc);

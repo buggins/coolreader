@@ -16,7 +16,7 @@
 
 
 CRFullScreenMenu::CRFullScreenMenu(CRGUIWindowManager * wm, int id, const lString16 & caption, int numItems, lvRect & rc)
-    : CRMenu( wm, NULL, id, caption, LVImageSourceRef(), LVFontRef(), LVFontRef() )
+    : CRMenu2( wm, NULL, id, caption, LVImageSourceRef(), LVFontRef(), LVFontRef() )
 {
     _rect = rc;
     _pageItems = numItems;
