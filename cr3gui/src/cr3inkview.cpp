@@ -10,11 +10,12 @@
 #define CR3PATH USERDATA "/share/crengine"
 
 #define LOGFILE CR3PATH "/cr3log.ini"
-#define SKINPATH CR3PATH "/skin/"
+#define SKINPATH CR3PATH "/skins/"
 #define FONTPATH SYSTEMDATA "/fonts/"
 #define HYPHPATH CR3PATH "/hyph/"
 #define CRCACHEPATH CR3PATH "/.cache"
 #define KEYMAPPATH CR3PATH "/keymaps/"
+
 
 CRInkViewWindowManager * wm;
 
@@ -126,8 +127,11 @@ int InitDoc(char *fileName)
         css_file_name = L"fb2.css";
     }
 #endif
+    CRLog::trace("loading CSS...");
     main_win->loadCSS(  lString16( CR3PATH ) + lString16( L"/" ) + lString16(css_file_name) );
 
+    CRLog::trace("loading Settings...");
+    main_win->loadSettings( lString16( CR3PATH )  + lString16( L"/" ) + ini_fname );
 //    main_win->setBookmarkDir( bookmarkDir );
     wm->activateWindow( main_win );
     if ( !main_win->loadDocument( lString16(fileName) ) ) {
