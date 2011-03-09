@@ -85,6 +85,13 @@ void CRInkViewWindowManager::update(bool fullScreenUpdate, bool forceFlushScreen
     CRGUIWindowManager::update(fullScreenUpdate, forceFlushScreen);
 }
 
+bool CRInkViewWindowManager::getBatteryStatus(int& percent, bool& charging)
+{
+    percent = GetBatteryPower();
+    charging = (IsCharging() == 1) ? true : false;
+    return true;
+}
+
 
 int InitDoc(char *fileName)
 {
