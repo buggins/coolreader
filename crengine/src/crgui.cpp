@@ -1259,6 +1259,8 @@ int CRMenu::getSelectedItemIndex()
         }
         return -1;
     }
+    if (_selectedItem > -1)
+        return _selectedItem;
     if ( getProps().isNull() )
         return -1;
     for ( int i=0; i<_items.length(); i++ ) {
@@ -1553,7 +1555,55 @@ bool CRMenu::onCommand( int command, int params )
         }
         return true;
     }
-	
+    if ( command==MCMD_NEXT ) {
+        int _idx  = getSelectedItemIndex();
+        _selectedItem = _idx;
+        if (_idx < (_items.length()-1) )
+            _selectedItem = _idx + 1;
+        if (_selectedItem == (_topItem + _pageItems)) // the selected item is on the next page, we have to scroll
+        {
+            command = MCMD_SCROLL_FORWARD;
+            params = 1;
+        }
+        else if (_idx!=_selectedItem) // did we change the selected item?
+        {
+            setDirty();
+            _wm->updateWindow(this);
+            return true;
+        }
+    }
+    if ( command==MCMD_PREV ) {
+        int _idx  = getSelectedItemIndex();
+        _selectedItem = _idx;
+        if (_idx > 0 )
+            _selectedItem = _idx - 1;
+        if (_selectedItem < (_topItem)) // the selected item is on the previous page, we have to scroll
+        {
+            command = MCMD_SCROLL_BACK;
+            params = 1;
+        }
+        else if (_idx!=_selectedItem) // did we change the selected item?
+        {
+            setDirty();
+            _wm->updateWindow(this);
+            return true;
+        }
+    }
+    if ( command==MCMD_ENTER ) {
+        int pos = _selectedItem - _topItem;
+        if (pos < 0)
+            return true; // there is no item selected (or it is not on the screen?) --> do nothing
+        else if (pos == 9)
+        {
+            command = MCMD_SELECT_0;
+            params = 0;
+        }
+        else
+        {
+            command = MCMD_SELECT_1 + pos;
+            params = 0;
+        }
+    }
     if ( command==MCMD_SCROLL_FORWARD_LONG ) {
         setCurPage( getCurPage()+10 );
         return true;
