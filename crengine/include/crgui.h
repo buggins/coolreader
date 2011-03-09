@@ -322,6 +322,7 @@ enum CRGUIEventType {
     CREV_KEYDOWN = 1,
     CREV_KEYUP,
     CREV_COMMAND,
+    CREV_CLICK,
 
     CREV_WM_EVENTS_START=100,
     CREV_UPDATE = 100,
@@ -427,6 +428,8 @@ class CRGUIWindow
         virtual CRGUIAcceleratorTableRef getAccelerators() { return CRGUIAcceleratorTableRef(); }
         /// returns true if key is processed
         virtual bool onKeyPressed( int key, int flags = 0 ) = 0;
+        /// returns true if click is processed
+        virtual bool onClick( int x, int y, int flags = 0 ) = 0;
         /// returns true if command is processed
         virtual bool onCommand( int command, int params = 0 ) = 0;
         /// returns true if window is visible
@@ -705,6 +708,8 @@ class CRGUIWindowBase : public CRGUIWindow
         virtual bool onCommand( int command, int params = 0 ) { return !_passCommandsToParent; }
         /// returns true if key is processed (by default, let's translate key to command using accelerator table)
         virtual bool onKeyPressed( int key, int flags = 0 );
+        /// returns true if click is processed (by default, do nothing)
+        virtual bool onClick( int x, int y, int flags = 0 ) { return false; }
         /// set accelerator table for window
         virtual void setAccelerators( CRGUIAcceleratorTableRef table ) { _acceleratorTable = table; }
         /// get window accelerator table
@@ -1098,6 +1103,8 @@ class CRMenu : public CRGUIWindowBase, public CRMenuItem {
         virtual const lvRect & getRect();
         /// overriden to disable passing key to parent windows
         virtual bool onKeyPressed( int key, int flags );
+        /// process clicks on menu items
+        virtual bool onClick( int x, int y, int flags = 0);
         /// returns true if command is processed
         virtual bool onCommand( int command, int params = 0 );
         /// closes menu and its submenus, posts command
@@ -1162,6 +1169,23 @@ public:
     }
     virtual bool handle( CRGUIWindow * window );
     virtual bool handle( CRGUIWindowManager * wm ) { return false; }
+};
+
+class CRGUIClickEvent : public CRGUIEvent
+{
+    int _flags;
+public:
+    virtual bool isForVisibleOnly() { return true; }
+    virtual bool isForModalOnly() { return true; }
+    CRGUIClickEvent( int x, int y, int flags )
+    : CRGUIEvent( CREV_CLICK )
+    {
+        _param1 = x;
+        _param2 = y;
+        _flags = flags;
+    }
+    virtual bool handle( CRGUIWindow * window );
+    virtual bool handle( CRGUIWindowManager * wm ) { return false; }    
 };
 
 class CRGUICommandEvent : public CRGUIEvent
