@@ -16,6 +16,6 @@ class CRInkViewWindowManager : public CRGUIWindowManager
         CRInkViewWindowManager( int width, int height );
         virtual void update( bool fullScreenUpdate, bool forceFlushScreen=true );
         virtual void closeAllWindows();
-    
+        virtual bool getBatteryStatus( int & percent, bool & charging );
 };
 
