@@ -12,7 +12,6 @@
 
 #include "settings.h"
 #include <crgui.h>
-#include "crmenu2.h"
 #include "viewdlg.h"
 #include "mainwnd.h"
 //#include "fsmenu.h"
@@ -129,7 +128,7 @@ public:
         case mm_Controls:
             return true;
         default:
-            return CRFullScreenMenu::onCommand( command, params );
+            return CRMenu::onCommand( command, params );
         }
     }
 };
@@ -179,7 +178,7 @@ bool CRSettingsMenu::onCommand( int command, int params )
         }
         return true;
     default:
-        return CRFullScreenMenu::onCommand( command, params );
+        return CRMenu::onCommand( command, params );
     }
 }
 
@@ -207,11 +206,11 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
 
 DECL_DEF_CR_FONT_SIZES;
 
-class FontSizeMenu : public CRMenu2
+class FontSizeMenu : public CRMenu
 {
 public:
     FontSizeMenu(  CRGUIWindowManager * wm, CRMenu * parentMenu, LVFontRef valueFont, CRPropRef props  )
-    : CRMenu2( wm, parentMenu, mm_FontSize,
+    : CRMenu( wm, parentMenu, mm_FontSize,
                                 _("Default font size"),
                                         LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_SIZE, 10 )
     {

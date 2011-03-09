@@ -1504,7 +1504,6 @@ bool CRMenu::onClick( int x, int y, int flags )
             int relx = y-rc.top;
             int item_height = rc.height() / _pageItems;
             int idx = relx / item_height;
-            idx += _topItem;
             if (idx > _items.length())
                 return false;
             if (idx < 9)

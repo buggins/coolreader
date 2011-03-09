@@ -26,7 +26,6 @@ message( "Languages: ${LANGUAGES}" )
 SET (CR3_SOURCES 
   src/bgfit.cpp
   src/citedlg.cpp 
-  src/crmenu2.cpp    
   src/fsmenu.cpp    
   src/mainwnd.cpp  
   src/recentdlg.cpp 
