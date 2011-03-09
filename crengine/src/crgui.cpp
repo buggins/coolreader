@@ -1490,6 +1490,42 @@ bool CRMenu::onKeyPressed( int key, int flags )
     return true; // don't allow key processing by parent window
 }
 
+bool CRMenu::onClick( int x, int y, int flags )
+{
+    lvRect rc;
+    lvPoint pt = lvPoint(x, y);
+    if (flags < 2) // click or lon click
+    {
+        getClientRect(rc);
+        if (rc.isPointInside(pt))
+        {
+            int relx = y-rc.top;
+            int item_height = rc.height() / _pageItems;
+            int idx = relx / item_height;
+            idx += _topItem;
+            if (idx > _items.length())
+                return false;
+            if (idx < 9)
+            {
+                if (flags == 0)
+                    onCommand(MCMD_SELECT_1 + idx, 0);
+                else
+                    onCommand(MCMD_SELECT_1_LONG + idx, 0);
+                return true;
+            }
+            else if (idx == 9)
+            {
+                if (flags == 0)
+                    onCommand(MCMD_SELECT_0, 0);
+                else
+                    onCommand(MCMD_SELECT_0_LONG, 0);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /// called if window gets focus
 void CRMenu::activated()
 {
@@ -1993,6 +2029,19 @@ bool CRGUIKeyDownEvent::handle( CRGUIWindow * window )
     }
     CRGUIWindowManager * wm = window->getWindowManager();
     bool res = window->onKeyPressed( _param1, _param2 );
+    if ( res )
+        wm->postEvent( new CRGUIUpdateEvent(false) );
+    return res;
+}
+
+bool CRGUIClickEvent::handle( CRGUIWindow * window )
+{
+    if ( _targetWindow!=NULL ) {
+        if ( window!=_targetWindow )
+            return false;
+    }
+    CRGUIWindowManager * wm = window->getWindowManager();
+    bool res = window->onClick( _param1, _param2, _flags );
     if ( res )
         wm->postEvent( new CRGUIUpdateEvent(false) );
     return res;

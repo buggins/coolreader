@@ -172,6 +172,7 @@ char * fname;
 
 int main_handler(int type, int par1, int par2)
 {
+    static int longtouch;
     switch (type) {
         case EVT_INIT:
             CRLog::trace("EVT_INIT");
@@ -191,6 +192,19 @@ int main_handler(int type, int par1, int par2)
                     wm->handleAllEvents(false);
                     break;
             }
+        case EVT_POINTERDOWN:
+            CRLog::trace("EVT_POINTERDOWN %d %d", par1, par2);
+            longtouch = 0;
+            break;
+        case EVT_POINTERLONG:
+            CRLog::trace("EVT_POINTERLONG");
+            longtouch = 1;
+            break;
+        case EVT_POINTERUP:
+            CRLog::trace("EVT_POINTERUP %d %d, long: %d", par1, par2, longtouch);
+            wm->postEvent( new CRGUIClickEvent(par1, par2, longtouch) );
+            wm->handleAllEvents(false);
+            break;
 
     }
     
