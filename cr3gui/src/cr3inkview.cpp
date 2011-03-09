@@ -10,7 +10,7 @@
 #define CR3PATH USERDATA "/share/crengine"
 
 #define LOGFILE CR3PATH "/cr3log.ini"
-#define SKINPATH CR3PATH "/skins/"
+#define SKINPATH CR3PATH "/skins/default"
 #define FONTPATH SYSTEMDATA "/fonts/"
 #define HYPHPATH CR3PATH "/hyph/"
 #define CRCACHEPATH CR3PATH "/.cache"
@@ -22,18 +22,19 @@ CRInkViewWindowManager * wm;
 void CRInkViewScreen::update(const lvRect& rc2, bool full)
 {
     char buf[2000];
-    CRLog::trace("CRInkViewScreen::update()");
+    CRLog::trace("CRInkViewScreen::update(%d)", full ? 1 : 0);
     icanvas * canvas = new(icanvas);
-    lvRect * clipRect;
+    lvRect clipRect;
     canvas->width = _front->GetWidth();
     canvas->height = _front->GetHeight();
     canvas->scanline = _front->GetWidth();
     canvas->depth = _front->GetBitsPerPixel();
-    _front->GetClipRect(clipRect);
-    canvas->clipx1 = clipRect->left;
-    canvas->clipx2 = clipRect->right-1;
-    canvas->clipy1 = clipRect->top;
-    canvas->clipy2 = clipRect->bottom-1;
+    _front->GetClipRect(&clipRect);
+    canvas->clipx1 = clipRect.left;
+    canvas->clipx2 = clipRect.right-1;
+    canvas->clipy1 = clipRect.top;
+    canvas->clipy2 = clipRect.bottom-1;
+
 /*    snprintf(buf, sizeof(buf), "w %d h %d s %d d %d", canvas->width, canvas->height, canvas->scanline, canvas->depth);
     CRLog::trace(buf);
     snprintf(buf, sizeof(buf), "x1 %d x2 %d y1 %d y2 %d", canvas->clipx1, canvas->clipx2, canvas->clipy1, canvas->clipy2);
@@ -46,21 +47,28 @@ void CRInkViewScreen::update(const lvRect& rc2, bool full)
 //    CRLog::trace("CRInkViewScreen::update() SetCanvas()");
 //    SetCanvas(canvas);
     Stretch(canvas->addr, IMAGE_GRAY8, canvas->width, canvas->height, canvas->scanline, 0, 0, canvas->width, canvas->height, 0);
-    CRLog::trace("CRInkViewScreen::update() FullUpdate()");
     DitherArea(0, 0, canvas->width, canvas->height, 16, DITHER_PATTERN);
-    FullUpdate();
+    if (!full)
+    {
+        CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc2.left, rc2.top, rc2.width(), rc2.height());
+        PartialUpdate(rc2.left, rc2.top, rc2.width(), rc2.height());
+    }
+    else
+    {
+        CRLog::trace("CRInkViewScreen::update() FullUpdate()");
+        FullUpdate();
+    }
+}
+
+CRInkViewScreen::CRInkViewScreen(int width, int height): CRGUIScreenBase(width, height, true)
+{
+
 }
 
 void CRInkViewWindowManager::closeAllWindows()
 {
     CRGUIWindowManager::closeAllWindows();
     CloseApp();
-}
-
-
-CRInkViewScreen::CRInkViewScreen(int width, int height): CRGUIScreenBase(width, height, true)
-{
-
 }
 
 
@@ -71,7 +79,7 @@ CRInkViewWindowManager::CRInkViewWindowManager(int width, int height): CRGUIWind
 
 void CRInkViewWindowManager::update(bool fullScreenUpdate, bool forceFlushScreen)
 {
-    CRLog::trace("CRInkViewWindowManager::update()");
+    CRLog::trace("CRInkViewWindowManager::update(%d, %d)", fullScreenUpdate ? 1 : 0, forceFlushScreen ? 1 : 0);
     CRGUIWindowManager::update(fullScreenUpdate, forceFlushScreen);
 }
 
