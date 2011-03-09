@@ -89,8 +89,8 @@ void CRBookmarkMenu::setMode( bool goToMode )
 /// returns index of selected item, -1 if no item selected
 int CRBookmarkMenu::getSelectedItemIndex()
 {
-    if ( selectedItem != -1 )
-        return selectedItem;
+    if ( _selectedItem != -1 )
+        return _selectedItem;
     CRFileHistRecord * bookmarks = _docview->getCurrentFileHistRecord();
     int curPage = _docview->getCurPage();
     int n = bookmarks->getLastShortcutBookmark()+1;
