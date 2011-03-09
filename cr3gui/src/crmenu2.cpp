@@ -34,10 +34,9 @@ CRMenu2::CRMenu2(CRGUIWindowManager* wm, CRMenu* parentMenu, int id, const char*
 
 int CRMenu2::getSelectedItemIndex()
 {
-    if (selectedItem != -1)
-        return selectedItem;
-    else
-        return CRMenu::getSelectedItemIndex();
+    if (selectedItem == -1)
+        selectedItem = CRMenu::getSelectedItemIndex();
+    return selectedItem;
 }
 
 bool CRMenu2::onCommand(int command, int params)
@@ -48,7 +47,7 @@ bool CRMenu2::onCommand(int command, int params)
         if (selectedItem < (_items.length()-1) )
             selectedItem++;
         if (selectedItem == (_topItem + _pageItems))
-            return CRMenu::onCommand(MCMD_SCROLL_FORWARD, 1);
+            return onCommand(MCMD_SCROLL_FORWARD, 1);
         if (old!=selectedItem)
         {
             setDirty();
@@ -60,7 +59,7 @@ bool CRMenu2::onCommand(int command, int params)
         if (selectedItem > 0 )
             selectedItem--;
         if (selectedItem < _topItem)
-            return CRMenu::onCommand(MCMD_SCROLL_BACK, 1);
+            return onCommand(MCMD_SCROLL_BACK, 1);
         if (old!=selectedItem)
         {
             setDirty();
@@ -73,9 +72,9 @@ bool CRMenu2::onCommand(int command, int params)
         if (pos < 0)
             return true;
         else if (pos == 9)
-            return CRMenu::onCommand(MCMD_SELECT_0, 0);
+            return onCommand(MCMD_SELECT_0, 0);
         else
-            return CRMenu::onCommand(MCMD_SELECT_1 + pos, 0);
+            return onCommand(MCMD_SELECT_1 + pos, 0);
     }
     return CRMenu::onCommand(command, params);
 }
