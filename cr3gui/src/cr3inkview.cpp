@@ -12,10 +12,12 @@
 #define LOGFILE CR3PATH "/cr3log.ini"
 #define SKINPATH CR3PATH "/skins/default"
 #define FONTPATH SYSTEMDATA "/fonts/"
+#define FONTPATH2 USERDATA "/fonts/"
 #define HYPHPATH CR3PATH "/hyph/"
 #define CRCACHEPATH CR3PATH "/.cache"
 #define KEYMAPPATH CR3PATH "/keymaps/"
-
+#define BOOKMARKPATH CR3PATH "/bookmarks/"
+#define HISTFILE CR3PATH "cr3hist"
 
 CRInkViewWindowManager * wm;
 
@@ -97,6 +99,7 @@ int InitDoc(char *fileName)
 
     lString16Collection fontDirs;
     fontDirs.add( lString16( FONTPATH ) );
+    fontDirs.add( lString16( FONTPATH2 ) );
     CRLog::info("INIT...");
     if ( !InitCREngine( CR3PATH, fontDirs ) )
         return 0;
@@ -139,19 +142,22 @@ int InitDoc(char *fileName)
     main_win->loadCSS(  lString16( CR3PATH ) + lString16( L"/" ) + lString16(css_file_name) );
 
     CRLog::trace("loading Settings...");
-    main_win->loadSettings( lString16( CR3PATH )  + lString16( L"/" ) + ini_fname );
-//    main_win->setBookmarkDir( bookmarkDir );
+    lString16 _ini = lString16( CR3PATH )  + lString16( L"/" ) + ini_fname;
+    if ( !main_win->loadSettings( _ini )) {
+        CRLog::error("Cannot read settings from file %s", _ini.c_str());
+    }
+    if ( !main_win->loadHistory( lString16(HISTFILE) ) ) {
+        CRLog::error("Cannot read history file %s", HISTORYFILE);
+    }
+
+    main_win->setBookmarkDir( lString16(BOOKMARKPATH) );
     wm->activateWindow( main_win );
     if ( !main_win->loadDocument( lString16(fileName) ) ) {
         CRLog::error("Cannot open book file %s\n", fileName);
         delete wm;
         return 0;
     }
-//    main_win->prepareNextPageImage(1);
-    main_win->onCommand(MCMD_GO_PAGE_APPLY, 20);
-//    wm->update(true, true);
     wm->handleAllEvents(false);
-    Repaint();
     return 1;
 }
 
@@ -171,7 +177,7 @@ int main_handler(int type, int par1, int par2)
             wm->update(true, true);
             break;
         case EVT_KEYRELEASE:
-            CRLog::trace("EVT_KEYRELEASE");
+            CRLog::trace("EVT_KEYRELEASE %d %d", par1, par2);
             switch (par1) {
                 default:
                     wm->postEvent( new CRGUIKeyDownEvent(par1, 0) );
