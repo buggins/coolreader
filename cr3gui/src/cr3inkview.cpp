@@ -185,13 +185,15 @@ int main_handler(int type, int par1, int par2)
             wm->update(true, true);
             break;
         case EVT_KEYRELEASE:
-            CRLog::trace("EVT_KEYRELEASE %d %d", par1, par2);
+            CRLog::trace("EVT_KEYRELEASE 0x%x %d", par1, par2);
+            par2 = (par2 > 0) ? 1 : 0;
             switch (par1) {
                 default:
-                    wm->postEvent( new CRGUIKeyDownEvent(par1, 0) );
+                    wm->postEvent( new CRGUIKeyDownEvent(par1, par2) );
                     wm->handleAllEvents(false);
                     break;
             }
+            break;
         case EVT_POINTERDOWN:
             CRLog::trace("EVT_POINTERDOWN %d %d", par1, par2);
             longtouch = 0;
