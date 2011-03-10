@@ -17,7 +17,7 @@
 #define CRCACHEPATH CR3PATH "/.cache"
 #define KEYMAPPATH CR3PATH "/keymaps/"
 #define BOOKMARKPATH CR3PATH "/bookmarks/"
-#define HISTFILE CR3PATH "cr3hist"
+#define HISTFILE CR3PATH "/cr3hist"
 
 CRInkViewWindowManager * wm;
 
