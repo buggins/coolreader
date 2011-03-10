@@ -2036,11 +2036,13 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
 
 static int inv_control_table[] = {
     // old cmd, new cmd, param multiplier
+#ifndef INKVIEW
     DCMD_LINEUP, DCMD_LINEDOWN, 1,
     DCMD_LINEDOWN, DCMD_LINEUP, 1,
     DCMD_PAGEUP, DCMD_PAGEDOWN, 1,
     DCMD_PAGEDOWN, DCMD_PAGEUP, 1,
     DCMD_MOVE_BY_CHAPTER, DCMD_MOVE_BY_CHAPTER, -1,
+#endif
     0, 0, 0, 0,
 };
 
