@@ -48,7 +48,7 @@ void CRTOCDialog::draw()
     lvRect tocRect;
     getClientRect( tocRect );
     tocRect.shrinkBy(borders);
-    int curPage = _docview->getCurPage();
+    int curItem = getCurItemIndex();
     // draw toc
     for ( int i=0; i<_pageItems && i+_topItem<(int)_items.length(); i++ ) {
         LVTocItem * item = _items[ i + _topItem];
@@ -57,14 +57,8 @@ void CRTOCDialog::draw()
 
         //lvRect margins( 10, 10, 10, 10 );
         lvRect itemRect = tocRect;
-        bool isSelected = true;
 
-        if ( curPage < item->getPage() )
-            isSelected = false;
-        else if ( nextitem!=NULL && curPage >= nextitem->getPage() &&
-                  curPage > item->getPage() )
-            isSelected = false;
-        CRRectSkinRef itemSkin = isSelected ? selItemSkin : normalItemSkin;
+        CRRectSkinRef itemSkin = ( curItem == i ) ? selItemSkin : normalItemSkin;
         //itemRect.shrinkBy( margins );
         itemRect.top = i * _itemHeight + tocRect.top;
         itemRect.bottom = itemRect.top + _itemHeight;
@@ -114,6 +108,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
 : CRNumberEditDialog( wm, title, lString16(), resultCmd, 1, pageCount )
 ,_docview(docview)
 {
+    _selectedItem = -1;
     docview->getFlatToc( _items );
     _skinName = L"#toc";
     _skin = _wm->getSkin()->getMenuSkin(_skinName.c_str());
@@ -171,6 +166,8 @@ bool CRTOCDialog::digitEntered( lChar16 c )
 /// returns index of first item for current page, -1 if not found
 int CRTOCDialog::getCurItemIndex()
 {
+    if (_selectedItem > -1)
+        return _selectedItem;
     int curPage = _docview->getCurPage();
     for ( int i=0; i<_items.length(); i++ ) {
         LVTocItem * item = _items[ i ];
@@ -218,6 +215,52 @@ bool CRTOCDialog::onCommand( int command, int params )
             _wm->closeWindow( this );
             return true;
         }
+    case MCMD_NEXT:
+        {
+            int _idx  = getCurItemIndex();
+            _selectedItem = _idx;
+            if (_idx < (_items.length()-1) )
+                _selectedItem = _idx + 1;
+            if (_selectedItem == (_topItem + _pageItems)) // the selected item is on the next page, we have to scroll
+            {
+                command = MCMD_SCROLL_FORWARD;
+                params = 1;
+            }
+            else if (_idx!=_selectedItem) // did we change the selected item?
+            {
+                setDirty();
+                _wm->updateWindow(this);
+            }
+        }
+        break;
+    case MCMD_PREV:
+        {
+            int _idx  = getCurItemIndex();
+            _selectedItem = _idx;
+            if (_idx > 0 )
+                _selectedItem = _idx - 1;
+            if (_selectedItem < (_topItem)) // the selected item is on the previous page, we have to scroll
+            {
+                command = MCMD_SCROLL_BACK;
+                params = 1;
+            }
+            else if (_idx!=_selectedItem) // did we change the selected item?
+            {
+                setDirty();
+                _wm->updateWindow(this);
+            }
+        }
+        break;
+    case MCMD_ENTER:
+        {
+            int pos = _selectedItem - _topItem;
+            if (pos < 0)
+                return true; // there is no item selected (or it is not on the screen?) --> do nothing
+            _wm->postCommand( _resultCmd, _items[_topItem + _selectedItem]->getPage()+1 ); // for some reason the reader jumps to th page before the toc-entry
+            _wm->closeWindow( this );
+            return true;
+        }
+        break;
     case MCMD_SCROLL_FORWARD:
     case MCMD_SCROLL_FORWARD_LONG:
         {

@@ -24,6 +24,7 @@ class CRTOCDialog : public CRNumberEditDialog
         int _itemHeight;
         int _topItem;
         int _pageItems;
+        int _selectedItem;
         LVDocView * _docview;
 
         virtual void draw();
