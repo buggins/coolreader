@@ -116,16 +116,16 @@ elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 elseif ( ${GUI} STREQUAL CRGUI_INKVIEW )
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3inkview.cpp)
     SET (EXTRA_LIBS inkview freetype )
-    INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
-    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
+    INSTALL( FILES ${CR3_STYLES} DESTINATION system/share/crengine)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION system/share/crengine/hyph
       FILES_MATCHING PATTERN "*.pdb" )
-    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
+    INSTALL( DIRECTORY data/hyph/ DESTINATION system/share/crengine/hyph
       FILES_MATCHING PATTERN "*.pattern" )
-    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins DESTINATION root/crengine )
-    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps DESTINATION root/crengine )
-    INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins DESTINATION system/share/crengine )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps DESTINATION system/share/crengine )
+    INSTALL( DIRECTORY data/manual/ DESTINATION system/share/crengine/manual )
 
-    SET (CR3_BIN_DESTINATION root)
+    SET (CR3_BIN_DESTINATION system/bin)
 
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
 
@@ -177,6 +177,14 @@ if ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
        EXECUTE_PROCESS( COMMAND ${CMAKE_STRIP} ${CMAKE_BINARY_DIR}/cr3gui/libfb2.so )
     endif (DEFINED CMAKE_STRIP)
     INSTALL( TARGETS fb2 LIBRARY DESTINATION ${CR3_BIN_DESTINATION} )
+elseif ( ${GUI} STREQUAL CRGUI_INKVIEW )
+    ADD_EXECUTABLE(cr3.app ${CR3_SOURCES})
+    TARGET_LINK_LIBRARIES(cr3.app crengine tinydict ${EXTRA_LIBS} ${STD_LIBS})
+    if (DEFINED CMAKE_STRIP)
+       MESSAGE("Strip command:  ${CMAKE_STRIP} ${CMAKE_BINARY_DIR}/cr3gui/cr3.app" )
+       EXECUTE_PROCESS( COMMAND ${CMAKE_STRIP} ${CMAKE_BINARY_DIR}/cr3gui/cr3.app )
+    endif (DEFINED CMAKE_STRIP)
+    INSTALL( TARGETS cr3.app RUNTIME DESTINATION ${CR3_BIN_DESTINATION} )
 else()
     ADD_EXECUTABLE(cr3 ${CR3_SOURCES})
     TARGET_LINK_LIBRARIES(cr3 crengine tinydict ${EXTRA_LIBS} ${STD_LIBS})
