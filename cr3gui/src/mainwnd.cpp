@@ -1042,6 +1042,13 @@ void V3DocViewWin::showAboutDialog()
     _wm->activateWindow( dlg );
 }
 
+/// returns true if click is processed
+bool V3DocViewWin::onClick(int x, int y, int flags)
+{
+    return onCommand(MCMD_MAIN_MENU, 0);
+}
+
+
 /// returns true if command is processed
 bool V3DocViewWin::onCommand( int command, int params )
 {
