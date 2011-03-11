@@ -39,10 +39,12 @@
 
 CRInkViewWindowManager * wm;
 
-void CRInkViewScreen::update(const lvRect& rc2, bool full)
+void CRInkViewScreen::update(const lvRect& rc, bool full)
 {
     char buf[2000];
     CRLog::trace("CRInkViewScreen::update(%d)", full ? 1 : 0);
+    if ( rc.height()>400 && checkFullUpdateCounter() )
+        full = true;
     icanvas * canvas = new(icanvas);
     lvRect clipRect;
     canvas->width = _front->GetWidth();
@@ -66,18 +68,21 @@ void CRInkViewScreen::update(const lvRect& rc2, bool full)
     // TODO: this should work!! Why not??
 //    CRLog::trace("CRInkViewScreen::update() SetCanvas()");
 //    SetCanvas(canvas);
-    Stretch(canvas->addr, IMAGE_GRAY8, canvas->width, canvas->height, canvas->scanline, 0, 0, canvas->width, canvas->height, 0);
-    DitherArea(0, 0, canvas->width, canvas->height, 16, DITHER_PATTERN);
     if (!full)
     {
-        CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc2.left, rc2.top, rc2.width(), rc2.height());
-        PartialUpdate(rc2.left, rc2.top, rc2.width(), rc2.height());
+        CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc.left, rc.top, rc.width(), rc.height());
+        Stretch(_front->GetScanLine(rc.top), IMAGE_GRAY8, canvas->width, rc.height(), canvas->scanline, 0, rc.top, canvas->width, rc.height(), 0);
+        DitherArea(0, rc.top, canvas->width, rc.height(), 16, DITHER_PATTERN);
+        PartialUpdate(rc.left, rc.top, rc.width(), rc.height());
     }
     else
     {
         CRLog::trace("CRInkViewScreen::update() FullUpdate()");
+        Stretch(canvas->addr, IMAGE_GRAY8, canvas->width, canvas->height, canvas->scanline, 0, 0, canvas->width, canvas->height, 0);
+        DitherArea(0, 0, canvas->width, canvas->height, 16, DITHER_PATTERN);
         FullUpdate();
     }
+    CRLog::trace("_fullUpdateInterval: %d, _fullUpdateCounter: %d  ", _fullUpdateInterval, _fullUpdateCounter);
 }
 
 CRInkViewScreen::CRInkViewScreen(int width, int height): CRGUIScreenBase(width, height, true)
