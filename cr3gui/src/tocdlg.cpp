@@ -185,6 +185,29 @@ int CRTOCDialog::getCurItemIndex()
     return -1;
 }
 
+bool CRTOCDialog::onClick(int x, int y, int flags)
+{
+    lvRect rc;
+    lvPoint pt = lvPoint(x, y);
+    if (flags < 2) // click or long click
+    {
+        getClientRect(rc);
+        if (rc.isPointInside(pt))
+        {
+            int relx = y-rc.top;
+            int item_height = rc.height() / _pageItems;
+            int idx = relx / item_height;
+            if ( (idx + _topItem) > _items.length())
+                return false;
+            _wm->postCommand( _resultCmd, _items[_topItem + idx]->getPage()+1 ); // for some reason the reader jumps to th page before the toc-entry
+            _wm->closeWindow( this );
+            return true;
+        }
+    }
+    return false;
+}
+
+
 /// returns true if command is processed
 bool CRTOCDialog::onCommand( int command, int params )
 {

@@ -36,6 +36,8 @@ class CRTOCDialog : public CRNumberEditDialog
         bool digitEntered( lChar16 c );
         int getCurItemIndex();
 
+        /// process clicks on TOC items
+        virtual bool onClick( int x, int y, int flags = 0);
         /// returns true if command is processed
         virtual bool onCommand( int command, int params );
 };

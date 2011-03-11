@@ -1496,7 +1496,7 @@ bool CRMenu::onClick( int x, int y, int flags )
 {
     lvRect rc;
     lvPoint pt = lvPoint(x, y);
-    if (flags < 2) // click or lon click
+    if (flags < 2) // click or long click
     {
         getClientRect(rc);
         if (rc.isPointInside(pt))
@@ -1504,7 +1504,7 @@ bool CRMenu::onClick( int x, int y, int flags )
             int relx = y-rc.top;
             int item_height = rc.height() / _pageItems;
             int idx = relx / item_height;
-            if (idx > _items.length())
+            if ( (idx + _topItem) > _items.length())
                 return false;
             if (idx < 9)
             {
