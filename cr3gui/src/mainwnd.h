@@ -182,6 +182,9 @@ public:
     void showHelpDialog();
 
 
+    /// returns true if click is processed
+    virtual bool onClick( int x, int y, int flags = 0 );
+
     virtual bool onCommand( int command, int params );
 
     virtual void closing();
