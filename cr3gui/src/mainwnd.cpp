@@ -872,11 +872,23 @@ VIEWER_MENU_4ABOUT=About...
 	}
 
     menu_win->setAccelerators( getMenuAccelerators() );
+    lString16 s;
 
-    lString16 s(_("$1 - choose command\n$2, $3 - close"));
-    s.replaceParam(1, menu_win->getItemNumberKeysName());
-    s.replaceParam(2, menu_win->getCommandKeyName(MCMD_OK) );
-    s.replaceParam(3, menu_win->getCommandKeyName(MCMD_CANCEL) );
+    if (!(menu_win->getCommandKeyName(MCMD_PREV)).empty())
+    {
+        s = lString16(_("$1 / $2 - navigate, $3 - choose command, $4 / $5 - close"));
+        s.replaceParam(1, menu_win->getCommandKeyName(MCMD_PREV));
+        s.replaceParam(2, menu_win->getCommandKeyName(MCMD_NEXT));
+        s.replaceParam(3, menu_win->getCommandKeyName(MCMD_ENTER));
+        s.replaceParam(4, menu_win->getCommandKeyName(MCMD_OK) );
+        s.replaceParam(5, menu_win->getCommandKeyName(MCMD_CANCEL) );
+    } else
+    {
+        s = lString16(_("$1 - choose command\n$2, $3 - close"));
+        s.replaceParam(1, menu_win->getItemNumberKeysName());
+        s.replaceParam(2, menu_win->getCommandKeyName(MCMD_OK) );
+        s.replaceParam(3, menu_win->getCommandKeyName(MCMD_CANCEL) );
+    }
     menu_win->setStatusText( s );
     menu_win->setFullscreen( true );
 

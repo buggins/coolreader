@@ -38,6 +38,9 @@
 #endif
 #endif
 
+#ifdef INKVIEW
+#include <inkview.h>
+#endif
 
 #define USE_SEPARATE_GO_TO_PAGE_DIALOG 0
 
@@ -378,6 +381,40 @@ const char * getKeyName( int keyCode )
 		return name;
 	}
 	switch ( keyCode ) {
+#ifdef INKVIEW
+        case KEY_BACK:
+            return "Back";
+        case KEY_DELETE:
+            return "Delete";
+        case KEY_OK:
+            return "OK";
+        case KEY_UP:
+            return "UP";
+        case KEY_DOWN:
+            return "Down";
+        case KEY_LEFT:
+            return "Left";
+        case KEY_RIGHT:
+            return "Right";
+        case KEY_MINUS:
+            return "'-'";
+        case KEY_PLUS:
+            return "'+'";
+        case KEY_MENU:
+            return "Menu";
+        case KEY_MUSIC:
+            return "Music";
+        case KEY_POWER:
+            return "Power";
+        case KEY_PREV:
+            return "Up (right)";
+        case KEY_NEXT:
+            return "Down (right)";
+        case KEY_PREV2:
+            return "Up (left)";
+        case KEY_NEXT2:
+            return "Down (left)";
+#else
 	case XK_KP_Add:
 		return "'+'";
 	case XK_KP_Subtract:
@@ -406,6 +443,7 @@ const char * getKeyName( int keyCode )
 		return _("Menu");
     case XF86XK_Search:
         return _("Zoom");
+#endif
     default:
 		return "?";
 	}

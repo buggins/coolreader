@@ -17,6 +17,7 @@
 //#include "fsmenu.h"
 
 #include <cri18n.h>
+#include <rtfimp.h>
 
 
 class CRControlsMenu;
@@ -646,12 +647,25 @@ lString16 CRSettingsMenu::getStatusText()
     int applyFlags = 0;
     int cancelKey = 0;
     int cancelFlags = 0;
-    if ( !_acceleratorTable->findCommandKey( MCMD_OK, 0, applyKey, applyFlags )
-        || !_acceleratorTable->findCommandKey( MCMD_CANCEL, 0, cancelKey, cancelFlags ) )
-        return _statusText;
-    lString16 pattern(_("Press $1 to change option\n$2 to apply, $3 to cancel"));
-    pattern.replaceParam(1, getItemNumberKeysName());
-    pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
-    pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
-    return pattern;
+    if ( _acceleratorTable->findCommandKey( MCMD_NEXT, 0, applyKey, applyFlags )
+        || _acceleratorTable->findCommandKey( MCMD_PREV, 0, cancelKey, cancelFlags ) )
+    {
+        lString16 pattern(_("Press $1 / $2 to navigate, $3 to change option\n$4 to apply, $5 to cancel"));
+        pattern.replaceParam(1, getCommandKeyName(MCMD_PREV));
+        pattern.replaceParam(2, getCommandKeyName(MCMD_NEXT));
+        pattern.replaceParam(3, getCommandKeyName(MCMD_ENTER));
+        pattern.replaceParam(4, getCommandKeyName(MCMD_OK) );
+        pattern.replaceParam(5, getCommandKeyName(MCMD_CANCEL) );
+        return pattern;
+    }
+    if ( _acceleratorTable->findCommandKey( MCMD_OK, 0, applyKey, applyFlags )
+        || _acceleratorTable->findCommandKey( MCMD_CANCEL, 0, cancelKey, cancelFlags ) )
+    {
+        lString16 pattern(_("Press $1 to change option\n$2 to apply, $3 to cancel"));
+        pattern.replaceParam(1, getItemNumberKeysName());
+        pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
+        pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
+        return pattern;
+    }
+    return _statusText;
 }

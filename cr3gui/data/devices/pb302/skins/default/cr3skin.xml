@@ -229,11 +229,11 @@
             <size minvalue="0,16" maxvalue="0,0"/>
         </separator>
         <status>
-            <border widths="44,0,0,0"/>
+            <border widths="10,0,0,0"/>
             <size minvalue="20,51" maxvalue="0,0"/>
             <background color="#555555"/>
             <background color="#FFFFFF" pos="0,0" size="100%,2"/>
-            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="22" bold="true" italic="false" valign="center" halign="left" wordwrap="true"/>
+            <text color="#FFFFFF" face="Arial, DejaVu Sans" size="20" bold="true" italic="false" valign="center" halign="left" wordwrap="true"/>
         </status>
         <value id="menu-value">
             <size minvalue="48,48" maxvalue="0,0"/>
