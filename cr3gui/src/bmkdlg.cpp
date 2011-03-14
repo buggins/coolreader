@@ -67,20 +67,25 @@ void CRBookmarkMenu::setMode( bool goToMode )
     if ( _goToMode ) {
         _caption = lString16(_("Go to bookmark"));
         _label = _caption;
-        _statusText = lString16(
-                hasModeSwitch
+        if (!(getCommandKeyName(MCMD_PREV)).empty())
+            _statusText = lString16( _("$3 / $4 - navigate, short press $5 - go to bookmark, long press - set bookmark"));
+        else
+                _statusText = lString16( hasModeSwitch
                 ? _("Short press $1 - go to bookmark,\n$2 - switch to SET mode")
-                : _("Short press $1 - go to bookmark,\nlong press - set bookmark")
-                );
+                : _("Short press $1 - go to bookmark,\nlong press - set bookmark"));
     } else {
         _caption = lString16(_("Set bookmark"));
         _label = _caption;
-        _statusText = lString16(
-                hasModeSwitch
+        if (!(getCommandKeyName(MCMD_PREV)).empty())
+            _statusText = lString16(_("$3 / $4 - navigate, short press $5 - set bookmark, long press - go to bookmark"));
+        else
+            _statusText = lString16( hasModeSwitch
                 ? _("$1 - set bookmark,\n$2 - switch to GO mode")
-                : _("Short press $1 - set bookmark,\nlong press - go to bookmark")
-                );
+                : _("Short press $1 - set bookmark,\nlong press - go to bookmark"));
     }
+    _statusText.replaceParam(3, getCommandKeyName(MCMD_PREV));
+    _statusText.replaceParam(4, getCommandKeyName(MCMD_NEXT));
+    _statusText.replaceParam(5, getCommandKeyName(MCMD_ENTER));
     _statusText.replaceParam(1, selKeyName);
     _statusText.replaceParam(2, modeKeyName);
     setDirty();

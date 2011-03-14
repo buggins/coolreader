@@ -85,8 +85,15 @@ CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docvie
     //_helpHeight = 36;
     setAccelerators( _wm->getAccTables().get("menu") );
     setSkinName(lString16(L"#bookmarks"));
+#ifdef INKVIEW
+    lString16 pattern(_("$4 / $5 - navigate, $1 - open book\n$2, $3 - close"));
+    pattern.replaceParam(4, getCommandKeyName(MCMD_PREV));
+    pattern.replaceParam(5, getCommandKeyName(MCMD_NEXT));
+    pattern.replaceParam(1, getCommandKeyName(MCMD_ENTER));
+#else
     lString16 pattern(_("$1 - open book\n$2, $3 - close"));
     pattern.replaceParam(1, getItemNumberKeysName());
+#endif
     pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
     pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
     _statusText = pattern;
