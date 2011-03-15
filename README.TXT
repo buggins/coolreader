@@ -146,6 +146,11 @@ cd v3abuild
 cmake -D DEVICE_NAME=v3a -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-v5.cmake -D GUI=CRGUI_NANOX -D GRAY_BACKBUFFER_BITS=4 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x1000000 ..
 make
 
+# Building ARM version for PocketBook:
+mkdir pb360
+cd pb360
+cmake -D DEVICE_NAME=pb360 -D CMAKE_INSTALL_PREFIX=/usr/local/pocketbook/mnt/ext1 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-pocketbook.cmake -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_PB -D USE_EXTERNAL_EDICT_DICTIONARY=1 ..
+make
 
 ==============================
 *** QT Build under Windows ***

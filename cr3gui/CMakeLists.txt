@@ -152,6 +152,28 @@ elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
       FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION )
 
+elseif (${GUI} STREQUAL CRGUI_PB)
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3pocketbook.cpp)
+    FIND_LIBRARY(INKVIEW_LIB inkview)
+    IF (INKVIEW_LIB)
+        SET (EXTRA_LIBS ${INKVIEW_LIB})
+    ELSE (INKVIEW_LIB)
+	  message("libinkview library not found!")
+    ENDIF (INKVIEW_LIB)
+    INSTALL( FILES ${CR3_STYLES} DESTINATION system/share/cr3)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION system/share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION system/share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins/default/ DESTINATION system/share/cr3/skin )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION system/share/cr3/keymaps )
+    INSTALL( DIRECTORY data/manual/ DESTINATION system/share/cr3/manual )
+
+    FOREACH(LANGUAGE ${LANGUAGES})
+        SET(MO_FILE "${CMAKE_BINARY_DIR}/i18n/${LANGUAGE}/LC_MESSAGES/cr3.mo")
+        INSTALL(FILES ${MO_FILE} DESTINATION system/share/cr3/i18n RENAME ${LANGUAGE}.mo)
+    ENDFOREACH(LANGUAGE ${LANGUAGES})
+
 endif ( ${GUI} STREQUAL CRGUI_XCB )
 
 
