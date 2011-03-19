@@ -14,7 +14,13 @@
 #define FSMENU_H_INCLUDED
 
 #include <crgui.h>
-
+#if CR_POCKETBOOK == 1
+#include "cr3pocketbook.h"
+#ifdef CRMenu
+#undef CRMenu
+#endif
+#define CRMenu CRPbMenu
+#endif
 
 class CRFullScreenMenu : public CRMenu
 {
