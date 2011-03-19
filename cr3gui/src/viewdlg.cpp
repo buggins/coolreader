@@ -25,8 +25,15 @@
 #include <cri18n.h>
 #include "selnavig.h"
 
-
-#ifdef _WIN32
+#ifdef CR_POCKETBOOK
+#if defined(__i386__)
+#  define DIRPREFIX "/usr/local/pocketbook"
+#else
+#  define DIRPREFIX ""
+#endif
+#define DICTD_CONF DIRPREFIX "/mnt/ext1/system/share/cr3/dict"
+#define DICTD_CONF_ALT "/mnt/ext2/system/share/cr3/dict"
+#elif _WIN32
 #define DICTD_CONF "C:\\dict\\"
 #else
 #ifdef CR_USE_JINKE

@@ -5,9 +5,16 @@
 #include <crengine.h>
 #include <crgui.h>
 #include "cr3main.h"
+#include "numedit.h"
+#include "tocdlg.h"
 #include "mainwnd.h"
 #include <cr3version.h>
 #include "cr3pocketbook.h"
+#include "inkview.h"
+
+#ifdef CRMenu
+#undef CRMenu
+#endif
 
 static const char *def_menutext[9] = {
 	"@Goto_page", "@Exit", "@Search",
@@ -110,7 +117,7 @@ static const struct {
 	{ "@KA_onot", -1, 0},
 	{ "@KA_olnk", MCMD_GO_LINK, 0},
 	{ "@KA_blnk", -1, 0},
-	{ "@KA_cnts", -1, 0},
+	{ "@KA_cnts", PB_CMD_CONTENTS, 0},
 	{ "@KA_srch", MCMD_SEARCH, 0},
 	{ "@KA_dict", MCMD_DICT, 0},
 	{ "@KA_zmin", DCMD_ZOOM_IN, 0},
@@ -240,11 +247,188 @@ void searchHandler(char *s)
 	processPostedEvents();
 } 
 
+void CRPbMenu::doCloseMenu(int command, int param)
+{
+	if ( _menu != NULL )
+		closeMenu(0);
+    else
+		closeMenu(command, param); // close, for root menu	
+}
+
+void CRPbMenu::activated()
+{
+    _selectedIndex = setInitialSelection();
+    if (_selectedIndex >= 0) {
+        _topItem = _selectedIndex / _pageItems * _pageItems;
+    }
+    setDirty();
+}
+
+int CRPbMenu::setInitialSelection() 
+{
+	int selected = CRMenu::getSelectedItemIndex();
+	return (selected < 0 ? 0 : selected);
+}
+
+int CRPbMenu::getSelectedItemIndex() 
+{ 
+	return _selectedIndex; 
+}
+
+void CRPbMenu::nextPage()
+{
+	int nPage = getCurPage() + 1;
+	
+    int oldTop = _topItem;
+    _topItem = _pageItems * nPage;
+
+	if (_topItem >= (int)_items.length())
+		_topItem = 0;
+    if (_topItem != oldTop || oldTop == 0) {
+		_selectedIndex = _topItem;
+        setDirty();
+	}
+}
+
+void CRPbMenu::prevPage()
+{
+	int nPage = getCurPage() - 1;
+    int oldTop = _topItem;
+    _topItem = _pageItems * nPage;
+
+    if (_topItem < 0) {
+		doCloseMenu(getId());
+        return;
+	}
+    if ( _topItem != oldTop ) {
+		_selectedIndex = _topItem + _pageItems -1;
+        setDirty();
+	}
+}
+
+int CRPbMenu::getLastOnPage()
+{
+	int lastOnPage = _topItem + _pageItems;
+	if (lastOnPage >= (int)_items.length())
+		lastOnPage = (int)_items.length();
+	return lastOnPage;
+}
+
+void CRPbMenu::nextItem()
+{
+	int lastOnPage = getLastOnPage();
+
+	if (_selectedIndex < lastOnPage -1) 
+		_selectedIndex += 1;
+	else
+		_selectedIndex = _topItem;
+	setDirty();
+	_wm->updateWindow(this);		
+}
+
+void CRPbMenu::prevItem()
+{
+	if (_selectedIndex != _topItem)
+		_selectedIndex -= 1;
+	else
+		_selectedIndex = getLastOnPage() -1;
+	setDirty();
+	_wm->updateWindow(this);
+}
+
+bool CRPbMenu::onItemSelect(int itemId, int param)
+{
+	if (itemId < 0 || itemId >= _items.length()) {
+		CRLog::error( "CRPbMenu::onItemSelect() - invalid selection: %d", itemId);
+		return true;
+	}
+
+    CRMenuItem * item = _items[itemId];
+
+    if (item->onSelect() > 0)
+        return true;
+
+    if (item->isSubmenu()) {
+        CRMenu * menu = (CRMenu *)item;
+        if ( menu->getItems().length() <= 3 ) {
+            // toggle 2 and 3 choices w/o menu
+            menu->toggleSubmenuValue();
+            setDirty();
+        } else {
+            // show menu
+            _wm->activateWindow( menu );
+        }
+        return true;
+    } else {
+        // command menu item
+        if ( !item->getPropValue().empty() ) {
+                // set property
+            CRLog::trace("Setting property value");
+            _props->setString( UnicodeToUtf8(getPropName()).c_str(), item->getPropValue() );
+            doCloseMenu(getId());
+            return true;
+        }
+        doCloseMenu(item->getId(), param);
+        return true;
+	}
+}
+
+bool CRPbMenu::onCommand( int command, int params ) 
+{
+	bool ret = true;
+
+	switch (command) {
+	case MCMD_CANCEL:
+		closeMenu( 0 );
+		break;
+	case MCMD_OK:
+		ret = onItemSelect(_selectedIndex, params);
+		break;
+	case MCMD_SCROLL_FORWARD:
+		nextItem();
+		break;
+	case MCMD_SCROLL_BACK:
+		prevItem();
+		break;
+	case MCMD_SCROLL_FORWARD_LONG:
+		nextPage();
+		break;
+	case MCMD_SCROLL_BACK_LONG:
+		prevPage();
+		break;
+	default:
+		ret = false;
+		break;
+	}
+    return ret;
+}
+	
+
+void tocHandler(long long position) 
+{
+	CRLog::trace("tocHandler(position=%d)", position);
+	CRPocketBookWindowManager::instance->onCommand(MCMD_GO_PAGE_APPLY, position);
+}
+
+
+
 class CRPocketBookDocView : public V3DocViewWin {
 private:
 	ibitmap *_bm3x3;
 	char *_strings3x3[9];
 	int _quick_menuactions[9];
+	tocentry *_toc;
+	int _tocLength;
+	
+	void freeContents() 
+	{
+		for (int i = 0; i < _tocLength; i++) {
+			if (_toc[i].text)
+				free(_toc[i].text);
+		}
+		free(_toc);
+		_toc = NULL;
+	}
 
 protected:
 	ibitmap * getQuickMenuBitmap() {
@@ -266,13 +450,51 @@ protected:
 		}
 		return _bm3x3;
 	}
+
+	bool rotateApply(int params) 
+	{
+		if (params >= 0 && params <= 3) {
+			int orient = GetOrientation();
+			if (orient != params) {
+				SetOrientation(params);
+				cr_rotate_angle_t oldOrientation = pocketbook_orientations[orient];
+				cr_rotate_angle_t newOrientation = pocketbook_orientations[params];
+				int dx = _wm->getScreen()->getWidth();
+				int dy = _wm->getScreen()->getHeight();
+				if ((oldOrientation & 1) == (newOrientation & 1)) {
+					_wm->reconfigure(dx, dy, newOrientation);
+					_wm->update(true);
+				} else
+					_wm->reconfigure(dy, dx, newOrientation);
+			}
+		} else
+			// Shouldn't happen
+			CRLog::error("Unexpected parameter in CRPocketBookDocView::onCommand(%d, %d)",
+				PB_CMD_ROTATE_ANGLE_SET, params);
+		return true;
+	}
+
+	bool quickMenuApply(int params) 
+	{
+		if (params >= 0 && params < 9) {
+			int index = _quick_menuactions[params];
+			CRLog::trace("CRPocketBookDocView::onCommand(params=%d), index=%d", params, index);
+			if (pbActions[index].commandId >= 0) {
+				_wm->postCommand(pbActions[index].commandId, pbActions[index].commandParam);
+			}
+		} else
+			// Shouldn't happen
+			CRLog::error("Unexpected parameter in CRPocketBookDocView::onCommand(%d, %d)",
+				PB_QUICK_MENU_SELECT, params);
+		return true;
+	}
+
 public:
     static CRPocketBookDocView * instance;
     CRPocketBookDocView( CRGUIWindowManager * wm, lString16 dataDir )
-    : V3DocViewWin( wm, dataDir )
+    : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _bm3x3(NULL)
     {
         instance = this;
-        _bm3x3 = NULL;
     }
 
     virtual void closing()
@@ -294,40 +516,11 @@ public:
 			return true;
 		case PB_CMD_ROTATE:
 			OpenRotateBox(rotateHandler);
-			//showRotateMenu();
 			return true;
 		case PB_QUICK_MENU_SELECT:
-			if (params >= 0 && params < 9) {
-				int index = _quick_menuactions[params];
-				CRLog::trace("CRPocketBookDocView::onCommand(params=%d), index=%d", params, index);
-				if (pbActions[index].commandId >= 0) {
-					_wm->postCommand(pbActions[index].commandId, pbActions[index].commandParam);
-				}
-			} else
-				// Shouldn't happen
-				CRLog::error("Unexpected parameter in CRPocketBookDocView::onCommand(%d, %d)",
-					command, params);
-			return true;
+			return quickMenuApply(params);
 		case PB_CMD_ROTATE_ANGLE_SET: 
-			if (params >= 0 && params <= 3) {
-				int orient = GetOrientation();
-				if (orient != params) {
-					SetOrientation(params);
-					cr_rotate_angle_t oldOrientation = pocketbook_orientations[orient];
-					cr_rotate_angle_t newOrientation = pocketbook_orientations[params];
-					int dx = _wm->getScreen()->getWidth();
-					int dy = _wm->getScreen()->getHeight();
-					if ((oldOrientation & 1) == (newOrientation & 1)) {
-						_wm->reconfigure(dx, dy, newOrientation);
-						_wm->update(true);
-					} else
-						_wm->reconfigure(dy, dx, newOrientation);
-				}
-			} else
-				// Shouldn't happen
-				CRLog::error("Unexpected parameter in CRPocketBookDocView::onCommand(%d, %d)",
-					command, params);
-			return true;
+			return rotateApply(params);
 		case MCMD_SEARCH:
 			_searchPattern.clear();
 			OpenKeyboard(const_cast<char *>("@Search"), key_buffer, KEY_BUFFER_LEN, 0, searchHandler);
@@ -341,24 +534,55 @@ public:
 			OpenPageSelector(pageSelector);
 			return true;
 		case MCMD_GO_PAGE_APPLY:
-			if (params < 0)
+			if (params <= 0)
 				params = 1;
 			if (params > _docview->getPageCount())
 				params = _docview->getPageCount();
-			bool ret = V3DocViewWin::onCommand( command, params );
-			if (ret)
+			if (V3DocViewWin::onCommand( command, params ))
 				_wm->update(true);
-			return ret;
+			if (_toc)
+				freeContents() ;
+			return true;
+		case PB_CMD_CONTENTS: 
+			showContents();
+			return true;
+		default:
+			break;
 		}
 		return V3DocViewWin::onCommand( command, params );
 	}
 
-	void showRotateMenu() {
-		_props = _docview->propsGetCurrent() | _props;
-		_newProps = LVClonePropsContainer(_props);
-		OpenRotateBox(rotateHandler);
-	}
 
+	void showContents() {
+		if (_toc == NULL) {
+			LVPtrVector<LVTocItem, false> tocItems;
+			_docview->getFlatToc(tocItems);
+			_tocLength = tocItems.length();
+
+			if (_tocLength) {
+				int tocSize = (_tocLength + 1) * sizeof(tocentry);
+				_toc = (tocentry *) malloc(tocSize);
+				for (int i = 0; i < tocItems.length(); i++) {
+					LVTocItem * item = tocItems[i];
+					_toc[i].level = item->getLevel();
+					_toc[i].position = item->getPage() + 1;
+					_toc[i].page = _toc[i].position;
+					_toc[i].text = strdup(UnicodeToUtf8(item->getName()).c_str());
+					char *p = _toc[i].text;
+					while (*p) {
+						if (*p == '\r' || *p == '\n') *p = ' ';
+							p++;
+					}
+				}
+			} else {
+				Message(ICON_INFORMATION, const_cast<char*>("CoolReader"),
+						const_cast<char*>("@No_contents"), 2000);
+				return;
+			}
+		}
+		OpenContents(_toc, _tocLength, _docview->getCurPage() + 1, tocHandler);			
+	}
+	
     virtual ~CRPocketBookDocView()
     {
         instance = NULL;
