@@ -992,7 +992,18 @@ void CR3View::keyPressEvent ( QKeyEvent * event )
                 CRLog::debug("Word selected: %s", LCSTR(qt2cr(text)));
             }
             return;
+        case Qt::Key_Backspace:
+            _wordSelector->reducePattern();
+            update();
+            break;
         default:
+            if ( event->key()>=Qt::Key_A && event->key()<=Qt::Key_Z ) {
+                QString text = event->text();
+                if ( text.length()==1 ) {
+                    _wordSelector->appendPattern(qt2cr(text));
+                    update();
+                }
+            }
             event->setAccepted(true);
             return;
         }
