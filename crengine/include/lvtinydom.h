@@ -1524,11 +1524,33 @@ public:
     : start(_start), end(_end), flags(_flags)
     {
     }
+    /// constructor
+    ldomMarkedRange( ldomWord & word ) {
+        ldomXPointer startPos(word.getNode(), word.getStart() );
+        ldomXPointer endPos(word.getNode(), word.getEnd() );
+        start = startPos.toPoint();
+        end = endPos.toPoint();
+    }
+
     /// copy constructor
     ldomMarkedRange( const ldomMarkedRange & v )
     : start(v.start), end(v.end), flags(v.flags)
     {
     }
+};
+
+class ldomWordEx : public ldomWord
+{
+    ldomMarkedRange _mark;
+    ldomXRange _range;
+public:
+    ldomWordEx( ldomWord & word )
+        :  ldomWord(word), _range(word), _mark(word)
+    {
+
+    }
+    ldomXRange & getRange() { return _range; }
+    ldomMarkedRange & getMark() { return _mark; }
 };
 
 /// list of marked ranges
