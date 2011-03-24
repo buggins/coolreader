@@ -222,6 +222,8 @@ QString CR3View::endWordSelection() {
             text = cr2qt(word->getText());
         delete _wordSelector;
         _wordSelector = NULL;
+        _docview->clearSelection();
+        update();
     }
     return text;
 }
