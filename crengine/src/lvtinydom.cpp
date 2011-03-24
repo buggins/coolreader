@@ -6024,46 +6024,202 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
     }
 }
 
+class ldomWordsCollector : public ldomNodeCallback {
+    LVArray<ldomWord> & _list;
+public:
+    ldomWordsCollector( LVArray<ldomWord> & list )
+        : _list( list )
+    {
+    }
+    /// called for each found text fragment in range
+    virtual void onText( ldomXRange * nodeRange )
+    {
+        ldomNode * node = nodeRange->getStart().getNode();
+        lString16 text = node->getText();
+        int len = text.length();
+        int beginOfWord = -1;
+        for ( int i=0; i <= len; i++ ) {
+            int alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
+            if (alpha && beginOfWord<0 ) {
+                beginOfWord = i;
+            }
+            if ( !alpha && beginOfWord>=0) {
+                _list.add( ldomWord( node, beginOfWord, i ) );
+                beginOfWord = -1;
+            }
+        }
+    }
+    /// called for each found node in range
+    virtual bool onElement( ldomXPointerEx * ptr )
+    {
+        ldomNode * elem = ptr->getNode();
+        if ( elem->getRendMethod()==erm_invisible )
+            return false;
+        return true;
+    }
+};
+
 /// get all words from specified range
 void ldomXRange::getRangeWords( LVArray<ldomWord> & list )
 {
-    class ldomWordsCollector : public ldomNodeCallback {
-        LVArray<ldomWord> & _list;
-    public:
-        ldomWordsCollector( LVArray<ldomWord> & list )
-            : _list( list )
-        {
-        }
-        /// called for each found text fragment in range
-        virtual void onText( ldomXRange * nodeRange )
-        {
-            ldomNode * node = nodeRange->getStart().getNode();
-            lString16 text = node->getText();
-            int len = text.length();
-            int beginOfWord = -1;
-            for ( int i=0; i <= len; i++ ) {
-                int alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
-                if (alpha && beginOfWord<0 ) {
-                    beginOfWord = i;
-                }
-                if ( !alpha && beginOfWord>=0) {
-                    _list.add( ldomWord( node, beginOfWord, i ) );
-                    beginOfWord = -1;
-                }
-            }
-        }
-        /// called for each found node in range
-        virtual bool onElement( ldomXPointerEx * ptr )
-        {
-            ldomNode * elem = ptr->getNode();
-            if ( elem->getRendMethod()==erm_invisible )
-                return false;
-            return true;
-        }
-    };
     ldomWordsCollector collector( list );
     forEach( &collector );
 }
+
+/// adds all visible words from range, returns number of added words
+int ldomWordExList::addRangeWords( ldomXRange & range, bool trimPunctuation ) {
+    LVArray<ldomWord> list;
+    range.getRangeWords( list );
+    for ( int i=0; i<list.length(); i++ )
+        add( new ldomWordEx(list[i]) );
+    init();
+    return list.length();
+}
+
+lvPoint ldomMarkedRange::getMiddlePoint() {
+    if ( start.y==end.y ) {
+        return lvPoint( ((start.x + end.x)>>1), start.y );
+    } else {
+        return start;
+    }
+}
+
+/// returns distance (dx+dy) from specified point to middle point
+int ldomMarkedRange::calcDistance( int x, int y ) {
+    lvPoint middle = getMiddlePoint();
+    int dx = middle.x - x;
+    int dy = middle.y - y;
+    if ( dx<0 ) dx = -dx;
+    if ( dy<0 ) dy = -dy;
+    return dx + dy;
+}
+
+/// select word
+void ldomWordExList::selectWord( ldomWordEx * word )
+{
+    selWord = word;
+    if ( selWord ) {
+        lvPoint middle = word->getMark().getMiddlePoint();
+        x = middle.x;
+        y = middle.y;
+    } else {
+        x = y = -1;
+    }
+}
+
+/// select next word in specified direction
+ldomWordEx * ldomWordExList::selectNextWord( MoveDirection dir, int moveBy )
+{
+    if ( !selWord )
+        return selectMiddleWord();
+    for ( int i=0; i<moveBy; i++ ) {
+        ldomWordEx * word = findNearestWord( x, y, dir );
+        if ( word )
+            selectWord( word );
+    }
+    return selWord;
+}
+
+/// select middle word in range
+ldomWordEx * ldomWordExList::selectMiddleWord() {
+    if ( minx==-1 )
+        init();
+    ldomWordEx * word = findNearestWord( (maxx+minx)/2, (miny+maxy)/2, DIR_ANY );
+    selectWord(word);
+    return word;
+}
+
+/// find word nearest to specified point
+ldomWordEx * ldomWordExList::findNearestWord( int x, int y, MoveDirection dir ) {
+    if ( !length() )
+        return NULL;
+    int bestDistance = -1;
+    ldomWordEx * bestWord = NULL;
+    ldomWordEx * defWord = (dir==DIR_LEFT || dir==DIR_UP) ? get(length()-1) : get(0);
+    int i;
+    if ( dir==DIR_LEFT || dir==DIR_RIGHT ) {
+        int thisLineY = -1;
+        int thisLineDy = -1;
+        for ( i=0; i<length(); i++ ) {
+            ldomWordEx * item = get(i);
+            lvPoint middle = item->getMark().getMiddlePoint();
+            int dy = middle.y - y;
+            if ( dy<0 ) dy = -dy;
+            if ( thisLineY==-1 || thisLineDy>dy ) {
+                thisLineY = middle.y;
+                thisLineDy = dy;
+            }
+        }
+        ldomWordEx * nextLineWord = NULL;
+        for ( i=0; i<length(); i++ ) {
+            ldomWordEx * item = get(i);
+            ldomMarkedRange * mark = &item->getMark();
+            lvPoint middle = mark->getMiddlePoint();
+            switch ( dir ) {
+            case DIR_LEFT:
+                if ( middle.x>=x )
+                    continue;
+                nextLineWord = item; // last word of prev line
+                break;
+            case DIR_RIGHT:
+                if ( middle.x<=x )
+                    continue;
+                if ( nextLineWord!=NULL )
+                    nextLineWord = item; // first word of next line
+                break;
+            }
+            if ( middle.y!=thisLineY )
+                continue;
+            int dist = mark->calcDistance(x, y);
+            if ( bestDistance==-1 || dist<bestDistance ) {
+                bestWord = item;
+                bestDistance = dist;
+            }
+        }
+        if ( bestWord!=NULL )
+            return bestWord; // found in the same line
+        if ( nextLineWord!=NULL  )
+            return nextLineWord;
+        return defWord;
+    }
+    for ( i=0; i<length(); i++ ) {
+        ldomWordEx * item = get(i);
+        ldomMarkedRange * mark = &item->getMark();
+        lvPoint middle = mark->getMiddlePoint();
+        if ( dir==DIR_UP && middle.y >= y )
+            continue;
+        if ( dir==DIR_DOWN && middle.y <= y )
+            continue;
+
+        int dist = mark->calcDistance(x, y);
+        if ( bestDistance==-1 || dist<bestDistance ) {
+            bestWord = item;
+            bestDistance = dist;
+        }
+    }
+    if ( bestWord!=NULL )
+        return bestWord;
+    return defWord;
+}
+
+void ldomWordExList::init()
+{
+    if ( !length() )
+        return;
+    for ( int i=0; i<length(); i++ ) {
+        ldomWordEx * item = get(i);
+        lvPoint middle = item->getMark().getMiddlePoint();
+        if ( i==0 || minx > middle.x )
+            minx = middle.x;
+        if ( i==0 || maxx < middle.x )
+            maxx = middle.x;
+        if ( i==0 || miny > middle.y )
+            miny = middle.y;
+        if ( i==0 || maxy < middle.y )
+            maxy = middle.y;
+    }
+}
+
 
 class ldomTextCollector : public ldomNodeCallback
 {

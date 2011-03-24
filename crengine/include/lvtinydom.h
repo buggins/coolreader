@@ -1517,6 +1517,10 @@ public:
     {
         return ( start.y>end.y || ( start.y == end.y && start.x >= end.x ) );
     }
+    /// returns mark middle point for single line mark, or start point for multiline mark
+    lvPoint getMiddlePoint();
+    /// returns distance (dx+dy) from specified point to middle point
+    int calcDistance( int x, int y );
     /// returns true if intersects specified line rectangle
     bool intersects( lvRect & rc, lvRect & intersection );
     /// constructor
@@ -1541,17 +1545,60 @@ public:
 
 class ldomWordEx : public ldomWord
 {
+    ldomWord _word;
     ldomMarkedRange _mark;
     ldomXRange _range;
+    lString16 _text;
 public:
     ldomWordEx( ldomWord & word )
-        :  ldomWord(word), _range(word), _mark(word)
+        :  _word(word), _range(word), _mark(word)
     {
-
+        _text = _word.getText();
     }
+    ldomWord & getWord() { return _word; }
     ldomXRange & getRange() { return _range; }
     ldomMarkedRange & getMark() { return _mark; }
+    lString16 & getText() { return _text; }
 };
+
+enum MoveDirection {
+    DIR_ANY,
+    DIR_LEFT,
+    DIR_RIGHT,
+    DIR_UP,
+    DIR_DOWN,
+};
+
+/// list of extended words
+class ldomWordExList : public LVPtrVector<ldomWordEx>
+{
+    int minx;
+    int maxx;
+    int miny;
+    int maxy;
+    int x;
+    int y;
+    ldomWordEx * selWord;
+    void init();
+public:
+    ldomWordExList()
+        : minx(-1), maxx(-1), miny(-1), maxy(-1), x(-1), y(-1), selWord(NULL)
+    {
+    }
+    /// adds all visible words from range, returns number of added words
+    int addRangeWords( ldomXRange & range, bool trimPunctuation );
+    /// find word nearest to specified point
+    ldomWordEx * findNearestWord( int x, int y, MoveDirection dir );
+    /// select word
+    void selectWord( ldomWordEx * word );
+    /// select next word in specified direction
+    ldomWordEx * selectNextWord( MoveDirection dir, int moveBy = 1 );
+    /// select middle word in range
+    ldomWordEx * selectMiddleWord();
+    /// get selected word
+    ldomWordEx * getSelWord() { return selWord; }
+};
+
 
 /// list of marked ranges
 class ldomMarkedRangeList : public LVPtrVector<ldomMarkedRange>

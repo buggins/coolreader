@@ -16,6 +16,8 @@ public:
     virtual ~PropsChangeCallback() { }
 };
 
+#define WORD_SELECTOR_ENABLED 1
+
 class CR3View : public QWidget, public LVDocViewCallback
 {
 
@@ -24,6 +26,15 @@ class CR3View : public QWidget, public LVDocViewCallback
         Q_PROPERTY( QScrollBar* scrollBar READ scrollBar WRITE setScrollBar )
 
         class DocViewData;
+
+#if WORD_SELECTOR_ENABLED==1
+        LVPageWordSelector * _wordSelector;
+
+    protected:
+        void startWordSelection();
+        QString endWordSelection();
+        bool isWordSelection() { return _wordSelector!=NULL; }
+#endif
 
     public:
         CR3View( QWidget *parent = 0 );

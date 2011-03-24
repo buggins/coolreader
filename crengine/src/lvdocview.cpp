@@ -4820,3 +4820,34 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 CRPropRef LVDocView::propsGetCurrent() {
 	return m_props;
 }
+
+void LVPageWordSelector::updateSelection()
+{
+    LVArray<ldomWord> list;
+    if ( _words.getSelWord() )
+        list.add(_words.getSelWord()->getWord() );
+    if ( list.length() )
+        _docview->selectWords(list);
+    else
+        _docview->clearSelection();
+}
+
+LVPageWordSelector::~LVPageWordSelector()
+{
+    _docview->clearSelection();
+}
+
+LVPageWordSelector::LVPageWordSelector( LVDocView * docview )
+    : _docview(docview)
+{
+    LVRef<ldomXRange> range = _docview->getPageDocumentRange();
+    _words.addRangeWords(*range, true);
+    _words.selectMiddleWord();
+    updateSelection();
+}
+
+void LVPageWordSelector::moveBy( MoveDirection dir, int distance )
+{
+    _words.selectNextWord(dir, distance);
+    updateSelection();
+}
