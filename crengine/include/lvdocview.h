@@ -223,6 +223,10 @@ public:
     ldomWordEx * getSelectedWord() { return _words.getSelWord(); }
     // access to words
     ldomWordExList & getWords() { return _words; }
+    // append chars to search pattern
+    ldomWordEx * appendPattern( lString16 chars );
+    // remove last item from pattern
+    ldomWordEx * reducePattern();
 };
 
 

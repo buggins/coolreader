@@ -1579,7 +1579,9 @@ class ldomWordExList : public LVPtrVector<ldomWordEx>
     int x;
     int y;
     ldomWordEx * selWord;
+    lString16Collection pattern;
     void init();
+    ldomWordEx * findWordByPattern();
 public:
     ldomWordExList()
         : minx(-1), maxx(-1), miny(-1), maxy(-1), x(-1), y(-1), selWord(NULL)
@@ -1597,6 +1599,10 @@ public:
     ldomWordEx * selectMiddleWord();
     /// get selected word
     ldomWordEx * getSelWord() { return selWord; }
+    /// try append search pattern and find word
+    ldomWordEx * appendPattern(lString16 chars);
+    /// remove last character from pattern and try to search
+    ldomWordEx * reducePattern();
 };
 
 

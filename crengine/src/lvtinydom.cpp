@@ -6126,6 +6126,7 @@ ldomWordEx * ldomWordExList::selectNextWord( MoveDirection dir, int moveBy )
 {
     if ( !selWord )
         return selectMiddleWord();
+    pattern.clear();
     for ( int i=0; i<moveBy; i++ ) {
         ldomWordEx * word = findNearestWord( x, y, dir );
         if ( word )
@@ -6141,6 +6142,80 @@ ldomWordEx * ldomWordExList::selectMiddleWord() {
     ldomWordEx * word = findNearestWord( (maxx+minx)/2, (miny+maxy)/2, DIR_ANY );
     selectWord(word, DIR_ANY);
     return word;
+}
+
+ldomWordEx * ldomWordExList::findWordByPattern()
+{
+    ldomWordEx * lastBefore = NULL;
+    ldomWordEx * firstAfter = NULL;
+    bool selReached = false;
+    for ( int i=0; i<length(); i++ ) {
+        ldomWordEx * item = get(i);
+        if ( item==selWord )
+            selReached = true;
+        lString16 text = item->getText();
+        text.lowercase();
+        bool flg = true;
+        for ( int j=0; j<pattern.length(); j++ ) {
+            if ( j>=text.length() ) {
+                flg = false;
+                break;
+            }
+            lString16 chars = pattern[j];
+            chars.lowercase();
+            bool charFound = false;
+            for ( int k=0; k<chars.length(); k++ ) {
+                if ( chars[k]==text[j] ) {
+                    charFound = true;
+                    break;
+                }
+            }
+            if ( !charFound ) {
+                flg = false;
+                break;
+            }
+        }
+        if ( !flg )
+            continue;
+        if ( selReached ) {
+            if ( firstAfter==NULL )
+                firstAfter = item;
+        } else {
+            lastBefore = item;
+        }
+    }
+
+    if ( firstAfter )
+        return firstAfter;
+    else
+        return lastBefore;
+}
+
+/// try append search pattern and find word
+ldomWordEx * ldomWordExList::appendPattern(lString16 chars)
+{
+    pattern.add(chars);
+    ldomWordEx * foundWord = findWordByPattern();
+
+    if ( foundWord ) {
+        selectWord(foundWord, DIR_ANY);
+    } else {
+        pattern.erase(pattern.length()-1, 1);
+    }
+    return foundWord;
+}
+
+/// remove last character from pattern and try to search
+ldomWordEx * ldomWordExList::reducePattern()
+{
+    if ( pattern.length()==0 )
+        return NULL;
+    pattern.erase(pattern.length()-1, 1);
+    ldomWordEx * foundWord = findWordByPattern();
+
+    if ( foundWord )
+        selectWord(foundWord, DIR_ANY);
+    return foundWord;
 }
 
 /// find word nearest to specified point

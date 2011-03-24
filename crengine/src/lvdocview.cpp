@@ -4851,3 +4851,21 @@ void LVPageWordSelector::moveBy( MoveDirection dir, int distance )
     _words.selectNextWord(dir, distance);
     updateSelection();
 }
+
+// append chars to search pattern
+ldomWordEx * LVPageWordSelector::appendPattern( lString16 chars )
+{
+    ldomWordEx * res = _words.appendPattern(chars);
+    if ( res )
+        updateSelection();
+    return res;
+}
+
+// remove last item from pattern
+ldomWordEx * LVPageWordSelector::reducePattern()
+{
+    ldomWordEx * res = _words.reducePattern();
+    if ( res )
+        updateSelection();
+    return res;
+}
