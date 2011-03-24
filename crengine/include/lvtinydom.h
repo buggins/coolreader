@@ -1503,6 +1503,14 @@ public:
 
 typedef LVPtrVector<ldomMarkedText> ldomMarkedTextList;
 
+enum MoveDirection {
+    DIR_ANY,
+    DIR_LEFT,
+    DIR_RIGHT,
+    DIR_UP,
+    DIR_DOWN,
+};
+
 /// range in document, marked with specified flags
 class ldomMarkedRange
 {
@@ -1520,7 +1528,7 @@ public:
     /// returns mark middle point for single line mark, or start point for multiline mark
     lvPoint getMiddlePoint();
     /// returns distance (dx+dy) from specified point to middle point
-    int calcDistance( int x, int y );
+    int calcDistance( int x, int y, MoveDirection dir );
     /// returns true if intersects specified line rectangle
     bool intersects( lvRect & rc, lvRect & intersection );
     /// constructor
@@ -1561,14 +1569,6 @@ public:
     lString16 & getText() { return _text; }
 };
 
-enum MoveDirection {
-    DIR_ANY,
-    DIR_LEFT,
-    DIR_RIGHT,
-    DIR_UP,
-    DIR_DOWN,
-};
-
 /// list of extended words
 class ldomWordExList : public LVPtrVector<ldomWordEx>
 {
@@ -1590,7 +1590,7 @@ public:
     /// find word nearest to specified point
     ldomWordEx * findNearestWord( int x, int y, MoveDirection dir );
     /// select word
-    void selectWord( ldomWordEx * word );
+    void selectWord( ldomWordEx * word, MoveDirection dir );
     /// select next word in specified direction
     ldomWordEx * selectNextWord( MoveDirection dir, int moveBy = 1 );
     /// select middle word in range

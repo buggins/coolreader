@@ -211,6 +211,7 @@ void CR3View::startWordSelection() {
     if ( isWordSelection() )
         endWordSelection();
     _wordSelector = new LVPageWordSelector(_docview);
+    update();
 }
 
 QString CR3View::endWordSelection() {

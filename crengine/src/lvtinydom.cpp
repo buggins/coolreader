@@ -6037,8 +6037,11 @@ public:
         ldomNode * node = nodeRange->getStart().getNode();
         lString16 text = node->getText();
         int len = text.length();
+        int end = nodeRange->getEnd().getOffset();
+        if ( len>end )
+            len = end;
         int beginOfWord = -1;
-        for ( int i=0; i <= len; i++ ) {
+        for ( int i=nodeRange->getStart().getOffset(); i <= len; i++ ) {
             int alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
             if (alpha && beginOfWord<0 ) {
                 beginOfWord = i;
@@ -6085,22 +6088,33 @@ lvPoint ldomMarkedRange::getMiddlePoint() {
 }
 
 /// returns distance (dx+dy) from specified point to middle point
-int ldomMarkedRange::calcDistance( int x, int y ) {
+int ldomMarkedRange::calcDistance( int x, int y, MoveDirection dir ) {
     lvPoint middle = getMiddlePoint();
     int dx = middle.x - x;
     int dy = middle.y - y;
     if ( dx<0 ) dx = -dx;
     if ( dy<0 ) dy = -dy;
+    switch (dir) {
+    case DIR_LEFT:
+    case DIR_RIGHT:
+        return dx + dy;
+    case DIR_UP:
+    case DIR_DOWN:
+        return dx + dy*100;
+    }
+
+
     return dx + dy;
 }
 
 /// select word
-void ldomWordExList::selectWord( ldomWordEx * word )
+void ldomWordExList::selectWord( ldomWordEx * word, MoveDirection dir )
 {
     selWord = word;
     if ( selWord ) {
         lvPoint middle = word->getMark().getMiddlePoint();
-        x = middle.x;
+        if ( x==-1 || (dir!=DIR_UP && dir!=DIR_DOWN) )
+            x = middle.x;
         y = middle.y;
     } else {
         x = y = -1;
@@ -6115,7 +6129,7 @@ ldomWordEx * ldomWordExList::selectNextWord( MoveDirection dir, int moveBy )
     for ( int i=0; i<moveBy; i++ ) {
         ldomWordEx * word = findNearestWord( x, y, dir );
         if ( word )
-            selectWord( word );
+            selectWord( word, dir );
     }
     return selWord;
 }
@@ -6125,7 +6139,7 @@ ldomWordEx * ldomWordExList::selectMiddleWord() {
     if ( minx==-1 )
         init();
     ldomWordEx * word = findNearestWord( (maxx+minx)/2, (miny+maxy)/2, DIR_ANY );
-    selectWord(word);
+    selectWord(word, DIR_ANY);
     return word;
 }
 
@@ -6153,24 +6167,27 @@ ldomWordEx * ldomWordExList::findNearestWord( int x, int y, MoveDirection dir ) 
         ldomWordEx * nextLineWord = NULL;
         for ( i=0; i<length(); i++ ) {
             ldomWordEx * item = get(i);
+            if ( dir!=DIR_ANY && item==selWord )
+                continue;
             ldomMarkedRange * mark = &item->getMark();
             lvPoint middle = mark->getMiddlePoint();
             switch ( dir ) {
             case DIR_LEFT:
+                if ( middle.y<thisLineY )
+                    nextLineWord = item; // last word of prev line
                 if ( middle.x>=x )
                     continue;
-                nextLineWord = item; // last word of prev line
                 break;
             case DIR_RIGHT:
+                if ( nextLineWord==NULL && middle.y>thisLineY )
+                    nextLineWord = item; // first word of next line
                 if ( middle.x<=x )
                     continue;
-                if ( nextLineWord!=NULL )
-                    nextLineWord = item; // first word of next line
                 break;
             }
             if ( middle.y!=thisLineY )
                 continue;
-            int dist = mark->calcDistance(x, y);
+            int dist = mark->calcDistance(x, y, dir);
             if ( bestDistance==-1 || dist<bestDistance ) {
                 bestWord = item;
                 bestDistance = dist;
@@ -6184,6 +6201,8 @@ ldomWordEx * ldomWordExList::findNearestWord( int x, int y, MoveDirection dir ) 
     }
     for ( i=0; i<length(); i++ ) {
         ldomWordEx * item = get(i);
+        if ( dir!=DIR_ANY && item==selWord )
+            continue;
         ldomMarkedRange * mark = &item->getMark();
         lvPoint middle = mark->getMiddlePoint();
         if ( dir==DIR_UP && middle.y >= y )
@@ -6191,7 +6210,7 @@ ldomWordEx * ldomWordExList::findNearestWord( int x, int y, MoveDirection dir ) 
         if ( dir==DIR_DOWN && middle.y <= y )
             continue;
 
-        int dist = mark->calcDistance(x, y);
+        int dist = mark->calcDistance(x, y, dir);
         if ( bestDistance==-1 || dist<bestDistance ) {
             bestWord = item;
             bestDistance = dist;
