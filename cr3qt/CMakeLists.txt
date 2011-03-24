@@ -57,7 +57,7 @@ ENDIF(UNIX)
 
 
 
-SET(LANGUAGES ru uk de es pl)
+SET(LANGUAGES ru uk de es pl bg)
 message( "Languages: ${LANGUAGES}" )
 SET(LANGUAGE_TS_FILES)
 FOREACH(LANGUAGE ${LANGUAGES})
