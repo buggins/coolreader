@@ -45,41 +45,19 @@ void CRInkViewScreen::update(const lvRect& rc, bool full)
     CRLog::trace("CRInkViewScreen::update(%d)", full ? 1 : 0);
     if ( rc.height()>400 && checkFullUpdateCounter() )
         full = true;
-    icanvas * canvas = new(icanvas);
-    lvRect clipRect;
-    canvas->width = _front->GetWidth();
-    canvas->height = _front->GetHeight();
-    canvas->scanline = _front->GetWidth();
-    canvas->depth = _front->GetBitsPerPixel();
-    _front->GetClipRect(&clipRect);
-    canvas->clipx1 = clipRect.left;
-    canvas->clipx2 = clipRect.right-1;
-    canvas->clipy1 = clipRect.top;
-    canvas->clipy2 = clipRect.bottom-1;
 
-/*    snprintf(buf, sizeof(buf), "w %d h %d s %d d %d", canvas->width, canvas->height, canvas->scanline, canvas->depth);
-    CRLog::trace(buf);
-    snprintf(buf, sizeof(buf), "x1 %d x2 %d y1 %d y2 %d", canvas->clipx1, canvas->clipx2, canvas->clipy1, canvas->clipy2);
-    CRLog::trace(buf);
-    snprintf(buf, sizeof(buf), "back %d txt %d b %d w %d",_front->GetBackgroundColor(), _front->GetTextColor(), _front->GetBlackColor(), _front->GetWhiteColor());
-    CRLog::trace(buf);*/
-
-    canvas->addr = _front->GetScanLine(0);
-    // TODO: this should work!! Why not??
-//    CRLog::trace("CRInkViewScreen::update() SetCanvas()");
-//    SetCanvas(canvas);
     if (!full)
     {
         CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc.left, rc.top, rc.width(), rc.height());
-        Stretch(_front->GetScanLine(rc.top), IMAGE_GRAY8, canvas->width, rc.height(), canvas->scanline, 0, rc.top, canvas->width, rc.height(), 0);
-        DitherArea(0, rc.top, canvas->width, rc.height(), 16, DITHER_PATTERN);
+        Stretch(_front->GetScanLine(rc.top), IMAGE_GRAY8, _front->GetWidth(), rc.height(), _front->GetRowSize(), 0, rc.top, _front->GetWidth(), rc.height(), 0);
+        DitherArea(0, rc.top, _front->GetWidth(), rc.height(), 16, DITHER_PATTERN);
         PartialUpdate(rc.left, rc.top, rc.width(), rc.height());
     }
     else
     {
         CRLog::trace("CRInkViewScreen::update() FullUpdate()");
-        Stretch(canvas->addr, IMAGE_GRAY8, canvas->width, canvas->height, canvas->scanline, 0, 0, canvas->width, canvas->height, 0);
-        DitherArea(0, 0, canvas->width, canvas->height, 16, DITHER_PATTERN);
+        Stretch(_front->GetScanLine(0), IMAGE_GRAY8, _front->GetWidth(), _front->GetHeight(), _front->GetRowSize(), 0, 0, _front->GetWidth(), _front->GetHeight(), 0);
+        DitherArea(0, 0, _front->GetWidth(), _front->GetHeight(), 16, DITHER_PATTERN);
         FullUpdate();
     }
     CRLog::trace("_fullUpdateInterval: %d, _fullUpdateCounter: %d  ", _fullUpdateInterval, _fullUpdateCounter);
