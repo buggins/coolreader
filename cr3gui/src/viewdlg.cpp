@@ -512,6 +512,7 @@ static const char * getCommandName( int command )
 	case MCMD_HELP: return _("Show manual");
 	case MCMD_HELP_KEYS: return _("Show key mapping");
     case MCMD_GO_PERCENT: return _("Go to percent...");
+    case MCMD_CONTENT: return _("Table of content");
     default: return _("Unknown command");
 	}
 }
