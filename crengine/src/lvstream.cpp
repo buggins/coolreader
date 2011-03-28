@@ -4771,3 +4771,414 @@ LVStreamRef LVCreateBlockWriteStream( LVStreamRef baseStream, int blockSize, int
         return baseStream;
     return LVStreamRef( new LVBlockWriteStream(baseStream, blockSize, blockCount) );
 }
+
+
+
+
+struct PDBHdr
+{
+    lUInt8    name[32];
+    lUInt16   attributes;
+    lUInt16   version;
+    lUInt32    creationDate;
+    lUInt32    modificationDate;
+    lUInt32    lastBackupDate;
+    lUInt32    modificationNumber;
+    lUInt32    appInfoID;
+    lUInt32    sortInfoID;
+    lUInt8     type[4];
+    lUInt8     creator[4];
+    lUInt32    uniqueIDSeed;
+    lUInt32    nextRecordList;
+    lUInt16    recordCount;
+    lUInt16    firstEntry;
+    bool read( LVStreamRef stream ) {
+        // TODO: byte order support
+        lvsize_t bytesRead = 0;
+        if ( stream->Read(this, sizeof(PDBHdr), &bytesRead )!=LVERR_OK )
+            return false;
+        if ( bytesRead!=sizeof(PDBHdr) )
+            return false;
+        return true;
+    }
+    bool checkType( const char * str ) {
+        return type[0]==str[0] && type[1]==str[1] && type[2]==str[2] && type[3]==str[3];
+    }
+
+    bool checkCreator( const char * str ) {
+        return creator[0]==str[0] && creator[1]==str[1] && creator[2]==str[2] && creator[3]==str[3];
+    }
+};
+
+struct PDBRecordEntry
+{
+    lUInt32 localChunkId;
+    lUInt8  attributes;
+    lUInt8  uniqueID[3];
+    bool read( LVStreamRef stream ) {
+        // TODO: byte order support
+        lvsize_t bytesRead = 0;
+        if ( stream->Read(this, sizeof(PDBRecordEntry), &bytesRead )!=LVERR_OK )
+            return false;
+        if ( bytesRead!=sizeof(PDBRecordEntry) )
+            return false;
+        return true;
+    }
+};
+
+struct PalmDocPreamble
+{
+    lUInt16 compression; // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
+    lUInt16 unused;      // 2  Unused  Always zero
+    lUInt32 textLength;  // 4  text length  Uncompressed length of the entire text of the book
+    lUInt16 recordCount; // 2  record count  Number of PDB records used for the text of the book.
+    lUInt16 recordSize;  // 2  record size  Maximum size of each record containing text, always 4096
+    //lUInt32 currentPosition; // 4  Current Position  Current reading position, as an offset into the uncompressed text
+    bool read( LVStreamRef stream ) {
+        // TODO: byte order support
+        lvsize_t bytesRead = 0;
+        if ( stream->Read(this, sizeof(PalmDocPreamble), &bytesRead )!=LVERR_OK )
+            return false;
+        if ( bytesRead!=sizeof(PalmDocPreamble) )
+            return false;
+        if ( compression!=1 && compression!=2 )
+            return false;
+        return true;
+    }
+};
+
+class PDBFile : public LVNamedStream {
+    struct Record {
+        lUInt32 offset;
+        lUInt32 size;
+        lUInt32 unpoffset;
+        lUInt32 unpsize;
+    };
+    LVArray<Record> _records;
+    LVStreamRef _stream;
+    enum Format {
+        UNKNOWN,
+        PALMDOC,
+        PLUCKER,
+        MOBI,
+    };
+    Format _format;
+    bool _compressed;
+    lUInt32 _textSize;
+    int _recordCount;
+    // read buffer
+    LVArray<lUInt8> _buf;
+    int     _bufIndex;
+    lvpos_t _bufOffset;
+    lvsize_t _bufSize;
+    lvpos_t _pos;
+
+    bool unpack( LVArray<lUInt8> & dst, LVArray<lUInt8> & src ) {
+        int srclen = src.length();
+        dst.clear();
+        dst.reserve(srclen);
+        int pos = 0;
+        lUInt32 b;
+
+        while (pos<srclen) {
+            b = src[pos];
+            pos++;
+            if (b > 0 && b < 9) {
+                for (int i=0; i<(int)b; i++)
+                    dst.add(src[pos++]);
+            } else if (b < 128) {
+                dst.add(b);
+            } else if (b > 0xc0) {
+                dst.add(' ');
+                dst.add(b & 0x7f);
+            } else {
+                if (pos >= srclen)
+                    break;
+                int z = ((int)b << 8) | src[pos];
+                pos++;
+                int m = (z & 0x3fff) >> 3;
+                int n = (z & 7) + 3;
+                for (int i=0; i<n; i++)
+                    dst.add(dst[dst.length()-m]);
+            }
+        }
+        return true;
+    }
+
+    bool readRecord( int index, LVArray<lUInt8> * dstbuf ) {
+        if ( index>=_records.length() )
+            return false;
+        LVArray<lUInt8> srcbuf;
+        LVArray<lUInt8> * buf = _compressed ? &srcbuf : dstbuf;
+        buf->clear();
+        buf->addSpace(_records[index].size);
+        lvsize_t bytesRead = 0;
+        _stream->SetPos(_records[index].offset);
+        if ( _stream->Read(buf->get(), _records[index].size, &bytesRead )!=LVERR_OK )
+            return false;
+        if ( bytesRead!=_records[index].size )
+            return false;
+        if ( !_compressed )
+            return true;
+        // unpack
+        return unpack(*dstbuf, srcbuf);
+    }
+
+    bool readBlock( int index ) {
+        if ( index<0 || index>=_recordCount )
+            return false;
+        if ( index==_bufIndex )
+            return true; // already read
+        bool res = readRecord( index+1, &_buf );
+        if ( !res )
+            return false;
+        _bufIndex = index;
+        _bufOffset = _records[index+1].unpoffset;
+        _bufSize = _records[index+1].unpsize;
+        return true;
+    }
+
+    int findBlock( lvpos_t pos ) {
+        if ( pos==_textSize )
+            return _recordCount-1;
+        for ( int i=0; i<_recordCount; i++ ) {
+            if ( pos>=_records[i+1].unpoffset && pos<=_records[i+1].unpoffset+_records[i+1].unpsize )
+                return i;
+        }
+        return -1;
+    }
+
+    bool seek( lvpos_t pos ) {
+        int index = findBlock(pos);
+        if ( index<0 )
+            return false;
+        bool res = readBlock( index );
+        if ( !res )
+            return false;
+        _pos = pos;
+    }
+
+public:
+
+    static PDBFile * create( LVStreamRef stream, int & format ) {
+        format = 0;
+        PDBFile * res = new PDBFile();
+        if ( res->open(stream) ) {
+            format = res->_format;
+            return res;
+        }
+        delete res;
+        return NULL;
+    }
+
+    bool open( LVStreamRef stream ) {
+        _format = UNKNOWN;
+        stream->SetPos(0);
+        lUInt32 fsize = stream->GetSize();
+        PDBHdr hdr;
+        PDBRecordEntry entry;
+        if ( !hdr.read(stream) )
+            return false;
+        if ( hdr.recordCount==0 )
+            return 0;
+
+        if ( hdr.checkType("TEXt") && hdr.checkType("REAd") )
+            _format = PALMDOC;
+        if ( hdr.checkType("BOOK") && hdr.checkType("MOBI") )
+            _format = MOBI;
+        if ( hdr.checkType("Data") && hdr.checkType("Plkr") )
+            _format = PLUCKER;
+        if ( hdr.checkType("ToGo") && hdr.checkType("ToGo") )
+            _format = PALMDOC;
+        if ( _format==UNKNOWN )
+            return false; // UNKNOWN FORMAT
+
+        lUInt32 lastEntryStart = 0;
+        _records.addSpace(hdr.recordCount);
+        for ( int i=0; i<hdr.recordCount; i++ ) {
+            lUInt32 pos = entry.localChunkId;
+            if ( !entry.read(stream) )
+                return false;
+            if ( pos<lastEntryStart || pos>=fsize )
+                return false;
+            _records[i].offset = pos;
+            if ( i>0 )
+                _records[i-1].size = pos - _records[i-1].offset;
+            lastEntryStart = pos;
+        }
+        _records[_records.length()-1].size = fsize - _records[_records.length()-1].offset;
+
+        if ( _records[0].size<sizeof(PalmDocPreamble) )
+            return false;
+
+        PalmDocPreamble preamble;
+        stream->SetPos(_records[0].offset);
+        if ( !preamble.read(stream) )
+            return false; // invalid preamble
+        if ( preamble.recordCount>=_records.length() )
+            return false;
+
+        _compressed = preamble.compression==2;
+        _textSize = preamble.textLength;
+        _recordCount = preamble.recordCount;
+
+        LVArray<lUInt8> buf;
+        lUInt32 unpoffset = 0;
+        _crc = 0;
+        for ( int k=0; k<_recordCount; k++ ) {
+            readRecord(k+1, &buf);
+            _records[k+1].unpoffset = unpoffset;
+            _records[k+1].unpsize = buf.length();
+            unpoffset += buf.length();
+            _crc = lStr_crc32( _crc, buf.get(), buf.length() );
+        }
+        if ( unpoffset!=_textSize )
+            return false; // text size does not match
+
+        _stream = stream;
+
+        _bufIndex = -1;
+        _bufSize = 0;
+        _bufOffset = 0;
+
+        SetName(_stream->GetName());
+        m_mode = LVOM_READ;
+
+        return true;
+    }
+
+    /// Seek (change file pos)
+    /**
+        \param offset is file offset (bytes) relateve to origin
+        \param origin is offset base
+        \param pNewPos points to place to store new file position
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos ) {
+        lvpos_t npos = 0;
+        lvpos_t currpos = _pos;
+        switch (origin) {
+        case LVSEEK_SET:
+            npos = offset;
+            break;
+        case LVSEEK_CUR:
+            npos = currpos + offset;
+            break;
+        case LVSEEK_END:
+            npos = _textSize + offset;
+            break;
+        }
+        if (npos > _textSize)
+            return LVERR_FAIL;
+        if (!seek(npos) )
+            return LVERR_FAIL;
+        if (pNewPos)
+            *pNewPos =  _pos;
+        return LVERR_OK;
+    }
+
+    /// Get file position
+    /**
+        \return lvpos_t file position
+    */
+    virtual lvpos_t GetPos()
+    {
+        return _pos;
+    }
+
+    /// Get file size
+    /**
+        \return lvsize_t file size
+    */
+    virtual lvsize_t  GetSize()
+    {
+        return _textSize;
+    }
+
+    virtual lverror_t GetSize( lvsize_t * pSize )
+    {
+        *pSize = _textSize;
+        return LVERR_OK;
+    }
+
+    /// Set file size
+    /**
+        \param size is new file size
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t SetSize( lvsize_t size ) {
+        return LVERR_NOTIMPL;
+    }
+
+    /// Read
+    /**
+        \param buf is buffer to place bytes read from stream
+        \param count is number of bytes to read from stream
+        \param nBytesRead is place to store real number of bytes read from stream
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead ) {
+        lvsize_t bytesRead = 0;
+        if ( nBytesRead )
+            *nBytesRead = bytesRead;
+        lUInt8 * dst = (lUInt8 *)buf;
+        for ( ;; ) {
+            if ( ! seek(_pos) ) {
+                if ( _pos>=_textSize )
+                    break;
+                return LVERR_FAIL;
+            }
+            int bytesLeft = (int)(_bufOffset + _bufSize - _pos);
+            if ( bytesLeft<=0 )
+                break;
+            int sz = count;
+            if ( sz>bytesLeft )
+                sz = bytesLeft;
+            for ( int i=0; i<sz; i++ )
+                dst[i] = _buf[_pos - _bufOffset + i];
+            _pos += sz;
+            dst += sz;
+            count -= sz;
+        }
+        if ( nBytesRead )
+            *nBytesRead = bytesRead;
+        return LVERR_OK;
+    }
+
+    /// Write
+    /**
+        \param buf is data to write to stream
+        \param count is number of bytes to write
+        \param nBytesWritten is place to store real number of bytes written to stream
+        \return lverror_t status: LVERR_OK if success
+    */
+    virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten ) {
+        return LVERR_NOTIMPL;
+    }
+
+    /// Check whether end of file is reached
+    /**
+        \return true if end of file reached
+    */
+    virtual bool Eof() {
+        return _pos>=_textSize;
+    }
+
+    /// Constructor
+    PDBFile() { }
+
+    /// Destructor
+    virtual ~PDBFile() { }
+
+};
+
+// open PDB stream from stream
+LVStreamRef LVOpenPDBStream( LVStreamRef srcstream, int &format )
+{
+    PDBFile * stream = PDBFile::create( srcstream, format );
+    if ( stream!=NULL )
+    {
+        return LVStreamRef( stream );
+    }
+    return LVStreamRef();
+}
