@@ -23,7 +23,6 @@
 #include "cr3main.h"
 #include "mainwnd.h"
 
-#include <inkview.h>
 
 #define CR3PATH USERDATA "/share/crengine"
 
@@ -38,29 +37,45 @@
 #define HISTFILE CR3PATH "/cr3hist"
 
 CRInkViewWindowManager * wm;
+bool blockWM = false;
+
+void pageSelector(int page) {
+    blockWM = false;
+    wm->onCommand(MCMD_GO_PAGE_APPLY, page);
+}
+
+void tocHandler(long long position) 
+{
+    blockWM = false;
+    wm->onCommand(MCMD_GO_PAGE_APPLY, position);
+}
+
 
 void CRInkViewScreen::update(const lvRect& rc, bool full)
 {
     char buf[2000];
     CRLog::trace("CRInkViewScreen::update(%d)", full ? 1 : 0);
-    if ( rc.height()>400 && checkFullUpdateCounter() )
-        full = true;
-
-    if (!full)
+    if (!blockWM)
     {
-        CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc.left, rc.top, rc.width(), rc.height());
-        Stretch(_front->GetScanLine(rc.top), IMAGE_GRAY8, _front->GetWidth(), rc.height(), _front->GetRowSize(), 0, rc.top, _front->GetWidth(), rc.height(), 0);
-        DitherArea(0, rc.top, _front->GetWidth(), rc.height(), 16, DITHER_PATTERN);
-        PartialUpdate(rc.left, rc.top, rc.width(), rc.height());
+        if ( rc.height()>400 && checkFullUpdateCounter() )
+            full = true;
+        
+        if (!full)
+        {
+            CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc.left, rc.top, rc.width(), rc.height());
+            Stretch(_front->GetScanLine(rc.top), IMAGE_GRAY8, _front->GetWidth(), rc.height(), _front->GetRowSize(), 0, rc.top, _front->GetWidth(), rc.height(), 0);
+            DitherArea(0, rc.top, _front->GetWidth(), rc.height(), 16, DITHER_PATTERN);
+            PartialUpdate(rc.left, rc.top, rc.width(), rc.height());
+        }
+        else
+        {
+            CRLog::trace("CRInkViewScreen::update() FullUpdate()");
+            Stretch(_front->GetScanLine(0), IMAGE_GRAY8, _front->GetWidth(), _front->GetHeight(), _front->GetRowSize(), 0, 0, _front->GetWidth(), _front->GetHeight(), 0);
+            DitherArea(0, 0, _front->GetWidth(), _front->GetHeight(), 16, DITHER_PATTERN);
+            FullUpdate();
+        }
+        CRLog::trace("_fullUpdateInterval: %d, _fullUpdateCounter: %d  ", _fullUpdateInterval, _fullUpdateCounter);
     }
-    else
-    {
-        CRLog::trace("CRInkViewScreen::update() FullUpdate()");
-        Stretch(_front->GetScanLine(0), IMAGE_GRAY8, _front->GetWidth(), _front->GetHeight(), _front->GetRowSize(), 0, 0, _front->GetWidth(), _front->GetHeight(), 0);
-        DitherArea(0, 0, _front->GetWidth(), _front->GetHeight(), 16, DITHER_PATTERN);
-        FullUpdate();
-    }
-    CRLog::trace("_fullUpdateInterval: %d, _fullUpdateCounter: %d  ", _fullUpdateInterval, _fullUpdateCounter);
 }
 
 CRInkViewScreen::CRInkViewScreen(int width, int height): CRGUIScreenBase(width, height, true)
@@ -83,7 +98,8 @@ CRInkViewWindowManager::CRInkViewWindowManager(int width, int height): CRGUIWind
 void CRInkViewWindowManager::update(bool fullScreenUpdate, bool forceFlushScreen)
 {
     CRLog::trace("CRInkViewWindowManager::update(%d, %d)", fullScreenUpdate ? 1 : 0, forceFlushScreen ? 1 : 0);
-    CRGUIWindowManager::update(fullScreenUpdate, forceFlushScreen);
+    if (!blockWM)
+        CRGUIWindowManager::update(fullScreenUpdate, forceFlushScreen);
 }
 
 bool CRInkViewWindowManager::getBatteryStatus(int& percent, bool& charging)
@@ -91,6 +107,74 @@ bool CRInkViewWindowManager::getBatteryStatus(int& percent, bool& charging)
     percent = GetBatteryPower();
     charging = (IsCharging() == 1) ? true : false;
     return true;
+}
+
+
+bool CRInkViewDocView::onCommand(int command, int params)
+{
+    CRLog::info("CRInkViewDocView::onCommand(%d, %d)", command, params );
+    switch ( command ) {
+        case MCMD_GO_PAGE:
+            blockWM = true;
+            OpenPageSelector(pageSelector);
+            return true;
+        case MCMD_CONTENT:
+            showContents();
+            return true;
+        case MCMD_GO_PAGE_APPLY:
+            if (params <= 0)
+                params = 1;
+            if (params > _docview->getPageCount())
+                params = _docview->getPageCount();
+            if (V3DocViewWin::onCommand( command, params ))
+                _wm->update(true);
+            if (_toc)
+                freeContents() ;
+            return true;
+    }
+    return V3DocViewWin::onCommand(command, params);
+}
+
+void CRInkViewDocView::showContents()
+{
+    if (_toc == NULL) {
+        LVPtrVector<LVTocItem, false> tocItems;
+        _docview->getFlatToc(tocItems);
+        _tocLength = tocItems.length();
+        
+        if (_tocLength) {
+            int tocSize = (_tocLength + 1) * sizeof(tocentry);
+            _toc = (tocentry *) malloc(tocSize);
+            for (int i = 0; i < tocItems.length(); i++) {
+                LVTocItem * item = tocItems[i];
+                _toc[i].level = item->getLevel();
+                _toc[i].position = item->getPage() + 1;
+                _toc[i].page = _toc[i].position;
+                _toc[i].text = strdup(UnicodeToUtf8(item->getName()).c_str());
+                char *p = _toc[i].text;
+                while (*p) {
+                    if (*p == '\r' || *p == '\n') *p = ' ';
+                        p++;
+                }
+            }
+        } else {
+            Message(ICON_INFORMATION, const_cast<char*>("CoolReader"),
+                                                        const_cast<char*>("@No_contents"), 2000);
+            return;
+        }
+    }
+    blockWM = true;
+    OpenContents(_toc, _tocLength, _docview->getCurPage() + 1, tocHandler);         
+}
+
+void CRInkViewDocView::freeContents()
+{
+    for (int i = 0; i < _tocLength; i++) {
+        if (_toc[i].text)
+            free(_toc[i].text);
+    }
+    free(_toc);
+    _toc = NULL;
 }
 
 
@@ -122,7 +206,7 @@ int InitDoc(char *fileName)
         CRLog::error("Cannot initialize swap directory");
     }
     CRLog::trace("creating main window...");
-    V3DocViewWin * main_win = new V3DocViewWin( wm, lString16(CR3PATH) );    
+    CRInkViewDocView * main_win = new CRInkViewDocView( wm, lString16(CR3PATH) );    
 //    if ( manual_file[0] )
 //        main_win->setHelpFile( lString16( manual_file ) );
 //    main_win->loadDefaultCover( lString16( L"/root/abook/crengine/cr3_def_cover.png" ) )

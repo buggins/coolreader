@@ -19,6 +19,9 @@
 
 #include <crengine.h>
 #include <crgui.h>
+#include "mainwnd.h"
+
+#include <inkview.h>
 
 class CRInkViewScreen : public CRGUIScreenBase
 {
@@ -37,3 +40,17 @@ class CRInkViewWindowManager : public CRGUIWindowManager
         virtual bool getBatteryStatus( int & percent, bool & charging );
 };
 
+class CRInkViewDocView : public V3DocViewWin
+{
+    private:
+        tocentry *_toc;
+        int _tocLength;
+    public:
+        CRInkViewDocView( CRGUIWindowManager * wm, lString16 dataDir )
+        : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL) {};
+        
+        virtual bool onCommand( int command, int params );
+        void showContents();
+        void freeContents();
+        
+};
