@@ -39,6 +39,9 @@
                 <data android:pathPattern=".*\\.htm"/>
                 <data android:pathPattern=".*\\.chm"/>
                 <data android:pathPattern=".*\\.epub"/>
+                <data android:pathPattern=".*\\.pdb"/>
+                <data android:pathPattern=".*\\.prc"/>
+                <data android:pathPattern=".*\\.mobi"/>
                 <data android:pathPattern=".*\\.tcr"/>
             </intent-filter>
             <intent-filter>
