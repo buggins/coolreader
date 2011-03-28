@@ -4799,6 +4799,22 @@ struct PDBHdr
             return false;
         if ( bytesRead!=sizeof(PDBHdr) )
             return false;
+        lvByteOrderConv cnv;
+        if ( cnv.msf() )
+        {
+            cnv.rev(attributes);
+            cnv.rev(version);
+            cnv.rev(creationDate);
+            cnv.rev(modificationDate);
+            cnv.rev(lastBackupDate);
+            cnv.rev(modificationNumber);
+            cnv.rev(appInfoID);
+            cnv.rev(sortInfoID);
+            cnv.rev(uniqueIDSeed);
+            cnv.rev(nextRecordList);
+            cnv.rev(recordCount);
+            cnv.rev(firstEntry);
+        }
         return true;
     }
     bool checkType( const char * str ) {
@@ -4813,8 +4829,8 @@ struct PDBHdr
 struct PDBRecordEntry
 {
     lUInt32 localChunkId;
-    lUInt8  attributes;
-    lUInt8  uniqueID[3];
+    lUInt8  attributes[4];
+    //lUInt8  uniqueID[3];
     bool read( LVStreamRef stream ) {
         // TODO: byte order support
         lvsize_t bytesRead = 0;
@@ -4822,6 +4838,11 @@ struct PDBRecordEntry
             return false;
         if ( bytesRead!=sizeof(PDBRecordEntry) )
             return false;
+        lvByteOrderConv cnv;
+        if ( cnv.msf() )
+        {
+            cnv.rev(localChunkId);
+        }
         return true;
     }
 };
@@ -4841,6 +4862,14 @@ struct PalmDocPreamble
             return false;
         if ( bytesRead!=sizeof(PalmDocPreamble) )
             return false;
+        lvByteOrderConv cnv;
+        if ( cnv.msf() )
+        {
+            cnv.rev(compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
+            cnv.rev(textLength);  // 4  text length  Uncompressed length of the entire text of the book
+            cnv.rev(recordCount); // 2  record count  Number of PDB records used for the text of the book.
+            cnv.rev(recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
+        }
         if ( compression!=1 && compression!=2 )
             return false;
         return true;
@@ -4996,9 +5025,9 @@ public:
         lUInt32 lastEntryStart = 0;
         _records.addSpace(hdr.recordCount);
         for ( int i=0; i<hdr.recordCount; i++ ) {
-            lUInt32 pos = entry.localChunkId;
             if ( !entry.read(stream) )
                 return false;
+            lUInt32 pos = entry.localChunkId;
             if ( pos<lastEntryStart || pos>=fsize )
                 return false;
             _records[i].offset = pos;
@@ -5176,6 +5205,7 @@ public:
 LVStreamRef LVOpenPDBStream( LVStreamRef srcstream, int &format )
 {
     PDBFile * stream = PDBFile::create( srcstream, format );
+    srcstream->SetPos(0);
     if ( stream!=NULL )
     {
         return LVStreamRef( stream );

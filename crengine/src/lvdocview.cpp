@@ -3126,6 +3126,15 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 				DOC_PROP_FILE_NAME, ""));
 	}
 	LVLock lock(getMutex());
+
+    int pdbFormat = 0;
+    LVStreamRef pdbStream = LVOpenPDBStream( stream, pdbFormat );
+    if ( !pdbStream.isNull() ) {
+        CRLog::info("PDB format detected, stream size=%d", (int)pdbStream->GetSize() );
+        // TODO: import PDB
+        return false;
+    }
+
 	{
 		clearImageCache();
 		m_filesize = stream->GetSize();
