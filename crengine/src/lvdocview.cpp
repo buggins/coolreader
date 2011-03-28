@@ -3131,8 +3131,11 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
     LVStreamRef pdbStream = LVOpenPDBStream( stream, pdbFormat );
     if ( !pdbStream.isNull() ) {
         CRLog::info("PDB format detected, stream size=%d", (int)pdbStream->GetSize() );
-        // TODO: import PDB
-        return false;
+        LVStreamRef out = LVOpenFileStream("/tmp/pdb.txt", LVOM_WRITE);
+        if ( !out.isNull() )
+            LVPumpStream(out.get(), pdbStream.get()); // DEBUG
+        stream = pdbStream;
+        //return false;
     }
 
 	{

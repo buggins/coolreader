@@ -4854,7 +4854,6 @@ struct PalmDocPreamble
     lUInt32 textLength;  // 4  text length  Uncompressed length of the entire text of the book
     lUInt16 recordCount; // 2  record count  Number of PDB records used for the text of the book.
     lUInt16 recordSize;  // 2  record size  Maximum size of each record containing text, always 4096
-    //lUInt32 currentPosition; // 4  Current Position  Current reading position, as an offset into the uncompressed text
     bool read( LVStreamRef stream ) {
         // TODO: byte order support
         lvsize_t bytesRead = 0;
@@ -4876,6 +4875,166 @@ struct PalmDocPreamble
     }
 };
 
+struct MobiPreamble : public PalmDocPreamble
+{
+    lUInt16 mobiEncryption;  // 2  Encryption Type	0 == no encryption, 1 = Old Mobipocket Encryption, 2 = Mobipocket Encryption
+    lUInt16 unused2;     // 2  unknown, usually 0
+
+    lUInt8  mobiSignature[4]; // 16	4	identifier	the characters M O B I
+    lUInt32 hederLength; // 20	4	header length	the length of the MOBI header, including the previous 4 bytes
+    lUInt32 mobiType;    //    24	4	Mobi type	The kind of Mobipocket file this is
+            //    2 Mobipocket Book
+            //    3 PalmDoc Book
+            //    4 Audio
+            //    257 News
+            //    258 News_Feed
+            //    259 News_Magazine
+            //    513 PICS
+            //    514 WORD
+            //    515 XLS
+            //    516 PPT
+            //    517 TEXT
+            //    518 HTML
+    lUInt32 encoding; //    28	4	text Encoding	1252 = CP1252 (WinLatin1); 65001 = UTF-8
+    lUInt32 uid; //    32	4	Unique-ID	Some kind of unique ID number (random?)
+    lUInt32 fileVersion; //    36	4	File version	Version of the Mobipocket format used in this file.
+    lUInt32 reserved[10]; //    40	40	Reserved	all 0xFF. In case of a dictionary, or some newer file formats, a few bytes are used from this range of 40 0xFFs
+    lUInt32 firstNonBookIndex; //    80	4	First Non-book index?	First record number (starting with 0) that's not the book's text
+    lUInt32 fullNameOffset; //    84	4	Full Name Offset	Offset in record 0 (not from start of file) of the full name of the book
+    lUInt32 fullNameLength; //    88	4	Full Name Length	Length in bytes of the full name of the book
+    lUInt32 locale; //    92	4	Locale	Book locale code. Low byte is main language 09= English, next byte is dialect, 08 = British, 04 = US. Thus US English is 1033, UK English is 2057.
+    lUInt32 inputLanguage; //    96	4	Input Language	Input language for a dictionary
+    lUInt32 outputLanguage; //    100	4	Output Language	Output language for a dictionary
+    lUInt32 minVersion; //    104	4	Min version	Minimum mobipocket version support needed to read this file.
+    lUInt32 firstImageIndex; //    108	4	First Image index?	First record number (starting with 0) that contains an image. Image records should be sequential.
+    lUInt32 huffmanRecordOffset; //    112	4	Huffman Record Offset	The record number of the first huffman compression record.
+    lUInt32 huffmanRecordCount; //    116	4	Huffman Record Count	The number of huffman compression records.
+    lUInt32 reserved2[2]; //    120	8	?	eight bytes, often zeros
+    lUInt32 mobiFlags; //    128	4	EXTH flags	bitfield. if bit 6 (0x40) is set, then there's an EXTH record
+    lUInt32 unknown3[8]; //    132	32	?	32 unknown bytes, if MOBI is long enough
+    lUInt32 drmOffset; //    164	4	DRM Offset	Offset to DRM key info in DRMed files. 0xFFFFFFFF if no DRM
+    lUInt32 drmCount; //    168	4	DRM Count	Number of entries in DRM info. 0xFFFFFFFF if no DRM
+    lUInt32 drmSize; //    172	4	DRM Size	Number of bytes in DRM info.
+    lUInt32 drmFlags; //    176	4	DRM Flags	Some flags concerning the DRM info.
+
+
+    bool read( LVStreamRef stream ) {
+        // TODO: byte order support
+        lvsize_t bytesRead = 0;
+        if ( stream->Read(this, sizeof(MobiPreamble), &bytesRead )!=LVERR_OK )
+            return false;
+        if ( bytesRead!=sizeof(MobiPreamble) )
+            return false;
+        lvByteOrderConv cnv;
+        if ( cnv.lsf() )
+        {
+            cnv.rev(&compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
+            cnv.rev(&textLength);  // 4  text length  Uncompressed length of the entire text of the book
+            cnv.rev(&recordCount); // 2  record count  Number of PDB records used for the text of the book.
+            cnv.rev(&recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
+            cnv.rev(&mobiEncryption);// 2  Encryption Type	0 == no encryption, 1 = Old Mobipocket Encryption, 2 = Mobipocket Encryption
+            cnv.rev(&hederLength); // 20	4	header length	the length of the MOBI header, including the previous 4 bytes
+            cnv.rev(&mobiType);    //    24	4	Mobi type	The kind of Mobipocket file this is
+            cnv.rev(&encoding); //    28	4	text Encoding	1252 = CP1252 (WinLatin1); 65001 = UTF-8
+            cnv.rev(&uid); //    32	4	Unique-ID	Some kind of unique ID number (random?)
+            cnv.rev(&fileVersion); //    36	4	File version	Version of the Mobipocket format used in this file.
+            cnv.rev(&firstNonBookIndex); //    80	4	First Non-book index?	First record number (starting with 0) that's not the book's text
+            cnv.rev(&fullNameOffset); //    84	4	Full Name Offset	Offset in record 0 (not from start of file) of the full name of the book
+            cnv.rev(&fullNameLength); //    88	4	Full Name Length	Length in bytes of the full name of the book
+            cnv.rev(&locale); //    92	4	Locale	Book locale code. Low byte is main language 09= English, next byte is dialect, 08 = British, 04 = US. Thus US English is 1033, UK English is 2057.
+            cnv.rev(&inputLanguage); //    96	4	Input Language	Input language for a dictionary
+            cnv.rev(&outputLanguage); //    100	4	Output Language	Output language for a dictionary
+            cnv.rev(&minVersion); //    104	4	Min version	Minimum mobipocket version support needed to read this file.
+            cnv.rev(&firstImageIndex); //    108	4	First Image index?	First record number (starting with 0) that contains an image. Image records should be sequential.
+            cnv.rev(&huffmanRecordOffset); //    112	4	Huffman Record Offset	The record number of the first huffman compression record.
+            cnv.rev(&huffmanRecordCount); //    116	4	Huffman Record Count	The number of huffman compression records.
+            cnv.rev(&mobiFlags); //    128	4	EXTH flags	bitfield. if bit 6 (0x40) is set, then there's an EXTH record
+            cnv.rev(&drmOffset); //    164	4	DRM Offset	Offset to DRM key info in DRMed files. 0xFFFFFFFF if no DRM
+            cnv.rev(&drmCount); //    168	4	DRM Count	Number of entries in DRM info. 0xFFFFFFFF if no DRM
+            cnv.rev(&drmSize); //    172	4	DRM Size	Number of bytes in DRM info.
+            cnv.rev(&drmFlags); //    176	4	DRM Flags	Some flags concerning the DRM info.
+        }
+        if ( compression!=1 && compression!=2 )
+            return false;
+        if ( mobiType!=2 && mobiType!=3 && mobiType!=517 && mobiType!=518 )
+            return false; // unsupported type
+        if ( mobiEncryption!=0 )
+            return false; // encryption is not supported
+        return true;
+    }
+};
+
+// format description from http://wiki.mobileread.com/wiki/EReader
+struct EReaderHeader
+{
+    lUInt16 compression;    //    0-2	compression	Specifies compression and drm. 2 = palmdoc, 10 = zlib. 260 and 272 = DRM
+    lUInt16 unknown1[2];    //    2-6	unknown	Value of 0 is used
+    lUInt16 encoding;       //    6-8	encoding	Always 25152 (0x6240). All text must be encoded as Latin-1 cp1252
+    lUInt16 smallPageCount; //    8-10	Number of small pages	The number of small font pages. If page index is not build in then 0.
+    lUInt16 largePageCount; //    10-12	Number of large pages	The number of large font pages. If page index is not build in then 0.
+    lUInt16 nonTextRecordStart; //12-14	Non-Text record start	The location of the first non text records. record 1 to this value minus 1 are all text records
+    lUInt16 numberOfChapters;//    14-16	Number of chapters	The number of chapter index records contained in the file
+    lUInt16 smallPageRecordCount; //    16-18	Number of small index	The number of small font page index records contained in the file
+    lUInt16 largePageRecordCount; //    18-20	Number of large index	The number of large font page index records contained in the file
+    lUInt16 imageCount;        //    20-22	Number of images	The number of images contained in the file
+    lUInt16 linkCount;         //    22-24	Number of links	The number of links contained in the file
+    lUInt16 metadataAvailable; //    24-26	Metadata avaliable	Is there a metadata record in the file? 0 = None, 1 = There is a metadata record
+    lUInt16 unknown2; //    26-28	Unknown	Value of 0 is used
+    lUInt16 footnoteRecordsCount; //    28-30	Number of Footnotes	The number of footnote records in the file
+    lUInt16 sidebarRecordsCount; //    30-32	Number of Sidebars	The number of sidebar records in the file
+    lUInt16 chapterIndexStart; //    32-34	Chapter index record start	The location of chapter index records. If there are no chapters use the value for the Last data record.
+    lUInt16 unknown3; //    34-36	2560	Magic value that must be set to 2560
+    lUInt16 smallPageIndexStart; //    36-38	Small page index start	The location of small font page index records. If page table is not built in use the value for the Last data record.
+    lUInt16 largePageIndexStart; //    38-40	Large page index start	The location of large font page index records. If page table is not built in use the value for the Last data record.
+    lUInt16 imageDataRecordStart; //    40-42	Image data record start	The location of the first image record. If there are no images use the value for the Last data record.
+    lUInt16 linksRecordStart; //    42-44	Links record start	The location of the first link index record. If there are no links use the value for the Last data record.
+    lUInt16 metadataRecordStart; //    44-46	Metadata record start	The location of the metadata record. If there is no metadata use the value for the Last data record.
+    lUInt16 unknown4; //    46-48	Unknown	Value of 0 is used
+    lUInt16 footnoteRecordStart; //    48-50	Footnote record start	The location of the first footnote record. If there are no footnotes use the value for the Last data record.
+    lUInt16 sidebarRecordStart; //    50-52	Sidebar record start	The location of the first sidebar record. If there are no sidebars use the value for the Last data record.
+    lUInt16 lastDataRecord; //    52-54	Last data record	The location of the last data record
+    lUInt16 unknown5[39]; //    54-132	Unknown	Value of 0 is used
+    bool read( LVStreamRef stream ) {
+        lvsize_t bytesRead = 0;
+        if ( stream->Read(this, sizeof(EReaderHeader), &bytesRead )!=LVERR_OK )
+            return false;
+        if ( bytesRead!=sizeof(EReaderHeader) )
+            return false;
+        lvByteOrderConv cnv;
+        if ( cnv.lsf() )
+        {
+            cnv.rev(&compression);    //    0-2	compression	Specifies compression and drm. 2 = palmdoc, 10 = zlib. 260 and 272 = DRM
+            cnv.rev(&encoding);       //    6-8	encoding	Always 25152 (0x6240). All text must be encoded as Latin-1 cp1252
+            cnv.rev(&smallPageCount); //    8-10	Number of small pages	The number of small font pages. If page index is not build in then 0.
+            cnv.rev(&largePageCount); //    10-12	Number of large pages	The number of large font pages. If page index is not build in then 0.
+            cnv.rev(&nonTextRecordStart); //12-14	Non-Text record start	The location of the first non text records. record 1 to this value minus 1 are all text records
+            cnv.rev(&numberOfChapters);//    14-16	Number of chapters	The number of chapter index records contained in the file
+            cnv.rev(&smallPageRecordCount); //    16-18	Number of small index	The number of small font page index records contained in the file
+            cnv.rev(&largePageRecordCount); //    18-20	Number of large index	The number of large font page index records contained in the file
+            cnv.rev(&imageCount);        //    20-22	Number of images	The number of images contained in the file
+            cnv.rev(&linkCount);         //    22-24	Number of links	The number of links contained in the file
+            cnv.rev(&metadataAvailable); //    24-26	Metadata avaliable	Is there a metadata record in the file? 0 = None, 1 = There is a metadata record
+            cnv.rev(&footnoteRecordsCount); //    28-30	Number of Footnotes	The number of footnote records in the file
+            cnv.rev(&sidebarRecordsCount); //    30-32	Number of Sidebars	The number of sidebar records in the file
+            cnv.rev(&chapterIndexStart); //    32-34	Chapter index record start	The location of chapter index records. If there are no chapters use the value for the Last data record.
+            cnv.rev(&smallPageIndexStart); //    36-38	Small page index start	The location of small font page index records. If page table is not built in use the value for the Last data record.
+            cnv.rev(&largePageIndexStart); //    38-40	Large page index start	The location of large font page index records. If page table is not built in use the value for the Last data record.
+            cnv.rev(&imageDataRecordStart); //    40-42	Image data record start	The location of the first image record. If there are no images use the value for the Last data record.
+            cnv.rev(&linksRecordStart); //    42-44	Links record start	The location of the first link index record. If there are no links use the value for the Last data record.
+            cnv.rev(&metadataRecordStart); //    44-46	Metadata record start	The location of the metadata record. If there is no metadata use the value for the Last data record.
+            cnv.rev(&footnoteRecordStart); //    48-50	Footnote record start	The location of the first footnote record. If there are no footnotes use the value for the Last data record.
+            cnv.rev(&sidebarRecordStart); //    50-52	Sidebar record start	The location of the first sidebar record. If there are no sidebars use the value for the Last data record.
+            cnv.rev(&lastDataRecord); //    52-54	Last data record	The location of the last data record
+        }
+        if ( compression!=1 && compression!=2 && compression!=10 )
+            return false;
+        return true;
+    }
+};
+
+/// unpack data from _compbuf to _buf
+bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  );
+
 class PDBFile : public LVNamedStream {
     struct Record {
         lUInt32 offset;
@@ -4888,11 +5047,12 @@ class PDBFile : public LVNamedStream {
     enum Format {
         UNKNOWN,
         PALMDOC,
+        EREADER,
         PLUCKER,
         MOBI,
     };
     Format _format;
-    bool _compressed;
+    int _compression;
     lUInt32 _textSize;
     int _recordCount;
     // read buffer
@@ -4906,30 +5066,52 @@ class PDBFile : public LVNamedStream {
         int srclen = src.length();
         dst.clear();
         dst.reserve(srclen);
-        int pos = 0;
-        lUInt32 b;
 
-        while (pos<srclen) {
-            b = src[pos];
-            pos++;
-            if (b > 0 && b < 9) {
-                for (int i=0; i<(int)b; i++)
-                    dst.add(src[pos++]);
-            } else if (b < 128) {
-                dst.add(b);
-            } else if (b > 0xc0) {
-                dst.add(' ');
-                dst.add(b & 0x7f);
-            } else {
-                if (pos >= srclen)
-                    break;
-                int z = ((int)b << 8) | src[pos];
+        if ( _compression==2 ) {
+            // PalmDOC
+            int pos = 0;
+            lUInt32 b;
+
+            while (pos<srclen) {
+                b = src[pos];
                 pos++;
-                int m = (z & 0x3fff) >> 3;
-                int n = (z & 7) + 3;
-                for (int i=0; i<n; i++)
-                    dst.add(dst[dst.length()-m]);
+                if (b > 0 && b < 9) {
+                    for (int i=0; i<(int)b; i++)
+                        dst.add(src[pos++]);
+                } else if (b < 128) {
+                    dst.add(b);
+                } else if (b > 0xc0) {
+                    dst.add(' ');
+                    dst.add(b & 0x7f);
+                } else {
+                    if (pos >= srclen)
+                        break;
+                    int z = ((int)b << 8) | src[pos];
+                    pos++;
+                    int m = (z & 0x3fff) >> 3;
+                    int n = (z & 7) + 3;
+                    for (int i=0; i<n; i++)
+                        dst.add(dst[dst.length()-m]);
+                }
             }
+        } else if ( _compression==10 ) {
+            // zlib
+            /// unpack data from _compbuf to _buf
+            lUInt8 * dstbuf;
+            lUInt32 dstsize;
+            if ( !ldomUnpack( src.get(), src.size(), dstbuf, dstsize ) )
+                return false;
+            dst.add(dstbuf, dstsize);
+            free(dstbuf);
+        } else if ( _compression==17480 ) {
+            // zlib
+            /// unpack data from _compbuf to _buf
+            lUInt8 * dstbuf;
+            lUInt32 dstsize;
+            if ( !ldomUnpack( src.get(), src.size(), dstbuf, dstsize ) )
+                return false;
+            dst.add(dstbuf, dstsize);
+            free(dstbuf);
         }
         return true;
     }
@@ -4938,7 +5120,7 @@ class PDBFile : public LVNamedStream {
         if ( index>=_records.length() )
             return false;
         LVArray<lUInt8> srcbuf;
-        LVArray<lUInt8> * buf = _compressed ? &srcbuf : dstbuf;
+        LVArray<lUInt8> * buf = _compression ? &srcbuf : dstbuf;
         buf->clear();
         buf->addSpace(_records[index].size);
         lvsize_t bytesRead = 0;
@@ -4947,7 +5129,7 @@ class PDBFile : public LVNamedStream {
             return false;
         if ( bytesRead!=_records[index].size )
             return false;
-        if ( !_compressed )
+        if ( !_compression )
             return true;
         // unpack
         return unpack(*dstbuf, srcbuf);
@@ -4971,7 +5153,7 @@ class PDBFile : public LVNamedStream {
         if ( pos==_textSize )
             return _recordCount-1;
         for ( int i=0; i<_recordCount; i++ ) {
-            if ( pos>=_records[i+1].unpoffset && pos<=_records[i+1].unpoffset+_records[i+1].unpsize )
+            if ( pos>=_records[i+1].unpoffset && pos<_records[i+1].unpoffset+_records[i+1].unpsize )
                 return i;
         }
         return -1;
@@ -4985,6 +5167,7 @@ class PDBFile : public LVNamedStream {
         if ( !res )
             return false;
         _pos = pos;
+        return true;
     }
 
 public:
@@ -5011,14 +5194,16 @@ public:
         if ( hdr.recordCount==0 )
             return 0;
 
-        if ( hdr.checkType("TEXt") && hdr.checkType("REAd") )
+        if ( hdr.checkType("TEXt") && hdr.checkCreator("REAd") )
             _format = PALMDOC;
-        if ( hdr.checkType("BOOK") && hdr.checkType("MOBI") )
+        if ( hdr.checkType("PNRd") && hdr.checkCreator("PPrs") )
+            _format = EREADER;
+        if ( hdr.checkType("BOOK") && hdr.checkCreator("MOBI") )
             _format = MOBI;
-        if ( hdr.checkType("Data") && hdr.checkType("Plkr") )
-            _format = PLUCKER;
-        if ( hdr.checkType("ToGo") && hdr.checkType("ToGo") )
-            _format = PALMDOC;
+//        if ( hdr.checkType("Data") && hdr.checkCreator("Plkr") )
+//            _format = PLUCKER;
+//        if ( hdr.checkType("ToGo") && hdr.checkCreator("ToGo") )
+//            _format = PALMDOC;
         if ( _format==UNKNOWN )
             return false; // UNKNOWN FORMAT
 
@@ -5038,19 +5223,53 @@ public:
         }
         _records[_records.length()-1].size = fsize - _records[_records.length()-1].offset;
 
-        if ( _records[0].size<sizeof(PalmDocPreamble) )
-            return false;
 
-        PalmDocPreamble preamble;
-        stream->SetPos(_records[0].offset);
-        if ( !preamble.read(stream) )
-            return false; // invalid preamble
-        if ( preamble.recordCount>=_records.length() )
-            return false;
+        _stream = stream;
 
-        _compressed = preamble.compression==2;
-        _textSize = preamble.textLength;
-        _recordCount = preamble.recordCount;
+        if ( _format==EREADER ) {
+            if ( _records[0].size<sizeof(EReaderHeader) )
+                return false;
+            EReaderHeader preamble;
+            stream->SetPos(_records[0].offset);
+            if ( !preamble.read(stream) )
+                return false; // invalid preamble
+            _recordCount = preamble.nonTextRecordStart - 1;
+            if ( _recordCount>=_records.length() )
+                return false;
+            _compression = preamble.compression;
+            if ( _compression==1 )
+                _compression = 0;
+            _textSize = -1;
+        } else if (_format==MOBI ) {
+            if ( _records[0].size<sizeof(MobiPreamble) )
+                return false;
+            MobiPreamble preamble;
+            stream->SetPos(_records[0].offset);
+            if ( !preamble.read(stream) )
+                return false; // invalid preamble
+            if ( preamble.recordCount>=_records.length() )
+                return false;
+            _compression = preamble.compression;
+            if ( _compression==1 )
+                _compression = 0;
+            _textSize = preamble.textLength;
+            _recordCount = preamble.firstNonBookIndex - 1;
+        } else if (_format==PALMDOC ) {
+            if ( _records[0].size<sizeof(PalmDocPreamble) )
+                return false;
+            PalmDocPreamble preamble;
+            stream->SetPos(_records[0].offset);
+            if ( !preamble.read(stream) )
+                return false; // invalid preamble
+            if ( preamble.recordCount>=_records.length() )
+                return false;
+            _compression = preamble.compression;
+            if ( _compression==1 )
+                _compression = 0;
+            _textSize = preamble.textLength;
+            _recordCount = preamble.recordCount;
+        }
+
 
         LVArray<lUInt8> buf;
         lUInt32 unpoffset = 0;
@@ -5061,11 +5280,16 @@ public:
             _records[k+1].unpsize = buf.length();
             unpoffset += buf.length();
             _crc = lStr_crc32( _crc, buf.get(), buf.length() );
+//            if ( unpoffset>=_textSize ) {
+//                _recordCount = k;
+//                break;
+//            }
         }
-        if ( unpoffset!=_textSize )
+        if ( _textSize==-1 )
+            _textSize = unpoffset;
+        else if ( unpoffset<_textSize )
             return false; // text size does not match
 
-        _stream = stream;
 
         _bufIndex = -1;
         _bufSize = 0;
@@ -5152,7 +5376,7 @@ public:
         if ( nBytesRead )
             *nBytesRead = bytesRead;
         lUInt8 * dst = (lUInt8 *)buf;
-        for ( ;; ) {
+        while ( count > 0 ) {
             if ( ! seek(_pos) ) {
                 if ( _pos>=_textSize )
                     break;
@@ -5169,6 +5393,7 @@ public:
             _pos += sz;
             dst += sz;
             count -= sz;
+            bytesRead += sz;
         }
         if ( nBytesRead )
             *nBytesRead = bytesRead;
