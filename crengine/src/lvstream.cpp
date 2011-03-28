@@ -4800,20 +4800,20 @@ struct PDBHdr
         if ( bytesRead!=sizeof(PDBHdr) )
             return false;
         lvByteOrderConv cnv;
-        if ( cnv.msf() )
+        if ( cnv.lsf() )
         {
-            cnv.rev(attributes);
-            cnv.rev(version);
-            cnv.rev(creationDate);
-            cnv.rev(modificationDate);
-            cnv.rev(lastBackupDate);
-            cnv.rev(modificationNumber);
-            cnv.rev(appInfoID);
-            cnv.rev(sortInfoID);
-            cnv.rev(uniqueIDSeed);
-            cnv.rev(nextRecordList);
-            cnv.rev(recordCount);
-            cnv.rev(firstEntry);
+            cnv.rev(&attributes);
+            cnv.rev(&version);
+            cnv.rev(&creationDate);
+            cnv.rev(&modificationDate);
+            cnv.rev(&lastBackupDate);
+            cnv.rev(&modificationNumber);
+            cnv.rev(&appInfoID);
+            cnv.rev(&sortInfoID);
+            cnv.rev(&uniqueIDSeed);
+            cnv.rev(&nextRecordList);
+            cnv.rev(&recordCount);
+            cnv.rev(&firstEntry);
         }
         return true;
     }
@@ -4839,9 +4839,9 @@ struct PDBRecordEntry
         if ( bytesRead!=sizeof(PDBRecordEntry) )
             return false;
         lvByteOrderConv cnv;
-        if ( cnv.msf() )
+        if ( cnv.lsf() )
         {
-            cnv.rev(localChunkId);
+            cnv.rev(&localChunkId);
         }
         return true;
     }
@@ -4863,12 +4863,12 @@ struct PalmDocPreamble
         if ( bytesRead!=sizeof(PalmDocPreamble) )
             return false;
         lvByteOrderConv cnv;
-        if ( cnv.msf() )
+        if ( cnv.lsf() )
         {
-            cnv.rev(compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
-            cnv.rev(textLength);  // 4  text length  Uncompressed length of the entire text of the book
-            cnv.rev(recordCount); // 2  record count  Number of PDB records used for the text of the book.
-            cnv.rev(recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
+            cnv.rev(&compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
+            cnv.rev(&textLength);  // 4  text length  Uncompressed length of the entire text of the book
+            cnv.rev(&recordCount); // 2  record count  Number of PDB records used for the text of the book.
+            cnv.rev(&recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
         }
         if ( compression!=1 && compression!=2 )
             return false;
@@ -5022,6 +5022,7 @@ public:
         if ( _format==UNKNOWN )
             return false; // UNKNOWN FORMAT
 
+        stream->SetPos(0x4E);
         lUInt32 lastEntryStart = 0;
         _records.addSpace(hdr.recordCount);
         for ( int i=0; i<hdr.recordCount; i++ ) {
