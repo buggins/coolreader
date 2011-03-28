@@ -112,7 +112,7 @@ bool CRInkViewWindowManager::getBatteryStatus(int& percent, bool& charging)
 
 bool CRInkViewDocView::onCommand(int command, int params)
 {
-    CRLog::info("CRInkViewDocView::onCommand(%d, %d)", command, params );
+    CRLog::trace("CRInkViewDocView::onCommand(%d, %d)", command, params );
     switch ( command ) {
         case MCMD_GO_PAGE:
             blockWM = true;
@@ -292,6 +292,15 @@ int main_handler(int type, int par1, int par2)
             wm->postEvent( new CRGUIClickEvent(par1, par2, longtouch) );
             wm->handleAllEvents(false);
             break;
+        case EVT_SNAPSHOT:
+            PageSnapshot();
+            break;
+        case EVT_EXIT:
+            wm->closeAllWindows();
+            break;
+        default:
+            CRLog::trace("Unhandled Event: %d, %d, %d", type, par1, par2);
+            
 
     }
     
