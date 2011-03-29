@@ -1,4 +1,5 @@
 #include "../include/pdbfmt.h"
+#include <ctype.h>
 
 struct PDBHdr
 {
@@ -268,6 +269,10 @@ class LVPDBContainerItem : public LVContainerItemInfo {
     int _size;
     lString16 _name;
 public:
+    /// returns object size (file size or directory entry count)
+    virtual lverror_t GetSize( lvsize_t * pSize ) {
+        *pSize = _size;
+    }
     virtual lvsize_t        GetSize() const { return _size; }
     virtual const lChar16 * GetName() const { return _name.c_str(); }
     virtual lUInt32         GetFlags() const { return 0; }
@@ -283,11 +288,8 @@ public:
 
 class LVPDBContainer : public LVContainer
 {
-    PDBFile * _file;
-    LVStreamRef _contentStream;
     LVPtrVector<LVPDBContainerItem> _list;
 public:
-    LVStreamRef getContentStream() { return _contentStream; }
     virtual LVContainer * GetParentContainer() { return NULL; }
 
     void addItem ( LVPDBContainerItem * item ) {
@@ -300,6 +302,11 @@ public:
             return _list[index];
     }
     virtual int GetObjectCount() const { return _list.length(); }
+    /// returns object size (file size or directory entry count)
+    virtual lverror_t GetSize( lvsize_t * pSize ) {
+        *pSize = _list.length();
+    }
+
     virtual LVStreamRef OpenStream( const lChar16 * fname, lvopen_mode_t mode ) {
         if ( mode!=LVOM_READ )
             return LVStreamRef();
@@ -309,13 +316,18 @@ public:
         return LVStreamRef();
     }
 
-    LVPDBContainer( PDBFile * file ) {
-        _contentStream = LVStreamRef((LVStream*)file);
+    LVPDBContainer() {
+        //_contentStream = LVStreamRef((LVStream*)file);
     }
     virtual ~LVPDBContainer() { }
 };
 
-
+static bool pattern_cmp( const lUInt8 * buf, const char * pattern ) {
+    for ( int i=0; pattern[i]; i++ )
+        if ( tolower(buf[i])!=pattern[i] )
+            return false;
+    return true;
+}
 
 class PDBFile : public LVNamedStream {
     struct Record {
@@ -343,7 +355,7 @@ class PDBFile : public LVNamedStream {
     lvpos_t _bufOffset;
     lvsize_t _bufSize;
     lvpos_t _pos;
-
+    LVPDBContainer _container;
     bool unpack( LVArray<lUInt8> & dst, LVArray<lUInt8> & src ) {
         int srclen = src.length();
         dst.clear();
@@ -454,18 +466,64 @@ class PDBFile : public LVNamedStream {
 
 public:
 
-    static PDBFile * create( LVStreamRef stream, int & format ) {
-        format = 0;
-        PDBFile * res = new PDBFile();
-        if ( res->open(stream, true) ) {
-            format = res->_format;
-            return res;
-        }
-        delete res;
-        return NULL;
+    LVContainerRef getContainer() {
+        return LVContainerRef(&_container);
     }
 
-    bool open( LVStreamRef stream, bool validateContent ) {
+
+//    static PDBFile * create( LVStreamRef stream, int & format ) {
+//        format = 0;
+//        PDBFile * res = new PDBFile();
+//        if ( res->open(stream, true, format) ) {
+//            format = res->_format;
+//            return res;
+//        }
+//        delete res;
+//        return NULL;
+//    }
+
+    void detectFormat( doc_format_t & contentFormat ) {
+        if ( contentFormat == doc_format_none ) {
+            // autodetect format
+            LVArray<lUInt8> buf;
+            readRecord(1, &buf);
+            int bytesRead = buf.length();
+            if ( bytesRead>0 ) {
+                int pmlCount = 0;
+                int htmlCount = 0;
+                lString16 pmlChars("pXxCcriuovtnsblaUBSmqQI");
+                for ( int i=0; i<bytesRead-10; i++ ) {
+                    const lUInt8 * p = buf.get() + i;
+                    if ( p[0]=='\\' ) {
+                        if ( pmlChars.pos(lString16((const lChar8 *)p+1, 1)) >=0 )
+                            pmlCount++;
+                    } else if (p[0]=='<') {
+                        if ( pattern_cmp(p+1, "html") )
+                            htmlCount+=100;
+                        if ( pattern_cmp(p+1, "head") )
+                            htmlCount+=50;
+                        if ( pattern_cmp(p+1, "body") )
+                            htmlCount+=50;
+                        if ( pattern_cmp(p+1, "h1") || pattern_cmp(p+1, "h2") || pattern_cmp(p+1, "h3") || pattern_cmp(p+1, "h4"))
+                            htmlCount+=5;
+                        if ( pattern_cmp(p+1, "p>") || pattern_cmp(p+1, "b>") || pattern_cmp(p+1, "i>") || pattern_cmp(p+1, "li>") || pattern_cmp(p+1, "ul>"))
+                            htmlCount+=10;
+                    }
+                }
+                if ( pmlCount<5 && htmlCount<10 ) {
+                    contentFormat = doc_format_txt;
+                } else if ( pmlCount > htmlCount ) {
+                    contentFormat = doc_format_fb2;
+                } else {
+                    contentFormat = doc_format_html;
+                }
+            }
+            SetPos(0);
+        }
+    }
+
+    bool open( LVStreamRef stream, bool validateContent, doc_format_t & contentFormat ) {
+        contentFormat = doc_format_none;
         _format = UNKNOWN;
         stream->SetPos(0);
         lUInt32 fsize = stream->GetSize();
@@ -485,7 +543,7 @@ public:
 //        if ( hdr.checkType("Data") && hdr.checkCreator("Plkr") )
 //            _format = PLUCKER;
 //        if ( hdr.checkType("ToGo") && hdr.checkCreator("ToGo") )
-//            _format = PALMDOC;
+//            _format = ISILO;
         if ( _format==UNKNOWN )
             return false; // UNKNOWN FORMAT
 
@@ -552,6 +610,8 @@ public:
             _recordCount = preamble.recordCount;
         }
 
+        detectFormat( contentFormat );
+
         if ( !validateContent )
             return true; // for simple format check
 
@@ -581,6 +641,7 @@ public:
 
         SetName(_stream->GetName());
         m_mode = LVOM_READ;
+
 
         return true;
     }
@@ -704,7 +765,9 @@ public:
     }
 
     /// Constructor
-    PDBFile() { }
+    PDBFile() {
+        _container.AddRef();
+    }
 
     /// Destructor
     virtual ~PDBFile() { }
@@ -712,26 +775,85 @@ public:
 };
 
 // open PDB stream from stream
-LVStreamRef LVOpenPDBStream( LVStreamRef srcstream, int &format )
-{
-    PDBFile * stream = PDBFile::create( srcstream, format );
-    srcstream->SetPos(0);
-    if ( stream!=NULL )
-    {
-        return LVStreamRef( stream );
-    }
-    return LVStreamRef();
-}
+//LVStreamRef LVOpenPDBStream( LVStreamRef srcstream, int &format )
+//{
+//    PDBFile * stream = PDBFile::create( srcstream, format );
+//    srcstream->SetPos(0);
+//    if ( stream!=NULL )
+//    {
+//        return LVStreamRef( stream );
+//    }
+//    return LVStreamRef();
+//}
 
-bool DetectPDBFormat( LVStreamRef stream )
+bool DetectPDBFormat( LVStreamRef stream, doc_format_t & contentFormat )
 {
     PDBFile pdb;
-    if ( !pdb.open(stream, false) )
+    if ( !pdb.open(stream, false, contentFormat) )
         return false;
     return true;
 }
 
-bool ImportPDBDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
+bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback, doc_format_t & contentFormat )
 {
+    contentFormat = doc_format_none;
+    PDBFile * pdb = new PDBFile();
+    if ( !pdb->open(stream, true, contentFormat) )
+        return false;
+    stream = LVStreamRef(pdb);
+    doc->setContainer(pdb->getContainer());
+
+    switch ( contentFormat ) {
+    case doc_format_txt:
+        // TXT
+        {
+            ldomDocumentWriter writer(doc);
+            LVTextParser parser(stream, &writer, false);
+            parser.setProgressCallback(progressCallback);
+            if ( !parser.CheckFormat() ) {
+                return false;
+            } else {
+                if (!parser.Parse()) {
+                    return false;
+                }
+            }
+        }
+        break;
+    case doc_format_html:
+        // HTML
+        {
+            ldomDocumentWriterFilter writerFilter(doc, false,
+                    HTML_AUTOCLOSE_TABLE);
+
+            LVHTMLParser parser(stream, &writerFilter);
+            parser.setProgressCallback(progressCallback);
+            if ( !parser.CheckFormat() ) {
+                return false;
+            } else {
+                if (!parser.Parse()) {
+                    return false;
+                }
+            }
+        }
+        break;
+    default:
+        // PML
+        {
+//            ldomDocumentWriterFilter writerFilter(*doc, false,
+//                    HTML_AUTOCLOSE_TABLE);
+
+//            LVHTMLParser parser(m_stream, &writerFilter);
+//            parser->setProgressCallback(progressCallback);
+//            if ( !parser->CheckFormat() ) {
+//                return false;
+//            } else {
+//                if (!parser->Parse()) {
+//                    return false;
+//                }
+//            }
+        }
+        break;
+    }
+
     return true;
 }

@@ -3128,16 +3128,16 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 	}
 	LVLock lock(getMutex());
 
-    int pdbFormat = 0;
-    LVStreamRef pdbStream = LVOpenPDBStream( stream, pdbFormat );
-    if ( !pdbStream.isNull() ) {
-        CRLog::info("PDB format detected, stream size=%d", (int)pdbStream->GetSize() );
-        LVStreamRef out = LVOpenFileStream("/tmp/pdb.txt", LVOM_WRITE);
-        if ( !out.isNull() )
-            LVPumpStream(out.get(), pdbStream.get()); // DEBUG
-        stream = pdbStream;
-        //return false;
-    }
+//    int pdbFormat = 0;
+//    LVStreamRef pdbStream = LVOpenPDBStream( stream, pdbFormat );
+//    if ( !pdbStream.isNull() ) {
+//        CRLog::info("PDB format detected, stream size=%d", (int)pdbStream->GetSize() );
+//        LVStreamRef out = LVOpenFileStream("/tmp/pdb.txt", LVOM_WRITE);
+//        if ( !out.isNull() )
+//            LVPumpStream(out.get(), pdbStream.get()); // DEBUG
+//        stream = pdbStream;
+//        //return false;
+//    }
 
 	{
 		clearImageCache();
@@ -3145,6 +3145,39 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 		m_stream = stream;
 
 #if (USE_ZLIB==1)
+
+        doc_format_t pdbFormat = doc_format_none;
+        if ( DetectPDBFormat(m_stream, pdbFormat) ) {
+            // PDB
+            CRLog::info("PDB format detected");
+            createEmptyDocument();
+            m_doc->setProps( m_doc_props );
+            setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
+            setDocFormat( pdbFormat );
+            if ( m_callback )
+                m_callback->OnLoadFileFormatDetected(pdbFormat);
+            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+            doc_format_t contentFormat = doc_format_none;
+            bool res = ImportPDBDocument( m_stream, m_doc, m_callback, this, contentFormat );
+            if ( !res ) {
+                setDocFormat( doc_format_none );
+                createDefaultDocument( lString16(L"ERROR: Error reading PDB format"), lString16(L"Cannot open document") );
+                if ( m_callback ) {
+                    m_callback->OnLoadFileError( lString16("Error reading PDB document") );
+                }
+                return false;
+            } else {
+                setRenderProps( 0, 0 );
+                requestRender();
+                if ( m_callback ) {
+                    m_callback->OnLoadFileEnd( );
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                return true;
+            }
+        }
+
 
 		if ( DetectEpubFormat( m_stream ) ) {
 			// EPUB
@@ -3154,8 +3187,8 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
 			setDocFormat( doc_format_epub );
 			if ( m_callback )
-			m_callback->OnLoadFileFormatDetected(doc_format_epub);
-			m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+                m_callback->OnLoadFileFormatDetected(doc_format_epub);
+            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
             bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
