@@ -25,6 +25,7 @@
 #include "../include/epubfmt.h"
 #include "../include/chmfmt.h"
 #include "../include/wordfmt.h"
+#include "../include/pdbfmt.h"
 
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT

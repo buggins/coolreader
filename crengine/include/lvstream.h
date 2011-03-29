@@ -730,8 +730,6 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in );
 LVStreamRef LVCreateBufferedStream( LVStreamRef stream, int bufSize );
 /// creates TCR decoder stream for stream
 LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream );
-// creates PDB decoder stream for stream
-LVStreamRef LVOpenPDBStream( LVStreamRef srcstream, int &format );
 
 /// returns path part of pathname (appended with / or \ delimiter)
 lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath=true );
