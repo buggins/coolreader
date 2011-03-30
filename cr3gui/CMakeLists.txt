@@ -125,6 +125,11 @@ elseif ( ${GUI} STREQUAL CRGUI_INKVIEW )
     INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps DESTINATION system/share/crengine )
     INSTALL( DIRECTORY data/manual/ DESTINATION system/share/crengine/manual )
 
+#    FOREACH(LANGUAGE ${LANGUAGES})
+#        SET(MO_FILE "${CMAKE_BINARY_DIR}/i18n/${LANGUAGE}/LC_MESSAGES/cr3.mo")
+#        INSTALL(FILES ${MO_FILE} DESTINATION system/share/crengine/i18n RENAME ${LANGUAGE}.mo)
+#    ENDFOREACH(LANGUAGE ${LANGUAGES})
+
     SET (CR3_BIN_DESTINATION system/bin)
 
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
