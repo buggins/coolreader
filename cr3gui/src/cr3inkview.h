@@ -45,9 +45,12 @@ class CRInkViewDocView : public V3DocViewWin
     private:
         tocentry *_toc;
         int _tocLength;
+        imenu * _menu;
+        void showInkViewMenu();
+        char* strconv(const char* arg1);
     public:
         CRInkViewDocView( CRGUIWindowManager * wm, lString16 dataDir )
-        : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL) {};
+        : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _menu(NULL) {};
         
         virtual bool onCommand( int command, int params );
         void showContents();

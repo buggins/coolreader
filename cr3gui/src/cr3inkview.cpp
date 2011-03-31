@@ -22,7 +22,7 @@
 
 #include "cr3main.h"
 #include "mainwnd.h"
-
+#include <cri18n.h>
 
 #define CR3PATH USERDATA "/share/crengine"
 
@@ -37,45 +37,42 @@
 #define HISTFILE CR3PATH "/cr3hist"
 
 CRInkViewWindowManager * wm;
-bool blockWM = false;
 
 void pageSelector(int page) {
-    blockWM = false;
     wm->onCommand(MCMD_GO_PAGE_APPLY, page);
 }
 
 void tocHandler(long long position) 
 {
-    blockWM = false;
     wm->onCommand(MCMD_GO_PAGE_APPLY, position);
 }
 
+void menu_handler(int cmd) {
+    wm->onCommand(cmd, 0);
+}
 
 void CRInkViewScreen::update(const lvRect& rc, bool full)
 {
     char buf[2000];
     CRLog::trace("CRInkViewScreen::update(%d)", full ? 1 : 0);
-    if (!blockWM)
+    if ( rc.height()>400 && checkFullUpdateCounter() )
+        full = true;
+    
+    if (!full)
     {
-        if ( rc.height()>400 && checkFullUpdateCounter() )
-            full = true;
-        
-        if (!full)
-        {
-            CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc.left, rc.top, rc.width(), rc.height());
-            Stretch(_front->GetScanLine(rc.top), IMAGE_GRAY8, _front->GetWidth(), rc.height(), _front->GetRowSize(), 0, rc.top, _front->GetWidth(), rc.height(), 0);
-            DitherArea(0, rc.top, _front->GetWidth(), rc.height(), 16, DITHER_PATTERN);
-            PartialUpdate(rc.left, rc.top, rc.width(), rc.height());
-        }
-        else
-        {
-            CRLog::trace("CRInkViewScreen::update() FullUpdate()");
-            Stretch(_front->GetScanLine(0), IMAGE_GRAY8, _front->GetWidth(), _front->GetHeight(), _front->GetRowSize(), 0, 0, _front->GetWidth(), _front->GetHeight(), 0);
-            DitherArea(0, 0, _front->GetWidth(), _front->GetHeight(), 16, DITHER_PATTERN);
-            FullUpdate();
-        }
-        CRLog::trace("_fullUpdateInterval: %d, _fullUpdateCounter: %d  ", _fullUpdateInterval, _fullUpdateCounter);
+        CRLog::trace("CRInkViewScreen::update() PartialUpdate(%d, %d, %d, %d)", rc.left, rc.top, rc.width(), rc.height());
+        Stretch(_front->GetScanLine(rc.top), IMAGE_GRAY8, _front->GetWidth(), rc.height(), _front->GetRowSize(), 0, rc.top, _front->GetWidth(), rc.height(), 0);
+//        DitherArea(0, rc.top, _front->GetWidth(), rc.height(), 16, DITHER_PATTERN);
+        PartialUpdate(rc.left, rc.top, rc.width(), rc.height());
     }
+    else
+    {
+        CRLog::trace("CRInkViewScreen::update() FullUpdate()");
+        Stretch(_front->GetScanLine(0), IMAGE_GRAY8, _front->GetWidth(), _front->GetHeight(), _front->GetRowSize(), 0, 0, _front->GetWidth(), _front->GetHeight(), 0);
+//        DitherArea(0, 0, _front->GetWidth(), _front->GetHeight(), 16, DITHER_PATTERN);
+        FullUpdate();
+    }
+    CRLog::trace("_fullUpdateInterval: %d, _fullUpdateCounter: %d  ", _fullUpdateInterval, _fullUpdateCounter);
 }
 
 CRInkViewScreen::CRInkViewScreen(int width, int height): CRGUIScreenBase(width, height, true)
@@ -98,8 +95,7 @@ CRInkViewWindowManager::CRInkViewWindowManager(int width, int height): CRGUIWind
 void CRInkViewWindowManager::update(bool fullScreenUpdate, bool forceFlushScreen)
 {
     CRLog::trace("CRInkViewWindowManager::update(%d, %d)", fullScreenUpdate ? 1 : 0, forceFlushScreen ? 1 : 0);
-    if (!blockWM)
-        CRGUIWindowManager::update(fullScreenUpdate, forceFlushScreen);
+    CRGUIWindowManager::update(fullScreenUpdate, forceFlushScreen);
 }
 
 bool CRInkViewWindowManager::getBatteryStatus(int& percent, bool& charging)
@@ -109,13 +105,70 @@ bool CRInkViewWindowManager::getBatteryStatus(int& percent, bool& charging)
     return true;
 }
 
+char* CRInkViewDocView::strconv(const char* in)
+{
+    int len = strlen(in);
+    char * out = new char[len+1];
+    strcpy( out, in );
+    return out;
+}
+
+    
+void CRInkViewDocView::showInkViewMenu()
+{
+    if (_menu == NULL)
+    {
+        CRGUIAcceleratorTableRef menuItems = _wm->getAccTables().get(lString16("mainMenuItems"));
+        if ( !menuItems.isNull() && menuItems->length()>1 ) {
+            // get menu from file
+            _menu = new imenu[menuItems->length()+2];
+            _menu[0].type = ITEM_HEADER;
+            _menu[0].text = strconv(_("Menu")); 
+            _menu[0].index = 0;
+            _menu[0].submenu = NULL;
+            _menu[menuItems->length()+1].type = 0;
+            _menu[menuItems->length()+1].text = NULL; 
+            _menu[menuItems->length()+1].index = 0;
+            _menu[menuItems->length()+1].submenu = NULL;
+            
+            for ( unsigned i=0; i<menuItems->length(); i++ ) {
+                const CRGUIAccelerator * acc = menuItems->get( i );
+                int cmd = acc->commandId;
+                int param = acc->commandParam;
+                const char * name = getCommandName( cmd, param );
+                _menu[i+1].type = ITEM_ACTIVE;
+                _menu[i+1].text = strconv(name); 
+                _menu[i+1].index = cmd;
+                _menu[i+1].submenu = NULL;                
+            }
+        } else
+        {
+            _menu = new imenu[3];
+            _menu[0].type = ITEM_HEADER;
+            _menu[0].text = strconv(_("Menu")); 
+            _menu[0].index = 0;
+            _menu[0].submenu = NULL;
+            _menu[1].type = ITEM_HEADER;
+            _menu[1].text = strconv(_("Go to page")); 
+            _menu[1].index = MCMD_GO_PAGE;
+            _menu[1].submenu = NULL;
+            _menu[2].type = 0;
+            _menu[2].text = NULL; 
+            _menu[2].index = 0;
+            _menu[2].submenu = NULL;
+        }
+    }
+    OpenMenu(_menu, 0, 20, 20, menu_handler);
+}
 
 bool CRInkViewDocView::onCommand(int command, int params)
 {
     CRLog::trace("CRInkViewDocView::onCommand(%d, %d)", command, params );
     switch ( command ) {
+        case MCMD_MAIN_MENU:
+            showInkViewMenu();
+            return true;
         case MCMD_GO_PAGE:
-            blockWM = true;
             OpenPageSelector(pageSelector);
             return true;
         case MCMD_CONTENT:
@@ -163,7 +216,6 @@ void CRInkViewDocView::showContents()
             return;
         }
     }
-    blockWM = true;
     OpenContents(_toc, _tocLength, _docview->getCurPage() + 1, tocHandler);         
 }
 
