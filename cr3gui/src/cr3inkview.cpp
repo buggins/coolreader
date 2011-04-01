@@ -49,6 +49,7 @@ void tocHandler(long long position)
 
 void menu_handler(int cmd) {
     wm->onCommand(cmd, 0);
+    wm->update(false);
 }
 
 void CRInkViewScreen::update(const lvRect& rc, bool full)
