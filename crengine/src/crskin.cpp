@@ -224,7 +224,14 @@ void CRIconSkin::draw( LVDrawBuf & buf, const lvRect & rc )
         LVImageSourceRef img = LVCreateStretchFilledTransform( _image,
             rc2.width(), rc2.height(), _hTransform, _vTransform, _splitPoint.x, _splitPoint.y );
         LVDrawStateSaver saver(buf);
-        buf.SetClipRect(&rc);
+		lvRect oldClip;
+		buf.GetClipRect(&oldClip);
+		if (oldClip.isEmpty())
+			buf.SetClipRect(&rc);
+		else if (oldClip.intersect(rc))
+			buf.SetClipRect(&oldClip);
+		else
+			return;
         buf.Draw( img, rc2.left, rc2.top, rc2.width(), rc2.height(), false );
     }
 }

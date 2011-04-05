@@ -39,7 +39,7 @@ typedef unsigned long long int lUInt64; ///< unsigned 64 bit int
 #endif
 
 /// platform-dependent path separator
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__WINE__)
 #define PATH_SEPARATOR_CHAR '\\'
 #elif __SYMBIAN32__
 #define PATH_SEPARATOR_CHAR '\\'
@@ -124,6 +124,34 @@ public:
         return left<=pt.x && top<=pt.y && right>pt.x && bottom > pt.y;
     }
 	void clear() { left=right=top=bottom=0; }
+	
+	bool intersect (const lvRect &rc) 
+	{
+		bool ret = true;
+		if (rc.left <= left) {
+			if (rc.right <= left) 
+				ret = false;
+		} else if (rc.left < right) {
+			left = rc.left;
+		} else 
+			ret = false;
+		if (ret) {
+			if (rc.right < right)
+				right = rc.right;
+			if (rc.top <= top) {
+				if (rc.bottom <= top) 
+					ret = false;
+			} else if (rc.top < bottom) {
+				top = rc.top;
+			} else 
+				ret = false;
+			if (ret && rc.bottom < bottom)
+				bottom = rc.bottom;
+		}
+		if (!ret)
+			clear();
+		return ret;
+	}
 };
 
 class lvColor
