@@ -110,6 +110,8 @@ public:
     }
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern ) = 0;
+    /// inverts image in specified rectangle
+    virtual void InvertRect(int x0, int y0, int x1, int y1) = 0;
     /// sets new size
     virtual void Resize( int dx, int dy ) = 0;
     /// draws bitmap (1 byte per pixel) using specified palette
@@ -265,6 +267,8 @@ public:
     virtual lUInt32 GetPixel( int x, int y );
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color );
+    /// inverts image in specified rectangle
+    virtual void InvertRect( int x0, int y0, int x1, int y1 );
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern );
     /// sets new size
@@ -329,6 +333,8 @@ public:
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color );
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern );
+    /// inverts specified rectangle
+	virtual void InvertRect( int x0, int y0, int x1, int y1 );
     /// sets new size
     virtual void Resize( int dx, int dy );
     /// draws image

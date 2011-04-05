@@ -730,6 +730,60 @@ void LVGrayDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 col
     }
 }
 
+static const lUInt8 fill_masks1[5] = {0x00, 0x3, 0x0f, 0x3f, 0xff};
+static const lUInt8 fill_masks2[4] = {0x00, 0xc0, 0xf0, 0xfc};
+
+void LVGrayDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
+{
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+
+	lUInt8 * line = GetScanLine(y0) + (x0 >> 2);
+	if (_bpp==1) {
+		; //TODO: implement for 1 bit
+	} else if (_bpp==2) {
+		lUInt16 before = 4 - (x0 & 3); // number of pixels before byte boundary
+		if (before == 4)
+			before = 0;
+		lUInt16 w = (x1 - x0 - before);
+		lUInt16 after  = (w & 3); // number of pixels after byte boundary
+		w >>= 2;
+		before = fill_masks1[before];
+		after = fill_masks2[after];
+		for (int y = y0; y < y1; y++) {
+			lUInt8 *dst  = line;
+			if (before) {
+				lUInt8 color = ~(dst[0]);
+				dst[0] = ((dst[0] & ~before) | (color & before));
+				dst++;
+			}
+			for (int x = 0; x < w; x++) {
+				dst[x] = ~dst[x];
+			}
+			dst += w;
+			if (after) {
+				lUInt8 color = ~(dst[0]);
+				dst[0] = ((dst[0] & ~after) | (color & after));
+			}
+			line += _rowsize;
+		}
+	}  else { // 3, 4, 8
+		for (int y=y0; y<y1; y++) {
+            for (int x=x0; x<x1; x++)
+                line[x] = ~line[x];
+            line += _rowsize;
+		}
+    }
+}
+
 void LVGrayDrawBuf::Resize( int dx, int dy )
 {
     _dx = dx;
@@ -1217,6 +1271,10 @@ void LVColorDrawBuf::Resize( int dx, int dy )
         memset( _data, 0, _rowsize * _dy );
     }
     SetClipRect( NULL );
+}
+void LVColorDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
+{
+	
 }
 
 /// draws bitmap (1 byte per pixel) using specified palette
