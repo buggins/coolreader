@@ -801,24 +801,9 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
     if ( !pdb->open(stream, true, contentFormat) )
         return false;
     stream = LVStreamRef(pdb);
-    doc->setContainer(pdb->getContainer());
+    //doc->setContainer(pdb->getContainer());
 
     switch ( contentFormat ) {
-    case doc_format_txt:
-        // TXT
-        {
-            ldomDocumentWriter writer(doc);
-            LVTextParser parser(stream, &writer, false);
-            parser.setProgressCallback(progressCallback);
-            if ( !parser.CheckFormat() ) {
-                return false;
-            } else {
-                if (!parser.Parse()) {
-                    return false;
-                }
-            }
-        }
-        break;
     case doc_format_html:
         // HTML
         {
@@ -837,6 +822,21 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
         }
         break;
     default:
+    //case doc_format_txt:
+        // TXT
+        {
+            ldomDocumentWriter writer(doc);
+            LVTextParser parser(stream, &writer, false);
+            parser.setProgressCallback(progressCallback);
+            if ( !parser.CheckFormat() ) {
+                return false;
+            } else {
+                if (!parser.Parse()) {
+                    return false;
+                }
+            }
+        }
+        break;
         // PML
         {
 //            ldomDocumentWriterFilter writerFilter(*doc, false,

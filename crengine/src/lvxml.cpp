@@ -799,7 +799,8 @@ private:
         tftFormatted = 32, // text lines are wrapped and formatted
         tftJustified = 64, // right bound is justified
         tftDoubleEmptyLineBeforeHeaders = 128,
-        tftPreFormatted = 256
+        tftPreFormatted = 256,
+        tftPML = 512 // Palm Markup Language
     } formatFlags_t;
 public:
     LVTextLineQueue( LVTextFileBase * f, int maxLineLen )
@@ -912,6 +913,7 @@ public:
         max_right = -1;
         avg_left = 0;
         avg_right = 0;
+        int pmlTagCount = 0;
         int i;
 #define MAX_PRE_STATS 1000
         int left_stats[MAX_PRE_STATS];
@@ -934,6 +936,35 @@ public:
                     max_right = line->rpos;
                 avg_left += line->lpos;
                 avg_right += line->rpos;
+                for (int j=line->lpos; j<line->rpos-1; j++ ) {
+                    lChar16 ch = line->text[j];
+                    lChar16 ch2 = line->text[j+1];
+                    if ( ch=='\\' ) {
+                        switch ( ch2 ) {
+                        case 'p':
+                        case 'x':
+                        case 'X':
+                        case 'C':
+                        case 'c':
+                        case 'r':
+                        case 'u':
+                        case 'o':
+                        case 'v':
+                        case 't':
+                        case 'n':
+                        case 's':
+                        case 'b':
+                        case 'l':
+                        case 'a':
+                        case 'U':
+                        case 'm':
+                        case 'q':
+                        case 'Q':
+                            pmlTagCount++;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -960,6 +991,13 @@ public:
                 max_left_second_stats_pos = i;
             }
         }
+
+        if ( pmlTagCount>20 ) {
+            formatFlags = tftPML; // Palm markup
+            return;
+        }
+
+
 
         int non_empty_lines = length() - empty_lines;
         if ( non_empty_lines < 10 )
@@ -1264,6 +1302,456 @@ public:
             }
         }
     }
+
+    class PMLTextImport {
+        LVXMLParserCallback * callback;
+        bool insideInvisibleText;
+        const lChar16 * cp1252;
+        int align; // 0, 'c' or 'r'
+        lString16 line;
+        int chapterIndent;
+        bool insideChapterTitle;
+        lString16 chapterTitle;
+        int sectionId;
+        bool inSection;
+        bool inParagraph;
+        bool indented;
+        bool inLink;
+        lString16 styleTags;
+    public:
+        PMLTextImport( LVXMLParserCallback * cb )
+        : callback(cb), insideInvisibleText(false), align(0)
+        , chapterIndent(0)
+        , insideChapterTitle(false)
+        , sectionId(0)
+        , inSection(false)
+        , inParagraph(false)
+        , indented(false)
+        , inLink(false)
+        {
+            cp1252 = GetCharsetByte2UnicodeTable(L"windows-1252");
+        }
+        void addChar( lChar16 ch ) {
+            if ( !insideInvisibleText )
+                line << ch;
+        }
+
+        const lChar16 * getStyleTagName( lChar16 ch ) {
+            switch ( ch ) {
+            case 'b':
+            case 'B':
+                return L"b";
+            case 'i':
+                return L"i";
+            case 'u':
+                return L"u";
+            case 's':
+                return L"strikethrough";
+            case 'a':
+                return L"a";
+            default:
+                return NULL;
+            }
+        }
+
+        int styleTagPos(lChar16 ch) {
+            for ( int i=0; i<styleTags.length(); i++ )
+                if ( styleTags[i]==ch )
+                    return i;
+            return -1;
+        }
+
+        void closeStyleTag( lChar16 ch ) {
+            int pos = ch ? styleTagPos( ch ) : 0;
+            if ( pos<0 )
+                return;
+            for ( int i=styleTags.length()-1; i>=pos; i-- ) {
+                const lChar16 * tag = getStyleTagName(styleTags[i]);
+                styleTags.erase(styleTags.length()-1, 1);
+                if ( tag ) {
+                    callback->OnTagClose(L"", tag);
+                }
+            }
+        }
+
+        void openStyleTag( lChar16 ch ) {
+            int pos = styleTagPos( ch );
+            if ( pos>=0 )
+                return;
+            const lChar16 * tag = getStyleTagName(ch);
+            if ( tag ) {
+                callback->OnTagOpenNoAttr(L"", tag);
+                styleTags.append( 1,  ch );
+            }
+        }
+
+        void onStyleTag(lChar16 ch ) {
+            int pos = ch!=0 ? styleTagPos( ch ) : 0;
+            if ( pos<0 ) {
+                openStyleTag(ch);
+            } else {
+                closeStyleTag(ch);
+            }
+
+        }
+
+        void onImage( lString16 url ) {
+            callback->OnTagOpen(L"", L"img");
+            callback->OnAttribute(L"", L"src", url.c_str());
+            callback->OnTagBody();
+            callback->OnTagClose(L"", L"img");
+        }
+
+        void startParagraph() {
+            if ( !inParagraph ) {
+                callback->OnTagOpen(L"", L"p");
+                lString16 style;
+                if ( indented )
+                    style<< L"left-margin: 15%; ";
+                if ( align ) {
+                    if ( align=='c' )
+                        style << L"text-align: center; ";
+                    else if ( align=='c' )
+                        style << L"text-align: right; ";
+                }
+                if ( !style.empty() )
+                    callback->OnAttribute(L"", L"style", style.c_str() );
+                callback->OnTagBody();
+                inParagraph = true;
+            }
+        }
+
+        void postText() {
+            startParagraph();
+
+            if ( !line.empty() ) {
+                callback->OnText(line.c_str(), line.length(), 0);
+                line.clear();
+            }
+        }
+
+
+        void startPage() {
+            if ( inSection )
+                return;
+            sectionId++;
+            callback->OnTagOpen(NULL, L"section");
+            callback->OnAttribute(NULL, L"id", (lString16(L"_section") + lString16::itoa(sectionId)).c_str() );
+            callback->OnTagBody();
+            inSection = true;
+            endOfParagraph();
+        }
+        void endPage() {
+            if ( !inSection )
+                return;
+            indented = false;
+            endOfParagraph();
+            callback->OnTagClose(NULL, L"section");
+            inSection = false;
+        }
+        void newPage() {
+            endPage();
+            startPage();
+        }
+
+        void endOfParagraph() {
+//            if ( line.empty() )
+//                return;
+            // post text
+            postText();
+            // clear current text
+            line.clear();
+            if ( inParagraph ) {
+                closeStyleTag(0);
+                callback->OnTagClose(L"", L"p");
+                inParagraph = false;
+                align = 0;
+            }
+        }
+
+        void addSeparator( int width ) {
+            endOfParagraph();
+            callback->OnTagOpenAndClose(L"", L"hr");
+        }
+
+        void startOfChapterTitle( bool startNewPage, int level ) {
+            endOfParagraph();
+            if ( startNewPage )
+                newPage();
+            chapterTitle.clear();
+            insideChapterTitle = true;
+            chapterIndent = level;
+            callback->OnTagOpenNoAttr(NULL, L"title");
+        }
+
+        void addChapterTitle( int level, lString16 title ) {
+            // add title, invisible, for TOC only
+        }
+
+        void endOfChapterTitle() {
+            chapterTitle.clear();
+            if ( !insideChapterTitle )
+                return;
+            endOfParagraph();
+            insideChapterTitle = false;
+            callback->OnTagClose(NULL, L"title");
+        }
+
+        void addAnchor( lString16 ref ) {
+            startParagraph();
+            callback->OnTagOpen(NULL, L"a");
+            callback->OnAttribute(NULL, L"name", ref.c_str());
+            callback->OnTagBody();
+            callback->OnTagClose(NULL, L"a");
+        }
+
+        void startLink( lString16 ref ) {
+            if ( !inLink ) {
+                callback->OnTagOpen(NULL, L"a");
+                callback->OnAttribute(NULL, L"href", ref.c_str());
+                callback->OnTagBody();
+                styleTags << L"a";
+                inLink = true;
+            }
+        }
+
+        void endLink() {
+            if ( inLink ) {
+                inLink = false;
+                closeStyleTag('a');
+                //callback->OnTagClose(NULL, L"a");
+            }
+        }
+
+        lString16 readParam( const lChar16 * str, int & j ) {
+            lString16 res;
+            if ( str[j]!='=' || str[j+1]!='\"' )
+                return res;
+            for ( j=j+2; str[j] && str[j]!='\"'; j++ )
+                res << str[j];
+            return res;
+        }
+
+        void processLine( lString16 text ) {
+            int len = text.length();
+            const lChar16 * str = text.c_str();
+            for ( int j=0; j<len; j++ ) {
+                bool isStartOfLine = (j==0);
+                lChar16 ch = str[j];
+                lChar16 ch2 = str[j+1];
+                if ( ch=='\\' ) {
+                    if ( ch2=='a' ) {
+                        // \aXXX	Insert non-ASCII character whose Windows 1252 code is decimal XXX.
+                        int n = decodeDecimal( str + 2, 3 );
+                        if ( n>=128 && n<=255 ) {
+                            addChar( cp1252[n] );
+                            j+=4;
+                            continue;
+                        }
+                        if ( n>=1 && n<=127 ) {
+                            addChar( n );
+                            j+=4;
+                            continue;
+                        }
+                    } else if ( ch2=='U' ) {
+                        // \UXXXX	Insert non-ASCII character whose Unicode code is hexidecimal XXXX.
+                        int n = decodeHex( str + 2, 4 );
+                        if ( n>0 ) {
+                            addChar( n );
+                            j+=5;
+                            continue;
+                        }
+                    } else if ( ch2=='\\' ) {
+                        // insert '\'
+                        addChar( ch2 );
+                        j++;
+                        continue;
+                    } else if ( ch2=='-' ) {
+                        // insert '\'
+                        addChar( UNICODE_SOFT_HYPHEN_CODE );
+                        j++;
+                        continue;
+                    } else if ( ch2=='T' ) {
+                        // Indents the specified percentage of the screen width, 50% in this case.
+                        // If the current drawing position is already past the specified screen location, this tag is ignored.
+                        j+=2;
+                        lString16 w = readParam( str, j );
+                        // IGNORE
+                        continue;
+                    } else if ( ch2=='m' ) {
+                        // Insert the named image.
+                        j+=2;
+                        lString16 image = readParam( str, j );
+                        onImage( image );
+                        continue;
+                    } else if ( ch2=='Q' ) {
+                        // \Q="linkanchor" - Specify a link anchor in the document.
+                        j+=2;
+                        lString16 anchor = readParam( str, j );
+                        addAnchor(anchor);
+                        continue;
+                    } else if ( ch2=='q' ) {
+                        // \q="#linkanchor"Some text\q	Reference a link anchor which is at another spot in the document.
+                        // The string after the anchor specification and before the trailing \q is underlined
+                        // or otherwise shown to be a link when viewing the document.
+                        if ( !inLink ) {
+                            j+=2;
+                            lString16 ref = readParam( str, j );
+                            startLink(ref);
+                        } else {
+                            j+=1;
+                            endLink();
+                        }
+                        continue;
+                    } else if ( ch2=='w' ) {
+                        // Embed a horizontal rule of a given percentage width of the screen, in this case 50%.
+                        // This tag causes a line break before and after it. The rule is centered. The percent sign is mandatory.
+                        j+=2;
+                        lString16 w = readParam( str, j );
+                        addSeparator( 50 );
+                        continue;
+                    } else if ( ch2=='C' ) {
+                        // \Cn="Chapter title"
+                        // Insert "Chapter title" into the chapter listing, with level n (like \Xn).
+                        // The text is not shown on the page and does not force a page break.
+                        // This can sometimes be useful to insert a chapter mark at the beginning of an introduction to the chapter, for example.
+                        if ( str[2] && str[3]=='=' && str[4]=='\"' ) {
+                            int level = hexDigit(str[2]);
+                            if ( level<0 || level>4 )
+                                level = 0;
+                            j+=5; // skip \Cn="
+                            lString16 title;
+                            for ( ;str[j] && str[j]!='\"'; j++ )
+                                title << str[j];
+                            addChapterTitle( level, title );
+                            continue;
+                        } else {
+                            j++;
+                            continue;
+                        }
+                    } else {
+                        bool unknown = false;
+                        switch( ch2 ) {
+                        case 'v':
+                            insideInvisibleText = !insideInvisibleText;
+                            break;
+                        case 'c':
+                            if ( isStartOfLine ) {
+                                endOfParagraph();
+                                align = (align==0) ? 'c' : 0;
+                            }
+                            break;
+                        case 'r':
+                            if ( isStartOfLine ) {
+                                endOfParagraph();
+                                align = (align==0) ? 'r' : 0;
+                            }
+                            break;
+                        case 't':
+                            indented = !indented;
+                            break;
+                        case 'i':
+                            onStyleTag('i');
+                            break;
+                        case 'u':
+                            onStyleTag('u');
+                            break;
+                        case 'o':
+                            onStyleTag('s');
+                            break;
+                        case 'b':
+                            onStyleTag('b');
+                            break;
+                        case 'd':
+                            break;
+                        case 'B':
+                            onStyleTag('B');
+                            break;
+                        case 'p': //New page
+                            newPage();
+                            break;
+                        case 'n':
+                            // normal font
+                            break;
+                        case 's':
+                            // small font
+                            break;
+//                        case 'b':
+//                            // bold font
+//                            break;
+                        case 'l':
+                            // large font
+                            break;
+                        case 'x': //New chapter; also causes a new page break.
+                                  //Enclose chapter title (and any style codes) with \x and \x
+                        case 'X': //New chapter, indented n levels (n between 0 and 4 inclusive) in the Chapter dialog; doesn't cause a page break.
+                                  //Enclose chapter title (and any style codes) with \Xn and \Xn
+                            {
+                                int level = 0;
+                                if ( ch2=='X' ) {
+                                    switch( str[j+2] ) {
+                                    case '1':
+                                        level = 1;
+                                        break;
+                                    case '2':
+                                        level = 2;
+                                        break;
+                                    case '3':
+                                        level = 3;
+                                        break;
+                                    case '4':
+                                        level = 4;
+                                        break;
+                                    }
+                                    j++;
+                                }
+                                if ( !insideChapterTitle ) {
+                                    startOfChapterTitle( ch2=='x', level );
+                                } else {
+                                    endOfChapterTitle();
+                                }
+                                break;
+                            }
+                            break;
+                        default:
+                            unknown = true;
+                            break;
+                        }
+                        if ( !unknown ) {
+                            j++; // 2 chars processed
+                            continue;
+                        }
+                    }
+                }
+                addChar( ch );
+            }
+            endOfParagraph();
+        }
+    };
+
+    /// one line per paragraph
+    bool DoPMLImport(LVXMLParserCallback * callback)
+    {
+        CRLog::debug("DoPMLImport()");
+        RemoveLines( length() );
+        file->Reset();
+        file->SetCharset(L"windows-1252");
+        ReadLines( 100 );
+        int remainingLines = 0;
+        PMLTextImport importer(callback);
+        do {
+            for ( int i=remainingLines; i<length(); i++ ) {
+                LVTextFileLine * item = get(i);
+                importer.processLine(item->text);
+                file->updateProgress();
+            }
+            RemoveLines( length()-3 );
+            remainingLines = 3;
+        } while ( ReadLines( 100 ) );
+        importer.endPage();
+        return true;
+    }
+
     /// one line per paragraph
     bool DoParaPerLineImport(LVXMLParserCallback * callback)
     {
@@ -1414,7 +1902,9 @@ public:
     /// import document body
     bool DoTextImport(LVXMLParserCallback * callback)
     {
-        if ( formatFlags & tftPreFormatted )
+        if ( formatFlags & tftPML)
+            return DoPMLImport( callback );
+        else if ( formatFlags & tftPreFormatted )
             return DoPreFormattedImport( callback );
         else if ( formatFlags & tftParaIdents )
             return DoIdentParaImport( callback );

@@ -847,6 +847,7 @@ int lString16::atoi() const
     return n;
 }
 
+// returns 0..15 if c is hex digit, -1 otherwise
 int hexDigit( int c )
 {
     if ( c>='0' && c<='9')
@@ -856,6 +857,34 @@ int hexDigit( int c )
     if ( c>='A' && c<='F')
         return c-'A'+10;
     return -1;
+}
+
+// decode LEN hex digits, return decoded number, -1 if invalid
+int decodeHex( const lChar16 * str, int len ) {
+    int n = 0;
+    for ( int i=0; i<len; i++ ) {
+        if ( !str[i] )
+            return -1;
+        int d = hexDigit(str[i]);
+        if ( d==-1 )
+            return -1;
+        n = (n<<4) | d;
+    }
+    return n;
+}
+
+// decode LEN decimal digits, return decoded number, -1 if invalid
+int decodeDecimal( const lChar16 * str, int len ) {
+    int n = 0;
+    for ( int i=0; i<len; i++ ) {
+        if ( !str[i] )
+            return -1;
+        int d = str[i] - '0';
+        if ( d<0 || d>9 )
+            return -1;
+        n = n*10 + d;
+    }
+    return n;
 }
 
 bool lString16::atoi( int &n ) const

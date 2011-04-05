@@ -87,7 +87,9 @@ public:
     /// removes several items from vector
     void erase( int pos, int count )
     {
-        if ( pos<0 || count<=0 || pos+count > _count )
+        if ( count<=0 )
+            return;
+        if ( pos<0 || pos+count > _count )
             crFatalError();
         int i;
         for (i=0; i<count; i++)
