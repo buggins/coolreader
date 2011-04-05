@@ -40,6 +40,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvxml.cpp \
     ../../crengine/src/chmfmt.cpp \
     ../../crengine/src/epubfmt.cpp \
+    ../../crengine/src/pdbfmt.cpp \
     ../../crengine/src/wordfmt.cpp \
     ../../crengine/src/lvstsheet.cpp \
     ../../crengine/src/txtselector.cpp \
