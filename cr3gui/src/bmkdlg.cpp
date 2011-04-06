@@ -26,6 +26,7 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
         CRMenuItem::Draw( buf, rc, skin, valueSkin, selected );
         return;
     }
+    _itemDirty = false;
     lvRect itemBorders = skin->getBorderWidths();
     skin->draw( buf, rc );
     buf.SetTextColor( 0x000000 );
@@ -59,6 +60,7 @@ void CRBookmarkMenu::setMode( bool goToMode )
 {
     //if ( _goToMode==goToMode )
     //    return;
+    CRLog::trace("CRBookmarkMenu::setMode");
     int k, f;
     lString16 selKeyName = getItemNumberKeysName();
     lString16 modeKeyName = getCommandKeyName( MCMD_NEXT_MODE );
@@ -169,7 +171,20 @@ bool CRBookmarkMenu::onCommand( int command, int params )
     } else if ( command==MCMD_NEXT_MODE || command==MCMD_PREV_MODE ) {
         setMode( !_goToMode );
         return true;
-    }
+    } else if (command == MCMD_SELECT) {
+		if (_selectedItem >= 0)
+			closeMenu( _goToMode ? DCMD_BOOKMARK_GO_N : DCMD_BOOKMARK_SAVE_N, _selectedItem + 1 );
+		return true;
+	} else if (command == MCMD_SELECT_LONG) {
+		if (_selectedItem >= 0)
+			closeMenu( _goToMode ? DCMD_BOOKMARK_SAVE_N : DCMD_BOOKMARK_GO_N, _selectedItem + 1 );
+		return true;		
+	} else if (command == MCMD_PREV_PAGE) {
+		if (_topItem == 0) {
+			closeMenu(0);
+			return true;
+		}
+	}
     return CRMenu::onCommand(command, params);
     //closeMenu( 0 );
     //return true;

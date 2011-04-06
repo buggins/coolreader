@@ -29,31 +29,9 @@ enum CRPbCommands {
 
 #define KEY_BUFFER_LEN 256
 
-class CRPbMenu : public CRMenu {
-private:
-	void doCloseMenu(int command, int param = 0);
-protected:
-	int _selectedIndex;
-	virtual int setInitialSelection();
-	virtual void nextItem();
-	virtual void prevItem();
-	virtual void nextPage();
-	virtual void prevPage();
-	virtual bool onItemSelect(int command, int params = 0 );
-	int getLastOnPage();
-public:
-	CRPbMenu(CRGUIWindowManager * wm, CRMenu * parentMenu, int id, lString16 label, LVImageSourceRef image,
-		LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL, int pageItems=8) 
-		: CRMenu(wm, parentMenu, id, label, image, defFont, valueFont, props, propName, pageItems), 
-			_selectedIndex(0) {	}
-    CRPbMenu( CRGUIWindowManager * wm, CRMenu * parentMenu, int id, const char * label, LVImageSourceRef image, 
-		LVFontRef defFont, LVFontRef valueFont, CRPropRef props=CRPropRef(), const char * propName=NULL, int pageItems=8 )
-		: CRMenu(wm, parentMenu, id, label, image, defFont, valueFont, props, propName, pageItems), 
-			_selectedIndex(0) {	}
-	virtual void activated();
-	virtual int getSelectedItemIndex();
-    virtual bool onCommand( int command, int params = 0 );
-};
+#define PROP_POCKETBOOK_ORIENTATION    "cr3.pocketbook.orientation"
+
+#define PB_CR3_CACHE_SIZE (0x100000 * 64)
 
 #endif //CR3_POCKETBOOK_H
 

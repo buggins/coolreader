@@ -627,6 +627,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         marginsMenu->reconfigure( 0 );
         mainMenu->addItem( marginsMenu );
 
+#ifndef CR_POCKETBOOK
         CRControlsMenu * controlsMenu =
                 new CRControlsMenu(this, mm_Controls, props, lString16("main"), 8, _rect);
         controlsMenu->setAccelerators( _menuAccelerators );
@@ -634,6 +635,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         controlsMenu->setValueFont(valueFont);
         controlsMenu->reconfigure( 0 );
         mainMenu->addItem( controlsMenu );
+#endif
 
         reconfigure(0);
 }

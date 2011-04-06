@@ -14,13 +14,6 @@
 #define FSMENU_H_INCLUDED
 
 #include <crgui.h>
-#if CR_POCKETBOOK == 1
-#include "cr3pocketbook.h"
-#ifdef CRMenu
-#undef CRMenu
-#endif
-#define CRMenu CRPbMenu
-#endif
 
 class CRFullScreenMenu : public CRMenu
 {
@@ -36,7 +29,6 @@ public:
     virtual lString16 getItemNumberKeysName();
 
     virtual lString16 getCommandKeyName( int cmd, int param=0 );
-
 
     //virtual void Draw( LVDrawBuf & buf, int x, int y );
 

@@ -23,6 +23,13 @@ void CRSelNavigationDialog::moveBy( int delta )
         if ( !_mainwin->findText(_pattern, 1, -1) )
             _mainwin->findText(_pattern, -1, -1);
     }
+    gotoFound();
+    setDirty();
+    _mainwin->setDirty();
+}
+
+void CRSelNavigationDialog::gotoFound()
+{
     ldomMarkedRangeList * ranges = _mainwin->getDocView()->getMarkedRanges();
     if ( ranges ) {
         if ( ranges->length()>0 ) {
@@ -30,8 +37,6 @@ void CRSelNavigationDialog::moveBy( int delta )
             _mainwin->getDocView()->SetPos(pos);
         }
     }
-    setDirty();
-    _mainwin->setDirty();
 }
 
 CRSelNavigationDialog::CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin, lString16 pattern )

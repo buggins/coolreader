@@ -28,12 +28,13 @@ public:
 
 class CRBookmarkMenu : public CRFullScreenMenu
 {
+protected:
     bool _goToMode; // true for goTo mode, false for addMode
     LVDocView * _docview;
 public:
     /// returns index of selected item, -1 if no item selected
     virtual int getSelectedItemIndex();
-    void setMode( bool goToMode );
+    virtual void setMode( bool goToMode );
     CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode=false);
 
     virtual bool onCommand( int command, int params );
