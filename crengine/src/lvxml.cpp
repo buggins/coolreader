@@ -1365,7 +1365,8 @@ public:
             int pos = ch ? styleTagPos( ch ) : 0;
             if ( updateStack && pos<0 )
                 return;
-            if ( updateStack )
+            //if ( updateStack )
+            //if ( !line.empty() )
                 postText();
             for ( int i=styleTags.length()-1; i>=pos; i-- ) {
                 const lChar16 * tag = getStyleTagName(styleTags[i]);
@@ -1382,6 +1383,7 @@ public:
             if ( updateStack && pos>=0 )
                 return;
             if ( updateStack )
+            //if ( !line.empty() )
                 postText();
             const lChar16 * tag = getStyleTagName(ch);
             if ( tag ) {
@@ -1426,9 +1428,11 @@ public:
                 if ( indented )
                     style<< L"left-margin: 15%; ";
                 if ( align ) {
-                    if ( align=='c' )
+                    if ( align=='c' ) {
                         style << L"text-align: center; ";
-                    else if ( align=='c' )
+                        if ( !indented )
+                            style << L"text-indent: 0px; ";
+                    } else if ( align=='r' )
                         style << L"text-align: right; ";
                 }
                 if ( !style.empty() )
@@ -1476,7 +1480,9 @@ public:
 //            if ( line.empty() )
 //                return;
             // post text
-            startParagraph();
+            //startParagraph();
+            if ( !line.empty() )
+                postText();
             // clear current text
             line.clear();
             if ( inParagraph ) {
@@ -1525,6 +1531,7 @@ public:
 
         void startLink( lString16 ref ) {
             if ( !inLink ) {
+                postText();
                 callback->OnTagOpen(NULL, L"a");
                 callback->OnAttribute(NULL, L"href", ref.c_str());
                 callback->OnTagBody();
@@ -1554,13 +1561,13 @@ public:
             int len = text.length();
             const lChar16 * str = text.c_str();
             for ( int j=0; j<len; j++ ) {
-                bool isStartOfLine = (j==0);
+                //bool isStartOfLine = (j==0);
                 lChar16 ch = str[j];
                 lChar16 ch2 = str[j+1];
                 if ( ch=='\\' ) {
                     if ( ch2=='a' ) {
                         // \aXXX	Insert non-ASCII character whose Windows 1252 code is decimal XXX.
-                        int n = decodeDecimal( str + 2, 3 );
+                        int n = decodeDecimal( str + j + 2, 3 );
                         bool use1252 = true;
                         if ( n>=128 && n<=255 && use1252 ) {
                             addChar( cp1252[n-128] );
@@ -1573,7 +1580,7 @@ public:
                         }
                     } else if ( ch2=='U' ) {
                         // \UXXXX	Insert non-ASCII character whose Unicode code is hexidecimal XXXX.
-                        int n = decodeHex( str + 2, 4 );
+                        int n = decodeHex( str + j + 2, 4 );
                         if ( n>0 ) {
                             addChar( n );
                             j+=5;
@@ -1654,16 +1661,16 @@ public:
                             insideInvisibleText = !insideInvisibleText;
                             break;
                         case 'c':
-                            if ( isStartOfLine ) {
+                            //if ( isStartOfLine ) {
                                 endOfParagraph();
                                 align = (align==0) ? 'c' : 0;
-                            }
+                            //}
                             break;
                         case 'r':
-                            if ( isStartOfLine ) {
+                            //if ( isStartOfLine ) {
                                 endOfParagraph();
                                 align = (align==0) ? 'r' : 0;
-                            }
+                            //}
                             break;
                         case 't':
                             indented = !indented;
