@@ -851,6 +851,15 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
     container->setStream(stream);
     doc->setContainer(LVContainerRef(container));
 
+#if BUILD_LITE!=1
+    if ( doc->openFromCache(formatCallback) ) {
+        if ( progressCallback ) {
+            progressCallback->OnLoadFileEnd( );
+        }
+        return true;
+    }
+#endif
+
     switch ( contentFormat ) {
     case doc_format_html:
         // HTML
