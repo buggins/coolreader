@@ -3293,12 +3293,14 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			lString16 fb2Ext(L".fb2");
 			lString16 rtfExt(L".rtf");
 			lString16 txtExt(L".txt");
-			lString16 fbdExt(L".fbd");
+            lString16 pmlExt(L".pml");
+            lString16 fbdExt(L".fbd");
 			int htmCount = 0;
 			int fb2Count = 0;
 			int rtfCount = 0;
 			int txtCount = 0;
 			int fbdCount = 0;
+            int pmlCount = 0;
 			lString16 defHtml;
 			lString16 firstGood;
 			for (int i=0; i<m_arc->GetObjectCount(); i++)
@@ -3324,7 +3326,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 							rtfCount++;
 						} else if ( s.endsWith(txtExt) ) {
 							txtCount++;
-						} else if ( s.endsWith(fbdExt) ) {
+                        } else if ( s.endsWith(pmlExt) ) {
+                            pmlCount++;
+                        } else if ( s.endsWith(fbdExt) ) {
 							fbdCount++;
 						} else {
 							nameIsOk = false;

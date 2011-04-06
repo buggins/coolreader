@@ -9833,6 +9833,20 @@ LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
             if ( !getCodeBase().empty() )
                 name = getCodeBase() + refName;
             ref = getContainer()->OpenStream(name.c_str(), LVOM_READ);
+            if ( ref.isNull() ) {
+                lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "" );
+                fname = LVExtractFilenameWithoutExtension(fname);
+                if ( !fname.empty() ) {
+                    lString16 fn = fname + L"_img";
+//                    if ( getContainer()->GetObjectInfo(fn) ) {
+
+//                    }
+                    lString16 name = fn + L"/" + refName;
+                    if ( !getCodeBase().empty() )
+                        name = getCodeBase() + name;
+                    ref = getContainer()->OpenStream(name.c_str(), LVOM_READ);
+                }
+            }
             if ( ref.isNull() )
                 CRLog::error("Cannot open stream by name %s", LCSTR(name));
         }
