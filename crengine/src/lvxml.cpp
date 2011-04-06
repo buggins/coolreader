@@ -1361,41 +1361,58 @@ public:
             return -1;
         }
 
-        void closeStyleTag( lChar16 ch ) {
+        void closeStyleTag( lChar16 ch, bool updateStack ) {
             int pos = ch ? styleTagPos( ch ) : 0;
-            if ( pos<0 )
+            if ( updateStack && pos<0 )
                 return;
+            if ( updateStack )
+                postText();
             for ( int i=styleTags.length()-1; i>=pos; i-- ) {
                 const lChar16 * tag = getStyleTagName(styleTags[i]);
-                styleTags.erase(styleTags.length()-1, 1);
+                if ( updateStack )
+                    styleTags.erase(styleTags.length()-1, 1);
                 if ( tag ) {
                     callback->OnTagClose(L"", tag);
                 }
             }
         }
 
-        void openStyleTag( lChar16 ch ) {
+        void openStyleTag( lChar16 ch, bool updateStack ) {
             int pos = styleTagPos( ch );
-            if ( pos>=0 )
+            if ( updateStack && pos>=0 )
                 return;
+            if ( updateStack )
+                postText();
             const lChar16 * tag = getStyleTagName(ch);
             if ( tag ) {
                 callback->OnTagOpenNoAttr(L"", tag);
-                styleTags.append( 1,  ch );
+                if ( updateStack )
+                    styleTags.append( 1,  ch );
             }
+        }
+
+        void openStyleTags() {
+            for ( int i=0; i<styleTags.length(); i++ )
+                openStyleTag(styleTags[i], false);
+        }
+
+        void closeStyleTags() {
+            for ( int i=styleTags.length()-1; i>=0; i-- )
+                closeStyleTag(styleTags[i], false);
         }
 
         void onStyleTag(lChar16 ch ) {
             int pos = ch!=0 ? styleTagPos( ch ) : 0;
             if ( pos<0 ) {
-                openStyleTag(ch);
+                openStyleTag(ch, true);
             } else {
-                closeStyleTag(ch);
+                closeStyleTag(ch, true);
             }
 
         }
 
         void onImage( lString16 url ) {
+            //url = lString16("book_img/") + url;
             callback->OnTagOpen(L"", L"img");
             callback->OnAttribute(L"", L"src", url.c_str());
             callback->OnTagBody();
@@ -1417,6 +1434,7 @@ public:
                 if ( !style.empty() )
                     callback->OnAttribute(L"", L"style", style.c_str() );
                 callback->OnTagBody();
+                openStyleTags();
                 inParagraph = true;
             }
         }
@@ -1458,14 +1476,14 @@ public:
 //            if ( line.empty() )
 //                return;
             // post text
-            postText();
+            startParagraph();
             // clear current text
             line.clear();
             if ( inParagraph ) {
-                closeStyleTag(0);
+                //closeStyleTag(0);
+                closeStyleTags();
                 callback->OnTagClose(L"", L"p");
                 inParagraph = false;
-                align = 0;
             }
         }
 
@@ -1518,7 +1536,7 @@ public:
         void endLink() {
             if ( inLink ) {
                 inLink = false;
-                closeStyleTag('a');
+                closeStyleTag('a', true);
                 //callback->OnTagClose(NULL, L"a");
             }
         }
@@ -1543,12 +1561,12 @@ public:
                     if ( ch2=='a' ) {
                         // \aXXX	Insert non-ASCII character whose Windows 1252 code is decimal XXX.
                         int n = decodeDecimal( str + 2, 3 );
-                        if ( n>=128 && n<=255 ) {
-                            addChar( cp1252[n] );
+                        bool use1252 = true;
+                        if ( n>=128 && n<=255 && use1252 ) {
+                            addChar( cp1252[n-128] );
                             j+=4;
                             continue;
-                        }
-                        if ( n>=1 && n<=127 ) {
+                        } else if ( n>=1 && n<=255 ) {
                             addChar( n );
                             j+=4;
                             continue;
