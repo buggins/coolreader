@@ -24,7 +24,9 @@ SET (ANTIWORD_SOURCES
     wordlib.c wordmac.c wordole.c wordwin.c xmalloc.c
 )                                                          
 
-IF (NOT DEFINED CR3_ANTIWORD_PATCH)
+IF (DEFINED CR3_ANTIWORD_PATCH)
+    ADD_DEFINITIONS( -DANTIWORD_EXTERNAL_IO=1 )
+ELSE ()
 SET (ANTIWORD_SOURCES ${ANTIWORD_SOURCES}
 #Output routines are implemented in CR
     output.c 
@@ -33,7 +35,7 @@ SET (ANTIWORD_SOURCES ${ANTIWORD_SOURCES}
     fmt_text.c 
     postscript.c 
 )
-ENDIF (NOT DEFINED CR3_ANTIWORD_PATCH)
+ENDIF (DEFINED CR3_ANTIWORD_PATCH)
 
 if (WIN32)
 SET (ANTIWORD_SOURCES ${ANTIWORD_SOURCES}

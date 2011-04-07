@@ -1,6 +1,8 @@
 #if ENABLE_ANTIWORD==1
 #include "../include/wordfmt.h"
 
+
+
 // Antiword Output handling
 /*
  * output.c
@@ -279,15 +281,70 @@ bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 } /* end of bAddTableRow */
 
 
+static LVStream * antiword_stream = NULL;
+class AntiwordStreamGuard {
+public:
+    AntiwordStreamGuard(LVStreamRef stream) {
+        antiword_stream = stream.get();
+    }
+    ~AntiwordStreamGuard() {
+        antiword_stream = NULL;
+    }
+    operator FILE * () {
+        return (FILE*)antiword_stream;
+    }
+};
 
+
+/*
+ * bReadBytes
+ * This function reads the specified number of bytes from the specified file,
+ * starting from the specified offset.
+ * Returns TRUE when successfull, otherwise FALSE
+ */
+BOOL
+bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
+{
+    LFAIL(aucBytes == NULL || pFile == NULL || ulOffset > (ULONG)LONG_MAX);
+
+    if ( (void*)pFile==(void*)antiword_stream ) {
+        // use CoolReader stream
+        LVStream * stream = (LVStream*)pFile;
+        // default implementation from Antiword
+        if (ulOffset > (ULONG)LONG_MAX) {
+            return FALSE;
+        }
+        if (stream->SetPos(ulOffset)!=ulOffset ) {
+            return FALSE;
+        }
+        lvsize_t bytesRead=0;
+        if ( stream->Read(aucBytes, tMemb*sizeof(UCHAR), &bytesRead)!=LVERR_OK || bytesRead!=tMemb ) {
+            return FALSE;
+        }
+    } else {
+        // default implementation from Antiword
+        if (ulOffset > (ULONG)LONG_MAX) {
+            return FALSE;
+        }
+        if (fseek(pFile, (long)ulOffset, SEEK_SET) != 0) {
+            return FALSE;
+        }
+        if (fread(aucBytes, sizeof(UCHAR), tMemb, pFile) != tMemb) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+} /* end of bReadBytes */
 
 bool DetectWordFormat( LVStreamRef stream )
 {
+    AntiwordStreamGuard file(stream);
     return false;
 }
 
 bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
 {
+    AntiwordStreamGuard file(stream);
     return false;
 }
 
