@@ -264,6 +264,8 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
 class PDBFile;
 
 class LVPDBContainerItem : public LVContainerItemInfo {
+protected:
+    LVStreamRef _stream;
     PDBFile * _file;
     int _startBlock;
     int _size;
@@ -277,18 +279,32 @@ public:
     virtual const lChar16 * GetName() const { return _name.c_str(); }
     virtual lUInt32         GetFlags() const { return 0; }
     virtual bool            IsContainer() const { return false; }
-    LVStreamRef openStream() {
+    virtual LVStreamRef openStream() {
         // TODO: implement stream creation
         return LVStreamRef();
     }
-    LVPDBContainerItem( PDBFile * file, lString16 name, int startBlockIndex, int size )
-        : _file(file), _startBlock(startBlockIndex), _size(size), _name(name) {
+    LVPDBContainerItem( LVStreamRef stream, PDBFile * file, lString16 name, int startBlockIndex, int size )
+        : _stream(stream), _file(file), _startBlock(startBlockIndex), _size(size), _name(name) {
+    }
+};
+
+class LVPDBRegionContainerItem : public LVPDBContainerItem {
+public:
+    /// returns object size (file size or directory entry count)
+    virtual lUInt32         GetFlags() const { return 0; }
+    virtual LVStreamRef openStream() {
+        // return region of base stream
+        return LVStreamRef( new LVStreamFragment( _stream, _startBlock, _size ) );
+    }
+    LVPDBRegionContainerItem( LVStreamRef stream, PDBFile * file, lString16 name, int startOffset, int size )
+        : LVPDBContainerItem(stream, file, name, startOffset, size) {
     }
 };
 
 class LVPDBContainer : public LVContainer
 {
     LVPtrVector<LVPDBContainerItem> _list;
+    LVStreamRef _stream;
 public:
     virtual LVContainer * GetParentContainer() { return NULL; }
 
@@ -310,13 +326,19 @@ public:
     virtual LVStreamRef OpenStream( const lChar16 * fname, lvopen_mode_t mode ) {
         if ( mode!=LVOM_READ )
             return LVStreamRef();
-        for ( int i=0; i<_list.length(); i++ )
-            if ( _list[i]->GetName()==fname )
+        for ( int i=0; i<_list.length(); i++ ) {
+            //CRLog::trace("OpenStream(%s) : %s", LCSTR(lString16(fname)), LCSTR(lString16(_list[i]->GetName())) );
+            if ( !lStr_cmp(_list[i]->GetName(), fname) )
                 return _list[i]->openStream();
+        }
         return LVStreamRef();
     }
 
-    LVPDBContainer() {
+    void setStream( LVStreamRef stream ) {
+        _stream = stream;
+    }
+
+    LVPDBContainer( ) {
         //_contentStream = LVStreamRef((LVStream*)file);
     }
     virtual ~LVPDBContainer() { }
@@ -355,7 +377,7 @@ class PDBFile : public LVNamedStream {
     lvpos_t _bufOffset;
     lvsize_t _bufSize;
     lvpos_t _pos;
-    LVPDBContainer _container;
+    //LVPDBContainer * _container;
     bool unpack( LVArray<lUInt8> & dst, LVArray<lUInt8> & src ) {
         int srclen = src.length();
         dst.clear();
@@ -466,9 +488,11 @@ class PDBFile : public LVNamedStream {
 
 public:
 
-    LVContainerRef getContainer() {
-        return LVContainerRef(&_container);
-    }
+//    LVContainerRef getContainer() {
+//        if ( !_container )
+//            _container = new LVPDBContainer();
+//        return LVContainerRef(&_container);
+//    }
 
 
 //    static PDBFile * create( LVStreamRef stream, int & format ) {
@@ -522,7 +546,7 @@ public:
         }
     }
 
-    bool open( LVStreamRef stream, bool validateContent, doc_format_t & contentFormat ) {
+    bool open( LVStreamRef stream, LVPDBContainer * container, bool validateContent, doc_format_t & contentFormat ) {
         contentFormat = doc_format_none;
         _format = UNKNOWN;
         stream->SetPos(0);
@@ -580,6 +604,26 @@ public:
             if ( _compression==1 )
                 _compression = 0;
             _textSize = -1;
+            if ( preamble.imageCount && container ) {
+                for ( int index=preamble.imageDataRecordStart; index<preamble.imageDataRecordStart+preamble.imageCount; index++ ) {
+                    lUInt32 start = _records[index].offset + 62;
+                    lUInt32 size = _records[index].size - 62;
+                    if ( start<fsize && start+size<=fsize ) {
+                        stream->SetPos(_records[index].offset);
+                        if ( stream->ReadByte()=='P' && stream->ReadByte()=='N' && stream->ReadByte()=='G' && stream->ReadByte()==' ' ) {
+                            // header ok, adding item
+                            char name[33];
+                            memset(name, 0, 33);
+                            lvsize_t bytesRead = 0;
+                            stream->Read(name, 32, &bytesRead);
+                            if ( name[0] ) {
+                                lString16 fname = lString16(name);
+                                container->addItem( new LVPDBRegionContainerItem( stream, this, fname, start, size ) );
+                            }
+                        }
+                    }
+                }
+            }
         } else if (_format==MOBI ) {
             if ( _records[0].size<sizeof(MobiPreamble) )
                 return false;
@@ -766,7 +810,7 @@ public:
 
     /// Constructor
     PDBFile() {
-        _container.AddRef();
+        //_container.AddRef();
     }
 
     /// Destructor
@@ -789,7 +833,7 @@ public:
 bool DetectPDBFormat( LVStreamRef stream, doc_format_t & contentFormat )
 {
     PDBFile pdb;
-    if ( !pdb.open(stream, false, contentFormat) )
+    if ( !pdb.open(stream, NULL, false, contentFormat) )
         return false;
     return true;
 }
@@ -798,10 +842,23 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
 {
     contentFormat = doc_format_none;
     PDBFile * pdb = new PDBFile();
-    if ( !pdb->open(stream, true, contentFormat) )
+    LVPDBContainer * container = new LVPDBContainer();
+    if ( !pdb->open(stream, container, true, contentFormat) ) {
+        delete container;
         return false;
+    }
     stream = LVStreamRef(pdb);
-    //doc->setContainer(pdb->getContainer());
+    container->setStream(stream);
+    doc->setContainer(LVContainerRef(container));
+
+#if BUILD_LITE!=1
+    if ( doc->openFromCache(formatCallback) ) {
+        if ( progressCallback ) {
+            progressCallback->OnLoadFileEnd( );
+        }
+        return true;
+    }
+#endif
 
     switch ( contentFormat ) {
     case doc_format_html:
