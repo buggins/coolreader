@@ -20,9 +20,9 @@
 #include "lvmemman.h"
 
 /// soft hyphen code
-#define UNICODE_SOFT_HYPHEN_CODE 0x00AD
-#define UNICODE_ZERO_WIDTH_SPACE 0x200B
-#define UNICODE_NO_BREAK_SPACE   0x00A0
+#define UNICODE_SOFT_HYPHEN_CODE 0x00ad
+#define UNICODE_ZERO_WIDTH_SPACE 0x200b
+#define UNICODE_NO_BREAK_SPACE   0x00a0
 
 
 
