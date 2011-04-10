@@ -644,7 +644,7 @@ public:
 		// WIN32
 		__int64 offset = size - 1;
         lUInt32 pos_low = (lUInt32)((__int64)offset & 0xFFFFFFFF);
-        long pos_high = (long)(((__int64)offset >> 32) & 0xFFFFFFFF);
+        LONG pos_high = (long)(((__int64)offset >> 32) & 0xFFFFFFFF);
 		pos_low = SetFilePointer(m_hFile, pos_low, &pos_high, FILE_BEGIN );
         if (pos_low == 0xFFFFFFFF) {
             lUInt32 err = GetLastError();
@@ -736,7 +736,7 @@ public:
 		}
 		// check size
         lUInt32 hw=0;
-        m_size = GetFileSize( m_hFile, &hw );
+        m_size = GetFileSize( m_hFile, (LPDWORD)&hw );
 #if LVLONG_FILE_SUPPORT
         if (hw)
             m_size |= (((lvsize_t)hw)<<32);
@@ -1009,7 +1009,7 @@ public:
 			return LVERR_FAIL; // EOF
 
         lUInt32 dwBytesRead = 0;
-        if (ReadFile( m_hFile, buf, (lUInt32)count, &dwBytesRead, NULL )) {
+        if (ReadFile( m_hFile, buf, (lUInt32)count, (LPDWORD)&dwBytesRead, NULL )) {
             if (nBytesRead)
                 *nBytesRead = dwBytesRead;
             m_pos += dwBytesRead;
@@ -1097,7 +1097,7 @@ public:
             return LVERR_FAIL;
         //
         lUInt32 dwBytesWritten = 0;
-        if (WriteFile( m_hFile, buf, (lUInt32)count, &dwBytesWritten, NULL )) {
+        if (WriteFile( m_hFile, buf, (lUInt32)count, (LPDWORD)&dwBytesWritten, NULL )) {
             if (nBytesWritten)
                 *nBytesWritten = dwBytesWritten;
             m_pos += dwBytesWritten;
@@ -1133,7 +1133,7 @@ public:
         if (m_hFile == INVALID_HANDLE_VALUE)
             return LVERR_FAIL;
         lUInt32 pos_low = (lUInt32)((__int64)offset & 0xFFFFFFFF);
-        long pos_high = (long)(((__int64)offset >> 32) & 0xFFFFFFFF);
+        LONG pos_high = (LONG)(((__int64)offset >> 32) & 0xFFFFFFFF);
         lUInt32 m=0;
         switch (origin) {
         case LVSEEK_SET:
@@ -1267,7 +1267,7 @@ public:
         // set file size and position
         m_mode = (lvopen_mode_t)mode;
         lUInt32 hw=0;
-        m_size = GetFileSize( m_hFile, &hw );
+        m_size = GetFileSize( m_hFile, (LPDWORD)&hw );
 #if LVLONG_FILE_SUPPORT
         if (hw)
             m_size |= (((lvsize_t)hw)<<32);

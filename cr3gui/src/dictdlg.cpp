@@ -1,3 +1,4 @@
+#include <stdexcept>
 //#include <cstdlib>
 #include "dictdlg.h"
 #include <lvstring.h>
@@ -11,7 +12,6 @@
 #include <lvstring.h>
 #include <lvtinydom.h>
 #include <lvdocview.h>
-#include <stdexcept>
 #include "mainwnd.h"
 #include "viewdlg.h"
 #include "bgfit.h"
