@@ -62,7 +62,11 @@ void CRBookmarkMenu::setMode( bool goToMode )
     //    return;
     CRLog::trace("CRBookmarkMenu::setMode");
     int k, f;
+#ifdef CR_POCKETBOOK
+	lString16 selKeyName = getCommandKeyName( MCMD_SELECT );
+#else
     lString16 selKeyName = getItemNumberKeysName();
+#endif
     lString16 modeKeyName = getCommandKeyName( MCMD_NEXT_MODE );
     bool hasModeSwitch = !modeKeyName.empty();
     _goToMode = goToMode;
@@ -110,6 +114,21 @@ int CRBookmarkMenu::getSelectedItemIndex()
     }
     return -1;
 }
+
+#ifdef CR_POCKETBOOK
+int CRBookmarkMenu::getDefaultSelectionIndex()
+{
+	if ( _goToMode )
+		return -1;
+    CRFileHistRecord * bookmarks = _docview->getCurrentFileHistRecord();
+    for ( int i=0; i<_items.length(); i++ ) {
+        CRBookmark * bm = bookmarks->getShortcutBookmark(i);
+        if ( bm == NULL) 
+			return i;
+    }
+    return -1;
+}
+#endif
 
 #define MIN_BOOKMARK_ITEMS 32
 CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode)

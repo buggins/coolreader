@@ -26,11 +26,8 @@
 #include "selnavig.h"
 
 #ifdef CR_POCKETBOOK
-#if defined(__i386__)
-#  define DIRPREFIX "/usr/local/pocketbook"
-#else
-#  define DIRPREFIX ""
-#endif
+#include "cr3pocketbook.h"
+#include "inkview.h"
 #define DICTD_CONF DIRPREFIX "/mnt/ext1/system/share/cr3/dict"
 #define DICTD_CONF_ALT "/mnt/ext2/system/share/cr3/dict"
 #elif _WIN32
@@ -376,6 +373,16 @@ bool CRViewDialog::onCommand( int command, int params )
     return CRDocViewWindow::onCommand( command, params );
 }
 
+#ifdef CR_POCKETBOOK
+static
+const char* TR(const char *label) 
+{
+	char* tr = GetLangText(const_cast<char*> (label));
+	CRLog::trace("Translation for %s is %s", label, tr);
+	return tr;
+}
+#endif
+
 static 
 const char * getKeyName( int keyCode )
 {
@@ -385,6 +392,42 @@ const char * getKeyName( int keyCode )
 		return name;
 	}
 	switch ( keyCode ) {
+#ifdef CR_POCKETBOOK
+// FIXME: It would be more correct to map KEY_* to XK_* but PB people 
+// already got used to these key definitions
+	case KEY_BACK:
+		return TR("@Key_back");
+	case KEY_DELETE:
+		return TR("@Key_delete");
+	case KEY_OK:
+		return TR("@Key_ok");
+	case KEY_UP:
+		return TR("@Key_up");
+	case KEY_DOWN:
+		return TR("@Key_down");
+	case KEY_LEFT:
+		return TR("@Key_left");
+	case KEY_RIGHT:
+		return TR("@Key_right");
+	case KEY_MINUS:
+		return TR("@Key_minus");
+	case KEY_PLUS:
+		return TR("@Key_plus");
+	case KEY_MENU:
+		return TR("@Key_plus");
+	case KEY_MUSIC:
+		return TR("@Key_music");
+	case KEY_POWER:
+		return TR("@Key_power");
+	case KEY_PREV:
+		return TR("@Key_prev");
+	case KEY_NEXT:
+		return TR("@Key_next");
+	case KEY_PREV2:
+		return TR("@Key_prev2");
+	case KEY_NEXT2:
+		return TR("@Key_next2");
+#endif
 	case XK_KP_Add:
 		return "'+'";
 	case XK_KP_Subtract:
@@ -457,6 +500,7 @@ static const char * getCommandName( int command )
     case DCMD_SAVE_TO_CACHE: return _("Save document to cache");
     case MCMD_CANCEL: return _("Close dialog");
 	case MCMD_OK: return ("Ok");
+	case MCMD_SELECT: return ("Ok");
 	case MCMD_SCROLL_FORWARD: return _("Scroll forward");
 	case MCMD_SCROLL_BACK: return _("Scroll back");
 	case MCMD_QUIT: return _("Close book");
@@ -570,7 +614,6 @@ void CRViewDialog::draw( int pageOffset )
             clientSkin->draw( *drawbuf, clientRect );
         _skin->draw( *drawbuf, _rect );
     }
-
     if ( _showFrame ) {
         drawTitleBar();
         drawStatusBar();

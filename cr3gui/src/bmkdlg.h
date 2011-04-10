@@ -34,9 +34,11 @@ protected:
 public:
     /// returns index of selected item, -1 if no item selected
     virtual int getSelectedItemIndex();
-    virtual void setMode( bool goToMode );
+    void setMode( bool goToMode );
     CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode=false);
-
+#ifdef CR_POCKETBOOK
+	virtual int getDefaultSelectionIndex();
+#endif
     virtual bool onCommand( int command, int params );
 };
 

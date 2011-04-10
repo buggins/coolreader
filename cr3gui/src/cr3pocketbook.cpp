@@ -31,8 +31,92 @@ static cr_rotate_angle_t pocketbook_orientations[4] = {
 	CR_ROTATE_ANGLE_0, CR_ROTATE_ANGLE_90, CR_ROTATE_ANGLE_270, CR_ROTATE_ANGLE_180
 };
 
+// This PB FBreader stuff just to create mark indicating that book was opened for reading
+
+typedef struct tdocstate_s {
+	int magic;
+	long long position;
+	char preformatted;
+	char  reserved11;
+	short reserved2;
+	short reserved3;
+	short reserved4;
+	char encoding[16];
+	int nbmk;
+	long long bmk[30];
+} tdocstate;
+
+class CRPocketBookGlobals
+{
+private :
+	char *_fileName;
+	int _keepOrientation;
+	lString8  _lang;
+	bool _ready_sent;
+	char *_dataFile;
+	char *_zetFile;
+	tdocstate _docstate;
+public:
+    CRPocketBookGlobals(char *fileName);
+	char *getFileName() { return _fileName ; }
+	int getKeepOrientation() { return _keepOrientation; }
+	const char *getLang() { return _lang.c_str(); }
+	void saveState(int cpage, int npages);
+
+	virtual ~CRPocketBookGlobals() { };
+	void BookReady() 
+	{
+		if (!_ready_sent) {
+			::BookReady(_fileName);
+			_ready_sent = true;
+		}
+	}
+};
+
+CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
+{
+	_fileName = fileName;
+	_ready_sent = false;
+	iconfig *gc = OpenConfig(GLOBALCONFIGFILE, NULL);
+	_lang = ReadString(gc, const_cast<char *>("language"), const_cast<char *>("en"));
+	CRLog::trace("language=%s", _lang.c_str());
+	if (_lang == "ua")
+		_lang = "uk";
+	_keepOrientation = ReadInt(gc, const_cast<char *>("keeporient"), 0);
+	CloseConfig(gc);
+	_dataFile = GetAssociatedFile(fileName, 0);
+	_zetFile = GetAssociatedFile(fileName, 'z');
+	FILE *f = iv_fopen(_dataFile, "rb");
+	if (f == NULL || iv_fread(&_docstate, 1, sizeof(tdocstate), f) != sizeof(tdocstate) || _docstate.magic != 0x9751) {
+		_docstate.magic = 0x9751;
+		_docstate.position = 1;
+		strcpy(_docstate.encoding, "auto");
+		_docstate.nbmk = 0;
+	} else
+		_dataFile = NULL;
+	if (f != NULL)
+        iv_fclose(f);
+}
+
+void CRPocketBookGlobals::saveState(int cpage, int npages)
+{
+	CRLog::trace("CRPocketBookGlobals::saveState(%d, %d)", cpage, npages);
+	if (_dataFile != NULL) {
+		FILE *f = iv_fopen(_dataFile, "wb");
+		if (f != NULL) {
+			iv_fwrite(&_docstate, 1, sizeof(tdocstate), f);
+			iv_fclose(f);
+		}
+	}
+	if (npages - cpage < 3 && cpage >= 5) {
+		FILE *f = iv_fopen(_zetFile, "w");
+		fclose(f);
+	}
+}
+
+class CRPocketBookGlobals * pbGlobals = NULL;
+
 static int keyPressed = -1;
-static int keepOrientation;
 static bool exiting = false;
 
 
@@ -40,50 +124,59 @@ char key_buffer[KEY_BUFFER_LEN];
 
 #include <cri18n.h>
 
-
 class CRPocketBookScreen : public CRGUIScreenBase {
-    public:
-        static CRPocketBookScreen * instance;
-    protected:
-        virtual void update( const lvRect & rc2, bool full )
-		{
-    		CRLog::debug("CRPbScreen::update(%d, %d, %d, %d, %s)", rc2.left, rc2.top, rc2.right, rc2.bottom, full ? "full" : "partial");
-        	if ( rc2.isEmpty() && !full )
-        		return;
-        	lvRect rc = rc2;
-        	rc.left &= ~3;
-        	rc.right = (rc.right + 3) & ~3;
+public:
+	static CRPocketBookScreen * instance;
+protected:
+	virtual void update( const lvRect & rc2, bool full )
+	{
+		CRLog::debug("CRPbScreen::update(%d, %d, %d, %d, %s)", rc2.left, rc2.top, rc2.right, rc2.bottom, full ? "full" : "partial");
+		if ( rc2.isEmpty() && !full )
+			return;
+		lvRect rc = rc2;
+		rc.left &= ~3;
+		rc.right = (rc.right + 3) & ~3;
 
-    		if (rc.height() > 400
+		if (rc.height() > 400
 #if ENABLE_UPDATE_MODE_SETTING==1
           		&& checkFullUpdateCounter()
 #endif
-         	)
-        		full = true;
-    		else
-        		full = false;
+		)
+			full = true;
+		else
+			full = false;
 
-			lUInt8 *screenbuf =  _front->GetScanLine(0);
-			int w = _front->GetWidth(); int h = _front->GetHeight();
-    		Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
-    		if ( full )
-        		FullUpdate();
-			else if (rc.height() < 400) {
-				PartialUpdateBW(rc.left, rc.top, rc.width(), rc.height());
-			} else
-				SoftUpdate();
-		}
-    public:
-        virtual ~CRPocketBookScreen()
-        {
-            instance = NULL;
-        }
+		lUInt8 *screenbuf =  _front->GetScanLine(0);
+		int w = _front->GetWidth(); int h = _front->GetHeight();
+		Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
+		if ( full )
+			FullUpdate();
+		else if (rc.height() < 400) {
+			PartialUpdateBW(rc.left, rc.top, rc.width(), rc.height());
+		} else
+			SoftUpdate();
+	}
+public:
+	virtual ~CRPocketBookScreen()
+	{
+		instance = NULL;
+	}
 
-        CRPocketBookScreen( int width, int height )
-        :  CRGUIScreenBase( width, height, true )
-        {
-            instance = this;
-        }
+	CRPocketBookScreen( int width, int height )
+	:  CRGUIScreenBase( width, height, true )
+	{
+		instance = this;
+	}
+
+	void MakeSnapShot() 
+	{
+		ClearScreen();
+		lUInt8 *screenbuf =  _front->GetScanLine(0);
+		int w = _front->GetWidth(); int h = _front->GetHeight();
+		Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
+		PageSnapshot();
+	}
+		
 };
 
 CRPocketBookScreen * CRPocketBookScreen::instance = NULL;
@@ -145,12 +238,10 @@ public:
         CRLog::trace("Translate(%s)", key);
         lString16 res;
 
-        const char * res8 = GetLangText((char *)key);
-        if ( res8 && res8[0] ) {
-            CRLog::trace("   found(%s)", res8);
-            res = Utf8ToUnicode( lString8(res8) );
+		if (key && key[0] == '@') {
+			const char * res8 = GetLangText((char *)key);
+			res = Utf8ToUnicode( lString8(res8) );
         } else {
-            CRLog::trace("   not found");
             res = Utf8ToUnicode( lString8(defValue) );
         }
         return res;
@@ -273,33 +364,7 @@ void searchHandler(char *s)
 
 void tocHandler(long long position) 
 {
-	CRLog::trace("tocHandler(position=%d)", position);
 	CRPocketBookWindowManager::instance->onCommand(MCMD_GO_PAGE_APPLY, position);
-}
-
-class CRPbBookmarkMenu : public CRBookmarkMenu {
-public:
-	virtual void setMode( bool goToMode );
-
-    CRPbBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode=false) : CRBookmarkMenu(wm, docview, numItems, rc, goToMode) 
-    {
-		_statusText.clear();
-	}
-};
-
-void CRPbBookmarkMenu::setMode( bool goToMode )
-{
-	CRLog::trace("setMode( %s )", goToMode ? "true" : "false");
-	_goToMode = goToMode;
-	if ( _goToMode ) {
-		_caption = lString16(_("Go to bookmark"));
-		_label = _caption;
-	} else {
-		_caption = lString16(_("Set bookmark"));
-		_label = _caption;
-	}
-	_statusText.clear();
-	setDirty();
 }
 
 class CRPocketBookDocView : public V3DocViewWin {
@@ -355,7 +420,7 @@ protected:
 		int orient = GetOrientation();
 		if (orient == params)
 			return true;
-		if (params == -1 || keepOrientation == 0 || keepOrientation == 2) {
+		if (params == -1 || pbGlobals->getKeepOrientation() == 0 || pbGlobals->getKeepOrientation() == 2) {
 			SetGlobalOrientation(params);
 		} else {
 			SetOrientation(params);
@@ -399,6 +464,8 @@ public:
 
     virtual void closing()
     {
+		pbGlobals->saveState(getDocView()->getCurPage(), getDocView()->getPageCount());
+		CRLog::trace("V3DocViewWin::closing();");
         V3DocViewWin::closing();
         if (!exiting)
 			CloseApp();
@@ -420,12 +487,6 @@ public:
 			return quickMenuApply(params);
 		case PB_CMD_ROTATE_ANGLE_SET: 
 			return rotateApply(params);
-		case MCMD_BOOKMARK_LIST:
-			showBookmarksMenu(false);
-			return true;
-		case MCMD_BOOKMARK_LIST_GO_MODE:
-			showBookmarksMenu(true);
-			return true;
 		case MCMD_SEARCH:
 			_searchPattern.clear();
 			OpenKeyboard(const_cast<char *>("@Search"), key_buffer, KEY_BUFFER_LEN, 0, searchHandler);
@@ -476,14 +537,6 @@ public:
 		return true;
 	}
 
-	void showBookmarksMenu( bool goMode )
-	{
-		CRLog::trace("showBookmarksMenu( %s )", goMode ? "true" : "false");
-		lvRect rc = _wm->getScreen()->getRect();
-		CRPbBookmarkMenu * menu_win = new CRPbBookmarkMenu(_wm, _docview, 8, rc, goMode);
-		_wm->activateWindow( menu_win );
-	}
-
 	void showContents() {
 		if (_toc == NULL) {
 			LVPtrVector<LVTocItem, false> tocItems;
@@ -522,7 +575,6 @@ public:
 
 CRPocketBookDocView * CRPocketBookDocView::instance = NULL;
 
-
 static void loadPocketBookKeyMaps(CRGUIWindowManager & winman)
 {
 	CRGUIAcceleratorTable pbTable;
@@ -553,17 +605,6 @@ static void loadPocketBookKeyMaps(CRGUIWindowManager & winman)
 }
 
 
-static const char * getLang( )
-{
-	iconfig *gc = GetGlobalConfig();
-
-	char *ret = ReadString(gc, const_cast<char *>("language"), const_cast<char *>("ru"));
-	CRLog::trace("language=%s", ret);
-	keepOrientation = ReadInt(gc, const_cast<char *>("keeporient"), 0);
-	CloseConfig(gc);
-	return ret;
-}
-
 int InitDoc(const char *exename, char *fileName)
 {
     static const lChar16 * css_file_name = L"fb2.css"; // fb2
@@ -593,10 +634,11 @@ int InitDoc(const char *exename, char *fileName)
 #else
     InitCREngineLog(USERDATA"/share/cr3/crlog.ini");
 #endif
-
+	pbGlobals = new CRPocketBookGlobals(fileName);
     char manual_file[512] = USERDATA"/share/c3/manual/cr3-manual-en.fb2";
     {
-        const char * lang = getLang();
+		const char *lang = pbGlobals->getLang();
+
         if ( lang && lang[0] ) {
             // set translator
             CRLog::info("Current language is %s, looking for translation file", lang);
@@ -704,7 +746,7 @@ int InitDoc(const char *exename, char *fileName)
 
 		int orient;
 
-		if (GetGlobalOrientation() == -1 || keepOrientation == 0 || keepOrientation == 2) {
+		if (GetGlobalOrientation() == -1 || pbGlobals->getKeepOrientation() == 0 || pbGlobals->getKeepOrientation() == 2) {
 			orient = GetOrientation();
 		} else {
 			orient = main_win->getProps()->getIntDef(PROP_POCKETBOOK_ORIENTATION, GetOrientation());
@@ -722,13 +764,6 @@ int InitDoc(const char *exename, char *fileName)
             delete wm;
             return 0;
         }
-/*
-        char **dictNames = EnumDictionaries();
-
-		for (int i = 0; dictNames[i]; i++) {
-			CRLog::trace("Dictionary = %s", dictNames[i]);
-		}		
-*/
     }
     return 1;
 }
@@ -737,47 +772,109 @@ static void onAutoRotation(int par1)
 {
 	if (par1 < 0 || par1 > 3)
 		return;
-	cr_rotate_angle_t oldOrientation = CRPocketBookWindowManager::instance->getScreenOrientation();
-	cr_rotate_angle_t newOrientation = pocketbook_orientations[par1];
-	if (oldOrientation != newOrientation &&
-		(oldOrientation & 1) == (newOrientation & 1))
-		CRPocketBookWindowManager::instance->onCommand(PB_CMD_ROTATE_ANGLE_SET, par1);
+	CRPocketBookWindowManager::instance->onCommand(PB_CMD_ROTATE_ANGLE_SET, par1);
+}
+
+const char * getEventName(int evt) 
+{
+	static char buffer[64];
+
+	switch(evt) {
+	case EVT_INIT:
+		return "EVT_INIT";
+	case EVT_EXIT:
+		return "EVT_EXIT";
+	case EVT_SHOW:
+		return "EVT_SHOW";
+	case EVT_HIDE:
+		return "EVT_HIDE";
+	case EVT_KEYPRESS:
+		return "EVT_KEYPRESS";
+	case EVT_KEYRELEASE:
+		return "EVT_KEYRELEASE";
+	case EVT_KEYREPEAT:
+		return "EVT_KEYREPEAT";
+	case EVT_POINTERUP:
+		return "EVT_POINTERUP";
+	case EVT_POINTERDOWN:
+		return "EVT_POINTERDOWN";
+	case EVT_POINTERMOVE:
+		return "EVT_POINTERMOVE";
+	case EVT_POINTERLONG:
+		return "EVT_POINTERLONG";
+	case EVT_POINTERHOLD:
+		return "EVT_POINTERHOLD";
+	case EVT_ORIENTATION:
+		return "EVT_ORIENTATION";
+	case EVT_SNAPSHOT:
+		return "EVT_SNAPSHOT";
+	case EVT_MP_STATECHANGED:
+		return "EVT_MP_STATECHANGED";
+	case EVT_MP_TRACKCHANGED:
+		return "EVT_MP_TRACKCHANGED";
+	case EVT_PREVPAGE:
+		return "EVT_PREVPAGE";
+	case EVT_NEXTPAGE:
+		return "EVT_NEXTPAGE";
+	case EVT_OPENDIC:
+		return "EVT_OPENDIC";
+	default:
+		sprintf(buffer, "%d", evt);
+		return buffer;
+	}
+	return "";
 }
 
 int main_handler(int type, int par1, int par2)
 {
 	bool process_events = false;
 	bool needUpdate = false;
+	int ret = 0;
+	CRLog::trace("main_handler(%s, %d, %d)", getEventName(type), par1, par2);
 	switch (type) {
 	case EVT_SHOW:
 		CRPocketBookWindowManager::instance->update(true);
+		pbGlobals->BookReady();
 		break;
 	case EVT_EXIT:
-		if (!exiting) {
-			exiting = true;
-			if (CRPocketBookWindowManager::instance->getWindowCount() != 0)
-				CRPocketBookWindowManager::instance->closeAllWindows();
-		}
+		// TODO: find out why don't handler receive EVT_EXIT and EVT_SNAPSHOT
+		// on power off ?
+		exiting = true;
+		if (CRPocketBookWindowManager::instance->getWindowCount() != 0)
+			CRPocketBookWindowManager::instance->closeAllWindows();
 		break;
 	case EVT_PREVPAGE:
-		CRLog::trace("EVT_PREVPAGE");
+		CRPocketBookWindowManager::instance->onCommand(DCMD_PAGEUP, 0);
 		break;
 	case EVT_NEXTPAGE:
-		CRLog::trace("EVT_NEXTPAGE");
+		CRPocketBookWindowManager::instance->onCommand(DCMD_PAGEDOWN, 0);
 		break;
 	case EVT_ORIENTATION:
 		onAutoRotation(par1);
 		break;
 	case EVT_KEYPRESS:
+		if (par1 == KEY_POWER) {
+			return 0;
+		}
 		if (!CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS)) {
 			needUpdate = CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
 			process_events = true;
 			keyPressed = par1;
+			ret = 1;
 		} else
 			keyPressed = -1;
 		break;
 	case EVT_KEYREPEAT:
 	case EVT_KEYRELEASE:
+		if (par1 == KEY_POWER) {
+			if (par2 > 3 && !exiting) {
+				//TODO: remove this (experiment with receiving events
+				CRPocketBookScreen::instance->MakeSnapShot();
+				SendEvent(main_handler, EVT_EXIT, 0, 0);
+				return 1;
+			}
+			return 0;
+		}
 		if (keyPressed == par1) {
 			keyPressed = -1;
 			break;
@@ -788,9 +885,10 @@ int main_handler(int type, int par1, int par2)
 			needUpdate = CRPocketBookWindowManager::instance->onKeyPressed(par1, KEY_FLAG_LONG_PRESS);
 		process_events = true;
 		keyPressed = -1;
+		ret = 1;
 		break;
 	case EVT_SNAPSHOT:
-		PageSnapshot();
+		CRPocketBookScreen::instance->MakeSnapShot();
 		break;
 	default:
 		break;
@@ -799,8 +897,7 @@ int main_handler(int type, int par1, int par2)
 		needUpdate = CRPocketBookWindowManager::instance->processPostedEvents() || needUpdate;
 	if (needUpdate)
 		CRPocketBookWindowManager::instance->update(false);
-	return 0;
-
+	return ret;
 }
 
 int main(int argc, char **argv)
