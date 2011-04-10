@@ -173,6 +173,8 @@ bCheckDoubleLinkedList(output_type *pAnchor)
 } /* end of bCheckDoubleLinkedList */
 #endif /* DEBUG */
 
+//#if ANTIWORD_EXTERNAL_IO!=1
+#if CR3_ANTIWORD_PATCH!=1
 /*
  * bReadBytes
  * This function reads the specified number of bytes from the specified file,
@@ -195,6 +197,7 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
 	}
 	return TRUE;
 } /* end of bReadBytes */
+#endif
 
 /*
  * bReadBuffer
