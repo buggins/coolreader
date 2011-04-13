@@ -333,7 +333,7 @@ void
 vEndOfList(diagram_type *pDiag)
 {
     CRLog::trace("antiword::vEndOfList()");
-    vEndOfListXML(pDiag);
+    //vEndOfListXML(pDiag);
 } /* end of vEndOfList */
 
 /*
