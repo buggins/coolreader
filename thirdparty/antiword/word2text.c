@@ -246,6 +246,7 @@ vStoreNumberAsRoman(UINT uiNumber, output_type *pOutput)
 	vStoreString(szString, tLen, pOutput);
 } /* end of vStoreNumberAsRoman */
 
+#if CR3_ANTIWORD_PATCH!=1
 /*
  * vStoreStyle - store a style
  */
@@ -267,7 +268,12 @@ vStoreStyle(diagram_type *pDiag, output_type *pOutput,
 					pStyle, pSection);
 		vStoreString(szString, tLen, pOutput);
 	}
-} /* end of vStoreStyle */
+}
+/* end of vStoreStyle */
+#else
+extern void vStoreStyle(diagram_type *pDiag, output_type *pOutput,
+                    const style_block_type *pStyle);
+#endif
 
 /*
  * vPutIndentation - output the specified amount of indentation

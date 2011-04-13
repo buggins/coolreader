@@ -437,6 +437,15 @@ extern void	vPrintBlock(const char *, int, const UCHAR *, size_t);
 extern void	vPrintUnicode(const char *, int, const UCHAR *, size_t);
 extern BOOL	bCheckDoubleLinkedList(output_type *);
 #endif /* DEBUG */
+
+#if CR3_ANTIWORD_PATCH!=1
+#define aw_rewind rewind
+#define aw_getc getc
+#else
+extern void aw_rewind(FILE * f);
+extern int aw_getc(FILE * f);
+#endif
+
 extern BOOL	bReadBytes(UCHAR *, size_t, ULONG, FILE *);
 extern BOOL	bReadBuffer(FILE *, ULONG, const ULONG *, size_t, size_t,
 			UCHAR *, ULONG, size_t);
@@ -465,6 +474,7 @@ extern notetype_enum eGetNotetype(ULONG);
 /* options.c */
 extern int	iReadOptions(int, char **);
 extern void	vGetOptions(options_type *);
+extern void vSetOptions(options_type *pOptions);
 #if defined(__riscos)
 extern void	vChoicesOpenAction(window_handle);
 extern BOOL	bChoicesMouseClick(event_pollblock *, void *);

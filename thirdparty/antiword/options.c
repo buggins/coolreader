@@ -33,8 +33,6 @@ extern int getopt(int, char **, const char *);
 #define LEAFNAME_SIZE		(32+1)
 #endif /* __riscos */
 
-/* Current values for options */
-static options_type	tOptionsCurr;
 #if defined(__riscos)
 /* Temporary values for options */
 static options_type	tOptionsTemp;
@@ -84,6 +82,8 @@ static const options_type	tOptionsDefault = {
 #endif /* __riscos */
 };
 
+/* Current values for options */
+static options_type	tOptionsCurr;
 
 #if !defined(__riscos)
 /*
@@ -541,6 +541,17 @@ vGetOptions(options_type *pOptions)
 
 	*pOptions = tOptionsCurr;
 } /* end of vGetOptions */
+
+/*
+ * vSetOptions - set new current option values
+ */
+void
+vSetOptions(options_type *pOptions)
+{
+    fail(pOptions == NULL);
+
+    tOptionsCurr = *pOptions;
+} /* end of vSetOptions */
 
 #if defined(__riscos)
 /*

@@ -11,6 +11,7 @@
 
  *******************************************************/
 
+#include "../include/crsetup.h"
 #include "../include/fb2def.h"
 #include "../include/lvdocview.h"
 #include "../include/rtfimp.h"
