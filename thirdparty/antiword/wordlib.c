@@ -21,10 +21,10 @@ bCheckBytes(FILE *pFile, const UCHAR *aucBytes, size_t tBytes)
 
 	fail(pFile == NULL || aucBytes == NULL || tBytes == 0);
 
-	rewind(pFile);
+    aw_rewind(pFile);
 
 	for (iIndex = 0; iIndex < (int)tBytes; iIndex++) {
-		iChar = getc(pFile);
+        iChar = aw_getc(pFile);
 		if (iChar == EOF || iChar != (int)aucBytes[iIndex]) {
 			NO_DBG_HEX(iChar);
 			NO_DBG_HEX(aucBytes[iIndex]);

@@ -11,6 +11,7 @@ LOCAL_MODULE    := cr3engine
 CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH -DFT2_BUILD_LIBRARY=1 \
      -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x600000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
+     -DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1 \
      -DMAX_IMAGE_SCALE_MUL=2
 
 CR3_ROOT = $(LOCAL_PATH)/../..
@@ -20,6 +21,7 @@ LOCAL_C_INCLUDES := \
     -I $(CR3_ROOT)/thirdparty/libpng \
     -I $(CR3_ROOT)/thirdparty/freetype/include \
     -I $(CR3_ROOT)/thirdparty/libjpeg \
+    -I $(CR3_ROOT)/thirdparty/antiword \
     -I $(CR3_ROOT)/thirdparty/chmlib/src
 
 
@@ -169,6 +171,54 @@ CHM_SRC_FILES := \
     ../../thirdparty/chmlib/src/chm_lib.c \
     ../../thirdparty/chmlib/src/lzx.c 
 
+ANTIWORD_SRC_FILES := \
+    ../../thirdparty/antiword/asc85enc.c \
+    ../../thirdparty/antiword/blocklist.c \
+    ../../thirdparty/antiword/chartrans.c \
+    ../../thirdparty/antiword/datalist.c \
+    ../../thirdparty/antiword/depot.c \
+    ../../thirdparty/antiword/dib2eps.c \
+    ../../thirdparty/antiword/doclist.c \
+    ../../thirdparty/antiword/fail.c \
+    ../../thirdparty/antiword/finddata.c \
+    ../../thirdparty/antiword/findtext.c \
+    ../../thirdparty/antiword/fontlist.c \
+    ../../thirdparty/antiword/fonts.c \
+    ../../thirdparty/antiword/fonts_u.c \
+    ../../thirdparty/antiword/hdrftrlist.c \
+    ../../thirdparty/antiword/imgexam.c \
+    ../../thirdparty/antiword/imgtrans.c \
+    ../../thirdparty/antiword/jpeg2eps.c \
+    ../../thirdparty/antiword/listlist.c \
+    ../../thirdparty/antiword/misc.c \
+    ../../thirdparty/antiword/notes.c \
+    ../../thirdparty/antiword/options.c \
+    ../../thirdparty/antiword/out2window.c \
+    ../../thirdparty/antiword/pdf.c \
+    ../../thirdparty/antiword/pictlist.c \
+    ../../thirdparty/antiword/png2eps.c \
+    ../../thirdparty/antiword/prop0.c \
+    ../../thirdparty/antiword/prop2.c \
+    ../../thirdparty/antiword/prop6.c \
+    ../../thirdparty/antiword/prop8.c \
+    ../../thirdparty/antiword/properties.c \
+    ../../thirdparty/antiword/propmod.c \
+    ../../thirdparty/antiword/rowlist.c \
+    ../../thirdparty/antiword/sectlist.c \
+    ../../thirdparty/antiword/stylelist.c \
+    ../../thirdparty/antiword/stylesheet.c \
+    ../../thirdparty/antiword/summary.c \
+    ../../thirdparty/antiword/tabstop.c \
+    ../../thirdparty/antiword/unix.c \
+    ../../thirdparty/antiword/utf8.c \
+    ../../thirdparty/antiword/word2text.c \
+    ../../thirdparty/antiword/worddos.c \
+    ../../thirdparty/antiword/wordlib.c \
+    ../../thirdparty/antiword/wordmac.c \
+    ../../thirdparty/antiword/wordole.c \
+    ../../thirdparty/antiword/wordwin.c \
+    ../../thirdparty/antiword/xmalloc.c
+
 JNI_SRC_FILES := \
     cr3engine.cpp \
     cr3java.cpp \
@@ -180,7 +230,8 @@ LOCAL_SRC_FILES := \
     $(FREETYPE_SRC_FILES) \
     $(PNG_SRC_FILES) \
     $(JPEG_SRC_FILES) \
-    $(CHM_SRC_FILES)
+    $(CHM_SRC_FILES) \
+    $(ANTIWORD_SRC_FILES)
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl -Wl,-Map=cr3engine.map
 #-ljnigraphics

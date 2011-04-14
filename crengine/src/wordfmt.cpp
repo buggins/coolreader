@@ -1,16 +1,19 @@
+#include "../include/crsetup.h"
+#include "../include/lvstring.h"
+#include "../include/lvstream.h"
+#include "../include/lvtinydom.h"
 #if ENABLE_ANTIWORD==1
 #include "../include/wordfmt.h"
 
 
+static ldomDocumentWriter * writer = NULL;
+static ldomDocument * doc = NULL;
+static bool inside_p = false;
+static int alignment = 0;
+//static ldomNode * body = NULL;
+//static ldomNode * head = NULL;
 
 // Antiword Output handling
-/*
- * output.c
- * Copyright (C) 2002-2004 A.J. van Os; Released under GNU GPL
- *
- * Description:
- * Generic output generating functions
- */
 extern "C" {
 #include "antiword.h"
 }
@@ -21,23 +24,61 @@ static encoding_type	eEncoding = encoding_neutral;
 #define LFAIL(x) \
     if ((x)) crFatalError(1111, "assertion failed: " #x)
 
+static void setOptions() {
+    options_type tOptions = {
+        DEFAULT_SCREEN_WIDTH,
+        conversion_xml,
+        TRUE,
+        TRUE,
+        FALSE,
+        encoding_utf_8,
+        INT_MAX,
+        INT_MAX,
+        level_default,
+    };
+
+    //vGetOptions(&tOptions);
+    vSetOptions(&tOptions);
+}
+
 /*
  * vPrologue1 - get options and call a specific initialization
  */
 static void
 vPrologue1(diagram_type *pDiag, const char *szTask, const char *szFilename)
 {
-    options_type	tOptions;
+    //options_type	tOptions;
 
     LFAIL(pDiag == NULL);
     LFAIL(szTask == NULL || szTask[0] == '\0');
 
+    options_type tOptions;
     vGetOptions(&tOptions);
+
     eConversionType = tOptions.eConversionType;
     eEncoding = tOptions.eEncoding;
 
     CRLog::trace("antiword::vPrologue1()");
     //vPrologueXML(pDiag, &tOptions);
+
+    lString16 title("Word document");
+    writer->OnTagOpen(NULL, L"?xml");
+    writer->OnAttribute(NULL, L"version", L"1.0");
+    writer->OnAttribute(NULL, L"encoding", L"utf-8");
+    writer->OnEncoding(L"utf-8", NULL);
+    writer->OnTagBody();
+    writer->OnTagClose(NULL, L"?xml");
+    writer->OnTagOpenNoAttr(NULL, L"FictionBook");
+    // DESCRIPTION
+    writer->OnTagOpenNoAttr(NULL, L"description");
+    writer->OnTagOpenNoAttr(NULL, L"title-info");
+    writer->OnTagOpenNoAttr(NULL, L"book-title");
+    writer->OnText(title.c_str(), title.length(), 0);
+    writer->OnTagClose(NULL, L"book-title");
+    writer->OnTagOpenNoAttr(NULL, L"title-info");
+    writer->OnTagClose(NULL, L"description");
+    // BODY
+    writer->OnTagOpenNoAttr(NULL, L"body");
 } /* end of vPrologue1 */
 
 
@@ -50,6 +91,9 @@ vEpilogue(diagram_type *pDiag)
     CRLog::trace("antiword::vEpilogue()");
     //vEpilogueTXT(pDiag->pOutFile);
     //vEpilogueXML(pDiag);
+    if ( inside_p )
+        writer->OnTagClose(NULL, L"p");
+    writer->OnTagClose(NULL, L"body");
 } /* end of vEpilogue */
 
 /*
@@ -159,11 +203,42 @@ vSubstring2Diagram(diagram_type *pDiag,
     UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
     USHORT usFontSize, USHORT usMaxFontSize)
 {
-    CRLog::trace("antiword::vSubstring2Diagram()");
+    lString16 s( szString, tStringLength);
+    CRLog::trace("antiword::vSubstring2Diagram(%s)", LCSTR(s));
 //    vSubstringXML(pDiag, szString, tStringLength, lStringWidth,
 //            usFontstyle);
+    if ( !inside_p ) {
+        writer->OnTagOpenNoAttr(NULL, L"p");
+        inside_p = true;
+    }
+    writer->OnText(s.c_str(), s.length(), 0);
+
     pDiag->lXleft += lStringWidth;
 } /* end of vSubstring2Diagram */
+
+extern "C" {
+    void vStoreStyle(diagram_type *pDiag, output_type *pOutput,
+        const style_block_type *pStyle);
+};
+
+/*
+ * vStoreStyle - store a style
+ */
+void
+vStoreStyle(diagram_type *pDiag, output_type *pOutput,
+    const style_block_type *pStyle)
+{
+    size_t	tLen;
+    char	szString[120];
+
+    fail(pDiag == NULL);
+    fail(pOutput == NULL);
+    fail(pStyle == NULL);
+
+    CRLog::trace("antiword::vStoreStyle()");
+    alignment = pStyle->ucAlignment;
+
+} /* end of vStoreStyle */
 
 /*
  * Create a start of paragraph (phase 1)
@@ -175,6 +250,19 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
     CRLog::trace("antiword::vStartOfParagraph1()");
     LFAIL(pDiag == NULL);
 
+    if ( !inside_p ) {
+        writer->OnTagOpen(NULL, L"p");
+        if ( alignment==ALIGNMENT_CENTER )
+            writer->OnAttribute(NULL, L"style", L"text-align: center");
+        else if ( alignment==ALIGNMENT_RIGHT )
+            writer->OnAttribute(NULL, L"style", L"text-align: right");
+        else if ( alignment==ALIGNMENT_JUSTIFY )
+            writer->OnAttribute(NULL, L"style", L"text-align: justify");
+        else
+            writer->OnAttribute(NULL, L"style", L"text-align: left");
+        writer->OnTagBody();
+        inside_p = true;
+    }
 } /* end of vStartOfParagraph1 */
 
 /*
@@ -202,6 +290,10 @@ vEndOfParagraph(diagram_type *pDiag,
     LFAIL(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
     LFAIL(lAfterIndentation < 0);
     //vEndOfParagraphXML(pDiag, 1);
+    if ( inside_p ) {
+        writer->OnTagClose(NULL, L"p");
+        inside_p = false;
+    }
 } /* end of vEndOfParagraph */
 
 /*
@@ -241,7 +333,7 @@ void
 vEndOfList(diagram_type *pDiag)
 {
     CRLog::trace("antiword::vEndOfList()");
-    vEndOfListXML(pDiag);
+    //vEndOfListXML(pDiag);
 } /* end of vEndOfList */
 
 /*
@@ -295,6 +387,26 @@ public:
     }
 };
 
+void aw_rewind(FILE * pFile)
+{
+    if ( (void*)pFile==(void*)antiword_stream ) {
+        antiword_stream->SetPos(0);
+    } else {
+        rewind(pFile);
+    }
+}
+
+int aw_getc(FILE * pFile)
+{
+    if ( (void*)pFile==(void*)antiword_stream ) {
+        int b = antiword_stream->ReadByte();
+        if ( b>=0 )
+            return b;
+        return EOF;
+    } else {
+        return getc(pFile);
+    }
+}
 
 /*
  * bReadBytes
@@ -339,13 +451,72 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
 bool DetectWordFormat( LVStreamRef stream )
 {
     AntiwordStreamGuard file(stream);
-    return false;
+
+    setOptions();
+
+    BOOL bResult = 0;
+    lUInt32 lFilesize = (lUInt32)stream->GetSize();
+    int iWordVersion = iGuessVersionNumber(file, lFilesize);
+    if (iWordVersion < 0 || iWordVersion == 3) {
+        if (bIsRtfFile(file)) {
+            CRLog::error("not a Word Document."
+                " It is probably a Rich Text Format file");
+        } if (bIsWordPerfectFile(file)) {
+            CRLog::error("not a Word Document."
+                " It is probably a Word Perfect file");
+        } else {
+            CRLog::error("not a Word Document");
+        }
+        return FALSE;
+    }
+    return true;
 }
 
 bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
 {
     AntiwordStreamGuard file(stream);
-    return false;
+
+    setOptions();
+
+    BOOL bResult = 0;
+    diagram_type	*pDiag;
+    int		iWordVersion;
+
+    lUInt32 lFilesize = (lUInt32)stream->GetSize();
+    iWordVersion = iGuessVersionNumber(file, lFilesize);
+    if (iWordVersion < 0 || iWordVersion == 3) {
+        if (bIsRtfFile(file)) {
+            CRLog::error("not a Word Document."
+                " It is probably a Rich Text Format file");
+        } if (bIsWordPerfectFile(file)) {
+            CRLog::error("not a Word Document."
+                " It is probably a Word Perfect file");
+        } else {
+            CRLog::error("not a Word Document");
+        }
+        return FALSE;
+    }
+    /* Reset any reading done during file testing */
+    stream->SetPos(0);
+
+
+    ldomDocumentWriter w(m_doc);
+    writer = &w;
+    doc = m_doc;
+
+
+
+    pDiag = pCreateDiagram("cr3", "filename.doc");
+    if (pDiag == NULL) {
+        return false;
+    }
+
+    bResult = bWordDecryptor(file, lFilesize, pDiag);
+    vDestroyDiagram(pDiag);
+
+    doc = NULL;
+    writer = NULL;
+    return bResult!=0;
 }
 
 
