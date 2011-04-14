@@ -4891,9 +4891,11 @@ LVPageWordSelector::LVPageWordSelector( LVDocView * docview )
     : _docview(docview)
 {
     LVRef<ldomXRange> range = _docview->getPageDocumentRange();
-    _words.addRangeWords(*range, true);
-    _words.selectMiddleWord();
-    updateSelection();
+    if (!range.isNull()) {
+		_words.addRangeWords(*range, true);
+		_words.selectMiddleWord();
+		updateSelection();
+	}
 }
 
 void LVPageWordSelector::moveBy( MoveDirection dir, int distance )

@@ -4,6 +4,7 @@
 
 #include <crengine.h>
 #include <crgui.h>
+#include "viewdlg.h"
 #include "cr3main.h"
 #include "numedit.h"
 #include "linksdlg.h"
@@ -77,7 +78,7 @@ CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
 {
 	_fileName = fileName;
 	_ready_sent = false;
-	iconfig *gc = OpenConfig(GLOBALCONFIGFILE, NULL);
+	iconfig *gc = OpenConfig(const_cast<char *>(GLOBALCONFIGFILE), NULL);
 	_lang = ReadString(gc, const_cast<char *>("language"), const_cast<char *>("en"));
 	CRLog::trace("language=%s", _lang.c_str());
 	if (_lang == "ua")
@@ -86,7 +87,7 @@ CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
 	CloseConfig(gc);
 	_dataFile = GetAssociatedFile(fileName, 0);
 	_zetFile = GetAssociatedFile(fileName, 'z');
-	FILE *f = iv_fopen(_dataFile, "rb");
+	FILE *f = iv_fopen(_dataFile, const_cast<char *>("rb"));
 	if (f == NULL || iv_fread(&_docstate, 1, sizeof(tdocstate), f) != sizeof(tdocstate) || _docstate.magic != 0x9751) {
 		_docstate.magic = 0x9751;
 		_docstate.position = 1;
@@ -102,14 +103,14 @@ void CRPocketBookGlobals::saveState(int cpage, int npages)
 {
 	CRLog::trace("CRPocketBookGlobals::saveState(%d, %d)", cpage, npages);
 	if (_dataFile != NULL) {
-		FILE *f = iv_fopen(_dataFile, "wb");
+		FILE *f = iv_fopen(_dataFile, const_cast<char *>("wb"));
 		if (f != NULL) {
 			iv_fwrite(&_docstate, 1, sizeof(tdocstate), f);
 			iv_fclose(f);
 		}
 	}
 	if (npages - cpage < 3 && cpage >= 5) {
-		FILE *f = iv_fopen(_zetFile, "w");
+		FILE *f = iv_fopen(_zetFile, const_cast<char *>("w"));
 		fclose(f);
 	}
 }
@@ -123,6 +124,200 @@ static bool exiting = false;
 char key_buffer[KEY_BUFFER_LEN];
 
 #include <cri18n.h>
+
+class CRPbDictionaryDialog;
+
+class CRPbDictionaryView : public CRViewDialog
+{
+private:
+	CRPbDictionaryDialog *_parent;
+	char ** _dictNames;
+	int _dictIndex;
+	int _dictCount;
+public:
+	CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDialog *parent);
+	virtual void draw() { CRViewDialog::draw(); }
+	int getDesiredHeight()
+	{
+		return (_wm->getScreenOrientation() & 0x1) ? - 200 : 300;
+	}
+	virtual ~CRPbDictionaryView() 
+	{
+		if (_dictIndex >= 0)
+			CloseDictionary();
+	}
+};
+
+CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDialog *parent) 
+	: CRViewDialog(wm, lString16(), lString8(), lvRect(), false, true), _parent(parent) 
+{
+	setAccelerators( _wm->getAccTables().get("dict") );
+	lvRect rect = _wm->getScreen()->getRect();
+	rect.top = rect.bottom - getDesiredHeight();
+	setRect(rect);
+	_dictNames = EnumDictionaries();
+	for (_dictCount = 0; _dictNames[_dictCount]; _dictCount++)
+		;
+	CRLog::trace("_dictCount = %d", _dictCount);
+	if (_dictCount > 0) {
+		OpenDictionary(_dictNames[_dictIndex = 0]);
+		_caption = Utf8ToUnicode( lString8(_dictNames[_dictIndex]) );
+	} else
+		_dictIndex = -1;		
+}
+
+class CRPbDictionaryDialog : public CRGUIWindowBase
+{
+protected:
+	CRViewDialog * _docwin;
+	LVDocView * _docview;
+	LVPageWordSelector * _wordSelector;
+	CRPbDictionaryView * _dictView;
+protected:
+	virtual void Update();
+	virtual void draw();
+    void startWordSelection();
+    void endWordSelection();
+    bool isWordSelection() { return _wordSelector!=NULL; }
+    void onWordSelection();
+public:
+	static CRPbDictionaryDialog * create( CRGUIWindowManager * wm, CRViewDialog * docwin );
+	CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialog * docwin );
+	virtual ~CRPbDictionaryDialog() {
+		if (_wordSelector) {
+			delete _wordSelector;
+			_wordSelector = NULL;
+		}
+		delete _dictView;
+		_dictView = NULL;
+	}
+	/// returns true if command is processed
+	virtual bool onCommand( int command, int params );
+};
+
+
+CRPbDictionaryDialog::CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialog * docwin )
+: CRGUIWindowBase( wm ), _docwin(docwin), _docview(docwin->getDocView())
+{
+	_wordSelector = NULL;
+	_fullscreen = true;
+    CRGUIAcceleratorTableRef acc = _wm->getAccTables().get("dict");
+    if ( acc.isNull() )
+        acc = _wm->getAccTables().get("dialog");
+    _dictView = new CRPbDictionaryView(wm, this);
+	setAccelerators( acc );
+	startWordSelection();
+}
+
+CRPbDictionaryDialog * CRPbDictionaryDialog::create( CRGUIWindowManager * wm, CRViewDialog * docwin )
+{
+	return new CRPbDictionaryDialog(wm, docwin);
+}
+
+void CRPbDictionaryDialog::startWordSelection()
+{
+	if (isWordSelection())
+		endWordSelection();
+    _wordSelector = new LVPageWordSelector(_docview);
+	onWordSelection();
+    Update();
+}
+
+void CRPbDictionaryDialog::endWordSelection()
+{
+	if (isWordSelection()) {
+		delete _wordSelector;
+		_wordSelector = NULL;
+		_docview->clearSelection();
+	}
+}
+
+void CRPbDictionaryDialog::onWordSelection() 
+{
+	CRLog::trace("CRPbDictionaryDialog::onWordSelection()");
+	ldomWordEx * word = _wordSelector->getSelectedWord();
+	if ( word ) {
+		lvRect dictRc = _dictView->getRect();
+		lvRect rc(dictRc);
+		lvRect mRc = _docview->getPageMargins();
+		if (dictRc.top > 0) {
+			int y = word->getMark().end.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top +30;
+			if (y >= dictRc.top) {
+				rc.top = 0;
+				rc.bottom = _dictView->getDesiredHeight();
+				_dictView->setRect(rc);
+			}
+		} else {
+			int y = word->getMark().start.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top;
+			if (y <= dictRc.bottom) {
+				rc.bottom = _wm->getScreen()->getHeight();
+				rc.top = rc.bottom - _dictView->getDesiredHeight();
+				_dictView->setRect(rc);
+			}
+		}
+		//text = word->getText();
+	}
+}
+
+bool CRPbDictionaryDialog::onCommand( int command, int params )
+{
+	if (params == 0)
+		params = 1;
+
+	MoveDirection dir = DIR_ANY;
+	int curPage;
+	bool ret;
+
+    switch ( command ) {
+	case DCMD_PAGEUP:
+	case DCMD_PAGEDOWN:
+		curPage = _docview->getCurPage();
+		ret = _docview->doCommand((LVDocCmd)command, params);
+		if (curPage != _docview->getCurPage())
+			startWordSelection();
+		return ret;
+    case MCMD_CANCEL:
+        _docview->clearSelection();
+        _wm->closeWindow( this );
+        return true;
+    case MCMD_OK:
+        _docview->clearSelection();
+        _wm->closeWindow( this );
+        return true;
+	case PB_CMD_LEFT:
+		dir = DIR_LEFT;
+        break;
+	case PB_CMD_RIGHT:
+		dir = DIR_RIGHT;
+        break;
+	case PB_CMD_UP:
+		dir = DIR_UP;
+        break;
+	case PB_CMD_DOWN:
+		dir = DIR_DOWN;
+        break;
+	default:
+		return false;
+	}
+	_wordSelector->moveBy(dir, params);
+	onWordSelection();
+	Update();
+	return true;
+}
+
+void CRPbDictionaryDialog::draw()
+{
+    LVDocImageRef page = _docview->getPageImage(0);
+    LVDrawBuf * buf = page->getDrawBuf();
+    _wm->getScreen()->draw( buf );
+    _dictView->draw();
+}
+
+void CRPbDictionaryDialog::Update()
+{
+    setDirty();
+    _wm->update( false );
+}
 
 class CRPocketBookScreen : public CRGUIScreenBase {
 public:
@@ -515,6 +710,9 @@ public:
 			if (_toc)
 				freeContents() ;
 			return true;
+		case MCMD_DICT:
+			showDictDialog();
+			return true;
 		case PB_CMD_CONTENTS: 
 			showContents();
 			return true;
@@ -535,6 +733,12 @@ public:
 		dlg->setAccelerators( getDialogAccelerators() );
 		_wm->activateWindow( dlg );
 		return true;
+	}
+
+	void showDictDialog() 
+	{
+		CRPbDictionaryDialog * dlg = new CRPbDictionaryDialog( _wm, this );
+		_wm->activateWindow( dlg );
 	}
 
 	void showContents() {
@@ -837,11 +1041,10 @@ int main_handler(int type, int par1, int par2)
 		pbGlobals->BookReady();
 		break;
 	case EVT_EXIT:
-		// TODO: find out why don't handler receive EVT_EXIT and EVT_SNAPSHOT
-		// on power off ?
 		exiting = true;
-		if (CRPocketBookWindowManager::instance->getWindowCount() != 0)
+		if (CRPocketBookWindowManager::instance->getWindowCount() != 0) 
 			CRPocketBookWindowManager::instance->closeAllWindows();
+		ShutdownCREngine();
 		break;
 	case EVT_PREVPAGE:
 		CRPocketBookWindowManager::instance->onCommand(DCMD_PAGEUP, 0);
@@ -867,12 +1070,6 @@ int main_handler(int type, int par1, int par2)
 	case EVT_KEYREPEAT:
 	case EVT_KEYRELEASE:
 		if (par1 == KEY_POWER) {
-			if (par2 > 3 && !exiting) {
-				//TODO: remove this (experiment with receiving events
-				CRPocketBookScreen::instance->MakeSnapShot();
-				SendEvent(main_handler, EVT_EXIT, 0, 0);
-				return 1;
-			}
 			return 0;
 		}
 		if (keyPressed == par1) {
@@ -911,6 +1108,5 @@ int main(int argc, char **argv)
         return 2;
     }
     InkViewMain(main_handler);
-    ShutdownCREngine();
     return 0;
 }
