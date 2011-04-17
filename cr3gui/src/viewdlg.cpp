@@ -373,16 +373,6 @@ bool CRViewDialog::onCommand( int command, int params )
     return CRDocViewWindow::onCommand( command, params );
 }
 
-#ifdef CR_POCKETBOOK
-static
-const char* TR(const char *label) 
-{
-	char* tr = GetLangText(const_cast<char*> (label));
-	CRLog::trace("Translation for %s is %s", label, tr);
-	return tr;
-}
-#endif
-
 static 
 const char * getKeyName( int keyCode )
 {

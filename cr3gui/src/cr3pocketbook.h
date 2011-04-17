@@ -21,7 +21,8 @@ enum CRPbCommands {
 	PB_CMD_LEFT,
 	PB_CMD_RIGHT,
 	PB_CMD_UP,
-	PB_CMD_DOWN
+	PB_CMD_DOWN,
+	PB_CMD_SELECT_DICT
 };
 
 #define PB_QUICK_MENU_BMP_ID "fbreader_menu"
@@ -34,8 +35,10 @@ enum CRPbCommands {
 #define KEY_BUFFER_LEN 256
 
 #define PROP_POCKETBOOK_ORIENTATION    "cr3.pocketbook.orientation"
+#define PROP_POCKETBOOK_DICT "cr3.pocketbook.orientation"
 
 #define PB_CR3_CACHE_SIZE (0x100000 * 64)
 
+const char* TR(const char *label);
 #endif //CR3_POCKETBOOK_H
 
