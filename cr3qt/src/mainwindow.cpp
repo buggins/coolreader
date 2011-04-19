@@ -416,7 +416,7 @@ void MainWindow::showEvent ( QShowEvent * event )
         // file name specified at command line
         CRLog::info("Startup Action: filename passed in command line");
         if ( !ui->view->loadDocument( _filenameToOpen ) )
-            ;
+			CRLog::error("cannot load document");
     } else if ( n==0 ) {
         // open recent book
         CRLog::info("Startup Action: Open recent book");

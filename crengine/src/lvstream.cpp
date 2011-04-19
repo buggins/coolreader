@@ -3678,7 +3678,7 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in )
     lvsize_t bytesToRead = in->GetSize();
     while ( bytesToRead>0 )
     {
-        int blockSize = 5000;
+        unsigned blockSize = 5000;
         if (blockSize > bytesToRead)
             blockSize = bytesToRead;
         bytesRead = 0;

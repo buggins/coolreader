@@ -35,12 +35,13 @@ static void findImagesFromDirectory( lString16 dir, lString16Collection & files 
 }
 
 static void findBackgrounds( lString16Collection & baseDirs, lString16Collection & files ) {
-    for ( int i=0; i<baseDirs.length(); i++ ) {
+	unsigned i;
+    for ( i=0; i<baseDirs.length(); i++ ) {
         lString16 baseDir = baseDirs[i];
         LVAppendPathDelimiter(baseDir);
         findImagesFromDirectory( baseDir + L"backgrounds", files );
     }
-    for ( int i=0; i<baseDirs.length(); i++ ) {
+    for ( i=0; i<baseDirs.length(); i++ ) {
         lString16 baseDir = baseDirs[i];
         LVAppendPathDelimiter(baseDir);
         findImagesFromDirectory( baseDir + L"textures", files );
@@ -84,7 +85,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_backgroundFiles.append("[NONE]");
     bgFileLabels.append("[NONE]");
     QString bgFile = m_props->getStringDef(PROP_BACKGROUND_IMAGE, "");
-    for ( int i=0; i<bgFiles.length(); i++ ) {
+    for ( unsigned i=0; i<bgFiles.length(); i++ ) {
         lString16 fn = bgFiles[i];
         QString f = cr2qt(fn);
         if ( f==bgFile )

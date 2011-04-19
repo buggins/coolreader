@@ -274,6 +274,7 @@ public:
     /// returns object size (file size or directory entry count)
     virtual lverror_t GetSize( lvsize_t * pSize ) {
         *pSize = _size;
+		return LVERR_OK;
     }
     virtual lvsize_t        GetSize() const { return _size; }
     virtual const lChar16 * GetName() const { return _name.c_str(); }
@@ -316,11 +317,13 @@ public:
     virtual const LVContainerItemInfo * GetObjectInfo(int index) {
         if ( index>=0 && index<_list.length() )
             return _list[index];
+		return NULL;
     }
     virtual int GetObjectCount() const { return _list.length(); }
     /// returns object size (file size or directory entry count)
     virtual lverror_t GetSize( lvsize_t * pSize ) {
         *pSize = _list.length();
+		return LVERR_OK;
     }
 
     virtual LVStreamRef OpenStream( const lChar16 * fname, lvopen_mode_t mode ) {
@@ -395,7 +398,7 @@ class PDBFile : public LVNamedStream {
                     for (int i=0; i<(int)b; i++)
                         dst.add(src[pos++]);
                 } else if (b < 128) {
-                    dst.add(b);
+                    dst.add((lUInt8)b);
                 } else if (b > 0xc0) {
                     dst.add(' ');
                     dst.add(b & 0x7f);
