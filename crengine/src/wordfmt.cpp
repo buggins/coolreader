@@ -11,6 +11,16 @@
 #if ENABLE_ANTIWORD==1
 #include "../include/wordfmt.h"
 
+#ifdef _WIN32
+extern "C" {
+	int strcasecmp(const char *s1, const char *s2) {
+		return stricmp(s1,s2);
+	}
+//char	*optarg = NULL;
+//	int	optind = 0;
+}
+#endif
+
 #ifdef _DEBUG
 #define TRACE(x, ...) CRLog::trace(x)
 #else
@@ -21,6 +31,7 @@ static ldomDocumentWriter * writer = NULL;
 static ldomDocument * doc = NULL;
 static bool inside_p = false;
 static bool inside_table = false;
+static int table_col_count = 0;
 static int inside_list = 0; // 0=none, 1=ul, 2=ol
 static int alignment = 0;
 static bool inside_li = false;
@@ -42,6 +53,40 @@ static encoding_type	eEncoding = encoding_neutral;
 
 #define LFAIL(x) \
     if ((x)) crFatalError(1111, "assertion failed: " #x)
+
+
+static lString16 picasToPercent( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
+    int identPercent = 100 * p / 50;
+    if ( identPercent>maxvalue )
+        identPercent = maxvalue;
+    if ( identPercent<minvalue )
+        identPercent = minvalue;
+	if ( identPercent!=0 )
+		return lString16(prop) + lString16::itoa(identPercent) + L"%; ";
+	return lString16::empty_str;
+}
+
+static lString16 picasToPx( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
+    int v = 600 * p / 50;
+    if ( v>maxvalue )
+        v = maxvalue;
+    if ( v<minvalue )
+        v = minvalue;
+	if ( v!=0 )
+		return lString16(prop) + lString16::itoa(v) + L"px; ";
+	return lString16::empty_str;
+}
+
+static lString16 fontSizeToPercent( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
+    int v = 100 * p / 20;
+    if ( v>maxvalue )
+        v = maxvalue;
+    if ( v<minvalue )
+        v = minvalue;
+	if ( v!=0 )
+		return lString16(prop) + lString16::itoa(v) + L"%; ";
+	return lString16::empty_str;
+}
 
 static void setOptions() {
     options_type tOptions = {
@@ -234,10 +279,8 @@ vSubstring2Diagram(diagram_type *pDiag,
     }
     bool styleBold = bIsBold(usFontstyle);
     bool styleItalic = bIsItalic(usFontstyle);
-    int sizePercent = usFontSize * 100 / 24;
     lString16 style;
-    if ( sizePercent!=100 )
-        style << L"font-size: " << lString16::itoa(sizePercent) << L"%; ";
+	style << fontSizeToPercent( L"font-size: ", usFontSize, 30, 300 );
     if ( !style.empty() ) {
         writer->OnTagOpen(NULL, L"span");
         writer->OnAttribute(NULL, L"style", style.c_str());
@@ -289,7 +332,6 @@ vStoreStyle(diagram_type *pDiag, output_type *pOutput,
     //styleBold = pStyle->style_block_tag
 
 } /* end of vStoreStyle */
-
 /*
  * Create a start of paragraph (phase 1)
  * Before indentation, list numbering, bullets etc.
@@ -311,21 +353,15 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
         else
             style << L"text-align: left; ";
         if ( sLeftIndent1!=0 )
-            style << L"text-indent: " << lString16::itoa(sLeftIndent1/2) << L"px; ";
-        if ( sLeftIndent!=0 ) {
-            int identPercent = 100 * sLeftIndent / 600;
-            if ( identPercent>50 )
-                identPercent = 50;
-            if ( identPercent>2 )
-                style << L"margin-left: " << lString16::itoa(identPercent) << L"%; ";
-        }
-        if ( sRightIndent!=0 ) {
-            int identPercent = 100 * sRightIndent / 600;
-            if ( identPercent>30 )
-                identPercent = 30;
-            if ( identPercent>2 )
-                style << L"margin-right: " << lString16::itoa(identPercent) << L"%; ";
-        }
+            style << picasToPercent(L"text-indent: ", sLeftIndent1, 0, 20);
+        if ( sLeftIndent!=0 )
+            style << picasToPercent(L"margin-left: ", sLeftIndent, 0, 40);
+        if ( sRightIndent!=0 )
+            style << picasToPercent(L"margin-right: ", sRightIndent, 0, 30);
+        if ( usBeforeIndent!=0 )
+            style << picasToPx(L"margin-top: ", usBeforeIndent, 0, 20);
+        if ( usAfterIndent!=0 )
+            style << picasToPx(L"margin-bottom: ", usAfterIndent, 0, 20);
         if ( !style.empty() )
             writer->OnAttribute(NULL, L"style", style.c_str());
         writer->OnTagBody();
@@ -457,6 +493,7 @@ vEndOfTable(diagram_type *pDiag)
     if ( inside_table ) {
         writer->OnTagClose(NULL, L"table");
         inside_table = false;
+		table_col_count = 0;
     }
 } /* end of vEndOfTable */
 
@@ -473,6 +510,27 @@ bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 //        vAddTableRowXML(pDiag, aszColTxt,
 //                iNbrOfColumns, asColumnWidth,
 //                ucBorderInfo);
+	if ( table_col_count!=iNbrOfColumns ) {
+		if (inside_table)
+			writer->OnTagClose(NULL, L"table");
+		writer->OnTagOpenNoAttr(NULL, L"table");
+        inside_table = true;
+		int totalWidth = 0;
+		int i;
+		for ( i=0; i<iNbrOfColumns; i++ )
+			totalWidth += asColumnWidth[i];
+		if ( totalWidth>0 ) {
+			for ( i=0; i<iNbrOfColumns; i++ ) {
+				int cw = asColumnWidth[i] * 100 / totalWidth;
+		        writer->OnTagOpen(NULL, L"col");
+				if ( cw>=0 )
+					writer->OnAttribute(NULL, L"width", (lString16::itoa(cw) + L"%").c_str());
+		        writer->OnTagBody();
+		        writer->OnTagClose(NULL, L"col");
+			}
+		}
+		table_col_count = iNbrOfColumns;
+	}
     if (!inside_table) {
         writer->OnTagOpenNoAttr(NULL, L"table");
         inside_table = true;
@@ -597,6 +655,7 @@ bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
 	inside_p = false;
 	inside_table = false;
+	table_col_count = 0;
 	inside_list = 0; // 0=none, 1=ul, 2=ol
 	alignment = 0;
 	inside_li = false;

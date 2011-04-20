@@ -267,7 +267,7 @@ vCloseCharacterMappingFile(FILE *pFile)
 	(void)fclose(pFile);
 } /* end of pCloseCharacterMappingFile */
 
-
+#if CR3_ANTIWORD_PATCH!=1
 /*
  * iReadOptions - read options
  *
@@ -530,6 +530,7 @@ iReadOptions(int argc, char **argv)
 	return bSuccess ? optind : -1;
 #endif /* __riscos */
 } /* end of iReadOptions */
+#endif
 
 /*
  * vGetOptions - get a copy of the current option values
