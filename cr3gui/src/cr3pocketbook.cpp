@@ -1085,32 +1085,16 @@ static void loadPocketBookKeyMaps(CRGUIWindowManager & winman)
 int InitDoc(const char *exename, char *fileName)
 {
     static const lChar16 * css_file_name = L"fb2.css"; // fb2
-	bool profileUsed = false;
-	
-    CRLog::trace("InitDoc()");
 
-	lString16 dataDir(L""USERDATA);
-	if (LVDirectoryExists(lString16(L"" USERDATA "/profiles"))) {
-#ifndef __i386__
-		char *currProfile = GetCurrentProfile();
-		if (currProfile && currProfile[0]) {
-			profileUsed = true;
-			int profileType = GetProfileType(currProfile);
-			if (profileType == PF_SDCARD)
-				dataDir = L""USERPROFILES2 + lString16("/") + lString16(currProfile);
-			else if (profileType == PF_LOCAL)
-				dataDir = L""USERPROFILES + lString16("/") + lString16(currProfile);
-			else 
-				CRLog::error("InitDoc() : unknown profile type - %d", profileType);
-		}
-#endif
-	}
 #ifdef __i386__
     CRLog::setStdoutLogger();
     CRLog::setLogLevel(CRLog::LL_TRACE);
 #else
     InitCREngineLog(USERDATA"/share/cr3/crlog.ini");
 #endif
+	
+    CRLog::trace("InitDoc()");
+
 	pbGlobals = new CRPocketBookGlobals(fileName);
     char manual_file[512] = USERDATA"/share/c3/manual/cr3-manual-en.fb2";
     {
@@ -1129,9 +1113,9 @@ int InitDoc(const char *exename, char *fileName)
                 CRLog::info("translation file %s.mo not found", lang);
                 delete t;
             }
-            sprintf( manual_file, ""USERDATA"/share/cr3/manual/cr3-manual-%s.fb2", lang );
+            sprintf( manual_file, USERDATA"/share/cr3/manual/cr3-manual-%s.fb2", lang );
             if ( !LVFileExists( lString16(manual_file).c_str() ) )
-                sprintf( manual_file, ""USERDATA2"/share/cr3/manual/cr3-manual-%s.fb2", lang );
+                sprintf( manual_file, USERDATA2"/share/cr3/manual/cr3-manual-%s.fb2", lang );
         }
     }
 
@@ -1167,9 +1151,8 @@ int InitDoc(const char *exename, char *fileName)
         CRLog::trace("creating window manager...");
         CRPocketBookWindowManager * wm = new CRPocketBookWindowManager(ScreenWidth(), ScreenHeight());
 
-		lString8 cfgKeymapDir = UnicodeToUtf8(dataDir + lString16("/config/cr3/keymaps"));
         const char * keymap_locations [] = {
-			cfgKeymapDir.c_str(),
+			CONFIGPATH"/cr3/keymaps",
             USERDATA"/share/cr3/keymaps",
             USERDATA2"/share/cr3/keymaps",
             NULL,
@@ -1178,11 +1161,11 @@ int InitDoc(const char *exename, char *fileName)
         loadKeymaps(*wm, keymap_locations);
         loadPocketBookKeyMaps(*wm);
         HyphMan::initDictionaries(lString16(L""USERDATA"/share/cr3/hyph/"));
-        if (!wm->loadSkin(dataDir + lString16("/config/cr3/skin")))
+        if (!wm->loadSkin(lString16(L""CONFIGPATH"/cr3/skin")))
 			if (!wm->loadSkin(lString16(L""USERDATA2"/share/cr3/skin")))
 				wm->loadSkin(lString16(L""USERDATA"/share/cr3/skin"));
-		if (profileUsed)
-			ldomDocCache::init(dataDir + lString16("/state/cr3/.cache"), PB_CR3_CACHE_SIZE);
+
+		ldomDocCache::init(lString16(L""STATEPATH"/cr3/.cache"), PB_CR3_CACHE_SIZE);
 		if (!ldomDocCache::enabled())
 			ldomDocCache::init(lString16(L""USERDATA2"/share/cr3/.cache"), PB_CR3_CACHE_SIZE);
 		if (!ldomDocCache::enabled())
@@ -1195,20 +1178,19 @@ int InitDoc(const char *exename, char *fileName)
         main_win->getDocView()->setFontSize( 20 );
         if (manual_file[0])
             main_win->setHelpFile( lString16( manual_file ) );
-        if (!main_win->loadDefaultCover(dataDir + lString16("/config/cr3/cr3_def_cover.png")))
+        if (!main_win->loadDefaultCover(lString16(L""CONFIGPATH"/cr3/cr3_def_cover.png")))
 			if (!main_win->loadDefaultCover(lString16(L""USERDATA2"/share/cr3/cr3_def_cover.png")))
 				main_win->loadDefaultCover(lString16(L""USERDATA"/share/cr3/cr3_def_cover.png"));
-		if ( !main_win->loadCSS(dataDir + lString16("/config/cr3/")   + lString16(css_file_name) ) )
+		if ( !main_win->loadCSS(lString16(L""CONFIGPATH"/cr3/")   + lString16(css_file_name) ) )
 			if ( !main_win->loadCSS(  lString16( L""USERDATA"/share/cr3/" ) + lString16(css_file_name) ) )
                 main_win->loadCSS( lString16( L""USERDATA2"/share/cr3/" ) + lString16(css_file_name) );
-        main_win->setBookmarkDir(dataDir + lString16("/state/cr3/bookmarks/"));
+        main_win->setBookmarkDir(lString16(L""STATEPATH"/cr3/bookmarks/"));
         CRLog::trace("choosing init file...");
-        lString16 iniCfgDir = dataDir + lString16("/config/cr3/");
         static const lChar16 * dirs[] = {
-			iniCfgDir.c_str(),
+			L""CONFIGPATH"/cr3/",
             L""USERDATA2"/share/cr3/",
             L""USERDATA"/share/cr3/",
-            iniCfgDir.c_str(),
+            L""CONFIGPATH"/cr3/",
             NULL
         };
         CRLog::debug("Loading settings...");
@@ -1231,7 +1213,7 @@ int InitDoc(const char *exename, char *fileName)
 		}
         wm->restoreOrientation(orient);
 
-		if ( !main_win->loadHistory(dataDir + lString16("/state/cr3/.cr3hist")) ) 
+		if ( !main_win->loadHistory(lString16(L""STATEPATH"/cr3/.cr3hist")) ) 
 			CRLog::error("Cannot read history file");
         LVDocView * _docview = main_win->getDocView();
         _docview->setBatteryState(GetBatteryPower());
