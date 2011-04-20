@@ -651,7 +651,8 @@ bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     if ( bResult!=0 ) {
 #ifdef SAVE_COPY_OF_LOADED_DOCUMENT //def _DEBUG
         LVStreamRef ostream = LVOpenFileStream( "/tmp/test_save_source.xml", LVOM_WRITE );
-        m_doc->saveToStream( ostream, "utf-16" );
+		if ( !ostream.isNull() )
+			m_doc->saveToStream( ostream, "utf-16" );
 #endif
     }
 
