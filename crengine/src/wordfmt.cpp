@@ -2,13 +2,19 @@
 #include "../include/lvstring.h"
 #include "../include/lvstream.h"
 #include "../include/lvtinydom.h"
+
+//#ifndef ENABLE_ANTIWORD
+//#define ENABLE_ANTIWORD 1
+//#endif
+
+
 #if ENABLE_ANTIWORD==1
 #include "../include/wordfmt.h"
 
 #ifdef _DEBUG
-#define TRACE(x...) CRLog::trace(x)
+#define TRACE(x, ...) CRLog::trace(x)
 #else
-#define TRACE(x...)
+#define TRACE(x, ...)
 #endif
 
 static ldomDocumentWriter * writer = NULL;
@@ -139,6 +145,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 {
     TRACE("antiword::vImageEpilogue()");
     //return bAddDummyImagePS(pDiag, pImg);
+	return FALSE;
 } /* end of bAddDummyImage */
 
 /*
@@ -587,6 +594,17 @@ bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     AntiwordStreamGuard file(stream);
 
     setOptions();
+
+	inside_p = false;
+	inside_table = false;
+	inside_list = 0; // 0=none, 1=ul, 2=ol
+	alignment = 0;
+	inside_li = false;
+	sLeftIndent = 0;	/* Left indentation in twips */
+	sLeftIndent1 = 0;	/* First line left indentation in twips */
+	sRightIndent = 0;	/* Right indentation in twips */
+	usBeforeIndent = 0;	/* Vertical indent before paragraph in twips */
+	usAfterIndent = 0;	/* Vertical indent after paragraph in twips */
 
     BOOL bResult = 0;
     diagram_type	*pDiag;

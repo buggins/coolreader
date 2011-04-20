@@ -14,7 +14,7 @@
 #include "DeskLib:Wimp.h"
 #else
 #include <stdlib.h>
-#if defined(__dos) || defined(N_PLAT_NLM)
+#if defined(__dos) || defined(N_PLAT_NLM) || defined(_WIN32)
 extern int getopt(int, char **, const char *);
 #else
 #include <unistd.h>
