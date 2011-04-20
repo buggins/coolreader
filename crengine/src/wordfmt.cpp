@@ -56,18 +56,18 @@ static encoding_type	eEncoding = encoding_neutral;
 
 
 static lString16 picasToPercent( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
-    int identPercent = 100 * p / 50;
+    int identPercent = 100 * p / 5000;
     if ( identPercent>maxvalue )
         identPercent = maxvalue;
     if ( identPercent<minvalue )
         identPercent = minvalue;
-	if ( identPercent!=0 )
-		return lString16(prop) + lString16::itoa(identPercent) + L"%; ";
-	return lString16::empty_str;
+	//if ( identPercent!=0 )
+	return lString16(prop) + lString16::itoa(identPercent) + L"%; ";
+	//return lString16::empty_str;
 }
 
 static lString16 picasToPx( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
-    int v = 600 * p / 50;
+    int v = 600 * p / 5000;
     if ( v>maxvalue )
         v = maxvalue;
     if ( v<minvalue )
@@ -352,8 +352,8 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
             style << L"text-align: justify; ";
         else
             style << L"text-align: left; ";
-        if ( sLeftIndent1!=0 )
-            style << picasToPercent(L"text-indent: ", sLeftIndent1, 0, 20);
+        //if ( sLeftIndent1!=0 )
+        style << picasToPercent(L"text-indent: ", sLeftIndent1, 0, 20);
         if ( sLeftIndent!=0 )
             style << picasToPercent(L"margin-left: ", sLeftIndent, 0, 40);
         if ( sRightIndent!=0 )
