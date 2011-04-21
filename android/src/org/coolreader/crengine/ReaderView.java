@@ -3435,21 +3435,24 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Log.d("cr3", "View.onDetachedFromWindow() is called");
 	}
 
+    public final static String DEFAULT_CSS_IMPORT_PATTERN = "@include \"default.css\"";
 	private String getCSSForFormat( DocumentFormat fileFormat )
 	{
 		if ( fileFormat==null )
 			fileFormat = DocumentFormat.FB2;
 		File[] dataDirs = Engine.getDataDirectories(null, false, false);
+		String defaultCss = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
 		for ( File dir : dataDirs ) {
 			File file = new File( dir, fileFormat.getCssName() );
 			if ( file.exists() ) {
 				String css = mEngine.loadFileUtf8(file);
-				if ( css!=null )
+				if ( css!=null ) {
+					css = css.replaceFirst(DEFAULT_CSS_IMPORT_PATTERN, "\n" + defaultCss + "\n");
 					return css;
+				}
 			} 
 		}
-		String s = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
-		return s;
+		return defaultCss;
 	} 
 
 	boolean enable_progress_callback = true;
