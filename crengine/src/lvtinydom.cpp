@@ -1932,7 +1932,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
         int sumsize = reservedSpace;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
             if ( p->_bufsize >= 0 ) {
-                if ( p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
+                if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
                     // fits
                     sumsize += p->_bufsize;
                 } else {
@@ -4480,7 +4480,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
         ldomXPointerEx xp(node, offset);
         for ( int i=0; i<txtform->GetSrcCount(); i++ ) {
             const src_text_fragment_t * src = txtform->GetSrcInfo(i);
-            bool isObject = src->flags&LTEXT_SRC_IS_OBJECT;
+            bool isObject = (src->flags&LTEXT_SRC_IS_OBJECT)!=0;
             if ( src->object == node ) {
                 srcIndex = i;
                 srcLen = isObject ? 0 : src->t.len;
@@ -6156,7 +6156,7 @@ ldomWordEx * ldomWordExList::findWordByPattern()
         lString16 text = item->getText();
         text.lowercase();
         bool flg = true;
-        for ( int j=0; j<pattern.length(); j++ ) {
+        for ( unsigned j=0; j<pattern.length(); j++ ) {
             if ( j>=text.length() ) {
                 flg = false;
                 break;
@@ -6164,7 +6164,7 @@ ldomWordEx * ldomWordExList::findWordByPattern()
             lString16 chars = pattern[j];
             chars.lowercase();
             bool charFound = false;
-            for ( int k=0; k<chars.length(); k++ ) {
+            for ( unsigned k=0; k<chars.length(); k++ ) {
                 if ( chars[k]==text[j] ) {
                     charFound = true;
                     break;
@@ -8794,7 +8794,7 @@ lString16 ldomNode::getText( lChar16 blockDelimiter, int maxSize ) const
             for ( unsigned i=0; i<cc; i++ ) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText(blockDelimiter, maxSize);
-                if ( maxSize!=0 && txt.length()>maxSize )
+                if ( maxSize!=0 && txt.length()>(unsigned)maxSize )
                     break;
                 if ( i>=cc-1 )
                     break;
@@ -8832,7 +8832,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
             for ( unsigned i=0; i<cc; i++ ) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText8(blockDelimiter, maxSize);
-                if ( maxSize!=0 && txt.length()>maxSize )
+                if ( maxSize!=0 && txt.length()>(unsigned)maxSize )
                     break;
                 if ( i>=getChildCount()-1 )
                     break;
@@ -9079,7 +9079,7 @@ ldomNode * ldomNode::getFirstTextChild(bool skipEmpty)
             return this;
         lString16 txt = getText();
         bool nonSpaceFound = false;
-        for ( int i=0; i<txt.length(); i++ ) {
+        for ( unsigned i=0; i<txt.length(); i++ ) {
             lChar16 ch = txt[i];
             if ( ch!=' ' && ch!='\t' && ch!='\r' && ch!='\n' ) {
                 nonSpaceFound = true;

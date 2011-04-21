@@ -930,7 +930,7 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
 
         if ( _bpp==2 ) {
             // foreground color
-            lUInt8 cl = rgbToGray(GetTextColor()) >> 6; // 0..3
+            lUInt8 cl = (lUInt8)(rgbToGray(GetTextColor()) >> 6); // 0..3
             //cl ^= 0x03;
             for (xx = width; xx>0; --xx)
             {

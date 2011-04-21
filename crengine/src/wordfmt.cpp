@@ -2,14 +2,44 @@
 #include "../include/lvstring.h"
 #include "../include/lvstream.h"
 #include "../include/lvtinydom.h"
+
+//#ifndef ENABLE_ANTIWORD
+//#define ENABLE_ANTIWORD 1
+//#endif
+
+
 #if ENABLE_ANTIWORD==1
 #include "../include/wordfmt.h"
 
+#ifdef _WIN32
+extern "C" {
+	int strcasecmp(const char *s1, const char *s2) {
+		return stricmp(s1,s2);
+	}
+//char	*optarg = NULL;
+//	int	optind = 0;
+}
+#endif
+
+#ifdef _DEBUG
+#define TRACE(x, ...) CRLog::trace(x)
+#else
+#define TRACE(x, ...)
+#endif
 
 static ldomDocumentWriter * writer = NULL;
 static ldomDocument * doc = NULL;
 static bool inside_p = false;
+static bool inside_table = false;
+static int table_col_count = 0;
+static int inside_list = 0; // 0=none, 1=ul, 2=ol
 static int alignment = 0;
+static bool inside_li = false;
+static short	sLeftIndent = 0;	/* Left indentation in twips */
+static short	sLeftIndent1 = 0;	/* First line left indentation in twips */
+static short	sRightIndent = 0;	/* Right indentation in twips */
+static int	    usBeforeIndent = 0;	/* Vertical indent before paragraph in twips */
+static int	    usAfterIndent = 0;	/* Vertical indent after paragraph in twips */
 //static ldomNode * body = NULL;
 //static ldomNode * head = NULL;
 
@@ -23,6 +53,40 @@ static encoding_type	eEncoding = encoding_neutral;
 
 #define LFAIL(x) \
     if ((x)) crFatalError(1111, "assertion failed: " #x)
+
+
+static lString16 picasToPercent( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
+    int identPercent = 100 * p / 5000;
+    if ( identPercent>maxvalue )
+        identPercent = maxvalue;
+    if ( identPercent<minvalue )
+        identPercent = minvalue;
+	//if ( identPercent!=0 )
+	return lString16(prop) + lString16::itoa(identPercent) + L"%; ";
+	//return lString16::empty_str;
+}
+
+static lString16 picasToPx( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
+    int v = 600 * p / 5000;
+    if ( v>maxvalue )
+        v = maxvalue;
+    if ( v<minvalue )
+        v = minvalue;
+	if ( v!=0 )
+		return lString16(prop) + lString16::itoa(v) + L"px; ";
+	return lString16::empty_str;
+}
+
+static lString16 fontSizeToPercent( const lChar16 * prop, int p, int minvalue, int maxvalue ) {
+    int v = 100 * p / 20;
+    if ( v>maxvalue )
+        v = maxvalue;
+    if ( v<minvalue )
+        v = minvalue;
+	if ( v!=0 )
+		return lString16(prop) + lString16::itoa(v) + L"%; ";
+	return lString16::empty_str;
+}
 
 static void setOptions() {
     options_type tOptions = {
@@ -58,7 +122,7 @@ vPrologue1(diagram_type *pDiag, const char *szTask, const char *szFilename)
     eConversionType = tOptions.eConversionType;
     eEncoding = tOptions.eEncoding;
 
-    CRLog::trace("antiword::vPrologue1()");
+    TRACE("antiword::vPrologue1()");
     //vPrologueXML(pDiag, &tOptions);
 
     lString16 title("Word document");
@@ -88,7 +152,7 @@ vPrologue1(diagram_type *pDiag, const char *szTask, const char *szFilename)
 static void
 vEpilogue(diagram_type *pDiag)
 {
-    CRLog::trace("antiword::vEpilogue()");
+    TRACE("antiword::vEpilogue()");
     //vEpilogueTXT(pDiag->pOutFile);
     //vEpilogueXML(pDiag);
     if ( inside_p )
@@ -102,7 +166,7 @@ vEpilogue(diagram_type *pDiag)
 void
 vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
 {
-    CRLog::trace("antiword::vImagePrologue()");
+    TRACE("antiword::vImagePrologue()");
     //vImageProloguePS(pDiag, pImg);
 } /* end of vImagePrologue */
 
@@ -112,7 +176,7 @@ vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
 void
 vImageEpilogue(diagram_type *pDiag)
 {
-    CRLog::trace("antiword::vImageEpilogue()");
+    TRACE("antiword::vImageEpilogue()");
     //vImageEpiloguePS(pDiag);
 } /* end of vImageEpilogue */
 
@@ -124,8 +188,9 @@ vImageEpilogue(diagram_type *pDiag)
 BOOL
 bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 {
-    CRLog::trace("antiword::vImageEpilogue()");
+    TRACE("antiword::vImageEpilogue()");
     //return bAddDummyImagePS(pDiag, pImg);
+	return FALSE;
 } /* end of bAddDummyImage */
 
 /*
@@ -136,7 +201,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 diagram_type *
 pCreateDiagram(const char *szTask, const char *szFilename)
 {
-    CRLog::trace("antiword::pCreateDiagram()");
+    TRACE("antiword::pCreateDiagram()");
     diagram_type	*pDiag;
 
     LFAIL(szTask == NULL || szTask[0] == '\0');
@@ -156,7 +221,7 @@ pCreateDiagram(const char *szTask, const char *szFilename)
 void
 vDestroyDiagram(diagram_type *pDiag)
 {
-    CRLog::trace("antiword::vDestroyDiagram()");
+    TRACE("antiword::vDestroyDiagram()");
 
     LFAIL(pDiag == NULL);
 
@@ -173,7 +238,7 @@ vDestroyDiagram(diagram_type *pDiag)
 void
 vPrologue2(diagram_type *pDiag, int iWordVersion)
 {
-    CRLog::trace("antiword::vDestroyDiagram()");
+    TRACE("antiword::vDestroyDiagram()");
 //    vCreateBookIntro(pDiag, iWordVersion);
 //    vCreateInfoDictionary(pDiag, iWordVersion);
 //    vAddFontsPDF(pDiag);
@@ -186,11 +251,12 @@ void
 vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
     USHORT usFontSize)
 {
-    CRLog::trace("antiword::vMove2NextLine()");
+    TRACE("antiword::vMove2NextLine()");
     LFAIL(pDiag == NULL);
     LFAIL(pDiag->pOutFile == NULL);
     LFAIL(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 
+    //writer->OnTagOpenAndClose(NULL, L"br");
     //vMove2NextLineXML(pDiag);
 } /* end of vMove2NextLine */
 
@@ -204,14 +270,35 @@ vSubstring2Diagram(diagram_type *pDiag,
     USHORT usFontSize, USHORT usMaxFontSize)
 {
     lString16 s( szString, tStringLength);
-    CRLog::trace("antiword::vSubstring2Diagram(%s)", LCSTR(s));
+    TRACE("antiword::vSubstring2Diagram(%s)", LCSTR(s));
 //    vSubstringXML(pDiag, szString, tStringLength, lStringWidth,
 //            usFontstyle);
-    if ( !inside_p ) {
+    if ( !inside_p && !inside_li ) {
         writer->OnTagOpenNoAttr(NULL, L"p");
         inside_p = true;
     }
+    bool styleBold = bIsBold(usFontstyle);
+    bool styleItalic = bIsItalic(usFontstyle);
+    lString16 style;
+	style << fontSizeToPercent( L"font-size: ", usFontSize, 30, 300 );
+    if ( !style.empty() ) {
+        writer->OnTagOpen(NULL, L"span");
+        writer->OnAttribute(NULL, L"style", style.c_str());
+        writer->OnTagBody();
+    }
+    if ( styleBold )
+        writer->OnTagOpenNoAttr(NULL, L"b");
+    if ( styleItalic )
+        writer->OnTagOpenNoAttr(NULL, L"i");
+    //=================
     writer->OnText(s.c_str(), s.length(), 0);
+    //=================
+    if ( styleItalic )
+        writer->OnTagClose(NULL, L"i");
+    if ( styleBold )
+        writer->OnTagClose(NULL, L"b");
+    if ( !style.empty() )
+        writer->OnTagClose(NULL, L"span");
 
     pDiag->lXleft += lStringWidth;
 } /* end of vSubstring2Diagram */
@@ -228,18 +315,23 @@ void
 vStoreStyle(diagram_type *pDiag, output_type *pOutput,
     const style_block_type *pStyle)
 {
-    size_t	tLen;
-    char	szString[120];
+    //size_t	tLen;
+    //char	szString[120];
 
-    fail(pDiag == NULL);
-    fail(pOutput == NULL);
-    fail(pStyle == NULL);
+    LFAIL(pDiag == NULL);
+    LFAIL(pOutput == NULL);
+    LFAIL(pStyle == NULL);
 
-    CRLog::trace("antiword::vStoreStyle()");
+    TRACE("antiword::vStoreStyle()");
     alignment = pStyle->ucAlignment;
+    sLeftIndent = pStyle->sLeftIndent;	/* Left indentation in twips */
+    sLeftIndent1 = pStyle->sLeftIndent1;	/* First line left indentation in twips */
+    sRightIndent = pStyle->sRightIndent;	/* Right indentation in twips */
+    usBeforeIndent = pStyle->usBeforeIndent;	/* Vertical indent before paragraph in twips */
+    usAfterIndent = pStyle->usAfterIndent;	/* Vertical indent after paragraph in twips */
+    //styleBold = pStyle->style_block_tag
 
 } /* end of vStoreStyle */
-
 /*
  * Create a start of paragraph (phase 1)
  * Before indentation, list numbering, bullets etc.
@@ -247,19 +339,31 @@ vStoreStyle(diagram_type *pDiag, output_type *pOutput,
 void
 vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
 {
-    CRLog::trace("antiword::vStartOfParagraph1()");
+    TRACE("antiword::vStartOfParagraph1()");
     LFAIL(pDiag == NULL);
-
-    if ( !inside_p ) {
+    lString16 style;
+    if ( !inside_p && !inside_list && !inside_li ) {
         writer->OnTagOpen(NULL, L"p");
         if ( alignment==ALIGNMENT_CENTER )
-            writer->OnAttribute(NULL, L"style", L"text-align: center");
+            style << L"text-align: center; ";
         else if ( alignment==ALIGNMENT_RIGHT )
-            writer->OnAttribute(NULL, L"style", L"text-align: right");
+            style << L"text-align: right; ";
         else if ( alignment==ALIGNMENT_JUSTIFY )
-            writer->OnAttribute(NULL, L"style", L"text-align: justify");
+            style << L"text-align: justify; ";
         else
-            writer->OnAttribute(NULL, L"style", L"text-align: left");
+            style << L"text-align: left; ";
+        //if ( sLeftIndent1!=0 )
+        style << picasToPercent(L"text-indent: ", sLeftIndent1, 0, 20);
+        if ( sLeftIndent!=0 )
+            style << picasToPercent(L"margin-left: ", sLeftIndent, 0, 40);
+        if ( sRightIndent!=0 )
+            style << picasToPercent(L"margin-right: ", sRightIndent, 0, 30);
+        if ( usBeforeIndent!=0 )
+            style << picasToPx(L"margin-top: ", usBeforeIndent, 0, 20);
+        if ( usAfterIndent!=0 )
+            style << picasToPx(L"margin-bottom: ", usAfterIndent, 0, 20);
+        if ( !style.empty() )
+            writer->OnAttribute(NULL, L"style", style.c_str());
         writer->OnTagBody();
         inside_p = true;
     }
@@ -272,7 +376,7 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
 void
 vStartOfParagraph2(diagram_type *pDiag)
 {
-    CRLog::trace("antiword::vStartOfParagraph2()");
+    TRACE("antiword::vStartOfParagraph2()");
     LFAIL(pDiag == NULL);
     //vStartOfParagraphXML(pDiag, 1);
 } /* end of vStartOfParagraph2 */
@@ -284,7 +388,7 @@ void
 vEndOfParagraph(diagram_type *pDiag,
     drawfile_fontref tFontRef, USHORT usFontSize, long lAfterIndentation)
 {
-    CRLog::trace("antiword::vEndOfParagraph()");
+    TRACE("antiword::vEndOfParagraph()");
     LFAIL(pDiag == NULL);
     LFAIL(pDiag->pOutFile == NULL);
     LFAIL(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
@@ -302,7 +406,7 @@ vEndOfParagraph(diagram_type *pDiag,
 void
 vEndOfPage(diagram_type *pDiag, long lAfterIndentation, BOOL bNewSection)
 {
-    CRLog::trace("antiword::vEndOfPage()");
+    TRACE("antiword::vEndOfPage()");
     //vEndOfPageXML(pDiag);
 } /* end of vEndOfPage */
 
@@ -312,7 +416,7 @@ vEndOfPage(diagram_type *pDiag, long lAfterIndentation, BOOL bNewSection)
 void
 vSetHeaders(diagram_type *pDiag, USHORT usIstd)
 {
-    CRLog::trace("antiword::vEndOfPage()");
+    TRACE("antiword::vEndOfPage()");
     //vSetHeadersXML(pDiag, usIstd);
 } /* end of vSetHeaders */
 
@@ -322,7 +426,25 @@ vSetHeaders(diagram_type *pDiag, USHORT usIstd)
 void
 vStartOfList(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 {
-    CRLog::trace("antiword::vStartOfList()");
+    TRACE("antiword::vStartOfList()");
+
+    if ( bIsEndOfTable!=0 )
+        vEndOfTable(pDiag);
+
+    if ( inside_list==0 ) {
+        switch( ucNFC ) {
+        case LIST_BULLETS:
+            inside_list = 1;
+            writer->OnTagOpenNoAttr(NULL, L"ul");
+            break;
+        default:
+            inside_list = 2;
+            writer->OnTagOpenNoAttr(NULL, L"ol");
+            break;
+        }
+    }
+    inside_li = false;
+
     //vStartOfListXML(pDiag, ucNFC, bIsEndOfTable);
 } /* end of vStartOfList */
 
@@ -332,7 +454,17 @@ vStartOfList(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 void
 vEndOfList(diagram_type *pDiag)
 {
-    CRLog::trace("antiword::vEndOfList()");
+    TRACE("antiword::vEndOfList()");
+
+    if ( inside_li ) {
+        writer->OnTagClose(NULL, L"li");
+        inside_li = false;
+    }
+    if ( inside_list==1 )
+        writer->OnTagClose(NULL, L"ul");
+    else if ( inside_list==2 )
+        writer->OnTagClose(NULL, L"ol");
+
     //vEndOfListXML(pDiag);
 } /* end of vEndOfList */
 
@@ -342,7 +474,12 @@ vEndOfList(diagram_type *pDiag)
 void
 vStartOfListItem(diagram_type *pDiag, BOOL bNoMarks)
 {
-    CRLog::trace("antiword::vEndOfList()");
+    TRACE("antiword::vStartOfListItem()");
+    if ( inside_li ) {
+        writer->OnTagClose(NULL, L"li");
+    }
+    inside_li = true;
+    writer->OnTagOpenNoAttr(NULL, L"li");
     //vStartOfListItemXML(pDiag, bNoMarks);
 } /* end of vStartOfListItem */
 
@@ -352,7 +489,12 @@ vStartOfListItem(diagram_type *pDiag, BOOL bNoMarks)
 void
 vEndOfTable(diagram_type *pDiag)
 {
-    CRLog::trace("antiword::vEndOfTable()");
+    TRACE("antiword::vEndOfTable()");
+    if ( inside_table ) {
+        writer->OnTagClose(NULL, L"table");
+        inside_table = false;
+		table_col_count = 0;
+    }
 } /* end of vEndOfTable */
 
 /*
@@ -364,12 +506,45 @@ BOOL
 bAddTableRow(diagram_type *pDiag, char **aszColTxt,
     int iNbrOfColumns, const short *asColumnWidth, UCHAR ucBorderInfo)
 {
-    CRLog::trace("antiword::bAddTableRow()");
+    TRACE("antiword::bAddTableRow()");
 //        vAddTableRowXML(pDiag, aszColTxt,
 //                iNbrOfColumns, asColumnWidth,
 //                ucBorderInfo);
-//        return TRUE;
-    return FALSE;
+	if ( table_col_count!=iNbrOfColumns ) {
+		if (inside_table)
+			writer->OnTagClose(NULL, L"table");
+		writer->OnTagOpenNoAttr(NULL, L"table");
+        inside_table = true;
+		int totalWidth = 0;
+		int i;
+		for ( i=0; i<iNbrOfColumns; i++ )
+			totalWidth += asColumnWidth[i];
+		if ( totalWidth>0 ) {
+			for ( i=0; i<iNbrOfColumns; i++ ) {
+				int cw = asColumnWidth[i] * 100 / totalWidth;
+		        writer->OnTagOpen(NULL, L"col");
+				if ( cw>=0 )
+					writer->OnAttribute(NULL, L"width", (lString16::itoa(cw) + L"%").c_str());
+		        writer->OnTagBody();
+		        writer->OnTagClose(NULL, L"col");
+			}
+		}
+		table_col_count = iNbrOfColumns;
+	}
+    if (!inside_table) {
+        writer->OnTagOpenNoAttr(NULL, L"table");
+        inside_table = true;
+    }
+    writer->OnTagOpenNoAttr(NULL, L"tr");
+    for ( int i=0; i<iNbrOfColumns; i++ ) {
+        writer->OnTagOpenNoAttr(NULL, L"td");
+        lString16 text = lString16(aszColTxt[i]);
+        writer->OnText(text.c_str(), text.length(), 0);
+        writer->OnTagClose(NULL, L"td");
+    }
+    writer->OnTagClose(NULL, L"tr");
+    return TRUE;
+    //return FALSE;
 } /* end of bAddTableRow */
 
 
@@ -478,6 +653,18 @@ bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
     setOptions();
 
+	inside_p = false;
+	inside_table = false;
+	table_col_count = 0;
+	inside_list = 0; // 0=none, 1=ul, 2=ol
+	alignment = 0;
+	inside_li = false;
+	sLeftIndent = 0;	/* Left indentation in twips */
+	sLeftIndent1 = 0;	/* First line left indentation in twips */
+	sRightIndent = 0;	/* Right indentation in twips */
+	usBeforeIndent = 0;	/* Vertical indent before paragraph in twips */
+	usAfterIndent = 0;	/* Vertical indent after paragraph in twips */
+
     BOOL bResult = 0;
     diagram_type	*pDiag;
     int		iWordVersion;
@@ -516,6 +703,18 @@ bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
     doc = NULL;
     writer = NULL;
+
+#ifdef _DEBUG
+#define SAVE_COPY_OF_LOADED_DOCUMENT 1//def _DEBUG
+#endif
+    if ( bResult!=0 ) {
+#ifdef SAVE_COPY_OF_LOADED_DOCUMENT //def _DEBUG
+        LVStreamRef ostream = LVOpenFileStream( "/tmp/test_save_source.xml", LVOM_WRITE );
+		if ( !ostream.isNull() )
+			m_doc->saveToStream( ostream, "utf-16" );
+#endif
+    }
+
     return bResult!=0;
 }
 

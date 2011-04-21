@@ -1327,7 +1327,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 int counterValue = 0;
                 ldomNode * parent = enode->getParentNode();
                 int maxWidth = 0;
-                for ( int i=0; i<parent->getChildCount(); i++ ) {
+                for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
                     lString16 marker;
                     int markerWidth = 0;
                     ldomNode * child = parent->getChildElementNode(i);
@@ -1383,8 +1383,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, lString16("\\n"), true);
-                    int i;
-                    for ( int i=0; i<lines.length(); i++ )
+                    for ( unsigned i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
                 txform->AddSourceObject(flags, line_h, ident, enode );
@@ -1392,16 +1391,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, lString16("\\n"), true);
-                    int i;
-                    for ( int i=0; i<lines.length(); i++ )
+                    for ( unsigned i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
                 title = enode->getAttributeValue(attr_title);
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, lString16("\\n"), true);
-                    int i;
-                    for ( int i=0; i<lines.length(); i++ )
+                    for ( unsigned i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
             } else {
@@ -1522,7 +1519,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             int offs = 0;
             if ( txform->GetSrcCount()==0 && style->white_space!=css_ws_pre ) {
                 // clear leading spaces for first text of paragraph
-                int i=0;
+                unsigned i=0;
                 for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
                     ;
                 if ( i>0 ) {

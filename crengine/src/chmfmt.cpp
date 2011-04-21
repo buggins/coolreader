@@ -1005,7 +1005,7 @@ public:
 
         if ( hhcName.empty() ) {
             _fakeToc = true;
-            for ( int i=0; i<urlList.length(); i++ ) {
+            for ( unsigned i=0; i<urlList.length(); i++ ) {
                 //lString16 name = lString16::itoa(i+1);
                 lString16 name = urlList[i];
                 if ( name.endsWith(lString16(L".htm")) )
@@ -1040,7 +1040,7 @@ public:
                 // body element
                 recurseToc( body, 0 );
                 // add rest of pages
-                for ( int i=0; i<urlList.length(); i++ ) {
+                for ( unsigned i=0; i<urlList.length(); i++ ) {
                     lString16 name = urlList[i];
                     if ( name.endsWith(lString16(L".htm")) || name.endsWith(lString16(L".html")) )
                         addFile(name);

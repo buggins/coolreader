@@ -246,7 +246,7 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16Collection & ex
                     bool found = false;
                     lString16 lc = fileName;
                     lc.lowercase();
-                    for ( int j=0; j<ext.length(); j++ ) {
+                    for ( unsigned j=0; j<ext.length(); j++ ) {
                         if ( lc.endsWith(ext[j]) ) {
                             found = true;
                             break;

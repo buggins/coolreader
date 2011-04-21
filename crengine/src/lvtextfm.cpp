@@ -173,7 +173,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     {
         pline->t.text = text;
     }
-    pline->index = pbuffer->srctextlen-1;
+    pline->index = (lUInt16)(pbuffer->srctextlen-1);
     pline->object = object;
     pline->t.len = (lUInt16)len;
     pline->margin = margin;
@@ -203,7 +203,7 @@ void lvtextAddSourceObject(
         pbuffer->srctext = (src_text_fragment_t*)realloc( pbuffer->srctext, sizeof(src_text_fragment_t)*(srctextsize) );
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
-    pline->index = pbuffer->srctextlen-1;
+    pline->index = (lUInt16)(pbuffer->srctextlen-1);
     pline->o.width = width;
     pline->o.height = height;
     pline->object = object;
@@ -708,7 +708,7 @@ void lvtextDraw( formatted_text_fragment_t * text, draw_buf_t * buf, int x, int 
 
 #define DUMMY_IMAGE_SIZE 16
 
-int gFlgFloatingPunctuationEnabled = 1;
+bool gFlgFloatingPunctuationEnabled = true;
 
 void LFormattedText::AddSourceObject(
             lUInt16         flags,    /* flags */
@@ -1449,7 +1449,7 @@ public:
     void allocate()
     {
         int pos = 0;
-        int i;
+        unsigned i;
         // PASS 1: calculate total length (characters + objects)
         for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
             src_text_fragment_t * src = &m_pbuffer->srctext[i];
@@ -1491,7 +1491,7 @@ public:
     void copyText()
     {
         int pos = 0;
-        int i;
+        unsigned i;
         for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
             src_text_fragment_t * src = &m_pbuffer->srctext[i];
             if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
@@ -1598,7 +1598,7 @@ public:
         int maxWidth = m_pbuffer->width;
         int w0 = start>0 ? m_widths[start-1] : 0;
         int align = para->flags & LTEXT_FLAG_NEWLINE;
-        bool addHyph = m_flags[end] & LCHAR_ALLOW_HYPH_WRAP_AFTER;
+        bool addHyph = (m_flags[end] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0;
         int hyphWidth = 0;
         if ( addHyph )
             hyphWidth = ((LVFont*)m_srcs[end]->t.font)->getCharWidth(UNICODE_SOFT_HYPHEN_CODE);
@@ -1643,8 +1643,8 @@ public:
         for ( int i=start+1; i<=end; i++ ) {
             src_text_fragment_t * newSrc = i<end ? m_srcs[start] : 0;
             if ( i<end ) {
-                isObject = (m_flags[i] & LCHAR_IS_OBJECT);
-                isSpace = (m_flags[i] & LCHAR_IS_SPACE);
+                isObject = (m_flags[i] & LCHAR_IS_OBJECT)!=0;
+                isSpace = (m_flags[i] & LCHAR_IS_SPACE)!=0;
                 nextIsSpace = i<end-1 && (m_flags[i+1] & LCHAR_IS_SPACE);
                 space = addSpace && lastIsSpace && !isSpace && i<lastnonspace;
             } else {

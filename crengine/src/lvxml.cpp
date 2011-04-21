@@ -1355,7 +1355,7 @@ public:
         }
 
         int styleTagPos(lChar16 ch) {
-            for ( int i=0; i<styleTags.length(); i++ )
+            for ( unsigned i=0; i<styleTags.length(); i++ )
                 if ( styleTags[i]==ch )
                     return i;
             return -1;
@@ -1394,7 +1394,7 @@ public:
         }
 
         void openStyleTags() {
-            for ( int i=0; i<styleTags.length(); i++ )
+            for ( unsigned i=0; i<styleTags.length(); i++ )
                 openStyleTag(styleTags[i], false);
         }
 

@@ -4384,7 +4384,7 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	switch (cmd) {
     case DCMD_SET_INTERNAL_STYLES:
         m_props->setBool(PROP_EMBEDDED_STYLES, (param&1)!=0);
-        getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, param);
+        getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, param!=0);
         break;
     case DCMD_REQUEST_RENDER:
 		requestRender();
