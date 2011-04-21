@@ -3435,7 +3435,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Log.d("cr3", "View.onDetachedFromWindow() is called");
 	}
 
-    public final static String DEFAULT_CSS_IMPORT_PATTERN = "@include \"default.css\"";
+    public final static String DEFAULT_CSS_IMPORT_PATTERN = "@include \"default.css\"\\;";
 	private String getCSSForFormat( DocumentFormat fileFormat )
 	{
 		if ( fileFormat==null )
