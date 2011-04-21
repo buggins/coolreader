@@ -54,9 +54,8 @@ private :
 	int _keepOrientation;
 	lString8  _lang;
 	bool _ready_sent;
-	char *_dataFile;
-	char *_zetFile;
 	tdocstate _docstate;
+	bool createFile(char *fName);
 public:
     CRPocketBookGlobals(char *fileName);
 	char *getFileName() { return _fileName ; }
@@ -76,6 +75,7 @@ public:
 
 CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
 {
+	CRLog::trace("CRPocketBookGlobals(%s)", fileName);
 	_fileName = fileName;
 	_ready_sent = false;
 	iconfig *gc = OpenConfig(const_cast<char *>(GLOBALCONFIGFILE), NULL);
@@ -85,33 +85,39 @@ CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
 		_lang = "uk";
 	_keepOrientation = ReadInt(gc, const_cast<char *>("keeporient"), 0);
 	CloseConfig(gc);
-	_dataFile = GetAssociatedFile(fileName, 0);
-	_zetFile = GetAssociatedFile(fileName, 'z');
-	FILE *f = iv_fopen(_dataFile, const_cast<char *>("rb"));
-	if (f == NULL || iv_fread(&_docstate, 1, sizeof(tdocstate), f) != sizeof(tdocstate) || _docstate.magic != 0x9751) {
-		_docstate.magic = 0x9751;
-		_docstate.position = 0;
-		strcpy(_docstate.encoding, "auto");
-		_docstate.nbmk = 0;
-	} else
-		_dataFile = NULL;
-	if (f != NULL)
-        iv_fclose(f);
+}
+
+bool CRPocketBookGlobals::createFile(char *fName)
+{
+	lString16 filename(Utf8ToUnicode(fName));
+	LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_READ);
+    if ( !stream ) {
+        lString16 path16 = LVExtractPath( filename );
+		if (LVCreateDirectory( path16 )) {
+			stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+			if ( !stream.isNull() )
+				return true;
+			CRLog::error("Cannot create file %s", fName);
+		} else {
+			lString8 fn = UnicodeToUtf8(path16.c_str());
+			CRLog::error("Cannot create directory %s", fn.c_str());
+		}
+	}
+	return false;
 }
 
 void CRPocketBookGlobals::saveState(int cpage, int npages)
 {
 	CRLog::trace("CRPocketBookGlobals::saveState(%d, %d)", cpage, npages);
-	if (_dataFile != NULL) {
-		FILE *f = iv_fopen(_dataFile, const_cast<char *>("wb"));
-		if (f != NULL) {
-			iv_fwrite(&_docstate, 1, sizeof(tdocstate), f);
-			iv_fclose(f);
+	char *af0 = GetAssociatedFile(_fileName, 0);
+	CRLog::trace("CRPocketBookGlobals::saveState(), af0=%s", af0);
+
+	if (createFile(af0)) {
+		if (npages - cpage < 3 && cpage >= 5) {
+			char *afz = GetAssociatedFile(_fileName, 'z');
+			CRLog::trace("CRPocketBookGlobals::saveState(), afz=%s", afz);
+			createFile(afz);
 		}
-	}
-	if (npages - cpage < 3 && cpage >= 5) {
-		FILE *f = iv_fopen(_zetFile, const_cast<char *>("w"));
-		fclose(f);
 	}
 }
 
