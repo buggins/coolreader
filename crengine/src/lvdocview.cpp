@@ -4905,6 +4905,13 @@ void LVPageWordSelector::moveBy( MoveDirection dir, int distance )
     updateSelection();
 }
 
+void LVPageWordSelector::selectWord(int x, int y)
+{
+	ldomWordEx * word = _words.findNearestWord(x, y, DIR_ANY);
+	_words.selectWord(word, DIR_ANY);
+	updateSelection();
+}
+
 // append chars to search pattern
 ldomWordEx * LVPageWordSelector::appendPattern( lString16 chars )
 {

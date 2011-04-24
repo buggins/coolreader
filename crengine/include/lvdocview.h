@@ -227,6 +227,8 @@ public:
     ldomWordEx * appendPattern( lString16 chars );
     // remove last item from pattern
     ldomWordEx * reducePattern();
+    // selects word of current page with specified coords;
+    void selectWord(int x, int y);
 };
 
 

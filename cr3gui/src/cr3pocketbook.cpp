@@ -15,6 +15,7 @@
 #include "cr3pocketbook.h"
 #include <inkview.h>
 
+#define PB_CR3_TRANSLATE_DELAY 1100
 
 static const char *def_menutext[9] = {
 	"@Goto_page", "@Exit", "@Search",
@@ -47,20 +48,25 @@ typedef struct tdocstate_s {
 	long long bmk[30];
 } tdocstate;
 
+static void translate_timer();
+
 class CRPocketBookGlobals
 {
 private :
 	char *_fileName;
 	int _keepOrientation;
 	lString8  _lang;
+	lString8  _pbDictionary;
 	bool _ready_sent;
 	tdocstate _docstate;
 	bool createFile(char *fName);
+	bool _translateTimer;
 public:
     CRPocketBookGlobals(char *fileName);
 	char *getFileName() { return _fileName ; }
 	int getKeepOrientation() { return _keepOrientation; }
 	const char *getLang() { return _lang.c_str(); }
+	const char *getDictionary() { return _pbDictionary.c_str(); }
 	void saveState(int cpage, int npages);
 
 	virtual ~CRPocketBookGlobals() { };
@@ -71,6 +77,26 @@ public:
 			_ready_sent = true;
 		}
 	}
+	void startTranslateTimer()
+	{
+		SetHardTimer(const_cast<char *>("TranslateTimer"), translate_timer, PB_CR3_TRANSLATE_DELAY);
+		_translateTimer = true;
+	}
+	void killTranslateTimer()
+	{
+		if (_translateTimer) {
+			ClearTimer(translate_timer);
+			_translateTimer = false;
+		}
+	}
+	void translateTimerExpired()
+	{
+		_translateTimer = false;
+	}
+	bool isTranslateTimerRunning()
+	{
+		return _translateTimer;
+	}
 };
 
 CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
@@ -78,32 +104,35 @@ CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
 	CRLog::trace("CRPocketBookGlobals(%s)", fileName);
 	_fileName = fileName;
 	_ready_sent = false;
+	_translateTimer = false;
 	iconfig *gc = OpenConfig(const_cast<char *>(GLOBALCONFIGFILE), NULL);
 	_lang = ReadString(gc, const_cast<char *>("language"), const_cast<char *>("en"));
 	CRLog::trace("language=%s", _lang.c_str());
 	if (_lang == "ua")
 		_lang = "uk";
 	_keepOrientation = ReadInt(gc, const_cast<char *>("keeporient"), 0);
+	_pbDictionary = ReadString(gc, const_cast<char *>("dictionary"), const_cast<char *>(""));
 	CloseConfig(gc);
 }
 
 bool CRPocketBookGlobals::createFile(char *fName)
 {
 	lString16 filename(Utf8ToUnicode(fName));
-	LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_READ);
-    if ( !stream ) {
+    if ( !LVFileExists(filename) ) {
         lString16 path16 = LVExtractPath( filename );
 		if (LVCreateDirectory( path16 )) {
-			stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
-			if ( !stream.isNull() )
-				return true;
-			CRLog::error("Cannot create file %s", fName);
+			LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
+			if ( stream.isNull() ) {
+				CRLog::error("Cannot create file %s", fName);
+				return false;
+			}
 		} else {
 			lString8 fn = UnicodeToUtf8(path16.c_str());
 			CRLog::error("Cannot create directory %s", fn.c_str());
+			return false;
 		}
 	}
-	return false;
+	return true;
 }
 
 void CRPocketBookGlobals::saveState(int cpage, int npages)
@@ -208,9 +237,9 @@ static const struct {
 	{ "@KA_nxse", DCMD_MOVE_BY_CHAPTER, 1},
 	{ "@KA_obmk", MCMD_BOOKMARK_LIST_GO_MODE, 0},
 	{ "@KA_nbmk", MCMD_BOOKMARK_LIST, 0},
-	{ "@KA_nnot", -1, 0},
-	{ "@KA_savp", -1, 0},
-	{ "@KA_onot", -1, 0},
+	{ "@KA_nnot", GCMD_PASS_TO_PARENT, 0},
+	{ "@KA_savp", GCMD_PASS_TO_PARENT, 0},
+	{ "@KA_onot", GCMD_PASS_TO_PARENT, 0},
 	{ "@KA_olnk", MCMD_GO_LINK, 0},
 	{ "@KA_blnk", DCMD_LINK_BACK , 0},
 	{ "@KA_cnts", PB_CMD_CONTENTS, 0},
@@ -218,14 +247,14 @@ static const struct {
 	{ "@KA_dict", MCMD_DICT, 0},
 	{ "@KA_zmin", DCMD_ZOOM_IN, 0},
 	{ "@KA_zout", DCMD_ZOOM_OUT, 0},
-	{ "@KA_hidp", -1, 0},
+	{ "@KA_hidp", GCMD_PASS_TO_PARENT, 0},
 	{ "@KA_rtte", PB_CMD_ROTATE, 0},
 	{ "@KA_mmnu", MCMD_MAIN_MENU, 0},
 	{ "@KA_exit", MCMD_QUIT, 0},
-	{ "@KA_mp3o", -1, 0},
-	{ "@KA_mp3p", -1, 0},
-	{ "@KA_volp", -1, 0},
-	{ "@KA_volm", -1, 0},
+	{ "@KA_mp3o", GCMD_PASS_TO_PARENT, 0},
+	{ "@KA_mp3p", GCMD_PASS_TO_PARENT, 0},
+	{ "@KA_volp", GCMD_PASS_TO_PARENT, 0},
+	{ "@KA_volm", GCMD_PASS_TO_PARENT, 0},
 	{ "@KA_conf", MCMD_SETTINGS, 0},
 	{ "@KA_abou", MCMD_ABOUT, 0}
 };
@@ -336,7 +365,34 @@ public:
 		}
 		return false;
 	}
-
+	bool onKeyPressed( int key, int flags )
+	{
+		CRLog::trace("CRPocketBookWindowManager::onKeyPressed(%d, %d)", key, flags);
+		if (pbGlobals->isTranslateTimerRunning()) {
+			CRGUIAcceleratorTableRef accTable = _accTables.get("dict");
+			if (!accTable.isNull()) {
+				int cmd, param;
+				if (accTable->translate(key, flags, cmd, param)) {
+					switch (cmd) {
+					case PB_CMD_LEFT:
+					case PB_CMD_RIGHT:
+					case PB_CMD_UP:
+					case PB_CMD_DOWN:
+					case MCMD_CANCEL:
+					case MCMD_OK:
+						CRLog::trace("Killing translate timer, cmd = %d", cmd);
+						pbGlobals->killTranslateTimer();
+						if (cmd == MCMD_OK)
+							onCommand(PB_CMD_TRANSLATE, 0);
+						break;
+					default: 
+						break;
+					}
+				}
+			}
+		}
+		return CRGUIWindowManager::onKeyPressed(key, flags);
+	}
 };
 
 CRPocketBookWindowManager * CRPocketBookWindowManager::instance = NULL;
@@ -400,6 +456,7 @@ protected:
 	virtual void onDictionarySelect();
 	virtual bool onItemSelect();
 	virtual void drawTitleBar();
+	virtual lString8 createArticle(const char *word, const char *translation);
 public:
 	CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDialog *parent);
 	virtual void draw() { CRViewDialog::draw(); }
@@ -419,6 +476,13 @@ public:
 	void setCurItem(int index);
 };
 
+static void translate_timer() 
+{
+	CRLog::trace("translate_timer()");
+	pbGlobals->translateTimerExpired();
+	CRPocketBookWindowManager::instance->onCommand(PB_CMD_TRANSLATE, 0);
+}
+
 class CRPbDictionaryDialog : public CRGUIWindowBase
 {
 protected:
@@ -427,12 +491,16 @@ protected:
 	LVPageWordSelector * _wordSelector;
 	CRPbDictionaryView * _dictView;
 	bool _dictViewActive;
+	lString16 _selText;
 protected:
 	virtual void draw();
-    void startWordSelection();
     void endWordSelection();
     bool isWordSelection() { return _wordSelector!=NULL; }
     void onWordSelection();
+    bool _docDirty;
+    static int _curPage;
+    static int _lastWordX;
+    static int _lastWordY;
 public:
 	static CRPbDictionaryDialog * create( CRGUIWindowManager * wm, CRViewDialog * docwin );
 	CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialog * docwin );
@@ -453,10 +521,14 @@ public:
 			_dictViewActive = active; 
 			if (!active && isWordSelection())
 				_wordSelector->moveBy(DIR_ANY, 0);
+			setDocDirty();
 			Update();
 		}
 	}
+    void startWordSelection();
 	virtual void Update();
+	bool isDocDirty() { return _docDirty; }
+	void setDocDirty() { _docDirty = true; }
 };
 
 
@@ -637,6 +709,7 @@ public:
 	{
 		CRPbDictionaryDialog * dlg = new CRPbDictionaryDialog( _wm, this );
 		_wm->activateWindow( dlg );
+		dlg->startWordSelection();
 	}
 
 	void showContents() {
@@ -692,18 +765,19 @@ CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDi
 	}
 	CRLog::trace("_dictCount = %d", _dictCount);
 	CRPropRef props = CRPocketBookDocView::instance->getProps();
-	lString16 lastDict = props->getStringDef(PROP_POCKETBOOK_DICT);
+	lString16 lastDict = props->getStringDef(PROP_POCKETBOOK_DICT, pbGlobals->getDictionary());
 	_dictIndex = lastDict.empty() ? 0 : _dictsTable.get(lastDict);
 	if (_dictCount > 0 && _dictIndex >= 0) {
 		int rc = OpenDictionary(_dictNames[_dictIndex]);
 		if (rc == 1) {
 			_caption = Utf8ToUnicode( lString8(_dictNames[_dictIndex]) );
+			getDocView()->createDefaultDocument(lString16(), Utf8ToUnicode(TR("@Word_not_found")));
 			return;
 		}
 		CRLog::error("OpenDictionary(%s) returned %d", _dictNames[_dictIndex], rc);
 	}
 	_dictIndex = -1;
-	translate(lString16());
+	getDocView()->createDefaultDocument(lString16(), Utf8ToUnicode(TR("@Dic_error")));	
 }
 
 void CRPbDictionaryView::drawTitleBar()
@@ -752,7 +826,7 @@ void CRPbDictionaryView::drawTitleBar()
 		selRc.top += borders.top;
 		selRc.bottom -= borders.bottom;
 		buf.InvertRect(selRc.left, selRc.top, selRc.right, selRc.bottom);
-	}    
+	}
 }
 
 void CRPbDictionaryView::selectDictionary()
@@ -796,6 +870,8 @@ void CRPbDictionaryView::onDictionarySelect()
 		lString16 word = _word;
 		_word.clear();
 		_caption = lastDict;
+		_parent->setDocDirty();
+		_selectedIndex = 2;
 		translate(word);
 	}
 }
@@ -808,6 +884,7 @@ void CRPbDictionaryView::setCurItem(int index)
 	else if (index >= _itemsCount)
 		index = 0;
 	_selectedIndex = index;
+	setDirty();
 	_parent->Update();
 }
 
@@ -872,6 +949,8 @@ bool CRPbDictionaryView::onCommand( int command, int params )
 		_searchPattern += Utf8ToUnicode(key_buffer);
 		if ( !_searchPattern.empty() && params ) {
 			translate(_searchPattern);
+			setDirty();
+			_parent->startWordSelection();
 			_parent->Update();
 		}
 		return true;
@@ -879,16 +958,76 @@ bool CRPbDictionaryView::onCommand( int command, int params )
 		break;
 	}
 	if (CRViewDialog::onCommand(command, params)) {
+		setDirty();
 		_parent->Update();
 		return true;
 	}
 	return false;
 }
 
+lString8 CRPbDictionaryView::createArticle(const char *word, const char *translation)
+{
+	lString8 article;
+
+	article << "<title><p>" << word << "</p></title>";
+	if (translation != NULL) {
+		lString16 src = Utf8ToUnicode(translation), dst;
+		article << "<section style=\"text-align: left; text-indent: 0; font-size: 70%\">";
+		article << "<p>";
+		int offset = 0, count = 0;
+		const lChar16 *closeTag = NULL;
+		for (int i = 0; i < src.length(); i++) {
+			lChar16 currentChar = src[i];
+			if (currentChar == 1 || currentChar == 2 || currentChar == 3 ||
+				currentChar == '\n') {
+				if (count > 0) {
+					dst.append(src, offset, count);
+					count = 0;
+				}
+				offset = i + 1;
+				switch (currentChar) {
+				case 1:
+					if (closeTag != NULL) {
+						dst << closeTag;
+						closeTag = NULL;
+					}
+					break;
+				case 2:
+					dst << L"<emphasis>";
+					closeTag = L"</emphasis>";
+					break;
+				case 3:
+					dst << L"<strong>";
+					closeTag = L"</strong>";
+					break;
+				case '\n':
+					dst << L"</p><p>";
+				default:
+					break;
+				}
+			} else
+				count++;
+		}
+		if (offset != 0) {
+			if (count > 0)
+				dst.append(src, offset, count);
+			if (closeTag != NULL)
+				dst.append(closeTag);
+			dst << L"</p>";
+			article << UnicodeToUtf8(dst);
+		} else
+			article << translation;
+		article << "</section>";
+	}
+	return article;
+}
+
 void CRPbDictionaryView::translate(const lString16 &w)
 {
 	lString8 body;
 
+	CRLog::trace("CRPbDictionaryView::translate() start");
+	setDirty();
 	if (_dictIndex >= 0) {
 		lString16 s16 = w;
 		if (s16 == _word)
@@ -901,24 +1040,19 @@ void CRPbDictionaryView::translate(const lString16 &w)
 		
 		int rc = LookupWord((char *)what.c_str(), &word, &translation);
 		CRLog::trace("LookupWord(%s) returned %d", what.c_str(), rc);
-
 		if (rc != 0) {
-			body << "<title><p>" << word << "</p></title>";
-			if (translation != NULL) {
-				body << "<code style=\"text-align: left; text-indent: 0; font-size: 18\">";
-				body << translation;
-				body << "</code>";
-			}
+			body = createArticle(word, translation);
 		} else {
 			body << TR("@Word_not_found");
 		}
 	} else if (_dictCount <= 0) {
 		body << TR("@Dic_not_installed");
 	} else {
-		body << TR("Dic_error");
+		body << TR("@Dic_error");
 	}
 	_stream = LVCreateStringStream( CRViewDialog::makeFb2Xml( body ) );
 	getDocView()->LoadDocument(_stream);
+	CRLog::trace("CRPbDictionaryView::translate() end");
 }
 
 void CRPbDictionaryView::doActivate()
@@ -928,8 +1062,12 @@ void CRPbDictionaryView::doActivate()
 	_parent->Update();
 }
 
+int CRPbDictionaryDialog::_curPage = 0;
+int CRPbDictionaryDialog::_lastWordX = 0;
+int CRPbDictionaryDialog::_lastWordY = 0;
+
 CRPbDictionaryDialog::CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialog * docwin )
-: CRGUIWindowBase( wm ), _docwin(docwin), _docview(docwin->getDocView())
+: CRGUIWindowBase( wm ), _docwin(docwin), _docview(docwin->getDocView()), _docDirty(true)
 {
 	_wordSelector = NULL;
 	_fullscreen = true;
@@ -940,7 +1078,6 @@ CRPbDictionaryDialog::CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialo
 	setAccelerators( acc );
 	_dictViewActive = false;
 	CRPocketBookScreen::instance->setForceSoftUpdate(true);
-	startWordSelection();
 }
 
 CRPbDictionaryDialog * CRPbDictionaryDialog::create( CRGUIWindowManager * wm, CRViewDialog * docwin )
@@ -953,8 +1090,17 @@ void CRPbDictionaryDialog::startWordSelection()
 	if (isWordSelection())
 		endWordSelection();
     _wordSelector = new LVPageWordSelector(_docview);
+    int curPage = _docview->getCurPage();
+    CRLog::trace("CRPbDictionaryDialog::startWordSelection(), _curPage = %d, _lastWordX=%d, _lastWordY=%d",
+		_curPage, _lastWordX, _lastWordY);
+    if (_curPage != curPage) {
+		_curPage = curPage;
+		_lastWordY = _docview->GetPos();
+		_lastWordX = 0;
+		_selText.clear();
+	}
+	_wordSelector->selectWord(_lastWordX, _lastWordY);
 	onWordSelection();
-    Update();
 }
 
 void CRPbDictionaryDialog::endWordSelection()
@@ -989,7 +1135,18 @@ void CRPbDictionaryDialog::onWordSelection()
 				_dictView->setRect(rc);
 			}
 		}
-		_dictView->translate(word->getText());
+		lvPoint middle = word->getMark().getMiddlePoint();
+		_lastWordX = middle.x;
+		_lastWordY = middle.y;
+		bool firstTime = _selText.empty();
+		_selText = word->getText();
+		CRLog::trace("_selText = %s", UnicodeToUtf8( _selText).c_str());
+		if (!firstTime) {
+			pbGlobals->startTranslateTimer();
+			setDocDirty();
+			Update();
+		} else
+			_wm->onCommand(PB_CMD_TRANSLATE, 0);
 	}
 }
 
@@ -1011,12 +1168,15 @@ bool CRPbDictionaryDialog::onCommand( int command, int params )
 	case DCMD_PAGEDOWN:
 		curPage = _docview->getCurPage();
 		ret = _docview->doCommand((LVDocCmd)command, params);
-		if (curPage != _docview->getCurPage())
+		if (curPage != _docview->getCurPage()) {
+			setDocDirty();
 			startWordSelection();
+		}
 		return ret;
     case MCMD_OK:
 		_dictViewActive = true;
 		_docview->clearSelection();
+		setDocDirty();
 		_dictView->doActivate();
 		return true;
     case MCMD_CANCEL:
@@ -1035,27 +1195,47 @@ bool CRPbDictionaryDialog::onCommand( int command, int params )
 	case PB_CMD_DOWN:
 		dir = DIR_DOWN;
         break;
+    case PB_CMD_TRANSLATE:
+		_dictView->translate(_selText);
+		Update();
+		return true;
 	default:
 		return false;
 	}
+	CRLog::trace("Before move");
 	_wordSelector->moveBy(dir, params);
 	onWordSelection();
-	Update();
+	CRLog::trace("After move");
 	return true;
 }
 
 void CRPbDictionaryDialog::draw()
 {
-    LVDocImageRef page = _docview->getPageImage(0);
-    LVDrawBuf * buf = page->getDrawBuf();
-    _wm->getScreen()->draw( buf );
-    _dictView->draw();
+	if (_docDirty) {
+		LVDocImageRef page = _docview->getPageImage(0);
+		LVDrawBuf & canvas = *_wm->getScreen()->getCanvas();
+		lvRect saveClip;
+		canvas.GetClipRect(&saveClip);
+		LVDrawBuf * buf = page->getDrawBuf();
+		lvRect docRc = getRect();
+		lvRect dictRc = _dictView->getRect();
+		if (dictRc.top > 0)
+			docRc.bottom = dictRc.top - 1;
+		else
+			docRc.top = dictRc.bottom + 1;
+		canvas.SetClipRect(&docRc);
+		_wm->getScreen()->draw( buf );
+		canvas.SetClipRect(&saveClip);
+		_docDirty = false;
+	}
+	if (_dictView->isDirty())
+		_dictView->draw();
 }
 
 void CRPbDictionaryDialog::Update()
 {
     setDirty();
-    _wm->update( false );
+    _wm->update(false);
 }
 
 static void loadPocketBookKeyMaps(CRGUIWindowManager & winman)
@@ -1070,14 +1250,12 @@ static void loadPocketBookKeyMaps(CRGUIWindowManager & winman)
 		if (keypress[i]) {
 			CRPocketBookWindowManager::instance->getPocketBookCommand(keypress[i], commandId, commandParam);
 			CRLog::trace("keypress[%d] = %s, cmd = %d, param=%d", i, keypress[i], commandId, commandParam);
-			if (commandId >= 0)
-				pbTable.add(i, 0, commandId, commandParam);
+			pbTable.add(i, 0, commandId, commandParam);
 		}
 		if (keypresslong[i]) {
 			CRPocketBookWindowManager::instance->getPocketBookCommand(keypresslong[i], commandId, commandParam);
 			CRLog::trace("keypresslong[%d] = %s, cmd = %d, param=%d", i, keypresslong[i], commandId, commandParam);
-			if (commandId >= 0)
-				pbTable.add(i, 1, commandId, commandParam);
+			pbTable.add(i, 1, commandId, commandParam);
 		}
 	}
 	CRGUIAcceleratorTableRef mainTable = winman.getAccTables().get("main");
@@ -1334,9 +1512,9 @@ int main_handler(int type, int par1, int par2)
 			needUpdate = CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
 			process_events = true;
 			keyPressed = par1;
-			ret = 1;
 		} else
 			keyPressed = -1;
+		ret = 1;
 		break;
 	case EVT_KEYREPEAT:
 	case EVT_KEYRELEASE:
