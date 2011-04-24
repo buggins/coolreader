@@ -1324,6 +1324,15 @@ int InitDoc(char *fileName)
     } else if ( strstr(fileName, ".epub")!=NULL ) {
         ini_fname = L"cr3-epub.ini";
         css_file_name = L"epub.css";
+    } else if ( strstr(fileName, ".doc")!=NULL ) {
+        ini_fname = L"cr3-doc.ini";
+        css_file_name = L"doc.css";
+    } else if ( strstr(fileName, ".chm")!=NULL ) {
+        ini_fname = L"cr3-chm.ini";
+        css_file_name = L"chm.css";
+    } else if ( strstr(fileName, ".pdb")!=NULL ) {
+        ini_fname = L"cr3-txt.ini";
+        css_file_name = L"txt.css";
     } else {
         ini_fname = L"cr3-fb2.ini";
         css_file_name = L"fb2.css";
