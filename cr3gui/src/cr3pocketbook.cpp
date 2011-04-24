@@ -1395,13 +1395,12 @@ int InitDoc(const char *exename, char *fileName)
 			orient = main_win->getProps()->getIntDef(PROP_POCKETBOOK_ORIENTATION, GetOrientation());
 			SetOrientation(orient);
 		}
-        wm->restoreOrientation(orient);
-
 		if ( !main_win->loadHistory(lString16(L""STATEPATH"/cr3/.cr3hist")) ) 
 			CRLog::error("Cannot read history file");
         LVDocView * _docview = main_win->getDocView();
         _docview->setBatteryState(GetBatteryPower());
         wm->activateWindow( main_win );
+        wm->restoreOrientation(orient);
         if ( !main_win->loadDocument( lString16(fileName) ) ) {
             printf("Cannot open book file %s\n", fileName);
             delete wm;

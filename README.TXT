@@ -149,13 +149,20 @@ make
 # Building ARM version for PocketBook:
 mkdir pb360
 cd pb360
-cmake -D DEVICE_NAME=pb360 -D CMAKE_INSTALL_PREFIX=/usr/local/pocketbook/mnt/ext1 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-pocketbook.cmake -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_PB -D USE_EXTERNAL_EDICT_DICTIONARY=1 ..
+cmake -D DEVICE_NAME=pb360 -D CMAKE_INSTALL_PREFIX=/usr/local/pocketbook/mnt/ext1 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-pocketbook.cmake -D CMAKE_CXX_FLAGS_RELEASE:STRING="-fomit-frame-pointer -O1" -D MAX_IMAGE_SCALE_MUL=1 -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_PB -D ENABLE_CHM=1 -D ENABLE_ANTIWORD=1 ..
+make
+
+# Building ARM version for PocketBook Pro
+mkdir pbPro
+cd pbPro
+cmake -D DEVICE_NAME=pb360 -D CMAKE_INSTALL_PREFIX=/usr/local/pocketbook/mnt/ext1 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-gnu-eabi-pocketbook.cmake -D MAX_IMAGE_SCALE_MUL=1 -D CMAKE_BUILD_TYPE=Release -D ENABLE_CHM=1 -D ENABLE_ANTIWORD=1 -D GUI=CRGUI_PB -D POCKETBOOK_PRO=1 ..
 make
 
 # Building Wine version for PocketBook:
 mkdir pb360
 cd pb360
 cmake -D DEVICE_NAME=pb360 -D CMAKE_INSTALL_PREFIX=/usr/local/pocketbook/mnt/ext1 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-wine-pocketbook.cmake -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_BUILD_TYPE=Debug -D CMAKE_EXE_LINKER_FLAGS_DEBUG:STRING="-mwindows -m32" -D GUI=CRGUI_PB -D USE_EXTERNAL_EDICT_DICTIONARY=1 ..
+make
 ==============================
 *** QT Build under Windows ***
 ==============================
