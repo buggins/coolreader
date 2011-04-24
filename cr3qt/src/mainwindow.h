@@ -31,6 +31,7 @@ public slots:
     void contextMenu( QPoint pos );
 void on_actionFindText_triggered();
     private slots:
+    void on_actionNextPage3_triggered();
     void on_actionToggleEditMode_triggered();
     void on_actionRotate_triggered();
     void on_actionFileProperties_triggered();

@@ -35,6 +35,7 @@ static int table_col_count = 0;
 static int inside_list = 0; // 0=none, 1=ul, 2=ol
 static int alignment = 0;
 static bool inside_li = false;
+static bool last_space_char = false;
 static short	sLeftIndent = 0;	/* Left indentation in twips */
 static short	sLeftIndent1 = 0;	/* First line left indentation in twips */
 static short	sRightIndent = 0;	/* Right indentation in twips */
@@ -256,6 +257,8 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
     LFAIL(pDiag->pOutFile == NULL);
     LFAIL(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 
+    if ( (inside_p || inside_li) && !last_space_char )
+        writer->OnText(L" ", 1, 0);
     //writer->OnTagOpenAndClose(NULL, L"br");
     //vMove2NextLineXML(pDiag);
 } /* end of vMove2NextLine */
@@ -271,6 +274,8 @@ vSubstring2Diagram(diagram_type *pDiag,
 {
     lString16 s( szString, tStringLength);
     TRACE("antiword::vSubstring2Diagram(%s)", LCSTR(s));
+    s.trimDoubleSpaces(!last_space_char, true, false);
+    last_space_char = (s.lastChar()==' ');
 //    vSubstringXML(pDiag, szString, tStringLength, lStringWidth,
 //            usFontstyle);
     if ( !inside_p && !inside_li ) {
@@ -322,13 +327,14 @@ vStoreStyle(diagram_type *pDiag, output_type *pOutput,
     LFAIL(pOutput == NULL);
     LFAIL(pStyle == NULL);
 
-    TRACE("antiword::vStoreStyle()");
     alignment = pStyle->ucAlignment;
     sLeftIndent = pStyle->sLeftIndent;	/* Left indentation in twips */
     sLeftIndent1 = pStyle->sLeftIndent1;	/* First line left indentation in twips */
     sRightIndent = pStyle->sRightIndent;	/* Right indentation in twips */
     usBeforeIndent = pStyle->usBeforeIndent;	/* Vertical indent before paragraph in twips */
     usAfterIndent = pStyle->usAfterIndent;	/* Vertical indent after paragraph in twips */
+
+    TRACE("antiword::vStoreStyle(al=%d, li1=%d, li=%d, ri=%d)", alignment, sLeftIndent1, sLeftIndent, sRightIndent);
     //styleBold = pStyle->style_block_tag
 
 } /* end of vStoreStyle */
@@ -341,6 +347,19 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
 {
     TRACE("antiword::vStartOfParagraph1()");
     LFAIL(pDiag == NULL);
+    last_space_char = false;
+} /* end of vStartOfParagraph1 */
+
+/*
+ * Create a start of paragraph (phase 2)
+ * After indentation, list numbering, bullets etc.
+ */
+void
+vStartOfParagraph2(diagram_type *pDiag)
+{
+    TRACE("antiword::vStartOfParagraph2()");
+    LFAIL(pDiag == NULL);
+
     lString16 style;
     if ( !inside_p && !inside_list && !inside_li ) {
         writer->OnTagOpen(NULL, L"p");
@@ -349,11 +368,11 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
         else if ( alignment==ALIGNMENT_RIGHT )
             style << L"text-align: right; ";
         else if ( alignment==ALIGNMENT_JUSTIFY )
-            style << L"text-align: justify; ";
+            style << L"text-align: justify; text-indent: 1.3em; ";
         else
             style << L"text-align: left; ";
         //if ( sLeftIndent1!=0 )
-        style << picasToPercent(L"text-indent: ", sLeftIndent1, 0, 20);
+        //style << picasToPercent(L"text-indent: ", sLeftIndent1, 0, 20);
         if ( sLeftIndent!=0 )
             style << picasToPercent(L"margin-left: ", sLeftIndent, 0, 40);
         if ( sRightIndent!=0 )
@@ -367,17 +386,6 @@ vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
         writer->OnTagBody();
         inside_p = true;
     }
-} /* end of vStartOfParagraph1 */
-
-/*
- * Create a start of paragraph (phase 2)
- * After indentation, list numbering, bullets etc.
- */
-void
-vStartOfParagraph2(diagram_type *pDiag)
-{
-    TRACE("antiword::vStartOfParagraph2()");
-    LFAIL(pDiag == NULL);
     //vStartOfParagraphXML(pDiag, 1);
 } /* end of vStartOfParagraph2 */
 
@@ -659,6 +667,7 @@ bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 	inside_list = 0; // 0=none, 1=ul, 2=ol
 	alignment = 0;
 	inside_li = false;
+    last_space_char = false;
 	sLeftIndent = 0;	/* Left indentation in twips */
 	sLeftIndent1 = 0;	/* First line left indentation in twips */
 	sRightIndent = 0;	/* Right indentation in twips */
