@@ -8,17 +8,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.util.Log;
@@ -30,7 +29,7 @@ import android.util.Log;
  */
 public class Engine {
 	
-	private final Activity mActivity;
+	private final CoolReader mActivity;
 	private final BackgroundThread mBackgroundThread;
 	//private final View mMainView;
 	//private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
@@ -288,26 +287,34 @@ public class Engine {
 						return;
 					}
 					if ( mProgress==null ) {
-						Log.v("cr3", "showProgress() - in GUI thread : creating progress window");
-						if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
-							mProgress = new ProgressDialog(mActivity);
-							mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-							if ( progressIcon!=null )
-								mProgress.setIcon(progressIcon);
-							else
-								mProgress.setIcon(R.drawable.cr3_logo);
-							mProgress.setMax(10000);
-							mProgress.setCancelable(false);
-							mProgress.setProgress(mainProgress);
-							mProgress.setTitle(mActivity.getResources().getString(R.string.progress_please_wait));
-							mProgress.setMessage(msg);
-							mProgress.show();
-						} else {
-							mProgress = ProgressDialog.show(mActivity, "Please Wait", msg);
-							mProgress.setCancelable(false);
-							mProgress.setProgress(mainProgress);
+						try {
+							if ( mActivity!=null && mActivity.isStarted() ) {
+								Log.v("cr3", "showProgress() - in GUI thread : creating progress window");
+								if ( PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL ) {
+									mProgress = new ProgressDialog(mActivity);
+									mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+									if ( progressIcon!=null )
+										mProgress.setIcon(progressIcon);
+									else
+										mProgress.setIcon(R.drawable.cr3_logo);
+									mProgress.setMax(10000);
+									mProgress.setCancelable(false);
+									mProgress.setProgress(mainProgress);
+									mProgress.setTitle(mActivity.getResources().getString(R.string.progress_please_wait));
+									mProgress.setMessage(msg);
+									mProgress.show();
+								} else {
+									mProgress = ProgressDialog.show(mActivity, "Please Wait", msg);
+									mProgress.setCancelable(false);
+									mProgress.setProgress(mainProgress);
+								}
+								progressShown = true;
+							}
+						} catch ( Exception e ) {
+							Log.e("cr3", "Exception while trying to show progress dialog", e);
+							progressShown = false;
+							mProgress = null;
 						}
-						progressShown = true;
 					} else {
 						mProgress.setProgress(mainProgress);
 						mProgress.setMessage(msg);
@@ -438,7 +445,7 @@ public class Engine {
 	 * Initialize CoolReader Engine
 	 * @param fontList is array of .ttf font pathnames to load
 	 */
-	public Engine( Activity activity, BackgroundThread backgroundThread )
+	public Engine( CoolReader activity, BackgroundThread backgroundThread )
 	{
 		this.mActivity = activity;
 		this.mBackgroundThread = backgroundThread;
