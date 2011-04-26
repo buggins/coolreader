@@ -461,7 +461,7 @@ public class FileInfo {
 		}
 		
 		/**
-		 * Compares two strings
+		 * Compares two strings - with numbers sorted by value.
 		 * @param str1
 		 * @param str2
 		 * @return
@@ -474,7 +474,48 @@ public class FileInfo {
 				return -1;
 			if ( str2==null )
 				return 1;
-			return str1.compareTo(str2);
+			
+			int p1 = 0;
+			int p2 = 0;
+			for ( ;; ) {
+				if ( p1>=str1.length() ) {
+					if ( p2>=str2.length() )
+						return 0;
+					return 1;
+				}
+				if ( p1>=str1.length() )
+					return -1;
+				char ch1 = str1.charAt(p1);
+				char ch2 = str2.charAt(p2);
+				if ( ch1>='0' && ch1<='9' && ch2>='0' && ch2<='9' ) {
+					int n1 = 0;
+					int n2 = 0;
+					while ( ch1>='0' && ch1<='9' ) {
+						p1++;
+						n1 = n1 * 10 + (ch1-'0');
+						if ( p1>=str1.length() )
+							break;
+						ch1 = str1.charAt(p1);
+					}
+					while ( ch2>='0' && ch2<='9' ) {
+						p2++;
+						n2 = n2 * 10 + (ch2-'0');
+						if ( p2>=str2.length() )
+							break;
+						ch2 = str2.charAt(p2);
+					}
+					int c = cmp(n1, n2);
+					if ( c!=0 )
+						return c;
+				} else {
+					if ( ch1<ch2 )
+						return -1;
+					if ( ch1>ch2 )
+						return 1;
+					p1++;
+					p2++;
+				}
+			}
 		}
 		
 		/**
@@ -491,7 +532,7 @@ public class FileInfo {
 				return 1;
 			if ( str2==null )
 				return -1;
-			return str1.compareTo(str2);
+			return cmp(str1, str2);
 		}
 		
 		private static int cmp( long n1, long n2 )

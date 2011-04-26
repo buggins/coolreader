@@ -40,7 +40,7 @@ public enum DocumentFormat {
 	
 	public static DocumentFormat byId( int i )
 	{
-		if ( i>=0 && i<=CHM.ordinal() )
+		if ( i>=0 && i<DocumentFormat.values().length )
 			return values()[i];
 		return null;
 	}
@@ -56,7 +56,7 @@ public enum DocumentFormat {
 	public static DocumentFormat byExtension( String filename )
 	{
 		String s = filename.toLowerCase();
-		for ( int i=0; i<=CHM.ordinal(); i++ )
+		for ( int i=0; i<DocumentFormat.values().length; i++ )
 			if ( values()[i].matchExtension(s))
 				return values()[i];
 		return null;
