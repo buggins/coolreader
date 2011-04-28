@@ -273,7 +273,11 @@ vSubstring2Diagram(diagram_type *pDiag,
     USHORT usFontSize, USHORT usMaxFontSize)
 {
     lString16 s( szString, tStringLength);
+#ifdef _LINUX
     TRACE("antiword::vSubstring2Diagram(%s)", LCSTR(s));
+#else
+    TRACE("antiword::vSubstring2Diagram()");
+#endif
     s.trimDoubleSpaces(!last_space_char, true, false);
     last_space_char = (s.lastChar()==' ');
 //    vSubstringXML(pDiag, szString, tStringLength, lStringWidth,
