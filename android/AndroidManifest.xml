@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
-      android:versionCode="118"
-      android:versionName="3.0.45-08"
+      android:versionCode="120"
+      android:versionName="3.0.45-10"
       android:installLocation="auto"
       >
     <supports-screens
@@ -60,6 +60,14 @@
                 <data android:mimeType="text/richtext"/>
                 <data android:mimeType="application/epub+zip"/>
                 <data android:mimeType="application/x-chm"/>
+                <data android:mimeType="application/msword"/>
+                <data android:mimeType="application/doc"/>
+                <data android:mimeType="application/vnd.msword"/> 
+                <data android:mimeType="application/vnd.ms-word"/>
+                <data android:mimeType="application/winword"/>
+                <data android:mimeType="application/word"/>
+                <data android:mimeType="application/x-msw6"/>
+                <data android:mimeType="application/x-msword"/>
             </intent-filter>
         </activity>
     </application>

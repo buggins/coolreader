@@ -2302,7 +2302,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void run() {
 				BackgroundThread.ensureBackground();
 				PositionProperties currPos = getPositionPropsInternal(null);
-				if ( currPos.pageMode!=0 ) {
+				if ( currPos!=null && currPos.pageMode!=0 ) {
 					//int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
 					int dir = startX > maxX/2 ? 1 : -1;
 					int sx = startX;
@@ -3186,20 +3186,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			BackgroundThread.ensureGUI();
 			Log.d("cr3", "LoadDocumentTask, GUI thread is finished successfully");
-    		mActivity.getHistory().updateBookAccess(mBookInfo);
-    		mActivity.getHistory().saveToDB();
-	        if ( coverPageBytes!=null && coverPageDrawable!=null ) {
-	        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
-	        	//mEngine.setProgressDrawable(coverPageDrawable);
-	        }
-	        mOpened = true;
-	        drawPage();
-	        mBackThread.postGUI(new Runnable() {
-	        	public void run() {
-	    			mActivity.showReader();
-	        	}
-	        });
-	        mActivity.setLastSuccessfullyOpenedBook(filename);
+			if ( mActivity.getHistory()!=null ) {
+	    		mActivity.getHistory().updateBookAccess(mBookInfo);
+	    		mActivity.getHistory().saveToDB();
+		        if ( coverPageBytes!=null && coverPageDrawable!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null ) {
+		        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
+		        	//mEngine.setProgressDrawable(coverPageDrawable);
+		        }
+		        mOpened = true;
+		        drawPage();
+		        mBackThread.postGUI(new Runnable() {
+		        	public void run() {
+		    			mActivity.showReader();
+		        	}
+		        });
+		        mActivity.setLastSuccessfullyOpenedBook(filename);
+			}
 		}
 		public void fail( Exception e )
 		{

@@ -14,6 +14,8 @@
 #define __CRTXTENC_H_INCLUDED__
 
 #include "lvtypes.h"
+#include <stdio.h>
+#include "lvstring.h"
 
 
 enum char_encoding_type {
@@ -91,6 +93,7 @@ int AutodetectCodePageUtf( const unsigned char * buf, int buf_size, char * cp_na
 */
 bool isValidUtf8Data( const unsigned char * buf, int buf_size );
 
+void MakeStatsForFile( const char * fname, const char * cp_name, const char * lang_name, int index, FILE * f, lString8 & list );
 
 
 #endif

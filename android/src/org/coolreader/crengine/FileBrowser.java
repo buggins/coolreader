@@ -601,7 +601,9 @@ public class FileBrowser extends ListView {
 								if ( drawable!=null ) {
 									image.setImageDrawable(drawable);
 								} else {
-									image.setImageResource(item.format.getIconResourceId());
+									int resId = item.format!=null ? item.format.getIconResourceId() : 0;
+									if ( resId!=0 )
+										image.setImageResource(item.format.getIconResourceId());
 								}
 							}
 						}

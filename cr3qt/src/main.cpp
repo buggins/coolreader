@@ -58,6 +58,21 @@ int main(int argc, char *argv[])
                 printVersion();
                 return 0;
             }
+            if ( !strcmp("--stats", argv[i]) && i<argc-4 ) {
+                if ( i!=argc-5 ) {
+                    printf("To calculate character encoding statistics, use cr3 <infile.txt> <outfile.cpp> <codepagename> <langname>\n");
+                    return 1;
+                }
+                lString8 list;
+                FILE * out = fopen(argv[i+2], "wb");
+                if ( !out ) {
+                    printf("Cannot create file %s", argv[i+2]);
+                    return 1;
+                }
+                MakeStatsForFile( argv[i+1], argv[i+3], argv[i+4], 0, out, list );
+                fclose(out);
+                return 0;
+            }
             lString8 s(argv[i]);
             if ( s.startsWith(lString8("--loglevel=")) ) {
                 loglevel = s.substr(11, s.length()-11);
