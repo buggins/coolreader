@@ -1005,11 +1005,14 @@ void CR3View::keyPressEvent ( QKeyEvent * event )
             update();
             break;
         default:
-            if ( event->key()>=Qt::Key_A && event->key()<=Qt::Key_Z ) {
-                QString text = event->text();
-                if ( text.length()==1 ) {
-                    _wordSelector->appendPattern(qt2cr(text));
-                    update();
+            {
+                int key = event->key();
+                if ( key>=Qt::Key_A && key<=Qt::Key_Z ) {
+                    QString text = event->text();
+                    if ( text.length()==1 ) {
+                        _wordSelector->appendPattern(qt2cr(text));
+                        update();
+                    }
                 }
             }
             event->setAccepted(true);

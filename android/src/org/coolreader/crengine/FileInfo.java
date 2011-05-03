@@ -483,7 +483,7 @@ public class FileInfo {
 						return 0;
 					return 1;
 				}
-				if ( p1>=str1.length() )
+				if ( p2>=str2.length() )
 					return -1;
 				char ch1 = str1.charAt(p1);
 				char ch2 = str2.charAt(p2);
