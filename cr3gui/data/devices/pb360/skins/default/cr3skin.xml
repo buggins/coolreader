@@ -94,7 +94,7 @@
         <scroll base="#titlescroll"/>
   </window>
   <window id="dialog-rotated" base="#dialog"/>
-  <window id="dict">
+  <window id="dict" size="100%, 33%">
 		<title>
             <size minvalue="0,40" maxvalue="100%,40"/>
             <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="28" bold="false" italic="false" valign="center" halign="left"/>
@@ -109,7 +109,7 @@
         <client>
             <background color="#FFFFFF"/>
             <border widths="8,8,8,8"/>
-            <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="32" bold="false" italic="false" valign="center" halign="center"/>
+            <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="20" bold="false" italic="false" valign="center" halign="center"/>
         </client>
         <status>
             <border widths="0,0,0,0"/>
@@ -119,6 +119,42 @@
         </status>
   </window>
   <window id="dict-rotated" base="#dict"/>
+  <menu id="dict-list" min-item-count="7" max-item-count="7" show-shortcuts="false" fullscreen="false" >
+		<title>
+            <size minvalue="0,40" maxvalue="100%,40"/>
+            <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="28" bold="false" italic="false" valign="center" halign="left"/>
+            <background color="#FFFFFF"/>
+            <background color="#000000" pos="0, 0" size="100%,2"/>
+            <background color="#000000" pos="0,-2" size="100%,2"/>
+            <background color="#000000" pos="0,0" size="2,100%"/> 
+            <background color="#000000" pos="-2,0" size="2,100%"/> 
+            <border widths="4,4,4,4"/>
+		</title>
+        <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="26" bold="true" italic="false" valign="center" halign="left"/>
+        <background color="#FFFFFF"/>
+        <border widths="4,0,4,0"/>
+        <client>
+            <background color="#FFFFFF" />
+        </client>
+        <value>
+            <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="24" bold="false" italic="true" valign="center" halign="left"/>
+        </value>
+        <item>
+             <border widths="0,0,0,0"/>
+             <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="24" bold="true" italic="false" valign="center" halign="left"/>
+        </item>
+        <selitem>
+             <border widths="0,0,0,0"/>
+             <text color="#000000" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="24" bold="true" italic="false" valign="center" halign="left"/>
+        </selitem>
+        <status>
+            <border widths="0,0,0,0"/>
+            <size minvalue="0,4" maxvalue="0,0"/>
+            <background color="#000000"/>
+            <text color="#FFFFFF" face="Arial Narrow, DejaVu Sans Condensed, Arial" size="22" bold="true" italic="false" valign="center" halign="left" wordwrap="true"/>
+        </status>
+  </menu>
+  <menu id="dict-list-rotated" base="#dict-list" min-item-count="5" max-item-count="5"/>
   
   <menu id="toc" base="#main">
         <title base="#title-main" size="100%,40">

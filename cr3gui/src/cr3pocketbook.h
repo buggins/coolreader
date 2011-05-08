@@ -23,7 +23,9 @@ enum CRPbCommands {
 	PB_CMD_UP,
 	PB_CMD_DOWN,
 	PB_CMD_SELECT_DICT,
-	PB_CMD_TRANSLATE
+	PB_CMD_TRANSLATE,
+	PB_CMD_MP3,
+	PB_CMD_VOLUME
 };
 
 #define PB_QUICK_MENU_BMP_ID "fbreader_menu"

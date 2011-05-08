@@ -163,7 +163,7 @@ public:
 
     void showSettingsMenu();
 
-#if CR_INTERNAL_PAGE_ORIENTATION==1
+#if CR_INTERNAL_PAGE_ORIENTATION==1 || defined(CR_POCKETBOOK)
     void showOrientationMenu();
 #endif
 

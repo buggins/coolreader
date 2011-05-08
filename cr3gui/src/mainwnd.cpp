@@ -43,6 +43,9 @@
 
 #include "citedlg.h"
 
+#ifdef CR_POCKETBOOK
+#include "cr3pocketbook.h"
+#endif
 
 
 #define SECONDS_BEFORE_PROGRESS_BAR 2
@@ -373,6 +376,9 @@ void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
         case doc_format_chm:
             filename = L"chm.css";
             break;
+        case doc_format_doc:
+			filename = L"doc.css";
+			break;
         default:
             // do nothing
             ;
@@ -664,6 +670,12 @@ void V3DocViewWin::applySettings()
     //showWaitIcon();
     CRPropRef delta = _props ^ _newProps;
     CRLog::trace( "applySettings() - %d options changed", delta->getCount() );
+#ifdef CR_POCKETBOOK
+	if (delta->hasProperty(PROP_POCKETBOOK_ORIENTATION)) {
+		CRLog::trace("PB orientation have changed");
+		_wm->postCommand(mm_Orientation, 1525);
+	}
+#endif
     _docview->propsApply( delta );
     _props = _newProps; // | _props;
     _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));

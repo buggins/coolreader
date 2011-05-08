@@ -15,6 +15,9 @@
 #include "viewdlg.h"
 #include "mainwnd.h"
 //#include "fsmenu.h"
+#ifdef CR_POCKETBOOK
+#include "cr3pocketbook.h"
+#endif
 
 #include <cri18n.h>
 
@@ -182,7 +185,7 @@ bool CRSettingsMenu::onCommand( int command, int params )
     }
 }
 
-#if CR_INTERNAL_PAGE_ORIENTATION==1
+#if CR_INTERNAL_PAGE_ORIENTATION==1 || defined(CR_POCKETBOOK)
 CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef props )
 {
 	item_def_t page_orientations[] = {
@@ -194,9 +197,14 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
 	};
 
     LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
+#ifdef CR_POCKETBOOK
+	const char * propName = PROP_POCKETBOOK_ORIENTATION;
+#else
+	const char * propName = PROP_ROTATE_ANGLE;
+#endif
     CRMenu * orientationMenu = new CRMenu(_wm, mainMenu, mm_Orientation,
             lString16(_("Page orientation")),
-                            LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_ROTATE_ANGLE );
+                            LVImageSourceRef(), LVFontRef(), valueFont, props,  propName);
     addMenuItems( orientationMenu, page_orientations );
     orientationMenu->reconfigure( 0 );
 
@@ -423,6 +431,9 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {_("Full updates every 4 pages"), "4"},
         {_("Full updates every 5 pages"), "5"},
         {_("Full updates every 6 pages"), "6"},
+        {_("Full updates every 8 pages"), "8"},
+        {_("Full updates every 10 pages"), "10"},
+        {_("Full updates every 14 pages"), "14"},
         {NULL, NULL},
     };
 
@@ -485,7 +496,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( interlineSpaceMenu, interline_spaces );
         mainMenu->addItem( interlineSpaceMenu );
 
-#if CR_INTERNAL_PAGE_ORIENTATION==1
+#if CR_INTERNAL_PAGE_ORIENTATION==1 || defined(CR_POCKETBOOK)
         CRMenu * orientationMenu = createOrientationMenu(mainMenu, props);
         mainMenu->addItem( orientationMenu );
 #endif

@@ -1443,15 +1443,16 @@ void LVColorDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palett
 /// draws buffer content to another buffer doing color conversion if necessary
 void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette )
 {
-	if ( !(buf->GetBitsPerPixel()!=GetBitsPerPixel() || GetWidth()!=buf->GetWidth() || GetHeight()!=buf->GetHeight()) ) {
+    lvRect clip;
+    buf->GetClipRect(&clip);
+
+	if ( !(!clip.isEmpty() || buf->GetBitsPerPixel()!=GetBitsPerPixel() || GetWidth()!=buf->GetWidth() || GetHeight()!=buf->GetHeight()) ) {
 		// simple copy
         memcpy( buf->GetScanLine(0), GetScanLine(0), GetHeight() * GetRowSize() );
 		return;
 	}
 	if ( buf->GetBitsPerPixel()!=GetBitsPerPixel() )
 		return; // not supported yet
-    lvRect clip;
-    buf->GetClipRect(&clip);
     int bpp = buf->GetBitsPerPixel();
     for (int yy=0; yy<_dy; yy++)
     {
