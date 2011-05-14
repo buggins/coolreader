@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Catalan translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-08 15:30+0700\n"
+"POT-Creation-Date: 2011-05-14 17:02+0700\n"
 "PO-Revision-Date: 2011-05-08 16:05+0700\n"
 "Last-Translator: Ferri64\n"
 "Language-Team: Catalan LoCo Team\n"
@@ -32,55 +32,55 @@ msgstr "1..9"
 msgid "1..8"
 msgstr "1..8"
 
-#: ../src/mainwnd.cpp:764
+#: ../src/mainwnd.cpp:767
 msgid "No manual currently available for this language, sorry!"
 msgstr "Ho sento, no hi ha manual per al català."
 
-#: ../src/mainwnd.cpp:775 ../src/mainwnd.cpp:874
+#: ../src/mainwnd.cpp:778 ../src/mainwnd.cpp:877
 msgid "Help"
 msgstr "Ajuda"
 
-#: ../src/mainwnd.cpp:791
+#: ../src/mainwnd.cpp:794
 msgid "Main Menu"
 msgstr "Menú principal"
 
-#: ../src/mainwnd.cpp:825 ../src/viewdlg.cpp:509
+#: ../src/mainwnd.cpp:828 ../src/viewdlg.cpp:509
 msgid "About"
 msgstr "Quant a"
 
-#: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:478
+#: ../src/mainwnd.cpp:838 ../src/viewdlg.cpp:478
 msgid "Go to page"
 msgstr "Vés a la pàgina"
 
-#: ../src/mainwnd.cpp:846 ../src/recentdlg.cpp:73
+#: ../src/mainwnd.cpp:849 ../src/recentdlg.cpp:73
 msgid "Open recent book"
 msgstr "Obre un dels darrers llibres"
 
-#: ../src/mainwnd.cpp:852 ../src/viewdlg.cpp:164
+#: ../src/mainwnd.cpp:855 ../src/viewdlg.cpp:164
 msgid "Dictionary"
 msgstr "Diccionari"
 
-#: ../src/mainwnd.cpp:857
+#: ../src/mainwnd.cpp:860
 msgid "Cite"
 msgstr "Cita"
 
-#: ../src/mainwnd.cpp:861 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
 msgid "Bookmarks"
 msgstr "Marcadors"
 
-#: ../src/mainwnd.cpp:865 ../src/viewdlg.cpp:223
+#: ../src/mainwnd.cpp:868 ../src/viewdlg.cpp:223
 msgid "Search"
 msgstr "Cerca"
 
-#: ../src/mainwnd.cpp:869 ../src/settings.cpp:308
+#: ../src/mainwnd.cpp:872 ../src/settings.cpp:308
 msgid "Settings"
 msgstr "Paràmetres"
 
-#: ../src/mainwnd.cpp:878 ../src/viewdlg.cpp:572
+#: ../src/mainwnd.cpp:881 ../src/viewdlg.cpp:572
 msgid "Keyboard layout"
 msgstr "Dsiposició de teclat"
 
-#: ../src/mainwnd.cpp:885
+#: ../src/mainwnd.cpp:888
 #, fuzzy
 msgid ""
 "$1 - choose command\n"
@@ -89,156 +89,156 @@ msgstr ""
 "$1 - obre el llibre\n"
 "$2, $3 - tanca"
 
-#: ../src/mainwnd.cpp:989
+#: ../src/mainwnd.cpp:992
 msgid "Current page"
 msgstr "Pàgina actual"
 
-#: ../src/mainwnd.cpp:990
+#: ../src/mainwnd.cpp:993
 msgid "Total pages"
 msgstr "Total de pàgines"
 
-#: ../src/mainwnd.cpp:991
+#: ../src/mainwnd.cpp:994
 msgid "Battery state"
 msgstr "Estat de la bateria"
 
-#: ../src/mainwnd.cpp:991
+#: ../src/mainwnd.cpp:994
 msgid "charging..."
 msgstr "s'està carregant..."
 
-#: ../src/mainwnd.cpp:992
+#: ../src/mainwnd.cpp:995
 msgid "Current Time"
 msgstr "Hora actual"
 
-#: ../src/mainwnd.cpp:997
+#: ../src/mainwnd.cpp:1000
 msgid "Current chapter"
 msgstr "Capítol actual"
 
-#: ../src/mainwnd.cpp:1000
+#: ../src/mainwnd.cpp:1003
 msgid "Status"
 msgstr "Estat"
 
-#: ../src/mainwnd.cpp:1003
+#: ../src/mainwnd.cpp:1006
 msgid "Archive name"
 msgstr "Nom de l'arxiu"
 
-#: ../src/mainwnd.cpp:1004
+#: ../src/mainwnd.cpp:1007
 msgid "Archive path"
 msgstr "Camí de l'arxiu"
 
-#: ../src/mainwnd.cpp:1005
+#: ../src/mainwnd.cpp:1008
 msgid "Archive size"
 msgstr "Mida de l'arxiu"
 
-#: ../src/mainwnd.cpp:1006
+#: ../src/mainwnd.cpp:1009
 msgid "File name"
 msgstr "Nom del fitxer"
 
-#: ../src/mainwnd.cpp:1007
+#: ../src/mainwnd.cpp:1010
 msgid "File path"
 msgstr "Camí del fitxer"
 
-#: ../src/mainwnd.cpp:1008
+#: ../src/mainwnd.cpp:1011
 msgid "File size"
 msgstr "Mida del fitxer"
 
-#: ../src/mainwnd.cpp:1009
+#: ../src/mainwnd.cpp:1012
 msgid "File format"
 msgstr "Format del fitxer"
 
-#: ../src/mainwnd.cpp:1010
+#: ../src/mainwnd.cpp:1013
 msgid "File info"
 msgstr "Informació del fitxer"
 
-#: ../src/mainwnd.cpp:1013
+#: ../src/mainwnd.cpp:1016
 msgid "Title"
 msgstr "Títol"
 
-#: ../src/mainwnd.cpp:1014
+#: ../src/mainwnd.cpp:1017
 msgid "Author(s)"
 msgstr "Autor(s)"
 
-#: ../src/mainwnd.cpp:1015
+#: ../src/mainwnd.cpp:1018
 msgid "Series name"
 msgstr "Nom de la sèrie"
 
-#: ../src/mainwnd.cpp:1016
+#: ../src/mainwnd.cpp:1019
 msgid "Series number"
 msgstr "Número dins la sèrie"
 
-#: ../src/mainwnd.cpp:1017
+#: ../src/mainwnd.cpp:1020
 msgid "Date"
 msgstr "Data"
 
-#: ../src/mainwnd.cpp:1018
+#: ../src/mainwnd.cpp:1021
 msgid "Genres"
 msgstr "Gènere"
 
-#: ../src/mainwnd.cpp:1019
+#: ../src/mainwnd.cpp:1022
 msgid "Translator"
 msgstr "Traductor"
 
-#: ../src/mainwnd.cpp:1020
+#: ../src/mainwnd.cpp:1023
 msgid "Book info"
 msgstr "Informació del llibre"
 
-#: ../src/mainwnd.cpp:1023
+#: ../src/mainwnd.cpp:1026
 msgid "Document author"
 msgstr "Autor del document"
 
-#: ../src/mainwnd.cpp:1024
+#: ../src/mainwnd.cpp:1027
 msgid "Document date"
 msgstr "Data del document"
 
-#: ../src/mainwnd.cpp:1025
+#: ../src/mainwnd.cpp:1028
 msgid "Document source URL"
 msgstr "URL origen del document"
 
-#: ../src/mainwnd.cpp:1026
+#: ../src/mainwnd.cpp:1029
 msgid "OCR by"
 msgstr "OCR per"
 
-#: ../src/mainwnd.cpp:1027
+#: ../src/mainwnd.cpp:1030
 msgid "Document version"
 msgstr "Versió del document"
 
-#: ../src/mainwnd.cpp:1028
+#: ../src/mainwnd.cpp:1031
 #, fuzzy
 msgid "Change history"
 msgstr "Retrocedeix a l'historial de moviment"
 
-#: ../src/mainwnd.cpp:1029
+#: ../src/mainwnd.cpp:1032
 msgid "Document info"
 msgstr "Informació del document"
 
-#: ../src/mainwnd.cpp:1032
+#: ../src/mainwnd.cpp:1035
 msgid "Publication name"
 msgstr "Nom de l'edició"
 
-#: ../src/mainwnd.cpp:1033
+#: ../src/mainwnd.cpp:1036
 msgid "Publisher"
 msgstr "Editor"
 
-#: ../src/mainwnd.cpp:1034
+#: ../src/mainwnd.cpp:1037
 msgid "Publisher city"
 msgstr "Lloc de l'editorial"
 
-#: ../src/mainwnd.cpp:1035
+#: ../src/mainwnd.cpp:1038
 msgid "Publication year"
 msgstr "Any de l'edició"
 
-#: ../src/mainwnd.cpp:1036
+#: ../src/mainwnd.cpp:1039
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1037
+#: ../src/mainwnd.cpp:1040
 msgid "Publication info"
 msgstr "Informació de l'edició"
 
-#: ../src/mainwnd.cpp:1039
+#: ../src/mainwnd.cpp:1042
 msgid "Custom info"
 msgstr "Informació personalitzada"
 
-#: ../src/mainwnd.cpp:1154
+#: ../src/mainwnd.cpp:1157
 msgid "Loading: please wait..."
 msgstr "S'està carregant..."
 
@@ -907,3 +907,7 @@ msgstr "Tecla"
 #: ../src/viewdlg.cpp:560
 msgid "Assigned function"
 msgstr "Funció assignada"
+
+#: ../src/cr3pocketbook.cpp:1592
+msgid "Press $1 to translate"
+msgstr ""

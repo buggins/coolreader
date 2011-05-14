@@ -39,6 +39,8 @@ enum CRPbCommands {
 
 #define PROP_POCKETBOOK_ORIENTATION    "cr3.pocketbook.orientation"
 #define PROP_POCKETBOOK_DICT "cr3.pocketbook.dictionary"
+#define PROP_POCKETBOOK_DICT_PAGES "cr3.pocketbook.dict.pages"
+#define PROP_POCKETBOOK_DICT_AUTO_TRANSLATE "cr3.pocketbook.dict.auto"
 
 #define PB_CR3_CACHE_SIZE (0x100000 * 64)
 

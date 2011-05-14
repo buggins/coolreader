@@ -22,7 +22,6 @@ INCLUDE(${KWWidgets_CMAKE_DIR}KWWidgetsInternationalizationMacros.cmake)
 SET (LANGUAGES ru uk de bg es ca pl lt zh_CN zh_TW)
 message( "Languages: ${LANGUAGES}" )
 
-
 SET (CR3_SOURCES 
   src/bgfit.cpp
   src/citedlg.cpp 
@@ -45,6 +44,10 @@ SET (CR3_SOURCES
 SET (CR3_STYLES
   data/epub.css  data/fb2.css  data/htm.css  data/rtf.css  data/txt.css data/chm.css
 )
+
+if (${GUI} STREQUAL CRGUI_PB)
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3pocketbook.cpp)
+endif (${GUI} STREQUAL CRGUI_PB)
 
 #   
 KWWidgets_CREATE_GETTEXT_TARGETS(
@@ -153,7 +156,7 @@ elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
     SET (CR3_BIN_DESTINATION )
 
 elseif (${GUI} STREQUAL CRGUI_PB)
-    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3pocketbook.cpp)
+#    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3pocketbook.cpp)
     FIND_LIBRARY(INKVIEW_LIB inkview)
     IF (INKVIEW_LIB)
 	IF (DEFINED POCKETBOOK_PRO)
