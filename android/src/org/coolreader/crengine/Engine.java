@@ -15,7 +15,6 @@ import java.util.zip.ZipFile;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -485,8 +484,13 @@ public class Engine {
 		this.mActivity = activity;
 		this.mBackgroundThread = backgroundThread;
 		// this.mMainView = mainView;
+		//
+//		Log.i("cr3", "Engine() : initializing Engine in UI thread");
+//		if (!initialized) {
+//			installLibrary();
+//		}
 		Log.i("cr3", "Engine() : scheduling init task");
-		mBackgroundThread.executeBackground(new Runnable() {
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			public void run() {
 				try {
 					Log.i("cr3", "Engine() : running init() in engine thread");
@@ -578,7 +582,7 @@ public class Engine {
 			return false;
 		currentHyphDict = dict;
 		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		mBackgroundThread.executeBackground(new Runnable() {
 			public void run() {
 				byte[] data = null;
 				if (dict.type == HYPH_DICT && dict.resource != 0) {
@@ -754,10 +758,12 @@ public class Engine {
 			Log.i("cr3", "trying to load library " + LIBRARY_NAME
 					+ " w/o installation");
 			System.loadLibrary(LIBRARY_NAME);
-			Log.i("cr3", "cr3engine loaded successfully");
+			// try invoke native method
+			//Log.i("cr3", "trying execute native method ");
+			//setHyphenationMethod(HYPH_NONE, new byte[] {});
+			Log.i("cr3", LIBRARY_NAME + " loaded successfully");
 		} catch (Exception ee) {
-			Log.i("cr3",
-					"cr3engine not found using standard paths, will install manually");
+			Log.i("cr3", SO_NAME + " not found using standard paths, will install manually");
 			File sopath = mActivity.getDir("libs", Context.MODE_PRIVATE);
 			File soname = new File(sopath, SO_NAME);
 			try {
@@ -783,8 +789,9 @@ public class Engine {
 							+ " is up to date");
 				}
 				System.load(soname.getAbsolutePath());
+				//setHyphenationMethod(HYPH_NONE, new byte[] {});
 			} catch (Exception e) {
-				Log.e("cr3", "cannot install cr3engine library", e);
+				Log.e("cr3", "cannot install " + LIBRARY_NAME + " library", e);
 			}
 		}
 	}

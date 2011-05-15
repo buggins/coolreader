@@ -519,6 +519,8 @@ public class Scanner {
 		addRoot( "/mnt/extsd", "External SD /mnt/extsd", true);
 		// external SD card Huawei S7
 		addRoot( "/sdcard2", R.string.dir_sd_card_2, true);
+		addRoot( "/mnt/localdisk", "/mnt/localdisk", true);
+		
 	}
 	
 //	public boolean scan()

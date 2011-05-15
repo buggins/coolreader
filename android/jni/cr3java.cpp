@@ -163,7 +163,7 @@ jbyteArray CRJNIEnv::streamToJByteArray( LVStreamRef stream )
 	if ( stream.isNull() )
 		return NULL;
 	int sz = (int)stream->GetSize();
-	if ( sz<10 || sz>200000 )
+	if ( sz<10 || sz>2000000 )
 		return NULL;
     jbyteArray array = env->NewByteArray(sz); 
     lUInt8 * array_data = (lUInt8 *)env->GetByteArrayElements(array, 0);\

@@ -514,14 +514,31 @@ static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
    JNIEnv* env = NULL;
-   jint result = -1;
+   jint res = -1;
  
-   if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-      return result;
-   }
+#ifdef JNI_VERSION_1_6
+    if (res==-1 && vm->GetEnv((void**) &env, JNI_VERSION_1_6) == JNI_OK) {
+        LOGI("JNI_OnLoad: JNI_VERSION_1_6\n");
+   	    res = JNI_VERSION_1_6;
+    }
+#endif
+#ifdef JNI_VERSION_1_4
+    if (res==-1 && vm->GetEnv((void**) &env, JNI_VERSION_1_4) == JNI_OK) {
+        LOGI("JNI_OnLoad: JNI_VERSION_1_4\n");
+   	    res = JNI_VERSION_1_4;
+    }
+#endif
+#ifdef JNI_VERSION_1_2
+    if (res==-1 && vm->GetEnv((void**) &env, JNI_VERSION_1_2) == JNI_OK) {
+        LOGI("JNI_OnLoad: JNI_VERSION_1_2\n");
+   	    res = JNI_VERSION_1_2;
+    }
+#endif
+	if ( res==-1 )
+		return res;
  
-   jniRegisterNativeMethods(env, "org/coolreader/crengine/Engine", sEngineMethods, sizeof(sEngineMethods)/sizeof(JNINativeMethod));
-   jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sReaderViewMethods, sizeof(sReaderViewMethods)/sizeof(JNINativeMethod));
-   
-   return JNI_VERSION_1_4;
+    jniRegisterNativeMethods(env, "org/coolreader/crengine/Engine", sEngineMethods, sizeof(sEngineMethods)/sizeof(JNINativeMethod));
+    jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sReaderViewMethods, sizeof(sReaderViewMethods)/sizeof(JNINativeMethod));
+    LOGI("JNI_OnLoad: native methods are registered!\n");
+    return res;
 }
